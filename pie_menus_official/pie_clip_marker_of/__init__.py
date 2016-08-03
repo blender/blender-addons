@@ -19,132 +19,22 @@
 # <pep8 compliant>
 
 bl_info = {
-    "name": "Pie Menus Official",
-    "author": "Antony Riakiotakis, Sebastian Koenig",
-    "version": (1, 0, 3),
+    "name": "Clip Editor Pies: Key: 'hotkey list Below'",
+    "description": "Clip Editor Pies",
+#    "author": "Antony Riakiotakis, Sebastian Koenig",
+    "version": (0, 1, 0),
     "blender": (2, 77, 0),
-    "description": "Enable official Pie Menus in Blender",
-    "wiki_url": "http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/2.72/UI/Pie_Menus",
-    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
-    "category": "User Interface",
-}
+    "location": "Q, W, Shift W, E. Shift S, Shift A",
+    "warning": "",
+    "wiki_url": "",
+    "category": "Pie Menu"
+    }
 
 import bpy
-from bpy.types import Menu, Operator
-from bpy.props import EnumProperty
-
-
-class VIEW3D_PIE_object_mode(Menu):
-    bl_label = "Mode"
-
-    def draw(self, context):
-        layout = self.layout
-
-        pie = layout.menu_pie()
-        pie.operator_enum("OBJECT_OT_mode_set", "mode")
-
-
-class VIEW3D_PIE_view_more(Menu):
-    bl_label = "More"
-
-    def draw(self, context):
-        layout = self.layout
-
-        pie = layout.menu_pie()
-        pie.operator("VIEW3D_OT_view_persportho", text="Persp/Ortho", icon='RESTRICT_VIEW_OFF')
-        pie.operator("VIEW3D_OT_camera_to_view")
-        pie.operator("VIEW3D_OT_view_selected")
-        pie.operator("VIEW3D_OT_view_all")
-        pie.operator("VIEW3D_OT_localview")
-        pie.operator("SCREEN_OT_region_quadview")
-
-
-class VIEW3D_PIE_view(Menu):
-    bl_label = "View"
-
-    def draw(self, context):
-        layout = self.layout
-
-        pie = layout.menu_pie()
-        pie.operator_enum("VIEW3D_OT_viewnumpad", "type")
-        pie.operator("wm.call_menu_pie", text="More", icon='PLUS').name = "VIEW3D_PIE_view_more"
-
-
-class VIEW3D_PIE_shade(Menu):
-    bl_label = "Shade"
-
-    def draw(self, context):
-        layout = self.layout
-
-        pie = layout.menu_pie()
-        pie.prop(context.space_data, "viewport_shade", expand=True)
-
-        if context.active_object:
-            if(context.mode == 'EDIT_MESH'):
-                pie.operator("MESH_OT_faces_shade_smooth")
-                pie.operator("MESH_OT_faces_shade_flat")
-            else:
-                pie.operator("OBJECT_OT_shade_smooth")
-                pie.operator("OBJECT_OT_shade_flat")
-
-
-class VIEW3D_manipulator_set(Operator):
-    bl_label = "Set Manipulator"
-    bl_idname = "view3d.manipulator_set"
-
-    type = EnumProperty(
-            name="Type",
-            items=(('TRANSLATE', "Translate", "Use the manipulator for movement transformations"),
-                   ('ROTATE', "Rotate", "Use the manipulator for rotation transformations"),
-                   ('SCALE', "Scale", "Use the manipulator for scale transformations"),
-                   ),
-            )
-
-    def execute(self, context):
-        # show manipulator if user selects an option
-        context.space_data.show_manipulator = True
-
-        context.space_data.transform_manipulators = {self.type}
-
-        return {'FINISHED'}
-
-
-class VIEW3D_PIE_manipulator(Menu):
-    bl_label = "Manipulator"
-
-    def draw(self, context):
-        layout = self.layout
-
-        pie = layout.menu_pie()
-        pie.operator("view3d.manipulator_set", icon='MAN_TRANS', text="Translate").type = 'TRANSLATE'
-        pie.operator("view3d.manipulator_set", icon='MAN_ROT', text="Rotate").type = 'ROTATE'
-        pie.operator("view3d.manipulator_set", icon='MAN_SCALE', text="Scale").type = 'SCALE'
-        pie.prop(context.space_data, "show_manipulator")
-
-
-class VIEW3D_PIE_pivot(Menu):
-    bl_label = "Pivot"
-
-    def draw(self, context):
-        layout = self.layout
-
-        pie = layout.menu_pie()
-        pie.prop(context.space_data, "pivot_point", expand=True)
-        if context.active_object.mode == 'OBJECT':
-            pie.prop(context.space_data, "use_pivot_point_align", text="Center Points")
-
-
-class VIEW3D_PIE_snap(Menu):
-    bl_label = "Snapping"
-
-    def draw(self, context):
-        layout = self.layout
-
-        toolsettings = context.tool_settings
-        pie = layout.menu_pie()
-        pie.prop(toolsettings, "snap_element", expand=True)
-        pie.prop(toolsettings, "use_snap")
-
+from bpy.types import (
+        Menu,
+        Operator,
+        )
 
 class CLIP_PIE_refine_pie(Menu):
     # Refinement Options
@@ -352,43 +242,9 @@ class CLIP_PIE_timecontrol_pie(Menu):
         pie.operator("screen.frame_offset", text="Next Frame", icon='TRIA_RIGHT').delta = 1
 
 
-class PieMenuPrefs(bpy.types.AddonPreferences):
-    bl_idname = __name__
-
-    bpy.types.Scene.Enable_Tab_01 = bpy.props.BoolProperty(default=False)
-
-    def draw(self, context):
-        layout = self.layout
-        layout.prop(context.scene, "Enable_Tab_01", text="Hotkey List", icon="INFO")
-        if context.scene.Enable_Tab_01:
-            row = layout.row()
-            layout.label(text="Object Mode: 'TAB', 'PRESS'")
-            layout.label(text="Shade: 'Z', 'PRESS'")
-            layout.label(text="View: 'Q', 'PRESS'")
-            layout.label(text="Manipulator: 'SPACE', 'PRESS', ctrl=True")
-            layout.label(text="Pivot: 'PERIOD', 'PRESS'")
-            layout.label(text="Snap: 'TAB', 'PRESS', ctrl=True, shift=True")
-            layout.label(text="Grease Pencil Stroke Edit Mode: 'TAB', 'PRESS'")
-            layout.label(text="Marker: 'Q', 'PRESS'")
-            layout.label(text="Clipsetup: 'W', 'PRESS'")
-            layout.label(text="Tracking: 'E', 'PRESS'")
-            layout.label(text="Solver: 'S', 'PRESS', shift=True")
-            layout.label(text="Reconstruction: 'W', 'PRESS', shift=True")
-            layout.label(text="Timecontrol: 'A', 'PRESS', oskey=True")
-
 addon_keymaps = []
 
 classes = (
-    VIEW3D_manipulator_set,
-
-    VIEW3D_PIE_object_mode,
-    VIEW3D_PIE_view,
-    VIEW3D_PIE_view_more,
-    VIEW3D_PIE_shade,
-    VIEW3D_PIE_manipulator,
-    VIEW3D_PIE_pivot,
-    VIEW3D_PIE_snap,
-    PieMenuPrefs,
     CLIP_PIE_geometry_reconstruction,
     CLIP_PIE_tracking_pie,
     CLIP_PIE_display_pie,
@@ -410,24 +266,6 @@ def register():
 
     if wm.keyconfigs.addon:
         km = wm.keyconfigs.addon.keymaps.new(name='Object Non-modal')
-        kmi = km.keymap_items.new('wm.call_menu_pie', 'TAB', 'PRESS')
-        kmi.properties.name = 'VIEW3D_PIE_object_mode'
-        kmi = km.keymap_items.new('wm.call_menu_pie', 'Z', 'PRESS')
-        kmi.properties.name = 'VIEW3D_PIE_shade'
-        kmi = km.keymap_items.new('wm.call_menu_pie', 'Q', 'PRESS')
-        kmi.properties.name = 'VIEW3D_PIE_view'
-        kmi = km.keymap_items.new('wm.call_menu_pie', 'SPACE', 'PRESS', ctrl=True)
-        kmi.properties.name = 'VIEW3D_PIE_manipulator'
-        kmi = km.keymap_items.new('wm.call_menu_pie', 'PERIOD', 'PRESS')
-        kmi.properties.name = 'VIEW3D_PIE_pivot'
-        kmi = km.keymap_items.new('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True)
-        kmi.properties.name = 'VIEW3D_PIE_snap'
-        addon_keymaps.append(km)
-
-        km = wm.keyconfigs.addon.keymaps.new(name='Grease Pencil Stroke Edit Mode')
-        kmi = km.keymap_items.new('wm.call_menu_pie', 'TAB', 'PRESS')
-        kmi.properties.name = 'VIEW3D_PIE_object_mode'
-        addon_keymaps.append(km)
 
         km = wm.keyconfigs.addon.keymaps.new(name="Clip", space_type='CLIP_EDITOR')
         kmi = km.keymap_items.new("wm.call_menu_pie", 'Q', 'PRESS')
@@ -443,7 +281,7 @@ def register():
         addon_keymaps.append(km)
 
         km = wm.keyconfigs.addon.keymaps.new(name="Frames")
-        kmi = km.keymap_items.new("wm.call_menu_pie", 'A', 'PRESS', oskey=True)
+        kmi = km.keymap_items.new("wm.call_menu_pie", 'A', 'PRESS', shift=True)
         kmi.properties.name = "CLIP_PIE_timecontrol_pie"
 
         addon_keymaps.append(km)
@@ -463,3 +301,6 @@ def unregister():
             wm.keyconfigs.addon.keymaps.remove(km)
 
     addon_keymaps.clear()
+
+if __name__ == "__main__":
+    register()
