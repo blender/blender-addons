@@ -40,18 +40,6 @@ import sys
 import os
 
 # ----------------------------------------------
-# Add to Phyton path (once only)
-# ----------------------------------------------
-path = sys.path
-flag = False
-for item in path:
-    if "archimesh" in item:
-        flag = True
-if flag is False:
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'archimesh'))
-    print("archimesh: added to phytonpath")
-
-# ----------------------------------------------
 # Import modules
 # ----------------------------------------------
 if "bpy" in locals():
@@ -72,20 +60,20 @@ if "bpy" in locals():
     imp.reload(achm_window_panel)
     print("archimesh: Reloaded multifiles")
 else:
-    import achm_books_maker
-    import achm_column_maker
-    import achm_curtain_maker
-    import achm_venetian_maker
-    import achm_door_maker
-    import achm_kitchen_maker
-    import achm_lamp_maker
-    import achm_main_panel
-    import achm_roof_maker
-    import achm_room_maker
-    import achm_shelves_maker
-    import achm_stairs_maker
-    import achm_window_maker
-    import achm_window_panel
+    from . import achm_books_maker
+    from . import achm_column_maker
+    from . import achm_curtain_maker
+    from . import achm_venetian_maker
+    from . import achm_door_maker
+    from . import achm_kitchen_maker
+    from . import achm_lamp_maker
+    from . import achm_main_panel
+    from . import achm_roof_maker
+    from . import achm_room_maker
+    from . import achm_shelves_maker
+    from . import achm_stairs_maker
+    from . import achm_window_maker
+    from . import achm_window_panel
 
     print("archimesh: Imported multifiles")
 

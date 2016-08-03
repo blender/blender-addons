@@ -40,18 +40,6 @@ import sys
 import os
 
 # ----------------------------------------------
-# Add to Phyton path (once only)
-# ----------------------------------------------
-path = sys.path
-flag = False
-for item in path:
-    if "measureit" in item:
-        flag = True
-if flag is False:
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'measureit'))
-    print("measureit: added to phytonpath")
-
-# ----------------------------------------------
 # Import modules
 # ----------------------------------------------
 if "bpy" in locals():
@@ -60,7 +48,7 @@ if "bpy" in locals():
     imp.reload(measureit_main)
     print("measureit: Reloaded multifiles")
 else:
-    import measureit_main
+    from . import measureit_main
 
     print("measureit: Imported multifiles")
 

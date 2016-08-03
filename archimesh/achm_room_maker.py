@@ -30,7 +30,7 @@ import math
 import mathutils
 import datetime
 import time
-from achm_tools import *
+from .achm_tools import *
 # noinspection PyUnresolvedReferences
 from bpy_extras.io_utils import ExportHelper, ImportHelper
 

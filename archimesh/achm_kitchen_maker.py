@@ -29,7 +29,7 @@ import copy
 import sys
 import datetime
 import time
-from achm_tools import *
+from .achm_tools import *
 from bpy_extras.io_utils import ExportHelper
 
 # ----------------------------------------------------------

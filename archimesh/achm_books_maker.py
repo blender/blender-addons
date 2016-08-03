@@ -29,7 +29,7 @@ import math
 import random
 import copy
 import colorsys
-from achm_tools import *
+from .achm_tools import *
 
 
 # ------------------------------------------------------------------

@@ -31,7 +31,7 @@ import bpy
 import math
 # noinspection PyUnresolvedReferences
 import mathutils
-from achm_tools import *
+from .achm_tools import *
 
 
 def fitil(vr, fc, px, pz, x, y, z, zz, xx):

@@ -27,7 +27,7 @@ import bpy
 import math
 # noinspection PyUnresolvedReferences
 from bpy.props import *
-from achm_tools import *
+from .achm_tools import *
 
 
 # ------------------------------------------------------------------

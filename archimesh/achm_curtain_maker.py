@@ -28,7 +28,7 @@ import bpy
 import colorsys
 import copy
 import math
-from achm_tools import *
+from .achm_tools import *
 
 
 # ------------------------------------------------------------------

@@ -33,8 +33,8 @@ import bgl
 # noinspection PyUnresolvedReferences
 from bpy.app.handlers import persistent
 # noinspection PyUnresolvedReferences
-from measureit_geometry import *
-from measureit_render import *
+from .measureit_geometry import *
+from .measureit_render import *
 
 
 # ------------------------------------------------------

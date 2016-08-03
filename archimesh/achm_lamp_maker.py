@@ -26,7 +26,7 @@
 import bpy
 import math
 import copy
-from achm_tools import *
+from .achm_tools import *
 
 
 # ------------------------------------------------------

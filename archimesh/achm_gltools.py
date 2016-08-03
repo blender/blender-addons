@@ -34,7 +34,7 @@ import math
 import mathutils
 # noinspection PyUnresolvedReferences
 from bpy_extras import view3d_utils
-from achm_room_maker import get_wall_points
+from .achm_room_maker import get_wall_points
 
 
 # -------------------------------------------------------------

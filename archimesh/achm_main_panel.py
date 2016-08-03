@@ -27,8 +27,8 @@
 import bpy
 # noinspection PyUnresolvedReferences
 import bgl
-from achm_tools import *
-from achm_gltools import *
+from .achm_tools import *
+from .achm_gltools import *
 
 
 # -----------------------------------------------------

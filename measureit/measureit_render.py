@@ -42,7 +42,7 @@ import bpy_extras.object_utils as object_utils
 # noinspection PyUnresolvedReferences
 from bpy_extras import view3d_utils
 from math import ceil
-from measureit_geometry import *
+from .measureit_geometry import *
 
 
 # -------------------------------------------------------------
