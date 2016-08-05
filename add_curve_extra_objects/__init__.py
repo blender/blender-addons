@@ -28,22 +28,26 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Curve/Curve_Objects",
-    "category": "Add Curve"}
+    "category": "Add Curve"
+    }
 
 if "bpy" in locals():
-    import imp
-    imp.reload(add_curve_aceous_galore)
-    imp.reload(add_curve_spirals)
-    imp.reload(add_curve_torus_knots)
+    import importlib
+    importlib.reload(add_curve_aceous_galore)
+    importlib.reload(add_curve_spirals)
+    importlib.reload(add_curve_torus_knots)
+    importlib.reload(add_surface_plane_cone)
 
 else:
     from . import add_curve_aceous_galore
     from . import add_curve_spirals
     from . import add_curve_torus_knots
+    from . import add_surface_plane_cone
 
 import bpy
+from bpy.types import Menu
 
-class INFO_MT_curve_extras_add(bpy.types.Menu):
+class INFO_MT_curve_extras_add(Menu):
     # Define the "Extras" menu
     bl_idname = "curve_extra_objects_add"
     bl_label = "Extra Objects"
@@ -57,8 +61,10 @@ class INFO_MT_curve_extras_add(bpy.types.Menu):
             text="Spirals")
         layout.operator("curve.torus_knot_plus",
             text="Torus Knot Plus")
-# Define "Extras" menu
+
+# Define "Extras" menus
 def menu_func(self, context):
+    self.layout.separator()
     self.layout.operator("mesh.curveaceous_galore",
             text="Curve Profiles")
     self.layout.operator("curve.torus_knot_plus",
@@ -66,17 +72,30 @@ def menu_func(self, context):
     self.layout.operator("curve.spirals",
             text="Spirals")
 
+def menu_surface(self, context):
+    layout = self.layout
+    self.layout.separator()
+    self.layout.operator("object.add_surface_wedge", text="Wedge", icon="MOD_CURVE")
+    self.layout.operator("object.add_surface_cone", text="Cone", icon="MOD_CURVE")
+    self.layout.operator("object.add_surface_star", text="Star", icon="MOD_CURVE")
+    self.layout.operator("object.add_surface_plane", text="Plane", icon="MOD_CURVE")
+    self.layout.operator("curve.smooth_x_times", text="Special Smooth", icon="MOD_CURVE")
+
 def register():
     bpy.utils.register_module(__name__)
 
     # Add "Extras" menu to the "Add Curve" menu
     bpy.types.INFO_MT_curve_add.append(menu_func)
+    # Add "Extras" menu to the "Add Surface" menu
+    bpy.types.INFO_MT_surface_add.append(menu_surface)
 
 def unregister():
     bpy.utils.unregister_module(__name__)
 
     # Remove "Extras" menu from the "Add Curve" menu.
     bpy.types.INFO_MT_curve_add.remove(menu_func)
+    # Remove "Extras" menu from the "Add Surface" menu.
+    bpy.types.INFO_MT_surface_add.remove(menu_surface)
 
 if __name__ == "__main__":
     register()

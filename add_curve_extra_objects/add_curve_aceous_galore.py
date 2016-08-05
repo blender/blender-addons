@@ -44,8 +44,13 @@ from mathutils import (
         Matrix,
         Vector,
         )
-from math import sin, cos, pi
+from math import (
+        sin,
+        cos,
+        pi
+        )
 import mathutils.noise as Noise
+from bpy.types import Operator
 ###------------------------------------------------------------
 #### Some functions to use with others:
 ###------------------------------------------------------------
@@ -767,7 +772,7 @@ def main(context, self, align_matrix):
 
     return
 
-class Curveaceous_galore(bpy.types.Operator):
+class Curveaceous_galore(Operator):
     """Add many types of curves"""
     bl_idname = "mesh.curveaceous_galore"
     bl_label = "Curve Profiles"

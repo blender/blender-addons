@@ -19,18 +19,25 @@ from bpy.props import (
         FloatProperty,
         IntProperty,
         )
-from math import sin, cos, pi, exp
+from math import (
+        sin,
+        cos, 
+        pi, 
+        exp
+        )
 from bpy_extras.object_utils import AddObjectHelper, object_data_add
+from bpy.types import Operator
 
 #make normal spiral
 #-----------------------------------------------------------------------------
-def make_spiral(props, context):                  #archemedian and logarithmic can be plottet in zylindrical coordinates
-    #if props.spiral_type != 1 and props.spiral_type != 2:
-    #    return None
+def make_spiral(props, context):
+#archemedian and logarithmic can be plottet in zylindrical coordinates
+#if props.spiral_type != 1 and props.spiral_type != 2:
+#    return None
 
-    #INPUT: turns->degree->max_phi, steps, direction
-    #Initialise Polar Coordinate Enviroment
-    #-------------------------------
+#INPUT: turns->degree->max_phi, steps, direction
+#Initialise Polar Coordinate Enviroment
+#-------------------------------
     props.degree = 360*props.turns                #If you want to make the slider for degree
     steps = props.steps * props.turns             #props.steps[per turn] -> steps[for the whole spiral]
     props.z_scale = props.dif_z * props.turns
@@ -47,25 +54,26 @@ def make_spiral(props, context):                  #archemedian and logarithmic c
     
     cur_phi = 0
     cur_z   = 0
-    #-------------------------------
+#-------------------------------
 
-    #Archemedean: dif_radius, radius
+#Archemedean: dif_radius, radius
     cur_rad = props.radius
-    step_rad = props.dif_radius/(steps * 360/props.degree)        #radius increase per angle for archemedean spiral| (steps * 360/props.degree)...Steps needed for 360 deg
-    #Logarithmic: radius, B_force, ang_div, dif_z
+    step_rad = props.dif_radius/(steps * 360/props.degree)   
+#radius increase per angle for archemedean spiral| (steps * 360/props.degree)...Steps needed for 360 deg
+#Logarithmic: radius, B_force, ang_div, dif_z
     
-    #print("max_phi:",max_phi,"step_phi:",step_phi,"step_rad:",step_rad,"step_z:",step_z)
+#print("max_phi:",max_phi,"step_phi:",step_phi,"step_rad:",step_rad,"step_z:",step_z)
     while abs(cur_phi) <= abs(max_phi):
         cur_phi += step_phi
         cur_z   += step_z
         
-        #-------------------------------
+#-------------------------------
         if props.spiral_type == 1:
             cur_rad += step_rad
         if props.spiral_type == 2:
-            #r = a*e^{|theta| * b}
+#r = a*e^{|theta| * b}
             cur_rad = props.radius * pow(props.B_force, abs(cur_phi)) 
-        #-------------------------------
+#-------------------------------
     
         px = cur_rad * cos(cur_phi)
         py = cur_rad * sin(cur_phi)
@@ -92,13 +100,13 @@ def make_spiral_spheric(props, context):
     verts = []
     verts.extend([0,0,-props.radius,1])           #First vertex at south pole
 
-    #cur_rad = props.radius = CONST
+#cur_rad = props.radius = CONST
 
     cur_phi = 0
     cur_theta = -pi/2                             #Beginning at south pole
 
     while abs(cur_phi) <= abs(max_phi):
-        #Coordinate Transformation sphere->rect
+#Coordinate Transformation sphere->rect
         px = props.radius * cos(cur_theta) * cos(cur_phi)
         py = props.radius * cos(cur_theta) * sin(cur_phi)
         pz = props.radius * sin(cur_theta)
@@ -113,7 +121,7 @@ def make_spiral_spheric(props, context):
 #-----------------------------------------------------------------------------
 
 def make_spiral_torus(props, context):
-    #INPUT: turns, steps, inner_radius, curves_number, mul_height, dif_inner_radius, cycles
+#INPUT: turns, steps, inner_radius, curves_number, mul_height, dif_inner_radius, cycles
     max_phi  = 2*pi*props.turns * props.cycles    #max angle in radian
     step_phi = 2*pi/props.steps                   #Step of angle in radians between two vertices
     if props.spiral_direction == 1:               #flip direction
@@ -134,7 +142,7 @@ def make_spiral_torus(props, context):
     n_cycle = 0
     
     while abs(cur_phi) <= abs(max_phi):
-        #Torus Coordinates -> Rect
+#Torus Coordinates -> Rect
         px = ( cur_rad + cur_inner_rad * cos(cur_phi) ) * cos(props.curves_number * cur_theta)
         py = ( cur_rad + cur_inner_rad * cos(cur_phi) ) * sin(props.curves_number * cur_theta)
         pz = cur_inner_rad * sin(cur_phi) + cur_z
@@ -172,14 +180,16 @@ def draw_curve(props, context):
     elif props.curve_type == 1:
         spline = curve_data.splines.new(type='NURBS')
     
-    spline.points.add( len(verts)*0.25-1 )                          #Add only one quarter of points as elements in verts, because verts looks like: "x,y,z,?,x,y,z,?,x,..."
+    spline.points.add( len(verts)*0.25-1 )
+#Add only one quarter of points as elements in verts, because verts looks like: "x,y,z,?,x,y,z,?,x,..."
     spline.points.foreach_set('co', verts)
     new_obj = object_data_add(context, curve_data)
 
-class spirals(bpy.types.Operator):
+class spirals(Operator):
     bl_idname = "curve.spirals"
     bl_label = "Spirals"
-    bl_options = {'REGISTER','UNDO', 'PRESET'}            #UNDO needed for operator redo and therefore also to let the addobjecthelp appear!!!
+    bl_options = {'REGISTER','UNDO', 'PRESET'}            
+#UNDO needed for operator redo and therefore also to let the addobjecthelp appear!!!
     bl_description = "adds different types of spirals"
 
     spiral_type = IntProperty(default=1, min=1, max=4, description="1:archemedian, 2:logarithmic, 3:spheric, 4:torus")
@@ -191,12 +201,14 @@ class spirals(bpy.types.Operator):
 
     
     radius = FloatProperty(default=1.00, min=0.00, max=100.00, description="radius for first turn")
-    dif_z = FloatProperty(default=0, min=-10.00, max=100.00, description="increase in z axis per turn")            #needed for 1 and 2 spiral_type
-    #ARCHMEDEAN variables
-    dif_radius = FloatProperty(default=0.00, min=-50.00, max=50.00, description="radius increment in each turn")        #step between turns(one turn equals 360 deg)
-    #LOG variables 
+    dif_z = FloatProperty(default=0, min=-10.00, max=100.00, description="increase in z axis per turn")
+#needed for 1 and 2 spiral_type
+#ARCHMEDEAN variables
+    dif_radius = FloatProperty(default=0.00, min=-50.00, max=50.00, description="radius increment in each turn")
+#step between turns(one turn equals 360 deg)
+#LOG variables 
     B_force = FloatProperty(default=1.00, min=0.00, max=30.00, description="factor of exponent")
-    #TORUS variables
+#TORUS variables
     inner_radius = FloatProperty(default=0.20, min=0.00, max=100, description="Inner Radius of Torus")
     dif_inner_radius = FloatProperty(default=0, min=-10, max=100, description="Increase of inner Radius per Cycle")
     dif_radius = FloatProperty(default=0, min=-10, max=100, description="Increase of Torus Radius per Cycle")
@@ -204,7 +216,7 @@ class spirals(bpy.types.Operator):
     curves_number = IntProperty(default=1, min=1, max=400, description="Number of curves of spiral")
     touch = BoolProperty(default=False, description="No empty spaces between cycles")
 
-    def draw(self, context):                #Function used by Blender to draw the menu
+    def draw(self, context):
         layout = self.layout
         layout.prop(self, 'spiral_type', text="Spiral Type")
         layout.prop(self, 'curve_type', text="Curve Type")
@@ -242,7 +254,8 @@ class spirals(bpy.types.Operator):
             box.prop(self, 'dif_inner_radius', text = "Increase of Inner Radius")
 
     @classmethod
-    def poll(cls, context):                            #method called by blender to check if the operator can be run
+    def poll(cls, context):
+#method called by blender to check if the operator can be run
         return context.scene != None
     def execute(self, context):
         time_start = time.time()
