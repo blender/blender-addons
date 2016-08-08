@@ -971,26 +971,18 @@ def draw_callback_nodeoutline(self, context, mode):
 
 
 def get_nodes_links(context):
-    space = context.space_data
-    tree = space.node_tree
-    nodes = tree.nodes
-    links = tree.links
-    active = nodes.active
-    context_active = context.active_node
-    # check if we are working on regular node tree or node group is currently edited.
-    # if group is edited - active node of space_tree is the group
-    # if context.active_node != space active node - it means that the group is being edited.
-    # in such case we set "nodes" to be nodes of this group, "links" to be links of this group
-    # if context.active_node == space.active_node it means that we are not currently editing group
-    is_main_tree = True
-    if active:
-        is_main_tree = context_active == active
-    if not is_main_tree:  # if group is currently edited
-        tree = active.node_tree
-        nodes = tree.nodes
-        links = tree.links
+    tree = context.space_data.node_tree
 
-    return nodes, links
+    # Get nodes from currently edited tree.
+    # If user is editing a group, space_data.node_tree is still the base level (outside group).
+    # context.active_node is in the group though, so if space_data.node_tree.nodes.active is not
+    # the same as context.active_node, the user is in a group.
+    # Check recursively until we find the real active node_tree:
+    if tree.nodes.active:
+        while tree.nodes.active != context.active_node:
+            tree = tree.nodes.active.node_tree
+
+    return tree.nodes, tree.links
 
 
 # Addon prefs
