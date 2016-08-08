@@ -20,7 +20,7 @@
 
 bl_info = {
     "name": "Oscurart Tools",
-    "author": "Oscurart, CodemanX",
+    "author": "Oscurart, CodemanX, Meta-Androcto",
     "version": (3, 2),
     "blender": (2, 77, 0),
     "location": "View3D > Tools > Oscurart Tools",
