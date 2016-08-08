@@ -2994,18 +2994,8 @@ class NWAddMultipleImages(Operator, ImportHelper):
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
-        nodes_list = [node for node in nodes]
-        if nodes_list:
-            nodes_list.sort(key=lambda k: k.location.x)
-            xloc = nodes_list[0].location.x - 220  # place new nodes at far left
-            yloc = 0
-            for node in nodes:
-                node.select = False
-                yloc += node_mid_pt(node, 'y')
-            yloc = yloc/len(nodes)
-        else:
-            xloc = 0
-            yloc = 0
+        
+        xloc, yloc = context.region.view2d.region_to_view(context.area.width/2, context.area.height/2)
 
         if context.space_data.node_tree.type == 'SHADER':
             node_type = "ShaderNodeTexImage"
@@ -3033,9 +3023,12 @@ class NWAddMultipleImages(Operator, ImportHelper):
 
         # shift new nodes up to center of tree
         list_size = new_nodes[0].location.y - new_nodes[-1].location.y
-        for node in new_nodes:
-            node.select = True
-            node.location.y += (list_size/2)
+        for node in nodes:
+            if node in new_nodes:
+                node.select = True
+                node.location.y += (list_size/2)
+            else:
+                node.select = False
         return {'FINISHED'}
 
 
