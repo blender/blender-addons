@@ -32,7 +32,7 @@ bl_info = {
 import bpy, blf, bgl
 from bpy.types import Operator, Panel, Menu
 from bpy.props import FloatProperty, EnumProperty, BoolProperty, IntProperty, StringProperty, FloatVectorProperty, CollectionProperty
-from bpy_extras.io_utils import ImportHelper
+from bpy_extras.io_utils import ImportHelper, ExportHelper
 from mathutils import Vector
 from math import cos, sin, pi, hypot
 from os import path
@@ -3095,6 +3095,60 @@ class NWViewerFocus(bpy.types.Operator):
         return self.execute(context)
 
 
+class NWSaveViewer(bpy.types.Operator, ExportHelper):
+    """Save the current viewer node to an image file"""
+    bl_idname = "node.nw_save_viewer"
+    bl_label = "Save This Image"
+    filepath = StringProperty(subtype="FILE_PATH")
+    filename_ext = EnumProperty(
+            name="Format",
+            description="Choose the file format to save to",
+            items=(('.bmp', "PNG", ""),
+                   ('.rgb', 'IRIS', ""),
+                   ('.png', 'PNG', ""),
+                   ('.jpg', 'JPEG', ""),
+                   ('.jp2', 'JPEG2000', ""),
+                   ('.tga', 'TARGA', ""),
+                   ('.cin', 'CINEON', ""),
+                   ('.dpx', 'DPX', ""),
+                   ('.exr', 'OPEN_EXR', ""),
+                   ('.hdr', 'HDR', ""),
+                   ('.tif', 'TIFF', "")),
+            default='.png',
+            )
+
+    @classmethod
+    def poll(cls, context):
+        return nw_check(context) and context.space_data.tree_type == 'CompositorNodeTree'
+
+    def execute(self, context):
+        fp = self.filepath
+        if fp:
+            formats = {
+                       '.bmp': 'BMP',
+                       '.rgb': 'IRIS',
+                       '.png': 'PNG',
+                       '.jpg': 'JPEG',
+                       '.jpeg': 'JPEG',
+                       '.jp2': 'JPEG2000',
+                       '.tga': 'TARGA',
+                       '.cin': 'CINEON',
+                       '.dpx': 'DPX',
+                       '.exr': 'OPEN_EXR',
+                       '.hdr': 'HDR',
+                       '.tiff': 'TIFF',
+                       '.tif': 'TIFF'}
+            basename, ext = path.splitext(fp)
+            old_render_format = context.scene.render.image_settings.file_format
+            context.scene.render.image_settings.file_format = formats[self.filename_ext]
+            context.area.type = "IMAGE_EDITOR"
+            context.area.spaces[0].image = bpy.data.images['Viewer Node']
+            context.area.spaces[0].image.save_render(fp)
+            context.area.type = "NODE_EDITOR"
+            context.scene.render.image_settings.file_format = old_render_format
+            return {'FINISHED'}
+
+
 #
 #  P A N E L
 #
@@ -3863,6 +3917,11 @@ def bgreset_menu_func(self, context):
     self.layout.operator(NWResetBG.bl_idname)
 
 
+def save_viewer_menu_func(self, context):
+    if context.scene.node_tree.nodes.active.type == "VIEWER":
+        self.layout.operator(NWSaveViewer.bl_idname, icon='FILE_IMAGE')
+
+
 #
 #  REGISTER/UNREGISTER CLASSES AND KEYMAP ITEMS
 #
@@ -4088,6 +4147,7 @@ def register():
     bpy.types.NODE_MT_category_SH_NEW_INPUT.prepend(attr_nodes_menu_func)
     bpy.types.NODE_PT_category_SH_NEW_INPUT.prepend(attr_nodes_menu_func)
     bpy.types.NODE_PT_backdrop.append(bgreset_menu_func)
+    bpy.types.NODE_PT_active_node_generic.append(save_viewer_menu_func)
     bpy.types.NODE_MT_category_SH_NEW_TEXTURE.prepend(multipleimages_menu_func)
     bpy.types.NODE_PT_category_SH_NEW_TEXTURE.prepend(multipleimages_menu_func)
     bpy.types.NODE_MT_category_CMP_INPUT.prepend(multipleimages_menu_func)
@@ -4111,6 +4171,7 @@ def unregister():
     bpy.types.NODE_MT_category_SH_NEW_INPUT.remove(attr_nodes_menu_func)
     bpy.types.NODE_PT_category_SH_NEW_INPUT.remove(attr_nodes_menu_func)
     bpy.types.NODE_PT_backdrop.remove(bgreset_menu_func)
+    bpy.types.NODE_PT_active_node_generic.remove(save_viewer_menu_func)
     bpy.types.NODE_MT_category_SH_NEW_TEXTURE.remove(multipleimages_menu_func)
     bpy.types.NODE_PT_category_SH_NEW_TEXTURE.remove(multipleimages_menu_func)
     bpy.types.NODE_MT_category_CMP_INPUT.remove(multipleimages_menu_func)
