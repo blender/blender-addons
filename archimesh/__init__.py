@@ -31,10 +31,10 @@ bl_info = {
     "location": "View3D > Add > Mesh > Archimesh",
     "version": (1, 1, 2),
     "blender": (2, 6, 8),
-    "description": "Generate rooms, doors, windows, kitchen cabinets, "
-                   "shelves, roofs, stairs and other architecture stuff.",
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
-    "category": "Add Mesh"}
+    "description": "Generate rooms, doors, windows, and other architecture objects",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Add_Mesh/Archimesh",
+    "category": "Add Mesh"
+    }
 
 import sys
 import os

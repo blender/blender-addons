@@ -28,7 +28,8 @@ bl_info = {
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6"
     "/Py/Scripts/3D_interaction/modifier_tools",
     "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
-    "category": "3D View"}
+    "category": "3D View"
+    }
 
 import bpy
 from bpy.types import Operator

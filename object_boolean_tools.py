@@ -27,7 +27,8 @@ bl_info = {
     "description": "Bool Tools Hotkey: Ctrl Shift B",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Object/BoolTool",
     "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
-    "category": "Object"}
+    "category": "Object"
+    }
 
 import bpy
 from bpy.app.handlers import persistent

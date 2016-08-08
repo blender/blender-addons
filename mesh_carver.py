@@ -27,7 +27,7 @@ bl_info = {
                 "Scripts/Modeling/Carver",
     "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "description": "Multiple tools to carve or to create objects.",
-}
+    }
 
 import bpy
 import bgl

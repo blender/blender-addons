@@ -28,7 +28,7 @@ bl_info = {
     "location": "View3D > EditMode > (w) Specials",
     "wiki_url": "http://zeffii.github.io/mesh_tiny_cad/",
     "tracker_url": "https://github.com/zeffii/mesh_tiny_cad/issues"
-}
+    }
 
 
 if "bpy" in locals():

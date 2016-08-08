@@ -31,10 +31,10 @@ bl_info = {
     "location": "Materials Properties Specials/Shift Q",
     "description": "Materials Utils & Convertors",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6"
-    "/Py/Scripts",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/Materials_Utils",
     "tracker_url": "",
-    "category": "Material"}
+    "category": "Material"
+    }
 
 if "bpy" in locals():
     import importlib

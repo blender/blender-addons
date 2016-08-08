@@ -35,7 +35,7 @@ bl_info = {
     'location': 'See preferences for Activation list',
     'description': 'Pie Menu Activate',
     'warning': '',
-    'wiki_url': '',
+    'wiki_url': 'https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/Pie_Menu',
     'category': 'Pie Menu'
     }
 
