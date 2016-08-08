@@ -1269,6 +1269,9 @@ class NWDeleteUnused(Operator, NWBase):
     bl_label = 'Delete Unused Nodes'
     bl_options = {'REGISTER', 'UNDO'}
 
+    delete_muted = BoolProperty(name="Delete Muted", description="Delete (but reconnect, like Ctrl-X) all muted nodes", default=True)
+    delete_frames = BoolProperty(name="Delete Empty Frames", description="Delete all frames that have no nodes inside them", default=True)
+
     @classmethod
     def poll(cls, context):
         valid = False
@@ -1279,9 +1282,9 @@ class NWDeleteUnused(Operator, NWBase):
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
-        end_types = 'OUTPUT_MATERIAL', 'OUTPUT', 'VIEWER', 'COMPOSITE', \
+        end_types = ['OUTPUT_MATERIAL', 'OUTPUT', 'VIEWER', 'COMPOSITE', \
             'SPLITVIEWER', 'OUTPUT_FILE', 'LEVELS', 'OUTPUT_LAMP', \
-            'OUTPUT_WORLD', 'GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT'
+            'OUTPUT_WORLD', 'GROUP_INPUT', 'GROUP_OUTPUT', 'FRAME']
 
         # Store selection
         selection = []
@@ -1297,13 +1300,41 @@ class NWDeleteUnused(Operator, NWBase):
             for node in nodes:
                 node.select = False
             for node in nodes:
-                if is_end_node(node) and not node.type in end_types and node.type != 'FRAME':
+                if is_end_node(node) and not node.type in end_types:
                     node.select = True
                     deleted_nodes.append(node.name)
                     bpy.ops.node.delete()
 
             if temp_deleted_nodes == deleted_nodes:  # stop iterations when there are no more nodes to be deleted
                 break
+
+        if self.delete_frames:
+            repeat = True
+            while repeat:
+                frames_in_use = []
+                frames = []
+                print ("iter")
+                repeat = False
+                for node in nodes:
+                    if node.parent:
+                        frames_in_use.append(node.parent)
+                    if node.type == 'FRAME':
+                        frames.append(node)
+                        if node.parent:
+                            repeat = True  # repeat for nested frames
+                for node in frames:
+                    if node not in frames_in_use:
+                        node.select = True
+                        deleted_nodes.append(node.name)
+                bpy.ops.node.delete()
+
+        if self.delete_muted:
+            for node in nodes:
+                if node.mute:
+                    node.select = True
+                    deleted_nodes.append(node.name)
+            bpy.ops.node.delete_reconnect()
+
         # get unique list of deleted nodes (iterations would count the same node more than once)
         deleted_nodes = list(set(deleted_nodes))
         for n in deleted_nodes:
