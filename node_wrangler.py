@@ -605,15 +605,6 @@ def dpifac():
     return bpy.context.user_preferences.system.dpi/(72/retinafac)
 
 
-def is_end_node(node):
-    bool = True
-    for output in node.outputs:
-        if output.links:
-            bool = False
-            break
-    return bool
-
-
 def node_mid_pt(node, axis):
     if axis == 'x':
         d = node.location.x + (node.dimensions.x / 2)
@@ -1272,6 +1263,18 @@ class NWDeleteUnused(Operator, NWBase):
     delete_muted = BoolProperty(name="Delete Muted", description="Delete (but reconnect, like Ctrl-X) all muted nodes", default=True)
     delete_frames = BoolProperty(name="Delete Empty Frames", description="Delete all frames that have no nodes inside them", default=True)
 
+    def is_unused_node(node):
+        end_types = ['OUTPUT_MATERIAL', 'OUTPUT', 'VIEWER', 'COMPOSITE', \
+                'SPLITVIEWER', 'OUTPUT_FILE', 'LEVELS', 'OUTPUT_LAMP', \
+                'OUTPUT_WORLD', 'GROUP_INPUT', 'GROUP_OUTPUT', 'FRAME']
+        if node.type in end_types:
+            return False
+
+        for output in node.outputs:
+            if output.links:
+                return False
+        return True
+
     @classmethod
     def poll(cls, context):
         valid = False
@@ -1282,9 +1285,6 @@ class NWDeleteUnused(Operator, NWBase):
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
-        end_types = ['OUTPUT_MATERIAL', 'OUTPUT', 'VIEWER', 'COMPOSITE', \
-            'SPLITVIEWER', 'OUTPUT_FILE', 'LEVELS', 'OUTPUT_LAMP', \
-            'OUTPUT_WORLD', 'GROUP_INPUT', 'GROUP_OUTPUT', 'FRAME']
 
         # Store selection
         selection = []
@@ -1292,15 +1292,16 @@ class NWDeleteUnused(Operator, NWBase):
             if node.select == True:
                 selection.append(node.name)
 
+        for node in nodes:
+            node.select = False
+
         deleted_nodes = []
         temp_deleted_nodes = []
         del_unused_iterations = len(nodes)
         for it in range(0, del_unused_iterations):
             temp_deleted_nodes = list(deleted_nodes)  # keep record of last iteration
             for node in nodes:
-                node.select = False
-            for node in nodes:
-                if is_end_node(node) and not node.type in end_types:
+                if is_unused_node(node):
                     node.select = True
                     deleted_nodes.append(node.name)
                     bpy.ops.node.delete()
