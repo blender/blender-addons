@@ -26,9 +26,8 @@ bl_info = {
     "warning": "", # used for warning icon and text in addons panel
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Add_Mesh/ANT_Landscape",
-    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
     "category": "Add Mesh",
-}
+    }
 
 """
 Another Noise Tool: Landscape mesh generator
@@ -132,12 +131,12 @@ def shapes(x,y,shape=0):
         # swirl
         x = x*2
         y = y*2
-        s = (( x*sin( x*x+y*y ) + y*cos( x*x+y*y ) ) / (x**2+y**2+0.5))
+        s = ((x*sin( x*x+y*y) + y*cos(x*x+y*y)) / (x**2+y**2+0.5))
     elif shape == 3:
         # bumps
         x = x*2
         y = y*2
-        s = ((cos( x*pi ) + cos( y*pi ))-0.5)
+        s = ((cos( x*pi) + cos(y*pi))-0.5)
     elif shape == 4:
         # y grad.
         s = (y*pi)
@@ -150,7 +149,7 @@ def shapes(x,y,shape=0):
     return s
 
 # marble_noise
-def marble_noise(x,y,z, origin, size, shape, bias, sharpnes, turb, depth, hard, basis ):
+def marble_noise(x,y,z, origin, size, shape, bias, sharpnes, turb, depth, hard, basis):
     x = x / size
     y = y / size
     z = z / size
@@ -159,21 +158,21 @@ def marble_noise(x,y,z, origin, size, shape, bias, sharpnes, turb, depth, hard, 
     x += origin[0]
     y += origin[1]
     z += origin[2]
-    value = s + turb * turbulence_vector((x,y,z), depth, hard, basis )[0]
+    value = s + turb * turbulence_vector((x,y,z), depth, hard, basis)[0]
 
     if bias == 1:
-        value = tri_bias( value )
+        value = tri_bias(value)
     elif bias == 2:
-        value = saw_bias( value )
+        value = saw_bias(value)
     else:
-        value = sin_bias( value )
+        value = sin_bias(value)
 
     if sharpnes == 1:
-        value = sharp( value )
+        value = sharp(value)
     elif sharpnes == 2:
-        value = sharper( value )
+        value = sharper(value)
     else:
-        value = soft( value )
+        value = soft(value)
 
     return value
 
@@ -181,17 +180,17 @@ def marble_noise(x,y,z, origin, size, shape, bias, sharpnes, turb, depth, hard, 
 # custom noise types
 
 # shattered_hterrain:
-def shattered_hterrain( x,y,z, H, lacunarity, octaves, offset, distort, basis ):
-    d = ( turbulence_vector( ( x, y, z ), 6, 0, 0 )[0] * 0.5 + 0.5 )*distort*0.5
-    t1 = ( turbulence_vector( ( x+d, y+d, z ), 0, 0, 7 )[0] + 0.5 )
-    t2 = ( hetero_terrain(( x*2, y*2, z*2 ), H, lacunarity, octaves, offset, basis )*0.5 )
-    return (( t1*t2 )+t2*0.5) * 0.5
+def shattered_hterrain(x,y,z, H, lacunarity, octaves, offset, distort, basis):
+    d = (turbulence_vector((x, y, z), 6, 0, 0)[0] * 0.5 + 0.5)*distort*0.5
+    t1 = (turbulence_vector((x+d, y+d, z), 0, 0, 7)[0] + 0.5)
+    t2 = (hetero_terrain((x*2, y*2, z*2), H, lacunarity, octaves, offset, basis)*0.5)
+    return ((t1*t2)+t2*0.5) * 0.5
 
 # strata_hterrain
-def strata_hterrain( x,y,z, H, lacunarity, octaves, offset, distort, basis ):
-    value = hetero_terrain(( x, y, z ), H, lacunarity, octaves, offset, basis )*0.5
-    steps = ( sin( value*(distort*5)*pi ) * ( 0.1/(distort*5)*pi ) )
-    return ( value * (1.0-0.5) + steps*0.5 )
+def strata_hterrain(x,y,z, H, lacunarity, octaves, offset, distort, basis):
+    value = hetero_terrain((x, y, z), H, lacunarity, octaves, offset, basis)*0.5
+    steps = (sin( value*(distort*5)*pi) * (0.1/(distort*5)*pi))
+    return (value * (1.0-0.5) + steps*0.5)
 
 # planet_noise by Farsthary: https://blenderartists.org/forum/showthread.php?202944-New-quot-Planet-quot-procedural-texture-by-Farsthary
 def planet_noise(coords, oct=6, hard=0, noisebasis=1, nabla=0.001):
@@ -217,8 +216,8 @@ def landscape_gen(x,y,z,falloffsize,options=[0,1.0,'multi_fractal', 0,0,1.0,0,6,
     rseed    = options[0]
     nsize    = options[1]
     ntype      = options[2]
-    nbasis     = int( options[3][0] )
-    vlbasis    = int( options[4][0] )
+    nbasis     = int(options[3][0])
+    vlbasis    = int(options[4][0])
     distortion = options[5]
     hardnoise  = options[6]
     depth      = options[7]
@@ -226,13 +225,13 @@ def landscape_gen(x,y,z,falloffsize,options=[0,1.0,'multi_fractal', 0,0,1.0,0,6,
     lacunarity = options[9]
     offset     = options[10]
     gain       = options[11]
-    marblebias     = int( options[12][0] )
-    marblesharpnes = int( options[13][0] )
-    marbleshape    = int( options[14][0] )
+    marblebias     = int(options[12][0])
+    marblesharpnes = int(options[13][0])
+    marbleshape    = int(options[14][0])
     invert       = options[15]
     height       = options[16]
     heightoffset = options[17]
-    falloff      = int( options[18][0] )
+    falloff      = int(options[18][0])
     sealevel     = options[19]
     platlevel    = options[20]
     strata       = options[21]
@@ -249,30 +248,54 @@ def landscape_gen(x,y,z,falloffsize,options=[0,1.0,'multi_fractal', 0,0,1.0,0,6,
         origin_z = 0.0
     else:
         # randomise origin
-        seed_set( rseed )
+        seed_set(rseed)
         origin = random_unit_vector()
-        origin_x = (( 0.5 - origin[0] ) * 1000.0) + x_offset
-        origin_y = (( 0.5 - origin[1] ) * 1000.0) + y_offset
-        origin_z = ( 0.5 - origin[2] ) * 1000.0
+        origin_x = ((0.5 - origin[0]) * 1000.0) + x_offset
+        origin_y = ((0.5 - origin[1]) * 1000.0) + y_offset
+        origin_z = (0.5 - origin[2]) * 1000.0
 
     # adjust noise size and origin
-    ncoords = ( x / nsize + origin_x, y / nsize + origin_y, z / nsize + origin_z )
+    ncoords = (x / nsize + origin_x, y / nsize + origin_y, z / nsize + origin_z)
 
     # noise basis type's
-    if nbasis == 9: nbasis = 14  # to get cellnoise basis you must set 14 instead of 9
-    if vlbasis ==9: vlbasis = 14
+    if nbasis == 9:
+        nbasis = 14  # to get cellnoise basis you must set 14 instead of 9
+    if vlbasis ==9:
+        vlbasis = 14
+
     # noise type's
-    if ntype ==   'multi_fractal':          value = multi_fractal(        ncoords, dimension, lacunarity, depth, nbasis ) * 0.5
-    elif ntype == 'ridged_multi_fractal':   value = ridged_multi_fractal( ncoords, dimension, lacunarity, depth, offset, gain, nbasis ) * 0.5
-    elif ntype == 'hybrid_multi_fractal':   value = hybrid_multi_fractal( ncoords, dimension, lacunarity, depth, offset, gain, nbasis ) * 0.5
-    elif ntype == 'hetero_terrain':         value = hetero_terrain(       ncoords, dimension, lacunarity, depth, offset, nbasis ) * 0.25
-    elif ntype == 'fractal':                value = fractal(              ncoords, dimension, lacunarity, depth, nbasis )
-    elif ntype == 'turbulence_vector':      value = turbulence_vector(    ncoords, depth, hardnoise, nbasis )[0]
-    elif ntype == 'variable_lacunarity':    value = variable_lacunarity(  ncoords, distortion, nbasis, vlbasis ) + 0.5
-    elif ntype == 'marble_noise':           value = marble_noise( x*2.0/falloffsize,y*2.0/falloffsize,z*2/falloffsize, origin, nsize, marbleshape, marblebias, marblesharpnes, distortion, depth, hardnoise, nbasis )
-    elif ntype == 'shattered_hterrain':     value = shattered_hterrain( ncoords[0], ncoords[1], ncoords[2], dimension, lacunarity, depth, offset, distortion, nbasis )
-    elif ntype == 'strata_hterrain':        value = strata_hterrain( ncoords[0], ncoords[1], ncoords[2], dimension, lacunarity, depth, offset, distortion, nbasis )
-    elif ntype == 'planet_noise':           value = planet_noise(ncoords, depth, hardnoise, nbasis)[2]*0.5+0.5
+    if ntype ==   'multi_fractal':
+        value = multi_fractal(ncoords, dimension, lacunarity, depth, nbasis) * 0.5
+
+    elif ntype == 'ridged_multi_fractal':
+        value = ridged_multi_fractal(ncoords, dimension, lacunarity, depth, offset, gain, nbasis) * 0.5
+
+    elif ntype == 'hybrid_multi_fractal':
+        value = hybrid_multi_fractal(ncoords, dimension, lacunarity, depth, offset, gain, nbasis) * 0.5
+
+    elif ntype == 'hetero_terrain':
+        value = hetero_terrain(ncoords, dimension, lacunarity, depth, offset, nbasis) * 0.25
+
+    elif ntype == 'fractal':
+        value = fractal(ncoords, dimension, lacunarity, depth, nbasis)
+
+    elif ntype == 'turbulence_vector':
+        value = turbulence_vector(ncoords, depth, hardnoise, nbasis)[0]
+
+    elif ntype == 'variable_lacunarity':
+        value = variable_lacunarity(ncoords, distortion, nbasis, vlbasis) + 0.5
+
+    elif ntype == 'marble_noise':
+        value = marble_noise(ncoords[0]*2.0/falloffsize,ncoords[1]*2.0/falloffsize,ncoords[2]*2/falloffsize, origin, nsize, marbleshape, marblebias, marblesharpnes, distortion, depth, hardnoise, nbasis)
+
+    elif ntype == 'shattered_hterrain':
+        value = shattered_hterrain(ncoords[0], ncoords[1], ncoords[2], dimension, lacunarity, depth, offset, distortion, nbasis)
+
+    elif ntype == 'strata_hterrain':
+        value = strata_hterrain(ncoords[0], ncoords[1], ncoords[2], dimension, lacunarity, depth, offset, distortion, nbasis)
+
+    elif ntype == 'planet_noise':
+        value = planet_noise(ncoords, depth, hardnoise, nbasis)[2]*0.5+0.5
     else:
         value = 0.0
 
@@ -291,39 +314,46 @@ def landscape_gen(x,y,z,falloffsize,options=[0,1.0,'multi_fractal', 0,0,1.0,0,6,
                 radius = (falloffsize/2)**2
             else:
                 radius = falloffsize/2
+
             value = value - sealevel
-            if( dist < radius ):
+            if(dist < radius):
                 dist = dist / radius
-                dist = ( (dist) * (dist) * ( 3-2*(dist) ) )
-                value = ( value - value * dist ) + sealevel
+                dist = (dist * dist * (3-2 * dist))
+                value = (value - value * dist) + sealevel
             else:
                 value = sealevel
 
     # strata / terrace / layered
     if stratatype !='0':
         strata = strata / height
+
     if stratatype == '1':
         strata *= 2
-        steps = ( sin( value*strata*pi ) * ( 0.1/strata*pi ) )
-        value = ( value * (1.0-0.5) + steps*0.5 ) * 2.0
+        steps = (sin( value*strata*pi) * (0.1/strata*pi))
+        value = (value * (1.0-0.5) + steps*0.5) * 2.0
+
     elif stratatype == '2':
-        steps = -abs( sin( value*(strata)*pi ) * ( 0.1/(strata)*pi ) )
-        value =( value * (1.0-0.5) + steps*0.5 ) * 2.0
+        steps = -abs( sin(value*(strata)*pi) * (0.1/(strata)*pi))
+        value =(value * (1.0-0.5) + steps*0.5) * 2.0
+
     elif stratatype == '3':
-        steps = abs( sin( value*(strata)*pi ) * ( 0.1/(strata)*pi ) )
-        value =( value * (1.0-0.5) + steps*0.5 ) * 2.0
+        steps = abs(sin(value*(strata)*pi) * (0.1/(strata)*pi))
+        value =(value * (1.0-0.5) + steps*0.5) * 2.0
+ 
     else:
         value = value
 
     # clamp height
-    if ( value < sealevel ): value = sealevel
-    if ( value > platlevel ): value = platlevel
+    if (value < sealevel):
+        value = sealevel
+    if (value > platlevel):
+        value = platlevel
 
     return value
 
 ###------------------------------------------------------------
 # generate grid
-def grid_gen( sub_d, size_me, options ):
+def grid_gen(sub_d, size_me, options):
     # mesh arrays
     verts = []
     faces = []
@@ -331,8 +361,8 @@ def grid_gen( sub_d, size_me, options ):
     # fill verts array
     for i in range (0, sub_d):
         for j in range(0,sub_d):
-            u = (i/sub_d-1/2)
-            v = (j/sub_d-1/2)
+            u = (i/(sub_d-1)-1/2)
+            v = (j/(sub_d-1)-1/2)
             x = size_me*u
             y = size_me*v
             z = landscape_gen(x,y,0.0,size_me,options)
@@ -356,7 +386,7 @@ def grid_gen( sub_d, size_me, options ):
     return verts, faces
 
 # generate sphere
-def sphere_gen( sub_d, size_me, options ):
+def sphere_gen(sub_d, size_me, options):
     # mesh arrays
     verts = []
     faces = []
@@ -496,7 +526,7 @@ class landscape_add(bpy.types.Operator):
                 description="Distortion amount")
 
     HardNoise = BoolProperty(name="Hard",
-                default=True,
+                default=False,
                 description="Hard noise")
 
     NoiseDepth = IntProperty(name="Depth",
@@ -622,15 +652,16 @@ class landscape_add(bpy.types.Operator):
         box.prop(self, 'SmoothMesh')
         box.prop(self, 'Subdivision')
         box.prop(self, 'MeshSize')
-        box.prop(self, 'XOffset')
-        box.prop(self, 'YOffset')
 
         box = layout.box()
         box.prop(self, 'NoiseType')
-        if self.NoiseType != 'marble_noise':
-            box.prop(self, 'BasisType')
+        box.prop(self, 'BasisType')
         box.prop(self, 'RandomSeed')
+        box.prop(self, 'XOffset')
+        box.prop(self, 'YOffset')
         box.prop(self, 'NoiseSize')
+
+        box = layout.box()
         if self.NoiseType == 'multi_fractal':
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'mDimension')
@@ -745,10 +776,10 @@ class landscape_add(bpy.types.Operator):
             # Main function
             if self.SphereMesh !=0:
                 # sphere
-                verts, faces = sphere_gen( self.Subdivision, self.MeshSize, options )
+                verts, faces = sphere_gen(self.Subdivision, self.MeshSize, options)
             else:
                 # grid
-                verts, faces = grid_gen( self.Subdivision, self.MeshSize, options )
+                verts, faces = grid_gen(self.Subdivision, self.MeshSize, options)
 
             # create mesh object
             obj = create_mesh_object(context, verts, [], faces, "Landscape")
