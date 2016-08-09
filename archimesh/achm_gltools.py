@@ -29,9 +29,9 @@ import bpy
 import bgl
 # noinspection PyUnresolvedReferences
 import blf
-import math
+from math import fabs, sqrt, sin, cos
 # noinspection PyUnresolvedReferences
-import mathutils
+from mathutils import Vector
 # noinspection PyUnresolvedReferences
 from bpy_extras import view3d_utils
 from .achm_room_maker import get_wall_points
@@ -209,7 +209,7 @@ def draw_room_data(myobj, op, region, rv3d, rgb, rgbw, fsize, wfsize, space, mea
         if measure is True:
             # Draw text
             dist = distance(a2_p, b2_p)
-            txtpoint3d = interpolate3d(a2_p, b2_p, math.fabs(dist / 2))
+            txtpoint3d = interpolate3d(a2_p, b2_p, fabs(dist / 2))
             # add a gap
             gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2] + 0.05)
 
@@ -237,7 +237,7 @@ def draw_room_data(myobj, op, region, rv3d, rgb, rgbw, fsize, wfsize, space, mea
                 bp = get_point((op.walls[i].glpoint_b[0], op.walls[i].glpoint_b[1], op.walls[i].glpoint_b[2]), myobj)
 
                 dist = distance(ap, bp)
-                txtpoint3d = interpolate3d(ap, bp, math.fabs(dist / 2))
+                txtpoint3d = interpolate3d(ap, bp, fabs(dist / 2))
                 # add a gap
                 gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2])  # + op.room_height / 2)
                 txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
@@ -320,7 +320,7 @@ def draw_door_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
     if measure is True:
         # Vertical
         dist = distance(a_p1, t_p1)
-        txtpoint3d = interpolate3d(a_p1, t_p1, math.fabs(dist / 2))
+        txtpoint3d = interpolate3d(a_p1, t_p1, fabs(dist / 2))
         gap3d = (a_p2[0], txtpoint3d[1], txtpoint3d[2])
         txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
         draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize, True)
@@ -331,7 +331,7 @@ def draw_door_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
 
         # Horizontal
         dist = distance(b_p1, c_p1)
-        txtpoint3d = interpolate3d(b_p1, c_p1, math.fabs(dist / 2))
+        txtpoint3d = interpolate3d(b_p1, c_p1, fabs(dist / 2))
         gap3d = (txtpoint3d[0], txtpoint3d[1], b_p2[2] + 0.02)
         txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
         draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
@@ -342,7 +342,7 @@ def draw_door_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
 
         # Door size
         dist = distance(d_p1, e_p1)
-        txtpoint3d = interpolate3d(d_p1, e_p1, math.fabs(dist / 2))
+        txtpoint3d = interpolate3d(d_p1, e_p1, fabs(dist / 2))
         gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2] + 0.02)
         txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
         draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
@@ -405,7 +405,7 @@ def draw_window_rail_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
     if measure is True:
         # Vertical
         dist = distance(a_p1, t_p1)
-        txtpoint3d = interpolate3d(a_p1, t_p1, math.fabs(dist / 2))
+        txtpoint3d = interpolate3d(a_p1, t_p1, fabs(dist / 2))
         gap3d = (a_p2[0], txtpoint3d[1], txtpoint3d[2])
         txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
         draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize, True)
@@ -416,7 +416,7 @@ def draw_window_rail_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
 
         # Horizontal
         dist = distance(b_p1, c_p1)
-        txtpoint3d = interpolate3d(b_p1, c_p1, math.fabs(dist / 2))
+        txtpoint3d = interpolate3d(b_p1, c_p1, fabs(dist / 2))
         gap3d = (txtpoint3d[0], txtpoint3d[1], b_p2[2] + 0.02)
         txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
         draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
@@ -512,7 +512,7 @@ def draw_window_panel_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
     if measure is True:
         # Vertical (right)
         dist = distance(a_p1, t_p1)
-        txtpoint3d = interpolate3d(a_p1, t_p1, math.fabs(dist / 2))
+        txtpoint3d = interpolate3d(a_p1, t_p1, fabs(dist / 2))
         gap3d = (a_p2[0], txtpoint3d[1], txtpoint3d[2])
         txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
         draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize, True)
@@ -523,7 +523,7 @@ def draw_window_panel_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
 
         # Vertical (Left)
         dist = distance(f_p1, d_p1)
-        txtpoint3d = interpolate3d(f_p1, d_p1, math.fabs(dist / 2))
+        txtpoint3d = interpolate3d(f_p1, d_p1, fabs(dist / 2))
         gap3d = (f_p2[0], txtpoint3d[1], txtpoint3d[2])
         txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
         draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
@@ -535,7 +535,7 @@ def draw_window_panel_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
         # Horizontal (not triangle nor arch)
         if op.UST != "4" and op.UST != "2":
             dist = distance(b_p1, c_p1)
-            txtpoint3d = interpolate3d(b_p2, c_p2, math.fabs(dist / 2))
+            txtpoint3d = interpolate3d(b_p2, c_p2, fabs(dist / 2))
             gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2] + 0.05)
             txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
             draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
@@ -545,13 +545,13 @@ def draw_window_panel_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
             draw_line(screen_point_cp3, screen_point_cp1)
         else:
             dist = distance(b_p1, g_p3)
-            txtpoint3d = interpolate3d(b_p2, g_p4, math.fabs(dist / 2))
+            txtpoint3d = interpolate3d(b_p2, g_p4, fabs(dist / 2))
             gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2] + 0.05)
             txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
             draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize, True)
 
             dist = distance(g_p3, c_p1)
-            txtpoint3d = interpolate3d(g_p4, c_p2, math.fabs(dist / 2))
+            txtpoint3d = interpolate3d(g_p4, c_p2, fabs(dist / 2))
             gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2] + 0.05)
             txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
             draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
@@ -565,7 +565,7 @@ def draw_window_panel_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
         # Only for Triangle or arch
         if op.UST == "2" or op.UST == "4":
             dist = distance(g_p2, g_p3)
-            txtpoint3d = interpolate3d(g_p2, g_p3, math.fabs(dist / 2))
+            txtpoint3d = interpolate3d(g_p2, g_p3, fabs(dist / 2))
             gap3d = (txtpoint3d[0] + 0.05, txtpoint3d[1], txtpoint3d[2])
             txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
             draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
@@ -581,7 +581,7 @@ def draw_window_panel_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
             screen_point_hp5 = view3d_utils.location_3d_to_region_2d(region, rv3d, h_p5)
 
             dist = distance(h_p1, h_p3)
-            txtpoint3d = interpolate3d(h_p1, h_p3, math.fabs(dist / 2))
+            txtpoint3d = interpolate3d(h_p1, h_p3, fabs(dist / 2))
             gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2] - space - 0.05)
             txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
             draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
@@ -600,7 +600,7 @@ def draw_window_panel_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
 # return: distance
 # --------------------------------------------------------------------
 def distance(v1, v2):
-    return math.sqrt((v2[0] - v1[0]) ** 2 + (v2[1] - v1[1]) ** 2 + (v2[2] - v1[2]) ** 2)
+    return sqrt((v2[0] - v1[0]) ** 2 + (v2[1] - v1[1]) ** 2 + (v2[2] - v1[2]) ** 2)
 
 
 # --------------------------------------------------------------------
@@ -634,7 +634,7 @@ def interpolate3d(v1, v2, d1):
 def get_point(v1, mainobject):
 
     # Using World Matrix
-    vt = mathutils.Vector((v1[0], v1[1], v1[2], 1))
+    vt = Vector((v1[0], v1[1], v1[2], 1))
     m4 = mainobject.matrix_world
     vt2 = m4 * vt
     v2 = [vt2[0], vt2[1], vt2[2]]
@@ -654,8 +654,8 @@ def rotate_x(v1, rot):
 
     # X axis
     v2[0] = v1[0]
-    v2[1] = v1[1] * math.cos(radx) - v1[2] * math.sin(radx)
-    v2[2] = v1[1] * math.sin(radx) + v1[2] * math.cos(radx)
+    v2[1] = v1[1] * cos(radx) - v1[2] * sin(radx)
+    v2[2] = v1[1] * sin(radx) + v1[2] * cos(radx)
 
     return v2
 
@@ -671,9 +671,9 @@ def rotate_y(v1, rot):
     rady = rot[1]
 
     # Y axis
-    v2[0] = v1[0] * math.cos(rady) + v1[2] * math.sin(rady)
+    v2[0] = v1[0] * cos(rady) + v1[2] * sin(rady)
     v2[1] = v1[1]
-    v2[2] = v1[2] * math.cos(rady) - v1[0] * math.sin(rady)
+    v2[2] = v1[2] * cos(rady) - v1[0] * sin(rady)
 
     return v2
 
@@ -689,8 +689,8 @@ def rotate_z(v1, rot):
     radz = rot[2]
 
     # Z axis
-    v2[0] = v1[0] * math.cos(radz) - v1[1] * math.sin(radz)
-    v2[1] = v1[0] * math.sin(radz) + v1[1] * math.cos(radz)
+    v2[0] = v1[0] * cos(radz) - v1[1] * sin(radz)
+    v2[1] = v1[0] * sin(radz) + v1[1] * cos(radz)
     v2[2] = v1[2]
 
     return v2

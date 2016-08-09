@@ -25,7 +25,9 @@
 # ----------------------------------------------------------
 # noinspection PyUnresolvedReferences
 import bpy
-import math
+from math import radians
+from bpy.types import Operator
+from bpy.props import IntProperty, FloatProperty, BoolProperty, EnumProperty
 from .achm_tools import *
 
 
@@ -33,7 +35,7 @@ from .achm_tools import *
 # Define UI class
 # Rooms
 # ------------------------------------------------------------------
-class AchmRoof(bpy.types.Operator):
+class AchmRoof(Operator):
     bl_idname = "mesh.archimesh_roof"
     bl_label = "Roof"
     bl_description = "Roof Generator"
@@ -41,38 +43,38 @@ class AchmRoof(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     # Define properties
-    roof_width = bpy.props.IntProperty(
+    roof_width = IntProperty(
             name='Num tiles X',
             min=1, max=100, default=6,
             description='Tiles in X axis',
             )
-    roof_height = bpy.props.IntProperty(
+    roof_height = IntProperty(
             name='Num tiles Y',
             min=1, max=100, default=3,
             description='Tiles in Y axis',
             )
 
-    roof_thick = bpy.props.FloatProperty(
+    roof_thick = FloatProperty(
             name='Tile thickness',
             min=0.000, max=0.50, default=0.012, precision=3,
             description='Thickness of the roof tile',
             )
-    roof_angle = bpy.props.FloatProperty(
+    roof_angle = FloatProperty(
             name='Roof slope', min=0.0, max=70.0, default=0.0, precision=1,
             description='Roof angle of slope',
             )
-    roof_scale = bpy.props.FloatProperty(
+    roof_scale = FloatProperty(
             name='Tile scale', min=0.001, max=10, default=1, precision=3,
             description='Scale of roof tile',
             )
 
-    crt_mat = bpy.props.BoolProperty(
+    crt_mat = BoolProperty(
             name="Create default Cycles materials",
             description="Create default materials for Cycles render",
             default=True,
             )
 
-    model = bpy.props.EnumProperty(
+    model = EnumProperty(
             items=(
                 ('1', "Model 01", ""),
                 ('2', "Model 02", ""),
@@ -198,7 +200,7 @@ def create_roof_mesh(self):
     set_modifier_array(myroof, "Y", a_y, self.roof_height)
 
     # Slope
-    myroof.rotation_euler = (math.radians(self.roof_angle), 0.0, 0.0)
+    myroof.rotation_euler = (radians(self.roof_angle), 0.0, 0.0)
 
     # Create materials
     if self.crt_mat:

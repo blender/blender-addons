@@ -25,10 +25,12 @@
 # ----------------------------------------------------------
 # noinspection PyUnresolvedReferences
 import bpy
-import math
-import random
-import copy
-import colorsys
+from math import cos, sin, radians
+from random import randint
+from copy import copy
+from colorsys import rgb_to_hsv, hsv_to_rgb
+from bpy.types import Operator
+from bpy.props import BoolProperty, IntProperty, FloatProperty, FloatVectorProperty
 from .achm_tools import *
 
 
@@ -36,59 +38,59 @@ from .achm_tools import *
 # Define UI class
 # Books
 # ------------------------------------------------------------------
-class AchmBooks(bpy.types.Operator):
+class AchmBooks(Operator):
     bl_idname = "mesh.archimesh_books"
     bl_label = "Books"
     bl_description = "Books Generator"
     bl_category = 'Archimesh'
     bl_options = {'REGISTER', 'UNDO'}
 
-    width = bpy.props.FloatProperty(
+    width = FloatProperty(
             name='Width', min=0.001, max=1, default=0.045, precision=3,
             description='Bounding book width',
             )
-    depth = bpy.props.FloatProperty(
+    depth = FloatProperty(
             name='Depth', min=0.001, max=1, default=0.22, precision=3,
             description='Bounding book depth',
             )
-    height = bpy.props.FloatProperty(
+    height = FloatProperty(
             name='Height', min=0.001, max=1, default=0.30, precision=3,
             description='Bounding book height',
             )
-    num = bpy.props.IntProperty(
+    num = IntProperty(
             name='Number of books', min=1, max=100, default=20,
             description='Number total of books',
             )
 
-    rX = bpy.props.FloatProperty(
+    rX = FloatProperty(
             name='X', min=0.000, max=0.999, default=0, precision=3,
             description='Randomness for X axis',
             )
-    rY = bpy.props.FloatProperty(
+    rY = FloatProperty(
             name='Y', min=0.000, max=0.999, default=0, precision=3,
             description='Randomness for Y axis',
             )
-    rZ = bpy.props.FloatProperty(
+    rZ = FloatProperty(
             name='Z', min=0.000, max=0.999, default=0, precision=3,
             description='Randomness for Z axis',
             )
 
-    rot = bpy.props.FloatProperty(
+    rot = FloatProperty(
             name='Rotation', min=0.000, max=1, default=0, precision=3,
             description='Randomness for vertical position (0-> All straight)',
             )
-    afn = bpy.props.IntProperty(
+    afn = IntProperty(
             name='Affinity', min=0, max=10, default=5,
             description='Number of books with same rotation angle',
             )
 
     # Materials
-    crt_mat = bpy.props.BoolProperty(
+    crt_mat = BoolProperty(
             name="Create default Cycles materials",
             description="Create default materials for Cycles render",
             default=True,
             )
-    objcol = bpy.props.FloatVectorProperty(
+    objcol = FloatVectorProperty(
             name="Color",
             description="Color for material",
             default=(1.0, 1.0, 1.0, 1.0),
@@ -96,7 +98,7 @@ class AchmBooks(bpy.types.Operator):
             subtype='COLOR',
             size=4,
             )
-    rC = bpy.props.FloatProperty(
+    rC = FloatProperty(
             name='Randomness',
             min=0.000, max=1, default=0, precision=3,
             description='Randomness for color ',
@@ -181,7 +183,7 @@ def create_book_mesh(self):
 def generate_books(self):
     boxes = []
     location = bpy.context.scene.cursor_location
-    myloc = copy.copy(location)  # copy location to keep 3D cursor position
+    myloc = copy(location)  # copy location to keep 3D cursor position
 
     # Create
     lastx = myloc.x
@@ -214,7 +216,7 @@ def generate_books(self):
         if i < self.afn:
             size = 0.0002
         else:
-            size = 0.0003 + math.cos(math.radians(90 - bookdata[3])) * bookdata[2]  # the height is the radius
+            size = 0.0003 + cos(radians(90 - bookdata[3])) * bookdata[2]  # the height is the radius
             oz = bookdata[2]
 
         lastx = lastx + bookdata[0] + size
@@ -261,11 +263,11 @@ def generate_books(self):
 def create_book(objname, sx, sy, sz, px, py, pz, mat, frx,
                 fry, frz, frr, ox, oy, oz, ot, objcol, frc):
     # gap Randomness
-    ri = random.randint(10, 150)
+    ri = randint(10, 150)
     gap = ri / 100000
     # Randomness X
     if ox == 0:
-        ri = random.randint(0, int(frx * 1000))
+        ri = randint(0, int(frx * 1000))
         factor = ri / 1000
         sx -= sx * factor
         if sx < (gap * 3):
@@ -275,7 +277,7 @@ def create_book(objname, sx, sy, sz, px, py, pz, mat, frx,
 
         # Randomness Y
     if oy == 0:
-        ri = random.randint(0, int(fry * 1000))
+        ri = randint(0, int(fry * 1000))
         factor = ri / 1000
         sy -= sy * factor
         if sy < (gap * 3):
@@ -285,7 +287,7 @@ def create_book(objname, sx, sy, sz, px, py, pz, mat, frx,
 
         # Randomness Z
     if oz == 0:
-        ri = random.randint(0, int(frz * 1000))
+        ri = randint(0, int(frz * 1000))
         factor = ri / 1000
         sz -= sz * factor
         if sz < (gap * 3):
@@ -297,26 +299,26 @@ def create_book(objname, sx, sy, sz, px, py, pz, mat, frx,
     rot = 0
     if frr > 0 and ot != -1:
         if ot == 0:
-            ri = random.randint(0, int(frr * 1000))
+            ri = randint(0, int(frr * 1000))
             factor = ri / 1000
             rot = 30 * factor
         else:
             rot = ot
 
     # Randomness color (only hue)
-    hsv = colorsys.rgb_to_hsv(objcol[0], objcol[1], objcol[2])
+    hsv = rgb_to_hsv(objcol[0], objcol[1], objcol[2])
     hue = hsv[0]
     if frc > 0:
-        rc1 = random.randint(0, int(hue * 1000))  # 0 to hue
-        rc2 = random.randint(int(hue * 1000), 1000)  # hue to maximum
-        rc3 = random.randint(0, 1000)  # sign
+        rc1 = randint(0, int(hue * 1000))  # 0 to hue
+        rc2 = randint(int(hue * 1000), 1000)  # hue to maximum
+        rc3 = randint(0, 1000)  # sign
 
         if rc3 >= hue * 1000:
             hue += (rc2 * frc) / 1000
         else:
             hue -= (rc1 * frc) / 1000
         # Convert random color
-        objcol = colorsys.hsv_to_rgb(hue, hsv[1], hsv[2])
+        objcol = hsv_to_rgb(hue, hsv[1], hsv[2])
 
     myvertex = []
     myfaces = []
@@ -356,7 +358,7 @@ def create_book(objname, sx, sy, sz, px, py, pz, mat, frx,
 
     mybook.location[0] = px
     mybook.location[1] = py
-    mybook.location[2] = pz + math.sin(math.radians(rot)) * sx
+    mybook.location[2] = pz + sin(radians(rot)) * sx
     bpy.context.scene.objects.link(mybook)
 
     mymesh.from_pydata(myvertex, [], myfaces)
@@ -395,7 +397,7 @@ def create_book(objname, sx, sy, sz, px, py, pz, mat, frx,
     # ---------------------------------
     # Rotation on Y axis
     # ---------------------------------
-    mybook.rotation_euler = (0.0, math.radians(rot), 0.0)  # radians
+    mybook.rotation_euler = (0.0, radians(rot), 0.0)  # radians
 
     # add some gap to the size between books
     return mybook, (sx, sy, sz, rot)

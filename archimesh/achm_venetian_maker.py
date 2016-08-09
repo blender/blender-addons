@@ -24,16 +24,17 @@
 # ----------------------------------------------------------
 # noinspection PyUnresolvedReferences
 import bpy
-import math
+from math import atan, sin, cos, radians
 # noinspection PyUnresolvedReferences
-from bpy.props import *
+from bpy.types import Operator, PropertyGroup, Object, Panel
+from bpy.props import FloatProperty, BoolProperty, IntProperty, FloatVectorProperty, CollectionProperty
 from .achm_tools import *
 
 
 # ------------------------------------------------------------------
 # Define operator class to create object
 # ------------------------------------------------------------------
-class AchmVenetian(bpy.types.Operator):
+class AchmVenetian(Operator):
     bl_idname = "mesh.archimesh_venetian"
     bl_label = "Venetian blind"
     bl_description = "Venetian"
@@ -209,7 +210,7 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     # Strings (Front)
     # ------------------------
     myp = [((0, 0, margin), (0, 0, 0), (0, 0, 0)),
-           ((0, 0, mypoints[len(mypoints) - 1] - 0.003 - math.sin(math.radians(angleused)) * mp.depth / 2), (0, 0, 0),
+           ((0, 0, mypoints[len(mypoints) - 1] - 0.003 - sin(radians(angleused)) * mp.depth / 2), (0, 0, 0),
             (0, 0, 0))]
 
     mycurvelf = create_bezier("String.f.L", myp, (0, 0, 0), 0.001, 'FRONT')
@@ -225,15 +226,15 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
         sep = 0.148
 
     mycurvelf.location.x = (mp.width / 2) - sep
-    mycurvelf.location.y = ((-mp.depth / 2) * math.cos(math.radians(mp.angle))) - 0.001
+    mycurvelf.location.y = ((-mp.depth / 2) * cos(radians(mp.angle))) - 0.001
     mycurvelf.location.z = 0
 
     mycurvecf.location.x = 0
-    mycurvecf.location.y = ((-mp.depth / 2) * math.cos(math.radians(mp.angle))) - 0.001
+    mycurvecf.location.y = ((-mp.depth / 2) * cos(radians(mp.angle))) - 0.001
     mycurvecf.location.z = 0
 
     mycurverf.location.x = -(mp.width / 2) + sep
-    mycurverf.location.y = ((-mp.depth / 2) * math.cos(math.radians(mp.angle))) - 0.001
+    mycurverf.location.y = ((-mp.depth / 2) * cos(radians(mp.angle))) - 0.001
     mycurverf.location.z = 0
 
     if mp.crt_mat:
@@ -245,7 +246,7 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     # Strings (Back)
     # ------------------------
     myp = [((0, 0, margin), (0, 0, 0), (0, 0, 0)),
-           ((0, 0, mypoints[len(mypoints) - 1] - 0.003 + math.sin(math.radians(angleused)) * mp.depth / 2),
+           ((0, 0, mypoints[len(mypoints) - 1] - 0.003 + sin(radians(angleused)) * mp.depth / 2),
             (0, 0, 0),
             (0, 0, 0))]
 
@@ -262,15 +263,15 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
         sep = 0.148
 
     mycurvelb.location.x = (mp.width / 2) - sep
-    mycurvelb.location.y = ((mp.depth / 2) * math.cos(math.radians(mp.angle))) + 0.001
+    mycurvelb.location.y = ((mp.depth / 2) * cos(radians(mp.angle))) + 0.001
     mycurvelb.location.z = 0
 
     mycurvecb.location.x = 0
-    mycurvecb.location.y = ((mp.depth / 2) * math.cos(math.radians(mp.angle))) + 0.001
+    mycurvecb.location.y = ((mp.depth / 2) * cos(radians(mp.angle))) + 0.001
     mycurvecb.location.z = 0
 
     mycurverb.location.x = -(mp.width / 2) + sep
-    mycurverb.location.y = ((mp.depth / 2) * math.cos(math.radians(mp.angle))) + 0.001
+    mycurverb.location.y = ((mp.depth / 2) * cos(radians(mp.angle))) + 0.001
     mycurverb.location.z = 0
 
     if mp.crt_mat:
@@ -286,7 +287,7 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     mybase.location.x = 0
     mybase.location.y = 0
     mybase.location.z = mypoints[len(mypoints) - 1]
-    mybase.rotation_euler = (math.radians(angleused), 0, 0)
+    mybase.rotation_euler = (radians(angleused), 0, 0)
 
     # materials
     if mp.crt_mat:
@@ -326,39 +327,39 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
 # ------------------------------------------------------------------
 # Define property group class to create or modify
 # ------------------------------------------------------------------
-class ObjectProperties(bpy.types.PropertyGroup):
-    width = bpy.props.FloatProperty(
+class ObjectProperties(PropertyGroup):
+    width = FloatProperty(
             name='Width',
             min=0.30, max=4, default=1, precision=3,
             description='Total width', update=update_object,
             )
-    height = bpy.props.FloatProperty(
+    height = FloatProperty(
             name='Height',
             min=0.20, max=10, default=1.7, precision=3,
             description='Total height',
             update=update_object,
             )
-    depth = bpy.props.FloatProperty(
+    depth = FloatProperty(
             name='Slat depth', min=0.02, max=0.30, default=0.04,
             precision=3,
             description='Slat depth', update=update_object,
             )
-    angle = bpy.props.FloatProperty(
+    angle = FloatProperty(
             name='Angle', min=0, max=85, default=0, precision=1,
             description='Angle of the slats', update=update_object,
             )
-    ratio = bpy.props.IntProperty(
+    ratio = IntProperty(
             name='Extend', min=0, max=100, default=100,
             description='% of extension (100 full extend)', update=update_object,
             )
 
     # Materials
-    crt_mat = bpy.props.BoolProperty(
+    crt_mat = BoolProperty(
             name="Create default Cycles materials",
             description="Create default materials for Cycles render",
             default=True, update=update_object,
             )
-    objcol = bpy.props.FloatVectorProperty(
+    objcol = FloatVectorProperty(
             name="Color",
             description="Color for material",
             default=(0.616, 0.435, 1.0, 1.0),
@@ -369,13 +370,13 @@ class ObjectProperties(bpy.types.PropertyGroup):
 
 # Register
 bpy.utils.register_class(ObjectProperties)
-bpy.types.Object.VenetianObjectGenerator = bpy.props.CollectionProperty(type=ObjectProperties)
+Object.VenetianObjectGenerator = CollectionProperty(type=ObjectProperties)
 
 
 # ------------------------------------------------------------------
 # Define panel class to modify object
 # ------------------------------------------------------------------
-class AchmVenetianObjectgeneratorpanel(bpy.types.Panel):
+class AchmVenetianObjectgeneratorpanel(Panel):
     bl_idname = "OBJECT_PT_venetian_generator"
     bl_label = "Venetian"
     bl_space_type = 'VIEW_3D'
@@ -508,7 +509,7 @@ def create_slat_mesh(objname, width, depth, height, angle, ratio):
             posz -= gap
             # Transition to horizontal
         if angleused == angle / 2:
-            sinheight = math.sin(math.radians(angle / 2)) * depth / 2
+            sinheight = sin(radians(angle / 2)) * depth / 2
             posz -= sinheight
 
     mesh = bpy.data.meshes.new(objname)
@@ -542,9 +543,9 @@ def get_slat_data(v, angle, width, depth, posz):
     maxz = 0.0028
     gap = 0.0025
     radio = 0.00195
-    sinv = math.sin(math.atan(maxz / (maxy - gap)))
-    cos = math.cos(math.radians(angle))
-    sin = math.sin(math.radians(angle))
+    sinv = sin(atan(maxz / (maxy - gap)))
+    cos_value = cos(radians(angle))
+    sin_value = sin(radians(angle))
 
     if width < 0.60:
         sep = 0.06
@@ -557,48 +558,48 @@ def get_slat_data(v, angle, width, depth, posz):
     myvertex = []
 
     myvertex.extend(
-        [(maxx - 0.0017, (miny + 0.00195) * cos, posz + (-maxz + (radio * sinv)) + ((miny + 0.00195) * sin)),
-         (maxx - 0.0017, (maxy - 0.00195) * cos, posz + (-maxz + (radio * sinv)) + ((maxy - 0.00195) * sin)),
-         (maxx - 0.0045, miny * cos, posz + -maxz + (miny * sin)),
-         (maxx - 0.0045, maxy * cos, posz + -maxz + (maxy * sin)),
-         (maxx, -gap * cos, posz + (-gap * sin)),
-         (maxx, gap * cos, posz + (gap * sin)),
-         (maxx - 0.0045, -gap * cos, posz + (-gap * sin)),
-         (maxx - 0.0045, gap * cos, posz + (gap * sin)),
-         (0.001172, miny * cos, posz + -maxz + (miny * sin)),
-         (0.001172, maxy * cos, posz + -maxz + (maxy * sin)),
-         (0.001172, -gap * cos, posz + (-gap * sin)),
-         (0.001172, gap * cos, posz + (gap * sin)),
-         (maxx - sep, miny * cos, posz + -maxz + (miny * sin)),
-         (maxx - sep, maxy * cos, posz + -maxz + (maxy * sin)),
-         (maxx - sep, -gap * cos, posz + (-gap * sin)),
-         (maxx - sep, gap * cos, posz + (gap * sin)),
-         (maxx - sep2, miny * cos, posz + -maxz + (miny * sin)),
-         (maxx - sep2, maxy * cos, posz + -maxz + (maxy * sin)),
-         (maxx - sep2, -gap * cos, posz + (-gap * sin)),
-         (maxx - sep2, gap * cos, posz + (gap * sin))])
+        [(maxx - 0.0017, (miny + 0.00195) * cos_value, posz + (-maxz + (radio * sinv)) + ((miny + 0.00195) * sin_value)),
+         (maxx - 0.0017, (maxy - 0.00195) * cos_value, posz + (-maxz + (radio * sinv)) + ((maxy - 0.00195) * sin_value)),
+         (maxx - 0.0045, miny * cos_value, posz + -maxz + (miny * sin_value)),
+         (maxx - 0.0045, maxy * cos_value, posz + -maxz + (maxy * sin_value)),
+         (maxx, -gap * cos_value, posz + (-gap * sin_value)),
+         (maxx, gap * cos_value, posz + (gap * sin_value)),
+         (maxx - 0.0045, -gap * cos_value, posz + (-gap * sin_value)),
+         (maxx - 0.0045, gap * cos_value, posz + (gap * sin_value)),
+         (0.001172, miny * cos_value, posz + -maxz + (miny * sin_value)),
+         (0.001172, maxy * cos_value, posz + -maxz + (maxy * sin_value)),
+         (0.001172, -gap * cos_value, posz + (-gap * sin_value)),
+         (0.001172, gap * cos_value, posz + (gap * sin_value)),
+         (maxx - sep, miny * cos_value, posz + -maxz + (miny * sin_value)),
+         (maxx - sep, maxy * cos_value, posz + -maxz + (maxy * sin_value)),
+         (maxx - sep, -gap * cos_value, posz + (-gap * sin_value)),
+         (maxx - sep, gap * cos_value, posz + (gap * sin_value)),
+         (maxx - sep2, miny * cos_value, posz + -maxz + (miny * sin_value)),
+         (maxx - sep2, maxy * cos_value, posz + -maxz + (maxy * sin_value)),
+         (maxx - sep2, -gap * cos_value, posz + (-gap * sin_value)),
+         (maxx - sep2, gap * cos_value, posz + (gap * sin_value))])
 
     myvertex.extend(
-        [(-maxx + 0.0017, (miny + 0.00195) * cos, posz + (-maxz + (radio * sinv)) + ((miny + 0.00195) * sin)),
-         (-maxx + 0.0017, (maxy - 0.00195) * cos, posz + (-maxz + (radio * sinv)) + ((maxy - 0.00195) * sin)),
-         (-maxx + 0.0045, miny * cos, posz + -maxz + (miny * sin)),
-         (-maxx + 0.0045, maxy * cos, posz + -maxz + (maxy * sin)),
-         (-maxx, -gap * cos, posz + (-gap * sin)),
-         (-maxx, gap * cos, posz + (gap * sin)),
-         (-maxx + 0.0045, -gap * cos, posz + (-gap * sin)),
-         (-maxx + 0.0045, gap * cos, posz + (gap * sin)),
-         (-0.001172, miny * cos, posz + -maxz + (miny * sin)),
-         (-0.001172, maxy * cos, posz + -maxz + (maxy * sin)),
-         (-0.001172, -gap * cos, posz + (-gap * sin)),
-         (-0.001172, gap * cos, posz + (gap * sin)),
-         (-maxx + sep, miny * cos, posz + -maxz + (miny * sin)),
-         (-maxx + sep, maxy * cos, posz + -maxz + (maxy * sin)),
-         (-maxx + sep, -gap * cos, posz + (-gap * sin)),
-         (-maxx + sep, gap * cos, posz + (gap * sin)),
-         (-maxx + sep2, miny * cos, posz + -maxz + (miny * sin)),
-         (-maxx + sep2, maxy * cos, posz + -maxz + (maxy * sin)),
-         (-maxx + sep2, -gap * cos, posz + (-gap * sin)),
-         (-maxx + sep2, gap * cos, posz + (gap * sin))])
+        [(-maxx + 0.0017, (miny + 0.00195) * cos_value, posz + (-maxz + (radio * sinv)) + ((miny + 0.00195) * sin_value)),
+         (-maxx + 0.0017, (maxy - 0.00195) * cos_value, posz + (-maxz + (radio * sinv)) + ((maxy - 0.00195) * sin_value)),
+         (-maxx + 0.0045, miny * cos_value, posz + -maxz + (miny * sin_value)),
+         (-maxx + 0.0045, maxy * cos_value, posz + -maxz + (maxy * sin_value)),
+         (-maxx, -gap * cos_value, posz + (-gap * sin_value)),
+         (-maxx, gap * cos_value, posz + (gap * sin_value)),
+         (-maxx + 0.0045, -gap * cos_value, posz + (-gap * sin_value)),
+         (-maxx + 0.0045, gap * cos_value, posz + (gap * sin_value)),
+         (-0.001172, miny * cos_value, posz + -maxz + (miny * sin_value)),
+         (-0.001172, maxy * cos_value, posz + -maxz + (maxy * sin_value)),
+         (-0.001172, -gap * cos_value, posz + (-gap * sin_value)),
+         (-0.001172, gap * cos_value, posz + (gap * sin_value)),
+         (-maxx + sep, miny * cos_value, posz + -maxz + (miny * sin_value)),
+         (-maxx + sep, maxy * cos_value, posz + -maxz + (maxy * sin_value)),
+         (-maxx + sep, -gap * cos_value, posz + (-gap * sin_value)),
+         (-maxx + sep, gap * cos_value, posz + (gap * sin_value)),
+         (-maxx + sep2, miny * cos_value, posz + -maxz + (miny * sin_value)),
+         (-maxx + sep2, maxy * cos_value, posz + -maxz + (maxy * sin_value)),
+         (-maxx + sep2, -gap * cos_value, posz + (-gap * sin_value)),
+         (-maxx + sep2, gap * cos_value, posz + (gap * sin_value))])
 
     # Faces
     myfaces = [(v + 7, v + 5, v + 1, v + 3), (v + 19, v + 7, v + 3, v + 17), (v + 2, v + 0, v + 4, v + 6),

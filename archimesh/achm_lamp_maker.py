@@ -24,8 +24,10 @@
 #
 # ----------------------------------------------------------
 import bpy
-import math
-import copy
+from math import cos, sin, radians
+from copy import copy
+from bpy.types import Operator
+from bpy.props import EnumProperty, FloatProperty, IntProperty, BoolProperty, FloatVectorProperty
 from .achm_tools import *
 
 
@@ -127,14 +129,14 @@ def set_preset(self):
 # Define UI class
 # Lamps
 # ------------------------------------------------------------------
-class AchmLamp(bpy.types.Operator):
+class AchmLamp(Operator):
     bl_idname = "mesh.archimesh_lamp"
     bl_label = "Lamp"
     bl_description = "Lamp Generator"
     bl_category = 'Archimesh'
     bl_options = {'REGISTER', 'UNDO'}
     # preset
-    preset = bpy.props.EnumProperty(
+    preset = EnumProperty(
             items=(
                 ('0', "None", ""),
                 ('1', "Sphere", ""),
@@ -147,107 +149,107 @@ class AchmLamp(bpy.types.Operator):
             )
     oldpreset = preset
 
-    base_height = bpy.props.FloatProperty(
+    base_height = FloatProperty(
             name='Height',
             min=0.01, max=10, default=0.20, precision=3,
             description='lamp base height',
             )
-    base_segments = bpy.props.IntProperty(
+    base_segments = IntProperty(
             name='Segments',
             min=3, max=128, default=16,
             description='Number of segments (vertical)',
             )
-    base_rings = bpy.props.IntProperty(
+    base_rings = IntProperty(
             name='Rings',
             min=2, max=12, default=6,
             description='Number of rings (horizontal)',
             )
-    holder = bpy.props.FloatProperty(
+    holder = FloatProperty(
             name='Lampholder',
             min=0.001, max=10, default=0.02, precision=3,
             description='Lampholder height',
             )
-    smooth = bpy.props.BoolProperty(
+    smooth = BoolProperty(
             name="Smooth",
             description="Use smooth shader",
             default=True,
             )
-    subdivide = bpy.props.BoolProperty(
+    subdivide = BoolProperty(
             name="Subdivide",
             description="Add subdivision modifier",
             default=True,
             )
 
-    bz01 = bpy.props.FloatProperty(name='S1', min=-1, max=1, default=0, precision=3, description='Z shift factor')
-    bz02 = bpy.props.FloatProperty(name='S2', min=-1, max=1, default=0, precision=3, description='Z shift factor')
-    bz03 = bpy.props.FloatProperty(name='S3', min=-1, max=1, default=0, precision=3, description='Z shift factor')
-    bz04 = bpy.props.FloatProperty(name='S4', min=-1, max=1, default=0, precision=3, description='Z shift factor')
-    bz05 = bpy.props.FloatProperty(name='S5', min=-1, max=1, default=0, precision=3, description='Z shift factor')
-    bz06 = bpy.props.FloatProperty(name='S6', min=-1, max=1, default=0, precision=3, description='Z shift factor')
-    bz07 = bpy.props.FloatProperty(name='S7', min=-1, max=1, default=0, precision=3, description='Z shift factor')
-    bz08 = bpy.props.FloatProperty(name='S8', min=-1, max=1, default=0, precision=3, description='Z shift factor')
-    bz09 = bpy.props.FloatProperty(name='S9', min=-1, max=1, default=0, precision=3, description='Z shift factor')
-    bz10 = bpy.props.FloatProperty(name='S10', min=-1, max=1, default=0, precision=3, description='Z shift factor')
-    bz11 = bpy.props.FloatProperty(name='S11', min=-1, max=1, default=0, precision=3, description='Z shift factor')
-    bz12 = bpy.props.FloatProperty(name='S12', min=-1, max=1, default=0, precision=3, description='Z shift factor')
+    bz01 = FloatProperty(name='S1', min=-1, max=1, default=0, precision=3, description='Z shift factor')
+    bz02 = FloatProperty(name='S2', min=-1, max=1, default=0, precision=3, description='Z shift factor')
+    bz03 = FloatProperty(name='S3', min=-1, max=1, default=0, precision=3, description='Z shift factor')
+    bz04 = FloatProperty(name='S4', min=-1, max=1, default=0, precision=3, description='Z shift factor')
+    bz05 = FloatProperty(name='S5', min=-1, max=1, default=0, precision=3, description='Z shift factor')
+    bz06 = FloatProperty(name='S6', min=-1, max=1, default=0, precision=3, description='Z shift factor')
+    bz07 = FloatProperty(name='S7', min=-1, max=1, default=0, precision=3, description='Z shift factor')
+    bz08 = FloatProperty(name='S8', min=-1, max=1, default=0, precision=3, description='Z shift factor')
+    bz09 = FloatProperty(name='S9', min=-1, max=1, default=0, precision=3, description='Z shift factor')
+    bz10 = FloatProperty(name='S10', min=-1, max=1, default=0, precision=3, description='Z shift factor')
+    bz11 = FloatProperty(name='S11', min=-1, max=1, default=0, precision=3, description='Z shift factor')
+    bz12 = FloatProperty(name='S12', min=-1, max=1, default=0, precision=3, description='Z shift factor')
 
-    br01 = bpy.props.FloatProperty(name='R1', min=0.001, max=10, default=0.06, precision=3, description='Ring radio')
-    br02 = bpy.props.FloatProperty(name='R2', min=0.001, max=10, default=0.08, precision=3, description='Ring radio')
-    br03 = bpy.props.FloatProperty(name='R3', min=0.001, max=10, default=0.09, precision=3, description='Ring radio')
-    br04 = bpy.props.FloatProperty(name='R4', min=0.001, max=10, default=0.08, precision=3, description='Ring radio')
-    br05 = bpy.props.FloatProperty(name='R5', min=0.001, max=10, default=0.06, precision=3, description='Ring radio')
-    br06 = bpy.props.FloatProperty(name='R6', min=0.001, max=10, default=0.03, precision=3, description='Ring radio')
-    br07 = bpy.props.FloatProperty(name='R7', min=0.001, max=10, default=0.10, precision=3, description='Ring radio')
-    br08 = bpy.props.FloatProperty(name='R8', min=0.001, max=10, default=0.10, precision=3, description='Ring radio')
-    br09 = bpy.props.FloatProperty(name='R9', min=0.001, max=10, default=0.10, precision=3, description='Ring radio')
-    br10 = bpy.props.FloatProperty(name='R10', min=0.001, max=10, default=0.10, precision=3, description='Ring radio')
-    br11 = bpy.props.FloatProperty(name='R11', min=0.001, max=10, default=0.10, precision=3, description='Ring radio')
-    br12 = bpy.props.FloatProperty(name='R12', min=0.001, max=10, default=0.10, precision=3, description='Ring radio')
+    br01 = FloatProperty(name='R1', min=0.001, max=10, default=0.06, precision=3, description='Ring radio')
+    br02 = FloatProperty(name='R2', min=0.001, max=10, default=0.08, precision=3, description='Ring radio')
+    br03 = FloatProperty(name='R3', min=0.001, max=10, default=0.09, precision=3, description='Ring radio')
+    br04 = FloatProperty(name='R4', min=0.001, max=10, default=0.08, precision=3, description='Ring radio')
+    br05 = FloatProperty(name='R5', min=0.001, max=10, default=0.06, precision=3, description='Ring radio')
+    br06 = FloatProperty(name='R6', min=0.001, max=10, default=0.03, precision=3, description='Ring radio')
+    br07 = FloatProperty(name='R7', min=0.001, max=10, default=0.10, precision=3, description='Ring radio')
+    br08 = FloatProperty(name='R8', min=0.001, max=10, default=0.10, precision=3, description='Ring radio')
+    br09 = FloatProperty(name='R9', min=0.001, max=10, default=0.10, precision=3, description='Ring radio')
+    br10 = FloatProperty(name='R10', min=0.001, max=10, default=0.10, precision=3, description='Ring radio')
+    br11 = FloatProperty(name='R11', min=0.001, max=10, default=0.10, precision=3, description='Ring radio')
+    br12 = FloatProperty(name='R12', min=0.001, max=10, default=0.10, precision=3, description='Ring radio')
 
-    top_height = bpy.props.FloatProperty(
+    top_height = FloatProperty(
             name='Height', min=0.01, max=10,
             default=0.20, precision=3,
             description='lampshade height',
             )
-    top_segments = bpy.props.IntProperty(
+    top_segments = IntProperty(
             name='Segments', min=3, max=128,
             default=32,
             description='Number of segments (vertical)',
             )
-    tr01 = bpy.props.FloatProperty(
+    tr01 = FloatProperty(
             name='R1', min=0.001, max=10,
             default=0.16, precision=3,
             description='lampshade bottom radio',
             )
-    tr02 = bpy.props.FloatProperty(name='R2', min=0.001, max=10,
+    tr02 = FloatProperty(name='R2', min=0.001, max=10,
             default=0.08, precision=3,
                                    description='lampshade top radio')
-    pleats = bpy.props.BoolProperty(
+    pleats = BoolProperty(
             name="Pleats", description="Create pleats in the lampshade",
             default=False,
             )
-    tr03 = bpy.props.FloatProperty(
+    tr03 = FloatProperty(
             name='R3', min=0.001, max=1,
             default=0.01, precision=3, description='Pleats size',
             )
-    energy = bpy.props.FloatProperty(
+    energy = FloatProperty(
             name='Light', min=0.00, max=1000,
             default=15, precision=3,
             description='Light intensity',
             )
-    opacity = bpy.props.FloatProperty(
+    opacity = FloatProperty(
             name='Translucency', min=0.00, max=1,
             default=0.3, precision=3,
             description='Lampshade translucency factor (1 completely translucent)',
             )
 
     # Materials
-    crt_mat = bpy.props.BoolProperty(
+    crt_mat = BoolProperty(
             name="Create default Cycles materials",
             description="Create default materials for Cycles render",
             default=True,
             )
-    objcol = bpy.props.FloatVectorProperty(
+    objcol = FloatVectorProperty(
             name="Color",
             description="Color for material",
             default=(1.0, 1.0, 1.0, 1.0),
@@ -399,7 +401,7 @@ def create_lamp_mesh(self):
 # ------------------------------------------------------------------------------
 def generate_lamp(self):
     location = bpy.context.scene.cursor_location
-    myloc = copy.copy(location)  # copy location to keep 3D cursor position
+    myloc = copy(location)  # copy location to keep 3D cursor position
     # ---------------------
     # Lamp base
     # ---------------------
@@ -738,8 +740,8 @@ def create_cylinder_data(segments, listheight, listradio, bottom, top, pleats, p
     for z in listheight:
         seg = 0
         for i in range(segments):
-            x = math.cos(math.radians(seg)) * (listradio[idx] + rp)
-            y = math.sin(math.radians(seg)) * (listradio[idx] + rp)
+            x = cos(radians(seg)) * (listradio[idx] + rp)
+            y = sin(radians(seg)) * (listradio[idx] + rp)
             mypoint = [(x, y, z)]
             myvertex.extend(mypoint)
             seg += 360 / segments

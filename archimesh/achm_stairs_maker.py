@@ -25,7 +25,9 @@
 # ----------------------------------------------------------
 # noinspection PyUnresolvedReferences
 import bpy
-import math
+from math import radians, sin, cos
+from bpy.types import Operator
+from bpy.props import FloatProperty, BoolProperty, IntProperty, EnumProperty
 from .achm_tools import *
 
 
@@ -33,7 +35,7 @@ from .achm_tools import *
 # Define UI class
 # Stairs
 # ------------------------------------------------------------------
-class AchmStairs(bpy.types.Operator):
+class AchmStairs(Operator):
     bl_idname = "mesh.archimesh_stairs"
     bl_label = "Stairs"
     bl_description = "Stairs Generator"
@@ -41,7 +43,7 @@ class AchmStairs(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     # Define properties
-    model = bpy.props.EnumProperty(
+    model = EnumProperty(
             items=(
                 ('1', "Rectangular", ""),
                 ('2', "Rounded", ""),
@@ -49,85 +51,85 @@ class AchmStairs(bpy.types.Operator):
             name="Model",
             description="Type of steps",
             )
-    radio = bpy.props.FloatProperty(
+    radio = FloatProperty(
             name='',
             min=0.001, max=0.500,
             default=0.20, precision=3,
             description='Radius factor for rounded',
             )
-    curve = bpy.props.BoolProperty(
+    curve = BoolProperty(
             name="Include deformation handles",
             description="Include a curve to modify the stairs curve",
             default=False,
             )
 
-    step_num = bpy.props.IntProperty(
+    step_num = IntProperty(
             name='Number of steps',
             min=1, max=1000,
             default=3,
             description='Number total of steps',
             )
-    max_width = bpy.props.FloatProperty(
+    max_width = FloatProperty(
             name='Width',
             min=0.001, max=10,
             default=1, precision=3,
             description='Step maximum width',
             )
-    depth = bpy.props.FloatProperty(
+    depth = FloatProperty(
             name='Depth',
             min=0.001, max=10,
             default=0.30, precision=3,
             description='Depth of the step',
             )
-    shift = bpy.props.FloatProperty(
+    shift = FloatProperty(
             name='Shift',
             min=0.001, max=1,
             default=1, precision=3,
             description='Step shift in Y axis',
             )
-    thickness = bpy.props.FloatProperty(
+    thickness = FloatProperty(
             name='Thickness',
             min=0.001, max=10,
             default=0.03, precision=3,
             description='Step thickness',
             )
-    sizev = bpy.props.BoolProperty(
+    sizev = BoolProperty(
             name="Variable width",
             description="Steps are not equal in width",
             default=False,
             )
-    back = bpy.props.BoolProperty(
+    back = BoolProperty(
             name="Close sides",
             description="Close all steps side to make a solid structure",
             default=False,
             )
-    min_width = bpy.props.FloatProperty(
+    min_width = FloatProperty(
             name='',
             min=0.001, max=10,
             default=1, precision=3,
             description='Step minimum width',
             )
 
-    height = bpy.props.FloatProperty(
+    height = FloatProperty(
             name='height',
             min=0.001, max=10,
             default=0.14, precision=3,
             description='Step height',
             )
-    front_gap = bpy.props.FloatProperty(
+    front_gap = FloatProperty(
             name='Front',
             min=0, max=10,
             default=0.03,
             precision=3,
             description='Front gap',
             )
-    side_gap = bpy.props.FloatProperty(
+    side_gap = FloatProperty(
             name='Side',
             min=0, max=10,
             default=0, precision=3,
             description='Side gap',
             )
-    crt_mat = bpy.props.BoolProperty(
+    crt_mat = BoolProperty(
             name="Create default Cycles materials",
             description="Create default materials for Cycles render",
             default=True,
@@ -335,8 +337,8 @@ def create_round_step(self, origin, myvertex, myfaces, index, step):
     z = origin[2]
     pos_x = None
     i = index
-    li = [math.radians(270), math.radians(288), math.radians(306), math.radians(324), math.radians(342),
-          math.radians(0)]
+    li = [radians(270), radians(288), radians(306), radians(324), radians(342),
+          radians(0)]
 
     max_width = self.max_width
     max_depth = y + self.depth
@@ -358,8 +360,8 @@ def create_round_step(self, origin, myvertex, myfaces, index, step):
     myvertex.extend([(x, y, z), (x, y, z + self.height)])
     # Round
     for e in li:
-        pos_x = (math.cos(e) * myradio) + x + width - myradio
-        pos_y = (math.sin(e) * myradio) + y + myradio
+        pos_x = (cos(e) * myradio) + x + width - myradio
+        pos_y = (sin(e) * myradio) + y + myradio
 
         myvertex.extend([(pos_x, pos_y, z), (pos_x, pos_y, z + self.height)])
 
@@ -382,8 +384,8 @@ def create_round_step(self, origin, myvertex, myfaces, index, step):
     myvertex.extend([(x, y - self.front_gap, z), (x, y - self.front_gap, z + self.thickness)])
     # Round
     for e in li:
-        pos_x = (math.cos(e) * myradio) + x + width - myradio
-        pos_y = (math.sin(e) * myradio) + y + myradio - self.front_gap
+        pos_x = (cos(e) * myradio) + x + width - myradio
+        pos_y = (sin(e) * myradio) + y + myradio - self.front_gap
 
         myvertex.extend([(pos_x, pos_y, z), (pos_x, pos_y, z + self.thickness)])
 
@@ -416,7 +418,7 @@ def create_bezier(objname, points, origin):
 
     myobject = bpy.data.objects.new(objname, curvedata)
     myobject.location = origin
-    myobject.rotation_euler[2] = math.radians(90)
+    myobject.rotation_euler[2] = radians(90)
 
     bpy.context.scene.objects.link(myobject)
 

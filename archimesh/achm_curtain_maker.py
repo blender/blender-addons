@@ -25,9 +25,9 @@
 # ----------------------------------------------------------
 # noinspection PyUnresolvedReferences
 import bpy
-import colorsys
-import copy
-import math
+from copy import copy
+from math import cos, sin, radians
+from bpy.types import Operator
 from .achm_tools import *
 
 
@@ -35,7 +35,7 @@ from .achm_tools import *
 # Define UI class
 # Japanese curtains
 # ------------------------------------------------------------------
-class AchmJapan(bpy.types.Operator):
+class AchmJapan(Operator):
     bl_idname = "mesh.archimesh_japan"
     bl_label = "Japanese curtains"
     bl_description = "Japanese curtains Generator"
@@ -174,7 +174,7 @@ def create_japan_mesh(self):
 # Define UI class
 # Roller curtains
 # ------------------------------------------------------------------
-class AchmRoller(bpy.types.Operator):
+class AchmRoller(Operator):
     bl_idname = "mesh.archimesh_roller"
     bl_label = "Roller curtains"
     bl_description = "Roller_curtains Generator"
@@ -262,7 +262,7 @@ def generate_japan(self):
     panel = []
 
     location = bpy.context.scene.cursor_location
-    myloc = copy.copy(location)  # copy location to keep 3D cursor position
+    myloc = copy(location)  # copy location to keep 3D cursor position
 
     # ------------------
     # Rail
@@ -621,7 +621,7 @@ def create_bezier(objname, points, origin, depth=0.001, fill='FULL'):
 # ------------------------------------------------------------------------------
 def generate_roller(self):
     location = bpy.context.scene.cursor_location
-    myloc = copy.copy(location)  # copy location to keep 3D cursor position
+    myloc = copy(location)  # copy location to keep 3D cursor position
 
     # ------------------
     # Roller Top
@@ -738,16 +738,16 @@ def create_roller_rail(objname, width, radio, px, py, pz, mat, mymaterial):
 
     # Add right circle
     for i in range(pies):
-        x = math.cos(math.radians(seg)) * radio
-        y = math.sin(math.radians(seg)) * radio
+        x = cos(radians(seg)) * radio
+        y = sin(radians(seg)) * radio
         mypoint = [(0.0, x, y)]
         myvertex.extend(mypoint)
         seg += 360 / pies
     # Add left circle
     seg = 0
     for i in range(pies):
-        x = math.cos(math.radians(seg)) * radio
-        y = math.sin(math.radians(seg)) * radio
+        x = cos(radians(seg)) * radio
+        y = sin(radians(seg)) * radio
         mypoint = [(width, x, y)]
         myvertex.extend(mypoint)
         seg += 360 / pies
@@ -816,7 +816,7 @@ def create_roller_sides(myroller, side, px, py, pz, mat, plastic):
     myside.location.z = pz
     # rotate
     if side == "L":
-        myside.rotation_euler = (0, 0, math.radians(180))
+        myside.rotation_euler = (0, 0, radians(180))
     # parent
     myside.parent = myroller
 

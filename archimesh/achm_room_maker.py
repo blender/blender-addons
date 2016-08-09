@@ -25,20 +25,21 @@
 # ----------------------------------------------------------
 # noinspection PyUnresolvedReferences
 import bpy
-import math
-# noinspection PyUnresolvedReferences
-import mathutils
-import datetime
-import time
-from .achm_tools import *
-# noinspection PyUnresolvedReferences
+from math import sin, cos, fabs, radians
+from mathutils import Vector
+from datetime import datetime
+from time import time
+from bpy.types import Operator, PropertyGroup, Object, Panel
+from bpy.props import StringProperty, FloatProperty, BoolProperty, IntProperty, FloatVectorProperty, \
+    CollectionProperty, EnumProperty
 from bpy_extras.io_utils import ExportHelper, ImportHelper
+from .achm_tools import *
 
 
 # ----------------------------------------------------------
 # Export menu UI
 # ----------------------------------------------------------
-class AchmExportRoom(bpy.types.Operator, ExportHelper):
+class AchmExportRoom(Operator, ExportHelper):
     bl_idname = "io_export.roomdata"
     bl_description = 'Export Room data (.dat)'
     bl_category = 'Archimesh'
@@ -46,12 +47,12 @@ class AchmExportRoom(bpy.types.Operator, ExportHelper):
 
     # From ExportHelper. Filter filenames.
     filename_ext = ".dat"
-    filter_glob = bpy.props.StringProperty(
+    filter_glob = StringProperty(
             default="*.dat",
             options={'HIDDEN'},
             )
 
-    filepath = bpy.props.StringProperty(
+    filepath = StringProperty(
             name="File Path",
             description="File path used for exporting room data file",
             maxlen=1024, default="",
@@ -79,7 +80,7 @@ class AchmExportRoom(bpy.types.Operator, ExportHelper):
             realpath = os.path.realpath(os.path.expanduser(self.properties.filepath))
             fout = open(realpath, 'w')
 
-            st = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+            st = datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S')
             fout.write("# Archimesh room export data\n")
             fout.write("# " + st + "\n")
             fout.write("#======================================================\n")
@@ -150,7 +151,7 @@ class AchmExportRoom(bpy.types.Operator, ExportHelper):
 # ----------------------------------------------------------
 # Import menu UI
 # ----------------------------------------------------------
-class AchmImportRoom(bpy.types.Operator, ImportHelper):
+class AchmImportRoom(Operator, ImportHelper):
     bl_idname = "io_import.roomdata"
     bl_description = 'Import Room data (.dat)'
     bl_category = 'Archimesh'
@@ -158,12 +159,12 @@ class AchmImportRoom(bpy.types.Operator, ImportHelper):
 
     # From Helper. Filter filenames.
     filename_ext = ".dat"
-    filter_glob = bpy.props.StringProperty(
+    filter_glob = StringProperty(
             default="*.dat",
             options={'HIDDEN'},
             )
 
-    filepath = bpy.props.StringProperty(
+    filepath = StringProperty(
             name="File Path",
             description="File path used for exporting room data file",
             maxlen=1024, default="",
@@ -310,7 +311,7 @@ class AchmImportRoom(bpy.types.Operator, ImportHelper):
 # ------------------------------------------------------------------
 # Define operator class to create rooms
 # ------------------------------------------------------------------
-class AchmRoom(bpy.types.Operator):
+class AchmRoom(Operator):
     bl_idname = "mesh.archimesh_room"
     bl_label = "Room"
     bl_description = "Generate room with walls, baseboard, floor and ceiling"
@@ -660,8 +661,8 @@ def make_wall(prv, wall, baseboard, lastface, lastx, lasty, height, myvertex, my
     over = get_blendunits(over)
 
     # Calculate size using angle
-    sizex = math.cos(math.radians(angle)) * size
-    sizey = math.sin(math.radians(angle)) * size
+    sizex = cos(radians(angle)) * size
+    sizey = sin(radians(angle)) * size
 
     # Create faces
     if advanced is False or baseboard is True:
@@ -697,13 +698,13 @@ def make_wall(prv, wall, baseboard, lastface, lastx, lasty, height, myvertex, my
         else:
             # Wall with peak and without curve.
             mid = size / 2 + ((size / 2) * factor)
-            midx = math.cos(math.radians(angle)) * mid
-            midy = math.sin(math.radians(angle)) * mid
+            midx = cos(radians(angle)) * mid
+            midy = sin(radians(angle)) * mid
             # first face
             myvertex.extend([(lastx + midx, lasty + midy, height + over),
                              (lastx + midx, lasty + midy, 0.0)])
             if check_visibility(hide, baseboard):
-                if math.fabs(factor) != 1:
+                if fabs(factor) != 1:
                     if prv is False:
                         # Previous no advance or advance with curve
                         myfaces.extend([(lastface, lastface + 2, lastface + 3, lastface + 1)])
@@ -714,7 +715,7 @@ def make_wall(prv, wall, baseboard, lastface, lastx, lasty, height, myvertex, my
             myvertex.extend([(lastx + sizex, lasty + sizey, 0.0),
                              (lastx + sizex, lasty + sizey, height)])
             if check_visibility(hide, baseboard):
-                if math.fabs(factor) != 1:
+                if fabs(factor) != 1:
                     myfaces.extend([(lastface + 2, lastface + 3, lastface + 4, lastface + 5)])
                 else:
                     if prv is False:
@@ -764,12 +765,12 @@ def make_curved_wall(myvertex, myfaces, size, wall_angle, lastx, lasty, height,
     curvex = None
     curvey = None
     # Calculate size using angle
-    sizex = math.cos(math.radians(wall_angle)) * size
-    sizey = math.sin(math.radians(wall_angle)) * size
+    sizex = cos(radians(wall_angle)) * size
+    sizey = sin(radians(wall_angle)) * size
 
     for step in range(0, arc_angle + step_angle, step_angle):
-        curvex = sizex / 2 - math.cos(math.radians(step + wall_angle)) * size / 2
-        curvey = sizey / 2 - math.sin(math.radians(step + wall_angle)) * size / 2
+        curvex = sizex / 2 - cos(radians(step + wall_angle)) * size / 2
+        curvey = sizey / 2 - sin(radians(step + wall_angle)) * size / 2
         curvey = curvey * curve_factor
         myvertex.extend([(lastx + curvex, lasty + curvey, height),
                          (lastx + curvex, lasty + curvey, 0.0)])
@@ -831,8 +832,8 @@ def create_floor(rp, typ, myroom):
 # ------------------------------------------------------------------
 # Define property group class to create, or modify, room walls.
 # ------------------------------------------------------------------
-class WallProperties(bpy.types.PropertyGroup):
-    w = bpy.props.FloatProperty(
+class WallProperties(PropertyGroup):
+    w = FloatProperty(
             name='Length',
             min=-150, max=150,
             default=1, precision=3,
@@ -840,33 +841,33 @@ class WallProperties(bpy.types.PropertyGroup):
             update=update_room,
             )
 
-    a = bpy.props.BoolProperty(
+    a = BoolProperty(
             name="Advance",
             description="Define advance parameters of the wall",
             default=False,
             update=update_room,
             )
 
-    curved = bpy.props.BoolProperty(
+    curved = BoolProperty(
             name="Curved",
             description="Enable curved wall parameters",
             default=False,
             update=update_room,
             )
-    curve_factor = bpy.props.FloatProperty(
+    curve_factor = FloatProperty(
             name='Factor',
             min=-5, max=5,
             default=1, precision=1,
             description='Curvature variation',
             update=update_room,
             )
-    curve_arc_deg = bpy.props.FloatProperty(
+    curve_arc_deg = FloatProperty(
             name='Degrees', min=1, max=359,
             default=180, precision=1,
             description='Degrees of the curve arc (must be >= steps)',
             update=update_room,
             )
-    curve_steps = bpy.props.IntProperty(
+    curve_steps = IntProperty(
             name='Steps',
             min=2, max=50,
             default=12,
@@ -874,19 +875,19 @@ class WallProperties(bpy.types.PropertyGroup):
             update=update_room,
             )
 
-    m = bpy.props.FloatProperty(
+    m = FloatProperty(
             name='Peak', min=0, max=50,
             default=0, precision=3,
             description='Middle height variation',
             update=update_room,
             )
-    f = bpy.props.FloatProperty(
+    f = FloatProperty(
             name='Factor', min=-1, max=1,
             default=0, precision=3,
             description='Middle displacement',
             update=update_room,
             )
-    r = bpy.props.FloatProperty(
+    r = FloatProperty(
             name='Angle',
             min=-180, max=180,
             default=0, precision=1,
@@ -894,7 +895,7 @@ class WallProperties(bpy.types.PropertyGroup):
             update=update_room,
             )
 
-    h = bpy.props.EnumProperty(
+    h = EnumProperty(
             items=(
                 ('0', "Visible", ""),
                 ('1', "Baseboard", ""),
@@ -907,12 +908,12 @@ class WallProperties(bpy.types.PropertyGroup):
             )
 
     # opengl internal data
-    glpoint_a = bpy.props.FloatVectorProperty(
+    glpoint_a = FloatVectorProperty(
             name="glpointa",
             description="Hidden property for opengl",
             default=(0, 0, 0),
             )
-    glpoint_b = bpy.props.FloatVectorProperty(
+    glpoint_b = FloatVectorProperty(
             name="glpointb",
             description="Hidden property for opengl",
             default=(0, 0, 0),
@@ -1167,13 +1168,13 @@ def add_shell(selobject, objname, rp):
 # pf: Comparision face +/-
 # ---------------------------------------------------------
 def project_point(idx, point, normals, m, pf):
-    v1 = mathutils.Vector(normals[idx])
+    v1 = Vector(normals[idx])
     if idx + pf >= len(normals):
         vf = v1
     elif idx + pf < 0:
         vf = v1
     else:
-        v2 = mathutils.Vector(normals[idx + pf])
+        v2 = Vector(normals[idx + pf])
         if v1 != v2:
             vf = v1 + v2
             vf.normalize()  # must be length equal to 1
@@ -1496,98 +1497,98 @@ def is_in_nextface(idx, activefaces, verts, x, y):
 # ------------------------------------------------------------------
 # Define property group class to create or modify a rooms.
 # ------------------------------------------------------------------
-class RoomProperties(bpy.types.PropertyGroup):
-    room_height = bpy.props.FloatProperty(
+class RoomProperties(PropertyGroup):
+    room_height = FloatProperty(
             name='Height', min=0.001, max=50,
             default=2.4, precision=3,
             description='Room height', update=update_room,
             )
-    wall_width = bpy.props.FloatProperty(
+    wall_width = FloatProperty(
             name='Thickness', min=0.000, max=10,
             default=0.0, precision=3,
             description='Thickness of the walls', update=update_room,
             )
-    inverse = bpy.props.BoolProperty(
+    inverse = BoolProperty(
             name="Inverse", description="Inverse normals to outside",
             default=False,
             update=update_room,
             )
-    crt_mat = bpy.props.BoolProperty(
+    crt_mat = BoolProperty(
             name="Create default Cycles materials",
             description="Create default materials for Cycles render",
             default=True,
             update=update_room,
             )
 
-    wall_num = bpy.props.IntProperty(
+    wall_num = IntProperty(
             name='Number of Walls', min=1, max=50,
             default=1,
             description='Number total of walls in the room', update=add_room_wall,
             )
 
-    baseboard = bpy.props.BoolProperty(
+    baseboard = BoolProperty(
             name="Baseboard", description="Create a baseboard automatically",
             default=True,
             update=update_room,
             )
 
-    base_width = bpy.props.FloatProperty(
+    base_width = FloatProperty(
             name='Width', min=0.001, max=10,
             default=0.015, precision=3,
             description='Baseboard width', update=update_room,
             )
-    base_height = bpy.props.FloatProperty(
+    base_height = FloatProperty(
             name='Height', min=0.05, max=20,
             default=0.12, precision=3,
             description='Baseboard height', update=update_room,
             )
 
-    ceiling = bpy.props.BoolProperty(
+    ceiling = BoolProperty(
             name="Ceiling", description="Create a ceiling",
             default=False, update=update_room,
             )
-    floor = bpy.props.BoolProperty(
+    floor = BoolProperty(
             name="Floor", description="Create a floor automatically",
             default=False,
             update=update_room,
             )
 
-    merge = bpy.props.BoolProperty(
+    merge = BoolProperty(
             name="Close walls", description="Close walls to create a full closed room",
             default=False, update=update_room,
             )
 
-    walls = bpy.props.CollectionProperty(
+    walls = CollectionProperty(
             type=WallProperties,
             )
 
-    shell = bpy.props.BoolProperty(
+    shell = BoolProperty(
             name="Wall cover", description="Create a cover of boards",
             default=False, update=update_room,
             )
-    shell_thick = bpy.props.FloatProperty(
+    shell_thick = FloatProperty(
             name='Thickness', min=0.001, max=1,
             default=0.025, precision=3,
             description='Cover board thickness', update=update_room,
             )
-    shell_height = bpy.props.FloatProperty(
+    shell_height = FloatProperty(
             name='Height', min=0.05, max=1,
             default=0.20, precision=3,
             description='Cover board height', update=update_room,
             )
-    shell_factor = bpy.props.FloatProperty(
+    shell_factor = FloatProperty(
             name='Top', min=0.1, max=1,
             default=1, precision=1,
             description='Percentage for top covering (1 Full)', update=update_room,
             )
-    shell_bfactor = bpy.props.FloatProperty(
+    shell_bfactor = FloatProperty(
             name='Bottom', min=0.1, max=1,
             default=1, precision=1,
             description='Percentage for bottom covering (1 Full)', update=update_room,
             )
 
 bpy.utils.register_class(RoomProperties)
-bpy.types.Object.RoomGenerator = bpy.props.CollectionProperty(type=RoomProperties)
+Object.RoomGenerator = CollectionProperty(type=RoomProperties)
 
 
 # -----------------------------------------------------
@@ -1620,7 +1621,7 @@ def add_wall(idx, box, wall):
 # ------------------------------------------------------------------
 # Define panel class to modify rooms.
 # ------------------------------------------------------------------
-class AchmRoomGeneratorPanel(bpy.types.Panel):
+class AchmRoomGeneratorPanel(Panel):
     bl_idname = "OBJECT_PT_room_generator"
     bl_label = "Room"
     bl_space_type = 'VIEW_3D'

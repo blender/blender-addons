@@ -25,7 +25,7 @@
 # ----------------------------------------------------------
 # noinspection PyUnresolvedReferences
 import bpy
-import os
+from os import path
 
 
 # --------------------------------------------------------------------
@@ -857,7 +857,7 @@ def create_fabric_material(matname, replace, r, g, b, rv=0.8, gv=0.636, bv=0.315
     # ===========================================================================
     # Load image file.
 
-    realpath = os.path.join(os.path.dirname(__file__), "images", "fabric_diffuse.png")
+    realpath = path.join(path.dirname(__file__), "images", "fabric_diffuse.png")
     print("Loading: " + realpath)
     try:
         img = bpy.data.images.load(realpath)

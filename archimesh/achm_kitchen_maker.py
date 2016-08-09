@@ -24,13 +24,15 @@
 #
 # ----------------------------------------------------------
 import bpy
-import math
-import copy
-import sys
-import datetime
-import time
-from .achm_tools import *
+from math import pi, fabs
+from copy import copy
+from sys import exc_info
+from datetime import datetime
+from time import time
+from bpy.types import Operator, PropertyGroup
+from bpy.props import StringProperty, EnumProperty, FloatProperty, IntProperty, BoolProperty, CollectionProperty
 from bpy_extras.io_utils import ExportHelper
+from .achm_tools import *
 
 # ----------------------------------------------------------
 #  Define rotation types
@@ -44,7 +46,7 @@ RotationType_R180 = 3
 # ----------------------------------------------------------
 #    Export menu UI
 # ----------------------------------------------------------
-class AchmExportInventory(bpy.types.Operator, ExportHelper):
+class AchmExportInventory(Operator, ExportHelper):
     bl_idname = "io_export.kitchen_inventory"
     bl_description = 'Export kitchen inventory (.txt)'
     bl_category = 'Archimesh'
@@ -52,12 +54,12 @@ class AchmExportInventory(bpy.types.Operator, ExportHelper):
 
     # From ExportHelper. Filter filenames.
     filename_ext = ".txt"
-    filter_glob = bpy.props.StringProperty(
+    filter_glob = StringProperty(
             default="*.txt",
             options={'HIDDEN'},
             )
 
-    filepath = bpy.props.StringProperty(
+    filepath = StringProperty(
             name="File Path",
             description="File path used for exporting room data file",
             maxlen=1024, default="",
@@ -81,7 +83,7 @@ class AchmExportInventory(bpy.types.Operator, ExportHelper):
             realpath = os.path.realpath(os.path.expanduser(self.properties.filepath))
             fout = open(realpath, 'w')
 
-            st = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+            st = datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S')
             fout.write("# Archimesh kitchen inventory\n")
             fout.write("# " + st + "\n")
             mylist = getinventory()
@@ -91,7 +93,7 @@ class AchmExportInventory(bpy.types.Operator, ExportHelper):
             fout.close()
             self.report({'INFO'}, realpath + "successfully exported")
         except:
-            e = sys.exc_info()[0]
+            e = exc_info()[0]
             self.report({'ERROR'}, "Unable to export inventory " + e)
 
         return {'FINISHED'}
@@ -247,37 +249,37 @@ def getinventory():
 # Define property group class for cabinet properties
 # This is managed as an array of objects
 # ------------------------------------------------------------------
-class CabinetProperties(bpy.types.PropertyGroup):
+class CabinetProperties(PropertyGroup):
     # Cabinet width
-    sX = bpy.props.FloatProperty(
+    sX = FloatProperty(
             name='width', min=0.001, max=10, default=0.60, precision=3,
             description='Cabinet width',
             )
-    wY = bpy.props.FloatProperty(
+    wY = FloatProperty(
             name='', min=-10, max=10, default=0, precision=3,
             description='Modify depth size',
             )
-    wZ = bpy.props.FloatProperty(
+    wZ = FloatProperty(
             name='', min=-10, max=10, default=0, precision=3,
             description='Modify height size',
             )
 
     # Cabinet position shift
-    pX = bpy.props.FloatProperty(
+    pX = FloatProperty(
             name='', min=-10, max=10, default=0, precision=3,
             description='Position x shift',
             )
-    pY = bpy.props.FloatProperty(
+    pY = FloatProperty(
             name='', min=-10, max=10, default=0, precision=3,
             description='Position y shift',
             )
-    pZ = bpy.props.FloatProperty(
+    pZ = FloatProperty(
             name='', min=-10, max=10, default=0, precision=3,
             description='Position z shift',
             )
 
     # Door type
-    dType = bpy.props.EnumProperty(
+    dType = EnumProperty(
             items=(
                 ('1', "Single R", ""),
                 ('2', "Single L", ""),
@@ -296,47 +298,47 @@ class CabinetProperties(bpy.types.PropertyGroup):
             )
 
     # Shelves
-    sNum = bpy.props.IntProperty(
+    sNum = IntProperty(
             name='Shelves', min=0, max=10, default=1,
             description='Number total of shelves',
             )
     # Drawers
-    dNum = bpy.props.IntProperty(
+    dNum = IntProperty(
             name='Num', min=1, max=10, default=3,
             description='Number total of drawers',
             )
     # Glass Factor
-    gF = bpy.props.FloatProperty(
+    gF = FloatProperty(
             name='', min=0.001, max=1, default=0.1, precision=3,
             description='Glass ratio',
             )
     # Handle flag
-    hand = bpy.props.BoolProperty(
+    hand = BoolProperty(
             name="Handle",
             description="Create a handle", default=True,
             )
     # Left baseboard
-    bL = bpy.props.BoolProperty(
+    bL = BoolProperty(
             name="Left Baseboard",
             description="Create a left baseboard", default=False,
             )
     # Right baseboard
-    bR = bpy.props.BoolProperty(
+    bR = BoolProperty(
             name="Right Baseboard",
             description="Create a left baseboard", default=False,
             )
     # Fill countertop spaces
-    tC = bpy.props.BoolProperty(
+    tC = BoolProperty(
             name="Countertop fill",
             description="Fill empty spaces with countertop", default=True,
             )
     # Add countertop edge
-    tE = bpy.props.BoolProperty(
+    tE = BoolProperty(
             name="Countertop edge",
             description="Add edge to countertop", default=True,
             )
     # cabinet rotation
-    rotate = bpy.props.EnumProperty(
+    rotate = EnumProperty(
             items=(
                 ('9', "Default", ""),
                 ('1', "90 CW", ""),
@@ -355,7 +357,7 @@ bpy.utils.register_class(CabinetProperties)
 # Define UI class
 # Kitchens
 # ------------------------------------------------------------------
-class AchmKitchen(bpy.types.Operator):
+class AchmKitchen(Operator):
     bl_idname = "mesh.archimesh_kitchen"
     bl_label = "Cabinets"
     bl_description = "Cabinet Generator"
@@ -363,7 +365,7 @@ class AchmKitchen(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     # Define properties
-    type_cabinet = bpy.props.EnumProperty(
+    type_cabinet = EnumProperty(
             items=(('1', "Floor", ""),
                 ('2', "Wall", "")),
             name="Type",
@@ -371,19 +373,19 @@ class AchmKitchen(bpy.types.Operator):
             )
     oldtype = type_cabinet
 
-    thickness = bpy.props.FloatProperty(
+    thickness = FloatProperty(
             name='Thickness', min=0.001, max=5, default=0.018, precision=3,
             description='Board thickness',
             )
-    depth = bpy.props.FloatProperty(
+    depth = FloatProperty(
             name='Depth', min=0.001, max=50, default=0.59, precision=3,
             description='Default cabinet depth',
             )
-    height = bpy.props.FloatProperty(
+    height = FloatProperty(
             name='Height', min=0.001, max=50, default=0.70, precision=3,
             description='Default cabinet height',
             )
-    handle = bpy.props.EnumProperty(
+    handle = EnumProperty(
             items=(
                 ('1', "Model 1", ""),
                 ('2', "Model 2", ""),
@@ -398,69 +400,69 @@ class AchmKitchen(bpy.types.Operator):
             name="Handle",
             description="Type of handle",
             )
-    handle_x = bpy.props.FloatProperty(
+    handle_x = FloatProperty(
             name='', min=0.001, max=10,
             default=0.05, precision=3,
             description='Displacement in X relative position (limited to door size)',
             )
-    handle_z = bpy.props.FloatProperty(
+    handle_z = FloatProperty(
             name='', min=0.001, max=10,
             default=0.05, precision=3,
             description='Displacement in Z relative position (limited to door size)',
             )
 
-    baseboard = bpy.props.BoolProperty(
+    baseboard = BoolProperty(
             name="Baseboard",
             description="Create a baseboard automatically",
             default=True,
             )
-    baseheight = bpy.props.FloatProperty(
+    baseheight = FloatProperty(
             name='height', min=0.001, max=10,
             default=0.16, precision=3,
             description='Baseboard height',
             )
-    basefactor = bpy.props.FloatProperty(
+    basefactor = FloatProperty(
             name='sink', min=0, max=1,
             default=0.90, precision=3,
             description='Baseboard sink',
             )
 
-    countertop = bpy.props.BoolProperty(
+    countertop = BoolProperty(
             name="Countertop",
             description="Create a countertop automatically (only default cabinet height)",
             default=True,
             )
-    counterheight = bpy.props.FloatProperty(
+    counterheight = FloatProperty(
             name='height', min=0.001, max=10,
             default=0.02, precision=3,
             description='Countertop height',
             )
-    counterextend = bpy.props.FloatProperty(
+    counterextend = FloatProperty(
             name='extend', min=0.001, max=10,
             default=0.03, precision=3,
             description='Countertop extent',
             )
 
-    fitZ = bpy.props.BoolProperty(
+    fitZ = BoolProperty(
             name="Floor origin in Z=0",
             description="Use Z=0 axis as vertical origin floor position",
             default=True,
             )
-    moveZ = bpy.props.FloatProperty(
+    moveZ = FloatProperty(
             name='Z position', min=0.001, max=10,
             default=1.5, precision=3,
             description='Wall cabinet Z position from floor',
             )
 
-    cabinet_num = bpy.props.IntProperty(
+    cabinet_num = IntProperty(
             name='Number of Cabinets', min=1, max=30,
             default=1,
             description='Number total of cabinets in the Kitchen',
             )
-    cabinets = bpy.props.CollectionProperty(type=CabinetProperties)
+    cabinets = CollectionProperty(type=CabinetProperties)
 
     # Materials
-    crt_mat = bpy.props.BoolProperty(
+    crt_mat = BoolProperty(
             name="Create default Cycles materials",
             description="Create default materials for Cycles render",
             default=True,
@@ -621,7 +623,7 @@ def generate_cabinets(self):
     boxes = []
     bases = []
     location = bpy.context.scene.cursor_location
-    myloc = copy.copy(location)  # copy location to keep 3D cursor position
+    myloc = copy(location)  # copy location to keep 3D cursor position
     # Fit to floor
     if self.fitZ:
         myloc[2] = 0
@@ -678,21 +680,21 @@ def generate_cabinets(self):
         # 90 CW
         # ----------
         if myrotationtype == RotationType_R90CW:
-            myrot += -math.pi / 2
+            myrot += -pi / 2
         # ----------
         # 90 CCW
         # ----------
         if myrotationtype == RotationType_R90CCW:
-            myrot += math.pi / 2
+            myrot += pi / 2
         # ----------
         # 180
         # ----------
         if myrotationtype == RotationType_R180:
-            myrot = myrot + math.pi
+            myrot = myrot + pi
 
         # Save the rotation for next cabinet
         lastrot = myrot
-        angle = myrot - ((2 * math.pi) * (myrot // (2 * math.pi)))  # clamp one revolution
+        angle = myrot - ((2 * pi) * (myrot // (2 * pi)))  # clamp one revolution
 
         # -------------------------------------------
         # Countertop (only default height cabinet)
@@ -703,11 +705,11 @@ def generate_cabinets(self):
             # fill (depend on orientation)
             if self.cabinets[i].tC:
                 # 0 or 180 degrees
-                if angle == 0 or angle == math.pi:
-                    w += math.fabs(self.cabinets[i].pX)
+                if angle == 0 or angle == pi:
+                    w += fabs(self.cabinets[i].pX)
                 # 90 or 270 degrees
-                if angle == (3 * math.pi) / 2 or angle == math.pi / 2:
-                    w += math.fabs(self.cabinets[i].pY)
+                if angle == (3 * pi) / 2 or angle == pi / 2:
+                    w += fabs(self.cabinets[i].pY)
 
             mycountertop = create_countertop("Countertop" + str(i + 1),
                                              w,
@@ -727,19 +729,19 @@ def generate_cabinets(self):
                         mycountertop.location[0] = 0
 
                 # 90CW
-                if angle == (3 * math.pi) / 2:
+                if angle == (3 * pi) / 2:
                     if self.cabinets[i].pY >= 0:
                         mycountertop.location[0] = 0
                     else:
                         mycountertop.location[0] = self.cabinets[i].pY
                 # 90CCW
-                if angle == math.pi / 2:
+                if angle == pi / 2:
                     if self.cabinets[i].pY >= 0:
                         mycountertop.location[0] = self.cabinets[i].pY * -1
                     else:
                         mycountertop.location[0] = 0
                 # 180
-                if angle == math.pi:
+                if angle == pi:
                     mycountertop.location[0] = 0
 
             mycountertop.location[2] = self.height
@@ -796,15 +798,15 @@ def generate_cabinets(self):
             lastx = lastx
             lasty = lasty
         # 90 degrees
-        if angle == math.pi / 2:
+        if angle == pi / 2:
             ym = -self.cabinets[i].sX
             lastx = lastx - self.cabinets[i].sX - self.cabinets[i].pX
             lasty = lasty + self.cabinets[i].sX + self.cabinets[i].pY
         # 180 degrees
-        if angle == math.pi:
+        if angle == pi:
             lastx -= 2 * (self.cabinets[i].sX + self.cabinets[i].pX)
         # 270 degrees
-        if angle == (3 * math.pi) / 2:
+        if angle == (3 * pi) / 2:
             xm = self.depth - self.counterextend
             lastx = lastx - self.cabinets[i].sX - self.cabinets[i].pX
             lasty = lasty - self.cabinets[i].sX - self.cabinets[i].pX + self.cabinets[i].pY
@@ -1430,13 +1432,13 @@ def create_handle(model, mydoor, thickness, handle_position, mat, handle_x, hand
     if handle_position != "T" and handle_position != "B" and handle_position != "TM":
         yrot = 0
         if model == "1":
-            yrot = math.pi / 2
+            yrot = pi / 2
 
         if model == "4":
             if handle_position == "LT" or handle_position == "LB":
-                yrot = -math.pi / 2
+                yrot = -pi / 2
             else:
-                yrot = math.pi / 2
+                yrot = pi / 2
 
         myhandle.rotation_euler = (0, yrot, 0.0)  # radians PI=180
 

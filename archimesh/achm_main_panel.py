@@ -27,6 +27,7 @@
 import bpy
 # noinspection PyUnresolvedReferences
 import bgl
+from bpy.types import Operator, Panel, SpaceView3D
 from .achm_tools import *
 from .achm_gltools import *
 
@@ -47,7 +48,7 @@ def isboolean(myobject, childobject):
 # ------------------------------------------------------
 # Button: Action to link windows and doors
 # ------------------------------------------------------
-class AchmHoleAction(bpy.types.Operator):
+class AchmHoleAction(Operator):
     bl_idname = "object.archimesh_cut_holes"
     bl_label = "Auto Holes"
     bl_description = "Enable windows and doors holes for any selected object (needs wall thickness)"
@@ -190,7 +191,7 @@ class AchmHoleAction(bpy.types.Operator):
 # ------------------------------------------------------
 # Button: Action to create room from grease pencil
 # ------------------------------------------------------
-class AchmPencilAction(bpy.types.Operator):
+class AchmPencilAction(Operator):
     bl_idname = "object.archimesh_pencil_room"
     bl_label = "Room from Draw"
     bl_description = "Create a room base on grease pencil strokes (draw from top view (7 key))"
@@ -394,7 +395,7 @@ class AchmPencilAction(bpy.types.Operator):
 # ------------------------------------------------------------------
 # Define panel class for main functions.
 # ------------------------------------------------------------------
-class ArchimeshMainPanel(bpy.types.Panel):
+class ArchimeshMainPanel(Panel):
     bl_idname = "archimesh_main_panel"
     bl_label = "Archimesh"
     bl_space_type = 'VIEW_3D'
@@ -520,7 +521,7 @@ class ArchimeshMainPanel(bpy.types.Panel):
 # Defines button for enable/disable the tip display
 #
 # -------------------------------------------------------------
-class AchmRunHintDisplayButton(bpy.types.Operator):
+class AchmRunHintDisplayButton(Operator):
     bl_idname = "archimesh.runopenglbutton"
     bl_label = "Display hint data manager"
     bl_description = "Display aditional information in the viewport"
@@ -534,7 +535,7 @@ class AchmRunHintDisplayButton(bpy.types.Operator):
     @staticmethod
     def handle_add(self, context):
         if AchmRunHintDisplayButton._handle is None:
-            AchmRunHintDisplayButton._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, (self, context),
+            AchmRunHintDisplayButton._handle = SpaceView3D.draw_handler_add(draw_callback_px, (self, context),
                                                                                       'WINDOW',
                                                                                       'POST_PIXEL')
             context.window_manager.archimesh_run_opengl = True
@@ -546,7 +547,7 @@ class AchmRunHintDisplayButton(bpy.types.Operator):
     @staticmethod
     def handle_remove(self, context):
         if AchmRunHintDisplayButton._handle is not None:
-            bpy.types.SpaceView3D.draw_handler_remove(AchmRunHintDisplayButton._handle, 'WINDOW')
+            SpaceView3D.draw_handler_remove(AchmRunHintDisplayButton._handle, 'WINDOW')
         AchmRunHintDisplayButton._handle = None
         context.window_manager.archimesh_run_opengl = False
 

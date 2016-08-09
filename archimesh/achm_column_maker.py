@@ -25,7 +25,7 @@
 # ----------------------------------------------------------
 # noinspection PyUnresolvedReferences
 import bpy
-import math
+from math import cos, sin, radians, atan, sqrt
 from .achm_tools import *
 
 
@@ -568,20 +568,20 @@ def create_circular_column(self, objname, radio_top, radio_mid, radio_bottom, he
 
     # Add bottom circle
     for pie in pies:
-        x = math.cos(math.radians(pie)) * radio_bottom
-        y = math.sin(math.radians(pie)) * radio_bottom
+        x = cos(radians(pie)) * radio_bottom
+        y = sin(radians(pie)) * radio_bottom
         mypoint = [(x, y, 0.0)]
         myvertex.extend(mypoint)
     # Add middle circle
     for pie in pies:
-        x = math.cos(math.radians(pie)) * radio_mid
-        y = math.sin(math.radians(pie)) * radio_mid
+        x = cos(radians(pie)) * radio_mid
+        y = sin(radians(pie)) * radio_mid
         mypoint = [(x, y, (height / 2) + ((height / 2) * self.shift))]
         myvertex.extend(mypoint)
     # Add top circle
     for pie in pies:
-        x = math.cos(math.radians(pie)) * radio_top
-        y = math.sin(math.radians(pie)) * radio_top
+        x = cos(radians(pie)) * radio_top
+        y = sin(radians(pie)) * radio_top
         mypoint = [(x, y, height)]
         myvertex.extend(mypoint)
     # -------------------------------------
@@ -622,37 +622,37 @@ def create_torus(objname, radio_inside, radio_outside, height):
     radio_mid = radio_outside + radio_inside - (height / 2)
     # Add internal circles Top
     for pie in pies:
-        x = math.cos(math.radians(pie)) * radio_inside
-        y = math.sin(math.radians(pie)) * radio_inside
+        x = cos(radians(pie)) * radio_inside
+        y = sin(radians(pie)) * radio_inside
         mypoint = [(x, y, height / 2)]
         myvertex.extend(mypoint)
     # Add external circles Top
     for pie in pies:
-        x = math.cos(math.radians(pie)) * radio_mid
-        y = math.sin(math.radians(pie)) * radio_mid
+        x = cos(radians(pie)) * radio_mid
+        y = sin(radians(pie)) * radio_mid
         mypoint = [(x, y, height / 2)]
         myvertex.extend(mypoint)
     # Add Intermediate lines
     for segment in segments:
         for pie in pies:
-            radio_externo = radio_mid + (height * math.cos(math.radians(segment)))
-            x = math.cos(math.radians(pie)) * radio_externo
-            y = math.sin(math.radians(pie)) * radio_externo
-            z = math.sin(math.radians(segment)) * (height / 2)
+            radio_externo = radio_mid + (height * cos(radians(segment)))
+            x = cos(radians(pie)) * radio_externo
+            y = sin(radians(pie)) * radio_externo
+            z = sin(radians(segment)) * (height / 2)
 
             mypoint = [(x, y, z)]
             myvertex.extend(mypoint)
 
     # Add internal circles Bottom
     for pie in pies:
-        x = math.cos(math.radians(pie)) * radio_inside
-        y = math.sin(math.radians(pie)) * radio_inside
+        x = cos(radians(pie)) * radio_inside
+        y = sin(radians(pie)) * radio_inside
         mypoint = [(x, y, height / 2 * -1)]
         myvertex.extend(mypoint)
     # Add external circles bottom
     for pie in pies:
-        x = math.cos(math.radians(pie)) * radio_mid
-        y = math.sin(math.radians(pie)) * radio_mid
+        x = cos(radians(pie)) * radio_mid
+        y = sin(radians(pie)) * radio_mid
         mypoint = [(x, y, height / 2 * -1)]
         myvertex.extend(mypoint)
 
@@ -690,12 +690,12 @@ def create_rectangular_base(self, objname, x, y, z, ramp=False):
     height = self.array_space_z * elements
     width = self.array_space_x * elements
     if width > 0:
-        angle = math.atan(height / width)
+        angle = atan(height / width)
     else:
         angle = 0
 
-    radio = math.sqrt((x * x) + (self.array_space_z * self.array_space_z))
-    disp = radio * math.sin(angle)
+    radio = sqrt((x * x) + (self.array_space_z * self.array_space_z))
+    disp = radio * sin(angle)
 
     if ramp is False or self.arc_top:
         addz1 = 0
@@ -749,7 +749,7 @@ def create_arc(objname, radio, gap, thickness, center):
         # Flat cuts
         angle = 13 * (180 / 16)
         for i in range(1, 4):
-            z = math.sin(math.radians(angle)) * radio
+            z = sin(radians(angle)) * radio
             mypoint = [(-radio - gap, pos_y, z)]
             myvertex.extend(mypoint)
             angle += 180 / 16
@@ -760,8 +760,8 @@ def create_arc(objname, radio, gap, thickness, center):
         # --------------------------------
         angle = 180
         for i in range(0, 9):
-            x = math.cos(math.radians(angle)) * radio
-            z = math.sin(math.radians(angle)) * radio
+            x = cos(radians(angle)) * radio
+            z = sin(radians(angle)) * radio
             mypoint = [(x, pos_y, z)]
             myvertex.extend(mypoint)
 
@@ -771,7 +771,7 @@ def create_arc(objname, radio, gap, thickness, center):
         # --------------------------------
         angle = 8 * (180 / 16)
         for i in range(1, 5):
-            x = math.cos(math.radians(angle)) * radio
+            x = cos(radians(angle)) * radio
             mypoint = [(x, pos_y, radio + radio / 10)]
             myvertex.extend(mypoint)
 
