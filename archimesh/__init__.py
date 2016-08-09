@@ -29,7 +29,7 @@ bl_info = {
     "name": "Archimesh",
     "author": "Antonio Vazquez (antonioya)",
     "location": "View3D > Add > Mesh > Archimesh",
-    "version": (1, 1, 2),
+    "version": (1, 1, 3),
     "blender": (2, 6, 8),
     "description": "Generate rooms, doors, windows, and other architecture objects",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Add_Mesh/Archimesh",
