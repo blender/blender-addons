@@ -542,7 +542,7 @@ def shape_walls_and_create_children(myroom, tmp_mesh, update=False):
             movetotopsolidify(mybase)
 
     # Create materials
-    if rp.crt_mat:
+    if rp.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         # Wall material (two faces)
         mat = create_diffuse_material("Wall_material", False, 0.765, 0.650, 0.588, 0.8, 0.621, 0.570, 0.1, True)
         set_material(myroom, mat)
@@ -1698,4 +1698,6 @@ class AchmRoomGeneratorPanel(Panel):
                 row.prop(room, 'shell_bfactor', slider=True)
 
             box = layout.box()
+            if not context.scene.render.engine == 'CYCLES':
+                box.enabled = False
             box.prop(room, 'crt_mat')

@@ -397,15 +397,16 @@ def do_ctrl_box(myobject):
     myctrl.draw_type = 'WIRE'
     myctrl.hide = False
     myctrl.hide_render = True
-    myctrl.cycles_visibility.camera = False
-    myctrl.cycles_visibility.diffuse = False
-    myctrl.cycles_visibility.glossy = False
-    myctrl.cycles_visibility.transmission = False
-    myctrl.cycles_visibility.scatter = False
-    myctrl.cycles_visibility.shadow = False
+    if bpy.context.scene.render.engine == 'CYCLES':
+        myctrl.cycles_visibility.camera = False
+        myctrl.cycles_visibility.diffuse = False
+        myctrl.cycles_visibility.glossy = False
+        myctrl.cycles_visibility.transmission = False
+        myctrl.cycles_visibility.scatter = False
+        myctrl.cycles_visibility.shadow = False
 
-    mat = create_transparent_material("hidden_material", False)
-    set_material(myctrl, mat)
+        mat = create_transparent_material("hidden_material", False)
+        set_material(myctrl, mat)
 
 
 # ------------------------------------------------------------------------------

@@ -522,6 +522,8 @@ class AchmKitchen(Operator):
                     add_cabinet(self, box, idx + 1, self.cabinets[idx])
 
             box = layout.box()
+            if not context.scene.render.engine == 'CYCLES':
+                box.enabled = False
             box.prop(self, 'crt_mat')
         else:
             row = layout.row()
@@ -831,7 +833,7 @@ def generate_cabinets(self):
         set_normals(base)
 
     # Create materials
-    if self.crt_mat:
+    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         mat = create_diffuse_material("Cabinet_material", False, 0.8, 0.8, 0.8)
         for box in boxes:
             set_material(box, mat)

@@ -137,6 +137,8 @@ class AchmBooks(Operator):
             row.prop(self, 'afn', slider=True)
 
             box = layout.box()
+            if not context.scene.render.engine == 'CYCLES':
+                box.enabled = False
             box.prop(self, 'crt_mat')
             if self.crt_mat:
                 row = box.row()
@@ -201,7 +203,7 @@ def generate_books(self):
         mydata = create_book("Book" + str(x),
                              self.width, self.depth, self.height,
                              lastx, myloc.y, myloc.z,
-                             self.crt_mat,
+                             self.crt_mat if bpy.context.scene.render.engine == 'CYCLES' else False,
                              self.rX, self.rY, self.rZ, self.rot, ox, oy, oz, ot,
                              self.objcol, self.rC)
         boxes.extend([mydata[0]])

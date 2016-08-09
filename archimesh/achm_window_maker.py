@@ -219,15 +219,16 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     myctrl.draw_type = 'BOUNDS'
     myctrl.hide = False
     myctrl.hide_render = True
-    myctrl.cycles_visibility.camera = False
-    myctrl.cycles_visibility.diffuse = False
-    myctrl.cycles_visibility.glossy = False
-    myctrl.cycles_visibility.transmission = False
-    myctrl.cycles_visibility.scatter = False
-    myctrl.cycles_visibility.shadow = False
+    if bpy.context.scene.render.engine == 'CYCLES':
+        myctrl.cycles_visibility.camera = False
+        myctrl.cycles_visibility.diffuse = False
+        myctrl.cycles_visibility.glossy = False
+        myctrl.cycles_visibility.transmission = False
+        myctrl.cycles_visibility.scatter = False
+        myctrl.cycles_visibility.shadow = False
 
-    mat = create_transparent_material("hidden_material", False)
-    set_material(myctrl, mat)
+        mat = create_transparent_material("hidden_material", False)
+        set_material(myctrl, mat)
 
     # deactivate others
     for o in bpy.data.objects:
@@ -513,6 +514,8 @@ class AchmWindowObjectgeneratorpanel(Panel):
                         row.prop(myobjdat, 'blind_back')
 
                 box = layout.box()
+                if not context.scene.render.engine == 'CYCLES':
+                    box.enabled = False
                 box.prop(myobjdat, 'crt_mat')
             else:
                 row = layout.row()
@@ -526,7 +529,7 @@ def generate_rail_window(myframe, mp, mymesh):
     myloc = bpy.context.scene.cursor_location
 
     alummat = None
-    if mp.crt_mat:
+    if mp.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         alummat = create_diffuse_material("Window_material", False, 0.8, 0.8, 0.8, 0.6, 0.6, 0.6, 0.15)
 
     # Frame
@@ -617,7 +620,7 @@ def generate_leaf_window(myframe, mp, mymesh):
     myloc = bpy.context.scene.cursor_location
 
     alummat = None
-    if mp.crt_mat:
+    if mp.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         alummat = create_diffuse_material("Window_material", False, 0.8, 0.8, 0.8, 0.6, 0.6, 0.6, 0.15)
 
     # Frame
@@ -1223,7 +1226,7 @@ def create_rail_window_leaf(objname, hand, sx, sy, sz, f, px, py, pz, mat, matda
         else:
             myhandle.location.z = 1
 
-    if mat is True:
+    if mat is True and bpy.context.scene.render.engine == 'CYCLES':
         set_material(mywindow, matdata)
         # Glass
         glass = create_glass_material("Glass_material", False)

@@ -131,6 +131,8 @@ class AchmRoof(Operator):
             box.prop(self, 'roof_angle')
 
             box = layout.box()
+            if not context.scene.render.engine == 'CYCLES':
+                box.enabled = False
             box.prop(self, 'crt_mat')
         else:
             row = layout.row()
@@ -203,7 +205,7 @@ def create_roof_mesh(self):
     myroof.rotation_euler = (radians(self.roof_angle), 0.0, 0.0)
 
     # Create materials
-    if self.crt_mat:
+    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         # material
         mat = create_diffuse_material("Roof_material", False, 0.482, 0.061, 0.003, 0.581, 0.105, 0.068, 0.01)
         set_material(myroof, mat)

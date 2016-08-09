@@ -138,7 +138,7 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     mat = None
     plastic = None
 
-    if mp.crt_mat:
+    if mp.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         rgb = mp.objcol
         plastic = create_diffuse_material("Plastic_venetian_material", True, rgb[0], rgb[1], rgb[2], rgb[0], rgb[1],
                                           rgb[2], 0.2)
@@ -149,7 +149,7 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     create_venetian_top(tmp_mesh, mp.width + 0.002, mp.depth + 0.002, -0.06)
 
     # materials
-    if mp.crt_mat:
+    if mp.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         set_material(mainobject, plastic)
     # --------------------------------------------------------------------------------
     # segments
@@ -169,7 +169,7 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     set_normals(myslats)
     set_smooth(myslats)
 
-    if mp.crt_mat:
+    if mp.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         set_material(myslats, plastic)
     # ------------------------
     # Strings (Middle)
@@ -201,7 +201,7 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     mycurver.location.y = 0
     mycurver.location.z = 0
 
-    if mp.crt_mat:
+    if mp.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         mat = create_diffuse_material("String_material", False, 0.674, 0.617, 0.496, 0.1, 0.1, 0.1, 0.01)
         set_material(mycurvel, mat)
         set_material(mycurvec, mat)
@@ -237,7 +237,7 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     mycurverf.location.y = ((-mp.depth / 2) * cos(radians(mp.angle))) - 0.001
     mycurverf.location.z = 0
 
-    if mp.crt_mat:
+    if mp.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         set_material(mycurvelf, mat)
         set_material(mycurvecf, mat)
         set_material(mycurverf, mat)
@@ -274,7 +274,7 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     mycurverb.location.y = ((mp.depth / 2) * cos(radians(mp.angle))) + 0.001
     mycurverb.location.z = 0
 
-    if mp.crt_mat:
+    if mp.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         set_material(mycurvelb, mat)
         set_material(mycurvecb, mat)
         set_material(mycurverb, mat)
@@ -290,7 +290,7 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     mybase.rotation_euler = (radians(angleused), 0, 0)
 
     # materials
-    if mp.crt_mat:
+    if mp.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         set_material(mybase, plastic)
     # ------------------
     # Stick
@@ -301,7 +301,7 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     mystick.location.y = -mp.depth / 2 - 0.003
     mystick.location.z = -0.03
     # materials
-    if mp.crt_mat:
+    if mp.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         matstick = create_diffuse_material("Stick_material", False, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.04)
         set_material(mybase, matstick)
 
@@ -314,7 +314,7 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     mystring.location.y = -mp.depth / 2 - 0.003
     mystring.location.z = -0.03
 
-    if mp.crt_mat:
+    if mp.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         set_material(mystring, mat)
     # deactivate others
     for o in bpy.data.objects:
@@ -430,6 +430,8 @@ class AchmVenetianObjectgeneratorpanel(Panel):
             row.prop(myobjdat, 'ratio', slider=True)
 
             box = layout.box()
+            if not context.scene.render.engine == 'CYCLES':
+                box.enabled = False
             box.prop(myobjdat, 'crt_mat')
             if myobjdat.crt_mat:
                 row = box.row()

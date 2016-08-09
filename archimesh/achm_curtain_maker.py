@@ -134,6 +134,8 @@ class AchmJapan(Operator):
                 row.prop(self, 'open05', slider=True)
 
             box = layout.box()
+            if not context.scene.render.engine == 'CYCLES':
+                box.enabled = False
             box.prop(self, 'crt_mat')
             if self.crt_mat:
                 box.label("* Remember to verify fabric texture folder")
@@ -218,6 +220,8 @@ class AchmRoller(Operator):
             row.prop(self, 'height')
 
             box = layout.box()
+            if not context.scene.render.engine == 'CYCLES':
+                box.enabled = False
             box.prop(self, 'crt_mat')
             if self.crt_mat:
                 box.label("* Remember to verify fabric texture folder")
@@ -352,7 +356,7 @@ def generate_japan(self):
     posz = -0.008
     x = 1
     fabricmat = None
-    if self.crt_mat:
+    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         fabricmat = create_fabric_material("Fabric_material", False, 0.653, 0.485, 0.265,
                                            0.653, 0.485, 0.265)
 
@@ -392,7 +396,7 @@ def generate_japan(self):
     mycurve2.location.y = -0.01
     mycurve2.location.z = 0.005
 
-    if self.crt_mat:
+    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         mat = create_diffuse_material("String_material", False, 0.1, 0.1, 0.1,
                                       0.1, 0.1, 0.1, 0.01)
         set_material(mycurve1, mat)
@@ -627,7 +631,7 @@ def generate_roller(self):
     # Roller Top
     # ------------------
     fabricsolid = None
-    if self.crt_mat:
+    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         fabricsolid = create_diffuse_material("Fabric_solid_material", False, 0.653, 0.485, 0.265)
 
     myroller = create_roller_rail("Roller",
@@ -643,7 +647,7 @@ def generate_roller(self):
     # Sides
     # --------------------------------------------------------------------------------
     plastic = None
-    if self.crt_mat:
+    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         plastic = create_diffuse_material("Plastic_roller_material", False, 0.653, 0.485, 0.265, 0.653, 0.485, 0.265,
                                           0.2)
 
@@ -665,7 +669,7 @@ def generate_roller(self):
     # Panel
     # --------------------------------------------------------------------------------
     fabricmat = None
-    if self.crt_mat:
+    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         fabricmat = create_fabric_material("Fabric_translucent_material", False, 0.653, 0.485, 0.265, 0.653, 0.485,
                                            0.265)
 
@@ -703,7 +707,7 @@ def generate_roller(self):
     mycurve.location.x = self.width + 0.015
     mycurve.location.y = 0
     mycurve.location.z = -0.38
-    if self.crt_mat:
+    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         mat = create_diffuse_material("String_material", False, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.01)
         set_material(mycurve, mat)
 

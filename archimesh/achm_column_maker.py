@@ -322,6 +322,8 @@ class AchmColumn(bpy.types.Operator):
                     row.prop(self, 'ramp')
 
             box = layout.box()
+            if not context.scene.render.engine == 'CYCLES':
+                box.enabled = False
             box.prop(self, 'crt_mat')
         else:
             row = layout.row()
@@ -528,7 +530,7 @@ def create_column_mesh(self):
     # ------------------------
     # Create materials
     # ------------------------
-    if self.crt_mat:
+    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         # Column material
         mat = create_diffuse_material("Column_material", False, 0.748, 0.734, 0.392, 0.573, 0.581, 0.318)
         set_material(mycolumn, mat)

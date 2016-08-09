@@ -354,6 +354,8 @@ class AchmLamp(Operator):
                 row.prop(self, 'tr03')
 
             box = layout.box()
+            if not context.scene.render.engine == 'CYCLES':
+                box.enabled = False
             box.prop(self, 'crt_mat')
             if self.crt_mat:
                 row = box.row()
@@ -484,7 +486,7 @@ def generate_lamp(self):
     mybulb.name = "Lamp_Bulb"
     mybulb.parent = myholder
     mybulb.location = (0, 0, radbulb + self.holder + 0.04)
-    if self.crt_mat:
+    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         mat = create_emission_material(mybulb.name, True, 0.8, 0.8, 0.8, self.energy)
         set_material(mybulb, mat)
 

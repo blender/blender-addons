@@ -327,11 +327,6 @@ def create_diffuse_material(matname, replace, r, g, b, rv=0.8, gv=0.8, bv=0.8, m
             if m.name == matname:
                 return m
     # Create material
-    scn = bpy.context.scene
-    # Set cycles render engine if not selected
-    if not scn.render.engine == 'CYCLES':
-        scn.render.engine = 'CYCLES'
-
     mat = bpy.data.materials.new(matname)
     mat.diffuse_color = (rv, gv, bv)  # viewport color
     mat.use_nodes = True
@@ -416,11 +411,6 @@ def create_translucent_material(matname, replace, r, g, b, rv=0.8, gv=0.8, bv=0.
             if m.name == matname:
                 return m
     # Create material
-    scn = bpy.context.scene
-    # Set cycles render engine if not selected
-    if not scn.render.engine == 'CYCLES':
-        scn.render.engine = 'CYCLES'
-
     mat = bpy.data.materials.new(matname)
     mat.diffuse_color = (rv, gv, bv)  # viewport color
     mat.use_nodes = True
@@ -473,11 +463,6 @@ def create_glass_material(matname, replace, rv=0.333, gv=0.342, bv=0.9):
             if m.name == matname:
                 return m
     # Create material
-    scn = bpy.context.scene
-    # Set cycles render engine if not selected
-    if not scn.render.engine == 'CYCLES':
-        scn.render.engine = 'CYCLES'
-
     mat = bpy.data.materials.new(matname)
     mat.use_nodes = True
     mat.diffuse_color = (rv, gv, bv)
@@ -557,11 +542,6 @@ def create_transparent_material(matname, replace, r=1, g=1, b=1, alpha=0):
             if m.name == matname:
                 return m
     # Create material
-    scn = bpy.context.scene
-    # Set cycles render engine if not selected
-    if not scn.render.engine == 'CYCLES':
-        scn.render.engine = 'CYCLES'
-
     mat = bpy.data.materials.new(matname)
     mat.use_nodes = True
     mat.diffuse_color = (r, g, b)
@@ -598,11 +578,6 @@ def create_glossy_material(matname, replace, r, g, b, rv=0.578, gv=0.555, bv=0.7
             if m.name == matname:
                 return m
     # Create material
-    scn = bpy.context.scene
-    # Set cycles render engine if not selected
-    if not scn.render.engine == 'CYCLES':
-        scn.render.engine = 'CYCLES'
-
     mat = bpy.data.materials.new(matname)
     mat.use_nodes = True
     mat.diffuse_color = (rv, gv, bv)
@@ -640,11 +615,6 @@ def create_emission_material(matname, replace, r, g, b, energy):
             if m.name == matname:
                 return m
     # Create material
-    scn = bpy.context.scene
-    # Set cycles render engine if not selected
-    if not scn.render.engine == 'CYCLES':
-        scn.render.engine = 'CYCLES'
-
     mat = bpy.data.materials.new(matname)
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
@@ -681,11 +651,6 @@ def create_old_glass_material(matname, replace, rv=0.352716, gv=0.760852, bv=0.9
             if m.name == matname:
                 return m
     # Create material
-    scn = bpy.context.scene
-    # Set cycles render engine if not selected
-    if not scn.render.engine == 'CYCLES':
-        scn.render.engine = 'CYCLES'
-
     mat = bpy.data.materials.new(matname)
     mat.use_nodes = True
     mat.diffuse_color = (rv, gv, bv)
@@ -759,11 +724,6 @@ def create_brick_material(matname, replace, r, g, b, rv=0.8, gv=0.636, bv=0.315)
             if m.name == matname:
                 return m
     # Create material
-    scn = bpy.context.scene
-    # Set cycles render engine if not selected
-    if not scn.render.engine == 'CYCLES':
-        scn.render.engine = 'CYCLES'
-
     mat = bpy.data.materials.new(matname)
     mat.use_nodes = True
     mat.diffuse_color = (rv, gv, bv)
@@ -820,11 +780,6 @@ def create_fabric_material(matname, replace, r, g, b, rv=0.8, gv=0.636, bv=0.315
             if m.name == matname:
                 return m
     # Create material
-    scn = bpy.context.scene
-    # Set cycles render engine if not selected
-    if not scn.render.engine == 'CYCLES':
-        scn.render.engine = 'CYCLES'
-
     mat = bpy.data.materials.new(matname)
     mat.use_nodes = True
     mat.diffuse_color = (rv, gv, bv)

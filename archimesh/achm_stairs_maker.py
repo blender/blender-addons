@@ -178,6 +178,8 @@ class AchmStairs(Operator):
                 row.prop(self, 'side_gap')
 
             box = layout.box()
+            if not context.scene.render.engine == 'CYCLES':
+                box.enabled = False
             box.prop(self, 'crt_mat')
         else:
             row = layout.row()
@@ -238,7 +240,7 @@ def create_stairs_mesh(self):
     # ------------------------
     # Create materials
     # ------------------------
-    if self.crt_mat:
+    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         # Stairs material
         mat = create_diffuse_material("Stairs_material", False, 0.8, 0.8, 0.8)
         set_material(mystairs, mat)

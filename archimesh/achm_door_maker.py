@@ -205,7 +205,7 @@ def shape_children(mainobject, update=False):
         mydoor = make_one_door(mp, mainobject, widthr + mp.frame_size, "1")
         mydoor.location.x = mp.frame_width / 2 - mp.frame_size
 
-    if mp.crt_mat:
+    if mp.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         mat = create_diffuse_material("Door_material", False, 0.8, 0.8, 0.8)
         set_material(mainobject, mat)
 
@@ -236,12 +236,13 @@ def shape_children(mainobject, update=False):
     myctrl.draw_type = 'BOUNDS'
     myctrl.hide = False
     myctrl.hide_render = True
-    myctrl.cycles_visibility.camera = False
-    myctrl.cycles_visibility.diffuse = False
-    myctrl.cycles_visibility.glossy = False
-    myctrl.cycles_visibility.transmission = False
-    myctrl.cycles_visibility.scatter = False
-    myctrl.cycles_visibility.shadow = False
+    if bpy.context.scene.render.engine == 'CYCLES':
+        myctrl.cycles_visibility.camera = False
+        myctrl.cycles_visibility.diffuse = False
+        myctrl.cycles_visibility.glossy = False
+        myctrl.cycles_visibility.transmission = False
+        myctrl.cycles_visibility.scatter = False
+        myctrl.cycles_visibility.shadow = False
 
     # Create control box for baseboard
     myctrlbase = create_control_box("CTRL_Baseboard",
@@ -258,16 +259,17 @@ def shape_children(mainobject, update=False):
     myctrlbase.draw_type = 'BOUNDS'
     myctrlbase.hide = False
     myctrlbase.hide_render = True
-    myctrlbase.cycles_visibility.camera = False
-    myctrlbase.cycles_visibility.diffuse = False
-    myctrlbase.cycles_visibility.glossy = False
-    myctrlbase.cycles_visibility.transmission = False
-    myctrlbase.cycles_visibility.scatter = False
-    myctrlbase.cycles_visibility.shadow = False
+    if bpy.context.scene.render.engine == 'CYCLES':
+        myctrlbase.cycles_visibility.camera = False
+        myctrlbase.cycles_visibility.diffuse = False
+        myctrlbase.cycles_visibility.glossy = False
+        myctrlbase.cycles_visibility.transmission = False
+        myctrlbase.cycles_visibility.scatter = False
+        myctrlbase.cycles_visibility.shadow = False
 
-    mat = create_transparent_material("hidden_material", False)
-    set_material(myctrl, mat)
-    set_material(myctrlbase, mat)
+        mat = create_transparent_material("hidden_material", False)
+        set_material(myctrl, mat)
+        set_material(myctrlbase, mat)
 
     # deactivate others
     for o in bpy.data.objects:
@@ -457,6 +459,8 @@ class AchmDoorObjectgeneratorpanel(Panel):
                 layout.prop(myobjdat, 'handle')
 
                 box = layout.box()
+                if not context.scene.render.engine == 'CYCLES':
+                    box.enabled = False
                 box.prop(myobjdat, 'crt_mat')
             else:
                 row = layout.row()
@@ -539,7 +543,7 @@ def make_one_door(self, myframe, width, openside):
         set_smooth(handle2)
         set_modifier_subsurf(handle2)
     # Create materials
-    if self.crt_mat:
+    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
         # Door material
         mat = create_diffuse_material("Door_material", False, 0.8, 0.8, 0.8)
         set_material(mydoor, mat)
