@@ -29,12 +29,8 @@ import bpy
 import bgl
 # noinspection PyUnresolvedReferences
 import blf
-# noinspection PyUnresolvedReferences
-import mathutils
-# noinspection PyUnresolvedReferences
-import bmesh
-import os
-import sys
+from os import path, remove
+from sys import exc_info
 # noinspection PyUnresolvedReferences
 import bpy_extras.image_utils as img_utils
 # noinspection PyUnresolvedReferences
@@ -79,11 +75,11 @@ def render_main(self, context, animation=False):
         # ---------------------------------------
         ren_path = bpy.context.scene.render.filepath
         if len(ren_path) > 0:
-            if ren_path.endswith(os.path.sep):
-                initpath = os.path.realpath(ren_path) + os.path.sep
+            if ren_path.endswith(path.sep):
+                initpath = path.realpath(ren_path) + path.sep
             else:
-                (initpath, filename) = os.path.split(ren_path)
-            outpath = os.path.join(initpath, "measureit_tmp_render.png")
+                (initpath, filename) = path.split(ren_path)
+            outpath = path.join(initpath, "measureit_tmp_render.png")
         else:
             self.report({'ERROR'},
                         "MeasureIt: Unable to save temporary render image. Define a valid render path")
@@ -213,7 +209,7 @@ def render_main(self, context, animation=False):
 
                     x1 = rfborder
                     x2 = width - rfborder
-                    y1 = int(math.ceil(rfborder / (width / height)))
+                    y1 = int(ceil(rfborder / (width / height)))
                     y2 = height - y1
                     draw_rectangle((x1, y1), (x2, y2))
 
@@ -247,7 +243,7 @@ def render_main(self, context, animation=False):
         img.user_clear()
         bpy.data.images.remove(img)
         # remove temp file
-        os.remove(outpath)
+        remove(outpath)
         # reset
         bgl.glEnable(bgl.GL_SCISSOR_TEST)
         # -----------------------
@@ -261,13 +257,13 @@ def render_main(self, context, animation=False):
             ren_path = bpy.context.scene.render.filepath
             filename = "mit_frame"
             if len(ren_path) > 0:
-                if ren_path.endswith(os.path.sep):
-                    initpath = os.path.realpath(ren_path) + os.path.sep
+                if ren_path.endswith(path.sep):
+                    initpath = path.realpath(ren_path) + path.sep
                 else:
-                    (initpath, filename) = os.path.split(ren_path)
+                    (initpath, filename) = path.split(ren_path)
 
             ftxt = "%04d" % scene.frame_current
-            outpath = os.path.join(initpath, filename + ftxt + ".png")
+            outpath = path.join(initpath, filename + ftxt + ".png")
 
             save_image(self, outpath, out)
 
@@ -276,7 +272,7 @@ def render_main(self, context, animation=False):
 
     except:
         settings.color_depth = depth
-        print("Unexpected error:" + str(sys.exc_info()))
+        print("Unexpected error:" + str(exc_info()))
         self.report({'ERROR'}, "MeasureIt: Unable to create render image")
         return False
 
@@ -338,6 +334,6 @@ def save_image(self, filepath, myimage):
         settings.color_mode = mode
         settings.color_depth = depth
     except:
-        print("Unexpected error:" + str(sys.exc_info()))
+        print("Unexpected error:" + str(exc_info()))
         self.report({'ERROR'}, "MeasureIt: Unable to save render image")
         return

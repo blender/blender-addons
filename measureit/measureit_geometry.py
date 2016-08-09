@@ -29,16 +29,12 @@ import bpy
 import bgl
 # noinspection PyUnresolvedReferences
 import blf
-import math
-# noinspection PyUnresolvedReferences
-import mathutils
-# noinspection PyUnresolvedReferences
-import bmesh
-# noinspection PyUnresolvedReferences
+from math import fabs, degrees, radians, sqrt, cos, sin, pi
+from mathutils import Vector, Matrix
+from bmesh import from_edit_mesh
 from bpy_extras import view3d_utils, mesh_utils
-# noinspection PyUnresolvedReferences
 import bpy_extras.object_utils as object_utils
-import sys
+from sys import exc_info
 
 
 # -------------------------------------------------------------
@@ -173,8 +169,8 @@ def draw_segments(context, myobj, op, region, rv3d):
                             an_p2 = get_point(obverts[ms.glpointb].co, myobj)
                             an_p3 = get_point(obverts[ms.glpointc].co, myobj)
 
-                            ang_1 = mathutils.Vector((an_p1[0] - an_p2[0], an_p1[1] - an_p2[1], an_p1[2] - an_p2[2]))
-                            ang_2 = mathutils.Vector((an_p3[0] - an_p2[0], an_p3[1] - an_p2[1], an_p3[2] - an_p2[2]))
+                            ang_1 = Vector((an_p1[0] - an_p2[0], an_p1[1] - an_p2[1], an_p1[2] - an_p2[2]))
+                            ang_2 = Vector((an_p3[0] - an_p2[0], an_p3[1] - an_p2[1], an_p3[2] - an_p2[2]))
 
                             ang_3 = ang_1 + ang_2  # Result vector
 
@@ -197,12 +193,12 @@ def draw_segments(context, myobj, op, region, rv3d):
                             an_p2 = get_point(obverts[ms.glpointb].co, myobj)
                             an_p3 = get_point(obverts[ms.glpointc].co, myobj)
                             # reference for maths: http://en.wikipedia.org/wiki/Circumscribed_circle
-                            an_p12 = mathutils.Vector((an_p1[0] - an_p2[0], an_p1[1] - an_p2[1], an_p1[2] - an_p2[2]))
-                            an_p13 = mathutils.Vector((an_p1[0] - an_p3[0], an_p1[1] - an_p3[1], an_p1[2] - an_p3[2]))
-                            an_p21 = mathutils.Vector((an_p2[0] - an_p1[0], an_p2[1] - an_p1[1], an_p2[2] - an_p1[2]))
-                            an_p23 = mathutils.Vector((an_p2[0] - an_p3[0], an_p2[1] - an_p3[1], an_p2[2] - an_p3[2]))
-                            an_p31 = mathutils.Vector((an_p3[0] - an_p1[0], an_p3[1] - an_p1[1], an_p3[2] - an_p1[2]))
-                            an_p32 = mathutils.Vector((an_p3[0] - an_p2[0], an_p3[1] - an_p2[1], an_p3[2] - an_p2[2]))
+                            an_p12 = Vector((an_p1[0] - an_p2[0], an_p1[1] - an_p2[1], an_p1[2] - an_p2[2]))
+                            an_p13 = Vector((an_p1[0] - an_p3[0], an_p1[1] - an_p3[1], an_p1[2] - an_p3[2]))
+                            an_p21 = Vector((an_p2[0] - an_p1[0], an_p2[1] - an_p1[1], an_p2[2] - an_p1[2]))
+                            an_p23 = Vector((an_p2[0] - an_p3[0], an_p2[1] - an_p3[1], an_p2[2] - an_p3[2]))
+                            an_p31 = Vector((an_p3[0] - an_p1[0], an_p3[1] - an_p1[1], an_p3[2] - an_p1[2]))
+                            an_p32 = Vector((an_p3[0] - an_p2[0], an_p3[1] - an_p2[1], an_p3[2] - an_p2[2]))
                             an_p12xp23 = an_p12.copy().cross(an_p23)
 
                             # radius = an_p12.length * an_p23.length * an_p31.length / (2 * an_p12xp23.length)
@@ -241,12 +237,12 @@ def draw_segments(context, myobj, op, region, rv3d):
                             vn = a_n  # if arc, vector is perpendicular to surface of the three vertices
                         else:
                             loc = get_location(myobj)
-                            midpoint3d = interpolate3d(a_p1, b_p1, math.fabs(dist / 2))
-                            vn = mathutils.Vector((midpoint3d[0] - loc[0],
+                            midpoint3d = interpolate3d(a_p1, b_p1, fabs(dist / 2))
+                            vn = Vector((midpoint3d[0] - loc[0],
                                                    midpoint3d[1] - loc[1],
                                                    midpoint3d[2] - loc[2]))
                     else:
-                        vn = mathutils.Vector((ms.glnormalx, ms.glnormaly, ms.glnormalz))
+                        vn = Vector((ms.glnormalx, ms.glnormaly, ms.glnormalz))
 
                     vn.normalize()
                     # ------------------------------------
@@ -329,7 +325,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                     if ms.gltype != 2 and ms.gltype != 9 and ms.gltype != 10 and ms.gltype != 11 and ms.gltype != 20:
                         # noinspection PyBroadException
                         try:
-                            midpoint3d = interpolate3d(v1, v2, math.fabs(dist / 2))
+                            midpoint3d = interpolate3d(v1, v2, fabs(dist / 2))
                             gap3d = (midpoint3d[0], midpoint3d[1], midpoint3d[2] + s / 2)
                             txtpoint2d = get_2d_point(region, rv3d, gap3d)
                             # Scale
@@ -393,7 +389,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                                 ang = ang_1.angle(ang_2)
                                 right = True
                                 if bpy.context.scene.unit_settings.system_rotation == "DEGREES":
-                                    ang = math.degrees(ang)
+                                    ang = degrees(ang)
 
                                 tx_dist = " " + fmt % ang
                                 # Add degree symbol
@@ -411,7 +407,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                                     tx_dist = " "
 
                                 if bpy.context.scene.unit_settings.system_rotation == "DEGREES":
-                                    arc_d = math.degrees(arc_angle)
+                                    arc_d = degrees(arc_angle)
                                 else:
                                     arc_d = arc_angle
 
@@ -430,7 +426,7 @@ def draw_segments(context, myobj, op, region, rv3d):
 
                                 if scene.measureit_gl_show_d is True or scene.measureit_gl_show_n is True:
                                     # Normal vector
-                                    vna = mathutils.Vector((b_p1[0] - a_p1[0],
+                                    vna = Vector((b_p1[0] - a_p1[0],
                                                             b_p1[1] - a_p1[1],
                                                             b_p1[2] - a_p1[2]))
                                     vna.normalize()
@@ -496,10 +492,10 @@ def draw_segments(context, myobj, op, region, rv3d):
 
                     if ms.gltype == 9:  # Angle
                         dist, distloc = distance(an_p1, an_p2)
-                        mp1 = interpolate3d(an_p1, an_p2, math.fabs(dist / 1.1))
+                        mp1 = interpolate3d(an_p1, an_p2, fabs(dist / 1.1))
 
                         dist, distloc = distance(an_p3, an_p2)
-                        mp2 = interpolate3d(an_p3, an_p2, math.fabs(dist / 1.1))
+                        mp2 = interpolate3d(an_p3, an_p2, fabs(dist / 1.1))
 
                         screen_point_an_p1 = get_2d_point(region, rv3d, mp1)
                         screen_point_an_p2 = get_2d_point(region, rv3d, an_p2)
@@ -511,12 +507,12 @@ def draw_segments(context, myobj, op, region, rv3d):
 
                     if ms.gltype == 11:  # arc
                         # draw line from center of arc second point
-                        c = mathutils.Vector(a_p1)
+                        c = Vector(a_p1)
                         if ms.glarc_rad is True:
                             if ms.glarc_extrad is False:
                                 draw_arrow(screen_point_ap1, screen_point_bp1, a_size, a_type, b_type)
                             else:
-                                vne = mathutils.Vector((b_p1[0] - a_p1[0],
+                                vne = Vector((b_p1[0] - a_p1[0],
                                                         b_p1[1] - a_p1[1],
                                                         b_p1[2] - a_p1[2]))
                                 vne.normalize()
@@ -527,19 +523,19 @@ def draw_segments(context, myobj, op, region, rv3d):
 
                         # create arc around the centerpoint
                         # rotation matrix around normal vector at center point
-                        mat_trans1 = mathutils.Matrix.Translation(-c)
+                        mat_trans1 = Matrix.Translation(-c)
                         # get step
                         n_step = 36.0
                         if ms.glarc_full is False:
                             step = arc_angle / n_step
                         else:
-                            step = math.radians(360.0) / n_step
+                            step = radians(360.0) / n_step
                         #
-                        mat_rot1 = mathutils.Matrix.Rotation(step, 4, vn)
-                        mat_trans2 = mathutils.Matrix.Translation(c)
-                        p1 = mathutils.Vector(an_p1)  # first point of arc
+                        mat_rot1 = Matrix.Rotation(step, 4, vn)
+                        mat_trans2 = Matrix.Translation(c)
+                        p1 = Vector(an_p1)  # first point of arc
                         # Normal vector
-                        vn = mathutils.Vector((p1[0] - a_p1[0],
+                        vn = Vector((p1[0] - a_p1[0],
                                                p1[1] - a_p1[1],
                                                p1[2] - a_p1[2]))
                         vn.normalize()
@@ -559,7 +555,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                                 p_01b = (p1[0], p1[1], p1[2])
 
                             # Normal vector
-                            vn = mathutils.Vector((p2[0] - a_p1[0],
+                            vn = Vector((p2[0] - a_p1[0],
                                                    p2[1] - a_p1[1],
                                                    p2[2] - a_p1[2]))
                             vn.normalize()
@@ -613,7 +609,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                             p2 = get_point(obverts[b].co, myobj)
 
                             d1, dn = distance(p1, p2)
-                            midpoint3d = interpolate3d(p1, p2, math.fabs(d1 / 2))
+                            midpoint3d = interpolate3d(p1, p2, fabs(d1 / 2))
                             txtpoint2d = get_2d_point(region, rv3d, midpoint3d)
                             # Scale
                             if scene.measureit_scale is True:
@@ -639,7 +635,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                 except IndexError:
                     ms.glfree = True
                 except:
-                    # print("Unexpected error:" + str(sys.exc_info()))
+                    # print("Unexpected error:" + str(exc_info()))
                     # if error, disable segment
                     pass
 
@@ -658,7 +654,7 @@ def get_area_and_paint(myvertices, myobj, obverts, region, rv3d):
         if myobj.mode != 'EDIT':
             tris = mesh_utils.ngon_tessellate(mymesh, myvertices)
         else:
-            bm = bmesh.from_edit_mesh(myobj.data)
+            bm = from_edit_mesh(myobj.data)
             myv = []
             for v in bm.verts:
                 myv.extend([v.co])
@@ -708,7 +704,7 @@ def get_triangle_area(p1, p2, p3):
     d2, dn = distance(p2, p3)
     d3, dn = distance(p1, p3)
     per = (d1 + d2 + d3) / 2.0
-    area = math.sqrt(per * (per - d1) * (per - d2) * (per - d3))
+    area = sqrt(per * (per - d1) * (per - d2) * (per - d3))
     return area
 
 
@@ -877,10 +873,10 @@ def draw_triangle(v1, v2, v3):
 # -------------------------------------------------------------
 def draw_arrow(v1, v2, size=20, a_typ="1", b_typ="1"):
 
-    rad45 = math.radians(45)
-    rad315 = math.radians(315)
-    rad90 = math.radians(90)
-    rad270 = math.radians(270)
+    rad45 = radians(45)
+    rad315 = radians(315)
+    rad90 = radians(90)
+    rad270 = radians(270)
 
     v = interpolate3d((v1[0], v1[1], 0.0), (v2[0], v2[1], 0.0), size)
 
@@ -897,10 +893,10 @@ def draw_arrow(v1, v2, size=20, a_typ="1", b_typ="1"):
         rad_a = rad45
         rad_b = rad315
 
-    v1a = (int(v1i[0] * math.cos(rad_a) - v1i[1] * math.sin(rad_a) + v1[0]),
-           int(v1i[1] * math.cos(rad_a) + v1i[0] * math.sin(rad_a)) + v1[1])
-    v1b = (int(v1i[0] * math.cos(rad_b) - v1i[1] * math.sin(rad_b) + v1[0]),
-           int(v1i[1] * math.cos(rad_b) + v1i[0] * math.sin(rad_b) + v1[1]))
+    v1a = (int(v1i[0] * cos(rad_a) - v1i[1] * sin(rad_a) + v1[0]),
+           int(v1i[1] * cos(rad_a) + v1i[0] * sin(rad_a)) + v1[1])
+    v1b = (int(v1i[0] * cos(rad_b) - v1i[1] * sin(rad_b) + v1[0]),
+           int(v1i[1] * cos(rad_b) + v1i[0] * sin(rad_b) + v1[1]))
 
     # Point B
     if b_typ == "3":
@@ -910,10 +906,10 @@ def draw_arrow(v1, v2, size=20, a_typ="1", b_typ="1"):
         rad_a = rad45
         rad_b = rad315
 
-    v2a = (int(v2i[0] * math.cos(rad_a) - v2i[1] * math.sin(rad_a) + v2[0]),
-           int(v2i[1] * math.cos(rad_a) + v2i[0] * math.sin(rad_a)) + v2[1])
-    v2b = (int(v2i[0] * math.cos(rad_b) - v2i[1] * math.sin(rad_b) + v2[0]),
-           int(v2i[1] * math.cos(rad_b) + v2i[0] * math.sin(rad_b) + v2[1]))
+    v2a = (int(v2i[0] * cos(rad_a) - v2i[1] * sin(rad_a) + v2[0]),
+           int(v2i[1] * cos(rad_a) + v2i[0] * sin(rad_a)) + v2[1])
+    v2b = (int(v2i[0] * cos(rad_b) - v2i[1] * sin(rad_b) + v2[0]),
+           int(v2i[1] * cos(rad_b) + v2i[0] * sin(rad_b) + v2[1]))
 
     # Triangle o Lines
     if a_typ == "1" or a_typ == "3":
@@ -986,7 +982,7 @@ def draw_vertices(context, myobj, region, rv3d):
     # vertex Loop
     # --------------------
     if myobj.mode == 'EDIT':
-        bm = bmesh.from_edit_mesh(myobj.data)
+        bm = from_edit_mesh(myobj.data)
         obverts = bm.verts
     else:
         obverts = myobj.data.vertices
@@ -1009,7 +1005,7 @@ def draw_vertices(context, myobj, region, rv3d):
                 txt += format_point(v.co, precision)
             draw_text(myobj, txtpoint2d[0], txtpoint2d[1], txt, rgb, fsize)
         except:
-            print("Unexpected error:" + str(sys.exc_info()))
+            print("Unexpected error:" + str(exc_info()))
             pass
 
     return
@@ -1037,7 +1033,7 @@ def draw_faces(context, myobj, region, rv3d):
     # face Loop
     # --------------------
     if myobj.mode == 'EDIT':
-        bm = bmesh.from_edit_mesh(myobj.data)
+        bm = from_edit_mesh(myobj.data)
         obverts = bm.verts
         myfaces = bm.faces
     else:
@@ -1099,7 +1095,7 @@ def draw_faces(context, myobj, region, rv3d):
                     draw_text(myobj, point2[0], point2[1], txt, rgb2, fsize)
 
         except:
-            print("Unexpected error:" + str(sys.exc_info()))
+            print("Unexpected error:" + str(exc_info()))
             pass
 
     return
@@ -1113,7 +1109,7 @@ def draw_faces(context, myobj, region, rv3d):
 # return: distance
 # --------------------------------------------------------------------
 def distance(v1, v2, locx=True, locy=True, locz=True):
-    x = math.sqrt((v2[0] - v1[0]) ** 2 + (v2[1] - v1[1]) ** 2 + (v2[2] - v1[2]) ** 2)
+    x = sqrt((v2[0] - v1[0]) ** 2 + (v2[1] - v1[1]) ** 2 + (v2[2] - v1[2]) ** 2)
 
     # If axis is not used, make equal both (no distance)
     v1b = [v1[0], v1[1], v1[2]]
@@ -1125,7 +1121,7 @@ def distance(v1, v2, locx=True, locy=True, locz=True):
     if locz is False:
         v2b[2] = v1b[2]
 
-    xloc = math.sqrt((v2b[0] - v1b[0]) ** 2 + (v2b[1] - v1b[1]) ** 2 + (v2b[2] - v1b[2]) ** 2)
+    xloc = sqrt((v2b[0] - v1b[0]) ** 2 + (v2b[1] - v1b[1]) ** 2 + (v2b[2] - v1b[2]) ** 2)
 
     return x, xloc
 
@@ -1161,7 +1157,7 @@ def interpolate3d(v1, v2, d1):
 # --------------------------------------------------------------------
 def get_point(v1, mainobject):
     # Using World Matrix
-    vt = mathutils.Vector((v1[0], v1[1], v1[2], 1))
+    vt = Vector((v1[0], v1[1], v1[2], 1))
     m4 = mainobject.matrix_world
     vt2 = m4 * vt
     v2 = [vt2[0], vt2[1], vt2[2]]
@@ -1188,7 +1184,7 @@ def get_location(mainobject):
 def get_mesh_vertices(myobj):
     try:
         if myobj.mode == 'EDIT':
-            bm = bmesh.from_edit_mesh(myobj.data)
+            bm = from_edit_mesh(myobj.data)
             obverts = bm.verts
         else:
             obverts = myobj.data.vertices
@@ -1217,7 +1213,7 @@ def get_scale_txt_location(context):
 # --------------------------------------------------------------------
 def get_render_location(mypoint):
 
-    v1 = mathutils.Vector(mypoint)
+    v1 = Vector(mypoint)
     scene = bpy.context.scene
     co_2d = object_utils.world_to_camera_view(scene, scene.camera, v1)
     # Get pixel coords
@@ -1241,13 +1237,13 @@ def get_render_location(mypoint):
 #
 # ---------------------------------------------------------
 def get_arc_data(pointa, pointb, pointc, pointd):
-    v1 = mathutils.Vector((pointa[0] - pointb[0], pointa[1] - pointb[1], pointa[2] - pointb[2]))
-    v2 = mathutils.Vector((pointc[0] - pointb[0], pointc[1] - pointb[1], pointc[2] - pointb[2]))
-    v3 = mathutils.Vector((pointd[0] - pointb[0], pointd[1] - pointb[1], pointd[2] - pointb[2]))
+    v1 = Vector((pointa[0] - pointb[0], pointa[1] - pointb[1], pointa[2] - pointb[2]))
+    v2 = Vector((pointc[0] - pointb[0], pointc[1] - pointb[1], pointc[2] - pointb[2]))
+    v3 = Vector((pointd[0] - pointb[0], pointd[1] - pointb[1], pointd[2] - pointb[2]))
 
     angle = v1.angle(v2) + v2.angle(v3)
 
-    rclength = math.pi * 2 * v2.length * (angle / (math.pi * 2))
+    rclength = pi * 2 * v2.length * (angle / (pi * 2))
 
     return angle, rclength
 
