@@ -635,8 +635,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                 except IndexError:
                     ms.glfree = True
                 except:
-                    # print("Unexpected error:" + str(exc_info()))
-                    # if error, disable segment
+                    print("Unexpected error:" + str(exc_info()))
                     pass
 
     return
