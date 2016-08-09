@@ -1620,6 +1620,12 @@ class NWEmissionViewer(Operator, NWBase):
                             emission = emission_placeholder
                         make_links.append((active.outputs[out_i], emission.inputs[0]))
                         make_links.append((emission.outputs[0], materialout.inputs[0]))
+
+                        # Set brightness of viewer to compensate for Film and CM exposure
+                        intensity = 1/context.scene.cycles.film_exposure  # Film exposure is a multiplier
+                        intensity /= pow(2, (context.scene.view_settings.exposure))  # CM exposure is measured in stops/EVs (2^x)
+                        emission.inputs[1].default_value = intensity
+
                     else:
                         # Output type is 'SHADER', no Viewer needed. Delete Viewer if exists.
                         make_links.append((active.outputs[out_i], materialout.inputs[1 if active.outputs[out_i].name == "Volume" else 0]))
