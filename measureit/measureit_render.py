@@ -73,16 +73,12 @@ def render_main(self, context, animation=False):
         # ---------------------------------------
         # Get output path
         # ---------------------------------------
-        ren_path = bpy.context.scene.render.filepath
-        if len(ren_path) > 0:
-            if ren_path.endswith(path.sep):
-                initpath = path.realpath(ren_path) + path.sep
-            else:
-                (initpath, filename) = path.split(ren_path)
-            outpath = path.join(initpath, "measureit_tmp_render.png")
+        temp_path = path.realpath(bpy.app.tempdir)
+        if len(temp_path) > 0:
+            outpath = path.join(temp_path, "measureit_tmp_render.png")
         else:
             self.report({'ERROR'},
-                        "MeasureIt: Unable to save temporary render image. Define a valid render path")
+                        "MeasureIt: Unable to save temporary render image. Define a valid temp path")
             settings.color_depth = depth
             return False
 
@@ -90,7 +86,7 @@ def render_main(self, context, animation=False):
         img = get_render_image(outpath)
         if img is None:
             self.report({'ERROR'},
-                        "MeasureIt: Unable to save temporary render image. Define a valid render path")
+                        "MeasureIt: Unable to save temporary render image. Define a valid temp path")
             settings.color_depth = depth
             return False
 
@@ -263,7 +259,7 @@ def render_main(self, context, animation=False):
                     (initpath, filename) = path.split(ren_path)
 
             ftxt = "%04d" % scene.frame_current
-            outpath = path.join(initpath, filename + ftxt + ".png")
+            outpath = path.realpath(path.join(initpath, filename + ftxt + ".png"))
 
             save_image(self, outpath, out)
 
@@ -273,7 +269,7 @@ def render_main(self, context, animation=False):
     except:
         settings.color_depth = depth
         print("Unexpected error:" + str(exc_info()))
-        self.report({'ERROR'}, "MeasureIt: Unable to create render image")
+        self.report({'ERROR'}, "MeasureIt: Unable to create render image. Be sure the output render path is correct")
         return False
 
 
