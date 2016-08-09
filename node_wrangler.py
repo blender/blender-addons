@@ -1619,7 +1619,13 @@ class NWEmissionViewer(Operator, NWBase):
                         else:
                             emission = emission_placeholder
                         make_links.append((active.outputs[out_i], emission.inputs[0]))
-                        make_links.append((emission.outputs[0], materialout.inputs[0]))
+
+                        # If Viewer is connected to output by user, don't change those connections (patch by gandalf3)
+                        if emission.outputs[0].links.__len__() > 0:
+                            if not emission.outputs[0].links[0].to_node == materialout:
+                                make_links.append((emission.outputs[0], materialout.inputs[0]))
+                        else:
+                            make_links.append((emission.outputs[0], materialout.inputs[0]))
 
                         # Set brightness of viewer to compensate for Film and CM exposure
                         intensity = 1/context.scene.cycles.film_exposure  # Film exposure is a multiplier
