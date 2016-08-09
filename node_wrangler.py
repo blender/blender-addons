@@ -1255,7 +1255,7 @@ class NWDeleteUnused(Operator, NWBase):
     delete_muted = BoolProperty(name="Delete Muted", description="Delete (but reconnect, like Ctrl-X) all muted nodes", default=True)
     delete_frames = BoolProperty(name="Delete Empty Frames", description="Delete all frames that have no nodes inside them", default=True)
 
-    def is_unused_node(node):
+    def is_unused_node(self, node):
         end_types = ['OUTPUT_MATERIAL', 'OUTPUT', 'VIEWER', 'COMPOSITE', \
                 'SPLITVIEWER', 'OUTPUT_FILE', 'LEVELS', 'OUTPUT_LAMP', \
                 'OUTPUT_WORLD', 'GROUP_INPUT', 'GROUP_OUTPUT', 'FRAME']
@@ -1293,7 +1293,7 @@ class NWDeleteUnused(Operator, NWBase):
         for it in range(0, del_unused_iterations):
             temp_deleted_nodes = list(deleted_nodes)  # keep record of last iteration
             for node in nodes:
-                if is_unused_node(node):
+                if self.is_unused_node(node):
                     node.select = True
                     deleted_nodes.append(node.name)
                     bpy.ops.node.delete()
