@@ -2437,6 +2437,8 @@ class NWAddTextureSetup(Operator, NWBase):
     bl_description = "Add Texture Node Setup to Selected Shaders"
     bl_options = {'REGISTER', 'UNDO'}
 
+    add_mapping = BoolProperty(name="Add Mapping Nodes", description="Create coordinate and mapping nodes for the texture (ignored for selected texture nodes)", default=True)
+
     @classmethod
     def poll(cls, context):
         valid = False
@@ -2448,55 +2450,62 @@ class NWAddTextureSetup(Operator, NWBase):
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
-        active = nodes.active
         shader_types = [x[1] for x in shaders_shader_nodes_props if x[1] not in {'MIX_SHADER', 'ADD_SHADER'}]
         texture_types = [x[1] for x in shaders_texture_nodes_props]
-        valid = False
-        if active:
-            if active.select:
-                if active.type in shader_types or active.type in texture_types:
-                    if not active.inputs[0].is_linked:
+        selected_nodes = [n for n in nodes if n.select]
+        for t_node in selected_nodes:
+            valid = False
+            input_index = 0
+            if t_node.inputs:
+                for index, i in enumerate(t_node.inputs):
+                    if not i.is_linked:
                         valid = True
-        if valid:
-            locx = active.location.x
-            locy = active.location.y
+                        input_index = index
+                        break
+            if valid:
+                locx = t_node.location.x
+                locy = t_node.location.y - t_node.dimensions.y/2
 
-            xoffset = [500.0, 700.0]
-            isshader = True
-            if active.type not in shader_types:
-                xoffset = [290.0, 500.0]
-                isshader = False
+                xoffset = [500, 700]
+                is_texture = False
+                if t_node.type in texture_types + ['MAPPING']:
+                    xoffset = [290, 500]
+                    is_texture = True
 
-            coordout = 2
-            image_type = 'ShaderNodeTexImage'
+                coordout = 2
+                image_type = 'ShaderNodeTexImage'
 
-            if (active.type in texture_types and active.type != 'TEX_IMAGE') or (active.type == 'BACKGROUND'):
-                coordout = 0  # image texture uses UVs, procedural textures and Background shader use Generated
-                if active.type == 'BACKGROUND':
-                    image_type = 'ShaderNodeTexEnvironment'
+                if (t_node.type in texture_types and t_node.type != 'TEX_IMAGE') or (t_node.type == 'BACKGROUND'):
+                    coordout = 0  # image texture uses UVs, procedural textures and Background shader use Generated
+                    if t_node.type == 'BACKGROUND':
+                        image_type = 'ShaderNodeTexEnvironment'
 
-            if isshader:
-                tex = nodes.new(image_type)
-                tex.location = [locx - 200.0, locy + 28.0]
+                if not is_texture:
+                    tex = nodes.new(image_type)
+                    tex.location = [locx - 200, locy + 112]
+                    nodes.active = tex
+                    links.new(tex.outputs[0], t_node.inputs[input_index])
 
-            map = nodes.new('ShaderNodeMapping')
-            map.location = [locx - xoffset[0], locy + 80.0]
-            map.width = 240
-            coord = nodes.new('ShaderNodeTexCoord')
-            coord.location = [locx - xoffset[1], locy + 40.0]
-            active.select = False
+                t_node.select = False
+                if self.add_mapping or is_texture:
+                    if t_node.type != 'MAPPING':
+                        m = nodes.new('ShaderNodeMapping')
+                        m.location = [locx - xoffset[0], locy + 141]
+                        m.width = 240
+                    else:
+                        m = t_node
+                    coord = nodes.new('ShaderNodeTexCoord')
+                    coord.location = [locx - (200 if t_node.type == 'MAPPING' else xoffset[1]), locy + 124]
 
-            if isshader:
-                nodes.active = tex
-                links.new(tex.outputs[0], active.inputs[0])
-                links.new(map.outputs[0], tex.inputs[0])
-                links.new(coord.outputs[coordout], map.inputs[0])
-
+                    if not is_texture:
+                        links.new(m.outputs[0], tex.inputs[0])
+                        links.new(coord.outputs[coordout], m.inputs[0])
+                    else:
+                        nodes.active = m
+                        links.new(m.outputs[0], t_node.inputs[input_index])
+                        links.new(coord.outputs[coordout], m.inputs[0])
             else:
-                nodes.active = map
-                links.new(map.outputs[0], active.inputs[0])
-                links.new(coord.outputs[coordout], map.inputs[0])
-
+                self.report({'WARNING'}, "No free inputs for node: "+t_node.name)
         return {'FINISHED'}
 
 
