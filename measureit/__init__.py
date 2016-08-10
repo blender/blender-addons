@@ -61,6 +61,53 @@ from bpy.props import FloatVectorProperty, IntProperty, BoolProperty, StringProp
 # --------------------------------------------------------------
 # Register all operators and panels
 # --------------------------------------------------------------
+
+## Addons Preferences Update Panel
+from bpy.types import (
+        AddonPreferences,
+        )
+
+def update_panel(self, context):
+    try:
+        bpy.utils.unregister_class(measureit_main.MeasureitEditPanel)
+        bpy.utils.unregister_class(measureit_main.MeasureitMainPanel)
+        bpy.utils.unregister_class(measureit_main.MeasureitConfPanel)
+        bpy.utils.unregister_class(measureit_main.MeasureitRenderPanel)
+    except:
+        pass
+    measureit_main.MeasureitEditPanel.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(measureit_main.MeasureitEditPanel)
+    measureit_main.MeasureitMainPanel.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(measureit_main.MeasureitMainPanel)
+    measureit_main.MeasureitConfPanel.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(measureit_main.MeasureitConfPanel)
+    measureit_main.MeasureitRenderPanel.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(measureit_main.MeasureitRenderPanel)
+
+class Measure_Pref(AddonPreferences):
+    bl_idname = __name__
+
+    category = StringProperty(
+            name="Rename Tab Category",
+            description="Choose a name for the category of the panel",
+            default="Measureit",
+            update=update_panel
+            )
+
+    def draw(self, context):
+        layout = self.layout
+        split_percent = 0.15
+
+        split = layout.split(percentage=split_percent)
+        col = split.column()
+        col.label(text="Rename Tab Category:")
+        col = split.column()
+        colrow = col.row()
+        colrow.alignment = 'LEFT'
+        colrow.prop(self, "category", text="")
+
+# Define menu
+# noinspection PyUnusedLocal
 def register():
     bpy.utils.register_class(measureit_main.RunHintDisplayButton)
     bpy.utils.register_class(measureit_main.AddSegmentButton)
@@ -80,6 +127,7 @@ def register():
     bpy.utils.register_class(measureit_main.MeasureitConfPanel)
     bpy.utils.register_class(measureit_main.MeasureitRenderPanel)
     bpy.utils.register_class(measureit_main.RenderSegmentButton)
+    bpy.utils.register_class(Measure_Pref)
 
     # Define properties
     Scene.measureit_default_color = FloatVectorProperty(
@@ -331,6 +379,7 @@ def unregister():
     bpy.utils.unregister_class(measureit_main.MeasureitConfPanel)
     bpy.utils.unregister_class(measureit_main.MeasureitRenderPanel)
     bpy.utils.unregister_class(measureit_main.RenderSegmentButton)
+    bpy.utils.unregister_class(Measure_Pref)
 
     # Remove properties
     del Scene.measureit_default_color
