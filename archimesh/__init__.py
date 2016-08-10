@@ -202,6 +202,7 @@ def register():
     bpy.utils.register_class(achm_main_panel.AchmRunHintDisplayButton)
     bpy.utils.register_class(achm_window_panel.AchmWinPanel)
     bpy.utils.register_class(achm_window_panel.AchmWindowEditPanel)
+    bpy.utils.register_class(Archi_Pref)
     INFO_MT_mesh_add.append(AchmMenu_func)
 
     # Define properties
@@ -312,6 +313,7 @@ def unregister():
     bpy.utils.unregister_class(achm_main_panel.AchmRunHintDisplayButton)
     bpy.utils.unregister_class(achm_window_panel.AchmWinPanel)
     bpy.utils.unregister_class(achm_window_panel.AchmWindowEditPanel)
+    bpy.utils.unregister_class(Archi_Pref)
     INFO_MT_mesh_add.remove(AchmMenu_func)
 
     # Remove properties
