@@ -222,8 +222,8 @@ class AchmLamp(Operator):
             description='lampshade bottom radio',
             )
     tr02 = FloatProperty(name='R2', min=0.001, max=10,
-            default=0.08, precision=3,
-                                   description='lampshade top radio')
+                         default=0.08, precision=3,
+                         description='lampshade top radio')
     pleats = BoolProperty(
             name="Pleats", description="Create pleats in the lampshade",
             default=False,
