@@ -28,6 +28,7 @@ import bpy
 # noinspection PyUnresolvedReferences
 import bgl
 from bpy.types import Operator, Panel, SpaceView3D
+from math import sqrt, fabs, pi, asin
 from .achm_tools import *
 from .achm_gltools import *
 
@@ -280,7 +281,7 @@ class AchmPencilAction(Operator):
                     i = len(mypoints)
                     distlist = []
                     for e in range(1, i):
-                        d = math.sqrt(
+                        d = sqrt(
                             ((mypoints[e][0] - mypoints[e - 1][0]) ** 2) + ((mypoints[e][1] - mypoints[e - 1][1]) ** 2))
                         # Imperial units if needed
                         if bpy.context.scene.unit_settings.system == "IMPERIAL":
@@ -300,12 +301,12 @@ class AchmPencilAction(Operator):
                     i = len(mypoints)
                     anglelist = []
                     for e in range(1, i):
-                        sinv = (mypoints[e][1] - mypoints[e - 1][1]) / math.sqrt(
+                        sinv = (mypoints[e][1] - mypoints[e - 1][1]) / sqrt(
                             ((mypoints[e][0] - mypoints[e - 1][0]) ** 2) + ((mypoints[e][1] - mypoints[e - 1][1]) ** 2))
-                        a = math.asin(sinv)
+                        a = asin(sinv)
                         # Clamp to 90 or 0 degrees
-                        if math.fabs(a) > math.pi / 4:
-                            b = math.pi / 2
+                        if fabs(a) > pi / 4:
+                            b = pi / 2
                         else:
                             b = 0
 
@@ -320,8 +321,8 @@ class AchmPencilAction(Operator):
                                 distlist[e - 1] *= -1  # reverse distance
 
                         if debugmode is True:
-                            print(str(e - 1) + ":" + str((a * 180) / math.pi) + "...:" + str(
-                                (b * 180) / math.pi) + "--->" + str(distlist[e - 1]))
+                            print(str(e - 1) + ":" + str((a * 180) / pi) + "...:" + str(
+                                (b * 180) / pi) + "--->" + str(distlist[e - 1]))
 
                     # ---------------------------------------
                     # Verify duplications and reduce noise
@@ -365,17 +366,17 @@ class AchmPencilAction(Operator):
 
                 i = len(mypoints)
                 for e in range(0, i - 1):
-                    if clearangles[e] == math.pi / 2:
+                    if clearangles[e] == pi / 2:
                         if cleardistan[e] > 0:
-                            mydata.walls[e].w = round(math.fabs(cleardistan[e]), 2)
-                            mydata.walls[e].r = (math.fabs(clearangles[e]) * 180) / math.pi  # from radians
+                            mydata.walls[e].w = round(fabs(cleardistan[e]), 2)
+                            mydata.walls[e].r = (fabs(clearangles[e]) * 180) / pi  # from radians
                         else:
-                            mydata.walls[e].w = round(math.fabs(cleardistan[e]), 2)
-                            mydata.walls[e].r = (math.fabs(clearangles[e]) * 180 * -1) / math.pi  # from radians
+                            mydata.walls[e].w = round(fabs(cleardistan[e]), 2)
+                            mydata.walls[e].r = (fabs(clearangles[e]) * 180 * -1) / pi  # from radians
 
                     else:
                         mydata.walls[e].w = round(cleardistan[e], 2)
-                        mydata.walls[e].r = (math.fabs(clearangles[e]) * 180) / math.pi  # from radians
+                        mydata.walls[e].r = (fabs(clearangles[e]) * 180) / pi  # from radians
 
                 # Remove Grease pencil
                 if pencil is not None:
