@@ -29,6 +29,7 @@ from math import sin, cos, fabs, radians
 from mathutils import Vector
 from datetime import datetime
 from time import time
+from os import path
 from bpy.types import Operator, PropertyGroup, Object, Panel
 from bpy.props import StringProperty, FloatProperty, BoolProperty, IntProperty, FloatVectorProperty, \
     CollectionProperty, EnumProperty
@@ -72,12 +73,12 @@ class AchmExportRoom(Operator, ExportHelper):
             # -------------------------------
             # extract path and filename
             # -------------------------------
-            (filepath, filename) = os.path.split(self.properties.filepath)
+            (filepath, filename) = path.split(self.properties.filepath)
             print('Exporting %s' % filename)
             # -------------------------------
             # Open output file
             # -------------------------------
-            realpath = os.path.realpath(os.path.expanduser(self.properties.filepath))
+            realpath = path.realpath(path.expanduser(self.properties.filepath))
             fout = open(realpath, 'w')
 
             st = datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S')
@@ -178,7 +179,7 @@ class AchmImportRoom(Operator, ImportHelper):
         print("Importing:", self.properties.filepath)
         # noinspection PyBroadException
         try:
-            realpath = os.path.realpath(os.path.expanduser(self.properties.filepath))
+            realpath = path.realpath(path.expanduser(self.properties.filepath))
             finput = open(realpath)
             line = finput.readline()
 
