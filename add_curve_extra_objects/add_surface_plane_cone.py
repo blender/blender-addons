@@ -30,6 +30,7 @@ from bpy.props import (
         )
 
 from bpy.types import Operator
+from bpy.utils import register_class, unregister_class
 
 
 class MakeSurfaceWedge(Operator):
@@ -58,6 +59,10 @@ class MakeSurfaceWedge(Operator):
                         min=1,
                         max=500)
 
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'OBJECT'
+
     def execute(self, context):
         # variables
         size = self.size
@@ -66,7 +71,7 @@ class MakeSurfaceWedge(Operator):
         # add a surface Plane
         bpy.ops.object.add_surface_plane()
         # save some time, by getting instant acces to those values.
-        ao = bpy.context.active_object
+        ao = context.active_object
         point = ao.data.splines[0].points
         # rotate 90 degrees on the z axis
         ao.rotation_euler[0] = 0.0
@@ -77,10 +82,10 @@ class MakeSurfaceWedge(Operator):
         bpy.ops.curve.select_all(action='DESELECT')
         # select points 0 and 1, and extrudde them
         # declaring ao and point again seems necesary...
-        ao = bpy.context.active_object
+        ao = context.active_object
         point = ao.data.splines[0].points
         point[0].select = True
-        ao = bpy.context.active_object
+        ao = context.active_object
         point = ao.data.splines[0].points
         point[1].select = True
         bpy.ops.curve.extrude()
@@ -102,14 +107,14 @@ class MakeSurfaceWedge(Operator):
         # get origin to geometry.
         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
         # change name
-        bpy.context.active_object.name = 'SurfaceWedge'
+        context.active_object.name = 'SurfaceWedge'
         # get the wedge to the 3d cursor.
-        bpy.context.active_object.location = bpy.context.scene.cursor_location
+        context.active_object.location = context.scene.cursor_location
         bpy.ops.transform.resize(value=(size, size, size))
 
         # adjust resolution in u and v direction
-        bpy.context.active_object.data.resolution_u = res_u
-        bpy.context.active_object.data.resolution_v = res_v
+        context.active_object.data.resolution_u = res_u
+        context.active_object.data.resolution_v = res_v
 
         return{'FINISHED'}
 
@@ -141,6 +146,10 @@ class MakeSurfaceCone(Operator):
                         min=1,
                         max=500)
 
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'OBJECT'
+
     def execute(self, context):
         size = self.size
         res_u = self.res_u
@@ -149,8 +158,8 @@ class MakeSurfaceCone(Operator):
         # add basemesh, a nurbs torus
         bpy.ops.surface.primitive_nurbs_surface_torus_add(location=(0, 0, 0))
         # get active object and active object name
-        ao = bpy.context.active_object
-        aoname = bpy.context.active_object.name
+        ao = context.active_object
+        aoname = context.active_object.name
         # go to edit mode
         bpy.ops.object.mode_set(mode='EDIT')
         # deselect all
@@ -181,18 +190,18 @@ class MakeSurfaceCone(Operator):
         bpy.ops.object.editmode_toggle()
         bpy.ops.object.editmode_toggle()
         # change name
-        bpy.context.active_object.name = 'SurfaceCone'
+        context.active_object.name = 'SurfaceCone'
         # go back to object mode
         bpy.ops.object.editmode_toggle()
         # bring object to cursor
         bpy.ops.object.mode_set(mode='OBJECT')
-        bpy.context.active_object.location = bpy.context.scene.cursor_location
+        context.active_object.location = context.scene.cursor_location
         # adjust size
         bpy.ops.transform.resize(value=(size, size, size))
 
         # adjust resolution in u and v direction
-        bpy.context.active_object.data.resolution_u = res_u
-        bpy.context.active_object.data.resolution_v = res_v
+        context.active_object.data.resolution_u = res_u
+        context.active_object.data.resolution_v = res_v
 
         return{'FINISHED'}
 
@@ -222,6 +231,10 @@ class MakeSurfaceStar(Operator):
                         min=1,
                         max=500)
 
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'OBJECT'
+
     def execute(self, context):
         size = self.size
         res_u = self.res_u
@@ -231,7 +244,7 @@ class MakeSurfaceStar(Operator):
         bpy.ops.surface.primitive_nurbs_surface_circle_add(location=(0, 0, 0))
         # we got 8 points, we need 40 points.
         # get active object
-        ao = bpy.context.active_object
+        ao = context.active_object
         # enter edtimode
         bpy.ops.object.mode_set(mode='EDIT')
         # deselect all
@@ -261,7 +274,7 @@ class MakeSurfaceStar(Operator):
                         (0.1545085906982422, -0.4755282402038574, 0.25, 1.0),
                         (0.8090166449546814, -0.5877856612205505, 0.2499999850988388, 1.0)]
         for i in range(0, 10):
-            bpy.context.active_object.data.splines[0].points[i].co = ListOfCoords[i]
+            context.active_object.data.splines[0].points[i].co = ListOfCoords[i]
 
         # now select all, and subdivide till 40 points is reached:
         bpy.ops.curve.select_all(action='SELECT')
@@ -280,15 +293,15 @@ class MakeSurfaceStar(Operator):
         # origin to geometry
         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
         # get object to 3d cursor
-        bpy.context.active_object.location = bpy.context.scene.cursor_location
+        context.active_object.location = context.scene.cursor_location
         # change name
         ao.name = 'SurfaceStar'
         # adjust size
         bpy.ops.transform.resize(value=(size, size, size))
 
         # adjust resolution in u and v direction
-        bpy.context.active_object.data.resolution_u = res_u
-        bpy.context.active_object.data.resolution_v = res_v
+        context.active_object.data.resolution_u = res_u
+        context.active_object.data.resolution_v = res_v
 
         return{'FINISHED'}
 
@@ -318,6 +331,10 @@ class MakeSurfacePlane(Operator):
                         min=1,
                         max=500)
 
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'OBJECT'
+
     def execute(self, context):
         size = self.size
         res_u = self.res_u
@@ -326,34 +343,34 @@ class MakeSurfacePlane(Operator):
         bpy.ops.surface.primitive_nurbs_surface_surface_add()  # add the base mesh, a NURBS Surface
 
         bpy.ops.transform.resize(value=(1, 1, 0.0001), constraint_axis=(False, False, True))  # make it flat
-        ao = bpy.context.active_object.name  # get the active object' s name
+        ao = context.active_object.name  # get the active object' s name
         # added surface has 16 points
 
         # deleting points to get plane shape.
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.curve.select_all(action='DESELECT')
 
-        bpy.context.active_object.data.splines[0].points[0].select = True
-        bpy.context.active_object.data.splines[0].points[1].select = True
-        bpy.context.active_object.data.splines[0].points[2].select = True
-        bpy.context.active_object.data.splines[0].points[3].select = True
+        context.active_object.data.splines[0].points[0].select = True
+        context.active_object.data.splines[0].points[1].select = True
+        context.active_object.data.splines[0].points[2].select = True
+        context.active_object.data.splines[0].points[3].select = True
         bpy.ops.curve.delete(type='VERT')
 
-        bpy.context.active_object.data.splines[0].points[8].select = True
-        bpy.context.active_object.data.splines[0].points[9].select = True
-        bpy.context.active_object.data.splines[0].points[10].select = True
-        bpy.context.active_object.data.splines[0].points[11].select = True
+        context.active_object.data.splines[0].points[8].select = True
+        context.active_object.data.splines[0].points[9].select = True
+        context.active_object.data.splines[0].points[10].select = True
+        context.active_object.data.splines[0].points[11].select = True
         bpy.ops.curve.delete(type='VERT')
 
-        bpy.context.active_object.data.splines[0].points[0].select = True
-        bpy.context.active_object.data.splines[0].points[4].select = True
+        context.active_object.data.splines[0].points[0].select = True
+        context.active_object.data.splines[0].points[4].select = True
         bpy.ops.curve.delete(type='VERT')
-        bpy.context.active_object.data.splines[0].points[2].select = True
-        bpy.context.active_object.data.splines[0].points[5].select = True
+        context.active_object.data.splines[0].points[2].select = True
+        context.active_object.data.splines[0].points[5].select = True
         bpy.ops.curve.delete(type='VERT')
 
         # assigning name
-        bpy.context.active_object.name = 'SurfacePlane'
+        context.active_object.name = 'SurfacePlane'
         # select all
         bpy.ops.curve.select_all(action='SELECT')
         # bringing origin to center:
@@ -363,12 +380,12 @@ class MakeSurfacePlane(Operator):
         bpy.ops.object.transform_apply(scale=True)
         # bring object to 3d cursor.
         bpy.ops.object.mode_set(mode='OBJECT')
-        bpy.context.active_object.location = bpy.context.scene.cursor_location
+        context.active_object.location = context.scene.cursor_location
         bpy.ops.transform.resize(value=(size, size, size))
 
         # adjust resolution in u and v direction
-        bpy.context.active_object.data.resolution_u = res_u
-        bpy.context.active_object.data.resolution_v = res_v
+        context.active_object.data.resolution_u = res_u
+        context.active_object.data.resolution_v = res_v
 
         return{'FINISHED'}
 
@@ -390,6 +407,10 @@ class SmoothXtimes(Operator):
                         max=1000,
                         default=1,
                         description='amount of smooths')
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'EDIT_SURFACE'
 
     def execute(self, context):
         # smooth times time(s).
@@ -420,12 +441,12 @@ def SmoothXtimes_button(self, context):
 
 
 def register():
-    bpy.utils.register_class(UserInterface)
-    bpy.utils.register_class(MakeSurfacePlane)
-    bpy.utils.register_class(MakeSurfaceCone)
-    bpy.utils.register_class(MakeSurfaceStar)
-    bpy.utils.register_class(MakeSurfaceWedge)
-    bpy.utils.register_class(SmoothXtimes)
+    register_class(UserInterface)
+    register_class(MakeSurfacePlane)
+    register_class(MakeSurfaceCone)
+    register_class(MakeSurfaceStar)
+    register_class(MakeSurfaceWedge)
+    register_class(SmoothXtimes)
     bpy.types.INFO_MT_surface_add.append(Surface_plane_button)
     bpy.types.INFO_MT_surface_add.append(Surface_cone_button)
     bpy.types.INFO_MT_surface_add.append(Surface_star_button)
@@ -434,12 +455,12 @@ def register():
 
 
 def unregister():
-    bpy.utils.unregister_class(UserInterface)
-    bpy.utils.unregister_class(MakeSurfacePlane)
-    bpy.utils.unregister_class(MakeSurfaceCone)
-    bpy.utils.unregister_class(MakeSurfaceStar)
-    bpy.utils.unregister_class(MakeSurfaceWedge)
-    bpy.utils.unregister_class(SmoothXtimes)
+    unregister_class(UserInterface)
+    unregister_class(MakeSurfacePlane)
+    unregister_class(MakeSurfaceCone)
+    unregister_class(MakeSurfaceStar)
+    unregister_class(MakeSurfaceWedge)
+    unregister_class(SmoothXtimes)
     bpy.types.INFO_MT_surface_add.remove(Surface_plane_button)
     bpy.types.INFO_MT_surface_add.remove(Surface_cone_button)
     bpy.types.INFO_MT_surface_add.remove(Surface_star_button)
