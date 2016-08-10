@@ -32,7 +32,6 @@ bl_info = {
     "version": (1, 6, 7),
     "blender": (2, 7, 4),
     "description": "Tools for measuring objects.",
-    'warning': 'Temporary: pending review fixes T48704',
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/Measureit",
     "category": "3D View"
     }
