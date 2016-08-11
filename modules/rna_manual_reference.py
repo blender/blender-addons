@@ -401,12 +401,19 @@ url_manual_mapping = (
     ("bpy.types.TransformOrientation.*",       "editors/3dview/transform/transform_control/transform_orientations.html"),
 
     # *** Cycles ***
-    ("bpy.types.CyclesRenderSettings.*",     "render/cycles/settings/integrator.html"),
+    ("bpy.types.CyclesRenderSettings.dicing_rate",         "render/cycles/settings/integrator.html#subdivision-rate"),
+    ("bpy.types.CyclesRenderSettings.preview_dicing_rate", "render/cycles/settings/integrator.html#subdivision-rate"),
+    ("bpy.types.CyclesRenderSettings.max_subdivisions",    "render/cycles/settings/integrator.html#subdivision-rate"),
+    ("bpy.types.CyclesRenderSettings.*",     "render/cycles/settings/integrator.html"),  # Catchall
     ("bpy.types.CyclesVisibilitySettings.*", "render/cycles/settings/light_paths.html#ray-visibility"),
     ("bpy.types.CyclesWorldSettings.*",      "render/cycles/world.html"),
     ("bpy.types.SceneRenderLayer.*pass*",    "render/blender_render/passes.html"),
     ("bpy.types.SceneRenderLayer.*",         "render/post_process/layers.html"),
-    ("bpy.types.Cycles*",                    "render/cycles"),
+    ("bpy.types.CyclesMaterialSettings.displacement_method",    "render/cycles/materials/settings.html#displacement"),
+    ("bpy.types.CyclesMaterialSettings.*",                      "render/cycles/materials/settings.html"),  # Catchall
+    ("bpy.types.CyclesObjectSettings.use_adaptive_subdivision", "render/cycles/materials/displacement.html#true-displacement"),
+    ("bpy.types.CyclesObjectSettings.dicing_rate",              "render/cycles/materials/displacement.html#true-displacement"),
+    ("bpy.types.Cycles*",                    "render/cycles"),  # Catchall
 
     # Currently all manual links on all sockets and values (such as Fac, Roughness, Color...) are NodeSocket* type.
     # It'd be much better if the name of the socket could be used for the manual reference
