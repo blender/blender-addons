@@ -1,4 +1,4 @@
-#  RNA MANUAL REFERENCE
+    #  RNA MANUAL REFERENCE
 #
 # This file maps RNA to online URL's for right mouse context menu documentation access
 #
@@ -257,10 +257,10 @@ url_manual_mapping = (
     ("bpy.types.BakeSettings.*",               "render/workflows/bake.html#options"),
 
     # Painting/Sculpting
-    ("bpy.types.Sculpt.*",                     "painting_sculpting/sculpting"),
-    ("bpy.types.SculptToolCapabilities.*",     "painting_sculpting/sculpting"),
-    ("bpy.types.VertexColors.*",               "painting_sculpting/painting/vertex_paint"),
-    ("bpy.types.VertexPaint.*",                "painting_sculpting/painting/vertex_paint/introduction.html"),
+    ("bpy.types.Sculpt.*",                     "sculpt_paint/sculpting"),
+    ("bpy.types.SculptToolCapabilities.*",     "sculpt_paint/sculpting"),
+    ("bpy.types.VertexColors.*",               "sculpt_paint/painting/vertex_paint"),
+    ("bpy.types.VertexPaint.*",                "sculpt_paint/painting/vertex_paint/introduction.html"),
 
     # *** FreeStyle ***
     ("bpy.types.LineStyleAlphaModifier_AlongStroke.*",            "render/freestyle/parameter_editor/line_style/alpha.html#along-stroke"),
@@ -304,7 +304,7 @@ url_manual_mapping = (
     ("bpy.types.LineStyleThicknessModifier_Noise.*",              "render/freestyle/parameter_editor/line_style/thickness.html#noise"),
     ("bpy.types.LineStyleThicknessModifier_Tangent.*",            "render/freestyle/parameter_editor/line_style/thickness.html#tangent"),
     ("bpy.types.FreestyleLineSet.*",                              "render/freestyle/parameter_editor/line_set.html"),
-    ("bpy.types.FreestyleLineStyle.*",                            "render/freestyle/parameter_editor/line_style.html"),
+    ("bpy.types.FreestyleLineStyle.*",                            "render/freestyle/parameter_editor/line_style"),
     # ("bpy.types.FreestyleModuleSettings.*",                     ""), Todo
     # ("bpy.types.FreestyleSettings.*",                           ""), Todo
     ("bpy.types.Linesets.*",                                      "render/freestyle/parameter_editor/line_set.html"),
@@ -650,8 +650,8 @@ url_manual_mapping = (
     # --- Colision ---
     ("bpy.types.CollisionSettings.*",          "physics/collision.html"),
     # --- Cloth ---
-    ("bpy.types.ClothCollisionSettings.*",     "physics/cloth/collisions.html"),
-    ("bpy.types.ClothSettings.*",              "physics/cloth/cloth_settings.html"),
+    ("bpy.types.ClothCollisionSettings.*",     "physics/cloth/settings/collisions.html"),
+    ("bpy.types.ClothSettings.*",              "physics/cloth/settings"),
     # ("bpy.types.ClothSolverResult.*",        ""), TODO
     # --- Dynamic Paint ---
     ("bpy.types.DynamicPaintBrushSettings.*",         "physics/dynamic_paint/brush.html"),
@@ -715,7 +715,7 @@ url_manual_mapping = (
     ("bpy.types.Lattice.*",       "editors/3dview/object/types/lattice.html"),
     ("bpy.types.Library.*",       "data_system/linked_libraries.html"),
     ("bpy.types.Mask.*",          "editors/movie_clip_editor/masking.html"),
-    ("bpy.types.Brush.*",         "painting_sculpting/introduction.html#brush"),
+    ("bpy.types.Brush.*",         "sculpt_paint/introduction.html#brush"),
     ("bpy.types.Mesh.*",          "modeling/meshes"),    # Catchall, todo - refine
     ("bpy.types.MetaBall.*",      "modeling/metas"),     # Catchall, todo - refine
     ("bpy.types.Nodes.*",         "editors/node_editor/nodes"),
@@ -766,18 +766,18 @@ url_manual_mapping = (
 
     # *** Animation ***
     ("bpy.types.Keyframe.*",                       "animation/actions.html"),
-    ("bpy.types.FCurve.*",                         "editors/graph_editor/fcurves.html"),
-    ("bpy.types.FCurveModifiers.*",                "editors/graph_editor/fmodifiers.html"),
+    ("bpy.types.FCurve.*",                         "editors/graph_editor/fcurves"),
+    ("bpy.types.FCurveModifiers.*",                "editors/graph_editor/fcurves/fmodifiers.html"),
     # ("bpy.types.FCurveSample.*",                 ""), Todo
-    ("bpy.types.FModifier.*",                      "editors/graph_editor/fmodifiers.html"),
-    ("bpy.types.FModifierCycles.*",                "editors/graph_editor/fmodifiers.html#cycles"),
-    ("bpy.types.FModifierEnvelope.*",              "editors/graph_editor/fmodifiers.html#envelope"),
-    ("bpy.types.FModifierEnvelopeControlPoint.*",  "editors/graph_editor/fmodifiers.html#envelope"),
-    ("bpy.types.FModifierFunctionGenerator.*",     "editors/graph_editor/fmodifiers.html#generator"),
-    ("bpy.types.FModifierGenerator.*",             "editors/graph_editor/fmodifiers.html#generator"),
+    ("bpy.types.FModifier.*",                      "editors/graph_editor/fcurves/fmodifiers.html"),
+    ("bpy.types.FModifierCycles.*",                "editors/graph_editor/fcurves/fmodifiers.html#cycles"),
+    ("bpy.types.FModifierEnvelope.*",              "editors/graph_editor/fcurves/fmodifiers.html#envelope"),
+    ("bpy.types.FModifierEnvelopeControlPoint.*",  "editors/graph_editor/fcurves/fmodifiers.html#envelope"),
+    ("bpy.types.FModifierFunctionGenerator.*",     "editors/graph_editor/fcurves/fmodifiers.html#generator"),
+    ("bpy.types.FModifierGenerator.*",             "editors/graph_editor/fcurves/fmodifiers.html#generator"),
     # ("bpy.types.FModifierLimits.*",              ""), Todo
-    ("bpy.types.FModifierNoise.*",                 "editors/graph_editor/fmodifiers.html#noise"),
-    ("bpy.types.FModifierStepped.*",               "editors/graph_editor/fmodifiers.html#stepped"),
+    ("bpy.types.FModifierNoise.*",                 "editors/graph_editor/fcurves/fmodifiers.html#noise"),
+    ("bpy.types.FModifierStepped.*",               "editors/graph_editor/fcurves/fmodifiers.html#stepped"),
     ("bpy.types.TimelineMarker.*",                 "animation/markers.html"),
     ("bpy.types.AnimViz.*",                        "animation/keyframes/visualization.html"),
     ("bpy.types.AnimVizMotionPaths.*",             "animation/keyframes/visualization.html"),
@@ -858,7 +858,7 @@ url_manual_mapping = (
     ("bpy.ops.anim.*",                    "animation"),
     ("bpy.ops.armature.*",                "rigging/armatures"),
     ("bpy.ops.boid.*",                    "physics/particles/physics/boids.html"),
-    ("bpy.ops.brush.*",                   "painting_sculpting/introduction.html#brush"),  # TODO doc
+    ("bpy.ops.brush.*",                   "sculpt_paint/introduction.html#brush"),  # TODO doc
     ("bpy.ops.buttons.*",                 "interface/controls/buttons_and_controls.html"),
     ("bpy.ops.camera.*",                  "editors/3dview/object/types/camera"),
     ("bpy.ops.clip.*",                    "editors/movie_clip_editor/index.html#movie-clip-editor"),
@@ -881,7 +881,7 @@ url_manual_mapping = (
     ("bpy.ops.fluid.*",                   "physics/fluid"),
     ("bpy.ops.font.*",                    "modeling/texts"),
     ("bpy.ops.gpencil.*",                 "interface/grease_pencil"),
-    ("bpy.ops.graph.*",                   "editors/graph_editor/fcurves.html"),
+    ("bpy.ops.graph.*",                   "editors/graph_editor/fcurves"),
     ("bpy.ops.group.*",                   "editors/3dview/object/relationships/groups.html"),
     ("bpy.ops.image.*",                   "render/blender_render/textures/types/image.html"),
     ("bpy.ops.import_anim.*",             "data_system/files/import_export.html"),
@@ -927,7 +927,7 @@ url_manual_mapping = (
     ("bpy.ops.scene.*",                   "data_system/scenes.html"),
     ("bpy.ops.screen.*",                  "interface/editors/screens.html"),
     ("bpy.ops.script.*",                  "advanced/scripting"),
-    ("bpy.ops.sculpt.*",                  "painting_sculpting/sculpting"),
+    ("bpy.ops.sculpt.*",                  "sculpt_paint/sculpting"),
     ("bpy.ops.sequencer.*",               "editors/sequencer"),
     # ("bpy.ops.sketch.*",                ""),  # TODO
     ("bpy.ops.sound.*",                   "editors/3dview/object/types/speaker.html"),
