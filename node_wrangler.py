@@ -38,6 +38,7 @@ from math import cos, sin, pi, hypot
 from os import path
 from glob import glob
 from copy import copy
+from itertools import chain
 
 #################
 # rl_outputs:
@@ -2286,62 +2287,96 @@ class NWCopySettings(Operator, NWBase):
         return valid
 
     def execute(self, context):
-        nodes, links = get_nodes_links(context)
-        selected = [n for n in nodes if n.select]
-        reselect = []  # duplicated nodes will be selected after execution
-        active = nodes.active
-        if active.select:
-            reselect.append(active)
+        node_active = context.active_node
+        node_selected = context.selected_nodes
+        
+        # Error handling
+        if not (len(node_selected) > 1):
+            self.report({'ERROR'}, "2 nodes must be selected at least")
+            return {'CANCELLED'}
 
-        for node in selected:
-            if node.type == active.type and node != active:
-                # duplicate active, relink links as in 'node', append copy to 'reselect', delete node
-                bpy.ops.node.select_all(action='DESELECT')
-                nodes.active = active
-                active.select = True
-                bpy.ops.node.duplicate()
-                copied = nodes.active
-                # Copied active should however inherit some properties from 'node'
-                attributes = (
-                    'hide', 'show_preview', 'mute', 'label',
-                    'use_custom_color', 'color', 'width', 'width_hidden',
-                )
-                for attr in attributes:
-                    setattr(copied, attr, getattr(node, attr))
-                # Handle scenario when 'node' is in frame. 'copied' is in same frame then.
-                if copied.parent:
-                    bpy.ops.node.parent_clear()
-                locx = node.location.x
-                locy = node.location.y
-                # get absolute node location
-                parent = node.parent
-                while parent:
-                    locx += parent.location.x
-                    locy += parent.location.y
-                    parent = parent.parent
-                copied.location = [locx, locy]
-                # reconnect links from node to copied
-                for i, input in enumerate(node.inputs):
-                    if input.links:
-                        link = input.links[0]
-                        links.new(link.from_socket, copied.inputs[i])
-                for out, output in enumerate(node.outputs):
-                    if output.links:
-                        out_links = output.links
-                        for link in out_links:
-                            links.new(copied.outputs[out], link.to_socket)
-                bpy.ops.node.select_all(action='DESELECT')
-                node.select = True
-                bpy.ops.node.delete()
-                reselect.append(copied)
-            else:  # If selected wasn't copied, need to reselect it afterwards.
-                reselect.append(node)
-        # clean up
-        bpy.ops.node.select_all(action='DESELECT')
-        for node in reselect:
-            node.select = True
-        nodes.active = active
+        # Check if active node is in the selection
+        selected_node_names = [n.name for n in node_selected]
+        if node_active.name not in selected_node_names:
+            self.report({'ERROR'}, "No active node")
+            return {'CANCELLED'}
 
+        # Get nodes in selection by type
+        valid_nodes = [n for n in node_selected if n.type == node_active.type]
+
+        if not (len(valid_nodes) > 1) and node_active:
+            self.report({'ERROR'}, "Selected nodes are not of the same type as {}".format(node_active.name))
+            return {'CANCELLED'}
+        
+        if len(valid_nodes) != len(node_selected):
+            # Report nodes that are not valid
+            valid_node_names = [n.name for n in valid_nodes]
+            not_valid_names = list(set(selected_node_names) - set(valid_node_names))
+            self.report({'INFO'}, "Ignored {} (not of the same type as {})".format(", ".join(not_valid_names), node_active.name))
+
+        # Reference original 
+        orig = node_active
+        #node_selected_names = [n.name for n in node_selected]
+
+        # Output list
+        success_names = []
+
+        # Deselect all nodes
+        for i in node_selected:
+            i.select = False
+        
+        # Run through all other nodes
+        for node in valid_nodes[1:]:
+            
+            # Check for frame node
+            parent = node.parent if node.parent else None
+            node_loc = [node.location.x, node.location.y]
+
+            # Select original to duplicate
+            orig.select = True
+            
+            # Duplicate selected node
+            bpy.ops.node.duplicate()
+            new_node = context.selected_nodes[0]
+            
+            # Deselect copy
+            new_node.select = False      
+            
+            # Properties to copy
+            node_tree = node.id_data
+            props_to_copy = 'bl_idname name location height width'.split(' ')
+            
+            # Input and outputs
+            reconnections = []
+            mappings = chain.from_iterable([node.inputs, node.outputs])
+            for i in (i for i in mappings if i.is_linked):
+                for L in i.links:
+                    reconnections.append([L.from_socket.path_from_id(), L.to_socket.path_from_id()])
+            
+            # Properties
+            props = {j: getattr(node, j) for j in props_to_copy}
+            props_to_copy.pop(0)
+            
+            for prop in props_to_copy:
+                setattr(new_node, prop, props[prop])
+            
+            # Get the node tree to remove the old node
+            nodes = node_tree.nodes
+            nodes.remove(node)
+            new_node.name = props['name']
+
+            if parent:
+                new_node.parent = parent
+                new_node.location = node_loc
+            
+            for str_from, str_to in reconnections:
+                node_tree.links.new(eval(str_from), eval(str_to))
+            
+            success_names.append(new_node.name)
+
+        orig.select = True
+        node_tree.nodes.active = orig
+        self.report({'INFO'}, "Successfully copied attributes from {} to: {}".format(orig.name, ", ".join(success_names)))
         return {'FINISHED'}
 
 
