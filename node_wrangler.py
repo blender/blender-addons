@@ -3192,7 +3192,7 @@ class NWSaveViewer(bpy.types.Operator, ExportHelper):
 
     @classmethod
     def poll(cls, context):
-        return nw_check(context) and context.space_data.tree_type == 'CompositorNodeTree'
+        return nw_check(context) and context.space_data.tree_type == 'CompositorNodeTree' and "Viewer Node" in [i.name for i in bpy.data.images]
 
     def execute(self, context):
         fp = self.filepath
