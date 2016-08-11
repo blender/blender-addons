@@ -2461,7 +2461,7 @@ class Carver(bpy.types.Operator):
             # Scale object
             if event.type == context.scene.Key_Scale and event.value == 'PRESS':
                 if self.ObjectScale == False:
-                    elf.am = event.mouse_region_x, event.mouse_regiony
+                    self.am = event.mouse_region_x, event.mouse_region_y
                 self.ObjectScale = True
 
             # Grid : Add column
