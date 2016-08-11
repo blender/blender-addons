@@ -3192,7 +3192,13 @@ class NWSaveViewer(bpy.types.Operator, ExportHelper):
 
     @classmethod
     def poll(cls, context):
-        return nw_check(context) and context.space_data.tree_type == 'CompositorNodeTree' and "Viewer Node" in [i.name for i in bpy.data.images]
+        valid = False
+        if nw_check(context):
+            if context.space_data.tree_type == 'CompositorNodeTree':
+                if "Viewer Node" in [i.name for i in bpy.data.images]:
+                    if sum(bpy.data.images["Viewer Node"].size) > 0:  # False if not connected or connected but no image
+                        valid = True
+        return valid
 
     def execute(self, context):
         fp = self.filepath
