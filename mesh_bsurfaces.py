@@ -2861,7 +2861,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
 
     def execute(self, context):
-        self.initial_global_undo_state = bpy.context.user_preferences.edit.use_global_undo
+#        self.initial_global_undo_state = bpy.context.user_preferences.edit.use_global_undo
 
         bpy.context.user_preferences.edit.use_global_undo = False
 
@@ -2967,12 +2967,12 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         self.loops_on_strokes = bpy.context.scene.SURFSK_loops_on_strokes
         self.keep_strokes = bpy.context.scene.SURFSK_keep_strokes
 
-        self.edges_U = 10
+        self.edges_U = 5
 
         if self.loops_on_strokes:
-            self.edges_V = 3
+            self.edges_V = 1
         else:
-            self.edges_V = 10
+            self.edges_V = 5
 
         self.is_fill_faces = False
 
