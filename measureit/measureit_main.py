@@ -602,8 +602,7 @@ class MeasureitMainPanel(Panel):
 
         # Tools
         box = layout.box()
-        row = box.row()
-        row.label("Add Measures")
+        box.label("Add Measures")
         row = box.row()
         row.operator("measureit.addsegmentbutton", text="Segment", icon="ALIGN")
         row.prop(scene, "measureit_sum", text="Sum")
