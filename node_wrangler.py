@@ -3997,8 +3997,11 @@ def bgreset_menu_func(self, context):
 
 
 def save_viewer_menu_func(self, context):
-    if context.scene.node_tree.nodes.active.type == "VIEWER":
-        self.layout.operator(NWSaveViewer.bl_idname, icon='FILE_IMAGE')
+    if nw_check(context):
+        if context.space_data.tree_type == 'CompositorNodeTree':
+            if context.scene.node_tree.nodes.active:
+                if context.scene.node_tree.nodes.active.type == "VIEWER":
+                    self.layout.operator(NWSaveViewer.bl_idname, icon='FILE_IMAGE')
 
 
 #
