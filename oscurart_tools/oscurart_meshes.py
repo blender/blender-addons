@@ -32,8 +32,11 @@ import time
 import blf
 from bpy_extras.view3d_utils import location_3d_to_region_2d
 
+C = bpy.context
+D = bpy.data
 
 # -----------------------------RECONST---------------------------
+
 
 def defReconst(self, OFFSET):
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -73,7 +76,7 @@ def defReconst(self, OFFSET):
         use_subsurf_data=0)
 
 
-class reConst(Operator):
+class reConst (Operator):
     bl_idname = "mesh.reconst_osc"
     bl_label = "ReConst Mesh"
     bl_options = {"REGISTER", "UNDO"}
@@ -93,8 +96,8 @@ class reConst(Operator):
         defReconst(self, self.OFFSET)
         return {'FINISHED'}
 
-
 # -----------------------------------SELECT LEFT---------------------
+
 
 def side(self, nombre, offset):
 
@@ -144,15 +147,15 @@ class SelectMenor (Operator):
 
 # -------------------------RESYM VG----------------------------------
 
-class resymVertexGroups(Operator):
+
+class resymVertexGroups (Operator):
     bl_idname = "mesh.resym_vertex_weights_osc"
     bl_label = "Resym Vertex Weights"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        return (context.active_object is not None and
-                context.active_object.type == 'MESH')
+        return context.active_object is not None
 
     def execute(self, context):
 
@@ -175,15 +178,14 @@ class resymVertexGroups(Operator):
 
 # ------------------------IMPORT EXPORT GROUPS--------------------
 
-class OscExportVG(Operator):
+class OscExportVG (Operator):
     bl_idname = "file.export_groups_osc"
     bl_label = "Export Groups"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        return (context.active_object is not None and
-                context.active_object.type == 'MESH')
+        return context.active_object is not None
 
     def execute(self, context):
 
@@ -201,15 +203,14 @@ class OscExportVG(Operator):
         return {'FINISHED'}
 
 
-class OscImportVG(Operator):
+class OscImportVG (Operator):
     bl_idname = "file.import_groups_osc"
     bl_label = "Import Groups"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        return (context.active_object is not None and
-                context.active_object.type == 'MESH')
+        return context.active_object is not None
 
     def execute(self, context):
 
@@ -232,6 +233,7 @@ class OscImportVG(Operator):
 
 
 # ------------------------------------ RESYM MESH-------------------------
+
 
 def reSymSave(self, quality):
 
@@ -302,7 +304,7 @@ def reSymMesh(self, SELECTED, SIDE):
             MEMA(SYMAP)
 
 
-class OscResymSave(Operator):
+class OscResymSave (Operator):
     bl_idname = "mesh.resym_save_map"
     bl_label = "Resym save XML Map"
     bl_options = {"REGISTER", "UNDO"}
@@ -322,15 +324,14 @@ class OscResymSave(Operator):
         return {'FINISHED'}
 
 
-class OscResymMesh(Operator):
+class OscResymMesh (Operator):
     bl_idname = "mesh.resym_mesh"
     bl_label = "Resym save Apply XML"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        return (context.active_object is not None and
-                context.active_object.type == 'MESH')
+        return context.active_object is not None
 
     selected = BoolProperty(
             default=False,
@@ -364,9 +365,12 @@ def DefOscObjectToMesh():
 
 class OscObjectToMesh(Operator):
     bl_idname = "mesh.object_to_mesh_osc"
+    bl_idname = "mesh.object_to_mesh_osc"
+    bl_label = "Object To Mesh"
     bl_label = "Object To Mesh"
     bl_description = "Works on Meshes, Meta objects, Curves and Surfaces"
 
+    
     @classmethod
     def poll(cls, context):
         return (context.active_object is not None and
@@ -374,12 +378,13 @@ class OscObjectToMesh(Operator):
                 {'MESH', 'META', 'CURVE', 'SURFACE'})
 
     def execute(self, context):
-        print("Active type object is", context.object.type)
-        DefOscObjectToMesh()
-        return {'FINISHED'}
+         print("Active type object is", context.object.type)
+         DefOscObjectToMesh()
+         return {'FINISHED'}
 
 
 # ----------------------------- OVERLAP UV -------------------------------
+
 
 def DefOscOverlapUv(valpresicion):
     inicio = time.time()
@@ -423,7 +428,7 @@ def DefOscOverlapUv(valpresicion):
             for lloop in lif[l]:
                 for rloop in lif[r]:
                     if (verteqind[vertexvert[lloop]] == vertexvert[rloop] and
-                       ob.data.uv_layers.active.data[rloop].select):
+                        ob.data.uv_layers.active.data[rloop].select):
 
                         ob.data.uv_layers.active.data[
                             lloop].uv = ob.data.uv_layers.active.data[
@@ -455,8 +460,8 @@ class OscOverlapUv(Operator):
         DefOscOverlapUv(self.presicion)
         return {'FINISHED'}
 
-
 # ------------------------------- IO VERTEX COLORS --------------------
+
 
 def DefOscExportVC():
     with open(os.path.join(os.path.dirname(bpy.data.filepath), bpy.context.object.name) + ".vc", mode="w") as file:
@@ -474,7 +479,7 @@ def DefOscImportVC():
                 loopind].color = di[loopind]
 
 
-class OscExportVC(Operator):
+class OscExportVC (Operator):
     bl_idname = "mesh.export_vertex_colors"
     bl_label = "Export Vertex Colors"
     bl_options = {"REGISTER", "UNDO"}
@@ -489,7 +494,7 @@ class OscExportVC(Operator):
         return {'FINISHED'}
 
 
-class OscImportVC(Operator):
+class OscImportVC (Operator):
     bl_idname = "mesh.import_vertex_colors"
     bl_label = "Import Vertex Colors"
     bl_options = {"REGISTER", "UNDO"}
@@ -505,6 +510,7 @@ class OscImportVC(Operator):
 
 
 # ------------------ PRINT VERTICES ----------------------
+
 
 def dibuja_callback(self, context):
     font_id = 0

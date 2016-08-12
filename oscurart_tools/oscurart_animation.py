@@ -21,16 +21,16 @@
 import bpy
 from mathutils import Matrix
 
-# -------------------------QUICK PARENT------------------
+# ---------------------------QUICK PARENT------------------
 
 
 def DefQuickParent(inf, out):
     if bpy.context.object.type == "ARMATURE":
         ob = bpy.context.object
         target = [object for object in bpy.context.selected_objects if object != ob][0]
-        ob = (bpy.context.active_pose_bone if bpy.context.object.type == 'ARMATURE' else bpy.context.object)
+        ob = bpy.context.active_pose_bone if bpy.context.object.type == 'ARMATURE' else bpy.context.object
         target.select = False
-        bpy.context.scene.frame_set(frame=bpy.context.scene.oscurart.quick_animation_in)
+        bpy.context.scene.frame_set(frame=bpy.context.scene.quick_animation_in)
         a = Matrix(target.matrix_world)
         a.invert()
         i = Matrix(ob.matrix)
@@ -41,9 +41,9 @@ def DefQuickParent(inf, out):
     else:
         ob = bpy.context.object
         target = [object for object in bpy.context.selected_objects if object != ob][0]
-        ob = (bpy.context.active_pose_bone if bpy.context.object.type == 'ARMATURE' else bpy.context.object)
+        ob = bpy.context.active_pose_bone if bpy.context.object.type == 'ARMATURE' else bpy.context.object
         target.select = False
-        bpy.context.scene.frame_set(frame=bpy.context.scene.oscurart.quick_animation_in)
+        bpy.context.scene.frame_set(frame=bpy.context.scene.quick_animation_in)
         a = Matrix(target.matrix_world)
         a.invert()
         i = Matrix(ob.matrix_world)
@@ -53,18 +53,13 @@ def DefQuickParent(inf, out):
             bpy.ops.anim.keyframe_insert(type="LocRotScale")
 
 
-class QuickParent(bpy.types.Operator):
+class QuickParent (bpy.types.Operator):
     bl_idname = "anim.quick_parent_osc"
     bl_label = "Quick Parent"
     bl_options = {"REGISTER", "UNDO"}
 
-    @classmethod
-    def poll(cls, context):
-        return (context.active_object is not None and
-                len(context.selected_objects) > 1)
-
     def execute(self, context):
         DefQuickParent(
-            bpy.context.scene.oscurart.quick_animation_in,
-            bpy.context.scene.oscurart.quick_animation_out)
+            bpy.context.scene.quick_animation_in,
+            bpy.context.scene.quick_animation_out)
         return {'FINISHED'}

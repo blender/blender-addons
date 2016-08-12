@@ -20,16 +20,27 @@
 
 bl_info = {
     "name": "Oscurart Tools",
-    "author": "Oscurart, CodemanX, Meta-Androcto",
-    "version": (3, 2),
+    "author": "Oscurart, CodemanX",
+    "version": (3, 2, 1),
     "blender": (2, 77, 0),
     "location": "View3D > Tools > Oscurart Tools",
     "description": "Tools for objects, render, shapes, and files.",
     "warning": "",
     "wiki_url":
         "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/Oscurart_Tools",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Object",
     }
+
+import bpy
+
+from . import oscurart_files
+from . import oscurart_meshes
+from . import oscurart_objects
+from . import oscurart_shapes
+from . import oscurart_render
+from . import oscurart_overrides
+from . import oscurart_animation
 
 import bpy
 from bpy.types import (
@@ -44,62 +55,26 @@ from bpy.props import (
             IntProperty,
             )
 
-from . import oscurart_files
-from . import oscurart_meshes
-from . import oscurart_objects
-from . import oscurart_shapes
-from . import oscurart_render
-from . import oscurart_animation
-
-
 class View3DOscPanel(PropertyGroup):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+
     # CREA PANELES EN TOOLS
-    osc_object_tools = BoolProperty(default=True)
-    osc_mesh_tools = BoolProperty(default=True)
-    osc_shapes_tools = BoolProperty(default=True)
-    osc_render_tools = BoolProperty(default=True)
-    osc_files_tools = BoolProperty(default=True)
-    osc_animation_tools = BoolProperty(default=True)
+    osc_object_tools = BoolProperty(default=False)
+    osc_mesh_tools = BoolProperty(default=False)
+    osc_shapes_tools = BoolProperty(default=False)
+    osc_render_tools = BoolProperty(default=False)
+    osc_files_tools = BoolProperty(default=False)
+    osc_overrides_tools = BoolProperty(default=False)
+    osc_animation_tools = BoolProperty(default=False)
 
-    quick_animation_in = IntProperty(
-                        default=1
-                        )
-    quick_animation_out = IntProperty(
-                        default=250
-                        )
-    # SETEO VARIABLE DE ENTORNO
-    SearchAndSelectOt = StringProperty(
-                        default="Object name initials"
-                        )
-    # RENDER CROP
-    rcPARTS = IntProperty(
-                        default=1,
-                        min=2,
-                        max=50,
-                        step=1
-                            )
-    RenameObjectOt = StringProperty(
-                        default="Type here"
-                        )
+    # PARA ESCENAS NUEVAS
+    overrides = bpy.props.StringProperty(default="[]")
 
 
-class VarColArchivos(PropertyGroup):
-    filename = bpy.props.StringProperty(
-                        name="",
-                        default=""
-                        )
-    value = bpy.props.IntProperty(
-                        name="",
-                        default=10
-                        )
-    fullpath = bpy.props.StringProperty(
-                        name="",
-                        default=""
-                        )
-    checkbox = bpy.props.BoolProperty(
-                        name="",
-                        default=True
-                        )
+class OscOverridesProp(PropertyGroup):
+    matoverride = bpy.props.StringProperty()
+    grooverride = bpy.props.StringProperty()
 
 
 # PANELES
@@ -123,6 +98,7 @@ class OscPanelControl(Panel):
         col.prop(oscurart, "osc_animation_tools", text="Animation", icon="POSE_DATA")
         col.prop(oscurart, "osc_render_tools", text="Render", icon="SCENE")
         col.prop(oscurart, "osc_files_tools", text="Files", icon="IMASEL")
+        col.prop(oscurart, "osc_overrides_tools", text="Overrides", icon="GREASEPENCIL")
 
 
 class OscPanelObject(Panel):
@@ -149,10 +125,10 @@ class OscPanelObject(Panel):
         colrow = col.row(align=1)
         colrow.operator("object.objects_to_groups", icon="GROUP")
         colrow = col.row(align=1)
-        colrow.prop(bpy.context.scene.oscurart, "SearchAndSelectOt", text="")
+        colrow.prop(bpy.context.scene, "SearchAndSelectOt", text="")
         colrow.operator("object.search_and_select_osc", icon="ZOOM_SELECTED")
         colrow = col.row(align=1)
-        colrow.prop(bpy.context.scene.oscurart, "RenameObjectOt", text="")
+        colrow.prop(bpy.context.scene, "RenameObjectOt", text="")
         colrow.operator("object.rename_objects_osc", icon="SHORTDISPLAY")
         col.operator(
             "object.distribute_osc",
@@ -267,6 +243,14 @@ class OscPanelRender(Panel):
             "render.copy_render_settings_osc",
             icon="LIBRARY_DATA_DIRECT",
             text="Copy Cycles Settings").mode = "cycles"
+        col.operator(
+            "file.create_batch_maker_osc",
+            icon="LINENUMBERS_ON",
+            text="Make Render Batch")
+        col.operator(
+            "file.create_batch_python",
+            icon="LINENUMBERS_ON",
+            text="Make Python Batch")
         colrow = col.row(align=1)
         colrow.operator(
             "render.render_all_scenes_osc",
@@ -286,7 +270,7 @@ class OscPanelRender(Panel):
 
         colrow = col.row(align=1)
         colrow.operator("render.render_crop_osc", icon="RENDER_REGION")
-        colrow.prop(bpy.context.scene.oscurart, "rcPARTS", text="Parts")
+        colrow.prop(bpy.context.scene, "rcPARTS", text="Parts")
 
         boxcol = layout.box().column(align=1)
         colrow = boxcol.row(align=1)
@@ -296,7 +280,7 @@ class OscPanelRender(Panel):
             text="Selected Scenes").frametype = False
         colrow.operator(
             "render.render_selected_scenes_osc",
-            text="> Frame").frametype = True
+            text="> Fame").frametype = True
 
         for sc in bpy.data.scenes[:]:
             boxcol.prop(sc, "use_render_scene", text=sc.name)
@@ -317,8 +301,58 @@ class OscPanelFiles(Panel):
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=1)
+        col.operator("file.save_incremental_osc", icon="NEW")
         col.operator("image.reload_images_osc", icon="IMAGE_COL")
         col.operator("file.sync_missing_groups", icon="LINK_AREA")
+        col = layout.column(align=1)
+        colrow = col.row(align=1)
+        colrow.prop(bpy.context.scene, "oscSearchText", text="")
+        colrow.prop(bpy.context.scene, "oscReplaceText", text="")
+        col.operator("file.replace_file_path_osc", icon="SHORTDISPLAY")
+
+
+class OscPanelOverrides(Panel):
+    bl_idname = "Oscurart Overrides"
+    bl_label = "Overrides Tools"
+    bl_category = "Oscurart Tools"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.oscurart.osc_overrides_tools
+
+    def draw(self, context):
+        layout = self.layout
+        box = layout.box()
+        col = box.column(align=1)
+
+        # col.operator("render.overrides_set_list", text="Create Override
+        # List", icon="GREASEPENCIL")
+        col.label(text="Active Scene: " + bpy.context.scene.name)
+        col.label(text="Example: [[Group,Material]]")
+        col.prop(bpy.context.scene.oscurart, "overrides", text="")
+        col.operator(
+            "render.check_overrides",
+            text="Check List",
+            icon="ZOOM_ALL")
+        col.operator("render.overrides_on", text="On / Off", icon="QUIT")
+        col.label(
+            text=str("OVERRIDES: ON" if bpy.use_overrides else "OVERRIDES: OFF"))
+
+        box = layout.box()
+        boxcol = box.column(align=1)
+        boxcol.label(text="Danger Zone")
+        boxcolrow = boxcol.row(align=1)
+        boxcolrow.operator(
+            "render.apply_overrides",
+            text="Apply Overrides",
+            icon="ERROR")
+        boxcolrow.operator(
+            "render.restore_overrides",
+            text="Restore Overrides",
+            icon="ERROR")
 
 
 class OscPanelAnimation(Panel):
@@ -340,8 +374,43 @@ class OscPanelAnimation(Panel):
 
         col.operator("anim.quick_parent_osc", icon="OUTLINER_DATA_POSE")
         row = col.row(align=1)
-        row.prop(bpy.context.scene.oscurart, "quick_animation_in", text="")
-        row.prop(bpy.context.scene.oscurart, "quick_animation_out", text="")
+        row.prop(bpy.context.scene, "quick_animation_in", text="")
+        row.prop(bpy.context.scene, "quick_animation_out", text="")
+
+
+# Addons Preferences Update Panel
+
+def update_panel(self, context):
+    try:
+        bpy.utils.unregister_class(OscPanelControl)
+        bpy.utils.unregister_class(OscPanelObject)
+        bpy.utils.unregister_class(OscPanelMesh)
+        bpy.utils.unregister_class(OscPanelShapes)
+        bpy.utils.unregister_class(OscPanelRender)
+        bpy.utils.unregister_class(OscPanelFiles)
+        bpy.utils.unregister_class(OscPanelOverrides)
+        bpy.utils.unregister_class(OscPanelAnimation)
+    except:
+        pass
+
+    addon_prefs = context.user_preferences.addons[__name__].preferences
+
+    OscPanelControl.bl_category = addon_prefs.category
+    bpy.utils.register_class(OscPanelControl)
+    OscPanelObject.bl_category = addon_prefs.category
+    bpy.utils.register_class(OscPanelObject)
+    OscPanelMesh.bl_category = addon_prefs.category
+    bpy.utils.register_class(OscPanelMesh)
+    OscPanelShapes.bl_category = addon_prefs.category
+    bpy.utils.register_class(OscPanelShapes)
+    OscPanelRender.bl_category = addon_prefs.category
+    bpy.utils.register_class(OscPanelRender)
+    OscPanelFiles.bl_category = addon_prefs.category
+    bpy.utils.register_class(OscPanelFiles)
+    OscPanelOverrides.bl_category = addon_prefs.category
+    bpy.utils.register_class(OscPanelOverrides)
+    OscPanelAnimation.bl_category = addon_prefs.category
+    bpy.utils.register_class(OscPanelAnimation)
 
 
 class OscurartToolsAddonPreferences(bpy.types.AddonPreferences):
@@ -349,13 +418,15 @@ class OscurartToolsAddonPreferences(bpy.types.AddonPreferences):
     # when defining this in a submodule of a python package.
     bl_idname = __name__
 
-    category = StringProperty(
+    category = bpy.props.StringProperty(
             name="Category",
             description="Choose a name for the category of the panel",
             default="Oscurart Tools",
+            update=update_panel,
             )
 
     def draw(self, context):
+
         layout = self.layout
         row = layout.row()
         col = row.column()
@@ -368,20 +439,23 @@ class OscurartToolsAddonPreferences(bpy.types.AddonPreferences):
 def register():
     bpy.utils.register_module(__name__)
 
-    bpy.types.Scene.oscurart = bpy.props.PointerProperty(
-                                        type=View3DOscPanel
-                                        )
-    bpy.types.Scene.use_render_scene = bpy.props.BoolProperty()
+    bpy.types.Scene.oscurart = bpy.props.PointerProperty(type=View3DOscPanel)
 
-    bpy.types.Scene.broken_files = bpy.props.CollectionProperty(
-                                        type=VarColArchivos
-                                        )
+    bpy.types.Scene.ovlist = bpy.props.CollectionProperty(type=OscOverridesProp)
+
+    bpy.types.Scene.quick_animation_in = bpy.props.IntProperty(default=1)
+    bpy.types.Scene.quick_animation_out = bpy.props.IntProperty(default=250)
+
+    # SETEO VARIABLE DE ENTORNO
+    bpy.types.Scene.SearchAndSelectOt = bpy.props.StringProperty(
+                                               default="Object name initials")
 
 
 def unregister():
     del bpy.types.Scene.oscurart
-    del bpy.types.Scene.use_render_scene
-    del bpy.types.Scene.broken_files
+    del bpy.types.Scene.quick_animation_in
+    del bpy.types.Scene.quick_animation_out
+    del bpy.types.Scene.SearchAndSelectOt
 
     bpy.utils.unregister_module(__name__)
 

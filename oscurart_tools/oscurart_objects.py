@@ -19,18 +19,17 @@
 # <pep8 compliant>
 
 import bpy
+import os
 from bpy.types import Operator
 from bpy.props import BoolProperty
-import os
 from bpy_extras.object_utils import world_to_camera_view
-
 
 # ------------------------ SEARCH AND SELECT ------------------------
 
-class SearchAndSelectOt(Operator):
+
+class SearchAndSelectOt(bpy.types.Operator):
     bl_idname = "object.search_and_select_osc"
     bl_label = "Search And Select"
-    bl_description = "Selection based upon object names in the scene"
     bl_options = {"REGISTER", "UNDO"}
 
     start = BoolProperty(name="Start With", default=True)
@@ -39,7 +38,7 @@ class SearchAndSelectOt(Operator):
 
     def execute(self, context):
         for objeto in bpy.context.scene.objects:
-            variableNombre = bpy.context.scene.oscurart.SearchAndSelectOt
+            variableNombre = bpy.context.scene.SearchAndSelectOt
             if self.start:
                 if objeto.name.startswith(variableNombre):
                     objeto.select = True
@@ -54,6 +53,10 @@ class SearchAndSelectOt(Operator):
 
 # -------------------------RENAME OBJECTS----------------------------------
 
+# CREO VARIABLE
+bpy.types.Scene.RenameObjectOt = bpy.props.StringProperty(default="Type here")
+
+
 class renameObjectsOt (Operator):
     bl_idname = "object.rename_objects_osc"
     bl_label = "Rename Objects"
@@ -62,7 +65,7 @@ class renameObjectsOt (Operator):
     def execute(self, context):
         listaObj = bpy.context.selected_objects[:]
         for objeto in listaObj:
-            objeto.name = bpy.context.scene.oscurart.RenameObjectOt
+            objeto.name = bpy.context.scene.RenameObjectOt
         return {'FINISHED'}
 
 
@@ -71,7 +74,6 @@ class renameObjectsOt (Operator):
 class oscRemModifiers (Operator):
     bl_idname = "object.modifiers_remove_osc"
     bl_label = "Remove modifiers"
-    bl_description = "Removes all modifiers on all selected objects"
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
@@ -86,8 +88,6 @@ class oscRemModifiers (Operator):
 class oscApplyModifiers (Operator):
     bl_idname = "object.modifiers_apply_osc"
     bl_label = "Apply modifiers"
-    bl_description = ("Applies all modifiers on all selected objects \n"
-                      "Warning: Make single user will be applied on Linked Object data")
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
@@ -117,7 +117,9 @@ class oscApplyModifiers (Operator):
 
 # ------------------------------------ RELINK OBJECTS---------------------
 
+
 def relinkObjects(self):
+
 
     LISTSCENE = []
     if bpy.selection_osc:
@@ -125,6 +127,7 @@ def relinkObjects(self):
             if SCENE.objects:
                 if bpy.selection_osc[-1] in SCENE.objects[:]:
                     LISTSCENE.append(SCENE)
+ 
 
         if LISTSCENE:
             OBJECTS = bpy.selection_osc[:-1]
@@ -134,6 +137,7 @@ def relinkObjects(self):
             LISTSCENE.remove(bpy.context.scene)
 
             bpy.ops.object.select_all(action='DESELECT')
+
 
             for OBJETO in OBJECTS:
                 if OBJETO.users != len(bpy.data.scenes):
@@ -150,7 +154,7 @@ def relinkObjects(self):
             self.report({'INFO'}, message="Scenes are empty")
 
 
-class OscRelinkObjectsBetween(Operator):
+class OscRelinkObjectsBetween (Operator):
     bl_idname = "object.relink_objects_between_scenes"
     bl_label = "Relink Objects Between Scenes"
     bl_options = {"REGISTER", "UNDO"}
@@ -162,9 +166,11 @@ class OscRelinkObjectsBetween(Operator):
 
 # ------------------------------------ COPY GROUPS AND LAYERS-------------
 
+
 def CopyObjectGroupsAndLayers(self):
 
     OBSEL = bpy.selection_osc[:]
+
     if OBSEL:
         GLOBALLAYERS = list(OBSEL[-1].layers[:])
         ACTSCENE = bpy.context.scene
@@ -247,8 +253,8 @@ class OscSelection(bpy.types.Header):
         row.label("Sels: "+str(len(bpy.selection_osc)))
         """
 
-
 # =============== DISTRIBUTE ======================
+
 
 def ObjectDistributeOscurart(self, X, Y, Z):
     if len(bpy.selection_osc[:]) > 1:
@@ -294,6 +300,7 @@ class DialogDistributeOsc(Operator):
 
 
 # ======================== SET LAYERS TO OTHER SCENES ====================
+
 
 def DefSetLayersToOtherScenes():
     actsc = bpy.context.screen.scene
@@ -489,7 +496,7 @@ def duplicateSymmetrical(self, disconect):
             bpy.context.active_object.driver_remove("scale")
 
 
-class oscDuplicateSymmetricalOp(Operator):
+class oscDuplicateSymmetricalOp (Operator):
     bl_idname = "object.duplicate_object_symmetry_osc"
     bl_label = "Oscurart Duplicate Symmetrical"
     bl_options = {"REGISTER", "UNDO"}
@@ -516,7 +523,7 @@ def DefObjectToGroups():
             scgr.objects.link(ob)
 
 
-class ObjectsToGroups(Operator):
+class ObjectsToGroups (Operator):
     bl_idname = "object.objects_to_groups"
     bl_label = "Objects to Groups"
     bl_options = {"REGISTER", "UNDO"}
