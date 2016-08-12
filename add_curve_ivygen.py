@@ -537,6 +537,10 @@ class IvyGen(bpy.types.Operator):
         return ((ob is not None) and
                 (ob.type == 'MESH') and
                 (context.mode == 'OBJECT'))
+        
+    def invoke(self, context, event):
+        self.updateIvy = True
+        return self.execute(context)
 
     def execute(self, context):
         if not self.updateIvy:
