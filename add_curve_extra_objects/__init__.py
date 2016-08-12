@@ -92,7 +92,10 @@ def convert_old_presets(data_path, msg_data_path, old_preset_subdir, new_preset_
             file_preset.write("import bpy\n")
             file_preset.write("op = bpy.context.active_operator\n")
             for prop, value in vars(op).items():
-                file_preset.write("op.%s = %s\n" % (prop, str(value)))
+                if isinstance(value, str):
+                    file_preset.write("op.%s = '%s'\n" % (prop, str(value)))
+                else:
+                    file_preset.write("op.%s = %s\n" % (prop, str(value)))
             file_preset.close()
             print("Writing new preset to %s" % new_file_path)
 
@@ -105,10 +108,10 @@ class CurveExtraObjectsAddonPreferences(AddonPreferences):
     bl_idname = __name__
 
     spiral_fixdic = {"spiral_type": ['ARCH', 'ARCH', 'LOG', 'SPHERE', 'TORUS'],
-              "curve_type": ['POLY', 'NURB'],
+              "curve_type": ['POLY', 'NURBS'],
               "spiral_direction": ['COUNTER_CLOCKWISE', 'CLOCKWISE']
                      }
-    update_spriral_presets_msg = StringProperty(default="Nothing to do")
+    update_spiral_presets_msg = StringProperty(default="Nothing to do")
     update_spiral_presets = BoolProperty(
             name="Update Old Presets",
             description="Update presets to reflect data changes",
@@ -124,7 +127,7 @@ class CurveExtraObjectsAddonPreferences(AddonPreferences):
         layout = self.layout
         layout.label(text="Spirals")
         if self.update_spiral_presets:
-            layout.label(self.update_spriral_presets_msg, icon='FILE_TICK')
+            layout.label(self.update_spiral_presets_msg, icon='FILE_TICK')
         else:
             layout.prop(self, "update_spiral_presets")
 
