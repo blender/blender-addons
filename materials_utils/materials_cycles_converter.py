@@ -241,6 +241,8 @@ def AutoNode(active=False, operator=None):
                 TreeNodes.nodes.remove(n)
 
             # Starting point is diffuse BSDF and output material
+            shader = TreeNodes.nodes.new('ShaderNodeValToRGB')
+            shader.location = 0, 270
             shader = TreeNodes.nodes.new('ShaderNodeBsdfDiffuse')
             shader.location = 0, 470
             shout = TreeNodes.nodes.new('ShaderNodeOutputMaterial')
@@ -447,8 +449,15 @@ def AutoNode(active=False, operator=None):
 
                     if sT:
                         if tex.use_map_color_diffuse:
+                            coordout = 2
+                            map = TreeNodes.nodes.new('ShaderNodeMapping')
+                            map.location = -500, 570
+                            map.width = 240
+                            coord = TreeNodes.nodes.new('ShaderNodeTexCoord')
+                            coord.location = -800, 570
                             links.new(shtext.outputs[0], shader.inputs[0])
-
+                            links.new(map.outputs[0], shtext.inputs[0])
+                            links.new(coord.outputs[coordout], map.inputs[0])
                         if tex.use_map_emit:
                             if not Add_Emission:
                                 collect_report("INFO: Mix EMISSION + Texture shader node for: " + cmat.name)
@@ -565,7 +574,7 @@ def AutoNode(active=False, operator=None):
                             t = TreeNodes.nodes.new('ShaderNodeRGBToBW')
                             t.location = -0, 300
                             links.new(t.outputs[0], shout.inputs[2])
-                            links.new(shtext.outputs[0], t.inputs[0])
+                            links.new(shtext.outputs[1], t.inputs[0])
             else:
                 collect_report("No textures in the Scene, no Image Nodes to add")
 
