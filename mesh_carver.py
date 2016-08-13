@@ -40,7 +40,6 @@ import bmesh
 import bpy_extras
 from bpy_extras import view3d_utils
 from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_location_3d
-import numpy as np
 
 Profils = [
     ("CTP_4882",
