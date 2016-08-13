@@ -159,7 +159,7 @@ def create_path(scene):
         dirname = path
 
     # otherwise, use current file's location as a start for the relative path
-    elif file_dir_path:
+    elif bpy.data.is_saved and file_dir_path:
         dirname = os.path.normpath(os.path.join(file_dir_path, path))
 
     # otherwise, use the folder from which blender was called as the start
@@ -684,6 +684,21 @@ def register_namespaces(namespaces=namespaces):
         if name != 'svg': # creates invalid xml
             et.register_namespace(name, url)
 
+@persistent
+def handle_versions(self):
+    # We don't modify startup file because it assumes to
+    # have all the default values only.
+    if not bpy.data.is_saved:
+        return
+
+    # Revision https://developer.blender.org/rBA861519e44adc5674545fa18202dc43c4c20f2d1d
+    # changed the default for fills.
+    # fix by Sergey https://developer.blender.org/T46150
+    if bpy.data.version <= (2, 76, 0):
+        for linestyle in bpy.data.linestyles:
+            linestyle.use_export_fills = True
+
+
 
 classes = (
     SVGExporterPanel,
@@ -733,6 +748,9 @@ def register():
     # register namespaces
     register_namespaces()
 
+    # handle regressions
+    bpy.app.handlers.version_update.append(handle_versions)
+
 
 def unregister():
 
@@ -753,6 +771,8 @@ def unregister():
     parameter_editor.callbacks_modifiers_post.remove(SVGPathShaderCallback.modifier_post)
     parameter_editor.callbacks_lineset_post.remove(SVGPathShaderCallback.lineset_post)
     parameter_editor.callbacks_lineset_post.remove(SVGFillShaderCallback.lineset_post)
+
+    bpy.app.handlers.version_update.remove(handle_versions)
 
 
 if __name__ == "__main__":
