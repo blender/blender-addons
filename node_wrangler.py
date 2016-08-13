@@ -1307,12 +1307,12 @@ class NWDeleteUnused(Operator, NWBase):
             while repeat:
                 frames_in_use = []
                 frames = []
-                print ("iter")
                 repeat = False
                 for node in nodes:
                     if node.parent:
                         frames_in_use.append(node.parent)
-                    if node.type == 'FRAME':
+                for node in nodes:
+                    if node.type == 'FRAME' and node not in frames_in_use:
                         frames.append(node)
                         if node.parent:
                             repeat = True  # repeat for nested frames
