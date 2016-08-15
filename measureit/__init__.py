@@ -88,23 +88,19 @@ class Measure_Pref(AddonPreferences):
     bl_idname = __name__
 
     category = StringProperty(
-            name="Rename Tab Category",
+            name="Tab Category",
             description="Choose a name for the category of the panel",
             default="Measureit",
             update=update_panel
             )
 
     def draw(self, context):
-        layout = self.layout
-        split_percent = 0.15
 
-        split = layout.split(percentage=split_percent)
-        col = split.column()
-        col.label(text="Rename Tab Category:")
-        col = split.column()
-        colrow = col.row()
-        colrow.alignment = 'LEFT'
-        colrow.prop(self, "category", text="")
+        layout = self.layout
+        row = layout.row()
+        col = row.column()
+        col.label(text="Tab Category:")
+        col.prop(self, "category", text="")
 
 # Define menu
 # noinspection PyUnusedLocal
