@@ -1805,7 +1805,7 @@ class MATERIAL_MT_biconv_help(Menu):
         layout.label(text="If possible, avoid multiple conversions in a row")
         layout.label(text="Save Your Work Often", icon="ERROR")
         use_separator(self, context)
-        layout.label(text="Try to link them manually using Mix Color nodes")
+        layout.label(text="Add a Mix Shader & Duplicate Missing Links")
         layout.label(text="Only the last Image in the stack gets linked to Shader")
         layout.label(text="Current limitation:", icon="MOD_EXPLODE")
         use_separator(self, context)
@@ -1952,6 +1952,14 @@ class material_specials_scene_props(PropertyGroup):
 class VIEW3D_MT_material_utils_pref(AddonPreferences):
     bl_idname = __name__
 
+    conv_path = StringProperty(
+        name="Save Directory",
+        description=("Path to save images during conversion \n"
+                     "Default is the location of the blend file"),
+        default="//",
+        subtype='DIR_PATH',
+        )
+
     show_warnings = BoolProperty(
             name="Enable Warning messages",
             default=False,
@@ -2045,6 +2053,13 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
+        sc = context.scene
+        box = layout.box()
+        box.label("Save Directory")
+        split = box.split(0.85)
+        split.prop(sc.mat_specials, "conv_path", text="", icon="RENDER_RESULT")
+        split.operator("material.check_converter_path",
+                       text="", icon="EXTERNAL_DATA")
 
         box = layout.box()
         split = box.split(align=True)
