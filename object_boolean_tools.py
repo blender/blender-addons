@@ -1256,29 +1256,22 @@ class BoolTool_Pref(AddonPreferences):
             )
 
     def draw(self, context):
+    
         layout = self.layout
-        split_percent = 0.15
+        row = layout.row()
+        col = row.column()
+        col.label(text="Tab Category:")
+        col.prop(self, "category", text="")
 
-        split = layout.split(percentage=split_percent)
-        col = split.column()
-        col.label(text="Category:")
-        col = split.column()
-        colrow = col.row()
-        colrow.alignment = 'LEFT'
-        colrow.prop(self, "category", text="")
-
-        split = layout.split(percentage=split_percent)
-        col = split.column()
+        row = layout.row()
+        col = row.column()
         col.label('Boolean Solver:')
-        col = split.column()
         colrow = col.row()
-        colrow.alignment = 'LEFT'
         colrow.prop(self, 'solver', text='')
 
-        split = layout.split(percentage=split_percent)
-        col = split.column()
+        row = layout.row()
+        col = row.column()
         col.label("Experimental Features:")
-        col = split.column()
         col.prop(self, "fast_transform")
         col.prop(self, "use_wire", text="Use Wire Instead Of Bbox")
         """
@@ -1287,25 +1280,22 @@ class BoolTool_Pref(AddonPreferences):
         col.prop(self, "make_boundary")
         """
 
-        split = layout.split(percentage=split_percent)
-        col = split.column()
+        row = layout.row()
+        col = row.column()
         col.label("Hotkey List:")
-        col = split.column()
         col.label("Menu: Ctrl Shift B")
 
-        split = layout.split(percentage=split_percent)
-        col = split.column()
+        row = layout.row()
+        col = row.column()
         col.label("Brush Operators:")
-        col = split.column()
         col.label("Union: Ctrl Num +")
         col.label("Diff: Ctrl Num -")
         col.label("Intersect: Ctrl Num *")
         col.label("Slice: Ctrl Num /")
 
-        split = layout.split(percentage=split_percent)
-        col = split.column()
+        row = layout.row()
+        col = row.column()
         col.label("Direct Operators:")
-        col = split.column()
         col.label("Direct Union: Ctrl Shift Num +")
         col.label("Direct Difference: Ctrl Shift Num -")
         col.label("Direct Intersect: Ctrl Shift Num *")
