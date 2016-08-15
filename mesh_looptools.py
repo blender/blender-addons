@@ -4778,9 +4778,37 @@ def menu_func(self, context):
     self.layout.menu("VIEW3D_MT_edit_mesh_looptools")
     self.layout.separator()
 
+## Addons Preferences Update Panel
+def update_panel(self, context):
+    try:
+        bpy.utils.unregister_class(VIEW3D_PT_tools_looptools)
+    except:
+        pass
+    VIEW3D_PT_tools_looptools.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(VIEW3D_PT_tools_looptools)
+
+class LoopPreferences(bpy.types.AddonPreferences):
+    # this must match the addon name, use '__package__'
+    # when defining this in a submodule of a python package.
+    bl_idname = __name__
+
+    category = bpy.props.StringProperty(
+            name="Tab Category",
+            description="Choose a name for the category of the panel",
+            default="Tools",
+            update=update_panel)
+
+    def draw(self, context):
+
+        layout = self.layout
+        row = layout.row()
+        col = row.column()
+        col.label(text="Tab Category:")
+        col.prop(self, "category", text="")
 
 # define classes for registration
-classes = [VIEW3D_MT_edit_mesh_looptools,
+classes = [
+    VIEW3D_MT_edit_mesh_looptools,
     VIEW3D_PT_tools_looptools,
     LoopToolsProps,
     Bridge,
@@ -4789,7 +4817,9 @@ classes = [VIEW3D_MT_edit_mesh_looptools,
     Flatten,
     GStretch,
     Relax,
-    Space]
+    Space,
+    LoopPreferences,
+    ]
 
 
 # registering and menu integration
