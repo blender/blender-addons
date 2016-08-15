@@ -287,7 +287,7 @@ class ExportSketchfab(bpy.types.Operator):
 class VIEW3D_PT_sketchfab(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
-    bl_category = "Upload"
+    bl_category = "Sketchfab"
     bl_context = "objectmode"
     bl_label = "Sketchfab"
 
@@ -425,12 +425,42 @@ def terminate(filepath):
     os.remove(filepath)
     os.rmdir(os.path.dirname(filepath))
 
+
+## Addons Preferences Update Panel
+def update_panel(self, context):
+    try:
+        bpy.utils.unregister_class(VIEW3D_PT_sketchfab)
+    except:
+        pass
+    VIEW3D_PT_sketchfab.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(VIEW3D_PT_sketchfab)
+
+class SfabAddonPreferences(bpy.types.AddonPreferences):
+    # this must match the addon name, use '__package__'
+    # when defining this in a submodule of a python package.
+    bl_idname = __name__
+
+    category = bpy.props.StringProperty(
+            name="Tab Category",
+            description="Choose a name for the category of the panel",
+            default="Sketchfab",
+            update=update_panel)
+
+    def draw(self, context):
+
+        layout = self.layout
+        row = layout.row()
+        col = row.column()
+        col.label(text="Tab Category:")
+        col.prop(self, "category", text="")
+
 # registration
 classes = (
     ExportSketchfab,
     SketchfabProps,
     SketchfabEmailToken,
     VIEW3D_PT_sketchfab,
+    SfabAddonPreferences,
     )
 
 
