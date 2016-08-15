@@ -27,7 +27,7 @@ bl_info = {
     "author": "Demohero, uriel",
     "version": (1, 2, 1),
     "blender": (2, 77, 0),
-    "location": "View3D > Tool Shelf > 3D Navigation Tab",
+    "location": "View3D > Tool Shelf > Navigation Tab",
     "description": "Navigate the Camera & 3D View from the Toolshelf",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -365,7 +365,7 @@ class NavAddonPreferences(bpy.types.AddonPreferences):
     bl_idname = __name__
 
     category = bpy.props.StringProperty(
-            name="Category",
+            name="Tab Category",
             description="Choose a name for the category of the panel",
             default="Navigation",
             update=update_panel)
@@ -375,7 +375,7 @@ class NavAddonPreferences(bpy.types.AddonPreferences):
         layout = self.layout
         row = layout.row()
         col = row.column()
-        col.label(text="Category:")
+        col.label(text="Tab Category:")
         col.prop(self, "category", text="")
 
 classes = [
