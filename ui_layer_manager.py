@@ -564,7 +564,7 @@ class LayerMAddonPreferences(bpy.types.AddonPreferences):
     bl_idname = __name__
 
     category = bpy.props.StringProperty(
-            name="Category",
+            name="Tab Category",
             description="Choose a name for the category of the panel",
             default="Layers",
             update=update_panel)
@@ -574,7 +574,7 @@ class LayerMAddonPreferences(bpy.types.AddonPreferences):
         layout = self.layout
         row = layout.row()
         col = row.column()
-        col.label(text="Category:")
+        col.label(text="Tab Category:")
         col.prop(self, "category", text="")
 
 def register():
