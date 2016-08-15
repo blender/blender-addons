@@ -3682,7 +3682,36 @@ class CURVE_OT_SURFSK_first_points(bpy.types.Operator):
 
         return {'FINISHED'}
 
+## Addons Preferences Update Panel
+def update_panel(self, context):
+    try:
+        bpy.utils.unregister_class(VIEW3D_PT_tools_SURFSK_mesh)
+        bpy.utils.unregister_class(VIEW3D_PT_tools_SURFSK_curve)
+    except:
+        pass
+    VIEW3D_PT_tools_SURFSK_mesh.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(VIEW3D_PT_tools_SURFSK_mesh)
+    VIEW3D_PT_tools_SURFSK_curve.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(VIEW3D_PT_tools_SURFSK_curve)
 
+class BsurfPreferences(bpy.types.AddonPreferences):
+    # this must match the addon name, use '__package__'
+    # when defining this in a submodule of a python package.
+    bl_idname = __name__
+
+    category = bpy.props.StringProperty(
+            name="Tab Category",
+            description="Choose a name for the category of the panel",
+            default="Tools",
+            update=update_panel)
+
+    def draw(self, context):
+
+        layout = self.layout
+        row = layout.row()
+        col = row.column()
+        col.label(text="Tab Category:")
+        col.prop(self, "category", text="")
 
 
 def register():
@@ -3692,7 +3721,7 @@ def register():
     bpy.utils.register_class(GPENCIL_OT_SURFSK_edit_strokes)
     bpy.utils.register_class(CURVE_OT_SURFSK_reorder_splines)
     bpy.utils.register_class(CURVE_OT_SURFSK_first_points)
-
+    bpy.utils.register_class(BsurfPreferences)
 
 
     bpy.types.Scene.SURFSK_cyclic_cross = bpy.props.BoolProperty(
@@ -3735,6 +3764,7 @@ def unregister():
     bpy.utils.unregister_class(GPENCIL_OT_SURFSK_edit_strokes)
     bpy.utils.unregister_class(CURVE_OT_SURFSK_reorder_splines)
     bpy.utils.unregister_class(CURVE_OT_SURFSK_first_points)
+    bpy.utils.unregister_class(BsurfPreferences)
 
     del bpy.types.Scene.SURFSK_precision
     del bpy.types.Scene.SURFSK_keep_strokes
