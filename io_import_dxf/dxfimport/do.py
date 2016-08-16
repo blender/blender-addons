@@ -281,10 +281,10 @@ class Do:
 
     def arc(self, en, curve=None, aunits=None, angdir=None, angbase=None):
         """
-        en: dxf entity (en.startangle, en.endangle, en.center, en.radius)
+        en: dxf entity (en.start_angle, en.end_angle, en.center, en.radius)
         curve: optional; Blender curve data of type "CURVE" (object.data) to which the arc should be added to
         return control points of a cubic spline (do be used in a spline with bulges / series of arcs)
-        note: en.startangle + en.endangle: angles measured from the angle base (angbase) in the direction of
+        note: en.start_angle + en.end_angle: angles measured from the angle base (angbase) in the direction of
               angdir (1 = clockwise, 0 = counterclockwise)
         """
         treshold = 0.005
@@ -298,11 +298,11 @@ class Do:
         kappa = 0.5522848
 
         if aunits == 0:
-            s = radians(en.startangle+angbase)
-            e = radians(en.endangle+angbase)
+            s = radians(en.start_angle+angbase)
+            e = radians(en.end_angle+angbase)
         else:
-            s = en.startangle+angbase
-            e = en.endangle+angbase
+            s = en.start_angle+angbase
+            e = en.end_angle+angbase
 
         if s > e:
             e += 2 * pi
@@ -420,7 +420,7 @@ class Do:
         ratio: ratio between major and minor axis lengths (always < 1)
         curve: Blender curve data of type "CURVE" (object.data) to which the ellipse should be added to
         """
-        major = Vector(en.majoraxis)
+        major = Vector(en.major_axis)
         en.__dict__["radius"] = major.length
         c = self.circle(en, curve, major.normalized())
         b = c.bezier_points
@@ -755,7 +755,7 @@ class Do:
                     ratio = 50 / en.rect_width
                     d.size = en.height * ratio * 1.4  # XXX HACK
                     scale = (1 / ratio, 1 / ratio, 1 / ratio)
-                    d.space_line = en.linespacing
+                    d.space_line = en.line_spacing
                 else:
                     width = en.rect_width
                     scale = (1, 1, 1)
@@ -1494,6 +1494,8 @@ class Do:
                 if self.but_group_by_att and self.combination != BY_CLOSED_NO_BULGE_POLY and self.combination != BY_BLOCK:
                     for atts, by_att in groupsort.by_attributes(grouped_entities):
                         thickness, subd, width, extrusion = atts
+                        if extrusion is None:  # unset extrusion defaults to (0, 0, 1)
+                            extrusion = (0, 0, 1)
                         att = ""
                         if thickness != 0:
                             att += "thickness" + str(thickness) + ", "

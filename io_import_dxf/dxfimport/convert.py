@@ -78,7 +78,7 @@ def bspline_to_cubic(do, en, curve, errors=None):
         return new_spline
 
     knots = list(en.knots)
-    spline = [ShortVec(cp) for cp in en.controlpoints]
+    spline = [ShortVec(cp) for cp in en.control_points]
     degree = len(knots) - len(spline) - 1
     if degree <= 3:
         clean_knots()

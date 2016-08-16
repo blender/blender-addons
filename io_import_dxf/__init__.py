@@ -22,7 +22,6 @@ import bpy
 import os
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty, FloatProperty
 from .dxfimport.do import Do, Indicator
-from .dxfgrabber.headersection import MinVersionError
 from .transverse_mercator import TransverseMercator
 
 
@@ -114,20 +113,18 @@ def read(report, filename, obj_merge=BY_LAYER, import_text=True, import_light=Tr
          thicknessWidth=True, but_group_by_att=True, dxf_unit_scale=1.0):
     # import dxf and export nurbs types to sat/sab files
     # because that's how autocad stores nurbs types in a dxf...
-    try:
-        do = Do(filename, obj_merge, import_text, import_light, export_acis, merge_lines, do_bbox, block_rep, recenter,
-                projDXF, projSCN, thicknessWidth, but_group_by_att, dxf_unit_scale)
-        errors = do.entities(os.path.basename(filename).replace(".dxf", ""), new_scene)
+    do = Do(filename, obj_merge, import_text, import_light, export_acis, merge_lines, do_bbox, block_rep, recenter,
+            projDXF, projSCN, thicknessWidth, but_group_by_att, dxf_unit_scale)
 
-        # display errors
-        for error in errors:
-            report({'ERROR', 'INFO'}, error)
+    errors = do.entities(os.path.basename(filename).replace(".dxf", ""), new_scene)
 
-        # inform the user about the sat/sab files
-        if len(do.acis_files) > 0:
-            report({'INFO'}, "Exported %d NURBS objects to sat/sab files next to your DXF file" % len(do.acis_files))
-    except MinVersionError as minv:
-        report({'ERROR', 'INFO'}, str(minv))
+    # display errors
+    for error in errors:
+        report({'ERROR', 'INFO'}, error)
+
+    # inform the user about the sat/sab files
+    if len(do.acis_files) > 0:
+        report({'INFO'}, "Exported %d NURBS objects to sat/sab files next to your DXF file" % len(do.acis_files))
 
 
 def display_groups_in_outliner():
