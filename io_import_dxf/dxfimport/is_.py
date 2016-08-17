@@ -140,5 +140,7 @@ def combined(typestr):
 
 
 def extrusion(entity):
+    if entity.extrusion is None:
+        return False
     return Vector(entity.extrusion) != Vector((0, 0, 1)) \
                     or (hasattr(entity, "elevation") and entity.elevation != 0)
