@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Bool Tool",
     "author": "Vitor Balbio, Mikhail Rachinskiy, TynkaTopi, Meta-Androcto",
-    "version": (0, 3, 4),
+    "version": (0, 3, 5),
     "blender": (2, 77, 0),
     "location": "View3D > Toolshelf > BoolTool",
     "description": "Bool Tools Hotkey: Ctrl Shift B",
@@ -1254,19 +1254,26 @@ class BoolTool_Pref(AddonPreferences):
             default='BMESH',
             description='Specify solver for boolean operations'
             )
-
+    bpy.types.Scene.Enable_Tab_01 = bpy.props.BoolProperty(default=False)
     def draw(self, context):
-    
+        scene = context.scene
         layout = self.layout
-        row = layout.row()
-        col = row.column()
-        col.label(text="Tab Category:")
-        col.prop(self, "category", text="")
+        split_percent = 0.5
 
-        row = layout.row()
-        col = row.column()
-        col.label('Boolean Solver:')
+        split = layout.split(percentage=split_percent)
+        col = split.column()
+        col.label(text="Category:")
+        col = split.column()
         colrow = col.row()
+        colrow.alignment = 'LEFT'
+        colrow.prop(self, "category", text="")
+
+        split = layout.split(percentage=split_percent)
+        col = split.column()
+        col.label('Boolean Solver:')
+        col = split.column()
+        colrow = col.row()
+        colrow.alignment = 'LEFT'
         colrow.prop(self, 'solver', text='')
 
         row = layout.row()
@@ -1279,29 +1286,31 @@ class BoolTool_Pref(AddonPreferences):
         col.prop(self, "make_vertex_groups")
         col.prop(self, "make_boundary")
         """
+        layout.prop(context.scene, "Enable_Tab_01", text="Hot Keys", icon="KEYINGSET")
+        if scene.Enable_Tab_01:
+            row = layout.row()
 
-        row = layout.row()
-        col = row.column()
-        col.label("Hotkey List:")
-        col.label("Menu: Ctrl Shift B")
+            col = row.column()
+            col.label("Hotkey List:")
+            col.label("Menu: Ctrl Shift B")
 
-        row = layout.row()
-        col = row.column()
-        col.label("Brush Operators:")
-        col.label("Union: Ctrl Num +")
-        col.label("Diff: Ctrl Num -")
-        col.label("Intersect: Ctrl Num *")
-        col.label("Slice: Ctrl Num /")
+            row = layout.row()
+            col = row.column()
+            col.label("Brush Operators:")
+            col.label("Union: Ctrl Num +")
+            col.label("Diff: Ctrl Num -")
+            col.label("Intersect: Ctrl Num *")
+            col.label("Slice: Ctrl Num /")
 
-        row = layout.row()
-        col = row.column()
-        col.label("Direct Operators:")
-        col.label("Direct Union: Ctrl Shift Num +")
-        col.label("Direct Difference: Ctrl Shift Num -")
-        col.label("Direct Intersect: Ctrl Shift Num *")
-        col.label("Direct Slice: Ctrl Shift Num /")
-        col.label("BTool Brush To Mesh: Ctrl Num Enter")
-        col.label("BTool All Brush To Mesh: Ctrl Shift Num Enter")
+            row = layout.row()
+            col = row.column()
+            col.label("Direct Operators:")
+            col.label("Direct Union: Ctrl Shift Num +")
+            col.label("Direct Difference: Ctrl Shift Num -")
+            col.label("Direct Intersect: Ctrl Shift Num *")
+            col.label("Direct Slice: Ctrl Shift Num /")
+            col.label("BTool Brush To Mesh: Ctrl Num Enter")
+            col.label("BTool All Brush To Mesh: Ctrl Shift Num Enter")
 
 
 # ------------------- Class List ------------------------------------------------
