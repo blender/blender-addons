@@ -717,7 +717,7 @@ def make_wall(prv, wall, baseboard, lastface, lastx, lasty, height, myvertex, my
                              (lastx + sizex, lasty + sizey, height)])
             if check_visibility(hide, baseboard):
                 if fabs(factor) != 1:
-                    myfaces.extend([(lastface + 2, lastface + 3, lastface + 4, lastface + 5)])
+                    myfaces.extend([(lastface + 2, lastface + 5, lastface + 4, lastface + 3)])
                 else:
                     if prv is False:
                         myfaces.extend([(lastface, lastface + 5, lastface + 4, lastface + 1),
