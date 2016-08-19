@@ -1258,11 +1258,11 @@ class BoolTool_Pref(AddonPreferences):
     def draw(self, context):
         scene = context.scene
         layout = self.layout
-        split_percent = 0.5
+        split_percent = 0.3
 
         split = layout.split(percentage=split_percent)
         col = split.column()
-        col.label(text="Category:")
+        col.label(text="Tab Category:")
         col = split.column()
         colrow = col.row()
         colrow.alignment = 'LEFT'
