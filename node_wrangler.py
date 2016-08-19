@@ -742,6 +742,9 @@ def store_mouse_cursor(context, event):
 
 
 def draw_line(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
+    shademodel_state = bgl.Buffer(bgl.GL_INT, 1)
+    bgl.glGetIntegerv(bgl.GL_SHADE_MODEL, shademodel_state)
+
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glLineWidth(size * dpifac())
     bgl.glShadeModel(bgl.GL_SMOOTH)
@@ -756,7 +759,8 @@ def draw_line(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
     except:
         pass
     bgl.glEnd()
-    bgl.glShadeModel(bgl.GL_FLAT)
+
+    bgl.glShadeModel(shademodel_state[0])
     bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
 
