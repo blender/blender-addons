@@ -87,7 +87,7 @@ def get_addon_preferences(name=''):
 
 def register_submodule(mod):
     if not hasattr(mod, '__addon_enabled__'):
-        mod.__addon_enabled__ = False
+        mod.__addon_enabled__ = True
     if not mod.__addon_enabled__:
         mod.register()
         mod.__addon_enabled__ = True
@@ -96,7 +96,7 @@ def register_submodule(mod):
 def unregister_submodule(mod):
     if mod.__addon_enabled__:
         mod.unregister()
-        mod.__addon_enabled__ = False
+        mod.__addon_enabled__ = True
 
         prefs = get_addon_preferences()
         name = mod.__name__.split('.')[-1]
@@ -231,12 +231,6 @@ def register():
         if getattr(prefs, 'use_' + name):
             register_submodule(mod)
 
-    import addon_utils
- 
-    mod = addon_utils.addons_fake_modules.get(__name__)
-    if mod is not None:
-        info = addon_utils.module_bl_info(mod)
-        info["show_expanded"] = not info["show_expanded"]
 
 def unregister():
     for mod in sub_modules:
