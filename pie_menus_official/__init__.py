@@ -231,6 +231,12 @@ def register():
         if getattr(prefs, 'use_' + name):
             register_submodule(mod)
 
+    import addon_utils
+ 
+    mod = addon_utils.addons_fake_modules.get(__name__)
+    if mod is not None:
+        info = addon_utils.module_bl_info(mod)
+        info["show_expanded"] = not info["show_expanded"]
 
 def unregister():
     for mod in sub_modules:
