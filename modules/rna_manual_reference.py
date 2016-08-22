@@ -153,9 +153,9 @@ url_manual_mapping = (
     ("bpy.types.NormalEditModifier.*",             "modeling/modifiers/modify/normal_edit.html"),
     ("bpy.types.UVProjectModifier.*",              "modeling/modifiers/modify/uv_project.html"),
     ("bpy.types.UVWarpModifier.*",                 "modeling/modifiers/modify/uv_warp.html"),
-    ("bpy.types.VertexWeightMixModifier.*",        "modeling/modifiers/modify/vertex_weight.html"),
-    ("bpy.types.VertexWeightEditModifier.*",       "modeling/modifiers/modify/vertex_weight.html"),
-    ("bpy.types.VertexWeightProximityModifier.*",  "modeling/modifiers/modify/vertex_weight.html"),
+    ("bpy.types.VertexWeightMixModifier.*",        "modeling/modifiers/modify/weight_mix.html"),
+    ("bpy.types.VertexWeightEditModifier.*",       "modeling/modifiers/modify/weight_edit.html"),
+    ("bpy.types.VertexWeightProximityModifier.*",  "modeling/modifiers/modify/weight_proximity.html"),
     # --- Generate Modifiers ---
     ("bpy.types.ArrayModifier.*",            "modeling/modifiers/generate/array.html"),
     ("bpy.types.BevelModifier.*",            "modeling/modifiers/generate/bevel.html"),
@@ -369,11 +369,11 @@ url_manual_mapping = (
     ("bpy.types.Texture.*",                    "render/blender_render/textures"),
     ("bpy.types.VectorFont.*",                 "modeling/texts"),
     ("bpy.types.World.*",                      "render/blender_render/world"),
-    ("bpy.types.WorldLighting.*ao*",           "render/blender_render/lighting/ambient_occlusion.html"),
-    ("bpy.types.WorldLighting.*ambient*",      "render/blender_render/lighting/ambient_occlusion.html"),
-    ("bpy.types.WorldLighting.*environment*",  "render/blender_render/lighting/ambient_light.html"),
+    ("bpy.types.WorldLighting.*ao*",           "render/blender_render/world/ambient_occlusion.html"),
+    ("bpy.types.WorldLighting.*ambient*",      "render/blender_render/world/ambient_occlusion.html"),
+    ("bpy.types.WorldLighting.*environment*",  "render/blender_render/world/ambient_light.html"),
     # only other WorldLighting props are in Gather panel
-    ("bpy.types.WorldLighting.*",              "render/blender_render/lighting/ambient_occlusion.html#gather"),
+    ("bpy.types.WorldLighting.*",              "render/blender_render/world/ambient_occlusion.html#gather"),
     ("bpy.types.LatticePoint.*",               "editors/3dview/object/types/lattice.html"),  # TODO refine
     ("bpy.types.DisplaySafeAreas.*",           "editors/3dview/object/types/camera/safe_areas.html"),
     ("bpy.types.TextCharacterFormat.*",        "modeling/texts/introduction.html"),  # TODO refine
@@ -386,19 +386,22 @@ url_manual_mapping = (
     ("bpy.types.BackgroundImage.*",            "editors/3dview/display/background_images.html"),
     ("bpy.types.WalkNavigation.*",             "editors/3dview/navigate/3d_view.html#walk-mode"),
     ("bpy.types.SpaceView3D.cursor_location",  "editors/3dview/3d_cursor.html#numeric-input"),
-    ("bpy.types.Object.location",              "editors/3dview/transform/transform_control/transform_properties.html"),
-    ("bpy.types.Object.lock_location",         "editors/3dview/transform/transform_control/transform_properties.html#transform-properties-locking"),
-    ("bpy.types.Object.rotation_euler",        "editors/3dview/transform/transform_control/transform_properties.html"),
-    ("bpy.types.Object.rotation_quaternion",   "editors/3dview/transform/transform_control/transform_properties.html"),
-    ("bpy.types.Object.rotation_axis_angle",   "editors/3dview/transform/transform_control/transform_properties.html"),
-    ("bpy.types.Object.rotation_mode",         "editors/3dview/transform/transform_control/transform_properties.html"),
-    ("bpy.types.Object.lock_rotations_4d",     "editors/3dview/transform/transform_control/transform_properties.html#transform-properties-locking"),  # Todo
-    ("bpy.types.Object.lock_rotation",         "editors/3dview/transform/transform_control/transform_properties.html#transform-properties-locking"),
-    ("bpy.types.Object.scale",                 "editors/3dview/transform/transform_control/transform_properties.html"),
-    ("bpy.types.Object.lock_scale",            "editors/3dview/transform/transform_control/transform_properties.html#transform-properties-locking"),
-    ("bpy.types.Object.dimensions",            "editors/3dview/transform/transform_control/transform_properties.html"),
+    ("bpy.types.Object.location",              "editors/3dview/object/properties/transforms.html"),
+    ("bpy.types.Object.lock_location",         "editors/3dview/object/properties/transforms.html#transform-properties-locking"),
+    ("bpy.types.Object.rotation_euler",        "editors/3dview/object/properties/transforms.html"),
+    ("bpy.types.Object.rotation_quaternion",   "editors/3dview/object/properties/transforms.html"),
+    ("bpy.types.Object.rotation_axis_angle",   "editors/3dview/object/properties/transforms.html"),
+    ("bpy.types.Object.rotation_mode",         "editors/3dview/object/properties/transforms.html"),
+    ("bpy.types.Object.lock_rotations_4d",     "editors/3dview/object/properties/transforms.html#transform-properties-locking"),  # Todo
+    ("bpy.types.Object.lock_rotation",         "editors/3dview/object/properties/transforms.html#transform-properties-locking"),
+    ("bpy.types.Object.scale",                 "editors/3dview/object/properties/transforms.html"),
+    ("bpy.types.Object.lock_scale",            "editors/3dview/object/properties/transforms.html#transform-properties-locking"),
+    ("bpy.types.Object.dimensions",            "editors/3dview/object/properties/transforms.html"),
     ("bpy.types.Object.*",                     "editors/3dview/object"),  # Catchall
     ("bpy.types.TransformOrientation.*",       "editors/3dview/transform/transform_control/transform_orientations.html"),
+
+    # === Tool Settings ===
+    ("bpy.types.MeshStatVis.*",                "modeling/meshes/mesh_analysis.html"),
 
     # *** Cycles ***
     ("bpy.types.CyclesRenderSettings.dicing_rate",         "render/cycles/settings/integrator.html#subdivision-rate"),
@@ -502,7 +505,7 @@ url_manual_mapping = (
     # Other
     ("bpy.types.ShaderNodeGroup.*",           "editors/node_editor/nodes/groups.html"),
     ("bpy.types.ShaderNode*",                 "render/cycles/nodes"),  # Catch all
-    ("bpy.types.ShaderNodeScript.*",          "render/cycles/osl.html"),
+    ("bpy.types.ShaderNodeScript.*",          "render/cycles/nodes/osl.html"),
 
     # *** Compositing Nodes ***
     # Input
@@ -688,11 +691,11 @@ url_manual_mapping = (
     # --- Particles ---
     ("bpy.types.Particle.*",                      "physics/particles"),
     ("bpy.types.ParticleBrush.*",                 "physics/particles/mode.html"),  # TODO - refine
-    ("bpy.types.ParticleDupliWeight.*",           "physics/particles/vertexgroups.html"),
+    ("bpy.types.ParticleDupliWeight.*",           "physics/particles/properties/vertexgroups.html"),
     ("bpy.types.ParticleEdit.*",                  "physics/particles/mode.html"),
-    ("bpy.types.ParticleFluidSettings.*",         "physics/particles/physics/fluid.html"),
-    ("bpy.types.ParticleHairKey.*",               "physics/particles/physics/keyed.html"),
-    ("bpy.types.ParticleKey.*",                   "physics/particles/physics/keyed.html"),
+    ("bpy.types.ParticleFluidSettings.*",         "physics/particles/properties/physics/fluid.html"),
+    ("bpy.types.ParticleHairKey.*",               "physics/particles/properties/physics/keyed.html"),
+    ("bpy.types.ParticleKey.*",                   "physics/particles/properties/physics/keyed.html"),
     ("bpy.types.ParticleSettings.*",              "physics/particles"),
     # ("bpy.types.ParticleSettingsTextureSlot.*", ""),  # TODO - manual has no place for this! XXX
     ("bpy.types.ParticleSystem.*",                "physics/particles"),  # TODO
@@ -701,15 +704,15 @@ url_manual_mapping = (
 
     ("bpy.types.PointCache.*",                "physics/baking.html"),
     ("bpy.types.PointCaches.*",               "physics/baking.html"),
-    ("bpy.types.BoidRule.*",                  "physics/particles/physics/boids.html"),
-    ("bpy.types.BoidRuleAverageSpeed.*",      "physics/particles/physics/boids.html"),
-    ("bpy.types.BoidRuleAvoid.*",             "physics/particles/physics/boids.html"),
-    ("bpy.types.BoidRuleAvoidCollision.*",    "physics/particles/physics/boids.html"),
-    ("bpy.types.BoidRuleFight.*",             "physics/particles/physics/boids.html"),
-    ("bpy.types.BoidRuleFollowLeader.*",      "physics/particles/physics/boids.html"),
-    ("bpy.types.BoidRuleGoal.*",              "physics/particles/physics/boids.html"),
-    ("bpy.types.BoidSettings.*",              "physics/particles/physics/boids.html"),
-    ("bpy.types.BoidState.*",                 "physics/particles/physics/boids.html"),
+    ("bpy.types.BoidRule.*",                  "physics/particles/properties/physics/boids.html"),
+    ("bpy.types.BoidRuleAverageSpeed.*",      "physics/particles/properties/physics/boids.html"),
+    ("bpy.types.BoidRuleAvoid.*",             "physics/particles/properties/physics/boids.html"),
+    ("bpy.types.BoidRuleAvoidCollision.*",    "physics/particles/properties/physics/boids.html"),
+    ("bpy.types.BoidRuleFight.*",             "physics/particles/properties/physics/boids.html"),
+    ("bpy.types.BoidRuleFollowLeader.*",      "physics/particles/properties/physics/boids.html"),
+    ("bpy.types.BoidRuleGoal.*",              "physics/particles/properties/physics/boids.html"),
+    ("bpy.types.BoidSettings.*",              "physics/particles/properties/physics/boids.html"),
+    ("bpy.types.BoidState.*",                 "physics/particles/properties/physics/boids.html"),
 
     # *** ID Subclasses ***
     ("bpy.types.Action.*",        "animation/actions.html"),
@@ -853,9 +856,11 @@ url_manual_mapping = (
     ("bpy.types.SteeringActuator.*",       "game_engine/logic/actuators/types/steering.html"),
     ("bpy.types.VisibilityActuator.*",     "game_engine/logic/actuators/types/visibility.html"),
     # Controllers
-    ("bpy.types.Controller.*",              "game_engine/logic/controllers"),
-    ("bpy.types.ExpressionController.*",    "game_engine/logic/controllers/types/expression.html"),
-    ("bpy.types.PythonController.*",        "game_engine/logic/controllers/types/python.html"),
+    ("bpy.types.Controller.*",             "game_engine/logic/controllers"),
+    ("bpy.types.ExpressionController.*",   "game_engine/logic/controllers/types/expression.html"),
+    ("bpy.types.PythonController.*",       "game_engine/logic/controllers/types/python.html"),
+
+    ("bpy.types.*",                        "contents.html"),  # Catchall
 
     # === Operators ===
     # Catch all only for now!
@@ -864,7 +869,7 @@ url_manual_mapping = (
     ("bpy.ops.action.*",                  "animation/actions.html"),
     ("bpy.ops.anim.*",                    "animation"),
     ("bpy.ops.armature.*",                "rigging/armatures"),
-    ("bpy.ops.boid.*",                    "physics/particles/physics/boids.html"),
+    ("bpy.ops.boid.*",                    "physics/particles/properties/physics/boids.html"),
     ("bpy.ops.brush.*",                   "sculpt_paint/introduction.html#brush"),  # TODO doc
     ("bpy.ops.buttons.*",                 "interface/controls/buttons_and_controls.html"),
     ("bpy.ops.camera.*",                  "editors/3dview/object/types/camera"),
@@ -949,10 +954,10 @@ url_manual_mapping = (
     ("bpy.ops.transform.translate",       "editors/3dview/transform/basics/grab.html"),
     ("bpy.ops.transform.rotate",          "editors/3dview/transform/basics/rotate.html"),
     ("bpy.ops.transform.resize",          "editors/3dview/transform/basics/scale.html"),
-    ("bpy.ops.transform.mirror",          "modeling/meshes/editing/duplicating/mirror.html"),
+    ("bpy.ops.transform.mirror",          "editors/3dview/transform/mirror.html"),
     ("bpy.ops.transform.*",               "editors/3dview/transform"),  # Catchall
-    ("bpy.ops.object.duplicate_move",     "editors/3dview/transform/duplication/introduction.html#duplicate"),
-    ("bpy.ops.object.duplicate_move_linked",   "editors/3dview/transform/duplication/introduction.html#linked-duplicates"),
+    ("bpy.ops.object.duplicate_move",     "editors/3dview/transform/duplication.html"),
+    ("bpy.ops.object.duplicate_move_linked",   "editors/3dview/transform/duplication.html#linked-duplicates"),
     ("bpy.ops.object.delete",             "modeling/meshes/editing/basics/deleting.html#delete"),
     ("bpy.ops.object.join",               "modeling/meshes/editing/misc.html#join"),
     ("bpy.ops.object.origin_set",         "editors/3dview/transform/origns.html#moving-object-centers"),
@@ -969,9 +974,8 @@ url_manual_mapping = (
     ("bpy.ops.wm.addon_*",                "preferences/addons.html"),
     ("bpy.ops.wm.*",                      "interface/editors/"),
     ("bpy.ops.world.*",                   "render/blender_render/world"),
+    ("bpy.ops.*",                         "contents.html"),  # Catchall
 
-    # === Tool Settings ===
-    ("bpy.types.MeshStatVis.*",           "modeling/meshes/mesh_analysis.html"),
 )
 
 # may have 'url_reference_mapping'... etc later
