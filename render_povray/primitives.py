@@ -52,7 +52,7 @@ class POVRAY_OT_lathe_add(bpy.types.Operator):
         ob.name = ob.data.name = "PovLathe"
         ob.pov.object_as='LATHE' 
         bpy.ops.object.mode_set(mode='EDIT')
-        self.report({'WARNING'}, "This native POV-Ray primitive "
+        self.report({'INFO'}, "This native POV-Ray primitive "
                                  "won't have any vertex to show in edit mode")
         bpy.ops.transform.rotate(value=-pi/2, axis=(0, 0, 1))
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -228,7 +228,7 @@ class POVRAY_OT_superellipsoid_add(bpy.types.Operator):
     def execute(self,context):
         pov_superellipsoid_define(context, self, None)
 
-        self.report({'WARNING'}, "This native POV-Ray primitive won't have any vertex to show in edit mode")   
+        self.report({'INFO'}, "This native POV-Ray primitive won't have any vertex to show in edit mode")   
 
         return {'FINISHED'}
 
@@ -423,7 +423,7 @@ class POVRAY_OT_supertorus_add(bpy.types.Operator):
     def execute(self, context):
         pov_supertorus_define(context, self, None)
 
-        self.report({'WARNING'}, "This native POV-Ray primitive won't have any vertex to show in edit mode")        
+        self.report({'INFO'}, "This native POV-Ray primitive won't have any vertex to show in edit mode")        
         return {'FINISHED'}                        
 
 class POVRAY_OT_supertorus_update(bpy.types.Operator):
@@ -577,7 +577,7 @@ class POVRAY_OT_plane_add(bpy.types.Operator):
         ob = context.object
         ob.name = ob.data.name = 'PovInfinitePlane'
         bpy.ops.object.mode_set(mode="EDIT")
-        self.report({'WARNING'}, "This native POV-Ray primitive "
+        self.report({'INFO'}, "This native POV-Ray primitive "
                                  "won't have any vertex to show in edit mode")
         bpy.ops.mesh.hide(unselected=False)
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -598,7 +598,7 @@ class POVRAY_OT_box_add(bpy.types.Operator):
         ob = context.object
         ob.name = ob.data.name = 'PovBox'
         bpy.ops.object.mode_set(mode="EDIT")
-        self.report({'WARNING'}, "This native POV-Ray primitive "
+        self.report({'INFO'}, "This native POV-Ray primitive "
                                  "won't have any vertex to show in edit mode")
         bpy.ops.mesh.hide(unselected=False)
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -677,7 +677,7 @@ class POVRAY_OT_cylinder_add(bpy.types.Operator):
             else:
                 LOC = props.imported_cyl_loc
                 LOC_CAP = props.imported_cyl_loc_cap
-            self.report({'WARNING'}, "This native POV-Ray primitive "
+            self.report({'INFO'}, "This native POV-Ray primitive "
                                      "won't have any vertex to show in edit mode")            
 
         pov_cylinder_define(context, self, None, self.R, LOC, LOC_CAP)
@@ -778,7 +778,7 @@ class POVRAY_OT_sphere_add(bpy.types.Operator):
                 
             else:
                 LOC = props.imported_loc                
-                self.report({'WARNING'}, "This native POV-Ray primitive "
+                self.report({'INFO'}, "This native POV-Ray primitive "
                                          "won't have any vertex to show in edit mode")            
         pov_sphere_define(context, self, None, LOC)
 
@@ -791,7 +791,7 @@ class POVRAY_OT_sphere_add(bpy.types.Operator):
         # bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, radius=ob.pov.sphere_radius, layers=layers)
         # ob = context.object
         # bpy.ops.object.mode_set(mode="EDIT")
-        # self.report({'WARNING'}, "This native POV-Ray primitive "
+        # self.report({'INFO'}, "This native POV-Ray primitive "
                                  # "won't have any vertex to show in edit mode")
         # bpy.ops.mesh.hide(unselected=False)
         # bpy.ops.object.mode_set(mode="OBJECT")
@@ -910,7 +910,7 @@ class POVRAY_OT_cone_add(bpy.types.Operator):
     def execute(self, context):
         pov_cone_define(context, self, None)
 
-        self.report({'WARNING'}, "This native POV-Ray primitive won't have any vertex to show in edit mode")        
+        self.report({'INFO'}, "This native POV-Ray primitive won't have any vertex to show in edit mode")        
         return {'FINISHED'}
 
 
@@ -952,7 +952,7 @@ class POVRAY_OT_isosurface_box_add(bpy.types.Operator):
         bpy.ops.mesh.primitive_cube_add(layers = layers)
         ob = context.object
         bpy.ops.object.mode_set(mode="EDIT")
-        self.report({'WARNING'}, "This native POV-Ray primitive "
+        self.report({'INFO'}, "This native POV-Ray primitive "
                                  "won't have any vertex to show in edit mode")
         bpy.ops.mesh.hide(unselected=False)
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -974,7 +974,7 @@ class POVRAY_OT_isosurface_sphere_add(bpy.types.Operator):
         bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4,layers=layers)
         ob = context.object
         bpy.ops.object.mode_set(mode="EDIT")
-        self.report({'WARNING'}, "This native POV-Ray primitive "
+        self.report({'INFO'}, "This native POV-Ray primitive "
                                  "won't have any vertex to show in edit mode")
         bpy.ops.mesh.hide(unselected=False)
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -1203,7 +1203,7 @@ class POVRAY_OT_torus_add(bpy.types.Operator):
         mas = props.mas
         mis = props.mis
         pov_torus_define(context, self, None)
-        self.report({'WARNING'}, "This native POV-Ray primitive "
+        self.report({'INFO'}, "This native POV-Ray primitive "
                                  "won't have any vertex to show in edit mode")
         return {'FINISHED'}
 
@@ -1373,7 +1373,7 @@ class POVRAY_OT_parametric_add(bpy.types.Operator):
         z_eq = props.z_eq
         
         pov_parametric_define(context, self, None)
-        self.report({'WARNING'}, "This native POV-Ray primitive "
+        self.report({'INFO'}, "This native POV-Ray primitive "
                                  "won't have any vertex to show in edit mode")
         return {'FINISHED'}
 
@@ -1480,6 +1480,8 @@ class ImportPOV(bpy.types.Operator, ImportHelper):
         verts = []
         faces = []
         materials = []
+        blendMats = [] ##############
+        povMats = [] ##############
         colors = []
         matNames = []
         lenverts = None
@@ -1494,6 +1496,7 @@ class ImportPOV(bpy.types.Operator, ImportHelper):
         cylinder_search = False
         sphere_search = False
         cone_search = False
+        tex_search = False ##################        
         cache = []
         matrixes = {}
         writematrix = False
@@ -1716,8 +1719,16 @@ class ImportPOV(bpy.types.Operator, ImportHelper):
                                 z=(i*3)+2
                                 verts.append((float(cache[x]),float(cache[y]),float(cache[z])))
                             cache = []        
+                    #if word == 'face_indices':
+                         #faces_search = True
+                    if word == 'texture_list': ########
+                        tex_search = True #######
+                    if tex_search: #########
+                        if word not in {'texture_list','texture','{','}','face_indices'} and word.isdigit() == False: ##############
+                            povMats.append(word) #################
                     if word == 'face_indices':
-                         faces_search = True
+                        tex_search = False ################
+                        faces_search = True
                     if faces_search:
                         cache.append(word)            
                         if word == '}':
@@ -1751,9 +1762,32 @@ class ImportPOV(bpy.types.Operator, ImportHelper):
                                     m2=i*6+5
                                     materials.append((int(cache[m0]),int(cache[m1]),int(cache[m2])))
                                     faces.append((int(cache[v0]),int(cache[v1]),int(cache[v2])))
-                            mesh = pov_define_mesh(None, verts, [], faces, name, hide_geometry=False) 
-                            ob_base = object_utils.object_data_add(context, mesh, operator=None)
-                            ob = ob_base.object
+                            #mesh = pov_define_mesh(None, verts, [], faces, name, hide_geometry=False) 
+                            #ob_base = object_utils.object_data_add(context, mesh, operator=None)
+                            #ob = ob_base.object
+
+                            me = bpy.data.meshes.new(name) ########
+                            ob = bpy.data.objects.new(name, me) ##########
+                            bpy.context.scene.objects.link(ob) #########
+                            me.from_pydata(verts, [], faces) ############
+
+                            for mat in bpy.data.materials: ##############
+                                blendMats.append(mat.name) #############
+                            for mName in povMats: #####################
+                                if mName not in blendMats: ###########
+                                    povMat = bpy.data.materials.new(mName) #################
+                                    mat_search(cache) 
+                                ob.data.materials.append(bpy.data.materials[mName]) ###################
+                            if materials: ##################
+                                for i,val in enumerate(materials): ####################
+                                    try: ###################
+                                        ob.data.polygons[i].material_index = val ####################
+                                    except TypeError: ###################
+                                        ob.data.polygons[i].material_index = int(val[0]) ##################
+
+                            blendMats = [] #########################
+                            povMats = [] #########################
+                            materials = [] #########################
                             cache = []
                             name_search = True
                             if name in matrixes and self.import_at_cur==False:

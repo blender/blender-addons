@@ -12,7 +12,7 @@ def writeMaterial(using_uberpov, DEF_MAT_NAME, scene, tabWrite, safety, comments
 
     if material:
         # If saturation(.s) is not zero, then color is not grey, and has a tint
-        colored_specular_found = (material.specular_color.s > 0.0)
+        colored_specular_found = ((material.specular_color.s > 0.0) and (material.diffuse_shader != 'MINNAERT'))
 
     ##################
     # Several versions of the finish: Level conditions are variations for specular/Mirror
@@ -214,7 +214,7 @@ def writeMaterial(using_uberpov, DEF_MAT_NAME, scene, tabWrite, safety, comments
     if material:
         special_texture_found = False
         for t in material.texture_slots:
-            if t and t.use:
+            if t and t.use and t.texture is not None:
                 if (t.texture.type == 'IMAGE' and t.texture.image) or t.texture.type != 'IMAGE':
                     validPath=True
             else:
@@ -713,15 +713,16 @@ def exportPattern(texture, string_strip_hyphen):
     return(texStrg)
     
     
-def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
-                            imageFormat, imgMap, imgMapTransforms, tabWrite,
+def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, lampCount,
+                            imageFormat, imgMap, imgMapTransforms, tabWrite, comments,
                             string_strip_hyphen, safety, col, os, preview_dir, unpacked_images):
     material_finish = materialNames[mater.name]                        
     if mater.use_transparency:
         trans = 1.0 - mater.alpha
     else:
         trans = 0.0                            
-    if (mater.specular_color.s == 0.0):
+    if ((mater.specular_color.s == 0.0) or (mater.diffuse_shader == 'MINNAERT')):
+    # No layered texture because of aoi pattern used for minnaert and pov can't layer patterned
         colored_specular_found = False
     else:
         colored_specular_found = True
@@ -739,86 +740,92 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
     texturesAlpha = ""
     #proceduralFlag=False
     for t in mater.texture_slots:
-        # PROCEDURAL
-        if t and t.use and t.texture.type != 'IMAGE' and t.texture.type != 'NONE':
-            proceduralFlag=True
-            image_filename = "PAT_%s"%string_strip_hyphen(bpy.path.clean_name(t.texture.name))
-            if image_filename:
-                if t.use_map_color_diffuse:
-                    texturesDif = image_filename
-                    # colvalue = t.default_value  # UNUSED
-                    t_dif = t
-                    if t_dif.texture.pov.tex_gamma_enable:
-                        imgGamma = (" gamma %.3g " % t_dif.texture.pov.tex_gamma_value)
-                if t.use_map_specular or t.use_map_raymir:
-                    texturesSpec = image_filename
-                    # colvalue = t.default_value  # UNUSED
-                    t_spec = t
-                if t.use_map_normal:
-                    texturesNorm = image_filename
-                    # colvalue = t.normal_factor * 10.0  # UNUSED
-                    #textNormName=t.texture.image.name + ".normal"
-                    #was the above used? --MR
-                    t_nor = t
-                if t.use_map_alpha:
-                    texturesAlpha = image_filename
-                    # colvalue = t.alpha_factor * 10.0  # UNUSED
-                    #textDispName=t.texture.image.name + ".displ"
-                    #was the above used? --MR
-                    t_alpha = t
+        if t and (t.use and (t.texture is not None)):
+            # 'NONE' ('NONE' type texture is different from no texture covered above)
+            if (t.texture.type == 'NONE' and t.texture.pov.tex_pattern_type == 'emulator'):
+                print('RESHAITE')
+                continue # move to next slot
+            # PROCEDURAL
+            elif (t.texture.type != 'IMAGE' and t.texture.type != 'NONE'):
+                proceduralFlag=True
+                print('XXXSHHHAAIIIITE')
+                image_filename = "PAT_%s"%string_strip_hyphen(bpy.path.clean_name(t.texture.name))
+                if image_filename:
+                    if t.use_map_color_diffuse:
+                        texturesDif = image_filename
+                        # colvalue = t.default_value  # UNUSED
+                        t_dif = t
+                        if t_dif.texture.pov.tex_gamma_enable:
+                            imgGamma = (" gamma %.3g " % t_dif.texture.pov.tex_gamma_value)
+                    if t.use_map_specular or t.use_map_raymir:
+                        texturesSpec = image_filename
+                        # colvalue = t.default_value  # UNUSED
+                        t_spec = t
+                    if t.use_map_normal:
+                        texturesNorm = image_filename
+                        # colvalue = t.normal_factor * 10.0  # UNUSED
+                        #textNormName=t.texture.image.name + ".normal"
+                        #was the above used? --MR
+                        t_nor = t
+                    if t.use_map_alpha:
+                        texturesAlpha = image_filename
+                        # colvalue = t.alpha_factor * 10.0  # UNUSED
+                        #textDispName=t.texture.image.name + ".displ"
+                        #was the above used? --MR
+                        t_alpha = t
 
-        # RASTER IMAGE            
-        if t and t.texture.type == 'IMAGE' and t.use and t.texture.image and t.texture.pov.tex_pattern_type == 'emulator':
-            proceduralFlag=False
-            #PACKED
-            if t.texture.image.packed_file:
-                orig_image_filename=t.texture.image.filepath_raw
-                unpackedfilename= os.path.join(preview_dir,("unpacked_img_"+(string_strip_hyphen(bpy.path.clean_name(t.texture.name)))))
-                if not os.path.exists(unpackedfilename):
-                    # record which images that were newly copied and can be safely
-                    # cleaned up
-                    unpacked_images.append(unpackedfilename)                                            
-                t.texture.image.filepath_raw=unpackedfilename
-                t.texture.image.save()
-                image_filename = unpackedfilename.replace("\\","/")
-                # .replace("\\","/") to get only forward slashes as it's what POV prefers, 
-                # even on windows
-                t.texture.image.filepath_raw=orig_image_filename
-            #FILE
-            else:
-                image_filename = path_image(t.texture.image)
-            # IMAGE SEQUENCE BEGINS
-            if image_filename:
-                if bpy.data.images[t.texture.image.name].source == 'SEQUENCE':
-                    korvaa = "." + str(bpy.data.textures[t.texture.name].image_user.frame_offset + 1).zfill(3) + "."
-                    image_filename = image_filename.replace(".001.", korvaa)
-                    print(" seq debug ")
-                    print(image_filename)
-            # IMAGE SEQUENCE ENDS
-            imgGamma = ""
-            if image_filename:
-                if t.use_map_color_diffuse:
-                    texturesDif = image_filename
-                    # colvalue = t.default_value  # UNUSED
-                    t_dif = t
-                    if t_dif.texture.pov.tex_gamma_enable:
-                        imgGamma = (" gamma %.3g " % t_dif.texture.pov.tex_gamma_value)
-                if t.use_map_specular or t.use_map_raymir:
-                    texturesSpec = image_filename
-                    # colvalue = t.default_value  # UNUSED
-                    t_spec = t
-                if t.use_map_normal:
-                    texturesNorm = image_filename
-                    # colvalue = t.normal_factor * 10.0  # UNUSED
-                    #textNormName=t.texture.image.name + ".normal"
-                    #was the above used? --MR
-                    t_nor = t
-                if t.use_map_alpha:
-                    texturesAlpha = image_filename
-                    # colvalue = t.alpha_factor * 10.0  # UNUSED
-                    #textDispName=t.texture.image.name + ".displ"
-                    #was the above used? --MR
-                    t_alpha = t
+            # RASTER IMAGE            
+            elif (t.texture.type == 'IMAGE' and t.texture.image and t.texture.pov.tex_pattern_type == 'emulator'):
+                proceduralFlag=False
+                #PACKED
+                if t.texture.image.packed_file:
+                    orig_image_filename=t.texture.image.filepath_raw
+                    unpackedfilename= os.path.join(preview_dir,("unpacked_img_"+(string_strip_hyphen(bpy.path.clean_name(t.texture.name)))))
+                    if not os.path.exists(unpackedfilename):
+                        # record which images that were newly copied and can be safely
+                        # cleaned up
+                        unpacked_images.append(unpackedfilename)                                            
+                    t.texture.image.filepath_raw=unpackedfilename
+                    t.texture.image.save()
+                    image_filename = unpackedfilename.replace("\\","/")
+                    # .replace("\\","/") to get only forward slashes as it's what POV prefers, 
+                    # even on windows
+                    t.texture.image.filepath_raw=orig_image_filename
+                #FILE
+                else:
+                    image_filename = path_image(t.texture.image)
+                # IMAGE SEQUENCE BEGINS
+                if image_filename:
+                    if bpy.data.images[t.texture.image.name].source == 'SEQUENCE':
+                        korvaa = "." + str(bpy.data.textures[t.texture.name].image_user.frame_offset + 1).zfill(3) + "."
+                        image_filename = image_filename.replace(".001.", korvaa)
+                        print(" seq debug ")
+                        print(image_filename)
+                # IMAGE SEQUENCE ENDS
+                imgGamma = ""
+                if image_filename:
+                    if t.use_map_color_diffuse:
+                        texturesDif = image_filename
+                        # colvalue = t.default_value  # UNUSED
+                        t_dif = t
+                        if t_dif.texture.pov.tex_gamma_enable:
+                            imgGamma = (" gamma %.3g " % t_dif.texture.pov.tex_gamma_value)
+                    if t.use_map_specular or t.use_map_raymir:
+                        texturesSpec = image_filename
+                        # colvalue = t.default_value  # UNUSED
+                        t_spec = t
+                    if t.use_map_normal:
+                        texturesNorm = image_filename
+                        # colvalue = t.normal_factor * 10.0  # UNUSED
+                        #textNormName=t.texture.image.name + ".normal"
+                        #was the above used? --MR
+                        t_nor = t
+                    if t.use_map_alpha:
+                        texturesAlpha = image_filename
+                        # colvalue = t.alpha_factor * 10.0  # UNUSED
+                        #textDispName=t.texture.image.name + ".displ"
+                        #was the above used? --MR
+                        t_alpha = t
         
     ####################################################################################
 
@@ -1053,6 +1060,7 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
         else:
             if texturesDif and texturesDif.startswith("PAT_"):
                 tabWrite("pigment{%s %s}\n" %(texturesDif, mappingDif)) 
+                print('XXXMEEEERDE!')
             else:                                    
                 tabWrite("pigment {\n")
                 tabWrite("uv_mapping image_map {\n")
@@ -1113,7 +1121,8 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
     # Close first layer of POV "texture" (Blender material)
     tabWrite("}\n")
     
-    if (mater.specular_color.s > 0.0):
+    if ((mater.specular_color.s > 0.0) and (mater.diffuse_shader != 'MINNAERT')):
+    
         colored_specular_found = True
     else:
         colored_specular_found = False
