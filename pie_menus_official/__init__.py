@@ -30,10 +30,10 @@ from bpy.types import (
 bl_info = {
     'name': 'UI Pie Menu Official',
     'author': 'Antony Riakiotakis, Sebastian Koenig',
-    'version': (1, 1, 2),
+    'version': (1, 1, 3),
     'blender': (2, 7, 7),
-    'location': 'See preferences for Activation list',
-    'description': 'Pie Menu Activate',
+    'description': 'Individual Pie Menu Activation List',
+    'location': 'Addons Preferences',
     'warning': '',
     'wiki_url': 'https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/Pie_Menu',
     'category': 'Pie Menu'
@@ -87,7 +87,7 @@ def get_addon_preferences(name=''):
 
 def register_submodule(mod):
     if not hasattr(mod, '__addon_enabled__'):
-        mod.__addon_enabled__ = True
+        mod.__addon_enabled__ = False
     if not mod.__addon_enabled__:
         mod.register()
         mod.__addon_enabled__ = True
@@ -96,7 +96,7 @@ def register_submodule(mod):
 def unregister_submodule(mod):
     if mod.__addon_enabled__:
         mod.unregister()
-        mod.__addon_enabled__ = True
+        mod.__addon_enabled__ = False
 
         prefs = get_addon_preferences()
         name = mod.__name__.split('.')[-1]
