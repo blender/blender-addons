@@ -23,8 +23,8 @@ bl_info = {
     "author": "meta-androcto, pitiwazou, chromoly, italic",
     "version": (1, 1, 3),
     "blender": (2, 7, 7),
-    "location": "",
-    "description": "Pie Menu Activate",
+    "description": "Individual Pie Menu Activation List",
+    "location": "Addons Preferences",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
     "Scripts/3D_interaction/viewport_pies",
@@ -245,6 +245,7 @@ def register():
         if getattr(prefs, 'use_' + name):
             register_submodule(mod)
 
+# Experimental Auto Expand Addons Preferences
     import addon_utils
  
     mod = addon_utils.addons_fake_modules.get(__name__)
