@@ -22,7 +22,7 @@ bl_info = {
     "name": "Clip Editor Pies: Key: 'hotkey list Below'",
     "description": "Clip Editor Pies",
 #    "author": "Antony Riakiotakis, Sebastian Koenig",
-    "version": (0, 1, 0),
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "Q, W, Shift W, E. Shift S, Shift A",
     "warning": "",
@@ -259,32 +259,42 @@ classes = (
 
 
 def register():
+    addon_keymaps.clear()
     for cls in classes:
         bpy.utils.register_class(cls)
 
     wm = bpy.context.window_manager
 
     if wm.keyconfigs.addon:
-        km = wm.keyconfigs.addon.keymaps.new(name='Object Non-modal')
-
+        #km = wm.keyconfigs.addon.keymaps.new(name='Object Non-modal') # WHY
+        
         km = wm.keyconfigs.addon.keymaps.new(name="Clip", space_type='CLIP_EDITOR')
+
         kmi = km.keymap_items.new("wm.call_menu_pie", 'Q', 'PRESS')
         kmi.properties.name = "CLIP_PIE_marker_pie"
+        addon_keymaps.append((km, kmi))
+
         kmi = km.keymap_items.new("wm.call_menu_pie", 'W', 'PRESS')
         kmi.properties.name = "CLIP_PIE_clipsetup_pie"
+        addon_keymaps.append((km, kmi))
+
         kmi = km.keymap_items.new("wm.call_menu_pie", 'E', 'PRESS')
         kmi.properties.name = "CLIP_PIE_tracking_pie"
+        addon_keymaps.append((km, kmi))
+
         kmi = km.keymap_items.new("wm.call_menu_pie", 'S', 'PRESS', shift=True)
         kmi.properties.name = "CLIP_PIE_solver_pie"
+        addon_keymaps.append((km, kmi))
+
         kmi = km.keymap_items.new("wm.call_menu_pie", 'W', 'PRESS', shift=True)
         kmi.properties.name = "CLIP_PIE_reconstruction_pie"
-        addon_keymaps.append(km)
+        addon_keymaps.append((km, kmi))
 
         km = wm.keyconfigs.addon.keymaps.new(name="Frames")
+
         kmi = km.keymap_items.new("wm.call_menu_pie", 'A', 'PRESS', shift=True)
         kmi.properties.name = "CLIP_PIE_timecontrol_pie"
-
-        addon_keymaps.append(km)
+        addon_keymaps.append((km, kmi))
 
 
 def unregister():
@@ -293,14 +303,12 @@ def unregister():
 
     wm = bpy.context.window_manager
 
-    if wm.keyconfigs.addon:
-        for km in addon_keymaps:
-            for kmi in km.keymap_items:
-                km.keymap_items.remove(kmi)
-
-            wm.keyconfigs.addon.keymaps.remove(km)
-
+    kc = wm.keyconfigs.addon
+    if kc:
+        for km, kmi in addon_keymaps:
+            km.keymap_items.remove(kmi)
     addon_keymaps.clear()
+
 
 if __name__ == "__main__":
     register()

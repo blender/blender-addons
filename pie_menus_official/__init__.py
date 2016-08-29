@@ -30,7 +30,7 @@ from bpy.types import (
 bl_info = {
     'name': 'UI Pie Menu Official',
     'author': 'Antony Riakiotakis, Sebastian Koenig',
-    'version': (1, 1, 3),
+    'version': (1, 1, 4),
     'blender': (2, 7, 7),
     'description': 'Individual Pie Menu Activation List',
     'location': 'Addons Preferences',
@@ -86,11 +86,8 @@ def get_addon_preferences(name=''):
 
 
 def register_submodule(mod):
-    if not hasattr(mod, '__addon_enabled__'):
-        mod.__addon_enabled__ = False
-    if not mod.__addon_enabled__:
-        mod.register()
-        mod.__addon_enabled__ = True
+    mod.register()
+    mod.__addon_enabled__ = True
 
 
 def unregister_submodule(mod):
@@ -197,19 +194,21 @@ for mod in sub_modules:
 
     def gen_update(mod):
         def update(self, context):
-            if getattr(self, 'use_' + mod.__name__.split('.')[-1]):
-                if not mod.__addon_enabled__:
-                    register_submodule(mod)
+            enabled =  getattr(self, 'use_' + mod.__name__.split('.')[-1])
+            if enabled:
+                register_submodule(mod)
             else:
-                if mod.__addon_enabled__:
-                    unregister_submodule(mod)
+                unregister_submodule(mod)
+            mod.__addon_enabled__  = enabled
         return update
 
     prop = BoolProperty(
         name=info['name'],
         description=info.get('description', ''),
         update=gen_update(mod),
+        default=True,
     )
+
     setattr(UIToolsPreferences, 'use_' + mod_name, prop)
     prop = BoolProperty()
     setattr(UIToolsPreferences, 'show_expanded_' + mod_name, prop)
@@ -218,18 +217,22 @@ classes = (
     UIToolsPreferences,
     )
 
+def register_modules(dummy):
+    if dummy:
+        prefs = get_addon_preferences()
+        for mod in sub_modules:
+            name = mod.__name__.split('.')[-1]
+            if getattr(prefs, 'use_' + name, False):
+                register_submodule(mod)
+            else:
+                mod.__addon_enabled__ = False
+    return None
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    prefs = get_addon_preferences()
-    for mod in sub_modules:
-        if not hasattr(mod, '__addon_enabled__'):
-            mod.__addon_enabled__ = False
-        name = mod.__name__.split('.')[-1]
-        if getattr(prefs, 'use_' + name):
-            register_submodule(mod)
+    register_modules(True)
 
 
 def unregister():
@@ -242,5 +245,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
-

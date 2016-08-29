@@ -2,8 +2,8 @@
 bl_info = {
     "name": "Pivot Menu: Key: '. key'",
     "description": "Manipulator Modes",
-    "author": "Antony Riakiotakis, Sebastian Koenig",
-    "version": (0, 1, 0),
+#    "author": "Antony Riakiotakis, Sebastian Koenig",
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": ". key",
     "warning": "",
@@ -55,11 +55,9 @@ def unregister():
 
     kc = wm.keyconfigs.addon
     if kc:
-        km = kc.keymaps['Object Non-modal']
-        for kmi in km.keymap_items:
-            if kmi.idname == 'wm.call_menu_pie':
-                if kmi.properties.name == "view3d.pivot_of":
-                    km.keymap_items.remove(kmi)
+        for km, kmi in addon_keymaps:
+            km.keymap_items.remove(kmi)
+    addon_keymaps.clear()
 
 if __name__ == "__main__":
     register()

@@ -1,9 +1,8 @@
-
 bl_info = {
     "name": "View Menu: Key: 'Q key'",
     "description": "View Modes",
-    "author": "Antony Riakiotakis, Sebastian Koenig",
-    "version": (0, 1, 0),
+#    "author": "Antony Riakiotakis, Sebastian Koenig",
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "Q key",
     "warning": "",
@@ -53,6 +52,7 @@ classes = [
 addon_keymaps = []
 
 def register():
+    addon_keymaps.clear()
     for cls in classes:
         bpy.utils.register_class(cls)
     wm = bpy.context.window_manager
@@ -71,11 +71,9 @@ def unregister():
 
     kc = wm.keyconfigs.addon
     if kc:
-        km = kc.keymaps['Object Non-modal']
-        for kmi in km.keymap_items:
-            if kmi.idname == 'wm.call_menu_pie':
-                if kmi.properties.name == "pie.view_of":
-                    km.keymap_items.remove(kmi)
+        for km, kmi in addon_keymaps:
+            km.keymap_items.remove(kmi)
+    addon_keymaps.clear()
 
 if __name__ == "__main__":
     register()
