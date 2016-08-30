@@ -538,7 +538,7 @@ def write_pov(filename, scene=None, info_callback=None):
             matrix = global_matrix * ob.matrix_world
 
             # Color is modified by energy #muiltiplie by 2 for a better match --Maurice
-            color = tuple([c * lamp.energy * 2.0 for c in lamp.color])
+            color = tuple([c * lamp.energy for c in lamp.color])
 
             tabWrite("light_source {\n")
             tabWrite("< 0,0,0 >\n")
@@ -558,6 +558,31 @@ def write_pov(filename, scene=None, info_callback=None):
                 tabWrite("tightness 0\n")  # 0:10f
 
                 tabWrite("point_at  <0, 0, -1>\n")
+                if lamp.use_halo:
+                    tabWrite("looks_like{\n")
+                    tabWrite("sphere{<0,0,0>,%.6f\n" %lamp.distance)
+                    tabWrite("hollow\n")
+                    tabWrite("material{\n")
+                    tabWrite("texture{\n")
+                    tabWrite("pigment{rgbf<1,1,1,%.4f>}\n" % (lamp.halo_intensity*5.0))
+                    tabWrite("}\n")
+                    tabWrite("interior{\n")
+                    tabWrite("media{\n")
+                    tabWrite("emission 1\n")
+                    tabWrite("scattering {1, 0.5}\n")
+                    tabWrite("density{\n")
+                    tabWrite("spherical\n")
+                    tabWrite("color_map{\n")
+                    tabWrite("[0.0 rgb <0,0,0>]\n")
+                    tabWrite("[0.5 rgb <1,1,1>]\n")
+                    tabWrite("[1.0 rgb <1,1,1>]\n")
+                    tabWrite("}\n")
+                    tabWrite("}\n")
+                    tabWrite("}\n")
+                    tabWrite("}\n")
+                    tabWrite("}\n")
+                    tabWrite("}\n")
+                    tabWrite("}\n")
             elif lamp.type == 'SUN':
                 tabWrite("parallel\n")
                 tabWrite("point_at  <0, 0, -1>\n")  # *must* be after 'parallel'
@@ -1896,7 +1921,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             # XXX I moved all those checks here, as there is no need to compute names
             #     for object we won't export here!
-            if (ob.type in {'LAMP', 'CAMERA', 'EMPTY',
+            if (ob.type in {'LAMP', 'CAMERA', #'EMPTY', #empties can bear dupligroups
                             'META', 'ARMATURE', 'LATTICE'}):
                 continue
             smokeFlag=False
@@ -2092,9 +2117,22 @@ def write_pov(filename, scene=None, info_callback=None):
                 # (baking for now or anything else).
                 # XXX I don't understand that if we are here, sel if a non-empty iterable,
                 #     so this condition is always True, IMO -- mont29
-                if sel:
+                if ob.data:
                     name_orig = "OB" + ob.name
                     dataname_orig = "DATA" + ob.data.name
+                elif ob.is_duplicator:
+                    if ob.dupli_type == 'GROUP':
+                        name_orig = "OB" + ob.name
+                        dataname_orig = "DATA" + ob.dupli_group.name
+                    else:
+                        #hoping only dupligroups have several source datablocks
+                        ob.dupli_list_create(scene)
+                        for eachduplicate in ob.dupli_list:
+                            dataname_orig = "DATA" + eachduplicate.object.name
+                        ob.dupli_list_clear()                    
+                elif ob.type == 'EMPTY':
+                    name_orig = "OB" + ob.name
+                    dataname_orig = "DATA" + ob.name
                 else:
                     name_orig = DEF_OBJ_NAME
                     dataname_orig = DEF_OBJ_NAME
@@ -2487,7 +2525,11 @@ def write_pov(filename, scene=None, info_callback=None):
 
                    
 ############################################else try to export mesh
-                else:
+                elif ob.is_duplicator == False: #except duplis which should be instances groups for now but all duplis later
+                    if ob.type == 'EMPTY':
+                        tabWrite("\n//dummy sphere to represent Empty location\n")
+                        tabWrite("#declare %s =sphere {<0, 0, 0>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n" % povdataname)
+                    
                     try:
                         me = ob.to_mesh(scene, True, 'RENDER')
                         
@@ -2503,8 +2545,7 @@ def write_pov(filename, scene=None, info_callback=None):
                         me_materials = me.materials
                         me_faces = me.tessfaces[:]
                     if len(me_faces)==0:
-                        file.write("\n")
-                        tabWrite("//dummy sphere to represent empty mesh location\n")
+                        tabWrite("\n//dummy sphere to represent empty mesh location\n")
                         tabWrite("#declare %s =sphere {<0, 0, 0>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n" % povdataname)
                   
                     
@@ -3041,15 +3082,42 @@ def write_pov(filename, scene=None, info_callback=None):
 
                         tabWrite("}\n")  # End of mesh block
 
+                      
+                        
                     bpy.data.meshes.remove(me)
 
+        duplidata_ref = []
+        for ob in sel:
+            #matrix = global_matrix * ob.matrix_world
+            if ob.is_duplicator:
+                tabWrite("\n//--DupliObjects in %s--\n\n"% ob.name)
+                ob.dupli_list_create(scene)
+                dup = ""
+                if ob.is_modified(scene, 'RENDER'):
+                    #modified object always unique so using object name rather than data name
+                    dup = "#declare OB%s = union{\n" %(string_strip_hyphen(bpy.path.clean_name(ob.name))) 
+                else:
+                    dup = "#declare DATA%s = union{\n" %(string_strip_hyphen(bpy.path.clean_name(ob.name)))
+                for eachduplicate in ob.dupli_list:
+                    duplidataname = "OB"+string_strip_hyphen(bpy.path.clean_name(bpy.data.objects[eachduplicate.object.name].data.name))
+                    dup += ("\tobject {\n\t\tDATA%s\n\t\t%s\t}\n" %(string_strip_hyphen(bpy.path.clean_name(bpy.data.objects[eachduplicate.object.name].data.name)), MatrixAsPovString(ob.matrix_world.inverted() * eachduplicate.matrix)))
+                    #add object to a list so that it is not rendered for some dupli_types
+                    if ob.dupli_type not in {'GROUP'} and duplidataname not in duplidata_ref:
+                        duplidata_ref.append(duplidataname) #older key [string_strip_hyphen(bpy.path.clean_name("OB"+ob.name))]
+                dup += "}\n"
+                ob.dupli_list_clear()
+                tabWrite(dup)
+            else:
+                continue
+        print(duplidata_ref)
         for data_name, inst in data_ref.items():
             for ob_name, matrix_str in inst:
-                tabWrite("//----Blender Object Name:%s----\n" % ob_name)
-                tabWrite("object { \n")
-                tabWrite("%s\n" % data_name)
-                tabWrite("%s\n" % matrix_str)
-                tabWrite("}\n")
+                if ob_name not in duplidata_ref: #.items() for a dictionary
+                    tabWrite("\n//----Blender Object Name:%s----\n" % ob_name)
+                    tabWrite("object { \n")
+                    tabWrite("%s\n" % data_name)
+                    tabWrite("%s\n" % matrix_str)
+                    tabWrite("}\n")
 
     def exportWorld(world):
         render = scene.render

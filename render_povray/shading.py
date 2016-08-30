@@ -743,12 +743,10 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
         if t and (t.use and (t.texture is not None)):
             # 'NONE' ('NONE' type texture is different from no texture covered above)
             if (t.texture.type == 'NONE' and t.texture.pov.tex_pattern_type == 'emulator'):
-                print('RESHAITE')
                 continue # move to next slot
             # PROCEDURAL
             elif (t.texture.type != 'IMAGE' and t.texture.type != 'NONE'):
                 proceduralFlag=True
-                print('XXXSHHHAAIIIITE')
                 image_filename = "PAT_%s"%string_strip_hyphen(bpy.path.clean_name(t.texture.name))
                 if image_filename:
                     if t.use_map_color_diffuse:
