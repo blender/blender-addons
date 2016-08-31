@@ -91,8 +91,8 @@ def get_addon_preferences(name=''):
                     if cls:
                         prop = PointerProperty(type=cls)
                         setattr(UIToolsPreferences, name, prop)
-                        bpy.utils.unregister_class(UIToolsPreferences)
-                        bpy.utils.register_class(UIToolsPreferences)
+                        bpy.utils.unregister_class(PieToolsPreferences)
+                        bpy.utils.register_class(PieToolsPreferences)
         return getattr(addon_prefs, name, None)
     else:
         return addon_prefs
@@ -122,7 +122,7 @@ def unregister_submodule(mod):
                     del prefs[name]
 
 
-class UIToolsPreferences(AddonPreferences):
+class PieToolsPreferences(AddonPreferences):
     bl_idname = __name__
 
     def draw(self, context):
@@ -224,12 +224,12 @@ for mod in sub_modules:
         description=info.get('description', ''),
         update=gen_update(mod),
     )
-    setattr(UIToolsPreferences, 'use_' + mod_name, prop)
+    setattr(PieToolsPreferences, 'use_' + mod_name, prop)
     prop = BoolProperty()
-    setattr(UIToolsPreferences, 'show_expanded_' + mod_name, prop)
+    setattr(PieToolsPreferences, 'show_expanded_' + mod_name, prop)
 
 classes = (
-    UIToolsPreferences,
+    PieToolsPreferences,
     )
 
 
