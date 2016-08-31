@@ -133,17 +133,18 @@ shaders_shader_nodes_props = (
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_texture_nodes_props = (
-    ('ShaderNodeTexImage', 'TEX_IMAGE', 'Image'),
-    ('ShaderNodeTexEnvironment', 'TEX_ENVIRONMENT', 'Environment'),
-    ('ShaderNodeTexSky', 'TEX_SKY', 'Sky'),
-    ('ShaderNodeTexNoise', 'TEX_NOISE', 'Noise'),
-    ('ShaderNodeTexWave', 'TEX_WAVE', 'Wave'),
-    ('ShaderNodeTexVoronoi', 'TEX_VORONOI', 'Voronoi'),
-    ('ShaderNodeTexMusgrave', 'TEX_MUSGRAVE', 'Musgrave'),
-    ('ShaderNodeTexGradient', 'TEX_GRADIENT', 'Gradient'),
-    ('ShaderNodeTexMagic', 'TEX_MAGIC', 'Magic'),
-    ('ShaderNodeTexChecker', 'TEX_CHECKER', 'Checker'),
-    ('ShaderNodeTexBrick', 'TEX_BRICK', 'Brick')
+    ('ShaderNodeTexBrick', 'TEX_BRICK', 'Brick Texture'),
+    ('ShaderNodeTexChecker', 'TEX_CHECKER', 'Checker Texture'),
+    ('ShaderNodeTexEnvironment', 'TEX_ENVIRONMENT', 'Environment Texture'),
+    ('ShaderNodeTexGradient', 'TEX_GRADIENT', 'Gradient Texture'),
+    ('ShaderNodeTexImage', 'TEX_IMAGE', 'Image Texture'),
+    ('ShaderNodeTexMagic', 'TEX_MAGIC', 'Magic Texture'),
+    ('ShaderNodeTexMusgrave', 'TEX_MUSGRAVE', 'Musgrave Texture'),
+    ('ShaderNodeTexNoise', 'TEX_NOISE', 'Noise Texture'),
+    ('ShaderNodeTexPointDensity', 'TEX_POINTDENSITY', 'Point Density'),
+    ('ShaderNodeTexSky', 'TEX_SKY', 'Sky Texture'),
+    ('ShaderNodeTexVoronoi', 'TEX_VORONOI', 'Voronoi Texture'),
+    ('ShaderNodeTexWave', 'TEX_WAVE', 'Wave Texture'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
@@ -3633,7 +3634,7 @@ class NWSwitchShadersInputSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in shaders_input_nodes_props:
+        for ident, node_type, rna_name in sorted(shaders_input_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3644,7 +3645,7 @@ class NWSwitchShadersOutputSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in shaders_output_nodes_props:
+        for ident, node_type, rna_name in sorted(shaders_output_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3655,7 +3656,7 @@ class NWSwitchShadersShaderSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in shaders_shader_nodes_props:
+        for ident, node_type, rna_name in sorted(shaders_shader_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3666,7 +3667,7 @@ class NWSwitchShadersTextureSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in shaders_texture_nodes_props:
+        for ident, node_type, rna_name in sorted(shaders_texture_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3677,7 +3678,7 @@ class NWSwitchShadersColorSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in shaders_color_nodes_props:
+        for ident, node_type, rna_name in sorted(shaders_color_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3688,7 +3689,7 @@ class NWSwitchShadersVectorSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in shaders_vector_nodes_props:
+        for ident, node_type, rna_name in sorted(shaders_vector_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3699,7 +3700,7 @@ class NWSwitchShadersConverterSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in shaders_converter_nodes_props:
+        for ident, node_type, rna_name in sorted(shaders_converter_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3710,8 +3711,8 @@ class NWSwitchShadersLayoutSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in shaders_layout_nodes_props:
-            if type != 'FRAME':
+        for ident, node_type, rna_name in sorted(shaders_layout_nodes_props, key=lambda k: k[2]):
+            if node_type != 'FRAME':
                 props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
                 props.to_type = ident
 
@@ -3722,7 +3723,7 @@ class NWSwitchCompoInputSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in compo_input_nodes_props:
+        for ident, node_type, rna_name in sorted(compo_input_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3733,7 +3734,7 @@ class NWSwitchCompoOutputSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in compo_output_nodes_props:
+        for ident, node_type, rna_name in sorted(compo_output_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3744,7 +3745,7 @@ class NWSwitchCompoColorSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in compo_color_nodes_props:
+        for ident, node_type, rna_name in sorted(compo_color_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3755,7 +3756,7 @@ class NWSwitchCompoConverterSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in compo_converter_nodes_props:
+        for ident, node_type, rna_name in sorted(compo_converter_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3766,7 +3767,7 @@ class NWSwitchCompoFilterSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in compo_filter_nodes_props:
+        for ident, node_type, rna_name in sorted(compo_filter_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3777,7 +3778,7 @@ class NWSwitchCompoVectorSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in compo_vector_nodes_props:
+        for ident, node_type, rna_name in sorted(compo_vector_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3788,7 +3789,7 @@ class NWSwitchCompoMatteSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in compo_matte_nodes_props:
+        for ident, node_type, rna_name in sorted(compo_matte_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3799,7 +3800,7 @@ class NWSwitchCompoDistortSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in compo_distort_nodes_props:
+        for ident, node_type, rna_name in sorted(compo_distort_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3810,8 +3811,8 @@ class NWSwitchCompoLayoutSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in compo_layout_nodes_props:
-            if type != 'FRAME':
+        for ident, node_type, rna_name in sorted(compo_layout_nodes_props, key=lambda k: k[2]):
+            if node_type != 'FRAME':
                 props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
                 props.to_type = ident
 
@@ -3822,7 +3823,7 @@ class NWSwitchMatInputSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in blender_mat_input_nodes_props:
+        for ident, node_type, rna_name in sorted(blender_mat_input_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3833,7 +3834,7 @@ class NWSwitchMatOutputSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in blender_mat_output_nodes_props:
+        for ident, node_type, rna_name in sorted(blender_mat_output_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3844,7 +3845,7 @@ class NWSwitchMatColorSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in blender_mat_color_nodes_props:
+        for ident, node_type, rna_name in sorted(blender_mat_color_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3855,7 +3856,7 @@ class NWSwitchMatVectorSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in blender_mat_vector_nodes_props:
+        for ident, node_type, rna_name in sorted(blender_mat_vector_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3866,7 +3867,7 @@ class NWSwitchMatConverterSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in blender_mat_converter_nodes_props:
+        for ident, node_type, rna_name in sorted(blender_mat_converter_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3877,8 +3878,8 @@ class NWSwitchMatLayoutSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in blender_mat_layout_nodes_props:
-            if type != 'FRAME':
+        for ident, node_type, rna_name in sorted(blender_mat_layout_nodes_props, key=lambda k: k[2]):
+            if node_type != 'FRAME':
                 props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
                 props.to_type = ident
 
@@ -3889,7 +3890,7 @@ class NWSwitchTexInputSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in texture_input_nodes_props:
+        for ident, node_type, rna_name in sorted(texture_input_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3900,7 +3901,7 @@ class NWSwitchTexOutputSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in texture_output_nodes_props:
+        for ident, node_type, rna_name in sorted(texture_output_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3911,7 +3912,7 @@ class NWSwitchTexColorSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in texture_color_nodes_props:
+        for ident, node_type, rna_name in sorted(texture_color_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3922,7 +3923,7 @@ class NWSwitchTexPatternSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in texture_pattern_nodes_props:
+        for ident, node_type, rna_name in sorted(texture_pattern_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3933,7 +3934,7 @@ class NWSwitchTexTexturesSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in texture_textures_nodes_props:
+        for ident, node_type, rna_name in sorted(texture_textures_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3944,7 +3945,7 @@ class NWSwitchTexConverterSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in texture_converter_nodes_props:
+        for ident, node_type, rna_name in sorted(texture_converter_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3955,7 +3956,7 @@ class NWSwitchTexDistortSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in texture_distort_nodes_props:
+        for ident, node_type, rna_name in sorted(texture_distort_nodes_props, key=lambda k: k[2]):
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -3966,8 +3967,8 @@ class NWSwitchTexLayoutSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, type, rna_name in texture_layout_nodes_props:
-            if type != 'FRAME':
+        for ident, node_type, rna_name in sorted(texture_layout_nodes_props, key=lambda k: k[2]):
+            if node_type != 'FRAME':
                 props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
                 props.to_type = ident
 
