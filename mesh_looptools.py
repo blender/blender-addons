@@ -827,7 +827,7 @@ def terminate(global_undo):
     if obj.mode == 'EDIT':
         bmesh.update_edit_mesh(obj.data, tessface=True, destructive=True)
 
-    bpy.context.user_preferences.edit.use_global_undo = global_undo
+    bpy.context.user_preferences.edit.use_global_undo = False
 
 
 ##########################################
@@ -3712,6 +3712,23 @@ class Flatten(bpy.types.Operator):
 
 
 # gstretch operator
+class RemoveGP(bpy.types.Operator):
+    bl_idname = "remove.gp"
+    bl_label = "Remove GP"
+    bl_description = "Remove Grease Pencil Strokes"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        scene = context.scene
+        try:
+            pencil = bpy.context.object.grease_pencil.layers.active
+        except:
+            pencil = bpy.context.scene.grease_pencil.layers.active
+
+        bpy.ops.gpencil.data_unlink()
+
+        return{'FINISHED'}
+
 class GStretch(bpy.types.Operator):
     bl_idname = "mesh.looptools_gstretch"
     bl_label = "Gstretch"
@@ -3800,7 +3817,6 @@ class GStretch(bpy.types.Operator):
         col = layout.column()
 
         col.prop(self, "method")
-        col.prop(self, "delete_strokes")
         col.separator()
 
         col_conv = col.column(align=True)
@@ -3830,6 +3846,8 @@ class GStretch(bpy.types.Operator):
         else:
             row.prop(self, "lock_z", text = "Z", icon='UNLOCKED')
         col_move.prop(self, "influence")
+        col.separator()
+        col.operator("remove.gp", text = " Unlink GP ")
 
     def invoke(self, context, event):
         # flush cached strokes
@@ -3841,6 +3859,7 @@ class GStretch(bpy.types.Operator):
 
     def execute(self, context):
         # initialise
+        scene = context.scene
         global_undo, object, bm = initialise()
         settings_write(self)
 
@@ -4338,8 +4357,7 @@ class VIEW3D_PT_tools_looptools(bpy.types.Panel):
         if lt.display_gstretch:
             box = col.column(align=True).box().column()
             box.prop(lt, "gstretch_method")
-            box.prop(lt, "gstretch_delete_strokes")
-            box.separator()
+
 
             col_conv = box.column(align=True)
             col_conv.prop(lt, "gstretch_conversion", text="")
@@ -4368,6 +4386,7 @@ class VIEW3D_PT_tools_looptools(bpy.types.Panel):
             else:
                 row.prop(lt, "gstretch_lock_z", text = "Z", icon='UNLOCKED')
             col_move.prop(lt, "gstretch_influence")
+            box.operator("remove.gp", text = "Unlink GP")
 
         # loft - first line
         split = col.split(percentage=0.15, align=True)
@@ -4819,6 +4838,7 @@ classes = [
     Relax,
     Space,
     LoopPreferences,
+    RemoveGP,
     ]
 
 
