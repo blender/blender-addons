@@ -245,30 +245,23 @@ class VertsEdgesFaces(Operator):
 
 
 class PieObjectEditotherModes(Menu):
-    bl_idname = "pie.objecteditmodeothermodes"
+    bl_idname = "menu.objecteditmodeothermodes"
     bl_label = "Edit Selection Modes"
 
     def draw(self, context):
         layout = self.layout
         pie = layout.menu_pie()
-        # 4 - LEFT
-        pie.operator("verts.faces", text="Vertex/Faces", icon='LOOPSEL')
-        # 6 - RIGHT
-        pie.operator("edges.faces", text="Edges/Faces", icon='FACESEL')
-        # 2 - BOTTOM
-        pie.operator("wm.context_toggle", text="Limit to Visible",
+        box = pie.split().column()
+        row = box.row(align=True)
+        box.operator("class.vertex", text="Vertex", icon='VERTEXSEL')
+        box.operator("class.edge", text="Edge", icon='EDGESEL')
+        box.operator("class.face", text="Face", icon='FACESEL')
+        box.operator("verts.faces", text="Vertex/Faces", icon='LOOPSEL')
+        box.operator("edges.faces", text="Edges/Faces", icon='FACESEL')
+        box.operator("verts.edges", text="Vertex/Edges", icon='VERTEXSEL')
+        box.operator("verts.edgesfaces", text="Vertex/Edges/Faces", icon='OBJECT_DATAMODE')
+        box.operator("wm.context_toggle", text="Limit to Visible",
                      icon="ORTHO").data_path = "space_data.use_occlude_geometry"
-        # 8 - TOP
-        pie.operator("class.edge", text="Edge", icon='EDGESEL')
-        # 7 - TOP - LEFT
-        pie.operator("class.vertex", text="Vertex", icon='VERTEXSEL')
-        # 9 - TOP - RIGHT
-        pie.operator("class.face", text="Face", icon='FACESEL')
-        # 1 - BOTTOM - LEFT
-        pie.operator("verts.edges", text="Vertex/Edges", icon='VERTEXSEL')
-        # 3 - BOTTOM - RIGHT
-        pie.operator("verts.edgesfaces", text="Vertex/Edges/Faces", icon='OBJECT_DATAMODE')
-
 # Pie Modes Switch- Tab key
 
 
@@ -287,14 +280,13 @@ class PieObjectEditMode(Menu):
             # 6 - RIGHT
             pie.operator("class.pietexturepaint", text="Texture Paint", icon='TPAINT_HLT')
             # 2 - BOTTOM
-            pie.operator("class.pieweightpaint", text="Weight Paint", icon='WPAINT_HLT')
+            pie.menu("menu.objecteditmodeothermodes", text="Edit Modes", icon='EDITMODE_HLT')
             # 8 - TOP
             pie.operator("class.object", text="Edit/Object Toggle", icon='OBJECT_DATAMODE')
             # 7 - TOP - LEFT
             pie.operator("sculpt.sculptmode_toggle", text="Sculpt", icon='SCULPTMODE_HLT')
             # 9 - TOP - RIGHT
-            pie.operator("wm.call_menu_pie", text="Edit Modes",
-                         icon='EDITMODE_HLT').name = "pie.objecteditmodeothermodes"
+            pie.operator("class.pieweightpaint", text="Weight Paint", icon='WPAINT_HLT')
             # 1 - BOTTOM - LEFT
             if context.object.particle_systems:
                 pie.operator("class.pieparticleedit", text="Particle Edit", icon='PARTICLEMODE')
@@ -307,14 +299,14 @@ class PieObjectEditMode(Menu):
             # 6 - RIGHT
             pie.operator("class.pietexturepaint", text="Texture Paint", icon='TPAINT_HLT')
             # 2 - BOTTOM
-            pie.operator("class.pieweightpaint", text="Weight Paint", icon='WPAINT_HLT')
+            pie.menu("menu.objecteditmodeothermodes", text="Edit Modes", icon='EDITMODE_HLT')
             # 8 - TOP
             pie.operator("class.object", text="Edit/Object Toggle", icon='OBJECT_DATAMODE')
             # 7 - TOP - LEFT
             pie.operator("sculpt.sculptmode_toggle", text="Sculpt", icon='SCULPTMODE_HLT')
             # 9 - TOP - RIGHT
-            pie.operator("wm.call_menu_pie", text="Edit Modes",
-                         icon='TPAINT_HLT').name = "pie.objecteditmodeothermodes"
+            pie.operator("class.pieweightpaint", text="Weight Paint", icon='WPAINT_HLT')
+            
             # 1 - BOTTOM - LEFT
             if context.object.particle_systems:
                 pie.operator("class.pieparticleedit", text="Particle Edit", icon='PARTICLEMODE')
