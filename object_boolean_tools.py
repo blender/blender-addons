@@ -622,51 +622,7 @@ class BTool_Slice(Operator):
         return {'FINISHED'}
 
 
-# Booltron operators for direct booleans ---------------------------------------------------
-
-
-def prepare_objects():
-    bpy.ops.object.make_single_user(object=True, obdata=True)
-    bpy.ops.object.convert(target='MESH')
-
-
-def mesh_selection(ob, select_action):
-    context = bpy.context
-    scene = context.scene
-    obj = context.active_object
-    ops_me = bpy.ops.mesh
-    ops_ob = bpy.ops.object
-
-    def mesh_cleanup():
-        ops_me.select_all(action='SELECT')
-        ops_me.delete_loose()
-        ops_me.select_all(action='SELECT')
-        ops_me.remove_doubles(threshold=0.0001)
-        ops_me.fill_holes(sides=0)
-        ops_me.normals_make_consistent()
-
-    scene.objects.active = ob
-    ops_ob.mode_set(mode='EDIT')
-
-    mesh_cleanup()
-    ops_me.select_all(action=select_action)
-
-    ops_ob.mode_set(mode='OBJECT')
-    scene.objects.active = obj
-
-
-def get_objects(context):
-    obj = context.active_object
-
-    prepare_objects()
-
-    obj.select = False
-    ob = context.selected_objects[0]
-
-    mesh_selection(obj, 'DESELECT')
-    mesh_selection(ob, 'SELECT')
-
-    return obj, ob
+# Direct booleans operators (maintainer Mikhail Rachinskiy) ---------------------------------------------------
 
 
 class DirectBooleans:
@@ -674,8 +630,10 @@ class DirectBooleans:
 
     solver = EnumProperty(
             name='Boolean Solver',
-            items=(('BMESH', 'BMesh', ''),
-                   ('CARVE', 'Carve', '')),
+            items=(('BMESH', 'BMesh', 'BMesh solver is faster, but less stable '
+                                      'and cannot handle coplanar geometry'),
+                   ('CARVE', 'Carve', 'Carve solver is slower, but more stable '
+                                      'and can handle simple cases of coplanar geometry')),
             description='Specify solver for boolean operation',
             options={'SKIP_SAVE'}
             )
@@ -683,34 +641,47 @@ class DirectBooleans:
     def __init__(self):
         self.context = bpy.context
         self.solver = self.context.user_preferences.addons[__name__].preferences.solver
+        self.obs_prepare()
 
-    def boolean_each(self, mode):
+    def boolean_op(self, mode):
         obj = self.context.active_object
-
-        prepare_objects()
-
         obj.select = False
         obs = self.context.selected_objects
 
-        mesh_selection(obj, 'DESELECT')
+        self.mesh_selection(obj, 'DESELECT')
         for ob in obs:
-            mesh_selection(ob, 'SELECT')
+            self.mesh_selection(ob, 'SELECT')
             self.boolean_mod(obj, ob, mode)
         obj.select = True
 
-    def boolean_mod(self, obj, ob, mode, terminate=True):
-        md = obj.modifiers.new('Immediate apply', 'BOOLEAN')
+    def boolean_mod(self, obj, ob, mode, delete_ob=True):
+        md = obj.modifiers.new('Direct Boolean', 'BOOLEAN')
         md.show_viewport = False
-        md.show_render = False
         md.operation = mode
         md.solver = self.solver
         md.object = ob
 
-        bpy.ops.object.modifier_apply(modifier='Immediate apply')
-        if not terminate:
+        bpy.ops.object.modifier_apply(modifier='Direct Boolean')
+        if not delete_ob:
             return
         self.context.scene.objects.unlink(ob)
         bpy.data.objects.remove(ob)
+
+    def obs_prepare(self):
+        for ob in self.context.selected_objects:
+            if ob.type != 'MESH':
+                ob.select = False
+        bpy.ops.object.convert(target='MESH')
+
+    def mesh_selection(self, ob, select_action):
+        scene = self.context.scene
+        obj = self.context.active_object
+
+        scene.objects.active = ob
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action=select_action)
+        bpy.ops.object.mode_set(mode='OBJECT')
+        scene.objects.active = obj
 
 
 class Direct_Union(DirectBooleans, Operator):
@@ -719,7 +690,7 @@ class Direct_Union(DirectBooleans, Operator):
     bl_label = "Union"
 
     def execute(self, context):
-        self.boolean_each('UNION')
+        self.boolean_op('UNION')
         return {'FINISHED'}
 
 
@@ -729,7 +700,7 @@ class Direct_Difference(DirectBooleans, Operator):
     bl_label = "Difference"
 
     def execute(self, context):
-        self.boolean_each('DIFFERENCE')
+        self.boolean_op('DIFFERENCE')
         return {'FINISHED'}
 
 
@@ -739,7 +710,7 @@ class Direct_Intersect(DirectBooleans, Operator):
     bl_label = "Intersect"
 
     def execute(self, context):
-        self.boolean_each('INTERSECT')
+        self.boolean_op('INTERSECT')
         return {'FINISHED'}
 
 
@@ -750,20 +721,22 @@ class Direct_Slice(DirectBooleans, Operator):
 
     def execute(self, context):
         scene = context.scene
-        obj, ob = get_objects(context)
+        obj = context.active_object
+        obj.select = False
+        ob = context.selected_objects[0]
 
-        def object_duplicate(ob):
-            ops_ob = bpy.ops.object
-            ops_ob.select_all(action="DESELECT")
-            ops_ob.select_pattern(pattern=ob.name)
-            ops_ob.duplicate()
-            scene.objects.active = obj
-            return context.selected_objects[0]
+        self.mesh_selection(obj, 'DESELECT')
+        self.mesh_selection(ob, 'SELECT')
 
-        obj_copy = object_duplicate(obj)
-        self.boolean_mod(obj, ob, 'DIFFERENCE', terminate=False)
+        obj_copy = obj.copy()
+        obj_copy.data = obj.data.copy()
+        scene.objects.link(obj_copy)
+
+        self.boolean_mod(obj, ob, 'DIFFERENCE', delete_ob=False)
         scene.objects.active = obj_copy
         self.boolean_mod(obj_copy, ob, 'INTERSECT')
+        obj_copy.select = True
+ 
         return {'FINISHED'}
 
 
@@ -774,8 +747,14 @@ class Direct_Subtract(DirectBooleans, Operator):
     bl_label = "Subtract"
 
     def execute(self, context):
-        obj, ob = get_objects(context)
-        self.boolean_mod(obj, ob, 'DIFFERENCE', terminate=False)
+        obj = context.active_object
+        obj.select = False
+        ob = context.selected_objects[0]
+
+        self.mesh_selection(obj, 'DESELECT')
+        self.mesh_selection(ob, 'SELECT')
+        self.boolean_mod(obj, ob, 'DIFFERENCE', delete_ob=False)
+
         return {'FINISHED'}
 
 
@@ -1249,12 +1228,16 @@ class BoolTool_Pref(AddonPreferences):
 
     solver = EnumProperty(
             name='Boolean Solver',
-            items=(('BMESH', 'BMesh', ''),
-                   ('CARVE', 'Carve', '')),
+            items=(('BMESH', 'BMesh', 'BMesh solver is faster, but less stable '
+                                      'and cannot handle coplanar geometry'),
+                   ('CARVE', 'Carve', 'Carve solver is slower, but more stable '
+                                      'and can handle simple cases of coplanar geometry')),
             default='BMESH',
             description='Specify solver for boolean operations'
             )
+
     bpy.types.Scene.Enable_Tab_01 = bpy.props.BoolProperty(default=False)
+
     def draw(self, context):
         scene = context.scene
         layout = self.layout
