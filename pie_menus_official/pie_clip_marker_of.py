@@ -290,8 +290,6 @@ def register():
         kmi.properties.name = "CLIP_PIE_reconstruction_pie"
         addon_keymaps.append((km, kmi))
 
-        km = wm.keyconfigs.addon.keymaps.new(name="Frames")
-
         kmi = km.keymap_items.new("wm.call_menu_pie", 'A', 'PRESS', shift=True)
         kmi.properties.name = "CLIP_PIE_timecontrol_pie"
         addon_keymaps.append((km, kmi))
