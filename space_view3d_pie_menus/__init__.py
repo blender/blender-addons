@@ -90,7 +90,7 @@ def get_addon_preferences(name=''):
                     cls = _get_pref_class(mod)
                     if cls:
                         prop = PointerProperty(type=cls)
-                        setattr(UIToolsPreferences, name, prop)
+                        setattr(PieToolsPreferences, name, prop)
                         bpy.utils.unregister_class(PieToolsPreferences)
                         bpy.utils.register_class(PieToolsPreferences)
         return getattr(addon_prefs, name, None)
@@ -113,11 +113,11 @@ def unregister_submodule(mod):
 
         prefs = get_addon_preferences()
         name = mod.__name__.split('.')[-1]
-        if hasattr(UIToolsPreferences, name):
-            delattr(UIToolsPreferences, name)
+        if hasattr(PieToolsPreferences, name):
+            delattr(PieToolsPreferences, name)
             if prefs:
-                bpy.utils.unregister_class(UIToolsPreferences)
-                bpy.utils.register_class(UIToolsPreferences)
+                bpy.utils.unregister_class(PieToolsPreferences)
+                bpy.utils.register_class(PieToolsPreferences)
                 if name in prefs:
                     del prefs[name]
 
