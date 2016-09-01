@@ -188,6 +188,7 @@ def Operation(context, _operation):
             selObj["BoolTool_FTransform"] = "False"
 
 
+"""
 # Do Direct Union, Difference and Intersection Operations
 def Operation_Direct(context, _operation):
     actObj = context.active_object
@@ -224,6 +225,7 @@ def Operation_Direct(context, _operation):
             bpy.ops.object.select_all(action='DESELECT')
             # selObj.select = True
             # bpy.ops.object.delete()
+"""
 
 
 # Remove Obejcts form the BoolTool System
@@ -260,19 +262,20 @@ def Remove(context, thisObj_name, Prop):
         # Remove the Brush Property
         if Prop == "BRUSH":
             Canvas = FindCanvas(actObj)
-            for mod in Canvas.modifiers:
-                if ("BTool_" in mod.name):
-                    if (actObj.name in mod.name):
-                        Canvas.modifiers.remove(mod)
-                        cyclesVis = actObj.cycles_visibility
-                        actObj.draw_type = "TEXTURED"
-                        del actObj["BoolToolBrush"]
-                        del actObj["BoolTool_FTransform"]
-                        cyclesVis.camera = True
-                        cyclesVis.diffuse = True
-                        cyclesVis.glossy = True
-                        cyclesVis.shadow = True
-                        cyclesVis.transmission = True
+            if Canvas:
+                for mod in Canvas.modifiers:
+                    if ("BTool_" in mod.name):
+                        if (actObj.name in mod.name):
+                            Canvas.modifiers.remove(mod)
+            cyclesVis = actObj.cycles_visibility
+            actObj.draw_type = "TEXTURED"
+            del actObj["BoolToolBrush"]
+            del actObj["BoolTool_FTransform"]
+            cyclesVis.camera = True
+            cyclesVis.diffuse = True
+            cyclesVis.glossy = True
+            cyclesVis.shadow = True
+            cyclesVis.transmission = True
 
         if Prop == "CANVAS":
             for mod in actObj.modifiers:
@@ -347,22 +350,19 @@ def ApplyAll(context, list):
                 except:  # if fails the means it is multiuser data
                     context.active_object.data = context.active_object.data.copy()  # so just make data unique
                     bpy.ops.object.modifier_apply(modifier=mod.name)
+            del selObj['BoolToolRoot']
 
-            # bpy.ops.object.select_all(action='TOGGLE')
-            # bpy.ops.object.select_all(action='DESELECT')
-            # for obj in deleteList:
-            #     obj.select = True
-            # bpy.ops.object.delete()
     for obj in context.scene.objects:
         if isCanvas(obj):
             for mod in obj.modifiers:
                 if mod.type == 'BOOLEAN':
                     if mod.object in objDeleteList:  # do not delete brush that is used by another canvas
                         objDeleteList.remove(mod.object)  # remove it from deletion
+
     bpy.ops.object.select_all(action='DESELECT')
-    # for obj in objDeleteList:
-    #     obj.select = True
-    #     bpy.ops.object.delete()
+    for obj in objDeleteList:
+        obj.select = True
+    bpy.ops.object.delete()
 
 
 # Apply This Brush to the Canvas
