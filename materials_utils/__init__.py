@@ -1687,28 +1687,30 @@ class MATERIAL_MT_scenemassive_opt(Menu):
 
     def draw(self, context):
         layout = self.layout
-        sc = context.scene
+        scene = context.scene.mat_specials
 
-        layout.prop(sc.mat_specials, "EXTRACT_ALPHA",
+        layout.prop(scene, "EXTRACT_ALPHA",
                     text="Extract Alpha Textures (slow)")
         use_separator(self, context)
-        layout.prop(sc.mat_specials, "EXTRACT_PTEX",
+        layout.prop(scene, "EXTRACT_PTEX",
                     text="Extract Procedural Textures (slow)")
         use_separator(self, context)
-        layout.prop(sc.mat_specials, "EXTRACT_OW", text="Re-extract Textures")
+        layout.prop(scene, "EXTRACT_OW", text="Re-extract Textures")
         use_separator(self, context)
-        layout.prop(sc.mat_specials, "SET_FAKE_USER", text="Set Fake User on unused images")
+        layout.prop(scene, "SET_FAKE_USER", text="Set Fake User on unused images")
         use_separator(self, context)
-        layout.prop(sc.mat_specials, "SCULPT_PAINT", text="Sculpt/Texture paint mode")
+        layout.prop(scene, "SCULPT_PAINT", text="Sculpt/Texture paint mode")
         use_separator(self, context)
-        layout.prop(sc.mat_specials, "UV_UNWRAP", text="Set Auto UV Unwrap (Active Object)")
+        layout.prop(scene, "UV_UNWRAP", text="Set Auto UV Unwrap (Active Object)")
+        use_separator(self, context)
+        layout.prop(scene, "enable_report", text="Enable Report in the UI")
         use_separator(self, context)
 
         layout.label("Set the Bake Resolution")
-        res = str(sc.mat_specials.img_bake_size)
+        res = str(scene.img_bake_size)
         layout.label("Current Setting is : %s" % (res + "x" + res), icon='INFO')
         use_separator(self, context)
-        layout.prop(sc.mat_specials, "img_bake_size", icon='NODE_SEL', expand=True)
+        layout.prop(scene, "img_bake_size", icon='NODE_SEL', expand=True)
 
 
 class MATERIAL_PT_scenemassive(Panel):
@@ -1805,7 +1807,7 @@ class MATERIAL_MT_biconv_help(Menu):
         layout.label(text="If possible, avoid multiple conversions in a row")
         layout.label(text="Save Your Work Often", icon="ERROR")
         use_separator(self, context)
-        layout.label(text="Add a Mix Shader & Duplicate Missing Links")
+        layout.label(text="Try to link them manually using Mix Color nodes")
         layout.label(text="Only the last Image in the stack gets linked to Shader")
         layout.label(text="Current limitation:", icon="MOD_EXPLODE")
         use_separator(self, context)
@@ -1936,6 +1938,11 @@ class material_specials_scene_props(PropertyGroup):
             default=False,
             description=("Use automatical Angle based UV Unwrap of the active Object"),
             )
+    enable_report = BoolProperty(
+            attr="enable_report",
+            default=False,
+            description=("Enable Converter Report in the UI"),
+            )
     img_bake_size = EnumProperty(
             name="Bake Image Size",
             description="Set the resolution size of baked images \n",
@@ -1951,14 +1958,6 @@ class material_specials_scene_props(PropertyGroup):
 
 class VIEW3D_MT_material_utils_pref(AddonPreferences):
     bl_idname = __name__
-
-    conv_path = StringProperty(
-        name="Save Directory",
-        description=("Path to save images during conversion \n"
-                     "Default is the location of the blend file"),
-        default="//",
-        subtype='DIR_PATH',
-        )
 
     show_warnings = BoolProperty(
             name="Enable Warning messages",
@@ -2054,6 +2053,7 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
     def draw(self, context):
         layout = self.layout
         sc = context.scene
+
         box = layout.box()
         box.label("Save Directory")
         split = box.split(0.85)

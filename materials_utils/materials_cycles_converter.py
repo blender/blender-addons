@@ -5,6 +5,9 @@
 import bpy
 from os import path as os_path
 from bpy.types import Operator
+from math import (log2,
+                  ceil,
+                  )
 from bpy.props import (
             BoolProperty,
             EnumProperty,
@@ -26,6 +29,8 @@ CHECK_AUTONODE = False
 NODE_COLOR = (0.32, 0.75, 0.32)
 # set the node color for the paint base images (default reddish)
 NODE_COLOR_PAINT = (0.6, 0.0, 0.0)
+# set the mix node color (default blueish)
+NODE_COLOR_MIX = (0.1, 0.7, 0.8)
 
 # color for sculpt/texture painting setting (default clay the last entry is Roughness)
 PAINT_SC_COLOR = (0.80, 0.75, 0.54, 0.9)
@@ -267,13 +272,10 @@ def AutoNode(active=False, operator=None):
             # and a Color Ramp node
             shader = TreeNodes.nodes.new('ShaderNodeBsdfDiffuse')
             shader.location = 0, 470
-            shader_val = TreeNodes.nodes.new('ShaderNodeValToRGB')
-            shader_val.location = 0, 270
             shout = TreeNodes.nodes.new('ShaderNodeOutputMaterial')
             shout.location = 200, 400
             try:
                 links.new(shader.outputs[0], shout.inputs[0])
-                links.new(shader.inputs[0], shader_val.outputs[0])
             except:
                 link_fail = True
 
@@ -291,7 +293,6 @@ def AutoNode(active=False, operator=None):
                         shader.location = 0, 470
                         try:
                             links.new(shader.outputs[0], shout.inputs[0])
-                            links.new(shader.inputs[0], shader_val.outputs[0])
                         except:
                             link_fail = True
 
@@ -303,7 +304,6 @@ def AutoNode(active=False, operator=None):
                         shader.location = 0, 470
                         try:
                             links.new(shader.outputs[0], shout.inputs[0])
-                            links.new(shader.inputs[0], shader_val.outputs[0])
                         except:
                             link_fail = True
 
@@ -315,7 +315,6 @@ def AutoNode(active=False, operator=None):
                         shader.location = 0, 520
                         try:
                             links.new(shader.outputs[0], shout.inputs[0])
-                            links.new(shader.inputs[0], shader_val.outputs[0])
                         except:
                             link_fail = True
 
@@ -329,7 +328,6 @@ def AutoNode(active=False, operator=None):
                         shader.location = 0, 450
                         try:
                             links.new(shader.outputs[0], shout.inputs[0])
-                            links.new(shader.inputs[0], shader_val.outputs[0])
                         except:
                             link_fail = True
                     else:
@@ -389,8 +387,6 @@ def AutoNode(active=False, operator=None):
                     shout.location = 400, 460
                     for link in links:
                         links.remove(link)
-
-                    TreeNodes.nodes.remove(shader_val)
 
                     clay_frame = TreeNodes.nodes.new('NodeFrame')
                     clay_frame.name = 'Clay Material'
@@ -476,6 +472,8 @@ def AutoNode(active=False, operator=None):
                                 img_name = (img.name if hasattr(img, "name") else "NO NAME")
                                 shtext = TreeNodes.nodes.new('ShaderNodeTexImage')
                                 shtext.location = tex_node_loc
+                                shtext.hide = True
+                                shtext.width_hidden = 150
                                 shtext.image = img
                                 shtext.name = img_name
                                 shtext.label = "Image " + img_name
@@ -504,6 +502,8 @@ def AutoNode(active=False, operator=None):
                                         img_name = (img.name if hasattr(img, "name") else "NO NAME")
                                         shtext = TreeNodes.nodes.new('ShaderNodeTexImage')
                                         shtext.location = tex_node_loc
+                                        shtext.hide = True
+                                        shtext.width_hidden = 150
                                         shtext.image = img
                                         shtext.name = img_name
                                         shtext.label = "Baked Image " + img_name
@@ -538,7 +538,7 @@ def AutoNode(active=False, operator=None):
                     if sT and sculpt_paint is False:
                         if tex.use_map_color_diffuse:
                             try:
-                                links.new(shtext.outputs[0], shader_val.inputs[0])
+                                links.new(shtext.outputs[0], shader.inputs[0])
                             except:
                                 pass
                         if tex.use_map_emit:
@@ -569,7 +569,7 @@ def AutoNode(active=False, operator=None):
 
                         if tex.use_map_mirror:
                             try:
-                                links.new(shtext.outputs[0], shader_val.inputs[0])
+                                links.new(shtext.outputs[0], shader.inputs[0])
                             except:
                                 link_fail = True
 
@@ -682,6 +682,8 @@ def AutoNode(active=False, operator=None):
                         img = bpy.data.images.get(paint_img_name)
                         img_name = (img.name if hasattr(img, "name") else "NO NAME")
                         shtext = TreeNodes.nodes.new('ShaderNodeTexImage')
+                        shtext.hide = True
+                        shtext.width_hidden = 150
                         shtext.location = tex_node_loc
                         shtext.image = img
                         shtext.name = img_name
@@ -695,12 +697,17 @@ def AutoNode(active=False, operator=None):
                     except:
                         collect_report("ERROR: Failed to create image and node for Texture Painting")
 
-                # spread the texture nodes, create a node frame if necessary
+                # spread the texture nodes, create node frames if necessary
                 # create texture coordinate and mapping too
-                row_node, col_node = -1, False
-                check_frame = bool(len(tex_node_collect) > 1)
-                node_frame, tex_map, node_f_coord = None, None, None
+                row_node = -1
+                tex_node_collect_size = len(tex_node_collect)
+                median_point = ((tex_node_collect_size / 2) * 100)
+                check_frame = bool(tex_node_collect_size > 1)
+
+                node_frame, tex_map = None, None
+                node_f_coord, node_f_mix = None, None
                 tex_map_collection, tex_map_coord = [], None
+                tree_size, tree_tex_start = 0, 0
 
                 if check_frame:
                     node_frame = TreeNodes.nodes.new('NodeFrame')
@@ -711,22 +718,37 @@ def AutoNode(active=False, operator=None):
                     node_f_coord.name = "Coordinates"
                     node_f_coord.label = "Coordinates"
 
+                    node_f_mix = TreeNodes.nodes.new('NodeFrame')
+                    node_f_mix.name = "Mix"
+                    node_f_mix.label = "Mix"
+
                 if tex_node_collect:
                     tex_map_coord = TreeNodes.nodes.new('ShaderNodeTexCoord')
                     tex_map_coord.location = -900, 575
 
+                    # precalculate the depth of the inverted tree
+                    tree_size = int(ceil(log2(tex_node_collect_size)))
+                    # offset the start of the mix nodes by the depth of the tree
+                    tree_tex_start = ((tree_size + 1) * 150)
+
                 for node_tex in tex_node_collect:
-                    row_node = (row_node + 1 if not col_node else row_node)
-                    col_node = not col_node
-                    tex_node_loc = (-(200 + (row_node * 150)), (400 if col_node else 650))
+                    row_node += 1
+                    col_node_start = (median_point - (-(row_node * 50) + median_point))
+                    tex_node_row = tree_tex_start + 300
+                    mix_node_row = tree_tex_start + 620
+                    tex_node_loc = (-(tex_node_row), col_node_start)
+
                     try:
                         node_tex.location = tex_node_loc
                         if check_frame:
                             node_tex.parent = node_frame
+                        else:
+                            node_tex.hide = False
 
                         tex_node_name = getattr(node_tex, "name", "NO NAME")
                         tex_map_name = "Mapping: {}".format(tex_node_name)
                         tex_map = TreeNodes.nodes.new('ShaderNodeMapping')
+                        tex_map.location = (-(mix_node_row), col_node_start)
                         tex_map.width = 240
                         tex_map.hide = True
                         tex_map.width_hidden = 150
@@ -739,24 +761,41 @@ def AutoNode(active=False, operator=None):
                         continue
 
                 if tex_map_collection:
-                    row_map_tex = -(350 + (row_node + 1) * 150)
-                    col_map_start = (((len(tex_map_collection) / 2) * 50) + 575)
+                    tex_mix_start = len(tex_map_collection) / 2
+                    row_map_start = -(tree_tex_start + 850)
 
                     if tex_map_coord:
-                        tex_map_coord.location = ((row_map_tex - 250), 500)
+                        tex_map_coord.location = (row_map_start,
+                                                  (median_point - (tex_mix_start * 50)))
 
                     for maps in tex_map_collection:
-                        row_node += 1
-                        tex_map_loc = row_map_tex, (-(row_node * 50) + col_map_start)
                         try:
-                            maps.location = tex_map_loc
                             if node_f_coord:
                                 maps.parent = node_f_coord
+                            else:
+                                maps.hide = False
 
                             links.new(maps.inputs[0], tex_map_coord.outputs['UV'])
                         except:
                             link_fail = True
                             continue
+
+                # create mix nodes to connect texture nodes to the shader input
+                # sculpt mode doesn't need them
+                if check_frame and not sculpt_paint:
+                    mix_node_pairs = loop_node_from_list(TreeNodes, links, tex_node_collect,
+                                                         0, tree_tex_start, median_point, node_f_mix)
+
+                    for n in range(1, tree_size):
+                        mix_node_pairs = loop_node_from_list(TreeNodes, links, mix_node_pairs,
+                                                             n, tree_tex_start, median_point, node_f_mix)
+                    try:
+                        for node in mix_node_pairs:
+                            links.new(node.outputs[0], shader.inputs[0])
+                    except:
+                        link_fail = True
+
+                    mix_node_pairs = []
 
                 tex_node_collect, tex_map_collection = [], []
 
@@ -767,6 +806,44 @@ def AutoNode(active=False, operator=None):
                 collect_report("No textures in the Scene, no Image Nodes to add")
 
     bpy.context.scene.render.engine = 'CYCLES'
+
+
+def loop_node_from_list(TreeNodes, links, node_list, loc, start, median_point, frame):
+    row = 1
+    mix_nodes = []
+    node_list_size = len(node_list)
+    tuplify = [tuple(node_list[s:s + 2]) for s in range(0, node_list_size, 2)]
+    for nodes in tuplify:
+        row += 1
+        create_mix = create_mix_node(TreeNodes, links, nodes, loc, start,
+                                     median_point, row, frame)
+        if create_mix:
+            mix_nodes.append(create_mix)
+    return mix_nodes
+
+
+def create_mix_node(TreeNodes, links, nodes, loc, start, median_point, row, frame):
+    mix_node = TreeNodes.nodes.new('ShaderNodeMixRGB')
+    mix_node.name = "MIX level: " + str(loc)
+    mix_node.label = "MIX level: " + str(loc)
+    mix_node.use_custom_color = True
+    mix_node.color = NODE_COLOR_MIX
+    mix_node.hide = True
+    mix_node.width_hidden = 75
+
+    if frame:
+        mix_node.parent = frame
+    mix_node.location = -(start - loc * 175), ((median_point / 4) + (row * 50))
+
+    try:
+        if len(nodes) > 1:
+            links.new(nodes[0].outputs[0], mix_node.inputs["Color2"])
+            links.new(nodes[1].outputs[0], mix_node.inputs["Color1"])
+        elif len(nodes) == 1:
+            links.new(nodes[0].outputs[0], mix_node.inputs["Color1"])
+    except:
+        collect_report("ERROR: Link failed for mix node {}".format(mix_node.label))
+    return mix_node
 
 
 # -----------------------------------------------------------------------------

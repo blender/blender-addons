@@ -129,16 +129,19 @@ def collect_report(collection="", is_start=False, is_final=False):
     # collection passes a string for appending to COLLECT_REPORT global
     # is_final swithes to the final report with the operator in __init__
     global COLLECT_REPORT
+    scene = bpy.context.scene.mat_specials
+    use_report = scene.enable_report
 
     if is_start:
         # there was a crash somewhere before the is_final call
         COLLECT_REPORT = []
 
     if collection and type(collection) is str:
-        COLLECT_REPORT.append(collection)
+        if use_report:
+            COLLECT_REPORT.append(collection)
         print(collection)
 
-    if is_final:
+    if is_final and use_report:
         # final operator pass uses * as delimiter for splitting into new lines
         messages = "*".join(COLLECT_REPORT)
         bpy.ops.mat_converter.reports('INVOKE_DEFAULT', message=messages)
