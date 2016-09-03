@@ -271,11 +271,14 @@ def AutoNode(active=False, operator=None):
             # Starting point is diffuse BSDF and output material
             # and a Color Ramp node
             shader = TreeNodes.nodes.new('ShaderNodeBsdfDiffuse')
-            shader.location = 0, 470
+            shader.location = 10, 10
+            shader_val = TreeNodes.nodes.new('ShaderNodeValToRGB')
+            shader_val.location = 0, -200
             shout = TreeNodes.nodes.new('ShaderNodeOutputMaterial')
-            shout.location = 200, 400
+            shout.location = 200, 10
             try:
                 links.new(shader.outputs[0], shout.inputs[0])
+                links.new(shader.inputs[0], shader_val.outputs[0])
             except:
                 link_fail = True
 
@@ -290,7 +293,7 @@ def AutoNode(active=False, operator=None):
                         collect_report("INFO: Make DIFFUSE shader node for: " + cmat.name)
                         TreeNodes.nodes.remove(shader)
                         shader = TreeNodes.nodes.new('ShaderNodeBsdfDiffuse')
-                        shader.location = 0, 470
+                        shader.location = 10, 10
                         try:
                             links.new(shader.outputs[0], shout.inputs[0])
                         except:
@@ -301,7 +304,7 @@ def AutoNode(active=False, operator=None):
                         collect_report("INFO: Make GLASS shader node for: " + cmat.name)
                         TreeNodes.nodes.remove(shader)
                         shader = TreeNodes.nodes.new('ShaderNodeBsdfGlass')
-                        shader.location = 0, 470
+                        shader.location = 0, 100
                         try:
                             links.new(shader.outputs[0], shout.inputs[0])
                         except:
@@ -312,7 +315,7 @@ def AutoNode(active=False, operator=None):
                         collect_report("INFO: Make MIRROR shader node for: " + cmat.name)
                         TreeNodes.nodes.remove(shader)
                         shader = TreeNodes.nodes.new('ShaderNodeBsdfGlossy')
-                        shader.location = 0, 520
+                        shader.location = 0, 10
                         try:
                             links.new(shader.outputs[0], shout.inputs[0])
                         except:
@@ -325,7 +328,7 @@ def AutoNode(active=False, operator=None):
                         collect_report("INFO: Mix EMISSION shader node for: " + cmat.name)
                         TreeNodes.nodes.remove(shader)
                         shader = TreeNodes.nodes.new('ShaderNodeEmission')
-                        shader.location = 0, 450
+                        shader.location = 0, 200
                         try:
                             links.new(shader.outputs[0], shout.inputs[0])
                         except:
@@ -333,12 +336,12 @@ def AutoNode(active=False, operator=None):
                     else:
                         if not Add_Emission:
                             collect_report("INFO: Add EMISSION shader node for: " + cmat.name)
-                            shout.location = 550, 330
+                            shout.location = 600, 100
                             Add_Emission = TreeNodes.nodes.new('ShaderNodeAddShader')
-                            Add_Emission.location = 370, 490
+                            Add_Emission.location = 370, 100
 
                             shem = TreeNodes.nodes.new('ShaderNodeEmission')
-                            shem.location = 180, 380
+                            shem.location = 0, 200
                             try:
                                 links.new(Add_Emission.outputs[0], shout.inputs[0])
                                 links.new(shem.outputs[0], Add_Emission.inputs[1])
@@ -384,7 +387,7 @@ def AutoNode(active=False, operator=None):
 
                 # remove Color Ramp and links from the default shader and reroute
                 try:
-                    shout.location = 400, 460
+                    shout.location = 400, 0
                     for link in links:
                         links.remove(link)
 
@@ -393,12 +396,12 @@ def AutoNode(active=False, operator=None):
                     clay_frame.label = 'Clay Material'
 
                     sh_glossy = TreeNodes.nodes.new('ShaderNodeBsdfGlossy')
-                    sh_glossy.location = 0, 350
+                    sh_glossy.location = 0, 200
                     sh_glossy.inputs['Color'].default_value = CLAY_GLOSSY
                     sh_mix = TreeNodes.nodes.new('ShaderNodeMixShader')
-                    sh_mix.location = 200, 460
+                    sh_mix.location = 200, 0
                     sh_weight = TreeNodes.nodes.new('ShaderNodeLayerWeight')
-                    sh_weight.location = 0, 590
+                    sh_weight.location = 0, 350
                     links.new(sh_mix.outputs[0], shout.inputs[0])
                     links.new(sh_weight.outputs[1], sh_mix.inputs[0])
                     links.new(shader.outputs[0], sh_mix.inputs[1])
