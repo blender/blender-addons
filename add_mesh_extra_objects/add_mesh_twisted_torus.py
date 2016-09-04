@@ -158,8 +158,8 @@ class AddTwistedTorus(bpy.types.Operator):
         max=256,
         default=1)
 
-    use_abso = BoolProperty(name="Use Int+Ext Controls",
-        description="Use the Int / Ext controls for torus dimensions",
+    use_abso = BoolProperty(name="Use Int/Ext Controls",
+        description="Use the Int/Ext controls for torus dimensions",
         default=False)
     abso_major_rad = FloatProperty(name="Exterior Radius",
         description="Total Exterior Radius of the torus",
