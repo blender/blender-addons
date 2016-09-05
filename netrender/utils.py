@@ -159,7 +159,7 @@ def clientScan(report = None):
 
         return ("", 8000) # return default values
 
-def clientConnection(netsettings, report = None, scan = True, timeout = 5):
+def clientConnection(netsettings, report = None, scan = True, timeout = 50):
     address = netsettings.server_address
     port = netsettings.server_port
     use_ssl = netsettings.use_ssl
