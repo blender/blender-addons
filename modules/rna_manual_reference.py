@@ -212,6 +212,7 @@ url_manual_mapping = (
 
     # *** Render Settings ***
     ("bpy.types.ImageFormatSettings.*",        "data_system/files/media/image_formats.html"),
+    ("bpy.types.RenderSettings.simplify_subdivision*", "data_system/scenes/properties.html#simplify"),
     ("bpy.types.RenderSettings.filepath",      "render/output/output.html#output-panel"),
     ("bpy.types.RenderSettings.display_mode",  "render/output/display.html#displaying-renders"),
     ("bpy.types.RenderSettings.*",             "render"),  # Catchall, todo - refine
@@ -221,6 +222,8 @@ url_manual_mapping = (
     ("bpy.types.RenderResult.*",               "render/output/display.html"),
     ("bpy.types.RenderSlot*",                  "render/output/display.html#display-options"),
     ("bpy.types.RenderView*",                  "render/workflows/multiview/usage.html#views-setup"),
+    ("bpy.types.FFmpegSettings.audio_channels", "data_system/scenes/properties.html#audio"),
+    ("bpy.types.FFmpegSettings.audio_mixrate",  "data_system/scenes/properties.html#audio"),
     ("bpy.types.FFmpegSettings.*",             "render/output/video.html#encoding-panel"),
     # --- Baking ---
     ("bpy.types.BakePixel.*",                  "render/blender_render/bake.html"),
@@ -329,9 +332,18 @@ url_manual_mapping = (
     ("bpy.types.MovieClipProxy.*",             "editors/movie_clip_editor/properties/proxy.html"),
     ("bpy.types.MovieClip.*",                  "editors/movie_clip_editor"), # Catchall
 
-    ("bpy.types.ColorManaged*",                "render/post_process/cm_and_exposure.html"),
+    ("bpy.types.ColorManagedSequencer*",       "render/post_process/color_management.html#sequencer"),
+    ("bpy.types.ColorManagedViewSettings*"     "render/post_process/color_management.html#render"),
+    ("bpy.types.ColorManagedDisplaySettings*", "render/post_process/color_management.html#display"),
+    ("bpy.types.ColorManaged*",                "render/post_process/color_management.html"),
     # ("bpy.types.NodeTree.*",                 ""), # dont document
+    ("bpy.types.Scene.camera",                 "data_system/scenes/properties.html#scene"),
+    ("bpy.types.Scene.background_set",         "data_system/scenes/properties.html#scene"),
+    ("bpy.types.Scene.active_clip",            "data_system/scenes/properties.html#scene"),
+    ("bpy.types.Scene.audio_volume*",          "data_system/scenes/properties.html#audio"),
+    ("bpy.types.Scene.gravity",                "physics/introduction.html#gravity"),
     ("bpy.types.Scene.*",                      "data_system/scenes"),
+    ("bpy.types.UnitSettings.*",               "data_system/scenes/properties.html#units"),
     ("bpy.types.Screen.*",                     "interface/window_system/screens.html"),
     ("bpy.types.Sound.*",                      "editors/3dview/object/types/speaker.html"),
     ("bpy.types.Speaker.*",                    "editors/3dview/object/types/speaker.html"),
@@ -372,6 +384,8 @@ url_manual_mapping = (
     ("bpy.types.MeshStatVis.*",                "modeling/meshes/mesh_analysis.html"),
 
     # *** Cycles ***
+    ("bpy.types.CyclesRenderSettings.use_camera_cull",            "data_system/scenes/properties.html#simplify"),
+    ("bpy.types.CyclesRenderSettings.camera_cull_margin",         "data_system/scenes/properties.html#simplify"),
     ("bpy.types.CyclesRenderSettings.dicing_rate",                "render/cycles/settings/integrator.html#subdivision-rate"),
     ("bpy.types.CyclesRenderSettings.preview_dicing_rate",        "render/cycles/settings/integrator.html#subdivision-rate"),
     ("bpy.types.CyclesRenderSettings.max_subdivisions",           "render/cycles/settings/integrator.html#subdivision-rate"),
@@ -860,6 +874,7 @@ url_manual_mapping = (
 
     ("bpy.ops.render.play-rendered-anim", "render/output/display.html#animation-playback"),
     ("bpy.ops.render.*",                  "render"),  # Catchall
+    ("bpy.ops.rigidbody.world*",          "physics/rigid_body/world.html"),
     ("bpy.ops.rigidbody.*",               "physics/rigid_body"),
     ("bpy.ops.safe_areas.*",              "editors/3dview/object/types/camera/safe_areas.html"),
     ("bpy.ops.scene.*",                   "data_system/scenes"),
@@ -868,6 +883,7 @@ url_manual_mapping = (
     ("bpy.ops.sculpt.*",                  "sculpt_paint/sculpting"),
     ("bpy.ops.sequencer.*",               "editors/sequencer"),
     # ("bpy.ops.sketch.*",                ""),  # TODO
+    ("bpy.ops.sound.bake_animation",      "data_system/scenes/properties.html#audio"),
     ("bpy.ops.sound.*",                   "editors/3dview/object/types/speaker.html"),
     ("bpy.ops.surface.*",                 "modeling/surfaces"),
     ("bpy.ops.text.*",                    "editors/text_editor.html"),
@@ -897,10 +913,11 @@ url_manual_mapping = (
     # ("bpy.ops.view2d.*",  ""),          #  TODO
     ("bpy.ops.view3d.*",                  "editors/3dview"),  # Catchall
     ("bpy.ops.view3d.background_image_add", "editors/3dview/display/background_images.html"),
+    ("bpy.ops.wm.properties*",            "data_system/custom_properties.html"),
     ("bpy.ops.wm.addon_*",                "preferences/addons.html"),
-    ("bpy.ops.wm.*",                      "interface/window_system"),
+    ("bpy.ops.wm.*",                      "interface/index.html#window-system"),
     ("bpy.ops.world.*",                   "render/blender_render/world"),
-    ("bpy.ops.*",                         "contents.html"),  # Catchall
+    ("bpy.ops.*",                         "contents.html"),  # CATCHALL!
 
 )
 
