@@ -109,19 +109,19 @@ url_manual_mapping = (
     ("bpy.types.AddonPreferences.*",                "advanced/scripting/python/addons.html"),
 
     # *** User Interface ***
-    ("bpy.types.Area.*",                    "interface/editors/arranging_areas.html"),
-    ("bpy.types.AreaSpaces.*",              "interface/editors/arranging_areas.html"),
+    ("bpy.types.Area.*",                    "interface/window_system/areas.html"),
+    ("bpy.types.AreaSpaces.*",              "interface/window_system/areas.html"),
     ("bpy.types.ConsoleLine.*",             "advanced/command_line"),
-    ("bpy.types.Header.*",                  "interface/editors/headers.html"),
-    ("bpy.types.Panel.*",                   "interface/editors/panels.html"),
-    ("bpy.types.Region.*",                  "interface/editors/arranging_areas.html"),
+    ("bpy.types.Header.*",                  "interface/window_system/regions.html#header"),
+    ("bpy.types.Panel.*",                   "interface/window_system/tabs_panels.html#panels"),
+    ("bpy.types.Region.*",                  "interface/window_system/regions.html"),
     # ("bpy.types.UILayout.*",              ""),  # Todo
     # ("bpy.types.UIList.*",                ""),  # Todo
     ("bpy.types.Menu.*",                    "interface/controls/buttons_and_controls.html#menu-buttons"),
     ("bpy.types.UIPieMenu.*",               "interface/controls/buttons_and_controls.html#pie-menus"),
     ("bpy.types.UIPopupMenu.*",             "interface/controls/buttons_and_controls.html#pop-up-menus"),
-    ("bpy.types.Window.*",                  "interface/editors"),
-    ("bpy.types.WindowManager.*",           "interface/editors"),
+    ("bpy.types.Window.*",                  "interface/index.html#window-system"),
+    ("bpy.types.WindowManager.*",           "interface/index.html#window-system"),
     # --- Spaces ---
     ("bpy.types.SpaceConsole.*",            "editors/python_console.html"),
     ("bpy.types.SpaceDopeSheetEditor.*",    "editors/dope_sheet"),
@@ -253,8 +253,8 @@ url_manual_mapping = (
     ("bpy.types.RenderViews.*",                "render/workflows/multiview/usage.html#views-setup"),
     ("bpy.types.FFmpegSettings.*",             "render/output/video.html#encoding-panel"),
     # --- Baking ---
-    ("bpy.types.BakePixel.*",                  "render/workflows/bake.html"),
-    ("bpy.types.BakeSettings.*",               "render/workflows/bake.html#options"),
+    ("bpy.types.BakePixel.*",                  "render/blender_render/bake.html"),
+    ("bpy.types.BakeSettings.*",               "render/blender_render/bake.html#options"),
 
     # Painting/Sculpting
     ("bpy.types.Sculpt.*",                     "sculpt_paint/sculpting"),
@@ -361,8 +361,8 @@ url_manual_mapping = (
 
     ("bpy.types.ColorManaged*",                "render/post_process/cm_and_exposure.html"),
     # ("bpy.types.NodeTree.*",                 ""), # dont document
-    ("bpy.types.Scene.*",                      "data_system/scenes.html"),
-    ("bpy.types.Screen.*",                     "interface/editors/screens.html"),
+    ("bpy.types.Scene.*",                      "data_system/scenes"),
+    ("bpy.types.Screen.*",                     "interface/window_system/screens.html"),
     ("bpy.types.Sound.*",                      "editors/3dview/object/types/speaker.html"),
     ("bpy.types.Speaker.*",                    "editors/3dview/object/types/speaker.html"),
     ("bpy.types.Text.*",                       "editors/text_editor.html"),
@@ -936,8 +936,8 @@ url_manual_mapping = (
     ("bpy.ops.render.*",                  "render"),  # Catchall
     ("bpy.ops.rigidbody.*",               "physics/rigid_body"),
     ("bpy.ops.safe_areas.*",              "editors/3dview/object/types/camera/safe_areas.html"),
-    ("bpy.ops.scene.*",                   "data_system/scenes.html"),
-    ("bpy.ops.screen.*",                  "interface/editors/screens.html"),
+    ("bpy.ops.scene.*",                   "data_system/scenes"),
+    ("bpy.ops.screen.*",                  "interface/window_system/screens.html"),
     ("bpy.ops.script.*",                  "advanced/scripting"),
     ("bpy.ops.sculpt.*",                  "sculpt_paint/sculpting"),
     ("bpy.ops.sequencer.*",               "editors/sequencer"),
@@ -972,7 +972,7 @@ url_manual_mapping = (
     ("bpy.ops.view3d.*",                  "editors/3dview"),  # Catchall
     ("bpy.ops.view3d.background_image_add", "editors/3dview/display/background_images.html"),
     ("bpy.ops.wm.addon_*",                "preferences/addons.html"),
-    ("bpy.ops.wm.*",                      "interface/editors/"),
+    ("bpy.ops.wm.*",                      "interface/window_system"),
     ("bpy.ops.world.*",                   "render/blender_render/world"),
     ("bpy.ops.*",                         "contents.html"),  # Catchall
 
