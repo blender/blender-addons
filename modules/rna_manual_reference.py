@@ -176,8 +176,9 @@ url_manual_mapping = (
     ("bpy.types.SoftBodyModifier.*",          "physics/soft_body"),
 
     # *** Constraints ***
-    ("bpy.types.Constraint.*",                "rigging/constraints"),
+    ("bpy.types.Constraint.influence",        "rigging/constraints/interface/influence.html"),
     ("bpy.types.Constraint.mute",             "rigging/constraints/interface/the_stack.html"),  # others could be added here?
+    ("bpy.types.Constraint.*",                "rigging/constraints"),
     # --- Motion Tracking Constraints ---
     ("bpy.types.FollowTrackConstraint.*",     "rigging/constraints/motion_tracking/follow_track.html"),
     ("bpy.types.ObjectSolverConstraint.*",    "rigging/constraints/motion_tracking/object_solver.html"),
@@ -212,6 +213,7 @@ url_manual_mapping = (
 
     # *** Render Settings ***
     ("bpy.types.ImageFormatSettings.*",        "data_system/files/media/image_formats.html"),
+    ("bpy.types.RenderSettings.engine",        "render/introduction.html#render-engines"),
     ("bpy.types.RenderSettings.simplify_subdivision*", "data_system/scenes/properties.html#simplify"),
     ("bpy.types.RenderSettings.filepath",      "render/output/output.html#output-panel"),
     ("bpy.types.RenderSettings.display_mode",  "render/output/render_panel.html#display"),
@@ -333,7 +335,7 @@ url_manual_mapping = (
     ("bpy.types.MovieClip.*",                  "editors/movie_clip_editor"), # Catchall
 
     ("bpy.types.ColorManagedSequencer*",       "render/post_process/color_management.html#sequencer"),
-    ("bpy.types.ColorManagedViewSettings*"     "render/post_process/color_management.html#render"),
+    ("bpy.types.ColorManagedViewSettings*",    "render/post_process/color_management.html#render"),
     ("bpy.types.ColorManagedDisplaySettings*", "render/post_process/color_management.html#display"),
     ("bpy.types.ColorManaged*",                "render/post_process/color_management.html"),
     # ("bpy.types.NodeTree.*",                 ""), # dont document
@@ -377,6 +379,22 @@ url_manual_mapping = (
     ("bpy.types.Object.scale",                 "editors/3dview/object/properties/transforms.html"),
     ("bpy.types.Object.lock_scale",            "editors/3dview/object/properties/transforms.html#transform-properties-locking"),
     ("bpy.types.Object.dimensions",            "editors/3dview/object/properties/transforms.html"),
+    ("bpy.types.Object.delta*",                "editors/3dview/object/properties/transforms.html#delta-transforms"),
+    ("bpy.types.Object.layers",                "editors/3dview/object/properties/relations/layers.html"),
+    ("bpy.types.Object.dupli_type",            "editors/3dview/object/properties/duplication"),
+    ("bpy.types.Object.dupli_frames*",         "editors/3dview/object/properties/duplication/dupliframes.html"),
+    ("bpy.types.Object.use_dupli_vertices*",   "editors/3dview/object/properties/duplication/dupliverts.html"),
+    ("bpy.types.Object.use_dupli_faces*",      "editors/3dview/object/properties/duplication/duplifaces.html"),
+    ("bpy.types.Object.dupli_group",           "editors/3dview/object/properties/duplication/dupligroup.html"),
+    ("bpy.types.Object.parent",                "editors/3dview/object/properties/relations/parents.html"),
+    ("bpy.types.Object.use_slow_parent*",      "editors/3dview/object/properties/relations/extras.html"),
+    ("bpy.types.Object.slow_parent_offset",    "editors/3dview/object/properties/relations/extras.html"),
+    ("bpy.types.Object.track_axis",            "editors/3dview/object/properties/relations/extras.html"),
+    ("bpy.types.Object.up_axis",               "editors/3dview/object/properties/relations/extras.html"),
+    ("bpy.types.Object.use_extra*",            "editors/3dview/object/properties/relations/extras.html"),
+    ("bpy.types.Object.show*",                 "editors/3dview/object/properties/display.html"),
+    ("bpy.types.Object.draw_type",             "editors/3dview/object/properties/display.html"),
+    ("bpy.types.Object.color",                 "editors/3dview/object/properties/display.html"),
     ("bpy.types.Object.*",                     "editors/3dview/object"),  # Catchall
     ("bpy.types.TransformOrientation.*",       "editors/3dview/transform/transform_control/transform_orientations.html"),
 
@@ -732,7 +750,7 @@ url_manual_mapping = (
     ("bpy.types.FModifierStepped.*",               "editors/graph_editor/fcurves/fmodifiers.html#stepped"),
     ("bpy.types.TimelineMarker.*",                 "animation/markers.html"),
     ("bpy.types.AnimViz.*",                        "animation/keyframes/visualization.html"),
-    ("bpy.types.AnimVizMotionPaths.*",             "animation/keyframes/visualization.html"),
+    ("bpy.types.AnimVizMotionPaths.*",             "animation/keyframes/visualization.html#motion-paths"),
     ("bpy.types.AnimVizOnionSkinning.*",           "animation/keyframes/visualization.html"),
     ("bpy.types.NlaStrip.*",                       "editors/nla.html#strips"),
     ("bpy.types.NlaTrack.*",                       "editors/nla.html#tracks"),
@@ -906,6 +924,7 @@ url_manual_mapping = (
     ("bpy.ops.object.shade_flat",         "modeling/meshes/smoothing.html#smooth-shading"),
     ("bpy.ops.object.data_transfer",      "modeling/meshes/editing/data_transfer.html#data"),
     ("bpy.ops.object.datalayout_transfer", "modeling/meshes/editing/data_transfer.html#data-layout"),
+    ("bpy.ops.object.group*",             "editors/3dview/object/properties/relations/groups.html"),
     ("bpy.ops.object.*",                  "editors/3dview/transform"), # Catchall
     ("bpy.ops.ui.*",                      "interface"),
     ("bpy.ops.uv.*",                      "editors/uv_image"),
