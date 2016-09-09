@@ -297,7 +297,7 @@ class BlendFileBlock:
         return ("<%s.%s (%s), size=%d at %s>" %
                 # fields=[%s]
                 (self.__class__.__name__,
-                 self.dna_type.dna_type_id.decode('ascii'),
+                 self.dna_type_name,
                  self.code.decode(),
                  self.size,
                  # b", ".join(f.dna_name.name_only for f in self.dna_type.fields).decode('ascii'),
@@ -344,6 +344,10 @@ class BlendFileBlock:
     @property
     def dna_type(self):
         return self.file.structs[self.sdna_index]
+
+    @property
+    def dna_type_name(self):
+        return self.dna_type.dna_type_id.decode('ascii')
 
     def refine_type_from_index(self, sdna_index_next):
         assert(type(sdna_index_next) is int)
