@@ -51,8 +51,8 @@ def defReconst(self, OFFSET):
         if vertice.co[0] < 0:
             bm.verts.remove(vertice)
             bmesh.update_edit_mesh(ob.data)
-    # mod = ob.modifiers.new("Mirror", "MIRROR")
-    # uv = ob.data.uv_textures.new(name="SYMMETRICAL")
+    mod = ob.modifiers.new("Mirror", "MIRROR")
+    uv = ob.data.uv_textures.new(name="SYMMETRICAL")
     for v in bm.faces:
         v.select = 1
     bmesh.update_edit_mesh(ob.data)
@@ -67,7 +67,7 @@ def defReconst(self, OFFSET):
     bpy.ops.object.mode_set(mode="EDIT", toggle=False)
     bm = bmesh.from_edit_mesh(ob.data)
     bm.select_flush(0)
-    # uv = ob.data.uv_textures.new(name="ASYMMETRICAL")
+    uv = ob.data.uv_textures.new(name="ASYMMETRICAL")
     ob.data.uv_textures.active = ob.data.uv_textures['ASYMMETRICAL']
     bpy.ops.uv.unwrap(
         method='ANGLE_BASED',
