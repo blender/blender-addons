@@ -761,7 +761,7 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
                         t_spec = t
                     if t.use_map_normal:
                         texturesNorm = image_filename
-                        # colvalue = t.normal_factor * 10.0  # UNUSED
+                        # colvalue = t.normal_factor # UNUSED
                         #textNormName=t.texture.image.name + ".normal"
                         #was the above used? --MR
                         t_nor = t
@@ -814,7 +814,7 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
                         t_spec = t
                     if t.use_map_normal:
                         texturesNorm = image_filename
-                        # colvalue = t.normal_factor * 10.0  # UNUSED
+                        # colvalue = t.normal_factor  # UNUSED
                         #textNormName=t.texture.image.name + ".normal"
                         #was the above used? --MR
                         t_nor = t
@@ -982,12 +982,12 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
             mappingNor =imgMapTransforms(t_nor)
 
             if texturesNorm and texturesNorm.startswith("PAT_"):
-                tabWrite("normal{function{f%s(x,y,z).grey} bump_size %.4g %s}\n" %(texturesNorm, t_nor.normal_factor * 10, mappingNor)) 
+                tabWrite("normal{function{f%s(x,y,z).grey} bump_size %.4g %s}\n" %(texturesNorm, t_nor.normal_factor, mappingNor)) 
             else:
                 tabWrite("normal {uv_mapping bump_map " \
                          "{%s \"%s\" %s  bump_size %.4g }%s}\n" % \
                          (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor),
-                          t_nor.normal_factor * 10, mappingNor))
+                          t_nor.normal_factor, mappingNor))
         if texturesSpec != "":
             tabWrite("]\n")
         ##################Second index for mapping specular max value###############
@@ -1093,11 +1093,11 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
         mappingNor =imgMapTransforms(t_nor)
 
         if texturesNorm and texturesNorm.startswith("PAT_"):
-            tabWrite("normal{function{f%s(x,y,z).grey} bump_size %.4g %s}\n" %(texturesNorm, t_nor.normal_factor * 10, mappingNor))
+            tabWrite("normal{function{f%s(x,y,z).grey} bump_size %.4g %s}\n" %(texturesNorm, t_nor.normal_factor, mappingNor))
         else:                                    
             tabWrite("normal {uv_mapping bump_map {%s \"%s\" %s  bump_size %.4g }%s}\n" % \
                      (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor),
-                      t_nor.normal_factor * 10.0, mappingNor))
+                      t_nor.normal_factor, mappingNor))
     if texturesSpec != "" and mater.pov.replacement_text == "":
         tabWrite("]\n")
 
@@ -1161,7 +1161,7 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
                 if image_filename:
                     if t.use_map_normal:
                         texturesNorm = image_filename
-                        # colvalue = t.normal_factor * 10.0  # UNUSED
+                        # colvalue = t.normal_factor  # UNUSED
                         #textNormName=t.texture.image.name + ".normal"
                         #was the above used? --MR
                         t_nor = t
@@ -1169,13 +1169,13 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
                             tabWrite("normal{function" \
                                      "{f%s(x,y,z).grey} bump_size %.4g}\n" % \
                                      (texturesNorm,
-                                     t_nor.normal_factor * 10))
+                                     t_nor.normal_factor))
                         else:
                             tabWrite("normal {uv_mapping bump_map " \
                                      "{%s \"%s\" %s  bump_size %.4g }%s}\n" % \
                                      (imageFormat(texturesNorm),
                                      texturesNorm, imgMap(t_nor),
-                                     t_nor.normal_factor * 10,
+                                     t_nor.normal_factor,
                                      mappingNor))
                                       
         tabWrite("}\n") # THEN IT CAN CLOSE LAST LAYER OF TEXTURE
