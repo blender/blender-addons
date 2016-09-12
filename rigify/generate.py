@@ -300,12 +300,21 @@ def generate_rig(context, metarig):
     # Get a list of all the bones in the armature
     bones = [bone.name for bone in obj.data.bones]
 
-    # Parent any free-floating bones to the root.
+    # Parent any free-floating bones to the root excluding bones with child of constraint.
+    pbones = obj.pose.bones
+    noparent_bones = []
+    for bone in bones:
+        if 'IK_follow' in pbones[bone].keys():
+            noparent_bones += [bone]
+
     bpy.ops.object.mode_set(mode='EDIT')
     for bone in bones:
-        if obj.data.edit_bones[bone].parent is None:
+        if bone in noparent_bones:
+            continue
+        elif obj.data.edit_bones[bone].parent is None:
             obj.data.edit_bones[bone].use_connect = False
             obj.data.edit_bones[bone].parent = obj.data.edit_bones[root_bone]
+
     bpy.ops.object.mode_set(mode='OBJECT')
 
     # Lock transforms on all non-control bones
