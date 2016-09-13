@@ -20,6 +20,7 @@
 
 import bpy
 from bpy.types import Operator
+import os
 
 
 # ---------------------------RELOAD IMAGES------------------
