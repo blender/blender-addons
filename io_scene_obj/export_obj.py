@@ -188,7 +188,10 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                         options.append('-o %.6f %.6f %.6f' % mtex.offset[:])
                     if mtex.scale != Vector((1.0, 1.0, 1.0)):
                         options.append('-s %.6f %.6f %.6f' % mtex.scale[:])
-                    fw('%s %s %s\n' % (key, " ".join(options), repr(filepath)[1:-1]))
+                    if options:
+                        fw('%s %s %s\n' % (key, " ".join(options), repr(filepath)[1:-1]))
+                    else:
+                        fw('%s %s\n' % (key, repr(filepath)[1:-1]))
 
 
 def test_nurbs_compat(ob):
