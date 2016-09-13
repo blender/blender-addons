@@ -106,7 +106,7 @@ url_manual_mapping = (
     ("bpy.types.SpaceNLA.*",                "editors/nla.html"),
     ("bpy.types.SpaceNodeEditor.*",         "editors/node_editor"),
     ("bpy.types.SpaceOutliner.*",           "editors/outliner.html"),
-    ("bpy.types.SpaceProperties.*",         "editors/properties"),
+    ("bpy.types.SpaceProperties.*",         "editors/properties_editor.html"),
     ("bpy.types.SpaceSequenceEditor.*",     "editors/sequencer"),
     ("bpy.types.SpaceTextEditor.*",         "editors/text_editor.html"),
     ("bpy.types.SpaceTimeline.*",           "editors/timeline.html"),
@@ -214,13 +214,13 @@ url_manual_mapping = (
     ("bpy.types.ImageFormatSettings.*",        "data_system/files/media/image_formats.html"),
     ("bpy.types.RenderSettings.simplify_subdivision*", "data_system/scenes/properties.html#simplify"),
     ("bpy.types.RenderSettings.filepath",      "render/output/output.html#output-panel"),
-    ("bpy.types.RenderSettings.display_mode",  "render/output/display.html#displaying-renders"),
+    ("bpy.types.RenderSettings.display_mode",  "render/output/render_panel.html#display"),
     ("bpy.types.RenderSettings.*",             "render"),  # Catchall, todo - refine
     ("bpy.types.RenderEngine.*",               "render/introduction.html#render-engines"),
     ("bpy.types.RenderLayer*",                 "render/post_process/layers.html"),
-    ("bpy.types.RenderPass.*",                 "render/blender_render/passes.html"),
-    ("bpy.types.RenderResult.*",               "render/output/display.html"),
-    ("bpy.types.RenderSlot*",                  "render/output/display.html#display-options"),
+    ("bpy.types.RenderPass.*",                 "render/blender_render/settings/passes.html"),
+    ("bpy.types.RenderResult.*",               "editors/uv_image/image/introduction.html"),  # TODO-Refine
+    ("bpy.types.RenderSlot*",                  "editors/uv_image/image/introduction.html"),  # TODO-Refine
     ("bpy.types.RenderView*",                  "render/workflows/multiview/usage.html#views-setup"),
     ("bpy.types.FFmpegSettings.audio_channels", "data_system/scenes/properties.html#audio"),
     ("bpy.types.FFmpegSettings.audio_mixrate",  "data_system/scenes/properties.html#audio"),
@@ -286,8 +286,8 @@ url_manual_mapping = (
     ("bpy.types.Material.diffuse*",               "render/blender_render/materials/properties/diffuse_shaders.html"),
     ("bpy.types.Material.specular*",              "render/blender_render/materials/properties/specular_shaders.html"),
     ("bpy.types.Material.ambient*",               "render/blender_render/materials/properties/shading.html"),
-    ("bpy.types.Material.preview_render_type",    "editors/properties/material.html#material-preview"),
-    ("bpy.types.Material.*",                      "render/blender_render"),  # Catchall, until the section is filled in
+    ("bpy.types.Material.preview_render_type",    "render/blender_render/materials/properties/preview.html"),
+    ("bpy.types.Material.*",                      "render/blender_render/materials"),  # Catchall
     # ("bpy.types.MaterialSlot.link",             "render/blender_render/materials/options.html#material-naming_and_linking"),  # TODO, T42839
     ("bpy.types.MaterialVolume.*",                "render/blender_render/materials/special_effects/volume.html"),
     ("bpy.types.MaterialHalo.*",                  "render/blender_render/materials/special_effects/halo.html"),
@@ -299,8 +299,8 @@ url_manual_mapping = (
     ("bpy.types.BlendTexture.*",              "render/blender_render/textures/types/procedural/blend.html"),
     ("bpy.types.CloudsTexture.*",             "render/blender_render/textures/types/procedural/clouds.html"),
     ("bpy.types.DistortedNoiseTexture.*",     "render/blender_render/textures/types/procedural/distorted_noise.html"),
-    ("bpy.types.EnvironmentMapTexture.*",     "render/blender_render/textures/mapping/environment.html"),
-    ("bpy.types.ImageTexture.*",              "render/blender_render/textures/types/image.html"),
+    ("bpy.types.EnvironmentMapTexture.*",     "render/blender_render/textures/types/environment.html"),
+    ("bpy.types.ImageTexture.*",              "render/blender_render/textures/types/image"),
     ("bpy.types.MagicTexture.*",              "render/blender_render/textures/types/procedural/magic.html"),
     ("bpy.types.MarbleTexture.*",             "render/blender_render/textures/types/procedural/marble.html"),
     ("bpy.types.MusgraveTexture.*",           "render/blender_render/textures/types/procedural/musgrave.html"),
@@ -355,7 +355,7 @@ url_manual_mapping = (
     # only other WorldLighting props are in Gather panel
     ("bpy.types.WorldLighting.*",              "render/blender_render/world/ambient_occlusion.html#gather"),
     ("bpy.types.LatticePoint.*",               "editors/3dview/object/types/lattice.html"),  # TODO refine
-    ("bpy.types.DisplaySafeAreas.*",           "editors/3dview/object/types/camera/safe_areas.html"),
+    ("bpy.types.DisplaySafeAreas.*",           "editors/3dview/object/types/camera/object_data.html#safe-areas"),
     ("bpy.types.TextCharacterFormat.*",        "modeling/texts/introduction.html"),  # TODO refine
     ("bpy.types.TextLine.*",                   "modeling/texts/introduction.html"),  # TODO refine
 
@@ -392,7 +392,6 @@ url_manual_mapping = (
     ("bpy.types.CyclesRenderSettings.*",                          "render/cycles/settings/integrator.html"),  # Catchall
     ("bpy.types.CyclesVisibilitySettings.*",                      "render/cycles/settings/light_paths.html#ray-visibility"),
     ("bpy.types.CyclesWorldSettings.*",                           "render/cycles/world.html"),
-    ("bpy.types.SceneRenderLayer.*pass*",                         "render/blender_render/passes.html"),
     ("bpy.types.SceneRenderLayer.*",                              "render/post_process/layers.html"),
     ("bpy.types.CyclesMaterialSettings.displacement_method",      "render/cycles/materials/settings.html#displacement"),
     ("bpy.types.CyclesMaterialSettings.*",                        "render/cycles/materials/settings.html"),  # Catchall
@@ -691,7 +690,7 @@ url_manual_mapping = (
     ("bpy.types.Action.*",        "animation/actions.html"),
     ("bpy.types.Curve.*",         "modeling/curves"),
     ("bpy.types.GreasePencil.*",  "interface/grease_pencil"),
-    ("bpy.types.Group.*",         "editors/3dview/object/relationships/groups.html"),
+    ("bpy.types.Group.*",         "editors/3dview/object/properties/relations/groups.html"),
     ("bpy.types.Image.*",         "render/blender_render/textures/types/image.html"),
     ("bpy.types.ShapeKey.*",      "animation/shape_keys.html"),  # not an id but include because of key
     ("bpy.types.Key.*",           "animation/shape_keys.html"),
@@ -706,7 +705,7 @@ url_manual_mapping = (
     ("bpy.types.TextBox.*",       "modeling/texts/editing.html#text-boxes"),
     ("bpy.types.Armature.*",      "rigging/armatures"),  # Catchall, todo - refine
     ("bpy.types.Camera.*",        "editors/3dview/object/types/camera"),          # Catchall, todo - refine
-    ("bpy.types.PointLamp.*",     "render/blender_render/lighting/lamps/point"),  # Catchall, todo - refine
+    ("bpy.types.PointLamp.*",     "render/blender_render/lighting/lamps/point.html"),  # Catchall, todo - refine
     ("bpy.types.AreaLamp.*",      "render/blender_render/lighting/lamps/area"),   # Catchall, todo - refine
     ("bpy.types.SpotLamp.*",      "render/blender_render/lighting/lamps/spot"),   # Catchall, todo - refine
     ("bpy.types.SunLamp.*",       "render/blender_render/lighting/lamps/sun"),    # Catchall, todo - refine
@@ -755,7 +754,7 @@ url_manual_mapping = (
     # --- World ---
     ("bpy.types.World.*",               "render/blender_render/world"),
     ("bpy.types.WorldMistSettings.*",   "render/blender_render/world/mist.html"),
-    ("bpy.types.WorldTextureSlot.*",    "render/blender_render/world/background.html#textures"),
+    ("bpy.types.WorldTextureSlot.*",    "render/blender_render/world/world_panel.html#textures"),
 
     ("bpy.types.Texture.*",             "render/blender_render/textures"),
 
@@ -837,7 +836,7 @@ url_manual_mapping = (
     ("bpy.ops.font.*",                    "modeling/texts"),
     ("bpy.ops.gpencil.*",                 "interface/grease_pencil"),
     ("bpy.ops.graph.*",                   "editors/graph_editor/fcurves"),
-    ("bpy.ops.group.*",                   "editors/3dview/object/relationships/groups.html"),
+    ("bpy.ops.group.*",                   "editors/3dview/object/properties/relations/groups.html"),
     ("bpy.ops.image.*",                   "render/blender_render/textures/types/image.html"),
     ("bpy.ops.import*",                   "data_system/files/import_export.html"),
     # ("bpy.ops.info.*",                  ""),  # TODO
@@ -872,11 +871,11 @@ url_manual_mapping = (
     ("bpy.ops.poselib.*",                 "rigging/posing/pose_library.html"),
     ("bpy.ops.ptcache.*",                 "physics/baking.html"),
 
-    ("bpy.ops.render.play-rendered-anim", "render/output/display.html#animation-playback"),
+    ("bpy.ops.render.play-rendered-anim", "render/output/animation_player.html"),
     ("bpy.ops.render.*",                  "render"),  # Catchall
     ("bpy.ops.rigidbody.world*",          "physics/rigid_body/world.html"),
     ("bpy.ops.rigidbody.*",               "physics/rigid_body"),
-    ("bpy.ops.safe_areas.*",              "editors/3dview/object/types/camera/safe_areas.html"),
+    ("bpy.ops.safe_areas.*",              "editors/3dview/object/types/camera/object_data.html#safe-areas"),
     ("bpy.ops.scene.*",                   "data_system/scenes"),
     ("bpy.ops.screen.*",                  "interface/window_system/screens.html"),
     ("bpy.ops.script.*",                  "advanced/scripting"),
