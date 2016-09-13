@@ -217,22 +217,18 @@ classes = (
     UIToolsPreferences,
     )
 
-def register_modules(dummy):
-    if dummy:
-        prefs = get_addon_preferences()
-        for mod in sub_modules:
-            name = mod.__name__.split('.')[-1]
-            if getattr(prefs, 'use_' + name, False):
-                register_submodule(mod)
-            else:
-                mod.__addon_enabled__ = False
-    return None
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    register_modules(True)
+    prefs = get_addon_preferences()
+    for mod in sub_modules:
+        if not hasattr(mod, '__addon_enabled__'):
+            mod.__addon_enabled__ = False
+        name = mod.__name__.split('.')[-1]
+        if getattr(prefs, 'use_' + name):
+            register_submodule(mod)
 
 
 def unregister():

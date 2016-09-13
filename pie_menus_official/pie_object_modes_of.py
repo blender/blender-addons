@@ -35,7 +35,7 @@ classes = [
 addon_keymaps = []
 
 def register():
-    addon_keymaps.clear()
+
     for cls in classes:
         bpy.utils.register_class(cls)
     wm = bpy.context.window_manager
@@ -55,7 +55,6 @@ def register():
 
 
 def unregister():
-    addon_keymaps.clear()
     for cls in classes:
         bpy.utils.unregister_class(cls)
     wm = bpy.context.window_manager
