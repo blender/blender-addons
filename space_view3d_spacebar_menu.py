@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Dynamic Context Menu",
     "author": "meta-androcto",
-    "version": (1, 8, 2),
+    "version": (1, 8, 3),
     "blender": (2, 77, 0),
     "location": "View3D > Spacebar",
     "description": "Object Mode Context Sensitive Spacebar Menu",
@@ -64,6 +64,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
+            if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
+                layout.menu("VIEW3D_MT_Edit_Gpencil", icon='GREASEPENCIL')
 
 # Mesh Object Mode #
         if obj and obj.type == 'MESH' and obj.mode in {'OBJECT'}:
@@ -84,6 +86,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_GroupMenu", icon='GROUP')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
+            if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
+                layout.menu("VIEW3D_MT_Edit_Gpencil", icon='GREASEPENCIL')
             layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
             layout.operator_menu_enum("object.modifier_add", "type", icon='MODIFIER')
             UseSeparator(self, context)
@@ -94,6 +98,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
+
 
 # Mesh Edit Mode #
         if obj and obj.type == 'MESH' and obj.mode in {'EDIT'}:
@@ -221,8 +226,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.operator("object.delete", text="Delete Object", icon='X_VEC')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.operator("object.editmode_toggle", text="Enter Edit Mode",
-                            icon='OBJECT_DATA')
+            layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -252,8 +256,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                             icon='X_VEC')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.operator("object.editmode_toggle", text="Enter Object Mode",
-                            icon='OBJECT_DATA')
+            layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -284,8 +287,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.operator("object.delete", text="Delete Object", icon='X_VEC')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.operator("object.editmode_toggle", text="Enter Edit Mode",
-                            icon='OBJECT_DATA')
+            layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -315,8 +317,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                             icon='CANCEL')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.operator("object.editmode_toggle", text="Enter Object Mode",
-                            icon='OBJECT_DATA')
+            layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -346,8 +347,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.operator("object.delete", text="Delete Object", icon='X_VEC')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.operator("object.editmode_toggle", text="Enter Edit Mode",
-                            icon='OBJECT_DATA')
+            layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -376,8 +376,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                             icon='CANCEL')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.operator("object.editmode_toggle", text="Enter Object Mode",
-                            icon='OBJECT_DATA')
+            layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -609,8 +608,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.operator("object.delete", text="Delete Object", icon='X_VEC')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.operator("object.editmode_toggle", text="Enter Edit Mode",
-                            icon='OBJECT_DATA')
+            layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -636,8 +634,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.operator("lattice.make_regular")
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.operator("object.editmode_toggle", text="Enter Object Mode",
-                            icon='OBJECT_DATA')
+            layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -978,13 +975,17 @@ class InteractiveMode(Menu):
     bl_description = "Menu of objects interactive modes (Window Types)"
 
     def draw(self, context):
-        self.layout.operator(SetObjectMode.bl_idname, text="Object", icon="OBJECT_DATAMODE").mode = "OBJECT"
-        self.layout.operator(SetObjectMode.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
-        self.layout.operator(SetObjectMode.bl_idname, text="Sculpt", icon="SCULPTMODE_HLT").mode = "SCULPT"
-        self.layout.operator(SetObjectMode.bl_idname, text="Vertex Paint", icon="VPAINT_HLT").mode = "VERTEX_PAINT"
-        self.layout.operator(SetObjectMode.bl_idname, text="Weight Paint", icon="WPAINT_HLT").mode = "WEIGHT_PAINT"
-        self.layout.operator(SetObjectMode.bl_idname, text="Texture Paint", icon="TPAINT_HLT").mode = "TEXTURE_PAINT"
-        self.layout.operator(SetObjectMode.bl_idname, text="Particle Edit", icon="PARTICLEMODE").mode = "PARTICLE_EDIT"
+        layout = self.layout
+
+        layout.operator(SetObjectMode.bl_idname, text="Object", icon="OBJECT_DATAMODE").mode = "OBJECT"
+        layout.operator(SetObjectMode.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
+        layout.operator(SetObjectMode.bl_idname, text="Sculpt", icon="SCULPTMODE_HLT").mode = "SCULPT"
+        layout.operator(SetObjectMode.bl_idname, text="Vertex Paint", icon="VPAINT_HLT").mode = "VERTEX_PAINT"
+        layout.operator(SetObjectMode.bl_idname, text="Weight Paint", icon="WPAINT_HLT").mode = "WEIGHT_PAINT"
+        layout.operator(SetObjectMode.bl_idname, text="Texture Paint", icon="TPAINT_HLT").mode = "TEXTURE_PAINT"
+        layout.operator(SetObjectMode.bl_idname, text="Particle Edit", icon="PARTICLEMODE").mode = "PARTICLE_EDIT"
+        if context.gpencil_data:
+            layout.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
 
 
 # ********** Object Armature Interactive Mode **********
@@ -994,16 +995,102 @@ class InteractiveModeArmature(Menu):
     bl_description = "Menu of objects interactive mode"
 
     def draw(self, context):
-        self.layout.operator(SetObjectMode.bl_idname, text="Object", icon="OBJECT_DATAMODE").mode = "OBJECT"
-        self.layout.operator(SetObjectMode.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
-        self.layout.operator(SetObjectMode.bl_idname, text="Pose", icon="POSE_HLT").mode = "POSE"
+        layout = self.layout
+
+        layout.operator(SetObjectMode.bl_idname, text="Object", icon="OBJECT_DATAMODE").mode = "OBJECT"
+        layout.operator(SetObjectMode.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
+        layout.operator(SetObjectMode.bl_idname, text="Pose", icon="POSE_HLT").mode = "POSE"
+        if context.gpencil_data:
+            layout.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
+
+# ********** Interactive Mode Other **********
+class InteractiveModeOther(Menu):
+    bl_idname = "VIEW3D_MT_Object_Interactive_Other"
+    bl_label = "Interactive Mode"
+    bl_description = "Menu of objects interactive mode"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("object.editmode_toggle", text="Edit/Object Toggle",
+                        icon='OBJECT_DATA')
+        if context.gpencil_data:
+            layout.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
+
+# ********** Grease Pencil Interactive Mode **********
+class VIEW3D_OT_Interactive_Mode_Grease_Pencil(Operator):
+    bl_idname = "view3d.interactive_mode_grease_pencil"
+    bl_label = "Edit Strokes"
+    bl_description = "Toggle Edit Strokes for Grease Pencil"
+
+    @classmethod
+    def poll(cls, context):
+        return (context.gpencil_data is not None)
+
+    def execute(self, context):
+        try:
+            bpy.ops.gpencil.editmode_toggle()
+        except:
+            self.report({'WARNING'}, "It is not possible to enter into the interactive mode")
+        return {'FINISHED'}
+
+
+class VIEW3D_MT_Edit_Gpencil(Menu):
+    bl_label = "GPencil"
+
+    def draw(self, context):
+        toolsettings = context.tool_settings
+
+        layout = self.layout
+
+        layout.operator("gpencil.brush_paint", text="Sculpt Strokes").wait_for_input = True
+        layout.prop_menu_enum(toolsettings.gpencil_sculpt, "tool", text="Sculpt Brush")
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_edit_gpencil_transform")
+        layout.operator("transform.mirror", text="Mirror")
+        layout.menu("GPENCIL_MT_snap")
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_object_animation")   # NOTE: provides keyingset access...
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_edit_gpencil_delete")
+        layout.operator("gpencil.duplicate_move", text="Duplicate")
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_select_gpencil")
+
+        layout.separator()
+
+        layout.operator("gpencil.copy", text="Copy")
+        layout.operator("gpencil.paste", text="Paste")
+
+        layout.separator()
+
+        layout.prop_menu_enum(toolsettings, "proportional_edit")
+        layout.prop_menu_enum(toolsettings, "proportional_edit_falloff")
+
+        layout.separator()
+
+        layout.operator("gpencil.reveal")
+        layout.operator("gpencil.hide", text="Show Active Layer Only").unselected = True
+        layout.operator("gpencil.hide", text="Hide Active Layer").unselected = False
+
+        layout.separator()
+
+        layout.operator_menu_enum("gpencil.move_to_layer", "layer", text="Move to Layer")
+        layout.operator_menu_enum("gpencil.convert", "type", text="Convert to Geometry...")
 
 
 # ********** Text Interactive Mode **********
 class VIEW3D_OT_Interactive_Mode_Text(Operator):
-    """Toggle object's editmode"""
     bl_idname = "view3d.interactive_mode_text"
     bl_label = "Enter Edit Mode"
+    bl_description = "Toggle object's editmode"
 
     @classmethod
     def poll(cls, context):
@@ -1533,21 +1620,6 @@ class VIEW3D_MT_Hide_Masks(Menu):
         props.action = 'HIDE'
 
 
-# Dyntopo Menu (Thanks to marvin.k.breuer) #
-class VIEW3D_MT_Sculpt_Dyntopo(Menu):
-    bl_label = "Dyntopo Set"
-    bl_idname = "view3d.set_brush_dyntopo"
-
-    def draw(self, context):
-        layout = self.layout
-        settings = context.tool_settings
-
-        layout.prop(settings.sculpt, "detail_refine_method", text="")
-        layout.prop(settings.sculpt, "detail_type_method", text="")
-        UseSeparator(self, context)
-        layout.prop(settings.sculpt, "use_smooth_shading", "Smooth")
-
-
 # Sculpt Specials Menu (Thanks to marvin.k.breuer) #
 class VIEW3D_MT_Sculpt_Specials(Menu):
     bl_label = "Sculpt Specials"
@@ -1573,7 +1645,11 @@ class VIEW3D_MT_Sculpt_Specials(Menu):
             if (settings.sculpt.detail_type_method == 'CONSTANT'):
                 layout.operator("sculpt.detail_flood_fill")
 
-            layout.menu("view3d.set_brush_dyntopo")
+            UseSeparator(self, context)
+            layout.prop(settings.sculpt, "detail_refine_method", text="")
+            layout.prop(settings.sculpt, "detail_type_method", text="")
+            UseSeparator(self, context)
+            layout.prop(settings.sculpt, "use_smooth_shading", "Smooth")
 
         else:
             layout.operator("sculpt.dynamic_topology_toggle", icon='SCULPT_DYNTOPO', text="Enable Dyntopo")
@@ -2751,7 +2827,7 @@ class SetOriginToSelected(Operator):
 class SnapCursSelToCenter(Operator):
     bl_idname = "view3d.snap_cursor_selected_to_center"
     bl_label = "Snap Cursor & Selection to Center"
-    bl_description = ("Snap 3D cursor and selected objects to the center \n"
+    bl_description = ("Snap 3D cursor and selected objects to the center n"
                       "Works only in Object Mode")
 
     @classmethod
@@ -2790,14 +2866,14 @@ class VIEW3D_MT_Space_Dynamic_Menu_Pref(bpy.types.AddonPreferences):
     use_separators = bpy.props.BoolProperty(
         name="Use Separators in the menus",
         default=True,
-        description=("Use separators in the menus, a trade-off between \n"
+        description=("Use separators in the menus, a trade-off between n"
                      "readability vs. using more space for displaying items")
     )
 
     use_brushes_lists = bpy.props.BoolProperty(
         name="Use compact menus for brushes",
         default=False,
-        description=("Use more compact menus instead  \n"
+        description=("Use more compact menus instead  n"
                      "of thumbnails for displaying brushes")
     )
 
@@ -2891,15 +2967,17 @@ classes = [
     VIEW3D_OT_Interactive_Mode_Text,
     SnapCursSelToCenter,
     VIEW3D_MT_Sculpt_Specials,
-    VIEW3D_MT_Sculpt_Dyntopo,
     VIEW3D_MT_Brush_Settings,
     VIEW3D_MT_Brush_Selection,
     VIEW3D_MT_Sculpts,
     VIEW3D_MT_Hide_Masks,
     VIEW3D_OT_Display_Wire_All,
     VIEW3D_MT_Vertex_Colors,
-    VIEW3D_MT_Paint_Weights
-]
+    VIEW3D_MT_Paint_Weights,
+    VIEW3D_OT_Interactive_Mode_Grease_Pencil,
+    VIEW3D_MT_Edit_Gpencil,
+    InteractiveModeOther,
+    ]
 
 
 # Register Classes & Hotkeys #
