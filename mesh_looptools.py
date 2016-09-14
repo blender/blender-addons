@@ -43,7 +43,7 @@ from bpy_extras import view3d_utils
 ##########################################
 
 
-# used by all tools to improve speed on reruns
+# used by all tools to improve speed on reruns Unlink
 looptools_cache = {}
 
 
@@ -827,7 +827,7 @@ def terminate(global_undo):
     if obj.mode == 'EDIT':
         bmesh.update_edit_mesh(obj.data, tessface=True, destructive=True)
 
-    bpy.context.user_preferences.edit.use_global_undo = False
+    bpy.context.user_preferences.edit.use_global_undo = global_undo
 
 
 ##########################################
@@ -3715,18 +3715,17 @@ class Flatten(bpy.types.Operator):
 class RemoveGP(bpy.types.Operator):
     bl_idname = "remove.gp"
     bl_label = "Remove GP"
-    bl_description = "Remove Grease Pencil Strokes"
+    bl_description = "Remove all Grease Pencil Strokes"
     bl_options = {'REGISTER', 'UNDO'}
-
+ 
     def execute(self, context):
-        scene = context.scene
-        try:
-            pencil = bpy.context.object.grease_pencil.layers.active
-        except:
-            pencil = bpy.context.scene.grease_pencil.layers.active
-
-        bpy.ops.gpencil.data_unlink()
-
+ 
+        if context.gpencil_data is not None:
+            bpy.ops.gpencil.data_unlink()
+        else:
+            self.report({'INFO'}, "No Grease Pencil data to Unlink")
+            return {'CANCELLED'}
+ 
         return{'FINISHED'}
 
 class GStretch(bpy.types.Operator):
@@ -3847,7 +3846,7 @@ class GStretch(bpy.types.Operator):
             row.prop(self, "lock_z", text = "Z", icon='UNLOCKED')
         col_move.prop(self, "influence")
         col.separator()
-        col.operator("remove.gp", text = " Unlink GP ")
+        col.operator("remove.gp", text = "Delete GP Strokes")
 
     def invoke(self, context, event):
         # flush cached strokes
@@ -4386,7 +4385,7 @@ class VIEW3D_PT_tools_looptools(bpy.types.Panel):
             else:
                 row.prop(lt, "gstretch_lock_z", text = "Z", icon='UNLOCKED')
             col_move.prop(lt, "gstretch_influence")
-            box.operator("remove.gp", text = "Unlink GP")
+            box.operator("remove.gp", text = "Delete GP Strokes")
 
         # loft - first line
         split = col.split(percentage=0.15, align=True)
