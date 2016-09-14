@@ -21,49 +21,45 @@
 bl_info = {
     "name": "Hotkey: 'Tab'",
     "description": "Switch between 3d view object/edit modes",
-    #    "author": "pitiwazou, meta-androcto",
-    #    "version": (0, 1, 0),
+    # "author": "pitiwazou, meta-androcto, italic",
+    # "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "3D View",
     "warning": "",
     "wiki_url": "",
     "category": "Mode Switch Pie"
-    }
+}
 
 import bpy
 from bpy.types import (
-        Menu,
-        Operator,
-        )
-
-# Define Class Object Mode
+    Menu,
+    Operator
+)
 
 
 class ClassObject(Operator):
+    """Object Mode"""
     bl_idname = "class.object"
     bl_label = "Class Object"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Edit/Object Mode Switch"
 
     def execute(self, context):
-
         if context.object.mode == "OBJECT":
             bpy.ops.object.mode_set(mode="EDIT")
         else:
             bpy.ops.object.mode_set(mode="OBJECT")
         return {'FINISHED'}
 
-# Define Class Vertex
-
 
 class ClassVertex(Operator):
+    """Vertex"""
     bl_idname = "class.vertex"
     bl_label = "Class Vertex"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Vert Select"
 
     def execute(self, context):
-
         if context.object.mode != "EDIT":
             bpy.ops.object.mode_set(mode="EDIT")
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
@@ -71,17 +67,15 @@ class ClassVertex(Operator):
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
             return {'FINISHED'}
 
-# Define Class Edge
-
 
 class ClassEdge(Operator):
+    """Edge"""
     bl_idname = "class.edge"
     bl_label = "Class Edge"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Edge Select"
 
     def execute(self, context):
-
         if context.object.mode != "EDIT":
             bpy.ops.object.mode_set(mode="EDIT")
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
@@ -89,34 +83,31 @@ class ClassEdge(Operator):
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
             return {'FINISHED'}
 
-# Define Class Face
-
 
 class ClassFace(Operator):
+    """Face"""
     bl_idname = "class.face"
     bl_label = "Class Face"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Face Select"
 
     def execute(self, context):
-
         if context.object.mode != "EDIT":
             bpy.ops.object.mode_set(mode="EDIT")
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
         if bpy.ops.mesh.select_mode != "VERT, EDGE":
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
             return {'FINISHED'}
-# Define Class Texture Paint
 
 
 class ClassTexturePaint(Operator):
+    """Texture Paint"""
     bl_idname = "class.pietexturepaint"
     bl_label = "Class Texture Paint"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Texture Paint"
 
     def execute(self, context):
-
         if context.object.mode == "EDIT":
             bpy.ops.object.mode_set(mode="OBJECT")
             bpy.ops.paint.texture_paint_toggle()
@@ -124,17 +115,15 @@ class ClassTexturePaint(Operator):
             bpy.ops.paint.texture_paint_toggle()
         return {'FINISHED'}
 
-# Define Class Weight Paint
-
 
 class ClassWeightPaint(Operator):
+    """Weight Paint"""
     bl_idname = "class.pieweightpaint"
     bl_label = "Class Weight Paint"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Weight Paint"
 
     def execute(self, context):
-
         if context.object.mode == "EDIT":
             bpy.ops.object.mode_set(mode="OBJECT")
             bpy.ops.paint.weight_paint_toggle()
@@ -142,17 +131,15 @@ class ClassWeightPaint(Operator):
             bpy.ops.paint.weight_paint_toggle()
         return {'FINISHED'}
 
-# Define Class Vertex Paint
-
 
 class ClassVertexPaint(Operator):
+    """Vertex Paint"""
     bl_idname = "class.pievertexpaint"
     bl_label = "Class Vertex Paint"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Vertex Paint"
 
     def execute(self, context):
-
         if context.object.mode == "EDIT":
             bpy.ops.object.mode_set(mode="OBJECT")
             bpy.ops.paint.vertex_paint_toggle()
@@ -160,24 +147,43 @@ class ClassVertexPaint(Operator):
             bpy.ops.paint.vertex_paint_toggle()
         return {'FINISHED'}
 
-# Define Class Particle Edit
-
 
 class ClassParticleEdit(Operator):
+    """Particle Edit"""
     bl_idname = "class.pieparticleedit"
     bl_label = "Class Particle Edit"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Particle Edit (must have active particle system)"
 
     def execute(self, context):
-
         if context.object.mode == "EDIT":
             bpy.ops.object.mode_set(mode="OBJECT")
             bpy.ops.particle.particle_edit_toggle()
         else:
             bpy.ops.particle.particle_edit_toggle()
-
         return {'FINISHED'}
+
+# Set Mode Operator #
+class SetObjectModePie(Operator):
+    bl_idname = "object.set_object_mode_pie"
+    bl_label = "Set the object interactive mode"
+    bl_description = "I set the interactive mode of object"
+    bl_options = {'REGISTER'}
+
+    mode = bpy.props.StringProperty(name="Interactive mode", default="OBJECT")
+
+    def execute(self, context):
+        if (context.active_object):
+            try:
+                bpy.ops.object.mode_set(mode=self.mode)
+            except TypeError:
+                msg = context.active_object.name + " It is not possible to enter into the interactive mode"
+                self.report(type={"WARNING"}, message=msg)
+        else:
+            self.report(type={"WARNING"}, message="There is no active object")
+        return {'FINISHED'}
+
+
 
 # Components Selection Mode
 
@@ -241,10 +247,26 @@ class VertsEdgesFaces(Operator):
             context.tool_settings.mesh_select_mode = (True, True, True)
             return {'FINISHED'}
 
-# Pie Edit/Object Others modes - Tab
+# ********** Grease Pencil Interactive Mode **********
+class VIEW3D_OT_Interactive_Mode_Grease_Pencil(Operator):
+    bl_idname = "view3d.interactive_mode_grease_pencil"
+    bl_label = "Edit Strokes"
+    bl_description = "Toggle Edit Strokes for Grease Pencil"
 
+    @classmethod
+    def poll(cls, context):
+        return (context.gpencil_data is not None)
 
+    def execute(self, context):
+        try:
+            bpy.ops.gpencil.editmode_toggle()
+        except:
+            self.report({'WARNING'}, "It is not possible to enter into the interactive mode")
+        return {'FINISHED'}
+
+# ********** Menus **********
 class PieObjectEditotherModes(Menu):
+    """Edit/Object Others modes"""
     bl_idname = "menu.objecteditmodeothermodes"
     bl_label = "Edit Selection Modes"
 
@@ -262,10 +284,10 @@ class PieObjectEditotherModes(Menu):
         box.operator("verts.edgesfaces", text="Vertex/Edges/Faces", icon='OBJECT_DATAMODE')
         box.operator("wm.context_toggle", text="Limit to Visible",
                      icon="ORTHO").data_path = "space_data.use_occlude_geometry"
-# Pie Modes Switch- Tab key
 
 
 class PieObjectEditMode(Menu):
+    """Modes Switch"""
     bl_idname = "pie.objecteditmode"
     bl_label = "Modes Menu (Tab)"
 
@@ -273,7 +295,7 @@ class PieObjectEditMode(Menu):
         layout = self.layout
         ob = context.object
 
-        if ob and ob.type == 'MESH' and ob.mode in {'OBJECT', 'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT', 'PARTICLE'}:
+        if ob and ob.type == 'MESH' and ob.mode in {'OBJECT', 'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT', 'PARTICLE_EDIT', 'GPENCIL_EDIT'}:
             pie = layout.menu_pie()
             # 4 - LEFT
             pie.operator("class.pievertexpaint", text="Vertex Paint", icon='VPAINT_HLT')
@@ -290,9 +312,13 @@ class PieObjectEditMode(Menu):
             # 1 - BOTTOM - LEFT
             if context.object.particle_systems:
                 pie.operator("class.pieparticleedit", text="Particle Edit", icon='PARTICLEMODE')
+            else:
+                pie.separator()
             # 3 - BOTTOM - RIGHT
+            if context.gpencil_data:
+                pie.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
 
-        if ob and ob.type == 'MESH' and ob.mode in {'EDIT'}:
+        elif ob and ob.type == 'MESH' and ob.mode in {'EDIT'}:
             pie = layout.menu_pie()
             # 4 - LEFT
             pie.operator("class.pievertexpaint", text="Vertex Paint", icon='VPAINT_HLT')
@@ -306,37 +332,106 @@ class PieObjectEditMode(Menu):
             pie.operator("sculpt.sculptmode_toggle", text="Sculpt", icon='SCULPTMODE_HLT')
             # 9 - TOP - RIGHT
             pie.operator("class.pieweightpaint", text="Weight Paint", icon='WPAINT_HLT')
-            
             # 1 - BOTTOM - LEFT
             if context.object.particle_systems:
                 pie.operator("class.pieparticleedit", text="Particle Edit", icon='PARTICLEMODE')
+            else:
+                pie.separator()
             # 3 - BOTTOM - RIGHT
+            if context.gpencil_data:
+                pie.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
 
-        if ob and ob.type == 'CURVE':
+        elif ob and ob.type == 'CURVE':
             pie = layout.menu_pie()
+            # 4 - LEFT
+            pie.separator()
+            # 6 - RIGHT
+            pie.separator()
+            # 2 - BOTTOM
+            pie.separator()
+            # 8 - TOP
             pie.operator("object.editmode_toggle", text="Edit/Object", icon='OBJECT_DATAMODE')
+            # 7 - TOP - LEFT
+            pie.separator()
+            # 9 - TOP - RIGHT
+            pie.separator()
+            # 1 - BOTTOM - LEFT
+            pie.separator()
+            # 3 - BOTTOM - RIGHT
+            if context.gpencil_data:
+                pie.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
 
-        if ob and ob.type == 'ARMATURE':
+        elif ob and ob.type == 'ARMATURE':
             pie = layout.menu_pie()
+            # 4 - LEFT
+            pie.operator(SetObjectModePie.bl_idname, text="Object", icon="OBJECT_DATAMODE").mode = "OBJECT"
+            # 6 - RIGHT
+            pie.operator(SetObjectModePie.bl_idname, text="Pose", icon="POSE_HLT").mode = "POSE"
+            # 2 - BOTTOM
+            pie.operator(SetObjectModePie.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
+            # 8 - TOP
             pie.operator("object.editmode_toggle", text="Edit Mode", icon='OBJECT_DATAMODE')
-            pie.operator("object.posemode_toggle", text="Pose", icon='POSE_HLT')
-            pie.operator("class.object", text="Object Mode", icon='OBJECT_DATAMODE')
+            # 7 - TOP - LEFT
+            pie.separator()
+            # 9 - TOP - RIGHT
+            pie.separator()
+            # 1 - BOTTOM - LEFT
+            pie.separator()
+            # 3 - BOTTOM - RIGHT
+            if context.gpencil_data:
+                pie.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
 
-        if ob and ob.type == 'FONT':
+        elif ob and ob.type == 'FONT':
             pie = layout.menu_pie()
+            pie.separator()
+            pie.separator()
+            pie.separator()
             pie.operator("object.editmode_toggle", text="Edit/Object Toggle", icon='OBJECT_DATAMODE')
+            pie.separator()
+            pie.separator()
+            pie.separator()
+            # 3 - BOTTOM - RIGHT
+            if context.gpencil_data:
+                pie.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
 
-        if ob and ob.type == 'SURFACE':
+        elif ob and ob.type == 'SURFACE':
             pie = layout.menu_pie()
+            pie.separator()
+            pie.separator()
+            pie.separator()
             pie.operator("object.editmode_toggle", text="Edit/Object Toggle", icon='OBJECT_DATAMODE')
+            pie.separator()
+            pie.separator()
+            pie.separator()
+            # 3 - BOTTOM - RIGHT
+            if context.gpencil_data:
+                pie.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
 
-        if ob and ob.type == 'META':
+        elif ob and ob.type == 'META':
             pie = layout.menu_pie()
+            pie.separator()
+            pie.separator()
+            pie.separator()
             pie.operator("object.editmode_toggle", text="Edit/Object Toggle", icon='OBJECT_DATAMODE')
+            pie.separator()
+            pie.separator()
+            pie.separator()
+            # 3 - BOTTOM - RIGHT
+            if context.gpencil_data:
+                pie.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
 
-        if ob and ob.type == 'LATTICE':
+        elif ob and ob.type == 'LATTICE':
             pie = layout.menu_pie()
+            pie.separator()
+            pie.separator()
+            pie.separator()
             pie.operator("object.editmode_toggle", text="Edit/Object Toggle", icon='OBJECT_DATAMODE')
+            pie.separator()
+            pie.separator()
+            pie.separator()
+            # 3 - BOTTOM - RIGHT
+            if context.gpencil_data:
+                pie.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
 
 classes = (
     PieObjectEditMode,
@@ -349,10 +444,12 @@ classes = (
     ClassWeightPaint,
     ClassVertexPaint,
     ClassParticleEdit,
+    VIEW3D_OT_Interactive_Mode_Grease_Pencil,
     VertsEdges,
     EdgesFaces,
     VertsFaces,
-    VertsEdgesFaces
+    VertsEdgesFaces,
+    SetObjectModePie
     )
 
 addon_keymaps = []
@@ -368,7 +465,12 @@ def register():
         km = wm.keyconfigs.addon.keymaps.new(name='Object Non-modal')
         kmi = km.keymap_items.new('wm.call_menu_pie', 'TAB', 'PRESS')
         kmi.properties.name = "pie.objecteditmode"
-#        kmi.active = True
+        # kmi.active = True
+        addon_keymaps.append((km, kmi))
+
+        km = wm.keyconfigs.addon.keymaps.new(name='Grease Pencil Stroke Edit Mode')
+        kmi = km.keymap_items.new('wm.call_menu_pie', 'TAB', 'PRESS')
+        kmi.properties.name = "pie.objecteditmode"
         addon_keymaps.append((km, kmi))
 
 
@@ -380,6 +482,12 @@ def unregister():
     kc = wm.keyconfigs.addon
     if kc:
         km = kc.keymaps['Object Non-modal']
+        for kmi in km.keymap_items:
+            if kmi.idname == 'wm.call_menu_pie':
+                if kmi.properties.name == "pie.objecteditmode":
+                    km.keymap_items.remove(kmi)
+
+        km = kc.keymaps['Grease Pencil Stroke Edit Mode']
         for kmi in km.keymap_items:
             if kmi.idname == 'wm.call_menu_pie':
                 if kmi.properties.name == "pie.objecteditmode":
