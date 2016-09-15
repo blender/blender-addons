@@ -503,8 +503,8 @@ url_manual_mapping = (
     ("bpy.types.ShaderNodeBlackbody.*",       "render/cycles/nodes/types/converter/blackbody.html"),
     # Other
     ("bpy.types.ShaderNodeGroup.*",           "editors/node_editor/nodes/groups.html"),
-    ("bpy.types.ShaderNode*",                 "render/cycles/nodes"),  # Catch all
     ("bpy.types.ShaderNodeScript.*",          "render/cycles/nodes/osl.html"),
+    ("bpy.types.ShaderNode*",                 "render/cycles/nodes"),  # Catch all
 
     # *** Compositing Nodes ***
     # Input
@@ -627,7 +627,7 @@ url_manual_mapping = (
     ("bpy.types.MaskSequence.*",           "editors/sequencer/strips/types/mask.html"),
     ("bpy.types.MetaSequence.*",           "editors/sequencer/strips/meta.html"),
     ("bpy.types.MovieSequence.*",          "editors/sequencer/strips/types/image_movie.html"),
-    ("bpy.types.MovieClipSequence.*",      ""),
+    ("bpy.types.MovieClipSequence.*",      "editors/sequencer/strips/types/image_movie.html"),  # Refine
     ("bpy.types.MulticamSequence.*",       "editors/sequencer/strips/types/effects/multicam.html"),
     ("bpy.types.MultiplySequence.*",       "editors/sequencer/strips/types/effects/multiply.html"),
     ("bpy.types.OverDropSequence.*",       "editors/sequencer/strips/types/effects/alpha_over_under_overdrop.html"),
