@@ -58,17 +58,32 @@ def line_value(line_split):
         return b' '.join(line_split[1:])
 
 
-def obj_image_load(imagepath, DIR, recursive, relpath):
+def obj_image_load(context_imagepath_map, line, DIR, recursive, relpath):
     """
     Mainly uses comprehensiveImageLoad
-    but tries to replace '_' with ' ' for Max's exporter replaces spaces with underscores.
+    But we try all space-separated items from current line when file is not found with last one
+    (users keep generating/using image files with spaces in a format that does not support them, sigh...)
+    Also tries to replace '_' with ' ' for Max's exporter replaces spaces with underscores.
     """
-    if "_" in imagepath:
-        image = load_image(imagepath.replace("_", " "), DIR, recursive=recursive, relpath=relpath)
-        if image:
-            return image
+    filepath_parts = line.split(b' ')
+    image = None
+    for i in range(-1, -len(filepath_parts), -1):
+        imagepath = os.fsdecode(b" ".join(filepath_parts[i:]))
+        image = context_imagepath_map.get(imagepath, ...)
+        if image is ...:
+            image = load_image(imagepath, DIR, recursive=recursive, relpath=relpath)
+            if image is None and "_" in imagepath:
+                image = load_image(imagepath.replace("_", " "), DIR, recursive=recursive, relpath=relpath)
+            if image is not None:
+                context_imagepath_map[imagepath] = image
+                break;
 
-    return load_image(imagepath, DIR, recursive=recursive, place_holder=True, relpath=relpath)
+    if image is None:
+        imagepath = os.fsdecode(filepath_parts[-1])
+        image = load_image(imagepath, DIR, recursive=recursive, place_holder=True, relpath=relpath)
+        context_imagepath_map[imagepath] = image
+
+    return image
 
 
 def create_materials(filepath, relpath,
@@ -84,11 +99,10 @@ def create_materials(filepath, relpath,
     # Don't load the same image multiple times
     context_imagepath_map = {}
 
-    def load_material_image(blender_material, context_material_name, img_data, type):
+    def load_material_image(blender_material, context_material_name, img_data, line, type):
         """
         Set textures defined in .mtl file.
         """
-        imagepath = os.fsdecode(img_data[-1])
         map_options = {}
 
         curr_token = []
@@ -102,10 +116,7 @@ def create_materials(filepath, relpath,
         texture = bpy.data.textures.new(name=type, type='IMAGE')
 
         # Absolute path - c:\.. etc would work here
-        image = context_imagepath_map.get(imagepath, ...)
-        if image == ...:
-            image = context_imagepath_map[imagepath] = \
-                    obj_image_load(imagepath, DIR, use_image_search, relpath)
+        image = obj_image_load(context_imagepath_map, line, DIR, use_image_search, relpath)
 
         if image is not None:
             texture.image = image
@@ -404,37 +415,37 @@ def create_materials(filepath, relpath,
                     elif line_id == b'map_ka':
                         img_data = line.split()[1:]
                         if img_data:
-                            load_material_image(context_material, context_material_name, img_data, 'Ka')
+                            load_material_image(context_material, context_material_name, img_data, line, 'Ka')
                     elif line_id == b'map_ks':
                         img_data = line.split()[1:]
                         if img_data:
-                            load_material_image(context_material, context_material_name, img_data, 'Ks')
+                            load_material_image(context_material, context_material_name, img_data, line, 'Ks')
                     elif line_id == b'map_kd':
                         img_data = line.split()[1:]
                         if img_data:
-                            load_material_image(context_material, context_material_name, img_data, 'Kd')
+                            load_material_image(context_material, context_material_name, img_data, line, 'Kd')
                     elif line_id == b'map_ke':
                         img_data = line.split()[1:]
                         if img_data:
-                            load_material_image(context_material, context_material_name, img_data, 'Ke')
+                            load_material_image(context_material, context_material_name, img_data, line, 'Ke')
                     elif line_id in {b'map_bump', b'bump'}:  # 'bump' is incorrect but some files use it.
                         img_data = line.split()[1:]
                         if img_data:
-                            load_material_image(context_material, context_material_name, img_data, 'Bump')
+                            load_material_image(context_material, context_material_name, img_data, line, 'Bump')
                     elif line_id in {b'map_d', b'map_tr'}:  # Alpha map - Dissolve
                         img_data = line.split()[1:]
                         if img_data:
-                            load_material_image(context_material, context_material_name, img_data, 'D')
+                            load_material_image(context_material, context_material_name, img_data, line, 'D')
 
                     elif line_id in {b'map_disp', b'disp'}:  # displacementmap
                         img_data = line.split()[1:]
                         if img_data:
-                            load_material_image(context_material, context_material_name, img_data, 'disp')
+                            load_material_image(context_material, context_material_name, img_data, line, 'disp')
 
                     elif line_id in {b'map_refl', b'refl'}:  # reflectionmap
                         img_data = line.split()[1:]
                         if img_data:
-                            load_material_image(context_material, context_material_name, img_data, 'refl')
+                            load_material_image(context_material, context_material_name, img_data, line, 'refl')
                     else:
                         print("\t%r:%r (ignored)" % (filepath, line))
             mtl.close()
