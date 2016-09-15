@@ -395,7 +395,7 @@ class FilePath:
         # store info to pass along with each iteration
         extra_info = rootdir, os.path.basename(filepath)
 
-        from blend import blendfile
+        from . import blendfile
         with blendfile.open_blend(filepath_tmp, "rb" if readonly else "r+b") as blend:
 
             for code in blend.code_index.keys():
@@ -627,7 +627,7 @@ class bf_utils:
 
     def iter_array(block, length=-1):
         assert(block.code == b'DATA')
-        from blend import blendfile
+        from . import blendfile
         import os
         handle = block.file.handle
         header = block.file.header
