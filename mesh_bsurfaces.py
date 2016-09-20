@@ -3722,7 +3722,7 @@ def register():
     bpy.utils.register_class(CURVE_OT_SURFSK_reorder_splines)
     bpy.utils.register_class(CURVE_OT_SURFSK_first_points)
     bpy.utils.register_class(BsurfPreferences)
-
+    update_panel(None, bpy.context)
 
     bpy.types.Scene.SURFSK_cyclic_cross = bpy.props.BoolProperty(
         name="Cyclic Cross",

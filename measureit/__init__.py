@@ -124,7 +124,7 @@ def register():
     bpy.utils.register_class(measureit_main.MeasureitRenderPanel)
     bpy.utils.register_class(measureit_main.RenderSegmentButton)
     bpy.utils.register_class(Measure_Pref)
-
+    update_panel(None, bpy.context)
     # Define properties
     Scene.measureit_default_color = FloatVectorProperty(
         name="Default color",

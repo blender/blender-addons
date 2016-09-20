@@ -4848,7 +4848,7 @@ def register():
     bpy.types.VIEW3D_MT_edit_mesh_specials.prepend(menu_func)
     bpy.types.WindowManager.looptools = bpy.props.PointerProperty(\
         type = LoopToolsProps)
-
+    update_panel(None, bpy.context)
 
 # unregistering and removing menus
 def unregister():

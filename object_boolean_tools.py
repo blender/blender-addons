@@ -1363,7 +1363,7 @@ def UnRegisterFastT():
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-
+    update_panel(None, bpy.context)
     wm = bpy.context.window_manager
     # Scene variables
     bpy.types.Scene.BoolHide = BoolProperty(

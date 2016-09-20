@@ -449,7 +449,7 @@ def register():
     # SETEO VARIABLE DE ENTORNO
     bpy.types.Scene.SearchAndSelectOt = bpy.props.StringProperty(
                                                default="Object name initials")
-
+    update_panel(None, bpy.context)
 
 def unregister():
     del bpy.types.Scene.oscurart
