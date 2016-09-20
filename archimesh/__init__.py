@@ -200,7 +200,7 @@ def register():
     bpy.utils.register_class(achm_window_panel.AchmWindowEditPanel)
     bpy.utils.register_class(Archi_Pref)
     INFO_MT_mesh_add.append(AchmMenu_func)
-
+    update_panel(None, bpy.context)
     # Define properties
     Scene.archimesh_select_only = BoolProperty(
             name="Only selected",

@@ -584,7 +584,7 @@ def register():
     bpy.types.Scene.layergroups_index = IntProperty(default=-1)
     bpy.types.Scene.namedlayers = PointerProperty(type=NamedLayers)
     bpy.app.handlers.scene_update_post.append(check_init_data)
-
+    update_panel(None, bpy.context)
 
 def unregister():
     bpy.app.handlers.scene_update_post.remove(check_init_data)
