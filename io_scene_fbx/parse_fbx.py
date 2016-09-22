@@ -159,6 +159,8 @@ def parse(fn, use_namedtuple=True):
             raise IOError("Invalid header")
 
         fbx_version = read_uint(read)
+        if fbx_version >= 7500:
+            raise IOError("Unsupported FBX version (%d), binary format is incompatible!" % fbx_version)
 
         while True:
             elem = read_elem(read, tell, use_namedtuple)

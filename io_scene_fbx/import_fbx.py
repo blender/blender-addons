@@ -2250,11 +2250,11 @@ def load(operator, context, filepath="",
 
     try:
         elem_root, version = parse_fbx.parse(filepath)
-    except:
+    except Exception as e:
         import traceback
         traceback.print_exc()
 
-        operator.report({'ERROR'}, "Couldn't open file %r" % filepath)
+        operator.report({'ERROR'}, "Couldn't open file %r (%s)" % (filepath, e))
         return {'CANCELLED'}
 
     if version < 7100:
