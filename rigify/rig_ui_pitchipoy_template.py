@@ -364,7 +364,7 @@ def ik2fk_arm(obj, fk, ik):
 
     #Correct matrix if handi has IK_follow property
     if 'IK_follow' in handi.keys():
-        identity = Matrix([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+
         cns = handi.constraints[0]
         parent = obj.pose.bones[cns.subtarget]
         cns1 = handi.constraints[1]
@@ -372,29 +372,8 @@ def ik2fk_arm(obj, fk, ik):
         infl = cns.influence
 
         C = parent.matrix.inverted()
-        #A=(obj.matrix_world*parent1.matrix)
-        #B=parent1.matrix.inverted()
-        #C = obj.pose.bones['torso'].matrix.inverted()
-        #D = obj.pose.bones['torso'].matrix_basis.inverted()
-        #E = parent1.matrix_basis.inverted()
-        #E=E*E
         F=parent1.matrix_channel.inverted()
-        #start_bone = parent1
-        #while (True):
-        #    if start_bone.parent==None:
-        #        break
-        #    E = start_bone.parent.matrix_basis.inverted()*start_bone.parent.matrix_basis.inverted()*E
-        #    start_bone = start_bone.parent
-        #T = C.to_translation()#translation part
-        #T = Matrix.Translation((T[0],T[1],T[2],1))
-        #T1 = F.to_translation()
-        #T = Matrix.Translation((T1[0],T1[1],T1[2],1))
-        #R = C.to_quaternion()#Rotation part
-        #R1 = F.to_quaternion()
-        #S = C.to_scale() #Scale part
-        #S1 = F.to_scale()
-        #cns_mat = infl*(parent.matrix.inverted()*parent.matrix.inverted() - identity) + identity
-        #cns1_mat = (1-infl)*( F*F - identity) + identity
+        
         C=C*C
         F=F*F
         G = C.lerp(F,1-infl)
@@ -498,7 +477,7 @@ def ik2fk_leg(obj, fk, ik):
 
     #Correct matrix if footi has IK_follow property
     if 'IK_follow' in footi.keys():
-        identity = Matrix([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+
         cns = footi.constraints[0]
         parent = obj.pose.bones[cns.subtarget]
         cns1 = footi.constraints[1]
@@ -506,29 +485,8 @@ def ik2fk_leg(obj, fk, ik):
         infl = cns.influence
 
         C = parent.matrix.inverted()
-        #A=(obj.matrix_world*parent1.matrix)
-        #B=parent1.matrix.inverted()
-        #C = obj.pose.bones['torso'].matrix.inverted()
-        #D = obj.pose.bones['torso'].matrix_basis.inverted()
-        #E = parent1.matrix_basis.inverted()
-        #E=E*E
         F=parent1.matrix_channel.inverted()
-        #start_bone = parent1
-        #while (True):
-        #    if start_bone.parent==None:
-        #        break
-        #    E = start_bone.parent.matrix_basis.inverted()*start_bone.parent.matrix_basis.inverted()*E
-        #    start_bone = start_bone.parent
-        #T = C.to_translation()#translation part
-        #T = Matrix.Translation((T[0],T[1],T[2],1))
-        #T1 = F.to_translation()
-        #T = Matrix.Translation((T1[0],T1[1],T1[2],1))
-        #R = C.to_quaternion()#Rotation part
-        #R1 = F.to_quaternion()
-        #S = C.to_scale() #Scale part
-        #S1 = F.to_scale()
-        #cns_mat = infl*(parent.matrix.inverted()*parent.matrix.inverted() - identity) + identity
-        #cns1_mat = (1-infl)*( F*F - identity) + identity
+
         C=C*C
         F=F*F
         G = C.lerp(F,1-infl)
