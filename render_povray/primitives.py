@@ -1505,8 +1505,36 @@ class ImportPOV(bpy.types.Operator, ImportHelper):
         #filepov = bpy.path.abspath(self.filepath) #was used for single files
 
         def mat_search(cache):
-            r,g,b,t = float(cache[-5]),float(cache[-4]),float(cache[-3]),float(cache[-2])
-            color = (r,g,b,t)
+            r = g = b = 0.5
+            f = t = 0
+            color = None
+ 
+            for item, value in enumerate(cache):
+ 
+                if value == 'texture':
+                    pass
+ 
+                if value == 'pigment':
+ 
+                    if cache[item+2] in {'rgb','srgb'}:
+                        pass
+ 
+                    elif cache[item+2] in {'rgbf','srgbf'}:
+                        pass
+ 
+                    elif cache[item+2] in {'rgbt','srgbt'}:
+                        try:
+                            r,g,b,t = float(cache[item+3]),float(cache[item+4]),float(cache[item+5]),float(cache[item+6])
+                        except:
+                            r = g = b = t = float(cache[item+2])
+                        color = (r,g,b,t)
+ 
+                    elif cache[item+2] in {'rgbft','srgbft'}:
+                        pass
+ 
+                    else:
+                        pass
+ 
             if colors == [] or (colors != [] and color not in colors):
                 colors.append(color)
                 name = ob.name+"_mat"
@@ -1514,13 +1542,11 @@ class ImportPOV(bpy.types.Operator, ImportHelper):
                 mat = bpy.data.materials.new(name)
                 mat.diffuse_color = (r,g,b)
                 mat.alpha = 1-t
-                if mat.alpha != 1:
-                    mat.use_transparency=True
                 ob.data.materials.append(mat)
-                print (colors)
+ 
             else:
-                for i in range(len(colors)):
-                    if color == colors[i]:
+                for i, value in enumerate(colors):
+                    if color == value:
                         ob.data.materials.append(bpy.data.materials[matNames[i]])
         for file in self.files:
             print ("Importing file: "+ file.name)
@@ -1667,27 +1693,36 @@ class ImportPOV(bpy.types.Operator, ImportHelper):
                                 pass
                             cache = []
                             cylinder_search = False
+
+                            
+                            
+                            
                     if word == 'sphere':
                         sphere_search = True
                         name_search = False
                     if sphere_search:
                         cache.append(word)
                         if cache[-1] == '}':
+                            x = y = z = r = 0
                             try:
                                 x = float(cache[2])
                                 y = float(cache[3])
                                 z = float(cache[4])
                                 r = float(cache[5])
-                                bpy.ops.pov.addsphere(R=r, imported_loc=(x, y, z))
-                                ob = context.object
-                                ob.location = (x,y,z)
-                                #ob.scale = (r,r,r)
-                                mat_search(cache) 
                             except (ValueError):
                                 pass
+                            except:
+                                x = y = z = float(cache[2])
+                                r = float(cache[3])
+                            bpy.ops.pov.addsphere(R=r, imported_loc=(x, y, z))
+                            ob = context.object
+                            ob.location = (x,y,z)
+                            ob.scale = (r,r,r)
+                            mat_search(cache)
                             cache = []
-                            sphere_search = False
-    ##################End Primitives Import##################        
+                            sphere_search = False                            
+
+##################End Primitives Import##################        
                     if word == '#declare':
                         name_search = True
                     if name_search:
