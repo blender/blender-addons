@@ -465,6 +465,7 @@ def shape_walls_and_create_children(myroom, tmp_mesh, update=False):
     myshell = None
     # Create the walls (only mesh, because the object is 'myRoom', created before).
     create_walls(rp, tmp_mesh, get_blendunits(rp.room_height))
+    myroom.data = tmp_mesh
     # Mark Seams
     select_vertices(myroom, [0, 1])
     mark_seam(myroom)
