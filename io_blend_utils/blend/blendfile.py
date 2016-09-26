@@ -123,6 +123,8 @@ class BlendFile:
         self.block_header_struct = self.header.create_block_header_struct()
         self.blocks = []
         self.code_index = {}
+        self.structs = []
+        self.sdna_index_from_id = {}
 
         block = BlendFileBlock(handle, self)
         while block.code != b'ENDB':
@@ -139,6 +141,9 @@ class BlendFile:
             block = BlendFileBlock(handle, self)
         self.is_modified = False
         self.blocks.append(block)
+
+        if not self.structs:
+            raise Exception("No DNA1 block in file, this is not a valid .blend file!")
 
         # cache (could lazy init, incase we never use?)
         self.block_from_offset = {block.addr_old: block for block in self.blocks if block.code != b'ENDB'}
@@ -311,12 +316,21 @@ class BlendFileBlock:
         self.user_data = None
 
         data = handle.read(bfile.block_header_struct.size)
+
+        if len(data) != bfile.block_header_struct.size:
+            print("WARNING! Blend file seems to be badly truncated!")
+            self.code = b'ENDB'
+            self.size = 0
+            self.addr_old = 0
+            self.sdna_index = 0
+            self.count = 0
+            self.file_offset = 0
+            return
         # header size can be 8, 20, or 24 bytes long
         # 8: old blend files ENDB block (exception)
         # 20: normal headers 32 bit platform
         # 24: normal headers 64 bit platform
         if len(data) > 15:
-
             blockheader = bfile.block_header_struct.unpack(data)
             self.code = blockheader[0].partition(b'\0')[0]
             if self.code != b'ENDB':
