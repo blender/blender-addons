@@ -362,23 +362,6 @@ def ik2fk_arm(obj, fk, ik):
     # Rotation Correction
     correct_rotation(uarmi, uarm)
 
-    #Correct matrix if handi has IK_follow property
-    if 'IK_follow' in handi.keys():
-
-        cns = handi.constraints[0]
-        parent = obj.pose.bones[cns.subtarget]
-        cns1 = handi.constraints[1]
-        parent1 = obj.pose.bones[cns1.subtarget]
-        infl = cns.influence
-
-        C = parent.matrix.inverted()
-        F=parent1.matrix_channel.inverted()
-        
-        C=C*C
-        F=F*F
-        G = C.lerp(F,1-infl)
-        handi.matrix = G*handi.matrix
-
 
 #     farmi.constraints["IK"].pole_target = obj
 #     farmi.constraints["IK"].pole_subtarget = farm.name
@@ -475,22 +458,6 @@ def ik2fk_leg(obj, fk, ik):
     # Rotation Correction
     correct_rotation(thighi,thigh)
 
-    #Correct matrix if footi has IK_follow property
-    if 'IK_follow' in footi.keys():
-
-        cns = footi.constraints[0]
-        parent = obj.pose.bones[cns.subtarget]
-        cns1 = footi.constraints[1]
-        parent1 = obj.pose.bones[cns1.subtarget]
-        infl = cns.influence
-
-        C = parent.matrix.inverted()
-        F=parent1.matrix_channel.inverted()
-
-        C=C*C
-        F=F*F
-        G = C.lerp(F,1-infl)
-        footi.matrix = G*footi.matrix
 
 #     shini.constraints["IK"].pole_target = obj
 #     shini.constraints["IK"].pole_subtarget = shin.name
