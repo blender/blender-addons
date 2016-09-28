@@ -524,6 +524,22 @@ class Rig:
         eb[ ctrl ].parent      = None
         eb[ ctrl ].use_connect = False
 
+        # MCH for ik control
+        ctrl_socket = copy_bone(self.obj, org_bones[2], get_bone_name( org_bones[2], 'mch', 'ik_socket'))
+        eb[ctrl_socket].tail = eb[ctrl_socket].head + 0.8*(eb[ctrl_socket].tail-eb[ctrl_socket].head)
+        eb[ctrl_socket].parent = None
+        eb[ctrl].parent = eb[ctrl_socket]
+
+        ctrl_root = copy_bone(self.obj, org_bones[2], get_bone_name( org_bones[2], 'mch', 'ik_root'))
+        eb[ctrl_root].tail = eb[ctrl_root].head + 0.7*(eb[ctrl_root].tail-eb[ctrl_root].head)
+        eb[ctrl_root].use_connect = False
+        eb[ctrl_root].parent = eb['root']
+
+        ctrl_parent = copy_bone(self.obj, org_bones[2], get_bone_name( org_bones[2], 'mch', 'ik_parent'))
+        eb[ctrl_parent].tail = eb[ctrl_parent].head + 0.6*(eb[ctrl_parent].tail-eb[ctrl_parent].head)
+        eb[ctrl_parent].use_connect = False
+        eb[ctrl_parent].parent = eb[org_bones[0]].parent
+
         # Create heel ctrl bone
         heel = get_bone_name( org_bones[2], 'ctrl', 'heel_ik' )
         heel = copy_bone( self.obj, org_bones[2], heel )
@@ -602,7 +618,7 @@ class Rig:
 
         # Get target for ctrl constraints
         # Todo this should be better : target = strip_org(eb[org_bones[0]].parent.name)
-        target = eb[org_bones[0]].parent.name
+        #target = eb[org_bones[0]].parent.name
 
         # Constrain rock and roll MCH bones
         make_constraint( self, roll1_mch, {
@@ -678,23 +694,23 @@ class Rig:
 
         # Constrain ik ctrl to root / parent
 
-        make_constraint( self, ctrl, {
-            'constraint'  : 'CHILD_OF',
-            'subtarget'   : 'root',
+        make_constraint( self, ctrl_socket, {
+            'constraint'  : 'COPY_TRANSFORMS',
+            'subtarget'   : ctrl_root,
         })
 
 
-        make_constraint( self, ctrl, {
-            'constraint'  : 'CHILD_OF',
-            'subtarget'   : target,
+        make_constraint( self, ctrl_socket, {
+            'constraint'  : 'COPY_TRANSFORMS',
+            'subtarget'   : ctrl_parent,
             'influence'   : 0.0,
         })
 
 
-        pbone = self.obj.pose.bones[target]
-
-        const = self.obj.pose.bones[ctrl].constraints[1]
-        const.inverse_matrix = (self.obj.matrix_world*pbone.matrix).inverted()
+        # pbone = self.obj.pose.bones[target]
+        #
+        # const = self.obj.pose.bones[ctrl].constraints[1]
+        # const.inverse_matrix = (self.obj.matrix_world*pbone.matrix).inverted()
 
         # Constrain mch target bone to the ik control and mch stretch
 
@@ -825,6 +841,7 @@ class Rig:
             bones['ik']['ctrl']['terminal'] += [ toes ]
 
         bones['ik']['ctrl']['terminal'] += [ heel, ctrl ]
+        bones['ik']['mch_foot'] = [ctrl_socket, ctrl_root, ctrl_parent]
 
         return bones
 
@@ -842,7 +859,7 @@ class Rig:
         bpy.ops.object.mode_set(mode ='OBJECT')
         pb = self.obj.pose.bones
 
-        ctrl = pb[bones['ik']['ctrl']['terminal'][-1]]
+        ctrl = pb[bones['ik']['mch_foot'][0]]
 
         props  = [ "IK_follow", "root/parent" ]
 
@@ -957,7 +974,7 @@ class Rig:
             controls_string = ", ".join(["'" + x + "'" for x in controls])
 
             script = create_script( bones, 'leg' )
-            script += extra_script % (controls_string, bones['ik']['ctrl']['terminal'][-1], 'IK_follow', 'root/parent')
+            script += extra_script % (controls_string, bones['ik']['mch_foot'][0], 'IK_follow', 'root/parent')
 
             return [ script ]
 
@@ -1081,16 +1098,19 @@ def get_future_names(bone):
         name = bone[:-2]
         suffix = bone[-2:]
 
-        list.append(org(name) + suffix)
-        list.append(make_mechanism_name(name) + 'ik_stretch' + suffix)
-        list.append(make_deformer_name(name) + suffix)
-        list.append(name + '_fk' + suffix)
-        list.append(name + '_tweak' + suffix)
+    list.append(org(name) + suffix)
+    list.append(make_mechanism_name(name) + 'ik_stretch' + suffix)
+    list.append(make_deformer_name(name) + suffix)
+    list.append(name + '_fk' + suffix)
+    list.append(name + '_tweak' + suffix)
 
-        list.append(name + '_tweak' + suffix + '.001')
-        list.append(name + '_ik' + suffix)
+    list.append(name + '_tweak' + suffix + '.001')
+    list.append(name + '_ik' + suffix)
 
     return list
+
+
+    return ['prova', 'prova2']
 
 
 def create_sample(obj):

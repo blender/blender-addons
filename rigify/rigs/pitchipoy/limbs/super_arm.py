@@ -512,32 +512,56 @@ class Rig:
         eb[ bones['ik']['mch_target'] ].parent      = eb[ ctrl ]
         eb[ bones['ik']['mch_target'] ].use_connect = False
 
+        # MCH for ik control
+        ctrl_socket = copy_bone(self.obj, org_bones[2], get_bone_name( org_bones[2], 'mch', 'ik_socket'))
+        eb[ctrl_socket].tail = eb[ctrl_socket].head + 0.8*(eb[ctrl_socket].tail-eb[ctrl_socket].head)
+        eb[ctrl_socket].parent = None
+        eb[ctrl].parent = eb[ctrl_socket]
 
+        ctrl_root = copy_bone(self.obj, org_bones[2], get_bone_name( org_bones[2], 'mch', 'ik_root'))
+        eb[ctrl_root].tail = eb[ctrl_root].head + 0.7*(eb[ctrl_root].tail-eb[ctrl_root].head)
+        eb[ctrl_root].use_connect = False
+        eb[ctrl_root].parent = eb['root']
+
+        ctrl_parent = copy_bone(self.obj, org_bones[2], get_bone_name( org_bones[2], 'mch', 'ik_parent'))
+        eb[ctrl_parent].tail = eb[ctrl_parent].head + 0.6*(eb[ctrl_parent].tail-eb[ctrl_parent].head)
+        eb[ctrl_parent].use_connect = False
+        eb[ctrl_parent].parent = eb[org_bones[0]].parent
 
         # Set up constraints
 
         # Constrain ik ctrl to root / parent
 
         # Todo this should be better : target = strip_org(eb[org_bones[0]].parent.name)
-        target = eb[org_bones[0]].parent.name
+        #target = eb[org_bones[0]].parent.name
 
-        make_constraint( self, ctrl, {
-            'constraint'  : 'CHILD_OF',
-            'subtarget'   : 'root',
+        make_constraint( self, ctrl_socket, {
+            'constraint'  : 'COPY_TRANSFORMS',
+            'subtarget'   : ctrl_root,
         })
 
-
-        make_constraint( self, ctrl, {
-            'constraint'  : 'CHILD_OF',
-            'subtarget'   : target,
-            'influence'   : 0.0,
+        make_constraint( self, ctrl_socket, {
+            'constraint'  : 'COPY_TRANSFORMS',
+            'subtarget'   : ctrl_parent,
         })
 
+        # make_constraint( self, ctrl, {
+        #     'constraint'  : 'CHILD_OF',
+        #     'subtarget'   : 'root',
+        # })
+        #
+        #
+        # make_constraint( self, ctrl, {
+        #     'constraint'  : 'CHILD_OF',
+        #     'subtarget'   : target,
+        #     'influence'   : 0.0,
+        # })
 
-        pbone = self.obj.pose.bones[target]
 
-        const = self.obj.pose.bones[ctrl].constraints[1]
-        const.inverse_matrix = (self.obj.matrix_world*pbone.matrix).inverted()
+        # pbone = self.obj.pose.bones[target] #SET INVERSE EMULATION
+        #
+        # const = self.obj.pose.bones[ctrl].constraints[1]
+        # const.inverse_matrix = (self.obj.matrix_world*pbone.matrix).inverted()
 
         # Constrain mch target bone to the ik control and mch stretch
 
@@ -606,6 +630,7 @@ class Rig:
         create_hand_widget(self.obj, ctrl, bone_transform_name=None)
 
         bones['ik']['ctrl']['terminal'] = [ ctrl ]
+        bones['ik']['mch_hand'] = [ctrl_socket, ctrl_root, ctrl_parent]
 
         return bones
 
@@ -623,7 +648,7 @@ class Rig:
         bpy.ops.object.mode_set(mode ='OBJECT')
         pb = self.obj.pose.bones
 
-        ctrl = pb[bones['ik']['ctrl']['terminal'][0]]
+        ctrl = pb[bones['ik']['mch_hand'][0]]
 
         props  = [ "IK_follow", "root/parent" ]
 
@@ -739,7 +764,7 @@ class Rig:
             controls_string = ", ".join(["'" + x + "'" for x in controls])
 
             script = create_script( bones, 'arm' )
-            script += extra_script % (controls_string, bones['ik']['ctrl']['terminal'][0], 'IK_follow', 'root/parent')
+            script += extra_script % (controls_string, bones['ik']['mch_hand'][0], 'IK_follow', 'root/parent')
 
             return [ script ]
 
