@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler",
     "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig, Christian Brinkmann",
-    "version": (3, 31),
+    "version": (3, 32),
     "blender": (2, 77, 0),
     "location": "Node Editor Toolbar or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -2332,6 +2332,7 @@ class NWCopySettings(Operator, NWBase):
         for i in node_selected:
             i.select = False
         
+        # Code by zeffii from http://blender.stackexchange.com/a/42338/3710
         # Run through all other nodes
         for node in valid_nodes[1:]:
             
@@ -3235,6 +3236,114 @@ class NWSaveViewer(bpy.types.Operator, ExportHelper):
             return {'FINISHED'}
 
 
+class NWResetNodes(bpy.types.Operator):
+    """Reset Nodes in Selection"""
+    bl_idname = "node.nw_reset_nodes"
+    bl_label = "Reset Nodes"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return space.type == 'NODE_EDITOR'
+
+    def execute(self, context):
+        node_active = context.active_node
+        node_selected = context.selected_nodes
+        node_ignore = ["FRAME","REROUTE", "GROUP"]
+        
+        # Check if one node is selected at least
+        if not (len(node_selected) > 0):
+            self.report({'ERROR'}, "1 node must be selected at least")
+            return {'CANCELLED'}
+
+        active_node_name = node_active.name if node_active.select else None
+        valid_nodes = [n for n in node_selected if n.type not in node_ignore]
+        
+        # Create output lists
+        selected_node_names = [n.name for n in node_selected]
+        success_names = []
+
+        # Reset all valid children in a frame
+        node_active_is_frame = False
+        if len(node_selected) == 1 and node_active.type == "FRAME":
+            node_tree = node_active.id_data
+            children = [n for n in node_tree.nodes if n.parent == node_active]
+            if children:
+                valid_nodes = [n for n in children if n.type not in node_ignore]
+                selected_node_names = [n.name for n in children if n.type not in node_ignore]
+                node_active_is_frame = True
+        
+        # Check if valid nodes in selection
+        if not (len(valid_nodes) > 0):
+            # Check for frames only
+            frames_selected = [n for n in node_selected if n.type == "FRAME"]
+            if (len(frames_selected) > 1 and len(frames_selected) == len(node_selected)):
+                self.report({'ERROR'}, "Please select only 1 frame to reset")
+            else:
+                self.report({'ERROR'}, "No valid node(s) in selection")
+            return {'CANCELLED'}
+
+        # Report nodes that are not valid
+        if len(valid_nodes) != len(node_selected) and node_active_is_frame is False:
+            valid_node_names = [n.name for n in valid_nodes]
+            not_valid_names = list(set(selected_node_names) - set(valid_node_names))
+            self.report({'INFO'}, "Ignored {}".format(", ".join(not_valid_names)))
+
+        # Deselect all nodes
+        for i in node_selected:
+            i.select = False
+
+        # Run through all valid nodes
+        for node in valid_nodes:        
+
+            parent = node.parent if node.parent else None
+            node_loc = [node.location.x, node.location.y]
+
+            node_tree = node.id_data
+            props_to_copy = 'bl_idname name location height width'.split(' ')
+
+            reconnections = []
+            mappings = chain.from_iterable([node.inputs, node.outputs])
+            for i in (i for i in mappings if i.is_linked):
+                for L in i.links:
+                    reconnections.append([L.from_socket.path_from_id(), L.to_socket.path_from_id()])
+
+            props = {j: getattr(node, j) for j in props_to_copy}
+
+            new_node = node_tree.nodes.new(props['bl_idname'])
+            props_to_copy.pop(0)
+
+            for prop in props_to_copy:
+                setattr(new_node, prop, props[prop])
+
+            nodes = node_tree.nodes
+            nodes.remove(node)
+            new_node.name = props['name']
+
+            if parent:
+                new_node.parent = parent
+                new_node.location = node_loc
+
+            for str_from, str_to in reconnections:
+                node_tree.links.new(eval(str_from), eval(str_to))
+
+            new_node.select = False
+            success_names.append(new_node.name)
+
+        # Reselect all nodes
+        if selected_node_names and node_active_is_frame is False:
+            for i in selected_node_names:
+                node_tree.nodes[i].select = True
+
+        if active_node_name is not None:
+            node_tree.nodes[active_node_name].select = True
+            node_tree.nodes.active = node_tree.nodes[active_node_name]
+
+        self.report({'INFO'}, "Successfully reset {}".format(", ".join(success_names)))
+        return {'FINISHED'}
+
+
 #
 #  P A N E L
 #
@@ -4011,6 +4120,23 @@ def save_viewer_menu_func(self, context):
                     self.layout.operator(NWSaveViewer.bl_idname, icon='FILE_IMAGE')
 
 
+def reset_nodes_button(self, context):
+    node_active = context.active_node
+    node_selected = context.selected_nodes
+    node_ignore = ["FRAME","REROUTE", "GROUP"]
+
+    # Check if active node is in the selection and respective type
+    if (len(node_selected) == 1) and node_active.select and node_active.type not in node_ignore:
+        row = self.layout.row()
+        row.operator("node.nw_reset_nodes", text="Reset Node", icon="FILE_REFRESH")
+        self.layout.separator()
+    
+    elif (len(node_selected) == 1) and node_active.select and node_active.type == "FRAME":
+        row = self.layout.row()
+        row.operator("node.nw_reset_nodes", text="Reset Nodes in Frame", icon="FILE_REFRESH")
+        self.layout.separator()
+
+
 #
 #  REGISTER/UNREGISTER CLASSES AND KEYMAP ITEMS
 #
@@ -4188,6 +4314,8 @@ kmi_defs = (
     (NWViewerFocus.bl_idname, 'LEFTMOUSE', 'DOUBLE_CLICK', False, False, False, None, "Set Viewers Tile Center"),
     # Align Nodes
     (NWAlignNodes.bl_idname, 'EQUAL', 'PRESS', False, True, False, None, "Align selected nodes neatly in a row/column"),
+    # Reset Nodes (Back Space)
+    (NWResetNodes.bl_idname, 'BACK_SPACE', 'PRESS', False, False, False, None, "Revert node back to default state, but keep connections"),
     # MENUS
     ('wm.call_menu', 'SPACE', 'PRESS', True, False, False, (('name', NodeWranglerMenu.bl_idname),), "Node Wranger menu"),
     ('wm.call_menu', 'SLASH', 'PRESS', False, False, False, (('name', NWAddReroutesMenu.bl_idname),), "Add Reroutes menu"),
@@ -4241,6 +4369,8 @@ def register():
     bpy.types.NODE_PT_category_SH_NEW_TEXTURE.prepend(multipleimages_menu_func)
     bpy.types.NODE_MT_category_CMP_INPUT.prepend(multipleimages_menu_func)
     bpy.types.NODE_PT_category_CMP_INPUT.prepend(multipleimages_menu_func)
+    bpy.types.NODE_PT_active_node_generic.prepend(reset_nodes_button)
+    bpy.types.NODE_MT_node.prepend(reset_nodes_button)
 
 
 def unregister():
@@ -4265,6 +4395,8 @@ def unregister():
     bpy.types.NODE_PT_category_SH_NEW_TEXTURE.remove(multipleimages_menu_func)
     bpy.types.NODE_MT_category_CMP_INPUT.remove(multipleimages_menu_func)
     bpy.types.NODE_PT_category_CMP_INPUT.remove(multipleimages_menu_func)
+    bpy.types.NODE_PT_active_node_generic.remove(reset_nodes_button)
+    bpy.types.NODE_MT_node.remove(reset_nodes_button)
 
     bpy.utils.unregister_module(__name__)
 
