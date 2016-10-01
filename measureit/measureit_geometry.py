@@ -1253,6 +1253,7 @@ def get_arc_data(pointa, pointb, pointc, pointd):
 # -------------------------------------------------------------
 def format_distance(fmt, units, value, factor=1):
     s_code = "\u00b2"  # Superscript two
+    hide_units = bpy.context.scene.measureit_hide_units
     # ------------------------
     # Units automatic
     # ------------------------
@@ -1261,31 +1262,36 @@ def format_distance(fmt, units, value, factor=1):
         if bpy.context.scene.unit_settings.system == "IMPERIAL":
             feet = value * (3.2808399 ** factor)
             if round(feet, 2) >= 1.0:
-                fmt += " ft"
+                if hide_units is False:
+                    fmt += " ft"
                 if factor == 2:
                     fmt += s_code
                 tx_dist = fmt % feet
             else:
                 inches = value * (39.3700787 ** factor)
-                fmt += " in"
+                if hide_units is False:
+                    fmt += " in"
                 if factor == 2:
                     fmt += s_code
                 tx_dist = fmt % inches
         elif bpy.context.scene.unit_settings.system == "METRIC":
             if round(value, 2) >= 1.0:
-                fmt += " m"
+                if hide_units is False:
+                    fmt += " m"
                 if factor == 2:
                     fmt += s_code
                 tx_dist = fmt % value
             else:
                 if round(value, 2) >= 0.01:
-                    fmt += " cm"
+                    if hide_units is False:
+                        fmt += " cm"
                     if factor == 2:
                         fmt += s_code
                     d_cm = value * (100 ** factor)
                     tx_dist = fmt % d_cm
                 else:
-                    fmt += " mm"
+                    if hide_units is False:
+                        fmt += " mm"
                     if factor == 2:
                         fmt += s_code
                     d_mm = value * (1000 ** factor)
@@ -1296,7 +1302,8 @@ def format_distance(fmt, units, value, factor=1):
     # Units meters
     # ------------------------
     elif units == "2":
-        fmt += " m"
+        if hide_units is False:
+            fmt += " m"
         if factor == 2:
             fmt += s_code
         tx_dist = fmt % value
@@ -1304,7 +1311,8 @@ def format_distance(fmt, units, value, factor=1):
     # Units centimeters
     # ------------------------
     elif units == "3":
-        fmt += " cm"
+        if hide_units is False:
+            fmt += " cm"
         if factor == 2:
             fmt += s_code
         d_cm = value * (100 ** factor)
@@ -1313,7 +1321,8 @@ def format_distance(fmt, units, value, factor=1):
     # Units milimiters
     # ------------------------
     elif units == "4":
-        fmt += " mm"
+        if hide_units is False:
+            fmt += " mm"
         if factor == 2:
             fmt += s_code
         d_mm = value * (1000 ** factor)
@@ -1322,7 +1331,8 @@ def format_distance(fmt, units, value, factor=1):
     # Units feet
     # ------------------------
     elif units == "5":
-        fmt += " ft"
+        if hide_units is False:
+            fmt += " ft"
         if factor == 2:
             fmt += s_code
         feet = value * (3.2808399 ** factor)
@@ -1331,7 +1341,8 @@ def format_distance(fmt, units, value, factor=1):
     # Units inches
     # ------------------------
     elif units == "6":
-        fmt += " in"
+        if hide_units is False:
+            fmt += " in"
         if factor == 2:
             fmt += s_code
         inches = value * (39.3700787 ** factor)

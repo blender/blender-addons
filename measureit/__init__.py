@@ -29,7 +29,7 @@ bl_info = {
     "name": "MeasureIt",
     "author": "Antonio Vazquez (antonioya)",
     "location": "View3D > Tools Panel /Properties panel",
-    "version": (1, 6, 7),
+    "version": (1, 6, 8),
     "blender": (2, 7, 4),
     "description": "Tools for measuring objects.",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/Measureit",
@@ -214,6 +214,9 @@ def register():
                                          name="Units",
                                          default="2",
                                          description="Units")
+    Scene.measureit_hide_units = BoolProperty(name="hide_units",
+                                              description="Do not display unit of measurement on viewport",
+                                              default=False)
     Scene.measureit_render = BoolProperty(name="Render",
                                           description="Save an image with measures over"
                                                       " render image",
@@ -400,6 +403,7 @@ def unregister():
     del Scene.measureit_ovr_color
     del Scene.measureit_ovr_width
     del Scene.measureit_units
+    del Scene.measureit_hide_units
     del Scene.measureit_render
     del Scene.measureit_render_type
     del Scene.measureit_sum
