@@ -155,7 +155,7 @@ def draw_line(v1, v2):
 # -------------------------------------------------------------
 def draw_room_data(myobj, op, region, rv3d, rgb, rgbw, fsize, wfsize, space, measure, dspname):
 
-    verts, activefaces, activenormals = get_wall_points(myobj)
+    verts, activefaces, activenormals = get_wall_points(myobj, op)
 
     # --------------------------
     # Get line points and draw
@@ -175,7 +175,7 @@ def draw_room_data(myobj, op, region, rv3d, rgb, rgbw, fsize, wfsize, space, mea
         # Top
         for e in face:
             if verts[e][2] != 0:
-                if verts[a1][0] == verts[e][0] and verts[a1][1] == verts[e][1]:
+                if round(verts[a1][0], 5) == round(verts[e][0], 5) and round(verts[a1][1], 5) == round(verts[e][1], 5):
                     a2 = e
                 else:
                     b2 = e

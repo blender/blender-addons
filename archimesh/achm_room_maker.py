@@ -970,7 +970,7 @@ def get_hight(verts, faces_4, faces_3, face_index, face_num):
 # ------------------------------------
 # Sort list of faces
 # ------------------------------------
-def sort_facelist(activefaces, activenormals):
+def sort_facelist(activefaces, activenormals, merge):
     totfaces = len(activefaces)
     newlist = []
     newnormal = []
@@ -985,42 +985,33 @@ def sort_facelist(activefaces, activenormals):
     # -----------------------
     # Look for first element
     # -----------------------
-    flag = False
-    for x in range(1, totfaces):
-        if flag is False:
-            idx = 0
-            for face in activefaces:
-                c = 0
-                for i in face:
-                    if i == 0 or i == 1:
-                        c += 1
-                    # avoid close
-                    if i > 3:
-                        c -= 1
+    idx = 0
+    for face in activefaces:
+        c = 0
+        for i in face:
+            if i == 0 or i == 1:
+                c += 1
 
-                if c >= 2 and face not in newlist:
-                    newlist.append(face)
-                    newnormal.append(activenormals[idx])
-                    flag = True
-                idx += 1
+        if c >= 2 and face not in newlist:
+            newlist.append(face)
+            newnormal.append(activenormals[idx])
+            break
+        idx += 1
 
     # -----------------------
     # Look for second element
     # -----------------------
-    flag = False
-    for x in range(1, totfaces):
-        if flag is False:
-            idx = 0
-            for face in activefaces:
-                c = 0
-                for i in face:
-                    if i == 2 or i == 3:
-                        c += 1
-                if c >= 2 and face not in newlist:
-                    newlist.append(face)
-                    newnormal.append(activenormals[idx])
-                    flag = True
-                idx += 1
+    idx = 0
+    for face in activefaces:
+        c = 0
+        for i in face:
+            if i == 2 or i == 3:
+                c += 1
+        if c >= 2 and face not in newlist:
+            newlist.append(face)
+            newnormal.append(activenormals[idx])
+            break
+        idx += 1
 
     # -----------------------
     # Add next faces
@@ -1043,8 +1034,9 @@ def sort_facelist(activefaces, activenormals):
 # ------------------------------------
 # Get points of the walls
 # selobject: room
+# rp: roomproperties
 # ------------------------------------
-def get_wall_points(selobject):
+def get_wall_points(selobject, rp):
     obverts = selobject.data.vertices
     obfaces = selobject.data.polygons
 
@@ -1096,7 +1088,8 @@ def get_wall_points(selobject):
     # ------------------------
     # Sort faces
     # ------------------------
-    newlist, newnormal = sort_facelist(activefaces, activenormals)
+    newlist, newnormal = sort_facelist(activefaces, activenormals, rp.merge)
+
     return verts, newlist, newnormal
 
 
@@ -1111,7 +1104,7 @@ def add_shell(selobject, objname, rp):
     myvertex = []
     myfaces = []
 
-    verts, activefaces, activenormals = get_wall_points(selobject)
+    verts, activefaces, activenormals = get_wall_points(selobject, rp)
 
     # --------------------------
     # Get line points
