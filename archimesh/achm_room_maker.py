@@ -844,8 +844,8 @@ class WallProperties(PropertyGroup):
             )
 
     a = BoolProperty(
-            name="Advance",
-            description="Define advance parameters of the wall",
+            name="Advanced",
+            description="Define advanced parameters of the wall",
             default=False,
             update=update_room,
             )
