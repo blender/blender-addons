@@ -970,7 +970,7 @@ def get_hight(verts, faces_4, faces_3, face_index, face_num):
 # ------------------------------------
 # Sort list of faces
 # ------------------------------------
-def sort_facelist(activefaces, activenormals, merge):
+def sort_facelist(activefaces, activenormals):
     totfaces = len(activefaces)
     newlist = []
     newnormal = []
@@ -1036,7 +1036,7 @@ def sort_facelist(activefaces, activenormals, merge):
 # selobject: room
 # rp: roomproperties
 # ------------------------------------
-def get_wall_points(selobject, rp):
+def get_wall_points(selobject):
     obverts = selobject.data.vertices
     obfaces = selobject.data.polygons
 
@@ -1088,7 +1088,7 @@ def get_wall_points(selobject, rp):
     # ------------------------
     # Sort faces
     # ------------------------
-    newlist, newnormal = sort_facelist(activefaces, activenormals, rp.merge)
+    newlist, newnormal = sort_facelist(activefaces, activenormals)
 
     return verts, newlist, newnormal
 
@@ -1104,7 +1104,7 @@ def add_shell(selobject, objname, rp):
     myvertex = []
     myfaces = []
 
-    verts, activefaces, activenormals = get_wall_points(selobject, rp)
+    verts, activefaces, activenormals = get_wall_points(selobject)
 
     # --------------------------
     # Get line points

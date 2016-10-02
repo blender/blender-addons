@@ -155,7 +155,7 @@ def draw_line(v1, v2):
 # -------------------------------------------------------------
 def draw_room_data(myobj, op, region, rv3d, rgb, rgbw, fsize, wfsize, space, measure, dspname):
 
-    verts, activefaces, activenormals = get_wall_points(myobj, op)
+    verts, activefaces, activenormals = get_wall_points(myobj)
 
     # --------------------------
     # Get line points and draw
