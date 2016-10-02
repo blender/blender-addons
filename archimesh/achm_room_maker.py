@@ -1034,7 +1034,6 @@ def sort_facelist(activefaces, activenormals):
 # ------------------------------------
 # Get points of the walls
 # selobject: room
-# rp: roomproperties
 # ------------------------------------
 def get_wall_points(selobject):
     obverts = selobject.data.vertices
