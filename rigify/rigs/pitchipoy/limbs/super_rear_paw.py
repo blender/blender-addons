@@ -12,6 +12,18 @@ from   ..super_widgets import create_ikarrow_widget
 from   ..super_widgets import create_foot_widget, create_ballsocket_widget
 from   math            import trunc
 
+
+extra_script = """
+controls = [%s]
+ctrl    = '%s'
+
+if is_selected( controls ):
+    layout.prop( pose_bones[ ctrl ], '["%s"]')
+    if '%s' in pose_bones[ctrl].keys():
+        layout.prop( pose_bones[ ctrl ], '["%s"]', slider = True )
+"""
+
+
 class Rig:
     def __init__(self, obj, bone_name, params):
         """ Initialize torso rig and key rig properties """
@@ -230,7 +242,6 @@ class Rig:
 
         return tweaks
 
-
     def create_def( self, tweaks ):
         org_bones = self.org_bones
 
@@ -337,7 +348,6 @@ class Rig:
 
         return def_bones
 
-
     def create_ik( self, parent ):
         org_bones = self.org_bones
 
@@ -395,7 +405,6 @@ class Rig:
                  'mch_str'    : mch_str
         }
 
-
     def create_fk( self, parent ):
         org_bones = self.org_bones.copy()
 
@@ -447,7 +456,6 @@ class Rig:
 
         return { 'ctrl' : ctrls, 'mch' : mch }
 
-
     def org_parenting_and_switch( self, org, ik, fk, parent ):
         bpy.ops.object.mode_set(mode ='EDIT')
         eb = self.obj.data.edit_bones
@@ -496,12 +504,11 @@ class Rig:
             var.targets[0].data_path = \
                 pb_parent.path_from_id() + '['+ '"' + prop.name + '"' + ']'
 
-
     def create_paw( self, bones ):
+
         org_bones = list(
             [self.org_bones[0]] + connected_children_names(self.obj, self.org_bones[0])
         )
-
 
         bones['ik']['ctrl']['terminal'] = []
 
@@ -515,6 +522,26 @@ class Rig:
         # clear parent (so that rigify will parent to root)
         eb[ ctrl ].parent      = None
         eb[ ctrl ].use_connect = False
+
+        # MCH for ik control
+        ctrl_socket = copy_bone(self.obj, org_bones[2], get_bone_name( org_bones[2], 'mch', 'ik_socket'))
+        eb[ctrl_socket].tail = eb[ctrl_socket].head + 0.8*(eb[ctrl_socket].tail-eb[ctrl_socket].head)
+        eb[ctrl_socket].parent = None
+        eb[ctrl].parent = eb[ctrl_socket]
+
+        ctrl_root = copy_bone(self.obj, org_bones[2], get_bone_name( org_bones[2], 'mch', 'ik_root'))
+        eb[ctrl_root].tail = eb[ctrl_root].head + 0.7*(eb[ctrl_root].tail-eb[ctrl_root].head)
+        eb[ctrl_root].use_connect = False
+        eb[ctrl_root].parent = eb['root']
+
+        if eb[org_bones[0]].parent:
+            paw_parent = eb[org_bones[0]].parent
+            ctrl_parent = copy_bone(self.obj, org_bones[2], get_bone_name( org_bones[2], 'mch', 'ik_parent'))
+            eb[ctrl_parent].tail = eb[ctrl_parent].head + 0.6*(eb[ctrl_parent].tail-eb[ctrl_parent].head)
+            eb[ctrl_parent].use_connect = False
+            eb[ctrl_parent].parent = eb[org_bones[0]].parent
+        else:
+            paw_parent = None
 
         # Create heel control bone
         heel = get_bone_name( org_bones[2], 'ctrl', 'heel_ik' )
@@ -539,9 +566,22 @@ class Rig:
         eb[ ctrl ].length = l
 
         # Set up constraints
+
+        # Constrain ik ctrl to root / parent
+
+        make_constraint( self, ctrl_socket, {
+            'constraint'  : 'COPY_TRANSFORMS',
+            'subtarget'   : ctrl_root,
+        })
+
+        if paw_parent:
+            make_constraint( self, ctrl_socket, {
+                'constraint'  : 'COPY_TRANSFORMS',
+                'subtarget'   : ctrl_parent,
+                'influence'   : 0.0,
+            })
+
         # Constrain mch target bone to the ik control and mch stretch
-
-
         make_constraint( self, bones['ik']['mch_target'], {
             'constraint'  : 'COPY_LOCATION',
             'subtarget'   : bones['ik']['mch_str'],
@@ -675,18 +715,103 @@ class Rig:
 
         bones['ik']['ctrl']['terminal'] += [ heel, ctrl ]
 
+        if paw_parent:
+            bones['ik']['mch_foot'] = [ctrl_socket, ctrl_root, ctrl_parent]
+        else:
+            bones['ik']['mch_foot'] = [ctrl_socket, ctrl_root]
+
         return bones
 
-        # def create_terminal( self, limb_type, bones ):
-        #     if   limb_type == 'arm':
-        #         return create_arm( self, bones )
-        #     elif limb_type == 'leg':
-        #         return create_leg( self, bones )
-        #     elif limb_type == 'paw':
-        #         return create_paw( self, bones )
+    def create_drivers(self, bones):
 
+        bpy.ops.object.mode_set(mode ='OBJECT')
+        pb = self.obj.pose.bones
 
-    def generate( self ):
+        ctrl = pb[bones['ik']['mch_foot'][0]]
+
+        props  = [ "IK_follow", "root/parent" ]
+
+        for prop in props:
+            if prop == 'IK_follow':
+
+                ctrl[prop] = True
+                rna_prop = rna_idprop_ui_prop_get( ctrl, prop, create=True )
+                rna_prop["min"]         = False
+                rna_prop["max"]         = True
+                rna_prop["description"] = prop
+
+                drv = ctrl.constraints[ 0 ].driver_add("mute").driver
+                drv.type = 'AVERAGE'
+
+                var = drv.variables.new()
+                var.name = prop
+                var.type = "SINGLE_PROP"
+                var.targets[0].id = self.obj
+                var.targets[0].data_path = \
+                ctrl.path_from_id() + '['+ '"' + prop + '"' + ']'
+
+                drv_modifier = self.obj.animation_data.drivers[-1].modifiers[0]
+
+                drv_modifier.mode            = 'POLYNOMIAL'
+                drv_modifier.poly_order      = 1
+                drv_modifier.coefficients[0] = 1.0
+                drv_modifier.coefficients[1] = -1.0
+
+                if len(ctrl.constraints) > 1:
+                    drv = ctrl.constraints[ 1 ].driver_add("mute").driver
+                    drv.type = 'AVERAGE'
+
+                    var = drv.variables.new()
+                    var.name = prop
+                    var.type = "SINGLE_PROP"
+                    var.targets[0].id = self.obj
+                    var.targets[0].data_path = \
+                    ctrl.path_from_id() + '['+ '"' + prop + '"' + ']'
+
+                    drv_modifier = self.obj.animation_data.drivers[-1].modifiers[0]
+
+                    drv_modifier.mode            = 'POLYNOMIAL'
+                    drv_modifier.poly_order      = 1
+                    drv_modifier.coefficients[0] = 1.0
+                    drv_modifier.coefficients[1] = -1.0
+
+            elif len(ctrl.constraints) > 1:
+                ctrl[prop]=0.0
+                rna_prop = rna_idprop_ui_prop_get( ctrl, prop, create=True )
+                rna_prop["min"]         = 0.0
+                rna_prop["max"]         = 1.0
+                rna_prop["soft_min"]    = 0.0
+                rna_prop["soft_max"]    = 1.0
+                rna_prop["description"] = prop
+
+                # drv = ctrl.constraints[ 0 ].driver_add("influence").driver
+                # drv.type = 'AVERAGE'
+                #
+                # var = drv.variables.new()
+                # var.name = prop
+                # var.type = "SINGLE_PROP"
+                # var.targets[0].id = self.obj
+                # var.targets[0].data_path = \
+                # ctrl.path_from_id() + '['+ '"' + prop + '"' + ']'
+                #
+                # drv_modifier = self.obj.animation_data.drivers[-1].modifiers[0]
+                #
+                # drv_modifier.mode            = 'POLYNOMIAL'
+                # drv_modifier.poly_order      = 1
+                # drv_modifier.coefficients[0] = 1.0
+                # drv_modifier.coefficients[1] = -1.0
+
+                drv = ctrl.constraints[ 1 ].driver_add("influence").driver
+                drv.type = 'AVERAGE'
+
+                var = drv.variables.new()
+                var.name = prop
+                var.type = "SINGLE_PROP"
+                var.targets[0].id = self.obj
+                var.targets[0].data_path = \
+                ctrl.path_from_id() + '['+ '"' + prop + '"' + ']'
+
+    def generate(self):
         bpy.ops.object.mode_set(mode ='EDIT')
         eb = self.obj.data.edit_bones
 
@@ -709,8 +834,17 @@ class Rig:
         )
 
         bones = self.create_paw( bones )
+        self.create_drivers(    bones )
 
-        return [ create_script( bones, 'paw' ) ]
+        controls =  [ bones['ik']['ctrl']['limb'], bones['ik']['ctrl']['terminal'][-1], bones['ik']['ctrl']['terminal'][-2] ]
+
+        # Create UI
+        controls_string = ", ".join(["'" + x + "'" for x in controls])
+
+        script = create_script( bones, 'paw' )
+        script += extra_script % (controls_string, bones['ik']['mch_foot'][0], 'IK_follow', 'root/parent','root/parent')
+
+        return [ script ]
 
 
 def add_parameters( params ):

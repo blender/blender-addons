@@ -18,7 +18,8 @@ ctrl    = '%s'
 
 if is_selected( controls ):
     layout.prop( pose_bones[ ctrl ], '["%s"]')
-    layout.prop( pose_bones[ ctrl ], '["%s"]', slider = True )
+    if '%s' in pose_bones[ctrl].keys():
+        layout.prop( pose_bones[ ctrl ], '["%s"]', slider = True )
 """
 
 class Rig:
@@ -47,8 +48,7 @@ class Rig:
         else:
             self.fk_layers = None
 
-
-    def create_parent( self ):
+    def create_parent(self):
 
         org_bones = self.org_bones
 
@@ -102,8 +102,7 @@ class Rig:
 
         return mch
 
-
-    def create_tweak( self ):
+    def create_tweak(self):
         org_bones = self.org_bones
 
         bpy.ops.object.mode_set(mode ='EDIT')
@@ -228,8 +227,7 @@ class Rig:
 
         return tweaks
 
-
-    def create_def( self, tweaks ):
+    def create_def(self, tweaks):
         org_bones = self.org_bones
 
         bpy.ops.object.mode_set(mode ='EDIT')
@@ -335,8 +333,7 @@ class Rig:
 
         return def_bones
 
-
-    def create_ik( self, parent ):
+    def create_ik(self, parent):
         org_bones = self.org_bones
 
         bpy.ops.object.mode_set(mode ='EDIT')
@@ -393,8 +390,7 @@ class Rig:
                  'mch_str'    : mch_str
         }
 
-
-    def create_fk( self, parent ):
+    def create_fk(self, parent):
         org_bones = self.org_bones.copy()
 
 
@@ -443,8 +439,7 @@ class Rig:
 
         return { 'ctrl' : ctrls, 'mch' : mch }
 
-
-    def org_parenting_and_switch( self, org, ik, fk, parent ):
+    def org_parenting_and_switch(self, org, ik, fk, parent):
         bpy.ops.object.mode_set(mode ='EDIT')
         eb = self.obj.data.edit_bones
         # re-parent ORGs in a connected chain
@@ -492,8 +487,7 @@ class Rig:
             var.targets[0].data_path = \
                 pb_parent.path_from_id() + '['+ '"' + prop.name + '"' + ']'
 
-
-    def create_arm( self, bones ):
+    def create_arm( self, bones):
         org_bones = self.org_bones
 
         bpy.ops.object.mode_set(mode='EDIT')
@@ -523,45 +517,29 @@ class Rig:
         eb[ctrl_root].use_connect = False
         eb[ctrl_root].parent = eb['root']
 
-        ctrl_parent = copy_bone(self.obj, org_bones[2], get_bone_name( org_bones[2], 'mch', 'ik_parent'))
-        eb[ctrl_parent].tail = eb[ctrl_parent].head + 0.6*(eb[ctrl_parent].tail-eb[ctrl_parent].head)
-        eb[ctrl_parent].use_connect = False
-        eb[ctrl_parent].parent = eb[org_bones[0]].parent
+        if eb[org_bones[0]].parent:
+            arm_parent = eb[org_bones[0]].parent
+            ctrl_parent = copy_bone(self.obj, org_bones[2], get_bone_name( org_bones[2], 'mch', 'ik_parent'))
+            eb[ctrl_parent].tail = eb[ctrl_parent].head + 0.6*(eb[ctrl_parent].tail-eb[ctrl_parent].head)
+            eb[ctrl_parent].use_connect = False
+            eb[ctrl_parent].parent = eb[org_bones[0]].parent
+        else:
+            arm_parent = None
 
         # Set up constraints
 
         # Constrain ik ctrl to root / parent
-
-        # Todo this should be better : target = strip_org(eb[org_bones[0]].parent.name)
-        #target = eb[org_bones[0]].parent.name
 
         make_constraint( self, ctrl_socket, {
             'constraint'  : 'COPY_TRANSFORMS',
             'subtarget'   : ctrl_root,
         })
 
-        make_constraint( self, ctrl_socket, {
-            'constraint'  : 'COPY_TRANSFORMS',
-            'subtarget'   : ctrl_parent,
-        })
-
-        # make_constraint( self, ctrl, {
-        #     'constraint'  : 'CHILD_OF',
-        #     'subtarget'   : 'root',
-        # })
-        #
-        #
-        # make_constraint( self, ctrl, {
-        #     'constraint'  : 'CHILD_OF',
-        #     'subtarget'   : target,
-        #     'influence'   : 0.0,
-        # })
-
-
-        # pbone = self.obj.pose.bones[target] #SET INVERSE EMULATION
-        #
-        # const = self.obj.pose.bones[ctrl].constraints[1]
-        # const.inverse_matrix = (self.obj.matrix_world*pbone.matrix).inverted()
+        if arm_parent:
+            make_constraint( self, ctrl_socket, {
+                'constraint'  : 'COPY_TRANSFORMS',
+                'subtarget'   : ctrl_parent,
+            })
 
         # Constrain mch target bone to the ik control and mch stretch
 
@@ -630,18 +608,12 @@ class Rig:
         create_hand_widget(self.obj, ctrl, bone_transform_name=None)
 
         bones['ik']['ctrl']['terminal'] = [ ctrl ]
-        bones['ik']['mch_hand'] = [ctrl_socket, ctrl_root, ctrl_parent]
+        if arm_parent:
+            bones['ik']['mch_hand'] = [ctrl_socket, ctrl_root, ctrl_parent]
+        else:
+            bones['ik']['mch_hand'] = [ctrl_socket, ctrl_root]
 
         return bones
-
-        # def create_terminal( self, limb_type, bones ):
-        #     if   limb_type == 'arm':
-        #         return create_arm( self, bones )
-        #     elif limb_type == 'leg':
-        #         return create_leg( self, bones )
-        #     elif limb_type == 'paw':
-        #         return create_paw( self, bones )
-
 
     def create_drivers(self, bones):
 
@@ -678,24 +650,25 @@ class Rig:
                 drv_modifier.coefficients[0] = 1.0
                 drv_modifier.coefficients[1] = -1.0
 
-                drv = ctrl.constraints[ 1 ].driver_add("mute").driver
-                drv.type = 'AVERAGE'
+                if len(ctrl.constraints) > 1:
+                    drv = ctrl.constraints[ 1 ].driver_add("mute").driver
+                    drv.type = 'AVERAGE'
 
-                var = drv.variables.new()
-                var.name = prop
-                var.type = "SINGLE_PROP"
-                var.targets[0].id = self.obj
-                var.targets[0].data_path = \
-                ctrl.path_from_id() + '['+ '"' + prop + '"' + ']'
+                    var = drv.variables.new()
+                    var.name = prop
+                    var.type = "SINGLE_PROP"
+                    var.targets[0].id = self.obj
+                    var.targets[0].data_path = \
+                    ctrl.path_from_id() + '['+ '"' + prop + '"' + ']'
 
-                drv_modifier = self.obj.animation_data.drivers[-1].modifiers[0]
+                    drv_modifier = self.obj.animation_data.drivers[-1].modifiers[0]
 
-                drv_modifier.mode            = 'POLYNOMIAL'
-                drv_modifier.poly_order      = 1
-                drv_modifier.coefficients[0] = 1.0
-                drv_modifier.coefficients[1] = -1.0
+                    drv_modifier.mode            = 'POLYNOMIAL'
+                    drv_modifier.poly_order      = 1
+                    drv_modifier.coefficients[0] = 1.0
+                    drv_modifier.coefficients[1] = -1.0
 
-            else:
+            elif len(ctrl.constraints) > 1:
                 ctrl[prop]=0.0
                 rna_prop = rna_idprop_ui_prop_get( ctrl, prop, create=True )
                 rna_prop["min"]         = 0.0
@@ -704,22 +677,22 @@ class Rig:
                 rna_prop["soft_max"]    = 1.0
                 rna_prop["description"] = prop
 
-                drv = ctrl.constraints[ 0 ].driver_add("influence").driver
-                drv.type = 'AVERAGE'
-
-                var = drv.variables.new()
-                var.name = prop
-                var.type = "SINGLE_PROP"
-                var.targets[0].id = self.obj
-                var.targets[0].data_path = \
-                ctrl.path_from_id() + '['+ '"' + prop + '"' + ']'
-
-                drv_modifier = self.obj.animation_data.drivers[-1].modifiers[0]
-
-                drv_modifier.mode            = 'POLYNOMIAL'
-                drv_modifier.poly_order      = 1
-                drv_modifier.coefficients[0] = 1.0
-                drv_modifier.coefficients[1] = -1.0
+                # drv = ctrl.constraints[ 0 ].driver_add("influence").driver
+                # drv.type = 'AVERAGE'
+                #
+                # var = drv.variables.new()
+                # var.name = prop
+                # var.type = "SINGLE_PROP"
+                # var.targets[0].id = self.obj
+                # var.targets[0].data_path = \
+                # ctrl.path_from_id() + '['+ '"' + prop + '"' + ']'
+                #
+                # drv_modifier = self.obj.animation_data.drivers[-1].modifiers[0]
+                #
+                # drv_modifier.mode            = 'POLYNOMIAL'
+                # drv_modifier.poly_order      = 1
+                # drv_modifier.coefficients[0] = 1.0
+                # drv_modifier.coefficients[1] = -1.0
 
                 drv = ctrl.constraints[ 1 ].driver_add("influence").driver
                 drv.type = 'AVERAGE'
@@ -731,8 +704,7 @@ class Rig:
                 var.targets[0].data_path = \
                 ctrl.path_from_id() + '['+ '"' + prop + '"' + ']'
 
-
-    def generate( self ):
+    def generate(self):
             bpy.ops.object.mode_set(mode ='EDIT')
             eb = self.obj.data.edit_bones
 
@@ -764,26 +736,15 @@ class Rig:
             controls_string = ", ".join(["'" + x + "'" for x in controls])
 
             script = create_script( bones, 'arm' )
-            script += extra_script % (controls_string, bones['ik']['mch_hand'][0], 'IK_follow', 'root/parent')
+            script += extra_script % (controls_string, bones['ik']['mch_hand'][0], 'IK_follow', 'root/parent', 'root/parent')
 
             return [ script ]
 
 
-def add_parameters( params ):
+def add_parameters(params):
     """ Add the parameters of this rig type to the
         RigifyParameters PropertyGroup
     """
-
-    # items = [
-    #     ('arm', 'Arm', ''),
-    #     ('leg', 'Leg', ''),
-    #     ('paw', 'Paw', '')
-    # ]
-    # params.limb_type = bpy.props.EnumProperty(
-    #     items   = items,
-    #     name    = "Limb Type",
-    #     default = 'arm'
-    # )
 
     items = [
         ('x', 'X', ''),
