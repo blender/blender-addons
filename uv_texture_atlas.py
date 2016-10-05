@@ -498,7 +498,7 @@ class TexAtl_DelLightmapGroup(Operator):
                     obj.hide_render = False
                     obj.hide = False
 
-                bpy.data.groups.remove(group)
+                bpy.data.groups.remove(group, do_unlink=True)
 
             # Remove Lightmap Group
             scene.ms_lightmap_groups.remove(scene.ms_lightmap_groups_index)
