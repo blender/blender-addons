@@ -175,7 +175,7 @@ def bulgepoly_to_cubic(do, lwpolyline):
     Reference: http://www.afralisp.net/archive/lisp/Bulges1.htm
     """
     def handle_segment(last, point, bulge):
-        if bulge != 0 and (point - last).length != 0:
+        if bulge != 0 and not ((point - last).length == 0 or point == last):
             arc = bulge_to_arc(last, point, bulge)
             cubic_bezier = do.arc(arc, None, aunits=1, angdir=arc.angdir,  angbase=0)
         else:
