@@ -493,21 +493,26 @@ class Do:
         verts = []
         for p in points:
             verts.append(bm.verts.new(self.proj(p)))
-        face = bm.faces.new(verts)
 
-        if len(points) == 4:
-            for i in range(2):
-                edge1 = verts[i].co
-                edge2 = verts[i + 1].co
-                opposite1 = verts[i + 2].co
-                opposite2 = verts[(i + 3) % 4].co
-                ii = geometry.intersect_line_line(edge1, edge2, opposite1, opposite2)
-                if ii is not None:
-                    if _is_on_edge(ii[0]):
-                        bm.faces.remove(face)
-                        iv = bm.verts.new(ii[0])
-                        bm.faces.new((verts[i], iv, verts[(i + 3) % 4]))
-                        bm.faces.new((verts[i + 1], iv, verts[i + 2]))
+        # add only an edge if len points < 3
+        if len(points) == 2:
+            bm.edges.new(verts)
+        elif len(points) > 2:
+            face = bm.faces.new(verts)
+
+            if len(points) == 4:
+                for i in range(2):
+                    edge1 = verts[i].co
+                    edge2 = verts[i + 1].co
+                    opposite1 = verts[i + 2].co
+                    opposite2 = verts[(i + 3) % 4].co
+                    ii = geometry.intersect_line_line(edge1, edge2, opposite1, opposite2)
+                    if ii is not None:
+                        if _is_on_edge(ii[0]):
+                            bm.faces.remove(face)
+                            iv = bm.verts.new(ii[0])
+                            bm.faces.new((verts[i], iv, verts[(i + 3) % 4]))
+                            bm.faces.new((verts[i + 1], iv, verts[i + 2]))
 
     def the3dface(self, en, bm):
         """ f: dxf entity
