@@ -675,6 +675,13 @@ class Rig:
             const.target    = self.obj
             const.subtarget = subtarget
             const.influence = influence
+
+        elif constraint_type == 'teeth':
+
+            const = owner_pb.constraints.new( 'COPY_TRANSFORMS' )
+            const.target    = self.obj
+            const.subtarget = subtarget
+            const.influence = influence
         
         elif constraint_type == 'tweak_copyloc':
         
@@ -816,7 +823,10 @@ class Rig:
         self.make_constraits( 'mch_jaw_master', 'MCH-jaw_master.002', 'jaw_master', 0.35  )
         self.make_constraits( 'mch_jaw_master', 'MCH-jaw_master.003', 'jaw_master', 0.10  )
         self.make_constraits( 'mch_jaw_master', 'MCH-jaw_master.004', 'jaw_master', 0.025 )
-        
+
+        self.make_constraits( 'teeth', 'ORG-teeth.T', 'teeth.T', 1.00 )
+        self.make_constraits( 'teeth', 'ORG-teeth.B', 'teeth.B', 1.00 )
+
         for bone in all_bones['mch']['jaw'][1:-1]:
             self.make_constraits( 'mch_jaw_master', bone, 'MCH-mouth_lock' )
             
