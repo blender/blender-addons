@@ -45,6 +45,12 @@ SVGUnits = {"": 1.0,
 SVGEmptyStyles = {'useFill': None,
                   'fill': None}
 
+def srgb_to_linearrgb(c):
+    if c < 0.04045:
+        return 0.0 if c < 0.0 else c * (1.0 / 12.92);
+    else:
+        return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+
 
 def SVGParseFloat(s, i=0):
     """
@@ -283,8 +289,16 @@ def SVGGetMaterial(color, context):
     else:
         return None
 
+    diffuse_color = ([x / 255.0 for x in diff])
+
+    if context['do_colormanage']:
+        diffuse_color[0] = srgb_to_linearrgb(diffuse_color[0])
+        diffuse_color[1] = srgb_to_linearrgb(diffuse_color[1])
+        diffuse_color[2] = srgb_to_linearrgb(diffuse_color[2])
+
     mat = bpy.data.materials.new(name='SVGMat')
-    mat.diffuse_color = ([x / 255.0 for x in diff])
+    mat.diffuse_color = diffuse_color
+    mat.diffuse_intensity = 1.0
 
     materials[color] = mat
 
@@ -1796,7 +1810,7 @@ class SVGLoader(SVGGeometryContainer):
 
         return None
 
-    def __init__(self, filepath):
+    def __init__(self, filepath, do_colormanage):
         """
         Initialize SVG loader
         """
@@ -1816,7 +1830,8 @@ class SVGLoader(SVGGeometryContainer):
                          'matrix': m,
                          'materials': {},
                          'styles': [None],
-                         'style': None}
+                         'style': None,
+                         'do_colormanage': do_colormanage}
 
         super().__init__(node, self._context)
 
@@ -1853,7 +1868,7 @@ def parseAbstractNode(node, context):
     return None
 
 
-def load_svg(filepath):
+def load_svg(filepath, do_colormanage):
     """
     Load specified SVG file
     """
@@ -1861,7 +1876,7 @@ def load_svg(filepath):
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
-    loader = SVGLoader(filepath)
+    loader = SVGLoader(filepath, do_colormanage)
     loader.parse()
     loader.createGeom(False)
 
@@ -1870,8 +1885,9 @@ def load(operator, context, filepath=""):
 
     # error in code should raise exceptions but loading
     # non SVG files can give useful messages.
+    do_colormanage = context.scene.display_settings.display_device != 'NONE'
     try:
-        load_svg(filepath)
+        load_svg(filepath, do_colormanage)
     except (xml.parsers.expat.ExpatError, UnicodeEncodeError) as e:
         import traceback
         traceback.print_exc()
