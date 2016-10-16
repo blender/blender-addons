@@ -22,7 +22,7 @@ if is_selected( controls ):
     props.uarm_ik = controls[0]
     props.farm_ik = ik_ctrl[1]
     props.hand_ik = controls[4]
-    #props.pole = ik_arm[3]
+    props.pole = ""
 
 
 # BBone rubber hose on each Respective Tweak
@@ -66,7 +66,7 @@ if is_selected( controls ):
     props.thigh_ik  = controls[0]
     props.shin_ik   = ik_ctrl[1]
     props.foot_ik   = controls[6]
-    #props.pole      = ik_leg[3]
+    props.pole      = ""
     props.footroll  = controls[5]
     props.mfoot_ik  = ik_ctrl[2]
 
