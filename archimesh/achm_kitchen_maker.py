@@ -1056,7 +1056,7 @@ def create_baseboard(objname, sx, sy, sz, mat, bl, br, depth, doortype, gap):
     mymesh.update(calc_edges=True)
 
     # Material
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         mat = create_diffuse_material("Baseboard_material", False, 0.8, 0.8, 0.8)
         set_material(mybaseboard, mat)
 
@@ -1124,7 +1124,7 @@ def create_countertop(objname, sx, sy, sz, over, mat, doortype, depth, edge):
     mymesh.update(calc_edges=True)
 
     # Material
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         mat = create_diffuse_material("countertop_material", False, 0, 0, 0, 0.2, 0.2, 0.2, 0.15)
         set_material(mycountertop, mat)
 
@@ -1238,7 +1238,7 @@ def create_door(type_cabinet, objname, thickness, sx, sz, doortype, gf, mat, han
 
         create_handle(handle_model, mydoor, thickness, hpos, mat, handle_x, handle_z)
 
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         # Door material
         mat = create_diffuse_material("Door_material", False, 0.8, 0.8, 0.8, 0.279, 0.337, 0.6, 0.2)
         set_material(mydoor, mat)
@@ -1324,7 +1324,7 @@ def create_drawer(objname, thickness, sx, sy, sz, mat, handle, handle_model, han
         create_handle(model, mydrawer, thickness, "TM", mat, 0, handle_z)  # always in the top area/middle
 
     # Material
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         mat = create_diffuse_material("Drawer_material", False, 0.8, 0.8, 0.8, 0.6, 0.6, 0.6, 0.2)
         set_material(mydrawer, mat)
 
@@ -1447,7 +1447,7 @@ def create_handle(model, mydoor, thickness, handle_position, mat, handle_x, hand
     # parent
     myhandle.parent = mydoor
     # Materials
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         mat = create_glossy_material("Handle_material", False, 0.733, 0.779, 0.8, 0.733, 0.779, 0.8, 0.02)
         set_material(myhandle, mat)
 
