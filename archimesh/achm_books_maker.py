@@ -369,7 +369,7 @@ def create_book(objname, sx, sy, sz, px, py, pz, mat, frx,
     # ---------------------------------
     # Materials and UV Maps
     # ---------------------------------
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         rgb = objcol
         # External
         mat = create_diffuse_material(objname + "_material", True,

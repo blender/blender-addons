@@ -543,7 +543,7 @@ def create_lamp_base(objname, height, px, py, pz, segments, rings, radios, ratio
     mycylinder.location.y = py
     mycylinder.location.z = pz
     # Materials
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         rgb = objcol
         mymat = create_diffuse_material(mycylinder.name + "_material", True, rgb[0], rgb[1], rgb[2], rgb[0], rgb[1],
                                         rgb[2], 0.1)
@@ -581,7 +581,7 @@ def create_lampholder(objname, height, px, py, pz, mat):
     mycylinder.location.z = pz
 
     # Materials
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         mat = create_diffuse_material(mycylinder.name + "_material", True, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.1)
         set_material(mycylinder, mat)
 
@@ -627,7 +627,7 @@ def create_lampholder_strings(objname, height, px, py, pz, radio, shadeh, mat):
     box2.location = (-0.021, 0, height + 0.004)
 
     # Materials
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         mat = create_diffuse_material(mycylinder.name + "_material", True, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.1)
         set_material(mycylinder, mat)
         set_material(box1, mat)
@@ -673,7 +673,7 @@ def create_lampshade(objname, height, px, py, pz, segments, radio1, radio2, plea
     mycylinder.location.y = py
     mycylinder.location.z = pz
     # materials
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         mymat = create_translucent_material(mycylinder.name + "_material", True, 0.8, 0.65, 0.45, 0.8, 0.65, 0.45,
                                             opacity)
         set_material(mycylinder, mymat)

@@ -906,7 +906,7 @@ def create_rail_window_frame(mywindow, mymesh, sx, sy, sz, frame, mat, matdata, 
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)
 
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         set_material(mywindow, matdata)
     # --------------
     # Blind Box
@@ -919,7 +919,7 @@ def create_rail_window_frame(mywindow, mymesh, sx, sy, sz, frame, mat, matdata, 
         mybox.location.x = 0
         mybox.location.y = -blind_back - sy
         mybox.location.z = sz
-        if mat:
+        if mat and bpy.context.scene.render.engine == 'CYCLES':
             set_material(mybox, matdata)
         # Lock
         mybox.lock_location = (True, True, True)
@@ -1030,7 +1030,7 @@ def create_leaf_window_frame(mywindow, mymesh, sx, sy, sz, frame, frame_l, leafr
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)
 
-    if mat is True:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         set_material(mywindow, matdata)
 
     # --------------
@@ -1044,7 +1044,7 @@ def create_leaf_window_frame(mywindow, mymesh, sx, sy, sz, frame, frame_l, leafr
         mybox.location.x = 0
         mybox.location.y = -blind_back - sy
         mybox.location.z = sz
-        if mat:
+        if mat and bpy.context.scene.render.engine == 'CYCLES':
             set_material(mybox, matdata)
         # Lock
         mybox.lock_location = (True, True, True)
@@ -1226,7 +1226,7 @@ def create_rail_window_leaf(objname, hand, sx, sy, sz, f, px, py, pz, mat, matda
         else:
             myhandle.location.z = 1
 
-    if mat is True and bpy.context.scene.render.engine == 'CYCLES':
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         set_material(mywindow, matdata)
         # Glass
         glass = create_glass_material("Glass_material", False)
@@ -1338,7 +1338,7 @@ def create_leaf_window_leaf(objname, hand, sx, sy, sz, f, px, py, pz, mat, matda
         set_smooth(myhandle)
         set_modifier_subsurf(myhandle)
 
-    if mat is True:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         set_material(mywindow, matdata)
         # Glass
         glass = create_glass_material("Glass_material", False)
@@ -1765,7 +1765,7 @@ def create_leaf_handle(objname, mat):
     mesh.update(calc_edges=True)
 
     # Create materials
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         alumat = create_glossy_material("Handle_material", False, 0.733, 0.779, 0.8)
         set_material(myobject, alumat)
 
@@ -2106,7 +2106,7 @@ def create_rail_handle(objname, mat):
     mesh.update(calc_edges=True)
 
     # Create materials
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         plastic = create_diffuse_material("Plastic_Handle_material", False, 0.01, 0.01, 0.01, 0.082, 0.079, 0.02, 0.01)
         set_material(myobject, plastic)
 
@@ -2143,7 +2143,7 @@ def create_sill(objname, x, y, z, mat):
     mesh.from_pydata(myvertex, [], myfaces)
     mesh.update(calc_edges=True)
 
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         mymat = create_diffuse_material("Sill_material", False, 0.8, 0.8, 0.8)
         set_material(myobject, mymat)
 
@@ -2241,7 +2241,7 @@ def create_blind_rail(objname, sx, sz, px, py, pz, mat, matdata, blind_rail):
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)
 
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         set_material(myblind, matdata)
 
     return myblind
@@ -2305,7 +2305,7 @@ def create_blind(objname, sx, sz, px, py, pz, mat, blind_ratio):
 
     myblind.lock_location = (True, True, False)  # only Z axis
 
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         mat = create_diffuse_material("Blind_plastic_material", False, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.15)
         set_material(myblind, mat)
 

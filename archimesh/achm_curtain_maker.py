@@ -490,7 +490,7 @@ def create_japan_rail(objname, sx, ways, px, py, pz, mat):
     # ---------------------------------
     # Materials
     # ---------------------------------
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         # External
         mat = create_diffuse_material(objname + "_material", False, 0.8, 0.8, 0.8, 0.6, 0.6, 0.6, 0.15)
         set_material(myobject, mat)
@@ -537,7 +537,7 @@ def create_japan_support(objname, sx, px, py, pz, mat):
     # ---------------------------------
     # Materials
     # ---------------------------------
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         # External
         mat = create_diffuse_material(objname + "_material", False, 0.8, 0.8, 0.8, 0.6, 0.6, 0.6, 0.15)
         set_material(myobject, mat)
@@ -578,7 +578,7 @@ def create_japan_panel(objname, sx, sz, px, py, pz, mat, fabricmat):
     # ---------------------------------
     # Materials
     # ---------------------------------
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         unwrap_mesh(myobject, True)
         # remap UV to use all texture
         for uv_loop in myobject.data.uv_layers.active.data:
@@ -781,7 +781,7 @@ def create_roller_rail(objname, width, radio, px, py, pz, mat, mymaterial):
     myroll.location.z = pz
 
     # Materials
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         set_material(myroll, mymaterial)
 
     # Smooth
@@ -825,7 +825,7 @@ def create_roller_sides(myroller, side, px, py, pz, mat, plastic):
     myside.parent = myroller
 
     # Materials
-    if mat:
+    if mat and bpy.context.scene.render.engine == 'CYCLES':
         set_material(myside, plastic)
 
     # Smooth
