@@ -632,7 +632,7 @@ class SVGPathParser:
             self._splines.append(self._spline)
 
         if len(self._spline['points']) > 0:
-            # Not sure bout specifications, but Illustrator could create
+            # Not sure about specifications, but Illustrator could create
             # last point at the same position, as start point (which was
             # reached by MoveTo command) to set needed handle coords.
             # It's also could use last point at last position to make path
