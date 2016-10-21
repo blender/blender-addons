@@ -652,6 +652,11 @@ class SVGPathParser:
 
                 return
 
+            last = self._spline['points'][-1]
+            if last['handle_right_type'] == 'VECTOR' and handle_left_type == 'FREE':
+                last['handle_right'] = (last['x'], last['y'])
+                last['handle_right_type'] = 'FREE'
+
         point = {'x': x,
                  'y': y,
 
