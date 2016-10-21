@@ -581,9 +581,9 @@ class BTool_Slice(Operator):
         return {'FINISHED'}
 
 
-# Direct boolean operators (maintainer Mikhail Rachinskiy) -------------------------------
+# Auto Boolean operators (maintainer Mikhail Rachinskiy) -------------------------------
 
-class DirectBoolean:
+class AutoBoolean:
     bl_options = {'REGISTER', 'UNDO'}
 
     solver = EnumProperty(
@@ -599,9 +599,8 @@ class DirectBoolean:
     def __init__(self):
         self.context = bpy.context
         self.solver = self.context.user_preferences.addons[__name__].preferences.solver
-        self.prepare_objects()
 
-    def prepare_objects(self):
+    def objects_prepare(self):
         for ob in self.context.selected_objects:
             if ob.type != 'MESH':
                 ob.select = False
@@ -628,62 +627,67 @@ class DirectBoolean:
             self.boolean_mod(obj, ob, self.mode)
         obj.select = True
 
-    def boolean_mod(self, obj, ob, mode, delete_ob=True):
-        md = obj.modifiers.new("Direct Boolean", 'BOOLEAN')
+    def boolean_mod(self, obj, ob, mode, ob_delete=True):
+        md = obj.modifiers.new("Auto Boolean", 'BOOLEAN')
         md.show_viewport = False
         md.operation = mode
         md.solver = self.solver
         md.object = ob
 
-        bpy.ops.object.modifier_apply(modifier="Direct Boolean")
-        if not delete_ob:
+        bpy.ops.object.modifier_apply(modifier="Auto Boolean")
+        if not ob_delete:
             return
         self.context.scene.objects.unlink(ob)
         bpy.data.objects.remove(ob)
 
 
-class Direct_Union(DirectBoolean, Operator):
+class Auto_Union(AutoBoolean, Operator):
     """Combine selected objects"""
-    bl_idname = "btool.direct_union"
+    bl_idname = "btool.auto_union"
     bl_label = "Union"
 
     mode = 'UNION'
 
     def execute(self, context):
+        self.objects_prepare()
         self.boolean_operation()
         return {'FINISHED'}
 
 
-class Direct_Difference(DirectBoolean, Operator):
+class Auto_Difference(AutoBoolean, Operator):
     """Subtract selected objects from active object"""
-    bl_idname = "btool.direct_difference"
+    bl_idname = "btool.auto_difference"
     bl_label = "Difference"
 
     mode = 'DIFFERENCE'
 
     def execute(self, context):
+        self.objects_prepare()
         self.boolean_operation()
         return {'FINISHED'}
 
 
-class Direct_Intersect(DirectBoolean, Operator):
+class Auto_Intersect(AutoBoolean, Operator):
     """Keep only intersecting geometry"""
-    bl_idname = "btool.direct_intersect"
+    bl_idname = "btool.auto_intersect"
     bl_label = "Intersect"
 
     mode = 'INTERSECT'
 
     def execute(self, context):
+        self.objects_prepare()
         self.boolean_operation()
         return {'FINISHED'}
 
 
-class Direct_Slice(DirectBoolean, Operator):
+class Auto_Slice(AutoBoolean, Operator):
     """Slice active object along the selected object (can handle only two objects at a time)"""
-    bl_idname = "btool.direct_slice"
+    bl_idname = "btool.auto_slice"
     bl_label = "Slice"
 
     def execute(self, context):
+        self.objects_prepare()
+
         scene = context.scene
         obj = context.active_object
         obj.select = False
@@ -696,7 +700,7 @@ class Direct_Slice(DirectBoolean, Operator):
         obj_copy.data = obj.data.copy()
         scene.objects.link(obj_copy)
 
-        self.boolean_mod(obj, ob, 'DIFFERENCE', delete_ob=False)
+        self.boolean_mod(obj, ob, 'DIFFERENCE', ob_delete=False)
         scene.objects.active = obj_copy
         self.boolean_mod(obj_copy, ob, 'INTERSECT')
         obj_copy.select = True
@@ -704,20 +708,22 @@ class Direct_Slice(DirectBoolean, Operator):
         return {'FINISHED'}
 
 
-class Direct_Subtract(DirectBoolean, Operator):
+class Auto_Subtract(AutoBoolean, Operator):
     """Subtract selected object from active object, """ \
     """subtracted object not removed (can handle only two objects at a time)"""
-    bl_idname = "btool.direct_subtract"
+    bl_idname = "btool.auto_subtract"
     bl_label = "Subtract"
 
     def execute(self, context):
+        self.objects_prepare()
+
         obj = context.active_object
         obj.select = False
         ob = context.selected_objects[0]
 
         self.mesh_selection(obj, 'DESELECT')
         self.mesh_selection(ob, 'SELECT')
-        self.boolean_mod(obj, ob, 'DIFFERENCE', delete_ob=False)
+        self.boolean_mod(obj, ob, 'DIFFERENCE', ob_delete=False)
 
         return {'FINISHED'}
 
@@ -885,11 +891,11 @@ class BoolTool_Menu(Menu):
         layout = self.layout
 
         layout.label("Auto Boolean:")
-        layout.operator(btool.direct_difference, icon="ROTACTIVE")
-        layout.operator(btool.direct_union, icon="ROTATECOLLECTION")
-        layout.operator(btool.direct_intersect, icon="ROTATECENTER")
-        layout.operator(btool.direct_slice, icon="ROTATECENTER")
-        layout.operator(btool.direct_subtract, icon="ROTACTIVE")
+        layout.operator(Auto_Difference.bl_idname, icon="ROTACTIVE")
+        layout.operator(Auto_Union.bl_idname, icon="ROTATECOLLECTION")
+        layout.operator(Auto_Intersect.bl_idname, icon="ROTATECENTER")
+        layout.operator(Auto_Slice.bl_idname, icon="ROTATECENTER")
+        layout.operator(Auto_Subtract.bl_idname, icon="ROTACTIVE")
         layout.separator()
 
         layout.label("Brush Boolean:")
@@ -934,14 +940,14 @@ class BoolTool_Tools(Panel):
         col = layout.column(align=True)
         col.label("Auto Boolean:", icon="MODIFIER")
         col.separator()
-        col.operator(Direct_Difference.bl_idname, icon="ROTACTIVE")
-        col.operator(Direct_Union.bl_idname, icon="ROTATECOLLECTION")
-        col.operator(Direct_Intersect.bl_idname, icon="ROTATECENTER")
+        col.operator(Auto_Difference.bl_idname, icon="ROTACTIVE")
+        col.operator(Auto_Union.bl_idname, icon="ROTATECOLLECTION")
+        col.operator(Auto_Intersect.bl_idname, icon="ROTATECENTER")
 
         col = layout.column(align=True)
         col.enabled = len(context.selected_objects) == 2
-        col.operator(Direct_Slice.bl_idname, icon="ROTATECENTER")
-        col.operator(Direct_Subtract.bl_idname, icon="ROTACTIVE")
+        col.operator(Auto_Slice.bl_idname, icon="ROTATECENTER")
+        col.operator(Auto_Subtract.bl_idname, icon="ROTACTIVE")
 
         layout.separator()
 
@@ -1017,7 +1023,6 @@ class BoolTool_Config(Panel):
 
             row = layout.row(True)
             row.label("BRUSH", icon=icon)
-            # layout.separator()
 
             icon = ""
             if actObj["BoolTool_FTransform"] == "True":
@@ -1250,11 +1255,11 @@ class BoolTool_Pref(AddonPreferences):
 
             row = layout.row()
             col = row.column()
-            col.label("Direct Operators:")
-            col.label("Direct Union: Ctrl Shift Num +")
-            col.label("Direct Difference: Ctrl Shift Num -")
-            col.label("Direct Intersect: Ctrl Shift Num *")
-            col.label("Direct Slice: Ctrl Shift Num /")
+            col.label("Auto Operators:")
+            col.label("Difference: Ctrl Shift Num -")
+            col.label("Union: Ctrl Shift Num +")
+            col.label("Intersect: Ctrl Shift Num *")
+            col.label("Slice: Ctrl Shift Num /")
             col.label("BTool Brush To Mesh: Ctrl Num Enter")
             col.label("BTool All Brush To Mesh: Ctrl Shift Num Enter")
 
@@ -1267,13 +1272,13 @@ classes = (
     BoolTool_Tools,
     BoolTool_Config,
     BoolTool_BViwer,
-    # Direct Booleans
-    Direct_Union,
-    Direct_Difference,
-    Direct_Intersect,
-    Direct_Slice,
-    Direct_Subtract,
-    # Bool Tools
+
+    Auto_Union,
+    Auto_Difference,
+    Auto_Intersect,
+    Auto_Slice,
+    Auto_Subtract,
+
     BTool_Union,
     BTool_Diff,
     BTool_Inters,
@@ -1351,14 +1356,14 @@ def register():
     kmi = km.keymap_items.new(BTool_Diff.bl_idname, 'NUMPAD_MINUS', 'PRESS', ctrl=True)
     kmi = km.keymap_items.new(BTool_Inters.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', ctrl=True)
     kmi = km.keymap_items.new(BTool_Slice.bl_idname, 'NUMPAD_SLASH', 'PRESS', ctrl=True)
-
-    # Direct Operators
-    kmi = km.keymap_items.new(Direct_Union.bl_idname, 'NUMPAD_PLUS', 'PRESS', ctrl=True, shift=True)
-    kmi = km.keymap_items.new(Direct_Difference.bl_idname, 'NUMPAD_MINUS', 'PRESS', ctrl=True, shift=True)
-    kmi = km.keymap_items.new(Direct_Intersect.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', ctrl=True, shift=True)
-    kmi = km.keymap_items.new(Direct_Slice.bl_idname, 'NUMPAD_SLASH', 'PRESS', ctrl=True, shift=True)
     kmi = km.keymap_items.new(BTool_BrushToMesh.bl_idname, 'NUMPAD_ENTER', 'PRESS', ctrl=True)
     kmi = km.keymap_items.new(BTool_AllBrushToMesh.bl_idname, 'NUMPAD_ENTER', 'PRESS', ctrl=True, shift=True)
+
+    # Auto Operators
+    kmi = km.keymap_items.new(Auto_Union.bl_idname, 'NUMPAD_PLUS', 'PRESS', ctrl=True, shift=True)
+    kmi = km.keymap_items.new(Auto_Difference.bl_idname, 'NUMPAD_MINUS', 'PRESS', ctrl=True, shift=True)
+    kmi = km.keymap_items.new(Auto_Intersect.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', ctrl=True, shift=True)
+    kmi = km.keymap_items.new(Auto_Slice.bl_idname, 'NUMPAD_SLASH', 'PRESS', ctrl=True, shift=True)
 
     addon_keymaps.append(km)
 
