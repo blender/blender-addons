@@ -88,8 +88,10 @@ del namedtuple
 def read_uint(read):
     return unpack(b'<I', read(4))[0]
 
+
 def read_uint64(read):
     return unpack(b'<Q', read(8))[0]
+
 
 def read_ubyte(read):
     return unpack(b'B', read(1))[0]
