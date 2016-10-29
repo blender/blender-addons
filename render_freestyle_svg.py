@@ -190,19 +190,28 @@ class SVGExporterLinesetPanel(bpy.types.Panel):
         scene = context.scene
         svg = scene.svg_export
         freestyle = scene.render.layers.active.freestyle_settings
-        linestyle = freestyle.linesets.active.linestyle
 
-        layout.active = (svg.use_svg_export and freestyle.mode != 'SCRIPT')
-        row = layout.row()
-        column = row.column()
-        column.prop(linestyle, 'use_export_strokes')
+        try:
+            linestyle = freestyle.linesets.active.linestyle
 
-        column = row.column()
-        column.active = svg.object_fill
-        column.prop(linestyle, 'use_export_fills')
+        except AttributeError:
+            # Linestyles can be removed, so 0 linestyles is possible.
+            # there is nothing to draw in those cases.
+            # see https://developer.blender.org/T49855
+            return
 
-        row = layout.row()
-        row.prop(linestyle, "stroke_color_mode", expand=True)
+        else:
+            layout.active = (svg.use_svg_export and freestyle.mode != 'SCRIPT')
+            row = layout.row()
+            column = row.column()
+            column.prop(linestyle, 'use_export_strokes')
+
+            column = row.column()
+            column.active = svg.object_fill
+            column.prop(linestyle, 'use_export_fills')
+
+            row = layout.row()
+            row.prop(linestyle, "stroke_color_mode", expand=True)
 
 
 class SVGExport(bpy.types.PropertyGroup):
