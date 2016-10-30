@@ -525,7 +525,7 @@ def write_file(filepath, objects, scene,
                                     uv_val = uv_get(uv_key)
                                     if uv_val is None:
                                         uv_val = uv_dict[uv_key] = uv_unique_count
-                                        fw('vt %.4f %.4f\n' % uv[:])
+                                        fw('vt %.6f %.6f\n' % uv[:])
                                         uv_unique_count += 1
                                     uv_ls.append(uv_val)
 
