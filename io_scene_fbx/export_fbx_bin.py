@@ -2172,12 +2172,14 @@ def fbx_data_from_scene(scene, settings):
                 data_meshes[ob_obj] = data_meshes[org_ob_obj]
                 continue
 
-        if settings.use_mesh_modifiers or ob.type in BLENDER_OTHER_OBJECT_TYPES:
-            use_org_data = False
+        is_ob_material = any(ms.link == 'OBJECT' for ms in ob.material_slots)
+
+        if settings.use_mesh_modifiers or ob.type in BLENDER_OTHER_OBJECT_TYPES or is_ob_material:
+            # We cannot use default mesh in that case, or material would not be the right ones...
+            use_org_data = not is_ob_material
             tmp_mods = []
-            if ob.type == 'MESH':
+            if use_org_data and ob.type == 'MESH':
                 # No need to create a new mesh in this case, if no modifier is active!
-                use_org_data = True
                 for mod in ob.modifiers:
                     # For meshes, when armature export is enabled, disable Armature modifiers here!
                     if mod.type == 'ARMATURE' and 'ARMATURE' in settings.object_types:
