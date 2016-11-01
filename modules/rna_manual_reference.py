@@ -1,4 +1,4 @@
-    #  RNA MANUAL REFERENCE
+#  RNA MANUAL REFERENCE
 #
 # This file maps RNA to online URL's for right mouse context menu documentation access
 #
