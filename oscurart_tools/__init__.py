@@ -84,7 +84,7 @@ class OscPanelControl(Panel):
     bl_region_type = 'TOOLS'
     bl_category = "Oscurart Tools"
     bl_label = "Panels Switcher"
-    bl_options = {'DEFAULT_CLOSED'}
+    #bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
