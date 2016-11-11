@@ -35,6 +35,7 @@ if "bpy" in locals():
     import importlib
     importlib.reload(ui)
     importlib.reload(operators)
+    importlib.reload(mesh_helpers)
 else:
     import bpy
     from bpy.props import (

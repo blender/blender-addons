@@ -157,12 +157,22 @@ def bmesh_check_thick_object(obj, thickness):
     # Convert new/old map to index dict.
 
     # Create a real mesh (lame!)
-    scene = bpy.context.scene
+    context = bpy.context
+    scene = context.scene
     me_tmp = bpy.data.meshes.new(name="~temp~")
     bm.to_mesh(me_tmp)
     # bm.free()  # delay free
     obj_tmp = bpy.data.objects.new(name=me_tmp.name, object_data=me_tmp)
-    scene.objects.link(obj_tmp)
+    base = scene.objects.link(obj_tmp)
+
+    # Add new object to local view layer
+    v3d = None
+    if context.space_data and context.space_data.type == 'VIEW_3D':
+        v3d = context.space_data
+
+    if v3d and v3d.local_view:
+        base.layers_from_view(context.space_data)
+
     scene.update()
     ray_cast = obj_tmp.ray_cast
 
