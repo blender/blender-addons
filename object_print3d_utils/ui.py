@@ -24,6 +24,7 @@ import bmesh
 from bpy.types import Panel
 from . import report
 
+
 class Print3DToolBar:
     bl_label = "Print3D"
     bl_space_type = 'VIEW_3D'
@@ -65,7 +66,6 @@ class Print3DToolBar:
 
         scene = context.scene
         print_3d = scene.print_3d
-        obj = context.object
 
         # TODO, presets
 
@@ -130,11 +130,13 @@ class Print3DToolBar:
 
         Print3DToolBar.draw_report(layout, context)
 
+
 # So we can have a panel in both object mode and editmode
 class Print3DToolBarObject(Panel, Print3DToolBar):
     bl_category = "3D Printing"
     bl_idname = "MESH_PT_print3d_object"
     bl_context = "objectmode"
+
 
 class Print3DToolBarMesh(Panel, Print3DToolBar):
     bl_category = "3D Printing"

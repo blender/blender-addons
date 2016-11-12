@@ -214,7 +214,6 @@ def bmesh_check_thick_object(obj, thickness):
     return array.array('i', faces_error)
 
 
-
 def object_merge(context, objects):
     """
     Caller must remove.
@@ -271,8 +270,8 @@ def object_merge(context, objects):
         del base_new, obj_new
 
         # remove object and its mesh, join does this
-        #~ scene.objects.unlink(obj_new)
-        #~ bpy.data.objects.remove(obj_new)
+        # scene.objects.unlink(obj_new)
+        # bpy.data.objects.remove(obj_new)
 
         bpy.data.meshes.remove(mesh_new)
 
@@ -280,4 +279,3 @@ def object_merge(context, objects):
 
     # return new object
     return base_base
-
