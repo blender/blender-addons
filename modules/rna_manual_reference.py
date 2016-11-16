@@ -734,6 +734,8 @@ url_manual_mapping = (
     ("bpy.types.ID.*",                          "data_system/data_blocks.html"),
     ("bpy.types.BlendData*",                    "data_system/data_blocks.html#data-block-types"),
 
+    ("bpy.types.bpy_struct*",                  "data_system/custom_properties.html"),
+
     # *** Animation ***
     ("bpy.types.Keyframe.*",                       "animation/actions.html"),
     ("bpy.types.FCurve.*",                         "editors/graph_editor/fcurves"),
