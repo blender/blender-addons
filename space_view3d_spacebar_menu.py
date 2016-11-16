@@ -1003,6 +1003,7 @@ class InteractiveModeArmature(Menu):
         if context.gpencil_data:
             layout.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
 
+
 # ********** Interactive Mode Other **********
 class InteractiveModeOther(Menu):
     bl_idname = "VIEW3D_MT_Object_Interactive_Other"
@@ -1015,6 +1016,7 @@ class InteractiveModeOther(Menu):
                         icon='OBJECT_DATA')
         if context.gpencil_data:
             layout.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
+
 
 # ********** Grease Pencil Interactive Mode **********
 class VIEW3D_OT_Interactive_Mode_Grease_Pencil(Operator):
@@ -2827,7 +2829,7 @@ class SetOriginToSelected(Operator):
 class SnapCursSelToCenter(Operator):
     bl_idname = "view3d.snap_cursor_selected_to_center"
     bl_label = "Snap Cursor & Selection to Center"
-    bl_description = ("Snap 3D cursor and selected objects to the center n"
+    bl_description = ("Snap 3D cursor and selected objects to the center \n"
                       "Works only in Object Mode")
 
     @classmethod
@@ -2854,9 +2856,8 @@ def UseBrushesLists():
     # pass the prefrences use_brushes_lists bool to enable/disable them
     # separate function just for more convience
     useLists = bpy.context.user_preferences.addons[__name__].preferences.use_brushes_lists
-    if useLists:
-        return True
-    return False
+
+    return bool(useLists)
 
 
 # Addon Preferences #
@@ -2866,14 +2867,14 @@ class VIEW3D_MT_Space_Dynamic_Menu_Pref(bpy.types.AddonPreferences):
     use_separators = bpy.props.BoolProperty(
         name="Use Separators in the menus",
         default=True,
-        description=("Use separators in the menus, a trade-off between n"
+        description=("Use separators in the menus, a trade-off between \n"
                      "readability vs. using more space for displaying items")
     )
 
     use_brushes_lists = bpy.props.BoolProperty(
         name="Use compact menus for brushes",
         default=False,
-        description=("Use more compact menus instead  n"
+        description=("Use more compact menus instead  \n"
                      "of thumbnails for displaying brushes")
     )
 
