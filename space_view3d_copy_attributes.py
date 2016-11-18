@@ -798,9 +798,7 @@ def register():
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
-
-    ''' mostly to remove the keymap '''
+    # mostly to remove the keymap
     kc = bpy.context.window_manager.keyconfigs.addon
     if kc:
         kms = kc.keymaps['Pose']
@@ -809,8 +807,6 @@ def unregister():
                item.properties.name == 'VIEW3D_MT_posecopypopup':
                 item.idname = 'pose.copy'
                 break
-        for menu in _layer_menus:
-            bpy.utils.unregister_class(menu)
         km = kc.keymaps['Mesh']
         for kmi in km.keymap_items:
             if kmi.idname == 'wm.call_menu':
@@ -822,6 +818,8 @@ def unregister():
             if kmi.idname == 'wm.call_menu':
                 if kmi.properties.name == 'VIEW3D_MT_copypopup':
                     km.keymap_items.remove(kmi)
+
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()
