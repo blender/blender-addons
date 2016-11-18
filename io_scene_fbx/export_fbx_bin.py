@@ -2672,13 +2672,15 @@ def fbx_header_elements(root, scene_data, time=None):
 
     props = elem_properties(global_settings)
     up_axis, front_axis, coord_axis = RIGHT_HAND_AXES[scene_data.settings.to_axes]
+    # DO NOT take into account global scale here! That setting is applied to object transformations during export
+    # (in other words, this is pure blender-exporter feature, and has nothing to do with FBX data).
     if scene_data.settings.apply_unit_scale:
         # Unit scaling is applied to objects' scale, so our unit is effectively FBX one (centimeter).
         scale_factor_org = 1.0
-        scale_factor = scene_data.settings.global_scale / units_blender_to_fbx_factor(scene)
+        scale_factor = 1.0 / units_blender_to_fbx_factor(scene)
     else:
         scale_factor_org = units_blender_to_fbx_factor(scene)
-        scale_factor = scene_data.settings.global_scale * units_blender_to_fbx_factor(scene)
+        scale_factor = scale_factor_org
     elem_props_set(props, "p_integer", b"UpAxis", up_axis[0])
     elem_props_set(props, "p_integer", b"UpAxisSign", up_axis[1])
     elem_props_set(props, "p_integer", b"FrontAxis", front_axis[0])
