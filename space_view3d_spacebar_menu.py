@@ -2678,13 +2678,14 @@ class VIEW3D_MT_Angle_Control(Menu):
 
 # Cursor Menu Operators #
 class VIEW3D_OT_Pivot_Cursor(Operator):
-    "Cursor as Pivot Point"
     bl_idname = "view3d.pivot_cursor"
     bl_label = "Cursor as Pivot Point"
+    bl_description = "Set Pivot Point back to Cursor"
 
     @classmethod
     def poll(cls, context):
-        return bpy.context.space_data.pivot_point != 'CURSOR'
+        space = context.space_data
+        return (hasattr(space, "pivot_point") and space.pivot_point != 'CURSOR')
 
     def execute(self, context):
         bpy.context.space_data.pivot_point = 'CURSOR'
@@ -2692,13 +2693,14 @@ class VIEW3D_OT_Pivot_Cursor(Operator):
 
 
 class VIEW3D_OT_Revert_Pivot(Operator):
-    "Revert Pivot Point"
     bl_idname = "view3d.revert_pivot"
-    bl_label = "Reverts Pivot Point to median"
+    bl_label = "Revert Pivot Point to Median"
+    bl_description = "Set Pivot Point back to Median"
 
     @classmethod
     def poll(cls, context):
-        return bpy.context.space_data.pivot_point != 'MEDIAN_POINT'
+        space = context.space_data
+        return (hasattr(space, "pivot_point") and space.pivot_point != 'MEDIAN_POINT')
 
     def execute(self, context):
         bpy.context.space_data.pivot_point = 'MEDIAN_POINT'
@@ -2760,15 +2762,14 @@ def edgeIntersect(context, operator):
 
 # Cursor Edge Intersection Operator #
 class VIEW3D_OT_CursorToEdgeIntersection(Operator):
-    "Finds the mid-point of the shortest distance between two edges"
-
     bl_idname = "view3d.snap_cursor_to_edge_intersection"
     bl_label = "Cursor to Edge Intersection"
+    bl_description = "Finds the mid-point of the shortest distance between two edges"
 
     @classmethod
     def poll(cls, context):
         obj = context.active_object
-        return obj is not None and obj.type == 'MESH'
+        return (obj is not None and obj.type == 'MESH')
 
     def execute(self, context):
         edgeIntersect(context, self)
@@ -2798,34 +2799,41 @@ class SetObjectMode(Operator):
 
 # Origin To Selected Edit Mode #
 def vfeOrigin(context):
-    cursorPositionX = bpy.context.scene.cursor_location[0]
-    cursorPositionY = bpy.context.scene.cursor_location[1]
-    cursorPositionZ = bpy.context.scene.cursor_location[2]
-    bpy.ops.view3d.snap_cursor_to_selected()
-    bpy.ops.object.mode_set()
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-    bpy.ops.object.mode_set(mode='EDIT')
-    bpy.context.scene.cursor_location[0] = cursorPositionX
-    bpy.context.scene.cursor_location[1] = cursorPositionY
-    bpy.context.scene.cursor_location[2] = cursorPositionZ
+    try:
+        cursorPositionX = context.scene.cursor_location[0]
+        cursorPositionY = context.scene.cursor_location[1]
+        cursorPositionZ = context.scene.cursor_location[2]
+        bpy.ops.view3d.snap_cursor_to_selected()
+        bpy.ops.object.mode_set()
+        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+        bpy.ops.object.mode_set(mode='EDIT')
+        context.scene.cursor_location[0] = cursorPositionX
+        context.scene.cursor_location[1] = cursorPositionY
+        context.scene.cursor_location[2] = cursorPositionZ
+        return True
+    except:
+        return False
 
 
 class SetOriginToSelected(Operator):
-    '''Tooltip'''
     bl_idname = "object.setorigintoselected"
     bl_label = "Set Origin to Selected"
+    bl_description = "Set Origin to Selected"
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return (context.area.type == "VIEW_3D" and context.active_object is not None)
 
     def execute(self, context):
-        vfeOrigin(context)
+        check = vfeOrigin(context)
+        if not check:
+            self.report({"ERROR"}, "Set Origin to Selected could not be performed")
+            return {'CANCELLED'}
+
         return {'FINISHED'}
 
 
 # Code thanks to Isaac Weaver (wisaac) D1963
-
 class SnapCursSelToCenter(Operator):
     bl_idname = "view3d.snap_cursor_selected_to_center"
     bl_label = "Snap Cursor & Selection to Center"
@@ -2834,7 +2842,7 @@ class SnapCursSelToCenter(Operator):
 
     @classmethod
     def poll(cls, context):
-        return (context.mode == "OBJECT")
+        return (context.area.type == "VIEW_3D" and context.mode == "OBJECT")
 
     def execute(self, context):
         context.space_data.cursor_location = (0, 0, 0)
@@ -2843,9 +2851,10 @@ class SnapCursSelToCenter(Operator):
         return {'FINISHED'}
 
 
+# Preferences utility functions
+
 # Draw Separator #
 def UseSeparator(operator, context):
-    # pass the preferences use_separators bool to enable/disable them
     useSep = bpy.context.user_preferences.addons[__name__].preferences.use_separators
     if useSep:
         operator.layout.separator()
@@ -2853,7 +2862,6 @@ def UseSeparator(operator, context):
 
 # Use compact brushes menus #
 def UseBrushesLists():
-    # pass the prefrences use_brushes_lists bool to enable/disable them
     # separate function just for more convience
     useLists = bpy.context.user_preferences.addons[__name__].preferences.use_brushes_lists
 
