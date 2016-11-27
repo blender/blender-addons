@@ -575,7 +575,7 @@ def add_item(box, idx, segment):
 # ------------------------------------------------------------------
 class MeasureitMainPanel(Panel):
     bl_idname = "measureit_main_panel"
-    bl_label = "Tools"
+    bl_label = "MeasureIt Tools"
     bl_space_type = 'VIEW_3D'
     bl_region_type = "TOOLS"
     bl_category = 'Measureit'
@@ -673,7 +673,7 @@ class MeasureitMainPanel(Panel):
 # ------------------------------------------------------------------
 class MeasureitConfPanel(Panel):
     bl_idname = "measureit_conf_panel"
-    bl_label = "Configuration"
+    bl_label = "MeasureIt Configuration"
     bl_space_type = 'VIEW_3D'
     bl_region_type = "TOOLS"
     bl_category = 'Measureit'
@@ -707,7 +707,7 @@ class MeasureitConfPanel(Panel):
 # ------------------------------------------------------------------
 class MeasureitRenderPanel(Panel):
     bl_idname = "measureit_render_panel"
-    bl_label = "Render"
+    bl_label = "MeasureIt Render"
     bl_space_type = 'VIEW_3D'
     bl_region_type = "TOOLS"
     bl_category = 'Measureit'
