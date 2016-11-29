@@ -788,8 +788,6 @@ def register():
         else:
             kmi = km.keymap_items.new('wm.call_menu', 'C', 'PRESS', ctrl=True)
         kmi.properties.name = 'VIEW3D_MT_posecopypopup'
-        for menu in _layer_menus:
-            bpy.utils.register_class(menu)
 
         km = kc.keymaps.new(name="Mesh")
         kmi = km.keymap_items.new('wm.call_menu', 'C', 'PRESS')
@@ -801,23 +799,27 @@ def unregister():
     # mostly to remove the keymap
     kc = bpy.context.window_manager.keyconfigs.addon
     if kc:
-        kms = kc.keymaps['Pose']
-        for item in kms.keymap_items:
-            if item.name == 'Call Menu' and item.idname == 'wm.call_menu' and \
-               item.properties.name == 'VIEW3D_MT_posecopypopup':
-                item.idname = 'pose.copy'
-                break
-        km = kc.keymaps['Mesh']
-        for kmi in km.keymap_items:
-            if kmi.idname == 'wm.call_menu':
-                if kmi.properties.name == 'MESH_MT_CopyFaceSettings':
-                    km.keymap_items.remove(kmi)
+        kms = kc.keymaps.get('Pose')
+        if kms is not None:
+            for item in kms.keymap_items:
+                if item.name == 'Call Menu' and item.idname == 'wm.call_menu' and \
+                   item.properties.name == 'VIEW3D_MT_posecopypopup':
+                    item.idname = 'pose.copy'
+                    break
 
-        km = kc.keymaps['Object Mode']
-        for kmi in km.keymap_items:
-            if kmi.idname == 'wm.call_menu':
-                if kmi.properties.name == 'VIEW3D_MT_copypopup':
-                    km.keymap_items.remove(kmi)
+        km = kc.keymaps.get('Mesh')
+        if km is not None:
+            for kmi in km.keymap_items:
+                if kmi.idname == 'wm.call_menu':
+                    if kmi.properties.name == 'MESH_MT_CopyFaceSettings':
+                        km.keymap_items.remove(kmi)
+
+        km = kc.keymaps.get('Object Mode')
+        if km is not None:
+            for kmi in km.keymap_items:
+                if kmi.idname == 'wm.call_menu':
+                    if kmi.properties.name == 'VIEW3D_MT_copypopup':
+                        km.keymap_items.remove(kmi)
 
     bpy.utils.unregister_module(__name__)
 
