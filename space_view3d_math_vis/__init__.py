@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Math Vis (Console)",
     "author": "Campbell Barton",
-    "version": (0, 1),
+    "version": (0, 2),
     "blender": (2, 57, 0),
     "location": "View3D > Tool Shelf or Console",
     "description": "Display console defined mathutils variables in the 3D view",
