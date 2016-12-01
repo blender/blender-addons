@@ -768,6 +768,7 @@ class DNAStruct:
 
         dna_type = field.dna_type
         dna_name = field.dna_name
+        dna_size = field.dna_size
 
         if dna_name.is_pointer:
             return DNA_IO.read_pointer(handle, header)
@@ -788,6 +789,9 @@ class DNAStruct:
                 return [DNA_IO.read_float(handle, header) for i in range(dna_name.array_size)]
             return DNA_IO.read_float(handle, header)
         elif dna_type.dna_type_id == b'char':
+            if dna_size == 1:
+                # Single char, assume it's bitflag or int value, and not a string/bytes data...
+                return DNA_IO.read_char(handle, header)
             if use_str:
                 if use_nil:
                     return DNA_IO.read_string0(handle, dna_name.array_size)
@@ -881,6 +885,13 @@ class DNA_IO:
     def read_data0(data):
         add = data.find(b'\0')
         return data[:add]
+
+    UCHAR = struct.Struct(b'<b'), struct.Struct(b'>b')
+
+    @staticmethod
+    def read_char(handle, fileheader):
+        st = DNA_IO.UCHAR[fileheader.endian_index]
+        return st.unpack(handle.read(st.size))[0]
 
     USHORT = struct.Struct(b'<H'), struct.Struct(b'>H')
 
