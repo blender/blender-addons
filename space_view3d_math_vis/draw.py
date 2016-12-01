@@ -69,7 +69,7 @@ def draw_callback_px():
 
     data_matrix, data_quat, data_euler, data_vector, data_vector_array = utils.console_math_data()
 
-    name_hide = context.scene.MathVisProp.name_hide
+    name_hide = context.window_manager.MathVisProp.name_hide
 
     if name_hide:
         return
@@ -156,8 +156,8 @@ def draw_callback_view():
     data_matrix, data_quat, data_euler, data_vector, data_vector_array = utils.console_math_data()
 
     # draw_matrix modifiers
-    bbox_hide = context.scene.MathVisProp.bbox_hide
-    bbox_scale = context.scene.MathVisProp.bbox_scale
+    bbox_hide = context.window_manager.MathVisProp.bbox_hide
+    bbox_scale = context.window_manager.MathVisProp.bbox_scale
 
     # draw_matrix vars
     zero = Vector((0.0, 0.0, 0.0))

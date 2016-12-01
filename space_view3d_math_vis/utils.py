@@ -43,78 +43,48 @@ def is_display_list(listvar):
 
 class VarStates:
 
-    states = {}
-
-    def store_states(self):
+    @staticmethod
+    def store_states():
         # Store the display states, called upon unregister the Addon
         # This is useful when you press F8 to reload the Addons.
         # Then this function preserves the display states of the
         # console variables.
-        context = bpy.context
-        if len(self.states) > 0:
-            state_props = context.window_manager.MathVisStateProp
-            state_props.clear()
-            for key, state in self.states.items():
-                if key:
-                    state_prop = state_props.add()
-                    state_prop.key = key
-                    state_prop.state = state
+        state_props = bpy.context.window_manager.MathVisStatePropList
+        variables = get_math_data()
+        for key, ktype in variables.items():
+            if key and not key in state_props:
+                prop = state_props.add()
+                prop.name = key
+                prop.ktype = ktype.__name__
+                prop.state = [True, False]
 
-    def __init__(self):
-        # Get the display state from the stored values (if exists)
-        # This happens after you pressed F8 to reload the Addons.
-        context = bpy.context
-        if 'MathVisStateProp' in dir(bpy.types.WindowManager):
-            state_props = context.window_manager.MathVisStateProp
-            if state_props:
-                for state_prop in state_props:
-                    key = state_prop.key
-                    state = state_prop.state
-                    self.states[key] = [state[0], state[1]]
-                state_props.clear()
+    @staticmethod
+    def get_index(key):
+        index = bpy.context.window_manager.MathVisStatePropList.find(key)
+        return index
 
-    def get(self, key, default):
-        return self.states.get(key, default)
+    @staticmethod
+    def delete(key):
+        state_props = bpy.context.window_manager.MathVisStatePropList
+        index = state_props.find(key)
+        if index != -1:
+            state_props.remove(index)
 
-    def delete(self, key):
-        if key in self.states:
-            del self.states[key]
-
-    def is_visible(self, key):
-        if key in self.states:
-            disp, lock = self.states[key]
-            return disp
-        return True
-
-    def toggle_display_state(self, key):
-        if key in self.states:
-            disp, lock = self.states[key]
-            self.states[key] = [not disp, lock]
+    @staticmethod
+    def toggle_display_state(key):
+        state_props = bpy.context.window_manager.MathVisStatePropList
+        if key in state_props:
+            state_props[key].state[0] = not state_props[key].state[0]
         else:
-            self.states[key] = [False, False]
+            print("Odd: Can not find key %s in MathVisStateProps" % (key))
 
-    def is_locked(self, key):
-        if key in self.states:
-            disp, lock = self.states[key]
-            return lock
-        return False
-
-    def toggle_lock_state(self, key):
-        if key in self.states:
-            disp, lock = self.states[key]
-            self.states[key] = [disp, not lock]
+    @staticmethod
+    def toggle_lock_state(key):
+        state_props = bpy.context.window_manager.MathVisStatePropList
+        if key in state_props:
+            state_props[key].state[1] = not state_props[key].state[1]
         else:
-            self.states[key] = [True, True]
-
-global g_var_states
-g_var_states = None
-
-
-def get_var_states():
-    global g_var_states
-    if g_var_states == None:
-        g_var_states = VarStates()
-    return g_var_states
+            print("Odd: Can not find key %s in MathVisStateProps" % (key))
 
 
 def get_math_data():
@@ -143,14 +113,19 @@ def cleanup_math_data():
     if not locals:
         return
 
-    var_states = get_var_states()
     variables = get_math_data()
+
     for key in variables.keys():
-        if var_states.is_locked(key):
+        index = VarStates.get_index(key)
+        if index == -1:
+            continue
+
+        state_prop = bpy.context.window_manager.MathVisStatePropList.get(key)
+        if state_prop.state[1]:
             continue
 
         del locals[key]
-        var_states.delete(key)
+        bpy.context.window_manager.MathVisStatePropList.remove(index)
 
 
 def console_math_data():
@@ -161,15 +136,16 @@ def console_math_data():
     data_euler = {}
     data_vector = {}
     data_vector_array = {}
-    var_states = get_var_states()
 
     for key, var in console_namespace().items():
         if key[0] == "_":
             continue
 
-        disp, lock = var_states.get(key, [True, False])
-        if not disp:
-            continue
+        state_prop = bpy.context.window_manager.MathVisStatePropList.get(key)
+        if state_prop:
+            disp, lock = state_prop.state
+            if not disp:
+                continue
 
         var_type = type(var)
 

@@ -40,8 +40,7 @@ else:
     from . import utils, draw
 
 import bpy
-from bpy.props import StringProperty, BoolProperty, BoolVectorProperty, FloatProperty, PointerProperty, CollectionProperty
-from .utils import get_var_states
+from bpy.props import StringProperty, BoolProperty, BoolVectorProperty, FloatProperty, IntProperty, PointerProperty, CollectionProperty
 
 
 class PanelConsoleVars(bpy.types.Panel):
@@ -54,34 +53,25 @@ class PanelConsoleVars(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        box = layout.box()
-        col = box.column(align=True)
-        variables = utils.get_math_data()
-        var_states = get_var_states()
+        state_props = bpy.context.window_manager.MathVisStatePropList
 
-        for key in sorted(variables):
-            ktype = variables[key]
-            row = col.row(align=True)
-            row.label(text='%s - %s' % (key, ktype.__name__))
-
-            icon = 'RESTRICT_VIEW_OFF' if var_states.is_visible(key) else 'RESTRICT_VIEW_ON'
-            prop = row.operator("mathvis.toggle_display", text='', icon=icon, emboss=False)
-            prop.key = key
-
-            icon = 'LOCKED' if var_states.is_locked(key) else 'UNLOCKED'
-            prop = row.operator("mathvis.toggle_lock", text='', icon=icon, emboss=False)
-            prop.key = key
-
-            if var_states.is_locked(key):
-                row.label(text='', icon='BLANK1')
-            else:
-                prop = row.operator("mathvis.delete_var", text='', icon='X', emboss=False)
-                prop.key = key
+        if len(state_props) == 0:
+            box = layout.box()
+            col = box.column(align=True)
+            col.label("No vars to display")
+        else:
+            layout.template_list('MathVisVarList',
+                                 'MathVisStatePropList',
+                                 bpy.context.window_manager,
+                                 'MathVisStatePropList',
+                                 bpy.context.window_manager.MathVisProp,
+                                 'index',
+                                 rows=10)
 
         col = layout.column()
-        col.prop(bpy.context.scene.MathVisProp, "name_hide")
-        col.prop(bpy.context.scene.MathVisProp, "bbox_hide")
-        col.prop(bpy.context.scene.MathVisProp, "bbox_scale")
+        col.prop(bpy.context.window_manager.MathVisProp, "name_hide")
+        col.prop(bpy.context.window_manager.MathVisProp, "bbox_hide")
+        col.prop(bpy.context.window_manager.MathVisProp, "bbox_scale")
         col.operator("mathvis.cleanup_console")
 
 
@@ -95,8 +85,7 @@ class DeleteVar(bpy.types.Operator):
 
     def execute(self, context):
         locals = utils.console_namespace()
-        var_states = get_var_states()
-        var_states.delete(self.key)
+        utils.VarStates.delete(self.key)
         del locals[self.key]
         draw.tag_redraw_all_view3d_areas()
         return {'FINISHED'}
@@ -111,8 +100,7 @@ class ToggleDisplay(bpy.types.Operator):
     key = StringProperty(name="Key")
 
     def execute(self, context):
-        var_states = get_var_states()
-        var_states.toggle_display_state(self.key)
+        utils.VarStates.toggle_display_state(self.key)
         draw.tag_redraw_all_view3d_areas()
         return {'FINISHED'}
 
@@ -126,8 +114,7 @@ class ToggleLock(bpy.types.Operator):
     key = StringProperty(name="Key")
 
     def execute(self, context):
-        var_states = get_var_states()
-        var_states.toggle_lock_state(self.key)
+        utils.VarStates.toggle_lock_state(self.key)
         draw.tag_redraw_all_view3d_areas()
         return {'FINISHED'}
 
@@ -139,8 +126,7 @@ class ToggleMatrixBBoxDisplay(bpy.types.Operator):
     bl_options = {'REGISTER'}
 
     def execute(self, context):
-        var_states = get_var_states()
-        var_states.toggle_show_bbox()
+        utils.VarStates.toggle_show_bbox()
         draw.tag_redraw_all_view3d_areas()
         return {'FINISHED'}
 
@@ -162,6 +148,7 @@ def menu_func_cleanup(self, context):
 
 
 def console_hook():
+    utils.VarStates.store_states()
     draw.tag_redraw_all_view3d_areas()
     context = bpy.context
     for window in context.window_manager.windows:
@@ -173,11 +160,49 @@ def call_console_hook(self, context):
 
 
 class MathVisStateProp(bpy.types.PropertyGroup):
-    key = StringProperty()
+    ktype = StringProperty()
     state = BoolVectorProperty(default=(False, False), size=2)
 
 
-class MathVisProp(bpy.types.PropertyGroup):
+class MathVisVarList(bpy.types.UIList):
+
+    def draw_item(self,
+                  context,
+                  layout,
+                  data,
+                  item,
+                  icon,
+                  active_data,
+                  active_propname
+                  ):
+
+        col = layout.column()
+        key = item.name
+        ktype = item.ktype
+        is_visible = item.state[0]
+        is_locked = item.state[1]
+
+        row = col.row(align=True)
+        row.label(text='%s - %s' % (key, ktype))
+
+        icon = 'RESTRICT_VIEW_OFF' if is_visible else 'RESTRICT_VIEW_ON'
+        prop = row.operator("mathvis.toggle_display", text='', icon=icon, emboss=False)
+        prop.key = key
+
+        icon = 'LOCKED' if is_locked else 'UNLOCKED'
+        prop = row.operator("mathvis.toggle_lock", text='', icon=icon, emboss=False)
+        prop.key = key
+
+        if is_locked:
+            row.label(text='', icon='BLANK1')
+        else:
+            prop = row.operator("mathvis.delete_var", text='', icon='X', emboss=False)
+            prop.key = key
+
+
+class MathVis(bpy.types.PropertyGroup):
+
+    index = IntProperty(name="index")
 
     bbox_hide = BoolProperty(name="Hide BBoxes",
                              default=False,
@@ -199,20 +224,18 @@ def register():
     import console_python
     console_python.execute.hooks.append((console_hook, ()))
     bpy.utils.register_module(__name__)
-    bpy.types.Scene.MathVisProp = PointerProperty(type=MathVisProp)
-    bpy.types.WindowManager.MathVisStateProp = CollectionProperty(type=MathVisStateProp)
+    bpy.types.WindowManager.MathVisProp = PointerProperty(type=MathVis)
+    bpy.types.WindowManager.MathVisStatePropList = CollectionProperty( type=MathVisStateProp)
     bpy.types.CONSOLE_MT_console.prepend(menu_func_cleanup)
 
+
 def unregister():
-    context = bpy.context
-    var_states = get_var_states()
-    var_states.store_states()
     draw.callback_disable()
 
     import console_python
     console_python.execute.hooks.remove((console_hook, ()))
     bpy.types.CONSOLE_MT_console.remove(menu_func_cleanup)
-    del bpy.types.Scene.MathVisProp
-    del bpy.types.WindowManager.MathVisStateProp
+    del bpy.types.WindowManager.MathVisProp
+    del bpy.types.WindowManager.MathVisStatePropList
 
     bpy.utils.unregister_module(__name__)
