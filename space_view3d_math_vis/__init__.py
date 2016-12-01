@@ -199,11 +199,9 @@ def register():
     import console_python
     console_python.execute.hooks.append((console_hook, ()))
     bpy.utils.register_module(__name__)
-    if not 'MathVisStateProp' in dir(bpy.types.WindowManager):
-        bpy.types.Scene.MathVisProp = PointerProperty(type=MathVisProp)
-        bpy.types.WindowManager.MathVisStateProp = CollectionProperty(type=MathVisStateProp)
+    bpy.types.Scene.MathVisProp = PointerProperty(type=MathVisProp)
+    bpy.types.WindowManager.MathVisStateProp = CollectionProperty(type=MathVisStateProp)
     bpy.types.CONSOLE_MT_console.prepend(menu_func_cleanup)
-
 
 def unregister():
     context = bpy.context
@@ -214,4 +212,7 @@ def unregister():
     import console_python
     console_python.execute.hooks.remove((console_hook, ()))
     bpy.types.CONSOLE_MT_console.remove(menu_func_cleanup)
+    del bpy.types.Scene.MathVisProp
+    del bpy.types.WindowManager.MathVisStateProp
+
     bpy.utils.unregister_module(__name__)
