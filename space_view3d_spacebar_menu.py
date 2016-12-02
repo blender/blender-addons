@@ -3006,9 +3006,6 @@ def register():
 # Unegister Classes & Hotkeys #
 
 def unregister():
-    for cls in classes:
-        bpy.utils.unregister_class(cls)
-
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
     if kc:
@@ -3018,6 +3015,10 @@ def unregister():
                 if kmi.properties.name == "VIEW3D_MT_Space_Dynamic_Menu":
                     km.keymap_items.remove(kmi)
                     break
+    for cls in classes:
+        # prevent multiple removal attempt
+        if "bl_rna" in cls.__dict__:
+            bpy.utils.unregister_class(cls)
 
 if __name__ == "__main__":
     register()
