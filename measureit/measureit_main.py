@@ -321,7 +321,7 @@ class MeasureitEditPanel(Panel):
     bl_label = "Measureit"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'MesureIt'
+    bl_category = 'MeasureIt'
 
     # -----------------------------------------------------
     # Verify if visible
