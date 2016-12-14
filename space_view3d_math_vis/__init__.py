@@ -134,7 +134,7 @@ class ToggleMatrixBBoxDisplay(bpy.types.Operator):
 class CleanupConsole(bpy.types.Operator):
     bl_idname = "mathvis.cleanup_console"
     bl_label = "Cleanup Math Vis Console"
-    bl_description = "Remove all visualised variables from the Console"
+    bl_description = "Remove all visualized variables from the Console"
     bl_options = {'REGISTER'}
 
     def execute(self, context):
