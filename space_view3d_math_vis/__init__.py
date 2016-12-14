@@ -78,7 +78,7 @@ class PanelConsoleVars(bpy.types.Panel):
 class DeleteVar(bpy.types.Operator):
     bl_idname = "mathvis.delete_var"
     bl_label = "Delete Var"
-    bl_description = "Remove the variable from the Console."
+    bl_description = "Remove the variable from the Console"
     bl_options = {'REGISTER'}
 
     key = StringProperty(name="Key")
@@ -134,7 +134,7 @@ class ToggleMatrixBBoxDisplay(bpy.types.Operator):
 class CleanupConsole(bpy.types.Operator):
     bl_idname = "mathvis.cleanup_console"
     bl_label = "Cleanup Math Vis Console"
-    bl_description = "Remove all visualised variables from the Console."
+    bl_description = "Remove all visualised variables from the Console"
     bl_options = {'REGISTER'}
 
     def execute(self, context):
