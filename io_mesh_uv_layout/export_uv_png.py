@@ -110,6 +110,7 @@ def write(fw, mesh_source, image_width, image_height, opacity, face_iter_func):
     material_wire.type = 'WIRE'
     material_wire.use_shadeless = True
     material_wire.diffuse_color = 0, 0, 0
+    material_wire.use_transparency = True
 
     # scene render settings
     scene.render.use_raytrace = False
