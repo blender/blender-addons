@@ -63,9 +63,11 @@ class renameObjectsOt (Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
-        listaObj = bpy.context.selected_objects[:]
+        i = 0
+        listaObj = bpy.selection_osc
         for objeto in listaObj:
-            objeto.name = bpy.context.scene.RenameObjectOt
+            objeto.name = "%s_%04d" % (bpy.context.scene.RenameObjectOt, i)
+            i += 1
         return {'FINISHED'}
 
 
