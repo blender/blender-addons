@@ -927,17 +927,29 @@ def VIEW3D_BoolTool_Menu(self, context):
 # ---------------- Toolshelf: Tools ---------------------
 
 class BoolTool_Tools(Panel):
-    bl_category = "Bool Tool"
-    bl_label = "Tools"
+    bl_category = "Tools"
+    bl_label = "Bool Tools"
     bl_idname = "BoolTool_Tools"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_context = "objectmode"
+
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if len(context.selected_objects) > 0:
+            return obj and obj.type == 'MESH' and obj.mode in {'OBJECT'}
+
 
     def draw(self, context):
         layout = self.layout
+        row = layout.split(0.70)
+        row.label("Bool Tools:", icon="MODIFIER")
+        row.operator('help.bool_tool', text='', icon = "QUESTION")
 
         col = layout.column(align=True)
+        col.enabled = len(context.selected_objects) > 1
+        col.separator()
         col.label("Auto Boolean:", icon="MODIFIER")
         col.separator()
         col.operator(Auto_Difference.bl_idname, icon="ROTACTIVE")
@@ -952,6 +964,7 @@ class BoolTool_Tools(Panel):
         layout.separator()
 
         col = layout.column(align=True)
+        col.enabled = len(context.selected_objects) > 1
         col.label("Brush Boolean:", icon="MODIFIER")
         col.separator()
         col.operator(BTool_Diff.bl_idname, text="Difference", icon="ROTACTIVE")
@@ -962,6 +975,7 @@ class BoolTool_Tools(Panel):
         layout.separator()
 
         col = layout.column(align=True)
+
         col.label("Draw:", icon="MESH_CUBE")
         col.separator()
         col.operator(BTool_DrawPolyBrush.bl_idname, icon="LINE_DATA")
@@ -970,7 +984,7 @@ class BoolTool_Tools(Panel):
 # ---------- Toolshelf: Properties --------------------------------------------------------
 
 class BoolTool_Config(Panel):
-    bl_category = "Bool Tool"
+    bl_category = "Tools"
     bl_label = "Properties"
     bl_idname = "BoolTool_BConfig"
     bl_space_type = "VIEW_3D"
@@ -1067,7 +1081,7 @@ class BoolTool_BViwer(Panel):
     bl_idname = "BoolTool_BViwer"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_category = "Bool Tool"
+    bl_category = "Tools"
     bl_context = "objectmode"
 
     @classmethod
@@ -1132,8 +1146,27 @@ class BoolTool_BViwer(Panel):
                     Dw = row.operator("btool.move_stack", icon="TRIA_DOWN", emboss=False)
                     Dw.modif = mod.name
                     Dw.direction = "DOWN"
+ 
+# ------------------ BOOL TOOL Help ----------------------------
+class BoolTool_help(bpy.types.Operator):
+    bl_idname = 'help.bool_tool'
+    bl_label = ''
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label('To use:')
+        layout.label('Select Two Or More Objects')
+        layout.label('Auto Booleans:')
+        layout.label('Auto Apply Direct Booleans')
+        layout.label('Brush Booleans:')
+        layout.label('Create Boolean Brush Set Up')
 
 
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_popup(self, width=200)
 # ------------------ BOOL TOOL ADD-ON PREFERENCES ----------------------------
 
 def UpdateBoolTool_Pref(self, context):
@@ -1293,6 +1326,8 @@ classes = (
     BTool_EnableThisBrush,
     BTool_EnableFTransform,
     BTool_FastTransform,
+
+    BoolTool_help
     )
 
 
