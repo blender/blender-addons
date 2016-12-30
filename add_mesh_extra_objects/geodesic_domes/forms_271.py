@@ -1,8 +1,9 @@
-import math
-from math import sin, cos
+from math import sin, cos, sqrt
 from .vefm_271 import *
+
+
 class form(mesh):
-    def __init__(self, uresolution, vresolution, uscale, vscale, upart,\
+    def __init__(self, uresolution, vresolution, uscale, vscale, upart,
                  vpart, uphase, vphase, utwist, vtwist, xscale, yscale, sform):
         mesh.__init__(self)
 
@@ -24,11 +25,11 @@ class form(mesh):
         self.yscale = yscale
         self.sform = sform
 
-        if self.upart != 1.0:    ## there is a gap in the major radius
+        if self.upart != 1.0:    # there is a gap in the major radius
             self.uflag = 1
         else:
             self.uflag = 0
-        if self.vpart != 1.0:    ## there is a gap in the minor radius
+        if self.vpart != 1.0:    # there is a gap in the minor radius
             self.vflag = 1
         else:
             self.vflag = 0
@@ -50,25 +51,25 @@ class form(mesh):
             self.yscaleflag = 1
         else:
             self.yscaleflag = 0
-        self.rowlist=[]
+        self.rowlist = []
 
     def generatepoints(self):
         for i in range(self.ufinish):
-            row=[]
+            row = []
             for j in range(self.vfinish):
                 u = self.ustep * i + self.uphase
                 v = self.vstep * j + self.vphase
 
                 if self.sform[12]:
-                    r1 = self.superform(self.sform[0], self.sform[1], self.sform[2],\
-                                        self.sform[3], self.sform[14] + u, self.sform[4],\
-                    self.sform[5], self.sform[16] * v)
+                    r1 = self.superform(self.sform[0], self.sform[1], self.sform[2],
+                                        self.sform[3], self.sform[14] + u, self.sform[4],
+                                        self.sform[5], self.sform[16] * v)
                 else:
                     r1 = 1.0
                 if self.sform[13]:
-                    r2 = self.superform(self.sform[6], self.sform[7], self.sform[8],\
-                                        self.sform[9], self.sform[15] + v, self.sform[10],\
-                    self.sform[11], self.sform[17] * v)
+                    r2 = self.superform(self.sform[6], self.sform[7], self.sform[8],
+                                        self.sform[9], self.sform[15] + v, self.sform[10],
+                                        self.sform[11], self.sform[17] * v)
                 else:
                     r2 = 1.0
                 x, y, z = self.formula(u, v, r1, r2)
@@ -82,7 +83,7 @@ class form(mesh):
         else:
             for i in range(len(self.rowlist)):
                 self.rowlist[i].append(self.rowlist[i][0])
-        if  self.uflag:
+        if self.uflag:
             pass
         else:
             self.rowlist.append(self.rowlist[0])
@@ -113,17 +114,19 @@ class form(mesh):
                     edge4 = edge(b, c)
                     self.edges.append(edge4)
 
+
 class grid(form):
-    def __init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+    def __init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,
                  uphase, vphase, utwist, vtwist, xscale, yscale, sform):
-        form.__init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
-                        uphase, vphase, utwist, vtwist, xscale, yscale, sform)
+        form.__init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,
+                      uphase, vphase, utwist, vtwist, xscale, yscale, sform)
         unit = 1.0 / self.a360
-        if self.ures == 1 :
-            print("\n***ERRORin forms_271.grid L121***, ures is  1, changed into 2\n\n")
+
+        if self.ures == 1:
+            print("\n***ERRORin forms_271.grid L126***, ures is  1, changed into 2\n\n")
             self.ures = 2
-        if self.vres == 1 :
-            print("\n***ERROR in grid forms_271.grid L124***, vres is 1, changed into 2\n\n")
+        if self.vres == 1:
+            print("\n***ERROR in grid forms_271.grid L129***, vres is 1, changed into 2\n\n")
             self.vres = 2
         self.ustep = self.a360 / (self.ures - 1)
         self.vstep = self.a360 / (self.vres - 1)
@@ -152,9 +155,9 @@ class grid(form):
 
 
 class cylinder(form):
-    def __init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+    def __init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,
                  uphase, vphase, utwist, vtwist, xscale, yscale, sform):
-        form.__init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+        form.__init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,
                       uphase, vphase, utwist, vtwist, xscale, yscale, sform)
         unit = 1.0 / self.a360
         self.vshift = self.vscale * 0.5
@@ -172,10 +175,11 @@ class cylinder(form):
         z = v * self.vexpand - self.vshift
         return x, y, z
 
+
 class parabola(form):
-    def __init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+    def __init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,
                  uphase, vphase, utwist, vtwist, xscale, yscale, sform):
-        form.__init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+        form.__init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,
                       uphase, vphase, utwist, vtwist, xscale, yscale, sform)
         unit = 1.0 / self.a360
         self.vshift = self.vscale * 0.5
@@ -194,10 +198,11 @@ class parabola(form):
         z = - v * self.vexpand + self.vshift
         return x, y, z
 
+
 class torus(form):
-    def __init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+    def __init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,
                  uphase, vphase, utwist, vtwist, xscale, yscale, sform):
-        form.__init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+        form.__init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,
                       uphase, vphase, utwist, vtwist, xscale, yscale, sform)
         self.generatepoints()
         self.generatefaces()
@@ -211,11 +216,12 @@ class torus(form):
         x = (self.vscale + self.uscale * cos(v)) * sin(u) * r1 * r2 * self.xscale
         return x, y, z
 
+
 class sphere(form):
-    def __init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+    def __init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,
                  uphase, vphase, utwist, vtwist, xscale, yscale, sform):
-        form.__init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
-                      uphase,vphase,utwist,vtwist,xscale,yscale,sform)
+        form.__init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,
+                      uphase, vphase, utwist, vtwist, xscale, yscale, sform)
         self.vstep = (self.a360 / (self.vres - 1)) * self.vpart
         self.vflag = 1
         self.generatepoints()

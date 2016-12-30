@@ -16,14 +16,15 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 # Contributed to by:
-# Pontiac, Fourmadmen, varkenvarken, tuga3d, meta-androcto, metalliandy, dreampainter, cotejrp1 #
-# liero, Kayo Phoenix, sugiany, dommetysk, Phymec, Anthony D'Agostino, Pablo Vazquez, Richard Wilks #
+# Pontiac, Fourmadmen, varkenvarken, tuga3d, meta-androcto, metalliandy #
+# dreampainter, cotejrp1, liero, Kayo Phoenix, sugiany, dommetysk #
+# Phymec, Anthony D'Agostino, Pablo Vazquez, Richard Wilks, lijenstina #
 # xyz presets by elfnor
 
 bl_info = {
     "name": "Extra Objects",
     "author": "Multiple Authors",
-    "version": (0, 3, 0),
+    "version": (0, 3, 1),
     "blender": (2, 74, 5),
     "location": "View3D > Add > Mesh",
     "description": "Add extra mesh object types",
@@ -87,15 +88,17 @@ else:
     from . import Blocks
 
 import bpy
+from bpy.types import Menu
 from bpy.props import (
                 BoolProperty,
                 IntProperty,
                 FloatProperty,
+                StringProperty,
                 )
 
 
-class INFO_MT_mesh_vert_add(bpy.types.Menu):
-    # Define the "Pipe Joints" menu
+class INFO_MT_mesh_vert_add(Menu):
+    # Define the "Single Vert" menu
     bl_idname = "INFO_MT_mesh_vert_add"
     bl_label = "Single Vert"
 
@@ -103,7 +106,8 @@ class INFO_MT_mesh_vert_add(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("mesh.primitive_vert_add",
-                        text="Add Single Vert ")
+                        text="Add Single Vert")
+        layout.separator()
         layout.operator("mesh.primitive_emptyvert_add",
                         text="Object Origin Only")
         layout.operator("mesh.primitive_symmetrical_vert_add",
@@ -112,7 +116,7 @@ class INFO_MT_mesh_vert_add(bpy.types.Menu):
                         text="Object Origin Mirrored")
 
 
-class INFO_MT_mesh_gears_add(bpy.types.Menu):
+class INFO_MT_mesh_gears_add(Menu):
     # Define the "Gears" menu
     bl_idname = "INFO_MT_mesh_gears_add"
     bl_label = "Gears"
@@ -126,8 +130,8 @@ class INFO_MT_mesh_gears_add(bpy.types.Menu):
                         text="Worm")
 
 
-class INFO_MT_mesh_diamonds_add(bpy.types.Menu):
-    # Define the "Gears" menu
+class INFO_MT_mesh_diamonds_add(Menu):
+    # Define the "Diamonds" menu
     bl_idname = "INFO_MT_mesh_diamonds_add"
     bl_label = "Diamonds"
 
@@ -142,7 +146,7 @@ class INFO_MT_mesh_diamonds_add(bpy.types.Menu):
                         text="Gem")
 
 
-class INFO_MT_mesh_math_add(bpy.types.Menu):
+class INFO_MT_mesh_math_add(Menu):
     # Define the "Math Function" menu
     bl_idname = "INFO_MT_mesh_math_add"
     bl_label = "Math Functions"
@@ -157,19 +161,36 @@ class INFO_MT_mesh_math_add(bpy.types.Menu):
         self.layout.operator("mesh.primitive_solid_add", text="Regular Solid")
 
 
-class INFO_MT_mesh_extras_add(bpy.types.Menu):
-    # Define the "Simple Objects" menu
+class INFO_MT_mesh_mech(Menu):
+    # Define the "Math Function" menu
+    bl_idname = "INFO_MT_mesh_mech_add"
+    bl_label = "Mechanical"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.menu("INFO_MT_mesh_pipe_joints_add",
+                text="Pipe Joints", icon="SNAP_PEEL_OBJECT")
+        layout.menu("INFO_MT_mesh_gears_add",
+                text="Gears", icon="SCRIPTWIN")
+
+
+class INFO_MT_mesh_extras_add(Menu):
+    # Define the "Extra Objects" menu
     bl_idname = "INFO_MT_mesh_extras_add"
     bl_label = "Extras"
 
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.menu("INFO_MT_mesh_diamonds_add", text="Diamonds", icon="PMARKER_SEL")
+        layout.menu("INFO_MT_mesh_diamonds_add", text="Diamonds",
+                    icon="PMARKER_SEL")
+        layout.separator()
         layout.operator("mesh.add_beam",
                         text="Beam Builder")
         layout.operator("mesh.wall_add",
                         text="Wall Factory")
+        layout.separator()
         layout.operator("mesh.primitive_star_add",
                         text="Simple Star")
         layout.operator("mesh.primitive_steppyramid_add",
@@ -182,8 +203,8 @@ class INFO_MT_mesh_extras_add(bpy.types.Menu):
                         text="Menger Sponge")
 
 
-class INFO_MT_mesh_torus_add(bpy.types.Menu):
-    # Define the "Simple Objects" menu
+class INFO_MT_mesh_torus_add(Menu):
+    # Define the "Torus Objects" menu
     bl_idname = "INFO_MT_mesh_torus_add"
     bl_label = "Torus Objects"
 
@@ -198,7 +219,7 @@ class INFO_MT_mesh_torus_add(bpy.types.Menu):
                         text="Torus Knot")
 
 
-class INFO_MT_mesh_pipe_joints_add(bpy.types.Menu):
+class INFO_MT_mesh_pipe_joints_add(Menu):
     # Define the "Pipe Joints" menu
     bl_idname = "INFO_MT_mesh_pipe_joints_add"
     bl_label = "Pipe Joints"
@@ -219,9 +240,7 @@ class INFO_MT_mesh_pipe_joints_add(bpy.types.Menu):
 
 
 class discombobulator_scene_props(bpy.types.PropertyGroup):
-
     DISC_doodads = []
-
     # Protusions Buttons:
     repeatprot = IntProperty(
                         name="Repeat protusions",
@@ -250,7 +269,6 @@ class discombobulator_scene_props(bpy.types.PropertyGroup):
                         name="4",
                         default=True
                         )
-
     polygonschangedpercent = FloatProperty(
                         name="Polygon %",
                         description="Percentage of changed polygons",
@@ -324,19 +342,29 @@ class discombobulator_scene_props(bpy.types.PropertyGroup):
 def menu_func(self, context):
     lay_out = self.layout
     lay_out.operator_context = 'INVOKE_REGION_WIN'
+
     lay_out.separator()
-    lay_out.menu("INFO_MT_mesh_vert_add", text="Single Vert", icon="LAYER_ACTIVE")
-    lay_out.operator("mesh.primitive_round_cube_add", text="Round Cube", icon="MOD_SUBSURF")
-    lay_out.menu("INFO_MT_mesh_math_add", text="Math Function", icon="PACKAGE")
-    lay_out.operator("mesh.generate_geodesic_dome", text="Geodesic Dome", icon="MESH_ICOSPHERE")
-    lay_out.operator("discombobulate.ops", text="Discombobulator", icon="RETOPO")
-    lay_out.menu("INFO_MT_mesh_pipe_joints_add", text="Pipe Joints", icon="SNAP_PEEL_OBJECT")
-    lay_out.menu("INFO_MT_mesh_gears_add", text="Gears", icon="SCRIPTWIN")
-    lay_out.menu("INFO_MT_mesh_torus_add", text="Torus Objects", icon="MESH_TORUS")
-    lay_out.menu("INFO_MT_mesh_extras_add", text="Extras", icon="MESH_DATA")
+    lay_out.menu("INFO_MT_mesh_vert_add",
+                text="Single Vert", icon="LAYER_ACTIVE")
+    lay_out.operator("mesh.primitive_round_cube_add",
+                    text="Round Cube", icon="MOD_SUBSURF")
+    lay_out.menu("INFO_MT_mesh_math_add",
+                text="Math Function", icon="PACKAGE")
+    lay_out.menu("INFO_MT_mesh_mech_add",
+                text="Mechanical", icon="SCRIPTWIN")
+    lay_out.menu("INFO_MT_mesh_torus_add",
+                text="Torus Objects", icon="MESH_TORUS")
     lay_out.separator()
-    lay_out.operator("object.parent_to_empty", text="Parent To Empty", icon="LINK_AREA")
+    lay_out.operator("mesh.generate_geodesic_dome",
+                    text="Geodesic Dome", icon="MESH_ICOSPHERE")
+    lay_out.operator("discombobulate.ops",
+                    text="Discombobulator", icon="RETOPO")
     lay_out.separator()
+    lay_out.menu("INFO_MT_mesh_extras_add",
+                text="Extras", icon="MESH_DATA")
+    lay_out.separator()
+    lay_out.operator("object.parent_to_empty",
+                    text="Parent To Empty", icon="LINK_AREA")
 
 
 def register():
@@ -345,6 +373,21 @@ def register():
     # Register Discombobulator properties
     bpy.types.Scene.discomb = bpy.props.PointerProperty(
                                         type=discombobulator_scene_props
+                                        )
+    # Error messages for Geodesic Domes
+    bpy.types.Scene.error_message = StringProperty(
+                                        name="actual error",
+                                        default=""
+                                        )
+    bpy.types.Scene.geodesic_not_yet_called = BoolProperty(
+                                        name="geodesic_not_called",
+                                        default=True
+                                        )
+    bpy.types.Scene.gd_help_text_width = IntProperty(
+                                        name="Text Width",
+                                        description="The width above which the text wraps",
+                                        default=60,
+                                        max=180, min=20
                                         )
 
     # Add "Extras" menu to the "Add Mesh" menu
@@ -356,6 +399,9 @@ def unregister():
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
 
     del bpy.types.Scene.discomb
+    del bpy.types.Scene.error_message
+    del bpy.types.Scene.geodesic_not_yet_called
+    del bpy.types.Scene.gd_help_text_width
 
     bpy.utils.unregister_module(__name__)
 
