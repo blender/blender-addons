@@ -176,60 +176,6 @@ class resymVertexGroups (Operator):
         return {'FINISHED'}
 
 
-# ------------------------IMPORT EXPORT GROUPS--------------------
-
-class OscExportVG (Operator):
-    bl_idname = "file.export_groups_osc"
-    bl_label = "Export Groups"
-    bl_options = {"REGISTER", "UNDO"}
-
-    @classmethod
-    def poll(cls, context):
-        return context.active_object is not None
-
-    def execute(self, context):
-
-        ob = bpy.context.object
-        with open(os.path.join(os.path.dirname(bpy.data.filepath), ob.name + ".txt"), mode="w") as file:
-            vgindex = {vg.index: vg.name for vg in ob.vertex_groups[:]}
-            vgdict = {}
-            for vert in ob.data.vertices:
-                for vg in vert.groups:
-                    vgdict.setdefault(vg.group, []).append(
-                        (vert.index, vg.weight))
-            file.write(str(vgdict) + "\n")
-            file.write(str(vgindex))
-
-        return {'FINISHED'}
-
-
-class OscImportVG (Operator):
-    bl_idname = "file.import_groups_osc"
-    bl_label = "Import Groups"
-    bl_options = {"REGISTER", "UNDO"}
-
-    @classmethod
-    def poll(cls, context):
-        return context.active_object is not None
-
-    def execute(self, context):
-
-        ob = bpy.context.object
-        with open(os.path.join(os.path.dirname(bpy.data.filepath), ob.name + ".txt"), mode="r") as file:
-            vgdict = eval(file.readlines(1)[0].replace("\n", ""))
-            vgindex = eval(file.readlines(2)[0].replace("\n", ""))
-
-        for index, name in vgindex.items():
-            ob.vertex_groups.new(name=name)
-
-        for group, vdata in vgdict.items():
-            for index, weight in vdata:
-                ob.vertex_groups[group].add(
-                    index=[index],
-                    weight=weight,
-                    type="REPLACE")
-
-        return {'FINISHED'}
 
 
 # ------------------------------------ RESYM MESH-------------------------
@@ -460,53 +406,7 @@ class OscOverlapUv(Operator):
         DefOscOverlapUv(self.presicion)
         return {'FINISHED'}
 
-# ------------------------------- IO VERTEX COLORS --------------------
 
-
-def DefOscExportVC():
-    with open(os.path.join(os.path.dirname(bpy.data.filepath), bpy.context.object.name) + ".vc", mode="w") as file:
-        ob = bpy.context.object
-        di = {loopind: ob.data.vertex_colors.active.data[loopind].color[:]
-              for face in ob.data.polygons for loopind in face.loop_indices[:]}
-        file.write(str(di))
-
-
-def DefOscImportVC():
-    with open(os.path.join(os.path.dirname(bpy.data.filepath), bpy.context.object.name) + ".vc", mode="r") as file:
-        di = eval(file.read())
-        for loopind in di:
-            bpy.context.object.data.vertex_colors.active.data[
-                loopind].color = di[loopind]
-
-
-class OscExportVC (Operator):
-    bl_idname = "mesh.export_vertex_colors"
-    bl_label = "Export Vertex Colors"
-    bl_options = {"REGISTER", "UNDO"}
-
-    @classmethod
-    def poll(cls, context):
-        return (context.active_object is not None and
-                context.active_object.type == 'MESH')
-
-    def execute(self, context):
-        DefOscExportVC()
-        return {'FINISHED'}
-
-
-class OscImportVC (Operator):
-    bl_idname = "mesh.import_vertex_colors"
-    bl_label = "Import Vertex Colors"
-    bl_options = {"REGISTER", "UNDO"}
-
-    @classmethod
-    def poll(cls, context):
-        return (context.active_object is not None and
-                context.active_object.type == 'MESH')
-
-    def execute(self, context):
-        DefOscImportVC()
-        return {'FINISHED'}
 
 
 # ------------------ PRINT VERTICES ----------------------
