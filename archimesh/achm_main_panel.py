@@ -399,9 +399,10 @@ class AchmPencilAction(Operator):
 class ArchimeshMainPanel(Panel):
     bl_idname = "archimesh_main_panel"
     bl_label = "Archimesh"
-    bl_space_type = 'VIEW_3D'
+    bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_category = 'Archimesh'
+    bl_category = "Create"
+    bl_context = "objectmode"
 
     # ------------------------------
     # Draw UI

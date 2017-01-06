@@ -151,7 +151,7 @@ class Archi_Pref(AddonPreferences):
     category = StringProperty(
             name="Tab Category",
             description="Choose a name for the category of the panel",
-            default="Archimesh",
+            default="Create",
             update=update_panel
             )
 
