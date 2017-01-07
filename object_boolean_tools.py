@@ -1223,7 +1223,7 @@ class BoolTool_Pref(AddonPreferences):
     category = StringProperty(
             name="Tab Category",
             description="Choose a name for the category of the panel",
-            default="Bool Tools",
+            default="Tools",
             update=update_panel,
             )
 
