@@ -44,8 +44,9 @@ from bpy.props import StringProperty, BoolProperty, BoolVectorProperty, FloatPro
 
 
 class PanelConsoleVars(bpy.types.Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = 'scene'
     bl_label = "Console Vars"
     bl_idname = "mathvis.panel_console_vars"
     bl_category = "Math Vis"
@@ -87,7 +88,7 @@ class DeleteVar(bpy.types.Operator):
         locals = utils.console_namespace()
         utils.VarStates.delete(self.key)
         del locals[self.key]
-        draw.tag_redraw_all_view3d_areas()
+        draw.tag_redraw_areas()
         return {'FINISHED'}
 
 
@@ -101,7 +102,7 @@ class ToggleDisplay(bpy.types.Operator):
 
     def execute(self, context):
         utils.VarStates.toggle_display_state(self.key)
-        draw.tag_redraw_all_view3d_areas()
+        draw.tag_redraw_areas()
         return {'FINISHED'}
 
 
@@ -115,7 +116,7 @@ class ToggleLock(bpy.types.Operator):
 
     def execute(self, context):
         utils.VarStates.toggle_lock_state(self.key)
-        draw.tag_redraw_all_view3d_areas()
+        draw.tag_redraw_areas()
         return {'FINISHED'}
 
 
@@ -127,7 +128,7 @@ class ToggleMatrixBBoxDisplay(bpy.types.Operator):
 
     def execute(self, context):
         utils.VarStates.toggle_show_bbox()
-        draw.tag_redraw_all_view3d_areas()
+        draw.tag_redraw_areas()
         return {'FINISHED'}
 
 
@@ -139,7 +140,7 @@ class CleanupConsole(bpy.types.Operator):
 
     def execute(self, context):
         utils.cleanup_math_data()
-        draw.tag_redraw_all_view3d_areas()
+        draw.tag_redraw_areas()
         return {'FINISHED'}
 
 
@@ -149,7 +150,7 @@ def menu_func_cleanup(self, context):
 
 def console_hook():
     utils.VarStates.store_states()
-    draw.tag_redraw_all_view3d_areas()
+    draw.tag_redraw_areas()
     context = bpy.context
     for window in context.window_manager.windows:
         window.screen.areas.update()

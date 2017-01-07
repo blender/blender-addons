@@ -27,13 +27,13 @@ SpaceView3D = bpy.types.SpaceView3D
 callback_handle = []
 
 
-def tag_redraw_all_view3d_areas():
+def tag_redraw_areas():
     context = bpy.context
 
     # Py cant access notifers
     for window in context.window_manager.windows:
         for area in window.screen.areas:
-            if area.type == 'VIEW_3D':
+            if area.type in ['VIEW_3D', 'PROPERTIES']:
                 area.tag_redraw()
 
 
@@ -45,7 +45,7 @@ def callback_enable():
     handle_view = SpaceView3D.draw_handler_add(draw_callback_view, (), 'WINDOW', 'POST_VIEW')
     callback_handle[:] = handle_pixel, handle_view
 
-    tag_redraw_all_view3d_areas()
+    tag_redraw_areas()
 
 
 def callback_disable():
@@ -57,7 +57,7 @@ def callback_disable():
     SpaceView3D.draw_handler_remove(handle_view, 'WINDOW')
     callback_handle[:] = []
 
-    tag_redraw_all_view3d_areas()
+    tag_redraw_areas()
 
 
 def draw_callback_px():
