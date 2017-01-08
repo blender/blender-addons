@@ -254,7 +254,7 @@ class ShowHideObject1(bpy.types.Operator):
 
 
 class VIEW3D_PT_3dnavigationPanel(bpy.types.Panel):
-    bl_category = "Navigation"
+    bl_category = "Display"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label = "3D Nav"
@@ -303,7 +303,7 @@ class VIEW3D_PT_pan_navigation1(bpy.types.Panel):
     bl_label = 'Pan Orbit Zoom Roll'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
-    bl_category = 'Navigation'
+    bl_category = 'Display'
 
     def draw(self, context):
         layout = self.layout
@@ -367,7 +367,7 @@ class NavAddonPreferences(bpy.types.AddonPreferences):
     category = bpy.props.StringProperty(
             name="Tab Category",
             description="Choose a name for the category of the panel",
-            default="Navigation",
+            default="Display",
             update=update_panel)
 
     def draw(self, context):
