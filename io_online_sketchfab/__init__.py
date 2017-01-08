@@ -21,7 +21,7 @@ bl_info = {
     "author": "Bart Crouch",
     "version": (1, 2, 2),
     "blender": (2, 7, 0),
-    "location": "Tools > Upload tab",
+    "location": "Tools > File I/O tab",
     "description": "Upload your model to Sketchfab",
     "warning": "",
     "wiki_url": "",
@@ -287,7 +287,7 @@ class ExportSketchfab(bpy.types.Operator):
 class VIEW3D_PT_sketchfab(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
-    bl_category = "Sketchfab"
+    bl_category = "File I/O"
     bl_context = "objectmode"
     bl_label = "Sketchfab"
 
