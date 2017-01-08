@@ -443,7 +443,7 @@ class SfabAddonPreferences(bpy.types.AddonPreferences):
     category = bpy.props.StringProperty(
             name="Tab Category",
             description="Choose a name for the category of the panel",
-            default="Sketchfab",
+            default="File I/O",
             update=update_panel)
 
     def draw(self, context):
@@ -473,7 +473,7 @@ def register():
 
     load_token()
     bpy.app.handlers.load_post.append(load_token)
-
+    update_panel(None, bpy.context)
 
 def unregister():
     for cls in classes:
