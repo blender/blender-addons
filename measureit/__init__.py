@@ -91,7 +91,7 @@ class Measure_Pref(AddonPreferences):
     category = StringProperty(
         name="Tab Category",
         description="Choose a name for the category of the panel",
-        default="Measureit",
+        default="Display",
         update=update_panel
     )
 
