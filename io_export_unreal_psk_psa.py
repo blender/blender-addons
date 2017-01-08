@@ -2276,7 +2276,7 @@ class Panel_UDKExport( bpy.types.Panel ):
 
     bl_label        = "UDK Export"
     bl_idname       = "OBJECT_PT_udk_tools"
-    bl_category     = "Import/Export"
+    bl_category     = "File I/O"
     bl_space_type   = "VIEW_3D"
     bl_region_type  = "TOOLS"
 
@@ -2670,7 +2670,7 @@ class PskAddonPreferences(bpy.types.AddonPreferences):
     category = bpy.props.StringProperty(
             name="Tab Category",
             description="Choose a name for the category of the panel",
-            default="Import/Export",
+            default="File I/O",
             update=update_panel)
 
     def draw(self, context):
@@ -2687,6 +2687,7 @@ def register():
     #print("REGISTER")
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_export.append(menu_func)
+    update_panel(None, bpy.context)
 
 def unregister():
     #print("UNREGISTER")
