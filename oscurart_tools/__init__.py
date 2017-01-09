@@ -172,6 +172,7 @@ class OscPanelMesh(Panel):
 
         col.operator("mesh.object_to_mesh_osc", icon="MESH_MONKEY")
         col.operator("mesh.select_side_osc", icon="VERTEXSEL")
+        col.operator("mesh.select_doubles", icon="VERTEXSEL")
         colrow = col.row(align=1)
         colrow.operator("mesh.resym_save_map", icon="UV_SYNC_SELECT")
         colrow = col.row(align=1)

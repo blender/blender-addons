@@ -466,3 +466,42 @@ class ModalIndexOperator(Operator):
         else:
             self.report({"WARNING"}, "Is not a 3D Space")
             return {'CANCELLED'}
+
+# -------------------------- SELECT DOUBLES
+
+def SelDoubles(self, context):    
+    bm = bmesh.from_edit_mesh(bpy.context.object.data)
+
+    for v in bm.verts:
+        v.select = 0
+
+    dictloc = {}
+
+    rd = lambda x: (round(x[0],4),round(x[1],4),round(x[2],4))
+
+    for vert in bm.verts:
+        dictloc.setdefault(rd(vert.co),[]).append(vert.index)
+
+    for loc, ind in dictloc.items():
+        if len(ind) > 1:
+            for v in ind:
+                bm.verts[v].select = 1
+
+    bpy.context.scene.objects.active = bpy.context.scene.objects.active
+    
+
+class SelectDoubles(Operator):
+    bl_idname = "mesh.select_doubles"
+    bl_label = "Select Doubles"
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.active_object is not None and
+                context.active_object.type == 'MESH' and
+                context.active_object.mode == "EDIT")
+
+
+    def execute(self, context):
+        SelDoubles(self, context)
+        return {'FINISHED'}    
