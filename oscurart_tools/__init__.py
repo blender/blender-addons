@@ -82,7 +82,7 @@ class OscPanelControl(Panel):
     bl_idname = "Oscurart Panel Control"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
-    bl_category = "Custom"
+    bl_category = "Oscurart Tools"
     bl_label = "Panels Switcher"
     #bl_options = {'DEFAULT_CLOSED'}
 
@@ -104,7 +104,7 @@ class OscPanelControl(Panel):
 class OscPanelObject(Panel):
     bl_idname = "Oscurart Object Tools"
     bl_label = "Object Tools"
-    bl_category = "Custom"
+    bl_category = "Oscurart Tools"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_options = {'DEFAULT_CLOSED'}
@@ -157,7 +157,7 @@ class OscPanelObject(Panel):
 class OscPanelMesh(Panel):
     bl_idname = "Oscurart Mesh Tools"
     bl_label = "Mesh Tools"
-    bl_category = "Custom"
+    bl_category = "Oscurart Tools"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_options = {'DEFAULT_CLOSED'}
@@ -192,7 +192,7 @@ class OscPanelMesh(Panel):
 class OscPanelShapes(Panel):
     bl_idname = "Oscurart Shapes Tools"
     bl_label = "Shapes Tools"
-    bl_category = "Custom"
+    bl_category = "Oscurart Tools"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_options = {'DEFAULT_CLOSED'}
@@ -216,7 +216,7 @@ class OscPanelShapes(Panel):
 class OscPanelRender(Panel):
     bl_idname = "Oscurart Render Tools"
     bl_label = "Render Tools"
-    bl_category = "Custom"
+    bl_category = "Oscurart Tools"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_options = {'DEFAULT_CLOSED'}
@@ -230,14 +230,6 @@ class OscPanelRender(Panel):
         col = layout.column(align=1)
 
         colrow = col.row(align=1)
-        colrow.operator(
-            "render.copy_render_settings_osc",
-            icon="LIBRARY_DATA_DIRECT",
-            text="Copy Render Settings").mode = "render"
-        colrow.operator(
-            "render.copy_render_settings_osc",
-            icon="LIBRARY_DATA_DIRECT",
-            text="Copy Cycles Settings").mode = "cycles"
         col.operator(
             "file.create_batch_maker_osc",
             icon="LINENUMBERS_ON",
@@ -284,7 +276,7 @@ class OscPanelRender(Panel):
 class OscPanelFiles(Panel):
     bl_idname = "Oscurart Files Tools"
     bl_label = "Files Tools"
-    bl_category = "Custom"
+    bl_category = "Oscurart Tools"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_options = {'DEFAULT_CLOSED'}
@@ -309,7 +301,7 @@ class OscPanelFiles(Panel):
 class OscPanelOverrides(Panel):
     bl_idname = "Oscurart Overrides"
     bl_label = "Overrides Tools"
-    bl_category = "Custom"
+    bl_category = "Oscurart Tools"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_options = {'DEFAULT_CLOSED'}
@@ -353,7 +345,7 @@ class OscPanelOverrides(Panel):
 class OscPanelAnimation(Panel):
     bl_idname = "Oscurart Animation Tools"
     bl_label = "Animation Tools"
-    bl_category = "Custom"
+    bl_category = "Oscurart Tools"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_options = {'DEFAULT_CLOSED'}
@@ -416,7 +408,7 @@ class OscurartToolsAddonPreferences(bpy.types.AddonPreferences):
     category = bpy.props.StringProperty(
             name="Category",
             description="Choose a name for the category of the panel",
-            default="Custom",
+            default="Oscurart Tools",
             update=update_panel,
             )
 
