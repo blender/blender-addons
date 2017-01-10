@@ -28,6 +28,7 @@ from bpy_extras.object_utils import world_to_camera_view
 
 
 class SearchAndSelectOt(bpy.types.Operator):
+    """Search and select objects, by name."""
     bl_idname = "object.search_and_select_osc"
     bl_label = "Search And Select"
     bl_options = {"REGISTER", "UNDO"}
@@ -58,6 +59,7 @@ bpy.types.Scene.RenameObjectOt = bpy.props.StringProperty(default="Type here")
 
 
 class renameObjectsOt (Operator):
+    """Batch rename objects, supports selection order."""
     bl_idname = "object.rename_objects_osc"
     bl_label = "Rename Objects"
     bl_options = {"REGISTER", "UNDO"}
@@ -74,6 +76,7 @@ class renameObjectsOt (Operator):
 # ---------------------------REMOVE MODIFIERS Y APPLY MODIFIERS-----------
 
 class oscRemModifiers (Operator):
+    """Removes all modifiers in the selected objects."""
     bl_idname = "object.modifiers_remove_osc"
     bl_label = "Remove modifiers"
     bl_options = {"REGISTER", "UNDO"}
@@ -88,6 +91,7 @@ class oscRemModifiers (Operator):
 
 
 class oscApplyModifiers (Operator):
+    """Applys all the modifiers in the selected objects.(This does not work in objects with shapekeys)."""
     bl_idname = "object.modifiers_apply_osc"
     bl_label = "Apply modifiers"
     bl_options = {"REGISTER", "UNDO"}
@@ -157,6 +161,7 @@ def relinkObjects(self):
 
 
 class OscRelinkObjectsBetween (Operator):
+    """Copies from the selected object the scenes where this is. Its similar to "Objects to Scene"."""
     bl_idname = "object.relink_objects_between_scenes"
     bl_label = "Relink Objects Between Scenes"
     bl_options = {"REGISTER", "UNDO"}
@@ -206,6 +211,7 @@ def CopyObjectGroupsAndLayers(self):
 
 
 class OscCopyObjectGAL (Operator):
+    """Copies to scenes the layers setup in the active scene of the selected object."""
     bl_idname = "object.copy_objects_groups_layers"
     bl_label = "Copy Groups And Layers"
     bl_options = {"REGISTER", "UNDO"}
@@ -284,6 +290,7 @@ def ObjectDistributeOscurart(self, X, Y, Z):
 
 
 class DialogDistributeOsc(Operator):
+    """Distribute evenly the selected objects in x y z""" 
     bl_idname = "object.distribute_osc"
     bl_label = "Distribute Objects"
     Boolx = BoolProperty(name="X")
@@ -320,6 +327,7 @@ def DefSetLayersToOtherScenes():
 
 
 class SetLayersToOtherScenes (Operator):
+    """Copies to scenes the layers setup in the active scene of the selected object."""
     bl_idname = "object.set_layers_to_other_scenes"
     bl_label = "Copy actual Layers to Other Scenes"
     bl_options = {"REGISTER", "UNDO"}
@@ -368,6 +376,7 @@ def DefRenderOnlyInCamera():
 
 
 class RenderOnlyInCamera (Operator):
+    """Create two different groups, one group contains the objetcs that are in the camera frame, those that camera can see, and then a second group that contains the object that the camera can`t see."""
     bl_idname = "group.group_in_out_camera"
     bl_label = "Make a group for objects in outer camera"
     bl_options = {"REGISTER", "UNDO"}
@@ -499,6 +508,7 @@ def duplicateSymmetrical(self, disconect):
 
 
 class oscDuplicateSymmetricalOp (Operator):
+    """Creates a symmetrical copy on the X axys, also Links by drivers position, rotation and scale."""
     bl_idname = "object.duplicate_object_symmetry_osc"
     bl_label = "Oscurart Duplicate Symmetrical"
     bl_options = {"REGISTER", "UNDO"}
@@ -526,6 +536,7 @@ def DefObjectToGroups():
 
 
 class ObjectsToGroups (Operator):
+    """Creates a group("_MESH") containing all the mesh type objects in the scene. Creates a group(“object_name”) per mesh type object."""
     bl_idname = "object.objects_to_groups"
     bl_label = "Objects to Groups"
     bl_options = {"REGISTER", "UNDO"}

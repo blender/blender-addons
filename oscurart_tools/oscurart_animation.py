@@ -54,6 +54,7 @@ def DefQuickParent(inf, out):
 
 
 class QuickParent (bpy.types.Operator):
+    """Creates a parent from one object to other in a selected frame range."""
     bl_idname = "anim.quick_parent_osc"
     bl_label = "Quick Parent"
     bl_options = {"REGISTER", "UNDO"}

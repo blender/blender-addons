@@ -101,6 +101,7 @@ def defRenderAll(frametype, scenes):
 
 
 class renderAll (Operator):
+    """Renders all scenes executing the Oscurart overrides if those are set up. Saves the renders in their respective folders using the scenes and render layers names."""
     bl_idname = "render.render_all_scenes_osc"
     bl_label = "Render All Scenes"
 
@@ -117,6 +118,7 @@ bpy.types.Scene.use_render_scene = bpy.props.BoolProperty()
 
 
 class renderSelected (Operator):
+    """Renders the seleccted scenes on the checkboxes, executing the Oscurart overrides if it was set up. Saves the renders in their respective folders using the scenes and render layers names."""
     bl_idname = "render.render_selected_scenes_osc"
     bl_label = "Render Selected Scenes"
 
@@ -132,6 +134,7 @@ class renderSelected (Operator):
 
 
 class renderCurrent (Operator):
+    """Renders the active scene executing the Oscurart overrides if it was set up. Saves the renders in their respective folders using the scenes and render layers names."""
     bl_idname = "render.render_current_scene_osc"
     bl_label = "Render Current Scene"
 
@@ -173,6 +176,7 @@ def OscRenderCropFunc():
 
 
 class renderCrop (Operator):
+    """It renders croping the image in to a X number of pieces. Usefull for rendering really big images."""
     bl_idname = "render.render_crop_osc"
     bl_label = "Render Crop: Render!"
 
@@ -256,6 +260,7 @@ def defoscBatchMaker(TYPE, BIN):
 
 
 class oscBatchMaker (Operator):
+    """It creates .bat(win) or .sh(unix) file, to execute and render from Console/Terminal."""
     bl_idname = "file.create_batch_maker_osc"
     bl_label = "Make render batch"
     bl_options = {'REGISTER', 'UNDO'}
@@ -376,6 +381,7 @@ while REPITE:
 
 
 class oscPythonBatchMaker (Operator):
+    """It creates a file as “Make Render Batch” but it requires Phyton installed and the respective environment variables set up. If the render crahses, the batch automatically erase the broken frame and writes it again. Its not recommended if there is more than one machine rendering."""
     bl_idname = "file.create_batch_python"
     bl_label = "Make Batch Python"
     bl_options = {'REGISTER', 'UNDO'}
@@ -406,6 +412,7 @@ bpy.utils.register_class(VarColArchivos)
 
 
 class SumaFile(Operator):
+    """Look for broken rendered files and shows it."""
     bl_idname = "object.add_broken_file"
     bl_label = "Add Broken Files"
 
@@ -428,6 +435,7 @@ class SumaFile(Operator):
 
 
 class ClearFile(Operator):
+    """Erase the list of broken frames.""" 
     bl_idname = "object.clear_broken_file"
     bl_label = "Clear Broken Files"
 
@@ -437,6 +445,7 @@ class ClearFile(Operator):
 
 
 class DeleteFiles(Operator):
+    """Erase the broken frames files from Disk."""
     bl_idname = "object.delete_broken_file"
     bl_label = "Delete Broken Files"
 

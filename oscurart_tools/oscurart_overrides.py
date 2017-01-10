@@ -62,6 +62,7 @@ def DefOscRestoreOverrides(self):
 # HAND OPERATOR
 
 class OscApplyOverrides(Operator):
+    """>>>Danger Option<<<  Apply and restore override materials, similar as ON/OFF its basically the same, save before try it."""
     bl_idname = "render.apply_overrides"
     bl_label = "Apply Overrides in this Scene"
     bl_options = {"REGISTER", "UNDO"}
@@ -72,6 +73,7 @@ class OscApplyOverrides(Operator):
 
 
 class OscRestoreOverrides(Operator):
+    """>>>Danger Option<<<  Apply and restore override materials, similar as ON/OFF its basically the same, save before try it."""
     bl_idname = "render.restore_overrides"
     bl_label = "Restore Overrides in this Scene"
     bl_options = {"REGISTER", "UNDO"}
@@ -84,6 +86,7 @@ bpy.use_overrides = False
 
 
 class OscOverridesOn(Operator):
+    """>>>Danger Option<<< its recommended to save before try it, it replace all materials by the override materials, its posible once active to see the objects rendering as override render by pressing F12."""
     bl_idname = "render.overrides_on"
     bl_label = "Turn On Overrides"
     bl_options = {"REGISTER", "UNDO"}
@@ -105,6 +108,7 @@ class OscOverridesOn(Operator):
 # -------------------- CHECK OVERRIDES -------------------
 
 class OscCheckOverrides(Operator):
+    """Check all overrides to verify if there is all set up properly, info its display in the console."""
     bl_idname = "render.check_overrides"
     bl_label = "Check Overrides"
     bl_options = {"REGISTER", "UNDO"}
@@ -206,6 +210,7 @@ class OscOverridesGUI(Panel):
 
 
 class OscOverridesUp(Operator):
+    """Move override slot up"""
     bl_idname = 'ovlist.move_up'
     bl_label = 'Move Override up'
     bl_options = {'INTERNAL'}
@@ -224,6 +229,7 @@ class OscOverridesUp(Operator):
 
 
 class OscOverridesDown(Operator):
+    """Move override slot down"""
     bl_idname = 'ovlist.move_down'
     bl_label = 'Move Override down'
     bl_options = {'INTERNAL'}
@@ -241,6 +247,7 @@ class OscOverridesDown(Operator):
 
 
 class OscOverridesKill(Operator):
+    """Remove override slot"""
     bl_idname = 'ovlist.kill'
     bl_label = 'Kill Override'
     bl_options = {'INTERNAL'}
@@ -258,7 +265,7 @@ class OscOverridesKill(Operator):
 
 
 class OscTransferOverrides(Operator):
-    """Tooltip"""
+    """Applies the previously configured slots (Groups < Material) to the Scene.This should be transfer once the override groups are set."""
     bl_idname = "render.overrides_transfer"
     bl_label = "Transfer Overrides"
 
@@ -273,7 +280,7 @@ class OscTransferOverrides(Operator):
 
 
 class OscAddOverridesSlot(Operator):
-    """Tooltip"""
+    """Add override slot."""
     bl_idname = "render.overrides_add_slot"
     bl_label = "Add Override Slot"
 
@@ -285,7 +292,7 @@ class OscAddOverridesSlot(Operator):
 
 
 class OscRemoveOverridesSlot(Operator):
-    """Tooltip"""
+    """Remove override slot."""
     bl_idname = "render.overrides_remove_slot"
     bl_label = "Remove Override Slot"
 
