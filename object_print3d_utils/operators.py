@@ -212,7 +212,10 @@ class Print3DCheckDistorted(Operator):
             no = ele.normal
             angle_fn = no.angle
             for loop in ele.loops:
-                if angle_fn(loop.calc_normal(), 1000.0) > angle_distort:
+                loopno = loop.calc_normal()
+                if loopno.dot(no) < 0.0:
+                    loopno.negate()
+                if angle_fn(loopno, 1000.0) > angle_distort:
                     return True
             return False
 
