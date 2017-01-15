@@ -21,8 +21,8 @@
 bl_info = {
     "name": "Import Images as Planes",
     "author": "Florian Meyer (tstscr), mont29, matali, Ted Schundler (SpkyElctrc)",
-    "version": (3, 0, 0),
-    "blender": (2, 77, 0),
+    "version": (3, 0, 1),
+    "blender": (2, 78, 0),
     "location": "File > Import > Images as Planes or Add > Mesh > Images as Planes",
     "description": "Imports images and creates planes with the appropriate aspect ratio. "
                    "The images are mapped to the planes.",
@@ -48,11 +48,13 @@ from bpy.props import (
     BoolProperty,
     EnumProperty,
     FloatProperty,
-    CollectionProperty)
+    CollectionProperty,
+)
 
 from bpy_extras.object_utils import (
     AddObjectHelper,
-    world_to_camera_view)
+    world_to_camera_view,
+)
 
 from bpy_extras.image_utils import load_image
 
@@ -65,18 +67,6 @@ watched_objects = {}  # used to trigger compositor updates on scene updates
 # -----------------------------------------------------------------------------
 # Misc utils.
 
-def str_to_vector(s):
-    """Convert a string into a vector.
-
-    >>> str_to_vector("1,2,3")
-    Vector((1.0, 2.0, 3.0))
-
-    >>> str_to_vector("1.0, 0.0, 0, 1")
-    Vector((1.0, 0.0, 0.0, 1.0))
-    """
-    return Vector(map(float, s.split(',')))
-
-
 def add_driver_prop(driver, name, type, id, path):
     """Configure a new driver variable."""
     dv = driver.variables.new()
@@ -87,18 +77,6 @@ def add_driver_prop(driver, name, type, id, path):
     target.id = id
     target.data_path = path
 
-
-def context_to_dict(context):
-    """Create a dictionary from the current context
-
-    >>> import bpy
-    >>> ctx = context_to_dict(bpy.context)
-    >>> assert ctx['window'] == bpy.context.window
-    """
-    return {
-        k: getattr(context, k) for k in
-        ('window', 'screen', 'area', 'scene', 'object', 'selected_objects')
-    }
 
 # -----------------------------------------------------------------------------
 # Image loading
@@ -634,15 +612,15 @@ class IMPORT_IMAGE_OT_to_plane_v2(Operator, AddObjectHelper):
     bl_label = "Import Images as Planes"
     bl_options = {'REGISTER', 'PRESET', 'UNDO'}
 
-    # --------------
-    # Internal State
-    _extensions_updated = False  # used by update_extensions below
-
     # ----------------------
     # File dialog properties
     files = CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
 
     directory = StringProperty(maxlen=1024, subtype='FILE_PATH', options={'HIDDEN', 'SKIP_SAVE'})
+
+    filter_image = BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
+    filter_movie = BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
+    filter_folder = BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
 
     # ----------------------
     # Properties - Importing
@@ -659,18 +637,27 @@ class IMPORT_IMAGE_OT_to_plane_v2(Operator, AddObjectHelper):
 
     # -------------------------------------
     # Properties - Position and Orientation
+    axis_id_to_vector = {
+        'X+': Vector(( 1,  0,  0)),
+        'Y+': Vector(( 0,  1,  0)),
+        'Z+': Vector(( 0,  0,  1)),
+        'X-': Vector((-1,  0,  0)),
+        'Y-': Vector(( 0, -1,  0)),
+        'Z-': Vector(( 0,  0, -1)),
+    }
+
     offset = BoolProperty(name="Offset Planes", default=True, description="Offset Planes From Each Other")
 
     OFFSET_MODES = (
-        ('1,0,0', "X+", "Side by Side to the Left"),
-        ('0,1,0', "Y+", "Side by Side, Downward"),
-        ('0,0,1', "Z+", "Stacked Above"),
-        ('-1,0,0', "X-", "Side by Side to the Right"),
-        ('0,-1,0', "Y-", "Side by Side, Upward"),
-        ('0,0,-1', "Z-", "Stacked Below"),
+        ('X+', "X+", "Side by Side to the Left"),
+        ('Y+', "Y+", "Side by Side, Downward"),
+        ('Z+', "Z+", "Stacked Above"),
+        ('X-', "X-", "Side by Side to the Right"),
+        ('Y-', "Y-", "Side by Side, Upward"),
+        ('Z-', "Z-", "Stacked Below"),
     )
     offset_axis = EnumProperty(
-        name="Orientation", default='1,0,0', items=OFFSET_MODES,
+        name="Orientation", default='X+', items=OFFSET_MODES,
         description="How planes are oriented relative to each others' local axis"
     )
 
@@ -680,12 +667,12 @@ class IMPORT_IMAGE_OT_to_plane_v2(Operator, AddObjectHelper):
     )
 
     AXIS_MODES = (
-        ('1,0,0', "X+", "Facing Positive X"),
-        ('0,1,0', "Y+", "Facing Positive Y"),
-        ('0,0,1', "Z+ (Up)", "Facing Positive Z"),
-        ('-1,0,0', "X-", "Facing Negative X"),
-        ('0,-1,0', "Y-", "Facing Negative Y"),
-        ('0,0,-1', "Z- (Down)", "Facing Negative Z"),
+        ('X+', "X+", "Facing Positive X"),
+        ('Y+', "Y+", "Facing Positive Y"),
+        ('Z+', "Z+ (Up)", "Facing Positive Z"),
+        ('X-', "X-", "Facing Negative X"),
+        ('Y-', "Y-", "Facing Negative Y"),
+        ('Z-', "Z- (Down)", "Facing Negative Z"),
         ('CAM', "Face Camera", "Facing Camera"),
         ('CAM_AX', "Main Axis", "Facing the Camera's dominant axis"),
     )
@@ -866,20 +853,6 @@ class IMPORT_IMAGE_OT_to_plane_v2(Operator, AddObjectHelper):
         self.draw_material_config(context)
         self.draw_spatial_config(context)
 
-        # And now update space (file select window), if possible.
-        space = bpy.context.space_data
-        # XXX Can't use direct op comparison, these are not the same objects!
-        if (space.type != 'FILE_BROWSER' or space.operator.bl_rna.identifier != self.bl_rna.identifier):
-            return
-
-        # Only se filters once per invokation
-        if not self._extensions_updated:
-            space.params.use_filter_image = True
-            space.params.use_filter_movie = True
-            space.params.use_filter_folder = True
-            space.params.filter_glob = ""
-            self._extensions_updated = True
-
     # -------------------------------------------------------------------------
     # Core functionality
     def invoke(self, context, event):
@@ -925,7 +898,7 @@ class IMPORT_IMAGE_OT_to_plane_v2(Operator, AddObjectHelper):
 
         # Align planes relative to each other
         if self.offset:
-            offset_axis = str_to_vector(self.offset_axis)
+            offset_axis = self.axis_id_to_vector[self.offset_axis]
             offset_planes(planes, self.offset_amount, offset_axis)
 
             if self.size_mode == 'CAMERA' and offset_axis.z:
@@ -1130,7 +1103,7 @@ class IMPORT_IMAGE_OT_to_plane_v2(Operator, AddObjectHelper):
 
         # If sizing for camera, also insert into the camera's field of view
         if self.size_mode == 'CAMERA':
-            offset_axis = str_to_vector(self.offset_axis)
+            offset_axis = self.axis_id_to_vector[self.offset_axis]
             translate_axis = [0 if offset_axis[i] else 1 for i in (0, 1)]
             center_in_camera(context.scene, context.scene.camera, plane, translate_axis)
 
@@ -1187,11 +1160,10 @@ class IMPORT_IMAGE_OT_to_plane_v2(Operator, AddObjectHelper):
             else:
                 # No camera? Just face Z axis
                 axis = Vector((0, 0, 1))
-                self.align_axis = '0,0,1'
-
+                self.align_axis = 'Z+'
         else:
             # Axis-aligned
-            axis = str_to_vector(self.align_axis)
+            axis = self.axis_id_to_vector[self.align_axis]
 
         # rotate accodingly for x/y axiis
         if not axis.z:
@@ -1328,7 +1300,7 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
     def invoke(self, context, event):
         # for intractive use, divert to new implementation
         return bpy.ops.import_image.to_plane_v2(
-            context_to_dict(context), 'INVOKE_DEFAULT'
+            context.copy(), 'INVOKE_DEFAULT'
         )
 
     def execute(self, context):
@@ -1343,15 +1315,14 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
         self.translate_properties(context, target_props)
 
         return bpy.ops.import_image.to_plane_v2(
-            context_to_dict(context), **target_props
+            context.copy(), **target_props
         )
 
 
 # -----------------------------------------------------------------------------
 # Register
 def import_images_button(self, context):
-    self.layout.operator(IMPORT_IMAGE_OT_to_plane_v2.bl_idname,
-                         text="Images as Planes", icon='TEXTURE')
+    self.layout.operator(IMPORT_IMAGE_OT_to_plane_v2.bl_idname, text="Images as Planes", icon='TEXTURE')
 
 
 def register():
@@ -1381,7 +1352,6 @@ def unregister():
 
 
 if __name__ == "__main__":
-
     # Run simple doc tests
     import doctest
     doctest.testmod()
