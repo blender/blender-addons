@@ -27,7 +27,7 @@ bl_info = {
     "author": "Demohero, uriel",
     "version": (1, 2, 1),
     "blender": (2, 77, 0),
-    "location": "View3D > Tool Shelf > Navigation Tab",
+    "location": "View3D > Tool Shelf > Display Tab",
     "description": "Navigate the Camera & 3D View from the Toolshelf",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -40,7 +40,7 @@ import bpy
 
 # main class of this toolbar
 
-## re-ordered (reversed) Orbit Oprators
+## re-ordered (reversed) Orbit Operators
 class OrbitUpView1(bpy.types.Operator):
     bl_idname = 'opr.orbit_up_view1'
     bl_label = 'Orbit Up View'
@@ -80,7 +80,7 @@ class OrbitDownView1(bpy.types.Operator):
         bpy.ops.view3d.view_orbit(type='ORBITDOWN')
         return {'FINISHED'}
 
-## re-ordered (reversed) Pan Oprators
+## re-ordered (reversed) Pan Operators
 class PanUpView1(bpy.types.Operator):
     bl_idname = 'opr.pan_up_view1'
     bl_label = 'Pan Up View'
@@ -114,17 +114,17 @@ class PanRightView1(bpy.types.Operator):
 class PanDownView1(bpy.types.Operator):
     bl_idname = 'opr.pan_down_view1'
     bl_label = 'Pan Down View'
-    bl_description = 'Pan the view up'
+    bl_description = 'Pan the view Up'
 
     def execute(self, context):
         bpy.ops.view3d.view_pan(type='PANDOWN')
         return {'FINISHED'}
 
-## Zoom Oprators
+## Zoom Operators
 class ZoomInView1(bpy.types.Operator):
     bl_idname = 'opr.zoom_in_view1'
     bl_label = 'Zoom In View'
-    bl_description = 'Zoom in in the view'
+    bl_description = 'Zoom In the View/Camera View'
 
     def execute(self, context):
         bpy.ops.view3d.zoom(delta=1)
@@ -134,17 +134,17 @@ class ZoomInView1(bpy.types.Operator):
 class ZoomOutView1(bpy.types.Operator):
     bl_idname = 'opr.zoom_out_view1'
     bl_label = 'Zoom Out View'
-    bl_description = 'Zoom out in the view'
+    bl_description = 'Zoom out In the View/Camera View'
 
     def execute(self, context):
         bpy.ops.view3d.zoom(delta=-1)
         return {'FINISHED'}
 
-## Roll Oprators
+## Roll Operators
 class RollLeftView1(bpy.types.Operator):
     bl_idname = 'opr.roll_left_view1'
     bl_label = 'Roll Left View'
-    bl_description = 'Roll the view left'
+    bl_description = 'Roll the view Left'
 
     def execute(self, context):
         bpy.ops.view3d.view_roll(angle=-0.261799)
@@ -154,13 +154,13 @@ class RollLeftView1(bpy.types.Operator):
 class RollRightView1(bpy.types.Operator):
     bl_idname = 'opr.roll_right_view1'
     bl_label = 'Roll Right View'
-    bl_description = 'Roll the view right'
+    bl_description = 'Roll the view Right'
 
     def execute(self, context):
         bpy.ops.view3d.view_roll(angle=0.261799)
         return {'FINISHED'}
 
-
+## View Operators
 class LeftViewpoint1(bpy.types.Operator):
     bl_idname = 'opr.left_viewpoint1'
     bl_label = 'Left Viewpoint'
@@ -220,39 +220,7 @@ class BottomViewpoint1(bpy.types.Operator):
         bpy.ops.view3d.viewnumpad(type='BOTTOM')
         return {'FINISHED'}
 
-
-class ShowHideObject1(bpy.types.Operator):
-    bl_idname = 'opr.show_hide_object1'
-    bl_label = 'Show/Hide Object'
-    bl_description = 'Show/hide selected objects'
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        if context.object == None:
-            self.report({'ERROR'}, 'Cannot perform this operation on NoneType objects')
-            return {'CANCELLED'}
-
-        if context.object.mode != 'OBJECT':
-            self.report({'ERROR'}, 'This operation can be performed only in object mode')
-            return {'CANCELLED'}
-
-        for i in bpy.data.objects:
-            if i.select:
-                if i.hide:
-                    i.hide = False
-                    i.hide_select = False
-                    i.hide_render = False
-                else:
-                    i.hide = True
-                    i.select = False
-
-                    if i.type not in ['CAMERA', 'LAMP']:
-                        i.hide_render = True
-        return {'FINISHED'}
-
-# main class of this toolbar
-
-
+# Panel class of this toolbar
 class VIEW3D_PT_3dnavigationPanel(bpy.types.Panel):
     bl_category = "Display"
     bl_space_type = "VIEW_3D"
@@ -284,17 +252,15 @@ class VIEW3D_PT_3dnavigationPanel(bpy.types.Panel):
 
 # group of 2 buttons
         col = layout.column(align=True)
-        col.label(text="View to Object:")
+        col.label(text="Lock View to Object:")
         col.prop(view, "lock_object", text="")
         col.operator("view3d.view_selected", text="View to Selected")
 
         col = layout.column(align=True)
         col.label(text="Cursor:")
-
         row = col.row()
         row.operator("view3d.snap_cursor_to_center", text="Center")
         row.operator("view3d.view_center_cursor", text="View")
-
         col.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected")
 
 
@@ -304,48 +270,43 @@ class VIEW3D_PT_pan_navigation1(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_category = 'Display'
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
         layout.label(text='Screen View Perspective')
+
         row = layout.row()
-        box = row.box()
-        box.label(text='Pan:')
-        rowr = box.row()
-        rowr.operator('opr.pan_up_view1', text='', icon='TRIA_DOWN')
-        rowr.operator('opr.pan_down_view1', text='', icon='TRIA_UP')
-
-        rowr = box.row()
-        rowr.operator('opr.pan_right_view1', text='', icon='BACK')
-        rowr.operator('opr.pan_left_view1', text='', icon='FORWARD')
-
-        rowr = box.row()
-
-        box = row.box()
-        box.label(text='Orbit:')
-        rowr = box.row()
-        rowr.operator('opr.orbit_up_view1', text='', icon='TRIA_DOWN')
-        rowr.operator('opr.orbit_down_view1', text='', icon='TRIA_UP')
-        rowr = box.row()
-        rowr.operator('opr.orbit_right_view1', text='', icon='BACK')
-        rowr.operator('opr.orbit_left_view1', text='', icon='FORWARD')
-
-        rowr = box.row()
+        row.label(text='Pan:')
         row = layout.row()
+        row.operator('opr.pan_down_view1', text='Up', icon='TRIA_UP')
+        row.operator('opr.pan_up_view1', text='Down', icon='TRIA_DOWN')
 
-        box = row.box()
-        box.label(text='Zoom:')
-        rowr = box.row()
-        rowrowr = rowr.row(align=True)
-        rowrowr.operator('opr.zoom_in_view1', text='', icon='ZOOMIN')
-        rowrowr.operator('opr.zoom_out_view1', text='', icon='ZOOMOUT')
+        row = layout.row()
+        row.operator('opr.pan_right_view1', text='Left', icon='BACK')
+        row.operator('opr.pan_left_view1', text='Right', icon='FORWARD')
 
-        box = row.box()
-        box.label(text='Roll:')
-        rowr = box.row()
-        rowrowr = rowr.row(align=True)
-        rowrowr.operator('opr.roll_left_view1', text='', icon='LOOP_BACK')
-        rowrowr.operator('opr.roll_right_view1', text='', icon='LOOP_FORWARDS')
+        row = layout.row()
+        row.label(text='Orbit:')
+        row = layout.row()
+        row.operator('opr.orbit_down_view1', text='Up', icon='TRIA_UP')
+        row.operator('opr.orbit_up_view1', text='Down', icon='TRIA_DOWN')
+
+        row = layout.row()
+        row.operator('opr.orbit_right_view1', text='Left', icon='BACK')
+        row.operator('opr.orbit_left_view1', text='Right', icon='FORWARD')
+
+        row = layout.row()
+        row.label(text='Zoom:')
+        row = layout.row()
+        row.operator('opr.zoom_in_view1', text='In', icon='ZOOMIN')
+        row.operator('opr.zoom_out_view1', text='Out', icon='ZOOMOUT')
+
+        row = layout.row()
+        row.label(text='Roll:')
+        row = layout.row()
+        row.operator('opr.roll_left_view1', text='Left', icon='LOOP_BACK')
+        row.operator('opr.roll_right_view1', text='Right', icon='LOOP_FORWARDS')
 
 ## Addons Preferences Update Panel
 def update_panel(self, context):
@@ -399,7 +360,6 @@ classes = [
     BackViewpoint1,
     TopViewpoint1,
     BottomViewpoint1,
-    ShowHideObject1,
     NavAddonPreferences,
 ]
 
