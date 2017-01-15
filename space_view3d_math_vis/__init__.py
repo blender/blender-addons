@@ -23,7 +23,7 @@ bl_info = {
     "author": "Campbell Barton",
     "version": (0, 2),
     "blender": (2, 57, 0),
-    "location": "View3D > Tool Shelf or Console",
+    "location": "Properties: Scene > Math Vis Console and Python Console: Menu",
     "description": "Display console defined mathutils variables in the 3D view",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/3D_interaction/Math_Viz",
@@ -47,7 +47,7 @@ class PanelConsoleVars(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'scene'
-    bl_label = "Console Vars"
+    bl_label = "Math Vis Console"
     bl_idname = "mathvis.panel_console_vars"
     bl_category = "Math Vis"
     bl_options = {'DEFAULT_CLOSED'}
