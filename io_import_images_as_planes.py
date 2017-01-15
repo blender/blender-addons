@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Import Images as Planes",
     "author": "Florian Meyer (tstscr), mont29, matali, Ted Schundler (SpkyElctrc)",
-    "version": (3, 0, 1),
+    "version": (3, 1, 0),
     "blender": (2, 78, 0),
     "location": "File > Import > Images as Planes or Add > Mesh > Images as Planes",
     "description": "Imports images and creates planes with the appropriate aspect ratio. "
@@ -605,10 +605,10 @@ def setup_compositing(context, plane, img_spec):
 # -----------------------------------------------------------------------------
 # Operator
 
-class IMPORT_IMAGE_OT_to_plane_v2(Operator, AddObjectHelper):
+class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
     """Create mesh plane(s) from image files with the appropiate aspect ratio"""
 
-    bl_idname = "import_image.to_plane_v2"
+    bl_idname = "import_image.to_plane"
     bl_label = "Import Images as Planes"
     bl_options = {'REGISTER', 'PRESET', 'UNDO'}
 
@@ -1198,131 +1198,10 @@ class IMPORT_IMAGE_OT_to_plane_v2(Operator, AddObjectHelper):
 
 
 # -----------------------------------------------------------------------------
-# Legacy Interface Support
-
-class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
-    """Helper for add-ons expecting the old interface
-
-    This maps maps properties from the old interface to their equivalents,
-    if any, in the newer add-on.
-    """
-
-    bl_idname = "import_image.to_plane"
-    bl_options = {'REGISTER', 'INTERNAL'}
-    bl_label = "Import Images as Planes (Deprecated Interface)"
-
-    # Properties that have not changed
-    NO_CHANGE = (
-        'rotation', 'location', 'view_align', 'layers',  # from AddObjectHelper
-        'files', 'directory', 'relative', 'force_reload',  # File Loading
-        'size_mode', 'height', 'factor',  # Size
-        'use_transparency', 'alpha_mode',  # Alpha
-        'use_fields', 'use_auto_refresh',  # Texture Properties
-    )
-    for k in NO_CHANGE:
-        locals()[k] = getattr(IMPORT_IMAGE_OT_to_plane_v2, k)
-
-    # Properties that have been renamed
-    REMAP = {
-        'overwrite_node_tree': 'overwrite_material',
-        'align': 'offset',
-        'offset': 'offset_amount',
-    }
-    for k, v in REMAP.items():
-        locals()[k] = getattr(IMPORT_IMAGE_OT_to_plane_v2, v)
-
-    DEFAULTS = {
-        'align_axis': '0,0,1',
-        'offset_axis': '1,0,0',
-    }
-
-    # Properties that need translation
-    t = bpy.types.Material.bl_rna.properties["use_shadeless"]
-    use_shadeless = BoolProperty(name=t.name, default=False, description=t.description)
-
-    t = bpy.types.Material.bl_rna.properties["transparency_method"]
-    items = tuple((it.identifier, it.name, it.description) for it in t.enum_items)
-    transparency_method = EnumProperty(name="Transp. Method", description=t.description, items=items)
-
-    CYCLES_SHADERS = (
-        ('BSDF_DIFFUSE', 'Diffuse', 'Diffuse Shader'),
-        ('EMISSION', 'Emission', 'Emission Shader'),
-        ('BSDF_DIFFUSE_BSDF_TRANSPARENT', 'Diffuse & Transparent',
-            'Diffuse and Transparent Mix'),
-        ('EMISSION_BSDF_TRANSPARENT', 'Emission & Transparent',
-            'Emission and Transparent Mix')
-    )
-    shader = bpy.props.EnumProperty(
-        name='Shader', items=CYCLES_SHADERS,
-        default='BSDF_DIFFUSE_BSDF_TRANSPARENT',
-        description='Node shader to use'
-    )
-
-    def translate_properties(self, context, target):
-        engine = context.scene.render.engine
-
-        target['shader'] = 'DIFFUSE'
-
-        if engine == 'CYCLES' and 'EMISSION' in self.shader:
-            target['shader'] = 'SHADELESS'
-
-        if self.use_shadeless:
-            target['shader'] = 'SHADELESS'
-
-        if 'TRANSPARENT' in self.shader:
-            target['use_transparency'] = True
-        if 'Z_TRANS' in self.transparency_method or 'RAY' in self.transparency_method:
-            target['use_transparency'] = True
-
-        # No change in this field, but it needs some remapping to work
-        target['files'] = [{'name': file.name} for file in self.files]
-
-    # Removed Properties
-    FILE_TYPES = (
-        '*', 'jpeg', 'png', 'tga', 'tiff', 'bmp', 'cin',
-        'dpx', 'psd', 'exr', 'hdr', 'avi', 'mov', 'mp4', 'ogg')
-    extension = EnumProperty(
-        name="Extension",
-        items=list(zip(FILE_TYPES, FILE_TYPES, FILE_TYPES)),
-        description="Deprecated")
-
-    filter_image = BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
-    filter_movie = BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
-    filter_folder = BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
-    filter_glob = StringProperty(default="", options={'HIDDEN', 'SKIP_SAVE'})
-
-    t = bpy.types.Material.bl_rna.properties["use_transparent_shadows"]
-    use_transparent_shadows = BoolProperty(name=t.name, default=False, description=t.description)
-
-    t = bpy.types.IMAGE_OT_match_movie_length.bl_rna
-    match_len = BoolProperty(name=t.name, default=True, description=t.description)
-
-    def invoke(self, context, event):
-        # for intractive use, divert to new implementation
-        return bpy.ops.import_image.to_plane_v2(
-            context.copy(), 'INVOKE_DEFAULT'
-        )
-
-    def execute(self, context):
-        target_props = dict(self.DEFAULTS)  # start by copying defaults
-        # copy settings with no change in name
-        for k in self.NO_CHANGE:
-            target_props[k] = getattr(self, k)
-        # map settings with new names
-        for k, v in self.REMAP.items():
-            target_props[v] = getattr(self, k)
-        # Handle indirect mappings
-        self.translate_properties(context, target_props)
-
-        return bpy.ops.import_image.to_plane_v2(
-            context.copy(), **target_props
-        )
-
-
-# -----------------------------------------------------------------------------
 # Register
+
 def import_images_button(self, context):
-    self.layout.operator(IMPORT_IMAGE_OT_to_plane_v2.bl_idname, text="Images as Planes", icon='TEXTURE')
+    self.layout.operator(IMPORT_IMAGE_OT_to_plane.bl_idname, text="Images as Planes", icon='TEXTURE')
 
 
 def register():
@@ -1334,21 +1213,17 @@ def register():
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(import_images_button)
     bpy.types.INFO_MT_mesh_add.remove(import_images_button)
 
     # This will only exist if drivers are active
-    try:
+    if check_drivers in bpy.app.handlers.scene_update_post:
         bpy.app.handlers.scene_update_post.remove(check_drivers)
-    except:
-        pass
 
-    try:
-        bpy.app.handlers.load_post.remove(register_driver)
-        del bpy.app.driver_namespace['import_image__find_plane_corner']
-    except:
-        pass
+    bpy.app.handlers.load_post.remove(register_driver)
+    del bpy.app.driver_namespace['import_image__find_plane_corner']
+
+    bpy.utils.unregister_module(__name__)
 
 
 if __name__ == "__main__":
