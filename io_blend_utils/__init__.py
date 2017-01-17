@@ -79,12 +79,18 @@ class ExportBlendPack(Operator, ExportHelper, SubprocessHelper):
             self.log.info('Executing %s', cmd_to_log)
 
     def process_post(self, returncode):
-        if self.temp_dir is not None:
-            try:
-                self.temp_dir.cleanup()
-            except:
-                import traceback
-                traceback.print_exc()
+        if self.temp_dir is None:
+            return
+
+        try:
+            self.log.debug('Cleaning up temp dir %s', self.temp_dir)
+            self.temp_dir.cleanup()
+        except FileNotFoundError:
+            # This is expected, the directory was already removed by BAM.
+            pass
+        except Exception:
+            self.log.exception('Unable to clean up temp dir %s', self.temp_dir)
+
         self.log.info('Written to %s', self.outfname)
 
 
