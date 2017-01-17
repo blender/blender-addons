@@ -21,7 +21,7 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (3, 7, 7),
+    "version": (3, 7, 8),
     "blender": (2, 77, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
@@ -314,6 +314,11 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
                         "WARNING: prevents exporting shape keys",
             default=True,
             )
+    use_mesh_modifiers_render = BoolProperty(
+            name="Use Modifiers Render Setting",
+            description="Use render settings when applying modifiers to mesh objects",
+            default=True,
+            )
     mesh_smooth_type = EnumProperty(
             name="Smoothing",
             items=(('OFF', "Normals Only", "Export only normals instead of writing edge or face smoothing data"),
@@ -518,6 +523,9 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
                 sub.prop(self, "use_batch_own_dir", text="", icon='NEWFOLDER')
             elif self.ui_tab == 'GEOMETRY':
                 layout.prop(self, "use_mesh_modifiers")
+                sub = layout.row()
+                sub.enabled = self.use_mesh_modifiers
+                sub.prop(self, "use_mesh_modifiers_render")
                 layout.prop(self, "mesh_smooth_type")
                 layout.prop(self, "use_mesh_edges")
                 sub = layout.row()
