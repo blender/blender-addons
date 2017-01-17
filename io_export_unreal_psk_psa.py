@@ -2279,6 +2279,7 @@ class Panel_UDKExport( bpy.types.Panel ):
     bl_category     = "File I/O"
     bl_space_type   = "VIEW_3D"
     bl_region_type  = "TOOLS"
+    bl_context = "objectmode"
 
     #def draw_header(self, context):
     #   layout = self.layout
