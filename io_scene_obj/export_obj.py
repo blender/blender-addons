@@ -280,6 +280,7 @@ def write_file(filepath, objects, scene,
                EXPORT_UV=True,
                EXPORT_MTL=True,
                EXPORT_APPLY_MODIFIERS=True,
+               EXPORT_APPLY_MODIFIERS_RENDER=False,
                EXPORT_BLEN_OBS=True,
                EXPORT_GROUP_BY_OB=False,
                EXPORT_GROUP_BY_MAT=False,
@@ -387,7 +388,8 @@ def write_file(filepath, objects, scene,
                         # END NURBS
 
                         try:
-                            me = ob.to_mesh(scene, EXPORT_APPLY_MODIFIERS, 'PREVIEW', calc_tessface=False)
+                            me = ob.to_mesh(scene, EXPORT_APPLY_MODIFIERS, calc_tessface=False, 
+                                            settings='RENDER' if EXPORT_APPLY_MODIFIERS_RENDER else 'PREVIEW')
                         except RuntimeError:
                             me = None
 
@@ -720,6 +722,7 @@ def _write(context, filepath,
            EXPORT_UV,  # ok
            EXPORT_MTL,
            EXPORT_APPLY_MODIFIERS,  # ok
+           EXPORT_APPLY_MODIFIERS_RENDER,  # ok
            EXPORT_BLEN_OBS,
            EXPORT_GROUP_BY_OB,
            EXPORT_GROUP_BY_MAT,
@@ -776,6 +779,7 @@ def _write(context, filepath,
                        EXPORT_UV,
                        EXPORT_MTL,
                        EXPORT_APPLY_MODIFIERS,
+                       EXPORT_APPLY_MODIFIERS_RENDER,
                        EXPORT_BLEN_OBS,
                        EXPORT_GROUP_BY_OB,
                        EXPORT_GROUP_BY_MAT,
@@ -810,6 +814,7 @@ def save(context,
          use_uvs=True,
          use_materials=True,
          use_mesh_modifiers=True,
+         use_mesh_modifiers_render=False,
          use_blen_objects=True,
          group_by_object=False,
          group_by_material=False,
@@ -831,6 +836,7 @@ def save(context,
            EXPORT_UV=use_uvs,
            EXPORT_MTL=use_materials,
            EXPORT_APPLY_MODIFIERS=use_mesh_modifiers,
+           EXPORT_APPLY_MODIFIERS_RENDER=use_mesh_modifiers_render,
            EXPORT_BLEN_OBS=use_blen_objects,
            EXPORT_GROUP_BY_OB=group_by_object,
            EXPORT_GROUP_BY_MAT=group_by_material,
