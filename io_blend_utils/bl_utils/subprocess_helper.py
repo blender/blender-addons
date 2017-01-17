@@ -22,6 +22,7 @@
 Defines an operator mix-in to use for non-blocking command line access.
 """
 
+
 class SubprocessHelper:
     """
     Mix-in class for operators to run commands in a non-blocking way.
@@ -39,7 +40,17 @@ class SubprocessHelper:
         ``process_post(returncode)``:
             Callback that runs when the process has ende.
             returncode is -1 if the process was terminated.
+
+    Subclass may define:
+        ``environment``:
+            Dict of environment variables exposed to the subprocess.
+            Contrary to the subprocess.Popen(env=...) parameter, this
+            dict is and not used to replace the existing environment
+            entirely, but is just used to update it.
     """
+
+    environ = {}
+    command = ()
 
     @staticmethod
     def _non_blocking_readlines(f, chunk=64):
@@ -138,14 +149,20 @@ class SubprocessHelper:
 
     def execute(self, context):
         import subprocess
+        import os
+        import copy
 
         self.process_pre()
+
+        env = copy.deepcopy(os.environ)
+        env.update(self.environ)
 
         try:
             p = subprocess.Popen(
                     self.command,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
+                    env=env,
                     )
         except FileNotFoundError as ex:
             # Command not found

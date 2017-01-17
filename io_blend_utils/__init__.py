@@ -18,8 +18,8 @@
 
 bl_info = {
     "name": "Blend File Utils",
-    "author": "Campbell Barton",
-    "version": (0, 1),
+    "author": "Campbell Barton and Sybren A. Stüvel",
+    "version": (1, 0),
     "blender": (2, 76, 0),
     "location": "File > External Data > Blend Utils",
     "description": "Utility for packing blend files",
@@ -27,8 +27,9 @@ bl_info = {
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/BlendFile_Utils",
     "support": 'OFFICIAL',
     "category": "Import-Export",
-    }
+}
 
+import logging
 
 import bpy
 from bpy.types import Operator
@@ -41,6 +42,7 @@ class ExportBlendPack(Operator, ExportHelper, SubprocessHelper):
     """Packs a blend file and all its dependencies into an archive for easy redistribution"""
     bl_idname = "export_blend.pack"
     bl_label = "Pack Blend to Archive"
+    log = logging.getLogger('%s.ExportBlendPack' % __name__)
 
     # ExportHelper
     filename_ext = ".zip"
@@ -55,22 +57,26 @@ class ExportBlendPack(Operator, ExportHelper, SubprocessHelper):
         return bpy.data.is_saved
 
     def process_pre(self):
-        import os
         import tempfile
 
         self.temp_dir = tempfile.TemporaryDirectory()
 
-        filepath_blend = bpy.data.filepath
-
+        self.environ = {'PYTHONPATH': pythonpath()}
+        self.outfname = bpy.path.ensure_ext(self.filepath, ".zip")
         self.command = (
             bpy.app.binary_path_python,
-            os.path.join(os.path.dirname(__file__), "blendfile_pack.py"),
+            '-m', 'bam.pack',
             # file to pack
-            "--input", filepath_blend,
+            "--input", bpy.data.filepath,
             # file to write
-            "--output", bpy.path.ensure_ext(self.filepath, ".zip"),
+            "--output", self.outfname,
             "--temp", self.temp_dir.name,
-            )
+        )
+
+        if self.log.isEnabledFor(logging.INFO):
+            import shlex
+            cmd_to_log = ' '.join(shlex.quote(s) for s in self.command)
+            self.log.info('Executing %s', cmd_to_log)
 
     def process_post(self, returncode):
         if self.temp_dir is not None:
@@ -79,6 +85,7 @@ class ExportBlendPack(Operator, ExportHelper, SubprocessHelper):
             except:
                 import traceback
                 traceback.print_exc()
+        self.log.info('Written to %s', self.outfname)
 
 
 def menu_func(self, context):
@@ -89,7 +96,30 @@ def menu_func(self, context):
 
 classes = (
     ExportBlendPack,
-    )
+)
+
+
+def pythonpath() -> str:
+    """Returns the value of a PYTHONPATH environment variable needed to run BAM from its wheel file.
+    """
+
+    import os.path
+    import glob
+
+    log = logging.getLogger('%s.pythonpath' % __name__)
+
+    # Find the wheel to run.
+    my_dir = os.path.abspath(os.path.dirname(__file__))
+    wheelpaths = glob.glob(os.path.join(my_dir, 'blender_bam-*.whl'))
+    wheelpath = sorted(wheelpaths)[-1]  # use the last version we find, should be only one.
+    log.info('Using wheel file %s to run BAM-Pack', wheelpath)
+
+    # Update the PYTHONPATH to include that wheel.
+    existing_pypath = os.environ.get('PYTHONPATH', '')
+    if existing_pypath:
+        return os.pathsep.join((existing_pypath, wheelpath))
+
+    return wheelpath
 
 
 def register():
