@@ -1159,6 +1159,8 @@ def runMaster(address, broadcast, clear, force, path, update_stats, test_break,u
     if use_ssl:
         import ssl
         httpd.socket = ssl.wrap_socket(
+                httpd.socket,
+                certfile=cert_path,
                 server_side=True,
                 keyfile=key_path,
                 ciphers="ALL",
