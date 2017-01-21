@@ -186,6 +186,11 @@ class add_mesh_bolt(bpy.types.Operator):
             name='Root Percent', default = 10,
             min = 1, soft_min = 1, max = 90,
             description='Percent of the pitch that makes up the Root')
+            
+    bf_Div_Count = IntProperty( attr='bf_Div_Count',
+            name='Div count', default = 36,
+            min = 4, soft_min = 4, max = 4096,
+            description='Div count determine circle resolution')
 
     bf_Hex_Nut_Height = FloatProperty( attr='bf_Hex_Nut_Height',
             name='Hex Nut Height', default = 2.4,
@@ -254,6 +259,7 @@ class add_mesh_bolt(bpy.types.Operator):
         col.prop(self, 'bf_Pitch')
         col.prop(self, 'bf_Crest_Percent')
         col.prop(self, 'bf_Root_Percent')
+        col.prop(self, 'bf_Div_Count')
 
 
 

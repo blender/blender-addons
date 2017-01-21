@@ -19,8 +19,8 @@
 bl_info = {
     "name": "BoltFactory",
     "author": "Aaron Keith",
-    "version": (3, 10),
-    "blender": (2, 63, 0),
+    "version": (0, 3, 1),
+    "blender": (2, 78, 0),
     "location": "View3D > Add > Mesh",
     "description": "Add a bolt or nut",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -41,7 +41,7 @@ import bpy
 ##### REGISTER #####
 
 def add_mesh_bolt_button(self, context):
-    self.layout.operator(Boltfactory.add_mesh_bolt.bl_idname, text="Bolt", icon="PLUGIN")
+    self.layout.operator(Boltfactory.add_mesh_bolt.bl_idname, text="Bolt", icon="MOD_SCREW")
 
 
 def register():
