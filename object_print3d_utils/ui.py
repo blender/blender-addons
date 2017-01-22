@@ -39,7 +39,7 @@ class Print3DToolBar:
     @classmethod
     def poll(cls, context):
         obj = context.active_object
-        return (obj and obj.type == 'MESH')
+        return obj and obj.type == 'MESH' and context.mode in {'OBJECT','EDIT_MESH'}
 
     @staticmethod
     def draw_report(layout, context):
