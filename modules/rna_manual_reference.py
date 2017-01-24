@@ -22,7 +22,7 @@
 
 import bpy
 
-url_manual_prefix = "https://www.blender.org/manual/"
+url_manual_prefix = "https://docs.blender.org/manual/en/dev/"
 
 language = ""
 if bpy.context.user_preferences.system.use_international_fonts:
@@ -58,7 +58,7 @@ LANG = {
 }.get(language)
 
 if LANG is not None:
-    url_manual_prefix = url_manual_prefix.replace("manual", "manual/" + LANG)
+    url_manual_prefix = url_manual_prefix.replace("manual/en", "manual/" + LANG)
 
 # - The first item is a wildcard - typical file system globbing
 #   using python module 'fnmatch.fnmatch'
