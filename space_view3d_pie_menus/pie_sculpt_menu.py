@@ -36,19 +36,8 @@ from bpy.types import (
         Operator,
         )
 
-# Sculpt Polish
 
-
-class SculptPolish(Operator):
-    bl_idname = "sculpt.polish"
-    bl_label = "Sculpt Polish"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        context.tool_settings.sculpt.brush = bpy.data.brushes['Polish']
-        return {'FINISHED'}
-
-# Sculpt Polish
+# Sculpt Draw
 
 
 class SculptSculptDraw(Operator):
@@ -102,13 +91,13 @@ class PieSculpttwo(Menu):
         # 6 - RIGHT
         pie.operator("paint.brush_select", text='Blob', icon='BRUSH_BLOB').sculpt_tool = 'BLOB'
         # 2 - BOTTOM
-        pie.operator("paint.brush_select", text='Snakehook', icon='BRUSH_SNAKE_HOOK').sculpt_tool = 'SNAKE_HOOK'
+        pie.separator()
         # 8 - TOP
         pie.operator("paint.brush_select", text='Smooth', icon='BRUSH_SMOOTH').sculpt_tool = 'SMOOTH'
         # 7 - TOP - LEFT
         pie.operator("paint.brush_select", text='Pinch/Magnify', icon='BRUSH_PINCH').sculpt_tool = 'PINCH'
         # 9 - TOP - RIGHT
-        pie.operator("sculpt.polish", text='Polish', icon='BRUSH_FLATTEN')
+        pie.operator("paint.brush_select", text='Snakehook', icon='BRUSH_SNAKE_HOOK').sculpt_tool = 'SNAKE_HOOK'
         # 1 - BOTTOM - LEFT
         box = pie.split().column()
         row = box.row(align=True)
@@ -127,7 +116,6 @@ class PieSculpttwo(Menu):
 classes = (
     PieSculptPie,
     PieSculpttwo,
-    SculptPolish,
     SculptSculptDraw,
     )
 
