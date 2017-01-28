@@ -141,7 +141,6 @@ class PieToolsPreferences(AddonPreferences):
             row = col.row()
             sub = row.row()
             sub.context_pointer_set('addon_prefs', self)
-            sub.alignment = 'LEFT'
             op = sub.operator('wm.context_toggle', text='', icon=icon,
                               emboss=False)
             op.data_path = 'addon_prefs.show_expanded_' + mod_name
