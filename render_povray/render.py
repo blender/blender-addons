@@ -34,6 +34,7 @@ from imghdr import what #imghdr is a python lib to identify image file types
 from . import df3 # for smoke rendering
 from . import shading # for BI POV haders emulation
 from . import primitives # for import and export of POV specific primitives
+from . import nodes # for POV specific nodes
 ##############################SF###########################
 ##############find image texture
 def imageFormat(imgF):
@@ -2856,10 +2857,15 @@ def write_pov(filename, scene=None, info_callback=None):
 
                         tabWrite("}\n")  # End of mesh block
                     else:
+                        facesMaterials = [] # WARNING!!!!!!!!!!!!!!!!!!!!!!
+                        if me_materials:
+                            for f in me_faces:
+                                if f.material_index not in facesMaterials:
+                                    facesMaterials.append(f.material_index)
                         # No vertex colors, so write material colors as vertex colors
                         for i, material in enumerate(me_materials):
 
-                            if material:
+                            if material and material.pov.material_use_nodes == False:  # WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                                 # Multiply diffuse with SSS Color
                                 if material.subsurface_scattering.use:
                                     diffuse_color = [i * j for i, j in zip(material.subsurface_scattering.color[:], material.diffuse_color[:])]
@@ -2914,8 +2920,8 @@ def write_pov(filename, scene=None, info_callback=None):
                             #when no material slot exists,                         
                             material=None
 
-
-                        if material and ob.active_material is not None:
+                        # WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        if material and ob.active_material is not None and material.pov.material_use_nodes == False:
                             if material.pov.replacement_text != "":
                                 file.write("\n")
                                 file.write(" texture{%s}\n" % material.pov.replacement_text)
@@ -2927,6 +2933,11 @@ def write_pov(filename, scene=None, info_callback=None):
                                         file.write("\n texture{MAT_%s}\n" % cMN)
                                         #use string_strip_hyphen(materialNames[material])) 
                                         #or Something like that to clean up the above?
+                        elif material and material.pov.material_use_nodes:
+                            for index in facesMaterials:
+                                faceMaterial = string_strip_hyphen(bpy.path.clean_name(me_materials[index].name))
+                                file.write("\n texture{%s}\n" % faceMaterial)
+                        # END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         else:
                             file.write(" texture{}\n")                
                         tabWrite("}\n")
@@ -2964,6 +2975,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             else:
                                 material = me_materials[material_index]
                                 for i1, i2, i3 in indices:
+                                    ci1 = ci2 = ci3 = f.material_index
                                     if me.vertex_colors: #and material.use_vertex_color_paint:
                                         # Color per vertex - vertex color
 
@@ -2974,6 +2986,8 @@ def write_pov(filename, scene=None, info_callback=None):
                                         ci1 = vertCols[col1[0], col1[1], col1[2], material_index][0]
                                         ci2 = vertCols[col2[0], col2[1], col2[2], material_index][0]
                                         ci3 = vertCols[col3[0], col3[1], col3[2], material_index][0]
+                                    elif material.pov.material_use_nodes:
+                                        ci1 = ci2 = ci3 = 0
                                     else:
                                         # Color per material - flat material color
                                         if material.subsurface_scattering.use:
@@ -3408,7 +3422,25 @@ def write_pov(filename, scene=None, info_callback=None):
     shading.writeMaterial(using_uberpov, DEF_MAT_NAME, scene, tabWrite, safety, comments, uniqueName, materialNames, None)  # default material
     for material in bpy.data.materials:
         if material.users > 0:
-            shading.writeMaterial(using_uberpov, DEF_MAT_NAME, scene, tabWrite, safety, comments, uniqueName, materialNames, material)
+            if material.pov.material_use_nodes:
+                ntree = material.node_tree
+                povMatName=string_strip_hyphen(bpy.path.clean_name(material.name))
+                if len(ntree.nodes)==0:
+                    file.write('#declare %s = texture {%s}\n'%(povMatName,color))
+                else:
+                    shading.write_nodes(scene,povMatName,ntree,file)
+
+                for node in ntree.nodes:
+                    if node:
+                        if node.bl_idname == "PovrayOutputNode":
+                            if node.inputs["Texture"].is_linked:
+                                for link in ntree.links:
+                                    if link.to_node.bl_idname == "PovrayOutputNode":
+                                        povMatName=string_strip_hyphen(bpy.path.clean_name(link.from_node.name))+"_%s"%povMatName
+                            else:
+                                file.write('#declare %s = texture {%s}\n'%(povMatName,color))
+            else:
+                shading.writeMaterial(using_uberpov, DEF_MAT_NAME, scene, tabWrite, safety, comments, uniqueName, materialNames, material)
             # attributes are all the variables needed by the other python file...
     if comments:
         file.write("\n")
@@ -3926,7 +3958,7 @@ class PovrayRender(bpy.types.RenderEngine):
         else:
             print("***POV FILE NOT FOUND***")
 
-        print("***POV FINISHED***")
+        print("***POV FILE FINISHED***")
 
         #print(filename_log) #bring the pov log to blender console with proper path?
         with open(self._temp_file_log) as f: # The with keyword automatically closes the file when you are done

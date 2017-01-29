@@ -59,6 +59,8 @@ for member in dir(properties_material):
                         properties_material.MATERIAL_PT_game_settings,
                         properties_material.MATERIAL_PT_physics):
         try:
+            #mat=context.material
+            #if mat and mat.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes):
             subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
         except:
             pass
@@ -86,6 +88,7 @@ for member in dir(properties_particle):  # add all "particle" panels from blende
         pass
 del properties_particle
 
+    
 class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -611,10 +614,89 @@ class RENDER_PT_povray_media(WorldButtonsPanel, bpy.types.Panel):
 ##
 ##        layout.active = scene.pov.baking_enable
 
+class MATERIAL_PT_povray_activate_node(MaterialButtonsPanel, bpy.types.Panel):
+    bl_label = "Activate Node Settings"
+    bl_context = "material"
+    bl_options = {'HIDE_HEADER'}
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        mat=context.material
+        ob = context.object
+        return mat and mat.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes)
+    
+    def draw(self, context):
+        layout = self.layout
+        # layout.operator("pov.material_use_nodes", icon='SOUND')#'NODETREE')
+        # the above replaced with a context hook below:
+        layout.operator("WM_OT_context_toggle", text="Use POV-Ray Nodes", icon='NODETREE').data_path = \
+                        "material.pov.material_use_nodes"
+        
+class MATERIAL_PT_povray_active_node(MaterialButtonsPanel, bpy.types.Panel):
+    bl_label = "Active Node Settings"
+    bl_context = "material"
+    bl_options = {'HIDE_HEADER'}
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        mat=context.material
+        ob = context.object
+        return mat and mat.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and mat.pov.material_use_nodes
+
+
+    def draw(self, context):
+        layout = self.layout
+        mat = context.material
+        node_tree = mat.node_tree
+        if node_tree:
+            node = node_tree.nodes.active
+            if mat.use_nodes:
+                if node:
+                    layout.prop(mat.pov,"material_active_node")
+                    if node.bl_idname=="PovrayMaterialNode":
+                        layout.context_pointer_set("node", node)
+                        if hasattr(node, "draw_buttons_ext"):
+                            node.draw_buttons_ext(context, layout)
+                        elif hasattr(node, "draw_buttons"):
+                            node.draw_buttons(context, layout)
+                        value_inputs = [socket for socket in node.inputs if socket.enabled and not socket.is_linked]
+                        if value_inputs:
+                            layout.separator()
+                            layout.label("Inputs:")
+                            for socket in value_inputs:
+                                row = layout.row()
+                                socket.draw(context, row, node, socket.name)
+                    else:
+                        layout.context_pointer_set("node", node)
+                        if hasattr(node, "draw_buttons_ext"):
+                            node.draw_buttons_ext(context, layout)
+                        elif hasattr(node, "draw_buttons"):
+                            node.draw_buttons(context, layout)
+                        value_inputs = [socket for socket in node.inputs if socket.enabled and not socket.is_linked]
+                        if value_inputs:
+                            layout.separator()
+                            layout.label("Inputs:")
+                            for socket in value_inputs:
+                                row = layout.row()
+                                socket.draw(context, row, node, socket.name)
+                else:
+                    layout.label("No active nodes!")
+
 
 class MATERIAL_PT_povray_reflection(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray Reflection"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        mat=context.material
+        ob = context.object
+        return mat and mat.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes)
 
     def draw(self, context):
         layout = self.layout
@@ -644,6 +726,14 @@ class MATERIAL_PT_povray_fade_color(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray Absorption"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        mat=context.material
+        ob = context.object
+        return mat and mat.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes)
+    
+    
     def draw_header(self, context):
         mat = context.material
 
@@ -665,6 +755,15 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Caustics"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
+    
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        mat=context.material
+        ob = context.object
+        return mat and mat.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes)
+    
+    
     def draw_header(self, context):
         mat = context.material
         if mat.pov.caustics_enable:
@@ -702,6 +801,7 @@ class MATERIAL_PT_povray_replacement_text(MaterialButtonsPanel, bpy.types.Panel)
     bl_label = "Custom POV Code"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
+    
     def draw(self, context):
         layout = self.layout
 
@@ -1377,6 +1477,55 @@ def menu_func_import(self, context):
         self.layout.operator("import_scene.pov",icon="FORCE_LENNARDJONES")
 
         
+##############Nodes
+
+# def find_node_input(node, name):
+    # for input in node.inputs:
+        # if input.name == name:
+            # return input
+
+# def panel_node_draw(layout, id_data, output_type, input_name):
+    # if not id_data.use_nodes:
+        # #layout.operator("pov.material_use_nodes", icon='SOUND')#'NODETREE')
+        # #layout.operator("pov.use_shading_nodes", icon='NODETREE')
+        # layout.operator("WM_OT_context_toggle", icon='NODETREE').data_path = \
+                        # "material.pov.material_use_nodes"        
+        # return False
+
+    # ntree = id_data.node_tree
+
+    # node = find_node(id_data, output_type)
+    # if not node:
+        # layout.label(text="No output node")
+    # else:
+        # input = find_node_input(node, input_name)
+        # layout.template_node_view(ntree, node, input)
+
+    # return True
+
+class Node_map_create_menu(bpy.types.Menu):
+    """Create maps"""
+    bl_idname = "Node_map_create_menu"
+    bl_label = "Create map"
+
+    def draw(self,context):
+        layout = self.layout
+        layout.operator("node.map_create")
+
+def menu_func_nodes(self, context):
+    ob = context.object
+    if hasattr(ob,'active_material'):
+        mat=context.object.active_material
+        if mat and context.space_data.tree_type == 'ObjectNodeTree':
+            self.layout.prop(mat.pov,"material_use_nodes")
+            self.layout.menu("Node_map_create_menu")
+            self.layout.operator("wm.updatepreviewkey")
+        if hasattr(mat,'active_texture') and context.scene.render.engine == 'POVRAY_RENDER':
+            tex=mat.active_texture
+            if tex and context.space_data.tree_type == 'TextureNodeTree':
+                self.layout.prop(tex.pov,"texture_use_nodes")
+
+
 ###############################################################################
 # Camera Povray Settings
 ############################################################################### 
@@ -1424,7 +1573,7 @@ class CAMERA_PT_povray_replacement_text(CameraDataButtonsPanel, bpy.types.Panel)
 
 
 class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
-    bl_label = "P.O.V-Ray"
+    bl_label = "POV-Ray"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
     def draw(self, context):
