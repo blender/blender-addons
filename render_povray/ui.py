@@ -439,8 +439,15 @@ class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
     bl_icon = 'SETTINGS'
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
+    # def draw_header(self, context):
+        # self.layout.label(icon='SETTINGS')
+
     def draw_header(self, context):
-        self.layout.label(icon='SETTINGS')
+        scene = context.scene
+        if scene.pov.global_settings_advanced:
+            self.layout.prop(scene.pov, "global_settings_advanced", text="", icon='PREFERENCES')
+        else:
+            self.layout.prop(scene.pov, "global_settings_advanced", text="", icon='SETTINGS')
     def draw(self, context):
         layout = self.layout
 
@@ -451,19 +458,59 @@ class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
 
         col.label(text="Global Settings:")
         col.prop(scene.pov, "max_trace_level", text="Ray Depth")
+        
+        if scene.pov.global_settings_advanced:
+            layout.prop(scene.pov,"charset")
+            align = True
+            row = layout.row(align = align)
+            row.prop(scene.pov,"adc_bailout_enable",text = "")
+            row.prop(scene.pov,"adc_bailout")
+            row = layout.row(align = align)
+            row.prop(scene.pov,"ambient_light_enable",text = "")
+            row.prop(scene.pov,"ambient_light")
+            row = layout.row(align = align)
+            row.prop(scene.pov,"irid_wavelength_enable",text = "")
+            row.prop(scene.pov,"irid_wavelength")
+            row = layout.row(align = align)
+            row.prop(scene.pov,"max_intersections_enable",text = "")        
+            row.prop(scene.pov,"max_intersections")
+            row = layout.row(align = align)
+            row.prop(scene.pov,"number_of_waves_enable",text = "")        
+            row.prop(scene.pov,"number_of_waves")
+            row = layout.row(align = align)
+            row.prop(scene.pov,"noise_generator_enable",text = "")
+            row.prop(scene.pov,"noise_generator")
 
-        col.label(text="Global Photons:")
-        col.prop(scene.pov, "photon_max_trace_level", text="Photon Depth")
+class RENDER_PT_povray_photons(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Photons"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-        split = layout.split()
+    # def draw_header(self, context):
+        # self.layout.label(icon='SETTINGS')
 
-        col = split.column()
-        col.prop(scene.pov, "photon_spacing", text="Spacing")
-        col.prop(scene.pov, "photon_gather_min")
+    def draw_header(self, context):
+        scene = context.scene
+        if scene.pov.photon_enable:
+            self.layout.prop(scene.pov, "photon_enable", text="", icon='PMARKER_ACT')
+        else:
+            self.layout.prop(scene.pov, "photon_enable", text="", icon='PMARKER')
+    def draw(self, context):
+        scene = context.scene
+        layout = self.layout
+        if scene.pov.photon_enable:
+            col = layout.column()
+            #col.label(text="Global Photons:")
+            col.prop(scene.pov, "photon_max_trace_level", text="Photon Depth")
 
-        col = split.column()
-        col.prop(scene.pov, "photon_adc_bailout", text="Photon ADC")
-        col.prop(scene.pov, "photon_gather_max")
+            split = layout.split()
+
+            col = split.column()
+            col.prop(scene.pov, "photon_spacing", text="Spacing")
+            col.prop(scene.pov, "photon_gather_min")
+
+            col = split.column()
+            col.prop(scene.pov, "photon_adc_bailout", text="Photon ADC")
+            col.prop(scene.pov, "photon_gather_max")
 
 
 class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
@@ -557,24 +604,24 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
 
             col = split.column()
             col.prop(scene.pov, "radio_adc_bailout", slider=True)
+            col.prop(scene.pov, "radio_minimum_reuse", text="Min Reuse")            
             col.prop(scene.pov, "radio_gray_threshold", slider=True)
-            col.prop(scene.pov, "radio_low_error_factor", slider=True)
             col.prop(scene.pov, "radio_pretrace_start", slider=True)
-
+            col.prop(scene.pov, "radio_low_error_factor", slider=True)
+            
             col = split.column()
             col.prop(scene.pov, "radio_brightness")
-            col.prop(scene.pov, "radio_minimum_reuse", text="Min Reuse")
+            col.prop(scene.pov, "radio_maximum_reuse", text="Max Reuse")
             col.prop(scene.pov, "radio_nearest_count")
             col.prop(scene.pov, "radio_pretrace_end", slider=True)
 
-            split = layout.split()
-
-            col = split.column()
+            col = layout.column()
             col.label(text="Estimation Influence:")
-            col.prop(scene.pov, "radio_media")
+            col.prop(scene.pov, "radio_always_sample")
             col.prop(scene.pov, "radio_normal")
+            col.prop(scene.pov, "radio_media")
+            col.prop(scene.pov, "radio_subsurface")
 
-            split.prop(scene.pov, "radio_always_sample")
 
 
 class RENDER_PT_povray_media(WorldButtonsPanel, bpy.types.Panel):

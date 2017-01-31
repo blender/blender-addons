@@ -3288,22 +3288,39 @@ def write_pov(filename, scene=None, info_callback=None):
         tabWrite("assumed_gamma 1.0\n")
         tabWrite("max_trace_level %d\n" % scene.pov.max_trace_level)
 
+        if scene.pov.charset != 'ascii':
+            file.write("    charset %s\n"%scene.pov.charset)
+        if scene.pov.global_settings_advanced:
+            if scene.pov.adc_bailout_enable and scene.pov.radio_enable == False:
+                file.write("    adc_bailout %.6f\n"%scene.pov.adc_bailout)
+            if scene.pov.ambient_light_enable:
+                file.write("    ambient_light <%.6f,%.6f,%.6f>\n"%scene.pov.ambient_light[:])
+            if scene.pov.irid_wavelength_enable:
+                file.write("    irid_wavelength <%.6f,%.6f,%.6f>\n"%scene.pov.irid_wavelength[:])
+            if scene.pov.max_intersections_enable:
+                file.write("    max_intersections %s\n"%scene.pov.max_intersections)
+            if scene.pov.number_of_waves_enable:
+                file.write("    number_of_waves %s\n"%scene.pov.number_of_waves)
+            if scene.pov.noise_generator_enable:
+                file.write("    noise_generator %s\n"%scene.pov.noise_generator) 
         if scene.pov.radio_enable:
             tabWrite("radiosity {\n")
             tabWrite("adc_bailout %.4g\n" % scene.pov.radio_adc_bailout)
-            tabWrite("always_sample %d\n" % scene.pov.radio_always_sample)
             tabWrite("brightness %.4g\n" % scene.pov.radio_brightness)
             tabWrite("count %d\n" % scene.pov.radio_count)
             tabWrite("error_bound %.4g\n" % scene.pov.radio_error_bound)
             tabWrite("gray_threshold %.4g\n" % scene.pov.radio_gray_threshold)
             tabWrite("low_error_factor %.4g\n" % scene.pov.radio_low_error_factor)
-            tabWrite("media %d\n" % scene.pov.radio_media)
+            tabWrite("maximum_reuse %.4g\n" % scene.pov.radio_maximum_reuse)            
             tabWrite("minimum_reuse %.4g\n" % scene.pov.radio_minimum_reuse)
             tabWrite("nearest_count %d\n" % scene.pov.radio_nearest_count)
-            tabWrite("normal %d\n" % scene.pov.radio_normal)
             tabWrite("pretrace_start %.3g\n" % scene.pov.radio_pretrace_start)
             tabWrite("pretrace_end %.3g\n" % scene.pov.radio_pretrace_end)
             tabWrite("recursion_limit %d\n" % scene.pov.radio_recursion_limit)
+            tabWrite("always_sample %d\n" % scene.pov.radio_always_sample)
+            tabWrite("normal %d\n" % scene.pov.radio_normal)
+            tabWrite("media %d\n" % scene.pov.radio_media)
+            tabWrite("subsurface %d\n" % scene.pov.radio_subsurface)
             tabWrite("}\n")
         onceSss = 1
         onceAmbient = 1
@@ -3328,17 +3345,18 @@ def write_pov(filename, scene=None, info_callback=None):
                 tabWrite("ambient_light rgb<%.3g, %.3g, %.3g>\n" % world.ambient_color[:])
                 onceAmbient = 0
 
-            if (oncePhotons and
-                    (material.pov.refraction_type == "2" or
-                    material.pov.photons_reflection == True)):
-                tabWrite("photons {\n")
-                tabWrite("spacing %.6f\n" % scene.pov.photon_spacing)
-                tabWrite("max_trace_level %d\n" % scene.pov.photon_max_trace_level)
-                tabWrite("adc_bailout %.3g\n" % scene.pov.photon_adc_bailout)
-                tabWrite("gather %d, %d\n" % (scene.pov.photon_gather_min,
-                    scene.pov.photon_gather_max))
-                tabWrite("}\n")
-                oncePhotons = 0
+            if scene.pov.photon_enable:
+                if (oncePhotons and
+                        (material.pov.refraction_type == "2" or
+                        material.pov.photons_reflection == True)):
+                    tabWrite("photons {\n")
+                    tabWrite("spacing %.6f\n" % scene.pov.photon_spacing)
+                    tabWrite("max_trace_level %d\n" % scene.pov.photon_max_trace_level)
+                    tabWrite("adc_bailout %.3g\n" % scene.pov.photon_adc_bailout)
+                    tabWrite("gather %d, %d\n" % (scene.pov.photon_gather_min,
+                        scene.pov.photon_gather_max))
+                    tabWrite("}\n")
+                    oncePhotons = 0
 
         tabWrite("}\n")
 
