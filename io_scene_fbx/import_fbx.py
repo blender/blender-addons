@@ -1281,7 +1281,7 @@ def blen_read_material(fbx_tmpl, fbx_obj, settings):
 
     fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                  elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-    assert(fbx_props[0] is not None)
+    #~ assert(fbx_props[0] is not None)  # Some Material may be missing that one, it seems... see T50566.
 
     ma_diff = elem_props_get_color_rgb(fbx_props, b'DiffuseColor', const_color_white)
     ma_spec = elem_props_get_color_rgb(fbx_props, b'SpecularColor', const_color_white)
