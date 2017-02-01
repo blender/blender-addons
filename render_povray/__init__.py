@@ -1,4 +1,4 @@
-﻿# ##### BEGIN GPL LICENSE BLOCK #####
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -339,6 +339,30 @@ class RenderPovSettingsScene(PropertyGroup):
     photon_gather_max = IntProperty(
             name="Gather Max", description="Maximum number of photons gathered for each point",
             min=1, max=256, default=100)
+ 
+    photon_map_file_save_load = EnumProperty(
+            name="Operation",
+            description="Load or Save photon map file",
+            items=(("NONE", "None", ""),
+                   ("save", "Save", ""),
+                   ("load", "Load", "")),
+            default="NONE")
+
+    photon_map_filename = StringProperty(
+            name="Filename",
+            description="",
+            maxlen=1024)
+
+    photon_map_dir = StringProperty(
+            name="Directory",
+            description="",
+            maxlen=1024, subtype="DIR_PATH")
+
+    photon_map_file = StringProperty(
+            name="File",
+            description="",
+            maxlen=1024, subtype="FILE_PATH")
+ 
 
     radio_adc_bailout = FloatProperty(
             name="ADC Bailout",
@@ -2065,6 +2089,24 @@ class RenderPovSettingsCamera(PropertyGroup):
                         "will lead to more samples, slower traces and better images",
             min=0.01, max=0.99, default=0.20)
 
+    normal_enable = BoolProperty(name="Perturbated Camera", default=False)
+    cam_normal = FloatProperty(name="Normal Strenght", min=0.0, max=1.0, default=0.0)
+    normal_patterns = EnumProperty(
+            name="Pattern",
+            description="",
+            items=(('agate', "Agate", ""), ('boxed', "Boxed", ""), ('bumps', "Bumps", ""), ('cells', "Cells", ""), 
+                   ('crackle', "Crackle", ""),('dents', "Dents", ""),
+                   ('granite', "Granite", ""),
+                   ('leopard', "Leopard", ""),
+                   ('marble', "Marble", ""), ('onion', "Onion", ""), ('pavement', "Pavement", ""), ('planar', "Planar", ""), 
+                   ('quilted', "Quilted", ""), ('ripples', "Ripples", ""),  ('radial', "Radial", ""),
+                   ('spherical', "Spherical", ""),('spiral1', "Spiral1", ""), ('spiral2', "Spiral2", ""), ('spotted', "Spotted", ""), 
+                   ('square', "Square", ""),('tiling', "Tiling", ""),
+                   ('waves', "Waves", ""), ('wood', "Wood", ""),('wrinkles', "Wrinkles", "")),
+            default='agate')
+    turbulence = FloatProperty(name="Turbulence", min=0.0, max=100.0, default=0.1)
+    scale = FloatProperty(name="Scale", min=0.0,default=1.0)
+    
     ##################################CustomPOV Code############################
     # Only DUMMIES below for now:
     replacement_text = StringProperty(

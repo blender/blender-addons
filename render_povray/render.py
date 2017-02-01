@@ -205,30 +205,27 @@ smokePath = os.path.join(preview_dir, "smoke.df3")
 def write_global_setting(scene,file):
     file.write("global_settings {\n")
     file.write("    assumed_gamma %.6f\n"%scene.pov.assumed_gamma)
-    if scene.pov.global_settings_default == False:
-        if scene.pov.adc_bailout_enable and scene.pov.radio_enable == False:
+    if scene.pov.global_settings_advanced:
+        if scene.pov.radio_enable == False:
             file.write("    adc_bailout %.6f\n"%scene.pov.adc_bailout)
-        if scene.pov.ambient_light_enable:
-            file.write("    ambient_light <%.6f,%.6f,%.6f>\n"%scene.pov.ambient_light[:])
-        if scene.pov.irid_wavelength_enable:
-            file.write("    irid_wavelength <%.6f,%.6f,%.6f>\n"%scene.pov.irid_wavelength[:])
-        if scene.pov.charset_enable:
-            file.write("    charset %s\n"%scene.pov.charset)
-        if scene.pov.max_trace_level_enable:
-            file.write("    max_trace_level %s\n"%scene.pov.max_trace_level)    
-        if scene.pov.max_intersections_enable:
-            file.write("    max_intersections %s\n"%scene.pov.max_intersections)
-        if scene.pov.number_of_waves_enable:
-            file.write("    number_of_waves %s\n"%scene.pov.number_of_waves)
-        if scene.pov.noise_generator_enable:
-            file.write("    noise_generator %s\n"%scene.pov.noise_generator) 
-    if scene.pov.sslt_enable:
-        file.write("    mm_per_unit %s\n"%scene.pov.mm_per_unit) 
-        file.write("    subsurface {\n")
-        file.write("        samples %s, %s\n"%(scene.pov.sslt_samples_max,scene.pov.sslt_samples_min))
-        if scene.pov.sslt_radiosity:
-            file.write("        radiosity on\n")
-        file.write("}\n")
+        file.write("    ambient_light <%.6f,%.6f,%.6f>\n"%scene.pov.ambient_light[:])
+        file.write("    irid_wavelength <%.6f,%.6f,%.6f>\n"%scene.pov.irid_wavelength[:])
+        file.write("    charset %s\n"%scene.pov.charset)
+        file.write("    max_trace_level %s\n"%scene.pov.max_trace_level)    
+        file.write("    max_intersections %s\n"%scene.pov.max_intersections)
+        file.write("    number_of_waves %s\n"%scene.pov.number_of_waves)
+        file.write("    noise_generator %s\n"%scene.pov.noise_generator) 
+
+    # below properties not added to __init__ yet to avoid conflicts with material sss scale 
+    # unless it would override then should be interfaced also in scene units property tab
+
+    # if scene.pov.sslt_enable:
+        # file.write("    mm_per_unit %s\n"%scene.pov.mm_per_unit) 
+        # file.write("    subsurface {\n")
+        # file.write("        samples %s, %s\n"%(scene.pov.sslt_samples_max,scene.pov.sslt_samples_min))
+        # if scene.pov.sslt_radiosity:
+            # file.write("        radiosity on\n")
+        # file.write("}\n")
 
     if scene.pov.radio_enable:
         file.write("    radiosity {\n")
@@ -271,12 +268,21 @@ def write_global_setting(scene,file):
             file.write("        adc_bailout %.6f\n"%scene.pov.photon_adc_bailout)
         if scene.pov.photon_media_enable:
             file.write("        media %s, %s\n"%(scene.pov.photon_media_steps,scene.pov.photon_media_factor))
-        if scene.pov.photon_savefile or scene.pov.photon_loadfile:
-            filePh = bpy.path.abspath(scene.pov.photon_map_file)
-            if scene.pov.photon_savefile:
-                file.write('save_file "%s"\n'%filePh)
-            if scene.pov.photon_loadfile and os.path.exists(filePh):
-                file.write('load_file "%s"\n'%filePh)
+        if scene.pov.photon_map_file_save_load in {'save'}:
+            filePhName = 'Photon_map_file.ph'
+            if scene.pov.photon_map_file != '':
+                filePhName = scene.pov.photon_map_file+'.ph'
+            filePhDir = tempfile.gettempdir()
+            path = bpy.path.abspath(scene.pov.photon_map_dir)
+            if os.path.exists(path):
+                filePhDir = path
+            fullFileName = os.path.join(filePhDir,filePhName)
+            file.write('        save_file "%s"\n'%fullFileName)
+            scene.pov.photon_map_file = fullFileName
+        if scene.pov.photon_map_file_save_load in {'load'}:
+            fullFileName = bpy.path.abspath(scene.pov.photon_map_file)
+            if os.path.exists(fullFileName):
+                file.write('        load_file "%s"\n'%fullFileName)
         file.write("}\n")
     file.write("}\n")
 
@@ -516,16 +522,27 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("rotate  <%.6f, %.6f, %.6f>\n" % \
                      tuple([degrees(e) for e in matrix.to_3x3().to_euler()]))
             tabWrite("translate <%.6f, %.6f, %.6f>\n" % matrix.translation[:])
-            if camera.data.pov.dof_enable and focal_point != 0:
+            if camera.data.pov.dof_enable and (focal_point != 0 or camera.data.dof_object):
                 tabWrite("aperture %.3g\n" % camera.data.pov.dof_aperture)
                 tabWrite("blur_samples %d %d\n" % \
                          (camera.data.pov.dof_samples_min, camera.data.pov.dof_samples_max))
                 tabWrite("variance 1/%d\n" % camera.data.pov.dof_variance)
                 tabWrite("confidence %.3g\n" % camera.data.pov.dof_confidence)
-                tabWrite("focal_point <0, 0, %f>\n" % focal_point)
+                if camera.data.dof_object:
+                    focalOb = scene.objects[camera.data.dof_object.name]
+                    matrixBlur = global_matrix * focalOb.matrix_world
+                    tabWrite("focal_point <%.4f,%.4f,%.4f>\n"% matrixBlur.translation[:])
+                else:
+                    tabWrite("focal_point <0, 0, %f>\n" % focal_point)
+        if camera.data.pov.normal_enable:
+            tabWrite("normal {%s %.4f turbulence %.4f scale %.4f}\n"%
+                    (camera.data.pov.normal_patterns,
+                    camera.data.pov.cam_normal,
+                    camera.data.pov.turbulence,
+                    camera.data.pov.scale))
         tabWrite("}\n")
-
         
+
         
     def exportLamps(lamps):
         # Incremented after each lamp export to declare its target

@@ -395,11 +395,18 @@ del properties_data_lamp
 ###############################################################################
         
 class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Export Settings"
+    bl_label = "INI Options"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
+
     def draw_header(self, context):
-        self.layout.label(icon='CONSOLE')
+        scene = context.scene
+        if scene.pov.tempfiles_enable:
+            self.layout.prop(scene.pov, "tempfiles_enable", text="", icon='AUTO')
+        else:
+            self.layout.prop(scene.pov, "tempfiles_enable", text="", icon='CONSOLE')
+
     def draw(self, context):
         layout = self.layout
 
@@ -412,35 +419,33 @@ class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
         col.label(text="Command line switches:")
         col.prop(scene.pov, "command_line_switches", text="")
         split = layout.split()
-        split.prop(scene.pov, "tempfiles_enable", text="OS Tempfiles")
+
+        layout.active = not scene.pov.tempfiles_enable
+        #if not scene.pov.tempfiles_enable:
+        split.prop(scene.pov, "deletefiles_enable", text="Delete files")
         split.prop(scene.pov, "pov_editor", text="POV Editor")
-        if not scene.pov.tempfiles_enable:
-            split.prop(scene.pov, "deletefiles_enable", text="Delete files")
 
-        if not scene.pov.tempfiles_enable:
-            col = layout.column()
-            col.prop(scene.pov, "scene_name", text="Name")
-            col.prop(scene.pov, "scene_path", text="Path to files")
-            #col.prop(scene.pov, "scene_path", text="Path to POV-file")
-            #col.prop(scene.pov, "renderimage_path", text="Path to image")
+        col = layout.column()
+        col.prop(scene.pov, "scene_name", text="Name")
+        col.prop(scene.pov, "scene_path", text="Path to files")
+        #col.prop(scene.pov, "scene_path", text="Path to POV-file")
+        #col.prop(scene.pov, "renderimage_path", text="Path to image")
 
-            split = layout.split()
-            split.prop(scene.pov, "indentation_character", text="Indent")
-            if scene.pov.indentation_character == 'SPACE':
-                split.prop(scene.pov, "indentation_spaces", text="Spaces")
+        split = layout.split()
+        split.prop(scene.pov, "indentation_character", text="Indent")
+        if scene.pov.indentation_character == 'SPACE':
+            split.prop(scene.pov, "indentation_spaces", text="Spaces")
 
-            row = layout.row()
-            row.prop(scene.pov, "comments_enable", text="Comments")
-            row.prop(scene.pov, "list_lf_enable", text="Line breaks in lists")
+        row = layout.row()
+        row.prop(scene.pov, "comments_enable", text="Comments")
+        row.prop(scene.pov, "list_lf_enable", text="Line breaks in lists")
 
 
 class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Render Settings"
     bl_icon = 'SETTINGS'
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-
-    # def draw_header(self, context):
-        # self.layout.label(icon='SETTINGS')
 
     def draw_header(self, context):
         scene = context.scene
@@ -452,37 +457,32 @@ class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         scene = context.scene
-        layout.active = (scene.pov.max_trace_level != 0)
+        #layout.active = (scene.pov.max_trace_level != 0)
 
         col = layout.column()
 
         col.label(text="Global Settings:")
         col.prop(scene.pov, "max_trace_level", text="Ray Depth")
         
-        if scene.pov.global_settings_advanced:
-            layout.prop(scene.pov,"charset")
-            align = True
-            row = layout.row(align = align)
-            row.prop(scene.pov,"adc_bailout_enable",text = "")
-            row.prop(scene.pov,"adc_bailout")
-            row = layout.row(align = align)
-            row.prop(scene.pov,"ambient_light_enable",text = "")
-            row.prop(scene.pov,"ambient_light")
-            row = layout.row(align = align)
-            row.prop(scene.pov,"irid_wavelength_enable",text = "")
-            row.prop(scene.pov,"irid_wavelength")
-            row = layout.row(align = align)
-            row.prop(scene.pov,"max_intersections_enable",text = "")        
-            row.prop(scene.pov,"max_intersections")
-            row = layout.row(align = align)
-            row.prop(scene.pov,"number_of_waves_enable",text = "")        
-            row.prop(scene.pov,"number_of_waves")
-            row = layout.row(align = align)
-            row.prop(scene.pov,"noise_generator_enable",text = "")
-            row.prop(scene.pov,"noise_generator")
+        layout.active = scene.pov.global_settings_advanced
+        layout.prop(scene.pov,"charset")
+        align = True
+        row = layout.row(align = align)
+        row.prop(scene.pov,"adc_bailout")
+        row = layout.row(align = align)
+        row.prop(scene.pov,"ambient_light")
+        row = layout.row(align = align)
+        row.prop(scene.pov,"irid_wavelength")
+        row = layout.row(align = align)  
+        row.prop(scene.pov,"max_intersections")
+        row = layout.row(align = align)        
+        row.prop(scene.pov,"number_of_waves")
+        row = layout.row(align = align)
+        row.prop(scene.pov,"noise_generator")
 
 class RENDER_PT_povray_photons(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Photons"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
     # def draw_header(self, context):
@@ -497,24 +497,36 @@ class RENDER_PT_povray_photons(RenderButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         scene = context.scene
         layout = self.layout
-        if scene.pov.photon_enable:
-            col = layout.column()
-            #col.label(text="Global Photons:")
-            col.prop(scene.pov, "photon_max_trace_level", text="Photon Depth")
+        layout.active = scene.pov.photon_enable
+        col = layout.column()
+        #col.label(text="Global Photons:")
+        col.prop(scene.pov, "photon_max_trace_level", text="Photon Depth")
 
-            split = layout.split()
+        split = layout.split()
 
-            col = split.column()
-            col.prop(scene.pov, "photon_spacing", text="Spacing")
-            col.prop(scene.pov, "photon_gather_min")
+        col = split.column()
+        col.prop(scene.pov, "photon_spacing", text="Spacing")
+        col.prop(scene.pov, "photon_gather_min")
 
-            col = split.column()
-            col.prop(scene.pov, "photon_adc_bailout", text="Photon ADC")
-            col.prop(scene.pov, "photon_gather_max")
-
+        col = split.column()
+        col.prop(scene.pov, "photon_adc_bailout", text="Photon ADC")
+        col.prop(scene.pov, "photon_gather_max")
+        
+        
+        box = layout.box()
+        box.label('Photon Map File:')
+        row = box.row()
+        row.prop(scene.pov, "photon_map_file_save_load",expand = True)
+        if scene.pov.photon_map_file_save_load in {'save'}:
+            box.prop(scene.pov, "photon_map_dir")
+            box.prop(scene.pov, "photon_map_filename")
+        if scene.pov.photon_map_file_save_load in {'load'}:
+            box.prop(scene.pov, "photon_map_file")
+        #end main photons
 
 class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Anti-Aliasing"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
 
@@ -574,6 +586,7 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Radiosity"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     def draw_header(self, context):
         scene = context.scene
@@ -1603,6 +1616,29 @@ class CAMERA_PT_povray_cam_dof(CameraDataButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(cam.pov, "dof_samples_max")
         col.prop(cam.pov, "dof_confidence")
+
+
+            
+class CAMERA_PT_povray_cam_nor(CameraDataButtonsPanel, bpy.types.Panel):
+    bl_label = "POV-Ray Perturbation"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def draw_header(self, context):
+        cam = context.camera
+
+        self.layout.prop(cam.pov, "normal_enable", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        cam = context.camera
+
+        layout.active = cam.pov.normal_enable
+
+        layout.prop(cam.pov,"normal_patterns")
+        layout.prop(cam.pov,"cam_normal")
+        layout.prop(cam.pov,"turbulence")
+        layout.prop(cam.pov,"scale")
 
 
 class CAMERA_PT_povray_replacement_text(CameraDataButtonsPanel, bpy.types.Panel):
