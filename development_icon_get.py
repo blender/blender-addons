@@ -28,7 +28,6 @@ bl_info = {
     "location": "Spacebar > Icon Viewer, Text Editor > Properties",
     "wiki_url": (
         "https://wiki.blender.org/index.php/User:Raa/Addons/Icon_Viewer"),
-    "tracker_url": "http://blenderartists.org/forum/showthread.php?392912",
     "category": "Development"
 }
 
@@ -56,11 +55,12 @@ def prefs():
 
 
 class Icons:
-    def __init__(self):
+    def __init__(self, is_popup=False):
         self._filtered_icons = None
         self._filter = ""
         self.filter = ""
         self.selected_icon = ""
+        self.is_popup = is_popup
 
     @property
     def filter(self):
@@ -105,7 +105,7 @@ class Icons:
             self._filtered_icons.clear()
             self._filtered_icons = None
 
-    def draw(self, layout, num_cols=0, icons=None, select=True):
+    def draw(self, layout, num_cols=0, icons=None):
         if icons:
             filtered_icons = reversed(icons)
         else:
@@ -115,15 +115,15 @@ class Icons:
         row = column.row(True)
         row.alignment = 'CENTER'
 
-        op_name = IV_OT_icon_select.bl_idname if select else \
-            IV_OT_icon_copy.bl_idname
-
+        selected_icon = self.selected_icon if self.is_popup else \
+            bpy.context.window_manager.clipboard
         col_idx = 0
         for i, icon in enumerate(filtered_icons):
             p = row.operator(
-                op_name, "",
-                icon=icon, emboss=select and icon == self.selected_icon)
+                IV_OT_icon_select.bl_idname, "",
+                icon=icon, emboss=icon == selected_icon)
             p.icon = icon
+            p.force_copy_on_select = not self.is_popup
 
             col_idx += 1
             if col_idx > num_cols - 1:
@@ -147,7 +147,7 @@ class IV_Preferences(bpy.types.AddonPreferences):
     bl_idname = __name__
 
     panel_icons = Icons()
-    popup_icons = Icons()
+    popup_icons = Icons(is_popup=True)
 
     def update_icons(self, context):
         self.panel_icons.update()
@@ -193,6 +193,13 @@ class IV_Preferences(bpy.types.AddonPreferences):
     auto_focus_filter = bpy.props.BoolProperty(
         name="Auto Focus Input Field",
         description="Auto focus input field", default=True)
+    show_panel = bpy.props.BoolProperty(
+        name="Show Panel",
+        description="Show the panel in Text Editor", default=True)
+    show_header = bpy.props.BoolProperty(
+        name="Show Header",
+        description="Show the header in Python Console",
+        default=True)
 
     def draw(self, context):
         layout = self.layout
@@ -219,7 +226,13 @@ class IV_Preferences(bpy.types.AddonPreferences):
 
         col = row.column(True)
         col.label("Panel:")
-        col.prop(self, "show_panel_icons")
+        col.prop(self, "show_panel")
+        if self.show_panel:
+            col.prop(self, "show_panel_icons")
+
+        col.separator()
+        col.label("Header:")
+        col.prop(self, "show_header")
 
 
 class IV_PT_icons(bpy.types.Panel):
@@ -261,17 +274,23 @@ class IV_PT_icons(bpy.types.Panel):
         col = None
         if HISTORY and pr.show_history:
             col = self.layout.column(True)
-            pr.panel_icons.draw(col.box(), num_cols, HISTORY, False)
+            pr.panel_icons.draw(col.box(), num_cols, HISTORY)
 
         if pr.show_panel_icons:
             col = col or self.layout.column(True)
-            pr.panel_icons.draw(col.box(), num_cols, select=False)
+            pr.panel_icons.draw(col.box(), num_cols)
+
+    @classmethod
+    def poll(cls, context):
+        return prefs().show_panel
 
 
 class IV_HT_icons(bpy.types.Header):
     bl_space_type = 'CONSOLE'
 
     def draw(self, context):
+        if not prefs().show_header:
+            return
         layout = self.layout
         layout.separator()
         layout.operator(IV_OT_icons_show.bl_idname)
@@ -302,27 +321,6 @@ class IV_OT_panel_menu_call(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class IV_OT_icon_copy(bpy.types.Operator):
-    bl_idname = "iv.icon_copy"
-    bl_label = ""
-    bl_description = "Copy the icon"
-    bl_options = {'INTERNAL'}
-
-    icon = bpy.props.StringProperty()
-
-    def execute(self, context):
-        context.window_manager.clipboard = self.icon
-        self.report({'INFO'}, self.icon)
-
-        if prefs().show_history:
-            if self.icon in HISTORY:
-                HISTORY.remove(self.icon)
-            if len(HISTORY) >= HISTORY_SIZE:
-                HISTORY.pop(0)
-            HISTORY.append(self.icon)
-        return {'FINISHED'}
-
-
 class IV_OT_icon_select(bpy.types.Operator):
     bl_idname = "iv.icon_select"
     bl_label = ""
@@ -330,11 +328,12 @@ class IV_OT_icon_select(bpy.types.Operator):
     bl_options = {'INTERNAL'}
 
     icon = bpy.props.StringProperty()
+    force_copy_on_select = bpy.props.BoolProperty()
 
     def execute(self, context):
         pr = prefs()
         pr.popup_icons.selected_icon = self.icon
-        if pr.copy_on_select:
+        if pr.copy_on_select or self.force_copy_on_select:
             context.window_manager.clipboard = self.icon
             self.report({'INFO'}, self.icon)
 
@@ -422,18 +421,16 @@ class IV_OT_icons_show(bpy.types.Operator):
         col = self.layout
         self.draw_header(col)
 
-        subcol = col.column(True)
-        box = subcol.box()
-
         num_cols = min(
             self.get_num_cols(len(pr.popup_icons.filtered_icons)),
             int((self.width - POPUP_PADDING) / (ui_scale() * ICON_SIZE)))
 
-        pr.popup_icons.draw(box, num_cols)
+        subcol = col.column(True)
 
         if HISTORY and pr.show_history:
-            box = subcol.box()
-            pr.popup_icons.draw(box, num_cols, HISTORY)
+            pr.popup_icons.draw(subcol.box(), num_cols, HISTORY)
+
+        pr.popup_icons.draw(subcol.box(), num_cols)
 
     def close(self):
         bpy.context.window.screen = bpy.context.window.screen
