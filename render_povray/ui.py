@@ -50,6 +50,95 @@ for member in dir(properties_texture):
         pass
 del properties_texture
 
+# Physics Main wrapping every class 'as is'
+from bl_ui import properties_physics_common
+for member in dir(properties_physics_common):
+    subclass = getattr(properties_physics_common, member)
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
+del properties_physics_common
+
+# Physics Rigid Bodies wrapping every class 'as is'
+from bl_ui import properties_physics_rigidbody
+for member in dir(properties_physics_rigidbody):
+    subclass = getattr(properties_physics_rigidbody, member)
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
+del properties_physics_rigidbody
+
+# Physics Rigid Body Constraint wrapping every class 'as is'
+from bl_ui import properties_physics_rigidbody_constraint
+for member in dir(properties_physics_rigidbody_constraint):
+    subclass = getattr(properties_physics_rigidbody_constraint, member)
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
+del properties_physics_rigidbody_constraint
+
+# Physics Smoke wrapping every class 'as is'
+from bl_ui import properties_physics_smoke
+for member in dir(properties_physics_smoke):
+    subclass = getattr(properties_physics_smoke, member)
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
+del properties_physics_smoke
+
+# Physics softbody wrapping every class 'as is'
+from bl_ui import properties_physics_softbody
+for member in dir(properties_physics_softbody):
+    subclass = getattr(properties_physics_softbody, member)
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
+del properties_physics_softbody
+
+# Physics Fluid wrapping every class 'as is'
+from bl_ui import properties_physics_fluid
+for member in dir(properties_physics_fluid):
+    subclass = getattr(properties_physics_fluid, member)
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
+del properties_physics_fluid
+
+# Physics Field wrapping every class 'as is'
+from bl_ui import properties_physics_field
+for member in dir(properties_physics_field):
+    subclass = getattr(properties_physics_field, member)
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
+del properties_physics_field
+
+# Physics Cloth wrapping every class 'as is'
+from bl_ui import properties_physics_cloth
+for member in dir(properties_physics_cloth):
+    subclass = getattr(properties_physics_cloth, member)
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
+del properties_physics_cloth
+
+# Physics Dynamic Paint wrapping every class 'as is'
+from bl_ui import properties_physics_dynamicpaint
+for member in dir(properties_physics_dynamicpaint):
+    subclass = getattr(properties_physics_dynamicpaint, member)
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
+del properties_physics_dynamicpaint
 
 # Example of wrapping every class 'as is' except some
 from bl_ui import properties_material
