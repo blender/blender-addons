@@ -22,13 +22,13 @@
 bl_info = {
     "name": "tinyCAD Mesh tools",
     "author": "zeffii (aka Dealga McArdle)",
-    "version": (1, 3, 0),
+    "version": (1, 3, 1),
     "blender": (2, 7, 7),
     "category": "Mesh",
     "location": "View3D > EditMode > (w) Specials",
     "wiki_url": "http://zeffii.github.io/mesh_tiny_cad/",
     "tracker_url": "https://github.com/zeffii/mesh_tiny_cad/issues"
-    }
+}
 
 
 if "bpy" in locals():
