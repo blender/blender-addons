@@ -434,7 +434,7 @@ class CyclesShaderWrapper():
         node = self.node_mix_color_alpha
         # note: use_alpha may need to be configurable
         # its not always the case that alpha channels use the image alpha
-        # a greyscale image may also be used.
+        # a grayscale image may also be used.
         self.node_image_alpha = (
             self._image_create_helper(image, node, (node.inputs["Color2"],), use_alpha=True))
 
