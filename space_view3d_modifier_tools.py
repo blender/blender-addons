@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Modifier Tools",
     "author": "Meta Androcto, saidenka",
-    "version": (0, 2, 2),
+    "version": (0, 2, 3),
     "blender": (2, 77, 0),
     "location": "Properties > Modifiers",
     "description": "Modifiers Specials Show/Hide/Apply Selected",
@@ -129,6 +129,10 @@ class ToggleApplyModifiersView(Operator):
     bl_description = "Shows/Hide modifiers of the active / selected object(s) in 3d View"
     bl_options = {'REGISTER'}
 
+    @classmethod
+    def poll(cls, context):
+        return context.active_object is not None
+
     def execute(self, context):
         is_apply = True
         message_a = ""
@@ -161,6 +165,10 @@ class ToggleAllShowExpanded(Operator):
     bl_description = "Expand/Collapse Modifier Stack"
     bl_options = {'REGISTER'}
 
+    @classmethod
+    def poll(cls, context):
+        return context.active_object is not None
+
     def execute(self, context):
         obj = context.active_object
         if (len(obj.modifiers)):
@@ -176,7 +184,7 @@ class ToggleAllShowExpanded(Operator):
             for mod in obj.modifiers:
                 mod.show_expanded = not is_close
         else:
-            self.report(type={'WARNING'}, message="Not a single modifier")
+            self.report(type={'WARNING'}, message="Not a single modifier to Expand/Collapse")
             return {'CANCELLED'}
 
         for area in context.screen.areas:
@@ -233,6 +241,7 @@ def unregister():
     bpy.types.VIEW3D_MT_object_apply.remove(menu_func)
 
     bpy.utils.unregister_module(__name__)
+
 
 if __name__ == "__main__":
     register()
