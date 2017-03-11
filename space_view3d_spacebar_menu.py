@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Dynamic Context Menu",
     "author": "meta-androcto",
-    "version": (1, 8, 3),
+    "version": (1, 8, 4),
     "blender": (2, 77, 0),
     "location": "View3D > Spacebar",
     "description": "Object Mode Context Sensitive Spacebar Menu",
@@ -31,7 +31,16 @@ bl_info = {
 }
 
 import bpy
-from bpy.types import (Operator, Menu,)
+from bpy.types import (
+        Operator,
+        Menu,
+        AddonPreferences,
+        )
+from bpy.props import (
+        BoolProperty,
+        StringProperty,
+        )
+
 from bl_ui.properties_paint_common import UnifiedPaintPanel
 
 
@@ -102,7 +111,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
-
 # Mesh Edit Mode #
         if obj and obj.type == 'MESH' and obj.mode in {'EDIT'}:
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -146,10 +154,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_Hide_Masks", icon='RESTRICT_VIEW_OFF')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_Sculpt_Specials", icon='SOLO_OFF')
-            UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
             layout.menu("VIEW3D_MT_Object_Interactive_Mode", icon='EDIT')
@@ -999,10 +1003,13 @@ class VIEW3D_MT_CursorMenuLite(Menu):
 class InteractiveMode(Menu):
     bl_idname = "VIEW3D_MT_Object_Interactive_Mode"
     bl_label = "Interactive Mode"
-    bl_description = "Menu of objects interactive modes (Window Types)"
+    bl_description = "Menu of objects' interactive modes (Window Types)"
 
     def draw(self, context):
         layout = self.layout
+        obj = context.active_object
+        psys = hasattr(obj, "particle_systems")
+        psys_items = len(obj.particle_systems.items()) > 0 if psys else False
 
         layout.operator(SetObjectMode.bl_idname, text="Object", icon="OBJECT_DATAMODE").mode = "OBJECT"
         layout.operator(SetObjectMode.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
@@ -1010,7 +1017,9 @@ class InteractiveMode(Menu):
         layout.operator(SetObjectMode.bl_idname, text="Vertex Paint", icon="VPAINT_HLT").mode = "VERTEX_PAINT"
         layout.operator(SetObjectMode.bl_idname, text="Weight Paint", icon="WPAINT_HLT").mode = "WEIGHT_PAINT"
         layout.operator(SetObjectMode.bl_idname, text="Texture Paint", icon="TPAINT_HLT").mode = "TEXTURE_PAINT"
-        layout.operator(SetObjectMode.bl_idname, text="Particle Edit", icon="PARTICLEMODE").mode = "PARTICLE_EDIT"
+        if obj and psys_items:
+            layout.operator(SetObjectMode.bl_idname, text="Particle Edit",
+                            icon="PARTICLEMODE").mode = "PARTICLE_EDIT"
         if context.gpencil_data:
             layout.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
 
@@ -1068,48 +1077,39 @@ class VIEW3D_MT_Edit_Gpencil(Menu):
 
     def draw(self, context):
         toolsettings = context.tool_settings
-
         layout = self.layout
 
         layout.operator("gpencil.brush_paint", text="Sculpt Strokes").wait_for_input = True
         layout.prop_menu_enum(toolsettings.gpencil_sculpt, "tool", text="Sculpt Brush")
-
-        layout.separator()
+        UseSeparator(self, context)
 
         layout.menu("VIEW3D_MT_edit_gpencil_transform")
         layout.operator("transform.mirror", text="Mirror")
         layout.menu("GPENCIL_MT_snap")
-
-        layout.separator()
+        UseSeparator(self, context)
 
         layout.menu("VIEW3D_MT_object_animation")   # NOTE: provides keyingset access...
-
-        layout.separator()
+        UseSeparator(self, context)
 
         layout.menu("VIEW3D_MT_edit_gpencil_delete")
         layout.operator("gpencil.duplicate_move", text="Duplicate")
-
-        layout.separator()
+        UseSeparator(self, context)
 
         layout.menu("VIEW3D_MT_select_gpencil")
-
-        layout.separator()
+        UseSeparator(self, context)
 
         layout.operator("gpencil.copy", text="Copy")
         layout.operator("gpencil.paste", text="Paste")
-
-        layout.separator()
+        UseSeparator(self, context)
 
         layout.prop_menu_enum(toolsettings, "proportional_edit")
         layout.prop_menu_enum(toolsettings, "proportional_edit_falloff")
-
-        layout.separator()
+        UseSeparator(self, context)
 
         layout.operator("gpencil.reveal")
         layout.operator("gpencil.hide", text="Show Active Layer Only").unselected = True
         layout.operator("gpencil.hide", text="Hide Active Layer").unselected = False
-
-        layout.separator()
+        UseSeparator(self, context)
 
         layout.operator_menu_enum("gpencil.move_to_layer", "layer", text="Move to Layer")
         layout.operator_menu_enum("gpencil.convert", "type", text="Convert to Geometry...")
@@ -1165,7 +1165,8 @@ class VIEW3D_MT_Camera_Options(Menu):
         layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("object.camera_add", text="Add Camera", icon='OUTLINER_OB_CAMERA')
         self.layout.operator("view3d.object_as_camera", text="Object As Camera", icon='OUTLINER_OB_CAMERA')
-        self.layout.operator("view3d.viewnumpad", text="View Active Camera", icon='OUTLINER_OB_CAMERA').type = 'CAMERA'
+        self.layout.operator("view3d.viewnumpad", text="View Active Camera",
+                              icon='OUTLINER_OB_CAMERA').type = 'CAMERA'
 
 
 class VIEW3D_MT_Object_Data_Link(Menu):
@@ -1289,7 +1290,6 @@ class VIEW3D_MT_Edit_Mesh(Menu):
 
 
 # ********** Edit Multiselect **********
-
 class VIEW3D_MT_Edit_Multi(Menu):
     bl_label = "Multi Select"
 
@@ -2810,14 +2810,17 @@ class SetObjectMode(Operator):
     bl_description = "I set the interactive mode of object"
     bl_options = {'REGISTER'}
 
-    mode = bpy.props.StringProperty(name="Interactive mode", default="OBJECT")
+    mode = StringProperty(
+                    name="Interactive mode",
+                    default="OBJECT"
+                    )
 
     def execute(self, context):
         if (context.active_object):
             try:
                 bpy.ops.object.mode_set(mode=self.mode)
             except TypeError:
-                msg = context.active_object.name + " It is not possible to enter into the interactive mode"
+                msg = context.active_object.name + ": It is not possible to enter into the interactive mode"
                 self.report(type={"WARNING"}, message=msg)
         else:
             self.report(type={"WARNING"}, message="There is no active object")
@@ -2896,28 +2899,27 @@ def UseBrushesLists():
 
 
 # Addon Preferences #
-class VIEW3D_MT_Space_Dynamic_Menu_Pref(bpy.types.AddonPreferences):
+class VIEW3D_MT_Space_Dynamic_Menu_Pref(AddonPreferences):
     bl_idname = __name__
 
-    use_separators = bpy.props.BoolProperty(
-        name="Use Separators in the menus",
-        default=True,
-        description=("Use separators in the menus, a trade-off between \n"
-                     "readability vs. using more space for displaying items")
-    )
-
-    use_brushes_lists = bpy.props.BoolProperty(
-        name="Use compact menus for brushes",
-        default=False,
-        description=("Use more compact menus instead  \n"
-                     "of thumbnails for displaying brushes")
-    )
+    use_separators = BoolProperty(
+                    name="Use Separators in the menus",
+                    default=True,
+                    description=("Use separators in the menus, a trade-off between \n"
+                                 "readability vs. using more space for displaying items")
+                    )
+    use_brushes_lists = BoolProperty(
+                    name="Use compact menus for brushes",
+                    default=False,
+                    description=("Use more compact menus instead  \n"
+                                 "of thumbnails for displaying brushes")
+                    )
 
     def draw(self, context):
         layout = self.layout
-        row = layout.row()
-        row.prop(self, "use_separators")
-        row.prop(self, "use_brushes_lists")
+        row = layout.row(align=True)
+        row.prop(self, "use_separators", toggle=True)
+        row.prop(self, "use_brushes_lists", toggle=True)
 
 
 # List The Classes #
@@ -3017,7 +3019,6 @@ classes = [
 
 
 # Register Classes & Hotkeys #
-
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -3030,8 +3031,7 @@ def register():
         kmi.properties.name = "VIEW3D_MT_Space_Dynamic_Menu"
 
 
-# Unegister Classes & Hotkeys #
-
+# Unregister Classes & Hotkeys #
 def unregister():
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
@@ -3046,6 +3046,7 @@ def unregister():
         # prevent multiple removal attempt
         if "bl_rna" in cls.__dict__:
             bpy.utils.unregister_class(cls)
+
 
 if __name__ == "__main__":
     register()
