@@ -17,6 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 # Contributed to by
 # testscreenings, Alejandro Omar Chocano Vasquez, Jimmy Hazevoet, meta-androcto #
+# Cmomoney, Jared Forsyth, Adam Newgas, Spivak Vladimir
 
 bl_info = {
     "name": "Extra Objects",
@@ -37,12 +38,22 @@ if "bpy" in locals():
     importlib.reload(add_curve_spirals)
     importlib.reload(add_curve_torus_knots)
     importlib.reload(add_surface_plane_cone)
+    importlib.reload(add_curve_curly)
+    importlib.reload(beveltaper_curve)
+    importlib.reload(add_curve_celtic_links)
+    importlib.reload(add_curve_braid)
+    importlib.reload(add_curve_simple)
 
 else:
     from . import add_curve_aceous_galore
     from . import add_curve_spirals
     from . import add_curve_torus_knots
     from . import add_surface_plane_cone
+    from . import add_curve_curly
+    from . import beveltaper_curve
+    from . import add_curve_celtic_links
+    from . import add_curve_braid
+    from . import add_curve_simple
 
 import bpy
 from bpy.types import Menu, AddonPreferences
@@ -131,24 +142,22 @@ class CurveExtraObjectsAddonPreferences(AddonPreferences):
         else:
             layout.prop(self, "update_spiral_presets")
 
-
-# TODO check if this is even used.
-class INFO_MT_curve_extras_add(Menu):
+class INFO_MT_curve_knots_add1(bpy.types.Menu):
     # Define the "Extras" menu
-    bl_idname = "curve_extra_objects_add"
-    bl_label = "Extra Objects"
+    bl_idname = "curve_knots_add"
+    bl_label = "Plants"
 
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator_menu_enum("mesh.curveaceous_galore",
-                             "ProfileType",
-                            )
-        layout.operator_menu_enum("curve.spirals",
-                             "spiral_type",
-                             icon='FORCE_VORTEX')
         layout.operator("curve.torus_knot_plus",
-            text="Torus Knot Plus")
+                        text="Torus Knot Plus")
+        layout.operator("curve.celtic_links",
+                        text="Celtic Links")
+        layout.operator("mesh.add_braid",
+                        text="Braid Knot")
+ 
+
 
 # Define "Extras" menus
 def menu_func(self, context):
@@ -156,14 +165,19 @@ def menu_func(self, context):
         # fix in D2142 will allow to work in EDIT_CURVE
         return None
     layout = self.layout
-    layout.separator()
+
     layout.operator_menu_enum("mesh.curveaceous_galore",
                          "ProfileType",
-                        )
+                         icon='CURVE_DATA')
     layout.operator_menu_enum("curve.spirals",
                          "spiral_type",
-                          icon='FORCE_VORTEX')
-    layout.operator("curve.torus_knot_plus", text="Torus Knot Plus")
+                         icon='CURVE_DATA')
+    layout.separator()
+    layout.menu("curve_knots_add", text="Knots", icon='CURVE_DATA')
+    layout.separator()
+    layout.operator("curve.curlycurve", text="Curly Curve", icon='CURVE_DATA')
+    layout.menu("OBJECT_MT_bevel_taper_curve_menu", text="Bevel/Taper", icon='CURVE_DATA')
+
 
 def menu_surface(self, context):
     layout = self.layout
@@ -177,6 +191,7 @@ def menu_surface(self, context):
         self.layout.operator("object.add_surface_plane", text="Plane", icon="MOD_CURVE")
 
 def register():
+    add_curve_simple.register()
     bpy.utils.register_module(__name__)
 
     # Add "Extras" menu to the "Add Curve" menu
@@ -185,12 +200,14 @@ def register():
     bpy.types.INFO_MT_surface_add.append(menu_surface)
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
 
+    add_curve_simple.unregister()
     # Remove "Extras" menu from the "Add Curve" menu.
     bpy.types.INFO_MT_curve_add.remove(menu_func)
     # Remove "Extras" menu from the "Add Surface" menu.
     bpy.types.INFO_MT_surface_add.remove(menu_surface)
+
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()
