@@ -187,7 +187,7 @@ class IV_Preferences(bpy.types.AddonPreferences):
         name="Close Popup On Click",
         description=(
             "Close the popup on click.\n"
-            "Not supported by some windows (User Preferences, Render)."
+            "Not supported by some windows (User Preferences, Render)"
             ),
         default=False)
     auto_focus_filter = bpy.props.BoolProperty(
