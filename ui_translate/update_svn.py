@@ -221,3 +221,10 @@ class UI_OT_i18n_updatetranslation_svn_statistics(bpy.types.Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
+
+
+classes = (
+    UI_OT_i18n_updatetranslation_svn_branches,
+    UI_OT_i18n_updatetranslation_svn_trunk,
+    UI_OT_i18n_updatetranslation_svn_statistics,
+)

@@ -221,3 +221,13 @@ class UI_OT_i18n_updatetranslation_svn_settings_select(bpy.types.Operator):
             for lng in context.window_manager.i18n_update_svn_settings.langs:
                 lng.use = self.use_select
         return {'FINISHED'}
+
+
+classes = (
+    I18nUpdateTranslationLanguage,
+    I18nUpdateTranslationSettings,
+    UI_UL_i18n_languages,
+    UI_PT_i18n_update_translations_settings,
+    UI_OT_i18n_updatetranslation_svn_init_settings,
+    UI_OT_i18n_updatetranslation_svn_settings_select,
+)
