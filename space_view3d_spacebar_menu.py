@@ -2924,7 +2924,7 @@ class VIEW3D_MT_Space_Dynamic_Menu_Pref(AddonPreferences):
 
 # List The Classes #
 
-classes = [
+classes = (
     VIEW3D_MT_Space_Dynamic_Menu,
     VIEW3D_MT_AddMenu,
     VIEW3D_MT_Object,
@@ -3015,7 +3015,7 @@ classes = [
     VIEW3D_OT_Interactive_Mode_Grease_Pencil,
     VIEW3D_MT_Edit_Gpencil,
     InteractiveModeOther,
-    ]
+)
 
 
 # Register Classes & Hotkeys #
@@ -3043,9 +3043,7 @@ def unregister():
                     km.keymap_items.remove(kmi)
                     break
     for cls in classes:
-        # prevent multiple removal attempt
-        if "bl_rna" in cls.__dict__:
-            bpy.utils.unregister_class(cls)
+        bpy.utils.unregister_class(cls)
 
 
 if __name__ == "__main__":
