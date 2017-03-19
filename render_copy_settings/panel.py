@@ -81,3 +81,9 @@ class RENDER_PT_copy_settings(bpy.types.Panel):
                                  cp_sett, "allowed_scenes_idx", rows=6) # XXX Grid is not nice currently...
         else:
             layout.label(text="No Affectable Scenes!", icon="ERROR")
+
+
+classes = (
+    RENDER_UL_copy_settings,
+    RENDER_PT_copy_settings,
+)

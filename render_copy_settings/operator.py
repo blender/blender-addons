@@ -190,5 +190,11 @@ class RenderCopySettings(bpy.types.Operator):
         return {'FINISHED'}
 
 
+classes = (
+    RenderCopySettingsPrepare,
+    RenderCopySettingsPreset,
+    RenderCopySettings,
+)
+
 if __name__ == "__main__":
     bpy.ops.scene.render_copy_settings()
