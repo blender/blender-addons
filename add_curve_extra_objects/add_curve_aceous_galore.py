@@ -51,6 +51,7 @@ from math import (
         )
 import mathutils.noise as Noise
 from bpy.types import Operator
+
 # ------------------------------------------------------------
 # Some functions to use with others:
 # ------------------------------------------------------------
@@ -118,20 +119,6 @@ def vTurbNoise(x, y, z, iScale=0.25, Size=1.0, Depth=6, Hard=0, Basis=0, Seed=0)
     tz = vTurb[2]*iScale
     return tx, ty, tz
 
-
-#------------------------------------------------------------
-# Axis: ( used in 3DCurve Turbulence )
-def AxisFlip(x, y, z, x_axis=1, y_axis=1, z_axis=1, flip=0):
-    if flip != 0:
-        flip *= -1
-    else:
-        flip = 1
-    x *= x_axis*flip
-    y *= y_axis*flip
-    z *= z_axis*flip
-    return x, y, z
-
-
 # -------------------------------------------------------------------
 # 2D Curve shape functions:
 # -------------------------------------------------------------------
@@ -193,12 +180,12 @@ def ProfileCurve(type=0, a=0.25, b=0.25):
     return newpoints
 
 # ------------------------------------------------------------
-# 2DCurve: Arrows
+# 2DCurve: Arrow
 def ArrowCurve(type=1, a=1.0, b=0.5):
     """
     ArrowCurve( type=1, a=1.0, b=0.5, c=1.0 )
 
-    Create arrow curves
+    Create arrow curve
 
         Parameters:
             type - select type, Arrow1, Arrow2
@@ -235,7 +222,7 @@ def RectCurve(type=1, a=1.0, b=0.5, c=1.0):
     """
     RectCurve( type=1, a=1.0, b=0.5, c=1.0 )
 
-    Create square / rectangle curves
+    Create square / rectangle curve
 
         Parameters:
             type - select type, Square, Rounded square 1, Rounded square 2
@@ -402,7 +389,7 @@ def ArcCurve(sides=6, startangle=0.0, endangle=90.0, innerradius=0.5, outerradiu
         newpoints.append([x1, y1, 0])
         i += 1
 
-    # if type ==0:
+    # if type == 1:
         # Arc: turn cyclic curve flag off!
 
     # Segment:
@@ -538,57 +525,8 @@ def SplatCurve(sides=24, scale=1.0, seed=0, basis=0, radius=1.0):
         i += 1
     return newpoints
 
-# -----------------------------------------------------------
-# 3D curve shape functions:
-# -----------------------------------------------------------
-
-# ------------------------------------------------------------
-# 3DCurve: Helix:
-def HelixCurve(number=100, height=2.0, startangle=0.0, endangle=360.0, width=1.0, a=0.0, b=0.0):
-    """
-    HelixCurve( number=100, height=2.0, startangle=0.0, endangle=360.0, width=1.0, a=0.0, b=0.0 )
-
-    Create helix curve
-
-        Parameters:
-            number - the number of points
-                (type=int)
-            height - height
-                (type=float)
-            startangle - startangle
-                (type=float)
-            endangle - endangle
-                (type=float)
-            width - width
-                (type=float)
-            a - a
-                (type=float)
-            b - b
-                (type=float)
-        Returns:
-            a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
-            (type=list)
-    """
-
-    newpoints = []
-    angle = (2.0/360.0)*(endangle-startangle)
-    step = angle/(number-1)
-    h = height/angle
-    start = (startangle*2.0/360.0)
-    a /= angle
-    i = 0
-    while i < number:
-        t = (i*step+start)
-        x = sin((t*pi)) * (1.0 + cos(t * pi * a - (b * pi))) * (0.25 * width)
-        y = cos((t*pi)) * (1.0 + cos(t * pi * a - (b * pi))) * (0.25 * width)
-        z = (t * h) - h*start
-        newpoints.append([x, y, z])
-        i += 1
-    return newpoints
-
 #------------------------------------------------------------
 # Cycloid curve
-
 def CycloidCurve(number=100, type=0, R=4.0, r=1.0, d=1.0):
     """
     CycloidCurve( number=100, type=0, a=4.0, b=1.0 )
@@ -645,12 +583,58 @@ def CycloidCurve(number=100, type=0, R=4.0, r=1.0, d=1.0):
             i+=1
     return newpoints
 
+# -----------------------------------------------------------
+# 3D curve shape functions:
+# -----------------------------------------------------------
+
+# ------------------------------------------------------------
+# 3DCurve: Helix:
+def HelixCurve(number=100, height=2.0, startangle=0.0, endangle=360.0, width=1.0, a=0.0, b=0.0):
+    """
+    HelixCurve( number=100, height=2.0, startangle=0.0, endangle=360.0, width=1.0, a=0.0, b=0.0 )
+
+    Create helix curve
+
+        Parameters:
+            number - the number of points
+                (type=int)
+            height - height
+                (type=float)
+            startangle - startangle
+                (type=float)
+            endangle - endangle
+                (type=float)
+            width - width
+                (type=float)
+            a - a
+                (type=float)
+            b - b
+                (type=float)
+        Returns:
+            a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
+            (type=list)
+    """
+
+    newpoints = []
+    angle = (2.0/360.0)*(endangle-startangle)
+    step = angle/(number-1)
+    h = height/angle
+    start = (startangle*2.0/360.0)
+    a /= angle
+    i = 0
+    while i < number:
+        t = (i*step+start)
+        x = sin((t*pi)) * (1.0 + cos(t * pi * a - (b * pi))) * (0.25 * width)
+        y = cos((t*pi)) * (1.0 + cos(t * pi * a - (b * pi))) * (0.25 * width)
+        z = (t * h) - h*start
+        newpoints.append([x, y, z])
+        i += 1
+    return newpoints
+
 #------------------------------------------------------------
 # 3D Noise curve
-def NoiseCurve(number=100, length=2.0, scale=1.0, octaves=6, basis=1, seed=0, type=0):
+def NoiseCurve(type=0, number=100, length=2.0, size=0.5, scale=[0.5,0.5,0.5], taper=0.0, octaves=2, basis=0, seed=0):
     """
-    NoiseCurve( number=100, length=2.0, scale=1.0, octaves=2, basis=1, seed=0, type=1 )
-
     Create noise curve
 
         Parameters:
@@ -658,7 +642,11 @@ def NoiseCurve(number=100, length=2.0, scale=1.0, octaves=6, basis=1, seed=0, ty
                 (type=int)
             length - curve length
                 (type=float)
-            scale - noise scale
+            size - noise size
+                (type=float)
+            scale - noise intensity scale x,y,z
+                (type=list)
+            taper - taper scale
                 (type=float)
             basis - noise basis
                 (type=int)
@@ -671,30 +659,38 @@ def NoiseCurve(number=100, length=2.0, scale=1.0, octaves=6, basis=1, seed=0, ty
             (type=list)
     """
 
-    rand = randnum(-100,100,seed)
     newpoints = []
     step = (length/number)
     i = 0
     if type == 1:
-        # noise knot
+        # noise circle / arc
         while i < number:
-            t = ((i*step)+rand)
-            v = vTurbNoise(t,t,t, scale, 1.0, octaves, 0, basis, seed)
+            t = i*step
+            v = vTurbNoise(t, t, t, 1.0, size, octaves, 0, basis, seed)
+            x = sin(t*pi)*2.0 + (v[0] * scale[0])
+            y = cos(t*pi)*2.0 + (v[1] * scale[1])
+            z = v[2]*scale[2]
+            newpoints.append([x, y, z])
+            i += 1
+    elif type == 2:
+        # noise knot / ball
+        while i < number:
+            t = i*step
+            v = vTurbNoise(t,t,t, scale[2], 1.0, octaves, 0, basis, seed)
             newpoints.append([v[0], v[1], v[2]])
             i+=1
     else:
         # noise linear
         while i < number:
             t = i*step
-            tt = t+rand
-            v = vTurbNoise(t,t,t, scale, 1.0, octaves, 0, basis, seed)
-            x = t
-            y = v[1]
-            z = v[2]
+            tap = length-taper*t
+            v = vTurbNoise(t,t,t, 1.0, size, octaves, 0, basis, seed)
+            x = t + v[0] * (scale[0]/length)
+            y = v[1] * (scale[1]/length) * tap
+            z = v[2] * (scale[2]/length) * tap
             newpoints.append([x,y,z])
             i+=1
     return newpoints
-
 
 # ------------------------------------------------------------
 # calculates the matrix for the new object
@@ -841,6 +837,12 @@ def main(context, self, align_matrix):
                             self.seed,
                             self.basis,
                             outerRadius)
+    if proType == 'Cycloid':
+        verts = CycloidCurve(self.cycloPoints,
+                            self.cycloType,
+                            self.cyclo_a,
+                            self.cyclo_b,
+                            self.cyclo_d)
     if proType == 'Helix':
         verts = HelixCurve(self.helixPoints,
                             self.helixHeight,
@@ -849,20 +851,16 @@ def main(context, self, align_matrix):
                             self.helixWidth,
                             self.helix_a,
                             self.helix_b)
-    if proType == 'Cycloid':
-        verts = CycloidCurve(self.cycloPoints,
-                            self.cycloType,
-                            self.cyclo_a,
-                            self.cyclo_b,
-                            self.cyclo_d)
     if proType == 'Noise':
-        verts = NoiseCurve(self.noisePoints,
+        verts = NoiseCurve(self.noiseType,
+                            self.noisePoints,
                             self.noiseLength,
-                            self.noiseScale,
+                            self.noiseSize,
+                            [self.noiseScaleX, self.noiseScaleY, self.noiseScaleZ],
+                            self.noiseTaper,
                             self.noiseOctaves,
                             self.noiseBasis,
-                            self.noiseSeed,
-                            self.noiseType)
+                            self.noiseSeed)
 
     # turn verts into array
     vertArray = vertsToPoints(verts, splineType)
@@ -928,6 +926,7 @@ class Curveaceous_galore(Operator):
                 ('VECTOR', 'Vector', 'VECTOR'),
                 ('AUTOMATIC', 'Auto', 'AUTOMATIC')]
     handleType = EnumProperty(name="Handle type",
+                default='AUTOMATIC',
                 description="bezier handles type",
                 items=bezHandles)
 
@@ -1078,7 +1077,7 @@ class Curveaceous_galore(Operator):
                             min=3, soft_min=3,
                             description="Resolution")
     cycloType = IntProperty(name="Type",
-                            default=0,
+                            default=1,
                             min=0, soft_min=0,
                             max=2, soft_max=2,
                             description="Type: Cycloid , Hypocycloid / Hypotrochoid , Epicycloid / Epitrochoid")
@@ -1095,6 +1094,11 @@ class Curveaceous_galore(Operator):
                             description="Cycloid: d distance")
 
     # Noise properties
+    noiseType = IntProperty(name="Type",
+                            default=0,
+                            min=0, soft_min=0,
+                            max=2, soft_max=2,
+                            description="Noise curve type: Linear, Circular or Knot")
     noisePoints = IntProperty(name="Resolution",
                             default=100,
                             min=3, soft_min=3,
@@ -1103,29 +1107,42 @@ class Curveaceous_galore(Operator):
                             default=2.0,
                             min=0.01, soft_min=0.01,
                             description="Curve Length")
-    noiseScale = FloatProperty(name="Noise scale",
-                            default=1.0,
+    noiseSize = FloatProperty(name="Noise size",
+                            default=0.25,
                             min=0.0001, soft_min=0.0001,
-                            description="Noise scale")
+                            description="Noise size")
+    noiseScaleX = FloatProperty(name="Noise x",
+                            default=0.5,
+                            min=0.0001, soft_min=0.0001,
+                            description="Noise x")
+    noiseScaleY = FloatProperty(name="Noise y",
+                            default=0.5,
+                            min=0.0001, soft_min=0.0001,
+                            description="Noise y")
+    noiseScaleZ = FloatProperty(name="Noise z",
+                            default=0.5,
+                            min=0.0001, soft_min=0.0001,
+                            description="Noise z")
+    noiseTaper = FloatProperty(name="Noise taper",
+                            default=0.0,
+                            min=0.0001, soft_min=0.0001,
+                            max=1.0, soft_max=1.0,
+                            description="Noise taper")
     noiseOctaves = IntProperty(name="Octaves",
                             default=2,
-                            min=0, soft_min=0,
+                            min=1, soft_min=1,
                             max=16, soft_max=16,
                             description="Basis")
     noiseBasis = IntProperty(name="Basis",
                             default=0,
                             min=0, soft_min=0,
-                            max=14, soft_max=14,
+                            max=9, soft_max=9,
                             description="Basis")
     noiseSeed = IntProperty(name="Seed",
                             default=1,
                             min=0, soft_min=0,
                             description="Random Seed")
-    noiseType = IntProperty(name="Type",
-                            default=0,
-                            min=0, soft_min=0,
-                            max=1, soft_max=1,
-                            description="Noise curve type: Linear or Knot")
+
 
     ##### DRAW #####
     def draw(self, context):
@@ -1193,6 +1210,14 @@ class Curveaceous_galore(Operator):
             box.prop(self, 'seed')
             box.prop(self, 'basis')
 
+        elif self.ProfileType == 'Cycloid':
+            box.prop(self, 'cycloPoints')
+            box.prop(self, 'cycloType')
+            box.prop(self, 'cyclo_a')
+            box.prop(self, 'cyclo_b')
+            if self.cycloType != 0:
+                box.prop(self, 'cyclo_d')
+
         elif self.ProfileType == 'Helix':
             box.prop(self, 'helixPoints')
             box.prop(self, 'helixHeight')
@@ -1202,18 +1227,17 @@ class Curveaceous_galore(Operator):
             box.prop(self, 'helix_a')
             box.prop(self, 'helix_b')
 
-        elif self.ProfileType == 'Cycloid':
-            box.prop(self, 'cycloPoints')
-            box.prop(self, 'cycloType')
-            box.prop(self, 'cyclo_a')
-            box.prop(self, 'cyclo_b')
-            box.prop(self, 'cyclo_d')
-
         elif self.ProfileType == 'Noise':
-            box.prop(self, 'noisePoints')
             box.prop(self, 'noiseType')
+            box.prop(self, 'noisePoints')
             box.prop(self, 'noiseLength')
-            box.prop(self, 'noiseScale')
+            if self.noiseType in [0,1]:
+                box.prop(self, 'noiseSize')
+                box.prop(self, 'noiseScaleX')
+                box.prop(self, 'noiseScaleY')
+            box.prop(self, 'noiseScaleZ')
+            if self.noiseType == 0:
+                box.prop(self, 'noiseTaper')
             box.prop(self, 'noiseOctaves')
             box.prop(self, 'noiseBasis')
             box.prop(self, 'noiseSeed')
@@ -1223,11 +1247,10 @@ class Curveaceous_galore(Operator):
         col.row().prop(self, 'outputType', expand=True)
 
         # output options
-        box = layout.box()
         if self.outputType == 'NURBS':
-            box.prop(self, 'order_u')
+            col.prop(self, 'order_u')
         elif self.outputType == 'BEZIER':
-            box.row().prop(self, 'handleType', expand=True)
+            col.row().prop(self, 'handleType', expand=True)
 
     ##### POLL #####
     @classmethod
@@ -1254,7 +1277,10 @@ class Curveaceous_galore(Operator):
                 else:
                     self.use_cyclic_u = True
         else:
-            self.use_cyclic_u = True
+            if self.ProfileType == 'Arc' and self.arcType == 1:
+                self.use_cyclic_u = False
+            else:
+                self.use_cyclic_u = True
 
         # main function
         main(context, self, self.align_matrix or Matrix())

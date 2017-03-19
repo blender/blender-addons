@@ -43,6 +43,7 @@ if "bpy" in locals():
     importlib.reload(add_curve_celtic_links)
     importlib.reload(add_curve_braid)
     importlib.reload(add_curve_simple)
+    importlib.reload(add_curve_spirofit_bouncespline)
 
 else:
     from . import add_curve_aceous_galore
@@ -54,6 +55,7 @@ else:
     from . import add_curve_celtic_links
     from . import add_curve_braid
     from . import add_curve_simple
+    from . import add_curve_spirofit_bouncespline
 
 import bpy
 from bpy.types import Menu, AddonPreferences
