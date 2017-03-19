@@ -435,7 +435,7 @@ class SumaFile(Operator):
 
 
 class ClearFile(Operator):
-    """Erase the list of broken frames.""" 
+    """Erase the list of broken frames."""
     bl_idname = "object.clear_broken_file"
     bl_label = "Clear Broken Files"
 

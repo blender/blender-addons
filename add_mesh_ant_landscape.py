@@ -254,7 +254,7 @@ def landscape_gen(x, y, z, falloffsize, options):
     x_offset = options[24]
     y_offset = options[25]
 
-    # origin    
+    # origin
     if rseed == 0:
         origin = 0.0 + x_offset, 0.0 + y_offset, 0.0
         origin_x = x_offset
@@ -355,7 +355,7 @@ def landscape_gen(x, y, z, falloffsize, options):
     elif stratatype == '3':
         steps = abs(sin(value * strata * pi) * (0.1 / strata * pi))
         value =(value * (1.0 - 0.5) + steps * 0.5) * 2.0
- 
+
     else:
         value = value
 
@@ -474,7 +474,7 @@ class landscape_add(bpy.types.Operator):
     XOffset = FloatProperty(name="X Offset",
                 default = 0.0,
                 description = "X Offset")
-    
+
     YOffset = FloatProperty(name="Y Offset",
                 default = 0.0,
                 description = "Y Offset")

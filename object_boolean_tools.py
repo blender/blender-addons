@@ -704,7 +704,7 @@ class Auto_Slice(AutoBoolean, Operator):
         scene.objects.active = obj_copy
         self.boolean_mod(obj_copy, ob, 'INTERSECT')
         obj_copy.select = True
- 
+
         return {'FINISHED'}
 
 
@@ -1146,7 +1146,7 @@ class BoolTool_BViwer(Panel):
                     Dw = row.operator("btool.move_stack", icon="TRIA_DOWN", emboss=False)
                     Dw.modif = mod.name
                     Dw.direction = "DOWN"
- 
+
 # ------------------ BOOL TOOL Help ----------------------------
 class BoolTool_help(bpy.types.Operator):
     bl_idname = 'help.bool_tool'
@@ -1213,7 +1213,7 @@ class BoolTool_Pref(AddonPreferences):
             default=False,
             description="When Apply a Brush to de Object it will create a new vertex group of the bondary boolean area",
             )
- 
+
     use_wire = BoolProperty(
             name="Use Bmesh",
             default=False,

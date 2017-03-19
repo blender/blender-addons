@@ -156,7 +156,7 @@ class INFO_MT_curve_knots_add1(bpy.types.Menu):
                         text="Celtic Links")
         layout.operator("mesh.add_braid",
                         text="Braid Knot")
- 
+
 
 
 # Define "Extras" menus

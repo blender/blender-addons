@@ -321,7 +321,7 @@ class OscObjectToMesh(Operator):
     bl_label = "Object To Mesh"
     bl_label = "Object To Mesh"
 
-    
+
     @classmethod
     def poll(cls, context):
         return (context.active_object is not None and
@@ -476,7 +476,7 @@ class ModalIndexOperator(Operator):
 
 # -------------------------- SELECT DOUBLES
 
-def SelDoubles(self, context):    
+def SelDoubles(self, context):
     bm = bmesh.from_edit_mesh(bpy.context.object.data)
 
     for v in bm.verts:
@@ -495,7 +495,7 @@ def SelDoubles(self, context):
                 bm.verts[v].select = 1
 
     bpy.context.scene.objects.active = bpy.context.scene.objects.active
-    
+
 
 class SelectDoubles(Operator):
     """Selects duplicated vertex without merge them."""
@@ -512,4 +512,4 @@ class SelectDoubles(Operator):
 
     def execute(self, context):
         SelDoubles(self, context)
-        return {'FINISHED'}    
+        return {'FINISHED'}

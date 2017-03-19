@@ -31,7 +31,7 @@ def create_leg( cls, bones ):
     )
 
     bones['ik']['ctrl']['terminal'] = []
-    
+
     bpy.ops.object.mode_set(mode='EDIT')
     eb = cls.obj.data.edit_bones
 
@@ -49,7 +49,7 @@ def create_leg( cls, bones ):
     ctrl = get_bone_name( org_bones[2], 'ctrl', 'ik' )
     ctrl = copy_bone( cls.obj, org_bones[2], ctrl )
 
-    # clear parent (so that rigify will parent to root) 
+    # clear parent (so that rigify will parent to root)
     eb[ ctrl ].parent      = None
     eb[ ctrl ].use_connect = False
 
@@ -64,7 +64,7 @@ def create_leg( cls, bones ):
     orient_bone( cls, eb[ ctrl ], 'y', reverse = True )
     eb[ ctrl ].length = l
 
-    # Parent 
+    # Parent
     eb[ heel ].use_connect = False
     eb[ heel ].parent      = eb[ ctrl ]
 
@@ -91,38 +91,38 @@ def create_leg( cls, bones ):
 
     # Create 2nd roll mch, and two rock mch bones
     roll2_mch = get_bone_name( tmp_heel, 'mch', 'roll' )
-    roll2_mch = copy_bone( cls.obj, org_bones[3], roll2_mch )    
+    roll2_mch = copy_bone( cls.obj, org_bones[3], roll2_mch )
 
     eb[ roll2_mch ].use_connect = False
     eb[ roll2_mch ].parent      = None
-    
-    put_bone( 
-        cls.obj, 
-        roll2_mch, 
+
+    put_bone(
+        cls.obj,
+        roll2_mch,
         ( eb[ tmp_heel ].head + eb[ tmp_heel ].tail ) / 2
     )
 
     eb[ roll2_mch ].length /= 4
-    
+
     # Rock MCH bones
     rock1_mch = get_bone_name( tmp_heel, 'mch', 'rock' )
-    rock1_mch = copy_bone( cls.obj, tmp_heel, rock1_mch )    
+    rock1_mch = copy_bone( cls.obj, tmp_heel, rock1_mch )
 
     eb[ rock1_mch ].use_connect = False
-    eb[ rock1_mch ].parent      = None    
-    
+    eb[ rock1_mch ].parent      = None
+
     orient_bone( cls, eb[ rock1_mch ], 'y', 1.0, reverse = True )
     eb[ rock1_mch ].length = eb[ tmp_heel ].length / 2
-    
+
     rock2_mch = get_bone_name( tmp_heel, 'mch', 'rock' )
     rock2_mch = copy_bone( cls.obj, tmp_heel, rock2_mch )
 
     eb[ rock2_mch ].use_connect = False
-    eb[ rock2_mch ].parent      = None    
+    eb[ rock2_mch ].parent      = None
 
     orient_bone( cls, eb[ rock2_mch ], 'y', 1.0 )
     eb[ rock2_mch ].length = eb[ tmp_heel ].length / 2
-    
+
     # Parent rock and roll MCH bones
     eb[ roll1_mch ].parent = eb[ roll2_mch ]
     eb[ roll2_mch ].parent = eb[ rock1_mch ]
@@ -135,7 +135,7 @@ def create_leg( cls, bones ):
         'subtarget'    : heel,
         'owner_space'  : 'LOCAL',
         'target_space' : 'LOCAL'
-    })    
+    })
     make_constraint( cls, roll1_mch, {
         'constraint'  : 'LIMIT_ROTATION',
         'use_limit_x' : True,
@@ -150,15 +150,15 @@ def create_leg( cls, bones ):
         'invert_x'     : True,
         'owner_space'  : 'LOCAL',
         'target_space' : 'LOCAL'
-    })    
+    })
     make_constraint( cls, roll2_mch, {
         'constraint'  : 'LIMIT_ROTATION',
         'use_limit_x' : True,
         'max_x'       : math.radians(360),
         'owner_space' : 'LOCAL'
-    })    
+    })
 
-    pb = cls.obj.pose.bones   
+    pb = cls.obj.pose.bones
     for i,b in enumerate([ rock1_mch, rock2_mch ]):
         head_tail = pb[b].head - pb[tmp_heel].head
         if '.L' in b:
@@ -176,7 +176,7 @@ def create_leg( cls, bones ):
                 min_y = 0
                 max_y = math.radians(360)
 
-                
+
         make_constraint( cls, b, {
             'constraint'   : 'COPY_ROTATION',
             'subtarget'    : heel,
@@ -184,14 +184,14 @@ def create_leg( cls, bones ):
             'use_z'        : False,
             'owner_space'  : 'LOCAL',
             'target_space' : 'LOCAL'
-        })    
+        })
         make_constraint( cls, b, {
             'constraint'  : 'LIMIT_ROTATION',
             'use_limit_y' : True,
             'min_y'       : min_y,
             'max_y'       : max_y,
             'owner_space' : 'LOCAL'
-        })    
+        })
 
     # Constrain 4th ORG to roll2 MCH bone
     make_constraint( cls, org_bones[3], {
@@ -201,7 +201,7 @@ def create_leg( cls, bones ):
 
     # Set up constraints
     # Constrain mch target bone to the ik control and mch stretch
-   
+
     make_constraint( cls, bones['ik']['mch_target'], {
         'constraint'  : 'COPY_LOCATION',
         'subtarget'   : bones['ik']['mch_str'],
@@ -235,7 +235,7 @@ def create_leg( cls, bones ):
 
     # Create ik/fk switch property
     pb_parent = pb[ bones['parent'] ]
-    
+
     pb_parent['IK_Strertch'] = 1.0
     prop = rna_idprop_ui_prop_get( pb_parent, 'IK_Strertch', create=True )
     prop["min"]         = 0.0
@@ -248,7 +248,7 @@ def create_leg( cls, bones ):
     b        = bones['ik']['mch_str']
     drv      = pb[b].constraints[-1].driver_add("influence").driver
     drv.type = 'AVERAGE'
-    
+
     var = drv.variables.new()
     var.name = prop.name
     var.type = "SINGLE_PROP"
@@ -257,7 +257,7 @@ def create_leg( cls, bones ):
         pb_parent.path_from_id() + '['+ '"' + prop.name + '"' + ']'
 
     drv_modifier = cls.obj.animation_data.drivers[-1].modifiers[0]
-    
+
     drv_modifier.mode            = 'POLYNOMIAL'
     drv_modifier.poly_order      = 1
     drv_modifier.coefficients[0] = 1.0
@@ -284,7 +284,7 @@ def create_leg( cls, bones ):
 
         eb[ toes ].use_connect = False
         eb[ toes ].parent      = eb[ org_bones[3] ]
-        
+
         # Constrain toes def bones
         make_constraint( cls, bones['def'][-2], {
             'constraint'  : 'DAMPED_TRACK',
@@ -293,8 +293,8 @@ def create_leg( cls, bones ):
         make_constraint( cls, bones['def'][-2], {
             'constraint'  : 'STRETCH_TO',
             'subtarget'   : toes
-        })        
-       
+        })
+
         make_constraint( cls, bones['def'][-1], {
             'constraint'  : 'COPY_TRANSFORMS',
             'subtarget'   : toes
@@ -303,12 +303,12 @@ def create_leg( cls, bones ):
         # Find IK/FK switch property
         pb   = cls.obj.pose.bones
         prop = rna_idprop_ui_prop_get( pb[ bones['parent'] ], 'IK/FK' )
-        
+
         # Add driver to limit scale constraint influence
         b        = org_bones[3]
         drv      = pb[b].constraints[-1].driver_add("influence").driver
         drv.type = 'AVERAGE'
-        
+
         var = drv.variables.new()
         var.name = prop.name
         var.type = "SINGLE_PROP"
@@ -317,17 +317,17 @@ def create_leg( cls, bones ):
             pb_parent.path_from_id() + '['+ '"' + prop.name + '"' + ']'
 
         drv_modifier = cls.obj.animation_data.drivers[-1].modifiers[0]
-        
+
         drv_modifier.mode            = 'POLYNOMIAL'
         drv_modifier.poly_order      = 1
         drv_modifier.coefficients[0] = 1.0
         drv_modifier.coefficients[1] = -1.0
-   
+
         # Create toe circle widget
         create_circle_widget(cls.obj, toes, radius=0.4, head_tail=0.5)
 
         bones['ik']['ctrl']['terminal'] += [ toes ]
 
     bones['ik']['ctrl']['terminal'] += [ heel, ctrl ]
-    
+
     return bones

@@ -47,7 +47,7 @@ class Rig:
 
     def create_parent( self ):
         org_bones = self.org_bones
-        
+
         bpy.ops.object.mode_set(mode ='EDIT')
         eb = self.obj.data.edit_bones
 
@@ -58,9 +58,9 @@ class Rig:
         eb[ mch ].length = eb[ org_bones[0] ].length / 4
 
         eb[ mch ].parent = eb[ org_bones[0] ].parent
-        
+
         eb[ mch ].roll = 0.0
-        
+
         # Constraints
         make_constraint( self, mch, {
             'constraint'  : 'COPY_ROTATION',
@@ -71,7 +71,7 @@ class Rig:
             'constraint'  : 'COPY_SCALE',
             'subtarget'   : 'root'
         })
-        
+
         # Limb Follow Driver
         pb = self.obj.pose.bones
 
@@ -79,7 +79,7 @@ class Rig:
 
         pb[ mch ][ name ] = 0.0
         prop = rna_idprop_ui_prop_get( pb[ mch ], name, create = True )
-                              
+
         prop["min"]         = 0.0
         prop["max"]         = 1.0
         prop["soft_min"]    = 0.0
@@ -100,11 +100,11 @@ class Rig:
 
     def create_tweak( self ):
         org_bones = self.org_bones
-        
+
         bpy.ops.object.mode_set(mode ='EDIT')
         eb = self.obj.data.edit_bones
 
-        tweaks         = {}        
+        tweaks         = {}
         tweaks['ctrl'] = []
         tweaks['mch' ] = []
 
@@ -116,15 +116,15 @@ class Rig:
                     # MCH
                     name = get_bone_name( strip_org(org), 'mch', 'tweak' )
                     mch = copy_bone( self.obj, org, name )
-                    
+
                     # CTRL
                     name = get_bone_name( strip_org(org), 'ctrl', 'tweak' )
                     ctrl = copy_bone( self.obj, org, name )
-                    
+
                     eb[ mch  ].length /= self.segments
                     eb[ ctrl ].length /= self.segments
 
-                    # If we have more than one segments, place the head of the 
+                    # If we have more than one segments, place the head of the
                     # 2nd and onwards at the correct position
                     if j > 0:
                         put_bone(self.obj, mch,  eb[ tweaks['mch' ][-1] ].tail)
@@ -137,23 +137,23 @@ class Rig:
                     eb[ mch  ].parent = eb[ org ]
                     eb[ ctrl ].parent = eb[ mch ]
 
-            else: # Last limb bone - is not subdivided  
-                name = get_bone_name( strip_org(org), 'mch', 'tweak' )      
+            else: # Last limb bone - is not subdivided
+                name = get_bone_name( strip_org(org), 'mch', 'tweak' )
                 mch = copy_bone( self.obj, org_bones[i-1], name )
                 eb[ mch ].length = eb[org].length / 4
                 put_bone(
-                    self.obj, 
+                    self.obj,
                     mch,
                     eb[org_bones[i-1]].tail
-                )                        
- 
+                )
+
                 ctrl = get_bone_name( strip_org(org), 'ctrl', 'tweak' )
                 ctrl = copy_bone( self.obj, org, ctrl )
-                eb[ ctrl ].length = eb[org].length / 2 
+                eb[ ctrl ].length = eb[org].length / 2
 
                 tweaks['mch']  += [ mch  ]
                 tweaks['ctrl'] += [ ctrl ]
-        
+
                 # Parenting the tweak ctrls to mchs
                 eb[ mch  ].parent = eb[ org ]
                 eb[ ctrl ].parent = eb[ mch ]
@@ -256,19 +256,19 @@ class Rig:
             pb[t].lock_scale    = False, True, False
 
             create_sphere_widget(self.obj, t, bone_transform_name=None)
-            
+
             if self.tweak_layers:
-                pb[t].bone.layers = self.tweak_layers 
-        
+                pb[t].bone.layers = self.tweak_layers
+
         return tweaks
 
 
     def create_def( self, tweaks ):
         org_bones = self.org_bones
-        
+
         bpy.ops.object.mode_set(mode ='EDIT')
         eb = self.obj.data.edit_bones
-        
+
         def_bones = []
         for i,org in enumerate(org_bones):
             if i < len(org_bones) - 1:
@@ -276,7 +276,7 @@ class Rig:
                 for j in range( self.segments ):
                     name = get_bone_name( strip_org(org), 'def' )
                     def_name = copy_bone( self.obj, org, name )
-                    
+
                     eb[ def_name ].length /= self.segments
 
                     # If we have more than one segments, place the 2nd and
@@ -338,7 +338,7 @@ class Rig:
                 pb[t][name] = 1.0
 
             prop = rna_idprop_ui_prop_get( pb[t], name, create=True )
-                                  
+
             prop["min"]         = 0.0
             prop["max"]         = 2.0
             prop["soft_min"]    = 0.0
@@ -365,13 +365,13 @@ class Rig:
                 var.targets[0].id = self.obj
                 var.targets[0].data_path = pb[tweaks[d]].path_from_id() + \
                                            '[' + '"' + name + '"' + ']'
-                       
+
         return def_bones
-        
-        
+
+
     def create_ik( self, parent ):
         org_bones = self.org_bones
-        
+
         bpy.ops.object.mode_set(mode ='EDIT')
         eb = self.obj.data.edit_bones
 
@@ -387,7 +387,7 @@ class Rig:
 
         # Create MCH Stretch
         mch_str = copy_bone(
-            self.obj, 
+            self.obj,
             org_bones[0],
             get_bone_name( org_bones[0], 'mch', 'ik_stretch' )
         )
@@ -396,13 +396,13 @@ class Rig:
             eb[ mch_str ].tail = eb[ org_bones[-1] ].head
         else:
             eb[ mch_str ].tail = eb[ org_bones[-2] ].head
-        
+
         # Parenting
         eb[ ctrl    ].parent = eb[ parent ]
         eb[ mch_str ].parent = eb[ parent ]
         eb[ mch_ik  ].parent = eb[ ctrl   ]
-        
-        
+
+
         make_constraint( self, mch_ik, {
             'constraint'  : 'IK',
             'subtarget'   : mch_target,
@@ -421,13 +421,13 @@ class Rig:
         # Locks and Widget
         pb[ ctrl ].lock_rotation = True, False, True
         create_ikarrow_widget( self.obj, ctrl, bone_transform_name=None )
-        
-        return { 'ctrl'       : { 'limb' : ctrl }, 
-                 'mch_ik'     : mch_ik, 
+
+        return { 'ctrl'       : { 'limb' : ctrl },
+                 'mch_ik'     : mch_ik,
                  'mch_target' : mch_target,
                  'mch_str'    : mch_str
         }
-    
+
 
     def create_fk( self, parent ):
         org_bones = self.org_bones.copy()
@@ -438,19 +438,19 @@ class Rig:
         bpy.ops.object.mode_set(mode ='EDIT')
         eb = self.obj.data.edit_bones
 
-        ctrls = []        
+        ctrls = []
 
         for o in org_bones:
             bone = copy_bone( self.obj, o, get_bone_name( o, 'ctrl', 'fk' ) )
             ctrls.append( bone )
- 
+
         # MCH
-        mch = copy_bone( 
+        mch = copy_bone(
             self.obj, org_bones[-1], get_bone_name( o, 'mch', 'fk' )
         )
 
         eb[ mch ].length /= 4
-        
+
         # Parenting
         eb[ ctrls[0] ].parent      = eb[ parent   ]
         eb[ ctrls[1] ].parent      = eb[ ctrls[0] ]
@@ -464,7 +464,7 @@ class Rig:
             'constraint'  : 'COPY_SCALE',
             'subtarget'   : 'root'
         })
-        
+
         # Locks and widgets
         pb = self.obj.pose.bones
         pb[ ctrls[2] ].lock_location = True, True, True
@@ -479,7 +479,7 @@ class Rig:
                 pb[c].bone.layers = self.fk_layers
 
         return { 'ctrl' : ctrls, 'mch' : mch }
-        
+
 
     def org_parenting_and_switch( self, org, ik, fk, parent ):
         bpy.ops.object.mode_set(mode ='EDIT')
@@ -517,11 +517,11 @@ class Rig:
                 'constraint'  : 'COPY_TRANSFORMS',
                 'subtarget'   : f
             })
-    
+
             # Add driver to relevant constraint
             drv = pb[o].constraints[-1].driver_add("influence").driver
             drv.type = 'AVERAGE'
-            
+
             var = drv.variables.new()
             var.name = prop.name
             var.type = "SINGLE_PROP"
@@ -547,48 +547,48 @@ class Rig:
         for bone in self.org_bones[1:]:
             eb[bone].use_connect = False
             eb[bone].parent      = None
-            
+
         bones = {}
 
         # Create mch limb parent
         bones['parent'] = self.create_parent()
-        bones['tweak']  = self.create_tweak()                
+        bones['tweak']  = self.create_tweak()
         bones['def']    = self.create_def( bones['tweak']['ctrl'] )
         bones['ik']     = self.create_ik(  bones['parent']        )
         bones['fk']     = self.create_fk(  bones['parent']        )
 
-        self.org_parenting_and_switch( 
-            self.org_bones, bones['ik'], bones['fk']['ctrl'], bones['parent'] 
+        self.org_parenting_and_switch(
+            self.org_bones, bones['ik'], bones['fk']['ctrl'], bones['parent']
         )
 
         bones = self.create_terminal( self.limb_type, bones )
-        
+
         return [ create_script( bones, self.limb_type ) ]
-        
+
 def add_parameters( params ):
     """ Add the parameters of this rig type to the
         RigifyParameters PropertyGroup
     """
 
     items = [
-        ('arm', 'Arm', ''), 
-        ('leg', 'Leg', ''), 
+        ('arm', 'Arm', ''),
+        ('leg', 'Leg', ''),
         ('paw', 'Paw', '')
     ]
     params.limb_type = bpy.props.EnumProperty(
-        items   = items, 
-        name    = "Limb Type", 
+        items   = items,
+        name    = "Limb Type",
         default = 'arm'
     )
 
     items = [
-        ('x', 'X', ''), 
-        ('y', 'Y', ''), 
+        ('x', 'X', ''),
+        ('y', 'Y', ''),
         ('z', 'Z', '')
     ]
     params.rotation_axis = bpy.props.EnumProperty(
-        items   = items, 
-        name    = "Rotation Axis", 
+        items   = items,
+        name    = "Rotation Axis",
         default = 'x'
     )
 
@@ -598,7 +598,7 @@ def add_parameters( params ):
         min         = 1,
         description = 'Number of segments'
     )
-    
+
     params.bbones = bpy.props.IntProperty(
         name        = 'bbone segments',
         default     = 10,
@@ -607,9 +607,9 @@ def add_parameters( params ):
     )
 
     # Setting up extra layers for the FK and tweak
-    params.tweak_extra_layers = bpy.props.BoolProperty( 
-        name        = "tweak_extra_layers", 
-        default     = True, 
+    params.tweak_extra_layers = bpy.props.BoolProperty(
+        name        = "tweak_extra_layers",
+        default     = True,
         description = ""
         )
 
@@ -618,11 +618,11 @@ def add_parameters( params ):
         description = "Layers for the tweak controls to be on",
         default     = tuple( [ i == 1 for i in range(0, 32) ] )
         )
-        
+
     # Setting up extra layers for the FK and tweak
-    params.fk_extra_layers = bpy.props.BoolProperty( 
-        name        = "fk_extra_layers", 
-        default     = True, 
+    params.fk_extra_layers = bpy.props.BoolProperty(
+        name        = "fk_extra_layers",
+        default     = True,
         description = ""
         )
 
@@ -638,7 +638,7 @@ def parameters_ui(layout, params):
 
     r = layout.row()
     r.prop(params, "limb_type")
-   
+
     r = layout.row()
     r.prop(params, "rotation_axis")
 
@@ -652,7 +652,7 @@ def parameters_ui(layout, params):
         r = layout.row()
         r.prop(params, layer + "_extra_layers")
         r.active = params.tweak_extra_layers
-        
+
         col = r.column(align=True)
         row = col.row(align=True)
 
@@ -716,7 +716,7 @@ def create_sample(obj):
     except AttributeError:
         pass
     try:
-        pbone.rigify_parameters.ik_layers = [ 
+        pbone.rigify_parameters.ik_layers = [
             False, False, False, False, False, False, False, False, True, False,
             False, False, False, False, False, False, False, False, False, False,
             False, False, False, False, False, False, False, False, False, False,

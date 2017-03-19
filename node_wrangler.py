@@ -1059,12 +1059,12 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
 def nw_check(context):
     space = context.space_data
     valid_trees = ["ShaderNodeTree", "CompositorNodeTree", "TextureNodeTree"]
-    
+
     valid = False
     if space.type == 'NODE_EDITOR' and space.node_tree is not None and space.tree_type in valid_trees:
         valid = True
-        
-    return valid    
+
+    return valid
 
 class NWBase:
     @classmethod
@@ -2296,7 +2296,7 @@ class NWCopySettings(Operator, NWBase):
     def execute(self, context):
         node_active = context.active_node
         node_selected = context.selected_nodes
-        
+
         # Error handling
         if not (len(node_selected) > 1):
             self.report({'ERROR'}, "2 nodes must be selected at least")
@@ -2314,14 +2314,14 @@ class NWCopySettings(Operator, NWBase):
         if not (len(valid_nodes) > 1) and node_active:
             self.report({'ERROR'}, "Selected nodes are not of the same type as {}".format(node_active.name))
             return {'CANCELLED'}
-        
+
         if len(valid_nodes) != len(node_selected):
             # Report nodes that are not valid
             valid_node_names = [n.name for n in valid_nodes]
             not_valid_names = list(set(selected_node_names) - set(valid_node_names))
             self.report({'INFO'}, "Ignored {} (not of the same type as {})".format(", ".join(not_valid_names), node_active.name))
 
-        # Reference original 
+        # Reference original
         orig = node_active
         #node_selected_names = [n.name for n in node_selected]
 
@@ -2331,43 +2331,43 @@ class NWCopySettings(Operator, NWBase):
         # Deselect all nodes
         for i in node_selected:
             i.select = False
-        
+
         # Code by zeffii from http://blender.stackexchange.com/a/42338/3710
         # Run through all other nodes
         for node in valid_nodes[1:]:
-            
+
             # Check for frame node
             parent = node.parent if node.parent else None
             node_loc = [node.location.x, node.location.y]
 
             # Select original to duplicate
             orig.select = True
-            
+
             # Duplicate selected node
             bpy.ops.node.duplicate()
             new_node = context.selected_nodes[0]
-            
+
             # Deselect copy
-            new_node.select = False      
-            
+            new_node.select = False
+
             # Properties to copy
             node_tree = node.id_data
             props_to_copy = 'bl_idname name location height width'.split(' ')
-            
+
             # Input and outputs
             reconnections = []
             mappings = chain.from_iterable([node.inputs, node.outputs])
             for i in (i for i in mappings if i.is_linked):
                 for L in i.links:
                     reconnections.append([L.from_socket.path_from_id(), L.to_socket.path_from_id()])
-            
+
             # Properties
             props = {j: getattr(node, j) for j in props_to_copy}
             props_to_copy.pop(0)
-            
+
             for prop in props_to_copy:
                 setattr(new_node, prop, props[prop])
-            
+
             # Get the node tree to remove the old node
             nodes = node_tree.nodes
             nodes.remove(node)
@@ -2376,10 +2376,10 @@ class NWCopySettings(Operator, NWBase):
             if parent:
                 new_node.parent = parent
                 new_node.location = node_loc
-            
+
             for str_from, str_to in reconnections:
                 node_tree.links.new(eval(str_from), eval(str_to))
-            
+
             success_names.append(new_node.name)
 
         orig.select = True
@@ -2755,7 +2755,7 @@ class NWAlignNodes(Operator, NWBase):
     def execute(self, context):
         nodes, links = get_nodes_links(context)
         margin = self.margin
-        
+
         selection = []
         for node in nodes:
             if node.select and node.type != 'FRAME':
@@ -2984,7 +2984,7 @@ class NWAddSequence(Operator, ImportHelper):
     bl_label = 'Import Image Sequence'
     bl_options = {'REGISTER', 'UNDO'}
     directory = StringProperty(subtype="DIR_PATH")
-    filename = StringProperty(subtype="FILE_NAME")    
+    filename = StringProperty(subtype="FILE_NAME")
     files = CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
 
     def execute(self, context):
@@ -3082,7 +3082,7 @@ class NWAddMultipleImages(Operator, ImportHelper):
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
-        
+
         xloc, yloc = context.region.view2d.region_to_view(context.area.width/2, context.area.height/2)
 
         if context.space_data.node_tree.type == 'SHADER':
@@ -3154,7 +3154,7 @@ class NWViewerFocus(bpy.types.Operator):
 
                 region_center_x = context.region.width  / 2
                 region_center_y = context.region.height / 2
-                
+
                 bd_x = render.resolution_x * percent * space.backdrop_zoom
                 bd_y = render.resolution_y * percent * space.backdrop_zoom
 
@@ -3166,7 +3166,7 @@ class NWViewerFocus(bpy.types.Operator):
 
                 abs_mouse_x = (mlocx - margin_x) / bd_x
                 abs_mouse_y = (mlocy - margin_y) / bd_y
-                
+
                 for node in viewers:
                     node.center_x = abs_mouse_x
                     node.center_y = abs_mouse_y
@@ -3251,7 +3251,7 @@ class NWResetNodes(bpy.types.Operator):
         node_active = context.active_node
         node_selected = context.selected_nodes
         node_ignore = ["FRAME","REROUTE", "GROUP"]
-        
+
         # Check if one node is selected at least
         if not (len(node_selected) > 0):
             self.report({'ERROR'}, "1 node must be selected at least")
@@ -3259,7 +3259,7 @@ class NWResetNodes(bpy.types.Operator):
 
         active_node_name = node_active.name if node_active.select else None
         valid_nodes = [n for n in node_selected if n.type not in node_ignore]
-        
+
         # Create output lists
         selected_node_names = [n.name for n in node_selected]
         success_names = []
@@ -3273,7 +3273,7 @@ class NWResetNodes(bpy.types.Operator):
                 valid_nodes = [n for n in children if n.type not in node_ignore]
                 selected_node_names = [n.name for n in children if n.type not in node_ignore]
                 node_active_is_frame = True
-        
+
         # Check if valid nodes in selection
         if not (len(valid_nodes) > 0):
             # Check for frames only
@@ -3295,7 +3295,7 @@ class NWResetNodes(bpy.types.Operator):
             i.select = False
 
         # Run through all valid nodes
-        for node in valid_nodes:        
+        for node in valid_nodes:
 
             parent = node.parent if node.parent else None
             node_loc = [node.location.x, node.location.y]
@@ -4106,7 +4106,7 @@ def multipleimages_menu_func(self, context):
     col.operator(NWAddMultipleImages.bl_idname, text="Multiple Images")
     col.operator(NWAddSequence.bl_idname, text="Image Sequence")
     col.separator()
-    
+
 
 def bgreset_menu_func(self, context):
     self.layout.operator(NWResetBG.bl_idname)
@@ -4130,7 +4130,7 @@ def reset_nodes_button(self, context):
         row = self.layout.row()
         row.operator("node.nw_reset_nodes", text="Reset Node", icon="FILE_REFRESH")
         self.layout.separator()
-    
+
     elif (len(node_selected) == 1) and node_active.select and node_active.type == "FRAME":
         row = self.layout.row()
         row.operator("node.nw_reset_nodes", text="Reset Nodes in Frame", icon="FILE_REFRESH")

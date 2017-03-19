@@ -267,7 +267,7 @@ def register():
 
     if wm.keyconfigs.addon:
         #km = wm.keyconfigs.addon.keymaps.new(name='Object Non-modal') # WHY
-        
+
         km = wm.keyconfigs.addon.keymaps.new(name="Clip", space_type='CLIP_EDITOR')
 
         kmi = km.keymap_items.new("wm.call_menu_pie", 'Q', 'PRESS')

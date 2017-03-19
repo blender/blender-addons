@@ -40,7 +40,7 @@ import mathutils
 import math
 
 from bpy.types import Menu
-  
+
 
     ## Check for curve
 

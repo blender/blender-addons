@@ -105,20 +105,20 @@ class VIEW3D_PT_animall(bpy.types.Panel):
     def poll(self, context):
         if context.active_object and context.active_object.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE'}:
             return context.active_object.type
-    
+
     # draw the gui
     def draw(self, context):
-        
+
         Obj = context.active_object
-        
+
         layout = self.layout
         col = layout.column(align=True)
         row = col.row()
-        
+
         if Obj.type == 'LATTICE':
             row.prop(context.window_manager, "key_points")
             row.prop(context.window_manager, "key_shape")
-            
+
         elif Obj.type == 'MESH':
             row.prop(context.window_manager, "key_points")
             row.prop(context.window_manager, "key_shape")
@@ -131,35 +131,35 @@ class VIEW3D_PT_animall(bpy.types.Panel):
             row.prop(context.window_manager, "key_vgroups")
             row = col.row()
             row.prop(context.window_manager, "key_uvs")
-            
+
         elif Obj.type == 'CURVE':
             row.prop(context.window_manager, "key_points")
             row.prop(context.window_manager, "key_shape")
             row = col.row()
             row.prop(context.window_manager, "key_radius")
             row.prop(context.window_manager, "key_tilt")
-            
+
         elif Obj.type == 'SURFACE':
             row.prop(context.window_manager, "key_points")
             row.prop(context.window_manager, "key_shape")
             row = col.row()
             row.prop(context.window_manager, "key_radius")
             row.prop(context.window_manager, "key_tilt")
-        
+
         row = col.row()
         row.operator('anim.insert_keyframe_animall', icon='KEY_HLT')
         row.operator('anim.delete_keyframe_animall', icon='KEY_DEHLT')
         row = layout.row()
         row.operator('anim.clear_animation_animall', icon='X')
-        
+
         if context.window_manager.key_shape:
-            
+
             ShapeKey = Obj.active_shape_key
             ShapeKeyIndex = Obj.active_shape_key_index
-            
+
             split = layout.split()
             row = split.row()
-            
+
             if ShapeKeyIndex > 0:
                 row.label(ShapeKey.name, icon='SHAPEKEY_DATA')
                 row.prop(ShapeKey, "value", text="")
@@ -171,7 +171,7 @@ class VIEW3D_PT_animall(bpy.types.Panel):
                 row.label('Can not key on Basis Shape', icon='ERROR')
             else:
                 row.label('No active Shape Key', icon='ERROR')
-        
+
         if context.window_manager.key_points and context.window_manager.key_shape:
             row = layout.row()
             row.label('"Points" and "Shape" are redundant?', icon='INFO')
@@ -182,54 +182,54 @@ class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
     bl_idname = 'anim.insert_keyframe_animall'
     bl_description = 'Insert a Keyframe'
     bl_options = {'REGISTER', 'UNDO'}
-    
-    
+
+
     # on mouse up:
     def invoke(self, context, event):
-        
+
         self.execute(context)
-        
+
         return {'FINISHED'}
 
 
     def execute(op, context):
-        
+
         Obj = context.active_object
-        
+
         if Obj.type == 'MESH':
             Mode = False
             if context.mode == 'EDIT_MESH':
                 Mode = not Mode
                 bpy.ops.object.editmode_toggle()
-            
+
             Data = Obj.data
-            
+
             if context.window_manager.key_shape:
                 if Obj.active_shape_key_index > 0:
                     for Vert in Obj.active_shape_key.data:
                         Vert.keyframe_insert('co')
-            
+
             if context.window_manager.key_points:
                 for Vert in Data.vertices:
                     Vert.keyframe_insert('co')
-            
+
             if context.window_manager.key_ebevel:
                 for Edge in Data.edges:
                     Edge.keyframe_insert('bevel_weight')
-            
+
             if context.window_manager.key_vbevel:
                 for Vert in Data.vertices:
                     Vert.keyframe_insert('bevel_weight')
-            
+
             if context.window_manager.key_crease:
                 for Edge in Data.edges:
                     Edge.keyframe_insert('crease')
-            
+
             if context.window_manager.key_vgroups:
                 for Vert in Data.vertices:
                     for Group in Vert.groups:
                         Group.keyframe_insert('weight')
-                    
+
             if context.window_manager.key_uvs:
                 for UV in Data.uv_layers.active.data:
                     UV.keyframe_insert('uv')
@@ -239,38 +239,38 @@ class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
                     if VColLayer.active: # only insert in active VCol layer
                         for Data in VColLayer.data:
                             Data.keyframe_insert('color')
-            
+
             if Mode:
                 bpy.ops.object.editmode_toggle()
-        
+
         if Obj.type == 'LATTICE':
             Mode = False
             if context.mode != 'OBJECT':
                 Mode = not Mode
                 bpy.ops.object.editmode_toggle()
-                
+
             Data = Obj.data
-            
+
             if context.window_manager.key_shape:
                 if Obj.active_shape_key_index > 0:
                     for Point in Obj.active_shape_key.data:
                         Point.keyframe_insert('co')
-                        
+
             if context.window_manager.key_points:
                 for Point in Data.points:
                     Point.keyframe_insert('co_deform')
-            
+
             if Mode:
                 bpy.ops.object.editmode_toggle()
-        
+
         if Obj.type in {'CURVE', 'SURFACE'}:
             Mode = False
             if context.mode != 'OBJECT':
                 Mode = not Mode
                 bpy.ops.object.editmode_toggle()
-            
+
             Data = Obj.data
-            
+
             # run this outside the splines loop (only once)
             if context.window_manager.key_shape:
                 if Obj.active_shape_key_index > 0:
@@ -280,36 +280,36 @@ class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
                             CV.keyframe_insert('handle_left')
                             CV.keyframe_insert('handle_right')
                         except: pass
-            
+
             for Spline in Data.splines:
                 if Spline.type == 'BEZIER':
-                    
+
                     for CV in Spline.bezier_points:
-                                    
+
                         if context.window_manager.key_points:
                             CV.keyframe_insert('co')
                             CV.keyframe_insert('handle_left')
                             CV.keyframe_insert('handle_right')
-                            
+
                         if context.window_manager.key_radius:
                             CV.keyframe_insert('radius')
-                            
+
                         if context.window_manager.key_tilt:
                             CV.keyframe_insert('tilt')
-                        
+
                 elif Spline.type == 'NURBS':
-                    
+
                     for CV in Spline.points:
-                        
+
                         if context.window_manager.key_points:
                             CV.keyframe_insert('co')
-                            
+
                         if context.window_manager.key_radius:
                             CV.keyframe_insert('radius')
-                            
+
                         if context.window_manager.key_tilt:
                             CV.keyframe_insert('tilt')
-                
+
             if Mode:
                 bpy.ops.object.editmode_toggle()
 
@@ -322,8 +322,8 @@ class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
     bl_idname = 'anim.delete_keyframe_animall'
     bl_description = 'Delete a Keyframe'
     bl_options = {'REGISTER', 'UNDO'}
-    
-    
+
+
     # on mouse up:
     def invoke(self, context, event):
 
@@ -333,85 +333,85 @@ class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
 
 
     def execute(op, context):
-        
+
         Obj = context.active_object
-        
+
         if Obj.type == 'MESH':
             Mode = False
             if context.mode == 'EDIT_MESH':
                 Mode = not Mode
                 bpy.ops.object.editmode_toggle()
-            
+
             Data = Obj.data
-            
+
             if context.window_manager.key_shape:
                 if Obj.active_shape_key:
                     for Vert in Obj.active_shape_key.data:
                         Vert.keyframe_delete('co')
-            
+
             if context.window_manager.key_points:
                 for Vert in Data.vertices:
                     Vert.keyframe_delete('co')
-            
+
             if context.window_manager.key_ebevel:
                 for Edge in Data.edges:
                     Edge.keyframe_delete('bevel_weight')
-            
+
             if context.window_manager.key_vbevel:
                 for Vert in Data.vertices:
                     Vert.keyframe_delete('bevel_weight')
-            
+
             if context.window_manager.key_crease:
                 for Edge in Data.edges:
                     Edge.keyframe_delete('crease')
-            
+
             if context.window_manager.key_vgroups:
                 for Vert in Data.vertices:
                     for Group in Vert.groups:
                         Group.keyframe_delete('weight')
-            
+
             if context.window_manager.key_uvs:
                 for UV in Data.uv_layers.active.data:
                     UV.keyframe_delete('uv')
-            
+
             if context.window_manager.key_vcols:
                 for VColLayer in Data.vertex_colors:
                     if VColLayer.active: # only delete in active VCol layer
                         for Data in VColLayer.data:
                             Data.keyframe_delete('color')
-            
+
             if Mode:
                 bpy.ops.object.editmode_toggle()
 
         if Obj.type == 'LATTICE':
-            
+
             Mode = False
             if context.mode != 'OBJECT':
                 Mode = not Mode
                 bpy.ops.object.editmode_toggle()
-            
+
             Data = Obj.data
-            
+
             if context.window_manager.key_shape:
                 if Obj.active_shape_key:
                     for Point in Obj.active_shape_key.data:
                         Point.keyframe_delete('co')
-                        
+
             if context.window_manager.key_points:
                 for Point in Data.points:
                     Point.keyframe_delete('co_deform')
-            
+
             if Mode:
                 bpy.ops.object.editmode_toggle()
-        
+
         if Obj.type in {'CURVE', 'SURFACE'}:
             Mode = False
             if context.mode != 'OBJECT':
                 Mode = not Mode
                 bpy.ops.object.editmode_toggle()
-            
+
             Data = Obj.data
-            
+
             # run this outside the splines loop (only once)
             if context.window_manager.key_shape:
                 if Obj.active_shape_key_index > 0:
@@ -421,7 +421,7 @@ class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
                             CV.keyframe_delete('handle_left')
                             CV.keyframe_delete('handle_right')
                         except: pass
-            
+
             for Spline in Data.splines:
                 if Spline.type == 'BEZIER':
                     for CV in Spline.bezier_points:
@@ -433,7 +433,7 @@ class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
                             CV.keyframe_delete('radius')
                         if context.window_manager.key_tilt:
                             CV.keyframe_delete('tilt')
-                        
+
                 elif Spline.type == 'NURBS':
                     for CV in Spline.points:
                         if context.window_manager.key_points:
@@ -442,7 +442,7 @@ class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
                             CV.keyframe_delete('radius')
                         if context.window_manager.key_tilt:
                             CV.keyframe_delete('tilt')
-                
+
             if Mode:
                 bpy.ops.object.editmode_toggle()
 
@@ -458,16 +458,16 @@ class ANIM_OT_clear_animation_animall(bpy.types.Operator):
 
     # on mouse up:
     def invoke(self, context, event):
-        
+
         wm = context.window_manager
         return wm.invoke_confirm(self, event)
-    
-    
+
+
     def execute(op, context):
-        
+
         Data = context.active_object.data
         Data.animation_data_clear()
-        
+
         return {'FINISHED'}
 
 ## Addons Preferences Update Panel
@@ -503,11 +503,11 @@ def register():
     bpy.utils.register_module(__name__)
 
     pass
-    
+
 def unregister():
     bpy.utils.unregister_module(__name__)
 
     pass
-    
+
 if __name__ == "__main__":
     register()

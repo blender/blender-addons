@@ -6,7 +6,7 @@ if DEBUG:
 	import sys
 	sys.path.append(os.environ['PYDEV_DEBUG_PATH'])
 	import pydevd
-	
+
 from .model.migiusModel import MigiusDXFLibDrawing
 
 SUPPORTED_TYPES = ('MESH')#,'CURVE','EMPTY','TEXT','CAMERA','LAMP')
@@ -28,7 +28,7 @@ def exportDXF(context, filePath, settings):
 		objects = (ob for ob in scene.objects if ob.is_visible(scene) and ob.select and ob.type in SUPPORTED_TYPES)
 	else:
 		objects = (ob for ob in scene.objects if ob.is_visible(scene) and ob.type in SUPPORTED_TYPES)
-		
+
 	if DEBUG: pydevd.settrace()
 	mw = get_view_projection_matrix(context, settings)
 
@@ -37,22 +37,22 @@ def exportDXF(context, filePath, settings):
 		#todo: fixme: seems to be the reason for missing BLOCK-export
 		#if APPLY_MODIFIERS: tmp_me = Mesh.New('tmp')
 		#else: tmp_me = None
-	
+
 		drawing = MigiusDXFLibDrawing()
 		exported = 0
 		for o in objects:
 			if _exportItem(context, o, mw, drawing, settings):
 				exported +=1
-	
+
 		if not drawing.isEmpty():
 			# NOTE: Only orthographic projection used now.
 	#		if PERSPECTIVE: # generate view border - passepartout
 	#			from .primitive_exporters.viewborder_exporter import ViewBorderDXFExporter
 	#			e = ViewBorderDXFExporter(settings)
 	#			e.export(drawing, ob, mx, mw)
-	
+
 			drawing.convert(filePath)
-			
+
 		duration = time.clock() - time1
 		print('%s objects exported in %.2f seconds. -----DONE-----' %\
 			(exported, duration))
@@ -75,7 +75,7 @@ def getCommons(ob, settings):
 	 thickness=None
 	 parent=None
 	"""
-	
+
 	BYBLOCK=0 #DXF-attribute: assign property to BLOCK defaults
 	BYLAYER=None #256 #DXF-attribute: assign property to LAYER defaults
 	LAYERNAME_DEF='' #default layer name
@@ -94,7 +94,7 @@ def getCommons(ob, settings):
 		ob_material = materials[0]
 		ob_mat_color = ob_material.material.diffuse_color
 	else: ob_mat_color, ob_material = None, None
-	if DEBUG: 
+	if DEBUG:
 		print('ob_mat_color, ob_material=', ob_mat_color, ob_material) #--------------
 
 	data_materials = ob.material_slots
@@ -202,7 +202,7 @@ def get_view_projection_matrix(context, settings):
 	Projection matrix is either identity if 3d export is selected or
 	camera projection if a camera or view is selected.
 	Currently only orthographic projection is used. (Subject to discussion).
-	"""	
+	"""
 	cam = settings['projectionThrough']
 	if cam == None:
 		mw = mathutils.Matrix()

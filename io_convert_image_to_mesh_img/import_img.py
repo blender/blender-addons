@@ -599,7 +599,7 @@ class hirise_dtm_importer(object):
       #   iterator of faces, each faces contains three or more indices to
       #   the *vertices* argument. eg: [(5, 6, 8, 9), (1, 2, 3), ...]
       #:type faces: iterable object
-      me.from_pydata(coords, [], faces)      
+      me.from_pydata(coords, [], faces)
 
       # me.vertices.add(len(coords)/3)
       # me.vertices.foreach_set("co", coords)
@@ -655,7 +655,7 @@ class hirise_dtm_importer(object):
 
       if self.__cropXY:
         image_iter = self.cropXY(image_iter,
-                                 XSize=self.__cropXY[0], 
+                                 XSize=self.__cropXY[0],
                                  YSize=self.__cropXY[1],
                                  XOffset=self.__cropXY[2],
                                  YOffset=self.__cropXY[3]

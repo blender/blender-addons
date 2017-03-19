@@ -39,13 +39,13 @@ from bpy.types import Operator, Panel
 def CreateNodeGroup(Type):
 
 # Look for NodeTree if it already exists return it
-    
+
     CreateGroup = True
     for Group in bpy.data.node_groups:
         if Group.name == Type:
             CreateGroup = False
             NodeGroup = Group
-            
+
     if CreateGroup == True:
         NodeGroup = bpy.data.node_groups.new(name=Type,type="ShaderNodeTree")
         NodeGroup.name = Type
@@ -81,7 +81,7 @@ def CreateNodeGroup(Type):
             MathGreaterThan.location = [-1200,600]
             MathGreaterThan.operation = 'GREATER_THAN'
             MathGreaterThan.inputs[1].default_value = 0
-    
+
             NodeGroup.links.new(AddAddAndEmission.inputs[0],AddAbsorptionAndScatter.outputs[0])
             NodeGroup.links.new(AddAddAndEmission.inputs[1],VolumeEmission.outputs[0])
             NodeGroup.links.new(AddAbsorptionAndScatter.inputs[0],VolumeAbsorption.outputs[0])
@@ -93,34 +93,34 @@ def CreateNodeGroup(Type):
             NodeGroup.links.new(MathScatterMultiply.inputs[0],MathGreaterThan.outputs[0])
             NodeGroup.links.new(MathEmissionMultiply.inputs[0],MathGreaterThan.outputs[0])
             NodeGroup.links.new(VolumeAbsorption.inputs[0],MathBrightnessMultiply.outputs[0])
-            
+
 # Create and Link In/Out to Group Node
 # Outputs
             group_outputs = NodeGroup.nodes.new('NodeGroupOutput')
             group_outputs.location = (600,395)
-            NodeGroup.outputs.new('NodeSocketShader','shader_out')             
-            NodeGroup.links.new(AddAddAndEmission.outputs[0],group_outputs.inputs['shader_out']) 
-            
+            NodeGroup.outputs.new('NodeSocketShader','shader_out')
+            NodeGroup.links.new(AddAddAndEmission.outputs[0],group_outputs.inputs['shader_out'])
+
 # Inputs
             group_inputs = NodeGroup.nodes.new('NodeGroupInput')
             group_inputs.location = (-1500,-300)
-            NodeGroup.inputs.new('NodeSocketFloat','Density')   
-            NodeGroup.inputs.new('NodeSocketFloat','Absorption Multiply')  
-            NodeGroup.inputs.new('NodeSocketColor','Absorption Color')  
-            NodeGroup.inputs.new('NodeSocketFloat','Scatter Multiply')  
-            NodeGroup.inputs.new('NodeSocketColor','Scatter Color')  
-            NodeGroup.inputs.new('NodeSocketFloat','Emission Amount')  
-            NodeGroup.inputs.new('NodeSocketFloat','Cloud Brightness')  
-                 
-            NodeGroup.links.new(group_inputs.outputs['Density'],MathGreaterThan.inputs[0]) 
-            NodeGroup.links.new(group_inputs.outputs['Absorption Multiply'],MathAbsorptionMultiply.inputs[1]) 
-            NodeGroup.links.new(group_inputs.outputs['Absorption Color'],MathBrightnessMultiply.inputs[0]) 
-            NodeGroup.links.new(group_inputs.outputs['Scatter Multiply'],MathScatterMultiply.inputs[1]) 
-            NodeGroup.links.new(group_inputs.outputs['Scatter Color'],VolumeScatter.inputs[0]) 
-            NodeGroup.links.new(group_inputs.outputs['Emission Amount'],MathEmissionMultiply.inputs[1]) 
-            NodeGroup.links.new(group_inputs.outputs['Cloud Brightness'],MathBrightnessMultiply.inputs[1]) 
-                 
-            
+            NodeGroup.inputs.new('NodeSocketFloat','Density')
+            NodeGroup.inputs.new('NodeSocketFloat','Absorption Multiply')
+            NodeGroup.inputs.new('NodeSocketColor','Absorption Color')
+            NodeGroup.inputs.new('NodeSocketFloat','Scatter Multiply')
+            NodeGroup.inputs.new('NodeSocketColor','Scatter Color')
+            NodeGroup.inputs.new('NodeSocketFloat','Emission Amount')
+            NodeGroup.inputs.new('NodeSocketFloat','Cloud Brightness')
+
+            NodeGroup.links.new(group_inputs.outputs['Density'],MathGreaterThan.inputs[0])
+            NodeGroup.links.new(group_inputs.outputs['Absorption Multiply'],MathAbsorptionMultiply.inputs[1])
+            NodeGroup.links.new(group_inputs.outputs['Absorption Color'],MathBrightnessMultiply.inputs[0])
+            NodeGroup.links.new(group_inputs.outputs['Scatter Multiply'],MathScatterMultiply.inputs[1])
+            NodeGroup.links.new(group_inputs.outputs['Scatter Color'],VolumeScatter.inputs[0])
+            NodeGroup.links.new(group_inputs.outputs['Emission Amount'],MathEmissionMultiply.inputs[1])
+            NodeGroup.links.new(group_inputs.outputs['Cloud Brightness'],MathBrightnessMultiply.inputs[1])
+
+
         if Type == 'CloudGen_TextureProperties':
             MathAdd = NodeGroup.nodes.new('ShaderNodeMath')
             MathAdd.location = [-200,0]
@@ -149,30 +149,30 @@ def CreateNodeGroup(Type):
             NoiseTex.inputs['Detail'].default_value = 4
             TexCoord = NodeGroup.nodes.new('ShaderNodeTexCoord')
             TexCoord.location = [-1250,0]
-            
-            
+
+
             NodeGroup.links.new(MathAdd.inputs[0],MathDensityMultiply.outputs[0])
             NodeGroup.links.new(MathAdd.inputs[1],PointDensityRamp.outputs[0])
             NodeGroup.links.new(MathDensityMultiply.inputs[0],CloudRamp.outputs[0])
             NodeGroup.links.new(CloudRamp.inputs[0],NoiseTex.outputs[0])
             NodeGroup.links.new(NoiseTex.inputs[0],TexCoord.outputs[3])
-            
+
 # Create and Link In/Out to Group Nodes
 # Outputs
             group_outputs = NodeGroup.nodes.new('NodeGroupOutput')
             group_outputs.location = (0,0)
-            NodeGroup.outputs.new('NodeSocketFloat','Density W_CloudTex')             
-            NodeGroup.links.new(MathAdd.outputs[0],group_outputs.inputs['Density W_CloudTex']) 
-            
+            NodeGroup.outputs.new('NodeSocketFloat','Density W_CloudTex')
+            NodeGroup.links.new(MathAdd.outputs[0],group_outputs.inputs['Density W_CloudTex'])
+
 # Inputs
             group_inputs = NodeGroup.nodes.new('NodeGroupInput')
             group_inputs.location = (-1250,-300)
-            NodeGroup.inputs.new('NodeSocketFloat','Scale')   
-            NodeGroup.inputs.new('NodeSocketFloat','Point Density In')  
-            NodeGroup.links.new(group_inputs.outputs['Scale'],NoiseTex.inputs['Scale']) 
-            NodeGroup.links.new(group_inputs.outputs['Point Density In'],MathDensityMultiply.inputs[1]) 
-            NodeGroup.links.new(group_inputs.outputs['Point Density In'],PointDensityRamp.inputs[0]) 
-            
+            NodeGroup.inputs.new('NodeSocketFloat','Scale')
+            NodeGroup.inputs.new('NodeSocketFloat','Point Density In')
+            NodeGroup.links.new(group_inputs.outputs['Scale'],NoiseTex.inputs['Scale'])
+            NodeGroup.links.new(group_inputs.outputs['Point Density In'],MathDensityMultiply.inputs[1])
+            NodeGroup.links.new(group_inputs.outputs['Point Density In'],PointDensityRamp.inputs[0])
+
     return NodeGroup
 
 # This routine takes an object and deletes all of the geometry in it
@@ -512,8 +512,8 @@ class GenerateCloud(Operator):
         # Parameters the user may want to change:
         # Number of points this number is multiplied by the volume to get
         # the number of points the scripts will put in the volume.
-        
-        if bpy.context.scene.render.engine == 'BLENDER_RENDER': 
+
+        if bpy.context.scene.render.engine == 'BLENDER_RENDER':
             numOfPoints = 1.0
             maxNumOfPoints = 100000
             maxPointDensityRadius = 1.5
@@ -528,17 +528,17 @@ class GenerateCloud(Operator):
             pointDensityRadiusFactor = .37
             densityScale = 1.5
             noiseScale = 1
-            
-            
+
+
         # What should we do?
         WhatToDo = getActionToDo(active_object)
 
         if WhatToDo == 'DEGENERATE':
             # Degenerate Cloud
             mainObj = active_object
-            
+
             bpy.ops.object.hide_view_clear()
-            
+
             cloudMembers = active_object.children
 
             createdObjects = []
@@ -714,9 +714,9 @@ class GenerateCloud(Operator):
 
             # Set time
             scene.frame_current = 1
-                
+
             #Set Up Material for Blender Internal
-            if bpy.context.scene.render.engine == 'BLENDER_RENDER': 
+            if bpy.context.scene.render.engine == 'BLENDER_RENDER':
                 # Set Up the Cloud Material
                 cloudMaterial.name = "CloudMaterial"
                 cloudMaterial.type = 'VOLUME'
@@ -766,64 +766,64 @@ class GenerateCloud(Operator):
                 bpy.ops.texture.slot_move(type='UP')
 
             #Set Up Material for Cycles Engine
-            elif bpy.context.scene.render.engine == 'CYCLES': 
+            elif bpy.context.scene.render.engine == 'CYCLES':
                 VolumePropertiesGroup = CreateNodeGroup('CloudGen_VolumeProperties')
                 CloudTexPropertiesGroup = CreateNodeGroup('CloudGen_TextureProperties')
-  
+
                 cloudMaterial.name = "CloudMaterial"
                 # Add a texture
                 # vMaterialTextureSlots = cloudMaterial.texture_slots  # UNUSED
                 cloudtex = blend_data.textures.new("CloudTex", type='CLOUDS')
                 cloudtex.noise_type = 'HARD_NOISE'
-                cloudtex.noise_scale = 2     
-                
+                cloudtex.noise_scale = 2
+
                 cloudMaterial.use_nodes = True
                 cloudTree = cloudMaterial.node_tree
                 cloudMatNodes = cloudTree.nodes
                 cloudMatNodes.clear()
-                
-                outputNode = cloudMatNodes.new('ShaderNodeOutputMaterial') 
+
+                outputNode = cloudMatNodes.new('ShaderNodeOutputMaterial')
                 outputNode.location = (200,300)
-                
-                tranparentNode = cloudMatNodes.new('ShaderNodeBsdfTransparent') 
-                tranparentNode.location = (0,300)  
-                
-                volumeGroup = cloudMatNodes.new("ShaderNodeGroup")  
+
+                tranparentNode = cloudMatNodes.new('ShaderNodeBsdfTransparent')
+                tranparentNode.location = (0,300)
+
+                volumeGroup = cloudMatNodes.new("ShaderNodeGroup")
                 volumeGroup.node_tree = VolumePropertiesGroup
                 volumeGroup.location = (0,150)
-                
-                cloudTexGroup = cloudMatNodes.new("ShaderNodeGroup")  
+
+                cloudTexGroup = cloudMatNodes.new("ShaderNodeGroup")
                 cloudTexGroup.node_tree = CloudTexPropertiesGroup
                 cloudTexGroup.location = (-200,150)
-                
-                PointDensityNode = cloudMatNodes.new("ShaderNodeTexPointDensity")  
+
+                PointDensityNode = cloudMatNodes.new("ShaderNodeTexPointDensity")
                 PointDensityNode.location = (-400,150)
                 PointDensityNode.resolution = 100
                 PointDensityNode.space = 'OBJECT'
-                PointDensityNode.interpolation = 'Linear'                
+                PointDensityNode.interpolation = 'Linear'
 #                PointDensityNode.color_source = 'CONSTANT'
-                
+
                 cloudTree.links.new(outputNode.inputs[0],tranparentNode.outputs[0])
                 cloudTree.links.new(outputNode.inputs[1],volumeGroup.outputs[0])
                 cloudTree.links.new(volumeGroup.inputs[0],cloudTexGroup.outputs[0])
                 cloudTree.links.new(cloudTexGroup.inputs[1],PointDensityNode.outputs[1])
-                
+
                 #PointDensityNode.point_source = 'PARTICLE_SYSTEM'
                 #VolumePropsNode = cloudMatNodes.new(VolumePropertiesGroup)
                 #VolumePropsNode.location = (-200,0)
-                
-                
+
+
                 #tree = bpy.data.materials['CloudMaterial'].node_tree
                 #group = bpy.data.groups.data.node_groups['CloudGen_VolumeProperties']
                 #newgroup = tree.nodes.new("ShaderNodeGroup")
                 #newgroup.node_tree = bpy.data.node_groups['CloudGen_VolumeProperties']
-                #ramp = tree.nodes.new('ShaderNodeValToRGB') 
+                #ramp = tree.nodes.new('ShaderNodeValToRGB')
                 #cramp = ramp.color_ramp
-                
+
                 #mport bpy
                 #obj = bpy.data.objects['CloudBounds']
                 #(obj.dimensions[0] * obj.dimensions[1] * obj.dimensions[2])
-                
+
             # Estimate the number of particles for the size of bounds.
             volumeBoundBox = (bounds.dimensions[0] * bounds.dimensions[1] * bounds.dimensions[2])
             numParticles = int((2.4462 * volumeBoundBox + 430.4) * numOfPoints)
@@ -838,14 +838,14 @@ class GenerateCloud(Operator):
             cloudParticles.settings.count = numParticles
 
             PDensityRadius = (.00013764 * volumeBoundBox + .3989) * pointDensityRadiusFactor
-            
-            if bpy.context.scene.render.engine == 'BLENDER_RENDER': 
+
+            if bpy.context.scene.render.engine == 'BLENDER_RENDER':
                 pDensity.point_density.radius = PDensityRadius
 
                 if pDensity.point_density.radius > maxPointDensityRadius:
                     pDensity.point_density.radius = maxPointDensityRadius
-                    
-            elif bpy.context.scene.render.engine == 'CYCLES': 
+
+            elif bpy.context.scene.render.engine == 'CYCLES':
                 PointDensityNode.radius = PDensityRadius
 
                 if PDensityRadius > maxPointDensityRadius:
@@ -879,28 +879,28 @@ class GenerateCloud(Operator):
                 # Apply modifier
                 bpy.ops.object.modifier_apply(apply_as='DATA', modifier=cldPntsModifiers[0].name)
 
-                if bpy.context.scene.render.engine == 'BLENDER_RENDER': 
+                if bpy.context.scene.render.engine == 'BLENDER_RENDER':
                     pDensity.point_density.point_source = 'OBJECT'
                     pDensity.point_density.object = cloudPnts
 
-                elif bpy.context.scene.render.engine == 'CYCLES': 
+                elif bpy.context.scene.render.engine == 'CYCLES':
                     PointDensityNode.point_source = 'OBJECT'
                     PointDensityNode.object = cloudPnts
-                    
+
                 removeParticleSystemFromObj(scene, cloud)
 
             else:
 
-                if bpy.context.scene.render.engine == 'BLENDER_RENDER': 
+                if bpy.context.scene.render.engine == 'BLENDER_RENDER':
                     pDensity.point_density.point_source = 'PARTICLE_SYSTEM'
                     pDensity.point_density.object = cloud
                     pDensity.point_density.particle_system = cloudParticles
 
-                elif bpy.context.scene.render.engine == 'CYCLES': 
+                elif bpy.context.scene.render.engine == 'CYCLES':
                     PointDensityNode.point_source = 'PARTICLE_SYSTEM'
                     PointDensityNode.particle_system = cloudPnts
-                    
-            if bpy.context.scene.render.engine == 'BLENDER_RENDER': 
+
+            if bpy.context.scene.render.engine == 'BLENDER_RENDER':
                 if scene.cloud_type == '1':  # Cumulous
                     print("Cumulous")
                     mVolume.density_scale = 2.22
@@ -932,33 +932,33 @@ class GenerateCloud(Operator):
                     pRampElement3 = pRampElements.new(0.669)
                     pRampElement3.color = 0.0, 0.0, 0.040, 1
 
-                    
+
             elif bpy.context.scene.render.engine == 'CYCLES':
-                
-                volumeGroup.inputs['Absorption Multiply'].default_value = 50       
-                volumeGroup.inputs['Absorption Color'].default_value = (1.0, 1.0, 1.0, 1.0)      
-                volumeGroup.inputs['Scatter Multiply'].default_value  = 30       
-                volumeGroup.inputs['Scatter Color'].default_value = (.58, .58, .58, 1.0)            
-                volumeGroup.inputs['Emission Amount'].default_value = .1   
+
+                volumeGroup.inputs['Absorption Multiply'].default_value = 50
+                volumeGroup.inputs['Absorption Color'].default_value = (1.0, 1.0, 1.0, 1.0)
+                volumeGroup.inputs['Scatter Multiply'].default_value  = 30
+                volumeGroup.inputs['Scatter Color'].default_value = (.58, .58, .58, 1.0)
+                volumeGroup.inputs['Emission Amount'].default_value = .1
                 volumeGroup.inputs['Cloud Brightness'].default_value  = 1.3
                 noiseCloudScale = volumeBoundBox*(-.001973)+5.1216
                 if noiseCloudScale < .05:
-                    noiseCloudScale = .05    
+                    noiseCloudScale = .05
                 cloudTexGroup.inputs['Scale'].default_value  = noiseCloudScale
-                   
+
                 if scene.cloud_type == '1':  # Cumulous
                     print("Cumulous")
-                    
+
                 elif scene.cloud_type == '2':  # Cirrus
                     print("Cirrus")
-                    
+
                 elif scene.cloud_type == '3':  # Explosion
                     print("Explosion")
-                
+
                 #to cloud to view in cycles in render mode we need to hide geometry meshes...
-                firstObject.hide = True   
-                cloud.hide = True 
-                    
+                firstObject.hide = True
+                cloud.hide = True
+
             # Select the object.
             bounds.select = True
             scene.objects.active = bounds

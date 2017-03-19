@@ -27,26 +27,26 @@ from rna_prop_ui     import rna_idprop_ui_prop_get
 
 def create_arm( cls, bones ):
     org_bones = cls.org_bones
-    
+
     bpy.ops.object.mode_set(mode='EDIT')
     eb = cls.obj.data.edit_bones
 
     ctrl = get_bone_name( org_bones[2], 'ctrl', 'ik' )
-    
+
     # Create IK arm control
     ctrl = copy_bone( cls.obj, org_bones[2], ctrl )
 
-    # clear parent (so that rigify will parent to root) 
+    # clear parent (so that rigify will parent to root)
     eb[ ctrl ].parent      = None
     eb[ ctrl ].use_connect = False
 
-    # Parent 
+    # Parent
     eb[ bones['ik']['mch_target'] ].parent      = eb[ ctrl ]
     eb[ bones['ik']['mch_target'] ].use_connect = False
-    
+
     # Set up constraints
     # Constrain mch target bone to the ik control and mch stretch
-   
+
     make_constraint( cls, bones['ik']['mch_target'], {
         'constraint'  : 'COPY_LOCATION',
         'subtarget'   : bones['ik']['mch_str'],
@@ -80,7 +80,7 @@ def create_arm( cls, bones ):
 
     # Create ik/fk switch property
     pb_parent = pb[ bones['parent'] ]
-    
+
     pb_parent['IK_Strertch'] = 1.0
     prop = rna_idprop_ui_prop_get( pb_parent, 'IK_Strertch', create=True )
     prop["min"]         = 0.0
@@ -93,7 +93,7 @@ def create_arm( cls, bones ):
     b        = bones['ik']['mch_str']
     drv      = pb[b].constraints[-1].driver_add("influence").driver
     drv.type = 'SUM'
-    
+
     var = drv.variables.new()
     var.name = prop.name
     var.type = "SINGLE_PROP"
@@ -102,7 +102,7 @@ def create_arm( cls, bones ):
         pb_parent.path_from_id() + '['+ '"' + prop.name + '"' + ']'
 
     drv_modifier = cls.obj.animation_data.drivers[-1].modifiers[0]
-    
+
     drv_modifier.mode            = 'POLYNOMIAL'
     drv_modifier.poly_order      = 1
     drv_modifier.coefficients[0] = 1.0

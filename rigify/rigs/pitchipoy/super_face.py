@@ -18,17 +18,17 @@ if is_selected(all_controls):
     layout.prop(pose_bones[eyes_ctrl_name], '["%s"]', slider=True)
 """
 class Rig:
-    
+
     def __init__(self, obj, bone_name, params):
         self.obj = obj
 
         b = self.obj.data.bones
 
-        children = [ 
-            "nose", "lip.T.L", "lip.B.L", "jaw", "ear.L", "ear.R", "lip.T.R", 
-            "lip.B.R", "brow.B.L", "lid.T.L", "brow.B.R", "lid.T.R", 
+        children = [
+            "nose", "lip.T.L", "lip.B.L", "jaw", "ear.L", "ear.R", "lip.T.R",
+            "lip.B.R", "brow.B.L", "lid.T.L", "brow.B.R", "lid.T.R",
             "forehead.L", "forehead.R", "forehead.L.001", "forehead.R.001",
-            "forehead.L.002", "forehead.R.002", "eye.L", "eye.R", "cheek.T.L", 
+            "forehead.L.002", "forehead.R.002", "eye.L", "eye.R", "cheek.T.L",
             "cheek.T.R", "teeth.T", "teeth.B", "tongue", "temple.L",
             "temple.R"
         ]
@@ -40,7 +40,7 @@ class Rig:
 
         for child in children:
             grand_children += connected_children_names( self.obj, child )
-            
+
         self.org_bones   = [bone_name] + children + grand_children
         self.face_length = obj.data.edit_bones[ self.org_bones[0] ].length
         self.params      = params
@@ -58,22 +58,22 @@ class Rig:
     def symmetrical_split( self, bones ):
 
         # RE pattern match right or left parts
-        # match the letter "L" (or "R"), followed by an optional dot (".") 
+        # match the letter "L" (or "R"), followed by an optional dot (".")
         # and 0 or more digits at the end of the the string
-        left_pattern  = 'L\.?\d*$' 
+        left_pattern  = 'L\.?\d*$'
         right_pattern = 'R\.?\d*$'
 
         left  = sorted( [ name for name in bones if re.search( left_pattern,  name ) ] )
-        right = sorted( [ name for name in bones if re.search( right_pattern, name ) ] )        
+        right = sorted( [ name for name in bones if re.search( right_pattern, name ) ] )
 
         return left, right
-        
+
     def create_deformation( self ):
         org_bones = self.org_bones
-        
+
         bpy.ops.object.mode_set(mode ='EDIT')
         eb = self.obj.data.edit_bones
-        
+
         def_bones = []
         for org in org_bones:
             if 'face' in org or 'teeth' in org or 'eye' in org:
@@ -97,12 +97,12 @@ class Rig:
         brow_left.reverse()
         brow_right.reverse()
 
-        for browL, browR, foreheadL, foreheadR in zip( 
+        for browL, browR, foreheadL, foreheadR in zip(
             brow_left, brow_right, forehead_left, forehead_right ):
 
             eb[foreheadL].tail = eb[browL].head
             eb[foreheadR].tail = eb[browR].head
-        
+
         return { 'all' : def_bones }
 
 
@@ -112,53 +112,53 @@ class Rig:
         ## create control bones
         bpy.ops.object.mode_set(mode ='EDIT')
         eb = self.obj.data.edit_bones
-        
+
         # eyes ctrls
         eyeL_e = eb[ bones['eyes'][0] ]
         eyeR_e = eb[ bones['eyes'][1] ]
-        
+
         distance = ( eyeL_e.head - eyeR_e.head ) * 3
         distance = distance.cross( (0, 0, 1) )
         eye_length = eyeL_e.length
 
         eyeL_ctrl_name = strip_org( bones['eyes'][0] )
         eyeR_ctrl_name = strip_org( bones['eyes'][1] )
-        
+
         eyeL_ctrl_name = copy_bone( self.obj, bones['eyes'][0],  eyeL_ctrl_name )
         eyeR_ctrl_name = copy_bone( self.obj, bones['eyes'][1],  eyeR_ctrl_name )
         eyes_ctrl_name = copy_bone( self.obj, bones['eyes'][0], 'eyes'          )
-        
+
         eyeL_ctrl_e = eb[ eyeL_ctrl_name ]
         eyeR_ctrl_e = eb[ eyeR_ctrl_name ]
         eyes_ctrl_e = eb[ 'eyes' ]
-        
+
         eyeL_ctrl_e.head    += distance
         eyeR_ctrl_e.head    += distance
         eyes_ctrl_e.head[:] =  ( eyeL_ctrl_e.head + eyeR_ctrl_e.head ) / 2
-        
+
         for bone in [ eyeL_ctrl_e, eyeR_ctrl_e, eyes_ctrl_e ]:
             bone.tail[:] = bone.head + Vector( [ 0, 0, eye_length * 0.75 ] )
 
         ## Widget for transforming the both eyes
         eye_master_names = []
         for bone in bones['eyes']:
-            eye_master = copy_bone( 
-                self.obj, 
-                bone,  
+            eye_master = copy_bone(
+                self.obj,
+                bone,
                 'master_' + strip_org(bone)
             )
 
             eye_master_names.append( eye_master )
-                
+
         ## turbo: adding a master nose for transforming the whole nose
         master_nose = copy_bone(self.obj, 'ORG-nose.004', 'nose_master')
         eb[master_nose].tail[:] = \
             eb[master_nose].head + Vector([0, self.face_length / -4, 0])
-        
+
         # ears ctrls
         earL_name = strip_org( bones['ears'][0] )
         earR_name = strip_org( bones['ears'][1] )
-        
+
         earL_ctrl_name = copy_bone( self.obj, org( bones['ears'][0] ), earL_name )
         earR_ctrl_name = copy_bone( self.obj, org( bones['ears'][1] ), earR_name )
 
@@ -171,29 +171,29 @@ class Rig:
         jaw_org_e  = eb[ bones['jaw'][2] ]
 
         eb[ jaw_ctrl_name ].head[:] = ( jawL_org_e.head + jawR_org_e.head ) / 2
-        
+
         # teeth ctrls
         teethT_name = strip_org( bones['teeth'][0] )
         teethB_name = strip_org( bones['teeth'][1] )
-        
+
         teethT_ctrl_name = copy_bone( self.obj, org( bones['teeth'][0] ), teethT_name )
         teethB_ctrl_name = copy_bone( self.obj, org( bones['teeth'][1] ), teethB_name )
-        
+
         # tongue ctrl
         tongue_org  = bones['tongue'].pop()
         tongue_name = strip_org( tongue_org ) + '_master'
-        
+
         tongue_ctrl_name = copy_bone( self.obj, tongue_org, tongue_name )
-        
+
         flip_bone( self.obj, tongue_ctrl_name )
-        
+
         ## Assign widgets
         bpy.ops.object.mode_set(mode ='OBJECT')
-        
+
         # Assign each eye widgets
         create_eye_widget( self.obj, eyeL_ctrl_name )
         create_eye_widget( self.obj, eyeR_ctrl_name )
-        
+
         # Assign eyes widgets
         create_eyes_widget( self.obj, eyes_ctrl_name )
 
@@ -203,25 +203,25 @@ class Rig:
 
         # Assign nose_master widget
         create_square_widget( self.obj, master_nose, size = 1 )
-        
+
         # Assign ears widget
         create_ear_widget( self.obj, earL_ctrl_name )
         create_ear_widget( self.obj, earR_ctrl_name )
 
         # Assign jaw widget
         create_jaw_widget( self.obj, jaw_ctrl_name )
-        
+
         # Assign teeth widget
         create_teeth_widget( self.obj, teethT_ctrl_name )
         create_teeth_widget( self.obj, teethB_ctrl_name )
-        
+
         # Assign tongue widget ( using the jaw widget )
         create_jaw_widget( self.obj, tongue_ctrl_name )
 
-        return { 
-            'eyes'   : [ 
-                eyeL_ctrl_name, 
-                eyeR_ctrl_name, 
+        return {
+            'eyes'   : [
+                eyeL_ctrl_name,
+                eyeR_ctrl_name,
                 eyes_ctrl_name,
             ] + eye_master_names,
             'ears'   : [ earL_ctrl_name, earR_ctrl_name     ],
@@ -230,7 +230,7 @@ class Rig:
             'tongue' : [ tongue_ctrl_name                   ],
             'nose'   : [ master_nose                        ]
             }
-            
+
 
     def create_tweak( self, bones, uniques, tails ):
         org_bones = self.org_bones
@@ -240,7 +240,7 @@ class Rig:
         eb = self.obj.data.edit_bones
 
         tweaks = []
-        
+
         for bone in bones + list( uniques.keys() ):
 
             tweak_name = strip_org( bone )
@@ -273,21 +273,21 @@ class Rig:
                 eb[ tweak_name ].head    = eb[ bone ].tail
                 eb[ tweak_name ].tail[:] = \
                     eb[ tweak_name ].head + Vector(( 0, 0, self.face_length / 7 ))
-                
+
                 tweaks.append( tweak_name )
-            
+
         bpy.ops.object.mode_set(mode ='OBJECT')
         pb = self.obj.pose.bones
-        
+
         primary_tweaks = [
-            "lid.B.L.002", "lid.T.L.002", "lid.B.R.002", "lid.T.R.002", 
-            "chin", "brow.T.L.001", "brow.T.L.002", "brow.T.L.003", 
-            "brow.T.R.001", "brow.T.R.002", "brow.T.R.003", "lip.B", 
-            "lip.B.L.001", "lip.B.R.001", "cheek.B.L.001", "cheek.B.R.001", 
-            "lips.L", "lips.R", "lip.T.L.001", "lip.T.R.001", "lip.T", 
+            "lid.B.L.002", "lid.T.L.002", "lid.B.R.002", "lid.T.R.002",
+            "chin", "brow.T.L.001", "brow.T.L.002", "brow.T.L.003",
+            "brow.T.R.001", "brow.T.R.002", "brow.T.R.003", "lip.B",
+            "lip.B.L.001", "lip.B.R.001", "cheek.B.L.001", "cheek.B.R.001",
+            "lips.L", "lips.R", "lip.T.L.001", "lip.T.R.001", "lip.T",
             "nose.002", "nose.L.001", "nose.R.001"
         ]
-        
+
         for bone in tweaks:
             if bone in primary_tweaks:
                 if self.primary_layers:
@@ -297,7 +297,7 @@ class Rig:
                 if self.secondary_layers:
                     pb[bone].bone.layers = self.secondary_layers
                 create_face_widget( self.obj, bone )
-                    
+
         return { 'all' : tweaks }
 
 
@@ -322,20 +322,20 @@ class Rig:
 
         tweak_exceptions = [] # bones not used to create tweaks
         tweak_exceptions += [ bone for bone in org_bones if 'forehead' in bone or 'temple' in bone ]
-        
-        tweak_tail =  [ 'brow.B.L.003', 'brow.B.R.003', 'nose.004', 'chin.001' ] 
-        tweak_tail += [ 'lip.T.L.001', 'lip.T.R.001', 'tongue.002' ] 
+
+        tweak_tail =  [ 'brow.B.L.003', 'brow.B.R.003', 'nose.004', 'chin.001' ]
+        tweak_tail += [ 'lip.T.L.001', 'lip.T.R.001', 'tongue.002' ]
 
         tweak_exceptions += [ 'lip.T.R', 'lip.B.R', 'ear.L.001', 'ear.R.001' ] + list(tweak_unique.keys())
         tweak_exceptions += [ 'face', 'cheek.T.L', 'cheek.T.R', 'cheek.B.L', 'cheek.B.R' ]
         tweak_exceptions += [ 'ear.L', 'ear.R', 'eye.L', 'eye.R' ]
-        
-        tweak_exceptions += org_to_ctrls.keys() 
+
+        tweak_exceptions += org_to_ctrls.keys()
         tweak_exceptions += org_to_ctrls['teeth']
-        
+
         tweak_exceptions.pop( tweak_exceptions.index('tongue') )
         tweak_exceptions.pop( tweak_exceptions.index('jaw')    )
-        
+
         tweak_exceptions = [ org( bone ) for bone in tweak_exceptions ]
         tweak_tail       = [ org( bone ) for bone in tweak_tail       ]
 
@@ -343,14 +343,14 @@ class Rig:
 
         ctrls  = self.create_ctrl( org_to_ctrls )
         tweaks = self.create_tweak( org_to_tweak, tweak_unique, tweak_tail )
-        
+
         return { 'ctrls' : ctrls, 'tweaks' : tweaks }, tweak_unique
 
     def create_mch( self, jaw_ctrl, tongue_ctrl ):
         org_bones = self.org_bones
         bpy.ops.object.mode_set(mode ='EDIT')
         eb = self.obj.data.edit_bones
-        
+
         # Create eyes mch bones
         eyes = [ bone for bone in org_bones if 'eye' in bone ]
 
@@ -372,24 +372,24 @@ class Rig:
 
             eb[ mch_name ].head[:] = eb[ mch_name ].tail
             eb[ mch_name ].tail[:] = eb[ mch_name ].head + Vector( ( 0, 0, 0.005 ) )
-            
+
         # Create the eyes' parent mch
         face = [ bone for bone in org_bones if 'face' in bone ].pop()
-        
+
         mch_name = 'eyes_parent'
         mch_name = make_mechanism_name( mch_name )
         mch_name = copy_bone( self.obj, face, mch_name )
         eb[ mch_name ].use_connect = False
         eb[ mch_name ].parent      = None
-        
+
         eb[ mch_name ].length /= 4
 
         mch_bones['eyes_parent'] = [ mch_name ]
-        
+
         # Create the lids' mch bones
         all_lids       = [ bone for bone in org_bones if 'lid' in bone ]
         lids_L, lids_R = self.symmetrical_split( all_lids )
-        
+
         all_lids = [ lids_L, lids_R ]
 
         mch_bones['lids'] = []
@@ -403,11 +403,11 @@ class Rig:
                 eb[ mch_name ].parent      = None
 
                 eb[ mch_name ].tail[:] = eb[ bone ].head
-        
-                mch_bones['lids'].append( mch_name ) 
-        
+
+                mch_bones['lids'].append( mch_name )
+
         mch_bones['jaw'] = []
-        
+
         length_subtractor = eb[ jaw_ctrl ].length / 6
         # Create the jaw mch bones
         for i in range( 6 ):
@@ -426,9 +426,9 @@ class Rig:
             mch_bones['jaw'].append( mch_name )
 
         # Tongue mch bones
-        
+
         mch_bones['tongue'] = []
-        
+
         # create mch bones for all tongue org_bones except the first one
         for bone in sorted([ org for org in org_bones if 'tongue' in org ])[1:]:
             mch_name = make_mechanism_name( strip_org( bone ) )
@@ -436,18 +436,18 @@ class Rig:
 
             eb[ mch_name ].use_connect = False
             eb[ mch_name ].parent      = None
-            
+
             mch_bones['tongue'].append( mch_name )
-        
+
         return mch_bones
-        
+
     def parent_bones( self, all_bones, tweak_unique ):
         org_bones = self.org_bones
         bpy.ops.object.mode_set(mode ='EDIT')
         eb = self.obj.data.edit_bones
-        
+
         face_name = [ bone for bone in org_bones if 'face' in bone ].pop()
-        
+
         # Initially parenting all bones to the face org bone.
         for category in list( all_bones.keys() ):
             for area in list( all_bones[category] ):
@@ -455,7 +455,7 @@ class Rig:
                     eb[ bone ].parent = eb[ face_name ]
 
         ## Parenting all deformation bones and org bones
-        
+
         # Parent all the deformation bones that have respective tweaks
         def_tweaks = [ bone for bone in all_bones['deform']['all'] if bone[4:] in all_bones['tweaks']['all'] ]
 
@@ -464,10 +464,10 @@ class Rig:
             eb[ bone ].parent = eb[ org('face') ]
 
         for bone in def_tweaks:
-            # the def and the matching org bone are parented to their corresponding tweak, 
+            # the def and the matching org bone are parented to their corresponding tweak,
             # whose name is the same as that of the def bone, without the "DEF-" (first 4 chars)
             eb[ bone ].parent            = eb[ bone[4:] ]
-            eb[ org( bone[4:] ) ].parent = eb[ bone[4:] ] 
+            eb[ org( bone[4:] ) ].parent = eb[ bone[4:] ]
 
         # Parent ORG eyes to corresponding mch bones
         for bone in [ bone for bone in org_bones if 'eye' in bone ]:
@@ -478,10 +478,10 @@ class Rig:
             # example: 'lip.B' matches 'DEF-lip.B.R' and 'DEF-lip.B.L' if
             # you cut off the "DEF-" [4:] and the ".L" or ".R" [:-2]
             lip_defs = [ bone for bone in all_bones['deform']['all'] if bone[4:-2] == lip_tweak ]
-                        
+
             for bone in lip_defs:
                 eb[bone].parent = eb[ lip_tweak ]
-  
+
         # parent cheek bones top respetive tweaks
         lips  = [ 'lips.L',   'lips.R'   ]
         brows = [ 'brow.T.L', 'brow.T.R' ]
@@ -491,11 +491,11 @@ class Rig:
         for lip, brow, cheekB, cheekT in zip( lips, brows, cheekB_defs, cheekT_defs ):
             eb[ cheekB ].parent = eb[ lip ]
             eb[ cheekT ].parent = eb[ brow ]
-        
+
         # parent ear deform bones to their controls
         ear_defs  = [ 'DEF-ear.L', 'DEF-ear.L.001', 'DEF-ear.R', 'DEF-ear.R.001' ]
         ear_ctrls = [ 'ear.L', 'ear.R' ]
-        
+
         eb[ 'DEF-jaw' ].parent = eb[ 'jaw' ] # Parent jaw def bone to jaw tweak
 
         for ear_ctrl in ear_ctrls:
@@ -505,30 +505,30 @@ class Rig:
 
         # Parent eyelid deform bones (each lid def bone is parented to its respective MCH bone)
         def_lids = [ bone for bone in all_bones['deform']['all'] if 'lid' in bone ]
-        
+
         for bone in def_lids:
             mch = make_mechanism_name( bone[4:] )
             eb[ bone ].parent = eb[ mch ]
-        
+
         ## Parenting all mch bones
-        
+
         eb[ 'MCH-eyes_parent' ].parent = None  # eyes_parent will be parented to root
-        
+
         # parent all mch tongue bones to the jaw master control bone
         for bone in all_bones['mch']['tongue']:
             eb[ bone ].parent = eb[ all_bones['ctrls']['jaw'][0] ]
 
         ## Parenting the control bones
-        
+
         # parent teeth.B and tongue master controls to the jaw master control bone
         for bone in [ 'teeth.B', 'tongue_master' ]:
             eb[ bone ].parent = eb[ all_bones['ctrls']['jaw'][0] ]
 
         # eyes
         eb[ 'eyes' ].parent = eb[ 'MCH-eyes_parent' ]
-        
-        eyes = [ 
-            bone for bone in all_bones['ctrls']['eyes'] if 'eyes' not in bone 
+
+        eyes = [
+            bone for bone in all_bones['ctrls']['eyes'] if 'eyes' not in bone
         ][0:2]
 
         for eye in eyes:
@@ -539,17 +539,17 @@ class Rig:
             eb[ eye_master ].parent = eb[ 'ORG-face' ]
 
         # Parent brow.b, eyes mch and lid tweaks and mch bones to masters
-        tweaks = [ 
+        tweaks = [
             b for b in all_bones['tweaks']['all'] if 'lid' in b or 'brow.B' in b
         ]
         mch = all_bones['mch']['lids']  + \
               all_bones['mch']['eye.R'] + \
               all_bones['mch']['eye.L']
-        
+
         everyone = tweaks + mch
-        
+
         left, right = self.symmetrical_split( everyone )
-        
+
         for l in left:
             eb[ l ].parent = eb[ 'master_eye.L' ]
 
@@ -557,7 +557,7 @@ class Rig:
             eb[ r ].parent = eb[ 'master_eye.R' ]
 
         ## turbo: nose to mch jaw.004
-        eb[ all_bones['ctrls']['nose'].pop() ].parent = eb['MCH-jaw_master.004'] 
+        eb[ all_bones['ctrls']['nose'].pop() ].parent = eb['MCH-jaw_master.004']
 
         ## Parenting the tweak bones
 
@@ -600,12 +600,12 @@ class Rig:
                 'nose.L.001',
                 'nose.R.001'
                 ]
-             }    
-            
+             }
+
         for parent in list( groups.keys() ):
             for bone in groups[parent]:
                 eb[ bone ].parent = eb[ parent ]
-        
+
         # Remaining arbitrary relatioships for tweak bone parenting
         eb[ 'chin.001'   ].parent = eb[ 'chin'           ]
         eb[ 'chin.002'   ].parent = eb[ 'lip.B'          ]
@@ -620,14 +620,14 @@ class Rig:
             eb[ bone                       ].parent = eb[ 'ear.L' ]
             eb[ bone.replace( '.L', '.R' ) ].parent = eb[ 'ear.R' ]
 
-        
+
     def make_constraits( self, constraint_type, bone, subtarget, influence = 1 ):
         org_bones = self.org_bones
         bpy.ops.object.mode_set(mode ='OBJECT')
         pb = self.obj.pose.bones
 
         owner_pb = pb[bone]
-        
+
         if   constraint_type == 'def_tweak':
 
             const = owner_pb.constraints.new( 'DAMPED_TRACK' )
@@ -649,28 +649,28 @@ class Rig:
             const.target    = self.obj
             const.subtarget = subtarget
             const.head_tail = 1.0
-        
+
         elif constraint_type == 'mch_eyes':
-        
+
             const = owner_pb.constraints.new( 'DAMPED_TRACK' )
             const.target    = self.obj
             const.subtarget = subtarget
-        
+
         elif constraint_type == 'mch_eyes_lids_follow':
 
             const = owner_pb.constraints.new( 'COPY_LOCATION' )
             const.target    = self.obj
             const.subtarget = subtarget
             const.head_tail = 1.0
-                    
+
         elif constraint_type == 'mch_eyes_parent':
-        
+
             const = owner_pb.constraints.new( 'COPY_TRANSFORMS' )
             const.target    = self.obj
             const.subtarget = subtarget
-            
+
         elif constraint_type == 'mch_jaw_master':
-        
+
             const = owner_pb.constraints.new( 'COPY_TRANSFORMS' )
             const.target    = self.obj
             const.subtarget = subtarget
@@ -682,9 +682,9 @@ class Rig:
             const.target    = self.obj
             const.subtarget = subtarget
             const.influence = influence
-        
+
         elif constraint_type == 'tweak_copyloc':
-        
+
             const = owner_pb.constraints.new( 'COPY_LOCATION' )
             const.target       = self.obj
             const.subtarget    = subtarget
@@ -692,25 +692,25 @@ class Rig:
             const.use_offset   = True
             const.target_space = 'LOCAL'
             const.owner_space  = 'LOCAL'
-        
+
         elif constraint_type == 'tweak_copy_rot_scl':
-        
+
             const = owner_pb.constraints.new( 'COPY_ROTATION' )
             const.target       = self.obj
             const.subtarget    = subtarget
             const.use_offset   = True
             const.target_space = 'LOCAL'
             const.owner_space  = 'LOCAL'
-            
+
             const = owner_pb.constraints.new( 'COPY_SCALE' )
             const.target       = self.obj
             const.subtarget    = subtarget
             const.use_offset   = True
             const.target_space = 'LOCAL'
             const.owner_space  = 'LOCAL'
-        
+
         elif constraint_type == 'tweak_copyloc_inv':
-        
+
             const = owner_pb.constraints.new( 'COPY_LOCATION' )
             const.target       = self.obj
             const.subtarget    = subtarget
@@ -721,18 +721,18 @@ class Rig:
             const.invert_x     = True
             const.invert_y     = True
             const.invert_z     = True
-        
+
         elif constraint_type == 'mch_tongue_copy_trans':
-        
+
             const = owner_pb.constraints.new( 'COPY_TRANSFORMS' )
             const.target    = self.obj
             const.subtarget = subtarget
             const.influence = influence
 
-    
+
     def constraints( self, all_bones ):
         ## Def bone constraints
-      
+
         def_specials = {
             # 'bone'             : 'target'
             'DEF-jaw'               : 'chin',
@@ -780,42 +780,42 @@ class Rig:
                 else:
                     tweak = "".join( matches ) + ".001"
                 self.make_constraits('def_tweak', bone, tweak )
-        
+
         def_lids = sorted( [ bone for bone in all_bones['deform']['all'] if 'lid' in bone ] )
         mch_lids = sorted( [ bone for bone in all_bones['mch']['lids'] ] )
-        
+
         def_lidsL, def_lidsR = self.symmetrical_split( def_lids )
         mch_lidsL, mch_lidsR = self.symmetrical_split( mch_lids )
 
         # Take the last mch_lid bone and place it at the end
         mch_lidsL = mch_lidsL[1:] + [ mch_lidsL[0] ]
         mch_lidsR = mch_lidsR[1:] + [ mch_lidsR[0] ]
-        
+
         for boneL, boneR, mchL, mchR in zip( def_lidsL, def_lidsR, mch_lidsL, mch_lidsR ):
             self.make_constraits('def_lids', boneL, mchL )
             self.make_constraits('def_lids', boneR, mchR )
 
         ## MCH constraints
-        
+
         # mch lids constraints
         for bone in all_bones['mch']['lids']:
             tweak = bone[4:]  # remove "MCH-" from bone name
             self.make_constraits('mch_eyes', bone, tweak )
-        
+
         # mch eyes constraints
         for bone in [ 'MCH-eye.L', 'MCH-eye.R' ]:
             ctrl = bone[4:]  # remove "MCH-" from bone name
             self.make_constraits('mch_eyes', bone, ctrl )
-        
+
         for bone in [ 'MCH-eye.L.001', 'MCH-eye.R.001' ]:
             target = bone[:-4] # remove number from the end of the name
             self.make_constraits('mch_eyes_lids_follow', bone, target )
-            
+
         # mch eyes parent constraints
         self.make_constraits('mch_eyes_parent', 'MCH-eyes_parent', 'ORG-face' )
-        
+
         ## Jaw constraints
-        
+
         # jaw master mch bones
         self.make_constraits( 'mch_jaw_master', 'MCH-mouth_lock',     'jaw_master', 0.20  )
         self.make_constraits( 'mch_jaw_master', 'MCH-jaw_master',     'jaw_master', 1.00  )
@@ -829,9 +829,9 @@ class Rig:
 
         for bone in all_bones['mch']['jaw'][1:-1]:
             self.make_constraits( 'mch_jaw_master', bone, 'MCH-mouth_lock' )
-            
+
         ## Tweak bones constraints
-        
+
         # copy location constraints for tweak bones of both sides
         tweak_copyloc_L = {
             'brow.T.L.002'  : [ [ 'brow.T.L.001', 'brow.T.L.003'   ], [ 0.5, 0.5  ] ],
@@ -853,15 +853,15 @@ class Rig:
             'lip.T.L.001'   : [ [ 'lips.L', 'lip.T'                ], [ 0.25, 0.5 ] ],
             'lip.B.L.001'   : [ [ 'lips.L', 'lip.B'                ], [ 0.25, 0.5 ] ]
             }
-            
+
         for owner in list( tweak_copyloc_L.keys() ):
-            
+
             targets, influences = tweak_copyloc_L[owner]
             for target, influence in zip( targets, influences ):
 
-                # Left side constraints                
+                # Left side constraints
                 self.make_constraits( 'tweak_copyloc', owner, target, influence )
-                
+
                 # create constraints for the right side too
                 ownerR  = owner.replace(  '.L', '.R' )
                 targetR = target.replace( '.L', '.R' )
@@ -872,7 +872,7 @@ class Rig:
             'lip.T.L.001' : 'lip.T',
             'lip.B.L.001' : 'lip.B'
         }
-        
+
         for owner in list( tweak_copy_rot_scl_L.keys() ):
             target    = tweak_copy_rot_scl_L[owner]
             influence = tweak_copy_rot_scl_L[owner]
@@ -881,7 +881,7 @@ class Rig:
             # create constraints for the right side too
             owner = owner.replace( '.L', '.R' )
             self.make_constraits( 'tweak_copy_rot_scl', owner, target )
-            
+
         # inverted tweak bones constraints
         tweak_nose = {
             'nose.001' : [ 'nose.002', 0.35 ],
@@ -889,12 +889,12 @@ class Rig:
             'nose.005' : [ 'lip.T',    0.5  ],
             'chin.002' : [ 'lip.B',    0.5  ]
         }
-        
+
         for owner in list( tweak_nose.keys() ):
             target    = tweak_nose[owner][0]
             influence = tweak_nose[owner][1]
             self.make_constraits( 'tweak_copyloc_inv', owner, target, influence )
-            
+
         # MCH tongue constraints
         divider = len( all_bones['mch']['tongue'] ) + 1
         factor  = len( all_bones['mch']['tongue'] )
@@ -905,16 +905,16 @@ class Rig:
 
 
     def drivers_and_props( self, all_bones ):
-        
+
         bpy.ops.object.mode_set(mode ='OBJECT')
         pb = self.obj.pose.bones
-        
+
         jaw_ctrl  = all_bones['ctrls']['jaw'][0]
         eyes_ctrl = all_bones['ctrls']['eyes'][2]
 
         jaw_prop  = 'mouth_lock'
         eyes_prop = 'eyes_follow'
-        
+
         for bone, prop_name in zip( [ jaw_ctrl, eyes_ctrl ], [ jaw_prop, eyes_prop ] ):
             if bone == jaw_ctrl:
                 pb[ bone ][ prop_name ] = 0.0
@@ -927,33 +927,33 @@ class Rig:
             prop["soft_min"]    = 0.0
             prop["soft_max"]    = 1.0
             prop["description"] = prop_name
-        
+
         # Jaw drivers
         mch_jaws = all_bones['mch']['jaw'][1:-1]
-        
+
         for bone in mch_jaws:
             drv = pb[ bone ].constraints[1].driver_add("influence").driver
             drv.type='SUM'
-            
+
             var = drv.variables.new()
             var.name = jaw_prop
             var.type = "SINGLE_PROP"
             var.targets[0].id = self.obj
             var.targets[0].data_path = pb[ jaw_ctrl ].path_from_id() + '['+ '"' + jaw_prop + '"' + ']'
-            
+
 
         # Eyes driver
         mch_eyes_parent = all_bones['mch']['eyes_parent'][0]
 
         drv = pb[ mch_eyes_parent ].constraints[0].driver_add("influence").driver
         drv.type='SUM'
-        
+
         var = drv.variables.new()
         var.name = eyes_prop
         var.type = "SINGLE_PROP"
         var.targets[0].id = self.obj
         var.targets[0].data_path = pb[ eyes_ctrl ].path_from_id() + '['+ '"' + eyes_prop + '"' + ']'
-        
+
         return jaw_prop, eyes_prop
 
     def create_bones(self):
@@ -967,58 +967,58 @@ class Rig:
             eb[bone].parent      = None
 
         all_bones = {}
-        
+
         def_names           = self.create_deformation()
         ctrls, tweak_unique = self.all_controls()
-        mchs                = self.create_mch( 
-                                    ctrls['ctrls']['jaw'][0], 
-                                    ctrls['ctrls']['tongue'][0] 
+        mchs                = self.create_mch(
+                                    ctrls['ctrls']['jaw'][0],
+                                    ctrls['ctrls']['tongue'][0]
                                     )
-        return {         
-            'deform' : def_names, 
-            'ctrls'  : ctrls['ctrls'], 
-            'tweaks' : ctrls['tweaks'], 
-            'mch'    : mchs 
+        return {
+            'deform' : def_names,
+            'ctrls'  : ctrls['ctrls'],
+            'tweaks' : ctrls['tweaks'],
+            'mch'    : mchs
             }, tweak_unique
 
 
     def generate(self):
-        
+
         all_bones, tweak_unique = self.create_bones()
         self.parent_bones( all_bones, tweak_unique )
         self.constraints( all_bones )
         jaw_prop, eyes_prop = self.drivers_and_props( all_bones )
 
-        
+
         # Create UI
         all_controls = []
         all_controls += [ bone for bone in [ bgroup for bgroup in [ all_bones['ctrls'][group] for group in list( all_bones['ctrls'].keys() ) ] ] ]
         all_controls += [ bone for bone in [ bgroup for bgroup in [ all_bones['tweaks'][group] for group in list( all_bones['tweaks'].keys() ) ] ] ]
-        
+
         all_ctrls = []
         for group in all_controls:
             for bone in group:
                 all_ctrls.append( bone )
-        
+
         controls_string = ", ".join(["'" + x + "'" for x in all_ctrls])
         return [ script % (
-            controls_string, 
+            controls_string,
             all_bones['ctrls']['jaw'][0],
             all_bones['ctrls']['eyes'][2],
             jaw_prop,
             eyes_prop )
             ]
-        
-        
+
+
 def add_parameters(params):
     """ Add the parameters of this rig type to the
         RigifyParameters PropertyGroup
     """
 
     #Setting up extra layers for the tweak bones
-    params.primary_layers_extra = bpy.props.BoolProperty( 
-        name        = "primary_layers_extra", 
-        default     = True, 
+    params.primary_layers_extra = bpy.props.BoolProperty(
+        name        = "primary_layers_extra",
+        default     = True,
         description = ""
         )
     params.primary_layers = bpy.props.BoolVectorProperty(
@@ -1026,9 +1026,9 @@ def add_parameters(params):
         description = "Layers for the 1st tweak controls to be on",
         default     = tuple( [ i == 1 for i in range(0, 32) ] )
         )
-    params.secondary_layers_extra = bpy.props.BoolProperty( 
-        name        = "secondary_layers_extra", 
-        default     = True, 
+    params.secondary_layers_extra = bpy.props.BoolProperty(
+        name        = "secondary_layers_extra",
+        default     = True,
         description = ""
         )
     params.secondary_layers = bpy.props.BoolVectorProperty(
@@ -1041,12 +1041,12 @@ def add_parameters(params):
 def parameters_ui(layout, params):
     """ Create the ui for the rig parameters."""
     layers = ["primary_layers", "secondary_layers"]
-    
+
     for layer in layers:
         r = layout.row()
         r.prop( params, layer + "_extra" )
         r.active = getattr( params, layer + "_extra" )
-        
+
         col = r.column(align=True)
         row = col.row(align=True)
         for i in range(8):
@@ -1055,10 +1055,10 @@ def parameters_ui(layout, params):
         row = col.row(align=True)
         for i in range(16,24):
             row.prop(params, layer, index=i, toggle=True, text="")
-        
+
         col = r.column(align=True)
         row = col.row(align=True)
-        
+
         for i in range(8,16):
             row.prop(params, layer, index=i, toggle=True, text="")
 
@@ -2381,10 +2381,10 @@ def create_square_widget(rig, bone_name, size=1.0, bone_transform_name=None):
     obj = create_widget(rig, bone_name, bone_transform_name)
     if obj is not None:
         verts = [
-            (  0.5 * size, -2.9802322387695312e-08 * size,  0.5 * size ), 
-            ( -0.5 * size, -2.9802322387695312e-08 * size,  0.5 * size ), 
-            (  0.5 * size,  2.9802322387695312e-08 * size, -0.5 * size ), 
-            ( -0.5 * size,  2.9802322387695312e-08 * size, -0.5 * size ), 
+            (  0.5 * size, -2.9802322387695312e-08 * size,  0.5 * size ),
+            ( -0.5 * size, -2.9802322387695312e-08 * size,  0.5 * size ),
+            (  0.5 * size,  2.9802322387695312e-08 * size, -0.5 * size ),
+            ( -0.5 * size,  2.9802322387695312e-08 * size, -0.5 * size ),
         ]
 
         edges = [(0, 1), (2, 3), (0, 2), (3, 1) ]

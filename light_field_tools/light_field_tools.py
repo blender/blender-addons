@@ -32,14 +32,14 @@ also supports the projection of lightfields with textured
 spotlights.
 
 Usage:
-A simple interface can be accessed in the tool shelf panel 
+A simple interface can be accessed in the tool shelf panel
 in 3D View ([T] Key).
 
 A base mesh has to be provided, which will normaly be a
 subdivided plane. The script will then create a camera rig
 and a light rig with adjustable properties. A sample camera
 and a spotlight will be created on each vertex of the
-basemesh object axis (maybe vertex normal in future 
+basemesh object axis (maybe vertex normal in future
 versions).
 
     Vertex order:
@@ -55,7 +55,7 @@ versions).
          x->
 
 There is also a tool to create a basemesh, which is an
-evenly spaced grid. The row length parameter is taken to 
+evenly spaced grid. The row length parameter is taken to
 construct such a NxN grid. Someone would start out by adding
 a rectengular plane as the slice plane of the frustrum of
 the most middle camera of the light field rig. The spacing
@@ -159,9 +159,9 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
             cam.location = vert[0]
             # rotation
             cam.rotation_euler = self.baseObject.rotation_euler
-            # insert LocRot keyframes 
+            # insert LocRot keyframes
             cam.keyframe_insert('location')
-        
+
         # set anim render props
         scene.frame_current = 0
         scene.frame_start = 0
@@ -242,7 +242,7 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
         # FIXME
         spot.data.distance = 10
 
-        # set spot props 
+        # set spot props
         spot.data.energy = scene.lightfield.light_intensity / self.numSamples
         spot.data.spot_size = scene.lightfield.angle
         spot.data.spot_blend = scene.lightfield.spot_blend
@@ -279,7 +279,7 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
         self.numSamples = len(self.verts)
 
         if scene.lightfield.create_handler:
-            #create an empty 
+            #create an empty
             bpy.ops.object.add(type='EMPTY')
             empty = bpy.context.active_object
             empty.location = self.baseObject.location
@@ -296,16 +296,16 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
                 self.createLightfieldEmitter(textured=False)
 
         return {'FINISHED'}
-   
 
 
 
-class OBJECT_OT_create_lightfield_basemesh(bpy.types.Operator): 
+
+class OBJECT_OT_create_lightfield_basemesh(bpy.types.Operator):
     """Creates a basemsh from the selected focal plane"""
     bl_idname="object.create_lightfield_basemesh"
     bl_label="Create a basemesh from the selected focal plane"
     bl_options = {'REGISTER'}
-    
+
     objName = "lf_basemesh"
 
 
@@ -327,15 +327,15 @@ class OBJECT_OT_create_lightfield_basemesh(bpy.types.Operator):
 
     def addMeshObj(self, mesh):
         scene = bpy.context.scene
-                
+
         for o in scene.objects:
-            o.select = False 
-                
+            o.select = False
+
         mesh.update()
         nobj = bpy.data.objects.new(self.objName, mesh)
         scene.objects.link(nobj)
-        nobj.select = True 
-                
+        nobj.select = True
+
         if scene.objects.active is None or scene.objects.active.mode == 'OBJECT':
             scene.objects.active = nobj
 
@@ -390,7 +390,7 @@ class OBJECT_OT_create_lightfield_basemesh(bpy.types.Operator):
         self.addMeshObj(mesh)
 
         return {'FINISHED'}
-        
+
 
 
 
@@ -403,7 +403,7 @@ class VIEW3D_OT_lightfield_tools(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         scene = context.scene
 
         col = layout.column()
@@ -411,7 +411,7 @@ class VIEW3D_OT_lightfield_tools(bpy.types.Panel):
         col.prop(scene.lightfield, "angle")
 
         col.prop(scene.lightfield, "create_handler")
-        
+
         col.prop(scene.lightfield, "do_camera")
         col.prop(scene.lightfield, "animate_camera")
         col.prop(scene.lightfield, "do_projection")

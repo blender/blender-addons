@@ -3717,15 +3717,15 @@ class RemoveGP(bpy.types.Operator):
     bl_label = "Remove GP"
     bl_description = "Remove all Grease Pencil Strokes"
     bl_options = {'REGISTER', 'UNDO'}
- 
+
     def execute(self, context):
- 
+
         if context.gpencil_data is not None:
             bpy.ops.gpencil.data_unlink()
         else:
             self.report({'INFO'}, "No Grease Pencil data to Unlink")
             return {'CANCELLED'}
- 
+
         return{'FINISHED'}
 
 class GStretch(bpy.types.Operator):

@@ -59,7 +59,7 @@ class OBJECT_OT_animrenderbake(bpy.types.Operator):
         if start >= end:
             self.report({'ERROR'}, "Start frame must be smaller than end frame")
             return {'CANCELLED'}
-            
+
         selected = context.selected_objects
 
         # Only single object baking for now

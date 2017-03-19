@@ -7,27 +7,27 @@ from ...utils    import MetarigError
 from rna_prop_ui import rna_idprop_ui_prop_get
 
 class Rig:
-    
+
     def __init__(self, obj, bone_name, params):
         self.obj = obj
         self.org_bones = [bone_name] + connected_children_names(obj, bone_name)
         self.params = params
 
         self.copy_rotaion_axes = params.copy_rotaion_axes
-        
+
         if params.tweak_extra_layers:
             self.tweak_layers = list( params.tweak_layers )
         else:
             self.tweak_layers = None
-        
+
         if len(self.org_bones) <= 1:
             raise MetarigError(
                 "RIGIFY ERROR: invalid rig structure" % (strip_org(bone_name))
             )
 
-     
+
     def make_controls( self ):
-        
+
         bpy.ops.object.mode_set(mode ='EDIT')
         org_bones = self.org_bones
 
@@ -36,8 +36,8 @@ class Rig:
             name = org_bones[i]
 
             ctrl_bone  = copy_bone(
-                self.obj, 
-                name, 
+                self.obj,
+                name,
                 strip_org(name)
             )
 
@@ -48,12 +48,12 @@ class Rig:
 
         for ctrl in ctrl_chain:
             create_circle_widget(self.obj, ctrl, radius=0.3, head_tail=0.5)
-            
+
         return ctrl_chain
 
 
     def make_tweaks( self ):
-        
+
         bpy.ops.object.mode_set(mode ='EDIT')
         eb = self.obj.data.edit_bones
         org_bones = self.org_bones
@@ -67,19 +67,19 @@ class Rig:
                 name = org_bones[i]
 
             tweak_bone = copy_bone(
-                self.obj, 
-                name, 
+                self.obj,
+                name,
                 "tweak_" + strip_org(name)
             )
 
             tweak_e = eb[ tweak_bone ]
-            
+
             tweak_e.length /= 2 # Set size to half
-            
+
             if i == len( org_bones ):
                 # Position final tweak at the tip
                 put_bone( self.obj, tweak_bone, eb[ org_bones[-1]].tail )
-        
+
             tweak_chain.append( tweak_bone )
 
         # Make widgets
@@ -102,12 +102,12 @@ class Rig:
             # Set up tweak bone layers
             if self.tweak_layers:
                 tweak_pb.bone.layers = self.tweak_layers
-            
-        return tweak_chain   
+
+        return tweak_chain
 
 
     def make_deform( self ):
-        
+
         bpy.ops.object.mode_set(mode ='EDIT')
         org_bones = self.org_bones
 
@@ -116,18 +116,18 @@ class Rig:
             name = org_bones[i]
 
             def_bone  = copy_bone(
-                self.obj, 
-                name, 
+                self.obj,
+                name,
                 make_deformer_name(strip_org(name))
             )
 
             def_chain.append( def_bone )
-            
+
         return def_chain
 
 
     def parent_bones( self, all_bones ):
-        
+
         bpy.ops.object.mode_set(mode ='EDIT')
         org_bones = self.org_bones
         eb        = self.obj.data.edit_bones
@@ -136,7 +136,7 @@ class Rig:
         for bone in all_bones['control'][1:]:
             previous_index    = all_bones['control'].index( bone ) - 1
             eb[ bone ].parent = eb[ all_bones['control'][previous_index] ]
-            
+
         # Parent tweak bones
         tweaks = all_bones['tweak']
         for tweak in all_bones['tweak']:
@@ -145,7 +145,7 @@ class Rig:
                 parent = all_bones['control'][ -1 ]
             else:
                 parent = all_bones['control'][ tweaks.index( tweak ) ]
-    
+
             eb[ tweak ].parent = eb[ parent ]
 
         # Parent deform bones
@@ -157,15 +157,15 @@ class Rig:
 
         # Parent org bones ( to tweaks by default, or to the controls )
         for org, tweak in zip( org_bones, all_bones['tweak'] ):
-            eb[ org ].parent = eb[ tweak ]                
-        
-    
+            eb[ org ].parent = eb[ tweak ]
+
+
     def make_constraints( self, all_bones ):
-        
+
         bpy.ops.object.mode_set(mode ='OBJECT')
         org_bones = self.org_bones
         pb        = self.obj.pose.bones
-        
+
         # Deform bones' constraints
         ctrls   = all_bones['control']
         tweaks  = all_bones['tweak'  ]
@@ -175,15 +175,15 @@ class Rig:
             con           = pb[deform].constraints.new('COPY_TRANSFORMS')
             con.target    = self.obj
             con.subtarget = tweak
-           
+
             con           = pb[deform].constraints.new('DAMPED_TRACK')
             con.target    = self.obj
             con.subtarget = tweaks[ tweaks.index( tweak ) + 1 ]
-            
+
             con           = pb[deform].constraints.new('STRETCH_TO')
             con.target    = self.obj
             con.subtarget = tweaks[ tweaks.index( tweak ) + 1 ]
-            
+
             # Control bones' constraints
             if ctrl != ctrls[0]:
                 con = pb[ctrl].constraints.new('COPY_ROTATION')
@@ -198,7 +198,7 @@ class Rig:
                 con.target_space = 'LOCAL'
                 con.owner_space  = 'LOCAL'
 
-            
+
 
     def generate(self):
         bpy.ops.object.mode_set(mode ='EDIT')
@@ -208,7 +208,7 @@ class Rig:
         for bone in self.org_bones:
         #    eb[ bone ].parent      = None
             eb[ bone ].use_connect = False
-        
+
         # Creating all bones
         ctrl_chain  = self.make_controls()
         tweak_chain = self.make_tweaks()
@@ -219,7 +219,7 @@ class Rig:
             'tweak'   : tweak_chain,
             'deform'  : def_chain
         }
-            
+
         self.make_constraints( all_bones )
         self.parent_bones( all_bones )
 
@@ -233,10 +233,10 @@ def add_parameters(params):
         description = "Layers for the tweak controls to be on",
         default     = tuple( [ i == 0 for i in range(0, 3) ] )
         )
-    
+
     # Setting up extra tweak layers
-    params.tweak_extra_layers = bpy.props.BoolProperty( 
-        name        = "tweak_extra_layers", 
+    params.tweak_extra_layers = bpy.props.BoolProperty(
+        name        = "tweak_extra_layers",
         default     = True,
         description = ""
         )
@@ -261,7 +261,7 @@ def parameters_ui(layout, params):
     r = layout.row()
     r.prop(params, "tweak_extra_layers")
     r.active = params.tweak_extra_layers
-    
+
     col = r.column(align=True)
     row = col.row(align=True)
 
@@ -271,19 +271,19 @@ def parameters_ui(layout, params):
     row = col.row(align=True)
 
     for i in range( 16, 24 ): # Layers 16-23
-        row.prop(params, "tweak_layers", index=i, toggle=True, text="")    
-    
+        row.prop(params, "tweak_layers", index=i, toggle=True, text="")
+
     col = r.column(align=True)
     row = col.row(align=True)
 
     for i in range( 8, 16 ): # Layers 8-15
-        row.prop(params, "tweak_layers", index=i, toggle=True, text="")    
+        row.prop(params, "tweak_layers", index=i, toggle=True, text="")
 
     row = col.row(align=True)
 
     for i in range( 24, 32 ): # Layers 24-31
         row.prop(params, "tweak_layers", index=i, toggle=True, text="")
- 
+
 def create_sample(obj):
     # generated by rigify.utils.write_metarig
     bpy.ops.object.mode_set(mode='EDIT')
@@ -297,7 +297,7 @@ def create_sample(obj):
     bone.roll = 0.0000
     bone.use_connect = False
     bones['Bone'] = bone.name
- 
+
     bone = arm.edit_bones.new('Bone.002')
     bone.head[:] = 0.0000, 0.0000, 0.3333
     bone.tail[:] = 0.0000, 0.0000, 0.6667
@@ -305,7 +305,7 @@ def create_sample(obj):
     bone.use_connect = True
     bone.parent = arm.edit_bones[bones['Bone']]
     bones['Bone.002'] = bone.name
- 
+
     bone = arm.edit_bones.new('Bone.001')
     bone.head[:] = 0.0000, 0.0000, 0.6667
     bone.tail[:] = 0.0000, 0.0000, 1.0000
@@ -313,7 +313,7 @@ def create_sample(obj):
     bone.use_connect = True
     bone.parent = arm.edit_bones[bones['Bone.002']]
     bones['Bone.001'] = bone.name
- 
+
     bpy.ops.object.mode_set(mode='OBJECT')
     pbone = obj.pose.bones[bones['Bone']]
     pbone.rigify_type = 'pitchipoy.simple_tentacle'

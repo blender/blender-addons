@@ -36,8 +36,8 @@ from bpy.props import (
 
 
 
-############### object        
-        
+############### object
+
 class ObjectNodeTree(bpy.types.NodeTree):
     '''Povray Material Nodes'''
 
@@ -305,7 +305,7 @@ class PovrayMappingNode(Node, ObjectNodeTree):
             name="Distance exponent",
             description="Distance exponent",
             min=0.0, max=100.0, default=1.0)
-            
+
     warp_tor_major_radius = FloatProperty(
             name="Major radius",
             description="Torus is distance from major radius",
@@ -357,7 +357,7 @@ class PovrayMultiplyNode(Node, ObjectNodeTree):
             name="Z",
             description="Number of repeats",
             min=1.0, max=10000.0, default=1.0)
-            
+
 
     def init(self, context):
         self.outputs.new('NodeSocketVector', "Amount")
@@ -737,12 +737,12 @@ class ShaderPatternNode(Node, ObjectNodeTree):
     spiral_arms = FloatProperty(
             name="Number",
             description="",
-            min=0.0, max=256.0, default=2.0) 
+            min=0.0, max=256.0, default=2.0)
 
     tiling_number = IntProperty(
             name="Number",
             description="",
-            min=1, max=27, default=1) 
+            min=1, max=27, default=1)
 
     gradient_orient = EnumProperty(
             name="Orient",
@@ -750,7 +750,7 @@ class ShaderPatternNode(Node, ObjectNodeTree):
             items=(('x', "X", ""),
                    ('y', "Y", ""),
                    ('z', "Z", "")),
-            default='x') 
+            default='x')
 
     def init(self, context):
 
@@ -788,17 +788,17 @@ class ShaderTextureMapNode(Node, ObjectNodeTree):
     brick_size_x = FloatProperty(
             name="X",
             description="",
-            min=0.0000, max=1.0000, default=0.2500) 
+            min=0.0000, max=1.0000, default=0.2500)
 
     brick_size_y = FloatProperty(
             name="Y",
             description="",
             min=0.0000, max=1.0000, default=0.0525)
-            
+
     brick_size_z = FloatProperty(
             name="Z",
             description="",
-            min=0.0000, max=1.0000, default=0.1250) 
+            min=0.0000, max=1.0000, default=0.1250)
 
     brick_mortar = FloatProperty(
             name="Mortar",
@@ -850,17 +850,17 @@ class ShaderNormalMapNode(Node, ObjectNodeTree):
     brick_size_x = FloatProperty(
             name="X",
             description="",
-            min=0.0000, max=1.0000, default=0.2500) 
+            min=0.0000, max=1.0000, default=0.2500)
 
     brick_size_y = FloatProperty(
             name="Y",
             description="",
             min=0.0000, max=1.0000, default=0.0525)
-            
+
     brick_size_z = FloatProperty(
             name="Z",
             description="",
-            min=0.0000, max=1.0000, default=0.1250) 
+            min=0.0000, max=1.0000, default=0.1250)
 
     brick_mortar = FloatProperty(
             name="Mortar",
@@ -878,7 +878,7 @@ class ShaderNormalMapNode(Node, ObjectNodeTree):
 
     def draw_buttons(self, context, layout):
         #for i, inp in enumerate(self.inputs):
-            
+
         if self.inputs[0].default_value =='brick':
             layout.prop(self, "brick_mortar")
             layout.label("Brick size:")
@@ -1015,7 +1015,7 @@ class TextureOutputNode(Node, TextureNodeTree):
 #################################Operators########################################
 ##################################################################################
 
- 
+
 class NODE_OT_iso_add(bpy.types.Operator):
     bl_idname = "pov.nodeisoadd"
     bl_label = "Create iso props"
@@ -1088,7 +1088,7 @@ class NODE_OT_povray_node_output_add(bpy.types.Operator):
 
     def execute(self, context):
         tree=bpy.context.object.active_material.node_tree
-        tmap = tree.nodes.new('ShaderNodeOutputMaterial')      
+        tmap = tree.nodes.new('ShaderNodeOutputMaterial')
         bpy.context.object.active_material.node_tree.nodes.active=tmap
         for inp in tmap.inputs:
             tmap.inputs.remove(inp)
@@ -1249,7 +1249,7 @@ class PovrayPatternNode(bpy.types.Operator):
     def invoke(self, context, event):
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
-        
+
 class UpdatePreviewMaterial(bpy.types.Operator):
     '''Operator update preview material'''
     bl_idname = "node.updatepreview"
@@ -1294,6 +1294,5 @@ class UpdatePreviewKey(bpy.types.Operator):
         mapstr = "Node Editor"
         map = conf.keymaps[mapstr]
         map.keymap_items.new("node.updatepreview",type='RIGHTMOUSE',value="PRESS")
-        return {'FINISHED'}        
-        
-        
+        return {'FINISHED'}
+

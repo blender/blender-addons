@@ -151,7 +151,7 @@ def copy_bone_simple(obj, bone_name, assign_name=''):
         edit_bone_1 = obj.data.edit_bones[bone_name]
         edit_bone_2 = obj.data.edit_bones.new(assign_name)
         bone_name_1 = bone_name
-        bone_name_2 = edit_bone_2.name    
+        bone_name_2 = edit_bone_2.name
 
         # Copy edit bone attributes
         edit_bone_2.layers = list(edit_bone_1.layers)

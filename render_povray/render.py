@@ -54,9 +54,9 @@ def imageFormat(imgF):
     }.get(os.path.splitext(imgF)[-1].upper(), "")
 
     if not ext:
-        #maybe add a check for if path exists here? 
+        #maybe add a check for if path exists here?
         print(" WARNING: texture image has no extension") #too verbose
-        
+
         ext = what(imgF) #imghdr is a python lib to identify image file types
     return ext
 
@@ -66,7 +66,7 @@ def imgMap(ts):
     if ts.mapping == 'FLAT':
         image_map = "map_type 0 "
     elif ts.mapping == 'SPHERE':
-        image_map = "map_type 1 " 
+        image_map = "map_type 1 "
     elif ts.mapping == 'TUBE':
         image_map = "map_type 2 "
 
@@ -106,7 +106,7 @@ def imgMapTransforms(ts):
                   1.0 / ts.scale.z,
                   0.5-(0.5/ts.scale.x) - (ts.offset.x),
                   0.5-(0.5/ts.scale.y) - (ts.offset.y),
-                  ts.offset.z))    
+                  ts.offset.z))
     # image_map_transforms = (" translate <-0.5,-0.5,0.0> scale <%.4g,%.4g,%.4g> translate <%.4g,%.4g,%.4g>" % \
                   # ( 1.0 / ts.scale.x,
                   # 1.0 / ts.scale.y,
@@ -115,7 +115,7 @@ def imgMapTransforms(ts):
                   # (0.5 / ts.scale.y) + ts.offset.y,
                   # ts.offset.z))
     # image_map_transforms = ("translate <-0.5,-0.5,0> scale <-1,-1,1> * <%.4g,%.4g,%.4g> translate <0.5,0.5,0> + <%.4g,%.4g,%.4g>" % \
-                  # (1.0 / ts.scale.x, 
+                  # (1.0 / ts.scale.x,
                   # 1.0 / ts.scale.y,
                   # 1.0 / ts.scale.z,
                   # ts.offset.x,
@@ -145,11 +145,11 @@ def imgMapBG(wts):
     #if image_mapBG == "":
     #    print(" No background texture image  found ")
     return image_mapBG
-    
-    
+
+
 def path_image(image):
     return bpy.path.abspath(image.filepath, library=image.library).replace("\\","/")
-    # .replace("\\","/") to get only forward slashes as it's what POV prefers, 
+    # .replace("\\","/") to get only forward slashes as it's what POV prefers,
     # even on windows
 # end find image texture
 # -----------------------------------------------------------------------------
@@ -211,16 +211,16 @@ def write_global_setting(scene,file):
         file.write("    ambient_light <%.6f,%.6f,%.6f>\n"%scene.pov.ambient_light[:])
         file.write("    irid_wavelength <%.6f,%.6f,%.6f>\n"%scene.pov.irid_wavelength[:])
         file.write("    charset %s\n"%scene.pov.charset)
-        file.write("    max_trace_level %s\n"%scene.pov.max_trace_level)    
+        file.write("    max_trace_level %s\n"%scene.pov.max_trace_level)
         file.write("    max_intersections %s\n"%scene.pov.max_intersections)
         file.write("    number_of_waves %s\n"%scene.pov.number_of_waves)
-        file.write("    noise_generator %s\n"%scene.pov.noise_generator) 
+        file.write("    noise_generator %s\n"%scene.pov.noise_generator)
 
-    # below properties not added to __init__ yet to avoid conflicts with material sss scale 
+    # below properties not added to __init__ yet to avoid conflicts with material sss scale
     # unless it would override then should be interfaced also in scene units property tab
 
     # if scene.pov.sslt_enable:
-        # file.write("    mm_per_unit %s\n"%scene.pov.mm_per_unit) 
+        # file.write("    mm_per_unit %s\n"%scene.pov.mm_per_unit)
         # file.write("    subsurface {\n")
         # file.write("        samples %s, %s\n"%(scene.pov.sslt_samples_max,scene.pov.sslt_samples_min))
         # if scene.pov.sslt_radiosity:
@@ -229,24 +229,24 @@ def write_global_setting(scene,file):
 
     if scene.pov.radio_enable:
         file.write("    radiosity {\n")
-        file.write("        pretrace_start %.6f\n"%scene.pov.radio_pretrace_start) 
-        file.write("        pretrace_end %.6f\n"%scene.pov.radio_pretrace_end) 
-        file.write("        count %s\n"%scene.pov.radio_count) 
-        file.write("        nearest_count %s\n"%scene.pov.radio_nearest_count) 
-        file.write("        error_bound %.6f\n"%scene.pov.radio_error_bound)         
-        file.write("        recursion_limit %s\n"%scene.pov.radio_recursion_limit) 
-        file.write("        low_error_factor %.6f\n"%scene.pov.radio_low_error_factor) 
-        file.write("        gray_threshold %.6f\n"%scene.pov.radio_gray_threshold) 
-        file.write("        maximum_reuse %.6f\n"%scene.pov.radio_maximum_reuse) 
-        file.write("        minimum_reuse %.6f\n"%scene.pov.radio_minimum_reuse) 
-        file.write("        brightness %.6f\n"%scene.pov.radio_brightness) 
+        file.write("        pretrace_start %.6f\n"%scene.pov.radio_pretrace_start)
+        file.write("        pretrace_end %.6f\n"%scene.pov.radio_pretrace_end)
+        file.write("        count %s\n"%scene.pov.radio_count)
+        file.write("        nearest_count %s\n"%scene.pov.radio_nearest_count)
+        file.write("        error_bound %.6f\n"%scene.pov.radio_error_bound)
+        file.write("        recursion_limit %s\n"%scene.pov.radio_recursion_limit)
+        file.write("        low_error_factor %.6f\n"%scene.pov.radio_low_error_factor)
+        file.write("        gray_threshold %.6f\n"%scene.pov.radio_gray_threshold)
+        file.write("        maximum_reuse %.6f\n"%scene.pov.radio_maximum_reuse)
+        file.write("        minimum_reuse %.6f\n"%scene.pov.radio_minimum_reuse)
+        file.write("        brightness %.6f\n"%scene.pov.radio_brightness)
         file.write("        adc_bailout %.6f\n"%scene.pov.radio_adc_bailout)
         if scene.pov.radio_normal:
-            file.write("        normal on\n") 
+            file.write("        normal on\n")
         if scene.pov.radio_always_sample:
-            file.write("        always_sample on\n") 
+            file.write("        always_sample on\n")
         if scene.pov.radio_media:
-            file.write("        media on\n") 
+            file.write("        media on\n")
         if scene.pov.radio_subsurface:
             file.write("        subsurface on\n")
         file.write("    }\n")
@@ -321,10 +321,10 @@ def write_object_modifiers(scene,ob,File):
         # File.write("ior %.4g\n"%ob.pov.object_ior)
         # if scene.pov.photon_enable and ob.pov.target and ob.pov.refraction and ob.pov.dispersion:
             # File.write("ior %.4g\n"%ob.pov.dispersion_value)
-            # File.write("ior %s\n"%ob.pov.dispersion_samples) 
+            # File.write("ior %s\n"%ob.pov.dispersion_samples)
         # if scene.pov.photon_enable == False:
             # File.write("caustics %.4g\n"%ob.pov.fake_caustics_power)
-    
+
 
 
 def write_pov(filename, scene=None, info_callback=None):
@@ -349,7 +349,7 @@ def write_pov(filename, scene=None, info_callback=None):
         print("Unofficial UberPOV feature set chosen in preferences")
     else:
         print("Official POV-Ray 3.7 feature set chosen in preferences")
-    if 'uber' in pov_binary: 
+    if 'uber' in pov_binary:
         print("The name of the binary suggests you are probably rendering with Uber POV engine")
     else:
         print("The name of the binary suggests you are probably rendering with standard POV engine")
@@ -488,7 +488,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
     materialNames = {}
     DEF_MAT_NAME = "" #or "Default"?
-    
+
     def exportCamera():
         camera = scene.camera
 
@@ -541,9 +541,9 @@ def write_pov(filename, scene=None, info_callback=None):
                     camera.data.pov.turbulence,
                     camera.data.pov.scale))
         tabWrite("}\n")
-        
 
-        
+
+
     def exportLamps(lamps):
         # Incremented after each lamp export to declare its target
         # currently used for Fresnel diffuse shader as their slope vector:
@@ -666,35 +666,35 @@ def write_pov(filename, scene=None, info_callback=None):
             povdataname = ob.data.name #enough?
             angle = degrees(ob.data.spot_size/2.5) #radians in blender (2
             width = ob.data.spot_blend *10
-            distance = ob.data.shadow_buffer_clip_start 
+            distance = ob.data.shadow_buffer_clip_start
             #eps=0.0000001
             #angle = br/(cr+eps) * 10 #eps is small epsilon variable to avoid dividing by zero
             #width = ob.dimensions[2] #now let's say width of rainbow is the actual proxy height
             # formerly:
             #cz-bz # let's say width of the rainbow is height of the cone (interfacing choice
-            
+
             # v(A,B) rotates vector A about origin by vector B.
             # and avoid a 0 length vector by adding 1
-            
+
             # file.write("#declare %s_Target= vrotate(<%.6g,%.6g,%.6g>,<%.4g,%.4g,%.4g>);\n" % \
                        # (povdataname, -(ob.location.x+0.1), -(ob.location.y+0.1), -(ob.location.z+0.1),
-                        # ob.rotation_euler.x, ob.rotation_euler.y, ob.rotation_euler.z))                    
-            
+                        # ob.rotation_euler.x, ob.rotation_euler.y, ob.rotation_euler.z))
+
             direction = (ob.location.x,ob.location.y,ob.location.z) # not taking matrix into account
             rmatrix = global_matrix * ob.matrix_world
-            
+
             #ob.rotation_euler.to_matrix().to_4x4() * mathutils.Vector((0,0,1))
             # XXX Is result of the below offset by 90 degrees?
-            up =ob.matrix_world.to_3x3()[1].xyz #* global_matrix 
+            up =ob.matrix_world.to_3x3()[1].xyz #* global_matrix
 
 
-            # XXX TO CHANGE: 
+            # XXX TO CHANGE:
             #formerly:
-            #tabWrite("#declare %s = rainbow {\n"%povdataname) 
-            
+            #tabWrite("#declare %s = rainbow {\n"%povdataname)
+
             # clumsy for now but remove the rainbow from instancing
             # system because not an object. use lamps later instead of meshes
-            
+
             #del data_ref[dataname]
             tabWrite("rainbow {\n")
 
@@ -716,8 +716,8 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("[0.900  color rgbt<1.0, 0.2, 0.2, 0.7>]\n")
             tabWrite("[1.000  color rgbt<1.0, 0.2, 0.2, 1.0>]\n")
             tabWrite("}\n")
-            
-            
+
+
             povMatName = "Default_texture"
             #tabWrite("texture {%s}\n"%povMatName)
             write_object_modifiers(scene,ob,file)
@@ -726,7 +726,7 @@ def write_pov(filename, scene=None, info_callback=None):
             #writeMatrix(matrix)
             tabWrite("}\n")
             #continue #Don't render proxy mesh, skip to next object
-            
+
 ################################XXX LOFT, ETC.
     def exportCurves(scene, ob):
         name_orig = "OB" + ob.name
@@ -1092,7 +1092,7 @@ def write_pov(filename, scene=None, info_callback=None):
             file.write('           #break\n')
             file.write('        #end\n')
             file.write('     }\n')
-     
+
             file.write('     #debug concat("   - uv_vectors\\n")   \n')
             file.write('     #local NumVertices=dimension_size(UVArr,1);\n')
             file.write('     #switch(Write)\n')
@@ -1264,7 +1264,7 @@ def write_pov(filename, scene=None, info_callback=None):
             file.write('     #end\n')
             file.write('  }\n')
             file.write('#end\n')
-            
+
             file.write('#macro MSM(SplineArray, SplRes, Interp_type,  InterpRes, FileName)\n')
             file.write('    #declare Build=CheckFileName(FileName);\n')
             file.write('    #if(Build=0)\n')
@@ -1425,7 +1425,7 @@ def write_pov(filename, scene=None, info_callback=None):
             file.write('      BuildWriteMesh2(VecArr, NormArr, UVArr, Iter_U, Iter_V, FileName)\n')
             file.write('   #end\n')
             file.write('#end\n\n')
-            
+
         if bezier_sweep == False:
             tabWrite("#declare %s =\n"%dataname)
         if ob.pov.curveshape == 'sphere_sweep' and bezier_sweep == False:
@@ -1454,7 +1454,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             wpt = endPt.co
                             tabWrite("<%.4g,%.4g,%.4g>,%.4g\n" %(wpt[0], wpt[1], wpt[2], endPt.radius*ob.data.bevel_depth))
 
-                    
+
                 tabWrite("}\n")
 
         if ob.pov.curveshape == 'sor':
@@ -1543,7 +1543,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     r0 = points[i].radius * depth
                     r1 = 2/3*r0 + 1/3*r3
                     r2 = 1/3*r0 + 2/3*r3
-                    br.append((r0,r1,r2,r3))                
+                    br.append((r0,r1,r2,r3))
                     line="<%.4g,%.4g,%.4f>"%(p1[0],p1[1],p1[2])
                     line+="<%.4g,%.4g,%.4f>"%(pR[0],pR[1],pR[2])
                     line+="<%.4g,%.4g,%.4f>"%(pL[0],pL[1],pL[2])
@@ -1556,11 +1556,11 @@ def write_pov(filename, scene=None, info_callback=None):
                 tabWrite("}\n")
             if len(ob.data.splines)== 1:
                 tabWrite('#declare %s = object{\n'%dataname)
-                tabWrite('    Shape_Bezierpoints_Sphere_Sweep(yes,%s, %s_points_%s, %s_radii_%s) \n'%(ob.data.resolution_u,dataname,p,dataname,p))                            
+                tabWrite('    Shape_Bezierpoints_Sphere_Sweep(yes,%s, %s_points_%s, %s_radii_%s) \n'%(ob.data.resolution_u,dataname,p,dataname,p))
             else:
                 tabWrite('#declare %s = union{\n'%dataname)
                 for p in range(len(ob.data.splines)):
-                    tabWrite('    object{Shape_Bezierpoints_Sphere_Sweep(yes,%s, %s_points_%s, %s_radii_%s)} \n'%(ob.data.resolution_u,dataname,p,dataname,p))            
+                    tabWrite('    object{Shape_Bezierpoints_Sphere_Sweep(yes,%s, %s_points_%s, %s_radii_%s)} \n'%(ob.data.resolution_u,dataname,p,dataname,p))
                 #tabWrite('#include "bezier_spheresweep.inc"\n') #now inlined
                # tabWrite('#declare %s = object{Shape_Bezierpoints_Sphere_Sweep(yes,%s, %s_bezier_points, %.4f) \n'%(dataname,ob.data.resolution_u,dataname,ob.data.bevel_depth))
         if ob.pov.curveshape in {'loft'}:
@@ -1581,10 +1581,10 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("rotate <90,0,0>\n")
             tabWrite("scale y*-1\n" )
         tabWrite("}\n")
-        
-#################################################################        
-        
-            
+
+#################################################################
+
+
     def exportMeta(metas):
 
         # TODO - blenders 'motherball' naming is not supported.
@@ -1746,8 +1746,8 @@ def write_pov(filename, scene=None, info_callback=None):
                 # Data not yet processed, create a new entry in data_ref.
                 data_ref[dataname] = [(name, MatrixAsPovString(matrix))]
                 return dataname
-           
-             
+
+
         def exportSmoke(smoke_obj_name):
             #if LuxManager.CurrentScene.name == 'preview':
                 #return 1, 1, 1, 1.0
@@ -1927,12 +1927,12 @@ def write_pov(filename, scene=None, info_callback=None):
 
                 file.write("}\n")
 
-                
+
                 #file.write("               interpolate 1\n")
                 #file.write("               frequency 0\n")
                 #file.write("   }\n")
-                #file.write("}\n")                            
-                
+                #file.write("}\n")
+
         ob_num = 0
         for ob in sel:
             ob_num += 1
@@ -1949,7 +1949,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     if (mod.smoke_type == 'DOMAIN'):
                         exportSmoke(ob.name)
                     break # don't render domain mesh or flow emitter mesh, skip to next object.
-            if not smokeFlag:    
+            if not smokeFlag:
                 # Export Hair
                 renderEmitter = True
                 if hasattr(ob, 'particle_systems'):
@@ -1971,7 +1971,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                     if pmaterial.strand.use_blender_units:
                                         strandStart = pmaterial.strand.root_size
                                         strandEnd = pmaterial.strand.tip_size
-                                        strandShape = pmaterial.strand.shape 
+                                        strandShape = pmaterial.strand.shape
                                     else:  # Blender unit conversion
                                         strandStart = pmaterial.strand.root_size / 200.0
                                         strandEnd = pmaterial.strand.tip_size / 200.0
@@ -1981,11 +1981,11 @@ def write_pov(filename, scene=None, info_callback=None):
                                     strandStart = 0.01
                                     strandEnd = 0.01
                                     strandShape = 0.0
-                                # Set the number of particles to render count rather than 3d view display    
-                                pSys.set_resolution(scene, ob, 'RENDER')    
+                                # Set the number of particles to render count rather than 3d view display
+                                pSys.set_resolution(scene, ob, 'RENDER')
                                 steps = pSys.settings.draw_step
                                 steps = 3 ** steps # or (power of 2 rather than 3) + 1 # Formerly : len(particle.hair_keys)
-                                
+
                                 totalNumberOfHairs = ( len(pSys.particles) + len(pSys.child_particles) )
                                 #hairCounter = 0
                                 file.write('#declare HairArray = array[%i] {\n' % totalNumberOfHairs)
@@ -1995,7 +1995,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                         #hairCounter += 1
                                         #controlPointCounter = 0
                                         # Each hair is represented as a separate sphere_sweep in POV-Ray.
-                                        
+
                                         file.write('sphere_sweep{')
                                         if pSys.settings.use_hair_bspline:
                                             file.write('b_spline ')
@@ -2003,7 +2003,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                         else:
                                             file.write('linear_spline ')
                                             file.write('%i,\n' % (steps))
-                                        #changing world coordinates to object local coordinates by multiplying with inverted matrix    
+                                        #changing world coordinates to object local coordinates by multiplying with inverted matrix
                                         initCo = ob.matrix_world.inverted()*(pSys.co_hair(ob, pindex, 0))
                                         if ob.material_slots[pSys.settings.material - 1].material and ob.active_material is not None:
                                             pmaterial = ob.material_slots[pSys.settings.material-1].material
@@ -2023,7 +2023,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                                         g = image_pixels[pixelnumber*4+1]
                                                         b = image_pixels[pixelnumber*4+2]
                                                         a = image_pixels[pixelnumber*4+3]
-                                                        initColor=(r,g,b,a)                                              
+                                                        initColor=(r,g,b,a)
                                                     else:
                                                         #only overwrite variable for each competing texture for now
                                                         initColor=th.texture.evaluate((initCo[0],initCo[1],initCo[2]))
@@ -2039,12 +2039,12 @@ def write_pov(filename, scene=None, info_callback=None):
                                             if step == 0 and pSys.settings.use_hair_bspline:
                                                 # Write three times the first point to compensate pov Bezier handling
                                                 file.write('<%.6g,%.6g,%.6g>,%.7g,\n' % (co[0], co[1], co[2], abs(hDiameter)))
-                                                file.write('<%.6g,%.6g,%.6g>,%.7g,\n' % (co[0], co[1], co[2], abs(hDiameter)))                                          
+                                                file.write('<%.6g,%.6g,%.6g>,%.7g,\n' % (co[0], co[1], co[2], abs(hDiameter)))
                                                 #file.write('<%.6g,%.6g,%.6g>,%.7g' % (particle.location[0], particle.location[1], particle.location[2], abs(hDiameter))) # Useless because particle location is the tip, not the root.
                                                 #file.write(',\n')
                                             #controlPointCounter += 1
                                             #totalNumberOfHairs += len(pSys.particles)# len(particle.hair_keys)
-                                                 
+
                                           # Each control point is written out, along with the radius of the
                                           # hair at that point.
                                             file.write('<%.6g,%.6g,%.6g>,%.7g' % (co[0], co[1], co[2], abs(hDiameter)))
@@ -2059,7 +2059,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                                     file.write('\npigment{ color rgbf < %.3g, %.3g, %.3g, %.3g> }\n' %(initColor[0], initColor[1], initColor[2], 1.0-initColor[3]))
                                                 # End the sphere_sweep declaration for this hair
                                                 file.write('}\n')
-                                            
+
                                           # All but the final sphere_sweep (each array element) needs a terminating comma.
                                         if pindex != totalNumberOfHairs:
                                             file.write(',\n')
@@ -2070,7 +2070,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
                                 file.write('}\n')
                                 file.write('\n')
-                                
+
                                 if not texturedHair:
                                     # Pick up the hair material diffuse color and create a default POV-Ray hair texture.
 
@@ -2113,20 +2113,20 @@ def write_pov(filename, scene=None, info_callback=None):
                                 file.write('            }\n')
                                 file.write('        }\n')
                                 file.write('    }\n')
-                                
+
                                 file.write('    #local I = I + HairStep;\n')
                                 file.write('  #end\n')
-                                
+
                                 writeMatrix(global_matrix * ob.matrix_world)
 
-                                
+
                                 file.write('}')
                                 print('Totals hairstrands written: %i' % totalNumberOfHairs)
                                 print('Number of tufts (particle systems)', len(ob.particle_systems))
-                                
+
                                 # Set back the displayed number of particles to preview count
                                 pSys.set_resolution(scene, ob, 'PREVIEW')
-                                
+
                                 if renderEmitter == False:
                                     continue #don't render mesh, skip to next object.
 
@@ -2147,7 +2147,7 @@ def write_pov(filename, scene=None, info_callback=None):
                         ob.dupli_list_create(scene)
                         for eachduplicate in ob.dupli_list:
                             dataname_orig = "DATA" + eachduplicate.object.name
-                        ob.dupli_list_clear()                    
+                        ob.dupli_list_clear()
                 elif ob.type == 'EMPTY':
                     name_orig = "OB" + ob.name
                     dataname_orig = "DATA" + ob.name
@@ -2176,13 +2176,13 @@ def write_pov(filename, scene=None, info_callback=None):
                     continue
 
                 print("Writing Down First Occurence of " + name)
-                                    
+
 ############################################Povray Primitives
                 # special exportCurves() function takes care of writing
                 # lathe, sphere_sweep, birail, and loft except with modifiers
                 # converted to mesh
                 if not ob.is_modified(scene, 'RENDER'):
-                    if ob.type == 'CURVE' and (ob.pov.curveshape in 
+                    if ob.type == 'CURVE' and (ob.pov.curveshape in
                                     {'lathe', 'sphere_sweep', 'loft'}):
                         continue #Don't render proxy mesh, skip to next object
 
@@ -2286,7 +2286,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("rotate x*90\n")
                     tabWrite("}\n")
                     continue #Don't render proxy mesh, skip to next object
-                    
+
 
                 if ob.pov.object_as == 'PLANE':
                     tabWrite("#declare %s = plane{ <0,0,1>,1\n"%povdataname)
@@ -2297,7 +2297,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             material = ob.active_material
                             writeObjectMaterial(material, ob)
                         except IndexError:
-                            print(me) 
+                            print(me)
                     #tabWrite("texture {%s}\n"%povMatName)
                     write_object_modifiers(scene,ob,file)
                     #tabWrite("rotate x*90\n")
@@ -2433,7 +2433,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("}\n")
                     continue #Don't render proxy mesh, skip to next object
 
-                    
+
                 if ob.pov.object_as == 'PARAMETRIC':
                     tabWrite("#declare %s = parametric {\n"%povdataname)
                     tabWrite("function { %s }\n"%ob.pov.x_eq)
@@ -2449,7 +2449,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("precompute 10 x,y,z\n")
                     tabWrite("}\n")
                     continue #Don't render proxy mesh, skip to next object
-                    
+
                 if ob.pov.object_as == 'POLYCIRCLE':
                     #TODO write below macro Once:
                     #if write_polytocircle_macro_once == 0:
@@ -2541,23 +2541,23 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("}\n")
                     continue #Don't render proxy mesh, skip to next object
 
-                   
+
 ############################################else try to export mesh
                 elif ob.is_duplicator == False: #except duplis which should be instances groups for now but all duplis later
                     if ob.type == 'EMPTY':
                         tabWrite("\n//dummy sphere to represent Empty location\n")
                         tabWrite("#declare %s =sphere {<0, 0, 0>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n" % povdataname)
-                    
+
                     try:
                         me = ob.to_mesh(scene, True, 'RENDER')
-                        
+
                     #XXX Here? identify the specific exception for mesh object with no data
                     #XXX So that we can write something for the dataname !
                     except:
 
                         # also happens when curves cant be made into meshes because of no-data
                         continue
-                    
+
                     importance = ob.pov.importance_value
                     if me:
                         me_materials = me.materials
@@ -2565,8 +2565,8 @@ def write_pov(filename, scene=None, info_callback=None):
                     if len(me_faces)==0:
                         tabWrite("\n//dummy sphere to represent empty mesh location\n")
                         tabWrite("#declare %s =sphere {<0, 0, 0>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n" % povdataname)
-                  
-                    
+
+
                     if not me or not me_faces:
                         continue
 
@@ -2693,7 +2693,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             except:
                                 material = None
                             if material: #and material.use_vertex_color_paint: #Always use vertex color when there is some for now
-                             
+
                                 col = vcol_layer[fi]
 
                                 if len(faces_verts[fi]) == 4:
@@ -2724,7 +2724,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                               material_index
                                         vertCols[key] = [-1]
 
-                        tabWrite("\n}\n")                
+                        tabWrite("\n}\n")
                         # Face indices
                         tabWrite("\nface_indices {\n")
                         tabWrite("%d" % (len(me_faces) + quadCount))  # faces count
@@ -2780,7 +2780,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                     if linebreaksinlists:
                                         file.write(",\n")
                                         file.write(tabStr + "<%d,%d,%d>, %d,%d,%d" % \
-                                                   (fv[i1], fv[i2], fv[i3], ci1-1, ci2-1, ci3-1))  # vert count 
+                                                   (fv[i1], fv[i2], fv[i3], ci1-1, ci2-1, ci3-1))  # vert count
                                     else:
                                         file.write(", ")
                                         file.write("<%d,%d,%d>, %d,%d,%d" % \
@@ -2894,7 +2894,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                     vertCols[key] = [-1]
 
                                 idx = 0
-                                LocalMaterialNames = []                       
+                                LocalMaterialNames = []
                                 for col, index in vertCols.items():
                                     #if me_materials:
                                     mater = me_materials[col[3]]
@@ -2903,7 +2903,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                         trans = 0.0
 
                                     else:
-                                        shading.writeTextureInfluence(mater, materialNames, 
+                                        shading.writeTextureInfluence(mater, materialNames,
                                                                         LocalMaterialNames,
                                                                         path_image, lampCount,
                                                                         imageFormat, imgMap,
@@ -2913,13 +2913,13 @@ def write_pov(filename, scene=None, info_callback=None):
                                                                         safety, col, os, preview_dir,  unpacked_images)
                                     ###################################################################
                                     index[0] = idx
-                                    idx += 1                                    
+                                    idx += 1
 
 
-                            
+
                         # Vert Colors
                         tabWrite("texture_list {\n")
-                        # In case there's is no material slot, give at least one texture 
+                        # In case there's is no material slot, give at least one texture
                         #(an empty one so it uses pov default)
                         if len(vertCols)==0:
                             file.write(tabStr + "1")
@@ -2928,13 +2928,13 @@ def write_pov(filename, scene=None, info_callback=None):
 
 
 
-                            
-                        # below "material" alias, added check ob.active_material 
-                        # to avoid variable referenced before assignment error                                 
+
+                        # below "material" alias, added check ob.active_material
+                        # to avoid variable referenced before assignment error
                         try:
                             material = ob.active_material
                         except IndexError:
-                            #when no material slot exists,                         
+                            #when no material slot exists,
                             material=None
 
                         # WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2948,7 +2948,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 for cMN in LocalMaterialNames:
                                     if material != "Default":
                                         file.write("\n texture{MAT_%s}\n" % cMN)
-                                        #use string_strip_hyphen(materialNames[material])) 
+                                        #use string_strip_hyphen(materialNames[material]))
                                         #or Something like that to clean up the above?
                         elif material and material.pov.material_use_nodes:
                             for index in facesMaterials:
@@ -2956,7 +2956,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 file.write("\n texture{%s}\n" % faceMaterial)
                         # END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         else:
-                            file.write(" texture{}\n")                
+                            file.write(" texture{}\n")
                         tabWrite("}\n")
 
                         # Face indices
@@ -3113,8 +3113,8 @@ def write_pov(filename, scene=None, info_callback=None):
 
                         tabWrite("}\n")  # End of mesh block
 
-                      
-                        
+
+
                     bpy.data.meshes.remove(me)
 
         duplidata_ref = []
@@ -3126,7 +3126,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 dup = ""
                 if ob.is_modified(scene, 'RENDER'):
                     #modified object always unique so using object name rather than data name
-                    dup = "#declare OB%s = union{\n" %(string_strip_hyphen(bpy.path.clean_name(ob.name))) 
+                    dup = "#declare OB%s = union{\n" %(string_strip_hyphen(bpy.path.clean_name(ob.name)))
                 else:
                     dup = "#declare DATA%s = union{\n" %(string_strip_hyphen(bpy.path.clean_name(ob.name)))
                 for eachduplicate in ob.dupli_list:
@@ -3212,14 +3212,14 @@ def write_pov(filename, scene=None, info_callback=None):
                         # inverse, a standard scale factor.
                         # 0.5 Offset is needed relatively to scale because center of the
                         # UV scale is 0.5,0.5 in blender and 0,0 in POV
-                        # Further Scale by 2 and translate by -1 are 
+                        # Further Scale by 2 and translate by -1 are
                         # required for the sky_sphere not to repeat
-                  
+
                         mappingBlend = "scale 2 scale <%.4g,%.4g,%.4g> translate -1 " \
                                        "translate <%.4g,%.4g,%.4g> rotate<0,0,0> " % \
-                                       ((1.0 / t_blend.scale.x), 
+                                       ((1.0 / t_blend.scale.x),
                                        (1.0 / t_blend.scale.y),
-                                       (1.0 / t_blend.scale.z), 
+                                       (1.0 / t_blend.scale.z),
                                        0.5-(0.5/t_blend.scale.x)- t_blend.offset.x,
                                        0.5-(0.5/t_blend.scale.y)- t_blend.offset.y,
                                        t_blend.offset.z)
@@ -3319,7 +3319,7 @@ def write_pov(filename, scene=None, info_callback=None):
             if scene.pov.number_of_waves_enable:
                 file.write("    number_of_waves %s\n"%scene.pov.number_of_waves)
             if scene.pov.noise_generator_enable:
-                file.write("    noise_generator %s\n"%scene.pov.noise_generator) 
+                file.write("    noise_generator %s\n"%scene.pov.noise_generator)
         if scene.pov.radio_enable:
             tabWrite("radiosity {\n")
             tabWrite("adc_bailout %.4g\n" % scene.pov.radio_adc_bailout)
@@ -3328,7 +3328,7 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("error_bound %.4g\n" % scene.pov.radio_error_bound)
             tabWrite("gray_threshold %.4g\n" % scene.pov.radio_gray_threshold)
             tabWrite("low_error_factor %.4g\n" % scene.pov.radio_low_error_factor)
-            tabWrite("maximum_reuse %.4g\n" % scene.pov.radio_maximum_reuse)            
+            tabWrite("maximum_reuse %.4g\n" % scene.pov.radio_maximum_reuse)
             tabWrite("minimum_reuse %.4g\n" % scene.pov.radio_minimum_reuse)
             tabWrite("nearest_count %d\n" % scene.pov.radio_nearest_count)
             tabWrite("pretrace_start %.3g\n" % scene.pov.radio_pretrace_start)
@@ -3351,9 +3351,9 @@ def write_pov(filename, scene=None, info_callback=None):
                          # 1000 rather than scale * (-100.0) + 15.0))
 
                 # In POV-Ray, the scale factor for all subsurface shaders needs to be the same
-                
+
                 # formerly sslt_samples were multiplied by 100 instead of 10
-                sslt_samples = (11 - material.subsurface_scattering.error_threshold) * 10 
+                sslt_samples = (11 - material.subsurface_scattering.error_threshold) * 10
 
                 tabWrite("subsurface { samples %d, %d }\n" % (sslt_samples, sslt_samples / 10))
                 onceSss = 0
@@ -3401,7 +3401,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
     exportGlobalSettings(scene)
 
-    
+
     if comments:
         file.write("\n//--Custom Code--\n\n")
     exportCustomCode()
@@ -3410,15 +3410,15 @@ def write_pov(filename, scene=None, info_callback=None):
         file.write("\n//--Patterns Definitions--\n\n")
     LocalPatternNames = []
     for texture in bpy.data.textures: #ok?
-        if texture.users > 0:         
-            currentPatName = string_strip_hyphen(bpy.path.clean_name(texture.name)) 
+        if texture.users > 0:
+            currentPatName = string_strip_hyphen(bpy.path.clean_name(texture.name))
             #string_strip_hyphen(patternNames[texture.name]) #maybe instead of the above
-            LocalPatternNames.append(currentPatName) 
+            LocalPatternNames.append(currentPatName)
             #use above list to prevent writing texture instances several times and assign in mats?
             if (texture.type not in {'NONE', 'IMAGE'} and texture.pov.tex_pattern_type == 'emulator')or(texture.type in {'NONE', 'IMAGE'} and texture.pov.tex_pattern_type != 'emulator'):
                 file.write("\n#declare PAT_%s = \n" % currentPatName)
                 file.write(shading.exportPattern(texture, string_strip_hyphen))
-            file.write("\n")                
+            file.write("\n")
     if comments:
         file.write("\n//--Background--\n\n")
 
@@ -3433,7 +3433,7 @@ def write_pov(filename, scene=None, info_callback=None):
         file.write("\n//--Lamps--\n\n")
 
     exportLamps([L for L in sel if (L.type == 'LAMP' and L.pov.object_as != 'RAINBOW')])
-    
+
     if comments:
         file.write("\n//--Rainbows--\n\n")
     exportRainbows([L for L in sel if (L.type == 'LAMP' and L.pov.object_as == 'RAINBOW')])
@@ -3445,9 +3445,9 @@ def write_pov(filename, scene=None, info_callback=None):
         if c.is_modified(scene, 'RENDER'):
             continue #don't export as pov curves objects with modifiers, but as mesh
         elif c.type == 'CURVE' and (c.pov.curveshape in {'lathe','sphere_sweep','loft','birail'}):
-            exportCurves(scene,c)    
+            exportCurves(scene,c)
 
-            
+
     if comments:
         file.write("\n//--Material Definitions--\n\n")
     # write a default pigment for objects with no material (comment out to show black)
@@ -3515,7 +3515,7 @@ def write_pov_ini(scene, filename_ini, filename_log, filename_pov, filename_imag
     #file.write("All_File='%s'\n" % filename_log)
     # DEBUG.OUT log if none specified:
     file.write("All_File=1\n")
-    
+
 
     file.write("Input_File_Name='%s'\n" % filename_pov)
     file.write("Output_File_Name='%s'\n" % filename_image)
@@ -3602,7 +3602,7 @@ class PovrayRender(bpy.types.RenderEngine):
             pov_binary = os.path.join(win_home, "bin", "uberpov64.exe")
             if os.path.exists(pov_binary):
                 return pov_binary
-                
+
             # Then try 64bits POV
             pov_binary = os.path.join(win_home, "bin", "pvengine64.exe")
             if os.path.exists(pov_binary):
@@ -3611,8 +3611,8 @@ class PovrayRender(bpy.types.RenderEngine):
             # Then try 32bits UberPOV
             pov_binary = os.path.join(win_home, "bin", "uberpov32.exe")
             if os.path.exists(pov_binary):
-                return pov_binary 
-                
+                return pov_binary
+
             # Then try 32bits POV
             pov_binary = os.path.join(win_home, "bin", "pvengine.exe")
             if os.path.exists(pov_binary):
@@ -3997,8 +3997,8 @@ class PovrayRender(bpy.types.RenderEngine):
 
         #print(filename_log) #bring the pov log to blender console with proper path?
         with open(self._temp_file_log) as f: # The with keyword automatically closes the file when you are done
-            print(f.read())        
-        
+            print(f.read())
+
         self.update_stats("", "")
 
         if scene.pov.tempfiles_enable or scene.pov.deletefiles_enable:
@@ -4070,7 +4070,7 @@ class RenderPovTexturePreview(Operator):
         ##################### end write ##########################################
 
         pov_binary = PovrayRender._locate_binary()
-        
+
         if sys.platform[:3] == "win":
             p1=subprocess.Popen(["%s"%pov_binary,"/EXIT","%s"%iniPrevFile],
                 stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
@@ -4084,19 +4084,19 @@ class RenderPovTexturePreview(Operator):
         links = tree.links
         for n in tree.nodes:
             tree.nodes.remove(n)
-        im = tree.nodes.new("TextureNodeImage")  
+        im = tree.nodes.new("TextureNodeImage")
         pathPrev="%s.png"%outputPrevFile
         im.image = bpy.data.images.load(pathPrev)
         name=pathPrev
         name=name.split("/")
         name=name[len(name)-1]
-        im.name = name  
+        im.name = name
         im.location = 200,200
-        previewer = tree.nodes.new('TextureNodeOutput')    
+        previewer = tree.nodes.new('TextureNodeOutput')
         previewer.label = "Preview"
         previewer.location = 400,400
         links.new(im.outputs[0],previewer.inputs[0])
         #tex.type="IMAGE" # makes clip extend possible
         #tex.extension="CLIP"
         return {'FINISHED'}
-        
+

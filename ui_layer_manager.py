@@ -554,9 +554,9 @@ def update_panel(self, context):
     except:
         pass
     SCENE_PT_namedlayer_layers.bl_category = context.user_preferences.addons[__name__].preferences.category
-    bpy.utils.register_class(SCENE_PT_namedlayer_layers) 
+    bpy.utils.register_class(SCENE_PT_namedlayer_layers)
     SCENE_PT_namedlayer_groups.bl_category = context.user_preferences.addons[__name__].preferences.category
-    bpy.utils.register_class(SCENE_PT_namedlayer_groups)    
+    bpy.utils.register_class(SCENE_PT_namedlayer_groups)
 
 class LayerMAddonPreferences(bpy.types.AddonPreferences):
     # this must match the addon name, use '__package__'

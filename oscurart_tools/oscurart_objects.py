@@ -133,7 +133,7 @@ def relinkObjects(self):
             if SCENE.objects:
                 if bpy.selection_osc[-1] in SCENE.objects[:]:
                     LISTSCENE.append(SCENE)
- 
+
 
         if LISTSCENE:
             OBJECTS = bpy.selection_osc[:-1]
@@ -290,7 +290,7 @@ def ObjectDistributeOscurart(self, X, Y, Z):
 
 
 class DialogDistributeOsc(Operator):
-    """Distribute evenly the selected objects in x y z""" 
+    """Distribute evenly the selected objects in x y z"""
     bl_idname = "object.distribute_osc"
     bl_label = "Distribute Objects"
     Boolx = BoolProperty(name="X")

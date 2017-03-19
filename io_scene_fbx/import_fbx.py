@@ -290,7 +290,7 @@ from collections import namedtuple
 
 
 FBXTransformData = namedtuple("FBXTransformData", (
-    "loc", "geom_loc", 
+    "loc", "geom_loc",
     "rot", "rot_ofs", "rot_piv", "pre_rot", "pst_rot", "rot_ord", "rot_alt_mat", "geom_rot",
     "sca", "sca_ofs", "sca_piv", "geom_sca",
 ))

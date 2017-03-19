@@ -32,7 +32,7 @@ def create_paw( cls, bones ):
 
 
     bones['ik']['ctrl']['terminal'] = []
-    
+
     bpy.ops.object.mode_set(mode='EDIT')
     eb = cls.obj.data.edit_bones
 
@@ -57,7 +57,7 @@ def create_paw( cls, bones ):
     eb[ heel ].use_connect = False
 
     flip_bone( cls.obj, heel )
-    
+
     eb[ bones['ik']['mch_target'] ].parent      = eb[ heel ]
     eb[ bones['ik']['mch_target'] ].use_connect = False
 
@@ -68,7 +68,7 @@ def create_paw( cls, bones ):
 
     # Set up constraints
     # Constrain mch target bone to the ik control and mch stretch
-   
+
     make_constraint( cls, bones['ik']['mch_target'], {
         'constraint'  : 'COPY_LOCATION',
         'subtarget'   : bones['ik']['mch_str'],
@@ -104,7 +104,7 @@ def create_paw( cls, bones ):
 
     # Create ik/fk switch property
     pb_parent = pb[ bones['parent'] ]
-    
+
     pb_parent['IK_Strertch'] = 1.0
     prop = rna_idprop_ui_prop_get( pb_parent, 'IK_Strertch', create=True )
     prop["min"]         = 0.0
@@ -117,7 +117,7 @@ def create_paw( cls, bones ):
     b        = bones['ik']['mch_str']
     drv      = pb[b].constraints[-1].driver_add("influence").driver
     drv.type = 'AVERAGE'
-    
+
     var = drv.variables.new()
     var.name = prop.name
     var.type = "SINGLE_PROP"
@@ -126,7 +126,7 @@ def create_paw( cls, bones ):
         pb_parent.path_from_id() + '['+ '"' + prop.name + '"' + ']'
 
     drv_modifier = cls.obj.animation_data.drivers[-1].modifiers[0]
-    
+
     drv_modifier.mode            = 'POLYNOMIAL'
     drv_modifier.poly_order      = 1
     drv_modifier.coefficients[0] = 1.0
@@ -151,7 +151,7 @@ def create_paw( cls, bones ):
 
         eb[ toes ].use_connect = False
         eb[ toes ].parent      = eb[ org_bones[3] ]
-        
+
         # Create toes mch bone
         toes_mch = get_bone_name( org_bones[3], 'mch' )
         toes_mch = copy_bone( cls.obj, org_bones[3], toes_mch )
@@ -160,7 +160,7 @@ def create_paw( cls, bones ):
         eb[ toes_mch ].parent      = eb[ ctrl ]
 
         eb[ toes_mch ].length /= 4
-        
+
         # Constrain 4th ORG to toes MCH bone
         make_constraint( cls, org_bones[3], {
             'constraint'  : 'COPY_TRANSFORMS',
@@ -184,12 +184,12 @@ def create_paw( cls, bones ):
         # Find IK/FK switch property
         pb   = cls.obj.pose.bones
         prop = rna_idprop_ui_prop_get( pb[ bones['parent'] ], 'IK/FK' )
-        
+
         # Add driver to limit scale constraint influence
         b        = org_bones[3]
         drv      = pb[b].constraints[-1].driver_add("influence").driver
         drv.type = 'AVERAGE'
-        
+
         var = drv.variables.new()
         var.name = prop.name
         var.type = "SINGLE_PROP"
@@ -198,12 +198,12 @@ def create_paw( cls, bones ):
             pb_parent.path_from_id() + '['+ '"' + prop.name + '"' + ']'
 
         drv_modifier = cls.obj.animation_data.drivers[-1].modifiers[0]
-        
+
         drv_modifier.mode            = 'POLYNOMIAL'
         drv_modifier.poly_order      = 1
         drv_modifier.coefficients[0] = 1.0
         drv_modifier.coefficients[1] = -1.0
-   
+
         # Create toe circle widget
         create_circle_widget(cls.obj, toes, radius=0.4, head_tail=0.5)
 

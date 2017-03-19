@@ -35,7 +35,7 @@ bl_info = {
 """
     You can browse through the tree structure of the api. Each child object appears in a list
 that tries to be representative of its type. These lists are :
-    
+
     * Items (for an iterable object)
     * Item Values (for an iterable object wich only supports index)
     * Modules
@@ -110,7 +110,7 @@ def get_root_module(path):
 def evaluate(module):
     #print('evaluate')
     global root_module, tree_level, root_m_path
-    
+
     # path = bpy.context.window_manager.api_nav_props.path
     try :
         len_name = root_module.__name__.__len__()
@@ -124,13 +124,13 @@ def evaluate(module):
 
 def get_tree_level():
     #print('get_tree_level')
-    
+
     path = bpy.context.window_manager.api_nav_props.path
-    
+
     def object_list():
         #print('object_list')
         global current_module, root_m_path
-        
+
         itm, val, mod, typ, props, struct, met, att, bug = [], [], [], [], [], [], [], [], []
         iterable = isiterable(current_module)
         if iterable:
@@ -145,7 +145,7 @@ def get_tree_level():
                         val = list(current_module)
                 else :
                     val = list(current_module)
-        
+
         for i in dir(current_module):
             try :
                 t = str(type(eval(root_m_path + '.' + i)))
@@ -153,7 +153,7 @@ def get_tree_level():
                 bug += [i]
                 continue
 
-            
+
             if t == "<class 'module'>":
                 mod += [i]
             elif t[0:16] == "<class 'bpy_prop":
@@ -166,9 +166,9 @@ def get_tree_level():
                 typ += [i]
             else :
                 att += [i]
-        
+
         return [itm, val, mod, typ, props, struct, met, att, bug]
-    
+
     if not path:
         return [[], [], [i for i in get_root_modules()], [], [], [], [], [], []]
     return object_list()
@@ -177,7 +177,7 @@ def get_tree_level():
 def parent(path):
     """Returns the parent path"""
     #print('parent')
-    
+
     parent = path
     if parent[-1] == ']' and '[' in parent:
         while parent[-1] != '[':
@@ -194,7 +194,7 @@ def parent(path):
 def update_filter():
     """Update the filter according to the current path"""
     global filter_mem
-    
+
     try :
         bpy.context.window_manager.api_nav_props.filter = filter_mem[bpy.context.window_manager.api_nav_props.path]
     except :
@@ -202,7 +202,7 @@ def update_filter():
 
 
 def isiterable(mod):
-    
+
     try :
         iter(mod)
     except :
@@ -218,7 +218,7 @@ def isiterable(mod):
 
 def fill_filter_mem():
     global filter_mem
-    
+
     filter = bpy.context.window_manager.api_nav_props.filter
     if filter:
         filter_mem[bpy.context.window_manager.api_nav_props.old_path] = bpy.context.window_manager.api_nav_props.filter
@@ -230,12 +230,12 @@ def fill_filter_mem():
 
 class ApiNavigator():
     """Parent class for API Navigator"""
-    
+
     @staticmethod
     def generate_global_values():
         """Populate the level attributes to display the panel buttons and the documentation"""
         global tree_level, current_module, module_type, return_report, last_text
-        
+
         text = bpy.context.space_data.text
         if text:
             if text.name != 'api_doc_':
@@ -250,13 +250,13 @@ class ApiNavigator():
         module_type = str(type(current_module))
         return_report = str(current_module)
         tree_level = get_tree_level()
-        
+
         if tree_level.__len__() > 30:
             global too_long
             too_long = True
         else :
             too_long = False
-        
+
         ApiNavigator.generate_api_doc()
         return {'FINISHED'}
 
@@ -264,7 +264,7 @@ class ApiNavigator():
     def generate_api_doc():
         """Format the doc string for API Navigator"""
         global current_module, api_doc_, return_report, module_type
-    
+
         path = bpy.context.window_manager.api_nav_props.path
         line = "-" * (path.__len__()+2)
         header = """\n\n\n\t\t%s\n\t   %s\n\
@@ -292,14 +292,14 @@ _____________________________________________\n\
         doc = current_module.__doc__
         api_doc_ = header + str(doc) + footer
         return {'FINISHED'}
-    
+
     @staticmethod
     def doc_text_datablock():
         """Create the text databloc or overwrite it if it already exist"""
         global api_doc_
-        
+
         space_data = bpy.context.space_data
-        
+
         try :
             doc_text = bpy.data.texts['api_doc_']
             space_data.text = doc_text
@@ -308,7 +308,7 @@ _____________________________________________\n\
             bpy.data.texts.new(name='api_doc_')
             doc_text = bpy.data.texts['api_doc_']
             space_data.text = doc_text
-        
+
         doc_text.write(text=api_doc_)
         return {'FINISHED'}
 
@@ -338,7 +338,7 @@ class BackToBpy(ApiNavigator, bpy.types.Operator):
     """go back to module bpy"""
     bl_idname = "api_navigator.back_to_bpy"
     bl_label = "Back to bpy"
-    
+
     def execute(self, context):
         fill_filter_mem()
         if not bpy.context.window_manager.api_nav_props.path:
@@ -356,16 +356,16 @@ class Down(ApiNavigator, bpy.types.Operator):
     bl_idname = "api_navigator.down"
     bl_label = "API Navigator Down"
     pointed_module = bpy.props.StringProperty(name='Current Module', default='')
-    
-    
+
+
     def execute(self, context):
         fill_filter_mem()
-        
+
         if not bpy.context.window_manager.api_nav_props.path:
             bpy.context.window_manager.api_nav_props.old_path = bpy.context.window_manager.api_nav_props.path = bpy.context.window_manager.api_nav_props.path + self.pointed_module
         else :
             bpy.context.window_manager.api_nav_props.old_path = bpy.context.window_manager.api_nav_props.path = bpy.context.window_manager.api_nav_props.path + '.' + self.pointed_module
-        
+
         update_filter()
         self.generate_global_values()
         self.doc_text_datablock()
@@ -376,18 +376,18 @@ class Parent(ApiNavigator, bpy.types.Operator):
     """go to Parent Module"""
     bl_idname = "api_navigator.parent"
     bl_label = "API Navigator Parent"
-    
-    
+
+
     def execute(self, context):
         path = bpy.context.window_manager.api_nav_props.path
-        
+
         if path:
             fill_filter_mem()
             bpy.context.window_manager.api_nav_props.old_path = bpy.context.window_manager.api_nav_props.path = parent(bpy.context.window_manager.api_nav_props.path)
             update_filter()
             self.generate_global_values()
             self.doc_text_datablock()
-        
+
         return {'FINISHED'}
 
 
@@ -395,7 +395,7 @@ class ClearFilter(ApiNavigator, bpy.types.Operator):
     """Clear the filter"""
     bl_idname = 'api_navigator.clear_filter'
     bl_label = 'API Nav clear filter'
-    
+
     def execute(self, context):
         bpy.context.window_manager.api_nav_props.filter = ''
         return {'FINISHED'}
@@ -412,7 +412,7 @@ class Subscript(ApiNavigator, bpy.types.Operator):
     bl_idname = "api_navigator.subscript"
     bl_label = "API Navigator Subscript"
     subscription = bpy.props.StringProperty(name='', default='')
-    
+
     def execute(self, context):
         fill_filter_mem()
         bpy.context.window_manager.api_nav_props.old_path = bpy.context.window_manager.api_nav_props.path = bpy.context.window_manager.api_nav_props.path + '[' + self.subscription + ']'
@@ -426,16 +426,16 @@ class Toggle_doc(ApiNavigator, bpy.types.Operator):
     """Toggle on or off api_doc_ Text"""
     bl_idname = 'api_navigator.toggle_doc'
     bl_label = 'Toggle api_doc_'
-    
-    
+
+
     def execute(self, context):
         global last_text
-        
+
         try :
             if bpy.context.space_data.text.name != "api_doc_":
                 last_text = bpy.context.space_data.text.name
         except : pass
-        
+
         try :
             text = bpy.data.texts["api_doc_"]
             bpy.data.texts["api_doc_"].clear()
@@ -443,7 +443,7 @@ class Toggle_doc(ApiNavigator, bpy.types.Operator):
         except KeyError:
             self.doc_text_datablock()
             return {'FINISHED'}
-        
+
         try :
             text = bpy.data.texts[last_text]
             bpy.context.space_data.text = text
@@ -451,35 +451,35 @@ class Toggle_doc(ApiNavigator, bpy.types.Operator):
             #bpy.ops.text.jump(line=line)
             return {'FINISHED'}
         except : pass
-        
+
         bpy.context.space_data.text = None
         return {'FINISHED'}
 
 ############ UI Panels ############
-    
+
 class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
     bl_idname = 'api_navigator'
     bl_space_type = "TEXT_EDITOR"
     bl_region_type = "UI"
     bl_label = "API Navigator"
     bl_options = {'DEFAULT_CLOSED'}
-    
-    
+
+
     columns = 3
 
 
     def iterable_draw(self):
         global tree_level, current_module
-        
+
         iterable = isiterable(current_module)
-        
+
         if iterable:
             iter(current_module)
             current_type = str(module_type)
-            
+
             if current_type == "<class 'str'>":
                 return {'FINISHED'}
-            
+
             col = self.layout
             # filter = bpy.context.window_manager.api_nav_props.filter  # UNUSED
             reduce_to = bpy.context.window_manager.api_nav_props.reduce_to * self.columns
@@ -489,7 +489,7 @@ class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
             count = 0
             i = 0
             filtered = 0
-            
+
             if iterable == 'a':
                 current_type.__iter__()
                 collection = list(current_module.keys())
@@ -499,21 +499,21 @@ class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
                 row.label(text="Items", icon="DOTSDOWN")
                 box = box.box()
                 col = box.column(align=True)
-                
+
                 while count < reduce_to and i < end:
                     mod = collection[i]
                     if filtered < page_index:
                         filtered += 1
                         i += 1
                         continue
-                    
+
                     if not (i % self.columns):
                         row = col.row()
                     row.operator('api_navigator.subscript', text=mod, emboss=False).subscription = '"' + mod + '"'
                     filtered += 1
                     i += 1
                     count += 1
-            
+
             elif iterable == 'b':
                 box = self.layout.box()
                 row = box.row()
@@ -522,23 +522,23 @@ class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
                 col = box.column(align=True)
                 collection = list(current_module)
                 end = collection.__len__()
-                
+
                 while count < reduce_to and i < end:
                     mod = str(collection[i])
                     if filtered < page_index:
                         filtered += 1
                         i += 1
                         continue
-                    
+
                     if not (i % self.columns):
                         row = col.row()
                     row.operator('api_navigator.subscript', text=mod, emboss=False).subscription = str(i)
                     filtered += 1
                     i += 1
                     count += 1
-            
+
             too_long = end > 30
-            
+
             if too_long:
                 row = col.row()
                 row.prop(bpy.context.window_manager.api_nav_props, 'reduce_to')
@@ -546,40 +546,40 @@ class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
                 row.prop(bpy.context.window_manager.api_nav_props, 'pages', text='Pages')
 
         return {'FINISHED'}
-    
-    
-    
-    
+
+
+
+
     def list_draw(self, t, pages, icon, label=None, emboss=False):
         global tree_level, current_module
-        
+
         def reduced(too_long):
-            
+
             if too_long:
                 row = col.row()
                 row.prop(bpy.context.window_manager.api_nav_props, 'reduce_to')
                 row.operator('api_navigator.fake_button', text='', emboss=False, icon="DOTSDOWN")
                 row.prop(bpy.context.window_manager.api_nav_props, 'pages', text='Pages')
-        
+
         layout = self.layout
-        
+
         filter = bpy.context.window_manager.api_nav_props.filter
-        
+
         reduce_to = bpy.context.window_manager.api_nav_props.reduce_to * self.columns
-        
+
         page_index = reduce_to*pages
-        
-        
+
+
         len = tree_level[t].__len__()
         too_long = len > reduce_to
-        
+
         if len:
             col = layout.column()
             box = col.box()
-            
+
             row = box.row()
             row.label(text=label, icon=icon)
-            
+
             if t < 2:
                 box = box.box()
             row = box.row()
@@ -588,10 +588,10 @@ class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
             objects = 0
             count = 0
             filtered = 0
-            
+
             while count < reduce_to and i < len:
                 obj = tree_level[t][i]
-                
+
                 if filter and filter not in obj:
                     i += 1
                     continue
@@ -599,7 +599,7 @@ class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
                     filtered += 1
                     i += 1
                     continue
-                
+
                 if not (objects % self.columns):
                     row = col.row()
                 if t > 1:
@@ -612,15 +612,15 @@ class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
                 i += 1
                 objects += 1
                 count += 1
-            
+
             reduced(too_long)
-        
+
         return {'FINISHED'}
-    
-    
+
+
     def draw(self, context):
         global tree_level, current_module, module_type, return_report
-    
+
         api_update(context)
 
         ###### layout ######
@@ -628,17 +628,17 @@ class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
 
         layout.label(text="Tree Structure:")
         col = layout.column(align=True)
-        
+
         col.prop(bpy.context.window_manager.api_nav_props, 'path', text='')
         row = col.row()
         row.operator("api_navigator.parent", text="Parent", icon="BACK")
         row.operator("api_navigator.back_to_bpy", text='', emboss=True, icon="FILE_PARENT")
-        
+
         col = layout.column()
         row = col.row(align=True)
         row.prop(bpy.context.window_manager.api_nav_props, 'filter')
         row.operator('api_navigator.clear_filter', text='', icon='PANEL_CLOSE')
-        
+
         col = layout.column()
 
         pages = bpy.context.window_manager.api_nav_props.pages
@@ -673,14 +673,14 @@ def unregister_keymaps():
 
 def register():
     from bpy.props import StringProperty, IntProperty, PointerProperty
-    
+
     class ApiNavProps(bpy.types.PropertyGroup):
         """
         Fake module like class.
-    
+
         bpy.context.window_manager.api_nav_props
-         
-        """ 
+
+        """
         path = StringProperty(name='path',
             description='Enter bpy.ops.api_navigator to see the documentation',
             default='bpy')
