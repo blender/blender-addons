@@ -302,7 +302,7 @@ class PieObjectEditMode(Menu):
             # 6 - RIGHT
             pie.operator("class.pietexturepaint", text="Texture Paint", icon='TPAINT_HLT')
             # 2 - BOTTOM
-            pie.menu("menu.objecteditmodeothermodes", text="Edit Modes", icon='EDITMODE_HLT')
+            pie.menu("menu.objecteditmodeothermodes", text="Vert,Edge,Face Modes", icon='EDITMODE_HLT')
             # 8 - TOP
             pie.operator("class.object", text="Edit/Object Toggle", icon='OBJECT_DATAMODE')
             # 7 - TOP - LEFT

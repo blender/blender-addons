@@ -82,21 +82,21 @@ class PieViewallSelGlobEtc(Menu):
 
     def draw(self, context):
         layout = self.layout
-        pie = layout.menu_pie()
+
         # 4 - LEFT
-        pie.operator("view3d.view_all", text="View All").center = True
+        layout.operator("view3d.view_all", text="View All").center = True
         # 6 - RIGHT
-        pie.operator("view3d.view_selected", text="View Selected")
+        layout.operator("view3d.view_selected", text="View Selected")
         # 2 - BOTTOM
-        pie.operator("view3d.view_persportho", text="Persp/Ortho", icon='RESTRICT_VIEW_OFF')
+        layout.operator("view3d.view_persportho", text="Persp/Ortho", icon='RESTRICT_VIEW_OFF')
         # 8 - TOP
-        pie.operator("view3d.localview", text="Local/Global")
+        layout.operator("view3d.localview", text="Local/Global")
         # 7 - TOP - LEFT
-        pie.operator("screen.region_quadview", text="Toggle Quad View", icon='SPLITSCREEN')
+        layout.operator("screen.region_quadview", text="Toggle Quad View", icon='SPLITSCREEN')
         # 1 - BOTTOM - LEFT
-        pie.operator("wm.call_menu_pie", text="Previous Menu", icon='BACK').name = "pie.viewnumpad"
+        layout.operator("wm.call_menu_pie", text="Previous Menu", icon='BACK').name = "pie.viewnumpad"
         # 9 - TOP - RIGHT
-        pie.operator("screen.screen_full_area", text="Full Screen", icon='FULLSCREEN_ENTER')
+        layout.operator("screen.screen_full_area", text="Full Screen", icon='FULLSCREEN_ENTER')
         # 3 - BOTTOM - RIGHT
 
 # Pie views numpad - Q
@@ -149,7 +149,7 @@ class PieViewNumpad(Menu):
         row = box.row(align=True)
         row.prop(rd, "use_border", text="Border")
         # 3 - BOTTOM - RIGHT
-        pie.operator("wm.call_menu_pie", text="View All Pie", icon='BBOX').name = "pie.vieallselglobetc"
+        pie.menu(PieViewallSelGlobEtc.bl_idname, text="View Menu", icon='BBOX')
 
 classes = (
     PieViewNumpad,

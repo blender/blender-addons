@@ -62,9 +62,9 @@ class PieAnimation(Menu):
         # 9 - TOP - RIGHT
         pie.operator("screen.keyframe_jump", text="Next FR", icon='NEXT_KEYFRAME').next = True
         # 1 - BOTTOM - LEFT
-        pie.operator("insert.autokeyframe", text="Auto Keyframe ", icon='REC')
+        pie.operator("insert.autokeyframe", text="Auto Keyframe", icon='REC')
         # 3 - BOTTOM - RIGHT
-        pie.menu("VIEW3D_MT_object_animation", icon="CLIP")
+        pie.menu("VIEW3D_MT_object_animation", text="Keyframe Menu", icon="KEYINGSET")
 
 
 # Insert Auto Keyframe

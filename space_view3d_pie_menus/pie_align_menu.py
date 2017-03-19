@@ -60,6 +60,8 @@ class PieAlign(Menu):
         # 9 - TOP - RIGHT
         pie.operator("align.2z0", text="Align To Z-0")
         # 1 - BOTTOM - LEFT
+        pie.separator()
+        # 3 - BOTTOM - RIGHT
         # pie.menu("align.xyz")
         box = pie.split().box().column()
         row = box.row(align=True)
@@ -74,12 +76,6 @@ class PieAlign(Menu):
         row.label("Z")
         row.operator("alignz.bottom", text="Neg")
         row.operator("alignz.top", text="Pos")
-        # 3 - BOTTOM - RIGHT
-#        box = pie.split().column()
-#        row = box.row(align=True)
-#        box.operator("mesh.vertex_align", icon='ALIGN', text="Align")
-#        box.operator("retopo.space", icon='ALIGN', text="Distribute")
-#        box.operator("mesh.vertex_inline", icon='ALIGN', text="Align & Distribute")
 
 # Align X
 

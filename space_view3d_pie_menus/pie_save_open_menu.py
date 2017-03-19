@@ -50,7 +50,7 @@ class PieSaveOpen(Menu):
         # 6 - RIGHT
         pie.menu("pie.link", text="Link", icon='LINK_BLEND')
         # 2 - BOTTOM
-        pie.menu("pie.fileio", text="Import/Export", icon='IMPORT')
+        pie.menu("pie.fileio", text="Import/Export Menu", icon='IMPORT')
         # 8 - TOP
         pie.operator("file.save_incremental", text="Incremental Save", icon='SAVE_COPY')
         # 7 - TOP - LEFT
@@ -60,7 +60,7 @@ class PieSaveOpen(Menu):
         # 1 - BOTTOM - LEFT
         pie.operator("wm.open_mainfile", text="Open file", icon='FILE_FOLDER')
         # 3 - BOTTOM - RIGHT
-        pie.menu("pie.recover", text="Recovery", icon='RECOVER_LAST')
+        pie.menu("pie.recover", text="Recovery Menu", icon='RECOVER_LAST')
 
 
 class pie_link(Menu):

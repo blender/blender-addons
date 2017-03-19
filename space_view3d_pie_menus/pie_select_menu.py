@@ -64,7 +64,7 @@ class PieSelectionsOM(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         # 4 - LEFT
-        pie.operator("object.select_by_layer", text="Select By Layer", icon='GROUP_VERTEX')
+        pie.operator("object.select_by_layer", text="Select By Layer", icon='LAYER_ACTIVE')
         # 6 - RIGHT
         pie.operator("object.select_random", text="Select Random", icon='GROUP_VERTEX')
         # 2 - BOTTOM
@@ -78,7 +78,7 @@ class PieSelectionsOM(Menu):
         # 1 - BOTTOM - LEFT
         pie.operator("object.select_camera", text="Select Camera", icon='CAMERA_DATA')
         # 3 - BOTTOM - RIGHT
-        pie.menu("pie.selectionsmore", text="Select More", icon='GROUP_VERTEX')
+        pie.menu("pie.selectionsmore", text="Select Menu", icon='RESTRICT_SELECT_OFF')
 
 # Pie Selection Edit Mode
 
@@ -109,7 +109,7 @@ class PieSelectionsEM(Menu):
         box.operator("mesh.loop_to_region", text="Select Loop Inner Region", icon='FACESEL')
         box.operator("mesh.select_similar", text="Select Similar", icon='GHOST')
         # 3 - BOTTOM - RIGHT
-        pie.menu("object.selectallbyselection", text="Multi Select", icon='RENDER_REGION')
+        pie.menu("object.selectallbyselection", text="Multi Select Menu", icon='RENDER_REGION')
 
 # Select All By Selection
 

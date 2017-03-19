@@ -51,7 +51,7 @@ class PieApplyTransforms(Menu):
         # 6 - RIGHT
         pie.operator("clear.all", text="Clear All", icon='MANIPUL')
         # 2 - BOTTOM
-        pie.menu("applymore.menu", text="More")
+        pie.operator("object.duplicates_make_real", text="Make Duplicates Real")
         # 8 - TOP
         pie.operator("apply.transformrotation", text="Rotation", icon='MAN_ROT')
         # 7 - TOP - LEFT
@@ -59,9 +59,9 @@ class PieApplyTransforms(Menu):
         # 9 - TOP - RIGHT
         pie.operator("apply.transformscale", text="Scale", icon='MAN_SCALE')
         # 1 - BOTTOM - LEFT
-        pie.operator("apply.transformrotationscale", text="Rotation/Scale")
+        pie.operator("object.visual_transform_apply", text="Visual Transforms")
         # 3 - BOTTOM - RIGHT
-        pie.menu("clear.menu", text="Clear Transforms")
+        pie.menu("clear.menu", text="Clear Transform Menu")
 
 # Apply Transforms
 
@@ -102,21 +102,8 @@ class ApplyTransformScale(Operator):
         bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
         return {'FINISHED'}
 
-# Apply Transforms
-
-
-class ApplyTransformRotationScale(Operator):
-    bl_idname = "apply.transformrotationscale"
-    bl_label = "Apply Transform Rotation Scale"
-    bl_description = "Apply Transform Rotation Scale"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-        return {'FINISHED'}
 
 # Apply Transforms
-
 
 class ApplyTransformAll(Operator):
     bl_idname = "apply.transformall"
@@ -127,18 +114,6 @@ class ApplyTransformAll(Operator):
     def execute(self, context):
         bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
         return {'FINISHED'}
-
-# More Menu
-
-
-class TransformApplyMore(Menu):
-    bl_idname = "applymore.menu"
-    bl_label = "More Menu"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("object.visual_transform_apply", text="Visual Transforms")
-        layout.operator("object.duplicates_make_real", text="Make Duplicates Real")
 
 # Clear Menu
 
@@ -174,11 +149,9 @@ classes = (
     ApplyTransformLocation,
     ApplyTransformRotation,
     ApplyTransformScale,
-    ApplyTransformRotationScale,
     ApplyTransformAll,
     ClearMenu,
     ClearAll,
-    TransformApplyMore,
     )
 
 addon_keymaps = []
