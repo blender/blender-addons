@@ -181,7 +181,7 @@ class BasePrimitiveDXFExporter(object):
 #        #print 'deb: OCS_origin=', OCS_origin #---------
 #
 #        ZRotation = rotZ
-#        if Extrusion!=None:
+#        if Extrusion is not None:
 #            ZRotation = getZRotation(AXaxis,rot_matrix_invert)
 #        #Zrotmatrix = mathutils.RotationMatrix(-ZRotation, 3, "Z")
 #        rs, rc = sin(ZRotation), cos(ZRotation)

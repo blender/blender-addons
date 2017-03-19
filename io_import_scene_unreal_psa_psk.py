@@ -594,7 +594,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     materials = []
 
     for matcount in range(materialcount):
-        #if texturedata != None:
+        #if texturedata is not None:
         matdata = bpy.data.materials.new(materialname + str(matcount))
         #mtex = matdata.texture_slots.new()
         #mtex.texture = texture[matcount].data
@@ -946,7 +946,7 @@ def psaimport(filename,context):
         _psa_bone = psa_bone()
         _psa_bone.name = bone.name
         _psa_bone.Transform = bone.matrix
-        if bone.parent != None:
+        if bone.parent is not None:
             _psa_bone.parent = psa_bones[bone.parent.name]
         else:
             _psa_bone.parent = None
@@ -975,7 +975,7 @@ def psaimport(filename,context):
                     quat = Raw_Key_List[raw_key_index][1]
 
                     mat = Matrix()
-                    if pbone.parent != None:
+                    if pbone.parent is not None:
                         quat = quat.conjugated()
                         mat = Matrix.Translation(pos) * quat.to_matrix().to_4x4()
                         mat = pose_bones[bName].parent.matrix * mat
@@ -1025,7 +1025,7 @@ def psaimport(filename,context):
                     child.keyframe_insert("rotation_quaternion")
 
             for bone in pose_bones:
-                if bone.parent != None:
+                if bone.parent is not None:
                     whirlSingleBone(bone,Quaternion((0.707, 0, 0, -0.707)))
                 else:
                     bone.rotation_quaternion *= Quaternion((0.707, -0.707, 0, 0)) * Quaternion((0.707, 0, 0, -0.707))

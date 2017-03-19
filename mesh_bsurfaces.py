@@ -249,7 +249,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
     def get_ordered_verts(self, ob, all_selected_edges_idx, all_selected_verts_idx, first_vert_idx, middle_vertex_idx, closing_vert_idx):
         # Order selected vertices.
         verts_ordered = []
-        if closing_vert_idx != None:
+        if closing_vert_idx is not None:
             verts_ordered.append(ob.data.vertices[closing_vert_idx])
 
         verts_ordered.append(ob.data.vertices[first_vert_idx])
@@ -276,10 +276,10 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             if finish_while:
                 break
 
-        if closing_vert_idx != None:
+        if closing_vert_idx is not None:
             verts_ordered.append(ob.data.vertices[closing_vert_idx])
 
-        if middle_vertex_idx != None:
+        if middle_vertex_idx is not None:
             verts_ordered.append(ob.data.vertices[middle_vertex_idx])
             verts_ordered.reverse()
 
@@ -686,13 +686,13 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
                 length = (v1.co - v2.co).length
 
-                if shortest_edge_length == None:
+                if shortest_edge_length is None:
                     shortest_edge_length = length
                 else:
                     if length < shortest_edge_length:
                         shortest_edge_length = length
 
-        if shortest_edge_length != None:
+        if shortest_edge_length is not None:
             edges_merge_distance = shortest_edge_length * 0.5
         else:
             edges_merge_distance = 0
@@ -764,7 +764,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                         for vcf_idx in verts_not_movable:
                                 dist = abs((object.data.vertices[vcf_idx].co - mathutils.Vector(middle_point_co)).length)
 
-                                if shortest_dist == None:
+                                if shortest_dist is None:
                                     shortest_dist = dist
                                     nearest_vert_idx = vcf_idx
                                 else:
@@ -1130,7 +1130,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                         if co_1 != co_2:
                             dist = (mathutils.Vector(co_1) - mathutils.Vector(co_2)).length
 
-                            if shortest_dist != None:
+                            if shortest_dist is not None:
                                 if dist < shortest_dist:
                                     shortest_dist = dist
                             else:
@@ -1279,7 +1279,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
                                     intersec_coords = mathutils.geometry.intersect_line_line(bp1_co, bp2_co, bp3_co, bp4_co)
 
-                                    if intersec_coords != None:
+                                    if intersec_coords is not None:
                                         dist = (intersec_coords[0] - intersec_coords[1]).length
 
                                         if dist <= self.crosshatch_merge_distance * 1.5:
@@ -1385,7 +1385,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                     if i != t and not t in checked_verts:
                         dist = (verts[i].co - verts[t].co).length
 
-                        if shortest_dist != None:
+                        if shortest_dist is not None:
                             if dist < shortest_dist:
                                 shortest_dist = dist
                                 nearest_vert = t
@@ -1815,7 +1815,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
 
         #### Identify the type of selection made by the user.
-        if middle_vertex_idx != None:
+        if middle_vertex_idx is not None:
             if len(all_chains_tips_idx) == 4 and len(single_unselected_verts_and_neighbors) == 1: # If there are 4 tips (two selection chains), and there is only one single unselected vert (the middle vert).
                 selection_type = "TWO_CONNECTED"
             else:

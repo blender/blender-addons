@@ -204,7 +204,7 @@ def get_view_projection_matrix(context, settings):
 	Currently only orthographic projection is used. (Subject to discussion).
 	"""
 	cam = settings['projectionThrough']
-	if cam == None:
+	if cam is None:
 		mw = mathutils.Matrix()
 		mw.identity()
 	elif cam in projectionMapping.keys():
@@ -238,8 +238,8 @@ def _exportItem(ctx, o, mw, drawing, settings):
 		print('elayer=%s, ecolor=%s, eltype=%s' % (elayer, ecolor, eltype))
 	#TODO: use o.boundBox for drawing extends ??
 
-	if elayer != None and not drawing.containsLayer(elayer):
-		if ecolor!=None: tempcolor = ecolor
+	if elayer is not None and not drawing.containsLayer(elayer):
+		if ecolor is not None: tempcolor = ecolor
 		else: tempcolor = settings['layercolor_def']
 		drawing.addLayer(elayer, tempcolor)
 

@@ -67,7 +67,7 @@ class hirise_dtm_importer(object):
       self.__cropXY = False
 
     def bin_mode(self, bin_mode=None):
-      if bin_mode != None:
+      if bin_mode is not None:
         self.__bin_mode = bin_mode
       return self.__bin_mode
 
@@ -503,7 +503,7 @@ class hirise_dtm_importer(object):
       x = 0
       point_offset += len( last_line ) - last_line.count(None)
       for z in last_line:
-        if z != None:
+        if z is not None:
           coords.append( (x*scale_x, 0.0, z) )
           coord += 1
         x += 1
@@ -535,7 +535,7 @@ class hirise_dtm_importer(object):
         # TODO: turn this into a map
         x = 0
         for z in dtm_line:
-          if z != None:
+          if z is not None:
             coords.append( (x*scale_x, y_val, z) )
             coord += 1
           x += 1
@@ -567,17 +567,17 @@ class hirise_dtm_importer(object):
             # TODO: implement a triangular face
             pass
 
-          if vals[1] != None:
+          if vals[1] is not None:
             previous_point_offset += 1
-          if vals[2] != None:
+          if vals[2] is not None:
             point_offset += 1
 
         # Squeeze the last point offset increment out of the previous line
-        if last_line[-1] != None:
+        if last_line[-1] is not None:
           previous_point_offset += 1
 
         # Squeeze the last point out of the current line
-        if dtm_line[-1] != None:
+        if dtm_line[-1] is not None:
           point_offset += 1
 
         # remember what we just saw (and forget anything before that)

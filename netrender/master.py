@@ -39,7 +39,7 @@ class MRenderFile(netrender.model.RenderFile):
     def updateStatus(self):
         self.found = os.path.exists(self.filepath)
 
-        if self.found and self.signature != None:
+        if self.found and self.signature is not None:
             found_signature = hashFile(self.filepath)
             self.found = self.signature == found_signature
             if not self.found:

@@ -770,7 +770,7 @@ class SmoothingGroup:
     def get_valid_smoothgroup_id(self):
         temp_id = 1
         for group in self.neighboring_groups:
-            if group != None and group.id == temp_id:
+            if group is not None and group.id == temp_id:
                 if temp_id < 0x80000000:
                     temp_id = temp_id << 1
                 else:
@@ -828,7 +828,7 @@ def add_face_to_smoothgroup( mesh, face, edge_sharing_list, smoothgroup ):
 
         edge_id = find_edges(mesh, key)
 
-        if edge_id != None:
+        if edge_id is not None:
 
             # not sharp
             if not( mesh.edges[edge_id].use_edge_sharp):
@@ -946,7 +946,7 @@ def meshmerge(selectedobjects):
         count = 0 #reset count
         for count in range(len( selectedobjects)):
             #print("Index:",count)
-            if selectedobjects[count] != None:
+            if selectedobjects[count] is not None:
                 me_da = selectedobjects[count].data.copy() #copy data
                 me_ob = selectedobjects[count].copy() #copy object
                 #note two copy two types else it will use the current data or mesh
@@ -1016,8 +1016,8 @@ def parse_mesh( mesh, psk ):
 
         print("  Material {} '{}'".format(mat_slot_index, slot.name))
         MaterialName.append(slot.name)
-        #if slot.material.texture_slots[0] != None:
-            #if slot.material.texture_slots[0].texture.image.filepath != None:
+        #if slot.material.texture_slots[0] is not None:
+            #if slot.material.texture_slots[0].texture.image.filepath is not None:
                 #print("    Texture path {}".format(slot.material.texture_slots[0].texture.image.filepath))
         #create the current material
         v_material              = psk.GetMatByIndex(mat_slot_index)
@@ -1314,7 +1314,7 @@ def parse_armature( armature, psk, psa ):
     verbose("Armature object: {} Armature data: {}".format(armature.name, armature.data.name))
 
     # generate a list of root bone candidates
-    root_candidates = [b for b in armature.data.bones if b.parent == None and b.use_deform == True]
+    root_candidates = [b for b in armature.data.bones if b.parent is None and b.use_deform == True]
 
     # should be a single, unambiguous result
     if len(root_candidates) == 0:
@@ -1360,7 +1360,7 @@ def recurse_bone( bone, bones, psk, psa, parent_id, parent_matrix, indent="" ):
         status = "No effect"
 
     # calc parented bone transform
-    if bone.parent != None:
+    if bone.parent is not None:
         quat        = make_fquat(bone.matrix.to_quaternion())
         quat_parent = bone.parent.matrix.to_quaternion().inverted()
         parent_head = quat_parent * bone.parent.head
@@ -1431,7 +1431,7 @@ def parse_animation( armature, udk_bones, actions_to_export, psa ):
     print("Scene: {} FPS: {} Frames: {} to {}".format(context.scene.name, anim_rate, context.scene.frame_start, context.scene.frame_end))
     print("Processing {} action(s)".format(len(actions_to_export)))
     print()
-    if armature.animation_data == None: #if animation data was not create for the armature it will skip the exporting action set(s)
+    if armature.animation_data is None: #if animation data was not create for the armature it will skip the exporting action set(s)
         print("None Actions Set! skipping...")
         return
     restoreAction   = armature.animation_data.action    # Q: is animation_data always valid?
@@ -1505,14 +1505,14 @@ def parse_animation( armature, udk_bones, actions_to_export, psa ):
                 pose_bone           = bone_data[1]
                 pose_bone_matrix    = mathutils.Matrix(pose_bone.matrix)
 
-                if pose_bone.parent != None:
+                if pose_bone.parent is not None:
                     pose_bone_parent_matrix = mathutils.Matrix(pose_bone.parent.matrix)
                     pose_bone_matrix        = pose_bone_parent_matrix.inverted() * pose_bone_matrix
 
                 head                = pose_bone_matrix.to_translation()
                 quat                = pose_bone_matrix.to_quaternion().normalized()
 
-                if pose_bone.parent != None:
+                if pose_bone.parent is not None:
                     quat = make_fquat(quat)
                 else:
                     quat = make_fquat_default(quat)
@@ -1702,7 +1702,7 @@ def find_armature_and_mesh():
                 raise Error("No mesh parented to armature")
 
         verbose("Found mesh: {}".format(mesh.name))
-    if mesh == None or armature == None:
+    if mesh is None or armature is None:
         raise Error("Check Mesh and Armature are list!")
     #if len(armature.pose.bones) == len(mesh.vertex_groups):
         #print("Armature and Mesh Vertex Groups matches Ok!")
@@ -2049,7 +2049,7 @@ def rebuildmesh(obj):
     uv_layer = mmesh.tessface_uv_textures.active
     for face in mmesh.tessfaces:
         smoothings.append(face.use_smooth)#smooth or flat in boolean
-        if uv_layer != None:#check if there texture data exist
+        if uv_layer is not None:#check if there texture data exist
             faceUV = uv_layer.data[face.index]
             uvs = []
             for uv in faceUV.uv:
@@ -2159,7 +2159,7 @@ def rebuildarmature(obj):
 
     bpy.ops.object.mode_set(mode='EDIT')
     for bone in obj.data.edit_bones:
-        if bone.parent != None:
+        if bone.parent is not None:
             currentbone.append([bone.name,bone.roll])
         else:
             currentbone.append([bone.name,bone.roll])
@@ -2177,12 +2177,12 @@ def rebuildarmature(obj):
             if bone.name == bonelist[0]:
                 newbone.roll = bonelist[1]
                 break
-        if bone.parent != None:
+        if bone.parent is not None:
             parentbone = ob_new.data.edit_bones[bone.parent.name]
             newbone.parent = parentbone
 
     ob_new.animation_data_create()#create animation data
-    if obj.animation_data != None:#check for animation
+    if obj.animation_data is not None:#check for animation
         ob_new.animation_data.action  = obj.animation_data.action  #just make sure it here to do the animations if exist
     print("Armature Object Name:",ob_new.name)
     return ob_new
@@ -2440,7 +2440,7 @@ def udkcheckmeshline():
     bpy.ops.mesh.select_all(action='DESELECT')
     bpy.context.tool_settings.mesh_select_mode = (True, False, False) #select vertices
 
-    if objmesh != None:
+    if objmesh is not None:
         print("found mesh")
         print(objmesh)
         print(objmesh.data.tessfaces)
@@ -2533,7 +2533,7 @@ class OBJECT_OT_ActionSetAnimUpdate(bpy.types.Operator):
         if len(armatureselected) == 1:
             armature = armatureselected[0]
 
-        if armature != None:
+        if armature is not None:
             for bone in armature.pose.bones:
                 bones.append(bone.name)
 
@@ -2617,7 +2617,7 @@ class ExportUDKAnimData(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object != None
+        return context.active_object is not None
 
     def execute(self, context):
         scene = bpy.context.scene

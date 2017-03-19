@@ -424,7 +424,7 @@ def getActionToDo(obj):
     elif obj is None:
         return 'NO_SELECTION_DO_NOTHING'
     elif "CloudMember" in obj:
-        if obj["CloudMember"] != None:
+        if obj["CloudMember"] is not None:
             if obj["CloudMember"] == "MainObj":
                 return 'DEGENERATE'
             elif obj["CloudMember"] == "CreatedObj" and len(obj.particle_systems) > 0:

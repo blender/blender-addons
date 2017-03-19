@@ -54,7 +54,7 @@ class ObjectNodeTree(bpy.types.NodeTree):
         ob = context.active_object
         if ob and ob.type not in {'LAMP'}:
             ma = ob.active_material
-            if ma != None:
+            if ma is not None:
                 nt_name = ma.node_tree
                 if nt_name != '':
                     return nt_name, ma, ma
@@ -516,7 +516,7 @@ class PovrayColorImageNode(Node, ObjectNodeTree):
         split = column.split(percentage=0.8,align=True)
         split.prop_search(self,"image",context.blend_data,"images",text="")
         split.operator("pov.imageopen",text="",icon="FILESEL")
-        if im != None:
+        if im is not None:
             column.prop(im,"source",text="")
         column.prop(self,"map_type",text="")
         column.prop(self,"interpolate",text="")
@@ -534,7 +534,7 @@ class PovrayColorImageNode(Node, ObjectNodeTree):
         split = column.split(percentage=0.8,align=True)
         split.prop_search(self,"image",context.blend_data,"images",text="")
         split.operator("pov.imageopen",text="",icon="FILESEL")
-        if im != None:
+        if im is not None:
             column.prop(im,"source",text="")
         column.prop(self,"map_type",text="")
         column.prop(self,"interpolate",text="")
@@ -592,7 +592,7 @@ class PovrayBumpMapNode(Node, ObjectNodeTree):
         split = column.split(percentage=0.8,align=True)
         split.prop_search(self,"image",context.blend_data,"images",text="")
         split.operator("pov.imageopen",text="",icon="FILESEL")
-        if im != None:
+        if im is not None:
             column.prop(im,"source",text="")
         column.prop(self,"map_type",text="")
         column.prop(self,"interpolate",text="")
@@ -608,7 +608,7 @@ class PovrayBumpMapNode(Node, ObjectNodeTree):
         split = column.split(percentage=0.8,align=True)
         split.prop_search(self,"image",context.blend_data,"images",text="")
         split.operator("pov.imageopen",text="",icon="FILESEL")
-        if im != None:
+        if im is not None:
             column.prop(im,"source",text="")
         column.prop(self,"map_type",text="")
         column.prop(self,"interpolate",text="")
@@ -659,7 +659,7 @@ class PovrayImagePatternNode(Node, ObjectNodeTree):
         split = column.split(percentage=0.8,align=True)
         split.prop_search(self,"image",context.blend_data,"images",text="")
         split.operator("pov.imageopen",text="",icon="FILESEL")
-        if im != None:
+        if im is not None:
             column.prop(im,"source",text="")
         column.prop(self,"map_type",text="")
         column.prop(self,"interpolate",text="")
@@ -678,7 +678,7 @@ class PovrayImagePatternNode(Node, ObjectNodeTree):
         split = column.split(percentage=0.8,align=True)
         split.prop_search(self,"image",context.blend_data,"images",text="")
         split.operator("pov.imageopen",text="",icon="FILESEL")
-        if im != None:
+        if im is not None:
             column.prop(im,"source",text="")
         column.prop(self,"map_type",text="")
         column.prop(self,"interpolate",text="")

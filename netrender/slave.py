@@ -69,7 +69,7 @@ def testFile(conn, job_id, slave_id, rfile, job_prefix, main_path=None):
 
     found = os.path.exists(job_full_path)
 
-    if found and rfile.signature != None:
+    if found and rfile.signature is not None:
         found_signature = hashFile(job_full_path)
         found = found_signature == rfile.signature
 

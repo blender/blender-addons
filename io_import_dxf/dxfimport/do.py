@@ -360,7 +360,7 @@ class Do:
         if len(spline) % 3 != 1:
             print("DXF-IMPORT: DO ARC: CHECK PLEASE: ", len(spline), spline)
 
-        # curve == None means arc is called from bulge conversion
+        # curve is None means arc is called from bulge conversion
         # nothing should be projected at this stage, since the
         # lwpolyline (the only entity with bulges) will be projected
         # as a whole afterwards (small little error; took ages to debug)

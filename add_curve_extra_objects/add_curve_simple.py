@@ -1028,7 +1028,7 @@ class Simple(bpy.types.Operator):
     ##### POLL #####
     @classmethod
     def poll(cls, context):
-        return context.scene != None
+        return context.scene is not None
 
     ##### EXECUTE #####
     def execute(self, context):
@@ -1099,7 +1099,7 @@ class BezierPointsFillet(bpy.types.Operator):
     ##### POLL #####
     @classmethod
     def poll(cls, context):
-        return context.scene != None
+        return context.scene is not None
 
     ##### EXECUTE #####
     def execute(self, context):
@@ -1237,7 +1237,7 @@ class BezierDivide(bpy.types.Operator):
     ##### POLL #####
     @classmethod
     def poll(cls, context):
-        return context.scene != None
+        return context.scene is not None
 
     ##### EXECUTE #####
     def execute(self, context):
@@ -1347,7 +1347,7 @@ class SimpleEdit(bpy.types.Operator):
         nselected = []
         n = 0
         obj = context.active_object
-        if obj != None:
+        if obj is not None:
             if obj.type == 'CURVE':
                 for i in obj.data.splines:
                     for j in i.bezier_points:
@@ -1375,7 +1375,7 @@ class SimpleEdit(bpy.types.Operator):
         selected = []
         n = 0
         obj = context.active_object
-        if obj != None:
+        if obj is not None:
             if obj.type == 'CURVE':
                 for i in obj.data.splines:
                     for j in i.bezier_points:
