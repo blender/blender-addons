@@ -26,7 +26,7 @@
 bl_info = {
     "name": "Materials Utils Specials",
     "author": "Community",
-    "version": (1, 0, 0),
+    "version": (1, 0, 1),
     "blender": (2, 77, 0),
     "location": "Materials Properties Specials/Shift Q",
     "description": "Materials Utils & Convertors",
@@ -69,18 +69,10 @@ from bpy.types import (
             )
 from .warning_messages_utils import (
             warning_messages,
-            c_is_cycles_addon_enabled,
             c_data_has_materials,
             )
 
-# -----------------------------------------------------------------------------
-# Globals #
 
-# set the default name of the new added material
-MAT_DEFAULT_NAME = "New Material"
-
-
-# -----------------------------------------------------------------------------
 # Functions #
 
 def fake_user_set(fake_user='ON', materials='UNUSED', operator=None):
@@ -279,8 +271,7 @@ def mat_to_texface(operator=None):
             if operator and not mats and mixed_obj is False:
                 message_a.append(ob.name)
 
-            # now we have the images
-            # apply them to the uvlayer
+            # now we have the images, apply them to the uvlayer
             me = ob.data
 
             # got uvs?
@@ -355,7 +346,6 @@ def cleanmatslots(operator=None):
 
         # is active object selected ?
         selected = bool(actob.select)
-
         actob.select = True
 
     objs = bpy.context.selected_editable_objects
@@ -435,7 +425,6 @@ def cleanmatslots(operator=None):
 
 def assign_mat_mesh_edit(matname="Default", operator=None):
     actob = bpy.context.active_object
-
     found = False
     for m in bpy.data.materials:
         if m.name == matname:
@@ -472,7 +461,6 @@ def assign_mat_mesh_edit(matname="Default", operator=None):
 
         # assign the material to the object
         bpy.ops.object.material_slot_assign()
-
         actob.data.update()
 
         # restore selection state
@@ -489,7 +477,6 @@ def assign_mat(matname="Default", operator=None):
 
     # is active object selected ?
     selected = bool(actob.select)
-
     actob.select = True
 
     # check if material exists, if it doesn't then create it
@@ -539,7 +526,6 @@ def assign_mat(matname="Default", operator=None):
                         index = i - 1
                 targetlist = [index]
                 assignmatslots(ob, targetlist)
-
             elif ob.type == 'MESH':
                 # check material slots for matname material
                 found = False
@@ -742,7 +728,6 @@ def remove_materials_all(operator=None):
             warning_messages(operator, 'R_OB_FAIL_MAT', collect_mess)
 
 
-# -----------------------------------------------------------------------------
 # Operator Classes #
 
 class VIEW3D_OT_show_mat_preview(Operator):
@@ -835,8 +820,7 @@ class VIEW3D_OT_show_mat_preview(Operator):
             layout.label(text="**Only Undo is available**", icon="INFO")
 
     def check(self, context):
-        if self.is_not_undo is True:
-            return True
+        return self.is_not_undo
 
     def execute(self, context):
         self.is_not_undo = False
@@ -900,28 +884,65 @@ class VIEW3D_OT_texface_to_material(Operator):
             return {'CANCELLED'}
 
 
+class VIEW3D_OT_set_new_material_name(Operator):
+    bl_idname = "view3d.set_new_material_name"
+    bl_label = "New Material Settings"
+    bl_description = ("Set the Base name of the new Material\n"
+                      "and tweaking after the new Material creation")
+    bl_options = {'REGISTER'}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene.mat_specials
+
+        box = layout.box()
+        box.label("Base name:")
+        box.prop(scene, "set_material_name", text="", icon="SYNTAX_ON")
+        layout.separator()
+        layout.prop(scene, "use_tweak")
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+
 class VIEW3D_OT_assign_material(Operator):
     bl_idname = "view3d.assign_material"
     bl_label = "Assign Material"
     bl_description = "Assign a material to the selection"
     bl_options = {'REGISTER', 'UNDO'}
 
-    is_edit = False
-
+    is_existing = BoolProperty(
+        name="Is it a new Material",
+        options={'HIDDEN'},
+        default=True,
+        )
     matname = StringProperty(
-            name="Material Name",
-            description="Name of Material to Assign",
-            default=MAT_DEFAULT_NAME,
-            maxlen=128,
-            )
+        name="Material Name",
+        description="Name of the Material to Assign",
+        options={'HIDDEN'},
+        default="Material_New",
+        maxlen=128,
+        )
 
     @classmethod
     def poll(cls, context):
         return context.active_object is not None
 
+    def invoke(self, context, event):
+        return self.execute(context)
+
     def execute(self, context):
         actob = context.active_object
         mn = self.matname
+        scene = context.scene.mat_specials
+        tweak = scene.use_tweak
+
+        if not self.is_existing:
+            new_name = check_mat_name_unique(scene.set_material_name)
+            mn = new_name
 
         if (actob.type in {'MESH'} and actob.mode in {'EDIT'}):
             assign_mat_mesh_edit(mn, self)
@@ -932,9 +953,13 @@ class VIEW3D_OT_assign_material(Operator):
             cleanmatslots()
 
         mat_to_texface()
+        self.is_not_undo = False
 
-        # reset the passing string
-        self.matname = ""
+        if tweak:
+            try:
+                bpy.ops.view3d.show_mat_preview('INVOKE_DEFAULT')
+            except:
+                self.report({'INFO'}, "Preview Active Material could not be opened")
 
         return {'FINISHED'}
 
@@ -988,8 +1013,8 @@ class VIEW3D_OT_material_remove_slot(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
-    # materials can't be removed in Edit mode
     def poll(cls, context):
+        # materials can't be removed in Edit mode
         return (c_data_has_materials() and
                 context.active_object is not None and
                 not context.object.mode == 'EDIT')
@@ -1011,8 +1036,8 @@ class VIEW3D_OT_material_remove_object(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
-    # materials can't be removed in Edit mode
     def poll(cls, context):
+        # materials can't be removed in Edit mode
         return (c_data_has_materials() and
                 context.active_object is not None and
                 not context.object.mode == 'EDIT')
@@ -1034,8 +1059,8 @@ class VIEW3D_OT_material_remove_all(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
-    # materials can't be removed in Edit mode
     def poll(cls, context):
+        # materials can't be removed in Edit mode
         return (c_data_has_materials() and
                 context.active_object is not None and
                 not context.object.mode == 'EDIT')
@@ -1057,6 +1082,7 @@ class VIEW3D_OT_select_material_by_name(Operator):
     bl_label = "Select Material By Name"
     bl_description = "Select geometry with this material assigned to it"
     bl_options = {'REGISTER', 'UNDO'}
+
     matname = StringProperty(
             name='Material Name',
             description='Name of Material to Select',
@@ -1135,10 +1161,9 @@ class VIEW3D_OT_fake_user_set(Operator):
             items=(('ON', "On", "Enable fake user"), ('OFF', "Off", "Disable fake user")),
             default='ON',
             )
-
     materials = EnumProperty(
             name="Materials",
-            description="Which materials of objects to affect",
+            description="Chose what objects and materials to affect",
             items=(('ACTIVE', "Active object", "Materials of active object only"),
                    ('SELECTED', "Selected objects", "Materials of selected objects"),
                    ('SCENE', "Scene objects", "Materials of objects in current scene"),
@@ -1289,14 +1314,12 @@ class MATERIAL_OT_link_to_base_names(Operator):
                 name="Material to keep",
                 default="",
                 )
-
     is_auto = BoolProperty(
                 name="Auto Rename/Replace",
                 description=("Automatically Replace names "
                              "by stripping numerical suffix"),
                 default=False,
                )
-
     mat_error = []          # collect mat for warning messages
     is_not_undo = False     # prevent drawing props on undo
     check_no_name = True    # check if no name is passed
@@ -1374,14 +1397,14 @@ class MATERIAL_OT_link_to_base_names(Operator):
             return
 
         base, suffix = self.split_name(slot.material)
-
         if suffix is None:
             return
 
         try:
             base_mat = bpy.data.materials[base]
         except KeyError:
-            print("Link to base names: Base material %r not found" % base)
+            print("\n[Materials Utils Specials]\nLink to base names\nError:"
+                  "Base material %r not found\n" % base)
             return
 
         slot.material = base_mat
@@ -1460,7 +1483,6 @@ class MATERIAL_OT_check_converter_path(Operator):
         return {'FINISHED'}
 
 
-# -----------------------------------------------------------------------------
 # Menu classes #
 
 class VIEW3D_MT_assign_material(Menu):
@@ -1473,19 +1495,22 @@ class VIEW3D_MT_assign_material(Menu):
         if c_data_has_materials():
             # no materials
             for material_name in bpy.data.materials.keys():
-                layout.operator("view3d.assign_material",
+                mats = layout.operator("view3d.assign_material",
                                 text=material_name,
-                                icon='MATERIAL_DATA').matname = material_name
+                                icon='MATERIAL_DATA')
+                mats.matname = material_name
+                mats.is_existing = True
             use_separator(self, context)
 
         if (not context.active_object):
             # info why the add material is innactive
             layout.label(text="*No active Object in the Scene*", icon="INFO")
             use_separator(self, context)
-
-        layout.operator("view3d.assign_material",
-                        text="Add New",
-                        icon='ZOOMIN')
+        mat_prop_name = context.scene.mat_specials.set_material_name
+        add_new = layout.operator("view3d.assign_material",
+                                  text="Add New", icon='ZOOMIN')
+        add_new.matname = mat_prop_name
+        add_new.is_existing = False
 
 
 class VIEW3D_MT_select_material(Menu):
@@ -1497,13 +1522,10 @@ class VIEW3D_MT_select_material(Menu):
         ob = context.object
 
         if (not c_data_has_materials()):
-            # (sad mall music is playing nearby)
             layout.label(text="*No Materials in the data*", icon="INFO")
         elif (not ob):
-            # don't worry, i don't like the default cubes, lamps and cameras too
             layout.label(text="*No Objects to select*", icon="INFO")
         else:
-            # we did what we could, now you're at the mercy of universe's entropy
             if ob.mode == 'OBJECT':
                 # show all used materials in entire blend file
                 for material_name, material in bpy.data.materials.items():
@@ -1585,6 +1607,8 @@ class VIEW3D_MT_mat_special(Menu):
 
     def draw(self, context):
         layout = self.layout
+
+        layout.operator("view3d.set_new_material_name", icon="SETTINGS")
 
         if c_render_engine("Cycles"):
             if (enable_converters() is True and converter_type('BI_CONV')):
@@ -1894,7 +1918,6 @@ class material_converter_report(Operator):
         return {'FINISHED'}
 
 
-# -----------------------------------------------------------------------------
 # Scene Properties
 
 class material_specials_scene_props(PropertyGroup):
@@ -1951,9 +1974,21 @@ class material_specials_scene_props(PropertyGroup):
                    ('2048', "Set : 2048 x 2048", "Bake Resolution 2048 x 2048")),
             default='1024',
             )
+    set_material_name = StringProperty(
+            name="New Material name",
+            description="What Base name pattern to use for a new created Material\n"
+                        "It is appended by an automatic numeric pattern depending\n"
+                        "on the number of Scene's materials containing the Base",
+            default="Material_New",
+            maxlen=128,
+            )
+    use_tweak = BoolProperty(
+        name="Tweak settings",
+        description="Open Preview Active Material after new Material creation",
+        default=False,
+        )
 
 
-# -----------------------------------------------------------------------------
 # Addon Preferences
 
 class VIEW3D_MT_material_utils_pref(AddonPreferences):
@@ -1966,7 +2001,6 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
                         "when an action is executed or failed.\n \n"
                         "Advisable if you don't know how the tool works",
             )
-
     show_remove_mat = BoolProperty(
             name="Enable Remove all Materials",
             default=False,
@@ -1975,7 +2009,6 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
                         "Use with care - if you want to keep materials after \n"
                         "closing \ reloading Blender Set Fake User for them",
             )
-
     show_mat_preview = BoolProperty(
             name="Enable Material Preview",
             default=True,
@@ -1984,7 +2017,6 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
                         "Use nodes, Color, Specular and Transparency \n"
                         "settings depending on the Context and Preferences",
             )
-
     set_cleanmatslots = BoolProperty(
             name="Enable Auto Clean",
             default=True,
@@ -1994,20 +2026,17 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
                         "adding materials, enabling it can have some \n"
                         "performance impact on very dense meshes",
             )
-
     show_separators = BoolProperty(
             name="Use Separators in the menus",
             default=True,
             description="Use separators in the menus, a trade-off between \n"
                         "readability vs. using more space for displaying items",
             )
-
     show_converters = BoolProperty(
             name="Enable Converters",
             default=True,
             description="Enable Material Converters",
             )
-
     set_preview_size = EnumProperty(
             name="Preview Menu Size",
             description="Set the preview menu size \n"
@@ -2023,10 +2052,9 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
                    ('0x0', "List", "Display as a List")),
             default='3x3',
             )
-
     set_preview_type = EnumProperty(
             name="Preview Menu Type",
-            description="Set the the Preview menu type \n",
+            description="Set the the Preview menu type",
             items=(('LIST', "Classic",
                     "Display as a Classic List like in Blender Propreties. \n \n"
                     "Preview of Active Material not available"),
@@ -2037,10 +2065,9 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
                     "Preview of Active Material available")),
             default='PREVIEW',
             )
-
     set_experimental_type = EnumProperty(
             name="Experimental Features",
-            description=" \n",
+            description="Set the Type of converters enabled",
             items=(('ALL', "All Converters",
                     "Enable all Converters"),
                    ('CYC_CONV', "BI and Cycles Nodes",
@@ -2063,44 +2090,65 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
 
         box = layout.box()
         split = box.split(align=True)
-        col = split.column()
 
+        col = split.column()
         col.prop(self, "show_warnings")
-        cola = split.column()
-        cola.alignment = 'RIGHT'
-        cola.prop(self, "set_cleanmatslots")
-        cola.prop(self, "show_separators")
         col.prop(self, "show_remove_mat")
+
+        col = split.column()
+        col.alignment = 'RIGHT'
+        col.prop(self, "set_cleanmatslots")
+        col.prop(self, "show_separators")
 
         boxie = box.box()
         row = boxie.row()
         row.prop(self, "show_mat_preview")
-        rowsy = row.split()
-        rowsy.enabled = (True if self.show_mat_preview else False)
-        rowsy.alignment = 'CENTER'
-        rowsy.prop(self, "set_preview_type", text="")
-        rowsa = rowsy.row()
-        rowsa.enabled = (True if self.set_preview_type in {'PREVIEW'} else False)
-        rowsa.alignment = 'CENTER'
-        rowsa.prop(self, "set_preview_size", text="")
+        rowsy = row.split(align=True)
+        rowsy.enabled = True if self.show_mat_preview else False
+        rowsy.prop(self, "set_preview_type", expand=True)
+        rowsa = boxie.row(align=True)
+        rowsa.enabled = True if self.set_preview_type in {'PREVIEW'} else False
+        rowsa.prop(self, "set_preview_size", expand=True)
 
         boxif = box.box()
         rowf = boxif.row()
         rowf.prop(self, "show_converters")
         rowsf = rowf.split()
-        rowsf.enabled = (True if self.show_converters else False)
-        rowsf.alignment = 'RIGHT'
-        rowsf.prop(self, "set_experimental_type", text="")
+        rowsf.enabled = True if self.show_converters else False
+        rowsf.prop(self, "set_experimental_type", expand=True)
 
 
-# -----------------------------------------------------------------------------
 # utility functions:
+
+def check_mat_name_unique(name_id="Material_new"):
+    # check if the new name pattern is in materials' data
+    name_list = []
+    suffix = 1
+    try:
+        if c_data_has_materials():
+            name_list = [mat.name for mat in bpy.data.materials if name_id in mat.name]
+            new_name = "{}_{}".format(name_id, len(name_list) + suffix)
+            if new_name in name_list:
+                # KISS failed - numbering is not sequential
+                # try harvesting numbers in material names, find the rightmost ones
+                test_num = []
+                from re import findall
+                for words in name_list:
+                    test_num.append(findall("\d+", words))
+
+                suffix += max([int(l[-1]) for l in test_num])
+                new_name = "{}_{}".format(name_id, suffix)
+            return new_name
+    except Exception as e:
+        print("\n[Materials Utils Specials]\nfunction: check_mat_name_unique\nError: %s \n" % e)
+        pass
+    return name_id
+
 
 def included_object_types(objects):
     # Pass the bpy.data.objects.type to avoid needless assigning/removing
     # included - type that can have materials
     included = ['MESH', 'CURVE', 'SURFACE', 'FONT', 'META']
-
     obj = objects
     return bool(obj and obj in included)
 

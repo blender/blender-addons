@@ -38,11 +38,11 @@ class TEXTURE_OT_patern_rename(Operator):
         layout = self.layout
         if self.is_not_undo is True:
             box = layout.box()
-
             box.prop(self, "named", text="Name pattern", icon="SYNTAX_ON")
             layout.separator()
-            boxs = layout.box()
-            boxs.prop_search(self, "named", bpy.data, "textures")
+
+            box = layout.box()
+            box.prop_search(self, "named", bpy.data, "textures")
         else:
             layout.label(text="**Only Undo is available**", icon="INFO")
 

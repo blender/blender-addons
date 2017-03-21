@@ -3,7 +3,6 @@
 
 import bpy
 
-# -----------------------------------------------------------------------------
 # Globals #
 
 # change the name for the properties settings
@@ -13,7 +12,6 @@ MAT_SPEC_NAME = "materials_specials"
 COLLECT_REPORT = []
 
 
-# -----------------------------------------------------------------------------
 # Functions #
 
 def warning_messages(operator=None, warn='DEFAULT', object_name="", is_mat=None, fake=""):
@@ -148,7 +146,6 @@ def collect_report(collection="", is_start=False, is_final=False):
         COLLECT_REPORT = []
 
 
-# -----------------------------------------------------------------------------
 # utility functions:
 
 def c_is_cycles_addon_enabled():
@@ -175,6 +172,7 @@ def register():
 def unregister():
     bpy.utils.unregister_module(__name__)
     pass
+
 
 if __name__ == "__main__":
     register()
