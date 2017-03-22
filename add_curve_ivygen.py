@@ -667,7 +667,7 @@ class IvyGen(bpy.types.Operator):
 
 def menu_func(self, context):
     self.layout.operator(IvyGen.bl_idname, text="Add Ivy to Mesh",
-                                                icon='PLUGIN').updateIvy = True
+                                                icon='OUTLINER_DATA_CURVE').updateIvy = True
 
 
 def register():
