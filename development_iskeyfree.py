@@ -201,10 +201,8 @@ class RunActionCheck(bpy.types.Operator):
 # Defines UI panel
 # ------------------------------------------------------
 class UIControlPanel(bpy.types.Panel):
-    bl_space_type = "PROPERTIES"
-    bl_region_type = "WINDOW"
-    # bl_context = "object"  # Remove comment to put in object panel only
-    bl_category = 'IsKeyFree'
+    bl_space_type = "TEXT_EDITOR"
+    bl_region_type = "UI"
     bl_label = "Is Key Free"
 
     # noinspection PyUnusedLocal
