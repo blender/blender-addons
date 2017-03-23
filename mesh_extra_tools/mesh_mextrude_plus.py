@@ -36,7 +36,7 @@ import bpy
 import bmesh
 import random
 from bpy.types import Operator
-from random import gauss
+from random import gauss, choice
 from math import radians
 from mathutils import Euler
 from bpy.props import (
@@ -44,6 +44,12 @@ from bpy.props import (
         IntProperty,
         )
 
+
+# added normal rot
+def nrot(self,n):
+    return Euler((radians(self.nrotx) * n[0], \
+                    radians(self.nroty) * n[1], \
+                    radians(self.nrotz) * n[2]), 'XYZ')
 
 def vloc(self, r):
     random.seed(self.ran + r)
@@ -98,6 +104,28 @@ class MExtrude(Operator):
                 default=-0,
                 description="Z Rotation"
                 )
+    nrotx = FloatProperty(
+                name="N Rot X",
+                min=-85, max=85,
+                soft_min=-30, soft_max=30,
+                default=0,
+                description="X Rotation"
+                )
+    nroty = FloatProperty(
+                name="N Rot Y",
+                min=-85, max=85,
+                soft_min=-30,
+                soft_max=30,
+                default=0,
+                description="Y Rotation"
+                )
+    nrotz = FloatProperty(
+                name="N Rot Z",
+                min=-85, max=85,
+                soft_min=-30, soft_max=30,
+                default=-0,
+                description="Z Rotation"
+                )
     sca = FloatProperty(
                 name="Scale",
                 min=0.1, max=2,
@@ -125,6 +153,12 @@ class MExtrude(Operator):
                 default=0,
                 description="Scaling noise"
                 )
+    var4 = IntProperty(
+                name="Probability",
+                min=0, max=100,
+                default=100,
+                description="Probability, chance of extruding a face"
+                )
     num = IntProperty(
                 name="Repeat",
                 min=1, max=50,
@@ -151,6 +185,9 @@ class MExtrude(Operator):
         col.prop(self, "rotx", slider=True)
         col.prop(self, "roty", slider=True)
         col.prop(self, "rotz", slider=True)
+        col.prop(self, 'nrotx', slider=True)
+        col.prop(self, 'nroty', slider=True)
+        col.prop(self, 'nrotz', slider=True)
         col.prop(self, "sca", slider=True)
 
         col = layout.column(align=True)
@@ -158,10 +195,13 @@ class MExtrude(Operator):
         col.prop(self, "var1", slider=True)
         col.prop(self, "var2", slider=True)
         col.prop(self, "var3", slider=True)
+        col.prop(self, "var4", slider=True)
         col.prop(self, "ran")
-
         col = layout.column(align=False)
         col.prop(self, 'num')
+
+        
+
 
     def execute(self, context):
         obj = bpy.context.object
@@ -180,30 +220,36 @@ class MExtrude(Operator):
         for i, of in enumerate(sel):
             rot = vrot(self, i)
             off = vloc(self, i)
+            nro = nrot(self, of.normal)
             of.normal_update()
 
             # extrusion loop
-            for r in range(self.num):
-                nf = of.copy()
-                nf.normal_update()
-                no = nf.normal.copy()
-                ce = nf.calc_center_bounds()
-                s = vsca(self, i + r)
+            for r in range( self.num ):
 
-                for v in nf.verts:
-                    v.co -= ce
-                    v.co.rotate(rot)
-                    v.co += ce + no * off
-                    v.co = v.co.lerp(ce, 1 - s)
+                ## random % skip some extrusions
+                if self.var4 >= int(random.random()*100):
 
-                # extrude code from TrumanBlending
-                for a, b in zip(of.loops, nf.loops):
-                    sf = bm.faces.new((a.vert, a.link_loop_next.vert,
-                                       b.link_loop_next.vert, b.vert))
-                    sf.normal_update()
+                    nf = of.copy()
+                    nf.normal_update()
+                    no = nf.normal.copy()
+                    ce = nf.calc_center_bounds()
+                    s = vsca(self, i + r)
 
-                bm.faces.remove(of)
-                of = nf
+                    for v in nf.verts:
+                        v.co -= ce
+                        v.co.rotate(nro)
+                        v.co.rotate(rot)
+                        v.co += ce + no * off
+                        v.co = v.co.lerp(ce, 1 - s)
+
+                    # extrude code from TrumanBlending
+                    for a, b in zip(of.loops, nf.loops):
+                        sf = bm.faces.new((a.vert, a.link_loop_next.vert,
+                                           b.link_loop_next.vert, b.vert))
+                        sf.normal_update()
+
+                    bm.faces.remove(of)
+                    of = nf
             after.append(of)
 
         for v in bm.verts:
