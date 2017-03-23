@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Bool Tool",
     "author": "Vitor Balbio, Mikhail Rachinskiy, TynkaTopi, Meta-Androcto",
-    "version": (0, 3, 5),
+    "version": (0, 3, 6),
     "blender": (2, 78, 0),
     "location": "View3D > Toolshelf",
     "description": "Bool Tools Hotkey: Ctrl Shift B",
@@ -339,7 +339,7 @@ def ApplyThisBrush(context, brush):
                         bpy.ops.mesh.select_all(action='SELECT')
                         bpy.ops.object.mode_set(mode='OBJECT')
 
-                        #Turn off al faces of the Canvas selected
+                        # Turn off al faces of the Canvas selected
                         bpy.context.scene.objects.active = canvas
                         bpy.ops.object.mode_set(mode='EDIT')
                         bpy.ops.mesh.select_all(action='DESELECT')
@@ -933,19 +933,17 @@ class BoolTool_Tools(Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
 
-
     @classmethod
     def poll(cls, context):
         obj = context.object
         if len(context.selected_objects) > 0:
             return obj and obj.type == 'MESH' and obj.mode in {'OBJECT'}
 
-
     def draw(self, context):
         layout = self.layout
         row = layout.split(0.70)
         row.label("Bool Tools:", icon="MODIFIER")
-        row.operator('help.bool_tool', text='', icon = "QUESTION")
+        row.operator("help.bool_tool", text="", icon="QUESTION")
 
         col = layout.column(align=True)
         col.enabled = len(context.selected_objects) > 1
@@ -1147,26 +1145,28 @@ class BoolTool_BViwer(Panel):
                     Dw.modif = mod.name
                     Dw.direction = "DOWN"
 
+
 # ------------------ BOOL TOOL Help ----------------------------
-class BoolTool_help(bpy.types.Operator):
-    bl_idname = 'help.bool_tool'
-    bl_label = ''
+class BoolTool_help(Operator):
+    bl_idname = "help.bool_tool"
+    bl_label = ""
 
     def draw(self, context):
         layout = self.layout
-        layout.label('To use:')
-        layout.label('Select Two Or More Objects')
-        layout.label('Auto Booleans:')
-        layout.label('Auto Apply Direct Booleans')
-        layout.label('Brush Booleans:')
-        layout.label('Create Boolean Brush Set Up')
-
+        layout.label("To use:")
+        layout.label("Select Two Or More Objects")
+        layout.label("Auto Booleans:")
+        layout.label("Auto Apply Direct Booleans")
+        layout.label("Brush Booleans:")
+        layout.label("Create Boolean Brush Set Up")
 
     def execute(self, context):
         return {'FINISHED'}
 
     def invoke(self, context, event):
         return context.window_manager.invoke_popup(self, width=200)
+
+
 # ------------------ BOOL TOOL ADD-ON PREFERENCES ----------------------------
 
 def UpdateBoolTool_Pref(self, context):
@@ -1175,20 +1175,31 @@ def UpdateBoolTool_Pref(self, context):
     else:
         UnRegisterFastT()
 
-## Addons Preferences Update Panel
+
+# Add-ons Preferences Update Panel
+
+# Define Panel classes for updating
+panels = [
+        BoolTool_Tools,
+        BoolTool_Config,
+        BoolTool_BViwer,
+        ]
+
+
 def update_panel(self, context):
+    message = "Bool Tool: Updating Panel locations has failed"
     try:
-        bpy.utils.unregister_class(BoolTool_Tools)
-        bpy.utils.unregister_class(BoolTool_Config)
-        bpy.utils.unregister_class(BoolTool_BViwer)
-    except:
+        for panel in panels:
+            if "bl_rna" in panel.__dict__:
+                bpy.utils.unregister_class(panel)
+
+        for panel in panels:
+            panel.bl_category = context.user_preferences.addons[__name__].preferences.category
+            bpy.utils.register_class(panel)
+
+    except Exception as e:
+        print("\n[{}]\n{}\n\nError:\n{}".format(__name__, message, e))
         pass
-    BoolTool_Tools.bl_category = context.user_preferences.addons[__name__].preferences.category
-    bpy.utils.register_class(BoolTool_Tools)
-    BoolTool_Config.bl_category = context.user_preferences.addons[__name__].preferences.category
-    bpy.utils.register_class(BoolTool_Config)
-    BoolTool_BViwer.bl_category = context.user_preferences.addons[__name__].preferences.category
-    bpy.utils.register_class(BoolTool_BViwer)
 
 
 class BoolTool_Pref(AddonPreferences):
@@ -1198,35 +1209,32 @@ class BoolTool_Pref(AddonPreferences):
             name="Fast Transformations",
             default=False,
             update=UpdateBoolTool_Pref,
-            description="Replace the Transform HotKeys (G,R,S) "
+            description="Replace the Transform HotKeys (G,R,S)\n"
                         "for a custom version that can optimize the visualization of Brushes",
             )
-
     make_vertex_groups = BoolProperty(
             name="Make Vertex Groups",
             default=False,
-            description="When Apply a Brush to de Object it will create a new vertex group of the new faces",
+            description="When Applying a Brush to the Object it will create\n"
+                        "a new vertex group for the new faces",
             )
-
     make_boundary = BoolProperty(
             name="Make Boundary",
             default=False,
-            description="When Apply a Brush to de Object it will create a new vertex group of the bondary boolean area",
+            description="When Apply a Brush to the Object it will create a\n"
+                        "new vertex group of the bondary boolean area",
             )
-
     use_wire = BoolProperty(
             name="Use Bmesh",
             default=False,
-            description="Use The Wireframe Instead Of Boolean",
+            description="Use The Wireframe Instead of Bounding Box for visualization",
             )
-
     category = StringProperty(
             name="Tab Category",
             description="Choose a name for the category of the panel",
             default="Tools",
             update=update_panel,
             )
-
     solver = EnumProperty(
             name="Boolean Solver",
             items=(('BMESH', "BMesh", "BMesh solver is faster, but less stable "
@@ -1236,11 +1244,11 @@ class BoolTool_Pref(AddonPreferences):
             default='BMESH',
             description="Specify solver for boolean operations",
             )
-
-    bpy.types.Scene.Enable_Tab_01 = bpy.props.BoolProperty(default=False)
+    Enable_Tab_01 = BoolProperty(
+            default=False
+            )
 
     def draw(self, context):
-        scene = context.scene
         layout = self.layout
         split_percent = 0.3
 
@@ -1249,29 +1257,30 @@ class BoolTool_Pref(AddonPreferences):
         col.label(text="Tab Category:")
         col = split.column()
         colrow = col.row()
-        colrow.alignment = 'LEFT'
         colrow.prop(self, "category", text="")
 
         split = layout.split(percentage=split_percent)
         col = split.column()
-        col.label('Boolean Solver:')
+        col.label("Boolean Solver:")
         col = split.column()
         colrow = col.row()
-        colrow.alignment = 'LEFT'
-        colrow.prop(self, 'solver', text='')
+        colrow.prop(self, "solver", expand=True)
 
-        row = layout.row()
-        col = row.column()
+        split = layout.split(percentage=split_percent)
+        col = split.column()
         col.label("Experimental Features:")
-        col.prop(self, "fast_transform")
-        col.prop(self, "use_wire", text="Use Wire Instead Of Bbox")
+        col = split.column()
+        colrow = col.row(align=True)
+        colrow.prop(self, "fast_transform", toggle=True)
+        colrow.prop(self, "use_wire", text="Use Wire Instead Of Bbox", toggle=True)
+        layout.separator()
         """
         # EXPERIMENTAL
         col.prop(self, "make_vertex_groups")
         col.prop(self, "make_boundary")
         """
-        layout.prop(context.scene, "Enable_Tab_01", text="Hot Keys", icon="KEYINGSET")
-        if scene.Enable_Tab_01:
+        layout.prop(self, "Enable_Tab_01", text="Hot Keys", icon="KEYINGSET")
+        if self.Enable_Tab_01:
             row = layout.row()
 
             col = row.column()
@@ -1369,17 +1378,19 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
     update_panel(None, bpy.context)
-    wm = bpy.context.window_manager
+
     # Scene variables
     bpy.types.Scene.BoolHide = BoolProperty(
             default=False,
-            description='Hide boolean objects',
+            description="Hide boolean objects",
             update=update_BoolHide,
             )
     # Handlers
     bpy.app.handlers.scene_update_post.append(HandleScene)
 
     bpy.types.VIEW3D_MT_object.append(VIEW3D_BoolTool_Menu)
+
+    wm = bpy.context.window_manager
 
     # create the boolean menu hotkey
     km = wm.keyconfigs.addon.keymaps.new(name='Object Mode')
