@@ -95,11 +95,11 @@ class AchmInfoMtMeshDecorationAdd(Menu):
 
     # noinspection PyUnusedLocal
     def draw(self, context):
-        self.layout.operator("mesh.archimesh_books", text="Add Books", icon="PLUGIN")
-        self.layout.operator("mesh.archimesh_lamp", text="Add Lamp", icon="PLUGIN")
-        self.layout.operator("mesh.archimesh_roller", text="Add Roller curtains", icon="PLUGIN")
-        self.layout.operator("mesh.archimesh_venetian", text="Add Venetian blind", icon="PLUGIN")
-        self.layout.operator("mesh.archimesh_japan", text="Add Japanese curtains", icon="PLUGIN")
+        self.layout.operator("mesh.archimesh_books", text="Add Books")
+        self.layout.operator("mesh.archimesh_lamp", text="Add Lamp")
+        self.layout.operator("mesh.archimesh_roller", text="Add Roller curtains")
+        self.layout.operator("mesh.archimesh_venetian", text="Add Venetian blind")
+        self.layout.operator("mesh.archimesh_japan", text="Add Japanese curtains")
 
 # ----------------------------------------------------------
 # Registration
@@ -113,15 +113,15 @@ class AchmInfoMtMeshCustomMenuAdd(Menu):
     # noinspection PyUnusedLocal
     def draw(self, context):
         self.layout.operator_context = 'INVOKE_REGION_WIN'
-        self.layout.operator("mesh.archimesh_room", text="Add Room", icon="PLUGIN")
-        self.layout.operator("mesh.archimesh_door", text="Add Door", icon="PLUGIN")
-        self.layout.operator("mesh.archimesh_window", text="Add Rail Window", icon="PLUGIN")
-        self.layout.operator("mesh.archimesh_winpanel", text="Add Panel Window", icon="PLUGIN")
-        self.layout.operator("mesh.archimesh_kitchen", text="Add Cabinet", icon="PLUGIN")
-        self.layout.operator("mesh.archimesh_shelves", text="Add Shelves", icon="PLUGIN")
-        self.layout.operator("mesh.archimesh_column", text="Add Column", icon="PLUGIN")
-        self.layout.operator("mesh.archimesh_stairs", text="Add Stairs", icon="PLUGIN")
-        self.layout.operator("mesh.archimesh_roof", text="Add Roof", icon="PLUGIN")
+        self.layout.operator("mesh.archimesh_room", text="Add Room")
+        self.layout.operator("mesh.archimesh_door", text="Add Door")
+        self.layout.operator("mesh.archimesh_window", text="Add Rail Window")
+        self.layout.operator("mesh.archimesh_winpanel", text="Add Panel Window")
+        self.layout.operator("mesh.archimesh_kitchen", text="Add Cabinet")
+        self.layout.operator("mesh.archimesh_shelves", text="Add Shelves")
+        self.layout.operator("mesh.archimesh_column", text="Add Column")
+        self.layout.operator("mesh.archimesh_stairs", text="Add Stairs")
+        self.layout.operator("mesh.archimesh_roof", text="Add Roof")
         self.layout.menu("INFO_MT_mesh_decoration_add", text="Decoration props", icon="GROUP")
 
 # --------------------------------------------------------------
@@ -166,7 +166,7 @@ class Archi_Pref(AddonPreferences):
 # Define menu
 # noinspection PyUnusedLocal
 def AchmMenu_func(self, context):
-    self.layout.menu("INFO_MT_mesh_custom_menu_add", icon="PLUGIN")
+    self.layout.menu("INFO_MT_mesh_custom_menu_add", icon="GROUP")
 
 
 def register():
