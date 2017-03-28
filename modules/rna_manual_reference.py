@@ -32,29 +32,30 @@ if bpy.context.user_preferences.system.use_international_fonts:
         language = os.getenv('LANG', '').split('.')[0]
 
 LANG = {
-#   "ar_EG":        "ar",
-#   "bg_BG":        "bg",
-#   "ca_AD":        "ca",
-#   "cs_CZ":        "cz",
+#    "ar_EG":        "ar",
+#    "bg_BG":        "bg",
+#    "ca_AD":        "ca",
+#    "cs_CZ":        "cz",
     "de_DE":        "de",  # German.
-#   "el_GR":        "el",
+#    "el_GR":        "el",
     "ru_RU":        "ru",  # Russian.
-#   "sr_RS":        "sr",
-#   "sv_SE":        "sv",
-#   "tr_TR":        "th",
-#   "uk_UA":        "uk",
-    "es":           "es",  # Spanish.
-#   "fi_FI":        "fi",
-    "fr_FR":        "fr",  # French.
-#   "id_ID":        "id",
-#   "it_IT":        "it",
-#   "ja_JP":        "ja",
-#   "nl_NL":        "nl",
-#   "pl_PL":        "pl",
+#    "sr_RS":        "sr",
+#    "sv_SE":        "sv",
+#    "tr_TR":        "th",
+#    "uk_UA":        "uk ",
+    "es":           "es",  # Spanish
+#    "fi_FI":        "fi",
+    "fr_FR":        "fr",  # French
+#    "id_ID":       "id",
+    "it_IT":        "it", # Italian
+    "ja_JP":        "ja", # Japanese
+    "ko_KR":        "ko", # Korean
+#    "nl_NL":        "nl",
+#    "pl_PL":        "pl",
     "pt_PT":        "pt",  # Portuguese.
     "pt_BR":        "pt",  # Portuguese - for until we have a pt_BR version.
     "zh_CN":        "zh.cn",  # Chinese - Should be changed to "zh_cn" but there is a bug in sphinx-intl.
-    "zh_TW":        "zh.cn",  # Taiwanese Chinese - for until we have a zh_tw version.
+    "zh_TW":        "zh.tw",  # Taiwanese Chinese
 }.get(language)
 
 if LANG is not None:
