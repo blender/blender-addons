@@ -153,7 +153,11 @@ class Export_pc2(bpy.types.Operator, ExportHelper):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object.type in {'MESH', 'CURVE', 'SURFACE', 'FONT'}
+        obj = context.active_object
+        return (
+            obj is not None and
+            obj.type in {'MESH', 'CURVE', 'SURFACE', 'FONT'}
+        )
 
     def execute(self, context):
         start_time = time.time()
