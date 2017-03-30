@@ -328,8 +328,10 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0., 0., 0.),
 class AddRoundCube(bpy.types.Operator, object_utils.AddObjectHelper):
     bl_idname = "mesh.primitive_round_cube_add"
     bl_label = "Add Round Cube"
-    bl_description = ("Create mesh primitives: Quadspheres,"
-                     "\nCapsules, Rounded Cuboids, 3D Grids etc.")
+    bl_description = (
+        "Create mesh primitives: Quadspheres, "
+        "Capsules, Rounded Cuboids, 3D Grids etc"
+    )
     bl_options = {"REGISTER", "UNDO", "PRESET"}
 
     sanity_check_verts = 200000

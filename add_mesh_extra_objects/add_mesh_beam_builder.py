@@ -683,7 +683,7 @@ class addBeam(bpy.types.Operator):
                 ("4", "I", "T Beam"),
                 ("5", "T", "I Beam")
                 ),
-                description="Beam form."
+                description="Beam form"
                 )
     beamZ = FloatProperty(
                 name="Height",

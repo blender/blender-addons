@@ -76,8 +76,9 @@ def defReconst(self, OFFSET):
         use_subsurf_data=0)
 
 
-class reConst (Operator):
-    """Erase vertices bellow cero X position value and rebuilds the symmetry. It also creates two uv channels, one simmetrical and one asymmetrical."""
+class reConst(Operator):
+    """Erase vertices bellow cero X position value and rebuilds the symmetry. """
+    """It also creates two uv channels, one symmetrical and one asymmetrical"""
     bl_idname = "mesh.reconst_osc"
     bl_label = "ReConst Mesh"
     bl_options = {"REGISTER", "UNDO"}
@@ -121,7 +122,7 @@ def side(self, nombre, offset):
 
 
 class SelectMenor (Operator):
-    """Selects the vetex with an N position value on the X axis."""
+    """Selects the vetex with an N position value on the X axis"""
     bl_idname = "mesh.select_side_osc"
     bl_label = "Select Side"
     bl_options = {"REGISTER", "UNDO"}
@@ -151,7 +152,7 @@ class SelectMenor (Operator):
 
 
 class resymVertexGroups (Operator):
-    """Copies the symetrical weight value of the vertices on the X axys. It needs the XML map."""
+    """Copies the symetrical weight value of the vertices on the X axys. It needs the XML map"""
     bl_idname = "mesh.resym_vertex_weights_osc"
     bl_label = "Resym Vertex Weights"
     bl_options = {"REGISTER", "UNDO"}
@@ -254,7 +255,8 @@ def reSymMesh(self, SELECTED, SIDE):
 
 
 class OscResymSave (Operator):
-    """Creates a file on disk that saves the info of every vertex but in simmetry, this info its going to be later used by “Resym Mesh” and “Resym Vertex Weights” """
+    """Creates a file on disk that saves the info of every vertex but in simmetry, """ \
+    """this info its going to be later used by “Resym Mesh” and “Resym Vertex Weights”"""
     bl_idname = "mesh.resym_save_map"
     bl_label = "Resym save XML Map"
     bl_options = {"REGISTER", "UNDO"}
@@ -275,7 +277,7 @@ class OscResymSave (Operator):
 
 
 class OscResymMesh (Operator):
-    """Copies the symetrical position of the vertices on the X axys. It needs the XML map."""
+    """Copies the symetrical position of the vertices on the X axys. It needs the XML map"""
     bl_idname = "mesh.resym_mesh"
     bl_label = "Resym save Apply XML"
     bl_options = {"REGISTER", "UNDO"}
@@ -315,7 +317,7 @@ def DefOscObjectToMesh():
 
 
 class OscObjectToMesh(Operator):
-    """It creates a copy of the final state of the object as it being see in the viewport."""
+    """It creates a copy of the final state of the object as it being see in the viewport"""
     bl_idname = "mesh.object_to_mesh_osc"
     bl_idname = "mesh.object_to_mesh_osc"
     bl_label = "Object To Mesh"
@@ -391,7 +393,8 @@ def DefOscOverlapUv(valpresicion):
 
 
 class OscOverlapUv(Operator):
-    """Overlaps the uvs on one side of the model symmetry plane. Usefull to get more detail on fixed resolution bitmaps."""
+    """Overlaps the uvs on one side of the model symmetry plane. """ \
+    """Useful to get more detail on fixed resolution bitmaps"""
     bl_idname = "mesh.overlap_uv_faces"
     bl_label = "Overlap Uvs"
     bl_options = {"REGISTER", "UNDO"}
@@ -432,7 +435,7 @@ def dibuja_callback(self, context):
 
 
 class ModalIndexOperator(Operator):
-    """Allow to visualize the index number for vertices in the viewport."""
+    """Allow to visualize the index number for vertices in the viewport"""
     bl_idname = "view3d.modal_operator"
     bl_label = "Print Vertices"
 
@@ -498,7 +501,7 @@ def SelDoubles(self, context):
 
 
 class SelectDoubles(Operator):
-    """Selects duplicated vertex without merge them."""
+    """Selects duplicated vertex without merge them"""
     bl_idname = "mesh.select_doubles"
     bl_label = "Select Doubles"
     bl_options = {"REGISTER", "UNDO"}

@@ -476,20 +476,22 @@ class PovrayColorImageNode(Node, ObjectNodeTree):
             name="Map type",
             description="",
             items=( ('uv_mapping', "UV", ""),
-                    ('0', "Planar", "Default planar mapping."),
-                    ('1', "Spherical", "Spherical mapping."),
-                    ('2', "Cylindrical", "Cylindrical mapping."),
-                    ('5', "Torroidal", "Torus or donut shaped mapping.")),
+                    ('0', "Planar", "Default planar mapping"),
+                    ('1', "Spherical", "Spherical mapping"),
+                    ('2', "Cylindrical", "Cylindrical mapping"),
+                    ('5', "Torroidal", "Torus or donut shaped mapping")),
             default='0')
     image = StringProperty(maxlen=1024) # , subtype="FILE_PATH"
     interpolate = EnumProperty(
             name="Interpolate",
-            description="Adding the interpolate keyword can smooth the jagged look of a bitmap.",
-            items=(('2', "Bilinear", "Gives bilinear interpolation."),
-                    ('4', "Normalized", "Gives normalized distance.")),
+            description="Adding the interpolate keyword can smooth the jagged look of a bitmap",
+            items=(
+                ('2', "Bilinear", "Gives bilinear interpolation"),
+                ('4', "Normalized", "Gives normalized distance"),
+            ),
             default='2')
     premultiplied = BoolProperty(default=False)
-    once = BoolProperty(description="Not to repeat.", default=False)
+    once = BoolProperty(description="Not to repeat", default=False)
 
     def init(self, context):
 
@@ -554,20 +556,24 @@ class PovrayBumpMapNode(Node, ObjectNodeTree):
     map_type = bpy.props.EnumProperty(
             name="Map type",
             description="",
-            items=( ('uv_mapping', "UV", ""),
-                    ('0', "Planar", "Default planar mapping."),
-                    ('1', "Spherical", "Spherical mapping."),
-                    ('2', "Cylindrical", "Cylindrical mapping."),
-                    ('5', "Torroidal", "Torus or donut shaped mapping.")),
+            items=(
+                ('uv_mapping', "UV", ""),
+                ('0', "Planar", "Default planar mapping"),
+                ('1', "Spherical", "Spherical mapping"),
+                ('2', "Cylindrical", "Cylindrical mapping"),
+                ('5', "Torroidal", "Torus or donut shaped mapping")
+            ),
             default='0')
     image = StringProperty(maxlen=1024) # , subtype="FILE_PATH"
     interpolate = EnumProperty(
             name="Interpolate",
-            description="Adding the interpolate keyword can smooth the jagged look of a bitmap.",
-            items=(('2', "Bilinear", "Gives bilinear interpolation."),
-                    ('4', "Normalized", "Gives normalized distance.")),
+            description="Adding the interpolate keyword can smooth the jagged look of a bitmap",
+            items=(
+                ('2', "Bilinear", "Gives bilinear interpolation"),
+                ('4', "Normalized", "Gives normalized distance"),
+            ),
             default='2')
-    once = BoolProperty(description="Not to repeat.", default=False)
+    once = BoolProperty(description="Not to repeat", default=False)
 
     def init(self, context):
 
@@ -626,21 +632,25 @@ class PovrayImagePatternNode(Node, ObjectNodeTree):
     map_type = bpy.props.EnumProperty(
             name="Map type",
             description="",
-            items=( ('uv_mapping', "UV", ""),
-                    ('0', "Planar", "Default planar mapping."),
-                    ('1', "Spherical", "Spherical mapping."),
-                    ('2', "Cylindrical", "Cylindrical mapping."),
-                    ('5', "Torroidal", "Torus or donut shaped mapping.")),
+            items=(
+                ('uv_mapping', "UV", ""),
+                ('0', "Planar", "Default planar mapping"),
+                ('1', "Spherical", "Spherical mapping"),
+                ('2', "Cylindrical", "Cylindrical mapping"),
+                ('5', "Torroidal", "Torus or donut shaped mapping"),
+            ),
             default='0')
     image = StringProperty(maxlen=1024) # , subtype="FILE_PATH"
     interpolate = EnumProperty(
             name="Interpolate",
-            description="Adding the interpolate keyword can smooth the jagged look of a bitmap.",
-            items=(('2', "Bilinear", "Gives bilinear interpolation."),
-                    ('4', "Normalized", "Gives normalized distance.")),
+            description="Adding the interpolate keyword can smooth the jagged look of a bitmap",
+            items=(
+                ('2', "Bilinear", "Gives bilinear interpolation"),
+                ('4', "Normalized", "Gives normalized distance"),
+            ),
             default='2')
     premultiplied = BoolProperty(default=False)
-    once = BoolProperty(description="Not to repeat.", default=False)
+    once = BoolProperty(description="Not to repeat", default=False)
     use_alpha = BoolProperty(default=True)
     def init(self, context):
 

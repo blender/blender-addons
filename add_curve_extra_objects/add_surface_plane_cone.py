@@ -42,22 +42,28 @@ class MakeSurfaceWedge(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 # get input for size and resolution
 
-    size = FloatProperty(name="Size",
-                         description="Size of the object.",
-                         default=1.0,
-                         min=0.01,
-                         max=100.0,
-                         unit="LENGTH")
-    res_u = IntProperty(name="Resolution U",
-                        description="Surface resolution in u direction",
-                        default=1,
-                        min=1,
-                        max=500)
-    res_v = IntProperty(name="Resolution V",
-                        description="Surface resolution in v direction",
-                        default=1,
-                        min=1,
-                        max=500)
+    size = FloatProperty(
+        name="Size",
+        description="Size of the object",
+        default=1.0,
+        min=0.01,
+        max=100.0,
+        unit="LENGTH",
+    )
+    res_u = IntProperty(
+        name="Resolution U",
+        description="Surface resolution in u direction",
+        default=1,
+        min=1,
+        max=500,
+    )
+    res_v = IntProperty(
+        name="Resolution V",
+        description="Surface resolution in v direction",
+        default=1,
+        min=1,
+        max=500,
+    )
 
     @classmethod
     def poll(cls, context):
@@ -129,22 +135,28 @@ class MakeSurfaceCone(Operator):
     bl_context = "object"
     bl_options = {'REGISTER', 'UNDO'}
 
-    size = FloatProperty(name="Size",
-                         description="Size of the object.",
-                         default=1.0,
-                         min=0.01,
-                         max=100.0,
-                         unit="LENGTH")
-    res_u = IntProperty(name="Resolution U",
-                        description="Surface resolution in u direction",
-                        default=4,
-                        min=1,
-                        max=500)
-    res_v = IntProperty(name="Resolution V",
-                        description="Surface resolution in v direction",
-                        default=4,
-                        min=1,
-                        max=500)
+    size = FloatProperty(
+        name="Size",
+        description="Size of the object",
+        default=1.0,
+        min=0.01,
+        max=100.0,
+        unit="LENGTH",
+    )
+    res_u = IntProperty(
+        name="Resolution U",
+        description="Surface resolution in u direction",
+        default=4,
+        min=1,
+        max=500,
+    )
+    res_v = IntProperty(
+        name="Resolution V",
+        description="Surface resolution in v direction",
+        default=4,
+        min=1,
+        max=500,
+    )
 
     @classmethod
     def poll(cls, context):
@@ -214,22 +226,28 @@ class MakeSurfaceStar(Operator):
     bl_context = "object"
     bl_options = {'REGISTER', 'UNDO'}
 
-    size = FloatProperty(name="Size",
-                         description="Size of the object.",
-                         default=1.0,
-                         min=0.01,
-                         max=100.0,
-                         unit="LENGTH")
-    res_u = IntProperty(name="Resolution U",
-                        description="Surface resolution in u direction",
-                        default=1,
-                        min=1,
-                        max=500)
-    res_v = IntProperty(name="Resolution V",
-                        description="Surface resolution in v direction",
-                        default=1,
-                        min=1,
-                        max=500)
+    size = FloatProperty(
+        name="Size",
+        description="Size of the object",
+        default=1.0,
+        min=0.01,
+        max=100.0,
+        unit="LENGTH",
+    )
+    res_u = IntProperty(
+        name="Resolution U",
+        description="Surface resolution in u direction",
+        default=1,
+        min=1,
+        max=500,
+    )
+    res_v = IntProperty(
+        name="Resolution V",
+        description="Surface resolution in v direction",
+        default=1,
+        min=1,
+        max=500,
+    )
 
     @classmethod
     def poll(cls, context):
@@ -314,22 +332,28 @@ class MakeSurfacePlane(Operator):
     bl_context = "object"
     bl_options = {'REGISTER', 'UNDO'}
 
-    size = FloatProperty(name="Size",
-                         description="Size of the object.",
-                         default=1.0,
-                         min=0.01,
-                         max=100.0,
-                         unit="LENGTH")
-    res_u = IntProperty(name="Resolution U",
-                        description="Surface resolution in u direction",
-                        default=1,
-                        min=1,
-                        max=500)
-    res_v = IntProperty(name="Resolution V",
-                        description="Surface resolution in v direction",
-                        default=1,
-                        min=1,
-                        max=500)
+    size = FloatProperty(
+        name="Size",
+        description="Size of the object",
+        default=1.0,
+        min=0.01,
+        max=100.0,
+        unit="LENGTH",
+    )
+    res_u = IntProperty(
+        name="Resolution U",
+        description="Surface resolution in u direction",
+        default=1,
+        min=1,
+        max=500,
+    )
+    res_v = IntProperty(
+        name="Resolution V",
+        description="Surface resolution in v direction",
+        default=1,
+        min=1,
+        max=500,
+    )
 
     @classmethod
     def poll(cls, context):

@@ -27,7 +27,7 @@ import os
 
 
 class reloadImages (Operator):
-    """Reloads all bitmaps in the scene."""
+    """Reloads all bitmaps in the scene"""
     bl_idname = "image.reload_images_osc"
     bl_label = "Reload Images"
     bl_options = {"REGISTER", "UNDO"}
@@ -41,7 +41,7 @@ class reloadImages (Operator):
 # ------------------------ SAVE INCREMENTAL ------------------------
 
 class saveIncremental(Operator):
-    """Saves incremental version of the blend file Ex: “_v01” "_v02"."""
+    """Saves incremental version of the blend file Ex: '_v01' '_v02'"""
     bl_idname = "file.save_incremental_osc"
     bl_label = "Save Incremental File"
     bl_options = {"REGISTER", "UNDO"}
@@ -72,7 +72,8 @@ bpy.types.Scene.oscReplaceText = bpy.props.StringProperty(
 
 
 class replaceFilePath(Operator):
-    """Replace the paths set on the “search test” field by the ones in “replace” field. "_v01" »» "_v02" /folder1/render_v01.png  »» /folder1/render_v02.png"""
+    """Replace the paths set on the “search test” field by the ones in “replace” field. """ \
+    """'_v01' »» '_v02' /folder1/render_v01.png  »» /folder1/render_v02.png"""
     bl_idname = "file.replace_file_path_osc"
     bl_label = "Replace File Path"
     bl_options = {"REGISTER", "UNDO"}
@@ -90,7 +91,8 @@ class replaceFilePath(Operator):
 # ---------------------- SYNC MISSING GROUPS --------------------------
 
 class reFreshMissingGroups(Operator):
-    """Search on the libraries of the linked source and relink groups and link newones if there are. Usefull to use with the mesh cache tools."""
+    """Search on the libraries of the linked source and relink groups and link newones if there are. """ \
+    """Usefull to use with the mesh cache tools"""
     bl_idname = "file.sync_missing_groups"
     bl_label = "Sync Missing Groups"
     bl_options = {"REGISTER", "UNDO"}
