@@ -63,6 +63,7 @@ if "bpy" in locals():
     importlib.reload(mesh_selection_topokit)
     importlib.reload(mesh_info_select)
     importlib.reload(mesh_extrude_and_reshape)
+    importlib.reload(mesh_check)
 
 else:
     from . import face_inset_fillet
@@ -83,6 +84,7 @@ else:
     from . import vfe_specials
     from . import mesh_help
     from . import mesh_extrude_and_reshape
+    from . import mesh_check
 
     from .mesh_select_tools import mesh_select_by_direction
     from .mesh_select_tools import mesh_select_by_edge_length
@@ -93,7 +95,11 @@ else:
     from .mesh_select_tools import mesh_selection_topokit
     from .mesh_select_tools import mesh_info_select
 
+    from . icons.icons import load_icons
+
 import bpy
+import bmesh
+from bpy.props import EnumProperty
 from bpy.types import (
         Menu,
         Panel,
@@ -316,6 +322,11 @@ class EditToolsPanel(Panel):
             row.operator("mesh.extra_tools_help",
                         icon="LAYER_USED").help_ids = "split_solidify"
 
+            row = layout.split(0.8, align=True)
+            row.operator("mesh.add_faces_to_object", "Shape Extrude")
+            row.operator("mesh.extra_tools_help",
+                        icon="LAYER_USED").help_ids = "pkhg_faces"
+
         # Utils options
         box1 = self.layout.box()
         col = box1.column(align=True)
@@ -353,11 +364,64 @@ class EditToolsPanel(Panel):
 
             row = layout.row(align=True)
             row.operator("mesh.select_vert_edge_face_index",
-                          icon="VERTEXSEL", text="Vert Index").select_type = 'VERT'
-            row.operator("mesh.select_vert_edge_face_index",
-                          icon="EDGESEL", text="Edge Index").select_type = 'EDGE'
-            row.operator("mesh.select_vert_edge_face_index",
-                          icon="FACESEL", text="Face Index").select_type = 'FACE'
+                          icon="VERTEXSEL", text="Select By Index").select_type = 'VERT'
+
+            layout = self.layout
+            icons = load_icons()
+            tris = icons.get("triangles")
+            ngons = icons.get("ngons")
+            
+         
+            mesh_check = context.window_manager.mesh_check
+         
+            layout.prop(mesh_check, "mesh_check_use")
+         
+            if mesh_check.mesh_check_use:
+                layout = self.layout
+
+                row = layout.row()
+                row.operator("object.face_type_select", text="Tris", icon_value=tris.icon_id).face_type = 'tris'
+                row.operator("object.face_type_select", text="Ngons",icon_value=ngons.icon_id).face_type = 'ngons'
+                row = layout.row()
+                row.prop(mesh_check, "display_faces", text="Display Faces")
+                if mesh_check.display_faces:
+                    row = layout.row()
+                    row.prop(mesh_check, "edge_width")
+                    row = layout.row()
+                    row.prop(mesh_check, "custom_tri_color",text="Tris color" ) 
+                    row = layout.row()
+                    row.prop(mesh_check, "custom_ngons_color")
+                    row = layout.row()
+                    row.prop(mesh_check, "face_opacity")
+                    if bpy.context.object.mode == 'EDIT':
+                        obj = bpy.context.object
+                        me = obj.data
+                        bm = bmesh.from_edit_mesh(me)
+
+                        info_str = ""
+                        tris = ngons = 0
+
+                        for f in bm.faces:
+
+                            v = len(f.verts)
+                            if v == 3:
+                                tris += 1
+                            elif v > 4:
+                                ngons += 1
+
+                        bmesh.update_edit_mesh(me)
+                        info_str = "  Ngons: %i   Tris: %i" % (ngons, tris)
+
+                        split = layout.split(percentage=0.1)
+                        split.separator()
+                        split.label(info_str, icon='MESH_DATA')
+
+                    if context.mode == 'EDIT_MESH' and not context.space_data.use_occlude_geometry:
+                        split = layout.split(percentage=0.1)
+                        split.separator()
+                        split2 = split.split()
+                        row = split2.row()
+                        row.prop(mesh_check, "finer_lines_behind_use")
 
 
 # ********** Edit Multiselect **********
@@ -719,6 +783,7 @@ def register():
     mesh_pen_tool.register()
     vfe_specials.register()
     mesh_extrude_and_reshape.register()
+    mesh_check.register()
     bpy.utils.register_module(__name__)
 
     # Register Scene Properties
@@ -742,6 +807,7 @@ def unregister():
     mesh_pen_tool.unregister()
     vfe_specials.unregister()
     mesh_extrude_and_reshape.unregister()
+    mesh_check.unregister()
 
     del bpy.types.Scene.mesh_extra_tools
     del bpy.types.Object.tkkey

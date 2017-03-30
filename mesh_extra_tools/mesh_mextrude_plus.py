@@ -17,12 +17,15 @@
 # ##### END GPL LICENSE BLOCK #####
 #
 # Repeats extrusion + rotation + scale for one or more faces
+# Original code by liero
+# Update by Jimmy Hazevoet 03/2017 for Blender 2.79
+# normal rotation, probability, scaled offset, object origin, initial scale noise
 
 
 bl_info = {
     "name": "MExtrude Plus1",
-    "author": "liero",
-    "version": (1, 2, 9),
+    "author": "liero, Jimmy Hazevoet",
+    "version": (1, 3, 0),
     "blender": (2, 77, 0),
     "location": "View3D > Tool Shelf",
     "description": "Repeat extrusions from faces to create organic shapes",
@@ -36,25 +39,27 @@ import bpy
 import bmesh
 import random
 from bpy.types import Operator
-from random import gauss, choice
+from random import gauss
 from math import radians
-from mathutils import Euler
+from mathutils import Euler, Vector
 from bpy.props import (
         FloatProperty,
         IntProperty,
+        BoolProperty,
+        EnumProperty,
         )
 
-
-# added normal rot
-def nrot(self,n):
-    return Euler((radians(self.nrotx) * n[0], \
-                    radians(self.nroty) * n[1], \
-                    radians(self.nrotz) * n[2]), 'XYZ')
+def gloc(self, r):
+    return Vector((self.offx, self.offy, self.offz))
 
 def vloc(self, r):
     random.seed(self.ran + r)
     return self.off * (1 + gauss(0, self.var1 / 3))
 
+def nrot(self, n):
+    return Euler((radians(self.nrotx) * n[0],
+                  radians(self.nroty) * n[1],
+                  radians(self.nrotz) * n[2]), 'XYZ')
 
 def vrot(self, r):
     random.seed(self.ran + r)
@@ -62,10 +67,9 @@ def vrot(self, r):
                   radians(self.roty) + gauss(0, self.var2 / 3),
                   radians(self.rotz) + gauss(0, self.var2 / 3)), 'XYZ')
 
-
 def vsca(self, r):
     random.seed(self.ran + r)
-    return self.sca * (1 + random.gauss(0, self.var3 / 3))
+    return self.sca * (1 + gauss(0, self.var3 / 3))
 
 
 class MExtrude(Operator):
@@ -73,14 +77,35 @@ class MExtrude(Operator):
     bl_label = "Multi Extrude"
     bl_description = ("Extrude selected Faces with Rotation,\n"
                       "Scaling, Variation, Randomization")
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"REGISTER", "UNDO", "PRESET"}
 
     off = FloatProperty(
                 name="Offset",
                 soft_min=0.001, soft_max=2,
                 min=-2, max=5,
-                default=.5,
+                default=1.0,
                 description="Translation"
+                )
+    offx = FloatProperty(
+                name="Loc X",
+                soft_min=-2.0, soft_max=2.0,
+                min=-5.0, max=5.0,
+                default=0.0,
+                description="Global translation X"
+                )
+    offy = FloatProperty(
+                name="Loc Y",
+                soft_min=-2.0, soft_max=2.0,
+                min=-5.0, max=5.0,
+                default=0.0,
+                description="Global translation Y"
+                )
+    offz = FloatProperty(
+                name="Loc Z",
+                soft_min=-2.0, soft_max=2.0,
+                min=-5.0, max=5.0,
+                default=0.0,
+                description="Global translation Z"
                 )
     rotx = FloatProperty(
                 name="Rot X",
@@ -109,22 +134,21 @@ class MExtrude(Operator):
                 min=-85, max=85,
                 soft_min=-30, soft_max=30,
                 default=0,
-                description="X Rotation"
+                description="Normal X Rotation"
                 )
     nroty = FloatProperty(
                 name="N Rot Y",
                 min=-85, max=85,
-                soft_min=-30,
-                soft_max=30,
+                soft_min=-30, soft_max=30,
                 default=0,
-                description="Y Rotation"
+                description="Normal Y Rotation"
                 )
     nrotz = FloatProperty(
                 name="N Rot Z",
                 min=-85, max=85,
                 soft_min=-30, soft_max=30,
                 default=-0,
-                description="Z Rotation"
+                description="Normal Z Rotation"
                 )
     sca = FloatProperty(
                 name="Scale",
@@ -161,15 +185,38 @@ class MExtrude(Operator):
                 )
     num = IntProperty(
                 name="Repeat",
-                min=1, max=50,
+                min=1, max=250,
                 soft_max=100,
                 default=5,
-                description="Repetitions")
+                description="Repetitions"
+                )
     ran = IntProperty(
                 name="Seed",
                 min=-9999, max=9999,
                 default=0,
-                description="Seed to feed random values")
+                description="Seed to feed random values"
+                )
+    opt1 = BoolProperty(
+                name="Polygon coördinates",
+                default=True,
+                description="Polygon coördinates, Object coördinates"
+                )
+    opt2 = BoolProperty(
+                name="Proportional offset",
+                default=False,
+                description="Scale * Offset"
+                )
+    opt3 = BoolProperty(
+                name="Per step scale noise",
+                default=False,
+                description="Per step scale noise, Initial scale noise"
+                )
+    opt4 = BoolProperty(
+                name="Per step rotation noise",
+                default=False,
+                description="Per step rotation noise, Initial rotation noise"
+                )
+
 
     @classmethod
     def poll(cls, context):
@@ -178,16 +225,21 @@ class MExtrude(Operator):
 
     def draw(self, context):
         layout = self.layout
-
         col = layout.column(align=True)
         col.label(text="Transformations:")
         col.prop(self, "off", slider=True)
+        col.prop(self, "offx", slider=True)
+        col.prop(self, "offy", slider=True)
+        col.prop(self, "offz", slider=True)
+
+        col = layout.column(align=True)
         col.prop(self, "rotx", slider=True)
         col.prop(self, "roty", slider=True)
         col.prop(self, "rotz", slider=True)
         col.prop(self, 'nrotx', slider=True)
         col.prop(self, 'nroty', slider=True)
         col.prop(self, 'nrotz', slider=True)
+        col = layout.column(align=True)
         col.prop(self, "sca", slider=True)
 
         col = layout.column(align=True)
@@ -200,13 +252,18 @@ class MExtrude(Operator):
         col = layout.column(align=False)
         col.prop(self, 'num')
 
-        
-
+        col = layout.column(align=True)
+        col.label(text="Extra settings:")
+        col.prop(self, "opt1")
+        col.prop(self, "opt2")
+        col.prop(self, "opt3")
+        col.prop(self, "opt4")
 
     def execute(self, context):
         obj = bpy.context.object
         om = obj.mode
         bpy.context.tool_settings.mesh_select_mode = [False, False, True]
+        origin = Vector([0.0, 0.0, 0.0])
 
         # bmesh operations
         bpy.ops.object.mode_set()
@@ -218,28 +275,50 @@ class MExtrude(Operator):
 
         # faces loop
         for i, of in enumerate(sel):
-            rot = vrot(self, i)
-            off = vloc(self, i)
             nro = nrot(self, of.normal)
+            off = vloc(self, i)
+            loc = gloc(self, i)
             of.normal_update()
 
-            # extrusion loop
-            for r in range( self.num ):
+            # initial scale noise
+            if self.opt3 is False:
+                s = vsca(self, i)
+            # initial rotation noise
+            if self.opt4 is False:
+                rot = vrot(self, i)
 
-                ## random % skip some extrusions
-                if self.var4 >= int(random.random()*100):
+            # extrusion loop
+            for r in range(self.num):
+
+                ## random probability % for extrusions
+                if self.var4 > int(random.random()*100):
 
                     nf = of.copy()
                     nf.normal_update()
                     no = nf.normal.copy()
-                    ce = nf.calc_center_bounds()
-                    s = vsca(self, i + r)
+
+                    # face/obj coördinates
+                    if self.opt1 is True:
+                        ce = nf.calc_center_bounds()
+                    else:
+                        ce = origin
+
+                    # per step scale noise
+                    if self.opt3 is True:
+                        s = vsca(self, i + r)
+                    # per step rotation noise
+                    if self.opt4 is True:
+                        rot = vrot(self, i + r)
+
+                    # proportional, scale * offset
+                    if self.opt2 is True:
+                        off = s * off
 
                     for v in nf.verts:
                         v.co -= ce
                         v.co.rotate(nro)
                         v.co.rotate(rot)
-                        v.co += ce + no * off
+                        v.co += ce + loc + no * off
                         v.co = v.co.lerp(ce, 1 - s)
 
                     # extrude code from TrumanBlending
@@ -247,9 +326,9 @@ class MExtrude(Operator):
                         sf = bm.faces.new((a.vert, a.link_loop_next.vert,
                                            b.link_loop_next.vert, b.vert))
                         sf.normal_update()
-
                     bm.faces.remove(of)
                     of = nf
+
             after.append(of)
 
         for v in bm.verts:
@@ -258,7 +337,10 @@ class MExtrude(Operator):
             e.select = False
 
         for f in after:
-            f.select = True
+            if f not in sel:
+                f.select = True
+            else:
+                f.select = False
 
         bm.to_mesh(obj.data)
         obj.data.update()

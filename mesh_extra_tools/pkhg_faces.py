@@ -461,33 +461,6 @@ class MESH_OT_add_faces_to_object(Operator):
         return {'FINISHED'}
 
 
-class VIEW3D_Faces_Panel(Panel):
-    bl_label = "Face Extrude"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "TOOLS"
-    bl_category = "Tools"
-    bl_options = {"DEFAULT_CLOSED"}
-
-    @classmethod
-    def poll(cls, context):
-        result = False
-        active_object = context.active_object
-        if active_object:
-            mesh_objects_name = [el.name for el in bpy.data.objects if el.type == "MESH"]
-            if active_object.name in mesh_objects_name:
-                if active_object.mode == "OBJECT":
-                    result = True
-        return result
-
-    def draw(self, context):
-        layout = self.layout
-
-        row = layout.split(0.8, align=True)
-        row.operator("mesh.add_faces_to_object", "Selected Faces")
-        row.operator("mesh.extra_tools_help",
-                    icon="LAYER_USED").help_ids = "pkhg_faces"
-
-
 def find_one_ring(sel_vertices):
     ring0 = sel_vertices.pop(0)
     to_delete = []
