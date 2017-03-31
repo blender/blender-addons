@@ -600,11 +600,7 @@ def force_update(context):
 
 def dpifac():
     prefs = bpy.context.user_preferences.system
-    if hasattr(prefs, 'pixel_size'):  # python access to this was only added recently, assume non-retina display is used if using older blender
-        retinafac = bpy.context.user_preferences.system.pixel_size
-    else:
-        retinafac = 1
-    return bpy.context.user_preferences.system.dpi/(72/retinafac)
+    return prefs.dpi * prefs.pixel_size / 72
 
 
 def node_mid_pt(node, axis):

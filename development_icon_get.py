@@ -44,13 +44,8 @@ HISTORY = []
 
 
 def ui_scale():
-    if hasattr(bpy.context.user_preferences.view, "ui_scale"):
-        return bpy.context.user_preferences.view.ui_scale
-
-    ret = bpy.context.user_preferences.system.dpi / DPI
-    if bpy.context.user_preferences.system.virtual_pixel_mode == 'DOUBLE':
-        ret *= 2
-    return ret
+    prefs = bpy.context.user_preferences.system
+    return prefs.dpi * prefs.pixel_size / DPI
 
 
 def prefs():
