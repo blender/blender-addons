@@ -127,7 +127,7 @@ class collectImagesOsc(Operator):
                 shutil.copy(image.filepath, os.path.join(imagespath,os.path.basename(image.filepath)))
                 image.filepath = os.path.join(imagespath,os.path.basename(image.filepath))
             else:
-		print("%s exists." % (image))
+                print("%s exists." % (image.name))
                 
         bpy.ops.file.make_paths_relative()                
                 
