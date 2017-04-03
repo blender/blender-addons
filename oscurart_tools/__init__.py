@@ -291,6 +291,7 @@ class OscPanelFiles(Panel):
         col = layout.column(align=1)
         col.operator("file.save_incremental_osc", icon="NEW")
         col.operator("image.reload_images_osc", icon="IMAGE_COL")
+        col.operator("file.collect_all_images", icon="IMAGE_COL")
         col.operator("file.sync_missing_groups", icon="LINK_AREA")
         col = layout.column(align=1)
         colrow = col.row(align=1)
