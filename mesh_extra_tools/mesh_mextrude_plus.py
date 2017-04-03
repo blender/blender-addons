@@ -19,7 +19,7 @@
 # Repeats extrusion + rotation + scale for one or more faces
 # Original code by liero
 # Update by Jimmy Hazevoet 03/2017 for Blender 2.79
-# normal rotation, probability, scaled offset, object origin, initial scale noise
+# normal rotation, probability, scaled offset, object coörds, initial and per step noise
 
 
 bl_info = {
@@ -81,29 +81,29 @@ class MExtrude(Operator):
 
     off = FloatProperty(
                 name="Offset",
-                soft_min=0.001, soft_max=2,
-                min=-2, max=5,
+                soft_min=0.001, soft_max=10,
+                min=-100, max=100,
                 default=1.0,
                 description="Translation"
                 )
     offx = FloatProperty(
                 name="Loc X",
-                soft_min=-2.0, soft_max=2.0,
-                min=-5.0, max=5.0,
+                soft_min=-10.0, soft_max=10.0,
+                min=-100.0, max=100.0,
                 default=0.0,
                 description="Global translation X"
                 )
     offy = FloatProperty(
                 name="Loc Y",
-                soft_min=-2.0, soft_max=2.0,
-                min=-5.0, max=5.0,
+                soft_min=-10.0, soft_max=10.0,
+                min=-100.0, max=100.0,
                 default=0.0,
                 description="Global translation Y"
                 )
     offz = FloatProperty(
                 name="Loc Z",
-                soft_min=-2.0, soft_max=2.0,
-                min=-5.0, max=5.0,
+                soft_min=-10.0, soft_max=10.0,
+                min=-100.0, max=100.0,
                 default=0.0,
                 description="Global translation Z"
                 )
@@ -152,27 +152,27 @@ class MExtrude(Operator):
                 )
     sca = FloatProperty(
                 name="Scale",
-                min=0.1, max=2,
-                soft_min=0.5, soft_max=1.2,
+                min=0.01, max=10,
+                soft_min=0.5, soft_max=1.5,
                 default=1.0,
                 description="Scaling of the selected faces after extrusion"
                 )
     var1 = FloatProperty(
-                name="Offset Var", min=-5, max=5,
+                name="Offset Var", min=-10, max=10,
                 soft_min=-1, soft_max=1,
                 default=0,
                 description="Offset variation"
                 )
     var2 = FloatProperty(
                 name="Rotation Var",
-                min=-5, max=5,
+                min=-10, max=10,
                 soft_min=-1, soft_max=1,
                 default=0,
                 description="Rotation variation"
                 )
     var3 = FloatProperty(
                 name="Scale Noise",
-                min=-5, max=5,
+                min=-10, max=10,
                 soft_min=-1, soft_max=1,
                 default=0,
                 description="Scaling noise"
@@ -185,7 +185,7 @@ class MExtrude(Operator):
                 )
     num = IntProperty(
                 name="Repeat",
-                min=1, max=250,
+                min=1, max=500,
                 soft_max=100,
                 default=5,
                 description="Repetitions"
@@ -207,16 +207,15 @@ class MExtrude(Operator):
                 description="Scale * Offset"
                 )
     opt3 = BoolProperty(
-                name="Per step scale noise",
-                default=False,
-                description="Per step scale noise, Initial scale noise"
-                )
-    opt4 = BoolProperty(
                 name="Per step rotation noise",
                 default=False,
                 description="Per step rotation noise, Initial rotation noise"
                 )
-
+    opt4 = BoolProperty(
+                name="Per step scale noise",
+                default=False,
+                description="Per step scale noise, Initial scale noise"
+                )
 
     @classmethod
     def poll(cls, context):
@@ -253,7 +252,7 @@ class MExtrude(Operator):
         col.prop(self, 'num')
 
         col = layout.column(align=True)
-        col.label(text="Extra settings:")
+        col.label(text="Options:")
         col.prop(self, "opt1")
         col.prop(self, "opt2")
         col.prop(self, "opt3")
@@ -280,12 +279,12 @@ class MExtrude(Operator):
             loc = gloc(self, i)
             of.normal_update()
 
-            # initial scale noise
-            if self.opt3 is False:
-                s = vsca(self, i)
             # initial rotation noise
-            if self.opt4 is False:
+            if self.opt3 is False:
                 rot = vrot(self, i)
+            # initial scale noise
+            if self.opt4 is False:
+                s = vsca(self, i)
 
             # extrusion loop
             for r in range(self.num):
@@ -303,12 +302,12 @@ class MExtrude(Operator):
                     else:
                         ce = origin
 
-                    # per step scale noise
-                    if self.opt3 is True:
-                        s = vsca(self, i + r)
                     # per step rotation noise
-                    if self.opt4 is True:
+                    if self.opt3 is True:
                         rot = vrot(self, i + r)
+                    # per step scale noise
+                    if self.opt4 is True:
+                        s = vsca(self, i + r)
 
                     # proportional, scale * offset
                     if self.opt2 is True:

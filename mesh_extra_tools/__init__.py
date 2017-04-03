@@ -64,6 +64,7 @@ if "bpy" in locals():
     importlib.reload(mesh_info_select)
     importlib.reload(mesh_extrude_and_reshape)
     importlib.reload(mesh_check)
+    importlib.reload(vertex_align)
 
 else:
     from . import face_inset_fillet
@@ -85,6 +86,7 @@ else:
     from . import mesh_help
     from . import mesh_extrude_and_reshape
     from . import mesh_check
+    from . import vertex_align
 
     from .mesh_select_tools import mesh_select_by_direction
     from .mesh_select_tools import mesh_select_by_edge_length
@@ -238,6 +240,30 @@ class EditToolsPanel(Panel):
             row.operator("mesh.random_vertices", text="Random Vertices")
             row.operator("mesh.extra_tools_help",
                         icon="LAYER_USED").help_ids = "random_vertices"
+            cen0 = context.scene.va_custom_props.en0
+            layout = self.layout
+            layout.label(text="Vertex Align:", icon="VERTEXSEL")
+            layout.prop(context.scene.va_custom_props, 'en0', expand = False)
+            
+            if cen0 == 'opt0':
+                row = layout.split(0.60)
+                row.label('Store data:')
+                row.operator('va.op0_id', text = 'Vertex')
+                row1 = layout.split(0.8, align=True)
+                row1.operator('va.op2_id', text = 'Align')
+                row1.operator('va.op7_id', text = '', icon = "LAYER_USED")
+            elif cen0 == 'opt1':
+                layout.operator('va.op3_id', text = 'Align')
+            elif cen0 == 'opt2':
+                row = layout.split(0.40)
+                row.label('Store data:')
+                row.operator('va.op0_id', text = 'Two vertices')
+                layout.operator('va.op5_id', text = 'Align')
+            elif cen0 == 'opt3':
+                row = layout.split(0.60)
+                row.label('Store data:')
+                row.operator('va.op1_id', text = 'Face')
+                layout.operator('va.op6_id', text = 'Align')
 
         # Edge options
         box1 = self.layout.box()
@@ -784,6 +810,7 @@ def register():
     vfe_specials.register()
     mesh_extrude_and_reshape.register()
     mesh_check.register()
+    vertex_align.register()
     bpy.utils.register_module(__name__)
 
     # Register Scene Properties
@@ -808,6 +835,7 @@ def unregister():
     vfe_specials.unregister()
     mesh_extrude_and_reshape.unregister()
     mesh_check.unregister()
+    vertex_align.unregister()
 
     del bpy.types.Scene.mesh_extra_tools
     del bpy.types.Object.tkkey
