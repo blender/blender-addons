@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Blend File Utils",
     "author": "Campbell Barton and Sybren A. Stüvel",
-    "version": (1, 0),
+    "version": (1, 1, 3),
     "blender": (2, 76, 0),
     "location": "File > External Data > Blend Utils",
     "description": "Utility for packing blend files",
