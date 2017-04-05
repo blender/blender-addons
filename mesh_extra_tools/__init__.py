@@ -33,7 +33,7 @@ bl_info = {
     "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Mesh"}
 
-# NOTE: Temporarly disable Vertex align since is broken
+
 # Import From Files
 if "bpy" in locals():
     import importlib
@@ -64,7 +64,7 @@ if "bpy" in locals():
     importlib.reload(mesh_info_select)
     importlib.reload(mesh_extrude_and_reshape)
     importlib.reload(mesh_check)
-    # importlib.reload(vertex_align)
+    importlib.reload(vertex_align)
 
 else:
     from . import face_inset_fillet
@@ -86,7 +86,7 @@ else:
     from . import mesh_help
     from . import mesh_extrude_and_reshape
     from . import mesh_check
-    # from . import vertex_align
+    from . import vertex_align
 
     from .mesh_select_tools import mesh_select_by_direction
     from .mesh_select_tools import mesh_select_by_edge_length
@@ -101,6 +101,7 @@ else:
 
 import bpy
 import bmesh
+from bpy.props import EnumProperty
 from bpy.types import (
         Menu,
         Panel,
@@ -239,35 +240,22 @@ class EditToolsPanel(Panel):
             row.operator("mesh.random_vertices", text="Random Vertices")
             row.operator("mesh.extra_tools_help",
                         icon="LAYER_USED").help_ids = "random_vertices"
-
-            # temporarly disable vertex_align since it is borked
-            """
-            cen0 = context.scene.va_custom_props.en0
+        # Vertex Align Properties And Menu
+            cen0 = context.scene.va_custom_props.en0 # get the properties list
             layout = self.layout
-
             layout.label(text="Vertex Align:", icon="VERTEXSEL")
-            layout.prop(context.scene.va_custom_props, 'en0', expand = False)
-
-            if cen0 == 'opt0':
+            layout.prop(context.scene.va_custom_props, 'en0', expand = False) # Draw the menu with 2 options 
+            if cen0 == 'vertex': 
                 row = layout.split(0.60)
                 row.label('Store data:')
-                row.operator('va.op0_id', text = 'Vertex')
+                row.operator('va.op0_store_id', text = 'Vertex')
                 row1 = layout.split(0.8, align=True)
-                row1.operator('va.op2_id', text = 'Align')
-                row1.operator('va.op7_id', text = '', icon = "LAYER_USED")
-            elif cen0 == 'opt1':
-                layout.operator('va.op3_id', text = 'Align')
-            elif cen0 == 'opt2':
-                row = layout.split(0.40)
-                row.label('Store data:')
-                row.operator('va.op0_id', text = 'Two vertices')
-                layout.operator('va.op5_id', text = 'Align')
-            elif cen0 == 'opt3':
-                row = layout.split(0.60)
-                row.label('Store data:')
-                row.operator('va.op1_id', text = 'Face')
-                layout.operator('va.op6_id', text = 'Align')
-            """
+                row1.operator('va.op2_align_id', text = 'Align to Axis')
+                row1.operator('va.op7_help_id', text = '', icon = "LAYER_USED")
+            elif cen0 == 'coordinates':
+                layout.operator('va.op3_coord_list_id', text = 'Align Coordinates')
+
+
         # Edge options
         box1 = self.layout.box()
         col = box1.column(align=True)
@@ -399,26 +387,25 @@ class EditToolsPanel(Panel):
             icons = load_icons()
             tris = icons.get("triangles")
             ngons = icons.get("ngons")
-
+            
+         
             mesh_check = context.window_manager.mesh_check
-
+         
             layout.prop(mesh_check, "mesh_check_use")
-
+         
             if mesh_check.mesh_check_use:
                 layout = self.layout
 
                 row = layout.row()
-                row.operator("object.face_type_select", text="Tris",
-                            icon_value=tris.icon_id).face_type = 'tris'
-                row.operator("object.face_type_select", text="Ngons",
-                            icon_value=ngons.icon_id).face_type = 'ngons'
+                row.operator("object.face_type_select", text="Tris", icon_value=tris.icon_id).face_type = 'tris'
+                row.operator("object.face_type_select", text="Ngons",icon_value=ngons.icon_id).face_type = 'ngons'
                 row = layout.row()
                 row.prop(mesh_check, "display_faces", text="Display Faces")
                 if mesh_check.display_faces:
                     row = layout.row()
                     row.prop(mesh_check, "edge_width")
                     row = layout.row()
-                    row.prop(mesh_check, "custom_tri_color", text="Tris color")
+                    row.prop(mesh_check, "custom_tri_color",text="Tris color" ) 
                     row = layout.row()
                     row.prop(mesh_check, "custom_ngons_color")
                     row = layout.row()
@@ -814,7 +801,7 @@ def register():
     vfe_specials.register()
     mesh_extrude_and_reshape.register()
     mesh_check.register()
-    # vertex_align.register()
+    vertex_align.register()
     bpy.utils.register_module(__name__)
 
     # Register Scene Properties
@@ -839,7 +826,7 @@ def unregister():
     vfe_specials.unregister()
     mesh_extrude_and_reshape.unregister()
     mesh_check.unregister()
-    # vertex_align.unregister()
+    vertex_align.unregister()
 
     del bpy.types.Scene.mesh_extra_tools
     del bpy.types.Object.tkkey
