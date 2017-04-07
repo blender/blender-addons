@@ -532,7 +532,7 @@ def register():
     bpy.types.Scene.pen_tool_props = PointerProperty(type=pen_tool_properties)
 
     wm = bpy.context.window_manager
-    km = wm.keyconfigs.addon.keymaps.new(name='3D View X', space_type='VIEW_3D')
+    km = wm.keyconfigs.addon.keymaps.new(name='3D View', space_type='VIEW_3D')
 
     # Note: left click + D key is reserved for Grease Pencil draw
     kmi = km.keymap_items.new("pen_tool.operator", 'D', 'PRESS', ctrl=True)
