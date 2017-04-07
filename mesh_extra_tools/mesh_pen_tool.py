@@ -522,6 +522,9 @@ class_list = [pen_tool_panel,
              ]
 
 
+addon_keymaps = []
+
+
 def register():
     for c in class_list:
         bpy.utils.register_class(c)
@@ -529,24 +532,25 @@ def register():
     bpy.types.Scene.pen_tool_props = PointerProperty(type=pen_tool_properties)
 
     wm = bpy.context.window_manager
-    km = wm.keyconfigs.addon.keymaps.new(name='3D View', space_type='VIEW_3D')
+    km = wm.keyconfigs.addon.keymaps.new(name='3D View X', space_type='VIEW_3D')
 
     # Note: left click + D key is reserved for Grease Pencil draw
     kmi = km.keymap_items.new("pen_tool.operator", 'D', 'PRESS', ctrl=True)
+    addon_keymaps.append((km, kmi))
 
 
 def unregister():
-    for c in class_list:
-        bpy.utils.unregister_class(c)
+    wm = bpy.context.window_manager
+    kc = wm.keyconfigs.addon
+    if kc:
+        for km, kmi in addon_keymaps:
+            km.keymap_items.remove(kmi)
+    addon_keymaps.clear()
 
     del bpy.types.Scene.pen_tool_props
 
-    wm = bpy.context.window_manager
-    km = wm.keyconfigs.addon.keymaps['3D View']
-    for kmi in km.keymap_items:
-        if kmi.idname == 'pen_tool.operator':
-            km.keymap_items.remove(kmi)
-            break
+    for c in class_list:
+        bpy.utils.unregister_class(c)
 
 
 if __name__ == "__main__":

@@ -71,23 +71,23 @@ def register():
         bpy.utils.register_class(cls)
 
     wm = bpy.context.window_manager
-    km = wm.keyconfigs.addon.keymaps.new(name='3D View', space_type='VIEW_3D')
-    kmi = km.keymap_items.new('mesh.addon_call_context_menu', 'RIGHTMOUSE', 'DOUBLE_CLICK')
+    if wm.keyconfigs.addon:
+        km = wm.keyconfigs.addon.keymaps.new(name='3D View X', space_type='VIEW_3D')
+        kmi = km.keymap_items.new('mesh.addon_call_context_menu', 'RIGHTMOUSE', 'DOUBLE_CLICK')
+        addon_keymaps.append((km, kmi))
 
 
 def unregister():
+    wm = bpy.context.window_manager
+    kc = wm.keyconfigs.addon
+    if kc:
+        for km, kmi in addon_keymaps:
+            km.keymap_items.remove(kmi)
+    addon_keymaps.clear()
+
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
-    wm = bpy.context.window_manager
-
-    # remove multiselect keybinding
-    km = wm.keyconfigs.addon.keymaps['3D View']
-    for kmi in km.keymap_items:
-        if kmi.idname == 'wm.call_menu':
-            if kmi.properties.name == "mesh.addon_call_context_menu":
-                km.keymap_items.remove(kmi)
-                break
 
 
 if __name__ == "__main__":

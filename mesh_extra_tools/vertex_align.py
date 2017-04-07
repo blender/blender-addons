@@ -286,10 +286,10 @@ def register():
 
 # ------ ------
 def unregister():
+    del bpy.types.Scene.va_custom_props
+
     for c in classes:
         bpy.utils.unregister_class(c)
-
-    bpy.ops.wm.properties_remove(data_path="scene", property="va_custom_props")
 
 # ------ ------
 if __name__ == "__main__":
