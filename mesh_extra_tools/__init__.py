@@ -100,6 +100,7 @@ else:
     from . icons.icons import load_icons
 
 import bpy
+import bpy_extras.keyconfig_utils
 import bmesh
 from bpy.props import EnumProperty
 from bpy.types import (
