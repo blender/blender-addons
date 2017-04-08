@@ -24,8 +24,8 @@
 bl_info = {
     "name": "Edit Tools 2",
     "author": "meta-androcto",
-    "version": (0, 3, 1),
-    "blender": (2, 77, 0),
+    "version": (0, 3, 2),
+    "blender": (2, 78, 0),
     "location": "View3D > Toolshelf > Tools and Specials (W-key)",
     "description": "Extra mesh edit tools - modifying meshes and selection",
     "warning": "",

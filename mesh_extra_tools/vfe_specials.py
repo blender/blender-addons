@@ -3,13 +3,15 @@
 bl_info = {
     "name": "V/E/F Context Menu",
     "author": "Stanislav Blinov",
-    "version": (1, 0, 0),
-    "blender": (2, 74, 0),
+    "version": (1, 0, 1),
+    "blender": (2, 78, 0),
     "description": "Vert Edge Face Double Right Click Edit Mode",
     "category": "Mesh",
 }
 
 import bpy
+import bpy_extras
+
 from bpy.types import (
         Menu,
         Operator,
@@ -63,31 +65,30 @@ classes = [
     MESH_OT_CallContextMenu
 ]
 
-addon_keymaps = []
+
+KEYMAPS = (
+    # First, keymap identifiers (last bool is True for modal km).
+    (("3D View", "VIEW_3D", "WINDOW", False), (
+    # Then a tuple of keymap items, defined by a dict of kwargs for the km new func, and a tuple of tuples (name, val)
+    # for ops properties, if needing non-default values.
+        ({"idname": MESH_OT_CallContextMenu.bl_idname, "type": 'RIGHTMOUSE', "value": 'DOUBLE_CLICK'},
+         ()),
+    )),
+)
 
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    wm = bpy.context.window_manager
-    if wm.keyconfigs.addon:
-        km = wm.keyconfigs.addon.keymaps.new(name='3D View', space_type='VIEW_3D')
-        kmi = km.keymap_items.new('mesh.addon_call_context_menu', 'RIGHTMOUSE', 'DOUBLE_CLICK')
-        addon_keymaps.append((km, kmi))
+    bpy_extras.keyconfig_utils.addon_keymap_register(bpy.context.window_manager, KEYMAPS)
 
 
 def unregister():
-    wm = bpy.context.window_manager
-    kc = wm.keyconfigs.addon
-    if kc:
-        for km, kmi in addon_keymaps:
-            km.keymap_items.remove(kmi)
-    addon_keymaps.clear()
+    bpy_extras.keyconfig_utils.addon_keymap_unregister(bpy.context.window_manager, KEYMAPS)
 
     for cls in classes:
         bpy.utils.unregister_class(cls)
-
 
 
 if __name__ == "__main__":

@@ -21,8 +21,8 @@
 bl_info = {
     "name": "Pen Tool",
     "author": "zmj100",
-    "version": (0, 2, 8),
-    "blender": (2, 6, 5),
+    "version": (0, 2, 9),
+    "blender": (2, 78, 0),
     "location": "View3D > Tool Shelf",
     "description": "",
     "warning": "",
@@ -32,6 +32,7 @@ bl_info = {
     }
 
 import bpy
+import bpy_extras
 import blf
 import bgl
 import bmesh
@@ -522,7 +523,15 @@ class_list = [pen_tool_panel,
              ]
 
 
-addon_keymaps = []
+KEYMAPS = (
+    # First, keymap identifiers (last bool is True for modal km).
+    (("3D View", "VIEW_3D", "WINDOW", False), (
+    # Then a tuple of keymap items, defined by a dict of kwargs for the km new func, and a tuple of tuples (name, val)
+    # for ops properties, if needing non-default values.
+        ({"idname": pen_tool_operator.bl_idname, "type": 'D', "value": 'PRESS', "ctrl": True},
+         ()),
+    )),
+)
 
 
 def register():
@@ -531,21 +540,11 @@ def register():
 
     bpy.types.Scene.pen_tool_props = PointerProperty(type=pen_tool_properties)
 
-    wm = bpy.context.window_manager
-    km = wm.keyconfigs.addon.keymaps.new(name='3D View', space_type='VIEW_3D')
-
-    # Note: left click + D key is reserved for Grease Pencil draw
-    kmi = km.keymap_items.new("pen_tool.operator", 'D', 'PRESS', ctrl=True)
-    addon_keymaps.append((km, kmi))
+    bpy_extras.keyconfig_utils.addon_keymap_register(bpy.context.window_manager, KEYMAPS)
 
 
 def unregister():
-    wm = bpy.context.window_manager
-    kc = wm.keyconfigs.addon
-    if kc:
-        for km, kmi in addon_keymaps:
-            km.keymap_items.remove(kmi)
-    addon_keymaps.clear()
+    bpy_extras.keyconfig_utils.addon_keymap_unregister(bpy.context.window_manager, KEYMAPS)
 
     del bpy.types.Scene.pen_tool_props
 
