@@ -55,15 +55,15 @@ from bpy.props import (
 
 def get_units_info(scale, unit_system, separate_units):
     if unit_system == 'METRIC':
-            scale_steps = ((1000, 'km'), (1, 'm'), (1 / 100, 'cm'),
-                (1 / 1000, 'mm'), (1 / 1000000, '\u00b5m'))
+        scale_steps = ((1000, 'km'), (1, 'm'), (1 / 100, 'cm'),
+            (1 / 1000, 'mm'), (1 / 1000000, '\u00b5m'))
     elif unit_system == 'IMPERIAL':
-            scale_steps = ((5280, 'mi'), (1, '\''),
-                (1 / 12, '"'), (1 / 12000, 'thou'))
-            scale /= 0.3048  # BU to feet
+        scale_steps = ((5280, 'mi'), (1, '\''),
+            (1 / 12, '"'), (1 / 12000, 'thou'))
+        scale /= 0.3048  # BU to feet
     else:
-            scale_steps = ((1, ' BU'),)
-            separate_units = False
+        scale_steps = ((1, ' BU'),)
+        separate_units = False
 
     return (scale, scale_steps, separate_units)
 
@@ -73,26 +73,27 @@ def convert_distance(val, units_info, precision=5):
     sval = val * scale
     idx = 0
     while idx < len(scale_steps) - 1:
-            if sval >= scale_steps[idx][0]:
-                    break
-            idx += 1
+        if sval >= scale_steps[idx][0]:
+            break
+        idx += 1
     factor, suffix = scale_steps[idx]
     sval /= factor
     if not separate_units or idx == len(scale_steps) - 1:
-            dval = str(round(sval, precision)) + suffix
+        dval = str(round(sval, precision)) + suffix
     else:
-            ival = int(sval)
-            dval = str(round(ival, precision)) + suffix
-            fval = sval - ival
+        ival = int(sval)
+        dval = str(round(ival, precision)) + suffix
+        fval = sval - ival
+        idx += 1
+        while idx < len(scale_steps):
+            fval *= scale_steps[idx - 1][0] / scale_steps[idx][0]
+            if fval >= 1:
+                dval += ' ' \
+                    + ("%.1f" % fval) \
+                    + scale_steps[idx][1]
+                break
             idx += 1
-            while idx < len(scale_steps):
-                    fval *= scale_steps[idx - 1][0] / scale_steps[idx][0]
-                    if fval >= 1:
-                            dval += ' ' \
-                                + ("%.1f" % fval) \
-                                + scale_steps[idx][1]
-                            break
-                    idx += 1
+
     return dval
 
 
@@ -164,6 +165,38 @@ def out_Location(rv3d, region, orig, vector):
     if hit is None:
         hit = Vector()
     return hit
+
+
+def get_closest_edge(bm, point, dist):
+    r_edge = None
+    for edge in bm.edges:
+        v1 = edge.verts[0].co
+        v2 = edge.verts[1].co
+        # Test the BVH (AABB) first
+        for i in range(3):
+            if v1[i] <= v2[i]:
+                isect = v1[i] - dist <= point[i] <= v2[i] + dist
+            else:
+                isect = v2[i] - dist <= point[i] <= v1[i] + dist
+
+            if not isect:
+                break
+        else:
+            ret = intersect_point_line(point, v1, v2)
+
+            if ret[1] < 0.0:
+                tmp = v1
+            elif ret[1] > 1.0:
+                tmp = v2
+            else:
+                tmp = ret[0]
+
+            new_dist = (point - tmp).length
+            if new_dist <= dist:
+                dist = new_dist
+                r_edge = edge
+
+    return r_edge
 
 
 class SnapCache():
@@ -242,11 +275,11 @@ def snap_utilities(
             cache.v2dmid = location_3d_to_region_2d(region, rv3d, cache.vmid)
 
             if previous_vert and previous_vert not in bm_geom.verts:
-                    pvert_co = obj_matrix_world * previous_vert.co
-                    perp_point = intersect_point_line(pvert_co, cache.v0, cache.v1)
-                    cache.vperp = perp_point[0]
-                    # factor = point_perpendicular[1]
-                    cache.v2dperp = location_3d_to_region_2d(region, rv3d, perp_point[0])
+                pvert_co = obj_matrix_world * previous_vert.co
+                perp_point = intersect_point_line(pvert_co, cache.v0, cache.v1)
+                cache.vperp = perp_point[0]
+                # factor = point_perpendicular[1]
+                cache.v2dperp = location_3d_to_region_2d(region, rv3d, perp_point[0])
 
             # else: cache.v2dperp = None
 
@@ -273,9 +306,8 @@ def snap_utilities(
                 is_increment = True
 
             r_type = 'EDGE'
-            fac = fac_nearest_to_segment_2d(mcursor, cache.v2d0, cache.v2d1)
-            fac *= cache.v2d0.z / cache.v2d1.z  # convert to fac3d
-            r_loc = cache.v0 + fac * (cache.v1 - cache.v0)
+            orig, view_vector = region_2d_to_orig_and_view_vector(region, rv3d, mcursor)
+            r_loc = intersect_line_line(cache.v0, cache.v1, orig, orig + view_vector)[0]
 
     elif isinstance(bm_geom, bmesh.types.BMFace):
         is_increment = True
@@ -284,7 +316,7 @@ def snap_utilities(
         if cache.bface != bm_geom:
             cache.bface = bm_geom
             cache.fmid = obj_matrix_world * bm_geom.calc_center_median()
-            cache.fnor = bm_geom.normal * obj_matrix_world.inverted()
+            cache.fnor = bm_geom.normal * obj_matrix_world
 
         orig, view_vector = region_2d_to_orig_and_view_vector(region, rv3d, mcursor)
         end = orig + view_vector
@@ -302,6 +334,9 @@ def snap_utilities(
 
         face_index = -1
         if cache.out_obj is None:
+            ## TODO: The Scene.raycast also tests the edited object.
+            #  This is highly inefficient because the edited object
+            #  does not keep DerivedMesh which forces rebuilding the bvhtree.
             result, r_loc, normal, face_index, cache.out_obj, cache.out_obmat = scene.ray_cast(orig, view_vector)
             if result:
                 r_type = 'FACE'
@@ -354,7 +389,7 @@ def snap_utilities(
                 is_increment = False
                 r_loc = intersect_point_line(r_loc, constrain[0], constrain[1])[0]
             else:
-                r_loc = intersect_line_line(constrain[0], constrain[1], orig, end)[0]
+                r_loc = intersect_line_line(constrain[0], constrain[1], orig, orig + view_vector)[0]
 
         elif not r_loc:
             r_loc = out_Location(rv3d, region, orig, view_vector)
@@ -371,117 +406,153 @@ def snap_utilities(
     return r_loc, r_type, bm_geom, r_len
 
 
-def get_isolated_edges(bmvert):
+def get_loose_linked_edges(bmvert):
     linked = [e for e in bmvert.link_edges if not e.link_faces]
     for e in linked:
         linked += [le for v in e.verts if not v.link_faces for le in v.link_edges if le not in linked]
     return linked
 
 
-def draw_line(self, obj, Bmesh, bm_geom, location):
+def draw_line(self, obj, bm, bm_geom, location):
     if not hasattr(self, 'list_verts'):
         self.list_verts = []
 
     if not hasattr(self, 'list_edges'):
         self.list_edges = []
 
-    if not hasattr(self, 'list_faces'):
-        self.list_faces = []
+    update_edit_mesh = False
+    tessface = False
 
     if bm_geom is None:
-        vertices = (bmesh.ops.create_vert(Bmesh, co=(location)))
-        self.list_verts.append(vertices['vert'][0])
+        vert = bm.verts.new(location)
+        self.list_verts.append(vert)
 
     elif isinstance(bm_geom, bmesh.types.BMVert):
-        if (bm_geom.co - location).length < .01:
+        if (bm_geom.co - location).length_squared < .001:
             if self.list_verts == [] or self.list_verts[-1] != bm_geom:
                 self.list_verts.append(bm_geom)
         else:
-            vertices = bmesh.ops.create_vert(Bmesh, co=(location))
-            self.list_verts.append(vertices['vert'][0])
+            vert = bm.verts.new(location)
+            self.list_verts.append(vert)
 
     elif isinstance(bm_geom, bmesh.types.BMEdge):
         self.list_edges.append(bm_geom)
-        vector_p0_l = (bm_geom.verts[0].co - location)
-        vector_p1_l = (bm_geom.verts[1].co - location)
-        cross = vector_p0_l.cross(vector_p1_l) / bm_geom.calc_length()
+        ret = intersect_point_line(location, bm_geom.verts[0].co, bm_geom.verts[1].co)
 
-        if cross < Vector((0.001, 0, 0)):  # or round(vector_p0_l.angle(vector_p1_l), 2) == 3.14:
-            factor = vector_p0_l.length / bm_geom.calc_length()
-            vertex0 = bmesh.utils.edge_split(bm_geom, bm_geom.verts[0], factor)
-            self.list_verts.append(vertex0[1])
-            # self.list_edges.append(vertex0[0])
+        if (ret[0] - location).length_squared < .001:
+            if ret[1] == 0.0:
+                vert = bm_geom.verts[0]
+            elif ret[1] == 1.0:
+                vert = bm_geom.verts[1]
+            else:
+                edge, vert = bmesh.utils.edge_split(bm_geom, bm_geom.verts[0], ret[1])
+            self.list_verts.append(vert)
+            # self.list_edges.append(edge)
 
         else:  # constrain point is near
-            vertices = bmesh.ops.create_vert(Bmesh, co=(location))
-            self.list_verts.append(vertices['vert'][0])
+            vert = bm.verts.new(location)
+            self.list_verts.append(vert)
 
     elif isinstance(bm_geom, bmesh.types.BMFace):
         self.list_faces.append(bm_geom)
-        vertices = (bmesh.ops.create_vert(Bmesh, co=(location)))
-        self.list_verts.append(vertices['vert'][0])
+        vert = bm.verts.new(location)
+        self.list_verts.append(vert)
 
     # draw, split and create face
     if len(self.list_verts) >= 2:
-        V1 = self.list_verts[-2]
-        V2 = self.list_verts[-1]
-        # V2_link_verts = [x for y in [a.verts for a in V2.link_edges] for x in y if x != V2]
-        for edge in V2.link_edges:
-            if V1 in edge.verts:
+        v1, v2 = self.list_verts[-2:]
+        # v2_link_verts = [x for y in [a.verts for a in v2.link_edges] for x in y if x != v2]
+        for edge in v2.link_edges:
+            if v1 in edge.verts:
                 self.list_edges.append(edge)
                 break
-        else:  # if V1 not in V2_link_verts:
-            if not V2.link_edges:
-                edge = Bmesh.edges.new([V1, V2])
+        else:  # if v1 not in v2_link_verts:
+            if not v2.link_edges:
+                edge = bm.edges.new([v1, v2])
                 self.list_edges.append(edge)
-            else:
-                link_two_faces = V1.link_faces and V2.link_faces
-                if link_two_faces:
-                    self.list_faces = [f for f in V2.link_faces if f in V1.link_faces]
+            else:  # split face
+                if v1.link_faces and v2.link_faces:
+                    split_faces = {f for f in v2.link_faces if f in v1.link_faces}
 
-                elif not self.list_faces:
-                    faces, co2 = (V1.link_faces, V2.co.copy()) if V1.link_faces else (V2.link_faces, V1.co.copy())
+                else:
+                    split_faces = set()
+                    if v1.link_faces:
+                        faces = v1.link_faces
+                        co2 = v2.co.copy()
+                    else:
+                        faces = v2.link_faces
+                        co2 = v1.co.copy()
+
                     for face in faces:
                         if bmesh.geometry.intersect_face_point(face, co2):
                             co = co2 - face.calc_center_median()
                             if co.dot(face.normal) < 0.001:
-                                self.list_faces.append(face)
+                                split_faces.add(face)
 
-                if self.list_faces:
-                    edge = Bmesh.edges.new([V1, V2])
+                if split_faces:
+                    edge = bm.edges.new([v1, v2])
                     self.list_edges.append(edge)
-                    ed_list = get_isolated_edges(V2)
-                    for face in set(self.list_faces):
-                        facesp = bmesh.utils.face_split_edgenet(face, list(set(ed_list)))
-                        self.list_faces = []
+                    ed_list = get_loose_linked_edges(v2)
+                    for face in split_faces:
+                        facesp = bmesh.utils.face_split_edgenet(face, ed_list)
+                    del split_faces
+                    update_edit_mesh = True
+                    tessface = True
                 else:
                     if self.intersect:
-                        facesp = bmesh.ops.connect_vert_pair(Bmesh, verts=[V1, V2], verts_exclude=Bmesh.verts)
+                        facesp = bmesh.ops.connect_vert_pair(bm, verts=[v1, v2], verts_exclude=bm.verts)
                         # print(facesp)
                     if not self.intersect or not facesp['edges']:
-                        edge = Bmesh.edges.new([V1, V2])
+                        edge = bm.edges.new([v1, v2])
                         self.list_edges.append(edge)
                     else:
                         for edge in facesp['edges']:
                             self.list_edges.append(edge)
-                bmesh.update_edit_mesh(obj.data, tessface=True, destructive=True)
 
         # create face
         if self.create_face:
-            ed_list = self.list_edges.copy()
-            for edge in V2.link_edges:
+            ed_list = set(self.list_edges)
+            for edge in v2.link_edges:
                 for vert in edge.verts:
-                    if vert in self.list_verts:
-                        ed_list.append(edge)
-                        for edge in get_isolated_edges(V2):
-                            if edge not in ed_list:
-                                ed_list.append(edge)
-                        bmesh.ops.edgenet_fill(Bmesh, edges=list(set(ed_list)))
-                        bmesh.update_edit_mesh(obj.data, tessface=True, destructive=True)
+                    if vert != v2 and vert in self.list_verts:
+                        ed_list.add(edge)
                         break
-            # print('face created')
+                else:
+                    continue
+                # Inner loop was broken, break the outer
+                break
 
-    return [obj.matrix_world * a.co for a in self.list_verts]
+            ed_list.update(get_loose_linked_edges(v2))
+
+            bmesh.ops.edgenet_fill(bm, edges=list(ed_list))
+            update_edit_mesh = True
+            tessface = True
+            # print('face created')
+    if update_edit_mesh:
+        bmesh.update_edit_mesh(obj.data, tessface = tessface, destructive=True)
+    return [obj.matrix_world * v.co for v in self.list_verts]
+
+
+class NavigationKeys:
+    def __init__(self, context):
+        # TO DO:
+        # 'View Orbit', 'View Pan', 'NDOF Orbit View', 'NDOF Pan View'
+        self._rotate = set()
+        self._move = set()
+        self._zoom = set()
+        for key in context.window_manager.keyconfigs.user.keymaps['3D View'].keymap_items:
+            if key.idname == 'view3d.rotate':
+                #self.keys_rotate[key.id]={'Alt': key.alt, 'Ctrl': key.ctrl, 'Shift':key.shift, 'Type':key.type, 'Value':key.value}
+                self._rotate.add((key.alt, key.ctrl, key.shift, key.type, key.value))
+            if key.idname == 'view3d.move':
+                self._move.add((key.alt, key.ctrl, key.shift, key.type, key.value))
+            if key.idname == 'view3d.zoom':
+                if key.type == 'WHEELINMOUSE':
+                    self._zoom.add((key.alt, key.ctrl, key.shift, 'WHEELUPMOUSE', key.value, key.properties.delta))
+                elif key.type == 'WHEELOUTMOUSE':
+                    self._zoom.add((key.alt, key.ctrl, key.shift, 'WHEELDOWNMOUSE', key.value, key.properties.delta))
+                else:
+                    self._zoom.add((key.alt, key.ctrl, key.shift, key.type, key.value, key.properties.delta))
 
 
 class CharMap:
@@ -542,62 +613,13 @@ class SnapUtilitiesLine(Operator):
                 (context.object is not None and
                 context.object.type == 'MESH'))
 
-    def modal_navigation(self, context, event):
-        # TO DO:
-        # 'View Orbit', 'View Pan', 'NDOF Orbit View', 'NDOF Pan View'
-        rv3d = context.region_data
-        if not hasattr(self, 'navigation_cache'):  # or self.navigation_cache == False:
-            # print('update navigation')
-            self.navigation_cache = True
-            self.keys_rotate = set()
-            self.keys_move = set()
-            self.keys_zoom = set()
-            for key in context.window_manager.keyconfigs.user.keymaps['3D View'].keymap_items:
-                if key.idname == 'view3d.rotate':
-                    # self.keys_rotate[key.id] = {'Alt': key.alt, 'Ctrl': key.ctrl,
-                    #                             'Shift':key.shift, 'Type':key.type, 'Value':key.value}
-                    self.keys_rotate.add((key.alt, key.ctrl, key.shift, key.type, key.value))
-                if key.idname == 'view3d.move':
-                    self.keys_move.add((key.alt, key.ctrl, key.shift, key.type, key.value))
-                if key.idname == 'view3d.zoom':
-                    self.keys_zoom.add(
-                                    (key.alt, key.ctrl, key.shift, key.type,
-                                     key.value, key.properties.delta)
-                                    )
-                    if key.type == 'WHEELINMOUSE':
-                        self.keys_zoom.add(
-                                    (key.alt, key.ctrl, key.shift, 'WHEELDOWNMOUSE',
-                                     key.value, key.properties.delta)
-                                    )
-                    if key.type == 'WHEELOUTMOUSE':
-                        self.keys_zoom.add(
-                                    (key.alt, key.ctrl, key.shift, 'WHEELUPMOUSE',
-                                     key.value, key.properties.delta)
-                                    )
-
-        evkey = (event.alt, event.ctrl, event.shift, event.type, event.value)
-        if evkey in self.keys_rotate:
-            bpy.ops.view3d.rotate('INVOKE_DEFAULT')
-        elif evkey in self.keys_move:
-            if event.shift and self.vector_constrain and \
-               self.vector_constrain[2] in {'RIGHT_SHIFT', 'LEFT_SHIFT', 'shift'}:
-                self.vector_constrain = None
-            bpy.ops.view3d.move('INVOKE_DEFAULT')
-        else:
-            for key in self.keys_zoom:
-                if evkey == key[0:5]:
-                    delta = key[5]
-                    if delta == 0:
-                        bpy.ops.view3d.zoom('INVOKE_DEFAULT')
-                    else:
-                        rv3d.view_distance += delta * rv3d.view_distance / 6
-                        rv3d.view_location -= delta * (self.location - rv3d.view_location) / 6
-                    break
 
     def draw_callback_px(self, context):
         # draw 3d point OpenGL in the 3D View
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glDisable(bgl.GL_DEPTH_TEST)
+        # bgl.glPushMatrix()
+        # bgl.glMultMatrixf(self.obj_glmatrix)
 
         if self.vector_constrain:
             vc = self.vector_constrain
@@ -628,6 +650,8 @@ class SnapUtilitiesLine(Operator):
                 Color4f = self.center_color
             elif self.type == 'PERPENDICULAR':
                 Color4f = self.perpendicular_color
+            else: # self.type == None
+                Color4f = self.out_color
 
         bgl.glColor4f(*Color4f)
         bgl.glPointSize(10)
@@ -648,12 +672,39 @@ class SnapUtilitiesLine(Operator):
         bgl.glEnd()
 
         # restore opengl defaults
+        # bgl.glPopMatrix()
         bgl.glDepthRange(0, 1)
         bgl.glPointSize(1)
         bgl.glLineWidth(1)
         bgl.glDisable(bgl.GL_BLEND)
         bgl.glDisable(bgl.GL_LINE_STIPPLE)
         bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
+
+
+    def modal_navigation(self, context, event):
+        evkey = (event.alt, event.ctrl, event.shift, event.type, event.value)
+        if evkey in self.navigation_keys._rotate:
+            bpy.ops.view3d.rotate('INVOKE_DEFAULT')
+        elif evkey in self.navigation_keys._move:
+            if event.shift and self.vector_constrain and \
+                self.vector_constrain[2] in {'RIGHT_SHIFT', 'LEFT_SHIFT', 'shift'}:
+                self.vector_constrain = None
+            bpy.ops.view3d.move('INVOKE_DEFAULT')
+        else:
+            for key in self.navigation_keys._zoom:
+                if evkey == key[0:5]:
+                    if True: #  TODO: Use Zoom to mouse position
+                        v3d = context.space_data
+                        dist_range = (v3d.clip_start, v3d.clip_end)
+                        rv3d = context.region_data
+                        if (key[5] < 0 and rv3d.view_distance < dist_range[1]) or\
+                           (key[5] > 0 and rv3d.view_distance > dist_range[0]):
+                                rv3d.view_location += key[5] * (self.location - rv3d.view_location) / 6
+                                rv3d.view_distance -= key[5] * rv3d.view_distance / 6
+                    else:
+                        bpy.ops.view3d.zoom('INVOKE_DEFAULT', delta = key[5])
+                    break
+
 
     def modal(self, context, event):
         context.area.tag_redraw()
@@ -680,18 +731,12 @@ class SnapUtilitiesLine(Operator):
 
             mval = Vector((event.mouse_region_x, event.mouse_region_y))
 
-            if self.list_verts != []:
-                previous_vert = self.list_verts[-1]
-            else:
-                previous_vert = None
-
-            outer_verts = self.outer_verts and not self.keytab  # is this used?
             self.location, self.type, self.geom, self.len = snap_utilities(
                     self.cache, context, self.obj_matrix,
                     self.bm, mval,
-                    outer_verts=self.outer_verts,
+                    outer_verts=(self.outer_verts and not self.keytab),
                     constrain=self.vector_constrain,
-                    previous_vert=previous_vert,
+                    previous_vert=(self.list_verts[-1] if self.list_verts else None),
                     ignore_obj=self.obj,
                     increment=self.incremental
             )
@@ -749,20 +794,15 @@ class SnapUtilitiesLine(Operator):
                         self.vector_constrain = [loc, loc + self.constrain_keys[event.type]] + [event.type]
 
             elif event.type == 'LEFTMOUSE':
-                # SNAP 2D
-                snap_3d = self.location
-                Lsnap_3d = self.obj_matrix.inverted() * snap_3d
-                Snap_2d = location_3d_to_region_2d(self.region, self.rv3d, snap_3d)
-                if self.vector_constrain and isinstance(self.geom, bmesh.types.BMVert):  # SELECT FIRST
-                    bpy.ops.view3d.select(location=(int(Snap_2d[0]), int(Snap_2d[1])))
-                    try:
-                        geom2 = self.bm.select_history[0]
-                    except:  # IndexError or AttributeError:
-                        geom2 = None
+                point = self.obj_matinv * self.location
+                # with constraint the intersection can be in a different element of the selected one
+                if self.vector_constrain and self.geom:
+                    geom2 = get_closest_edge(self.bm, point, .001)
                 else:
                     geom2 = self.geom
+
                 self.vector_constrain = None
-                self.list_verts_co = draw_line(self, self.obj, self.bm, geom2, Lsnap_3d)
+                self.list_verts_co = draw_line(self, self.obj, self.bm, geom2, point)
                 bpy.ops.ed.undo_push(message="Undo draw line*")
 
             elif event.type == 'TAB':
@@ -783,7 +823,7 @@ class SnapUtilitiesLine(Operator):
                         text_value = bpy.utils.units.to_value(self.unit_system, 'LENGTH', self.length_entered)
                         vector = (self.location - self.list_verts_co[-1]).normalized()
                         location = (self.list_verts_co[-1] + (vector * text_value))
-                        G_location = self.obj_matrix.inverted() * location
+                        G_location = self.obj_matinv * location
                         self.list_verts_co = draw_line(self, self.obj, self.bm, self.geom, G_location)
                         self.length_entered = ""
                         self.vector_constrain = None
@@ -865,6 +905,8 @@ class SnapUtilitiesLine(Operator):
             self.rotMat = self.rv3d.view_matrix.copy()
             self.obj = bpy.context.active_object
             self.obj_matrix = self.obj.matrix_world.copy()
+            self.obj_matinv = self.obj_matrix.inverted()
+            # self.obj_glmatrix = bgl.Buffer(bgl.GL_FLOAT, [4, 4], self.obj_matrix.transposed())
             self.bm = bmesh.from_edit_mesh(self.obj.data)
             self.cache = SnapCache()
 
@@ -873,6 +915,7 @@ class SnapUtilitiesLine(Operator):
             self.list_verts_co = []
             self.bool_update = False
             self.vector_constrain = ()
+            self.navigation_keys = NavigationKeys(context)
             self.keytab = False
             self.keyf8 = False
             self.type = 'OUT'
@@ -957,14 +1000,15 @@ panels = (
 
 def update_panel(self, context):
     message = "Snap Utilities Line: Updating Panel locations has failed"
+    addon_prefs = context.user_preferences.addons[__name__].preferences
     try:
         for panel in panels:
-            if "bl_rna" in panel.__dict__:
-                bpy.utils.unregister_class(panel)
+            if addon_prefs.category != panel.bl_category:
+                if "bl_rna" in panel.__dict__:
+                    bpy.utils.unregister_class(panel)
 
-        for panel in panels:
-            panel.bl_category = context.user_preferences.addons[__name__].preferences.category
-            bpy.utils.register_class(panel)
+                panel.bl_category = addon_prefs.category
+                bpy.utils.register_class(panel)
 
     except Exception as e:
         print("\n[{}]\n{}\n\nError:\n{}".format(__name__, message, e))
@@ -1004,7 +1048,7 @@ class SnapAddonPreferences(AddonPreferences):
             default=False
             )
     expand_color_settings = BoolProperty(
-            name="Expand Color Settings",
+            name="Color Settings",
             description="Expand, to display the color settings",
             default=False
             )
@@ -1087,11 +1131,11 @@ class SnapAddonPreferences(AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
+        icon = "TRIA_DOWN" if self.expand_color_settings else "TRIA_RIGHT"
 
         box = layout.box()
-        box.prop(self, "expand_color_settings", toggle=True, emboss=False)
+        box.prop(self, "expand_color_settings", icon=icon, toggle=True, emboss=False)
         if self.expand_color_settings:
-            box.label(text="Snap Colors:")
             split = box.split()
 
             col = split.column()
@@ -1104,7 +1148,6 @@ class SnapAddonPreferences(AddonPreferences):
             col.prop(self, "edge_color")
             col.prop(self, "perpendicular_color")
             col = split.column()
-            col.scale_y = 1.5
             col.prop(self, "vert_color")
 
         row = layout.row()
@@ -1113,8 +1156,8 @@ class SnapAddonPreferences(AddonPreferences):
         box = col.box()
         box.label(text="Snap Items:")
         box.prop(self, "incremental")
-        box.prop(self, "outer_verts", toggle=True)
-        box.prop(self, "increments_grid", toggle=True)
+        box.prop(self, "outer_verts")
+        box.prop(self, "increments_grid")
         if self.increments_grid:
             box.prop(self, "relative_scale")
         else:
@@ -1124,9 +1167,9 @@ class SnapAddonPreferences(AddonPreferences):
         col = row.column(align=True)
         box = col.box()
         box.label(text="Line Tool:")
-        box.prop(self, "intersect", toggle=True)
-        box.prop(self, "create_face", toggle=True)
-        box.prop(self, "create_new_obj", toggle=True)
+        box.prop(self, "intersect")
+        box.prop(self, "create_face")
+        box.prop(self, "create_new_obj")
         box.separator()
         box.separator()
 
