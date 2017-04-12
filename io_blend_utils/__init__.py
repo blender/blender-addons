@@ -119,7 +119,7 @@ def pythonpath() -> str:
     # Find the wheel to run.
     wheelpath = pathlib.Path(__file__).with_name(BAM_WHEEL_FILE)
     if not wheelpath.exists():
-        raise EnvironmentError('Wheel file %s does not exist!')
+        raise EnvironmentError('Wheel file %s does not exist!' % wheelpath)
 
     log.info('Using wheel file %s to run BAM-Pack', wheelpath)
 
