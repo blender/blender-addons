@@ -72,6 +72,29 @@ def uuid_from_file(fn, block_size=1 << 20):
         return hex(size)[2:] + sha1.hexdigest()
 
 
+def write_json_to_zip(zip_handle, path, data=None):
+    import json
+    zip_handle.writestr(
+            path,
+            json.dumps(
+                data,
+                check_circular=False,
+                # optional (pretty)
+                sort_keys=True, indent=4, separators=(',', ': '),
+                ).encode('utf-8'))
+
+
+def write_json_to_file(path, data):
+    import json
+    with open(path, 'w') as file_handle:
+        json.dump(
+                data, file_handle, ensure_ascii=False,
+                check_circular=False,
+                # optional (pretty)
+                sort_keys=True, indent=4, separators=(',', ': '),
+                )
+
+
 def is_compressed_filetype(filepath):
     """
     Use to check if we should compress files in a zip.
@@ -102,4 +125,19 @@ def is_compressed_filetype(filepath):
         # '.gz', '.tgz',
         # '.zip',
         }
+
+
+def is_subdir(path, directory):
+    """
+    Returns true if *path* in a subdirectory of *directory*.
+    """
+    import os
+    from os.path import normpath, normcase, sep
+    path = normpath(normcase(path))
+    directory = normpath(normcase(directory))
+    if len(path) > len(directory):
+        sep = sep.encode('ascii') if isinstance(directory, bytes) else sep
+        if path.startswith(directory.rstrip(sep) + sep):
+            return True
+    return False
 

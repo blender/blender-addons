@@ -19,11 +19,16 @@
 # ***** END GPL LICENCE BLOCK *****
 
 import os
+import logging
+
+from . import blendfile
+
 # gives problems with scripts that use stdout, for testing 'bam deps' for eg.
-VERBOSE = False  # os.environ.get('BAM_VERBOSE', False)
+DEBUG = False
+VERBOSE = DEBUG or False  # os.environ.get('BAM_VERBOSE', False)
 TIMEIT = False
 
-USE_ALEMBIC_BRANCH = False
+USE_ALEMBIC_BRANCH = True
 
 
 class C_defs:
@@ -61,17 +66,18 @@ class C_defs:
     if USE_ALEMBIC_BRANCH:
         CACHE_LIBRARY_SOURCE_CACHE = 1
 
+log_deps = logging.getLogger("path_walker")
+log_deps.setLevel({
+    (True, True): logging.DEBUG,
+    (False, True): logging.INFO,
+    (False, False): logging.WARNING
+}[DEBUG, VERBOSE])
 
 if VERBOSE:
-    import logging
-    log_deps = logging.getLogger("path_walker")
-    del logging
-
     def set_as_str(s):
         if s is None:
             return "None"
-        else:
-            return (", ".join(sorted(i.decode('ascii') for i in sorted(s))))
+        return ", ".join(sorted(str(i) for i in s))
 
 
 class FPElem:
@@ -256,14 +262,15 @@ class FilePath:
 
         filepath = os.path.abspath(filepath)
 
-        if VERBOSE:
-            indent_str = "  " * level
-            # print(indent_str + "Opening:", filepath)
-            # print(indent_str + "... blocks:", block_codes)
+        indent_str = "  " * level
+        # print(indent_str + "Opening:", filepath)
+        # print(indent_str + "... blocks:", block_codes)
 
-            log_deps.info("~")
-            log_deps.info("%s%s" % (indent_str, filepath.decode('utf-8')))
-            log_deps.info("%s%s" % (indent_str, set_as_str(block_codes)))
+        log = log_deps.getChild('visit_from_blend')
+        log.info("~")
+        log.info("%sOpening: %s", indent_str, filepath)
+        if VERBOSE:
+            log.info("%s blocks: %s", indent_str, set_as_str(block_codes))
 
         blendfile_level_cb_enter, blendfile_level_cb_exit = blendfile_level_cb
 
@@ -395,7 +402,6 @@ class FilePath:
         # store info to pass along with each iteration
         extra_info = rootdir, os.path.basename(filepath)
 
-        from . import blendfile
         with blendfile.open_blend(filepath_tmp, "rb" if readonly else "r+b") as blend:
 
             for code in blend.code_index.keys():
@@ -421,7 +427,7 @@ class FilePath:
             # print("A:", expand_addr_visit)
             # print("B:", block_codes)
             if VERBOSE:
-                log_deps.info("%s%s" % (indent_str, set_as_str(expand_addr_visit)))
+                log.info("%s expand_addr_visit=%s", indent_str, set_as_str(expand_addr_visit))
 
             if recursive:
 
@@ -508,11 +514,13 @@ class FilePath:
     # (no expanding or following references)
 
     @staticmethod
-    def from_block(block, basedir, extra_info, level):
+    def from_block(block: blendfile.BlendFileBlock, basedir, extra_info, level):
         assert(block.code != b'DATA')
         fn = FilePath._from_block_dict.get(block.code)
-        if fn is not None:
-            yield from fn(block, basedir, extra_info, level)
+        if fn is None:
+            return
+
+        yield from fn(block, basedir, extra_info, level)
 
     @staticmethod
     def _from_block_OB(block, basedir, extra_info, level):
@@ -811,6 +819,7 @@ class ExpandID:
             yield block.get_pointer(b'dup_group')
         elif block_ren_as == C_defs.PART_DRAW_OB:
             yield block.get_pointer(b'dup_ob')
+        yield from ExpandID._expand_generic_mtex(block)
 
     @staticmethod
     def expand_SC(block):  # 'Scene'
