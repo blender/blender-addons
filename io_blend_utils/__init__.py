@@ -29,6 +29,8 @@ bl_info = {
     "category": "Import-Export",
 }
 
+BAM_WHEEL_FILE = 'blender_bam-1.1.4-py3-none-any.whl'
+
 import logging
 
 import bpy
@@ -109,23 +111,24 @@ def pythonpath() -> str:
     """Returns the value of a PYTHONPATH environment variable needed to run BAM from its wheel file.
     """
 
-    import os.path
-    import glob
+    import os
+    import pathlib
 
     log = logging.getLogger('%s.pythonpath' % __name__)
 
     # Find the wheel to run.
-    my_dir = os.path.abspath(os.path.dirname(__file__))
-    wheelpaths = glob.glob(os.path.join(my_dir, 'blender_bam-*.whl'))
-    wheelpath = sorted(wheelpaths)[-1]  # use the last version we find, should be only one.
+    wheelpath = pathlib.Path(__file__).with_name(BAM_WHEEL_FILE)
+    if not wheelpath.exists():
+        raise EnvironmentError('Wheel file %s does not exist!')
+
     log.info('Using wheel file %s to run BAM-Pack', wheelpath)
 
     # Update the PYTHONPATH to include that wheel.
     existing_pypath = os.environ.get('PYTHONPATH', '')
     if existing_pypath:
-        return os.pathsep.join((existing_pypath, wheelpath))
+        return os.pathsep.join((existing_pypath, str(wheelpath)))
 
-    return wheelpath
+    return str(wheelpath)
 
 
 def register():
