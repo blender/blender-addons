@@ -1183,6 +1183,7 @@ def register():
     bpy.utils.register_class(SnapAddonPreferences)
     bpy.utils.register_class(SnapUtilitiesLine)
     bpy.utils.register_class(PanelSnapUtilities)
+    update_panel(None, bpy.context)
 
 
 def unregister():
