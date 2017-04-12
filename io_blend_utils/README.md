@@ -1,3 +1,10 @@
+Updating this module
+--------------------
+
+This module contains copies of files belonging to
+[BAM](https://pypi.python.org/pypi/blender-bam/). Fixes should be
+committed to BAM and then copied here, to keep versions in sync.
+
 
 Bundling BAM with Blender
 -------------------------
