@@ -420,6 +420,8 @@ def draw_line(self, obj, bm, bm_geom, location):
     if not hasattr(self, 'list_edges'):
         self.list_edges = []
 
+    split_faces = set()
+
     update_edit_mesh = False
     tessface = False
 
@@ -454,7 +456,7 @@ def draw_line(self, obj, bm, bm_geom, location):
             self.list_verts.append(vert)
 
     elif isinstance(bm_geom, bmesh.types.BMFace):
-        self.list_faces.append(bm_geom)
+        split_faces.add(bm_geom)
         vert = bm.verts.new(location)
         self.list_verts.append(vert)
 
@@ -472,10 +474,9 @@ def draw_line(self, obj, bm, bm_geom, location):
                 self.list_edges.append(edge)
             else:  # split face
                 if v1.link_faces and v2.link_faces:
-                    split_faces = {f for f in v2.link_faces if f in v1.link_faces}
+                    split_faces.update({f for f in v2.link_faces if f in v1.link_faces})
 
                 else:
-                    split_faces = set()
                     if v1.link_faces:
                         faces = v1.link_faces
                         co2 = v2.co.copy()
