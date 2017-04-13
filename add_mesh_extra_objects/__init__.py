@@ -61,6 +61,7 @@ if "bpy" in locals():
     importlib.reload(geodesic_classes_271)
     importlib.reload(third_domes_panel_271)
     importlib.reload(vefm_271)
+    importlib.reload(add_mesh_triangles)
 else:
     from . import add_mesh_star
     from . import add_mesh_twisted_torus
@@ -83,6 +84,7 @@ else:
     from . import add_mesh_beam_builder
     from . import Wallfactory
     from . import Blocks
+    from . import add_mesh_triangles
 
     from .geodesic_domes import add_shape_geodesic
     from .geodesic_domes import forms_271
@@ -162,7 +164,7 @@ class INFO_MT_mesh_math_add(Menu):
         layout.operator("mesh.primitive_xyz_function_surface",
                         text="XYZ Math Surface")
         self.layout.operator("mesh.primitive_solid_add", text="Regular Solid")
-
+        self.layout.operator("mesh.make_triangle", icon = "MESH_DATA")
 
 class INFO_MT_mesh_mech(Menu):
     # Define the "Math Function" menu
