@@ -29,17 +29,9 @@ bl_info = {
     "location": "View3D > Add > Mesh",
     "description": "Add extra mesh object types",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Add_Mesh/Add_Extra",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Add_Mesh/Add_Extra",
     "category": "Add Mesh",
 }
-
-from .geodesic_domes import __init__
-from .geodesic_domes import add_shape_geodesic
-from .geodesic_domes import forms_271
-from .geodesic_domes import geodesic_classes_271
-from .geodesic_domes import third_domes_panel_271
-from .geodesic_domes import vefm_271
-
 
 if "bpy" in locals():
     import importlib
@@ -64,7 +56,11 @@ if "bpy" in locals():
     importlib.reload(add_mesh_beam_builder)
     importlib.reload(Wallfactory)
     importlib.reload(Blocks)
-    importlib.reload(add_mesh_triangles)
+    importlib.reload(add_shape_geodesic)
+    importlib.reload(forms_271)
+    importlib.reload(geodesic_classes_271)
+    importlib.reload(third_domes_panel_271)
+    importlib.reload(vefm_271)
 else:
     from . import add_mesh_star
     from . import add_mesh_twisted_torus
@@ -87,7 +83,12 @@ else:
     from . import add_mesh_beam_builder
     from . import Wallfactory
     from . import Blocks
-    from . import add_mesh_triangles
+
+    from .geodesic_domes import add_shape_geodesic
+    from .geodesic_domes import forms_271
+    from .geodesic_domes import geodesic_classes_271
+    from .geodesic_domes import third_domes_panel_271
+    from .geodesic_domes import vefm_271
 
 import bpy
 from bpy.types import Menu
@@ -161,7 +162,7 @@ class INFO_MT_mesh_math_add(Menu):
         layout.operator("mesh.primitive_xyz_function_surface",
                         text="XYZ Math Surface")
         self.layout.operator("mesh.primitive_solid_add", text="Regular Solid")
-        self.layout.operator("mesh.make_triangle", icon = "MESH_DATA")
+
 
 class INFO_MT_mesh_mech(Menu):
     # Define the "Math Function" menu
