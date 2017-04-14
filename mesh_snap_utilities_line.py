@@ -686,11 +686,13 @@ class SnapUtilitiesLine(Operator):
         evkey = (event.alt, event.ctrl, event.shift, event.type, event.value)
         if evkey in self.navigation_keys._rotate:
             bpy.ops.view3d.rotate('INVOKE_DEFAULT')
+            return True
         elif evkey in self.navigation_keys._move:
             if event.shift and self.vector_constrain and \
                 self.vector_constrain[2] in {'RIGHT_SHIFT', 'LEFT_SHIFT', 'shift'}:
                 self.vector_constrain = None
             bpy.ops.view3d.move('INVOKE_DEFAULT')
+            return True
         else:
             for key in self.navigation_keys._zoom:
                 if evkey == key[0:5]:
@@ -704,10 +706,16 @@ class SnapUtilitiesLine(Operator):
                                 rv3d.view_distance -= key[5] * rv3d.view_distance / 6
                     else:
                         bpy.ops.view3d.zoom('INVOKE_DEFAULT', delta = key[5])
-                    break
+                    return True
+                    #break
+
+        return False
 
 
     def modal(self, context, event):
+        if self.modal_navigation(context, event):
+            return {'RUNNING_MODAL'}
+
         context.area.tag_redraw()
 
         if event.ctrl and event.type == 'Z' and event.value == 'PRESS':
@@ -861,7 +869,6 @@ class SnapUtilitiesLine(Operator):
                         self.location[1], self.location[2], a)
                         )
 
-        self.modal_navigation(context, event)
         return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
