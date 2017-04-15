@@ -19,14 +19,13 @@
 bl_info = {
     "name": "ANT Landscape",
     "author": "Jimmy Hazevoet",
-    "version": (0, 1, 4),
+    "version": (0, 1, 5),
     "blender": (2, 77, 0),
     "location": "View3D > Add > Mesh",
     "description": "Add a landscape primitive",
-    "warning": "", # used for warning icon and text in addons panel
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+    "warning": "",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Add_Mesh/ANT_Landscape",
-    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
     "category": "Add Mesh",
 }
 
@@ -46,9 +45,12 @@ Y_Offset:        Noise y offset in blender units
 NOISE OPTIONS: ( Most of these options are the same as in blender textures. )
 Random seed:     Use this to randomise the origin of the noise function.
 Noise size:      Size of the noise.
-Noise type:      Available noise types: multiFractal, ridgedMFractal, fBm, hybridMFractal, heteroTerrain, Turbulence, Distorted Noise, Marble, Shattered_hTerrain, Strata_hTerrain, Planet_noise
-Noise basis:     Blender, Perlin, NewPerlin, Voronoi_F1, Voronoi_F2, Voronoi_F3, Voronoi_F4, Voronoi_F2-F1, Voronoi Crackle, Cellnoise
-VLNoise basis:   Blender, Perlin, NewPerlin, Voronoi_F1, Voronoi_F2, Voronoi_F3, Voronoi_F4, Voronoi_F2-F1, Voronoi Crackle, Cellnoise
+Noise type:      Available noise types: multiFractal, ridgedMFractal, fBm, hybridMFractal, heteroTerrain,
+                 Turbulence, Distorted Noise, Marble, Shattered_hTerrain, Strata_hTerrain, Planet_noise
+Noise basis:     Blender, Perlin, NewPerlin, Voronoi_F1, Voronoi_F2, Voronoi_F3, Voronoi_F4, Voronoi_F2-F1,
+                 Voronoi Crackle, Cellnoise
+VLNoise basis:   Blender, Perlin, NewPerlin, Voronoi_F1, Voronoi_F2, Voronoi_F3, Voronoi_F4, Voronoi_F2-F1,
+                 Voronoi Crackle, Cellnoise
 Distortion:      Distortion amount.
 Hard:            Hard/Soft turbulence noise.
 Depth:           Noise depth, number of frequencies in the fBm.
@@ -73,10 +75,28 @@ Strata type:     Strata types, Smooth, Sharp-sub, Sharp-add
 
 # import modules
 import bpy
-from bpy.props import *
-from mathutils import *
-from mathutils.noise import *
-from math import *
+from bpy.props import (
+        BoolProperty,
+        EnumProperty,
+        FloatProperty,
+        IntProperty,
+        )
+from mathutils.noise import (
+        seed_set,
+        turbulence,
+        turbulence_vector,
+        fractal,
+        hybrid_multi_fractal,
+        multi_fractal,
+        ridged_multi_fractal,
+        hetero_terrain,
+        random_unit_vector,
+        variable_lacunarity,
+        )
+from math import (
+        floor, hypot,
+        sin, cos, pi,
+        )
 
 
 # Create a new mesh (object) from verts/edges/faces.
@@ -113,7 +133,8 @@ def saw_bias(a):
     b = 2 * pi
     n = int(a / b)
     a -= n * b
-    if a < 0: a += b
+    if a < 0:
+        a += b
     return a / b
 
 
@@ -132,8 +153,8 @@ def sharper(a):
 def shapes(x, y, shape=0):
     if shape == 1:
         # ring
-        x = x*2
-        y = y*2
+        x = x * 2
+        y = y * 2
         s = (-cos(x**2 + y**2) / (x**2 + y**2 + 0.5))
     elif shape == 2:
         # swirl
@@ -207,18 +228,18 @@ def strata_hterrain(x, y, z, H, lacunarity, octaves, offset, distort, basis):
 
 # planet_noise by Farsthary: https://farsthary.com/2010/11/24/new-planet-procedural-texture/
 def planet_noise(coords, oct=6, hard=0, noisebasis=1, nabla=0.001):
-    x,y,z = coords
+    x, y, z = coords
     d = 0.001
     offset = nabla * 1000
     x = turbulence((x, y, z), oct, hard, noisebasis)
-    y = turbulence((x + offset, y , z), oct, hard, noisebasis)
+    y = turbulence((x + offset, y, z), oct, hard, noisebasis)
     z = turbulence((x, y + offset, z), oct, hard, noisebasis)
-    xdy = x-turbulence((x, y + d, z), oct, hard, noisebasis)
-    xdz = x-turbulence((x, y, z + d), oct, hard, noisebasis)
-    ydx = y-turbulence((x + d, y, z), oct, hard, noisebasis)
-    ydz = y-turbulence((x, y, z + d), oct, hard, noisebasis)
-    zdx = z-turbulence((x + d, y, z), oct, hard, noisebasis)
-    zdy = z-turbulence((x, y + d, z), oct, hard, noisebasis)
+    xdy = x - turbulence((x, y + d, z), oct, hard, noisebasis)
+    xdz = x - turbulence((x, y, z + d), oct, hard, noisebasis)
+    ydx = y - turbulence((x + d, y, z), oct, hard, noisebasis)
+    ydz = y - turbulence((x, y, z + d), oct, hard, noisebasis)
+    zdx = z - turbulence((x + d, y, z), oct, hard, noisebasis)
+    zdy = z - turbulence((x, y + d, z), oct, hard, noisebasis)
     return (zdy - ydz), (zdx - xdz), (ydx - xdy)
 
 
@@ -226,7 +247,8 @@ def planet_noise(coords, oct=6, hard=0, noisebasis=1, nabla=0.001):
 # landscape_gen
 def landscape_gen(x, y, z, falloffsize, options):
 
-    # options = [0, 1.0, 'multi_fractal', 0, 0, 1.0, 0, 6, 1.0, 2.0, 1.0, 2.0, 0, 0, 0, 1.0, 0.0, 1, 0.0, 1.0, 0, 0, 0, 0.0, 0.0]
+    # options = [0, 1.0, 'multi_fractal', 0, 0, 1.0, 0, 6, 1.0, 2.0, 1.0, 2.0,
+    #            0, 0, 0, 1.0, 0.0, 1, 0.0, 1.0, 0, 0, 0, 0.0, 0.0]
     rseed = options[0]
     nsize = options[1]
     ntype = options[2]
@@ -276,11 +298,11 @@ def landscape_gen(x, y, z, falloffsize, options):
     # noise basis type's
     if nbasis == 9:
         nbasis = 14  # to get cellnoise basis you must set 14 instead of 9
-    if vlbasis ==9:
+    if vlbasis == 9:
         vlbasis = 14
 
     # noise type's
-    if ntype ==   'multi_fractal':
+    if ntype == 'multi_fractal':
         value = multi_fractal(ncoords, dimension, lacunarity, depth, nbasis) * 0.5
 
     elif ntype == 'ridged_multi_fractal':
@@ -302,13 +324,23 @@ def landscape_gen(x, y, z, falloffsize, options):
         value = variable_lacunarity(ncoords, distortion, nbasis, vlbasis) + 0.5
 
     elif ntype == 'marble_noise':
-        value = marble_noise(x * 2.0 / falloffsize, y * 2.0 / falloffsize, z * 2 / falloffsize, origin, nsize, marbleshape, marblebias, marblesharpnes, distortion, depth, hardnoise, nbasis)
+        value = marble_noise(
+                        x * 2.0 / falloffsize, y * 2.0 / falloffsize, z * 2 / falloffsize,
+                        origin, nsize, marbleshape, marblebias, marblesharpnes, distortion,
+                        depth, hardnoise, nbasis
+                        )
 
     elif ntype == 'shattered_hterrain':
-        value = shattered_hterrain(ncoords[0], ncoords[1], ncoords[2], dimension, lacunarity, depth, offset, distortion, nbasis)
+        value = shattered_hterrain(
+                        ncoords[0], ncoords[1], ncoords[2], dimension, lacunarity,
+                        depth, offset, distortion, nbasis
+                        )
 
     elif ntype == 'strata_hterrain':
-        value = strata_hterrain(ncoords[0], ncoords[1], ncoords[2], dimension, lacunarity, depth, offset, distortion, nbasis)
+        value = strata_hterrain(
+                        ncoords[0], ncoords[1], ncoords[2], dimension, lacunarity,
+                        depth, offset, distortion, nbasis
+                        )
 
     elif ntype == 'planet_noise':
         value = planet_noise(ncoords, depth, hardnoise, nbasis)[2] * 0.5 + 0.5
@@ -316,17 +348,17 @@ def landscape_gen(x, y, z, falloffsize, options):
         value = 0.0
 
     # adjust height
-    if invert !=0:
+    if invert != 0:
         value = (1 - value) * height + heightoffset
     else:
         value = value * height + heightoffset
 
     # edge falloff
-    if sphere == 0: # no edge falloff if spherical
+    if sphere == 0:  # no edge falloff if spherical
         if falloff != 0:
             fallofftypes = [0, hypot(x * x, y * y), hypot(x, y), abs(y), abs(x)]
             dist = fallofftypes[falloff]
-            if falloff ==1:
+            if falloff == 1:
                 radius = (falloffsize / 2)**2
             else:
                 radius = falloffsize / 2
@@ -340,7 +372,7 @@ def landscape_gen(x, y, z, falloffsize, options):
                 value = sealevel
 
     # strata / terrace / layered
-    if stratatype !='0':
+    if stratatype != '0':
         strata = strata / height
 
     if stratatype == '1':
@@ -350,11 +382,11 @@ def landscape_gen(x, y, z, falloffsize, options):
 
     elif stratatype == '2':
         steps = -abs(sin(value * strata * pi) * (0.1 / strata * pi))
-        value =(value * (1.0 - 0.5) + steps * 0.5) * 2.0
+        value = (value * (1.0 - 0.5) + steps * 0.5) * 2.0
 
     elif stratatype == '3':
         steps = abs(sin(value * strata * pi) * (0.1 / strata * pi))
-        value =(value * (1.0 - 0.5) + steps * 0.5) * 2.0
+        value = (value * (1.0 - 0.5) + steps * 0.5) * 2.0
 
     else:
         value = value
@@ -376,7 +408,7 @@ def grid_gen(sub_d, size_me, options):
     faces = []
 
     # fill verts array
-    for i in range (0, sub_d):
+    for i in range(0, sub_d):
         for j in range(0, sub_d):
             u = (i / (sub_d - 1) - 1 / 2)
             v = (j / (sub_d - 1) - 1 / 2)
@@ -388,7 +420,7 @@ def grid_gen(sub_d, size_me, options):
 
     # fill faces array
     count = 0
-    for i in range (0, sub_d*(sub_d - 1)):
+    for i in range(0, sub_d * (sub_d - 1)):
         if count < sub_d - 1:
             A = i + 1
             B = i
@@ -410,19 +442,19 @@ def sphere_gen(sub_d, size_me, options):
     faces = []
 
     # fill verts array
-    for i in range (0, sub_d):
+    for i in range(0, sub_d):
         for j in range(0, sub_d):
             u = sin(j * pi * 2 / (sub_d - 1)) * cos(-pi / 2 + i * pi / (sub_d - 1)) * size_me / 2
             v = cos(j * pi * 2 / (sub_d - 1)) * cos(-pi / 2 + i * pi / (sub_d - 1)) * size_me / 2
             w = sin(-pi / 2 + i * pi / (sub_d - 1)) * size_me / 2
             h = landscape_gen(u, v, w, size_me, options) / size_me
-            u,v,w = u + u * h, v + v * h, w + w * h
+            u, v, w = u + u * h, v + v * h, w + w * h
             vert = (u, v, w)
             verts.append(vert)
 
     # fill faces array
     count = 0
-    for i in range (0, sub_d * (sub_d - 1)):
+    for i in range(0, sub_d * (sub_d - 1)):
         if count < sub_d - 1:
             A = i + 1
             B = i
@@ -440,160 +472,182 @@ def sphere_gen(sub_d, size_me, options):
 # ------------------------------------------------------------
 # Add landscape
 class landscape_add(bpy.types.Operator):
-    """Add a landscape mesh"""
     bl_idname = "mesh.landscape_add"
     bl_label = "Landscape"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
     bl_description = "Add landscape mesh"
 
     # properties
-    AutoUpdate = BoolProperty(name="Mesh update",
-                default = True,
-                description = "Update mesh")
-
-    SphereMesh = BoolProperty(name="Sphere",
-                default = False,
-                description = "Generate Sphere mesh")
-
-    SmoothMesh = BoolProperty(name="Smooth",
-                default = True,
-                description = "Shade smooth")
-
-    Subdivision = IntProperty(name="Subdivisions",
-                min = 4,
-                max = 6400,
-                default = 128,
-                description = "Mesh x y subdivisions")
-
-    MeshSize = FloatProperty(name="Mesh Size",
-                min = 0.01,
-                max = 100000.0,
-                default = 2.0,
-                description = "Mesh size")
-
-    XOffset = FloatProperty(name="X Offset",
-                default = 0.0,
-                description = "X Offset")
-
-    YOffset = FloatProperty(name="Y Offset",
-                default = 0.0,
-                description = "Y Offset")
-
-    RandomSeed = IntProperty(name="Random Seed",
-                min = 0,
-                max = 9999,
-                default = 0,
-                description = "Randomize noise origin")
-
-    NoiseSize = FloatProperty(name="Noise Size",
-                min = 0.01,
-                max = 10000.0,
-                default = 1.0,
-                description = "Noise size")
-
+    AutoUpdate = BoolProperty(
+                name="Mesh update",
+                default=True,
+                description="Update mesh"
+                )
+    SphereMesh = BoolProperty(
+                name="Sphere",
+                default=False,
+                description="Generate Sphere mesh"
+                )
+    SmoothMesh = BoolProperty(
+                name="Smooth",
+                default=True,
+                description="Shade smooth"
+                )
+    Subdivision = IntProperty(
+                name="Subdivisions",
+                min=4,
+                max=6400,
+                default=128,
+                description="Mesh x y subdivisions"
+                )
+    MeshSize = FloatProperty(
+                name="Mesh Size",
+                min=0.01,
+                max=100000.0,
+                default=2.0,
+                description="Mesh size"
+                )
+    XOffset = FloatProperty(
+                name="X Offset",
+                default=0.0,
+                description="X Offset"
+                )
+    YOffset = FloatProperty(
+                name="Y Offset",
+                default=0.0,
+                description="Y Offset"
+                )
+    RandomSeed = IntProperty(
+                name="Random Seed",
+                min=0,
+                max=9999,
+                default=0,
+                description="Randomize noise origin"
+                )
+    NoiseSize = FloatProperty(
+                name="Noise Size",
+                min=0.01,
+                max=10000.0,
+                default=1.0,
+                description="Noise size"
+                )
     NoiseTypes = [
-                ('multi_fractal', "multiFractal", "multiFractal"),
-                ('ridged_multi_fractal', "ridgedMFractal", "ridgedMFractal"),
-                ('hybrid_multi_fractal', "hybridMFractal", "hybridMFractal"),
-                ('hetero_terrain', "heteroTerrain", "heteroTerrain"),
-                ('fractal', "fBm", "fBm"),
-                ('turbulence_vector', "Turbulence", "Turbulence"),
+                ('multi_fractal', "Multi Fractal", "Multi Fractal algorithm"),
+                ('ridged_multi_fractal', "Ridged MFractal", "Ridged Multi Fractal"),
+                ('hybrid_multi_fractal', "Hybrid MFractal", "Hybrid Multi Fractal"),
+                ('hetero_terrain', "Hetero Terrain", "Hetero Terrain"),
+                ('fractal', "fBm Fractal", "fBm - Fractional Browninian motion algorithm"),
+                ('turbulence_vector', "Turbulence", "Turbulence Vector"),
                 ('variable_lacunarity', "Distorted Noise", "Distorted Noise"),
-                ('marble_noise', "Marble", "Marble"),
-                ('shattered_hterrain', "Shattered_hTerrain", "Shattered_hTerrain"),
-                ('strata_hterrain', "Strata_hTerrain", "Strata_hTerrain"),
-                ('planet_noise', "Planet_Noise", "Planet_Noise")]
-
-    NoiseType = EnumProperty(name="Type",
-                description = "Noise type",
-                items = NoiseTypes)
-
+                ('marble_noise', "Marble", "Marble Noise"),
+                ('shattered_hterrain', "Shattered hTerrain", "Shattered hTerrain"),
+                ('strata_hterrain', "Strata hTerrain", "Strata hTerrain"),
+                ('planet_noise', "Planet Noise", "Planet Noise")
+                ]
+    NoiseType = EnumProperty(
+                name="Type",
+                description="Noise type",
+                items=NoiseTypes
+                )
     BasisTypes = [
-                ("0", "Blender", "Blender"),
-                ("1", "Perlin", "Perlin"),
-                ("2", "NewPerlin", "NewPerlin"),
-                ("3", "Voronoi_F1", "Voronoi_F1"),
-                ("4", "Voronoi_F2", "Voronoi_F2"),
-                ("5", "Voronoi_F3", "Voronoi_F3"),
-                ("6", "Voronoi_F4", "Voronoi_F4"),
-                ("7", "Voronoi_F2-F1", "Voronoi_F2-F1"),
+                ("0", "Blender", "Blender default noise"),
+                ("1", "Perlin", "Perlin noise"),
+                ("2", "New Perlin", "New Perlin noise"),
+                ("3", "Voronoi F1", "Voronoi F1"),
+                ("4", "Voronoi F2", "Voronoi F2"),
+                ("5", "Voronoi F3", "Voronoi F3"),
+                ("6", "Voronoi F4", "Voronoi F4"),
+                ("7", "Voronoi F2-F1", "Voronoi F2-F1"),
                 ("8", "Voronoi Crackle", "Voronoi Crackle"),
-                ("9", "Cellnoise", "Cellnoise")]
-    BasisType = EnumProperty(name="Basis",
-                description = "Noise basis",
-                items = BasisTypes)
-
+                ("9", "Cell Noise", "Cell noise")
+                ]
+    BasisType = EnumProperty(
+                name="Basis",
+                description="Noise basis",
+                items=BasisTypes
+                )
     VLBasisTypes = [
                 ("0", "Blender", "Blender"),
                 ("1", "Perlin", "Perlin"),
                 ("2", "NewPerlin", "NewPerlin"),
-                ("3", "Voronoi_F1", "Voronoi_F1"),
-                ("4", "Voronoi_F2", "Voronoi_F2"),
-                ("5", "Voronoi_F3", "Voronoi_F3"),
-                ("6", "Voronoi_F4", "Voronoi_F4"),
-                ("7", "Voronoi_F2-F1", "Voronoi_F2-F1"),
+                ("3", "Voronoi F1", "Voronoi F1"),
+                ("4", "Voronoi F2", "Voronoi F2"),
+                ("5", "Voronoi F3", "Voronoi F3"),
+                ("6", "Voronoi F4", "Voronoi F4"),
+                ("7", "Voronoi F2-F1", "Voronoi F2-F1"),
                 ("8", "Voronoi Crackle", "Voronoi Crackle"),
-                ("9", "Cellnoise", "Cellnoise")]
-    VLBasisType = EnumProperty(name="VLBasis",
-                description = "VLNoise basis",
-                items = VLBasisTypes)
-
-    Distortion = FloatProperty(name="Distortion",
-                min = 0.01,
-                max = 1000.0,
-                default = 1.0,
-                description = "Distortion amount")
-
-    HardNoise = BoolProperty(name="Hard",
-                default = False,
-                description = "Hard noise")
-
-    NoiseDepth = IntProperty(name="Depth",
-                min = 1,
-                max = 16,
-                default = 8,
-                description="Noise Depth - number of frequencies in the fBm")
-
-    mDimension = FloatProperty(name="Dimension",
-                min = 0.01,
-                max = 2.0,
-                default = 1.0,
-                description = "H - fractal dimension of the roughest areas")
-
-    mLacunarity = FloatProperty(name="Lacunarity",
-                min = 0.01,
-                max = 6.0,
-                default = 2.0,
-                description = "Lacunarity - gap between successive frequencies")
-
-    mOffset = FloatProperty(name="Offset",
-                min = 0.01,
-                max = 6.0,
-                default = 1.0,
-                description = "Offset - raises the terrain from sea level")
-
-    mGain = FloatProperty(name="Gain",
-                min = 0.01,
-                max = 6.0,
-                default = 1.0,
-                description = "Gain - scale factor")
-
+                ("9", "Cell Noise", "Cell noise")
+                ]
+    VLBasisType = EnumProperty(
+                name="VLBasis",
+                description="VLNoise basis algorithms",
+                items=VLBasisTypes
+                )
+    Distortion = FloatProperty(
+                name="Distortion",
+                min=0.01,
+                max=1000.0,
+                default=1.0,
+                description="Distortion amount"
+                )
+    HardNoise = BoolProperty(
+                name="Hard",
+                default=False,
+                description="Hard noise"
+                )
+    NoiseDepth = IntProperty(
+                name="Depth",
+                min=1,
+                max=16,
+                default=8,
+                description="Noise Depth - number of frequencies in the fBm"
+                )
+    mDimension = FloatProperty(
+                name="Dimension",
+                min=0.01,
+                max=2.0,
+                default=1.0,
+                description="H - fractal dimension of the roughest areas"
+                )
+    mLacunarity = FloatProperty(
+                name="Lacunarity",
+                min=0.01,
+                max=6.0,
+                default=2.0,
+                description="Lacunarity - gap between successive frequencies"
+                )
+    mOffset = FloatProperty(
+                name="Offset",
+                min=0.01,
+                max=6.0,
+                default=1.0,
+                description="Offset - raises the terrain from sea level"
+                )
+    mGain = FloatProperty(
+                name="Gain",
+                min=0.01,
+                max=6.0,
+                default=1.0,
+                description="Gain - scale factor"
+                )
     BiasTypes = [
                 ("0", "Sin", "Sin"),
                 ("1", "Tri", "Tri"),
                 ("2", "Saw", "Saw")]
-    MarbleBias = EnumProperty(name="Bias",
-                description = "Marble bias",
-                items = BiasTypes)
-
+    MarbleBias = EnumProperty(
+                name="Bias",
+                description="Marble bias",
+                items=BiasTypes
+                )
     SharpTypes = [
                 ("0", "Soft", "Soft"),
                 ("1", "Sharp", "Sharp"),
                 ("2", "Sharper", "Sharper")]
-    MarbleSharp = EnumProperty(name="Sharp",
-                description = "Marble sharp",
-                items = SharpTypes)
-
+    MarbleSharp = EnumProperty(
+                name="Sharp",
+                description="Marble sharpness",
+                items=SharpTypes
+                )
     ShapeTypes = [
                 ("0", "Default", "Default"),
                 ("1", "Ring", "Ring"),
@@ -601,161 +655,176 @@ class landscape_add(bpy.types.Operator):
                 ("3", "Bump", "Bump"),
                 ("4", "Y", "Y"),
                 ("5", "X", "X")]
-    MarbleShape = EnumProperty(name="Shape",
-                description = "Marble shape",
-                items = ShapeTypes)
-
-    Invert = BoolProperty(name="Invert",
-                default = False,
-                description = "Invert noise input")
-
-    Height = FloatProperty(name="Height",
-                min = 0.01,
-                max = 10000.0,
-                default = 0.5,
-                description = "Height scale")
-
-    Offset = FloatProperty(name="Offset",
-                min = -10000.0,
-                max = 10000.0,
-                default = 0.0,
-                description = "Height offset")
-
+    MarbleShape = EnumProperty(
+                name="Shape",
+                description="Marble shape",
+                items=ShapeTypes
+                )
+    Invert = BoolProperty(
+                name="Invert",
+                default=False,
+                description="Invert noise input"
+                )
+    Height = FloatProperty(
+                name="Height",
+                min=0.01,
+                max=10000.0,
+                default=0.5,
+                description="Height scale"
+                )
+    Offset = FloatProperty(
+                name="Offset",
+                min=-10000.0,
+                max=10000.0,
+                default=0.0,
+                description="Height offset"
+                )
     fallTypes = [
                 ("0", "None", "None"),
                 ("1", "Type 1", "Type 1"),
                 ("2", "Type 2", "Type 2"),
                 ("3", "Y", "Y"),
                 ("4", "X", "X")]
-    Falloff = EnumProperty(name="Falloff",
-                description = "Edge falloff",
-                default = "1",
-                items = fallTypes)
-
-    Sealevel = FloatProperty(name="Sealevel",
-                min = -10000.0,
-                max = 10000.0,
-                default = 0.0,
-                description = "Sealevel")
-
-    Plateaulevel = FloatProperty(name="Plateau",
-                min = -10000.0,
-                max = 10000.0,
-                default = 1.0,
-                description = "Plateau level")
-
-    Strata = FloatProperty(name="Strata",
-                min = 0.01,
-                max = 1000.0,
-                default = 5.0,
-                description = "Strata amount")
-
+    Falloff = EnumProperty(
+                name="Falloff",
+                description="Edge falloff",
+                default="1",
+                items=fallTypes
+                )
+    Sealevel = FloatProperty(
+                name="Sealevel",
+                min=-10000.0,
+                max=10000.0,
+                default=0.0,
+                description="Flattens terrain below sealevel"
+                )
+    Plateaulevel = FloatProperty(
+                name="Plateau",
+                min=-10000.0,
+                max=10000.0,
+                default=1.0,
+                description="Flattens terrain above plateau level"
+                )
+    Strata = FloatProperty(
+                name="Strata",
+                min=0.01,
+                max=1000.0,
+                default=5.0,
+                description="Strata amount - number of strata/terrace layers"
+                )
     StrataTypes = [
-                ("0", "None", "None"),
-                ("1", "Type 1", "Type 1"),
-                ("2", "Type 2", "Type 2"),
-                ("3", "Type 3", "Type 3")]
-    StrataType = EnumProperty(name="Strata",
-                description = "Strata type",
-                default = "0",
-                items = StrataTypes)
+                ("0", "None", "No strata/terrace layers"),
+                ("1", "Type 1", "Smooth transitions"),
+                ("2", "Type 2", "Sharp substract transitions"),
+                ("3", "Type 3", "Sharp add transitions")]
+    StrataType = EnumProperty(
+                name="Strata",
+                description="Strata types",
+                default="0",
+                items=StrataTypes
+                )
 
-
-    # ------------------------------------------------------------
-    # Draw
     def draw(self, context):
         layout = self.layout
 
         box = layout.box()
-        box.prop(self, 'AutoUpdate')
-        box.prop(self, 'SphereMesh')
-        box.prop(self, 'SmoothMesh')
-        box.prop(self, 'Subdivision')
-        box.prop(self, 'MeshSize')
+        row = box.row(align=True)
+        row.prop(self, "AutoUpdate", toggle=True)
+        row.prop(self, "SphereMesh", toggle=True)
+        col = box.column(align=True)
+        col.prop(self, "SmoothMesh", toggle=True)
+
+        col = box.column(align=True)
+        col.prop(self, "Subdivision")
+        col.prop(self, "MeshSize")
 
         box = layout.box()
-        box.prop(self, 'NoiseType')
-        box.prop(self, 'BasisType')
-        box.prop(self, 'RandomSeed')
-        box.prop(self, 'XOffset')
-        box.prop(self, 'YOffset')
-        box.prop(self, 'NoiseSize')
+        box.prop(self, "NoiseType")
+        box.prop(self, "BasisType")
+        box.prop(self, "RandomSeed")
+
+        col = box.column(align=True)
+        col.prop(self, "XOffset")
+        col.prop(self, "YOffset")
+        col.prop(self, "NoiseSize")
 
         box = layout.box()
-        if self.NoiseType == 'multi_fractal':
-            box.prop(self, 'NoiseDepth')
-            box.prop(self, 'mDimension')
-            box.prop(self, 'mLacunarity')
-        elif self.NoiseType == 'ridged_multi_fractal':
-            box.prop(self, 'NoiseDepth')
-            box.prop(self, 'mDimension')
-            box.prop(self, 'mLacunarity')
-            box.prop(self, 'mOffset')
-            box.prop(self, 'mGain')
-        elif self.NoiseType == 'hybrid_multi_fractal':
-            box.prop(self, 'NoiseDepth')
-            box.prop(self, 'mDimension')
-            box.prop(self, 'mLacunarity')
-            box.prop(self, 'mOffset')
-            box.prop(self, 'mGain')
-        elif self.NoiseType == 'hetero_terrain':
-            box.prop(self, 'NoiseDepth')
-            box.prop(self, 'mDimension')
-            box.prop(self, 'mLacunarity')
-            box.prop(self, 'mOffset')
-        elif self.NoiseType == 'fractal':
-            box.prop(self, 'NoiseDepth')
-            box.prop(self, 'mDimension')
-            box.prop(self, 'mLacunarity')
-        elif self.NoiseType == 'turbulence_vector':
-            box.prop(self, 'NoiseDepth')
-            box.prop(self, 'HardNoise')
-        elif self.NoiseType == 'variable_lacunarity':
-            box.prop(self, 'VLBasisType')
-            box.prop(self, 'Distortion')
-        elif self.NoiseType == 'marble_noise':
-            box.prop(self, 'MarbleShape')
-            box.prop(self, 'MarbleBias')
-            box.prop(self, 'MarbleSharp')
-            box.prop(self, 'Distortion')
-            box.prop(self, 'NoiseDepth')
-            box.prop(self, 'HardNoise')
-        elif self.NoiseType == 'shattered_hterrain':
-            box.prop(self, 'NoiseDepth')
-            box.prop(self, 'mDimension')
-            box.prop(self, 'mLacunarity')
-            box.prop(self, 'mOffset')
-            box.prop(self, 'Distortion')
-        elif self.NoiseType == 'strata_hterrain':
-            box.prop(self, 'NoiseDepth')
-            box.prop(self, 'mDimension')
-            box.prop(self, 'mLacunarity')
-            box.prop(self, 'mOffset')
-            box.prop(self, 'Distortion')
-        elif self.NoiseType == 'planet_noise':
-            box.prop(self, 'NoiseDepth')
-            box.prop(self, 'HardNoise')
+        box.label("Noise Settings:")
+        col = box.column(align=True)
+        if self.NoiseType == "multi_fractal":
+            col.prop(self, "NoiseDepth")
+            col.prop(self, "mDimension")
+            col.prop(self, "mLacunarity")
+        elif self.NoiseType == "ridged_multi_fractal":
+            col.prop(self, "NoiseDepth")
+            col.prop(self, "mDimension")
+            col.prop(self, "mLacunarity")
+            col.prop(self, "mOffset")
+            col.prop(self, "mGain")
+        elif self.NoiseType == "hybrid_multi_fractal":
+            col.prop(self, "NoiseDepth")
+            col.prop(self, "mDimension")
+            col.prop(self, "mLacunarity")
+            col.prop(self, "mOffset")
+            col.prop(self, "mGain")
+        elif self.NoiseType == "hetero_terrain":
+            col.prop(self, "NoiseDepth")
+            col.prop(self, "mDimension")
+            col.prop(self, "mLacunarity")
+            col.prop(self, "mOffset")
+        elif self.NoiseType == "fractal":
+            col.prop(self, "NoiseDepth")
+            col.prop(self, "mDimension")
+            col.prop(self, "mLacunarity")
+        elif self.NoiseType == "turbulence_vector":
+            box.prop(self, "NoiseDepth")
+            box.prop(self, "HardNoise")
+        elif self.NoiseType == "variable_lacunarity":
+            box.prop(self, "VLBasisType")
+            box.prop(self, "Distortion")
+        elif self.NoiseType == "marble_noise":
+            box.prop(self, "MarbleShape")
+            box.prop(self, "MarbleBias")
+            box.prop(self, "MarbleSharp")
+            colsub = box.column(align=True)
+            colsub.prop(self, "Distortion")
+            colsub.prop(self, "NoiseDepth")
+            box.prop(self, "HardNoise")
+        elif self.NoiseType == "shattered_hterrain":
+            col.prop(self, "NoiseDepth")
+            col.prop(self, "mDimension")
+            col.prop(self, "mLacunarity")
+            col.prop(self, "mOffset")
+            col.prop(self, "Distortion")
+        elif self.NoiseType == "strata_hterrain":
+            col.prop(self, "NoiseDepth")
+            col.prop(self, "mDimension")
+            col.prop(self, "mLacunarity")
+            col.prop(self, "mOffset")
+            col.prop(self, "Distortion")
+        elif self.NoiseType == "planet_noise":
+            box.prop(self, "NoiseDepth")
+            box.prop(self, "HardNoise")
 
         box = layout.box()
-        box.prop(self, 'Invert')
-        box.prop(self, 'Height')
-        box.prop(self, 'Offset')
-        box.prop(self, 'Plateaulevel')
-        box.prop(self, 'Sealevel')
-        if self.SphereMesh == False:
-            box.prop(self, 'Falloff')
-        box.prop(self, 'StrataType')
-        if self.StrataType != '0':
-            box.prop(self, 'Strata')
+        box.label("Terrain Settings:")
+        box.prop(self, "Invert")
 
+        col = box.column(align=True)
+        col.prop(self, "Height")
+        col.prop(self, "Offset")
+        col.prop(self, "Plateaulevel")
+        col.prop(self, "Sealevel")
 
-    # ------------------------------------------------------------
-    # Execute
+        if self.SphereMesh is False:
+            box.prop(self, "Falloff")
+        box.prop(self, "StrataType")
+        if self.StrataType != "0":
+            box.prop(self, "Strata")
+
     def execute(self, context):
-
-        #mesh update
+        # mesh update
         if self.AutoUpdate != 0:
-
             # turn off undo
             undo = bpy.context.user_preferences.edit.use_global_undo
             bpy.context.user_preferences.edit.use_global_undo = False
@@ -795,7 +864,7 @@ class landscape_add(bpy.types.Operator):
                 ]
 
             # Main function
-            if self.SphereMesh !=0:
+            if self.SphereMesh != 0:
                 # sphere
                 verts, faces = sphere_gen(self.Subdivision, self.MeshSize, options)
             else:
@@ -806,16 +875,16 @@ class landscape_add(bpy.types.Operator):
             obj = create_mesh_object(context, verts, [], faces, "Landscape")
 
             # sphere, remove doubles
-            if self.SphereMesh !=0:
+            if self.SphereMesh != 0:
                 bpy.ops.object.mode_set(mode='EDIT')
                 bpy.ops.mesh.remove_doubles(threshold=0.0001)
                 bpy.ops.object.mode_set(mode='OBJECT')
 
             # Shade smooth
-            if self.SmoothMesh !=0:
+            if self.SmoothMesh != 0:
                 if bpy.ops.object.shade_smooth.poll():
                     bpy.ops.object.shade_smooth()
-                else: # edit mode
+                else:  # edit mode
                     bpy.ops.mesh.faces_shade_smooth()
 
             # restore pre operator undo state
@@ -829,7 +898,7 @@ class landscape_add(bpy.types.Operator):
 # ------------------------------------------------------------
 # Register
 
-    # Define "Landscape" menu
+# Define "Landscape" menu
 def menu_func_landscape(self, context):
     self.layout.operator(landscape_add.bl_idname, text="Landscape", icon="RNDCURVE")
 
