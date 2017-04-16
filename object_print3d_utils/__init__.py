@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8-80 compliant>
+# <pep8 compliant>
 
 bl_info = {
     "name": "3D Print Toolbox",
@@ -25,7 +25,7 @@ bl_info = {
     "location": "3D View > Toolbox",
     "description": "Utilities for 3D printing",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Modeling/PrintToolbox",
     "support": 'OFFICIAL',
     "category": "Mesh"}
@@ -118,17 +118,29 @@ class Print3DSettings(PropertyGroup):
             )
 
 
-# Addons Preferences Update Panel
+# Add-ons Preferences Update Panel
+
+# Define Panel classes for updating
+panels = (
+    ui.Print3DToolBarObject,
+    ui.Print3DToolBarMesh,
+    )
+
+
 def update_panel(self, context):
+    message = "3D Print Toolbox: Updating Panel locations has failed"
     try:
-        bpy.utils.unregister_class(ui.Print3DToolBarObject)
-        bpy.utils.unregister_class(ui.Print3DToolBarMesh)
-    except:
+        for panel in panels:
+            if "bl_rna" in panel.__dict__:
+                bpy.utils.unregister_class(panel)
+
+        for panel in panels:
+            panel.bl_category = context.user_preferences.addons[__name__].preferences.category
+            bpy.utils.register_class(panel)
+
+    except Exception as e:
+        print("\n[{}]\n{}\n\nError:\n{}".format(__name__, message, e))
         pass
-    ui.Print3DToolBarObject.bl_category = context.user_preferences.addons[__name__].preferences.category
-    bpy.utils.register_class(ui.Print3DToolBarObject)
-    ui.Print3DToolBarMesh.bl_category = context.user_preferences.addons[__name__].preferences.category
-    bpy.utils.register_class(ui.Print3DToolBarMesh)
 
 
 class printpreferences(AddonPreferences):
@@ -136,17 +148,18 @@ class printpreferences(AddonPreferences):
     # when defining this in a submodule of a python package.
     bl_idname = __name__
 
-    category = bpy.props.StringProperty(
-            name="Tab Category",
-            description="Choose a name for the category of the panel",
-            default="3D Printing",
-            update=update_panel)
+    category = StringProperty(
+                name="Tab Category",
+                description="Choose a name for the category of the panel",
+                default="3D Printing",
+                update=update_panel
+                )
 
     def draw(self, context):
-
         layout = self.layout
         row = layout.row()
         col = row.column()
+
         col.label(text="Tab Category:")
         col.prop(self, "category", text="")
 
@@ -189,6 +202,8 @@ def register():
         bpy.utils.register_class(cls)
 
     bpy.types.Scene.print_3d = PointerProperty(type=Print3DSettings)
+
+    update_panel(None, bpy.context)
 
 
 def unregister():
