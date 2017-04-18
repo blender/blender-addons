@@ -20,12 +20,12 @@
 bl_info = {
     "name": "Dynamic Context Menu",
     "author": "meta-androcto",
-    "version": (1, 8, 4),
+    "version": (1, 8, 5),
     "blender": (2, 77, 0),
     "location": "View3D > Spacebar",
     "description": "Object Mode Context Sensitive Spacebar Menu",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/3D_interaction/Dynamic_Spacebar_Menu",
     "category": "3D View",
 }
@@ -101,7 +101,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.menu("VIEW3D_MT_Edit_Gpencil", icon='GREASEPENCIL')
             layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
             layout.operator_menu_enum("object.modifier_add", "type", icon='MODIFIER')
-            layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
+            layout.operator_menu_enum("object.constraint_add",
+                                      "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
@@ -131,7 +132,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_edit_mesh_extrude", icon='ORTHO')
             UseSeparator(self, context)
             layout.operator_menu_enum("object.modifier_add", "type", icon='MODIFIER')
-            layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
+            layout.operator_menu_enum("object.constraint_add",
+                                      "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_edit_mesh_delete", icon='X')
             UseSeparator(self, context)
@@ -169,7 +171,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_Brush_Settings", icon='BRUSH_DATA')
-            layout.menu("VIEW3D_MT_Brush_Selection", text="Vertex Paint Tool", icon='BRUSH_VERTEXDRAW')
+            layout.menu("VIEW3D_MT_Brush_Selection",
+                        text="Vertex Paint Tool", icon='BRUSH_VERTEXDRAW')
             layout.menu("VIEW3D_MT_Vertex_Colors", icon='GROUP_VCOL')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
@@ -187,7 +190,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_Paint_Weights", icon='WPAINT_HLT')
             layout.menu("VIEW3D_MT_Brush_Settings", icon='BRUSH_DATA')
-            layout.menu("VIEW3D_MT_Brush_Selection", text="Weight Paint Tool", icon='BRUSH_TEXMASK')
+            layout.menu("VIEW3D_MT_Brush_Selection",
+                        text="Weight Paint Tool", icon='BRUSH_TEXMASK')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
             layout.menu("VIEW3D_MT_Object_Interactive_Mode", icon='EDIT')
@@ -202,7 +206,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
             layout.menu("VIEW3D_MT_Brush_Settings", icon='BRUSH_DATA')
-            layout.menu("VIEW3D_MT_Brush_Selection", text="Texture Paint Tool", icon='SCULPTMODE_HLT')
+            layout.menu("VIEW3D_MT_Brush_Selection",
+                        text="Texture Paint Tool", icon='SCULPTMODE_HLT')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
             layout.menu("VIEW3D_MT_Object_Interactive_Mode", icon='EDIT')
@@ -233,7 +238,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
             UseSeparator(self, context)
             layout.operator_menu_enum("object.modifier_add", "type", icon='MODIFIER')
-            layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
+            layout.operator_menu_enum("object.constraint_add",
+                                      "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
@@ -295,7 +301,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
             layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
             layout.operator_menu_enum("object.modifier_add", "type", icon='MODIFIER')
-            layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
+            layout.operator_menu_enum("object.constraint_add",
+                                      "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
@@ -357,7 +364,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
             layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
             UseSeparator(self, context)
-            layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
+            layout.operator_menu_enum("object.constraint_add",
+                                      "type", text="Add Constraint", icon='CONSTRAINT')
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
@@ -418,7 +426,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
             UseSeparator(self, context)
             layout.operator_menu_enum("object.modifier_add", "type", icon='MODIFIER')
-            layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
+            layout.operator_menu_enum("object.constraint_add",
+                                      "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
@@ -468,7 +477,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
             layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
             UseSeparator(self, context)
-            layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
+            layout.operator_menu_enum("object.constraint_add",
+                                      "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
@@ -498,7 +508,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
             layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
             UseSeparator(self, context)
-            layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
+            layout.operator_menu_enum("object.constraint_add",
+                                      "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
@@ -529,7 +540,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
             layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
             UseSeparator(self, context)
-            layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
+            layout.operator_menu_enum("object.constraint_add",
+                                      "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
@@ -599,7 +611,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_pose_specials", icon='SOLO_OFF')
             layout.menu("VIEW3D_MT_pose_group", icon='GROUP_BONE')
             UseSeparator(self, context)
-            layout.operator_menu_enum("pose.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT_BONE')
+            layout.operator_menu_enum("pose.constraint_add",
+                                      "type", text="Add Constraint", icon='CONSTRAINT_BONE')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
             layout.menu("VIEW3D_MT_Object_Interactive_Armature", icon='VIEW3D')
@@ -630,7 +643,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
             UseSeparator(self, context)
             layout.operator_menu_enum("object.modifier_add", "type", icon='MODIFIER')
-            layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
+            layout.operator_menu_enum("object.constraint_add",
+                                      "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
@@ -688,7 +702,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
             layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
             UseSeparator(self, context)
-            layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
+            layout.operator_menu_enum("object.constraint_add",
+                                      "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
@@ -715,7 +730,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_ParentMenu", icon='ROTACTIVE')
             layout.menu("VIEW3D_MT_GroupMenu", icon='GROUP')
             UseSeparator(self, context)
-            layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
+            layout.operator_menu_enum("object.constraint_add",
+                                      "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
@@ -1514,6 +1530,7 @@ class VIEW3D_MT_Brush_Selection(Menu):
             brush = None
 
         if not brush:
+            layout.label(text="No Brushes currently available", icon="INFO")
             return
 
         if not context.particle_edit_object:
@@ -1551,7 +1568,7 @@ class VIEW3D_MT_Brush_Settings(Menu):
     def draw(self, context):
         layout = self.layout
         settings = UnifiedPaintPanel.paint_settings(context)
-        brush = settings.brush
+        brush = getattr(settings, "brush", None)
 
         ups = context.tool_settings.unified_paint_settings
         layout.prop(ups, "use_unified_size", text="Unified Size")
@@ -1560,10 +1577,11 @@ class VIEW3D_MT_Brush_Settings(Menu):
             layout.prop(ups, "use_unified_color", text="Unified Color")
         UseSeparator(self, context)
 
-        layout.menu("VIEW3D_MT_brush_paint_modes")
-
         if not brush:
+            layout.label(text="No Brushes currently available", icon="INFO")
             return
+
+        layout.menu("VIEW3D_MT_brush_paint_modes")
 
         if context.sculpt_object:
             sculpt_tool = brush.sculpt_tool
@@ -1658,51 +1676,62 @@ class VIEW3D_MT_Sculpt_Specials(Menu):
         settings = context.tool_settings
 
         if context.sculpt_object.use_dynamic_topology_sculpting:
-            layout.operator("sculpt.dynamic_topology_toggle", icon='X', text="Disable Dyntopo")
+            layout.operator("sculpt.dynamic_topology_toggle",
+                            icon='X', text="Disable Dyntopo")
             UseSeparator(self, context)
+
             if (settings.sculpt.detail_type_method == 'CONSTANT'):
                 layout.prop(settings.sculpt, "constant_detail", text="Const.")
                 layout.operator("sculpt.sample_detail_size", text="", icon='EYEDROPPER')
             else:
                 layout.prop(settings.sculpt, "detail_size", text="Detail")
-
             UseSeparator(self, context)
+
             layout.operator("sculpt.symmetrize", icon='ARROW_LEFTRIGHT')
             layout.prop(settings.sculpt, "symmetrize_direction", "")
             UseSeparator(self, context)
+
             layout.operator("sculpt.optimize")
             if (settings.sculpt.detail_type_method == 'CONSTANT'):
                 layout.operator("sculpt.detail_flood_fill")
-
             UseSeparator(self, context)
+
             layout.prop(settings.sculpt, "detail_refine_method", text="")
             layout.prop(settings.sculpt, "detail_type_method", text="")
             UseSeparator(self, context)
             layout.prop(settings.sculpt, "use_smooth_shading", "Smooth")
-
         else:
-            layout.operator("sculpt.dynamic_topology_toggle", icon='SCULPT_DYNTOPO', text="Enable Dyntopo")
+            layout.operator("sculpt.dynamic_topology_toggle",
+                            icon='SCULPT_DYNTOPO', text="Enable Dyntopo")
 
 
 # Display Wire (Thanks to marvin.k.breuer) #
 class VIEW3D_OT_Display_Wire_All(Operator):
-    """Display Wire on All Objects"""
     bl_label = "Wire on All Objects"
     bl_idname = "view3d.display_wire_all"
+    bl_description = "Enable/Disable Display Wire on All Objects"
 
     @classmethod
     def poll(cls, context):
         return context.active_object is not None
 
     def execute(self, context):
-
+        is_error = False
         for obj in bpy.data.objects:
-            if obj.show_wire:
-                obj.show_all_edges = False
-                obj.show_wire = False
-            else:
-                obj.show_all_edges = True
-                obj.show_wire = True
+            try:
+                if obj.show_wire:
+                    obj.show_all_edges = False
+                    obj.show_wire = False
+                else:
+                    obj.show_all_edges = True
+                    obj.show_wire = True
+            except:
+                is_error = True
+                pass
+
+        if is_error:
+            self.report({'WARNING'},
+                        "Wire on All Objects could not be completed for some objects")
 
         return {'FINISHED'}
 
@@ -1715,6 +1744,7 @@ class VIEW3D_MT_Vertex_Colors(Menu):
         layout = self.layout
         layout.operator("paint.vertex_color_set")
         UseSeparator(self, context)
+
         layout.operator("paint.vertex_color_smooth")
         layout.operator("paint.vertex_color_dirt")
 
@@ -1726,8 +1756,10 @@ class VIEW3D_MT_Paint_Weights(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("paint.weight_from_bones", text="Assign Automatic From Bones").type = 'AUTOMATIC'
-        layout.operator("paint.weight_from_bones", text="Assign From Bone Envelopes").type = 'ENVELOPES'
+        layout.operator("paint.weight_from_bones",
+                        text="Assign Automatic From Bones").type = 'AUTOMATIC'
+        layout.operator("paint.weight_from_bones",
+                        text="Assign From Bone Envelopes").type = 'ENVELOPES'
         UseSeparator(self, context)
 
         layout.operator("object.vertex_group_normalize_all", text="Normalize All")
@@ -1737,19 +1769,22 @@ class VIEW3D_MT_Paint_Weights(Menu):
         layout.operator("object.vertex_group_mirror", text="Mirror")
         layout.operator("object.vertex_group_invert", text="Invert")
         UseSeparator(self, context)
+
         layout.operator("object.vertex_group_clean", text="Clean")
         layout.operator("object.vertex_group_quantize", text="Quantize")
         UseSeparator(self, context)
+
         layout.operator("object.vertex_group_levels", text="Levels")
         layout.operator("object.vertex_group_smooth", text="Smooth")
         UseSeparator(self, context)
+
         props = layout.operator("object.data_transfer", text="Transfer Weights")
         props.use_reverse_transfer = True
         props.data_type = 'VGROUP_WEIGHTS'
         UseSeparator(self, context)
+
         layout.operator("object.vertex_group_limit_total", text="Limit Total")
         layout.operator("object.vertex_group_fix", text="Fix Deforms")
-
         UseSeparator(self, context)
 
         layout.operator("paint.weight_set")
@@ -1767,17 +1802,21 @@ class VIEW3D_MT_Edit_Armature(Menu):
         layout.prop_menu_enum(toolsettings, "proportional_edit", icon="PROP_CON")
         layout.prop_menu_enum(toolsettings, "proportional_edit_falloff", icon="SMOOTHCURVE")
         UseSeparator(self, context)
+
         layout.menu("VIEW3D_MT_bone_options_toggle", text="Bone Settings")
         layout.operator("armature.merge")
         layout.operator("armature.fill")
         layout.operator("armature.split")
         layout.operator("armature.separate")
         layout.operator("armature.switch_direction", text="Switch Direction")
+
         layout.operator_context = 'EXEC_AREA'
         layout.operator("armature.symmetrize")
         UseSeparator(self, context)
+
         layout.operator("armature.delete")
         UseSeparator(self, context)
+
         layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator("armature.armature_layers")
         layout.operator("armature.bone_layers")
