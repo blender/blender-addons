@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler",
     "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig, Christian Brinkmann",
-    "version": (3, 32),
+    "version": (3, 33),
     "blender": (2, 77, 0),
     "location": "Node Editor Toolbar or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -129,6 +129,7 @@ shaders_shader_nodes_props = (
     ('ShaderNodeHoldout', 'HOLDOUT', 'Holdout'),
     ('ShaderNodeVolumeAbsorption', 'VOLUME_ABSORPTION', 'Volume Absorption'),
     ('ShaderNodeVolumeScatter', 'VOLUME_SCATTER', 'Volume Scatter'),
+    ('ShaderNodeBsdfPrincipled', 'BSDF_PRINCIPLED', 'Principled BSDF'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
