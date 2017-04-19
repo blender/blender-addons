@@ -21,7 +21,7 @@ bl_info = {
     "name": "Refine tracking solution",
     "author": "Stephen Leger",
     "license": "GPL",
-    "version": (1, 1, 1),
+    "version": (1, 1, 2),
     "blender": (2, 7, 8),
     "location": "Clip Editor > Tools > Solve > Refine Solution",
     "description": "Refine motion solution by setting track weight according reprojection error",
@@ -80,16 +80,16 @@ class OP_Tracking_refine_solution(bpy.types.Operator):
                 if frame > start + smooth and frame < end - smooth:
                     for m in track.markers:
                         if not m.mute:
-                            tstart = m.frame
+                            tstart = m
                             break
                     for m in reversed(track.markers):
                         if not m.mute:
-                            tend = m.frame
+                            tend = m
                             break
-                    dt = min(0.5 * (tend - tstart), smooth)
+                    dt = min(0.5 * (tend.frame - tstart.frame), smooth)
                     if dt > 0:
-                        t0 = min(1.0, (frame - tstart) / dt)
-                        t1 = min(1.0, (tend - frame) / dt)
+                        t0 = min(1.0, (frame - tstart.frame) / dt)
+                        t1 = min(1.0, (tend.frame - frame) / dt)
                         tw = min(t0, t1)
                     else:
                         tw = 0.0
@@ -115,7 +115,7 @@ class OP_Tracking_refine_solution(bpy.types.Operator):
                 track.keyframe_insert("weight", frame=frame)
             
             
-        bpy.ops.clip.solve_camera()
+        bpy.ops.clip.solve_camera('INVOKE_DEFAULT')
         return{'FINISHED'}
         
 class OP_Tracking_reset_solution(bpy.types.Operator):
@@ -149,7 +149,7 @@ class OP_Tracking_reset_solution(bpy.types.Operator):
                     continue
                 track.weight = 1.0
                 track.keyframe_insert("weight", frame=frame)       
-        bpy.ops.clip.solve_camera()
+        bpy.ops.clip.solve_camera('INVOKE_DEFAULT')
         return{'FINISHED'}
 
 class RefineMotionTrackingPanel(bpy.types.Panel):
