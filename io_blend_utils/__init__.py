@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Blend File Utils",
     "author": "Campbell Barton and Sybren A. Stüvel",
-    "version": (1, 1, 3),
+    "version": (1, 1, 5),
     "blender": (2, 76, 0),
     "location": "File > External Data > Blend Utils",
     "description": "Utility for packing blend files",
@@ -29,7 +29,7 @@ bl_info = {
     "category": "Import-Export",
 }
 
-BAM_WHEEL_FILE = 'blender_bam-1.1.4-py3-none-any.whl'
+BAM_WHEEL_FILE = 'blender_bam-1.1.5-py3-none-any.whl'
 
 import logging
 

@@ -581,6 +581,11 @@ class FilePath:
             if block[b'source_mode'] == C_defs.CACHE_LIBRARY_SOURCE_CACHE:
                 yield FPElem_block_path(basedir, level, (block, b'input_filepath')), extra_info
 
+        @staticmethod
+        def _from_block_CF(block, basedir, extra_info, level):
+            yield FPElem_block_path(basedir, level, (block, b'filepath')), extra_info
+
+
     @staticmethod
     def _from_block_SC(block, basedir, extra_info, level):
         block_ed = block.get_pointer(b'ed')
