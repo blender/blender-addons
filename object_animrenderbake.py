@@ -23,7 +23,7 @@ bl_info = {
     "blender": (2, 75, 0),
     "location": "Properties > Render > Bake Panel",
     "description": "Renderbakes a series of frames",
-    "category": "Object",
+    "category": "Render",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Object/Animated_Render_Baker",
 }
