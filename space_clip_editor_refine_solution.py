@@ -29,7 +29,7 @@ bl_info = {
     "wiki_url": "https://github.com/s-leger/blenderTracking/wiki",
     "tracker_url": "https://github.com/s-leger/blenderTracking/issues",
     "support": "COMMUNITY",
-    "category": "Tools",
+    "category": "Motion Tracking",
 }
 
 import bpy
