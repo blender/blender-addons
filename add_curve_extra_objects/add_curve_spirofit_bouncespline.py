@@ -19,7 +19,7 @@
 
 bl_info = {
     "name": "SpiroFit and BounceSpline",
-    "author": "Jimmy Hazevoet, Antonio Osprite, Liero, Atom",
+    "author": "Antonio Osprite, Liero, Atom, Jimmy Hazevoet",
     "version": (0, 2, 0),
     "blender": (2, 78, 0),
     "location": "Toolshelf > Misc Tab",
@@ -108,13 +108,14 @@ def distance(v1, v2):
 
 
 def spiral_point(step, radius, z_coord, spires, waves, wave_height, rndm):
-    x = radius * cos(spires*step) + (r.random()-0.5)*rndm
-    y = radius * sin(spires*step) + (r.random()-0.5)*rndm
-    z = z_coord + (cos(waves*step*pi)*wave_height) + (r.random()-0.5)*rndm
+    x = radius * cos(spires * step) + (r.random() - 0.5) * rndm
+    y = radius * sin(spires * step) + (r.random() - 0.5) * rndm
+    z = z_coord + (cos(waves * step * pi) * wave_height) + (r.random() - 0.5) * rndm
     return [x, y, z]
 
 
-def do_object_mapping(obj, vert, center, offset):
+# ray cast
+def object_mapping_ray_cast(obj, vert, center, offset):
     intersections = []
     ray = Vector(vert)
     orig = Vector(center)
@@ -129,7 +130,13 @@ def do_object_mapping(obj, vert, center, offset):
         mapped = min([(distance(i, vert), i) for i in intersections])[1]
     else:
         mapped = orig
+    return [mapped[0], mapped[1], mapped[2]]
 
+
+# closest point
+def object_mapping_closest_point(obj, vert, offset):
+    cpom = obj.closest_point_on_mesh(vert)
+    mapped = cpom[1] + cpom[2] * offset
     return [mapped[0], mapped[1], mapped[2]]
 
 
@@ -139,7 +146,8 @@ def spirofit_spline(obj,
                     waves=0,
                     wave_height=0.0,
                     rndm_spire=0.0,
-                    offset=0.0):
+                    offset=0.0,
+                    map_method='RAYCAST'):
 
     points = []
     bb = obj.bound_box
@@ -157,16 +165,22 @@ def spirofit_spline(obj,
     center = [cx, cy, bb_zmin]
 
     cp = spiral_point(bb_zmin, radius, bb_zmin, spires, waves, wave_height, 0)
-    cp = do_object_mapping(obj, cp, center, offset)
+    if map_method == 'RAYCAST':
+        cp = object_mapping_ray_cast(obj, cp, center, offset)
+    elif map_method == 'CLOSESTPOINT':
+        cp = object_mapping_closest_point(obj, cp, offset)
 
     steps = spires * spire_resolution
-    for i in range(1, steps+1):
-        t = bb_zmin + (2*pi / steps) * i
+    for i in range(1, steps + 1):
+        t = bb_zmin + (2 * pi / steps) * i
         z = bb_zmin + (float(height) / steps) * i
         center = [cx, cy, z]
 
         cp = spiral_point(t, radius, z, spires, waves, wave_height, rndm_spire)
-        cp = do_object_mapping(obj, cp, center, offset)
+        if map_method == 'RAYCAST':
+            cp = object_mapping_ray_cast(obj, cp, center, offset)
+        elif map_method == 'CLOSESTPOINT':
+            cp = object_mapping_closest_point(obj, cp, offset)
 
         points.append(cp)
     return points
@@ -175,83 +189,113 @@ def spirofit_spline(obj,
 # ------------------------------------------------------------
 
 class SpiroFitSpline(bpy.types.Operator):
-    bl_idname = "wm.add_spirofit_spline"
+    bl_idname = "object.add_spirofit_spline"
     bl_label = "SpiroFit"
-    bl_description="Adds a spirofit to selected mesh"
+    bl_description="Wrap selected mesh in a spiral"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    spire_resolution = bpy.props.IntProperty(name="Spire Resolution",
-            default=8,
-            min=3, max=256,
-            soft_max=128,
-            description="Spire resolution for one turn")
+    map_method = bpy.props.EnumProperty(
+                name="Mapping Method",
+                default='CLOSESTPOINT',
+                description="Mapping method",
+                items=[('RAYCAST', 'Ray cast', 'Ray cast'),
+                        ('CLOSESTPOINT', 'Closest point', 'Closest point')]
+                        )
 
-    spires = bpy.props.IntProperty(name="Spires",
-            default=4,
-            min=1, max=512,
-            soft_max=256,
-            description="Number of Spire turns")
-
-    waves = bpy.props.IntProperty(name="Waves amount",
-            default=0,
-            min=0,
-            description="Waves amount")
-
-    wave_height = bpy.props.FloatProperty(name="Wave intensity",
-            default=0.1,
-            min=0.0,
-            description="Wave intensity scale")
-
-    rndm_spire = bpy.props.FloatProperty(name="Randomize",
-            default=0.0,
-            min=0.0,
-            description="Randomize spire")
-
-    offset = bpy.props.FloatProperty(name="Offset",
-            default=0.0,
-            description="Use normal direction to offset spline")
-
-    splineTypes = [
-            ('POLY', 'Poly', 'POLY'),
-            ('BEZIER', 'Bezier', 'BEZIER')]
-    spline_type = bpy.props.EnumProperty(name="Spline type",
-            default='BEZIER',
-            description="Spline type",
-            items=splineTypes)
-
-    spline_resolution = bpy.props.IntProperty(name="Resolution u",
-            default=12,
-            min=0,
-            max=64,
-            description="Curve resolution u")
-
-    bevel = bpy.props.FloatProperty(name="Bevel radius",
-            default=0.0,
-            min=0.0,
-            precision=3,
-            description="Bevel depth")
-
-    bevel_res = bpy.props.IntProperty(name="Bevel resolution",
-            default=0,
-            min=0,
-            max=32,
-            description="Bevel resolution")
-
-    spline_random_radius = bpy.props.FloatProperty(name="Random bevel radius",
-            default=0.0,
-            min=0.0,
-            description="Random radius amount")
-
-    random_seed = bpy.props.IntProperty(name="Random seed",
-            default=2,
-            min=0,
-            description="Random seed number")
-
-    x_ray = bpy.props.BoolProperty(name="X-Ray",
-            default=True,
-            description = "Make the object draw in front of others")
-
-    updateSpline = bpy.props.BoolProperty(name="Update", description="Update spline", default=False)
+    spire_resolution = bpy.props.IntProperty(
+                name="Spire Resolution",
+                default=8,
+                min=3,
+                max=256,
+                soft_max=128,
+                description="Spire resolution for one turn"
+                )
+    spires = bpy.props.IntProperty(
+                name="Spires",
+                default=4,
+                min=1,
+                max=512,
+                soft_max=256,
+                description="Number of spire turns"
+                )
+    waves = bpy.props.IntProperty(
+                name="Waves",
+                default=0,
+                min=0,
+                description="Waves amount"
+                )
+    wave_height = bpy.props.FloatProperty(
+                name="Wave intensity",
+                default=0.1,
+                min=0.0,
+                description="Wave intensity scale"
+                )
+    rndm_spire = bpy.props.FloatProperty(
+                name="Randomize",
+                default=0.0,
+                min=0.0,
+                description="Randomize spire"
+                )
+    offset = bpy.props.FloatProperty(
+                name="Offset",
+                default=0.0,
+                description="Use normal direction to offset spline"
+                )
+    spline_type = bpy.props.EnumProperty(
+                name="Spline type",
+                default='BEZIER',
+                description="Spline type",
+                items=[('POLY', 'Poly', 'POLY'),
+                        ('BEZIER', 'Bezier', 'BEZIER')]
+                        )
+    spline_resolution = bpy.props.IntProperty(
+                name="Resolution u",
+                default=12,
+                min=0,
+                max=64,
+                description="Curve resolution u"
+                )
+    bevel = bpy.props.FloatProperty(
+                name="Bevel radius",
+                default=0.0,
+                min=0.0,
+                precision=3,
+                description="Bevel depth"
+                )
+    bevel_res = bpy.props.IntProperty(
+                name="Bevel resolution",
+                default=0,
+                min=0,
+                max=32,
+                description="Bevel resolution"
+                )
+    spline_random_radius = bpy.props.FloatProperty(
+                name="Random bevel radius",
+                default=0.0,
+                min=0.0,
+                description="Random radius amount"
+                )
+    random_seed = bpy.props.IntProperty(
+                name="Random seed",
+                default=2,
+                min=0,
+                description="Random seed number"
+                )
+    x_ray = bpy.props.BoolProperty(
+                name="X-Ray",
+                default=True,
+                description = "Make the object draw in front of others"
+                )
+    refresh = bpy.props.BoolProperty(
+                name="Refresh",
+                description="Refresh spline",
+                default=False
+                )
+    auto_refresh = bpy.props.BoolProperty(
+                name="Auto",
+                description="Auto refresh spline",
+                default=True
+                )
 
 
     @classmethod
@@ -263,12 +307,12 @@ class SpiroFitSpline(bpy.types.Operator):
 
 
     def invoke(self, context, event):
-        self.updateSpline = True
+        self.refresh = True
         return self.execute(context)
 
 
     def execute(self, context):
-        if not self.updateSpline:
+        if not self.refresh:
             return {'PASS_THROUGH'}
 
         undo = context.user_preferences.edit.use_global_undo
@@ -289,7 +333,9 @@ class SpiroFitSpline(bpy.types.Operator):
                         self.waves,
                         self.wave_height,
                         self.rndm_spire,
-                        self.offset)
+                        self.offset,
+                        self.map_method
+                        )
 
         add_curve_object(points,
                         matrix,
@@ -298,7 +344,11 @@ class SpiroFitSpline(bpy.types.Operator):
                         self.spline_resolution,
                         self.bevel,
                         self.bevel_res,
-                        self.spline_random_radius)
+                        self.spline_random_radius
+                        )
+
+        if self.auto_refresh is False:
+            self.refresh = False
 
         context.user_preferences.edit.use_global_undo = undo
         return {'FINISHED'}
@@ -308,39 +358,30 @@ class SpiroFitSpline(bpy.types.Operator):
         layout = self.layout
         col = layout.column(align=True)
         row = col.row(align=True)
-
         row.prop(self, 'x_ray', toggle=True)
         row.separator()
-        row.prop(self, 'updateSpline', toggle=True) #, icon='FILE_REFRESH')
+        if self.auto_refresh is False:
+            self.refresh = False
+        elif self.auto_refresh is True:
+            self.refresh = True
+        row.prop(self, 'auto_refresh', toggle=True, icon='AUTO', text="")
+        row.prop(self, 'refresh', toggle=True, icon='FILE_REFRESH', text="")
         row.separator()
-        properties = row.operator('wm.add_spirofit_spline', text="Add New")
+        properties = row.operator('object.add_spirofit_spline', text="Add New")
         col.separator()
-
-        properties.x_ray = self.x_ray
-        properties.spire_resolution = self.spire_resolution
-        properties.spires = self.spires
-        properties.waves = self.waves
-        properties.wave_height = self.wave_height
-        properties.offset = self.offset
-        properties.rndm_spire = self.rndm_spire
-        properties.random_seed = self.random_seed
-        properties.spline_type = self.spline_type
-        properties.spline_resolution = self.spline_resolution
-        properties.bevel = self.bevel
-        properties.bevel_res = self.bevel_res
-        properties.spline_random_radius = self.spline_random_radius
-
+        col = layout.column(align=False)
+        col.prop(self, 'map_method')
         col = layout.column(align=True)
         col.prop(self, 'spire_resolution')
         col.prop(self, 'spires')
+        col.prop(self, 'offset')
         col.prop(self, 'waves')
         col.prop(self, 'wave_height')
-        col.prop(self, 'offset')
         col.prop(self, 'rndm_spire')
         col.prop(self, 'random_seed')
         col.separator()
         col = layout.column(align=True)
-        col.prop(self, 'spline_type', text="")
+        col.prop(self, 'spline_type')
         col.separator()
         col.prop(self, 'spline_resolution')
         col.prop(self, 'bevel')
@@ -354,7 +395,6 @@ class SpiroFitSpline(bpy.types.Operator):
 # Original script by Liero and Atom
 # https://blenderartists.org/forum/showthread.php?331750-Fiber-Mesh-Emulation
 # ------------------------------------------------------------
-
 def noise(var=1):
     rand = Vector((r.gauss(0,1), r.gauss(0,1), r.gauss(0,1)))
     vec = rand.normalized() * var
@@ -400,81 +440,104 @@ def bounce_spline(obj,
             return points
     return points
 
+
 # ------------------------------------------------------------
 
 class BounceSpline(bpy.types.Operator):
-    bl_idname = "wm.add_bounce_spline"
+    bl_idname = "object.add_bounce_spline"
     bl_label = "BounceSpline"
-    bl_description="Adds a bounce spline to selected mesh"
+    bl_description="Fill selected mesh with a bounce spline"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    random_seed = bpy.props.IntProperty(name="Random seed",
-            default=1,
-            min=0,
-            description="Random seed number")
+    random_seed = bpy.props.IntProperty(
+                name="Random seed",
+                default=1,
+                min=0,
+                description="Random seed number"
+                )
+    bounce_number = bpy.props.IntProperty(
+                name="Bounces",
+                default=500,
+                min=1,
+                max=99999,
+                soft_max=9999,
+                description="Number of Bounces"
+                )
+    ang_noise = bpy.props.FloatProperty(
+                name="Angular noise",
+                default=0.25,
+                min=0.0,
+                description="Add some noise to ray direction"
+                )
+    offset = bpy.props.FloatProperty(
+                name="Offset",
+                default=0.0,
+                description="Use normal direction to offset spline"
+                )
+    extra = bpy.props.IntProperty(
+                name="Extra",
+                default=50,
+                min=0,
+                max=1000,
+                soft_min=0,
+                soft_max=500,
+                description="Number of extra tries if it fails to hit mesh"
+                )
+    active_face = bpy.props.BoolProperty(
+                name="Active face",
+                default=False,
+                description = "Starts from active face or a random one"
+                )
+    spline_type = bpy.props.EnumProperty(
+                name="Spline type",
+                default='BEZIER',
+                description="Spline type",
+                items=[('POLY', 'Poly', 'POLY'),
+                        ('BEZIER', 'Bezier', 'BEZIER')]
+                )
+    spline_resolution = bpy.props.IntProperty(
+                name="Resolution u",
+                default=12,
+                min=0,
+                max=64,
+                description="Curve resolution u"
+                )
+    bevel = bpy.props.FloatProperty(
+                name="Bevel radius",
+                default=0.0,
+                min=0.0,
+                precision=3,
+                description="Bevel depth"
+                )
 
-    bounce_number = bpy.props.IntProperty(name="Bounces",
-            default=500,
-            min=1, max=99999,
-            soft_max=9999,
-            description="Number of Bounces")
-
-    ang_noise = bpy.props.FloatProperty(name="Angular noise",
-            default=0.25,
-            min=0.0,
-            description="Add some noise to ray direction")
-
-    offset = bpy.props.FloatProperty(name="Offset",
-            default=0.0,
-            description="Use normal direction to offset spline")
-
-    extra = bpy.props.IntProperty(name="Extra",
-            default=50,
-            min=0, max=1000,
-            soft_min=0, soft_max=500,
-            description="Number of extra tries if it fails to hit mesh")
-
-    active_face = bpy.props.BoolProperty(name="Active face",
-            default=False,
-            description = "Starts from active face or a random one")
-
-    splineTypes = [
-            ('POLY', 'Poly', 'POLY'),
-            ('BEZIER', 'Bezier', 'BEZIER')]
-    spline_type = bpy.props.EnumProperty(name="Spline type",
-            default='BEZIER',
-            description="Spline type",
-            items=splineTypes)
-
-    spline_resolution = bpy.props.IntProperty(name="Resolution u",
-            default=12,
-            min=0,
-            max=64,
-            description="Curve resolution u")
-
-    bevel = bpy.props.FloatProperty(name="Bevel radius",
-            default=0.0,
-            min=0.0,
-            precision=3,
-            description="Bevel depth")
-
-    bevel_res = bpy.props.IntProperty(name="Bevel resolution",
-            default=0,
-            min=0,
-            max=32,
-            description="Bevel resolution")
-
-    spline_random_radius = bpy.props.FloatProperty(name="Random bevel radius",
-            default=0.0,
-            min=0.0,
-            description="Random radius amount")
-
-    x_ray = bpy.props.BoolProperty(name="X-Ray",
-            default=True,
-            description = "Make the object draw in front of others")
-
-    updateSpline = bpy.props.BoolProperty(name="Update", default=False)
-
+    bevel_res = bpy.props.IntProperty(
+                name="Bevel resolution",
+                default=0,
+                min=0,
+                max=32,
+                description="Bevel resolution"
+                )
+    spline_random_radius = bpy.props.FloatProperty(
+                name="Random bevel radius",
+                default=0.0,
+                min=0.0,
+                description="Random radius amount"
+                )
+    x_ray = bpy.props.BoolProperty(
+                name="X-Ray",
+                default=True,
+                description = "Make the object draw in front of others"
+                )
+    refresh = bpy.props.BoolProperty(
+                name="Refresh",
+                description="Refresh spline",
+                default=False
+                )
+    auto_refresh = bpy.props.BoolProperty(
+                name="Auto",
+                description="Auto refresh spline",
+                default=True
+                )
 
     @classmethod
     def poll(self, context):
@@ -485,12 +548,12 @@ class BounceSpline(bpy.types.Operator):
 
 
     def invoke(self, context, event):
-        self.updateSpline = True
+        self.refresh = True
         return self.execute(context)
 
 
     def execute(self, context):
-        if not self.updateSpline:
+        if not self.refresh:
             return {'PASS_THROUGH'}
 
         undo = context.user_preferences.edit.use_global_undo
@@ -520,6 +583,9 @@ class BounceSpline(bpy.types.Operator):
                         self.bevel_res,
                         self.spline_random_radius)
 
+        if self.auto_refresh is False:
+            self.refresh = False
+
         context.user_preferences.edit.use_global_undo = undo
         return {'FINISHED'}
 
@@ -531,24 +597,15 @@ class BounceSpline(bpy.types.Operator):
 
         row.prop(self, 'x_ray', toggle=True)
         row.separator()
-        row.prop(self, 'updateSpline', toggle=True) #, icon='FILE_REFRESH')
+        if self.auto_refresh is False:
+            self.refresh = False
+        elif self.auto_refresh is True:
+            self.refresh = True
+        row.prop(self, 'auto_refresh', toggle=True, icon='AUTO', text="")
+        row.prop(self, 'refresh', toggle=True, icon='FILE_REFRESH', text="")
         row.separator()
-        properties = row.operator('wm.add_bounce_spline', text="Add New")
+        properties = row.operator('object.add_bounce_spline', text="Add New")
         col.separator()
-
-        properties.x_ray = self.x_ray
-        properties.bounce_number = self.bounce_number
-        properties.ang_noise = self.ang_noise
-        properties.offset = self.offset
-        properties.extra = self.extra
-        properties.random_seed = self.random_seed
-        properties.active_face = self.active_face
-        properties.spline_type = self.spline_type
-        properties.spline_resolution = self.spline_resolution
-        properties.bevel = self.bevel
-        properties.bevel_res = self.bevel_res
-        properties.spline_random_radius = self.spline_random_radius
-
         col = layout.column(align=True)
         row = col.row(align=True)
         col.prop(self, 'bounce_number')
@@ -559,7 +616,7 @@ class BounceSpline(bpy.types.Operator):
         col.separator()
         col.prop(self, 'active_face', toggle=False)
         col = layout.column(align=True)
-        col.prop(self, 'spline_type', text="")
+        col.prop(self, 'spline_type')
         col.separator()
         col.prop(self, 'spline_resolution')
         col.prop(self, 'bevel')
