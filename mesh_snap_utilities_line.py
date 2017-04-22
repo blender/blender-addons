@@ -1068,7 +1068,7 @@ class SnapAddonPreferences(AddonPreferences):
     category = StringProperty(
             name="Category",
             description="Choose a name for the category of the panel",
-            default="Snap Utilities",
+            default="Tools",
             update=update_panel
             )
     incremental = FloatProperty(
