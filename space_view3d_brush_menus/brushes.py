@@ -1,14 +1,17 @@
-from bpy.props import *
-from .Utils.core import *
+# gpl author: Ryan Inch (Imaginer)
+
+import bpy
+from bpy.types import Menu
+from . import utils_core
+from bl_ui.properties_paint_common import UnifiedPaintPanel
 
 
- 
-class BrushesMenu(bpy.types.Menu):
+class BrushesMenu(Menu):
     bl_label = "Brush"
     bl_idname = "VIEW3D_MT_sv3_brushes_menu"
 
     def init(self):
-        if get_mode() == sculpt:
+        if utils_core.get_mode() == utils_core.sculpt:
             datapath = "tool_settings.sculpt.brush"
             icon = {"BLOB": 'BRUSH_BLOB',
                     "CLAY": 'BRUSH_CLAY',
@@ -29,8 +32,7 @@ class BrushesMenu(bpy.types.Menu):
                     "SMOOTH": 'BRUSH_SMOOTH',
                     "SNAKE_HOOK": 'BRUSH_SNAKE_HOOK',
                     "THUMB": 'BRUSH_THUMB'}
-
-        elif get_mode() == vertex_paint:
+        elif utils_core.get_mode() == utils_core.vertex_paint:
             datapath = "tool_settings.vertex_paint.brush"
             icon = {"ADD": 'BRUSH_ADD',
                     "BLUR": 'BRUSH_BLUR',
@@ -39,8 +41,7 @@ class BrushesMenu(bpy.types.Menu):
                     "MIX": 'BRUSH_MIX',
                     "MUL": 'BRUSH_MULTIPLY',
                     "SUB": 'BRUSH_SUBTRACT'}
-
-        elif get_mode() == weight_paint:
+        elif utils_core.get_mode() == utils_core.weight_paint:
             datapath = "tool_settings.weight_paint.brush"
             icon = {"ADD": 'BRUSH_ADD',
                     "BLUR": 'BRUSH_BLUR',
@@ -49,8 +50,7 @@ class BrushesMenu(bpy.types.Menu):
                     "MIX": 'BRUSH_MIX',
                     "MUL": 'BRUSH_MULTIPLY',
                     "SUB": 'BRUSH_SUBTRACT'}
-
-        elif get_mode() == texture_paint:
+        elif utils_core.get_mode() == utils_core.texture_paint:
             datapath = "tool_settings.image_paint.brush"
             icon = {"CLONE": 'BRUSH_CLONE',
                     "DRAW": 'BRUSH_TEXDRAW',
@@ -58,11 +58,9 @@ class BrushesMenu(bpy.types.Menu):
                     "MASK": 'BRUSH_TEXMASK',
                     "SMEAR": 'BRUSH_SMEAR',
                     "SOFTEN": 'BRUSH_SOFTEN'}
-
-        elif get_mode() == particle_edit:
+        elif utils_core.get_mode() == utils_core.particle_edit:
             datapath = "tool_settings.particle_edit.tool"
             icon = None
-
         else:
             datapath = ""
 
@@ -70,18 +68,21 @@ class BrushesMenu(bpy.types.Menu):
 
     def draw(self, context):
         datapath, icon = self.init()
-        menu = Menu(self)
+        menu = utils_core.Menu(self)
+        settings = UnifiedPaintPanel.paint_settings(context)
+        colum_n = utils_core.addon_settings(lists=False)
 
         menu.add_item().label(text="Brush")
         menu.add_item().separator()
 
-        current_brush = eval("bpy.context.{}".format(datapath))
+        has_brush = utils_core.get_brush_link(context, types="brush")
+        current_brush = eval("bpy.context.{}".format(datapath)) if has_brush else None
 
         # get the current brush's name
-        if current_brush and get_mode() != particle_edit:
+        if current_brush and utils_core.get_mode() != utils_core.particle_edit:
             current_brush = current_brush.name
 
-        if get_mode() == particle_edit:
+        if utils_core.get_mode() == utils_core.particle_edit:
             particle_tools = [["None", 'NONE'],
                               ["Comb", 'COMB'],
                               ["Smooth", 'SMOOTH'],
@@ -93,45 +94,60 @@ class BrushesMenu(bpy.types.Menu):
 
             # if you are in particle edit mode add the menu items for particle mode
             for tool in particle_tools:
-                menuprop(menu.add_item(), tool[0], tool[1], datapath,
-                         icon='RADIOBUT_OFF', disable=True,
-                         disable_icon='RADIOBUT_ON')
-
+                utils_core.menuprop(
+                        menu.add_item(), tool[0], tool[1], datapath,
+                        icon='RADIOBUT_OFF', disable=True,
+                        disable_icon='RADIOBUT_ON'
+                        )
         else:
-            # iterate over all the brushes
-            for item in bpy.data.brushes:
-                if get_mode() == sculpt:
-                    if item.use_paint_sculpt:
-                        # if you are in sculpt mode and the brush is a sculpt brush add the brush to the menu
-                        menuprop(menu.add_item(), item.name,
-                                 'bpy.data.brushes["%s"]' % item.name,
-                                 datapath, icon=icon[item.sculpt_tool],
-                                 disable=True, custom_disable_exp=[item.name, current_brush],
-                                 path=True)
-
-                if get_mode() == vertex_paint:
-                    if item.use_paint_vertex:
-                        # if you are in vertex paint mode and the brush is a vertex paint brush add the brush to the menu
-                        menuprop(menu.add_item(), item.name,
-                                 'bpy.data.brushes["%s"]' % item.name,
-                                 datapath, icon=icon[item.vertex_tool],
-                                 disable=True, custom_disable_exp=[item.name, current_brush],
-                                 path=True)
-
-                if get_mode() == weight_paint:
-                    if item.use_paint_weight:
-                        # if you are in weight paint mode and the brush is a weight paint brush add the brush to the menu
-                        menuprop(menu.add_item(), item.name,
-                                 'bpy.data.brushes["%s"]' % item.name,
-                                 datapath, icon=icon[item.vertex_tool],
-                                 disable=True, custom_disable_exp=[item.name, current_brush],
-                                 path=True)
-
-                if get_mode() == texture_paint:
-                    if item.use_paint_image:
-                        # if you are in texture paint mode and the brush is a texture paint brush add the brush to the menu
-                        menuprop(menu.add_item(), item.name,
-                                 'bpy.data.brushes["%s"]' % item.name,
-                                 datapath, icon=icon[item.image_tool],
-                                 disable=True, custom_disable_exp=[item.name, current_brush],
-                                 path=True)
+            column_flow = menu.add_item("column_flow", columns=colum_n)
+            if utils_core.addon_settings(lists=True) == 'template':
+                self.layout.template_ID_preview(settings, "brush",
+                                                    new="brush.add", rows=3, cols=colum_n)
+            else:
+                # iterate over all the brushes
+                for item in bpy.data.brushes:
+                    if utils_core.get_mode() == utils_core.sculpt:
+                        if item.use_paint_sculpt:
+                            # if you are in sculpt mode and the brush
+                            # is a sculpt brush add the brush to the menu
+                            utils_core.menuprop(
+                                    menu.add_item(parent=column_flow), item.name,
+                                    'bpy.data.brushes["%s"]' % item.name,
+                                    datapath, icon=icon[item.sculpt_tool],
+                                    disable=True, custom_disable_exp=[item.name, current_brush],
+                                    path=True
+                                    )
+                    if utils_core.get_mode() == utils_core.vertex_paint:
+                        if item.use_paint_vertex:
+                            # if you are in vertex paint mode and the brush
+                            # is a vertex paint brush add the brush to the menu
+                            utils_core.menuprop(
+                                    menu.add_item(parent=column_flow), item.name,
+                                    'bpy.data.brushes["%s"]' % item.name,
+                                    datapath, icon=icon[item.vertex_tool],
+                                    disable=True, custom_disable_exp=[item.name, current_brush],
+                                    path=True
+                                    )
+                    if utils_core.get_mode() == utils_core.weight_paint:
+                        if item.use_paint_weight:
+                            # if you are in weight paint mode and the brush
+                            # is a weight paint brush add the brush to the menu
+                            utils_core.menuprop(
+                                    menu.add_item(parent=column_flow), item.name,
+                                    'bpy.data.brushes["%s"]' % item.name,
+                                    datapath, icon=icon[item.vertex_tool],
+                                    disable=True, custom_disable_exp=[item.name, current_brush],
+                                    path=True
+                                    )
+                    if utils_core.get_mode() == utils_core.texture_paint:
+                        if item.use_paint_image:
+                            # if you are in texture paint mode and the brush
+                            # is a texture paint brush add the brush to the menu
+                            utils_core.menuprop(
+                                    menu.add_item(parent=column_flow), item.name,
+                                    'bpy.data.brushes["%s"]' % item.name,
+                                    datapath, icon=icon[item.image_tool],
+                                    disable=True, custom_disable_exp=[item.name, current_brush],
+                                    path=True
+                                    )

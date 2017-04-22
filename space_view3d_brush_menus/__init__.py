@@ -17,122 +17,115 @@
 # ##### END GPL LICENSE BLOCK #####
 # Modified by Meta-Androcto
 
-
 """ Copyright 2011 GPL licence applies"""
 
 bl_info = {
     "name": "Sculpt/Paint Brush Menus",
     "description": "Fast access to brushes & tools in Sculpt and Paint Modes",
     "author": "Ryan Inch (Imaginer)",
-    "version": (1, 1, 3),
+    "version": (1, 1, 4),
     "blender": (2, 7, 8),
     "location": "Alt V in Sculpt/Paint Modes",
-    "warning": '',  # used for warning icon and text in addons panel
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/Advanced_UI_Menus",
+    "warning": '',
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/3D_interaction/Advanced_UI_Menus",
     "category": "3D View"}
 
-import sys
-import os
-from bl_ui.properties_paint_common import (
-        UnifiedPaintPanel,
-        brush_texture_settings,
-        brush_texpaint_common,
-        brush_mask_texture_settings,
+
+if "bpy" in locals():
+    import importlib
+    importlib.reload(utils_core)
+    importlib.reload(brush_menu)
+    importlib.reload(brushes)
+    importlib.reload(curve_menu)
+    importlib.reload(dyntopo_menu)
+    importlib.reload(stroke_menu)
+    importlib.reload(symmetry_menu)
+    importlib.reload(texture_menu)
+else:
+    from . import utils_core
+    from . import brush_menu
+    from . import brushes
+    from . import curve_menu
+    from . import dyntopo_menu
+    from . import stroke_menu
+    from . import symmetry_menu
+    from . import texture_menu
+
+
+import bpy
+from bpy.types import AddonPreferences
+from bpy.props import (
+        EnumProperty,
+        IntProperty,
         )
-from .Utils.core import *
-
-from . import brush_menu
-from . import brushes
-from . import curve_menu
-from . import dyntopo_menu
-from . import stroke_menu
-from . import symmetry_menu
-from . import texture_menu
-
-# Use compact brushes menus #
-def UseBrushesLists():
-    # separate function just for more convience
-    useLists = bpy.context.user_preferences.addons[__name__].preferences.use_brushes_lists
-
-    return bool(useLists)
-
-class VIEW3D_MT_Brush_Selection1(bpy.types.Menu):
-    bl_label = "Brush Tool"
-
-    def draw(self, context):
-        layout = self.layout
-        settings = UnifiedPaintPanel.paint_settings(context)
-
-        # check if brush exists (for instance, in paint mode before adding a slot)
-        if hasattr(settings, 'brush'):
-            brush = settings.brush
-        else:
-            brush = None
-
-        if not brush:
-            return
-
-        if not context.particle_edit_object:
-            if UseBrushesLists():
-                flow = layout.column_flow(columns=3)
-
-                for brsh in bpy.data.brushes:
-                    if (context.sculpt_object and brsh.use_paint_sculpt):
-                        props = flow.operator("wm.context_set_id", text=brsh.name,
-                                              icon_value=layout.icon(brsh))
-                        props.data_path = "tool_settings.sculpt.brush"
-                        props.value = brsh.name
-                    elif (context.image_paint_object and brsh.use_paint_image):
-                        props = flow.operator("wm.context_set_id", text=brsh.name,
-                                              icon_value=layout.icon(brsh))
-                        props.data_path = "tool_settings.image_paint.brush"
-                        props.value = brsh.name
-                    elif (context.vertex_paint_object and brsh.use_paint_vertex):
-                        props = flow.operator("wm.context_set_id", text=brsh.name,
-                                              icon_value=layout.icon(brsh))
-                        props.data_path = "tool_settings.vertex_paint.brush"
-                        props.value = brsh.name
-                    elif (context.weight_paint_object and brsh.use_paint_weight):
-                        props = flow.operator("wm.context_set_id", text=brsh.name,
-                                              icon_value=layout.icon(brsh))
-                        props.data_path = "tool_settings.weight_paint.brush"
-                        props.value = brsh.name
-            else:
-                layout.template_ID_preview(settings, "brush", new="brush.add", rows=3, cols=8)
 
 
-class VIEW3D_MT_Brushes_Pref(bpy.types.AddonPreferences):
+class VIEW3D_MT_Brushes_Pref(AddonPreferences):
     bl_idname = __name__
 
-
-    use_brushes_lists = bpy.props.BoolProperty(
-        name="Use compact menus for brushes",
-        default=True,
-        description=("Use more compact menus instead  \n"
-                     "of thumbnails for displaying brushes")
-    )
+    use_brushes_menu_type = EnumProperty(
+        name="Choose Brushes Selection",
+        description="",
+        items=[('lists', "Use compact Menus",
+                "Use more compact menus instead  \n"
+                "of thumbnails for displaying brushes"),
+               ('template', "Template ID Preview",
+                "Use Template ID preview menu (thumbnails) for brushes\n"
+                "(Still part of the menu)"),
+               ('popup', "Pop up menu",
+                "Use a separate pop-up window for accessing brushes")
+            ],
+        default='lists'
+        )
+    column_set = IntProperty(
+        name="Number of Columns",
+        description="Number of columns used for the brushes menu",
+        default=2,
+        min=1,
+        max=10
+        )
 
     def draw(self, context):
         layout = self.layout
-        row = layout.row()
-        row.prop(self, "use_brushes_lists")
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(self, "use_brushes_menu_type", expand=True)
+        col.prop(self, "column_set", slider=True)
+
+
+# New hotkeys and registration
+
+addon_keymaps = []
+
 
 def register():
     # register all blender classes
     bpy.utils.register_module(__name__)
-    
-    # register brush menu
-    brush_menu.register()
+
+    # set the add-on name variable to access the preferences
+    utils_core.get_addon_name = __name__
+
+    # register hotkeys
+    wm = bpy.context.window_manager
+    modes = ['Sculpt', 'Vertex Paint', 'Weight Paint', 'Image Paint', 'Particle']
+
+    for mode in modes:
+        km = wm.keyconfigs.addon.keymaps.new(name=mode)
+        kmi = km.keymap_items.new('wm.call_menu', 'V', 'PRESS', alt=True)
+        kmi.properties.name = "VIEW3D_MT_sv3_brush_options"
+        addon_keymaps.append((km, kmi))
+
 
 def unregister():
-    # unregister brush menu
-    brush_menu.unregister()
-    
-    # delete all the properties you have created
-    del_props()
-    
+    for km, kmi in addon_keymaps:
+        km.keymap_items.remove(kmi)
+    addon_keymaps.clear()
+
     # unregister all blender classes
     bpy.utils.unregister_module(__name__)
+
 
 if __name__ == "__main__":
     register()

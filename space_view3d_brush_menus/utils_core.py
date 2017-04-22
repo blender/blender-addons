@@ -1,8 +1,6 @@
+# gpl author: Ryan Inch (Imaginer)
+
 import bpy
-import time
-import sys
-import os
-import re
 
 object_mode = 'OBJECT'
 edit = 'EDIT'
@@ -13,10 +11,53 @@ texture_paint = 'TEXTURE_PAINT'
 particle_edit = 'PARTICLE_EDIT'
 pose = 'POSE'
 gpencil_edit = 'GPENCIL_EDIT'
+get_addon_name = 'space_view3d_brush_menus'
 
 PIW = '       '
 
-a_props = []
+
+# check for (currently) brushes being linked
+def get_brush_link(context, types="brush"):
+    tool_settings = context.tool_settings
+    has_brush = None
+
+    if get_mode() == sculpt:
+        datapath = tool_settings.sculpt
+
+    elif get_mode() == vertex_paint:
+        datapath = tool_settings.vertex_paint
+
+    elif get_mode() == weight_paint:
+        datapath = tool_settings.weight_paint
+
+    elif get_mode() == texture_paint:
+        datapath = tool_settings.image_paint
+    else:
+        datapath = None
+
+    if types == "brush":
+        has_brush = getattr(datapath, "brush", None)
+
+    return has_brush
+
+
+# Addon settings
+def addon_settings(lists=True):
+    # separate function just for more convience
+    addon = bpy.context.user_preferences.addons[get_addon_name]
+    colum_n = addon.preferences.column_set if addon else 1
+    use_list = addon.preferences.use_brushes_menu_type
+
+    return use_list if lists else colum_n
+
+
+def error_handlers(self, op_name, error, reports="ERROR", func=False):
+    if self and reports:
+        self.report({'WARNING'}, reports + " (See Console for more info)")
+
+    is_func = "Function" if func else "Operator"
+    print("\n[Sculpt/Paint Brush Menus]\n{}: {}\nError: {}\n".format(is_func, op_name, error))
+
 
 class Menu():
     def __init__(self, menu):
@@ -34,7 +75,7 @@ class Menu():
         # set unique identifier for new items
         if not name:
             name = len(self.items) + 1
-            
+
         # create and return a ui layout
         if ui_type == "row":
             self.current_item = self.items[name] = layout.row(**kwargs)
@@ -60,43 +101,21 @@ class Menu():
             self.current_item = self.items[name] = layout.split(**kwargs)
 
             return self.current_item
-
         else:
             print("Unknown Type")
 
 
-def get_selected():
-    # get the number of verts from the information string on the info header
-    sel_verts_num = (e for e in bpy.context.scene.statistics().split(" | ")
-                     if e.startswith("Verts:")).__next__()[6:].split("/")
-
-    # turn the number of verts from a string to an int
-    sel_verts_num = int(sel_verts_num[0].replace("," ,""))
-
-    # get the number of edges from the information string on the info header
-    sel_edges_num = (e for e in bpy.context.scene.statistics().split(" | ")
-                     if e.startswith("Edges:")).__next__()[6:].split("/")
-
-    # turn the number of edges from a string to an int
-    sel_edges_num = int(sel_edges_num[0].replace(",", ""))
-
-    # get the number of faces from the information string on the info header
-    sel_faces_num = (e for e in bpy.context.scene.statistics().split(" | ")
-                     if e.startswith("Faces:")).__next__()[6:].split("/")
-
-    # turn the number of faces from a string to an int
-    sel_faces_num = int(sel_faces_num[0].replace(",", ""))
-
-    return sel_verts_num, sel_edges_num, sel_faces_num
-
-
 def get_mode():
-    if bpy.context.gpencil_data and \
-    bpy.context.object.mode == object_mode and \
-    bpy.context.scene.grease_pencil.use_stroke_edit_mode:
-        return gpencil_edit
-    else:
-        return bpy.context.object.mode
+    try:
+        if bpy.context.gpencil_data and \
+        bpy.context.object.mode == object_mode and \
+        bpy.context.scene.grease_pencil.use_stroke_edit_mode:
+            return gpencil_edit
+        else:
+            return bpy.context.object.mode
+    except:
+        return None
+
 
 def menuprop(item, name, value, data_path,
              icon='NONE', disable=False, disable_icon=None,
@@ -144,61 +163,3 @@ def menuprop(item, name, value, data_path,
 
     # sets the path to what is changed
     prop.data_path = data_path
-
-# used for global blender properties
-def set_prop(prop_type, path, **kwargs):
-    kwstring = ""
-
-    # turn **kwargs into a string that can be used with exec
-    for k, v in kwargs.items():
-        if type(v) is str:
-            v = '"{}"'.format(v)
-
-        if callable(v):
-            exec("from {0} import {1}".format(v.__module__, v.__name__))
-            v = v.__name__
-            
-        kwstring += "{0}={1}, ".format(k, v)
-
-    kwstring = kwstring[:-2]
-
-    # create the property
-    exec("{0} = bpy.props.{1}({2})".format(path, prop_type, kwstring))
-
-    # add the path to a list of property paths
-    a_props.append(path)
-
-    return eval(path)
-
-# used for removing properties created with set_prop
-def del_props():
-    for prop in a_props:
-        exec("del {}".format(prop))
-
-    a_props.clear()
-    
-class SendReport(bpy.types.Operator):
-    bl_label = "Send Report"
-    bl_idname = "view3d.send_report"
-    
-    message = bpy.props.StringProperty()
-    
-    def draw(self, context):
-        self.layout.label("Error", icon='ERROR')
-        self.layout.label(self.message)
-    
-    def invoke(self, context, event):
-        wm = context.window_manager
-        return wm.invoke_popup(self, width=400, height=200)
-    
-    def execute(self, context):
-        self.report({'INFO'}, self.message)
-        print(self.message)
-        return {'FINISHED'}
-    
-def send_report(message):
-    def report(scene):
-        bpy.ops.view3d.send_report('INVOKE_DEFAULT', message=message)
-        bpy.app.handlers.scene_update_pre.remove(report)
-        
-    bpy.app.handlers.scene_update_pre.append(report)
