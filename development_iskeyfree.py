@@ -19,16 +19,26 @@
 # PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
 
 bl_info = {
-    'name': 'Is key Free',
-    'author': 'Antonio Vazquez (antonioya)',
-    'version': (1, 0, 1),
+    "name": "Is key Free",
+    "author": "Antonio Vazquez (antonioya)",
+    "version": (1, 0, 2),
     "blender": (2, 6, 9),
-    'location': 'Properties pane > IsKeyFree Tools',
-    'description': 'Find free shortcuts and inform of used keys',
-    'category': 'Development'}
+    "location": "Properties pane > IsKeyFree Tools",
+    "description": "Find free shortcuts and inform of used keys",
+    "category": "Development"}
 
 import bpy
-from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.props import (
+        StringProperty,
+        BoolProperty,
+        EnumProperty,
+        PointerProperty,
+        )
+from bpy.types import (
+        Operator,
+        Panel,
+        PropertyGroup,
+        )
 
 
 # ------------------------------------------------------
@@ -66,6 +76,7 @@ class MyChecker():
 
         wm = bpy.context.window_manager
         mykeys = []
+
         for context, keyboardmap in wm.keyconfigs.user.keymaps.items():
             for myitem in keyboardmap.keymap_items:
                 if myitem.active is True and myitem.type == findkey:
@@ -77,7 +88,6 @@ class MyChecker():
                         continue
                     if oskey is True and myitem.oskey is not True:
                         continue
-
                     t = (context,
                          myitem.type,
                          "Ctrl" if myitem.ctrl is True else "",
@@ -131,44 +141,47 @@ class MyChecker():
     # verify if key is valid
     @classmethod
     def isvalidkey(cls, txt):
-        allkeys = ["LEFTMOUSE", "MIDDLEMOUSE", "RIGHTMOUSE", "BUTTON4MOUSE", "BUTTON5MOUSE", "BUTTON6MOUSE",
-                   "BUTTON7MOUSE",
-                   "ACTIONMOUSE", "SELECTMOUSE", "MOUSEMOVE", "INBETWEEN_MOUSEMOVE", "TRACKPADPAN", "TRACKPADZOOM",
-                   "MOUSEROTATE", "WHEELUPMOUSE", "WHEELDOWNMOUSE", "WHEELINMOUSE", "WHEELOUTMOUSE", "EVT_TWEAK_L",
-                   "EVT_TWEAK_M", "EVT_TWEAK_R", "EVT_TWEAK_A", "EVT_TWEAK_S", "A", "B", "C", "D", "E", "F", "G", "H",
-                   "I", "J",
-                   "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "ZERO", "ONE", "TWO",
-                   "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "LEFT_CTRL", "LEFT_ALT", "LEFT_SHIFT",
-                   "RIGHT_ALT",
-                   "RIGHT_CTRL", "RIGHT_SHIFT", "OSKEY", "GRLESS", "ESC", "TAB", "RET", "SPACE", "LINE_FEED",
-                   "BACK_SPACE",
-                   "DEL", "SEMI_COLON", "PERIOD", "COMMA", "QUOTE", "ACCENT_GRAVE", "MINUS", "SLASH", "BACK_SLASH",
-                   "EQUAL",
-                   "LEFT_BRACKET", "RIGHT_BRACKET", "LEFT_ARROW", "DOWN_ARROW", "RIGHT_ARROW", "UP_ARROW", "NUMPAD_2",
-                   "NUMPAD_4", "NUMPAD_6", "NUMPAD_8", "NUMPAD_1", "NUMPAD_3", "NUMPAD_5", "NUMPAD_7", "NUMPAD_9",
-                   "NUMPAD_PERIOD", "NUMPAD_SLASH", "NUMPAD_ASTERIX", "NUMPAD_0", "NUMPAD_MINUS", "NUMPAD_ENTER",
-                   "NUMPAD_PLUS",
-                   "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15",
-                   "F16", "F17",
-                   "F18", "F19", "PAUSE", "INSERT", "HOME", "PAGE_UP", "PAGE_DOWN", "END", "MEDIA_PLAY", "MEDIA_STOP",
-                   "MEDIA_FIRST", "MEDIA_LAST", "TEXTINPUT", "WINDOW_DEACTIVATE", "TIMER", "TIMER0", "TIMER1", "TIMER2",
-                   "TIMER_JOBS", "TIMER_AUTOSAVE", "TIMER_REPORT", "TIMERREGION", "NDOF_MOTION", "NDOF_BUTTON_MENU",
-                   "NDOF_BUTTON_FIT", "NDOF_BUTTON_TOP", "NDOF_BUTTON_BOTTOM", "NDOF_BUTTON_LEFT", "NDOF_BUTTON_RIGHT",
-                   "NDOF_BUTTON_FRONT", "NDOF_BUTTON_BACK", "NDOF_BUTTON_ISO1", "NDOF_BUTTON_ISO2",
-                   "NDOF_BUTTON_ROLL_CW",
-                   "NDOF_BUTTON_ROLL_CCW", "NDOF_BUTTON_SPIN_CW", "NDOF_BUTTON_SPIN_CCW", "NDOF_BUTTON_TILT_CW",
-                   "NDOF_BUTTON_TILT_CCW", "NDOF_BUTTON_ROTATE", "NDOF_BUTTON_PANZOOM", "NDOF_BUTTON_DOMINANT",
-                   "NDOF_BUTTON_PLUS", "NDOF_BUTTON_MINUS", "NDOF_BUTTON_ESC", "NDOF_BUTTON_ALT", "NDOF_BUTTON_SHIFT",
-                   "NDOF_BUTTON_CTRL", "NDOF_BUTTON_1", "NDOF_BUTTON_2", "NDOF_BUTTON_3", "NDOF_BUTTON_4",
-                   "NDOF_BUTTON_5",
-                   "NDOF_BUTTON_6", "NDOF_BUTTON_7", "NDOF_BUTTON_8", "NDOF_BUTTON_9", "NDOF_BUTTON_10",
-                   "NDOF_BUTTON_A",
-                   "NDOF_BUTTON_B", "NDOF_BUTTON_C"]
+        allkeys = [
+            "LEFTMOUSE", "MIDDLEMOUSE", "RIGHTMOUSE", "BUTTON4MOUSE", "BUTTON5MOUSE", "BUTTON6MOUSE",
+            "BUTTON7MOUSE",
+            "ACTIONMOUSE", "SELECTMOUSE", "MOUSEMOVE", "INBETWEEN_MOUSEMOVE", "TRACKPADPAN", "TRACKPADZOOM",
+            "MOUSEROTATE", "WHEELUPMOUSE", "WHEELDOWNMOUSE", "WHEELINMOUSE", "WHEELOUTMOUSE", "EVT_TWEAK_L",
+            "EVT_TWEAK_M", "EVT_TWEAK_R", "EVT_TWEAK_A", "EVT_TWEAK_S", "A", "B", "C", "D", "E", "F", "G", "H",
+            "I", "J",
+            "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "ZERO", "ONE", "TWO",
+            "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "LEFT_CTRL", "LEFT_ALT", "LEFT_SHIFT",
+            "RIGHT_ALT",
+            "RIGHT_CTRL", "RIGHT_SHIFT", "OSKEY", "GRLESS", "ESC", "TAB", "RET", "SPACE", "LINE_FEED",
+            "BACK_SPACE",
+            "DEL", "SEMI_COLON", "PERIOD", "COMMA", "QUOTE", "ACCENT_GRAVE", "MINUS", "SLASH", "BACK_SLASH",
+            "EQUAL",
+            "LEFT_BRACKET", "RIGHT_BRACKET", "LEFT_ARROW", "DOWN_ARROW", "RIGHT_ARROW", "UP_ARROW", "NUMPAD_2",
+            "NUMPAD_4", "NUMPAD_6", "NUMPAD_8", "NUMPAD_1", "NUMPAD_3", "NUMPAD_5", "NUMPAD_7", "NUMPAD_9",
+            "NUMPAD_PERIOD", "NUMPAD_SLASH", "NUMPAD_ASTERIX", "NUMPAD_0", "NUMPAD_MINUS", "NUMPAD_ENTER",
+            "NUMPAD_PLUS",
+            "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15",
+            "F16", "F17",
+            "F18", "F19", "PAUSE", "INSERT", "HOME", "PAGE_UP", "PAGE_DOWN", "END", "MEDIA_PLAY", "MEDIA_STOP",
+            "MEDIA_FIRST", "MEDIA_LAST", "TEXTINPUT", "WINDOW_DEACTIVATE", "TIMER", "TIMER0", "TIMER1", "TIMER2",
+            "TIMER_JOBS", "TIMER_AUTOSAVE", "TIMER_REPORT", "TIMERREGION", "NDOF_MOTION", "NDOF_BUTTON_MENU",
+            "NDOF_BUTTON_FIT", "NDOF_BUTTON_TOP", "NDOF_BUTTON_BOTTOM", "NDOF_BUTTON_LEFT", "NDOF_BUTTON_RIGHT",
+            "NDOF_BUTTON_FRONT", "NDOF_BUTTON_BACK", "NDOF_BUTTON_ISO1", "NDOF_BUTTON_ISO2",
+            "NDOF_BUTTON_ROLL_CW",
+            "NDOF_BUTTON_ROLL_CCW", "NDOF_BUTTON_SPIN_CW", "NDOF_BUTTON_SPIN_CCW", "NDOF_BUTTON_TILT_CW",
+            "NDOF_BUTTON_TILT_CCW", "NDOF_BUTTON_ROTATE", "NDOF_BUTTON_PANZOOM", "NDOF_BUTTON_DOMINANT",
+            "NDOF_BUTTON_PLUS", "NDOF_BUTTON_MINUS", "NDOF_BUTTON_ESC", "NDOF_BUTTON_ALT", "NDOF_BUTTON_SHIFT",
+            "NDOF_BUTTON_CTRL", "NDOF_BUTTON_1", "NDOF_BUTTON_2", "NDOF_BUTTON_3", "NDOF_BUTTON_4",
+            "NDOF_BUTTON_5",
+            "NDOF_BUTTON_6", "NDOF_BUTTON_7", "NDOF_BUTTON_8", "NDOF_BUTTON_9", "NDOF_BUTTON_10",
+            "NDOF_BUTTON_A",
+            "NDOF_BUTTON_B", "NDOF_BUTTON_C"
+            ]
         try:
             allkeys.index(txt)
             return True
         except ValueError:
             return False
+
 
 mychecker = MyChecker()  # Global class handler
 
@@ -178,7 +191,7 @@ mychecker = MyChecker()  # Global class handler
 # ------------------------------------------------------
 
 
-class RunActionCheck(bpy.types.Operator):
+class RunActionCheck(Operator):
     bl_idname = "iskeyfree.action_check"
     bl_label = ""
     bl_description = "Verify if the selected shortcut is free"
@@ -188,11 +201,11 @@ class RunActionCheck(bpy.types.Operator):
     # ------------------------------
     # noinspection PyUnusedLocal
     def execute(self, context):
-        scene = context.scene
-        txt = scene.iskeyfree_data.upper()
+        scene = context.scene.is_keyfree
+        txt = scene.data.upper()
         global mychecker
-        mychecker.check(txt, scene.iskeyfree_use_crtl, scene.iskeyfree_use_alt, scene.iskeyfree_use_shift,
-                        scene.iskeyfree_use_oskey)
+        mychecker.check(txt, scene.use_crtl, scene.use_alt, scene.use_shift,
+                        scene.use_oskey)
 
         return {'FINISHED'}
 
@@ -200,7 +213,7 @@ class RunActionCheck(bpy.types.Operator):
 # ------------------------------------------------------
 # Defines UI panel
 # ------------------------------------------------------
-class UIControlPanel(bpy.types.Panel):
+class UIControlPanel(Panel):
     bl_space_type = "TEXT_EDITOR"
     bl_region_type = "UI"
     bl_label = "Is Key Free"
@@ -208,20 +221,20 @@ class UIControlPanel(bpy.types.Panel):
     # noinspection PyUnusedLocal
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
+        scene = context.scene.is_keyfree
 
         row = layout.row(align=True)
-        row.prop(scene, "iskeyfree_data")
+        row.prop(scene, "data")
         row.operator("iskeyfree.action_check", icon="VIEWZOOM")
 
         row = layout.row(align=True)
-        row.prop(scene, "iskeyfree_use_crtl", toggle=True)
-        row.prop(scene, "iskeyfree_use_alt", toggle=True)
-        row.prop(scene, "iskeyfree_use_shift", toggle=True)
-        row.prop(scene, "iskeyfree_use_oskey", toggle=True)
+        row.prop(scene, "use_crtl", toggle=True)
+        row.prop(scene, "use_alt", toggle=True)
+        row.prop(scene, "use_shift", toggle=True)
+        row.prop(scene, "use_oskey", toggle=True)
 
         row = layout.row()
-        row.prop(scene, "iskeyfree_numpad")
+        row.prop(scene, "numpad")
 
         global mychecker
         mylist = mychecker.getlist()
@@ -258,238 +271,237 @@ class UIControlPanel(bpy.types.Panel):
 
 # noinspection PyUnusedLocal
 def update_data(self, context):
-    scene = context.scene
-    if scene.iskeyfree_numpad != "NONE":
-        scene.iskeyfree_data = scene.iskeyfree_numpad
+    scene = context.scene.is_keyfree
+    if scene.numpad != "NONE":
+        scene.data = scene.numpad
 
 
-# ------------------------------------------------------
+class IskeyFreeProperties(PropertyGroup):
+    data = StringProperty(
+                    name="Key", maxlen=32,
+                    description="Shortcut to verify"
+                    )
+    use_crtl = BoolProperty(
+                    name="Ctrl",
+                    description="Ctrl key used in shortcut",
+                    default=False
+                    )
+    use_alt = BoolProperty(
+                    name="Alt",
+                    description="Alt key used in shortcut",
+                    default=False
+                    )
+    use_shift = BoolProperty(
+                    name="Shift",
+                    description="Shift key used in shortcut",
+                    default=False
+                    )
+    use_oskey = BoolProperty(
+                    name="OsKey",
+                    description="Operating system key used in shortcut",
+                    default=False
+                    )
+    numpad = EnumProperty(
+                    items=(('NONE', "Select key", ""),
+                       ("LEFTMOUSE", "LEFTMOUSE", ""),
+                       ("MIDDLEMOUSE", "MIDDLEMOUSE", ""),
+                       ("RIGHTMOUSE", "RIGHTMOUSE", ""),
+                       ("BUTTON4MOUSE", "BUTTON4MOUSE", ""),
+                       ("BUTTON5MOUSE", "BUTTON5MOUSE", ""),
+                       ("BUTTON6MOUSE", "BUTTON6MOUSE", ""),
+                       ("BUTTON7MOUSE", "BUTTON7MOUSE", ""),
+                       ("ACTIONMOUSE", "ACTIONMOUSE", ""),
+                       ("SELECTMOUSE", "SELECTMOUSE", ""),
+                       ("MOUSEMOVE", "MOUSEMOVE", ""),
+                       ("INBETWEEN_MOUSEMOVE", "INBETWEEN_MOUSEMOVE", ""),
+                       ("TRACKPADPAN", "TRACKPADPAN", ""),
+                       ("TRACKPADZOOM", "TRACKPADZOOM", ""),
+                       ("MOUSEROTATE", "MOUSEROTATE", ""),
+                       ("WHEELUPMOUSE", "WHEELUPMOUSE", ""),
+                       ("WHEELDOWNMOUSE", "WHEELDOWNMOUSE", ""),
+                       ("WHEELINMOUSE", "WHEELINMOUSE", ""),
+                       ("WHEELOUTMOUSE", "WHEELOUTMOUSE", ""),
+                       ("EVT_TWEAK_L", "EVT_TWEAK_L", ""),
+                       ("EVT_TWEAK_M", "EVT_TWEAK_M", ""),
+                       ("EVT_TWEAK_R", "EVT_TWEAK_R", ""),
+                       ("EVT_TWEAK_A", "EVT_TWEAK_A", ""),
+                       ("EVT_TWEAK_S", "EVT_TWEAK_S", ""),
+                       ("A", "A", ""),
+                       ("B", "B", ""),
+                       ("C", "C", ""),
+                       ("D", "D", ""),
+                       ("E", "E", ""),
+                       ("F", "F", ""),
+                       ("G", "G", ""),
+                       ("H", "H", ""),
+                       ("I", "I", ""),
+                       ("J", "J", ""),
+                       ("K", "K", ""),
+                       ("L", "L", ""),
+                       ("M", "M", ""),
+                       ("N", "N", ""),
+                       ("O", "O", ""),
+                       ("P", "P", ""),
+                       ("Q", "Q", ""),
+                       ("R", "R", ""),
+                       ("S", "S", ""),
+                       ("T", "T", ""),
+                       ("U", "U", ""),
+                       ("V", "V", ""),
+                       ("W", "W", ""),
+                       ("X", "X", ""),
+                       ("Y", "Y", ""),
+                       ("Z", "Z", ""),
+                       ("ZERO", "ZERO", ""),
+                       ("ONE", "ONE", ""),
+                       ("TWO", "TWO", ""),
+                       ("THREE", "THREE", ""),
+                       ("FOUR", "FOUR", ""),
+                       ("FIVE", "FIVE", ""),
+                       ("SIX", "SIX", ""),
+                       ("SEVEN", "SEVEN", ""),
+                       ("EIGHT", "EIGHT", ""),
+                       ("NINE", "NINE", ""),
+                       ("LEFT_CTRL", "LEFT_CTRL", ""),
+                       ("LEFT_ALT", "LEFT_ALT", ""),
+                       ("LEFT_SHIFT", "LEFT_SHIFT", ""),
+                       ("RIGHT_ALT", "RIGHT_ALT", ""),
+                       ("RIGHT_CTRL", "RIGHT_CTRL", ""),
+                       ("RIGHT_SHIFT", "RIGHT_SHIFT", ""),
+                       ("OSKEY", "OSKEY", ""),
+                       ("GRLESS", "GRLESS", ""),
+                       ("ESC", "ESC", ""),
+                       ("TAB", "TAB", ""),
+                       ("RET", "RET", ""),
+                       ("SPACE", "SPACE", ""),
+                       ("LINE_FEED", "LINE_FEED", ""),
+                       ("BACK_SPACE", "BACK_SPACE", ""),
+                       ("DEL", "DEL", ""),
+                       ("SEMI_COLON", "SEMI_COLON", ""),
+                       ("PERIOD", "PERIOD", ""),
+                       ("COMMA", "COMMA", ""),
+                       ("QUOTE", "QUOTE", ""),
+                       ("ACCENT_GRAVE", "ACCENT_GRAVE", ""),
+                       ("MINUS", "MINUS", ""),
+                       ("SLASH", "SLASH", ""),
+                       ("BACK_SLASH", "BACK_SLASH", ""),
+                       ("EQUAL", "EQUAL", ""),
+                       ("LEFT_BRACKET", "LEFT_BRACKET", ""),
+                       ("RIGHT_BRACKET", "RIGHT_BRACKET", ""),
+                       ("LEFT_ARROW", "LEFT_ARROW", ""),
+                       ("DOWN_ARROW", "DOWN_ARROW", ""),
+                       ("RIGHT_ARROW", "RIGHT_ARROW", ""),
+                       ("UP_ARROW", "UP_ARROW", ""),
+                       ("NUMPAD_1", "NUMPAD_1", ""),
+                       ("NUMPAD_2", "NUMPAD_2", ""),
+                       ("NUMPAD_3", "NUMPAD_3", ""),
+                       ("NUMPAD_4", "NUMPAD_4", ""),
+                       ("NUMPAD_5", "NUMPAD_5", ""),
+                       ("NUMPAD_6", "NUMPAD_6", ""),
+                       ("NUMPAD_7", "NUMPAD_7", ""),
+                       ("NUMPAD_8", "NUMPAD_8", ""),
+                       ("NUMPAD_9", "NUMPAD_9", ""),
+                       ("NUMPAD_0", "NUMPAD_0", ""),
+                       ("NUMPAD_PERIOD", "NUMPAD_PERIOD", ""),
+                       ("NUMPAD_SLASH", "NUMPAD_SLASH", ""),
+                       ("NUMPAD_ASTERIX", "NUMPAD_ASTERIX", ""),
+                       ("NUMPAD_MINUS", "NUMPAD_MINUS", ""),
+                       ("NUMPAD_ENTER", "NUMPAD_ENTER", ""),
+                       ("NUMPAD_PLUS", "NUMPAD_PLUS", ""),
+                       ("F1", "F1", ""),
+                       ("F2", "F2", ""),
+                       ("F3", "F3", ""),
+                       ("F4", "F4", ""),
+                       ("F5", "F5", ""),
+                       ("F6", "F6", ""),
+                       ("F7", "F7", ""),
+                       ("F8", "F8", ""),
+                       ("F9", "F9", ""),
+                       ("F10", "F10", ""),
+                       ("F11", "F11", ""),
+                       ("F12", "F12", ""),
+                       ("F13", "F13", ""),
+                       ("F14", "F14", ""),
+                       ("F15", "F15", ""),
+                       ("F16", "F16", ""),
+                       ("F17", "F17", ""),
+                       ("F18", "F18", ""),
+                       ("F19", "F19", ""),
+                       ("PAUSE", "PAUSE", ""),
+                       ("INSERT", "INSERT", ""),
+                       ("HOME", "HOME", ""),
+                       ("PAGE_UP", "PAGE_UP", ""),
+                       ("PAGE_DOWN", "PAGE_DOWN", ""),
+                       ("END", "END", ""),
+                       ("MEDIA_PLAY", "MEDIA_PLAY", ""),
+                       ("MEDIA_STOP", "MEDIA_STOP", ""),
+                       ("MEDIA_FIRST", "MEDIA_FIRST", ""),
+                       ("MEDIA_LAST", "MEDIA_LAST", ""),
+                       ("TEXTINPUT", "TEXTINPUT", ""),
+                       ("WINDOW_DEACTIVATE", "WINDOW_DEACTIVATE", ""),
+                       ("TIMER", "TIMER", ""),
+                       ("TIMER0", "TIMER0", ""),
+                       ("TIMER1", "TIMER1", ""),
+                       ("TIMER2", "TIMER2", ""),
+                       ("TIMER_JOBS", "TIMER_JOBS", ""),
+                       ("TIMER_AUTOSAVE", "TIMER_AUTOSAVE", ""),
+                       ("TIMER_REPORT", "TIMER_REPORT", ""),
+                       ("TIMERREGION", "TIMERREGION", ""),
+                       ("NDOF_MOTION", "NDOF_MOTION", ""),
+                       ("NDOF_BUTTON_MENU", "NDOF_BUTTON_MENU", ""),
+                       ("NDOF_BUTTON_FIT", "NDOF_BUTTON_FIT", ""),
+                       ("NDOF_BUTTON_TOP", "NDOF_BUTTON_TOP", ""),
+                       ("NDOF_BUTTON_BOTTOM", "NDOF_BUTTON_BOTTOM", ""),
+                       ("NDOF_BUTTON_LEFT", "NDOF_BUTTON_LEFT", ""),
+                       ("NDOF_BUTTON_RIGHT", "NDOF_BUTTON_RIGHT", ""),
+                       ("NDOF_BUTTON_FRONT", "NDOF_BUTTON_FRONT", ""),
+                       ("NDOF_BUTTON_BACK", "NDOF_BUTTON_BACK", ""),
+                       ("NDOF_BUTTON_ISO1", "NDOF_BUTTON_ISO1", ""),
+                       ("NDOF_BUTTON_ISO2", "NDOF_BUTTON_ISO2", ""),
+                       ("NDOF_BUTTON_ROLL_CW", "NDOF_BUTTON_ROLL_CW", ""),
+                       ("NDOF_BUTTON_ROLL_CCW", "NDOF_BUTTON_ROLL_CCW", ""),
+                       ("NDOF_BUTTON_SPIN_CW", "NDOF_BUTTON_SPIN_CW", ""),
+                       ("NDOF_BUTTON_SPIN_CCW", "NDOF_BUTTON_SPIN_CCW", ""),
+                       ("NDOF_BUTTON_TILT_CW", "NDOF_BUTTON_TILT_CW", ""),
+                       ("NDOF_BUTTON_TILT_CCW", "NDOF_BUTTON_TILT_CCW", ""),
+                       ("NDOF_BUTTON_ROTATE", "NDOF_BUTTON_ROTATE", ""),
+                       ("NDOF_BUTTON_PANZOOM", "NDOF_BUTTON_PANZOOM", ""),
+                       ("NDOF_BUTTON_DOMINANT", "NDOF_BUTTON_DOMINANT", ""),
+                       ("NDOF_BUTTON_PLUS", "NDOF_BUTTON_PLUS", ""),
+                       ("NDOF_BUTTON_MINUS", "NDOF_BUTTON_MINUS", ""),
+                       ("NDOF_BUTTON_ESC", "NDOF_BUTTON_ESC", ""),
+                       ("NDOF_BUTTON_ALT", "NDOF_BUTTON_ALT", ""),
+                       ("NDOF_BUTTON_SHIFT", "NDOF_BUTTON_SHIFT", ""),
+                       ("NDOF_BUTTON_CTRL", "NDOF_BUTTON_CTRL", ""),
+                       ("NDOF_BUTTON_1", "NDOF_BUTTON_1", ""),
+                       ("NDOF_BUTTON_2", "NDOF_BUTTON_2", ""),
+                       ("NDOF_BUTTON_3", "NDOF_BUTTON_3", ""),
+                       ("NDOF_BUTTON_4", "NDOF_BUTTON_4", ""),
+                       ("NDOF_BUTTON_5", "NDOF_BUTTON_5", ""),
+                       ("NDOF_BUTTON_6", "NDOF_BUTTON_6", ""),
+                       ("NDOF_BUTTON_7", "NDOF_BUTTON_7", ""),
+                       ("NDOF_BUTTON_8", "NDOF_BUTTON_8", ""),
+                       ("NDOF_BUTTON_9", "NDOF_BUTTON_9", ""),
+                       ("NDOF_BUTTON_10", "NDOF_BUTTON_10", ""),
+                       ("NDOF_BUTTON_A", "NDOF_BUTTON_A", ""),
+                       ("NDOF_BUTTON_B", "NDOF_BUTTON_B", ""),
+                       ("NDOF_BUTTON_C", "NDOF_BUTTON_C", "")
+                    ),
+                    name="Quick Type",
+                    description="Enter key code in find text",
+                    update=update_data
+                    )
+
+
+# -----------------------------------------------------
 # Registration
 # ------------------------------------------------------
 
-
 def register():
     bpy.utils.register_module(__name__)
-
-    bpy.types.Scene.iskeyfree_data = StringProperty(name="Key", maxlen=32,
-                                                    description="Shortcut to verify")
-    bpy.types.Scene.iskeyfree_use_crtl = BoolProperty(name="Ctrl",
-                                                      description="Ctrl key used in shortcut",
-                                                      default=False)
-    bpy.types.Scene.iskeyfree_use_alt = BoolProperty(name="Alt",
-                                                     description="Alt key used in shortcut",
-                                                     default=False)
-    bpy.types.Scene.iskeyfree_use_shift = BoolProperty(name="Shift",
-                                                       description="Shift key used in shortcut",
-                                                       default=False)
-    bpy.types.Scene.iskeyfree_use_oskey = BoolProperty(name="OsKey",
-                                                       description="Operating system key used in shortcut",
-                                                       default=False)
-    bpy.types.Scene.iskeyfree_numpad = EnumProperty(items=(('NONE', "Select key", ""),
-                                                           ("LEFTMOUSE", "LEFTMOUSE", ""),
-                                                           ("MIDDLEMOUSE", "MIDDLEMOUSE", ""),
-                                                           ("RIGHTMOUSE", "RIGHTMOUSE", ""),
-                                                           ("BUTTON4MOUSE", "BUTTON4MOUSE", ""),
-                                                           ("BUTTON5MOUSE", "BUTTON5MOUSE", ""),
-                                                           ("BUTTON6MOUSE", "BUTTON6MOUSE", ""),
-                                                           ("BUTTON7MOUSE", "BUTTON7MOUSE", ""),
-                                                           ("ACTIONMOUSE", "ACTIONMOUSE", ""),
-                                                           ("SELECTMOUSE", "SELECTMOUSE", ""),
-                                                           ("MOUSEMOVE", "MOUSEMOVE", ""),
-                                                           ("INBETWEEN_MOUSEMOVE", "INBETWEEN_MOUSEMOVE", ""),
-                                                           ("TRACKPADPAN", "TRACKPADPAN", ""),
-                                                           ("TRACKPADZOOM", "TRACKPADZOOM", ""),
-                                                           ("MOUSEROTATE", "MOUSEROTATE", ""),
-                                                           ("WHEELUPMOUSE", "WHEELUPMOUSE", ""),
-                                                           ("WHEELDOWNMOUSE", "WHEELDOWNMOUSE", ""),
-                                                           ("WHEELINMOUSE", "WHEELINMOUSE", ""),
-                                                           ("WHEELOUTMOUSE", "WHEELOUTMOUSE", ""),
-                                                           ("EVT_TWEAK_L", "EVT_TWEAK_L", ""),
-                                                           ("EVT_TWEAK_M", "EVT_TWEAK_M", ""),
-                                                           ("EVT_TWEAK_R", "EVT_TWEAK_R", ""),
-                                                           ("EVT_TWEAK_A", "EVT_TWEAK_A", ""),
-                                                           ("EVT_TWEAK_S", "EVT_TWEAK_S", ""),
-                                                           ("A", "A", ""),
-                                                           ("B", "B", ""),
-                                                           ("C", "C", ""),
-                                                           ("D", "D", ""),
-                                                           ("E", "E", ""),
-                                                           ("F", "F", ""),
-                                                           ("G", "G", ""),
-                                                           ("H", "H", ""),
-                                                           ("I", "I", ""),
-                                                           ("J", "J", ""),
-                                                           ("K", "K", ""),
-                                                           ("L", "L", ""),
-                                                           ("M", "M", ""),
-                                                           ("N", "N", ""),
-                                                           ("O", "O", ""),
-                                                           ("P", "P", ""),
-                                                           ("Q", "Q", ""),
-                                                           ("R", "R", ""),
-                                                           ("S", "S", ""),
-                                                           ("T", "T", ""),
-                                                           ("U", "U", ""),
-                                                           ("V", "V", ""),
-                                                           ("W", "W", ""),
-                                                           ("X", "X", ""),
-                                                           ("Y", "Y", ""),
-                                                           ("Z", "Z", ""),
-                                                           ("ZERO", "ZERO", ""),
-                                                           ("ONE", "ONE", ""),
-                                                           ("TWO", "TWO", ""),
-                                                           ("THREE", "THREE", ""),
-                                                           ("FOUR", "FOUR", ""),
-                                                           ("FIVE", "FIVE", ""),
-                                                           ("SIX", "SIX", ""),
-                                                           ("SEVEN", "SEVEN", ""),
-                                                           ("EIGHT", "EIGHT", ""),
-                                                           ("NINE", "NINE", ""),
-                                                           ("LEFT_CTRL", "LEFT_CTRL", ""),
-                                                           ("LEFT_ALT", "LEFT_ALT", ""),
-                                                           ("LEFT_SHIFT", "LEFT_SHIFT", ""),
-                                                           ("RIGHT_ALT", "RIGHT_ALT", ""),
-                                                           ("RIGHT_CTRL", "RIGHT_CTRL", ""),
-                                                           ("RIGHT_SHIFT", "RIGHT_SHIFT", ""),
-                                                           ("OSKEY", "OSKEY", ""),
-                                                           ("GRLESS", "GRLESS", ""),
-                                                           ("ESC", "ESC", ""),
-                                                           ("TAB", "TAB", ""),
-                                                           ("RET", "RET", ""),
-                                                           ("SPACE", "SPACE", ""),
-                                                           ("LINE_FEED", "LINE_FEED", ""),
-                                                           ("BACK_SPACE", "BACK_SPACE", ""),
-                                                           ("DEL", "DEL", ""),
-                                                           ("SEMI_COLON", "SEMI_COLON", ""),
-                                                           ("PERIOD", "PERIOD", ""),
-                                                           ("COMMA", "COMMA", ""),
-                                                           ("QUOTE", "QUOTE", ""),
-                                                           ("ACCENT_GRAVE", "ACCENT_GRAVE", ""),
-                                                           ("MINUS", "MINUS", ""),
-                                                           ("SLASH", "SLASH", ""),
-                                                           ("BACK_SLASH", "BACK_SLASH", ""),
-                                                           ("EQUAL", "EQUAL", ""),
-                                                           ("LEFT_BRACKET", "LEFT_BRACKET", ""),
-                                                           ("RIGHT_BRACKET", "RIGHT_BRACKET", ""),
-                                                           ("LEFT_ARROW", "LEFT_ARROW", ""),
-                                                           ("DOWN_ARROW", "DOWN_ARROW", ""),
-                                                           ("RIGHT_ARROW", "RIGHT_ARROW", ""),
-                                                           ("UP_ARROW", "UP_ARROW", ""),
-                                                           ("NUMPAD_1", "NUMPAD_1", ""),
-                                                           ("NUMPAD_2", "NUMPAD_2", ""),
-                                                           ("NUMPAD_3", "NUMPAD_3", ""),
-                                                           ("NUMPAD_4", "NUMPAD_4", ""),
-                                                           ("NUMPAD_5", "NUMPAD_5", ""),
-                                                           ("NUMPAD_6", "NUMPAD_6", ""),
-                                                           ("NUMPAD_7", "NUMPAD_7", ""),
-                                                           ("NUMPAD_8", "NUMPAD_8", ""),
-                                                           ("NUMPAD_9", "NUMPAD_9", ""),
-                                                           ("NUMPAD_0", "NUMPAD_0", ""),
-                                                           ("NUMPAD_PERIOD", "NUMPAD_PERIOD", ""),
-                                                           ("NUMPAD_SLASH", "NUMPAD_SLASH", ""),
-                                                           ("NUMPAD_ASTERIX", "NUMPAD_ASTERIX", ""),
-                                                           ("NUMPAD_MINUS", "NUMPAD_MINUS", ""),
-                                                           ("NUMPAD_ENTER", "NUMPAD_ENTER", ""),
-                                                           ("NUMPAD_PLUS", "NUMPAD_PLUS", ""),
-                                                           ("F1", "F1", ""),
-                                                           ("F2", "F2", ""),
-                                                           ("F3", "F3", ""),
-                                                           ("F4", "F4", ""),
-                                                           ("F5", "F5", ""),
-                                                           ("F6", "F6", ""),
-                                                           ("F7", "F7", ""),
-                                                           ("F8", "F8", ""),
-                                                           ("F9", "F9", ""),
-                                                           ("F10", "F10", ""),
-                                                           ("F11", "F11", ""),
-                                                           ("F12", "F12", ""),
-                                                           ("F13", "F13", ""),
-                                                           ("F14", "F14", ""),
-                                                           ("F15", "F15", ""),
-                                                           ("F16", "F16", ""),
-                                                           ("F17", "F17", ""),
-                                                           ("F18", "F18", ""),
-                                                           ("F19", "F19", ""),
-                                                           ("PAUSE", "PAUSE", ""),
-                                                           ("INSERT", "INSERT", ""),
-                                                           ("HOME", "HOME", ""),
-                                                           ("PAGE_UP", "PAGE_UP", ""),
-                                                           ("PAGE_DOWN", "PAGE_DOWN", ""),
-                                                           ("END", "END", ""),
-                                                           ("MEDIA_PLAY", "MEDIA_PLAY", ""),
-                                                           ("MEDIA_STOP", "MEDIA_STOP", ""),
-                                                           ("MEDIA_FIRST", "MEDIA_FIRST", ""),
-                                                           ("MEDIA_LAST", "MEDIA_LAST", ""),
-                                                           ("TEXTINPUT", "TEXTINPUT", ""),
-                                                           ("WINDOW_DEACTIVATE", "WINDOW_DEACTIVATE", ""),
-                                                           ("TIMER", "TIMER", ""),
-                                                           ("TIMER0", "TIMER0", ""),
-                                                           ("TIMER1", "TIMER1", ""),
-                                                           ("TIMER2", "TIMER2", ""),
-                                                           ("TIMER_JOBS", "TIMER_JOBS", ""),
-                                                           ("TIMER_AUTOSAVE", "TIMER_AUTOSAVE", ""),
-                                                           ("TIMER_REPORT", "TIMER_REPORT", ""),
-                                                           ("TIMERREGION", "TIMERREGION", ""),
-                                                           ("NDOF_MOTION", "NDOF_MOTION", ""),
-                                                           ("NDOF_BUTTON_MENU", "NDOF_BUTTON_MENU", ""),
-                                                           ("NDOF_BUTTON_FIT", "NDOF_BUTTON_FIT", ""),
-                                                           ("NDOF_BUTTON_TOP", "NDOF_BUTTON_TOP", ""),
-                                                           ("NDOF_BUTTON_BOTTOM", "NDOF_BUTTON_BOTTOM", ""),
-                                                           ("NDOF_BUTTON_LEFT", "NDOF_BUTTON_LEFT", ""),
-                                                           ("NDOF_BUTTON_RIGHT", "NDOF_BUTTON_RIGHT", ""),
-                                                           ("NDOF_BUTTON_FRONT", "NDOF_BUTTON_FRONT", ""),
-                                                           ("NDOF_BUTTON_BACK", "NDOF_BUTTON_BACK", ""),
-                                                           ("NDOF_BUTTON_ISO1", "NDOF_BUTTON_ISO1", ""),
-                                                           ("NDOF_BUTTON_ISO2", "NDOF_BUTTON_ISO2", ""),
-                                                           ("NDOF_BUTTON_ROLL_CW", "NDOF_BUTTON_ROLL_CW", ""),
-                                                           ("NDOF_BUTTON_ROLL_CCW", "NDOF_BUTTON_ROLL_CCW",
-                                                            ""),
-                                                           (
-                                                               "NDOF_BUTTON_SPIN_CW", "NDOF_BUTTON_SPIN_CW",
-                                                               ""),
-                                                           ("NDOF_BUTTON_SPIN_CCW", "NDOF_BUTTON_SPIN_CCW",
-                                                            ""),
-                                                           (
-                                                               "NDOF_BUTTON_TILT_CW", "NDOF_BUTTON_TILT_CW",
-                                                               ""),
-                                                           ("NDOF_BUTTON_TILT_CCW", "NDOF_BUTTON_TILT_CCW",
-                                                            ""),
-                                                           ("NDOF_BUTTON_ROTATE", "NDOF_BUTTON_ROTATE", ""),
-                                                           (
-                                                               "NDOF_BUTTON_PANZOOM", "NDOF_BUTTON_PANZOOM",
-                                                               ""),
-                                                           ("NDOF_BUTTON_DOMINANT", "NDOF_BUTTON_DOMINANT",
-                                                            ""),
-                                                           ("NDOF_BUTTON_PLUS", "NDOF_BUTTON_PLUS", ""),
-                                                           ("NDOF_BUTTON_MINUS", "NDOF_BUTTON_MINUS", ""),
-                                                           ("NDOF_BUTTON_ESC", "NDOF_BUTTON_ESC", ""),
-                                                           ("NDOF_BUTTON_ALT", "NDOF_BUTTON_ALT", ""),
-                                                           ("NDOF_BUTTON_SHIFT", "NDOF_BUTTON_SHIFT", ""),
-                                                           ("NDOF_BUTTON_CTRL", "NDOF_BUTTON_CTRL", ""),
-                                                           ("NDOF_BUTTON_1", "NDOF_BUTTON_1", ""),
-                                                           ("NDOF_BUTTON_2", "NDOF_BUTTON_2", ""),
-                                                           ("NDOF_BUTTON_3", "NDOF_BUTTON_3", ""),
-                                                           ("NDOF_BUTTON_4", "NDOF_BUTTON_4", ""),
-                                                           ("NDOF_BUTTON_5", "NDOF_BUTTON_5", ""),
-                                                           ("NDOF_BUTTON_6", "NDOF_BUTTON_6", ""),
-                                                           ("NDOF_BUTTON_7", "NDOF_BUTTON_7", ""),
-                                                           ("NDOF_BUTTON_8", "NDOF_BUTTON_8", ""),
-                                                           ("NDOF_BUTTON_9", "NDOF_BUTTON_9", ""),
-                                                           ("NDOF_BUTTON_10", "NDOF_BUTTON_10", ""),
-                                                           ("NDOF_BUTTON_A", "NDOF_BUTTON_A", ""),
-                                                           ("NDOF_BUTTON_B", "NDOF_BUTTON_B", ""),
-                                                           ("NDOF_BUTTON_C", "NDOF_BUTTON_C", "")),
-                                                    name="Quick Type",
-                                                    description="Enter key code in find text",
-                                                    update=update_data)
+    bpy.types.Scene.is_keyfree = PointerProperty(type=IskeyFreeProperties)
 
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-
-    del bpy.types.Scene.iskeyfree_use_crtl
-    del bpy.types.Scene.iskeyfree_use_alt
-    del bpy.types.Scene.iskeyfree_use_shift
-    del bpy.types.Scene.iskeyfree_use_oskey
-    del bpy.types.Scene.iskeyfree_numpad
-    del bpy.types.Scene.iskeyfree_data
+    del bpy.types.Scene.is_keyfree
