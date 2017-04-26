@@ -71,11 +71,6 @@ class OBJECT_OT_agregate_mesh(Operator):
                       "Needs at least two selected Mesh objects")
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    updateMeNow = BoolProperty(
-                name="Update",
-                description="Update",
-                default=True
-                )
     volX = FloatProperty(
                 name="Volume X",
                 min=0.1, max=25,
@@ -158,10 +153,28 @@ class OBJECT_OT_agregate_mesh(Operator):
                 description="Sort faces so you can regrow with Build Modifier, materials are lost"
                 )
 
+    refresh = bpy.props.BoolProperty(
+                name="Update",
+                default=False
+                )
+    auto_refresh = bpy.props.BoolProperty(
+                name="Auto",
+                description="Auto update spline",
+                default=False
+                )
+
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
-        col.prop(self, "updateMeNow", toggle=True)
+        row = col.row(align=True)
+        if self.auto_refresh is False:
+            self.refresh = False
+        elif self.auto_refresh is True:
+            self.refresh = True
+        row.prop(self, 'auto_refresh', toggle=True, icon='AUTO')
+        row.prop(self, 'refresh', toggle=True, icon='FILE_REFRESH')
+
+        col = layout.column(align=True)
         col.separator()
 
         col = layout.column(align=True)
@@ -195,11 +208,11 @@ class OBJECT_OT_agregate_mesh(Operator):
         return(len(bpy.context.selected_objects) > 1 and bpy.context.object.type == 'MESH')
 
     def invoke(self, context, event):
-        self.updateMeNow = True
+        self.refresh = True
         return self.execute(context)
 
     def execute(self, context):
-        if not self.updateMeNow:
+        if not self.refresh:
             return {'PASS_THROUGH'}
 
         scn = bpy.context.scene
@@ -303,6 +316,11 @@ class OBJECT_OT_agregate_mesh(Operator):
 
         obj.select = True
 
+        if self.auto_refresh is False:
+            self.refresh = False
+        #elif self.auto_refresh is True:
+        #    self.refresh = True
+
         return{'FINISHED'}
 
 
@@ -315,4 +333,4 @@ def unregister():
 
 
 if __name__ == '__main__':
-    register()
+ register()
