@@ -55,11 +55,9 @@ else:
 # noinspection PyUnresolvedReferences
 import bpy
 from bpy.types import (
+        AddonPreferences,
         Scene,
         WindowManager,
-        )
-from bpy.types import (
-        AddonPreferences,
         )
 from bpy.props import (
         FloatVectorProperty,
