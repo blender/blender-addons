@@ -29,10 +29,11 @@ bl_info = {
     "name": "MeasureIt",
     "author": "Antonio Vazquez (antonioya)",
     "location": "View3D > Tools Panel /Properties panel",
-    "version": (1, 6, 8),
+    "version": (1, 6, 9),
     "blender": (2, 7, 4),
     "description": "Tools for measuring objects.",
-    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/Measureit",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/"
+                "Py/Scripts/3D_interaction/Measureit",
     "category": "3D View"
 }
 
@@ -43,60 +44,78 @@ import os
 # Import modules
 # ----------------------------------------------
 if "bpy" in locals():
-    import imp
+    import importlib
 
-    imp.reload(measureit_main)
+    importlib.reload(measureit_main)
     print("measureit: Reloaded multifiles")
 else:
     from . import measureit_main
-
     print("measureit: Imported multifiles")
 
 # noinspection PyUnresolvedReferences
 import bpy
-from bpy.types import Scene, WindowManager
-from bpy.props import FloatVectorProperty, IntProperty, BoolProperty, StringProperty, FloatProperty, EnumProperty
+from bpy.types import (
+        Scene,
+        WindowManager,
+        )
+from bpy.types import (
+        AddonPreferences,
+        )
+from bpy.props import (
+        FloatVectorProperty,
+        IntProperty,
+        BoolProperty,
+        StringProperty,
+        FloatProperty,
+        EnumProperty,
+        )
 
 # --------------------------------------------------------------
 # Register all operators and panels
 # --------------------------------------------------------------
 
-## Addons Preferences Update Panel
-from bpy.types import (
-    AddonPreferences,
-)
+# Add-ons Preferences Update Panel
+
+# Define Panel classes for updating
+panels = (
+        measureit_main.MeasureitEditPanel,
+        measureit_main.MeasureitMainPanel,
+        measureit_main.MeasureitConfPanel,
+        measureit_main.MeasureitRenderPanel,
+        )
 
 
 def update_panel(self, context):
+    message = "MeasureIt: Updating Panel locations has failed"
     try:
-        bpy.utils.unregister_class(measureit_main.MeasureitEditPanel)
-        bpy.utils.unregister_class(measureit_main.MeasureitMainPanel)
-        bpy.utils.unregister_class(measureit_main.MeasureitConfPanel)
-        bpy.utils.unregister_class(measureit_main.MeasureitRenderPanel)
-    except:
+        for panel in panels:
+            if "bl_rna" in panel.__dict__:
+                bpy.utils.unregister_class(panel)
+
+        for panel in panels:
+            panel.bl_category = context.user_preferences.addons[__name__].preferences.category
+            bpy.utils.register_class(panel)
+
+    except Exception as e:
+        print("\n[{}]\n{}\n\nError:\n{}".format(__name__, message, e))
         pass
-    measureit_main.MeasureitEditPanel.bl_category = context.user_preferences.addons[__name__].preferences.category
-    bpy.utils.register_class(measureit_main.MeasureitEditPanel)
-    measureit_main.MeasureitMainPanel.bl_category = context.user_preferences.addons[__name__].preferences.category
-    bpy.utils.register_class(measureit_main.MeasureitMainPanel)
-    measureit_main.MeasureitConfPanel.bl_category = context.user_preferences.addons[__name__].preferences.category
-    bpy.utils.register_class(measureit_main.MeasureitConfPanel)
-    measureit_main.MeasureitRenderPanel.bl_category = context.user_preferences.addons[__name__].preferences.category
-    bpy.utils.register_class(measureit_main.MeasureitRenderPanel)
 
 
 class Measure_Pref(AddonPreferences):
+    # this must match the addon name, use '__package__'
+    # when defining this in a submodule of a python package.
     bl_idname = __name__
 
     category = StringProperty(
-        name="Tab Category",
-        description="Choose a name for the category of the panel",
-        default="Display",
-        update=update_panel
-    )
+            name="Tab Category",
+            description="Choose a name for the category of the panel",
+            default="Display",
+            update=update_panel
+            )
 
     def draw(self, context):
         layout = self.layout
+
         row = layout.row()
         col = row.column()
         col.label(text="Tab Category:")
