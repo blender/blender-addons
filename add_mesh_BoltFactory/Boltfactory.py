@@ -19,6 +19,7 @@
 
 import bpy
 from mathutils import Matrix
+from bpy.types import Operator
 from bpy.props import (
         BoolProperty,
         EnumProperty,
@@ -41,7 +42,7 @@ def align_matrix(context):
     return align_matrix
 
 
-class add_mesh_bolt(bpy.types.Operator):
+class add_mesh_bolt(Operator):
     bl_idname = "mesh.bolt_add"
     bl_label = "Add Bolt"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -314,12 +315,10 @@ class add_mesh_bolt(bpy.types.Operator):
         return context.scene is not None
 
     def execute(self, context):
-        # print('EXECUTING...')
         createMesh.Create_New_Mesh(self, context, self.align_matrix)
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        # print('\n___________START_____________')
         # store creation_matrix
         self.align_matrix = align_matrix(context)
         self.execute(context)
