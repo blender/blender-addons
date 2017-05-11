@@ -1389,6 +1389,10 @@ def register():
     bpy.app.handlers.scene_update_post.append(HandleScene)
 
     bpy.types.VIEW3D_MT_object.append(VIEW3D_BoolTool_Menu)
+    try:
+        bpy.types.VIEW3D_MT_Object.prepend(VIEW3D_BoolTool_Menu)
+    except:
+        pass
 
     wm = bpy.context.window_manager
 
@@ -1423,6 +1427,10 @@ def unregister():
     del addon_keymaps[:]
 
     bpy.types.VIEW3D_MT_object.remove(VIEW3D_BoolTool_Menu)
+    try:
+        bpy.types.VIEW3D_MT_Object.remove(VIEW3D_BoolTool_Menu)
+    except:
+        pass
 
     del bpy.types.Scene.BoolHide
 
