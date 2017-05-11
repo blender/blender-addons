@@ -1,25 +1,35 @@
+# gpl authors: nfloyd, Francesco Siddi
+
 from bpy.types import PropertyGroup
-from bpy.props import (BoolProperty,
-                        BoolVectorProperty,
-                        CollectionProperty,
-                        FloatProperty,
-                        FloatVectorProperty,
-                        EnumProperty,
-                        IntProperty,
-                        IntVectorProperty,
-                        PointerProperty,
-                        StringProperty)
+from bpy.props import (
+        BoolProperty,
+        BoolVectorProperty,
+        CollectionProperty,
+        FloatProperty,
+        FloatVectorProperty,
+        EnumProperty,
+        IntProperty,
+        IntVectorProperty,
+        PointerProperty,
+        StringProperty,
+        )
 
 
 class POVData(PropertyGroup):
     distance = FloatProperty()
-    location = FloatVectorProperty(subtype='TRANSLATION')
-    rotation = FloatVectorProperty(subtype='QUATERNION',
-                                   size=4)
+    location = FloatVectorProperty(
+            subtype='TRANSLATION'
+            )
+    rotation = FloatVectorProperty(
+            subtype='QUATERNION',
+            size=4
+            )
     name = StringProperty()
-    perspective = EnumProperty(items=[('PERSP', '', ''),
-                                      ('ORTHO', '', ''),
-                                      ('CAMERA', '', '')])
+    perspective = EnumProperty(
+            items=[('PERSP', '', ''),
+                   ('ORTHO', '', ''),
+                   ('CAMERA', '', '')]
+            )
     lens = FloatProperty()
     clip_start = FloatProperty()
     clip_end = FloatProperty()
@@ -42,11 +52,14 @@ class LayersData(PropertyGroup):
 
 class DisplayData(PropertyGroup):
     name = StringProperty()
-    viewport_shade = EnumProperty(items=[('BOUNDBOX', 'BOUNDBOX', 'BOUNDBOX'),
-                                         ('WIREFRAME', 'WIREFRAME', 'WIREFRAME'),
-                                         ('SOLID', 'SOLID', 'SOLID'),
-                                         ('TEXTURED', 'TEXTURED', 'TEXTURED'),
-                                         ('RENDERED', 'RENDERED', 'RENDERED')])
+    viewport_shade = EnumProperty(
+            items=[('BOUNDBOX', 'BOUNDBOX', 'BOUNDBOX'),
+                   ('WIREFRAME', 'WIREFRAME', 'WIREFRAME'),
+                   ('SOLID', 'SOLID', 'SOLID'),
+                   ('TEXTURED', 'TEXTURED', 'TEXTURED'),
+                   ('MATERIAL', 'MATERIAL', 'MATERIAL'),
+                   ('RENDERED', 'RENDERED', 'RENDERED')]
+            )
     show_only_render = BoolProperty()
     show_outline_selected = BoolProperty()
     show_all_objects_origin = BoolProperty()
@@ -58,9 +71,11 @@ class DisplayData(PropertyGroup):
     grid_lines = IntProperty()
     grid_scale = FloatProperty()
     grid_subdivisions = IntProperty()
-    material_mode = EnumProperty(items=[('TEXTURE_FACE', '', ''),
-                                        ('MULTITEXTURE', '', ''),
-                                        ('GLSL', '', '')])
+    material_mode = EnumProperty(
+                    items=[('TEXTURE_FACE', '', ''),
+                           ('MULTITEXTURE', '', ''),
+                           ('GLSL', '', '')]
+                    )
     show_textured_solid = BoolProperty()
     quad_view = BoolProperty()
     lock_rotation = BoolProperty()
@@ -69,22 +84,43 @@ class DisplayData(PropertyGroup):
 
 
 class ViewData(PropertyGroup):
-    pov = PointerProperty(type=POVData)
-    layers = PointerProperty(type=LayersData)
-    display = PointerProperty(type=DisplayData)
+    pov = PointerProperty(
+            type=POVData
+            )
+    layers = PointerProperty(
+            type=LayersData
+            )
+    display = PointerProperty(
+            type=DisplayData
+            )
     name = StringProperty()
 
 
 class StoredViewsData(PropertyGroup):
-    pov_list = CollectionProperty(type=POVData)
-    layers_list = CollectionProperty(type=LayersData)
-    display_list = CollectionProperty(type=DisplayData)
-    view_list = CollectionProperty(type=ViewData)
-    mode = EnumProperty(name="Mode",
-                        items=[('VIEW', 'View', ''),
-                               ('POV', 'POV', ''),
-                               ('LAYERS', 'Layers', ''),
-                               ('DISPLAY', 'Display', '')],
-                        default='VIEW')
-    current_indices = IntVectorProperty(size=4, default=[-1, -1, -1, -1])
-    view_modified = BoolProperty(default=False)
+    pov_list = CollectionProperty(
+            type=POVData
+            )
+    layers_list = CollectionProperty(
+            type=LayersData
+            )
+    display_list = CollectionProperty(
+            type=DisplayData
+            )
+    view_list = CollectionProperty(
+            type=ViewData
+            )
+    mode = EnumProperty(
+            name="Mode",
+            items=[('VIEW', "View", "3D View settings"),
+                   ('POV', "POV", "POV settings"),
+                   ('LAYERS', "Layers", "Layers settings"),
+                   ('DISPLAY', "Display", "Display settings")],
+            default='VIEW'
+            )
+    current_indices = IntVectorProperty(
+            size=4,
+            default=[-1, -1, -1, -1]
+            )
+    view_modified = BoolProperty(
+            default=False
+            )

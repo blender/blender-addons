@@ -1,12 +1,19 @@
+# gpl authors: nfloyd, Francesco Siddi
+
 import bpy
+from bpy.props import (
+        IntProperty,
+        StringProperty,
+        )
+from bpy.types import Operator
+from .core import (
+        stored_view_factory,
+        DataStore,
+        )
+from .ui import init_draw
 
-from bpy.props import (FloatProperty, BoolProperty, IntProperty,
-                       FloatVectorProperty, StringProperty, EnumProperty)
-from . core import stored_view_factory, DataStore
-from . ui import init_draw
 
-
-class VIEW3D_stored_views_save(bpy.types.Operator):
+class VIEW3D_stored_views_save(Operator):
     bl_idname = "stored_views.save"
     bl_label = "Save Current"
     bl_description = "Save the view 3d current state"
@@ -23,7 +30,7 @@ class VIEW3D_stored_views_save(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class VIEW3D_stored_views_set(bpy.types.Operator):
+class VIEW3D_stored_views_set(Operator):
     bl_idname = "stored_views.set"
     bl_label = "Set"
     bl_description = "Update the view 3D according to this view"
@@ -40,12 +47,12 @@ class VIEW3D_stored_views_set(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class VIEW3D_stored_views_delete(bpy.types.Operator):
+class VIEW3D_stored_views_delete(Operator):
     bl_idname = "stored_views.delete"
     bl_label = "Delete"
     bl_description = "Delete this view"
 
-    index = bpy.props.IntProperty()
+    index = IntProperty()
 
     def execute(self, context):
         data = DataStore()
@@ -53,36 +60,43 @@ class VIEW3D_stored_views_delete(bpy.types.Operator):
 
         return {'FINISHED'}
 
-class VIEW3D_New_Camera_to_View(bpy.types.Operator):
+
+class VIEW3D_New_Camera_to_View(Operator):
     bl_idname = "stored_views.newcamera"
     bl_label = "New Camera To View"
-    bl_description = "Add a new Casmera Active & Aligned to this view"
+    bl_description = "Add a new Active Camera and align it to this view"
 
     def execute(self, context):
-        bpy.ops.object.mode_set(mode='OBJECT')
+        try:
+            # check for operator's poll (there is no active object, for instance)
+            if bpy.ops.object.mode_set.poll():
+                bpy.ops.object.mode_set(mode='OBJECT')
 
-        bpy.ops.object.camera_add(
-            view_align=True)
-        cam = bpy.context.active_object
-        bpy.ops.view3d.object_as_camera()
-        bpy.ops.view3d.camera_to_view()
+            bpy.ops.object.camera_add(view_align=True)
+            cam = bpy.context.active_object
+            bpy.ops.view3d.object_as_camera()
+            bpy.ops.view3d.camera_to_view()
+
+            # this will name the Camera Object
+            if 'View_Camera' not in context.scene.objects:
+                cam.name = "View_Camera"
+            else:
+                cam.name = "View_Camera.000"
+
+            return {'FINISHED'}
+        except:
+            self.report({'WARNING'},
+                        "Operation Cancelled. New Camera to View failed to add a new camera")
+            return {'CANCELLED'}
 
 
-        # this will name the Camera Object
-        if 'View_Camera' not in context.scene.objects:
-            cam.name = "View_Camera"
-        else:
-            cam.name = "View_Camera.000"
-
-        return {'FINISHED'}
-
-### Camera marker & switcher by Fsiddi
-class SetSceneCamera(bpy.types.Operator):
+# Camera marker & switcher by Fsiddi
+class SetSceneCamera(Operator):
     bl_idname = "cameraselector.set_scene_camera"
     bl_label = "Set Scene Camera"
-    bl_description = "Set chosen camera as the scene's active camera."
+    bl_description = "Set chosen camera as the scene's active camera"
 
-    chosen_camera = bpy.props.StringProperty()
+    chosen_camera = StringProperty()
     select_chosen = False
 
     def execute(self, context):
@@ -113,18 +127,18 @@ class SetSceneCamera(bpy.types.Operator):
         return self.execute(context)
 
 
-class AddCameraMarker(bpy.types.Operator):
+class AddCameraMarker(Operator):
     bl_idname = "cameraselector.add_camera_marker"
     bl_label = "Add Camera Marker"
-    bl_description = "Add a timeline marker bound to chosen camera."
+    bl_description = "Add a timeline marker bound to chosen camera"
 
-    chosen_camera = bpy.props.StringProperty()
+    chosen_camera = StringProperty()
 
     def execute(self, context):
         chosen_camera = bpy.data.objects.get(self.chosen_camera, None)
         scene = context.scene
         if not chosen_camera:
-            self.report({'ERROR'}, "Camera %s not found.")
+            self.report({'WARNING'}, "Camera %s not found. Operation Cancelled")
             return {'CANCELLED'}
 
         current_frame = scene.frame_current

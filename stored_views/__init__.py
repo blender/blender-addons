@@ -18,79 +18,120 @@
 
 bl_info = {
     "name": "Stored Views",
-    "description": "Save and restore User defined views, pov, layers and display configs.",
+    "description": "Save and restore User defined views, pov, layers and display configs",
     "author": "nfloyd, Francesco Siddi",
-    "version": (0, 3, 4,),
+    "version": (0, 3, 6),
     "blender": (2, 7, 8),
     "location": "View3D > Properties > Stored Views",
-    "warning": 'beta release, single view only',
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/3D_interaction/stored_views",
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
+    "warning": "",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.5/"
+                "Py/Scripts/3D_interaction/stored_views",
     "category": "3D View"}
 
-# ACKNOWLEDGMENT
-# ==============
-# import/export functionality is mostly based
-#   on Bart Crouch's Theme Manager Addon
+"""
+ACKNOWLEDGMENT
+==============
+import/export functionality is mostly based
+on Bart Crouch's Theme Manager Addon
 
-# TODO: check against 2.63
-# TODO: quadview complete support : investigate. Where's the data?
-# TODO: lock_camera_and_layers. investigate usage
-# TODO: list reordering
+TODO: quadview complete support : investigate. Where's the data?
+TODO: lock_camera_and_layers. investigate usage
+TODO: list reordering
 
-# logging setup
-'''
-import logging
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-hdlr = logging.StreamHandler()
-fmtr = logging.Formatter('%(asctime)s %(levelname)s %(name)s : %(funcName)s - %(message)s')
-hdlr.setFormatter(fmtr)
-logger.addHandler(hdlr)
-'''
+NOTE: logging setup has to be provided by the user in a separate config file
+    as Blender will not try to configure logging by default in an add-on
+    The Config File should be in the Blender Config folder > /scripts/startup/config_logging.py
+    For setting up /location of the config folder see:
+    https://docs.blender.org/manual/en/dev/getting_started/
+    installing/configuration/directories.html
+    For configuring logging itself in the file, general Python documentation should work
+    As the logging calls are not configured, they can be kept in the other modules of this add-on
+    and will not have output until the logging configuration is set up
+"""
 
 if "bpy" in locals():
-    import imp
-    imp.reload(ui)
-    imp.reload(properties)
-    imp.reload(core)
-    imp.reload(operators)
-    imp.reload(io)
+    import importlib
+    importlib.reload(core)
+    importlib.reload(ui)
+    importlib.reload(properties)
+    importlib.reload(operators)
+    importlib.reload(io)
 else:
-    #from . import properties, core
-    from . import ui, properties, core, operators, io
+    from . import core
+    from . import ui
+    from . import properties
+    from . import operators
+    from . import io
 
 import bpy
-from bpy.props import PointerProperty
+from bpy.props import (
+        BoolProperty,
+        IntProperty,
+        PointerProperty,
+        )
+from bpy.types import (
+        AddonPreferences,
+        Operator,
+        )
 
 
-class VIEW3D_stored_views_initialize(bpy.types.Operator):
+class VIEW3D_stored_views_initialize(Operator):
     bl_idname = "view3d.stored_views_initialize"
-    bl_label = "Initilize"
+    bl_label = "Initialize"
 
     @classmethod
     def poll(cls, context):
         return not hasattr(bpy.types.Scene, 'stored_views')
 
     def execute(self, context):
-        bpy.types.Scene.stored_views = PointerProperty(type=properties.StoredViewsData)
+        bpy.types.Scene.stored_views = PointerProperty(
+                                            type=properties.StoredViewsData
+                                            )
         scenes = bpy.data.scenes
         for scene in scenes:
             core.DataStore.sanitize_data(scene)
         return {'FINISHED'}
 
 
+# Addon Preferences
+
+class VIEW3D_stored_views_preferences(AddonPreferences):
+    bl_idname = __name__
+
+    show_exporters = BoolProperty(
+            name="Enable I/O Operators",
+            default=False,
+            description="Enable Import/Export Operations in the UI:\n"
+                        "Import Stored Views preset,\n"
+                        "Export Stored Views preset and \n"
+                        "Import stored views from scene",
+            )
+    view_3d_update_rate = IntProperty(
+            name="3D view update",
+            description="Update rate of the 3D view redraw\n"
+                        "Increse the value if the UI feels sluggish",
+            min=1, max=10,
+            default=1
+            )
+
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.row(align=True)
+        row.prop(self, "view_3d_update_rate", toggle=True)
+        row.prop(self, "show_exporters", toggle=True)
+
+
 def register():
     bpy.utils.register_module(__name__)
-    # Context restricted, need to initialize different (button to be clicked by user)
-    #initialize()
+
 
 def unregister():
     ui.VIEW3D_stored_views_draw.handle_remove(bpy.context)
     bpy.utils.unregister_module(__name__)
     if hasattr(bpy.types.Scene, "stored_views"):
         del bpy.types.Scene.stored_views
+
 
 if __name__ == "__main__":
     register()
