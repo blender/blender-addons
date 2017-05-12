@@ -509,7 +509,10 @@ class Do:
                     ii = geometry.intersect_line_line(edge1, edge2, opposite1, opposite2)
                     if ii is not None:
                         if _is_on_edge(ii[0]):
-                            bm.faces.remove(face)
+                            try:
+                                bm.faces.remove(face)
+                            except Exception as e:
+                                pass
                             iv = bm.verts.new(ii[0])
                             bm.faces.new((verts[i], iv, verts[(i + 3) % 4]))
                             bm.faces.new((verts[i + 1], iv, verts[i + 2]))
