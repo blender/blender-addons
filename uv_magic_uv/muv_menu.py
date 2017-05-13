@@ -43,15 +43,15 @@ class MUV_CPUVMenu(bpy.types.Menu):
 
     def draw(self, _):
         self.layout.menu(
-            muv_cpuv_ops.MUV_CPUVCopyUVMenu.bl_idname, icon="PLUGIN")
+            muv_cpuv_ops.MUV_CPUVCopyUVMenu.bl_idname, icon="IMAGE_COL")
         self.layout.menu(
-            muv_cpuv_ops.MUV_CPUVPasteUVMenu.bl_idname, icon="PLUGIN")
+            muv_cpuv_ops.MUV_CPUVPasteUVMenu.bl_idname, icon="IMAGE_COL")
         self.layout.menu(
             muv_cpuv_selseq_ops.MUV_CPUVSelSeqCopyUVMenu.bl_idname,
-            icon="PLUGIN")
+            icon="IMAGE_COL")
         self.layout.menu(
             muv_cpuv_selseq_ops.MUV_CPUVSelSeqPasteUVMenu.bl_idname,
-            icon="PLUGIN")
+            icon="IMAGE_COL")
 
 
 class MUV_CPUVObjMenu(bpy.types.Menu):
@@ -65,9 +65,9 @@ class MUV_CPUVObjMenu(bpy.types.Menu):
 
     def draw(self, _):
         self.layout.menu(
-            muv_cpuv_ops.MUV_CPUVObjCopyUVMenu.bl_idname, icon="PLUGIN")
+            muv_cpuv_ops.MUV_CPUVObjCopyUVMenu.bl_idname, icon="IMAGE_COL")
         self.layout.menu(
-            muv_cpuv_ops.MUV_CPUVObjPasteUVMenu.bl_idname, icon="PLUGIN")
+            muv_cpuv_ops.MUV_CPUVObjPasteUVMenu.bl_idname, icon="IMAGE_COL")
 
 
 class MUV_TransUVMenu(bpy.types.Menu):
@@ -81,9 +81,9 @@ class MUV_TransUVMenu(bpy.types.Menu):
 
     def draw(self, _):
         self.layout.operator(
-            muv_transuv_ops.MUV_TransUVCopy.bl_idname, icon="PLUGIN")
+            muv_transuv_ops.MUV_TransUVCopy.bl_idname, icon="IMAGE_COL")
         self.layout.operator(
-            muv_transuv_ops.MUV_TransUVPaste.bl_idname, icon="PLUGIN")
+            muv_transuv_ops.MUV_TransUVPaste.bl_idname, icon="IMAGE_COL")
 
 
 class MUV_TexLockMenu(bpy.types.Menu):
@@ -97,13 +97,13 @@ class MUV_TexLockMenu(bpy.types.Menu):
 
     def draw(self, _):
         self.layout.operator(
-            muv_texlock_ops.MUV_TexLockStart.bl_idname, icon="PLUGIN")
+            muv_texlock_ops.MUV_TexLockStart.bl_idname, icon="IMAGE_COL")
         self.layout.operator(
-            muv_texlock_ops.MUV_TexLockStop.bl_idname, icon="PLUGIN")
+            muv_texlock_ops.MUV_TexLockStop.bl_idname, icon="IMAGE_COL")
         self.layout.operator(
-            muv_texlock_ops.MUV_TexLockIntrStart.bl_idname, icon="PLUGIN")
+            muv_texlock_ops.MUV_TexLockIntrStart.bl_idname, icon="IMAGE_COL")
         self.layout.operator(
-            muv_texlock_ops.MUV_TexLockIntrStop.bl_idname, icon="PLUGIN")
+            muv_texlock_ops.MUV_TexLockIntrStop.bl_idname, icon="IMAGE_COL")
 
 
 class MUV_WSUVMenu(bpy.types.Menu):
@@ -117,6 +117,6 @@ class MUV_WSUVMenu(bpy.types.Menu):
 
     def draw(self, _):
         self.layout.operator(
-            muv_wsuv_ops.MUV_WSUVMeasure.bl_idname, icon="PLUGIN")
+            muv_wsuv_ops.MUV_WSUVMeasure.bl_idname, icon="IMAGE_COL")
         self.layout.operator(
-            muv_wsuv_ops.MUV_WSUVApply.bl_idname, icon="PLUGIN")
+            muv_wsuv_ops.MUV_WSUVApply.bl_idname, icon="IMAGE_COL")

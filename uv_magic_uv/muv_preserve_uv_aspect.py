@@ -116,4 +116,4 @@ class MUV_PreserveUVAspectMenu(bpy.types.Menu):
         for key in bpy.data.images.keys():
             layout.operator(
                 MUV_PreserveUVAspect.bl_idname,
-                text=key, icon="PLUGIN").dest_img_name = key
+                text=key, icon="IMAGE_COL").dest_img_name = key

@@ -303,7 +303,7 @@ class OBJECT_PT_TP(bpy.types.Panel):
 
     def draw_header(self, _):
         layout = self.layout
-        layout.label(text="", icon='PLUGIN')
+        layout.label(text="", icon='IMAGE_COL')
 
     def draw(self, context):
         sc = context.scene

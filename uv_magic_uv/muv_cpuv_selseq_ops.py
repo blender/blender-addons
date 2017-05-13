@@ -99,11 +99,11 @@ class MUV_CPUVSelSeqCopyUVMenu(bpy.types.Menu):
         uv_maps = bm.loops.layers.uv.keys()
         layout.operator(
             MUV_CPUVSelSeqCopyUV.bl_idname,
-            text="[Default]", icon="PLUGIN").uv_map = ""
+            text="[Default]", icon="IMAGE_COL").uv_map = ""
         for m in uv_maps:
             layout.operator(
                 MUV_CPUVSelSeqCopyUV.bl_idname,
-                text=m, icon="PLUGIN").uv_map = m
+                text=m, icon="IMAGE_COL").uv_map = m
 
 
 class MUV_CPUVSelSeqPasteUV(bpy.types.Operator):
@@ -242,8 +242,8 @@ class MUV_CPUVSelSeqPasteUVMenu(bpy.types.Menu):
         uv_maps = bm.loops.layers.uv.keys()
         layout.operator(
             MUV_CPUVSelSeqPasteUV.bl_idname,
-            text="[Default]", icon="PLUGIN").uv_map = ""
+            text="[Default]", icon="IMAGE_COL").uv_map = ""
         for m in uv_maps:
             layout.operator(
                 MUV_CPUVSelSeqPasteUV.bl_idname,
-                text=m, icon="PLUGIN").uv_map = m
+                text=m, icon="IMAGE_COL").uv_map = m
