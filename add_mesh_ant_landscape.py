@@ -17,12 +17,12 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "ANT Landscape",
+    "name": "A.N.T. Landscape",
     "author": "Jimmy Hazevoet",
     "version": (0, 1, 6),
     "blender": (2, 77, 0),
     "location": "View3D > Add > Mesh",
-    "description": "Add a landscape primitive",
+    "description": "Another Noise Tool: Add a landscape primitive",
     "warning": "",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Add_Mesh/ANT_Landscape",
@@ -31,10 +31,11 @@ bl_info = {
 
 """
 # -------------------------------------------------------------
---- UPDATE:     - VERSION 0,1,6 (5/2017)
+- UPDATE: A.N.T. Landscape - Version 0,1,6 (5/2017)
 # -------------------------------------------------------------
                 - NEW:
                 -
+                - Use Blender internal texture data block - texture nodes
                 - Variable X and Y grid size and variable X and Y subdivisions
                 - Triangulate faces
                 - Slope map, z normal to vertex group weight,
@@ -48,6 +49,7 @@ bl_info = {
                 - Use materials
                 - Some small changes and fixes
                 -
+
 # -------------------------------------------------------------
 # Another Noise Tool: Landscape mesh generator
 # -------------------------------------------------------------
@@ -63,6 +65,7 @@ Y_Offset:        Noise y offset in blender units
 Cursor:          Place at cursor location
 Vertex Group:    Slope map, z normal value to vertex group weight,
                     and select vertices on flat area's
+                 Height map, z coordinate value to vertex group weight
 
 NOISE OPTIONS: ( Many of these options are the same as in blender textures. )
 Random seed:     Use this to randomise the origin of the noise function.
@@ -104,7 +107,6 @@ MATERIAL:       Use materials
 # ------------------------------------------------------------
 # import modules
 import bpy
-import os
 from bpy.props import (
         BoolProperty,
         EnumProperty,
@@ -209,7 +211,7 @@ def marble_noise(x, y, z, origin, size, shape, bias, sharpnes, turb, depth, hard
     x += origin[0]
     y += origin[1]
     z += origin[2]
-    value = s + turb * turbulence_vector((x, y, z), depth, hard, basis)[0]
+    value = s + turb * turbulence_vector((x, y, z), depth, hard, basis)[1]
 
     if bias is 1:
         value = cos_bias(value)
@@ -275,12 +277,10 @@ def distorted_heteroTerrain(coords, H, lacunarity, octaves, offset, distort, bas
 
 
 ## SlickRock:
-def slick_rock(coords, H, lacunarity, octaves, offset, gain, basis, vlbasis):
+def slick_rock(coords, H, lacunarity, octaves, offset, gain, distort, basis, vlbasis):
     x, y, z = coords
-    gain = 5.0
-    vlbasis = 7
-    n = multi_fractal((x,y,z), 1.0, 2.0, 1.0, basis)
-    r = ridged_multi_fractal((x, y, n * 0.5), H, lacunarity, octaves, offset, gain, vlbasis) #* 0.5
+    n = multi_fractal((x,y,z), 1.0, 2.0, 2.0, basis) * distort * 0.5
+    r = ridged_multi_fractal((x + n, y + n, z + n), H, lacunarity, octaves, offset + 0.1, gain * 2, vlbasis)
     return (n + (n * r)) * 0.5
 
 
@@ -294,9 +294,8 @@ def vl_hTerrain(coords, H, lacunarity, octaves, offset, basis, vlbasis, distort)
 
 # another turbulence
 def ant_turbulence(coords, depth, hardnoise, nbasis, amp, freq, distortion):
-    a = amp
     x, y, z = coords
-    tv = turbulence_vector((x + 3, y, z), depth, hardnoise, nbasis, a, freq)
+    tv = turbulence_vector((x + 1, y + 2, z + 3), depth, hardnoise, nbasis, amp, freq)
     d = (distortion * tv[0]) * 0.25
     return (d + ((tv[0] - tv[1]) * (tv[2])**2))
 
@@ -337,41 +336,42 @@ def planet_noise(coords, oct=6, hard=0, noisebasis=1, nabla=0.001):
 
 # ------------------------------------------------------------
 # landscape_gen
-def landscape_gen(x, y, z, meshsize_x, meshsize_y, options):
+def landscape_gen(x, y, z, meshsize_x, meshsize_y, props):
 
-    rseed = options[0]
-    nsize = options[1]
-    ntype = options[2]
-    nbasis = int(options[3][0])
-    vlbasis = int(options[4][0])
-    distortion = options[5]
-    hardnoise = int(options[6])
-    depth = options[7]
-    dimension = options[8]
-    lacunarity = options[9]
-    offset = options[10]
-    gain = options[11]
-    marblebias = int(options[12][0])
-    marblesharpnes = int(options[13][0])
-    marbleshape = int(options[14][0])
-    invert = options[15]
-    height = options[16]
-    heightoffset = options[17]
-    falloff = int(options[18][0])
-    sealevel = options[19]
-    platlevel = options[20]
-    strata = options[21]
-    stratatype = options[22]
-    sphere = options[23]
-    x_offset = options[24]
-    y_offset = options[25]
-    edge_level = options[26]
-    falloffsize_x = options[27]
-    falloffsize_y = options[28]
-    size_x = options[29]
-    size_y = options[30]
-    amp = options[31]
-    freq = options[32]
+    rseed = props[0]
+    nsize = props[1]
+    ntype = props[2]
+    nbasis = int(props[3][0])
+    vlbasis = int(props[4][0])
+    distortion = props[5]
+    hardnoise = int(props[6])
+    depth = props[7]
+    dimension = props[8]
+    lacunarity = props[9]
+    offset = props[10]
+    gain = props[11]
+    marblebias = int(props[12][0])
+    marblesharpnes = int(props[13][0])
+    marbleshape = int(props[14][0])
+    invert = props[15]
+    height = props[16]
+    heightoffset = props[17]
+    falloff = int(props[18][0])
+    minimum = props[19]
+    maximum = props[20]
+    strata = props[21]
+    stratatype = props[22]
+    sphere = props[23]
+    x_offset = props[24]
+    y_offset = props[25]
+    edge_level = props[26]
+    falloffsize_x = props[27]
+    falloffsize_y = props[28]
+    size_x = props[29]
+    size_y = props[30]
+    amp = props[31]
+    freq = props[32]
+    texture_name = props[33]
 
     # origin
     if rseed is 0:
@@ -393,12 +393,6 @@ def landscape_gen(x, y, z, meshsize_x, meshsize_y, options):
         origin_z = (oz - (oz / 2))
 
     ncoords = (x / (nsize * size_x) + origin_x, y / (nsize * size_y) + origin_y, z / nsize + origin_z)
-
-    # noise basis type's
-    if nbasis is 9:
-        nbasis = 14
-    if vlbasis is 9:
-        vlbasis = 14
 
     # noise type's
     if ntype == 'multi_fractal':
@@ -453,10 +447,16 @@ def landscape_gen(x, y, z, meshsize_x, meshsize_y, options):
         value = double_multiFractal(ncoords, dimension, lacunarity, depth, offset, gain, nbasis, vlbasis)
 
     elif ntype == 'slick_rock':
-        value = slick_rock(ncoords,dimension, lacunarity, depth, offset, gain, nbasis, vlbasis)
+        value = slick_rock(ncoords,dimension, lacunarity, depth, offset, gain, distortion, nbasis, vlbasis)
 
     elif ntype == 'planet_noise':
         value = planet_noise(ncoords, depth, hardnoise, nbasis)[2] * 0.5 + 0.5
+
+    elif ntype == 'blender_texture':
+        if texture_name in bpy.data.textures:
+            value = bpy.data.textures[texture_name].evaluate(ncoords)[3]
+        else:
+            value = 0.0
     else:
         value = 0.0
 
@@ -484,7 +484,7 @@ def landscape_gen(x, y, z, meshsize_x, meshsize_y, options):
             else:
                 value = edge_level
 
-    # strata / terrace / layered
+    # strata / terrace / layers
     if stratatype != '0':
         strata = strata / height
 
@@ -508,15 +508,15 @@ def landscape_gen(x, y, z, meshsize_x, meshsize_y, options):
         steps = (int( value * strata ) * 1.0 / strata)
         value = (value * (1.0 - 0.5) + steps * 0.5)
 
-    # clamp height
-    if (value < sealevel):
-        value = sealevel
-    if (value > platlevel):
-        value = platlevel
+    # clamp height min max
+    if (value < minimum):
+        value = minimum
+    if (value > maximum):
+        value = maximum
 
     return value
 
-
+# ------------------------------------------------------------
 # ------------------------------------------------------------
 # Generate XY Grid
 def grid_gen(sub_d_x, sub_d_y, tri, meshsize_x, meshsize_y, options, water_plane, water_level):
@@ -530,6 +530,7 @@ def grid_gen(sub_d_x, sub_d_y, tri, meshsize_x, meshsize_y, options, water_plane
                 z = water_level
             else:
                 z = landscape_gen(x, y, 0, meshsize_x, meshsize_y, options)
+
             verts.append((x,y,z))
 
     count = 0
@@ -614,13 +615,25 @@ class ANTSlopeVGroup(bpy.types.Operator):
     bl_description = "Slope map - z normal value to vertex group weight"
     #bl_options = {'REGISTER'} 
 
+    z_method = EnumProperty(
+            name="Method:",
+            default='SLOPE_Z',
+            items=[
+                ('SLOPE_Z', "Slope Z", "Slope for planar mesh"),
+                ('SLOPE_XYZ', "Slope XYZ", "Slope for spherical mesh")
+                ])
+    group_name = StringProperty(
+            name="Vertex Group Name:",
+            default="Slope",
+            description="Name"
+            )
     select_flat = BoolProperty(
-            name="Vert Select",
+            name="Vert Select:",
             default=True,
             description="Select vertices on flat surface"
             )
     select_range = FloatProperty(
-            name="Vert Select: Range",
+            name="Vert Select Range:",
             default=0.0,
             min=0.0,
             max=1.0,
@@ -631,35 +644,40 @@ class ANTSlopeVGroup(bpy.types.Operator):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
+
     def execute(self, context):
-        message = "Popup Values: %d, %f" % \
-            (self.select_flat, self.select_range)
+        message = "Popup Values: %d, %f, %s, %s" % \
+            (self.select_flat, self.select_range, self.group_name, self.z_method)
         self.report({'INFO'}, message)
 
         ob = bpy.context.active_object
+
         if self.select_flat:
             bpy.ops.object.mode_set(mode='EDIT')
             bpy.ops.mesh.select_all(action='DESELECT')
+            bpy.context.tool_settings.mesh_select_mode = [True, False, False]
             bpy.ops.object.mode_set(mode='OBJECT')
 
-        vertex_group = ob.vertex_groups.active
-        if vertex_group is None:
-            bpy.ops.object.vertex_group_add()
-            vertex_group = ob.vertex_groups.active
-        else:
-            vertex_group = ob.vertex_groups.active
+        bpy.ops.object.vertex_group_add()
+        vg_normal = ob.vertex_groups.active
 
         for v in ob.data.vertices:
-            z = v.normal[2]
-            vertex_group.add([v.index], z, 'REPLACE')
+            if self.z_method == 'SLOPE_XYZ':
+                zno = (v.co.normalized() * v.normal.normalized()) * 2 - 1
+            else:
+                zno = v.normal[2]
+
+            vg_normal.add([v.index], zno, 'REPLACE')
+
             if self.select_flat:
-                if z >= (1.0 - self.select_range):
+                if zno >= (1.0 - self.select_range):
                     v.select = True
 
-        vertex_group.name = 'Slope'
+        vg_normal.name = self.group_name
+
         return {'FINISHED'}
 
-
+# ------------------------------------------------------------
 # ------------------------------------------------------------
 # Add landscape
 class landscape_add(bpy.types.Operator):
@@ -777,7 +795,8 @@ class landscape_add(bpy.types.Operator):
             ('distorted_heteroTerrain', "Distorted hTerrain", "A.N.T distorted hTerrain"),
             ('double_multiFractal', "Double MultiFractal", "A.N.T: double multiFractal"),
             ('slick_rock', "Slick Rock", "A.N.T: slick rock"),
-            ('planet_noise', "Planet Noise", "Planet Noise by: Farsthary")
+            ('planet_noise', "Planet Noise", "Planet Noise by: Farsthary"),
+            ('blender_texture', "Blender Texture - Texture Nodes", "Blender Internal Texture Data Block")
             ]
     noise_type = EnumProperty(
             name="Type",
@@ -967,14 +986,14 @@ class landscape_add(bpy.types.Operator):
             default=0.0,
             description="Edge level, sealevel offset"
             )
-    plateaulevel = FloatProperty(
+    maximum = FloatProperty(
             name="Maximum",
             min=-10000.0,
             max=10000.0,
             default=1.0,
             description="Maximum, flattens terrain at plateau level"
             )
-    sealevel = FloatProperty(
+    minimum = FloatProperty(
             name="Minimum",
             min=-10000.0,
             max=10000.0,
@@ -986,10 +1005,10 @@ class landscape_add(bpy.types.Operator):
             min=0.01,
             max=1000.0,
             default=5.0,
-            description="Strata layers / distortion"
+            description="Strata layers / terraces"
             )
     StrataTypes = [
-            ("0", "None", "No strata / filter"),
+            ("0", "None", "No strata"),
             ("1", "Smooth", "Smooth transitions"),
             ("2", "Sharp -", "Sharp substract transitions"),
             ("3", "Sharp +", "Sharp add transitions"),
@@ -998,14 +1017,14 @@ class landscape_add(bpy.types.Operator):
             ]
     strata_type = EnumProperty(
             name="Strata",
-            description="Strata and distortion types",
+            description="Strata types",
             default="0",
             items=StrataTypes
             )
     water_plane = BoolProperty(
-            name="Water",
+            name="Water Plane",
             default=False,
-            description="Generate water plane"
+            description="Add water plane"
             )
     water_level = FloatProperty(
             name="Level",
@@ -1047,6 +1066,10 @@ class landscape_add(bpy.types.Operator):
             description="Automatic refresh",
             default=True
             )
+    texture_name = StringProperty(
+        name="Texture",
+        default=""
+        )
 
     def draw(self, context):
         sce = context.scene
@@ -1075,7 +1098,11 @@ class landscape_add(bpy.types.Operator):
         box.prop(self, "show_noise_settings", toggle=True)
         if self.show_noise_settings:
             box.prop(self, "noise_type")
-            box.prop(self, "basis_type")
+            if self.noise_type == "blender_texture":
+                box.prop_search(self, "texture_name", bpy.data, "textures")
+            else:
+                box.prop(self, "basis_type")
+
             col = box.column(align=True)
             col.prop(self, "random_seed")
             col = box.column(align=True)
@@ -1190,7 +1217,11 @@ class landscape_add(bpy.types.Operator):
                 col.prop(self, "noise_depth")
                 col.prop(self, "dimension")
                 col.prop(self, "lacunarity")
+                col.prop(self, "gain")
                 col.prop(self, "moffset")
+                col.prop(self, "distortion")
+                col.separator()
+                col.prop(self, "vl_basis_type")
             elif self.noise_type == "planet_noise":
                 col.prop(self, "noise_depth")
                 col.separator()
@@ -1212,8 +1243,8 @@ class landscape_add(bpy.types.Operator):
             row.prop(self, "height")
             row.prop(self, "invert", toggle=True, text="", icon='ARROW_LEFTRIGHT')
             col.prop(self, "offset")
-            col.prop(self, "plateaulevel")
-            col.prop(self, "sealevel")
+            col.prop(self, "maximum")
+            col.prop(self, "minimum")
 
             if not self.sphere_mesh:
                 col = box.column(align=False)
@@ -1266,8 +1297,8 @@ class landscape_add(bpy.types.Operator):
             bpy.ops.object.select_all(action='DESELECT')
 
         scene = context.scene
-        # options
-        options = [
+        # settings
+        props = [
             self.random_seed,
             self.noise_size,
             self.noise_type,
@@ -1287,8 +1318,8 @@ class landscape_add(bpy.types.Operator):
             self.height,
             self.offset,
             self.edge_falloff,
-            self.sealevel,
-            self.plateaulevel,
+            self.minimum,
+            self.maximum,
             self.strata,
             self.strata_type,
             self.sphere_mesh,
@@ -1300,17 +1331,18 @@ class landscape_add(bpy.types.Operator):
             self.noise_size_x,
             self.noise_size_y,
             self.amplitude,
-            self.frequency
+            self.frequency,
+            self.texture_name
             ]
 
         # Main function, create landscape mesh object
         if self.sphere_mesh:
             # sphere
-            verts, faces = sphere_gen(self.subdivision_y, self.subdivision_x, self.tri_face, self.meshsize, options, False, 0.0)
+            verts, faces = sphere_gen(self.subdivision_y, self.subdivision_x, self.tri_face, self.meshsize, props, False, 0.0)
             lobj = create_mesh_object(context, verts, [], faces, "Landscape")
         else:
             # grid
-            verts, faces = grid_gen(self.subdivision_x, self.subdivision_y, self.tri_face, self.meshsize_x, self.meshsize_y, options, False, 0.0)
+            verts, faces = grid_gen(self.subdivision_x, self.subdivision_y, self.tri_face, self.meshsize_x, self.meshsize_y, props, False, 0.0)
             lobj = create_mesh_object(context, verts, [], faces, "Landscape")
 
         if self.smooth_mesh:
@@ -1329,11 +1361,11 @@ class landscape_add(bpy.types.Operator):
         if self.water_plane:
             if self.sphere_mesh:
                 # sphere
-                verts, faces = sphere_gen(self.subdivision_y, self.subdivision_x, self.tri_face, self.meshsize, options, self.water_plane, self.water_level)
+                verts, faces = sphere_gen(self.subdivision_y, self.subdivision_x, self.tri_face, self.meshsize, props, self.water_plane, self.water_level)
                 wobj = create_mesh_object(context, verts, [], faces, "Water")
             else:
                 # grid
-                verts, faces = grid_gen(2, 2, self.tri_face, self.meshsize_x, self.meshsize_y, options, self.water_plane, self.water_level)
+                verts, faces = grid_gen(2, 2, self.tri_face, self.meshsize_x, self.meshsize_y, props, self.water_plane, self.water_level)
                 wobj = create_mesh_object(context, verts, [], faces, "Water")
 
             wobj.object.select = True
@@ -1372,13 +1404,13 @@ def menu_func_landscape(self, context):
 def register():
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_mesh_add.append(menu_func_landscape)
-
+    #bpy.utils.register_class(ANTSlopeVGroup)
 
 
 def unregister():
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_mesh_add.remove(menu_func_landscape)
-
+    #bpy.utils.unregister_class(ANTSlopeVGroup)
 
 
 if __name__ == "__main__":
