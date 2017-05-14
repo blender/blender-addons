@@ -227,6 +227,12 @@ button labeled "Encode Sample to Python".  This button will generate the python
 code for create_sample() from the armature you are editing.  The generated code
 appears in a text block called "metarig_sample.py"
 
+IMPLEMENTATION RIGS
+-------------------
+Starting from version 0.5 you can create a Rig class as an implementation of a wrapper class.
+This happens for limb rigs for example, where super_limb is kind of a wrapper class for arm, leg and paws.
+To declare a class as an implementation just declare an IMPLEMENTATION constant in the module and set it to True.
+Implementation classes are shown in the metarig samples list and generate a sample if a proper create_sample function is implemented, but cannot be directly assigned as a rigify type.
 
 GENERATING A PYTHON UI
 ----------------------

@@ -32,6 +32,7 @@ from .utils import create_root_widget
 from .utils import random_id
 from .utils import copy_attributes
 from .rig_ui_template import UI_SLIDERS, layers_ui, UI_REGISTER
+from .rig_ui_pitchipoy_template import UI_P_SLIDERS, layers_P_ui, UI_P_REGISTER
 
 
 RIG_MODULE = "rigs"
@@ -257,24 +258,11 @@ def generate_rig(context, metarig):
     obj.data.edit_bones[root_bone].roll = 0
     bpy.ops.object.mode_set(mode='OBJECT')
     obj.data.bones[root_bone].layers = ROOT_LAYER
-
     # Put the rig_name in the armature custom properties
     rna_idprop_ui_prop_get(obj.data, "rig_id", create=True)
     obj.data["rig_id"] = rig_id
 
     t.tick("Create root bone: ")
-
-    # Create Group widget
-    wgts_group_name = "WGTS"
-    if wgts_group_name not in scene.objects:
-        if wgts_group_name in bpy.data.objects:
-            bpy.data.objects[wgts_group_name].user_clear()
-            bpy.data.objects.remove(bpy.data.objects[wgts_group_name])
-        mesh = bpy.data.meshes.new(wgts_group_name)
-        wgts_obj = bpy.data.objects.new(wgts_group_name, mesh)
-        scene.objects.link(wgts_obj)
-        t.tick("Create main WGTS: ")
-
     #----------------------------------
     try:
         # Collect/initialize all the rigs.
@@ -312,34 +300,12 @@ def generate_rig(context, metarig):
     # Get a list of all the bones in the armature
     bones = [bone.name for bone in obj.data.bones]
 
-    # Parent any free-floating bones to the root excluding bones with child of constraint.
-    pbones = obj.pose.bones
-
-
-    ik_follow_drivers = []
-
-    if obj.animation_data:
-        for drv in obj.animation_data.drivers:
-            for var in drv.driver.variables:
-                if 'IK_follow' == var.name:
-                    ik_follow_drivers.append(drv.data_path)
-
-    noparent_bones = []
-    for bone in bones:
-        # if 'IK_follow' in pbones[bone].keys():
-        #     noparent_bones += [bone]
-        for d in ik_follow_drivers:
-            if bone in d:
-                noparent_bones += [bone]
-
+    # Parent any free-floating bones to the root.
     bpy.ops.object.mode_set(mode='EDIT')
     for bone in bones:
-        if bone in noparent_bones:
-            continue
-        elif obj.data.edit_bones[bone].parent is None:
+        if obj.data.edit_bones[bone].parent is None:
             obj.data.edit_bones[bone].use_connect = False
             obj.data.edit_bones[bone].parent = obj.data.edit_bones[root_bone]
-
     bpy.ops.object.mode_set(mode='OBJECT')
 
     # Lock transforms on all non-control bones
@@ -421,18 +387,35 @@ def generate_rig(context, metarig):
         print( l.name )
         layer_layout += [(l.name, l.row)]
 
-    # Generate the UI script
-    if "rig_ui.py" in bpy.data.texts:
-        script = bpy.data.texts["rig_ui.py"]
-        script.clear()
+
+    if isPitchipoy(metarig):
+
+        # Generate the UI Pitchipoy script
+        if "rig_ui.py" in bpy.data.texts:
+            script = bpy.data.texts["rig_ui.py"]
+            script.clear()
+        else:
+            script = bpy.data.texts.new("rig_ui.py")
+        script.write(UI_P_SLIDERS % rig_id)
+        for s in ui_scripts:
+            script.write("\n        " + s.replace("\n", "\n        ") + "\n")
+        script.write(layers_P_ui(vis_layers, layer_layout))
+        script.write(UI_P_REGISTER)
+        script.use_module = True
+
     else:
-        script = bpy.data.texts.new("rig_ui.py")
-    script.write(UI_SLIDERS % rig_id)
-    for s in ui_scripts:
-        script.write("\n        " + s.replace("\n", "\n        ") + "\n")
-    script.write(layers_ui(vis_layers, layer_layout))
-    script.write(UI_REGISTER)
-    script.use_module = True
+        # Generate the UI script
+        if "rig_ui.py" in bpy.data.texts:
+            script = bpy.data.texts["rig_ui.py"]
+            script.clear()
+        else:
+            script = bpy.data.texts.new("rig_ui.py")
+        script.write(UI_SLIDERS % rig_id)
+        for s in ui_scripts:
+            script.write("\n        " + s.replace("\n", "\n        ") + "\n")
+        script.write(layers_ui(vis_layers, layer_layout))
+        script.write(UI_REGISTER)
+        script.use_module = True
 
     # Run UI script
     exec(script.as_string(), {})
@@ -487,3 +470,13 @@ def param_name(param_name, rig_type):
     """ Get the actual parameter name, sans-rig-type.
     """
     return param_name[len(rig_type) + 1:]
+
+def isPitchipoy(metarig):
+    """ Returns True if metarig is type pitchipoy.
+    """
+    pbones=metarig.pose.bones
+    for pb in pbones:
+        words = pb.rigify_type.partition('.')
+        if  words[0] == 'pitchipoy':
+            return True
+    return False

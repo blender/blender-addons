@@ -36,7 +36,13 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.object.type == 'ARMATURE'
+        if not context.armature:
+            return False
+        #obj = context.object
+        #if obj:
+        #    return (obj.mode in {'POSE', 'OBJECT', 'EDIT'})
+        #return False
+        return True
 
     def draw(self, context):
         C = context
@@ -46,21 +52,6 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
 
         if obj.mode in {'POSE', 'OBJECT'}:
             layout.operator("pose.rigify_generate", text="Generate")
-            WARNING = "Warning: Some features may change after generation"
-            show_warning = False
-
-            check_props = ['IK_follow', 'root/parent', 'FK_limb_follow', 'IK_Stretch']
-            for obj in bpy.data.objects:
-                if type(obj.data) != bpy.types.Armature:
-                    continue
-                for bone in obj.pose.bones:
-                    if bone.bone.layers[30] and (list(set(bone.keys()) & set(check_props))):
-                        show_warning = True
-                        break
-
-            if show_warning:
-                layout.label(text=WARNING, icon='ERROR')
-
         elif obj.mode == 'EDIT':
             # Build types list
             collection_name = str(id_store.rigify_collection).replace(" ", "")
@@ -101,7 +92,9 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.object.type == 'ARMATURE'
+        if not context.armature:
+            return False
+        return True
 
     def draw(self, context):
         layout = self.layout
@@ -135,7 +128,7 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
             split.prop(rigify_layer, "name",  text="Layer %d" % (i + 1))
             split.prop(rigify_layer, "row",   text="")
 
-            #split.prop(rigify_layer, "column", text="")
+            #split.prop(rigify_layer, "column", text="")  
 
 
 class BONE_PT_rigify_buttons(bpy.types.Panel):
@@ -168,9 +161,6 @@ class BONE_PT_rigify_buttons(bpy.types.Panel):
             id_store.rigify_types.remove(0)
 
         for r in rig_lists.rig_list:
-            rig = get_rig_type(r)
-            if hasattr(rig, 'IMPLEMENTATION') and rig.IMPLEMENTATION:
-                continue
             # collection = r.split('.')[0]  # UNUSED
             if collection_name == "All":
                 a = id_store.rigify_types.add()
@@ -213,6 +203,10 @@ class VIEW3D_PT_tools_rigify_dev(bpy.types.Panel):
     bl_category = 'Tools'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object is not None and context.mode in {'EDIT_ARMATURE','EDIT_MESH'}
 
     def draw(self, context):
         obj = context.active_object
