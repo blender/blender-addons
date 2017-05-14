@@ -437,12 +437,87 @@ def generate_rig(context, metarig):
     # Run UI script
     exec(script.as_string(), {})
 
+    # Create Selection Sets
+    create_selection_sets(obj, metarig)
+
+    # Create Bone Groups
+    create_bone_groups(obj, metarig)
+
     t.tick("The rest: ")
     #----------------------------------
     # Deconfigure
     bpy.ops.object.mode_set(mode='OBJECT')
     metarig.data.pose_position = rest_backup
     obj.data.pose_position = 'POSE'
+
+
+def create_selection_sets(obj, metarig):
+
+    # Check if selection sets addon is installed
+    if 'bone_selection_groups' not in bpy.context.user_preferences.addons \
+            and 'bone_selection_sets' not in bpy.context.user_preferences.addons:
+        return
+
+    bpy.ops.object.mode_set(mode='POSE')
+
+    bpy.context.scene.objects.active = obj
+    obj.select = True
+    metarig.select = False
+    pbones = obj.pose.bones
+
+    for i, name in enumerate(metarig.data.rigify_layers.keys()):
+        if name == '' or not metarig.data.rigify_layers[i].set:
+            continue
+
+        bpy.ops.pose.select_all(action='DESELECT')
+        for b in pbones:
+            if b.bone.layers[i]:
+                b.bone.select = True
+
+        #bpy.ops.pose.selection_set_add()
+        obj.selection_sets.add()
+        obj.selection_sets[-1].name = name
+        if 'bone_selection_sets' in bpy.context.user_preferences.addons:
+            act_sel_set = obj.selection_sets[-1]
+
+            # iterate only the selected bones in current pose that are not hidden
+            for bone in bpy.context.selected_pose_bones:
+                if bone.name not in act_sel_set.bone_ids:
+                    bone_id = act_sel_set.bone_ids.add()
+                    bone_id.name = bone.name
+
+
+def create_bone_groups(obj, metarig):
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+    pb = obj.pose.bones
+    layers = metarig.data.rigify_layers
+    groups = metarig.data.rigify_colors
+
+    # Create BGs
+    for l in layers:
+        if l.group == 0:
+            continue
+        g_id = l.group - 1
+        name = groups[g_id].name
+        if name not in obj.pose.bone_groups.keys():
+            bg = obj.pose.bone_groups.new(name)
+            bg.color_set = 'CUSTOM'
+            bg.colors.normal = groups[g_id].normal
+            bg.colors.select = groups[g_id].select
+            bg.colors.active = groups[g_id].active
+
+    for b in pb:
+        try:
+            layer_index = b.bone.layers[:].index(True)
+        except ValueError:
+            continue
+        if layer_index > len(layers) - 1:   # bone is on reserved layers
+            continue
+        g_id = layers[layer_index].group - 1
+        if g_id >= 0:
+            name = groups[g_id].name
+            b.bone_group = obj.pose.bone_groups[name]
 
 
 def get_bone_rigs(obj, bone_name, halt_on_missing=False):
