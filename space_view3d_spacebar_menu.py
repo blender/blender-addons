@@ -2838,6 +2838,11 @@ class VIEW3D_OT_CursorToEdgeIntersection(Operator):
         return (obj is not None and obj.type == 'MESH')
 
     def execute(self, context):
+        # Prevent unsupported Execution in Local View modes
+        space_data = bpy.context.space_data
+        if True in space_data.layers_local_view:
+            self.report({'INFO'}, 'Global Perspective modes only unable to continue.')
+            return {'FINISHED'}
         edgeIntersect(context, self)
         return {'FINISHED'}
 
