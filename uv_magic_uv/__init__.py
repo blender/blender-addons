@@ -111,6 +111,10 @@ def register():
     bpy.types.VIEW3D_MT_uv_map.append(view3d_uvmap_menu_fn)
     bpy.types.IMAGE_MT_uvs.append(image_uvs_menu_fn)
     bpy.types.VIEW3D_MT_object.append(view3d_object_menu_fn)
+    try:
+        bpy.types.VIEW3D_MT_Object.append(view3d_object_menu_fn)
+    except:
+        pass
     muv_props.init_props(bpy.types.Scene)
 
 
@@ -119,6 +123,10 @@ def unregister():
     bpy.types.VIEW3D_MT_uv_map.remove(view3d_uvmap_menu_fn)
     bpy.types.IMAGE_MT_uvs.remove(image_uvs_menu_fn)
     bpy.types.VIEW3D_MT_object.remove(view3d_object_menu_fn)
+    try:
+        bpy.types.VIEW3D_MT_Object.remove(view3d_object_menu_fn)
+    except:
+        pass
     muv_props.clear_props(bpy.types.Scene)
 
 
