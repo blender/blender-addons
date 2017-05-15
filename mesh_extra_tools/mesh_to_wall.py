@@ -72,6 +72,7 @@ def turn_left(bm, v1, v2, vm, wm):
 
     verts = qq_sort(bm, links[-1], vm, wm)
     v = verts.index(links[-2])
+
     if v == 0:
         v_nxt = verts[-1]
     else:
@@ -191,13 +192,18 @@ class MeshtoWall(Operator):
         return True
 
     def execute(self, context):
+        # Note: the remove_doubles called after bmesh creation would make
+        # blender crash with certain meshes - keep it in mind for the future
+        bpy.ops.mesh.remove_doubles(threshold=0.003)  # <<< Remove doubles is called from here
         bpy.ops.object.mode_set(mode='OBJECT')
         if self.check_vert(context):
             bpy.ops.object.mode_set(mode='EDIT')
             ob = bpy.context.object
-            bm = bmesh.from_edit_mesh(ob.data)
-            bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.003)
-            bmesh.ops.delete(bm, geom=bm.faces, context=3)
+
+            me = ob.data
+            bm = bmesh.from_edit_mesh(me)
+            bpy.ops.mesh.delete(type='ONLY_FACE')
+
             context.tool_settings.mesh_select_mode = (True, True, False)
 
             v3d = context.space_data
