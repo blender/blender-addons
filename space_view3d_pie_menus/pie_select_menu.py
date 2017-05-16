@@ -91,9 +91,9 @@ class PieSelectionsEM(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         # 4 - LEFT
-        pie.operator("view3d.select_circle", text="Circle Select", icon='BORDER_LASSO')
-        # 6 - RIGHT
         pie.operator("view3d.select_border", text="Border Select", icon='BORDER_RECT')
+        # 6 - RIGHT
+        pie.menu("object.selectloopselection", text="Select Loop Menu", icon='LOOPSEL')
         # 2 - BOTTOM
         pie.operator("mesh.select_all", text="Select None", icon='RESTRICT_SELECT_ON').action = 'DESELECT'
         # 8 - TOP
@@ -103,11 +103,7 @@ class PieSelectionsEM(Menu):
         # 9 - TOP - RIGHT
         pie.operator("mesh.select_all", text="Invert Selection", icon='FULLSCREEN_EXIT').action = 'INVERT'
         # 1 - BOTTOM - LEFT
-        box = pie.split().column()
-        row = box.row(align=True)
-        box.operator("mesh.loop_multi_select", text="Select Loop", icon='LOOPSEL').ring = False
-        box.operator("mesh.loop_multi_select", text="Select Ring", icon='EDGESEL').ring = True
-        box.operator("mesh.loop_to_region", text="Select Loop Inner Region", icon='FACESEL')
+        pie.operator("view3d.select_circle", text="Circle Select", icon='BORDER_LASSO')
         # 3 - BOTTOM - RIGHT
         pie.menu("object.selectallbyselection", text="Multi Select Menu", icon='SNAP_EDGE')
 
@@ -144,11 +140,25 @@ class SelectAllBySelection(Menu):
         prop.value = "(True, True, True)"
         prop.data_path = "tool_settings.mesh_select_mode"
 
+class SelectLoopSelection(Menu):
+    bl_idname = "object.selectloopselection"
+    bl_label = "Verts Edges Faces"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.operator("mesh.loop_multi_select", text="Select Loop", icon='LOOPSEL').ring = False
+        layout.operator("mesh.loop_multi_select", text="Select Ring", icon='EDGESEL').ring = True
+        layout.operator("mesh.loop_to_region", text="Select Loop Inner Region", icon='FACESEL')
+
 classes = (
     PieSelectionsOM,
     PieSelectionsEM,
     SelectAllBySelection,
     PieSelectionsMore,
+    SelectLoopSelection
     )
 
 addon_keymaps = []
