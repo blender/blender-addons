@@ -91,25 +91,25 @@ class PieSelectionsEM(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         # 4 - LEFT
-        pie.operator("mesh.loop_multi_select", text="Select Ring", icon='ZOOM_PREVIOUS').ring = True
-        # 6 - RIGHT
-        pie.operator("mesh.loop_multi_select", text="Select Loop", icon='ZOOM_PREVIOUS').ring = False
-        # 2 - BOTTOM
-        pie.operator("mesh.select_all", text="Invert Selection", icon='ZOOM_PREVIOUS').action = 'INVERT'
-        # 8 - TOP
-        pie.operator("mesh.select_all", text="Select All Toggle", icon='RENDER_REGION').action = 'TOGGLE'
-        # 7 - TOP - LEFT
         pie.operator("view3d.select_circle", text="Circle Select", icon='BORDER_LASSO')
-        # 9 - TOP - RIGHT
+        # 6 - RIGHT
         pie.operator("view3d.select_border", text="Border Select", icon='BORDER_RECT')
+        # 2 - BOTTOM
+        pie.operator("mesh.select_all", text="Select None", icon='RESTRICT_SELECT_ON').action = 'DESELECT'
+        # 8 - TOP
+        pie.operator("mesh.select_all", text="Select All", icon='RESTRICT_SELECT_OFF').action = 'SELECT'
+        # 7 - TOP - LEFT
+        pie.operator("mesh.select_all", text="Select All Toggle", icon='ARROW_LEFTRIGHT').action = 'TOGGLE'
+        # 9 - TOP - RIGHT
+        pie.operator("mesh.select_all", text="Invert Selection", icon='FULLSCREEN_EXIT').action = 'INVERT'
         # 1 - BOTTOM - LEFT
         box = pie.split().column()
         row = box.row(align=True)
-        box.operator("mesh.select_nth", text="Checker Select", icon='PARTICLE_POINT')
+        box.operator("mesh.loop_multi_select", text="Select Loop", icon='LOOPSEL').ring = False
+        box.operator("mesh.loop_multi_select", text="Select Ring", icon='EDGESEL').ring = True
         box.operator("mesh.loop_to_region", text="Select Loop Inner Region", icon='FACESEL')
-        box.operator("mesh.select_similar", text="Select Similar", icon='GHOST')
         # 3 - BOTTOM - RIGHT
-        pie.menu("object.selectallbyselection", text="Multi Select Menu", icon='RENDER_REGION')
+        pie.menu("object.selectallbyselection", text="Multi Select Menu", icon='SNAP_EDGE')
 
 # Select All By Selection
 
