@@ -24,26 +24,46 @@ bl_info = {
 import bpy
 from mathutils import Vector
 
-bpy.types.Scene.AutoMirror_axis = bpy.props.EnumProperty(items = [("x", "X", "", 1),
-                                                                  ("y", "Y", "", 2),
-                                                                  ("z", "Z", "", 3)],
-                                                                  description="Axis used by the mirror modifier")
-bpy.types.Scene.AutoMirror_orientation = bpy.props.EnumProperty(items = [("positive","Positive", "", 1),
-                                                                         ("negative", "Negative", "", 2)],
-                                                                         description="Choose the side along the axis of the editable part (+/- coordinates)")
-bpy.types.Scene.AutoMirror_threshold = bpy.props.FloatProperty(default= 0.001,
-                                                               min= 0.001,
-                                                               description="Vertices closer than this distance are merged on the loopcut")
-bpy.types.Scene.AutoMirror_toggle_edit = bpy.props.BoolProperty(default= True,
-                                                                description="If not in edit mode, change mode to edit")
-bpy.types.Scene.AutoMirror_cut = bpy.props.BoolProperty(default= True,
-                                                        description="If enabeled, cut the mesh in two parts and mirror it. If not, just make a loopcut")
-bpy.types.Scene.AutoMirror_clipping = bpy.props.BoolProperty(default=True)
-bpy.types.Scene.AutoMirror_use_clip = bpy.props.BoolProperty(default=True,
-                                                             description="Use clipping for the mirror modifier")
-bpy.types.Scene.AutoMirror_show_on_cage = bpy.props.BoolProperty(default=True,
-                                                                 description="Enable to edit the cage (it's the classical modifier's option)")
-bpy.types.Scene.AutoMirror_apply_mirror = bpy.props.BoolProperty(description="Apply the mirror modifier (useful to symmetrise the mesh)")
+bpy.types.Scene.AutoMirror_axis = bpy.props.EnumProperty(
+            items = [
+            ("x", "X", "", 1),
+            ("y", "Y", "", 2),
+            ("z", "Z", "", 3)],
+            description="Axis used by the mirror modifier"
+            )
+bpy.types.Scene.AutoMirror_orientation = bpy.props.EnumProperty(
+            items = [
+            ("positive","Positive", "", 1),
+            ("negative", "Negative", "", 2)],
+            description="Choose the side along the axis of the editable part (+/- coordinates)"
+            )
+bpy.types.Scene.AutoMirror_threshold = bpy.props.FloatProperty(
+            default= 0.001,
+            min= 0.001,
+            description="Vertices closer than this distance are merged on the loopcut"
+            )
+bpy.types.Scene.AutoMirror_toggle_edit = bpy.props.BoolProperty(
+            default= True,
+            description="If not in edit mode, change mode to edit"
+            )
+bpy.types.Scene.AutoMirror_cut = bpy.props.BoolProperty(
+            default= True,
+            description="If enabeled, cut the mesh in two parts and mirror it. If not, just make a loopcut"
+            )
+bpy.types.Scene.AutoMirror_clipping = bpy.props.BoolProperty(
+            default=True
+            )
+bpy.types.Scene.AutoMirror_use_clip = bpy.props.BoolProperty(
+            default=True,
+            description="Use clipping for the mirror modifier"
+            )
+bpy.types.Scene.AutoMirror_show_on_cage = bpy.props.BoolProperty(
+            default=True,
+            description="Enable to edit the cage (it's the classical modifier's option)"
+            )
+bpy.types.Scene.AutoMirror_apply_mirror = bpy.props.BoolProperty(
+            description="Apply the mirror modifier (useful to symmetrise the mesh)"
+            )
 
 ############### Operator
 
@@ -115,13 +135,15 @@ class AutoMirror(bpy.types.Operator):
         bpy.ops.object.mode_set(mode="OBJECT") # Needed to avoid to translate vertices
 
         v1 = Vector((loc[0],loc[1],loc[2]))
-        bpy.ops.transform.translate(value=(X*orientation, Y*orientation, Z*orientation),
-                                           constraint_axis=((X==1), (Y==1), (Z==1)),
-                                           constraint_orientation='LOCAL')
+        bpy.ops.transform.translate(
+            value=(X*orientation, Y*orientation, Z*orientation),
+            constraint_axis=((X==1), (Y==1), (Z==1)),
+            constraint_orientation='LOCAL')
         v2 = Vector((loc[0],loc[1],loc[2]))
-        bpy.ops.transform.translate(value=(-X*orientation, -Y*orientation, -Z*orientation),
-                                           constraint_axis=((X==1), (Y==1), (Z==1)),
-                                           constraint_orientation='LOCAL')
+        bpy.ops.transform.translate(
+            value=(-X*orientation, -Y*orientation, -Z*orientation),
+            constraint_axis=((X==1), (Y==1), (Z==1)),
+            constraint_orientation='LOCAL')
 
         bpy.ops.object.mode_set(mode="EDIT")
         return v2-v1
