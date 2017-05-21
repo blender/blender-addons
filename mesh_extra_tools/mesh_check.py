@@ -1,13 +1,14 @@
 # gpl author: Pistiwique
 
-bl_info = {"name": "Mesh Check BGL edition",
-        "description": "Display the triangles and ngons of the mesh",
-        "author": "Pistiwique",
-        "version": (1, 0, 1),
-        "blender": (2, 75, 0),
-        "location": "3D View(s) -> Properties -> Shading",
-        "category": "3D View"
-        }
+bl_info = {
+    "name": "Mesh Check BGL edition",
+    "description": "Display the triangles and ngons of the mesh",
+    "author": "Pistiwique",
+    "version": (1, 0, 1),
+    "blender": (2, 75, 0),
+    "location": "3D View(s) > Properties > Shading",
+    "category": "3D View"
+    }
 
 import bpy
 import bmesh
@@ -180,10 +181,9 @@ def mesh_check_draw_callback():
 
                             for f in new_faces:
                                 faces.append([
-                                        (
-                                        (matrix_world * bm.verts[i].co)[0] + face.normal.x * 0.001,
-                                        (matrix_world * bm.verts[i].co)[1] + face.normal.y * 0.001,
-                                        (matrix_world * bm.verts[i].co)[2] + face.normal.z * 0.001)
+                                        ((matrix_world * bm.verts[i].co)[0] + face.normal.x * 0.001,
+                                         (matrix_world * bm.verts[i].co)[1] + face.normal.y * 0.001,
+                                         (matrix_world * bm.verts[i].co)[2] + face.normal.z * 0.001)
                                         for i in f]
                                         )
 
@@ -220,24 +220,28 @@ def updateBGLData(self, context):
         edge_width[0] = self.edge_width
         finer_lines[0] = self.finer_lines_behind_use
         face_opacity[0] = self.face_opacity
-        edges_tri_color[0] = (self.custom_tri_color[0],
-                    self.custom_tri_color[1],
-                    self.custom_tri_color[2],
-                    1)
-        faces_tri_color[0] = (self.custom_tri_color[0],
-                    self.custom_tri_color[1],
-                    self.custom_tri_color[2],
-                    self.face_opacity)
-        edges_ngons_color[0] = (self.custom_ngons_color[0],
-                    self.custom_ngons_color[1],
-                    self.custom_ngons_color[2],
-                    1)
-
-        faces_ngons_color[0] = (self.custom_ngons_color[0],
-                    self.custom_ngons_color[1],
-                    self.custom_ngons_color[2],
-                    self.face_opacity)
-
+        edges_tri_color[0] = (
+                self.custom_tri_color[0],
+                self.custom_tri_color[1],
+                self.custom_tri_color[2],
+                1)
+        faces_tri_color[0] = (
+                self.custom_tri_color[0],
+                self.custom_tri_color[1],
+                self.custom_tri_color[2],
+                self.face_opacity
+                )
+        edges_ngons_color[0] = (
+                self.custom_ngons_color[0],
+                self.custom_ngons_color[1],
+                self.custom_ngons_color[2],
+                1)
+        faces_ngons_color[0] = (
+                self.custom_ngons_color[0],
+                self.custom_ngons_color[1],
+                self.custom_ngons_color[2],
+                self.face_opacity
+                )
         return
 
     draw_enabled[0] = False
@@ -246,11 +250,13 @@ def updateBGLData(self, context):
 class FaceTypeSelect(Operator):
     bl_idname = "object.face_type_select"
     bl_label = "Face type select"
+    bl_description = "Select Triangles and / or Ngons on the Active Object"
     bl_options = {'REGISTER', 'UNDO'}
 
     face_type = EnumProperty(
-            items=(('tris', 'Tris', ""),
-                   ('ngons', 'Ngons', "")),
+            name="Face Type",
+            items=(('tris', "Tris", "Colorize Triangles in the Mesh"),
+                   ('ngons', "Ngons", "Colorize Ngons in the Mesh")),
             default='ngons'
             )
 
@@ -273,61 +279,61 @@ class FaceTypeSelect(Operator):
 
 class MeshCheckCollectionGroup(PropertyGroup):
     mesh_check_use = BoolProperty(
-        name="Mesh Check",
-        description="Display Mesh Check options",
-        default=False,
-        update=updateBGLData
-        )
+            name="Mesh Check",
+            description="Display Mesh Check options",
+            default=False,
+            update=updateBGLData
+            )
     display_faces = BoolProperty(
-        name="Display Faces",
-        description="Use BGL to display ngons en tris of the mesh",
-        default=False,
-        update=updateBGLData
-        )
+            name="Display Faces",
+            description="Use BGL to display Ngons and Tris of the mesh",
+            default=False,
+            update=updateBGLData
+            )
     edge_width = FloatProperty(
-        name="Width",
-        description="Edges width in pixels",
-        min=1.0,
-        max=10.0,
-        default=3.0,
-        subtype='PIXEL',
-        update=updateBGLData
-        )
+            name="Width",
+            description="Drawn Edges width in pixels",
+            min=1.0,
+            max=10.0,
+            default=3.0,
+            subtype='PIXEL',
+            update=updateBGLData
+            )
     finer_lines_behind_use = BoolProperty(
-        name="Finer Lines behind",
-        description="Display partially hidden edges finer in non-occlude mode",
-        default=True,
-        update=updateBGLData
-        )
+            name="Finer Lines behind",
+            description="Display partially hidden edges finer in non-occlude mode",
+            default=True,
+            update=updateBGLData
+            )
     custom_tri_color = FloatVectorProperty(
-        name="Tri Color",
-        description="Custom color for the triangles",
-        min=0.0,
-        max=1.0,
-        default=(1.0, 1.0, 0.0),
-        size=3,
-        subtype='COLOR',
-        update=updateBGLData
-        )
+            name="Tri Color",
+            description="Custom color for the Triangles",
+            min=0.0,
+            max=1.0,
+            default=(1.0, 1.0, 0.0),
+            size=3,
+            subtype='COLOR',
+            update=updateBGLData
+            )
     custom_ngons_color = FloatVectorProperty(
-        name="Ngons Color",
-        description="custom color for the ngons",
-        min=0.0,
-        max=1.0,
-        default=(1.0, 0.0, 0.0),
-        size=3,
-        subtype='COLOR',
-        update=updateBGLData
-        )
+            name="Ngons Color",
+            description="Custom color for the Ngons",
+            min=0.0,
+            max=1.0,
+            default=(1.0, 0.0, 0.0),
+            size=3,
+            subtype='COLOR',
+            update=updateBGLData
+            )
     face_opacity = FloatProperty(
-        name="Face Opacity",
-        description="Opacity of the color for the face",
-        min=0.0,
-        max=1.0,
-        default=0.2,
-        subtype='FACTOR',
-        update=updateBGLData
-        )
+            name="Face Opacity",
+            description="Opacity of the color for the face",
+            min=0.0,
+            max=1.0,
+            default=0.2,
+            subtype='FACTOR',
+            update=updateBGLData
+            )
 
 
 # Register
@@ -340,6 +346,7 @@ classes = (
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
+
     bpy.types.WindowManager.mesh_check = PointerProperty(
                                                 type=MeshCheckCollectionGroup
                                                 )
@@ -354,6 +361,7 @@ def unregister():
     if mesh_check_handle:
         bpy.types.SpaceView3D.draw_handler_remove(mesh_check_handle[0], 'WINDOW')
         mesh_check_handle[:] = []
+
     for cls in classes:
         bpy.utils.unregister_class(cls)
 

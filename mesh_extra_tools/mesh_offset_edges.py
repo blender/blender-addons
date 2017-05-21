@@ -1,20 +1,20 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
     "name": "Offset Edges",
@@ -24,8 +24,8 @@ bl_info = {
     "location": "VIEW3D > Edge menu(CTRL-E) > Offset Edges",
     "description": "Offset Edges",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Modeling/offset_edges",
-    "tracker_url": "",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/"
+                "Py/Scripts/Modeling/offset_edges",
     "category": "Mesh"}
 
 import bpy
@@ -510,103 +510,103 @@ class OffsetEdges(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     geometry_mode = EnumProperty(
-                    items=[('offset', "Offset", "Offset edges"),
-                           ('extrude', "Extrude", "Extrude edges"),
-                           ('move', "Move", "Move selected edges")],
-                    name="Geometry mode",
-                    default='offset',
-                    update=use_cashes
-                    )
+            items=[('offset', "Offset", "Offset edges"),
+                   ('extrude', "Extrude", "Extrude edges"),
+                   ('move', "Move", "Move selected edges")],
+            name="Geometry mode",
+            default='offset',
+            update=use_cashes
+            )
     width = FloatProperty(
-                    name="Width",
-                    default=.2,
-                    precision=4, step=1,
-                    update=use_cashes
-                    )
+            name="Width",
+            default=.2,
+            precision=4, step=1,
+            update=use_cashes
+            )
     flip_width = BoolProperty(
-                    name="Flip Width",
-                    default=False,
-                    description="Flip width direction",
-                    update=use_cashes
-                    )
+            name="Flip Width",
+            default=False,
+            description="Flip width direction",
+            update=use_cashes
+            )
     depth = FloatProperty(
-                    name="Depth",
-                    default=.0,
-                    precision=4, step=1,
-                    update=use_cashes
-                    )
+            name="Depth",
+            default=.0,
+            precision=4, step=1,
+            update=use_cashes
+            )
     flip_depth = BoolProperty(
-                    name="Flip Depth",
-                    default=False,
-                    description="Flip depth direction",
-                    update=use_cashes
-                    )
+            name="Flip Depth",
+            default=False,
+            description="Flip depth direction",
+            update=use_cashes
+            )
     depth_mode = EnumProperty(
-                    items=[('angle', "Angle", "Angle"),
-                           ('depth', "Depth", "Depth")],
-                    name="Depth mode",
-                    default='angle',
-                    update=use_cashes
-                    )
+            items=[('angle', "Angle", "Angle"),
+                   ('depth', "Depth", "Depth")],
+            name="Depth mode",
+            default='angle',
+            update=use_cashes
+            )
     angle = FloatProperty(
-                    name="Angle", default=0,
-                    precision=3, step=.1,
-                    min=-2 * pi, max=2 * pi,
-                    subtype='ANGLE',
-                    description="Angle",
-                    update=use_cashes
-                    )
+            name="Angle", default=0,
+            precision=3, step=.1,
+            min=-2 * pi, max=2 * pi,
+            subtype='ANGLE',
+            description="Angle",
+            update=use_cashes
+            )
     flip_angle = BoolProperty(
-                    name="Flip Angle",
-                    default=False,
-                    description="Flip Angle",
-                    update=use_cashes
-                    )
+            name="Flip Angle",
+            default=False,
+            description="Flip Angle",
+            update=use_cashes
+            )
     follow_face = BoolProperty(
-                    name="Follow Face",
-                    default=False,
-                    description="Offset along faces around"
-                    )
+            name="Follow Face",
+            default=False,
+            description="Offset along faces around"
+            )
     mirror_modifier = BoolProperty(
-                    name="Mirror Modifier",
-                    default=False,
-                    description="Take into account of Mirror modifier"
-                    )
+            name="Mirror Modifier",
+            default=False,
+            description="Take into account of Mirror modifier"
+            )
     edge_rail = BoolProperty(
-                    name="Edge Rail",
-                    default=False,
-                    description="Align vertices along inner edges"
-                    )
+            name="Edge Rail",
+            default=False,
+            description="Align vertices along inner edges"
+            )
     edge_rail_only_end = BoolProperty(
-                    name="Edge Rail Only End",
-                    default=False,
-                    description="Apply edge rail to end verts only"
-                    )
+            name="Edge Rail Only End",
+            default=False,
+            description="Apply edge rail to end verts only"
+            )
     threshold = FloatProperty(
-                    name="Flat Face Threshold",
-                    default=radians(0.05), precision=5,
-                    step=1.0e-4, subtype='ANGLE',
-                    description="If difference of angle between two adjacent faces is "
-                                "below this value, those faces are regarded as flat",
-                    options={'HIDDEN'}
-                    )
+            name="Flat Face Threshold",
+            default=radians(0.05), precision=5,
+            step=1.0e-4, subtype='ANGLE',
+            description="If difference of angle between two adjacent faces is "
+                        "below this value, those faces are regarded as flat",
+            options={'HIDDEN'}
+            )
     caches_valid = BoolProperty(
-                    name="Caches Valid",
-                    default=False,
-                    options={'HIDDEN'}
-                    )
+            name="Caches Valid",
+            default=False,
+            options={'HIDDEN'}
+            )
     angle_presets = EnumProperty(
-                    items=[('0°', "0°", "0°"),
-                           ('15°', "15°", "15°"),
-                           ('30°', "30°", "30°"),
-                           ('45°', "45°", "45°"),
-                           ('60°', "60°", "60°"),
-                           ('75°', "75°", "75°"),
-                           ('90°', "90°", "90°"), ],
-                    name="Angle Presets",
-                    default='0°',
-                    update=assign_angle_presets
-                    )
+            items=[('0°', "0°", "0°"),
+                   ('15°', "15°", "15°"),
+                   ('30°', "30°", "30°"),
+                   ('45°', "45°", "45°"),
+                   ('60°', "60°", "60°"),
+                   ('75°', "75°", "75°"),
+                   ('90°', "90°", "90°"), ],
+            name="Angle Presets",
+            default='0°',
+            update=assign_angle_presets
+            )
 
     _cache_offset_infos = None
     _cache_edges_orig_ixs = None

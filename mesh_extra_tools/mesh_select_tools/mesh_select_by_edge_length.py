@@ -1,47 +1,33 @@
 # mesh_select_by_edge_length.py Copyright (C) 2011, Dolf Veenvliet
 # Extrude a selection from a mesh multiple times
 
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# ***** END GPL LICENCE BLOCK *****
-
-'''
-bl_info = {
-    "name": "Select by edge length",
-    "author": "Dolf Veenvliet",
-    "version": (1,),
-    "blender": (2, 56, 0),
-    "location": "View3D > Select",
-    "description": "Select all items whose scale/length/surface matches a certain edge length",
-    "warning": "",
-    "wiki_url": "",
-    "tracker_url": "",
-    "category": "Mesh"}
+# ##### END GPL LICENSE BLOCK #####
 
 """
 Usage:
-
-Launch from from "Select -> By edge length"
+    Launch from from "Select -> By edge length"
+    Select all items whose scale/length/surface matches a certain edge length
 
 Additional links:
     Author Site: http://www.macouno.com
     e-mail: dolf {at} macouno {dot} com
 """
-'''
 
 import bpy
 from bpy.props import (
@@ -198,43 +184,43 @@ class Select_init(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     edgeLength = FloatProperty(
-                    name="Edge length",
-                    description="The comparison scale in Blender units",
-                    default=1.0,
-                    min=0.0, max=1000.0,
-                    soft_min=0.0, soft_max=100.0,
-                    step=100,
-                    precision=2
-                    )
+            name="Edge length",
+            description="The comparison scale in Blender units",
+            default=1.0,
+            min=0.0, max=1000.0,
+            soft_min=0.0, soft_max=100.0,
+            step=100,
+            precision=2
+            )
     # Changed to Enum as two separate Booleans didn't make much sense
     sizes = (('SMALL', 'Smaller', "Select items smaller or equal the size setting"),
              ('BIG', 'Bigger', "Select items bigger or equal to the size setting"),
              ('EQUAL', 'Equal', "Select edges equal to the size setting"))
     edgeSize = EnumProperty(
-                    items=sizes,
-                    name="Edge comparison",
-                    description="Choose the relation to set edge lenght",
-                    default='EQUAL'
-                    )
+            items=sizes,
+            name="Edge comparison",
+            description="Choose the relation to set edge lenght",
+            default='EQUAL'
+            )
     extend = BoolProperty(
-                    name="Extend",
-                    description="Extend the current selection",
-                    default=False
-                    )
+            name="Extend",
+            description="Extend the current selection",
+            default=False
+            )
     start_new = BoolProperty(
-                    name="Fresh Start",
-                    default=False,
-                    description="Start from no previous selection"
-                    )
+            name="Fresh Start",
+            default=False,
+            description="Start from no previous selection"
+            )
     # The spaces we use
     spaces = (('LOC', 'Local', "Use Local space"),
               ('GLO', 'Global', "Use Global Space"))
     space = EnumProperty(
-                    items=spaces,
-                    name="Space",
-                    description="The space to interpret the directions in",
-                    default='LOC'
-                    )
+            items=spaces,
+            name="Space",
+            description="The space to interpret the directions in",
+            default='LOC'
+            )
 
     @classmethod
     def poll(cls, context):

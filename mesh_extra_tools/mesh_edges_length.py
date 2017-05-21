@@ -2,16 +2,15 @@
 
 bl_info = {
     "name": "Set edges length",
-    "description": "edges length",
+    "description": "Edges length",
     "author": "Giuseppe De Marco [BlenderLab] inspired by NirenYang",
     "version": (0, 1, 0),
-    "blender": (2, 7, 0, 5),
-    "location": "[Toolbar][Tools][Mesh Tools]: set Length(Shit+Alt+E)",
+    "blender": (2, 7, 1),
+    "location": "Toolbar > Tools > Mesh Tools: set Length(Shit+Alt+E)",
     "warning": "",
-    "category": "Mesh",
     "wiki_url": "",
-    "tracker_url": "",
-}
+    "category": "Mesh",
+    }
 
 import bpy
 import bmesh
@@ -40,8 +39,8 @@ def get_edge_vector(edge):
 
 def get_selected(bmesh_obj, geometry_type):
     # geometry type should be edges, verts or faces
-
     selected = []
+
     for i in getattr(bmesh_obj, geometry_type):
         if i.select:
             selected.append(i)
@@ -66,51 +65,58 @@ class LengthSet(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     old_length = FloatProperty(
-                    name="Original length",
-                    options={'HIDDEN'},
-                    )
+            name="Original length",
+            options={'HIDDEN'},
+            )
     set_lenght_type = EnumProperty(
-                items=[
-                    ('manual', "Manual", "Input manually the desired Target Lenght"),
-                    ('existing', "Existing Lenght", "Use existing geometry Edges' characteristics"),
-                ],
-                name="Set Type of Input",
-                )
+            items=[
+                ('manual', "Manual",
+                 "Input manually the desired Target Lenght"),
+                ('existing', "Existing Lenght",
+                 "Use existing geometry Edges' characteristics"),
+            ],
+            name="Set Type of Input",
+            )
     target_length = FloatProperty(
-                    name="Target Length",
-                    description="Input a value for an Edges Lenght target",
-                    default=1.00,
-                    unit='LENGTH',
-                    precision=5
-                    )
+            name="Target Length",
+            description="Input a value for an Edges Lenght target",
+            default=1.00,
+            unit='LENGTH',
+            precision=5
+            )
     existing_lenght = EnumProperty(
-                    items=[
-                        ('min', "Shortest", "Set all to shortest Edge of selection"),
-                        ('max', "Longest", "Set all to the longest Edge of selection"),
-                        ('average', "Average", "Set all to the average Edge lenght of selection"),
-                        ('active', "Active", "Set all to the active Edge's one\n"
-                                             "Needs a selection to be done in Edge Select mode"),
-                    ],
-                    name="Existing lenght"
-                    )
+            items=[
+                ('min', "Shortest",
+                 "Set all to shortest Edge of selection"),
+                ('max', "Longest",
+                 "Set all to the longest Edge of selection"),
+                ('average', "Average",
+                 "Set all to the average Edge lenght of selection"),
+                ('active', "Active",
+                 "Set all to the active Edge's one\n"
+                 "Needs a selection to be done in Edge Select mode"),
+            ],
+            name="Existing lenght"
+            )
     mode = EnumProperty(
-                    items=[
-                        ('fixed', "Fixed", "Fixed"),
-                        ('increment', "Increment", "Increment"),
-                        ('decrement', "Decrement", "Decrement"),
-                    ],
-                    name="Mode"
-                    )
+            items=[
+                ('fixed', "Fixed", "Fixed"),
+                ('increment', "Increment", "Increment"),
+                ('decrement', "Decrement", "Decrement"),
+            ],
+            name="Mode"
+            )
     behaviour = EnumProperty(
-                    items=[
-                        ('proportional', "Proportional",
-                         "Move vertex locations proportionally to the center of the Edge"),
-                        ('clockwise', "Clockwise",
-                        "Compute the Edges' vertex locations in a clockwise fashion"),
-                        ('unclockwise', "Counterclockwise",
-                        "Compute the Edges' vertex locations in a counterclockwise fashion"),
-                    ],
-                    name="Resize behavior")
+            items=[
+                ('proportional', "Proportional",
+                 "Move vertex locations proportionally to the center of the Edge"),
+                ('clockwise', "Clockwise",
+                "Compute the Edges' vertex locations in a clockwise fashion"),
+                ('unclockwise', "Counterclockwise",
+                "Compute the Edges' vertex locations in a counterclockwise fashion"),
+            ],
+            name="Resize behavior"
+            )
 
     originary_edge_length_dict = {}
     edge_lenghts = []
@@ -138,7 +144,7 @@ class LengthSet(Operator):
         layout.label("Mode:")
         layout.prop(self, "mode", text="")
 
-        layout.label("Resize Behavior")
+        layout.label("Resize Behavior:")
         layout.prop(self, "behaviour", text="")
 
     def get_existing_edge_lenght(self, bm):
@@ -251,7 +257,8 @@ class LengthSet(Operator):
             if edge_length_debug:
                 self.report({'INFO'},
                             ' - '.join(('vector ' + str(vector),
-                                        'originary_vector ' + str(self.originary_edge_length_dict[verts_index])
+                                        'originary_vector ' +
+                                        str(self.originary_edge_length_dict[verts_index])
                                         )))
             verts = (edge.verts[0].co, edge.verts[1].co)
 
@@ -281,18 +288,22 @@ class LengthSet(Operator):
 
                 elif self.behaviour == 'unclockwise':
                     if self.mode == 'increment':
-                        edge.verts[1].co = verts[0] + (self.originary_edge_length_dict[verts_index] + vector)
+                        edge.verts[1].co = \
+                                verts[0] + (self.originary_edge_length_dict[verts_index] + vector)
                     elif self.mode == 'decrement':
-                        edge.verts[0].co = verts[1] - (self.originary_edge_length_dict[verts_index] - vector)
+                        edge.verts[0].co = \
+                                verts[1] - (self.originary_edge_length_dict[verts_index] - vector)
                     else:
                         edge.verts[1].co = verts[0] + vector
 
                 else:
                     # clockwise
                     if self.mode == 'increment':
-                        edge.verts[0].co = verts[1] - (self.originary_edge_length_dict[verts_index] + vector)
+                        edge.verts[0].co = \
+                                verts[1] - (self.originary_edge_length_dict[verts_index] + vector)
                     elif self.mode == 'decrement':
-                        edge.verts[1].co = verts[0] + (self.originary_edge_length_dict[verts_index] - vector)
+                        edge.verts[1].co = \
+                                verts[0] + (self.originary_edge_length_dict[verts_index] - vector)
                     else:
                         edge.verts[0].co = verts[1] - vector
 

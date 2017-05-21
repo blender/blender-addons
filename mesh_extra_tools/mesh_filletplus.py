@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
+# ##### END GPL LICENSE BLOCK #####
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,8 +16,7 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# ***** END GPL LICENCE BLOCK *****
-
+# ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
     "name": "FilletPlus",
@@ -29,7 +27,6 @@ bl_info = {
     "description": "",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "",
     "category": "Mesh"}
 
 
@@ -42,7 +39,10 @@ from bpy.props import (
 from bpy.types import Operator
 import bmesh
 from mathutils import Matrix
-from math import cos, pi, degrees, sin, tan
+from math import (
+        cos, pi, sin,
+        degrees, tan,
+        )
 
 
 def list_clear_(l):
@@ -298,36 +298,36 @@ class MESH_OT_fillet_plus(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     adj = FloatProperty(
-                name="",
-                description="Size of the filleted corners",
-                default=0.1,
-                min=0.00001, max=100.0,
-                step=1,
-                precision=3
-                )
+            name="",
+            description="Size of the filleted corners",
+            default=0.1,
+            min=0.00001, max=100.0,
+            step=1,
+            precision=3
+            )
     n = IntProperty(
-                name="",
-                description="Subdivision of the filleted corners",
-                default=3,
-                min=1, max=50,
-                step=1
-                )
+            name="",
+            description="Subdivision of the filleted corners",
+            default=3,
+            min=1, max=50,
+            step=1
+            )
     out = BoolProperty(
-                name="Outside",
-                description="Fillet towards outside",
-                default=False
-                )
+            name="Outside",
+            description="Fillet towards outside",
+            default=False
+            )
     flip = BoolProperty(
-                name="Flip",
-                description="Flip the direction of the Fillet\n"
-                            "Only available if Outside option is not active",
-                default=False
-                )
+            name="Flip",
+            description="Flip the direction of the Fillet\n"
+                        "Only available if Outside option is not active",
+            default=False
+            )
     radius = BoolProperty(
-                name="Radius",
-                description="Use radius for the size of the filleted corners",
-                default=False
-                )
+            name="Radius",
+            description="Use radius for the size of the filleted corners",
+            default=False
+            )
 
     @classmethod
     def poll(cls, context):
@@ -338,8 +338,8 @@ class MESH_OT_fillet_plus(Operator):
         layout = self.layout
 
         if f_buf.check is False:
-            layout.label(text="Angle equal to 0 or 180", icon="INFO")
-            layout.label("Can not fillet")
+            layout.label(text="Angle is equal to 0 or 180", icon="INFO")
+            layout.label(text="Can not fillet", icon="BLANK1")
         else:
             layout.prop(self, "radius")
             if self.radius is True:
@@ -349,6 +349,7 @@ class MESH_OT_fillet_plus(Operator):
             layout.prop(self, "adj")
             layout.label("Number of sides:")
             layout.prop(self, "n")
+
             if self.n > 1:
                 row = layout.row(align=False)
                 row.prop(self, "out")

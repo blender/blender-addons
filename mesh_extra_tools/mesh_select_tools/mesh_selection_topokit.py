@@ -21,11 +21,10 @@ bl_info = {
     "author": "dustractor",
     "version": (2, 0),
     "blender": (2, 60, 0),
-    "location": "edit mesh vertices/edges/faces menus",
+    "location": "Edit mesh > Vertices/ Edges/ Faces menus",
     "description": "",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "",
     "category": "Mesh"}
 
 
@@ -88,13 +87,15 @@ class MESH_OT_vneighbors_edgewise(meshpoller, Operator):
             prev_state = None
 
         if not prev_state:
-            selected_vert_indices = filter(lambda _: mesh.vertices[_].select,
-                                           range(len(mesh.vertices)))
+            selected_vert_indices = filter(
+                    lambda _: mesh.vertices[_].select,
+                    range(len(mesh.vertices))
+                    )
         else:
             selected_vert_indices = filter(
-                                    lambda _: mesh.vertices[_].select and not prev_state[_],
-                                    range(len(mesh.vertices))
-                                    )
+                    lambda _: mesh.vertices[_].select and not prev_state[_],
+                    range(len(mesh.vertices))
+                    )
 
         for v in selected_vert_indices:
             for neighbor_index in vert_to_vert_map[v]:
@@ -242,7 +243,8 @@ class MESH_OT_eneighbors_shared_v(meshpoller, Operator):
         state_mask = bytearray(len(mesh.edges))
 
         for e in mesh.edges:
-            state_mask[e.index] = mesh.vertices[e.vertices[0]].select ^ mesh.vertices[e.vertices[1]].select
+            state_mask[e.index] = \
+                    mesh.vertices[e.vertices[0]].select ^ mesh.vertices[e.vertices[1]].select
         mesh.edges.foreach_set('select', state_mask)
         bpy.ops.object.mode_set(mode="EDIT")
 
@@ -279,10 +281,12 @@ class MESH_OT_eneighbors_shared_f(meshpoller, Operator):
         else:
             edge_key_to_index = {k: i for i, k in enumerate(mesh.edge_keys)}
             edge_to_edges_dict = {i: set() for i in range(len(mesh.edges))}
+
             for f in mesh.polygons:
                 fed = [edge_key_to_index[k] for k in f.edge_keys]
                 for k in f.edge_keys:
                     edge_to_edges_dict[edge_key_to_index[k]].update(fed)
+
             obj.tkkey = meshkey
         state_mask, esel = (bytearray(meshkey[1]), bytearray(meshkey[1]))
         mesh.edges.foreach_get('select', esel)

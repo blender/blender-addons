@@ -26,7 +26,6 @@ bl_info = {
     "location": "Spacebar Menu",
     "description": "Chamfer vertex",
     "wiki_url": "",
-    "tracker_url": "",
     "category": "Mesh"}
 
 
@@ -133,9 +132,11 @@ class VertexChamfer(Operator):
             # Loop over all the loops of the vert
             for l in v.link_loops:
                 # Split the face
-                bmesh.utils.face_split(l.face,
-                                       l.link_loop_next.vert,
-                                       l.link_loop_prev.vert)
+                bmesh.utils.face_split(
+                            l.face,
+                            l.link_loop_next.vert,
+                            l.link_loop_prev.vert
+                            )
 
             # Remove the vert or displace otherwise
             if dissolve:
@@ -149,11 +150,11 @@ class VertexChamfer(Operator):
 
 
 def register():
-    bpy.utils.register_module(__name__)
+    bpy.utils.register_class(VertexChamfer)
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
+    bpy.utils.unregister_class(VertexChamfer)
 
 
 if __name__ == "__main__":

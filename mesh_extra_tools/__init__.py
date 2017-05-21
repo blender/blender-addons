@@ -17,20 +17,21 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Contributed to by:
-# meta-androcto,  Hidesato Ikeya, zmj100, luxuy_BlenderCN, TrumanBlending, PKHG, #
+# meta-androcto,  Hidesato Ikeya, zmj100, Gert De Roost, TrumanBlending, PKHG, #
 # Oscurart, Greg, Stanislav Blinov, komi3D, BlenderLab, Paul Marshall (brikbot), #
 # metalliandy, macouno, CoDEmanX, dustractor, Liero, lijenstina, Germano Cavalcante #
+# Pistiwique, Jimmy Hazevoet #
 
 bl_info = {
     "name": "Edit Tools 2",
     "author": "meta-androcto",
-    "version": (0, 3, 2),
+    "version": (0, 3, 3),
     "blender": (2, 78, 0),
     "location": "View3D > Toolshelf > Tools and Specials (W-key)",
     "description": "Extra mesh edit tools - modifying meshes and selection",
     "warning": "",
-    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Modeling/Extra_Tools",
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/"
+                "Py/Scripts/Modeling/Extra_Tools",
     "category": "Mesh"}
 
 
@@ -46,7 +47,7 @@ if "bpy" in locals():
     importlib.reload(mesh_edge_roundifier)
     importlib.reload(mesh_cut_faces)
     importlib.reload(split_solidify)
-    importlib.reload(mesh_to_wall)
+    importlib.reload(mesh_edges_floor_plan)
     importlib.reload(mesh_edges_length)
     importlib.reload(random_vertices)
     importlib.reload(mesh_fastloop)
@@ -76,7 +77,7 @@ else:
     from . import mesh_edge_roundifier
     from . import mesh_cut_faces
     from . import split_solidify
-    from . import mesh_to_wall
+    from . import mesh_edges_floor_plan
     from . import mesh_edges_length
     from . import random_vertices
     from . import mesh_fastloop
@@ -101,8 +102,6 @@ else:
 
 import bpy
 import bpy_extras.keyconfig_utils
-import bmesh
-from bpy.props import EnumProperty
 from bpy.types import (
         Menu,
         Panel,
@@ -112,6 +111,9 @@ from bpy.types import (
 from bpy.props import (
         BoolProperty,
         BoolVectorProperty,
+        EnumProperty,
+        FloatProperty,
+        FloatVectorProperty,
         IntVectorProperty,
         PointerProperty,
         )
@@ -159,7 +161,7 @@ class VIEW3D_MT_edit_mesh_extras(Menu):
             col.operator("mesh.offset_edges", text="Offset Edges")
             col.operator("mesh.edge_roundifier", text="Edge Roundify")
             col.operator("object.mesh_edge_length_set", text="Set Edge Length")
-            col.operator("bpt.mesh_to_wall", text="Edge(s) to Wall")
+            col.operator("mesh.edges_floor_plan")
 
             col = split.column()
             col.label(text="Utilities", icon="SCRIPTWIN")
@@ -241,21 +243,35 @@ class EditToolsPanel(Panel):
             row.operator("mesh.random_vertices", text="Random Vertices")
             row.operator("mesh.extra_tools_help",
                         icon="LAYER_USED").help_ids = "random_vertices"
-        # Vertex Align Properties And Menu
-            cen0 = context.scene.va_custom_props.en0 # get the properties list
-            layout = self.layout
-            layout.label(text="Vertex Align:", icon="VERTEXSEL")
-            layout.prop(context.scene.va_custom_props, 'en0', expand = False) # Draw the menu with 2 options 
-            if cen0 == 'vertex': 
-                row = layout.split(0.60)
-                row.label('Store data:')
-                row.operator('va.op0_store_id', text = 'Vertex')
-                row1 = layout.split(0.8, align=True)
-                row1.operator('va.op2_align_id', text = 'Align to Axis')
-                row1.operator('va.op7_help_id', text = '', icon = "LAYER_USED")
-            elif cen0 == 'coordinates':
-                layout.operator('va.op3_coord_list_id', text = 'Align Coordinates')
 
+            # Vertex Align Properties And Menu
+            cen0 = scene.mesh_extra_tools.vert_align_to
+
+            layout = self.layout
+            layout.label(text="Vertex Align:", icon="UV_VERTEXSEL")
+
+            # Draw the menu with 2 options
+            layout.prop(scene.mesh_extra_tools, "vert_align_to", expand=False)
+            if cen0 == 'vertex':
+                row = layout.row(align=True)
+                row.operator("vertex_align.store_id", text="Store Selected Vertex")
+
+                row = layout.split(0.8, align=True)
+                row.operator("vertex_align.align_original", text="Align to Axis")
+                props = row.operator("mesh.extra_tools_help", icon="LAYER_USED")
+                props.help_ids = "vertex_align"
+                props.popup_size = 400
+            elif cen0 == "coordinates":
+                layout.prop(scene.mesh_extra_tools, "vert_align_use_stored", toggle=True)
+
+                if scene.mesh_extra_tools.vert_align_use_stored:
+                    col = layout.column(align=True)
+                    col.prop(scene.mesh_extra_tools, "vert_align_store_axis", expand=True)
+
+                row = layout.split(0.8, align=True)
+                row.operator("vertex_align.coord_list_id", text="Align Coordinates")
+                row.operator("mesh.extra_tools_help",
+                            icon="LAYER_USED").help_ids = "vertex_align"
 
         # Edge options
         box1 = self.layout.box()
@@ -276,9 +292,9 @@ class EditToolsPanel(Panel):
             row = layout.split(0.8, align=True)
             row.operator("mesh.fillet_plus", text="Fillet plus")
 
-            prop = row.operator("mesh.extra_tools_help", icon="LAYER_USED")
-            prop.help_ids = "mesh_filletplus"
-            prop.popup_size = 400
+            props = row.operator("mesh.extra_tools_help", icon="LAYER_USED")
+            props.help_ids = "mesh_filletplus"
+            props.popup_size = 400
 
             row = layout.split(0.8, align=True)
             row.operator("mesh.offset_edges", text="Offset Edges")
@@ -296,9 +312,11 @@ class EditToolsPanel(Panel):
                         icon="LAYER_USED").help_ids = "mesh_edges_length"
 
             row = layout.split(0.8, align=True)
-            row.operator("bpt.mesh_to_wall", text="Edge(s) to Wall")
-            row.operator("mesh.extra_tools_help",
-                        icon="LAYER_USED").help_ids = "mesh_to_wall"
+            row.operator("mesh.edges_floor_plan")
+
+            props = row.operator("mesh.extra_tools_help", icon="LAYER_USED")
+            props.help_ids = "mesh_edges_floor_plan"
+            props.popup_size = 400
 
         # Face options
         box1 = self.layout.box()
@@ -364,82 +382,73 @@ class EditToolsPanel(Panel):
             row = layout.split(0.8, align=True)
             row.operator("object_ot.fastloop", text="Fast Loop")
 
-            prop = row.operator("mesh.extra_tools_help", icon="LAYER_USED")
-            prop.help_ids = "mesh_fastloop"
-            prop.popup_size = 400
+            props = row.operator("mesh.extra_tools_help", icon="LAYER_USED")
+            props.help_ids = "mesh_fastloop"
+            props.popup_size = 400
 
-            row = layout.row()
-            row.operator("mesh.flip_normals", text="Normals Flip")
-
-            row = layout.row()
-            row.operator("mesh.remove_doubles", text="Remove Doubles")
-
-            row = layout.row()
-            row.operator("mesh.subdivide", text="Subdivide")
-
-            row = layout.row()
-            row.operator("mesh.dissolve_limited", text="Dissolve Limited")
+            col = layout.column(align=True)
+            col.operator("mesh.flip_normals", text="Normals Flip")
+            col.operator("mesh.remove_doubles", text="Remove Doubles")
+            col.operator("mesh.subdivide", text="Subdivide")
+            col.operator("mesh.dissolve_limited", text="Dissolve Limited")
 
             row = layout.row(align=True)
             row.operator("mesh.select_vert_edge_face_index",
                           icon="VERTEXSEL", text="Select By Index").select_type = 'VERT'
 
+            # Mesh Check
             layout = self.layout
             icons = load_icons()
             tris = icons.get("triangles")
             ngons = icons.get("ngons")
-            
-         
+
             mesh_check = context.window_manager.mesh_check
-         
-            layout.prop(mesh_check, "mesh_check_use")
-         
+            icon_active_4 = "TRIA_RIGHT" if not mesh_check.mesh_check_use else "TRIA_DOWN"
+
+            row = layout.row()
+            row = layout.split(0.8, align=True)
+            row.prop(mesh_check, "mesh_check_use", toggle=True, icon=icon_active_4)
+            row.operator("mesh.extra_tools_help", icon="LAYER_USED").help_ids = "mesh_check"
+
             if mesh_check.mesh_check_use:
                 layout = self.layout
 
-                row = layout.row()
-                row.operator("object.face_type_select", text="Tris", icon_value=tris.icon_id).face_type = 'tris'
-                row.operator("object.face_type_select", text="Ngons",icon_value=ngons.icon_id).face_type = 'ngons'
+                row = layout.row(align=True)
+                row.operator("object.face_type_select", text="Tris",
+                             icon_value=tris.icon_id).face_type = 'tris'
+                row.operator("object.face_type_select", text="Ngons",
+                             icon_value=ngons.icon_id).face_type = 'ngons'
+
                 row = layout.row()
                 row.prop(mesh_check, "display_faces", text="Display Faces")
+
                 if mesh_check.display_faces:
+                    col = layout.column(align=True)
+                    col.prop(mesh_check, "edge_width")
+                    col.prop(mesh_check, "face_opacity")
+
                     row = layout.row()
-                    row.prop(mesh_check, "edge_width")
-                    row = layout.row()
-                    row.prop(mesh_check, "custom_tri_color",text="Tris color" ) 
-                    row = layout.row()
-                    row.prop(mesh_check, "custom_ngons_color")
-                    row = layout.row()
-                    row.prop(mesh_check, "face_opacity")
-                    if bpy.context.object.mode == 'EDIT':
-                        obj = bpy.context.object
-                        me = obj.data
-                        bm = bmesh.from_edit_mesh(me)
+                    row.label(text="Custom Colors:", icon="COLOR")
 
-                        info_str = ""
-                        tris = ngons = 0
+                    col = layout.column().split(percentage=0.1, align=True)
+                    col.label(text="", icon_value=tris.icon_id)
+                    col.prop(mesh_check, "custom_tri_color", text="")
 
-                        for f in bm.faces:
+                    col = layout.column().split(percentage=0.1, align=True)
+                    col.label(text="", icon_value=ngons.icon_id)
+                    col.prop(mesh_check, "custom_ngons_color", text="")
 
-                            v = len(f.verts)
-                            if v == 3:
-                                tris += 1
-                            elif v > 4:
-                                ngons += 1
+                    layout.separator()
 
-                        bmesh.update_edit_mesh(me)
-                        info_str = "  Ngons: %i   Tris: %i" % (ngons, tris)
-
-                        split = layout.split(percentage=0.1)
-                        split.separator()
-                        split.label(info_str, icon='MESH_DATA')
+                    row = layout.row(align=True)
+                    if bpy.app.debug:
+                        obj_data = getattr(context.active_object, "data", None)
+                        if obj_data:
+                            row.prop(obj_data, "show_extra_indices",
+                                     icon="LINENUMBERS_ON", toggle=True)
 
                     if context.mode == 'EDIT_MESH' and not context.space_data.use_occlude_geometry:
-                        split = layout.split(percentage=0.1)
-                        split.separator()
-                        split2 = split.split()
-                        row = split2.row()
-                        row.prop(mesh_check, "finer_lines_behind_use")
+                        row.prop(mesh_check, "finer_lines_behind_use", icon="ORTHO")
 
 
 # ********** Edit Multiselect **********
@@ -735,6 +744,55 @@ class MeshExtraToolsSceneProps(PropertyGroup):
             default=(False,) * 4,
             size=4,
             )
+    # Vertex align
+    vert_align_store_axis = FloatVectorProperty(
+            name="Define Custom Coordinates",
+            description="Store the values of coordinates, for repeated use\n"
+                        "as a starting point",
+            default=(0.0, 0.0, 0.0),
+            min=-100.0, max=100.0,
+            step=1, size=3,
+            subtype='XYZ',
+            precision=3
+            )
+    vert_align_use_stored = BoolProperty(
+            name="Use Stored Coordinates",
+            description="Use starting point coordinates for alignment",
+            default=False
+            )
+    vert_align_to = EnumProperty(
+            items=(('vertex', "Original vertex",
+                    "Use the stored vertex coordinates for aligning"),
+                   ('coordinates', "Custom coordinates",
+                    "Use defined custom coordinates for aligning")),
+            name="Align to",
+            default='vertex'
+            )
+    vert_align_axis = BoolVectorProperty(
+            name="Axis",
+            description="Align to a specific Axis",
+            default=(True, False, False),
+            size=3,
+            )
+    # Mesh Info select
+    mesh_info_show = BoolProperty(
+            name="Show Face Info",
+            description="Display the Object's Face Count information\n"
+                        "Note: it can have some performance impact on dense meshes\n"
+                        "Leave it closed if not needed or set the Delay to a higher value",
+            default=False
+            )
+    mesh_info_delay = FloatProperty(
+            name="Delay",
+            description="Set the Update time Delay in seconds\n"
+                        "Set to zero to update with the UI refresh\n"
+                        "Higher values will sometimes need to hover over the cursor",
+            default=2.0,
+            min=0.0, max=20.0,
+            step=100,
+            subtype='TIME',
+            precision=1
+            )
 
 
 # Add-on Preferences
@@ -802,7 +860,7 @@ def register():
     vfe_specials.register()
     mesh_extrude_and_reshape.register()
     mesh_check.register()
-    vertex_align.register()
+
     bpy.utils.register_module(__name__)
 
     # Register Scene Properties
@@ -827,7 +885,6 @@ def unregister():
     vfe_specials.unregister()
     mesh_extrude_and_reshape.unregister()
     mesh_check.unregister()
-    vertex_align.unregister()
 
     del bpy.types.Scene.mesh_extra_tools
     del bpy.types.Object.tkkey

@@ -20,12 +20,11 @@ bl_info = {
     "name": "Fast Loop",
     "description": "Add loops fast",
     "author": "Andy Davies (metalliandy)",
-    "version": (0, 16),
+    "version": (0, 1, 7),
     "blender": (2, 5, 6),
     "location": "Tool Shelf",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "",
     "category": "Mesh"
     }
 

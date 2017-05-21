@@ -1,45 +1,31 @@
 # mesh_select_by_pi.py Copyright (C) 2011, Dolf Veenvliet
 # Extrude a selection from a mesh multiple times
 
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# ***** END GPL LICENCE BLOCK *****
-
-'''
-bl_info = {
-    "name": "Select by pi",
-    "author": "Dolf Veenvliet",
-    "version": 1,
-    "blender": (2, 56, 0),
-    "location": "View3D > Select",
-    "description": "Select fake random based on pi",
-    "warning": "",
-    "wiki_url": "",
-    "tracker_url": "",
-    "category": "Mesh"}
+# ##### END GPL LICENSE BLOCK #####
 
 """
 Usage:
-
+    Select fake random based on pi
 Additional links:
     Author Site: http://www.macouno.com
     e-mail: dolf {at} macouno {dot} com
 """
-'''
 
 import bpy
 from bpy.types import Operator
@@ -179,20 +165,20 @@ class Select_init(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     e = BoolProperty(
-                name="Use e",
-                description="Use e as the base of selection instead of pi",
-                default=False
-                )
+            name="Use e",
+            description="Use e as the base of selection instead of pi",
+            default=False
+            )
     invert = BoolProperty(
-                name="Invert",
-                description="Invert the selection result",
-                default=False
-                )
+            name="Invert",
+            description="Invert the selection result",
+            default=False
+            )
     extend = BoolProperty(
-                name="Extend",
-                description="Extend the current selection",
-                default=False
-                )
+            name="Extend",
+            description="Extend the current selection",
+            default=False
+            )
     start_new = BoolProperty(
             name="Fresh Start",
             default=False,

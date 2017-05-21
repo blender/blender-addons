@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
     "name": "Split Solidify",
@@ -27,7 +27,6 @@ bl_info = {
     "description": "",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "",
     "category": "Mesh"}
 
 import bpy
@@ -111,44 +110,44 @@ class MESH_OT_split_solidify(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     distance = FloatProperty(
-                name="",
-                description="Distance of the splitted Faces to the original geometry",
-                default=0.4,
-                min=-100.0, max=100.0,
-                step=1,
-                precision=3
-                )
+            name="",
+            description="Distance of the splitted Faces to the original geometry",
+            default=0.4,
+            min=-100.0, max=100.0,
+            step=1,
+            precision=3
+            )
     thickness = FloatProperty(
-                name="",
-                description="Thickness of the splitted Faces",
-                default=0.04,
-                min=-100.0, max=100.0,
-                step=1,
-                precision=3
-                )
+            name="",
+            description="Thickness of the splitted Faces",
+            default=0.04,
+            min=-100.0, max=100.0,
+            step=1,
+            precision=3
+            )
     random_dist = FloatProperty(
-                name="",
-                description="Randomization factor of the splitted Faces' location",
-                default=0.06,
-                min=-10.0, max=10.0,
-                step=1,
-                precision=3
-                )
+            name="",
+            description="Randomization factor of the splitted Faces' location",
+            default=0.06,
+            min=-10.0, max=10.0,
+            step=1,
+            precision=3
+            )
     loc_random = BoolProperty(
-                name="Random",
-                description="Randomize the locations of splitted faces",
-                default=False
-                )
+            name="Random",
+            description="Randomize the locations of splitted faces",
+            default=False
+            )
     del_original = BoolProperty(
-                name="Delete original faces",
-                default=True
-                )
+            name="Delete original faces",
+            default=True
+            )
     normal_extr = EnumProperty(
-                items=(('opt0', "Face", "Solidify along Face Normals"),
-                       ('opt1', "Vertex", "Solidify along Vertex Normals")),
-                name="Normal",
-                default='opt0'
-               )
+            items=(('opt0', "Face", "Solidify along Face Normals"),
+                   ('opt1', "Vertex", "Solidify along Vertex Normals")),
+            name="Normal",
+            default='opt0'
+           )
 
     def draw(self, context):
         layout = self.layout
@@ -176,7 +175,8 @@ class MESH_OT_split_solidify(Operator):
         list_0 = [f.index for f in self.bm.faces if f.select]
 
         if len(list_0) == 0:
-            self.report({'WARNING'}, "No suitable selection found. Operation cancelled")
+            self.report({'WARNING'},
+                        "No suitable selection found. Operation cancelled")
 
             return {'CANCELLED'}
 

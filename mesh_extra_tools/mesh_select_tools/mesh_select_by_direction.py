@@ -1,43 +1,31 @@
 # Copyright (C) 2011, Dolf Veenvliet
 # Extrude a selection from a mesh multiple times
 
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
-'''
-bl_info = {
-    "name": "Select by direction",
-    "author": "Dolf Veenvliet",
-    "version": (1,),
-    "blender": (2, 56, 0),
-    "location": "View3D > Select",
-    "description": "Select all items whose normals face a certain direction",
-    "warning": "",
-    "wiki_url": "",
-    "tracker_url": "",
-    "category": "Mesh"}
+# ##### END GPL LICENSE BLOCK #####
 
 """
+Usage:
+    Select all items whose normals face a certain direction
 Additional links:
     Author Site: http://www.macouno.com
     e-mail: dolf {at} macouno {dot} com
 """
-'''
 
 import bpy
 from bpy.types import Operator
@@ -175,39 +163,39 @@ class Select_init(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     direction = FloatVectorProperty(
-                    name="Direction",
-                    description="Define a vector from the inputs axis X, Y, Z\n"
-                                "Used to define the normals direction",
-                    default=(0.0, 0.0, 1.0),
-                    min=-100.0, max=100.0,
-                    soft_min=-10.0, soft_max=10.0,
-                    step=100,
-                    precision=2
-                    )
+            name="Direction",
+            description="Define a vector from the inputs axis X, Y, Z\n"
+                        "Used to define the normals direction",
+            default=(0.0, 0.0, 1.0),
+            min=-100.0, max=100.0,
+            soft_min=-10.0, soft_max=10.0,
+            step=100,
+            precision=2
+            )
     divergence = FloatProperty(
-                    name="Divergence",
-                    description="The number of degrees the selection may differ from the Vector\n"
-                                "(Input is converted to radians)",
-                    default=radians(30.0),
-                    min=0.0, max=radians(360.0),
-                    soft_min=0.0, soft_max=radians(360.0),
-                    step=radians(5000),
-                    precision=2,
-                    subtype='ANGLE'
-                    )
+            name="Divergence",
+            description="The number of degrees the selection may differ from the Vector\n"
+                        "(Input is converted to radians)",
+            default=radians(30.0),
+            min=0.0, max=radians(360.0),
+            soft_min=0.0, soft_max=radians(360.0),
+            step=radians(5000),
+            precision=2,
+            subtype='ANGLE'
+            )
     extend = BoolProperty(
-                    name="Extend",
-                    description="Extend the current selection",
-                    default=False
-                    )
+            name="Extend",
+            description="Extend the current selection",
+            default=False
+            )
     # The spaces we use
     spaces = (('LOC', 'Local', ''), ('GLO', 'Global', ''))
     space = EnumProperty(
-                    items=spaces,
-                    name="Space",
-                    description="The space to interpret the directions in",
-                    default='LOC'
-                    )
+            items=spaces,
+            name="Space",
+            description="The space to interpret the directions in",
+            default='LOC'
+            )
 
     @classmethod
     def poll(cls, context):

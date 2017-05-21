@@ -33,17 +33,17 @@ class DATA_OP_facetype_select(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     face_type = EnumProperty(
-                    name="Select faces:",
-                    items=(("3", "Triangles", "Faces made up of 3 vertices"),
-                           ("4", "Quads", "Faces made up of 4 vertices"),
-                           ("5", "Ngons", "Faces made up of 5 and more vertices")),
-                    default="5"
-                    )
+            name="Select faces:",
+            items=(("3", "Triangles", "Faces made up of 3 vertices"),
+                   ("4", "Quads", "Faces made up of 4 vertices"),
+                   ("5", "Ngons", "Faces made up of 5 and more vertices")),
+            default="5"
+            )
     extend = BoolProperty(
-                    name="Extend",
-                    description="Extend Selection",
-                    default=False
-                    )
+            name="Extend",
+            description="Extend Selection",
+            default=False
+            )
 
     @classmethod
     def poll(cls, context):
@@ -68,11 +68,8 @@ class DATA_OP_facetype_select(Operator):
             return {'FINISHED'}
 
         except Exception as e:
-            print("\n[Select by face type]\nERROR:\n")
-
-            import traceback
-            traceback.printexc()
-
-            self.report('WARNING', "Face selection could not be performed (Check the console for more info)")
+            print("\n[Select by face type]\nOperator: data.facetype_select\nERROR: %s\n" % e)
+            self.report({'WARNING'},
+                        "Face selection could not be performed (Check the console for more info)")
 
             return {'CANCELLED'}

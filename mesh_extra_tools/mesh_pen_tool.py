@@ -1,33 +1,32 @@
 # -*- coding: utf-8 -*-
 
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
     "name": "Pen Tool",
     "author": "zmj100",
-    "version": (0, 2, 9),
+    "version": (0, 3, 1),
     "blender": (2, 78, 0),
     "location": "View3D > Tool Shelf",
     "description": "",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "",
     "category": "Mesh",
     }
 
@@ -47,8 +46,14 @@ from bpy.props import (
         PointerProperty,
         BoolProperty
         )
-from bpy_extras.view3d_utils import region_2d_to_location_3d, location_3d_to_region_2d
-from mathutils import Vector, Matrix
+from bpy_extras.view3d_utils import (
+        region_2d_to_location_3d,
+        location_3d_to_region_2d,
+        )
+from mathutils import (
+        Vector,
+        Matrix,
+        )
 from math import degrees
 
 
@@ -117,10 +122,10 @@ def draw_callback_px(self, context):
     # location 3d
     if context.scene.pen_tool_props.b2 is True:
         mloc3d = region_2d_to_location_3d(
-                                  context.region,
-                                  context.space_data.region_3d, Vector((pt_buf.x, pt_buf.y)),
-                                  pt_buf.depth_location
-                                  )
+                        context.region,
+                        context.space_data.region_3d, Vector((pt_buf.x, pt_buf.y)),
+                        pt_buf.depth_location
+                        )
         blf.position(font_id, pt_buf.x + 15, pt_buf.y - 15, 0)
         blf.size(font_id, font_size, context.user_preferences.system.dpi)
         blf.draw(font_id,
@@ -135,17 +140,19 @@ def draw_callback_px(self, context):
         bgl.glPointSize(4.0)
         bgl.glBegin(bgl.GL_POINTS)
         for i in pt_buf.list_m_loc_3d:
-            loc_0 = location_3d_to_region_2d(context.region, context.space_data.region_3d, i)
+            loc_0 = location_3d_to_region_2d(
+                            context.region, context.space_data.region_3d, i
+                            )
             bgl.glVertex2f(loc_0[0], loc_0[1])
         bgl.glEnd()
         bgl.glDisable(bgl.GL_BLEND)
 
         # text next to the mouse
         m_loc_3d = region_2d_to_location_3d(
-                                    context.region,
-                                    context.space_data.region_3d, Vector((pt_buf.x, pt_buf.y)),
-                                    pt_buf.depth_location
-                                    )
+                            context.region,
+                            context.space_data.region_3d, Vector((pt_buf.x, pt_buf.y)),
+                            pt_buf.depth_location
+                            )
         vec0 = pt_buf.list_m_loc_3d[-1] - m_loc_3d
         blf.position(font_id, pt_buf.x + 15, pt_buf.y + 15, 0)
         blf.size(font_id, font_size, context.user_preferences.system.dpi)
@@ -234,9 +241,9 @@ def draw_callback_px(self, context):
                                 pass
                             else:
                                 loc_4 = location_3d_to_region_2d(
-                                                        context.region, context.space_data.region_3d,
-                                                        pt_buf.list_m_loc_3d[h]
-                                                        )
+                                                context.region, context.space_data.region_3d,
+                                                pt_buf.list_m_loc_3d[h]
+                                                )
                                 bgl.glColor4f(0.0, 1.0, 0.525, alpha)
                                 blf.position(font_id, loc_4[0] + 10, loc_4[1] + 10, 0)
                                 blf.size(font_id, font_size, context.user_preferences.system.dpi)
@@ -252,41 +259,41 @@ def draw_callback_px(self, context):
 
 class pen_tool_properties(PropertyGroup):
     a = FloatProperty(
-                name="Alpha",
-                description="Set Font Alpha",
-                default=1.0,
-                min=0.1, max=1.0,
-                step=10,
-                precision=1
-                )
+            name="Alpha",
+            description="Set Font Alpha",
+            default=1.0,
+            min=0.1, max=1.0,
+            step=10,
+            precision=1
+            )
     fs = IntProperty(
-                name="Size",
-                description="Set Font Size",
-                default=14,
-                min=12, max=40,
-                step=1
-                )
+            name="Size",
+            description="Set Font Size",
+            default=14,
+            min=12, max=40,
+            step=1
+            )
     b0 = BoolProperty(
-                name="Angles",
-                description="Display All Angles on Drawn Edges",
-                default=False
-                )
+            name="Angles",
+            description="Display All Angles on Drawn Edges",
+            default=False
+            )
     b1 = BoolProperty(
-                name="Edge Length",
-                description="Display All Lenghts of Drawn Edges",
-                default=False
-                )
+            name="Edge Length",
+            description="Display All Lenghts of Drawn Edges",
+            default=False
+            )
     b2 = BoolProperty(
-                name="Mouse Location 3D",
-                description="Display the location coordinates of the mouse cursor",
-                default=False
-                )
+            name="Mouse Location 3D",
+            description="Display the location coordinates of the mouse cursor",
+            default=False
+            )
     restore_view = BoolProperty(
-                name="Restore View",
-                description="After the tool has finished, is the Viewport restored\n"
-                            "to it's previous state",
-                default=True
-                )
+            name="Restore View",
+            description="After the tool has finished, is the Viewport restored\n"
+                        "to it's previous state",
+            default=True
+            )
 
 
 class pt_buf():
@@ -314,25 +321,27 @@ class pen_tool_panel(Panel):
 
     def draw(self, context):
         layout = self.layout
+        pen_tool_props = context.scene.pen_tool_props
 
         if pt_buf.sws == "on":
             layout.active = False
-            layout.label("Pen Tool Active")
+            layout.label(text="Pen Tool Active", icon="INFO")
         else:
-            layout.label("Font:")
+            col = layout.column(align=True)
+            col.label("Font:")
+            col.prop(pen_tool_props, "fs", text="Size", slider=True)
+            col.prop(pen_tool_props, "a", text="Alpha", slider=True)
 
-            row = layout.split(0.50, align=True)
-            row.prop(context.scene.pen_tool_props, "fs", text="Size", slider=True)
-            row.prop(context.scene.pen_tool_props, "a", text="Alpha", slider=True)
+            col = layout.column(align=True)
+            col.label("Settings:")
+            col.prop(pen_tool_props, "b0", text="Angles", toggle=True)
+            col.prop(pen_tool_props, "b1", text="Edge Length", toggle=True)
+            col.prop(pen_tool_props, "b2", text="Mouse Location 3D", toggle=True)
+            col.prop(pen_tool_props, "restore_view", text="Restore View", toggle=True)
 
-            layout.prop(context.scene.pen_tool_props, "b0", text="Angles")
-            layout.prop(context.scene.pen_tool_props, "b1", text="Edge Length")
-            layout.prop(context.scene.pen_tool_props, "b2", text="Mouse Location 3D")
-            layout.prop(context.scene.pen_tool_props, "restore_view", text="Restore View")
-
-            row1 = layout.split(0.80, align=True)
-            row1.operator("pen_tool.operator", text="Draw")
-            row1.operator("mesh.extra_tools_help",
+            split = layout.split(0.80, align=True)
+            split.operator("pen_tool.operator", text="Draw")
+            split.operator("mesh.extra_tools_help",
                            icon="LAYER_USED").help_ids = "mesh_pen_tool"
 
 
@@ -343,10 +352,10 @@ class pen_tool_operator(Operator):
     bl_options = {"REGISTER", "UNDO", "INTERNAL"}
 
     text_location = IntProperty(
-                        name="",
-                        default=0,
-                        options={'HIDDEN'}
-                        )
+            name="",
+            default=0,
+            options={'HIDDEN'}
+            )
 
     @classmethod
     def poll(cls, context):
@@ -498,7 +507,8 @@ class pen_tool_operator(Operator):
                     self.text_location = region.width - 100
             if overlap:
                 for region in context.area.regions:
-                    if region.type == 'TOOL_PROPS':
+                    # The Properties Region on the right is of UI type
+                    if region.type == "UI":
                         self.text_location = self.text_location - region.width
 
             if pt_buf.sws == 'on':
@@ -513,20 +523,22 @@ class pen_tool_operator(Operator):
                 pt_buf.sws = 'on'
                 return {'RUNNING_MODAL'}
         else:
-            self.report({'WARNING'}, "Pen Tool: View3D not found, operation cancelled")
+            self.report({'WARNING'}, "Pen Tool: Operation Cancelled. View3D not found")
             return {'CANCELLED'}
 
 
-class_list = [pen_tool_panel,
-              pen_tool_operator,
-              pen_tool_properties
-             ]
+class_list = (
+        pen_tool_panel,
+        pen_tool_operator,
+        pen_tool_properties
+        )
 
 
 KEYMAPS = (
     # First, keymap identifiers (last bool is True for modal km).
     (("3D View", "VIEW_3D", "WINDOW", False), (
-    # Then a tuple of keymap items, defined by a dict of kwargs for the km new func, and a tuple of tuples (name, val)
+    # Then a tuple of keymap items, defined by a dict of kwargs
+    # for the km new func, and a tuple of tuples (name, val)
     # for ops properties, if needing non-default values.
         ({"idname": pen_tool_operator.bl_idname, "type": 'D', "value": 'PRESS', "ctrl": True},
          ()),

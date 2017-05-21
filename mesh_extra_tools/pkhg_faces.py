@@ -3,7 +3,7 @@
 bl_info = {
     "name": "PKHG faces",
     "author": "PKHG",
-    "version": (0, 0, 5),
+    "version": (0, 0, 6),
     "blender": (2, 7, 1),
     "location": "View3D > Tools > PKHG (tab)",
     "description": "Faces selected will become added faces of different style",
@@ -14,10 +14,7 @@ bl_info = {
 
 import bpy
 import bmesh
-from bpy.types import (
-        Operator,
-        Panel
-        )
+from bpy.types import Operator
 from mathutils import Vector
 from bpy.props import (
         BoolProperty,
@@ -35,159 +32,158 @@ class MESH_OT_add_faces_to_object(Operator):
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     reverse_faces = BoolProperty(
-                        name="Reverse Faces",
-                        default=False,
-                        description="Revert the normals of selected faces"
-                        )
+            name="Reverse Faces",
+            default=False,
+            description="Revert the normals of selected faces"
+            )
     name_source_object = StringProperty(
-                        name="Mesh",
-                        description="Choose a Source Mesh",
-                        default="Cube"
-                        )
+            name="Mesh",
+            description="Choose a Source Mesh",
+            default="Cube"
+            )
     remove_start_faces = BoolProperty(
-                        name="Remove Start Faces",
-                        default=True,
-                        description="Make a choice about removal of Original Faces"
-                        )
+            name="Remove Start Faces",
+            default=True,
+            description="Make a choice about removal of Original Faces"
+            )
     base_height = FloatProperty(
-                        name="Base Height",
-                        min=-20,
-                        soft_max=10, max=20,
-                        default=0.2,
-                        description="Set general Base Height"
-                        )
+            name="Base Height",
+            min=-20,
+            soft_max=10, max=20,
+            default=0.2,
+            description="Set general Base Height"
+            )
     use_relative_base_height = BoolProperty(
-                        name="rel.base_height",
-                        default=False,
-                        description="Relative or absolute Base Height"
-                        )
+            name="Relative Base Height",
+            default=False,
+            description="Relative or absolute Base Height"
+            )
     second_height = FloatProperty(
-                        name="2nd height", min=-5,
-                        soft_max=5, max=20,
-                        default=0.2,
-                        description="Second height for various shapes"
-                        )
+            name="2nd height", min=-5,
+            soft_max=5, max=20,
+            default=0.2,
+            description="Second height for various shapes"
+            )
     width = FloatProperty(
-                        name="Width Faces",
-                        min=-20, max=20,
-                        default=0.5,
-                        description="Set general width"
-                        )
+            name="Width Faces",
+            min=-20, max=20,
+            default=0.5,
+            description="Set general width"
+            )
     repeat_extrude = IntProperty(
-                        name="Repeat",
-                        min=1,
-                        soft_max=5, max=20,
-                        description="For longer base"
-                        )
+            name="Repeat",
+            min=1,
+            soft_max=5, max=20,
+            description="For longer base"
+            )
     move_inside = FloatProperty(
-                        name="Move Inside",
-                        min=0.0,
-                        max=1.0,
-                        default=0.5,
-                        description="How much move to inside"
-                        )
+            name="Move Inside",
+            min=0.0,
+            max=1.0,
+            default=0.5,
+            description="How much move to inside"
+            )
     thickness = FloatProperty(
-                        name="Thickness",
-                        soft_min=0.01, min=0,
-                        soft_max=5.0, max=20.0,
-                        default=0
-                        )
+            name="Thickness",
+            soft_min=0.01, min=0,
+            soft_max=5.0, max=20.0,
+            default=0
+            )
     depth = FloatProperty(
-                        name="Depth",
-                        min=-5,
-                        soft_max=5.0, max=20.0,
-                        default=0
-                        )
+            name="Depth",
+            min=-5,
+            soft_max=5.0, max=20.0,
+            default=0
+            )
     collapse_edges = BoolProperty(
-                        name="Make Point",
-                        default=False,
-                        description="Collapse the vertices of edges"
-                        )
+            name="Make Point",
+            default=False,
+            description="Collapse the vertices of edges"
+            )
     spike_base_width = FloatProperty(
-                        name="Spike Base Width",
-                        default=0.4,
-                        min=-4.0,
-                        soft_max=1, max=20,
-                        description="Base width of a spike"
-                        )
+            name="Spike Base Width",
+            default=0.4,
+            min=-4.0,
+            soft_max=1, max=20,
+            description="Base width of a spike"
+            )
     base_height_inset = FloatProperty(
-                        name="Base Height Inset",
-                        default=0.0,
-                        min=-5, max=5,
-                        description="To elevate or drop the Base height Inset"
-                        )
+            name="Base Height Inset",
+            default=0.0,
+            min=-5, max=5,
+            description="To elevate or drop the Base height Inset"
+            )
     top_spike = FloatProperty(
-                        name="Top Spike",
-                        default=1.0,
-                        min=-10.0, max=10.0,
-                        description="The Base Height of a spike"
-                        )
-
+            name="Top Spike",
+            default=1.0,
+            min=-10.0, max=10.0,
+            description="The Base Height of a spike"
+            )
     top_extra_height = FloatProperty(
-                        name="Top Extra Height",
-                        default=0.0,
-                        min=-10.0, max=10.0,
-                        description="Add extra height"
-                        )
+            name="Top Extra Height",
+            default=0.0,
+            min=-10.0, max=10.0,
+            description="Add extra height"
+            )
     step_with_real_spike = BoolProperty(
-                        name="Step with Real Spike",
-                        default=False,
-                        description="In stepped, use a real spike"
-                        )
+            name="Step with Real Spike",
+            default=False,
+            description="In stepped, use a real spike"
+            )
     use_relative = BoolProperty(
-                        name="Use Relative",
-                        default=False,
-                        description="Change size using area, min or max"
-                        )
+            name="Use Relative",
+            default=False,
+            description="Change size using area, min or max"
+            )
     face_types = EnumProperty(
-                        name="Face Types",
-                        description="Different types of Faces",
-                        default="no",
-                        items=[
-                            ('no', "Pick an Option", "Choose one of the available options"),
-                            ('open_inset', "Open Inset", "Inset without closing faces (holes)"),
-                            ('with_base', "With Base", "Base and ..."),
-                            ('clsd_vertical', "Closed Vertical", "Closed Vertical"),
-                            ('open_vertical', "Open Vertical", "Open Vertical"),
-                            ('spiked', "Spiked", "Spike"),
-                            ('stepped', "Stepped", "Stepped"),
-                            ('boxed', "Boxed", "Boxed"),
-                            ('bar', "Bar", "Bar"),
-                            ]
-                        )
+            name="Face Types",
+            description="Different types of Faces",
+            default="no",
+            items=[
+                ('no', "Pick an Option", "Choose one of the available options"),
+                ('open_inset', "Open Inset", "Inset without closing faces (holes)"),
+                ('with_base', "With Base", "Base and ..."),
+                ('clsd_vertical', "Closed Vertical", "Closed Vertical"),
+                ('open_vertical', "Open Vertical", "Open Vertical"),
+                ('spiked', "Spiked", "Spike"),
+                ('stepped', "Stepped", "Stepped"),
+                ('boxed', "Boxed", "Boxed"),
+                ('bar', "Bar", "Bar"),
+                ]
+            )
     strange_boxed_effect = BoolProperty(
-                        name="Strange Effect",
-                        default=False,
-                        description="Do not show one extrusion"
-                        )
+            name="Strange Effect",
+            default=False,
+            description="Do not show one extrusion"
+            )
     use_boundary = BoolProperty(
-                        name="Use Boundary",
-                        default=True
-                        )
+            name="Use Boundary",
+            default=True
+            )
     use_even_offset = BoolProperty(
-                        name="Even Offset",
-                        default=True
-                        )
+            name="Even Offset",
+            default=True
+            )
     use_relative_offset = BoolProperty(
-                        name="Relative Offset",
-                        default=True
-                        )
+            name="Relative Offset",
+            default=True
+            )
     use_edge_rail = BoolProperty(
-                        name="Edge Rail",
-                        default=False
-                        )
+            name="Edge Rail",
+            default=False
+            )
     use_outset = BoolProperty(
-                        name="Outset",
-                        default=False
-                        )
+            name="Outset",
+            default=False
+            )
     use_select_inset = BoolProperty(
-                        name="Inset",
-                        default=False
-                        )
+            name="Inset",
+            default=False
+            )
     use_interpolate = BoolProperty(
-                        name="Interpolate",
-                        default=True
-                        )
+            name="Interpolate",
+            default=True
+            )
 
     @classmethod
     def poll(cls, context):
@@ -438,21 +434,24 @@ class MESH_OT_add_faces_to_object(Operator):
                 fac = top_spike
                 object_matrix = startinfo['obj'].matrix_local
                 for i in range(len(next_ring_edges_list)):
-                    translate_ONE_ring(self, context, bm=bm,
-                                       object_matrix=object_matrix,
-                                       ring_edges=next_ring_edges_list[i],
-                                       normal=normals[i], distance=fac)
-
+                    translate_ONE_ring(
+                            self, context, bm=bm,
+                            object_matrix=object_matrix,
+                            ring_edges=next_ring_edges_list[i],
+                            normal=normals[i], distance=fac
+                            )
                 next_ring_edges_list_2 = extrude_edges(self, context, bm=bm,
                                                        edge_l_l=next_ring_edges_list)
 
                 top_extra_height = self.top_extra_height
                 for i in range(len(next_ring_edges_list_2)):
-                    move_corner_vecs_outside(self, context, bm=bm,
-                                             edge_list=next_ring_edges_list_2[i],
-                                             center=centers[i], normal=normals[i],
-                                             base_height_erlier=fac + top_extra_height,
-                                             distance=fac)
+                    move_corner_vecs_outside(
+                            self, context, bm=bm,
+                            edge_list=next_ring_edges_list_2[i],
+                            center=centers[i], normal=normals[i],
+                            base_height_erlier=fac + top_extra_height,
+                            distance=fac
+                            )
                 bpy.ops.mesh.select_mode(type="VERT")
                 bpy.ops.mesh.select_more()
 
@@ -481,24 +480,30 @@ def find_one_ring(sel_vertices):
 
 class Stepped:
     def __init__(self, spike_base_width=0.5, base_height_inset=0.0, top_spike=0.2,
-                 top_relative=False, top_extra_height=0, use_relative_offset=False, with_spike=False):
+                 top_relative=False, top_extra_height=0, use_relative_offset=False,
+                 with_spike=False):
 
         bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=False,
-                           use_edge_rail=False, thickness=spike_base_width, depth=0, use_outset=True,
-                           use_select_inset=False, use_individual=True, use_interpolate=True)
-
-        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=use_relative_offset,
-                           use_edge_rail=False, thickness=top_extra_height, depth=base_height_inset,
-                           use_outset=True, use_select_inset=False, use_individual=True, use_interpolate=True)
-
-        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=use_relative_offset,
-                           use_edge_rail=False, thickness=spike_base_width, depth=0, use_outset=True,
-                           use_select_inset=False, use_individual=True, use_interpolate=True)
-
-        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=False,
-                           use_edge_rail=False, thickness=0, depth=top_spike, use_outset=True,
-                           use_select_inset=False, use_individual=True, use_interpolate=True)
+        bpy.ops.mesh.inset(
+                use_boundary=True, use_even_offset=True, use_relative_offset=False,
+                use_edge_rail=False, thickness=spike_base_width, depth=0, use_outset=True,
+                use_select_inset=False, use_individual=True, use_interpolate=True
+                )
+        bpy.ops.mesh.inset(
+                use_boundary=True, use_even_offset=True, use_relative_offset=use_relative_offset,
+                use_edge_rail=False, thickness=top_extra_height, depth=base_height_inset,
+                use_outset=True, use_select_inset=False, use_individual=True, use_interpolate=True
+                )
+        bpy.ops.mesh.inset(
+                use_boundary=True, use_even_offset=True, use_relative_offset=use_relative_offset,
+                use_edge_rail=False, thickness=spike_base_width, depth=0, use_outset=True,
+                use_select_inset=False, use_individual=True, use_interpolate=True
+                )
+        bpy.ops.mesh.inset(
+                use_boundary=True, use_even_offset=True, use_relative_offset=False,
+                use_edge_rail=False, thickness=0, depth=top_spike, use_outset=True,
+                use_select_inset=False, use_individual=True, use_interpolate=True
+                )
         if with_spike:
             bpy.ops.mesh.merge(type='COLLAPSE')
 
@@ -510,13 +515,16 @@ class Spiked:
 
         obj = bpy.context.active_object
         bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=False,
-                           use_edge_rail=False, thickness=spike_base_width, depth=base_height_inset,
-                           use_outset=True, use_select_inset=False, use_individual=True, use_interpolate=True)
-
-        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=top_relative,
-                           use_edge_rail=False, thickness=0, depth=top_spike, use_outset=True,
-                           use_select_inset=False, use_individual=True, use_interpolate=True)
+        bpy.ops.mesh.inset(
+                use_boundary=True, use_even_offset=True, use_relative_offset=False,
+                use_edge_rail=False, thickness=spike_base_width, depth=base_height_inset,
+                use_outset=True, use_select_inset=False, use_individual=True, use_interpolate=True
+                )
+        bpy.ops.mesh.inset(
+                use_boundary=True, use_even_offset=True, use_relative_offset=top_relative,
+                use_edge_rail=False, thickness=0, depth=top_spike, use_outset=True,
+                use_select_inset=False, use_individual=True, use_interpolate=True
+                )
 
         bm = bmesh.from_edit_mesh(obj.data)
         bpy.ops.mesh.merge(type='COLLAPSE')
@@ -596,50 +604,63 @@ class StripFaces:
                  use_select_inset=False, use_individual=True, use_interpolate=True):
 
         bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.inset(use_boundary=use_boundary, use_even_offset=True, use_relative_offset=False,
-                           use_edge_rail=True, thickness=thickness, depth=depth, use_outset=use_outset,
-                           use_select_inset=use_select_inset, use_individual=use_individual,
-                           use_interpolate=use_interpolate)
+        bpy.ops.mesh.inset(
+                use_boundary=use_boundary, use_even_offset=True, use_relative_offset=False,
+                use_edge_rail=True, thickness=thickness, depth=depth, use_outset=use_outset,
+                use_select_inset=use_select_inset, use_individual=use_individual,
+                use_interpolate=use_interpolate
+                )
 
         bpy.ops.object.mode_set(mode='OBJECT')
 
         # PKHG>IMFO only 3 parameters inc execution context supported!!
         if False:
-            bpy.ops.mesh.inset(use_boundary, use_even_offset, use_relative_offset, use_edge_rail,
-                               thickness, depth, use_outset, use_select_inset, use_individual, use_interpolate)
+            bpy.ops.mesh.inset(
+                    use_boundary, use_even_offset, use_relative_offset, use_edge_rail,
+                    thickness, depth, use_outset, use_select_inset, use_individual,
+                    use_interpolate
+                    )
         elif type == 0:
-            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=False,
-                               use_edge_rail=True, thickness=thickness, depth=depth, use_outset=False,
-                               use_select_inset=False, use_individual=True, use_interpolate=True)
+            bpy.ops.mesh.inset(
+                    use_boundary=True, use_even_offset=True, use_relative_offset=False,
+                    use_edge_rail=True, thickness=thickness, depth=depth, use_outset=False,
+                    use_select_inset=False, use_individual=True, use_interpolate=True
+                    )
         elif type == 1:
-            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=False,
-                               use_edge_rail=True, thickness=thickness, depth=depth, use_outset=False,
-                               use_select_inset=False, use_individual=True, use_interpolate=False)
-
+            bpy.ops.mesh.inset(
+                    use_boundary=True, use_even_offset=True, use_relative_offset=False,
+                    use_edge_rail=True, thickness=thickness, depth=depth, use_outset=False,
+                    use_select_inset=False, use_individual=True, use_interpolate=False
+                    )
             bpy.ops.mesh.delete(type='FACE')
 
         elif type == 2:
-            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=False, use_relative_offset=True,
-                               use_edge_rail=True, thickness=thickness, depth=depth, use_outset=False,
-                               use_select_inset=False, use_individual=True, use_interpolate=False)
+            bpy.ops.mesh.inset(
+                    use_boundary=True, use_even_offset=False, use_relative_offset=True,
+                    use_edge_rail=True, thickness=thickness, depth=depth, use_outset=False,
+                    use_select_inset=False, use_individual=True, use_interpolate=False
+                    )
 
             bpy.ops.mesh.delete(type='FACE')
 
         elif type == 3:
-            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=False, use_relative_offset=True,
-                               use_edge_rail=True, thickness=depth, depth=thickness, use_outset=False,
-                               use_select_inset=False, use_individual=True, use_interpolate=True)
-
+            bpy.ops.mesh.inset(
+                    use_boundary=True, use_even_offset=False, use_relative_offset=True,
+                    use_edge_rail=True, thickness=depth, depth=thickness, use_outset=False,
+                    use_select_inset=False, use_individual=True, use_interpolate=True
+                    )
             bpy.ops.mesh.delete(type='FACE')
         elif type == 4:
-            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=False, use_relative_offset=True,
-                               use_edge_rail=True, thickness=thickness, depth=depth, use_outset=True,
-                               use_select_inset=False, use_individual=True, use_interpolate=True)
-
-            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=False, use_relative_offset=True,
-                               use_edge_rail=True, thickness=thickness, depth=depth, use_outset=True,
-                               use_select_inset=False, use_individual=True, use_interpolate=True)
-
+            bpy.ops.mesh.inset(
+                    use_boundary=True, use_even_offset=False, use_relative_offset=True,
+                    use_edge_rail=True, thickness=thickness, depth=depth, use_outset=True,
+                    use_select_inset=False, use_individual=True, use_interpolate=True
+                    )
+            bpy.ops.mesh.inset(
+                    use_boundary=True, use_even_offset=False, use_relative_offset=True,
+                    use_edge_rail=True, thickness=thickness, depth=depth, use_outset=True,
+                    use_select_inset=False, use_individual=True, use_interpolate=True
+                    )
         bpy.ops.mesh.delete(type='FACE')
 
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -668,16 +689,26 @@ def prepare(self, context, remove_start_faces=True):
     centers_copy = [Vector((el[0], el[1], el[2])) for el in centers]
     normals = [face.normal for face in selectedpolygons]
     normals_copy = [Vector((el[0], el[1], el[2])) for el in normals]
-    vertindicesofpolgons = [[vert for vert in face.vertices] for face in selectedpolygons]
-    vertVectorsOfSelectedFaces = [[obj.data.vertices[ind].co for ind in vertIndiceofface]
-                                  for vertIndiceofface in vertindicesofpolgons]
-    vertVectorsOfSelectedFaces_copy = [[Vector((el[0], el[1], el[2])) for el in listofvecs]
-                                       for listofvecs in vertVectorsOfSelectedFaces]
+
+    vertindicesofpolgons = [
+            [vert for vert in face.vertices] for face in selectedpolygons
+            ]
+    vertVectorsOfSelectedFaces = [
+            [obj.data.vertices[ind].co for ind in vertIndiceofface] for
+            vertIndiceofface in vertindicesofpolgons
+            ]
+    vertVectorsOfSelectedFaces_copy = [
+            [Vector((el[0], el[1], el[2])) for el in listofvecs] for
+            listofvecs in vertVectorsOfSelectedFaces
+            ]
 
     bpy.ops.object.mode_set(mode='EDIT')
     bm = bmesh.from_edit_mesh(obj.data)
     selected_bm_faces = [ele for ele in bm.faces if ele.select]
-    selected_edges_per_face_ind = [[ele.index for ele in face.edges] for face in selected_bm_faces]
+
+    selected_edges_per_face_ind = [
+            [ele.index for ele in face.edges] for face in selected_bm_faces
+            ]
     indices = [el.index for el in selectedpolygons]
     selected_faces_areas = [bm.faces[:][i] for i in indices]
     tmp_area = [el.calc_area() for el in selected_faces_areas]
@@ -692,20 +723,27 @@ def prepare(self, context, remove_start_faces=True):
         bm.verts.ensure_lookup_table()
         bm.faces.ensure_lookup_table()
 
-    start_ring_raw = [[bm.verts[ind].index for ind in vertIndiceofface]
-                      for vertIndiceofface in vertindicesofpolgons]
+    start_ring_raw = [
+            [bm.verts[ind].index for ind in vertIndiceofface] for
+            vertIndiceofface in vertindicesofpolgons
+            ]
     start_ring = []
 
     for el in start_ring_raw:
         start_ring.append(set(el))
     bm.edges.ensure_lookup_table()
 
-    bm_selected_edges_l_l = [[bm.edges[i] for i in bm_ind_list] for bm_ind_list in selected_edges_per_face_ind]
+    bm_selected_edges_l_l = [
+            [bm.edges[i] for i in bm_ind_list] for
+            bm_ind_list in selected_edges_per_face_ind
+            ]
+    result = {
+            'obj': obj, 'centers': centers_copy, 'normals': normals_copy,
+            'rings': vertVectorsOfSelectedFaces_copy, 'bm': bm,
+            'areas': tmp_area, 'startBMRingVerts': start_ring,
+            'base_edges': bm_selected_edges_l_l
+            }
 
-    result = {'obj': obj, 'centers': centers_copy, 'normals': normals_copy,
-              'rings': vertVectorsOfSelectedFaces_copy, 'bm': bm,
-              'areas': tmp_area, 'startBMRingVerts': start_ring,
-              'base_edges': bm_selected_edges_l_l}
     return result
 
 
@@ -769,8 +807,8 @@ def translate_ONE_ring(self, context, bm=None, object_matrix=None, ring_edges=No
     return ring_edges
 
 
-def move_corner_vecs_outside(self, context, bm=None, edge_list=None, center=None, normal=None,
-                             base_height_erlier=0.5, distance=0.5):
+def move_corner_vecs_outside(self, context, bm=None, edge_list=None, center=None,
+                             normal=None, base_height_erlier=0.5, distance=0.5):
     # move corners (outside meant mostly) dependent on the parameters
     tmp = []
     for edge in edge_list:

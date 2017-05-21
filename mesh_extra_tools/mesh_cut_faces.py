@@ -10,7 +10,6 @@ bl_info = {
 
 import bpy
 import bmesh
-
 from bpy.types import Operator
 from bpy.props import (
         BoolProperty,
@@ -99,7 +98,8 @@ def get_edge_rings(bm, keep_caps=True):
     try:
         # generate a list of edges to select:
         # traversing only tagged faces, since calc_face can walk and untag islands
-        for face in filter(lambda f: f.tag, selected_faces): edges += calc_face(face, keep_caps)
+        for face in filter(lambda f: f.tag, selected_faces):
+            edges += calc_face(face, keep_caps)
     finally:
         # housekeeping: clear tags
         for face in selected_faces:
@@ -165,32 +165,32 @@ class MESH_xOT_cut_faces(Operator):
     SUBD_STRAIGHT_CUT = 3
 
     num_cuts = IntProperty(
-                name="Number of Cuts",
-                default=1,
-                min=1,
-                max=100,
-                subtype='UNSIGNED'
-                )
+            name="Number of Cuts",
+            default=1,
+            min=1,
+            max=100,
+            subtype='UNSIGNED'
+            )
     use_single_edge = BoolProperty(
-                name="Quad/Tri Mode",
-                description="Cut boundary faces",
-                default=False
-                )
+            name="Quad/Tri Mode",
+            description="Cut boundary faces",
+            default=False
+            )
     corner_type = EnumProperty(
-                items=[('SUBD_INNERVERT', "Inner Vert", ""),
-                       ('SUBD_PATH', "Path", ""),
-                       ('SUBD_FAN', "Fan", ""),
-                       ('SUBD_STRAIGHT_CUT', "Straight Cut", ""),
-                       ],
-                name="Quad Corner Type",
-                description="How to subdivide quad corners",
-                default='SUBD_STRAIGHT_CUT'
-                )
+            items=[('SUBD_INNERVERT', "Inner Vert", ""),
+                   ('SUBD_PATH', "Path", ""),
+                   ('SUBD_FAN', "Fan", ""),
+                   ('SUBD_STRAIGHT_CUT', "Straight Cut", ""),
+                   ],
+            name="Quad Corner Type",
+            description="How to subdivide quad corners",
+            default='SUBD_STRAIGHT_CUT'
+            )
     use_grid_fill = BoolProperty(
-                name="Use Grid Fill",
-                description="Fill fully enclosed faces with a grid",
-                default=True
-                )
+            name="Use Grid Fill",
+            description="Fill fully enclosed faces with a grid",
+            default=True
+            )
 
     @classmethod
     def poll(cls, context):
@@ -216,17 +216,18 @@ class MESH_xOT_cut_faces(Operator):
         try:
             edges = get_edge_rings(bm, keep_caps=True)
             if not edges:
-                self.report({'WARNING'}, "No suitable Face selection found. Operation cancelled")
+                self.report({'WARNING'},
+                            "No suitable Face selection found. Operation cancelled")
                 return False
 
             result = bmesh.ops.subdivide_edges(
-                bm,
-                edges=edges,
-                cuts=int(self.num_cuts),
-                use_grid_fill=bool(self.use_grid_fill),
-                use_single_edge=bool(self.use_single_edge),
-                quad_corner_type=eval("self." + self.corner_type))
-
+                            bm,
+                            edges=edges,
+                            cuts=int(self.num_cuts),
+                            use_grid_fill=bool(self.use_grid_fill),
+                            use_single_edge=bool(self.use_single_edge),
+                            quad_corner_type=eval("self." + self.corner_type)
+                            )
             bpy.ops.mesh.select_all(action='DESELECT')
             bm.select_mode = {'EDGE'}
 

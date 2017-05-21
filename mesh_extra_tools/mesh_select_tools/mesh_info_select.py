@@ -17,12 +17,58 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # By CoDEmanX
+# updated by lijenstina
 
 import bpy
-from bpy.types import (
-        Panel,
-        Operator,
-        )
+import bmesh
+from bpy.types import Panel
+import time
+
+# Define Globals
+STORE_COUNT = (0, 0, 0)  # Store the previous count
+TIMER_STORE = 1          # Store the time.time floats
+
+
+def check_the_obj_polycount(context, delay=0.0):
+    global STORE_COUNT
+    global TIMER_STORE
+
+    info_str = ""
+    tris = quads = ngons = 0
+    try:
+        # it's weak sauce but this will in certain cases run many times a second
+        if TIMER_STORE == 1 or delay == 0 or time.time() > TIMER_STORE + delay:
+            ob = context.active_object
+            if ob.mode == 'EDIT':
+                me = ob.data
+                bm = bmesh.from_edit_mesh(me)
+                for f in bm.faces:
+                    v = len(f.verts)
+                    if v == 3:
+                        tris += 1
+                    elif v == 4:
+                        quads += 1
+                    else:
+                        ngons += 1
+                bmesh.update_edit_mesh(me)
+            else:
+                for p in ob.data.polygons:
+                    count = p.loop_total
+                    if count == 3:
+                        tris += 1
+                    elif count == 4:
+                        quads += 1
+                    else:
+                        ngons += 1
+            STORE_COUNT = (ngons, quads, tris)
+            info_str = "  Ngons: %i  Quads: %i  Tris: %i" % (ngons, quads, tris)
+            TIMER_STORE = time.time()
+        else:
+            info_str = "  Ngons: %i  Quads: %i  Tris: %i" % STORE_COUNT
+    except:
+        info_str = "  Polygon info could not be retrieved"
+
+    return info_str
 
 
 class DATA_PT_info_panel(Panel):
@@ -41,28 +87,20 @@ class DATA_PT_info_panel(Panel):
 
     def draw(self, context):
         layout = self.layout
-
-        ob = context.active_object
-
+        mesh_extra_tools = context.scene.mesh_extra_tools
+        check_used = mesh_extra_tools.mesh_info_show
+        check_delay = mesh_extra_tools.mesh_info_delay
         info_str = ""
-        tris = quads = ngons = 0
 
-        for p in ob.data.polygons:
-            count = p.loop_total
-            if count == 3:
-                tris += 1
-            elif count == 4:
-                quads += 1
-            else:
-                ngons += 1
+        box = layout.box()
+        col = box.column()
+        split = col.split(percentage=0.6 if check_used else 0.75, align=True)
+        split.prop(mesh_extra_tools, "mesh_info_show", toggle=True)
+        split.prop(mesh_extra_tools, "mesh_info_delay")
 
-        info_str = "  Ngons: %i  Quads: %i  Tris: %i" % (ngons, quads, tris)
-
-        col = layout.column()
-        split = col.split(0.9)
-
-        split.label(info_str, icon='MESH_DATA')
-        split.operator("mesh.refresh_info_panel", text="", icon="FILE_REFRESH")
+        if check_used:
+            info_str = check_the_obj_polycount(context, check_delay)
+            col.label(info_str, icon='MESH_DATA')
 
         col = layout.column()
         col.label("Select faces by type:")
@@ -71,38 +109,3 @@ class DATA_PT_info_panel(Panel):
         row.operator("data.facetype_select", text="Ngons").face_type = "5"
         row.operator("data.facetype_select", text="Quads").face_type = "4"
         row.operator("data.facetype_select", text="Tris").face_type = "3"
-
-
-class MESH_OT_refresh_info_panel(Operator):
-    bl_idname = "mesh.refresh_info_panel"
-    bl_label = "Refresh"
-    bl_description = ("Refresh the info panel by switching to Object mode and back\n"
-                      "Limitation: the information doesn't account modifiers\n"
-                      "Be careful with usage if you need the Redo History in Edit Mode")
-    bl_options = {"REGISTER", "INTERNAL"}
-
-    @classmethod
-    def poll(self, context):
-        return (context.active_object is not None and
-                context.active_object.type == 'MESH')
-
-    def invoke(self, context, event):
-        return self.execute(context)
-
-    def execute(self, context):
-        try:
-            mode = bpy.context.active_object.mode
-
-            # switch to Object mode and restore selection
-            bpy.ops.object.mode_set(mode='OBJECT')
-            bpy.ops.object.mode_set(mode=mode)
-
-            return {'FINISHED'}
-        except:
-            import traceback
-            traceback.print_exc()
-
-            self.report({'WARNING'},
-                        "The refresh could not be performed (Check the console for more info)")
-
-            return {'CANCELLED'}

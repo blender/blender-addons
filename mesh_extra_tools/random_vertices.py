@@ -6,10 +6,9 @@ bl_info = {
     "version": (1, 3),
     "blender": (2, 6, 3),
     "location": "Object > Transform > Random Vertices",
-    "description": "Randomize selected components of active object.",
+    "description": "Randomize selected components of active object",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "",
     "category": "Mesh"}
 
 
@@ -45,7 +44,8 @@ def add_object(self, context, valmin, valmax, factor, vgfilter):
         if vertice.select:
             listver.append(vertice.index)
 
-    # If the minimum value is greater than the maximum, it adds a value to the maximum
+    # If the minimum value is greater than the maximum,
+    # it adds a value to the maximum
     if valmin[0] >= valmax[0]:
         valmax[0] = valmin[0] + 1
 
@@ -95,25 +95,25 @@ class MESH_OT_random_vertices(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     vgfilter = BoolProperty(
-                name="Vertex Group",
-                description="Use Vertex Weight defined in the Active Group",
-                default=False
-                )
+            name="Vertex Group",
+            description="Use Vertex Weight defined in the Active Group",
+            default=False
+            )
     factor = FloatProperty(
-                name="Factor",
-                description="Base Multiplier of the randomization effect",
-                default=1
-                )
+            name="Factor",
+            description="Base Multiplier of the randomization effect",
+            default=1
+            )
     valmin = IntVectorProperty(
-                name="Min XYZ",
-                description="Define the minimum range of randomization values",
-                default=(0, 0, 0)
-                )
+            name="Min XYZ",
+            description="Define the minimum range of randomization values",
+            default=(0, 0, 0)
+            )
     valmax = IntVectorProperty(
-                name="Max XYZ",
-                description="Define the maximum range of randomization values",
-                default=(1, 1, 1)
-                )
+            name="Max XYZ",
+            description="Define the maximum range of randomization values",
+            default=(1, 1, 1)
+            )
 
     @classmethod
     def poll(cls, context):
@@ -122,6 +122,7 @@ class MESH_OT_random_vertices(Operator):
 
     def execute(self, context):
         add_object(self, context, self.valmin, self.valmax, self.factor, self.vgfilter)
+
         return {'FINISHED'}
 
 

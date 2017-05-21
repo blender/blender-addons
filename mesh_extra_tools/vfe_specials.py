@@ -11,7 +11,6 @@ bl_info = {
 
 import bpy
 import bpy_extras
-
 from bpy.types import (
         Menu,
         Operator,
@@ -60,16 +59,17 @@ class MESH_OT_CallContextMenu(Operator):
             return bpy.ops.wm.call_menu(name=MESH_MT_CombinedMenu.bl_idname)
 
 
-classes = [
+classes = (
     MESH_MT_CombinedMenu,
-    MESH_OT_CallContextMenu
-]
+    MESH_OT_CallContextMenu,
+    )
 
 
 KEYMAPS = (
     # First, keymap identifiers (last bool is True for modal km).
     (("3D View", "VIEW_3D", "WINDOW", False), (
-    # Then a tuple of keymap items, defined by a dict of kwargs for the km new func, and a tuple of tuples (name, val)
+    # Then a tuple of keymap items, defined by a dict of kwargs
+    # for the km new func, and a tuple of tuples (name, val)
     # for ops properties, if needing non-default values.
         ({"idname": MESH_OT_CallContextMenu.bl_idname, "type": 'RIGHTMOUSE', "value": 'DOUBLE_CLICK'},
          ()),

@@ -1,7 +1,7 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
 #  The Blender Edgetools is to bring CAD tools to Blender.
 #  Copyright (C) 2012  Paul Marshall
+
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -23,14 +23,13 @@
 bl_info = {
     "name": "EdgeTools",
     "author": "Paul Marshall",
-    "version": (0, 9),
+    "version": (0, 9, 2),
     "blender": (2, 68, 0),
     "location": "View3D > Toolbar and View3D > Specials (W-key)",
     "warning": "",
     "description": "CAD style edge manipulation tools",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Modeling/EdgeTools",
-    "tracker_url": "",
     "category": "Mesh"}
 
 
@@ -92,10 +91,12 @@ Search for "@todo" to quickly find sections that need work
 Note: lijenstina - modified this script in preparation for merging
 fixed the needless jumping to object mode for bmesh creation
 causing the crash with the Slice > Rip operator
+Removed the test operator since version 0.9.2
+added general error handling
 """
 
 # Enable debug
-# Set to True to have the Interesect Line Face Test and debug prints available
+# Set to True to have the debug prints available
 ENABLE_DEBUG = False
 
 
@@ -110,6 +111,51 @@ def sign(number):
 def is_parallel(v1, v2, v3, v4):
     result = intersect_line_line(v1, v2, v3, v4)
     return result is None
+
+
+# Handle error notifications
+def error_handlers(self, op_name, error, reports="ERROR", func=False):
+    if self and reports:
+        self.report({'WARNING'}, reports + " (See Console for more info)")
+
+    is_func = "Function" if func else "Operator"
+    print("\n[Mesh EdgeTools]\n{}: {}\nError: {}\n".format(is_func, op_name, error))
+
+
+def flip_edit_mode():
+    bpy.ops.object.editmode_toggle()
+    bpy.ops.object.editmode_toggle()
+
+
+# check the appropriate selection condition
+# to prevent crashes with the index out of range errors
+# pass the bEdges and bVerts based selection tables here
+# types: Edge, Vertex, All
+def is_selected_enough(self, bEdges, bVerts, edges_n=1, verts_n=0, types="Edge"):
+    check = False
+    try:
+        if bEdges and types == "Edge":
+            check = (len(bEdges) >= edges_n)
+        elif bVerts and types == "Vertex":
+            check = (len(bVerts) >= verts_n)
+        elif bEdges and bVerts and types == "All":
+            check = (len(bEdges) >= edges_n and len(bVerts) >= verts_n)
+
+        if check is False:
+            strings = "%s Vertices and / or " % verts_n if verts_n != 0 else ""
+            self.report({'WARNING'},
+                        "Needs at least " + strings + "%s Edge(s) selected. "
+                        "Operation Cancelled" % edges_n)
+            flip_edit_mode()
+
+        return check
+
+    except Exception as e:
+        error_handlers(self, "is_selected_enough", e,
+                      "No appropriate selection. Operation Cancelled", func=True)
+        return False
+
+    return False
 
 
 # is_axial
@@ -362,7 +408,9 @@ def intersect_line_face(edge, face, is_infinite=False, error=0.000002):
         flipB = False
 
         for i in range(len(face.edges)):
-            if face.edges[i].verts[0] not in edgeA.verts and face.edges[i].verts[1] not in edgeA.verts:
+            if face.edges[i].verts[0] not in edgeA.verts and \
+               face.edges[i].verts[1] not in edgeA.verts:
+
                 edgeB = face.edges[i]
                 break
 
@@ -494,8 +542,9 @@ def intersect_line_face(edge, face, is_infinite=False, error=0.000002):
             # The line is along the y/z-axis but is not parallel to either:
             else:
                 t12 = -(-(a33 - b33) * (-a32 + a12 * (1 - t) + b12 * t) + (a32 - b32) *
-                      (-a33 + a13 * (1 - t) + b13 * t)) / (-(a33 - b33) * ((a22 - a12) * (1 - t) + (b22 - b12) * t) +
-                      (a32 - b32) * ((a23 - a13) * (1 - t) + (b23 - b13) * t))
+                        (-a33 + a13 * (1 - t) + b13 * t)) / (-(a33 - b33) *
+                        ((a22 - a12) * (1 - t) + (b22 - b12) * t) + (a32 - b32) *
+                        ((a23 - a13) * (1 - t) + (b23 - b13) * t))
         elif a32 == b32:
             # The line is parallel to the x-axis:
             if a33 == b33:
@@ -515,13 +564,17 @@ def intersect_line_face(edge, face, is_infinite=False, error=0.000002):
         # If block used to prevent a div by zero error.
         t3 = 0
         if a31 != b31:
-            t3 = (-a11 + a31 + (a11 - b11) * t + (a11 - a21) * t12 + (a21 - a11 + b11 - b21) * t * t12) / (a31 - b31)
+            t3 = (-a11 + a31 + (a11 - b11) * t + (a11 - a21) *
+                t12 + (a21 - a11 + b11 - b21) * t * t12) / (a31 - b31)
         elif a32 != b32:
-            t3 = (-a12 + a32 + (a12 - b12) * t + (a12 - a22) * t12 + (a22 - a12 + b12 - b22) * t * t12) / (a32 - b32)
+            t3 = (-a12 + a32 + (a12 - b12) * t + (a12 - a22) *
+                t12 + (a22 - a12 + b12 - b22) * t * t12) / (a32 - b32)
         elif a33 != b33:
-            t3 = (-a13 + a33 + (a13 - b13) * t + (a13 - a23) * t12 + (a23 - a13 + b13 - b23) * t * t12) / (a33 - b33)
+            t3 = (-a13 + a33 + (a13 - b13) * t + (a13 - a23) *
+                t12 + (a23 - a13 + b13 - b23) * t * t12) / (a33 - b33)
         else:
-            print("The second edge is a zero-length edge")
+            if ENABLE_DEBUG:
+                print("The second edge is a zero-length edge")
             return None
 
         # Calculate the point of intersection:
@@ -576,7 +629,8 @@ def project_point_plane(pt, plane_co, plane_no):
         print("project_point_plane was called")
     proj_co = intersect_line_plane(pt, pt + plane_no, plane_co, plane_no)
     proj_ve = proj_co - pt
-    print("project_point_plane: proj_co is {}\nproj_ve is {}".format(proj_co, proj_ve))
+    if ENABLE_DEBUG:
+        print("project_point_plane: proj_co is {}\nproj_ve is {}".format(proj_co, proj_ve))
     return (proj_ve, proj_co)
 
 
@@ -601,26 +655,29 @@ class Extend(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     di1 = BoolProperty(
-                name="Forwards",
-                description="Extend the edge forwards",
-                default=True
-                )
+            name="Forwards",
+            description="Extend the edge forwards",
+            default=True
+            )
     di2 = BoolProperty(
-                name="Backwards",
-                description="Extend the edge backwards",
-                default=False
-                )
+            name="Backwards",
+            description="Extend the edge backwards",
+            default=False
+            )
     length = FloatProperty(
-                name="Length",
-                description="Length to extend the edge",
-                min=0.0, max=1024.0,
-                default=1.0
-                )
+            name="Length",
+            description="Length to extend the edge",
+            min=0.0, max=1024.0,
+            default=1.0
+            )
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, "di1")
-        layout.prop(self, "di2")
+
+        row = layout.row(align=True)
+        row.prop(self, "di1", toggle=True)
+        row.prop(self, "di2", toggle=True)
+
         layout.prop(self, "length")
 
     @classmethod
@@ -632,67 +689,76 @@ class Extend(Operator):
         return self.execute(context)
 
     def execute(self, context):
-        me = context.object.data
-        bm = bmesh.from_edit_mesh(me)
-        bm.normal_update()
+        try:
+            me = context.object.data
+            bm = bmesh.from_edit_mesh(me)
+            bm.normal_update()
 
-        bEdges = bm.edges
-        bVerts = bm.verts
+            bEdges = bm.edges
+            bVerts = bm.verts
 
-        edges = [e for e in bEdges if e.select]
-        verts = [v for v in bVerts if v.select]
+            edges = [e for e in bEdges if e.select]
+            verts = [v for v in bVerts if v.select]
 
-        if len(edges) > 0:
-            for e in edges:
-                vector = e.verts[0].co - e.verts[1].co
+            if not is_selected_enough(self, edges, 0, edges_n=1, verts_n=0, types="Edge"):
+                return {'CANCELLED'}
+
+            if len(edges) > 0:
+                for e in edges:
+                    vector = e.verts[0].co - e.verts[1].co
+                    vector.length = self.length
+
+                    if self.di1:
+                        v = bVerts.new()
+                        if (vector[0] + vector[1] + vector[2]) < 0:
+                            v.co = e.verts[1].co - vector
+                            newE = bEdges.new((e.verts[1], v))
+                            bEdges.ensure_lookup_table()
+                        else:
+                            v.co = e.verts[0].co + vector
+                            newE = bEdges.new((e.verts[0], v))
+                            bEdges.ensure_lookup_table()
+                    if self.di2:
+                        v = bVerts.new()
+                        if (vector[0] + vector[1] + vector[2]) < 0:
+                            v.co = e.verts[0].co + vector
+                            newE = bEdges.new((e.verts[0], v))
+                            bEdges.ensure_lookup_table()
+                        else:
+                            v.co = e.verts[1].co - vector
+                            newE = bEdges.new((e.verts[1], v))
+                            bEdges.ensure_lookup_table()
+            else:
+                vector = verts[0].co - verts[1].co
                 vector.length = self.length
 
                 if self.di1:
                     v = bVerts.new()
                     if (vector[0] + vector[1] + vector[2]) < 0:
-                        v.co = e.verts[1].co - vector
-                        newE = bEdges.new((e.verts[1], v))
+                        v.co = verts[1].co - vector
+                        e = bEdges.new((verts[1], v))
                         bEdges.ensure_lookup_table()
                     else:
-                        v.co = e.verts[0].co + vector
-                        newE = bEdges.new((e.verts[0], v))
+                        v.co = verts[0].co + vector
+                        e = bEdges.new((verts[0], v))
                         bEdges.ensure_lookup_table()
                 if self.di2:
                     v = bVerts.new()
                     if (vector[0] + vector[1] + vector[2]) < 0:
-                        v.co = e.verts[0].co + vector
-                        newE = bEdges.new((e.verts[0], v))
+                        v.co = verts[0].co + vector
+                        e = bEdges.new((verts[0], v))
                         bEdges.ensure_lookup_table()
                     else:
-                        v.co = e.verts[1].co - vector
-                        newE = bEdges.new((e.verts[1], v))
+                        v.co = verts[1].co - vector
+                        e = bEdges.new((verts[1], v))
                         bEdges.ensure_lookup_table()
-        else:
-            vector = verts[0].co - verts[1].co
-            vector.length = self.length
 
-            if self.di1:
-                v = bVerts.new()
-                if (vector[0] + vector[1] + vector[2]) < 0:
-                    v.co = verts[1].co - vector
-                    e = bEdges.new((verts[1], v))
-                    bEdges.ensure_lookup_table()
-                else:
-                    v.co = verts[0].co + vector
-                    e = bEdges.new((verts[0], v))
-                    bEdges.ensure_lookup_table()
-            if self.di2:
-                v = bVerts.new()
-                if (vector[0] + vector[1] + vector[2]) < 0:
-                    v.co = verts[0].co + vector
-                    e = bEdges.new((verts[0], v))
-                    bEdges.ensure_lookup_table()
-                else:
-                    v.co = verts[1].co - vector
-                    e = bEdges.new((verts[1], v))
-                    bEdges.ensure_lookup_table()
+            bmesh.update_edit_mesh(me)
 
-        bmesh.update_edit_mesh(me)
+        except Exception as e:
+            error_handlers(self, "mesh.edgetools_extend", e,
+                           reports="Extend Operator failed", func=False)
+            return {'CANCELLED'}
 
         return {'FINISHED'}
 
@@ -711,56 +777,60 @@ class Spline(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     alg = EnumProperty(
-                name="Spline Algorithm",
-                items=[('Blender', "Blender", "Interpolation provided through mathutils.geometry"),
-                        ('Hermite', "C-Spline", "C-spline interpolation"),
-                        ('Bezier', "Bezier", "Bezier interpolation"),
-                        ('B-Spline', "B-Spline", "B-Spline interpolation")],
-                default='Bezier'
-                )
+            name="Spline Algorithm",
+            items=[('Blender', "Blender", "Interpolation provided through mathutils.geometry"),
+                    ('Hermite', "C-Spline", "C-spline interpolation"),
+                    ('Bezier', "Bezier", "Bezier interpolation"),
+                    ('B-Spline', "B-Spline", "B-Spline interpolation")],
+            default='Bezier'
+            )
     segments = IntProperty(
-                name="Segments",
-                description="Number of segments to use in the interpolation",
-                min=2, max=4096,
-                soft_max=1024,
-                default=32
-                )
+            name="Segments",
+            description="Number of segments to use in the interpolation",
+            min=2, max=4096,
+            soft_max=1024,
+            default=32
+            )
     flip1 = BoolProperty(
-                name="Flip Edge",
-                description="Flip the direction of the spline on Edge 1",
-                default=False
-                )
+            name="Flip Edge",
+            description="Flip the direction of the spline on Edge 1",
+            default=False
+            )
     flip2 = BoolProperty(
-                name="Flip Edge",
-                description="Flip the direction of the spline on Edge 2",
-                default=False
-                )
+            name="Flip Edge",
+            description="Flip the direction of the spline on Edge 2",
+            default=False
+            )
     ten1 = FloatProperty(
-                name="Tension",
-                description="Tension on Edge 1",
-                min=-4096.0, max=4096.0,
-                soft_min=-8.0, soft_max=8.0,
-                default=1.0
-                )
+            name="Tension",
+            description="Tension on Edge 1",
+            min=-4096.0, max=4096.0,
+            soft_min=-8.0, soft_max=8.0,
+            default=1.0
+            )
     ten2 = FloatProperty(
-                name="Tension",
-                description="Tension on Edge 2",
-                min=-4096.0, max=4096.0,
-                soft_min=-8.0, soft_max=8.0,
-                default=1.0
-                )
+            name="Tension",
+            description="Tension on Edge 2",
+            min=-4096.0, max=4096.0,
+            soft_min=-8.0, soft_max=8.0,
+            default=1.0
+            )
 
     def draw(self, context):
         layout = self.layout
 
         layout.prop(self, "alg")
         layout.prop(self, "segments")
+
         layout.label("Edge 1:")
-        layout.prop(self, "ten1")
-        layout.prop(self, "flip1")
+        split = layout.split(percentage=0.8, align=True)
+        split.prop(self, "ten1")
+        split.prop(self, "flip1", text="", icon="ALIGN", toggle=True)
+
         layout.label("Edge 2:")
-        layout.prop(self, "ten2")
-        layout.prop(self, "flip2")
+        split = layout.split(percentage=0.8, align=True)
+        split.prop(self, "ten2")
+        split.prop(self, "flip2", text="", icon="ALIGN", toggle=True)
 
     @classmethod
     def poll(cls, context):
@@ -771,70 +841,88 @@ class Spline(Operator):
         return self.execute(context)
 
     def execute(self, context):
-        me = context.object.data
-        bm = bmesh.from_edit_mesh(me)
-        bm.normal_update()
+        try:
+            me = context.object.data
+            bm = bmesh.from_edit_mesh(me)
+            bm.normal_update()
 
-        bEdges = bm.edges
-        bVerts = bm.verts
+            bEdges = bm.edges
+            bVerts = bm.verts
 
-        seg = self.segments
-        edges = [e for e in bEdges if e.select]
-        verts = [edges[v // 2].verts[v % 2] for v in range(4)]
+            seg = self.segments
+            edges = [e for e in bEdges if e.select]
 
-        if self.flip1:
-            v1 = verts[1]
-            p1_co = verts[1].co
-            p1_dir = verts[1].co - verts[0].co
-        else:
-            v1 = verts[0]
-            p1_co = verts[0].co
-            p1_dir = verts[0].co - verts[1].co
-        if self.ten1 < 0:
-            p1_dir = -1 * p1_dir
-            p1_dir.length = -self.ten1
-        else:
-            p1_dir.length = self.ten1
+            if not is_selected_enough(self, edges, 0, edges_n=2, verts_n=0, types="Edge"):
+                return {'CANCELLED'}
 
-        if self.flip2:
-            v2 = verts[3]
-            p2_co = verts[3].co
-            p2_dir = verts[2].co - verts[3].co
-        else:
-            v2 = verts[2]
-            p2_co = verts[2].co
-            p2_dir = verts[3].co - verts[2].co
-        if self.ten2 < 0:
-            p2_dir = -1 * p2_dir
-            p2_dir.length = -self.ten2
-        else:
-            p2_dir.length = self.ten2
+            verts = [edges[v // 2].verts[v % 2] for v in range(4)]
 
-        # Get the interploted coordinates:
-        if self.alg == 'Blender':
-            pieces = interpolate_bezier(p1_co, p1_dir, p2_dir, p2_co, self.segments)
-        elif self.alg == 'Hermite':
-            pieces = interpolate_line_line(p1_co, p1_dir, p2_co, p2_dir, self.segments, 1, 'HERMITE')
-        elif self.alg == 'Bezier':
-            pieces = interpolate_line_line(p1_co, p1_dir, p2_co, p2_dir, self.segments, 1, 'BEZIER')
-        elif self.alg == 'B-Spline':
-            pieces = interpolate_line_line(p1_co, p1_dir, p2_co, p2_dir, self.segments, 1, 'BSPLINE')
+            if self.flip1:
+                v1 = verts[1]
+                p1_co = verts[1].co
+                p1_dir = verts[1].co - verts[0].co
+            else:
+                v1 = verts[0]
+                p1_co = verts[0].co
+                p1_dir = verts[0].co - verts[1].co
+            if self.ten1 < 0:
+                p1_dir = -1 * p1_dir
+                p1_dir.length = -self.ten1
+            else:
+                p1_dir.length = self.ten1
 
-        verts = []
-        verts.append(v1)
-        # Add vertices and set the points:
-        for i in range(seg - 1):
-            v = bVerts.new()
-            v.co = pieces[i]
-            bVerts.ensure_lookup_table()
-            verts.append(v)
-        verts.append(v2)
-        # Connect vertices:
-        for i in range(seg):
-            e = bEdges.new((verts[i], verts[i + 1]))
-            bEdges.ensure_lookup_table()
+            if self.flip2:
+                v2 = verts[3]
+                p2_co = verts[3].co
+                p2_dir = verts[2].co - verts[3].co
+            else:
+                v2 = verts[2]
+                p2_co = verts[2].co
+                p2_dir = verts[3].co - verts[2].co
+            if self.ten2 < 0:
+                p2_dir = -1 * p2_dir
+                p2_dir.length = -self.ten2
+            else:
+                p2_dir.length = self.ten2
 
-        bmesh.update_edit_mesh(me)
+            # Get the interploted coordinates:
+            if self.alg == 'Blender':
+                pieces = interpolate_bezier(
+                                p1_co, p1_dir, p2_dir, p2_co, self.segments
+                                )
+            elif self.alg == 'Hermite':
+                pieces = interpolate_line_line(
+                                p1_co, p1_dir, p2_co, p2_dir, self.segments, 1, 'HERMITE'
+                                )
+            elif self.alg == 'Bezier':
+                pieces = interpolate_line_line(
+                                p1_co, p1_dir, p2_co, p2_dir, self.segments, 1, 'BEZIER'
+                                )
+            elif self.alg == 'B-Spline':
+                pieces = interpolate_line_line(
+                                p1_co, p1_dir, p2_co, p2_dir, self.segments, 1, 'BSPLINE'
+                                )
+
+            verts = []
+            verts.append(v1)
+            # Add vertices and set the points:
+            for i in range(seg - 1):
+                v = bVerts.new()
+                v.co = pieces[i]
+                bVerts.ensure_lookup_table()
+                verts.append(v)
+            verts.append(v2)
+            # Connect vertices:
+            for i in range(seg):
+                e = bEdges.new((verts[i], verts[i + 1]))
+                bEdges.ensure_lookup_table()
+
+            bmesh.update_edit_mesh(me)
+
+        except Exception as e:
+            error_handlers(self, "mesh.edgetools_spline", e,
+                           reports="Spline Operator failed", func=False)
+            return {'CANCELLED'}
 
         return {'FINISHED'}
 
@@ -860,56 +948,55 @@ class Ortho(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     vert1 = BoolProperty(
-                name="Vertice 1",
-                description="Enable edge creation for Vertice 1",
-                default=True
-                )
+            name="Vertice 1",
+            description="Enable edge creation for Vertice 1",
+            default=True
+            )
     vert2 = BoolProperty(
-                name="Vertice 2",
-                description="Enable edge creation for Vertice 2",
-                default=True
-                )
+            name="Vertice 2",
+            description="Enable edge creation for Vertice 2",
+            default=True
+            )
     vert3 = BoolProperty(
-                name="Vertice 3",
-                description="Enable edge creation for Vertice 3",
-                default=True
-                )
+            name="Vertice 3",
+            description="Enable edge creation for Vertice 3",
+            default=True
+            )
     vert4 = BoolProperty(
-                name="Vertice 4",
-                description="Enable edge creation for Vertice 4",
-                default=True
-                )
+            name="Vertice 4",
+            description="Enable edge creation for Vertice 4",
+            default=True
+            )
     pos = BoolProperty(
-                name="Positive",
-                description="Enable creation of positive direction edges",
-                default=True
-                )
+            name="Positive",
+            description="Enable creation of positive direction edges",
+            default=True
+            )
     neg = BoolProperty(
-                name="Negative",
-                description="Enable creation of negative direction edges",
-                default=True
-                )
+            name="Negative",
+            description="Enable creation of negative direction edges",
+            default=True
+            )
     angle = FloatProperty(
-                name="Angle",
-                description="Define the angle off of the originating edge",
-                min=0.0, max=180.0,
-                default=90.0
-                )
+            name="Angle",
+            description="Define the angle off of the originating edge",
+            min=0.0, max=180.0,
+            default=90.0
+            )
     length = FloatProperty(
-                name="Length",
-                description="Length of created edges",
-                min=0.0, max=1024.0,
-                default=1.0
-                )
-
+            name="Length",
+            description="Length of created edges",
+            min=0.0, max=1024.0,
+            default=1.0
+            )
     # For when only one edge is selected (Possible feature to be testd):
     plane = EnumProperty(
-                name="Plane",
-                items=[("XY", "X-Y Plane", "Use the X-Y plane as the plane of creation"),
-                       ("XZ", "X-Z Plane", "Use the X-Z plane as the plane of creation"),
-                       ("YZ", "Y-Z Plane", "Use the Y-Z plane as the plane of creation")],
-                default="XY"
-                )
+            name="Plane",
+            items=[("XY", "X-Y Plane", "Use the X-Y plane as the plane of creation"),
+                   ("XZ", "X-Z Plane", "Use the X-Z plane as the plane of creation"),
+                   ("YZ", "Y-Z Plane", "Use the Y-Z plane as the plane of creation")],
+            default="XY"
+            )
 
     def draw(self, context):
         layout = self.layout
@@ -932,8 +1019,10 @@ class Ortho(Operator):
         row.prop(self, "neg")
 
         layout.separator()
-        layout.prop(self, "angle")
-        layout.prop(self, "length")
+
+        col = layout.column(align=True)
+        col.prop(self, "angle")
+        col.prop(self, "length")
 
     @classmethod
     def poll(cls, context):
@@ -944,98 +1033,100 @@ class Ortho(Operator):
         return self.execute(context)
 
     def execute(self, context):
-        me = context.object.data
-        bm = bmesh.from_edit_mesh(me)
-        bm.normal_update()
+        try:
+            me = context.object.data
+            bm = bmesh.from_edit_mesh(me)
+            bm.normal_update()
 
-        bVerts = bm.verts
-        bEdges = bm.edges
-        edges = [e for e in bEdges if e.select]
-        vectors = []
+            bVerts = bm.verts
+            bEdges = bm.edges
+            edges = [e for e in bEdges if e.select]
+            vectors = []
 
-        # Until I can figure out a better way of handling it:
-        if len(edges) < 2:
-            bpy.ops.object.editmode_toggle()
-            self.report({'ERROR_INVALID_INPUT'}, "You must select two edges")
-            return {'CANCELLED'}
+            if not is_selected_enough(self, edges, 0, edges_n=2, verts_n=0, types="Edge"):
+                return {'CANCELLED'}
 
-        verts = [edges[0].verts[0],
-                 edges[0].verts[1],
-                 edges[1].verts[0],
-                 edges[1].verts[1]]
+            verts = [edges[0].verts[0],
+                     edges[0].verts[1],
+                     edges[1].verts[0],
+                     edges[1].verts[1]]
 
-        cos = intersect_line_line(verts[0].co, verts[1].co, verts[2].co, verts[3].co)
+            cos = intersect_line_line(verts[0].co, verts[1].co, verts[2].co, verts[3].co)
 
-        # If the two edges are parallel:
-        if cos is None:
-            self.report({'WARNING'},
-                        "Selected lines are parallel: results may be unpredictable")
-            vectors.append(verts[0].co - verts[1].co)
-            vectors.append(verts[0].co - verts[2].co)
-            vectors.append(vectors[0].cross(vectors[1]))
-            vectors.append(vectors[2].cross(vectors[0]))
-            vectors.append(-vectors[3])
-        else:
-            # Warn the user if they have not chosen two planar edges:
-            if not is_same_co(cos[0], cos[1]):
+            # If the two edges are parallel:
+            if cos is None:
                 self.report({'WARNING'},
-                            "Selected lines are not planar: results may be unpredictable")
+                            "Selected lines are parallel: results may be unpredictable")
+                vectors.append(verts[0].co - verts[1].co)
+                vectors.append(verts[0].co - verts[2].co)
+                vectors.append(vectors[0].cross(vectors[1]))
+                vectors.append(vectors[2].cross(vectors[0]))
+                vectors.append(-vectors[3])
+            else:
+                # Warn the user if they have not chosen two planar edges:
+                if not is_same_co(cos[0], cos[1]):
+                    self.report({'WARNING'},
+                                "Selected lines are not planar: results may be unpredictable")
 
-            # This makes the +/- behavior predictable:
-            if (verts[0].co - cos[0]).length < (verts[1].co - cos[0]).length:
-                verts[0], verts[1] = verts[1], verts[0]
-            if (verts[2].co - cos[0]).length < (verts[3].co - cos[0]).length:
-                verts[2], verts[3] = verts[3], verts[2]
+                # This makes the +/- behavior predictable:
+                if (verts[0].co - cos[0]).length < (verts[1].co - cos[0]).length:
+                    verts[0], verts[1] = verts[1], verts[0]
+                if (verts[2].co - cos[0]).length < (verts[3].co - cos[0]).length:
+                    verts[2], verts[3] = verts[3], verts[2]
 
-            vectors.append(verts[0].co - verts[1].co)
-            vectors.append(verts[2].co - verts[3].co)
+                vectors.append(verts[0].co - verts[1].co)
+                vectors.append(verts[2].co - verts[3].co)
 
-            # Normal of the plane formed by vector1 and vector2:
-            vectors.append(vectors[0].cross(vectors[1]))
+                # Normal of the plane formed by vector1 and vector2:
+                vectors.append(vectors[0].cross(vectors[1]))
 
-            # Possible directions:
-            vectors.append(vectors[2].cross(vectors[0]))
-            vectors.append(vectors[1].cross(vectors[2]))
+                # Possible directions:
+                vectors.append(vectors[2].cross(vectors[0]))
+                vectors.append(vectors[1].cross(vectors[2]))
 
-        # Set the length:
-        vectors[3].length = self.length
-        vectors[4].length = self.length
+            # Set the length:
+            vectors[3].length = self.length
+            vectors[4].length = self.length
 
-        # Perform any additional rotations:
-        matrix = Matrix.Rotation(radians(90 + self.angle), 3, vectors[2])
-        vectors.append(matrix * -vectors[3])    # vectors[5]
-        matrix = Matrix.Rotation(radians(90 - self.angle), 3, vectors[2])
-        vectors.append(matrix * vectors[4])     # vectors[6]
-        vectors.append(matrix * vectors[3])     # vectors[7]
-        matrix = Matrix.Rotation(radians(90 + self.angle), 3, vectors[2])
-        vectors.append(matrix * -vectors[4])    # vectors[8]
+            # Perform any additional rotations:
+            matrix = Matrix.Rotation(radians(90 + self.angle), 3, vectors[2])
+            vectors.append(matrix * -vectors[3])    # vectors[5]
+            matrix = Matrix.Rotation(radians(90 - self.angle), 3, vectors[2])
+            vectors.append(matrix * vectors[4])     # vectors[6]
+            vectors.append(matrix * vectors[3])     # vectors[7]
+            matrix = Matrix.Rotation(radians(90 + self.angle), 3, vectors[2])
+            vectors.append(matrix * -vectors[4])    # vectors[8]
 
-        # Perform extrusions and displacements:
-        # There will be a total of 8 extrusions.  One for each vert of each edge.
-        # It looks like an extrusion will add the new vert to the end of the verts
-        # list and leave the rest in the same location.
-        # ----------- EDIT -----------
-        # It looks like I might be able to do this within "bpy.data" with the ".add" function
+            # Perform extrusions and displacements:
+            # There will be a total of 8 extrusions.  One for each vert of each edge.
+            # It looks like an extrusion will add the new vert to the end of the verts
+            # list and leave the rest in the same location.
+            # -- EDIT --
+            # It looks like I might be able to do this within "bpy.data" with the ".add" function
 
-        for v in range(len(verts)):
-            vert = verts[v]
-            if ((v == 0 and self.vert1) or (v == 1 and self.vert2) or
-               (v == 2 and self.vert3) or (v == 3 and self.vert4)):
+            for v in range(len(verts)):
+                vert = verts[v]
+                if ((v == 0 and self.vert1) or (v == 1 and self.vert2) or
+                   (v == 2 and self.vert3) or (v == 3 and self.vert4)):
 
-                if self.pos:
-                    new = bVerts.new()
-                    new.co = vert.co - vectors[5 + (v // 2) + ((v % 2) * 2)]
-                    bVerts.ensure_lookup_table()
-                    bEdges.new((vert, new))
-                    bEdges.ensure_lookup_table()
-                if self.neg:
-                    new = bVerts.new()
-                    new.co = vert.co + vectors[5 + (v // 2) + ((v % 2) * 2)]
-                    bVerts.ensure_lookup_table()
-                    bEdges.new((vert, new))
-                    bEdges.ensure_lookup_table()
+                    if self.pos:
+                        new = bVerts.new()
+                        new.co = vert.co - vectors[5 + (v // 2) + ((v % 2) * 2)]
+                        bVerts.ensure_lookup_table()
+                        bEdges.new((vert, new))
+                        bEdges.ensure_lookup_table()
+                    if self.neg:
+                        new = bVerts.new()
+                        new.co = vert.co + vectors[5 + (v // 2) + ((v % 2) * 2)]
+                        bVerts.ensure_lookup_table()
+                        bEdges.new((vert, new))
+                        bEdges.ensure_lookup_table()
 
-        bmesh.update_edit_mesh(me)
+            bmesh.update_edit_mesh(me)
+        except Exception as e:
+            error_handlers(self, "mesh.edgetools_ortho", e,
+                           reports="Angle Off Edge Operator failed", func=False)
+            return {'CANCELLED'}
 
         return {'FINISHED'}
 
@@ -1056,49 +1147,49 @@ class Shaft(Operator):
 
     # For tracking if the user has changed selection:
     last_edge = IntProperty(
-                    name="Last Edge",
-                    description="Tracks if user has changed selected edges",
-                    min=0, max=1,
-                    default=0
-                    )
+            name="Last Edge",
+            description="Tracks if user has changed selected edges",
+            min=0, max=1,
+            default=0
+            )
     last_flip = False
 
     edge = IntProperty(
-                    name="Edge",
-                    description="Edge to shaft around",
-                    min=0, max=1,
-                    default=0
-                    )
+            name="Edge",
+            description="Edge to shaft around",
+            min=0, max=1,
+            default=0
+            )
     flip = BoolProperty(
-                    name="Flip Second Edge",
-                    description="Flip the percieved direction of the second edge",
-                    default=False
-                    )
+            name="Flip Second Edge",
+            description="Flip the percieved direction of the second edge",
+            default=False
+            )
     radius = FloatProperty(
-                    name="Radius",
-                    description="Shaft Radius",
-                    min=0.0, max=1024.0,
-                    default=1.0
-                    )
+            name="Radius",
+            description="Shaft Radius",
+            min=0.0, max=1024.0,
+            default=1.0
+            )
     start = FloatProperty(
-                    name="Starting Angle",
-                    description="Angle to start the shaft at",
-                    min=-360.0, max=360.0,
-                    default=0.0
-                    )
+            name="Starting Angle",
+            description="Angle to start the shaft at",
+            min=-360.0, max=360.0,
+            default=0.0
+            )
     finish = FloatProperty(
-                    name="Ending Angle",
-                    description="Angle to end the shaft at",
-                    min=-360.0, max=360.0,
-                    default=360.0
-                    )
+            name="Ending Angle",
+            description="Angle to end the shaft at",
+            min=-360.0, max=360.0,
+            default=360.0
+            )
     segments = IntProperty(
-                    name="Shaft Segments",
-                    description="Number of segments to use in the shaft",
-                    min=1, max=4096,
-                    soft_max=512,
-                    default=32
-                    )
+            name="Shaft Segments",
+            description="Number of segments to use in the shaft",
+            min=1, max=4096,
+            soft_max=512,
+            default=32
+            )
 
     def draw(self, context):
         layout = self.layout
@@ -1126,221 +1217,228 @@ class Shaft(Operator):
         return self.execute(context)
 
     def execute(self, context):
-        me = context.object.data
-        bm = bmesh.from_edit_mesh(me)
-        bm.normal_update()
+        try:
+            me = context.object.data
+            bm = bmesh.from_edit_mesh(me)
+            bm.normal_update()
 
-        bFaces = bm.faces
-        bEdges = bm.edges
-        bVerts = bm.verts
+            bFaces = bm.faces
+            bEdges = bm.edges
+            bVerts = bm.verts
 
-        active = None
-        edges, verts = [], []
+            active = None
+            edges, verts = [], []
 
-        # Pre-caclulated values:
-        rotRange = [radians(self.start), radians(self.finish)]
-        rads = radians((self.finish - self.start) / self.segments)
+            # Pre-caclulated values:
+            rotRange = [radians(self.start), radians(self.finish)]
+            rads = radians((self.finish - self.start) / self.segments)
 
-        numV = self.segments + 1
-        numE = self.segments
+            numV = self.segments + 1
+            numE = self.segments
 
-        edges = [e for e in bEdges if e.select]
+            edges = [e for e in bEdges if e.select]
 
-        # Robustness check: there should at least be one edge selected
-        if len(edges) < 1:
-            bpy.ops.object.editmode_toggle()
-            self.report({'ERROR_INVALID_INPUT'},
-                        "At least one edge must be selected")
-            return {'CANCELLED'}
-
-        # If two edges are selected:
-        if len(edges) == 2:
-            # default:
-            edge = [0, 1]
-            vert = [0, 1]
-
-            # By default, we want to shaft around the last selected edge (it
-            # will be the active edge). We know we are using the default if
-            # the user has not changed which edge is being shafted around (as
-            # is tracked by self.last_edge). When they are not the same, then
-            # the user has changed selection.
-            # We then need to make sure that the active object really is an edge
-            # (robustness check)
-            # Finally, if the active edge is not the inital one, we flip them
-            # and have the GUI reflect that
-            if self.last_edge == self.edge:
-                if isinstance(bm.select_history.active, bmesh.types.BMEdge):
-                    if bm.select_history.active != edges[edge[0]]:
-                        self.last_edge, self.edge = edge[1], edge[1]
-                        edge = [edge[1], edge[0]]
-                else:
-                    bpy.ops.object.editmode_toggle()
-                    self.report({'ERROR_INVALID_INPUT'},
-                                "Active geometry is not an edge")
-                    return {'CANCELLED'}
-            elif self.edge == 1:
-                edge = [1, 0]
-
-            verts.append(edges[edge[0]].verts[0])
-            verts.append(edges[edge[0]].verts[1])
-
-            if self.flip:
-                verts = [1, 0]
-
-            verts.append(edges[edge[1]].verts[vert[0]])
-            verts.append(edges[edge[1]].verts[vert[1]])
-
-            self.shaftType = 0
-        # If there is more than one edge selected:
-        # There are some issues with it ATM, so don't expose is it to normal users
-        # @todo Fix edge connection ordering issue
-        elif ENABLE_DEBUG and len(edges) > 2:
-            if isinstance(bm.select_history.active, bmesh.types.BMEdge):
-                active = bm.select_history.active
-                edges.remove(active)
-                # Get all the verts:
-                # edges = order_joined_edges(edges[0])
-                verts = []
-                for e in edges:
-                    if verts.count(e.verts[0]) == 0:
-                        verts.append(e.verts[0])
-                    if verts.count(e.verts[1]) == 0:
-                        verts.append(e.verts[1])
-            else:
-                bpy.ops.object.editmode_toggle()
-                self.report({'ERROR_INVALID_INPUT'},
-                            "Active geometry is not an edge")
+            # Robustness check: there should at least be one edge selected
+            if not is_selected_enough(self, edges, 0, edges_n=1, verts_n=0, types="Edge"):
                 return {'CANCELLED'}
-            self.shaftType = 1
-        else:
-            verts.append(edges[0].verts[0])
-            verts.append(edges[0].verts[1])
 
-            for v in bVerts:
-                if v.select and verts.count(v) == 0:
-                    verts.append(v)
-                v.select = False
-            if len(verts) == 2:
-                self.shaftType = 3
+            # If two edges are selected:
+            if len(edges) == 2:
+                # default:
+                edge = [0, 1]
+                vert = [0, 1]
+
+                # By default, we want to shaft around the last selected edge (it
+                # will be the active edge). We know we are using the default if
+                # the user has not changed which edge is being shafted around (as
+                # is tracked by self.last_edge). When they are not the same, then
+                # the user has changed selection.
+                # We then need to make sure that the active object really is an edge
+                # (robustness check)
+                # Finally, if the active edge is not the inital one, we flip them
+                # and have the GUI reflect that
+                if self.last_edge == self.edge:
+                    if isinstance(bm.select_history.active, bmesh.types.BMEdge):
+                        if bm.select_history.active != edges[edge[0]]:
+                            self.last_edge, self.edge = edge[1], edge[1]
+                            edge = [edge[1], edge[0]]
+                    else:
+                        flip_edit_mode()
+                        self.report({'WARNING'},
+                                    "Active geometry is not an edge. Operation Cancelled")
+                        return {'CANCELLED'}
+                elif self.edge == 1:
+                    edge = [1, 0]
+
+                verts.append(edges[edge[0]].verts[0])
+                verts.append(edges[edge[0]].verts[1])
+
+                if self.flip:
+                    verts = [1, 0]
+
+                verts.append(edges[edge[1]].verts[vert[0]])
+                verts.append(edges[edge[1]].verts[vert[1]])
+
+                self.shaftType = 0
+            # If there is more than one edge selected:
+            # There are some issues with it ATM, so don't expose is it to normal users
+            # @todo Fix edge connection ordering issue
+            elif ENABLE_DEBUG and len(edges) > 2:
+                if isinstance(bm.select_history.active, bmesh.types.BMEdge):
+                    active = bm.select_history.active
+                    edges.remove(active)
+                    # Get all the verts:
+                    # edges = order_joined_edges(edges[0])
+                    verts = []
+                    for e in edges:
+                        if verts.count(e.verts[0]) == 0:
+                            verts.append(e.verts[0])
+                        if verts.count(e.verts[1]) == 0:
+                            verts.append(e.verts[1])
+                else:
+                    flip_edit_mode()
+                    self.report({'WARNING'},
+                                "Active geometry is not an edge. Operation Cancelled")
+                    return {'CANCELLED'}
+                self.shaftType = 1
             else:
-                self.shaftType = 2
+                verts.append(edges[0].verts[0])
+                verts.append(edges[0].verts[1])
 
-        # The vector denoting the axis of rotation:
-        if self.shaftType == 1:
-            axis = active.verts[1].co - active.verts[0].co
-        else:
-            axis = verts[1].co - verts[0].co
+                for v in bVerts:
+                    if v.select and verts.count(v) == 0:
+                        verts.append(v)
+                    v.select = False
+                if len(verts) == 2:
+                    self.shaftType = 3
+                else:
+                    self.shaftType = 2
 
-        # We will need a series of rotation matrices. We could use one which
-        # would be faster but also might cause propagation of error
-        # matrices = []
-        # for i in range(numV):
-        #    matrices.append(Matrix.Rotation((rads * i) + rotRange[0], 3, axis))
-        matrices = [Matrix.Rotation((rads * i) + rotRange[0], 3, axis) for i in range(numV)]
-
-        # New vertice coordinates:
-        verts_out = []
-
-        # If two edges were selected:
-        #  - If the lines are not parallel, then it will create a cone-like shaft
-        if self.shaftType == 0:
-            for i in range(len(verts) - 2):
-                init_vec = distance_point_line(verts[i + 2].co, verts[0].co, verts[1].co)
-                co = init_vec + verts[i + 2].co
-                # These will be rotated about the orgin so will need to be shifted:
-                for j in range(numV):
-                    verts_out.append(co - (matrices[j] * init_vec))
-        elif self.shaftType == 1:
-            for i in verts:
-                init_vec = distance_point_line(i.co, active.verts[0].co, active.verts[1].co)
-                co = init_vec + i.co
-                # These will be rotated about the orgin so will need to be shifted:
-                for j in range(numV):
-                    verts_out.append(co - (matrices[j] * init_vec))
-        # Else if a line and a point was selected:
-        elif self.shaftType == 2:
-            init_vec = distance_point_line(verts[2].co, verts[0].co, verts[1].co)
-            # These will be rotated about the orgin so will need to be shifted:
-            verts_out = [(verts[i].co - (matrices[j] * init_vec)) for i in range(2) for j in range(numV)]
-        else:
-            # Else the above are not possible, so we will just use the edge:
-            #  - The vector defined by the edge is the normal of the plane for the shaft
-            #  - The shaft will have radius "radius"
-            if is_axial(verts[0].co, verts[1].co) is None:
-                proj = (verts[1].co - verts[0].co)
-                proj[2] = 0
-                norm = proj.cross(verts[1].co - verts[0].co)
-                vec = norm.cross(verts[1].co - verts[0].co)
-                vec.length = self.radius
-            elif is_axial(verts[0].co, verts[1].co) == 'Z':
-                vec = verts[0].co + Vector((0, 0, self.radius))
+            # The vector denoting the axis of rotation:
+            if self.shaftType == 1:
+                axis = active.verts[1].co - active.verts[0].co
             else:
-                vec = verts[0].co + Vector((0, self.radius, 0))
-            init_vec = distance_point_line(vec, verts[0].co, verts[1].co)
-            # These will be rotated about the orgin so will need to be shifted:
-            verts_out = [(verts[i].co - (matrices[j] * init_vec)) for i in range(2) for j in range(numV)]
+                axis = verts[1].co - verts[0].co
 
-        # We should have the coordinates for a bunch of new verts
-        # Now add the verts and build the edges and then the faces
+            # We will need a series of rotation matrices. We could use one which
+            # would be faster but also might cause propagation of error
+            # matrices = []
+            # for i in range(numV):
+            #    matrices.append(Matrix.Rotation((rads * i) + rotRange[0], 3, axis))
+            matrices = [Matrix.Rotation((rads * i) + rotRange[0], 3, axis) for i in range(numV)]
 
-        newVerts = []
+            # New vertice coordinates:
+            verts_out = []
 
-        if self.shaftType == 1:
-            # Vertices:
-            for i in range(numV * len(verts)):
-                new = bVerts.new()
-                new.co = verts_out[i]
-                bVerts.ensure_lookup_table()
-                new.select = True
-                newVerts.append(new)
-            # Edges:
-            for i in range(numE):
-                for j in range(len(verts)):
-                    e = bEdges.new((newVerts[i + (numV * j)], newVerts[i + (numV * j) + 1]))
-                    bEdges.ensure_lookup_table()
+            # If two edges were selected:
+            #  - If the lines are not parallel, then it will create a cone-like shaft
+            if self.shaftType == 0:
+                for i in range(len(verts) - 2):
+                    init_vec = distance_point_line(verts[i + 2].co, verts[0].co, verts[1].co)
+                    co = init_vec + verts[i + 2].co
+                    # These will be rotated about the orgin so will need to be shifted:
+                    for j in range(numV):
+                        verts_out.append(co - (matrices[j] * init_vec))
+            elif self.shaftType == 1:
+                for i in verts:
+                    init_vec = distance_point_line(i.co, active.verts[0].co, active.verts[1].co)
+                    co = init_vec + i.co
+                    # These will be rotated about the orgin so will need to be shifted:
+                    for j in range(numV):
+                        verts_out.append(co - (matrices[j] * init_vec))
+            # Else if a line and a point was selected:
+            elif self.shaftType == 2:
+                init_vec = distance_point_line(verts[2].co, verts[0].co, verts[1].co)
+                # These will be rotated about the orgin so will need to be shifted:
+                verts_out = [
+                    (verts[i].co - (matrices[j] * init_vec)) for i in range(2) for j in range(numV)
+                    ]
+            else:
+                # Else the above are not possible, so we will just use the edge:
+                #  - The vector defined by the edge is the normal of the plane for the shaft
+                #  - The shaft will have radius "radius"
+                if is_axial(verts[0].co, verts[1].co) is None:
+                    proj = (verts[1].co - verts[0].co)
+                    proj[2] = 0
+                    norm = proj.cross(verts[1].co - verts[0].co)
+                    vec = norm.cross(verts[1].co - verts[0].co)
+                    vec.length = self.radius
+                elif is_axial(verts[0].co, verts[1].co) == 'Z':
+                    vec = verts[0].co + Vector((0, 0, self.radius))
+                else:
+                    vec = verts[0].co + Vector((0, self.radius, 0))
+                init_vec = distance_point_line(vec, verts[0].co, verts[1].co)
+                # These will be rotated about the orgin so will need to be shifted:
+                verts_out = [
+                    (verts[i].co - (matrices[j] * init_vec)) for i in range(2) for j in range(numV)
+                    ]
+
+            # We should have the coordinates for a bunch of new verts
+            # Now add the verts and build the edges and then the faces
+
+            newVerts = []
+
+            if self.shaftType == 1:
+                # Vertices:
+                for i in range(numV * len(verts)):
+                    new = bVerts.new()
+                    new.co = verts_out[i]
+                    bVerts.ensure_lookup_table()
+                    new.select = True
+                    newVerts.append(new)
+                # Edges:
+                for i in range(numE):
+                    for j in range(len(verts)):
+                        e = bEdges.new((newVerts[i + (numV * j)], newVerts[i + (numV * j) + 1]))
+                        bEdges.ensure_lookup_table()
+                        e.select = True
+                for i in range(numV):
+                    for j in range(len(verts) - 1):
+                        e = bEdges.new((newVerts[i + (numV * j)], newVerts[i + (numV * (j + 1))]))
+                        bEdges.ensure_lookup_table()
+                        e.select = True
+
+                # Faces: There is a problem with this right now
+                """
+                for i in range(len(edges)):
+                    for j in range(numE):
+                        f = bFaces.new((newVerts[i], newVerts[i + 1],
+                                       newVerts[i + (numV * j) + 1], newVerts[i + (numV * j)]))
+                        f.normal_update()
+                """
+            else:
+                # Vertices:
+                for i in range(numV * 2):
+                    new = bVerts.new()
+                    new.co = verts_out[i]
+                    new.select = True
+                    bVerts.ensure_lookup_table()
+                    newVerts.append(new)
+                # Edges:
+                for i in range(numE):
+                    e = bEdges.new((newVerts[i], newVerts[i + 1]))
                     e.select = True
-            for i in range(numV):
-                for j in range(len(verts) - 1):
-                    e = bEdges.new((newVerts[i + (numV * j)], newVerts[i + (numV * (j + 1))]))
                     bEdges.ensure_lookup_table()
+                    e = bEdges.new((newVerts[i + numV], newVerts[i + numV + 1]))
                     e.select = True
-
-            # Faces: There is a problem with this right now
-            """
-            for i in range(len(edges)):
-                for j in range(numE):
+                    bEdges.ensure_lookup_table()
+                for i in range(numV):
+                    e = bEdges.new((newVerts[i], newVerts[i + numV]))
+                    e.select = True
+                    bEdges.ensure_lookup_table()
+                # Faces:
+                for i in range(numE):
                     f = bFaces.new((newVerts[i], newVerts[i + 1],
-                                   newVerts[i + (numV * j) + 1], newVerts[i + (numV * j)]))
+                                    newVerts[i + numV + 1], newVerts[i + numV]))
+                    bFaces.ensure_lookup_table()
                     f.normal_update()
-            """
-        else:
-            # Vertices:
-            for i in range(numV * 2):
-                new = bVerts.new()
-                new.co = verts_out[i]
-                new.select = True
-                bVerts.ensure_lookup_table()
-                newVerts.append(new)
-            # Edges:
-            for i in range(numE):
-                e = bEdges.new((newVerts[i], newVerts[i + 1]))
-                e.select = True
-                bEdges.ensure_lookup_table()
-                e = bEdges.new((newVerts[i + numV], newVerts[i + numV + 1]))
-                e.select = True
-                bEdges.ensure_lookup_table()
-            for i in range(numV):
-                e = bEdges.new((newVerts[i], newVerts[i + numV]))
-                e.select = True
-                bEdges.ensure_lookup_table()
-            # Faces:
-            for i in range(numE):
-                f = bFaces.new((newVerts[i], newVerts[i + 1],
-                                newVerts[i + numV + 1], newVerts[i + numV]))
-                bFaces.ensure_lookup_table()
-                f.normal_update()
 
-        bmesh.update_edit_mesh(me)
+            bmesh.update_edit_mesh(me)
+
+        except Exception as e:
+            error_handlers(self, "mesh.edgetools_shaft", e,
+                           reports="Shaft Operator failed", func=False)
+            return {'CANCELLED'}
 
         return {'FINISHED'}
 
@@ -1354,25 +1452,25 @@ class Slice(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     make_copy = BoolProperty(
-                    name="Make Copy",
-                    description="Make new vertices at intersection points instead of spliting the edge",
-                    default=False
-                    )
+            name="Make Copy",
+            description="Make new vertices at intersection points instead of spliting the edge",
+            default=False
+            )
     rip = BoolProperty(
-                    name="Rip",
-                    description="Split into two edges that DO NOT share an intersection vertex",
-                    default=True
-                   )
+            name="Rip",
+            description="Split into two edges that DO NOT share an intersection vertex",
+            default=True
+            )
     pos = BoolProperty(
-                    name="Positive",
-                    description="Remove the portion on the side of the face normal",
-                    default=False
-                   )
+            name="Positive",
+            description="Remove the portion on the side of the face normal",
+            default=False
+            )
     neg = BoolProperty(
-                    name="Negative",
-                    description="Remove the portion on the side opposite of the face normal",
-                    default=False
-                   )
+            name="Negative",
+            description="Remove the portion on the side opposite of the face normal",
+            default=False
+            )
 
     def draw(self, context):
         layout = self.layout
@@ -1393,136 +1491,142 @@ class Slice(Operator):
         return self.execute(context)
 
     def execute(self, context):
-        me = context.object.data
-        bm = bmesh.from_edit_mesh(me)
-        bm.normal_update()
+        try:
+            me = context.object.data
+            bm = bmesh.from_edit_mesh(me)
+            bm.normal_update()
 
-        bVerts = bm.verts
-        bEdges = bm.edges
-        bFaces = bm.faces
+            bVerts = bm.verts
+            bEdges = bm.edges
+            bFaces = bm.faces
 
-        face, normal = None, None
+            face, normal = None, None
 
-        # Find the selected face. This will provide the plane to project onto:
-        #  - First check to use the active face. Allows users to just
-        #    select a bunch of faces with the last being the cutting plane
-        #  - If that fails, then use the first found selected face in the BMesh face list
-        if isinstance(bm.select_history.active, bmesh.types.BMFace):
-            face = bm.select_history.active
-            normal = bm.select_history.active.normal
-            bm.select_history.active.select = False
-        else:
-            for f in bFaces:
-                if f.select:
-                    face = f
-                    normal = f.normal
-                    f.select = False
-                    break
+            # Find the selected face. This will provide the plane to project onto:
+            #  - First check to use the active face. Allows users to just
+            #    select a bunch of faces with the last being the cutting plane
+            #  - If that fails, then use the first found selected face in the BMesh face list
+            if isinstance(bm.select_history.active, bmesh.types.BMFace):
+                face = bm.select_history.active
+                normal = bm.select_history.active.normal
+                bm.select_history.active.select = False
+            else:
+                for f in bFaces:
+                    if f.select:
+                        face = f
+                        normal = f.normal
+                        f.select = False
+                        break
 
-        # If we don't find a selected face exit:
-        if face is None:
-            bpy.ops.object.editmode_toggle()
-            self.report({'ERROR_INVALID_INPUT'},
-                        "You must select a face as the cutting plane")
-            return {'CANCELLED'}
+            # If we don't find a selected face exit:
+            if face is None:
+                flip_edit_mode()
+                self.report({'WARNING'},
+                            "Please select a face as the cutting plane. Operation Cancelled")
+                return {'CANCELLED'}
 
-        # Warn the user if they are using an n-gon might lead to some odd results
-        elif len(face.verts) > 4 and not is_face_planar(face):
-            self.report({'WARNING'},
-                        "Selected face is an N-gon.  Results may be unpredictable")
+            # Warn the user if they are using an n-gon might lead to some odd results
+            elif len(face.verts) > 4 and not is_face_planar(face):
+                self.report({'WARNING'},
+                            "Selected face is an N-gon.  Results may be unpredictable")
 
-        if ENABLE_DEBUG:
-            dbg = 0
-            print("Number of Edges: ", len(bEdges))
-
-        for e in bEdges:
             if ENABLE_DEBUG:
-                print("Looping through Edges - ", dbg)
-                dbg = dbg + 1
+                dbg = 0
+                print("Number of Edges: ", len(bEdges))
 
-            # Get the end verts on the edge:
-            v1 = e.verts[0]
-            v2 = e.verts[1]
-
-            # Make sure that verts are not a part of the cutting plane:
-            if e.select and (v1 not in face.verts and v2 not in face.verts):
-                if len(face.verts) < 5:  # Not an n-gon
-                    intersection = intersect_line_face(e, face, True)
-                else:
-                    intersection = intersect_line_plane(v1.co, v2.co, face.verts[0].co, normal)
-
+            for e in bEdges:
                 if ENABLE_DEBUG:
-                    print("Intersection: ", intersection)
+                    print("Looping through Edges - ", dbg)
+                    dbg = dbg + 1
 
-                # If an intersection exists find the distance of each of the end
-                # points from the plane, with "positive" being in the direction
-                # of the cutting plane's normal. If the points are on opposite
-                # side of the plane, then it intersects and we need to cut it
-                if intersection is not None:
-                    bVerts.ensure_lookup_table()
-                    bEdges.ensure_lookup_table()
-                    bFaces.ensure_lookup_table()
+                # Get the end verts on the edge:
+                v1 = e.verts[0]
+                v2 = e.verts[1]
 
-                    d1 = distance_point_to_plane(v1.co, face.verts[0].co, normal)
-                    d2 = distance_point_to_plane(v2.co, face.verts[0].co, normal)
-                    # If they have different signs, then the edge crosses the cutting plane:
-                    if abs(d1 + d2) < abs(d1 - d2):
-                        # Make the first vertex the positive one:
-                        if d1 < d2:
-                            v2, v1 = v1, v2
+                # Make sure that verts are not a part of the cutting plane:
+                if e.select and (v1 not in face.verts and v2 not in face.verts):
+                    if len(face.verts) < 5:  # Not an n-gon
+                        intersection = intersect_line_face(e, face, True)
+                    else:
+                        intersection = intersect_line_plane(v1.co, v2.co, face.verts[0].co, normal)
 
-                        if self.make_copy:
-                            new = bVerts.new()
-                            new.co = intersection
-                            new.select = True
-                            bVerts.ensure_lookup_table()
-                        elif self.rip:
-                            if ENABLE_DEBUG:
-                                print("Branch rip engaged")
-                            newV1 = bVerts.new()
-                            newV1.co = intersection
-                            bVerts.ensure_lookup_table()
-                            if ENABLE_DEBUG:
-                                print("newV1 created", end='; ')
+                    if ENABLE_DEBUG:
+                        print("Intersection: ", intersection)
 
-                            newV2 = bVerts.new()
-                            newV2.co = intersection
-                            bVerts.ensure_lookup_table()
+                    # If an intersection exists find the distance of each of the end
+                    # points from the plane, with "positive" being in the direction
+                    # of the cutting plane's normal. If the points are on opposite
+                    # side of the plane, then it intersects and we need to cut it
+                    if intersection is not None:
+                        bVerts.ensure_lookup_table()
+                        bEdges.ensure_lookup_table()
+                        bFaces.ensure_lookup_table()
 
-                            if ENABLE_DEBUG:
-                                print("newV2 created", end='; ')
+                        d1 = distance_point_to_plane(v1.co, face.verts[0].co, normal)
+                        d2 = distance_point_to_plane(v2.co, face.verts[0].co, normal)
+                        # If they have different signs, then the edge crosses the cutting plane:
+                        if abs(d1 + d2) < abs(d1 - d2):
+                            # Make the first vertex the positive one:
+                            if d1 < d2:
+                                v2, v1 = v1, v2
 
-                            newE1 = bEdges.new((v1, newV1))
-                            newE2 = bEdges.new((v2, newV2))
-                            bEdges.ensure_lookup_table()
+                            if self.make_copy:
+                                new = bVerts.new()
+                                new.co = intersection
+                                new.select = True
+                                bVerts.ensure_lookup_table()
+                            elif self.rip:
+                                if ENABLE_DEBUG:
+                                    print("Branch rip engaged")
+                                newV1 = bVerts.new()
+                                newV1.co = intersection
+                                bVerts.ensure_lookup_table()
+                                if ENABLE_DEBUG:
+                                    print("newV1 created", end='; ')
 
-                            if ENABLE_DEBUG:
-                                print("new edges created", end='; ')
+                                newV2 = bVerts.new()
+                                newV2.co = intersection
+                                bVerts.ensure_lookup_table()
 
-                            if e.is_valid:
-                                bEdges.remove(e)
+                                if ENABLE_DEBUG:
+                                    print("newV2 created", end='; ')
 
-                            bEdges.ensure_lookup_table()
+                                newE1 = bEdges.new((v1, newV1))
+                                newE2 = bEdges.new((v2, newV2))
+                                bEdges.ensure_lookup_table()
 
-                            if ENABLE_DEBUG:
-                                print("Old edge removed.\nWe're done with this edge")
-                        else:
-                            new = list(bmesh.utils.edge_split(e, v1, 0.5))
-                            bEdges.ensure_lookup_table()
-                            new[1].co = intersection
-                            e.select = False
-                            new[0].select = False
-                            if self.pos:
-                                bEdges.remove(new[0])
-                            if self.neg:
-                                bEdges.remove(e)
-                            bEdges.ensure_lookup_table()
+                                if ENABLE_DEBUG:
+                                    print("new edges created", end='; ')
 
-        if ENABLE_DEBUG:
-            print("The Edge Loop has exited. Now to update the bmesh")
-            dbg = 0
+                                if e.is_valid:
+                                    bEdges.remove(e)
 
-        bmesh.update_edit_mesh(me)
+                                bEdges.ensure_lookup_table()
+
+                                if ENABLE_DEBUG:
+                                    print("Old edge removed.\nWe're done with this edge")
+                            else:
+                                new = list(bmesh.utils.edge_split(e, v1, 0.5))
+                                bEdges.ensure_lookup_table()
+                                new[1].co = intersection
+                                e.select = False
+                                new[0].select = False
+                                if self.pos:
+                                    bEdges.remove(new[0])
+                                if self.neg:
+                                    bEdges.remove(e)
+                                bEdges.ensure_lookup_table()
+
+            if ENABLE_DEBUG:
+                print("The Edge Loop has exited. Now to update the bmesh")
+                dbg = 0
+
+            bmesh.update_edit_mesh(me)
+
+        except Exception as e:
+            error_handlers(self, "mesh.edgetools_slice", e,
+                           reports="Slice Operator failed", func=False)
+            return {'CANCELLED'}
 
         return {'FINISHED'}
 
@@ -1538,10 +1642,10 @@ class Project(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     make_copy = BoolProperty(
-                    name="Make Copy",
-                    description="Make duplicates of the vertices instead of altering them",
-                    default=False
-                    )
+            name="Make Copy",
+            description="Make duplicates of the vertices instead of altering them",
+            default=False
+            )
 
     def draw(self, context):
         layout = self.layout
@@ -1556,42 +1660,49 @@ class Project(Operator):
         return self.execute(context)
 
     def execute(self, context):
-        me = context.object.data
-        bm = bmesh.from_edit_mesh(me)
-        bm.normal_update()
+        try:
+            me = context.object.data
+            bm = bmesh.from_edit_mesh(me)
+            bm.normal_update()
 
-        bFaces = bm.faces
-        bVerts = bm.verts
+            bFaces = bm.faces
+            bVerts = bm.verts
 
-        fVerts = []
+            fVerts = []
 
-        # Find the selected face.  This will provide the plane to project onto:
-        # @todo Check first for an active face
-        for f in bFaces:
-            if f.select:
-                for v in f.verts:
-                    fVerts.append(v)
-                normal = f.normal
-                f.select = False
-                break
+            # Find the selected face.  This will provide the plane to project onto:
+            # @todo Check first for an active face
+            for f in bFaces:
+                if f.select:
+                    for v in f.verts:
+                        fVerts.append(v)
+                    normal = f.normal
+                    f.select = False
+                    break
 
-        for v in bVerts:
-            if v.select:
-                if v in fVerts:
+            for v in bVerts:
+                if v.select:
+                    if v in fVerts:
+                        v.select = False
+                        continue
+                    d = distance_point_to_plane(v.co, fVerts[0].co, normal)
+                    if self.make_copy:
+                        temp = v
+                        v = bVerts.new()
+                        v.co = temp.co
+                        bVerts.ensure_lookup_table()
+                    vector = normal
+                    vector.length = abs(d)
+                    v.co = v.co - (vector * sign(d))
                     v.select = False
-                    continue
-                d = distance_point_to_plane(v.co, fVerts[0].co, normal)
-                if self.make_copy:
-                    temp = v
-                    v = bVerts.new()
-                    v.co = temp.co
-                    bVerts.ensure_lookup_table()
-                vector = normal
-                vector.length = abs(d)
-                v.co = v.co - (vector * sign(d))
-                v.select = False
 
-        bmesh.update_edit_mesh(me)
+            bmesh.update_edit_mesh(me)
+
+        except Exception as e:
+            error_handlers(self, "mesh.edgetools_project", e,
+                           reports="Project Operator failed", func=False)
+
+            return {'CANCELLED'}
 
         return {'FINISHED'}
 
@@ -1609,25 +1720,25 @@ class Project_End(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     make_copy = BoolProperty(
-                    name="Make Copy",
-                    description="Make a duplicate of the vertice instead of moving it",
-                    default=False
-                    )
+            name="Make Copy",
+            description="Make a duplicate of the vertice instead of moving it",
+            default=False
+            )
     keep_length = BoolProperty(
-                    name="Keep Edge Length",
-                    description="Maintain edge lengths",
-                    default=False
-                    )
+            name="Keep Edge Length",
+            description="Maintain edge lengths",
+            default=False
+            )
     use_force = BoolProperty(
-                    name="Use opposite vertices",
-                    description="Force the usage of the vertices at the other end of the edge",
-                    default=False
-                    )
+            name="Use opposite vertices",
+            description="Force the usage of the vertices at the other end of the edge",
+            default=False
+            )
     use_normal = BoolProperty(
-                    name="Project along normal",
-                    description="Use the plane's normal as the projection direction",
-                    default=False
-                    )
+            name="Project along normal",
+            description="Use the plane's normal as the projection direction",
+            default=False
+            )
 
     def draw(self, context):
         layout = self.layout
@@ -1646,133 +1757,76 @@ class Project_End(Operator):
         return self.execute(context)
 
     def execute(self, context):
-        me = context.object.data
-        bm = bmesh.from_edit_mesh(me)
-        bm.normal_update()
+        try:
+            me = context.object.data
+            bm = bmesh.from_edit_mesh(me)
+            bm.normal_update()
 
-        bFaces = bm.faces
-        bEdges = bm.edges
-        bVerts = bm.verts
+            bFaces = bm.faces
+            bEdges = bm.edges
+            bVerts = bm.verts
 
-        fVerts = []
+            fVerts = []
 
-        # Find the selected face. This will provide the plane to project onto:
-        for f in bFaces:
-            if f.select:
-                for v in f.verts:
-                    fVerts.append(v)
-                normal = f.normal
-                f.select = False
-                break
+            # Find the selected face. This will provide the plane to project onto:
+            for f in bFaces:
+                if f.select:
+                    for v in f.verts:
+                        fVerts.append(v)
+                    normal = f.normal
+                    f.select = False
+                    break
 
-        for e in bEdges:
-            if e.select:
-                v1 = e.verts[0]
-                v2 = e.verts[1]
-                if v1 in fVerts or v2 in fVerts:
+            for e in bEdges:
+                if e.select:
+                    v1 = e.verts[0]
+                    v2 = e.verts[1]
+                    if v1 in fVerts or v2 in fVerts:
+                        e.select = False
+                        continue
+                    intersection = intersect_line_plane(v1.co, v2.co, fVerts[0].co, normal)
+                    if intersection is not None:
+                        # Use abs because we don't care what side of plane we're on:
+                        d1 = distance_point_to_plane(v1.co, fVerts[0].co, normal)
+                        d2 = distance_point_to_plane(v2.co, fVerts[0].co, normal)
+                        # If d1 is closer than we use v1 as our vertice:
+                        # "xor" with 'use_force':
+                        if (abs(d1) < abs(d2)) is not self.use_force:
+                            if self.make_copy:
+                                v1 = bVerts.new()
+                                v1.co = e.verts[0].co
+                                bVerts.ensure_lookup_table()
+                                bEdges.ensure_lookup_table()
+                            if self.keep_length:
+                                v1.co = intersection
+                            elif self.use_normal:
+                                vector = normal
+                                vector.length = abs(d1)
+                                v1.co = v1.co - (vector * sign(d1))
+                            else:
+                                v1.co = intersection
+                        else:
+                            if self.make_copy:
+                                v2 = bVerts.new()
+                                v2.co = e.verts[1].co
+                                bVerts.ensure_lookup_table()
+                                bEdges.ensure_lookup_table()
+                            if self.keep_length:
+                                v2.co = intersection
+                            elif self.use_normal:
+                                vector = normal
+                                vector.length = abs(d2)
+                                v2.co = v2.co - (vector * sign(d2))
+                            else:
+                                v2.co = intersection
                     e.select = False
-                    continue
-                intersection = intersect_line_plane(v1.co, v2.co, fVerts[0].co, normal)
-                if intersection is not None:
-                    # Use abs because we don't care what side of plane we're on:
-                    d1 = distance_point_to_plane(v1.co, fVerts[0].co, normal)
-                    d2 = distance_point_to_plane(v2.co, fVerts[0].co, normal)
-                    # If d1 is closer than we use v1 as our vertice:
-                    # "xor" with 'use_force':
-                    if (abs(d1) < abs(d2)) is not self.use_force:
-                        if self.make_copy:
-                            v1 = bVerts.new()
-                            v1.co = e.verts[0].co
-                            bVerts.ensure_lookup_table()
-                            bEdges.ensure_lookup_table()
-                        if self.keep_length:
-                            v1.co = intersection
-                        elif self.use_normal:
-                            vector = normal
-                            vector.length = abs(d1)
-                            v1.co = v1.co - (vector * sign(d1))
-                        else:
-                            v1.co = intersection
-                    else:
-                        if self.make_copy:
-                            v2 = bVerts.new()
-                            v2.co = e.verts[1].co
-                            bVerts.ensure_lookup_table()
-                            bEdges.ensure_lookup_table()
-                        if self.keep_length:
-                            v2.co = intersection
-                        elif self.use_normal:
-                            vector = normal
-                            vector.length = abs(d2)
-                            v2.co = v2.co - (vector * sign(d2))
-                        else:
-                            v2.co = intersection
-                e.select = False
 
-        bmesh.update_edit_mesh(me)
+            bmesh.update_edit_mesh(me)
 
-        return {'FINISHED'}
-
-
-# For testing the mess that is "intersect_line_face" for possible math errors
-# This will NOT be directly exposed to end users: it will always require
-# switching the ENABLE_DEBUG global to True
-# So far no errors have been found. Thanks to anyone who tests and reports bugs!
-# @todo: this is will be removed before final merge
-
-class Intersect_Line_Face(Operator):
-    bl_idname = "mesh.edgetools_ilf"
-    bl_label = "Interesect Line Face Test"
-    bl_description = "TEST ONLY: Intersect line face"
-    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
-
-    @classmethod
-    def poll(cls, context):
-        ob = context.active_object
-        return (ob and ob.type == 'MESH' and context.mode == 'EDIT_MESH')
-
-    def invoke(self, context, event):
-        return self.execute(context)
-
-    def execute(self, context):
-        # Switch to true to have access to this operator:
-        if not ENABLE_DEBUG:
-            self.report({'ERROR_INVALID_INPUT'},
-                        "This is for debugging only: you should not be able to run this!")
+        except Exception as e:
+            error_handlers(self, "mesh.edgetools_project_end", e,
+                           reports="Project (End Point) Operator failed", func=False)
             return {'CANCELLED'}
-
-        me = context.object.data
-        bm = bmesh.from_edit_mesh(me)
-        bm.normal_update()
-
-        bFaces = bm.faces
-        bEdges = bm.edges
-        bVerts = bm.verts
-
-        face = None
-        for f in bFaces:
-            if f.select:
-                face = f
-                break
-
-        edge = None
-        for e in bEdges:
-            if e.select and e not in face.edges:
-                edge = e
-                break
-
-        point = intersect_line_face(edge, face, True)
-
-        if point is not None:
-            new = bVerts.new()
-            new.co = point
-            bVerts.ensure_lookup_table()
-        else:
-            bpy.ops.object.editmode_toggle()
-            self.report({'ERROR_INVALID_INPUT'}, "point was \"None\"")
-            return {'CANCELLED'}
-
-        bmesh.update_edit_mesh(me)
 
         return {'FINISHED'}
 
@@ -1793,14 +1847,10 @@ class VIEW3D_MT_edit_mesh_edgetools(Menu):
 
         layout.operator("mesh.edgetools_project")
         layout.operator("mesh.edgetools_project_end")
-        if ENABLE_DEBUG:
-            # For internal testing ONLY:
-            layout.separator()
-            layout.operator("mesh.edgetools_ilf")
 
 
 # define classes for registration
-classes = [
+classes = (
     VIEW3D_MT_edit_mesh_edgetools,
     Extend,
     Spline,
@@ -1809,20 +1859,19 @@ classes = [
     Slice,
     Project,
     Project_End,
-    Intersect_Line_Face
-    ]
+    )
 
 
 # registering and menu integration
 def register():
-    for c in classes:
-        bpy.utils.register_class(c)
+    for cls in classes:
+        bpy.utils.register_class(cls)
 
 
 # unregistering and removing menus
 def unregister():
-    for c in classes:
-        bpy.utils.unregister_class(c)
+    for cls in classes:
+        bpy.utils.unregister_class(cls)
 
 
 if __name__ == "__main__":

@@ -15,32 +15,34 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 #
 # ##### END GPL LICENSE BLOCK #####
+
 # menu & updates by meta-androcto #
-# contributed to by Macouno, dustractor, liero, CoDEmanX, meta-androcto #
+# contributed to by :
+# Macouno, dustractor, liero, lijenstina, #
+# CoDEmanX, Dolf Veenvliet, meta-androcto #
 
 bl_info = {
     "name": "Select Tools",
     "author": "Multiple Authors",
-    "version": (0, 3),
+    "version": (0, 3, 1),
     "blender": (2, 64, 0),
     "location": "Editmode Select Menu/Toolshelf Tools Tab",
     "description": "Adds More vert/face/edge select modes.",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "",
     "category": "Mesh"
     }
 
 if "bpy" in locals():
-    import imp
-    imp.reload(mesh_select_by_direction)
-    imp.reload(mesh_select_by_edge_length)
-    imp.reload(mesh_select_by_pi)
-    imp.reload(mesh_select_by_type)
-    imp.reload(mesh_select_connected_faces)
-    imp.reload(mesh_index_select)
-    imp.reload(mesh_selection_topokit)
-    imp.reload(mesh_info_select)
+    import importlib
+    importlib.reload(mesh_select_by_direction)
+    importlib.reload(mesh_select_by_edge_length)
+    importlib.reload(mesh_select_by_pi)
+    importlib.reload(mesh_select_by_type)
+    importlib.reload(mesh_select_connected_faces)
+    importlib.reload(mesh_index_select)
+    importlib.reload(mesh_selection_topokit)
+    importlib.reload(mesh_info_select)
 else:
     from . import mesh_select_by_direction
     from . import mesh_select_by_edge_length

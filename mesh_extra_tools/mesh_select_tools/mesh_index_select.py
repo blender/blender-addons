@@ -22,7 +22,7 @@ from bpy.props import (
 class SelVertEdgeFace(Operator):
     bl_idname = "mesh.select_vert_edge_face_index"
     bl_label = "Select mesh index"
-    bl_description = "Select Vertices, Edges, Faces by index"
+    bl_description = "Select Vertices, Edges, Faces by their indices"
     bl_options = {"REGISTER", "UNDO"}
 
     select_type = EnumProperty(
@@ -59,7 +59,6 @@ class SelVertEdgeFace(Operator):
             description="Start from no previous selection\n"
                         "If unchecked the previous selection is kept"
             )
-
     delta_text = {'VERT': "Use Cursor",
                   'EDGE': "Use Edges' Length",
                   'FACE': "Use Faces' Area"}

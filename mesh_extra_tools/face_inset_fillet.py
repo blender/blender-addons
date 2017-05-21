@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
 
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
+
 # based completely on addon by zmj100
 # added some distance limits to prevent overlap - max12345
 
@@ -31,7 +31,10 @@ from bpy.props import (
         BoolProperty,
         EnumProperty,
         )
-from math import tan, cos, degrees, radians, sin
+from math import (
+        sin, cos, tan,
+        degrees, radians,
+        )
 from mathutils import Matrix
 
 
@@ -97,11 +100,17 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance,
                 val = ((f.normal).normalized() * h)
                 if out is True:
                     # this -(p - (vec2.normalized() * adj))) is just the freaking axis afaik...
-                    p6 = angle_rotation(p, p + val, -(p - (vec2.normalized() * adj)), -radians(90))
+                    p6 = angle_rotation(
+                                p, p + val,
+                                -(p - (vec2.normalized() * adj)),
+                                -radians(90)
+                                )
                 else:
-                    p6 = angle_rotation(p, p - val,
-                                        ((p - (vec1.normalized() * adj)) - (p - (vec2.normalized() * adj))),
-                                        -radians(90))
+                    p6 = angle_rotation(
+                                p, p - val,
+                                ((p - (vec1.normalized() * adj)) - (p - (vec2.normalized() * adj))),
+                                -radians(90)
+                                )
 
                 orientation_vertex_list.append(p6)
 
@@ -200,6 +209,7 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance,
                     bme.faces.index_update()
 
     del_ = [bme.faces.remove(f) for f in list_del]
+
     if del_:
         del del_
 
@@ -209,59 +219,59 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance,
 class MESH_OT_face_inset_fillet(Operator):
     bl_idname = "mesh.face_inset_fillet"
     bl_label = "Face Inset Fillet"
-    bl_description = ("Inset selected and Fillet (make round) the corners of\n"
+    bl_description = ("Inset selected and Fillet (make round) the corners \n"
                      "of the newly created Faces")
     bl_options = {"REGISTER", "UNDO"}
 
     # inset amount
     inset_amount = FloatProperty(
-                    name="Inset amount",
-                    description="Define the size of the Inset relative to the selection",
-                    default=0.04,
-                    min=0, max=100.0,
-                    step=1,
-                    precision=3
-                    )
+            name="Inset amount",
+            description="Define the size of the Inset relative to the selection",
+            default=0.04,
+            min=0, max=100.0,
+            step=1,
+            precision=3
+            )
     # number of sides
     number_of_sides = IntProperty(
-                    name="Number of sides",
-                    description="Define the roundness of the corners by specifying\n"
-                                "the subdivision count",
-                    default=4,
-                    min=1, max=100,
-                    step=1
-                    )
+            name="Number of sides",
+            description="Define the roundness of the corners by specifying\n"
+                        "the subdivision count",
+            default=4,
+            min=1, max=100,
+            step=1
+            )
     distance = FloatProperty(
-                    name="",
-                    description="Use distance or radius for corners' size calculation",
-                    default=0.04,
-                    min=0.00001, max=100.0,
-                    step=1,
-                    precision=3
-                    )
+            name="",
+            description="Use distance or radius for corners' size calculation",
+            default=0.04,
+            min=0.00001, max=100.0,
+            step=1,
+            precision=3
+            )
     out = BoolProperty(
-                    name="Outside",
-                    description="Inset the Faces outwards in relation to the selection\n"
-                                "Note: depending on the geometry, can give unsatisfactory results",
-                    default=False
-                    )
+            name="Outside",
+            description="Inset the Faces outwards in relation to the selection\n"
+                        "Note: depending on the geometry, can give unsatisfactory results",
+            default=False
+            )
     radius = BoolProperty(
-                    name="Radius",
-                    description="Use radius for corners' size calculation",
-                    default=False
-                    )
+            name="Radius",
+            description="Use radius for corners' size calculation",
+            default=False
+            )
     type_enum = EnumProperty(
-                    items=(('opt0', "N-gon", "N-gon corners - Keep the corner Faces uncut"),
-                          ('opt1', "Triangle", "Triangulate corners")),
-                    name="Corner Type",
-                    default="opt0"
-                    )
+            items=(('opt0', "N-gon", "N-gon corners - Keep the corner Faces uncut"),
+                   ('opt1', "Triangle", "Triangulate corners")),
+            name="Corner Type",
+            default="opt0"
+            )
     kp = BoolProperty(
-                    name="Keep faces",
-                    description="Do not delete the inside Faces\n"
-                                "Only available if the Out option is checked",
-                    default=False
-                    )
+            name="Keep faces",
+            description="Do not delete the inside Faces\n"
+                        "Only available if the Out option is checked",
+            default=False
+            )
 
     def draw(self, context):
         layout = self.layout
@@ -308,8 +318,10 @@ class MESH_OT_face_inset_fillet(Operator):
         face_index_list = [f.index for f in bme.faces if f.select and f.is_valid]
 
         if len(face_index_list) == 0:
-            self.report({'WARNING'}, "No suitable Face selection found. Operation cancelled")
+            self.report({'WARNING'},
+                        "No suitable Face selection found. Operation cancelled")
             edit_mode_in()
+
             return {'CANCELLED'}
 
         elif len(face_index_list) != 0:

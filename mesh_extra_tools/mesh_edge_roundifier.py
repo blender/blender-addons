@@ -1,20 +1,20 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.    See the
-# GNU General Public License for more details.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
     "name": "Edge Roundifier",
@@ -22,10 +22,10 @@ bl_info = {
     "author": "Piotr Komisarczyk (komi3D), PKHG",
     "version": (1, 0, 0),
     "blender": (2, 7, 3),
-    "location": "SPACE > Edge Roundifier or CTRL-E > Edge Roundifier or Tools > Addons > Edge Roundifier",
+    "location": "SPACE > Edge Roundifier or CTRL-E > "
+                "Edge Roundifier or Tools > Addons > Edge Roundifier",
     "description": "Mesh editing script allowing edge rounding",
     "wiki_url": "",
-    "tracker_url": "",
     "category": "Mesh"
 }
 
@@ -38,9 +38,14 @@ from bpy.props import (
         EnumProperty,
         IntProperty,
         )
-
-from math import sqrt, acos, pi, radians, degrees, sin
-from mathutils import Vector, Euler, Quaternion
+from math import (
+        sqrt, acos, pi,
+        radians, degrees, sin,
+        )
+from mathutils import (
+        Vector, Euler,
+        Quaternion,
+        )
 
 # CONSTANTS
 two_pi = 2 * pi
@@ -79,7 +84,6 @@ class CalculationHelper:
         """
         Constructor
         """
-
     def getLineCoefficientsPerpendicularToVectorInPoint(self, point, vector, plane):
         x, y, z = point
         xVector, yVector, zVector = vector
@@ -92,7 +96,7 @@ class CalculationHelper:
 
     def getQuadraticRoots(self, coef):
         if len(coef) != 3:
-            return NaN  # TODO lijenstina: Is this a valid return?
+            return None  # Replaced NaN with None
         else:
             a, b, c = coef
             delta = b ** 2 - 4 * a * c
@@ -155,7 +159,8 @@ class CalculationHelper:
         else:
             return None
 
-    def getLineCircleIntersectionsWhenXPerpendicular(self, edgeCenter, circleMidPoint, radius, plane):
+    def getLineCircleIntersectionsWhenXPerpendicular(self, edgeCenter,
+                                                     circleMidPoint, radius, plane):
         # (x - a)**2 + (y - b)**2 = r**2 - circle equation
         # x = xValue - line equation
         # f * x**2 + g * x + h = 0 - quadratic equation
@@ -194,8 +199,8 @@ class CalculationHelper:
 
     # get two of three coordinates used for further calculation of spin center
     # PKHG>nice if rescriction to these 3 types or planes is to be done
-    # komi3D> from 0.0.2 there is a restriction. In future I would like Edge Roundifier to work on
-    # komi3D> Normal and View coordinate systems. That would be great
+    # komi3D> from 0.0.2 there is a restriction. In future I would like Edge
+    # komi3D> Roundifier to work on Normal and View coordinate systems
     def getCircleMidPointOnPlane(self, V1, plane):
         X = V1[0]
         Y = V1[1]
@@ -260,206 +265,206 @@ class EdgeRoundifier(Operator):
     obj = None
 
     edgeScaleFactor = FloatProperty(
-                    name="",
-                    description="Set the Factor of scaling",
-                    default=1.0,
-                    min=0.00001, max=100000.0,
-                    step=0.5,
-                    precision=5
-                    )
+            name="",
+            description="Set the Factor of scaling",
+            default=1.0,
+            min=0.00001, max=100000.0,
+            step=0.5,
+            precision=5
+            )
     r = FloatProperty(
-                    name="",
-                    description="User Defined arc steepness by a Radius\n"
-                                "Enabled only if Entry mode is set to Radius\n",
-                    default=1,
-                    min=0.00001, max=1000.0,
-                    step=0.1,
-                    precision=3
-                    )
+            name="",
+            description="User Defined arc steepness by a Radius\n"
+                        "Enabled only if Entry mode is set to Radius\n",
+            default=1,
+            min=0.00001, max=1000.0,
+            step=0.1,
+            precision=3
+            )
     a = FloatProperty(
-                    name="",
-                    description="User defined arc steepness calculated from an Angle\n"
-                                "Enabled only if Entry mode is set to Angle and\n"
-                                "Angle presets is set Other",
-                    default=180.0,
-                    min=0.1, max=180.0,
-                    step=0.5,
-                    precision=1
-                    )
+            name="",
+            description="User defined arc steepness calculated from an Angle\n"
+                        "Enabled only if Entry mode is set to Angle and\n"
+                        "Angle presets is set Other",
+            default=180.0,
+            min=0.1, max=180.0,
+            step=0.5,
+            precision=1
+            )
     n = IntProperty(
-                    name="",
-                    description="Arc subdivision level",
-                    default=4,
-                    min=1, max=100,
-                    step=1
-                    )
+            name="",
+            description="Arc subdivision level",
+            default=4,
+            min=1, max=100,
+            step=1
+            )
     flip = BoolProperty(
-                    name="Flip",
-                    description="If True, flip the side of the selected edges where the arcs are drawn",
-                    default=False
-                    )
+            name="Flip",
+            description="If True, flip the side of the selected edges where the arcs are drawn",
+            default=False
+            )
     invertAngle = BoolProperty(
-                    name="Invert",
-                    description="If True, uses an inverted angle to draw the arc (360 degrees - angle)",
-                    default=False
-                    )
+            name="Invert",
+            description="If True, uses an inverted angle to draw the arc (360 degrees - angle)",
+            default=False
+            )
     fullCircles = BoolProperty(
-                    name="Circles",
-                    description="If True, uses an angle of 360 degrees to draw the arcs",
-                    default=False
-                    )
+            name="Circles",
+            description="If True, uses an angle of 360 degrees to draw the arcs",
+            default=False
+            )
     bothSides = BoolProperty(
-                    name="Both sides",
-                    description="If True, draw arcs on both sides of the selected edges",
-                    default=False
-                    )
+            name="Both sides",
+            description="If True, draw arcs on both sides of the selected edges",
+            default=False
+            )
     drawArcCenters = BoolProperty(
-                    name="Centers",
-                    description="If True, draws a vertex for each spin center",
-                    default=False
-                    )
+            name="Centers",
+            description="If True, draws a vertex for each spin center",
+            default=False
+            )
     removeEdges = BoolProperty(
-                    name="Edges",
-                    description="If True removes the Original selected edges",
-                    default=False
-                    )
+            name="Edges",
+            description="If True removes the Original selected edges",
+            default=False
+            )
     removeScaledEdges = BoolProperty(
-                    name="Scaled edges",
-                    description="If True removes the Scaled edges (not part of the arcs)",
-                    default=False
-                    )
+            name="Scaled edges",
+            description="If True removes the Scaled edges (not part of the arcs)",
+            default=False
+            )
     connectArcWithEdge = BoolProperty(
-                    name="Arc - Edge",
-                    description="Connect Arcs to Edges",
-                    default=False
-                    )
+            name="Arc - Edge",
+            description="Connect Arcs to Edges",
+            default=False
+            )
     connectArcs = BoolProperty(
-                    name="Arcs",
-                    description="Connect subsequent Arcs",
-                    default=False
-                    )
+            name="Arcs",
+            description="Connect subsequent Arcs",
+            default=False
+            )
     connectScaledAndBase = BoolProperty(
-                    name="Scaled - Base Edge",
-                    description="Connect Scaled to Base Edge",
-                    default=False
-                    )
+            name="Scaled - Base Edge",
+            description="Connect Scaled to Base Edge",
+            default=False
+            )
     connectArcsFlip = BoolProperty(
-                    name="Flip Arcs",
-                    description="Flip the connection of subsequent Arcs",
-                    default=False
-                    )
+            name="Flip Arcs",
+            description="Flip the connection of subsequent Arcs",
+            default=False
+            )
     connectArcWithEdgeFlip = BoolProperty(
-                    name="Flip Arc - Edge",
-                    description="Flip the connection of the Arcs to Edges",
-                    default=False
-                    )
+            name="Flip Arc - Edge",
+            description="Flip the connection of the Arcs to Edges",
+            default=False
+            )
     axisAngle = FloatProperty(
-                    name="",
-                    description="Rotate Arc around the perpendicular axis",
-                    default=0.0,
-                    min=-180.0, max=180.0,
-                    step=0.5,
-                    precision=1
-                    )
+            name="",
+            description="Rotate Arc around the perpendicular axis",
+            default=0.0,
+            min=-180.0, max=180.0,
+            step=0.5,
+            precision=1
+            )
     edgeAngle = FloatProperty(
-                    name="",
-                    description="Rotate Arc around the Edge (Edge acts like as the axis)",
-                    default=0.0,
-                    min=-180.0, max=180.0,
-                    step=0.5,
-                    precision=1
-                    )
+            name="",
+            description="Rotate Arc around the Edge (Edge acts like as the axis)",
+            default=0.0,
+            min=-180.0, max=180.0,
+            step=0.5,
+            precision=1
+            )
     offset = FloatProperty(
-                    name="",
-                    description="Offset Arc perpendicular the Edge",
-                    default=0.0,
-                    min=-1000000.0, max=1000000.0,
-                    step=0.1,
-                    precision=5
-                    )
+            name="",
+            description="Offset Arc perpendicular the Edge",
+            default=0.0,
+            min=-1000000.0, max=1000000.0,
+            step=0.1,
+            precision=5
+            )
     offset2 = FloatProperty(
-                    name="",
-                    description="Offset Arc in parallel to the Edge",
-                    default=0.0,
-                    min=-1000000.0, max=1000000.0,
-                    step=0.1,
-                    precision=5
-                    )
+            name="",
+            description="Offset Arc in parallel to the Edge",
+            default=0.0,
+            min=-1000000.0, max=1000000.0,
+            step=0.1,
+            precision=5
+            )
     ellipticFactor = FloatProperty(
-                    name="",
-                    description="Make Arc elliptic",
-                    default=0.0,
-                    min=-1000000.0, max=1000000.0,
-                    step=0.1,
-                    precision=5
-                    )
+            name="",
+            description="Make Arc elliptic",
+            default=0.0,
+            min=-1000000.0, max=1000000.0,
+            step=0.1,
+            precision=5
+            )
     workModeItems = [("Normal", "Normal", ""), ("Reset", "Reset", "")]
     workMode = EnumProperty(
-                items=workModeItems,
-                name="",
-                default='Normal',
-                description="Normal work with the current given paramaters set by the user\n"
-                            "Reset - changes back the parameters to their default values"
-                )
+            items=workModeItems,
+            name="",
+            default='Normal',
+            description="Normal work with the current given paramaters set by the user\n"
+                        "Reset - changes back the parameters to their default values"
+            )
     entryModeItems = [("Radius", "Radius", ""), ("Angle", "Angle", "")]
     entryMode = EnumProperty(
-                items=entryModeItems,
-                name="",
-                default='Angle',
-                description="Entry mode switch between Angle and Radius\n"
-                            "If Angle is selected, arc radius is calculated from it"
-                )
+            items=entryModeItems,
+            name="",
+            default='Angle',
+            description="Entry mode switch between Angle and Radius\n"
+                        "If Angle is selected, arc radius is calculated from it"
+            )
     rotateCenterItems = [("Spin", "Spin", ""), ("V1", "V1", ""),
                          ("Edge", "Edge", ""), ("V2", "V2", "")]
     rotateCenter = EnumProperty(
-                items=rotateCenterItems,
-                name="",
-                default='Edge',
-                description="Rotate center for spin axis rotate"
-                )
+            items=rotateCenterItems,
+            name="",
+            default='Edge',
+            description="Rotate center for spin axis rotate"
+            )
     arcModeItems = [("FullEdgeArc", "Full", "Full"), ('HalfEdgeArc', "Half", "Half")]
     arcMode = EnumProperty(
-                items=arcModeItems,
-                name="",
-                default='FullEdgeArc',
-                description="Arc mode - switch between Full and Half arcs"
-                )
+            items=arcModeItems,
+            name="",
+            default='FullEdgeArc',
+            description="Arc mode - switch between Full and Half arcs"
+            )
     angleItems = [('Other', "Other", "User defined angle"), ('180', "180", "HemiCircle (2 sides)"),
                   ('120', "120", "TriangleCircle (3 sides)"), ('90', "90", "QuadCircle (4 sides)"),
                   ('72', "72", "PentagonCircle (5 sides)"), ('60', "60", "HexagonCircle (6 sides)"),
                   ('45', "45", "OctagonCircle (8 sides)"), ('30', "30", "DodecagonCircle (12 sides)")]
     angleEnum = EnumProperty(
-                items=angleItems,
-                name="",
-                default='180',
-                description="Presets prepare standard angles and calculate proper ray"
-                )
+            items=angleItems,
+            name="",
+            default='180',
+            description="Presets prepare standard angles and calculate proper ray"
+            )
     refItems = [('ORG', "Origin", "Use Origin Location"), ('CUR', "3D Cursor", "Use 3DCursor Location"),
                 ('EDG', "Edge", "Use Individual Edge Reference")]
     referenceLocation = EnumProperty(
-                items=refItems,
-                name="",
-                default='ORG',
-                description="Reference location used to calculate initial centers of drawn arcs"
-                )
+            items=refItems,
+            name="",
+            default='ORG',
+            description="Reference location used to calculate initial centers of drawn arcs"
+            )
     planeItems = [(XY, "XY", "XY Plane (Z=0)"),
                   (YZ, "YZ", "YZ Plane (X=0)"),
                   (XZ, "XZ", "XZ Plane (Y=0)")]
     planeEnum = EnumProperty(
-                items=planeItems,
-                name="",
-                default='XY',
-                description="Plane used to calculate spin plane of drawn arcs"
-                )
+            items=planeItems,
+            name="",
+            default='XY',
+            description="Plane used to calculate spin plane of drawn arcs"
+            )
     edgeScaleCenterItems = [('V1', "V1", "v1 - First Edge's Vertex"),
                             ('CENTER', "Center", "Center of the Edge"),
                             ('V2', "V2", "v2 - Second Edge's Vertex")]
     edgeScaleCenterEnum = EnumProperty(
-                items=edgeScaleCenterItems,
-                name="Edge scale center",
-                default='CENTER',
-                description="Center used for scaling the initial edge"
-                )
+            items=edgeScaleCenterItems,
+            name="Edge scale center",
+            default='CENTER',
+            description="Center used for scaling the initial edge"
+            )
 
     calc = CalculationHelper()
     sel = SelectionHelper()
@@ -628,12 +633,8 @@ class EdgeRoundifier(Operator):
         bpy.ops.object.mode_set(mode='OBJECT')
         bm.to_mesh(mesh)
         bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.select_all(action='TOGGLE')
-        bpy.ops.mesh.select_all(action='INVERT')
-        bpy.ops.mesh.remove_doubles()
-
-
         bm.free()
+
         return {'FINISHED'}
 
     def resetValues(self, workMode):
@@ -753,10 +754,16 @@ class EdgeRoundifier(Operator):
         return arcVerts
 
     def spinAndPostprocess(self, edge, parameters, bm, mesh, edgeCenter, roundifyParams):
-        spinnedVerts, roundifyParamsUpdated = self.drawSpin(edge, edgeCenter,
-                                                            roundifyParams, parameters, bm, mesh)
-        postProcessedArcVerts = self.arcPostprocessing(edge, parameters, bm, mesh,
-                                                       roundifyParamsUpdated, spinnedVerts, edgeCenter)
+        spinnedVerts, roundifyParamsUpdated = self.drawSpin(
+                                                edge, edgeCenter,
+                                                roundifyParams,
+                                                parameters, bm, mesh
+                                                )
+        postProcessedArcVerts = self.arcPostprocessing(
+                                                edge, parameters, bm, mesh,
+                                                roundifyParamsUpdated,
+                                                spinnedVerts, edgeCenter
+                                                )
         return postProcessedArcVerts
 
     def rotateArcAroundEdge(self, bm, mesh, arcVerts, parameters):
@@ -768,9 +775,11 @@ class EdgeRoundifier(Operator):
     def arc_rotator(self, arcVerts, extra_rotation, parameters):
         bpy.ops.object.mode_set(mode='OBJECT')
         old_location = self.obj.location.copy()
-        bpy.ops.transform.translate(value=- old_location, constraint_axis=(False, False, False),
-                                    constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED',
-                                    proportional_edit_falloff='SMOOTH', proportional_size=1)
+        bpy.ops.transform.translate(
+                            value=-old_location, constraint_axis=(False, False, False),
+                            constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED',
+                            proportional_edit_falloff='SMOOTH', proportional_size=1
+                            )
         bpy.ops.object.mode_set(mode='EDIT')
         adjust_matrix = self.obj.matrix_parent_inverse
         bm = bmesh.from_edit_mesh(self.obj.data)
@@ -797,9 +806,11 @@ class EdgeRoundifier(Operator):
 
         bpy.ops.object.mode_set(mode='OBJECT')
         # PKHG>INFO move origin object back print("old location = " , old_location)
-        bpy.ops.transform.translate(value=old_location, constraint_axis=(False, False, False),
-                                    constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED',
-                                    proportional_edit_falloff='SMOOTH', proportional_size=1)
+        bpy.ops.transform.translate(
+                        value=old_location, constraint_axis=(False, False, False),
+                        constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED',
+                        proportional_edit_falloff='SMOOTH', proportional_size=1
+                        )
         bpy.ops.object.mode_set(mode='EDIT')
 
     def makeElliptic(self, bm, mesh, arcVertices, parameters):
@@ -826,21 +837,37 @@ class EdgeRoundifier(Operator):
         [chosenSpinCenter, otherSpinCenter, spinAxis, angle, steps, refObjectLocation] = roundifyParams
         rotatedVerts = []
         if parameters["rotateCenter"] == 'Edge':
-            rotatedVerts = self.rotateArcAroundSpinAxis(bm, mesh, spinnedVerts, parameters, edgeCenter)
+            rotatedVerts = self.rotateArcAroundSpinAxis(
+                                bm, mesh, spinnedVerts, parameters, edgeCenter
+                                )
         elif parameters["rotateCenter"] == 'Spin':
-            rotatedVerts = self.rotateArcAroundSpinAxis(bm, mesh, spinnedVerts, parameters, chosenSpinCenter)
+            rotatedVerts = self.rotateArcAroundSpinAxis(
+                                bm, mesh, spinnedVerts, parameters, chosenSpinCenter
+                                )
         elif parameters["rotateCenter"] == 'V1':
-            rotatedVerts = self.rotateArcAroundSpinAxis(bm, mesh, spinnedVerts, parameters, edge.verts[0].co)
+            rotatedVerts = self.rotateArcAroundSpinAxis(
+                                bm, mesh, spinnedVerts, parameters, edge.verts[0].co
+                                )
         elif parameters["rotateCenter"] == 'V2':
-            rotatedVerts = self.rotateArcAroundSpinAxis(bm, mesh, spinnedVerts, parameters, edge.verts[1].co)
+            rotatedVerts = self.rotateArcAroundSpinAxis(
+                                bm, mesh, spinnedVerts, parameters, edge.verts[1].co
+                                )
 
-        offsetVerts = self.offsetArcPerpendicular(bm, mesh, rotatedVerts, edge, parameters)
-        offsetVerts2 = self.offsetArcParallel(bm, mesh, offsetVerts, edge, parameters)
-        ellipticVerts = self.makeElliptic(bm, mesh, offsetVerts2, parameters)
+        offsetVerts = self.offsetArcPerpendicular(
+                                bm, mesh, rotatedVerts, edge, parameters
+                                )
+        offsetVerts2 = self.offsetArcParallel(
+                                bm, mesh, offsetVerts, edge, parameters
+                                )
+        ellipticVerts = self.makeElliptic(
+                                bm, mesh, offsetVerts2, parameters
+                                )
         self.rotateArcAroundEdge(bm, mesh, ellipticVerts, parameters)
 
         if parameters["connectArcWithEdge"]:
-            self.connectArcTogetherWithEdge(edge, offsetVerts2, bm, mesh, parameters)
+            self.connectArcTogetherWithEdge(
+                                edge, offsetVerts2, bm, mesh, parameters
+                                )
         return offsetVerts2
 
     def connectArcTogetherWithEdge(self, edge, arcVertices, bm, mesh, parameters):
@@ -884,8 +911,10 @@ class EdgeRoundifier(Operator):
 
     def connectArcsTogether(self, arcs, bm, mesh, parameters):
         for i in range(0, len(arcs) - 1):
-            if arcs[i] is None or arcs[i + 1] is None:  # in case on XZ or YZ there are no arcs drawn
+            # in case on XZ or YZ there are no arcs drawn
+            if arcs[i] is None or arcs[i + 1] is None:
                 return
+
             lastVert = len(arcs[i]) - 1
             if parameters["drawArcCenters"]:
                 lastVert = lastVert - 1  # center gets added as last vert of arc
@@ -906,7 +935,9 @@ class EdgeRoundifier(Operator):
         lastArcId = len(arcs) - 1
         lastVertIdOfLastArc = len(arcs[lastArcId]) - 1
         if parameters["drawArcCenters"]:
-            lastVertIdOfLastArc = lastVertIdOfLastArc - 1  # center gets added as last vert of arc
+            # center gets added as last vert of arc
+            lastVertIdOfLastArc = lastVertIdOfLastArc - 1
+
         V1 = arcs[lastArcId][lastVertIdOfLastArc].co
         V2 = arcs[0][0].co
         if parameters["connectArcsFlip"]:
@@ -976,20 +1007,22 @@ class EdgeRoundifier(Operator):
 
         debugPrintNew(d_Plane, "PLANE: " + parameters["plane"])
         lineAB = self.calc.getLineCoefficientsPerpendicularToVectorInPoint(
-                                                        edgeCenter, edgeVector,
-                                                        parameters["plane"]
-                                                        )
+                                                edgeCenter, edgeVector,
+                                                parameters["plane"]
+                                                )
         circleMidPoint = V1
-        circleMidPointOnPlane = self.calc.getCircleMidPointOnPlane(V1, parameters["plane"])
+        circleMidPointOnPlane = self.calc.getCircleMidPointOnPlane(
+                                                V1, parameters["plane"]
+                                                )
         radius = parameters["radius"]
 
         angle = 0
         if (parameters["entryMode"] == 'Angle'):
             if (parameters["angleEnum"] != 'Other'):
                 radius, angle = self.CalculateRadiusAndAngleForAnglePresets(
-                                                        parameters["angleEnum"], radius,
-                                                        angle, edgeLength
-                                                        )
+                                                parameters["angleEnum"], radius,
+                                                angle, edgeLength
+                                                )
             else:
                 radius, angle = self.CalculateRadiusAndAngle(edgeLength)
         debugPrintNew(d_Radius_Angle, "RADIUS = " + str(radius) + "  ANGLE = " + str(angle))
@@ -997,14 +1030,17 @@ class EdgeRoundifier(Operator):
         if angle != pi:  # mode other than 180
             if lineAB is None:
                 roots = self.calc.getLineCircleIntersectionsWhenXPerpendicular(
-                                                        edgeCenter, circleMidPointOnPlane,
-                                                        radius, parameters["plane"]
-                                                        )
+                                                edgeCenter, circleMidPointOnPlane,
+                                                radius, parameters["plane"]
+                                                )
             else:
-                roots = self.calc.getLineCircleIntersections(lineAB, circleMidPointOnPlane, radius)
+                roots = self.calc.getLineCircleIntersections(
+                                                lineAB, circleMidPointOnPlane, radius
+                                                )
 
             if roots is None:
-                debugPrintNew(True, "[Edge Roundifier]: No centers were found. Change radius to higher value")
+                debugPrintNew(True,
+                             "[Edge Roundifier]: No centers were found. Change radius to higher value")
                 return None
             roots = self.addMissingCoordinate(roots, V1, parameters["plane"])  # adds X, Y or Z coordinate
         else:
@@ -1022,7 +1058,9 @@ class EdgeRoundifier(Operator):
             refObjectLocation = self.calc.getEdgeReference(edge, edgeCenter, parameters["plane"])
 
         debugPrintNew(d_RefObject, parameters["refObject"], refObjectLocation)
-        chosenSpinCenter, otherSpinCenter = self.getSpinCenterClosestToRefCenter(refObjectLocation, roots)
+        chosenSpinCenter, otherSpinCenter = self.getSpinCenterClosestToRefCenter(
+                                                            refObjectLocation, roots
+                                                            )
 
         if (parameters["entryMode"] == "Radius"):
             halfAngle = self.calc.getAngle(edgeCenter, chosenSpinCenter, circleMidPoint)
@@ -1059,8 +1097,10 @@ class EdgeRoundifier(Operator):
 
         v0 = bm.verts.new(v0org.co)
 
-        result = bmesh.ops.spin(bm, geom=[v0], cent=chosenSpinCenter, axis=spinAxis,
-                                angle=angle, steps=steps, use_duplicate=False)
+        result = bmesh.ops.spin(
+                        bm, geom=[v0], cent=chosenSpinCenter, axis=spinAxis,
+                        angle=angle, steps=steps, use_duplicate=False
+                        )
 
         # it seems there is something wrong with last index of this spin
         # I need to calculate the last index manually here
@@ -1088,21 +1128,21 @@ class EdgeRoundifier(Operator):
             if ((parameters["invertAngle"]) or (parameters["flip"])):
                 if (midVertexDistance > midEdgeDistance):
                     alternativeLastSpinVertIndices = self.alternateSpin(
-                                                            bm, mesh, angle, chosenSpinCenter,
-                                                            spinAxis, steps, v0, v1org, lastSpinVertIndices
-                                                            )
+                                                        bm, mesh, angle, chosenSpinCenter,
+                                                        spinAxis, steps, v0, v1org, lastSpinVertIndices
+                                                        )
             else:
                 if (midVertexDistance < midEdgeDistance):
                     alternativeLastSpinVertIndices = self.alternateSpin(
-                                                            bm, mesh, angle, chosenSpinCenter,
-                                                            spinAxis, steps, v0, v1org, lastSpinVertIndices
-                                                            )
+                                                        bm, mesh, angle, chosenSpinCenter,
+                                                        spinAxis, steps, v0, v1org, lastSpinVertIndices
+                                                        )
         elif (angle != two_pi):  # to allow full circles
             if (result['geom_last'][0].co - v1org.co).length > SPIN_END_THRESHOLD:
                 alternativeLastSpinVertIndices = self.alternateSpin(
-                                                            bm, mesh, angle, chosenSpinCenter,
-                                                            spinAxis, steps, v0, v1org, lastSpinVertIndices
-                                                            )
+                                                        bm, mesh, angle, chosenSpinCenter,
+                                                        spinAxis, steps, v0, v1org, lastSpinVertIndices
+                                                        )
                 alternate = True
 
         self.sel.refreshMesh(bm, mesh)
@@ -1120,19 +1160,19 @@ class EdgeRoundifier(Operator):
             # do some more testing here!!!
             if (angle == pi or angle == -pi):
                 alternativeLastSpinVertIndices = self.alternateSpinNoDelete(
-                                                            bm, mesh, -angle, chosenSpinCenter,
-                                                            spinAxis, steps, v0, v1org, []
-                                                            )
+                                                        bm, mesh, -angle, chosenSpinCenter,
+                                                        spinAxis, steps, v0, v1org, []
+                                                        )
             elif alternate:
                 alternativeLastSpinVertIndices = self.alternateSpinNoDelete(
-                                                            bm, mesh, angle, otherSpinCenter,
-                                                            spinAxis, steps, v0, v1org, []
-                                                            )
+                                                        bm, mesh, angle, otherSpinCenter,
+                                                        spinAxis, steps, v0, v1org, []
+                                                        )
             elif not alternate:
                 alternativeLastSpinVertIndices = self.alternateSpinNoDelete(
-                                                            bm, mesh, -angle, otherSpinCenter,
-                                                            spinAxis, steps, v0, v1org, []
-                                                            )
+                                                        bm, mesh, -angle, otherSpinCenter,
+                                                        spinAxis, steps, v0, v1org, []
+                                                        )
             bothSpinVertices = [bm.verts[i] for i in lastSpinVertIndices]
             alternativeSpinVertices = [bm.verts[i] for i in alternativeLastSpinVertIndices]
             bothSpinVertices = [v0] + bothSpinVertices + alternativeSpinVertices
@@ -1175,12 +1215,16 @@ class EdgeRoundifier(Operator):
         lastSpinVertIndices2 = self.getLastSpinVertIndices(steps, lastVertIndex2)
         return lastSpinVertIndices2
 
-    def alternateSpin(self, bm, mesh, angle, chosenSpinCenter, spinAxis, steps, v0, v1org, lastSpinVertIndices):
+    def alternateSpin(self, bm, mesh, angle, chosenSpinCenter,
+                      spinAxis, steps, v0, v1org, lastSpinVertIndices):
+
         self.deleteSpinVertices(bm, mesh, lastSpinVertIndices)
         v0prim = v0
 
-        result2 = bmesh.ops.spin(bm, geom=[v0prim], cent=chosenSpinCenter, axis=spinAxis,
-                                 angle=-angle, steps=steps, use_duplicate=False)
+        result2 = bmesh.ops.spin(
+                        bm, geom=[v0prim], cent=chosenSpinCenter, axis=spinAxis,
+                        angle=-angle, steps=steps, use_duplicate=False
+                        )
         # it seems there is something wrong with last index of this spin
         # I need to calculate the last index manually here
         vertsLength = len(bm.verts)
@@ -1245,7 +1289,8 @@ class EdgeRoundifier(Operator):
             self.a = angle_convert
         except:
             self.a = 180  # fallback
-            debugPrintNew(True, "CalculateRadiusAndAngleForAnglePresets problem with int conversion")
+            debugPrintNew(True,
+                          "CalculateRadiusAndAngleForAnglePresets problem with int conversion")
 
         return self.CalculateRadiusAndAngle(edgeLength)
 
