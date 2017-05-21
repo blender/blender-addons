@@ -65,7 +65,6 @@ Y_Offset:        Noise y offset in blender units
 Cursor:          Place at cursor location
 Vertex Group:    Slope map, z normal value to vertex group weight,
                     and select vertices on flat area's
-                 Height map, z coordinate value to vertex group weight
 
 NOISE OPTIONS: ( Many of these options are the same as in blender textures. )
 Random seed:     Use this to randomise the origin of the noise function.
@@ -104,7 +103,6 @@ Level:          Adjust plane level
 MATERIAL:       Use materials
 """
 
-# ------------------------------------------------------------
 # import modules
 import bpy
 from bpy.props import (
@@ -133,8 +131,170 @@ from math import (
         sin, cos, pi,
         )
 
+
+# Create a new mesh (object) from verts/edges/faces.
+# verts/edges/faces ... List of vertices/edges/faces for the
+#                    new mesh (as used in from_pydata).
+# name ... Name of the new mesh (& object).
+def create_mesh_object(context, verts, edges, faces, name):
+    # Create new mesh
+    mesh = bpy.data.meshes.new(name)
+
+    # Make a mesh from a list of verts/edges/faces.
+    mesh.from_pydata(verts, edges, faces)
+
+    # Update mesh geometry after adding stuff.
+    mesh.update()
+
+    from bpy_extras import object_utils
+
+    return object_utils.object_data_add(context, mesh, operator=None)
+
+
 # ------------------------------------------------------------
-# some functions for marble_noise
+# Generate XY Grid
+def grid_gen(sub_d_x, sub_d_y, tri, meshsize_x, meshsize_y, options, water_plane, water_level):
+    verts = []
+    faces = []
+    for i in range (0, sub_d_x):
+        x = meshsize_x * (i / (sub_d_x - 1) - 1 / 2)
+        for j in range(0, sub_d_y):
+            y = meshsize_y * (j / (sub_d_y - 1) - 1 / 2)
+            if water_plane:
+                z = water_level
+            else:
+                z = landscape_gen(x, y, 0, meshsize_x, meshsize_y, options)
+
+            verts.append((x,y,z))
+
+    count = 0
+    for i in range (0, sub_d_y * (sub_d_x - 1)):
+        if count < sub_d_y - 1 :
+            A = i + 1
+            B = i
+            C = (i + sub_d_y)
+            D = (i + sub_d_y) + 1
+            if tri:
+                faces.append((A, B, D))
+                faces.append((B, C, D))
+            else:
+                faces.append((A, B, C, D))
+            count = count + 1
+        else:
+            count = 0
+
+    return verts, faces
+
+
+# Generate UV Sphere
+def sphere_gen(sub_d_x, sub_d_y, tri, meshsize, options, water_plane, water_level):
+    verts = []
+    faces = []
+    sub_d_x += 1
+    sub_d_y += 1
+    for i in range(0, sub_d_x):
+        for j in range(0, sub_d_y):
+            u = sin(j * pi * 2 / (sub_d_y - 1)) * cos(-pi / 2 + i * pi / (sub_d_x - 1)) * meshsize / 2
+            v = cos(j * pi * 2 / (sub_d_y - 1)) * cos(-pi / 2 + i * pi / (sub_d_x - 1)) * meshsize / 2
+            w = sin(-pi / 2 + i * pi / (sub_d_x - 1)) * meshsize / 2
+            if water_plane:
+                h = water_level
+            else:
+                h = landscape_gen(u, v, w, meshsize, meshsize, options) / meshsize
+            verts.append(((u + u * h), (v + v * h), (w + w * h)))
+
+    count = 0
+    for i in range (0, sub_d_y * (sub_d_x - 1)):
+        if count < sub_d_y - 1 :
+            A = i + 1
+            B = i
+            C = (i + sub_d_y)
+            D = (i + sub_d_y) + 1
+            if tri:
+                faces.append((A, B, D))
+                faces.append((B, C, D))
+            else:
+                faces.append((A, B, C, D))
+            count = count + 1
+        else:
+            count = 0
+
+    return verts, faces
+
+
+# ------------------------------------------------------------
+# Z normal value to vertex group (Slope map)
+class ANTSlopeVGroup(bpy.types.Operator):
+    bl_idname = "mesh.ant_slope_vgroup"
+    bl_label = "Slope Map"
+    bl_description = "Slope map - z normal value to vertex group weight"
+    #bl_options = {'REGISTER'} 
+
+    z_method = EnumProperty(
+            name="Method:",
+            default='SLOPE_Z',
+            items=[
+                ('SLOPE_Z', "Slope Z", "Slope for planar mesh"),
+                ('SLOPE_XYZ', "Slope XYZ", "Slope for spherical mesh")
+                ])
+    group_name = StringProperty(
+            name="Vertex Group Name:",
+            default="Slope",
+            description="Name"
+            )
+    select_flat = BoolProperty(
+            name="Vert Select:",
+            default=True,
+            description="Select vertices on flat surface"
+            )
+    select_range = FloatProperty(
+            name="Vert Select Range:",
+            default=0.0,
+            min=0.0,
+            max=1.0,
+            description="Increase to select more vertices"
+            )
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+
+    def execute(self, context):
+        message = "Popup Values: %d, %f, %s, %s" % \
+            (self.select_flat, self.select_range, self.group_name, self.z_method)
+        self.report({'INFO'}, message)
+
+        ob = bpy.context.active_object
+
+        if self.select_flat:
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.select_all(action='DESELECT')
+            bpy.context.tool_settings.mesh_select_mode = [True, False, False]
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+        bpy.ops.object.vertex_group_add()
+        vg_normal = ob.vertex_groups.active
+
+        for v in ob.data.vertices:
+            if self.z_method == 'SLOPE_XYZ':
+                zno = (v.co.normalized() * v.normal.normalized()) * 2 - 1
+            else:
+                zno = v.normal[2]
+
+            vg_normal.add([v.index], zno, 'REPLACE')
+
+            if self.select_flat:
+                if zno >= (1.0 - self.select_range):
+                    v.select = True
+
+        vg_normal.name = self.group_name
+
+        return {'FINISHED'}
+
+# ------------------------------------------------------------
+# ------------------------------------------------------------
+# Marble_noise:
 def sin_bias(a):
     return 0.5 + 0.5 * sin(a)
 
@@ -215,7 +375,7 @@ def marble_noise(x, y, z, origin, size, shape, bias, sharpnes, turb, depth, hard
 
     if bias is 1:
         value = cos_bias(value)
-    if bias is 2:
+    elif bias is 2:
         value = tri_bias(value)
     elif bias is 3:
         value = saw_bias(value)
@@ -237,8 +397,7 @@ def marble_noise(x, y, z, origin, size, shape, bias, sharpnes, turb, depth, hard
 
     return value
 
-# ------------------------------------------------------------
-# custom noise types
+# A.N.T. Noise variations:
 
 # vl_noise_turbulence: 
 def vlnTurbMode(coords, distort, basis, vlbasis, hardnoise):
@@ -394,6 +553,12 @@ def landscape_gen(x, y, z, meshsize_x, meshsize_y, props):
 
     ncoords = (x / (nsize * size_x) + origin_x, y / (nsize * size_y) + origin_y, z / nsize + origin_z)
 
+    # noise basis type's
+    if nbasis == 9:
+        nbasis = 14  # cellnoise
+    if vlbasis ==9:
+        vlbasis = 14
+
     # noise type's
     if ntype == 'multi_fractal':
         value = multi_fractal(ncoords, dimension, lacunarity, depth, nbasis) * 0.5
@@ -453,7 +618,7 @@ def landscape_gen(x, y, z, meshsize_x, meshsize_y, props):
         value = planet_noise(ncoords, depth, hardnoise, nbasis)[2] * 0.5 + 0.5
 
     elif ntype == 'blender_texture':
-        if texture_name in bpy.data.textures:
+        if texture_name != "" and texture_name in bpy.data.textures:
             value = bpy.data.textures[texture_name].evaluate(ncoords)[3]
         else:
             value = 0.0
@@ -516,168 +681,7 @@ def landscape_gen(x, y, z, meshsize_x, meshsize_y, props):
 
     return value
 
-# ------------------------------------------------------------
-# ------------------------------------------------------------
-# Generate XY Grid
-def grid_gen(sub_d_x, sub_d_y, tri, meshsize_x, meshsize_y, options, water_plane, water_level):
-    verts = []
-    faces = []
-    for i in range (0, sub_d_x):
-        x = meshsize_x * (i / (sub_d_x - 1) - 1 / 2)
-        for j in range(0, sub_d_y):
-            y = meshsize_y * (j / (sub_d_y - 1) - 1 / 2)
-            if water_plane:
-                z = water_level
-            else:
-                z = landscape_gen(x, y, 0, meshsize_x, meshsize_y, options)
 
-            verts.append((x,y,z))
-
-    count = 0
-    for i in range (0, sub_d_y * (sub_d_x - 1)):
-        if count < sub_d_y - 1 :
-            A = i + 1
-            B = i
-            C = (i + sub_d_y)
-            D = (i + sub_d_y) + 1
-            if tri:
-                faces.append((A, B, D))
-                faces.append((B, C, D))
-            else:
-                faces.append((A, B, C, D))
-            count = count + 1
-        else:
-            count = 0
-
-    return verts, faces
-
-
-# Generate UV Sphere
-def sphere_gen(sub_d_x, sub_d_y, tri, meshsize, options, water_plane, water_level):
-    verts = []
-    faces = []
-    sub_d_x += 1
-    sub_d_y += 1
-    for i in range(0, sub_d_x):
-        for j in range(0, sub_d_y):
-            u = sin(j * pi * 2 / (sub_d_y - 1)) * cos(-pi / 2 + i * pi / (sub_d_x - 1)) * meshsize / 2
-            v = cos(j * pi * 2 / (sub_d_y - 1)) * cos(-pi / 2 + i * pi / (sub_d_x - 1)) * meshsize / 2
-            w = sin(-pi / 2 + i * pi / (sub_d_x - 1)) * meshsize / 2
-            if water_plane:
-                h = water_level
-            else:
-                h = landscape_gen(u, v, w, meshsize, meshsize, options) / meshsize
-            verts.append(((u + u * h), (v + v * h), (w + w * h)))
-
-    count = 0
-    for i in range (0, sub_d_y * (sub_d_x - 1)):
-        if count < sub_d_y - 1 :
-            A = i + 1
-            B = i
-            C = (i + sub_d_y)
-            D = (i + sub_d_y) + 1
-            if tri:
-                faces.append((A, B, D))
-                faces.append((B, C, D))
-            else:
-                faces.append((A, B, C, D))
-            count = count + 1
-        else:
-            count = 0
-
-    return verts, faces
-
-
-# Create a new mesh (object) from verts/edges/faces.
-# verts/edges/faces ... List of vertices/edges/faces for the
-#                    new mesh (as used in from_pydata).
-# name ... Name of the new mesh (& object).
-def create_mesh_object(context, verts, edges, faces, name):
-    # Create new mesh
-    mesh = bpy.data.meshes.new(name)
-
-    # Make a mesh from a list of verts/edges/faces.
-    mesh.from_pydata(verts, edges, faces)
-
-    # Update mesh geometry after adding stuff.
-    mesh.update()
-
-    from bpy_extras import object_utils
-
-    return object_utils.object_data_add(context, mesh, operator=None)
-
-
-# ------------------------------------------------------------
-# Z normal value to vertex group (Slope map)
-class ANTSlopeVGroup(bpy.types.Operator):
-    bl_idname = "mesh.ant_slope_vgroup"
-    bl_label = "Slope Map"
-    bl_description = "Slope map - z normal value to vertex group weight"
-    #bl_options = {'REGISTER'} 
-
-    z_method = EnumProperty(
-            name="Method:",
-            default='SLOPE_Z',
-            items=[
-                ('SLOPE_Z', "Slope Z", "Slope for planar mesh"),
-                ('SLOPE_XYZ', "Slope XYZ", "Slope for spherical mesh")
-                ])
-    group_name = StringProperty(
-            name="Vertex Group Name:",
-            default="Slope",
-            description="Name"
-            )
-    select_flat = BoolProperty(
-            name="Vert Select:",
-            default=True,
-            description="Select vertices on flat surface"
-            )
-    select_range = FloatProperty(
-            name="Vert Select Range:",
-            default=0.0,
-            min=0.0,
-            max=1.0,
-            description="Increase to select more vertices"
-            )
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
-
-
-    def execute(self, context):
-        message = "Popup Values: %d, %f, %s, %s" % \
-            (self.select_flat, self.select_range, self.group_name, self.z_method)
-        self.report({'INFO'}, message)
-
-        ob = bpy.context.active_object
-
-        if self.select_flat:
-            bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.mesh.select_all(action='DESELECT')
-            bpy.context.tool_settings.mesh_select_mode = [True, False, False]
-            bpy.ops.object.mode_set(mode='OBJECT')
-
-        bpy.ops.object.vertex_group_add()
-        vg_normal = ob.vertex_groups.active
-
-        for v in ob.data.vertices:
-            if self.z_method == 'SLOPE_XYZ':
-                zno = (v.co.normalized() * v.normal.normalized()) * 2 - 1
-            else:
-                zno = v.normal[2]
-
-            vg_normal.add([v.index], zno, 'REPLACE')
-
-            if self.select_flat:
-                if zno >= (1.0 - self.select_range):
-                    v.select = True
-
-        vg_normal.name = self.group_name
-
-        return {'FINISHED'}
-
-# ------------------------------------------------------------
 # ------------------------------------------------------------
 # Add landscape
 class landscape_add(bpy.types.Operator):
@@ -796,7 +800,7 @@ class landscape_add(bpy.types.Operator):
             ('double_multiFractal', "Double MultiFractal", "A.N.T: double multiFractal"),
             ('slick_rock', "Slick Rock", "A.N.T: slick rock"),
             ('planet_noise', "Planet Noise", "Planet Noise by: Farsthary"),
-            ('blender_texture', "Blender Texture - Texture Nodes", "Blender Internal Texture Data Block")
+            ('blender_texture', "Blender Texture - Texture Nodes", "Blender texture data block")
             ]
     noise_type = EnumProperty(
             name="Type",
@@ -1012,8 +1016,8 @@ class landscape_add(bpy.types.Operator):
             ("1", "Smooth", "Smooth transitions"),
             ("2", "Sharp -", "Sharp substract transitions"),
             ("3", "Sharp +", "Sharp add transitions"),
-            ("4", "Quantize", "Quantize"),
-            ("5", "Quantize Mix", "Quantize mixed with noise")
+            ("4", "Posterize", "Posterize"),
+            ("5", "Posterize Mix", "Posterize mixed with noise")
             ]
     strata_type = EnumProperty(
             name="Strata",
@@ -1093,7 +1097,17 @@ class landscape_add(bpy.types.Operator):
         col = box.column(align=True)
         col.prop(self, "subdivision_x")
         col.prop(self, "subdivision_y")
-    
+
+        box = layout.box()
+        col = box.column(align=False)
+        col.prop(self, 'use_mat', toggle=True)
+        if self.use_mat:
+            col = box.column(align=True)
+            col.prop_search(self, "sel_land_mat",  bpy.data, "materials")
+            col = box.column(align=True)
+            if self.water_plane:
+                col.prop_search(self, "sel_water_mat",  bpy.data, "materials")
+
         box = layout.box()
         box.prop(self, "show_noise_settings", toggle=True)
         if self.show_noise_settings:
@@ -1269,16 +1283,6 @@ class landscape_add(bpy.types.Operator):
                 col = box.column(align=False)
                 col.prop(self, "water_level")
 
-        box = layout.box()
-        col = box.column(align=False)
-        col.prop(self, 'use_mat', toggle=True)
-        if self.use_mat:
-            col = box.column(align=True)
-            col.prop_search(self, "sel_land_mat",  bpy.data, "materials")
-            col = box.column(align=True)
-            if self.water_plane:
-                col.prop_search(self, "sel_water_mat",  bpy.data, "materials")
-
 
     def invoke(self, context, event):
         self.refresh = True
@@ -1353,7 +1357,7 @@ class landscape_add(bpy.types.Operator):
 
         # Landscape Material
         if self.use_mat:
-            if self.sel_land_mat in bpy.data.materials:
+            if self.sel_land_mat != "" and self.sel_land_mat in bpy.data.materials:
                 mat = bpy.data.materials[self.sel_land_mat]
                 bpy.context.object.data.materials.append(mat)
 
@@ -1377,7 +1381,7 @@ class landscape_add(bpy.types.Operator):
 
             # Water Material
             if self.use_mat:
-                if self.sel_water_mat in bpy.data.materials:
+                if self.sel_water_mat != "" and self.sel_water_mat in bpy.data.materials:
                     mat = bpy.data.materials[self.sel_water_mat]
                     bpy.context.object.data.materials.append(mat)
 
@@ -1392,6 +1396,7 @@ class landscape_add(bpy.types.Operator):
         context.user_preferences.edit.use_global_undo = undo
 
         return {'FINISHED'}
+
 
 # ------------------------------------------------------------
 # Register:
