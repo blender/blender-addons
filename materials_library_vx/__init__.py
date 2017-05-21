@@ -19,8 +19,8 @@
 bl_info = {
 	"name": "Material Library",
 	"author": "Mackraken (mackraken2023@hotmail.com)",
-	"version": (0, 5, 6),
-	"blender": (2, 7, 2),
+	"version": (0, 5, 7),
+	"blender": (2, 7, 8),
 	"api": 60995,
 	"location": "Properties > Material",
 	"description": "Material Library VX",
@@ -33,13 +33,12 @@ bl_info = {
 import bpy, os, json
 from bpy.props import *
 
-print (30*"-")
-
 dev = False
 
 matlib_path = os.path.dirname(__file__)
 
 if dev:
+	print (30*"-")
 	matlib_path = r"D:\Blender Foundation\Blender\2.72\scripts\addons\matlib"
 
 ##debug print variables
@@ -260,7 +259,7 @@ class matlibProperties(bpy.types.PropertyGroup):
 	#MATLIB PROPERTIES
 
 	#libraries are read from the xml
-	lib_index = IntProperty(min = -1, default = -1, update=update_lib_index)
+	lib_index = IntProperty(min = -1, default = 2, update=update_lib_index)
 	all_materials = CollectionProperty(type = matlibMaterials)
 	materials = CollectionProperty(type = matlibMaterials)
 	mat_index = IntProperty(min = -1, default = -1)
@@ -543,32 +542,41 @@ if mat:
 			#go get it
 			dd("voy a buscarlo")
 			nmats = len(bpy.data.materials)
+			
 			self.get_material(name, linked)
-			if nmats == len(bpy.data.materials) and not linked:
-				return "ERROR", name + " doesn't exists at library " + str(linked)
-			else:
-				for mat in reversed(bpy.data.materials):
-					if mat.name[0:len(name)] == name:
-						#careful on how blender writes library paths
-						try:
-							samelib = bpy.path.relpath(mat.library.filepath) == bpy.path.relpath(self.current_library.path)
-						except:
-							samelib = False
-							
-						if linked and mat.library and samelib:
-							material = mat
-							dd(name, "importado con link")
-							break
-						else:
-							if not mat.library:
-								dd(name, "importado sin link")
+			
+			if not self.force_import:
+				try:
+					material = bpy.data.materials[name]
+				except:
+					pass		
+
+			if not material:
+				if nmats == len(bpy.data.materials) and not linked:
+					return "ERROR", name + " doesn't exists at library " + str(linked)
+				else:
+					for mat in reversed(bpy.data.materials):
+						if mat.name[0:len(name)] == name:
+							#careful on how blender writes library paths
+							try:
+								samelib = bpy.path.relpath(mat.library.filepath) == bpy.path.relpath(self.current_library.path)
+							except:
+								samelib = False
+								
+							if linked and mat.library and samelib:
 								material = mat
+								dd(name, "importado con link")
 								break
-			if material:
-				material.use_fake_user = False
-				material.user_clear()
-							
-		#print ("Material", material)
+							else:
+								if not mat.library:
+									dd(name, "importado sin link")
+									material = mat
+									break
+				if material:
+					material.use_fake_user = False
+					material.user_clear()
+								
+		print ("Material", material, force)
 		
 		#if material:
 		#maybe some test cases doesnt return a material, gotta take care of that
@@ -732,7 +740,154 @@ class matlibCatsMenu(bpy.types.Menu):
 			layout.operator("matlib.operator", text=cat.name).cmd="cat"+str(i)
 			
 ### OPERATORS
+#class MATLIB_OT_add(bpy.types.Operator):
+#	"""Add Active Material"""
+#	bl_label = "Add"
+#	bl_idname = "matlib.add_material"
+#	
+#	@classmethod
+#	def poll(cls, context):
+#		return context.active_object is not None
+#	
+#	def exectute(self, context):
+#		print("executing")
+#		return {"FINISHED"}
+
+
 	
+class MatlibAdd(bpy.types.Operator):
+	"""Add active material to library"""
+	bl_idname = "matlib.add"
+	bl_label = "Add active material"
+
+	@classmethod
+	def poll(cls, context):
+		obj = context.active_object
+		return  obj is not None and obj.active_material is not None
+
+	def execute(self, context):
+		matlib = context.scene.matlib
+		success = matlib.add_material(context.object.active_material)
+		if type(success).__name__ == "tuple":
+			print(success)
+			self.report({success[0]}, success[1])
+		return {'FINISHED'}
+
+class MatlibRemove(bpy.types.Operator):
+	"""Remove material from library"""
+	bl_idname = "matlib.remove"
+	bl_label = "Remove material from library"
+
+	@classmethod
+	def poll(cls, context):
+		matlib = context.scene.matlib
+		return check_index(matlib.materials, matlib.mat_index)
+	
+	def execute(self, context):
+		matlib = context.scene.matlib
+		success = matlib.remove_material(context.object.active_material)
+		if type(success).__name__ == "tuple":
+			print(success)
+			self.report({success[0]}, success[1])
+		return {'FINISHED'}
+
+class MatlibReload(bpy.types.Operator):
+	"""Reload library"""
+	bl_idname = "matlib.reload"
+	bl_label = "Reload library"
+
+#	@classmethod
+#	def poll(cls, context):
+#		matlib = context.scene.matlib
+#		index = matlib.mat_index
+#		l = len(matlib.materials)
+#		return l>0 and index >=0 and index < l
+
+	def execute(self, context):
+		matlib = context.scene.matlib
+		success = matlib.reload()
+		if type(success).__name__ == "tuple":
+			print(success)
+			self.report({success[0]}, success[1])
+		return {'FINISHED'}
+
+class MatlibApply(bpy.types.Operator):
+	"""Apply selected material"""
+	bl_idname = "matlib.apply"
+	bl_label = "Apply material"
+
+	@classmethod
+	def poll(cls, context):
+		matlib = context.scene.matlib
+		index = matlib.mat_index
+		l = len(matlib.materials)
+		obj = context.active_object
+		return l>0 and index >=0 and index < l and obj is not None
+
+	def execute(self, context):
+		matlib = context.scene.matlib
+		success = matlib.apply(context, False)
+		if type(success).__name__ == "tuple":
+			print(success)
+			self.report({success[0]}, success[1])
+		return {'FINISHED'}
+
+class MatlibPreview(bpy.types.Operator):
+	"""Preview selected material"""
+	bl_idname = "matlib.preview"
+	bl_label = "Preview selected material"
+
+	@classmethod
+	def poll(cls, context):
+		matlib = context.scene.matlib
+		index = matlib.mat_index
+		l = len(matlib.materials)
+		obj = context.active_object
+		return l>0 and index >=0 and index < l
+
+	def execute(self, context):
+		matlib = context.scene.matlib
+		success = matlib.apply(context, True)
+		if type(success).__name__ == "tuple":
+			print(success)
+			self.report({success[0]}, success[1])
+		return {'FINISHED'}
+
+class MatlibFlush(bpy.types.Operator):
+	"""Flush unused materials"""
+	bl_idname = "matlib.flush"
+	bl_label = "Flush unused materials"
+
+	@classmethod
+	def poll(cls, context):
+		matlib = context.scene.matlib
+		index = matlib.mat_index
+		l = len(matlib.materials)
+		obj = context.active_object
+		return l>0 and index >=0 and index < l
+
+	def execute(self, context):
+		matlib = context.scene.matlib
+		dummy = matlib.get_dummy(context)
+		if dummy == context.object:
+			try:
+				context.scene.objects.active = context.scene.objects[matlib.last_selected]
+			except:
+				pass
+			
+		for slot in dummy.material_slots:
+			slot.material = None
+		i=0
+		for mat in bpy.data.materials:
+			if mat.users==0:
+				i+=1
+				print (mat.name, "removed.")
+				bpy.data.materials.remove(mat)
+		
+		plural = "" if i == 1 else "s"
+		self.report({'INFO'}, str(i) + " material"+plural+" removed.")
+		
+		return {'FINISHED'}
 class matlibOperator(bpy.types.Operator):
 	"""Add, Remove, Reload, Apply, Preview, Clean Material"""
 	bl_label = "New"
@@ -844,7 +999,7 @@ class matlibOperator(bpy.types.Operator):
 			dummy = matlib.get_dummy(context)
 			if dummy == context.object:
 				try:
-					context.scene.objects.active = scn.objects[matlib.last_selected]
+					context.scene.objects.active = context.scene.objects[matlib.last_selected]
 				except:
 					pass
 				
@@ -978,12 +1133,12 @@ class matlibvxPanel(bpy.types.Panel):
 		row = layout.row()
 		
 	  	#operators
-		col.operator("matlib.operator", icon="ZOOMIN", text="").cmd = "ADD"
-		col.operator("matlib.operator", icon="ZOOMOUT", text="").cmd = "REMOVE"
-		col.operator("matlib.operator", icon="FILE_REFRESH", text="").cmd = "RELOAD"
-		col.operator("matlib.operator", icon="MATERIAL", text="").cmd = "APPLY"
-		col.operator("matlib.operator", icon="COLOR", text="").cmd = "PREVIEW"
-		col.operator("matlib.operator", icon="GHOST_DISABLED", text="").cmd = "FLUSH"
+		col.operator("matlib.add", icon="ZOOMIN", text="")
+		col.operator("matlib.remove", icon="ZOOMOUT", text="")
+		col.operator("matlib.reload", icon="FILE_REFRESH", text="")
+		col.operator("matlib.apply", icon="MATERIAL", text="")
+		col.operator("matlib.preview", icon="COLOR", text="")
+		col.operator("matlib.flush", icon="GHOST_DISABLED", text="")
 		col.prop(matlib, "show_prefs", icon="MODIFIER", text="")
 		
 		#categories
@@ -1007,22 +1162,25 @@ class matlibvxPanel(bpy.types.Panel):
 			#row = layout.row()
 			#row.operator("matlib.operator", icon="URL", text="Convert Library").cmd="CONVERT"
 			
-			row = layout.row()
-			if (matlib.current_library):
-				row.label(matlib.current_library.name)
-			else:
-				row.label("Library not found!.")
+#			row = layout.row()
+#			if (matlib.current_library):
+#				row.label(matlib.current_library.name)
+#			else:
+#				row.label("Library not found!.")
 				
-classes = [matlibvxPanel, matlibOperator, matlibLibsMenu, matlibCatsMenu]
+#classes = [matlibvxPanel, matlibOperator, matlibLibsMenu, matlibCatsMenu]
 #print(bpy.context.scene)
 
 def register():
-	for c in classes:
-		bpy.utils.register_class(c)
+	bpy.utils.register_module(__name__)
+#	for c in classes:
+#		bpy.utils.register_class(c)
 
 def unregister():
-	for c in classes:
-		bpy.utils.unregister_class(c)
+	bpy.utils.unregister_module(__name__)
+	# for c in classes:
+	# 	bpy.utils.unregister_class(c)
 
 if __name__ == "__main__":
 	register()
+

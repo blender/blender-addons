@@ -1,0 +1,32 @@
+[
+    [
+        "Colors",
+        [
+            "Blue",
+            "Red"
+        ]
+    ],
+    [
+        "Metals",
+        [
+            "Cyan22",
+            "Pink"
+        ]
+    ],
+    [
+        "Otro",
+        []
+    ],
+    [
+        "Wood",
+        [
+            "Orange"
+        ]
+    ],
+    [
+        "Nature",
+        [
+            "Green"
+        ]
+    ]
+]
