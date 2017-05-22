@@ -49,15 +49,15 @@ class saveIncremental(Operator):
 
     def execute(self, context):
         filepath = bpy.data.filepath
-        if filepath.count("_v"):
+        if os.path.basename(filepath).rpartition(".")[0][-5:].count("_v"):
             strnum = filepath.rpartition("_v")[-1].rpartition(".blend")[0]
             intnum = int(strnum)
-            modnum = strnum.replace(str(intnum), str(intnum + 1))
+            modnum = "%02d" % (intnum+1)
             output = filepath.replace(strnum, modnum)
             basename = os.path.basename(filepath)
             bpy.ops.wm.save_as_mainfile(
                 filepath=os.path.join(os.path.dirname(filepath), "%s_v%s.blend" %
-                                       (basename.rpartition("_v")[0], str(modnum))))
+                                       (basename.rpartition("_v")[0], str(modnum))))  
 
         else:
             output = filepath.rpartition(".blend")[0] + "_v01"
