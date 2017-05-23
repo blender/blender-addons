@@ -698,7 +698,7 @@ def copy_attributes(a, b):
 def get_rig_type(rig_type):
     """ Fetches a rig module by name, and returns it.
     """
-    name = "legacy.%s.%s" % (RIG_DIR, rig_type)
+    name = "rigify.legacy.%s.%s" % (RIG_DIR, rig_type)
     submod = importlib.import_module(name, package=MODULE_NAME)
     importlib.reload(submod)
     return submod
@@ -707,7 +707,7 @@ def get_rig_type(rig_type):
 def get_metarig_module(metarig_name):
     """ Fetches a rig module by name, and returns it.
     """
-    name = "legacy.%s.%s" % (METARIG_DIR, metarig_name)
+    name = "rigify.legacy.%s.%s" % (METARIG_DIR, metarig_name)
     submod = importlib.import_module(name, package=MODULE_NAME)
     importlib.reload(submod)
     return submod
