@@ -1591,8 +1591,61 @@ def write_pov(filename, scene=None, info_callback=None):
 
         if comments and len(metas) >= 1:
             file.write("//--Blob objects--\n\n")
-
+        # jfGarcia: get groups of metaballs by blender name prefix
+        metaG = {} 
+        metaElems = {}
         for ob in metas:
+            prefix = ob.name.split(".")[0]
+            if not prefix in metaG:
+                metaG[prefix] = ob #.data.threshold
+            elems=[(elem,ob) for elem in ob.data.elements if elem.type in {'BALL', 'ELLIPSOID'}]
+            if prefix in metaElems:
+                metaElems[prefix].extend(elems)
+            else:
+                metaElems[prefix] = elems
+        for mg in metaG:
+            tabWrite("blob{threshold %.4g // %s \n" % (metaG[mg].data.threshold, mg))
+            ob = metaG[mg]
+            for elems in metaElems[mg]:
+                elem=elems[0]
+                loc = elem.co
+                stiffness = elem.stiffness
+                if elem.use_negative:
+                    stiffness = - stiffness
+                if elem.type == 'BALL':
+                    tabWrite("sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g " % \
+                                 (loc.x, loc.y, loc.z, elem.radius, stiffness))
+                elif elem.type == 'ELLIPSOID':
+                    tabWrite("sphere{ <%.6g, %.6g, %.6g>,%.4g,%.4g " % (loc.x / elem.size_x, loc.y / elem.size_y, loc.z / elem.size_z, elem.radius, stiffness))
+                    tabWrite("scale <%.6g, %.6g, %.6g>" % (elem.size_x, elem.size_y, elem.size_z))
+                writeMatrix(global_matrix * elems[1].matrix_world)
+                tabWrite("}\n")
+            try:
+                material = elems[1].data.materials[0]  # lame! - blender cant do enything else.
+            except:
+                material = None
+            if material:
+                diffuse_color = material.diffuse_color
+                trans = 1.0 - material.alpha
+                if material.use_transparency and material.transparency_method == 'RAYTRACE':
+                    povFilter = material.raytrace_transparency.filter * (1.0 - material.alpha)
+                    trans = (1.0 - material.alpha) - povFilter
+                else:
+                    povFilter = 0.0
+                material_finish = materialNames[material.name]
+                tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} \n" % \
+                             (diffuse_color[0], diffuse_color[1], diffuse_color[2],
+                              povFilter, trans))
+                tabWrite("finish{%s} " % safety(material_finish, Level=2))
+            else:
+                tabWrite("pigment{rgb 1} finish{%s} " % (safety(DEF_MAT_NAME, Level=2)))
+            #writeObjectMaterial(material, ob)
+            writeObjectMaterial(material, elems[1])
+            tabWrite("radiosity{importance %3g}\n" % metaG[mg].pov.importance_value)
+            tabWrite("}\n")  # End of Metaball block                
+                
+                
+                
             meta = ob.data
 
             # important because no elements will break parsing.
@@ -1649,15 +1702,16 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("finish {%s}\n" % safety(material_finish, Level=2))
 
                 else:
-                    tabWrite("pigment {rgb<1 1 1>} \n")
+                    tabWrite("pigment {rgb 1} \n")
                     # Write the finish last.
                     tabWrite("finish {%s}\n" % (safety(DEF_MAT_NAME, Level=2)))
 
-                writeObjectMaterial(material, ob)
+                writeObjectMaterial(material, elems[1])
 
                 writeMatrix(global_matrix * ob.matrix_world)
                 # Importance for radiosity sampling added here
                 tabWrite("radiosity { \n")
+                # jfGarcia importance > metaG[mg].pov.importance_value
                 tabWrite("importance %3g \n" % importance)
                 tabWrite("}\n")
 
