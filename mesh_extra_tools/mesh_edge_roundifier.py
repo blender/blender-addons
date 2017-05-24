@@ -633,6 +633,9 @@ class EdgeRoundifier(Operator):
         bpy.ops.object.mode_set(mode='OBJECT')
         bm.to_mesh(mesh)
         bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.mesh.remove_doubles()
+
         bm.free()
 
         return {'FINISHED'}
