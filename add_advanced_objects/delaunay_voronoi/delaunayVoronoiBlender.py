@@ -2,14 +2,25 @@
 
 import bpy
 from .DelaunayVoronoi import (
-            computeVoronoiDiagram,
-            computeDelaunayTriangulation,
-            )
+        computeVoronoiDiagram,
+        computeDelaunayTriangulation,
+        )
 from bpy.types import (
         Operator,
         Panel,
         )
 from bpy.props import EnumProperty
+
+
+# Globals
+# set to True to enable debug_prints
+DEBUG = False
+
+
+def debug_prints(text=""):
+    global DEBUG
+    if DEBUG and text:
+        print(text)
 
 
 class Point:
@@ -56,45 +67,56 @@ class ToolsPanelDelaunay(Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.label('Constellation')
-        self.layout.operator("delaunay.triangulation")
-        self.layout.operator("voronoi.tesselation")
-        layout.label('Constellation')
-        layout.operator("mesh.constellation", text="Cross Section")
+        adv_obj = context.scene.advanced_objects
+
+        box = layout.box()
+        col = box.column(align=True)
+        col.label("Point Cloud:")
+        col.operator("delaunay.triangulation")
+        col.operator("voronoi.tesselation")
+
+        box = layout.box()
+        col = box.column(align=True)
+        col.label("Constellation:")
+        col.operator("mesh.constellation", text="Cross Section")
+        col.prop(adv_obj, "constellation_limit")
 
 
 class OBJECT_OT_TriangulateButton(Operator):
     bl_idname = "delaunay.triangulation"
     bl_label = "Triangulation"
-    bl_description = "Terrain points cloud Delaunay triangulation in 2.5D"
-    bl_options = {"UNDO"}
+    bl_description = ("Terrain points cloud Delaunay triangulation in 2.5D\n"
+                      "Needs an existing Active Mesh Object")
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return (obj is not None and obj.type == "MESH")
 
     def execute(self, context):
-        # Get selected obj
-        objs = bpy.context.selected_objects
-        if len(objs) == 0 or len(objs) > 1:
-            self.report({'INFO'}, "Selection is empty or too much object selected")
-            return {'FINISHED'}
-
-        obj = objs[0]
-        if obj.type != 'MESH':
-            self.report({'INFO'}, "Selection isn't a mesh")
-            return {'FINISHED'}
+        # move the check into the poll
+        obj = context.active_object
 
         # Get points coodinates
         r = obj.rotation_euler
         s = obj.scale
         mesh = obj.data
         vertsPts = [vertex.co for vertex in mesh.vertices]
+
         # Remove duplicate
         verts = [[vert.x, vert.y, vert.z] for vert in vertsPts]
         nDupli, nZcolinear = unique(verts)
         nVerts = len(verts)
-        print(str(nDupli) + " duplicates points ignored")
-        print(str(nZcolinear) + " z colinear points excluded")
+
+        debug_prints(text=str(nDupli) + " duplicate points ignored")
+        debug_prints(str(nZcolinear) + " z colinear points excluded")
+
         if nVerts < 3:
-            self.report({'ERROR'}, "Not enough points")
-            return {'FINISHED'}
+            self.report({"WARNING"},
+                        "Not enough points to continue. Operation Cancelled")
+
+            return {"CANCELLED"}
 
         # Check colinear
         xValues = [pt[0] for pt in verts]
@@ -105,59 +127,63 @@ class OBJECT_OT_TriangulateButton(Operator):
             return {'FINISHED'}
 
         # Triangulate
-        print("Triangulate " + str(nVerts) + " points...")
+        debug_prints(text="Triangulate " + str(nVerts) + " points...")
+
         vertsPts = [Point(vert[0], vert[1], vert[2]) for vert in verts]
         triangles = computeDelaunayTriangulation(vertsPts)
         # reverse point order --> if all triangles are specified anticlockwise then all faces up
         triangles = [tuple(reversed(tri)) for tri in triangles]
 
-        print(str(len(triangles)) + " triangles")
+        debug_prints(text=str(len(triangles)) + " triangles")
 
         # Create new mesh structure
-        print("Create mesh...")
+        debug_prints(text="Create mesh...")
         tinMesh = bpy.data.meshes.new("TIN")        # create a new mesh
         tinMesh.from_pydata(verts, [], triangles)   # Fill the mesh with triangles
         tinMesh.update(calc_edges=True)             # Update mesh with new data
 
         # Create an object with that mesh
         tinObj = bpy.data.objects.new("TIN", tinMesh)
+
         # Place object
         tinObj.location = obj.location.copy()
         tinObj.rotation_euler = r
         tinObj.scale = s
+
         # Update scene
         bpy.context.scene.objects.link(tinObj)  # Link object to scene
         bpy.context.scene.objects.active = tinObj
         tinObj.select = True
         obj.select = False
-        # Report
-        self.report({'INFO'}, "Mesh created (" + str(len(triangles)) + " triangles)")
+
+        self.report({"INFO"},
+                     "Mesh created (" + str(len(triangles)) + " triangles)")
+
         return {'FINISHED'}
 
 
 class OBJECT_OT_VoronoiButton(Operator):
     bl_idname = "voronoi.tesselation"
     bl_label = "Diagram"
-    bl_description = "Points cloud Voronoi diagram in 2D"
+    bl_description = ("Points cloud Voronoi diagram in 2D\n"
+                      "Needs an existing Active Mesh Object")
     bl_options = {"REGISTER", "UNDO"}
 
     meshType = EnumProperty(
-                    items=[("Edges", "Edges", ""), ("Faces", "Faces", "")],
-                    name="Mesh type",
-                    description=""
-                    )
+            items=[('Edges', "Edges", "Edges Only - do not fill Faces"),
+                   ('Faces', "Faces", "Fill Faces in the new Object")],
+            name="Mesh type",
+            description="Type of geometry to generate"
+            )
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return (obj is not None and obj.type == "MESH")
 
     def execute(self, context):
-        # Get selected obj
-        objs = bpy.context.selected_objects
-        if len(objs) == 0 or len(objs) > 1:
-            self.report({'INFO'}, "Selection is empty or too much object selected")
-            return {'FINISHED'}
-
-        obj = objs[0]
-        if obj.type != 'MESH':
-            self.report({'INFO'}, "Selection isn't a mesh")
-            return {'FINISHED'}
+        # move the check into the poll
+        obj = context.active_object
 
         # Get points coodinates
         r = obj.rotation_euler
@@ -170,28 +196,36 @@ class OBJECT_OT_VoronoiButton(Operator):
         nDupli, nZcolinear = unique(verts)
         nVerts = len(verts)
 
-        print(str(nDupli) + " duplicates points ignored")
-        print(str(nZcolinear) + " z colinear points excluded")
+        debug_prints(text=str(nDupli) + " duplicates points ignored")
+        debug_prints(text=str(nZcolinear) + " z colinear points excluded")
 
         if nVerts < 3:
-            self.report({'ERROR'}, "Not enough points")
-            return {'FINISHED'}
+            self.report({"WARNING"},
+                        "Not enough points to continue. Operation Cancelled")
+
+            return {"CANCELLED"}
 
         # Check colinear
         xValues = [pt[0] for pt in verts]
         yValues = [pt[1] for pt in verts]
+
         if checkEqual(xValues) or checkEqual(yValues):
-            self.report({'ERROR'}, "Points are colinear")
-            return {'FINISHED'}
+            self.report({"WARNING"},
+                        "Points are colinear. Operation Cancelled")
+
+            return {"CANCELLED"}
 
         # Create diagram
-        print("Tesselation... (" + str(nVerts) + " points)")
+        debug_prints(text="Tesselation... (" + str(nVerts) + " points)")
+
         xbuff, ybuff = 5, 5
         zPosition = 0
         vertsPts = [Point(vert[0], vert[1], vert[2]) for vert in verts]
+
         if self.meshType == "Edges":
             pts, edgesIdx = computeVoronoiDiagram(
-                                vertsPts, xbuff, ybuff, polygonsOutput=False, formatOutput=True
+                                vertsPts, xbuff, ybuff,
+                                polygonsOutput=False, formatOutput=True
                                 )
         else:
             pts, polyIdx = computeVoronoiDiagram(
@@ -227,8 +261,8 @@ class OBJECT_OT_VoronoiButton(Operator):
 
         # Report
         if self.meshType == "Edges":
-            self.report({'INFO'}, "Mesh created (" + str(len(edgesIdx)) + " edges)")
+            self.report({"INFO"}, "Mesh created (" + str(len(edgesIdx)) + " edges)")
         else:
-            self.report({'INFO'}, "Mesh created (" + str(len(polyIdx)) + " polygons)")
+            self.report({"INFO"}, "Mesh created (" + str(len(polyIdx)) + " polygons)")
 
         return {'FINISHED'}

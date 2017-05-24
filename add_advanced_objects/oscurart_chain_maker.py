@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# TODO: translate the comments into English
+# TODO: find English versions of created object names
 
 bl_info = {
     "name": "Oscurart Chain Maker",
@@ -27,7 +27,6 @@ bl_info = {
     "description": "Create chain links from armatures",
     "warning": "",
     "wiki_url": "oscurart.blogspot.com",
-    "tracker_url": "",
     "category": "Object"}
 
 
@@ -52,7 +51,7 @@ def makeChain(self, context, mult, curverig):
     def creahuesocero(hueso):
         # create data to link
         mesh = bpy.data.meshes.new("objectData" + str(hueso.name))
-        object = bpy.data.objects.new("EslabonCero" + str(hueso.name), mesh)
+        object = bpy.data.objects.new("HardLink" + str(hueso.name), mesh)
         mesh.from_pydata(
             [(-0.04986128956079483, -0.6918092370033264, -0.17846597731113434),
              (-0.04986128956079483, -0.6918091773986816, 0.17846640944480896),
@@ -93,18 +92,18 @@ def makeChain(self, context, mult, curverig):
         mesh.validate()
         bpy.context.scene.objects.link(object)
         # scale to the bone
-        bpy.data.objects['EslabonCero' + str(hueso.name)].scale = (hueso.length * mult,
-                                                                   hueso.length * mult,
-                                                                   hueso.length * mult)
+        bpy.data.objects["HardLink" + str(hueso.name)].scale = (hueso.length * mult,
+                                                                hueso.length * mult,
+                                                                hueso.length * mult)
         # Parent Objects
-        bpy.data.objects['EslabonCero' + str(hueso.name)].parent = ARMATURE
-        bpy.data.objects['EslabonCero' + str(hueso.name)].parent_type = 'BONE'
-        bpy.data.objects['EslabonCero' + str(hueso.name)].parent_bone = hueso.name
+        bpy.data.objects["HardLink" + str(hueso.name)].parent = ARMATURE
+        bpy.data.objects["HardLink" + str(hueso.name)].parent_type = 'BONE'
+        bpy.data.objects["HardLink" + str(hueso.name)].parent_bone = hueso.name
 
     def creahuesonoventa(hueso):
         # create data to link
         mesh = bpy.data.meshes.new("objectData" + str(hueso.name))
-        object = bpy.data.objects.new("EslabonNov" + str(hueso.name), mesh)
+        object = bpy.data.objects.new("NewLink" + str(hueso.name), mesh)
         mesh.from_pydata(
             [(0.1784660965204239, -0.6918091773986816, -0.049861203879117966),
             (-0.1784662902355194, -0.6918091773986816, -0.04986126348376274),
@@ -145,13 +144,13 @@ def makeChain(self, context, mult, curverig):
         mesh.validate()
         bpy.context.scene.objects.link(object)
         # scale to the bone
-        bpy.data.objects['EslabonNov' + str(hueso.name)].scale = (hueso.length * mult,
+        bpy.data.objects["NewLink" + str(hueso.name)].scale = (hueso.length * mult,
                                                                   hueso.length * mult,
                                                                   hueso.length * mult)
         # Parent objects
-        bpy.data.objects['EslabonNov' + str(hueso.name)].parent = ARMATURE
-        bpy.data.objects['EslabonNov' + str(hueso.name)].parent_type = 'BONE'
-        bpy.data.objects['EslabonNov' + str(hueso.name)].parent_bone = hueso.name
+        bpy.data.objects["NewLink" + str(hueso.name)].parent = ARMATURE
+        bpy.data.objects["NewLink" + str(hueso.name)].parent_type = 'BONE'
+        bpy.data.objects["NewLink" + str(hueso.name)].parent_bone = hueso.name
 
     for hueso in bpy.context.active_object.pose.bones:
         if VAR_SWITCH == 1:
@@ -182,18 +181,16 @@ def makeChain(self, context, mult, curverig):
 
         # create the list of tail and head coordinates
         LISTA_POINTC.append((
-                    ACTARM.data.bones[0].head_local[0],
-                    ACTARM.data.bones[0].head_local[1],
-                    ACTARM.data.bones[0].head_local[2],
-                    1
-                    ))
+                ACTARM.data.bones[0].head_local[0],
+                ACTARM.data.bones[0].head_local[1],
+                ACTARM.data.bones[0].head_local[2], 1
+                ))
 
         for hueso in ACTARM.data.bones:
             LISTA_POINTC.append((
                     hueso.tail_local[0],
                     hueso.tail_local[1],
-                    hueso.tail_local[2],
-                    1
+                    hueso.tail_local[2], 1
                     ))
 
         # create the Spline
@@ -249,14 +246,14 @@ class MESH_OT_primitive_oscurart_chain_add(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     curverig = BoolProperty(
-                    name="Curve Rig",
-                    default=False
-                    )
+            name="Curve Rig",
+            default=False
+            )
     multiplier = FloatProperty(
-                    name="Scale",
-                    default=1,
-                    min=0.01, max=100.0
-                    )
+            name="Scale",
+            default=1,
+            min=0.01, max=100.0
+            )
 
     @classmethod
     def poll(cls, context):
@@ -264,7 +261,18 @@ class MESH_OT_primitive_oscurart_chain_add(Operator):
         return (obj is not None and obj.type == "ARMATURE")
 
     def execute(self, context):
-        makeChain(self, context, self.multiplier, self.curverig)
+        try:
+            makeChain(self, context, self.multiplier, self.curverig)
+
+        except Exception as e:
+            self.report({'WARNING'},
+                        "Some operations could not be performed (See Console for more info)")
+
+            print("\n[Add Advanced  Objects]\nOperator: "
+                  "mesh.primitive_oscurart_chain_add\nError: {}".format(e))
+
+            return {'CANCELLED'}
+
         return {'FINISHED'}
 
 

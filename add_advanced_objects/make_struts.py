@@ -21,22 +21,9 @@
 
 # <pep8 compliant>
 
-"""
-bl_info = {
-    "name": "Strut Generator",
-    "author": "Bill Currie",
-    "blender": (2, 6, 3),
-    "api": 35622,
-    "location": "View3D > Add > Mesh > Struts",
-    "description": "Add struts meshes based on selected truss meshes",
-    "warning": "can get very high-poly",
-    "wiki_url": "",
-    "tracker_url": "",
-    "category": "Add Mesh"}
-"""
-
 import bpy
 import bmesh
+from bpy.types import Operator
 from bpy.props import (
         FloatProperty,
         IntProperty,
@@ -48,8 +35,7 @@ from mathutils import (
         Quaternion,
         )
 from math import (
-        pi,
-        cos,
+        pi, cos,
         sin,
         )
 
@@ -71,6 +57,7 @@ def build_cossin(n):
 
 
 def select_up(axis):
+    # if axis.length != 0 and (abs(axis[0] / axis.length) < 1e-5 and abs(axis[1] / axis.length) < 1e-5):
     if (abs(axis[0] / axis.length) < 1e-5 and abs(axis[1] / axis.length) < 1e-5):
         up = Vector((-1, 0, 0))
     else:
@@ -109,21 +96,21 @@ def select_up(axis):
 #                   vertices for the created strut.
 
 
-def make_strut(v1, v2, id, od, n, solid, loops):
+def make_strut(v1, v2, ind, od, n, solid, loops):
     v1 = Vector(v1)
     v2 = Vector(v2)
     axis = v2 - v1
     pos = [(0, od / 2)]
     if loops:
-        pos += [((od - id) / 2, od / 2),
-                (axis.length - (od - id) / 2, od / 2)]
+        pos += [((od - ind) / 2, od / 2),
+                (axis.length - (od - ind) / 2, od / 2)]
     pos += [(axis.length, od / 2)]
     if solid:
-        pos += [(axis.length, id / 2)]
+        pos += [(axis.length, ind / 2)]
         if loops:
-            pos += [(axis.length - (od - id) / 2, id / 2),
-                    ((od - id) / 2, id / 2)]
-        pos += [(0, id / 2)]
+            pos += [(axis.length - (od - ind) / 2, ind / 2),
+                    ((od - ind) / 2, ind / 2)]
+        pos += [(0, ind / 2)]
     vps = len(pos)
     fps = vps
     if not solid:
@@ -156,7 +143,7 @@ def make_strut(v1, v2, id, od, n, solid, loops):
     for j in range(fps):
         f = (i - 1) * fps + j
         faces[f] = [base + j, j, (j + 1) % vps, base + (j + 1) % vps]
-    # print(verts,faces)
+
     return verts, faces
 
 
@@ -452,7 +439,7 @@ def make_manifold_struts(truss_obj, od, segments):
     return verts, faces
 
 
-def make_simple_struts(truss_mesh, id, od, segments, solid, loops):
+def make_simple_struts(truss_mesh, ind, od, segments, solid, loops):
     vps = 2
     if solid:
         vps *= 2
@@ -466,10 +453,11 @@ def make_simple_struts(truss_mesh, id, od, segments, solid, loops):
     faces = [None] * len(truss_mesh.edges) * segments * fps
     vbase = 0
     fbase = 0
+
     for e in truss_mesh.edges:
         v1 = truss_mesh.vertices[e.vertices[0]]
         v2 = truss_mesh.vertices[e.vertices[1]]
-        v, f = make_strut(v1.co, v2.co, id, od, segments, solid, loops)
+        v, f = make_strut(v1.co, v2.co, ind, od, segments, solid, loops)
         for fv in f:
             for i in range(len(fv)):
                 fv[i] += vbase
@@ -481,14 +469,13 @@ def make_simple_struts(truss_mesh, id, od, segments, solid, loops):
         #    print (base * 100 / len(verts))
         vbase += vps * segments
         fbase += fps * segments
-    # print(verts,faces)
+
     return verts, faces
 
 
-def create_struts(self, context, id, od, segments, solid, loops, manifold):
+def create_struts(self, context, ind, od, segments, solid, loops, manifold):
     build_cossin(segments)
 
-    bpy.context.user_preferences.edit.use_global_undo = False
     for truss_obj in bpy.context.scene.objects:
         if not truss_obj.select:
             continue
@@ -499,7 +486,7 @@ def create_struts(self, context, id, od, segments, solid, loops, manifold):
         if manifold:
             verts, faces = make_manifold_struts(truss_obj, od, segments)
         else:
-            verts, faces = make_simple_struts(truss_mesh, id, od, segments,
+            verts, faces = make_simple_struts(truss_mesh, ind, od, segments,
                                               solid, loops)
         mesh = bpy.data.meshes.new("Struts")
         mesh.from_pydata(verts, [], faces)
@@ -509,58 +496,92 @@ def create_struts(self, context, id, od, segments, solid, loops, manifold):
         obj.location = truss_obj.location
         bpy.context.scene.objects.active = obj
         mesh.update()
-    bpy.context.user_preferences.edit.use_global_undo = True
-    return {'FINISHED'}
 
 
-class Struts(bpy.types.Operator):
-    """Add one or more struts meshes based on selected truss meshes"""
+class Struts(Operator):
     bl_idname = "mesh.generate_struts"
     bl_label = "Struts"
-    bl_description = """Add one or more struts meshes based on selected truss meshes"""
+    bl_description = ("Add one or more struts meshes based on selected truss meshes \n"
+                      "Note: can get very high poly\n"
+                      "Needs an existing Active Mesh Object")
     bl_options = {'REGISTER', 'UNDO'}
 
-    id = FloatProperty(name="Inside Diameter",
-                       description="diameter of inner surface",
-                       min=0.0,
-                       soft_min=0.0,
-                       max=100,
-                       soft_max=100,
-                       default=0.04)
-    od = FloatProperty(name="Outside Diameter",
-                       description="diameter of outer surface",
-                       min=0.001,
-                       soft_min=0.001,
-                       max=100,
-                       soft_max=100,
-                       default=0.05)
-    manifold = BoolProperty(name="Manifold",
-                            description="Connect struts to form a single solid.",
-                            default=False)
-    solid = BoolProperty(name="Solid",
-                         description="Create inner surface.",
-                         default=False)
-    loops = BoolProperty(name="Loops",
-                         description="Create sub-surf friendly loops.",
-                         default=False)
-    segments = IntProperty(name="Segments",
-                           description="Number of segments around strut",
-                           min=3, soft_min=3,
-                           max=64, soft_max=64,
-                           default=12)
+    ind = FloatProperty(
+            name="Inside Diameter",
+            description="Diameter of inner surface",
+            min=0.0, soft_min=0.0,
+            max=100, soft_max=100,
+            default=0.04
+            )
+    od = FloatProperty(
+            name="Outside Diameter",
+            description="Diameter of outer surface",
+            min=0.001, soft_min=0.001,
+            max=100, soft_max=100,
+            default=0.05
+            )
+    manifold = BoolProperty(
+            name="Manifold",
+            description="Connect struts to form a single solid",
+            default=False
+            )
+    solid = BoolProperty(
+            name="Solid",
+            description="Create inner surface",
+            default=False
+            )
+    loops = BoolProperty(
+            name="Loops",
+            description="Create sub-surf friendly loops",
+            default=False
+            )
+    segments = IntProperty(
+            name="Segments",
+            description="Number of segments around strut",
+            min=3, soft_min=3,
+            max=64, soft_max=64,
+            default=12
+            )
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        col.prop(self, "ind")
+        col.prop(self, "od")
+        col.prop(self, "segments")
+        col.separator()
+
+        col.prop(self, "manifold")
+        col.prop(self, "solid")
+        col.prop(self, "loops")
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return obj is not None and obj.type == "MESH"
 
     def execute(self, context):
+        store_undo = bpy.context.user_preferences.edit.use_global_undo
+        bpy.context.user_preferences.edit.use_global_undo = False
         keywords = self.as_keywords()
-        return create_struts(self, context, **keywords)
 
+        try:
+            create_struts(self, context, **keywords)
+            bpy.context.user_preferences.edit.use_global_undo = store_undo
 
-def menu_func(self, context):
-    self.layout.operator(Struts.bl_idname, text="Struts", icon='PLUGIN')
+            return {"FINISHED"}
+
+        except Exception as e:
+            bpy.context.user_preferences.edit.use_global_undo = store_undo
+            self.report({"WARNING"},
+                        "Make Struts could not be performed. Operation Cancelled")
+            print("\n[mesh.generate_struts]\n{}".format(e))
+            return {"CANCELLED"}
 
 
 def register():
     bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
 
 
 def unregister():

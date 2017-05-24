@@ -21,14 +21,13 @@
 bl_info = {
     "name": "Delaunay Voronoi",
     "description": "Points cloud Delaunay triangulation in 2.5D "
-                  "(suitable for terrain modelling) or Voronoi diagram in 2D",
+                   "(suitable for terrain modelling) or Voronoi diagram in 2D",
     "author": "Domlysz, Oscurart",
     "version": (1, 3),
     "blender": (2, 7, 0),
     "location": "View3D > Tools > GIS",
     "warning": "",
     "wiki_url": "https://github.com/domlysz/BlenderGIS/wiki",
-    "tracker_url": "",
     "category": ""
     }
 

@@ -1,4 +1,4 @@
-#  ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -15,12 +15,12 @@
 #  or write to the Free Software Foundation, Inc., 51 Franklin Street,
 #  Fifth Floor, Boston, MA 02110-1301, USA.
 #
-#  ***** END GPL LICENSE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Copy2 vertices, edges or faces",
+    "name": "Copy2 Vertices, Edges or Faces",
     "author": "Eleanor Howick (elfnor.com)",
-    "version": (0, 1),
+    "version": (0, 1, 1),
     "blender": (2, 71, 0),
     "location": "3D View > Object > Copy 2",
     "description": "Copy one object to the selected vertices, edges or faces of another object",
@@ -29,13 +29,23 @@ bl_info = {
 }
 
 import bpy
+from bpy.types import Operator
+from bpy.props import (
+        BoolProperty,
+        EnumProperty,
+        FloatProperty,
+        )
+from mathutils import (
+        Vector,
+        Matrix,
+        )
 
-from mathutils import Vector, Matrix
 
-
-class Copy2(bpy.types.Operator):
+class Copy2(Operator):
     bl_idname = "mesh.copy2"
     bl_label = "Copy 2"
+    bl_description = ("Copy Vertices, Edges or Faces to the Selected object\n"
+                      "Needs an existing Active Mesh Object")
     bl_options = {"REGISTER", "UNDO"}
 
     obj_list = None
@@ -45,84 +55,126 @@ class Copy2(bpy.types.Operator):
 
     def sec_axes_list_cb(self, context):
         if self.priaxes == 'X':
-            sec_list = [('Y', 'Y', 'Y'), ('Z', 'Z', 'Z')]
+            sec_list = [('Y', "Y", "Secondary axis Y"),
+                        ('Z', "Z", "Secondary axis Z")]
 
         if self.priaxes == 'Y':
-            sec_list = [('X', 'X', 'X'), ('Z', 'Z', 'Z')]
+            sec_list = [('X', "X", "Secondary axis X"),
+                        ('Z', "Z", "Secondary axis Z")]
 
         if self.priaxes == 'Z':
-            sec_list = [('X', 'X', 'X'), ('Y', 'Y', 'Y')]
+            sec_list = [('X', "X", "Secondary axis X"),
+                        ('Y', "Y", "Secondary axis Y")]
         return sec_list
 
-    copytype = bpy.props.EnumProperty(items=(('V', '', 'paste to vertices', 'VERTEXSEL', 0),
-                                             ('E', '', 'paste to edges', 'EDGESEL', 1),
-                                             ('F', '', 'paste to faces', 'FACESEL', 2)),
-                                      description='where to paste to')
+    copytype = EnumProperty(
+            items=(('V', "Vertex",
+                    "Paste the Copied Geometry to Vertices of the Active Object", 'VERTEXSEL', 0),
+                   ('E', "Edge",
+                    "Paste the Copied Geometry to Edges of the Active Object", 'EDGESEL', 1),
+                   ('F', "Face",
+                    "Paste the Copied Geometry to Faces of the Active Object", 'FACESEL', 2)),
+            )
+    copyfromobject = EnumProperty(
+            name="Copy from",
+            description="Copy an Object from the list",
+            items=obj_list_cb
+            )
+    priaxes = EnumProperty(
+            description="Primary axes used for Copied Object orientation",
+            items=(('X', "X", "Along X"),
+                   ('Y', "Y", "Along Y"),
+                   ('Z', "Z", "Along Z")),
+            )
+    edgescale = BoolProperty(
+            name="Scale to fill edge",
+            default=False
+            )
+    secaxes = EnumProperty(
+            name="Secondary Axis",
+            description="Secondary axis used for Copied Object orientation",
+            items=sec_axes_list_cb
+            )
+    scale = FloatProperty(
+            name="Scale",
+            default=1.0,
+            min=0.0,
+            )
 
-    copyfromobject = bpy.props.EnumProperty(items=obj_list_cb, name='Copy from:')
-
-    priaxes = bpy.props.EnumProperty(items=(('X', 'X', 'along X'),
-                                            ('Y', 'Y', 'along Y'),
-                                            ('Z', 'Z', 'along Z')),
-                                     )
-
-    edgescale = bpy.props.BoolProperty(name='Scale to fill edge?')
-
-    secaxes = bpy.props.EnumProperty(items=sec_axes_list_cb, name='Secondary Axis')
-
-    scale = bpy.props.FloatProperty(default=1.0, min=0.0, name='Scale')
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return obj and obj.type == "MESH"
 
     def draw(self, context):
         layout = self.layout
 
-        layout.prop(self, 'copyfromobject')
+        layout.prop(self, "copyfromobject")
         layout.label("to:")
-        layout.prop(self, 'copytype', expand=True)
-        layout.label("primary axis:")
-        layout.prop(self, 'priaxes', expand=True)
-        layout.label("secondary axis:")
-        layout.prop(self, 'secaxes', expand=True)
-        if self.copytype == 'E':
-            layout.prop(self, 'edgescale')
+        layout.prop(self, "copytype", expand=True)
+        layout.label("Primary axis:")
+        layout.prop(self, "priaxes", expand=True)
+        layout.label("Secondary axis:")
+        layout.prop(self, "secaxes", expand=True)
+        if self.copytype == "E":
+            layout.prop(self, "edgescale")
             if self.edgescale:
-                layout.prop(self, 'scale')
+                layout.prop(self, "scale")
         return
 
     def execute(self, context):
         copytoobject = context.active_object.name
         axes = self.priaxes + self.secaxes
-        copy_list = copy_to_from(context.scene,
-                                 bpy.data.objects[copytoobject],
-                                 bpy.data.objects[self.copyfromobject],
-                                 self.copytype,
-                                 axes,
-                                 self.edgescale,
-                                 self.scale)
+
+        # check if there is a problem with the strings related to some chars
+        copy_to_object = bpy.data.objects[copytoobject] if \
+                         copytoobject in bpy.data.objects else None
+
+        copy_from_object = bpy.data.objects[self.copyfromobject] if \
+                           self.copyfromobject in bpy.data.objects else None
+
+        if copy_to_object is None or copy_from_object is None:
+            self.report({"WARNING"},
+                        "There was a problem with retrieving Object data. Operation Cancelled")
+            return {"CANCELLED"}
+        try:
+            copy_to_from(
+                    context.scene,
+                    copy_to_object,
+                    copy_from_object,
+                    self.copytype,
+                    axes,
+                    self.edgescale,
+                    self.scale
+                    )
+        except Exception as e:
+            self.report({"WARNING"},
+                        "Copy2 could not be completed (Check the Console for more info)")
+            print("\n[Add Advanced Objects]\nOperator: mesh.copy2\n{}\n".format(e))
+
+            return {"CANCELLED"}
+
         return {"FINISHED"}
 
     def invoke(self, context, event):
         Copy2.obj_list = [(obj.name, obj.name, obj.name) for obj in bpy.data.objects]
+
         return {"FINISHED"}
-# end Copy2 class
 
-#---------------------------------------------------------------------------------------
-
-
-def add_to_menu(self, context):
-    self.layout.operator(Copy2.bl_idname)
-    return
-
-
-#-----------------------------------------------------------------
 
 def copy_to_from(scene, to_obj, from_obj, copymode, axes, edgescale, scale):
     if copymode == 'V':
-        copy_list = vertex_copy(scene, to_obj, from_obj, axes)
+        vertex_copy(scene, to_obj, from_obj, axes)
+
     if copymode == 'E':
-        copy_list = edge_copy(scene, to_obj, from_obj, axes, edgescale, scale)
+        # don't pass edgescalling to object types that cannot be scaled
+        if from_obj.type in ["CAMERA", "LAMP", "EMPTY", "ARMATURE", "SPEAKER", "META"]:
+            edgescale = False
+        edge_copy(scene, to_obj, from_obj, axes, edgescale, scale)
+
     if copymode == 'F':
-        copy_list = face_copy(scene, to_obj, from_obj, axes)
-    return copy_list
+        face_copy(scene, to_obj, from_obj, axes)
+
 
 axes_dict = {'XY': (1, 2, 0),
              'XZ': (2, 1, 0),
@@ -133,9 +185,9 @@ axes_dict = {'XY': (1, 2, 0),
 
 
 def copyto(scene, source_obj, pos, xdir, zdir, axes, scale=None):
-    """ 
-    copy the source_obj to pos, so its primary axis points in zdir and its 
-    secondary axis points in xdir       
+    """
+    copy the source_obj to pos, so its primary axis points in zdir and its
+    secondary axis points in xdir
     """
     copy_obj = source_obj.copy()
     scene.objects.link(copy_obj)
@@ -161,7 +213,7 @@ def copyto(scene, source_obj, pos, xdir, zdir, axes, scale=None):
     copy_obj.location = pos
 
     # scale object
-    if scale != None:
+    if scale is not None:
         copy_obj.scale = scale
 
     return copy_obj
@@ -171,8 +223,9 @@ def vertex_copy(scene, obj, source_obj, axes):
     # vertex select mode
     sel_verts = []
     copy_list = []
+
     for v in obj.data.vertices:
-        if v.select == True:
+        if v.select is True:
             sel_verts.append(v)
 
     # make a set for each vertex. The set contains all the connected vertices
@@ -198,20 +251,22 @@ def vertex_copy(scene, obj, source_obj, axes):
 
         copy = copyto(scene, source_obj, pos, xdir, zdir, axes)
         copy_list.append(copy)
+
     # select all copied objects
     for copy in copy_list:
         copy.select = True
     obj.select = False
-    return copy_list
 
 
 def edge_copy(scene, obj, source_obj, axes, es, scale):
     # edge select mode
     sel_edges = []
     copy_list = []
+
     for e in obj.data.edges:
-        if e.select == True:
+        if e.select is True:
             sel_edges.append(e)
+
     for e in sel_edges:
         # pos is average of two edge vertexs
         v0 = obj.data.vertices[e.vertices[0]].co * obj.matrix_world.transposed()
@@ -222,10 +277,10 @@ def edge_copy(scene, obj, source_obj, axes, es, scale):
         xlen = xdir.magnitude
         xdir = xdir.normalized()
         # project each edge vertex normal onto plane normal to xdir
-        vn0 = (obj.data.vertices[e.vertices[0]].co * obj.matrix_world.transposed()
-               + obj.data.vertices[e.vertices[0]].normal) - v0
-        vn1 = (obj.data.vertices[e.vertices[1]].co * obj.matrix_world.transposed()
-               + obj.data.vertices[e.vertices[1]].normal) - v1
+        vn0 = (obj.data.vertices[e.vertices[0]].co * obj.matrix_world.transposed() +
+               obj.data.vertices[e.vertices[0]].normal) - v0
+        vn1 = (obj.data.vertices[e.vertices[1]].co * obj.matrix_world.transposed() +
+               obj.data.vertices[e.vertices[1]].normal) - v1
         vn0p = vn0 - vn0.dot(xdir) * xdir
         vn1p = vn1 - vn1.dot(xdir) * xdir
         # the mean of the two projected normals is the zdir
@@ -239,20 +294,22 @@ def edge_copy(scene, obj, source_obj, axes, es, scale):
 
         copy = copyto(scene, source_obj, pos, xdir, zdir, axes, scale=escale)
         copy_list.append(copy)
+
     # select all copied objects
     for copy in copy_list:
         copy.select = True
     obj.select = False
-    return copy_list
 
 
 def face_copy(scene, obj, source_obj, axes):
     # face select mode
     sel_faces = []
     copy_list = []
+
     for f in obj.data.polygons:
-        if f.select == True:
+        if f.select is True:
             sel_faces.append(f)
+
     for f in sel_faces:
         fco = f.center * obj.matrix_world.transposed()
         # get first vertex corner of transformed object
@@ -263,25 +320,19 @@ def face_copy(scene, obj, source_obj, axes):
 
         copy = copyto(scene, source_obj, fco, vco - fco, fn, axes)
         copy_list.append(copy)
+
     # select all copied objects
     for copy in copy_list:
         copy.select = True
     obj.select = False
-    return copy_list
-
-#-------------------------------------------------------------------
 
 
 def register():
-
-    bpy.utils.register_module(__name__)
-    bpy.types.VIEW3D_MT_object.append(add_to_menu)
+    bpy.utils.register_class(Copy2)
 
 
 def unregister():
-
-    bpy.types.VIEW3D_MT_object.remove(add_to_menu)
-    bpy.utils.unregister_module(__name__)
+    bpy.utils.unregister_class(Copy2)
 
 
 if __name__ == "__main__":

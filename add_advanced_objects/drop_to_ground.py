@@ -19,14 +19,13 @@
 bl_info = {
     "name": "Drop to Ground1",
     "author": "Unnikrishnan(kodemax), Florian Meyer(testscreenings)",
-    "version": (1, 2),
+    "version": (1, 2, 1),
     "blender": (2, 71, 0),
     "location": "3D View > Toolshelf > Tools Tab",
     "description": "Drop selected objects on active object",
     "warning": "",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Object/Drop_to_ground",
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Object"}
 
 
@@ -59,6 +58,7 @@ def transform_ground_to_world(sc, ground):
     tmp_ground = bpy.data.objects.new('tmpGround', tmpMesh)
     sc.objects.link(tmp_ground)
     sc.update()
+
     return tmp_ground
 
 
@@ -120,12 +120,16 @@ def drop_objectsall(self, context):
             lowest_world_co = ob.location
         else:
             lowest_world_co = get_lowest_world_co(context, ob)
+
         if not lowest_world_co:
-            print(ob.type, 'is not supported. Failed to drop', ob.name)
+            message = "Type {} is not supported. Failed to drop {}".format(ob.type, ob.name)
+            self.reported.append(message)
             continue
         is_hit, hit_location, hit_normal, hit_index = tmp_ground.ray_cast(lowest_world_co, down)
+
         if not is_hit:
-            print(ob.name, 'didn\'t hit the ground')
+            message = ob.name + " did not hit the Ground"
+            self.reported.append(message)
             continue
 
         # simple drop down
@@ -169,12 +173,16 @@ def drop_objects(self, context):
             lowest_world_co = ob.location
         else:
             lowest_world_co = get_lowest_world_co(context, ob)
+
         if not lowest_world_co:
-            print(ob.type, 'is not supported. Failed to drop', ob.name)
+            message = "Type {} is not supported. Failed to drop {}".format(ob.type, ob.name)
+            self.reported.append(message)
             continue
+
         is_hit, hit_location, hit_normal, hit_index = tmp_ground.ray_cast(lowest_world_co, down)
         if not is_hit:
-            print(ob.name, 'didn\'t hit the ground')
+            message = ob.name + " did not hit the Ground"
+            self.reported.append(message)
             continue
 
         # simple drop down
@@ -209,8 +217,8 @@ def drop_objects(self, context):
 class OBJECT_OT_drop_to_ground(Operator):
     bl_idname = "object.drop_on_active"
     bl_label = "Drop to Ground"
+    bl_description = "Drop selected objects on the active object"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Drop selected objects on active object"
 
     align = BoolProperty(
             name="Align to ground",
@@ -220,22 +228,31 @@ class OBJECT_OT_drop_to_ground(Operator):
             name="Use Center",
             description="Drop to objects origins",
             default=False)
+    reported = []
 
     @classmethod
     def poll(cls, context):
         return len(context.selected_objects) >= 2
 
     def execute(self, context):
-        print('\nDropping Objects')
         drop_objects(self, context)
+
+        if self.reported:
+            self.report({"INFO"},
+                        "Operation failed on some objects. See the Console for more Info")
+            report_items = "  \n".join(self.reported)
+            print("\n[Drop to Ground Report]\n{}\n".format(report_items))
+
+        self.reported = []
+
         return {'FINISHED'}
 
 
 class OBJECT_OT_drop_all_ground(Operator):
     bl_idname = "object.drop_all_active"
-    bl_label = "Drop to Ground"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_label = "Drop All to Ground (Active Object)"
     bl_description = "Drop selected objects on active object"
+    bl_options = {'REGISTER', 'UNDO'}
 
     align = BoolProperty(
             name="Align to ground",
@@ -245,33 +262,45 @@ class OBJECT_OT_drop_all_ground(Operator):
             name="Use Center",
             description="Drop to objects origins",
             default=False)
+    reported = []
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object is not None
 
     def execute(self, context):
-        print('\nDropping Objects')
         drop_objectsall(self, context)
+
+        if self.reported:
+            self.report({"INFO"},
+                        "Operation failed on some objects. See the Console for more Info")
+            report_items = "  \n".join(self.reported)
+            print("\n[Drop All to Ground Report]\n{}\n".format(report_items))
+
+        self.reported = []
 
         return {'FINISHED'}
 
 
-class drop_help(Operator):
+class Drop_help(Operator):
     bl_idname = "help.drop"
     bl_label = ""
+
+    is_all = BoolProperty(
+            default=True,
+            options={"HIDDEN"}
+            )
 
     def draw(self, context):
         layout = self.layout
         layout.label("To use:")
-        layout.label("___________________________")
 
-        layout.label("Drop selected :-")
-
-        layout.label("Name the base object 'Ground'")
-        layout.label("Select the object/s to drop")
-        layout.label("Then Shift Select 'Ground'")
-        layout.label("___________________________")
-
-        layout.label("Drop all :-")
-
-        layout.label("select the ground mesh , and press Drop all")
+        if self.is_all is False:
+            layout.label("Name the base object 'Ground'")
+            layout.label("Select the object's to drop")
+            layout.label("Then Shift Select 'Ground'")
+        else:
+            layout.label("Select the ground mesh and press Drop all")
 
     def execute(self, context):
         return {'FINISHED'}
@@ -290,25 +319,31 @@ class Drop_Operator_Panel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        row = layout.row()
-        row = layout.split(0.80)
+
+        row = layout.split(percentage=0.8, align=True)
         row.operator(OBJECT_OT_drop_to_ground.bl_idname,
                      text="Drop Selected")
-        row = layout.row()
+        row.operator("help.drop", icon="LAYER_USED").is_all = False
+
+        row = layout.split(percentage=0.8, align=True)
         row.operator(OBJECT_OT_drop_all_ground.bl_idname,
                      text="Drop All")
-        row.operator('help.drop', icon='INFO')
+        row.operator("help.drop", icon="LAYER_USED").is_all = True
 
 
 # Register
 def register():
-    bpy.utils.register_module(__name__)
-    pass
+    bpy.utils.register_class(OBJECT_OT_drop_all_ground)
+    bpy.utils.register_class(OBJECT_OT_drop_to_ground)
+    bpy.utils.register_class(Drop_Operator_Panel)
+    bpy.utils.register_class(Drop_help)
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
-    pass
+    bpy.utils.unregister_class(OBJECT_OT_drop_all_ground)
+    bpy.utils.unregister_class(OBJECT_OT_drop_to_ground)
+    bpy.utils.unregister_class(Drop_Operator_Panel)
+    bpy.utils.unregister_class(Drop_help)
 
 
 if __name__ == "__main__":

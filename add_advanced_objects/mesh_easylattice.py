@@ -16,11 +16,12 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# TODO: find a better solution for allowing more than one lattice per scene
 
 bl_info = {
     "name": "Easy Lattice Object",
     "author": "Kursad Karatas",
-    "version": (0, 5),
+    "version": (0, 5, 1),
     "blender": (2, 66, 0),
     "location": "View3D > Easy Lattice",
     "description": "Create a lattice for shape editing",
@@ -35,9 +36,11 @@ from mathutils import (
         Matrix,
         Vector,
         )
+from bpy.types import Operator
 from bpy.props import (
         EnumProperty,
         IntProperty,
+        StringProperty,
         )
 
 
@@ -86,7 +89,8 @@ def createLattice(obj, size, pos, props):
     # the size  from bbox
     ob.scale = size
 
-    # the rotation comes from the combined obj world matrix which was converted to euler pairs
+    # the rotation comes from the combined obj world
+    # matrix which was converted to euler pairs
     ob.rotation_euler = buildRot_World(obj)
 
     ob.show_x_ray = True
@@ -263,10 +267,11 @@ def run(lat_props):
 
     if obj.type == "MESH":
         # set global property for the currently active latticed object
-        bpy.types.Scene.activelatticeobject = bpy.props.StringProperty(
-                                                    name="currentlatticeobject",
-                                                    default=""
-                                                    )
+        # removed in __init__ on unregister if created
+        bpy.types.Scene.activelatticeobject = StringProperty(
+                name="currentlatticeobject",
+                default=""
+                )
         bpy.types.Scene.activelatticeobject = obj.name
 
         modifiersDelete(obj)
@@ -311,70 +316,85 @@ def main(context, latticeprops):
     run(latticeprops)
 
 
-class EasyLattice(bpy.types.Operator):
-    """Adds a Lattice modifier ready to edit"""
+class EasyLattice(Operator):
     bl_idname = "object.easy_lattice"
     bl_label = "Easy Lattice Creator"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "TOOLS"
+    bl_description = ("Create a Lattice modifier ready to edit\n"
+                      "Needs an existing Active Mesh Object\n"
+                      "Note: Works only with one lattice per scene")
 
     lat_u = IntProperty(
-                name="Lattice u",
-                default=3
-                )
+            name="Lattice u",
+            description="Points in u direction",
+            default=3
+            )
     lat_w = IntProperty(
-                name="Lattice w",
-                default=3
-                )
+            name="Lattice w",
+            description="Points in w direction",
+            default=3
+            )
     lat_m = IntProperty(
-                name="Lattice m",
-                default=3
+            name="Lattice m",
+            description="Points in m direction",
+            default=3
+            )
+    lat_types = (('KEY_LINEAR', "Linear", "Linear Interpolation type"),
+                 ('KEY_CARDINAL', "Cardinal", "Cardinal Interpolation type"),
+                 ('KEY_BSPLINE', "BSpline", "Key BSpline Interpolation Type")
                 )
-    lat_types = (('0', 'KEY_LINEAR', '0'),
-                 ('1', 'KEY_CARDINAL', '1'),
-                 ('2', 'KEY_BSPLINE', '2'))
     lat_type = EnumProperty(
-                name="Lattice Type",
-                items=lat_types,
-                default='0'
-                )
+            name="Lattice Type",
+            description="Choose Lattice Type",
+            items=lat_types,
+            default='KEY_LINEAR'
+            )
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        obj = context.active_object
+        return obj is not None and obj.type == "MESH"
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        col.prop(self, "lat_u")
+        col.prop(self, "lat_w")
+        col.prop(self, "lat_m")
+
+        layout.prop(self, "lat_type")
 
     def execute(self, context):
         lat_u = self.lat_u
         lat_w = self.lat_w
         lat_m = self.lat_m
 
-        # this is a reference to the "items" used to generate the
-        # enum property
-        lat_type = self.lat_types[int(self.lat_type)][1]
+        # enum property no need to complicate things
+        lat_type = self.lat_type
         lat_props = [lat_u, lat_w, lat_m, lat_type]
+        try:
+            main(context, lat_props)
 
-        main(context, lat_props)
+        except Exception as e:
+            print("\n[Add Advanced Objects]\nOperator:object.easy_lattice\n{}\n".format(e))
+            self.report({'WARNING'},
+                         "Easy Lattice Creator could not be completed (See Console for more info)")
 
-        return {'FINISHED'}
+            return {"CANCELLED"}
+
+        return {"FINISHED"}
 
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
 
-def menu_draw(self, context):
-    self.layout.operator_context = 'INVOKE_REGION_WIN'
-    self.layout.operator(EasyLattice.bl_idname, "Easy Lattice")
-
-
 def register():
     bpy.utils.register_class(EasyLattice)
-    bpy.types.VIEW3D_MT_edit_mesh_specials.append(menu_draw)
 
 
 def unregister():
     bpy.utils.unregister_class(EasyLattice)
-    bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_draw)
 
 
 if __name__ == "__main__":

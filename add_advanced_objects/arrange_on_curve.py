@@ -9,9 +9,11 @@ bl_info = {
     "description": "Arrange objects along a curve",
     "warning": "Select curve",
     "wiki_url": "",
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "3D View"
     }
+
+# Note: scene properties are moved into __init__
+# search for patterns advanced_objects and adv_obj
 
 import bpy
 import mathutils
@@ -20,11 +22,9 @@ from bpy.types import (
         Panel,
         )
 from bpy.props import (
-        BoolProperty,
         EnumProperty,
         FloatProperty,
         IntProperty,
-        StringProperty,
         )
 
 FLT_MIN = 0.004
@@ -44,82 +44,90 @@ class PanelDupliCurve(Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(context.scene, "use_selected")
-        if not context.scene.use_selected:
-            layout.prop(context.scene, "select_type", expand=True)
-            if context.scene.select_type == 'O':
+        adv_obj = context.scene.advanced_objects
+
+        layout.prop(adv_obj, "arrange_c_use_selected")
+
+        if not adv_obj.arrange_c_use_selected:
+            layout.prop(adv_obj, "arrange_c_select_type", expand=True)
+            if adv_obj.arrange_c_select_type == 'O':
                 layout.column(align=True).prop_search(
-                                context.scene, "objeto_arranjar",
-                                bpy.data, "objects"
-                                )
-            elif context.scene.select_type == 'G':
+                              adv_obj, "arrange_c_obj_arranjar",
+                              bpy.data, "objects"
+                              )
+            elif adv_obj.arrange_c_select_type == 'G':
                 layout.column(align=True).prop_search(
-                                context.scene, "objeto_arranjar",
-                                bpy.data, "groups"
-                                )
+                              adv_obj, "arrange_c_obj_arranjar",
+                              bpy.data, "groups"
+                              )
         if context.object.type == 'CURVE':
             layout.operator("object.arranjar_numa_curva", text="Arrange Objects")
 
 
 class DupliCurve(Operator):
     bl_idname = "object.arranjar_numa_curva"
-    bl_label = "Arrange Objects"
+    bl_label = "Arrange Objects along a Curve"
+    bl_description = "Arange chosen / selected objects along the Active Curve"
     bl_options = {'REGISTER', 'UNDO'}
 
     use_distance = EnumProperty(
-        items=[
-            ("D", "Distance", "Objects are arranged depending on the distance", 0),
-            ("Q", "Quantity", "Objects are arranged depending on the quantity", 1),
-            ("R", "Range", "Objects are arranged uniformly between the corners", 2)
-            ]
-        )
+            name="Arrangement",
+            items=[
+                ("D", "Distance", "Objects are arranged depending on the distance", 0),
+                ("Q", "Quantity", "Objects are arranged depending on the quantity", 1),
+                ("R", "Range", "Objects are arranged uniformly between the corners", 2)
+                ]
+            )
     distance = FloatProperty(
-                name="Distance",
-                description="Distancia entre objetos",
-                default=1.0,
-                min=FLT_MIN,
-                soft_min=0.1,
-                unit='LENGTH',
-                )
+            name="Distance",
+            description="Distance between Objects",
+            default=1.0,
+            min=FLT_MIN,
+            soft_min=0.1,
+            unit='LENGTH',
+            )
     object_qt = IntProperty(
-                name="Quantity",
-                description="Object amount.",
-                default=2,
-                min=0,
-                )
+            name="Quantity",
+            description="Object amount",
+            default=2,
+            min=0,
+            )
     scale = FloatProperty(
-                name="Scale",
-                description="Object Scale",
-                default=1.0,
-                min=FLT_MIN,
-                unit='LENGTH',
+            name="Scale",
+            description="Object Scale",
+            default=1.0,
+            min=FLT_MIN,
+            unit='LENGTH',
                 )
     Yaw = FloatProperty(
-                default=0.0,
-                name="X",
-                unit='ROTATION'
-                )
+            name="X",
+            description="Rotate around the X axis (Yaw)",
+            default=0.0,
+            unit='ROTATION'
+            )
     Pitch = FloatProperty(
-                default=0.0,
-                name="Y",
-                unit='ROTATION'
-                )
+            default=0.0,
+            description="Rotate around the Y axis (Pitch)",
+            name="Y",
+            unit='ROTATION'
+            )
     Roll = FloatProperty(
-                default=0.0,
-                name="Z",
-                unit='ROTATION'
-                )
+            default=0.0,
+            description="Rotate around the Z axis (Roll)",
+            name="Z",
+            unit='ROTATION'
+            )
     max_angle = FloatProperty(
-                default=1.57079,
-                max=3.141592,
-                name="Angle",
-                unit='ROTATION'
-                )
+            default=1.57079,
+            max=3.141592,
+            name="Angle",
+            unit='ROTATION'
+            )
     offset = FloatProperty(
-                default=0.0,
-                name="offset",
-                unit='LENGTH'
-                )
+            default=0.0,
+            name="Offset",
+            unit='LENGTH'
+            )
 
     @classmethod
     def poll(cls, context):
@@ -191,7 +199,8 @@ class DupliCurve(Operator):
                             tmp_Gpoints.append(tuple(sp2))
                             sp2 = [lp]
                     except Exception as e:
-                        print(e)
+                        print("\n[Add Advanced  Objects]\nOperator: "
+                              "object.arranjar_numa_curva\nError: {}".format(e))
                         pass
                     sp2.append(p)
                     v1 = v2
@@ -216,21 +225,25 @@ class DupliCurve(Operator):
 
         curve = context.active_object
         Gpoints, lengs = self.Glpoints(curve)
+        adv_obj = context.scene.advanced_objects
 
-        if context.scene.use_selected:
+        if adv_obj.arrange_c_use_selected:
             G_Objeto = context.selected_objects
             G_Objeto.remove(curve)
+
             if not G_Objeto:
                 return {'CANCELLED'}
-        elif context.scene.select_type == 'O':
-            G_Objeto = bpy.data.objects[context.scene.objeto_arranjar],
-        elif context.scene.select_type == 'G':
-            G_Objeto = bpy.data.groups[context.scene.objeto_arranjar].objects
+
+        elif adv_obj.arrange_c_select_type == 'O':
+            G_Objeto = bpy.data.objects[adv_obj.arrange_c_obj_arranjar],
+        elif adv_obj.arrange_c_select_type == 'G':
+            G_Objeto = bpy.data.groups[adv_obj.arrange_c_obj_arranjar].objects
+
         yawMatrix = mathutils.Matrix.Rotation(self.Yaw, 4, 'X')
         pitchMatrix = mathutils.Matrix.Rotation(self.Pitch, 4, 'Y')
         rollMatrix = mathutils.Matrix.Rotation(self.Roll, 4, 'Z')
 
-        max_angle = self.max_angle  # is this used?
+        max_angle = self.max_angle  # max_angle is called in Glpoints
 
         if self.use_distance == "D":
             dist = self.distance
@@ -331,31 +344,11 @@ class DupliCurve(Operator):
 def register():
     bpy.utils.register_class(PanelDupliCurve)
     bpy.utils.register_class(DupliCurve)
-    bpy.types.Scene.use_selected = BoolProperty(
-                        name='Use Selected',
-                        description='Use the selected objects to duplicate',
-                        default=True,
-                        )
-    bpy.types.Scene.objeto_arranjar = StringProperty(
-                        name=""
-                        )
-    bpy.types.Scene.select_type = EnumProperty(
-                        name="Type",
-                        description="Select object or group",
-                        items=[
-                            ('O', "OBJECT", "make duplicates of a specific object"),
-                            ('G', "GROUP", "make duplicates of the objects in a group"),
-                        ],
-                        default='O',
-                    )
 
 
 def unregister():
     bpy.utils.unregister_class(PanelDupliCurve)
     bpy.utils.unregister_class(DupliCurve)
-    del bpy.types.Scene.objeto_arranjar
-    del bpy.types.Scene.use_selected
-    del bpy.types.Scene.select_type
 
 
 if __name__ == "__main__":

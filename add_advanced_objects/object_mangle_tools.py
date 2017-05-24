@@ -1,7 +1,6 @@
 # mangle_tools.py (c) 2011 Phil Cote (cotejrp1)
-#
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
+
+# ###### BEGIN GPL LICENSE BLOCK ######
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -10,36 +9,43 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# ***** END GPL LICENCE BLOCK *****
+# ###### END GPL LICENCE BLOCK ######
+
+# Note: properties are moved into __init__
 
 bl_info = {
     "name": "Mangle Tools",
     "author": "Phil Cote",
-    "version": (0, 2),
+    "version": (0, 2, 2),
     "blender": (2, 71, 0),
     "location": "View3D > Toolshelf > Tools Tab",
     "description": "Set of tools to mangle curves, meshes, and shape keys",
-    "warning": "", # used for warning icon and text in addons panel
+    "warning": "",
     "wiki_url": "",
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Object"}
 
 
 import bpy
 import random
+from bpy.types import (
+        Operator,
+        Panel,
+        )
 import time
 from math import pi
 import bmesh
 
+
 def move_coordinate(context, co, is_curve=False):
-    xyz_const = context.scene.constraint_vector
+    advanced_objects = context.scene.advanced_objects
+    xyz_const = advanced_objects.mangle_constraint_vector
     random.seed(time.time())
     multiplier = 1
 
@@ -47,95 +53,100 @@ def move_coordinate(context, co, is_curve=False):
     # This helps make curve changes more noticable.
     if is_curve:
         multiplier = 2 * pi
-    random_mag = context.scene.random_magnitude
+    random_mag = advanced_objects.mangle_random_magnitude
     if xyz_const[0]:
-        co.x += .01 * random.randrange( -random_mag, random_mag ) * multiplier
+        co.x += .01 * random.randrange(-random_mag, random_mag) * multiplier
     if xyz_const[1]:
-        co.y += .01 * random.randrange( -random_mag, random_mag )  * multiplier
+        co.y += .01 * random.randrange(-random_mag, random_mag) * multiplier
     if xyz_const[2]:
-        co.z += .01 * random.randrange( -random_mag, random_mag ) * multiplier
+        co.z += .01 * random.randrange(-random_mag, random_mag) * multiplier
 
 
-class MeshManglerOperator(bpy.types.Operator):
-    """Push vertices on the selected object around in random """ \
-    """directions to create a crumpled look"""
+class MeshManglerOperator(Operator):
     bl_idname = "ba.mesh_mangler"
     bl_label = "Mangle Mesh"
-    bl_options = { "REGISTER", "UNDO" }
+    bl_description = ("Push vertices on the selected object around in random\n"
+                      "directions to create a crumpled look")
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
         ob = context.active_object
-        return ob != None and ob.type == 'MESH'
+        return ob is not None and ob.type == 'MESH'
 
     def execute(self, context):
         mesh = context.active_object.data
         bm = bmesh.new()
         bm.from_mesh(mesh)
-        verts, faces = bm.verts, bm.faces
-        randomMag = context.scene.random_magnitude
-        random.seed( time.time() )
+        verts = bm.verts
+        advanced_objects = context.scene.advanced_objects
+        randomMag = advanced_objects.mangle_random_magnitude
+        random.seed(time.time())
 
-        if mesh.shape_keys != None:
-            self.report({'INFO'}, "Cannot mangle mesh: Shape keys present")
+        if mesh.shape_keys is not None:
+            self.report({'INFO'},
+                        "Cannot mangle mesh: Shape keys present. Operation Cancelled")
             return {'CANCELLED'}
 
         for vert in verts:
-            xVal = .01 * random.randrange( -randomMag, randomMag )
-            yVal = .01 * random.randrange( -randomMag, randomMag)
-            zVal = .01 * random.randrange( -randomMag, randomMag )
+            xVal = .01 * random.randrange(-randomMag, randomMag)
+            yVal = .01 * random.randrange(-randomMag, randomMag)
+            zVal = .01 * random.randrange(-randomMag, randomMag)
+
             vert.co.x = vert.co.x + xVal
             vert.co.y = vert.co.y + yVal
             vert.co.z = vert.co.z + zVal
 
+        del verts
+
         bm.to_mesh(mesh)
         mesh.update()
+
         return {'FINISHED'}
 
 
-class AnimanglerOperator(bpy.types.Operator):
-    """Make a shape key and pushes the verts around on it """ \
-    """to set up for random pulsating animation"""
+class AnimanglerOperator(Operator):
     bl_idname = "ba.ani_mangler"
     bl_label = "Mangle Shape Key"
-
+    bl_description = ("Make a shape key and pushes the verts around on it\n"
+                      "to set up for random pulsating animation")
 
     @classmethod
     def poll(cls, context):
         ob = context.active_object
-        return ob != None and ob.type in [ 'MESH', 'CURVE' ]
+        return ob is not None and ob.type in ['MESH', 'CURVE']
 
     def execute(self, context):
-        scn = context.scene
+        scn = context.scene.advanced_objects
         mangleName = scn.mangle_name
         ob = context.object
-        shapeKey = ob.shape_key_add( name=mangleName )
+        shapeKey = ob.shape_key_add(name=mangleName)
         verts = shapeKey.data
 
         for vert in verts:
-            move_coordinate(context, vert.co, is_curve=ob.type=='CURVE')
+            move_coordinate(context, vert.co, is_curve=ob.type == 'CURVE')
 
         return {'FINISHED'}
 
 
-class CurveManglerOp(bpy.types.Operator):
-    """Mangle a curve to the degree the user specifies"""
+class CurveManglerOp(Operator):
     bl_idname = "ba.curve_mangler"
     bl_label = "Mangle Curve"
-    bl_options = { 'REGISTER', 'UNDO' }
+    bl_description = "Mangle a curve to the degree the user specifies"
+    bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
         ob = context.active_object
-        return ob != None and ob.type == "CURVE"
-
+        return ob is not None and ob.type == "CURVE"
 
     def execute(self, context):
-
         ob = context.active_object
-        if ob.data.shape_keys != None:
-            self.report({'INFO'}, "Cannot mangle curve.  Shape keys present")
+        if ob.data.shape_keys is not None:
+            self.report({'INFO'},
+                        "Cannot mangle curve. Shape keys present. Operation Cancelled")
             return {'CANCELLED'}
+
         splines = context.object.data.splines
 
         for spline in splines:
@@ -150,56 +161,43 @@ class CurveManglerOp(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class MangleToolsPanel(bpy.types.Panel):
+class MangleToolsPanel(Panel):
     bl_label = "Mangle Tools"
     bl_space_type = "VIEW_3D"
     bl_context = "objectmode"
-    bl_region_type="TOOLS"
+    bl_region_type = "TOOLS"
     bl_category = "Create"
     bl_options = {'DEFAULT_CLOSED'}
 
-
     def draw(self, context):
-        scn = context.scene
+        scn = context.scene.advanced_objects
         obj = context.object
-        if obj.type in ['MESH',]:  
+
+        if obj and obj.type in ['MESH']:
             layout = self.layout
+
+            row = layout.row(align=True)
+            row.prop(scn, "mangle_constraint_vector", toggle=True)
+
             col = layout.column()
-            col.prop(scn, "constraint_vector")
-            col.prop(scn, "random_magnitude")
+            col.prop(scn, "mangle_random_magnitude")
             col.operator("ba.mesh_mangler")
             col.separator()
+
             col.prop(scn, "mangle_name")
             col.operator("ba.ani_mangler")
         else:
             layout = self.layout
-            col = layout.column()
-            col.label("Please Select Mesh Object")
+            layout.label(text="Please select a Mesh Object", icon="INFO")
 
-IntProperty = bpy.props.IntProperty
-StringProperty = bpy.props.StringProperty
-BoolVectorProperty = bpy.props.BoolVectorProperty
 
 def register():
     bpy.utils.register_class(AnimanglerOperator)
     bpy.utils.register_class(MeshManglerOperator)
     bpy.utils.register_class(CurveManglerOp)
     bpy.utils.register_class(MangleToolsPanel)
-    scnType = bpy.types.Scene
 
 
-    scnType.constraint_vector = BoolVectorProperty(name="Mangle Constraint",
-                                default=(True,True,True),
-                                subtype='XYZ',
-                                description="Constrains Mangle Direction")
-
-    scnType.random_magnitude = IntProperty( name = "Mangle Severity",
-                              default = 5, min = 1, max = 30,
-                              description = "Severity of mangling")
-
-    scnType.mangle_name = StringProperty(name="Shape Key Name",
-                             default="mangle",
-                             description="Name given for mangled shape keys")
 def unregister():
     bpy.utils.unregister_class(AnimanglerOperator)
     bpy.utils.unregister_class(MeshManglerOperator)

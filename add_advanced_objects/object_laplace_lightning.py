@@ -16,18 +16,18 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# NOTE Needs cleanup, reorganizing, make prints optional
+# NOTE: moved the winmgr properties to __init__ and scene
+# search for context.scene.advanced_objects
 
 bl_info = {
     "name": "Laplacian Lightning",
     "author": "teldredge",
-    "version": (0, 2, 7),
-    "blender": (2, 71, 0),
+    "version": (0, 2, 9),
+    "blender": (2, 78, 0),
     "location": "View3D > Toolshelf > Create Tab",
     "description": "Lightning mesh generator using laplacian growth algorithm",
-    "warning": "Beta",
+    "warning": "",
     "wiki_url": "http://www.funkboxing.com/wordpress/?p=301",
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Object"}
 
 # BLENDER LAPLACIAN LIGHTNING
@@ -110,19 +110,43 @@ v0.x -
 import bpy
 import time
 import random
-from math import sqrt
+from bpy.types import (
+        Operator,
+        Panel,
+        )
+# from math import sqrt
 from mathutils import Vector
 import struct
 import bisect
 import os.path
+
+# -- Globals --
 notZero = 0.0000000001
-winmgr = bpy.context.window_manager
+# set to True to enable debug prints
+DEBUG = False
 
 
-# UTILITY FXNS #
+# Utility Functions
+
+# func - function name, text - message, var - variable to print
+# it can have one variable to observe
+def debug_prints(func="", text="Message", var=None):
+    global DEBUG
+    if DEBUG:
+        print("\n[{}]\nmessage: {}".format(func, text))
+        if var:
+            print("variable: ", var)
+
+
+# pass variables just like for the regular prints
+def debug_print_vars(*args, **kwargs):
+    global DEBUG
+    if DEBUG:
+        print(*args, **kwargs)
+
 
 def within(x, y, d):
-    # CHECK IF x-d <= y <= x+d
+    # CHECK IF x - d <= y <= x + d
     if x - d <= y and x + d >= y:
         return True
     else:
@@ -196,7 +220,7 @@ def jitterCells(aList, jit):
 
 
 def deDupe(seq, idfun=None):
-    # THANKS TO THIS GUY - http://www.peterbe.com/plog/uniqifiers-benchmark
+    # Thanks to this guy - http://www.peterbe.com/plog/uniqifiers-benchmark
     if idfun is None:
         def idfun(x):
             return x
@@ -211,7 +235,7 @@ def deDupe(seq, idfun=None):
     return result
 
 
-# VISUALIZATION FXNS #
+# Visulization functions
 
 def writeArrayToVoxel(arr, filename):
     gridS = 64
@@ -222,7 +246,8 @@ def writeArrayToVoxel(arr, filename):
         try:
             aGrid[a[0] + half][a[1] + half][a[2] + half] = bitOn
         except:
-            print('Particle beyond voxel domain')
+            debug_prints(func="writeArrayToVoxel", text="Particle beyond voxel domain")
+
     file = open(filename, "wb")
     for z in range(gridS):
         for y in range(gridS):
@@ -278,15 +303,12 @@ def makeMeshCube(msize):
     # verts = [(0,0,0),(0,5,0),(5,5,0),(5,0,0),(0,0,5),(0,5,5),(5,5,5),(5,0,5)]
     verts = [(-m2, -m2, -m2), (-m2, m2, -m2), (m2, m2, -m2), (m2, -m2, -m2),
              (-m2, -m2, m2), (-m2, m2, m2), (m2, m2, m2), (m2, -m2, m2)]
-    faces = [(0, 1, 2, 3), (4, 5, 6, 7), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]
-
+    faces = [
+        (0, 1, 2, 3), (4, 5, 6, 7), (0, 4, 5, 1),
+        (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)
+        ]
     # Define mesh and object
     mmesh = bpy.data.meshes.new("Cube")
-    # mobject = bpy.data.objects.new("Cube", mmesh)
-
-    # Set location and scene of object
-    # mobject.location = bpy.context.scene.cursor_location
-    # bpy.context.scene.objects.link(mobject)
 
     # Create mesh
     mmesh.from_pydata(verts, [], faces)
@@ -304,8 +326,9 @@ def writeArrayToCubes(arr, gridBU, orig, cBOOL=False, jBOOL=True):
         ob.location.x = (x * gridBU) + orig[0]
         ob.location.y = (y * gridBU) + orig[1]
         ob.location.z = (z * gridBU) + orig[2]
-        if cBOOL:  # MOSTLY UNUSED
-            # POS+BLUE, NEG-RED, ZERO:BLACK
+
+        if cBOOL:  # mostly unused
+            # pos + blue, neg - red, zero: black
             col = (1.0, 1.0, 1.0, 1.0)
             if a[3] == 0:
                 col = (0.0, 0.0, 0.0, 1.0)
@@ -316,9 +339,10 @@ def writeArrayToCubes(arr, gridBU, orig, cBOOL=False, jBOOL=True):
             ob.color = col
         bpy.context.scene.objects.link(ob)
         bpy.context.scene.update()
+
     if jBOOL:
-        # SELECTS ALL CUBES w/ ?bpy.ops.object.join() b/c
-        # CAN'T JOIN ALL CUBES TO A SINGLE MESH RIGHT... ARGH...
+        # Selects all cubes w/ ?bpy.ops.object.join() b/c
+        # Can't join all cubes to a single mesh right... argh...
         for q in bpy.context.scene.objects:
             q.select = False
             if q.name[0:5] == 'xCUBE':
@@ -365,7 +389,7 @@ def writeArrayToMesh(mname, arr, gridBU, rpt=None):
     return mob
 
 
-# OUT OF ORDER - SOME PROBLEM WITH IT ADDING (0,0,0)
+# out of order - some problem with it adding (0,0,0)
 def writeArrayToCurves(cname, arr, gridBU, bd=.05, rpt=None):
     cur = bpy.data.curves.new('fslg_curve', 'CURVE')
     cur.use_fill_front = False
@@ -374,12 +398,14 @@ def writeArrayToCurves(cname, arr, gridBU, bd=.05, rpt=None):
     cur.bevel_resolution = 2
     cob = bpy.data.objects.new(cname, cur)
     cob.scale = (gridBU, gridBU, gridBU)
+
     if rpt:
         addReportProp(cob, rpt)
     bpy.context.scene.objects.link(cob)
     cur.splines.new('BEZIER')
     cspline = cur.splines[0]
-    div = 1  # SPACING FOR HANDLES (2 - 1/2 WAY, 1 - NEXT BEZIER)
+    div = 1  # spacing for handles (2 - 1/2 way, 1 - next bezier)
+
     for a in range(len(arr)):
         cspline.bezier_points.add(1)
         bp = cspline.bezier_points[len(cspline.bezier_points) - 1]
@@ -418,17 +444,18 @@ def addMaterial(ob, matname):
 
 
 def writeStokeToMesh(arr, jarr, MAINi, HORDERi, TIPSi, orig, gs, rpt=None):
-    # MAIN BRANCH
-    print('   WRITING MAIN BRANCH')
+    # main branch
+    debug_prints(func="writeStokeToMesh", text='Writing main branch')
     llmain = []
+
     for x in MAINi:
         llmain.append(jarr[x])
     mob = writeArrayToMesh('la0MAIN', llmain, gs)
     mob.location = orig
 
-    # hORDER BRANCHES
+    # horder branches
     for hOi in range(len(HORDERi)):
-        print('   WRITING ORDER', hOi)
+        debug_prints(func="writeStokeToMesh", text="Writing order", var=hOi)
         hO = HORDERi[hOi]
         hob = newMesh('la1H' + str(hOi))
 
@@ -440,8 +467,8 @@ def writeStokeToMesh(arr, jarr, MAINi, HORDERi, TIPSi, orig, gs, rpt=None):
         hob.scale = (gs, gs, gs)
         hob.location = orig
 
-    # TIPS
-    print('   WRITING TIP PATHS')
+    # tips
+    debug_prints(func="writeStokeToMesh", text="Writing tip paths")
     tob = newMesh('la2TIPS')
     for y in TIPSi:
         llt = []
@@ -451,16 +478,17 @@ def writeStokeToMesh(arr, jarr, MAINi, HORDERi, TIPSi, orig, gs, rpt=None):
     tob.scale = (gs, gs, gs)
     tob.location = orig
 
-    # ADD MATERIALS TO OBJECTS (IF THEY EXIST)
+    # add materials to objects (if they exist)
     try:
         addMaterial(mob, 'edgeMAT-h0')
         addMaterial(hob, 'edgeMAT-h1')
         addMaterial(tob, 'edgeMAT-h2')
-        print('   ADDED MATERIALS')
-    except:
-        print('   MATERIALS NOT FOUND')
+        debug_prints(func="writeStokeToMesh", text="Added materials")
 
-    # ADD GENERATION REPORT TO ALL MESHES
+    except:
+        debug_prints(func="writeStokeToMesh", text="Materials not found")
+
+    # add generation report to all meshes
     if rpt:
         addReportProp(mob, rpt)
         addReportProp(hob, rpt)
@@ -486,62 +514,66 @@ def writeStokeToSingleMesh(arr, jarr, orig, gs, mct, rpt=None):
 
 
 def visualizeArray(cg, oob, gs, vm, vs, vc, vv, rst):
+    winmgr = bpy.context.scene.advanced_objects
     # IN: (cellgrid, origin, gridscale,
     # mulimesh, single mesh, cubes, voxels, report sting)
     origin = oob.location
 
-    # DEAL WITH VERT MULTI-ORIGINS
+    # deal with vert multi-origins
     oct = 2
     if oob.type == 'MESH':
         oct = len(oob.data.vertices)
 
-    # JITTER CELLS
+    # jitter cells
     if vm or vs:
         cjarr = jitterCells(cg, 1)
 
-    if vm:  # WRITE ARRAY TO MULTI MESH
+    if vm:  # write array to multi mesh
 
         aMi, aHi, aTi = classifyStroke(cg, oct, winmgr.HORDER)
-        print(':::WRITING TO MULTI-MESH')
+        debug_prints(func="visualizeArray", text="Writing to multi-mesh")
         writeStokeToMesh(cg, cjarr, aMi, aHi, aTi, origin, gs, rst)
-        print(':::MULTI-MESH WRITTEN')
+        debug_prints(func="visualizeArray", text="Multi-mesh written")
 
-    if vs:  # WRITE TO SINGLE MESH
-        print(':::WRITING TO SINGLE MESH')
+    if vs:  # write to single mesh
+        debug_prints(func="visualizeArray", text="Writing to single mesh")
         writeStokeToSingleMesh(cg, cjarr, origin, gs, oct, rst)
-        print(':::SINGLE MESH WRITTEN')
+        debug_prints(func="visualizeArray", text="Single mesh written")
 
-    if vc:  # WRITE ARRAY TO CUBE OBJECTS
-        print(':::WRITING TO CUBES')
+    if vc:  # write array to cube objects
+        debug_prints(func="visualizeArray", text="Writing to cubes")
         writeArrayToCubes(cg, gs, origin)
-        print(':::CUBES WRITTEN')
+        debug_prints(func="visualizeArray", text="Cubes written")
 
-    if vv:  # WRITE ARRAY TO VOXEL DATA FILE
-        print(':::WRITING TO VOXELS')
+    if vv:  # write array to voxel data file
+        debug_prints(func="visualizeArray", text="Writing to voxels")
         fname = "FSLGvoxels.raw"
         path = os.path.dirname(bpy.data.filepath)
         writeArrayToVoxel(cg, path + "\\" + fname)
-        print(':::VOXEL DATA WRITTEN TO - ', path + "\\" + fname)
 
-    # READ/WRITE ARRAY TO FILE (MIGHT NOT BE NECESSARY)
+        debug_prints(func="visualizeArray",
+                     text="Voxel data written to:", var=path + "\\" + fname)
+
+    # read/write array to file (might not be necessary)
     # tfile = 'c:\\testarr.txt'
     # writeArrayToFile(cg, tfile)
     # cg = readArrayFromFile(tfile)
 
-    # READ/WRITE ARRAY TO CURVES (OUT OF ORDER)
+    # read/write array to curves (out of order)
     # writeArrayToCurves('laMAIN', llmain, .10, .25)
 
 
-# ALGORITHM FXNS #
-# FROM FALUAM PAPER #
-# PLUS SOME STUFF I MADE UP #
+# Algorithm functions
+# from faluam paper
+# plus some stuff i made up
 
 def buildCPGraph(arr, sti=2):
-    # IN -XYZ ARRAY AS BUILT BY GENERATOR
-    # OUT -[(CHILDindex, PARENTindex)]
-    # sti - start index, 2 for Empty, len(me.vertices) for Mesh
+    # in -xyz array as built by generator
+    # out -[(childindex, parentindex)]
+    # sti - start index, 2 for empty, len(me.vertices) for mesh
     sgarr = []
     sgarr.append((1, 0))
+
     for ai in range(sti, len(arr)):
         cs = arr[ai]
         cpts = arr[0:ai]
@@ -552,13 +584,14 @@ def buildCPGraph(arr, sti=2):
             if ct > 0:
                 cti = cpts.index(nc)
         sgarr.append((ai, cti))
+
     return sgarr
 
 
 def buildCPGraph_WORKINPROGRESS(arr, sti=2):
-    # IN -XYZ ARRAY AS BUILT BY GENERATOR
-    # OUT -[(CHILDindex, PARENTindex)]
-    # sti - start index, 2 for Empty, len(me.vertices) for Mesh
+    # in -xyz array as built by generator
+    # out -[(childindex, parentindex)]
+    # sti - start index, 2 for empty, len(me.vertices) for mesh
     sgarr = []
     sgarr.append((1, 0))
     ctix = 0
@@ -575,13 +608,14 @@ def buildCPGraph_WORKINPROGRESS(arr, sti=2):
                 ctix = cpts.index(nc)
 
         sgarr.append((ai, cti))
+
     return sgarr
 
 
 def findChargePath(oc, fc, ngraph, restrict=[], partial=True):
-    # oc -ORIGIN CHARGE INDEX, fc -FINAL CHARGE INDEX
-    # ngraph -NODE GRAPH, restrict- INDEX OF SITES CANNOT TRAVERSE
-    # partial -RETURN PARTIAL PATH IF RESTRICTION ENCOUNTERD
+    # oc -origin charge index, fc -final charge index
+    # ngraph -node graph, restrict- index of sites cannot traverse
+    # partial -return partial path if restriction encounterd
     cList = splitList(ngraph, 0)
     pList = splitList(ngraph, 1)
     aRi = []
@@ -591,13 +625,13 @@ def findChargePath(oc, fc, ngraph, restrict=[], partial=True):
         aRi.append(cNODE)
         cNODE = pNODE
         npNODECOUNT = cList.count(pNODE)
-        if cNODE == oc:             # STOP IF ORIGIN FOUND
-            aRi.append(cNODE)       # RETURN PATH
+        if cNODE == oc:             # stop if origin found
+            aRi.append(cNODE)       # return path
             return aRi
-        if npNODECOUNT == 0:        # STOP IF NO PARENTS
-            return []               # RETURN []
-        if pNODE in restrict:       # STOP IF PARENT IS IN RESTRICTION
-            if partial:             # RETURN PARTIAL OR []
+        if npNODECOUNT == 0:        # stop if no parents
+            return []               # return []
+        if pNODE in restrict:       # stop if parent is in restriction
+            if partial:             # return partial or []
                 aRi.append(cNODE)
                 return aRi
             else:
@@ -615,6 +649,7 @@ def findTips(arr):
                 cCOUNT += 1
         if cCOUNT == 0:
             lt.append(a)
+
     return lt
 
 
@@ -626,6 +661,7 @@ def findChannelRoots(path, ngraph, restrict=[]):
         if par in path and chi not in path and chi not in restrict:
             roots.append(par)
     droots = deDupe(roots)
+
     return droots
 
 
@@ -648,10 +684,14 @@ def findChannels(roots, tips, ngraph, restrict):
                     tTEMP = t
                     tiTEMP = ti
         if len(sPATHi) > 0:
-            print('   found path/idex from', ri, 'of',
-                  len(roots), 'possible | tips:', tTEMP, tiTEMP)
+            debug_print_vars(
+                    "\n[findChannels]\n",
+                    "found path/idex from", ri, 'of',
+                    len(roots), "possible | tips:", tTEMP, tiTEMP
+                    )
             cPATHS.append(sPATHi)
             tips.remove(tTEMP)
+
     return cPATHS
 
 
@@ -662,13 +702,12 @@ def findChannels_WORKINPROGRESS(roots, ttips, ngraph, restrict):
         r = roots[ri]
         sL = 1
         sPATHi = []
-        tipREMOVE = []  # CHECKED TIP INDEXES, TO BE REMOVED FOR NEXT LOOP
+        tipREMOVE = []  # checked tip indexes, to be removed for next loop
         for ti in range(len(tips)):
             t = tips[ti]
-            # print('-CHECKING RT/IDEX:', r, ri, 'AGAINST TIP', t, ti)
-            # if t < r: continue
             if ti < ri:
                 continue
+
             tPATHi = findChargePath(r, t, ngraph, restrict, False)
             tL = len(tPATHi)
             if tL > sL:
@@ -680,9 +719,13 @@ def findChannels_WORKINPROGRESS(roots, ttips, ngraph, restrict):
             if tL > 0:
                 tipREMOVE.append(t)
         if len(sPATHi) > 0:
-            print('   found path from root idex', ri, 'of',
-                   len(roots), 'possible roots | #oftips=', len(tips))
+            debug_print_vars(
+                    "\n[findChannels_WORKINPROGRESS]\n",
+                    "found path from root idex", ri, 'of',
+                    len(roots), "possible roots | of tips= ", len(tips)
+                    )
             cPATHS.append(sPATHi)
+
         for q in tipREMOVE:
             tips.remove(q)
 
@@ -690,65 +733,72 @@ def findChannels_WORKINPROGRESS(roots, ttips, ngraph, restrict):
 
 
 def countChildrenOnPath(aPath, ngraph, quick=True):
-    # RETURN HOW MANY BRANCHES
-    # COUNT WHEN NODE IS A PARENT >1 TIMES
-    # quick -STOP AND RETURN AFTER FIRST
+    # return how many branches
+    # count when node is a parent >1 times
+    # quick -stop and return after first
     cCOUNT = 0
     pList = splitList(ngraph, 1)
+
     for ai in range(len(aPath) - 1):
         ap = aPath[ai]
         pc = pList.count(ap)
+
         if quick and pc > 1:
             return pc
+
     return cCOUNT
 
 
-# CLASSIFY CHANNELS INTO 'MAIN', 'hORDER/SECONDARY' and 'SIDE'
+# classify channels into 'main', 'hORDER/secondary' and 'side'
 def classifyStroke(sarr, mct, hORDER=1):
-    print(':::CLASSIFYING STROKE')
-    # BUILD CHILD/PARENT GRAPH (INDEXES OF sarr)
+    debug_prints(func="classifyStroke", text="Classifying stroke")
+    # build child/parent graph (indexes of sarr)
     sgarr = buildCPGraph(sarr, mct)
 
-    # FIND MAIN CHANNEL
-    print('   finding MAIN')
+    # find main channel
+    debug_prints(func="classifyStroke", text="Finding MAIN")
     oCharge = sgarr[0][1]
     fCharge = sgarr[len(sgarr) - 1][0]
     aMAINi = findChargePath(oCharge, fCharge, sgarr)
 
-    # FIND TIPS
-    print('   finding TIPS')
+    # find tips
+    debug_prints(func="classifyStroke", text="Finding TIPS")
     aTIPSi = findTips(sgarr)
 
-    # FIND hORDER CHANNEL ROOTS
-    # hCOUNT = ORDERS BEWTEEN MAIN and SIDE/TIPS
-    # !!!STILL BUGGY!!!
-    hRESTRICT = list(aMAINi)    # ADD TO THIS AFTER EACH TIME
-    allHPATHSi = []             # ALL hO PATHS: [[h0], [h1]...]
-    curPATHSi = [aMAINi]        # LIST OF PATHS FIND ROOTS ON
+    # find horder channel roots
+    # hcount = orders bewteen main and side/tips
+    # !!!still buggy!!!
+    hRESTRICT = list(aMAINi)    # add to this after each time
+    allHPATHSi = []             # all ho paths: [[h0], [h1]...]
+    curPATHSi = [aMAINi]        # list of paths find roots on
+
     for h in range(hORDER):
         allHPATHSi.append([])
-        for pi in range(len(curPATHSi)):     # LOOP THROUGH ALL PATHS IN THIS ORDER
+        for pi in range(len(curPATHSi)):     # loop through all paths in this order
             p = curPATHSi[pi]
-            # GET ROOTS FOR THIS PATH
+            # get roots for this path
             aHROOTSi = findChannelRoots(p, sgarr, hRESTRICT)
-            print('   found', len(aHROOTSi), 'roots in ORDER', h, ':#paths:', len(curPATHSi))
-            # GET CHANNELS FOR THESE ROOTS
+            debug_print_vars(
+                    "\n[classifyStroke]\n",
+                    "found", len(aHROOTSi), "roots in ORDER", h, ":paths:", len(curPATHSi)
+                    )
+            # get channels for these roots
             if len(aHROOTSi) == 0:
-                print('NO ROOTS FOR FOUND FOR CHANNEL')
+                debug_prints(func="classifyStroke", text="No roots for found for channel")
                 aHPATHSi = []
                 continue
             else:
                 aHPATHSiD = findChannels(aHROOTSi, aTIPSi, sgarr, hRESTRICT)
                 aHPATHSi = aHPATHSiD
                 allHPATHSi[h] += aHPATHSi
-                # SET THESE CHANNELS AS RESTRICTIONS FOR NEXT ITERATIONS
+                # set these channels as restrictions for next iterations
                 for hri in aHPATHSi:
                     hRESTRICT += hri
         curPATHSi = aHPATHSi
 
-    # SIDE BRANCHES, FINAL ORDER OF HEIRARCHY
-    # FROM TIPS THAT ARE NOT IN AN EXISTING PATH
-    # BACK TO ANY OTHER POINT THAT IS ALREADY ON A PATH
+    # side branches, final order of heirarchy
+    # from tips that are not in an existing path
+    # back to any other point that is already on a path
     aDRAWNi = []
     aDRAWNi += aMAINi
     for oH in allHPATHSi:
@@ -765,24 +815,25 @@ def classifyStroke(sarr, mct, hORDER=1):
 
 
 def voxelByVertex(ob, gs):
-    # 'VOXELIZES' VERTS IN A MESH TO LIST [(x,y,z),(x,y,z)]
-    # W/ RESPECT GSCALE AND OB ORIGIN (B/C SHOULD BE ORIGIN OBJ)
-    orig = ob.location
+    # 'voxelizes' verts in a mesh to list [(x,y,z),(x,y,z)]
+    # w/ respect gscale and ob origin (b/c should be origin obj)
+    # orig = ob.location
     ll = []
     for v in ob.data.vertices:
         x = int(v.co.x / gs)
         y = int(v.co.y / gs)
         z = int(v.co.z / gs)
         ll.append((x, y, z))
+
     return ll
 
 
 def voxelByRays(ob, orig, gs):
-    # MESH INTO A 3DGRID W/ RESPECT GSCALE AND BOLT ORIGIN
-    # -DOES NOT TAKE OBJECT ROTATION/SCALE INTO ACCOUNT
-    # -THIS IS A HORRIBLE, INEFFICIENT FUNCTION
-    # MAYBE THE RAYCAST/GRID THING ARE A BAD IDEA. BUT I
-    # HAVE TO 'VOXELIZE THE OBJECT W/ RESCT TO GSCALE/ORIGIN
+    # mesh into a 3dgrid w/ respect gscale and bolt origin
+    # - does not take object rotation/scale into account
+    # - this is a horrible, inefficient function
+    # maybe the raycast/grid thing are a bad idea. but i
+    # have to 'voxelize the object w/ resct to gscale/origin
     bbox = ob.bound_box
     bbxL = bbox[0][0]
     bbxR = bbox[4][0]
@@ -796,11 +847,17 @@ def voxelByRays(ob, orig, gs):
     xs = int(xct / 2)
     ys = int(yct / 2)
     zs = int(zct / 2)
-    print('  CASTING', xct, '/', yct, '/', zct, 'cells, total:', xct * yct * zct, 'in obj-', ob.name)
+
+    debug_print_vars(
+            "\n[voxelByRays]\n",
+            "Casting", xct, '/', yct, '/', zct, 'cells, total:',
+            xct * yct * zct, 'in obj-', ob.name
+            )
     ll = []
-    rc = 100    # DISTANCE TO CAST FROM
-    # RAYCAST TOP/BOTTOM
-    print('  RAYCASTING TOP/BOTTOM')
+    rc = 100    # distance to cast from
+    # raycast top/bottom
+    debug_prints(func="voxelByRays", text="Raycasting top/bottom")
+
     for x in range(xct):
         for y in range(yct):
             xco = bbxL + (x * gs)
@@ -809,12 +866,20 @@ def voxelByRays(ob, orig, gs):
             v2 = ((xco, yco, -rc))
             vz1 = ob.ray_cast(v1, v2)
             vz2 = ob.ray_cast(v2, v1)
-            if vz1[2] != -1:
-                ll.append((x - xs, y - ys, int(vz1[0][2] * (1 / gs))))
-            if vz2[2] != -1:
-                ll.append((x - xs, y - ys, int(vz2[0][2] * (1 / gs))))
-    # RAYCAST FRONT/BACK
-    print('  RAYCASTING FRONT/BACK')
+
+            debug_print_vars(
+                        "\n[voxelByRays]\n", "vz1 is: ", vz1, "\nvz2 is: ", vz2
+                        )
+            # Note: the API raycast return has changed now it is
+            # (result, location, normal, index) - result is a boolean
+            if vz1[0] is True:
+                ll.append((x - xs, y - ys, int(vz1[1][2] * (1 / gs))))
+            if vz2[0] is True:
+                ll.append((x - xs, y - ys, int(vz2[1][2] * (1 / gs))))
+
+    # raycast front/back
+    debug_prints(func="voxelByRays", text="Raycasting front/back")
+
     for x in range(xct):
         for z in range(zct):
             xco = bbxL + (x * gs)
@@ -823,12 +888,14 @@ def voxelByRays(ob, orig, gs):
             v2 = ((xco, -rc, zco))
             vy1 = ob.ray_cast(v1, v2)
             vy2 = ob.ray_cast(v2, v1)
-            if vy1[2] != -1:
-                ll.append((x - xs, int(vy1[0][1] * (1 / gs)), z - zs))
-            if vy2[2] != -1:
-                ll.append((x - xs, int(vy2[0][1] * (1 / gs)), z - zs))
-    # RAYCAST LEFT/RIGHT
-    print('  RAYCASTING LEFT/RIGHT')
+            if vy1[0] is True:
+                ll.append((x - xs, int(vy1[1][1] * (1 / gs)), z - zs))
+            if vy2[0] is True:
+                ll.append((x - xs, int(vy2[1][1] * (1 / gs)), z - zs))
+
+    # raycast left/right
+    debug_prints(func="voxelByRays", text="Raycasting left/right")
+
     for y in range(yct):
         for z in range(zct):
             yco = bbyL + (y * gs)
@@ -837,24 +904,24 @@ def voxelByRays(ob, orig, gs):
             v2 = ((-rc, yco, zco))
             vx1 = ob.ray_cast(v1, v2)
             vx2 = ob.ray_cast(v2, v1)
-            if vx1[2] != -1:
-                ll.append((int(vx1[0][0] * (1 / gs)), y - ys, z - zs))
-            if vx2[2] != -1:
-                ll.append((int(vx2[0][0] * (1 / gs)), y - ys, z - zs))
+            if vx1[0] is True:
+                ll.append((int(vx1[1][0] * (1 / gs)), y - ys, z - zs))
+            if vx2[0] is True:
+                ll.append((int(vx2[1][0] * (1 / gs)), y - ys, z - zs))
 
-    # ADD IN NEIGHBORS SO BOLT WONT GO THRU
+    # add in neighbors so bolt wont go through
     nlist = []
     for l in ll:
         nl = getStencil3D_26(l[0], l[1], l[2])
         nlist += nl
 
-    # DEDUPE
-    print('  ADDED NEIGHBORS, DEDUPING...')
+    # dedupe
+    debug_prints(func="voxelByRays", text="Added neighbors, deduping...")
     rlist = deDupe(ll + nlist)
     qlist = []
 
-    # RELOCATE GRID W/ RESPECT GSCALE AND BOLT ORIGIN
-    # !!!NEED TO ADD IN OBJ ROT/SCALE HERE SOMEHOW...
+    # relocate grid w/ respect gscale and bolt origin
+    # !!!need to add in obj rot/scale here somehow...
     od = Vector(
             ((ob.location[0] - orig[0]) / gs,
              (ob.location[1] - orig[1]) / gs,
@@ -874,24 +941,25 @@ def fakeGroundChargePlane(z, charge):
     eCL += [(0, xy, z, charge)]
     eCL += [(-xy, 0, z, charge)]
     eCL += [(0, -xy, z, charge)]
+
     return eCL
 
 
 def addCharges(ll, charge):
-    # IN: ll - [(x,y,z), (x,y,z)], charge - w
-    # OUT clist - [(x,y,z,w), (x,y,z,w)]
+    # in: ll - [(x,y,z), (x,y,z)], charge - w
+    # out clist - [(x,y,z,w), (x,y,z,w)]
     clist = []
     for l in ll:
         clist.append((l[0], l[1], l[2], charge))
     return clist
 
 
-# ALGORITHM FXNS #
-# FROM FSLG #
+# algorithm functions #
+# from fslg #
 
 def getGrowthProbability_KEEPFORREFERENCE(uN, aList):
-    # IN: uN -USER TERM, cList -CANDIDATE SITES, oList -CANDIDATE SITE CHARGES
-    # OUT: LIST OF [(XYZ), POT, PROB]
+    # in: un -user term, clist -candidate sites, olist -candidate site charges
+    # out: list of [(xyz), pot, prob]
     cList = splitList(aList, 0)
     oList = splitList(aList, 1)
     Omin, Omax = getLowHigh(oList)
@@ -900,20 +968,21 @@ def getGrowthProbability_KEEPFORREFERENCE(uN, aList):
         Omin -= notZero
     PdL = []
     E = 0
-    E = notZero   # DIVISOR FOR (FSLG - Eqn. 12)
+    E = notZero   # divisor for (fslg - eqn. 12)
     for o in oList:
-        Uj = (o - Omin) / (Omax - Omin)  # (FSLG - Eqn. 13)
+        Uj = (o - Omin) / (Omax - Omin)  # (fslg - eqn. 13)
         E += pow(Uj, uN)
     for oi in range(len(oList)):
         o = oList[oi]
         Ui = (o - Omin) / (Omax - Omin)
-        Pd = (pow(Ui, uN)) / E  # (FSLG - Eqn. 12)
+        Pd = (pow(Ui, uN)) / E  # (fslg - eqn. 12)
         PdINT = Pd * 100
         PdL.append(Pd)
+
     return PdL
 
 
-# WORK IN PROGRESS, TRYING TO SPEED THESE UP
+# work in progress, trying to speed these up
 def fslg_e13(x, min, max, u):
     return pow((x - min) / (max - min), u)
 
@@ -927,14 +996,16 @@ def fslg_e12(x, min, max, u, e):
 
 
 def getGrowthProbability(uN, aList):
-    # IN: uN -USER TERM, cList -CANDIDATE SITES, oList -CANDIDATE SITE CHARGES
-    # OUT: LIST OF PROB
+    # In: uN - user_term, cList - candidate sites, oList - candidate site charges
+    # Out: list of prob
     cList = splitList(aList, 0)
     oList = splitList(aList, 1)
     Omin, Omax = getLowHigh(oList)
+
     if Omin == Omax:
         Omax += notZero
         Omin -= notZero
+
     PdL = []
     E = notZero
     minL = [Omin for q in range(len(oList))]
@@ -943,15 +1014,17 @@ def getGrowthProbability(uN, aList):
     E = sum(map(fslg_e13, oList, minL, maxL, uNL))
     EL = [E for q in range(len(oList))]
     mp = map(fslg_e12, oList, minL, maxL, uNL, EL)
+
     for m in mp:
         PdL.append(m)
+
     return PdL
 
 
 def updatePointCharges(p, cList, eList=[]):
-    # IN: pNew -NEW GROWTH CELL
-    # cList -OLD CANDIDATE SITES, eList -SAME
-    # OUT: LIST OF NEW CHARGE AT CANDIDATE SITES
+    # In: pNew - new growth cell
+    # cList - old candidate sites, eList -SAME
+    # Out: list of new charge at candidate sites
     r1 = 1 / 2        # (FSLG - Eqn. 10)
     nOiL = []
     for oi in range(len(cList)):
@@ -962,12 +1035,13 @@ def updatePointCharges(p, cList, eList=[]):
         iOe += (1 - (r1 / rit))
         Oit = o + iOe
         nOiL.append((c, Oit))
+
     return nOiL
 
 
 def initialPointCharges(pList, cList, eList=[]):
-    # IN: p -CHARGED CELL (XYZ), cList -CANDIDATE SITES (XYZ, POT, PROB)
-    # OUT: cList -WITH POTENTIAL CALCULATED
+    # In: p -CHARGED CELL (XYZ), cList -candidate sites (XYZ, POT, PROB)
+    # Out: cList -with potential calculated
     r1 = 1 / 2        # (FSLG - Eqn. 10)
     npList = []
     for p in pList:
@@ -980,15 +1054,15 @@ def initialPointCharges(pList, cList, eList=[]):
         for j in npList:
             if i != j[0]:
                 rij = dist(i[0], i[1], i[2], j[0][0], j[0][1], j[0][2])
-                Oi += (1 - (r1 / rij)) * j[1]  # CHARGE INFLUENCE
+                Oi += (1 - (r1 / rij)) * j[1]  # charge influence
         OiL.append(((i[0], i[1], i[2]), Oi))
+
     return OiL
 
 
 def getCandidateSites(aList, iList=[]):
-    # IN: aList -(X,Y,Z) OF CHARGED CELL SITES, iList -insulator sites
-    # OUT: CANDIDATE LIST OF GROWTH SITES [(X,Y,Z)]
-    tt1 = time.clock()
+    # In: aList -(X,Y,Z) of charged cell sites, iList - insulator sites
+    # Out: candidate list of growth sites [(X,Y,Z)]
     cList = []
     for c in aList:
         tempList = getStencil3D_26(c[0], c[1], c[2])
@@ -996,14 +1070,14 @@ def getCandidateSites(aList, iList=[]):
             if t not in aList and t not in iList:
                 cList.append(t)
     ncList = deDupe(cList)
-    tt2 = time.clock()
 
     return ncList
 
 
-# SETUP FXNS #
+# Setup functions
 
 def setupObjects():
+    winmgr = bpy.context.scene.advanced_objects
     oOB = bpy.data.objects.new('ELorigin', None)
     oOB.location = ((0, 0, 10))
     bpy.context.scene.objects.link(oOB)
@@ -1041,27 +1115,38 @@ def setupObjects():
 
 def checkSettings():
     check = True
+    winmgr = bpy.context.scene.advanced_objects
+    message = ""
     if winmgr.OOB == "":
-        print('ERROR: NO ORIGIN OBJECT SELECTED')
+        message = "Error: no origin object selected"
         check = False
+
     if winmgr.GROUNDBOOL and winmgr.GOB == "":
-        print('ERROR: NO GROUND OBJECT SELECTED')
+        message = "Error: no ground object selected"
         check = False
+
     if winmgr.CLOUDBOOL and winmgr.COB == "":
-        print('ERROR: NO CLOUD OBJECT SELECTED')
+        message = "Error: no cloud object selected"
         check = False
+
     if winmgr.IBOOL and winmgr.IOB == "":
-        print('ERROR: NO INSULATOR OBJECT SELECTED')
+        message = "Error: no insulator object selected"
         check = False
-    # should make a popup here
-    return check
+
+    if check is False:
+        debug_prints(func="checkSettings", text=message)
+
+    # return state and the message for the operator report
+    return check, message
 
 
-# MAIN #
+# Main
 
 def FSLG():
-    # FAST SIMULATION OF LAPLACIAN GROWTH #
-    print('\n<<<<<<------GO GO GADGET: FAST SIMULATION OF LAPLACIAN GROWTH!')
+    winmgr = bpy.context.scene.advanced_objects
+    # fast simulation of laplacian growth
+    debug_prints(func="FSLG",
+                 text="Go go gadget: fast simulation of laplacian growth")
     tc1 = time.clock()
     TSTEPS = winmgr.TSTEPS
 
@@ -1070,214 +1155,183 @@ def FSLG():
     winmgr.ORIGIN = obORIGIN.location
     winmgr.GROUNDZ = int((obGROUND.location[2] - winmgr.ORIGIN[2]) / winmgr.GSCALE)
 
-    # 1) INSERT INTIAL CHARGE(S) POINT (USES VERTS IF MESH)
+    # 1) insert intial charge(s) point (uses verts if mesh)
     cgrid = [(0, 0, 0)]
+
     if obORIGIN.type == 'MESH':
-        print("<<<<<<------ORIGIN OBJECT IS MESH, 'VOXELIZING' INTIAL CHARGES FROM VERTS")
+        debug_prints(
+                func="FSLG",
+                text="Origin object is mesh, 'voxelizing' intial charges from verts"
+                )
         cgrid = voxelByVertex(obORIGIN, winmgr.GSCALE)
+
         if winmgr.VMMESH:
-            print("<<<<<<------CANNOT CLASSIFY STROKE FROM VERT ORIGINS YET, NO MULTI-MESH OUTPUT")
+            debug_prints(
+                func="FSLG",
+                text="Cannot classify stroke from vert origins yet, no multi-mesh output"
+                )
             winmgr.VMMESH = False
             winmgr.VSMESH = True
 
-    # GROUND CHARGE CELL / INSULATOR LISTS (eChargeList/icList)
+    # ground charge cell / insulator lists (echargelist/iclist)
     eChargeList = []
     icList = []
     if winmgr.GROUNDBOOL:
         eChargeList = fakeGroundChargePlane(winmgr.GROUNDZ, winmgr.GROUNDC)
+
     if winmgr.CLOUDBOOL:
-        print("<<<<<<------'VOXELIZING' CLOUD OBJECT (COULD TAKE SOME TIME)")
+        debug_prints(
+                func="FSLG",
+                text="'Voxelizing' cloud object (could take some time)"
+                )
         obCLOUD = bpy.context.scene.objects[winmgr.COB]
         eChargeListQ = voxelByRays(obCLOUD, winmgr.ORIGIN, winmgr.GSCALE)
         eChargeList = addCharges(eChargeListQ, winmgr.CLOUDC)
-        print('<<<<<<------CLOUD OBJECT CELL COUNT = ', len(eChargeList))
+        debug_prints(
+                func="FSLG",
+                text="cloud object cell count", var=len(eChargeList)
+                )
+
     if winmgr.IBOOL:
-        print("<<<<<<------'VOXELIZING' INSULATOR OBJECT (COULD TAKE SOME TIME)")
+        debug_prints(
+                func="FSLG",
+                text="'Voxelizing' insulator object (could take some time)"
+                )
         obINSULATOR = bpy.context.scene.objects[winmgr.IOB]
         icList = voxelByRays(obINSULATOR, winmgr.ORIGIN, winmgr.GSCALE)
-        print('<<<<<<------INSULATOR OBJECT CELL COUNT = ', len(icList))
 
-    # 2) LOCATE CANDIDATE SITES AROUND CHARGE
+        debug_prints(
+                func="FSLG",
+                text="Insulator object cell count", var=len(icList)
+                )
+
+    # 2) locate candidate sites around charge
     cSites = getCandidateSites(cgrid, icList)
 
-    # 3) CALC POTENTIAL AT EACH SITE (Eqn. 10)
+    # 3) calc potential at each site (eqn. 10)
     cSites = initialPointCharges(cgrid, cSites, eChargeList)
 
     ts = 1
     while ts <= TSTEPS:
-        # 1) SELECT NEW GROWTH SITE (Eqn. 12)
-        # GET PROBABILITIES AT CANDIDATE SITES
+        # 1) select new growth site (eqn. 12)
+        # get probabilities at candidate sites
         gProbs = getGrowthProbability(winmgr.BIGVAR, cSites)
-        # CHOOSE NEW GROWTH SITE BASED ON PROBABILITIES
+        # choose new growth site based on probabilities
         gSitei = weightedRandomChoice(gProbs)
         gsite = cSites[gSitei][0]
 
-        # 2) ADD NEW POINT CHARGE AT GROWTH SITE
-        # ADD NEW GROWTH CELL TO GRID
+        # 2) add new point charge at growth site
+        # add new growth cell to grid
         cgrid.append(gsite)
-        # REMOVE NEW GROWTH CELL FROM CANDIDATE SITES
+        # remove new growth cell from candidate sites
         cSites.remove(cSites[gSitei])
 
-        # 3) UPDATE POTENTIAL AT CANDIDATE SITES (Eqn. 11)
+        # 3) update potential at candidate sites (eqn. 11)
         cSites = updatePointCharges(gsite, cSites, eChargeList)
 
-        # 4) ADD NEW CANDIDATES SURROUNDING GROWTH SITE
-        # GET CANDIDATE 'STENCIL'
+        # 4) add new candidates surrounding growth site
+        # get candidate 'stencil'
         ncSitesT = getCandidateSites([gsite], icList)
-        # REMOVE CANDIDATES ALREADY IN CANDIDATE LIST OR CHARGE GRID
+        # remove candidates already in candidate list or charge grid
         ncSites = []
         cSplit = splitList(cSites, 0)
         for cn in ncSitesT:
             if cn not in cSplit and cn not in cgrid:
                 ncSites.append((cn, 0))
 
-        # 5) CALC POTENTIAL AT NEW CANDIDATE SITES (Eqn. 10)
+        # 5) calc potential at new candidate sites (eqn. 10)
         ncSplit = splitList(ncSites, 0)
         ncSites = initialPointCharges(cgrid, ncSplit, eChargeList)
 
-        # ADD NEW CANDIDATE SITES TO CANDIDATE LIST
+        # add new candidate sites to candidate list
         for ncs in ncSites:
             cSites.append(ncs)
 
-        # ITERATION COMPLETE
+        # iteration complete
         istr1 = ':::T-STEP: ' + str(ts) + '/' + str(TSTEPS)
         istr12 = ' | GROUNDZ: ' + str(winmgr.GROUNDZ) + ' | '
         istr2 = 'CANDS: ' + str(len(cSites)) + ' | '
         istr3 = 'GSITE: ' + str(gsite)
-        print(istr1 + istr12 + istr2 + istr3)
+        debug_prints(
+                func="FSLG",
+                text="Iteration complete",
+                var=istr1 + istr12 + istr2 + istr3
+                )
         ts += 1
 
-        # EARLY TERMINATION FOR GROUND/CLOUD STRIKE
+        # early termination for ground/cloud strike
         if winmgr.GROUNDBOOL:
             if gsite[2] == winmgr.GROUNDZ:
                 ts = TSTEPS + 1
-                print('<<<<<<------EARLY TERMINATION DUE TO GROUNDSTRIKE')
+                debug_prints(
+                        func="FSLG",
+                        text="Early termination due to groundstrike"
+                        )
                 continue
+
         if winmgr.CLOUDBOOL:
             if gsite in splitListCo(eChargeList):
                 ts = TSTEPS + 1
-                print('<<<<<<------EARLY TERMINATION DUE TO CLOUDSTRIKE')
+                debug_prints(
+                        func="FSLG",
+                        text="Early termination due to cloudstrike"
+                        )
                 continue
 
     tc2 = time.clock()
     tcRUN = tc2 - tc1
-    print('<<<<<<------LAPLACIAN GROWTH LOOP COMPLETED: ' + str(len(cgrid)) + ' / ' + str(tcRUN)[0:5] + ' SECONDS')
-    print('<<<<<<------VISUALIZING DATA')
+    debug_prints(
+            func="FSLG",
+            text="Laplacian growth loop completed",
+            var=str(len(cgrid)) + " / " + str(tcRUN)[0:5] + " Seconds"
+            )
+    debug_prints(func="FSLG", text="Visualizing data")
 
     reportSTRING = getReportString(tcRUN)
-    # VISUALIZE ARRAY
+
+    # Visualize array
     visualizeArray(
-                cgrid, obORIGIN, winmgr.GSCALE,
-                winmgr.VMMESH, winmgr.VSMESH,
-                winmgr.VCUBE, winmgr.VVOX, reportSTRING
-                )
-    print('<<<<<<------COMPLETE')
+            cgrid, obORIGIN, winmgr.GSCALE,
+            winmgr.VMMESH, winmgr.VSMESH,
+            winmgr.VCUBE, winmgr.VVOX, reportSTRING
+            )
+
+    debug_prints(func="FSLG", text="COMPLETE")
 
 
 # GUI #
 
-# NOT IN UI
-bpy.types.WindowManager.ORIGIN = bpy.props.FloatVectorProperty(name="origin charge")
-bpy.types.WindowManager.GROUNDZ = bpy.props.IntProperty(name="ground Z coordinate")
-bpy.types.WindowManager.HORDER = bpy.props.IntProperty(name="secondary paths orders")
-# IN UI
-bpy.types.WindowManager.TSTEPS = bpy.props.IntProperty(
-    name="iterations",
-    description="number of cells to create, will end early if hits ground plane or cloud")
-bpy.types.WindowManager.GSCALE = bpy.props.FloatProperty(
-    name="grid unit size",
-    description="scale of cells, .25 = 4 cells per blenderUnit")
-bpy.types.WindowManager.BIGVAR = bpy.props.FloatProperty(
-    name="straightness",
-    description="straightness/branchiness of bolt, <2 is mush, >12 is staight line, 6.3 is good")
-bpy.types.WindowManager.GROUNDBOOL = bpy.props.BoolProperty(
-    name="use ground object", description="use ground plane or not")
-bpy.types.WindowManager.GROUNDC = bpy.props.IntProperty(
-    name="ground charge", description="charge of ground plane")
-bpy.types.WindowManager.CLOUDBOOL = bpy.props.BoolProperty(
-    name="use cloud object",
-    description="use cloud obj, attracts and terminates like ground but "
-                "any obj instead of z plane, can slow down loop if obj is large, overrides ground")
-bpy.types.WindowManager.CLOUDC = bpy.props.IntProperty(
-    name="cloud charge",
-    description="charge of a cell in cloud object (so total charge also depends on obj size)")
-
-bpy.types.WindowManager.VMMESH = bpy.props.BoolProperty(
-    name="multi mesh",
-    description="output to multi-meshes for different materials on main/sec/side branches")
-bpy.types.WindowManager.VSMESH = bpy.props.BoolProperty(
-    name="single mesh",
-    description="output to single mesh for using build modifier and particles for effects")
-bpy.types.WindowManager.VCUBE = bpy.props.BoolProperty(
-    name="cubes", description="CTRL-J after run to JOIN, outputs a bunch of cube objest, mostly for testing")
-bpy.types.WindowManager.VVOX = bpy.props.BoolProperty(
-    name="voxel (experimental)",
-    description="output to a voxel file to bpy.data.filepath\FSLGvoxels.raw - doesn't work well right now")
-bpy.types.WindowManager.IBOOL = bpy.props.BoolProperty(
-    name="use insulator object", description="use insulator mesh object to prevent growth of bolt in areas")
-bpy.types.WindowManager.OOB = bpy.props.StringProperty(
-    description="origin of bolt, can be an Empty, if obj is mesh will use all verts as charges")
-bpy.types.WindowManager.GOB = bpy.props.StringProperty(
-    description="object to use as ground plane, uses z coord only")
-bpy.types.WindowManager.COB = bpy.props.StringProperty(
-    description="object to use as cloud, best to use a cube")
-bpy.types.WindowManager.IOB = bpy.props.StringProperty(
-    description="object to use as insulator, 'voxelized' before generating bolt, can be slow")
-
-# DEFAULT USER SETTINGS
-winmgr.TSTEPS = 350
-winmgr.HORDER = 1
-winmgr.GSCALE = 0.12
-winmgr.BIGVAR = 6.3
-winmgr.GROUNDBOOL = True
-winmgr.GROUNDC = -250
-winmgr.CLOUDBOOL = False
-winmgr.CLOUDC = -1
-winmgr.VMMESH = True
-winmgr.VSMESH = False
-winmgr.VCUBE = False
-winmgr.VVOX = False
-winmgr.IBOOL = False
-try:
-    winmgr.OOB = "ELorigin"
-    winmgr.GOB = "ELground"
-    winmgr.COB = "ELcloud"
-    winmgr.IOB = "ELinsulator"
-except:
-    pass
-
-# TESTING USER SETTINGS
-if False:
-    winmgr.TSTEPS = 40
-    winmgr.GROUNDBOOL = True
-    winmgr.CLOUDBOOL = True
-    winmgr.IBOOL = True
-
-
-class runFSLGLoopOperator(bpy.types.Operator):
-    '''By The Mighty Hammer Of Thor!!!'''
+class runFSLGLoopOperator(Operator):
     bl_idname = "object.runfslg_operator"
     bl_label = "run FSLG Loop Operator"
+    bl_description = "By The Mighty Hammer Of Thor!!!"
 
     def execute(self, context):
-        if checkSettings():
+        # tuple - state, report text
+        is_conditions, message = checkSettings()
+
+        if is_conditions:
             FSLG()
         else:
-            pass
+            self.report({'WARNING'}, message + " Operation Cancelled")
+
+            return {'CANCELLED'}
+
         return {'FINISHED'}
 
 
-class setupObjectsOperator(bpy.types.Operator):
-    '''create origin/ground/cloud/insulator objects'''
+class setupObjectsOperator(Operator):
     bl_idname = "object.setup_objects_operator"
     bl_label = "Setup Objects Operator"
+    bl_description = "Create origin/ground/cloud/insulator objects"
 
     def execute(self, context):
         setupObjects()
+
         return {'FINISHED'}
 
 
-class OBJECT_PT_fslg(bpy.types.Panel):
+class OBJECT_PT_fslg(Panel):
     bl_label = "Laplacian Lightning"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
@@ -1287,30 +1341,50 @@ class OBJECT_PT_fslg(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        colR = layout.column()
-        colR.label('-for progress open console-')
-        colR.label('Help > Toggle System Console')
-        colR.prop(winmgr, 'TSTEPS')
-        colR.prop(winmgr, 'GSCALE')
-        colR.prop(winmgr, 'BIGVAR')
-        colR.operator('object.setup_objects_operator', text='create setup objects')
-        colR.label('origin object')
-        colR.prop_search(winmgr, "OOB", context.scene, "objects")
-        colR.prop(winmgr, 'GROUNDBOOL')
-        colR.prop_search(winmgr, "GOB", context.scene, "objects")
-        colR.prop(winmgr, 'GROUNDC')
-        colR.prop(winmgr, 'CLOUDBOOL')
-        colR.prop_search(winmgr, "COB", context.scene, "objects")
-        colR.prop(winmgr, 'CLOUDC')
-        colR.prop(winmgr, 'IBOOL')
-        colR.prop_search(winmgr, "IOB", context.scene, "objects")
-        colR.operator('object.runfslg_operator', text='generate lightning')
-        colR.prop(winmgr, 'VMMESH')
-        colR.prop(winmgr, 'VSMESH')
-        colR.prop(winmgr, 'VCUBE')
+        winmgr = context.scene.advanced_objects
+
+        col = layout.column(align=True)
+        col.prop(winmgr, "TSTEPS")
+        col.prop(winmgr, "GSCALE")
+        col.prop(winmgr, "BIGVAR")
+
+        col = layout.column()
+        col.operator("object.setup_objects_operator", text="Create Setup objects")
+        col.label("Origin object")
+        col.prop_search(winmgr, "OOB", context.scene, "objects")
+
+        box = layout.box()
+        col = box.column()
+        col.prop(winmgr, "GROUNDBOOL")
+        if winmgr.GROUNDBOOL:
+            col.prop_search(winmgr, "GOB", context.scene, "objects")
+            col.prop(winmgr, "GROUNDC")
+
+        box = layout.box()
+        col = box.column()
+        col.prop(winmgr, "CLOUDBOOL")
+        if winmgr.CLOUDBOOL:
+            col.prop_search(winmgr, "COB", context.scene, "objects")
+            col.prop(winmgr, "CLOUDC")
+
+        box = layout.box()
+        col = box.column()
+        col.prop(winmgr, "IBOOL")
+        if winmgr.IBOOL:
+            col.prop_search(winmgr, "IOB", context.scene, "objects")
+
+        col = layout.column()
+        col.operator("object.runfslg_operator",
+                     text="Generate Lightning", icon="RNDCURVE")
+
+        row = layout.row(align=True)
+        row.prop(winmgr, "VMMESH", toggle=True)
+        row.prop(winmgr, "VSMESH", toggle=True)
+        row.prop(winmgr, "VCUBE", toggle=True)
 
 
 def getReportString(rtime):
+    winmgr = bpy.context.scene.advanced_objects
     rSTRING1 = 't:' + str(winmgr.TSTEPS) + ',sc:' + str(winmgr.GSCALE)[0:4] + ',uv:' + str(winmgr.BIGVAR)[0:4] + ','
     rSTRING2 = 'ori:' + str(winmgr. ORIGIN[0]) + '/' + str(winmgr. ORIGIN[1]) + '/' + str(winmgr. ORIGIN[2]) + ','
     rSTRING3 = 'gz:' + str(winmgr.GROUNDZ) + ',gc:' + str(winmgr.GROUNDC) + ',rtime:' + str(int(rtime))
@@ -1336,20 +1410,16 @@ def unregister():
 
 
 if __name__ == "__main__":
-    # RUN FOR TESTING
-    # FSLG()
-
-    # UI
     register()
     pass
 
 
-# FXN BENCHMARKS #
+# Benchmarks Function
 
 def BENCH():
-    print('\n\n\n--->BEGIN BENCHMARK')
+    debug_prints(func="BENCH", text="BEGIN BENCHMARK")
     bt0 = time.clock()
-    # MAKE A BIG LIST
+    # make a big list
     tsize = 25
     tlist = []
     for x in range(tsize):
@@ -1358,13 +1428,15 @@ def BENCH():
                 tlist.append((x, y, z))
                 tlist.append((x, y, z))
 
-    # FUNCTION TO TEST
+    # function to test
     bt1 = time.clock()
-    # print('LENS - ', len(tlist), len(ll))
-
     bt2 = time.clock()
     btRUNb = bt2 - bt1
     btRUNa = bt1 - bt0
-    print('--->SETUP TIME    : ', btRUNa)
-    print('--->BENCHMARK TIME: ', btRUNb)
-    print('--->GRIDSIZE: ', tsize, ' - ', tsize * tsize * tsize)
+
+    debug_prints(func="BENCH", text="SETUP TIME", var=btRUNa)
+    debug_prints(func="BENCH", text="BENCHMARK TIME", var=btRUNb)
+    debug_print_vars(
+            "\n[BENCH]\n",
+            "GRIDSIZE: ", tsize, ' - ', tsize * tsize * tsize
+            )

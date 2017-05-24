@@ -19,14 +19,16 @@
 bl_info = {
     "name": "Mesh: Constellation",
     "author": "Oscurart",
-    "version": (1, 0),
+    "version": (1, 1, 1),
     "blender": (2, 67, 0),
     "location": "Add > Mesh > Constellation",
-    "description": "Adds a new Mesh From Selected",
+    "description": "Create a new Mesh From Selected",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "",
     "category": "Add Mesh"}
+
+# Note the setting is moved to __init__ search for
+# the adv_obj and advanced_objects patterns
 
 import bpy
 from bpy.types import Operator
@@ -56,51 +58,66 @@ def OscConstellation(limit):
                 edgei += 2
 
     mesh = bpy.data.meshes.new("rsdata")
-    object = bpy.data.objects.new("rsObject", mesh)
-    bpy.context.scene.objects.link(object)
+    obj = bpy.data.objects.new("rsObject", mesh)
+    bpy.context.scene.objects.link(obj)
     mesh.from_pydata(vertlist, edgelist, [])
 
 
-class Oscurart_Constellation (Operator):
+class Oscurart_Constellation(Operator):
     bl_idname = "mesh.constellation"
     bl_label = "Constellation"
-    bl_description = "Create a Constellation Mesh"
+    bl_description = ("Create a Constellation Mesh - Cloud of Vertices\n"
+                      "Note: can produce a lot of geometry\n"
+                      "Needs an existing Active Mesh Object")
     bl_options = {'REGISTER', 'UNDO'}
 
     limit = FloatProperty(
-                name='Limit',
-                default=2,
-                min=0
-                )
+            name="Threshold",
+            description="Edges will be created only if the distance\n"
+                        "between vertices is smaller than this value",
+            default=2,
+            min=0
+            )
 
     @classmethod
     def poll(cls, context):
-        return(bpy.context.active_object.type == "MESH")
+        obj = context.active_object
+        return (obj and obj.type == "MESH")
+
+    def invoke(self, context, event):
+        adv_obj = context.scene.advanced_objects
+        self.limit = adv_obj.constellation_limit
+
+        return self.execute(context)
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.prop(self, "limit")
 
     def execute(self, context):
-        OscConstellation(self.limit)
+        try:
+            OscConstellation(self.limit)
+        except Exception as e:
+            print("\n[Add Advanced Objects]\nOperator: mesh.constellation\n{}".format(e))
+
+            self.report({"WARNING"},
+                        "Constellation Operation could not be Completed (See Console for more Info)")
+
+            return {"CANCELLED"}
 
         return {'FINISHED'}
 
 
 # Register
 
-def add_osc_constellation_button(self, context):
-    self.layout.operator(
-        Oscurart_Constellation.bl_idname,
-        text="Constellation",
-        icon="PLUGIN")
-
-
 def register():
     bpy.utils.register_class(Oscurart_Constellation)
-    bpy.types.INFO_MT_mesh_add.append(add_osc_constellation_button)
 
 
 def unregister():
     bpy.utils.unregister_class(Oscurart_Constellation)
-    bpy.types.INFO_MT_mesh_add.remove(add_osc_constellation_button)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     register()

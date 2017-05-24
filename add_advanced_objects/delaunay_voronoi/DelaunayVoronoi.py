@@ -61,12 +61,10 @@
 
 import bpy
 import math
-import sys
-import getopt
+
+# Globals
 TOLERANCE = 1e-9
 BIG_FLOAT = 1e38
-
-# TODO : Licence, prints, imports, autorship
 
 
 class Context(object):
@@ -295,14 +293,14 @@ class Context(object):
 
     def outTriple(self, s1, s2, s3):
         self.triangles.append((s1.sitenum, s2.sitenum, s3.sitenum))
-        if(self.debug):
+        if (self.debug):
             print("circle through left=%d right=%d bottom=%d" % (s1.sitenum, s2.sitenum, s3.sitenum))
-        elif(self.triangulate and self.doPrint):
+        elif (self.triangulate and self.doPrint):
             print("%d %d %d" % (s1.sitenum, s2.sitenum, s3.sitenum))
 
     def outBisector(self, edge):
         self.lines.append((edge.a, edge.b, edge.c))
-        if(self.debug):
+        if (self.debug):
             print("line(%d) %gx+%gy=%g, bisecting %d %d" % (edge.edgenum, edge.a, edge.b,
                                                             edge.c, edge.reg[0].sitenum,
                                                             edge.reg[1].sitenum)
@@ -328,8 +326,8 @@ class Context(object):
 
         self.edges.append((edge.edgenum, sitenumL, sitenumR))
 
-        if(not self.triangulate):
-            if(self.doPrint):
+        if (not self.triangulate):
+            if (self.doPrint):
                 print("e %d" % edge.edgenum)
                 print(" %d " % sitenumL)
                 print("%d" % sitenumR)

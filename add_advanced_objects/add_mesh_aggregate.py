@@ -72,107 +72,108 @@ class OBJECT_OT_agregate_mesh(Operator):
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     volX = FloatProperty(
-                name="Volume X",
-                min=0.1, max=25,
-                default=3,
-                description="The cloud around cursor"
-                )
+            name="Volume X",
+            min=0.1, max=25,
+            default=3,
+            description="The cloud around cursor"
+            )
     volY = FloatProperty(
-                name="Volume Y",
-                min=0.1, max=25,
-                default=3,
-                description="The cloud around cursor"
-                )
+            name="Volume Y",
+            min=0.1, max=25,
+            default=3,
+            description="The cloud around cursor"
+            )
     volZ = FloatProperty(
-                name="Volume Z",
-                min=0.1, max=25,
-                default=3,
-                description="The cloud around cursor"
-                 )
+            name="Volume Z",
+            min=0.1, max=25,
+            default=3,
+            description="The cloud around cursor"
+            )
     baseSca = FloatProperty(
-                name="Scale",
-                min=0.01, max=5,
-                default=.25,
-                description="Particle Scale"
-                )
+            name="Scale",
+            min=0.01, max=5,
+            default=.25,
+            description="Particle Scale"
+            )
     varSca = FloatProperty(
-                name="Var",
-                min=0, max=1,
-                default=0,
-                description="Particle Scale Variation"
-                )
+            name="Var",
+            min=0, max=1,
+            default=0,
+            description="Particle Scale Variation"
+            )
     rotX = FloatProperty(
-                name="Rot Var X",
-                min=0, max=2,
-                default=0,
-                description="X Rotation Variation"
-                )
+            name="Rot Var X",
+            min=0, max=2,
+            default=0,
+            description="X Rotation Variation"
+            )
     rotY = FloatProperty(
-                name="Rot Var Y",
-                min=0, max=2,
-                default=0,
-                description="Y Rotation Variation"
-                )
+            name="Rot Var Y",
+            min=0, max=2,
+            default=0,
+            description="Y Rotation Variation"
+            )
     rotZ = FloatProperty(
-                name="Rot Var Z",
-                min=0, max=2,
-                default=1,
-                description="Z Rotation Variation"
-                )
+            name="Rot Var Z",
+            min=0, max=2,
+            default=1,
+            description="Z Rotation Variation"
+            )
     rSeed = IntProperty(
-                name="Random seed",
-                min=0, max=999999,
-                default=1,
-                description="Seed to feed random values"
-                )
+            name="Random seed",
+            min=0, max=999999,
+            default=1,
+            description="Seed to feed random values"
+            )
     numP = IntProperty(
-                name="Number",
-                min=1,
-                max=9999, soft_max=500,
-                default=50,
-                description="Number of particles"
-                )
+            name="Number",
+            min=1,
+            max=9999, soft_max=500,
+            default=50,
+            description="Number of particles"
+            )
     nor = BoolProperty(
-                name="Normal Oriented",
-                default=False,
-                description="Align Z axis with Faces normals"
-                )
+            name="Normal Oriented",
+            default=False,
+            description="Align Z axis with Faces normals"
+            )
     cent = BoolProperty(
-                name="Use Face Center",
-                default=False,
-                description="Center on Faces"
-                )
+            name="Use Face Center",
+            default=False,
+            description="Center on Faces"
+            )
     track = BoolProperty(
-                name="Cursor Follows",
-                default=False,
-                description="Cursor moves as structure grows / more compact results"
-                )
+            name="Cursor Follows",
+            default=False,
+            description="Cursor moves as structure grows / more compact results"
+            )
     anim = BoolProperty(
-                name="Animatable",
-                default=False,
-                description="Sort faces so you can regrow with Build Modifier, materials are lost"
-                )
-
-    refresh = bpy.props.BoolProperty(
-                name="Update",
-                default=False
-                )
-    auto_refresh = bpy.props.BoolProperty(
-                name="Auto",
-                description="Auto update spline",
-                default=False
-                )
+            name="Animatable",
+            default=False,
+            description="Sort faces so you can regrow with Build Modifier, materials are lost"
+            )
+    refresh = BoolProperty(
+            name="Update",
+            default=False
+            )
+    auto_refresh = BoolProperty(
+            name="Auto",
+            description="Auto update spline",
+            default=False
+            )
 
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
         row = col.row(align=True)
+
         if self.auto_refresh is False:
             self.refresh = False
         elif self.auto_refresh is True:
             self.refresh = True
-        row.prop(self, 'auto_refresh', toggle=True, icon='AUTO')
-        row.prop(self, 'refresh', toggle=True, icon='FILE_REFRESH')
+
+        row.prop(self, "auto_refresh", toggle=True, icon="AUTO")
+        row.prop(self, "refresh", toggle=True, icon="FILE_REFRESH")
 
         col = layout.column(align=True)
         col.separator()
@@ -194,18 +195,20 @@ class OBJECT_OT_agregate_mesh(Operator):
 
         col = layout.column(align=True)
         col.prop(self, "rSeed", slider=False)
+        col.prop(self, "numP")
 
-        col = layout.column(align=True)
-        col.prop(self, "nor")
-        col.prop(self, "cent")
-        col.prop(self, "track")
-        col.prop(self, "anim")
+        row = layout.row(align=True)
+        row.prop(self, "nor")
+        row.prop(self, "cent")
 
-        col.prop(self, 'numP')
+        row = layout.row(align=True)
+        row.prop(self, "track")
+        row.prop(self, "anim")
 
     @classmethod
     def poll(cls, context):
-        return(len(bpy.context.selected_objects) > 1 and bpy.context.object.type == 'MESH')
+        return (len(bpy.context.selected_objects) > 1 and
+                bpy.context.object.type == 'MESH')
 
     def invoke(self, context, event):
         self.refresh = True
@@ -227,8 +230,10 @@ class OBJECT_OT_agregate_mesh(Operator):
                 (0, 0, 0, 1))
                 )
         if obj.matrix_world != mat:
-            self.report({'WARNING'}, "Apply transformations to Active Object first!")
+            self.report({'WARNING'},
+                         "Please, Apply transformations to Active Object first")
             return{'FINISHED'}
+
         par = [o for o in bpy.context.selected_objects if o.type == 'MESH' and o != obj]
         if not par:
             return{'FINISHED'}
@@ -296,9 +301,8 @@ class OBJECT_OT_agregate_mesh(Operator):
 
                 bme.to_mesh(obj.data)
                 remover(True)
-
-                newobj.data.user_clear()
-                bpy.data.meshes.remove(newobj.data)
+                # Note: foo.user_clear() is deprecated use do_unlink=True instead
+                bpy.data.meshes.remove(newobj.data, do_unlink=True)
 
             else:
                 scn.objects.active = obj
@@ -318,8 +322,6 @@ class OBJECT_OT_agregate_mesh(Operator):
 
         if self.auto_refresh is False:
             self.refresh = False
-        #elif self.auto_refresh is True:
-        #    self.refresh = True
 
         return{'FINISHED'}
 
@@ -333,4 +335,4 @@ def unregister():
 
 
 if __name__ == '__main__':
- register()
+    register()

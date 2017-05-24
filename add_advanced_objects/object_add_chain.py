@@ -30,20 +30,18 @@ bl_info = {
 }
 
 import bpy
-from bpy.types import (
-        Operator,
-        Panel,
-        )
+from bpy.types import Operator
 
 
 def Add_Chain():
     # Adds Empty to scene
-    bpy.ops.object.add(type='EMPTY',
-                       view_align=False,
-                       enter_editmode=False,
-                       location=(0, 0, 0),
-                       rotation=(0, 0, 0),
-                       )
+    bpy.ops.object.add(
+            type='EMPTY',
+            view_align=False,
+            enter_editmode=False,
+            location=(0, 0, 0),
+            rotation=(0, 0, 0),
+            )
 
     # Changes name of Empty to rot_link adds variable emp
     emp = bpy.context.object
@@ -53,24 +51,26 @@ def Add_Chain():
     emp.rotation_euler = [1.570796, 0, 0]
 
     # Adds Curve Path to scene
-    bpy.ops.curve.primitive_nurbs_path_add(view_align=False,
-                                           enter_editmode=False,
-                                           location=(0, 0, 0),
-                                           rotation=(0, 0, 0),
-                                           )
+    bpy.ops.curve.primitive_nurbs_path_add(
+            view_align=False,
+            enter_editmode=False,
+            location=(0, 0, 0),
+            rotation=(0, 0, 0),
+            )
 
     # Change Curve name to deform adds variable curv
     curv = bpy.context.object
     curv.name = "deform"
 
     # Inserts Torus primitive
-    bpy.ops.mesh.primitive_torus_add(major_radius=1,
-                                     minor_radius=0.25,
-                                     major_segments=12,
-                                     minor_segments=4,
-                                     abso_major_rad=1,
-                                     abso_minor_rad=0.5,
-                                     )
+    bpy.ops.mesh.primitive_torus_add(
+            major_radius=1,
+            minor_radius=0.25,
+            major_segments=12,
+            minor_segments=4,
+            abso_major_rad=1,
+            abso_minor_rad=0.5,
+            )
 
     # Positions Torus primitive to center of scene
     bpy.context.active_object.location = 0.0, 0.0, 0.0
@@ -98,22 +98,23 @@ def Add_Chain():
     # Toggle into editmode
     bpy.ops.object.editmode_toggle()
 
-    # TODO, may be better to move objects directly.
+    # TODO, may be better to move objects directly
     # Translate curve object
-    bpy.ops.transform.translate(value=(2, 0, 0),
-                                constraint_axis=(True, False, False),
-                                constraint_orientation='GLOBAL',
-                                mirror=False,
-                                proportional='DISABLED',
-                                proportional_edit_falloff='SMOOTH',
-                                proportional_size=1,
-                                snap=False,
-                                snap_target='CLOSEST',
-                                snap_point=(0, 0, 0),
-                                snap_align=False,
-                                snap_normal=(0, 0, 0),
-                                release_confirm=False,
-                                )
+    bpy.ops.transform.translate(
+            value=(2, 0, 0),
+            constraint_axis=(True, False, False),
+            constraint_orientation='GLOBAL',
+            mirror=False,
+            proportional='DISABLED',
+            proportional_edit_falloff='SMOOTH',
+            proportional_size=1,
+            snap=False,
+            snap_target='CLOSEST',
+            snap_point=(0, 0, 0),
+            snap_align=False,
+            snap_normal=(0, 0, 0),
+            release_confirm=False,
+            )
 
     # Toggle into objectmode
     bpy.ops.object.editmode_toggle()
@@ -151,19 +152,27 @@ class AddChain(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        Add_Chain()
+        try:
+            Add_Chain()
+
+        except Exception as e:
+            self.report({'WARNING'},
+                        "Some operations could not be performed (See Console for more info)")
+
+            print("\n[Add Advanced  Objects]\nOperator: "
+                  "mesh.primitive_chain_add\nError: {}".format(e))
+
+            return {'CANCELLED'}
 
         return {'FINISHED'}
 
 
 def register():
-    bpy.utils.register_module(__name__)
-    pass
+    bpy.utils.register_class(AddChain)
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
-    pass
+    bpy.utils.unregister_class(AddChain)
 
 
 if __name__ == "__main__":

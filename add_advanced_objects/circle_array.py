@@ -5,14 +5,13 @@
 bl_info = {
     "name": "Circle Array",
     "author": "Antonis Karvelas",
-    "version": (1, 0),
+    "version": (1, 0, 1),
     "blender": (2, 6, 7),
     "location": "View3D > Object > Circle_Array",
     "description": "Uses an existing array and creates an empty, "
                    "rotates it properly and makes a Circle Array",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "",
     "category": "Mesh"
     }
 
@@ -26,7 +25,10 @@ class Circle_Array(Operator):
     bl_label = "Circle Array"
     bl_idname = "objects.circle_array_operator"
     bl_description = ("Creates an Array Modifier with offset empty object\n"
-                      "Works with Mesh, Curve, Text & Surface")
+                      "Works with Mesh, Curve, Text and Surface\n"
+                      "Use an object with an existing Array modifier\n"
+                      "or rotate the newly created Empty with the name pattern\n"
+                      "EMPTY_C_Array_ if the Array doesn't exist (angle: 360/Count)")
 
     @classmethod
     def poll(cls, context):
@@ -53,27 +55,52 @@ class Circle_Array(Operator):
             return None
 
     def execute(self, context):
+        is_allowed = True
         try:
             allowed_obj = ['MESH', 'CURVE', 'SURFACE', 'FONT']
-            if context.active_object.type not in allowed_obj:
+            for obj in context.selected_objects:
+                if obj.type not in allowed_obj:
+                    is_allowed = False
+                    break
+
+            if not is_allowed:
                 self.report(
                     {"WARNING"},
-                    "Operation Cancelled. The active object is not of "
-                    "Mesh, Curve, Surface or Font type"
+                    "The Active/Selected objects are not of "
+                    "Mesh, Curve, Surface or Font type. Operation Cancelled"
                     )
                 return {'CANCELLED'}
 
             default_name = self.check_empty_name(context) or "EMPTY_C_Array"
             bpy.ops.object.modifier_add(type='ARRAY')
 
-            if len(bpy.context.selected_objects) == 2:
-                list = bpy.context.selected_objects
-                active = list[0]
+            if len(context.selected_objects) == 2:
+                selected = context.selected_objects
+                lists = [obj for obj in selected if obj != context.active_object]
+                active = lists[0]
+                # check if the list object has a modifier
+                check_mod = None
+                for mod in active.modifiers[:]:
+                    if mod.type == "ARRAY":
+                        check_mod = mod
+                        break
+
+                if check_mod:
+                    check_mod.use_object_offset = True
+                    check_mod.use_relative_offset = False
+                else:
+                    # fallback
+                    bpy.context.scene.objects.active = active
+                    bpy.ops.object.modifier_add(type='ARRAY')
+                    active.modifiers[0].use_object_offset = True
+                    active.modifiers[0].use_relative_offset = False
+
                 active.modifiers[0].use_object_offset = True
                 active.modifiers[0].use_relative_offset = False
                 active.select = False
-                bpy.context.scene.objects.active = list[0]
+                bpy.context.scene.objects.active = context.active_object
                 bpy.ops.view3d.snap_cursor_to_selected()
+
                 if active.modifiers[0].offset_object is None:
                     bpy.ops.object.add(type='EMPTY')
                     empty_name = bpy.context.active_object
@@ -98,6 +125,7 @@ class Circle_Array(Operator):
                 active.modifiers[0].use_object_offset = True
                 active.modifiers[0].use_relative_offset = False
                 bpy.ops.view3d.snap_cursor_to_selected()
+
                 if active.modifiers[0].offset_object is None:
                     bpy.ops.object.add(type='EMPTY')
                     empty_name = bpy.context.active_object
@@ -116,6 +144,7 @@ class Circle_Array(Operator):
                 active.select = True
 
                 return {'FINISHED'}
+
         except Exception as e:
             self.report({'WARNING'},
                         "Circle Array operator could not be executed (See the console for more info)")
@@ -125,18 +154,12 @@ class Circle_Array(Operator):
 
 
 # Register
-def circle_array_menu(self, context):
-    self.layout.operator(Circle_Array.bl_idname, text="Circle_Array")
-
-
 def register():
     bpy.utils.register_class(Circle_Array)
-    bpy.types.VIEW3D_MT_object.append(circle_array_menu)
 
 
 def unregister():
     bpy.utils.unregister_class(Circle_Array)
-    bpy.types.VIEW3D_MT_object.remove(circle_array_menu)
 
 
 if __name__ == "__main__":
