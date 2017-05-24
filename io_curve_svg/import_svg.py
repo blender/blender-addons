@@ -1536,6 +1536,9 @@ class SVGGeometryELLIPSE(SVGGeometry):
         ob = SVGCreateCurve()
         cu = ob.data
 
+        if self._node.getAttribute('id'):
+            cu.name = self._node.getAttribute('id')
+
         if self._styles['useFill']:
             cu.dimensions = '2D'
             cu.materials.append(self._styles['fill'])
