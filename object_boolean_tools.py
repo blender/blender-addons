@@ -141,7 +141,9 @@ def ConvertToMesh(obj):
 # Do the Union, Difference and Intersection Operations with a Brush
 def Operation(context, _operation):
 
-    useWire = bpy.context.user_preferences.addons[__name__].preferences.use_wire
+    prefs = bpy.context.user_preferences.addons[__name__].preferences
+    useWire = prefs.use_wire
+    solver = prefs.solver
 
     for selObj in bpy.context.selected_objects:
         if selObj != context.active_object and (selObj.type == "MESH" or selObj.type == "CURVE"):
@@ -177,6 +179,7 @@ def Operation(context, _operation):
                 clone["BoolToolRoot"] = True
             newMod = actObj.modifiers.new("BTool_" + selObj.name, "BOOLEAN")
             newMod.object = selObj
+            newMod.solver = solver
             if _operation == "SLICE":
                 newMod.operation = "INTERSECT"
             else:
@@ -597,29 +600,29 @@ class AutoBoolean:
             )
 
     def __init__(self):
-        self.context = bpy.context
-        self.solver = self.context.user_preferences.addons[__name__].preferences.solver
+        self.solver = bpy.context.user_preferences.addons[__name__].preferences.solver
 
     def objects_prepare(self):
-        for ob in self.context.selected_objects:
+        for ob in bpy.context.selected_objects:
             if ob.type != 'MESH':
                 ob.select = False
         bpy.ops.object.convert(target='MESH')
 
     def mesh_selection(self, ob, select_action):
-        scene = self.context.scene
-        obj = self.context.active_object
+        scene = bpy.context.scene
+        obj = bpy.context.active_object
 
         scene.objects.active = ob
         bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.reveal()
         bpy.ops.mesh.select_all(action=select_action)
         bpy.ops.object.mode_set(mode='OBJECT')
         scene.objects.active = obj
 
     def boolean_operation(self):
-        obj = self.context.active_object
+        obj = bpy.context.active_object
         obj.select = False
-        obs = self.context.selected_objects
+        obs = bpy.context.selected_objects
 
         self.mesh_selection(obj, 'DESELECT')
         for ob in obs:
@@ -637,7 +640,7 @@ class AutoBoolean:
         bpy.ops.object.modifier_apply(modifier="Auto Boolean")
         if not ob_delete:
             return
-        self.context.scene.objects.unlink(ob)
+        bpy.context.scene.objects.unlink(ob)
         bpy.data.objects.remove(ob)
 
 
@@ -704,7 +707,7 @@ class Auto_Slice(AutoBoolean, Operator):
         scene.objects.active = obj_copy
         self.boolean_mod(obj_copy, ob, 'INTERSECT')
         obj_copy.select = True
-
+ 
         return {'FINISHED'}
 
 
@@ -1153,18 +1156,18 @@ class BoolTool_help(Operator):
 
     def draw(self, context):
         layout = self.layout
-        layout.label("To use:")
-        layout.label("Select Two Or More Objects")
-        layout.label("Auto Booleans:")
-        layout.label("Auto Apply Direct Booleans")
-        layout.label("Brush Booleans:")
-        layout.label("Create Boolean Brush Set Up")
+        layout.label('To use:')
+        layout.label('Select two or more objects.')
+        layout.label('Auto Boolean:')
+        layout.label('Apply boolean operation directly.')
+        layout.label('Brush Boolean:')
+        layout.label('Create boolean brush set up.')
 
     def execute(self, context):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_popup(self, width=200)
+        return context.window_manager.invoke_popup(self, width=220)
 
 
 # ------------------ BOOL TOOL ADD-ON PREFERENCES ----------------------------
