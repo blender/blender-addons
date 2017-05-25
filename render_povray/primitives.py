@@ -39,8 +39,9 @@ from bpy.props import (
         )
 
 from mathutils import (
-        Vector,
-        )
+    Vector,
+    Matrix,
+)
 
 #import collections
 
@@ -67,20 +68,23 @@ class POVRAY_OT_lathe_add(bpy.types.Operator):
     def execute(self, context):
         layers=[False]*20
         layers[0]=True
-        bpy.ops.curve.primitive_bezier_curve_add(location=(0, 0, 0),
-            rotation=(0, 0, 0), layers=layers)
-        ob=context.scene.objects.active
-        ob.name = ob.data.name = "PovLathe"
+        bpy.ops.curve.primitive_bezier_curve_add(
+            location=context.scene.cursor_location,
+            rotation=(0, 0, 0),
+            layers=layers,
+        )
+        ob = context.scene.objects.active
+        ob_data = ob.data
+        ob.name = ob_data.name = "PovLathe"
+        ob_data.dimensions = '2D'
+        ob_data.transform(Matrix.Rotation(-pi / 2.0, 4, 'Z'))
         ob.pov.object_as='LATHE'
-        bpy.ops.object.mode_set(mode='EDIT')
-        self.report({'INFO'}, "This native POV-Ray primitive "
-                                 "won't have any vertex to show in edit mode")
-        bpy.ops.transform.rotate(value=-pi/2, axis=(0, 0, 1))
-        bpy.ops.object.mode_set(mode='OBJECT')
+        self.report({'INFO'}, "This native POV-Ray primitive")
         ob.pov.curveshape = "lathe"
         bpy.ops.object.modifier_add(type='SCREW')
-        bpy.context.object.modifiers["Screw"].axis = 'Y'
-        bpy.context.object.modifiers["Screw"].show_render = False
+        mod = ob.modifiers[-1]
+        mod.axis = 'Y'
+        mod.show_render = False
         return {'FINISHED'}
 
 
