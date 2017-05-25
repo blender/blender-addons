@@ -85,7 +85,7 @@ class MengerSponge(object):
     def __make_sub_sponge(self, cur_points, face_vis, depth):
         if depth <= 0:
             if not face_vis:
-                face_vis = True * 6
+                face_vis = [True] * 6
             cur_point_indices = []
             for p in cur_points:
                 cur_point_indices.append(self.__get_vindex(p))
