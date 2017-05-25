@@ -1591,32 +1591,33 @@ def write_pov(filename, scene=None, info_callback=None):
 
         if comments and len(metas) >= 1:
             file.write("//--Blob objects--\n\n")
-        # jfGarcia: get groups of metaballs by blender name prefix
-        metaG = {} 
-        metaElems = {}
+        # Get groups of metaballs by blender name prefix.
+        meta_group = {}
+        meta_elems = {}
         for ob in metas:
             prefix = ob.name.split(".")[0]
-            if not prefix in metaG:
-                metaG[prefix] = ob #.data.threshold
-            elems=[(elem,ob) for elem in ob.data.elements if elem.type in {'BALL', 'ELLIPSOID'}]
-            if prefix in metaElems:
-                metaElems[prefix].extend(elems)
+            if not prefix in meta_group:
+                meta_group[prefix] = ob  # .data.threshold
+            elems = [(elem, ob) for elem in ob.data.elements if elem.type in {'BALL', 'ELLIPSOID'}]
+            if prefix in meta_elems:
+                meta_elems[prefix].extend(elems)
             else:
-                metaElems[prefix] = elems
-        for mg in metaG:
-            tabWrite("blob{threshold %.4g // %s \n" % (metaG[mg].data.threshold, mg))
-            ob = metaG[mg]
-            for elems in metaElems[mg]:
-                elem=elems[0]
+                meta_elems[prefix] = elems
+        for mg, ob in meta_group.items():
+            tabWrite("blob{threshold %.4g // %s \n" % (ob.data.threshold, mg))
+            for elems in meta_elems[mg]:
+                elem = elems[0]
                 loc = elem.co
                 stiffness = elem.stiffness
                 if elem.use_negative:
                     stiffness = - stiffness
                 if elem.type == 'BALL':
-                    tabWrite("sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g " % \
-                                 (loc.x, loc.y, loc.z, elem.radius, stiffness))
+                    tabWrite("sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g " %
+                             (loc.x, loc.y, loc.z, elem.radius, stiffness))
                 elif elem.type == 'ELLIPSOID':
-                    tabWrite("sphere{ <%.6g, %.6g, %.6g>,%.4g,%.4g " % (loc.x / elem.size_x, loc.y / elem.size_y, loc.z / elem.size_z, elem.radius, stiffness))
+                    tabWrite("sphere{ <%.6g, %.6g, %.6g>,%.4g,%.4g " %
+                             (loc.x / elem.size_x, loc.y / elem.size_y, loc.z / elem.size_z,
+                              elem.radius, stiffness))
                     tabWrite("scale <%.6g, %.6g, %.6g>" % (elem.size_x, elem.size_y, elem.size_z))
                 writeMatrix(global_matrix * elems[1].matrix_world)
                 tabWrite("}\n")
@@ -1633,19 +1634,17 @@ def write_pov(filename, scene=None, info_callback=None):
                 else:
                     povFilter = 0.0
                 material_finish = materialNames[material.name]
-                tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} \n" % \
-                             (diffuse_color[0], diffuse_color[1], diffuse_color[2],
-                              povFilter, trans))
+                tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} \n" %
+                         (diffuse_color[0], diffuse_color[1], diffuse_color[2],
+                          povFilter, trans))
                 tabWrite("finish{%s} " % safety(material_finish, Level=2))
             else:
                 tabWrite("pigment{rgb 1} finish{%s} " % (safety(DEF_MAT_NAME, Level=2)))
             #writeObjectMaterial(material, ob)
             writeObjectMaterial(material, elems[1])
-            tabWrite("radiosity{importance %3g}\n" % metaG[mg].pov.importance_value)
-            tabWrite("}\n")  # End of Metaball block                
-                
-                
-                
+            tabWrite("radiosity{importance %3g}\n" % ob.pov.importance_value)
+            tabWrite("}\n")  # End of Metaball block
+
             meta = ob.data
 
             # important because no elements will break parsing.
@@ -1670,7 +1669,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
                     if elem.type == 'BALL':
 
-                        tabWrite("sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g }\n" % \
+                        tabWrite("sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g }\n" %
                                  (loc.x, loc.y, loc.z, elem.radius, stiffness))
 
                         # After this wecould do something simple like...
@@ -1679,10 +1678,12 @@ def write_pov(filename, scene=None, info_callback=None):
 
                     elif elem.type == 'ELLIPSOID':
                         # location is modified by scale
-                        tabWrite("sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g }\n" % \
-                                 (loc.x / elem.size_x, loc.y / elem.size_y, loc.z / elem.size_z,
+                        tabWrite("sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g }\n" %
+                                 (loc.x / elem.size_x,
+                                  loc.y / elem.size_y,
+                                  loc.z / elem.size_z,
                                   elem.radius, stiffness))
-                        tabWrite("scale <%.6g, %.6g, %.6g> \n" % \
+                        tabWrite("scale <%.6g, %.6g, %.6g> \n" %
                                  (elem.size_x, elem.size_y, elem.size_z))
 
                 if material:
@@ -1696,7 +1697,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
                     material_finish = materialNames[material.name]
 
-                    tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} \n" % \
+                    tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} \n" %
                              (diffuse_color[0], diffuse_color[1], diffuse_color[2],
                               povFilter, trans))
                     tabWrite("finish {%s}\n" % safety(material_finish, Level=2))
@@ -1711,7 +1712,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 writeMatrix(global_matrix * ob.matrix_world)
                 # Importance for radiosity sampling added here
                 tabWrite("radiosity { \n")
-                # jfGarcia importance > metaG[mg].pov.importance_value
+                # importance > ob.pov.importance_value
                 tabWrite("importance %3g \n" % importance)
                 tabWrite("}\n")
 
