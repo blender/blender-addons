@@ -305,6 +305,9 @@ def write_object_modifiers(scene,ob,File):
         File.write("inverse\n")
     if ob.pov.hierarchy:
         File.write("hierarchy\n")
+
+    # XXX, Commented definitions
+    '''
     if scene.pov.photon_enable:
         File.write("photons {\n")
         if ob.pov.target:
@@ -316,14 +319,15 @@ def write_object_modifiers(scene,ob,File):
         if ob.pov.pass_through:
             File.write("pass_through\n")
         File.write("}\n")
-    # if ob.pov.object_ior > 1:
-        # File.write("interior {\n")
-        # File.write("ior %.4g\n"%ob.pov.object_ior)
-        # if scene.pov.photon_enable and ob.pov.target and ob.pov.refraction and ob.pov.dispersion:
-            # File.write("ior %.4g\n"%ob.pov.dispersion_value)
-            # File.write("ior %s\n"%ob.pov.dispersion_samples)
-        # if scene.pov.photon_enable == False:
-            # File.write("caustics %.4g\n"%ob.pov.fake_caustics_power)
+    if ob.pov.object_ior > 1:
+        File.write("interior {\n")
+        File.write("ior %.4g\n"%ob.pov.object_ior)
+        if scene.pov.photon_enable and ob.pov.target and ob.pov.refraction and ob.pov.dispersion:
+            File.write("ior %.4g\n"%ob.pov.dispersion_value)
+            File.write("ior %s\n"%ob.pov.dispersion_samples)
+        if scene.pov.photon_enable == False:
+            File.write("caustics %.4g\n"%ob.pov.fake_caustics_power)
+    '''
 
 
 
