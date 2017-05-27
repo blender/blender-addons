@@ -287,13 +287,14 @@ class CyclesShaderWrapper():
         # no links, only use when needed!
 
     @staticmethod
-    def _image_create_helper(image, node_dst, sockets_dst, use_alpha=False):
+    def _image_create_helper(image, node_dst, sockets_dst, use_alpha=False, projection='FLAT'):
         tree = node_dst.id_data
         nodes = tree.nodes
         links = tree.links
 
         node = nodes.new(type='ShaderNodeTexImage')
         node.image = image
+        node.projection = projection
         node.location = node_dst.location
         node.location.x -= CyclesShaderWrapper._col_size
         for socket in sockets_dst:
@@ -365,10 +366,10 @@ class CyclesShaderWrapper():
     def diffuse_color_set(self, color):
         self.node_mix_color_diff.inputs["Color1"].default_value[0:3] = color
 
-    def diffuse_image_set(self, image):
+    def diffuse_image_set(self, image, projection='FLAT'):
         node = self.node_mix_color_diff
         self.node_image_diff = (
-            self._image_create_helper(image, node, (node.inputs["Color2"],)))
+            self._image_create_helper(image, node, (node.inputs["Color2"],), projection=projection))
 
     def diffuse_mapping_set(self, coords='UV',
                             translation=None, rotation=None, scale=None, clamp=None):

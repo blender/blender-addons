@@ -139,6 +139,7 @@ class ImportOBJ(bpy.types.Operator, ImportHelper, IOOBJOrientationHelper):
                                         from_up=self.axis_up,
                                         ).to_4x4()
         keywords["global_matrix"] = global_matrix
+        keywords["use_cycles"] = (context.scene.render.engine == 'CYCLES')
 
         if bpy.data.is_saved and context.user_preferences.filepaths.use_relative_paths:
             import os
