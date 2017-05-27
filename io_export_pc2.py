@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Export Pointcache Format(.pc2)",
     "author": "Florian Meyer (tstscr)",
-    "version": (1, 1),
+    "version": (1, 1, 1),
     "blender": (2, 71, 0),
     "location": "File > Export > Pointcache (.pc2)",
     "description": "Export mesh Pointcache data (.pc2)",
@@ -79,6 +79,7 @@ def do_export(context, props, filepath):
         me = ob.to_mesh(sc, apply_modifiers, 'PREVIEW')
 
         if len(me.vertices) != vertCount:
+            bpy.data.meshes.remove(me, do_unlink=True)
             file.close()
             try:
                 remove(filepath)
@@ -99,6 +100,9 @@ def do_export(context, props, filepath):
                                              float(v.co[1]),
                                              float(v.co[2]))
             file.write(thisVertex)
+
+        bpy.data.meshes.remove(me, do_unlink=True)
+
 
     file.flush()
     file.close()
