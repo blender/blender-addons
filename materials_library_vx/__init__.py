@@ -785,7 +785,7 @@ class MatlibRemove(bpy.types.Operator):
 	
 	def execute(self, context):
 		matlib = context.scene.matlib
-		success = matlib.remove_material(context.object.active_material)
+		success = matlib.remove_material()
 		if type(success).__name__ == "tuple":
 			print(success)
 			self.report({success[0]}, success[1])
