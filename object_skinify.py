@@ -137,9 +137,11 @@ def generate_edges(mesh, shape_object, bones, scale, connect_mesh=False, connect
     rigify_ignore_list = []
     pitchipoy_ignore_list = ['face', 'breast', 'pelvis', 'nose', 'lip', 'jaw', 'chin', 'ear.', 'brow',
                             'lid', 'forehead', 'temple', 'cheek', 'teeth', 'tongue']
+    rigify_new_ignore_list = ['face', 'breast', 'pelvis', 'nose', 'lip', 'jaw', 'chin', 'ear.', 'brow',
+                             'lid', 'forehead', 'temple', 'cheek', 'teeth', 'tongue']
 
     alternate_scale_list = []
-    # rig_type rigify = 1, pitchipoy = 2
+    # rig_type rigify = 1, pitchipoy = 2, rigify_new = 3
     rig_type = 0
     me = mesh
     verts = []
@@ -158,6 +160,10 @@ def generate_edges(mesh, shape_object, bones, scale, connect_mesh=False, connect
             ignore_list = ignore_list + pitchipoy_ignore_list
             rig_type = 2
             break
+        if b.name == 'spine' and b.rigify_type == 'spines.super_spine':
+            ignore_list = ignore_list + rigify_new_ignore_list           
+            rig_type = 3            
+            break
 
     # edge generator loop
     for b in bones:
@@ -170,8 +176,7 @@ def generate_edges(mesh, shape_object, bones, scale, connect_mesh=False, connect
         found = False
 
         for i in ignore_list:
-            if i in b.name.lower():
-
+            if i in b.name.lower():              
                 found = True
                 break
 
@@ -184,9 +189,13 @@ def generate_edges(mesh, shape_object, bones, scale, connect_mesh=False, connect
                     
 
         # ignore any head ornaments
-        if head_ornaments is False:
+        if head_ornaments is False:     
             if b.parent is not None:
-                if 'head' in b.parent.name.lower():
+            
+                if 'head' in b.parent.name.lower() and not rig_type == 3:              
+                    continue
+                    
+                if 'face' in b.parent.name.lower() and rig_type == 3:         
                     continue
 
         if connect_parents:
@@ -219,7 +228,7 @@ def generate_edges(mesh, shape_object, bones, scale, connect_mesh=False, connect
             # for bvh free floating hips and hips correction for rigify and pitchipoy
             if ((generate_all is False and 'hip' in b.name.lower()) or
               (generate_all is False and (b.name == 'hips' and rig_type == 1) or
-              (b.name == 'spine' and rig_type == 2))):
+              (b.name == 'spine' and rig_type == 2) or (b.name == 'spine' and rig_type == 3))):
                 continue
                 
         
