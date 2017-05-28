@@ -58,8 +58,10 @@ class Print3DToolBar:
                     col.operator("mesh.print3d_select_report",
                                  text=text,
                                  icon=Print3DToolBar._type_to_icon[bm_type]).index = i
+                    layout.operator("mesh.select_non_manifold", text='Non Manifold Extended')
                 else:
                     col.label(text)
+
 
     def draw(self, context):
         layout = self.layout
