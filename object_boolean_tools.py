@@ -587,7 +587,6 @@ class BTool_Slice(Operator):
 # Auto Boolean operators (maintainer Mikhail Rachinskiy) -------------------------------
 
 class AutoBoolean:
-    bl_options = {'REGISTER', 'UNDO'}
 
     solver = EnumProperty(
             name="Boolean Solver",
@@ -614,8 +613,10 @@ class AutoBoolean:
 
         scene.objects.active = ob
         bpy.ops.object.mode_set(mode='EDIT')
+
         bpy.ops.mesh.reveal()
         bpy.ops.mesh.select_all(action=select_action)
+
         bpy.ops.object.mode_set(mode='OBJECT')
         scene.objects.active = obj
 
@@ -648,6 +649,7 @@ class Auto_Union(AutoBoolean, Operator):
     """Combine selected objects"""
     bl_idname = "btool.auto_union"
     bl_label = "Union"
+    bl_options = {'REGISTER', 'UNDO'}
 
     mode = 'UNION'
 
@@ -661,6 +663,7 @@ class Auto_Difference(AutoBoolean, Operator):
     """Subtract selected objects from active object"""
     bl_idname = "btool.auto_difference"
     bl_label = "Difference"
+    bl_options = {'REGISTER', 'UNDO'}
 
     mode = 'DIFFERENCE'
 
@@ -674,6 +677,7 @@ class Auto_Intersect(AutoBoolean, Operator):
     """Keep only intersecting geometry"""
     bl_idname = "btool.auto_intersect"
     bl_label = "Intersect"
+    bl_options = {'REGISTER', 'UNDO'}
 
     mode = 'INTERSECT'
 
@@ -687,6 +691,7 @@ class Auto_Slice(AutoBoolean, Operator):
     """Slice active object along the selected object (can handle only two objects at a time)"""
     bl_idname = "btool.auto_slice"
     bl_label = "Slice"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         self.objects_prepare()
@@ -707,7 +712,7 @@ class Auto_Slice(AutoBoolean, Operator):
         scene.objects.active = obj_copy
         self.boolean_mod(obj_copy, ob, 'INTERSECT')
         obj_copy.select = True
- 
+
         return {'FINISHED'}
 
 
@@ -716,6 +721,7 @@ class Auto_Subtract(AutoBoolean, Operator):
     """subtracted object not removed (can handle only two objects at a time)"""
     bl_idname = "btool.auto_subtract"
     bl_label = "Subtract"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         self.objects_prepare()
@@ -935,37 +941,45 @@ class BoolTool_Tools(Panel):
     bl_idname = "BoolTool_Tools"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
+    bl_context = 'objectmode'
 
     @classmethod
     def poll(cls, context):
-        obj = context.object
-        if len(context.selected_objects) > 0:
-            return obj and obj.type == 'MESH' and obj.mode in {'OBJECT'}
+        return context.active_object is not None
 
     def draw(self, context):
         layout = self.layout
-        row = layout.split(0.70)
-        row.label("Bool Tools:", icon="MODIFIER")
+        obj = context.active_object
+        obs_len = len(context.selected_objects)
+
+        row = layout.split(0.7)
+        row.label("Bool Tools:")
         row.operator("help.bool_tool", text="", icon="QUESTION")
 
-        col = layout.column(align=True)
-        col.enabled = len(context.selected_objects) > 1
-        col.separator()
+        main = layout.column(align=True)
+        main.enabled = obj.type == 'MESH' and obs_len > 0
+
+        main.separator()
+
+        col = main.column(align=True)
+        col.enabled = obs_len > 1
         col.label("Auto Boolean:", icon="MODIFIER")
         col.separator()
         col.operator(Auto_Difference.bl_idname, icon="ROTACTIVE")
         col.operator(Auto_Union.bl_idname, icon="ROTATECOLLECTION")
         col.operator(Auto_Intersect.bl_idname, icon="ROTATECENTER")
 
-        col = layout.column(align=True)
-        col.enabled = len(context.selected_objects) == 2
+        main.separator()
+
+        col = main.column(align=True)
+        col.enabled = obs_len == 2
         col.operator(Auto_Slice.bl_idname, icon="ROTATECENTER")
         col.operator(Auto_Subtract.bl_idname, icon="ROTACTIVE")
 
-        layout.separator()
+        main.separator()
 
-        col = layout.column(align=True)
-        col.enabled = len(context.selected_objects) > 1
+        col = main.column(align=True)
+        col.enabled = obs_len > 1
         col.label("Brush Boolean:", icon="MODIFIER")
         col.separator()
         col.operator(BTool_Diff.bl_idname, text="Difference", icon="ROTACTIVE")
@@ -973,10 +987,9 @@ class BoolTool_Tools(Panel):
         col.operator(BTool_Inters.bl_idname, text="Intersect", icon="ROTATECENTER")
         col.operator(BTool_Slice.bl_idname, text="Slice", icon="ROTATECENTER")
 
-        layout.separator()
+        main.separator()
 
-        col = layout.column(align=True)
-
+        col = main.column(align=True)
         col.label("Draw:", icon="MESH_CUBE")
         col.separator()
         col.operator(BTool_DrawPolyBrush.bl_idname, icon="LINE_DATA")
@@ -1151,17 +1164,18 @@ class BoolTool_BViwer(Panel):
 
 # ------------------ BOOL TOOL Help ----------------------------
 class BoolTool_help(Operator):
+    """Tip"""
     bl_idname = "help.bool_tool"
     bl_label = ""
 
     def draw(self, context):
         layout = self.layout
-        layout.label('To use:')
-        layout.label('Select two or more objects.')
-        layout.label('Auto Boolean:')
-        layout.label('Apply boolean operation directly.')
-        layout.label('Brush Boolean:')
-        layout.label('Create boolean brush set up.')
+        layout.label("To use:")
+        layout.label("Select two or more objects.")
+        layout.label("Auto Boolean:")
+        layout.label("Apply boolean operation directly.")
+        layout.label("Brush Boolean:")
+        layout.label("Create boolean brush set up.")
 
     def execute(self, context):
         return {'FINISHED'}
