@@ -21,6 +21,7 @@ from bpy.props import (
 class MESH_OT_extra_tools_help(Operator):
     bl_idname = "mesh.extra_tools_help"
     bl_label = ""
+    bl_description = "Tool Help - click to read some basic information"
     bl_options = {'REGISTER'}
 
     help_ids = StringProperty(
