@@ -39,6 +39,7 @@ ORG_LAYER = [n == 31 for n in range(0, 32)]  # Armature layer that original bone
 MCH_LAYER = [n == 30 for n in range(0, 32)]  # Armature layer that mechanism bones should be moved to.
 DEF_LAYER = [n == 29 for n in range(0, 32)]  # Armature layer that deformation bones should be moved to.
 ROOT_LAYER = [n == 28 for n in range(0, 32)]  # Armature layer that root bone should be moved to.
+WGT_LAYERS = [x == 19 for x in range(0, 20)]  # Widgets go on the last scene layer.
 
 
 class Timer:
@@ -252,8 +253,11 @@ def generate_rig(context, metarig):
     # Create the root bone.
     bpy.ops.object.mode_set(mode='EDIT')
     root_bone = new_bone(obj, ROOT_NAME)
+    spread = get_xy_spread(metarig.data.bones) or metarig.data.bones[0].length
+    spread = float('%.3g' % spread)
+    scale = spread/0.589
     obj.data.edit_bones[root_bone].head = (0, 0, 0)
-    obj.data.edit_bones[root_bone].tail = (0, 1, 0)
+    obj.data.edit_bones[root_bone].tail = (0, scale, 0)
     obj.data.edit_bones[root_bone].roll = 0
     bpy.ops.object.mode_set(mode='OBJECT')
     obj.data.bones[root_bone].layers = ROOT_LAYER
@@ -273,6 +277,7 @@ def generate_rig(context, metarig):
         mesh = bpy.data.meshes.new(wgts_group_name)
         wgts_obj = bpy.data.objects.new(wgts_group_name, mesh)
         scene.objects.link(wgts_obj)
+        wgts_obj.layers = WGT_LAYERS
         t.tick("Create main WGTS: ")
 
     #----------------------------------
@@ -443,6 +448,19 @@ def generate_rig(context, metarig):
     # Create Bone Groups
     create_bone_groups(obj, metarig)
 
+    # Add rig_ui to logic
+    skip = False
+    ctrls = obj.game.controllers
+    for c in ctrls:
+        if 'Python' in c.name and c.text.name == 'rig_ui.py':
+            skip = True
+            break
+    if not skip:
+        bpy.ops.logic.controller_add(type='PYTHON', object=obj.name)
+        ctrl = obj.game.controllers[-1]
+        ctrl.text = bpy.data.texts['rig_ui.py']
+
+
     t.tick("The rest: ")
     #----------------------------------
     # Deconfigure
@@ -547,6 +565,16 @@ def get_bone_rigs(obj, bone_name, halt_on_missing=False):
         else:
             rigs += [rig]
     return rigs
+
+
+def get_xy_spread(bones):
+    x_max = 0
+    y_max = 0
+    for b in bones:
+        x_max = max((x_max, abs(b.head[0]), abs(b.tail[0])))
+        y_max = max((y_max, abs(b.head[1]), abs(b.tail[1])))
+
+    return max((x_max, y_max))
 
 
 def param_matches_type(param_name, rig_type):

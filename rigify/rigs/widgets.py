@@ -1,6 +1,7 @@
 import bpy
 import importlib
 import importlib
+from mathutils import Matrix
 from ..utils import create_widget
 
 WGT_LAYERS = [x == 19 for x in range(0, 20)]  # Widgets go on the last scene layer.
@@ -97,7 +98,7 @@ def create_face_widget(rig, bone_name, size=1.0, bone_transform_name=None):
         return None
 
 
-def create_ikarrow_widget(rig, bone_name, size=1.0, bone_transform_name=None):
+def create_ikarrow_widget(rig, bone_name, size=1.0, bone_transform_name=None, roll=0):
     obj = create_widget(rig, bone_name, bone_transform_name)
     if obj is not None:
         verts = [(0.10000000149011612*size, 0.0*size, -0.30000001192092896*size), (0.10000000149011612*size, 0.699999988079071*size, -0.30000001192092896*size), (-0.10000000149011612*size, 0.0*size, -0.30000001192092896*size), (-0.10000000149011612*size, 0.699999988079071*size, -0.30000001192092896*size), (0.20000000298023224*size, 0.699999988079071*size, -0.30000001192092896*size), (0.0*size, 1.0*size, -0.30000001192092896*size), (-0.20000000298023224*size, 0.699999988079071*size, -0.30000001192092896*size), (0.10000000149011612*size, 0.0*size, 0.30000001192092896*size), (0.10000000149011612*size, 0.699999988079071*size, 0.30000001192092896*size), (-0.10000000149011612*size, 0.0*size, 0.30000001192092896*size), (-0.10000000149011612*size, 0.699999988079071*size, 0.30000001192092896*size), (0.20000000298023224*size, 0.699999988079071*size, 0.30000001192092896*size), (0.0*size, 1.0*size, 0.30000001192092896*size), (-0.20000000298023224*size, 0.699999988079071*size, 0.30000001192092896*size), ]
@@ -107,6 +108,10 @@ def create_ikarrow_widget(rig, bone_name, size=1.0, bone_transform_name=None):
         mesh = obj.data
         mesh.from_pydata(verts, edges, faces)
         mesh.update()
+
+        if roll != 0:
+            rot_mat = Matrix.Rotation(roll, 4, 'Y')
+            mesh.transform(rot_mat)
         return obj
     else:
         return None

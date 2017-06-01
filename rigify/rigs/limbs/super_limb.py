@@ -34,6 +34,7 @@ def add_parameters(params):
         ('leg', 'Leg', ''), 
         ('paw', 'Paw', '')
     ]
+
     params.limb_type = bpy.props.EnumProperty(
         items   = items, 
         name    = "Limb Type", 
@@ -41,14 +42,21 @@ def add_parameters(params):
     )
 
     items = [
-        ('x', 'X', ''), 
-        ('y', 'Y', ''), 
-        ('z', 'Z', '')
+        ('x', 'X manual', ''),
+        ('z', 'Z manual', ''),
+        ('automatic', 'Automatic', '')
     ]
+
     params.rotation_axis = bpy.props.EnumProperty(
         items   = items, 
         name    = "Rotation Axis", 
-        default = 'x'
+        default = 'automatic'
+    )
+
+    params.auto_align_extremity = bpy.props.BoolProperty(
+        name='auto_align_extremity',
+        default=False,
+        description="Auto Align Extremity Bone"
     )
 
     params.segments = bpy.props.IntProperty(
@@ -97,9 +105,15 @@ def parameters_ui(layout, params):
 
     r = layout.row()
     r.prop(params, "limb_type")
-   
+
     r = layout.row()
     r.prop(params, "rotation_axis")
+
+    if 'auto' not in params.rotation_axis.lower():
+        r = layout.row()
+        etremities = {'arm': 'Hand', 'leg': 'Foot', 'paw': 'Claw'}
+        text = "Auto align " + etremities[params.limb_type]
+        r.prop(params, "auto_align_extremity", text=text)
 
     r = layout.row()
     r.prop(params, "segments")

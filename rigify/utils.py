@@ -137,6 +137,7 @@ def insert_before_lr(name, text):
 #=======================
 # Bone manipulation
 #=======================
+
 def new_bone(obj, bone_name):
     """ Adds a new bone to the given armature object.
         Returns the resulting bone's name.
@@ -457,6 +458,7 @@ def create_cube_widget(rig, bone_name, radius=0.5, bone_transform_name=None):
         mesh.from_pydata(verts, edges, [])
         mesh.update()
 
+
 def create_chain_widget(rig, bone_name, radius=0.5, invert=False, bone_transform_name=None):
     """Creates a basic chain widget
     """
@@ -472,6 +474,7 @@ def create_chain_widget(rig, bone_name, radius=0.5, invert=False, bone_transform
         mesh = obj.data
         mesh.from_pydata(verts, edges, [])
         mesh.update()
+
 
 def create_sphere_widget(rig, bone_name, bone_transform_name=None):
     """ Creates a basic sphere widget, three pependicular overlapping circles.
@@ -835,7 +838,7 @@ def write_metarig(obj, layers=False, func_name="create"):
             code.append("    pbone.bone.layers = %s" % str(list(pbone.bone.layers)))
         # Rig type parameters
         for param_name in pbone.rigify_parameters.keys():
-            param = getattr(pbone.rigify_parameters, param_name)
+            param = getattr(pbone.rigify_parameters, param_name, '')
             if str(type(param)) == "<class 'bpy_prop_array'>":
                 param = list(param)
             if type(param) == str:

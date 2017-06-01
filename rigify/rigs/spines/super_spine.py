@@ -1181,10 +1181,7 @@ def create_sample(obj):
     pbone.lock_rotation_w = False
     pbone.lock_scale = (False, False, False)
     pbone.rotation_mode = 'QUATERNION'
-    try:
-        pbone.rigify_parameters.chain_bone_controls = "1, 2, 3"
-    except AttributeError:
-        pass
+
     try:
         pbone.rigify_parameters.neck_pos = 5
     except AttributeError:

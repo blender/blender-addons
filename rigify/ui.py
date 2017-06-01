@@ -597,6 +597,7 @@ class Generate(bpy.types.Operator):
     bl_idname = "pose.rigify_generate"
     bl_label = "Rigify Generate Rig"
     bl_options = {'UNDO'}
+    bl_description = 'Generates a rig from the active metarig armature'
 
     def execute(self, context):
         import importlib

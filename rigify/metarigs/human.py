@@ -1191,10 +1191,7 @@ def create(obj):
     pbone.lock_scale = (False, False, False)
     pbone.rotation_mode = 'QUATERNION'
     pbone.bone.layers = [False, False, False, True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False]
-    try:
-        pbone.rigify_parameters.chain_bone_controls = "1, 2, 3"
-    except AttributeError:
-        pass
+
     try:
         pbone.rigify_parameters.neck_pos = 5
     except AttributeError:
