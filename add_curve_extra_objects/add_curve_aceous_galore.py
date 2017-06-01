@@ -597,9 +597,9 @@ def CycloidCurve(number=100, type=0, R=4.0, r=1.0, d=1.0):
     else:
         # Cycloid
         while i < number:
-            t = (i * step * pi) * a
-            x = (t - sin(t) * b) * 0.5
-            y = (1 - cos(t) * b) * 0.5
+            t = (i * step * pi)
+            x = (t - sin(t) * b) * a / pi
+            y = (1 - cos(t) * b) * a / pi
             z = 0
             newpoints.append([x, y, z])
             i += 1
@@ -1445,3 +1445,17 @@ class Curveaceous_galore(Operator):
         self.execute(context)
 
         return {'FINISHED'}
+
+
+'''
+def register():
+    bpy.utils.register_module(__name__)
+
+
+def unregister():
+    bpy.utils.unregister_module(__name__)
+
+
+if __name__ == '__main__':
+    register()
+'''
