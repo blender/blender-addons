@@ -41,6 +41,17 @@ WGT_LAYERS = [x == 19 for x in range(0, 20)]  # Widgets go on the last scene lay
 
 MODULE_NAME = "rigify"  # Windows/Mac blender is weird, so __package__ doesn't work
 
+outdated_types = {"pitchipoy.limbs.super_limb": "limbs.super_limb",
+                  "pitchipoy.limbs.super_arm": "limbs.super_limb",
+                  "pitchipoy.limbs.super_leg": "limbs.super_limb",
+                  "pitchipoy.limbs.super_front_paw": "limbs.super_limb",
+                  "pitchipoy.limbs.super_rear_paw": "limbs.super_limb",
+                  "pitchipoy.super_torso_turbo": "spines.super_spine",
+                  "pitchipoy.simple_tentacle": "limbs.simple_tentacle",
+                  "pitchipoy.super_face": "faces.super_face",
+                  "pitchipoy.super_palm": "limbs.super_palm",
+                  "palm": "limbs.super_palm",
+                  "basic.copy": "basic.super_copy"}
 
 #=======================================================================
 # Error handling
@@ -132,6 +143,24 @@ def insert_before_lr(name, text):
         return name[:-2] + text + name[-2:]
     else:
         return name + text
+
+
+def upgradeMetarigTypes(metarig, revert=False):
+    """Replaces rigify_type properties from old versions with their current names
+
+    :param revert: revert types to previous version (if old type available)
+    """
+
+    if revert:
+        vals = list(outdated_types.values())
+        rig_defs = {v: k for k, v in outdated_types.items() if vals.count(v) == 1}
+    else:
+        rig_defs = outdated_types
+
+    for bone in metarig.pose.bones:
+        rg_type = bone.rigify_type
+        if rg_type in rig_defs:
+            bone.rigify_type = rig_defs[rg_type]
 
 
 #=======================

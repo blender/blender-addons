@@ -24,6 +24,7 @@ from bpy.props import StringProperty
 from .utils import get_rig_type, MetarigError
 from .utils import write_metarig, write_widget
 from .utils import unique_name
+from .utils import upgradeMetarigTypes, outdated_types
 from . import rig_lists
 from . import generate
 
@@ -46,11 +47,13 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
         id_store = C.window_manager
 
         if obj.mode in {'POSE', 'OBJECT'}:
-            layout.operator("pose.rigify_generate", text="Generate")
+
             WARNING = "Warning: Some features may change after generation"
             show_warning = False
+            show_update_metarig = False
 
             check_props = ['IK_follow', 'root/parent', 'FK_limb_follow', 'IK_Stretch']
+
             for obj in bpy.data.objects:
                 if type(obj.data) != bpy.types.Armature:
                     continue
@@ -58,9 +61,20 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
                     if bone.bone.layers[30] and (list(set(bone.keys()) & set(check_props))):
                         show_warning = True
                         break
+                for b in obj.pose.bones:
+                    if b.rigify_type in outdated_types.keys():
+                        show_update_metarig = True
+                        break
 
             if show_warning:
                 layout.label(text=WARNING, icon='ERROR')
+
+            layout.operator("pose.rigify_generate", text="Generate Rig")
+
+            if show_update_metarig:
+                layout.label(text="Some bones have old legacy rigify_type. Click to upgrade", icon='ERROR')
+                layout.operator("pose.rigify_upgrade_types", text="Upgrade Metarig")
+
 
         elif obj.mode == 'EDIT':
             # Build types list
@@ -615,6 +629,21 @@ class Generate(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class UpgradeMetarigTypes(bpy.types.Operator):
+    """Upgrades metarig bones rigify_types"""
+
+    bl_idname = "pose.rigify_upgrade_types"
+    bl_label = "Rigify Upgrade Metarig Types"
+    bl_description = 'Upgrades the rigify types on the active metarig armature'
+    bl_options = {'UNDO'}
+
+    def execute(self, context):
+        for obj in bpy.data.objects:
+            if type(obj.data) == bpy.types.Armature:
+                upgradeMetarigTypes(obj)
+        return {'FINISHED'}
+
+
 class Sample(bpy.types.Operator):
     """Create a sample metarig to be modified before generating """ \
     """the final rig"""
@@ -751,6 +780,7 @@ def register():
     bpy.utils.register_class(VIEW3D_PT_tools_rigify_dev)
     bpy.utils.register_class(LayerInit)
     bpy.utils.register_class(Generate)
+    bpy.utils.register_class(UpgradeMetarigTypes)
     bpy.utils.register_class(Sample)
     bpy.utils.register_class(EncodeMetarig)
     bpy.utils.register_class(EncodeMetarigSample)
@@ -776,6 +806,7 @@ def unregister():
     bpy.utils.unregister_class(VIEW3D_PT_tools_rigify_dev)
     bpy.utils.unregister_class(LayerInit)
     bpy.utils.unregister_class(Generate)
+    bpy.utils.unregister_class(UpgradeMetarigTypes)
     bpy.utils.unregister_class(Sample)
     bpy.utils.unregister_class(EncodeMetarig)
     bpy.utils.unregister_class(EncodeMetarigSample)
