@@ -23,8 +23,10 @@ bl_info = {
     "author": "Antonio Vazquez (antonioya)",
     "version": (1, 0, 2),
     "blender": (2, 6, 9),
-    "location": "Properties pane > IsKeyFree Tools",
+    "location": "Text Editor > Props Shelf (Ctrl/t > IsKeyFree Tools",
     "description": "Find free shortcuts and inform of used keys",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6"
+                "/Py/Scripts/Development/IsKeyFree",
     "category": "Development"}
 
 import bpy
