@@ -26,8 +26,8 @@ bl_info = {
     "version": (1, 3, 2),
     "blender": (2, 75, 0),
     "location": "Spacebar > Icon Viewer, Text Editor > Properties",
-    "wiki_url": (
-        "https://wiki.blender.org/index.php/User:Raa/Addons/Icon_Viewer"),
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6"
+                "/Py/Scripts/Development/Display_All_Icons",
     "category": "Development"
 }
 
