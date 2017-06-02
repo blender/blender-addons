@@ -421,9 +421,9 @@ class Rig:
         eb[ mch_str ].tail = eb[ org_bones[-2] ].head
 
         # Parenting
-        eb[ ctrl    ].parent = eb[ parent ]
-        eb[ mch_str ].parent = eb[ parent ]
-        eb[ mch_ik  ].parent = eb[ ctrl   ]
+        eb[ctrl].parent = eb[parent]
+        eb[mch_str].parent = eb[parent]
+        eb[mch_ik].parent = eb[ctrl]
 
         # Make standard pole target bone
         pole_name = get_bone_name(org_bones[0], 'ctrl', 'ik_target')

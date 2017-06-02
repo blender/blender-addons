@@ -1,8 +1,8 @@
 import bpy
 from mathutils import Vector
-from ...utils import copy_bone, flip_bone, put_bone, org, align_bone_y_axis, align_bone_x_axis, align_bone_z_axis
+from ...utils import copy_bone, flip_bone, put_bone, org, align_bone_y_axis, align_bone_x_axis
 from ...utils import strip_org, make_deformer_name, connected_children_names 
-from ...utils import create_circle_widget, create_sphere_widget, create_widget
+from ...utils import create_circle_widget, create_sphere_widget, create_neck_bend_widget, create_neck_tweak_widget
 from ..widgets import create_ballsocket_widget
 from ...utils import MetarigError, make_mechanism_name, create_cube_widget
 from rna_prop_ui import rna_idprop_ui_prop_get
@@ -811,7 +811,6 @@ class Rig:
             self.obj.data.bones[bone].bbone_segments = 8
 
         self.obj.data.bones[bones['def'][0]].bbone_in = 0.0
-        # self.obj.data.bones[bones['def'][-2]].bbone_out = 0.0
         self.obj.data.bones[bones['def'][-2]].bbone_out = 1.0
 
         # Locks
@@ -862,11 +861,17 @@ class Rig:
             else:
                 radius = 1.0
 
+            # place chest on neck-base for very long necks
+            if bone == bones['chest']['ctrl'] and len(bones['neck']['original_names']) > 3:
+                head_tail = 0.0
+            else:
+                head_tail = 0.75
+
             create_circle_widget(
                 self.obj,
                 bone,
                 radius=radius,
-                head_tail=0.75,
+                head_tail=head_tail,
                 with_line=False,
                 bone_transform_name=None
             )
@@ -881,8 +886,7 @@ class Rig:
                 self.obj,
                 bones['neck']['ctrl_neck'],
                 radius=radius,
-                head_tail=0.75,
-                with_line=False,
+                head_tail=0.5,
                 bone_transform_name=None
             )
 
@@ -892,22 +896,26 @@ class Rig:
                 radius = 0.5
             else:
                 radius = 1/(2*len(bones['neck']['mch']))
-            create_circle_widget(
+            create_neck_bend_widget(
                 self.obj,
                 bones['neck']['neck_bend'],
                 radius=radius,
                 head_tail=0.0,
-                with_line=False,
                 bone_transform_name=None
             )
 
         # Head widget
+        # place wgt @ middle of head bone for long necks
+        if len(bones['neck']['original_names']) > 3:
+            head_tail = 0.5
+        else:
+            head_tail = 1.0
         if self.use_head:
             create_circle_widget(
                 self.obj,
                 bones['neck']['ctrl'],
                 radius              = 0.5,
-                head_tail           = 1.0,
+                head_tail           = head_tail,
                 with_line           = False,
                 bone_transform_name = None
             )
@@ -926,6 +934,11 @@ class Rig:
 
         # Assigning widgets to tweak bones and layers
         for bone in tweaks:
+
+            if bones['neck']['tweak'] and bone == bones['neck']['tweak'][0] \
+                    and len(bones['neck']['original_names']) > 3:
+                create_neck_tweak_widget(self.obj, bone, size=1.0, bone_transform_name=None)
+                continue
             create_sphere_widget(self.obj, bone, bone_transform_name=None)
 
             if self.tweak_layers:
@@ -1013,10 +1026,10 @@ def add_parameters(params):
     )
 
     params.pivot_pos = bpy.props.IntProperty(
-        name         = 'pivot_position',
-        default      = 3,
-        min          = 0,
-        description  = 'Position of the torso control and pivot point'
+        name='pivot_position',
+        default=2,
+        min=0,
+        description='Position of the torso control and pivot point'
     )
 
     params.copy_rotation_axes = bpy.props.BoolVectorProperty(
@@ -1026,10 +1039,10 @@ def add_parameters(params):
     )
 
     params.tail_pos = bpy.props.IntProperty(
-        name        = 'tail_position',
-        default     = 0,
-        min         = 2,
-        description = 'Where the tail starts'
+        name='tail_position',
+        default=2,
+        min=2,
+        description='Where the tail starts'
     )
 
     params.use_tail = bpy.props.BoolProperty(
@@ -1045,10 +1058,10 @@ def add_parameters(params):
     )
 
     # Setting up extra layers for the FK and tweak
-    params.tweak_extra_layers = bpy.props.BoolProperty( 
-        name        = "tweak_extra_layers", 
-        default     = True, 
-        description = ""
+    params.tweak_extra_layers = bpy.props.BoolProperty(
+        name="tweak_extra_layers",
+        default=True,
+        description=""
         )
 
     params.tweak_layers = bpy.props.BoolVectorProperty(
