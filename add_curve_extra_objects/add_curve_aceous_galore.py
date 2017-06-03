@@ -15,24 +15,21 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-'''
+
+"""
 bl_info = {
     "name": "Curveaceous Galore!",
     "author": "Jimmy Hazevoet, testscreenings",
-    "version": (0, 2),
+    "version": (0, 2, 1),
     "blender": (2, 59),
     "location": "View3D > Add > Curve",
     "description": "Adds many different types of Curves",
-    "warning": "", # used for warning icon and text in addons panel
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+    "warning": "",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Curve/Curves_Galore",
     "category": "Add Curve",
 }
-'''
-
-
-# ------------------------------------------------------------
-#    import modules
+"""
 
 import bpy
 from bpy.props import (
@@ -41,15 +38,10 @@ from bpy.props import (
         FloatProperty,
         IntProperty,
         )
-from mathutils import (
-        Matrix,
-        Vector,
-        )
+from mathutils import Matrix
 from bpy.types import Operator
 from math import (
-        sin,
-        cos,
-        pi
+        sin, cos, pi
         )
 import mathutils.noise as Noise
 
@@ -65,17 +57,16 @@ def randnum(low=0.0, high=1.0, seed=0):
     randnum( low=0.0, high=1.0, seed=0 )
 
     Create random number
-
-        Parameters:
-            low - lower range
-                (type=float)
-            high - higher range
-                (type=float)
-            seed - the random seed number, if seed is 0, the current time will be used instead
-                (type=int)
-        Returns:
-            a random number
-                (type=float)
+    Parameters:
+        low - lower range
+            (type=float)
+        high - higher range
+            (type=float)
+        seed - the random seed number, if seed is 0, the current time will be used instead
+            (type=int)
+    Returns:
+        a random number
+            (type=float)
     """
 
     Noise.seed_set(seed)
@@ -93,33 +84,35 @@ def vTurbNoise(x, y, z, iScale=0.25, Size=1.0, Depth=6, Hard=0, Basis=0, Seed=0)
 
     Create randomised vTurbulence noise
 
-        Parameters:
-            xyz - (x,y,z) float values.
-                (type=3-float tuple)
-            iScale - noise intensity scale
-                (type=float)
-            Size - noise size
-                (type=float)
-            Depth - number of noise values added.
-                (type=int)
-            Hard - noise hardness: 0 - soft noise; 1 - hard noise
-                (type=int)
-            basis - type of noise used for turbulence
-                (type=int)
-            Seed - the random seed number, if seed is 0, the current time will be used instead
-                (type=int)
-        Returns:
-            the generated turbulence vector.
-                (type=3-float list)
+    Parameters:
+        xyz - (x,y,z) float values.
+            (type=3-float tuple)
+        iScale - noise intensity scale
+            (type=float)
+        Size - noise size
+            (type=float)
+        Depth - number of noise values added.
+            (type=int)
+        Hard - noise hardness: 0 - soft noise; 1 - hard noise
+            (type=int)
+        basis - type of noise used for turbulence
+            (type=int)
+        Seed - the random seed number, if seed is 0, the current time will be used instead
+            (type=int)
+    Returns:
+        the generated turbulence vector.
+            (type=3-float list)
     """
     rand = randnum(-100, 100, Seed)
     if Basis is 9:
         Basis = 14
-    vTurb = Noise.turbulence_vector((x / Size + rand, y / Size + rand, z / Size + rand), Depth, Hard, Basis)
+    vTurb = Noise.turbulence_vector((x / Size + rand, y / Size + rand, z / Size + rand),
+                                    Depth, Hard, Basis)
     tx = vTurb[0] * iScale
     ty = vTurb[1] * iScale
     tz = vTurb[2] * iScale
     return tx, ty, tz
+
 
 # -------------------------------------------------------------------
 # 2D Curve shape functions:
@@ -133,16 +126,16 @@ def ProfileCurve(type=0, a=0.25, b=0.25):
 
     Create profile curve
 
-        Parameters:
-            type - select profile type, L, H, T, U, Z
-                (type=int)
-            a - a scaling parameter
-                (type=float)
-            b - b scaling parameter
-                (type=float)
-        Returns:
-            a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
-            (type=list)
+    Parameters:
+        type - select profile type, L, H, T, U, Z
+            (type=int)
+        a - a scaling parameter
+            (type=float)
+        b - b scaling parameter
+            (type=float)
+    Returns:
+        a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
+        (type=list)
     """
 
     newpoints = []
@@ -151,45 +144,46 @@ def ProfileCurve(type=0, a=0.25, b=0.25):
         a *= 0.5
         b *= 0.5
         newpoints = [
-                    [-1.0, 1.0, 0.0], [-1.0+a, 1.0, 0.0],
-                    [-1.0 + a, b, 0.0], [1.0 - a, b, 0.0], [1.0 - a, 1.0, 0.0],
-                    [1.0, 1.0, 0.0], [1.0, -1.0, 0.0], [1.0 - a, -1.0, 0.0],
-                    [1.0 - a, -b, 0.0], [-1.0 + a, -b, 0.0], [-1.0 + a, -1.0, 0.0],
-                    [-1.0, -1.0, 0.0]
-                    ]
+                [-1.0, 1.0, 0.0], [-1.0 + a, 1.0, 0.0],
+                [-1.0 + a, b, 0.0], [1.0 - a, b, 0.0], [1.0 - a, 1.0, 0.0],
+                [1.0, 1.0, 0.0], [1.0, -1.0, 0.0], [1.0 - a, -1.0, 0.0],
+                [1.0 - a, -b, 0.0], [-1.0 + a, -b, 0.0], [-1.0 + a, -1.0, 0.0],
+                [-1.0, -1.0, 0.0]
+                ]
     elif type is 2:
         # T:
         a *= 0.5
         newpoints = [
-                    [-1.0, 1.0, 0.0], [1.0, 1.0, 0.0],
-                    [1.0, 1.0 - b, 0.0], [a, 1.0 - b, 0.0], [a, -1.0, 0.0],
-                    [-a, -1.0, 0.0], [-a, 1.0 - b, 0.0], [-1.0, 1.0 - b, 0.0]
-                    ]
+                [-1.0, 1.0, 0.0], [1.0, 1.0, 0.0],
+                [1.0, 1.0 - b, 0.0], [a, 1.0 - b, 0.0], [a, -1.0, 0.0],
+                [-a, -1.0, 0.0], [-a, 1.0 - b, 0.0], [-1.0, 1.0 - b, 0.0]
+                ]
     elif type is 3:
         # U:
         a *= 0.5
         newpoints = [
-                    [-1.0, 1.0, 0.0], [-1.0 + a, 1.0, 0.0],
-                    [-1.0 + a, -1.0 + b, 0.0], [1.0 - a, -1.0 + b, 0.0], [1.0 - a, 1.0, 0.0],
-                    [1.0, 1.0, 0.0], [1.0, -1.0, 0.0], [-1.0, -1.0, 0.0]
-                    ]
+                [-1.0, 1.0, 0.0], [-1.0 + a, 1.0, 0.0],
+                [-1.0 + a, -1.0 + b, 0.0], [1.0 - a, -1.0 + b, 0.0], [1.0 - a, 1.0, 0.0],
+                [1.0, 1.0, 0.0], [1.0, -1.0, 0.0], [-1.0, -1.0, 0.0]
+                ]
     elif type is 4:
         # Z:
         a *= 0.5
         newpoints = [
-                    [-0.5, 1.0, 0.0], [a, 1.0, 0.0],
-                    [a, -1.0 + b, 0.0], [1.0, -1.0 + b, 0.0], [1.0, -1.0, 0.0],
-                    [-a, -1.0, 0.0], [-a, 1.0 - b, 0.0], [-1.0, 1.0 - b, 0.0],
-                    [-1.0, 1.0, 0.0]
-                    ]
+                [-0.5, 1.0, 0.0], [a, 1.0, 0.0],
+                [a, -1.0 + b, 0.0], [1.0, -1.0 + b, 0.0], [1.0, -1.0, 0.0],
+                [-a, -1.0, 0.0], [-a, 1.0 - b, 0.0], [-1.0, 1.0 - b, 0.0],
+                [-1.0, 1.0, 0.0]
+                ]
     else:
         # L:
         newpoints = [
-                    [-1.0, 1.0, 0.0], [-1.0 + a, 1.0, 0.0],
-                    [-1.0 + a, -1.0 + b, 0.0], [1.0, -1.0 + b, 0.0],
-                    [1.0, -1.0, 0.0], [-1.0, -1.0, 0.0]
-                    ]
+                [-1.0, 1.0, 0.0], [-1.0 + a, 1.0, 0.0],
+                [-1.0 + a, -1.0 + b, 0.0], [1.0, -1.0 + b, 0.0],
+                [1.0, -1.0, 0.0], [-1.0, -1.0, 0.0]
+                ]
     return newpoints
+
 
 # ------------------------------------------------------------
 # 2DCurve: Arrow
@@ -199,16 +193,16 @@ def ArrowCurve(type=1, a=1.0, b=0.5):
 
     Create arrow curve
 
-        Parameters:
-            type - select type, Arrow1, Arrow2
-                (type=int)
-            a - a scaling parameter
-                (type=float)
-            b - b scaling parameter
-                (type=float)
-        Returns:
-            a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
-            (type=list)
+    Parameters:
+        type - select type, Arrow1, Arrow2
+            (type=int)
+        a - a scaling parameter
+            (type=float)
+        b - b scaling parameter
+            (type=float)
+    Returns:
+        a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
+        (type=list)
     """
 
     newpoints = []
@@ -217,11 +211,11 @@ def ArrowCurve(type=1, a=1.0, b=0.5):
         a *= 0.5
         b *= 0.5
         newpoints = [
-                    [-1.0, b, 0.0], [-1.0 + a, b, 0.0],
-                    [-1.0 + a, 1.0, 0.0], [1.0, 0.0, 0.0],
-                    [-1.0 + a, -1.0, 0.0], [-1.0 + a, -b, 0.0],
-                    [-1.0, -b, 0.0]
-                    ]
+                [-1.0, b, 0.0], [-1.0 + a, b, 0.0],
+                [-1.0 + a, 1.0, 0.0], [1.0, 0.0, 0.0],
+                [-1.0 + a, -1.0, 0.0], [-1.0 + a, -b, 0.0],
+                [-1.0, -b, 0.0]
+                ]
     elif type is 1:
         # Arrow2:
         newpoints = [[-a, b, 0.0], [a, 0.0, 0.0], [-a, -b, 0.0], [0.0, 0.0, 0.0]]
@@ -239,29 +233,29 @@ def RectCurve(type=1, a=1.0, b=0.5, c=1.0):
 
     Create square / rectangle curve
 
-        Parameters:
-            type - select type, Square, Rounded square 1, Rounded square 2
-                (type=int)
-            a - a scaling parameter
-                (type=float)
-            b - b scaling parameter
-                (type=float)
-            c - c scaling parameter
-                (type=float)
-        Returns:
-            a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
-            (type=list)
+    Parameters:
+        type - select type, Square, Rounded square 1, Rounded square 2
+            (type=int)
+        a - a scaling parameter
+            (type=float)
+        b - b scaling parameter
+            (type=float)
+        c - c scaling parameter
+            (type=float)
+    Returns:
+        a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
+        (type=list)
     """
 
     newpoints = []
     if type is 1:
         # Rounded Rectangle:
         newpoints = [
-                    [-a, b - b * 0.2, 0.0], [-a + a * 0.05, b - b * 0.05, 0.0], [-a + a * 0.2, b, 0.0],
-                    [a - a * 0.2, b, 0.0], [a - a * 0.05, b - b * 0.05, 0.0], [a, b - b * 0.2, 0.0],
-                    [a, -b + b * 0.2, 0.0], [a - a * 0.05, -b + b * 0.05, 0.0], [a - a * 0.2, -b, 0.0],
-                    [-a + a * 0.2, -b, 0.0], [-a + a * 0.05, -b + b * 0.05, 0.0], [-a, -b + b * 0.2, 0.0]
-                    ]
+                [-a, b - b * 0.2, 0.0], [-a + a * 0.05, b - b * 0.05, 0.0], [-a + a * 0.2, b, 0.0],
+                [a - a * 0.2, b, 0.0], [a - a * 0.05, b - b * 0.05, 0.0], [a, b - b * 0.2, 0.0],
+                [a, -b + b * 0.2, 0.0], [a - a * 0.05, -b + b * 0.05, 0.0], [a - a * 0.2, -b, 0.0],
+                [-a + a * 0.2, -b, 0.0], [-a + a * 0.05, -b + b * 0.05, 0.0], [-a, -b + b * 0.2, 0.0]
+                ]
     elif type is 2:
         # Rounded Rectangle II:
         newpoints = []
@@ -300,18 +294,18 @@ def StarCurve(starpoints=8, innerradius=0.5, outerradius=1.0, twist=0.0):
 
     Create star shaped curve
 
-        Parameters:
-            starpoints - the number of points
-                (type=int)
-            innerradius - innerradius
-                (type=float)
-            outerradius - outerradius
-                (type=float)
-            twist - twist amount
-                (type=float)
-        Returns:
-            a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
-            (type=list)
+    Parameters:
+        starpoints - the number of points
+            (type=int)
+        innerradius - innerradius
+            (type=float)
+        outerradius - outerradius
+            (type=float)
+        twist - twist amount
+            (type=float)
+    Returns:
+        a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
+        (type=list)
     """
 
     newpoints = []
@@ -328,6 +322,7 @@ def StarCurve(starpoints=8, innerradius=0.5, outerradius=1.0, twist=0.0):
         i += 1
     return newpoints
 
+
 # ------------------------------------------------------------
 # 2DCurve: Flower:
 def FlowerCurve(petals=8, innerradius=0.5, outerradius=1.0, petalwidth=2.0):
@@ -336,18 +331,18 @@ def FlowerCurve(petals=8, innerradius=0.5, outerradius=1.0, petalwidth=2.0):
 
     Create flower shaped curve
 
-        Parameters:
-            petals - the number of petals
-                (type=int)
-            innerradius - innerradius
-                (type=float)
-            outerradius - outerradius
-                (type=float)
-            petalwidth - width of petals
-                (type=float)
-        Returns:
-            a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
-            (type=list)
+    Parameters:
+        petals - the number of petals
+            (type=int)
+        innerradius - innerradius
+            (type=float)
+        outerradius - outerradius
+            (type=float)
+        petalwidth - width of petals
+            (type=float)
+    Returns:
+        a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
+        (type=list)
     """
 
     newpoints = []
@@ -377,22 +372,22 @@ def ArcCurve(sides=6, startangle=0.0, endangle=90.0, innerradius=0.5, outerradiu
 
     Create arc shaped curve
 
-        Parameters:
-            sides - number of sides
-                (type=int)
-            startangle - startangle
-                (type=float)
-            endangle - endangle
-                (type=float)
-            innerradius - innerradius
-                (type=float)
-            outerradius - outerradius
-                (type=float)
-            type - select type Arc,Sector,Segment,Ring
-                (type=int)
-        Returns:
-            a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
-            (type=list)
+    Parameters:
+        sides - number of sides
+            (type=int)
+        startangle - startangle
+            (type=float)
+        endangle - endangle
+            (type=float)
+        innerradius - innerradius
+            (type=float)
+        outerradius - outerradius
+            (type=float)
+        type - select type Arc,Sector,Segment,Ring
+            (type=int)
+    Returns:
+        a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
+        (type=list)
     """
 
     newpoints = []
@@ -434,20 +429,20 @@ def CogCurve(theeth=8, innerradius=0.8, middleradius=0.95, outerradius=1.0, beve
 
     Create cog wheel shaped curve
 
-        Parameters:
-            theeth - number of theeth
-                (type=int)
-            innerradius - innerradius
-                (type=float)
-            middleradius - middleradius
-                (type=float)
-            outerradius - outerradius
-                (type=float)
-            bevel - bevel amount
-                (type=float)
-        Returns:
-            a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
-            (type=list)
+    Parameters:
+        theeth - number of theeth
+            (type=int)
+        innerradius - innerradius
+            (type=float)
+        middleradius - middleradius
+            (type=float)
+        outerradius - outerradius
+            (type=float)
+        bevel - bevel amount
+            (type=float)
+    Returns:
+        a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
+        (type=list)
     """
 
     newpoints = []
@@ -517,20 +512,20 @@ def SplatCurve(sides=24, scale=1.0, seed=0, basis=0, radius=1.0):
 
     Create splat curve
 
-        Parameters:
-            sides - number of sides
-                (type=int)
-            scale - noise size
-                (type=float)
-            seed - noise random seed
-                (type=int)
-            basis - noise basis
-                (type=int)
-            radius - radius
-                (type=float)
-        Returns:
-            a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
-            (type=list)
+    Parameters:
+        sides - number of sides
+            (type=int)
+        scale - noise size
+            (type=float)
+        seed - noise random seed
+            (type=int)
+        basis - noise basis
+            (type=int)
+        radius - radius
+            (type=float)
+    Returns:
+        a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
+        (type=list)
     """
 
     newpoints = []
@@ -547,7 +542,7 @@ def SplatCurve(sides=24, scale=1.0, seed=0, basis=0, radius=1.0):
     return newpoints
 
 
-#------------------------------------------------------------
+# -----------------------------------------------------------
 # Cycloid curve
 def CycloidCurve(number=100, type=0, R=4.0, r=1.0, d=1.0):
     """
@@ -555,20 +550,20 @@ def CycloidCurve(number=100, type=0, R=4.0, r=1.0, d=1.0):
 
     Create a Cycloid, Hypotrochoid / Hypocycloid or Epitrochoid / Epycycloid type of curve
 
-        Parameters:
-            number - the number of points
-                (type=int)
-            type - types: Cycloid, Hypocycloid, Epicycloid
-                (type=int)
-            R = Radius a scaling parameter
-                (type=float)
-            r = Radius b scaling parameter
-                (type=float)
-            d = Distance scaling parameter
-                (type=float)
-        Returns:
-            a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
-            (type=list)
+    Parameters:
+        number - the number of points
+            (type=int)
+        type - types: Cycloid, Hypocycloid, Epicycloid
+            (type=int)
+        R = Radius a scaling parameter
+            (type=float)
+        r = Radius b scaling parameter
+            (type=float)
+        d = Distance scaling parameter
+            (type=float)
+    Returns:
+        a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
+        (type=list)
     """
 
     a = R
@@ -618,28 +613,28 @@ def HelixCurve(number=100, height=2.0, startangle=0.0, endangle=360.0, width=1.0
 
     Create helix curve
 
-        Parameters:
-            number - the number of points
-                (type=int)
-            height - height
-                (type=float)
-            startangle - startangle
-                (type=float)
-            endangle - endangle
-                (type=float)
-            width - width
-                (type=float)
-            a - a
-                (type=float)
-            b - b
-                (type=float)
-        Returns:
-            a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
-            (type=list)
+    Parameters:
+        number - the number of points
+            (type=int)
+        height - height
+            (type=float)
+        startangle - startangle
+            (type=float)
+        endangle - endangle
+            (type=float)
+        width - width
+            (type=float)
+        a - a
+            (type=float)
+        b - b
+            (type=float)
+    Returns:
+        a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
+        (type=list)
     """
 
     newpoints = []
-    angle = (2.0 / 360.0 ) * (endangle - startangle)
+    angle = (2.0 / 360.0) * (endangle - startangle)
     step = angle / (number - 1)
     h = height / angle
     start = startangle * 2.0 / 360.0
@@ -654,30 +649,32 @@ def HelixCurve(number=100, height=2.0, startangle=0.0, endangle=360.0, width=1.0
         i += 1
     return newpoints
 
-#------------------------------------------------------------
+
+# -----------------------------------------------------------
 # 3D Noise curve
-def NoiseCurve(type=0, number=100, length=2.0, size=0.5, scale=[0.5,0.5,0.5], octaves=2, basis=0, seed=0):
+def NoiseCurve(type=0, number=100, length=2.0, size=0.5,
+               scale=[0.5, 0.5, 0.5], octaves=2, basis=0, seed=0):
     """
     Create noise curve
 
-        Parameters:
-            number - number of points
-                (type=int)
-            length - curve length
-                (type=float)
-            size - noise size
-                (type=float)
-            scale - noise intensity scale x,y,z
-                (type=list)
-            basis - noise basis
-                (type=int)
-            seed - noise random seed
-                (type=int)
-            type - noise curve type
-                (type=int)
-        Returns:
-            a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
+    Parameters:
+        number - number of points
+            (type=int)
+        length - curve length
+            (type=float)
+        size - noise size
+            (type=float)
+        scale - noise intensity scale x,y,z
             (type=list)
+        basis - noise basis
+            (type=int)
+        seed - noise random seed
+            (type=int)
+        type - noise curve type
+            (type=int)
+    Returns:
+        a list with lists of x,y,z coordinates for curve points, [[x,y,z],[x,y,z],...n]
+        (type=list)
     """
 
     newpoints = []
@@ -689,7 +686,7 @@ def NoiseCurve(type=0, number=100, length=2.0, size=0.5, scale=[0.5,0.5,0.5], oc
             t = i * step
             v = vTurbNoise(t, t, t, 1.0, size, octaves, 0, basis, seed)
             x = sin(t * pi) + (v[0] * scale[0])
-            y = cos(t *pi) + (v[1] * scale[1])
+            y = cos(t * pi) + (v[1] * scale[1])
             z = v[2] * scale[2]
             newpoints.append([x, y, z])
             i += 1
@@ -714,8 +711,8 @@ def NoiseCurve(type=0, number=100, length=2.0, size=0.5, scale=[0.5,0.5,0.5], oc
             newpoints.append([x, y, z])
             i += 1
     return newpoints
- 
- 
+
+
 # ------------------------------------------------------------
 # calculates the matrix for the new object
 # depending on user pref
@@ -724,8 +721,8 @@ def align_matrix(context):
     loc = Matrix.Translation(context.scene.cursor_location)
     obj_align = context.user_preferences.edit.object_align
 
-    if (context.space_data.type == 'VIEW_3D'
-            and obj_align == 'VIEW'):
+    if (context.space_data.type == 'VIEW_3D' and
+                obj_align == 'VIEW'):
         rot = context.space_data.region_3d.view_matrix.to_3x3().inverted().to_4x4()
     else:
         rot = Matrix()
@@ -767,7 +764,7 @@ def vertsToPoints(Verts, splineType):
             if splineType == 'NURBS':
                 # for nurbs w=1
                 vertArray.append(1)
-            else: 
+            else:
                 # for poly w=0
                 vertArray.append(0)
     return vertArray
@@ -778,7 +775,7 @@ def createCurve(context, vertArray, self, align_matrix):
     scene = context.scene
 
     # output splineType 'POLY' 'NURBS' 'BEZIER'
-    splineType = self.outputType 
+    splineType = self.outputType
 
     # GalloreType as name
     name = self.ProfileType
@@ -789,10 +786,10 @@ def createCurve(context, vertArray, self, align_matrix):
 
     # create spline from vertarray
     if splineType == 'BEZIER':
-        newSpline.bezier_points.add(int(len(vertArray)*0.33))
+        newSpline.bezier_points.add(int(len(vertArray) * 0.33))
         newSpline.bezier_points.foreach_set('co', vertArray)
     else:
-        newSpline.points.add(int(len(vertArray)*0.25 - 1))
+        newSpline.points.add(int(len(vertArray) * 0.25 - 1))
         newSpline.points.foreach_set('co', vertArray)
         newSpline.use_endpoint_u = True
 
@@ -815,12 +812,12 @@ def createCurve(context, vertArray, self, align_matrix):
 
     return
 
+
 # ------------------------------------------------------------
 # Main Function
 def main(context, self, align_matrix):
     # deselect all objects
     bpy.ops.object.select_all(action='DESELECT')
-
 
     # options
     proType = self.ProfileType
@@ -931,10 +928,11 @@ def main(context, self, align_matrix):
 
     return
 
+
 class Curveaceous_galore(Operator):
-    """Add many types of curves"""
     bl_idname = "mesh.curveaceous_galore"
     bl_label = "Curve Profiles"
+    bl_description = "Construct many types of curves"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     # align_matrix for the invoke
@@ -942,360 +940,356 @@ class Curveaceous_galore(Operator):
 
     # general properties
     ProfileType = EnumProperty(
-        name="Type",
-        description="Form of Curve to create",
-        items=[
-            ('Profile', 'Profile', 'Profile'),
-            ('Arrow', 'Arrow', 'Arrow'),
-            ('Rectangle', 'Rectangle', 'Rectangle'),
-            ('Flower', 'Flower', 'Flower'),
-            ('Star', 'Star', 'Star'),
-            ('Arc', 'Arc', 'Arc'),
-            ('Cogwheel', 'Cogwheel', 'Cogwheel'),
-            ('Nsided', 'Nsided', 'Nsided'),
-            ('Splat', 'Splat', 'Splat'),
-            ('Cycloid', 'Cycloid', 'Cycloid'),
-            ('Helix', 'Helix (3D)', 'Helix'),
-            ('Noise', 'Noise (3D)', 'Noise')
-            ]
-        )
+            name="Type",
+            description="Form of Curve to create",
+            items=[
+            ('Arc', "Arc", "Arc"),
+            ('Arrow', "Arrow", "Arrow"),
+            ('Cogwheel', "Cogwheel", "Cogwheel"),
+            ('Cycloid', "Cycloid", "Cycloid"),
+            ('Flower', "Flower", "Flower"),
+            ('Helix', "Helix (3D)", "Helix"),
+            ('Noise', "Noise (3D)", "Noise"),
+            ('Nsided', "Nsided", "Nsided"),
+            ('Profile', "Profile", "Profile"),
+            ('Rectangle', "Rectangle", "Rectangle"),
+            ('Splat', "Splat", "Splat"),
+            ('Star', "Star", "Star")]
+            )
     outputType = EnumProperty(
-        name="Output splines",
-        description="Type of splines to output",
-        items=[
-            ('POLY', 'Poly', 'POLY'),
-            ('NURBS', 'Nurbs', 'NURBS'),
-            ('BEZIER', 'Bezier', 'BEZIER')
-            ]
-        )
+            name="Output splines",
+            description="Type of splines to output",
+            items=[
+            ('POLY', "Poly", "Poly Spline type"),
+            ('NURBS', "Nurbs", "Nurbs Spline type"),
+            ('BEZIER', "Bezier", "Bezier Spline type")]
+            )
     # Curve Options
     shape = EnumProperty(
-        name="2D / 3D",
-        description="2D or 3D Curve",
-        items=[
-            ('2D', '2D', '2D'),
-            ('3D', '3D', '3D')
+            name="2D / 3D",
+            description="2D or 3D Curve",
+            items=[
+            ('2D', "2D", "2D"),
+            ('3D', "3D", "3D")
             ]
-        )
+            )
     use_cyclic_u = BoolProperty(
-        name="Cyclic",
-        default=True,
-        description="make curve closed"
-        )
+            name="Cyclic",
+            default=True,
+            description="make curve closed"
+            )
     endp_u = BoolProperty(
-        name="use_endpoint_u",
-        default=True,
-        description="stretch to endpoints"
-        )
+            name="Use endpoint u",
+            default=True,
+            description="stretch to endpoints"
+            )
     order_u = IntProperty(
-        name="order_u",
-        default=4,
-        min=2,
-        max=6,
-        description="Order of nurbs spline"
-        )
+            name="Order u",
+            default=4,
+            min=2, soft_min=2,
+            max=6, soft_max=6,
+            description="Order of nurbs spline"
+            )
     handleType = EnumProperty(
-        name="Handle type",
-        default='AUTOMATIC',
-        description="bezier handles type",
-        items=[
-            ('VECTOR', 'Vector', 'VECTOR'),
-            ('AUTOMATIC', 'Auto', 'AUTOMATIC')
-            ]
-        )
+            name="Handle type",
+            default='AUTOMATIC',
+            description="Bezier handles type",
+            items=[
+            ('VECTOR', "Vector", "Vector type Bezier handles"),
+            ('AUTOMATIC', "Auto", "Automatic type Bezier handles")]
+            )
     # ProfileCurve properties
     ProfileCurveType = IntProperty(
-        name="Type",
-        min=1,
-        max=5,
-        default=1,
-        description="Type of ProfileCurve"
-        )
+            name="Type",
+            min=1,
+            max=5,
+            default=1,
+            description="Type of Curve's Profile"
+            )
     ProfileCurvevar1 = FloatProperty(
-        name="var_1",
-        default=0.25,
-        description="var1 of ProfileCurve"
-        )
+            name="Variable 1",
+            default=0.25,
+            description="Variable 1 of Curve's Profile"
+            )
     ProfileCurvevar2 = FloatProperty(
-        name="var_2",
-        default=0.25,
-        description="var2 of ProfileCurve"
-        )
+            name="Variable 2",
+            default=0.25,
+            description="Variable 2 of Curve's Profile"
+            )
     # Arrow, Rectangle, MiscCurve properties
     MiscCurveType = IntProperty(
-        name="Type",
-        min=0,
-        max=3,
-        default=0,
-        description="Type of Curve"
-        )
+            name="Type",
+            min=0,
+            max=3,
+            default=0,
+            description="Type of Curve"
+            )
     MiscCurvevar1 = FloatProperty(
-        name="var_1",
-        default=1.0,
-        description="var1 of Curve"
-        )
+            name="Variable 1",
+            default=1.0,
+            description="Variable 1 of Curve"
+            )
     MiscCurvevar2 = FloatProperty(
-        name="var_2",
-        default=0.5,
-        description="var2 of Curve"
-        )
+            name="Variable 2",
+            default=0.5,
+            description="Variable 2 of Curve"
+            )
     MiscCurvevar3 = FloatProperty(
-        name="var_3",
-        default=0.1,
-        min=0,
-        description="var3 of Curve"
-        )
+            name="Variable 3",
+            default=0.1,
+            min=0,
+            description="Variable 3 of Curve"
+            )
     # Common properties
     innerRadius = FloatProperty(
-        name="Inner radius",
-        default=0.5,
-        min=0,
-        description="Inner radius"
-        )
+            name="Inner radius",
+            default=0.5,
+            min=0,
+            description="Inner radius"
+            )
     middleRadius = FloatProperty(
-        name="Middle radius",
-        default=0.95,
-        min=0,
-        description="Middle radius"
-        )
+            name="Middle radius",
+            default=0.95,
+            min=0,
+            description="Middle radius"
+            )
     outerRadius = FloatProperty(
-        name="Outer radius",
-        default=1.0,
-        min=0,
-        description="Outer radius"
-        )
+            name="Outer radius",
+            default=1.0,
+            min=0,
+            description="Outer radius"
+            )
     # Flower properties
     petals = IntProperty(
-        name="Petals",
-        default=8,
-        min=2,
-        description="Number of petals"
-        )
+            name="Petals",
+            default=8,
+            min=2,
+            description="Number of petals"
+            )
     petalWidth = FloatProperty(
-        name="Petal width",
-        default=2.0,
-        min=0.01,
-        description="Petal width"
-        )
+            name="Petal width",
+            default=2.0,
+            min=0.01,
+            description="Petal width"
+            )
     # Star properties
     starPoints = IntProperty(
-        name="Star points",
-        default=8,
-        min=2,
-        description="Number of star points"
-        )
+            name="Star points",
+            default=8,
+            min=2,
+            description="Number of star points"
+            )
     starTwist = FloatProperty(
-        name="Twist",
-        default=0.0,
-        description="Twist"
-        )
+            name="Twist",
+            default=0.0,
+            description="Twist"
+            )
     # Arc properties
     arcSides = IntProperty(
-        name="Arc sides",
-        default=6,
-        min=1,
-        description="Sides of arc"
-        )
+            name="Arc sides",
+            default=6,
+            min=1,
+            description="Sides of arc"
+            )
     startAngle = FloatProperty(
-        name="Start angle",
-        default=0.0,
-        description="Start angle"
-        )
+            name="Start angle",
+            default=0.0,
+            description="Start angle"
+            )
     endAngle = FloatProperty(
-        name="End angle",
-        default=90.0,
-        description="End angle"
-        )
+            name="End angle",
+            default=90.0,
+            description="End angle"
+            )
     arcType = IntProperty(
-        name="Arc type",
-        default=3,
-        min=1,
-        max=3,
-        description="Sides of arc"
-        )
+            name="Arc type",
+            default=3,
+            min=1,
+            max=3,
+            description="Sides of arc"
+            )
     # Cogwheel properties
     teeth = IntProperty(
-        name="Teeth",
-        default=8,
-        min=2,
-        description="number of teeth"
-        )
+            name="Teeth",
+            default=8,
+            min=2,
+            description="number of teeth"
+            )
     bevel = FloatProperty(
-        name="Bevel",
-        default=0.5,
-        min=0,
-        max=1,
-        description="Bevel"
-        )
+            name="Bevel",
+            default=0.5,
+            min=0,
+            max=1,
+            description="Bevel"
+            )
     # Nsided property
     Nsides = IntProperty(
-        name="Sides",
-        default=8,
-        min=3,
-        description="Number of sides"
-        )
+            name="Sides",
+            default=8,
+            min=3,
+            description="Number of sides"
+            )
     # Splat properties
     splatSides = IntProperty(
-        name="Splat sides",
-        default=24,
-        min=3,
-        description="Splat sides"
-        )
+            name="Splat sides",
+            default=24,
+            min=3,
+            description="Splat sides"
+            )
     splatScale = FloatProperty(
-        name="Splat scale",
-        default=1.0,
-        min=0.0001,
-        description="Splat scale"
-        )
+            name="Splat scale",
+            default=1.0,
+            min=0.0001,
+            description="Splat scale"
+            )
     seed = IntProperty(
-        name="Seed",
-        default=0,
-        min=0,
-        description="Seed"
-        )
+            name="Seed",
+            default=0,
+            min=0,
+            description="Seed"
+            )
     basis = IntProperty(
-        name="Basis",
-        default=0,
-        min=0,
-        max=14,
-        description="Basis"
-        )
+            name="Basis",
+            default=0,
+            min=0,
+            max=14,
+            description="Basis"
+            )
     # Helix properties
     helixPoints = IntProperty(
-        name="resolution",
-        default=100,
-        min=3,
-        description="resolution"
-        )
+            name="Resolution",
+            default=100,
+            min=3,
+            description="Resolution"
+            )
     helixHeight = FloatProperty(
-        name="Height",
-        default=2.0,
-        min=0,
-        description="Helix height"
-        )
+            name="Height",
+            default=2.0,
+            min=0,
+            description="Helix height"
+            )
     helixStart = FloatProperty(
-        name="Start angle",
-        default=0.0,
-        description="Helix start angle"
-        )
+            name="Start angle",
+            default=0.0,
+            description="Helix start angle"
+            )
     helixEnd = FloatProperty(
-        name="Endangle",
-        default=360.0,
-        description="Helix end angle"
-        )
+            name="Endangle",
+            default=360.0,
+            description="Helix end angle"
+            )
     helixWidth = FloatProperty(
-        name="Width",
-        default=1.0,
-        description="Helix width"
-        )
+            name="Width",
+            default=1.0,
+            description="Helix width"
+            )
     helix_a = FloatProperty(
-        name="var_1",
-        default=0.0,
-        description="Helix var1"
-        )
+            name="Variable 1",
+            default=0.0,
+            description="Helix Variable 1"
+            )
     helix_b = FloatProperty(
-        name="var_2",
-        default=0.0,
-        description="Helix var2"
-        )
+            name="Variable 2",
+            default=0.0,
+            description="Helix Variable 2"
+            )
     # Cycloid properties
     cycloPoints = IntProperty(
-        name="Resolution",
-        default=100,
-        min=3,
-        description="Resolution"
-        )
+            name="Resolution",
+            default=100,
+            min=3,
+            soft_min=3,
+            description="Resolution"
+            )
     cycloType = IntProperty(
-        name="Type",
-        default=1,
-        min=0,
-        max=2,
-        description="Type: Cycloid , Hypocycloid / Hypotrochoid , Epicycloid / Epitrochoid"
-        )
+            name="Type",
+            default=1,
+            min=0,
+            max=2,
+            description="Type: Cycloid , Hypocycloid / Hypotrochoid , Epicycloid / Epitrochoid"
+            )
     cyclo_a = FloatProperty(
-        name="R",
-        default=1.0,
-        min=0.01,
-        description="Cycloid: R radius a"
-        )
+            name="R",
+            default=1.0,
+            min=0.01,
+            description="Cycloid: R radius a"
+            )
     cyclo_b = FloatProperty(
-        name="r",
-        default=0.25,
-        min=0.01,
-        description="Cycloid: r radius b"
-        )
+            name="r",
+            default=0.25,
+            min=0.01,
+            description="Cycloid: r radius b"
+            )
     cyclo_d = FloatProperty(
-        name="d",
-        default=0.25,
-        description="Cycloid: d distance"
-        )
+            name="d",
+            default=0.25,
+            description="Cycloid: d distance"
+            )
     # Noise properties
     noiseType = IntProperty(
-        name="Type",
-        default=0,
-        min=0,
-        max=2,
-        description="Noise curve type: Linear, Circular or Knot"
-        )
+            name="Type",
+            default=0,
+            min=0,
+            max=2,
+            description="Noise curve type: Linear, Circular or Knot"
+            )
     noisePoints = IntProperty(
-        name="Resolution",
-        default=100,
-        min=3,
-        description="Resolution"
-        )
+            name="Resolution",
+            default=100,
+            min=3,
+            description="Resolution"
+            )
     noiseLength = FloatProperty(
-        name="Length",
-        default=2.0,
-        min=0.01,
-        description="Curve Length"
-        )
+            name="Length",
+            default=2.0,
+            min=0.01,
+            description="Curve Length"
+            )
     noiseSize = FloatProperty(
-        name="Noise size",
-        default=1.0,
-        min=0.0001,
-        description="Noise size"
-        )
+            name="Noise size",
+            default=1.0,
+            min=0.0001,
+            description="Noise size"
+            )
     noiseScaleX = FloatProperty(
-        name="Noise x",
-        default=1.0,
-        min=0.0001,
-        description="Noise x"
-        )
+            name="Noise x",
+            default=1.0,
+            min=0.0001,
+            description="Noise x"
+            )
     noiseScaleY = FloatProperty(
-        name="Noise y",
-        default=1.0,
-        min=0.0001,
-        description="Noise y"
-        )
+            name="Noise y",
+            default=1.0,
+            min=0.0001,
+            description="Noise y"
+            )
     noiseScaleZ = FloatProperty(
-        name="Noise z",
-        default=1.0,
-        min=0.0001,
-        description="Noise z"
-        )
+            name="Noise z",
+            default=1.0,
+            min=0.0001,
+            description="Noise z"
+            )
     noiseOctaves = IntProperty(
-        name="Octaves",
-        default=2,
-        min=1,
-        max=16,
-        description="Basis"
-        )
+            name="Octaves",
+            default=2,
+            min=1,
+            max=16,
+            description="Basis"
+            )
     noiseBasis = IntProperty(
-        name="Basis",
-        default=0,
-        min=0,
-        max=9,
-        description="Basis"
-        )
+            name="Basis",
+            default=0,
+            min=0,
+            max=9,
+            description="Basis"
+            )
     noiseSeed = IntProperty(
-        name="Seed",
-        default=1,
-        min=0,
-        description="Random Seed"
-        )
+            name="Seed",
+            default=1,
+            min=0,
+            description="Random Seed"
+            )
 
-
-    ##### DRAW #####
     def draw(self, context):
         layout = self.layout
 
@@ -1305,94 +1299,118 @@ class Curveaceous_galore(Operator):
         col.label(text=self.ProfileType + " Options:")
 
         # options per ProfileType
-        box = layout.box().column(align=True)
+        box = layout.box()
+        col = box.column(align=True)
+
         if self.ProfileType == 'Profile':
-            box.prop(self, 'ProfileCurveType')
-            box.prop(self, 'ProfileCurvevar1')
-            box.prop(self, 'ProfileCurvevar2')
+            col.prop(self, "ProfileCurveType")
+            col.prop(self, "ProfileCurvevar1")
+            col.prop(self, "ProfileCurvevar2")
 
         elif self.ProfileType == 'Arrow':
-            box.prop(self, 'MiscCurveType')
-            box.prop(self, 'MiscCurvevar1', text='Height')
-            box.prop(self, 'MiscCurvevar2', text='Width')
+            col.prop(self, "MiscCurveType")
+            col.prop(self, "MiscCurvevar1", text="Height")
+            col.prop(self, "MiscCurvevar2", text="Width")
 
         elif self.ProfileType == 'Rectangle':
-            box.prop(self, 'MiscCurveType')
-            box.prop(self, 'MiscCurvevar1', text='Width')
-            box.prop(self, 'MiscCurvevar2', text='Height')
+            col.prop(self, "MiscCurveType")
+            col.prop(self, "MiscCurvevar1", text="Width")
+            col.prop(self, "MiscCurvevar2", text="Height")
             if self.MiscCurveType is 2:
-                box.prop(self, 'MiscCurvevar3', text='Corners')
+                col.prop(self, "MiscCurvevar3", text="Corners")
 
         elif self.ProfileType == 'Flower':
-            box.prop(self, 'petals')
-            box.prop(self, 'petalWidth')
-            box.prop(self, 'innerRadius')
-            box.prop(self, 'outerRadius')
+            col.prop(self, "petals")
+            col.prop(self, "petalWidth")
+
+            col = box.column(align=True)
+            col.prop(self, "innerRadius")
+            col.prop(self, "outerRadius")
 
         elif self.ProfileType == 'Star':
-            box.prop(self, 'starPoints')
-            box.prop(self, 'starTwist')
-            box.prop(self, 'innerRadius')
-            box.prop(self, 'outerRadius')
+            col.prop(self, "starPoints")
+            col.prop(self, "starTwist")
+
+            col = box.column(align=True)
+            col.prop(self, "innerRadius")
+            col.prop(self, "outerRadius")
 
         elif self.ProfileType == 'Arc':
-            box.prop(self, 'arcType')
-            box.prop(self, 'arcSides')
-            box.prop(self, 'startAngle')
-            box.prop(self, 'endAngle')
-            box.prop(self, 'innerRadius')
-            box.prop(self, 'outerRadius')
+            col.prop(self, "arcType")
+            col.prop(self, "arcSides")
+
+            col = box.column(align=True)
+            col.prop(self, "startAngle")
+            col.prop(self, "endAngle")
+
+            col = box.column(align=True)
+            col.prop(self, "innerRadius")
+            col.prop(self, "outerRadius")
 
         elif self.ProfileType == 'Cogwheel':
-            box.prop(self, 'teeth')
-            box.prop(self, 'bevel')
-            box.prop(self, 'innerRadius')
-            box.prop(self, 'middleRadius')
-            box.prop(self, 'outerRadius')
+            col.prop(self, "teeth")
+            col.prop(self, "bevel")
+
+            col = box.column(align=True)
+            col.prop(self, "innerRadius")
+            col.prop(self, "middleRadius")
+            col.prop(self, "outerRadius")
 
         elif self.ProfileType == 'Nsided':
-            box.prop(self, 'Nsides')
-            box.prop(self, 'outerRadius')
+            col.prop(self, "Nsides")
+            col.prop(self, "outerRadius")
 
         elif self.ProfileType == 'Splat':
-            box.prop(self, 'splatSides')
-            box.prop(self, 'outerRadius')
-            box.prop(self, 'splatScale')
-            box.prop(self, 'seed')
-            box.prop(self, 'basis')
+            col.prop(self, "splatSides")
+            col.prop(self, "outerRadius")
+
+            col = box.column(align=True)
+            col.prop(self, "splatScale")
+            col.prop(self, "seed")
+            col.prop(self, "basis")
 
         elif self.ProfileType == 'Cycloid':
-            box.prop(self, 'cycloType')
-            box.prop(self, 'cycloPoints')
-            box.prop(self, 'cyclo_a')
-            box.prop(self, 'cyclo_b')
+            col.prop(self, "cycloType")
+            col.prop(self, "cycloPoints")
+
+            col = box.column(align=True)
+            col.prop(self, "cyclo_a")
+            col.prop(self, "cyclo_b")
             if self.cycloType is not 0:
-                box.prop(self, 'cyclo_d')
+                col.prop(self, "cyclo_d")
 
         elif self.ProfileType == 'Helix':
-            box.prop(self, 'helixPoints')
-            box.prop(self, 'helixHeight')
-            box.prop(self, 'helixWidth')
-            box.prop(self, 'helixStart')
-            box.prop(self, 'helixEnd')
-            box.prop(self, 'helix_a')
-            box.prop(self, 'helix_b')
+            col.prop(self, "helixPoints")
+            col.prop(self, "helixHeight")
+            col.prop(self, "helixWidth")
+
+            col = box.column(align=True)
+            col.prop(self, "helixStart")
+            col.prop(self, "helixEnd")
+
+            col = box.column(align=True)
+            col.prop(self, "helix_a")
+            col.prop(self, "helix_b")
 
         elif self.ProfileType == 'Noise':
-            box.prop(self, 'noiseType')
-            box.prop(self, 'noisePoints')
-            box.prop(self, 'noiseLength')
-            box.prop(self, 'noiseSize')
-            box.prop(self, 'noiseScaleX')
-            box.prop(self, 'noiseScaleY')
-            box.prop(self, 'noiseScaleZ')
-            box.prop(self, 'noiseOctaves')
-            box.prop(self, 'noiseBasis')
-            box.prop(self, 'noiseSeed')
+            col.prop(self, "noiseType")
+            col.prop(self, "noisePoints")
+            col.prop(self, "noiseLength")
+
+            col = box.column(align=True)
+            col.prop(self, "noiseSize")
+            col.prop(self, "noiseScaleX")
+            col.prop(self, "noiseScaleY")
+            col.prop(self, "noiseScaleZ")
+
+            col = box.column(align=True)
+            col.prop(self, "noiseOctaves")
+            col.prop(self, "noiseBasis")
+            col.prop(self, "noiseSeed")
 
         col = layout.column()
         col.label(text="Output Curve Type:")
-        col.row().prop(self, 'outputType', expand=True)
+        col.row().prop(self, "outputType", expand=True)
 
         # output options
         if self.outputType == 'NURBS':
@@ -1400,12 +1418,10 @@ class Curveaceous_galore(Operator):
         elif self.outputType == 'BEZIER':
             col.row().prop(self, 'handleType', expand=True)
 
-    ##### POLL #####
     @classmethod
     def poll(cls, context):
         return context.scene is not None
 
-    ##### EXECUTE #####
     def execute(self, context):
         # turn off undo
         undo = context.user_preferences.edit.use_global_undo
@@ -1417,7 +1433,7 @@ class Curveaceous_galore(Operator):
         else:
             self.shape = '2D'
 
-        if self.ProfileType in ['Helix','Noise', 'Cycloid']:
+        if self.ProfileType in ['Helix', 'Noise', 'Cycloid']:
             self.use_cyclic_u = False
             if self.ProfileType in ['Cycloid']:
                 if self.cycloType is 0:
@@ -1438,24 +1454,9 @@ class Curveaceous_galore(Operator):
 
         return {'FINISHED'}
 
-    ##### INVOKE #####
     def invoke(self, context, event):
         # store creation_matrix
         self.align_matrix = align_matrix(context)
         self.execute(context)
 
         return {'FINISHED'}
-
-
-'''
-def register():
-    bpy.utils.register_module(__name__)
-
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
-
-if __name__ == '__main__':
-    register()
-'''

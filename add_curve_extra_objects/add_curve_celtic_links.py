@@ -1,5 +1,4 @@
 # Blender plugin for generating celtic knot curves from 3d meshes
-# See README for more information
 #
 # The MIT License (MIT)
 #
@@ -27,7 +26,7 @@ bl_info = {
     "name": "Celtic Knot",
     "description": "",
     "author": "Adam Newgas",
-    "version": (0, 1, 1),
+    "version": (0, 1, 2),
     "blender": (2, 74, 0),
     "location": "View3D > Add > Curve",
     "warning": "",
@@ -36,45 +35,65 @@ bl_info = {
 
 import bpy
 import bmesh
+from bpy.types import Operator
+from bpy.props import (
+        EnumProperty,
+        FloatProperty,
+        )
 from collections import defaultdict
-from mathutils import Vector
-from math import pi, sin, cos
+from math import (
+        pi, sin,
+        cos,
+        )
 
 
-class CelticKnotOperator(bpy.types.Operator):
+class CelticKnotOperator(Operator):
     bl_idname = "curve.celtic_links"
     bl_label = "Celtic Links"
-    bl_description = 'Select low poly Mesh Object to cover with Knitted Links'
+    bl_description = "Select a low poly Mesh Object to cover with Knitted Links"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    weave_up = bpy.props.FloatProperty(name="Weave Up",
-                                       description="Distance to shift curve upwards over knots",
-                                       subtype="DISTANCE",
-                                       unit="LENGTH")
-    weave_down = bpy.props.FloatProperty(name="Weave Down",
-                                         description="Distance to shift curve downward under knots",
-                                         subtype="DISTANCE",
-                                         unit="LENGTH")
-    handle_types = [("ALIGNED", "Aligned", "Points at a fixed crossing angle"),
-                    ("AUTO", "Auto", "Automatic control points")]
-    handle_type = bpy.props.EnumProperty(items=handle_types,
-                                         name="Handle Type",
-                                         description="Controls what type the bezier control points use",
-                                         default="AUTO")
-    crossing_angle = bpy.props.FloatProperty(name="Crossing Angle",
-                                             description="Aligned only: the angle between curves in a knot",
-                                             default=pi / 4,
-                                             min=0, max=pi / 2,
-                                             subtype="ANGLE",
-                                             unit="ROTATION")
-    crossing_strength = bpy.props.FloatProperty(name="Crossing Strength",
-                                                description="Aligned only: strenth of bezier control points",
-                                                soft_min=0,
-                                                subtype="DISTANCE",
-                                                unit="LENGTH")
+    weave_up = FloatProperty(
+            name="Weave Up",
+            description="Distance to shift curve upwards over knots",
+            subtype="DISTANCE",
+            unit="LENGTH"
+            )
+    weave_down = FloatProperty(
+            name="Weave Down",
+            description="Distance to shift curve downward under knots",
+            subtype="DISTANCE",
+            unit="LENGTH"
+            )
+    handle_types = [
+            ('ALIGNED', "Aligned", "Points at a fixed crossing angle"),
+            ('AUTO', "Auto", "Automatic control points")
+            ]
+    handle_type = EnumProperty(
+            items=handle_types,
+            name="Handle Type",
+            description="Controls what type the bezier control points use",
+            default='AUTO'
+            )
 
     handle_type_map = {"AUTO": "AUTOMATIC", "ALIGNED": "ALIGNED"}
-    geo_bDepth = bpy.props.FloatProperty(
+
+    crossing_angle = FloatProperty(
+            name="Crossing Angle",
+            description="Aligned only: the angle between curves in a knot",
+            default=pi / 4,
+            min=0, max=pi / 2,
+            subtype="ANGLE",
+            unit="ROTATION"
+            )
+    crossing_strength = FloatProperty(
+            name="Crossing Strength",
+            description="Aligned only: strenth of bezier control points",
+            soft_min=0,
+            subtype="DISTANCE",
+            unit="LENGTH"
+            )
+    geo_bDepth = FloatProperty(
             name="Bevel Depth",
             default=0.04,
             min=0, soft_min=0,
@@ -84,11 +103,23 @@ class CelticKnotOperator(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         ob = context.active_object
-        # return True
-        return ((ob is not None) and
-                (ob.mode == "OBJECT") and
-                (ob.type == "MESH") and
-                (context.mode == "OBJECT"))
+        return ((ob is not None) and (ob.mode == "OBJECT") and
+                (ob.type == "MESH") and (context.mode == "OBJECT"))
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "handle_type")
+
+        col = layout.column(align=True)
+        col.prop(self, "weave_up")
+        col.prop(self, "weave_down")
+
+        col = layout.column(align=True)
+        col.active = False if self.handle_type == 'AUTO' else True
+        col.prop(self, "crossing_angle")
+        col.prop(self, "crossing_strength")
+
+        layout.prop(self, "geo_bDepth")
 
     def execute(self, context):
         # Cache some values
@@ -97,6 +128,7 @@ class CelticKnotOperator(bpy.types.Operator):
         handle_type = self.handle_type
         weave_up = self.weave_up
         weave_down = self.weave_down
+
         # Create the new object
         orig_obj = obj = context.active_object
         curve = bpy.data.curves.new("Celtic", "CURVE")
@@ -108,6 +140,7 @@ class CelticKnotOperator(bpy.types.Operator):
         curve.bevel_resolution = 4
         obj = obj.data
         midpoints = []
+
         # Compute all the midpoints of each edge
         for e in obj.edges.values():
             v1 = obj.vertices[e.vertices[0]]
@@ -124,6 +157,7 @@ class CelticKnotOperator(bpy.types.Operator):
 
         def ignorable_loop(loop):
             return len(loop.link_loops) == 0
+
         # Starting at loop, build a curve one vertex at a time
         # until we start where we came from
         # Forward means that for any two edges the loop crosses
@@ -150,7 +184,7 @@ class CelticKnotOperator(bpy.types.Operator):
                         loop = loop.link_loop_next
                         if not ignorable_loop(loop):
                             break
-                    assert loops_entered[loop] == False
+                    assert loops_entered[loop] is False
                     loops_entered[loop] = True
                     v = loop.vert.index
                     prev_loop = loop
@@ -168,13 +202,14 @@ class CelticKnotOperator(bpy.types.Operator):
                         loop = loop.link_loop_prev
                         if not ignorable_loop(loop):
                             break
-                    assert loops_exited[loop] == False
+                    assert loops_exited[loop] is False
                     loops_exited[loop] = True
                     prev_loop = loop
                     # Find next radial loop
                     assert loop.link_loops[-1] != loop
                     loop = loop.link_loops[-1]
                     forward = loop.vert.index == v
+
                 if not first:
                     current_spline.bezier_points.add()
                 first = False
@@ -184,6 +219,7 @@ class CelticKnotOperator(bpy.types.Operator):
                 offset = weave_up if forward else weave_down
                 midpoint = midpoint + offset * normal
                 cos.extend(midpoint)
+
                 if handle_type != "AUTO":
                     tangent = loop.link_loop_next.vert.co - loop.vert.co
                     tangent.normalize()
@@ -196,6 +232,7 @@ class CelticKnotOperator(bpy.types.Operator):
                     handle_right = midpoint + s_binormal + c_tangent
                     handle_lefts.extend(handle_left)
                     handle_rights.extend(handle_right)
+
             points = current_spline.bezier_points
             points.foreach_set("co", cos)
             if handle_type != "AUTO":
@@ -211,6 +248,7 @@ class CelticKnotOperator(bpy.types.Operator):
                     make_loop(loop, True)
                 if not loops_entered[loop]:
                     make_loop(loop, False)
+
         # Create an object from the curve
         from bpy_extras import object_utils
         object_utils.object_data_add(context, curve, operator=None)
@@ -223,27 +261,24 @@ class CelticKnotOperator(bpy.types.Operator):
         bpy.ops.object.editmode_toggle()
         # Restore active selection
         curve_obj = context.active_object
-        context.scene.objects.active = orig_obj
 
-        # If thick, then give it a bevel_object and convert to mesh
+        # apply the bevel setting since it was unused
+        try:
+            curve_obj.data.bevel_depth = self.geo_bDepth
+        except:
+            pass
+        context.scene.objects.active = orig_obj
 
         return {'FINISHED'}
 
 
-def menu_func(self, context):
-    self.layout.operator(CelticKnotOperator.bl_idname,
-                         text="Celtic Knot From Mesh",
-                         icon='PLUGIN')
-
-
 def register():
-    bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_curve_add.append(menu_func)
+    bpy.utils.register_class(CelticKnotOperator)
 
 
 def unregister():
-    bpy.types.INFO_MT_curve_add.remove(menu_func)
-    bpy.utils.unregister_module(__name__)
+    bpy.utils.unregister_class(CelticKnotOperator)
+
 
 if __name__ == "__main__":
     register()

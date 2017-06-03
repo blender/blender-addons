@@ -17,30 +17,51 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    'name': 'Simple Curve',
-    'author': 'Spivak Vladimir (http://cwolf3d.korostyshev.net)',
-    'version': (1, 5, 2),
-    'blender': (2, 6, 9),
-    'location': 'View3D > Add > Curve',
-    'description': 'Adds Simple Curve',
-    'warning': '',  # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Curve/Simple_curves',
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
-    'category': 'Add Curve'}
+    "name": "Simple Curve",
+    "author": "Spivak Vladimir (http://cwolf3d.korostyshev.net)",
+    "version": (1, 5, 3),
+    "blender": (2, 6, 9),
+    "location": "View3D > Add > Curve",
+    "description": "Adds Simple Curve",
+    "warning": "",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/"
+                "Py/Scripts/Curve/Simple_curves",
+    "category": "Add Curve"}
 
 
 # ------------------------------------------------------------
-#### import modules
+
 import bpy
-from bpy.props import *
-from mathutils import *
-from math import *
-from bpy_extras.object_utils import *
-from random import *
+from bpy.types import (
+        Operator,
+        Menu,
+        Panel,
+        PropertyGroup,
+        )
+from bpy.props import (
+        BoolProperty,
+        EnumProperty,
+        FloatProperty,
+        FloatVectorProperty,
+        IntProperty,
+        StringProperty,
+        PointerProperty,
+        )
+from mathutils import (
+        Vector,
+        Matrix,
+        )
+from math import (
+        sin, asin, sqrt,
+        acos, cos, pi,
+        radians, tan,
+        hypot,
+        )
+# from bpy_extras.object_utils import *
+
 
 # ------------------------------------------------------------
 # Point:
-
 
 def SimplePoint():
     newpoints = []
@@ -49,9 +70,9 @@ def SimplePoint():
 
     return newpoints
 
+
 # ------------------------------------------------------------
 # Line:
-
 
 def SimpleLine(c1=[0.0, 0.0, 0.0], c2=[2.0, 2.0, 2.0]):
     newpoints = []
@@ -62,9 +83,9 @@ def SimpleLine(c1=[0.0, 0.0, 0.0], c2=[2.0, 2.0, 2.0]):
 
     return newpoints
 
+
 # ------------------------------------------------------------
 # Angle:
-
 
 def SimpleAngle(length=1.0, angle=45.0):
     newpoints = []
@@ -76,9 +97,9 @@ def SimpleAngle(length=1.0, angle=45.0):
 
     return newpoints
 
+
 # ------------------------------------------------------------
 # Distance:
-
 
 def SimpleDistance(length=1.0, center=True):
     newpoints = []
@@ -92,9 +113,9 @@ def SimpleDistance(length=1.0, center=True):
 
     return newpoints
 
+
 # ------------------------------------------------------------
 # Circle:
-
 
 def SimpleCircle(sides=4, radius=1.0):
     newpoints = []
@@ -111,9 +132,9 @@ def SimpleCircle(sides=4, radius=1.0):
 
     return newpoints
 
+
 # ------------------------------------------------------------
 # Ellipse:
-
 
 def SimpleEllipse(a=2.0, b=1.0):
     newpoints = []
@@ -125,9 +146,9 @@ def SimpleEllipse(a=2.0, b=1.0):
 
     return newpoints
 
+
 # ------------------------------------------------------------
 # Arc:
-
 
 def SimpleArc(sides=0, radius=1.0, startangle=0.0, endangle=45.0):
     newpoints = []
@@ -153,9 +174,9 @@ def SimpleArc(sides=0, radius=1.0, startangle=0.0, endangle=45.0):
 
     return newpoints
 
+
 # ------------------------------------------------------------
 # Sector:
-
 
 def SimpleSector(sides=0, radius=1.0, startangle=0.0, endangle=45.0):
     newpoints = []
@@ -182,9 +203,9 @@ def SimpleSector(sides=0, radius=1.0, startangle=0.0, endangle=45.0):
 
     return newpoints
 
+
 # ------------------------------------------------------------
 # Segment:
-
 
 def SimpleSegment(sides=0, a=2.0, b=1.0, startangle=0.0, endangle=45.0):
     newpoints = []
@@ -224,9 +245,9 @@ def SimpleSegment(sides=0, a=2.0, b=1.0, startangle=0.0, endangle=45.0):
 
     return newpoints
 
+
 # ------------------------------------------------------------
 # Rectangle:
-
 
 def SimpleRectangle(width=2.0, length=2.0, rounded=0.0, center=True):
     newpoints = []
@@ -271,9 +292,9 @@ def SimpleRectangle(width=2.0, length=2.0, rounded=0.0, center=True):
 
     return newpoints
 
+
 # ------------------------------------------------------------
 # Rhomb:
-
 
 def SimpleRhomb(width=2.0, length=2.0, center=True):
     newpoints = []
@@ -293,9 +314,9 @@ def SimpleRhomb(width=2.0, length=2.0, center=True):
 
     return newpoints
 
+
 # ------------------------------------------------------------
 # Polygon:
-
 
 def SimplePolygon(sides=3, radius=1.0):
     newpoints = []
@@ -311,9 +332,9 @@ def SimplePolygon(sides=3, radius=1.0):
 
     return newpoints
 
+
 # ------------------------------------------------------------
 # Polygon_ab:
-
 
 def SimplePolygon_ab(sides=3, a=2.0, b=1.0):
     newpoints = []
@@ -329,9 +350,9 @@ def SimplePolygon_ab(sides=3, a=2.0, b=1.0):
 
     return newpoints
 
+
 # ------------------------------------------------------------
 # Trapezoid:
-
 
 def SimpleTrapezoid(a=2.0, b=1.0, h=1.0, center=True):
     newpoints = []
@@ -353,16 +374,16 @@ def SimpleTrapezoid(a=2.0, b=1.0, h=1.0, center=True):
 
     return newpoints
 
+
 # ------------------------------------------------------------
 # calculates the matrix for the new object
 # depending on user pref
 
-
 def align_matrix(context, location):
     loc = Matrix.Translation(location)
     obj_align = context.user_preferences.edit.object_align
-    if (context.space_data.type == 'VIEW_3D'
-            and obj_align == 'VIEW'):
+    if (context.space_data.type == 'VIEW_3D' and
+            obj_align == 'VIEW'):
         rot = context.space_data.region_3d.view_matrix.to_3x3().inverted().to_4x4()
     else:
         rot = Matrix()
@@ -370,21 +391,21 @@ def align_matrix(context, location):
 
     return align_matrix
 
+
 # ------------------------------------------------------------
 # Main Function
-
 
 def main(context, self, align_matrix):
     # deselect all objects
     bpy.ops.object.select_all(action='DESELECT')
 
     # create object
-    name = self.Simple_Type         # Type as name
+    name = self.Simple_Type  # Type as name
 
     # create curve
     scene = bpy.context.scene
     newCurve = bpy.data.curves.new(name, type='CURVE')  # curvedatablock
-    newSpline = newCurve.splines.new('BEZIER')  # spline
+    newSpline = newCurve.splines.new('BEZIER')          # spline
 
     # set curveOptions
     newCurve.dimensions = self.shape
@@ -425,15 +446,23 @@ def main(context, self, align_matrix):
             self.Simple_sides = sides
         if self.Simple_radius == 0:
             return {'FINISHED'}
-        verts = SimpleArc(self.Simple_sides, self.Simple_radius, self.Simple_startangle, self.Simple_endangle)
+        verts = SimpleArc(
+                    self.Simple_sides, self.Simple_radius,
+                    self.Simple_startangle, self.Simple_endangle
+                    )
         newSpline.use_cyclic_u = False
 
     if self.Simple_Type == 'Sector':
         if self.Simple_sides < sides:
             self.Simple_sides = sides
+
         if self.Simple_radius == 0:
             return {'FINISHED'}
-        verts = SimpleSector(self.Simple_sides, self.Simple_radius, self.Simple_startangle, self.Simple_endangle)
+
+        verts = SimpleSector(
+                    self.Simple_sides, self.Simple_radius,
+                    self.Simple_startangle, self.Simple_endangle
+                    )
         newSpline.use_cyclic_u = True
 
     if self.Simple_Type == 'Segment':
@@ -441,31 +470,45 @@ def main(context, self, align_matrix):
             self.Simple_sides = sides
         if self.Simple_a == 0 or self.Simple_b == 0:
             return {'FINISHED'}
-        verts = SimpleSegment(self.Simple_sides, self.Simple_a, self.Simple_b, self.Simple_startangle, self.Simple_endangle)
+        verts = SimpleSegment(
+                    self.Simple_sides, self.Simple_a, self.Simple_b,
+                    self.Simple_startangle, self.Simple_endangle
+                    )
         newSpline.use_cyclic_u = True
 
     if self.Simple_Type == 'Rectangle':
-        verts = SimpleRectangle(self.Simple_width, self.Simple_length, self.Simple_rounded, self.Simple_center)
+        verts = SimpleRectangle(
+                    self.Simple_width, self.Simple_length,
+                    self.Simple_rounded, self.Simple_center
+                    )
         newSpline.use_cyclic_u = True
 
     if self.Simple_Type == 'Rhomb':
-        verts = SimpleRhomb(self.Simple_width, self.Simple_length, self.Simple_center)
+        verts = SimpleRhomb(
+                    self.Simple_width, self.Simple_length, self.Simple_center
+                    )
         newSpline.use_cyclic_u = True
 
     if self.Simple_Type == 'Polygon':
         if self.Simple_sides < 3:
             self.Simple_sides = 3
-        verts = SimplePolygon(self.Simple_sides, self.Simple_radius)
+        verts = SimplePolygon(
+                    self.Simple_sides, self.Simple_radius
+                    )
         newSpline.use_cyclic_u = True
 
     if self.Simple_Type == 'Polygon_ab':
         if self.Simple_sides < 3:
             self.Simple_sides = 3
-        verts = SimplePolygon_ab(self.Simple_sides, self.Simple_a, self.Simple_b)
+        verts = SimplePolygon_ab(
+                    self.Simple_sides, self.Simple_a, self.Simple_b
+                    )
         newSpline.use_cyclic_u = True
 
     if self.Simple_Type == 'Trapezoid':
-        verts = SimpleTrapezoid(self.Simple_a, self.Simple_b, self.Simple_h, self.Simple_center)
+        verts = SimpleTrapezoid(
+                    self.Simple_a, self.Simple_b, self.Simple_h, self.Simple_center
+                    )
         newSpline.use_cyclic_u = True
 
     vertArray = []
@@ -491,7 +534,10 @@ def main(context, self, align_matrix):
         p.handle_left_type = 'VECTOR'
         n += 1
 
-    if self.Simple_Type == 'Circle' or self.Simple_Type == 'Arc' or self.Simple_Type == 'Sector' or self.Simple_Type == 'Segment' or self.Simple_Type == 'Ellipse':
+    if self.Simple_Type == 'Circle' or self.Simple_Type == 'Arc' or \
+            self.Simple_Type == 'Sector' or self.Simple_Type == 'Segment' or \
+            self.Simple_Type == 'Ellipse':
+
         for p in all_points:
             p.handle_right_type = 'FREE'
             p.handle_left_type = 'FREE'
@@ -702,24 +748,24 @@ def main(context, self, align_matrix):
         all_points[int(n / 2) - 1].handle_right_type = 'VECTOR'
         all_points[int(n / 2)].handle_left_type = 'VECTOR'
 
-    SimpleCurve.Simple = True
-    SimpleCurve.Simple_Change = False
-    SimpleCurve.Simple_Type = self.Simple_Type
-    SimpleCurve.Simple_startlocation = self.Simple_startlocation
-    SimpleCurve.Simple_endlocation = self.Simple_endlocation
-    SimpleCurve.Simple_a = self.Simple_a
-    SimpleCurve.Simple_b = self.Simple_b
-    SimpleCurve.Simple_h = self.Simple_h
-    SimpleCurve.Simple_angle = self.Simple_angle
-    SimpleCurve.Simple_startangle = self.Simple_startangle
-    SimpleCurve.Simple_endangle = self.Simple_endangle
-    SimpleCurve.Simple_rotation_euler = self.Simple_rotation_euler
-    SimpleCurve.Simple_sides = self.Simple_sides
-    SimpleCurve.Simple_radius = self.Simple_radius
-    SimpleCurve.Simple_center = self.Simple_center
-    SimpleCurve.Simple_width = self.Simple_width
-    SimpleCurve.Simple_length = self.Simple_length
-    SimpleCurve.Simple_rounded = self.Simple_rounded
+    SimpleCurve.s_curve.Simple = True
+    SimpleCurve.s_curve.Simple_Change = False
+    SimpleCurve.s_curve.Simple_Type = self.Simple_Type
+    SimpleCurve.s_curve.Simple_startlocation = self.Simple_startlocation
+    SimpleCurve.s_curve.Simple_endlocation = self.Simple_endlocation
+    SimpleCurve.s_curve.Simple_a = self.Simple_a
+    SimpleCurve.s_curve.Simple_b = self.Simple_b
+    SimpleCurve.s_curve.Simple_h = self.Simple_h
+    SimpleCurve.s_curve.Simple_angle = self.Simple_angle
+    SimpleCurve.s_curve.Simple_startangle = self.Simple_startangle
+    SimpleCurve.s_curve.Simple_endangle = self.Simple_endangle
+    SimpleCurve.s_curve.Simple_rotation_euler = self.Simple_rotation_euler
+    SimpleCurve.s_curve.Simple_sides = self.Simple_sides
+    SimpleCurve.s_curve.Simple_radius = self.Simple_radius
+    SimpleCurve.s_curve.Simple_center = self.Simple_center
+    SimpleCurve.s_curve.Simple_width = self.Simple_width
+    SimpleCurve.s_curve.Simple_length = self.Simple_length
+    SimpleCurve.s_curve.Simple_rounded = self.Simple_rounded
 
     bpy.ops.object.mode_set(mode='EDIT', toggle=True)
     bpy.ops.curve.select_all(action='SELECT')
@@ -727,9 +773,9 @@ def main(context, self, align_matrix):
 
     return
 
+
 # ------------------------------------------------------------
 # Delete simple curve
-
 
 def SimpleDelete(name):
     if bpy.ops.object.mode_set.poll():
@@ -740,297 +786,367 @@ def SimpleDelete(name):
 
     return
 
+
 # ------------------------------------------------------------
 # Simple operator
 
-
-class Simple(bpy.types.Operator):
-    ''''''
+class Simple(Operator):
     bl_idname = "curve.simple"
-    bl_label = "Simple curve"
+    bl_label = "Simple Curve"
+    bl_description = "Construct a Simple Curve"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "adds simple curve"
 
     # align_matrix for the invoke
     align_matrix = Matrix()
 
     # change properties
-    Simple = BoolProperty(name="Simple",
-                          default=True,
-                          description="simple curve")
-
-    Simple_Change = BoolProperty(name="Change",
-                                 default=False,
-                                 description="change simple curve")
-
-    Simple_Delete = StringProperty(name="Delete",
-                                   description="Delete simple curve")
-
+    Simple = BoolProperty(
+            name="Simple",
+            default=True,
+            description="Simple Curve"
+            )
+    Simple_Change = BoolProperty(
+            name="Change",
+            default=False,
+            description="Change Simple Curve"
+            )
+    Simple_Delete = StringProperty(
+            name="Delete",
+            description="Delete Simple Curve"
+            )
     # general properties
-    Types = [('Point', 'Point', 'Point'),
-             ('Line', 'Line', 'Line'),
-             ('Distance', 'Distance', 'Distance'),
-             ('Angle', 'Angle', 'Angle'),
-             ('Circle', 'Circle', 'Circle'),
-             ('Ellipse', 'Ellipse', 'Ellipse'),
-             ('Arc', 'Arc', 'Arc'),
-             ('Sector', 'Sector', 'Sector'),
-             ('Segment', 'Segment', 'Segment'),
-             ('Rectangle', 'Rectangle', 'Rectangle'),
-             ('Rhomb', 'Rhomb', 'Rhomb'),
-             ('Polygon', 'Polygon', 'Polygon'),
-             ('Polygon_ab', 'Polygon_ab', 'Polygon_ab'),
-             ('Trapezoid', 'Trapezoid', 'Trapezoid')]
-    Simple_Type = EnumProperty(name="Type",
-                               description="Form of Curve to create",
-                               items=Types)
-
+    Types = [('Point', "Point", "Construct a Point"),
+             ('Line', "Line", "Construct a Line"),
+             ('Distance', "Distance", "Contruct a two point Distance"),
+             ('Angle', "Angle", "Construct an Angle"),
+             ('Circle', "Circle", "Construct a Circle"),
+             ('Ellipse', "Ellipse", "Construct an Ellipse"),
+             ('Arc', "Arc", "Construct an Arc"),
+             ('Sector', "Sector", "Construct a Sector"),
+             ('Segment', "Segment", "Construct a Segment"),
+             ('Rectangle', "Rectangle", "Construct a Rectangle"),
+             ('Rhomb', "Rhomb", "Construct a Rhomb"),
+             ('Polygon', "Polygon", "Construct a Polygon"),
+             ('Polygon_ab', "Polygon ab", "Construct a Polygon ab"),
+             ('Trapezoid', "Trapezoid", "Construct a Trapezoid")
+            ]
+    Simple_Type = EnumProperty(
+            name="Type",
+            description="Form of Curve to create",
+            items=Types
+            )
     # Line properties
-    Simple_startlocation = FloatVectorProperty(name="",
-                                               description="Start location",
-                                               default=(0.0, 0.0, 0.0),
-                                               subtype='TRANSLATION')
-    Simple_endlocation = FloatVectorProperty(name="",
-                                             description="End location",
-                                             default=(2.0, 2.0, 2.0),
-                                             subtype='TRANSLATION')
-    Simple_rotation_euler = FloatVectorProperty(name="",
-                                                description="Rotation",
-                                                default=(0.0, 0.0, 0.0),
-                                                subtype='EULER')
-
+    Simple_startlocation = FloatVectorProperty(
+            name="",
+            description="Start location",
+            default=(0.0, 0.0, 0.0),
+            subtype='TRANSLATION'
+            )
+    Simple_endlocation = FloatVectorProperty(
+            name="",
+            description="End location",
+            default=(2.0, 2.0, 2.0),
+            subtype='TRANSLATION'
+            )
+    Simple_rotation_euler = FloatVectorProperty(
+            name="",
+            description="Rotation",
+            default=(0.0, 0.0, 0.0),
+            subtype='EULER'
+            )
     # Trapezoid properties
-    Simple_a = FloatProperty(name="a",
-                             default=2.0,
-                             min=0.0, soft_min=0.0,
-                             unit='LENGTH',
-                             description="a")
-    Simple_b = FloatProperty(name="b",
-                             default=1.0,
-                             min=0.0, soft_min=0.0,
-                             unit='LENGTH',
-                             description="b")
-    Simple_h = FloatProperty(name="h",
-                             default=1.0,
-                             unit='LENGTH',
-                             description="h")
+    Simple_a = FloatProperty(
+            name="Side a",
+            default=2.0,
+            min=0.0, soft_min=0.0,
+            unit='LENGTH',
+            description="a side Value"
+            )
+    Simple_b = FloatProperty(
+            name="Side b",
+            default=1.0,
+            min=0.0, soft_min=0.0,
+            unit='LENGTH',
+            description="b side Value"
+            )
+    Simple_h = FloatProperty(
+            name="Height",
+            default=1.0,
+            unit='LENGTH',
+            description="Height of the Trapezoid - distance between a and b"
+            )
+    Simple_angle = FloatProperty(
+            name="Angle",
+            default=45.0,
+            description="Angle"
+            )
+    Simple_startangle = FloatProperty(
+            name="Start angle",
+            default=0.0,
+            min=-360.0, soft_min=-360.0,
+            max=360.0, soft_max=360.0,
+            description="Start angle"
+            )
+    Simple_endangle = FloatProperty(
+            name="End angle",
+            default=45.0,
+            min=-360.0, soft_min=-360.0,
+            max=360.0, soft_max=360.0,
+            description="End angle"
+            )
+    Simple_sides = IntProperty(
+            name="Sides",
+            default=3,
+            min=0, soft_min=0,
+            description="Sides"
+            )
+    Simple_radius = FloatProperty(
+            name="Radius",
+            default=1.0,
+            min=0.0, soft_min=0.0,
+            unit='LENGTH',
+            description="Radius"
+            )
+    Simple_center = BoolProperty(
+            name="Length center",
+            default=True,
+            description="Length center"
+            )
 
-    Simple_angle = FloatProperty(name="Angle",
-                                 default=45.0,
-                                 description="Angle")
-    Simple_startangle = FloatProperty(name="Start angle",
-                                      default=0.0,
-                                      min=-360.0, soft_min=-360.0,
-                                      max=360.0, soft_max=360.0,
-                                      description="Start angle")
-    Simple_endangle = FloatProperty(name="End angle",
-                                    default=45.0,
-                                    min=-360.0, soft_min=-360.0,
-                                    max=360.0, soft_max=360.0,
-                                    description="End angle")
-
-    Simple_sides = IntProperty(name="sides",
-                               default=3,
-                               min=0, soft_min=0,
-                               description="sides")
-
-    Simple_radius = FloatProperty(name="radius",
-                                  default=1.0,
-                                  min=0.0, soft_min=0.0,
-                                  unit='LENGTH',
-                                  description="radius")
-
-    Simple_center = BoolProperty(name="Length center",
-                                 default=True,
-                                 description="Length center")
-
-    Angle_types = [('Degrees', 'Degrees', 'Degrees'),
-                   ('Radians', 'Radians', 'Radians')]
-    Simple_degrees_or_radians = EnumProperty(name="Degrees or radians",
-                                             description="Degrees or radians",
-                                             items=Angle_types)
-
+    Angle_types = [('Degrees', "Degrees", "Use Degrees"),
+                   ('Radians', "Radians", "Use Radians")]
+    Simple_degrees_or_radians = EnumProperty(
+            name="Degrees or radians",
+            description="Degrees or radians",
+            items=Angle_types
+            )
     # Rectangle properties
-    Simple_width = FloatProperty(name="Width",
-                                 default=2.0,
-                                 min=0.0, soft_min=0,
-                                 unit='LENGTH',
-                                 description="Width")
-    Simple_length = FloatProperty(name="Length",
-                                  default=2.0,
-                                  min=0.0, soft_min=0.0,
-                                  unit='LENGTH',
-                                  description="Length")
-    Simple_rounded = FloatProperty(name="Rounded",
-                                   default=0.0,
-                                   min=0.0, soft_min=0.0,
-                                   unit='LENGTH',
-                                   description="Rounded")
-
+    Simple_width = FloatProperty(
+            name="Width",
+            default=2.0,
+            min=0.0, soft_min=0,
+            unit='LENGTH',
+            description="Width"
+            )
+    Simple_length = FloatProperty(
+            name="Length",
+            default=2.0,
+            min=0.0, soft_min=0.0,
+            unit='LENGTH',
+            description="Length"
+            )
+    Simple_rounded = FloatProperty(
+            name="Rounded",
+            default=0.0,
+            min=0.0, soft_min=0.0,
+            unit='LENGTH',
+            description="Rounded corners"
+            )
     # Curve Options
     shapeItems = [
-        ('2D', '2D', '2D'),
-        ('3D', '3D', '3D')]
-    shape = EnumProperty(name="2D / 3D",
-                         items=shapeItems,
-                         description="2D or 3D Curve")
+        ('2D', "2D", "2D shape Curve"),
+        ('3D', "3D", "3D shape Curve")]
+    shape = EnumProperty(
+            name="2D / 3D",
+            items=shapeItems,
+            description="2D or 3D Curve"
+            )
 
-    ##### DRAW #####
     def draw(self, context):
         layout = self.layout
 
         # general options
         col = layout.column()
-        col.prop(self, 'Simple_Type')
+        col.prop(self, "Simple_Type")
 
         l = 0
         s = 0
 
         if self.Simple_Type == 'Line':
-            col.label(text=self.Simple_Type + " Options")
             box = layout.box()
-            box.prop(self, 'Simple_endlocation')
+            col = box.column(align=True)
+            col.label(text=self.Simple_Type + " Options:")
+            col.prop(self, "Simple_endlocation")
             v = Vector(self.Simple_endlocation) - Vector(self.Simple_startlocation)
             l = v.length
 
         if self.Simple_Type == 'Distance':
-            col.label(text=self.Simple_Type + " Options")
             box = layout.box()
-            box.prop(self, 'Simple_length')
-            box.prop(self, 'Simple_center')
+            col = box.column(align=True)
+            col.label(text=self.Simple_Type + " Options:")
+            col.prop(self, "Simple_length")
+            col.prop(self, "Simple_center")
             l = self.Simple_length
 
         if self.Simple_Type == 'Angle':
-            col.label(text=self.Simple_Type + " Options")
             box = layout.box()
-            box.prop(self, 'Simple_length')
-            box.prop(self, 'Simple_angle')
+            col = box.column(align=True)
+            col.label(text=self.Simple_Type + " Options:")
+            col.prop(self, "Simple_length")
+            col.prop(self, "Simple_angle")
+
             row = layout.row()
-            row.prop(self, 'Simple_degrees_or_radians', expand=True)
+            row.prop(self, "Simple_degrees_or_radians", expand=True)
 
         if self.Simple_Type == 'Circle':
-            col.label(text=self.Simple_Type + " Options")
             box = layout.box()
-            box.prop(self, 'Simple_sides')
-            box.prop(self, 'Simple_radius')
+            col = box.column(align=True)
+            col.label(text=self.Simple_Type + " Options:")
+            col.prop(self, "Simple_sides")
+            col.prop(self, "Simple_radius")
+
             l = 2 * pi * abs(self.Simple_radius)
             s = pi * self.Simple_radius * self.Simple_radius
 
         if self.Simple_Type == 'Ellipse':
-            col.label(text=self.Simple_Type + " Options")
             box = layout.box()
-            box.prop(self, 'Simple_a')
-            box.prop(self, 'Simple_b')
-            l = pi * (3 * (self.Simple_a + self.Simple_b) - sqrt((3 * self.Simple_a + self.Simple_b) * (self.Simple_a + 3 * self.Simple_b)))
+            col = box.column(align=True)
+            col.label(text=self.Simple_Type + " Options:")
+            col.prop(self, "Simple_a", text="Radius a")
+            col.prop(self, "Simple_b", text="Radius b")
+
+            l = pi * (3 * (self.Simple_a + self.Simple_b) -
+                          sqrt((3 * self.Simple_a + self.Simple_b) *
+                          (self.Simple_a + 3 * self.Simple_b)))
+
             s = pi * abs(self.Simple_b) * abs(self.Simple_a)
 
         if self.Simple_Type == 'Arc':
-            col.label(text=self.Simple_Type + " Options")
             box = layout.box()
-            box.prop(self, 'Simple_sides')
-            box.prop(self, 'Simple_radius')
-            box.prop(self, 'Simple_startangle')
-            box.prop(self, 'Simple_endangle')
+            col = box.column(align=True)
+            col.label(text=self.Simple_Type + " Options:")
+            col.prop(self, "Simple_sides")
+            col.prop(self, "Simple_radius")
+
+            col = box.column(align=True)
+            col.prop(self, "Simple_startangle")
+            col.prop(self, "Simple_endangle")
             row = layout.row()
-            row.prop(self, 'Simple_degrees_or_radians', expand=True)
+            row.prop(self, "Simple_degrees_or_radians", expand=True)
+
             l = abs(pi * self.Simple_radius * (self.Simple_endangle - self.Simple_startangle) / 180)
 
         if self.Simple_Type == 'Sector':
-            col.label(text=self.Simple_Type + " Options")
             box = layout.box()
-            box.prop(self, 'Simple_sides')
-            box.prop(self, 'Simple_radius')
-            box.prop(self, 'Simple_startangle')
-            box.prop(self, 'Simple_endangle')
+            col = box.column(align=True)
+            col.label(text=self.Simple_Type + " Options:")
+            col.prop(self, "Simple_sides")
+            col.prop(self, "Simple_radius")
+
+            col = box.column(align=True)
+            col.prop(self, "Simple_startangle")
+            col.prop(self, "Simple_endangle")
             row = layout.row()
-            row.prop(self, 'Simple_degrees_or_radians', expand=True)
-            l = abs(pi * self.Simple_radius * (self.Simple_endangle - self.Simple_startangle) / 180) + self.Simple_radius * 2
-            s = pi * self.Simple_radius * self.Simple_radius * abs(self.Simple_endangle - self.Simple_startangle) / 360
+            row.prop(self, "Simple_degrees_or_radians", expand=True)
+
+            l = abs(pi * self.Simple_radius *
+                   (self.Simple_endangle - self.Simple_startangle) / 180) + self.Simple_radius * 2
+
+            s = pi * self.Simple_radius * self.Simple_radius * \
+                abs(self.Simple_endangle - self.Simple_startangle) / 360
 
         if self.Simple_Type == 'Segment':
-            col.label(text=self.Simple_Type + " Options")
             box = layout.box()
-            box.prop(self, 'Simple_sides')
-            box.prop(self, 'Simple_a')
-            box.prop(self, 'Simple_b')
-            box.prop(self, 'Simple_startangle')
-            box.prop(self, 'Simple_endangle')
+            col = box.column(align=True)
+            col.label(text=self.Simple_Type + " Options:")
+            col.prop(self, "Simple_sides")
+            col.prop(self, "Simple_a", text="Radius a")
+            col.prop(self, "Simple_b", text="Radius b")
+
+            col = box.column(align=True)
+            col.prop(self, "Simple_startangle")
+            col.prop(self, "Simple_endangle")
+
             row = layout.row()
-            row.prop(self, 'Simple_degrees_or_radians', expand=True)
+            row.prop(self, "Simple_degrees_or_radians", expand=True)
+
             la = abs(pi * self.Simple_a * (self.Simple_endangle - self.Simple_startangle) / 180)
             lb = abs(pi * self.Simple_b * (self.Simple_endangle - self.Simple_startangle) / 180)
             l = abs(self.Simple_a - self.Simple_b) * 2 + la + lb
-            sa = pi * self.Simple_a * self.Simple_a * abs(self.Simple_endangle - self.Simple_startangle) / 360
-            sb = pi * self.Simple_b * self.Simple_b * abs(self.Simple_endangle - self.Simple_startangle) / 360
+
+            sa = pi * self.Simple_a * self.Simple_a * \
+                abs(self.Simple_endangle - self.Simple_startangle) / 360
+
+            sb = pi * self.Simple_b * self.Simple_b * \
+                abs(self.Simple_endangle - self.Simple_startangle) / 360
+
             s = abs(sa - sb)
 
         if self.Simple_Type == 'Rectangle':
-            col.label(text=self.Simple_Type + " Options")
             box = layout.box()
-            box.prop(self, 'Simple_width')
-            box.prop(self, 'Simple_length')
-            box.prop(self, 'Simple_rounded')
-            box.prop(self, 'Simple_center')
+            col = box.column(align=True)
+            col.label(text=self.Simple_Type + " Options:")
+            col.prop(self, "Simple_width")
+            col.prop(self, "Simple_length")
+            col.prop(self, "Simple_rounded")
+
+            box.prop(self, "Simple_center")
             l = 2 * abs(self.Simple_width) + 2 * abs(self.Simple_length)
             s = abs(self.Simple_width) * abs(self.Simple_length)
 
         if self.Simple_Type == 'Rhomb':
-            col.label(text=self.Simple_Type + " Options")
             box = layout.box()
-            box.prop(self, 'Simple_width')
-            box.prop(self, 'Simple_length')
-            box.prop(self, 'Simple_center')
+            col = box.column(align=True)
+            col.label(text=self.Simple_Type + " Options:")
+            col.prop(self, "Simple_width")
+            col.prop(self, "Simple_length")
+            col.prop(self, "Simple_center")
+
             g = hypot(self.Simple_width / 2, self.Simple_length / 2)
             l = 4 * g
             s = self.Simple_width * self.Simple_length / 2
 
         if self.Simple_Type == 'Polygon':
-            col.label(text=self.Simple_Type + " Options")
             box = layout.box()
-            box.prop(self, 'Simple_sides')
-            box.prop(self, 'Simple_radius')
+            col = box.column(align=True)
+            col.label(text=self.Simple_Type + " Options:")
+            col.prop(self, "Simple_sides")
+            col.prop(self, "Simple_radius")
 
         if self.Simple_Type == 'Polygon_ab':
-            col.label(text=self.Simple_Type + " Options")
             box = layout.box()
-            box.prop(self, 'Simple_sides')
-            box.prop(self, 'Simple_a')
-            box.prop(self, 'Simple_b')
+            col = box.column(align=True)
+            col.label(text="Polygon ab Options:")
+            col.prop(self, "Simple_sides")
+            col.prop(self, "Simple_a")
+            col.prop(self, "Simple_b")
 
         if self.Simple_Type == 'Trapezoid':
-            col.label(text=self.Simple_Type + " Options")
             box = layout.box()
-            box.prop(self, 'Simple_a')
-            box.prop(self, 'Simple_b')
-            box.prop(self, 'Simple_h')
-            box.prop(self, 'Simple_center')
+            col = box.column(align=True)
+            col.label(text=self.Simple_Type + " Options:")
+            col.prop(self, "Simple_a")
+            col.prop(self, "Simple_b")
+            col.prop(self, "Simple_h")
+
+            box.prop(self, "Simple_center")
             g = hypot(self.Simple_h, (self.Simple_a - self.Simple_b) / 2)
             l = self.Simple_a + self.Simple_b + g * 2
             s = (abs(self.Simple_a) + abs(self.Simple_b)) / 2 * self.Simple_h
 
         row = layout.row()
-        row.prop(self, 'shape', expand=True)
+        row.prop(self, "shape", expand=True)
         box = layout.box()
         box.label("Location:")
-        box.prop(self, 'Simple_startlocation')
+        box.prop(self, "Simple_startlocation")
         box = layout.box()
         box.label("Rotation:")
-        box.prop(self, 'Simple_rotation_euler')
+        box.prop(self, "Simple_rotation_euler")
+
+        if l != 0 or s != 0:
+            box = layout.box()
+            box.label(text="Statistics:", icon="INFO")
         if l != 0:
             l_str = str(round(l, 4))
-            row = layout.row()
-            row.label("Length: " + l_str)
+            box.label("Length: " + l_str)
         if s != 0:
             s_str = str(round(s, 4))
-            row = layout.row()
-            row.label("Area: " + s_str)
+            box.label("Area: " + s_str)
 
-    ##### POLL #####
     @classmethod
     def poll(cls, context):
         return context.scene is not None
 
-    ##### EXECUTE #####
     def execute(self, context):
         if self.Simple_Change:
             SimpleDelete(self.Simple_Delete)
@@ -1052,7 +1168,6 @@ class Simple(bpy.types.Operator):
 
         return {'FINISHED'}
 
-    ##### INVOKE #####
     def invoke(self, context, event):
         # store creation_matrix
         if self.Simple_Change:
@@ -1065,43 +1180,42 @@ class Simple(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
 # ------------------------------------------------------------
 # Fillet
 
-
-class BezierPointsFillet(bpy.types.Operator):
-    ''''''
+class BezierPointsFillet(Operator):
     bl_idname = "curve.bezier_points_fillet"
-    bl_label = "Bezier points fillet"
+    bl_label = "Bezier points Fillet"
+    bl_description = "Bezier points Fillet"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "bezier points fillet"
 
-    Fillet_radius = FloatProperty(name="Radius",
-                                  default=0.25,
-                                  unit='LENGTH',
-                                  description="radius")
+    Fillet_radius = FloatProperty(
+            name="Radius",
+            default=0.25,
+            unit='LENGTH',
+            description="Radius"
+            )
+    Types = [('Round', "Round", "Round"),
+             ('Chamfer', "Chamfer", "Chamfer")]
+    Fillet_Type = EnumProperty(
+            name="Type",
+            description="Fillet type",
+            items=Types
+            )
 
-    Types = [('Round', 'Round', 'Round'),
-             ('Chamfer', 'Chamfer', 'Chamfer')]
-    Fillet_Type = EnumProperty(name="Type",
-                               description="Fillet type",
-                               items=Types)
-
-    ##### DRAW #####
     def draw(self, context):
         layout = self.layout
 
         # general options
         col = layout.column()
-        col.prop(self, 'Fillet_radius')
-        col.prop(self, 'Fillet_Type', expand=True)
+        col.prop(self, "Fillet_radius")
+        col.prop(self, "Fillet_Type", expand=True)
 
-    ##### POLL #####
     @classmethod
     def poll(cls, context):
         return context.scene is not None
 
-    ##### EXECUTE #####
     def execute(self, context):
         # go to object mode
         if bpy.ops.object.mode_set.poll():
@@ -1127,9 +1241,7 @@ class BezierPointsFillet(bpy.types.Operator):
                 n += 1
 
         if n > 2:
-
             jn = 0
-
             for j in ii:
 
                 j += jn
@@ -1143,7 +1255,8 @@ class BezierPointsFillet(bpy.types.Operator):
                     selected_all[j + 1].select_control_point = True
                     bpy.ops.curve.subdivide()
                     selected_all = [p for p in spline.bezier_points]
-                    selected4 = [selected_all[j - 1], selected_all[j], selected_all[j + 1], selected_all[j + 2]]
+                    selected4 = [selected_all[j - 1], selected_all[j],
+                                 selected_all[j + 1], selected_all[j + 2]]
                     jn += 1
                     n += 1
 
@@ -1152,7 +1265,8 @@ class BezierPointsFillet(bpy.types.Operator):
                     selected_all[j + 1].select_control_point = True
                     bpy.ops.curve.subdivide()
                     selected_all = [p for p in spline.bezier_points]
-                    selected4 = [selected_all[n], selected_all[0], selected_all[1], selected_all[2]]
+                    selected4 = [selected_all[n], selected_all[0],
+                                 selected_all[1], selected_all[2]]
                     jn += 1
                     n += 1
 
@@ -1161,7 +1275,8 @@ class BezierPointsFillet(bpy.types.Operator):
                     selected_all[j - 1].select_control_point = True
                     bpy.ops.curve.subdivide()
                     selected_all = [p for p in spline.bezier_points]
-                    selected4 = [selected_all[0], selected_all[n], selected_all[n - 1], selected_all[n - 2]]
+                    selected4 = [selected_all[0], selected_all[n],
+                                 selected_all[n - 1], selected_all[n - 2]]
 
                 selected4[2].co = selected4[1].co
                 s1 = Vector(selected4[0].co) - Vector(selected4[1].co)
@@ -1198,7 +1313,6 @@ class BezierPointsFillet(bpy.types.Operator):
 
         return {'FINISHED'}
 
-    ##### INVOKE #####
     def invoke(self, context, event):
         self.execute(context)
 
@@ -1214,32 +1328,31 @@ def subdivide_cubic_bezier(p1, p2, p3, p4, t):
     p1234 = (p234 - p123) * t + p123
     return [p12, p123, p1234, p234, p34]
 
+
 # ------------------------------------------------------------
 # BezierDivide Operator
 
-
-class BezierDivide(bpy.types.Operator):
-    ''''''
+class BezierDivide(Operator):
     bl_idname = "curve.bezier_spline_divide"
-    bl_label = "Bezier Divide (enters edit mode) for Fillet Curves"
+    bl_label = "Bezier Spline Divide"
+    bl_description = "Bezier Divide (enters edit mode) for Fillet Curves"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "bezier spline divide"
 
     # align_matrix for the invoke
     align_matrix = Matrix()
 
-    Bezier_t = FloatProperty(name="t (0% - 100%)",
-                             default=50.0,
-                             min=0.0, soft_min=0.0,
-                             max=100.0, soft_max=100.0,
-                             description="t (0% - 100%)")
+    Bezier_t = FloatProperty(
+            name="t (0% - 100%)",
+            default=50.0,
+            min=0.0, soft_min=0.0,
+            max=100.0, soft_max=100.0,
+            description="t (0% - 100%)"
+            )
 
-    ##### POLL #####
     @classmethod
     def poll(cls, context):
         return context.scene is not None
 
-    ##### EXECUTE #####
     def execute(self, context):
         # go to object mode
         if bpy.ops.object.mode_set.poll():
@@ -1252,9 +1365,11 @@ class BezierDivide(bpy.types.Operator):
 
         # main function
         spline = bpy.context.object.data.splines.active
-        vertex = []
         selected_all = [p for p in spline.bezier_points if p.select_control_point]
-        h = subdivide_cubic_bezier(selected_all[0].co, selected_all[0].handle_right, selected_all[1].handle_left, selected_all[1].co, self.Bezier_t / 100)
+        h = subdivide_cubic_bezier(
+                    selected_all[0].co, selected_all[0].handle_right,
+                    selected_all[1].handle_left, selected_all[1].co, self.Bezier_t / 100
+                    )
 
         selected_all[0].handle_right_type = 'FREE'
         selected_all[0].handle_left_type = 'FREE'
@@ -1274,73 +1389,69 @@ class BezierDivide(bpy.types.Operator):
 
         return {'FINISHED'}
 
-    ##### INVOKE #####
     def invoke(self, context, event):
         self.execute(context)
 
         return {'FINISHED'}
 
+
 # ------------------------------------------------------------
 # Simple change panel
 
-
-class SimplePanel(bpy.types.Panel):
-
-    bl_label = "Simple change"
+class SimplePanel(Panel):
+    bl_label = "Simple Curve"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Tools"
 
-    ##### POLL #####
     @classmethod
     def poll(cls, context):
         if not context.active_object:
             pass
-        elif context.object.Simple == True:
+        elif context.object.s_curve.Simple is True:
             return (context.object)
 
-    ##### DRAW #####
     def draw(self, context):
-        if context.object.Simple == True:
-
+        if context.object.s_curve.Simple is True:
             layout = self.layout
-
             obj = context.object
             row = layout.row()
-            simple_change = row.operator("curve.simple", text='Change')
+
+            simple_change = row.operator("curve.simple", text="Change",
+                                        icon="OUTLINER_DATA_CURVE")
             simple_change.Simple_Change = True
             simple_change.Simple_Delete = obj.name
-            simple_change.Simple_Type = obj.Simple_Type
+            simple_change.Simple_Type = obj.s_curve.Simple_Type
             simple_change.Simple_startlocation = obj.location
-            simple_change.Simple_endlocation = obj.Simple_endlocation
-            simple_change.Simple_a = obj.Simple_a
-            simple_change.Simple_b = obj.Simple_b
-            simple_change.Simple_h = obj.Simple_h
-            simple_change.Simple_angle = obj.Simple_angle
-            simple_change.Simple_startangle = obj.Simple_startangle
-            simple_change.Simple_endangle = obj.Simple_endangle
+            simple_change.Simple_endlocation = obj.s_curve.Simple_endlocation
+
+            simple_change.Simple_a = obj.s_curve.Simple_a
+            simple_change.Simple_b = obj.s_curve.Simple_b
+            simple_change.Simple_h = obj.s_curve.Simple_h
+
+            simple_change.Simple_angle = obj.s_curve.Simple_angle
+            simple_change.Simple_startangle = obj.s_curve.Simple_startangle
+            simple_change.Simple_endangle = obj.s_curve.Simple_endangle
             simple_change.Simple_rotation_euler = obj.rotation_euler
-            simple_change.Simple_sides = obj.Simple_sides
-            simple_change.Simple_radius = obj.Simple_radius
-            simple_change.Simple_center = obj.Simple_center
-            simple_change.Simple_width = obj.Simple_width
-            simple_change.Simple_length = obj.Simple_length
-            simple_change.Simple_rounded = obj.Simple_rounded
+
+            simple_change.Simple_sides = obj.s_curve.Simple_sides
+            simple_change.Simple_radius = obj.s_curve.Simple_radius
+            simple_change.Simple_center = obj.s_curve.Simple_center
+            simple_change.Simple_width = obj.s_curve.Simple_width
+            simple_change.Simple_length = obj.s_curve.Simple_length
+            simple_change.Simple_rounded = obj.s_curve.Simple_rounded
+
 
 # ------------------------------------------------------------
 # Fillet tools panel
 
-
-class SimpleEdit(bpy.types.Operator):
-
-    """Curve Simple"""
+class SimpleEdit(Operator):
     bl_idname = "object._simple_edit"
     bl_label = "Create Curves"
+    bl_description = "Subdivide and Fillet Curves"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Subdivide & Fillet Curves"
 
-    ##### POLL #####
     @classmethod
     def poll(cls, context):
         vertex = []
@@ -1369,7 +1480,6 @@ class SimpleEdit(bpy.types.Operator):
         if selected >= 2:
             return (context.selected_objects)
 
-    ##### DRAW #####
     def draw(self, context):
         vertex = []
         selected = []
@@ -1387,201 +1497,222 @@ class SimpleEdit(bpy.types.Operator):
             if len(vertex) > 0 and n > 2:
                 layout = self.layout
                 row = layout.row()
-                simple_edit = row.operator("curve.bezier_points_fillet", text='Fillet')
+                row.operator("curve.bezier_points_fillet", text="Fillet")
+
             if len(vertex) == 2 and abs(selected[0] - selected[1]) == 1:
                 layout = self.layout
                 row = layout.row()
-                simple_divide = row.operator("curve.bezier_spline_divide", text='Divide')
+                row.operator("curve.bezier_spline_divide", text="Divide")
+
 
 # ------------------------------------------------------------
 # location update
 
-
 def StartLocationUpdate(self, context):
 
     bpy.context.scene.cursor_location = self.Simple_startlocation
-
     return
+
 
 # ------------------------------------------------------------
 # Add properties to objects
 
+class SimpleVariables(PropertyGroup):
 
-def SimpleVariables():
+    Simple = BoolProperty()
+    Simple_Change = BoolProperty()
 
-    bpy.types.Object.Simple = bpy.props.BoolProperty()
-    bpy.types.Object.Simple_Change = bpy.props.BoolProperty()
     # general properties
-    Types = [('Point', 'Point', 'Point'),
-             ('Line', 'Line', 'Line'),
-             ('Distance', 'Distance', 'Distance'),
-             ('Angle', 'Angle', 'Angle'),
-             ('Circle', 'Circle', 'Circle'),
-             ('Ellipse', 'Ellipse', 'Ellipse'),
-             ('Arc', 'Arc', 'Arc'),
-             ('Sector', 'Sector', 'Sector'),
-             ('Segment', 'Segment', 'Segment'),
-             ('Rectangle', 'Rectangle', 'Rectangle'),
-             ('Rhomb', 'Rhomb', 'Rhomb'),
-             ('Polygon', 'Polygon', 'Polygon'),
-             ('Polygon_ab', 'Polygon_ab', 'Polygon_ab'),
-             ('Trapezoid', 'Trapezoid', 'Trapezoid')]
-    bpy.types.Object.Simple_Type = bpy.props.EnumProperty(name="Type",
-                                                          description="Form of Curve to create",
-                                                          items=Types)
-
+    Types = [('Point', "Point", "Construct a Point"),
+             ('Line', "Line", "Construct a Line"),
+             ('Distance', "Distance", "Contruct a two point Distance"),
+             ('Angle', "Angle", "Construct an Angle"),
+             ('Circle', "Circle", "Construct a Circle"),
+             ('Ellipse', "Ellipse", "Construct an Ellipse"),
+             ('Arc', "Arc", "Construct an Arc"),
+             ('Sector', "Sector", "Construct a Sector"),
+             ('Segment', "Segment", "Construct a Segment"),
+             ('Rectangle', "Rectangle", "Construct a Rectangle"),
+             ('Rhomb', "Rhomb", "Construct a Rhomb"),
+             ('Polygon', "Polygon", "Construct a Polygon"),
+             ('Polygon_ab', "Polygon ab", "Construct a Polygon ab"),
+             ('Trapezoid', "Trapezoid", "Construct a Trapezoid")
+            ]
+    Simple_Type = EnumProperty(
+            name="Type",
+            description="Form of Curve to create",
+            items=Types
+            )
     # Line properties
-    bpy.types.Object.Simple_startlocation = bpy.props.FloatVectorProperty(name="Start location",
-                                                                          description="Start location",
-                                                                          default=(0.0, 0.0, 0.0),
-                                                                          subtype='TRANSLATION',
-                                                                          update=StartLocationUpdate)
-    bpy.types.Object.Simple_endlocation = bpy.props.FloatVectorProperty(name="End location",
-                                                                        description="End location",
-                                                                        default=(2.0, 2.0, 2.0),
-                                                                        subtype='TRANSLATION')
-    bpy.types.Object.Simple_rotation_euler = bpy.props.FloatVectorProperty(name="Rotation",
-                                                                           description="Rotation",
-                                                                           default=(0.0, 0.0, 0.0),
-                                                                           subtype='EULER')
-
+    Simple_startlocation = FloatVectorProperty(
+            name="Start location",
+            description="Start location",
+            default=(0.0, 0.0, 0.0),
+            subtype='TRANSLATION',
+            update=StartLocationUpdate
+            )
+    Simple_endlocation = FloatVectorProperty(
+            name="End location",
+            description="End location",
+            default=(2.0, 2.0, 2.0),
+            subtype='TRANSLATION'
+            )
+    Simple_rotation_euler = FloatVectorProperty(
+            name="Rotation",
+            description="Rotation",
+            default=(0.0, 0.0, 0.0),
+            subtype='EULER'
+            )
     # Trapezoid properties
-    bpy.types.Object.Simple_a = bpy.props.FloatProperty(name="a",
-                                                        default=2.0,
-                                                        min=0.0, soft_min=0.0,
-                                                        unit='LENGTH',
-                                                        description="a")
-    bpy.types.Object.Simple_b = bpy.props.FloatProperty(name="b",
-                                                        default=1.0,
-                                                        min=0.0, soft_min=0.0,
-                                                        unit='LENGTH',
-                                                        description="b")
-    bpy.types.Object.Simple_h = bpy.props.FloatProperty(name="h",
-                                                        default=1.0,
-                                                        unit='LENGTH',
-                                                        description="h")
-
-    bpy.types.Object.Simple_angle = bpy.props.FloatProperty(name="Angle",
-                                                            default=45.0,
-                                                            description="Angle")
-    bpy.types.Object.Simple_startangle = bpy.props.FloatProperty(name="Start angle",
-                                                                 default=0.0,
-                                                                 min=-360.0, soft_min=-360.0,
-                                                                 max=360.0, soft_max=360.0,
-                                                                 description="Start angle")
-    bpy.types.Object.Simple_endangle = bpy.props.FloatProperty(name="End angle",
-                                                               default=45.0,
-                                                               min=-360.0, soft_min=-360.0,
-                                                               max=360.0, soft_max=360.0,
-                                                               description="End angle")
-
-    bpy.types.Object.Simple_sides = bpy.props.IntProperty(name="sides",
-                                                          default=3,
-                                                          min=3, soft_min=3,
-                                                          description="sides")
-
-    bpy.types.Object.Simple_radius = bpy.props.FloatProperty(name="radius",
-                                                             default=1.0,
-                                                             min=0.0, soft_min=0.0,
-                                                             unit='LENGTH',
-                                                             description="radius")
-
-    bpy.types.Object.Simple_center = bpy.props.BoolProperty(name="Length center",
-                                                            default=True,
-                                                            description="Length center")
-
+    Simple_a = FloatProperty(
+            name="Side a",
+            default=2.0,
+            min=0.0, soft_min=0.0,
+            unit='LENGTH',
+            description="a side Value"
+            )
+    Simple_b = FloatProperty(
+            name="Side b",
+            default=1.0,
+            min=0.0, soft_min=0.0,
+            unit='LENGTH',
+            description="b side Value"
+            )
+    Simple_h = FloatProperty(
+            name="Height",
+            default=1.0,
+            unit='LENGTH',
+            description="Height of the Trapezoid - distance between a and b"
+            )
+    Simple_angle = FloatProperty(
+            name="Angle",
+            default=45.0,
+            description="Angle"
+            )
+    Simple_startangle = FloatProperty(
+            name="Start angle",
+            default=0.0,
+            min=-360.0, soft_min=-360.0,
+            max=360.0, soft_max=360.0,
+            description="Start angle"
+            )
+    Simple_endangle = FloatProperty(
+            name="End angle",
+            default=45.0,
+            min=-360.0, soft_min=-360.0,
+            max=360.0, soft_max=360.0,
+            description="End angle"
+            )
+    Simple_sides = IntProperty(
+            name="Sides",
+            default=3,
+            min=3, soft_min=3,
+            description="Number of Sides"
+            )
+    Simple_radius = FloatProperty(
+            name="Radius",
+            default=1.0,
+            min=0.0, soft_min=0.0,
+            unit='LENGTH',
+            description="Radius"
+            )
+    Simple_center = BoolProperty(
+            name="Length center",
+            default=True,
+            description="Length center"
+            )
     # Rectangle properties
-    bpy.types.Object.Simple_width = bpy.props.FloatProperty(name="Width",
-                                                            default=2.0,
-                                                            min=0.0, soft_min=0.0,
-                                                            unit='LENGTH',
-                                                            description="Width")
-    bpy.types.Object.Simple_length = bpy.props.FloatProperty(name="Length",
-                                                             default=2.0,
-                                                             min=0.0, soft_min=0.0,
-                                                             unit='LENGTH',
-                                                             description="Length")
-    bpy.types.Object.Simple_rounded = bpy.props.FloatProperty(name="Rounded",
-                                                              default=0.0,
-                                                              unit='LENGTH',
-                                                              description="Rounded")
+    Simple_width = FloatProperty(
+            name="Width",
+            default=2.0,
+            min=0.0, soft_min=0.0,
+            unit='LENGTH',
+            description="Width"
+            )
+    Simple_length = FloatProperty(
+            name="Length",
+            default=2.0,
+            min=0.0, soft_min=0.0,
+            unit='LENGTH',
+            description="Length"
+            )
+    Simple_rounded = FloatProperty(
+            name="Rounded",
+            default=0.0,
+            unit='LENGTH',
+            description="Rounded corners"
+            )
 
-################################################################################
-##### REGISTER #####
 
-
-class INFO_MT_simple_menu(bpy.types.Menu):
-    # Define the "Extras" menu
+class INFO_MT_simple_menu(Menu):
     bl_idname = "INFO_MT_simple_menu"
     bl_label = "2D Objects"
 
     def draw(self, context):
         self.layout.operator_context = 'INVOKE_REGION_WIN'
 
-        oper2 = self.layout.operator(Simple.bl_idname, text="Point", icon="MOD_CURVE")
-        oper2.Simple_Change = False
-        oper2.Simple_Type = "Point"
+        oper1 = self.layout.operator(Simple.bl_idname, text="Angle", icon="MOD_CURVE")
+        oper1.Simple_Change = False
+        oper1.Simple_Type = "Angle"
 
-        oper3 = self.layout.operator(Simple.bl_idname, text="Line", icon="MOD_CURVE")
+        oper2 = self.layout.operator(Simple.bl_idname, text="Arc", icon="MOD_CURVE")
+        oper2.Simple_Change = False
+        oper2.Simple_Type = "Arc"
+
+        oper3 = self.layout.operator(Simple.bl_idname, text="Circle", icon="MOD_CURVE")
         oper3.Simple_Change = False
-        oper3.Simple_Type = "Line"
+        oper3.Simple_Type = "Circle"
 
         oper4 = self.layout.operator(Simple.bl_idname, text="Distance", icon="MOD_CURVE")
         oper4.Simple_Change = False
         oper4.Simple_Type = "Distance"
 
-        oper5 = self.layout.operator(Simple.bl_idname, text="Angle", icon="MOD_CURVE")
+        oper5 = self.layout.operator(Simple.bl_idname, text="Ellipse", icon="MOD_CURVE")
         oper5.Simple_Change = False
-        oper5.Simple_Type = "Angle"
+        oper5.Simple_Type = "Ellipse"
 
-        oper6 = self.layout.operator(Simple.bl_idname, text="Circle", icon="MOD_CURVE")
+        oper6 = self.layout.operator(Simple.bl_idname, text="Line", icon="MOD_CURVE")
         oper6.Simple_Change = False
-        oper6.Simple_Type = "Circle"
+        oper6.Simple_Type = "Line"
 
-        oper7 = self.layout.operator(Simple.bl_idname, text="Ellipse", icon="MOD_CURVE")
+        oper7 = self.layout.operator(Simple.bl_idname, text="Point", icon="MOD_CURVE")
         oper7.Simple_Change = False
-        oper7.Simple_Type = "Ellipse"
+        oper7.Simple_Type = "Point"
 
-        oper8 = self.layout.operator(Simple.bl_idname, text="Arc", icon="MOD_CURVE")
+        oper8 = self.layout.operator(Simple.bl_idname, text="Polygon", icon="MOD_CURVE")
         oper8.Simple_Change = False
-        oper8.Simple_Type = "Arc"
+        oper8.Simple_Type = "Polygon"
 
-        oper9 = self.layout.operator(Simple.bl_idname, text="Sector", icon="MOD_CURVE")
+        oper9 = self.layout.operator(Simple.bl_idname, text="Polygon ab", icon="MOD_CURVE")
         oper9.Simple_Change = False
-        oper9.Simple_Type = "Sector"
+        oper9.Simple_Type = "Polygon_ab"
 
-        oper10 = self.layout.operator(Simple.bl_idname, text="Segment", icon="MOD_CURVE")
+        oper10 = self.layout.operator(Simple.bl_idname, text="Rectangle", icon="MOD_CURVE")
         oper10.Simple_Change = False
-        oper10.Simple_Type = "Segment"
+        oper10.Simple_Type = "Rectangle"
 
-        oper11 = self.layout.operator(Simple.bl_idname, text="Rectangle", icon="MOD_CURVE")
+        oper11 = self.layout.operator(Simple.bl_idname, text="Rhomb", icon="MOD_CURVE")
         oper11.Simple_Change = False
-        oper11.Simple_Type = "Rectangle"
+        oper11.Simple_Type = "Rhomb"
 
-        oper12 = self.layout.operator(Simple.bl_idname, text="Rhomb", icon="MOD_CURVE")
+        oper12 = self.layout.operator(Simple.bl_idname, text="Sector", icon="MOD_CURVE")
         oper12.Simple_Change = False
-        oper12.Simple_Type = "Rhomb"
+        oper12.Simple_Type = "Sector"
 
-        oper13 = self.layout.operator(Simple.bl_idname, text="Polygon", icon="MOD_CURVE")
+        oper13 = self.layout.operator(Simple.bl_idname, text="Segment", icon="MOD_CURVE")
         oper13.Simple_Change = False
-        oper13.Simple_Type = "Polygon"
+        oper13.Simple_Type = "Segment"
 
-        oper14 = self.layout.operator(Simple.bl_idname, text="Polygon_ab", icon="MOD_CURVE")
+        oper14 = self.layout.operator(Simple.bl_idname, text="Trapezoid", icon="MOD_CURVE")
         oper14.Simple_Change = False
-        oper14.Simple_Type = "Polygon_ab"
+        oper14.Simple_Type = "Trapezoid"
 
-        oper15 = self.layout.operator(Simple.bl_idname, text="Trapezoid", icon="MOD_CURVE")
-        oper15.Simple_Change = False
-        oper15.Simple_Type = "Trapezoid"
 
+# Register
 
 def Simple_button(self, context):
     layout = self.layout
     layout.separator()
-    oper11 = self.layout.operator(Simple.bl_idname, text="Rectangle", icon="MOD_CURVE")
-    oper11.Simple_Change = False
-    oper11.Simple_Type = "Rectangle"
-
     self.layout.menu("INFO_MT_simple_menu", icon="MOD_CURVE")
 
 
@@ -1592,10 +1723,11 @@ def register():
     bpy.utils.register_class(SimplePanel)
     bpy.utils.register_class(SimpleEdit)
     bpy.utils.register_class(INFO_MT_simple_menu)
+    bpy.utils.register_class(SimpleVariables)
 
     bpy.types.INFO_MT_curve_add.append(Simple_button)
 
-    SimpleVariables()
+    bpy.types.Object.s_curve = PointerProperty(type=SimpleVariables)
 
 
 def unregister():
@@ -1605,8 +1737,11 @@ def unregister():
     bpy.utils.unregister_class(SimplePanel)
     bpy.utils.unregister_class(SimpleEdit)
     bpy.utils.unregister_class(INFO_MT_simple_menu)
+    bpy.utils.unregister_class(SimpleVariables)
 
     bpy.types.INFO_MT_curve_add.remove(Simple_button)
+    del bpy.types.Object.s_curve
+
 
 if __name__ == "__main__":
     register()

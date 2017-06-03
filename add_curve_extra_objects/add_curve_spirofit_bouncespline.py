@@ -20,36 +20,37 @@
 bl_info = {
     "name": "SpiroFit, BounceSpline and Catenary",
     "author": "Antonio Osprite, Liero, Atom, Jimmy Hazevoet",
-    "version": (0, 2, 0),
+    "version": (0, 2, 1),
     "blender": (2, 78, 0),
     "location": "Toolshelf > Create Tab",
-    "description": "SpiroFit, BounceSpline and Catenary adds splines to selected mesh or objects",
+    "description": "SpiroFit, BounceSpline and Catenary adds "
+                   "splines to selected mesh or objects",
     "warning": "",
     "wiki_url": "",
     "category": "Object",
     }
 
 import bpy
+from bpy.types import (
+        Operator,
+        Panel,
+        )
 from bpy.props import (
-    BoolProperty,
-    EnumProperty,
-    FloatProperty,
-    IntProperty,
-    StringProperty,
-    )
-from bpy.types import Operator
+        BoolProperty,
+        EnumProperty,
+        FloatProperty,
+        IntProperty,
+        StringProperty,
+        )
 from mathutils import (
-    Matrix,
-    Vector,
-    )
+        Matrix,
+        Vector,
+        )
 from math import (
-    sin,
-    cos,
-    pi,
-    sqrt,
-    pow,
-    radians
-    )
+        sin, cos,
+        pi, sqrt,
+        pow, radians
+        )
 import random as r
 
 
@@ -116,191 +117,191 @@ def spirofit_spline(obj,
     return points
 
 
-class SpiroFitSpline(bpy.types.Operator):
+class SpiroFitSpline(Operator):
     bl_idname = "object.add_spirofit_spline"
     bl_label = "SpiroFit"
     bl_description = "Wrap selected mesh in a spiral"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     map_method = EnumProperty(
-        name="Mapping",
-        default='RAYCAST',
-        description="Mapping method",
-        items=[('RAYCAST', 'Ray cast', 'Ray casting'),
-               ('CLOSESTPOINT', 'Closest point', 'Closest point on mesh')]
-        )
+            name="Mapping",
+            default='RAYCAST',
+            description="Mapping method",
+            items=[('RAYCAST', 'Ray cast', 'Ray casting'),
+                   ('CLOSESTPOINT', 'Closest point', 'Closest point on mesh')]
+            )
     direction = BoolProperty(
-        name="Direction",
-        description="Spire direction",
-        default=False
-        )
+            name="Direction",
+            description="Spire direction",
+            default=False
+            )
     spire_resolution = IntProperty(
-        name="Spire Resolution",
-        default=8,
-        min=3,
-        max=1024,
-        soft_max=128,
-        description="Number of steps for one turn"
-        )
+            name="Spire Resolution",
+            default=8,
+            min=3,
+            max=1024,
+            soft_max=128,
+            description="Number of steps for one turn"
+            )
     spires = IntProperty(
-        name="Spires",
-        default=4,
-        min=1,
-        max=1024,
-        soft_max=128,
-        description="Number of turns"
-        )
+            name="Spires",
+            default=4,
+            min=1,
+            max=1024,
+            soft_max=128,
+            description="Number of turns"
+            )
     offset = FloatProperty(
-        name="Offset",
-        default=0.0,
-        precision=3,
-        description="Use normal direction to offset spline"
-        )
+            name="Offset",
+            default=0.0,
+            precision=3,
+            description="Use normal direction to offset spline"
+            )
     waves = IntProperty(
-        name="Wave",
-        default=0,
-        min=0,
-        description="Wave amount"
-        )
+            name="Wave",
+            default=0,
+            min=0,
+            description="Wave amount"
+            )
     wave_iscale = FloatProperty(
-        name="Wave Intensity",
-        default=0.0,
-        min=0.0,
-        precision=3,
-        description="Wave intensity scale"
-        )
+            name="Wave Intensity",
+            default=0.0,
+            min=0.0,
+            precision=3,
+            description="Wave intensity scale"
+            )
     rndm_spire = FloatProperty(
-        name="Randomise",
-        default=0.0,
-        min=0.0,
-        precision=3,
-        description="Randomise spire"
-        )
-
+            name="Randomise",
+            default=0.0,
+            min=0.0,
+            precision=3,
+            description="Randomise spire"
+            )
     spline_name = StringProperty(
-        name="Name",
-        default="SpiroFit"
-        )
+            name="Name",
+            default="SpiroFit"
+            )
     spline_type = EnumProperty(
-        name="Spline",
-        default='BEZIER',
-        description="Spline type",
-        items=[('POLY', 'Poly', 'Poly spline'),
-               ('BEZIER', 'Bezier', 'Bezier spline')]
-        )
+            name="Spline",
+            default='BEZIER',
+            description="Spline type",
+            items=[('POLY', 'Poly', 'Poly spline'),
+                   ('BEZIER', 'Bezier', 'Bezier spline')]
+            )
     resolution_u = IntProperty(
-        name="Resolution U",
-        default=12,
-        min=0,
-        max=64,
-        description="Curve resolution u"
-        )
+            name="Resolution U",
+            default=12,
+            min=0,
+            max=64,
+            description="Curve resolution u"
+            )
     bevel = FloatProperty(
-        name="Bevel Radius",
-        default=0.0,
-        min=0.0,
-        precision=3,
-        description="Bevel depth"
-        )
-    bevel_res =IntProperty(
-        name="Bevel Resolution",
-        default=0,
-        min=0,
-        max=32,
-        description="Bevel resolution"
-        )
+            name="Bevel Radius",
+            default=0.0,
+            min=0.0,
+            precision=3,
+            description="Bevel depth"
+            )
+    bevel_res = IntProperty(
+            name="Bevel Resolution",
+            default=0,
+            min=0,
+            max=32,
+            description="Bevel resolution"
+            )
     extrude = FloatProperty(
-        name="Extrude",
-        default=0.0,
-        min=0.0,
-        precision=3,
-        description="Extrude amount"
-        )
+            name="Extrude",
+            default=0.0,
+            min=0.0,
+            precision=3,
+            description="Extrude amount"
+            )
     twist_mode = EnumProperty(
-        name="Twisting",
-        default='MINIMUM',
-        description="Twist method, type of tilt calculation",
-        items=[('Z_UP', "Z-Up", 'Z Up'),
-               ('MINIMUM', "Minimum", 'Minimum'),
-               ('TANGENT', "Tangent", 'Tangent')]
-        )
+            name="Twisting",
+            default='MINIMUM',
+            description="Twist method, type of tilt calculation",
+            items=[('Z_UP', "Z-Up", 'Z Up'),
+                   ('MINIMUM', "Minimum", 'Minimum'),
+                   ('TANGENT', "Tangent", 'Tangent')]
+            )
     twist_smooth = FloatProperty(
-        name="Smooth",
-        default=0.0,
-        min=0.0,
-        precision=3,
-        description="Twist smoothing amount for tangents"
-        )
+            name="Smooth",
+            default=0.0,
+            min=0.0,
+            precision=3,
+            description="Twist smoothing amount for tangents"
+            )
     tilt = FloatProperty(
-        name="Tilt",
-        default=0.0,
-        precision=3,
-        description="Spline handle tilt"
-        )
+            name="Tilt",
+            default=0.0,
+            precision=3,
+            description="Spline handle tilt"
+            )
     random_radius = FloatProperty(
-        name="Randomise",
-        default=0.0,
-        min=0.0,
-        precision=3,
-        description="Randomise radius of spline controlpoints"
-        )
+            name="Randomise",
+            default=0.0,
+            min=0.0,
+            precision=3,
+            description="Randomise radius of spline controlpoints"
+            )
     x_ray = BoolProperty(
-        name="X-Ray",
-        default=False,
-        description="X-Ray - make the object draw in front of others"
-        )
+            name="X-Ray",
+            default=False,
+            description="X-Ray - make the object draw in front of others"
+            )
     random_seed = IntProperty(
-        name="Random Seed",
-        default=1,
-        min=0,
-        description="Random seed number"
-        )
+            name="Random Seed",
+            default=1,
+            min=0,
+            description="Random seed number"
+            )
     origin_to_start = BoolProperty(
-        name="Origin at Start",
-        description="Set origin at first point of spline",
-        default=False
-        )
+            name="Origin at Start",
+            description="Set origin at first point of spline",
+            default=False
+            )
     refresh = BoolProperty(
-        name="Refresh",
-        description="Refresh spline",
-        default=False
-        )
+            name="Refresh",
+            description="Refresh spline",
+            default=False
+            )
     auto_refresh = BoolProperty(
-        name="Auto",
-        description="Auto refresh spline",
-        default=True
-        )
+            name="Auto",
+            description="Auto refresh spline",
+            default=True
+            )
 
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
         row = col.row(align=True)
+
         if self.auto_refresh is False:
             self.refresh = False
         elif self.auto_refresh is True:
             self.refresh = True
-        row.prop(self, 'auto_refresh', toggle=True, icon='AUTO', icon_only=True)
-        row.prop(self, 'refresh', toggle=True, icon='FILE_REFRESH', icon_only=True)
-        row.operator('object.add_spirofit_spline', text="Add")
-        row.prop(self, 'x_ray', toggle=True, icon_only=True, icon='RESTRICT_VIEW_OFF')
-        row.prop(self, 'origin_to_start', toggle=True, icon='CURVE_DATA', icon_only=True)
+
+        row.prop(self, "auto_refresh", toggle=True, icon="AUTO", icon_only=True)
+        row.prop(self, "refresh", toggle=True, icon="FILE_REFRESH", icon_only=True)
+        row.operator("object.add_spirofit_spline", text="Add")
+        row.prop(self, "x_ray", toggle=True, icon_only=True, icon="RESTRICT_VIEW_OFF")
+        row.prop(self, "origin_to_start", toggle=True, icon="CURVE_DATA", icon_only=True)
 
         col = layout.column(align=True)
-        col.prop(self, 'spline_name')
+        col.prop(self, "spline_name")
         col.separator()
-        col.prop(self, 'map_method')
+        col.prop(self, "map_method")
         col.separator()
-        col.prop(self, 'spire_resolution')
+        col.prop(self, "spire_resolution")
         row = col.row(align=True).split(0.9, align=True)
-        row.prop(self, 'spires')
-        row.prop(self, 'direction', toggle=True, text="", icon='ARROW_LEFTRIGHT')
-        col.prop(self, 'offset')
-        col.prop(self, 'waves')
-        col.prop(self, 'wave_iscale')
-        col.prop(self, 'rndm_spire')
-        col.prop(self, 'random_seed')
+        row.prop(self, "spires")
+        row.prop(self, "direction", toggle=True, text="", icon="ARROW_LEFTRIGHT")
+        col.prop(self, "offset")
+        col.prop(self, "waves")
+        col.prop(self, "wave_iscale")
+        col.prop(self, "rndm_spire")
+        col.prop(self, "random_seed")
         draw_spline_settings(self)
-
 
     @classmethod
     def poll(self, context):
@@ -308,11 +309,9 @@ class SpiroFitSpline(bpy.types.Operator):
         return ((ob is not None) and
                 (context.mode == 'OBJECT'))
 
-
     def invoke(self, context, event):
         self.refresh = True
         return self.execute(context)
-
 
     def execute(self, context):
         if not self.refresh:
@@ -320,6 +319,8 @@ class SpiroFitSpline(bpy.types.Operator):
 
         obj = context.active_object
         if obj.type != 'MESH':
+            self.report({'WARNING'},
+                        "Active Object is not a Mesh. Operation Cancelled")
             return {'CANCELLED'}
 
         undo = context.user_preferences.edit.use_global_undo
@@ -419,139 +420,138 @@ def bounce_spline(obj,
     return points
 
 
-class BounceSpline(bpy.types.Operator):
+class BounceSpline(Operator):
     bl_idname = "object.add_bounce_spline"
-    bl_label = "BounceSpline"
+    bl_label = "Bounce Spline"
     bl_description = "Fill selected mesh with a spline"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     bounce_number = IntProperty(
-        name="Bounces",
-        default=1000,
-        min=1,
-        max=100000,
-        soft_max=10000,
-        description="Number of bounces"
-        )
+            name="Bounces",
+            default=1000,
+            min=1,
+            max=100000,
+            soft_max=10000,
+            description="Number of bounces"
+            )
     ang_noise = FloatProperty(
-        name="Angular Noise",
-        default=0.25,
-        min=0.0,
-        precision=3,
-        description="Add some noise to ray direction"
-        )
+            name="Angular Noise",
+            default=0.25,
+            min=0.0,
+            precision=3,
+            description="Add some noise to ray direction"
+            )
     offset = FloatProperty(
-        name="Offset",
-        default=0.0,
-        precision=3,
-        description="Use normal direction to offset spline"
-        )
+            name="Offset",
+            default=0.0,
+            precision=3,
+            description="Use normal direction to offset spline"
+            )
     extra = IntProperty(
-        name="Extra",
-        default=50,
-        min=0,
-        max=1000,
-        description="Number of extra tries if it fails to hit mesh"
-        )
+            name="Extra",
+            default=50,
+            min=0,
+            max=1000,
+            description="Number of extra tries if it fails to hit mesh"
+            )
     active_face = BoolProperty(
-        name="Active Face",
-        default=False,
-        description="Starts from active face or a random one"
-        )
-
+            name="Active Face",
+            default=False,
+            description="Starts from active face or a random one"
+            )
     spline_name = StringProperty(
-        name="Name",
-        default="BounceSpline"
-        )
+            name="Name",
+            default="BounceSpline"
+            )
     spline_type = EnumProperty(
-        name="Spline",
-        default='BEZIER',
-        description="Spline type",
-        items=[('POLY', 'Poly', 'Poly spline'),
-               ('BEZIER', 'Bezier', 'Bezier spline')]
-        )
+            name="Spline",
+            default='BEZIER',
+            description="Spline type",
+            items=[('POLY', "Poly", "Poly spline"),
+                   ('BEZIER', "Bezier", "Bezier spline")]
+            )
     resolution_u = IntProperty(
-        name="Resolution U",
-        default=12,
-        min=0,
-        max=64,
-        description="Curve resolution u"
-        )
+            name="Resolution U",
+            default=12,
+            min=0,
+            max=64,
+            description="Curve resolution u"
+            )
     bevel = FloatProperty(
-        name="Bevel Radius",
-        default=0.0,
-        min=0.0,
-        precision=3,
-        description="Bevel depth"
-        )
-    bevel_res =IntProperty(
-        name="Bevel Resolution",
-        default=0,
-        min=0,
-        max=32,
-        description="Bevel resolution"
-        )
+            name="Bevel Radius",
+            default=0.0,
+            min=0.0,
+            precision=3,
+            description="Bevel depth"
+            )
+    bevel_res = IntProperty(
+            name="Bevel Resolution",
+            default=0,
+            min=0,
+            max=32,
+            description="Bevel resolution"
+            )
     extrude = FloatProperty(
-        name="Extrude",
-        default=0.0,
-        min=0.0,
-        precision=3,
-        description="Extrude amount"
-        )
+            name="Extrude",
+            default=0.0,
+            min=0.0,
+            precision=3,
+            description="Extrude amount"
+            )
     twist_mode = EnumProperty(
-        name="Twisting",
-        default='MINIMUM',
-        description="Twist method, type of tilt calculation",
-        items=[('Z_UP', "Z-Up", 'Z Up'),
-               ('MINIMUM', "Minimum", 'Minimum'),
-               ('TANGENT', "Tangent", 'Tangent')]
-        )
+            name="Twisting",
+            default='MINIMUM',
+            description="Twist method, type of tilt calculation",
+            items=[('Z_UP', "Z-Up", 'Z Up'),
+                   ('MINIMUM', "Minimum", 'Minimum'),
+                   ('TANGENT', "Tangent", 'Tangent')]
+            )
     twist_smooth = FloatProperty(
-        name="Smooth",
-        default=0.0,
-        min=0.0,
-        precision=3,
-        description="Twist smoothing amount for tangents"
-        )
+            name="Smooth",
+            default=0.0,
+            min=0.0,
+            precision=3,
+            description="Twist smoothing amount for tangents"
+            )
     tilt = FloatProperty(
-        name="Tilt",
-        default=0.0,
-        precision=3,
-        description="Spline handle tilt"
-        )
+            name="Tilt",
+            default=0.0,
+            precision=3,
+            description="Spline handle tilt"
+            )
     random_radius = FloatProperty(
-        name="Randomise",
-        default=0.0,
-        min=0.0,
-        precision=3,
-        description="Randomise radius of spline controlpoints"
-        )
+            name="Randomise",
+            default=0.0,
+            min=0.0,
+            precision=3,
+            description="Randomise radius of spline controlpoints"
+            )
     x_ray = BoolProperty(
-        name="X-Ray",
-        default=False,
-        description="X-Ray - make the object draw in front of others"
-        )
+            name="X-Ray",
+            default=False,
+            description="X-Ray - make the object draw in front of others"
+            )
     random_seed = IntProperty(
-        name="Random Seed",
-        default=1,
-        min=0,
-        description="Random seed number"
-        )
+            name="Random Seed",
+            default=1,
+            min=0,
+            description="Random seed number"
+            )
     origin_to_start = BoolProperty(
-        name="Origin at Start",
-        description="Set origin at first point of spline",
-        default=False
-        )
+            name="Origin at Start",
+            description="Set origin at first point of spline",
+            default=False
+            )
     refresh = BoolProperty(
-        name="Refresh",
-        description="Refresh spline",
-        default=False
-        )
+            name="Refresh",
+            description="Refresh spline",
+            default=False
+            )
     auto_refresh = BoolProperty(
-        name="Auto",
-        description="Auto refresh spline",
-        default=True
-        )
+            name="Auto",
+            description="Auto refresh spline",
+            default=True
+            )
 
     def draw(self, context):
         layout = self.layout
@@ -561,24 +561,24 @@ class BounceSpline(bpy.types.Operator):
             self.refresh = False
         elif self.auto_refresh is True:
             self.refresh = True
-        row.prop(self, 'auto_refresh', toggle=True, icon='AUTO', icon_only=True)
-        row.prop(self, 'refresh', toggle=True, icon='FILE_REFRESH', icon_only=True)
-        row.operator('object.add_bounce_spline', text="Add")
-        row.prop(self, 'x_ray', toggle=True, icon_only=True, icon='RESTRICT_VIEW_OFF')
-        row.prop(self, 'origin_to_start', toggle=True, icon='CURVE_DATA', icon_only=True)
+
+        row.prop(self, "auto_refresh", toggle=True, icon="AUTO", icon_only=True)
+        row.prop(self, "refresh", toggle=True, icon="FILE_REFRESH", icon_only=True)
+        row.operator("object.add_bounce_spline", text="Add")
+        row.prop(self, "x_ray", toggle=True, icon_only=True, icon="RESTRICT_VIEW_OFF")
+        row.prop(self, "origin_to_start", toggle=True, icon="CURVE_DATA", icon_only=True)
 
         col = layout.column(align=True)
-        col.prop(self, 'spline_name')
+        col.prop(self, "spline_name")
         col.separator()
-        col.prop(self, 'bounce_number')
+        col.prop(self, "bounce_number")
         row = col.row(align=True).split(0.9, align=True)
-        row.prop(self, 'ang_noise')
-        row.prop(self, 'active_face', toggle=True, text="", icon='SNAP_FACE')
-        col.prop(self, 'offset')
-        col.prop(self, 'extra')
-        col.prop(self, 'random_seed')
+        row.prop(self, "ang_noise")
+        row.prop(self, "active_face", toggle=True, text="", icon="SNAP_FACE")
+        col.prop(self, "offset")
+        col.prop(self, "extra")
+        col.prop(self, "random_seed")
         draw_spline_settings(self)
-
 
     @classmethod
     def poll(self, context):
@@ -586,11 +586,9 @@ class BounceSpline(bpy.types.Operator):
         return ((ob is not None) and
                 (context.mode == 'OBJECT'))
 
-
     def invoke(self, context, event):
         self.refresh = True
         return self.execute(context)
-
 
     def execute(self, context):
         if not self.refresh:
@@ -671,157 +669,155 @@ def catenary_curve(
     return points
 
 
-class CatenaryCurve(bpy.types.Operator):
+class CatenaryCurve(Operator):
     bl_idname = "object.add_catenary_curve"
     bl_label = "Catenary"
     bl_description = "Hang a curve between two selected objects"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     steps = IntProperty(
-        name="Steps",
-        description="Resolution of the curve",
-        default=24,
-        min=2,
-        max=1024,
-        )
+            name="Steps",
+            description="Resolution of the curve",
+            default=24,
+            min=2,
+            max=1024,
+            )
     var_a = FloatProperty(
-        name="a",
-        description="Catenary variable a",
-        precision=3,
-        default=2.0,
-        min=0.01,
-        max=100.0
-        )
-
+            name="a",
+            description="Catenary variable a",
+            precision=3,
+            default=2.0,
+            min=0.01,
+            max=100.0
+            )
     spline_name = StringProperty(
-        name="Name",
-        default="Catenary"
-        )
+            name="Name",
+            default="Catenary"
+            )
     spline_type = EnumProperty(
-        name="Spline",
-        default='BEZIER',
-        description="Spline type",
-        items=[('POLY', 'Poly', 'Poly spline'),
-               ('BEZIER', 'Bezier', 'Bezier spline')]
-        )
+            name="Spline",
+            default='BEZIER',
+            description="Spline type",
+            items=[('POLY', "Poly", "Poly spline"),
+                   ('BEZIER', "Bezier", "Bezier spline")]
+            )
     resolution_u = IntProperty(
-        name="Resolution U",
-        default=12,
-        min=0,
-        max=64,
-        description="Curve resolution u"
-        )
+            name="Resolution U",
+            default=12,
+            min=0,
+            max=64,
+            description="Curve resolution u"
+            )
     bevel = FloatProperty(
-        name="Bevel Radius",
-        default=0.0,
-        min=0.0,
-        precision=3,
-        description="Bevel depth"
-        )
-    bevel_res =IntProperty(
-        name="Bevel Resolution",
-        default=0,
-        min=0,
-        max=32,
-        description="Bevel resolution"
-        )
+            name="Bevel Radius",
+            default=0.0,
+            min=0.0,
+            precision=3,
+            description="Bevel depth"
+            )
+    bevel_res = IntProperty(
+            name="Bevel Resolution",
+            default=0,
+            min=0,
+            max=32,
+            description="Bevel resolution"
+            )
     extrude = FloatProperty(
-        name="Extrude",
-        default=0.0,
-        min=0.0,
-        precision=3,
-        description="Extrude amount"
-        )
+            name="Extrude",
+            default=0.0,
+            min=0.0,
+            precision=3,
+            description="Extrude amount"
+            )
     twist_mode = EnumProperty(
-        name="Twisting",
-        default='MINIMUM',
-        description="Twist method, type of tilt calculation",
-        items=[('Z_UP', "Z-Up", 'Z Up'),
-               ('MINIMUM', "Minimum", 'Minimum'),
-               ('TANGENT', "Tangent", 'Tangent')]
-        )
+            name="Twisting",
+            default='MINIMUM',
+            description="Twist method, type of tilt calculation",
+            items=[('Z_UP', "Z-Up", 'Z Up'),
+                   ('MINIMUM', "Minimum", "Minimum"),
+                   ('TANGENT', "Tangent", "Tangent")]
+            )
     twist_smooth = FloatProperty(
-        name="Smooth",
-        default=0.0,
-        min=0.0,
-        precision=3,
-        description="Twist smoothing amount for tangents"
-        )
+            name="Smooth",
+            default=0.0,
+            min=0.0,
+            precision=3,
+            description="Twist smoothing amount for tangents"
+            )
     tilt = FloatProperty(
-        name="Tilt",
-        default=0.0,
-        precision=3,
-        description="Spline handle tilt"
-        )
+            name="Tilt",
+            default=0.0,
+            precision=3,
+            description="Spline handle tilt"
+            )
     random_radius = FloatProperty(
-        name="Randomise",
-        default=0.0,
-        min=0.0,
-        precision=3,
-        description="Randomise radius of spline controlpoints"
-        )
+            name="Randomise",
+            default=0.0,
+            min=0.0,
+            precision=3,
+            description="Randomise radius of spline controlpoints"
+            )
     x_ray = BoolProperty(
-        name="X-Ray",
-        default=False,
-        description="X-Ray - make the object draw in front of others"
-        )
+            name="X-Ray",
+            default=False,
+            description="X-Ray - make the object draw in front of others"
+            )
     random_seed = IntProperty(
-        name="Random Seed",
-        default=1,
-        min=0,
-        description="Random seed number"
-        )
+            name="Random Seed",
+            default=1,
+            min=0,
+            description="Random seed number"
+            )
     origin_to_start = BoolProperty(
-        name="Origin at Start",
-        description="Set origin at first point of spline",
-        default=False
-        )
+            name="Origin at Start",
+            description="Set origin at first point of spline",
+            default=False
+            )
     refresh = BoolProperty(
-        name="Refresh",
-        description="Refresh spline",
-        default=False
-        )
+            name="Refresh",
+            description="Refresh spline",
+            default=False
+            )
     auto_refresh = BoolProperty(
-        name="Auto",
-        description="Auto refresh spline",
-        default=True
-        )
+            name="Auto",
+            description="Auto refresh spline",
+            default=True
+            )
 
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
         row = col.row(align=True)
+
         if self.auto_refresh is False:
             self.refresh = False
         elif self.auto_refresh is True:
             self.refresh = True
-        row.prop(self, 'auto_refresh', toggle=True, icon='AUTO', icon_only=True)
-        row.prop(self, 'refresh', toggle=True, icon='FILE_REFRESH', icon_only=True)
-        row.operator('object.add_catenary_curve', text="Add")
-        row.prop(self, 'x_ray', toggle=True, icon_only=True, icon='RESTRICT_VIEW_OFF')
-        row.prop(self, 'origin_to_start', toggle=True, icon='CURVE_DATA', icon_only=True)
+
+        row.prop(self, "auto_refresh", toggle=True, icon="AUTO", icon_only=True)
+        row.prop(self, "refresh", toggle=True, icon="FILE_REFRESH", icon_only=True)
+        row.operator("object.add_catenary_curve", text="Add")
+        row.prop(self, "x_ray", toggle=True, icon_only=True, icon="RESTRICT_VIEW_OFF")
+        row.prop(self, "origin_to_start", toggle=True, icon="CURVE_DATA", icon_only=True)
 
         col = layout.column(align=True)
-        col.prop(self, 'spline_name')
+        col.prop(self, "spline_name")
         col.separator()
-        col.prop(self, 'steps')
-        col.prop(self, 'var_a')
+        col.prop(self, "steps")
+        col.prop(self, "var_a")
 
         draw_spline_settings(self)
         col = layout.column(align=True)
-        col.prop(self, 'random_seed')
-
+        col.prop(self, "random_seed")
 
     @classmethod
     def poll(self, context):
         ob = context.active_object
         return ob is not None
 
-
     def invoke(self, context, event):
         self.refresh = True
         return self.execute(context)
-
 
     def execute(self, context):
         if not self.refresh:
@@ -834,9 +830,13 @@ class CatenaryCurve(bpy.types.Operator):
             start = ob1.location
             end = ob2.location
             if (start[0] == end[0]) and (start[1] == end[1]):
-                self.report({"WARNING"}, "Objects have the same x y location. Operation cancelled")
+                self.report({"WARNING"},
+                            "Objects have the same X, Y location. Operation Cancelled")
+
                 return {'CANCELLED'}
         except:
+            self.report({"WARNING"},
+                        "Catenary could not be completed. Operation Cancelled")
             return {'CANCELLED'}
 
         bpy.ops.object.select_all(action='DESELECT')
@@ -852,7 +852,6 @@ class CatenaryCurve(bpy.types.Operator):
                 self.steps,
                 self.var_a
                 )
-
         add_curve_object(
                 points,
                 Matrix(),
@@ -955,33 +954,35 @@ def move_origin_to_start():
 def draw_spline_settings(self):
     layout = self.layout
     col = layout.column(align=True)
-    col.prop(self, 'spline_type')
+
+    col.prop(self, "spline_type")
     col.separator()
-    col.prop(self, 'resolution_u')
-    col.prop(self, 'bevel')
-    col.prop(self, 'bevel_res')
-    col.prop(self, 'extrude')
+    col.prop(self, "resolution_u")
+    col.prop(self, "bevel")
+    col.prop(self, "bevel_res")
+    col.prop(self, "extrude")
+
     if self.spline_type == 'BEZIER':
-        col.prop(self, 'random_radius')
+        col.prop(self, "random_radius")
     col.separator()
-    col.prop(self, 'twist_mode')
+    col.prop(self, "twist_mode")
     col.separator()
+
     if self.twist_mode == 'TANGENT':
-        col.prop(self, 'twist_smooth')
+        col.prop(self, "twist_smooth")
+
     if self.spline_type == 'BEZIER':
-        col.prop(self, 'tilt')
-
-
+        col.prop(self, "tilt")
 
 
 # ------------------------------------------------------------
 # Tools Panel > Create
 # ------------------------------------------------------------
-class SplinePanel(bpy.types.Panel):
+class SplinePanel(Panel):
     bl_space_type = "VIEW_3D"
     bl_context = "objectmode"
     bl_region_type = "TOOLS"
-    bl_label = "Spline:"
+    bl_label = "Spline"
     bl_category = "Create"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -991,15 +992,6 @@ class SplinePanel(bpy.types.Panel):
         col.operator(BounceSpline.bl_idname, icon="FORCE_HARMONIC")
         col.operator(CatenaryCurve.bl_idname, icon="FORCE_CURVE")
 
-# ------------------------------------------------------------
-# Menu: Add > Curve >
-# ------------------------------------------------------------
-'''
-def menu_func(self, context):
-    self.layout.operator(SpiroFitSpline.bl_idname, icon="PLUGIN")
-    self.layout.operator(BounceSpline.bl_idname, icon="PLUGIN")
-    self.layout.operator(CatenaryCurve.bl_idname, icon="PLUGIN")
-'''
 
 # ------------------------------------------------------------
 # Register
@@ -1009,7 +1001,6 @@ def register():
     bpy.utils.register_class(SpiroFitSpline)
     bpy.utils.register_class(BounceSpline)
     bpy.utils.register_class(CatenaryCurve)
-    # bpy.types.INFO_MT_curve_add.append(menu_func)
 
 
 def unregister():
@@ -1017,7 +1008,6 @@ def unregister():
     bpy.utils.unregister_class(SpiroFitSpline)
     bpy.utils.unregister_class(BounceSpline)
     bpy.utils.unregister_class(CatenaryCurve)
-    # bpy.types.INFO_MT_curve_add.remove(menu_func)
 
 
 if __name__ == "__main__":
