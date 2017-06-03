@@ -1,6 +1,4 @@
-# development_api_navigator.py
-#
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -9,19 +7,19 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENCE BLOCK #####
 
 bl_info = {
     "name": "API Navigator",
     "author": "Dany Lebel (Axon_D)",
-    "version": (1, 0, 3),
+    "version": (1, 0, 4),
     "blender": (2, 57, 0),
     "location": "Text Editor > Properties > API Navigator Panel",
     "description": "Allows exploration of the python api via the user interface",
@@ -63,9 +61,10 @@ from bpy.types import (
         PropertyGroup,
         )
 from bpy.props import (
+        BoolVectorProperty,
         StringProperty,
         IntProperty,
-        PointerProperty
+        PointerProperty,
         )
 from console.complete_import import get_root_modules
 
@@ -186,9 +185,11 @@ def update_filter():
     global filter_mem
 
     try:
-        bpy.context.window_manager.api_nav_props.filter = filter_mem[bpy.context.window_manager.api_nav_props.path]
+        bpy.context.window_manager.api_nav_props.filters = filter_mem[
+                                                            bpy.context.window_manager.api_nav_props.path
+                                                            ]
     except:
-        bpy.context.window_manager.api_nav_props.filter = ''
+        bpy.context.window_manager.api_nav_props.filters = ''
 
 
 def isiterable(mod):
@@ -208,10 +209,10 @@ def isiterable(mod):
 def fill_filter_mem():
     global filter_mem
 
-    filter = bpy.context.window_manager.api_nav_props.filter
-    if filter:
+    filters = bpy.context.window_manager.api_nav_props.filters
+    if filters:
         filter_mem[bpy.context.window_manager.api_nav_props.old_path] = \
-        bpy.context.window_manager.api_nav_props.filter
+                bpy.context.window_manager.api_nav_props.filters
     else:
         filter_mem.pop(bpy.context.window_manager.api_nav_props.old_path, None)
 
@@ -330,9 +331,11 @@ class BackToBpy(ApiNavigator, Operator):
     def execute(self, context):
         fill_filter_mem()
         if not bpy.context.window_manager.api_nav_props.path:
-            bpy.context.window_manager.api_nav_props.old_path = bpy.context.window_manager.api_nav_props.path = 'bpy'
+            bpy.context.window_manager.api_nav_props.old_path = \
+                    bpy.context.window_manager.api_nav_props.path = 'bpy'
         else:
-            bpy.context.window_manager.api_nav_props.old_path = bpy.context.window_manager.api_nav_props.path = 'bpy'
+            bpy.context.window_manager.api_nav_props.old_path = \
+                    bpy.context.window_manager.api_nav_props.path = 'bpy'
         update_filter()
         self.generate_global_values()
         self.doc_text_datablock()
@@ -393,7 +396,7 @@ class ClearFilter(ApiNavigator, Operator):
     bl_label = "API Nav clear filter"
 
     def execute(self, context):
-        bpy.context.window_manager.api_nav_props.filter = ''
+        bpy.context.window_manager.api_nav_props.filters = ''
         return {'FINISHED'}
 
 
@@ -552,58 +555,59 @@ class OBJECT_PT_api_navigator(ApiNavigator, Panel):
                 sub_row.prop(bpy.context.window_manager.api_nav_props, "pages", text="Pages")
 
         layout = self.layout
-        filter = bpy.context.window_manager.api_nav_props.filter
+        filters = bpy.context.window_manager.api_nav_props.filters
         reduce_to = bpy.context.window_manager.api_nav_props.reduce_to * self.columns
         page_index = reduce_to * pages
+        show_panel_elements = bpy.context.window_manager.api_nav_props.panel_toggle[t] if \
+                              0 <= t < 10 else True
 
-        len = tree_level[t].__len__()
-        too_long = len > reduce_to
+        lenght = tree_level[t].__len__()
+        too_long = lenght > reduce_to
 
-        if len:
+        if lenght:
             col = layout.column()
             box = col.box()
 
-            row = box.row(align=True)
-            title_box = row.box()
+            title_box = box.row(align=True)
+            title_box.prop(bpy.context.window_manager.api_nav_props,
+                           "panel_toggle", text="", index=t if 0 <= t < 10 else 0)
             title_box.label(text=label, icon=icon)
+            reduced(box, too_long)
 
-            reduced(title_box, too_long)
+            if show_panel_elements:
+                if t < 2:
+                    box = box.box()
+                row = box.row()
+                col = row.column(align=True)
+                i = 0
+                objects, count, filtered = 0, 0, 0
 
-            if t < 2:
-                box = box.box()
-            row = box.row()
-            col = row.column(align=True)
-            i = 0
-            objects = 0
-            count = 0
-            filtered = 0
+                while count < reduce_to and i < lenght:
+                    obj = tree_level[t][i]
 
-            while count < reduce_to and i < len:
-                obj = tree_level[t][i]
+                    if filters and filters not in obj:
+                        i += 1
+                        continue
+                    elif filtered < page_index:
+                        filtered += 1
+                        i += 1
+                        continue
 
-                if filter and filter not in obj:
-                    i += 1
-                    continue
-                elif filtered < page_index:
+                    if not (objects % self.columns):
+                        row = col.row(align=True)
+                    if t > 1:
+                        row.operator("api_navigator.down",
+                                      text=obj, emboss=emboss).pointed_module = obj
+                    elif t == 0:
+                        row.operator("api_navigator.subscript",
+                                     text=str(obj), emboss=emboss).subscription = '"' + obj + '"'
+                    else:
+                        row.operator("api_navigator.subscript",
+                                     text=str(obj), emboss=emboss).subscription = str(i)
                     filtered += 1
                     i += 1
-                    continue
-
-                if not (objects % self.columns):
-                    row = col.row(align=True)
-                if t > 1:
-                    row.operator("api_navigator.down",
-                                  text=obj, emboss=emboss).pointed_module = obj
-                elif t == 0:
-                    row.operator("api_navigator.subscript",
-                                 text=str(obj), emboss=emboss).subscription = '"' + obj + '"'
-                else:
-                    row.operator("api_navigator.subscript",
-                                 text=str(obj), emboss=emboss).subscription = str(i)
-                filtered += 1
-                i += 1
-                objects += 1
-                count += 1
+                    objects += 1
+                    count += 1
 
         return {'FINISHED'}
 
@@ -624,7 +628,7 @@ class OBJECT_PT_api_navigator(ApiNavigator, Panel):
 
         col = layout.column()
         row = col.row(align=True)
-        row.prop(bpy.context.window_manager.api_nav_props, "filter", text="Filter")
+        row.prop(bpy.context.window_manager.api_nav_props, "filters", text="Filter")
         row.operator("api_navigator.clear_filter", text="", icon="PANEL_CLOSE")
 
         col = layout.column()
@@ -649,31 +653,37 @@ class ApiNavProps(PropertyGroup):
     bpy.context.window_manager.api_nav_props
     """
     path = StringProperty(
-                name="path",
-                description="Enter bpy.ops.api_navigator to see the documentation",
-                default="bpy"
-                )
+            name="Path",
+            description="Enter bpy.ops.api_navigator to see the documentation",
+            default="bpy"
+            )
     old_path = StringProperty(
-                name="old_path",
-                default=""
-                )
-    filter = StringProperty(
-                name="filter",
-                description="Filter the resulting modules",
-                default=""
-                )
+            name="Old Path",
+            default=""
+            )
+    filters = StringProperty(
+            name="Filters",
+            description="Filter the resulting modules",
+            default=""
+            )
     reduce_to = IntProperty(
-                name="Reduce to",
-                description="Display a maximum number of x entries by pages",
-                default=10,
-                min=1
-                )
+            name="Reduce to",
+            description="Display a maximum number of x entries by pages",
+            default=10,
+            min=1
+            )
     pages = IntProperty(
-                name="Pages",
-                description="Display a Page",
-                default=0,
-                min=0
-                )
+            name="Pages",
+            description="Display a Page",
+            default=0,
+            min=0
+            )
+    panel_toggle = BoolVectorProperty(
+            name="Tab",
+            description="Expand/Collapse UI elements",
+            default=(True,) * 9,
+            size=9,
+            )
 
 
 # ######## Register #########
