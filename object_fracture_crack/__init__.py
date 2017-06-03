@@ -16,34 +16,6 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
-'''
-    The addon makes a cracked object based on selected object. Also you can use material preset for cracked objects.
-    
-    WARNING1: Please enable 'Object: Cell Fracture' addon before use the addon!!
-    WARNING2: Obejects which have many vertices or complex shape could take huge amount of time to make crack.
-              So I recommend using simple object, or simplifying object by applying decimate modifier in advance.
-
-    Besic Usage:
-    1. Select an object.
-    2. Find the addon's location in create tab in the toolshelf left. It's usually the same tab of 'Add Primitive'.
-    3. Click 'Crack It' button. It makes cracked object with some modifiers.
-    4. Tweak modifier setting. Decimate modifeir to simplify shape, Smooth modifier to smooth shape.
-    5. Select material preset and click 'Apply Material' button.
-
-    Crack Option:
-    'From Child Verts': Use child's vertices and position for origin of crack.
-    'Scale X/Y/Z': Scale of crack. To make long crack like bark of tree, decrease scale of an axis.
-    'Max Crack': Max number of crack. Notice that if you increase it too much, calculation will take long time.
-    'Margin Size': Margin of crack. To make more gap of crack, increase it.
-    'Extrude': Extrusion size along with object's normal.
-    'Random': Randomness of crack' rotation and scale.
-
-    Material Preset:
-    'Excrement': Poop/shit material
-    'Mud': Mud Material
-    'Tree': Tree Material
-    'Rock': Rock Material
-'''
 
 if 'bpy' in locals():
     import imp
@@ -63,9 +35,7 @@ bl_info = {
     "location": "View3D > Toolshelf > Creat Tab",
     "description": "Displaced Cell Fracture Addon",
     "warning": "Make sure to enable 'Object: Cell Fracture' Addon",
-    #"support": "TESTING",
-    "wiki_url": "http://gappyfacets.com/2016/08/11/blender-crack-addon-basic-tutorial/",
-    "tracker_url": "",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Object/CrackIt",
     "category": "Object"
 }
 
