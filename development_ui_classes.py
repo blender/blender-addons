@@ -26,7 +26,8 @@ bl_info = {
     "location": "Text Editor > Properties",
     "description": "Print the UI classes in a text-block",
     "warning": "",
-    "wiki_url": "",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/"
+                "Py/Scripts/Development/Classes_Overview",
     "category": "Development"
     }
 
@@ -132,7 +133,8 @@ class TEXT_OT_ui_cheat_sheet(Operator):
 
             return {'FINISHED'}
         except:
-            self.report({'WARNING'}, "Failure to write the UI list (Check the console for more info)")
+            self.report({'WARNING'},
+                        "Failure to write the UI list (Check the console for more info)")
             import traceback
             traceback.print_exc()
 
