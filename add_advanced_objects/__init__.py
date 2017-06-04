@@ -31,7 +31,7 @@ bl_info = {
     "description": "Add Object & Camera extras",
     "warning": "",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6"
-                "/Py/Scripts",
+                "/Py/Scripts/Object/Add_Advanced",
     "category": "Object"}
 
 if "bpy" in locals():
