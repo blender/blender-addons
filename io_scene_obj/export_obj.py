@@ -397,6 +397,9 @@ def write_file(filepath, objects, scene,
                             continue
 
                         me.transform(EXPORT_GLOBAL_MATRIX * ob_mat)
+                        # If negative scaling, we have to invert the normals...
+                        if ob_mat.determinant() < 0.0:
+                            me.flip_normals()
 
                         if EXPORT_TRI:
                             # _must_ do this first since it re-allocs arrays
