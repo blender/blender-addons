@@ -20,13 +20,17 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "4.3"
-__date__ = "1 Apr 2017"
-
+__version__ = "4.3.1"
+__date__ = "6 June 2017"
 
 import bpy
 import bmesh
-from bpy.props import StringProperty, BoolProperty, IntProperty, EnumProperty
+from bpy.props import (
+        StringProperty,
+        BoolProperty,
+        IntProperty,
+        EnumProperty,
+        )
 from . import muv_common
 
 
@@ -180,8 +184,8 @@ class MUV_CPUVSelSeqPasteUV(bpy.types.Operator):
         if self.strategy == 'N_N' and len(props.src_uvs) != len(dest_uvs):
             self.report(
                 {'WARNING'},
-                "Number of selected faces is different from copied faces "
-                + "(src:%d, dest:%d)"
+                "Number of selected faces is different from copied faces " +
+                "(src:%d, dest:%d)"
                 % (len(props.src_uvs), len(dest_uvs)))
             return {'CANCELLED'}
 
