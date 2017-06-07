@@ -20,12 +20,13 @@
 bl_info = {
     "name": "Edit Operator Source",
     "author": "scorpion81",
-    "version": (1, 2, 1),
+    "version": (1, 2, 2),
     "blender": (2, 78, 0),
     "location": "Text Editor > Edit > Edit Operator",
-    "description": "Opens source file of chosen operator, if it is an addon one",
+    "description": "Opens source file of chosen operator, if it is an add-on one",
     "warning": "",
-    "wiki_url": "",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/"
+                "Py/Scripts/Development/Edit_Operator_Source",
     "category": "Development"}
 
 import bpy
