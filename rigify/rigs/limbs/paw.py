@@ -1277,22 +1277,6 @@ def create_sample(obj):
 
     bones = {}
 
-    for _ in range(29):
-        arm.rigify_layers.add()
-
-    arm.rigify_layers[5].name = 'Paws'
-    arm.rigify_layers[5].row = 5
-    arm.rigify_layers[6].name = 'Paws (Tweak)'
-    arm.rigify_layers[6].row = 6
-    arm.rigify_layers[7].name = 'Arm.L (IK)'
-    arm.rigify_layers[7].row = 7
-    arm.rigify_layers[8].name = 'Arm.L (FK)'
-    arm.rigify_layers[8].row = 8
-    arm.rigify_layers[9].name = 'Arm.L (Tweak)'
-    arm.rigify_layers[9].row = 9
-    arm.rigify_layers[28].name = "Root"
-    arm.rigify_layers[28].row = 14
-
     bone = arm.edit_bones.new('upper_arm.L')
     bone.head[:] = 0.0313, -0.1149, 0.2257
     bone.tail[:] = 0.0313, -0.0878, 0.1235

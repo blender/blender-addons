@@ -117,7 +117,6 @@ def make_submenu_func(bl_idname, text):
 
 # Get the metarig modules
 metarigs_dict = get_metarig_list("")
-print(metarigs_dict)
 armature_submenus = []
 
 # Create metarig add Operators
@@ -137,24 +136,27 @@ for metarig_class in metarigs_dict:
         metarig_ops[metarig_class].append((T, name))
 
 menu_funcs = []
-for metarig_class in metarigs_dict:
+
+for mop, name in metarig_ops[utils.METARIG_DIR]:
+    text = capwords(name.replace("_", " ")) + " (Meta-Rig)"
+    menu_funcs += [make_metarig_menu_func(mop.bl_idname, text)]
+
+metarigs_dict.pop(utils.METARIG_DIR)
+
+metarig_classes = list(metarigs_dict.keys())
+metarig_classes.sort()
+for metarig_class in metarig_classes:
     # Create menu functions
-    if metarig_class != utils.METARIG_DIR:
-        armature_submenus.append(type('Class_' + metarig_class + '_submenu', (ArmatureSubMenu,), {}))
-        armature_submenus[-1].bl_label = metarig_class + ' (submenu)'
-        armature_submenus[-1].bl_idname = 'ARMATURE_MT_%s_class' % metarig_class
-        armature_submenus[-1].operators = []
-        menu_funcs += [make_submenu_func(armature_submenus[-1].bl_idname, metarig_class)]
+
+    armature_submenus.append(type('Class_' + metarig_class + '_submenu', (ArmatureSubMenu,), {}))
+    armature_submenus[-1].bl_label = metarig_class + ' (submenu)'
+    armature_submenus[-1].bl_idname = 'ARMATURE_MT_%s_class' % metarig_class
+    armature_submenus[-1].operators = []
+    menu_funcs += [make_submenu_func(armature_submenus[-1].bl_idname, metarig_class)]
 
     for mop, name in metarig_ops[metarig_class]:
-        print(metarig_class)
-        print(metarig_ops[metarig_class])
-        if metarig_class != utils.METARIG_DIR:
-            arm_sub = next((e for e in armature_submenus if e.bl_label == metarig_class + ' (submenu)'), '')
-            arm_sub.operators.append((mop.bl_idname, name,))
-        else:
-            text = capwords(name.replace("_", " ")) + " (Meta-Rig)"
-            menu_funcs += [make_metarig_menu_func(mop.bl_idname, text)]
+        arm_sub = next((e for e in armature_submenus if e.bl_label == metarig_class + ' (submenu)'), '')
+        arm_sub.operators.append((mop.bl_idname, name,))
 
 def register():
     for cl in metarig_ops:
