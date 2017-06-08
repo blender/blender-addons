@@ -411,7 +411,6 @@ class SCENE_PT_namedlayer_layers(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_label = "Layer Management"
-    bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Layers"
     bl_context = "objectmode"
 
