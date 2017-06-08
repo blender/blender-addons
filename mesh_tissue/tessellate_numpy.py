@@ -1242,6 +1242,7 @@ class tessellate_panel(bpy.types.Panel):
     bl_category = "Create"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
+    bl_options = {'DEFAULT_CLOSED'}
     #bl_context = "objectmode", "editmode"
 
     def draw(self, context):
