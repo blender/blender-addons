@@ -645,6 +645,11 @@ def exclusion_filter(exclude: str):
     return filename_filter
 
 
+def encode_none_safe(value: str):
+    if value is None:
+        return None
+    return value.encode('utf8')
+
 def main():
     parser = create_argparse()
     args = parser.parse_args()
@@ -661,7 +666,7 @@ def main():
             args.path_src.encode('utf8'),
             args.path_dst.encode('utf8'),
             mode=args.mode,
-            base_dir_dst_temp=args.temp_path.encode('utf8'),
+            base_dir_dst_temp=encode_none_safe(args.temp_path),
             filename_filter=exclusion_filter(args.exclude),
             ):
         report(msg)
