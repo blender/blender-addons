@@ -1,0 +1,24 @@
+Metadata-Version: 2.0
+Name: blender-bam
+Version: 1.1.7
+Summary: Bam Asset Manager
+Home-page: http://developer.blender.org/project/view/55
+Author: Campbell Barton, Francesco Siddi
+Author-email: ideasman42@gmail.com
+License: GPLv2+
+Download-URL: https://pypi.python.org/pypi/blender-bam
+Platform: any
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: Console
+Classifier: Environment :: Web Environment
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Utilities
+Requires-Dist: requests (>=2.4)
+
+Bam Asset Manager is a tool to manage assets in Blender.
+
+
