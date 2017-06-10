@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Node Wrangler",
     "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig, Christian Brinkmann",
-    "version": (3, 33),
-    "blender": (2, 77, 0),
+    "version": (3, 34),
+    "blender": (2, 78, 0),
     "location": "Node Editor Toolbar or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
     "warning": "",
@@ -3055,7 +3055,7 @@ class NWAddSequence(Operator, ImportHelper):
         name_with_hashes = without_num + "#"*count_numbers + '.' + extension
 
         bpy.ops.node.add_node('INVOKE_DEFAULT', use_transform=True, type=node_type)
-        node = context.space_data.node_tree.nodes.active
+        node = nodes.active
         node.label = name_with_hashes
 
         img = bpy.data.images.load(directory+(without_ext+'.'+extension))
