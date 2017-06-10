@@ -20,7 +20,7 @@ by running:
 
     python3 install_whl.py /path/to/blender-asset-manager/dist/blender_bam-xxx.whl
 
-This script also updates `__init__.py` to update the version number and path of the extracted
+This script also updates `__init__.py` to update the version number of the extracted
 wheel, and removes any pre-existing older versions of the BAM wheels.
 
 The version number and `.whl` extension are maintained in the directory name on purpose.

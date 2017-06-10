@@ -29,7 +29,7 @@ bl_info = {
     "category": "Import-Export",
 }
 
-BAM_WHEEL_PATH = 'blender_bam-1.1.7-py3-none-any.whl'
+BAM_WHEEL_PATH = 'blender_bam-unpacked.whl'
 
 import logging
 

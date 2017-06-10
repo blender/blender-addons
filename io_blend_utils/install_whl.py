@@ -27,7 +27,7 @@ def install(wheelfile: pathlib.Path):
     wipe_preexisting()
 
     print('Installing %s' % wheelfile)
-    target = my_dir / wheelfile.name
+    target = my_dir / 'blender_bam-unpacked.whl'
     print('Creating target directory %s' % target)
     target.mkdir(parents=True)
 
@@ -36,7 +36,7 @@ def install(wheelfile: pathlib.Path):
 
     version = find_version(target)
     print('This is BAM version %s' % (version, ))
-    update_init_file(wheelfile, version)
+    update_init_file(version)
 
     print('Done installing %s' % wheelfile.name)
 
@@ -102,13 +102,11 @@ def find_version(target: pathlib.Path):
     return tuple(int(x) for x in str_ver.split('.'))
 
 
-def update_init_file(wheelfile: pathlib.Path, version: tuple):
+def update_init_file(version: tuple):
     import os
     import re
 
-    print('Updating __init__.py to point to this wheel.')
-
-    path_line_re = re.compile(r'^BAM_WHEEL_PATH\s*=')
+    print('Updating __init__.py to have the correct version.')
     version_line_re = re.compile(r'^\s+[\'"]version[\'"]: (\([0-9,]+\)),')
 
     with open('__init__.py', 'r') as infile, \
@@ -117,8 +115,6 @@ def update_init_file(wheelfile: pathlib.Path, version: tuple):
         for line in infile:
             if version_line_re.match(line):
                 outfile.write("    'version': %s,%s" % (version, os.linesep))
-            if path_line_re.match(line):
-                outfile.write("BAM_WHEEL_PATH = '%s'%s" % (wheelfile.name, os.linesep))
             else:
                 outfile.write(line)
 
