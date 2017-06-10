@@ -86,6 +86,7 @@ def make_metarig_add_execute(m):
         bpy.ops.object.armature_add()
         obj = context.active_object
         obj.name = "metarig"
+        obj.data.name = "metarig"
 
         # Remove default bone
         bpy.ops.object.mode_set(mode='EDIT')
