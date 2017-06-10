@@ -90,12 +90,16 @@ def copy_files(target: pathlib.Path):
 
 def find_version(target: pathlib.Path):
     import json
+    import shutil
 
     print('Obtaining version number from wheel.')
 
     distinfo = next(target.glob('*.dist-info'))
     with (distinfo / 'metadata.json').open() as infofile:
         metadata = json.load(infofile)
+
+    print('Wiping dist-info directory.')
+    shutil.rmtree(str(distinfo))
 
     # "1.2.3" -> (1, 2, 3)
     str_ver = metadata['version']

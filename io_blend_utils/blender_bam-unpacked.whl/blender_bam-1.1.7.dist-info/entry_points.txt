@@ -1,3 +1,0 @@
-[console_scripts]
-bam = bam.cli:main
-
