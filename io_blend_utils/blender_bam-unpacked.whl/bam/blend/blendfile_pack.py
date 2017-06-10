@@ -217,7 +217,6 @@ def pack(
     base_dir_dst = os.path.dirname(blendfile_dst)
     # _dbg(blendfile_src)
     # _dbg(blendfile_dst)
-    assert base_dir_src != base_dir_dst
 
     if base_dir_dst_temp is None:
         # Always try to pack using a unique folder name.
@@ -413,7 +412,6 @@ def pack(
         # add to copy-list
         # never copy libs (handled separately)
         if not isinstance(fp, blendfile_path_walker.FPElem_block_path) or fp.userdata[0].code != b'LI':
-            assert path_src != path_dst
             path_copy_files.add((path_src, path_dst))
 
             for file_list in (
@@ -663,7 +661,7 @@ def main():
             args.path_src.encode('utf8'),
             args.path_dst.encode('utf8'),
             mode=args.mode,
-            base_dir_dst_temp=args.temp_path,
+            base_dir_dst_temp=args.temp_path.encode('utf8'),
             filename_filter=exclusion_filter(args.exclude),
             ):
         report(msg)
