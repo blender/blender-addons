@@ -69,19 +69,33 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
             if show_warning:
                 layout.label(text=WARNING, icon='ERROR')
 
-            layout.operator("pose.rigify_generate", text="Generate Rig")
-            layout.prop(id_store, "rigify_advanced_generation")
+            layout.operator("pose.rigify_generate", text="Generate Rig", icon='POSE_HLT')
+            if id_store.rigify_advanced_generation:
+                icon = 'UNLOCKED'
+            else:
+                icon = 'LOCKED'
+            layout.prop(id_store, "rigify_advanced_generation", toggle=True, icon=icon)
 
             if id_store.rigify_advanced_generation:
+
+                row = layout.row(align=True)
+                row.prop(id_store, "rigify_generate_mode", expand=True)
 
                 main_row = layout.row(align=True).split(percentage=0.3)
                 col1 = main_row.column()
                 col2 = main_row.column()
-                col1.label(text="Target Rig")
-                col1.label(text="Target UI")
+                col1.label(text="Rig Name")
+                row = col1.row()
+                row.label(text="Target Rig")
+                row.enabled = (id_store.rigify_generate_mode == "overwrite")
+                row = col1.row()
+                row.label(text="Target UI")
+                row.enabled = (id_store.rigify_generate_mode == "overwrite")
 
                 row = col2.row(align=True)
+                row.prop(id_store, "rigify_rig_basename", text="", icon="SORTALPHA")
 
+                row = col2.row(align=True)
                 for i in range(0, len(id_store.rigify_target_rigs)):
                     id_store.rigify_target_rigs.remove(0)
 
@@ -92,6 +106,7 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
 
                 row.prop_search(id_store, "rigify_target_rig", id_store, "rigify_target_rigs", text="",
                                 icon='OUTLINER_OB_ARMATURE')
+                row.enabled = (id_store.rigify_generate_mode == "overwrite")
 
                 for i in range(0, len(id_store.rigify_rig_uis)):
                     id_store.rigify_rig_uis.remove(0)
@@ -102,8 +117,12 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
 
                 row = col2.row()
                 row.prop_search(id_store, "rigify_rig_ui", id_store, "rigify_rig_uis", text="", icon='TEXT')
+                row.enabled = (id_store.rigify_generate_mode == "overwrite")
 
-                layout.prop(id_store, "rigify_force_widget_update")
+                row = layout.row()
+                row.prop(id_store, "rigify_force_widget_update")
+                if id_store.rigify_generate_mode == 'new':
+                    row.enabled = False
 
             if show_update_metarig:
                 layout.label(text="Some bones have old legacy rigify_type. Click to upgrade", icon='ERROR')

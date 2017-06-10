@@ -412,8 +412,9 @@ def create_widget(rig, bone_name, bone_transform_name=None):
     if bone_transform_name is None:
         bone_transform_name = bone_name
 
-    obj_name = WGT_PREFIX + bone_name
+    obj_name = WGT_PREFIX + rig.name + '_' + bone_name
     scene = bpy.context.scene
+    id_store = bpy.context.window_manager
 
     # Check if it already exists in the scene
     if obj_name in scene.objects:
@@ -437,8 +438,9 @@ def create_widget(rig, bone_name, bone_transform_name=None):
 
         # Move object to bone position and set layers
         obj_to_bone(obj, rig, bone_transform_name)
-        if 'WGTS' in bpy.data.objects.keys():
-            obj.parent = bpy.data.objects['WGTS']
+        wgts_group_name = 'WGTS_' + rig.name
+        if wgts_group_name in bpy.data.objects.keys():
+            obj.parent = bpy.data.objects[wgts_group_name]
         obj.layers = WGT_LAYERS
 
         return obj
