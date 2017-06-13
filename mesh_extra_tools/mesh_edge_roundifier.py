@@ -20,7 +20,7 @@ bl_info = {
     "name": "Edge Roundifier",
     "category": "Mesh",
     "author": "Piotr Komisarczyk (komi3D), PKHG",
-    "version": (1, 0, 0),
+    "version": (1, 0, 1),
     "blender": (2, 7, 3),
     "location": "SPACE > Edge Roundifier or CTRL-E > "
                 "Edge Roundifier or Tools > Addons > Edge Roundifier",
@@ -224,7 +224,7 @@ class CalculationHelper:
         return refPoint
 
 
-# SELECTION METHODS #
+# Selection Methods #
 
 class SelectionHelper:
 
@@ -414,8 +414,10 @@ class EdgeRoundifier(Operator):
             description="Entry mode switch between Angle and Radius\n"
                         "If Angle is selected, arc radius is calculated from it"
             )
-    rotateCenterItems = [("Spin", "Spin", ""), ("V1", "V1", ""),
-                         ("Edge", "Edge", ""), ("V2", "V2", "")]
+    rotateCenterItems = [
+            ("Spin", "Spin", ""), ("V1", "V1", ""),
+            ("Edge", "Edge", ""), ("V2", "V2", "")
+            ]
     rotateCenter = EnumProperty(
             items=rotateCenterItems,
             name="",
@@ -429,10 +431,12 @@ class EdgeRoundifier(Operator):
             default='FullEdgeArc',
             description="Arc mode - switch between Full and Half arcs"
             )
-    angleItems = [('Other', "Other", "User defined angle"), ('180', "180", "HemiCircle (2 sides)"),
-                  ('120', "120", "TriangleCircle (3 sides)"), ('90', "90", "QuadCircle (4 sides)"),
-                  ('72', "72", "PentagonCircle (5 sides)"), ('60', "60", "HexagonCircle (6 sides)"),
-                  ('45', "45", "OctagonCircle (8 sides)"), ('30', "30", "DodecagonCircle (12 sides)")]
+    angleItems = [
+            ('Other', "Other", "User defined angle"), ('180', "180", "HemiCircle (2 sides)"),
+            ('120', "120", "TriangleCircle (3 sides)"), ('90', "90", "QuadCircle (4 sides)"),
+            ('72', "72", "PentagonCircle (5 sides)"), ('60', "60", "HexagonCircle (6 sides)"),
+            ('45', "45", "OctagonCircle (8 sides)"), ('30', "30", "DodecagonCircle (12 sides)")
+            ]
     angleEnum = EnumProperty(
             items=angleItems,
             name="",
@@ -447,18 +451,22 @@ class EdgeRoundifier(Operator):
             default='ORG',
             description="Reference location used to calculate initial centers of drawn arcs"
             )
-    planeItems = [(XY, "XY", "XY Plane (Z=0)"),
-                  (YZ, "YZ", "YZ Plane (X=0)"),
-                  (XZ, "XZ", "XZ Plane (Y=0)")]
+    planeItems = [
+            (XY, "XY", "XY Plane (Z=0)"),
+            (YZ, "YZ", "YZ Plane (X=0)"),
+            (XZ, "XZ", "XZ Plane (Y=0)")
+            ]
     planeEnum = EnumProperty(
             items=planeItems,
             name="",
             default='XY',
             description="Plane used to calculate spin plane of drawn arcs"
             )
-    edgeScaleCenterItems = [('V1', "V1", "v1 - First Edge's Vertex"),
-                            ('CENTER', "Center", "Center of the Edge"),
-                            ('V2', "V2", "v2 - Second Edge's Vertex")]
+    edgeScaleCenterItems = [
+            ('V1', "V1", "v1 - First Edge's Vertex"),
+            ('CENTER', "Center", "Center of the Edge"),
+            ('V2', "V2", "v2 - Second Edge's Vertex")
+            ]
     edgeScaleCenterEnum = EnumProperty(
             items=edgeScaleCenterItems,
             name="Edge scale center",
@@ -471,8 +479,9 @@ class EdgeRoundifier(Operator):
 
     @classmethod
     def poll(cls, context):
-        return ((context.scene.objects.active.type == 'MESH') and
-                (context.scene.objects.active.mode == 'EDIT'))
+        obj = context.active_object
+        return (obj and obj.type == 'MESH' and
+                obj.mode == 'EDIT')
 
     def prepareMesh(self, context):
         bpy.ops.object.mode_set(mode='OBJECT')
