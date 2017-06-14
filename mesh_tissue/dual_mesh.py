@@ -15,13 +15,14 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
+
 #---------------------------------- DUAL MESH ---------------------------------#
 #--------------------------------- version 0.3 --------------------------------#
 #                                                                              #
 # Convert a generic mesh to its dual. With open meshes it can get some wired   #
 # effect on the borders.                                                       #
 #                                                                              #
-#                          (c)   Alessandro Zomparelli                            #
+#                        (c)   Alessandro Zomparelli                           #
 #                                    (2017)                                    #
 #                                                                              #
 # http://www.co-de-it.com/                                                     #
@@ -47,6 +48,7 @@ class dual_mesh(bpy.types.Operator):
     bl_idname = "object.dual_mesh"
     bl_label = "Dual Mesh"
     bl_options = {'REGISTER', 'UNDO'}
+    bl_description = ("Convert a generic mesh to its dual.")
 
     quad_method = bpy.props.EnumProperty(
         items=[('BEAUTY', 'Beauty',
@@ -214,11 +216,10 @@ class dual_mesh(bpy.types.Operator):
 
 class dual_mesh_panel(bpy.types.Panel):
     bl_label = "Dual Mesh"
-    bl_category = "Create"
+    bl_category = "Tools"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_context = (("objectmode"))
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
