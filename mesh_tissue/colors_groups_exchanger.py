@@ -313,10 +313,11 @@ class face_area_to_vertex_groups(bpy.types.Operator):
 
 
 class colors_groups_exchanger_panel(bpy.types.Panel):
-    bl_label = "Data Converter"
+    bl_label = "Tissue Data Tools"
     bl_category = "Tools"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
+    bl_options = {'DEFAULT_CLOSED'}
     #bl_context = "objectmode"
 
     def draw(self, context):
@@ -331,7 +332,13 @@ class colors_groups_exchanger_panel(bpy.types.Panel):
         col.separator()
         col.label(text="Create Vertex Colors:")
         col.operator("object.vertex_group_to_vertex_colors", icon="GROUP_VERTEX")
+        col.separator()
+        col.label(text="Lattice Along Surface:")
+        try:
+            col.operator("object.lattice_along_surface", icon="MOD_LATTICE")
 
+        except:
+            pass
 
 
 def register():

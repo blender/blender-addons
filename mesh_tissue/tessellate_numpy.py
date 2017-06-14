@@ -1248,10 +1248,11 @@ class settings_tessellate(bpy.types.Operator):
 
 
 class tessellate_panel(bpy.types.Panel):
-    bl_label = "Tessellate"
+    bl_label = "Tessellate/Dual"
     bl_category = "Create"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
+    bl_options = {'DEFAULT_CLOSED'}
     #bl_context = "objectmode", "editmode"
 
     def draw(self, context):
@@ -1273,7 +1274,12 @@ class tessellate_panel(bpy.types.Panel):
         for ob1 in context.selected_objects:
             if(ob1.name == act.name or ob1.type != 'MESH'): continue
             sel = ob1
-
+        try:
+            if bpy.context.active_object.type == 'MESH':
+                col.label(text="Dual Mesh:")
+                col.operator("object.dual_mesh")
+        except:
+            pass
 
 class rotate_face(bpy.types.Operator):
     bl_idname = "mesh.rotate_face"

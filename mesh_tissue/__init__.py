@@ -36,6 +36,7 @@ if "bpy" in locals():
     importlib.reload(tessellate_numpy)
     importlib.reload(colors_groups_exchanger)
     importlib.reload(dual_mesh)
+    importlib.reload(lattice)
 
 else:
     from . import tessellate_numpy
@@ -72,7 +73,7 @@ def unregister():
     tessellate_numpy.unregister()
     colors_groups_exchanger.unregister()
     dual_mesh.unregister()
-
+    lattice.unregister()
 
 if __name__ == "__main__":
     register()

@@ -213,13 +213,14 @@ class dual_mesh(bpy.types.Operator):
         bpy.context.scene.objects.active = act
         return {'FINISHED'}
 
-
+'''
 class dual_mesh_panel(bpy.types.Panel):
     bl_label = "Dual Mesh"
-    bl_category = "Tools"
+    bl_category = "Create"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_context = (("objectmode"))
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -229,16 +230,16 @@ class dual_mesh_panel(bpy.types.Panel):
                 col.operator("object.dual_mesh")
         except:
             pass
-
+'''
 
 def register():
     bpy.utils.register_class(dual_mesh)
-    bpy.utils.register_class(dual_mesh_panel)
+#    bpy.utils.register_class(dual_mesh_panel)
 
 
 def unregister():
     bpy.utils.unregister_class(dual_mesh)
-    bpy.utils.unregister_class(dual_mesh_panel)
+#    bpy.utils.unregister_class(dual_mesh_panel)
 
 
 if __name__ == "__main__":

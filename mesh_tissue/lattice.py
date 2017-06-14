@@ -390,13 +390,14 @@ class lattice_along_surface(bpy.types.Operator):
                 pass
         return {'FINISHED'}
 
-
+'''
 class lattice_along_surface_panel(bpy.types.Panel):
     bl_label = "Modifiers Tools"
     bl_category = "Tools"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_context = (("objectmode"))
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -405,16 +406,16 @@ class lattice_along_surface_panel(bpy.types.Panel):
             col.operator("object.lattice_along_surface", icon="MOD_LATTICE")
         except:
             pass
-
+'''
 
 def register():
     bpy.utils.register_class(lattice_along_surface)
-    bpy.utils.register_class(lattice_along_surface_panel)
+#    bpy.utils.register_class(lattice_along_surface_panel)
 
 
 def unregister():
     bpy.utils.unregister_class(lattice_along_surface)
-    bpy.utils.unregister_class(lattice_along_surface_panel)
+#    bpy.utils.unregister_class(lattice_along_surface_panel)
 
 
 if __name__ == "__main__":
