@@ -100,7 +100,7 @@ class ToolsPanelDelaunay(Panel):
 
     def draw(self, context):
         layout = self.layout
-        adv_obj = context.scene.advanced_objects
+        adv_obj = context.scene.advanced_objects1
 
         box = layout.box()
         col = box.column(align=True)

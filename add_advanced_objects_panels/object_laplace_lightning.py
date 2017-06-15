@@ -512,7 +512,7 @@ def writeStokeToSingleMesh(arr, jarr, orig, gs, mct, rpt=None):
 
 
 def visualizeArray(cg, oob, gs, vm, vs, vc, vv, rst):
-    winmgr = bpy.context.scene.advanced_objects
+    winmgr = bpy.context.scene.advanced_objects1
     # IN: (cellgrid, origin, gridscale,
     # mulimesh, single mesh, cubes, voxels, report sting)
     origin = oob.location
@@ -1075,7 +1075,7 @@ def getCandidateSites(aList, iList=[]):
 # Setup functions
 
 def setupObjects():
-    winmgr = bpy.context.scene.advanced_objects
+    winmgr = bpy.context.scene.advanced_objects1
     oOB = bpy.data.objects.new('ELorigin', None)
     oOB.location = ((0, 0, 10))
     bpy.context.scene.objects.link(oOB)
@@ -1113,7 +1113,7 @@ def setupObjects():
 
 def checkSettings():
     check = True
-    winmgr = bpy.context.scene.advanced_objects
+    winmgr = bpy.context.scene.advanced_objects1
     message = ""
     if winmgr.OOB == "":
         message = "Error: no origin object selected"
@@ -1141,7 +1141,7 @@ def checkSettings():
 # Main
 
 def FSLG():
-    winmgr = bpy.context.scene.advanced_objects
+    winmgr = bpy.context.scene.advanced_objects1
     # fast simulation of laplacian growth
     debug_prints(func="FSLG",
                  text="Go go gadget: fast simulation of laplacian growth")
@@ -1339,7 +1339,7 @@ class OBJECT_PT_fslg(Panel):
 
     def draw(self, context):
         layout = self.layout
-        winmgr = context.scene.advanced_objects
+        winmgr = context.scene.advanced_objects1
 
         col = layout.column(align=True)
         col.prop(winmgr, "TSTEPS")
@@ -1382,7 +1382,7 @@ class OBJECT_PT_fslg(Panel):
 
 
 def getReportString(rtime):
-    winmgr = bpy.context.scene.advanced_objects
+    winmgr = bpy.context.scene.advanced_objects1
     rSTRING1 = 't:' + str(winmgr.TSTEPS) + ',sc:' + str(winmgr.GSCALE)[0:4] + ',uv:' + str(winmgr.BIGVAR)[0:4] + ','
     rSTRING2 = 'ori:' + str(winmgr. ORIGIN[0]) + '/' + str(winmgr. ORIGIN[1]) + '/' + str(winmgr. ORIGIN[2]) + ','
     rSTRING3 = 'gz:' + str(winmgr.GROUNDZ) + ',gc:' + str(winmgr.GROUNDC) + ',rtime:' + str(int(rtime))

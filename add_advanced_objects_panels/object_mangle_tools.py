@@ -43,7 +43,7 @@ import bmesh
 
 
 def move_coordinate(context, co, is_curve=False):
-    advanced_objects = context.scene.advanced_objects
+    advanced_objects = context.scene.advanced_objects1
     xyz_const = advanced_objects.mangle_constraint_vector
     random.seed(time.time())
     multiplier = 1
@@ -78,7 +78,7 @@ class MeshManglerOperator(Operator):
         bm = bmesh.new()
         bm.from_mesh(mesh)
         verts = bm.verts
-        advanced_objects = context.scene.advanced_objects
+        advanced_objects = context.scene.advanced_objects1
         randomMag = advanced_objects.mangle_random_magnitude
         random.seed(time.time())
 
@@ -116,7 +116,7 @@ class AnimanglerOperator(Operator):
         return ob is not None and ob.type in ['MESH', 'CURVE']
 
     def execute(self, context):
-        scn = context.scene.advanced_objects
+        scn = context.scene.advanced_objects1
         mangleName = scn.mangle_name
         ob = context.object
         shapeKey = ob.shape_key_add(name=mangleName)
@@ -169,7 +169,7 @@ class MangleToolsPanel(Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
-        scn = context.scene.advanced_objects
+        scn = context.scene.advanced_objects1
         obj = context.object
 
         if obj and obj.type in ['MESH']:

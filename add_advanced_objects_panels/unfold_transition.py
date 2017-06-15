@@ -39,7 +39,7 @@ class Set_Up_Fold(Operator):
     def execute(self, context):
         bpy.ops.object.mode_set()
         scn = bpy.context.scene
-        adv_obj = scn.advanced_objects
+        adv_obj = scn.advanced_objects1
         obj = bpy.context.object
         dat = obj.data
         fac = dat.polygons
@@ -183,7 +183,7 @@ class Animate_Fold(Operator):
 
     def draw(self, context):
         layout = self.layout
-        adv_obj = context.scene.advanced_objects
+        adv_obj = context.scene.advanced_objects1
 
         if self.is_not_undo is True:
             layout.label(text="Warning:", icon="INFO")
@@ -200,7 +200,7 @@ class Animate_Fold(Operator):
     def invoke(self, context, event):
         obj = bpy.context.object
         scn = bpy.context.scene
-        adv_obj = scn.advanced_objects
+        adv_obj = scn.advanced_objects1
 
         if obj.name != adv_obj.unfold_arm_name:
             self.is_not_undo = True
@@ -211,7 +211,7 @@ class Animate_Fold(Operator):
     def execute(self, context):
         obj = bpy.context.object
         scn = bpy.context.scene
-        adv_obj = scn.advanced_objects
+        adv_obj = scn.advanced_objects1
         fra = scn.frame_current
         if obj.name != adv_obj.unfold_arm_name:
             self.report({"INFO"},
@@ -298,7 +298,7 @@ class PanelFOLD(Panel):
 
     def draw(self, context):
         layout = self.layout
-        adv_obj = context.scene.advanced_objects
+        adv_obj = context.scene.advanced_objects1
 
         box = layout.box()
         col = box.column()

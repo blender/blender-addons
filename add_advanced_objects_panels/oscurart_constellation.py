@@ -86,7 +86,7 @@ class Oscurart_Constellation(Operator):
         return (obj and obj.type == "MESH")
 
     def invoke(self, context, event):
-        adv_obj = context.scene.advanced_objects
+        adv_obj = context.scene.advanced_objects1
         self.limit = adv_obj.constellation_limit
 
         return self.execute(context)
@@ -119,7 +119,7 @@ class Constellation_Operator_Panel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        adv_obj = context.scene.advanced_objects
+        adv_obj = context.scene.advanced_objects1
 
         box = layout.box()
         col = box.column(align=True)
