@@ -1755,3 +1755,25 @@ class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
         if text:
             layout.prop(text.pov, "custom_code", text="Add as POV code")
 
+
+###############################################"
+# Text editor templates.
+
+class TEXT_MT_templates_pov(bpy.types.Menu):
+    bl_label = "POV-Ray"
+
+    # We list templates on file evaluation, we can assume they are static data,
+    # and better avoid running this on every draw call.
+    import os
+    template_paths = [os.path.join(os.path.dirname(__file__), "templates_pov")]
+
+    def draw(self, context):
+        self.path_menu(
+            self.template_paths,
+            "text.open",
+            props_default={"internal": True},
+        )
+
+def menu_func_templates(self, context):
+    # Do not depend on POV-Ray being active renderer here...
+    self.layout.menu("TEXT_MT_templates_pov")
