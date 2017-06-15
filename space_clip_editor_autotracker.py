@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Autotrack",
     "author": "Miika Puustinen, Matti Kaihola, Stephen Leger",
-    "version": (0, 0, 99),
+    "version": (0, 1, 0),
     "blender": (2, 78, 0),
     "location": "Movie clip Editor > Tools Panel > Autotrack",
     "description": "Motion Tracking with automatic feature detection.",
@@ -579,7 +579,7 @@ class AutotrackerSettings(PropertyGroup):
     ]
 
     placement_list = EnumProperty(
-            name="",
+            name="Placement",
             description="Feature Placement",
             items=list_items
             )
@@ -604,43 +604,39 @@ class AutotrackerPanel(Panel):
     def draw(self, context):
         layout = self.layout
         wm = context.window_manager
-        row = layout.row(align=True)
+        
+        row = layout.row()
         row.scale_y = 1.5
-
         props = row.operator("tracking.auto_track", text="Autotrack!     ", icon='PLAY')
 
-        row = layout.row(align=True)
+        row = layout.row()
         row.prop(wm.autotracker_props, "track_backwards")
 
-        row = layout.row(align=True)  # make next row
-        row.prop(wm.autotracker_props, "delete_threshold")
-        
-        row = layout.row(align=True)  # make next row
-        row.prop(wm.autotracker_props, "small_tracks")
+        row = layout.row()
+        col = layout.column(align=True)
+        col.prop(wm.autotracker_props, "delete_threshold")
+        sub = col.row(align=True)
+        sub.prop(wm.autotracker_props, "small_tracks")
+        sub = col.row(align=True)
+        sub.prop(wm.autotracker_props, "frame_separation", text="Frame Separation")
+        sub = col.row(align=True)
+        sub.prop(wm.autotracker_props, "jump_cut", text="Jump Threshold")
 
-        row = layout.row(align=True)
-        row.prop(wm.autotracker_props, "frame_separation", text="Frame Separation")
-
-        row = layout.row(align=True)
-        row.prop(wm.autotracker_props, "jump_cut", text="Jump Threshold")
-
-        row = layout.row(align=True)
+        row = layout.row()
         row.label(text="Detect Features Settings:")
+        col = layout.column(align=True)
+        col.prop(wm.autotracker_props, "df_margin", text="Margin:")
+        sub = col.row(align=True)
+        sub.prop(wm.autotracker_props, "df_distance", text="Distance:")
+        sub = col.row(align=True)
+        sub.prop(wm.autotracker_props, "df_threshold", text="Threshold:")
 
-        row = layout.row(align=True)
-        row.prop(wm.autotracker_props, "df_margin", text="Margin:")
-
-        row = layout.row(align=True)
-        row.prop(wm.autotracker_props, "df_threshold", text="Threshold:")
-
-        row = layout.row(align=True)
-        row.prop(wm.autotracker_props, "df_distance", text="Distance:")
-
-        row = layout.row(align=True)
+        row = layout.row()
         row.label(text="Feature Placement:")
+        col = layout.column(align=True)
+        col.prop(wm.autotracker_props, "placement_list", text="")
 
-        row = layout.row(align=True)
-        row.prop(wm.autotracker_props, "placement_list")
+        layout.separator()
                     
 def register():
     bpy.utils.register_class(AutotrackerSettings)
