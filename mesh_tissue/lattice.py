@@ -252,6 +252,9 @@ class lattice_along_surface(bpy.types.Operator):
         col.prop(self, "set_parent")
 
     def execute(self, context):
+        if len(bpy.context.selected_objects) != 2:
+            self.report({'ERROR'}, "Please, select two objects")
+            return {'CANCELLED'}
         grid_obj = bpy.context.active_object
         if grid_obj.type not in ('MESH', 'CURVE', 'SURFACE'):
             self.report({'ERROR'}, "The surface object is not valid. Only Mesh,"
@@ -278,6 +281,12 @@ class lattice_along_surface(bpy.types.Operator):
         bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
         grid_mesh = grid_obj.to_mesh(bpy.context.scene, apply_modifiers=True,
                                      settings = 'PREVIEW')
+        if len(grid_mesh.polygons) > 64*64:
+            bpy.ops.object.delete(use_global=False)
+            bpy.context.scene.objects.active = obj
+            obj.select = True
+            self.report({'ERROR'}, "Maximum resolution allowed for Lattice is 64")
+            return {'CANCELLED'}
         # CREATING LATTICE
         min = Vector((0,0,0))
         max = Vector((0,0,0))
@@ -358,6 +367,7 @@ class lattice_along_surface(bpy.types.Operator):
             bpy.ops.object.modifier_remove(modifier=obj.modifiers[-1].name)
             if nu > 64 or nv > 64:
                 self.report({'ERROR'}, "Maximum resolution allowed for Lattice is 64")
+                return {'CANCELLED'}
             else:
                 self.report({'ERROR'}, "The grid mesh is not correct")
                 return {'CANCELLED'}
@@ -397,7 +407,6 @@ class lattice_along_surface_panel(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_context = (("objectmode"))
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -408,14 +417,15 @@ class lattice_along_surface_panel(bpy.types.Panel):
             pass
 '''
 
+
 def register():
     bpy.utils.register_class(lattice_along_surface)
-#    bpy.utils.register_class(lattice_along_surface_panel)
+    #bpy.utils.register_class(lattice_along_surface_panel)
 
 
 def unregister():
     bpy.utils.unregister_class(lattice_along_surface)
-#    bpy.utils.unregister_class(lattice_along_surface_panel)
+    #bpy.utils.unregister_class(lattice_along_surface_panel)
 
 
 if __name__ == "__main__":

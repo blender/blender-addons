@@ -229,7 +229,7 @@ class curvature_to_vertex_groups(bpy.types.Operator):
       max=1, description="Blur strength per iteration")
 
     blur_iterations = bpy.props.IntProperty(
-      name="Blur Strength", default=1, min=0,
+      name="Blur Iterations", default=1, min=0,
       max=40, description="Number of times to blur the values")
 
     min_angle = bpy.props.FloatProperty(
@@ -251,6 +251,7 @@ class curvature_to_vertex_groups(bpy.types.Operator):
         vertex_colors[-1].active = True
         vertex_colors[-1].active_render = True
         vertex_colors[-1].name = "Curvature"
+        for c in vertex_colors[-1].data: c.color.r, c.color.g, c.color.b = 1,1,1
         bpy.ops.object.mode_set(mode='VERTEX_PAINT')
         bpy.ops.paint.vertex_color_dirt(blur_strength=self.blur_strength, blur_iterations=self.blur_iterations, clean_angle=self.max_angle, dirt_angle=self.min_angle)
         bpy.ops.object.vertex_colors_to_vertex_groups(invert=self.invert)
@@ -313,7 +314,7 @@ class face_area_to_vertex_groups(bpy.types.Operator):
 
 
 class colors_groups_exchanger_panel(bpy.types.Panel):
-    bl_label = "Tissue Data Tools"
+    bl_label = "Tissue Tools"
     bl_category = "Tools"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
@@ -321,22 +322,21 @@ class colors_groups_exchanger_panel(bpy.types.Panel):
     #bl_context = "objectmode"
 
     def draw(self, context):
-        layout = self.layout
-        col = layout.column(align=True)
-        col.label(text="Create Vertex Groups:")
-        col.operator(
-            "object.vertex_colors_to_vertex_groups", icon="GROUP_VCOL")
-        col.operator("object.face_area_to_vertex_groups", icon="SNAP_FACE")
-        col.operator("object.curvature_to_vertex_groups", icon="SURFACE_DATA")
-
-        col.separator()
-        col.label(text="Create Vertex Colors:")
-        col.operator("object.vertex_group_to_vertex_colors", icon="GROUP_VERTEX")
-        col.separator()
-        col.label(text="Lattice Along Surface:")
         try:
-            col.operator("object.lattice_along_surface", icon="MOD_LATTICE")
-
+            if bpy.context.active_object.type == 'MESH':
+                layout = self.layout
+                col = layout.column(align=True)
+                col.label(text="Transform:")
+                col.operator("object.dual_mesh")
+                col.separator()
+                col.label(text="Weight from:")
+                col.operator(
+                    "object.vertex_colors_to_vertex_groups", icon="GROUP_VCOL")
+                col.operator("object.face_area_to_vertex_groups", icon="SNAP_FACE")
+                col.operator("object.curvature_to_vertex_groups", icon="SMOOTHCURVE")
+                col.separator()
+                col.label(text="Vertex Color from:")
+                col.operator("object.vertex_group_to_vertex_colors", icon="GROUP_VERTEX")
         except:
             pass
 
