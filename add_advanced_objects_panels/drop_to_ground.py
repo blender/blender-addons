@@ -19,13 +19,10 @@
 bl_info = {
     "name": "Drop to Ground1",
     "author": "Unnikrishnan(kodemax), Florian Meyer(testscreenings)",
-    "version": (1, 2, 1),
     "blender": (2, 71, 0),
     "location": "3D View > Toolshelf > Tools Tab",
     "description": "Drop selected objects on active object",
     "warning": "",
-    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/Object/Drop_to_ground",
     "category": "Object"}
 
 

@@ -3,7 +3,6 @@
 bl_info = {
     "name": "Unfold transition",
     "author": "Liero, Atom",
-    "version": (0, 1, 2),
     "location": "Tool bar > Animation tab > UnFold Transition",
     "description": "Simple unfold transition / animation, will "
                    "separate faces and set up an armature",
@@ -327,17 +326,20 @@ class PanelFOLD(Panel):
         if not adv_obj.unfold_flip:
             row.prop(adv_obj, "unfold_from_point")
 
+classes = (
+    Set_Up_Fold,
+    Animate_Fold,
+    PanelFOLD,
+    )
 
 def register():
-    bpy.utils.register_class(Set_Up_Fold)
-    bpy.utils.register_class(Animate_Fold)
-    bpy.utils.register_class(PanelFOLD)
+    for cls in classes:
+        bpy.utils.register_class(cls)
 
 
 def unregister():
-    bpy.utils.unregister_class(Set_Up_Fold)
-    bpy.utils.unregister_class(Animate_Fold)
-    bpy.utils.unregister_class(PanelFOLD)
+    for cls in classes:
+        bpy.utils.unregister_class(cls)
 
 
 if __name__ == "__main__":

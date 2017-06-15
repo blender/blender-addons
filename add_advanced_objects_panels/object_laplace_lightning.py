@@ -22,12 +22,10 @@
 bl_info = {
     "name": "Laplacian Lightning",
     "author": "teldredge",
-    "version": (0, 2, 9),
     "blender": (2, 78, 0),
     "location": "View3D > Toolshelf > Create Tab",
     "description": "Lightning mesh generator using laplacian growth algorithm",
     "warning": "",
-    "wiki_url": "http://www.funkboxing.com/wordpress/?p=301",
     "category": "Object"}
 
 # BLENDER LAPLACIAN LIGHTNING

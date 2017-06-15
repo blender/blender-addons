@@ -19,7 +19,6 @@
 bl_info = {
     "name": "Mesh: Constellation",
     "author": "Oscurart",
-    "version": (1, 1, 1),
     "blender": (2, 67, 0),
     "location": "Add > Mesh > Constellation",
     "description": "Create a new Mesh From Selected",
@@ -31,10 +30,12 @@ bl_info = {
 # the adv_obj and advanced_objects patterns
 
 import bpy
-from bpy.types import Operator
 from bpy.props import FloatProperty
 from math import sqrt
-
+from bpy.types import (
+        Operator,
+        Panel,
+        )
 
 def VertDis(a, b):
     dst = sqrt(pow(a.co.x - b.co.x, 2) +
@@ -108,16 +109,33 @@ class Oscurart_Constellation(Operator):
 
         return {'FINISHED'}
 
+class Constellation_Operator_Panel(Panel):
+    bl_label = "Constellation"
+    bl_region_type = "TOOLS"
+    bl_space_type = "VIEW_3D"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_context = "objectmode"
+    bl_category = "Create"
 
+    def draw(self, context):
+        layout = self.layout
+        adv_obj = context.scene.advanced_objects
+
+        box = layout.box()
+        col = box.column(align=True)
+        col.label("Constellation:")
+        col.operator("mesh.constellation", text="Cross Section")
+        col.prop(adv_obj, "constellation_limit")
 # Register
 
 def register():
     bpy.utils.register_class(Oscurart_Constellation)
+    bpy.utils.register_class(Constellation_Operator_Panel)
 
 
 def unregister():
     bpy.utils.unregister_class(Oscurart_Constellation)
-
+    bpy.utils.unregister_class(Constellation_Operator_Panel)
 
 if __name__ == "__main__":
     register()

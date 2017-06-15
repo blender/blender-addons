@@ -44,23 +44,16 @@ if "bpy" in locals():
     importlib.reload(trilighting)
     importlib.reload(pixelate_3d)
     importlib.reload(object_add_chain)
-    importlib.reload(drop_to_ground)
     importlib.reload(circle_array)
-    importlib.reload(unfold_transition)
     importlib.reload(copy2)
     importlib.reload(make_struts)
     importlib.reload(random_box_structure)
     importlib.reload(cubester)
     importlib.reload(rope_alpha)
     importlib.reload(add_mesh_aggregate)
-    importlib.reload(object_mangle_tools)
     importlib.reload(arrange_on_curve)
-    importlib.reload(object_laplace_lightning)
     importlib.reload(mesh_easylattice)
-    importlib.reload(DelaunayVoronoi)
-    importlib.reload(delaunayVoronoiBlender)
-    importlib.reload(oscurart_constellation)
-    importlib.reload(oscurart_chain_maker)
+
 
 else:
     from . import add_light_template
@@ -70,24 +63,16 @@ else:
     from . import trilighting
     from . import pixelate_3d
     from . import object_add_chain
-    from . import oscurart_chain_maker
-    from . import drop_to_ground
     from . import circle_array
-    from . import unfold_transition
     from . import copy2
     from . import make_struts
     from . import random_box_structure
     from . import cubester
     from . import rope_alpha
     from . import add_mesh_aggregate
-    from . import object_mangle_tools
     from . import arrange_on_curve
-    from . import object_laplace_lightning
     from . import mesh_easylattice
 
-    from .delaunay_voronoi import DelaunayVoronoi
-    from .delaunay_voronoi import delaunayVoronoiBlender
-    from .delaunay_voronoi import oscurart_constellation
 
 import bpy
 from bpy.types import (
@@ -256,6 +241,7 @@ class AdvancedObjPreferences(AddonPreferences):
             box.label(text="Physics Tools:", icon="LAYER_ACTIVE")
             box.label(text="Drop to Ground, Wrecking Ball and Cloth Rope", icon="LAYER_USED")
 
+
         icon_2 = "TRIA_RIGHT" if not self.show_panel_list else "TRIA_DOWN"
         box = layout.box()
         box.prop(self, "show_panel_list", emboss=False, icon=icon_2)
@@ -263,14 +249,8 @@ class AdvancedObjPreferences(AddonPreferences):
         if self.show_panel_list:
             box.label(text="Panels located in 3D View Tools Region > Create",
                       icon="LAYER_ACTIVE")
-            box.label(text="Drop to Ground", icon="LAYER_USED")
-            box.label(text="Unfold Transition", icon="LAYER_USED")
             box.label(text="CubeSter", icon="LAYER_USED")
-            box.label(text="Mangle tools", icon="LAYER_USED")
-            box.label(text="Laplacian Lighting", icon="LAYER_USED")
-            box.label(text="Delaunay Voronoi", icon="LAYER_USED")
-            box.label(text="Duplicate on Curve  (Shown if an Active Curve Object is it the 3D View)",
-                      icon="LAYER_USED")
+
 
 
 # Cubester update functions
@@ -555,202 +535,6 @@ class AdvancedObjProperties(PropertyGroup):
                 ('G', "Group", "Make duplicates of the objects in a group"),
             ],
             default='O',
-            )
-    # object_laplace_lighting props
-    ORIGIN = FloatVectorProperty(
-            name="Origin charge"
-            )
-    GROUNDZ = IntProperty(
-            name="Ground Z coordinate"
-            )
-    HORDER = IntProperty(
-            name="Secondary paths orders",
-            default=1
-            )
-    # object_laplace_lighting UI props
-    TSTEPS = IntProperty(
-            name="Iterations",
-            default=350,
-            description="Number of cells to create\n"
-                        "Will end early if hits ground plane or cloud"
-            )
-    GSCALE = FloatProperty(
-            name="Grid unit size",
-            default=0.12,
-            description="scale of cells, .25 = 4 cells per blenderUnit"
-            )
-    BIGVAR = FloatProperty(
-            name="Straightness",
-            default=6.3,
-            description="Straightness/branchiness of bolt, \n"
-                        "<2 is mush, >12 is staight line, 6.3 is good"
-            )
-    GROUNDBOOL = BoolProperty(
-            name="Use Ground object",
-            description="Use ground plane or not",
-            default=True
-            )
-    GROUNDC = IntProperty(
-            name="Ground charge",
-            default=-250,
-            description="Charge of the ground plane"
-            )
-    CLOUDBOOL = BoolProperty(
-            name="Use Cloud object",
-            default=False,
-            description="Use cloud object - attracts and terminates like ground but\n"
-                        "any obj instead of z plane\n"
-                        "Can slow down loop if obj is large, overrides ground"
-            )
-    CLOUDC = IntProperty(
-            name="Cloud charge",
-            default=-1,
-            description="Charge of a cell in cloud object\n"
-                        "(so total charge also depends on obj size)"
-            )
-    VMMESH = BoolProperty(
-            name="Multi mesh",
-            default=True,
-            description="Output to multi-meshes for different materials on main/sec/side branches"
-            )
-    VSMESH = BoolProperty(
-            name="Single mesh",
-            default=False,
-            description="Output to single mesh for using build modifier and particles for effects"
-            )
-    VCUBE = BoolProperty(
-            name="Cubes",
-            default=False,
-            description="CTRL-J after run to JOIN\n"
-                        "Outputs a bunch of cube objects, mostly for testing"
-            )
-    VVOX = BoolProperty(
-            name="Voxel (experimental)",
-            default=False,
-            description="Output to a voxel file to bpy.data.filepath\FSLGvoxels.raw\n"
-                        "(doesn't work well right now)"
-            )
-    IBOOL = BoolProperty(
-            name="Use Insulator object",
-            default=False,
-            description="Use insulator mesh object to prevent growth of bolt in areas"
-            )
-    OOB = StringProperty(
-            name="Select",
-            default="",
-            description="Origin of bolt, can be an Empty\n"
-                        "if object is a mesh will use all verts as charges")
-    GOB = StringProperty(
-            name="Select",
-            default="",
-            description="Object to use as ground plane, uses z coord only"
-            )
-    COB = StringProperty(
-            name="Select",
-            default="",
-            description="Object to use as cloud, best to use a cube"
-            )
-    IOB = StringProperty(
-            name="Select",
-            default="",
-            description="Object to use as insulator, 'voxelized'\n"
-                        "before generating bolt (can be slow)"
-            )
-    # object_mangle_tools properties
-    mangle_constraint_vector = BoolVectorProperty(
-            name="Mangle Constraint",
-            default=(True, True, True),
-            subtype='XYZ',
-            description="Constrains Mangle Direction"
-            )
-    mangle_random_magnitude = IntProperty(
-            name="Mangle Severity",
-            default=5,
-            min=1, max=30,
-            description="Severity of mangling"
-            )
-    mangle_name = StringProperty(
-            name="Shape Key Name",
-            default="mangle",
-            description="Name given for mangled shape keys"
-            )
-    # unfold_transition properties
-    unfold_arm_name = StringProperty(
-            default=""
-            )
-    unfold_modo = EnumProperty(
-            name="",
-            items=[("cursor", "3D Cursor", "Use the Distance to 3D Cursor"),
-                   ("weight", "Weight Map", "Use a Painted Weight map"),
-                   ("index", "Mesh Indices", "Use Faces and Vertices index")],
-            description="How to Sort Bones for animation", default="cursor"
-            )
-    unfold_flip = BoolProperty(
-            name="Flipping Faces",
-            default=False,
-            description="Rotate faces around the Center and skip Scaling - "
-                        "keep checked for both operators"
-            )
-    unfold_fold_duration = IntProperty(
-            name="Total Time",
-            min=5, soft_min=25,
-            max=10000, soft_max=2500,
-            default=200,
-            description="Total animation length"
-            )
-    unfold_sca_time = IntProperty(
-            name="Scale Time",
-            min=1,
-            max=5000, soft_max=500,
-            default=10,
-            description="Faces scaling time"
-            )
-    unfold_rot_time = IntProperty(
-            name="Rotation Time",
-            min=1, soft_min=5,
-            max=5000, soft_max=500,
-            default=15,
-            description="Faces rotation time"
-            )
-    unfold_rot_max = IntProperty(
-            name="Angle",
-            min=-180,
-            max=180,
-            default=135,
-            description="Faces rotation angle"
-            )
-    unfold_fold_noise = IntProperty(
-            name="Noise",
-            min=0,
-            max=500, soft_max=50,
-            default=0,
-            description="Offset some faces animation"
-            )
-    unfold_bounce = FloatProperty(
-            name="Bounce",
-            min=0,
-            max=10, soft_max=2.5,
-            default=0,
-            description="Add some bounce to rotation"
-            )
-    unfold_from_point = BoolProperty(
-            name="Point",
-            default=False,
-            description="Scale faces from a Point instead of from an Edge"
-            )
-    unfold_wiggle_rot = BoolProperty(
-            name="Wiggle",
-            default=False,
-            description="Use all Axis + Random Rotation instead of X Aligned"
-            )
-    # oscurart_constellation
-    constellation_limit = FloatProperty(
-            name="Inital Threshold",
-            description="Edges will be created only if the distance\n"
-                        "between vertices is smaller than this value\n"
-                        "This is a starting value on Operator Invoke",
-            default=2,
-            min=0
             )
 
 

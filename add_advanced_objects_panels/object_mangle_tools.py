@@ -23,7 +23,6 @@
 bl_info = {
     "name": "Mangle Tools",
     "author": "Phil Cote",
-    "version": (0, 2, 2),
     "blender": (2, 71, 0),
     "location": "View3D > Toolshelf > Tools Tab",
     "description": "Set of tools to mangle curves, meshes, and shape keys",
