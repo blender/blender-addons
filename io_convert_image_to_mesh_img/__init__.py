@@ -29,15 +29,12 @@ bl_info = {
     "author": "Nicholas Wolf (nicwolf@pirl.lpl.arizona.edu)",
     "version": (0, 2, 1),
     "blender": (2, 78, 0),
-    "license": "GPL",
     "location": "File > Import > HiRISE DTM (.img)",
     "description": "Import a HiRISE DTM as a mesh.",
     "warning": "May consume a lot of memory",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/Import-Export/HiRISE_DTM_from_PDS_IMG",
     "category": "Import-Export",
-    "wiki_url": "",  # TBD
-    "tracker_url": "",  # TBD
-    "link": "",  # TBD
-    "support": "TESTING",
 }
 
 if "bpy" in locals():
