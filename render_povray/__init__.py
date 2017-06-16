@@ -2175,6 +2175,7 @@ def register():
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_add.prepend(ui.menu_func_add)
     bpy.types.INFO_MT_file_import.append(ui.menu_func_import)
+    bpy.types.TEXT_MT_templates.append(ui.menu_func_templates)
     #used for parametric objects:
     addon_utils.enable("add_mesh_extra_objects", default_set=False, persistent=True)
 
@@ -2203,6 +2204,7 @@ def unregister():
 
     #bpy.types.TEXTURE_PT_context_texture.remove(TEXTURE_PT_povray_type)
     addon_utils.disable("add_mesh_extra_objects", default_set=False)
+    bpy.types.TEXT_MT_templates.remove(ui.menu_func_templates)
     bpy.types.INFO_MT_file_import.remove(ui.menu_func_import)
     bpy.types.INFO_MT_add.remove(ui.menu_func_add)
     bpy.utils.unregister_module(__name__)

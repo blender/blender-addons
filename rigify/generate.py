@@ -31,6 +31,7 @@ from .utils import RIG_DIR
 from .utils import create_root_widget
 from .utils import random_id
 from .utils import copy_attributes
+from .utils import gamma_correct
 from .rig_ui_template import UI_SLIDERS, layers_ui, UI_REGISTER
 
 
@@ -71,7 +72,7 @@ def generate_rig(context, metarig):
     bpy.ops.object.mode_set(mode='OBJECT')
 
     scene = context.scene
-
+    id_store = context.window_manager
     #------------------------------------------
     # Create/find the rig object and set it up
 
@@ -79,18 +80,31 @@ def generate_rig(context, metarig):
     # regenerate in the same object.  If not, create a new
     # object to generate the rig in.
     print("Fetch rig.")
-    try:
-        name = metarig["rig_object_name"]
-    except KeyError:
-        name = "rig"
 
-    try:
-        obj = scene.objects[name]
-    except KeyError:
-        obj = bpy.data.objects.new(name, bpy.data.armatures.new(name))
+    rig_new_name = ""
+    rig_old_name = ""
+    if id_store.rigify_rig_basename:
+        rig_new_name = id_store.rigify_rig_basename + "_rig"
+
+    if id_store.rigify_generate_mode == 'overwrite':
+        name = id_store.rigify_target_rig or "rig"
+        try:
+            obj = scene.objects[name]
+            rig_old_name = name
+            obj.name = rig_new_name or name
+        except KeyError:
+            rig_old_name = name
+            name = rig_new_name or name
+            obj = bpy.data.objects.new(name, bpy.data.armatures.new(name))
+            obj.draw_type = 'WIRE'
+            scene.objects.link(obj)
+    else:
+        name = rig_new_name or "rig"
+        obj = bpy.data.objects.new(name, bpy.data.armatures.new(name))  # in case name 'rig' exists it will be rig.001
         obj.draw_type = 'WIRE'
         scene.objects.link(obj)
 
+    id_store.rigify_target_rig = obj.name
     obj.data.pose_position = 'POSE'
 
     # Get rid of anim data in case the rig already existed
@@ -101,6 +115,24 @@ def generate_rig(context, metarig):
     metarig.select = False
     obj.select = True
     scene.objects.active = obj
+
+    # Remove wgts if force update is set
+    wgts_group_name = "WGTS_" + (rig_old_name or obj.name)
+    if wgts_group_name in scene.objects and id_store.rigify_force_widget_update:
+        bpy.ops.object.select_all(action='DESELECT')
+        for i, lyr in enumerate(WGT_LAYERS):
+            if lyr:
+                context.scene.layers[i] = True
+        for wgt in bpy.data.objects[wgts_group_name].children:
+            wgt.select = True
+        bpy.ops.object.delete(use_global=False)
+        for i, lyr in enumerate(WGT_LAYERS):
+            if lyr:
+                context.scene.layers[i] = False
+        if rig_old_name:
+            bpy.data.objects[wgts_group_name].name = "WGTS_" + obj.name
+
+    wgts_group_name = "WGTS_" + obj.name
 
     # Remove all bones from the generated rig armature.
     bpy.ops.object.mode_set(mode='EDIT')
@@ -269,7 +301,7 @@ def generate_rig(context, metarig):
     t.tick("Create root bone: ")
 
     # Create Group widget
-    wgts_group_name = "WGTS"
+    # wgts_group_name = "WGTS"
     if wgts_group_name not in scene.objects:
         if wgts_group_name in bpy.data.objects:
             bpy.data.objects[wgts_group_name].user_clear()
@@ -279,6 +311,18 @@ def generate_rig(context, metarig):
         scene.objects.link(wgts_obj)
         wgts_obj.layers = WGT_LAYERS
         t.tick("Create main WGTS: ")
+    #
+    # if id_store.rigify_generate_mode == 'new':
+    #     bpy.ops.object.select_all(action='DESELECT')
+    #     for wgt in bpy.data.objects[wgts_group_name].children:
+    #         wgt.select = True
+    #     for i, lyr in enumerate(WGT_LAYERS):
+    #         if lyr:
+    #             context.scene.layers[i] = True
+    #     bpy.ops.object.make_single_user(obdata=True)
+    #     for i, lyr in enumerate(WGT_LAYERS):
+    #         if lyr:
+    #             context.scene.layers[i] = False
 
     #----------------------------------
     try:
@@ -398,7 +442,7 @@ def generate_rig(context, metarig):
     # Assign shapes to bones
     # Object's with name WGT-<bone_name> get used as that bone's shape.
     for bone in bones:
-        wgt_name = (WGT_PREFIX + obj.data.bones[bone].name)[:63]  # Object names are limited to 63 characters... arg
+        wgt_name = (WGT_PREFIX + obj.name + '_' + obj.data.bones[bone].name)[:63]  # Object names are limited to 63 characters... arg
         if wgt_name in context.scene.objects:
             # Weird temp thing because it won't let me index by object name
             for ob in context.scene.objects:
@@ -423,15 +467,28 @@ def generate_rig(context, metarig):
     # Create list of layer name/row pairs
     layer_layout = []
     for l in metarig.data.rigify_layers:
-        print( l.name )
+        print(l.name)
         layer_layout += [(l.name, l.row)]
 
     # Generate the UI script
-    if "rig_ui.py" in bpy.data.texts:
-        script = bpy.data.texts["rig_ui.py"]
+    if id_store.rigify_generate_mode == 'overwrite':
+        rig_ui_name = id_store.rigify_rig_ui or 'rig_ui.py'
+    else:
+        rig_ui_name = 'rig_ui.py'
+
+    if id_store.rigify_generate_mode == 'overwrite' and rig_ui_name in bpy.data.texts.keys():
+        script = bpy.data.texts[rig_ui_name]
         script.clear()
     else:
         script = bpy.data.texts.new("rig_ui.py")
+
+    rig_ui_old_name = ""
+    if id_store.rigify_rig_basename:
+        rig_ui_old_name = script.name
+        script.name = id_store.rigify_rig_basename + "_rig_ui.py"
+
+    id_store.rigify_rig_ui = script.name
+
     script.write(UI_SLIDERS % rig_id)
     for s in ui_scripts:
         script.write("\n        " + s.replace("\n", "\n        ") + "\n")
@@ -451,14 +508,15 @@ def generate_rig(context, metarig):
     # Add rig_ui to logic
     skip = False
     ctrls = obj.game.controllers
+
     for c in ctrls:
-        if 'Python' in c.name and c.text.name == 'rig_ui.py':
+        if 'Python' in c.name and c.text.name == script.name:
             skip = True
             break
     if not skip:
         bpy.ops.logic.controller_add(type='PYTHON', object=obj.name)
         ctrl = obj.game.controllers[-1]
-        ctrl.text = bpy.data.texts['rig_ui.py']
+        ctrl.text = bpy.data.texts[script.name]
 
 
     t.tick("The rest: ")
@@ -521,9 +579,9 @@ def create_bone_groups(obj, metarig):
         if name not in obj.pose.bone_groups.keys():
             bg = obj.pose.bone_groups.new(name)
             bg.color_set = 'CUSTOM'
-            bg.colors.normal = groups[g_id].normal
-            bg.colors.select = groups[g_id].select
-            bg.colors.active = groups[g_id].active
+            bg.colors.normal = gamma_correct(groups[g_id].normal)
+            bg.colors.select = gamma_correct(groups[g_id].select)
+            bg.colors.active = gamma_correct(groups[g_id].active)
 
     for b in pb:
         try:

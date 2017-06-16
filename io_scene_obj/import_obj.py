@@ -315,16 +315,16 @@ def create_materials(filepath, relpath,
 
                         if do_highlight:
                             if use_cycles:
-                                context_mat_wrap.hardness_value_set = 1.0
+                                context_mat_wrap.hardness_value_set(1.0)
                             # FIXME, how else to use this?
                             context_material.specular_intensity = 1.0
                         else:
                             if use_cycles:
-                                context_mat_wrap.hardness_value_set = 0.0
+                                context_mat_wrap.hardness_value_set(0.0)
 
                         if do_reflection:
                             if use_cycles:
-                                context_mat_wrap.reflect_factor_set = 1.0
+                                context_mat_wrap.reflect_factor_set(1.0)
                             context_material.raytrace_mirror.use = True
                             context_material.raytrace_mirror.reflect_factor = 1.0
 

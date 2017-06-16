@@ -145,36 +145,36 @@ class AddMengerSponge(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     level = IntProperty(
-                    name="Level",
-                    description="Sponge Level",
-                    min=0, max=4,
-                    default=1,
-                    )
+            name="Level",
+            description="Sponge Level",
+            min=0, max=4,
+            default=1,
+            )
     radius = FloatProperty(
-                    name="Width",
-                    description="Sponge Radius",
-                    min=0.01, max=100.0,
-                    default=1.0,
-                    )
+            name="Width",
+            description="Sponge Radius",
+            min=0.01, max=100.0,
+            default=1.0,
+            )
     # generic transform props
     view_align = BoolProperty(
-                    name="Align to View",
-                    default=False,
-                    )
+            name="Align to View",
+            default=False,
+            )
     location = FloatVectorProperty(
-                    name="Location",
-                    subtype='TRANSLATION',
-                    )
+            name="Location",
+            subtype='TRANSLATION',
+            )
     rotation = FloatVectorProperty(
-                    name="Rotation",
-                    subtype='EULER',
-                    )
+            name="Rotation",
+            subtype='EULER',
+            )
     layers = BoolVectorProperty(
-                    name="Layers",
-                    size=20,
-                    subtype='LAYER',
-                    options={'HIDDEN', 'SKIP_SAVE'},
-                    )
+            name="Layers",
+            size=20,
+            subtype='LAYER',
+            options={'HIDDEN', 'SKIP_SAVE'},
+            )
 
     def execute(self, context):
         sponger = MengerSponge(self.level)

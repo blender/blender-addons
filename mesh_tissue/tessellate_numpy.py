@@ -22,7 +22,7 @@
 # Creates duplicates of selected mesh to active morphing the shape according   #
 # to target faces.                                                             #
 #                                                                              #
-#                    (c)  Alessandro Zomparelli                                   #
+#                    (c)  Alessandro Zomparelli                                #
 #                             (2017)                                           #
 #                                                                              #
 # http://www.co-de-it.com/                                                     #
@@ -776,17 +776,20 @@ class tessellate(bpy.types.Operator):
         bpy.ops.object.mode_set(mode='OBJECT')
 
         # MATERIALS
-        # create materials list
-        polygon_materials = [p.material_index for p in ob1.data.polygons]*int(
-            len(new_ob.data.polygons) / len(ob1.data.polygons))
-        # assign old material
-        component_materials = [slot.material for slot in ob1.material_slots]
-        for i in range(len(component_materials)):
-            bpy.ops.object.material_slot_add()
-            bpy.context.object.material_slots[i].material = \
-                component_materials[i]
-        for i in range(len(new_ob.data.polygons)):
-            new_ob.data.polygons[i].material_index = polygon_materials[i]
+        try:
+            # create materials list
+            polygon_materials = [p.material_index for p in ob1.data.polygons]*int(
+                len(new_ob.data.polygons) / len(ob1.data.polygons))
+            # assign old material
+            component_materials = [slot.material for slot in ob1.material_slots]
+            for i in range(len(component_materials)):
+                bpy.ops.object.material_slot_add()
+                bpy.context.object.material_slots[i].material = \
+                    component_materials[i]
+            for i in range(len(new_ob.data.polygons)):
+                new_ob.data.polygons[i].material_index = polygon_materials[i]
+        except:
+            pass
 
         return {'FINISHED'}
 
@@ -871,17 +874,20 @@ class update_tessellate(bpy.types.Operator):
         bpy.ops.object.mode_set(mode='OBJECT')
 
         # MATERIALS
-        # create materials list
-        polygon_materials = [p.material_index for p in ob1.data.polygons]*int(
-            len(ob.data.polygons) / len(ob1.data.polygons))
-        # assign old material
-        component_materials = [slot.material for slot in ob1.material_slots]
-        for i in range(len(component_materials)):
-            bpy.ops.object.material_slot_add()
-            bpy.context.object.material_slots[i].material = \
-                component_materials[i]
-        for i in range(len(ob.data.polygons)):
-            ob.data.polygons[i].material_index = polygon_materials[i]
+        try:
+            # create materials list
+            polygon_materials = [p.material_index for p in ob1.data.polygons]*int(
+                len(ob.data.polygons) / len(ob1.data.polygons))
+            # assign old material
+            component_materials = [slot.material for slot in ob1.material_slots]
+            for i in range(len(component_materials)):
+                bpy.ops.object.material_slot_add()
+                bpy.context.object.material_slots[i].material = \
+                    component_materials[i]
+            for i in range(len(ob.data.polygons)):
+                ob.data.polygons[i].material_index = polygon_materials[i]
+        except:
+            pass
 
         return {'FINISHED'}
 
@@ -1217,17 +1223,21 @@ class settings_tessellate(bpy.types.Operator):
         bpy.ops.object.mode_set(mode='OBJECT')
 
         # MATERIALS
-        # create materials list
-        polygon_materials = [p.material_index for p in ob1.data.polygons] * \
-            int(len(self.ob.data.polygons) / len(ob1.data.polygons))
-        # assign old material
-        component_materials = [slot.material for slot in ob1.material_slots]
-        for i in range(len(component_materials)):
-            bpy.ops.object.material_slot_add()
-            bpy.context.object.material_slots[i].material = \
-                component_materials[i]
-        for i in range(len(self.ob.data.polygons)):
-            self.ob.data.polygons[i].material_index = polygon_materials[i]
+        try:
+            # create materials list
+            polygon_materials = [p.material_index for p in ob1.data.polygons] * \
+                int(len(self.ob.data.polygons) / len(ob1.data.polygons))
+            # assign old material
+            component_materials = [slot.material for slot in ob1.material_slots]
+            for i in range(len(component_materials)):
+                bpy.ops.object.material_slot_add()
+                bpy.context.object.material_slots[i].material = \
+                    component_materials[i]
+            for i in range(len(self.ob.data.polygons)):
+                self.ob.data.polygons[i].material_index = polygon_materials[i]
+        except:
+            pass
+
         return {'FINISHED'}
 
     def check(self, context):
@@ -1238,21 +1248,26 @@ class settings_tessellate(bpy.types.Operator):
 
 
 class tessellate_panel(bpy.types.Panel):
-    bl_label = "Tessellate"
+    bl_label = "Tissue"
     bl_category = "Create"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    #bl_context = "objectmode", "editmode"
+    bl_options = {'DEFAULT_CLOSED'}
+    #bl_context = "objectmode"
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode in {'OBJECT', 'EDIT_MESH'}
 
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
-        col.label(text="Add:")
+        col.label(text="Tessellate Add:")
         col.operator("object.tessellate")#, icon="STRANDS")
         #col.enable = False
         #col.operator("object.adaptive_duplifaces", icon="MESH_CUBE")
         col = layout.column(align=True)
-        col.label(text="Edit:")
+        col.label(text="Tessellate Edit:")
         col.operator("object.settings_tessellate")
         col.operator("object.update_tessellate")
         col = layout.column(align=True)
@@ -1263,6 +1278,11 @@ class tessellate_panel(bpy.types.Panel):
         for ob1 in context.selected_objects:
             if(ob1.name == act.name or ob1.type != 'MESH'): continue
             sel = ob1
+
+        col.separator()
+        col.label(text="Add Modifier:")
+        col.operator("object.lattice_along_surface", icon="OUTLINER_OB_LATTICE")
+
 
 
 class rotate_face(bpy.types.Operator):

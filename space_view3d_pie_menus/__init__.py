@@ -21,14 +21,13 @@
 bl_info = {
     "name": "3D Viewport Pie Menus",
     "author": "meta-androcto, pitiwazou, chromoly, italic",
-    "version": (1, 1, 3),
+    "version": (1, 1, 4),
     "blender": (2, 7, 7),
     "description": "Individual Pie Menu Activation List",
     "location": "Addons Preferences",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
     "Scripts/3D_interaction/viewport_pies",
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Pie Menu"
     }
 

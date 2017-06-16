@@ -402,6 +402,8 @@ class DisplayToolsPanel(Panel):
             if obj:
                 if obj.mode == 'OBJECT':
                     layout.operator_menu_enum("object.select_by_type", "type", text="Select All by Type...")
+                    layout.operator_menu_enum("object.hide_by_type", "type", text="Hide By Type")
+                    layout.operator_menu_enum("object.show_by_type", "type", text="Show By Type")
                     col = layout.column(align=True)
                     col.operator("opr.select_all", icon="MOD_MESHDEFORM")
                     col.operator("opr.inverse_selection", icon="MOD_REMESH")
@@ -608,10 +610,20 @@ class DisplayToolsPreferences(AddonPreferences):
         col.prop(self, "category", text="")
 
 
+def DRAW_hide_by_type_MENU(self, context):
+    self.layout.operator_menu_enum(
+        "object.hide_by_type",
+        "type", text="Hide By Type"
+        )
+    self.layout.operator_menu_enum(
+        "object.show_by_type",
+        "type", text="Show By Type"
+        )
+
 # register the classes and props
 def register():
     bpy.utils.register_module(__name__)
-
+    bpy.types.VIEW3D_MT_object_showhide.append(DRAW_hide_by_type_MENU)
     # Register Scene Properties
     bpy.types.Scene.display_tools = PointerProperty(
                                         type=display_tools_scene_props
@@ -623,6 +635,7 @@ def register():
 def unregister():
     del bpy.types.Scene.display_tools
     selection_restrictor.unregister()
+    bpy.types.VIEW3D_MT_object_showhide.remove(DRAW_hide_by_type_MENU)
     bpy.utils.unregister_module(__name__)
 
 

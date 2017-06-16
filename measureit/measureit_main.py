@@ -677,6 +677,7 @@ class MeasureitConfPanel(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = "TOOLS"
     bl_category = 'Measureit'
+    bl_options = {'DEFAULT_CLOSED'}
 
     # ------------------------------
     # Draw UI
@@ -711,6 +712,7 @@ class MeasureitRenderPanel(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = "TOOLS"
     bl_category = 'Measureit'
+    bl_options = {'DEFAULT_CLOSED'}
 
     # ------------------------------
     # Draw UI

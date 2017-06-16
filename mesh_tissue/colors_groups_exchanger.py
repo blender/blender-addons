@@ -26,7 +26,7 @@
 # For use the command "Vertex Clors to Vertex Groups" use the search bar       #
 # (space bar).                                                                 #
 #                                                                              #
-#                            (c)  Alessandro Zomparelli                           #
+#                          (c)  Alessandro Zomparelli                          #
 #                                     (2017)                                   #
 #                                                                              #
 # http://www.co-de-it.com/                                                     #
@@ -35,6 +35,7 @@
 
 import bpy
 import math
+from math import pi
 
 bl_info = {
     "name": "Colors/Groups Exchanger",
@@ -51,8 +52,9 @@ bl_info = {
 
 class vertex_colors_to_vertex_groups(bpy.types.Operator):
     bl_idname = "object.vertex_colors_to_vertex_groups"
-    bl_label = "Weight from Colors"
+    bl_label = "Vertex Color"
     bl_options = {'REGISTER', 'UNDO'}
+    bl_description = ("Convert the active Vertex Color into a Vertex Group.")
 
     red = bpy.props.BoolProperty(
         name="red channel", default=False, description="convert red channel")
@@ -135,8 +137,9 @@ class vertex_colors_to_vertex_groups(bpy.types.Operator):
 
 class vertex_group_to_vertex_colors(bpy.types.Operator):
     bl_idname = "object.vertex_group_to_vertex_colors"
-    bl_label = "Colors from Weight"
+    bl_label = "Vertex Group"
     bl_options = {'REGISTER', 'UNDO'}
+    bl_description = ("Convert the active Vertex Group into a Vertex Color.")
 
     channel = bpy.props.EnumProperty(
         items=[('Blue', 'Blue Channel', 'Convert to Blue Channel'),
@@ -212,13 +215,59 @@ class vertex_group_to_vertex_colors(bpy.types.Operator):
         bpy.context.object.data.vertex_colors[colors_id].active_render = True
         return {'FINISHED'}
 
-
-class face_area_to_vertex_groups(bpy.types.Operator):
-    bl_idname = "object.face_area_to_vertex_groups"
-    bl_label = "Weight from Faces Area"
+class curvature_to_vertex_groups(bpy.types.Operator):
+    bl_idname = "object.curvature_to_vertex_groups"
+    bl_label = "Curvature"
     bl_options = {'REGISTER', 'UNDO'}
     invert = bpy.props.BoolProperty(
         name="invert", default=False, description="invert values")
+    bl_description = ("Generate a Vertex Group based on the curvature of the"
+                      "mesh. Is based on Dirty Vertex Color.")
+
+    blur_strength = bpy.props.FloatProperty(
+      name="Blur Strength", default=1, min=0.001,
+      max=1, description="Blur strength per iteration")
+
+    blur_iterations = bpy.props.IntProperty(
+      name="Blur Iterations", default=1, min=0,
+      max=40, description="Number of times to blur the values")
+
+    min_angle = bpy.props.FloatProperty(
+      name="Min Angle", default=0, min=0,
+      max=pi/2, subtype='ANGLE', description="Minimum angle")
+
+    max_angle = bpy.props.FloatProperty(
+      name="Max Angle", default=pi, min=pi/2,
+      max=pi, subtype='ANGLE', description="Maximum angle")
+
+    invert = bpy.props.BoolProperty(
+        name="Invert", default=False,
+        description="Invert the curvature map")
+
+    def execute(self, context):
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.mesh.vertex_color_add()
+        vertex_colors = bpy.context.active_object.data.vertex_colors
+        vertex_colors[-1].active = True
+        vertex_colors[-1].active_render = True
+        vertex_colors[-1].name = "Curvature"
+        for c in vertex_colors[-1].data: c.color.r, c.color.g, c.color.b = 1,1,1
+        bpy.ops.object.mode_set(mode='VERTEX_PAINT')
+        bpy.ops.paint.vertex_color_dirt(blur_strength=self.blur_strength, blur_iterations=self.blur_iterations, clean_angle=self.max_angle, dirt_angle=self.min_angle)
+        bpy.ops.object.vertex_colors_to_vertex_groups(invert=self.invert)
+        bpy.ops.mesh.vertex_color_remove()
+        return {'FINISHED'}
+
+
+
+class face_area_to_vertex_groups(bpy.types.Operator):
+    bl_idname = "object.face_area_to_vertex_groups"
+    bl_label = "Area"
+    bl_options = {'REGISTER', 'UNDO'}
+    invert = bpy.props.BoolProperty(
+        name="invert", default=False, description="invert values")
+    bl_description = ("Generate a Vertex Group based on the area of individual"
+                      "faces.")
 
     def execute(self, context):
         obj = bpy.context.active_object
@@ -237,7 +286,6 @@ class face_area_to_vertex_groups(bpy.types.Operator):
         max_area = False
         n_values = [0]*len(obj.data.vertices)
         values = [0]*len(obj.data.vertices)
-        print(len(values))
         for p in obj.data.polygons:
             for v in p.vertices:
                 n_values[v] += 1
@@ -266,20 +314,31 @@ class face_area_to_vertex_groups(bpy.types.Operator):
 
 
 class colors_groups_exchanger_panel(bpy.types.Panel):
-    bl_label = "Colors-Weight Exchanger"
-    bl_category = "Create"
+    bl_label = "Tissue Tools"
+    bl_category = "Tools"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
+    bl_options = {'DEFAULT_CLOSED'}
     #bl_context = "objectmode"
 
     def draw(self, context):
-        layout = self.layout
-        col = layout.column(align=True)
-        col.operator("object.vertex_group_to_vertex_colors", icon="GROUP_VCOL")
-        col.operator(
-            "object.vertex_colors_to_vertex_groups", icon="GROUP_VERTEX")
-        col.separator()
-        col.operator("object.face_area_to_vertex_groups", icon="SNAP_FACE")
+        try:
+            if bpy.context.active_object.type == 'MESH':
+                layout = self.layout
+                col = layout.column(align=True)
+                col.label(text="Transform:")
+                col.operator("object.dual_mesh")
+                col.separator()
+                col.label(text="Weight from:")
+                col.operator(
+                    "object.vertex_colors_to_vertex_groups", icon="GROUP_VCOL")
+                col.operator("object.face_area_to_vertex_groups", icon="SNAP_FACE")
+                col.operator("object.curvature_to_vertex_groups", icon="SMOOTHCURVE")
+                col.separator()
+                col.label(text="Vertex Color from:")
+                col.operator("object.vertex_group_to_vertex_colors", icon="GROUP_VERTEX")
+        except:
+            pass
 
 
 def register():

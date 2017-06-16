@@ -56,7 +56,8 @@ class AreaTypePieOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        bpy.ops.wm.call_menu_pie(name=AreaTypeEditor.bl_idname)
+        bpy.ops.wm.call_menu_pie(name=AreaPieEditor.bl_idname)
+
         return {'FINISHED'}
 
 
@@ -99,7 +100,8 @@ class AreaTypePieOther(Menu):
         self.layout.operator(SetAreaType.bl_idname, text="Python Console", icon="CONSOLE").type = "CONSOLE"
         # 8 - TOP
         # 7 - TOP - LEFT
-        self.layout.operator(SetAreaType.bl_idname, text="User Setting", icon="PREFERENCES").type = "USER_PREFERENCES"
+        self.layout.operator(SetAreaType.bl_idname, text="User Setting",
+                             icon="PREFERENCES").type = "USER_PREFERENCES"
         # 9 - TOP - RIGHT
         self.layout.operator(SetAreaType.bl_idname, text="Info", icon="INFO").type = "INFO"
         # 1 - BOTTOM - LEFT
@@ -134,12 +136,15 @@ class AreaTypePieAnim(Menu):
         # 8 - TOP
         self.layout.operator(SetAreaType.bl_idname, text="Timeline", icon="TIME").type = "TIMELINE"
         # 7 - TOP - LEFT
-        self.layout.operator(SetAreaType.bl_idname, text="Video Sequence Editor", icon="SEQUENCE").type = "SEQUENCE_EDITOR"
+        self.layout.operator(SetAreaType.bl_idname,
+                             text="Video Sequence Editor", icon="SEQUENCE").type = "SEQUENCE_EDITOR"
         # 9 - TOP - RIGHT
-        self.layout.operator(SetAreaType.bl_idname, text="Video Clip Editor", icon="RENDER_ANIMATION").type = "CLIP_EDITOR"
+        self.layout.operator(SetAreaType.bl_idname,
+                             text="Video Clip Editor", icon="RENDER_ANIMATION").type = "CLIP_EDITOR"
         # 1 - BOTTOM - LEFT
-        self.layout.operator("wm.call_menu_pie", text="Back", icon="BACK").name = PieEditor.bl_idname
+        self.layout.operator("wm.call_menu_pie", text="Back", icon="BACK").name = AreaPieEditor.bl_idname
         # 3 - BOTTOM - RIGHT
+
 
 classes = (
     AreaPieMenu,
@@ -179,6 +184,7 @@ def unregister():
             if kmi.idname == 'wm.call_menu_pie':
                 if kmi.properties.name == "wm.area_type_pie_operator":
                     km.keymap_items.remove(kmi)
+
 
 if __name__ == "__main__":
     register()

@@ -1,20 +1,43 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+
 bl_info = {
     "name": "Add Camera Rigs",
     "author": "Wayne Dixon, Kris Wittig",
-    "version": (1, 1),
+    "version": (1, 1, 1),
     "blender": (2, 77, 0),
     "location": "View3D > Add > Camera > Dolly or Crane Rig",
     "description": "Adds a Camera Rig with UI",
     "warning": "Enable Auto Run Python Scripts in User Preferences > File",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Rigging/Add_Camera_Rigs",
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/"
+                "Py/Scripts/Rigging/Add_Camera_Rigs",
     "category": "Camera",
 }
 
 import bpy
-from bpy.types import Operator
+from bpy.types import (
+        Operator,
+        Panel,
+        )
 from rna_prop_ui import rna_idprop_ui_prop_get
 from math import radians
+
 
 # =========================================================================
 # Define the functions to build the Widgets
@@ -32,18 +55,19 @@ def create_widget(self, name):
         obj = bpy.data.objects.new(obj_name, mesh)
         scene.objects.link(obj)
 
-        #this will put the Widget objects out of the way on layer 19
+        # this will put the Widget objects out of the way on layer 19
         WDGT_layers = (False, False, False, False, False, False, False, False, False, True,
                        False, False, False, False, False, False, False, False, False, False)
         obj.layers = WDGT_layers
 
         return obj
 
+
 def create_root_widget(self, name):
     # Creates a compass-shaped widget.
 
     obj = create_widget(self, name)
-    if obj != None:
+    if obj is not None:
         verts = [(0.2102552056312561, -0.0012103617191314697, 0.21025514602661133),
                  (0.11378927528858185, -0.001210339367389679, 0.274711549282074),
                  (-3.070153553608179e-08, -0.0012103626504540443, 0.29734566807746887),
@@ -99,11 +123,12 @@ def create_root_widget(self, name):
         mesh.from_pydata(verts, edges, [])
         mesh.update()
 
+
 def create_camera_widget(self, name):
-    # Creates a camera ctrl widget.
+    # Creates a camera ctrl widget
 
     obj = create_widget(self, name)
-    if obj != None:
+    if obj is not None:
         verts = [(0.13756819069385529, 1.0706068032106941e-08, -0.13756819069385529),
                  (0.1797415018081665, 5.353034016053471e-09, -0.07445136457681656),
                  (0.19455081224441528, -6.381313819948996e-16, 8.504085435845354e-09),
@@ -160,27 +185,28 @@ def create_camera_widget(self, name):
                  (0.04472222924232483, -7.0564780685344886e-09, 0.10796899348497391),
                  (0.08263590186834335, -7.0564780685344886e-09, 0.08263590186834335),
                  (0.10796899348497391, -3.5282390342672443e-09, 0.04472223296761513),
-                 (0.11686481535434723, -4.2059886864033273e-16, 5.108323541946902e-09), 
-                 (0.10796899348497391, 3.5282390342672443e-09, -0.04472222924232483), 
-                 (0.08263590186834335, 7.0564780685344886e-09, -0.08263590186834335), 
+                 (0.11686481535434723, -4.2059886864033273e-16, 5.108323541946902e-09),
+                 (0.10796899348497391, 3.5282390342672443e-09, -0.04472222924232483),
+                 (0.08263590186834335, 7.0564780685344886e-09, -0.08263590186834335),
                  (3.725290298461914e-08, -2.1412136064213882e-08, 0.24882805347442627)]
         edges = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (7, 8), (0, 8),
                  (10, 11), (9, 12), (11, 12), (10, 13), (9, 14), (13, 15), (14, 15), (16, 22),
-                 (17, 18), (18, 19), (19, 20), (20, 21), (21, 22), (7, 17), (6, 16), (23, 24), 
+                 (17, 18), (18, 19), (19, 20), (20, 21), (21, 22), (7, 17), (6, 16), (23, 24),
                  (23, 25), (24, 29), (25, 28), (26, 29), (27, 28), (31, 32), (30, 33), (32, 33),
-                 (31, 34), (30, 35), (34, 36), (35, 36), (37, 38), (37, 39), (38, 43), (39, 42), 
+                 (31, 34), (30, 35), (34, 36), (35, 36), (37, 38), (37, 39), (38, 43), (39, 42),
                  (40, 41), (40, 43), (41, 42), (50, 53), (49, 52), (44, 45), (45, 46), (46, 47),
-                 (47, 48), (48, 49), (44, 50), (51, 59), (51, 52), (53, 54), (54, 55), (55, 56), 
+                 (47, 48), (48, 49), (44, 50), (51, 59), (51, 52), (53, 54), (54, 55), (55, 56),
                  (56, 57), (57, 58), (58, 59), (26, 60), (27, 60), (23, 60)]
         mesh = obj.data
         mesh.from_pydata(verts, edges, [])
         mesh.update()
 
+
 def create_aim_widget(self, name):
     """ Creates a camera aim widget."""
 
     obj = create_widget(self, name)
-    if obj != None:
+    if obj is not None:
         verts = [(0.15504144132137299, 1.4901161193847656e-08, 0.15504144132137299),
                  (0.20257140696048737, 7.450580596923828e-09, 0.0839078277349472),
                  (0.21926172077655792, -8.881784197001252e-16, -9.584233851001045e-09),
@@ -215,7 +241,7 @@ def create_aim_widget(self, name):
                  (-0.052745334804058075, -2.9802322387695312e-08, -0.3996969759464264),
                  (-0.05274537205696106, -2.9802322387695312e-08, -0.49317920207977295),
                  (0.05274519696831703, -2.9802322387695312e-08, -0.49317920207977295),
-                 (-0.09776955097913742, -2.9802322387695312e-08, -0.3996969163417816), 
+                 (-0.09776955097913742, -2.9802322387695312e-08, -0.3996969163417816),
                  (0.09776940196752548, -2.9802322387695312e-08, -0.39969703555107117),
                  (-7.148475589247028e-08, -2.9802322387695312e-08, -0.2804329991340637),
                  (-0.2804330289363861, 3.552713678800501e-15, 4.234420103443881e-08),
@@ -258,6 +284,7 @@ def create_aim_widget(self, name):
         mesh.from_pydata(verts, edges, [])
         mesh.update()
 
+
 # =========================================================================
 # Define the fuction to make the camera active
 # =========================================================================
@@ -273,10 +300,11 @@ def sceneCamera():
     else:
         return None
 
-class MakeCameraActive(bpy.types.Operator):
-    '''Makes the camera parented to this rig the active scene camera'''
+
+class MakeCameraActive(Operator):
     bl_idname = "scene.make_camera_active"
     bl_label = "Make Camera Active"
+    bl_description = "Makes the camera parented to this rig the active scene camera"
 
     @classmethod
     def poll(cls, context):
@@ -284,14 +312,16 @@ class MakeCameraActive(bpy.types.Operator):
 
     def execute(self, context):
         sceneCamera()
+
         return {'FINISHED'}
+
 
 # =========================================================================
 # Define function to add marker to timeline and bind camera
 # =========================================================================
 def markerBind():
     ob = bpy.context.active_object  # rig object
-    active_cam = ob.children[0]  # camera object
+    active_cam = ob.children[0]     # camera object
 
     # switch area to timeline to add marker
     bpy.context.area.type = 'TIMELINE'
@@ -307,10 +337,12 @@ def markerBind():
     # switch back to 3d view
     bpy.context.area.type = 'VIEW_3D'
 
-class AddMarkerBind(bpy.types.Operator):
-    """Add marker to current frame then bind rig camera to it (for camera switching)"""
+
+class AddMarkerBind(Operator):
     bl_idname = "add.marker_bind"
     bl_label = "Add marker and Bind Camera"
+    bl_description = ("Add marker to current frame then bind "
+                      "rig camera to it (for camera switching)")
 
     @classmethod
     def poll(cls, context):
@@ -318,7 +350,9 @@ class AddMarkerBind(bpy.types.Operator):
 
     def execute(self, context):
         markerBind()
+
         return {'FINISHED'}
+
 
 # =========================================================================
 # Define the function to add an Empty as DOF object
@@ -355,10 +389,11 @@ def add_DOF_Empty():
 
     bpy.ops.object.mode_set(mode=smode, toggle=False)
 
-class AddDofEmpty(bpy.types.Operator):
-    """Create empty and add as DOF Object"""
+
+class AddDofEmpty(Operator):
     bl_idname = "add.dof_empty"
     bl_label = "Add DOF Empty"
+    bl_description = "Create empty and add as DOF Object"
 
     @classmethod
     def poll(cls, context):
@@ -366,7 +401,9 @@ class AddDofEmpty(bpy.types.Operator):
 
     def execute(self, context):
         add_DOF_Empty()
+
         return {'FINISHED'}
+
 
 # =========================================================================
 # Define the function to build the Dolly Rig
@@ -427,17 +464,17 @@ def build_dolly_rig(context):
 
     # jump into pose mode and add the custom bone shapes
     bpy.ops.object.mode_set(mode='POSE')
-    bpy.context.object.pose.bones["Root"].custom_shape = bpy.data.objects[
-        "WDGT_Camera_Root"]  # add the widget as custom shape
+    bpy.context.object.pose.bones["Root"].custom_shape = \
+            bpy.data.objects["WDGT_Camera_Root"]  # add the widget as custom shape
     # set the wireframe checkbox to true
     bpy.context.object.data.bones["Root"].show_wire = True
-    bpy.context.object.pose.bones[
-        "AIM"].custom_shape = bpy.data.objects["WDGT_AIM"]
+    bpy.context.object.pose.bones["AIM"].custom_shape = \
+            bpy.data.objects["WDGT_AIM"]
     bpy.context.object.data.bones["AIM"].show_wire = True
-    bpy.context.object.pose.bones["AIM"].custom_shape_transform = bpy.data.objects[
-        rig.name].pose.bones["AIM_child"]  # sets the "At" field to the child
-    bpy.context.object.pose.bones[
-        "CTRL"].custom_shape = bpy.data.objects["WDGT_CTRL"]
+    bpy.context.object.pose.bones["AIM"].custom_shape_transform = \
+            bpy.data.objects[rig.name].pose.bones["AIM_child"]  # sets the "At" field to the child
+    bpy.context.object.pose.bones["CTRL"].custom_shape = \
+            bpy.data.objects["WDGT_CTRL"]
     bpy.context.object.data.bones["CTRL"].show_wire = True
 
     # jump into object mode
@@ -497,7 +534,7 @@ def build_dolly_rig(context):
 
     cam_data_name = bpy.context.object.data.name
     bpy.data.cameras[cam_data_name].draw_size = 1.0
-    cam.rotation_euler[0] = 1.5708  # rotate the camera 90 degrees in x
+    cam.rotation_euler[0] = 1.5708   # rotate the camera 90 degrees in x
     cam.location = (0.0, -2.0, 0.0)  # move the camera to the correct postion
     cam.parent = rig
     cam.parent_type = "BONE"
@@ -526,6 +563,7 @@ def build_dolly_rig(context):
     rig.select = True
 
     return rig
+
 
 # =========================================================================
 # Define the function to build the Crane Rig
@@ -681,11 +719,12 @@ def build_crane_rig(context):
 
     cam_data_name = bpy.context.object.data.name
     bpy.data.cameras[cam_data_name].draw_size = 1.0
-    cam.rotation_euler[0] = 1.5708  # rotate the camera 90 degrees in x
+    cam.rotation_euler[0] = 1.5708   # rotate the camera 90 degrees in x
     cam.location = (0.0, -2.0, 0.0)  # move the camera to the correct postion
     cam.parent = rig
     cam.parent_type = "BONE"
     cam.parent_bone = "CTRL"
+
     # Add blank drivers to lock the camera loc, rot scale
     cam.driver_add('location', 0)
     cam.driver_add('location', 1)
@@ -710,10 +749,11 @@ def build_crane_rig(context):
 
     return rig
 
+
 # =========================================================================
 # This is the UI for the Dolly Camera Rig
 # =========================================================================
-class DollyCameraUI(bpy.types.Panel):
+class DollyCameraUI(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Dolly Camera UI"
@@ -729,7 +769,6 @@ class DollyCameraUI(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         ob = bpy.context.active_object
-        arm = context.active_object.data
         pose_bones = context.active_object.pose.bones
         # find the children on the rig (the camera name)
         active_cam = ob.children[0].name
@@ -737,7 +776,7 @@ class DollyCameraUI(bpy.types.Panel):
         cam = bpy.data.cameras[bpy.data.objects[active_cam].data.name]
         box = layout.box()
         col = box.column()
-        row = col.row()
+        col.separator()
 
         # Display Camera Properties
         col.label(text="Clipping:")
@@ -745,6 +784,7 @@ class DollyCameraUI(bpy.types.Panel):
         col.prop(cam, "clip_end", text="End")
         col.prop(cam, "type")
         col.prop(cam, "dof_object")
+
         if cam.dof_object is None:
             col.operator("add.dof_empty", text="Add DOF Empty")
             col.prop(cam, "dof_distance")
@@ -752,12 +792,15 @@ class DollyCameraUI(bpy.types.Panel):
         col.prop_menu_enum(cam, "show_guide", text="Compostion Guides")
         col.prop(bpy.data.objects[active_cam],
                  "hide_select", text="Make Camera Unselectable")
+
         col.operator("add.marker_bind", text="Add Marker and Bind")
+
         if bpy.context.scene.camera.name != active_cam:
-            col.operator(
-                "scene.make_camera_active", text="Make Active Camera", icon='CAMERA_DATA')
-        col.prop(
-            context.active_object, 'show_x_ray', toggle=False, text='X Ray')
+            col.operator("scene.make_camera_active",
+                         text="Make Active Camera", icon='CAMERA_DATA')
+
+        col.prop(context.active_object,
+                'show_x_ray', toggle=False, text='X Ray')
         col.prop(cam, "show_limits")
         col.prop(cam, "show_safe_areas")
         col.prop(cam, "show_passepartout")
@@ -771,10 +814,11 @@ class DollyCameraUI(bpy.types.Panel):
         col.label(text="Tracking:")
         col.prop(pose_bones["CTRL"], '["Lock"]', text="Aim Lock", slider=True)
 
+
 # =========================================================================
 # This is the UI for the Crane Rig Camera
 # =========================================================================
-class CraneCameraUI(bpy.types.Panel):
+class CraneCameraUI(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Crane Camera UI"
@@ -790,7 +834,6 @@ class CraneCameraUI(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         ob = bpy.context.active_object
-        arm = context.active_object.data
         pose_bones = context.active_object.pose.bones
         # find the children on the rig (camera)
         active_cam = ob.children[0].name
@@ -798,7 +841,7 @@ class CraneCameraUI(bpy.types.Panel):
 
         box = layout.box()
         col = box.column()
-        row = col.row()
+        col.separator()
 
         # Display Camera Properties
         col.label(text="Clipping:")
@@ -806,6 +849,7 @@ class CraneCameraUI(bpy.types.Panel):
         col.prop(cam, "clip_end", text="End")
         col.prop(cam, "type")
         col.prop(cam, "dof_object")
+
         if cam.dof_object is None:
             col.operator("add.dof_empty", text="Add DOF object")
             col.prop(cam, "dof_distance")
@@ -814,6 +858,7 @@ class CraneCameraUI(bpy.types.Panel):
         col.prop(bpy.data.objects[active_cam],
                  "hide_select", text="Make Camera Unselectable")
         col.operator("add.marker_bind", text="Add Marker and Bind")
+
         if bpy.context.scene.camera.name != active_cam:
             col.operator(
                 "scene.make_camera_active", text="Make Active Camera", icon='CAMERA_DATA')
@@ -833,25 +878,28 @@ class CraneCameraUI(bpy.types.Panel):
         col.prop(pose_bones["CTRL"], '["Lock"]', text="Aim Lock", slider=True)
 
         # make this camera active if more than one camera exists
-        '''if cam != bpy.context.scene.camera:
-                col.op(, text="Make Active Camera", toggle=True)'''
+        """
+        if cam != bpy.context.scene.camera:
+            col.op(, text="Make Active Camera", toggle=True)
+        """
 
         box = layout.box()
         col = box.column()
-        row = col.row()
+        col.separator()
 
         # Crane arm stuff
         col.label(text="Crane Arm:")
         col.prop(pose_bones["Height"], 'scale', index=1, text="Arm Height")
         col.prop(pose_bones["Crane_Arm"], 'scale', index=1, text="Arm Length")
 
+
 # =========================================================================
 # This is the operator that will call all the functions and build the dolly rig
 # =========================================================================
-class BuildDollyRig(bpy.types.Operator):
-    """Build a Camera Dolly Rig"""
+class BuildDollyRig(Operator):
     bl_idname = "object.build_dolly_rig"
     bl_label = "Build Dolly Camera Rig"
+    bl_description = "Build a Camera Dolly Rig"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -863,15 +911,17 @@ class BuildDollyRig(bpy.types.Operator):
 
         # call the function to build the rig
         build_dolly_rig(context)
+
         return {'FINISHED'}
+
 
 # =========================================================================
 # This is the operator that will call all the functions and build the crane rig
 # =========================================================================
-class BuildCraneRig(bpy.types.Operator):
-    """Build a Camera Crane Rig"""
+class BuildCraneRig(Operator):
     bl_idname = "object.build_crane_rig"
     bl_label = "Build Crane Camera Rig"
+    bl_description = "Build a Camera Crane Rig"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -883,26 +933,28 @@ class BuildCraneRig(bpy.types.Operator):
 
         # call the function to build the rig
         build_crane_rig(context)
+
         return {'FINISHED'}
+
 
 # =========================================================================
 # Registration:
 # =========================================================================
-# dolly button in Armature menu
-def add_dolly_button(self, context):
-    if context.mode == 'OBJECT':
-        self.layout.operator(
-            BuildDollyRig.bl_idname,
-            text="Dolly Camera Rig",
-            icon='CAMERA_DATA')
 
-# crane button in Armature menu
-def add_crane_button(self, context):
+# dolly and crane entries in the Add Object > Camera Menu
+def add_dolly_crane_buttons(self, context):
     if context.mode == 'OBJECT':
         self.layout.operator(
-            BuildCraneRig.bl_idname,
-            text="Crane Camera Rig",
-            icon='CAMERA_DATA')
+                    BuildDollyRig.bl_idname,
+                    text="Dolly Camera Rig",
+                    icon='CAMERA_DATA'
+                    )
+        self.layout.operator(
+                    BuildCraneRig.bl_idname,
+                    text="Crane Camera Rig",
+                    icon='CAMERA_DATA'
+                    )
+
 
 def register():
     bpy.utils.register_class(BuildDollyRig)
@@ -912,8 +964,8 @@ def register():
     bpy.utils.register_class(MakeCameraActive)
     bpy.utils.register_class(AddMarkerBind)
     bpy.utils.register_class(AddDofEmpty)
-    bpy.types.INFO_MT_camera_add.append(add_dolly_button)
-    bpy.types.INFO_MT_camera_add.append(add_crane_button)
+    bpy.types.INFO_MT_camera_add.append(add_dolly_crane_buttons)
+
 
 def unregister():
     bpy.utils.unregister_class(BuildDollyRig)
@@ -923,8 +975,8 @@ def unregister():
     bpy.utils.unregister_class(MakeCameraActive)
     bpy.utils.unregister_class(AddMarkerBind)
     bpy.utils.unregister_class(AddDofEmpty)
-    bpy.types.INFO_MT_camera_add.remove(add_dolly_button)
-    bpy.types.INFO_MT_camera_add.remove(add_crane_button)
+    bpy.types.INFO_MT_camera_add.remove(add_dolly_crane_buttons)
+
 
 if __name__ == "__main__":
     register()
