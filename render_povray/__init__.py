@@ -64,7 +64,6 @@ else:
             update_files,
             )
 
-
 def string_strip_hyphen(name):
     return name.replace("-", "")
 
@@ -2176,8 +2175,9 @@ def register():
     bpy.types.INFO_MT_add.prepend(ui.menu_func_add)
     bpy.types.INFO_MT_file_import.append(ui.menu_func_import)
     bpy.types.TEXT_MT_templates.append(ui.menu_func_templates)
-    #used for parametric objects:
-    addon_utils.enable("add_mesh_extra_objects", default_set=False, persistent=True)
+    # was used for parametric objects but made the other addon unreachable on
+    # unregister for other tools to use created a user action call instead
+    #addon_utils.enable("add_mesh_extra_objects", default_set=False, persistent=True)
 
     #bpy.types.TEXTURE_PT_context_texture.prepend(TEXTURE_PT_povray_type)
 
@@ -2203,7 +2203,7 @@ def unregister():
     bpy.types.NODE_HT_header.remove(ui.menu_func_nodes)
 
     #bpy.types.TEXTURE_PT_context_texture.remove(TEXTURE_PT_povray_type)
-    addon_utils.disable("add_mesh_extra_objects", default_set=False)
+    #addon_utils.disable("add_mesh_extra_objects", default_set=False)
     bpy.types.TEXT_MT_templates.remove(ui.menu_func_templates)
     bpy.types.INFO_MT_file_import.remove(ui.menu_func_import)
     bpy.types.INFO_MT_add.remove(ui.menu_func_add)

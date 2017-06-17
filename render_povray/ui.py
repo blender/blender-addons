@@ -177,7 +177,11 @@ for member in dir(properties_particle):  # add all "particle" panels from blende
         pass
 del properties_particle
 
-
+def check_add_mesh_extra_objects():
+    if "add_mesh_extra_objects" in bpy.context.user_preferences.addons.keys():
+        return True
+    return False
+    
 class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -1586,7 +1590,6 @@ class BasicShapesMenu(bpy.types.Menu):
         layout.operator("pov.cone_add", text="Cone",icon="MESH_CONE")
         layout.operator("pov.addtorus", text="Torus",icon = 'MESH_TORUS')
         layout.separator()
-        layout.operator("pov.addparametric", text="Parametric",icon = 'SCRIPTPLUGINS')
         layout.operator("pov.addrainbow", text="Rainbow",icon="COLOR")
         layout.operator("pov.addlathe", text="Lathe",icon = 'MOD_SCREW')
         layout.operator("pov.addprism", text="Prism",icon = 'MOD_SOLIDIFY')
@@ -1604,7 +1607,22 @@ class BasicShapesMenu(bpy.types.Menu):
         layout.label(text = "Macro based")
         layout.operator("pov.addpolygontocircle", text="Polygon To Circle Blending",icon="RETOPO")
         layout.operator("pov.addloft", text="Loft",icon="SURFACE_NSURFACE")
+        layout.separator()
+        # Warning if the Add Advanced Objects addon containing
+        # Add mesh extra objects is not enabled
+        if not check_add_mesh_extra_objects():
+            #col = box.column()
+            layout.label(text="Please enable Add Mesh: Extra Objects addon", icon="INFO")
+            #layout.separator()
+            layout.operator("wm.addon_userpref_show",
+                         text="Go to Add Mesh: Extra Objects addon",
+                         icon="PREFERENCES").module = "add_mesh_extra_objects"
 
+            #layout.separator()
+            return
+        else:
+            layout.operator("pov.addparametric", text="Parametric",icon = 'SCRIPTPLUGINS')
+            
 class ImportMenu(bpy.types.Menu):
     bl_idname = "Importer_calls"
     bl_label = "Import"
