@@ -43,7 +43,7 @@ from .ant_functions import (
 class AntMeshDisplace(bpy.types.Operator):
     bl_idname = "mesh.ant_displace"
     bl_label = "Another Noise Tool - Displace"
-    bl_description = "Displace mesh vertices"
+    bl_description = "A.N.T. Displace mesh vertices"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     ant_terrain_name = StringProperty(
@@ -428,6 +428,16 @@ class AntMeshDisplace(bpy.types.Operator):
             default=False,
             description="Remove doubles"
             )
+    direction = EnumProperty(
+            name="Direction",
+            default="NORMAL",
+            description="Displacement direction",
+            items = [
+                ("NORMAL", "Normal", "Displace along vertex normal direction", 0),
+                ("Z", "Z", "Displace in the Z direction", 1),
+                ("Y", "Y", "Displace in the Y direction", 2),
+                ("X", "X", "Displace in the X direction", 3)]
+            )
     show_main_settings = BoolProperty(
             name="Main Settings",
             default=True,
@@ -533,7 +543,8 @@ class AntMeshDisplace(bpy.types.Operator):
             self.strata,
             self.water_plane,
             self.water_level,
-            self.use_vgroup
+            self.use_vgroup,
+            self.remove_double
             ]
 
         # do displace
@@ -542,12 +553,33 @@ class AntMeshDisplace(bpy.types.Operator):
         if self.use_vgroup is True:
             vertex_group = ob.vertex_groups.active
             if vertex_group:
-                for v in mesh.vertices:
-                    v.co += vertex_group.weight(v.index) * v.normal * noise_gen(v.co, props)
- 
+                if self.direction == "X":
+                    for v in mesh.vertices:
+                        v.co[0] += vertex_group.weight(v.index) * noise_gen(v.co, props)
+                if self.direction == "Y":
+                    for v in mesh.vertices:
+                        v.co[1] += vertex_group.weight(v.index) * noise_gen(v.co, props)
+                if self.direction == "Z":
+                    for v in mesh.vertices:
+                        v.co[2] += vertex_group.weight(v.index) * noise_gen(v.co, props)
+                else:
+                    for v in mesh.vertices:
+                        v.co += vertex_group.weight(v.index) * v.normal * noise_gen(v.co, props)
+
         else:
-            for v in mesh.vertices:
-                v.co += v.normal * noise_gen(v.co, props)
+            if self.direction == "X":
+                for v in mesh.vertices:
+                    v.co[0] += noise_gen(v.co, props)
+            elif self.direction == "Y":
+                for v in mesh.vertices:
+                    v.co[1] += noise_gen(v.co, props)
+            elif self.direction == "Z":
+                for v in mesh.vertices:
+                    v.co[2] += noise_gen(v.co, props)
+            else:
+                for v in mesh.vertices:
+                    v.co += v.normal * noise_gen(v.co, props)
+
             mesh.update()
 
         if bpy.ops.object.shade_smooth == True:

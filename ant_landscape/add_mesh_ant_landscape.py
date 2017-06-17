@@ -47,7 +47,7 @@ from .ant_functions import (
 class AntAddLandscape(bpy.types.Operator):
     bl_idname = "mesh.landscape_add"
     bl_label = "Another Noise Tool - Landscape"
-    bl_description = "Add landscape mesh"
+    bl_description = "A.N.T. Add landscape mesh"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     ant_terrain_name = StringProperty(
@@ -650,19 +650,3 @@ class AntAddLandscape(bpy.types.Operator):
         context.user_preferences.edit.use_global_undo = undo
 
         return {'FINISHED'}
-
-'''
-# ------------------------------------------------------------
-# Register:
-
-def register():
-    bpy.utils.register_module(__name__)
-
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
-
-if __name__ == "__main__":
-    register()
-'''
