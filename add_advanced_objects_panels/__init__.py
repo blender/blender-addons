@@ -24,20 +24,19 @@
 
 bl_info = {
     "name": "Add Advanced Object Panels",
-    "author": "meta-androcto,",
+    "author": "meta-androcto",
     "version": (1, 1, 4),
     "blender": (2, 7, 7),
     "description": "Individual Create Panel Activation List",
     "location": "Addons Preferences",
     "warning": "",
-    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
-    "Scripts/3D_interaction/viewport_pies",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6"
+                "/Py/Scripts/Object/Add_Advanced",
     "category": "Object"
     }
 
 import bpy
 from bpy.types import (
-        Menu,
         AddonPreferences,
         PropertyGroup,
         )
@@ -66,7 +65,7 @@ sub_modules = [__import__(__package__ + "." + submod, {}, {}, submod) for submod
 sub_modules.sort(key=lambda mod: (mod.bl_info['category'], mod.bl_info['name']))
 
 
-#Addons Preferences
+# Add-ons Preferences
 def _get_pref_class(mod):
     import inspect
 
@@ -160,7 +159,7 @@ class AdvancedObjPreferences1(AddonPreferences):
                     split = col.row().split(percentage=0.15)
                     split.label('Location:')
                     split.label(info['location'])
-                if info.get('author') and info.get('author') != 'chromoly':
+                if info.get('author'):
                     split = col.row().split(percentage=0.15)
                     split.label('Author:')
                     split.label(info['author'])
@@ -195,12 +194,14 @@ class AdvancedObjPreferences1(AddonPreferences):
                         try:
                             prefs.draw(context)
                         except:
+                            import traceback
                             traceback.print_exc()
-                            box.label(text='Error (see console)', icon='ERROR')
+                            box.label(text="Error (see console)", icon="ERROR")
                         del prefs.layout
 
         row = layout.row()
-        row.label("End of Panel Activations")
+        row.label(text="End of Advanced Object Panels Activations",
+                  icon="FILE_PARENT")
 
 
 for mod in sub_modules:
@@ -218,18 +219,16 @@ for mod in sub_modules:
         return update
 
     prop = BoolProperty(
-        name=info['name'],
-        description=info.get('description', ''),
-        update=gen_update(mod),
-    )
+            name=info['name'],
+            description=info.get('description', ''),
+            update=gen_update(mod),
+            )
     setattr(AdvancedObjPreferences1, 'use_' + mod_name, prop)
     prop = BoolProperty()
     setattr(AdvancedObjPreferences1, 'show_expanded_' + mod_name, prop)
 
 
 class AdvancedObjProperties1(PropertyGroup):
-
-    # main properties
 
     # object_laplace_lighting props
     ORIGIN = FloatVectorProperty(

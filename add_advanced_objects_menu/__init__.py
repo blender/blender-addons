@@ -24,8 +24,8 @@
 
 bl_info = {
     "name": "Add Advanced Objects",
-    "author": "Meta Androcto,",
-    "version": (0, 1, 3),
+    "author": "Meta Androcto",
+    "version": (0, 1, 4),
     "blender": (2, 78, 0),
     "location": "View3D > Add ",
     "description": "Add Object & Camera extras",
@@ -44,6 +44,7 @@ if "bpy" in locals():
     importlib.reload(trilighting)
     importlib.reload(pixelate_3d)
     importlib.reload(object_add_chain)
+    importlib.reload(oscurart_chain_maker)
     importlib.reload(circle_array)
     importlib.reload(copy2)
     importlib.reload(make_struts)
@@ -63,6 +64,7 @@ else:
     from . import trilighting
     from . import pixelate_3d
     from . import object_add_chain
+    from . import oscurart_chain_maker
     from . import circle_array
     from . import copy2
     from . import make_struts
@@ -82,10 +84,8 @@ from bpy.types import (
         )
 from bpy.props import (
         BoolProperty,
-        BoolVectorProperty,
         EnumProperty,
         FloatProperty,
-        FloatVectorProperty,
         IntProperty,
         StringProperty,
         PointerProperty,
@@ -241,7 +241,6 @@ class AdvancedObjPreferences(AddonPreferences):
             box.label(text="Physics Tools:", icon="LAYER_ACTIVE")
             box.label(text="Drop to Ground, Wrecking Ball and Cloth Rope", icon="LAYER_USED")
 
-
         icon_2 = "TRIA_RIGHT" if not self.show_panel_list else "TRIA_DOWN"
         box = layout.box()
         box.prop(self, "show_panel_list", emboss=False, icon=icon_2)
@@ -250,7 +249,8 @@ class AdvancedObjPreferences(AddonPreferences):
             box.label(text="Panels located in 3D View Tools Region > Create",
                       icon="LAYER_ACTIVE")
             box.label(text="CubeSter", icon="LAYER_USED")
-
+            box.label(text="Duplicate on Curve  (Shown if an Active Curve Object is it the 3D View)",
+                      icon="LAYER_USED")
 
 
 # Cubester update functions

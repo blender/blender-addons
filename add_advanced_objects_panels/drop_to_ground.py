@@ -20,7 +20,7 @@ bl_info = {
     "name": "Drop to Ground1",
     "author": "Unnikrishnan(kodemax), Florian Meyer(testscreenings)",
     "blender": (2, 71, 0),
-    "location": "3D View > Toolshelf > Tools Tab",
+    "location": "3D View > Toolshelf > Create > Drop To Ground",
     "description": "Drop selected objects on active object",
     "warning": "",
     "category": "Object"}
@@ -37,6 +37,12 @@ from bpy.types import (
         Panel,
         )
 from bpy.props import BoolProperty
+
+
+def test_ground_object(ground):
+    if ground.type in {'MESH', 'FONT', 'META', 'CURVE', 'SURFACE'}:
+        return True
+    return False
 
 
 def get_align_matrix(location, normal):
@@ -99,7 +105,7 @@ def get_lowest_world_co(context, ob, mat_parent=None):
 
 
 def drop_objectsall(self, context):
-    ground = bpy.context.active_object
+    ground = context.active_object
     name = ground.name
 
     for obs in bpy.context.scene.objects:
@@ -119,7 +125,8 @@ def drop_objectsall(self, context):
             lowest_world_co = get_lowest_world_co(context, ob)
 
         if not lowest_world_co:
-            message = "Type {} is not supported. Failed to drop {}".format(ob.type, ob.name)
+            message = "Object {} is of type {} works only with Use Center option " \
+                      "checked".format(ob.name, ob.type)
             self.reported.append(message)
             continue
         is_hit, hit_location, hit_normal, hit_index = tmp_ground.ray_cast(lowest_world_co, down)
@@ -159,9 +166,12 @@ def drop_objectsall(self, context):
 
 
 def drop_objects(self, context):
-    ground = context.object
+    ground = context.active_object
+
     obs = context.selected_objects
-    obs.remove(ground)
+    if ground in obs:
+        obs.remove(ground)
+
     tmp_ground = transform_ground_to_world(context.scene, ground)
     down = Vector((0, 0, -10000))
 
@@ -172,13 +182,14 @@ def drop_objects(self, context):
             lowest_world_co = get_lowest_world_co(context, ob)
 
         if not lowest_world_co:
-            message = "Type {} is not supported. Failed to drop {}".format(ob.type, ob.name)
+            message = "Object {} is of type {} works only with Use Center option " \
+                      "checked".format(ob.name, ob.type)
             self.reported.append(message)
             continue
 
         is_hit, hit_location, hit_normal, hit_index = tmp_ground.ray_cast(lowest_world_co, down)
         if not is_hit:
-            message = ob.name + " did not hit the Ground"
+            message = ob.name + " did not hit the Active Object"
             self.reported.append(message)
             continue
 
@@ -211,77 +222,83 @@ def drop_objects(self, context):
     ground.select = True
 
 
-class OBJECT_OT_drop_to_ground(Operator):
-    bl_idname = "object.drop_on_active"
-    bl_label = "Drop to Ground"
-    bl_description = "Drop selected objects on the active object"
-    bl_options = {'REGISTER', 'UNDO'}
-
+# define base dummy class for inheritance
+class DropBaseAtributes:
     align = BoolProperty(
             name="Align to ground",
-            description="Aligns the object to the ground",
+            description="Aligns the objects' rotation to the ground",
             default=True)
     use_origin = BoolProperty(
-            name="Use Center",
-            description="Drop to objects origins",
+            name="Use Origins",
+            description="Drop to objects' origins\n"
+                        "Use this option for dropping all types of Objects",
             default=False)
+
+
+class OBJECT_OT_drop_to_ground(Operator, DropBaseAtributes):
+    bl_idname = "object.drop_on_active"
+    bl_label = "Drop to Ground"
+    bl_description = ("Drop selected objects on the Active object\n"
+                      "Active Object has to be of following the types:\n"
+                      "Mesh, Font, Metaball, Curve, Surface")
+    bl_options = {'REGISTER', 'UNDO'}
+
     reported = []
 
     @classmethod
     def poll(cls, context):
-        return len(context.selected_objects) >= 2
+        act_obj = context.active_object
+        return (len(context.selected_objects) >= 2 and
+                act_obj and test_ground_object(act_obj))
 
     def execute(self, context):
         drop_objects(self, context)
 
         if self.reported:
             self.report({"INFO"},
-                        "Operation failed on some objects. See the Console for more Info")
+                        "Some objects could not be dropped (See the Console for more Info)")
             report_items = "  \n".join(self.reported)
             print("\n[Drop to Ground Report]\n{}\n".format(report_items))
 
-        self.reported = []
+        self.reported[:] = []
 
         return {'FINISHED'}
 
 
-class OBJECT_OT_drop_all_ground(Operator):
+class OBJECT_OT_drop_all_ground(Operator, DropBaseAtributes):
     bl_idname = "object.drop_all_active"
     bl_label = "Drop All to Ground (Active Object)"
-    bl_description = "Drop selected objects on active object"
+    bl_description = ("Drop all other objects onto Active Object\n"
+                      "Active Object has to be of following the types:\n"
+                      "Mesh, Font, Metaball, Curve, Surface")
     bl_options = {'REGISTER', 'UNDO'}
 
-    align = BoolProperty(
-            name="Align to ground",
-            description="Aligns the object to the ground",
-            default=True)
-    use_origin = BoolProperty(
-            name="Use Center",
-            description="Drop to objects origins",
-            default=False)
     reported = []
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        act_obj = context.active_object
+        return act_obj and test_ground_object(act_obj)
 
     def execute(self, context):
         drop_objectsall(self, context)
 
         if self.reported:
             self.report({"INFO"},
-                        "Operation failed on some objects. See the Console for more Info")
+                        "Some objects could not be dropped (See the Console for more Info)")
             report_items = "  \n".join(self.reported)
             print("\n[Drop All to Ground Report]\n{}\n".format(report_items))
 
-        self.reported = []
+        self.reported[:] = []
 
         return {'FINISHED'}
 
 
 class Drop_help(Operator):
     bl_idname = "help.drop"
-    bl_label = ""
+    bl_label = "Drop to Ground Help"
+    bl_description = "Clik for some information about Drop to Ground"
+    bl_options = {"REGISTER", "INTERNAL"}
 
     is_all = BoolProperty(
             default=True,
@@ -290,14 +307,28 @@ class Drop_help(Operator):
 
     def draw(self, context):
         layout = self.layout
+
+        layout.label("General Info:")
+        layout.label("The Active Object has to be of a Mesh, Font,")
+        layout.label("Metaball, Curve or Surface type and")
+        layout.label("be at the lowest Z location")
+        layout.label("The option Use Origins must be enabled to drop")
+        layout.label("objects that are not of a Mesh or DupliGroup type")
+        layout.label("The Active Object has to be big enough to catch them")
+        layout.label("To check that, use the Orthographic Top View")
+        layout.separator()
+
         layout.label("To use:")
 
         if self.is_all is False:
-            layout.label("Name the base object 'Ground'")
-            layout.label("Select the object's to drop")
-            layout.label("Then Shift Select 'Ground'")
+            layout.label("Select objects to drop")
+            layout.label("Then Shift Select the object to be the ground")
+            layout.label("Drops Selected Object to the Active one")
         else:
-            layout.label("Select the ground mesh and press Drop all")
+            layout.label("Select the ground Mesh and press Drop all")
+            layout.label("The unselected Objects will be moved straight")
+            layout.label("down the Z axis, so they have to be above")
+            layout.label("the Selected / Active one to fall")
 
     def execute(self, context):
         return {'FINISHED'}
@@ -320,12 +351,12 @@ class Drop_Operator_Panel(Panel):
         row = layout.split(percentage=0.8, align=True)
         row.operator(OBJECT_OT_drop_to_ground.bl_idname,
                      text="Drop Selected")
-        row.operator("help.drop", icon="LAYER_USED").is_all = False
+        row.operator("help.drop", text="", icon="LAYER_USED").is_all = False
 
         row = layout.split(percentage=0.8, align=True)
         row.operator(OBJECT_OT_drop_all_ground.bl_idname,
                      text="Drop All")
-        row.operator("help.drop", icon="LAYER_USED").is_all = True
+        row.operator("help.drop", text="", icon="LAYER_USED").is_all = True
 
 
 # Register

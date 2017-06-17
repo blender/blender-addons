@@ -17,10 +17,10 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Mesh: Constellation",
+    "name": "Constellation",
     "author": "Oscurart",
     "blender": (2, 67, 0),
-    "location": "Add > Mesh > Constellation",
+    "location": "3D View > Toolshelf > Create > Constellation",
     "description": "Create a new Mesh From Selected",
     "warning": "",
     "wiki_url": "",
@@ -36,6 +36,7 @@ from bpy.types import (
         Operator,
         Panel,
         )
+
 
 def VertDis(a, b):
     dst = sqrt(pow(a.co.x - b.co.x, 2) +
@@ -109,6 +110,7 @@ class Oscurart_Constellation(Operator):
 
         return {'FINISHED'}
 
+
 class Constellation_Operator_Panel(Panel):
     bl_label = "Constellation"
     bl_region_type = "TOOLS"
@@ -126,8 +128,9 @@ class Constellation_Operator_Panel(Panel):
         col.label("Constellation:")
         col.operator("mesh.constellation", text="Cross Section")
         col.prop(adv_obj, "constellation_limit")
-# Register
 
+
+# Register
 def register():
     bpy.utils.register_class(Oscurart_Constellation)
     bpy.utils.register_class(Constellation_Operator_Panel)
@@ -136,6 +139,7 @@ def register():
 def unregister():
     bpy.utils.unregister_class(Oscurart_Constellation)
     bpy.utils.unregister_class(Constellation_Operator_Panel)
+
 
 if __name__ == "__main__":
     register()

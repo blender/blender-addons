@@ -17,13 +17,13 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # NOTE: moved the winmgr properties to __init__ and scene
-# search for context.scene.advanced_objects
+# search for context.scene.advanced_objects1
 
 bl_info = {
     "name": "Laplacian Lightning",
     "author": "teldredge",
     "blender": (2, 78, 0),
-    "location": "View3D > Toolshelf > Create Tab",
+    "location": "3D View > Toolshelf > Create > Laplacian Lightning",
     "description": "Lightning mesh generator using laplacian growth algorithm",
     "warning": "",
     "category": "Object"}
@@ -967,9 +967,11 @@ def getGrowthProbability_KEEPFORREFERENCE(uN, aList):
     PdL = []
     E = 0
     E = notZero   # divisor for (fslg - eqn. 12)
+
     for o in oList:
         Uj = (o - Omin) / (Omax - Omin)  # (fslg - eqn. 13)
         E += pow(Uj, uN)
+
     for oi in range(len(oList)):
         o = oList[oi]
         Ui = (o - Omin) / (Omax - Omin)
@@ -1025,6 +1027,7 @@ def updatePointCharges(p, cList, eList=[]):
     # Out: list of new charge at candidate sites
     r1 = 1 / 2        # (FSLG - Eqn. 10)
     nOiL = []
+
     for oi in range(len(cList)):
         o = cList[oi][1]
         c = cList[oi][0]
@@ -1042,10 +1045,13 @@ def initialPointCharges(pList, cList, eList=[]):
     # Out: cList -with potential calculated
     r1 = 1 / 2        # (FSLG - Eqn. 10)
     npList = []
+
     for p in pList:
         npList.append(((p[0], p[1], p[2]), 1.0))
+
     for e in eList:
         npList.append(((e[0], e[1], e[2]), e[3]))
+
     OiL = []
     for i in cList:
         Oi = 0

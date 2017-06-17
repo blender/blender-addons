@@ -25,13 +25,11 @@ bl_info = {
     "author": "Domlysz, Oscurart",
     "version": (1, 3),
     "blender": (2, 7, 0),
-    "location": "View3D > Tools > GIS",
+    "location": "3D View > Toolshelf > Create > Delaunay Voronoi",
     "warning": "",
     "wiki_url": "https://github.com/domlysz/BlenderGIS/wiki",
     "category": "Add Mesh"
     }
-
-
 
 import bpy
 from .DelaunayVoronoi import (
@@ -100,7 +98,6 @@ class ToolsPanelDelaunay(Panel):
 
     def draw(self, context):
         layout = self.layout
-        adv_obj = context.scene.advanced_objects1
 
         box = layout.box()
         col = box.column(align=True)
@@ -294,6 +291,7 @@ class OBJECT_OT_VoronoiButton(Operator):
 
         return {'FINISHED'}
 
+
 # Register
 def register():
     bpy.utils.register_class(OBJECT_OT_VoronoiButton)
@@ -309,4 +307,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

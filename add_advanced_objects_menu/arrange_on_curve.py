@@ -5,7 +5,7 @@ bl_info = {
     "author": "Mano-Wii",
     "version": (6, 3, 0),
     "blender": (2, 7, 7),
-    "location": "View3D > TOOLS",
+    "location": "3D View > Toolshelf > Create > Arrange on Curve",
     "description": "Arrange objects along a curve",
     "warning": "Select curve",
     "wiki_url": "",
@@ -35,7 +35,7 @@ class PanelDupliCurve(Panel):
     bl_region_type = "TOOLS"
     bl_context = "objectmode"
     bl_category = "Create"
-    bl_label = "Duplicate on curve"
+    bl_label = "Arrange on Curve"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
