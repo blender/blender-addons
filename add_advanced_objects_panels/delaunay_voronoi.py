@@ -42,6 +42,15 @@ from bpy.types import (
         )
 from bpy.props import EnumProperty
 
+try:
+    from scipy.spatial import Delaunay
+    import bmesh
+    import numpy as np
+    HAS_SCIPY = True
+except:
+    HAS_SCIPY = False
+    pass
+
 
 # Globals
 # set to True to enable debug_prints
@@ -121,6 +130,32 @@ class OBJECT_OT_TriangulateButton(Operator):
     def execute(self, context):
         # move the check into the poll
         obj = context.active_object
+
+        if HAS_SCIPY:
+            # Use scipy when present (~18 x faster)
+            bpy.ops.object.mode_set(mode='EDIT')
+            bm = bmesh.from_edit_mesh(obj.data)
+            points_3D = [list(v.co) for v in bm.verts]
+            points_2D = np.array([[v[0], v[1]] for v in points_3D])
+            print("Triangulate " + str(len(points_3D)) + " points...")
+            # Triangulate
+            tri = Delaunay(points_2D)
+            faces = tri.simplices.tolist()
+            # Create new mesh structure
+            print("Create mesh...")
+            bpy.ops.object.mode_set(mode='OBJECT')
+            mesh = bpy.data.meshes.new("TIN")
+            mesh.from_pydata(points_3D, [], faces)
+            mesh.update(calc_edges=True)
+            my = bpy.data.objects.new("TIN", mesh)
+            context.scene.objects.link(my)
+            my.matrix_world = obj.matrix_world.copy()
+            obj.select = False
+            my.select = True
+            context.scene.objects.active = my
+            self.report({'INFO'}, "Mesh created (" + str(len(faces)) + " triangles)")
+            print("Total :%s faces  %s verts" % (len(faces), len(points_3D)))
+            return {'FINISHED'}
 
         # Get points coodinates
         r = obj.rotation_euler
