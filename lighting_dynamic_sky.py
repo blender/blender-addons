@@ -18,10 +18,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+
 bl_info = {
-    "name": "Dynamic Sky",
+    "name": "Dynamic Sky1",
     "author": "Pratik Solanki",
-    "version": (1, 0, 2),
+    "version": (1, 0, 3),
     "blender": (2, 78, 0),
     "location": "View3D > Tools",
     "description": "Creates Dynamic Sky for Cycles",
@@ -38,12 +39,13 @@ from bpy.types import (
         )
 
 
+
 # Handle error notifications
 def error_handlers(self, error, reports="ERROR"):
     if self and reports:
         self.report({'WARNING'}, reports + " (See Console for more info)")
 
-    print("\n[Dynamic Sky]\nError: {}\n".format(error))
+    print("n[Dynamic Sky]nError: {}n".format(error))
 
 
 def check_world_name(name_id="Dynamic"):
@@ -59,7 +61,7 @@ def check_world_name(name_id="Dynamic"):
             test_num = []
             from re import findall
             for words in name_list:
-                test_num.append(findall("\d+", words))
+                test_num.append(findall("d+", words))
 
             suffix += max([int(l[-1]) for l in test_num])
             new_name = "{}_{}".format(name_id, suffix)
@@ -302,12 +304,55 @@ class dsky(Operator):
             ntl(map.inputs[0], tcor.outputs[0])
             ntl(sunopa_1.inputs[1], smix5.outputs[0])
             ntl(sunopa_1.inputs[2], mix2_1.outputs[0])
-
+            nt.nodes['Background'].location = (6708.3, 360)
+            nt.nodes['World Output'].location = (7167.3, 360)
+            nt.nodes['Math'].location = (2196.6, 685)
+            nt.nodes['Math.001'].location = (3294, 685)
+            nt.nodes['Mix'].location = (3819.3, 550)
+            nt.nodes['Mix.001'].location = (3819.3, 185)
+            nt.nodes['Math.002'].location = (2745.24, 415)
+            nt.nodes['Math.003'].location = (3294, 415)
+            nt.nodes['ColorRamp.002'].location = (1671.33, 685)
+            nt.nodes['ColorRamp.001'].location = (2196.6, 415)
+            nt.nodes['Mix.002'].location = (4344.3, 630)
+            nt.nodes['Mix.003'].location = (4344.3, 90)
+            nt.nodes['Mix.004'].location = (4782, 610)
+            nt.nodes['Mix.005'].location = (5131.8, 270)
+            nt.nodes['Gamma'].location = (5131.8, 610)
+            nt.nodes['Mix.007'].location = (5524.5, 340)
+            nt.nodes['Mix.006'].location = (5940.6, 610)
+            nt.nodes['Mix.008'].location = (6313.8, 360)
+            nt.nodes['Light Path'].location = (5940.6, 130)
+            nt.nodes['Gamma.001'].location = (5524.5, 610)
+            nt.nodes['Mapping.001'].location = (2196.6, 1510)
+            nt.nodes['Noise Texture.001'].location = (2745.24, 1510)
+            nt.nodes['Noise Texture'].location = (2745.24, 1780)
+            nt.nodes['ColorRamp.004'].location = (3294, 1510)
+            nt.nodes['ColorRamp.003'].location = (3294, 1780)
+            nt.nodes['Mix.015'].location = (4344.3, 360)
+            nt.nodes['Mix.009'].location = (3819.3, 1550)
+            nt.nodes['Mix.010'].location = (4344.3, 1630)
+            nt.nodes['Mix.011'].location = (4782, 1360)
+            nt.nodes['ColorRamp.006'].location = (4344.3, 1360)
+            nt.nodes['Mix.014'].location = (5131.8, 880)
+            nt.nodes['ColorRamp.007'].location = (3819.3, 1090)
+            nt.nodes['Mix.012'].location = (4344.3, 1090)
+            nt.nodes['Mix.013'].location = (4782, 880)
+            nt.nodes['ColorRamp.005'].location = (3819.3, 820)
+            nt.nodes['Gamma.002'].location = (5524.5, 880)
+            nt.nodes['Normal.001'].location = (3294, 1070)
+            nt.nodes['Combine RGB'].location = (1671.33, 1510)
+            nt.nodes['Texture Coordinate'].location = (243.729, 1005)
+            nt.nodes['Separate RGB'].location = (786.54, 1370)
+            nt.nodes['Mapping'].location = (786.54, 730)
+            nt.nodes['Math.004'].location = (1220.16, 1235)
+            nt.nodes['Normal'].location = (1220.16, 685)
+            nt.nodes['ColorRamp'].location = (1671.33, 415)
+            
         except Exception as e:
             error_handlers(self, e, "Make a Procedural sky has failed")
 
             return {"CANCELLED"}
-
         return {'FINISHED'}
 
 
@@ -333,6 +378,7 @@ def draw_world_settings(col, context):
         m = pick_world.node_tree.nodes[28]
         m = pick_world.node_tree.nodes['Mix.012'].inputs[1]
         n = pick_world.node_tree.nodes['Mix.012'].inputs[2]
+        c = pick_world.node_tree.nodes['Mix.009'].inputs[1]
         o = pick_world.node_tree.nodes['Mix.014'].inputs[0]
         d = pick_world.node_tree.nodes['Mix.010'].inputs[0]
         so = pick_world.node_tree.nodes['Gamma.001'].inputs[1]
@@ -357,8 +403,9 @@ def draw_world_settings(col, context):
     col.prop(so2, "default_value", text="Shadow color saturation")
 
     col.label("Sky Control")
-    col.prop(m, "default_value", text="Cloud color")
+    col.prop(m, "default_value", text="Sky color")
     col.prop(n, "default_value", text="Horizon Color")
+    col.prop(c, "default_value", text="Cloud color")
     col.prop(o, "default_value", text="Cloud opacity")
     col.prop(d, "default_value", text="Cloud density")
 
