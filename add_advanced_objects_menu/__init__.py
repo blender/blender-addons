@@ -25,7 +25,7 @@
 bl_info = {
     "name": "Add Advanced Objects",
     "author": "Meta Androcto",
-    "version": (0, 1, 4),
+    "version": (0, 1, 5),
     "blender": (2, 78, 0),
     "location": "View3D > Add ",
     "description": "Add Object & Camera extras",
@@ -179,8 +179,7 @@ class INFO_MT_Physics_tools_add(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("object.drop_on_active",
-                        text="Drop To Ground", icon="SORTSIZE")
+
         layout.operator("ball.rope",
                         text="Wrecking Ball", icon='PHYSICS')
         layout.operator("clot.rope",
@@ -249,7 +248,7 @@ class AdvancedObjPreferences(AddonPreferences):
             box.label(text="Panels located in 3D View Tools Region > Create",
                       icon="LAYER_ACTIVE")
             box.label(text="CubeSter", icon="LAYER_USED")
-            box.label(text="Duplicate on Curve  (Shown if an Active Curve Object is it the 3D View)",
+            box.label(text="Arrange on Curve  (Shown if an Active Curve Object is it the 3D View)",
                       icon="LAYER_USED")
 
 
@@ -498,26 +497,6 @@ class AdvancedObjProperties(PropertyGroup):
             default=0.25
             )
 
-    # pixelate_3d properties
-    pixelate_3d_size = FloatProperty(
-            name="Size",
-            min=.05, max=5,
-            default=.25,
-            description="Size of the cube / grid"
-            )
-    pixelate_3d_gap = IntProperty(
-            name="Gap",
-            min=0, max=90,
-            default=10,
-            subtype='PERCENTAGE',
-            description="Separation - percent of size"
-            )
-    pixelate_3d_smooth = FloatProperty(
-            name="Smooth",
-            min=0, max=1,
-            default=.0,
-            description="Smooth factor when subdividing mesh"
-            )
     # arrange_on_curve
     arrange_c_use_selected = BoolProperty(
             name="Use Selected",
