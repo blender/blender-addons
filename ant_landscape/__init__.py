@@ -22,14 +22,14 @@
 bl_info = {
     "name": "A.N.T.Landscape",
     "author": "Jim Hazevoet",
-    "version": (0, 1, 7),
-    "blender": (2, 78, 0),
+    "version": (0, 1, 6),
+    "blender": (2, 77, 0),
     "location": "View3D > Tool Shelf",
     "description": "Another Noise Tool: Landscape and Displace",
     "warning": "",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Add_Mesh/ANT_Landscape",
-    "category": "Add Mesh",
+    "category": "Mesh",
 }
 
 if "bpy" in locals():
@@ -64,13 +64,12 @@ from .ant_functions import (
 
 
 # ------------------------------------------------------------
-# Menu and panels
+# Menu's and panels
 
 def menu_func_eroder(self, context):
-    #self.layout.operator(Eroder.bl_idname, text="Eroder", icon='RNDCURVE')
     self.layout.operator('mesh.eroder', text="Eroder", icon='RNDCURVE')
 
-# Define "Landscape" menu
+
 def menu_func_landscape(self, context):
     self.layout.operator('mesh.landscape_add', text="Landscape", icon="RNDCURVE")
 
@@ -795,14 +794,12 @@ def register():
     bpy.types.INFO_MT_mesh_add.append(menu_func_landscape)
     bpy.types.Object.ant_landscape = PointerProperty(type=AntLandscapePropertiesGroup, name="ANT_Landscape", description="Landscape properties")
     bpy.types.VIEW3D_MT_paint_weight.append(menu_func_eroder)
-    bpy.types.VIEW3D_MT_object.append(menu_func_eroder)
 
 
 def unregister():
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_mesh_add.remove(menu_func_landscape)
     bpy.types.VIEW3D_MT_paint_weight.remove(menu_func_eroder)
-    bpy.types.VIEW3D_MT_object.remove(menu_func_eroder)
 
 
 if __name__ == "__main__":

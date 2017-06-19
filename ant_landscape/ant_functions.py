@@ -1122,12 +1122,23 @@ class Eroder(bpy.types.Operator):
             default=False
             )
 
+    weight_mode = BoolProperty(
+            name="Weight Paint Mode",
+            default=False,
+            description="Enter weightpaint mode"
+            )
+
     stats = Stats()
     counts= {}
 
     # add poll function to restrict action to mesh object in object mode
     
     def execute(self, context):
+
+        # Enter WeightPaintMode
+        if self.weight_mode:
+            bpy.ops.paint.weight_paint_toggle()
+
         ob = context.active_object
         #obwater = bpy.data.objects["water"]
         me = ob.data
@@ -1321,6 +1332,8 @@ class Eroder(bpy.types.Operator):
         #box.prop(self, 'Pw')
 
         layout.prop(self,'smooth')
+
+        layout.prop(self,'weight_mode')
 
         #if numexpr_available:
         #  layout.prop(self, 'numexpr')
