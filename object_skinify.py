@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Skinify Rig",
     "author": "Albert Makac (karab44)",
-    "version": (0, 8, 7),
+    "version": (0, 8, 8),
     "blender": (2, 7, 8),
     "location": "Properties > Bone > Skinify Rig (visible on pose mode only)",
     "description": "Creates a mesh object from selected bones",
@@ -325,10 +325,13 @@ def generate_edges(mesh, shape_object, bones, scale, connect_mesh=False, connect
 
 def generate_mesh(shape_object, size, thickness=0.8, finger_thickness=0.25, sub_level=1,
                   connect_mesh=False, connect_parents=False, generate_all=False, apply_mod=True,
-                  alternate_scale_idx_list=[], rig_type=0):
+                  alternate_scale_idx_list=[], rig_type=0, bones =[]):
     """
     This function adds modifiers for generated edges
     """
+    total_bones_num = len(bpy.context.object.pose.bones.keys())
+    selected_bones_num = len(bones)
+    
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='DESELECT')
 
@@ -384,7 +387,7 @@ def generate_mesh(shape_object, size, thickness=0.8, finger_thickness=0.25, sub_
         bpy.ops.mesh.remove_doubles()
 
     # fix rigify and pitchipoy hands topology
-    if connect_mesh and connect_parents and generate_all is False and (rig_type == Rig_type.LEGACY or rig_type == Rig_type.PITCHIPOY or rig_type == Rig_type.HUMAN):
+    if connect_mesh and connect_parents and generate_all is False and (rig_type == Rig_type.LEGACY or rig_type == Rig_type.PITCHIPOY or rig_type == Rig_type.HUMAN) and selected_bones_num == total_bones_num:
         # thickness will set palm vertex for both hands look pretty
         corrective_thickness = 2.5
         # left hand verts
@@ -439,16 +442,19 @@ def generate_mesh(shape_object, size, thickness=0.8, finger_thickness=0.25, sub_
         bpy.ops.mesh.select_all(action='DESELECT')
 
     # todo optionally take root from rig's hip tail or head depending on scenario
+    
+  
     root_idx = []
-    if rig_type == Rig_type.LEGACY:
+    if rig_type == Rig_type.LEGACY and selected_bones_num == total_bones_num: 
         root_idx = [59]
-    elif rig_type == Rig_type.PITCHIPOY or rig_type == Rig_type.HUMAN:
+    elif (rig_type == Rig_type.PITCHIPOY or rig_type == Rig_type.HUMAN) and selected_bones_num == total_bones_num:
         root_idx = [56]
-    else:
+    elif selected_bones_num == total_bones_num:
         root_idx = [0]
-
-    select_vertices(shape_object, root_idx)
-    bpy.ops.object.skin_root_mark(override)
+        
+    if len(root_idx) > 0:
+        select_vertices(shape_object, root_idx)
+        bpy.ops.object.skin_root_mark(override)
     # skin in edit mode
     # add Subsurf modifier
     shape_object.modifiers.new("Subsurf", 'SUBSURF')
@@ -472,8 +478,9 @@ def main(context):
 
     # ### Check if selection is OK ###
     if len(context.selected_pose_bones) == 0 or \
+            len(context.selected_objects) == 0 or \
             context.selected_objects[0].type != 'ARMATURE':
-        return {'CANCELLED'}, "No bone selected"
+        return {'CANCELLED'}, "No bone selected or the Armature is hidden"
 
     scn = bpy.context.scene
     sknfy = scn.skinify
@@ -527,7 +534,7 @@ def main(context):
 
     generate_mesh(ob, size, sknfy.thickness, sknfy.finger_thickness, sknfy.sub_level,
                   sknfy.connect_mesh, sknfy.connect_parents, sknfy.generate_all,
-                  sknfy.apply_mod, alternate_scale_idx_list, rig_type)
+                  sknfy.apply_mod, alternate_scale_idx_list, rig_type, bone_selection)
 
     # parent mesh with armature only if modifiers are applied
     if sknfy.apply_mod and sknfy.parent_armature:
