@@ -127,8 +127,8 @@ class AntMainSettingsPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        ob = bpy.context.active_object.ant_landscape.keys()
-        return ob
+        ob = bpy.context.active_object
+        return ob.ant_landscape.keys() if ob else False
 
     def draw(self, context):
         layout = self.layout
@@ -174,8 +174,8 @@ class AntNoiseSettingsPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        ob = bpy.context.active_object.ant_landscape.keys()
-        return ob
+        ob = bpy.context.active_object
+        return ob.ant_landscape.keys() if ob else False
 
     def draw(self, context):
         layout = self.layout
@@ -342,8 +342,8 @@ class AntDisplaceSettingsPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        ob = bpy.context.active_object.ant_landscape.keys()
-        return ob
+        ob = bpy.context.active_object
+        return ob.ant_landscape.keys() if ob else False
 
     def draw(self, context):
         layout = self.layout

@@ -713,7 +713,8 @@ def draw_ant_noise(self, context):
         col.prop(self, "noise_offset_z")
         col.prop(self, "noise_size_x")
         col.prop(self, "noise_size_y")
-        col.prop(self, "noise_size_z")
+        if self.sphere_mesh:
+            col.prop(self, "noise_size_z")
         col = box.column(align=True)
         col.prop(self, "noise_size")
 
@@ -966,28 +967,28 @@ class Eroder(bpy.types.Operator):
             name="Iterations",
             description="Number of overall iterations",
             default=1,
-            min=0,
+            min=1,
             soft_max=100
             )
     IterRiver = IntProperty(
             name="River Iterations",
             description="Number of river iterations",
             default=30,
-            min=0,
+            min=1,
             soft_max=1000
             )
     IterAva = IntProperty(
             name="Avalanche Iterations",
             description="Number of avalanche iterations",
             default=5,
-            min=0,
+            min=1,
             soft_max=10
             )
     IterDiffuse = IntProperty(
             name="Diffuse Iterations",
             description="Number of diffuse iterations",
             default=5,
-            min=0,
+            min=1,
             soft_max=10
             )
     

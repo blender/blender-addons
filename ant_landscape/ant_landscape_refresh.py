@@ -125,7 +125,7 @@ class AntLandscapeRegenerate(bpy.types.Operator):
             for i in range(len(obi)):
                 ant_props.append(obi[i][1])
 
-            new_name = ob.ant_terrain_name
+            new_name = obj.name #ob.ant_terrain_name
 
             # Main function, create landscape mesh object
             if ob['sphere_mesh']:
