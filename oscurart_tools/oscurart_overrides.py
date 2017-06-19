@@ -181,6 +181,7 @@ class OscOverridesGUI(Panel):
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "render"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
 
