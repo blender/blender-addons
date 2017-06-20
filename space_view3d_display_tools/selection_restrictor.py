@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Selection Restrictor",
     "author": "Ales Sidenko",
-    "version": (0, 1),
+    "version": (0, 1, 1),
     "location": "3d viewer header",
     "warning": "",
     "description": "This addon helps to restrict the selection of objects by type. "
@@ -56,9 +56,9 @@ show = 'TRIA_RIGHT'
 show_restrictor = False
 hide = True
 
-# checking properties in scene to update icons when opening file of switching between scenes
-# (executing in end of script)
 
+# checking properties in scene to update icons when opening file
+# or switching between scenes (executing in end of script)
 
 @persistent
 def check_restrictors(dummy):
@@ -181,8 +181,8 @@ def check_restrictors(dummy):
         speak = 'SPEAKER'
     return{'FINISHED'}
 
-# hide or unhide buttons
 
+# Show / Hide buttons
 
 class RestrictorShow(Operator):
     bl_idname = "restrictor.show"
@@ -205,8 +205,8 @@ class RestrictorShow(Operator):
 
         return {'FINISHED'}
 
-# hide or unhide object to restrictor
 
+# Ignore the restrictor for selected objects
 
 class IgnoreRestrictors(Operator):
     bl_idname = "ignore.restrictors"
@@ -227,9 +227,10 @@ class IgnoreRestrictors(Operator):
 
         return{'FINISHED'}
 
-# enable or disable restrictors
-# restrictor for mesh
 
+# Enable or Disable restrictors
+
+# Restrictor Mesh
 
 class RestrictorMesh(Operator):
     bl_idname = "restrictor.mesh"
@@ -263,8 +264,8 @@ class RestrictorMesh(Operator):
 
         return{'FINISHED'}
 
-# restrictor for curves
 
+# Restrictor for Curves
 
 class RestrictorCurve(Operator):
     bl_idname = "restrictor.curve"
@@ -299,7 +300,8 @@ class RestrictorCurve(Operator):
         return{'FINISHED'}
 
 
-# restrictor for armatures
+# Restrictor for Armatures
+
 class RestrictorArm(Operator):
     bl_idname = "restrictor.arm"
     bl_label = "restrictor armatures"
@@ -332,12 +334,12 @@ class RestrictorArm(Operator):
 
         return{'FINISHED'}
 
-# restrictor for epties
 
+# Restrictor for Empties
 
 class RestrictorEmpty(Operator):
     bl_idname = "restrictor.empty"
-    bl_label = "restrictor empties"
+    bl_label = "Restrictor Empties"
     bl_option = {'REGISTER', 'UNDO'}
     bl_description = "Empties selection restrictor"
 
@@ -368,7 +370,8 @@ class RestrictorEmpty(Operator):
         return{'FINISHED'}
 
 
-# restrictor for cameras
+# Restrictor for Cameras
+
 class RestrictorCam(Operator):
     bl_idname = "restrictor.cam"
     bl_label = "restrictor cameras"
@@ -402,10 +405,11 @@ class RestrictorCam(Operator):
         return{'FINISHED'}
 
 
-# restrictor for lamps
+# Restrictor for Lamps
+
 class RestrictorLamp(Operator):
     bl_idname = "restrictor.lamp"
-    bl_label = "restrictor lamps"
+    bl_label = "Restrictor Lamps"
     bl_option = {'REGISTER', 'UNDO'}
     bl_description = "Lamps selection restrictor"
 
@@ -436,10 +440,11 @@ class RestrictorLamp(Operator):
         return{'FINISHED'}
 
 
-# restrictor for lattice
+# Restrictor for Lattice
+
 class RestrictorLat(Operator):
     bl_idname = "restrictor.lat"
-    bl_label = "restrictor lattices"
+    bl_label = "Restrictor Lattices"
     bl_option = {'REGISTER', 'UNDO'}
     bl_description = "Lattices selection restrictor"
 
@@ -468,12 +473,12 @@ class RestrictorLat(Operator):
 
         return{'FINISHED'}
 
-# restrictor for text
 
+# Restrictor Font
 
 class RestrictorFont(Operator):
     bl_idname = "restrictor.font"
-    bl_label = "restrictor font"
+    bl_label = "Restrictor Font"
     bl_option = {'REGISTER', 'UNDO'}
     bl_description = "Text selection restrictor"
 
@@ -502,8 +507,8 @@ class RestrictorFont(Operator):
 
         return{'FINISHED'}
 
-# restrictor for metaballs
 
+# Restrictor for Metaballs
 
 class RestrictorMeta(Operator):
     bl_idname = "restrictor.meta"
@@ -537,10 +542,11 @@ class RestrictorMeta(Operator):
         return{'FINISHED'}
 
 
-# restrictor for surfaces
+# Restrictor for Surfaces
+
 class RestrictorSurf(Operator):
     bl_idname = "restrictor.surf"
-    bl_label = "restrictor surfaces"
+    bl_label = "Restrictor Surfaces"
     bl_option = {'REGISTER', 'UNDO'}
     bl_description = "Surfaces selection restrictor"
 
@@ -570,7 +576,8 @@ class RestrictorSurf(Operator):
         return{'FINISHED'}
 
 
-# restrictor for speaks
+# Restrictor for Speakers
+
 class RestrictorSound(Operator):
     bl_idname = "restrictor.speak"
     bl_label = "Restrictor Speakers"
@@ -605,6 +612,7 @@ class RestrictorSound(Operator):
 
 
 # refresh restrictors for newly created objects
+
 class RefreshRestrictors(Operator):
     bl_idname = "refresh.restrictors"
     bl_label = "Refresh Selection Restrictors"
@@ -612,7 +620,6 @@ class RefreshRestrictors(Operator):
     bl_description = "Refresh restrictors"
 
     def execute(self, context):
-
         global mesh
         global curve
         global arm
@@ -625,167 +632,45 @@ class RefreshRestrictors(Operator):
         global surf
         global speak
 
-        # refresh meshes
-        if bpy.context.scene.get('meshrestrictor') is None:
-            mesh = 'OBJECT_DATA'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'MESH':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = False
-        else:
-            mesh = 'MESH_CUBE'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'MESH':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = True
-                        ob.select = False
+        datas = {
+            'meshrestrictor': ("OBJECT_DATA", "MESH_CUBE", "MESH"),
+            'curverestrictor': ("OUTLINER_OB_CURVE", "CURVE_DATA", "CURVE"),
+            'armrestrictor': ("OUTLINER_OB_ARMATURE", "ARMATURE_DATA", "ARMATURE"),
+            'emptyrestrictor': ("OUTLINER_OB_EMPTY", "EMPTY_DATA", "EMPTY"),
+            'camrestrictor': ("OUTLINER_OB_CAMERA", "CAMERA_DATA", "CAMERA"),
+            'lamprestrictor': ("OUTLINER_OB_LAMP", "LAMP_DATA", "LAMP"),
+            'latrestrictor': ("OUTLINER_OB_LATTICE", "LATTICE", "LATTICE"),
+            'fontrestrictor': ("OUTLINER_OB_FONT", "FONT", "FONT"),
+            'metarestrictor': ("OUTLINER_OB_META", "META_DATA", "META"),
+            'surfrestrictor': ("SURFACE", "SURFACE_DATA", "SURFACE"),
+            'speakrestrictor': ("OUTLINER_OB_SPEAKER", "SPEAKER", "SPEAKER"),
+            }
 
-        # refresh curves
-        if bpy.context.scene.get('curverestrictor') is None:
-            curve = 'OUTLINER_OB_CURVE'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'CURVE':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = False
-        else:
-            curve = 'CURVE_DATA'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'CURVE':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = True
-                        ob.select = False
-        # refresh armatures
-        if bpy.context.scene.get('armrestrictor') is None:
-            arm = 'OUTLINER_OB_ARMATURE'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'ARMATURE':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = False
-        else:
-            arm = 'ARMATURE_DATA'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'ARMATURE':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = True
-                        ob.select = False
-        # refresh empties
-        if bpy.context.scene.get('emptyrestrictor') is None:
-            empty = 'OUTLINER_OB_EMPTY'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'EMPTY':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = False
-        else:
-            empty = 'EMPTY_DATA'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'EMPTY':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = True
-                        ob.select = False
+        for prop, values in datas.items():
+            icon_i, icon_a, types = values
+            get_props = bpy.context.scene.get(prop)
 
-        # refresh cameras
-        if bpy.context.scene.get('camrestrictor') is None:
-            cam = 'OUTLINER_OB_CAMERA'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'CAMERA':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = False
-        else:
-            cam = 'CAMERA_DATA'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'CAMERA':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = True
-                        ob.select = False
+            gl_icon = icon_a if get_props else icon_i
 
-        # refresh lamps
-        if bpy.context.scene.get('lamprestrictor') is None:
-            lamp = 'OUTLINER_OB_LAMP'
             for ob in bpy.context.scene.objects:
-                if ob.type == 'LAMP':
+                if ob.type == types:
                     if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = False
+                        ob.hide_select = False if get_props is None else True
+                        if get_props is None:
+                            ob.select = False
 
-            lamp = 'LAMP_DATA'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'LAMP':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = True
-                        ob.select = False
+            mesh = gl_icon if types == "MESH" else mesh
+            curve = gl_icon if types == "CURVE" else curve
+            arm = gl_icon if types == "ARMATURE" else arm
+            empty = gl_icon if types == "EMPTY" else empty
+            cam = gl_icon if types == "CAMERA" else cam
+            lamp = gl_icon if types == "LAMP" else lamp
+            lat = gl_icon if types == "LATTICE" else lat
+            font = gl_icon if types == "FONT" else font
+            meta = gl_icon if types == "META" else meta
+            surf = gl_icon if types == "SURFACE" else surf
+            speak = gl_icon if types == "SPEAKER" else speak
 
-        # refresh lattices
-        if bpy.context.scene.get('latrestrictor') is None:
-            lat = 'OUTLINER_OB_LATTICE'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'LATTICE':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = False
-
-            lat = 'LATTICE_DATA'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'LATTICE':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = True
-                        ob.select = False
-
-        # refresh text
-        if bpy.context.scene.get('fontrestrictor') is None:
-            font = 'OUTLINER_OB_FONT'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'FONT':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = False
-        else:
-            font = 'FONT_DATA'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'FONT':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = True
-                        ob.select = False
-    # refresh metaballs
-        if bpy.context.scene.get('metarestrictor') is None:
-            meta = 'OUTLINER_OB_META'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'META':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = False
-        else:
-            meta = 'META_DATA'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'META':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = True
-                        ob.select = False
-
-    # refresh surfaces
-        if bpy.context.scene.get('surfrestrictor') is None:
-            surf = 'OUTLINER_OB_SURFACE'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'SURFACE':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = False
-        else:
-            surf = 'SURFACE_DATA'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'SURFACE':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = True
-                        ob.select = False
-
-    # refresh speakers
-        if bpy.context.scene.get('speakrestrictor') is None:
-            speak = 'OUTLINER_OB_SPEAKER'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'SPEAKER':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = False
-        else:
-            speak = 'SPEAKER'
-            for ob in bpy.context.scene.objects:
-                if ob.type == 'SPEAKER':
-                    if ob.get('ignore_restrictors') is None:
-                        ob.hide_select = True
-                        ob.select = False
         return{'FINISHED'}
 
 
@@ -822,6 +707,7 @@ class RestrictorSelection(Menu):
         layout.operator("restrictor.meta", icon=meta, text="MetaBall")
         layout.operator("restrictor.surf", icon=surf, text="Surface")
         layout.operator("restrictor.speak", icon=speak, text="Speaker")
+        layout.separator()
         layout.operator("ignore.restrictors", icon='GHOST_ENABLED', text="Enable").ignore = True
         layout.operator("ignore.restrictors", icon='GHOST_DISABLED', text="Disable").ignore = False
         layout.operator("refresh.restrictors", icon='FILE_REFRESH', text="Refresh")

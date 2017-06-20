@@ -387,23 +387,27 @@ class DisplayToolsPanel(Panel):
         col = box1.column(align=True)
         row = col.row(align=True)
         row.prop(display_tools, "UiTabDrop", index=4, text="Selection", icon=icon_active_4)
-
-        if SELECT2DROP:
+        if not SELECT2DROP:
+            row.operator("view3d.select_border", icon="MESH_PLANE", text="",)
+            row.operator("view3d.select_circle",icon="MESH_CIRCLE", text="")
+        else:
             col = layout.column(align=True)
             if obj and obj.mode == 'OBJECT':
+                col = layout.column(align=True)
+                col.label(text="Render Visibility:")
+                col.operator("op.render_show_all_selected", icon="RESTRICT_VIEW_OFF")
+                col.operator("op.render_hide_all_selected", icon="RESTRICT_VIEW_ON")
+                col.label(text="Show/Hide:")
                 col.operator("opr.show_hide_object", text="Show/Hide", icon="GHOST_ENABLED")
-            col.operator("opr.show_all_objects", text="Show All", icon="RESTRICT_VIEW_OFF")
-            col.operator("opr.hide_all_objects", text="Hide All", icon="RESTRICT_VIEW_ON")
-
-            col = layout.column(align=True)
-            col.operator("op.render_show_all_selected", icon="RESTRICT_VIEW_OFF")
-            col.operator("op.render_hide_all_selected", icon="RESTRICT_VIEW_ON")
+                col.operator("opr.show_all_objects", text="Show All", icon="RESTRICT_VIEW_OFF")
+                col.operator("opr.hide_all_objects", text="Hide All", icon="RESTRICT_VIEW_ON")
 
             if obj:
                 if obj.mode == 'OBJECT':
-                    layout.operator_menu_enum("object.select_by_type", "type", text="Select All by Type...")
-                    layout.operator_menu_enum("object.hide_by_type", "type", text="Hide By Type")
                     layout.operator_menu_enum("object.show_by_type", "type", text="Show By Type")
+                    layout.operator_menu_enum("object.hide_by_type", "type", text="Hide By Type")
+                    layout.label(text="Selection:")
+                    layout.operator_menu_enum("object.select_by_type", "type", text="Select All by Type...")
                     col = layout.column(align=True)
                     col.operator("opr.select_all", icon="MOD_MESHDEFORM")
                     col.operator("opr.inverse_selection", icon="MOD_REMESH")
@@ -421,9 +425,7 @@ class DisplayToolsPanel(Panel):
                 col.operator("opr.select_all", icon="MOD_MESHDEFORM")
                 col.operator("opr.inverse_selection", icon="MOD_REMESH")
 
-            col = layout.column(align=True)
-            col.operator("view3d.select_border", icon="MESH_PLANE")
-            col.operator("view3d.select_circle", icon="MESH_CIRCLE")
+
 
         # fast nav options
         col.separator()
