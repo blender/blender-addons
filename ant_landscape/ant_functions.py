@@ -694,7 +694,7 @@ def draw_ant_main(self, context, generate=True):
             col.prop(self, "mesh_size_y")
 
 
-def draw_ant_noise(self, context):
+def draw_ant_noise(self, context, generate=True):
     layout = self.layout
     box = layout.box()
     box.prop(self, "show_noise_settings", toggle=True)
@@ -713,8 +713,9 @@ def draw_ant_noise(self, context):
         col.prop(self, "noise_offset_z")
         col.prop(self, "noise_size_x")
         col.prop(self, "noise_size_y")
-        if self.sphere_mesh:
+        if self.sphere_mesh == True or generate == False:
             col.prop(self, "noise_size_z")
+
         col = box.column(align=True)
         col.prop(self, "noise_size")
 
@@ -960,7 +961,7 @@ def availableVertexGroupsOrNone(self, context):
 class Eroder(bpy.types.Operator):
     bl_idname = "mesh.eroder"
     bl_label = "ErosionR"
-    bl_description = "Apply various kinds of erosion to a landscape mesh"
+    bl_description = "Apply various kinds of erosion to a landscape mesh. Also available in Weight Paint mode > Weights menu"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     Iterations = IntProperty(
@@ -1122,22 +1123,12 @@ class Eroder(bpy.types.Operator):
             default=False
             )
 
-    weight_mode = BoolProperty(
-            name="Weight Paint Mode",
-            default=False,
-            description="Enter weightpaint mode"
-            )
-
     stats = Stats()
     counts= {}
 
     # add poll function to restrict action to mesh object in object mode
-    
-    def execute(self, context):
 
-        # Enter WeightPaintMode
-        if self.weight_mode:
-            bpy.ops.paint.weight_paint_toggle()
+    def execute(self, context):
 
         ob = context.active_object
         #obwater = bpy.data.objects["water"]
@@ -1190,7 +1181,7 @@ class Eroder(bpy.types.Operator):
         except:
             vgcapacity=ob.vertex_groups.new("capacity")
         g = Grid.fromBlenderMesh(me, vg, self.Ef)
-            
+
         me = bpy.data.meshes.new(me.name)
         #mewater = bpy.data.meshes.new(mewater.name)
 
@@ -1201,7 +1192,7 @@ class Eroder(bpy.types.Operator):
             if self.IterRiver > 0:
                 for i in range(self.IterRiver):
                     g.rivergeneration(self.Kr, self.Kv, self.userainmap, self.Kc, self.Ks, self.Kdep, self.Ka, self.Kev/100, 0,0,0,0, self.numexpr)
-            
+
             if self.Kd > 0.0:
                 for k in range(self.IterDiffuse):
                     g.diffuse(self.Kd / 5, self.IterDiffuse, self.numexpr)
@@ -1332,8 +1323,6 @@ class Eroder(bpy.types.Operator):
         #box.prop(self, 'Pw')
 
         layout.prop(self,'smooth')
-
-        layout.prop(self,'weight_mode')
 
         #if numexpr_available:
         #  layout.prop(self, 'numexpr')

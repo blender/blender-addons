@@ -182,8 +182,8 @@ class AntMeshDisplace(bpy.types.Operator):
                 ('marble_noise', "Marble", "A.N.T.: Marble Noise", 7),
                 ('shattered_hterrain', "Shattered hTerrain", "A.N.T.: Shattered hTerrain", 8),
                 ('strata_hterrain', "Strata hTerrain", "A.N.T: Strata hTerrain", 9),
-                ('ant_turbulence', "Another Turbulence", "A.N.T: Turbulence variation", 10),
-                ('vl_noise_turbulence', "vlNoise turbulence", "A.N.T: vlNoise turbulence", 11),
+                ('ant_turbulence', "Another Noise", "A.N.T: Turbulence variation", 10),
+                ('vl_noise_turbulence', "vlNoise turbulence", "A.N.T: Real vlNoise turbulence", 11),
                 ('vl_hTerrain', "vlNoise hTerrain", "A.N.T: vlNoise hTerrain", 12),
                 ('distorted_heteroTerrain', "Distorted hTerrain", "A.N.T distorted hTerrain", 13),
                 ('double_multiFractal', "Double MultiFractal", "A.N.T: double multiFractal", 14),
@@ -467,7 +467,7 @@ class AntMeshDisplace(bpy.types.Operator):
 
     def draw(self, context):
         draw_ant_refresh(self, context)
-        draw_ant_noise(self, context)
+        draw_ant_noise(self, context, generate=False)
         draw_ant_displace(self, context, generate=False)
 
 

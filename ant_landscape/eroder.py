@@ -115,18 +115,18 @@ class Grid:
     def raw(self,format="%.3f"):
         fstr=format+" "+ format+" "+ format+" "
         a=self.center / self.zscale
-        minx=0.0 if self.minx is None else self.minx
-        miny=0.0 if self.miny is None else self.miny
-        maxx=1.0 if self.maxx is None else self.maxx
-        maxy=1.0 if self.maxy is None else self.maxy
-        dx=(maxx-minx)/(a.shape[0]-1)
-        dy=(maxy-miny)/(a.shape[1]-1)
-        for row in range(a.shape[0]-1):
-            row0=miny+row*dy
-            row1=row0+dy
-            for col in range(a.shape[1]-1):
-                col0=minx+col*dx
-                col1=col0+dx
+        minx = 0.0 if self.minx is None else self.minx
+        miny = 0.0 if self.miny is None else self.miny
+        maxx = 1.0 if self.maxx is None else self.maxx
+        maxy = 1.0 if self.maxy is None else self.maxy
+        dx = (maxx - minx) / (a.shape[0] - 1)
+        dy = (maxy - miny) / (a.shape[1] - 1)
+        for row in range(a.shape[0] - 1):
+            row0 = miny + row * dy
+            row1 = row0 + dy
+            for col in range(a.shape[1] - 1):
+                col0 = minx + col * dx
+                col1 = col0 + dx
                 yield (fstr%(row0 ,col0 ,a[row  ][col  ])+
                        fstr%(row0 ,col1 ,a[row  ][col+1])+
                        fstr%(row1 ,col0 ,a[row+1][col  ])+"\n")
@@ -140,7 +140,7 @@ class Grid:
         if infomap:
             with open(os.path.splitext(filename)[0]+".inf" if type(filename) == str else sys.stdout.fileno() , "w") as f:
                 f.writelines("\n".join("%-15s: %s"%t for t in sorted(infomap.items())))
-            
+
     @staticmethod
     def fromRaw(filename):
         """initialize a grid from a Blender .raw file.
@@ -171,7 +171,7 @@ class Grid:
         self.zscale=1.0
         if abs(yscale) > 1e-6 :
             self.zscale=1.0/yscale
-        
+
         #  keep just the z-values and null any ofsset
         #  we might catch a reshape error that will occur if nx*ny != # of vertices (if we are not dealing with a heightfield but with a mesh with duplicate x,y coords, like an axis aligned cube
         self.center=np.array([c[2] for c in verts],dtype=np.single).reshape(nx,ny)
@@ -182,7 +182,7 @@ class Grid:
             rmscale = np.max(self.center)
             #self.rainmap = (self.center/rmscale) * np.exp(expfact*((self.center/rmscale)-1))
             self.rainmap = expfact + (1-expfact)*(self.center/rmscale)
-        
+
     @staticmethod
     def fromBlenderMesh(me, vg, expfact):
         g=Grid()
@@ -201,12 +201,11 @@ class Grid:
 #    def rainmapcolor(me, vg):
 #        if vg is not None:
 #            for v in me.vertices:
-                
-        
+
 
     def setrainmap(self, rainmap):
         self.rainmap = rainmap
-        
+
     def _verts(self, surface):
         a=surface / self.zscale
         minx=0.0 if self.minx is None else self.minx
@@ -228,15 +227,15 @@ class Grid:
               vi = row * ncol + col
               yield (vi, vi+ncol, vi+1)
               yield (vi+1, vi+ncol, vi+ncol+1)      
-    
+
     def toBlenderMesh(self, me): # pass me as argument so that we don't need to import bpy and create a dependency
         # the docs state that from_pydata takes iterators as arguments but it will fail with generators because it does len(arg)
         me.from_pydata(list(self._verts(self.center)),[],list(self._faces()))
-    
+
     def toWaterMesh(self, me): # pass me as argument so that we don't need to import bpy and create a dependency
         # the docs state that from_pydata takes iterators as arguments but it will fail with generators because it does len(arg)
         me.from_pydata(list(self._verts(self.water)),[],list(self._faces()))
-    
+
     def peak(self, value=1):
         nx,ny = self.center.shape
         self.center[int(nx/2),int(ny/2)] += value
@@ -283,14 +282,14 @@ class Grid:
     def avalanche(self, delta, iterava, prob, numexpr):
         self.zeroedge()
         #print(self.center)
-        
+
         c     = self.center[1:-1,1:-1]
         up    = self.center[ :-2,1:-1]
         down  = self.center[2:  ,1:-1]
         left  = self.center[1:-1, :-2]
         right = self.center[1:-1,2:  ]
         where = np.where
-       
+
         if(numexpr and numexpr_available):
             self.center[1:-1,1:-1] = ne.evaluate('c + where((up   -c) > delta ,(up   -c -delta)/2, 0) \
                  + where((down -c) > delta ,(down -c -delta)/2, 0)  \
@@ -317,14 +316,14 @@ class Grid:
             sa = where(randarray < prob, sa, 0)
             self.avalanced[1:-1,1:-1] = self.avalanced[1:-1,1:-1] + sa/iterava 
             self.center[1:-1,1:-1] = c + sa/iterava
-        
+
         #print(self.center)
         self.maxrss = max(getmemsize(), self.maxrss)
         return self.center
 
     def rain(self, amount=1, variance=0, userainmap=False):
         self.water += (1.0 - np.random.random(self.water.shape) * variance) * (amount if ((self.rainmap is None) or (not userainmap)) else self.rainmap * amount) 
-        
+
     def spring(self, amount, px, py, radius): # px, py and radius are all fractions
         nx, ny = self.center.shape
         rx = max(int(nx*radius),1)
@@ -332,7 +331,7 @@ class Grid:
         px = int(nx*px)
         py = int(ny*py)
         self.water[px-rx:px+rx+1,py-ry:py+ry+1] += amount
-        
+
     def river(self, Kc, Ks, Kdep, Ka, Kev, numexpr):
 
       zeros = np.zeros
@@ -342,14 +341,14 @@ class Grid:
       abs = np.absolute
       arctan = np.arctan
       sin = np.sin
-      
+
       center = (slice(   1,   -1,None),slice(   1,  -1,None))
       #print("CentreSlice\n", np.array_str(center,precision=3), file=sys.stderr) 
       up     = (slice(None,   -2,None),slice(   1,  -1,None))
       down   = (slice(   2, None,None),slice(   1,  -1,None))
       left   = (slice(   1,   -1,None),slice(None,  -2,None))
       right  = (slice(   1,   -1,None),slice(   2,None,None))
-        
+
       water = self.water
       rock = self.center
       sediment = self.sediment
@@ -385,7 +384,7 @@ class Grid:
             sds  = sds + dw * where(inflow, sc[d], sc[center])
             svdw = svdw + abs(dw)
             angle= angle + np.arctan(abs(rock[d]-rock[center]))
-          
+
       if(numexpr and numexpr_available):
           wcc = water[center]
           scc = sediment[center]
@@ -417,7 +416,7 @@ class Grid:
           #rock[center] = where(rcc<0,0,rcc) # there isn't really a bottom to the rock but negative values look ugly
           sediment[center] = scc + ds + sds
           #print("sdw", sdw[10,15])
-     
+
     def flow(self, Kc, Ks, Kz, Ka, numexpr):
 
       zeros = np.zeros
@@ -427,14 +426,14 @@ class Grid:
       abs = np.absolute
       arctan = np.arctan
       sin = np.sin
-      
+
       center = (slice(   1,   -1,None),slice(   1,  -1,None))
       #print("CentreSlice\n", np.array_str(center,precision=3), file=sys.stderr) 
       #up     = (slice(None,   -2,None),slice(   1,  -1,None))
       #down   = (slice(   2, None,None),slice(   1,  -1,None))
       #left   = (slice(   1,   -1,None),slice(None,  -2,None))
       #right  = (slice(   1,   -1,None),slice(   2,None,None))
-        
+
       #water = self.water
       rock = self.center
       #sediment = self.sediment
@@ -471,7 +470,7 @@ class Grid:
             #sds  = sds + dw * where(inflow, sc[d], sc[center])
             #svdw = svdw + abs(dw)
             #angle= angle + np.arctan(abs(rock[d]-rock[center]))
-          
+
       #if(numexpr and numexpr_available):
           #wcc = water[center]
           #scc = sediment[center]
@@ -519,7 +518,7 @@ class Grid:
         self.scourmin = np.min(self.scour)
         self.sedmax = np.max(self.sediment)
         print("DSMinMax", np.min(self.scour), np.max(self.scour))
-       
+
     def analyze(self):
       self.neighborgrid()
       # just looking at up and left to avoid needless doubel calculations
@@ -611,7 +610,7 @@ if __name__ == "__main__":
   if args.unittest:
     unittest.main(argv=[sys.argv[0]])
     sys.exit(0)
-  
+
   if args.useinputfile:
     if args.rawin:
       grid = Grid.fromRaw(args.infile)

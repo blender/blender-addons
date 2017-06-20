@@ -22,7 +22,7 @@
 bl_info = {
     "name": "A.N.T.Landscape",
     "author": "Jim Hazevoet",
-    "version": (0, 1, 6),
+    "version": (0, 1, 7),
     "blender": (2, 77, 0),
     "location": "View3D > Tool Shelf",
     "description": "Another Noise Tool: Landscape and Displace",
@@ -67,7 +67,7 @@ from .ant_functions import (
 # Menu's and panels
 
 def menu_func_eroder(self, context):
-    self.layout.operator('mesh.eroder', text="Eroder", icon='RNDCURVE')
+    self.layout.operator('mesh.eroder', text="Landscape Eroder", icon='SMOOTHCURVE')
 
 
 def menu_func_landscape(self, context):
@@ -105,14 +105,10 @@ class AntLandscapeToolsPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         ob = context.active_object
-        if ob and ob.type == 'MESH':
-            col = layout.column()
-            col.operator('mesh.ant_displace', text="Mesh Displace", icon="RNDCURVE")
-            col.operator('mesh.eroder', text="Landscape Eroder", icon='SMOOTHCURVE')
-            col.operator('mesh.ant_slope_map', icon='GROUP_VERTEX')
-        else:
-            box = layout.box()
-            box.label("Select a Mesh!", icon='ERROR')
+        col = layout.column()
+        col.operator('mesh.ant_displace', text="Mesh Displace", icon="RNDCURVE")
+        col.operator('mesh.eroder', text="Landscape Eroder", icon='SMOOTHCURVE')
+        col.operator('mesh.ant_slope_map', icon='GROUP_VERTEX')
 
 
 # Landscape Settings / Properties:
@@ -133,33 +129,28 @@ class AntMainSettingsPanel(bpy.types.Panel):
         layout = self.layout
         scene = context.scene
         ob = bpy.context.active_object
-
-        if ob and ob.ant_landscape.keys():
-            ant = ob.ant_landscape
-            box = layout.box()
-            col = box.column(align=False)
-            col.scale_y = 1.5
-            col.operator('mesh.ant_landscape_regenerate', text="Regenerate", icon="LOOP_FORWARDS")
-            row = box.row(align=True)
-            split = row.split(align=True)
-            split.prop(ant, "smooth_mesh", toggle=True, text="Smooth", icon='SOLID')
-            split.prop(ant, "tri_face", toggle=True, text="Triangulate", icon='MESH_DATA')
-            if ant.sphere_mesh:
-                split.prop(ant, "remove_double", toggle=True, text="Remove Doubles", icon='MESH_DATA')
-            box.prop(ant, "ant_terrain_name")
-            box.prop_search(ant, "land_material",  bpy.data, "materials")
-            col = box.column(align=True)
-            col.prop(ant, "subdivision_x")
-            col.prop(ant, "subdivision_y")
-            col = box.column(align=True)
-            if ant.sphere_mesh:
-                col.prop(ant, "mesh_size")
-            else:
-                col.prop(ant, "mesh_size_x")
-                col.prop(ant, "mesh_size_y")
+        ant = ob.ant_landscape
+        box = layout.box()
+        col = box.column(align=False)
+        col.scale_y = 1.5
+        col.operator('mesh.ant_landscape_regenerate', text="Regenerate", icon="LOOP_FORWARDS")
+        row = box.row(align=True)
+        split = row.split(align=True)
+        split.prop(ant, "smooth_mesh", toggle=True, text="Smooth", icon='SOLID')
+        split.prop(ant, "tri_face", toggle=True, text="Triangulate", icon='MESH_DATA')
+        if ant.sphere_mesh:
+            split.prop(ant, "remove_double", toggle=True, text="Remove Doubles", icon='MESH_DATA')
+        box.prop(ant, "ant_terrain_name")
+        box.prop_search(ant, "land_material",  bpy.data, "materials")
+        col = box.column(align=True)
+        col.prop(ant, "subdivision_x")
+        col.prop(ant, "subdivision_y")
+        col = box.column(align=True)
+        if ant.sphere_mesh:
+            col.prop(ant, "mesh_size")
         else:
-            box = layout.box()
-            box.label("Select a Landscape Object!", icon='ERROR')
+            col.prop(ant, "mesh_size_x")
+            col.prop(ant, "mesh_size_y")
 
 
 # Landscape Settings / Properties:
@@ -180,154 +171,148 @@ class AntNoiseSettingsPanel(bpy.types.Panel):
         layout = self.layout
         scene = context.scene
         ob = bpy.context.active_object
+        ant = ob.ant_landscape
+        box = layout.box()
+        col = box.column(align=True)
+        col.scale_y = 1.5
+        if ant.sphere_mesh:
+            col.operator('mesh.ant_landscape_regenerate', text="Regenerate", icon="LOOP_FORWARDS")
+        else:      
+            col.operator('mesh.ant_landscape_refresh', text="Refresh", icon="FILE_REFRESH")
 
-        if ob and ob.ant_landscape.keys():
-            ant = ob.ant_landscape
-
-            box = layout.box()
-            col = box.column(align=True)
-            col.scale_y = 1.5
-            if ant.sphere_mesh:
-                col.operator('mesh.ant_landscape_regenerate', text="Regenerate", icon="LOOP_FORWARDS")
-            else:      
-                col.operator('mesh.ant_landscape_refresh', text="Refresh", icon="FILE_REFRESH")
-
-            box.prop(ant, "noise_type")
-            if ant.noise_type == "blender_texture":
-                box.prop_search(ant, "texture_block", bpy.data, "textures")
-            else:
-                box.prop(ant, "basis_type")
-
-            col = box.column(align=True)
-            col.prop(ant, "random_seed")
-            col = box.column(align=True)
-            col.prop(ant, "noise_offset_x")
-            col.prop(ant, "noise_offset_y")
-            col.prop(ant, "noise_offset_z")
-            col.prop(ant, "noise_size_x")
-            col.prop(ant, "noise_size_y")
-            if ant.sphere_mesh:
-                col.prop(ant, "noise_size_z")
-            col = box.column(align=True)
-            col.prop(ant, "noise_size")
-
-            col = box.column(align=True)
-            if ant.noise_type == "multi_fractal":
-                col.prop(ant, "noise_depth")
-                col.prop(ant, "dimension")
-                col.prop(ant, "lacunarity")
-            elif ant.noise_type == "ridged_multi_fractal":
-                col.prop(ant, "noise_depth")
-                col.prop(ant, "dimension")
-                col.prop(ant, "lacunarity")
-                col.prop(ant, "offset")
-                col.prop(ant, "gain")
-            elif ant.noise_type == "hybrid_multi_fractal":
-                col.prop(ant, "noise_depth")
-                col.prop(ant, "dimension")
-                col.prop(ant, "lacunarity")
-                col.prop(ant, "offset")
-                col.prop(ant, "gain")
-            elif ant.noise_type == "hetero_terrain":
-                col.prop(ant, "noise_depth")
-                col.prop(ant, "dimension")
-                col.prop(ant, "lacunarity")
-                col.prop(ant, "offset")
-            elif ant.noise_type == "fractal":
-                col.prop(ant, "noise_depth")
-                col.prop(ant, "dimension")
-                col.prop(ant, "lacunarity")
-            elif ant.noise_type == "turbulence_vector":
-                col.prop(ant, "noise_depth")
-                col.prop(ant, "amplitude")
-                col.prop(ant, "frequency")
-                col.separator()
-                row = col.row(align=True)
-                row.prop(ant, "hard_noise", expand=True)
-            elif ant.noise_type == "variable_lacunarity":
-                box.prop(ant, "vl_basis_type")
-                box.prop(ant, "distortion")
-            elif ant.noise_type == "marble_noise":
-                box.prop(ant, "marble_shape")
-                box.prop(ant, "marble_bias")
-                box.prop(ant, "marble_sharp")
-                col = box.column(align=True)
-                col.prop(ant, "distortion")
-                col.prop(ant, "noise_depth")
-                col.separator()
-                row = col.row(align=True)
-                row.prop(ant, "hard_noise", expand=True)
-            elif ant.noise_type == "shattered_hterrain":
-                col.prop(ant, "noise_depth")
-                col.prop(ant, "dimension")
-                col.prop(ant, "lacunarity")
-                col.prop(ant, "offset")
-                col.prop(ant, "distortion")
-            elif ant.noise_type == "strata_hterrain":
-                col.prop(ant, "noise_depth")
-                col.prop(ant, "dimension")
-                col.prop(ant, "lacunarity")
-                col.prop(ant, "offset")
-                col.prop(ant, "distortion", text="Strata")
-            elif ant.noise_type == "ant_turbulence":
-                col.prop(ant, "noise_depth")
-                col.prop(ant, "amplitude")
-                col.prop(ant, "frequency")
-                col.prop(ant, "distortion")
-                col.separator()
-                row = col.row(align=True)
-                row.prop(ant, "hard_noise", expand=True)
-            elif ant.noise_type == "vl_noise_turbulence":
-                col.prop(ant, "noise_depth")
-                col.prop(ant, "amplitude")
-                col.prop(ant, "frequency")
-                col.prop(ant, "distortion")
-                col.separator()
-                col.prop(ant, "vl_basis_type")
-                col.separator()
-                row = col.row(align=True)
-                row.prop(ant, "hard_noise", expand=True)
-            elif ant.noise_type == "vl_hTerrain":
-                col.prop(ant, "noise_depth")
-                col.prop(ant, "dimension")
-                col.prop(ant, "lacunarity")
-                col.prop(ant, "offset")
-                col.prop(ant, "distortion")
-                col.separator()
-                col.prop(ant, "vl_basis_type")
-            elif ant.noise_type == "distorted_heteroTerrain":
-                col.prop(ant, "noise_depth")
-                col.prop(ant, "dimension")
-                col.prop(ant, "lacunarity")
-                col.prop(ant, "offset")
-                col.prop(ant, "distortion")
-                col.separator()
-                col.prop(ant, "vl_basis_type")
-            elif ant.noise_type == "double_multiFractal":
-                col.prop(ant, "noise_depth")
-                col.prop(ant, "dimension")
-                col.prop(ant, "lacunarity")
-                col.prop(ant, "offset")
-                col.prop(ant, "gain")
-                col.separator()
-                col.prop(ant, "vl_basis_type")
-            elif ant.noise_type == "slick_rock":
-                col.prop(ant, "noise_depth")
-                col.prop(ant, "dimension")
-                col.prop(ant, "lacunarity")
-                col.prop(ant, "gain")
-                col.prop(ant, "offset")
-                col.prop(ant, "distortion")
-                col.separator()
-                col.prop(ant, "vl_basis_type")
-            elif ant.noise_type == "planet_noise":
-                col.prop(ant, "noise_depth")
-                col.separator()
-                row = col.row(align=True)
-                row.prop(ant, "hard_noise", expand=True)
+        box.prop(ant, "noise_type")
+        if ant.noise_type == "blender_texture":
+            box.prop_search(ant, "texture_block", bpy.data, "textures")
         else:
-            box = layout.box()
-            box.label("Select a Landscape Object!", icon='ERROR')
+            box.prop(ant, "basis_type")
+
+        col = box.column(align=True)
+        col.prop(ant, "random_seed")
+        col = box.column(align=True)
+        col.prop(ant, "noise_offset_x")
+        col.prop(ant, "noise_offset_y")
+        col.prop(ant, "noise_offset_z")
+        col.prop(ant, "noise_size_x")
+        col.prop(ant, "noise_size_y")
+        if ant.sphere_mesh:
+            col.prop(ant, "noise_size_z")
+        col = box.column(align=True)
+        col.prop(ant, "noise_size")
+
+        col = box.column(align=True)
+        if ant.noise_type == "multi_fractal":
+            col.prop(ant, "noise_depth")
+            col.prop(ant, "dimension")
+            col.prop(ant, "lacunarity")
+        elif ant.noise_type == "ridged_multi_fractal":
+            col.prop(ant, "noise_depth")
+            col.prop(ant, "dimension")
+            col.prop(ant, "lacunarity")
+            col.prop(ant, "offset")
+            col.prop(ant, "gain")
+        elif ant.noise_type == "hybrid_multi_fractal":
+            col.prop(ant, "noise_depth")
+            col.prop(ant, "dimension")
+            col.prop(ant, "lacunarity")
+            col.prop(ant, "offset")
+            col.prop(ant, "gain")
+        elif ant.noise_type == "hetero_terrain":
+            col.prop(ant, "noise_depth")
+            col.prop(ant, "dimension")
+            col.prop(ant, "lacunarity")
+            col.prop(ant, "offset")
+        elif ant.noise_type == "fractal":
+            col.prop(ant, "noise_depth")
+            col.prop(ant, "dimension")
+            col.prop(ant, "lacunarity")
+        elif ant.noise_type == "turbulence_vector":
+            col.prop(ant, "noise_depth")
+            col.prop(ant, "amplitude")
+            col.prop(ant, "frequency")
+            col.separator()
+            row = col.row(align=True)
+            row.prop(ant, "hard_noise", expand=True)
+        elif ant.noise_type == "variable_lacunarity":
+            box.prop(ant, "vl_basis_type")
+            box.prop(ant, "distortion")
+        elif ant.noise_type == "marble_noise":
+            box.prop(ant, "marble_shape")
+            box.prop(ant, "marble_bias")
+            box.prop(ant, "marble_sharp")
+            col = box.column(align=True)
+            col.prop(ant, "distortion")
+            col.prop(ant, "noise_depth")
+            col.separator()
+            row = col.row(align=True)
+            row.prop(ant, "hard_noise", expand=True)
+        elif ant.noise_type == "shattered_hterrain":
+            col.prop(ant, "noise_depth")
+            col.prop(ant, "dimension")
+            col.prop(ant, "lacunarity")
+            col.prop(ant, "offset")
+            col.prop(ant, "distortion")
+        elif ant.noise_type == "strata_hterrain":
+            col.prop(ant, "noise_depth")
+            col.prop(ant, "dimension")
+            col.prop(ant, "lacunarity")
+            col.prop(ant, "offset")
+            col.prop(ant, "distortion", text="Strata")
+        elif ant.noise_type == "ant_turbulence":
+            col.prop(ant, "noise_depth")
+            col.prop(ant, "amplitude")
+            col.prop(ant, "frequency")
+            col.prop(ant, "distortion")
+            col.separator()
+            row = col.row(align=True)
+            row.prop(ant, "hard_noise", expand=True)
+        elif ant.noise_type == "vl_noise_turbulence":
+            col.prop(ant, "noise_depth")
+            col.prop(ant, "amplitude")
+            col.prop(ant, "frequency")
+            col.prop(ant, "distortion")
+            col.separator()
+            col.prop(ant, "vl_basis_type")
+            col.separator()
+            row = col.row(align=True)
+            row.prop(ant, "hard_noise", expand=True)
+        elif ant.noise_type == "vl_hTerrain":
+            col.prop(ant, "noise_depth")
+            col.prop(ant, "dimension")
+            col.prop(ant, "lacunarity")
+            col.prop(ant, "offset")
+            col.prop(ant, "distortion")
+            col.separator()
+            col.prop(ant, "vl_basis_type")
+        elif ant.noise_type == "distorted_heteroTerrain":
+            col.prop(ant, "noise_depth")
+            col.prop(ant, "dimension")
+            col.prop(ant, "lacunarity")
+            col.prop(ant, "offset")
+            col.prop(ant, "distortion")
+            col.separator()
+            col.prop(ant, "vl_basis_type")
+        elif ant.noise_type == "double_multiFractal":
+            col.prop(ant, "noise_depth")
+            col.prop(ant, "dimension")
+            col.prop(ant, "lacunarity")
+            col.prop(ant, "offset")
+            col.prop(ant, "gain")
+            col.separator()
+            col.prop(ant, "vl_basis_type")
+        elif ant.noise_type == "slick_rock":
+            col.prop(ant, "noise_depth")
+            col.prop(ant, "dimension")
+            col.prop(ant, "lacunarity")
+            col.prop(ant, "gain")
+            col.prop(ant, "offset")
+            col.prop(ant, "distortion")
+            col.separator()
+            col.prop(ant, "vl_basis_type")
+        elif ant.noise_type == "planet_noise":
+            col.prop(ant, "noise_depth")
+            col.separator()
+            row = col.row(align=True)
+            row.prop(ant, "hard_noise", expand=True)
 
 
 # Landscape Settings / Properties:
@@ -348,45 +333,40 @@ class AntDisplaceSettingsPanel(bpy.types.Panel):
         layout = self.layout
         scene = context.scene
         ob = bpy.context.active_object
+        ant = ob.ant_landscape
+        box = layout.box()
+        col = box.column(align=True)
+        col.scale_y = 1.5
+        if ant.sphere_mesh:
+            col.operator('mesh.ant_landscape_regenerate', text="Regenerate", icon="LOOP_FORWARDS")
+        else:      
+            col.operator('mesh.ant_landscape_refresh', text="Refresh", icon="FILE_REFRESH")
 
-        if ob and ob.ant_landscape.keys():
-            ant = ob.ant_landscape
-            box = layout.box()
-            col = box.column(align=True)
-            col.scale_y = 1.5
-            if ant.sphere_mesh:
-                col.operator('mesh.ant_landscape_regenerate', text="Regenerate", icon="LOOP_FORWARDS")
-            else:      
-                col.operator('mesh.ant_landscape_refresh', text="Refresh", icon="FILE_REFRESH")
-
-            col = box.column(align=True)
-            row = col.row(align=True).split(0.92, align=True)
-            row.prop(ant, "height")
-            row.prop(ant, "height_invert", toggle=True, text="", icon='ARROW_LEFTRIGHT')
-            col.prop(ant, "height_offset")
-            col.prop(ant, "maximum")
-            col.prop(ant, "minimum")
-            if not ant.sphere_mesh:
-                col = box.column()
-                col.prop(ant, "edge_falloff")
-                if ant.edge_falloff is not "0":
-                    col = box.column(align=True)
-                    col.prop(ant, "edge_level")
-                    if ant.edge_falloff in ["2", "3"]:
-                        col.prop(ant, "falloff_x")
-                    if ant.edge_falloff in ["1", "3"]:
-                        col.prop(ant, "falloff_y")
-
+        col = box.column(align=True)
+        row = col.row(align=True).split(0.92, align=True)
+        row.prop(ant, "height")
+        row.prop(ant, "height_invert", toggle=True, text="", icon='ARROW_LEFTRIGHT')
+        col.prop(ant, "height_offset")
+        col.prop(ant, "maximum")
+        col.prop(ant, "minimum")
+        if not ant.sphere_mesh:
             col = box.column()
-            col.prop(ant, "strata_type")
-            if ant.strata_type is not "0":
-                col = box.column()
-                col.prop(ant, "strata")
+            col.prop(ant, "edge_falloff")
+            if ant.edge_falloff is not "0":
+                col = box.column(align=True)
+                col.prop(ant, "edge_level")
+                if ant.edge_falloff in ["2", "3"]:
+                    col.prop(ant, "falloff_x")
+                if ant.edge_falloff in ["1", "3"]:
+                    col.prop(ant, "falloff_y")
+
+        col = box.column()
+        col.prop(ant, "strata_type")
+        if ant.strata_type is not "0":
             col = box.column()
-            col.prop(ant, "use_vgroup", toggle=True)
-        else:
-            box = layout.box()
-            box.label("Select a Landscape Object!", icon='ERROR')
+            col.prop(ant, "strata")
+        col = box.column()
+        col.prop(ant, "use_vgroup", toggle=True)
 
 
 # ------------------------------------------------------------
@@ -529,8 +509,8 @@ class AntLandscapePropertiesGroup(bpy.types.PropertyGroup):
                 ('marble_noise', "Marble", "A.N.T.: Marble Noise", 7),
                 ('shattered_hterrain', "Shattered hTerrain", "A.N.T.: Shattered hTerrain", 8),
                 ('strata_hterrain', "Strata hTerrain", "A.N.T: Strata hTerrain", 9),
-                ('ant_turbulence', "Another Turbulence", "A.N.T: Turbulence variation", 10),
-                ('vl_noise_turbulence', "vlNoise turbulence", "A.N.T: vlNoise turbulence", 11),
+                ('ant_turbulence', "Another Noise", "A.N.T: Turbulence variation", 10),
+                ('vl_noise_turbulence', "vlNoise turbulence", "A.N.T: Real vlNoise turbulence", 11),
                 ('vl_hTerrain', "vlNoise hTerrain", "A.N.T: vlNoise hTerrain", 12),
                 ('distorted_heteroTerrain', "Distorted hTerrain", "A.N.T distorted hTerrain", 13),
                 ('double_multiFractal', "Double MultiFractal", "A.N.T: double multiFractal", 14),

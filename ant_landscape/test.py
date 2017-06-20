@@ -18,4 +18,4 @@ if __name__ == '__main__':
     print(stats.memory())
     a = cos(a)**2+sin(a)**2
     print(stats.time())
-    print(stats.memory())
+ print(stats.memory())
