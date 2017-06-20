@@ -19,12 +19,13 @@
 bl_info = {
     "name": "Skinify Rig",
     "author": "Albert Makac (karab44)",
-    "version": (0, 8, 8),
+    "version": (0, 8, 9),
     "blender": (2, 7, 8),
     "location": "Properties > Bone > Skinify Rig (visible on pose mode only)",
     "description": "Creates a mesh object from selected bones",
     "warning": "",
-    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Object/Skinify",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/"
+                "Py/Scripts/Object/Skinify",
     "category": "Object"}
 
 import bpy
@@ -46,40 +47,85 @@ from mathutils import (
 from bpy.app.handlers import persistent
 from enum import Enum
 
-#can the armature data properties group_prop and row be fetched directly from the rigify script?
-horse_data = (1 , 5 ) ,( 2 ,  4 ) ,( 3 ,  0 ) ,( 4 ,  3 ) ,( 5 ,  4 ) ,( 1 ,  0 ) ,( 1 ,  0 ) ,( 7 ,  2 ) ,( 8 ,  5 ) ,( 9 ,  4 ) ,( 7 ,  2 ) ,( 8 ,  5 ) ,( 9 ,  4 ) ,( 10 ,  2 ) ,( 11 ,  5 ) ,( 12 ,  4 ) ,( 10 ,  2 ) ,( 11 ,  5 ) ,( 12 ,  4 ) ,( 13 ,  6 ) ,( 1 ,  4 ) ,( 14 ,  6 ) ,( 1 ,  0 ) ,( 1 ,  0 ) ,( 1 ,  0 ) ,( 1 ,  0 ) ,( 1 ,  0 ) ,( 1 ,  0 ) ,( 14 ,  1 ) ,
-shark_data = ( 1 ,  5 ), ( 2 ,  4 ), ( 1 ,  0 ), ( 3 ,  3 ), ( 4 ,  4 ), ( 5 ,  6 ), ( 6 ,  5 ), ( 7 ,  4 ), ( 6 ,  5 ), ( 7 ,  4 ), ( 8 ,  3 ), ( 9 ,  4 ), ( 1 ,  0 ), ( 1 ,  6 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 14 ,  1 ) ,
-bird_data = ( 1 ,  6 ), ( 2 ,  4 ), ( 1 ,  0 ), ( 3 ,  3 ), ( 4 ,  4 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 6 ,  5 ), ( 8 ,  0 ), ( 7 ,  4 ), ( 6 ,  5 ), ( 8 ,  0 ), ( 7 ,  4 ), ( 10 ,  2 ), ( 11 ,  5 ), ( 12 ,  4 ), ( 10 ,  2 ), ( 11 ,  5 ), ( 12 ,  4 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 13 ,  6 ), ( 14 ,  4 ), ( 1 ,  0 ), ( 8 ,  6 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 14 ,  1 ),
-cat_data = ( 1 ,  5 ), ( 2 ,  2 ), ( 2 ,  3 ), ( 3 ,  3 ), ( 4 ,  4 ), ( 5 ,  6 ), ( 6 ,  4 ), ( 7 ,  2 ), ( 8 ,  5 ), ( 9 ,  4 ), ( 7 ,  2 ), ( 8 ,  5 ), ( 9 ,  4 ), ( 10 ,  2 ), ( 11 ,  5 ), ( 12 ,  4 ), ( 10 ,  2 ), ( 11 ,  5 ), ( 12 ,  4 ), ( 13 ,  3 ), ( 14 ,  4 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 16 ,  1 ),
-biped_data = ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 3 ,  3 ), ( 4 ,  4 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 7 ,  2 ), ( 8 ,  5 ), ( 9 ,  4 ), ( 7 ,  2 ), ( 8 ,  5 ), ( 9 ,  4 ), ( 10 ,  2 ), ( 11 ,  5 ), ( 12 ,  4 ), ( 10 ,  2 ), ( 11 ,  5 ), ( 12 ,  4 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 14 ,  1 ),
-human_data = ( 1 ,  5 ), ( 2 ,  2 ), ( 2 ,  3 ), ( 3 ,  3 ), ( 4 ,  4 ), ( 5 ,  6 ), ( 6 ,  4 ), ( 7 ,  2 ), ( 8 ,  5 ), ( 9 ,  4 ), ( 7 ,  2 ), ( 8 ,  5 ), ( 9 ,  4 ), ( 10 ,  2 ), ( 11 ,  5 ), ( 12 ,  4 ), ( 10 ,  2 ), ( 11 ,  5 ), ( 12 ,  4 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 14 ,  1 ),
-wolf_data = ( 1 ,  5 ), ( 2 ,  2 ), ( 2 ,  3 ), ( 3 ,  3 ), ( 4 ,  4 ), ( 5 ,  6 ), ( 6 ,  4 ), ( 7 ,  2 ), ( 8 ,  5 ), ( 9 ,  4 ), ( 7 ,  2 ), ( 8 ,  5 ), ( 9 ,  4 ), ( 10 ,  2 ), ( 11 ,  5 ), ( 12 ,  4 ), ( 10 ,  2 ), ( 11 ,  5 ), ( 12 ,  4 ), ( 13 ,  6 ), ( 1 ,  0 ), ( 13 ,  0 ), ( 13 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 14 ,  1 ),
-quadruped_data = ( 1 ,  0 ), ( 2 ,  0 ), ( 2 ,  0 ), ( 3 ,  3 ), ( 4 ,  4 ), ( 5 ,  0 ), ( 6 ,  0 ), ( 7 ,  2 ), ( 8 ,  5 ), ( 9 ,  4 ), ( 7 ,  2 ), ( 8 ,  5 ), ( 9 ,  4 ), ( 10 ,  2 ), ( 11 ,  5 ), ( 12 ,  4 ), ( 10 ,  2 ), ( 11 ,  5 ), ( 12 ,  4 ), ( 13 ,  6 ), ( 1 ,  0 ), ( 13 ,  0 ), ( 13 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 1 ,  0 ), ( 14 ,  1 ),
 
-human_legacy_data = ( 1, None ), ( 1, None ), ( 2, None ), ( 1, None ), ( 3, None ), ( 3, None ), ( 4, None ), ( 5, None ), ( 6, None ), ( 4, None ), ( 5, None ), ( 6, None ), ( 7, None ), ( 8, None ), ( 9, None ), ( 7, None ), ( 8, None ), ( 9, None ), ( 1, None ), ( 1, None ), ( 1, None ), ( 1, None ), ( 1, None ), ( 1, None ), ( 1, None ), ( 1, None ), ( 1, None ), ( 1, None ),
-pitchipoy_data = ( 1, None ), ( 2, None), ( 2, None ), ( 3, None ), ( 4, None ), ( 5, None ), ( 6, None ), ( 7, None ), ( 8, None ), ( 9, None ), ( 7, None ), ( 8, None ), ( 9, None ), ( 10, None ), ( 11, None ), ( 12, None ), ( 10, None ), ( 11, None ), ( 12, None ), ( 1, None ), ( 1, None ), ( 1, None ), ( 1, None ), ( 1, None ), ( 1, None ), ( 1, None ), ( 1, None ), ( 1, None ),
+# can the armature data properties group_prop and row be fetched directly from the rigify script?
+horse_data = \
+        (1, 5), (2, 4), (3, 0), (4, 3), (5, 4), (1, 0), (1, 0), (7, 2), (8, 5), (9, 4), \
+        (7, 2), (8, 5), (9, 4), (10, 2), (11, 5), (12, 4), (10, 2), (11, 5), (12, 4), \
+        (13, 6), (1, 4), (14, 6), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (14, 1),
 
-rigify_data = horse_data, shark_data, bird_data, cat_data, biped_data, human_data, wolf_data, quadruped_data, human_legacy_data, pitchipoy_data
+shark_data = \
+        (1, 5), (2, 4), (1, 0), (3, 3), (4, 4), (5, 6), (6, 5), (7, 4), (6, 5), (7, 4), \
+        (8, 3), (9, 4), (1, 0), (1, 6), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), \
+        (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (14, 1),
+
+bird_data = \
+        (1, 6), (2, 4), (1, 0), (3, 3), (4, 4), (1, 0), (1, 0), (6, 5), (8, 0), (7, 4), (6, 5), \
+        (8, 0), (7, 4), (10, 2), (11, 5), (12, 4), (10, 2), (11, 5), (12, 4), (1, 0), (1, 0), \
+        (13, 6), (14, 4), (1, 0), (8, 6), (1, 0), (1, 0), (1, 0), (14, 1),
+
+cat_data = \
+        (1, 5), (2, 2), (2, 3), (3, 3), (4, 4), (5, 6), (6, 4), (7, 2), (8, 5), (9, 4), (7, 2), \
+        (8, 5), (9, 4), (10, 2), (11, 5), (12, 4), (10, 2), (11, 5), (12, 4), (13, 3), (14, 4), \
+        (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (16, 1),
+
+biped_data = \
+        (1, 0), (1, 0), (1, 0), (3, 3), (4, 4), (1, 0), (1, 0), (7, 2), (8, 5), (9, 4), (7, 2), \
+        (8, 5), (9, 4), (10, 2), (11, 5), (12, 4), (10, 2), (11, 5), (12, 4), (1, 0), (1, 0), \
+        (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (14, 1),
+
+human_data = \
+        (1, 5), (2, 2), (2, 3), (3, 3), (4, 4), (5, 6), (6, 4), (7, 2), (8, 5), (9, 4), (7, 2), \
+        (8, 5), (9, 4), (10, 2), (11, 5), (12, 4), (10, 2), (11, 5), (12, 4), (1, 0), (1, 0), \
+        (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (14, 1),
+
+wolf_data = \
+        (1, 5), (2, 2), (2, 3), (3, 3), (4, 4), (5, 6), (6, 4), (7, 2), (8, 5), (9, 4), (7, 2), \
+        (8, 5), (9, 4), (10, 2), (11, 5), (12, 4), (10, 2), (11, 5), (12, 4), (13, 6), (1, 0), \
+        (13, 0), (13, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (14, 1),
+
+quadruped_data = \
+        (1, 0), (2, 0), (2, 0), (3, 3), (4, 4), (5, 0), (6, 0), (7, 2), (8, 5), (9, 4), \
+        (7, 2), (8, 5), (9, 4), (10, 2), (11, 5), (12, 4), (10, 2), (11, 5), (12, 4), (13, 6), \
+        (1, 0), (13, 0), (13, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (14, 1),
+
+human_legacy_data = \
+        (1, None), (1, None), (2, None), (1, None), (3, None), (3, None), (4, None), (5, None), \
+        (6, None), (4, None), (5, None), (6, None), (7, None), (8, None), (9, None), (7, None), \
+        (8, None), (9, None), (1, None), (1, None), (1, None), (1, None), (1, None), (1, None), \
+        (1, None), (1, None), (1, None), (1, None),
+
+pitchipoy_data = \
+        (1, None), (2, None), (2, None), (3, None), (4, None), (5, None), (6, None), (7, None), \
+        (8, None), (9, None), (7, None), (8, None), (9, None), (10, None), (11, None), (12, None), \
+        (10, None), (11, None), (12, None), (1, None), (1, None), (1, None), (1, None), (1, None), \
+        (1, None), (1, None), (1, None), (1, None),
+
+rigify_data = horse_data, shark_data, bird_data, cat_data, biped_data, human_data, \
+              wolf_data, quadruped_data, human_legacy_data, pitchipoy_data
+
 
 class Rig_type(Enum):
     HORSE = 0
     SHARK = 1
     BIRD = 2
     CAT = 3
-    BIPED= 4
+    BIPED = 4
     HUMAN = 5
     WOLF = 6
     QUAD = 7
     LEGACY = 8
     PITCHIPOY = 9
     OTHER = 10
-    
-rig_type = Rig_type.OTHER  
+
+
+rig_type = Rig_type.OTHER
+
 
 # initialize properties
 def init_props():
     # additional check - this should be a rare case if the handler
-    # wasn't removed for some reason and the addon is not toggled on/off
+    # wasn't removed for some reason and the add-on is not toggled on/off
     if hasattr(bpy.types.Scene, "skinify"):
         scn = bpy.context.scene.skinify
 
@@ -109,71 +155,76 @@ def select_vertices(mesh_obj, idx):
     bpy.ops.object.mode_set(mode=mode)
     return selectedVerts
 
-      
+
 def identify_rig():
     if 'rigify_layers' not in bpy.context.object.data:
-        return Rig_type.OTHER #non recognized
+        return Rig_type.OTHER  # non recognized
 
     LEGACY_LAYERS_SIZE = 28
     layers = bpy.context.object.data['rigify_layers']
-    
-    
-    for type, rig in enumerate(rigify_data):       
+
+    for type, rig in enumerate(rigify_data):
         index = 0
-     
-                
-        for props in layers:    
-            if len(layers) == LEGACY_LAYERS_SIZE and 'group_prop' not in props:                          
-                
-                if props['row'] != rig[index][0] or rig[index][1] != None:                    
+
+        for props in layers:
+            if len(layers) == LEGACY_LAYERS_SIZE and 'group_prop' not in props:
+
+                if props['row'] != rig[index][0] or rig[index][1] is not None:
                     break
-                                
+
             elif (props['row'] != rig[index][0]) or (props['group_prop'] != rig[index][1]):
-                break            
-            
-            #SUCCESS if reach the end
-            if index == len(layers) -1:   
+                break
+
+            # SUCCESS if reach the end
+            if index == len(layers) - 1:
                 return Rig_type(type)
-            
+
             index = index + 1
-            
-    return Rig_type.OTHER        
-    
+
+    return Rig_type.OTHER
+
+
 def prepare_ignore_list(rig_type, bones):
     # detect the head, face, hands, breast, heels or other exceptionary bones to exclusion or customization
     common_ignore_list = ['eye', 'heel', 'breast', 'root']
-    
-    #edit these lists to suits your taste
-                            
-      
-    horse_ignore_list = ['chest', 'belly', 'pelvis', 'jaw', 'nose', 'skull', 'ear.' ]
-    
+
+    # edit these lists to suits your taste
+
+    horse_ignore_list = ['chest', 'belly', 'pelvis', 'jaw', 'nose', 'skull', 'ear.']
+
     shark_ignore_list = ['jaw']
-    
-    bird_ignore_list = ['face', 'pelvis', 'nose', 'lip', 'jaw', 'chin', 'ear.', 'brow',
-                             'lid', 'forehead', 'temple', 'cheek', 'teeth', 'tongue', 'beak']
-    
-    cat_ignore_list = ['face', 'belly' 'pelvis.C', 'nose', 'lip', 'jaw', 'chin', 'ear.', 'brow',
-                             'lid', 'forehead', 'temple', 'cheek', 'teeth', 'tongue']
-    
+
+    bird_ignore_list = [
+            'face', 'pelvis', 'nose', 'lip', 'jaw', 'chin', 'ear.', 'brow',
+            'lid', 'forehead', 'temple', 'cheek', 'teeth', 'tongue', 'beak'
+            ]
+    cat_ignore_list = [
+            'face', 'belly' 'pelvis.C', 'nose', 'lip', 'jaw', 'chin', 'ear.', 'brow',
+            'lid', 'forehead', 'temple', 'cheek', 'teeth', 'tongue'
+            ]
     biped_ignore_list = ['pelvis']
-    
-    human_ignore_list = ['face', 'pelvis', 'nose', 'lip', 'jaw', 'chin', 'ear.', 'brow',
-                             'lid', 'forehead', 'temple', 'cheek', 'teeth', 'tongue']
-    
-    wolf_ignore_list = ['face', 'pelvis', 'nose', 'lip', 'jaw', 'chin', 'ear.', 'brow',
-                             'lid', 'forehead', 'temple', 'cheek', 'teeth', 'tongue']
-    
-    quad_ignore_list = ['face', 'pelvis', 'nose', 'lip', 'jaw', 'chin', 'ear.', 'brow',
-                             'lid', 'forehead', 'temple', 'cheek', 'teeth', 'tongue']
-        
+
+    human_ignore_list = [
+            'face', 'pelvis', 'nose', 'lip', 'jaw', 'chin', 'ear.', 'brow',
+            'lid', 'forehead', 'temple', 'cheek', 'teeth', 'tongue'
+            ]
+    wolf_ignore_list = [
+            'face', 'pelvis', 'nose', 'lip', 'jaw', 'chin', 'ear.', 'brow',
+            'lid', 'forehead', 'temple', 'cheek', 'teeth', 'tongue'
+            ]
+    quad_ignore_list = [
+            'face', 'pelvis', 'nose', 'lip', 'jaw', 'chin', 'ear.', 'brow',
+            'lid', 'forehead', 'temple', 'cheek', 'teeth', 'tongue'
+            ]
     rigify_legacy_ignore_list = []
-    
-    pitchipoy_ignore_list = ['face', 'pelvis', 'nose', 'lip', 'jaw', 'chin', 'ear.', 'brow',
-                            'lid', 'forehead', 'temple', 'cheek', 'teeth', 'tongue']
-  
+
+    pitchipoy_ignore_list = [
+            'face', 'pelvis', 'nose', 'lip', 'jaw', 'chin', 'ear.', 'brow',
+            'lid', 'forehead', 'temple', 'cheek', 'teeth', 'tongue'
+            ]
+
     other_ignore_list = []
-           
+
     ignore_list = common_ignore_list
 
     if rig_type == Rig_type.HORSE:
@@ -199,19 +250,19 @@ def prepare_ignore_list(rig_type, bones):
         print("WHITE FANG")
     elif rig_type == Rig_type.QUAD:
         ignore_list = ignore_list + quad_ignore_list
-        print("MYSTERIOUS CREATURE")   
+        print("MYSTERIOUS CREATURE")
     elif rig_type == Rig_type.LEGACY:
         ignore_list = ignore_list + rigify_legacy_ignore_list
         print("LEGACY RIGIFY")
     elif rig_type == Rig_type.PITCHIPOY:
         ignore_list = ignore_list + pitchipoy_ignore_list
-        print("PITCHIPOY")            
-    elif rig_type == Rig_type.OTHER:     
-        ignore_list = ignore_list + other_ignore_list    
-        print("rig non recognized...")     
-       
-    
+        print("PITCHIPOY")
+    elif rig_type == Rig_type.OTHER:
+        ignore_list = ignore_list + other_ignore_list
+        print("rig non recognized...")
+
     return ignore_list
+
 
 # generates edges from vertices used by skin modifier
 def generate_edges(mesh, shape_object, bones, scale, connect_mesh=False, connect_parents=False,
@@ -222,7 +273,7 @@ def generate_edges(mesh, shape_object, bones, scale, connect_mesh=False, connect
     # scene preferences
 
     alternate_scale_list = []
-    
+
     me = mesh
     verts = []
     edges = []
@@ -231,7 +282,6 @@ def generate_edges(mesh, shape_object, bones, scale, connect_mesh=False, connect
 
     rig_type = identify_rig()
     ignore_list = prepare_ignore_list(rig_type, bones)
-      
 
     # edge generator loop
     for b in bones:
@@ -295,7 +345,8 @@ def generate_edges(mesh, shape_object, bones, scale, connect_mesh=False, connect
             # for bvh free floating hips and hips correction for rigify and pitchipoy
             if ((generate_all is False and 'hip' in b.name.lower()) or
               (generate_all is False and (b.name == 'hips' and rig_type == Rig_type.LEGACY) or
-              (b.name == 'spine' and rig_type == Rig_type.PITCHIPOY) or (b.name == 'spine' and rig_type == Rig_type.HUMAN) or (b.name == 'spine' and rig_type == Rig_type.BIPED))):
+              (b.name == 'spine' and rig_type == Rig_type.PITCHIPOY) or (b.name == 'spine' and
+               rig_type == Rig_type.HUMAN) or (b.name == 'spine' and rig_type == Rig_type.BIPED))):
                 continue
 
         vert1 = b.head
@@ -325,13 +376,13 @@ def generate_edges(mesh, shape_object, bones, scale, connect_mesh=False, connect
 
 def generate_mesh(shape_object, size, thickness=0.8, finger_thickness=0.25, sub_level=1,
                   connect_mesh=False, connect_parents=False, generate_all=False, apply_mod=True,
-                  alternate_scale_idx_list=[], rig_type=0, bones =[]):
+                  alternate_scale_idx_list=[], rig_type=0, bones=[]):
     """
     This function adds modifiers for generated edges
     """
     total_bones_num = len(bpy.context.object.pose.bones.keys())
     selected_bones_num = len(bones)
-    
+
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='DESELECT')
 
@@ -387,7 +438,9 @@ def generate_mesh(shape_object, size, thickness=0.8, finger_thickness=0.25, sub_
         bpy.ops.mesh.remove_doubles()
 
     # fix rigify and pitchipoy hands topology
-    if connect_mesh and connect_parents and generate_all is False and (rig_type == Rig_type.LEGACY or rig_type == Rig_type.PITCHIPOY or rig_type == Rig_type.HUMAN) and selected_bones_num == total_bones_num:
+    if connect_mesh and connect_parents and generate_all is False and \
+            (rig_type == Rig_type.LEGACY or rig_type == Rig_type.PITCHIPOY or rig_type == Rig_type.HUMAN) and \
+            selected_bones_num == total_bones_num:
         # thickness will set palm vertex for both hands look pretty
         corrective_thickness = 2.5
         # left hand verts
@@ -442,16 +495,15 @@ def generate_mesh(shape_object, size, thickness=0.8, finger_thickness=0.25, sub_
         bpy.ops.mesh.select_all(action='DESELECT')
 
     # todo optionally take root from rig's hip tail or head depending on scenario
-    
-  
+
     root_idx = []
-    if rig_type == Rig_type.LEGACY and selected_bones_num == total_bones_num: 
+    if rig_type == Rig_type.LEGACY and selected_bones_num == total_bones_num:
         root_idx = [59]
     elif (rig_type == Rig_type.PITCHIPOY or rig_type == Rig_type.HUMAN) and selected_bones_num == total_bones_num:
         root_idx = [56]
     elif selected_bones_num == total_bones_num:
         root_idx = [0]
-        
+
     if len(root_idx) > 0:
         select_vertices(shape_object, root_idx)
         bpy.ops.object.skin_root_mark(override)
