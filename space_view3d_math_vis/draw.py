@@ -22,7 +22,8 @@ import bpy
 import blf
 
 from . import utils
-from mathutils import Vector, Matrix
+from mathutils import Vector
+
 SpaceView3D = bpy.types.SpaceView3D
 callback_handle = []
 
@@ -249,7 +250,6 @@ def draw_callback_view():
         glEnd()
         glDisable(GL_LINE_STIPPLE)
 
-    ########
     # points
     if data_vector:
         glPointSize(3.0)
@@ -260,7 +260,6 @@ def draw_callback_view():
         glEnd()
         glPointSize(1.0)
 
-    #######
     # lines
     if data_vector_array:
         glColor3f(0.5, 0.5, 1)
