@@ -1,4 +1,4 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -14,39 +14,45 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENCE BLOCK #####
 
 
 bl_info = {
     "name": "Select Tools",
     "author": "Jakub Belcik",
-    "version": (1, 0, 1),
+    "version": (1, 0, 2),
     "blender": (2, 7, 3),
     "location": "3D View > Tools",
     "description": "Selection Tools",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "",
     "category": ""
 }
 
 import bpy
 from bpy.types import Operator
+from bpy.props import (
+        BoolProperty,
+        EnumProperty,
+        )
 
 
 class ShowHideObject(Operator):
     bl_idname = "opr.show_hide_object"
     bl_label = "Show/Hide Object"
-    bl_description = "Show/Hide all objects in the Data"
+    bl_description = ("Flip the viewport visibility for all objects in the Data\n"
+                      "(Hidden to Visible and Visible to Hidden)")
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         if context.object is None:
-            self.report({'INFO'}, "Show/Hide: No Object found. Operation Cancelled")
+            self.report({'INFO'},
+                        "Show/Hide: No Object found. Operation Cancelled")
             return {'CANCELLED'}
 
         if context.object.mode != 'OBJECT':
-            self.report({'INFO'}, "Show/Hide: This operation can be performed only in object mode")
+            self.report({'INFO'},
+                        "Show/Hide: This operation can be performed only in object mode")
             return {'CANCELLED'}
 
         for i in bpy.data.objects:
@@ -87,7 +93,7 @@ class ShowAllObjects(Operator):
 
 class HideAllObjects(Operator):
     bl_idname = "opr.hide_all_objects"
-    bl_label = "Hide All Objects"
+    bl_label = "Hide All Inactive"
     bl_description = "Hide all inactive objects"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -210,26 +216,29 @@ class HideRenderAllSelected(Operator):
 
         return {'FINISHED'}
 
+
 class OBJECT_OT_HideShowByTypeTemplate():
 
-    bl_options = {'UNDO','REGISTER'}
+    bl_options = {'UNDO', 'REGISTER'}
 
-    type = bpy.props.EnumProperty(items=(
-                        ('MESH', 'Mesh', ''),
-                        ('CURVE', 'Curve', ''),
-                        ('SURFACE', 'Surface', ''),
-                        ('META', 'Meta', ''),
-                        ('FONT', 'Font', ''),
-                        ('ARMATURE', 'Armature', ''),
-                        ('LATTICE', 'Lattice', ''),
-                        ('EMPTY', 'Empty', ''),
-                        ('CAMERA', 'Camera', ''),
-                        ('LAMP', 'Lamp', ''),
-                        ('ALL', 'All', '')),
-            name='Type',
-            description='Type',
+    type = EnumProperty(
+            items=(
+                ('MESH', 'Mesh', ''),
+                ('CURVE', 'Curve', ''),
+                ('SURFACE', 'Surface', ''),
+                ('META', 'Meta', ''),
+                ('FONT', 'Font', ''),
+                ('ARMATURE', 'Armature', ''),
+                ('LATTICE', 'Lattice', ''),
+                ('EMPTY', 'Empty', ''),
+                ('CAMERA', 'Camera', ''),
+                ('LAMP', 'Lamp', ''),
+                ('ALL', 'All', '')),
+            name="Type",
+            description="Type",
             default='LAMP',
-            options={'ANIMATABLE'})
+            options={'ANIMATABLE'}
+            )
 
     def execute(self, context):
 
@@ -245,14 +254,13 @@ class OBJECT_OT_HideShowByTypeTemplate():
 
         # Only Specific Types? + Filter layers
         for obj in objects:
-            for i in range(0,20):
+            for i in range(0, 20):
                 if obj.layers[i] & scene.layers[i]:
                     if self.type == 'ALL' or obj.type == self.type:
                         if obj not in eligible_objects:
                             eligible_objects.append(obj)
         objects = eligible_objects
         eligible_objects = []
-
 
         # Only Render Restricted?
         if self.hide_render_restricted:
@@ -272,46 +280,50 @@ class OBJECT_OT_HideShowByTypeTemplate():
         return self.execute(context)
 
 
-## show hide by type ## by Felix Schlitter
+# show hide by type # by Felix Schlitter
 class OBJECT_OT_HideByType(OBJECT_OT_HideShowByTypeTemplate, Operator):
-    bl_idname = 'object.hide_by_type'
-    bl_label = 'Hide By Type'
-    hide_or_show = bpy.props.BoolProperty(
-        name="Hide",
-        description="Inverse effect",
-        options={'HIDDEN'},
-        default=1
-        )
-    hide_selected = bpy.props.BoolProperty(
-        name="Selected",
-        description="Hide only selected objects",
-        default=0
-        )
-    hide_render_restricted = bpy.props.BoolProperty(
-        name="Only Render-Restricted",
-        description="Hide only render restricted objects",
-        default=0
-        )
+    bl_idname = "object.hide_by_type"
+    bl_label = "Hide By Type"
+
+    hide_or_show = BoolProperty(
+            name="Hide",
+            description="Inverse effect",
+            options={'HIDDEN'},
+            default=1
+            )
+    hide_selected = BoolProperty(
+            name="Selected",
+            description="Hide only selected objects",
+            default=0
+            )
+    hide_render_restricted = BoolProperty(
+            name="Only Render-Restricted",
+            description="Hide only render restricted objects",
+            default=0
+            )
+
 
 class OBJECT_OT_ShowByType(OBJECT_OT_HideShowByTypeTemplate, Operator):
-    bl_idname = 'object.show_by_type'
-    bl_label = 'Show By Type'
-    hide_or_show = bpy.props.BoolProperty(
-        name="Hide",
-        description="Inverse effect",
-        options={'HIDDEN'},
-        default=0
-        )
-    hide_selected = bpy.props.BoolProperty(
-        name="Selected",
-        options={'HIDDEN'},
-        default=0
-        )
-    hide_render_restricted = bpy.props.BoolProperty(
-        name="Only Renderable",
-        description="Show only non render restricted objects",
-        default=0
-        )
+    bl_idname = "object.show_by_type"
+    bl_label = "Show By Type"
+
+    hide_or_show = BoolProperty(
+            name="Hide",
+            description="Inverse effect",
+            options={'HIDDEN'},
+            default=0
+            )
+    hide_selected = BoolProperty(
+            name="Selected",
+            options={'HIDDEN'},
+            default=0
+            )
+    hide_render_restricted = BoolProperty(
+            name="Only Renderable",
+            description="Show only non render restricted objects",
+            default=0
+            )
+
 
 # Register
 def register():

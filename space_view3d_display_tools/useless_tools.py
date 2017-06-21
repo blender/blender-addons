@@ -20,12 +20,11 @@ bl_info = {
     "name": "Useless Tools",
     "description": "Just a little collection of scripts and tools I use daily",
     "author": "Greg Zaal",
-    "version": (1, 2, 1),
+    "version": (1, 2, 2),
     "blender": (2, 75, 0),
     "location": "3D View > Tools",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "",
     "category": "Tools"}
 
 
@@ -34,9 +33,14 @@ from bpy.types import Operator
 from bpy.props import BoolProperty
 
 
-def print_errors(lists, operators="useless_tools.py"):
-    if lists:
-        print("\n[%s]\n\n%s\n" % (operators, "\n".join(lists)))
+def error_handlers(self, op_name, errors, reports="ERROR"):
+    if self and reports:
+        self.report({'INFO'},
+                    reports + ": some operations could not be performed "
+                    "(See Console for more info)")
+
+    str_errors = "\n".join(errors)
+    print("\n[Display Tools]\nOperator: {}\nErrors: {}\n".format(op_name, str_errors))
 
 
 class UTSetSelectable(Operator):
@@ -58,9 +62,7 @@ class UTSetSelectable(Operator):
                 name = getattr(obj, "name", "Nameless")
                 errors.append("Error on {} - {}".format(name, k))
         if errors:
-            print_errors(errors, "Operator: ut.set_selectable")
-            self.report({'INFO'},
-                        "Set Selectable: some operations could not be performed (See console for more info)")
+            error_handlers(self, "ut.set_selectable", errors, "Set Selectable")
 
         return {'FINISHED'}
 
@@ -84,9 +86,7 @@ class UTSetRenderable(Operator):
                 name = getattr(obj, "name", "Nameless")
                 errors.append("Error on {} - {}".format(name, k))
         if errors:
-            print_errors(errors, "Operator: ut.set_renderable")
-            self.report({'INFO'},
-                        "Set Renderable: some operations could not be performed (See console for more info)")
+            error_handlers(self, "ut.set_renderable", errors, "Set Renderable")
 
         return {'FINISHED'}
 
@@ -105,9 +105,7 @@ class UTAllSelectable(Operator):
                 name = getattr(obj, "name", "Nameless")
                 errors.append("Error on {} - {}".format(name, k))
         if errors:
-            print_errors(errors, "Operator: ut.all_selectable")
-            self.report({'INFO'},
-                        "All Selectable: some operations could not be performed (See console for more info)")
+            error_handlers(self, "ut.all_selectable", errors, "All Selectable")
 
         return {'FINISHED'}
 
@@ -126,9 +124,8 @@ class UTAllRenderable(Operator):
                 name = getattr(obj, "name", "Nameless")
                 errors.append("Error on {} - {}".format(name, k))
         if errors:
-            print_errors(errors, "Operator: ut.all_renderable")
-            self.report({'INFO'},
-                        "All Renderable: some operations could not be performed (See console for more info)")
+            error_handlers(self, "ut.all_renderable", errors, "All Renderable")
+
         return {'FINISHED'}
 
 
@@ -151,9 +148,7 @@ class UTSelNGon(Operator):
         except Exception as k:
             errors.append("Error - {}".format(k))
         if errors:
-            print_errors(errors, "Operator: ut.select_ngons")
-            self.report({'INFO'},
-                        "Select NGons: some operations could not be performed (See console for more info)")
+            error_handlers(self, "ut.select_ngons", errors, "Select NGons")
 
         return {'FINISHED'}
 
@@ -164,11 +159,11 @@ class UTWireShowHideSelAll(Operator):
     bl_description = "Change the status of the Wire display on Selected Objects"
 
     show = BoolProperty(
-                default=False
-                )
+            default=False
+            )
     selected = BoolProperty(
-                default=False
-                )
+            default=False
+            )
 
     @classmethod
     def poll(cls, context):
@@ -184,9 +179,8 @@ class UTWireShowHideSelAll(Operator):
                 name = getattr(e, "name", "Nameless")
                 errors.append("Error on {} - {}".format(name, k))
         if errors:
-            print_errors(errors, "Operator: ut.wire_show_hide")
-            self.report({'INFO'},
-                        "Show/Hide Wire: some operations could not be performed (See console for more info)")
+            error_handlers(self, "ut.wire_show_hide", errors,
+                           "Show / Hide Wire Selected or All")
 
         return {'FINISHED'}
 
@@ -199,11 +193,11 @@ class UTSubsurfHideSelAll(Operator):
                       "Hide All and Show All operate on All Objects in the data")
 
     show = BoolProperty(
-                default=False
-                )
+            default=False
+            )
     selected = BoolProperty(
-                default=False
-                )
+            default=False
+            )
 
     def execute(self, context):
         errors = []
@@ -217,9 +211,7 @@ class UTSubsurfHideSelAll(Operator):
                 errors.append(
                     "No subsurf on {} or it is not named Subsurf\nError: {}".format(name, k))
         if errors:
-            print_errors(errors, "Operator: ut.subsurf_show_hide")
-            self.report({'INFO'},
-                        "Subsurf Show/Hide: some operations could not be performed (See console for more info)")
+            error_handlers(self, "ut.subsurf_show_hide", errors, "Subsurf Show/Hide")
 
         return {'FINISHED'}
 
@@ -230,11 +222,11 @@ class UTOptimalDisplaySelAll(Operator):
     bl_description = "Disables Optimal Display for all Subsurf modifiers on objects"
 
     on = BoolProperty(
-                default=False
-                )
+            default=False
+            )
     selected = BoolProperty(
-                default=False
-                )
+            default=False
+            )
 
     def execute(self, context):
         errors = []
@@ -248,9 +240,7 @@ class UTOptimalDisplaySelAll(Operator):
                 errors.append(
                     "No subsurf on {} or it is not named Subsurf\nError: {}".format(name, k))
         if errors:
-            print_errors(errors, "Operator: ut.optimaldisplay")
-            self.report({'INFO'},
-                        "Optimal Display: some operations could not be performed (See console for more info)")
+            error_handlers(self, "ut.optimaldisplay", errors, "Optimal Display")
 
         return {'FINISHED'}
 
@@ -274,9 +264,7 @@ class UTAllEdges(Operator):
                 errors.append(
                     "Enabling All Edges  on {} \nError: {}".format(name, k))
         if errors:
-            print_errors(errors, "Operator: ut.all_edges")
-            self.report({'INFO'},
-                        "Enable All Edges: some operations could not be performed (See console for more info)")
+            error_handlers(self, "ut.all_edges", errors, "All Edges")
 
         return {'FINISHED'}
 
@@ -287,8 +275,8 @@ class UTDoubleSided(Operator):
     bl_description = "Disables Double Sided Normals for all objects"
 
     on = BoolProperty(
-                default=False
-                )
+            default=False
+            )
 
     def execute(self, context):
         errors = []
@@ -300,9 +288,8 @@ class UTDoubleSided(Operator):
                 errors.append(
                     "Applying Double Sided Normals on {} \nError: {}".format(name, k))
         if errors:
-            print_errors(errors, "Operator: ut.double_sided")
-            self.report({'INFO'},
-                        "Double Sided Normals: some operations could not be performed (See console for more info)")
+            error_handlers(self, "ut.double_sided", errors, "Double Sided Normals")
+
         return {'FINISHED'}
 
 

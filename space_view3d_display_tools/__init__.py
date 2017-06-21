@@ -1,7 +1,7 @@
 # space_view_3d_display_tools.py Copyright (C) 2014, Jordi Vall-llovera
 # Multiple display tools for fast navigate/interact with the viewport
 
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,21 +17,23 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# ***** END GPL LICENCE BLOCK *****
-# Contributed to by Jasperge, Pixaal, Meta-androcto, Lapineige, lijenstina
+# ##### END GPL LICENCE BLOCK #####
+# Contributed to by:
+# Jasperge, Pixaal, Meta-androcto, Lapineige, lijenstina,
+# Felix Schlitter, Ales Sidenko, Jakub Belcik
 
 bl_info = {
     "name": "Display Tools",
     "author": "Jordi Vall-llovera Medina, Jhon Wallace",
-    "version": (1, 6, 1),
+    "version": (1, 6, 3),
     "blender": (2, 7, 0),
     "location": "Toolshelf",
     "description": "Display tools for fast navigation/interaction with the viewport",
     "warning": "",
-    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/"
-                "3D_interaction/Display_Tools",
-    "tracker_url": "",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/"
+                "Py/Scripts/3D_interaction/Display_Tools",
     "category": "3D View"}
+
 
 # Import From Files
 if "bpy" in locals():
@@ -78,16 +80,18 @@ class DisplayToolsPanel(Panel):
     bl_category = "Display"
     bl_options = {'DEFAULT_CLOSED'}
 
-    draw_type_icons = {'BOUNDS': 'BBOX',
-                       'WIRE': 'WIRE',
-                       'SOLID': 'SOLID',
-                       'TEXTURED': 'POTATO'
-                        }
-    bounds_icons = {'BOX': 'MESH_CUBE',
-                    'SPHERE': 'MATSPHERE',
-                    'CYLINDER': 'MESH_CYLINDER',
-                    'CONE': 'MESH_CONE'
-                    }
+    draw_type_icons = {
+            'BOUNDS': 'BBOX',
+            'WIRE': 'WIRE',
+            'SOLID': 'SOLID',
+            'TEXTURED': 'POTATO'
+            }
+    bounds_icons = {
+            'BOX': 'MESH_CUBE',
+            'SPHERE': 'MATSPHERE',
+            'CYLINDER': 'MESH_CYLINDER',
+            'CONE': 'MESH_CONE'
+            }
 
     def draw(self, context):
         scene = context.scene
@@ -307,6 +311,7 @@ class DisplayToolsPanel(Panel):
         col = box1.column(align=True)
         row = col.row(align=True)
         row.prop(display_tools, "UiTabDrop", index=3, text="Modifiers", icon=icon_active_3)
+
         if not MODIFIERDROP:
             mod_all_hide = row.operator("ut.subsurf_show_hide", icon="MOD_SOLIDIFY", text="")
             mod_all_hide.show = False
@@ -387,11 +392,12 @@ class DisplayToolsPanel(Panel):
         col = box1.column(align=True)
         row = col.row(align=True)
         row.prop(display_tools, "UiTabDrop", index=4, text="Selection", icon=icon_active_4)
+
         if not SELECT2DROP:
-            row.operator("view3d.select_border", icon="MESH_PLANE", text="",)
-            row.operator("view3d.select_circle",icon="MESH_CIRCLE", text="")
+            row.operator("view3d.select_border", text="", icon="MESH_PLANE")
+            row.operator("view3d.select_circle", text="", icon="MESH_CIRCLE")
+            row.label(text="", icon="BLANK1")
         else:
-            col = layout.column(align=True)
             if obj and obj.mode == 'OBJECT':
                 col = layout.column(align=True)
                 col.label(text="Render Visibility:")
@@ -400,44 +406,41 @@ class DisplayToolsPanel(Panel):
                 col.label(text="Show/Hide:")
                 col.operator("opr.show_hide_object", text="Show/Hide", icon="GHOST_ENABLED")
                 col.operator("opr.show_all_objects", text="Show All", icon="RESTRICT_VIEW_OFF")
-                col.operator("opr.hide_all_objects", text="Hide All", icon="RESTRICT_VIEW_ON")
+                col.operator("opr.hide_all_objects", text="Hide Inactive", icon="RESTRICT_VIEW_ON")
 
             if obj:
                 if obj.mode == 'OBJECT':
-                    layout.operator_menu_enum("object.show_by_type", "type", text="Show By Type")
-                    layout.operator_menu_enum("object.hide_by_type", "type", text="Hide By Type")
-                    layout.label(text="Selection:")
-                    layout.operator_menu_enum("object.select_by_type", "type", text="Select All by Type...")
                     col = layout.column(align=True)
-                    col.operator("opr.select_all", icon="MOD_MESHDEFORM")
-                    col.operator("opr.inverse_selection", icon="MOD_REMESH")
+                    col.operator_menu_enum("object.show_by_type", "type", text="Show By Type")
+                    col.operator_menu_enum("object.hide_by_type", "type", text="Hide By Type")
+                    layout.label(text="Selection:")
+                    col = layout.column(align=True)
+                    col.operator_menu_enum("object.select_by_type", "type",
+                                           text="Select All by Type...")
 
                 if obj_type == 'MESH' and obj.mode == 'EDIT':
                     col = layout.column(align=True)
-                    col.operator("opr.select_all", icon="MOD_MESHDEFORM")
-                    col.operator("opr.inverse_selection", icon="MOD_REMESH")
-
-                    col = layout.column(align=True)
                     col.operator("mesh.select_linked", icon="ROTATECOLLECTION")
                     col.operator("opr.loop_multi_select", icon="OUTLINER_DATA_MESH")
-            else:
-                col = layout.column(align=True)
-                col.operator("opr.select_all", icon="MOD_MESHDEFORM")
-                col.operator("opr.inverse_selection", icon="MOD_REMESH")
 
-
+            col = layout.column(align=True)
+            col.operator("opr.select_all", icon="MOD_MESHDEFORM")
+            col.operator("opr.inverse_selection", icon="MOD_REMESH")
 
         # fast nav options
-        col.separator()
         box1 = layout.box()
         col = box1.column(align=True)
         row = col.row(align=True)
         row.prop(display_tools, "UiTabDrop", index=5, text="Fast Nav", icon=icon_active_5)
 
-        if FASTNAVDROP:
+        if not FASTNAVDROP:
+            row.operator("view3d.fast_navigate_operator", text="", icon="NEXT_KEYFRAME")
+            row.operator("view3d.fast_navigate_stop", text="", icon="PANEL_CLOSE")
+            row.label(text="", icon="BLANK1")
+        else:
             col = layout.column(align=True)
-            col.operator("view3d.fast_navigate_operator")
-            col.operator("view3d.fast_navigate_stop")
+            col.operator("view3d.fast_navigate_operator", icon="NEXT_KEYFRAME")
+            col.operator("view3d.fast_navigate_stop", icon="PANEL_CLOSE")
 
             layout.label("Settings:")
             layout.prop(display_tools, "OriginalMode")
@@ -537,23 +540,23 @@ class display_tools_scene_props(PropertyGroup):
             description="Enter an integer"
             )
     ScreenStart = IntProperty(
-                name="Left Limit",
-                default=0,
-                min=0,
-                max=1024,
-                subtype='PIXEL',
-                description="Limit the screen active area width from the left side\n"
-                            "Changed values will take effect on the next run",
-                )
+            name="Left Limit",
+            default=0,
+            min=0,
+            max=1024,
+            subtype='PIXEL',
+            description="Limit the screen active area width from the left side\n"
+                        "Changed values will take effect on the next run",
+            )
     ScreenEnd = IntProperty(
-                name="Right Limit",
-                default=0,
-                min=0,
-                max=1024,
-                subtype='PIXEL',
-                description="Limit the screen active area width from the right side\n"
-                            "Changed values will take effect on the next run",
-                )
+            name="Right Limit",
+            default=0,
+            min=0,
+            max=1024,
+            subtype='PIXEL',
+            description="Limit the screen active area width from the right side\n"
+                        "Changed values will take effect on the next run",
+            )
     # Define the UI drop down prop
     UiTabDrop = BoolVectorProperty(
             name="Tab",
@@ -571,9 +574,9 @@ class display_tools_scene_props(PropertyGroup):
 
 # Addons Preferences Update Panel
 # Define Panels for updating
-panels = [
-        DisplayToolsPanel
-        ]
+panels = (
+    DisplayToolsPanel,
+    )
 
 
 def update_panel(self, context):
@@ -622,6 +625,7 @@ def DRAW_hide_by_type_MENU(self, context):
         "type", text="Show By Type"
         )
 
+
 # register the classes and props
 def register():
     bpy.utils.register_module(__name__)
@@ -635,10 +639,10 @@ def register():
 
 
 def unregister():
-    del bpy.types.Scene.display_tools
     selection_restrictor.unregister()
     bpy.types.VIEW3D_MT_object_showhide.remove(DRAW_hide_by_type_MENU)
     bpy.utils.unregister_module(__name__)
+    del bpy.types.Scene.display_tools
 
 
 if __name__ == "__main__":

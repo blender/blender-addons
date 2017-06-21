@@ -1,9 +1,7 @@
 # space_view_3d_display_tools.py Copyright (C) 2014, Jordi Vall-llovera
-#
 # Multiple display tools for fast navigate/interact with the viewport
-#
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
+
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -19,7 +17,7 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENCE BLOCK #####
 
 bl_info = {
     "name": "shade Tools",
@@ -29,10 +27,9 @@ bl_info = {
     "location": "Toolshelf",
     "description": "Display tools for fast navigate/interact with the viewport",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/"
-                "3D_interaction/Display_Tools",
-    "tracker_url": "",
-    "category": "Addon Factory"}
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/"
+                "Py/Scripts/3D_interaction/Display_Tools",
+    "category": "3D View"}
 
 
 import bpy
