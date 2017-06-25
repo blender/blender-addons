@@ -16,17 +16,22 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import bpy, os, random
-from bpy.props import IntProperty, BoolProperty, StringProperty
+# Note: the Operator LoadRandomEditOperator was removed since is not
+# working. If it is fixed, reimplemented it can be reintroduced later
 
+import bpy
+from bpy.types import (
+        Operator,
+        Panel,
+        )
 from . import functions
 
-# CLASSES
 
-class RandomScratchOperator(bpy.types.Operator):
-    """ Random Scratch Operator """
+# classes
+class RandomScratchOperator(Operator):
     bl_idname = "sequencer.randomscratchoperator"
     bl_label = "Random Scratch Operator"
+    bl_description = "Random Scratch Operator"
 
     @classmethod
     def poll(self, context):
@@ -38,21 +43,21 @@ class RandomScratchOperator(bpy.types.Operator):
             return False
 
     def invoke(self, context, event):
-        
         preferences = context.user_preferences
         random_frames = preferences.addons[__package__].preferences.random_frames
 
         sce = context.scene
-        seq=sce.sequence_editor
-        markers=sce.timeline_markers
+        seq = sce.sequence_editor
+        markers = sce.timeline_markers
+
         if seq:
-            strip= seq.active_strip
-            if strip != None:
+            strip = seq.active_strip
+            if strip is not None:
                 if "IN" and "OUT" in markers:
-                    sin=markers["IN"].frame
-                    sout=markers["OUT"].frame
-                    
-                    # select active strip 
+                    sin = markers["IN"].frame
+                    sout = markers["OUT"].frame
+
+                    # select active strip
                     strip = context.scene.sequence_editor.active_strip
                     stripname = strip.name
                     # collect strip names inside the meta
@@ -62,120 +67,42 @@ class RandomScratchOperator(bpy.types.Operator):
                         stripnames.append(i.name)
                     # get strip channel
                     channel = strip.channel
-                    repeat = range(int((sout-sin)/random_frames))
-                    print(sin, sout, sout-sin, (sout-sin)/random_frames, repeat)
+                    repeat = range(int((sout - sin) / random_frames))
+                    print(sin, sout, sout - sin, (sout - sin) / random_frames, repeat)
+
                     for i in repeat:
-                        
                         # select all related strips
                         for j in stripnames:
                             strip = seq.sequences_all[j]
                             strip.select = True
-                        strip = seq.sequences_all[stripname]    
+                        strip = seq.sequences_all[stripname]
                         seq.active_strip = strip
                         # deselect all other strips
                         for j in context.selected_editable_sequences:
                             if j.name not in stripnames:
-                                j.select=False
+                                j.select = False
                         a = bpy.ops.sequencer.duplicate_move()
                         # select new strip
                         newstrip = seq.active_strip
                         # deselect all other strips
+
                         for j in context.selected_editable_sequences:
                             if j.name != newstrip.name:
-                                j.select=False
+                                j.select = False
                         # random cut
                         newstrip.frame_start = sin + i * random_frames
                         rand = functions.randomframe(newstrip)
                         functions.triminout(newstrip, rand, rand + random_frames)
                         newstrip.frame_start = i * random_frames + sin - newstrip.frame_offset_start
                         newstrip.channel = channel + 1
-                
-                
                 else:
-                    self.report({'WARNING'}, "there is no IN and OUT")
-            bpy.ops.sequencer.reload()                   
-        return {'FINISHED'} 
+                    self.report({'WARNING'}, "There is no IN and OUT Markers")
+            bpy.ops.sequencer.reload()
+
+        return {'FINISHED'}
 
 
-class LoadRandomEditOperator(bpy.types.Operator):
-    """ Random Editor Operator """
-    bl_idname = "sequencer.loadrandomeditoperator"
-    bl_label = "Random Editor Operator"
-
-    @classmethod
-    def poll(self, context):
-        strip = functions.act_strip(context)
-        scn = context.scene
-        if scn and scn.sequence_editor and scn.sequence_editor.active_strip:
-            return strip.type in ('META')
-        else:
-            return False
-
-    def invoke(self, context, event):
-        
-        #generate sources_dict
-        sources_dict = functions.get_marker_dict(random_selected_scene, random_number_of_subsets)
-        print("sources: ",sources_dict)
-            
-        #generate cut_list
-        cut_dict = functions.get_cut_dict(currentscene, random_number_of_subsets)  
-        print("cuts: ",cut_dict)
-        
-        #generate random_edit
-        random_edit = functions.random_edit_from_random_subset(cut_dict, sources_dict)    
-        print("random edit")
-        for i in random_edit: print("fr {}: dur: {} / {} {}".format(i[0],i[1],i[2],i[3]))
-        
-        sce = bpy.context.scene
-        seq=sce.sequence_editor
-        markers=sce.timeline_markers
-        strip= seq.active_strip
-        stripname = strip.name
-        if "IN" and "OUT" in markers:
-            sin=markers["IN"].frame
-            sout=markers["OUT"].frame    
-            # collect strip names inside the meta
-            stripnames = []
-            stripnames.append(strip.name)
-            for i in seq.active_strip.sequences:
-                stripnames.append(i.name)
-            # get strip channel
-            channel = strip.channel
-            #repeat = range(int((sout-sin)/random_frames))
-            #print(sin, sout, sout-sin, (sout-sin)/random_frames, repeat)
-            for i in random_edit:    
-                # select all related strips
-                for j in stripnames:
-                    strip = seq.sequences_all[j]
-                    strip.select = True
-                strip = seq.sequences_all[stripname]    
-                seq.active_strip = strip
-                # deselect all other strips
-                for j in bpy.context.selected_editable_sequences:
-                    if j.name not in stripnames:
-                        j.select=False
-                        
-                a = bpy.ops.sequencer.duplicate_move()
-                # select new strip
-                newstrip = seq.active_strip
-                # deselect all other strips
-                for j in bpy.context.selected_editable_sequences:
-                    if j.name != newstrip.name:
-                        j.select=False
-                # random cut
-                #newstrip.frame_start = sin + i * random_frames
-                #rand = functions.randomframe(newstrip)
-                functions.triminout(newstrip, MARKER, MARKER+DURATION)
-                newstrip.frame_start = i * random_frames + sin - newstrip.frame_offset_start
-                newstrip.channel = channel + 1
-        else:
-            self.report({'WARNING'}, "there is no IN and OUT")
-        bpy.ops.sequencer.reload()             
-        return {'FINISHED'}      
-
-    
-class RandomEditorPanel(bpy.types.Panel):
-    """-_-_-"""
+class RandomEditorPanel(Panel):
     bl_label = "Random Editor"
     bl_idname = "OBJECT_PT_RandomEditor"
     bl_space_type = 'SEQUENCE_EDITOR'
@@ -184,7 +111,7 @@ class RandomEditorPanel(bpy.types.Panel):
     @classmethod
     def poll(self, context):
         if context.space_data.view_type in {'SEQUENCER',
-            'SEQUENCER_PREVIEW'}:
+                                            'SEQUENCER_PREVIEW'}:
             strip = functions.act_strip(context)
             scn = context.scene
             preferences = context.user_preferences
@@ -205,14 +132,7 @@ class RandomEditorPanel(bpy.types.Panel):
         prefs = preferences.addons[__package__].preferences
 
         layout = self.layout
-        layout.label("______ cut duration:)")
-        layout = self.layout
-        layout.prop(prefs, "random_frames")
-        layout = self.layout
-        layout.operator("sequencer.randomscratchoperator")
-        layout = self.layout
-        layout.operator("sequencer.loadrandomeditoperator")
-        
-        
-
-
+        col = layout.column(align=True)
+        col.label("Cut duration:")
+        col.prop(prefs, "random_frames")
+        col.operator("sequencer.randomscratchoperator")

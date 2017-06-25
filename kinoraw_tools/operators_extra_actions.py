@@ -17,45 +17,43 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-
-import random
-import math
-import os, sys
-
-from bpy.props import IntProperty
-from bpy.props import FloatProperty
-from bpy.props import EnumProperty
-from bpy.props import BoolProperty
-from bpy.props import StringProperty
-
+import os
+from bpy.types import Operator
+from bpy.props import (
+        IntProperty,
+        FloatProperty,
+        EnumProperty,
+        BoolProperty,
+        )
 from . import functions
-from . import exiftool
 
-# ------------------------------
 
-# SKIP ONE SECOND
-class Sequencer_Extra_FrameSkip(bpy.types.Operator):
-    bl_label = 'Skip One Second'
-    bl_idname = 'screenextra.frame_skip'
-    bl_description = 'Skip through the Timeline by one-second increments'
+# Skip one second
+class Sequencer_Extra_FrameSkip(Operator):
+    bl_label = "Skip One Second"
+    bl_idname = "screenextra.frame_skip"
+    bl_description = "Skip through the Timeline by one-second increments"
     bl_options = {'REGISTER', 'UNDO'}
+
     back = BoolProperty(
-        name='Back',
-        default=False)
+            name="Back",
+            default=False
+            )
 
     def execute(self, context):
         one_second = bpy.context.scene.render.fps
-        if self.back == True:
+        if self.back is True:
             one_second *= -1
         bpy.ops.screen.frame_offset(delta=one_second)
+
         return {'FINISHED'}
 
-   
-# TRIM TIMELINE
-class Sequencer_Extra_TrimTimeline(bpy.types.Operator):
-    bl_label = 'Trim to Timeline Content'
-    bl_idname = 'timeextra.trimtimeline'
-    bl_description = 'Automatically set start and end frames'
+
+# Trim timeline
+class Sequencer_Extra_TrimTimeline(Operator):
+    bl_label = "Trim to Timeline Content"
+    bl_idname = "timeextra.trimtimeline"
+    bl_description = "Automatically set start and end frames"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -88,17 +86,17 @@ class Sequencer_Extra_TrimTimeline(bpy.types.Operator):
             scn.frame_start = frame_start
         if frame_end != -300000:
             scn.frame_end = frame_end
-            
+
         bpy.ops.sequencer.view_all()
 
         return {'FINISHED'}
 
 
-# TRIM TIMELINE TO SELECTION
-class Sequencer_Extra_TrimTimelineToSelection(bpy.types.Operator):
-    bl_label = 'Trim to Selection'
-    bl_idname = 'timeextra.trimtimelinetoselection'
-    bl_description = 'Set start and end frames to selection'
+# Trim timeline to selection
+class Sequencer_Extra_TrimTimelineToSelection(Operator):
+    bl_label = "Trim to Selection"
+    bl_idname = "timeextra.trimtimelinetoselection"
+    bl_description = "Set start and end frames to selection"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -120,9 +118,9 @@ class Sequencer_Extra_TrimTimelineToSelection(bpy.types.Operator):
         frame_end = -300000
         for i in seq.sequences:
             try:
-                if i.frame_final_start < frame_start and i.select == True:
+                if i.frame_final_start < frame_start and i.select is True:
                     frame_start = i.frame_final_start
-                if i.frame_final_end > frame_end and i.select == True:
+                if i.frame_final_end > frame_end and i.select is True:
                     frame_end = i.frame_final_end - 1
             except AttributeError:
                     pass
@@ -131,26 +129,25 @@ class Sequencer_Extra_TrimTimelineToSelection(bpy.types.Operator):
             scn.frame_start = frame_start
         if frame_end != -300000:
             scn.frame_end = frame_end
-            
+
         bpy.ops.sequencer.view_selected()
         return {'FINISHED'}
 
-# ------------------------------
 
-
-# OPEN IMAGE WITH EDITOR AND create movie clip strip
-class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
-    bl_label = 'Create a Movieclip from selected strip'
-    bl_idname = 'sequencerextra.createmovieclip'
-    bl_description = 'Create a Movieclip strip from a MOVIE or IMAGE strip'
-
-    """
+# Open image with editor and create movie clip strip
+"""
     When a movie or image strip is selected, this operator creates a movieclip
     or find the correspondent movieclip that already exists for this footage,
     and add a VSE clip strip with same cuts the original strip has.
     It can convert movie strips and image sequences, both with hard cuts or
     soft cuts.
-    """
+"""
+
+
+class Sequencer_Extra_CreateMovieclip(Operator):
+    bl_label = "Create a Movieclip from selected strip"
+    bl_idname = "sequencerextra.createmovieclip"
+    bl_description = "Create a Movieclip strip from a MOVIE or IMAGE strip"
 
     @classmethod
     def poll(self, context):
@@ -166,26 +163,27 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
         scn = context.scene
 
         if strip.type == 'MOVIE':
-            #print("movie", strip.frame_start)
             path = strip.filepath
-            #print(path)
             data_exists = False
+
             for i in bpy.data.movieclips:
                 if i.filepath == path:
                     data_exists = True
                     data = i
             newstrip = None
-            if data_exists == False:
+            if data_exists is False:
                 try:
                     data = bpy.data.movieclips.load(filepath=path)
-                    newstrip = bpy.ops.sequencer.movieclip_strip_add(\
-                        replace_sel=True, overlap=False, clip=data.name)
+                    newstrip = bpy.ops.sequencer.movieclip_strip_add(
+                                        replace_sel=True, overlap=False,
+                                        clip=data.name
+                                        )
                     newstrip = functions.act_strip(context)
                     newstrip.frame_start = strip.frame_start\
                         - strip.animation_offset_start
                     tin = strip.frame_offset_start + strip.frame_start
                     tout = tin + strip.frame_final_duration
-                    #print(newstrip.frame_start, strip.frame_start, tin, tout)
+                    # print(newstrip.frame_start, strip.frame_start, tin, tout)
                     functions.triminout(newstrip, tin, tout)
                 except:
                     self.report({'ERROR_INVALID_INPUT'}, 'Error loading file')
@@ -193,84 +191,91 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
 
             else:
                 try:
-                    newstrip = bpy.ops.sequencer.movieclip_strip_add(\
-                        replace_sel=True, overlap=False, clip=data.name)
+                    newstrip = bpy.ops.sequencer.movieclip_strip_add(
+                                            replace_sel=True, overlap=False,
+                                            clip=data.name
+                                            )
                     newstrip = functions.act_strip(context)
                     newstrip.frame_start = strip.frame_start\
                         - strip.animation_offset_start
                     # i need to declare the strip this way in order
                     # to get triminout() working
-                    clip = bpy.context.scene.sequence_editor.sequences[\
-                        newstrip.name]
+                    clip = bpy.context.scene.sequence_editor.sequences[
+                                                                newstrip.name
+                                                                ]
                     # i cannot change these movie clip attributes via scripts
                     # but it works in the python console...
-                    #clip.animation_offset_start = strip.animation.offset_start
-                    #clip.animation_offset_end = strip.animation.offset_end
-                    #clip.frame_final_duration = strip.frame_final_duration
+                    # clip.animation_offset_start = strip.animation.offset_start
+                    # clip.animation_offset_end = strip.animation.offset_end
+                    # clip.frame_final_duration = strip.frame_final_duration
                     tin = strip.frame_offset_start + strip.frame_start
                     tout = tin + strip.frame_final_duration
-                    #print(newstrip.frame_start, strip.frame_start, tin, tout)
+                    # print(newstrip.frame_start, strip.frame_start, tin, tout)
                     functions.triminout(clip, tin, tout)
                 except:
                     self.report({'ERROR_INVALID_INPUT'}, 'Error loading file')
                     return {'CANCELLED'}
 
         elif strip.type == 'IMAGE':
-            #print("image")
+            # print("image")
             base_dir = bpy.path.abspath(strip.directory)
-            scn.frame_current = strip.frame_start -\
-                strip.animation_offset_start
+            scn.frame_current = strip.frame_start - strip.animation_offset_start
+
             # searching for the first frame of the sequencer. This is mandatory
             # for hard cutted sequence strips to be correctly converted,
             # avoiding to create a new movie clip if not needed
             filename = sorted(os.listdir(base_dir))[0]
             path = os.path.join(base_dir, filename)
-            #print(path)
+            # print(path)
             data_exists = False
             for i in bpy.data.movieclips:
-                #print(i.filepath, path)
+                # print(i.filepath, path)
                 if i.filepath == path:
                     data_exists = True
                     data = i
-            #print(data_exists)
-            if data_exists == False:
+            # print(data_exists)
+            if data_exists is False:
                 try:
                     data = bpy.data.movieclips.load(filepath=path)
-                    newstrip = bpy.ops.sequencer.movieclip_strip_add(\
-                        replace_sel=True, overlap=False,\
-                        clip=data.name)
+                    newstrip = bpy.ops.sequencer.movieclip_strip_add(
+                                        replace_sel=True, overlap=False,
+                                        clip=data.name
+                                        )
                     newstrip = functions.act_strip(context)
                     newstrip.frame_start = strip.frame_start\
                         - strip.animation_offset_start
-                    clip = bpy.context.scene.sequence_editor.sequences[\
-                    newstrip.name]
+                    clip = bpy.context.scene.sequence_editor.sequences[
+                                                                newstrip.name
+                                                                ]
                     tin = strip.frame_offset_start + strip.frame_start
                     tout = tin + strip.frame_final_duration
-                    #print(newstrip.frame_start, strip.frame_start, tin, tout)
+                    # print(newstrip.frame_start, strip.frame_start, tin, tout)
                     functions.triminout(clip, tin, tout)
                 except:
                     self.report({'ERROR_INVALID_INPUT'}, 'Error loading file')
                     return {'CANCELLED'}
-
             else:
                 try:
-                    newstrip = bpy.ops.sequencer.movieclip_strip_add(\
-                        replace_sel=True, overlap=False, clip=data.name)
+                    newstrip = bpy.ops.sequencer.movieclip_strip_add(
+                                            replace_sel=True, overlap=False,
+                                            clip=data.name
+                                            )
                     newstrip = functions.act_strip(context)
                     newstrip.frame_start = strip.frame_start\
                         - strip.animation_offset_start
                     # need to declare the strip this way in order
                     # to get triminout() working
-                    clip = bpy.context.scene.sequence_editor.sequences[\
-                    newstrip.name]
+                    clip = bpy.context.scene.sequence_editor.sequences[
+                                                                newstrip.name
+                                                                ]
                     # cannot change this atributes via scripts...
                     # but it works in the python console...
-                    #clip.animation_offset_start = strip.animation.offset_start
-                    #clip.animation_offset_end = strip.animation.offset_end
-                    #clip.frame_final_duration = strip.frame_final_duration
+                    # clip.animation_offset_start = strip.animation.offset_start
+                    # clip.animation_offset_end = strip.animation.offset_end
+                    # clip.frame_final_duration = strip.frame_final_duration
                     tin = strip.frame_offset_start + strip.frame_start
                     tout = tin + strip.frame_final_duration
-                    #print(newstrip.frame_start, strip.frame_start, tin, tout)
+                    # print(newstrip.frame_start, strip.frame_start, tin, tout)
                     functions.triminout(clip, tin, tout)
                 except:
                     self.report({'ERROR_INVALID_INPUT'}, 'Error loading file')
@@ -285,11 +290,11 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# OPEN IMAGE WITH EDITOR
-class Sequencer_Extra_Edit(bpy.types.Operator):
-    bl_label = 'Open with Editor'
-    bl_idname = 'sequencerextra.edit'
-    bl_description = 'Open with Movie Clip or Image Editor'
+# Open image with editor
+class Sequencer_Extra_Edit(Operator):
+    bl_label = "Open with Editor"
+    bl_idname = "sequencerextra.edit"
+    bl_description = "Open with Movie Clip or Image Editor"
 
     @classmethod
     def poll(self, context):
@@ -313,11 +318,11 @@ class Sequencer_Extra_Edit(bpy.types.Operator):
                     data_exists = True
                     data = i
 
-            if data_exists == False:
+            if data_exists is False:
                 try:
                     data = bpy.data.movieclips.load(filepath=path)
                 except:
-                    self.report({'ERROR_INVALID_INPUT'}, 'Error loading file')
+                    self.report({'ERROR_INVALID_INPUT'}, "Error loading file")
                     return {'CANCELLED'}
 
         elif strip.type == 'IMAGE':
@@ -331,7 +336,7 @@ class Sequencer_Extra_Edit(bpy.types.Operator):
                     data_exists = True
                     data = i
 
-            if data_exists == False:
+            if data_exists is False:
                 try:
                     data = bpy.data.images.load(filepath=path)
                 except:
@@ -350,11 +355,11 @@ class Sequencer_Extra_Edit(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# OPEN IMAGE WITH EXTERNAL EDITOR
-class Sequencer_Extra_EditExternally(bpy.types.Operator):
-    bl_label = 'Open with External Editor'
-    bl_idname = 'sequencerextra.editexternally'
-    bl_description = 'Open with the default external image editor'
+# Open image with external editor
+class Sequencer_Extra_EditExternally(Operator):
+    bl_label = "Open with External Editor"
+    bl_idname = "sequencerextra.editexternally"
+    bl_description = "Open with the default external image editor"
 
     @classmethod
     def poll(self, context):
@@ -376,17 +381,17 @@ class Sequencer_Extra_EditExternally(bpy.types.Operator):
             bpy.ops.image.external_edit(filepath=path)
         except:
             self.report({'ERROR_INVALID_INPUT'},
-            'Please specify an Image Editor in Preferences > File')
+                        "Please specify an Image Editor in Preferences > File")
             return {'CANCELLED'}
 
         return {'FINISHED'}
 
 
-# FILE NAME TO STRIP NAME
-class Sequencer_Extra_FileNameToStripName(bpy.types.Operator):
-    bl_label = 'File Name to Selected Strips Name'
-    bl_idname = 'sequencerextra.striprename'
-    bl_description = 'Set strip name to input file name'
+# File name to strip name
+class Sequencer_Extra_FileNameToStripName(Operator):
+    bl_label = "File Name to Selected Strips Name"
+    bl_idname = "sequencerextra.striprename"
+    bl_description = "Set strip name to input file name"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -405,37 +410,32 @@ class Sequencer_Extra_FileNameToStripName(bpy.types.Operator):
             seq = seq.meta_stack[meta_level - 1]
         selection = False
         for i in seq.sequences:
-            if i.select == True:
+            if i.select is True:
                 if i.type == 'IMAGE' and not i.mute:
                     selection = True
                     i.name = i.elements[0].filename
                 if (i.type == 'SOUND' or i.type == 'MOVIE') and not i.mute:
                     selection = True
                     i.name = bpy.path.display_name_from_filepath(i.filepath)
-        if selection == False:
+        if selection is False:
             self.report({'ERROR_INVALID_INPUT'},
-            'No image or movie strip selected')
+                        "No image or movie strip selected")
             return {'CANCELLED'}
         return {'FINISHED'}
 
 
-# ------------------------------
-
-
-# NAVIGATE UP
-class Sequencer_Extra_NavigateUp(bpy.types.Operator):
-    bl_label = 'Navigate Up'
-    bl_idname = 'sequencerextra.navigateup'
-    bl_description = 'Move to Parent Timeline'
+# Navigate up
+class Sequencer_Extra_NavigateUp(Operator):
+    bl_label = "Navigate Up"
+    bl_idname = "sequencerextra.navigateup"
+    bl_description = "Move to Parent Timeline"
 
     @classmethod
     def poll(self, context):
-        strip = functions.act_strip(context)
         try:
             if context.scene.sequence_editor.meta_stack:
                 return True
-            else:
-                return False
+            return False
         except:
             return False
 
@@ -450,19 +450,15 @@ class Sequencer_Extra_NavigateUp(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# ------------------------------
-
-
-# RIPPLE DELETE
-class Sequencer_Extra_RippleDelete(bpy.types.Operator):
-    bl_label = 'Ripple Delete'
-    bl_idname = 'sequencerextra.rippledelete'
-    bl_description = 'Delete a strip and shift back following ones'
+# Ripple delete
+class Sequencer_Extra_RippleDelete(Operator):
+    bl_label = "Ripple Delete"
+    bl_idname = "sequencerextra.rippledelete"
+    bl_description = "Delete a strip and shift back following ones"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(self, context):
-        strip = functions.act_strip(context)
         scn = context.scene
         if scn and scn.sequence_editor and scn.sequence_editor.active_strip:
             return True
@@ -475,7 +471,7 @@ class Sequencer_Extra_RippleDelete(bpy.types.Operator):
         meta_level = len(seq.meta_stack)
         if meta_level > 0:
             seq = seq.meta_stack[meta_level - 1]
-        #strip = functions.act_strip(context)
+        # strip = functions.act_strip(context)
         for strip in context.selected_editable_sequences:
             cut_frame = strip.frame_final_start
             next_edit = 300000
@@ -485,8 +481,8 @@ class Sequencer_Extra_RippleDelete(bpy.types.Operator):
             striplist = []
             for i in seq.sequences:
                 try:
-                    if (i.frame_final_start > cut_frame
-                    and not i.mute):
+                    if (i.frame_final_start > cut_frame and
+                            not i.mute):
                         if i.frame_final_start < next_edit:
                             next_edit = i.frame_final_start
                     if not i.mute:
@@ -508,16 +504,15 @@ class Sequencer_Extra_RippleDelete(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# RIPPLE CUT
-class Sequencer_Extra_RippleCut(bpy.types.Operator):
-    bl_label = 'Ripple Cut'
-    bl_idname = 'sequencerextra.ripplecut'
-    bl_description = 'Move a strip to buffer and shift back following ones'
+# Ripple cut
+class Sequencer_Extra_RippleCut(Operator):
+    bl_label = "Ripple Cut"
+    bl_idname = "sequencerextra.ripplecut"
+    bl_description = "Move a strip to buffer and shift back following ones"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(self, context):
-        strip = functions.act_strip(context)
         scn = context.scene
         if scn and scn.sequence_editor and scn.sequence_editor.active_strip:
             return True
@@ -542,20 +537,21 @@ class Sequencer_Extra_RippleCut(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# INSERT
-class Sequencer_Extra_Insert(bpy.types.Operator):
-    bl_label = 'Insert'
-    bl_idname = 'sequencerextra.insert'
-    bl_description = 'Move active strip to current frame and shift '\
-    'forward following ones'
-    singlechannel = BoolProperty(
-    name='Single Channel',
-    default=False)
+# Insert
+class Sequencer_Extra_Insert(Operator):
+    bl_label = "Insert"
+    bl_idname = "sequencerextra.insert"
+    bl_description = ("Move active strip to current frame and shift "
+                      "forward following ones")
     bl_options = {'REGISTER', 'UNDO'}
+
+    singlechannel = BoolProperty(
+            name="Single Channel",
+            default=False
+            )
 
     @classmethod
     def poll(self, context):
-        strip = functions.act_strip(context)
         scn = context.scene
         if scn and scn.sequence_editor and scn.sequence_editor.active_strip:
             return True
@@ -576,9 +572,9 @@ class Sequencer_Extra_Insert(bpy.types.Operator):
         striplist = []
         for i in seq.sequences:
             try:
-                if (i.frame_final_start >= current_frame
-                and not i.mute):
-                    if self.singlechannel == True:
+                if (i.frame_final_start >= current_frame and
+                        not i.mute):
+                    if self.singlechannel is True:
                         if i.channel == strip.channel:
                             striplist.append(i)
                     else:
@@ -589,14 +585,14 @@ class Sequencer_Extra_Insert(bpy.types.Operator):
             bpy.ops.sequencerextra.selectcurrentframe('EXEC_DEFAULT',
             mode='AFTER')
         except:
-            self.report({'ERROR_INVALID_INPUT'}, 'Execution Error, '\
-            'check your Blender version')
+            self.report({'ERROR_INVALID_INPUT'}, "Execution Error, "
+                        "check your Blender version")
             return {'CANCELLED'}
 
         for i in range(len(striplist)):
             str = striplist[i]
             try:
-                if str.select == True:
+                if str.select is True:
                     str.frame_start += gap
             except AttributeError:
                     pass
@@ -613,61 +609,61 @@ class Sequencer_Extra_Insert(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# COPY STRIP PROPERTIES
-class Sequencer_Extra_CopyProperties(bpy.types.Operator):
-    bl_label = 'Copy Properties'
-    bl_idname = 'sequencerextra.copyproperties'
-    bl_description = 'Copy properties of active strip to selected strips'
+# Copy strip properties
+class Sequencer_Extra_CopyProperties(Operator):
+    bl_label = "Copy Properties"
+    bl_idname = "sequencerextra.copyproperties"
+    bl_description = "Copy properties of active strip to selected strips"
     bl_options = {'REGISTER', 'UNDO'}
 
     prop = EnumProperty(
-    name='Property',
-    items=[
-    # COMMON
-    ('name', 'Name', ''),
-    ('blend_alpha', 'Opacity', ''),
-    ('blend_type', 'Blend Mode', ''),
-    ('animation_offset', 'Input - Trim Duration', ''),
-    # NON-SOUND
-    ('use_translation', 'Input - Image Offset', ''),
-    ('crop', 'Input - Image Crop', ''),
-    ('proxy', 'Proxy / Timecode', ''),
-    ('strobe', 'Filter - Strobe', ''),
-    ('color_multiply', 'Filter - Multiply', ''),
-    ('color_saturation', 'Filter - Saturation', ''),
-    ('deinterlace', 'Filter - De-Interlace', ''),
-    ('flip', 'Filter - Flip', ''),
-    ('float', 'Filter - Convert Float', ''),
-    ('alpha_mode', 'Filter - Alpha Mode', ''),
-    ('reverse', 'Filter - Backwards', ''),
-    # SOUND
-    ('pan', 'Sound - Pan', ''),
-    ('pitch', 'Sound - Pitch', ''),
-    ('volume', 'Sound - Volume', ''),
-    ('cache', 'Sound - Caching', ''),
-    # IMAGE
-    ('directory', 'Image - Directory', ''),
-    # MOVIE
-    ('mpeg_preseek', 'Movie - MPEG Preseek', ''),
-    ('stream_index', 'Movie - Stream Index', ''),
-    # WIPE
-    ('wipe', 'Effect - Wipe', ''),
-    # TRANSFORM
-    ('transform', 'Effect - Transform', ''),
-    # COLOR
-    ('color', 'Effect - Color', ''),
-    # SPEED
-    ('speed', 'Effect - Speed', ''),
-    # MULTICAM
-    ('multicam_source', 'Effect - Multicam Source', ''),
-    # EFFECT
-    ('effect_fader', 'Effect - Effect Fader', ''),
-    ],
-    default='blend_alpha')
+            name="Property",
+            items=[
+                # common
+                ('name', 'Name', ''),
+                ('blend_alpha', 'Opacity', ''),
+                ('blend_type', 'Blend Mode', ''),
+                ('animation_offset', 'Input - Trim Duration', ''),
+                # non-sound
+                ('use_translation', 'Input - Image Offset', ''),
+                ('crop', 'Input - Image Crop', ''),
+                ('proxy', 'Proxy / Timecode', ''),
+                ('strobe', 'Filter - Strobe', ''),
+                ('color_multiply', 'Filter - Multiply', ''),
+                ('color_saturation', 'Filter - Saturation', ''),
+                ('deinterlace', 'Filter - De-Interlace', ''),
+                ('flip', 'Filter - Flip', ''),
+                ('float', 'Filter - Convert Float', ''),
+                ('alpha_mode', 'Filter - Alpha Mode', ''),
+                ('reverse', 'Filter - Backwards', ''),
+                # sound
+                ('pan', 'Sound - Pan', ''),
+                ('pitch', 'Sound - Pitch', ''),
+                ('volume', 'Sound - Volume', ''),
+                ('cache', 'Sound - Caching', ''),
+                # image
+                ('directory', 'Image - Directory', ''),
+                # movie
+                ('mpeg_preseek', 'Movie - MPEG Preseek', ''),
+                ('stream_index', 'Movie - Stream Index', ''),
+                # wipe
+                ('wipe', 'Effect - Wipe', ''),
+                # transform
+                ('transform', 'Effect - Transform', ''),
+                # color
+                ('color', 'Effect - Color', ''),
+                # speed
+                ('speed', 'Effect - Speed', ''),
+                # multicam
+                ('multicam_source', 'Effect - Multicam Source', ''),
+                # effect
+                ('effect_fader', 'Effect - Effect Fader', ''),
+                ],
+            default='blend_alpha'
+            )
 
     @classmethod
     def poll(self, context):
-        strip = functions.act_strip(context)
         scn = context.scene
         if scn and scn.sequence_editor and scn.sequence_editor.active_strip:
             return True
@@ -676,7 +672,6 @@ class Sequencer_Extra_CopyProperties(bpy.types.Operator):
 
     def execute(self, context):
         strip = functions.act_strip(context)
-        selectedstrips = context.selected_editable_sequences
 
         scn = context.scene
         seq = scn.sequence_editor
@@ -685,7 +680,7 @@ class Sequencer_Extra_CopyProperties(bpy.types.Operator):
             seq = seq.meta_stack[meta_level - 1]
 
         for i in seq.sequences:
-            if (i.select == True and not i.mute):
+            if (i.select is True and not i.mute):
                 try:
                     if self.prop == 'name':
                         i.name = strip.name
@@ -786,21 +781,22 @@ class Sequencer_Extra_CopyProperties(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# FADE IN AND OUT
-class Sequencer_Extra_FadeInOut(bpy.types.Operator):
-    bl_idname = 'sequencerextra.fadeinout'
-    bl_label = 'Fade...'
-    bl_description = 'Fade volume or opacity of active strip'
+# Fade in and out
+class Sequencer_Extra_FadeInOut(Operator):
+    bl_idname = "sequencerextra.fadeinout"
+    bl_label = "Fade..."
+    bl_description = "Fade volume or opacity of active strip"
+    bl_options = {'REGISTER', 'UNDO'}
+
     mode = EnumProperty(
             name='Direction',
             items=(
-            ('IN', 'Fade In...', ''),
-            ('OUT', 'Fade Out...', ''),
-            ('INOUT', 'Fade In and Out...', '')),
+                ('IN', "Fade In...", ""),
+                ('OUT', "Fade Out...", ""),
+                ('INOUT', "Fade In and Out...", "")),
             default='IN',
             )
-    bl_options = {'REGISTER', 'UNDO'}
-    
+
     fade_duration = IntProperty(
         name='Duration',
         description='Number of frames to fade',
@@ -899,11 +895,11 @@ class Sequencer_Extra_FadeInOut(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
 
-# EXTEND TO FILL
-class Sequencer_Extra_ExtendToFill(bpy.types.Operator):
-    bl_idname = 'sequencerextra.extendtofill'
-    bl_label = 'Extend to Fill'
-    bl_description = 'Extend active strip forward to fill adjacent space'
+# Extend to fill
+class Sequencer_Extra_ExtendToFill(Operator):
+    bl_idname = "sequencerextra.extendtofill"
+    bl_label = "Extend to Fill"
+    bl_description = "Extend active strip forward to fill adjacent space"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -943,18 +939,17 @@ class Sequencer_Extra_ExtendToFill(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# ------------------------------
-
-
-# PLACE FROM FILE BROWSER
-class Sequencer_Extra_PlaceFromFileBrowser(bpy.types.Operator):
-    bl_label = 'Place'
-    bl_idname = 'sequencerextra.placefromfilebrowser'
-    bl_description = 'Place or insert active file from File Browser'
-    insert = BoolProperty(
-    name='Insert',
-    default=False)
+# Place from file browser
+class Sequencer_Extra_PlaceFromFileBrowser(Operator):
+    bl_label = "Place"
+    bl_idname = "sequencerextra.placefromfilebrowser"
+    bl_description = "Place or insert active file from File Browser"
     bl_options = {'REGISTER', 'UNDO'}
+
+    insert = BoolProperty(
+            name="Insert",
+            default=False
+            )
 
     def execute(self, context):
         scn = context.scene
@@ -999,18 +994,18 @@ class Sequencer_Extra_PlaceFromFileBrowser(bpy.types.Operator):
             self.report({'ERROR_INVALID_INPUT'}, 'Error loading file')
             return {'CANCELLED'}
 
-        if self.insert == True:
+        if self.insert is True:
             try:
                 striplist = []
                 for i in bpy.context.selected_editable_sequences:
-                    if (i.select == True and i.type == "SOUND"):
+                    if (i.select is True and i.type == "SOUND"):
                         striplist.append(i)
                 bpy.ops.sequencerextra.insert()
                 if striplist[0]:
                     striplist[0].frame_start = frame
             except:
-                self.report({'ERROR_INVALID_INPUT'}, 'Execution Error, '\
-                'check your Blender version')
+                self.report({'ERROR_INVALID_INPUT'}, "Execution Error, "
+                             "check your Blender version")
                 return {'CANCELLED'}
         else:
             strip = functions.act_strip(context)
@@ -1020,19 +1015,15 @@ class Sequencer_Extra_PlaceFromFileBrowser(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# ------------------------------
-
-
-# SELECT STRIPS ON SAME CHANNEL
-class Sequencer_Extra_SelectSameChannel(bpy.types.Operator):
-    bl_label = 'Select Strips on the Same Channel'
-    bl_idname = 'sequencerextra.selectsamechannel'
-    bl_description = 'Select strips on the same channel as active one'
+# Select strips on same channel
+class Sequencer_Extra_SelectSameChannel(Operator):
+    bl_label = "Select Strips on the Same Channel"
+    bl_idname = "sequencerextra.selectsamechannel"
+    bl_description = "Select strips on the same channel as active one"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(self, context):
-        strip = functions.act_strip(context)
         scn = context.scene
         if scn and scn.sequence_editor and scn.sequence_editor.active_strip:
             return True
@@ -1051,11 +1042,13 @@ class Sequencer_Extra_SelectSameChannel(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# CURRENT-FRAME-AWARE SELECT
-class Sequencer_Extra_SelectCurrentFrame(bpy.types.Operator):
-    bl_label = 'Current-Frame-Aware Select'
-    bl_idname = 'sequencerextra.selectcurrentframe'
-    bl_description = 'Select strips according to current frame'
+# Current-frame-aware select
+class Sequencer_Extra_SelectCurrentFrame(Operator):
+    bl_label = "Current-Frame-Aware Select"
+    bl_idname = "sequencerextra.selectcurrentframe"
+    bl_description = "Select strips according to current frame"
+    bl_options = {'REGISTER', 'UNDO'}
+
     mode = EnumProperty(
             name='Mode',
             items=(
@@ -1064,7 +1057,6 @@ class Sequencer_Extra_SelectCurrentFrame(bpy.types.Operator):
             ('ON', 'On Current Frame', '')),
             default='BEFORE',
             )
-    bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(self, context):
@@ -1086,25 +1078,23 @@ class Sequencer_Extra_SelectCurrentFrame(bpy.types.Operator):
         if mode == 'AFTER':
             for i in seq.sequences:
                 try:
-                    if (i.frame_final_start >= cf
-                    and not i.mute):
+                    if (i.frame_final_start >= cf and not i.mute):
                         i.select = True
                 except AttributeError:
                         pass
         elif mode == 'ON':
             for i in seq.sequences:
                 try:
-                    if (i.frame_final_start <= cf
-                    and i.frame_final_end > cf
-                    and not i.mute):
+                    if (i.frame_final_start <= cf and
+                            i.frame_final_end > cf and
+                            not i.mute):
                         i.select = True
                 except AttributeError:
                         pass
         else:
             for i in seq.sequences:
                 try:
-                    if (i.frame_final_end < cf
-                    and not i.mute):
+                    if (i.frame_final_end < cf and not i.mute):
                         i.select = True
                 except AttributeError:
                         pass
@@ -1112,25 +1102,26 @@ class Sequencer_Extra_SelectCurrentFrame(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# SELECT BY TYPE
-class Sequencer_Extra_SelectAllByType(bpy.types.Operator):
-    bl_label = 'All by Type'
-    bl_idname = 'sequencerextra.select_all_by_type'
-    bl_description = 'Select all the strips of the same type'
+# Select by type
+class Sequencer_Extra_SelectAllByType(Operator):
+    bl_label = "All by Type"
+    bl_idname = "sequencerextra.select_all_by_type"
+    bl_description = "Select all the strips of the same type"
+    bl_options = {'REGISTER', 'UNDO'}
+
     type = EnumProperty(
-            name='Strip Type',
+            name="Strip Type",
             items=(
-            ('ACTIVE', 'Same as Active Strip', ''),
-            ('IMAGE', 'Image', ''),
-            ('META', 'Meta', ''),
-            ('SCENE', 'Scene', ''),
-            ('MOVIE', 'Movie', ''),
-            ('SOUND', 'Sound', ''),
-            ('TRANSFORM', 'Transform', ''),
-            ('COLOR', 'Color', '')),
+                ('ACTIVE', 'Same as Active Strip', ''),
+                ('IMAGE', 'Image', ''),
+                ('META', 'Meta', ''),
+                ('SCENE', 'Scene', ''),
+                ('MOVIE', 'Movie', ''),
+                ('SOUND', 'Sound', ''),
+                ('TRANSFORM', 'Transform', ''),
+                ('COLOR', 'Color', '')),
             default='ACTIVE',
             )
-    bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(self, context):
@@ -1149,7 +1140,7 @@ class Sequencer_Extra_SelectAllByType(bpy.types.Operator):
             seq = seq.meta_stack[meta_level - 1]
         active_strip = functions.act_strip(context)
         if strip_type == 'ACTIVE':
-            if active_strip == None:
+            if active_strip is None:
                 self.report({'ERROR_INVALID_INPUT'},
                 'No active strip')
                 return {'CANCELLED'}
@@ -1158,8 +1149,7 @@ class Sequencer_Extra_SelectAllByType(bpy.types.Operator):
         striplist = []
         for i in seq.sequences:
             try:
-                if (i.type == strip_type
-                and not i.mute):
+                if (i.type == strip_type and not i.mute):
                     striplist.append(i)
             except AttributeError:
                     pass
@@ -1173,13 +1163,11 @@ class Sequencer_Extra_SelectAllByType(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# ------------------------------
-
-# OPEN IN MOVIE CLIP EDITOR FROM FILE BROWSER
-class Clip_Extra_OpenFromFileBrowser(bpy.types.Operator):
-    bl_label = 'Open from File Browser'
-    bl_idname = 'clipextra.openfromfilebrowser'
-    bl_description = 'Load a Movie or Image Sequence from File Browser'
+# Open in movie clip editor from file browser
+class Clip_Extra_OpenFromFileBrowser(Operator):
+    bl_label = "Open from File Browser"
+    bl_idname = "clipextra.openfromfilebrowser"
+    bl_description = "Load a Movie or Image Sequence from File Browser"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -1197,7 +1185,6 @@ class Clip_Extra_OpenFromFileBrowser(bpy.types.Operator):
             self.report({'ERROR_INVALID_INPUT'}, 'No file selected')
             return {'CANCELLED'}
 
-        strip = functions.act_strip(context)
         path = params.directory + params.filename
         strip_type = functions.detect_strip_type(params.filename)
         data_exists = False
@@ -1208,7 +1195,7 @@ class Clip_Extra_OpenFromFileBrowser(bpy.types.Operator):
                     data_exists = True
                     data = i
 
-            if data_exists == False:
+            if data_exists is False:
                 try:
                     data = bpy.data.movieclips.load(filepath=path)
                 except:
@@ -1225,11 +1212,11 @@ class Clip_Extra_OpenFromFileBrowser(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# OPEN IN MOVIE CLIP EDITOR FROM SEQUENCER
-class Clip_Extra_OpenActiveStrip(bpy.types.Operator):
-    bl_label = 'Open Active Strip'
-    bl_idname = 'clipextra.openactivestrip'
-    bl_description = 'Load a Movie or Image Sequence from Sequence Editor'
+# Open in movie clip editor from sequencer
+class Clip_Extra_OpenActiveStrip(Operator):
+    bl_label = "Open Active Strip"
+    bl_idname = "clipextra.openactivestrip"
+    bl_description = "Load a Movie or Image Sequence from Sequence Editor"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -1259,7 +1246,7 @@ class Clip_Extra_OpenActiveStrip(bpy.types.Operator):
             if i.filepath == path:
                 data_exists = True
                 data = i
-        if data_exists == False:
+        if data_exists is False:
             try:
                 data = bpy.data.movieclips.load(filepath=path)
             except:
@@ -1273,14 +1260,12 @@ class Clip_Extra_OpenActiveStrip(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# ------------------------------
-
-
-# JOG/SHUTTLE
-class Sequencer_Extra_JogShuttle(bpy.types.Operator):
-    bl_label = 'Jog/Shuttle'
-    bl_idname = 'sequencerextra.jogshuttle'
-    bl_description = 'Jog through current sequence'
+# Jog / Shuttle
+class Sequencer_Extra_JogShuttle(Operator):
+    bl_label = "Jog/Shuttle"
+    bl_idname = "sequencerextra.jogshuttle"
+    bl_description = ("Jog through the current sequence\n"
+                      "Left Mouse button to confirm, Right mouse\Esc to cancel")
 
     def execute(self, context):
         scn = context.scene
@@ -1313,4 +1298,5 @@ class Sequencer_Extra_JogShuttle(bpy.types.Operator):
         self.init_current_frame = scn.frame_current
         self.execute(context)
         context.window_manager.modal_handler_add(self)
+
         return {'RUNNING_MODAL'}

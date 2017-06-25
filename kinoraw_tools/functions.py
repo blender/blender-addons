@@ -17,13 +17,16 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import os.path, operator, subprocess, random
-
-from bpy.props import IntProperty
-from bpy.props import FloatProperty
-from bpy.props import EnumProperty
-from bpy.props import BoolProperty
-from bpy.props import StringProperty
+import os.path
+import operator
+import subprocess
+import random
+from bpy.props import (
+        IntProperty,
+        FloatProperty,
+        EnumProperty,
+        BoolProperty,
+        )
 
 imb_ext_image = [
     # IMG
@@ -31,124 +34,145 @@ imb_ext_image = [
     ".rgba", ".tif", ".tiff", ".tx", ".jp2", ".hdr", ".dds",
     ".dpx", ".cin", ".exr", ".rw2",
     # IMG QT
-    ".gif", ".psd", ".pct", ".pict", ".pntg", ".qtif"]
-
+    ".gif", ".psd", ".pct", ".pict", ".pntg", ".qtif"
+    ]
 imb_ext_audio = [
     ".wav", ".ogg", ".oga", ".mp3", ".mp2", ".ac3", ".aac",
-    ".flac", ".wma", ".eac3", ".aif", ".aiff", ".m4a"]
-
+    ".flac", ".wma", ".eac3", ".aif", ".aiff", ".m4a"
+    ]
 imb_ext_movie = [
     ".avi", ".flc", ".mov", ".movie", ".mp4", ".m4v", ".m2v",
     ".m2t", ".m2ts", ".mts", ".mv", ".avs", ".wmv", ".ogv", ".ogg",
     ".dv", ".mpeg", ".mpg", ".mpg2", ".vob", ".mkv", ".flv",
-    ".divx", ".xvid", ".mxf"]
-    
-movieextdict = [("1", ".avi", ""),
-            ("2", ".flc", ""), ("3", ".mov", ""),
-            ("4", ".movie", ""), ("5", ".mp4", ""),
-            ("6", ".m4v", ""), ("7", ".m2v", ""),
-            ("8", ".m2t", ""), ("9", ".m2ts", ""),
-            ("10", ".mts", ""), ("11", ".mv", ""),
-            ("12", ".avs", ""), ("13", ".wmv", ""),
-            ("14", ".ogv", ""), ("15", ".dv", ""),
-            ("16", ".mpeg", ""), ("17", ".mpg", ""),
-            ("18", ".mpg2", ""), ("19", ".vob", ""),
-            ("20", ".mkv", ""), ("21", ".flv", ""),
-            ("22", ".divx", ""), ("23", ".xvid", ""), 
-            ("24", ".mxf", "")]
+    ".divx", ".xvid", ".mxf"
+    ]
+movieextdict = [
+    ("1", ".avi", ""),
+    ("2", ".flc", ""), ("3", ".mov", ""),
+    ("4", ".movie", ""), ("5", ".mp4", ""),
+    ("6", ".m4v", ""), ("7", ".m2v", ""),
+    ("8", ".m2t", ""), ("9", ".m2ts", ""),
+    ("10", ".mts", ""), ("11", ".mv", ""),
+    ("12", ".avs", ""), ("13", ".wmv", ""),
+    ("14", ".ogv", ""), ("15", ".dv", ""),
+    ("16", ".mpeg", ""), ("17", ".mpg", ""),
+    ("18", ".mpg2", ""), ("19", ".vob", ""),
+    ("20", ".mkv", ""), ("21", ".flv", ""),
+    ("22", ".divx", ""), ("23", ".xvid", ""),
+    ("24", ".mxf", "")
+    ]
+
 
 # Functions
+def error_handlers(self, op_name, errors, reports="ERROR"):
+    if self and reports:
+        self.report({'INFO'},
+                    reports + ": some operations could not be performed "
+                    "(See Console for more info)")
 
+    print("\n[Kinoraw Tools]\nOperator: {}\nWarning: {}\n".format(op_name, errors))
 
 
 def initSceneProperties(context):
-    # initSceneProperties is ONLY for varaibles that should 
+    # initSceneProperties is ONLY for varaibles that should
     # be keeped with the blend file. Any other addon preferences
     # should go to the addon preferences operator in __init__
     try:
-        if context.scene.kr_scn_init == True:
+        if context.scene.kr_scn_init is True:
             return False
     except AttributeError:
         pass
 
     scn = context.scene
 
-    # JUMP TO CUT
+    # jump to cut
     bpy.types.Scene.kr_auto_markers = BoolProperty(
-        name='kr_auto_markers',
-        description='activate auto markers',
-        default=False)
+            name="kr_auto_markers",
+            description="Activate Auto markers",
+            default=False
+            )
     scn.kr_auto_markers = False
-    
+
     bpy.types.Scene.kr_in_marker = IntProperty(
-        name='in',
-        description='in frame position',
-        min=-30000, max=30000,
-        default=1)
+            name="In",
+            description="In frame position",
+            min=-30000, max=30000,
+            default=1
+            )
     scn.kr_in_marker = 1
-    
+
     bpy.types.Scene.kr_out_marker = IntProperty(
-        name='out',
-        description='out frame position',
-        min=scn.kr_in_marker, max=30000,
-        default=75)
+            name="Out",
+            description="Out frame position",
+            min=scn.kr_in_marker, max=30000,
+            default=75
+            )
     scn.kr_out_marker = 75
-    
-    # SEQUENCER EXTRA ACTIONS
+
+    # sequencer extra actions
     bpy.types.Scene.kr_default_fade_duration = IntProperty(
-        name='Duration',
-        description='Number of frames to fade',
-        min=1, max=250,
-        default=scn.render.fps)
+            name="Duration",
+            description="Number of frames to fade",
+            min=1, max=250,
+            default=scn.render.fps
+            )
     scn.kr_default_fade_duration = scn.render.fps
-    
+
     bpy.types.Scene.kr_default_fade_amount = FloatProperty(
-        name='Amount',
-        description='Maximum value of fade',
-        min=0.0,
-        max=100.0,
-        default=1.0)
+            name="Amount",
+            description="Maximum value of fade",
+            min=0.0,
+            max=100.0,
+            default=1.0
+            )
     scn.kr_default_fade_amount = 1.0
 
-    # RECURSIVE LOADER
+    # recursive loader
     bpy.types.Scene.kr_recursive = BoolProperty(
-        name='Recursive',
-        description='Load in recursive folders',
-        default=False)
+            name="Recursive",
+            description="Load in recursive folders",
+            default=False
+            )
     scn.kr_recursive = False
 
     bpy.types.Scene.kr_recursive_select_by_extension = BoolProperty(
-        name='Recursive ext',
-        description='Load only clips with selected extension',
-        default=False)
+            name="Recursive ext",
+            description="Load only clips with selected extension",
+            default=False
+            )
     scn.kr_recursive_select_by_extension = False
-    
+
     bpy.types.Scene.kr_default_ext = EnumProperty(
-        items=movieextdict,
-        name="ext enum",
-        default="3")
+            items=movieextdict,
+            name="ext enum",
+            default="3"
+            )
     scn.kr_default_ext = "3"
-    
+
     bpy.types.Scene.kr_scn_init = BoolProperty(
-        name='Init',
-        default=False)
+            name="Init",
+            default=False
+            )
     scn.kr_scn_init = True
 
     return True
 
+
 def get_selected_strips(context):
     "return a list of selected strips"
-    strips=[]
+    strips = []
     for i in context.scene.sequence_editor.sequences_all:
-        if i.select == True:
+        if i.select is True:
             strips.append(i)
     return strips
+
 
 def create_folder(path):
     if not os.path.isdir(bpy.path.abspath(path)):
         folder = bpy.path.abspath(path)
-        command = "mkdir "+folder
-        subprocess.call(command,shell=True)
+        command = "mkdir " + folder
+        subprocess.call(command, shell=True)
+
 
 def add_marker(context, text, frame):
     scn = context.scene
@@ -156,11 +180,13 @@ def add_marker(context, text, frame):
     mark = markers.new(name=text)
     mark.frame = frame
 
+
 def act_strip(context):
     try:
         return context.scene.sequence_editor.active_strip
     except AttributeError:
         return None
+
 
 def detect_strip_type(filepath):
     extension = os.path.splitext(filepath)[1]
@@ -176,13 +202,12 @@ def detect_strip_type(filepath):
 
     return type
 
-# recursive load functions 
 
+# recursive load functions
 def getpathfrombrowser(context):
     '''
     returns path from filebrowser
     '''
-    scn = context.scene
     for a in context.window.screen.areas:
         if a.type == 'FILE_BROWSER':
             params = a.spaces[0].params
@@ -190,17 +215,16 @@ def getpathfrombrowser(context):
     try:
         params
     except UnboundLocalError:
-        #print("no browser")
-        self.report({'ERROR_INVALID_INPUT'}, 'No visible File Browser')
         return {'CANCELLED'}
+
     path = params.directory
     return path
 
+
 def getfilepathfrombrowser(context):
-    '''
+    """
     returns path and file from filebrowser
-    '''
-    scn = context.scene
+    """
     for a in context.window.screen.areas:
         if a.type == 'FILE_BROWSER':
             params = a.spaces[0].params
@@ -208,23 +232,20 @@ def getfilepathfrombrowser(context):
     try:
         params
     except UnboundLocalError:
-        #print("no browser")
-        #self.report({'ERROR_INVALID_INPUT'}, 'No visible File Browser')
         return {'CANCELLED'}
 
     if params.filename == '':
-        #print("no file selected")
-        #self.report({'ERROR_INVALID_INPUT'}, 'No file selected')
         return {'CANCELLED'}
+
     path = params.directory
     filename = params.filename
     return path, filename
+
 
 def setpathinbrowser(context, path, file):
     '''
     set path and file in the filebrowser
     '''
-    scn = context.scene
     for a in context.window.screen.areas:
         if a.type == 'FILE_BROWSER':
             params = a.spaces[0].params
@@ -232,13 +253,13 @@ def setpathinbrowser(context, path, file):
     try:
         params
     except UnboundLocalError:
-        #print("no browser")
-        self.report({'ERROR_INVALID_INPUT'}, 'No visible File Browser')
+
         return {'CANCELLED'}
 
     params.directory = path
     params.filename = file
     return path, params
+
 
 def sortlist(filelist):
     '''
@@ -247,33 +268,33 @@ def sortlist(filelist):
     filelist_sorted = sorted(filelist, key=operator.itemgetter(1))
     return filelist_sorted
 
+
 def onefolder(context, recursive_select_by_extension, ext):
     '''
     returns a list of MOVIE type files from folder selected in file browser
     '''
     filelist = []
     path, filename = getfilepathfrombrowser(context)
-    
-    for i in movieextdict: 
+
+    for i in movieextdict:
         if i[0] == ext:
             extension = i[1].rpartition(".")[2]
             break
 
-    scn = context.scene
-
     if detect_strip_type(path + filename) == 'MOVIE':
-        if recursive_select_by_extension == True:
-            #filtering by extension...
+        if recursive_select_by_extension is True:
+            # filtering by extension...
             for file in os.listdir(path):
                 if file.rpartition(".")[2].lower() == extension:
                     filelist.append((path, file))
         else:
-            #looking for all known extensions
+            # looking for all known extensions
             for file in os.listdir(path):
                 for i in movieextdict:
                     if file.rpartition(".")[2].lower() == i[1].rpartition(".")[2]:
                         filelist.append((path, file))
     return (filelist)
+
 
 def recursive(context, recursive_select_by_extension, ext):
     '''
@@ -281,40 +302,41 @@ def recursive(context, recursive_select_by_extension, ext):
     '''
     filelist = []
     path = getpathfrombrowser(context)
-    
+
     for i in movieextdict:
         if i[0] == ext:
             extension = i[1].rpartition(".")[2]
             break
-    
-    scn = context.scene        
+
     for root, dirs, files in os.walk(path):
         for file in files:
-            if recursive_select_by_extension == True:
-                #filtering by extension...
+            if recursive_select_by_extension is True:
+                # filtering by extension...
                 if file.rpartition(".")[2].lower() == extension:
                     filelist.append((root, file))
             else:
-                #looking for all known extensions
+                # looking for all known extensions
                 for i in movieextdict:
                     if file.rpartition(".")[2].lower() == i[1].rpartition(".")[2]:
                         filelist.append((root, file))
-    return filelist   
+    return filelist
+
 
 # jump to cut functions
-
 def triminout(strip, sin, sout):
 
-    """trim the strip to in and out, and returns 
+    """trim the strip to in and out, and returns
     true if the strip is outside given in and out"""
-    
+
     start = strip.frame_start + strip.frame_offset_start - strip.frame_still_start
     end = start + strip.frame_final_duration
 
     remove = False
-    if end < sin: remove = True
-    if start > sout: remove = True
-    
+    if end < sin:
+        remove = True
+    if start > sout:
+        remove = True
+
     if end > sin:
         if start < sin:
             strip.select_right_handle = False
@@ -331,109 +353,103 @@ def triminout(strip, sin, sout):
     return remove
 
 
-#------------ random editor functions.
+# random editor functions
 
-def randompartition(lst,n,rand):
+def randompartition(lst, n, rand):
     division = len(lst) / float(n)
     lista = []
-    for i in range(n):  lista.append(division)
-    var=0
-    for i in range(n-1):
-        lista[i]+= random.randint(-int(rand*division),int(rand*division))
-        var+=lista[i]
-    if lista[n-1] != len(lst)-var:
-        lista[n-1] = len(lst)-var
+    for i in range(n):
+        lista.append(division)
+
+    var = 0
+    for i in range(n - 1):
+        lista[i] += random.randint(-int(rand * division), int(rand * division))
+        var += lista[i]
+
+    if lista[n - 1] != len(lst) - var:
+        lista[n - 1] = len(lst) - var
+
     random.shuffle(lista)
     division = len(lst) / float(n)
     count = 0
-    newlist=[]
+    newlist = []
     for i in range(n):
-        #print(lst[count : int(lista[i]-1)+count])
-        newlist.append([lst[count : int(lista[i]-1)+count]])
-        count += int(lista[i]) 
+        # print(lst[count : int(lista[i]-1)+count])
+        newlist.append([lst[count: int(lista[i] - 1) + count]])
+        count += int(lista[i])
+
     return newlist
 
+
 def randomframe(strip):
-    #random frame between a and b
+    # random frame between a and b
     a = strip.frame_start
     b = strip.frame_final_duration
-    rand = a+int(random.random()*b)
-    #print(a, a+b, rand)
+    rand = a + int(random.random() * b)
+
     return rand
+
 
 # ???
 def get_matching_markers(scene, name=None):
-    '''return a list of markers with same name 
-     from the scene, or all markers if name is None'''
-    selected_markers=[]
+    '''
+    return a list of markers with same name
+    from the scene, or all markers if name is None
+    '''
+    selected_markers = []
     markers = scene.timeline_markers
     for mark in markers:
-        #print(mark.name, name)
-        if mark.name == name or name==None:
+        # print(mark.name, name)
+        if mark.name == name or name is None:
             selected_markers.append(mark.frame)
+
     return selected_markers
 
-# ???
+
 def generate_subsets_list(number_of_subsets):
-    #generate marker subsets list
+    # generate marker subsets list
     subset_list = []
-    subset_names = ['A','B','C','D','E','F']
+    subset_names = ['A', 'B', 'C', 'D', 'E', 'F']
+
     for subset in range(number_of_subsets):
         subset_list.append(subset_names[subset])
     return subset_list
 
 
 def get_marker_dict(scene, number_of_subsets):
-    '''return a dict where: 
-            keys = subset names
-            values = list of markers'''
-    #get markers from scene
-    markers = scene.timeline_markers
+    """
+    return a dict where:
+        keys = subset names
+        values = list of markers
+    """
+
     subset_list = generate_subsets_list(number_of_subsets)
-    #generate dict with a list for each subset
+    # generate dict with a list for each subset
     marker_dict = {}
+
     for subset in subset_list:
-        list=get_matching_markers(scene, subset)
-        marker_dict[subset] = list
+        lists = get_matching_markers(scene, subset)
+        marker_dict[subset] = lists
     return marker_dict
 
 
 def get_cut_dict(scene, number_of_subsets):
-    '''return a dict where: 
-            keys = markers in the scene + start and end
-            values = duration in frames from key marker to next marker'''
-    #generate cut_list
-    
-    list=get_matching_markers(scene)
-    list.append(scene.frame_start)
-    list.append(scene.frame_end)
-    list.sort()
-    #print("lista:",len(list),list)
-    cut_dict ={}
-    for i, j in enumerate(list):
-        try:
-            #print(j,list[i+1]-1-j)
-            cut_dict[j] = list[i+1]-j
-        except IndexError:
-            continue  
-    return cut_dict
-    
+    """
+    return a dict where:
+        keys = markers in the scene + start and end
+        values = duration in frames from key marker to next marker
+    """
+    # generate cut_list
 
-def random_edit_from_random_subset(cut_dict, sources_dict):
-    '''return a random edit from random subsets'''
-    #generate subset list (strings)
-    subset_list = generate_subsets_list(number_of_subsets)
-    # copy sources_dict
-    random_edit = []
-    for cut in sorted(cut_dict.keys()):
-        #escoge un subset al azar:   
-        rand = random.randrange(number_of_subsets)
-        subset = subset_list[rand]
-        #check if source subset is empty
-        print(len(sources_dict[subset]),subset)
-        if len(sources_dict[subset]) == 0:
-            sources_dict[subset] = get_matching_markers(selected_scene, subset)
-            print("repeating "+ subset + " clips")
-        marker = sources_dict[subset].pop()
-        random_edit.append((cut, cut_dict[cut], subset, marker))
-    return random_edit
+    lists = get_matching_markers(scene)
+    lists.append(scene.frame_start)
+    lists.append(scene.frame_end)
+    lists.sort()
+    cut_dict = {}
+
+    for i, j in enumerate(lists):
+        try:
+            cut_dict[j] = lists[i + 1] - j
+        except IndexError:
+            continue
+    return cut_dict

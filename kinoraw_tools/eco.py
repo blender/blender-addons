@@ -1,6 +1,4 @@
-#----------------------------------------------------------
 # File sequencer_slide_strip.py
-#----------------------------------------------------------
 
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
@@ -21,14 +19,15 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-
 import bpy
-from bpy.props import IntProperty, BoolProperty
-
+from bpy.types import (
+        Operator,
+        Panel,
+        )
 from . import functions
-    
- 
-class EcoPanel(bpy.types.Panel):
+
+
+class EcoPanel(Panel):
     bl_label = "Eco Tool"
     bl_idname = "OBJECT_PT_EcoTool"
     bl_space_type = "SEQUENCE_EDITOR"
@@ -36,8 +35,8 @@ class EcoPanel(bpy.types.Panel):
 
     @staticmethod
     def has_sequencer(context):
-        return (context.space_data.view_type\
-        in {'SEQUENCER', 'SEQUENCER_PREVIEW'})
+        return (context.space_data.view_type in
+               {'SEQUENCER', 'SEQUENCER_PREVIEW'})
 
     @classmethod
     def poll(self, context):
@@ -51,45 +50,38 @@ class EcoPanel(bpy.types.Panel):
                     return strip.type in ('META')
         else:
             return False
-    
+
     def draw_header(self, context):
         layout = self.layout
         layout.label(text="", icon="FORCE_HARMONIC")
-    
+
     def draw(self, context):
-        scn = bpy.context.scene
         strip = functions.act_strip(context)
         seq_type = strip.type
 
         preferences = context.user_preferences
         prefs = preferences.addons[__package__].preferences
-        
-        if seq_type in ( 'MOVIE', 'IMAGE', 'META', 'MOVIECLIP', 'SCENE') :
-            active_strip = functions.act_strip(context)
+
+        if seq_type in ('MOVIE', 'IMAGE', 'META', 'MOVIECLIP', 'SCENE'):
             layout = self.layout
-            row=layout.row()
-            row.prop(prefs, 'eco_value', text="Ecos")
-            row=layout.row()
-            row.prop(prefs, 'eco_offset', text="Offset")
-            row=layout.row()
-            row.prop(prefs, 'eco_use_add_blend_mode', text="use_add_blend_mode")
-            row=layout.row()
-            row.operator('sequencer.eco')
-            
-            
-        
-     
-class OBJECT_OT_EcoOperator(bpy.types.Operator):
-    
+            col = layout.column()
+
+            col.prop(prefs, "eco_value", text="Ecos")
+            col.prop(prefs, "eco_offset", text="Offset")
+            col.prop(prefs, "eco_use_add_blend_mode", text="Use add blend mode")
+            col.operator("sequencer.eco")
+
+
+class OBJECT_OT_EcoOperator(Operator):
     bl_idname = "sequencer.eco"
     bl_label = "Eco operator"
-    bl_description = 'generate an echo effect by duplicating the selected strip'
+    bl_description = "Generate an echo effect by duplicating the selected strip"
     bl_options = {'REGISTER', 'UNDO'}
 
     @staticmethod
     def has_sequencer(context):
-        return (context.space_data.view_type\
-        in {'SEQUENCER', 'SEQUENCER_PREVIEW'})
+        return (context.space_data.view_type in
+               {'SEQUENCER', 'SEQUENCER_PREVIEW'})
 
     @classmethod
     def poll(self, context):
@@ -99,42 +91,37 @@ class OBJECT_OT_EcoOperator(bpy.types.Operator):
             return strip.type in ('META')
         else:
             return False
- 
+
     def execute(self, context):
-        
-        active_strip=functions.act_strip(context)
-        
+        active_strip = functions.act_strip(context)
+
         preferences = context.user_preferences
         prefs = preferences.addons[__package__].preferences
-        
-        scn = bpy.context.scene
-        sel_strips = bpy.context.selected_sequences
-        cur_camera = scn.camera
+
         eco = prefs.eco_value
-        offset = prefs.eco_offset  
-        
+        offset = prefs.eco_offset
+
         active_strip.blend_type = 'REPLACE'
         active_strip.blend_alpha = 1
         for i in range(eco):
             bpy.ops.sequencer.duplicate(mode='TRANSLATION')
-            bpy.ops.transform.seq_slide(value=(offset, 1), snap=False, snap_target='CLOSEST', snap_point=(0, 0, 0), snap_align=False, snap_normal=(0, 0, 0), release_confirm=False)
-            
+            bpy.ops.transform.seq_slide(
+                    value=(offset, 1), snap=False, snap_target='CLOSEST',
+                    snap_point=(0, 0, 0), snap_align=False,
+                    snap_normal=(0, 0, 0), release_confirm=False
+                    )
+
             active_strip = functions.act_strip(context)
-            
+
             if prefs.eco_use_add_blend_mode:
                 active_strip.blend_type = 'ADD'
-                active_strip.blend_alpha = 1-1/eco
+                active_strip.blend_alpha = 1 - 1 / eco
             else:
                 active_strip.blend_type = 'ALPHA_OVER'
-                active_strip.blend_alpha = 1/eco
-            
-        
+                active_strip.blend_alpha = 1 / eco
+
         bpy.ops.sequencer.select_all(action='TOGGLE')
         bpy.ops.sequencer.select_all(action='TOGGLE')
         bpy.ops.sequencer.meta_make()
 
-        
         return {'FINISHED'}
- 
- 
-

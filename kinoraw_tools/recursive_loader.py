@@ -17,42 +17,40 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-
-import random
-import math
-import os, sys
-
-from bpy.props import IntProperty
-from bpy.props import FloatProperty
-from bpy.props import EnumProperty
-from bpy.props import BoolProperty
-from bpy.props import StringProperty
-
+import os
+from bpy.types import (
+        Operator,
+        Panel,
+        )
+from bpy.props import (
+        EnumProperty,
+        BoolProperty,
+        )
 from . import functions
 from . import exiftool
 
 
-class Sequencer_Extra_RecursiveLoader(bpy.types.Operator):
+class Sequencer_Extra_RecursiveLoader(Operator):
     bl_idname = "sequencerextra.recursiveload"
-    bl_label = "recursive load"
+    bl_label = "Recursive Load"
     bl_options = {'REGISTER', 'UNDO'}
-    
-    recursive = BoolProperty(
-        name='recursive',
-        description='Load in recursive folders',
-        default=False)
-        
-    recursive_select_by_extension = BoolProperty(
-        name='select by extension',
-        description='Load only clips with selected extension',
-        default=False)
-        
-    ext = EnumProperty(
-        items=functions.movieextdict,
-        name="extension",
-        default="3")
 
-    
+    recursive = BoolProperty(
+            name="Recursive",
+            description="Load in recursive folders",
+            default=False
+            )
+    recursive_select_by_extension = BoolProperty(
+            name="Select by extension",
+            description="Load only clips with selected extension",
+            default=False
+            )
+    ext = EnumProperty(
+            items=functions.movieextdict,
+            name="Extension",
+            default='3'
+            )
+
     @classmethod
     def poll(self, context):
         scn = context.scene
@@ -60,21 +58,21 @@ class Sequencer_Extra_RecursiveLoader(bpy.types.Operator):
             return (scn.sequence_editor)
         else:
             return False
-        
+
     def invoke(self, context, event):
         scn = context.scene
         try:
             self.recursive = scn.kr_recursive
             self.recursive_select_by_extension = scn.kr_recursive_select_by_extension
-            self.ext = scn.kr_default_ext 
+            self.ext = scn.kr_default_ext
         except AttributeError:
             functions.initSceneProperties(context)
             self.recursive = scn.kr_recursive
             self.recursive_select_by_extension = scn.kr_recursive_select_by_extension
-            self.ext = scn.kr_default_ext 
-                
-        return context.window_manager.invoke_props_dialog(self)  
-        
+            self.ext = scn.kr_default_ext
+
+        return context.window_manager.invoke_props_dialog(self)
+
     def loader(self, context, filelist):
         scn = context.scene
         if filelist:
@@ -88,54 +86,60 @@ class Sequencer_Extra_RecursiveLoader(bpy.types.Operator):
                     self.report({'ERROR_INVALID_INPUT'}, 'Error loading file ')
                     pass
 
-
     def execute(self, context):
         scn = context.scene
-        if self.recursive == True:
-            #recursive
-            self.loader(context, functions.sortlist(\
-            functions.recursive(context, self.recursive_select_by_extension,\
-            self.ext)))
+        if self.recursive is True:
+            # recursive
+            self.loader(
+                    context, functions.sortlist(
+                    functions.recursive(context, self.recursive_select_by_extension,
+                    self.ext)
+                        )
+                    )
         else:
-            #non recursive
-            self.loader(context, functions.sortlist(functions.onefolder(\
-            context, self.recursive_select_by_extension, self.ext)))
-        try:   
-            scn.kr_recursive = self.recursive 
-            scn.kr_recursive_select_by_extension = self.recursive_select_by_extension 
-            scn.kr_default_ext = self.ext 
+            # non recursive
+            self.loader(
+                    context, functions.sortlist(functions.onefolder(
+                    context, self.recursive_select_by_extension,
+                    self.ext)
+                        )
+                    )
+        try:
+            scn.kr_recursive = self.recursive
+            scn.kr_recursive_select_by_extension = self.recursive_select_by_extension
+            scn.kr_default_ext = self.ext
         except AttributeError:
             functions.initSceneProperties(context)
             self.recursive = scn.kr_recursive
             self.recursive_select_by_extension = scn.kr_recursive_select_by_extension
             self.ext = scn.kr_default_ext
-            
+
         return {'FINISHED'}
 
 
-# READ EXIF DATA
-class Sequencer_Extra_ReadExifData(bpy.types.Operator):
-    # load exifdata from strip to scene['metadata'] property
-    bl_label = 'Read EXIF Data'
-    bl_idname = 'sequencerextra.read_exif'
-    bl_description = 'Load exifdata from strip to metadata property in scene'
+# Read exif data
+# load exifdata from strip to scene['metadata'] property
+
+class Sequencer_Extra_ReadExifData(Operator):
+    bl_label = "Read EXIF Data"
+    bl_idname = "sequencerextra.read_exif"
+    bl_description = "Load exifdata from strip to metadata property in scene"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(self, context):
-        scn=context.scene
+        scn = context.scene
         if scn and scn.sequence_editor and scn.sequence_editor.active_strip:
             return scn.sequence_editor.active_strip.type in ('IMAGE', 'MOVIE')
         else:
             return False
 
-
     def execute(self, context):
         try:
             exiftool.ExifTool().start()
         except:
-            self.report({'ERROR_INVALID_INPUT'},
-            'exiftool not found in PATH')
+            self.report({'ERROR_INVALID_INPUT'}, "exiftool not found in PATH")
+
             return {'CANCELLED'}
 
         def getexifdata(strip):
@@ -147,7 +151,7 @@ class Sequencer_Extra_ReadExifData(bpy.types.Operator):
                         metadata = et.get_metadata_batch(lista)
                     except UnicodeDecodeError as Err:
                         print(Err)
-                #print(metadata[0])
+                # print(metadata[0])
                 print(len(metadata))
                 return metadata
 
@@ -165,11 +169,13 @@ class Sequencer_Extra_ReadExifData(bpy.types.Operator):
             def getlist(lista):
                 for root, dirs, files in os.walk(path):
                     for f in files:
-                        if "." + f.rpartition(".")[2].lower() \
-                            in functions.imb_ext_image:
+                        if "." + f.rpartition(".")[2].lower() in \
+                                functions.imb_ext_image:
                             lista.append(f)
-                        #if "."+f.rpartition(".")[2] in imb_ext_movie:
-                        #    lista.append(f)
+                        """
+                        if "." + f.rpartition(".")[2] in imb_ext_movie:
+                            lista.append(f)
+                        """
                 strip.elements
                 lista.sort()
                 return lista
@@ -177,7 +183,7 @@ class Sequencer_Extra_ReadExifData(bpy.types.Operator):
             if strip.type == "IMAGE":
                 path = bpy.path.abspath(strip.directory)
                 os.chdir(path)
-                #get a list of files
+                # get a list of files
                 lista = []
                 for i in strip.elements:
                     lista.append(i.filename)
@@ -188,20 +194,18 @@ class Sequencer_Extra_ReadExifData(bpy.types.Operator):
                 path = bpy.path.abspath(strip.filepath)
                 print([path])
                 return getexifvalues_movie(path)
-            
-            
 
         sce = bpy.context.scene
-        frame = sce.frame_current
-        text = bpy.context.active_object
         strip = context.scene.sequence_editor.active_strip
         sce['metadata'] = getexifdata(strip)
+
         return {'FINISHED'}
 
 
-class ExifInfoPanel(bpy.types.Panel):
+# TODO: fix poll to hide when unuseful
+
+class ExifInfoPanel(Panel):
     """Creates a Panel in the Object properties window"""
-    """ TODO: fix poll to hide when unuseful"""
     bl_label = "EXIF Info Panel"
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
@@ -213,7 +217,7 @@ class ExifInfoPanel(bpy.types.Panel):
             scn = context.scene
             preferences = context.user_preferences
             prefs = preferences.addons[__package__].preferences
-            
+
             if scn and scn.sequence_editor and scn.sequence_editor.active_strip:
                 if prefs.use_exif_panel:
                     return strip.type in ('MOVIE', 'IMAGE')
@@ -255,6 +259,7 @@ class ExifInfoPanel(bpy.types.Panel):
                         col.label(text=d)
                         col = split.column()
                         col.label(str(sce['metadata'][frame - f][d]))
+
             except (IndexError, KeyError):
                 pass
         except AttributeError:
