@@ -605,6 +605,7 @@ class AutoBoolean:
         for ob in bpy.context.selected_objects:
             if ob.type != 'MESH':
                 ob.select = False
+        bpy.ops.object.make_single_user(object=True, obdata=True)
         bpy.ops.object.convert(target='MESH')
 
     def mesh_selection(self, ob, select_action):
