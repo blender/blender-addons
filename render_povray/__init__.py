@@ -40,7 +40,7 @@ if "bpy" in locals():
 
 else:
     import bpy
-    import addon_utils # To use some other addons
+    #import addon_utils # To use some other addons
     import nodeitems_utils #for Nodes
     from nodeitems_utils import NodeCategory, NodeItem #for Nodes
     from bpy.types import (
@@ -66,6 +66,7 @@ else:
 
 def string_strip_hyphen(name):
     return name.replace("-", "")
+
 
 ###############################################################################
 # Scene POV properties.
@@ -2154,10 +2155,16 @@ class PovrayPreferences(AddonPreferences):
                 description="Path to renderer executable",
                 subtype='FILE_PATH',
                 )
+    docpath_povray = StringProperty(
+                name="Includes Location",
+                description="Path to Insert Menu files",
+                subtype='FILE_PATH',
+                )	
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "branch_feature_set_povray")
         layout.prop(self, "filepath_povray")
+        layout.prop(self, "docpath_povray")
 
 
 

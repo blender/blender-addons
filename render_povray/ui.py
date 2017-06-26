@@ -19,6 +19,9 @@
 # <pep8 compliant>
 
 import bpy
+import sys #really import here and in render.py?
+import os #really import here and in render.py?
+from os.path import isfile
 
 # Use some of the existing buttons.
 from bl_ui import properties_render
@@ -181,6 +184,39 @@ def check_add_mesh_extra_objects():
     if "add_mesh_extra_objects" in bpy.context.user_preferences.addons.keys():
         return True
     return False
+
+def locate_docpath():
+    addon_prefs = bpy.context.user_preferences.addons[__package__].preferences
+    # Use the system preference if its set.
+    pov_documents = addon_prefs.docpath_povray
+    if pov_documents:
+        if os.path.exists(pov_documents):
+            return pov_documents
+        else:
+            print("User Preferences path to povray documents %r NOT FOUND, checking $PATH" % pov_documents)
+
+    # Windows Only
+    if sys.platform[:3] == "win":
+        import winreg
+        try:
+            win_reg_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                "Software\\POV-Ray\\v3.7\\Windows")         
+            win_docpath = winreg.QueryValueEx(win_reg_key, "DocPath")[0]
+            pov_documents = os.path.join(win_docpath, "Insert Menu")
+            if os.path.exists(pov_documents):
+                return pov_documents
+        except FileNotFoundError:
+            return""
+    # search the path all os's
+    pov_documents_default = "include"
+
+    os_path_ls = os.getenv("PATH").split(':') + [""]
+
+    for dir_name in os_path_ls:
+        pov_documents = os.path.join(dir_name, pov_documents_default)
+        if os.path.exists(pov_documents):
+            return pov_documents
+    return ""
     
 class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -1761,6 +1797,54 @@ class CAMERA_PT_povray_replacement_text(CameraDataButtonsPanel, bpy.types.Panel)
         col.label(text="Replace properties with:")
         col.prop(cam.pov, "replacement_text", text="")
 
+###############################################################################
+# Text Povray Settings
+###############################################################################
+
+class TEXT_OT_povray_insert(bpy.types.Operator):
+    """Tooltip"""
+    bl_idname = "text.povray_insert"
+    bl_label = "Insert"
+
+    filepath = bpy.props.StringProperty(name="Filepath", subtype='FILE_PATH')
+
+    @classmethod
+    def poll(cls, context):
+        # context.area.type == 'TEXT_EDITOR'
+        return bpy.ops.text.insert.poll()
+
+    def execute(self, context):
+        if self.filepath and isfile(self.filepath):
+            file = open(self.filepath, "r")
+            bpy.ops.text.insert(text=file.read())
+
+            # places the cursor at the end without scrolling -.-
+            # context.space_data.text.write(file.read())
+            file.close()
+        return {'FINISHED'}
+
+def validinsert(ext):
+	return ext in {".txt",".inc",".pov"}		
+      
+class TEXT_MT_insert(bpy.types.Menu):
+    bl_label = "Insert"
+    bl_idname = "TEXT_MT_insert"
+
+    def draw(self, context):
+        pov_documents = locate_docpath()
+        prop = self.layout.operator("wm.path_open", text="Open folder", icon='FILE_FOLDER')
+        prop.filepath = pov_documents
+        self.layout.separator()
+        
+        list=[]
+        for root,dirs,files in os.walk(pov_documents):
+            list.append(root)
+        print(list)
+        self.path_menu(list,
+                       "text.povray_insert",
+                       #{"internal": True},
+					   filter_ext= validinsert
+                       )
 
 class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray"
@@ -1773,9 +1857,23 @@ class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
         if text:
             layout.prop(text.pov, "custom_code", text="Add as POV code")
 
+        pov_documents = locate_docpath()
+        if not pov_documents :            
+            layout.label(text="Please configure ", icon="INFO")
+            layout.label(text="default pov include path ")
+            layout.label(text="in addon preferences")
+            #layout.separator()
+            layout.operator("wm.addon_userpref_show",
+                         text="Go to Render: POV-Ray addon",
+                         icon="PREFERENCES").module = "render_povray"
 
-###############################################"
-# Text editor templates.
+            #layout.separator()
+        else:
+            #print(pov_documents)
+            layout.menu(TEXT_MT_insert.bl_idname)
+
+###############################################
+# Text editor templates from header menu
 
 class TEXT_MT_templates_pov(bpy.types.Menu):
     bl_label = "POV-Ray"
