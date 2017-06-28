@@ -1,58 +1,67 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
     "name": "Turnaround Camera",
     "author": "Antonio Vazquez (antonioya)",
-    "version": (0, 2, 4),
+    "version": (0, 2, 5),
     "blender": (2, 68, 0),
-    "location": "View3D > Toolshelf > Animation > Turnaround camera",
-    "description": "Add a camera rotation around selected object.",
-    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Animation/TurnaroundCamera",
+    "location": "View3D > Toolshelf > Turnaround camera",
+    "description": "Add a camera rotation around selected object",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/Animation/TurnaroundCamera",
     "category": "Camera"}
 
 
 import bpy
-import math
+from math import pi
+from bpy.props import (
+        BoolProperty,
+        EnumProperty,
+        FloatProperty,
+        PointerProperty,
+        )
+from bpy.types import (
+        Operator,
+        Panel,
+        PropertyGroup,
+        )
+
+
 # ------------------------------------------------------
 # Action class
 # ------------------------------------------------------
-
-
-class RunAction(bpy.types.Operator):
+class RunAction(Operator):
     bl_idname = "object.rotate_around"
     bl_label = "Turnaround"
     bl_description = "Create camera rotation around selected object"
 
-    # ------------------------------
-    # Execute
-    # ------------------------------
     def execute(self, context):
         # ----------------------
         # Save old data
         # ----------------------
         scene = context.scene
+        turn_camera = scene.turn_camera
         selectobject = context.active_object
         camera = bpy.data.objects[bpy.context.scene.camera.name]
         savedcursor = bpy.context.scene.cursor_location.copy()  # cursor position
         savedframe = scene.frame_current
-        if scene.use_cursor is False:
+        if turn_camera.use_cursor is False:
             bpy.ops.view3d.snap_cursor_to_selected()
 
         # -------------------------
@@ -90,59 +99,65 @@ class RunAction(bpy.types.Operator):
         myempty.empty_draw_size = 0.1
         bpy.context.scene.frame_set(scene.frame_start)
         myempty.keyframe_insert(data_path='rotation_euler', frame=scene.frame_start)
+
+        # Clear the Camera Animations if the option is checked
+        if turn_camera.reset_cam_anim:
+            try:
+                if bpy.data.cameras[camera.name].animation_data:
+                    bpy.data.cameras[camera.name].animation_data_clear()
+            except Exception as e:
+                print("\n[Camera Turnaround]\nWarning: {}\n".format(e))
+
         # Dolly zoom
-        if scene.dolly_zoom != "0":
-            bpy.data.cameras[camera.name].lens = scene.camera_from_lens
+        if turn_camera.dolly_zoom != "0":
+            bpy.data.cameras[camera.name].lens = turn_camera.camera_from_lens
             bpy.data.cameras[camera.name].keyframe_insert('lens', frame=scene.frame_start)
 
         # Calculate rotation XYZ
-        if scene.inverse_x:
-            ix = -1
-        else:
-            ix = 1
+        ix = -1 if turn_camera.inverse_x else 1
+        iy = -1 if turn_camera.inverse_y else 1
+        iz = -1 if turn_camera.inverse_z else 1
 
-        if scene.inverse_y:
-            iy = -1
-        else:
-            iy = 1
-
-        if scene.inverse_z:
-            iz = -1
-        else:
-            iz = 1
-
-        xrot = (math.pi * 2) * scene.camera_revol_x * ix
-        yrot = (math.pi * 2) * scene.camera_revol_y * iy
-        zrot = (math.pi * 2) * scene.camera_revol_z * iz
+        xrot = (pi * 2) * turn_camera.camera_revol_x * ix
+        yrot = (pi * 2) * turn_camera.camera_revol_y * iy
+        zrot = (pi * 2) * turn_camera.camera_revol_z * iz
 
         # create middle frame
-        if scene.back_forw is True:
+        if turn_camera.back_forw is True:
             myempty.rotation_euler = (xrot, yrot, zrot)
-            myempty.keyframe_insert(data_path='rotation_euler', frame=((scene.frame_end - scene.frame_start) / 2))
+            myempty.keyframe_insert(
+                        data_path='rotation_euler',
+                        frame=((scene.frame_end - scene.frame_start) / 2)
+                        )
             # reverse
             xrot *= -1
             yrot *= -1
             zrot = 0
 
         # Dolly zoom
-        if scene.dolly_zoom == "2":
-            bpy.data.cameras[camera.name].lens = scene.camera_to_lens
-            bpy.data.cameras[camera.name].keyframe_insert('lens', frame=((scene.frame_end - scene.frame_start) / 2))
+        if turn_camera.dolly_zoom == "2":
+            bpy.data.cameras[camera.name].lens = turn_camera.camera_to_lens
+            bpy.data.cameras[camera.name].keyframe_insert(
+                                            'lens',
+                                            frame=((scene.frame_end - scene.frame_start) / 2)
+                                            )
 
         # create last frame
         myempty.rotation_euler = (xrot, yrot, zrot)
         myempty.keyframe_insert(data_path='rotation_euler', frame=scene.frame_end)
         # Dolly zoom
-        if scene.dolly_zoom != "0":
-            if scene.dolly_zoom == "1":
-                bpy.data.cameras[camera.name].lens = scene.camera_to_lens  # final
+        if turn_camera.dolly_zoom != "0":
+            if turn_camera.dolly_zoom == "1":
+                bpy.data.cameras[camera.name].lens = turn_camera.camera_to_lens  # final
             else:
-                bpy.data.cameras[camera.name].lens = scene.camera_from_lens  # back to init
+                bpy.data.cameras[camera.name].lens = turn_camera.camera_from_lens  # back to init
 
-            bpy.data.cameras[camera.name].keyframe_insert('lens', frame=scene.frame_end)
+            bpy.data.cameras[camera.name].keyframe_insert(
+                                            'lens', frame=scene.frame_end
+                                            )
 
         # Track constraint
-        if scene.track is True:
+        if turn_camera.track is True:
             bpy.context.scene.objects.active = camera
             bpy.ops.object.constraint_add(type='TRACK_TO')
             bpy.context.object.constraints[-1].track_axis = 'TRACK_NEGATIVE_Z'
@@ -162,61 +177,149 @@ class RunAction(bpy.types.Operator):
         bpy.context.scene.frame_set(savedframe)
 
         return {'FINISHED'}
+
+
+# ------------------------------------------------------
+# Define Properties
+# ------------------------------------------------------
+class CameraTurnProps(PropertyGroup):
+
+    camera_revol_x = FloatProperty(
+            name='X', min=0, max=25,
+            default=0, precision=2,
+            description='Number total of revolutions in X axis'
+            )
+    camera_revol_y = FloatProperty(
+            name='Y', min=0, max=25,
+            default=0, precision=2,
+            description='Number total of revolutions in Y axis'
+            )
+    camera_revol_z = FloatProperty(
+            name='Z', min=0, max=25,
+            default=1, precision=2,
+            description='Number total of revolutions in Z axis'
+            )
+    inverse_x = BoolProperty(
+            name="-X",
+            description="Inverse rotation",
+            default=False
+            )
+    inverse_y = BoolProperty(
+            name="-Y",
+            description="Inverse rotation",
+            default=False
+            )
+    inverse_z = BoolProperty(
+            name="-Z",
+            description="Inverse rotation",
+            default=False
+            )
+    use_cursor = BoolProperty(
+            name="Use cursor position",
+            description="Use cursor position instead of object origin",
+            default=False
+            )
+    back_forw = BoolProperty(
+            name="Back and forward",
+            description="Create back and forward animation",
+            default=False
+            )
+    dolly_zoom = EnumProperty(
+            items=(
+                ('0', "None", ""),
+                ('1', "Dolly zoom", ""),
+                ('2', "Dolly zoom B/F", "")
+                ),
+            name="Lens Effects",
+            description="Create a camera lens movement"
+            )
+    camera_from_lens = FloatProperty(
+            name="From",
+            min=1, max=500, default=35,
+            precision=3,
+            description="Start lens value"
+            )
+    camera_to_lens = FloatProperty(
+            name="To",
+            min=1, max=500,
+            default=35, precision=3,
+            description="End lens value"
+            )
+    track = BoolProperty(
+            name="Create track constraint",
+            description="Add a track constraint to the camera",
+            default=False
+            )
+    reset_cam_anim = BoolProperty(
+            name="Clear Camera",
+            description="Clear previous camera animations if there are any\n"
+                        "(For instance, previous Dolly Zoom)",
+            default=False
+            )
+
+
 # ------------------------------------------------------
 # UI Class
 # ------------------------------------------------------
-
-
-class PanelUI(bpy.types.Panel):
+class PanelUI(Panel):
     bl_label = "Turnaround Camera"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_category = "Animation"
-    # ------------------------------
-    # Draw UI
-    # ------------------------------
 
     def draw(self, context):
         layout = self.layout
         scene = context.scene
+        turn_camera = scene.turn_camera
+
         try:
             bpy.context.scene.camera.name
         except AttributeError:
             row = layout.row(align=False)
-            row.label("No defined camera for scene", icon="ERROR")
+            row.label("No defined camera for scene", icon="INFO")
             return
 
         if context.active_object is not None:
             if context.active_object.type != 'CAMERA':
                 buf = context.active_object.name
-                row = layout.row(align=False)
+                row = layout.row(align=True)
                 row.operator("object.rotate_around", icon='OUTLINER_DATA_CAMERA')
-                row.label(buf, icon='MESH_DATA')
-                row = layout.row()
-                row.prop(scene, "use_cursor")
+                box = row.box()
+                box.scale_y = 0.5
+                box.label(buf, icon='MESH_DATA')
                 row = layout.row(align=False)
                 row.prop(scene, "camera")
-                row = layout.row()
+
+                layout.label("Rotation:")
+                row = layout.row(align=True)
                 row.prop(scene, "frame_start")
                 row.prop(scene, "frame_end")
+
+                col = layout.column(align=True)
+                split = col.split(percentage=0.85, align=True)
+                split.prop(turn_camera, "camera_revol_x")
+                split.prop(turn_camera, "inverse_x", toggle=True)
+                split = col.split(percentage=0.85, align=True)
+                split.prop(turn_camera, "camera_revol_y")
+                split.prop(turn_camera, "inverse_y", toggle=True)
+                split = col.split(percentage=0.85, align=True)
+                split.prop(turn_camera, "camera_revol_z")
+                split.prop(turn_camera, "inverse_z", toggle=True)
+
+                col = layout.column(align=True)
+                col.label("Options:")
+                row = col.row(align=True)
+                row.prop(turn_camera, "back_forw", toggle=True)
+                row.prop(turn_camera, "reset_cam_anim", toggle=True)
+                col.prop(turn_camera, "track", toggle=True)
+                col.prop(turn_camera, "use_cursor", toggle=True)
+
                 row = layout.row()
-                row.prop(scene, "camera_revol_x")
-                row.prop(scene, "camera_revol_y")
-                row.prop(scene, "camera_revol_z")
-                row = layout.row()
-                row.prop(scene, "inverse_x")
-                row.prop(scene, "inverse_y")
-                row.prop(scene, "inverse_z")
-                row = layout.row()
-                row.prop(scene, "back_forw")
-                row = layout.row()
-                row.prop(scene, "dolly_zoom")
-                if scene.dolly_zoom != "0":
-                    row = layout.row()
-                    row.prop(scene, "camera_from_lens")
-                    row.prop(scene, "camera_to_lens")
-                row = layout.row()
-                row.prop(scene, "track")
+                row.prop(turn_camera, "dolly_zoom")
+                if turn_camera.dolly_zoom != "0":
+                    row = layout.row(align=True)
+                    row.prop(turn_camera, "camera_from_lens")
+                    row.prop(turn_camera, "camera_to_lens")
 
             else:
                 buf = "No valid object selected"
@@ -229,60 +332,16 @@ class PanelUI(bpy.types.Panel):
 def register():
     bpy.utils.register_class(RunAction)
     bpy.utils.register_class(PanelUI)
-    # Define properties
-    bpy.types.Scene.camera_revol_x = bpy.props.FloatProperty(name='X', min=0, max=25,
-                                                             default=0, precision=2,
-                                                             description='Number total of revolutions in X axis')
-    bpy.types.Scene.camera_revol_y = bpy.props.FloatProperty(name='Y', min=0, max=25,
-                                                             default=0, precision=2,
-                                                             description='Number total of revolutions in Y axis')
-    bpy.types.Scene.camera_revol_z = bpy.props.FloatProperty(name='Z', min=0, max=25,
-                                                             default=1, precision=2,
-                                                             description='Number total of revolutions in Z axis')
-
-    bpy.types.Scene.inverse_x = bpy.props.BoolProperty(name="-X", description="Inverse rotation", default=False)
-    bpy.types.Scene.inverse_y = bpy.props.BoolProperty(name="-Y", description="Inverse rotation", default=False)
-    bpy.types.Scene.inverse_z = bpy.props.BoolProperty(name="-Z", description="Inverse rotation", default=False)
-    bpy.types.Scene.use_cursor = bpy.props.BoolProperty(name="Use cursor position",
-                                                        description="Use cursor position instead of object origin",
-                                                        default=False)
-    bpy.types.Scene.back_forw = bpy.props.BoolProperty(name="Back and forward",
-                                                       description="Create back and forward animation",
-                                                       default=False)
-
-    bpy.types.Scene.dolly_zoom = bpy.props.EnumProperty(items=(('0', "None", ""),
-                                                               ('1', "Dolly zoom", ""),
-                                                               ('2', "Dolly zoom B/F", "")),
-                                                        name="Lens Effects",
-                                                        description="Create a camera lens movement")
-
-    bpy.types.Scene.camera_from_lens = bpy.props.FloatProperty(name='From', min=1, max=500, default=35,
-                                                               precision=3,
-                                                               description='Start lens value')
-    bpy.types.Scene.camera_to_lens = bpy.props.FloatProperty(name='To', min=1, max=500, default=35, precision=3,
-                                                             description='End lens value')
-
-    bpy.types.Scene.track = bpy.props.BoolProperty(name="Create track constraint",
-                                                   description="Add a track constraint to the camera",
-                                                   default=False)
+    bpy.utils.register_class(CameraTurnProps)
+    bpy.types.Scene.turn_camera = PointerProperty(type=CameraTurnProps)
 
 
 def unregister():
     bpy.utils.unregister_class(RunAction)
     bpy.utils.unregister_class(PanelUI)
+    bpy.utils.unregister_class(CameraTurnProps)
+    del bpy.types.Scene.turn_camera
 
-    del bpy.types.Scene.camera_revol_x
-    del bpy.types.Scene.camera_revol_y
-    del bpy.types.Scene.camera_revol_z
-    del bpy.types.Scene.inverse_x
-    del bpy.types.Scene.inverse_y
-    del bpy.types.Scene.inverse_z
-    del bpy.types.Scene.use_cursor
-    del bpy.types.Scene.back_forw
-    del bpy.types.Scene.dolly_zoom
-    del bpy.types.Scene.camera_from_lens
-    del bpy.types.Scene.camera_to_lens
-    del bpy.types.Scene.track
 
 if __name__ == "__main__":
     register()
