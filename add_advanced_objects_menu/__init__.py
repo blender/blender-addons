@@ -238,7 +238,7 @@ class AdvancedObjPreferences(AddonPreferences):
             box.label(text="Pixelate Object, Struts, Random Boxes, Easy Lattice",
                       icon="LAYER_USED")
             box.label(text="Physics Tools:", icon="LAYER_ACTIVE")
-            box.label(text="Drop to Ground, Wrecking Ball and Cloth Rope", icon="LAYER_USED")
+            box.label(text="Wrecking Ball and Cloth Rope", icon="LAYER_USED")
 
         icon_2 = "TRIA_RIGHT" if not self.show_panel_list else "TRIA_DOWN"
         box = layout.box()
