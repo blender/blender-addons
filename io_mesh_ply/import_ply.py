@@ -185,9 +185,15 @@ def read(filepath):
                 if tokens[1] not in format_specs:
                     print('Unknown format', tokens[1])
                     return invalid_ply
-                if tokens[2] != version:
+                try:
+                    version_test = float(tokens[2])
+                except Exception as ex:
+                    print('Unknown version', ex)
+                    version_test = None
+                if version_test != float(version):
                     print('Unknown version', tokens[2])
                     return invalid_ply
+                del version_test
                 format = tokens[1]
             elif tokens[0] == b'element':
                 if len(tokens) < 3:
