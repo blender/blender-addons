@@ -22,14 +22,14 @@
 bl_info = {
     "name": "A.N.T.Landscape",
     "author": "Jim Hazevoet",
-    "version": (0, 1, 7),
-    "blender": (2, 77, 0),
+    "version": (0, 1, 8),
+    "blender": (2, 78, 0),
     "location": "View3D > Tool Shelf",
     "description": "Another Noise Tool: Landscape and Displace",
     "warning": "",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Add_Mesh/ANT_Landscape",
-    "category": "Mesh",
+    "category": "Add Mesh",
 }
 
 if "bpy" in locals():
