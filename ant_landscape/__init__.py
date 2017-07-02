@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Another Noise Tool - Suite (W.I.P.)
-# Jim Hazevoet 5/2017
+# Jimmy Hazevoet 5/2017
 
 bl_info = {
     "name": "A.N.T.Landscape",
@@ -67,7 +67,9 @@ from .ant_functions import (
 # Menu's and panels
 
 def menu_func_eroder(self, context):
-    self.layout.operator('mesh.eroder', text="Landscape Eroder", icon='SMOOTHCURVE')
+    ob = bpy.context.active_object
+    if ob and (ob.ant_landscape.keys() and not ob.ant_landscape['sphere_mesh']):
+        self.layout.operator('mesh.eroder', text="Landscape Eroder", icon='SMOOTHCURVE')
 
 
 def menu_func_landscape(self, context):
@@ -107,8 +109,9 @@ class AntLandscapeToolsPanel(bpy.types.Panel):
         ob = context.active_object
         col = layout.column()
         col.operator('mesh.ant_displace', text="Mesh Displace", icon="RNDCURVE")
-        col.operator('mesh.eroder', text="Landscape Eroder", icon='SMOOTHCURVE')
         col.operator('mesh.ant_slope_map', icon='GROUP_VERTEX')
+        if ob.ant_landscape.keys() and not ob.ant_landscape['sphere_mesh']:
+            col.operator('mesh.eroder', text="Landscape Eroder", icon='SMOOTHCURVE')
 
 
 # Landscape Settings / Properties:
@@ -299,6 +302,12 @@ class AntNoiseSettingsPanel(bpy.types.Panel):
             col.prop(ant, "gain")
             col.separator()
             col.prop(ant, "vl_basis_type")
+        elif ant.noise_type == "rocks_noise":
+            col.prop(ant, "noise_depth")
+            col.prop(ant, "distortion")
+            col.separator()
+            row = col.row(align=True)
+            row.prop(ant, "hard_noise", expand=True)
         elif ant.noise_type == "slick_rock":
             col.prop(ant, "noise_depth")
             col.prop(ant, "dimension")
@@ -514,9 +523,10 @@ class AntLandscapePropertiesGroup(bpy.types.PropertyGroup):
                 ('vl_hTerrain', "vlNoise hTerrain", "A.N.T: vlNoise hTerrain", 12),
                 ('distorted_heteroTerrain', "Distorted hTerrain", "A.N.T distorted hTerrain", 13),
                 ('double_multiFractal', "Double MultiFractal", "A.N.T: double multiFractal", 14),
-                ('slick_rock', "Slick Rock", "A.N.T: slick rock", 15),
-                ('planet_noise', "Planet Noise", "Planet Noise by: Farsthary", 16),
-                ('blender_texture', "Blender Texture - Texture Nodes", "Blender texture data block", 17)]
+                ('rocks_noise', "Noise Rocks", "A.N.T: turbulence variation", 15),
+                ('slick_rock', "Slick Rock", "A.N.T: slick rock", 16),
+                ('planet_noise', "Planet Noise", "Planet Noise by: Farsthary", 17),
+                ('blender_texture', "Blender Texture - Texture Nodes", "Blender texture data block", 18)]
             )
     basis_type = EnumProperty(
             name="Noise Basis",
@@ -735,8 +745,8 @@ class AntLandscapePropertiesGroup(bpy.types.PropertyGroup):
                 ("1", "Smooth", "Smooth transitions", 1),
                 ("2", "Sharp Sub", "Sharp substract transitions", 2),
                 ("3", "Sharp Add", "Sharp add transitions", 3),
-                ("4", "Posterize", "Posterize", 4),
-                ("5", "Posterize Mix", "Posterize mixed", 5)]
+                ("4", "Quantize", "Quantize", 4),
+                ("5", "Quantize Mix", "Quantize mixed", 5)]
             )
     water_plane = BoolProperty(
             name="Water Plane",

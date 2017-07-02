@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Another Noise Tool - Mesh Displace
-# Jim Hazevoet
+# Jimmy Hazevoet
 
 # ------------------------------------------------------------
 # import modules
@@ -43,7 +43,7 @@ from .ant_functions import (
 class AntMeshDisplace(bpy.types.Operator):
     bl_idname = "mesh.ant_displace"
     bl_label = "Another Noise Tool - Displace"
-    bl_description = "A.N.T. Displace mesh vertices"
+    bl_description = "Displace mesh vertices"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     ant_terrain_name = StringProperty(
@@ -162,7 +162,7 @@ class AntMeshDisplace(bpy.types.Operator):
             )
     noise_size = FloatProperty(
             name="Noise Size",
-            default=1.0,
+            default=0.25,
             min=0.01,
             max=1000.0,
             description="Noise size"
@@ -187,9 +187,10 @@ class AntMeshDisplace(bpy.types.Operator):
                 ('vl_hTerrain', "vlNoise hTerrain", "A.N.T: vlNoise hTerrain", 12),
                 ('distorted_heteroTerrain', "Distorted hTerrain", "A.N.T distorted hTerrain", 13),
                 ('double_multiFractal', "Double MultiFractal", "A.N.T: double multiFractal", 14),
-                ('slick_rock', "Slick Rock", "A.N.T: slick rock", 15),
-                ('planet_noise', "Planet Noise", "Planet Noise by: Farsthary", 16),
-                ('blender_texture', "Blender Texture - Texture Nodes", "Blender texture data block", 17)]
+                ('rocks_noise', "Noise Rocks", "A.N.T: turbulence variation", 15),
+                ('slick_rock', "Slick Rock", "A.N.T: slick rock", 16),
+                ('planet_noise', "Planet Noise", "Planet Noise by: Farsthary", 17),
+                ('blender_texture', "Blender Texture - Texture Nodes", "Blender texture data block", 18)]
             )
     basis_type = EnumProperty(
             name="Noise Basis",
@@ -325,7 +326,7 @@ class AntMeshDisplace(bpy.types.Operator):
         )
     height = FloatProperty(
             name="Height",
-            default=0.5,
+            default=0.25,
             min=-10000.0,
             max=10000.0,
             description="Noise intensity scale"
@@ -408,8 +409,8 @@ class AntMeshDisplace(bpy.types.Operator):
                 ("1", "Smooth", "Smooth transitions", 1),
                 ("2", "Sharp Sub", "Sharp substract transitions", 2),
                 ("3", "Sharp Add", "Sharp add transitions", 3),
-                ("4", "Posterize", "Posterize", 4),
-                ("5", "Posterize Mix", "Posterize mixed", 5)]
+                ("4", "Quantize", "Quantize", 4),
+                ("5", "Quantize Mix", "Quantize mixed", 5)]
             )
     water_plane = BoolProperty(
             name="Water Plane",
@@ -547,24 +548,40 @@ class AntMeshDisplace(bpy.types.Operator):
             self.remove_double
             ]
 
+        '''
+        gi = ob.vertex_groups["Group"].index # get group index
+        for v in ob.data.vertices:
+          for g in v.groups:
+            if g.group == gi: # compare with index in VertexGroupElement
+              v.co[0] = 5
+        '''
         # do displace
         mesh = ob.data
 
         if self.use_vgroup is True:
             vertex_group = ob.vertex_groups.active
             if vertex_group:
+                gi = vertex_group.index
                 if self.direction == "X":
                     for v in mesh.vertices:
-                        v.co[0] += vertex_group.weight(v.index) * noise_gen(v.co, props)
+                        for g in v.groups:
+                            if g.group == gi:
+                                v.co[0] += vertex_group.weight(v.index) * noise_gen(v.co, props)
                 if self.direction == "Y":
                     for v in mesh.vertices:
-                        v.co[1] += vertex_group.weight(v.index) * noise_gen(v.co, props)
+                        for g in v.groups:
+                            if g.group == gi:
+                                v.co[1] += vertex_group.weight(v.index) * noise_gen(v.co, props)
                 if self.direction == "Z":
                     for v in mesh.vertices:
-                        v.co[2] += vertex_group.weight(v.index) * noise_gen(v.co, props)
+                        for g in v.groups:
+                            if g.group == gi:
+                                v.co[2] += vertex_group.weight(v.index) * noise_gen(v.co, props)
                 else:
                     for v in mesh.vertices:
-                        v.co += vertex_group.weight(v.index) * v.normal * noise_gen(v.co, props)
+                        for g in v.groups:
+                            if g.group == gi:
+                                v.co += vertex_group.weight(v.index) * v.normal * noise_gen(v.co, props)
 
         else:
             if self.direction == "X":
@@ -581,9 +598,6 @@ class AntMeshDisplace(bpy.types.Operator):
                     v.co += v.normal * noise_gen(v.co, props)
 
             mesh.update()
-
-        if bpy.ops.object.shade_smooth == True:
-            bpy.ops.object.shade_smooth()
 
         if self.auto_refresh is False:
             self.refresh = False

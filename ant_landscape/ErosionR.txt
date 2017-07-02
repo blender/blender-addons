@@ -1,3 +1,2 @@
 http://blog.michelanders.nl/search/label/erosion
 https://github.com/nerk987/ErosionR
-https://blenderartists.org/forum/showthread.php?323808-Simulating-erosion-in-Blender

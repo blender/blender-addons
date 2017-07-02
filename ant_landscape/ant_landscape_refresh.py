@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Another Noise Tool - Landscape  Redraw - Regenerate
-# Jim Hazevoet
+# Jimmy Hazevoet
 
 
 # ------------------------------------------------------------
@@ -74,9 +74,12 @@ class AntLandscapeRefresh(bpy.types.Operator):
             if ob['use_vgroup']:
                 vertex_group = obj.vertex_groups.active
                 if vertex_group:
+                    gi = vertex_group.index
                     for v in mesh.vertices:
-                        v.co[2] = 0
-                        v.co[2] = vertex_group.weight(v.index) * noise_gen(v.co, prop)
+                        for g in v.groups:
+                            if g.group == gi:
+                                v.co[2] = 0.0
+                                v.co[2] = vertex_group.weight(v.index) * noise_gen(v.co, prop)
             else:
                 for v in mesh.vertices:
                     v.co[2] = 0

@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Another Noise Tool - Landscape
-# Jim Hazevoet
+# Jimmy Hazevoet
 
 # import modules
 import bpy
@@ -47,7 +47,7 @@ from .ant_functions import (
 class AntAddLandscape(bpy.types.Operator):
     bl_idname = "mesh.landscape_add"
     bl_label = "Another Noise Tool - Landscape"
-    bl_description = "A.N.T. Add landscape mesh"
+    bl_description = "Add landscape mesh"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     ant_terrain_name = StringProperty(
@@ -191,9 +191,10 @@ class AntAddLandscape(bpy.types.Operator):
                 ('vl_hTerrain', "vlNoise hTerrain", "A.N.T: vlNoise hTerrain", 12),
                 ('distorted_heteroTerrain', "Distorted hTerrain", "A.N.T distorted hTerrain", 13),
                 ('double_multiFractal', "Double MultiFractal", "A.N.T: double multiFractal", 14),
-                ('slick_rock', "Slick Rock", "A.N.T: slick rock", 15),
-                ('planet_noise', "Planet Noise", "Planet Noise by: Farsthary", 16),
-                ('blender_texture', "Blender Texture - Texture Nodes", "Blender texture data block", 17)]
+                ('rocks_noise', "Noise Rocks", "A.N.T: turbulence variation", 15),
+                ('slick_rock', "Slick Rock", "A.N.T: slick rock", 16),
+                ('planet_noise', "Planet Noise", "Planet Noise by: Farsthary", 17),
+                ('blender_texture', "Blender Texture - Texture Nodes", "Blender texture data block", 18)]
             )
     basis_type = EnumProperty(
             name="Noise Basis",
@@ -412,8 +413,8 @@ class AntAddLandscape(bpy.types.Operator):
                 ("1", "Smooth", "Smooth transitions", 1),
                 ("2", "Sharp Sub", "Sharp substract transitions", 2),
                 ("3", "Sharp Add", "Sharp add transitions", 3),
-                ("4", "Posterize", "Posterize", 4),
-                ("5", "Posterize Mix", "Posterize mixed", 5)]
+                ("4", "Quantize", "Quantize", 4),
+                ("5", "Quantize Mix", "Quantize mixed", 5)]
             )
     water_plane = BoolProperty(
             name="Water Plane",

@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Another Noise Tool - Functions
-# Jim Hazevoet
+# Jimmy Hazevoet
 
 # ErosionR:
 # Michel Anders (varkenvarken), Ian Huish (nerk)
@@ -60,17 +60,11 @@ from bpy_extras import object_utils
 def create_mesh_object(context, verts, edges, faces, name):
     # Create new mesh
     mesh = bpy.data.meshes.new(name)
-
     # Make a mesh from a list of verts/edges/faces.
     mesh.from_pydata(verts, [], faces)
-
     # Update mesh geometry after adding stuff.
     mesh.update()
-
-    #new_ob = bpy.data.objects.new(name, mesh)
-    #context.scene.objects.link(new_ob)
     return object_utils.object_data_add(context, mesh, operator=None)
-    #return new_ob
 
 
 # Generate XY Grid
@@ -172,12 +166,7 @@ class AntVgSlopeMap(bpy.types.Operator):
             default=0.0,
             min=0.0,
             max=1.0,
-            description="Increase to select more vertices"
-            )
-    weight_mode = BoolProperty(
-            name="Enter WeightPaint Mode:",
-            default=True,
-            description="Enter weightpaint mode when done"
+            description="Increase to select more vertices on slopes"
             )
 
     @classmethod
@@ -192,8 +181,8 @@ class AntVgSlopeMap(bpy.types.Operator):
 
 
     def execute(self, context):
-        message = "Popup Values: %d, %f, %s, %s, %s" % \
-            (self.select_flat, self.select_range, self.group_name, self.z_method, self.weight_mode)
+        message = "Popup Values: %d, %f, %s, %s" % \
+            (self.select_flat, self.select_range, self.group_name, self.z_method)
         self.report({'INFO'}, message)
 
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -223,8 +212,7 @@ class AntVgSlopeMap(bpy.types.Operator):
 
         vg_normal.name = self.group_name
 
-        if self.weight_mode:
-            bpy.ops.paint.weight_paint_toggle()
+        bpy.ops.paint.weight_paint_toggle()
         return {'FINISHED'}
 
 
@@ -395,9 +383,19 @@ def vl_hTerrain(coords, H, lacunarity, octaves, offset, basis, vlbasis, distort)
 # another turbulence
 def ant_turbulence(coords, depth, hardnoise, nbasis, amp, freq, distortion):
     x, y, z = coords
-    tv = turbulence_vector((x + 1, y + 2, z + 3), depth, hardnoise, nbasis, amp, freq)
-    d = (distortion * tv[0]) * 0.25
-    return (d + ((tv[0] - tv[1]) * (tv[2])**2))
+    t = turbulence_vector((x/2, y/2, z/2), depth, 0, nbasis, amp, freq) * 0.5 * distortion
+    return turbulence((t[0], t[1], t[2]), 2, hardnoise, 3) * 0.5 + 0.5
+
+
+# rocks noise
+def rocks_noise(coords, depth, hardnoise, nbasis, distortion):
+    x,y,z = coords
+    p = turbulence((x, y, z), 4, 0, 0) * 0.125 * distortion
+    xx, yy, zz = x, y, z
+    a = turbulence((xx + p, yy + p, zz), 2, 0, 7)
+    pa = a * 0.1875 * distortion
+    b = turbulence((x, y, z + pa), depth, hardnoise, nbasis)
+    return ((a + 0.5 * (b - a)) * 0.5 + 0.5)
 
 
 # shattered_hterrain:
@@ -570,13 +568,16 @@ def noise_gen(coords, props):
     elif ntype in [14, 'double_multiFractal']:
         value = double_multiFractal(ncoords, dimension, lacunarity, depth, offset, gain, nbasis, vlbasis)
 
-    elif ntype in [15, 'slick_rock']:
+    elif ntype in [15, 'rocks_noise']:
+        value = rocks_noise(ncoords, depth, hardnoise, nbasis, distortion)
+
+    elif ntype in [16, 'slick_rock']:
         value = slick_rock(ncoords,dimension, lacunarity, depth, offset, gain, distortion, nbasis, vlbasis)
 
-    elif ntype in [16, 'planet_noise']:
+    elif ntype in [17, 'planet_noise']:
         value = planet_noise(ncoords, depth, hardnoise, nbasis)[2] * 0.5 + 0.5
 
-    elif ntype in [17, 'blender_texture']:
+    elif ntype in [18, 'blender_texture']:
         if texture_name != "" and texture_name in bpy.data.textures:
             value = bpy.data.textures[texture_name].evaluate(ncoords)[3]
         else:
@@ -819,6 +820,12 @@ def draw_ant_noise(self, context, generate=True):
             col.prop(self, "gain")
             col.separator()
             col.prop(self, "vl_basis_type")
+        elif self.noise_type == "rocks_noise":
+            col.prop(self, "noise_depth")
+            col.prop(self, "distortion")
+            col.separator()
+            row = col.row(align=True)
+            row.prop(self, "hard_noise", expand=True)
         elif self.noise_type == "slick_rock":
             col.prop(self, "noise_depth")
             col.prop(self, "dimension")
@@ -840,9 +847,10 @@ def draw_ant_displace(self, context, generate=True):
     box = layout.box()
     box.prop(self, "show_displace_settings", toggle=True)
     if self.show_displace_settings:
-        col = box.column(align=False)
         if not generate:
+            col = box.column(align=False)
             col.prop(self, "direction", toggle=True)
+
         col = box.column(align=True)
         row = col.row(align=True).split(0.92, align=True)
         row.prop(self, "height")
@@ -961,7 +969,7 @@ def availableVertexGroupsOrNone(self, context):
 class Eroder(bpy.types.Operator):
     bl_idname = "mesh.eroder"
     bl_label = "ErosionR"
-    bl_description = "Apply various kinds of erosion to a landscape mesh. Also available in Weight Paint mode > Weights menu"
+    bl_description = "Apply various kinds of erosion to a square ANT-Landscape grid. Also available in Weight Paint mode > Weights menu"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     Iterations = IntProperty(
@@ -1022,7 +1030,8 @@ class Eroder(bpy.types.Operator):
             description="Total Rain amount",
             default=.01,
             min=0,
-            soft_max=1
+            soft_max=1,
+            precision=3
             )
     Kv = FloatProperty(
             name="Rain variance",
@@ -1131,9 +1140,7 @@ class Eroder(bpy.types.Operator):
     def execute(self, context):
 
         ob = context.active_object
-        #obwater = bpy.data.objects["water"]
         me = ob.data
-        #mewater = obwater.data
         self.stats.reset()
         try:
             vgActive = ob.vertex_groups.active.name
@@ -1180,14 +1187,14 @@ class Eroder(bpy.types.Operator):
             vgcapacity=ob.vertex_groups["capacity"]
         except:
             vgcapacity=ob.vertex_groups.new("capacity")
+
         g = Grid.fromBlenderMesh(me, vg, self.Ef)
 
         me = bpy.data.meshes.new(me.name)
-        #mewater = bpy.data.meshes.new(mewater.name)
 
-        self.counts['diffuse']=0
-        self.counts['avalanche']=0
-        self.counts['water']=0
+        self.counts['diffuse'] = 0
+        self.counts['avalanche'] = 0
+        self.counts['water'] = 0
         for i in range(self.Iterations):
             if self.IterRiver > 0:
                 for i in range(self.IterRiver):
@@ -1197,7 +1204,7 @@ class Eroder(bpy.types.Operator):
                 for k in range(self.IterDiffuse):
                     g.diffuse(self.Kd / 5, self.IterDiffuse, self.numexpr)
                     self.counts['diffuse']+=1
-            #if self.Kt < radians(90) and rand() < self.Pa:
+
             if self.Kt < radians(90) and self.Pa > 0:
                 for k in range(self.IterAva):
                     # since dx and dy are scaled to 1, tan(Kt) is the height for a given angle
@@ -1209,8 +1216,7 @@ class Eroder(bpy.types.Operator):
 
         g.toBlenderMesh(me)
         ob.data = me
-        #g.toWaterMesh(mewater)
-        #obwater.data = mewater
+
         if vg:
             for row in range(g.rainmap.shape[0]):
                 for col in range(g.rainmap.shape[1]):
@@ -1231,12 +1237,10 @@ class Eroder(bpy.types.Operator):
                 for col in range(g.rainmap.shape[1]):
                     i = row * g.rainmap.shape[1] + col
                     vgw.add([i],g.water[row,col]/g.watermax,'ADD')
-                    # vgw.add([i],g.water[row,col],'ADD')
         if vgscour:
             for row in range(g.rainmap.shape[0]):
                 for col in range(g.rainmap.shape[1]):
                     i = row * g.rainmap.shape[1] + col
-                    # vgscour.add([i],(g.scour[row,col]-g.scourmin)/(g.scourmax-g.scourmin),'ADD')
                     vgscour.add([i],g.scour[row,col]/max(g.scourmax, -g.scourmin),'ADD')
         if vgdeposit:
             for row in range(g.rainmap.shape[0]):
@@ -1247,13 +1251,11 @@ class Eroder(bpy.types.Operator):
             for row in range(g.rainmap.shape[0]):
                 for col in range(g.rainmap.shape[1]):
                     i = row * g.rainmap.shape[1] + col
-                    # vgflowrate.add([i],g.flowrate[row,col]/g.flowratemax,'ADD')
                     vgflowrate.add([i],g.flowrate[row,col],'ADD')
         if vgsediment:
             for row in range(g.rainmap.shape[0]):
                 for col in range(g.rainmap.shape[1]):
                     i = row * g.rainmap.shape[1] + col
-                    # vgsediment.add([i],g.sediment[row,col]/g.sedmax,'ADD')
                     vgsediment.add([i],g.sediment[row,col],'ADD')
         if vgsedimentpct:
             for row in range(g.rainmap.shape[0]):
@@ -1279,6 +1281,7 @@ class Eroder(bpy.types.Operator):
             self.stats.meshstats = g.analyze()
 
         return {'FINISHED'}
+
 
     def draw(self,context):
         layout = self.layout
@@ -1311,45 +1314,7 @@ class Eroder(bpy.types.Operator):
         col.prop(self, 'Kr')
         col.prop(self, 'Kv')
         col.prop(self, 'Kev')
-        #box2 = box.box()
-        #box2.prop(self, 'userainmap')
-        #box2.enabled = context.active_object.vertex_groups.active is not None
-        #box.prop(self, 'Ka')
+
         col.prop(self, 'Ef')
 
-        #box = layout.box()
-        #box.label("Probabilities")
-        #box.prop(self, 'Pa')
-        #box.prop(self, 'Pw')
-
         layout.prop(self,'smooth')
-
-        #if numexpr_available:
-        #  layout.prop(self, 'numexpr')
-        #else:
-        #  box = layout.box()
-        #  box.alert=True
-        #  box.label("Numexpr not available. Will slow down large meshes")
-
-        #box = layout.box()
-        #box.prop(self,'showiterstats')
-        #if self.showiterstats:
-        #    row = box.row()
-        #    col1 = row.column()
-        #    col2 = row.column()
-        #    col1.label("Time"); col2.label("%.1f s"%self.stats.elapsedtime)
-        #    if self.stats.memstats_available:
-        #        col1.label("Memory"); col2.label("%.1f Mb"%(self.stats.maxmem/(1024.0*1024.0)))
-        #    col1.label("Diffusions"); col2.label("%d"% self.counts['diffuse'])
-        #    col1.label("Avalanches"); col2.label("%d"% self.counts['avalanche'])
-        #    col1.label("Water movements"); col2.label("%d"% self.counts['water'])
-        #box = layout.box()
-        #box.prop(self,'showmeshstats')
-        #if self.showmeshstats:
-        #    row = box.row()
-        #    col1 = row.column()
-        #    col2 = row.column()
-        #    for line in self.stats.meshstats.split('\n'):
-        #        label, value = line.split(':')
-        #        col1.label(label)
-        #        col2.label(value)
