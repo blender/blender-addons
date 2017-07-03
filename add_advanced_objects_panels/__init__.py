@@ -25,7 +25,7 @@
 bl_info = {
     "name": "Add Advanced Object Panels",
     "author": "meta-androcto",
-    "version": (1, 1, 4),
+    "version": (1, 1, 5),
     "blender": (2, 7, 7),
     "description": "Individual Create Panel Activation List",
     "location": "Addons Preferences",
@@ -120,11 +120,60 @@ def unregister_submodule(mod):
                     del prefs[name]
 
 
+def enable_all_modules(self, context):
+    for mod in sub_modules:
+        mod_name = mod.__name__.split('.')[-1]
+        setattr(self, 'use_' + mod_name, False)
+        if not mod.__addon_enabled__:
+            setattr(self, 'use_' + mod_name, True)
+            mod.__addon_enabled__ = True
+
+    return None
+
+
+def disable_all_modules(self, context):
+    for mod in sub_modules:
+        mod_name = mod.__name__.split('.')[-1]
+
+        if mod.__addon_enabled__:
+            setattr(self, 'use_' + mod_name, False)
+            mod.__addon_enabled__ = False
+
+    return None
+
+
 class AdvancedObjPreferences1(AddonPreferences):
     bl_idname = __name__
 
+    enable_all = BoolProperty(
+            name="Enable all",
+            description="Enable all Advanced Objects' Panels",
+            default=False,
+            update=enable_all_modules
+            )
+    disable_all = BoolProperty(
+            name="Disable all",
+            description="Disable all Advanced Objects' Panels",
+            default=False,
+            update=disable_all_modules
+            )
+
     def draw(self, context):
         layout = self.layout
+        split = layout.split(percentage=0.5, align=True)
+        row = split.row()
+        row.alignment = "LEFT"
+        sub_box = row.box()
+        sub_box.prop(self, "enable_all", emboss=False,
+                    icon="VISIBLE_IPO_ON", icon_only=True)
+        row.label("Enable All")
+
+        row = split.row()
+        row.alignment = "RIGHT"
+        row.label("Disable All")
+        sub_box = row.box()
+        sub_box.prop(self, "disable_all", emboss=False,
+                    icon="VISIBLE_IPO_OFF", icon_only=True)
 
         for mod in sub_modules:
             mod_name = mod.__name__.split('.')[-1]
