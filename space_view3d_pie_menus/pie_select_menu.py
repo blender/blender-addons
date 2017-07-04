@@ -21,8 +21,8 @@
 bl_info = {
     "name": "Hotkey: 'A'",
     "description": "Object/Edit mode Selection Menu",
-    #    "author": "pitiwazou, meta-androcto",
-    #    "version": (0, 1, 0),
+    "author": "pitiwazou, meta-androcto",
+    "version": (0, 1, 1),
     "blender": (2, 77, 0),
     "location": "3D View",
     "warning": "",
@@ -31,14 +31,10 @@ bl_info = {
     }
 
 import bpy
-from bpy.types import (
-        Menu,
-        Operator,
-        )
+from bpy.types import Menu
+
 
 # Pie Selection Object Mode - A
-
-
 class PieSelectionsMore(Menu):
     bl_idname = "pie.selectionsmore"
     bl_label = "Pie Selections Object Mode"
@@ -47,15 +43,13 @@ class PieSelectionsMore(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         box = pie.split().column()
-        row = box.row(align=True)
         box.operator("object.select_by_type", text="Select By Type", icon='SNAP_VOLUME')
         box.operator("object.select_grouped", text="Select Grouped", icon='ROTATE')
         box.operator("object.select_linked", text="Select Linked", icon='CONSTRAINT_BONE')
         box.menu("VIEW3D_MT_select_object_more_less", text="More/Less")
 
+
 # Pie Selection Object Mode - A
-
-
 class PieSelectionsOM(Menu):
     bl_idname = "pie.selectionsom"
     bl_label = "Pie Selections Object Mode"
@@ -68,9 +62,11 @@ class PieSelectionsOM(Menu):
         # 6 - RIGHT
         pie.operator("object.select_random", text="Select Random", icon='GROUP_VERTEX')
         # 2 - BOTTOM
-        pie.operator("object.select_all", text="Invert Selection", icon='ZOOM_PREVIOUS').action = 'INVERT'
+        pie.operator("object.select_all", text="Invert Selection",
+                    icon='ZOOM_PREVIOUS').action = 'INVERT'
         # 8 - TOP
-        pie.operator("object.select_all", text="Select All Toggle", icon='RENDER_REGION').action = 'TOGGLE'
+        pie.operator("object.select_all", text="Select All Toggle",
+                    icon='RENDER_REGION').action = 'TOGGLE'
         # 7 - TOP - LEFT
         pie.operator("view3d.select_circle", text="Circle Select", icon='BORDER_LASSO')
         # 9 - TOP - RIGHT
@@ -80,9 +76,8 @@ class PieSelectionsOM(Menu):
         # 3 - BOTTOM - RIGHT
         pie.menu("pie.selectionsmore", text="Select Menu", icon='RESTRICT_SELECT_OFF')
 
+
 # Pie Selection Edit Mode
-
-
 class PieSelectionsEM(Menu):
     bl_idname = "pie.selectionsem"
     bl_label = "Pie Selections Edit Mode"
@@ -91,25 +86,30 @@ class PieSelectionsEM(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         # 4 - LEFT
-        pie.operator("view3d.select_border", text="Border Select", icon='BORDER_RECT')
+        pie.operator("view3d.select_border", text="Border Select",
+                    icon='BORDER_RECT')
         # 6 - RIGHT
         pie.menu("object.selectloopselection", text="Select Loop Menu", icon='LOOPSEL')
         # 2 - BOTTOM
-        pie.operator("mesh.select_all", text="Select None", icon='RESTRICT_SELECT_ON').action = 'DESELECT'
+        pie.operator("mesh.select_all", text="Select None",
+                    icon='RESTRICT_SELECT_ON').action = 'DESELECT'
         # 8 - TOP
-        pie.operator("mesh.select_all", text="Select All", icon='RESTRICT_SELECT_OFF').action = 'SELECT'
+        pie.operator("mesh.select_all", text="Select All",
+                    icon='RESTRICT_SELECT_OFF').action = 'SELECT'
         # 7 - TOP - LEFT
-        pie.operator("mesh.select_all", text="Select All Toggle", icon='ARROW_LEFTRIGHT').action = 'TOGGLE'
+        pie.operator("mesh.select_all", text="Select All Toggle",
+                    icon='ARROW_LEFTRIGHT').action = 'TOGGLE'
         # 9 - TOP - RIGHT
-        pie.operator("mesh.select_all", text="Invert Selection", icon='FULLSCREEN_EXIT').action = 'INVERT'
+        pie.operator("mesh.select_all", text="Invert Selection",
+                    icon='FULLSCREEN_EXIT').action = 'INVERT'
         # 1 - BOTTOM - LEFT
-        pie.operator("view3d.select_circle", text="Circle Select", icon='BORDER_LASSO')
+        pie.operator("view3d.select_circle", text="Circle Select",
+                    icon='BORDER_LASSO')
         # 3 - BOTTOM - RIGHT
         pie.menu("object.selectallbyselection", text="Multi Select Menu", icon='SNAP_EDGE')
 
+
 # Select All By Selection
-
-
 class SelectAllBySelection(Menu):
     bl_idname = "object.selectallbyselection"
     bl_label = "Verts Edges Faces"
@@ -140,6 +140,7 @@ class SelectAllBySelection(Menu):
         prop.value = "(True, True, True)"
         prop.data_path = "tool_settings.mesh_select_mode"
 
+
 class SelectLoopSelection(Menu):
     bl_idname = "object.selectloopselection"
     bl_label = "Verts Edges Faces"
@@ -153,12 +154,13 @@ class SelectLoopSelection(Menu):
         layout.operator("mesh.loop_multi_select", text="Select Ring", icon='EDGESEL').ring = True
         layout.operator("mesh.loop_to_region", text="Select Loop Inner Region", icon='FACESEL')
 
+
 classes = (
     PieSelectionsOM,
     PieSelectionsEM,
     SelectAllBySelection,
     PieSelectionsMore,
-    SelectLoopSelection
+    SelectLoopSelection,
     )
 
 addon_keymaps = []
@@ -167,8 +169,8 @@ addon_keymaps = []
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-    wm = bpy.context.window_manager
 
+    wm = bpy.context.window_manager
     if wm.keyconfigs.addon:
         # Selection Object Mode
         km = wm.keyconfigs.addon.keymaps.new(name='Object Mode')
@@ -186,23 +188,14 @@ def register():
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
+
     wm = bpy.context.window_manager
-
     kc = wm.keyconfigs.addon
     if kc:
-        km = kc.keymaps['Object Mode']
-        for kmi in km.keymap_items:
-            if kmi.idname == 'wm.call_menu_pie':
-                if kmi.properties.name == "pie.selectionsom":
-                    km.keymap_items.remove(kmi)
+        for km, kmi in addon_keymaps:
+            km.keymap_items.remove(kmi)
+    addon_keymaps.clear()
 
-    kc = wm.keyconfigs.addon
-    if kc:
-        km = kc.keymaps['Mesh']
-        for kmi in km.keymap_items:
-            if kmi.idname == 'wm.call_menu_pie':
-                if kmi.properties.name == "pie.selectionsem":
-                    km.keymap_items.remove(kmi)
 
 if __name__ == "__main__":
     register()

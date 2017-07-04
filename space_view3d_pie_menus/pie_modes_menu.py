@@ -21,8 +21,8 @@
 bl_info = {
     "name": "Hotkey: 'Tab'",
     "description": "Switch between 3d view object/edit modes",
-    # "author": "pitiwazou, meta-androcto, italic",
-    # "version": (0, 1, 0),
+    "author": "pitiwazou, meta-androcto, italic",
+    "version": (0, 1, 1),
     "blender": (2, 77, 0),
     "location": "3D View",
     "warning": "",
@@ -252,7 +252,8 @@ class PieInteractiveModeGreasePencil(Operator):
         try:
             bpy.ops.gpencil.editmode_toggle()
         except:
-            self.report({'WARNING'}, "It is not possible to enter into the interactive mode")
+            self.report({'WARNING'},
+                        "It is not possible to enter into the interactive mode")
         return {'FINISHED'}
 
 
@@ -453,14 +454,13 @@ addon_keymaps = []
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-    wm = bpy.context.window_manager
 
+    wm = bpy.context.window_manager
     if wm.keyconfigs.addon:
         # Select Mode
         km = wm.keyconfigs.addon.keymaps.new(name='Object Non-modal')
         kmi = km.keymap_items.new('wm.call_menu_pie', 'TAB', 'PRESS')
         kmi.properties.name = "pie.objecteditmode"
-        # kmi.active = True
         addon_keymaps.append((km, kmi))
 
         km = wm.keyconfigs.addon.keymaps.new(name='Grease Pencil Stroke Edit Mode')
@@ -472,21 +472,13 @@ def register():
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
-    wm = bpy.context.window_manager
 
+    wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
     if kc:
-        km = kc.keymaps['Object Non-modal']
-        for kmi in km.keymap_items:
-            if kmi.idname == 'wm.call_menu_pie':
-                if kmi.properties.name == "pie.objecteditmode":
-                    km.keymap_items.remove(kmi)
-
-        km = kc.keymaps['Grease Pencil Stroke Edit Mode']
-        for kmi in km.keymap_items:
-            if kmi.idname == 'wm.call_menu_pie':
-                if kmi.properties.name == "pie.objecteditmode":
-                    km.keymap_items.remove(kmi)
+        for km, kmi in addon_keymaps:
+            km.keymap_items.remove(kmi)
+    addon_keymaps.clear()
 
 
 if __name__ == "__main__":

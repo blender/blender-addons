@@ -21,8 +21,8 @@
 bl_info = {
     "name": "Hotkey: 'Ctrl A'",
     "description": "Apply Transform Menu",
-    #    "author": "pitiwazou, meta-androcto",
-    #    "version": (0, 1, 0),
+    "author": "pitiwazou, meta-androcto",
+    "version": (0, 1, 1),
     "blender": (2, 77, 0),
     "location": "3D View",
     "warning": "",
@@ -35,10 +35,10 @@ from bpy.types import (
         Menu,
         Operator,
         )
+from bpy.props import EnumProperty
+
 
 # Pie Apply Transforms - Ctrl + A
-
-
 class PieApplyTransforms(Menu):
     bl_idname = "pie.applytranforms"
     bl_label = "Pie Apply Transforms"
@@ -53,58 +53,44 @@ class PieApplyTransforms(Menu):
         # 2 - BOTTOM
         pie.operator("object.duplicates_make_real", text="Make Duplicates Real")
         # 8 - TOP
-        pie.operator("apply.transformrotation", text="Rotation", icon='MAN_ROT')
+        pie.operator("apply.transformlocrotscale", text="Rotation", icon='MAN_ROT').option = 'ROT'
         # 7 - TOP - LEFT
-        pie.operator("apply.transformlocation", text="Location", icon='MAN_TRANS')
+        pie.operator("apply.transformlocrotscale", text="Location", icon='MAN_ROT').option = 'LOC'
         # 9 - TOP - RIGHT
-        pie.operator("apply.transformscale", text="Scale", icon='MAN_SCALE')
+        pie.operator("apply.transformlocrotscale", text="Scale", icon='MAN_ROT').option = 'SCALE'
         # 1 - BOTTOM - LEFT
         pie.operator("object.visual_transform_apply", text="Visual Transforms")
         # 3 - BOTTOM - RIGHT
         pie.menu("clear.menu", text="Clear Transform Menu")
 
-# Apply Transforms
-
-
-class ApplyTransformLocation(Operator):
-    bl_idname = "apply.transformlocation"
-    bl_label = "Apply Transform Location"
-    bl_description = "Apply Transform Location"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        bpy.ops.object.transform_apply(location=True, rotation=False, scale=False)
-        return {'FINISHED'}
 
 # Apply Transforms
-
-
-class ApplyTransformRotation(Operator):
-    bl_idname = "apply.transformrotation"
-    bl_label = "Apply Transform Rotation"
-    bl_description = "Apply Transform Rotation"
+class ApplyTransLocRotPie(Operator):
+    bl_idname = "apply.transformlocrotscale"
+    bl_label = "Apply Transforms"
+    bl_description = "Apply Transform: Location, Rotation or Scale"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def execute(self, context):
-        bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
-        return {'FINISHED'}
-
-# Apply Transforms
-
-
-class ApplyTransformScale(Operator):
-    bl_idname = "apply.transformscale"
-    bl_label = "Apply Transform Scale"
-    bl_description = "Apply Transform Scale"
-    bl_options = {'REGISTER', 'UNDO'}
+    option = EnumProperty(
+            name="Type",
+            items=[
+                ("LOC", "Location", "Apply Location"),
+                ("ROT", "Rotation", "Apply Rotation"),
+                ("SCALE", "Scale", "Apply Scale")
+                ],
+            default="LOC",
+            )
 
     def execute(self, context):
-        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+        loc = True if self.option == "LOC" else False
+        rot = True if self.option == "ROT" else False
+        sca = True if self.option == "SCALE" else False
+        bpy.ops.object.transform_apply(location=loc, rotation=rot, scale=sca)
+
         return {'FINISHED'}
 
 
 # Apply Transforms
-
 class ApplyTransformAll(Operator):
     bl_idname = "apply.transformall"
     bl_label = "Apply All Transforms"
@@ -115,9 +101,8 @@ class ApplyTransformAll(Operator):
         bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
         return {'FINISHED'}
 
+
 # Clear Menu
-
-
 class ClearMenu(Menu):
     bl_idname = "clear.menu"
     bl_label = "Clear Menu"
@@ -129,9 +114,8 @@ class ClearMenu(Menu):
         layout.operator("object.scale_clear", text="Clear Scale", icon='MAN_SCALE')
         layout.operator("object.origin_clear", text="Clear Origin", icon='MANIPUL')
 
+
 # Clear all
-
-
 class ClearAll(Operator):
     bl_idname = "clear.all"
     bl_label = "Clear All"
@@ -144,11 +128,10 @@ class ClearAll(Operator):
         bpy.ops.object.scale_clear()
         return {'FINISHED'}
 
+
 classes = (
     PieApplyTransforms,
-    ApplyTransformLocation,
-    ApplyTransformRotation,
-    ApplyTransformScale,
+    ApplyTransLocRotPie,
     ApplyTransformAll,
     ClearMenu,
     ClearAll,
@@ -167,22 +150,20 @@ def register():
         km = wm.keyconfigs.addon.keymaps.new(name='Object Mode')
         kmi = km.keymap_items.new('wm.call_menu_pie', 'A', 'PRESS', ctrl=True)
         kmi.properties.name = "pie.applytranforms"
-#        kmi.active = True
         addon_keymaps.append((km, kmi))
 
 
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
-    wm = bpy.context.window_manager
 
+    wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
     if kc:
-        km = kc.keymaps['Object Mode']
-        for kmi in km.keymap_items:
-            if kmi.idname == 'wm.call_menu_pie':
-                if kmi.properties.name == "pie.applytranforms":
-                    km.keymap_items.remove(kmi)
+        for km, kmi in addon_keymaps:
+            km.keymap_items.remove(kmi)
+    addon_keymaps.clear()
+
 
 if __name__ == "__main__":
     register()
