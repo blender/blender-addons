@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Kinoraw Tools",
     "author": "Carlos Padial, Turi Scandurra",
-    "version": (0, 5, 1),
+    "version": (0, 5, 2),
     "blender": (2, 74, 0),
     "location": "Sequencer",
     "description": "Compilation of tools to improve video editing with Blender's VSE",
@@ -69,8 +69,6 @@ class KinorawToolsAddon(AddonPreferences):
     # when defining this in a submodule of a python package.
     bl_idname = __package__
     bl_option = {'REGISTER'}
-
-    print("package is ", __package__)
 
     # extra_actions
     kr_show_tools = BoolProperty(
