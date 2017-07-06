@@ -33,7 +33,7 @@ from bpy.types import (
 bl_info = {
     "name": "3D Viewport Pie Menus",
     "author": "meta-androcto, pitiwazou, chromoly, italic",
-    "version": (1, 1, 5),
+    "version": (1, 1, 6),
     "blender": (2, 7, 7),
     "description": "Individual Pie Menu Activation List",
     "location": "Addons Preferences",

@@ -22,7 +22,7 @@ bl_info = {
     "name": "Hotkey: 'Alt X'",
     "description": "V/E/F Align tools",
     "author": "pitiwazou, meta-androcto",
-    "version": (0, 1, 1),
+    "version": (0, 1, 2),
     "blender": (2, 77, 0),
     "location": "Mesh Edit Mode",
     "warning": "",
@@ -47,11 +47,14 @@ class PieAlign(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         # 4 - LEFT
-        pie.operator("align.x", text="Align X", icon='TRIA_LEFT')
+        pie.operator("align.selected2xyz",
+                    text="Align X", icon='TRIA_LEFT').axis = 'X'
         # 6 - RIGHT
-        pie.operator("align.z", text="Align Z", icon='TRIA_DOWN')
+        pie.operator("align.selected2xyz",
+                    text="Align Z", icon='TRIA_DOWN').axis = 'Z'
         # 2 - BOTTOM
-        pie.operator("align.y", text="Align Y", icon='PLUS')
+        pie.operator("align.selected2xyz",
+                    text="Align Y", icon='PLUS').axis = 'Y'
         # 8 - TOP
         pie.operator("align.2xyz", text="Align To Y-0").axis = '1'
         # 7 - TOP - LEFT
@@ -92,64 +95,45 @@ class PieAlign(Menu):
         align_6.side = 'POSITIVE'
 
 
-# Align X
-class AlignX(Operator):
-    bl_idname = "align.x"
-    bl_label = "Align  X"
-    bl_description = "Align Selected Along X"
+# Align to X, Y, Z
+class AlignSelectedXYZ(Operator):
+    bl_idname = "align.selected2xyz"
+    bl_label = "Align to X, Y, Z"
+    bl_description = "Align Selected Along the chosen axis"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def execute(self, context):
+    axis = EnumProperty(
+        name="Axis",
+        items=[
+            ('X', "X", "X Axis"),
+            ('Y', "Y", "Y Axis"),
+            ('Z', "Z", "Z Axis")
+            ],
+        description="Choose an axis for alignment",
+        default='X'
+        )
 
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return obj and obj.type == "MESH"
+
+    def execute(self, context):
+        values = {
+            'X': [(0, 1, 1), (True, False, False)],
+            'Y': [(1, 0, 1), (False, True, False)],
+            'Z': [(1, 1, 0), (False, False, True)]
+            }
+        chosen_value = values[self.axis][0]
+        constraint_value = values[self.axis][1]
         for vert in bpy.context.object.data.vertices:
             bpy.ops.transform.resize(
-                    value=(0, 1, 1), constraint_axis=(True, False, False),
+                    value=chosen_value, constraint_axis=constraint_value,
                     constraint_orientation='GLOBAL',
                     mirror=False, proportional='DISABLED',
                     proportional_edit_falloff='SMOOTH',
                     proportional_size=1
                     )
-        return {'FINISHED'}
-
-
-# Align Y
-class AlignY(Operator):
-    bl_idname = "align.y"
-    bl_label = "Align  Y"
-    bl_description = "Align Selected Along Y"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-
-        for vert in bpy.context.object.data.vertices:
-            bpy.ops.transform.resize(
-                    value=(1, 0, 1), constraint_axis=(False, True, False),
-                    constraint_orientation='GLOBAL',
-                    mirror=False, proportional='DISABLED',
-                    proportional_edit_falloff='SMOOTH',
-                    proportional_size=1
-                    )
-        return {'FINISHED'}
-
-
-# Align Z
-class AlignZ(Operator):
-    bl_idname = "align.z"
-    bl_label = "Align  Z"
-    bl_description = "Align Selected Along Z"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-
-        for vert in bpy.context.object.data.vertices:
-            bpy.ops.transform.resize(
-                    value=(1, 1, 0), constraint_axis=(False, False, True),
-                    constraint_orientation='GLOBAL',
-                    mirror=False, proportional='DISABLED',
-                    proportional_edit_falloff='SMOOTH',
-                    proportional_size=1
-                    )
-
         return {'FINISHED'}
 
 
@@ -253,9 +237,7 @@ class AlignXYZAll(Operator):
 
 classes = (
     PieAlign,
-    AlignX,
-    AlignY,
-    AlignZ,
+    AlignSelectedXYZ,
     AlignToXYZ0,
     AlignXYZAll,
     )
