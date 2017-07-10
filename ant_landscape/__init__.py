@@ -21,7 +21,7 @@
 
 bl_info = {
     "name": "A.N.T.Landscape",
-    "author": "Jim Hazevoet",
+    "author": "Jimmy Hazevoet",
     "version": (0, 1, 8),
     "blender": (2, 78, 0),
     "location": "View3D > Tool Shelf",
@@ -375,7 +375,7 @@ class AntDisplaceSettingsPanel(bpy.types.Panel):
             col = box.column()
             col.prop(ant, "strata")
         col = box.column()
-        col.prop(ant, "use_vgroup", toggle=True)
+        col.prop_search(ant, "vert_group", ob, "vertex_groups")
 
 
 # ------------------------------------------------------------
@@ -724,10 +724,9 @@ class AntLandscapePropertiesGroup(bpy.types.PropertyGroup):
             max=10000.0,
             description="Minimum, flattens terrain at seabed level"
             )
-    use_vgroup = BoolProperty(
-            name="Vertex Group Weight",
-            default=False,
-            description="Use active vertex group weight"
+    vert_group = StringProperty(
+            name="Vertex Group",
+            default=""
             )
     strata = FloatProperty(
             name="Amount",

@@ -19,7 +19,6 @@
 # Another Noise Tool - Landscape  Redraw - Regenerate
 # Jimmy Hazevoet
 
-
 # ------------------------------------------------------------
 # import modules
 import bpy
@@ -61,9 +60,6 @@ class AntLandscapeRefresh(bpy.types.Operator):
         if obj and obj.ant_landscape.keys():
             ob = obj.ant_landscape
             obi = ob.items()
-            #print("Refresh A.N.T. Landscape Grid")
-            #for k in obi.keys():
-            #    print(k, "-", obi[k])
             prop = []
             for i in range(len(obi)):
                 prop.append(obi[i][1])
@@ -71,15 +67,14 @@ class AntLandscapeRefresh(bpy.types.Operator):
             # redraw verts
             mesh = obj.data
 
-            if ob['use_vgroup']:
-                vertex_group = obj.vertex_groups.active
-                if vertex_group:
-                    gi = vertex_group.index
-                    for v in mesh.vertices:
-                        for g in v.groups:
-                            if g.group == gi:
-                                v.co[2] = 0.0
-                                v.co[2] = vertex_group.weight(v.index) * noise_gen(v.co, prop)
+            if ob['vert_group'] != "" and ob['vert_group'] in obj.vertex_groups:
+                vertex_group = obj.vertex_groups[ob['vert_group']]
+                gi = vertex_group.index
+                for v in mesh.vertices:
+                    for g in v.groups:
+                        if g.group == gi:
+                            v.co[2] = 0.0
+                            v.co[2] = vertex_group.weight(v.index) * noise_gen(v.co, prop)
             else:
                 for v in mesh.vertices:
                     v.co[2] = 0
@@ -121,14 +116,11 @@ class AntLandscapeRegenerate(bpy.types.Operator):
         if obj and obj.ant_landscape.keys():
             ob = obj.ant_landscape
             obi = ob.items()
-            #print("Regenerate A.N.T. Landscape Grid")
-            #for k in obi.keys():
-            #    print(k, "-", obi[k])
             ant_props = []
             for i in range(len(obi)):
                 ant_props.append(obi[i][1])
 
-            new_name = obj.name #ob.ant_terrain_name
+            new_name = obj.name
 
             # Main function, create landscape mesh object
             if ob['sphere_mesh']:
@@ -222,7 +214,6 @@ class AntLandscapeRegenerate(bpy.types.Operator):
                 wobj.scale = obj.scale
                 wobj.select = False
 
-
             new_ob.location = obj.location
             new_ob.rotation_euler = obj.rotation_euler
             new_ob.scale = obj.scale
@@ -236,7 +227,6 @@ class AntLandscapeRegenerate(bpy.types.Operator):
             obj.select = True
             scene.objects.active = obj
             bpy.ops.object.delete(use_global=False)
-            #scene.update()
 
             # Select landscape and make active
             new_ob.select = True

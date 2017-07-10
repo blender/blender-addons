@@ -20,7 +20,7 @@
 # Jimmy Hazevoet
 
 # ErosionR:
-# Michel Anders (varkenvarken), Ian Huish (nerk)
+# Michel Anders, Ian Huish
 
 # import modules
 import bpy
@@ -279,7 +279,7 @@ def shapes(x, y, z, shape=0):
         y = y * p * 2
         s = sin(x + sin(y))
     elif shape is 5:
-        # x grad.
+        # z grad.
         s = (z * p)
     elif shape is 6:
         # y grad.
@@ -878,7 +878,7 @@ def draw_ant_displace(self, context, generate=True):
 
         if not generate:
             col = box.column(align=False)
-            col.prop(self, "use_vgroup", toggle=True)
+            col.prop_search(self, "vert_group",  bpy.context.object, "vertex_groups")
 
 
 def draw_ant_water(self, context):
@@ -944,19 +944,18 @@ def store_properties(operator, ob):
     ob.ant_landscape.strata = operator.strata
     ob.ant_landscape.water_plane = operator.water_plane
     ob.ant_landscape.water_level = operator.water_level
-    ob.ant_landscape.use_vgroup = operator.use_vgroup
+    ob.ant_landscape.vert_group = operator.vert_group
     ob.ant_landscape.remove_double = operator.remove_double
     return ob
 
 
 # ------------------------------------------------------------
 # "name": "ErosionR"
-# "author": "Michel Anders (varkenvarken), Ian Huish (nerk)"
-    
+# "author": "Michel Anders, Ian Huish"
+
 from random import random as rand
 from math import tan, radians
 from .eroder import Grid
-#print("Imported multifiles", file=sys.stderr)
 from .stats import Stats
 from .utils import numexpr_available
 
@@ -1134,8 +1133,6 @@ class Eroder(bpy.types.Operator):
 
     stats = Stats()
     counts= {}
-
-    # add poll function to restrict action to mesh object in object mode
 
     def execute(self, context):
 

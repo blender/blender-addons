@@ -388,10 +388,9 @@ class AntMeshDisplace(bpy.types.Operator):
             max=10000.0,
             description="Minimum, flattens terrain at seabed level"
             )
-    use_vgroup = BoolProperty(
-            name="Vertex Group Weight",
-            default=False,
-            description="Use active vertex group weight"
+    vert_group = StringProperty(
+            name="Vertex Group",
+            default=""
             )
     strata = FloatProperty(
             name="Amount",
@@ -424,11 +423,7 @@ class AntMeshDisplace(bpy.types.Operator):
             max=10000.0,
             description="Water level"
             )
-    remove_double = BoolProperty(
-            name="Remove Doubles",
-            default=False,
-            description="Remove doubles"
-            )
+
     direction = EnumProperty(
             name="Direction",
             default="NORMAL",
@@ -544,22 +539,14 @@ class AntMeshDisplace(bpy.types.Operator):
             self.strata,
             self.water_plane,
             self.water_level,
-            self.use_vgroup,
-            self.remove_double
+            self.vert_group
             ]
 
-        '''
-        gi = ob.vertex_groups["Group"].index # get group index
-        for v in ob.data.vertices:
-          for g in v.groups:
-            if g.group == gi: # compare with index in VertexGroupElement
-              v.co[0] = 5
-        '''
         # do displace
         mesh = ob.data
 
-        if self.use_vgroup is True:
-            vertex_group = ob.vertex_groups.active
+        if self.vert_group != "" and self.vert_group in ob.vertex_groups:
+            vertex_group = ob.vertex_groups[self.vert_group]
             if vertex_group:
                 gi = vertex_group.index
                 if self.direction == "X":
@@ -597,7 +584,7 @@ class AntMeshDisplace(bpy.types.Operator):
                 for v in mesh.vertices:
                     v.co += v.normal * noise_gen(v.co, props)
 
-            mesh.update()
+        mesh.update()
 
         if self.auto_refresh is False:
             self.refresh = False

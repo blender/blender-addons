@@ -392,10 +392,9 @@ class AntAddLandscape(bpy.types.Operator):
             max=10000.0,
             description="Minimum, flattens terrain at seabed level"
             )
-    use_vgroup = BoolProperty(
-            name="Vertex Group Weight",
-            default=False,
-            description="Use active vertex group weight"
+    vert_group = StringProperty(
+            name="Vertex Group",
+            default=""
             )
     strata = FloatProperty(
             name="Amount",
@@ -536,10 +535,10 @@ class AntAddLandscape(bpy.types.Operator):
             self.strata,
             self.water_plane,
             self.water_level,
-            self.use_vgroup,
+            self.vert_group,
             self.remove_double
             ]
-  
+
         scene = context.scene
 
         # Main function, create landscape mesh object
