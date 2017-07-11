@@ -18,7 +18,7 @@
 
 bl_info = {
     "name": "Node Wrangler",
-    "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig, Christian Brinkmann, Florian Meyer",
+    "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig, Christian Brinkmann",
     "version": (3, 35),
     "blender": (2, 79, 0),
     "location": "Node Editor Toolbar or Ctrl-Space",
@@ -988,6 +988,44 @@ def get_nodes_links(context):
 
     return tree.nodes, tree.links
 
+# Principled prefs
+class NWPrincipledPreferences(bpy.types.PropertyGroup):
+    base_color = StringProperty(
+        name='Base Color',
+        default='diffuse diff albedo base col color',
+        description='Naming Components for Base Color maps')
+    sss_color = StringProperty(
+        name='Subsurface Color',
+        default='sss subsurface',
+        description='Naming Components for Subsurface Color maps')
+    metallic = StringProperty(
+        name='Metallic',
+        default='metallic metalness metal mtl',
+        description='Naming Components for metallness maps')
+    specular = StringProperty(
+        name='Specular',
+        default='specularity specular spec spc',
+        description='Naming Components for Specular maps')
+    normal = StringProperty(
+        name='Normal',
+        default='normal nor nrm nrml norm',
+        description='Naming Components for Normal maps')
+    bump = StringProperty(
+        name='Bump',
+        default='bump bmp',
+        description='Naming Components for bump maps')
+    rough = StringProperty(
+        name='Roughness',
+        default='roughness rough rgh',
+        description='Naming Components for roughness maps')
+    gloss = StringProperty(
+        name='Gloss',
+        default='gloss glossy glossyness',
+        description='Naming Components for glossy maps')
+    displacement = StringProperty(
+        name='Displacement',
+        default='displacement disp dsp height',
+        description='Naming Components for bump maps')
 
 # Addon prefs
 class NWNodeWrangler(bpy.types.AddonPreferences):
@@ -1021,6 +1059,12 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
         default="",
         description="Show only hotkeys that have this text in their name"
     )
+    show_principled_lists = BoolProperty(
+        name="Show Principled naming tags",
+        default=False,
+        description="Expand this box into a list of all naming tags for principled texture setup"
+    )
+    principled_tags = bpy.props.PointerProperty(type=NWPrincipledPreferences)
 
     def draw(self, context):
         layout = self.layout
@@ -1053,6 +1097,24 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
                         if hotkey[3]:
                             keystr = "Ctrl " + keystr
                         row.label(keystr)
+
+        box = layout.box()
+        col = box.column(align=True)
+        col.prop(self, "show_principled_lists", text='Show tags for Principled auto setup', toggle=True)
+        if self.show_principled_lists:
+            tags = self.principled_tags
+
+            col.prop(tags, "base_color")
+            col.prop(tags, "sss_color")
+            col.prop(tags, "metallic")
+            col.prop(tags, "specular")
+            col.prop(tags, "rough")
+            col.prop(tags, "gloss")
+            col.prop(tags, "normal")
+            col.prop(tags, "bump")
+            col.prop(tags, "displacement")
+
+
 
 def nw_check(context):
     space = context.space_data
@@ -2626,19 +2688,21 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
 
         # Filter textures names for texturetypes in filenames
         # [Socket Name, [abbreviations and keyword list], Filename placeholder]
-        normal_abbr = ['normal', 'nor', 'nrm', 'nrml', 'norm']
-        bump_abbr = ['bump', 'bmp']
-        gloss_abbr = ['gloss', 'glossy', 'glossyness']
-        rough_abbr = ['roughness', 'rough', 'rgh']
+        tags = context.user_preferences.addons[__name__].preferences.principled_tags
+        normal_abbr = tags.normal.split(' ')
+        bump_abbr = tags.bump.split(' ')
+        gloss_abbr = tags.gloss.split(' ')
+        rough_abbr = tags.rough.split(' ')
         socketnames = [
-        ['Displacement', ['displacement', 'disp', 'dsp', 'height'], None],
-        ['Base Color', ['diffuse', 'diff', 'albedo', 'base', 'col', 'color'], None],
-        ['Subsurface Color', ['sss', 'subsurface'], None],
-        ['Metallic', ['metallic', 'metalness', 'metal', 'mtl'], None],
-        ['Specular', ['specularity', 'specular', 'spec', 'spc'], None],
+        ['Displacement', tags.displacement.split(' '), None],
+        ['Base Color', tags.base_color.split(' '), None],
+        ['Subsurface Color', tags.sss_color.split(' '), None],
+        ['Metallic', tags.metallic.split(' '), None],
+        ['Specular', tags.specular.split(' '), None],
         ['Roughness', rough_abbr + gloss_abbr, None],
         ['Normal', normal_abbr + bump_abbr, None],
         ]
+
         # Look through texture_types and set value as filename of first matched file
         def match_files_to_socket_names():
             for sname in socketnames:
