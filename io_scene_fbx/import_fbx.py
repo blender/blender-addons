@@ -1923,7 +1923,7 @@ class FbxImportHelperNode:
         obj.matrix_basis = self.get_matrix()
 
         if settings.use_custom_props:
-            blen_read_custom_properties(fbx_props[0], obj, settings)
+            blen_read_custom_properties(self.fbx_elem, obj, settings)
 
         return obj
 
@@ -2072,7 +2072,7 @@ class FbxImportHelperNode:
                 assert(fbx_props[0] is not None)
 
                 if settings.use_custom_props:
-                    blen_read_custom_properties(fbx_props[0], arm, settings)
+                    blen_read_custom_properties(self.fbx_elem, arm, settings)
 
             # instance in scene
             obj_base = scene.objects.link(arm)
