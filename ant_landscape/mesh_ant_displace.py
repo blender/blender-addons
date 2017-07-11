@@ -30,13 +30,13 @@ from bpy.props import (
         StringProperty,
         FloatVectorProperty,
         )
-
 from .ant_functions import (
-        noise_gen,
         draw_ant_refresh,
+        draw_ant_main,
         draw_ant_noise,
         draw_ant_displace,
         )
+from .ant_noise import noise_gen
 
 # ------------------------------------------------------------
 # Do vert displacement
@@ -343,6 +343,136 @@ class AntMeshDisplace(bpy.types.Operator):
             max=10000.0,
             description="Height offset"
             )
+
+    fx_mixfactor = FloatProperty(
+            name="Mix Factor",
+            default=0.0,
+            min=-1.0,
+            max=1.0,
+            description="Effect mix factor: -1.0 = Noise, +1.0 = Effect"
+            )
+    fx_mix_mode = EnumProperty(
+            name="Effect Mix",
+            default="0",
+            description="Effect mix mode",
+            items = [
+                ("0", "Mix", "Mix", 0),
+                ("1", "Add", "Add", 1),
+                ("2", "Sub", "Subtract", 2),
+                ("3", "Mul", "Multiply", 3),
+                ("4", "Abs", "Absolute", 4),
+                ("5", "Scr", "Screen", 5),
+                ("6", "Mod", "Modulo", 6),
+                ("7", "Min", "Minimum", 7),
+                ("8", "Max", "Maximum", 8)
+                ]
+            )
+    fx_type = EnumProperty(
+            name="Effect Type",
+            default="0",
+            description="Effect type",
+            items = [
+                ("0", "None", "No effect", 0),
+                ("1", "Gradient", "Gradient", 1),
+                ("2", "Waves", "Waves - Bumps", 2),
+                ("3", "Zigzag", "Zigzag", 3),
+                ("4", "Wavy", "Wavy", 4),
+                ("5", "Bump", "Bump", 5),
+                ("6", "Dots", "Dots", 6),
+                ("7", "Rings", "Rings", 7),
+                ("8", "Spiral", "Spiral", 8),
+                ("9", "Square", "Square", 9),
+                ("10", "Blocks", "Blocks", 10),
+                ("11", "Grid", "Grid", 11),
+                ("12", "Tech", "Tech", 12),
+                ("13", "Crackle", "Crackle", 13),
+                ("14", "Cracks", "Cracks", 14),
+                ("15", "Rock", "Rock noise", 15),
+                ("16", "Lunar", "Craters", 16),
+                ("17", "Cosine", "Cosine", 17),
+                ("18", "Spikey", "Spikey", 18),
+                ("19", "Stone", "Stone", 19),
+                ("20", "Flat Turb", "Flat turbulence", 20),
+                ("21", "Flat Voronoi", "Flat voronoi", 21)
+                ]
+            )
+    fx_bias = EnumProperty(
+            name="Effect Bias",
+            default="0",
+            description="Effect bias type",
+            items = [
+                ("0", "Sin", "Sin", 0),
+                ("1", "Cos", "Cos", 1),
+                ("2", "Tri", "Tri", 2),
+                ("3", "Saw", "Saw", 3),
+                ("4", "None", "None", 4)
+                ]
+            )
+    fx_turb = FloatProperty(
+            name="Distortion",
+            default=0.0,
+            min=0.0,
+            max=1000.0,
+            description="Effect turbulence distortion"
+            )
+    fx_depth = IntProperty(
+            name="Depth",
+            default=0,
+            min=0,
+            max=16,
+            description="Effect depth - number of frequencies"
+            )
+    fx_amplitude = FloatProperty(
+            name="Amp",
+            default=0.5,
+            min=0.01,
+            max=1.0,
+            description="Amplitude"
+            )
+    fx_frequency = FloatProperty(
+            name="Freq",
+            default=2.0,
+            min=0.01,
+            max=5.0,
+            description="Frequency"
+            )
+    fx_size = FloatProperty(
+            name="Effect Size",
+            default=1.0,
+            min=0.01,
+            max=1000.0,
+            description="Effect size"
+            )
+    fx_loc_x = FloatProperty(
+            name="Offset X",
+            default=0.0,
+            description="Effect x offset"
+            )
+    fx_loc_y = FloatProperty(
+            name="Offset Y",
+            default=0.0,
+            description="Effect y offset"
+            )
+    fx_height = FloatProperty(
+            name="Intensity",
+            default=1.0,
+            min=-1000.0,
+            max=1000.0,
+            description="Effect intensity scale"
+            )
+    fx_invert = BoolProperty(
+            name="Invert",
+            default=False,
+            description="Effect invert"
+            )
+    fx_offset = FloatProperty(
+            name="Offset",
+            default=0.0,
+            min=-1000.0,
+            max=1000.0,
+            description="Effect height offset"
+            )
+
     edge_falloff = EnumProperty(
             name="Falloff",
             default="0",
@@ -423,7 +553,11 @@ class AntMeshDisplace(bpy.types.Operator):
             max=10000.0,
             description="Water level"
             )
-
+    remove_double = BoolProperty(
+            name="Remove Doubles",
+            default=False,
+            description="Remove doubles"
+            )
     direction = EnumProperty(
             name="Direction",
             default="NORMAL",
@@ -459,7 +593,6 @@ class AntMeshDisplace(bpy.types.Operator):
             default=False,
             description="Automatic refresh"
             )
-
 
     def draw(self, context):
         draw_ant_refresh(self, context)
@@ -539,7 +672,22 @@ class AntMeshDisplace(bpy.types.Operator):
             self.strata,
             self.water_plane,
             self.water_level,
-            self.vert_group
+            self.vert_group,
+            self.remove_double,
+            self.fx_mixfactor,
+            self.fx_mix_mode,
+            self.fx_type,
+            self.fx_bias,
+            self.fx_turb,
+            self.fx_depth,
+            self.fx_frequency,
+            self.fx_amplitude,
+            self.fx_size,
+            self.fx_loc_x,
+            self.fx_loc_y,
+            self.fx_height,
+            self.fx_offset,
+            self.fx_invert
             ]
 
         # do displace
@@ -547,6 +695,7 @@ class AntMeshDisplace(bpy.types.Operator):
 
         if self.vert_group != "" and self.vert_group in ob.vertex_groups:
             vertex_group = ob.vertex_groups[self.vert_group]
+
             if vertex_group:
                 gi = vertex_group.index
                 if self.direction == "X":
@@ -554,16 +703,19 @@ class AntMeshDisplace(bpy.types.Operator):
                         for g in v.groups:
                             if g.group == gi:
                                 v.co[0] += vertex_group.weight(v.index) * noise_gen(v.co, props)
+
                 if self.direction == "Y":
                     for v in mesh.vertices:
                         for g in v.groups:
                             if g.group == gi:
                                 v.co[1] += vertex_group.weight(v.index) * noise_gen(v.co, props)
+
                 if self.direction == "Z":
                     for v in mesh.vertices:
                         for g in v.groups:
                             if g.group == gi:
                                 v.co[2] += vertex_group.weight(v.index) * noise_gen(v.co, props)
+
                 else:
                     for v in mesh.vertices:
                         for g in v.groups:
@@ -574,12 +726,15 @@ class AntMeshDisplace(bpy.types.Operator):
             if self.direction == "X":
                 for v in mesh.vertices:
                     v.co[0] += noise_gen(v.co, props)
+
             elif self.direction == "Y":
                 for v in mesh.vertices:
                     v.co[1] += noise_gen(v.co, props)
+
             elif self.direction == "Z":
                 for v in mesh.vertices:
                     v.co[2] += noise_gen(v.co, props)
+
             else:
                 for v in mesh.vertices:
                     v.co += v.normal * noise_gen(v.co, props)

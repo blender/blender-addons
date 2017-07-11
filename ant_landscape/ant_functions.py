@@ -30,24 +30,12 @@ from bpy.props import (
         StringProperty,
         EnumProperty,
         IntProperty,
-        PointerProperty
-        )
-from mathutils.noise import (
-        seed_set,
-        turbulence,
-        turbulence_vector,
-        fractal,
-        hybrid_multi_fractal,
-        multi_fractal,
-        ridged_multi_fractal,
-        hetero_terrain,
-        random_unit_vector,
-        variable_lacunarity,
+        PointerProperty,
         )
 from math import (
-        floor, sqrt,
         sin, cos, pi,
         )
+from .ant_noise import noise_gen
 
 # ------------------------------------------------------------
 # Create a new mesh (object) from verts/edges/faces.
@@ -137,6 +125,213 @@ def sphere_gen(sub_d_x, sub_d_y, tri, meshsize, props, water_plane, water_level)
     return verts, faces
 
 
+# ------------------------------------------------------------
+# Do refresh - redraw
+class AntLandscapeRefresh(bpy.types.Operator):
+    bl_idname = "mesh.ant_landscape_refresh"
+    bl_label = "Refresh"
+    bl_description = "Refresh landscape with current settings"
+    bl_options = {'REGISTER', 'UNDO'}
+
+
+    @classmethod
+    def poll(cls, context):
+        ob = bpy.context.active_object
+        return (ob.ant_landscape and not ob.ant_landscape['sphere_mesh'])
+
+
+    def execute(self, context):
+        # turn off undo
+        undo = bpy.context.user_preferences.edit.use_global_undo
+        bpy.context.user_preferences.edit.use_global_undo = False
+
+        # ant object items
+        obj = bpy.context.active_object
+
+        bpy.ops.object.mode_set(mode = 'EDIT')
+        bpy.ops.object.mode_set(mode = 'OBJECT')
+
+        if obj and obj.ant_landscape.keys():
+            ob = obj.ant_landscape
+            obi = ob.items()
+            prop = []
+            for i in range(len(obi)):
+                prop.append(obi[i][1])
+
+            # redraw verts
+            mesh = obj.data
+
+            if ob['vert_group'] != "" and ob['vert_group'] in obj.vertex_groups:
+                vertex_group = obj.vertex_groups[ob['vert_group']]
+                gi = vertex_group.index
+                for v in mesh.vertices:
+                    for g in v.groups:
+                        if g.group == gi:
+                            v.co[2] = 0.0
+                            v.co[2] = vertex_group.weight(v.index) * noise_gen(v.co, prop)
+            else:
+                for v in mesh.vertices:
+                    v.co[2] = 0.0
+                    v.co[2] = noise_gen(v.co, prop)
+            mesh.update()
+        else:
+            pass
+
+        # restore pre operator undo state
+        context.user_preferences.edit.use_global_undo = undo
+
+        return {'FINISHED'}
+
+# ------------------------------------------------------------
+# Do regenerate
+class AntLandscapeRegenerate(bpy.types.Operator):
+    bl_idname = "mesh.ant_landscape_regenerate"
+    bl_label = "Regenerate"
+    bl_description = "Regenerate landscape with current settings"
+    bl_options = {'REGISTER', 'UNDO'}
+
+
+    @classmethod
+    def poll(cls, context):
+        return bpy.context.active_object.ant_landscape
+
+
+    def execute(self, context):
+
+        # turn off undo
+        undo = bpy.context.user_preferences.edit.use_global_undo
+        bpy.context.user_preferences.edit.use_global_undo = False
+
+        scene = bpy.context.scene
+        # ant object items
+        obj = bpy.context.active_object
+
+        if obj and obj.ant_landscape.keys():
+            ob = obj.ant_landscape
+            obi = ob.items()
+            ant_props = []
+            for i in range(len(obi)):
+                ant_props.append(obi[i][1])
+
+            new_name = obj.name
+
+            # Main function, create landscape mesh object
+            if ob['sphere_mesh']:
+                # sphere
+                verts, faces = sphere_gen(
+                        ob['subdivision_y'],
+                        ob['subdivision_x'],
+                        ob['tri_face'],
+                        ob['mesh_size'],
+                        ant_props,
+                        False,
+                        0.0
+                        )
+                new_ob = create_mesh_object(context, verts, [], faces, new_name).object
+                if ob['remove_double']:
+                    new_ob.select = True
+                    bpy.ops.object.mode_set(mode = 'EDIT')
+                    bpy.ops.mesh.remove_doubles(threshold=0.0001, use_unselected=False)
+                    bpy.ops.object.mode_set(mode = 'OBJECT')
+            else:
+                # grid
+                verts, faces = grid_gen(
+                        ob['subdivision_x'],
+                        ob['subdivision_y'],
+                        ob['tri_face'],
+                        ob['mesh_size_x'],
+                        ob['mesh_size_y'],
+                        ant_props,
+                        False,
+                        0.0
+                        )
+                new_ob = create_mesh_object(context, verts, [], faces, new_name).object
+
+            new_ob.select = True
+
+            if ob['smooth_mesh']:
+                bpy.ops.object.shade_smooth()
+
+            # Landscape Material
+            if ob['land_material'] != "" and ob['land_material'] in bpy.data.materials:
+                mat = bpy.data.materials[ob['land_material']]
+                bpy.context.object.data.materials.append(mat)
+
+            # Water plane
+            if ob['water_plane']:
+                if ob['sphere_mesh']:
+                    # sphere
+                    verts, faces = sphere_gen(
+                            ob['subdivision_y'],
+                            ob['subdivision_x'],
+                            ob['tri_face'],
+                            ob['mesh_size'],
+                            ant_props,
+                            ob['water_plane'],
+                            ob['water_level']
+                            )
+                    wobj = create_mesh_object(context, verts, [], faces, new_name+"_plane").object
+                    if ob['remove_double']:
+                        wobj.select = True
+                        bpy.ops.object.mode_set(mode = 'EDIT')
+                        bpy.ops.mesh.remove_doubles(threshold=0.0001, use_unselected=False)
+                        bpy.ops.object.mode_set(mode = 'OBJECT')
+                else:
+                    # grid
+                    verts, faces = grid_gen(
+                            2,
+                            2,
+                            ob['tri_face'],
+                            ob['mesh_size_x'],
+                            ob['mesh_size_y'],
+                            ant_props,
+                            ob['water_plane'],
+                            ob['water_level']
+                            )
+                    wobj = create_mesh_object(context, verts, [], faces, new_name+"_plane").object
+
+                wobj.select = True
+
+                if ob['smooth_mesh']:
+                    bpy.ops.object.shade_smooth()
+
+                # Water Material
+                if ob['water_material'] != "" and ob['water_material'] in bpy.data.materials:
+                    mat = bpy.data.materials[ob['water_material']]
+                    bpy.context.object.data.materials.append(mat)
+
+            # Loc Rot Scale
+            if ob['water_plane']:
+                wobj.location = obj.location
+                wobj.rotation_euler = obj.rotation_euler
+                wobj.scale = obj.scale
+                wobj.select = False
+
+            new_ob.location = obj.location
+            new_ob.rotation_euler = obj.rotation_euler
+            new_ob.scale = obj.scale
+
+            # Store props
+            new_ob = store_properties(ob, new_ob)
+
+            # Delete old object
+            new_ob.select = False
+            
+            obj.select = True
+            scene.objects.active = obj
+            bpy.ops.object.delete(use_global=False)
+
+            # Select landscape and make active
+            new_ob.select = True
+            scene.objects.active = new_ob
+
+            # restore pre operator undo state
+            context.user_preferences.edit.use_global_undo = undo
+
+        return {'FINISHED'}
+
+
+# ------------------------------------------------------------
 # Z normal value to vertex group (Slope map)
 class AntVgSlopeMap(bpy.types.Operator):
     bl_idname = "mesh.ant_slope_map"
@@ -217,434 +412,6 @@ class AntVgSlopeMap(bpy.types.Operator):
 
 
 # ------------------------------------------------------------
-# A.N.T. Noise:
-
-# Functions for marble_noise:
-def sin_bias(a):
-    return 0.5 + 0.5 * sin(a)
-
-
-def cos_bias(a):
-    return 0.5 + 0.5 * cos(a)
-
-
-def tri_bias(a):
-    b = 2 * pi
-    a = 1 - 2 * abs(floor((a * (1 / b)) + 0.5) - (a * (1 / b)))
-    return a
-
-
-def saw_bias(a):
-    b = 2 * pi
-    n = int(a / b)
-    a -= n * b
-    if a < 0:
-        a += b
-    return a / b
-
-
-def soft(a):
-    return a
-
-
-def sharp(a):
-    return a**0.5
-
-
-def sharper(a):
-    return sharp(sharp(a))
-
-
-def shapes(x, y, z, shape=0):
-    p = pi
-    if shape is 1:
-        # ring
-        x = x * p
-        y = y * p
-        s = cos(x**2 + y**2) / (x**2 + y**2 + 0.5)
-    elif shape is 2:
-        # swirl
-        x = x * p
-        y = y * p
-        s = ((x * sin(x * x + y * y) + y * cos(x * x + y * y)) / (x**2 + y**2 + 0.5))
-    elif shape is 3:
-        # bumps
-        x = x * p
-        y = y * p
-        z = z * p
-        s = 1 - ((cos(x * p) + cos(y * p) + cos(z * p)) - 0.5)
-    elif shape is 4:
-        # wave
-        x = x * p * 2
-        y = y * p * 2
-        s = sin(x + sin(y))
-    elif shape is 5:
-        # z grad.
-        s = (z * p)
-    elif shape is 6:
-        # y grad.
-        s = (y * p)
-    elif shape is 7:
-        # x grad.
-        s = (x * p)
-    else:
-        # marble default
-        s = ((x + y + z) * 5)
-    return s
-
-
-# marble_noise
-def marble_noise(x, y, z, origin, size, shape, bias, sharpnes, turb, depth, hard, basis, amp, freq):
-
-    s = shapes(x, y, z, shape)
-    x += origin[0]
-    y += origin[1]
-    z += origin[2]
-    value = s + turb * turbulence_vector((x, y, z), depth, hard, basis)[1]
-
-    if bias is 1:
-        value = cos_bias(value)
-    elif bias is 2:
-        value = tri_bias(value)
-    elif bias is 3:
-        value = saw_bias(value)
-    else:
-        value = sin_bias(value)
-
-    if sharpnes is 1:
-        value = 1.0 - sharp(value)
-    elif sharpnes is 2:
-        value = 1.0 - sharper(value)
-    elif sharpnes is 3:
-        value = soft(value)
-    elif sharpnes is 4:
-        value = sharp(value)
-    elif sharpnes is 5:
-        value = sharper(value)
-    else:
-        value = 1.0 - soft(value)
-
-    return value
-
-
-# vl_noise_turbulence: 
-def vlnTurbMode(coords, distort, basis, vlbasis, hardnoise):
-    # hard noise
-    if hardnoise:
-        return (abs(-variable_lacunarity(coords, distort, basis, vlbasis)))
-    # soft noise
-    else:
-        return variable_lacunarity(coords, distort, basis, vlbasis)
-
-
-def vl_noise_turbulence(coords, distort, depth, basis, vlbasis, hardnoise, amp, freq):
-    x, y, z = coords
-    value = vlnTurbMode(coords, distort, basis, vlbasis, hardnoise)
-    i=0
-    for i in range(depth):
-        i+=1
-        value += vlnTurbMode((x * (freq * i), y * (freq * i), z * (freq * i)), distort, basis, vlbasis, hardnoise) * (amp * 0.5 / i)
-    return value
-
-
-## duo_multiFractal:
-def double_multiFractal(coords, H, lacunarity, octaves, offset, gain, basis, vlbasis):
-    x, y, z = coords
-    n1 = multi_fractal((x * 1.5 + 1, y * 1.5 + 1, z * 1.5 + 1), 1.0, 1.0, 1.0, basis) * (offset * 0.5)
-    n2 = multi_fractal((x - 1, y - 1, z - 1), H, lacunarity, octaves, vlbasis) * (gain * 0.5)
-    return (n1 * n1 + n2 * n2) * 0.5
-
-
-## distorted_heteroTerrain:
-def distorted_heteroTerrain(coords, H, lacunarity, octaves, offset, distort, basis, vlbasis):
-    x, y, z = coords
-    h1 = (hetero_terrain((x, y, z), 1.0, 2.0, 1.0, 1.0, basis) * 0.5)
-    d =  h1 * distort
-    h2 = (hetero_terrain((x + d, y + d, z + d), H, lacunarity, octaves, offset, vlbasis) * 0.25)
-    return (h1 * h1 + h2 * h2) * 0.5
-
-
-## SlickRock:
-def slick_rock(coords, H, lacunarity, octaves, offset, gain, distort, basis, vlbasis):
-    x, y, z = coords
-    n = multi_fractal((x,y,z), 1.0, 2.0, 2.0, basis) * distort * 0.25
-    r = ridged_multi_fractal((x + n, y + n, z + n), H, lacunarity, octaves, offset + 0.1, gain * 2, vlbasis)
-    return (n + (n * r)) * 0.5
-
-
-## vlhTerrain
-def vl_hTerrain(coords, H, lacunarity, octaves, offset, basis, vlbasis, distort):
-    x, y, z = coords
-    ht = hetero_terrain((x, y, z), H, lacunarity, octaves, offset, basis ) * 0.25
-    vl = ht * variable_lacunarity((x, y, z), distort, basis, vlbasis) * 0.5 + 0.5
-    return vl * ht
-
-
-# another turbulence
-def ant_turbulence(coords, depth, hardnoise, nbasis, amp, freq, distortion):
-    x, y, z = coords
-    t = turbulence_vector((x/2, y/2, z/2), depth, 0, nbasis, amp, freq) * 0.5 * distortion
-    return turbulence((t[0], t[1], t[2]), 2, hardnoise, 3) * 0.5 + 0.5
-
-
-# rocks noise
-def rocks_noise(coords, depth, hardnoise, nbasis, distortion):
-    x,y,z = coords
-    p = turbulence((x, y, z), 4, 0, 0) * 0.125 * distortion
-    xx, yy, zz = x, y, z
-    a = turbulence((xx + p, yy + p, zz), 2, 0, 7)
-    pa = a * 0.1875 * distortion
-    b = turbulence((x, y, z + pa), depth, hardnoise, nbasis)
-    return ((a + 0.5 * (b - a)) * 0.5 + 0.5)
-
-
-# shattered_hterrain:
-def shattered_hterrain(coords, H, lacunarity, octaves, offset, distort, basis):
-    x, y, z = coords
-    d = (turbulence_vector(coords, 6, 0, 0)[0] * 0.5 + 0.5) * distort * 0.5
-    t1 = (turbulence_vector((x + d, y + d, z + d), 0, 0, 7)[0] + 0.5)
-    t2 = (hetero_terrain((x * 2, y * 2, z * 2), H, lacunarity, octaves, offset, basis) * 0.5)
-    return ((t1 * t2) + t2 * 0.5) * 0.5
-
-
-# strata_hterrain
-def strata_hterrain(coords, H, lacunarity, octaves, offset, distort, basis):
-    x, y, z = coords
-    value = hetero_terrain((x, y, z), H, lacunarity, octaves, offset, basis) * 0.5
-    steps = (sin(value * (distort * 5) * pi) * (0.1 / (distort * 5) * pi))
-    return (value * (1.0 - 0.5) + steps * 0.5)
-
-
-# Planet Noise by: Farsthary
-# https://farsthary.com/2010/11/24/new-planet-procedural-texture/
-def planet_noise(coords, oct=6, hard=0, noisebasis=1, nabla=0.001):
-    x, y, z = coords
-    d = 0.001
-    offset = nabla * 1000
-    x = turbulence((x, y, z), oct, hard, noisebasis)
-    y = turbulence((x + offset, y, z), oct, hard, noisebasis)
-    z = turbulence((x, y + offset, z), oct, hard, noisebasis)
-    xdy = x - turbulence((x, y + d, z), oct, hard, noisebasis)
-    xdz = x - turbulence((x, y, z + d), oct, hard, noisebasis)
-    ydx = y - turbulence((x + d, y, z), oct, hard, noisebasis)
-    ydz = y - turbulence((x, y, z + d), oct, hard, noisebasis)
-    zdx = z - turbulence((x + d, y, z), oct, hard, noisebasis)
-    zdy = z - turbulence((x, y + d, z), oct, hard, noisebasis)
-    return (zdy - ydz), (zdx - xdz), (ydx - xdy)
-
-
-# ------------------------------------------------------------
-# landscape_gen
-def noise_gen(coords, props):
-
-    terrain_name = props[0]
-    cursor = props[1]
-    smooth = props[2]
-    triface = props[3]
-    sphere = props[4]
-    land_mat = props[5]
-    water_mat = props[6]
-    texture_name = props[7]
-    subd_x = props[8]
-    subd_y = props[9]
-    meshsize_x = props[10]
-    meshsize_y = props[11]
-    meshsize = props[12]
-    rseed = props[13]
-    x_offset = props[14]
-    y_offset = props[15]
-    z_offset = props[16]
-    size_x = props[17]
-    size_y = props[18]
-    size_z = props[19]
-    nsize = props[20]
-    ntype = props[21]
-    nbasis = int(props[22])
-    vlbasis = int(props[23])
-    distortion = props[24]
-    hardnoise = int(props[25])
-    depth = props[26]
-    amp = props[27]
-    freq = props[28]
-    dimension = props[29]
-    lacunarity = props[30]
-    offset = props[31]
-    gain = props[32]
-    marblebias = int(props[33])
-    marblesharpnes = int(props[34])
-    marbleshape = int(props[35])
-    height = props[36]
-    height_invert = props[37]
-    height_offset = props[38]
-    maximum = props[39]
-    minimum = props[40]
-    falloff = int(props[41])
-    edge_level = props[42]
-    falloffsize_x = props[43]
-    falloffsize_y = props[44]
-    stratatype = props[45]
-    strata = props[46]
-    addwater = props[47]
-    waterlevel = props[48]
-
-    x, y, z = coords
-
-    # Origin
-    if rseed is 0:
-        origin = x_offset, y_offset, z_offset
-        origin_x = x_offset
-        origin_y = y_offset
-        origin_z = z_offset
-        o_range = 1.0
-    else:
-        # Randomise origin
-        o_range = 10000.0
-        seed_set(rseed)
-        origin = random_unit_vector()
-        ox = (origin[0] * o_range)
-        oy = (origin[1] * o_range)
-        oz = (origin[2] * o_range)
-        origin_x = (ox - (ox / 2)) + x_offset
-        origin_y = (oy - (oy / 2)) + y_offset
-        origin_z = (oz - (oz / 2)) + z_offset
-
-    ncoords = (x / (nsize * size_x) + origin_x, y / (nsize * size_y) + origin_y, z / (nsize * size_z) + origin_z)
-
-    # Noise basis type's
-    if nbasis == 9:
-        nbasis = 14  # Cellnoise
-    if vlbasis == 9:
-        vlbasis = 14
-
-    # Noise type's
-    if ntype in [0, 'multi_fractal']:
-        value = multi_fractal(ncoords, dimension, lacunarity, depth, nbasis) * 0.5
-
-    elif ntype in [1, 'ridged_multi_fractal']:
-        value = ridged_multi_fractal(ncoords, dimension, lacunarity, depth, offset, gain, nbasis) * 0.5
-
-    elif ntype in [2, 'hybrid_multi_fractal']:
-        value = hybrid_multi_fractal(ncoords, dimension, lacunarity, depth, offset, gain, nbasis) * 0.5
-
-    elif ntype in [3, 'hetero_terrain']:
-        value = hetero_terrain(ncoords, dimension, lacunarity, depth, offset, nbasis) * 0.25
-
-    elif ntype in [4, 'fractal']:
-        value = fractal(ncoords, dimension, lacunarity, depth, nbasis)
-
-    elif ntype in [5, 'turbulence_vector']:
-        value = turbulence_vector(ncoords, depth, hardnoise, nbasis, amp, freq)[0]
-
-    elif ntype in [6, 'variable_lacunarity']:
-        value = variable_lacunarity(ncoords, distortion, nbasis, vlbasis)
-
-    elif ntype in [7, 'marble_noise']:
-        value = marble_noise(
-                        (ncoords[0] - origin_x + x_offset),
-                        (ncoords[1] - origin_y + y_offset), 
-                        (ncoords[2] - origin_z + z_offset),
-                        (origin[0] + x_offset, origin[1] + y_offset, origin[2] + z_offset), nsize,
-                        marbleshape, marblebias, marblesharpnes,
-                        distortion, depth, hardnoise, nbasis, amp, freq
-                        )
-    elif ntype in [8, 'shattered_hterrain']:
-        value = shattered_hterrain(ncoords, dimension, lacunarity, depth, offset, distortion, nbasis)
-
-    elif ntype in [9, 'strata_hterrain']:
-        value = strata_hterrain(ncoords, dimension, lacunarity, depth, offset, distortion, nbasis)
-
-    elif ntype in [10, 'ant_turbulence']:
-        value = ant_turbulence(ncoords, depth, hardnoise, nbasis, amp, freq, distortion)
-
-    elif ntype in [11, 'vl_noise_turbulence']:
-        value = vl_noise_turbulence(ncoords, distortion, depth, nbasis, vlbasis, hardnoise, amp, freq)
-
-    elif ntype in [12, 'vl_hTerrain']:
-        value = vl_hTerrain(ncoords, dimension, lacunarity, depth, offset, nbasis, vlbasis, distortion)
-
-    elif ntype in [13, 'distorted_heteroTerrain']:
-        value = distorted_heteroTerrain(ncoords, dimension, lacunarity, depth, offset, distortion, nbasis, vlbasis)
-
-    elif ntype in [14, 'double_multiFractal']:
-        value = double_multiFractal(ncoords, dimension, lacunarity, depth, offset, gain, nbasis, vlbasis)
-
-    elif ntype in [15, 'rocks_noise']:
-        value = rocks_noise(ncoords, depth, hardnoise, nbasis, distortion)
-
-    elif ntype in [16, 'slick_rock']:
-        value = slick_rock(ncoords,dimension, lacunarity, depth, offset, gain, distortion, nbasis, vlbasis)
-
-    elif ntype in [17, 'planet_noise']:
-        value = planet_noise(ncoords, depth, hardnoise, nbasis)[2] * 0.5 + 0.5
-
-    elif ntype in [18, 'blender_texture']:
-        if texture_name != "" and texture_name in bpy.data.textures:
-            value = bpy.data.textures[texture_name].evaluate(ncoords)[3]
-        else:
-            value = 0.0
-    else:
-        value = 0.5
-
-    # Adjust height
-    if height_invert:
-        value = 1.0 - value
-        value = value * height + height_offset
-    else:
-        value = value * height + height_offset
-
-    # Edge falloff:
-    if not sphere:
-        if falloff:
-            ratio_x, ratio_y = abs(x) * 2 / meshsize_x, abs(y) * 2 / meshsize_y
-            fallofftypes = [0,
-                            sqrt(ratio_y**falloffsize_y),
-                            sqrt(ratio_x**falloffsize_x),
-                            sqrt(ratio_x**falloffsize_x + ratio_y**falloffsize_y)
-                           ]
-            dist = fallofftypes[falloff]
-            value -= edge_level
-            if(dist < 1.0):
-                dist = (dist * dist * (3 - 2 * dist))
-                value = (value - value * dist) + edge_level
-            else:
-                value = edge_level
-
-    # Strata / terrace / layers
-    if stratatype not in [0, "0"]:
-        if stratatype in [1, "1"]:
-            strata = strata / height
-            strata *= 2
-            steps = (sin(value * strata * pi) * (0.1 / strata * pi))
-            value = (value * 0.5 + steps * 0.5) * 2.0
-
-        elif stratatype in [2, "2"]:
-            strata = strata / height
-            steps = -abs(sin(value * strata * pi) * (0.1 / strata * pi))
-            value = (value * 0.5 + steps * 0.5) * 2.0
-
-        elif stratatype in [3, "3"]:
-            strata = strata / height
-            steps = abs(sin(value * strata * pi) * (0.1 / strata * pi))
-            value = (value * 0.5 + steps * 0.5) * 2.0
-
-        elif stratatype in [4, "4"]:
-            strata = strata / height
-            value = int( value * strata ) * 1.0 / strata
-
-        elif stratatype in [5, "5"]:
-            strata = strata / height
-            steps = (int( value * strata ) * 1.0 / strata)
-            value = (value * (1.0 - 0.5) + steps * 0.5)
-
-    # Clamp height min max
-    if (value < minimum):
-        value = minimum
-    if (value > maximum):
-        value = maximum
-
-    return value
-
-# ------------------------------------------------------------
 # draw properties
 
 def draw_ant_refresh(self, context):
@@ -711,7 +478,8 @@ def draw_ant_noise(self, context, generate=True):
         col = box.column(align=True)
         col.prop(self, "noise_offset_x")
         col.prop(self, "noise_offset_y")
-        col.prop(self, "noise_offset_z")
+        if self.sphere_mesh == True or generate == False:
+            col.prop(self, "noise_offset_z")
         col.prop(self, "noise_size_x")
         col.prop(self, "noise_size_y")
         if self.sphere_mesh == True or generate == False:
@@ -792,7 +560,7 @@ def draw_ant_noise(self, context, generate=True):
             col.prop(self, "frequency")
             col.prop(self, "distortion")
             col.separator()
-            col.prop(self, "vl_basis_type")
+            box.prop(self, "vl_basis_type")
             col.separator()
             row = col.row(align=True)
             row.prop(self, "hard_noise", expand=True)
@@ -803,7 +571,7 @@ def draw_ant_noise(self, context, generate=True):
             col.prop(self, "offset")
             col.prop(self, "distortion")
             col.separator()
-            col.prop(self, "vl_basis_type")
+            box.prop(self, "vl_basis_type")
         elif self.noise_type == "distorted_heteroTerrain":
             col.prop(self, "noise_depth")
             col.prop(self, "dimension")
@@ -811,7 +579,7 @@ def draw_ant_noise(self, context, generate=True):
             col.prop(self, "offset")
             col.prop(self, "distortion")
             col.separator()
-            col.prop(self, "vl_basis_type")
+            box.prop(self, "vl_basis_type")
         elif self.noise_type == "double_multiFractal":
             col.prop(self, "noise_depth")
             col.prop(self, "dimension")
@@ -819,7 +587,7 @@ def draw_ant_noise(self, context, generate=True):
             col.prop(self, "offset")
             col.prop(self, "gain")
             col.separator()
-            col.prop(self, "vl_basis_type")
+            box.prop(self, "vl_basis_type")
         elif self.noise_type == "rocks_noise":
             col.prop(self, "noise_depth")
             col.prop(self, "distortion")
@@ -834,12 +602,41 @@ def draw_ant_noise(self, context, generate=True):
             col.prop(self, "offset")
             col.prop(self, "distortion")
             col.separator()
-            col.prop(self, "vl_basis_type")
+            box.prop(self, "vl_basis_type")
         elif self.noise_type == "planet_noise":
             col.prop(self, "noise_depth")
             col.separator()
             row = col.row(align=True)
             row.prop(self, "hard_noise", expand=True)
+
+        # Effects mix
+        col = box.column(align=False)
+        box.prop(self, "fx_type")
+        if self.fx_type != "0":
+            if int(self.fx_type) <= 12:
+                box.prop(self, "fx_bias")
+
+            box.prop(self, "fx_mix_mode")
+            col = box.column(align=True)
+            col.prop(self, "fx_mixfactor")
+
+            col = box.column(align=True)
+            col.prop(self, "fx_loc_x")
+            col.prop(self, "fx_loc_y")
+            col.prop(self, "fx_size")
+
+            col = box.column(align=True)
+            col.prop(self, "fx_depth")
+            if self.fx_depth != 0:
+                col.prop(self, "fx_frequency")
+                col.prop(self, "fx_amplitude")
+            col.prop(self, "fx_turb")
+
+            col = box.column(align=True)
+            row = col.row(align=True).split(0.92, align=True)
+            row.prop(self, "fx_height")
+            row.prop(self, "fx_invert", toggle=True, text="", icon='ARROW_LEFTRIGHT')
+            col.prop(self, "fx_offset")
 
 
 def draw_ant_displace(self, context, generate=True):
@@ -946,6 +743,20 @@ def store_properties(operator, ob):
     ob.ant_landscape.water_level = operator.water_level
     ob.ant_landscape.vert_group = operator.vert_group
     ob.ant_landscape.remove_double = operator.remove_double
+    ob.ant_landscape.fx_mixfactor = operator.fx_mixfactor
+    ob.ant_landscape.fx_mix_mode = operator.fx_mix_mode
+    ob.ant_landscape.fx_type = operator.fx_type
+    ob.ant_landscape.fx_bias = operator.fx_bias
+    ob.ant_landscape.fx_turb = operator.fx_turb
+    ob.ant_landscape.fx_depth = operator.fx_depth
+    ob.ant_landscape.fx_frequency = operator.fx_frequency
+    ob.ant_landscape.fx_amplitude = operator.fx_amplitude
+    ob.ant_landscape.fx_size = operator.fx_size
+    ob.ant_landscape.fx_loc_x = operator.fx_loc_x
+    ob.ant_landscape.fx_loc_y = operator.fx_loc_y
+    ob.ant_landscape.fx_height = operator.fx_height
+    ob.ant_landscape.fx_offset = operator.fx_offset
+    ob.ant_landscape.fx_invert = operator.fx_invert
     return ob
 
 
@@ -999,7 +810,6 @@ class Eroder(bpy.types.Operator):
             min=1,
             soft_max=10
             )
-    
     Ef = FloatProperty(
             name="Rain on Plains",
             description="1 gives equal rain across the terrain, 0 rains more at the mountain tops",
@@ -1014,7 +824,6 @@ class Eroder(bpy.types.Operator):
             min=0,
             soft_max=100
             )
-
     Kt = FloatProperty(
             name="Kt",
             description="Maximum stable talus angle",
@@ -1023,7 +832,6 @@ class Eroder(bpy.types.Operator):
             max=radians(90),
             subtype='ANGLE'
             )
-
     Kr = FloatProperty(
             name="Rain amount",
             description="Total Rain amount",
@@ -1044,7 +852,6 @@ class Eroder(bpy.types.Operator):
             description="Use active vertex group as a rain map",
             default=True
             )
-    
     Ks = FloatProperty(
             name="Soil solubility",
             description="Soil solubility - how quickly water quickly reaches saturation point",
@@ -1086,13 +893,11 @@ class Eroder(bpy.types.Operator):
             min=0,
             soft_max=2
             )
-
     numexpr = BoolProperty(
             name="Numexpr",
             description="Use numexpr module (if available)",
             default=True
             )
-
     Pd = FloatProperty(
             name="Diffusion Amount",
             description="Diffusion probability",
@@ -1114,13 +919,11 @@ class Eroder(bpy.types.Operator):
             min=0,
             max=1
             )
-    
     smooth = BoolProperty(
             name="Smooth",
             description="Set smooth shading",
             default=True
             )
-
     showiterstats = BoolProperty(
             name="Iteration Stats",
             description="Show iteraration statistics",

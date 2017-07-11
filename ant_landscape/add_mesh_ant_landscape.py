@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# Another Noise Tool - Landscape
+# Another Noise Tool - Add Landscape
 # Jimmy Hazevoet
 
 # import modules
@@ -347,6 +347,134 @@ class AntAddLandscape(bpy.types.Operator):
             max=10000.0,
             description="Height offset"
             )
+    fx_mixfactor = FloatProperty(
+            name="Mix Factor",
+            default=0.0,
+            min=-1.0,
+            max=1.0,
+            description="Effect mix factor: -1.0 = Noise, +1.0 = Effect"
+            )
+    fx_mix_mode = EnumProperty(
+            name="Effect Mix",
+            default="0",
+            description="Effect mix mode",
+            items = [
+                ("0", "Mix", "Mix", 0),
+                ("1", "Add", "Add", 1),
+                ("2", "Sub", "Subtract", 2),
+                ("3", "Mul", "Multiply", 3),
+                ("4", "Abs", "Absolute", 4),
+                ("5", "Scr", "Screen", 5),
+                ("6", "Mod", "Modulo", 6),
+                ("7", "Min", "Minimum", 7),
+                ("8", "Max", "Maximum", 8)
+                ]
+            )
+    fx_type = EnumProperty(
+            name="Effect Type",
+            default="0",
+            description="Effect type",
+            items = [
+                ("0", "None", "No effect", 0),
+                ("1", "Gradient", "Gradient", 1),
+                ("2", "Waves", "Waves - Bumps", 2),
+                ("3", "Zigzag", "Zigzag", 3),
+                ("4", "Wavy", "Wavy", 4),
+                ("5", "Bump", "Bump", 5),
+                ("6", "Dots", "Dots", 6),
+                ("7", "Rings", "Rings", 7),
+                ("8", "Spiral", "Spiral", 8),
+                ("9", "Square", "Square", 9),
+                ("10", "Blocks", "Blocks", 10),
+                ("11", "Grid", "Grid", 11),
+                ("12", "Tech", "Tech", 12),
+                ("13", "Crackle", "Crackle", 13),
+                ("14", "Cracks", "Cracks", 14),
+                ("15", "Rock", "Rock noise", 15),
+                ("16", "Lunar", "Craters", 16),
+                ("17", "Cosine", "Cosine", 17),
+                ("18", "Spikey", "Spikey", 18),
+                ("19", "Stone", "Stone", 19),
+                ("20", "Flat Turb", "Flat turbulence", 20),
+                ("21", "Flat Voronoi", "Flat voronoi", 21)
+                ]
+            )
+    fx_bias = EnumProperty(
+            name="Effect Bias",
+            default="0",
+            description="Effect bias type",
+            items = [
+                ("0", "Sin", "Sin", 0),
+                ("1", "Cos", "Cos", 1),
+                ("2", "Tri", "Tri", 2),
+                ("3", "Saw", "Saw", 3),
+                ("4", "None", "None", 4)]
+            )
+    fx_turb = FloatProperty(
+            name="Distortion",
+            default=0.0,
+            min=0.0,
+            max=1000.0,
+            description="Effect turbulence distortion"
+            )
+    fx_depth = IntProperty(
+            name="Depth",
+            default=0,
+            min=0,
+            max=16,
+            description="Effect depth - number of frequencies."
+            )
+    fx_amplitude = FloatProperty(
+            name="Amp",
+            default=0.5,
+            min=0.01,
+            max=1.0,
+            description="Amplitude"
+            )
+    fx_frequency = FloatProperty(
+            name="Freq",
+            default=2.0,
+            min=0.01,
+            max=5.0,
+            description="Frequency"
+            )
+    fx_size = FloatProperty(
+            name="Effect Size",
+            default=1.0,
+            min=0.01,
+            max=1000.0,
+            description="Effect size"
+            )
+    fx_loc_x = FloatProperty(
+            name="Offset X",
+            default=0.0,
+            description="Effect x offset"
+            )
+    fx_loc_y = FloatProperty(
+            name="Offset Y",
+            default=0.0,
+            description="Effect y offset"
+            )
+    fx_height = FloatProperty(
+            name="Intensity",
+            default=1.0,
+            min=-1000.0,
+            max=1000.0,
+            description="Effect intensity scale"
+            )
+    fx_invert = BoolProperty(
+            name="Invert",
+            default=False,
+            description="Effect invert"
+            )
+    fx_offset = FloatProperty(
+            name="Offset",
+            default=0.0,
+            min=-1000.0,
+            max=1000.0,
+            description="Effect height offset"
+            )
+
     edge_falloff = EnumProperty(
             name="Falloff",
             default="3",
@@ -458,7 +586,6 @@ class AntAddLandscape(bpy.types.Operator):
             description="Automatic refresh"
             )
 
-
     def draw(self, context):
         draw_ant_refresh(self, context)
         draw_ant_main(self, context, generate=True)
@@ -536,7 +663,21 @@ class AntAddLandscape(bpy.types.Operator):
             self.water_plane,
             self.water_level,
             self.vert_group,
-            self.remove_double
+            self.remove_double,
+            self.fx_mixfactor,
+            self.fx_mix_mode,
+            self.fx_type,
+            self.fx_bias,
+            self.fx_turb,
+            self.fx_depth,
+            self.fx_frequency,
+            self.fx_amplitude,
+            self.fx_size,
+            self.fx_loc_x,
+            self.fx_loc_y,
+            self.fx_height,
+            self.fx_offset,
+            self.fx_invert
             ]
 
         scene = context.scene
