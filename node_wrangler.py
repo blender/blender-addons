@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Node Wrangler",
     "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig, Christian Brinkmann",
-    "version": (3, 34),
-    "blender": (2, 78, 0),
+    "version": (3, 35),
+    "blender": (2, 79, 0),
     "location": "Node Editor Toolbar or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
     "warning": "",
@@ -39,6 +39,7 @@ from os import path
 from glob import glob
 from copy import copy
 from itertools import chain
+import re
 
 #################
 # rl_outputs:
@@ -2560,6 +2561,253 @@ class NWAddTextureSetup(Operator, NWBase):
                 self.report({'WARNING'}, "No free inputs for node: "+t_node.name)
         return {'FINISHED'}
 
+class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
+    bl_idname = "node.nw_add_textures_for_principled"
+    bl_label = "Principled Texture Setup"
+    bl_description = "Add Texture Node Setup for Principled BSDF"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    directory = StringProperty(
+                    name='Directory',
+                    subtype='DIR_PATH',
+                    default='',
+                    description='Folder to search in for image files')
+    files = CollectionProperty(
+                    type=bpy.types.OperatorFileListElement,
+                    options={'HIDDEN', 'SKIP_SAVE'})
+
+    order = [
+        "filepath",
+        "files",
+        ]
+
+    @classmethod
+    def poll(cls, context):
+        valid = False
+        if nw_check(context):
+            space = context.space_data
+            if space.tree_type == 'ShaderNodeTree' and context.scene.render.engine == 'CYCLES':
+                valid = True
+        return valid
+
+    def execute(self, context):
+        # Check if everything is ok
+        if not self.directory:
+            self.report({'INFO'}, 'No Folder Selected')
+            return {'CANCELLED'}
+        if not self.files[:]:
+            self.report({'INFO'}, 'No Files Selected')
+            return {'CANCELLED'}
+
+        nodes, links = get_nodes_links(context)
+        active_node = nodes.active
+        if not active_node.bl_idname == 'ShaderNodeBsdfPrincipled':
+            self.report({'INFO'}, 'Select Principled BSDF')
+            return {'CANCELLED'}
+
+        # Helper_functions
+        def split_into__components(fname):
+            # Split filename into components
+            # 'WallTexture_diff_2k.002.jpg' -> ['Wall', 'Texture', 'diff', 'k']
+            # Remove extension
+            fname = path.splitext(fname)[0]
+            # Remove digits
+            fname = ''.join(i for i in fname if not i.isdigit())
+            # Seperate CamelCase by space
+            fname = re.sub("([a-z])([A-Z])","\g<1> \g<2>",fname)
+            # Replace common separators with SPACE
+            seperators = ['_', '.', '-', '__', '--', '#']
+            for sep in seperators:
+                fname = fname.replace(sep, ' ')
+
+            components = fname.split(' ')
+            components = [c.lower() for c in components]
+            return components
+
+        # Filter textures names for texturetypes in filenames
+        # [Socket Name, [abbreviations and keyword list], Filename placeholder]
+        normal_abbr = ['normal', 'nor', 'nrm', 'nrml', 'norm']
+        bump_abbr = ['bump', 'bmp']
+        gloss_abbr = ['gloss', 'glossy', 'glossyness']
+        rough_abbr = ['roughness', 'rough', 'rgh']
+        socketnames = [
+        ['Displacement', ['displacement', 'disp', 'dsp'], None],
+        ['Base Color', ['diffuse', 'diff', 'albedo', 'base', 'col', 'color'], None],
+        ['Subsurface Color', ['sss', 'subsurface'], None],
+        ['Metallic', ['metalness', 'metal', 'mtl'], None],
+        ['Specular', ['specularity', 'specular', 'spec', 'spc'], None],
+        ['Roughness', rough_abbr + gloss_abbr, None],
+        ['Normal', normal_abbr + bump_abbr, None],
+        ]
+        # Look through texture_types and set value as filename of first matched file
+        def match_files_to_socket_names():
+            for sname in socketnames:
+                for file in self.files:
+                    fname = file.name
+                    filenamecomponents = split_into__components(fname)
+                    matches = set(sname[1]).intersection(set(filenamecomponents))
+                    if matches:
+                        sname[2] = fname
+                        break
+
+        match_files_to_socket_names()
+        # Remove socketnames without found files
+        socketnames = [s for s in socketnames if s[2]
+                       and path.exists(self.directory+s[2])]
+        if not socketnames:
+            self.report({'INFO'}, 'No matching images found')
+            print('No matching images found')
+            return {'CANCELLED'}
+
+        # Add found images
+        print('\nMatched Textures:')
+        texture_nodes = []
+        disp_texture = None
+        normal_node = None
+        roughness_node = None
+        for i, sname in enumerate(socketnames):
+            print(i, sname[0], sname[2])
+
+            # DISPLACEMENT NODES
+            if sname[0] == 'Displacement':
+                disp_texture = nodes.new(type='ShaderNodeTexImage')
+                img = bpy.data.images.load(self.directory+sname[2])
+                disp_texture.image = img
+                disp_texture.label = 'Displacement'
+                disp_texture.color_space = 'NONE'
+
+                # Add displacement offset nodes
+                math_sub = nodes.new(type='ShaderNodeMath')
+                math_sub.operation = 'SUBTRACT'
+                math_sub.label = 'Offset'
+                math_sub.location = active_node.location + Vector((0, -560))
+                math_mul = nodes.new(type='ShaderNodeMath')
+                math_mul.operation = 'MULTIPLY'
+                math_mul.label = 'Strength'
+                math_mul.location = math_sub.location + Vector((200, 0))
+                link = links.new(math_mul.inputs[0], math_sub.outputs[0])
+                link = links.new(math_sub.inputs[0], disp_texture.outputs[0])
+
+                # Turn on true displacement in the material
+                # Too complicated for now
+
+                '''
+                # Frame. Does not update immediatly
+                # Seems to need an editor redraw
+                frame = nodes.new(type='NodeFrame')
+                frame.label = 'Displacement'
+                math_sub.parent = frame
+                math_mul.parent = frame
+                frame.update()
+                '''
+
+                #find ouput node
+                output_node = [n for n in nodes if n.bl_idname == 'ShaderNodeOutputMaterial']
+                if output_node:
+                    if not output_node[0].inputs[2].is_linked:
+                        link = links.new(output_node[0].inputs[2], math_mul.outputs[0])
+
+                continue
+
+            if not active_node.inputs[sname[0]].is_linked:
+                # No texture node connected -> add texture node with new image
+                texture_node = nodes.new(type='ShaderNodeTexImage')
+                img = bpy.data.images.load(self.directory+sname[2])
+                texture_node.image = img
+
+                # NORMAL NODES
+                if sname[0] == 'Normal':
+                    # Test if new texture node is normal or bump map
+                    fname_components = split_into__components(sname[2])
+                    match_normal = set(normal_abbr).intersection(set(fname_components))
+                    match_bump = set(bump_abbr).intersection(set(fname_components))
+                    if match_normal:
+                        # If Normal add normal node in between
+                        normal_node = nodes.new(type='ShaderNodeNormalMap')
+                        link = links.new(normal_node.inputs[1], texture_node.outputs[0])
+                    elif match_bump:
+                        # If Bump add bump node in between
+                        normal_node = nodes.new(type='ShaderNodeBump')
+                        link = links.new(normal_node.inputs[2], texture_node.outputs[0])
+
+                    link = links.new(active_node.inputs[sname[0]], normal_node.outputs[0])
+                    normal_node_texture = texture_node
+
+                elif sname[0] == 'Roughness':
+                    # Test if glossy or roughness map
+                    fname_components = split_into__components(sname[2])
+                    match_rough = set(rough_abbr).intersection(set(fname_components))
+                    match_gloss = set(gloss_abbr).intersection(set(fname_components))
+
+                    if match_rough:
+                        # If Roughness nothing to to
+                        link = links.new(active_node.inputs[sname[0]], texture_node.outputs[0])
+
+                    elif match_gloss:
+                        # If Gloss Map add invert node
+                        invert_node = nodes.new(type='ShaderNodeInvert')
+                        link = links.new(invert_node.inputs[1], texture_node.outputs[0])
+
+                        link = links.new(active_node.inputs[sname[0]], invert_node.outputs[0])
+                        roughness_node = texture_node
+
+                else:
+                    # This is a simple connection Texture --> Input slot
+                    link = links.new(active_node.inputs[sname[0]], texture_node.outputs[0])
+
+                # Use non-color for all but 'Base Color' Textures
+                if not sname[0] in ['Base Color']:
+                    texture_node.color_space = 'NONE'
+
+            else:
+                # If already texture connected. add to node list for alignment
+                texture_node = active_node.inputs[sname[0]].links[0].from_node
+
+            # This are all connected texture nodes
+            texture_nodes.append(texture_node)
+            texture_node.label = sname[0]
+
+        if disp_texture:
+            texture_nodes.append(disp_texture)
+
+        # Alignment
+        for i, texture_node in enumerate(texture_nodes):
+            offset = Vector((-400, (i * -260) + 200))
+            texture_node.location = active_node.location + offset
+
+        if normal_node:
+            # Extra alignment if normal node was added
+            normal_node.location = normal_node_texture.location + Vector((200, 0))
+
+        if roughness_node:
+            # Alignment of invert node if glossy map
+            invert_node.location = roughness_node.location + Vector((200, 0))
+
+        # Add texture input + mapping
+        mapping = nodes.new(type='ShaderNodeMapping')
+        mapping.location = active_node.location + Vector((-900, 0))
+        if len(texture_nodes) > 1:
+            # If more than one texture add reroute node in between
+            reroute = nodes.new(type='NodeReroute')
+            tex_coords = Vector((texture_nodes[0].location.x, sum(n.location.y for n in texture_nodes)/len(texture_nodes)))
+            reroute.location = tex_coords + Vector((-50, -120))
+            for texture_node in texture_nodes:
+                link = links.new(texture_node.inputs[0], reroute.outputs[0])
+            link = links.new(reroute.inputs[0], mapping.outputs[0])
+        else:
+            link = links.new(texture_nodes[0].inputs[0], mapping.outputs[0])
+
+        # Connect texture_coordiantes to mapping node
+        texture_input = nodes.new(type='ShaderNodeTexCoord')
+        texture_input.location = mapping.location + Vector((-200, 0))
+        link = links.new(mapping.inputs[0], texture_input.outputs[2])
+
+        # Just to be sure
+        active_node.select = False
+        nodes.update()
+        links.update()
+        force_update(context)
+        return {'FINISHED'}
 
 class NWAddReroutes(Operator, NWBase):
     """Add Reroute Nodes and link them to outputs of selected nodes"""
@@ -3359,6 +3607,7 @@ def drawlayout(context, layout, mode='non-panel'):
     if tree_type == 'ShaderNodeTree' and context.scene.render.engine == 'CYCLES':
         col = layout.column(align=True)
         col.operator(NWAddTextureSetup.bl_idname, text="Add Texture Setup", icon='NODE_SEL')
+        col.operator(NWAddPrincipledSetup.bl_idname, text="Add Principled Setup", icon='NODE_SEL')
         col.separator()
 
     col = layout.column(align=True)
@@ -4289,6 +4538,8 @@ kmi_defs = (
     (NWSelectParentChildren.bl_idname, 'LEFT_BRACKET', 'PRESS', False, False, False, (('option', 'PARENT'),), "Select Parent"),
     # Add Texture Setup
     (NWAddTextureSetup.bl_idname, 'T', 'PRESS', True, False, False, None, "Add texture setup"),
+    # Add Principled BSDF Texture Setup
+    (NWAddPrincipledSetup.bl_idname, 'T', 'PRESS', True, True, False, None, "Add Principled texture setup"),
     # Reset backdrop
     (NWResetBG.bl_idname, 'Z', 'PRESS', False, False, False, None, "Reset backdrop image zoom"),
     # Delete unused
