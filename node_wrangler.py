@@ -18,7 +18,7 @@
 
 bl_info = {
     "name": "Node Wrangler",
-    "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig, Christian Brinkmann",
+    "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig, Christian Brinkmann, Florian Meyer",
     "version": (3, 35),
     "blender": (2, 79, 0),
     "location": "Node Editor Toolbar or Ctrl-Space",
@@ -2631,10 +2631,10 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
         gloss_abbr = ['gloss', 'glossy', 'glossyness']
         rough_abbr = ['roughness', 'rough', 'rgh']
         socketnames = [
-        ['Displacement', ['displacement', 'disp', 'dsp'], None],
+        ['Displacement', ['displacement', 'disp', 'dsp', 'height'], None],
         ['Base Color', ['diffuse', 'diff', 'albedo', 'base', 'col', 'color'], None],
         ['Subsurface Color', ['sss', 'subsurface'], None],
-        ['Metallic', ['metalness', 'metal', 'mtl'], None],
+        ['Metallic', ['metallic', 'metalness', 'metal', 'mtl'], None],
         ['Specular', ['specularity', 'specular', 'spec', 'spc'], None],
         ['Roughness', rough_abbr + gloss_abbr, None],
         ['Normal', normal_abbr + bump_abbr, None],
