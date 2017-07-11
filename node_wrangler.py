@@ -1072,9 +1072,24 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
         col.prop(self, "merge_position")
         col.prop(self, "merge_hide")
 
-        box = col.box()
+        box = layout.box()
         col = box.column(align=True)
+        col.prop(self, "show_principled_lists", text='Edit tags for auto texture detection in Principled BSDF setup', toggle=True)
+        if self.show_principled_lists:
+            tags = self.principled_tags
 
+            col.prop(tags, "base_color")
+            col.prop(tags, "sss_color")
+            col.prop(tags, "metallic")
+            col.prop(tags, "specular")
+            col.prop(tags, "rough")
+            col.prop(tags, "gloss")
+            col.prop(tags, "normal")
+            col.prop(tags, "bump")
+            col.prop(tags, "displacement")
+
+        box = layout.box()
+        col = box.column(align=True)
         hotkey_button_name = "Show Hotkey List"
         if self.show_hotkey_list:
             hotkey_button_name = "Hide Hotkey List"
@@ -1097,22 +1112,6 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
                         if hotkey[3]:
                             keystr = "Ctrl " + keystr
                         row.label(keystr)
-
-        box = layout.box()
-        col = box.column(align=True)
-        col.prop(self, "show_principled_lists", text='Show tags for Principled auto setup', toggle=True)
-        if self.show_principled_lists:
-            tags = self.principled_tags
-
-            col.prop(tags, "base_color")
-            col.prop(tags, "sss_color")
-            col.prop(tags, "metallic")
-            col.prop(tags, "specular")
-            col.prop(tags, "rough")
-            col.prop(tags, "gloss")
-            col.prop(tags, "normal")
-            col.prop(tags, "bump")
-            col.prop(tags, "displacement")
 
 
 
@@ -2623,6 +2622,7 @@ class NWAddTextureSetup(Operator, NWBase):
                 self.report({'WARNING'}, "No free inputs for node: "+t_node.name)
         return {'FINISHED'}
 
+
 class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
     bl_idname = "node.nw_add_textures_for_principled"
     bl_label = "Principled Texture Setup"
@@ -2710,6 +2710,7 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
                     fname = file.name
                     filenamecomponents = split_into__components(fname)
                     matches = set(sname[1]).intersection(set(filenamecomponents))
+                    # TODO: ignore basename (if texture is named "fancy_metal_nor", it will be detected as metallic map, not normal map)
                     if matches:
                         sname[2] = fname
                         break
@@ -2872,6 +2873,7 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
         links.update()
         force_update(context)
         return {'FINISHED'}
+
 
 class NWAddReroutes(Operator, NWBase):
     """Add Reroute Nodes and link them to outputs of selected nodes"""
