@@ -18,7 +18,7 @@
 
 bl_info = {
     "name": "Node Wrangler",
-    "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig, Christian Brinkmann",
+    "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig, Christian Brinkmann, Florian Meyer",
     "version": (3, 35),
     "blender": (2, 79, 0),
     "location": "Node Editor Toolbar or Ctrl-Space",
