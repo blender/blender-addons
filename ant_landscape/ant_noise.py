@@ -395,7 +395,7 @@ def Effect_Basis_Function(coords, type, bias):
         effect = offset + iscale * effect
     ## sparse cracks noise:
     elif type == 14:
-        effect = 2.5 * abs(noise((x * 0.5, y * 0.5, 0), 1)) - 0.1
+        effect = 2.5 * abs(noise((x, y, 0), 1)) - 0.1
         if effect > 0.25:
             effect = 0.25
         effect = offset + iscale * (effect * 2.5)
@@ -410,7 +410,7 @@ def Effect_Basis_Function(coords, type, bias):
         effect = 0.25 + 1.5 * voronoi((x, y, 0), 1)[0][0]
         if effect > 0.5:
             effect = 0.5
-        effect = offset + iscale * effect
+        effect = offset + iscale * effect * 2
     ## cosine noise:
     elif type == 17:
         effect = cos(5 * noise((x, y, 0), 0))
@@ -639,14 +639,15 @@ def noise_gen(coords, props):
         value = 0.5
 
     # Effect mix
-    if fx_type != "0":
+    val = value
+    if fx_type in [0,"0"]:
+        fx_mixfactor = -1.0
+        fxval = val
+    else:
         fxcoords = Trans_Effect((x, y, z), fx_size, (fx_loc_x, fx_loc_y))        
         effect = Effect_Function(fxcoords, fx_type, fx_bias, fx_turb, fx_depth, fx_frequency, fx_amplitude)
         effect = Height_Scale(effect, fx_height, fx_offset, fx_invert)
-        fxval = Mix_Modes(value, effect, fx_mixfactor, fx_mix_mode)
-    else:
-        fx_mixfactor = 0.0
-        fxval = value
+        fxval = Mix_Modes(val, effect, fx_mixfactor, fx_mix_mode)
     value = fxval
 
     # Adjust height
