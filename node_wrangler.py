@@ -1024,7 +1024,7 @@ class NWPrincipledPreferences(bpy.types.PropertyGroup):
         description='Naming Components for glossy maps')
     displacement = StringProperty(
         name='Displacement',
-        default='displacement disp dsp height',
+        default='displacement displace disp dsp height heightmap',
         description='Naming Components for bump maps')
 
 # Addon prefs
