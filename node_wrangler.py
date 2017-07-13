@@ -1025,7 +1025,7 @@ class NWPrincipledPreferences(bpy.types.PropertyGroup):
     displacement = StringProperty(
         name='Displacement',
         default='displacement displace disp dsp height heightmap',
-        description='Naming Components for bump maps')
+        description='Naming Components for displacement maps')
 
 # Addon prefs
 class NWNodeWrangler(bpy.types.AddonPreferences):
