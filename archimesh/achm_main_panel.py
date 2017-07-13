@@ -135,11 +135,12 @@ class AchmHoleAction(Operator):
                         else:
                             child.scale.y = 1
                         # add boolean modifier
-                        if isboolean(context.object, child) is False:
-                            set_modifier_boolean(context.object, child)
+                        if isboolean(myroom, child) is False:
+                            set_modifier_boolean(myroom, child)
                 except:
                     # print("Unexpected error:" + str(sys.exc_info()))
                     pass
+
         # ---------------------------------------
         # Now add the modifiers to baseboard
         # ---------------------------------------
@@ -154,11 +155,6 @@ class AchmHoleAction(Operator):
                                 set_modifier_boolean(mybaseboard, obj)
                 except:
                     pass
-            # Clear empty booleans
-            for mod in mybaseboard.modifiers:
-                if mod.type == 'BOOLEAN':
-                    if mod.object is None:
-                        bpy.ops.object.modifier_remove(modifier=mod.name)
 
         # ---------------------------------------
         # Now add the modifiers to shell
@@ -180,12 +176,7 @@ class AchmHoleAction(Operator):
                                 set_modifier_boolean(myshell, obj)
                 except:
                     pass
-            # Clear empty booleans
-            for mod in myshell.modifiers:
-                if mod.type == 'BOOLEAN':
-                    if mod.object is None:
-                        bpy.ops.object.modifier_remove(modifier=mod.name)
-
+                
         return {'FINISHED'}
 
 
