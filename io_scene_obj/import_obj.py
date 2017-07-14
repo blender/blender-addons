@@ -359,7 +359,7 @@ def create_materials(filepath, relpath,
 
                     context_material_name = line_value(line_split)
                     context_material = unique_materials.get(context_material_name)
-                    if use_cycles:
+                    if use_cycles and context_material is not None:
                         context_mat_wrap = cycles_material_wrap_map[context_material]
                     context_material_vars.clear()
 
