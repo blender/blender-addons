@@ -15,24 +15,24 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
+
 #  (c) 2016 meta-androcto, parts based on work by Saidenka, lijenstina
-#           Materials Utils: by MichaleW, lijenstina,
-#                           (some code thanks to: CoDEmanX, SynaGl0w,
-#                                                 ideasman42)
-#           Materials Conversion: Silvio Falcinelli, johnzero7#,
-#                                  fixes by angavrilov and others
-#           Link to base names: Sybren, Texture renamer: Yadoob
+#  Materials Utils: by MichaleW, lijenstina,
+#       (some code thanks to: CoDEmanX, SynaGl0w, ideasman42)
+#  Materials Conversion: Silvio Falcinelli, johnzero7#,
+#        fixes by angavrilov and others
+#  Link to base names: Sybren, Texture renamer: Yadoob
 
 bl_info = {
     "name": "Materials Utils Specials",
     "author": "Community",
-    "version": (1, 0, 1),
+    "version": (1, 0, 2),
     "blender": (2, 77, 0),
-    "location": "Materials Properties Specials/Shift Q",
-    "description": "Materials Utils & Convertors",
+    "location": "Materials Properties Specials > Shift Q",
+    "description": "Materials Utils and Convertors",
     "warning": "",
-    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/Materials_Utils",
-    "tracker_url": "",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/3D_interaction/Materials_Utils",
     "category": "Material"
     }
 
@@ -51,29 +51,30 @@ else:
 import bpy
 import os
 from os import (
-            path as os_path,
-            access as os_access,
-            remove as os_remove,
-            )
+        path as os_path,
+        access as os_access,
+        remove as os_remove,
+        )
 from bpy.props import (
-            StringProperty,
-            BoolProperty,
-            EnumProperty,
-            )
+        StringProperty,
+        BoolProperty,
+        EnumProperty,
+        PointerProperty,
+        )
 from bpy.types import (
-            Menu,
-            Operator,
-            Panel,
-            AddonPreferences,
-            PropertyGroup,
-            )
+        Menu,
+        Operator,
+        Panel,
+        AddonPreferences,
+        PropertyGroup,
+        )
 from .warning_messages_utils import (
-            warning_messages,
-            c_data_has_materials,
-            )
+        warning_messages,
+        c_data_has_materials,
+        )
 
 
-# Functions #
+# Functions
 
 def fake_user_set(fake_user='ON', materials='UNUSED', operator=None):
     warn_mesg, w_mesg = '', ""
@@ -420,8 +421,7 @@ def cleanmatslots(operator=None):
             bpy.ops.object.mode_set(mode='EDIT')
 
 
-# separate edit mode mesh function
-# (faster than iterating through all faces)
+# separate edit mode mesh function (faster than iterating through all faces)
 
 def assign_mat_mesh_edit(matname="Default", operator=None):
     actob = bpy.context.active_object
@@ -733,8 +733,7 @@ def remove_materials_all(operator=None):
 class VIEW3D_OT_show_mat_preview(Operator):
     bl_label = "Preview Active Material"
     bl_idname = "view3d.show_mat_preview"
-    bl_description = ("Show the preview of Active Material \n"
-                      "and context related settings")
+    bl_description = "Show the preview of Active Material and context related settings"
     bl_options = {'REGISTER', 'UNDO'}
 
     is_not_undo = False     # prevent drawing props on undo
@@ -1193,9 +1192,8 @@ class VIEW3D_OT_fake_user_set(Operator):
 class MATERIAL_OT_set_transparent_back_side(Operator):
     bl_idname = "material.set_transparent_back_side"
     bl_label = "Transparent back (BI)"
-    bl_description = ("Creates BI nodes with Alpha output connected to"
-                      "Front/Back Geometry node \n"
-                      "on Object's Active Material Slot")
+    bl_description = ("Creates BI nodes with Alpha output connected to Front/Back\n"
+                      "Geometry node on Object's Active Material Slot")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -1346,8 +1344,7 @@ class MATERIAL_OT_link_to_base_names(Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def replace_name(self):
-        # use the chosen material as a base one
-        # check if there is a name
+        # use the chosen material as a base one, check if there is a name
         self.check_no_name = (False if self.mat_keep in {""} else True)
 
         if self.check_no_name is True:
@@ -1356,7 +1353,7 @@ class MATERIAL_OT_link_to_base_names(Operator):
                 if name == self.mat_keep:
                     try:
                         base, suffix = name.rsplit('.', 1)
-                        # trigger the except
+                        # trigger the exception
                         num = int(suffix, 10)
                         self.mat_keep = base
                         mat.name = self.mat_keep
@@ -1376,7 +1373,7 @@ class MATERIAL_OT_link_to_base_names(Operator):
         base, suffix = name.rsplit('.', 1)
 
         try:
-            # trigger the except
+            # trigger the exception
             num = int(suffix, 10)
         except ValueError:
             # Not a numeric suffix
@@ -1442,17 +1439,16 @@ class MATERIAL_OT_link_to_base_names(Operator):
 class MATERIAL_OT_check_converter_path(Operator):
     bl_idname = "material.check_converter_path"
     bl_label = "Check Converters images/data save path"
-    bl_description = ("Checks if the given path is writeable \n"
-                      "(has OS writing privileges)")
+    bl_description = "Check if the given path is writeable (has OS writing privileges)"
     bl_options = {'REGISTER', 'INTERNAL'}
-
-    @classmethod
-    def poll(cls, context):
-        return True
 
     def check_valid_path(self, context):
         sc = context.scene
         paths = bpy.path.abspath(sc.mat_specials.conv_path)
+
+        if bpy.data.filepath == "":
+            warning_messages(self, "DIR_PATH_EMPTY", override=True)
+            return False
 
         if os_path.exists(paths):
             if os_access(paths, os.W_OK | os.X_OK):
@@ -1463,13 +1459,13 @@ class MATERIAL_OT_check_converter_path(Operator):
                     os_remove(path_test)
                     return True
                 except (OSError, IOError):
-                    warning_messages(self, 'DIR_PATH_W_ERROR')
+                    warning_messages(self, 'DIR_PATH_W_ERROR', override=True)
                     return False
             else:
-                warning_messages(self, 'DIR_PATH_A_ERROR')
+                warning_messages(self, 'DIR_PATH_A_ERROR', override=True)
                 return False
         else:
-            warning_messages(self, 'DIR_PATH_N_ERROR')
+            warning_messages(self, 'DIR_PATH_N_ERROR', override=True)
             return False
 
         return True
@@ -1477,13 +1473,13 @@ class MATERIAL_OT_check_converter_path(Operator):
     def execute(self, context):
         if not self.check_valid_path(context):
             return {'CANCELLED'}
-        else:
-            warning_messages(self, 'DIR_PATH_W_OK')
+
+        warning_messages(self, 'DIR_PATH_W_OK', override=True)
 
         return {'FINISHED'}
 
 
-# Menu classes #
+# Menu classes
 
 class VIEW3D_MT_assign_material(Menu):
     bl_label = "Assign Material"
@@ -1759,19 +1755,17 @@ class MATERIAL_PT_scenemassive(Panel):
                        text="Convert All to Cycles", icon='MATERIAL')
         split.operator("ml.refresh_active",
                        text="Convert Active to Cycles", icon='MATERIAL')
-        box = box.box()
-        ml_restore = box.operator("ml.restore",
-                                  text="To BI Nodes Off",
+        row = box.row()
+        ml_restore = row.operator("ml.restore", text="To BI Nodes Off",
                                   icon='MATERIAL')
         ml_restore.switcher = False
         ml_restore.renderer = "BI"
 
-        row = layout.row()
-        box = row.box()
-        box.menu("scenemassive.opt", text="Advanced Options", icon='SCRIPTWIN')
-        box = row.box()
-        box.menu("help.biconvert",
-                 text="Usage Information Guide", icon='MOD_EXPLODE')
+        box = layout.box()
+        row = box.row()
+        row.menu("scenemassive.opt", text="Advanced Options", icon='SCRIPTWIN')
+        row.menu("help.biconvert",
+                 text="Usage Information Guide", icon="INFO")
 
         box = layout.box()
         box.label("Save Directory")
@@ -1804,18 +1798,15 @@ class MATERIAL_PT_xps_convert(Panel):
         split.operator("xps_tools.convert_to_cycles_selected",
                        text="Convert Selected to Nodes", icon="TEXTURE")
 
-        col = layout.column()
-        row = col.row()
-        box = row.box()
-        ml_restore = box.operator("ml.restore",
-                                  text="To BI Nodes ON",
+        box = layout.box()
+        row = box.row()
+        ml_restore = row.operator("ml.restore", text="To BI Nodes ON",
                                   icon='MATERIAL')
         ml_restore.switcher = True
         ml_restore.renderer = "BI"
 
-        box = row.box()
-        box.menu("help.nodeconvert",
-                 text="Usage Information Guide", icon="MOD_EXPLODE")
+        row.menu("help.nodeconvert",
+                 text="Usage Information Guide", icon="INFO")
 
 
 # Converters Help #
@@ -1891,7 +1882,7 @@ class MATERIAL_MT_nodeconv_help(Menu):
         layout.label(text="Convert Materials/Image Textures from Imports:", icon="INFO")
 
 
-# Make Report #
+# Make Report
 class material_converter_report(Operator):
     bl_idname = "mat_converter.reports"
     bl_label = "Material Converter Report"
@@ -1902,14 +1893,12 @@ class material_converter_report(Operator):
 
     def draw(self, context):
         layout = self.layout
-        box = layout.box()
-
-        box.label(text="Converter Report", icon='INFO')
+        layout.label(text="Information:", icon='INFO')
 
         if self.message and type(self.message) is str:
             list_string = self.message.split("*")
             for line in range(len(list_string)):
-                box.label(text=str(list_string[line]))
+                layout.label(text=str(list_string[line]))
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self, width=500)
@@ -1919,7 +1908,6 @@ class material_converter_report(Operator):
 
 
 # Scene Properties
-
 class material_specials_scene_props(PropertyGroup):
     conv_path = StringProperty(
             name="Save Directory",
@@ -1990,7 +1978,6 @@ class material_specials_scene_props(PropertyGroup):
 
 
 # Addon Preferences
-
 class VIEW3D_MT_material_utils_pref(AddonPreferences):
     bl_idname = __name__
 
@@ -2004,10 +1991,9 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
     show_remove_mat = BoolProperty(
             name="Enable Remove all Materials",
             default=False,
-            description="Enable Remove all Materials \n"
-                        "for all Selected Objects \n \n"
-                        "Use with care - if you want to keep materials after \n"
-                        "closing \ reloading Blender Set Fake User for them",
+            description="Enable Remove all Materials for all Selected Objects\n\n"
+                        "Use with care - if you want to keep materials after\n"
+                        "closing or reloading Blender, Set Fake User for them",
             )
     show_mat_preview = BoolProperty(
             name="Enable Material Preview",
@@ -2034,7 +2020,7 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
             )
     show_converters = BoolProperty(
             name="Enable Converters",
-            default=True,
+            default=False,
             description="Enable Material Converters",
             )
     set_preview_size = EnumProperty(
@@ -2056,13 +2042,12 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
             name="Preview Menu Type",
             description="Set the the Preview menu type",
             items=(('LIST', "Classic",
-                    "Display as a Classic List like in Blender Propreties. \n \n"
-                    "Preview of Active Material not available"),
+                    "Display as a Classic List like in Blender Propreties.\n"
+                    "Preview of Active Material is not available"),
                    ('PREVIEW', "Preview Display",
-                    "Display as a preview of Thumbnails \n"
-                    "It can have some performance issues with \n"
-                    "scenes containing a lot of materials \n \n"
-                    "Preview of Active Material available")),
+                    "Display as a preview of Thumbnails\n"
+                    "It can have some performance issues with scenes containing a lot of materials\n"
+                    "Preview of Active Material is available")),
             default='PREVIEW',
             )
     set_experimental_type = EnumProperty(
@@ -2101,21 +2086,22 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
         col.prop(self, "show_separators")
 
         boxie = box.box()
-        row = boxie.row()
-        row.prop(self, "show_mat_preview")
-        rowsy = row.split(align=True)
-        rowsy.enabled = True if self.show_mat_preview else False
-        rowsy.prop(self, "set_preview_type", expand=True)
-        rowsa = boxie.row(align=True)
-        rowsa.enabled = True if self.set_preview_type in {'PREVIEW'} else False
-        rowsa.prop(self, "set_preview_size", expand=True)
+        split = boxie.split(percentage=0.3)
+        split.prop(self, "show_mat_preview")
+        if self.show_mat_preview:
+            rowsy = split.row(align=True)
+            rowsy.enabled = True if self.show_mat_preview else False
+            rowsy.prop(self, "set_preview_type", expand=True)
+            rowsa = boxie.row(align=True)
+            rowsa.enabled = True if self.set_preview_type in {'PREVIEW'} else False
+            rowsa.prop(self, "set_preview_size", expand=True)
 
         boxif = box.box()
-        rowf = boxif.row()
-        rowf.prop(self, "show_converters")
-        rowsf = rowf.split()
-        rowsf.enabled = True if self.show_converters else False
-        rowsf.prop(self, "set_experimental_type", expand=True)
+        split = boxif.split(percentage=0.3)
+        split.prop(self, "show_converters")
+        if self.show_converters:
+            rowe = split.row(align=True)
+            rowe.prop(self, "set_experimental_type", expand=True)
 
 
 # utility functions:
@@ -2224,7 +2210,7 @@ def c_need_of_viewport_colors():
     return False
 
 
-# Draw Separator #
+# Draw Separator
 def use_separator(operator, context):
     # pass the preferences show_separators bool to enable/disable them
     pref = return_preferences()
@@ -2233,7 +2219,7 @@ def use_separator(operator, context):
         operator.layout.separator()
 
 
-# preferences utilities #
+# preferences utilities
 
 def return_preferences():
     return bpy.context.user_preferences.addons[__name__].preferences
@@ -2299,9 +2285,9 @@ def register():
     warning_messages_utils.MAT_SPEC_NAME = __name__
 
     # Register Scene Properties
-    bpy.types.Scene.mat_specials = bpy.props.PointerProperty(
-                                            type=material_specials_scene_props
-                                            )
+    bpy.types.Scene.mat_specials = PointerProperty(
+                                        type=material_specials_scene_props
+                                        )
 
     kc = bpy.context.window_manager.keyconfigs.addon
     if kc:
