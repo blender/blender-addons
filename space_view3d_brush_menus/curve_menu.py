@@ -14,27 +14,27 @@ class BrushCurveMenu(Menu):
     @classmethod
     def poll(self, context):
         return utils_core.get_mode() in (
-                        utils_core.sculpt, utils_core.vertex_paint,
-                        utils_core.weight_paint, utils_core.texture_paint,
-                        utils_core.particle_edit
+                        'SCULPT', 'VERTEX_PAINT',
+                        'WEIGHT_PAINT', 'TEXTURE_PAINT',
+                        'PARTICLE_EDIT'
                         )
 
     def draw(self, context):
-        menu = utils_core.Menu(self)
-        curves = [["Smooth", "SMOOTH", "SMOOTHCURVE"],
-                  ["Sphere", "ROUND", "SPHERECURVE"],
-                  ["Root", "ROOT", "ROOTCURVE"],
-                  ["Sharp", "SHARP", "SHARPCURVE"],
-                  ["Linear", "LINE", "LINCURVE"],
-                  ["Constant", "MAX", "NOCURVE"]]
+        layout = self.layout
+        curves = (("Smooth", "SMOOTH", "SMOOTHCURVE"),
+                  ("Sphere", "ROUND", "SPHERECURVE"),
+                  ("Root", "ROOT", "ROOTCURVE"),
+                  ("Sharp", "SHARP", "SHARPCURVE"),
+                  ("Linear", "LINE", "LINCURVE"),
+                  ("Constant", "MAX", "NOCURVE"))
 
         # add the top slider
-        menu.add_item().operator(CurvePopup.bl_idname, icon="RNDCURVE")
-        menu.add_item().separator()
+        layout.row().operator(CurvePopup.bl_idname, icon="RNDCURVE")
+        layout.row().separator()
 
         # add the rest of the menu items
         for curve in curves:
-            item = menu.add_item().operator("brush.curve_preset",
+            item = layout.row().operator("brush.curve_preset",
                                             text=curve[0], icon=curve[2])
             item.shape = curve[1]
 
@@ -47,25 +47,25 @@ class CurvePopup(Operator):
     @classmethod
     def poll(self, context):
         return utils_core.get_mode() in (
-                        utils_core.sculpt, utils_core.vertex_paint,
-                        utils_core.weight_paint, utils_core.texture_paint
+                        'SCULPT', 'VERTEX_PAINT',
+                        'WEIGHT_PAINT', 'TEXTURE_PAINT'
                         )
 
     def draw(self, context):
-        menu = utils_core.Menu(self)
+        layout = self.layout
         has_brush = utils_core.get_brush_link(context, types="brush")
 
-        if utils_core.get_mode() == utils_core.sculpt or \
-          utils_core.get_mode() == utils_core.vertex_paint or \
-          utils_core.get_mode() == utils_core.weight_paint or \
-          utils_core.get_mode() == utils_core.texture_paint:
+        if utils_core.get_mode() == 'SCULPT' or \
+          utils_core.get_mode() == 'VERTEX_PAINT' or \
+          utils_core.get_mode() == 'WEIGHT_PAINT' or \
+          utils_core.get_mode() == 'TEXTURE_PAINT':
             if has_brush:
-                menu.add_item("column").template_curve_mapping(has_brush,
+                layout.column().template_curve_mapping(has_brush,
                                                                "curve", brush=True)
             else:
-                menu.add_item().label("No brushes available", icon="INFO")
+                layout.row().label("No brushes available", icon="INFO")
         else:
-            menu.add_item().label("No brushes available", icon="INFO")
+            layout.row().label("No brushes available", icon="INFO")
 
     def execute(self, context):
         return context.window_manager.invoke_popup(self, width=180)

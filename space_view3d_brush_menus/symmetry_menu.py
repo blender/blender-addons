@@ -11,25 +11,25 @@ class MasterSymmetryMenu(Menu):
     @classmethod
     def poll(self, context):
         return utils_core.get_mode() in (
-                        utils_core.sculpt,
-                        utils_core.texture_paint
+                        'SCULPT',
+                        'TEXTURE_PAINT'
                         )
 
     def draw(self, context):
-        menu = utils_core.Menu(self)
+        layout = self.layout
 
-        if utils_core.get_mode() == utils_core.texture_paint:
-            menu.add_item().prop(context.tool_settings.image_paint,
-                                 "use_symmetry_x", toggle=True)
-            menu.add_item().prop(context.tool_settings.image_paint,
-                                 "use_symmetry_y", toggle=True)
-            menu.add_item().prop(context.tool_settings.image_paint,
-                                 "use_symmetry_z", toggle=True)
+        if utils_core.get_mode() == 'TEXTURE_PAINT':
+            layout.row().prop(context.tool_settings.image_paint,
+                              "use_symmetry_x", toggle=True)
+            layout.row().prop(context.tool_settings.image_paint,
+                              "use_symmetry_y", toggle=True)
+            layout.row().prop(context.tool_settings.image_paint,
+                              "use_symmetry_z", toggle=True)
         else:
-            menu.add_item().menu(SymmetryMenu.bl_idname)
-            menu.add_item().menu(SymmetryRadialMenu.bl_idname)
-            menu.add_item().prop(context.tool_settings.sculpt,
-                                 "use_symmetry_feather", toggle=True)
+            layout.row().menu(SymmetryMenu.bl_idname)
+            layout.row().menu(SymmetryRadialMenu.bl_idname)
+            layout.row().prop(context.tool_settings.sculpt,
+                              "use_symmetry_feather", toggle=True)
 
 
 class SymmetryMenu(Menu):
@@ -37,17 +37,17 @@ class SymmetryMenu(Menu):
     bl_idname = "VIEW3D_MT_sv3_symmetry_menu"
 
     def draw(self, context):
-        menu = utils_core.Menu(self)
+        layout = self.layout
 
-        menu.add_item().label(text="Symmetry")
-        menu.add_item().separator()
+        layout.row().label(text="Symmetry")
+        layout.row().separator()
 
-        menu.add_item().prop(context.tool_settings.sculpt,
-                             "use_symmetry_x", toggle=True)
-        menu.add_item().prop(context.tool_settings.sculpt,
-                             "use_symmetry_y", toggle=True)
-        menu.add_item().prop(context.tool_settings.sculpt,
-                             "use_symmetry_z", toggle=True)
+        layout.row().prop(context.tool_settings.sculpt,
+                          "use_symmetry_x", toggle=True)
+        layout.row().prop(context.tool_settings.sculpt,
+                          "use_symmetry_y", toggle=True)
+        layout.row().prop(context.tool_settings.sculpt,
+                          "use_symmetry_z", toggle=True)
 
 
 class SymmetryRadialMenu(Menu):
@@ -55,10 +55,10 @@ class SymmetryRadialMenu(Menu):
     bl_idname = "VIEW3D_MT_sv3_symmetry_radial_menu"
 
     def draw(self, context):
-        menu = utils_core.Menu(self)
+        layout = self.layout
 
-        menu.add_item().label(text="Radial")
-        menu.add_item().separator()
+        layout.row().label(text="Radial")
+        layout.row().separator()
 
-        menu.add_item("column").prop(context.tool_settings.sculpt,
-                                     "radial_symmetry", text="", slider=True)
+        layout.column().prop(context.tool_settings.sculpt,
+                             "radial_symmetry", text="", slider=True)

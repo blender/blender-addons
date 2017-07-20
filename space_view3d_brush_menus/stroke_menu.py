@@ -3,15 +3,45 @@
 import bpy
 from bpy.types import Menu
 from . import utils_core
+from .brushes import brush_datapath
 
-airbrush = 'AIRBRUSH'
-anchored = 'ANCHORED'
-space = 'SPACE'
-drag_dot = 'DRAG_DOT'
-dots = 'DOTS'
-line = 'LINE'
-curve = 'CURVE'
+# stroke methods: 'AIRBRUSH' 'ANCHORED' 'SPACE' 'DRAG_DOT' 'DOTS' 'LINE' 'CURVE'
 
+class PaintCurvesMenu(Menu):
+    bl_label = "Paint Curves"
+    bl_idname = "VIEW3D_MT_sv3_paint_curves_menu"
+
+    def draw(self, context):
+        mode = utils_core.get_mode()
+        layout = self.layout
+        colum_n = utils_core.addon_settings(lists=False)
+        
+        layout.row().label(text="Paint Curves")
+        layout.row().separator()
+
+        has_brush = utils_core.get_brush_link(context, types="brush")
+        
+        has_current_curve = has_brush.paint_curve if has_brush else None             
+        current_curve = has_current_curve.name if has_current_curve else ''
+        
+        column_flow = layout.column_flow(columns=colum_n)
+        
+        if len(bpy.data.paint_curves) != 0:
+            for x, item in enumerate(bpy.data.paint_curves):
+                utils_core.menuprop(
+                        column_flow.row(),
+                        item.name,
+                        'bpy.data.paint_curves["%s"]' % item.name,
+                        brush_datapath[mode] + ".paint_curve",
+                        icon='RADIOBUT_OFF',
+                        disable=True,
+                        disable_icon='RADIOBUT_ON',
+                        custom_disable_exp=(item.name, current_curve),
+                        path=True
+                        )
+
+        else:
+            layout.row().label("No Paint Curves Available", icon="INFO")
 
 class StrokeOptionsMenu(Menu):
     bl_label = "Stroke Options"
@@ -20,21 +50,27 @@ class StrokeOptionsMenu(Menu):
     @classmethod
     def poll(self, context):
         return utils_core.get_mode() in (
-                    utils_core.sculpt, utils_core.vertex_paint,
-                    utils_core.weight_paint, utils_core.texture_paint,
-                    utils_core.particle_edit
+                    'SCULPT', 'VERTEX_PAINT',
+                    'WEIGHT_PAINT', 'TEXTURE_PAINT',
+                    'PARTICLE_EDIT'
                     )
 
     def init(self):
         has_brush = utils_core.get_brush_link(bpy.context, types="brush")
-        if utils_core.get_mode() == utils_core.sculpt:
+        if utils_core.get_mode() == 'SCULPT':
             settings = bpy.context.tool_settings.sculpt
 
-        elif utils_core.get_mode() == utils_core.texture_paint:
+        elif utils_core.get_mode() == 'VERTEX_PAINT':
+            settings = bpy.context.tool_settings.vertex_paint
+
+        elif utils_core.get_mode() == 'WEIGHT_PAINT':
+            settings = bpy.context.tool_settings.weight_paint
+
+        elif utils_core.get_mode() == 'TEXTURE_PAINT':
             settings = bpy.context.tool_settings.image_paint
 
         else:
-            settings = bpy.context.tool_settings.vertex_paint
+            settings = None
 
         stroke_method = has_brush.stroke_method if has_brush else None
 
@@ -42,48 +78,64 @@ class StrokeOptionsMenu(Menu):
 
     def draw(self, context):
         settings, brush, stroke_method = self.init()
-        menu = utils_core.Menu(self)
+        layout = self.layout
 
-        menu.add_item().menu(StrokeMethodMenu.bl_idname)
-        menu.add_item().separator()
+        layout.row().menu(StrokeMethodMenu.bl_idname)
+        layout.row().separator()
 
         if stroke_method:
-            if stroke_method == space and brush:
-                menu.add_item().prop(brush, "spacing",
+            
+            if stroke_method in ('SPACE', 'LINE') and brush:
+                layout.row().prop(brush, "spacing",
                                      text=utils_core.PIW + "Spacing", slider=True)
 
-            elif stroke_method == airbrush and brush:
-                menu.add_item().prop(brush, "rate",
+            elif stroke_method == 'AIRBRUSH' and brush:
+                layout.row().prop(brush, "rate",
                                     text=utils_core.PIW + "Rate", slider=True)
 
-            elif stroke_method == anchored and brush:
-                menu.add_item().prop(brush, "use_edge_to_edge")
+            elif stroke_method == 'ANCHORED' and brush:
+                layout.row().prop(brush, "use_edge_to_edge")
+            
+            elif stroke_method == 'CURVE' and brush:
+                has_current_curve = brush.paint_curve if brush else None             
+                current_curve = has_current_curve.name if has_current_curve else 'No Curve Selected'
+                
+                layout.row().menu(PaintCurvesMenu.bl_idname, text=current_curve, 
+                                  icon='CURVE_BEZCURVE')
+                layout.row().operator("paintcurve.new", icon='ZOOMIN')
+                layout.row().operator("paintcurve.draw")
+                
+                layout.row().separator()
+                
+                layout.row().prop(brush, "spacing",
+                                  text=utils_core.PIW + "Spacing",
+                                  slider=True)
 
             else:
                 pass
 
-            if utils_core.get_mode() == utils_core.sculpt and stroke_method in (drag_dot, anchored):
+            if utils_core.get_mode() == 'SCULPT' and stroke_method in ('DRAG_DOT', 'ANCHORED'):
                 pass
             else:
                 if brush:
-                    menu.add_item().prop(brush, "jitter",
-                                        text=utils_core.PIW + "Jitter", slider=True)
+                    layout.row().prop(brush, "jitter",
+                                      text=utils_core.PIW + "Jitter", slider=True)
 
-            menu.add_item().prop(settings, "input_samples",
-                                text=utils_core.PIW + "Input Samples", slider=True)
+            layout.row().prop(settings, "input_samples",
+                              text=utils_core.PIW + "Input Samples", slider=True)
 
-            if stroke_method in [dots, space, airbrush] and brush:
-                menu.add_item().separator()
+            if stroke_method in ('DOTS', 'SPACE', 'AIRBRUSH') and brush:
+                layout.row().separator()
 
-                menu.add_item().prop(brush, "use_smooth_stroke", toggle=True)
+                layout.row().prop(brush, "use_smooth_stroke", toggle=True)
 
                 if brush.use_smooth_stroke:
-                    menu.add_item().prop(brush, "smooth_stroke_radius",
-                                        text=utils_core.PIW + "Radius", slider=True)
-                    menu.add_item().prop(brush, "smooth_stroke_factor",
-                                        text=utils_core.PIW + "Factor", slider=True)
+                    layout.row().prop(brush, "smooth_stroke_radius",
+                                      text=utils_core.PIW + "Radius", slider=True)
+                    layout.row().prop(brush, "smooth_stroke_factor",
+                                      text=utils_core.PIW + "Factor", slider=True)
         else:
-            menu.add_item().label("No Stroke Options available", icon="INFO")
+            layout.row().label("No Stroke Options available", icon="INFO")
 
 
 class StrokeMethodMenu(Menu):
@@ -92,36 +144,42 @@ class StrokeMethodMenu(Menu):
 
     def init(self):
         has_brush = utils_core.get_brush_link(bpy.context, types="brush")
-        if utils_core.get_mode() == utils_core.sculpt:
+        if utils_core.get_mode() == 'SCULPT':
             path = "tool_settings.sculpt.brush.stroke_method"
 
-        elif utils_core.get_mode() == utils_core.texture_paint:
+        elif utils_core.get_mode() == 'VERTEX_PAINT':
+            path = "tool_settings.vertex_paint.brush.stroke_method"
+
+        elif utils_core.get_mode() == 'WEIGHT_PAINT':
+            path = "tool_settings.weight_paint.brush.stroke_method"
+
+        elif utils_core.get_mode() == 'TEXTURE_PAINT':
             path = "tool_settings.image_paint.brush.stroke_method"
 
         else:
-            path = "tool_settings.vertex_paint.brush.stroke_method"
+            path = ""
 
         return has_brush, path
 
     def draw(self, context):
         brush, path = self.init()
-        menu = utils_core.Menu(self)
+        layout = self.layout
 
-        menu.add_item().label(text="Stroke Method")
-        menu.add_item().separator()
+        layout.row().label(text="Stroke Method")
+        layout.row().separator()
 
         if brush:
             # add the menu items dynamicaly based on values in enum property
             for tool in brush.bl_rna.properties['stroke_method'].enum_items:
-                if tool.identifier in [anchored, drag_dot] and \
-                   utils_core.get_mode() in [utils_core.vertex_paint,
-                                             utils_core.weight_paint]:
+                if tool.identifier in ('ANCHORED', 'DRAG_DOT') and \
+                   utils_core.get_mode() in ('VERTEX_PAINT',
+                                             'WEIGHT_PAINT'):
                     continue
 
                 utils_core.menuprop(
-                        menu.add_item(), tool.name, tool.identifier, path,
+                        layout.row(), tool.name, tool.identifier, path,
                         icon='RADIOBUT_OFF', disable=True,
                         disable_icon='RADIOBUT_ON'
                         )
         else:
-            menu.add_item().label("No Stroke Method available", icon="INFO")
+            layout.row().label("No Stroke Method available", icon="INFO")

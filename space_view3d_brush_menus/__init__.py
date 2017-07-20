@@ -23,8 +23,8 @@ bl_info = {
     "name": "Sculpt/Paint Brush Menus",
     "description": "Fast access to brushes & tools in Sculpt and Paint Modes",
     "author": "Ryan Inch (Imaginer)",
-    "version": (1, 1, 4),
-    "blender": (2, 7, 8),
+    "version": (1, 1, 5),
+    "blender": (2, 78, 0),
     "location": "Alt V in Sculpt/Paint Modes",
     "warning": '',
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -109,7 +109,7 @@ def register():
 
     # register hotkeys
     wm = bpy.context.window_manager
-    modes = ['Sculpt', 'Vertex Paint', 'Weight Paint', 'Image Paint', 'Particle']
+    modes = ('Sculpt', 'Vertex Paint', 'Weight Paint', 'Image Paint', 'Particle')
 
     for mode in modes:
         km = wm.keyconfigs.addon.keymaps.new(name=mode)

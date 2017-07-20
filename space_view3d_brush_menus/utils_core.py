@@ -2,17 +2,9 @@
 
 import bpy
 
-object_mode = 'OBJECT'
-edit = 'EDIT'
-sculpt = 'SCULPT'
-vertex_paint = 'VERTEX_PAINT'
-weight_paint = 'WEIGHT_PAINT'
-texture_paint = 'TEXTURE_PAINT'
-particle_edit = 'PARTICLE_EDIT'
-pose = 'POSE'
-gpencil_edit = 'GPENCIL_EDIT'
 get_addon_name = 'space_view3d_brush_menus'
 
+# Property Icon Width
 PIW = '       '
 
 
@@ -21,16 +13,16 @@ def get_brush_link(context, types="brush"):
     tool_settings = context.tool_settings
     has_brush = None
 
-    if get_mode() == sculpt:
+    if get_mode() == 'SCULPT':
         datapath = tool_settings.sculpt
 
-    elif get_mode() == vertex_paint:
+    elif get_mode() == 'VERTEX_PAINT':
         datapath = tool_settings.vertex_paint
 
-    elif get_mode() == weight_paint:
+    elif get_mode() == 'WEIGHT_PAINT':
         datapath = tool_settings.weight_paint
 
-    elif get_mode() == texture_paint:
+    elif get_mode() == 'TEXTURE_PAINT':
         datapath = tool_settings.image_paint
     else:
         datapath = None
@@ -59,58 +51,16 @@ def error_handlers(self, op_name, error, reports="ERROR", func=False):
     print("\n[Sculpt/Paint Brush Menus]\n{}: {}\nError: {}\n".format(is_func, op_name, error))
 
 
-class Menu():
-    def __init__(self, menu):
-        self.layout = menu.layout
-        self.items = {}
-        self.current_item = None
-
-    def add_item(self, ui_type="row", parent=None, name=None, **kwargs):
-        # set the parent layout
-        if parent:
-            layout = parent
-        else:
-            layout = self.layout
-
-        # set unique identifier for new items
-        if not name:
-            name = len(self.items) + 1
-
-        # create and return a ui layout
-        if ui_type == "row":
-            self.current_item = self.items[name] = layout.row(**kwargs)
-
-            return self.current_item
-
-        elif ui_type == "column":
-            self.current_item = self.items[name] = layout.column(**kwargs)
-
-            return self.current_item
-
-        elif ui_type == "column_flow":
-            self.current_item = self.items[name] = layout.column_flow(**kwargs)
-
-            return self.current_item
-
-        elif ui_type == "box":
-            self.current_item = self.items[name] = layout.box(**kwargs)
-
-            return self.current_item
-
-        elif ui_type == "split":
-            self.current_item = self.items[name] = layout.split(**kwargs)
-
-            return self.current_item
-        else:
-            print("Unknown Type")
-
-
+# Object modes:
+# 'OBJECT' 'EDIT' 'SCULPT'
+# 'VERTEX_PAINT' 'WEIGHT_PAINT' 'TEXTURE_PAINT'
+# 'PARTICLE_EDIT' 'POSE' 'GPENCIL_EDIT'
 def get_mode():
     try:
         if bpy.context.gpencil_data and \
-        bpy.context.object.mode == object_mode and \
+        bpy.context.object.mode == 'OBJECT' and \
         bpy.context.scene.grease_pencil.use_stroke_edit_mode:
-            return gpencil_edit
+            return 'GPENCIL_EDIT'
         else:
             return bpy.context.object.mode
     except:
