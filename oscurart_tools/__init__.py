@@ -187,6 +187,8 @@ class OscPanelMesh(Panel):
         colrow.operator("mesh.overlap_uv_faces", icon="UV_FACESEL")
         colrow = col.row(align=1)
         colrow.operator("view3d.modal_operator", icon="STICKY_UVS_DISABLE")
+        colrow = col.row(align=1)
+        colrow.operator("lattice.mirror_selected", icon="LATTICE_DATA")
 
 
 

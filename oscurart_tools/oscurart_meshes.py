@@ -516,3 +516,47 @@ class SelectDoubles(Operator):
     def execute(self, context):
         SelDoubles(self, context)
         return {'FINISHED'}
+
+# -------------------------- SELECT DOUBLES
+
+def defLatticeMirror(self, context):
+
+    ob = bpy.context.object
+    u = ob.data.points_u
+    v = ob.data.points_v
+    w = ob.data.points_w
+    row = u*v
+    total = u*v*w
+    column = 2
+    
+    #guardo indices a cada punto
+    libIndex = {point:index for point, index in zip(bpy.context.object.data.points,range(0,total))}
+
+    #guardo puntos seleccionados
+    selectionPoint = [libIndex[i] for i in ob.data.points if i.select]
+
+    for point in selectionPoint:        
+        rango = list(range(int(point/u)*u,int(point/u)*u+(u)))
+        rango.reverse()        
+        indPorcion = range(int(point/u)*u,int(point/u)*u+(u)).index(point)            
+        ob.data.points[rango[indPorcion]].co_deform.x = -ob.data.points[point].co_deform.x
+        ob.data.points[rango[indPorcion]].co_deform.y = ob.data.points[point].co_deform.y
+        ob.data.points[rango[indPorcion]].co_deform.z = ob.data.points[point].co_deform.z    
+
+
+class LatticeMirror(Operator):
+    """Mirror Lattice"""
+    bl_idname = "lattice.mirror_selected"
+    bl_label = "Mirror Lattice"
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.active_object is not None and
+                context.active_object.type == 'LATTICE' and
+                context.active_object.mode == "EDIT")
+
+
+    def execute(self, context):
+        defLatticeMirror(self, context)
+        return {'FINISHED'}
