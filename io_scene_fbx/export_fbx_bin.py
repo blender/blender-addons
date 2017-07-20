@@ -2176,7 +2176,7 @@ def fbx_data_from_scene(scene, settings):
 
         if settings.use_mesh_modifiers or ob.type in BLENDER_OTHER_OBJECT_TYPES or is_ob_material:
             # We cannot use default mesh in that case, or material would not be the right ones...
-            use_org_data = not is_ob_material
+            use_org_data = not (is_ob_material or ob.type in BLENDER_OTHER_OBJECT_TYPES)
             tmp_mods = []
             if use_org_data and ob.type == 'MESH':
                 # No need to create a new mesh in this case, if no modifier is active!
