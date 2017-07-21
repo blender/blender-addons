@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Skinify Rig",
     "author": "Albert Makac (karab44)",
-    "version": (0, 9, 1),
+    "version": (0, 9, 2),
     "blender": (2, 7, 9),
     "location": "Properties > Bone > Skinify Rig (visible on pose mode only)",
     "description": "Creates a mesh object from selected bones",
@@ -644,12 +644,11 @@ def main(context):
     me.name = mesh_name
 
     # this way we fit mesh and bvh with armature modifier correctly
-
     skin = generate_edges(
-                            me, ob, bone_selection, scale, sknfy.connect_mesh,
-                            sknfy.connect_parents, sknfy.head_ornaments,
-                            sknfy.generate_all, sknfy.thickness, sknfy.finger_thickness
-                            )
+                me, ob, bone_selection, scale, sknfy.connect_mesh,
+                sknfy.connect_parents, sknfy.head_ornaments,
+                sknfy.generate_all, sknfy.thickness, sknfy.finger_thickness
+                )
 
     generate_mesh(ob, size, sknfy.sub_level,
                   sknfy.connect_mesh, sknfy.connect_parents, sknfy.generate_all,
@@ -683,11 +682,15 @@ def main(context):
     return {'FINISHED'}, me
 
 
+# Note: setting bl_options to UNDO, INTERNAL since access through
+# the Search Menu or Repeat History will cause a context loss and crash
+# See a similar problem solution in commit b947810291b1
+
 class BONE_OT_custom_shape(Operator):
-    '''Creates a mesh object at the selected bones positions'''
     bl_idname = "object.skinify_rig"
     bl_label = "Skinify Rig"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Creates a mesh object at the selected bones positions"
+    bl_options = {'UNDO', 'INTERNAL'}
 
     @classmethod
     def poll(cls, context):
