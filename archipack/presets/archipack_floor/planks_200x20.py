@@ -1,0 +1,34 @@
+import bpy
+d = bpy.context.active_object.data.archipack_floor[0]
+
+d.bevel_res = 1
+d.b_width = 0.2
+d.is_bevel = True
+d.hb_direction = '1'
+d.is_width_vary = False
+d.b_length = 2.0
+d.spacing = 0.002
+d.is_grout = False
+d.num_boards = 4
+d.is_length_vary = False
+d.thickness = 0.02
+d.is_ran_thickness = False
+d.is_random_offset = True
+d.offset_vary = 47.81
+d.is_mat_vary = True
+d.tile_types = '21'
+d.length_vary = 50.0
+d.space_w = 0.002
+d.ran_thickness = 50.0
+d.max_boards = 2
+d.t_width_s = 0.1
+d.t_width = 0.3
+d.t_length = 0.3
+d.width_vary = 50.0
+d.mat_vary = 3
+d.grout_depth = 0.001
+d.is_offset = True
+d.space_l = 0.002
+d.bevel_amo = 0.0015
+d.offset = 50.0
+d.b_length_s = 2.0
