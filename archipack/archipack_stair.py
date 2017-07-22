@@ -946,7 +946,7 @@ class StairGenerator():
     def make_stair(self, height, step_depth, verts, faces, matids, uvs, nose_y=0):
         n_steps = self.n_steps(step_depth)
         self.set_height(height / n_steps)
-        
+
         for s, stair in enumerate(self.stairs):
             if s < len(self.parts):
                 manipulator = self.parts[s].manipulators[0]

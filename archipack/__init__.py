@@ -279,7 +279,7 @@ class TOOLS_PT_Archipack_PolyLib(Panel):
     bl_region_type = "TOOLS"
     bl_category = "Tools"
     bl_context = "objectmode"
-    
+
     @classmethod
     def poll(self, context):
 
@@ -385,7 +385,7 @@ class TOOLS_PT_Archipack_Tools(Panel):
     bl_region_type = "TOOLS"
     bl_category = "Tools"
     bl_context = "objectmode"
-    
+
     @classmethod
     def poll(self, context):
         return True
@@ -414,7 +414,7 @@ class TOOLS_PT_Archipack_Create(Panel):
     bl_region_type = "TOOLS"
     bl_category = "Create"
     bl_context = "objectmode"
-    
+
     @classmethod
     def poll(self, context):
         return True
@@ -532,7 +532,7 @@ class ARCHIPACK_create_menu(Menu):
     bl_label = 'Archipack'
     bl_idname = 'ARCHIPACK_create_menu'
     bl_context = "objectmode"
-    
+
     def draw(self, context):
         draw_menu(self, context)
 
@@ -614,7 +614,7 @@ def unregister():
     bpy.utils.unregister_class(TOOLS_PT_Archipack_Tools)
     bpy.utils.unregister_class(TOOLS_PT_Archipack_Create)
     bpy.utils.unregister_class(Archipack_Pref)
-    
+
     # unregister subs
     archipack_snap.unregister()
     archipack_manipulator.unregister()
