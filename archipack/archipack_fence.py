@@ -1738,6 +1738,7 @@ class ARCHIPACK_OT_fence_manipulate(Operator):
 
 
 class ARCHIPACK_OT_fence_preset_menu(PresetMenuOperator, Operator):
+    bl_description = "Show Fence Presets"
     bl_idname = "archipack.fence_preset_menu"
     bl_label = "Fence Styles"
     preset_subdir = "archipack_fence"

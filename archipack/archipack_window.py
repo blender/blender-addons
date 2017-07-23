@@ -2049,6 +2049,7 @@ class ARCHIPACK_OT_window_manipulate(Operator):
 
 
 class ARCHIPACK_OT_window_preset_menu(PresetMenuOperator, Operator):
+    bl_description = "Show Window Presets"
     bl_idname = "archipack.window_preset_menu"
     bl_label = "Window Presets"
     preset_subdir = "archipack_window"

@@ -1138,6 +1138,7 @@ class ARCHIPACK_OT_floor(ArchipackCreateTool, Operator):
 
 
 class ARCHIPACK_OT_floor_preset_menu(PresetMenuOperator, Operator):
+    bl_description = "Show Floor Presets"
     bl_idname = "archipack.floor_preset_menu"
     bl_label = "Floor preset"
     preset_subdir = "archipack_floor"

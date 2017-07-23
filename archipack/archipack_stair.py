@@ -2804,6 +2804,7 @@ class ARCHIPACK_OT_stair_manipulate(Operator):
 
 
 class ARCHIPACK_OT_stair_preset_menu(PresetMenuOperator, Operator):
+    bl_description = "Show Stair Presets"
     bl_idname = "archipack.stair_preset_menu"
     bl_label = "Stair style"
     preset_subdir = "archipack_stair"
