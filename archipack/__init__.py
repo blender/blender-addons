@@ -27,14 +27,14 @@
 
 bl_info = {
     'name': 'Archipack',
-    'description': 'Architectural objects and 2d polygons detection from unordered splines',
+    'description': 'Architectural objects',
     'author': 's-leger',
     'license': 'GPL',
-    'deps': 'shapely',
+    'deps': '',
     'version': (1, 2, 6),
     'blender': (2, 7, 8),
     'location': 'View3D > Tools > Create > Archipack',
-    'warning': '2d to 3d require shapely python module (see setup in documentation)',
+    'warning': '',
     'wiki_url': 'https://github.com/s-leger/archipack/wiki',
     'tracker_url': 'https://github.com/s-leger/archipack/issues',
     'link': 'https://github.com/s-leger/archipack',
@@ -53,19 +53,12 @@ if "bpy" in locals():
     imp.reload(archipack_door)
     imp.reload(archipack_window)
     imp.reload(archipack_stair)
-    imp.reload(archipack_wall)
     imp.reload(archipack_wall2)
     imp.reload(archipack_slab)
     imp.reload(archipack_fence)
     imp.reload(archipack_truss)
     imp.reload(archipack_floor)
     imp.reload(archipack_rendering)
-    try:
-        imp.reload(archipack_polylib)
-        HAS_POLYLIB = True
-    except:
-        HAS_POLYLIB = False
-        pass
 
     print("archipack: reload ready")
 else:
@@ -76,24 +69,12 @@ else:
     from . import archipack_door
     from . import archipack_window
     from . import archipack_stair
-    from . import archipack_wall
     from . import archipack_wall2
     from . import archipack_slab
     from . import archipack_fence
     from . import archipack_truss
     from . import archipack_floor
     from . import archipack_rendering
-    try:
-        """
-            polylib depends on shapely
-            raise ImportError when not meet
-        """
-        from . import archipack_polylib
-        HAS_POLYLIB = True
-    except:
-        print("archipack: shapely not found, using built in modules only")
-        HAS_POLYLIB = False
-        pass
 
     print("archipack: ready")
 
@@ -121,14 +102,11 @@ icons_collection = {}
 
 def update_panel(self, context):
     try:
-        bpy.utils.unregister_class(TOOLS_PT_Archipack_PolyLib)
         bpy.utils.unregister_class(TOOLS_PT_Archipack_Tools)
         bpy.utils.unregister_class(TOOLS_PT_Archipack_Create)
     except:
         pass
     prefs = context.user_preferences.addons[__name__].preferences
-    TOOLS_PT_Archipack_PolyLib.bl_category = prefs.tools_category
-    bpy.utils.register_class(TOOLS_PT_Archipack_PolyLib)
     TOOLS_PT_Archipack_Tools.bl_category = prefs.tools_category
     bpy.utils.register_class(TOOLS_PT_Archipack_Tools)
     TOOLS_PT_Archipack_Create.bl_category = prefs.create_category
@@ -154,11 +132,6 @@ class Archipack_Pref(AddonPreferences):
         name="Use Sub-menu",
         description="Put Achipack's object into a sub menu (shift+a)",
         default=True
-    )
-    enable_2d_to_3d = BoolProperty(
-        name="Enable 2d to 3d",
-        description="Enable 2d to 3d module",
-        default=False
     )
     max_style_draw_tool = BoolProperty(
         name="Draw a wall use 3dsmax style",
@@ -251,12 +224,6 @@ class Archipack_Pref(AddonPreferences):
         box.label("Features")
         box.prop(self, "max_style_draw_tool")
         box = layout.box()
-        box.label("2d to 3d")
-        if not HAS_POLYLIB:
-            box.label(text="WARNING Shapely python module not found", icon="ERROR")
-            box.label(text="2d to 3d tools are disabled, see setup in documentation")
-        box.prop(self, "enable_2d_to_3d")
-        box = layout.box()
         row = box.row()
         split = row.split(percentage=0.5)
         col = split.column()
@@ -284,114 +251,6 @@ class Archipack_Pref(AddonPreferences):
 # ----------------------------------------------------
 # Archipack panels
 # ----------------------------------------------------
-
-
-class TOOLS_PT_Archipack_PolyLib(Panel):
-    bl_label = "Archipack 2d to 3d"
-    bl_idname = "TOOLS_PT_Archipack_PolyLib"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "TOOLS"
-    bl_category = "Tools"
-    bl_context = "objectmode"
-
-    @classmethod
-    def poll(self, context):
-
-        global archipack_polylib
-        return (HAS_POLYLIB and
-                context.user_preferences.addons[__name__].preferences.enable_2d_to_3d and
-                ((archipack_polylib.vars_dict['select_polygons'] is not None) or
-                (context.object is not None and context.object.type == 'CURVE')))
-
-    def draw(self, context):
-        global icons_collection
-        icons = icons_collection["main"]
-        layout = self.layout
-        row = layout.row(align=True)
-        box = row.box()
-        row = box.row(align=True)
-        row.operator(
-            "archipack.polylib_detect",
-            icon_value=icons["detect"].icon_id,
-            text='Detect'
-            ).extend = context.window_manager.archipack_polylib.extend
-        row.prop(context.window_manager.archipack_polylib, "extend")
-        row = box.row(align=True)
-        row.prop(context.window_manager.archipack_polylib, "resolution")
-        row = box.row(align=True)
-        row.label(text="Polygons")
-        row = box.row(align=True)
-        row.operator(
-            "archipack.polylib_pick_2d_polygons",
-            icon_value=icons["selection"].icon_id,
-            text='Select'
-            ).action = 'select'
-        row.operator(
-            "archipack.polylib_pick_2d_polygons",
-            icon_value=icons["union"].icon_id,
-            text='Union'
-            ).action = 'union'
-        row.operator(
-            "archipack.polylib_output_polygons",
-            icon_value=icons["polygons"].icon_id,
-            text='All')
-        row = box.row(align=True)
-        row.operator(
-            "archipack.polylib_pick_2d_polygons",
-            text='Wall',
-            icon_value=icons["wall"].icon_id).action = 'wall'
-        row.prop(context.window_manager.archipack_polylib, "solidify_thickness")
-        row = box.row(align=True)
-        row.operator("archipack.polylib_pick_2d_polygons",
-            text='Window',
-            icon_value=icons["window"].icon_id).action = 'window'
-        row.operator("archipack.polylib_pick_2d_polygons",
-            text='Door',
-            icon_value=icons["door"].icon_id).action = 'door'
-        row.operator("archipack.polylib_pick_2d_polygons", text='Rectangle').action = 'rectangle'
-        row = box.row(align=True)
-        row.label(text="Lines")
-        row = box.row(align=True)
-        row.operator(
-            "archipack.polylib_pick_2d_lines",
-            icon_value=icons["selection"].icon_id,
-            text='Lines').action = 'select'
-        row.operator(
-            "archipack.polylib_pick_2d_lines",
-            icon_value=icons["union"].icon_id,
-            text='Union').action = 'union'
-        row.operator(
-            "archipack.polylib_output_lines",
-            icon_value=icons["polygons"].icon_id,
-            text='All')
-        row = box.row(align=True)
-        row.label(text="Points")
-        row = box.row(align=True)
-        row.operator(
-            "archipack.polylib_pick_2d_points",
-            icon_value=icons["selection"].icon_id,
-            text='Points').action = 'select'
-        row = layout.row(align=True)
-        box = row.box()
-        row = box.row(align=True)
-        row.operator("archipack.polylib_simplify")
-        row.prop(context.window_manager.archipack_polylib, "simplify_tolerance")
-        row = box.row(align=True)
-        row.prop(context.window_manager.archipack_polylib, "simplify_preserve_topology")
-        row = layout.row(align=True)
-        box = row.box()
-        row = box.row(align=True)
-        row.operator("archipack.polylib_offset")
-        row = box.row(align=True)
-        row.prop(context.window_manager.archipack_polylib, "offset_distance")
-        row = box.row(align=True)
-        row.prop(context.window_manager.archipack_polylib, "offset_side")
-        row = box.row(align=True)
-        row.prop(context.window_manager.archipack_polylib, "offset_resolution")
-        row = box.row(align=True)
-        row.prop(context.window_manager.archipack_polylib, "offset_join_style")
-        row = box.row(align=True)
-        row.prop(context.window_manager.archipack_polylib, "offset_mitre_limit")
 
 
 class TOOLS_PT_Archipack_Tools(Panel):
@@ -602,16 +461,12 @@ def register():
     archipack_door.register()
     archipack_window.register()
     archipack_stair.register()
-    archipack_wall.register()
     archipack_wall2.register()
     archipack_slab.register()
     archipack_fence.register()
     archipack_truss.register()
     archipack_floor.register()
     archipack_rendering.register()
-
-    if HAS_POLYLIB:
-        archipack_polylib.register()
 
     bpy.utils.register_class(archipack_data)
     WindowManager.archipack = PointerProperty(type=archipack_data)
@@ -626,7 +481,6 @@ def unregister():
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
     bpy.utils.unregister_class(ARCHIPACK_create_menu)
 
-    bpy.utils.unregister_class(TOOLS_PT_Archipack_PolyLib)
     bpy.utils.unregister_class(TOOLS_PT_Archipack_Tools)
     bpy.utils.unregister_class(TOOLS_PT_Archipack_Create)
     bpy.utils.unregister_class(Archipack_Pref)
@@ -639,16 +493,12 @@ def unregister():
     archipack_door.unregister()
     archipack_window.unregister()
     archipack_stair.unregister()
-    archipack_wall.unregister()
     archipack_wall2.unregister()
     archipack_slab.unregister()
     archipack_fence.unregister()
     archipack_truss.unregister()
     archipack_floor.unregister()
     archipack_rendering.unregister()
-
-    if HAS_POLYLIB:
-        archipack_polylib.unregister()
 
     bpy.utils.unregister_class(archipack_data)
     del WindowManager.archipack
