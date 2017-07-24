@@ -1103,24 +1103,38 @@ def parameters_ui(layout, params):
     col = r.column(align=True)
     row = col.row(align=True)
 
+    bone_layers = bpy.context.active_pose_bone.bone.layers[:]
+
     for i in range(8):
-        row.prop(params, "tweak_layers", index=i, toggle=True, text="")
+        icon = "NONE"
+        if bone_layers[i]:
+            icon = "LAYER_ACTIVE"
+        row.prop(params, "tweak_layers", index=i, toggle=True, text="", icon=icon)
 
     row = col.row(align=True)
 
-    for i in range(16,24):
-        row.prop(params, "tweak_layers", index=i, toggle=True, text="")
+    for i in range(16, 24):
+        icon = "NONE"
+        if bone_layers[i]:
+            icon = "LAYER_ACTIVE"
+        row.prop(params, "tweak_layers", index=i, toggle=True, text="", icon=icon)
 
     col = r.column(align=True)
     row = col.row(align=True)
 
-    for i in range(8,16):
-        row.prop(params, "tweak_layers", index=i, toggle=True, text="")
+    for i in range(8, 16):
+        icon = "NONE"
+        if bone_layers[i]:
+            icon = "LAYER_ACTIVE"
+        row.prop(params, "tweak_layers", index=i, toggle=True, text="", icon=icon)
 
     row = col.row(align=True)
 
-    for i in range(24,32):
-        row.prop(params, "tweak_layers", index=i, toggle=True, text="")
+    for i in range(24, 32):
+        icon = "NONE"
+        if bone_layers[i]:
+            icon = "LAYER_ACTIVE"
+        row.prop(params, "tweak_layers", index=i, toggle=True, text="", icon=icon)
 
 
 def create_sample(obj):

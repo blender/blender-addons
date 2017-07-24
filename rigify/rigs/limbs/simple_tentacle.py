@@ -249,7 +249,7 @@ def parameters_ui(layout, params):
     r = layout.row()
     col = r.column(align=True)
     row = col.row(align=True)
-    for i,axis in enumerate( [ 'x', 'y', 'z' ] ):
+    for i, axis in enumerate(['x', 'y', 'z']):
         row.prop(params, "copy_rotation_axes", index=i, toggle=True, text=axis)
 
     r = layout.row()
@@ -259,24 +259,38 @@ def parameters_ui(layout, params):
     col = r.column(align=True)
     row = col.row(align=True)
 
-    for i in range( 8 ): # Layers 0-7
-        row.prop(params, "tweak_layers", index=i, toggle=True, text="")
+    bone_layers = bpy.context.active_pose_bone.bone.layers[:]
+
+    for i in range(8):    # Layers 0-7
+        icon = "NONE"
+        if bone_layers[i]:
+            icon = "LAYER_ACTIVE"
+        row.prop(params, "tweak_layers", index=i, toggle=True, text="", icon=icon)
 
     row = col.row(align=True)
 
-    for i in range( 16, 24 ): # Layers 16-23
-        row.prop(params, "tweak_layers", index=i, toggle=True, text="")
-
+    for i in range(16, 24):     # Layers 16-23
+        icon = "NONE"
+        if bone_layers[i]:
+            icon = "LAYER_ACTIVE"
+        row.prop(params, "tweak_layers", index=i, toggle=True, text="", icon=icon)
+    
     col = r.column(align=True)
     row = col.row(align=True)
 
-    for i in range( 8, 16 ): # Layers 8-15
-        row.prop(params, "tweak_layers", index=i, toggle=True, text="")
+    for i in range(8, 16):  # Layers 8-15
+        icon = "NONE"
+        if bone_layers[i]:
+            icon = "LAYER_ACTIVE"
+        row.prop(params, "tweak_layers", index=i, toggle=True, text="", icon=icon)
 
     row = col.row(align=True)
 
     for i in range( 24, 32 ): # Layers 24-31
-        row.prop(params, "tweak_layers", index=i, toggle=True, text="")
+        icon = "NONE"
+        if bone_layers[i]:
+            icon = "LAYER_ACTIVE"
+        row.prop(params, "tweak_layers", index=i, toggle=True, text="", icon=icon)
 
 
 def create_sample(obj):

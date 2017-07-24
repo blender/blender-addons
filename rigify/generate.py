@@ -134,6 +134,11 @@ def generate_rig(context, metarig):
 
     wgts_group_name = "WGTS_" + obj.name
 
+    # Get parented objects to restore later
+    childs = {}  # {object: bone}
+    for child in obj.children:
+        childs[child] = child.parent_bone
+
     # Remove all bones from the generated rig armature.
     bpy.ops.object.mode_set(mode='EDIT')
     for bone in obj.data.edit_bones:
@@ -526,6 +531,12 @@ def generate_rig(context, metarig):
     metarig.data.pose_position = rest_backup
     obj.data.pose_position = 'POSE'
 
+    # Restore parent to bones
+    for child, sub_parent in childs.items():
+        if sub_parent in obj.pose.bones:
+            mat = child.matrix_world.copy()
+            child.parent_bone = sub_parent
+            child.matrix_world = mat
 
 def create_selection_sets(obj, metarig):
 

@@ -3,7 +3,7 @@ from .ui import create_script
 from .limb_utils import *
 from mathutils import Vector
 from ...utils import copy_bone, flip_bone, put_bone, create_cube_widget
-from ...utils import strip_org, make_deformer_name, create_widget
+from ...utils import strip_org, strip_mch, make_deformer_name, create_widget
 from ...utils import create_circle_widget, create_sphere_widget, create_line_widget
 from ...utils import MetarigError, make_mechanism_name, org
 from ...utils import create_limb_widget, connected_children_names
@@ -672,6 +672,13 @@ class Rig:
         else:
             paw_parent = None
 
+        mch_name = get_bone_name(strip_org(org_bones[0]), 'mch', 'parent_socket')
+        mch_main_parent = copy_bone(self.obj, org_bones[0], mch_name)
+        eb[mch_main_parent].length = eb[org_bones[0]].length / 12
+        eb[mch_main_parent].parent = eb[bones['parent']]
+        eb[mch_main_parent].roll = 0.0
+        eb[bones['main_parent']].parent = eb[mch_main_parent]
+
         # Create heel ctrl bone
         heel = get_bone_name(org_bones[2], 'ctrl', 'heel_ik')
         heel = copy_bone(self.obj, org_bones[2], heel)
@@ -775,6 +782,10 @@ class Rig:
             'use_max_y'   : True,
             'max_y'       : 1.05,
             'owner_space' : 'LOCAL'
+        })
+        make_constraint(self, mch_main_parent, {
+            'constraint': 'COPY_ROTATION',
+            'subtarget': org_bones[0]
         })
 
         pb = self.obj.pose.bones
@@ -1119,6 +1130,55 @@ class Rig:
                     var.targets[0].data_path = \
                         owner.path_from_id() + '[' + '"' + prop + '"' + ']'
 
+    @staticmethod
+    def get_future_names(bones):
+
+        if len(bones) != 4:
+            return
+
+        names = dict()
+
+        thigh = strip_mch(strip_org(bones[0].name))
+        shin = strip_mch(strip_org(bones[1].name))
+        foot = strip_mch(strip_org(bones[2].name))
+        toe = strip_mch(strip_org(bones[3].name))
+
+        suffix = ''
+        if thigh[-2:] == '.L' or thigh[-2:] == '.R':
+            suffix = thigh[-2:]
+            thigh = thigh.rstrip(suffix)
+            shin = shin.rstrip(suffix)
+            foot = foot.rstrip(suffix)
+            toe = toe.rstrip(suffix)
+
+        # the following is declared in rig_ui
+        # controls = ['thigh_ik.R', 'thigh_fk.R', 'shin_fk.R', 'foot_fk.R', 'toe.R', 'foot_heel_ik.R', 'foot_ik.R',
+        #             'MCH-foot_fk.R', 'thigh_parent.R']
+        # tweaks = ['thigh_tweak.R.001', 'shin_tweak.R', 'shin_tweak.R.001']
+        # ik_ctrl = ['foot_ik.R', 'MCH-thigh_ik.R', 'MCH-thigh_ik_target.R']
+        # fk_ctrl = 'thigh_fk.R'
+        # parent = 'thigh_parent.R'
+        # foot_fk = 'foot_fk.R'
+        # pole = 'thigh_ik_target.R'
+
+        names['controls'] = [thigh + '_ik', thigh + '_fk', shin + '_fk', foot + '_fk', toe, foot + '_heel_ik',
+                             foot + '_ik', make_mechanism_name(foot + '_fk'), thigh + '_parent']
+        names['ik_ctrl'] = [foot + '_ik', make_mechanism_name(thigh) + '_ik', make_mechanism_name(thigh) + '_ik_target']
+        names['fk_ctrl'] = thigh + '_fk' + suffix
+        names['parent'] = thigh + '_parent' + suffix
+        names['foot_fk'] = foot + '_fk' + suffix
+        names['pole'] = thigh + '_ik_target' + suffix
+
+        names['limb_type'] = 'paw'
+
+        if suffix:
+            for i, name in enumerate(names['controls']):
+                names['controls'][i] = name + suffix
+            for i, name in enumerate(names['ik_ctrl']):
+                names['ik_ctrl'][i] = name + suffix
+
+        return names
+
     def generate(self):
         bpy.ops.object.mode_set(mode='EDIT')
         eb = self.obj.data.edit_bones
@@ -1242,7 +1302,9 @@ def parameters_ui(layout, params):
     r = layout.row()
     r.prop(params, "bbones")
 
-    for layer in [ 'fk', 'tweak' ]:
+    bone_layers = bpy.context.active_pose_bone.bone.layers[:]
+
+    for layer in ['fk', 'tweak']:
         r = layout.row()
         r.prop(params, layer + "_extra_layers")
         r.active = params.tweak_extra_layers
@@ -1251,23 +1313,35 @@ def parameters_ui(layout, params):
         row = col.row(align=True)
 
         for i in range(8):
-            row.prop(params, layer + "_layers", index=i, toggle=True, text="")
+            icon = "NONE"
+            if bone_layers[i]:
+                icon = "LAYER_ACTIVE"
+            row.prop(params, layer + "_layers", index=i, toggle=True, text="", icon=icon)
 
         row = col.row(align=True)
 
-        for i in range(16,24):
-            row.prop(params, layer + "_layers", index=i, toggle=True, text="")
+        for i in range(16, 24):
+            icon = "NONE"
+            if bone_layers[i]:
+                icon = "LAYER_ACTIVE"
+            row.prop(params, layer + "_layers", index=i, toggle=True, text="", icon=icon)
 
         col = r.column(align=True)
         row = col.row(align=True)
 
-        for i in range(8,16):
-            row.prop(params, layer + "_layers", index=i, toggle=True, text="")
+        for i in range(8, 16):
+            icon = "NONE"
+            if bone_layers[i]:
+                icon = "LAYER_ACTIVE"
+            row.prop(params, layer + "_layers", index=i, toggle=True, text="", icon=icon)
 
         row = col.row(align=True)
 
-        for i in range(24,32):
-            row.prop(params, layer + "_layers", index=i, toggle=True, text="")
+        for i in range(24, 32):
+            icon = "NONE"
+            if bone_layers[i]:
+                icon = "LAYER_ACTIVE"
+            row.prop(params, layer + "_layers", index=i, toggle=True, text="", icon=icon)
 
 
 def create_sample(obj):

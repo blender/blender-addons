@@ -318,6 +318,10 @@ def register():
                                                      description="Defines the name of the Rig. If unset, in 'new' mode 'rig' will be used, in 'overwrite' mode the target rig name will be used",
                                                      default="")
 
+    IDStore.rigify_transfer_only_selected = bpy.props.BoolProperty(name="Transfer Only Selected", description="Transfer selected bones only", default=True)
+    IDStore.rigify_transfer_start_frame = bpy.props.IntProperty(name="Start Frame", description="First Frame to Transfer", default=0, min= 0)
+    IDStore.rigify_transfer_end_frame = bpy.props.IntProperty(name="End Frame", description="Last Frame to Transfer", default=0, min= 0)
+
     if (ui and 'legacy' in str(ui)) or bpy.context.user_preferences.addons['rigify'].preferences.legacy_mode:
         # update legacy on restart or reload
         bpy.context.user_preferences.addons['rigify'].preferences.legacy_mode = True
@@ -347,6 +351,9 @@ def unregister():
     del IDStore.rigify_rig_uis
     del IDStore.rigify_rig_ui
     del IDStore.rigify_rig_basename
+    del IDStore.rigify_transfer_only_selected
+    del IDStore.rigify_transfer_start_frame
+    del IDStore.rigify_transfer_end_frame
 
     bpy.utils.unregister_class(RigifyName)
     bpy.utils.unregister_class(RigifyParameters)

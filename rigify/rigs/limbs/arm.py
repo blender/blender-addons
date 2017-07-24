@@ -4,7 +4,7 @@ from .ui             import create_script
 from .limb_utils     import *
 from mathutils       import Vector
 from ...utils       import copy_bone, flip_bone, put_bone, create_cube_widget
-from ...utils       import strip_org, make_deformer_name, create_widget
+from ...utils       import strip_org, strip_mch, make_deformer_name, create_widget
 from ...utils       import create_circle_widget, create_sphere_widget, create_line_widget
 from ...utils       import MetarigError, make_mechanism_name, org
 from ...utils       import create_limb_widget, connected_children_names
@@ -982,6 +982,52 @@ class Rig:
                     var.targets[0].data_path = \
                         owner.path_from_id() + '[' + '"' + prop + '"' + ']'
 
+    @staticmethod
+    def get_future_names(bones):
+
+        if len(bones) != 3:
+            return
+
+        names = dict()
+
+        uarm = strip_mch(strip_org(bones[0].name))
+        farm = strip_mch(strip_org(bones[1].name))
+        hand = strip_mch(strip_org(bones[2].name))
+
+        suffix=''
+        if uarm[-2:] == '.L' or uarm[-2:] == '.R':
+            suffix = uarm[-2:]
+            uarm = uarm.rstrip(suffix)
+            farm = farm.rstrip(suffix)
+            hand = hand.rstrip(suffix)
+
+        # the following is declared in rig_ui
+        # controls = ['upper_arm_ik.L', 'upper_arm_fk.L', 'forearm_fk.L', 'hand_fk.L', 'hand_ik.L', 'MCH-hand_fk.L',
+        #             'upper_arm_parent.L']
+        # tweaks = ['upper_arm_tweak.L.001', 'forearm_tweak.L', 'forearm_tweak.L.001']
+        # ik_ctrl = ['hand_ik.L', 'MCH-upper_arm_ik.L', 'MCH-upper_arm_ik_target.L']
+        # fk_ctrl = 'upper_arm_fk.L'
+        # parent = 'upper_arm_parent.L'
+        # hand_fk = 'hand_fk.L'
+        # pole = 'upper_arm_ik_target.L'
+
+        names['controls'] = [uarm + '_ik', uarm + '_fk', farm + '_fk', hand + '_fk', hand + '_ik',
+                             make_mechanism_name(hand + '_fk'), uarm + '_parent']
+        names['ik_ctrl'] = [hand + '_ik', make_mechanism_name(uarm) + '_ik', make_mechanism_name(uarm) + '_ik_target']
+        names['fk_ctrl'] = uarm + '_fk' + suffix
+        names['parent'] = uarm + '_parent' + suffix
+        names['hand_fk'] = hand + '_fk' + suffix
+        names['pole'] = uarm + '_ik_target' + suffix
+        names['limb_type'] = 'arm'
+
+        if suffix:
+            for i, name in enumerate(names['controls']):
+                names['controls'][i] = name + suffix
+            for i, name in enumerate(names['ik_ctrl']):
+                names['ik_ctrl'][i] = name + suffix
+
+        return names
+
     def generate(self):
         bpy.ops.object.mode_set(mode='EDIT')
         eb = self.obj.data.edit_bones
@@ -1105,7 +1151,9 @@ def parameters_ui(layout, params):
     r = layout.row()
     r.prop(params, "bbones")
 
-    for layer in [ 'fk', 'tweak' ]:
+    bone_layers = bpy.context.active_pose_bone.bone.layers[:]
+
+    for layer in ['fk', 'tweak']:
         r = layout.row()
         r.prop(params, layer + "_extra_layers")
         r.active = params.tweak_extra_layers
@@ -1114,23 +1162,35 @@ def parameters_ui(layout, params):
         row = col.row(align=True)
 
         for i in range(8):
-            row.prop(params, layer + "_layers", index=i, toggle=True, text="")
+            icon = "NONE"
+            if bone_layers[i]:
+                icon = "LAYER_ACTIVE"
+            row.prop(params, layer + "_layers", index=i, toggle=True, text="", icon=icon)
 
         row = col.row(align=True)
 
-        for i in range(16,24):
-            row.prop(params, layer + "_layers", index=i, toggle=True, text="")
+        for i in range(16, 24):
+            icon = "NONE"
+            if bone_layers[i]:
+                icon = "LAYER_ACTIVE"
+            row.prop(params, layer + "_layers", index=i, toggle=True, text="", icon=icon)
 
         col = r.column(align=True)
         row = col.row(align=True)
 
-        for i in range(8,16):
-            row.prop(params, layer + "_layers", index=i, toggle=True, text="")
+        for i in range(8, 16):
+            icon = "NONE"
+            if bone_layers[i]:
+                icon = "LAYER_ACTIVE"
+            row.prop(params, layer + "_layers", index=i, toggle=True, text="", icon=icon)
 
         row = col.row(align=True)
 
-        for i in range(24,32):
-            row.prop(params, layer + "_layers", index=i, toggle=True, text="")
+        for i in range(24, 32):
+            icon = "NONE"
+            if bone_layers[i]:
+                icon = "LAYER_ACTIVE"
+            row.prop(params, layer + "_layers", index=i, toggle=True, text="", icon=icon)
 
 
 def create_sample(obj):
@@ -1341,7 +1401,7 @@ def create_sample(obj):
     pbone.lock_scale = (False, False, False)
     pbone.rotation_mode = 'QUATERNION'
     pbone = obj.pose.bones[bones['palm.01.L']]
-    pbone.rigify_type = 'palm'
+    pbone.rigify_type = 'limbs.super_palm'
     pbone.lock_location = (False, False, False)
     pbone.lock_rotation = (False, False, False)
     pbone.lock_rotation_w = False

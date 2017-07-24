@@ -26,6 +26,11 @@ if is_selected( controls ):
     props.hand_ik = controls[4]
     props.pole = pole
     props.main_parent = parent
+    props = layout.operator("rigify.rotation_pole", text="Switch Rotation-Pole")
+    props.bone_name = controls[1]
+    props.window = "CURRENT"
+    props.toggle = True
+    props.bake = False
 
 
 # BBone rubber hose on each Respective Tweak
@@ -76,6 +81,11 @@ if is_selected( controls ):
     props.footroll  = controls[5]
     props.mfoot_ik  = ik_ctrl[2]
     props.main_parent = parent
+    props = layout.operator("rigify.rotation_pole", text="Toggle Rotation and Pole")
+    props.bone_name = controls[1]
+    props.window = "CURRENT"
+    props.toggle = True
+    props.bake = False
 
 # BBone rubber hose on each Respective Tweak
 for t in tweaks:
