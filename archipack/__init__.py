@@ -34,7 +34,7 @@ bl_info = {
     'version': (1, 2, 6),
     'blender': (2, 7, 8),
     'location': 'View3D > Tools > Create > Archipack',
-    'warning': '',
+    'warning': '2d to 3d require shapely python module (see setup in documentation)',
     'wiki_url': 'https://github.com/s-leger/archipack/wiki',
     'tracker_url': 'https://github.com/s-leger/archipack/issues',
     'link': 'https://github.com/s-leger/archipack',
@@ -97,6 +97,7 @@ else:
 
     print("archipack: ready")
 
+
 # noinspection PyUnresolvedReferences
 import bpy
 # noinspection PyUnresolvedReferences
@@ -153,6 +154,11 @@ class Archipack_Pref(AddonPreferences):
         name="Use Sub-menu",
         description="Put Achipack's object into a sub menu (shift+a)",
         default=True
+    )
+    enable_2d_to_3d = BoolProperty(
+        name="Enable 2d to 3d",
+        description="Enable 2d to 3d module",
+        default=False
     )
     max_style_draw_tool = BoolProperty(
         name="Draw a wall use 3dsmax style",
@@ -241,7 +247,15 @@ class Archipack_Pref(AddonPreferences):
         col.prop(self, "tools_category")
         col.prop(self, "create_category")
         col.prop(self, "create_submenu")
-        col.prop(self, "max_style_draw_tool")
+        box = layout.box()
+        box.label("Features")
+        box.prop(self, "max_style_draw_tool")
+        box = layout.box()
+        box.label("2d to 3d")
+        if not HAS_POLYLIB:
+            box.label(text="WARNING Shapely python module not found", icon="ERROR")
+            box.label(text="2d to 3d tools are disabled, see setup in documentation")
+        box.prop(self, "enable_2d_to_3d")
         box = layout.box()
         row = box.row()
         split = row.split(percentage=0.5)
@@ -284,8 +298,10 @@ class TOOLS_PT_Archipack_PolyLib(Panel):
     def poll(self, context):
 
         global archipack_polylib
-        return HAS_POLYLIB and ((archipack_polylib.vars_dict['select_polygons'] is not None) or
-                (context.object is not None and context.object.type == 'CURVE'))
+        return (HAS_POLYLIB and
+                context.user_preferences.addons[__name__].preferences.enable_2d_to_3d and
+                ((archipack_polylib.vars_dict['select_polygons'] is not None) or
+                (context.object is not None and context.object.type == 'CURVE')))
 
     def draw(self, context):
         global icons_collection
