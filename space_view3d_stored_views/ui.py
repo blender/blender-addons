@@ -25,7 +25,7 @@ from bpy.types import (
 def get_preferences_timer():
     # replace the key if the add-on name changes
     # TODO: expose refresh rate to ui???
-    addon = bpy.context.user_preferences.addons["stored_views"]
+    addon = bpy.context.user_preferences.addons[__package__]
     timer_update = (addon.preferences.view_3d_update_rate if addon else False)
 
     return timer_update
