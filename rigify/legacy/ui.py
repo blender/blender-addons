@@ -128,7 +128,7 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
             split.prop(rigify_layer, "name",  text="Layer %d" % (i + 1))
             split.prop(rigify_layer, "row",   text="")
 
-            #split.prop(rigify_layer, "column", text="")  
+            #split.prop(rigify_layer, "column", text="")
 
 
 class BONE_PT_rigify_buttons(bpy.types.Panel):

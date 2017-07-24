@@ -2159,7 +2159,7 @@ class PovrayPreferences(AddonPreferences):
                 name="Includes Location",
                 description="Path to Insert Menu files",
                 subtype='FILE_PATH',
-                )	
+                )
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "branch_feature_set_povray")

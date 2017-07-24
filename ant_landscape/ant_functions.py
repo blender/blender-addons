@@ -316,7 +316,7 @@ class AntLandscapeRegenerate(bpy.types.Operator):
 
             # Delete old object
             new_ob.select = False
-            
+
             obj.select = True
             scene.objects.active = obj
             bpy.ops.object.delete(use_global=False)

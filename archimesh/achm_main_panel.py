@@ -176,7 +176,7 @@ class AchmHoleAction(Operator):
                                 set_modifier_boolean(myshell, obj)
                 except:
                     pass
-                
+
         return {'FINISHED'}
 
 

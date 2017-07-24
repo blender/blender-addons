@@ -104,7 +104,7 @@ class Grid:
 
 
     def toFile(self, filename, fmt="%.3f"):
-        if filename == '-' : 
+        if filename == '-' :
             filename = sys.stdout.fileno()
         with open(filename,"w") as f:
             for line in self.__str_iter__(fmt):
@@ -168,7 +168,7 @@ class Grid:
         self.maxy = max(y)
         xscale = (self.maxx-self.minx)/(nx-1)
         yscale = (self.maxy-self.miny)/(ny-1)
-        # note: a purely flat plane cannot be scaled 
+        # note: a purely flat plane cannot be scaled
         if (yscale != 0.0) and (abs(xscale/yscale) - 1.0 > 1e-3):
             raise ValueError("Mesh spacing not square %d x %d  %.4f x %4.f"%(nx,ny,xscale,yscale))
         self.zscale = 1.0
@@ -222,7 +222,7 @@ class Grid:
             for col in range(ncol-1):
               vi = row * ncol + col
               yield (vi, vi+ncol, vi+1)
-              yield (vi+1, vi+ncol, vi+ncol+1)      
+              yield (vi+1, vi+ncol, vi+ncol+1)
 
 
     def toBlenderMesh(self, me):
@@ -307,19 +307,19 @@ class Grid:
         else:
             sa = (
                 # incoming
-                   where((up   -c) > delta ,(up   -c -delta)/2, 0) 
+                   where((up   -c) > delta ,(up   -c -delta)/2, 0)
                  + where((down -c) > delta ,(down -c -delta)/2, 0)
                  + where((left -c) > delta ,(left -c -delta)/2, 0)
                  + where((right-c) > delta ,(right-c -delta)/2, 0)
                 # outgoing
-                 + where((up   -c) < -delta,(up   -c +delta)/2, 0) 
+                 + where((up   -c) < -delta,(up   -c +delta)/2, 0)
                  + where((down -c) < -delta,(down -c +delta)/2, 0)
                  + where((left -c) < -delta,(left -c +delta)/2, 0)
                  + where((right-c) < -delta,(right-c +delta)/2, 0)
                  )
             randarray = np.random.randint(0,100,sa.shape) *0.01
             sa = where(randarray < prob, sa, 0)
-            self.avalanced[1:-1,1:-1] = self.avalanced[1:-1,1:-1] + sa/iterava 
+            self.avalanced[1:-1,1:-1] = self.avalanced[1:-1,1:-1] + sa/iterava
             self.center[1:-1,1:-1] = c + sa/iterava
 
         self.maxrss = max(getmemsize(), self.maxrss)
@@ -327,7 +327,7 @@ class Grid:
 
 
     def rain(self, amount=1, variance=0, userainmap=False):
-        self.water += (1.0 - np.random.random(self.water.shape) * variance) * (amount if ((self.rainmap is None) or (not userainmap)) else self.rainmap * amount) 
+        self.water += (1.0 - np.random.random(self.water.shape) * variance) * (amount if ((self.rainmap is None) or (not userainmap)) else self.rainmap * amount)
 
 
     def spring(self, amount, px, py, radius):
@@ -435,7 +435,7 @@ class Grid:
 
         center = (slice(   1,   -1,None),slice(   1,  -1,None))
         rock = self.center
-        ds = self.scour[center]    
+        ds = self.scour[center]
         rcc = rock[center]
         rock[center] = rcc - ds * Kz
         # there isn't really a bottom to the rock but negative values look ugly

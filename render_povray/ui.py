@@ -200,7 +200,7 @@ def locate_docpath():
         import winreg
         try:
             win_reg_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                "Software\\POV-Ray\\v3.7\\Windows")         
+                "Software\\POV-Ray\\v3.7\\Windows")
             win_docpath = winreg.QueryValueEx(win_reg_key, "DocPath")[0]
             pov_documents = os.path.join(win_docpath, "Insert Menu")
             if os.path.exists(pov_documents):
@@ -217,7 +217,7 @@ def locate_docpath():
         if os.path.exists(pov_documents):
             return pov_documents
     return ""
-    
+
 class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -1658,7 +1658,7 @@ class BasicShapesMenu(bpy.types.Menu):
             return
         else:
             layout.operator("pov.addparametric", text="Parametric",icon = 'SCRIPTPLUGINS')
-            
+
 class ImportMenu(bpy.types.Menu):
     bl_idname = "Importer_calls"
     bl_label = "Import"
@@ -1824,8 +1824,8 @@ class TEXT_OT_povray_insert(bpy.types.Operator):
         return {'FINISHED'}
 
 def validinsert(ext):
-	return ext in {".txt",".inc",".pov"}		
-      
+	return ext in {".txt",".inc",".pov"}
+
 class TEXT_MT_insert(bpy.types.Menu):
     bl_label = "Insert"
     bl_idname = "TEXT_MT_insert"
@@ -1835,7 +1835,7 @@ class TEXT_MT_insert(bpy.types.Menu):
         prop = self.layout.operator("wm.path_open", text="Open folder", icon='FILE_FOLDER')
         prop.filepath = pov_documents
         self.layout.separator()
-        
+
         list=[]
         for root,dirs,files in os.walk(pov_documents):
             list.append(root)
@@ -1858,7 +1858,7 @@ class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
             layout.prop(text.pov, "custom_code", text="Add as POV code")
 
         pov_documents = locate_docpath()
-        if not pov_documents :            
+        if not pov_documents :
             layout.label(text="Please configure ", icon="INFO")
             layout.label(text="default pov include path ")
             layout.label(text="in addon preferences")

@@ -1235,7 +1235,7 @@ def register():
     Scene.matlib = PointerProperty(type = matlibProperties)
     bpy.app.handlers.load_post.append(refresh_libs)
     libraries = get_libraries()
-    
+
 
 def unregister():
     global libraries

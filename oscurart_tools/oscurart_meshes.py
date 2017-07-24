@@ -528,20 +528,20 @@ def defLatticeMirror(self, context):
     row = u*v
     total = u*v*w
     column = 2
-    
+
     #guardo indices a cada punto
     libIndex = {point:index for point, index in zip(bpy.context.object.data.points,range(0,total))}
 
     #guardo puntos seleccionados
     selectionPoint = [libIndex[i] for i in ob.data.points if i.select]
 
-    for point in selectionPoint:        
+    for point in selectionPoint:
         rango = list(range(int(point/u)*u,int(point/u)*u+(u)))
-        rango.reverse()        
-        indPorcion = range(int(point/u)*u,int(point/u)*u+(u)).index(point)            
+        rango.reverse()
+        indPorcion = range(int(point/u)*u,int(point/u)*u+(u)).index(point)
         ob.data.points[rango[indPorcion]].co_deform.x = -ob.data.points[point].co_deform.x
         ob.data.points[rango[indPorcion]].co_deform.y = ob.data.points[point].co_deform.y
-        ob.data.points[rango[indPorcion]].co_deform.z = ob.data.points[point].co_deform.z    
+        ob.data.points[rango[indPorcion]].co_deform.z = ob.data.points[point].co_deform.z
 
 
 class LatticeMirror(Operator):

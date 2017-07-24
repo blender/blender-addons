@@ -178,7 +178,7 @@ class AntNoiseSettingsPanel(bpy.types.Panel):
         col.scale_y = 1.5
         if ant.sphere_mesh:
             col.operator('mesh.ant_landscape_regenerate', text="Regenerate", icon="LOOP_FORWARDS")
-        else:      
+        else:
             col.operator('mesh.ant_landscape_refresh', text="Refresh", icon="FILE_REFRESH")
 
         box.prop(ant, "noise_type")
@@ -376,7 +376,7 @@ class AntDisplaceSettingsPanel(bpy.types.Panel):
         col.scale_y = 1.5
         if ant.sphere_mesh:
             col.operator('mesh.ant_landscape_regenerate', text="Regenerate", icon="LOOP_FORWARDS")
-        else:      
+        else:
             col.operator('mesh.ant_landscape_refresh', text="Refresh", icon="FILE_REFRESH")
 
         col = box.column(align=True)

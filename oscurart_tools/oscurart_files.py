@@ -57,7 +57,7 @@ class saveIncremental(Operator):
             basename = os.path.basename(filepath)
             bpy.ops.wm.save_as_mainfile(
                 filepath=os.path.join(os.path.dirname(filepath), "%s_v%s.blend" %
-                                       (basename.rpartition("_v")[0], str(modnum))))  
+                                       (basename.rpartition("_v")[0], str(modnum))))
 
         else:
             output = filepath.rpartition(".blend")[0] + "_v01"
@@ -102,9 +102,9 @@ class reFreshMissingGroups(Operator):
                 with bpy.data.libraries.load(group.library.filepath, link=True) as (linked, local):
                     local.groups = linked.groups
         return {'FINISHED'}
-    
-    
-# ---------------------- COLLECT IMAGES --------------------------   
+
+
+# ---------------------- COLLECT IMAGES --------------------------
 
 
 class collectImagesOsc(Operator):
@@ -114,9 +114,9 @@ class collectImagesOsc(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
-        
+
         imagespath = "%s/IMAGES"  % (os.path.dirname(bpy.data.filepath))
-        
+
         if not os.path.exists(imagespath):
             os.mkdir(imagespath)
 
@@ -128,7 +128,7 @@ class collectImagesOsc(Operator):
                 image.filepath = os.path.join(imagespath,os.path.basename(image.filepath))
             else:
                 print("%s exists." % (image.name))
-                
-        bpy.ops.file.make_paths_relative()                
-                
+
+        bpy.ops.file.make_paths_relative()
+
         return {'FINISHED'}

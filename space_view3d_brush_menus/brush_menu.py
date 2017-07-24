@@ -286,17 +286,17 @@ class BrushModeMenu(Menu):
             enum = has_brush.bl_rna.properties['sculpt_plane'].enum_items if \
                    has_brush else None
             path = "tool_settings.sculpt.brush.sculpt_plane"
-        
+
         elif mode == 'VERTEX_PAINT':
             enum = has_brush.bl_rna.properties['vertex_tool'].enum_items if \
                    has_brush else None
             path = "tool_settings.vertex_paint.brush.vertex_tool"
-        
+
         elif mode == 'WEIGHT_PAINT':
             enum = has_brush.bl_rna.properties['vertex_tool'].enum_items if \
                    has_brush else None
             path = "tool_settings.weight_paint.brush.vertex_tool"
-        
+
         elif mode == 'TEXTURE_PAINT':
             enum = has_brush.bl_rna.properties['blend'].enum_items if \
                    has_brush else None

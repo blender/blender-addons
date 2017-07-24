@@ -32,7 +32,7 @@ if is_selected( controls ):
 for t in tweaks:
     if is_selected( t ):
         layout.prop( pose_bones[ t ], '["%s"]', slider = True )
-        
+
 # IK Stretch and pole_vector on IK Control bone
 if is_selected( ik_ctrl ) or is_selected(parent):
     layout.prop( pose_bones[ parent ], '["%s"]', slider = True )
@@ -41,7 +41,7 @@ if is_selected( ik_ctrl ) or is_selected(parent):
 # FK limb follow
 if is_selected( fk_ctrl ) or is_selected(parent):
     layout.prop( pose_bones[ parent ], '["%s"]', slider = True )
-""" 
+"""
 
 script_leg = """
 controls = [%s]
@@ -104,8 +104,8 @@ def create_script( bones, limb_type=None):
     # All tweaks have their own bbone prop
     tweaks        = bones['tweak']['ctrl'][1:-1]
     tweaks_string = ", ".join(["'" + x + "'" for x in tweaks])
-    
-    # IK ctrl has IK stretch 
+
+    # IK ctrl has IK stretch
     ik_ctrl = [ bones['ik']['ctrl']['terminal'][-1] ]
     ik_ctrl += [ bones['ik']['mch_ik'] ]
     ik_ctrl += [ bones['ik']['mch_target'] ]

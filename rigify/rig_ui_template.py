@@ -497,7 +497,7 @@ def ik2fk_leg(obj, fk, ik):
 
         # Rotation Correction
         correct_rotation(thighi,thigh)
-        
+
     else:
         # Stretch
         if 'stretch_lenght' in footi.keys() and 'stretch_lenght' in thigh.keys():

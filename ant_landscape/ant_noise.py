@@ -165,7 +165,7 @@ def marble_noise(x, y, z, origin, size, shape, bias, sharpnes, turb, depth, hard
     return value
 
 
-# vl_noise_turbulence: 
+# vl_noise_turbulence:
 def vlnTurbMode(coords, distort, basis, vlbasis, hardnoise):
     # hard noise
     if hardnoise:
@@ -348,10 +348,10 @@ def Effect_Basis_Function(coords, type, bias):
     ## zigzag:
     elif type == 3:
         effect = offset + iscale * Bias_Types[bias](offset + iscale * sin(x * pi + sin(y * pi)))
-    ## wavy:    
+    ## wavy:
     elif type == 4:
         effect = offset + iscale * (Bias_Types[bias](cos(x) + sin(y) + cos(x * 2 + y * 2) - sin(-x * 4 + y * 4)))
-    ## sine bump:   
+    ## sine bump:
     elif type == 5:
         effect =   offset + iscale * 1 - Bias_Types[bias]((sin(x * pi) + sin(y * pi)))
     ## dots:
@@ -366,13 +366,13 @@ def Effect_Basis_Function(coords, type, bias):
     ## square / piramide:
     elif type == 9:
         effect = offset + iscale * Bias_Types[bias](1.0 - sqrt((x * x)**10 + (y * y)**10)**0.1)
-    ## blocks:  
+    ## blocks:
     elif type == 10:
         effect = (0.5 - max(Bias_Types[bias](x * pi) , Bias_Types[bias](y * pi)))
         if effect > 0.0:
             effect = 1.0
         effect = offset + iscale * effect
-    ## grid:    
+    ## grid:
     elif type == 11:
         effect = (0.025 - min(Bias_Types[bias](x * pi), Bias_Types[bias](y * pi)))
         if effect > 0.0:
@@ -446,7 +446,7 @@ def Effect_Basis_Function(coords, type, bias):
     return effect
 
 
-# fractalize Effect_Basis_Function: ------------------------------ 
+# fractalize Effect_Basis_Function: ------------------------------
 def Effect_Function(coords, type, bias, turb, depth, frequency, amplitude):
 
     x, y, z = coords
@@ -457,7 +457,7 @@ def Effect_Function(coords, type, bias, turb, depth, frequency, amplitude):
         y = y + t
         z = z + t
 
-    result = Effect_Basis_Function((x, y, z), type, bias) * amplitude 
+    result = Effect_Basis_Function((x, y, z), type, bias) * amplitude
     ## fractalize:
     if depth != 0:
         i=0
@@ -594,7 +594,7 @@ def noise_gen(coords, props):
     elif ntype in [7, 'marble_noise']:
         value = marble_noise(
                         (ncoords[0] - origin_x + x_offset),
-                        (ncoords[1] - origin_y + y_offset), 
+                        (ncoords[1] - origin_y + y_offset),
                         (ncoords[2] - origin_z + z_offset),
                         (origin[0] + x_offset, origin[1] + y_offset, origin[2] + z_offset), nsize,
                         marbleshape, marblebias, marblesharpnes,
@@ -644,7 +644,7 @@ def noise_gen(coords, props):
         fx_mixfactor = -1.0
         fxval = val
     else:
-        fxcoords = Trans_Effect((x, y, z), fx_size, (fx_loc_x, fx_loc_y))        
+        fxcoords = Trans_Effect((x, y, z), fx_size, (fx_loc_x, fx_loc_y))
         effect = Effect_Function(fxcoords, fx_type, fx_bias, fx_turb, fx_depth, fx_frequency, fx_amplitude)
         effect = Height_Scale(effect, fx_height, fx_offset, fx_invert)
         fxval = Mix_Modes(val, effect, fx_mixfactor, fx_mix_mode)

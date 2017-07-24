@@ -7,13 +7,13 @@ bilateral_suffixes = ['.L','.R']
 
 def orient_bone( cls, eb, axis, scale = 1.0, reverse = False ):
     v = Vector((0,0,0))
-   
+
     setattr(v,axis,scale)
 
     if reverse:
         tail_vec = v * cls.obj.matrix_world
         eb.head[:] = eb.tail
-        eb.tail[:] = eb.head + tail_vec     
+        eb.tail[:] = eb.head + tail_vec
     else:
         tail_vec = v * cls.obj.matrix_world
         eb.tail[:] = eb.head + tail_vec
@@ -36,15 +36,15 @@ def make_constraint( cls, bone, constraint ):
             setattr( const, p, constraint[p] )
         else:
             raise MetarigError(
-                "RIGIFY ERROR: property %s does not exist in %s constraint" % ( 
+                "RIGIFY ERROR: property %s does not exist in %s constraint" % (
                     p, constraint['constraint']
             ))
 
 def get_bone_name( name, btype, suffix = '' ):
     # RE pattern match right or left parts
-    # match the letter "L" (or "R"), followed by an optional dot (".") 
+    # match the letter "L" (or "R"), followed by an optional dot (".")
     # and 0 or more digits at the end of the the string
-    pattern = r'^(\S+)(\.\S+)$' 
+    pattern = r'^(\S+)(\.\S+)$'
 
     name = strip_org( name )
 
@@ -60,7 +60,7 @@ def get_bone_name( name, btype, suffix = '' ):
     if suffix:
         results = re.match( pattern,  name )
         bname, addition = ('','')
-        
+
         if results:
             bname, addition = results.groups()
             name = bname + "_" + suffix + addition

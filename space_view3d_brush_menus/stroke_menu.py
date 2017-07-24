@@ -15,17 +15,17 @@ class PaintCurvesMenu(Menu):
         mode = utils_core.get_mode()
         layout = self.layout
         colum_n = utils_core.addon_settings(lists=False)
-        
+
         layout.row().label(text="Paint Curves")
         layout.row().separator()
 
         has_brush = utils_core.get_brush_link(context, types="brush")
-        
-        has_current_curve = has_brush.paint_curve if has_brush else None             
+
+        has_current_curve = has_brush.paint_curve if has_brush else None
         current_curve = has_current_curve.name if has_current_curve else ''
-        
+
         column_flow = layout.column_flow(columns=colum_n)
-        
+
         if len(bpy.data.paint_curves) != 0:
             for x, item in enumerate(bpy.data.paint_curves):
                 utils_core.menuprop(
@@ -84,7 +84,7 @@ class StrokeOptionsMenu(Menu):
         layout.row().separator()
 
         if stroke_method:
-            
+
             if stroke_method in ('SPACE', 'LINE') and brush:
                 layout.row().prop(brush, "spacing",
                                      text=utils_core.PIW + "Spacing", slider=True)
@@ -95,18 +95,18 @@ class StrokeOptionsMenu(Menu):
 
             elif stroke_method == 'ANCHORED' and brush:
                 layout.row().prop(brush, "use_edge_to_edge")
-            
+
             elif stroke_method == 'CURVE' and brush:
-                has_current_curve = brush.paint_curve if brush else None             
+                has_current_curve = brush.paint_curve if brush else None
                 current_curve = has_current_curve.name if has_current_curve else 'No Curve Selected'
-                
-                layout.row().menu(PaintCurvesMenu.bl_idname, text=current_curve, 
+
+                layout.row().menu(PaintCurvesMenu.bl_idname, text=current_curve,
                                   icon='CURVE_BEZCURVE')
                 layout.row().operator("paintcurve.new", icon='ZOOMIN')
                 layout.row().operator("paintcurve.draw")
-                
+
                 layout.row().separator()
-                
+
                 layout.row().prop(brush, "spacing",
                                   text=utils_core.PIW + "Spacing",
                                   slider=True)
