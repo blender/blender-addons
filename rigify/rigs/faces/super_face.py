@@ -1064,7 +1064,7 @@ def parameters_ui(layout, params):
         r = layout.row()
         r.prop( params, layer + "_extra" )
         r.active = getattr( params, layer + "_extra" )
-        
+
         col = r.column(align=True)
         row = col.row(align=True)
         for i in range(8):
@@ -1079,10 +1079,10 @@ def parameters_ui(layout, params):
             if bone_layers[i]:
                 icon = "LAYER_ACTIVE"
             row.prop(params, layer, index=i, toggle=True, text="", icon=icon)
-        
+
         col = r.column(align=True)
         row = col.row(align=True)
-        
+
         for i in range(8, 16):
             icon = "NONE"
             if bone_layers[i]:
