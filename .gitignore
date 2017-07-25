@@ -15,8 +15,3 @@ __pycache__/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
-
-# commonly used paths in blender
-/blender.bin
-/user-config.py
-
