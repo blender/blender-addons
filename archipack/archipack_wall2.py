@@ -1928,7 +1928,7 @@ class ARCHIPACK_OT_wall2_draw(ArchpackDrawTool, Operator):
             # wait for takeloc being visible when button is over horizon
             rv3d = context.region_data
             viewinv = rv3d.view_matrix.inverted()
-            if (takeloc * viewinv).z < 0:
+            if (takeloc * viewinv).z < 0 or not rv3d.is_perspective:
                 # print("STARTING")
                 # when user press draw button
                 snap_point(takeloc=takeloc,
