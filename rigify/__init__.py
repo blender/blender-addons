@@ -27,7 +27,6 @@ bl_info = {
     "location": "Armature properties, Bone properties, View3d tools panel, Armature Add menu",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
                 "Scripts/Rigging/Rigify",
-    "tracker_url": "http://github.com/cessen/rigify/issues",
     "category": "Rigging"}
 
 
