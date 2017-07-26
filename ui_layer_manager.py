@@ -21,12 +21,13 @@
 bl_info = {
     "name": "Layer Management",
     "author": "Alfonso Annarumma, Bastien Montagne",
-    "version": (1, 5, 3),
+    "version": (1, 5, 4),
     "blender": (2, 76, 0),
     "location": "Toolshelf > Layers Tab",
     "warning": "",
     "description": "Display and Edit Layer Name",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/layer_manager",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/3D_interaction/layer_manager",
     "category": "3D View",
 }
 
@@ -590,10 +591,10 @@ class SCENE_PT_namedlayer_groups(Panel):
 # Add-ons Preferences Update Panel
 
 # Define Panel classes for updating
-panels = [
+panels = (
         SCENE_PT_namedlayer_layers,
-        SCENE_PT_namedlayer_groups
-        ]
+        SCENE_PT_namedlayer_groups,
+        )
 
 
 def update_panel(self, context):
