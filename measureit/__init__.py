@@ -320,16 +320,25 @@ def register():
                                          default=False)
     Scene.measureit_debug_select = BoolProperty(name="Selected",
                                                 description="Display information "
-                                                            "for selected vertices/faces",
+                                                            "only for selected items",
                                                 default=False)
     Scene.measureit_debug_vertices = BoolProperty(name="Vertices",
-                                                  description="Display vertex number",
+                                                  description="Display vertex index number",
                                                   default=True)
-    Scene.measureit_debug_location = BoolProperty(name="Location",
+    Scene.measureit_debug_objects = BoolProperty(name="Objects",
+                                                  description="Display object scene index number",
+                                                  default=False)
+    Scene.measureit_debug_vert_loc = BoolProperty(name="Location",
                                                   description="Display vertex location",
                                                   default=False)
+    Scene.measureit_debug_object_loc = BoolProperty(name="Location",
+                                                  description="Display object location",
+                                                  default=False)
+    Scene.measureit_debug_edges = BoolProperty(name="Edges",
+                                               description="Display edge index number",
+                                               default=False)
     Scene.measureit_debug_faces = BoolProperty(name="Faces",
-                                               description="Display face number",
+                                               description="Display face index number",
                                                default=False)
     Scene.measureit_debug_normals = BoolProperty(name="Normals",
                                                  description="Display face normal "
@@ -341,23 +350,37 @@ def register():
     Scene.measureit_debug_font = IntProperty(name="Font",
                                              description="Debug text size",
                                              default=14, min=10, max=150)
-    Scene.measureit_debug_color = FloatVectorProperty(name="Debug color",
+    Scene.measureit_debug_vert_color = FloatVectorProperty(name="Debug color",
                                                       description="Debug Color",
                                                       default=(1, 0, 0, 1.0),
                                                       min=0.1,
                                                       max=1,
                                                       subtype='COLOR',
                                                       size=4)
-    Scene.measureit_debug_color2 = FloatVectorProperty(name="Debug face color",
+    Scene.measureit_debug_face_color = FloatVectorProperty(name="Debug face color",
                                                        description="Debug face Color",
                                                        default=(0, 1, 0, 1.0),
                                                        min=0.1,
                                                        max=1,
                                                        subtype='COLOR',
                                                        size=4)
-    Scene.measureit_debug_color3 = FloatVectorProperty(name="Debug vector color",
+    Scene.measureit_debug_norm_color = FloatVectorProperty(name="Debug vector color",
                                                        description="Debug vector Color",
                                                        default=(1.0, 1.0, 0.1, 1.0),
+                                                       min=0.1,
+                                                       max=1,
+                                                       subtype='COLOR',
+                                                       size=4)
+    Scene.measureit_debug_edge_color = FloatVectorProperty(name="Debug vector color",
+                                                       description="Debug vector Color",
+                                                       default=(0.1, 1.0, 1.0, 1.0),
+                                                       min=0.1,
+                                                       max=1,
+                                                       subtype='COLOR',
+                                                       size=4)
+    Scene.measureit_debug_obj_color = FloatVectorProperty(name="Debug vector color",
+                                                       description="Debug vector Color",
+                                                       default=(1.0, 1.0, 1.0, 1.0),
                                                        min=0.1,
                                                        max=1,
                                                        subtype='COLOR',
@@ -370,6 +393,12 @@ def register():
                                               description='Vector line thickness')
     Scene.measureit_debug_precision = IntProperty(name='Precision', min=0, max=5, default=1,
                                                   description="Number of decimal precision")
+    Scene.measureit_debug_vert_loc_toggle = EnumProperty(items=(('1', "Local",
+                                                     "Uses local coordinates"),
+                                                    ('2', "Global",
+                                                     "Uses global coordinates")),
+                                             name="Coordinates",
+                                             description="Choose coordinate system")
 
     # OpenGL flag
     wm = WindowManager
@@ -434,17 +463,23 @@ def unregister():
     del Scene.measureit_debug
     del Scene.measureit_debug_select
     del Scene.measureit_debug_vertices
+    del Scene.measureit_debug_objects
+    del Scene.measureit_debug_edges
     del Scene.measureit_debug_faces
     del Scene.measureit_debug_normals
     del Scene.measureit_debug_normal_details
     del Scene.measureit_debug_font
-    del Scene.measureit_debug_color
-    del Scene.measureit_debug_color2
-    del Scene.measureit_debug_color3
+    del Scene.measureit_debug_vert_color
+    del Scene.measureit_debug_face_color
+    del Scene.measureit_debug_norm_color
+    del Scene.measureit_debug_edge_color
+    del Scene.measureit_debug_obj_color
     del Scene.measureit_debug_normal_size
     del Scene.measureit_debug_width
     del Scene.measureit_debug_precision
-    del Scene.measureit_debug_location
+    del Scene.measureit_debug_vert_loc
+    del Scene.measureit_debug_object_loc
+    del Scene.measureit_debug_vert_loc_toggle
 
     # remove OpenGL data
     measureit_main.RunHintDisplayButton.handle_remove(measureit_main.RunHintDisplayButton, bpy.context)

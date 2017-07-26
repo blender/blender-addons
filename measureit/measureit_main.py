@@ -503,7 +503,8 @@ def add_item(box, idx, segment):
             row = box.row(True)
             row.prop(segment, 'glarrow_a', text="")
             row.prop(segment, 'glarrow_b', text="")
-            row.prop(segment, 'glarrow_s', text="Size")
+            if segment.glarrow_a != '99' or segment.glarrow_b != '99': 
+                row.prop(segment, 'glarrow_s', text="Size")
 
         if segment.gltype != 2 and segment.gltype != 10:
             row = box.row(True)
@@ -649,22 +650,50 @@ class MeasureitMainPanel(Panel):
                      text="Mesh Debug", emboss=False)
 
             row = box.row()
-            row.prop(scene, "measureit_debug_vertices", icon="LOOPSEL")
-            row.prop(scene, "measureit_debug_location", icon="EMPTY_DATA")
-            row.prop(scene, "measureit_debug_faces", icon="FACESEL")
+            split = row.split(percentage=0.10, align=True)
+            split.prop(scene, 'measureit_debug_obj_color', text="")
+            split.prop(scene, "measureit_debug_objects", icon="OBJECT_DATA")
+            split.prop(scene, "measureit_debug_object_loc", icon="EMPTY_DATA")
+
             row = box.row()
+            split = row.split(percentage=0.10, align=True)
+            split.prop(scene, 'measureit_debug_vert_color', text="")
+            split.prop(scene, "measureit_debug_vertices", icon="LOOPSEL")
+            split.prop(scene, "measureit_debug_vert_loc", icon="EMPTY_DATA")
+            if scene.measureit_debug_vert_loc is True:
+                split.prop(scene, 'measureit_debug_vert_loc_toggle', text="")
+
+            row = box.row()
+            split = row.split(percentage=0.10, align=True)
+            split.prop(scene, 'measureit_debug_edge_color', text="")
+            split = split.split(percentage=0.5, align=True)
+            split.prop(scene, "measureit_debug_edges", icon="EDGESEL")
+
+            row = box.row()
+            split = row.split(percentage=0.10, align=True)
+            split.prop(scene, 'measureit_debug_face_color', text="")
+            split = split.split(percentage=0.5, align=True)
+            split.prop(scene, "measureit_debug_faces", icon="FACESEL")
+
+            row = box.row()
+            split = row.split(percentage=0.10, align=True)
+            split.prop(scene, 'measureit_debug_norm_color', text="")
+            if scene.measureit_debug_normals is False:
+                split = split.split(percentage=0.50, align=True)
+                split.prop(scene, "measureit_debug_normals", icon="MAN_TRANS")
+            else:
+                split = split.split(percentage=0.5, align=True)
+                split.prop(scene, "measureit_debug_normals", icon="MAN_TRANS")
+                split.prop(scene, "measureit_debug_normal_size")
+                row = box.row()
+                split = row.split(percentage=0.10, align=True)
+                split.separator()
+                split.prop(scene, "measureit_debug_normal_details")
+                split.prop(scene, 'measureit_debug_width', text="Thickness")
+
+            row = box.row(align=True)
             row.prop(scene, "measureit_debug_select", icon="GHOST_ENABLED")
-            row.prop(scene, "measureit_debug_normals", icon="MAN_TRANS")
-            if scene.measureit_debug_normals is True:
-                row.prop(scene, "measureit_debug_normal_size")
-                row.prop(scene, "measureit_debug_normal_details")
-            row = box.row()
-            row.prop(scene, 'measureit_debug_color', text="")
-            row.prop(scene, 'measureit_debug_color2', text="")
-            row.prop(scene, 'measureit_debug_color3', text="")
-            row = box.row()
             row.prop(scene, 'measureit_debug_font', text="Font")
-            row.prop(scene, 'measureit_debug_width', text="Thickness")
             row.prop(scene, 'measureit_debug_precision', text="Precision")
 
 
@@ -1896,8 +1925,16 @@ def draw_main(context):
     if scene.measureit_debug is True:
         selobj = bpy.context.selected_objects
         for myobj in selobj:
+            if scene.measureit_debug_objects is True:
+                draw_object(context, myobj, region, rv3d)
+            elif scene.measureit_debug_object_loc is True:
+                draw_object(context, myobj, region, rv3d)
             if scene.measureit_debug_vertices is True:
                 draw_vertices(context, myobj, region, rv3d)
+            elif scene.measureit_debug_vert_loc is True:
+                draw_vertices(context, myobj, region, rv3d)
+            if scene.measureit_debug_edges is True:
+                draw_edges(context, myobj, region, rv3d)
             if scene.measureit_debug_faces is True or scene.measureit_debug_normals is True:
                 draw_faces(context, myobj, region, rv3d)
 
