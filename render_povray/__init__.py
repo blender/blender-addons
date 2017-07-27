@@ -73,6 +73,11 @@ def string_strip_hyphen(name):
 ###############################################################################
 class RenderPovSettingsScene(PropertyGroup):
     # File Options
+    text_block = StringProperty(
+            name="Text Scene Name",
+            description="Name of POV-Ray scene to use. "
+                        "Set when clicking Run to render current text only",
+            maxlen=1024)
     tempfiles_enable = BoolProperty(
             name="Enable Tempfiles",
             description="Enable the OS-Tempfiles. Otherwise set the path where"
@@ -2129,11 +2134,14 @@ class RenderPovSettingsCamera(PropertyGroup):
 # Text POV properties.
 ###############################################################################
 class RenderPovSettingsText(PropertyGroup):
-    custom_code = BoolProperty(
+    custom_code = EnumProperty(
             name="Custom Code",
-            description="Add this text at the top of the exported POV-Ray file",
-            default=False)
-
+            description="rendered source: Both adds text at the "
+                        "top of the exported POV-Ray file",
+            items=(("3dview", "View", ""),
+                   ("text", "Text", ""),
+                   ("both", "Both", "")),
+            default="text")
 
 ###############################################################################
 # Povray Preferences.

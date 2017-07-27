@@ -1854,9 +1854,7 @@ class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         text = context.space_data.text
-        if text:
-            layout.prop(text.pov, "custom_code", text="Add as POV code")
-
+            
         pov_documents = locate_docpath()
         if not pov_documents :
             layout.label(text="Please configure ", icon="INFO")
@@ -1871,6 +1869,25 @@ class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
         else:
             #print(pov_documents)
             layout.menu(TEXT_MT_insert.bl_idname)
+
+        if text:
+            box = layout.box()
+            box.label('Source to render:', icon='RENDER_STILL')
+            row = box.row()
+            row.prop(text.pov, "custom_code",expand = True)
+            if text.pov.custom_code in {'3dview'}:
+                box.operator("render.render", icon='OUTLINER_DATA_POSE')  
+            if text.pov.custom_code in {'text'}:
+                rtext = bpy.context.space_data.text
+                box.operator("text.run", icon='POSE_DATA')
+            #layout.prop(text.pov, "custom_code")
+            elif text.pov.custom_code in {'both'}:
+                box.operator("render.render", icon='POSE_HLT')
+                layout.label(text="Please specify declared", icon="INFO")
+                layout.label(text="items in properties ")
+                #layout.label(text="")                
+                layout.label(text="replacement fields")
+
 
 ###############################################
 # Text editor templates from header menu

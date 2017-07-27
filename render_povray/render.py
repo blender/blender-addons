@@ -564,7 +564,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             tabWrite("light_source {\n")
             tabWrite("< 0,0,0 >\n")
-            tabWrite("color rgb<%.3g, %.3g, %.3g>\n" % color)
+            tabWrite("color srgb<%.3g, %.3g, %.3g>\n" % color)
 
             if lamp.type == 'POINT':
                 pass
@@ -613,7 +613,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 tabWrite("fade_distance %.6f\n" % (lamp.distance / 2.0))
                 # Area lights have no falloff type, so always use blenders lamp quad equivalent
                 # for those?
-                tabWrite("fade_power %d\n" % 2)
+                tabWrite("fade_power %d\n" % 0)
                 size_x = lamp.size
                 samples_x = lamp.shadow_ray_samples_x
                 if lamp.shape == 'SQUARE':
@@ -641,7 +641,7 @@ def write_pov(filename, scene=None, info_callback=None):
             # Sun shouldn't be attenuated. Hemi and area lights have no falloff attribute so they
             # are put to type 2 attenuation a little higher above.
             if lamp.type not in {'SUN', 'AREA', 'HEMI'}:
-                tabWrite("fade_distance %.6f\n" % (lamp.distance / 2.0))
+                tabWrite("fade_distance %.6f\n" % (lamp.distance / 10.0))
                 if lamp.falloff_type == 'INVERSE_SQUARE':
                     tabWrite("fade_power %d\n" % 2)  # Use blenders lamp quad equivalent
                 elif lamp.falloff_type == 'INVERSE_LINEAR':
@@ -710,15 +710,15 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("direction <%.4f,%.4f,%.4f>\n"%rmatrix.translation[:])
             tabWrite("up <%.4f,%.4f,%.4f>\n"%(up[0],up[1],up[2]))
             tabWrite("color_map {\n")
-            tabWrite("[0.000  color rgbt<1.0, 0.5, 1.0, 1.0>]\n")
-            tabWrite("[0.130  color rgbt<0.5, 0.5, 1.0, 0.9>]\n")
-            tabWrite("[0.298  color rgbt<0.2, 0.2, 1.0, 0.7>]\n")
-            tabWrite("[0.412  color rgbt<0.2, 1.0, 1.0, 0.4>]\n")
-            tabWrite("[0.526  color rgbt<0.2, 1.0, 0.2, 0.4>]\n")
-            tabWrite("[0.640  color rgbt<1.0, 1.0, 0.2, 0.4>]\n")
-            tabWrite("[0.754  color rgbt<1.0, 0.5, 0.2, 0.6>]\n")
-            tabWrite("[0.900  color rgbt<1.0, 0.2, 0.2, 0.7>]\n")
-            tabWrite("[1.000  color rgbt<1.0, 0.2, 0.2, 1.0>]\n")
+            tabWrite("[0.000  color srgbt<1.0, 0.5, 1.0, 1.0>]\n")
+            tabWrite("[0.130  color srgbt<0.5, 0.5, 1.0, 0.9>]\n")
+            tabWrite("[0.298  color srgbt<0.2, 0.2, 1.0, 0.7>]\n")
+            tabWrite("[0.412  color srgbt<0.2, 1.0, 1.0, 0.4>]\n")
+            tabWrite("[0.526  color srgbt<0.2, 1.0, 0.2, 0.4>]\n")
+            tabWrite("[0.640  color srgbt<1.0, 1.0, 0.2, 0.4>]\n")
+            tabWrite("[0.754  color srgbt<1.0, 0.5, 0.2, 0.6>]\n")
+            tabWrite("[0.900  color srgbt<1.0, 0.2, 0.2, 0.7>]\n")
+            tabWrite("[1.000  color srgbt<1.0, 0.2, 0.2, 1.0>]\n")
             tabWrite("}\n")
 
 
@@ -1638,12 +1638,12 @@ def write_pov(filename, scene=None, info_callback=None):
                 else:
                     povFilter = 0.0
                 material_finish = materialNames[material.name]
-                tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} \n" %
+                tabWrite("pigment {srgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} \n" %
                          (diffuse_color[0], diffuse_color[1], diffuse_color[2],
                           povFilter, trans))
                 tabWrite("finish{%s} " % safety(material_finish, Level=2))
             else:
-                tabWrite("pigment{rgb 1} finish{%s} " % (safety(DEF_MAT_NAME, Level=2)))
+                tabWrite("pigment{srgb 1} finish{%s} " % (safety(DEF_MAT_NAME, Level=2)))
             #writeObjectMaterial(material, ob)
             writeObjectMaterial(material, elems[1])
             tabWrite("radiosity{importance %3g}\n" % ob.pov.importance_value)
@@ -1701,13 +1701,13 @@ def write_pov(filename, scene=None, info_callback=None):
 
                     material_finish = materialNames[material.name]
 
-                    tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} \n" %
+                    tabWrite("pigment {srgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} \n" %
                              (diffuse_color[0], diffuse_color[1], diffuse_color[2],
                               povFilter, trans))
                     tabWrite("finish {%s}\n" % safety(material_finish, Level=2))
 
                 else:
-                    tabWrite("pigment {rgb 1} \n")
+                    tabWrite("pigment {srgb 1} \n")
                     # Write the finish last.
                     tabWrite("finish {%s}\n" % (safety(DEF_MAT_NAME, Level=2)))
 
@@ -2115,7 +2115,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                             else:
                                                 if texturedHair:
                                                     # Write pigment and alpha (between Pov and Blender alpha 0 and 1 are reversed)
-                                                    file.write('\npigment{ color rgbf < %.3g, %.3g, %.3g, %.3g> }\n' %(initColor[0], initColor[1], initColor[2], 1.0-initColor[3]))
+                                                    file.write('\npigment{ color srgbf < %.3g, %.3g, %.3g, %.3g> }\n' %(initColor[0], initColor[1], initColor[2], 1.0-initColor[3]))
                                                 # End the sphere_sweep declaration for this hair
                                                 file.write('}\n')
 
@@ -2135,7 +2135,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
                                     file.write('#ifndef (HairTexture)\n')
                                     file.write('  #declare HairTexture = texture {\n')
-                                    file.write('    pigment {rgbt <%s,%s,%s,%s>}\n' % (pmaterial.diffuse_color[0], pmaterial.diffuse_color[1], pmaterial.diffuse_color[2], (pmaterial.strand.width_fade + 0.05)))
+                                    file.write('    pigment {srgbt <%s,%s,%s,%s>}\n' % (pmaterial.diffuse_color[0], pmaterial.diffuse_color[1], pmaterial.diffuse_color[2], (pmaterial.strand.width_fade + 0.05)))
                                     file.write('  }\n')
                                     file.write('#end\n')
                                     file.write('\n')
@@ -2765,9 +2765,9 @@ def write_pov(filename, scene=None, info_callback=None):
                                     VcolIdx+=1
                                     vertCols[key] = [VcolIdx]
                                     if linebreaksinlists:
-                                        tabWrite("texture {pigment{ color rgb <%6f,%6f,%6f> }}\n" % (col[0], col[1], col[2]))
+                                        tabWrite("texture {pigment{ color srgb <%6f,%6f,%6f> }}\n" % (col[0], col[1], col[2]))
                                     else:
-                                        tabWrite("texture {pigment{ color rgb <%6f,%6f,%6f> }}" % (col[0], col[1], col[2]))
+                                        tabWrite("texture {pigment{ color srgb <%6f,%6f,%6f> }}" % (col[0], col[1], col[2]))
                                         tabStr = tab * tabLevel
                             else:
                                 if material:
@@ -3442,7 +3442,7 @@ def write_pov(filename, scene=None, info_callback=None):
         #Change path and uncomment to add an animated include file by hand:
         file.write("//#include \"/home/user/directory/animation_include_file.inc\"\n")
         for txt in bpy.data.texts:
-            if txt.pov.custom_code:
+            if txt.pov.custom_code == 'both':
                 # Why are the newlines needed?
                 file.write("\n")
                 file.write(txt.as_string())
@@ -3510,7 +3510,7 @@ def write_pov(filename, scene=None, info_callback=None):
     if comments:
         file.write("\n//--Material Definitions--\n\n")
     # write a default pigment for objects with no material (comment out to show black)
-    file.write("#default{ pigment{ color rgb 0.8 }}\n")
+    file.write("#default{ pigment{ color srgb 0.8 }}\n")
     # Convert all materials to strings we can access directly per vertex.
     #exportMaterials()
     shading.writeMaterial(using_uberpov, DEF_MAT_NAME, scene, tabWrite, safety, comments, uniqueName, materialNames, None)  # default material
@@ -3716,15 +3716,16 @@ class PovrayRender(bpy.types.RenderEngine):
             #self._temp_file_out = "/test.tga"
             self._temp_file_ini = "/test.ini"
             '''
+        if scene.pov.text_block ==  "":
+            def info_callback(txt):
+                self.update_stats("", "POV-Ray 3.7: " + txt)
 
-        def info_callback(txt):
-            self.update_stats("", "POV-Ray 3.7: " + txt)
+            # os.makedirs(user_dir, exist_ok=True)  # handled with previews
+            os.makedirs(preview_dir, exist_ok=True)
 
-        # os.makedirs(user_dir, exist_ok=True)  # handled with previews
-        os.makedirs(preview_dir, exist_ok=True)
-
-        write_pov(self._temp_file_in, scene, info_callback)
-
+            write_pov(self._temp_file_in, scene, info_callback)
+        else:
+            pass
     def _render(self, scene):
         try:
             os.remove(self._temp_file_out)  # so as not to load the old file
@@ -3795,120 +3796,11 @@ class PovrayRender(bpy.types.RenderEngine):
                     time.sleep(self.DELAY)
     def render(self, scene):
         import tempfile
-
-        print("***INITIALIZING***")
-
-##WIP output format
-##        if r.image_settings.file_format == 'OPENEXR':
-##            fformat = 'EXR'
-##            render.image_settings.color_mode = 'RGBA'
-##        else:
-##            fformat = 'TGA'
-##            r.image_settings.file_format = 'TARGA'
-##            r.image_settings.color_mode = 'RGBA'
-
-        blendSceneName = bpy.data.filepath.split(os.path.sep)[-1].split(".")[0]
-        povSceneName = ""
-        povPath = ""
-        renderImagePath = ""
-
-        # has to be called to update the frame on exporting animations
-        scene.frame_set(scene.frame_current)
-
-        if not scene.pov.tempfiles_enable:
-
-            # check paths
-            povPath = bpy.path.abspath(scene.pov.scene_path).replace('\\', '/')
-            if povPath == "":
-                if bpy.data.is_saved:
-                    povPath = bpy.path.abspath("//")
-                else:
-                    povPath = tempfile.gettempdir()
-            elif povPath.endswith("/"):
-                if povPath == "/":
-                    povPath = bpy.path.abspath("//")
-                else:
-                    povPath = bpy.path.abspath(scene.pov.scene_path)
-
-            if not os.path.exists(povPath):
-                try:
-                    os.makedirs(povPath)
-                except:
-                    import traceback
-                    traceback.print_exc()
-
-                    print("POV-Ray 3.7: Cannot create scenes directory: %r" % povPath)
-                    self.update_stats("", "POV-Ray 3.7: Cannot create scenes directory %r" % \
-                                      povPath)
-                    time.sleep(2.0)
-                    return
-
-            '''
-            # Bug in POV-Ray RC3
-            renderImagePath = bpy.path.abspath(scene.pov.renderimage_path).replace('\\','/')
-            if renderImagePath == "":
-                if bpy.data.is_saved:
-                    renderImagePath = bpy.path.abspath("//")
-                else:
-                    renderImagePath = tempfile.gettempdir()
-                #print("Path: " + renderImagePath)
-            elif path.endswith("/"):
-                if renderImagePath == "/":
-                    renderImagePath = bpy.path.abspath("//")
-                else:
-                    renderImagePath = bpy.path.abspath(scene.pov.renderimage_path)
-            if not os.path.exists(path):
-                print("POV-Ray 3.7: Cannot find render image directory")
-                self.update_stats("", "POV-Ray 3.7: Cannot find render image directory")
-                time.sleep(2.0)
-                return
-            '''
-
-            # check name
-            if scene.pov.scene_name == "":
-                if blendSceneName != "":
-                    povSceneName = blendSceneName
-                else:
-                    povSceneName = "untitled"
-            else:
-                povSceneName = scene.pov.scene_name
-                if os.path.isfile(povSceneName):
-                    povSceneName = os.path.basename(povSceneName)
-                povSceneName = povSceneName.split('/')[-1].split('\\')[-1]
-                if not povSceneName:
-                    print("POV-Ray 3.7: Invalid scene name")
-                    self.update_stats("", "POV-Ray 3.7: Invalid scene name")
-                    time.sleep(2.0)
-                    return
-                povSceneName = os.path.splitext(povSceneName)[0]
-
-            print("Scene name: " + povSceneName)
-            print("Export path: " + povPath)
-            povPath = os.path.join(povPath, povSceneName)
-            povPath = os.path.realpath(povPath)
-
-            # for now this has to be the same like the pov output. Bug in POV-Ray RC3.
-            # renderImagePath = renderImagePath + "\\" + povSceneName
-            renderImagePath = povPath  # Bugfix for POV-Ray RC3 bug
-            # renderImagePath = os.path.realpath(renderImagePath)  # Bugfix for POV-Ray RC3 bug
-
-            #print("Export path: %s" % povPath)
-            #print("Render Image path: %s" % renderImagePath)
-
-        # start export
-        self.update_stats("", "POV-Ray 3.7: Exporting data from Blender")
-        self._export(scene, povPath, renderImagePath)
-        self.update_stats("", "POV-Ray 3.7: Parsing File")
-
-        if not self._render(scene):
-            self.update_stats("", "POV-Ray 3.7: Not found")
-            return
-
         r = scene.render
-        # compute resolution
         x = int(r.resolution_x * r.resolution_percentage * 0.01)
         y = int(r.resolution_y * r.resolution_percentage * 0.01)
-
+        print("***INITIALIZING***")
+        
         # This makes some tests on the render, returning True if all goes good, and False if
         # it was finished one way or the other.
         # It also pauses the script (time.sleep())
@@ -3933,135 +3825,355 @@ class PovrayRender(bpy.types.RenderEngine):
                 return False
 
             return True
-
-        # Wait for the file to be created
-        # XXX This is no more valid, as 3.7 always creates output file once render is finished!
-        parsing = re.compile(br"= \[Parsing\.\.\.\] =")
-        rendering = re.compile(br"= \[Rendering\.\.\.\] =")
-        percent = re.compile(r"\(([0-9]{1,3})%\)")
-        # print("***POV WAITING FOR FILE***")
-
-        data = b""
-        last_line = ""
-        while _test_wait():
-            # POV in Windows does not output its stdout/stderr, it displays them in its GUI
-            if self._is_windows:
-                self.update_stats("", "POV-Ray 3.7: Rendering File")
+    
+        if scene.pov.text_block !="":
+            if scene.pov.tempfiles_enable:
+                self._temp_file_in = tempfile.NamedTemporaryFile(suffix=".pov", delete=False).name
+                self._temp_file_out = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
+                #self._temp_file_out = tempfile.NamedTemporaryFile(suffix=".tga", delete=False).name
+                self._temp_file_ini = tempfile.NamedTemporaryFile(suffix=".ini", delete=False).name
+                self._temp_file_log = os.path.join(tempfile.gettempdir(), "alltext.out")
             else:
-                t_data = self._process.stdout.read(10000)
-                if not t_data:
-                    continue
-
-                data += t_data
-                # XXX This is working for UNIX, not sure whether it might need adjustments for
-                #     other OSs
-                # First replace is for windows
-                t_data = str(t_data).replace('\\r\\n', '\\n').replace('\\r', '\r')
-                lines = t_data.split('\\n')
-                last_line += lines[0]
-                lines[0] = last_line
-                print('\n'.join(lines), end="")
-                last_line = lines[-1]
-
-                if rendering.search(data):
-                    _pov_rendering = True
-                    match = percent.findall(str(data))
-                    if match:
-                        self.update_stats("", "POV-Ray 3.7: Rendering File (%s%%)" % match[-1])
-                    else:
-                        self.update_stats("", "POV-Ray 3.7: Rendering File")
-
-                elif parsing.search(data):
-                    self.update_stats("", "POV-Ray 3.7: Parsing File")
-
-        if os.path.exists(self._temp_file_out):
-            # print("***POV FILE OK***")
-            #self.update_stats("", "POV-Ray 3.7: Rendering")
-
-            # prev_size = -1
-
-            xmin = int(r.border_min_x * x)
-            ymin = int(r.border_min_y * y)
-            xmax = int(r.border_max_x * x)
-            ymax = int(r.border_max_y * y)
-
-            # print("***POV UPDATING IMAGE***")
-            result = self.begin_result(0, 0, x, y)
-            # XXX, tests for border render.
-            #result = self.begin_result(xmin, ymin, xmax - xmin, ymax - ymin)
-            #result = self.begin_result(0, 0, xmax - xmin, ymax - ymin)
-            lay = result.layers[0]
-
-            # This assumes the file has been fully written We wait a bit, just in case!
-            time.sleep(self.DELAY)
-            try:
-                lay.load_from_file(self._temp_file_out)
-                # XXX, tests for border render.
-                #lay.load_from_file(self._temp_file_out, xmin, ymin)
-            except RuntimeError:
-                print("***POV ERROR WHILE READING OUTPUT FILE***")
-
-            # Not needed right now, might only be useful if we find a way to use temp raw output of
-            # pov 3.7 (in which case it might go under _test_wait()).
+                povPath = scene.pov.text_block
+                renderImagePath = os.path.splitext(povPath)[0]
+                self._temp_file_out =os.path.join(preview_dir, renderImagePath )
+                self._temp_file_in = os.path.join(preview_dir, povPath)
+                self._temp_file_ini = os.path.join(preview_dir, (os.path.splitext(self._temp_file_in)[0]+".INI"))
+                self._temp_file_log = os.path.join(preview_dir, "alltext.out")
+        
+        
             '''
-            def update_image():
-                # possible the image wont load early on.
+            try:
+                os.remove(self._temp_file_in)  # so as not to load the old file
+            except OSError:
+                pass
+            '''    
+            print(scene.pov.text_block)
+            text = bpy.data.texts[scene.pov.text_block]
+            file=open("%s"%self._temp_file_in,"w")
+            # Why are the newlines needed?
+            file.write("\n")
+            file.write(text.as_string())
+            file.write("\n")    
+            file.close()
+
+            # has to be called to update the frame on exporting animations
+            scene.frame_set(scene.frame_current)
+            
+            pov_binary = PovrayRender._locate_binary()
+
+            if not pov_binary:
+                print("POV-Ray 3.7: could not execute povray, possibly POV-Ray isn't installed")
+                return False
+                
+                
+            # start ini UI options export
+            self.update_stats("", "POV-Ray 3.7: Exporting ini options from Blender")         
+
+            write_pov_ini(scene, self._temp_file_ini, self._temp_file_log, self._temp_file_in, self._temp_file_out)
+
+            print ("***-STARTING-***")
+
+            extra_args = []
+
+            if scene.pov.command_line_switches != "":
+                for newArg in scene.pov.command_line_switches.split(" "):
+                    extra_args.append(newArg)
+
+            if sys.platform[:3] == "win":
+                if"/EXIT" not in extra_args and not scene.pov.pov_editor:
+                    extra_args.append("/EXIT")
+            else:
+                # added -d option to prevent render window popup which leads to segfault on linux
+                extra_args.append("-d")
+
+            # Start Rendering!
+            try:
+                _process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args,
+                                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            except OSError:
+                # TODO, report api
+                print("POV-Ray 3.7: could not execute '%s'" % pov_binary)
+                import traceback
+                traceback.print_exc()
+                print ("***-DONE-***")
+                return False
+
+            else:
+                print("Engine ready!...")
+                print("Command line arguments passed: " + str(extra_args))
+                #return True
+                self.update_stats("", "POV-Ray 3.7: Parsing File")                  
+ 
+
+                
+            # Indented in main function now so repeated here but still not working 
+            # to bring back render result to its buffer
+   
+            if os.path.exists(self._temp_file_out):
+                xmin = int(r.border_min_x * x)
+                ymin = int(r.border_min_y * y)
+                xmax = int(r.border_max_x * x)
+                ymax = int(r.border_max_y * y)
+                result = self.begin_result(0, 0, x, y) 
+                lay = result.layers[0]
+                
+                time.sleep(self.DELAY)
+                try:
+                    lay.load_from_file(self._temp_file_out)
+                except RuntimeError:
+                    print("***POV ERROR WHILE READING OUTPUT FILE***")
+                self.end_result(result)
+            #print(self._temp_file_log) #bring the pov log to blender console with proper path?
+            with open(self._temp_file_log) as f: # The with keyword automatically closes the file when you are done
+                print(f.read()) 
+                
+            self.update_stats("", "")
+            
+            if scene.pov.tempfiles_enable or scene.pov.deletefiles_enable:
+                self._cleanup()            
+        else:
+
+    ##WIP output format
+    ##        if r.image_settings.file_format == 'OPENEXR':
+    ##            fformat = 'EXR'
+    ##            render.image_settings.color_mode = 'RGBA'
+    ##        else:
+    ##            fformat = 'TGA'
+    ##            r.image_settings.file_format = 'TARGA'
+    ##            r.image_settings.color_mode = 'RGBA'
+
+            blendSceneName = bpy.data.filepath.split(os.path.sep)[-1].split(".")[0]
+            povSceneName = ""
+            povPath = ""
+            renderImagePath = ""
+
+            # has to be called to update the frame on exporting animations
+            scene.frame_set(scene.frame_current)
+
+            if not scene.pov.tempfiles_enable:
+
+                # check paths
+                povPath = bpy.path.abspath(scene.pov.scene_path).replace('\\', '/')
+                if povPath == "":
+                    if bpy.data.is_saved:
+                        povPath = bpy.path.abspath("//")
+                    else:
+                        povPath = tempfile.gettempdir()
+                elif povPath.endswith("/"):
+                    if povPath == "/":
+                        povPath = bpy.path.abspath("//")
+                    else:
+                        povPath = bpy.path.abspath(scene.pov.scene_path)
+
+                if not os.path.exists(povPath):
+                    try:
+                        os.makedirs(povPath)
+                    except:
+                        import traceback
+                        traceback.print_exc()
+
+                        print("POV-Ray 3.7: Cannot create scenes directory: %r" % povPath)
+                        self.update_stats("", "POV-Ray 3.7: Cannot create scenes directory %r" % \
+                                          povPath)
+                        time.sleep(2.0)
+                        #return
+
+                '''
+                # Bug in POV-Ray RC3
+                renderImagePath = bpy.path.abspath(scene.pov.renderimage_path).replace('\\','/')
+                if renderImagePath == "":
+                    if bpy.data.is_saved:
+                        renderImagePath = bpy.path.abspath("//")
+                    else:
+                        renderImagePath = tempfile.gettempdir()
+                    #print("Path: " + renderImagePath)
+                elif path.endswith("/"):
+                    if renderImagePath == "/":
+                        renderImagePath = bpy.path.abspath("//")
+                    else:
+                        renderImagePath = bpy.path.abspath(scene.pov.renderimage_path)
+                if not os.path.exists(path):
+                    print("POV-Ray 3.7: Cannot find render image directory")
+                    self.update_stats("", "POV-Ray 3.7: Cannot find render image directory")
+                    time.sleep(2.0)
+                    return
+                '''
+
+                # check name
+                if scene.pov.scene_name == "":
+                    if blendSceneName != "":
+                        povSceneName = blendSceneName
+                    else:
+                        povSceneName = "untitled"
+                else:
+                    povSceneName = scene.pov.scene_name
+                    if os.path.isfile(povSceneName):
+                        povSceneName = os.path.basename(povSceneName)
+                    povSceneName = povSceneName.split('/')[-1].split('\\')[-1]
+                    if not povSceneName:
+                        print("POV-Ray 3.7: Invalid scene name")
+                        self.update_stats("", "POV-Ray 3.7: Invalid scene name")
+                        time.sleep(2.0)
+                        #return
+                    povSceneName = os.path.splitext(povSceneName)[0]
+
+                print("Scene name: " + povSceneName)
+                print("Export path: " + povPath)
+                povPath = os.path.join(povPath, povSceneName)
+                povPath = os.path.realpath(povPath)
+
+                # for now this has to be the same like the pov output. Bug in POV-Ray RC3.
+                # renderImagePath = renderImagePath + "\\" + povSceneName
+                renderImagePath = povPath  # Bugfix for POV-Ray RC3 bug
+                # renderImagePath = os.path.realpath(renderImagePath)  # Bugfix for POV-Ray RC3 bug
+
+                #print("Export path: %s" % povPath)
+                #print("Render Image path: %s" % renderImagePath)
+
+            # start export
+            self.update_stats("", "POV-Ray 3.7: Exporting data from Blender")
+            self._export(scene, povPath, renderImagePath)
+            self.update_stats("", "POV-Ray 3.7: Parsing File")
+
+            if not self._render(scene):
+                self.update_stats("", "POV-Ray 3.7: Not found")
+                #return
+
+            #r = scene.render
+            # compute resolution
+            #x = int(r.resolution_x * r.resolution_percentage * 0.01)
+            #y = int(r.resolution_y * r.resolution_percentage * 0.01)
+
+
+            # Wait for the file to be created
+            # XXX This is no more valid, as 3.7 always creates output file once render is finished!
+            parsing = re.compile(br"= \[Parsing\.\.\.\] =")
+            rendering = re.compile(br"= \[Rendering\.\.\.\] =")
+            percent = re.compile(r"\(([0-9]{1,3})%\)")
+            # print("***POV WAITING FOR FILE***")
+
+            data = b""
+            last_line = ""
+            while _test_wait():
+                # POV in Windows does not output its stdout/stderr, it displays them in its GUI
+                if self._is_windows:
+                    self.update_stats("", "POV-Ray 3.7: Rendering File")
+                else:
+                    t_data = self._process.stdout.read(10000)
+                    if not t_data:
+                        continue
+
+                    data += t_data
+                    # XXX This is working for UNIX, not sure whether it might need adjustments for
+                    #     other OSs
+                    # First replace is for windows
+                    t_data = str(t_data).replace('\\r\\n', '\\n').replace('\\r', '\r')
+                    lines = t_data.split('\\n')
+                    last_line += lines[0]
+                    lines[0] = last_line
+                    print('\n'.join(lines), end="")
+                    last_line = lines[-1]
+
+                    if rendering.search(data):
+                        _pov_rendering = True
+                        match = percent.findall(str(data))
+                        if match:
+                            self.update_stats("", "POV-Ray 3.7: Rendering File (%s%%)" % match[-1])
+                        else:
+                            self.update_stats("", "POV-Ray 3.7: Rendering File")
+
+                    elif parsing.search(data):
+                        self.update_stats("", "POV-Ray 3.7: Parsing File")
+
+            if os.path.exists(self._temp_file_out):
+                # print("***POV FILE OK***")
+                #self.update_stats("", "POV-Ray 3.7: Rendering")
+
+                # prev_size = -1
+
+                xmin = int(r.border_min_x * x)
+                ymin = int(r.border_min_y * y)
+                xmax = int(r.border_max_x * x)
+                ymax = int(r.border_max_y * y)
+
+                # print("***POV UPDATING IMAGE***")
+                result = self.begin_result(0, 0, x, y)
+                # XXX, tests for border render.
+                #result = self.begin_result(xmin, ymin, xmax - xmin, ymax - ymin)
+                #result = self.begin_result(0, 0, xmax - xmin, ymax - ymin)
+                lay = result.layers[0]
+
+                # This assumes the file has been fully written We wait a bit, just in case!
+                time.sleep(self.DELAY)
                 try:
                     lay.load_from_file(self._temp_file_out)
                     # XXX, tests for border render.
                     #lay.load_from_file(self._temp_file_out, xmin, ymin)
-                    #lay.load_from_file(self._temp_file_out, xmin, ymin)
                 except RuntimeError:
-                    pass
+                    print("***POV ERROR WHILE READING OUTPUT FILE***")
 
-            # Update while POV-Ray renders
-            while True:
-                # print("***POV RENDER LOOP***")
-
-                # test if POV-Ray exists
-                if self._process.poll() is not None:
-                    print("***POV PROCESS FINISHED***")
-                    update_image()
-                    break
-
-                # user exit
-                if self.test_break():
+                # Not needed right now, might only be useful if we find a way to use temp raw output of
+                # pov 3.7 (in which case it might go under _test_wait()).
+                '''
+                def update_image():
+                    # possible the image wont load early on.
                     try:
-                        self._process.terminate()
-                        print("***POV PROCESS INTERRUPTED***")
-                    except OSError:
+                        lay.load_from_file(self._temp_file_out)
+                        # XXX, tests for border render.
+                        #lay.load_from_file(self._temp_file_out, xmin, ymin)
+                        #lay.load_from_file(self._temp_file_out, xmin, ymin)
+                    except RuntimeError:
                         pass
 
-                    break
+                # Update while POV-Ray renders
+                while True:
+                    # print("***POV RENDER LOOP***")
 
-                # Would be nice to redirect the output
-                # stdout_value, stderr_value = self._process.communicate() # locks
+                    # test if POV-Ray exists
+                    if self._process.poll() is not None:
+                        print("***POV PROCESS FINISHED***")
+                        update_image()
+                        break
 
-                # check if the file updated
-                new_size = os.path.getsize(self._temp_file_out)
+                    # user exit
+                    if self.test_break():
+                        try:
+                            self._process.terminate()
+                            print("***POV PROCESS INTERRUPTED***")
+                        except OSError:
+                            pass
 
-                if new_size != prev_size:
-                    update_image()
-                    prev_size = new_size
+                        break
 
-                time.sleep(self.DELAY)
-            '''
+                    # Would be nice to redirect the output
+                    # stdout_value, stderr_value = self._process.communicate() # locks
 
-            self.end_result(result)
+                    # check if the file updated
+                    new_size = os.path.getsize(self._temp_file_out)
 
-        else:
-            print("***POV FILE NOT FOUND***")
+                    if new_size != prev_size:
+                        update_image()
+                        prev_size = new_size
 
-        print("***POV FILE FINISHED***")
+                    time.sleep(self.DELAY)
+                '''
 
-        #print(filename_log) #bring the pov log to blender console with proper path?
-        with open(self._temp_file_log) as f: # The with keyword automatically closes the file when you are done
-            print(f.read())
+                self.end_result(result)
 
-        self.update_stats("", "")
+            else:
+                print("***POV FILE NOT FOUND***")
 
-        if scene.pov.tempfiles_enable or scene.pov.deletefiles_enable:
-            self._cleanup()
+            print("***POV FILE FINISHED***")
+
+            #print(filename_log) #bring the pov log to blender console with proper path?
+            with open(self._temp_file_log) as f: # The with keyword automatically closes the file when you are done
+                print(f.read())
+
+            self.update_stats("", "")
+
+            if scene.pov.tempfiles_enable or scene.pov.deletefiles_enable:
+                self._cleanup()
 
 
 ##################################################################################
@@ -4159,3 +4271,19 @@ class RenderPovTexturePreview(Operator):
         #tex.extension="CLIP"
         return {'FINISHED'}
 
+class RunPovTextRender(Operator):
+    bl_idname = "text.run"
+    bl_label = "Run"
+    bl_context = "text"
+    bl_description = "Run a render with this text only"
+        
+    def execute(self, context):
+        scene = context.scene
+        scene.pov.text_block = context.space_data.text.name
+
+            
+        bpy.ops.render.render()
+ 
+        #empty text name property engain
+        scene.pov.text_block = ""
+        return {'FINISHED'}    
