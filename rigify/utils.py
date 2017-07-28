@@ -909,7 +909,7 @@ def get_rig_type(rig_type):
     """
     name = ".%s.%s" % (RIG_DIR, rig_type)
     submod = importlib.import_module(name, package=MODULE_NAME)
-    imp.reload(submod)
+    importlib.reload(submod)
     return submod
 
 
@@ -919,7 +919,7 @@ def get_metarig_module(metarig_name, path=METARIG_DIR):
 
     name = ".%s.%s" % (path, metarig_name)
     submod = importlib.import_module(name, package=MODULE_NAME)
-    imp.reload(submod)
+    importlib.reload(submod)
     return submod
 
 

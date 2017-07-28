@@ -567,12 +567,9 @@ class BONE_PT_rigify_buttons(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        if not context.armature or not context.active_pose_bone:
-            return False
-        obj = context.object
-        if obj:
-            return obj.mode == 'POSE' and context.active_object.data.get("rig_id") is None
-        return False
+
+        return context.object.type == 'ARMATURE' and context.active_pose_bone\
+               and context.active_object.data.get("rig_id") is None
 
     def draw(self, context):
         C = context
@@ -588,8 +585,7 @@ class BONE_PT_rigify_buttons(bpy.types.Panel):
             id_store.rigify_types.remove(0)
 
         for r in rig_lists.rig_list:
-            rig = get_rig_type(r)
-            if hasattr(rig, 'IMPLEMENTATION') and rig.IMPLEMENTATION:
+            if r in rig_lists.implementation_rigs:
                 continue
             # collection = r.split('.')[0]  # UNUSED
             if collection_name == "All":
