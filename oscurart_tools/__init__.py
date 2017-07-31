@@ -21,14 +21,13 @@
 bl_info = {
     "name": "Oscurart Tools",
     "author": "Oscurart, CodemanX",
-    "version": (3, 5, 0),
+    "version": (3, 5, 1),
     "blender": (2, 77, 0),
     "location": "View3D > Tools > Oscurart Tools",
     "description": "Tools for objects, render, shapes, and files.",
     "warning": "",
-    "wiki_url":
-        "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/Oscurart_Tools",
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/3D_interaction/Oscurart_Tools",
     "category": "Object",
     }
 
@@ -42,18 +41,19 @@ from . import oscurart_render
 from . import oscurart_overrides
 from . import oscurart_animation
 
-import bpy
 from bpy.types import (
-            AddonPreferences,
-            Panel,
-            PropertyGroup,
-            )
-
+        AddonPreferences,
+        Panel,
+        PropertyGroup,
+        )
 from bpy.props import (
-            StringProperty,
-            BoolProperty,
-            IntProperty,
-            )
+        StringProperty,
+        BoolProperty,
+        IntProperty,
+        PointerProperty,
+        CollectionProperty,
+        )
+
 
 class View3DOscPanel(PropertyGroup):
     bl_space_type = 'VIEW_3D'
@@ -69,12 +69,12 @@ class View3DOscPanel(PropertyGroup):
     osc_animation_tools = BoolProperty(default=False)
 
     # PARA ESCENAS NUEVAS
-    overrides = bpy.props.StringProperty(default="[]")
+    overrides = StringProperty(default="[]")
 
 
 class OscOverridesProp(PropertyGroup):
-    matoverride = bpy.props.StringProperty()
-    grooverride = bpy.props.StringProperty()
+    matoverride = StringProperty()
+    grooverride = StringProperty()
 
 
 # PANELES
@@ -189,7 +189,6 @@ class OscPanelMesh(Panel):
         colrow.operator("view3d.modal_operator", icon="STICKY_UVS_DISABLE")
         colrow = col.row(align=1)
         colrow.operator("lattice.mirror_selected", icon="LATTICE_DATA")
-
 
 
 class OscPanelShapes(Panel):
@@ -371,45 +370,41 @@ class OscPanelAnimation(Panel):
 
 # Addons Preferences Update Panel
 
+# Define Panel classes for updating
+panels = (
+        OscPanelControl,
+        OscPanelObject,
+        OscPanelMesh,
+        OscPanelShapes,
+        OscPanelRender,
+        OscPanelFiles,
+        OscPanelOverrides,
+        OscPanelAnimation,
+        )
+
+
 def update_panel(self, context):
+    message = "Oscurart Tools: Updating Panel locations has failed"
     try:
-        bpy.utils.unregister_class(OscPanelControl)
-        bpy.utils.unregister_class(OscPanelObject)
-        bpy.utils.unregister_class(OscPanelMesh)
-        bpy.utils.unregister_class(OscPanelShapes)
-        bpy.utils.unregister_class(OscPanelRender)
-        bpy.utils.unregister_class(OscPanelFiles)
-        bpy.utils.unregister_class(OscPanelOverrides)
-        bpy.utils.unregister_class(OscPanelAnimation)
-    except:
+        for panel in panels:
+            if "bl_rna" in panel.__dict__:
+                bpy.utils.unregister_class(panel)
+
+        for panel in panels:
+            panel.bl_category = context.user_preferences.addons[__name__].preferences.category
+            bpy.utils.register_class(panel)
+
+    except Exception as e:
+        print("\n[{}]\n{}\n\nError:\n{}".format(__name__, message, e))
         pass
 
-    addon_prefs = context.user_preferences.addons[__name__].preferences
 
-    OscPanelControl.bl_category = addon_prefs.category
-    bpy.utils.register_class(OscPanelControl)
-    OscPanelObject.bl_category = addon_prefs.category
-    bpy.utils.register_class(OscPanelObject)
-    OscPanelMesh.bl_category = addon_prefs.category
-    bpy.utils.register_class(OscPanelMesh)
-    OscPanelShapes.bl_category = addon_prefs.category
-    bpy.utils.register_class(OscPanelShapes)
-    OscPanelRender.bl_category = addon_prefs.category
-    bpy.utils.register_class(OscPanelRender)
-    OscPanelFiles.bl_category = addon_prefs.category
-    bpy.utils.register_class(OscPanelFiles)
-    OscPanelOverrides.bl_category = addon_prefs.category
-    bpy.utils.register_class(OscPanelOverrides)
-    OscPanelAnimation.bl_category = addon_prefs.category
-    bpy.utils.register_class(OscPanelAnimation)
-
-
-class OscurartToolsAddonPreferences(bpy.types.AddonPreferences):
+class OscurartToolsAddonPreferences(AddonPreferences):
     # this must match the addon name, use '__package__'
     # when defining this in a submodule of a python package.
     bl_idname = __name__
 
-    category = bpy.props.StringProperty(
+    category = StringProperty(
             name="Category",
             description="Choose a name for the category of the panel",
             default="Tools",
@@ -417,7 +412,6 @@ class OscurartToolsAddonPreferences(bpy.types.AddonPreferences):
             )
 
     def draw(self, context):
-
         layout = self.layout
         row = layout.row()
         col = row.column()
@@ -430,17 +424,19 @@ class OscurartToolsAddonPreferences(bpy.types.AddonPreferences):
 def register():
     bpy.utils.register_module(__name__)
 
-    bpy.types.Scene.oscurart = bpy.props.PointerProperty(type=View3DOscPanel)
+    bpy.types.Scene.oscurart = PointerProperty(type=View3DOscPanel)
 
-    bpy.types.Scene.ovlist = bpy.props.CollectionProperty(type=OscOverridesProp)
+    bpy.types.Scene.ovlist = CollectionProperty(type=OscOverridesProp)
 
-    bpy.types.Scene.quick_animation_in = bpy.props.IntProperty(default=1)
-    bpy.types.Scene.quick_animation_out = bpy.props.IntProperty(default=250)
+    bpy.types.Scene.quick_animation_in = IntProperty(default=1)
+    bpy.types.Scene.quick_animation_out = IntProperty(default=250)
 
     # SETEO VARIABLE DE ENTORNO
-    bpy.types.Scene.SearchAndSelectOt = bpy.props.StringProperty(
-                                               default="Object name initials")
+    bpy.types.Scene.SearchAndSelectOt = StringProperty(
+                                            default="Object name initials"
+                                            )
     update_panel(None, bpy.context)
+
 
 def unregister():
     del bpy.types.Scene.oscurart
