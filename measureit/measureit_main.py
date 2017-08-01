@@ -1641,8 +1641,8 @@ class RenderSegmentButton(Operator):
             # noinspection PyBroadException
             try:
                 result = bpy.data.images['Render Result']
-                if result.has_data is False:
-                    bpy.ops.render.render()
+                #if result.has_data is False:
+                bpy.ops.render.render()
             except:
                 bpy.ops.render.render()
             print("MeasureIt: Using current render image on buffer")

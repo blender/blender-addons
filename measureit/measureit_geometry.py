@@ -624,9 +624,6 @@ def draw_segments(context, myobj, op, region, rv3d):
 
                             d1, dn = distance(p1, p2)
                             midpoint3d = interpolate3d(p1, p2, fabs(d1 / 2))
-                            tmp_point = get_2d_point(region, rv3d, midpoint3d)
-                            if tmp_point is not None:
-                                txtpoint2d = tmp_point[0] + ms.glfontx, tmp_point[1] + ms.glfonty
                             # Scale
                             if scene.measureit_scale is True:
                                 tot = tot * scene.measureit_scale_factor
@@ -644,7 +641,10 @@ def draw_segments(context, myobj, op, region, rv3d):
                             if scene.measureit_gl_show_n is True and ms.glnames is True:
                                 msg += ms.gltxt
                             if scene.measureit_gl_show_d is True or scene.measureit_gl_show_n is True:
-                                draw_text(myobj, txtpoint2d, msg, ms.glcolorarea, fsize)
+                                tmp_point = get_2d_point(region, rv3d, midpoint3d)
+                                if tmp_point is not None:
+                                    txtpoint2d = tmp_point[0] + ms.glfontx, tmp_point[1] + ms.glfonty
+                                    draw_text(myobj, txtpoint2d, msg, ms.glcolorarea, fsize)
 
                 except IndexError:
                     ms.glfree = True
@@ -1195,7 +1195,7 @@ def draw_faces(context, myobj, region, rv3d):
                     b2d = get_2d_point(region, rv3d, a_p2)
                     c2d = get_2d_point(region, rv3d, a_p3)
                     # draw vectors
-                    if a2d is not None and b2d is not None and c2d is not None: 
+                    if None not in (a2d, b2d, c2d):
                         draw_arrow(a2d, b2d, 10, "99", "1")
                         draw_arrow(b2d, c2d, 10, "99", "1")
                         # Normal vector data

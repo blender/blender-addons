@@ -191,6 +191,8 @@ def render_main(self, context, animation=False):
                     for myobj in selobj:
                         if scene.measureit_debug_objects is True:
                             draw_object(context, myobj, None, None)
+                        elif scene.measureit_debug_object_loc is True:
+                            draw_object(context, myobj, None, None)
                         if scene.measureit_debug_vertices is True:
                             draw_vertices(context, myobj, None, None)
                         elif scene.measureit_debug_vert_loc is True:
