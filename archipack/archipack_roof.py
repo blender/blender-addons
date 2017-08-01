@@ -3676,6 +3676,8 @@ class archipack_roof_segment(ArchipackSegment, PropertyGroup):
                     box.prop(self, "width_right")
                 if self.auto_right in {'ALL', 'SLOPE'}:
                     box.prop(self, "slope_right")
+        elif self.constraint_type == 'HORIZONTAL':
+            box.prop(self, "triangular_end")
 
     def update(self, context, manipulable_refresh=False, update_hole=False):
         props = self.find_in_selection(context)
