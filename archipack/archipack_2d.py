@@ -118,6 +118,10 @@ class Line(Projection):
             self.v = Vector((0, 0))
 
     @property
+    def copy(self):
+        return Line(self.p.copy(), self.v.copy())
+
+    @property
     def p0(self):
         return self.p
 
@@ -250,6 +254,20 @@ class Line(Projection):
         t = (c * (line.p - self.p)) / d
         return True, self.lerp(t), t
 
+    def intersect_ext(self, line):
+        """
+            same as intersect, but return param t on both lines
+        """
+        c = line.cross_z
+        d = self.v * c
+        if d == 0:
+            return False, 0, 0, 0
+        dp = line.p - self.p
+        c2 = self.cross_z
+        u = (c * dp) / d
+        v = (c2 * dp) / d
+        return u > 0 and v > 0 and u < 1 and v < 1, self.lerp(u), u, v
+
     def point_sur_segment(self, pt):
         """ _point_sur_segment
             point: Vector 2d
@@ -258,6 +276,8 @@ class Line(Projection):
         """
         dp = pt - self.p
         dl = self.length
+        if dl == 0:
+            return dp.length < 0.00001, 0, 0
         d = (self.v.x * dp.y - self.v.y * dp.x) / dl
         t = (self.v * dp) / (dl * dl)
         return t > 0 and t < 1, d, t
@@ -318,7 +338,19 @@ class Line(Projection):
             Draw Line with open gl in screen space
             aka: coords are in pixels
         """
-        raise NotImplementedError
+        curve = bpy.data.curves.new('LINE', type='CURVE')
+        curve.dimensions = '2D'
+        spline = curve.splines.new('POLY')
+        spline.use_endpoint_u = False
+        spline.use_cyclic_u = False
+        pts = self.pts
+        spline.points.add(len(pts) - 1)
+        for i, p in enumerate(pts):
+            x, y, z = p
+            spline.points[i].co = (x, y, 0, 1)
+        curve_obj = bpy.data.objects.new('LINE', curve)
+        context.scene.objects.link(curve_obj)
+        curve_obj.select = True
 
     def make_offset(self, offset, last=None):
         """
@@ -580,6 +612,16 @@ class Arc(Circle):
         """
         steps = max(1, round(self.length / length, 0))
         return 1.0 / steps, int(steps)
+
+    def intersect_ext(self, line):
+        """
+            same as intersect, but return param t on both lines
+        """
+        res, p, v = self.intersect(line)
+        v0 = self.p0 - self.c
+        v1 = p - self.c
+        u = self.signed_angle(v0, v1) / self.da
+        return res and u > 0 and v > 0 and u < 1 and v < 1, p, u, v
 
     # this is for wall
     def steps_by_angle(self, step_angle):

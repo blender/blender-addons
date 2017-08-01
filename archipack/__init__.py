@@ -31,7 +31,7 @@ bl_info = {
     'author': 's-leger',
     'license': 'GPL',
     'deps': '',
-    'version': (1, 2, 6),
+    'version': (1, 2, 8),
     'blender': (2, 7, 8),
     'location': 'View3D > Tools > Create > Archipack',
     'warning': '',
@@ -46,6 +46,8 @@ import os
 
 if "bpy" in locals():
     import importlib as imp
+    imp.reload(archipack_progressbar)
+    imp.reload(archipack_material)
     imp.reload(archipack_snap)
     imp.reload(archipack_manipulator)
     imp.reload(archipack_reference_point)
@@ -54,6 +56,7 @@ if "bpy" in locals():
     imp.reload(archipack_window)
     imp.reload(archipack_stair)
     imp.reload(archipack_wall2)
+    imp.reload(archipack_roof)
     imp.reload(archipack_slab)
     imp.reload(archipack_fence)
     imp.reload(archipack_truss)
@@ -62,6 +65,8 @@ if "bpy" in locals():
 
     print("archipack: reload ready")
 else:
+    from . import archipack_progressbar
+    from . import archipack_material
     from . import archipack_snap
     from . import archipack_manipulator
     from . import archipack_reference_point
@@ -70,6 +75,7 @@ else:
     from . import archipack_window
     from . import archipack_stair
     from . import archipack_wall2
+    from . import archipack_roof
     from . import archipack_slab
     from . import archipack_fence
     from . import archipack_truss
@@ -77,7 +83,6 @@ else:
     from . import archipack_rendering
 
     print("archipack: ready")
-
 
 # noinspection PyUnresolvedReferences
 import bpy
@@ -135,7 +140,7 @@ class Archipack_Pref(AddonPreferences):
     )
     max_style_draw_tool = BoolProperty(
         name="Draw a wall use 3dsmax style",
-        description="Reverse clic / release cycle for Draw a wall",
+        description="Reverse clic / release & drag cycle for Draw a wall",
         default=True
     )
     # Arrow sizes (world units)
@@ -150,6 +155,11 @@ class Archipack_Pref(AddonPreferences):
             description="Manipulators handle sensitive area size (pixels)",
             min=2,
             default=10
+            )
+    matlib_path = StringProperty(
+            name="Folder path",
+            description="absolute path to material library folder",
+            default=""
             )
     # Font sizes and basic colour scheme
     feedback_size_main = IntProperty(
@@ -225,6 +235,11 @@ class Archipack_Pref(AddonPreferences):
         box.prop(self, "max_style_draw_tool")
         box = layout.box()
         row = box.row()
+        col = row.column()
+        col.label(text="Material library:")
+        col.prop(self, "matlib_path")
+        box = layout.box()
+        row = box.row()
         split = row.split(percentage=0.5)
         col = split.column()
         col.label(text="Colors:")
@@ -296,6 +311,7 @@ class TOOLS_PT_Archipack_Create(Panel):
 
     def draw(self, context):
         global icons_collection
+
         icons = icons_collection["main"]
         layout = self.layout
         row = layout.row(align=True)
@@ -356,10 +372,22 @@ class TOOLS_PT_Archipack_Create(Panel):
                     icon_value=icons["slab"].icon_id
                     ).ceiling = True
         row = box.row(align=True)
+        row.operator("archipack.roof_preset_menu",
+                    text="Roof",
+                    icon_value=icons["roof"].icon_id
+                    ).preset_operator = "archipack.roof"
+        row = box.row(align=True)
         row.operator("archipack.floor_preset_menu",
                     text="Floor",
                     icon_value=icons["floor"].icon_id
                     ).preset_operator = "archipack.floor"
+        row.operator("archipack.floor_preset_menu",
+                    text="->Wall",
+                    icon_value=icons["floor"].icon_id
+                    ).preset_operator = "archipack.floor_from_wall"
+        row.operator("archipack.floor_preset_menu",
+                    text="",
+                    icon='CURVE_DATA').preset_operator = "archipack.floor_from_curve"
 
 
 # ----------------------------------------------------
@@ -400,13 +428,16 @@ def draw_menu(self, context):
     layout.operator("archipack.floor_preset_menu",
                     text="Floor",
                     icon_value=icons["floor"].icon_id
-                    )
+                    ).preset_operator = "archipack.floor"
+    layout.operator("archipack.roof_preset_menu",
+                    text="Roof",
+                    icon_value=icons["roof"].icon_id
+                    ).preset_operator = "archipack.roof"
 
 
 class ARCHIPACK_create_menu(Menu):
     bl_label = 'Archipack'
     bl_idname = 'ARCHIPACK_create_menu'
-    bl_context = "objectmode"
 
     def draw(self, context):
         draw_menu(self, context)
@@ -454,6 +485,8 @@ def register():
         icons.load(name, os.path.join(icons_dir, icon), 'IMAGE')
     icons_collection["main"] = icons
 
+    archipack_progressbar.register()
+    archipack_material.register()
     archipack_snap.register()
     archipack_manipulator.register()
     archipack_reference_point.register()
@@ -462,6 +495,7 @@ def register():
     archipack_window.register()
     archipack_stair.register()
     archipack_wall2.register()
+    archipack_roof.register()
     archipack_slab.register()
     archipack_fence.register()
     archipack_truss.register()
@@ -484,8 +518,8 @@ def unregister():
     bpy.utils.unregister_class(TOOLS_PT_Archipack_Tools)
     bpy.utils.unregister_class(TOOLS_PT_Archipack_Create)
     bpy.utils.unregister_class(Archipack_Pref)
-
-    # unregister subs
+    archipack_progressbar.unregister()
+    archipack_material.unregister()
     archipack_snap.unregister()
     archipack_manipulator.unregister()
     archipack_reference_point.unregister()
@@ -494,6 +528,7 @@ def unregister():
     archipack_window.unregister()
     archipack_stair.unregister()
     archipack_wall2.unregister()
+    archipack_roof.unregister()
     archipack_slab.unregister()
     archipack_fence.unregister()
     archipack_truss.unregister()

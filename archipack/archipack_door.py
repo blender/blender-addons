@@ -37,7 +37,6 @@ from mathutils import Vector
 # door component objects (panels, handles ..)
 from .bmesh_utils import BmeshEdit as bmed
 from .panel import Panel as DoorPanel
-from .materialutils import MaterialUtils
 from .archipack_handle import create_handle, door_handle_horizontal_01
 from .archipack_manipulator import Manipulable
 from .archipack_preset import ArchipackPreset, PresetMenuOperator
@@ -549,7 +548,7 @@ class archipack_door_panel(ArchipackObject, PropertyGroup):
         if handle is None:
             m = bpy.data.meshes.new("Handle")
             handle = create_handle(context, o, m)
-            MaterialUtils.add_handle_materials(handle)
+
         verts, faces = door_handle_horizontal_01(self.direction, 1)
         b_verts, b_faces = door_handle_horizontal_01(self.direction, 0, offset=len(verts))
         b_verts = [(v[0], v[1] - self.y, v[2]) for v in b_verts]
@@ -698,6 +697,9 @@ class ARCHIPACK_OT_door_panel(Operator):
                 ),
             default='BOTH'
             )
+    material = StringProperty(
+            default=""
+            )
 
     def draw(self, context):
         layout = self.layout
@@ -736,8 +738,11 @@ class ARCHIPACK_OT_door_panel(Operator):
         o.lock_scale[2] = True
         o.select = True
         context.scene.objects.active = o
+        m = o.archipack_material.add()
+        m.category = "door"
+        m.material = self.material
         d.update(context)
-        MaterialUtils.add_door_materials(o)
+        # MaterialUtils.add_door_materials(o)
         o.lock_rotation[0] = True
         o.lock_rotation[1] = True
         return o
@@ -1049,8 +1054,14 @@ class archipack_door(ArchipackObject, Manipulable, PropertyGroup):
 
         if n_childs < 1:
             # create one door panel
-            bpy.ops.archipack.door_panel(x=self.x, z=self.z, door_y=self.door_y,
-                    n_panels=self.n_panels, direction=self.direction)
+            bpy.ops.archipack.door_panel(
+                    x=self.x,
+                    z=self.z,
+                    door_y=self.door_y,
+                    n_panels=self.n_panels,
+                    direction=self.direction,
+                    material=o.archipack_material[0].material
+                    )
             child = context.active_object
             child.parent = o
             child.matrix_world = o.matrix_world.copy()
@@ -1062,9 +1073,16 @@ class archipack_door(ArchipackObject, Manipulable, PropertyGroup):
 
         if self.n_panels == 2 and n_childs < 2:
             # create 2nth door panel
-            bpy.ops.archipack.door_panel(x=self.x, z=self.z, door_y=self.door_y,
-                    n_panels=self.n_panels, direction=1 - self.direction)
+            bpy.ops.archipack.door_panel(
+                x=self.x,
+                z=self.z,
+                door_y=self.door_y,
+                n_panels=self.n_panels,
+                direction=1 - self.direction,
+                material=o.archipack_material[0].material
+                )
             child = context.active_object
+
             child.parent = o
             child.matrix_world = o.matrix_world.copy()
             location = self.x / 2 + BATTUE - SPACING
@@ -1123,7 +1141,9 @@ class archipack_door(ArchipackObject, Manipulable, PropertyGroup):
                 p.lock_scale[2] = True
                 p.parent = linked
                 p.matrix_world = linked.matrix_world.copy()
-                p.location = child.location.copy()
+                m = p.archipack_material.add()
+                m.category = 'door'
+                m.material = o.archipack_material[0].material
             else:
                 p = l_childs[order[i]]
 
@@ -1135,7 +1155,7 @@ class archipack_door(ArchipackObject, Manipulable, PropertyGroup):
             if handle is not None:
                 if h is None:
                     h = create_handle(context, p, handle.data)
-                    MaterialUtils.add_handle_materials(h)
+                    # MaterialUtils.add_handle_materials(h)
                 h.location = handle.location.copy()
             elif h is not None:
                 context.scene.objects.unlink(h)
@@ -1223,7 +1243,8 @@ class archipack_door(ArchipackObject, Manipulable, PropertyGroup):
                     panels_distrib=self.panels_distrib,
                     panels_x=self.panels_x,
                     panels_y=self.panels_y,
-                    handle=handle
+                    handle=handle,
+                    material=o.archipack_material[0].material
                     )
                 child = context.active_object
                 # parenting at 0, 0, 0 before set object matrix_world
@@ -1297,7 +1318,11 @@ class archipack_door(ArchipackObject, Manipulable, PropertyGroup):
             hole_obj['archipack_hole'] = True
             hole_obj.parent = o
             hole_obj.matrix_world = o.matrix_world.copy()
-            MaterialUtils.add_wall2_materials(hole_obj)
+
+        hole_obj.data.materials.clear()
+        for mat in o.data.materials:
+            hole_obj.data.materials.append(mat)
+
         hole = self.hole
         v = Vector((0, 0, 0))
         offset = Vector((0, -0.001, 0))
@@ -1324,7 +1349,7 @@ class archipack_door(ArchipackObject, Manipulable, PropertyGroup):
         matids = hole.mat(16, 0, 1, path_type='RECTANGLE')
         uvs = hole.uv(16, v, v, size, v, 0, 0, 0, 0, path_type='RECTANGLE')
         bmed.buildmesh(context, o, verts, faces, matids=matids, uvs=uvs)
-        MaterialUtils.add_wall2_materials(o)
+
         o.select = True
         context.scene.objects.active = o
         return o
@@ -1534,8 +1559,8 @@ class ARCHIPACK_OT_door(ArchipackCreateTool, Operator):
         context.scene.objects.link(o)
         o.select = True
         context.scene.objects.active = o
-        self.load_preset(d)
         self.add_material(o)
+        self.load_preset(d)
         o.select = True
         context.scene.objects.active = o
         return o
@@ -1811,7 +1836,6 @@ class ARCHIPACK_OT_door_preset(ArchipackPreset, Operator):
 
     @property
     def blacklist(self):
-        # 'x', 'y', 'z', 'direction',
         return ['manipulators']
 
 

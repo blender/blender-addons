@@ -1,6 +1,6 @@
 import bpy
 d = bpy.context.active_object.data.archipack_stair[0]
-
+d.auto_update = False
 d.steps_type = 'CLOSED'
 d.handrail_slice_right = True
 d.total_angle = 6.2831854820251465

@@ -43,6 +43,56 @@ class BmeshEdit():
         return bm
 
     @staticmethod
+    def bmesh_join(context, o, list_of_bmeshes, normal_update=False):
+        """
+            takes as input a list of bm references and outputs a single merged bmesh
+            allows an additional 'normal_update=True' to force _normal_ calculations.
+        """
+        bm = BmeshEdit._start(context, o)
+
+        add_vert = bm.verts.new
+        add_face = bm.faces.new
+        add_edge = bm.edges.new
+
+        for bm_to_add in list_of_bmeshes:
+            offset = len(bm.verts)
+
+            for v in bm_to_add.verts:
+                add_vert(v.co)
+
+            bm.verts.index_update()
+            bm.verts.ensure_lookup_table()
+
+            if bm_to_add.faces:
+                layer = bm_to_add.loops.layers.uv.verify()
+                dest = bm.loops.layers.uv.verify()
+                for face in bm_to_add.faces:
+                    f = add_face(tuple(bm.verts[i.index + offset] for i in face.verts))
+                    f.material_index = face.material_index
+                    for j, loop in enumerate(face.loops):
+                        f.loops[j][dest].uv = loop[layer].uv
+                bm.faces.index_update()
+
+            if bm_to_add.edges:
+                for edge in bm_to_add.edges:
+                    edge_seq = tuple(bm.verts[i.index + offset] for i in edge.verts)
+                    try:
+                        add_edge(edge_seq)
+                    except ValueError:
+                        # edge exists!
+                        pass
+                bm.edges.index_update()
+
+        # cleanup
+        for old_bm in list_of_bmeshes:
+            old_bm.free()
+
+        if normal_update:
+            bm.normal_update()
+
+        BmeshEdit._end(bm, o)
+
+    @staticmethod
     def _end(bm, o):
         """
             private, end bmesh editing of active object
@@ -76,19 +126,35 @@ class BmeshEdit():
             bm.verts[i].co = v
 
     @staticmethod
-    def buildmesh(context, o, verts, faces, matids=None, uvs=None, weld=False, clean=False, auto_smooth=True):
-        bm = BmeshEdit._start(context, o)
-        bm.clear()
+    def buildmesh(context, o, verts, faces,
+            matids=None, uvs=None, weld=False,
+            clean=False, auto_smooth=True, temporary=False):
+
+        if temporary:
+            bm = bmesh.new()
+        else:
+            bm = BmeshEdit._start(context, o)
+            bm.clear()
+
         for v in verts:
             bm.verts.new(v)
+        bm.verts.index_update()
         bm.verts.ensure_lookup_table()
+
         for f in faces:
             bm.faces.new([bm.verts[i] for i in f])
+        bm.faces.index_update()
         bm.faces.ensure_lookup_table()
+
         if matids is not None:
             BmeshEdit._matids(bm, matids)
+
         if uvs is not None:
             BmeshEdit._uvs(bm, uvs)
+
+        if temporary:
+            return bm
+
         if weld:
             bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.001)
         BmeshEdit._end(bm, o)

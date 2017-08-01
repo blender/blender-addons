@@ -2820,11 +2820,6 @@ class ARCHIPACK_OT_stair_preset(ArchipackPreset, Operator):
     def blacklist(self):
         return ['manipulators']
 
-        """
-        'presets', 'n_parts', 'parts', 'width', 'height', 'radius',
-            'total_angle', 'da',
-        """
-
 
 def register():
     bpy.utils.register_class(archipack_stair_material)

@@ -32,11 +32,10 @@ from bpy.props import (
     FloatProperty, IntProperty, BoolProperty, BoolVectorProperty,
     CollectionProperty, FloatVectorProperty, EnumProperty, StringProperty
 )
-from mathutils import Vector
+from mathutils import Vector, Matrix
 from math import tan, sqrt
 from .bmesh_utils import BmeshEdit as bmed
 from .panel import Panel as WindowPanel
-from .materialutils import MaterialUtils
 from .archipack_handle import create_handle, window_handle_vertical_01, window_handle_vertical_02
 # from .archipack_door_panel import ARCHIPACK_OT_select_parent
 from .archipack_manipulator import Manipulable
@@ -52,6 +51,10 @@ def update(self, context):
 
 def update_childs(self, context):
     self.update(context, childs_only=True)
+
+
+def update_portal(self, context):
+    self.update_portal(context)
 
 
 def set_cols(self, value):
@@ -274,6 +277,10 @@ class archipack_window_panel(ArchipackObject, PropertyGroup):
             name="Fixed",
             default=False
             )
+    enable_glass = BoolProperty(
+            name="Enable glass",
+            default=True
+            )
 
     @property
     def window(self):
@@ -304,14 +311,22 @@ class archipack_window_panel(ArchipackObject, PropertyGroup):
             y3 = y1 - chanfer
             y4 = chanfer + y0
             y2 = (y0 + y2) / 2
+
+            side_cap_front = -1
+            side_cap_back = -1
+
+            if self.enable_glass:
+                side_cap_front = 6
+                side_cap_back = 7
+
             return WindowPanel(
                 True,  # closed
                 [1, 0, 0, 0, 1, 2, 2, 2, 2],  # x index
                 [x0, x3, x1],
                 [y0, y4, y2, y3, y1, y1, y2 + verre, y2 - verre, y0],
                 [0, 0, 1, 1, 1, 1, 0, 0, 0],  # materials
-                side_cap_front=6,
-                side_cap_back=7      # cap index
+                side_cap_front=side_cap_front,
+                side_cap_back=side_cap_back      # cap index
                 )
         else:
             # profil avec chanfrein et joint et support pour verre
@@ -330,14 +345,22 @@ class archipack_window_panel(ArchipackObject, PropertyGroup):
             else:
                 # rail window interior
                 materials = [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0]
+
+            side_cap_front = -1
+            side_cap_back = -1
+
+            if self.enable_glass:
+                side_cap_front = 8
+                side_cap_back = 9
+
             return WindowPanel(
                 True,            # closed shape
                 [1, 0, 0, 0, 1, 2, 2, 3, 3, 3, 3, 2, 2],     # x index
                 [x0, x3, x2, x1],     # unique x positions
                 [y0, y4, y2, y3, y1, y1, y3, y3, y2 + verre, y2 - verre, y4, y4, y0],
                 materials,     # materials
-                side_cap_front=8,
-                side_cap_back=9                  # cap index
+                side_cap_front=side_cap_front,
+                side_cap_back=side_cap_back      # cap index
                 )
 
     @property
@@ -370,7 +393,7 @@ class archipack_window_panel(ArchipackObject, PropertyGroup):
         if handle is None:
             m = bpy.data.meshes.new("Handle")
             handle = create_handle(context, o, m)
-            MaterialUtils.add_handle_materials(handle)
+            # MaterialUtils.add_handle_materials(handle)
         if self.handle_model == 1:
             verts, faces = window_handle_vertical_01(1)
         else:
@@ -391,7 +414,6 @@ class archipack_window_panel(ArchipackObject, PropertyGroup):
         if o is None:
             return
 
-        # update handle, dosent care of instances as window will do
         if self.handle == 'NONE':
             self.remove_handle(context, o)
         else:
@@ -623,7 +645,13 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
                 ),
             default='FLAT', update=update,
             )
+    enable_glass = BoolProperty(
+            name="Enable glass",
+            default=True,
+            update=update
+            )
     warning = BoolProperty(
+            options={'SKIP_SAVE'},
             name="warning",
             default=False
             )
@@ -667,6 +695,12 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
     auto_update = BoolProperty(
             options={'SKIP_SAVE'},
             default=True,
+            update=update
+            )
+    portal = BoolProperty(
+            default=False,
+            name="Portal",
+            description="Generate a portal",
             update=update
             )
 
@@ -957,6 +991,44 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
                 self.angle_y, 0, 0, self.frame_x, path_type='HORIZONTAL')
         return uvs
 
+    def find_portal(self, o):
+        for child in o.children:
+            if child.type == 'LAMP':
+                return child
+        return None
+
+    def update_portal(self, context, o):
+
+        lamp = self.find_portal(o)
+        if self.portal:
+            if lamp is None:
+                bpy.ops.object.lamp_add(type='AREA')
+                lamp = context.active_object
+                lamp.name = "Portal"
+                lamp.parent = o
+
+            d = lamp.data
+            d.cycles.is_portal = True
+            d.shape = 'RECTANGLE'
+            d.size = self.x
+            d.size_y = self.z
+
+            tM = Matrix([
+                [1, 0, 0, 0],
+                [0, 0, -1, -0.5 * self.y],
+                [0, 1, 0, 0.5 * self.z + self.altitude],
+                [0, 0, 0, 1]
+            ])
+            lamp.matrix_world = o.matrix_world * tM
+
+        elif lamp is not None:
+            d = lamp.data
+            context.scene.objects.unlink(lamp)
+            bpy.data.objects.remove(lamp)
+            bpy.data.lamps.remove(d)
+
+        context.scene.objects.active = o
+
     def setup_manipulators(self):
         if len(self.manipulators) == 4:
             return
@@ -1037,10 +1109,16 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
                 return handle
         return None
 
+    def _synch_portal(self, context, o, linked, childs):
+        # update portal
+        dl = archipack_window.datablock(linked)
+        dl.update_portal(context, linked)
+
     def _synch_childs(self, context, o, linked, childs):
         """
             sub synch childs nodes of linked object
         """
+
         # remove childs not found on source
         l_childs = self.get_childs_panels(context, linked)
         c_names = [c.data.name for c in childs]
@@ -1077,7 +1155,9 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
                 p.lock_scale[2] = True
                 p.parent = linked
                 p.matrix_world = linked.matrix_world.copy()
-
+                m = p.archipack_material.add()
+                m.category = 'window'
+                m.material = o.archipack_material[0].material
             else:
                 p = l_childs[order[i]]
 
@@ -1087,7 +1167,6 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
             if handle is not None:
                 if h is None:
                     h = create_handle(context, p, handle.data)
-                    MaterialUtils.add_handle_materials(h)
                 h.location = handle.location.copy()
             elif h is not None:
                 context.scene.objects.unlink(h)
@@ -1095,12 +1174,17 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
 
             p.location = child.location.copy()
 
+        # restore context
+        context.scene.objects.active = o
+
     def _synch_hole(self, context, linked, hole):
         l_hole = self.find_hole(linked)
         if l_hole is None:
             l_hole = bpy.data.objects.new("hole", hole.data)
             l_hole['archipack_hole'] = True
             context.scene.objects.link(l_hole)
+            for mat in hole.data.materials:
+                l_hole.data.materials.append(mat)
             l_hole.parent = linked
             l_hole.matrix_world = linked.matrix_world.copy()
             l_hole.location = hole.location.copy()
@@ -1119,6 +1203,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
         bpy.ops.object.select_linked(type='OBDATA')
         for linked in context.selected_objects:
             if linked != o:
+                self._synch_portal(context, o, linked, childs)
                 self._synch_childs(context, o, linked, childs)
                 if hole is not None:
                     self._synch_hole(context, linked, hole)
@@ -1200,12 +1285,15 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
                         frame_x=self.frame_x,
                         frame_y=self.frame_y,
                         angle_y=self.angle_y,
+                        enable_glass=self.enable_glass,
+                        material=o.archipack_material[0].material
                     )
                     child = context.active_object
                     # parenting at 0, 0, 0 before set object matrix_world
                     # so location remains local from frame
                     child.parent = o
                     child.matrix_world = o.matrix_world.copy()
+
                 else:
                     child = childs[child_n - 1]
                     child.select = True
@@ -1227,6 +1315,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
                         props.frame_x = self.frame_x
                         props.frame_y = self.frame_y
                         props.angle_y = self.angle_y
+                        props.enable_glass = self.enable_glass
                         props.update(context)
                 # location y + frame width. frame depends on choosen profile (fixed or not)
                 # update linked childs location too
@@ -1321,6 +1410,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
         if childs_only is False:
             bmed.buildmesh(context, o, self.verts, self.faces, self.matids, self.uvs)
 
+        self.update_portal(context, o)
         self.update_childs(context, o)
 
         # update hole
@@ -1356,7 +1446,14 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
             hole_obj['archipack_hole'] = True
             hole_obj.parent = o
             hole_obj.matrix_world = o.matrix_world.copy()
-            MaterialUtils.add_wall2_materials(hole_obj)
+
+        """
+        hole_obj.data.materials.clear()
+
+        for mat in o.data.materials:
+            hole_obj.data.materials.append(mat)
+            # MaterialUtils.add_wall2_materials(hole_obj)
+        """
 
         hole = self.hole
         center, origin, size, radius = self.get_radius()
@@ -1413,7 +1510,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
             self.angle_y, 0, 0, self.frame_x, path_type=self.shape)
 
         bmed.buildmesh(context, o, verts, faces, matids=matids, uvs=uvs)
-        MaterialUtils.add_wall2_materials(o)
+        # MaterialUtils.add_wall2_materials(o)
         o.select = True
         context.scene.objects.active = o
         return o
@@ -1488,6 +1585,8 @@ class ARCHIPACK_PT_window(Panel):
 
         if prop.display_detail:
             box = layout.box()
+            box.prop(prop, 'enable_glass')
+            box = layout.box()
             box.label("Frame")
             box.prop(prop, 'frame_x')
             box.prop(prop, 'frame_y')
@@ -1558,6 +1657,8 @@ class ARCHIPACK_PT_window(Panel):
             box.label("Hole")
             box.prop(prop, 'hole_inside_mat')
             box.prop(prop, 'hole_outside_mat')
+
+        layout.prop(prop, 'portal', icon="LAMP_AREA")
 
 
 class ARCHIPACK_PT_window_panel(Panel):
@@ -1638,8 +1739,8 @@ class ARCHIPACK_OT_window(ArchipackCreateTool, Operator):
         context.scene.objects.link(o)
         o.select = True
         context.scene.objects.active = o
-        self.load_preset(d)
         self.add_material(o)
+        self.load_preset(d)
         # select frame
         o.select = True
         context.scene.objects.active = o
@@ -1650,7 +1751,12 @@ class ARCHIPACK_OT_window(ArchipackCreateTool, Operator):
         if archipack_window.filter(o):
             bpy.ops.archipack.disable_manipulate()
             for child in o.children:
-                if 'archipack_hole' in child:
+                if child.type == 'LAMP':
+                    d = child.data
+                    context.scene.objects.unlink(child)
+                    bpy.data.objects.remove(child)
+                    bpy.data.lamps.remove(d)
+                elif 'archipack_hole' in child:
                     context.scene.objects.unlink(child)
                     bpy.data.objects.remove(child, do_unlink=True)
                 elif child.data is not None and 'archipack_window_panel' in child.data:
@@ -1672,6 +1778,7 @@ class ARCHIPACK_OT_window(ArchipackCreateTool, Operator):
             for linked in context.selected_objects:
                 if linked != o:
                     archipack_window.datablock(linked).update(context)
+
         bpy.ops.object.select_all(action="DESELECT")
         o.select = True
         context.scene.objects.active = o
@@ -1877,6 +1984,25 @@ class ARCHIPACK_OT_window_draw(ArchpackDrawTool, Operator):
             return {'CANCELLED'}
 
 
+class ARCHIPACK_OT_window_portals(Operator):
+    bl_idname = "archipack.window_portals"
+    bl_label = "Portals"
+    bl_description = "Create portal for each window"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(self, context):
+        return True
+
+    def invoke(self, context, event):
+        for o in context.scene.objects:
+            d = archipack_window.datablock(o)
+            if d is not None:
+                d.update_portal(context)
+
+        return {'FINISHED'}
+
+
 # ------------------------------------------------------------------
 # Define operator class to create object
 # ------------------------------------------------------------------
@@ -1974,6 +2100,14 @@ class ARCHIPACK_OT_window_panel(Operator):
             name="Fixed",
             default=False
             )
+    material = StringProperty(
+            name="material",
+            default=""
+            )
+    enable_glass = BoolProperty(
+            name="Enable glass",
+            default=True
+            )
 
     def draw(self, context):
         layout = self.layout
@@ -1999,9 +2133,13 @@ class ARCHIPACK_OT_window_panel(Operator):
         d.handle = self.handle
         d.handle_model = self.handle_model
         d.handle_altitude = self.handle_altitude
+        d.enable_glass = self.enable_glass
         context.scene.objects.link(o)
         o.select = True
         context.scene.objects.active = o
+        m = o.archipack_material.add()
+        m.category = "window"
+        m.material = self.material
         o.lock_location[0] = True
         o.lock_location[1] = True
         o.lock_location[2] = True
@@ -2010,7 +2148,6 @@ class ARCHIPACK_OT_window_panel(Operator):
         o.lock_scale[1] = True
         o.lock_scale[2] = True
         d.update(context)
-        MaterialUtils.add_window_materials(o)
         return o
 
     def execute(self, context):
@@ -2081,6 +2218,7 @@ def register():
     bpy.utils.register_class(ARCHIPACK_OT_window_preset)
     bpy.utils.register_class(ARCHIPACK_OT_window_draw)
     bpy.utils.register_class(ARCHIPACK_OT_window_manipulate)
+    bpy.utils.register_class(ARCHIPACK_OT_window_portals)
 
 
 def unregister():
@@ -2097,3 +2235,4 @@ def unregister():
     bpy.utils.unregister_class(ARCHIPACK_OT_window_preset)
     bpy.utils.unregister_class(ARCHIPACK_OT_window_draw)
     bpy.utils.unregister_class(ARCHIPACK_OT_window_manipulate)
+    bpy.utils.unregister_class(ARCHIPACK_OT_window_portals)

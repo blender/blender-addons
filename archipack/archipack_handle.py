@@ -29,6 +29,7 @@ import bpy
 
 
 def create_handle(context, parent, mesh):
+    old = context.active_object
     handle = bpy.data.objects.new("Handle", mesh)
     handle['archipack_handle'] = True
     context.scene.objects.link(handle)
@@ -37,6 +38,11 @@ def create_handle(context, parent, mesh):
     modif.levels = 1
     handle.parent = parent
     handle.matrix_world = parent.matrix_world.copy()
+    context.scene.objects.active = handle
+    m = handle.archipack_material.add()
+    m.category = 'handle'
+    m.material = 'DEFAULT'
+    context.scene.objects.active = old
     return handle
 
 

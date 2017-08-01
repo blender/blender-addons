@@ -273,10 +273,10 @@ class ARCHIPACK_OT_snap(ArchipackSnapBase, Operator):
         # NOTE: this part only run after transform LEFTMOUSE RELEASE
         # or with ESC and RIGHTMOUSE
         if event.type not in {'ESC', 'RIGHTMOUSE', 'LEFTMOUSE', 'MOUSEMOVE'}:
-            # print("Snap.modal skip unknown event %s %s" % (event.type, event.value))
+            print("Snap.modal skip unknown event %s %s" % (event.type, event.value))
             # self.report({'WARNING'}, "ARCHIPACK_OT_snap unknown event")
             return{'PASS_THROUGH'}
-        if event.type in {'ESC', 'RIGHTMOUSE'}:
+        if event.type in ('ESC', 'RIGHTMOUSE'):
             SnapStore.callback(context, event, 'CANCEL', self)
         else:
             SnapStore.placeloc = SnapStore.helper.location
@@ -290,7 +290,6 @@ class ARCHIPACK_OT_snap(ArchipackSnapBase, Operator):
             # print("Snap.invoke event %s %s" % (event.type, event.value))
             self.init(context, event)
             context.window_manager.modal_handler_add(self)
-            # print("SnapStore.transform_orientation%s" % (SnapStore.transform_orientation))
             bpy.ops.transform.translate('INVOKE_DEFAULT',
                 constraint_axis=SnapStore.constraint_axis,
                 constraint_orientation=SnapStore.transform_orientation,

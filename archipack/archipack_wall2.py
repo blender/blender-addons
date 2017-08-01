@@ -25,7 +25,10 @@
 #
 # ----------------------------------------------------------
 import bpy
-# import time
+import bmesh
+
+import time
+
 from bpy.types import Operator, PropertyGroup, Mesh, Panel
 from bpy.props import (
     FloatProperty, BoolProperty, IntProperty, StringProperty,
@@ -55,6 +58,13 @@ class Wall():
         self.t = t
         self.flip = flip
         self.z_step = len(z)
+
+    def set_offset(self, offset, last=None):
+        """
+            Offset line and compute intersection point
+            between segments
+        """
+        self.line = self.make_offset(offset, last)
 
     def get_z(self, t):
         t0 = self.t[0]
@@ -87,6 +97,11 @@ class Wall():
         f = len(verts)
         self.p3d(verts, t)
         self.make_faces(i, f, faces)
+
+    def make_hole(self, i, verts, z0):
+        t = self.t_step[i]
+        x, y = self.line.lerp(t)
+        verts.append((x, y, z0))
 
     def straight_wall(self, a0, length, wall_z, z, t):
         r = self.straight(length).rotate(a0)
@@ -129,6 +144,21 @@ class WallGenerator():
         self.parts = parts
         self.faces_type = 'NONE'
         self.closed = False
+
+    def set_offset(self, offset):
+        last = None
+        for i, seg in enumerate(self.segs):
+            seg.set_offset(offset, last)
+            last = seg.line
+
+        if self.closed:
+            w = self.segs[-1]
+            if len(self.segs) > 1:
+                w.line = w.make_offset(offset, self.segs[-2].line)
+
+            p1 = self.segs[0].line.p1
+            self.segs[0].line = self.segs[0].make_offset(offset, w.line)
+            self.segs[0].line.p1 = p1
 
     def add_part(self, part, wall_z, flip):
 
@@ -205,18 +235,7 @@ class WallGenerator():
             else:
                 w.v = dp
 
-    def make_wall(self, step_angle, flip, closed, verts, faces):
-
-        # swap manipulators so they always face outside
-        side = 1
-        if flip:
-            side = -1
-
-        # Make last segment implicit closing one
-
-        nb_segs = len(self.segs) - 1
-        if closed:
-            nb_segs += 1
+    def locate_manipulators(self, side):
 
         for i, wall in enumerate(self.segs):
 
@@ -260,6 +279,21 @@ class WallGenerator():
             z = Vector((0, 0, 0.75 * wall.wall_z))
             manipulators[3].set_pts([p0 + z, p1 + z, (1, 0, 0)])
 
+    def make_wall(self, step_angle, flip, closed, verts, faces):
+
+        # swap manipulators so they always face outside
+        side = 1
+        if flip:
+            side = -1
+
+        # Make last segment implicit closing one
+
+        nb_segs = len(self.segs) - 1
+        if closed:
+            nb_segs += 1
+
+        for i, wall in enumerate(self.segs):
+
             wall.param_t(step_angle)
             if i < nb_segs:
                 for j in range(wall.n_step + 1):
@@ -270,6 +304,8 @@ class WallGenerator():
                     continue
                     # print("%s" % (wall.n_step))
                     # wall.make_wall(j, verts, faces)
+
+        self.locate_manipulators(side)
 
     def rotate(self, idx_from, a):
         """
@@ -298,6 +334,23 @@ class WallGenerator():
         for i in range(idx_from + 1, len(self.segs)):
             self.segs[i].translate(dp)
 
+    def change_coordsys(self, fromTM, toTM):
+        """
+            move shape fromTM into toTM coordsys
+        """
+        dp = (toTM.inverted() * fromTM.translation).to_2d()
+        da = toTM.row[1].to_2d().angle_signed(fromTM.row[1].to_2d())
+        ca = cos(da)
+        sa = sin(da)
+        rM = Matrix([
+            [ca, -sa],
+            [sa, ca]
+            ])
+        for s in self.segs:
+            tp = (rM * s.p0) - s.p0 + dp
+            s.rotate(da)
+            s.translate(tp)
+
     def draw(self, context):
         for seg in self.segs:
             seg.draw(context, render=False)
@@ -307,6 +360,41 @@ class WallGenerator():
             for i in range(33):
                 x, y = wall.lerp(i / 32)
                 verts.append((x, y, 0))
+
+    def make_surface(self, o, verts, height):
+        bm = bmesh.new()
+        for v in verts:
+            bm.verts.new(v)
+        bm.verts.ensure_lookup_table()
+        for i in range(1, len(verts)):
+            bm.edges.new((bm.verts[i - 1], bm.verts[i]))
+        bm.edges.new((bm.verts[-1], bm.verts[0]))
+        bm.edges.ensure_lookup_table()
+        bmesh.ops.contextual_create(bm, geom=bm.edges)
+        geom = bm.faces[:]
+        bmesh.ops.solidify(bm, geom=geom, thickness=height)
+        bm.to_mesh(o.data)
+        bm.free()
+
+    def make_hole(self, context, hole_obj, d):
+
+        offset = -0.5 * (1 - d.x_offset) * d.width
+
+        z0 = 0.1
+        self.set_offset(offset)
+
+        nb_segs = len(self.segs) - 1
+        if d.closed:
+            nb_segs += 1
+
+        verts = []
+        for i, wall in enumerate(self.segs):
+            wall.param_t(d.step_angle)
+            if i < nb_segs:
+                for j in range(wall.n_step + 1):
+                    wall.make_hole(j, verts, -z0)
+
+        self.make_surface(hole_obj, verts, d.z + z0)
 
 
 def update(self, context):
@@ -566,7 +654,6 @@ class archipack_wall2_part(PropertyGroup):
             )
     z = FloatVectorProperty(
             name="height",
-            min=0,
             default=[
                 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0,
@@ -1408,6 +1495,9 @@ class archipack_wall2(ArchipackObject, Manipulable, PropertyGroup):
             self.update_childs(context, o, g)
 
     def manipulable_move_t_part(self, context, o=None, manipulator=None):
+        """
+            Callback for t_parts childs
+        """
         type_name = type(manipulator).__name__
         # print("manipulable_manipulate %s" % (type_name))
         if type_name in [
@@ -1498,12 +1588,32 @@ class archipack_wall2(ArchipackObject, Manipulable, PropertyGroup):
 
         return True
 
+    def find_roof(self, context, o, g):
+        tM = o.matrix_world
+        up = Vector((0, 0, 1))
+        for seg in g.segs:
+            p = tM * seg.p0.to_3d()
+            p.z = 0.01
+            # prevent self intersect
+            o.hide = True
+            res, pos, normal, face_index, r, matrix_world = context.scene.ray_cast(
+                p,
+                up)
+            o.hide = False
+            # print("res:%s" % res)
+            if res and r.data is not None and "archipack_roof" in r.data:
+                return r, r.data.archipack_roof[0]
 
-# Update throttle (smell hack here)
+        return None, None
+
+
+# Update throttle (hack)
 # use 2 globals to store a timer and state of update_action
-# NO MORE USING THIS PART, kept as it as it may be usefull in some cases
+# Use to update floor boolean on edit
 update_timer = None
 update_timer_updating = False
+throttle_delay = 0.5
+throttle_start = 0
 
 
 class ARCHIPACK_OT_wall2_throttle_update(Operator):
@@ -1515,34 +1625,37 @@ class ARCHIPACK_OT_wall2_throttle_update(Operator):
     def modal(self, context, event):
         global update_timer_updating
         if event.type == 'TIMER' and not update_timer_updating:
-            update_timer_updating = True
-            o = context.scene.objects.get(self.name)
-            # print("delay update of %s" % (self.name))
-            if o is not None:
-                o.select = True
-                context.scene.objects.active = o
-                d = o.data.archipack_wall2[0]
-                g = d.get_generator()
-                # update child location and size
-                d.relocate_childs(context, o, g)
-                # store gl points
-                d.update_childs(context, o, g)
-                return self.cancel(context)
+            # cant rely on TIMER event as another timer may run
+            if time.time() - throttle_start > throttle_delay:
+                update_timer_updating = True
+                o = context.scene.objects.get(self.name)
+                if o is not None:
+                    m = o.modifiers.get("AutoBoolean")
+                    if m is not None:
+                        o.hide = False
+                        # o.draw_type = 'TEXTURED'
+                        # m.show_viewport = True
+
+                    return self.cancel(context)
         return {'PASS_THROUGH'}
 
     def execute(self, context):
         global update_timer
         global update_timer_updating
+        global throttle_delay
+        global throttle_start
         if update_timer is not None:
+            context.window_manager.event_timer_remove(update_timer)
             if update_timer_updating:
                 return {'CANCELLED'}
             # reset update_timer so it only occurs once 0.1s after last action
-            context.window_manager.event_timer_remove(update_timer)
-            update_timer = context.window_manager.event_timer_add(0.1, context.window)
+            throttle_start = time.time()
+            update_timer = context.window_manager.event_timer_add(throttle_delay, context.window)
             return {'CANCELLED'}
+        throttle_start = time.time()
         update_timer_updating = False
         context.window_manager.modal_handler_add(self)
-        update_timer = context.window_manager.event_timer_add(0.1, context.window)
+        update_timer = context.window_manager.event_timer_add(throttle_delay, context.window)
         return {'RUNNING_MODAL'}
 
     def cancel(self, context):
@@ -1579,8 +1692,10 @@ class ARCHIPACK_PT_wall2(Panel):
         row.prop(prop, "closed")
         row = layout.row()
         row.prop_search(prop, "t_part", context.scene, "objects", text="T link", icon='OBJECT_DATAMODE')
-        row = layout.row()
-        row.operator("archipack.wall2_reverse", icon='FILE_REFRESH')
+        layout.operator("archipack.wall2_reverse", icon='FILE_REFRESH')
+        row = layout.row(align=True)
+        row.operator("archipack.wall2_fit_roof")
+        # row.operator("archipack.wall2_fit_roof", text="Inside").inside = True
         n_parts = prop.n_parts
         if prop.closed:
             n_parts += 1
@@ -1757,6 +1872,29 @@ class ARCHIPACK_OT_wall2_from_slab(Operator):
             return {'CANCELLED'}
 
 
+class ARCHIPACK_OT_wall2_fit_roof(Operator):
+    bl_idname = "archipack.wall2_fit_roof"
+    bl_label = "Fit roof"
+    bl_description = "Fit roof"
+    bl_category = 'Archipack'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    inside = BoolProperty(default=False)
+
+    @classmethod
+    def poll(self, context):
+        return archipack_wall2.filter(context.active_object)
+
+    def execute(self, context):
+        o = context.active_object
+        d = archipack_wall2.datablock(o)
+        g = d.get_generator()
+        r, rd = d.find_roof(context, o, g)
+        if rd is not None:
+            d.setup_childs(o, g)
+            rd.make_wall_fit(context, r, o, self.inside)
+        return {'FINISHED'}
+
 # ------------------------------------------------------------------
 # Define operator class to draw a wall
 # ------------------------------------------------------------------
@@ -1785,8 +1923,6 @@ class ARCHIPACK_OT_wall2_draw(ArchpackDrawTool, Operator):
     # constraint to other wall and make a T child
     parent = None
     takemat = None
-
-    max_style_draw_tool = False
 
     @classmethod
     def poll(cls, context):
@@ -1928,22 +2064,17 @@ class ARCHIPACK_OT_wall2_draw(ArchpackDrawTool, Operator):
             # wait for takeloc being visible when button is over horizon
             rv3d = context.region_data
             viewinv = rv3d.view_matrix.inverted()
+
             if (takeloc * viewinv).z < 0 or not rv3d.is_perspective:
                 # print("STARTING")
-                # when user press draw button
                 snap_point(takeloc=takeloc,
                     callback=self.sp_init,
-                    # transform_orientation=context.space_data.transform_orientation,
                     constraint_axis=(True, True, False),
                     release_confirm=True)
             return {'RUNNING_MODAL'}
 
         elif self.state == 'RUNNING':
             # print("RUNNING")
-            # when user start drawing
-
-            # release confirm = False on blender mode
-            # release confirm = True on max mode
             self.state = 'CREATE'
             snap_point(takeloc=self.takeloc,
                 draw=self.sp_draw,
@@ -1972,6 +2103,7 @@ class ARCHIPACK_OT_wall2_draw(ArchpackDrawTool, Operator):
                 evt_value = 'RELEASE'
 
             if event.value == evt_value:
+
                 if self.flag_next:
                     self.flag_next = False
                     o = self.o
@@ -2028,9 +2160,9 @@ class ARCHIPACK_OT_wall2_draw(ArchpackDrawTool, Operator):
             else:
                 self.o.select = True
                 context.scene.objects.active = self.o
-                d = archipack_wall2.datablock(self.o)
 
                 # remove last segment with blender mode
+                d = archipack_wall2.datablock(self.o)
                 if not self.max_style_draw_tool:
                     if not d.closed and d.n_parts > 1:
                         d.n_parts -= 1
@@ -2201,6 +2333,7 @@ def register():
     bpy.utils.register_class(ARCHIPACK_OT_wall2_from_curve)
     bpy.utils.register_class(ARCHIPACK_OT_wall2_from_slab)
     bpy.utils.register_class(ARCHIPACK_OT_wall2_throttle_update)
+    bpy.utils.register_class(ARCHIPACK_OT_wall2_fit_roof)
 
 
 def unregister():
@@ -2218,3 +2351,4 @@ def unregister():
     bpy.utils.unregister_class(ARCHIPACK_OT_wall2_from_curve)
     bpy.utils.unregister_class(ARCHIPACK_OT_wall2_from_slab)
     bpy.utils.unregister_class(ARCHIPACK_OT_wall2_throttle_update)
+    bpy.utils.unregister_class(ARCHIPACK_OT_wall2_fit_roof)

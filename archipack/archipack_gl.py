@@ -54,116 +54,6 @@ class DefaultColorScheme:
     feedback_title_area = (0, 0.4, 0.6, 0.5)
 
 
-"""
-    # Addon prefs template
-
-    feedback_size_main = IntProperty(
-            name="Main",
-            description="Main title font size (pixels)",
-            min=2,
-            default=16
-            )
-    feedback_size_title = IntProperty(
-            name="Title",
-            description="Tool name font size (pixels)",
-            min=2,
-            default=14
-            )
-    feedback_size_shortcut = IntProperty(
-            name="Shortcut",
-            description="Shortcuts font size (pixels)",
-            min=2,
-            default=11
-            )
-    feedback_shortcut_area = FloatVectorProperty(
-            name="Background Shortcut",
-            description="Shortcut area background color",
-            subtype='COLOR_GAMMA',
-            default=(0, 0.4, 0.6, 0.2),
-            size=4,
-            min=0, max=1
-            )
-    feedback_title_area = FloatVectorProperty(
-            name="Background Main",
-            description="Title area background color",
-            subtype='COLOR_GAMMA',
-            default=(0, 0.4, 0.6, 0.5),
-            size=4,
-            min=0, max=1
-            )
-    feedback_colour_main = FloatVectorProperty(
-            name="Font Main",
-            description="Title color",
-            subtype='COLOR_GAMMA',
-            default=(0.95, 0.95, 0.95, 1.0),
-            size=4,
-            min=0, max=1
-            )
-    feedback_colour_key = FloatVectorProperty(
-            name="Font Shortcut key",
-            description="KEY label color",
-            subtype='COLOR_GAMMA',
-            default=(0.67, 0.67, 0.67, 1.0),
-            size=4,
-            min=0, max=1
-            )
-    feedback_colour_shortcut = FloatVectorProperty(
-            name="Font Shortcut hint",
-            description="Shortcuts text color",
-            subtype='COLOR_GAMMA',
-            default=(0.51, 0.51, 0.51, 1.0),
-            size=4,
-            min=0, max=1
-            )
-
-    def draw(self, context):
-        layout = self.layout
-        box = layout.box()
-        row = box.row()
-        split = row.split(percentage=0.5)
-        col = split.column()
-        col.label(text="Colors:")
-        row = col.row(align=True)
-        row.prop(self, "feedback_title_area")
-        row = col.row(align=True)
-        row.prop(self, "feedback_shortcut_area")
-        row = col.row(align=True)
-        row.prop(self, "feedback_colour_main")
-        row = col.row(align=True)
-        row.prop(self, "feedback_colour_key")
-        row = col.row(align=True)
-        row.prop(self, "feedback_colour_shortcut")
-        col = split.column()
-        col.label(text="Font size:")
-        col.prop(self, "feedback_size_main")
-        col.prop(self, "feedback_size_title")
-        col.prop(self, "feedback_size_shortcut")
-"""
-
-
-# @TODO:
-# 1 Make a clear separation of 2d (pixel position) and 3d (world position)
-#   modes way to set gl coords
-# 2 Unify methods to set points - currently set_pts, set_pos ...
-# 3 Put all Gl part in a sub module as it may be used by other devs
-#   as gl toolkit abstraction for screen feedback
-# 4 Implement cursor badges (np_station sample)
-# 5 Define a clear color scheme so it is easy to customize
-# 6 Allow different arguments for each classes like
-#   eg: for line p0 p1, p0 and vector (p1-p0)
-#       raising exceptions when incomplete
-# 7 Use correct words, normal is not realy a normal
-#   but a perpendicular
-# May be hard code more shapes ?
-# Fine tuned text styles with shadows and surronding boxes / backgrounds
-# Extending tests to hdr screens, ultra wide ones and so on
-# Circular handle, handle styling (only border, filling ...)
-
-# Keep point 3 in mind while doing this, to keep it simple and easy to use
-# Take inspiration from other's feed back systems, talk to other devs
-# and find who actually work on bgl future for 2.8 release
-
-
 class Gl():
     """
         handle 3d -> 2d gl drawing
@@ -205,11 +95,14 @@ class Gl():
         return [round(co_2d.x * render_size[0]), round(co_2d.y * render_size[1])]
 
     def _end(self):
+
+        # print("_end")
         bgl.glEnd()
         bgl.glPopAttrib()
         bgl.glLineWidth(1)
         bgl.glDisable(bgl.GL_BLEND)
         bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
+        # print("_end %s" % (type(self).__name__))
 
 
 class GlText(Gl):
@@ -347,6 +240,8 @@ class GlText(Gl):
         self._text = self.add_units(context)
 
     def draw(self, context, render=False):
+
+        # print("draw_text %s %s" % (self.text, type(self).__name__))
         self.render = render
         x, y = self.position_2d_from_coord(context, self.pts[0], render)
         # dirty fast assignment
@@ -381,6 +276,8 @@ class GlBaseLine(Gl):
         """
             render flag when rendering
         """
+
+        # print("draw_line %s" % (type(self).__name__))
         bgl.glPushAttrib(bgl.GL_ENABLE_BIT)
         if self.style == bgl.GL_LINE_STIPPLE:
             bgl.glLineStipple(1, 0x9999)
@@ -671,6 +568,8 @@ class GlPolygon(Gl):
         """
             render flag when rendering
         """
+
+        # print("draw_polygon")
         self.render = render
         bgl.glPushAttrib(bgl.GL_ENABLE_BIT)
         bgl.glEnable(bgl.GL_BLEND)
@@ -693,6 +592,7 @@ class GlRect(GlPolygon):
         GlPolygon.__init__(self, colour, d)
 
     def draw(self, context, render=False):
+
         self.render = render
         bgl.glPushAttrib(bgl.GL_ENABLE_BIT)
         bgl.glEnable(bgl.GL_BLEND)
@@ -1147,7 +1047,7 @@ class GlCursorFence():
     """
         Cursor crossing Fence
     """
-    def __init__(self, width=1, colour=(1.0, 1.0, 1.0, 0.5), style=2852):
+    def __init__(self, width=1, colour=(1.0, 1.0, 1.0, 0.5), style=bgl.GL_LINE_STIPPLE):
         self.line_x = GlLine(d=2)
         self.line_x.style = style
         self.line_x.width = width
@@ -1184,7 +1084,7 @@ class GlCursorArea():
                 width=1,
                 bordercolour=(1.0, 1.0, 1.0, 0.5),
                 areacolour=(0.5, 0.5, 0.5, 0.08),
-                style=2852):
+                style=bgl.GL_LINE_STIPPLE):
 
         self.border = GlPolyline(bordercolour, d=2)
         self.border.style = style
@@ -1224,5 +1124,6 @@ class GlCursorArea():
 
     def draw(self, context, render=False):
         if self.on:
+            # print("GlCursorArea.draw()")
             self.area.draw(context)
             self.border.draw(context)
