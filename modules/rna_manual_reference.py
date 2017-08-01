@@ -21,8 +21,8 @@ LANG = {
     "ko_KR":        "ko",
     "pt_PT":        "pt",
     "pt_BR":        "pt",
-    "zh_CN":        "zh.cn",
-    "zh_TW":        "zh.tw",
+    "zh_CN":        "zh-hans",
+    "zh_TW":        "zh-hant",
 }.get(language)
 
 if LANG is not None:
