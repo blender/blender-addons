@@ -21,11 +21,11 @@
 import bpy
 from bpy.types import Operator
 from bpy.props import (
-            IntProperty,
-            BoolProperty,
-            FloatProperty,
-            EnumProperty,
-            )
+        IntProperty,
+        BoolProperty,
+        FloatProperty,
+        EnumProperty,
+        )
 import os
 import bmesh
 import time
@@ -35,8 +35,8 @@ from bpy_extras.view3d_utils import location_3d_to_region_2d
 C = bpy.context
 D = bpy.data
 
-# -----------------------------RECONST---------------------------
 
+# -----------------------------RECONST---------------------------
 
 def defReconst(self, OFFSET):
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -82,6 +82,7 @@ class reConst(Operator):
     bl_idname = "mesh.reconst_osc"
     bl_label = "ReConst Mesh"
     bl_options = {"REGISTER", "UNDO"}
+
     OFFSET = FloatProperty(
             name="Offset",
             default=0.001,
@@ -98,8 +99,8 @@ class reConst(Operator):
         defReconst(self, self.OFFSET)
         return {'FINISHED'}
 
-# -----------------------------------SELECT LEFT---------------------
 
+# -----------------------------------SELECT LEFT---------------------
 
 def side(self, nombre, offset):
 
@@ -121,7 +122,7 @@ def side(self, nombre, offset):
     bpy.ops.object.mode_set(mode="EDIT", toggle=0)
 
 
-class SelectMenor (Operator):
+class SelectMenor(Operator):
     """Selects the vetex with an N position value on the X axis"""
     bl_idname = "mesh.select_side_osc"
     bl_label = "Select Side"
@@ -151,22 +152,28 @@ class SelectMenor (Operator):
 # -------------------------RESYM VG----------------------------------
 
 
-class resymVertexGroups (Operator):
-    """Copies the symetrical weight value of the vertices on the X axys. It needs the XML map"""
+class resymVertexGroups(Operator):
     bl_idname = "mesh.resym_vertex_weights_osc"
     bl_label = "Resym Vertex Weights"
+    bl_description = ("Copies the symetrical weight value of the vertices on the X axys\n"
+                      "(It needs the XML map and the Active Object is not in Edit mode)")
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        obj = context.active_object
+        return obj is not None and obj.mode != "EDIT"
 
     def execute(self, context):
+        ob = bpy.context.object
+        actgr = ob.vertex_groups.active if ob else None
+        if not actgr:
+            self.report({'WARNING'},
+                        "Object doesn't have active Vertex groups. Operation Cancelled")
+            return {"CANCELLED"}
 
         with open("%s_%s_SYM_TEMPLATE.xml" % (os.path.join(os.path.dirname(bpy.data.filepath),
                                               bpy.context.scene.name), bpy.context.object.name)) as file:
-            ob = bpy.context.object
-            actgr = ob.vertex_groups.active
             actind = ob.vertex_groups.active_index
             ls = eval(file.read())
             wdict = {left: actgr.weight(right) for left, right in ls.items()
@@ -180,9 +187,7 @@ class resymVertexGroups (Operator):
         return {'FINISHED'}
 
 
-
-
-# ------------------------------------ RESYM MESH-------------------------
+# --------------------------- RESYM MESH-------------------------
 
 
 def reSymSave(self, quality):
@@ -196,7 +201,8 @@ def reSymSave(self, quality):
     absol = lambda x: (abs(x[0]), x[1], x[2])
 
     inddict = {
-        tuple(map(rd, vert.co[:])): vert.index for vert in object.data.vertices[:]}
+            tuple(map(rd, vert.co[:])): vert.index for vert in object.data.vertices[:]
+            }
     reldict = {inddict[vert]: inddict.get(absol(vert), inddict[vert])
                for vert in inddict if vert[0] <= 0}
 
@@ -204,6 +210,7 @@ def reSymSave(self, quality):
         os.path.join(os.path.dirname(bpy.data.filepath),
                      bpy.context.scene.name),
         bpy.context.object.name)
+
     with open(ENTFILEPATH, mode="w") as file:
         file.writelines(str(reldict))
         reldict.clear()
@@ -221,6 +228,7 @@ def reSymMesh(self, SELECTED, SIDE):
         object = bpy.context.object
 
         def MAME(SYMAP):
+            bm.verts.ensure_lookup_table()
             if SELECTED:
                 for vert in SYMAP:
                     if bm.verts[SYMAP[vert]].select:
@@ -235,6 +243,7 @@ def reSymMesh(self, SELECTED, SIDE):
             bmesh.update_edit_mesh(object.data)
 
         def MEMA(SYMAP):
+            bm.verts.ensure_lookup_table()
             if SELECTED:
                 for vert in SYMAP:
                     if bm.verts[vert].select:
@@ -254,7 +263,7 @@ def reSymMesh(self, SELECTED, SIDE):
             MEMA(SYMAP)
 
 
-class OscResymSave (Operator):
+class OscResymSave(Operator):
     """Creates a file on disk that saves the info of every vertex but in simmetry, """ \
     """this info its going to be later used by “Resym Mesh” and “Resym Vertex Weights”"""
     bl_idname = "mesh.resym_save_map"
@@ -276,7 +285,7 @@ class OscResymSave (Operator):
         return {'FINISHED'}
 
 
-class OscResymMesh (Operator):
+class OscResymMesh(Operator):
     """Copies the symetrical position of the vertices on the X axys. It needs the XML map"""
     bl_idname = "mesh.resym_mesh"
     bl_label = "Resym save Apply XML"
@@ -321,8 +330,6 @@ class OscObjectToMesh(Operator):
     bl_idname = "mesh.object_to_mesh_osc"
     bl_idname = "mesh.object_to_mesh_osc"
     bl_label = "Object To Mesh"
-    bl_label = "Object To Mesh"
-
 
     @classmethod
     def poll(cls, context):
@@ -331,9 +338,10 @@ class OscObjectToMesh(Operator):
                 {'MESH', 'META', 'CURVE', 'SURFACE'})
 
     def execute(self, context):
-         print("Active type object is", context.object.type)
-         DefOscObjectToMesh()
-         return {'FINISHED'}
+        print("Active type object is", context.object.type)
+        DefOscObjectToMesh()
+
+        return {'FINISHED'}
 
 
 # ----------------------------- OVERLAP UV -------------------------------
@@ -381,7 +389,7 @@ def DefOscOverlapUv(valpresicion):
             for lloop in lif[l]:
                 for rloop in lif[r]:
                     if (verteqind[vertexvert[lloop]] == vertexvert[rloop] and
-                        ob.data.uv_layers.active.data[rloop].select):
+                            ob.data.uv_layers.active.data[rloop].select):
 
                         ob.data.uv_layers.active.data[
                             lloop].uv = ob.data.uv_layers.active.data[
@@ -416,10 +424,7 @@ class OscOverlapUv(Operator):
         return {'FINISHED'}
 
 
-
-
 # ------------------ PRINT VERTICES ----------------------
-
 
 def dibuja_callback(self, context):
     font_id = 0
@@ -477,6 +482,7 @@ class ModalIndexOperator(Operator):
             self.report({"WARNING"}, "Is not a 3D Space")
             return {'CANCELLED'}
 
+
 # -------------------------- SELECT DOUBLES
 
 def SelDoubles(self, context):
@@ -487,10 +493,10 @@ def SelDoubles(self, context):
 
     dictloc = {}
 
-    rd = lambda x: (round(x[0],4),round(x[1],4),round(x[2],4))
+    rd = lambda x: (round(x[0], 4), round(x[1], 4), round(x[2], 4))
 
     for vert in bm.verts:
-        dictloc.setdefault(rd(vert.co),[]).append(vert.index)
+        dictloc.setdefault(rd(vert.co), []).append(vert.index)
 
     for loc, ind in dictloc.items():
         if len(ind) > 1:
@@ -512,10 +518,10 @@ class SelectDoubles(Operator):
                 context.active_object.type == 'MESH' and
                 context.active_object.mode == "EDIT")
 
-
     def execute(self, context):
         SelDoubles(self, context)
         return {'FINISHED'}
+
 
 # -------------------------- SELECT DOUBLES
 
@@ -525,20 +531,18 @@ def defLatticeMirror(self, context):
     u = ob.data.points_u
     v = ob.data.points_v
     w = ob.data.points_w
-    row = u*v
-    total = u*v*w
-    column = 2
+    total = u * v * w
 
-    #guardo indices a cada punto
-    libIndex = {point:index for point, index in zip(bpy.context.object.data.points,range(0,total))}
+    # guardo indices a cada punto
+    libIndex = {point: index for point, index in zip(bpy.context.object.data.points, range(0, total))}
 
-    #guardo puntos seleccionados
+    # guardo puntos seleccionados
     selectionPoint = [libIndex[i] for i in ob.data.points if i.select]
 
     for point in selectionPoint:
-        rango = list(range(int(point/u)*u,int(point/u)*u+(u)))
+        rango = list(range(int(point / u) * u, int(point / u) * u + (u)))
         rango.reverse()
-        indPorcion = range(int(point/u)*u,int(point/u)*u+(u)).index(point)
+        indPorcion = range(int(point / u) * u, int(point / u) * u + (u)).index(point)
         ob.data.points[rango[indPorcion]].co_deform.x = -ob.data.points[point].co_deform.x
         ob.data.points[rango[indPorcion]].co_deform.y = ob.data.points[point].co_deform.y
         ob.data.points[rango[indPorcion]].co_deform.z = ob.data.points[point].co_deform.z
@@ -555,7 +559,6 @@ class LatticeMirror(Operator):
         return (context.active_object is not None and
                 context.active_object.type == 'LATTICE' and
                 context.active_object.mode == "EDIT")
-
 
     def execute(self, context):
         defLatticeMirror(self, context)

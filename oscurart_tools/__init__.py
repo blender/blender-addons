@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Oscurart Tools",
     "author": "Oscurart, CodemanX",
-    "version": (3, 5, 1),
+    "version": (3, 5, 2),
     "blender": (2, 77, 0),
     "location": "View3D > Tools > Oscurart Tools",
     "description": "Tools for objects, render, shapes, and files.",
@@ -31,15 +31,26 @@ bl_info = {
     "category": "Object",
     }
 
-import bpy
+if "bpy" in locals():
+    import importlib
+    importlib.reload(oscurart_files)
+    importlib.reload(oscurart_meshes)
+    importlib.reload(oscurart_objects)
+    importlib.reload(oscurart_shapes)
+    importlib.reload(oscurart_render)
+    importlib.reload(oscurart_overrides)
+    importlib.reload(oscurart_animation)
 
-from . import oscurart_files
-from . import oscurart_meshes
-from . import oscurart_objects
-from . import oscurart_shapes
-from . import oscurart_render
-from . import oscurart_overrides
-from . import oscurart_animation
+else:
+    from . import oscurart_files
+    from . import oscurart_meshes
+    from . import oscurart_objects
+    from . import oscurart_shapes
+    from . import oscurart_render
+    from . import oscurart_overrides
+    from . import oscurart_animation
+
+import bpy
 
 from bpy.types import (
         AddonPreferences,
@@ -59,7 +70,7 @@ class View3DOscPanel(PropertyGroup):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
 
-    # CREA PANELES EN TOOLS
+    # Create Panels and Tools
     osc_object_tools = BoolProperty(default=False)
     osc_mesh_tools = BoolProperty(default=False)
     osc_shapes_tools = BoolProperty(default=False)
@@ -68,7 +79,7 @@ class View3DOscPanel(PropertyGroup):
     osc_overrides_tools = BoolProperty(default=False)
     osc_animation_tools = BoolProperty(default=False)
 
-    # PARA ESCENAS NUEVAS
+    # For new Scenes
     overrides = StringProperty(default="[]")
 
 
@@ -77,7 +88,7 @@ class OscOverridesProp(PropertyGroup):
     grooverride = StringProperty()
 
 
-# PANELES
+# Panels
 class OscPanelControl(Panel):
     bl_idname = "Oscurart Panel Control"
     bl_space_type = 'VIEW_3D'
@@ -418,7 +429,7 @@ class OscurartToolsAddonPreferences(AddonPreferences):
         col.label(text="Category:")
         col.prop(self, "category", text="")
 
-# ========================= FIN DE SCRIPTS =========================
+# ========================= End of Scripts =========================
 
 
 def register():
