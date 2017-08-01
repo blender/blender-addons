@@ -235,19 +235,19 @@ class PresetMenu():
             self.imageList.append(self.default_image.filepath_raw)
             return
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        sub_path = "presets" + os.path.sep + "missing.png"
+        sub_path = "_presets" + os.path.sep + "missing.png"
         filepath = os.path.join(dir_path, sub_path)
         if os.path.exists(filepath) and os.path.isfile(filepath):
             self.default_image = bpy.data.images.load(filepath=filepath)
             self.imageList.append(self.default_image.filepath_raw)
         if self.default_image is None:
-            raise EnvironmentError("archipack/presets/missing.png not found")
+            raise EnvironmentError("archipack/_presets/missing.png not found")
 
     def scan_files(self, category):
         file_list = []
         # load default presets
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        sub_path = "presets" + os.path.sep + category
+        sub_path = "_presets" + os.path.sep + category
         presets_path = os.path.join(dir_path, sub_path)
         if os.path.exists(presets_path):
             file_list += [presets_path + os.path.sep + f[:-3]
