@@ -20,8 +20,8 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "4.3.1"
-__date__ = "6 June 2017"
+__version__ = "4.4"
+__date__ = "2 Aug 2017"
 
 import bpy
 from bpy.props import (
@@ -67,11 +67,13 @@ class MUV_Properties():
 class MUV_CPUVProps():
     src_uvs = []
     src_pin_uvs = []
+    src_seams = []
 
 
 class MUV_CPUVSelSeqProps():
     src_uvs = []
     src_pin_uvs = []
+    src_seams = []
 
 
 class MUV_TransUVProps():
