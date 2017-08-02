@@ -470,16 +470,6 @@ def draw_segments(context, myobj, op, region, rv3d):
                             txtpoint2d = tmp_point[0] + ms.glfontx, tmp_point[1] + ms.glfonty
                             draw_text(myobj, txtpoint2d, tx_dist, rgb, fsize)
 
-                        '''
-                        try:
-                            tx_dist = ms.gltxt
-                            gap3d = (vn1[0], vn1[1], vn1[2])
-                            txtpoint2d = get_2d_point(region, rv3d, gap3d)
-                            draw_text(myobj, (txtpoint2d[0] + ms.glfontx, txtpoint2d[1] + ms.glfonty),
-                                      tx_dist, rgb, fsize)
-                        except:
-                            pass
-                        '''
                     # ------------------------------------
                     # Draw lines
                     # ------------------------------------
@@ -1195,12 +1185,11 @@ def draw_faces(context, myobj, region, rv3d):
                     b2d = get_2d_point(region, rv3d, a_p2)
                     c2d = get_2d_point(region, rv3d, a_p3)
                     # draw vectors
-                    if None not in (a2d, b2d, c2d):
-                        draw_arrow(a2d, b2d, 10, "99", "1")
-                        draw_arrow(b2d, c2d, 10, "99", "1")
-                        # Normal vector data
-                        txt = format_point(normal, precision)
-                        draw_text(myobj, point2, txt, rgb2, fsize)
+                    draw_arrow(a2d, b2d, 10, "99", "1")
+                    draw_arrow(b2d, c2d, 10, "99", "1")
+                    # Normal vector data
+                    txt = format_point(normal, precision)
+                    draw_text(myobj, point2, txt, rgb2, fsize)
 
         except:
             print("Unexpected error:" + str(exc_info()))

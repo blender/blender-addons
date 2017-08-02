@@ -26,6 +26,7 @@
 # ----------------------------------------------------------
 # noinspection PyUnresolvedReferences
 import bpy
+import bmesh
 from bmesh import from_edit_mesh
 # noinspection PyUnresolvedReferences
 import bgl
@@ -411,6 +412,10 @@ class MeasureitEditPanel(Panel):
                         if (ms.gltype == 1 or ms.gltype == 12
                             or ms.gltype == 13 or ms.gltype == 14) and ms.gltot != '99' \
                                 and ms.glfree is False:  # only segments
+                            if bpy.context.mode == "EDIT_MESH":
+                                bm = bmesh.from_edit_mesh(bpy.context.edit_object.data)
+                                if hasattr(bm.verts, "ensure_lookup_table"):
+                                    bm.verts.ensure_lookup_table()
                             if ms.glpointa <= len(obverts) and ms.glpointb <= len(obverts):
                                 p1 = get_point(obverts[ms.glpointa].co, myobj)
                                 if ms.gltype == 1:
