@@ -93,6 +93,8 @@ class ArchipackBoolManager():
                 None when not found
         """
         d = None
+        if o.data is None:
+            return
         if "archipack_window" in o.data:
             d = o.data.archipack_window[0]
         elif "archipack_door" in o.data:
