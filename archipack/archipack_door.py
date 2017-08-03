@@ -1598,7 +1598,7 @@ class ARCHIPACK_OT_door(ArchipackCreateTool, Operator):
 
     def unique(self, context):
         act = context.active_object
-        sel = [o for o in context.selected_objects]
+        sel = context.selected_objects[:]
         bpy.ops.object.select_all(action="DESELECT")
         for o in sel:
             if archipack_door.filter(o):
@@ -1650,6 +1650,7 @@ class ARCHIPACK_OT_door_draw(ArchpackDrawTool, Operator):
     filepath = StringProperty(default="")
     feedback = None
     stack = []
+    object_name = ""
 
     @classmethod
     def poll(cls, context):
@@ -1690,6 +1691,8 @@ class ARCHIPACK_OT_door_draw(ArchpackDrawTool, Operator):
             bpy.ops.archipack.door(auto_manipulate=False, filepath=self.filepath)
             o = context.active_object
 
+        self.object_name = o.name
+
         bpy.ops.archipack.generate_hole('INVOKE_DEFAULT')
         o.select = True
         context.scene.objects.active = o
@@ -1697,7 +1700,10 @@ class ARCHIPACK_OT_door_draw(ArchpackDrawTool, Operator):
     def modal(self, context, event):
 
         context.area.tag_redraw()
-        o = context.active_object
+        o = context.scene.objects.get(self.object_name)
+        if o is None:
+            return {'FINISHED'}
+
         d = archipack_door.datablock(o)
         hole = None
 
@@ -1721,6 +1727,16 @@ class ARCHIPACK_OT_door_draw(ArchpackDrawTool, Operator):
                 d.y = wall.data.archipack_wall2[0].width
 
         if event.value == 'PRESS':
+
+            if event.type in {'C'}:
+                bpy.ops.archipack.door(mode='DELETE')
+                self.feedback.disable()
+                bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
+                bpy.ops.archipack.door_preset_menu(
+                    'INVOKE_DEFAULT',
+                    preset_operator="archipack.door_draw")
+                return {'FINISHED'}
+
             if event.type in {'LEFTMOUSE', 'RET', 'NUMPAD_ENTER', 'SPACE'}:
                 if wall is not None:
                     context.scene.objects.active = wall
@@ -1781,6 +1797,7 @@ class ARCHIPACK_OT_door_draw(ArchpackDrawTool, Operator):
             self.feedback.instructions(context, "Draw a door", "Click & Drag over a wall", [
                 ('LEFTCLICK, RET, SPACE, ENTER', 'Create a door'),
                 ('BACKSPACE, CTRL+Z', 'undo last'),
+                ('C', 'Choose another door'),
                 ('SHIFT', 'Make independant copy'),
                 ('RIGHTCLICK or ESC', 'exit')
                 ])
