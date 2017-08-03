@@ -261,7 +261,7 @@ class Archipack_Pref(AddonPreferences):
         col.label(text="Manipulators:")
         col.prop(self, "arrow_size")
         col.prop(self, "handle_size")
-
+        # layout.operator("archipack.render_thumbs")
 
 # ----------------------------------------------------
 # Archipack panels
@@ -283,18 +283,16 @@ class TOOLS_PT_Archipack_Tools(Panel):
     def draw(self, context):
         wm = context.window_manager
         layout = self.layout
-        row = layout.row(align=True)
-        box = row.box()
+        box = layout.box()
         box.label("Auto boolean")
-        row = box.row(align=True)
-        row.operator("archipack.auto_boolean", text="AutoBoolean", icon='AUTO').mode = 'HYBRID'
-        row = layout.row(align=True)
-        box = row.box()
+        box.operator("archipack.auto_boolean", text="AutoBoolean", icon='AUTO').mode = 'HYBRID'
+        box = layout.box()
         box.label("Rendering")
-        row = box.row(align=True)
-        row.prop(wm.archipack, 'render_type', text="")
-        row = box.row(align=True)
-        row.operator("archipack.render", icon='RENDER_STILL')
+        box.prop(wm.archipack, 'render_type', text="")
+        box.operator("archipack.render", icon='RENDER_STILL')
+        box = layout.box()
+        box.label("Render presets Thumbnails")
+        box.operator("archipack.render_thumbs", icon='ERROR')
 
 
 class TOOLS_PT_Archipack_Create(Panel):

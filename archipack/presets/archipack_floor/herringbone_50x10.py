@@ -1,11 +1,12 @@
 import bpy
 d = bpy.context.active_object.data.archipack_floor[0]
+bpy.ops.archipack.material(category='floor', material='DEFAULT')
 d.add_grout = False
 d.bevel = False
 d.bevel_amount = 0.001
 d.board_length = 2.0
 d.board_width = 0.1
-d.boards_in_group = 5
+d.boards_in_group = 4
 d.length_spacing = 0.002
 d.length_variance = 50.0
 d.matid = 7
@@ -13,10 +14,10 @@ d.max_boards = 20
 d.mortar_depth = 0.001
 d.offset = 50.0
 d.offset_variance = 50.0
-d.pattern = 'square_parquet'
+d.pattern = 'herringbone'
 d.random_offset = False
 d.random_uvs = True
-d.short_board_length = 0.15
+d.short_board_length = 0.5
 d.spacing = 0.0
 d.thickness = 0.02
 d.thickness_variance = 25.0

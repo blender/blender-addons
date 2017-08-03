@@ -40,6 +40,7 @@ class CutterSegment(Line):
     def __init__(self, p, v, type='DEFAULT'):
         Line.__init__(self, p, v)
         self.type = type
+        self.is_hole = True
 
     @property
     def copy(self):
@@ -404,22 +405,28 @@ class CutAblePolygon():
         # no points found at all
         if start < 0:
             # print("no pt inside")
-            return
+            return not keep_inside
 
         if not slice_res:
             # print("slice fails")
             # found more segments than input
             # cutter made more than one loop
-            return
+            return True
 
         if len(store) < 1:
             if is_inside:
                 # print("not touching, add as hole")
-                self.holes.append(cutter)
-            return
+                if keep_inside:
+                    self.segs = cutter.segs
+                else:
+                    self.holes.append(cutter)
+
+            return True
 
         self.segs = store
         self.is_convex()
+
+        return True
 
 
 class CutAbleGenerator():
@@ -641,8 +648,7 @@ class ArchipackCutter():
             row.prop(self, 'parts_expand', icon="TRIA_DOWN", icon_only=True, text="Parts", emboss=False)
             box.prop(self, 'n_parts')
             for i, part in enumerate(self.parts):
-                if i < self.n_parts:
-                    part.draw(layout, context, i)
+                part.draw(layout, context, i)
         else:
             row.prop(self, 'parts_expand', icon="TRIA_RIGHT", icon_only=True, text="Parts", emboss=False)
 

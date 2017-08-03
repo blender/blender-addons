@@ -1,5 +1,6 @@
 import bpy
 d = bpy.context.active_object.data.archipack_roof[0]
+bpy.ops.archipack.material(category='roof', material='DEFAULT')
 d.tile_model = 'BRAAS1'
 d.tile_size_z = 0.05
 d.tile_border = 0.0

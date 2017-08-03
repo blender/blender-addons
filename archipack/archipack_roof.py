@@ -1578,6 +1578,9 @@ class RoofGenerator(CutAbleGenerator):
 
         idmat = 7
         rand = 3
+        ttl = len(self.pans)
+        if ttl < 1:
+            return
 
         sx, sy, sz = d.tile_size_x, d.tile_size_y, d.tile_size_z
 
@@ -1687,10 +1690,10 @@ class RoofGenerator(CutAbleGenerator):
 
         dx, dy = d.tile_space_x, d.tile_space_y
 
-        ttl = len(self.pans)
         step = 100 / ttl
 
-        context.scene.archipack_progress_text = "Build tiles:"
+        if d.quick_edit:
+            context.scene.archipack_progress_text = "Build tiles:"
 
         for i, pan in enumerate(self.pans):
 
@@ -1737,7 +1740,8 @@ class RoofGenerator(CutAbleGenerator):
 
                 progress = step * i + substep * k
                 # print("progress %s" % (progress))
-                context.scene.archipack_progress = progress
+                if d.quick_edit:
+                    context.scene.archipack_progress = progress
 
                 y = k * dy
 
@@ -1875,7 +1879,8 @@ class RoofGenerator(CutAbleGenerator):
             bmed.bmesh_join(context, o, [bm], normal_update=True)
             bpy.ops.object.mode_set(mode='OBJECT')
 
-        context.scene.archipack_progress = -1
+        if d.quick_edit:
+            context.scene.archipack_progress = -1
 
     def _rake(self, s, i, boundary, pan,
             width, height, altitude, offset, idmat,
@@ -2654,9 +2659,9 @@ class RoofGenerator(CutAbleGenerator):
                     x1, y1 = s.lerp(t0)
                     x2, y2 = p1
                     x3, y3 = s.lerp(t1)
-                    z0 = self.z + d.beam_alt
+                    z0 = self.z + d.beam_alt + pan.altitude(p0)
                     z1 = z0 - d.beam_height
-                    z2 = self.z + d.beam_alt
+                    z2 = self.z + d.beam_alt + pan.altitude(p1)
                     z3 = z2 - d.beam_height
                     verts.extend([
                         (x0, y0, z0),
@@ -2910,9 +2915,18 @@ class RoofGenerator(CutAbleGenerator):
 
                     s2 = pan.last_seg(i)
                     s3 = pan.next_seg(i)
-
-                    res, p0, t0 = s0.intersect(s2)
-                    res, p1, t1 = s0.intersect(s3)
+                    p0 = s0.p0
+                    p1 = s0.p1
+                    t0 = 0
+                    t1 = 1
+                    res, p, t = s0.intersect(s2)
+                    if res:
+                        t0 = t
+                        p0 = p
+                    res, p, t = s0.intersect(s3)
+                    if res:
+                        t1 = t
+                        p1 = p
 
                     p0 = s.lerp(t0)
                     p1 = s.lerp(t1)
@@ -3043,8 +3057,14 @@ class RoofGenerator(CutAbleGenerator):
                         s0 = s.offset(-2 * d.tile_couloir)
                         s1 = pan.last_seg(i)
                         s2 = pan.next_seg(i)
-                        res, p0, t = s0.intersect(s1)
-                        res, p1, t = s0.intersect(s2)
+                        p0 = s0.p0
+                        p1 = s0.p1
+                        res, p, t = s0.intersect(s1)
+                        if res:
+                            p0 = p
+                        res, p, t = s0.intersect(s2)
+                        if res:
+                            p1 = p
                         alt = self.z + d.valley_altitude
                         x0, y0 = s1.p1
                         x1, y1 = p0
@@ -3397,14 +3417,21 @@ class RoofGenerator(CutAbleGenerator):
         """
             either external or holes cuts
         """
+        to_remove = []
         for b in o.children:
             d = archipack_roof_cutter.datablock(b)
             if d is not None:
                 g = d.ensure_direction()
                 g.change_coordsys(b.matrix_world, o.matrix_world)
-                for pan in self.pans:
-                    pan.slice(g)
+                for i, pan in enumerate(self.pans):
+                    keep = pan.slice(g)
+                    if not keep:
+                        if i not in to_remove:
+                            to_remove.append(i)
                     pan.limits()
+        to_remove.sort()
+        for i in reversed(to_remove):
+            self.pans.pop(i)
 
     def draft(self, context, verts, edges):
         for pan in self.pans:
@@ -3469,7 +3496,7 @@ class ArchipackSegment():
             name="length",
             min=0.01,
             max=1000.0,
-            default=2.0,
+            default=4.0,
             update=update
             )
     a0 = FloatProperty(
@@ -3552,10 +3579,10 @@ class ArchipackLines():
 class archipack_roof_segment(ArchipackSegment, PropertyGroup):
 
     bound_idx = IntProperty(
-        default=0,
-        min=0,
-        update=update_manipulators
-        )
+            default=0,
+            min=0,
+            update=update_manipulators
+            )
     width_left = FloatProperty(
             name="L Width",
             min=0.01,
@@ -3610,31 +3637,31 @@ class archipack_roof_segment(ArchipackSegment, PropertyGroup):
             update=update
             )
     take_precedence = BoolProperty(
-        name="Take precedence",
-        description="On T segment take width precedence",
-        default=False,
-        update=update
-        )
+            name="Take precedence",
+            description="On T segment take width precedence",
+            default=False,
+            update=update
+            )
 
     constraint_type = EnumProperty(
-        items=(
-            ('HORIZONTAL', 'Horizontal', '', 0),
-            ('SLOPE', 'Slope', '', 1)
-            ),
-        default='HORIZONTAL',
-        update=update_manipulators
-        )
+            items=(
+                ('HORIZONTAL', 'Horizontal', '', 0),
+                ('SLOPE', 'Slope', '', 1)
+                ),
+            default='HORIZONTAL',
+            update=update_manipulators
+            )
 
     enforce_part = EnumProperty(
-        name="Enforce part",
-        items=(
-            ('AUTO', 'Auto', '', 0),
-            ('VALLEY', 'Valley', '', 1),
-            ('HIP', 'Hip', '', 2)
-            ),
-        default='AUTO',
-        update=update
-        )
+            name="Enforce part",
+            items=(
+                ('AUTO', 'Auto', '', 0),
+                ('VALLEY', 'Valley', '', 1),
+                ('HIP', 'Hip', '', 2)
+                ),
+            default='AUTO',
+            update=update
+            )
 
     def find_in_selection(self, context):
         """
@@ -3735,11 +3762,6 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
     quick_edit = BoolProperty(
             options={'SKIP_SAVE'},
             name="Quick Edit",
-            default=True
-            )
-    force_update = BoolProperty(
-            options={'SKIP_SAVE'},
-            name="Throttle",
             default=True
             )
 
@@ -4223,51 +4245,51 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             )
 
     t_parent = StringProperty(
-        name="Parent",
-        default="",
-        update=update_parent
-        )
+            name="Parent",
+            default="",
+            update=update_parent
+            )
     t_part = IntProperty(
-        name="Part",
-        description="Parent part index",
-        default=0,
-        min=0,
-        update=update_cutter
-        )
+            name="Part",
+            description="Parent part index",
+            default=0,
+            min=0,
+            update=update_cutter
+            )
     t_dist_x = FloatProperty(
-        name="Dist x",
-        description="Location on axis ",
-        default=0,
-        update=update_cutter
-        )
+            name="Dist x",
+            description="Location on axis ",
+            default=0,
+            update=update_cutter
+            )
     t_dist_y = FloatProperty(
-        name="Dist y",
-        description="Lateral distance from axis",
-        min=0.0001,
-        default=0.0001,
-        update=update_cutter
-        )
+            name="Dist y",
+            description="Lateral distance from axis",
+            min=0.0001,
+            default=0.0001,
+            update=update_cutter
+            )
 
     hole_offset_left = FloatProperty(
-        name="Left",
-        description="Left distance from border",
-        min=0,
-        default=0,
-        update=update_cutter
-        )
+            name="Left",
+            description="Left distance from border",
+            min=0,
+            default=0,
+            update=update_cutter
+            )
     hole_offset_right = FloatProperty(
-        name="Right",
-        description="Right distance from border",
-        min=0,
-        default=0,
-        update=update_cutter
-        )
+            name="Right",
+            description="Right distance from border",
+            min=0,
+            default=0,
+            update=update_cutter
+            )
     hole_offset_front = FloatProperty(
-        name="Front",
-        description="Front distance from border",
-        default=0,
-        update=update_cutter
-        )
+            name="Front",
+            description="Front distance from border",
+            default=0,
+            update=update_cutter
+            )
 
     def make_wall_fit(self, context, o, wall, inside=False):
         origin = Vector((0, 0, self.z))
@@ -5007,6 +5029,12 @@ class ARCHIPACK_OT_roof(ArchipackCreateTool, Operator):
         o.select = True
         context.scene.objects.active = o
         self.add_material(o)
+
+        # disable progress bar when
+        # background render thumbs
+        if not self.auto_manipulate:
+            d.quick_edit = False
+
         self.load_preset(d)
         return o
 
@@ -5335,7 +5363,7 @@ class ARCHIPACK_OT_roof_preset(ArchipackPreset, Operator):
 
     @property
     def blacklist(self):
-        return ['n_parts', 'parts', 'manipulators', 'user_defined_path']
+        return ['n_parts', 'parts', 'manipulators', 'user_defined_path', 'quick_edit', 'draft']
 
 
 def register():

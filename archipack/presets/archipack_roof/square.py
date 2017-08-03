@@ -1,5 +1,6 @@
 import bpy
 d = bpy.context.active_object.data.archipack_roof[0]
+bpy.ops.archipack.material(category='roof', material='BLACK')
 d.tile_model = 'PLACEHOLDER'
 d.tile_size_z = 0.01
 d.tile_border = 0.0

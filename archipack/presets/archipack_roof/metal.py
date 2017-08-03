@@ -1,5 +1,6 @@
 import bpy
 d = bpy.context.active_object.data.archipack_roof[0]
+bpy.ops.archipack.material(category='roof', material='METAL')
 d.tile_side = 0.0
 d.hip_alt = 0.07
 d.tile_fit_y = False

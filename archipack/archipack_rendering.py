@@ -30,13 +30,103 @@
 import bpy
 # noinspection PyUnresolvedReferences
 import bgl
-from os import path, remove
+from os import path, remove, listdir
 from sys import exc_info
+import subprocess
 # noinspection PyUnresolvedReferences
 import bpy_extras.image_utils as img_utils
 # noinspection PyUnresolvedReferences
 from math import ceil
 from bpy.types import Operator
+
+
+class ARCHIPACK_OT_render_thumbs(Operator):
+    bl_idname = "archipack.render_thumbs"
+    bl_label = "Render preset thumbs"
+    bl_description = "Render all presets thumbs"
+    bl_options = {'REGISTER', 'INTERNAL'}
+
+    def background_render(self, context, cls, preset):
+        generator = path.dirname(path.realpath(__file__)) + path.sep + "archipack_thumbs.py"
+        # Run external instance of blender like the original thumbnail generator.
+        cmd = [
+            bpy.app.binary_path,
+            "--background",
+            "-noaudio",
+            "--python", generator,
+            "--",
+            "cls:" + cls,
+            "preset:" + preset
+            ]
+
+        popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True)
+        for stdout_line in iter(popen.stdout.readline, ""):
+            yield stdout_line
+        popen.stdout.close()
+        popen.wait()
+
+    def scan_files(self, category):
+        file_list = []
+        # load default presets
+        dir_path = path.dirname(path.realpath(__file__))
+        sub_path = "presets" + path.sep + category
+        presets_path = path.join(dir_path, sub_path)
+        if path.exists(presets_path):
+            file_list += [presets_path + path.sep + f[:-3]
+                for f in listdir(presets_path)
+                if f.endswith('.py') and
+                not f.startswith('.')]
+        # load user def presets
+        preset_paths = bpy.utils.script_paths("presets")
+        for preset in preset_paths:
+            presets_path = path.join(preset, category)
+            if path.exists(presets_path):
+                file_list += [presets_path + path.sep + f[:-3]
+                    for f in listdir(presets_path)
+                    if f.endswith('.py') and
+                    not f.startswith('.')]
+
+        file_list.sort()
+        return file_list
+
+    def rebuild_thumbs(self, context):
+        file_list = []
+        dir_path = path.dirname(path.realpath(__file__))
+        sub_path = "presets"
+        presets_path = path.join(dir_path, sub_path)
+        print(presets_path)
+        if path.exists(presets_path):
+            dirs = listdir(presets_path)
+            for dir in dirs:
+                abs_dir = path.join(presets_path, dir)
+                if path.isdir(abs_dir):
+                    files = self.scan_files(dir)
+                    file_list.extend([(dir, file) for file in files])
+
+        ttl = len(file_list)
+        for i, preset in enumerate(file_list):
+            dir, file = preset
+            cls = dir[10:]
+            context.scene.archipack_progress = (100 * i / ttl)
+            for l in self.background_render(context, cls, file + ".py"):
+                if "[log]" in l:
+                    print(l[5:].strip())
+                # elif not "Fra:1" in l:
+                #    print(l.strip())
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.archipack_progress < 0
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_confirm(self, event)
+
+    def execute(self, context):
+        context.scene.archipack_progress_text = 'Generating thumbs'
+        context.scene.archipack_progress = 0
+        self.rebuild_thumbs(context)
+        context.scene.archipack_progress = -1
+        return {'FINISHED'}
 
 
 # -------------------------------------------------------------
@@ -523,7 +613,9 @@ class ARCHIPACK_OT_render(Operator):
 
 def register():
     bpy.utils.register_class(ARCHIPACK_OT_render)
+    bpy.utils.register_class(ARCHIPACK_OT_render_thumbs)
 
 
 def unregister():
     bpy.utils.unregister_class(ARCHIPACK_OT_render)
+    bpy.utils.unregister_class(ARCHIPACK_OT_render_thumbs)
