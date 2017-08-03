@@ -180,5 +180,4 @@ if __name__ == "__main__":
         if arg.startswith("preset:"):
             preset = arg[7:]
 
-
     generateThumb(bpy.context, cls, preset)
