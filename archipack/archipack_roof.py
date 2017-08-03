@@ -1770,8 +1770,8 @@ class RoofGenerator(CutAbleGenerator):
 
                     verts.extend([lM * p for p in t_pts])
                     faces.extend([tuple(i + v for i in f) for f in t_faces])
-                    id = randint(idmat, idmat + rand)
-                    t_mats = [id for i in range(n_faces)]
+                    mid = randint(idmat, idmat + rand)
+                    t_mats = [mid for i in range(n_faces)]
                     matids.extend(t_mats)
                     uvs.extend(t_uvs)
 
@@ -3244,7 +3244,7 @@ class RoofGenerator(CutAbleGenerator):
 
         if hole_obj is None:
             context.scene.objects.active = o.parent
-            bpy.ops.archipack.roof_cutter(parent=d.t_parent)
+            bpy.ops.archipack.roof_cutter(parent=d.t_parent, auto_manipulate=False)
             hole_obj = context.active_object
         else:
             context.scene.objects.active = hole_obj
@@ -3377,7 +3377,7 @@ class RoofGenerator(CutAbleGenerator):
         for widx, seg in enumerate(wall_t):
             t0 = 0
             last_d = -1
-            id = 1
+            sid = 1
             for s in seg:
                 t, z, d = s
                 if t == 0:
@@ -3389,15 +3389,15 @@ class RoofGenerator(CutAbleGenerator):
                     else:
                         wd.parts[widx].z[0] = z
                         wd.parts[widx].t[0] = t
-                        id = 1
+                        sid = 1
                 else:
                     if d - last_d < 0.001:
                         wd.parts[widx].n_splits -= 1
                         continue
-                    wd.parts[widx].z[id] = z
-                    wd.parts[widx].t[id] = t - t0
+                    wd.parts[widx].z[sid] = z
+                    wd.parts[widx].t[sid] = t - t0
                     t0 = t
-                    id += 1
+                    sid += 1
                     last_d = d
 
         if wd.closed:
@@ -4766,10 +4766,13 @@ class archipack_roof_cutter(ArchipackCutter, ArchipackObject, Manipulable, Prope
             Create boundary from roof
         """
         self.auto_update = False
+        self.manipulable_disable(context)
         self.from_points(pts)
+        self.manipulable_refresh = True
         self.auto_update = True
         if update_parent:
             self.update_parent(context, o)
+        # print("update_points")
 
     def update_parent(self, context, o):
 
@@ -4780,6 +4783,7 @@ class archipack_roof_cutter(ArchipackCutter, ArchipackObject, Manipulable, Prope
             d.update(context, update_childs=False, update_hole=False)
         o.parent.select = False
         context.scene.objects.active = o
+        # print("update_parent")
 
 
 class ARCHIPACK_PT_roof_cutter(Panel):
@@ -4800,19 +4804,23 @@ class ARCHIPACK_PT_roof_cutter(Panel):
         layout = self.layout
         scene = context.scene
         box = layout.box()
-        box.operator('archipack.roof_cutter_manipulate', icon='HAND')
-        box.prop(prop, 'operation', text="")
-        box = layout.box()
-        box.label(text="From curve")
-        box.prop_search(prop, "user_defined_path", scene, "objects", text="", icon='OUTLINER_OB_CURVE')
-        if prop.user_defined_path != "":
-            box.prop(prop, 'user_defined_resolution')
-            # box.prop(prop, 'x_offset')
-            # box.prop(prop, 'angle_limit')
-        """
-        box.prop_search(prop, "boundary", scene, "objects", text="", icon='OUTLINER_OB_CURVE')
-        """
-        prop.draw(layout, context)
+        if prop.boundary != "":
+            box.label(text="Auto Cutter:")
+            box.label(text=prop.boundary)
+        else:
+            box.operator('archipack.roof_cutter_manipulate', icon='HAND')
+            box.prop(prop, 'operation', text="")
+            box = layout.box()
+            box.label(text="From curve")
+            box.prop_search(prop, "user_defined_path", scene, "objects", text="", icon='OUTLINER_OB_CURVE')
+            if prop.user_defined_path != "":
+                box.prop(prop, 'user_defined_resolution')
+                # box.prop(prop, 'x_offset')
+                # box.prop(prop, 'angle_limit')
+            """
+            box.prop_search(prop, "boundary", scene, "objects", text="", icon='OUTLINER_OB_CURVE')
+            """
+            prop.draw(layout, context)
 
 
 class ARCHIPACK_PT_roof(Panel):
