@@ -62,7 +62,7 @@ class CutterSegment(Line):
 
     def offset(self, offset):
         s = self.copy
-        s.p += offset * self.cross_z.normalized()
+        s.p += self.sized_normal(0, offset).v
         return s
 
     @property
@@ -206,6 +206,18 @@ class CutAblePolygon():
         - holes
         - convex
     """
+    def as_lines(self, step_angle=0.104):
+        """
+            Convert curved segments to straight lines
+        """
+        segs = []
+        for s in self.segs:
+            if "Curved" in type(s).__name__:
+                dt, steps = s.steps_by_angle(step_angle)
+                segs.extend(s.as_lines(steps))
+            else:
+                segs.append(s)
+        self.segs = segs
 
     def inside(self, pt, segs=None):
         """
@@ -471,8 +483,9 @@ class CutAbleGenerator():
                             of = offset[s.type]
                         else:
                             of = offset['DEFAULT']
-                        p0 = s.p0 + s.cross_z.normalized() * of
-                        self.bissect(bm, p0.to_3d(), s.cross_z.to_3d(), clear_outer=False)
+                        n = s.sized_normal(0, 1).v
+                        p0 = s.p0 + n * of
+                        self.bissect(bm, p0.to_3d(), n.to_3d(), clear_outer=False)
 
                 # compute boundary with offset
                 new_s = None
@@ -495,7 +508,8 @@ class CutAbleGenerator():
             else:
                 for s in hole.segs:
                     if s.length > 0:
-                        self.bissect(bm, s.p0.to_3d(), s.cross_z.to_3d(), clear_outer=False)
+                        n = s.sized_normal(0, 1).v
+                        self.bissect(bm, s.p0.to_3d(), n.to_3d(), clear_outer=False)
                 # use hole boundary
                 segs = hole.segs
             if len(segs) > 0:
@@ -518,12 +532,14 @@ class CutAbleGenerator():
                         of = offset[s.type]
                     else:
                         of = offset['DEFAULT']
-                    p0 = s.p0 + s.cross_z.normalized() * of
-                    self.bissect(bm, p0.to_3d(), s.cross_z.to_3d(), clear_outer=cutable.convex)
+                    n = s.sized_normal(0, 1).v
+                    p0 = s.p0 + n * of
+                    self.bissect(bm, p0.to_3d(), n.to_3d(), clear_outer=cutable.convex)
         else:
             for s in cutable.segs:
                 if s.length > 0:
-                    self.bissect(bm, s.p0.to_3d(), s.cross_z.to_3d(), clear_outer=cutable.convex)
+                    n = s.sized_normal(0, 1).v
+                    self.bissect(bm, s.p0.to_3d(), n.to_3d(), clear_outer=cutable.convex)
 
         if not cutable.convex:
             f_geom = [f for f in bm.faces

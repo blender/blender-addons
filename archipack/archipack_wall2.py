@@ -577,11 +577,21 @@ def update_type(self, context):
             else:
                 w = w0.curved_wall(self.a0, self.da, self.radius, d.z, self.z, self.t)
         else:
-            g = WallGenerator(None)
-            g.add_part(self, d.z, d.flip)
-            w = g.segs[0]
+            if "C_" in self.type:
+                p = Vector((0, 0))
+                v = self.length * Vector((cos(self.a0), sin(self.a0)))
+                w = StraightWall(p, v, d.z, self.z, self.t, d.flip)
+                a0 = pi / 2
+            else:
+                c = -self.radius * Vector((cos(self.a0), sin(self.a0)))
+                w = CurvedWall(c, self.radius, self.a0, pi, d.z, self.z, self.t, d.flip)
+
         # w0 - w - w1
-        dp = w.p1 - w.p0
+        if d.closed and idx == d.n_parts:
+            dp = - w.p0
+        else:
+            dp = w.p1 - w.p0
+
         if "C_" in self.type:
             self.radius = 0.5 * dp.length
             self.da = pi
@@ -1088,13 +1098,37 @@ class archipack_wall2(ArchipackObject, Manipulable, PropertyGroup):
     def reverse(self, context, o):
 
         g = self.get_generator()
+
+        self.auto_update = False
+
         pts = [seg.p0.to_3d() for seg in g.segs]
+
+        if not self.closed:
+            g.segs.pop()
+
+        g_segs = list(reversed(g.segs))
+
+        last_seg = None
+
+        for i, seg in enumerate(g_segs):
+
+            s = seg.oposite
+            if "Curved" in type(seg).__name__:
+                self.parts[i].type = "C_WALL"
+                self.parts[i].radius = s.r
+                self.parts[i].da = s.da
+            else:
+                self.parts[i].type = "S_WALL"
+                self.parts[i].length = s.length
+
+            self.parts[i].a0 = s.delta_angle(last_seg)
+
+            last_seg = s
 
         if self.closed:
             pts.append(pts[0])
 
         pts = list(reversed(pts))
-        self.auto_update = False
 
         # location wont change for closed walls
         if not self.closed:
@@ -1107,7 +1141,8 @@ class archipack_wall2(ArchipackObject, Manipulable, PropertyGroup):
                 [0, 0, 0, 1],
                 ])
 
-        self.from_points(pts, self.closed)
+        # self.from_points(pts, self.closed)
+
         g = self.get_generator()
 
         self.setup_childs(o, g)

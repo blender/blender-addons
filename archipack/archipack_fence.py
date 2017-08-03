@@ -52,7 +52,6 @@ class Fence():
         self.t_end = 0
         self.dz = 0
         self.z0 = 0
-        self.a0 = 0
 
     def set_offset(self, offset, last=None):
         """
@@ -622,12 +621,19 @@ def update_type(self, context):
             else:
                 w = w0.curved_fence(part.a0, part.da, part.radius)
         else:
-            g = FenceGenerator(None)
-            g.add_part(self)
-            w = g.segs[0]
+            if "C_" in self.type:
+                p = Vector((0, 0))
+                v = self.length * Vector((cos(self.a0), sin(self.a0)))
+                w = StraightFence(p, v)
+                a0 = pi / 2
+            else:
+                c = -self.radius * Vector((cos(self.a0), sin(self.a0)))
+                w = CurvedFence(c, self.radius, self.a0, pi)
 
-        # w0 - w - w1
+        # not closed, see wall
+        # for closed ability
         dp = w.p1 - w.p0
+
         if "C_" in self.type:
             part.radius = 0.5 * dp.length
             part.da = pi

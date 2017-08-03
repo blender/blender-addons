@@ -246,6 +246,13 @@ class FloorGenerator(CutAblePolygon, CutAbleGenerator):
     def limits(self):
         x_size = [s.p0.x for s in self.segs]
         y_size = [s.p0.y for s in self.segs]
+        for s in self.segs:
+            if "Curved" in type(s).__name__:
+                x_size.append(s.c.x + s.r)
+                x_size.append(s.c.x - s.r)
+                y_size.append(s.c.y + s.r)
+                y_size.append(s.c.y - s.r)
+
         self.xmin = min(x_size)
         self.xmax = max(x_size)
         self.xsize = self.xmax - self.xmin
@@ -258,6 +265,7 @@ class FloorGenerator(CutAblePolygon, CutAbleGenerator):
             either external or holes cuts
         """
         self.limits()
+        self.as_lines()
         self.is_convex()
         for b in o.children:
             d = archipack_floor_cutter.datablock(b)
@@ -857,12 +865,21 @@ def update_type(self, context):
             else:
                 w = w0.curved_floor(part.a0, part.da, part.radius)
         else:
-            g = FloorGenerator(None)
-            g.add_part(self)
-            w = g.segs[0]
+            if "C_" in self.type:
+                p = Vector((0, 0))
+                v = self.length * Vector((cos(self.a0), sin(self.a0)))
+                w = StraightFloor(p, v)
+                a0 = pi / 2
+            else:
+                c = -self.radius * Vector((cos(self.a0), sin(self.a0)))
+                w = CurvedFloor(c, self.radius, self.a0, pi)
 
         # w0 - w - w1
-        dp = w.p1 - w.p0
+        if idx + 1 == d.n_parts:
+            dp = - w.p0
+        else:
+            dp = w.p1 - w.p0
+
         if "C_" in self.type:
             part.radius = 0.5 * dp.length
             part.da = pi
