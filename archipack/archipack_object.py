@@ -97,7 +97,7 @@ class ArchipackObject():
             return None
 
         active = context.active_object
-        selected = [o for o in context.selected_objects]
+        selected = context.selected_objects[:]
 
         for o in selected:
             if self.__class__.datablock(o) == self:

@@ -72,7 +72,7 @@ def get_cols(self):
 
 class archipack_window_panelrow(PropertyGroup):
     width = FloatVectorProperty(
-            name="width",
+            name="Width",
             min=0.5,
             max=100.0,
             default=[
@@ -96,7 +96,7 @@ class archipack_window_panelrow(PropertyGroup):
             update=update
             )
     cols = IntProperty(
-            name="panels",
+            name="Panels",
             description="number of panels getter and setter, to avoid infinite recursion",
             min=1,
             max=32,
@@ -104,7 +104,7 @@ class archipack_window_panelrow(PropertyGroup):
             get=get_cols, set=set_cols
             )
     n_cols = IntProperty(
-            name="panels",
+            name="Panels",
             description="store number of panels, internal use only to avoid infinite recursion",
             min=1,
             max=32,
@@ -426,28 +426,28 @@ class archipack_window_panel(ArchipackObject, PropertyGroup):
 
 class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
     x = FloatProperty(
-            name='width',
+            name='Width',
             min=0.25,
             default=100.0, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             description='Width', update=update
             )
     y = FloatProperty(
-            name='depth',
+            name='Depth',
             min=0.1,
             default=0.20, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             description='Depth', update=update,
             )
     z = FloatProperty(
-            name='height',
+            name='Height',
             min=0.1,
             default=1.2, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             description='height', update=update,
             )
     angle_y = FloatProperty(
-            name='angle',
+            name='Angle',
             unit='ROTATION',
             subtype='ANGLE',
             min=-1.5, max=1.5,
@@ -455,27 +455,27 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
             description='angle', update=update,
             )
     radius = FloatProperty(
-            name='radius',
+            name='Radius',
             min=0.1,
             default=2.5, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             description='radius', update=update,
             )
     elipsis_b = FloatProperty(
-            name='ellipsis',
+            name='Ellipsis',
             min=0.1,
             default=0.5, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             description='ellipsis vertical size', update=update,
             )
     altitude = FloatProperty(
-            name='altitude',
+            name='Altitude',
             default=1.0, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             description='altitude', update=update,
             )
     offset = FloatProperty(
-            name='offset',
+            name='Offset',
             default=0.1, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             description='offset', update=update,
@@ -520,7 +520,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
             description='frame width set to 0 disable front frame', update=update,
             )
     out_frame_offset = FloatProperty(
-            name='offset',
+            name='Offset',
             min=0.0,
             default=0.0, precision=3, step=0.1,
             unit='LENGTH', subtype='DISTANCE',
@@ -603,13 +603,13 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
             )
     rows = CollectionProperty(type=archipack_window_panelrow)
     n_rows = IntProperty(
-            name="number of rows",
+            name="Number of rows",
             min=1,
             max=32,
             default=1, update=update,
             )
     curve_steps = IntProperty(
-            name="curve steps",
+            name="Steps",
             min=6,
             max=128,
             default=16, update=update,
@@ -652,22 +652,22 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
             )
     warning = BoolProperty(
             options={'SKIP_SAVE'},
-            name="warning",
+            name="Warning",
             default=False
             )
     handle_enable = BoolProperty(
-            name='handle',
+            name='Handle',
             default=True, update=update_childs,
             )
     handle_altitude = FloatProperty(
-            name="altitude",
+            name="Altitude",
             min=0,
             default=1.4, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             description='handle altitude', update=update_childs,
             )
     hole_margin = FloatProperty(
-            name='hole margin',
+            name='Hole margin',
             min=0.0,
             default=0.1, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',

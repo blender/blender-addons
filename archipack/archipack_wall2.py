@@ -623,21 +623,21 @@ class archipack_wall2_part(PropertyGroup):
             update=update_type
             )
     length = FloatProperty(
-            name="length",
+            name="Length",
             min=0.01,
             default=2.0,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     radius = FloatProperty(
-            name="radius",
+            name="Radius",
             min=0.5,
             default=0.7,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     a0 = FloatProperty(
-            name="start angle",
+            name="Start angle",
             min=-pi,
             max=pi,
             default=pi / 2,
@@ -645,7 +645,7 @@ class archipack_wall2_part(PropertyGroup):
             update=update
             )
     da = FloatProperty(
-            name="angle",
+            name="Angle",
             min=-pi,
             max=pi,
             default=pi / 2,
@@ -653,7 +653,7 @@ class archipack_wall2_part(PropertyGroup):
             update=update
             )
     z = FloatVectorProperty(
-            name="height",
+            name="Height",
             default=[
                 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0,
@@ -664,7 +664,7 @@ class archipack_wall2_part(PropertyGroup):
             update=update
             )
     t = FloatVectorProperty(
-            name="position",
+            name="Position",
             min=0,
             max=1,
             default=[
@@ -677,19 +677,19 @@ class archipack_wall2_part(PropertyGroup):
             update=update
             )
     splits = IntProperty(
-        name="splits",
-        default=1,
-        min=1,
-        max=31,
-        get=get_splits, set=set_splits
-        )
+            name="Splits",
+            default=1,
+            min=1,
+            max=31,
+            get=get_splits, set=set_splits
+            )
     n_splits = IntProperty(
-        name="splits",
-        default=1,
-        min=1,
-        max=31,
-        update=update
-        )
+            name="Splits",
+            default=1,
+            min=1,
+            max=31,
+            update=update
+            )
     auto_update = BoolProperty(default=True)
     manipulators = CollectionProperty(type=archipack_manipulator)
     # ui related
@@ -777,14 +777,14 @@ class archipack_wall2_child(PropertyGroup):
 class archipack_wall2(ArchipackObject, Manipulable, PropertyGroup):
     parts = CollectionProperty(type=archipack_wall2_part)
     n_parts = IntProperty(
-            name="parts",
+            name="Parts",
             min=1,
             max=1024,
             default=1, update=update_manipulators
             )
     step_angle = FloatProperty(
             description="Curved parts segmentation",
-            name="step angle",
+            name="Step angle",
             min=1 / 180 * pi,
             max=pi,
             default=6 / 180 * pi,
@@ -792,41 +792,45 @@ class archipack_wall2(ArchipackObject, Manipulable, PropertyGroup):
             update=update
             )
     width = FloatProperty(
-            name="width",
+            name="Width",
             min=0.01,
             default=0.2,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     z = FloatProperty(
-            name='height',
+            name='Height',
             min=0.1,
             default=2.7, precision=2,
             unit='LENGTH', subtype='DISTANCE',
             description='height', update=update,
             )
     x_offset = FloatProperty(
-            name="x offset",
+            name="Offset",
             min=-1, max=1,
             default=-1, precision=2, step=1,
             update=update
             )
     radius = FloatProperty(
-            name="radius",
+            name="Radius",
             min=0.5,
             default=0.7,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     da = FloatProperty(
-            name="angle",
+            name="Angle",
             min=-pi,
             max=pi,
             default=pi / 2,
             subtype='ANGLE', unit='ROTATION',
             update=update
             )
-    flip = BoolProperty(default=False, update=update_childs)
+    flip = BoolProperty(
+            name="Flip",
+            default=False,
+            update=update_childs
+            )
     closed = BoolProperty(
             default=False,
             name="Close",
@@ -840,7 +844,7 @@ class archipack_wall2(ArchipackObject, Manipulable, PropertyGroup):
     realtime = BoolProperty(
             options={'SKIP_SAVE'},
             default=True,
-            name="RealTime",
+            name="Real Time",
             description="Relocate childs in realtime"
             )
     # dumb manipulators to show sizes between childs

@@ -282,8 +282,8 @@ class ARCHIPACK_OT_render(Operator):
             if "archipack_output" in bpy.data.images:
                 out_img = bpy.data.images["archipack_output"]
                 if out_img is not None:
-                    out_img.user_clear()
-                    bpy.data.images.remove(out_img)
+                    # out_img.user_clear()
+                    bpy.data.images.remove(out_img, do_unlink=True)
 
             out = bpy.data.images.new("archipack_output", width, height)
             tmp_pixels = [1] * totpixel4
@@ -403,8 +403,8 @@ class ARCHIPACK_OT_render(Operator):
             img.gl_free()  # free opengl image memory
 
             # delete image
-            img.user_clear()
-            bpy.data.images.remove(img)
+            # img.user_clear()
+            bpy.data.images.remove(img, do_unlink=True)
             # remove temp file
             remove(outpath)
             # reset
@@ -461,6 +461,10 @@ class ARCHIPACK_OT_render(Operator):
                     d = o.data.archipack_stair[0]
                 elif 'archipack_fence' in o.data:
                     d = o.data.archipack_fence[0]
+                elif 'archipack_floor' in o.data:
+                    d = o.data.archipack_floor[0]
+                elif 'archipack_roof' in o.data:
+                    d = o.data.archipack_roof[0]
                 if d is not None:
                     objlist.append((o, d))
         return objlist

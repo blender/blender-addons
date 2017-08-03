@@ -435,19 +435,19 @@ class ArchipackSegment():
             update=update_type
             )
     length = FloatProperty(
-            name="length",
+            name="Length",
             min=0.01,
             default=2.0,
             update=update
             )
     radius = FloatProperty(
-            name="radius",
+            name="Radius",
             min=0.5,
             default=0.7,
             update=update
             )
     da = FloatProperty(
-            name="angle",
+            name="Angle",
             min=-pi,
             max=pi,
             default=pi / 2,
@@ -455,7 +455,7 @@ class ArchipackSegment():
             update=update
             )
     a0 = FloatProperty(
-            name="start angle",
+            name="Start angle",
             min=-2 * pi,
             max=2 * pi,
             default=0,
@@ -538,7 +538,7 @@ class archipack_slab_part(ArchipackSegment, PropertyGroup):
 class archipack_slab(ArchipackObject, Manipulable, PropertyGroup):
     # boundary
     n_parts = IntProperty(
-            name="parts",
+            name="Parts",
             min=1,
             default=1, update=update_manipulators
             )
@@ -556,20 +556,20 @@ class archipack_slab(ArchipackObject, Manipulable, PropertyGroup):
             )
 
     x_offset = FloatProperty(
-            name="x offset",
+            name="Offset",
             min=-1000, max=1000,
             default=0.0, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     z = FloatProperty(
-            name="z",
+            name="Thickness",
             default=0.3, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     auto_synch = BoolProperty(
-            name="AutoSynch",
+            name="Auto-Synch",
             description="Keep wall in synch when editing",
             default=True,
             update=update_manipulators

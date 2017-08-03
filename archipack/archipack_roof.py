@@ -1333,6 +1333,8 @@ class RoofGenerator(CutAbleGenerator):
 
         # triangular ends
         for node in self.nodes:
+            if node.root is None:
+                continue
             if node.n_horizontal == 1 and node.root.seg.triangular_end:
                 if node.root.reversed:
                     # Next side (segment end)
@@ -1882,7 +1884,7 @@ class RoofGenerator(CutAbleGenerator):
         if d.quick_edit:
             context.scene.archipack_progress = -1
 
-    def _rake(self, s, i, boundary, pan,
+    def _bargeboard(self, s, i, boundary, pan,
             width, height, altitude, offset, idmat,
             verts, faces, edges, matids, uvs):
 
@@ -1992,7 +1994,7 @@ class RoofGenerator(CutAbleGenerator):
             [(0, 0), (0, 1), (1, 1), (1, 0)]
         ])
 
-    def rake(self, d, verts, faces, edges, matids, uvs):
+    def bargeboard(self, d, verts, faces, edges, matids, uvs):
 
         #####################
         # Vire-vents
@@ -2004,13 +2006,13 @@ class RoofGenerator(CutAbleGenerator):
             for hole in pan.holes:
                 for i, s in enumerate(hole.segs):
                     if s.type == 'SIDE':
-                        self._rake(s,
+                        self._bargeboard(s,
                             i,
                             hole, pan,
-                            d.rake_width,
-                            d.rake_height,
-                            d.rake_altitude,
-                            d.rake_offset,
+                            d.bargeboard_width,
+                            d.bargeboard_height,
+                            d.bargeboard_altitude,
+                            d.bargeboard_offset,
                             idmat,
                             verts,
                             faces,
@@ -2020,13 +2022,13 @@ class RoofGenerator(CutAbleGenerator):
 
             for i, s in enumerate(pan.segs):
                 if s.type == 'SIDE':
-                    self._rake(s,
+                    self._bargeboard(s,
                         i,
                         pan, pan,
-                        d.rake_width,
-                        d.rake_height,
-                        d.rake_altitude,
-                        d.rake_offset,
+                        d.bargeboard_width,
+                        d.bargeboard_height,
+                        d.bargeboard_altitude,
+                        d.bargeboard_offset,
                         idmat,
                         verts,
                         faces,
@@ -2034,7 +2036,7 @@ class RoofGenerator(CutAbleGenerator):
                         matids,
                         uvs)
 
-    def _facia(self, s, i, boundary, pan, tri_0, tri_1,
+    def _fascia(self, s, i, boundary, pan, tri_0, tri_1,
             width, height, altitude, offset, idmat,
             verts, faces, edges, matids, uvs):
 
@@ -2170,7 +2172,7 @@ class RoofGenerator(CutAbleGenerator):
             [(0, 0), (0, 1), (1, 1), (1, 0)]
         ])
 
-    def facia(self, d, verts, faces, edges, matids, uvs):
+    def fascia(self, d, verts, faces, edges, matids, uvs):
 
         #####################
         # Larmiers
@@ -2182,14 +2184,14 @@ class RoofGenerator(CutAbleGenerator):
             for hole in pan.holes:
                 for i, s in enumerate(hole.segs):
                     if s.type == 'BOTTOM':
-                        self._facia(s,
+                        self._fascia(s,
                             i,
                             hole, pan,
                             False, False,
-                            d.facia_width,
-                            d.facia_height,
-                            d.facia_altitude,
-                            d.facia_offset,
+                            d.fascia_width,
+                            d.fascia_height,
+                            d.fascia_altitude,
+                            d.fascia_offset,
                             idmat,
                             verts,
                             faces,
@@ -2209,14 +2211,14 @@ class RoofGenerator(CutAbleGenerator):
                     if pan.side == 'LEFT':
                         tri_0, tri_1 = tri_1, tri_0
 
-                    self._facia(s,
+                    self._fascia(s,
                         i,
                         pan, pan,
                         tri_0, tri_1,
-                        d.facia_width,
-                        d.facia_height,
-                        d.facia_altitude,
-                        d.facia_offset,
+                        d.fascia_width,
+                        d.fascia_height,
+                        d.fascia_altitude,
+                        d.fascia_offset,
                         idmat,
                         verts,
                         faces,
@@ -2227,7 +2229,7 @@ class RoofGenerator(CutAbleGenerator):
                     continue
 
                     f = len(verts)
-                    s0 = s.offset(d.facia_width)
+                    s0 = s.offset(d.fascia_width)
 
                     s1 = pan.last_seg(i)
                     s2 = pan.next_seg(i)
@@ -2262,7 +2264,7 @@ class RoofGenerator(CutAbleGenerator):
                         s1.type = 'SIDE'
                         s1.v = s.sized_normal(0, 1).v
                     else:
-                        s1 = s1.offset(d.facia_width)
+                        s1 = s1.offset(d.fascia_width)
 
                     # find next neighboor depending on type
                     if s2.type == 'AXIS' or 'LINK' in s2.type:
@@ -2283,7 +2285,7 @@ class RoofGenerator(CutAbleGenerator):
                         s2.v = s.sized_normal(0, 1).v
                     else:
 
-                        s2 = s2.offset(d.facia_width)
+                        s2 = s2.offset(d.fascia_width)
 
                     # units vectors and scale
                     # is unit normal on sides
@@ -2295,16 +2297,16 @@ class RoofGenerator(CutAbleGenerator):
                     x1, y1 = p0
                     x2, y2 = p1
                     x3, y3 = s.p1
-                    z0 = self.z + d.facia_altitude + pan.altitude(s.p0)
-                    z1 = self.z + d.facia_altitude + pan.altitude(s.p1)
+                    z0 = self.z + d.fascia_altitude + pan.altitude(s.p0)
+                    z1 = self.z + d.fascia_altitude + pan.altitude(s.p1)
                     verts.extend([
                         (x0, y0, z0),
                         (x1, y1, z0),
                         (x2, y2, z1),
                         (x3, y3, z1),
                     ])
-                    z0 -= d.facia_height
-                    z1 -= d.facia_height
+                    z0 -= d.fascia_height
+                    z1 -= d.fascia_height
                     verts.extend([
                         (x0, y0, z0),
                         (x1, y1, z0),
@@ -2446,7 +2448,7 @@ class RoofGenerator(CutAbleGenerator):
                     s3 = Line(s.p0, v0.normalized())
                     s4 = Line(s.p1, v1.normalized())
 
-                    zt = self.z + d.facia_altitude + pan.altitude(s3.p0)
+                    zt = self.z + d.fascia_altitude + pan.altitude(s3.p0)
                     z0 = self.z + d.gutter_alt + pan.altitude(s3.p0)
                     z1 = z0 - 0.5 * d.gutter_width
                     z2 = z1 - 0.5 * d.gutter_width
@@ -2454,7 +2456,7 @@ class RoofGenerator(CutAbleGenerator):
                     dz0 = z2 - z1
                     dz1 = z3 - z1
 
-                    tt = scale_0 * d.facia_width
+                    tt = scale_0 * d.fascia_width
                     t0 = scale_0 * d.gutter_dist
                     t1 = t0 + scale_0 * (0.5 * d.gutter_width)
                     t2 = t1 + scale_0 * (0.5 * d.gutter_width)
@@ -2493,14 +2495,14 @@ class RoofGenerator(CutAbleGenerator):
                         ca = cos(i * da)
                         verts.append((x3 + dx * ca, y3 + dy * ca, z1 + dz1 * sa))
 
-                    zt = self.z + d.facia_altitude + pan.altitude(s4.p0)
+                    zt = self.z + d.fascia_altitude + pan.altitude(s4.p0)
                     z0 = self.z + d.gutter_alt + pan.altitude(s4.p0)
                     z1 = z0 - 0.5 * d.gutter_width
                     z2 = z1 - 0.5 * d.gutter_width
                     z3 = z1 - 0.5 * d.gutter_boudin
                     dz0 = z2 - z1
                     dz1 = z3 - z1
-                    tt = scale_1 * d.facia_width
+                    tt = scale_1 * d.fascia_width
                     t0 = scale_1 * d.gutter_dist
                     t1 = t0 + scale_1 * (0.5 * d.gutter_width)
                     t2 = t1 + scale_1 * (0.5 * d.gutter_width)
@@ -2631,7 +2633,7 @@ class RoofGenerator(CutAbleGenerator):
                     if pan.side == 'LEFT':
                         s0_tri, s1_tri = s1_tri, s0_tri
 
-                    if s0.type == 'SIDE':
+                    if s0.type == 'SIDE' and s.length > 0:
                         s0 = s0.offset(d.beam_offset)
                         t0 = -d.beam_offset / s.length
 
@@ -2643,7 +2645,7 @@ class RoofGenerator(CutAbleGenerator):
                         if not res:
                             continue
 
-                    if s1.type == 'SIDE':
+                    if s1.type == 'SIDE' and s.length > 0:
                         s1 = s1.offset(d.beam_offset)
                         t1 = 1 + d.beam_offset / s.length
 
@@ -3096,11 +3098,11 @@ class RoofGenerator(CutAbleGenerator):
                     tmin = 0
                     tmax = 1
                     s0 = pan.last_seg(i)
-                    if s0.type == 'SIDE':
+                    if s0.type == 'SIDE' and s.length > 0:
                         tmin = 0 - d.tile_side / s.length
                     s1 = pan.next_seg(i)
 
-                    if s1.type == 'SIDE':
+                    if s1.type == 'SIDE' and s.length > 0:
                         tmax = 1 + d.tile_side / s.length
 
                     # print("tmin:%s tmax:%s" % (tmin, tmax))
@@ -3493,14 +3495,14 @@ def update_components(self, context):
 
 class ArchipackSegment():
     length = FloatProperty(
-            name="length",
+            name="Length",
             min=0.01,
             max=1000.0,
             default=4.0,
             update=update
             )
     a0 = FloatProperty(
-            name="angle",
+            name="Angle",
             min=-2 * pi,
             max=2 * pi,
             default=0,
@@ -3512,7 +3514,7 @@ class ArchipackSegment():
 
 class ArchipackLines():
     n_parts = IntProperty(
-            name="parts",
+            name="Parts",
             min=1,
             default=1, update=update_manipulators
             )
@@ -3579,6 +3581,7 @@ class ArchipackLines():
 class archipack_roof_segment(ArchipackSegment, PropertyGroup):
 
     bound_idx = IntProperty(
+            name="Link to",
             default=0,
             min=0,
             update=update_manipulators
@@ -3632,7 +3635,7 @@ class archipack_roof_segment(ArchipackSegment, PropertyGroup):
             update=update_manipulators
             )
     triangular_end = BoolProperty(
-            name="Tri end",
+            name="Triangular end",
             default=False,
             update=update
             )
@@ -3719,7 +3722,7 @@ class archipack_roof_segment(ArchipackSegment, PropertyGroup):
 class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup):
     parts = CollectionProperty(type=archipack_roof_segment)
     z = FloatProperty(
-            name="z",
+            name="Altitude",
             default=3, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update_childs
@@ -3727,13 +3730,11 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
     slope_left = FloatProperty(
             name="L slope",
             default=0.5, precision=2, step=1,
-            # unit='LENGTH', subtype='DISTANCE',
             update=update_childs
             )
     slope_right = FloatProperty(
             name="R slope",
             default=0.5, precision=2, step=1,
-            # unit='LENGTH', subtype='DISTANCE',
             update=update_childs
             )
     width_left = FloatProperty(
@@ -3824,7 +3825,7 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             update=update_components
             )
     tile_size_x = FloatProperty(
-            name="x",
+            name="Width",
             description="Size of tiles on x axis",
             min=0.01,
             default=0.2,
@@ -3832,7 +3833,7 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             update=update_components
             )
     tile_size_y = FloatProperty(
-            name="y",
+            name="Length",
             description="Size of tiles on y axis",
             min=0.01,
             default=0.3,
@@ -3840,7 +3841,7 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             update=update_components
             )
     tile_size_z = FloatProperty(
-            name="z",
+            name="Thickness",
             description="Size of tiles on z axis",
             min=0.0,
             default=0.02,
@@ -3848,7 +3849,7 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             update=update_components
             )
     tile_space_x = FloatProperty(
-            name="x",
+            name="Width",
             description="Space between tiles on x axis",
             min=0.01,
             default=0.2,
@@ -3856,7 +3857,7 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             update=update_components
             )
     tile_space_y = FloatProperty(
-            name="y",
+            name="Length",
             description="Space between tiles on y axis",
             min=0.01,
             default=0.3,
@@ -3882,7 +3883,7 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             default=False
             )
     tile_model = EnumProperty(
-            name="model",
+            name="Model",
             items=(
                 ('BRAAS1', 'Braas 1', '', 0),
                 ('BRAAS2', 'Braas 2', '', 1),
@@ -3977,7 +3978,7 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             default=False
             )
     beam_enable = BoolProperty(
-            name="Primary",
+            name="Ridge pole",
             default=True,
             update=update_components
             )
@@ -4112,7 +4113,7 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             update=update_components
             )
     hip_size_x = FloatProperty(
-            name="l",
+            name="Length",
             description="Length of hip",
             min=0.01,
             default=0.4,
@@ -4120,7 +4121,7 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             update=update_components
             )
     hip_size_y = FloatProperty(
-            name="w",
+            name="Width",
             description="Width of hip",
             min=0.01,
             default=0.15,
@@ -4128,7 +4129,7 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             update=update_components
             )
     hip_size_z = FloatProperty(
-            name="h",
+            name="Height",
             description="Height of hip",
             min=0.0,
             default=0.15,
@@ -4136,7 +4137,7 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             update=update_components
             )
     hip_model = EnumProperty(
-            name="model",
+            name="Model",
             items=(
                 ('ROUND', 'Round', '', 0),
                 ('ETERNIT', 'Eternit', '', 1),
@@ -4158,19 +4159,19 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             update=update_components
             )
 
-    facia_enable = BoolProperty(
+    fascia_enable = BoolProperty(
             name="Enable",
-            description="Enable Facia",
+            description="Enable Fascia",
             default=True,
             update=update_components
             )
-    facia_expand = BoolProperty(
+    fascia_expand = BoolProperty(
             options={'SKIP_SAVE'},
-            name="Facia",
-            description="Expand facia panel",
+            name="Fascia",
+            description="Expand fascia panel",
             default=False
             )
-    facia_height = FloatProperty(
+    fascia_height = FloatProperty(
             name="Height",
             description="Height",
             min=0.01,
@@ -4178,7 +4179,7 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             unit='LENGTH', subtype='DISTANCE',
             update=update_components
             )
-    facia_width = FloatProperty(
+    fascia_width = FloatProperty(
             name="Width",
             description="Width",
             min=0.01,
@@ -4186,34 +4187,34 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             unit='LENGTH', subtype='DISTANCE',
             update=update_components
             )
-    facia_offset = FloatProperty(
+    fascia_offset = FloatProperty(
             name="Offset",
             description="Offset from roof border",
             default=0,
             unit='LENGTH', subtype='DISTANCE',
             update=update_components
             )
-    facia_altitude = FloatProperty(
+    fascia_altitude = FloatProperty(
             name="Altitude",
-            description="Facia altitude from roof",
+            description="Fascia altitude from roof",
             default=0.1,
             unit='LENGTH', subtype='DISTANCE',
             update=update_components
             )
 
-    rake_enable = BoolProperty(
+    bargeboard_enable = BoolProperty(
             name="Enable",
-            description="Enable Rake",
+            description="Enable Bargeboard",
             default=True,
             update=update_components
             )
-    rake_expand = BoolProperty(
+    bargeboard_expand = BoolProperty(
             options={'SKIP_SAVE'},
-            name="Rake",
-            description="Expand rake panel",
+            name="Bargeboard",
+            description="Expand Bargeboard panel",
             default=False
             )
-    rake_height = FloatProperty(
+    bargeboard_height = FloatProperty(
             name="Height",
             description="Height",
             min=0.01,
@@ -4221,7 +4222,7 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             unit='LENGTH', subtype='DISTANCE',
             update=update_components
             )
-    rake_width = FloatProperty(
+    bargeboard_width = FloatProperty(
             name="Width",
             description="Width",
             min=0.01,
@@ -4229,16 +4230,16 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
             unit='LENGTH', subtype='DISTANCE',
             update=update_components
             )
-    rake_offset = FloatProperty(
+    bargeboard_offset = FloatProperty(
             name="Offset",
             description="Offset from roof border",
             default=0.001,
             unit='LENGTH', subtype='DISTANCE',
             update=update_components
             )
-    rake_altitude = FloatProperty(
+    bargeboard_altitude = FloatProperty(
             name="Altitude",
-            description="Facia altitude from roof",
+            description="Fascia altitude from roof",
             default=0.1,
             unit='LENGTH', subtype='DISTANCE',
             update=update_components
@@ -4606,11 +4607,11 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
 
         else:
 
-            if self.rake_enable:
-                g.rake(self, verts, faces, edges, matids, uvs)
+            if self.bargeboard_enable:
+                g.bargeboard(self, verts, faces, edges, matids, uvs)
 
-            if self.facia_enable:
-                g.facia(self, verts, faces, edges, matids, uvs)
+            if self.fascia_enable:
+                g.fascia(self, verts, faces, edges, matids, uvs)
 
             if self.beam_enable:
                 g.beam_primary(self, verts, faces, edges, matids, uvs)
@@ -4729,7 +4730,7 @@ class archipack_roof_cutter_segment(ArchipackCutterPart, PropertyGroup):
     type = EnumProperty(
         name="Type",
         items=(
-            ('SIDE', 'Side', 'Side with rake', 0),
+            ('SIDE', 'Side', 'Side with bargeboard', 0),
             ('BOTTOM', 'Bottom', 'Bottom with gutter', 1),
             ('LINK', 'Side link', 'Side witout decoration', 2),
             ('AXIS', 'Top', 'Top part with hip and beam', 3)
@@ -4867,9 +4868,9 @@ class ARCHIPACK_PT_roof(Panel):
         box = layout.box()
         row = box.row(align=True)
         if prop.tile_expand:
-            row.prop(prop, 'tile_expand', icon="TRIA_DOWN", text="Tiles", icon_only=True, emboss=False)
+            row.prop(prop, 'tile_expand', icon="TRIA_DOWN", text="Covering", icon_only=True, emboss=False)
         else:
-            row.prop(prop, 'tile_expand', icon="TRIA_RIGHT", text="Tiles", icon_only=True, emboss=False)
+            row.prop(prop, 'tile_expand', icon="TRIA_RIGHT", text="Covering", icon_only=True, emboss=False)
         row.prop(prop, 'tile_enable')
         if prop.tile_expand:
             box.prop(prop, 'tile_model', text="")
@@ -4884,10 +4885,9 @@ class ARCHIPACK_PT_roof(Panel):
                 box.prop(prop, 'tile_bevel_segs')
                 box.separator()
             box.label(text="Tile size")
-            row = box.row(align=True)
-            row.prop(prop, 'tile_size_x')
-            row.prop(prop, 'tile_size_y')
-            row.prop(prop, 'tile_size_z')
+            box.prop(prop, 'tile_size_x')
+            box.prop(prop, 'tile_size_y')
+            box.prop(prop, 'tile_size_z')
             box.prop(prop, 'tile_altitude')
 
             box.separator()
@@ -4899,9 +4899,8 @@ class ARCHIPACK_PT_roof(Panel):
             box.prop(prop, 'tile_offset')
 
             box.label(text="Spacing")
-            row = box.row(align=True)
-            row.prop(prop, 'tile_space_x')
-            row.prop(prop, 'tile_space_y')
+            box.prop(prop, 'tile_space_x')
+            box.prop(prop, 'tile_space_y')
 
             box.separator()     # hip
             box.label(text="Borders")
@@ -4918,12 +4917,9 @@ class ARCHIPACK_PT_roof(Panel):
         row.prop(prop, 'hip_enable')
         if prop.hip_expand:
             box.prop(prop, 'hip_model', text="")
-
-            box.label(text="Hip size")
-            row = box.row(align=True)
-            row.prop(prop, 'hip_size_x')
-            row.prop(prop, 'hip_size_y')
-            row.prop(prop, 'hip_size_z')
+            box.prop(prop, 'hip_size_x')
+            box.prop(prop, 'hip_size_y')
+            box.prop(prop, 'hip_size_z')
             box.prop(prop, 'hip_alt')
             box.prop(prop, 'hip_space_x')
             box.separator()
@@ -4975,29 +4971,29 @@ class ARCHIPACK_PT_roof(Panel):
 
         box = layout.box()
         row = box.row(align=True)
-        if prop.facia_expand:
-            row.prop(prop, 'facia_expand', icon="TRIA_DOWN", text="Facia", icon_only=True, emboss=False)
+        if prop.fascia_expand:
+            row.prop(prop, 'fascia_expand', icon="TRIA_DOWN", text="Fascia", icon_only=True, emboss=False)
         else:
-            row.prop(prop, 'facia_expand', icon="TRIA_RIGHT", text="Facia", icon_only=True, emboss=False)
-        row.prop(prop, 'facia_enable')
-        if prop.facia_expand:
-            box.prop(prop, 'facia_altitude')
-            box.prop(prop, 'facia_width')
-            box.prop(prop, 'facia_height')
-            box.prop(prop, 'facia_offset')
+            row.prop(prop, 'fascia_expand', icon="TRIA_RIGHT", text="Fascia", icon_only=True, emboss=False)
+        row.prop(prop, 'fascia_enable')
+        if prop.fascia_expand:
+            box.prop(prop, 'fascia_altitude')
+            box.prop(prop, 'fascia_width')
+            box.prop(prop, 'fascia_height')
+            box.prop(prop, 'fascia_offset')
 
         box = layout.box()
         row = box.row(align=True)
-        if prop.rake_expand:
-            row.prop(prop, 'rake_expand', icon="TRIA_DOWN", text="Rake", icon_only=True, emboss=False)
+        if prop.bargeboard_expand:
+            row.prop(prop, 'bargeboard_expand', icon="TRIA_DOWN", text="Bargeboard", icon_only=True, emboss=False)
         else:
-            row.prop(prop, 'rake_expand', icon="TRIA_RIGHT", text="Rake", icon_only=True, emboss=False)
-        row.prop(prop, 'rake_enable')
-        if prop.rake_expand:
-            box.prop(prop, 'rake_altitude')
-            box.prop(prop, 'rake_width')
-            box.prop(prop, 'rake_height')
-            box.prop(prop, 'rake_offset')
+            row.prop(prop, 'bargeboard_expand', icon="TRIA_RIGHT", text="Bargeboard", icon_only=True, emboss=False)
+        row.prop(prop, 'bargeboard_enable')
+        if prop.bargeboard_expand:
+            box.prop(prop, 'bargeboard_altitude')
+            box.prop(prop, 'bargeboard_width')
+            box.prop(prop, 'bargeboard_height')
+            box.prop(prop, 'bargeboard_offset')
 
         """
         box = layout.box()

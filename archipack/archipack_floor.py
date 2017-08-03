@@ -301,35 +301,36 @@ class FloorGenerator(CutAblePolygon, CutAbleGenerator):
 
         bm.verts.ensure_lookup_table()
 
-        # solidify and floor bottom
-        geom = bm.faces[:]
-        verts = bm.verts[:]
-        edges = bm.edges[:]
-        bmesh.ops.solidify(bm, geom=geom, thickness=0.0001)
-        for v in verts:
-            v.co.z = bottom
-
-        # bevel
-        if d.bevel:
-            for v in bm.verts:
-                v.select = True
+        if d.solidify:
+            # solidify and floor bottom
+            geom = bm.faces[:]
+            verts = bm.verts[:]
+            edges = bm.edges[:]
+            bmesh.ops.solidify(bm, geom=geom, thickness=0.0001)
             for v in verts:
-                v.select = False
-            for v in bm.edges:
-                v.select = True
-            for v in edges:
-                v.select = False
-            geom = [v for v in bm.verts if v.select]
-            geom.extend([v for v in bm.edges if v.select])
-            bmesh.ops.bevel(bm,
-                geom=geom,
-                offset=d.bevel_amount,
-                offset_type=0,
-                segments=1,     # d.bevel_res
-                profile=0.5,
-                vertex_only=False,
-                clamp_overlap=False,
-                material=-1)
+                v.co.z = bottom
+
+            # bevel
+            if d.bevel:
+                for v in bm.verts:
+                    v.select = True
+                for v in verts:
+                    v.select = False
+                for v in bm.edges:
+                    v.select = True
+                for v in edges:
+                    v.select = False
+                geom = [v for v in bm.verts if v.select]
+                geom.extend([v for v in bm.edges if v.select])
+                bmesh.ops.bevel(bm,
+                    geom=geom,
+                    offset=d.bevel_amount,
+                    offset_type=0,
+                    segments=1,     # d.bevel_res
+                    profile=0.5,
+                    vertex_only=False,
+                    clamp_overlap=False,
+                    material=-1)
 
         bm.to_mesh(o.data)
         bm.free()
@@ -916,19 +917,19 @@ class archipack_floor_part(PropertyGroup):
             update=update_type
             )
     length = FloatProperty(
-            name="length",
+            name="Length",
             min=0.01,
             default=2.0,
             update=update
             )
     radius = FloatProperty(
-            name="radius",
+            name="Radius",
             min=0.5,
             default=0.7,
             update=update
             )
     da = FloatProperty(
-            name="angle",
+            name="Angle",
             min=-pi,
             max=pi,
             default=pi / 2,
@@ -936,7 +937,7 @@ class archipack_floor_part(PropertyGroup):
             update=update
             )
     a0 = FloatProperty(
-            name="start angle",
+            name="Start angle",
             min=-2 * pi,
             max=2 * pi,
             default=0,
@@ -945,7 +946,7 @@ class archipack_floor_part(PropertyGroup):
             )
     offset = FloatProperty(
             name="Offset",
-            description="Add to current segment offset",
+            description="Side offset of segment",
             default=0,
             unit='LENGTH', subtype='DISTANCE',
             update=update
@@ -973,8 +974,8 @@ class archipack_floor_part(PropertyGroup):
 
     def draw(self, context, layout, index):
         box = layout.box()
-        box.prop(self, "type", text=str(index + 1))
-
+        # box.prop(self, "type", text=str(index + 1))
+        box.label(text="#" + str(index + 1))
         if self.type in ['C_SEG']:
             box.prop(self, "radius")
             box.prop(self, "da")
@@ -985,17 +986,17 @@ class archipack_floor_part(PropertyGroup):
 
 class archipack_floor(ArchipackObject, Manipulable, PropertyGroup):
     n_parts = IntProperty(
-            name="parts",
+            name="Parts",
             min=1,
             default=1, update=update_manipulators
             )
     parts = CollectionProperty(type=archipack_floor_part)
     user_defined_path = StringProperty(
-            name="user defined",
+            name="User defined",
             update=update_path
             )
     user_defined_resolution = IntProperty(
-            name="resolution",
+            name="Resolution",
             min=1,
             max=128,
             default=12, update=update_path
@@ -1013,230 +1014,238 @@ class archipack_floor(ArchipackObject, Manipulable, PropertyGroup):
             )
 
     pattern = EnumProperty(
-        name='Floor Pattern', items=(("boards", "Boards", ""), ("square_parquet", "Square Parquet", ""),
-                                     ("herringbone_parquet", "Herringbone Parquet", ""),
-                                     ("herringbone", "Herringbone", ""), ("regular_tile", "Regular Tile", ""),
-                                     ("hopscotch", "Hopscotch", ""), ("stepping_stone", "Stepping Stone", ""),
-                                     ("hexagon", "Hexagon", ""), ("windmill", "Windmill", "")),
-        default="boards", update=update
-    )
+            name='Floor Pattern',
+            items=(("boards", "Boards", ""),
+                    ("square_parquet", "Square Parquet", ""),
+                    ("herringbone_parquet", "Herringbone Parquet", ""),
+                    ("herringbone", "Herringbone", ""),
+                    ("regular_tile", "Regular Tile", ""),
+                    ("hopscotch", "Hopscotch", ""),
+                    ("stepping_stone", "Stepping Stone", ""),
+                    ("hexagon", "Hexagon", ""),
+                    ("windmill", "Windmill", "")),
+            default="boards",
+            update=update
+            )
     spacing = FloatProperty(
-        name='Spacing',
-        description='The amount of space between boards or tiles in both directions',
-        unit='LENGTH', subtype='DISTANCE',
-        min=0,
-        default=0.005,
-        precision=2,
-        update=update
-    )
+            name='Spacing',
+            description='The amount of space between boards or tiles in both directions',
+            unit='LENGTH', subtype='DISTANCE',
+            min=0,
+            default=0.005,
+            precision=2,
+            update=update
+            )
     thickness = FloatProperty(
-        name='Thickness',
-        description='Thickness',
-        unit='LENGTH', subtype='DISTANCE',
-        min=0.0,
-        default=0.005,
-        precision=2,
-        update=update
-    )
+            name='Thickness',
+            description='Thickness',
+            unit='LENGTH', subtype='DISTANCE',
+            min=0.0,
+            default=0.005,
+            precision=2,
+            update=update
+            )
     vary_thickness = BoolProperty(
-        name='Vary Thickness',
-        description='Vary board thickness?',
-        default=False,
-        update=update
-    )
+            name='Random Thickness',
+            description='Vary thickness',
+            default=False,
+            update=update
+            )
     thickness_variance = FloatProperty(
-        name='Thickness Variance',
-        description='How much board thickness can vary by',
-        min=0, max=100,
-        default=25,
-        precision=2,
-        subtype='PERCENTAGE',
-        update=update
-    )
+            name='Variance',
+            description='How much vary by',
+            min=0, max=100,
+            default=25,
+            precision=2,
+            subtype='PERCENTAGE',
+            update=update
+            )
 
     board_width = FloatProperty(
-        name='Board Width',
-        description='The width of the boards',
-        unit='LENGTH', subtype='DISTANCE',
-        min=0.02,
-        default=0.2,
-        precision=2,
-        update=update
-    )
+            name='Width',
+            description='The width',
+            unit='LENGTH', subtype='DISTANCE',
+            min=0.02,
+            default=0.2,
+            precision=2,
+            update=update
+            )
     vary_width = BoolProperty(
-        name='Vary Width',
-        description='Vary board width',
-        default=False,
-        update=update
-    )
+            name='Random Width',
+            description='Vary width',
+            default=False,
+            update=update
+            )
     width_variance = FloatProperty(
-        name='Width Variance',
-        description='How much board width can vary by',
-        subtype='PERCENTAGE',
-        min=1, max=100, default=50,
-        precision=2,
-        update=update
-    )
+            name='Variance',
+            description='How much vary by',
+            subtype='PERCENTAGE',
+            min=1, max=100, default=50,
+            precision=2,
+            update=update
+            )
     width_spacing = FloatProperty(
-        name='Width Spacing',
-        description='The amount of space between boards in the width direction',
-        unit='LENGTH', subtype='DISTANCE',
-        min=0,
-        default=0.002,
-        precision=2,
-        update=update
-    )
+            name='Width Spacing',
+            description='The amount of space between boards in the width direction',
+            unit='LENGTH', subtype='DISTANCE',
+            min=0,
+            default=0.002,
+            precision=2,
+            update=update
+            )
 
     board_length = FloatProperty(
-        name='Board Length',
-        description='The length of the boards',
-        unit='LENGTH', subtype='DISTANCE',
-        precision=2,
-        min=0.02,
-        default=2,
-        update=update
-    )
+            name='Length',
+            description='The length of the boards',
+            unit='LENGTH', subtype='DISTANCE',
+            precision=2,
+            min=0.02,
+            default=2,
+            update=update
+            )
     short_board_length = FloatProperty(
-        name='Board Length',
-        description='The length of the boards',
-        unit='LENGTH', subtype='DISTANCE',
-        precision=2,
-        min=0.02,
-        default=2,
-        update=update
-    )
+            name='Length',
+            description='The length of the boards',
+            unit='LENGTH', subtype='DISTANCE',
+            precision=2,
+            min=0.02,
+            default=2,
+            update=update
+            )
     vary_length = BoolProperty(
-        name='Vary Length',
-        description='Vary board length',
-        default=False,
-        update=update
-    )
+            name='Random Length',
+            description='Vary board length',
+            default=False,
+            update=update
+            )
     length_variance = FloatProperty(
-        name='Length Variance',
-        description='How much board length can vary by',
-        subtype='PERCENTAGE',
-        min=1, max=100, default=50,
-        precision=2, update=update
-    )
+            name='Variance',
+            description='How much board length can vary by',
+            subtype='PERCENTAGE',
+            min=1, max=100, default=50,
+            precision=2, update=update
+            )
     max_boards = IntProperty(
-        name='Max Boards',
-        description='Max number of boards in one row',
-        min=1,
-        default=20,
-        update=update
-    )
+            name='Max Boards',
+            description='Max number of boards in one row',
+            min=1,
+            default=20,
+            update=update
+            )
     length_spacing = FloatProperty(
-        name='Length Spacing',
-        description='The amount of space between boards in the length direction',
-        unit='LENGTH', subtype='DISTANCE',
-        min=0,
-        default=0.002,
-        precision=2,
-        update=update
-    )
+            name='Length Spacing',
+            description='The amount of space between boards in the length direction',
+            unit='LENGTH', subtype='DISTANCE',
+            min=0,
+            default=0.002,
+            precision=2,
+            update=update
+            )
 
     # parquet specific
     boards_in_group = IntProperty(
-        name='Boards in Group',
-        description='Number of boards in a group',
-        min=1, default=4,
-        update=update
-    )
+            name='Boards in Group',
+            description='Number of boards in a group',
+            min=1, default=4,
+            update=update
+            )
 
     # tile specific
     tile_width = FloatProperty(
-        name='Tile Width',
-        description='Width of the tiles',
-        unit='LENGTH', subtype='DISTANCE',
-        min=0.002,
-        default=0.2,
-        precision=2,
-        update=update
-    )
+            name='Width',
+            description='Width of the tiles',
+            unit='LENGTH', subtype='DISTANCE',
+            min=0.002,
+            default=0.2,
+            precision=2,
+            update=update
+            )
     tile_length = FloatProperty(
-        name='Tile Length',
-        description='Length of the tiles',
-        unit='LENGTH', subtype='DISTANCE',
-        precision=2,
-        min=0.02,
-        default=0.3,
-        update=update
-    )
+            name='Length',
+            description='Length of the tiles',
+            unit='LENGTH', subtype='DISTANCE',
+            precision=2,
+            min=0.02,
+            default=0.3,
+            update=update
+            )
 
     # grout
     add_grout = BoolProperty(
-        name='Add Grout',
-        description='Add grout',
-        default=False,
-        update=update
-    )
+            name='Add Grout',
+            description='Add grout',
+            default=False,
+            update=update
+            )
     mortar_depth = FloatProperty(
-        name='Mortar Depth',
-        description='The depth of the mortar from the surface of the tile',
-        unit='LENGTH', subtype='DISTANCE',
-        precision=2,
-        step=0.005,
-        min=0,
-        default=0.001,
-        update=update
-    )
+            name='Depth',
+            description='The depth of the mortar from the surface of the tile',
+            unit='LENGTH', subtype='DISTANCE',
+            precision=2,
+            step=0.005,
+            min=0,
+            default=0.001,
+            update=update
+            )
 
     # regular tile
     random_offset = BoolProperty(
-        name='Random Offset',
-        description='Random amount of offset for each row of tiles',
-        update=update, default=False
-    )
+            name='Random Offset',
+            description='Random amount of offset for each row of tiles',
+            update=update, default=False
+            )
     offset = FloatProperty(
-        name='Offset',
-        description='How much to offset each row of tiles',
-        min=0, max=100, default=0,
-        precision=2,
-        update=update
-    )
+            name='Offset',
+            description='How much to offset each row of tiles',
+            min=0, max=100, default=0,
+            precision=2,
+            update=update
+            )
     offset_variance = FloatProperty(
-        name='Offset Variance',
-        description='How much to vary the offset each row of tiles',
-        min=0.001, max=100, default=50,
-        precision=2,
-        update=update
-    )
-
-    # UV stuff
-    random_uvs = BoolProperty(
-        name='Random UV\'s', update=update, default=True, description='Random UV positions for the faces'
-    )
+            name='Variance',
+            description='How much to vary the offset each row of tiles',
+            min=0.001, max=100, default=50,
+            precision=2,
+            update=update
+            )
 
     # bevel
     bevel = BoolProperty(
-        name='Bevel', update=update, default=False, description='Bevel upper faces'
-    )
+            name='Bevel',
+            update=update,
+            default=False,
+            description='Bevel upper faces'
+            )
     bevel_amount = FloatProperty(
-        name='Bevel Amount',
-        description='Bevel amount',
-        unit='LENGTH', subtype='DISTANCE',
-        min=0.0001, default=0.001,
-        precision=2, step=0.05,
-        update=update
-    )
-
+            name='Bevel',
+            description='Bevel amount',
+            unit='LENGTH', subtype='DISTANCE',
+            min=0.0001, default=0.001,
+            precision=2, step=0.05,
+            update=update
+            )
+    solidify = BoolProperty(
+            name="Solidify",
+            default=True,
+            update=update
+            )
     vary_materials = BoolProperty(
-                name="Vary Material?",
-                default=True,
-                description="Vary Material indexes",
-                update=update)
+            name="Random Material",
+            default=True,
+            description="Vary Material indexes",
+            update=update)
     matid = IntProperty(
-                name="#variations",
-                min=1,
-                max=10,
-                default=7,
-                description="Material index maxi",
-                update=update)
+            name="#variations",
+            min=1,
+            max=10,
+            default=7,
+            description="Material index maxi",
+            update=update)
     auto_update = BoolProperty(
-        options={'SKIP_SAVE'},
-        default=True,
-        update=update_manipulators
-        )
+            options={'SKIP_SAVE'},
+            default=True,
+            update=update_manipulators
+            )
     z = FloatProperty(
             name="dumb z",
             description="Dumb z for manipulator placeholder",
@@ -1665,7 +1674,8 @@ class ARCHIPACK_PT_floor(Panel):
         box.prop(props, 'vary_thickness', icon='RNDCURVE')
         if props.vary_thickness:
             box.prop(props, 'thickness_variance')
-
+        box.separator()
+        box.prop(props, 'solidify', icon='MOD_SOLIDIFY')
         box.separator()
         if props.pattern == 'boards':
             box.prop(props, 'board_length')

@@ -28,6 +28,7 @@ from mathutils import Vector, Matrix
 from mathutils.geometry import interpolate_bezier
 from math import cos, sin, pi, atan2
 import bmesh
+from random import uniform
 from bpy.props import (
     FloatProperty, IntProperty, BoolProperty,
     StringProperty, EnumProperty
@@ -213,7 +214,7 @@ class CutAblePolygon():
             TODO:
             make s1 angle different than all othr segs
         """
-        s1 = Line(pt, Vector((100 * self.xsize, 0.1)))
+        s1 = Line(pt, Vector((min(10000, 100 * self.xsize), uniform(-0.5, 0.5))))
         counter = 0
         if segs is None:
             segs = self.segs
@@ -236,6 +237,9 @@ class CutAblePolygon():
         s0 = self.segs[-1]
         for i in range(n_segs):
             s1 = self.segs[i]
+            if "Curved" in type(s1).__name__:
+                self.convex = False
+                return
             c = s0.v.cross(s1.v)
             if i == 0:
                 sign = (c > 0)
@@ -543,14 +547,14 @@ class ArchipackCutterPart():
         -type EnumProperty
     """
     length = FloatProperty(
-            name="length",
+            name="Length",
             min=0.01,
             max=1000.0,
             default=2.0,
             update=update_hole
             )
     a0 = FloatProperty(
-            name="angle",
+            name="Angle",
             min=-2 * pi,
             max=2 * pi,
             default=0,
@@ -558,7 +562,7 @@ class ArchipackCutterPart():
             update=update_hole
             )
     offset = FloatProperty(
-            name="offset",
+            name="Offset",
             min=0,
             default=0,
             update=update_hole
@@ -598,7 +602,7 @@ def update_manipulators(self, context):
 
 class ArchipackCutter():
     n_parts = IntProperty(
-            name="parts",
+            name="Parts",
             min=1,
             default=1, update=update_manipulators
             )
@@ -609,11 +613,11 @@ class ArchipackCutter():
             options={'SKIP_SAVE'}
             )
     user_defined_path = StringProperty(
-            name="user defined",
+            name="User defined",
             update=update_path
             )
     user_defined_resolution = IntProperty(
-            name="resolution",
+            name="Resolution",
             min=1,
             max=128,
             default=12, update=update_path
