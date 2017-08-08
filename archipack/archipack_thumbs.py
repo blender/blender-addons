@@ -171,13 +171,14 @@ def generateThumb(context, cls, preset):
     log("### COMPLETED ############################")
 
 
-preset = ""
+if __name__ == "__main__":
+    preset = ""
 
-for arg in sys.argv:
-    if arg.startswith("cls:"):
-        cls = arg[4:]
-    if arg.startswith("preset:"):
-        preset = arg[7:]
+    for arg in sys.argv:
+        if arg.startswith("cls:"):
+            cls = arg[4:]
+        if arg.startswith("preset:"):
+            preset = arg[7:]
 
 
-generateThumb(bpy.context, cls, preset)
+    generateThumb(bpy.context, cls, preset)
