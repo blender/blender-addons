@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Bool Tool",
     "author": "Vitor Balbio, Mikhail Rachinskiy, TynkaTopi, Meta-Androcto",
-    "version": (0, 3, 7),
+    "version": (0, 3, 8),
     "blender": (2, 78, 0),
     "location": "View3D > Toolshelf",
     "description": "Bool Tools Hotkey: Ctrl Shift B",
@@ -45,7 +45,7 @@ from bpy.props import (
         )
 
 
-# -------------------  Bool Tool FUNCTIONS------------------------------
+# -------------------  Bool Tool FUNCTIONS -------------------------
 # Utils:
 
 # Hide boolean objects
@@ -398,19 +398,31 @@ def HandleScene(scene):
                 GCollector(ob)
 
 
-# ------------------ Bool Tool OPERATORS-----------------------------------------------------
+# ------------------ Bool Tool OPERATORS --------------------------------------
 
 class BTool_DrawPolyBrush(Operator):
     bl_idname = "btool.draw_polybrush"
     bl_label = "Draw Poly Brush"
-    bl_description = ("Draw Polygonal Mask, can be applyied to Canvas > Brush "
-                      "or Directly. ESC to Exit")
+    bl_description = ("Draw Polygonal Mask, can be applied to Canvas > Brush or Directly\n"
+                      "Note: ESC to Cancel, Enter to Apply, Right Click to erase the Lines")
 
     count = 0
+    store_cont_draw = False
 
     @classmethod
     def poll(cls, context):
         return context.active_object is not None
+
+    def set_cont_draw(self, context, start=False):
+        # store / restore GP continuous drawing (see T52321)
+        scene = context.scene
+        tool_settings = scene.tool_settings
+        continuous = tool_settings.use_gpencil_continuous_drawing
+        if start:
+            self.store_cont_draw = continuous
+            tool_settings.use_gpencil_continuous_drawing = True
+        else:
+            tool_settings.use_gpencil_continuous_drawing = self.store_cont_draw
 
     def modal(self, context, event):
         self.count += 1
@@ -419,9 +431,15 @@ class BTool_DrawPolyBrush(Operator):
             actObj.select = True
             bpy.ops.gpencil.draw('INVOKE_DEFAULT', mode="DRAW_POLY")
 
+        if event.type in {'RIGHTMOUSE'}:
+            # use this to pass to the Grease Pencil eraser (see T52321)
+            pass
+
         if event.type in {'RET', 'NUMPAD_ENTER'}:
 
             bpy.ops.gpencil.convert(type='POLY')
+            self.set_cont_draw(context)
+
             for obj in context.selected_objects:
                 if obj.type == "CURVE":
                     obj.name = "PolyDraw"
@@ -448,7 +466,7 @@ class BTool_DrawPolyBrush(Operator):
                     bpy.context.scene.update()
                     actObj.select = True
                     obj.select = True
-                    # try:
+
                     bpy.context.scene.grease_pencil.clear()
                     bpy.ops.gpencil.data_unlink()
 
@@ -456,12 +474,17 @@ class BTool_DrawPolyBrush(Operator):
 
         if event.type in {'ESC'}:
             bpy.ops.ed.undo()  # remove o Grease Pencil
+            self.set_cont_draw(context)
+
+            self.report({'INFO'},
+                         "Draw Poly Brush: Operation Cancelled by User")
             return {'CANCELLED'}
 
         return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
         if context.object:
+            self.set_cont_draw(context, start=True)
             context.window_manager.modal_handler_add(self)
             return {'RUNNING_MODAL'}
         else:
@@ -747,7 +770,7 @@ class Auto_Subtract(AutoBoolean, Operator):
 class BTool_FindBrush(Operator):
     bl_idname = "btool.find_brush"
     bl_label = ""
-    bl_description = "Find the this brush"
+    bl_description = "Find the selected brush"
 
     obj = StringProperty("")
 
