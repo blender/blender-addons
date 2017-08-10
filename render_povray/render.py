@@ -1429,162 +1429,168 @@ def write_pov(filename, scene=None, info_callback=None):
             file.write('      BuildWriteMesh2(VecArr, NormArr, UVArr, Iter_U, Iter_V, FileName)\n')
             file.write('   #end\n')
             file.write('#end\n\n')
-
-        if bezier_sweep == False:
+        # Empty curves    
+        if len(ob.data.splines)==0:
+            tabWrite("\n//dummy sphere to represent empty curve location\n")        
             tabWrite("#declare %s =\n"%dataname)
-        if ob.pov.curveshape == 'sphere_sweep' and bezier_sweep == False:
-            tabWrite("union {\n")
-            for spl in ob.data.splines:
-                if spl.type != "BEZIER":
-                    spl_type = "linear"
-                    if spl.type == "NURBS":
-                        spl_type = "cubic"
-                    points=spl.points
-                    numPoints=len(points)
-                    if spl.use_cyclic_u:
-                        numPoints+=3
+            tabWrite("sphere {<%.6g, %.6g, %.6g>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n\n" % (ob.location.x, ob.location.y, ob.location.z)) # ob.name > povdataname)    
+        # And non empty curves    
+        else:
+            if bezier_sweep == False:
+                tabWrite("#declare %s =\n"%dataname)
+            if ob.pov.curveshape == 'sphere_sweep' and bezier_sweep == False:
+                tabWrite("union {\n")
+                for spl in ob.data.splines:
+                    if spl.type != "BEZIER":
+                        spl_type = "linear"
+                        if spl.type == "NURBS":
+                            spl_type = "cubic"
+                        points=spl.points
+                        numPoints=len(points)
+                        if spl.use_cyclic_u:
+                            numPoints+=3
 
-                    tabWrite("sphere_sweep { %s_spline %s,\n"%(spl_type,numPoints))
-                    if spl.use_cyclic_u:
-                        pt1 = points[len(points)-1]
-                        wpt1 = pt1.co
-                        tabWrite("<%.4g,%.4g,%.4g>,%.4g\n" %(wpt1[0], wpt1[1], wpt1[2], pt1.radius*ob.data.bevel_depth))
-                    for pt in points:
-                        wpt = pt.co
-                        tabWrite("<%.4g,%.4g,%.4g>,%.4g\n" %(wpt[0], wpt[1], wpt[2], pt.radius*ob.data.bevel_depth))
-                    if spl.use_cyclic_u:
-                        for i in range (0,2):
-                            endPt=points[i]
-                            wpt = endPt.co
-                            tabWrite("<%.4g,%.4g,%.4g>,%.4g\n" %(wpt[0], wpt[1], wpt[2], endPt.radius*ob.data.bevel_depth))
+                        tabWrite("sphere_sweep { %s_spline %s,\n"%(spl_type,numPoints))
+                        if spl.use_cyclic_u:
+                            pt1 = points[len(points)-1]
+                            wpt1 = pt1.co
+                            tabWrite("<%.4g,%.4g,%.4g>,%.4g\n" %(wpt1[0], wpt1[1], wpt1[2], pt1.radius*ob.data.bevel_depth))
+                        for pt in points:
+                            wpt = pt.co
+                            tabWrite("<%.4g,%.4g,%.4g>,%.4g\n" %(wpt[0], wpt[1], wpt[2], pt.radius*ob.data.bevel_depth))
+                        if spl.use_cyclic_u:
+                            for i in range (0,2):
+                                endPt=points[i]
+                                wpt = endPt.co
+                                tabWrite("<%.4g,%.4g,%.4g>,%.4g\n" %(wpt[0], wpt[1], wpt[2], endPt.radius*ob.data.bevel_depth))
 
 
-                tabWrite("}\n")
+                    tabWrite("}\n")
 
-        if ob.pov.curveshape == 'sor':
-            for spl in ob.data.splines:
-                if spl.type in {'POLY','NURBS'}:
-                    points=spl.points
-                    numPoints=len(points)
-                    tabWrite("sor { %s,\n"%numPoints)
-                    for pt in points:
-                        wpt = pt.co
-                        tabWrite("<%.4g,%.4g>\n" %(wpt[0], wpt[1]))
+            if ob.pov.curveshape == 'sor':
+                for spl in ob.data.splines:
+                    if spl.type in {'POLY','NURBS'}:
+                        points=spl.points
+                        numPoints=len(points)
+                        tabWrite("sor { %s,\n"%numPoints)
+                        for pt in points:
+                            wpt = pt.co
+                            tabWrite("<%.4g,%.4g>\n" %(wpt[0], wpt[1]))
+                    else:
+                        tabWrite("box { 0,0\n")
+            if ob.pov.curveshape in {'lathe','prism'}:
+                spl = ob.data.splines[0]
+                if spl.type == "BEZIER":
+                    points=spl.bezier_points
+                    lenCur=len(points)-1
+                    lenPts=lenCur*4
+                    ifprism = ''
+                    if ob.pov.curveshape in {'prism'}:
+                        height = ob.data.extrude
+                        ifprism = '-%s, %s,'%(height, height)
+                        lenCur+=1
+                        lenPts+=4
+                    tabWrite("%s { bezier_spline %s %s,\n"%(ob.pov.curveshape,ifprism,lenPts))
+                    for i in range(0,lenCur):
+                        p1=points[i].co
+                        pR=points[i].handle_right
+                        end = i+1
+                        if i == lenCur-1 and ob.pov.curveshape in {'prism'}:
+                            end = 0
+                        pL=points[end].handle_left
+                        p2=points[end].co
+                        line="<%.4g,%.4g>"%(p1[0],p1[1])
+                        line+="<%.4g,%.4g>"%(pR[0],pR[1])
+                        line+="<%.4g,%.4g>"%(pL[0],pL[1])
+                        line+="<%.4g,%.4g>"%(p2[0],p2[1])
+                        tabWrite("%s\n" %line)
                 else:
-                    tabWrite("box { 0,0\n")
-        if ob.pov.curveshape in {'lathe','prism'}:
-            spl = ob.data.splines[0]
-            if spl.type == "BEZIER":
-                points=spl.bezier_points
-                lenCur=len(points)-1
-                lenPts=lenCur*4
-                ifprism = ''
-                if ob.pov.curveshape in {'prism'}:
-                    height = ob.data.extrude
-                    ifprism = '-%s, %s,'%(height, height)
-                    lenCur+=1
-                    lenPts+=4
-                tabWrite("%s { bezier_spline %s %s,\n"%(ob.pov.curveshape,ifprism,lenPts))
-                for i in range(0,lenCur):
-                    p1=points[i].co
-                    pR=points[i].handle_right
-                    end = i+1
-                    if i == lenCur-1 and ob.pov.curveshape in {'prism'}:
-                        end = 0
-                    pL=points[end].handle_left
-                    p2=points[end].co
-                    line="<%.4g,%.4g>"%(p1[0],p1[1])
-                    line+="<%.4g,%.4g>"%(pR[0],pR[1])
-                    line+="<%.4g,%.4g>"%(pL[0],pL[1])
-                    line+="<%.4g,%.4g>"%(p2[0],p2[1])
-                    tabWrite("%s\n" %line)
-            else:
-                points=spl.points
-                lenCur=len(points)
-                lenPts=lenCur
-                ifprism = ''
-                if ob.pov.curveshape in {'prism'}:
-                    height = ob.data.extrude
-                    ifprism = '-%s, %s,'%(height, height)
-                    lenPts+=3
-                spl_type = 'quadratic'
-                if spl.type == 'POLY':
-                    spl_type = 'linear'
-                tabWrite("%s { %s_spline %s %s,\n"%(ob.pov.curveshape,spl_type,ifprism,lenPts))
-                if ob.pov.curveshape in {'prism'}:
-                    pt = points[len(points)-1]
-                    wpt = pt.co
-                    tabWrite("<%.4g,%.4g>\n" %(wpt[0], wpt[1]))
-                for pt in points:
-                    wpt = pt.co
-                    tabWrite("<%.4g,%.4g>\n" %(wpt[0], wpt[1]))
-                if ob.pov.curveshape in {'prism'}:
-                    for i in range(2):
-                        pt = points[i]
+                    points=spl.points
+                    lenCur=len(points)
+                    lenPts=lenCur
+                    ifprism = ''
+                    if ob.pov.curveshape in {'prism'}:
+                        height = ob.data.extrude
+                        ifprism = '-%s, %s,'%(height, height)
+                        lenPts+=3
+                    spl_type = 'quadratic'
+                    if spl.type == 'POLY':
+                        spl_type = 'linear'
+                    tabWrite("%s { %s_spline %s %s,\n"%(ob.pov.curveshape,spl_type,ifprism,lenPts))
+                    if ob.pov.curveshape in {'prism'}:
+                        pt = points[len(points)-1]
                         wpt = pt.co
                         tabWrite("<%.4g,%.4g>\n" %(wpt[0], wpt[1]))
-        if bezier_sweep:
-            for p in range(len(ob.data.splines)):
-                br = []
-                depth = ob.data.bevel_depth
-                spl = ob.data.splines[p]
-                points=spl.bezier_points
-                lenCur = len(points)-1
-                numPoints = lenCur*4
-                if spl.use_cyclic_u:
-                    lenCur += 1
-                    numPoints += 4
-                tabWrite("#declare %s_points_%s = array[%s]{\n"%(dataname,p,numPoints))
-                for i in range(lenCur):
-                    p1=points[i].co
-                    pR=points[i].handle_right
-                    end = i+1
-                    if spl.use_cyclic_u and i == (lenCur - 1):
-                        end = 0
-                    pL=points[end].handle_left
-                    p2=points[end].co
-                    r3 = points[end].radius * depth
-                    r0 = points[i].radius * depth
-                    r1 = 2/3*r0 + 1/3*r3
-                    r2 = 1/3*r0 + 2/3*r3
-                    br.append((r0,r1,r2,r3))
-                    line="<%.4g,%.4g,%.4f>"%(p1[0],p1[1],p1[2])
-                    line+="<%.4g,%.4g,%.4f>"%(pR[0],pR[1],pR[2])
-                    line+="<%.4g,%.4g,%.4f>"%(pL[0],pL[1],pL[2])
-                    line+="<%.4g,%.4g,%.4f>"%(p2[0],p2[1],p2[2])
-                    tabWrite("%s\n" %line)
-                tabWrite("}\n")
-                tabWrite("#declare %s_radii_%s = array[%s]{\n"%(dataname,p,len(br)*4))
-                for Tuple in br:
-                    tabWrite('%.4f,%.4f,%.4f,%.4f\n'%(Tuple[0],Tuple[1],Tuple[2],Tuple[3]))
-                tabWrite("}\n")
-            if len(ob.data.splines)== 1:
-                tabWrite('#declare %s = object{\n'%dataname)
-                tabWrite('    Shape_Bezierpoints_Sphere_Sweep(yes,%s, %s_points_%s, %s_radii_%s) \n'%(ob.data.resolution_u,dataname,p,dataname,p))
-            else:
-                tabWrite('#declare %s = union{\n'%dataname)
+                    for pt in points:
+                        wpt = pt.co
+                        tabWrite("<%.4g,%.4g>\n" %(wpt[0], wpt[1]))
+                    if ob.pov.curveshape in {'prism'}:
+                        for i in range(2):
+                            pt = points[i]
+                            wpt = pt.co
+                            tabWrite("<%.4g,%.4g>\n" %(wpt[0], wpt[1]))
+            if bezier_sweep:
                 for p in range(len(ob.data.splines)):
-                    tabWrite('    object{Shape_Bezierpoints_Sphere_Sweep(yes,%s, %s_points_%s, %s_radii_%s)} \n'%(ob.data.resolution_u,dataname,p,dataname,p))
-                #tabWrite('#include "bezier_spheresweep.inc"\n') #now inlined
-               # tabWrite('#declare %s = object{Shape_Bezierpoints_Sphere_Sweep(yes,%s, %s_bezier_points, %.4f) \n'%(dataname,ob.data.resolution_u,dataname,ob.data.bevel_depth))
-        if ob.pov.curveshape in {'loft'}:
-            tabWrite('object {MSM(%s,%s,"c",%s,"")\n'%(dataname,ob.pov.res_u,ob.pov.res_v))
-        if ob.pov.curveshape in {'birail'}:
-            splines = '%s1,%s2,%s3,%s4'%(dataname,dataname,dataname,dataname)
-            tabWrite('object {Coons(%s, %s, %s, "")\n'%(splines,ob.pov.res_u,ob.pov.res_v))
-        povMatName = "Default_texture"
-        if ob.active_material:
-            #povMatName = string_strip_hyphen(bpy.path.clean_name(ob.active_material.name))
-            try:
-                material = ob.active_material
-                writeObjectMaterial(material, ob)
-            except IndexError:
-                print(me)
-        #tabWrite("texture {%s}\n"%povMatName)
-        if ob.pov.curveshape in {'prism'}:
-            tabWrite("rotate <90,0,0>\n")
-            tabWrite("scale y*-1\n" )
-        tabWrite("}\n")
+                    br = []
+                    depth = ob.data.bevel_depth
+                    spl = ob.data.splines[p]
+                    points=spl.bezier_points
+                    lenCur = len(points)-1
+                    numPoints = lenCur*4
+                    if spl.use_cyclic_u:
+                        lenCur += 1
+                        numPoints += 4
+                    tabWrite("#declare %s_points_%s = array[%s]{\n"%(dataname,p,numPoints))
+                    for i in range(lenCur):
+                        p1=points[i].co
+                        pR=points[i].handle_right
+                        end = i+1
+                        if spl.use_cyclic_u and i == (lenCur - 1):
+                            end = 0
+                        pL=points[end].handle_left
+                        p2=points[end].co
+                        r3 = points[end].radius * depth
+                        r0 = points[i].radius * depth
+                        r1 = 2/3*r0 + 1/3*r3
+                        r2 = 1/3*r0 + 2/3*r3
+                        br.append((r0,r1,r2,r3))
+                        line="<%.4g,%.4g,%.4f>"%(p1[0],p1[1],p1[2])
+                        line+="<%.4g,%.4g,%.4f>"%(pR[0],pR[1],pR[2])
+                        line+="<%.4g,%.4g,%.4f>"%(pL[0],pL[1],pL[2])
+                        line+="<%.4g,%.4g,%.4f>"%(p2[0],p2[1],p2[2])
+                        tabWrite("%s\n" %line)
+                    tabWrite("}\n")
+                    tabWrite("#declare %s_radii_%s = array[%s]{\n"%(dataname,p,len(br)*4))
+                    for Tuple in br:
+                        tabWrite('%.4f,%.4f,%.4f,%.4f\n'%(Tuple[0],Tuple[1],Tuple[2],Tuple[3]))
+                    tabWrite("}\n")
+                if len(ob.data.splines)== 1:
+                    tabWrite('#declare %s = object{\n'%dataname)
+                    tabWrite('    Shape_Bezierpoints_Sphere_Sweep(yes,%s, %s_points_%s, %s_radii_%s) \n'%(ob.data.resolution_u,dataname,p,dataname,p))
+                else:
+                    tabWrite('#declare %s = union{\n'%dataname)
+                    for p in range(len(ob.data.splines)):
+                        tabWrite('    object{Shape_Bezierpoints_Sphere_Sweep(yes,%s, %s_points_%s, %s_radii_%s)} \n'%(ob.data.resolution_u,dataname,p,dataname,p))
+                    #tabWrite('#include "bezier_spheresweep.inc"\n') #now inlined
+                   # tabWrite('#declare %s = object{Shape_Bezierpoints_Sphere_Sweep(yes,%s, %s_bezier_points, %.4f) \n'%(dataname,ob.data.resolution_u,dataname,ob.data.bevel_depth))
+            if ob.pov.curveshape in {'loft'}:
+                tabWrite('object {MSM(%s,%s,"c",%s,"")\n'%(dataname,ob.pov.res_u,ob.pov.res_v))
+            if ob.pov.curveshape in {'birail'}:
+                splines = '%s1,%s2,%s3,%s4'%(dataname,dataname,dataname,dataname)
+                tabWrite('object {Coons(%s, %s, %s, "")\n'%(splines,ob.pov.res_u,ob.pov.res_v))
+            povMatName = "Default_texture"
+            if ob.active_material:
+                #povMatName = string_strip_hyphen(bpy.path.clean_name(ob.active_material.name))
+                try:
+                    material = ob.active_material
+                    writeObjectMaterial(material, ob)
+                except IndexError:
+                    print(me)
+            #tabWrite("texture {%s}\n"%povMatName)
+            if ob.pov.curveshape in {'prism'}:
+                tabWrite("rotate <90,0,0>\n")
+                tabWrite("scale y*-1\n" )
+            tabWrite("}\n")
 
 #################################################################
 
@@ -1607,48 +1613,60 @@ def write_pov(filename, scene=None, info_callback=None):
                 meta_elems[prefix].extend(elems)
             else:
                 meta_elems[prefix] = elems
-        for mg, ob in meta_group.items():
-            tabWrite("blob{threshold %.4g // %s \n" % (ob.data.threshold, mg))
-            for elems in meta_elems[mg]:
-                elem = elems[0]
-                loc = elem.co
-                stiffness = elem.stiffness
-                if elem.use_negative:
-                    stiffness = - stiffness
-                if elem.type == 'BALL':
-                    tabWrite("sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g " %
-                             (loc.x, loc.y, loc.z, elem.radius, stiffness))
-                elif elem.type == 'ELLIPSOID':
-                    tabWrite("sphere{ <%.6g, %.6g, %.6g>,%.4g,%.4g " %
-                             (loc.x / elem.size_x, loc.y / elem.size_y, loc.z / elem.size_z,
-                              elem.radius, stiffness))
-                    tabWrite("scale <%.6g, %.6g, %.6g>" % (elem.size_x, elem.size_y, elem.size_z))
-                writeMatrix(global_matrix * elems[1].matrix_world)
-                tabWrite("}\n")
-            try:
-                material = elems[1].data.materials[0]  # lame! - blender cant do enything else.
-            except:
-                material = None
-            if material:
-                diffuse_color = material.diffuse_color
-                trans = 1.0 - material.alpha
-                if material.use_transparency and material.transparency_method == 'RAYTRACE':
-                    povFilter = material.raytrace_transparency.filter * (1.0 - material.alpha)
-                    trans = (1.0 - material.alpha) - povFilter
-                else:
-                    povFilter = 0.0
-                material_finish = materialNames[material.name]
-                tabWrite("pigment {srgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} \n" %
-                         (diffuse_color[0], diffuse_color[1], diffuse_color[2],
-                          povFilter, trans))
-                tabWrite("finish{%s} " % safety(material_finish, Level=2))
-            else:
-                tabWrite("pigment{srgb 1} finish{%s} " % (safety(DEF_MAT_NAME, Level=2)))
-            #writeObjectMaterial(material, ob)
-            writeObjectMaterial(material, elems[1])
-            tabWrite("radiosity{importance %3g}\n" % ob.pov.importance_value)
-            tabWrite("}\n")  # End of Metaball block
+                
+            # empty metaball
+            if len(elems)==0:
+                tabWrite("\n//dummy sphere to represent empty meta location\n")
+                tabWrite("sphere {<%.6g, %.6g, %.6g>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n\n" % (ob.location.x, ob.location.y, ob.location.z)) # ob.name > povdataname)    
+            # other metaballs    
+            else:                
+                for mg, ob in meta_group.items():
+                    if len(meta_elems[mg])!=0:                
+                        tabWrite("blob{threshold %.4g // %s \n" % (ob.data.threshold, mg))
+                        for elems in meta_elems[mg]:
+                            elem = elems[0]
+                            loc = elem.co
+                            stiffness = elem.stiffness
+                            if elem.use_negative:
+                                stiffness = - stiffness
+                            if elem.type == 'BALL':
+                                tabWrite("sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g " %
+                                         (loc.x, loc.y, loc.z, elem.radius, stiffness))
+                            elif elem.type == 'ELLIPSOID':
+                                tabWrite("sphere{ <%.6g, %.6g, %.6g>,%.4g,%.4g " %
+                                         (loc.x / elem.size_x, loc.y / elem.size_y, loc.z / elem.size_z,
+                                          elem.radius, stiffness))
+                                tabWrite("scale <%.6g, %.6g, %.6g>" % (elem.size_x, elem.size_y, elem.size_z))
+                            writeMatrix(global_matrix * elems[1].matrix_world)
+                            tabWrite("}\n")
+                        try:
+                            material = elems[1].data.materials[0]  # lame! - blender cant do enything else.
+                        except:
+                            material = None
+                        if material:
+                            diffuse_color = material.diffuse_color
+                            trans = 1.0 - material.alpha
+                            if material.use_transparency and material.transparency_method == 'RAYTRACE':
+                                povFilter = material.raytrace_transparency.filter * (1.0 - material.alpha)
+                                trans = (1.0 - material.alpha) - povFilter
+                            else:
+                                povFilter = 0.0
+                            material_finish = materialNames[material.name]
+                            tabWrite("pigment {srgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} \n" %
+                                     (diffuse_color[0], diffuse_color[1], diffuse_color[2],
+                                      povFilter, trans))
+                            tabWrite("finish{%s} " % safety(material_finish, Level=2))
+                        else:
+                            tabWrite("pigment{srgb 1} finish{%s} " % (safety(DEF_MAT_NAME, Level=2)))
+                        
 
+                            writeObjectMaterial(material, ob)
+                            #writeObjectMaterial(material, elems[1])
+                            tabWrite("radiosity{importance %3g}\n" % ob.pov.importance_value)
+                            tabWrite("}\n\n")  # End of Metaball block                
+
+
+    '''
             meta = ob.data
 
             # important because no elements will break parsing.
@@ -1724,7 +1742,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
                 if comments and len(metas) >= 1:
                     file.write("\n")
-
+    '''
 #    objectNames = {}
     DEF_OBJ_NAME = "Default"
 
@@ -2162,7 +2180,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 file.write('                absorption 10/<0.83, 0.75, 0.15>\n')
                                 file.write('                samples 1\n')
                                 file.write('                method 2\n')
-                                file.write('                density {\n')
+                                file.write('                density {cylindrical\n')
                                 file.write('                    color_map {\n')
                                 file.write('                        [0.0 rgb <0.83, 0.45, 0.35>]\n')
                                 file.write('                        [0.5 rgb <0.8, 0.8, 0.4>]\n')
@@ -2621,12 +2639,14 @@ def write_pov(filename, scene=None, info_callback=None):
                     if me:
                         me_materials = me.materials
                         me_faces = me.tessfaces[:]
-                    if len(me_faces)==0:
-                        tabWrite("\n//dummy sphere to represent empty mesh location\n")
-                        tabWrite("#declare %s =sphere {<0, 0, 0>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n" % povdataname)
+                    #if len(me_faces)==0:
+                        #tabWrite("\n//dummy sphere to represent empty mesh location\n")
+                        #tabWrite("#declare %s =sphere {<0, 0, 0>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n" % povdataname)
 
 
                     if not me or not me_faces:
+                        tabWrite("\n//dummy sphere to represent empty mesh location\n")
+                        tabWrite("#declare %s =sphere {<0, 0, 0>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n" % povdataname)                    
                         continue
 
                     uv_textures = me.tessface_uv_textures
