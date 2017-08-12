@@ -1009,7 +1009,7 @@ def draw_object(context, myobj, region, rv3d):
         if scene.measureit_debug_select is True:
             if objs[o].select is False:
                 continue
-        a_p1 = objs[o].location
+        a_p1 = Vector(get_location(objs[o]))
         # colour
         bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
         # Text
