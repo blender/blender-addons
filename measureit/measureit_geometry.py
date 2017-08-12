@@ -29,6 +29,7 @@ import bpy
 import bgl
 # noinspection PyUnresolvedReferences
 import blf
+from blf import ROTATION
 from math import fabs, degrees, radians, sqrt, cos, sin, pi
 from mathutils import Vector, Matrix
 from bmesh import from_edit_mesh
@@ -54,8 +55,11 @@ def draw_segments(context, myobj, op, region, rv3d):
         ovr = scene.measureit_ovr
         ovrcolor = scene.measureit_ovr_color
         ovrfsize = scene.measureit_ovr_font
+        ovrfang = get_angle_in_rad(scene.measureit_ovr_font_rotation)
+        ovrfaln = scene.measureit_ovr_font_align
         ovrline = scene.measureit_ovr_width
         units = scene.measureit_units
+        fang = get_angle_in_rad(scene.measureit_font_rotation)
         # --------------------
         # Scene Scale
         # --------------------
@@ -66,7 +70,8 @@ def draw_segments(context, myobj, op, region, rv3d):
             tx_dsp = fmts % scene.measureit_scale_factor
             tx_scale = scene.measureit_gl_scaletxt + " 1:" + tx_dsp
             draw_text(myobj, pos_2d,
-                      tx_scale, scene.measureit_scale_color, scene.measureit_scale_font)
+                      tx_scale, scene.measureit_scale_color, scene.measureit_scale_font,
+                      text_rot=fang)
         # --------------------
         # Loop
         # --------------------
@@ -74,8 +79,12 @@ def draw_segments(context, myobj, op, region, rv3d):
             ms = op.measureit_segments[idx]
             if ovr is False:
                 fsize = ms.glfont_size
+                fang = get_angle_in_rad(ms.glfont_rotat)
+                faln = ms.glfont_align
             else:
                 fsize = ovrfsize
+                fang = ovrfang
+                faln = ovrfaln
             # ------------------------------
             # only active and visible
             # ------------------------------
@@ -239,8 +248,8 @@ def draw_segments(context, myobj, op, region, rv3d):
                             loc = get_location(myobj)
                             midpoint3d = interpolate3d(a_p1, b_p1, fabs(dist / 2))
                             vn = Vector((midpoint3d[0] - loc[0],
-                                                   midpoint3d[1] - loc[1],
-                                                   midpoint3d[2] - loc[2]))
+                                         midpoint3d[1] - loc[1],
+                                         midpoint3d[2] - loc[2]))
                     else:
                         vn = Vector((ms.glnormalx, ms.glnormaly, ms.glnormalz))
 
@@ -308,7 +317,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                     screen_point_v22 = get_2d_point(region, rv3d, v22)
                     screen_point_v11a = get_2d_point(region, rv3d, v11a)
                     screen_point_v11b = get_2d_point(region, rv3d, v11b)
- 
+
                     # ------------------------------------
                     # colour + line setup
                     # ------------------------------------
@@ -357,7 +366,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                             if scene.measureit_gl_show_n is True and ms.glnames is True:
                                 msg += ms.gltxt
                             if scene.measureit_gl_show_d is True or scene.measureit_gl_show_n is True:
-                                draw_text(myobj, txtpoint2d, msg, rgb, fsize)
+                                draw_text(myobj, txtpoint2d, msg, rgb, fsize, faln, fang)
 
                             # ------------------------------
                             # if axis loc, show a indicator
@@ -372,7 +381,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                                 if ms.glocz is True:
                                     txt += "Z"
                                 txt += "]"
-                                draw_text(myobj, txtpoint2d, txt, rgb, fsize - 1)
+                                draw_text(myobj, txtpoint2d, txt, rgb, fsize - 1, text_rot=fang)
 
                         except:
                             pass
@@ -381,16 +390,13 @@ def draw_segments(context, myobj, op, region, rv3d):
                     # ------------------------------------
                     # noinspection PyBroadException
                     if ms.gltype == 2 or ms.gltype == 9 or ms.gltype == 11:
-                        right = False
                         tx_dist = ""
                         # noinspection PyBroadException
                         try:
                             if ms.gltype == 2:
                                 tx_dist = ms.gltxt
-                                right = False
                             if ms.gltype == 9:  # Angles
                                 ang = ang_1.angle(ang_2)
-                                right = True
                                 if bpy.context.scene.unit_settings.system_rotation == "DEGREES":
                                     ang = degrees(ang)
 
@@ -402,7 +408,6 @@ def draw_segments(context, myobj, op, region, rv3d):
                                 if scene.measureit_gl_show_n is True:
                                     tx_dist += " " + ms.gltxt
                             if ms.gltype == 11:  # arc
-                                right = True
                                 # print length or arc and angle
                                 if ms.glarc_len is True:
                                     tx_dist = ms.glarc_txlen + format_distance(fmt, units, arc_length)
@@ -424,14 +429,15 @@ def draw_segments(context, myobj, op, region, rv3d):
                                     msg = tx_dist + " "
                                 else:
                                     msg = " "
+
                                 if scene.measureit_gl_show_n is True and ms.glnames is True:
                                     msg += ms.gltxt
 
                                 if scene.measureit_gl_show_d is True or scene.measureit_gl_show_n is True:
                                     # Normal vector
                                     vna = Vector((b_p1[0] - a_p1[0],
-                                                            b_p1[1] - a_p1[1],
-                                                            b_p1[2] - a_p1[2]))
+                                                  b_p1[1] - a_p1[1],
+                                                  b_p1[2] - a_p1[2]))
                                     vna.normalize()
                                     via = vna * ms.glspace
 
@@ -439,9 +445,10 @@ def draw_segments(context, myobj, op, region, rv3d):
                                     tmp_point = get_2d_point(region, rv3d, gap3d)
                                     if tmp_point is not None:
                                         txtpoint2d = tmp_point[0] + ms.glfontx, tmp_point[1] + ms.glfonty
-                                        draw_text(myobj, txtpoint2d, msg, rgb, fsize, right)
+                                        draw_text(myobj, txtpoint2d, msg, rgb, fsize, faln, fang)
                                 # Radius
-                                if scene.measureit_gl_show_d is True and ms.gldist is True and ms.glarc_rad is True:
+                                if scene.measureit_gl_show_d is True and ms.gldist is True and \
+                                        ms.glarc_rad is True:
                                     tx_dist = ms.glarc_txradio + format_distance(fmt, units,
                                                                                  dist * scene.measureit_scale_factor)
                                 else:
@@ -454,7 +461,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                             tmp_point = get_2d_point(region, rv3d, gap3d)
                             if tmp_point is not None:
                                 txtpoint2d = tmp_point[0] + ms.glfontx, tmp_point[1] + ms.glfonty
-                                draw_text(myobj, txtpoint2d, tx_dist, rgb, fsize, right)
+                                draw_text(myobj, txtpoint2d, tx_dist, rgb, fsize, faln, fang)
                         except:
                             pass
                     # ------------------------------------
@@ -468,7 +475,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                         tmp_point = get_2d_point(region, rv3d, gap3d)
                         if tmp_point is not None:
                             txtpoint2d = tmp_point[0] + ms.glfontx, tmp_point[1] + ms.glfonty
-                            draw_text(myobj, txtpoint2d, tx_dist, rgb, fsize)
+                            draw_text(myobj, txtpoint2d, tx_dist, rgb, fsize, faln, fang)
 
                     # ------------------------------------
                     # Draw lines
@@ -517,8 +524,8 @@ def draw_segments(context, myobj, op, region, rv3d):
                                 draw_arrow(screen_point_ap1, screen_point_bp1, a_size, a_type, b_type)
                             else:
                                 vne = Vector((b_p1[0] - a_p1[0],
-                                                        b_p1[1] - a_p1[1],
-                                                        b_p1[2] - a_p1[2]))
+                                              b_p1[1] - a_p1[1],
+                                              b_p1[2] - a_p1[2]))
                                 vne.normalize()
                                 vie = vne * ms.glspace
                                 pe = (b_p1[0] + vie[0], b_p1[1] + vie[1], b_p1[2] + vie[2])
@@ -534,14 +541,14 @@ def draw_segments(context, myobj, op, region, rv3d):
                             step = arc_angle / n_step
                         else:
                             step = radians(360.0) / n_step
-                        #
+
                         mat_rot1 = Matrix.Rotation(step, 4, vn)
                         mat_trans2 = Matrix.Translation(c)
                         p1 = Vector(an_p1)  # first point of arc
                         # Normal vector
                         vn = Vector((p1[0] - a_p1[0],
-                                               p1[1] - a_p1[1],
-                                               p1[2] - a_p1[2]))
+                                     p1[1] - a_p1[1],
+                                     p1[2] - a_p1[2]))
                         vn.normalize()
                         vi = vn * ms.glspace
 
@@ -560,8 +567,8 @@ def draw_segments(context, myobj, op, region, rv3d):
 
                             # Normal vector
                             vn = Vector((p2[0] - a_p1[0],
-                                                   p2[1] - a_p1[1],
-                                                   p2[2] - a_p1[2]))
+                                         p2[1] - a_p1[1],
+                                         p2[2] - a_p1[2]))
                             vn.normalize()
                             vi = vn * ms.glspace
 
@@ -634,7 +641,8 @@ def draw_segments(context, myobj, op, region, rv3d):
                                 tmp_point = get_2d_point(region, rv3d, midpoint3d)
                                 if tmp_point is not None:
                                     txtpoint2d = tmp_point[0] + ms.glfontx, tmp_point[1] + ms.glfonty
-                                    draw_text(myobj, txtpoint2d, msg, ms.glcolorarea, fsize)
+                                    # todo: swap ms.glcolorarea with ms.glcolor ?
+                                    draw_text(myobj, txtpoint2d, msg, ms.glcolorarea, fsize, faln, fang)
 
                 except IndexError:
                     ms.glfree = True
@@ -789,17 +797,17 @@ def get_group_sum(myobj, tag):
 # -------------------------------------------------------------
 # Create OpenGL text
 #
-# right: Align to right
 # -------------------------------------------------------------
-#def draw_text(myobj, x_pos, y_pos, display_text, rgb, fsize, right=False):
-def draw_text(myobj, pos2d, display_text, rgb, fsize, right=False):
+def draw_text(myobj, pos2d, display_text, rgb, fsize, align='L', text_rot=0.0):
     if pos2d is None:
         return
 
-    x_pos, y_pos = pos2d
+    # dpi = bpy.context.user_preferences.system.dpi
     gap = 12
+    x_pos, y_pos = pos2d
     font_id = 0
     blf.size(font_id, fsize, 72)
+    # blf.size(font_id, fsize, dpi)
     # height of one line
     mwidth, mheight = blf.dimensions(font_id, "Tp")  # uses high/low letters
 
@@ -823,10 +831,14 @@ def draw_text(myobj, pos2d, display_text, rgb, fsize, right=False):
     # -------------------
     for line in mylines:
         text_width, text_height = blf.dimensions(font_id, line)
-        if right is True:
+        if align is 'C':
+            newx = x_pos - text_width / 2
+        elif align is 'R':
             newx = x_pos - text_width - gap
         else:
             newx = x_pos
+            blf.enable(font_id, ROTATION)
+            blf.rotation(font_id, text_rot)
         # calculate new Y position
         new_y = y_pos + (mheight * idx)
         # Draw
@@ -838,6 +850,9 @@ def draw_text(myobj, pos2d, display_text, rgb, fsize, right=False):
         # saves max width
         if maxwidth < text_width:
             maxwidth = text_width
+
+    if align is 'L':
+        blf.disable(font_id, ROTATION)
 
     return maxwidth, maxheight
 
@@ -1043,7 +1058,7 @@ def draw_vertices(context, myobj, region, rv3d):
             if v.select is False:
                 continue
         # noinspection PyBroadException
-        #try:
+        # try:
         a_p1 = get_point(v.co, myobj)
         # colour
         bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
@@ -1056,9 +1071,9 @@ def draw_vertices(context, myobj, region, rv3d):
         if scene.measureit_debug_vert_loc is True:
             txt += format_point(co_mult(v.co), precision)
         draw_text(myobj, txtpoint2d, txt, rgb, fsize)
-        #except:
-        #    print("Unexpected error:" + str(exc_info()))
-        #    pass
+        # except:
+        #     print("Unexpected error:" + str(exc_info()))
+        #     pass
 
     return
 
@@ -1452,3 +1467,14 @@ def format_distance(fmt, units, value, factor=1):
         tx_dist = fmt % value
 
     return tx_dist
+
+
+# -------------------------------------------------------------
+# Get radian float based on angle choice
+#
+# -------------------------------------------------------------
+def get_angle_in_rad(fangle):
+    if fangle == 0:
+        return 0.0
+    else:
+        return radians(fangle)
