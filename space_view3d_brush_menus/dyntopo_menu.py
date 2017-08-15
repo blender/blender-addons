@@ -90,30 +90,30 @@ class DynTopoMenu(Menu):
                           ("Constant Detail", 'CONSTANT'),
                           ("Brush Detail", 'BRUSH'))
 
-        layout.row().label("Refine")
-        layout.row().separator()
+            layout.row().label("Refine")
+            layout.row().separator()
 
-        # add the refine menu items
-        for item in refine_items:
-            utils_core.menuprop(
-                    layout.row(), item[0], item[1],
-                    refine_path, disable=True,
-                    icon='RADIOBUT_OFF',
-                    disable_icon='RADIOBUT_ON'
-                    )
+            # add the refine menu items
+            for item in refine_items:
+                utils_core.menuprop(
+                        layout.row(), item[0], item[1],
+                        refine_path, disable=True,
+                        icon='RADIOBUT_OFF',
+                        disable_icon='RADIOBUT_ON'
+                        )
 
-        layout.row().label("")
+            layout.row().label("")
 
-        layout.row().label("Type")
-        layout.row().separator()
+            layout.row().label("Type")
+            layout.row().separator()
 
-        # add the type menu items
-        for item in type_items:
-            utils_core.menuprop(
-                    layout.row(), item[0], item[1],
-                    type_path, disable=True,
-                    icon='RADIOBUT_OFF', disable_icon='RADIOBUT_ON'
-                    )
+            # add the type menu items
+            for item in type_items:
+                utils_core.menuprop(
+                        layout.row(), item[0], item[1],
+                        type_path, disable=True,
+                        icon='RADIOBUT_OFF', disable_icon='RADIOBUT_ON'
+                        )
 
 
 class SymmetrizeMenu(Menu):
