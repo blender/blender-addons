@@ -1284,6 +1284,12 @@ class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
 class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
+    
+    @classmethod
+    def poll(cls, context):
+
+        engine = context.scene.render.engine
+        return (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -1297,7 +1303,30 @@ class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
         col.prop(obj.pov, "collect_photons", text="Receive Photon Caustics")
         if obj.pov.collect_photons:
             col.prop(obj.pov, "spacing_multiplier", text="Photons Spacing Multiplier")
+            
+        split = layout.split()
 
+        col = split.column()
+        col.prop(obj.pov,"hollow")
+        col.prop(obj.pov,"double_illuminate")
+
+     
+        if obj.type == 'META' or obj.pov.curveshape == 'lathe':
+        #if obj.pov.curveshape == 'sor'
+            col.prop(obj.pov,"sturm")
+        col.prop(obj.pov,"no_shadow")
+        col.prop(obj.pov,"no_image")
+        col.prop(obj.pov,"no_reflection")
+        col.prop(obj.pov,"no_radiosity")
+        col.prop(obj.pov,"inverse")
+        col.prop(obj.pov,"hierarchy")
+        # col.prop(obj.pov,"boundorclip",text="Bound / Clip")
+        # if obj.pov.boundorclip != "none":
+            # col.prop_search(obj.pov,"boundorclipob",context.blend_data,"objects",text="Object")
+            # text = "Clipped by"
+            # if obj.pov.boundorclip == "clipped_by":
+                # text = "Bounded by"
+            # col.prop(obj.pov,"addboundorclip",text=text)
 
 class OBJECT_PT_povray_obj_sphere(PovDataButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray Sphere"

@@ -1664,7 +1664,8 @@ class RenderPovSettingsObject(PropertyGroup):
         default=(0.0, 0.0, 2.0))
 
     unlock_parameters = BoolProperty(name="Lock",default = False)
-
+    
+    # not in UI yet but used for sor (lathe) / prism... pov primitives
     curveshape = EnumProperty(
             name="Povray Shape Type",
             items=(("birail", "Birail", ""),

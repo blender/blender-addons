@@ -288,23 +288,23 @@ def write_global_setting(scene,file):
 
 def write_object_modifiers(scene,ob,File):
     if ob.pov.hollow:
-        File.write("hollow\n")
+        File.write("\thollow\n")
     if ob.pov.double_illuminate:
-        File.write("double_illuminate\n")
+        File.write("\tdouble_illuminate\n")
     if ob.pov.sturm:
-        File.write("sturm\n")
+        File.write("\tsturm\n")
     if ob.pov.no_shadow:
-        File.write("no_shadow\n")
+        File.write("\tno_shadow\n")
     if ob.pov.no_image:
-        File.write("no_image\n")
+        File.write("\tno_image\n")
     if ob.pov.no_reflection:
-        File.write("no_reflection\n")
+        File.write("\tno_reflection\n")
     if ob.pov.no_radiosity:
-        File.write("no_radiosity\n")
+        File.write("\tno_radiosity\n")
     if ob.pov.inverse:
-        File.write("inverse\n")
+        File.write("\tinverse\n")
     if ob.pov.hierarchy:
-        File.write("hierarchy\n")
+        File.write("\thierarchy\n")
 
     # XXX, Commented definitions
     '''
@@ -1466,7 +1466,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
 
                     tabWrite("}\n")
-
+            # below not used yet?
             if ob.pov.curveshape == 'sor':
                 for spl in ob.data.splines:
                     if spl.type in {'POLY','NURBS'}:
@@ -1608,7 +1608,7 @@ def write_pov(filename, scene=None, info_callback=None):
             prefix = ob.name.split(".")[0]
             if not prefix in meta_group:
                 meta_group[prefix] = ob  # .data.threshold
-            elems = [(elem, ob) for elem in ob.data.elements if elem.type in {'BALL', 'ELLIPSOID'}]
+            elems = [(elem, ob) for elem in ob.data.elements if elem.type in {'BALL', 'ELLIPSOID','CAPSULE'}]
             if prefix in meta_elems:
                 meta_elems[prefix].extend(elems)
             else:
@@ -1637,6 +1637,12 @@ def write_pov(filename, scene=None, info_callback=None):
                                          (loc.x / elem.size_x, loc.y / elem.size_y, loc.z / elem.size_z,
                                           elem.radius, stiffness))
                                 tabWrite("scale <%.6g, %.6g, %.6g>" % (elem.size_x, elem.size_y, elem.size_z))
+                            elif elem.type == 'CAPSULE':
+                                tabWrite("cylinder{ <%.6g, %.6g, %.6g>,<%.6g, %.6g, %.6g>,%.4g,%.4g " %
+                                         ((loc.x - elem.size_x), (loc.y), (loc.z),
+                                          (loc.x + elem.size_x), (loc.y), (loc.z),
+                                          elem.radius, stiffness))
+                                #tabWrite("scale <%.6g, %.6g, %.6g>" % (elem.size_x, elem.size_y, elem.size_z))                                
                             writeMatrix(global_matrix * elems[1].matrix_world)
                             tabWrite("}\n")
                         try:
@@ -2105,7 +2111,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                                         #only overwrite variable for each competing texture for now
                                                         initColor=th.texture.evaluate((initCo[0],initCo[1],initCo[2]))
                                         for step in range(0, steps):
-                                            co = pSys.co_hair(ob, pindex, step)
+                                            co = ob.matrix_world.inverted()*(pSys.co_hair(ob, pindex, step))
                                         #for controlPoint in particle.hair_keys:
                                             if pSys.settings.clump_factor != 0:
                                                 hDiameter = pSys.settings.clump_factor / 200.0 * random.uniform(0.5, 1)
@@ -3184,11 +3190,13 @@ def write_pov(filename, scene=None, info_callback=None):
                                 writeObjectMaterial(material, ob)
                             except IndexError:
                                 print(me)
-
+                        
                         #Importance for radiosity sampling added here:
                         tabWrite("radiosity { \n")
                         tabWrite("importance %3g \n" % importance)
                         tabWrite("}\n")
+                        # POV object modifiers such as hollow / sturm / double_illuminate etc.
+                        write_object_modifiers(scene,ob,file)                        
 
                         tabWrite("}\n")  # End of mesh block
 
