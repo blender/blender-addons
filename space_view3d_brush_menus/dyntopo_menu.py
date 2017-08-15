@@ -42,61 +42,53 @@ class DynTopoMenu(Menu):
                                         "Enable Dynamic Topology")
 
 
-class DynDetailMenu(Menu):
-    bl_label = "Detail Size"
-    bl_idname = "VIEW3D_MT_sv3_dyn_detail"
-
-    def init(self):
-        settings = (("40", 40),
-                    ("30", 30),
-                    ("20", 20),
-                    ("10", 10),
-                    ("5", 5),
-                    ("1", 1))
-
-        if bpy.context.tool_settings.sculpt.detail_type_method == 'RELATIVE':
-            datapath = "tool_settings.sculpt.detail_size"
-            slider_setting = "detail_size"
-
-        else:
-            datapath = "tool_settings.sculpt.constant_detail"
-            slider_setting = "constant_detail"
-
-        return settings, datapath, slider_setting
-
-    def draw(self, context):
-        settings, datapath, slider_setting = self.init()
-        layout = self.layout
-
-        # add the top slider
-        layout.row().prop(context.tool_settings.sculpt,
-                             slider_setting, slider=True)
-        layout.row().separator()
-
-        # add the rest of the menu items
-        for i in range(len(settings)):
-            utils_core.menuprop(
-                    layout.row(), settings[i][0], settings[i][1], datapath,
-                    icon='RADIOBUT_OFF', disable=True,
-                    disable_icon='RADIOBUT_ON'
-                    )
-
-
-class DetailMethodMenu(Menu):
-    bl_label = "Detail Method"
-    bl_idname = "VIEW3D_MT_sv3_detail_method_menu"
-
-    def draw(self, context):
-        layout = self.layout
-        refine_path = "tool_settings.sculpt.detail_refine_method"
-        type_path = "tool_settings.sculpt.detail_type_method"
-
-        refine_items = (("Subdivide Edges", 'SUBDIVIDE'),
-                        ("Collapse Edges", 'COLLAPSE'),
-                        ("Subdivide Collapse", 'SUBDIVIDE_COLLAPSE'))
-
-        type_items = (("Relative Detail", 'RELATIVE'),
-                      ("Constant Detail", 'CONSTANT'))
+    class DynDetailMenu(Menu):
+        bl_label = "Detail Size"
+        bl_idname = "VIEW3D_MT_sv3_dyn_detail"
+     
+        def init(self):
+            settings = (("40", 40),
+                        ("30", 30),
+                        ("20", 20),
+                        ("10", 10),
+                        ("5", 5),
+                        ("1", 1))
+     
+            if bpy.context.tool_settings.sculpt.detail_type_method == 'RELATIVE':
+                datapath = "tool_settings.sculpt.detail_size"
+                slider_setting = "detail_size"
+     
+            elif bpy.context.tool_settings.sculpt.detail_type_method == 'CONSTANT':
+                datapath = "tool_settings.sculpt.constant_detail"
+                slider_setting = "constant_detail"
+            else:
+                datapath = "tool_settings.sculpt.detail_percent"
+                slider_setting = "detail_percent"
+                settings = (("100", 100),
+                            ("75", 75),
+                            ("50", 50),
+                            ("25", 25),
+                            ("10", 10),
+                            ("5", 5))
+     
+            return settings, datapath, slider_setting
+     
+    class DetailMethodMenu(Menu):
+        bl_label = "Detail Method"
+        bl_idname = "VIEW3D_MT_sv3_detail_method_menu"
+     
+        def draw(self, context):
+            layout = self.layout
+            refine_path = "tool_settings.sculpt.detail_refine_method"
+            type_path = "tool_settings.sculpt.detail_type_method"
+     
+            refine_items = (("Subdivide Edges", 'SUBDIVIDE'),
+                            ("Collapse Edges", 'COLLAPSE'),
+                            ("Subdivide Collapse", 'SUBDIVIDE_COLLAPSE'))
+     
+            type_items = (("Relative Detail", 'RELATIVE'),
+                          ("Constant Detail", 'CONSTANT'),
+                          ("Brush Detail", 'BRUSH'))
 
         layout.row().label("Refine")
         layout.row().separator()
