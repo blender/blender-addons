@@ -143,6 +143,17 @@ for member in dir(properties_physics_dynamicpaint):
         pass
 del properties_physics_dynamicpaint
 
+
+# Example of wrapping every class 'as is'
+from bl_ui import properties_data_modifier
+for member in dir(properties_data_modifier):
+    subclass = getattr(properties_data_modifier, member)
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
+del properties_data_modifier
+
 # Example of wrapping every class 'as is' except some
 from bl_ui import properties_material
 for member in dir(properties_material):
@@ -229,6 +240,17 @@ class RenderButtonsPanel():
         rd = context.scene.render
         return (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
+class ModifierButtonsPanel():
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "modifier"
+    # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
+
+    @classmethod
+    def poll(cls, context):
+        mods = context.object.modifiers
+        rd = context.scene.render
+        return mods and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
 class MaterialButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -802,6 +824,36 @@ class RENDER_PT_povray_media(WorldButtonsPanel, bpy.types.Panel):
 ##        rd = scene.render
 ##
 ##        layout.active = scene.pov.baking_enable
+'''XXX WIP preparing for CSG
+class MODIFIERS_PT_povray_modifiers(ModifierButtonsPanel, bpy.types.Panel):
+    bl_label = "POV-Ray"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    #def draw_header(self, context):
+        #scene = context.scene
+        #self.layout.prop(scene.pov, "boolean_mod", text="")
+
+    def draw(self, context):
+        scene = context.scene
+        layout = self.layout
+        ob = context.object
+        mod = ob.modifiers
+        col = layout.column()
+        # Find Boolean Modifiers for displaying CSG option
+        onceCSG = 0
+        for mod in ob.modifiers:
+            if onceCSG == 0:
+                if mod :
+                    if mod.type == 'BOOLEAN':
+                        col.prop(ob.pov, "boolean_mod")
+                        onceCSG = 1
+
+                    if ob.pov.boolean_mod == "POV": 
+                        split = layout.split()
+                        col = layout.column()
+                        # Inside Vector for CSG
+                        col.prop(ob.pov, "inside_vector")
+'''        
 
 class MATERIAL_PT_povray_activate_node(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Activate Node Settings"
@@ -1281,7 +1333,7 @@ class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
         # col.prop(tex.pov, "replacement_text", text="")
 
 
-class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
+class OBJECT_PT_povray_obj_parameters(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     
@@ -1296,7 +1348,10 @@ class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
 
         obj = context.object
 
-        col = layout.column()
+        split = layout.split()
+
+        col = split.column(align=True)
+
         col.label(text="Radiosity:")
         col.prop(obj.pov, "importance_value", text="Importance")
         col.label(text="Photons:")

@@ -287,6 +287,20 @@ def write_global_setting(scene,file):
     file.write("}\n")
 
 def write_object_modifiers(scene,ob,File):
+    '''XXX WIP
+    onceCSG = 0
+    for mod in ob.modifiers:
+        if onceCSG == 0:
+            if mod :
+                if mod.type == 'BOOLEAN':
+                    if ob.pov.boolean_mod == "POV":
+                        File.write("\tinside_vector <%.6g, %.6g, %.6g>\n" %
+                                   (ob.pov.inside_vector[0],
+                                    ob.pov.inside_vector[1],
+                                    ob.pov.inside_vector[2]))
+                        onceCSG = 1
+    '''
+
     if ob.pov.hollow:
         File.write("\thollow\n")
     if ob.pov.double_illuminate:
@@ -3190,13 +3204,15 @@ def write_pov(filename, scene=None, info_callback=None):
                                 writeObjectMaterial(material, ob)
                             except IndexError:
                                 print(me)
-                        
+
+                        # POV object inside_vector and modifiers such as 
+                        # hollow / sturm / double_illuminate etc.
+                        write_object_modifiers(scene,ob,file)                        
+                                
                         #Importance for radiosity sampling added here:
                         tabWrite("radiosity { \n")
                         tabWrite("importance %3g \n" % importance)
                         tabWrite("}\n")
-                        # POV object modifiers such as hollow / sturm / double_illuminate etc.
-                        write_object_modifiers(scene,ob,file)                        
 
                         tabWrite("}\n")  # End of mesh block
 
