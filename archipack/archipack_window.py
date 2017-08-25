@@ -1856,6 +1856,7 @@ class ARCHIPACK_OT_window_draw(ArchpackDrawTool, Operator):
         self.feedback.draw(context)
 
     def add_object(self, context, event):
+
         o = context.active_object
         bpy.ops.object.select_all(action="DESELECT")
 
@@ -1867,16 +1868,26 @@ class ARCHIPACK_OT_window_draw(ArchpackDrawTool, Operator):
             if event.shift:
                 bpy.ops.archipack.window(mode="UNIQUE")
 
+            # instance subs
             new_w = o.copy()
             new_w.data = o.data
             context.scene.objects.link(new_w)
+            for child in o.children:
+                if "archipack_hole" not in child:
+                    new_c = child.copy()
+                    new_c.data = child.data
+                    new_c.parent = new_w
+                    context.scene.objects.link(new_c)
+                    # dup handle if any
+                    for c in child.children:
+                        new_h = c.copy()
+                        new_h.data = c.data
+                        new_h.parent = new_c
+                        context.scene.objects.link(new_h)
 
             o = new_w
             o.select = True
             context.scene.objects.active = o
-
-            # synch subs from parent instance
-            bpy.ops.archipack.window(mode="REFRESH")
 
         else:
             bpy.ops.archipack.window(auto_manipulate=False, filepath=self.filepath)
