@@ -530,10 +530,11 @@ def DefObjectToGroups():
         "%s_MSH" %
         (os.path.basename(bpy.data.filepath).replace(".blend", "")))
     for ob in bpy.data.objects:
-        if ob.type == "MESH":
-            gr = bpy.data.groups.new(ob.name)
-            gr.objects.link(ob)
-            scgr.objects.link(ob)
+        if ob.select:
+            if ob.type == "MESH":
+                gr = bpy.data.groups.new(ob.name)
+                gr.objects.link(ob)
+                scgr.objects.link(ob)
 
 
 class ObjectsToGroups (Operator):
