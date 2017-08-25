@@ -1679,13 +1679,23 @@ class ARCHIPACK_OT_door_draw(ArchpackDrawTool, Operator):
             new_w = o.copy()
             new_w.data = o.data
             context.scene.objects.link(new_w)
+            # instance subs
+            for child in o.children:
+                if "archipack_hole" not in child:
+                    new_c = child.copy()
+                    new_c.data = child.data
+                    new_c.parent = new_w
+                    context.scene.objects.link(new_c)
+                    # dup handle if any
+                    for c in child.children:
+                        new_h = c.copy()
+                        new_h.data = c.data
+                        new_h.parent = new_c
+                        context.scene.objects.link(new_h)
 
             o = new_w
             o.select = True
             context.scene.objects.active = o
-
-            # synch subs from parent instance
-            bpy.ops.archipack.door(mode="REFRESH")
 
         else:
             bpy.ops.archipack.door(auto_manipulate=False, filepath=self.filepath)
