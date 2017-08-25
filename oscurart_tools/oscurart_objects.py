@@ -526,9 +526,13 @@ class oscDuplicateSymmetricalOp (Operator):
 # ------------------------ OBJECTS TO GROUPS ------------------------
 
 def DefObjectToGroups():
-    scgr = bpy.data.groups.new(
-        "%s_MSH" %
-        (os.path.basename(bpy.data.filepath).replace(".blend", "")))
+    try:
+        "%s_MSH" % (os.path.basename(bpy.data.filepath).replace(".blend", ""))
+        scgr = bpy.data.groups["%s_MSH" % (os.path.basename(bpy.data.filepath).replace(".blend", ""))]
+    except:    
+        scgr = bpy.data.groups.new(
+            "%s_MSH" %
+            (os.path.basename(bpy.data.filepath).replace(".blend", "")))
     for ob in bpy.data.objects:
         if ob.select:
             if ob.type == "MESH":
