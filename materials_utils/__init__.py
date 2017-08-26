@@ -26,7 +26,7 @@
 bl_info = {
     "name": "Materials Utils Specials",
     "author": "Community",
-    "version": (1, 0, 2),
+    "version": (1, 0, 3),
     "blender": (2, 77, 0),
     "location": "Materials Properties Specials > Shift Q",
     "description": "Materials Utils and Convertors",
@@ -954,7 +954,7 @@ class VIEW3D_OT_assign_material(Operator):
         mat_to_texface()
         self.is_not_undo = False
 
-        if tweak:
+        if tweak and not self.is_existing:
             try:
                 bpy.ops.view3d.show_mat_preview('INVOKE_DEFAULT')
             except:
@@ -1971,7 +1971,7 @@ class material_specials_scene_props(PropertyGroup):
             maxlen=128,
             )
     use_tweak = BoolProperty(
-        name="Tweak settings",
+        name="Tweak Settings",
         description="Open Preview Active Material after new Material creation",
         default=False,
         )
