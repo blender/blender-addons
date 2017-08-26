@@ -71,7 +71,7 @@ class RenderCopySettingsDataSetting(bpy.types.PropertyGroup):
 class RenderCopySettingsData(bpy.types.PropertyGroup):
     # XXX: The consistency of this collection is delegated to the UI code.
     #      It should only contain one element for each render setting.
-    affected_settings = CollectionProperty(type=RenderCopySettingsSetting,
+    affected_settings = CollectionProperty(type=RenderCopySettingsDataSetting,
                                            name="Affected Settings",
                                            description="The list of all available render settings")
     # XXX Unused, but needed for template_list…
@@ -79,7 +79,7 @@ class RenderCopySettingsData(bpy.types.PropertyGroup):
 
     # XXX: The consistency of this collection is delegated to the UI code.
     #      It should only contain one element for each scene.
-    allowed_scenes = CollectionProperty(type=RenderCopySettingsScene,
+    allowed_scenes = CollectionProperty(type=RenderCopySettingsDataScene,
                                         name="Allowed Scenes",
                                         description="The list all scenes in the file")
     # XXX Unused, but needed for template_list…
@@ -100,7 +100,7 @@ classes = (
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-    bpy.types.Scene.render_copy_settings = PointerProperty(type=RenderCopySettings)
+    bpy.types.Scene.render_copy_settings = PointerProperty(type=RenderCopySettingsData)
 
     bpy.app.translations.register(__name__, translations.translations_dict)
 
