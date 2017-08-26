@@ -59,16 +59,16 @@ from bpy.props import (
 # Global properties for the script, for UI (as there’s no way to let them in the operator…).
 ########################################################################################################################
 
-class RenderCopySettingsScene(bpy.types.PropertyGroup):
+class RenderCopySettingsDataScene(bpy.types.PropertyGroup):
     allowed = BoolProperty(default=True)
 
 
-class RenderCopySettingsSetting(bpy.types.PropertyGroup):
+class RenderCopySettingsDataSetting(bpy.types.PropertyGroup):
     strid = StringProperty(default="")
     copy = BoolProperty(default=False)
 
 
-class RenderCopySettings(bpy.types.PropertyGroup):
+class RenderCopySettingsData(bpy.types.PropertyGroup):
     # XXX: The consistency of this collection is delegated to the UI code.
     #      It should only contain one element for each render setting.
     affected_settings = CollectionProperty(type=RenderCopySettingsSetting,
@@ -91,9 +91,9 @@ class RenderCopySettings(bpy.types.PropertyGroup):
 
 
 classes = (
-    RenderCopySettingsScene,
-    RenderCopySettingsSetting,
-    RenderCopySettings,
+    RenderCopySettingsDataScene,
+    RenderCopySettingsDataSetting,
+    RenderCopySettingsData,
 ) + operator.classes + panel.classes
 
 
