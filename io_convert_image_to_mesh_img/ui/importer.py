@@ -68,7 +68,7 @@ class ImportHiRISETerrain(bpy.types.Operator, ImportHelper):
             "resolution you specify here to ensure it results in a whole "
             "number of vertices. If it needs to alter the value you specify, "
             "you are guaranteed that it will shrink it (i.e. decrease the "
-            "DTM resolution."
+            "DTM resolution"
         ),
         name="Terrain Model Resolution",
         min=1.0, max=100.0, default=10.0
@@ -96,7 +96,7 @@ class ImportHiRISETerrain(bpy.types.Operator, ImportHelper):
             "Set up the Blender screen to try and avoid clipping the DTM "
             "and to make the grid floor larger. *WARNING* This will change "
             "clipping distances and the Blender grid floor, and will fit the "
-            "DTM in the viewport."
+            "DTM in the viewport"
         ),
         name="Setup Blender Scene", default=True
     )
@@ -104,7 +104,7 @@ class ImportHiRISETerrain(bpy.types.Operator, ImportHelper):
     #    Blender to change its unit's dimension to meters.
     should_setup_units = bpy.props.BoolProperty(
         description=(
-            "Set the Blender scene to use meters as its unit."
+            "Set the Blender scene to use meters as its unit"
         ),
         name="Set Blender Units to Meters", default=True
     )
