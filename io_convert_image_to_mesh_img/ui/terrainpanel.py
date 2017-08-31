@@ -61,7 +61,7 @@ class TerrainPanel(bpy.types.Panel):
             "alter the resolution you specify here to ensure it results in a "
             "whole number of vertices. If it needs to alter the value you "
             "specify, you are guaranteed that it will shrink it (i.e. "
-            "decrease the DTM resolution."
+            "decrease the DTM resolution"
         ),
         min=1.0, max=100.0, default=10.0
     )
@@ -115,7 +115,7 @@ class TerrainPanel(bpy.types.Panel):
 
 
 class ReloadTerrain(bpy.types.Operator):
-    """Button for reloading the terrain mesh at a new resolution."""
+    """Button for reloading the terrain mesh at a new resolution"""
     bl_idname = "terrain.reload"
     bl_label = "Reload Terrain"
 
