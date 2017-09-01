@@ -1678,9 +1678,9 @@ class OBJECT_PT_povray_replacement_text(ObjectButtonsPanel, bpy.types.Panel):
 ###############################################################################
 
 
-class Povray_primitives_add_menu(bpy.types.Menu):
+class POVRAY_MT_primitives_add_menu(bpy.types.Menu):
     """Define the menu with presets"""
-    bl_idname = "Povray_primitives_add_menu"
+    bl_idname = "POVRAY_MT_primitives_add_menu"
     bl_label = "Povray"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -1696,11 +1696,10 @@ class Povray_primitives_add_menu(bpy.types.Menu):
         layout.menu(ImportMenu.bl_idname, text = "Import",icon="IMPORT")
 
 class BasicShapesMenu(bpy.types.Menu):
-    bl_idname = "Basic_shapes_calls"
+    bl_idname = "POVRAY_MT_basic_shape_tools"
     bl_label = "Basic_shapes"
 
     def draw(self,context):
-        pov = bpy.types.Object.pov #context.object.pov ?
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("pov.addplane", text="Infinite Plane",icon = 'MESH_PLANE')
@@ -1744,11 +1743,10 @@ class BasicShapesMenu(bpy.types.Menu):
             layout.operator("pov.addparametric", text="Parametric",icon = 'SCRIPTPLUGINS')
 
 class ImportMenu(bpy.types.Menu):
-    bl_idname = "Importer_calls"
+    bl_idname = "POVRAY_MT_import_tools"
     bl_label = "Import"
 
     def draw(self,context):
-        pov = bpy.types.Object.pov #context.object.pov ?
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("import_scene.pov",icon="FORCE_LENNARDJONES")
@@ -1756,7 +1754,7 @@ class ImportMenu(bpy.types.Menu):
 def menu_func_add(self, context):
     engine = context.scene.render.engine
     if engine == 'POVRAY_RENDER':
-        self.layout.menu("Povray_primitives_add_menu", icon="PLUGIN")
+        self.layout.menu("POVRAY_MT_primitives_add_menu", icon="PLUGIN")
 
 def menu_func_import(self, context):
     engine = context.scene.render.engine
@@ -1790,9 +1788,9 @@ def menu_func_import(self, context):
 
     # return True
 
-class Node_map_create_menu(bpy.types.Menu):
+class NodeMapCreateMenu(bpy.types.Menu):
     """Create maps"""
-    bl_idname = "Node_map_create_menu"
+    bl_idname = "POVRAY_MT_node_map_create"
     bl_label = "Create map"
 
     def draw(self,context):
@@ -1805,7 +1803,7 @@ def menu_func_nodes(self, context):
         mat=context.object.active_material
         if mat and context.space_data.tree_type == 'ObjectNodeTree':
             self.layout.prop(mat.pov,"material_use_nodes")
-            self.layout.menu("Node_map_create_menu")
+            self.layout.menu(NodeMapCreateMenu.bl_idname)
             self.layout.operator("wm.updatepreviewkey")
         if hasattr(mat,'active_texture') and context.scene.render.engine == 'POVRAY_RENDER':
             tex=mat.active_texture
