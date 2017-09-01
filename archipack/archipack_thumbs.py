@@ -42,7 +42,10 @@ def generateThumb(context, cls, preset):
     render = context.scene.cycles
     render.progressive = 'PATH'
     render.samples = 24
-    render.use_square_samples = True
+    try:
+        render.use_square_samples = True
+    except:
+        pass
     render.preview_samples = 24
     render.aa_samples = 24
     render.transparent_max_bounces = 8
@@ -179,5 +182,13 @@ if __name__ == "__main__":
             cls = arg[4:]
         if arg.startswith("preset:"):
             preset = arg[7:]
-
+        if arg.startswith("matlib:"):
+            matlib = arg[7:]
+        if arg.startswith("addon:"):
+            module = arg[6:]
+    try:
+        bpy.ops.wm.addon_enable(module=module)
+        bpy.context.user_preferences.addons[module].preferences.matlib_path = matlib
+    except:
+        raise RuntimeError("module name not found")
     generateThumb(bpy.context, cls, preset)
