@@ -475,7 +475,7 @@ def register():
 
     # Note, the Cycles addon must be registered first, otherwise
     # this panel doesn't exist - better be safe here!
-    cycles_panel = getattr(bpy.types, "CyclesRender_PT_performance", None)
+    cycles_panel = getattr(bpy.types, "CYCLES_RENDER_PT_performance", None)
     if cycles_panel is not None:
         cycles_panel.append(menu_func_cycles)
 
@@ -487,7 +487,7 @@ def unregister():
     bpy.app.handlers.scene_update_post.remove(on_scene_update)
     bpy.types.RENDER_PT_performance.remove(menu_func_bi)
 
-    cycles_panel = getattr(bpy.types, "CyclesRender_PT_performance", None)
+    cycles_panel = getattr(bpy.types, "CYCLES_RENDER_PT_performance", None)
     if cycles_panel is not None:
         cycles_panel.remove(menu_func_cycles)
 
