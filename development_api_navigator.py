@@ -457,7 +457,7 @@ class Toggle_doc(ApiNavigator, Operator):
 
 # ######### UI Panels ############
 class OBJECT_PT_api_navigator(ApiNavigator, Panel):
-    bl_idname = 'api_navigator'
+    bl_idname = 'OBJECT_PT_api_navigator'
     bl_space_type = "TEXT_EDITOR"
     bl_region_type = "UI"
     bl_label = "API Navigator"

@@ -139,6 +139,7 @@ class EditOperator(Operator):
 
 
 class EditOperatorPanel(Panel):
+    bl_idname = "DEVEDIT_PT_operator"
     bl_space_type = 'TEXT_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Edit Operator"

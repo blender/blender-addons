@@ -77,6 +77,7 @@ def check_group_exist(self, context, use_report=True):
 
 
 class TexAtl_Main(Panel):
+    bl_idname = "UVTEX_ATLAS_PT_main"
     bl_label = "Texture Atlas"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'

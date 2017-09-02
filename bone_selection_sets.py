@@ -129,7 +129,7 @@ class POSE_UL_selection_set(UIList):
 
 
 class POSE_MT_create_new_selection_set(Menu):
-    bl_idname = "pose.selection_set_create_new_popup"
+    bl_idname = "POSE_MT_selection_set_create"
     bl_label = "Choose Selection Set"
 
     def draw(self, context):
@@ -293,7 +293,7 @@ class POSE_OT_selection_set_assign(PluginOperator):
 
         if not (arm.active_selection_set < len(arm.selection_sets)):
             bpy.ops.wm.call_menu("INVOKE_DEFAULT",
-                name="pose.selection_set_create_new_popup")
+                name="POSE_MT_selection_set_create")
         else:
             bpy.ops.pose.selection_set_assign('EXEC_DEFAULT')
 
