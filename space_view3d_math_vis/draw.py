@@ -113,7 +113,8 @@ def draw_callback_px():
     # lines
     if data_vector_array:
         for key, vec in data_vector_array.items():
-            draw_text(key, vec[0])
+            if vec and len(vec) > 0:
+                draw_text(key, vec[0])
 
     # matrix
     if data_matrix:
