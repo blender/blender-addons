@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Cloud Generator",
     "author": "Nick Keeline(nrk)",
-    "version": (1, 0, 1),
+    "version": (1, 0, 2),
     "blender": (2, 78, 5),
     "location": "Tool Shelf > Create Tab",
     "description": "Creates Volumetric Clouds",
@@ -502,7 +502,7 @@ class GenerateCloud(Operator):
         if True in space_data.layers_local_view:
             self.report({'INFO'},
                         "Works with Global Perspective modes only. Operation Cancelled")
-            return {'CANCELLLED'}
+            return {'CANCELLED'}
 
         # Make variable that is the active object selected by user
         active_object = context.active_object
