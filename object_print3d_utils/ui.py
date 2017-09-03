@@ -22,6 +22,7 @@
 
 from bpy.types import Panel
 import bmesh
+
 from . import report
 
 

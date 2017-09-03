@@ -21,12 +21,12 @@
 # All Operator
 
 import bpy
-import bmesh
 from bpy.types import Operator
 from bpy.props import (
         IntProperty,
         FloatProperty,
         )
+import bmesh
 
 from . import (
         mesh_helpers,

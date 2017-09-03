@@ -102,6 +102,7 @@ class Print3D_Scene_Props(PropertyGroup):
             name="Angle",
             description="Limit for checking distorted faces",
             subtype='ANGLE',
+            default=math.radians(45.0),
             min=0.0, max=math.radians(180.0),
             )
     angle_sharp = FloatProperty(
@@ -118,7 +119,7 @@ class Print3D_Scene_Props(PropertyGroup):
             )
 
 
-# Panels for updating
+# Update panel category name
 panels = (
     ui.VIEW3D_PT_Print3D_Object,
     ui.VIEW3D_PT_Print3D_Mesh,
