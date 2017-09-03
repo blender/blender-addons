@@ -328,7 +328,6 @@ def DefOscObjectToMesh():
 class OscObjectToMesh(Operator):
     """It creates a copy of the final state of the object as it being see in the viewport"""
     bl_idname = "mesh.object_to_mesh_osc"
-    bl_idname = "mesh.object_to_mesh_osc"
     bl_label = "Object To Mesh"
 
     @classmethod
