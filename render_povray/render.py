@@ -1622,7 +1622,7 @@ def write_pov(filename, scene=None, info_callback=None):
             prefix = ob.name.split(".")[0]
             if not prefix in meta_group:
                 meta_group[prefix] = ob  # .data.threshold
-            elems = [(elem, ob) for elem in ob.data.elements if elem.type in {'BALL', 'ELLIPSOID','CAPSULE'}]
+            elems = [(elem, ob) for elem in ob.data.elements if elem.type in {'BALL', 'ELLIPSOID','CAPSULE','CUBE','PLANE'}]
             if prefix in meta_elems:
                 meta_elems[prefix].extend(elems)
             else:
@@ -1646,19 +1646,43 @@ def write_pov(filename, scene=None, info_callback=None):
                             if elem.type == 'BALL':
                                 tabWrite("sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g " %
                                          (loc.x, loc.y, loc.z, elem.radius, stiffness))
+                                writeMatrix(global_matrix * elems[1].matrix_world)
+                                tabWrite("}\n")                                         
                             elif elem.type == 'ELLIPSOID':
                                 tabWrite("sphere{ <%.6g, %.6g, %.6g>,%.4g,%.4g " %
                                          (loc.x / elem.size_x, loc.y / elem.size_y, loc.z / elem.size_z,
                                           elem.radius, stiffness))
                                 tabWrite("scale <%.6g, %.6g, %.6g>" % (elem.size_x, elem.size_y, elem.size_z))
+                                writeMatrix(global_matrix * elems[1].matrix_world)
+                                tabWrite("}\n")                                
                             elif elem.type == 'CAPSULE':
                                 tabWrite("cylinder{ <%.6g, %.6g, %.6g>,<%.6g, %.6g, %.6g>,%.4g,%.4g " %
                                          ((loc.x - elem.size_x), (loc.y), (loc.z),
                                           (loc.x + elem.size_x), (loc.y), (loc.z),
                                           elem.radius, stiffness))
                                 #tabWrite("scale <%.6g, %.6g, %.6g>" % (elem.size_x, elem.size_y, elem.size_z))                                
-                            writeMatrix(global_matrix * elems[1].matrix_world)
-                            tabWrite("}\n")
+                                writeMatrix(global_matrix * elems[1].matrix_world)
+                                tabWrite("}\n")
+
+                            elif elem.type == 'CUBE':
+                                tabWrite("cylinder { -x*8, +x*8,%.4g,%.4g translate<%.6g,%.6g,%.6g> scale  <1/4,1,1> scale <%.6g, %.6g, %.6g>\n" % (elem.radius*2.0, stiffness/4.0, loc.x, loc.y, loc.z, elem.size_x, elem.size_y, elem.size_z))
+                                writeMatrix(global_matrix * elems[1].matrix_world)
+                                tabWrite("}\n")
+                                tabWrite("cylinder { -y*8, +y*8,%.4g,%.4g translate<%.6g,%.6g,%.6g> scale <1,1/4,1> scale <%.6g, %.6g, %.6g>\n" % (elem.radius*2.0, stiffness/4.0, loc.x, loc.y, loc.z, elem.size_x, elem.size_y, elem.size_z))
+                                writeMatrix(global_matrix * elems[1].matrix_world)
+                                tabWrite("}\n")                                
+                                tabWrite("cylinder { -z*8, +z*8,%.4g,%.4g translate<%.6g,%.6g,%.6g> scale <1,1,1/4> scale <%.6g, %.6g, %.6g>\n" % (elem.radius*2.0, stiffness/4.0, loc.x, loc.y, loc.z, elem.size_x, elem.size_y, elem.size_z))
+                                writeMatrix(global_matrix * elems[1].matrix_world)
+                                tabWrite("}\n")
+                                
+                            elif elem.type == 'PLANE':
+                                tabWrite("cylinder { -x*8, +x*8,%.4g,%.4g translate<%.6g,%.6g,%.6g> scale  <1/4,1,1> scale <%.6g, %.6g, %.6g>\n" % (elem.radius*2.0, stiffness/4.0, loc.x, loc.y, loc.z, elem.size_x, elem.size_y, elem.size_z))
+                                writeMatrix(global_matrix * elems[1].matrix_world)
+                                tabWrite("}\n")
+                                tabWrite("cylinder { -y*8, +y*8,%.4g,%.4g translate<%.6g,%.6g,%.6g> scale <1,1/4,1> scale <%.6g, %.6g, %.6g>\n" % (elem.radius*2.0, stiffness/4.0, loc.x, loc.y, loc.z, elem.size_x, elem.size_y, elem.size_z))
+                                writeMatrix(global_matrix * elems[1].matrix_world)
+                                tabWrite("}\n")            
+
                         try:
                             material = elems[1].data.materials[0]  # lame! - blender cant do enything else.
                         except:
