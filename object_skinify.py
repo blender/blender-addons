@@ -133,47 +133,18 @@ class Idx_Store(object):
         if not self.rig_type == Rig_type.LEGACY and not self.rig_type == Rig_type.HUMAN and not self.rig_type == Rig_type.PITCHIPOY:          
             return
       
-        if self.rig_type == Rig_type.LEGACY:
-            if os_type == 'win32':
-                self.hand_l_merge = [7, 8, 13, 17, 22, 27]
-                self.hand_r_merge = [30, 35, 39, 44, 45, 50]
+        if self.rig_type == Rig_type.LEGACY:           
+                self.hand_l_merge = [7, 12, 16, 21, 26, 27]
+                self.hand_r_merge = [30, 31, 36, 40, 45, 50]
                 self.hands_pretty = [6, 29]
                 self.root = [59]
-                print("WIN")
-            if os_type == 'linux':
-                self.hand_l_merge = [8, 9, 14, 18, 23, 28]
-                self.hand_r_merge = [31, 32, 37, 41, 46, 51]
-                self.hands_pretty = [7, 30]
-                self.root = [59]
-                print("LIN") 
-            if os_type == 'darwin':
-                self.hand_l_merge = [7, 12, 16, 17, 22, 27]
-                self.hand_r_merge = [30, 35, 39, 40, 45, 50]
-                self.hands_pretty = [6, 29]
-                self.root = [59]
-                print("DARWIN")
+                        
                 
-                
-        if self.rig_type == Rig_type.HUMAN or self.rig_type == Rig_type.PITCHIPOY:
-            if os_type == 'win32':
-                self.hand_l_merge = [9, 14, 18, 23, 24, 29]
-                self.hand_r_merge = [32, 37, 41, 46, 51, 52]
+        if self.rig_type == Rig_type.HUMAN or self.rig_type == Rig_type.PITCHIPOY:           
+                self.hand_l_merge = [9, 10, 15, 19, 24, 29]
+                self.hand_r_merge = [32, 33, 37, 42, 47, 52]
                 self.hands_pretty = [8, 31]
                 self.root = [56]
-                print("WIN")
-            if os_type == 'linux':
-                self.hand_l_merge = [10, 11, 16, 20, 25, 30]
-                self.hand_r_merge = [33, 34, 39, 43, 48, 53]
-                self.hands_pretty = [9, 32]
-                self.root = [56]
-                print("LIN")
-            if os_type == 'darwin':
-                self.hand_l_merge = [10, 15, 19, 29, 24, 30]
-                self.hand_r_merge = [33, 38, 42, 47, 48, 53]
-                self.hands_pretty = [9, 32]
-                self.root = [56]
-        
-                print("DARWIN")
             
         
     def get_all_idx(self):                
