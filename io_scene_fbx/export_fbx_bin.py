@@ -3129,7 +3129,7 @@ def save(operator, context,
                 # Find the 'most used' source scene, and use its unit settings. This is somewhat weak, but should work
                 # fine in most cases, and avoids stupid issues like T41931.
                 best_src_scene = None
-                best_src_scene_users = 0
+                best_src_scene_users = -1
                 for sce, nbr_users in src_scenes.items():
                     if (nbr_users) > best_src_scene_users:
                         best_src_scene_users = nbr_users
