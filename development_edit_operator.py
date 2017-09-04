@@ -39,35 +39,38 @@ from bpy.types import (
 from bpy.props import EnumProperty
 
 
-def getclazz(opname):
+def get_py_class_from_op(opname):
     opid = opname.split(".")
     opmod = getattr(bpy.ops, opid[0])
     op = getattr(opmod, opid[1])
     id = op.get_rna().bl_rna.identifier
-    clazz = getattr(bpy.types, id)
-    return clazz
+    # C operators won't be added
+    return getattr(bpy.types, id, None)
 
 
 def getmodule(opname):
-    addon = True
-    clazz = getclazz(opname)
-    modn = clazz.__module__
-
-    try:
-        line = inspect.getsourcelines(clazz)[1]
-    except IOError:
+    cls = get_py_class_from_op(opname)
+    if cls is None:
+        addon = False
         line = -1
-    except TypeError:
-        line = -1
-
-    if modn == 'bpy.types':
         mod = 'C operator'
-        addon = False
-    elif modn != '__main__':
-        mod = sys.modules[modn].__file__
     else:
-        addon = False
-        mod = modn
+        addon = True
+        mod_name = cls.__module__
+        try:
+            line = inspect.getsourcelines(cls)[1]
+        except IOError:
+            line = -1
+        except TypeError:
+            line = -1
+
+        if mod_name == 'bpy.types':
+            addon = False
+        elif mod_name != '__main__':
+            mod = sys.modules[mod_name].__file__
+        else:
+            addon = False
+            mod = mod_name
 
     return mod, line, addon
 
@@ -80,8 +83,8 @@ def get_ops():
         opmoddir = dir(opmod)
         for o in opmoddir:
             name = opmodname + "." + o
-            clazz = getclazz(name)
-            if (clazz.__module__ != 'bpy.types'):
+            cls = get_py_class_from_op(name)
+            if cls is not None:
                 allops.append(name)
         del opmoddir
 
