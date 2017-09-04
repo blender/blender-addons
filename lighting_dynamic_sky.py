@@ -427,7 +427,7 @@ def draw_world_settings(col, context):
 
 class Dynapanel(Panel):
     bl_label = "Dynamic sky"
-    bl_idname = "SCENE_PT_layout"
+    bl_idname = "DYNSKY_PT_tools"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_context = "objectmode"
