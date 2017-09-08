@@ -36,6 +36,7 @@ if "bpy" in locals():
     import importlib
     importlib.reload(ui)
     importlib.reload(render)
+    importlib.reload(shading)
     importlib.reload(update_files)
 
 else:
