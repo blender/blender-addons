@@ -28,6 +28,7 @@ import re
 import random
 import platform#
 import subprocess#
+import tempfile #generate temporary files with random names
 from bpy.types import(Operator)
 from imghdr import what #imghdr is a python lib to identify image file types
 
@@ -201,7 +202,7 @@ preview_dir = os.path.join(user_dir, "preview")
 
 ## Make sure Preview directory exists and is empty
 smokePath = os.path.join(preview_dir, "smoke.df3")
-
+'''
 def write_global_setting(scene,file):
     file.write("global_settings {\n")
     file.write("    assumed_gamma %.6f\n"%scene.pov.assumed_gamma)
@@ -285,7 +286,7 @@ def write_global_setting(scene,file):
                 file.write('        load_file "%s"\n'%fullFileName)
         file.write("}\n")
     file.write("}\n")
-
+'''
 def write_object_modifiers(scene,ob,File):
     '''XXX WIP
     onceCSG = 0
@@ -574,7 +575,7 @@ def write_pov(filename, scene=None, info_callback=None):
             matrix = global_matrix * ob.matrix_world
 
             # Color is modified by energy #muiltiplie by 2 for a better match --Maurice
-            color = tuple([c * lamp.energy for c in lamp.color])
+            color = tuple([c * (lamp.energy) for c in lamp.color])
 
             tabWrite("light_source {\n")
             tabWrite("< 0,0,0 >\n")
@@ -655,14 +656,16 @@ def write_pov(filename, scene=None, info_callback=None):
             # Sun shouldn't be attenuated. Hemi and area lights have no falloff attribute so they
             # are put to type 2 attenuation a little higher above.
             if lamp.type not in {'SUN', 'AREA', 'HEMI'}:
-                tabWrite("fade_distance %.6f\n" % (lamp.distance / 10.0))
                 if lamp.falloff_type == 'INVERSE_SQUARE':
+                    tabWrite("fade_distance %.6f\n" % (sqrt(lamp.distance/2.0)))
                     tabWrite("fade_power %d\n" % 2)  # Use blenders lamp quad equivalent
                 elif lamp.falloff_type == 'INVERSE_LINEAR':
+                    tabWrite("fade_distance %.6f\n" % (lamp.distance / 2.0))                
                     tabWrite("fade_power %d\n" % 1)  # Use blenders lamp linear
-                # supposing using no fade power keyword would default to constant, no attenuation.
                 elif lamp.falloff_type == 'CONSTANT':
-                    pass
+                    tabWrite("fade_distance %.6f\n" % (lamp.distance / 2.0))
+                    tabWrite("fade_power %d\n" % 3)  
+                    # Use blenders lamp constant equivalent no attenuation.
                 # Using Custom curve for fade power 3 for now.
                 elif lamp.falloff_type == 'CUSTOM_CURVE':
                     tabWrite("fade_power %d\n" % 4)
@@ -2982,7 +2985,20 @@ def write_pov(filename, scene=None, info_callback=None):
 
                             file.write("\n")
                             tabWrite("}\n")
-
+                            
+                        #XXX BOOLEAN
+                        onceCSG = 0
+                        for mod in ob.modifiers:
+                            if onceCSG == 0:
+                                if mod :
+                                    if mod.type == 'BOOLEAN':
+                                        if ob.pov.boolean_mod == "POV":
+                                            file.write("\tinside_vector <%.6g, %.6g, %.6g>\n" %
+                                                       (ob.pov.inside_vector[0],
+                                                        ob.pov.inside_vector[1],
+                                                        ob.pov.inside_vector[2]))
+                                            onceCSG = 1
+ 
                         if me.materials:
                             try:
                                 material = me.materials[0]  # dodgy
@@ -2990,6 +3006,10 @@ def write_pov(filename, scene=None, info_callback=None):
                             except IndexError:
                                 print(me)
 
+                        # POV object modifiers such as 
+                        # hollow / sturm / double_illuminate etc.
+                        write_object_modifiers(scene,ob,file)                        
+ 
                         #Importance for radiosity sampling added here:
                         tabWrite("radiosity { \n")
                         tabWrite("importance %3g \n" % importance)
@@ -3221,7 +3241,20 @@ def write_pov(filename, scene=None, info_callback=None):
 
                             file.write("\n")
                             tabWrite("}\n")
-
+                            
+                        #XXX BOOLEAN
+                        onceCSG = 0
+                        for mod in ob.modifiers:
+                            if onceCSG == 0:
+                                if mod :
+                                    if mod.type == 'BOOLEAN':
+                                        if ob.pov.boolean_mod == "POV":
+                                            file.write("\tinside_vector <%.6g, %.6g, %.6g>\n" %
+                                                       (ob.pov.inside_vector[0],
+                                                        ob.pov.inside_vector[1],
+                                                        ob.pov.inside_vector[2]))
+                                            onceCSG = 1
+ 
                         if me.materials:
                             try:
                                 material = me.materials[0]  # dodgy
@@ -3229,7 +3262,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             except IndexError:
                                 print(me)
 
-                        # POV object inside_vector and modifiers such as 
+                        # POV object modifiers such as 
                         # hollow / sturm / double_illuminate etc.
                         write_object_modifiers(scene,ob,file)                        
                                 
@@ -3435,18 +3468,13 @@ def write_pov(filename, scene=None, info_callback=None):
         if scene.pov.charset != 'ascii':
             file.write("    charset %s\n"%scene.pov.charset)
         if scene.pov.global_settings_advanced:
-            if scene.pov.adc_bailout_enable and scene.pov.radio_enable == False:
+            if scene.pov.radio_enable == False:
                 file.write("    adc_bailout %.6f\n"%scene.pov.adc_bailout)
-            if scene.pov.ambient_light_enable:
-                file.write("    ambient_light <%.6f,%.6f,%.6f>\n"%scene.pov.ambient_light[:])
-            if scene.pov.irid_wavelength_enable:
-                file.write("    irid_wavelength <%.6f,%.6f,%.6f>\n"%scene.pov.irid_wavelength[:])
-            if scene.pov.max_intersections_enable:
-                file.write("    max_intersections %s\n"%scene.pov.max_intersections)
-            if scene.pov.number_of_waves_enable:
-                file.write("    number_of_waves %s\n"%scene.pov.number_of_waves)
-            if scene.pov.noise_generator_enable:
-                file.write("    noise_generator %s\n"%scene.pov.noise_generator)
+            file.write("    ambient_light <%.6f,%.6f,%.6f>\n"%scene.pov.ambient_light[:])
+            file.write("    irid_wavelength <%.6f,%.6f,%.6f>\n"%scene.pov.irid_wavelength[:])
+            file.write("    max_intersections %s\n"%scene.pov.max_intersections)
+            file.write("    number_of_waves %s\n"%scene.pov.number_of_waves)
+            file.write("    noise_generator %s\n"%scene.pov.noise_generator)
         if scene.pov.radio_enable:
             tabWrite("radiosity {\n")
             tabWrite("adc_bailout %.4g\n" % scene.pov.radio_adc_bailout)
@@ -3499,6 +3527,21 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("adc_bailout %.3g\n" % scene.pov.photon_adc_bailout)
                     tabWrite("gather %d, %d\n" % (scene.pov.photon_gather_min,
                         scene.pov.photon_gather_max))
+                    if scene.pov.photon_map_file_save_load in {'save'}:
+                        filePhName = 'Photon_map_file.ph'
+                        if scene.pov.photon_map_file != '':
+                            filePhName = scene.pov.photon_map_file+'.ph'
+                        filePhDir = tempfile.gettempdir()
+                        path = bpy.path.abspath(scene.pov.photon_map_dir)
+                        if os.path.exists(path):
+                            filePhDir = path
+                        fullFileName = os.path.join(filePhDir,filePhName)
+                        tabWrite('save_file "%s"\n'%fullFileName)
+                        scene.pov.photon_map_file = fullFileName
+                    if scene.pov.photon_map_file_save_load in {'load'}:
+                        fullFileName = bpy.path.abspath(scene.pov.photon_map_file)
+                        if os.path.exists(fullFileName):
+                            tabWrite('load_file "%s"\n'%fullFileName)                        
                     tabWrite("}\n")
                     oncePhotons = 0
 
