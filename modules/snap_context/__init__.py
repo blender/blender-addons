@@ -15,13 +15,19 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+
 import bgl
 import gpu
 from mathutils import Vector, Matrix
 from mathutils.geometry import intersect_point_line, intersect_ray_tri
 
-from .bgl_ext import VoidBufValue, get_clip_planes
-from .mesh_drawing import GPU_Indices_Mesh, gpu_Indices_enable_state, gpu_Indices_restore_state
+from .mesh_drawing import (
+    gpu_Indices_enable_state,
+    gpu_Indices_restore_state,
+    gpu_Indices_use_clip_planes,
+    gpu_Indices_set_ProjectionMatrix,
+    )
+
 from .utils_projection import (
     region_2d_to_orig_and_view_vector as _get_ray,
     intersect_boundbox_threshold,
@@ -59,6 +65,7 @@ class SnapContext():
         self._texture = self._offscreen.color_texture
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, self._texture)
 
+        from .bgl_ext import VoidBufValue
         NULL = VoidBufValue(0)
         bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_R32UI, self.region.width, self.region.height, 0, bgl.GL_RED_INTEGER, bgl.GL_UNSIGNED_INT, NULL.buf)
         del NULL
@@ -176,16 +183,7 @@ class SnapContext():
             self.proj_mat = Matrix.Identity(4)
 
     def use_clip_planes(self, value):
-        planes = get_clip_planes(self.rv3d)
-        if planes:
-            self._store_current_shader_state()
-            GPU_Indices_Mesh.shader
-            bgl.glUseProgram(GPU_Indices_Mesh.shader.program)
-            bgl.glUniform1i(GPU_Indices_Mesh.unif_use_clip_planes, value)
-
-            bgl.glUniform4fv(GPU_Indices_Mesh.unif_clip_plane, 4, planes)
-
-            self._restore_shader_state()
+        gpu_Indices_use_clip_planes(self.rv3d, value)
 
     def set_pixel_dist(self, dist_px):
         self._dist_px = int(dist_px)
@@ -238,7 +236,7 @@ class SnapContext():
         proj_mat = self.rv3d.perspective_matrix.copy()
         if self.proj_mat != proj_mat:
             self.proj_mat = proj_mat
-            GPU_Indices_Mesh.set_ProjectionMatrix(self.proj_mat)
+            gpu_Indices_set_ProjectionMatrix(self.proj_mat)
             self.update_all()
 
         ray_dir, ray_orig = self.get_ray(mval)
@@ -261,6 +259,7 @@ class SnapContext():
 
             if in_threshold:
                 if len(snap_obj.data) == 1:
+                    from .mesh_drawing import GPU_Indices_Mesh
                     snap_obj.data.append(GPU_Indices_Mesh(obj, snap_face, snap_edge, snap_vert))
                 snap_obj.data[1].set_draw_mode(snap_face, snap_edge, snap_vert)
                 snap_obj.data[1].set_ModelViewMatrix(snap_obj.mat)

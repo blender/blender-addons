@@ -21,7 +21,7 @@ import bmesh
 import numpy as np
 from mathutils import Matrix
 
-from .bgl_ext import VoidBufValue, np_array_as_bgl_Buffer, bgl_Buffer_reshape
+from .bgl_ext import VoidBufValue, np_array_as_bgl_Buffer, bgl_Buffer_reshape, get_clip_planes
 from .utils_shader import Shader
 
 
@@ -349,11 +349,6 @@ class GPU_Indices_Mesh():
         self.draw_verts = draw_verts and self.vbo_verts
 
 
-    @classmethod
-    def set_ProjectionMatrix(cls, P):
-        cls.P[:] = P
-
-
     def set_ModelViewMatrix(self, MV):
         self.MV[:] = MV[:]
         self.MVP[:] = Matrix(self.P) * MV
@@ -500,6 +495,23 @@ def gpu_Indices_enable_state():
     bgl.glUseProgram(GPU_Indices_Mesh.shader.program)
     #bgl.glBindVertexArray(GPU_Indices_Mesh.vao[0])
 
+
 def gpu_Indices_restore_state():
     bgl.glBindVertexArray(0)
     _restore_shader_state(PreviousGLState)
+
+
+def gpu_Indices_use_clip_planes(rv3d, value):
+    planes = get_clip_planes(rv3d)
+    if planes:
+        _store_current_shader_state()
+        bgl.glUseProgram(GPU_Indices_Mesh.shader.program)
+        bgl.glUniform1i(GPU_Indices_Mesh.unif_use_clip_planes, value)
+
+        bgl.glUniform4fv(GPU_Indices_Mesh.unif_clip_plane, 4, planes)
+
+        _restore_shader_state()
+
+
+def gpu_Indices_set_ProjectionMatrix(P):
+    GPU_Indices_Mesh.P[:] = P

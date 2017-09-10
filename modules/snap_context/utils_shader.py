@@ -82,4 +82,4 @@ class Shader():
             bgl.glDetachShader(self.program, shad)
             bgl.glDeleteShader(shad)
         bgl.glDeleteProgram(self.program)
-        print('shader_del')
+        #print('shader_del')

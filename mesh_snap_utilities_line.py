@@ -52,8 +52,6 @@ from bpy.props import (
         StringProperty,
         )
 
-from snap_context import SnapContext
-
 ##DEBUG = False
 ##if DEBUG:
 ##    from .snap_framebuffer_debug import screenTexture
@@ -906,6 +904,8 @@ class SnapUtilitiesLine(Operator):
             self.create_face = preferences.create_face
             self.outer_verts = preferences.outer_verts
             self.snap_to_grid = preferences.increments_grid
+
+            from snap_context import SnapContext
 
             self.sctx = SnapContext(context.region, context.space_data)
             self.sctx.set_pixel_dist(12)
