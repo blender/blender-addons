@@ -205,7 +205,7 @@ class SnapContext():
             self.update_all()
 
     def add_obj(self, obj, matrix):
-        matrix = matrix.freeze()
+        matrix = matrix.copy()
         snap_obj = self._get_snap_obj_by_obj(obj)
         if not snap_obj:
             self.snap_objects.append(_SnapObjectData([obj], matrix))

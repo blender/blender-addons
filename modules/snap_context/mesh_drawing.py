@@ -504,13 +504,13 @@ def gpu_Indices_restore_state():
 def gpu_Indices_use_clip_planes(rv3d, value):
     planes = get_clip_planes(rv3d)
     if planes:
-        _store_current_shader_state()
+        _store_current_shader_state(PreviousGLState)
         bgl.glUseProgram(GPU_Indices_Mesh.shader.program)
         bgl.glUniform1i(GPU_Indices_Mesh.unif_use_clip_planes, value)
 
         bgl.glUniform4fv(GPU_Indices_Mesh.unif_clip_plane, 4, planes)
 
-        _restore_shader_state()
+        _restore_shader_state(PreviousGLState)
 
 
 def gpu_Indices_set_ProjectionMatrix(P):

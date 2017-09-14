@@ -16,10 +16,9 @@ void main()
 	if (use_clip_planes) {
 		vec4 g_pos = MV * vec4(pos, 1.0);
 
-		clip_distance[0] = dot(clip_plane[0], g_pos);
-		clip_distance[1] = dot(clip_plane[1], g_pos);
-		clip_distance[2] = dot(clip_plane[2], g_pos);
-		clip_distance[3] = dot(clip_plane[3], g_pos);
+		for (int i = 0; i != 4; i++) {
+			clip_distance[i] = dot(clip_plane[i], g_pos);
+		}
 	}
 
 	primitive_id_var = primitive_id;
