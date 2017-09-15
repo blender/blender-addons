@@ -21,7 +21,7 @@ import bmesh
 import numpy as np
 from mathutils import Matrix
 
-from .bgl_ext import VoidBufValue, np_array_as_bgl_Buffer, bgl_Buffer_reshape, get_clip_planes
+from .bgl_ext import VoidBufValue, np_array_as_bgl_Buffer, bgl_Buffer_reshape
 from .utils_shader import Shader
 
 
@@ -502,8 +502,9 @@ def gpu_Indices_restore_state():
 
 
 def gpu_Indices_use_clip_planes(rv3d, value):
-    planes = get_clip_planes(rv3d)
-    if planes:
+    if rv3d.use_clip_planes:
+        planes = bgl.Buffer(bgl.GL_FLOAT, (6, 4), rv3d.clip_planes)
+
         _store_current_shader_state(PreviousGLState)
         bgl.glUseProgram(GPU_Indices_Mesh.shader.program)
         bgl.glUniform1i(GPU_Indices_Mesh.unif_use_clip_planes, value)

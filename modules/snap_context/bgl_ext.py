@@ -128,13 +128,3 @@ def bgl_Buffer_reshape(buf, shape):
     del c_buf
     del c_tmp_buf
     del tmp_buf
-
-
-def get_clip_planes(rv3d):
-    #(int)(&((struct RegionView3D *)0)->rflag) == 842
-    #(int)(&((struct RegionView3D *)0)->clip) == 464
-    rv3d_ptr = rv3d.as_pointer()
-    rflag = ctypes.c_short.from_address(rv3d_ptr + 842).value
-    if rflag & 4: # RV3D_CLIPPING
-        clip = (6 * (4 * ctypes.c_float)).from_address(rv3d_ptr + 464)
-        return bgl.Buffer(bgl.GL_FLOAT, (6, 4), clip)
