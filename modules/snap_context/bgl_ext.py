@@ -95,7 +95,7 @@ def np_array_as_bgl_Buffer(array):
     _decref.argtypes = _incref.argtypes = [ctypes.py_object]
     _decref.restype = _incref.restype = None
 
-    buf = bgl.Buffer(bgl.GL_BYTE, (1, *array.shape))[0]
+    buf = bgl.Buffer(bgl.GL_BYTE, ((1,) * (len(array.shape) + 1)))[0]
     c_buf = C_Buffer.from_address(id(buf))
 
     _decref(c_buf.parent)
@@ -103,6 +103,8 @@ def np_array_as_bgl_Buffer(array):
 
     c_buf.parent = array # Prevents MEM_freeN
     c_buf.type = type
+    for i, n in enumerate(array.shape):
+        c_buf.dimensions[i] = n
     c_buf.buf = array.ctypes.data
 
     return buf
