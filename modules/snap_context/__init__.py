@@ -19,7 +19,7 @@
 import bgl
 import gpu
 from mathutils import Vector, Matrix
-from mathutils.geometry import intersect_point_line, intersect_ray_tri
+from mathutils.geometry import intersect_point_line, intersect_line_plane
 
 from .mesh_drawing import (
     gpu_Indices_enable_state,
@@ -121,7 +121,8 @@ class SnapContext():
             if index < snap_obj.data[1].num_tris:
                 tri_verts = gpu_data.get_tri_verts(index)
                 tri_co = [snap_obj.mat * Vector(v) for v in gpu_data.get_tri_co(index)]
-                return intersect_ray_tri(*tri_co, *self.last_ray, False), tri_verts
+                nor = (tri_co[1] - tri_co[0]).cross(tri_co[2] - tri_co[0])
+                return intersect_line_plane(self.last_ray[1], self.last_ray[1] + self.last_ray[0], tri_co[0], nor), tri_verts
 
             index -= gpu_data.num_tris
 
