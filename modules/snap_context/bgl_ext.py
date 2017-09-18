@@ -108,25 +108,3 @@ def np_array_as_bgl_Buffer(array):
     c_buf.buf = array.ctypes.data
 
     return buf
-
-
-def bgl_Buffer_reshape(buf, shape):
-    assert np.prod(buf.dimensions) == np.prod(shape)
-
-    c_buf = C_Buffer.from_address(id(buf))
-    c_buf.ndimensions = len(shape)
-
-    tmp_buf = bgl.Buffer(c_buf.type, (1,) * len(shape))
-    c_tmp_buf = C_Buffer.from_address(id(tmp_buf))
-    for i, v in enumerate(shape):
-        c_tmp_buf.dimensions[i] = v
-
-    offset = C_Buffer.dimensions.offset
-    a = ctypes.pointer(ctypes.c_void_p.from_address(id(tmp_buf) + offset))
-    b = ctypes.pointer(ctypes.c_void_p.from_address(id(buf) + offset))
-
-    a[0], b[0] = b[0], a[0]
-
-    del c_buf
-    del c_tmp_buf
-    del tmp_buf

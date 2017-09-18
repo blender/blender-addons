@@ -21,7 +21,7 @@ import bmesh
 import numpy as np
 from mathutils import Matrix
 
-from .bgl_ext import VoidBufValue, np_array_as_bgl_Buffer, bgl_Buffer_reshape
+from .bgl_ext import VoidBufValue, np_array_as_bgl_Buffer
 from .utils_shader import Shader
 
 
@@ -34,9 +34,9 @@ def load_shader(shadername):
 def get_mesh_vert_co_array(me):
     tot_vco = len(me.vertices)
     if tot_vco:
-        verts_co = bgl.Buffer(bgl.GL_FLOAT, (tot_vco * 3))
+        verts_co = np.empty(len(me.vertices) * 3, 'f4')
         me.vertices.foreach_get("co", verts_co)
-        bgl_Buffer_reshape(verts_co, (tot_vco, 3))
+        verts_co.shape = (-1, 3)
         return verts_co
     return None
 
@@ -44,31 +44,25 @@ def get_mesh_vert_co_array(me):
 def get_bmesh_vert_co_array(bm):
     tot_vco = len(bm.verts)
     if tot_vco:
-        return bgl.Buffer(bgl.GL_FLOAT, (tot_vco, 3), [v.co for v in bm.verts])
+        return np.array([v.co for v in bm.verts], 'f4')
     return None
 
 
 def get_mesh_tri_verts_array(me):
-    num_tris = len(me.loops) - 2 * len(me.polygons)
-    if num_tris:
-        bm = bmesh.new()
-        bm.from_mesh(me, face_normals=False)
-        ltris = bm.calc_tessface()
-        tris = bgl.Buffer(bgl.GL_INT, (num_tris, 3))
-        for i, ltri in enumerate(ltris):
-            tris[i] = ltri[0].vert.index, ltri[1].vert.index, ltri[2].vert.index
-        bm.free()
-        return tris
-    return None
+    me.calc_tessface()
+    len_tessfaces = len(me.tessfaces)
+    if len_tessfaces:
+        tessfaces = np.empty(len_tessfaces * 4, 'i4')
+        me.tessfaces.foreach_get("vertices_raw", tessfaces)
+        tessfaces.shape = (-1, 4)
 
+        quad_indices = tessfaces[:, 3].nonzero()[0]
+        tris = np.empty(((len_tessfaces + len(quad_indices)), 3), 'i4')
 
-def get_mesh_tri_co_array(me, tri_verts):
-    num_tris = len(tri_verts)
-    if num_tris:
-        verts = me.vertices
-        tris = bgl.Buffer(bgl.GL_FLOAT, (num_tris, 3, 3))
-        for i, tri in enumerate(tri_verts):
-            tris[i] = verts[tri[0]].co, verts[tri[1]].co, verts[tri[2]].co
+        tris[:len_tessfaces] = tessfaces[:, :3]
+        tris[len_tessfaces:] = tessfaces[quad_indices][:, (0, 2, 3)]
+
+        del tessfaces
         return tris
     return None
 
@@ -77,18 +71,7 @@ def get_bmesh_tri_verts_array(bm):
     ltris = bm.calc_tessface()
     tris = [[ltri[0].vert.index, ltri[1].vert.index, ltri[2].vert.index] for ltri in ltris if not ltri[0].face.hide]
     if tris:
-        return bgl.Buffer(bgl.GL_INT, (len(tris), 3), tris)
-    return None
-
-
-def get_bmesh_tri_co_array(bm, tri_verts):
-    num_tris = len(tri_verts)
-    if num_tris:
-        verts = bm.verts
-        tris = bgl.Buffer(bgl.GL_FLOAT, (num_tris, 3, 3))
-        for i, tri in enumerate(tri_verts):
-            tris[i] = verts[tri[0]].co, verts[tri[1]].co, verts[tri[2]].co
-        return tris
+        return np.array(tris, 'i4')
     return None
 
 
@@ -98,18 +81,7 @@ def get_mesh_edge_verts_array(me):
         edge_verts = np.empty(tot_edges * 2, 'i4')
         me.edges.foreach_get("vertices", edge_verts)
         edge_verts.shape = tot_edges, 2
-        return np_array_as_bgl_Buffer(edge_verts)
-    return None
-
-
-def get_mesh_edge_co_array(me, edge_verts):
-    if edge_verts:
-        edges_co = bgl.Buffer(bgl.GL_FLOAT, (len(edge_verts), 2, 3))
-        verts = me.vertices
-        for i, (v0, v1) in enumerate(edge_verts):
-            edges_co[i][0] = verts[v0].co
-            edges_co[i][1] = verts[v1].co
-        return edges_co
+        return edge_verts
     return None
 
 
@@ -117,18 +89,7 @@ def get_bmesh_edge_verts_array(bm):
     bm.edges.ensure_lookup_table()
     edges = [[e.verts[0].index, e.verts[1].index] for e in bm.edges if not e.hide]
     if edges:
-        return bgl.Buffer(bgl.GL_INT, (len(edges), 2), edges)
-    return None
-
-
-def get_bmesh_edge_co_array(bm, edge_verts):
-    if edge_verts:
-        edges_co = bgl.Buffer(bgl.GL_FLOAT, (len(edge_verts), 2, 3))
-        verts = bm.verts
-        for i, (v0, v1) in enumerate(edge_verts):
-            edges_co[i][0] = verts[v0].co
-            edges_co[i][1] = verts[v1].co
-        return edges_co
+        return np.array(edges, 'i4')
     return None
 
 
@@ -139,14 +100,14 @@ def get_mesh_loosevert_array(me, edges):
 
     verts = verts[mask]
     if len(verts):
-        return bgl.Buffer(bgl.GL_INT, len(verts), verts)
+        return verts
     return None
 
 
 def get_bmesh_loosevert_array(bm):
     looseverts = [v.index for v in bm.verts if not (v.link_edges or v.hide)]
     if looseverts:
-        return bgl.Buffer(bgl.GL_INT, len(looseverts), looseverts)
+        return np.array(looseverts, 'i4')
     return None
 
 
@@ -160,41 +121,35 @@ class _Mesh_Arrays():
                 bm = bmesh.from_edit_mesh(me)
                 bm.verts.ensure_lookup_table()
 
-                if False: #Blender 2.8
-                    self.verts = get_bmesh_vert_co_array(bm)
+                self.verts_co = get_bmesh_vert_co_array(bm)
+
                 if create_tris:
                     self.tri_verts = get_bmesh_tri_verts_array(bm)
-                    self.tris_co = get_bmesh_tri_co_array(bm, self.tri_verts)
                 if create_edges:
                     self.edge_verts = get_bmesh_edge_verts_array(bm)
-                    self.edges_co = get_bmesh_edge_co_array(bm, self.edge_verts)
                 if create_looseverts:
                     self.looseverts = get_bmesh_loosevert_array(bm)
-                    if self.looseverts:
-                        self.looseverts_co = bgl.Buffer(bgl.GL_FLOAT, (len(self.looseverts), 3), [bm.verts[i].co for i in self.looseverts])
             else:
-                if False: #Blender 2.8
-                    self.verts = get_mesh_vert_co_array(me)
+                self.verts_co = get_mesh_vert_co_array(me)
+
                 if create_tris:
                     self.tri_verts = get_mesh_tri_verts_array(me)
-                    self.tris_co = get_mesh_tri_co_array(me, self.tri_verts)
-                if create_edges or create_looseverts:
+                if create_edges:
                     self.edge_verts = get_mesh_edge_verts_array(me)
-
-                    if create_edges:
-                        self.edges_co = get_mesh_edge_co_array(me, self.edge_verts)
-                    if create_looseverts:
-                        self.looseverts = get_mesh_loosevert_array(me, self.edge_verts)
-                        if self.looseverts:
-                            self.looseverts_co = bgl.Buffer(bgl.GL_FLOAT, (len(self.looseverts), 3), [me.vertices[i].co for i in self.looseverts])
+                if create_looseverts:
+                    edge_verts = self.edge_verts
+                    if edge_verts is None:
+                        edge_verts = get_mesh_edge_verts_array(me)
+                    self.looseverts = get_mesh_loosevert_array(me, edge_verts)
+                    del edge_verts
 
         else: #TODO
-            self.looseverts = bgl.Buffer(bgl.GL_INT, 1)
-            self.looseverts_co = bgl.Buffer(bgl.GL_FLOAT, (1, 3))
+            self.verts_co = np.zeros((1,3), 'f4')
+            self.looseverts = np.zeros(1, 'i4')
 
     def __del__(self):
         del self.tri_verts, self.edge_verts, self.looseverts
-        del self.tris_co, self.edges_co, self.looseverts_co
+        del self.verts_co
 
 
 class GPU_Indices_Mesh():
@@ -248,29 +203,31 @@ class GPU_Indices_Mesh():
         mesh_arrays = _Mesh_Arrays(obj, draw_tris, draw_edges, draw_verts)
 
         ## Create VBO for vertices ##
-        if False: # Blender 2.8
-            if not mesh_arrays.verts:
-                self.draw_tris = False
-                self.draw_edges = False
-                self.draw_verts = False
-                return
+        if mesh_arrays.verts_co is None:
+            self.draw_tris = False
+            self.draw_edges = False
+            self.draw_verts = False
+            return
 
-            self.vbo_len = len(mesh_arrays.verts)
+        if False:  # Blender 2.8
+            self.vbo_len = len(mesh_arrays.verts_co)
 
             self.vbo = bgl.Buffer(bgl.GL_INT, 1)
             bgl.glGenBuffers(1, self.vbo)
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo[0])
-            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.vbo_len * 12, mesh_arrays.verts, bgl.GL_STATIC_DRAW)
+            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.vbo_len * 12, np_array_as_bgl_Buffer(mesh_arrays.verts_co), bgl.GL_STATIC_DRAW)
 
         ## Create VBO for Tris ##
-        if mesh_arrays.tri_verts:
+        if mesh_arrays.tri_verts is not None:
             self.tri_verts = mesh_arrays.tri_verts
             self.num_tris = len(self.tri_verts)
 
+            np_tris_co = mesh_arrays.verts_co[mesh_arrays.tri_verts]
             self.vbo_tris = bgl.Buffer(bgl.GL_INT, 1)
             bgl.glGenBuffers(1, self.vbo_tris)
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_tris[0])
-            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_tris * 36, mesh_arrays.tris_co, bgl.GL_STATIC_DRAW)
+            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_tris * 36, np_array_as_bgl_Buffer(np_tris_co), bgl.GL_STATIC_DRAW)
+            del np_tris_co
 
             tri_indices = np.repeat(np.arange(self.num_tris, dtype = 'f4'), 3)
             self.vbo_tri_indices = bgl.Buffer(bgl.GL_INT, 1)
@@ -284,16 +241,18 @@ class GPU_Indices_Mesh():
             self.draw_tris = False
 
         ## Create VBO for Edges ##
-        if mesh_arrays.edge_verts:
+        if mesh_arrays.edge_verts is not None:
             self.edge_verts = mesh_arrays.edge_verts
             self.num_edges = len(self.edge_verts)
 
+            np_edges_co = mesh_arrays.verts_co[mesh_arrays.edge_verts]
             self.vbo_edges = bgl.Buffer(bgl.GL_INT, 1)
             bgl.glGenBuffers(1, self.vbo_edges)
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_edges[0])
-            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_edges * 24, mesh_arrays.edges_co, bgl.GL_STATIC_DRAW)
+            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_edges * 24, np_array_as_bgl_Buffer(np_edges_co), bgl.GL_STATIC_DRAW)
+            del np_edges_co
 
-            edge_indices = np.repeat(np.arange(self.num_edges, dtype = 'f4'),2)
+            edge_indices = np.repeat(np.arange(self.num_edges, dtype = 'f4'), 2)
             self.vbo_edge_indices = bgl.Buffer(bgl.GL_INT, 1)
             bgl.glGenBuffers(1, self.vbo_edge_indices)
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_edge_indices[0])
@@ -304,14 +263,16 @@ class GPU_Indices_Mesh():
             self.draw_edges = False
 
         ## Create EBO for Loose Verts ##
-        if mesh_arrays.looseverts:
+        if mesh_arrays.looseverts is not None:
             self.looseverts = mesh_arrays.looseverts
             self.num_verts = len(mesh_arrays.looseverts)
 
+            np_lverts_co = mesh_arrays.verts_co[mesh_arrays.looseverts]
             self.vbo_verts = bgl.Buffer(bgl.GL_INT, 1)
             bgl.glGenBuffers(1, self.vbo_verts)
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_verts[0])
-            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_verts * 12, mesh_arrays.looseverts_co, bgl.GL_STATIC_DRAW)
+            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_verts * 12, np_array_as_bgl_Buffer(np_lverts_co), bgl.GL_STATIC_DRAW)
+            del np_lverts_co
 
             looseverts_indices = np.arange(self.num_verts, dtype = 'f4')
             self.vbo_looseverts_indices = bgl.Buffer(bgl.GL_INT, 1)
