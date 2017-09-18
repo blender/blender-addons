@@ -53,8 +53,13 @@ class SnapContext():
         self._offset_cur = 1 # Starts with index 1
         self.region = region
         self.rv3d = space.region_3d
+
+        if self.rv3d.is_perspective:
+            self.depth_range = Vector((space.clip_start, space.clip_end))
+        else:
+            self.depth_range = Vector((-space.clip_end, space.clip_end))
+
         self.proj_mat = Matrix.Identity(4)
-        self.depth_range = Vector((space.clip_start, space.clip_end))
         self.mval = Vector((0, 0))
         self._snap_mode = VERT | EDGE | FACE
 
