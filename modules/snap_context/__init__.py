@@ -15,38 +15,60 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+__all__ = (
+    "SnapContext",
+    )
 
 import bgl
-import gpu
-from mathutils import Vector, Matrix
-from mathutils.geometry import intersect_point_line, intersect_line_plane
-
-from .mesh_drawing import (
-    gpu_Indices_enable_state,
-    gpu_Indices_restore_state,
-    gpu_Indices_use_clip_planes,
-    gpu_Indices_set_ProjectionMatrix,
-    )
-
-from .utils_projection import (
-    region_2d_to_orig_and_view_vector as _get_ray,
-    intersect_boundbox_threshold,
-    intersect_ray_segment_fac,
-    project_co_v3,
-    )
+from mathutils import Vector
 
 VERT = 1
 EDGE = 2
 FACE = 4
 
+
+class _Internal:
+    from .mesh_drawing import (
+        gpu_Indices_enable_state,
+        gpu_Indices_restore_state,
+        gpu_Indices_use_clip_planes,
+        gpu_Indices_set_ProjectionMatrix,
+        )
+
+    from .utils_projection import (
+        region_2d_to_orig_and_view_vector,
+        intersect_boundbox_threshold,
+        intersect_ray_segment_fac,
+        project_co_v3,
+        )
+
+    from mathutils.geometry import intersect_line_plane
+
+
 class _SnapObjectData():
+    __slots__ = ('data', 'mat')
     def __init__(self, data, omat):
         self.data = data
         self.mat = omat
 
 
 class SnapContext():
+    """
+    Initializes the snap context with the region and space where the snap objects will be added.
+
+    .. note::
+        After the context has been created, add the objects with the `add_obj` method.
+
+    :arg region: region of the 3D viewport, typically bpy.context.region.
+    :type region: :class:`bpy.types.Region`
+    :arg space: 3D region data, typically bpy.context.space_data.
+    :type space: :class:`bpy.types.SpaceView3D`
+    """
+
     def __init__(self, region, space):
+        import gpu
+        from .bgl_ext import VoidBufValue
+
         self.freed = False
         self.snap_objects = []
         self.drawn_count = 0
@@ -59,7 +81,7 @@ class SnapContext():
         else:
             self.depth_range = Vector((-space.clip_end, space.clip_end))
 
-        self.proj_mat = Matrix.Identity(4)
+        self.proj_mat = None
         self.mval = Vector((0, 0))
         self._snap_mode = VERT | EDGE | FACE
 
@@ -70,7 +92,6 @@ class SnapContext():
         self._texture = self._offscreen.color_texture
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, self._texture)
 
-        from .bgl_ext import VoidBufValue
         NULL = VoidBufValue(0)
         bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_R32UI, self.region.width, self.region.height, 0, bgl.GL_RED_INTEGER, bgl.GL_UNSIGNED_INT, NULL.buf)
         del NULL
@@ -127,7 +148,7 @@ class SnapContext():
                 tri_verts = gpu_data.get_tri_verts(index)
                 tri_co = [snap_obj.mat * Vector(v) for v in gpu_data.get_tri_co(index)]
                 nor = (tri_co[1] - tri_co[0]).cross(tri_co[2] - tri_co[0])
-                return intersect_line_plane(self.last_ray[1], self.last_ray[1] + self.last_ray[0], tri_co[0], nor), tri_verts
+                return _Internal.intersect_line_plane(self.last_ray[1], self.last_ray[1] + self.last_ray[0], tri_co[0], nor), tri_verts
 
             index -= gpu_data.num_tris
 
@@ -135,11 +156,11 @@ class SnapContext():
             if index < snap_obj.data[1].num_edges:
                 edge_verts = gpu_data.get_edge_verts(index)
                 edge_co = [snap_obj.mat * Vector(v) for v in gpu_data.get_edge_co(index)]
-                fac = intersect_ray_segment_fac(*edge_co, *self.last_ray)
+                fac = _Internal.intersect_ray_segment_fac(*edge_co, *self.last_ray)
 
                 if (self._snap_mode) & VERT and (fac < 0.25 or fac > 0.75):
                     co = edge_co[0] if fac < 0.5 else edge_co[1]
-                    proj_co = project_co_v3(self, co)
+                    proj_co = _Internal.project_co_v3(self, co)
                     dist = self.mval - proj_co
                     if abs(dist.x) < self._dist_px and abs(dist.y) < self._dist_px:
                         return co, (edge_verts[0] if fac < 0.5 else edge_verts[1],)
@@ -186,10 +207,10 @@ class SnapContext():
             del snap_obj.data[1:]
             #self.update_all()
             # Update on next snap_get call #
-            self.proj_mat = Matrix.Identity(4)
+            self.proj_mat = None
 
     def use_clip_planes(self, value):
-        gpu_Indices_use_clip_planes(self.rv3d, value)
+        _Internal.gpu_Indices_use_clip_planes(self.rv3d, value)
 
     def set_pixel_dist(self, dist_px):
         self._dist_px = int(dist_px)
@@ -221,7 +242,7 @@ class SnapContext():
         return self.snap_objects[-1]
 
     def get_ray(self, mval):
-        self.last_ray = _get_ray(self.region, self.rv3d, mval)
+        self.last_ray = _Internal.region_2d_to_orig_and_view_vector(self.region, self.rv3d, mval)
         return self.last_ray
 
     def snap_get(self, mval):
@@ -231,7 +252,7 @@ class SnapContext():
         snap_edge = self._snap_mode & EDGE != 0
         snap_face = self._snap_mode & FACE != 0
 
-        gpu_Indices_enable_state()
+        _Internal.gpu_Indices_enable_state()
         self._offscreen.bind()
 
         #bgl.glDisable(bgl.GL_DITHER) # dithering and AA break color coding, so disable #
@@ -242,7 +263,7 @@ class SnapContext():
         proj_mat = self.rv3d.perspective_matrix.copy()
         if self.proj_mat != proj_mat:
             self.proj_mat = proj_mat
-            gpu_Indices_set_ProjectionMatrix(self.proj_mat)
+            _Internal.gpu_Indices_set_ProjectionMatrix(self.proj_mat)
             self.update_all()
 
         ray_dir, ray_orig = self.get_ray(mval)
@@ -256,9 +277,9 @@ class SnapContext():
                 mat_inv = snap_obj.mat.inverted()
                 ray_orig_local = mat_inv * ray_orig
                 ray_dir_local = ray_dir * snap_obj.mat
-                in_threshold = intersect_boundbox_threshold(self, MVP, ray_orig_local, ray_dir_local, bbmin, bbmax)
+                in_threshold = _Internal.intersect_boundbox_threshold(self, MVP, ray_orig_local, ray_dir_local, bbmin, bbmax)
             else:
-                proj_co = project_co_v3(self, snap_obj.mat.translation)
+                proj_co = _Internal.project_co_v3(self, snap_obj.mat.translation)
                 dist = self.mval - proj_co
                 in_threshold = abs(dist.x) < self._dist_px and abs(dist.y) < self._dist_px
                 #snap_obj.data[1] = primitive_point
@@ -287,11 +308,10 @@ class SnapContext():
             ret = self._get_loc(snap_obj, index)
 
         self._offscreen.unbind()
-        gpu_Indices_restore_state()
+        _Internal.gpu_Indices_restore_state()
 
         return snap_obj, ret[0], ret[1]
 
     def free(self):
         self.__del__()
         self.freed = True
-
