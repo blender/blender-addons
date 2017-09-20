@@ -783,12 +783,14 @@ def blen_read_geom_array_gen_direct_looptovert(mesh, fbx_data, stride):
 
 
 # generic error printers.
-def blen_read_geom_array_error_mapping(descr, fbx_layer_mapping):
-    print("warning layer %r mapping type unsupported: %r" % (descr, fbx_layer_mapping))
+def blen_read_geom_array_error_mapping(descr, fbx_layer_mapping, quiet=False):
+    if not quiet:
+        print("warning layer %r mapping type unsupported: %r" % (descr, fbx_layer_mapping))
 
 
-def blen_read_geom_array_error_ref(descr, fbx_layer_ref):
-    print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
+def blen_read_geom_array_error_ref(descr, fbx_layer_ref, quiet=False):
+    if not quiet:
+        print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
 
 
 def blen_read_geom_array_mapped_vert(
@@ -796,7 +798,7 @@ def blen_read_geom_array_mapped_vert(
         fbx_layer_data, fbx_layer_index,
         fbx_layer_mapping, fbx_layer_ref,
         stride, item_size, descr,
-        xform=None,
+        xform=None, quiet=False,
         ):
     if fbx_layer_mapping == b'ByVertice':
         if fbx_layer_ref == b'Direct':
@@ -804,16 +806,16 @@ def blen_read_geom_array_mapped_vert(
             blen_read_geom_array_setattr(blen_read_geom_array_gen_direct(fbx_layer_data, stride),
                                          blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
-        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref, quiet)
     elif fbx_layer_mapping == b'AllSame':
         if fbx_layer_ref == b'IndexToDirect':
             assert(fbx_layer_index is None)
             blen_read_geom_array_setattr(blen_read_geom_array_gen_allsame(len(blen_data)),
                                          blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
-        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref, quiet)
     else:
-        blen_read_geom_array_error_mapping(descr, fbx_layer_mapping)
+        blen_read_geom_array_error_mapping(descr, fbx_layer_mapping, quiet)
 
     return False
 
@@ -823,23 +825,23 @@ def blen_read_geom_array_mapped_edge(
         fbx_layer_data, fbx_layer_index,
         fbx_layer_mapping, fbx_layer_ref,
         stride, item_size, descr,
-        xform=None,
+        xform=None, quiet=False,
         ):
     if fbx_layer_mapping == b'ByEdge':
         if fbx_layer_ref == b'Direct':
             blen_read_geom_array_setattr(blen_read_geom_array_gen_direct(fbx_layer_data, stride),
                                          blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
-        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref, quiet)
     elif fbx_layer_mapping == b'AllSame':
         if fbx_layer_ref == b'IndexToDirect':
             assert(fbx_layer_index is None)
             blen_read_geom_array_setattr(blen_read_geom_array_gen_allsame(len(blen_data)),
                                          blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
-        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref, quiet)
     else:
-        blen_read_geom_array_error_mapping(descr, fbx_layer_mapping)
+        blen_read_geom_array_error_mapping(descr, fbx_layer_mapping, quiet)
 
     return False
 
@@ -849,7 +851,7 @@ def blen_read_geom_array_mapped_polygon(
         fbx_layer_data, fbx_layer_index,
         fbx_layer_mapping, fbx_layer_ref,
         stride, item_size, descr,
-        xform=None,
+        xform=None, quiet=False,
         ):
     if fbx_layer_mapping == b'ByPolygon':
         if fbx_layer_ref == b'IndexToDirect':
@@ -867,16 +869,16 @@ def blen_read_geom_array_mapped_polygon(
             blen_read_geom_array_setattr(blen_read_geom_array_gen_direct(fbx_layer_data, stride),
                                          blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
-        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref, quiet)
     elif fbx_layer_mapping == b'AllSame':
         if fbx_layer_ref == b'IndexToDirect':
             assert(fbx_layer_index is None)
             blen_read_geom_array_setattr(blen_read_geom_array_gen_allsame(len(blen_data)),
                                          blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
-        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref, quiet)
     else:
-        blen_read_geom_array_error_mapping(descr, fbx_layer_mapping)
+        blen_read_geom_array_error_mapping(descr, fbx_layer_mapping, quiet)
 
     return False
 
@@ -886,7 +888,7 @@ def blen_read_geom_array_mapped_polyloop(
         fbx_layer_data, fbx_layer_index,
         fbx_layer_mapping, fbx_layer_ref,
         stride, item_size, descr,
-        xform=None,
+        xform=None, quiet=False,
         ):
     if fbx_layer_mapping == b'ByPolygonVertex':
         if fbx_layer_ref == b'IndexToDirect':
@@ -904,23 +906,23 @@ def blen_read_geom_array_mapped_polyloop(
             blen_read_geom_array_setattr(blen_read_geom_array_gen_direct(fbx_layer_data, stride),
                                          blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
-        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref, quiet)
     elif fbx_layer_mapping == b'ByVertice':
         if fbx_layer_ref == b'Direct':
             assert(fbx_layer_index is None)
             blen_read_geom_array_setattr(blen_read_geom_array_gen_direct_looptovert(mesh, fbx_layer_data, stride),
                                          blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
-        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref, quiet)
     elif fbx_layer_mapping == b'AllSame':
         if fbx_layer_ref == b'IndexToDirect':
             assert(fbx_layer_index is None)
             blen_read_geom_array_setattr(blen_read_geom_array_gen_allsame(len(blen_data)),
                                          blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
-        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref, quiet)
     else:
-        blen_read_geom_array_error_mapping(descr, fbx_layer_mapping)
+        blen_read_geom_array_error_mapping(descr, fbx_layer_mapping, quiet)
 
     return False
 
@@ -1074,22 +1076,25 @@ def blen_read_geom_layer_normal(fbx_obj, mesh, xform=None):
     fbx_layer_index = elem_prop_first(elem_find_first(fbx_layer, b'NormalsIndex'))
 
     # try loops, then vertices.
-    tries = ((mesh.loops, False, blen_read_geom_array_mapped_polyloop),
-             (mesh.polygons, True, blen_read_geom_array_mapped_polygon),
-             (mesh.vertices, True, blen_read_geom_array_mapped_vert))
-    for blen_data, is_fake, func in tries:
+    tries = ((mesh.loops, "Loops", False, blen_read_geom_array_mapped_polyloop),
+             (mesh.polygons, "Polygons", True, blen_read_geom_array_mapped_polygon),
+             (mesh.vertices, "Vertices", True, blen_read_geom_array_mapped_vert))
+    for blen_data, blen_data_type, is_fake, func in tries:
         bdata = [None] * len(blen_data) if is_fake else blen_data
         if func(mesh, bdata, "normal",
-                fbx_layer_data, fbx_layer_index, fbx_layer_mapping, fbx_layer_ref, 3, 3, layer_id, xform):
-            if blen_data is mesh.polygons:
+                fbx_layer_data, fbx_layer_index, fbx_layer_mapping, fbx_layer_ref, 3, 3, layer_id, xform, True):
+            if blen_data_type is "Polygons":
                 for pidx, p in enumerate(mesh.polygons):
                     for lidx in range(p.loop_start, p.loop_start + p.loop_total):
                         mesh.loops[lidx].normal[:] = bdata[pidx]
-            elif blen_data is mesh.vertices:
+            elif blen_data_type is "Vertices":
                 # We have to copy vnors to lnors! Far from elegant, but simple.
                 for l in mesh.loops:
                     l.normal[:] = bdata[l.vertex_index]
             return True
+
+    blen_read_geom_array_error_mapping("normal", fbx_layer_mapping)
+    blen_read_geom_array_error_ref("normal", fbx_layer_ref)
     return False
 
 
