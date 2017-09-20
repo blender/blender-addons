@@ -20,23 +20,24 @@
 
 import bpy
 from . import presets
+from . import data as data_types
 
 
 class RENDER_UL_copy_settings(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        #assert(isinstance(item, (bpy.types.RenderCopySettingsScene, bpy.types.RenderCopySettingsDataSetting)))
+        #assert(isinstance(item, (data_types.RenderCopySettingsScene, data_types.RenderCopySettingsDataSetting)))
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            if isinstance(item, bpy.types.RenderCopySettingsDataSetting):
+            if isinstance(item, data_types.RenderCopySettingsDataSetting):
                 layout.label(item.name, icon_value=icon)
                 layout.prop(item, "copy", text="")
-            else: #elif isinstance(item, bpy.types.RenderCopySettingsDataScene):
+            else: #elif isinstance(item, data_types.RenderCopySettingsDataScene):
                 layout.prop(item, "allowed", text=item.name, toggle=True)
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
-            if isinstance(item, bpy.types.RenderCopySettingsDataSetting):
+            if isinstance(item, data_types.RenderCopySettingsDataSetting):
                 layout.label(item.name, icon_value=icon)
                 layout.prop(item, "copy", text="")
-            else: #elif isinstance(item, bpy.types.RenderCopySettingsDataScene):
+            else: #elif isinstance(item, data_types.RenderCopySettingsDataScene):
                 layout.prop(item, "allowed", text=item.name, toggle=True)
 
 
