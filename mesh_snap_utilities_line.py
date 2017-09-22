@@ -204,12 +204,15 @@ def snap_utilities(
 
     if not snp_obj:
         is_increment = True
-        r_type = 'OUT'
-        r_loc = out_Location(rv3d, region, orig, view_vector)
         if constrain:
-            t_loc = intersect_point_line(r_loc, constrain[0], constrain[1])[0]
-            if t_loc:
-                r_loc = t_loc
+            end = orig + view_vector
+            t_loc = intersect_line_line(constrain[0], constrain[1], orig, end)
+            if t_loc is None:
+                t_loc = constrain
+            r_loc = t_loc[0]
+        else:
+            r_type = 'OUT'
+            r_loc = out_Location(rv3d, region, orig, view_vector)
 
     elif snp_obj.data[0] != obj: #OUT
         r_loc = loc
@@ -239,9 +242,7 @@ def snap_utilities(
             #cache.v2d = location_3d_to_region_2d(region, rv3d, cache.vco)
 
         if constrain:
-            location = intersect_point_line(cache.vco, constrain[0], constrain[1])
-            #factor = location[1]
-            r_loc = location[0]
+            r_loc = intersect_point_line(cache.vco, constrain[0], constrain[1])[0]
         else:
             r_loc = cache.vco
 
@@ -269,12 +270,12 @@ def snap_utilities(
             #else: cache.v2dperp = None
 
         if constrain:
-            location = intersect_line_line(constrain[0], constrain[1], cache.v0, cache.v1)
-            if location == None:
+            t_loc = intersect_line_line(constrain[0], constrain[1], cache.v0, cache.v1)
+            if t_loc is None:
                 is_increment = True
                 end = orig + view_vector
-                location = intersect_line_line(constrain[0], constrain[1], orig, end)
-            r_loc = location[0]
+                t_loc = intersect_line_line(constrain[0], constrain[1], orig, end)
+            r_loc = t_loc[0]
 
         elif cache.v2dperp and\
             abs(cache.v2dperp[0] - mcursor[0]) < 10 and abs(cache.v2dperp[1] - mcursor[1]) < 10:
