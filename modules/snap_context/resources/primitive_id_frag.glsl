@@ -5,7 +5,7 @@ varying vec4 clip_distance;
 
 uniform float offset;
 
-flat varying float primitive_id_var;
+varying float primitive_id_var;
 
 void main()
 {
