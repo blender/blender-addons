@@ -127,7 +127,7 @@ def out_Location(rv3d, region, orig, vector):
     return hit
 
 
-def get_closest_edge(bm, point, dist_sq):
+def get_closest_edge(bm, point, dist):
     r_edge = None
     for edge in bm.edges:
         v1 = edge.verts[0].co
@@ -151,9 +151,9 @@ def get_closest_edge(bm, point, dist_sq):
             else:
                 tmp = ret[0]
 
-            new_dist_sq = (point - tmp).length_squared
-            if new_dist_sq <= dist_sq:
-                dist_sq = new_dist_sq
+            new_dist = (point - tmp).length
+            if new_dist <= dist:
+                dist = new_dist
                 r_edge = edge
 
     return r_edge
@@ -206,6 +206,10 @@ def snap_utilities(
         is_increment = True
         r_type = 'OUT'
         r_loc = out_Location(rv3d, region, orig, view_vector)
+        if constrain:
+            t_loc = intersect_point_line(r_loc, constrain[0], constrain[1])[0]
+            if t_loc:
+                r_loc = t_loc
 
     elif snp_obj.data[0] != obj: #OUT
         r_loc = loc
@@ -759,7 +763,7 @@ class SnapUtilitiesLine(Operator):
                 point = self.obj_matinv * self.location
                 # with constraint the intersection can be in a different element of the selected one
                 if self.vector_constrain and self.geom:
-                    geom2 = get_closest_edge(self.bm, point, 1e-06)
+                    geom2 = get_closest_edge(self.bm, point, 0.001)
                 else:
                     geom2 = self.geom
 
