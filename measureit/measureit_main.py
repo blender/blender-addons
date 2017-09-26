@@ -2013,9 +2013,14 @@ def draw_main(context):
     scene = bpy.context.scene
     # Get visible layers
     layers = []
-    for x in range(0, 20):
-        if bpy.context.scene.layers[x] is True:
-            layers.extend([x])
+    if bpy.context.space_data.lock_camera_and_layers is True:
+        for x in range(0, 20):
+            if bpy.context.scene.layers[x] is True:
+                layers.extend([x])
+    else:
+        for x in range(20):
+            if bpy.context.space_data.layers[x] is True:
+                layers.extend([x])
 
     # Display selected or all
     if scene.measureit_gl_ghost is False:
