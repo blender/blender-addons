@@ -28,15 +28,15 @@ def check_shaderError(shader, flag, isProgram, errorMessage):
 
     if success[0] == bgl.GL_FALSE:
         import numpy as np
-        from .bgl_ext import VoidBufValue
+        import ctypes
 
-        offset = VoidBufValue(None)
+        offset = bgl.Buffer(bgl.GL_INT, 1, (ctypes.c_int * 1).from_address(0))
         error = bgl.Buffer(bgl.GL_BYTE, 1024)
         if isProgram:
-            bgl.glGetProgramInfoLog(shader, 1024, offset.buf, error)
+            bgl.glGetProgramInfoLog(shader, 1024, offset, error)
             print(errorMessage, np.bytes_(error).decode("utf-8"))
         else:
-            bgl.glGetShaderInfoLog(shader, 1024, offset.buf, error)
+            bgl.glGetShaderInfoLog(shader, 1024, offset, error)
             print(errorMessage, np.bytes_(error).decode("utf-8"))
 
         del offset

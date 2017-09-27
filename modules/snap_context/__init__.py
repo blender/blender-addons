@@ -67,7 +67,7 @@ class SnapContext():
 
     def __init__(self, region, space):
         import gpu
-        from .bgl_ext import VoidBufValue
+        import ctypes
 
         self.freed = False
         self.snap_objects = []
@@ -92,8 +92,8 @@ class SnapContext():
         self._texture = self._offscreen.color_texture
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, self._texture)
 
-        NULL = VoidBufValue(0)
-        bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_R32UI, self.region.width, self.region.height, 0, bgl.GL_RED_INTEGER, bgl.GL_UNSIGNED_INT, NULL.buf)
+        NULL = bgl.Buffer(bgl.GL_INT, 1, (ctypes.c_int * 1).from_address(0))
+        bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_R32UI, self.region.width, self.region.height, 0, bgl.GL_RED_INTEGER, bgl.GL_UNSIGNED_INT, NULL)
         del NULL
 
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_NEAREST)

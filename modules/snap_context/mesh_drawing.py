@@ -21,7 +21,6 @@ import bmesh
 import numpy as np
 from mathutils import Matrix
 
-from .bgl_ext import VoidBufValue, np_array_as_bgl_Buffer
 from .utils_shader import Shader
 
 
@@ -30,6 +29,10 @@ def load_shader(shadername):
     with open(path.join(path.dirname(__file__), 'resources', shadername), 'r') as f:
         return f.read()
 
+def gl_buffer_void_as_long(value):
+    import ctypes
+    a = (ctypes.c_byte * 1).from_address(value)
+    return bgl.Buffer(bgl.GL_BYTE, 1, a)
 
 def get_mesh_vert_co_array(me):
     tot_vco = len(me.vertices)
@@ -180,7 +183,7 @@ class GPU_Indices_Mesh():
     vert_co = bgl.Buffer(bgl.GL_FLOAT, 3)
 
     def __init__(self, obj, draw_tris, draw_edges, draw_verts):
-        self._NULL = VoidBufValue(0)
+        self._NULL = gl_buffer_void_as_long(0)
 
         self.MVP = bgl.Buffer(bgl.GL_FLOAT, (4, 4))
 
@@ -215,7 +218,8 @@ class GPU_Indices_Mesh():
             self.vbo = bgl.Buffer(bgl.GL_INT, 1)
             bgl.glGenBuffers(1, self.vbo)
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo[0])
-            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.vbo_len * 12, np_array_as_bgl_Buffer(mesh_arrays.verts_co), bgl.GL_STATIC_DRAW)
+            verts_co = bgl.Buffer(bgl.GL_FLOAT, mesh_arrays.verts_co.shape, mesh_arrays.verts_co)
+            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.vbo_len * 12, verts_co, bgl.GL_STATIC_DRAW)
 
         ## Create VBO for Tris ##
         if mesh_arrays.tri_verts is not None:
@@ -223,17 +227,19 @@ class GPU_Indices_Mesh():
             self.num_tris = len(self.tri_verts)
 
             np_tris_co = mesh_arrays.verts_co[mesh_arrays.tri_verts]
+            np_tris_co = bgl.Buffer(bgl.GL_FLOAT, np_tris_co.shape, np_tris_co)
             self.vbo_tris = bgl.Buffer(bgl.GL_INT, 1)
             bgl.glGenBuffers(1, self.vbo_tris)
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_tris[0])
-            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_tris * 36, np_array_as_bgl_Buffer(np_tris_co), bgl.GL_STATIC_DRAW)
+            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_tris * 36, np_tris_co, bgl.GL_STATIC_DRAW)
             del np_tris_co
 
             tri_indices = np.repeat(np.arange(self.num_tris, dtype = 'f4'), 3)
+            tri_indices = bgl.Buffer(bgl.GL_FLOAT, tri_indices.shape, tri_indices)
             self.vbo_tri_indices = bgl.Buffer(bgl.GL_INT, 1)
             bgl.glGenBuffers(1, self.vbo_tri_indices)
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_tri_indices[0])
-            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_tris * 12, np_array_as_bgl_Buffer(tri_indices), bgl.GL_STATIC_DRAW)
+            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_tris * 12, tri_indices, bgl.GL_STATIC_DRAW)
             del tri_indices
 
         else:
@@ -246,17 +252,19 @@ class GPU_Indices_Mesh():
             self.num_edges = len(self.edge_verts)
 
             np_edges_co = mesh_arrays.verts_co[mesh_arrays.edge_verts]
+            np_edges_co = bgl.Buffer(bgl.GL_FLOAT, np_edges_co.shape, np_edges_co)
             self.vbo_edges = bgl.Buffer(bgl.GL_INT, 1)
             bgl.glGenBuffers(1, self.vbo_edges)
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_edges[0])
-            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_edges * 24, np_array_as_bgl_Buffer(np_edges_co), bgl.GL_STATIC_DRAW)
+            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_edges * 24, np_edges_co, bgl.GL_STATIC_DRAW)
             del np_edges_co
 
             edge_indices = np.repeat(np.arange(self.num_edges, dtype = 'f4'), 2)
+            edge_indices = bgl.Buffer(bgl.GL_FLOAT, edge_indices.shape, edge_indices)
             self.vbo_edge_indices = bgl.Buffer(bgl.GL_INT, 1)
             bgl.glGenBuffers(1, self.vbo_edge_indices)
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_edge_indices[0])
-            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_edges * 8, np_array_as_bgl_Buffer(edge_indices), bgl.GL_STATIC_DRAW)
+            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_edges * 8, edge_indices, bgl.GL_STATIC_DRAW)
             del edge_indices
         else:
             self.num_edges = 0
@@ -268,17 +276,19 @@ class GPU_Indices_Mesh():
             self.num_verts = len(mesh_arrays.looseverts)
 
             np_lverts_co = mesh_arrays.verts_co[mesh_arrays.looseverts]
+            np_lverts_co = bgl.Buffer(bgl.GL_FLOAT, np_lverts_co.shape, np_lverts_co)
             self.vbo_verts = bgl.Buffer(bgl.GL_INT, 1)
             bgl.glGenBuffers(1, self.vbo_verts)
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_verts[0])
-            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_verts * 12, np_array_as_bgl_Buffer(np_lverts_co), bgl.GL_STATIC_DRAW)
+            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_verts * 12, np_lverts_co, bgl.GL_STATIC_DRAW)
             del np_lverts_co
 
             looseverts_indices = np.arange(self.num_verts, dtype = 'f4')
+            looseverts_indices = bgl.Buffer(bgl.GL_FLOAT, looseverts_indices.shape, looseverts_indices)
             self.vbo_looseverts_indices = bgl.Buffer(bgl.GL_INT, 1)
             bgl.glGenBuffers(1, self.vbo_looseverts_indices)
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_looseverts_indices[0])
-            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_verts * 4, np_array_as_bgl_Buffer(looseverts_indices), bgl.GL_STATIC_DRAW)
+            bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_verts * 4, looseverts_indices, bgl.GL_STATIC_DRAW)
             del looseverts_indices
         else:
             self.num_verts = 0
@@ -328,11 +338,11 @@ class GPU_Indices_Mesh():
 
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_tris[0])
             bgl.glEnableVertexAttribArray(self.attr_pos)
-            bgl.glVertexAttribPointer(self.attr_pos, 3, bgl.GL_FLOAT, bgl.GL_FALSE, 0, self._NULL.buf)
+            bgl.glVertexAttribPointer(self.attr_pos, 3, bgl.GL_FLOAT, bgl.GL_FALSE, 0, self._NULL)
 
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_tri_indices[0])
             bgl.glEnableVertexAttribArray(self.attr_primitive_id)
-            bgl.glVertexAttribPointer(self.attr_primitive_id, 1, bgl.GL_FLOAT, bgl.GL_FALSE, 0, self._NULL.buf)
+            bgl.glVertexAttribPointer(self.attr_primitive_id, 1, bgl.GL_FLOAT, bgl.GL_FALSE, 0, self._NULL)
 
             bgl.glDrawArrays(bgl.GL_TRIANGLES, 0, self.num_tris * 3)
 
@@ -343,11 +353,11 @@ class GPU_Indices_Mesh():
             bgl.glUniform1f(self.unif_offset, float(index_offset)) #TODO: use glUniform1ui
 
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_edges[0])
-            bgl.glVertexAttribPointer(self.attr_pos, 3, bgl.GL_FLOAT, bgl.GL_FALSE, 0, self._NULL.buf)
+            bgl.glVertexAttribPointer(self.attr_pos, 3, bgl.GL_FLOAT, bgl.GL_FALSE, 0, self._NULL)
             bgl.glEnableVertexAttribArray(self.attr_pos)
 
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_edge_indices[0])
-            bgl.glVertexAttribPointer(self.attr_primitive_id, 1, bgl.GL_FLOAT, bgl.GL_FALSE, 0, self._NULL.buf)
+            bgl.glVertexAttribPointer(self.attr_primitive_id, 1, bgl.GL_FLOAT, bgl.GL_FALSE, 0, self._NULL)
             bgl.glEnableVertexAttribArray(self.attr_primitive_id)
 
             bgl.glDrawArrays(bgl.GL_LINES, 0, self.num_edges * 2)
@@ -358,11 +368,11 @@ class GPU_Indices_Mesh():
             bgl.glUniform1f(self.unif_offset, float(index_offset)) #TODO: use glUniform1ui
 
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_verts[0])
-            bgl.glVertexAttribPointer(self.attr_pos, 3, bgl.GL_FLOAT, bgl.GL_FALSE, 0, self._NULL.buf)
+            bgl.glVertexAttribPointer(self.attr_pos, 3, bgl.GL_FLOAT, bgl.GL_FALSE, 0, self._NULL)
             bgl.glEnableVertexAttribArray(self.attr_pos)
 
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_looseverts_indices[0])
-            bgl.glVertexAttribPointer(self.attr_primitive_id, 1, bgl.GL_FLOAT, bgl.GL_FALSE, 0, self._NULL.buf)
+            bgl.glVertexAttribPointer(self.attr_primitive_id, 1, bgl.GL_FLOAT, bgl.GL_FALSE, 0, self._NULL)
             bgl.glEnableVertexAttribArray(self.attr_primitive_id)
 
             bgl.glDrawArrays(bgl.GL_POINTS, 0, self.num_verts)
