@@ -1061,9 +1061,9 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     vcolnumber = len(me.vertex_colors)
     if vcolnumber:
         def _coltuples_gen(raw_cols):
-            return zip(*(iter(raw_cols),) * 3 + (_infinite_gen(1.0),))  # We need a fake alpha...
+            return zip(*(iter(raw_cols),) * 4)
 
-        t_lc = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
+        t_lc = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 4
         for colindex, collayer in enumerate(me.vertex_colors):
             collayer.data.foreach_get("color", t_lc)
             lay_vcol = elem_data_single_int32(geom, b"LayerElementColor", colindex)
