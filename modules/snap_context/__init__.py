@@ -276,7 +276,7 @@ class SnapContext():
                 MVP = proj_mat * snap_obj.mat
                 mat_inv = snap_obj.mat.inverted()
                 ray_orig_local = mat_inv * ray_orig
-                ray_dir_local = ray_dir * snap_obj.mat
+                ray_dir_local = mat_inv.to_3x3() * ray_dir
                 in_threshold = _Internal.intersect_boundbox_threshold(self, MVP, ray_orig_local, ray_dir_local, bbmin, bbmax)
             else:
                 proj_co = _Internal.project_co_v3(self, snap_obj.mat.translation)
