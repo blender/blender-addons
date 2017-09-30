@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Dynamic Context Menu",
     "author": "meta-androcto",
-    "version": (1, 8, 6),
+    "version": (1, 8, 7),
     "blender": (2, 77, 0),
     "location": "View3D > Spacebar",
     "description": "Object Mode Context Sensitive Spacebar Menu",
@@ -54,10 +54,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
         layout = self.layout
         settings = context.tool_settings
         layout.operator_context = 'INVOKE_REGION_WIN'
-        obj = context.object
+        obj = context.active_object
 
 # No Object Selected #
-        if not context.active_object:
+        if not obj:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -114,6 +114,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
 # Mesh Edit Mode #
         if obj and obj.type == 'MESH' and obj.mode in {'EDIT'}:
+
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
