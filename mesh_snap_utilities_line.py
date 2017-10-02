@@ -807,6 +807,7 @@ class SnapUtilitiesLine(Operator):
                     context.area.header_text_set()
                     context.user_preferences.view.use_rotate_around_active = self.use_rotate_around_active
                     self.sctx.free()
+                    self.bm = None
                     if not self.is_editmode:
                         bpy.ops.object.editmode_toggle()
                     return {'FINISHED'}
