@@ -19,9 +19,9 @@
 bl_info = {
     "name": "Simplify Curves",
     "author": "testscreenings",
-    "version": (1, 0, 2),
+    "version": (1, 0, 3),
     "blender": (2, 75, 0),
-    "location": "Search > Simplify Curves",
+    "location": "View3D > Add > Curve > Simplify Curves",
     "description": "Simplifies 3D Curve objects and animation F-Curves",
     "warning": "",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -46,6 +46,15 @@ from math import (
         pow,
         )
 from bpy.types import Operator
+
+
+def error_handlers(self, op_name, errors, reports="ERROR"):
+    if self and reports:
+        self.report({'INFO'},
+                    reports + ": some operations could not be performed "
+                    "(See Console for more info)")
+
+    print("\n[Simplify Curves]\nOperator: {}\nErrors: {}\n".format(op_name, errors))
 
 
 # Check for curve
@@ -236,7 +245,7 @@ def vertsToPoints(newVerts, splineVerts, splineType):
 
 # ### MAIN OPERATIONS ###
 
-def main(context, obj, options):
+def main(context, obj, options, curve_dimension):
     mode = options[0]
     output = options[1]
     degreeOut = options[5]
@@ -247,6 +256,7 @@ def main(context, obj, options):
 
     # create curvedatablock
     curve = bpy.data.curves.new("Simple_" + obj.name, type='CURVE')
+    curve.dimensions = curve_dimension
 
     # go through splines
     for spline_i, spline in enumerate(splines):
@@ -261,11 +271,11 @@ def main(context, obj, options):
             # get vec3 list to simplify
             if spline.type == 'BEZIER':  # get bezierverts
                 splineVerts = [splineVert.co.copy()
-                                for splineVert in spline.bezier_points.values()]
+                               for splineVert in spline.bezier_points.values()]
 
             else:  # verts from all other types of curves
                 splineVerts = [splineVert.co.to_3d()
-                                for splineVert in spline.points.values()]
+                               for splineVert in spline.points.values()]
 
             # simplify spline according to mode
             if mode == 'DISTANCE':
@@ -295,10 +305,11 @@ def main(context, obj, options):
             # splineoptions
             newSpline.use_endpoint_u = spline.use_endpoint_u
 
-    # create ne object and put into scene
+    # create new object and put into scene
     newCurve = bpy.data.objects.new("Simple_" + obj.name, curve)
     scene.objects.link(newCurve)
     newCurve.select = True
+
     scene.objects.active = newCurve
     newCurve.matrix_world = obj.matrix_world
 
@@ -386,42 +397,42 @@ class GRAPH_OT_simplify(Operator):
             ('DISTANCE', 'Distance', 'Distance-based simplification (Poly)'),
             ('CURVATURE', 'Curvature', 'Curvature-based simplification (RDP)')]
     mode = EnumProperty(
-                name="Mode",
-                description="Choose algorithm to use",
-                items=opModes
-                )
+            name="Mode",
+            description="Choose algorithm to use",
+            items=opModes
+            )
     k_thresh = FloatProperty(
-                name="k",
-                min=0, soft_min=0,
-                default=0, precision=3,
-                description="Threshold"
-                )
+            name="k",
+            min=0, soft_min=0,
+            default=0, precision=3,
+            description="Threshold"
+            )
     pointsNr = IntProperty(
-                name="n",
-                min=5, soft_min=5,
-                max=16, soft_max=9,
-                default=5,
-                description="Degree of curve to get averaged curvatures"
-                )
+            name="n",
+            min=5, soft_min=5,
+            max=16, soft_max=9,
+            default=5,
+            description="Degree of curve to get averaged curvatures"
+            )
     error = FloatProperty(
-                name="Error",
-                description="Maximum allowed distance error",
-                min=0.0, soft_min=0.0,
-                default=0, precision=3
-                )
+            name="Error",
+            description="Maximum allowed distance error",
+            min=0.0, soft_min=0.0,
+            default=0, precision=3
+            )
     degreeOut = IntProperty(
-                name="Degree",
-                min=3, soft_min=3,
-                max=7, soft_max=7,
-                default=5,
-                description="Degree of new curve"
-                )
+            name="Degree",
+            min=3, soft_min=3,
+            max=7, soft_max=7,
+            default=5,
+            description="Degree of new curve"
+            )
     dis_error = FloatProperty(
-                name="Distance error",
-                description="Maximum allowed distance error in Blender Units",
-                min=0, soft_min=0,
-                default=0.0, precision=3
-                )
+            name="Distance error",
+            description="Maximum allowed distance error in Blender Units",
+            min=0, soft_min=0,
+            default=0.0, precision=3
+            )
     fcurves = []
 
     def draw(self, context):
@@ -469,63 +480,67 @@ class GRAPH_OT_simplify(Operator):
 class CURVE_OT_simplify(Operator):
     bl_idname = "curve.simplify"
     bl_label = "Simplify Curves"
-    bl_description = "Simplify Curves"
+    bl_description = ("Simplify the existing Curve based upon the chosen settings\n"
+                      "Notes: Needs an existing Curve object,\n"
+                      "Outputs a new Curve with the Simple prefix in the name")
     bl_options = {'REGISTER', 'UNDO'}
 
     # Properties
     opModes = [
             ('DISTANCE', 'Distance', 'Distance-based simplification (Poly)'),
-            ('CURVATURE', 'Curvature', 'Curvature-based simplification (RDP)')]
+            ('CURVATURE', 'Curvature', 'Curvature-based simplification (RDP)')
+            ]
     mode = EnumProperty(
-                name="Mode",
-                description="Choose algorithm to use",
-                items=opModes
-                )
+            name="Mode",
+            description="Choose algorithm to use",
+            items=opModes
+            )
     SplineTypes = [
-                ('INPUT', 'Input', 'Same type as input spline'),
-                ('NURBS', 'Nurbs', 'NURBS'),
-                ('BEZIER', 'Bezier', 'BEZIER'),
-                ('POLY', 'Poly', 'POLY')]
+            ('INPUT', 'Input', 'Same type as input spline'),
+            ('NURBS', 'Nurbs', 'NURBS'),
+            ('BEZIER', 'Bezier', 'BEZIER'),
+            ('POLY', 'Poly', 'POLY')
+            ]
     output = EnumProperty(
-                name="Output splines",
-                description="Type of splines to output",
-                items=SplineTypes
-                )
+            name="Output splines",
+            description="Type of splines to output",
+            items=SplineTypes
+            )
     k_thresh = FloatProperty(
-                name="k",
-                min=0, soft_min=0,
-                default=0, precision=3,
-                description="Threshold"
-                )
+            name="k",
+            min=0, soft_min=0,
+            default=0, precision=3,
+            description="Threshold"
+            )
     pointsNr = IntProperty(name="n",
-                min=5, soft_min=5,
-                max=9, soft_max=9,
-                default=5,
-                description="Degree of curve to get averaged curvatures"
-                )
+            min=5, soft_min=5,
+            max=9, soft_max=9,
+            default=5,
+            description="Degree of curve to get averaged curvatures"
+            )
     error = FloatProperty(
-                name="Error",
-                description="Maximum allowed distance error in Blender Units",
-                min=0, soft_min=0,
-                default=0.0, precision=3
-                )
+            name="Error",
+            description="Maximum allowed distance error in Blender Units",
+            min=0, soft_min=0,
+            default=0.0, precision=3
+            )
     degreeOut = IntProperty(name="Degree",
-                min=3, soft_min=3,
-                max=7, soft_max=7,
-                default=5,
-                description="Degree of new curve"
-                )
+            min=3, soft_min=3,
+            max=7, soft_max=7,
+            default=5,
+            description="Degree of new curve"
+            )
     dis_error = FloatProperty(
-                name="Distance error",
-                description="Maximum allowed distance error in Blender Units",
-                min=0, soft_min=0,
-                default=0.0
-                )
+            name="Distance error",
+            description="Maximum allowed distance error in Blender Units",
+            min=0, soft_min=0,
+            default=0.0
+            )
     keepShort = BoolProperty(
-                name="Keep short splines",
-                description="Keep short splines (less than 7 points)",
-                default=True
-                )
+            name="Keep short splines",
+            description="Keep short splines (less than 7 points)",
+            default=True
+            )
 
     def draw(self, context):
         layout = self.layout
@@ -555,15 +570,22 @@ class CURVE_OT_simplify(Operator):
                 self.dis_error,  # 6
                 self.keepShort   # 7
                 ]
+        try:
+            global_undo = bpy.context.user_preferences.edit.use_global_undo
+            context.user_preferences.edit.use_global_undo = False
 
-        bpy.context.user_preferences.edit.use_global_undo = False
+            bpy.ops.object.mode_set(mode='OBJECT')
+            obj = context.active_object
+            curve_dimension = obj.data.dimensions
 
-        bpy.ops.object.mode_set(mode='OBJECT', toggle=True)
-        obj = context.active_object
+            main(context, obj, options, curve_dimension)
 
-        main(context, obj, options)
+            context.user_preferences.edit.use_global_undo = global_undo
+        except Exception as e:
+            error_handlers(self, "curve.simplify", e, "Simplify Curves")
 
-        bpy.context.user_preferences.edit.use_global_undo = True
+            context.user_preferences.edit.use_global_undo = global_undo
+            return {'CANCELLED'}
 
         return {'FINISHED'}
 
