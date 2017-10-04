@@ -582,18 +582,28 @@ def defCopyUvsIsland(self, context):
     
 def defPasteUvsIsland(self, context):
     bpy.ops.object.mode_set(mode="OBJECT")
-    TobLoop = []
-    TislandFaces = []
-    for poly in bpy.context.object.data.polygons:
-        if poly.select:
-            TislandFaces.append(poly.index)
-            for li in poly.loop_indices:
-                TobLoop.append(li)    
+    selPolys = [poly.index for poly in bpy.context.object.data.polygons if poly.select]
 
-    for source,target in zip(range(min(obLoop),max(obLoop)+1),range(min(TobLoop),max(TobLoop)+1)):
-        bpy.context.object.data.uv_layers.active.data[target].uv = bpy.context.object.data.uv_layers.active.data[source].uv
-        
-    bpy.ops.object.mode_set(mode="EDIT")   
+    for island in selPolys:
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action="DESELECT")        
+        bpy.ops.object.mode_set(mode="OBJECT")  
+        bpy.context.object.data.polygons[island].select = True
+        bpy.ops.object.mode_set(mode="EDIT")  
+        bpy.ops.mesh.select_linked()
+        bpy.ops.object.mode_set(mode="OBJECT") 
+        TobLoop = []
+        TislandFaces = []
+        for poly in bpy.context.object.data.polygons:
+            if poly.select:
+                TislandFaces.append(poly.index)
+                for li in poly.loop_indices:
+                    TobLoop.append(li)    
+
+        for source,target in zip(range(min(obLoop),max(obLoop)+1),range(min(TobLoop),max(TobLoop)+1)):
+            bpy.context.object.data.uv_layers.active.data[target].uv = bpy.context.object.data.uv_layers.active.data[source].uv
+   
+        bpy.ops.object.mode_set(mode="EDIT")   
         
 
 
