@@ -21,8 +21,8 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (3, 7, 13),
-    "blender": (2, 77, 0),
+    "version": (3, 7, 14),
+    "blender": (2, 79, 1),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
     "warning": "",

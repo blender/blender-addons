@@ -1000,12 +1000,11 @@ def blen_read_geom_layer_color(fbx_obj, mesh):
                 print("%r %r missing data" % (layer_id, fbx_layer_name))
                 continue
 
-            # ignore alpha layer (read 4 items into 3)
             blen_read_geom_array_mapped_polyloop(
                 mesh, blen_data, "color",
                 fbx_layer_data, fbx_layer_index,
                 fbx_layer_mapping, fbx_layer_ref,
-                4, 3, layer_id,
+                4, 4, layer_id,
                 )
 
 
