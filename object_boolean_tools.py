@@ -924,6 +924,7 @@ class BTool_BrushToMesh(Operator):
 # 3Dview Header Menu
 class VIEW3D_MT_booltool_menu(Menu):
     bl_label = "BoolTool Operators"
+    bl_idname = "VIEW3D_MT_booltool_menu"
 
     def draw(self, context):
         layout = self.layout
@@ -1472,13 +1473,17 @@ def register():
     addon_keymaps.append((km, kmi))
 
     # Auto Operators
-    kmi = km.keymap_items.new(OBJECT_OT_BoolTool_Auto_Union.bl_idname, 'NUMPAD_PLUS', 'PRESS', ctrl=True, shift=True)
+    kmi = km.keymap_items.new(OBJECT_OT_BoolTool_Auto_Union.bl_idname,
+            'NUMPAD_PLUS', 'PRESS', ctrl=True, shift=True)
     addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(OBJECT_OT_BoolTool_Auto_Difference.bl_idname, 'NUMPAD_MINUS', 'PRESS', ctrl=True, shift=True)
+    kmi = km.keymap_items.new(OBJECT_OT_BoolTool_Auto_Difference.bl_idname,
+            'NUMPAD_MINUS', 'PRESS', ctrl=True, shift=True)
     addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(OBJECT_OT_BoolTool_Auto_Intersect.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', ctrl=True, shift=True)
+    kmi = km.keymap_items.new(OBJECT_OT_BoolTool_Auto_Intersect.bl_idname,
+            'NUMPAD_ASTERIX', 'PRESS', ctrl=True, shift=True)
     addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(OBJECT_OT_BoolTool_Auto_Slice.bl_idname, 'NUMPAD_SLASH', 'PRESS', ctrl=True, shift=True)
+    kmi = km.keymap_items.new(OBJECT_OT_BoolTool_Auto_Slice.bl_idname,
+            'NUMPAD_SLASH', 'PRESS', ctrl=True, shift=True)
     addon_keymaps.append((km, kmi))
 
 
