@@ -30,7 +30,7 @@ def check_shaderError(shader, flag, isProgram, errorMessage):
         import numpy as np
         import ctypes
 
-        offset = bgl.Buffer(bgl.GL_INT, 1, (ctypes.c_int * 1).from_address(0))
+        offset = bgl.Buffer(bgl.GL_INT, 1, (ctypes.c_int32 * 1).from_address(0))
         error = bgl.Buffer(bgl.GL_BYTE, 1024)
         if isProgram:
             bgl.glGetProgramInfoLog(shader, 1024, offset, error)
