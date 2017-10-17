@@ -156,33 +156,43 @@ class _Mesh_Arrays():
 
 
 class GPU_Indices_Mesh():
-    shader = Shader(
-        load_shader('3D_vert.glsl'),
-        None,
-        load_shader('primitive_id_frag.glsl'),
-    )
+    shader = None
 
-    unif_use_clip_planes = bgl.glGetUniformLocation(shader.program, 'use_clip_planes')
-    unif_clip_plane = bgl.glGetUniformLocation(shader.program, 'clip_plane')
+    @classmethod
+    def init_opengl(cls):
+        # OpenGL was already initialized, nothing to do here.
+        if cls.shader is not None:
+            return
 
-    unif_MVP = bgl.glGetUniformLocation(shader.program, 'MVP')
-    unif_MV = bgl.glGetUniformLocation(shader.program, 'MV')
-    unif_offset = bgl.glGetUniformLocation(shader.program, 'offset')
+        cls.shader = Shader(
+            load_shader('3D_vert.glsl'),
+            None,
+            load_shader('primitive_id_frag.glsl'),
+        )
 
-    attr_pos = bgl.glGetAttribLocation(shader.program, 'pos')
-    attr_primitive_id = bgl.glGetAttribLocation(shader.program, 'primitive_id')
+        cls.unif_use_clip_planes = bgl.glGetUniformLocation(cls.shader.program, 'use_clip_planes')
+        cls.unif_clip_plane = bgl.glGetUniformLocation(cls.shader.program, 'clip_plane')
 
-    P = bgl.Buffer(bgl.GL_FLOAT, (4, 4))
-    MV = bgl.Buffer(bgl.GL_FLOAT, (4, 4))
+        cls.unif_MVP = bgl.glGetUniformLocation(cls.shader.program, 'MVP')
+        cls.unif_MV = bgl.glGetUniformLocation(cls.shader.program, 'MV')
+        cls.unif_offset = bgl.glGetUniformLocation(cls.shader.program, 'offset')
 
-    # returns of public API #
-    vert_index = bgl.Buffer(bgl.GL_INT, 1)
+        cls.attr_pos = bgl.glGetAttribLocation(cls.shader.program, 'pos')
+        cls.attr_primitive_id = bgl.glGetAttribLocation(cls.shader.program, 'primitive_id')
 
-    tri_co = bgl.Buffer(bgl.GL_FLOAT, (3, 3))
-    edge_co = bgl.Buffer(bgl.GL_FLOAT, (2, 3))
-    vert_co = bgl.Buffer(bgl.GL_FLOAT, 3)
+        cls.P = bgl.Buffer(bgl.GL_FLOAT, (4, 4))
+        cls.MV = bgl.Buffer(bgl.GL_FLOAT, (4, 4))
+
+        # returns of public API #
+        cls.vert_index = bgl.Buffer(bgl.GL_INT, 1)
+
+        cls.tri_co = bgl.Buffer(bgl.GL_FLOAT, (3, 3))
+        cls.edge_co = bgl.Buffer(bgl.GL_FLOAT, (2, 3))
+        cls.vert_co = bgl.Buffer(bgl.GL_FLOAT, 3)
 
     def __init__(self, obj, draw_tris, draw_edges, draw_verts):
+        GPU_Indices_Mesh.init_opengl()
+
         self._NULL = gl_buffer_void_as_long(0)
 
         self.MVP = bgl.Buffer(bgl.GL_FLOAT, (4, 4))
@@ -463,6 +473,7 @@ def _restore_shader_state(cls):
 def gpu_Indices_enable_state():
     _store_current_shader_state(PreviousGLState)
 
+    GPU_Indices_Mesh.init_opengl()
     bgl.glUseProgram(GPU_Indices_Mesh.shader.program)
     #bgl.glBindVertexArray(GPU_Indices_Mesh.vao[0])
 
@@ -477,6 +488,7 @@ def gpu_Indices_use_clip_planes(rv3d, value):
         planes = bgl.Buffer(bgl.GL_FLOAT, (6, 4), rv3d.clip_planes)
 
         _store_current_shader_state(PreviousGLState)
+        GPU_Indices_Mesh.init_opengl()
         bgl.glUseProgram(GPU_Indices_Mesh.shader.program)
         bgl.glUniform1i(GPU_Indices_Mesh.unif_use_clip_planes, value)
 
