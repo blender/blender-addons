@@ -2801,7 +2801,7 @@ def load(operator, context, filepath="",
                     if lnk_prop in {b'Lcl Translation', b'Lcl Rotation', b'Lcl Scaling'}:
                         # n_uuid can (????) be linked to root '0' node, instead of a mere object node... See T41712.
                         ob = fbx_helper_nodes.get(n_uuid, None)
-                        if ob is None:
+                        if ob is None or ob.is_root:
                             continue
                         items.append((ob, lnk_prop))
                     elif lnk_prop == b'DeformPercent':  # Shape keys.
