@@ -544,7 +544,7 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset):
     'Bake' loc/rot/scale into the action,
     taking any pre_ and post_ matrix into account to transform from fbx into blender space.
     """
-    from bpy.types import Object, PoseBone, ShapeKey
+    from bpy.types import Object, PoseBone, ShapeKey, Material
     from itertools import chain
 
     fbx_curves = []
@@ -559,7 +559,10 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset):
     blen_curves = []
     props = []
 
-    if isinstance(item, ShapeKey):
+    if isinstance(item, Material):
+        grpname = item.name
+        props = [("diffuse_color", 3, grpname or "Diffuse Color")]
+    elif isinstance(item, ShapeKey):
         props = [(item.path_from_id("value"), 1, "Key")]
     else:  # Object or PoseBone:
         if item.is_bone:
@@ -586,7 +589,18 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset):
     blen_curves = [action.fcurves.new(prop, channel, grpname)
                    for prop, nbr_channels, grpname in props for channel in range(nbr_channels)]
 
-    if isinstance(item, ShapeKey):
+    if isinstance(item, Material):
+        for frame, values in blen_read_animations_curves_iter(fbx_curves, anim_offset, 0, fps):
+            value = [0,0,0]
+            for v, (fbxprop, channel, _fbx_acdata) in values:
+                assert(fbxprop == b'DiffuseColor')
+                assert(channel in {0, 1, 2})
+                value[channel] = v
+
+            for fc, v in zip(blen_curves, value):
+                fc.keyframe_points.insert(frame, v, {'NEEDED', 'FAST'}).interpolation = 'LINEAR'
+
+    elif isinstance(item, ShapeKey):
         for frame, values in blen_read_animations_curves_iter(fbx_curves, anim_offset, 0, fps):
             value = 0.0
             for v, (fbxprop, channel, _fbx_acdata) in values:
@@ -659,7 +673,7 @@ def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, anim_o
     Only the first found action is linked to objects, more complex setups are not handled,
     it's up to user to reproduce them!
     """
-    from bpy.types import ShapeKey
+    from bpy.types import ShapeKey, Material
 
     actions = {}
     for as_uuid, ((fbx_asdata, _blen_data), alayers) in stacks.items():
@@ -667,7 +681,9 @@ def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, anim_o
         for al_uuid, ((fbx_aldata, _blen_data), items) in alayers.items():
             layer_name = elem_name_ensure_class(fbx_aldata, b'AnimLayer')
             for item, cnodes in items.items():
-                if isinstance(item, ShapeKey):
+                if isinstance(item, Material):
+                    id_data = item
+                elif isinstance(item, ShapeKey):
                     id_data = item.id_data
                 else:
                     id_data = item.bl_obj
@@ -2805,10 +2821,19 @@ def load(operator, context, filepath="",
                             continue
                         items.append((ob, lnk_prop))
                     elif lnk_prop == b'DeformPercent':  # Shape keys.
-                        keyblocks = blend_shape_channels.get(n_uuid)
+                        keyblocks = blend_shape_channels.get(n_uuid, None)
                         if keyblocks is None:
                             continue
                         items += [(kb, lnk_prop) for kb in keyblocks]
+                    elif lnk_prop == b'DiffuseColor':
+                        from bpy.types import Material
+                        fbx_item = fbx_table_nodes.get(n_uuid, None)
+                        if fbx_item is None or not isinstance(fbx_item[1], Material):
+                            continue
+                        mat = fbx_item[1]
+                        items.append((mat, lnk_prop))
+                        if settings.use_cycles:
+                            print("WARNING! Importing material's animation is not supported for Cycles materials...")
                 for al_uuid, al_ctype in fbx_connection_map.get(acn_uuid, ()):
                     if al_ctype.props[0] != b'OO':
                         continue
