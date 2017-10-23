@@ -1135,7 +1135,10 @@ class Do:
             return
         has_varying_width = is_.varying_width(entity)
         th = entity.thickness
-        w = entity.width[0][0] if hasattr(entity, "width") else 0
+        w = 0
+        if hasattr(entity, "width"):
+            if len(entity.width) > 0 and len(entity.width[0]) > 0:
+                w = entity.width[0][0]
 
         if w == 0 and not has_varying_width:
             if th != 0:
