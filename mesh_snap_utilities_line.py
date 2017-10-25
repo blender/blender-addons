@@ -351,12 +351,6 @@ def get_loose_linked_edges(bmvert):
 
 
 def draw_line(self, obj, bm, bm_geom, location):
-    if not hasattr(self, 'list_verts'):
-        self.list_verts = []
-
-    if not hasattr(self, 'list_edges'):
-        self.list_edges = []
-
     split_faces = set()
 
     drawing_is_dirt = False
@@ -683,7 +677,6 @@ class SnapUtilitiesLine(Operator):
             self.list_verts_co = []
             self.list_verts = []
             self.list_edges = []
-            self.list_faces = []
             self.obj = bpy.context.active_object
             self.obj_matrix = self.obj.matrix_world.copy()
             self.bm = bmesh.from_edit_mesh(self.obj.data)
@@ -802,20 +795,27 @@ class SnapUtilitiesLine(Operator):
 
             elif event.type in {'RIGHTMOUSE', 'ESC'}:
                 if self.list_verts_co == [] or event.type == 'ESC':
+                    del self.bm
+                    del self.list_edges
+                    del self.list_verts
+                    del self.list_verts_co
+
                     bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-                    context.tool_settings.mesh_select_mode = self.select_mode
                     context.area.header_text_set()
-                    context.user_preferences.view.use_rotate_around_active = self.use_rotate_around_active
                     self.sctx.free()
-                    self.bm = None
+
+                    #restore initial state
+                    context.user_preferences.view.use_rotate_around_active = self.use_rotate_around_active
+                    context.tool_settings.mesh_select_mode = self.select_mode
                     if not self.is_editmode:
                         bpy.ops.object.editmode_toggle()
+
                     return {'FINISHED'}
                 else:
                     self.vector_constrain = None
+                    self.list_edges = []
                     self.list_verts = []
                     self.list_verts_co = []
-                    self.list_faces = []
 
         a = ""
         if self.list_verts_co:
@@ -838,61 +838,12 @@ class SnapUtilitiesLine(Operator):
         if context.space_data.type == 'VIEW_3D':
             # print('name', __name__, __package__)
             preferences = context.user_preferences.addons[__name__].preferences
-            create_new_obj = preferences.create_new_obj
-            if context.mode == 'OBJECT' and \
-              (create_new_obj or context.object is None or context.object.type != 'MESH'):
 
-                mesh = bpy.data.meshes.new("")
-                obj = bpy.data.objects.new("", mesh)
-                context.scene.objects.link(obj)
-                context.scene.objects.active = obj
-
-            # bgl.glEnable(bgl.GL_POINT_SMOOTH)
-            self.is_editmode = bpy.context.object.data.is_editmode
-            bpy.ops.object.mode_set(mode='EDIT')
-            context.space_data.use_occlude_geometry = True
-
-            self.scale = context.scene.unit_settings.scale_length
-            self.unit_system = context.scene.unit_settings.system
-            self.separate_units = context.scene.unit_settings.use_separate
-            self.uinfo = get_units_info(self.scale, self.unit_system, self.separate_units)
-
-            grid = context.scene.unit_settings.scale_length / context.space_data.grid_scale
-            relative_scale = preferences.relative_scale
-            self.scale = grid / relative_scale
-            self.rd = bpy.utils.units.to_value(self.unit_system, 'LENGTH', str(1 / self.scale))
-
-            incremental = preferences.incremental
-            self.incremental = bpy.utils.units.to_value(self.unit_system, 'LENGTH', str(incremental))
-
-            self.use_rotate_around_active = context.user_preferences.view.use_rotate_around_active
-            context.user_preferences.view.use_rotate_around_active = True
-
-            self.select_mode = context.tool_settings.mesh_select_mode[:]
-            context.tool_settings.mesh_select_mode = (True, True, True)
-
-            self.region = context.region
-            self.rv3d = context.region_data
-            self.rotMat = self.rv3d.view_matrix.copy()
-            self.obj = bpy.context.active_object
-            self.obj_matrix = self.obj.matrix_world.copy()
-            self.obj_matinv = self.obj_matrix.inverted()
-            # self.obj_glmatrix = bgl.Buffer(bgl.GL_FLOAT, [4, 4], self.obj_matrix.transposed())
-            self.bm = bmesh.from_edit_mesh(self.obj.data)
-            self.cache = SnapCache()
-
-            self.location = Vector()
-            self.list_verts = []
-            self.list_verts_co = []
-            self.bool_update = False
-            self.vector_constrain = ()
-            self.navigation_keys = NavigationKeys(context)
-            self.keytab = False
-            self.keyf8 = False
-            self.type = 'OUT'
-            self.len = 0
-            self.length_entered = ""
-            self.line_pos = 0
+            #Store the preferences that will be used in modal
+            self.intersect = preferences.intersect
+            self.create_face = preferences.create_face
+            self.outer_verts = preferences.outer_verts
+            self.snap_to_grid = preferences.increments_grid
 
             self.out_color = preferences.out_color
             self.face_color = preferences.face_color
@@ -906,11 +857,67 @@ class SnapUtilitiesLine(Operator):
             self.axis_y_color = tuple(context.user_preferences.themes[0].user_interface.axis_y)
             self.axis_z_color = tuple(context.user_preferences.themes[0].user_interface.axis_z)
 
-            self.intersect = preferences.intersect
-            self.create_face = preferences.create_face
-            self.outer_verts = preferences.outer_verts
-            self.snap_to_grid = preferences.increments_grid
+            if context.mode == 'OBJECT' and \
+              (preferences.create_new_obj or context.object is None or context.object.type != 'MESH'):
 
+                mesh = bpy.data.meshes.new("")
+                obj = bpy.data.objects.new("", mesh)
+                context.scene.objects.link(obj)
+                context.scene.objects.active = obj
+
+            #Store current state
+            self.is_editmode = context.object.data.is_editmode
+            self.use_rotate_around_active = context.user_preferences.view.use_rotate_around_active
+            self.select_mode = context.tool_settings.mesh_select_mode[:]
+
+            #Modify the current state
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.select_all(action='DESELECT')
+            context.user_preferences.view.use_rotate_around_active = True
+            context.tool_settings.mesh_select_mode = (True, True, True)
+            context.space_data.use_occlude_geometry = True
+
+            #Configure the unit of measure
+            scale = context.scene.unit_settings.scale_length
+            self.unit_system = context.scene.unit_settings.system
+            separate_units = context.scene.unit_settings.use_separate
+            self.uinfo = get_units_info(scale, self.unit_system, separate_units)
+
+            scale /= context.space_data.grid_scale * preferences.relative_scale
+            self.rd = bpy.utils.units.to_value(self.unit_system, 'LENGTH', str(1 / scale))
+
+            self.incremental = bpy.utils.units.to_value(self.unit_system, 'LENGTH', str(preferences.incremental))
+
+            #Store values from 3d view context
+            self.rv3d = context.region_data
+            self.rotMat = self.rv3d.view_matrix.copy()
+            self.obj = bpy.context.active_object
+            self.obj_matrix = self.obj.matrix_world.copy()
+            self.obj_matinv = self.obj_matrix.inverted()
+            # self.obj_glmatrix = bgl.Buffer(bgl.GL_FLOAT, [4, 4], self.obj_matrix.transposed())
+            self.bm = bmesh.from_edit_mesh(self.obj.data) #remove at end
+            self.cache = SnapCache()
+
+            #init these variables to avoid errors
+            self.prevloc = Vector()
+            self.location = Vector()
+            self.list_verts = []
+            self.list_edges = []
+            self.list_verts_co = []
+            self.bool_update = False
+            self.vector_constrain = ()
+            self.navigation_keys = NavigationKeys(context)
+            self.type = 'OUT'
+            self.len = 0
+            self.length_entered = ""
+            self.line_pos = 0
+            self.bm_geom_selected = None
+
+            #Init event variables
+            self.keytab = False
+            self.keyf8 = False
+
+            #Init Snap Context
             from snap_context import SnapContext
 
             self.sctx = SnapContext(context.region, context.space_data)
@@ -918,24 +925,21 @@ class SnapUtilitiesLine(Operator):
             self.sctx.use_clip_planes(True)
 
             act_base = context.active_base
-            self.snap_obj = self.sctx.add_obj(act_base.object, act_base.object.matrix_world)
 
             if self.outer_verts:
                 for base in context.visible_bases:
                     if base != act_base:
                         self.sctx.add_obj(base.object, base.object.matrix_world)
 
-##            if DEBUG:
-##                self.screen = screenTexture()
+            self.snap_obj = self.sctx.add_obj(act_base.object, act_base.object.matrix_world)
 
-            bpy.ops.mesh.select_all(action='DESELECT')
+            self.snap_face = context.space_data.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'}
+            self.sctx.set_snap_mode(True, True, self.snap_face)
 
-            self._handle = bpy.types.SpaceView3D.draw_handler_add(
-                                                    self.draw_callback_px,
-                                                    (context,),
-                                                    'WINDOW', 'POST_VIEW'
-                                                    )
+            #modals
+            self._handle = bpy.types.SpaceView3D.draw_handler_add(self.draw_callback_px, (context,), 'WINDOW', 'POST_VIEW')
             context.window_manager.modal_handler_add(self)
+
             return {'RUNNING_MODAL'}
         else:
             self.report({'WARNING'}, "Active space must be a View3d")
