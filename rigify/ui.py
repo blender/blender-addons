@@ -1189,7 +1189,7 @@ def rotPoleToggle(rig, window='ALL', value=False, toggle=False, bake=False):
                     args = (controls[0], controls[6], controls[5], pole, parent)
 
                 for f in frames:
-                    if not bones_in_frame(f, rig, *args):
+                    if bake and not bones_in_frame(f, rig, *args):
                         continue
                     scn.frame_set(f)
                     func1(**kwargs1)
