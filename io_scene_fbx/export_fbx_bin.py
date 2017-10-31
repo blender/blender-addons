@@ -2021,6 +2021,7 @@ def fbx_animations(scene_data):
             add_anim(animations, animated,
                      fbx_animations_do(scene_data, strip, strip.frame_start, strip.frame_end, True, force_keep=True))
             strip.mute = True
+            scene.frame_set(scene.frame_current, 0.0)
 
         for strip in strips:
             strip.mute = False
@@ -2099,6 +2100,7 @@ def fbx_animations(scene_data):
                         pbo.matrix_basis = mat.copy()
                 ob.animation_data.action = org_act
                 restore_object(ob, ob_copy)
+                scene.frame_set(scene.frame_current, 0.0)
 
             if pbones_matrices is not ...:
                 for pbo, mat in zip(ob.pose.bones, pbones_matrices):
@@ -2106,6 +2108,7 @@ def fbx_animations(scene_data):
             ob.animation_data.action = org_act
 
             bpy.data.objects.remove(ob_copy)
+            scene.frame_set(scene.frame_current, 0.0)
 
     # Global (containing everything) animstack, only if not exporting NLA strips and/or all actions.
     if not scene_data.settings.bake_anim_use_nla_strips and not scene_data.settings.bake_anim_use_all_actions:
