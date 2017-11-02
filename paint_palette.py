@@ -22,7 +22,7 @@
 bl_info = {
     "name": "Paint Palettes",
     "author": "Dany Lebel (Axon D)",
-    "version": (0, 9, 2),
+    "version": (0, 9, 3),
     "blender": (2, 63, 0),
     "location": "Image Editor and 3D View > Any Paint mode > Color Palette or Weight Palette panel",
     "description": "Palettes for color and weight paint modes",
@@ -33,7 +33,7 @@ bl_info = {
 }
 
 """
-This addon brings palettes to the paint modes.
+This add-on brings palettes to the paint modes.
 
     * Color Palette for Image Painting, Texture Paint and Vertex Paint modes.
     * Weight Palette for the Weight Paint mode.
@@ -124,6 +124,9 @@ class PALETTE_MT_menu(Menu):
 
                 if f.startswith("."):
                     continue
+                # do not load everything from the given folder, only .gpl files
+                if f[-4:] != ".gpl":
+                    continue
 
                 preset_name = bpy.path.display_name(f)
                 props = layout.operator(operator, text=preset_name)
@@ -146,19 +149,25 @@ class PALETTE_MT_menu(Menu):
     draw = draw_preset
 
 
-class LoadGimpPalette(bpy.types.Operator):
+class LoadGimpPalette(Operator):
     """Execute a preset"""
     bl_idname = "palette.load_gimp_palette"
     bl_label = "Load a Gimp palette"
 
-    filepath = bpy.props.StringProperty(name="Path",
-        description="Path of the Python file to execute",
-        maxlen=512, default="")
-    menu_idname = bpy.props.StringProperty(name="Menu ID Name",
-        description="ID name of the menu this was called from", default="")
+    filepath = StringProperty(
+            name="Path",
+            description="Path of the .gpl file to load",
+            default=""
+            )
+    menu_idname = StringProperty(
+            name="Menu ID Name",
+            description="ID name of the menu this was called from",
+            default=""
+            )
 
     def execute(self, context):
         from os.path import basename
+        import re
         filepath = self.filepath
 
         palette_props = bpy.context.scene.palette_props
@@ -169,7 +178,13 @@ class LoadGimpPalette(bpy.types.Operator):
         preset_class.bl_label = bpy.path.display_name(basename(filepath))
 
         palette_props.columns = 0
-        if filepath[-4:] == ".gpl":
+        error_palette = False  # errors found
+        error_import = []      # collect exception messages
+        start_color_index = 0  # store the starting line for color definitions
+
+        if filepath[-4:] != ".gpl":
+            error_palette = True
+        else:
             gpl = open(filepath, "r")
             lines = gpl.readlines()
             palette_props.notes = ''
@@ -183,22 +198,31 @@ class LoadGimpPalette(bpy.types.Operator):
                     palette_props.columns = int(line[8:])
                 elif line[0] == "#":
                     palette_props.notes += line
+                elif line[0] == "\n":
+                    pass
                 else:
                     has_color = True
-                    # index_0 = i
+                    start_color_index = index_0
                     break
             i = -1
             if has_color:
-                for i, ln in enumerate(lines[index_0:]):
+                for i, ln in enumerate(lines[start_color_index:]):
                     try:
                         palette_props.colors[i]
                     except IndexError:
                         palette_props.colors.add()
-                    color = [float(rgb) / 255 for rgb in [ln[0: 3], ln[4: 7], ln[8: 11]]]
-
-                    palette_props.colors[i].color = color
-
-                    palette_props.colors[i].name = ln[12:-1]
+                    try:
+                        # get line - find keywords with re.split, remove the empty ones with filter
+                        get_line = list(filter(None, re.split(r'\t+|\s+', ln.rstrip('\n'))))
+                        extract_colors = get_line[:3]
+                        get_color_name = [str(name) for name in get_line[3:]]
+                        color = [float(rgb) / 255 for rgb in extract_colors]
+                        palette_props.colors[i].color = color
+                        palette_props.colors[i].name = " ".join(get_color_name) or "Color " + str(i)
+                    except Exception as e:
+                        error_palette = True
+                        error_import.append(".gpl file line: {}, error: {}".format(i + 1 + start_color_index, e))
+                        pass
 
             exceeding = i + 1
             while palette_props.colors.__len__() > exceeding:
@@ -208,8 +232,17 @@ class LoadGimpPalette(bpy.types.Operator):
                 update_panels()
             gpl.close()
             pass
-        else:
-            self.report({'INFO'}, "Not a supported palette format")
+
+        message = "Loaded palette from file: {}".format(filepath)
+
+        if error_palette:
+            message = "Not supported palette format for file: {}".format(filepath)
+            if error_import:
+                message = "Some of the .gpl palette data can not be parsed. See Console for more info"
+                print("\n[Paint Palette]\nOperator: palette.load_gimp_palette\nErrors: %s\n" %
+                     ('\n'.join(error_import)))
+
+        self.report({'INFO'}, message)
 
         return {'FINISHED'}
 
@@ -643,24 +676,24 @@ class VIEW3D_PT_weight_palette(PaintPanel, Panel):
 class Colors(PropertyGroup):
     """Class for colors CollectionProperty"""
     color = FloatVectorProperty(
-                name="",
-                description="",
-                default=(0.8, 0.8, 0.8),
-                min=0, max=1,
-                step=1, precision=3,
-                subtype='COLOR_GAMMA',
-                size=3
-                )
+            name="",
+            description="",
+            default=(0.8, 0.8, 0.8),
+            min=0, max=1,
+            step=1, precision=3,
+            subtype='COLOR_GAMMA',
+            size=3
+            )
 
 
 class Weights(PropertyGroup):
     """Class for Weights Collection Property"""
     weight = FloatProperty(
-                default=0.0,
-                min=0.0,
-                max=1.0,
-                precision=3
-                )
+            default=0.0,
+            min=0.0,
+            max=1.0,
+            precision=3
+            )
 
 
 class PaletteProps(PropertyGroup):
@@ -709,114 +742,114 @@ class PaletteProps(PropertyGroup):
         return None
 
     palette_name = StringProperty(
-                    name="Palette Name",
-                    default="Preset",
-                    subtype='FILE_NAME'
-                    )
+            name="Palette Name",
+            default="Preset",
+            subtype='FILE_NAME'
+            )
     color_name = StringProperty(
-                    name="",
-                    description="Color Name",
-                    default="Untitled",
-                    update=update_color_name
-                    )
+            name="",
+            description="Color Name",
+            default="Untitled",
+            update=update_color_name
+            )
     columns = IntProperty(
-                    name="Columns",
-                    description="Number of Columns",
-                    min=0, max=16,
-                    default=0
-                    )
+            name="Columns",
+            description="Number of Columns",
+            min=0, max=16,
+            default=0
+            )
     index = IntProperty(
-                    name="Index",
-                    description="Move Selected Color",
-                    min=0,
-                    update=move_color
-                    )
+            name="Index",
+            description="Move Selected Color",
+            min=0,
+            update=move_color
+            )
     notes = StringProperty(
-                    name="Palette Notes",
-                    default="#\n"
-                    )
+            name="Palette Notes",
+            default="#\n"
+            )
     current_color_index = IntProperty(
-                    name="Current Color Index",
-                    description="",
-                    default=0,
-                    min=0
-                    )
+            name="Current Color Index",
+            description="",
+            default=0,
+            min=0
+            )
     current_weight_index = IntProperty(
-                    name="Current Color Index",
-                    description="",
-                    default=10,
-                    min=-1
-                    )
+            name="Current Color Index",
+            description="",
+            default=10,
+            min=-1
+            )
     presets_folder = StringProperty(name="",
-                    description="Palettes Folder",
-                    subtype="DIR_PATH"
-                    )
+            description="Palettes Folder",
+            subtype="DIR_PATH"
+            )
     colors = CollectionProperty(
-                    type=Colors
-                    )
+            type=Colors
+            )
     weight = FloatProperty(
-                    name="Weight",
-                    description="Modify the active Weight preset slot value",
-                    default=0.0,
-                    min=0.0, max=1.0,
-                    precision=3,
-                    update=update_weight
-                    )
+            name="Weight",
+            description="Modify the active Weight preset slot value",
+            default=0.0,
+            min=0.0, max=1.0,
+            precision=3,
+            update=update_weight
+            )
     weight_0 = FloatProperty(
-                    default=0.0,
-                    min=0.0, max=1.0,
-                    precision=3
-                    )
+            default=0.0,
+            min=0.0, max=1.0,
+            precision=3
+            )
     weight_1 = FloatProperty(
-                    default=0.1,
-                    min=0.0, max=1.0,
-                    precision=3
-                    )
+            default=0.1,
+            min=0.0, max=1.0,
+            precision=3
+            )
     weight_2 = FloatProperty(
-                    default=0.25,
-                    min=0.0, max=1.0,
-                    precision=3
-                    )
+            default=0.25,
+            min=0.0, max=1.0,
+            precision=3
+            )
     weight_3 = FloatProperty(
-                    default=0.333,
-                    min=0.0, max=1.0,
-                    precision=3
-                    )
+            default=0.333,
+            min=0.0, max=1.0,
+            precision=3
+            )
     weight_4 = FloatProperty(
-                    default=0.4,
-                    min=0.0, max=1.0,
-                    precision=3
-                    )
+            default=0.4,
+            min=0.0, max=1.0,
+            precision=3
+            )
     weight_5 = FloatProperty(
-                    default=0.5,
-                    min=0.0, max=1.0,
-                    precision=3
-                    )
+            default=0.5,
+            min=0.0, max=1.0,
+            precision=3
+            )
     weight_6 = FloatProperty(
-                    default=0.6,
-                    min=0.0, max=1.0,
-                    precision=3
-                    )
+            default=0.6,
+            min=0.0, max=1.0,
+            precision=3
+            )
     weight_7 = FloatProperty(
-                    default=0.6666,
-                    min=0.0, max=1.0,
-                    precision=3
-                    )
+            default=0.6666,
+            min=0.0, max=1.0,
+            precision=3
+            )
     weight_8 = FloatProperty(
-                    default=0.75,
-                    min=0.0, max=1.0,
-                    precision=3
-                    )
+            default=0.75,
+            min=0.0, max=1.0,
+            precision=3
+            )
     weight_9 = FloatProperty(
-                    default=0.9,
-                    min=0.0, max=1.0,
-                    precision=3
-                    )
+            default=0.9,
+            min=0.0, max=1.0,
+            precision=3
+            )
     weight_10 = FloatProperty(
-                    default=1.0,
-                    min=0.0, max=1.0,
-                    precision=3
-                    )
+            default=1.0,
+            min=0.0, max=1.0,
+            precision=3
+            )
     pass
 
 
