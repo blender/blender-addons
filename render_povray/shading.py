@@ -824,7 +824,7 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
                 # IMAGE SEQUENCE BEGINS
                 if image_filename:
                     if bpy.data.images[t.texture.image.name].source == 'SEQUENCE':
-                        korvaa = "." + str(bpy.data.textures[t.texture.name].image_user.frame_offset + 1).zfill(3) + "."
+                        korvaa = "." + str(t.texture.image_user.frame_offset + 1).zfill(3) + "."
                         image_filename = image_filename.replace(".001.", korvaa)
                         print(" seq debug ")
                         print(image_filename)
