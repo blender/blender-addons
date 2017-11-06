@@ -343,7 +343,7 @@ def blen_read_custom_properties(fbx_obj, blen_obj, settings):
                     elif prop_type in {b'Enum', b'enum'}:
                         assert(fbx_prop.props_type[4:6] == bytes((data_types.INT32, data_types.STRING)))
                         val = fbx_prop.props[4]
-                        if settings.use_custom_props_enum_as_string:
+                        if settings.use_custom_props_enum_as_string and fbx_prop.props[5]:
                             enum_items = fbx_prop.props[5].decode('utf-8').split('~')
                             assert(val >= 0 and val < len(enum_items))
                             blen_obj[prop_name] = enum_items[val]
