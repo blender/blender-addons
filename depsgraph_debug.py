@@ -40,7 +40,7 @@ def _get_depsgraph(context):
     if bpy.app.version < (2, 80, 0,):
         return scene.depsgraph
     else:
-        scene_layer = scene.render_layers.active
+        scene_layer = scene.view_layers.active
         return scene_layer.depsgraph
 
 
@@ -163,7 +163,7 @@ class RENDERLAYER_PT_depsgraph(bpy.types.Panel):
     bl_label = "Dependency Graph"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
-    bl_context = "render_layer"
+    bl_context = "view_layer"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
