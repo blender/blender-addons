@@ -1,5 +1,12 @@
 # Blender ID Add-on Changelog
 
+## Version 1.4 (released 2017-12-05)
+
+- Added an extra date/time format for parsing the authentication token expiry date.
+- Always show the "Validate" button when the user is logged in. This actively checks the token with
+  the server, whereas the "You are logged in" only bases that statement on locally-available
+  information (there is a token and it hasn't expired yet).
+
 
 ## Version 1.3 (released 2017-06-14)
 
