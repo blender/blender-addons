@@ -638,3 +638,60 @@ class PasteUvIsland(Operator):
     def execute(self, context):
         defPasteUvsIsland(self, context)
         return {'FINISHED'}    
+    
+    
+
+class createEditMultimesh(Operator):
+    """Create Edit Multi Mesh"""
+    bl_idname = "mesh.create_edit_multimesh"
+    bl_label = "Create edit multimesh"
+    bl_options = {"REGISTER", "UNDO"}
+    
+    
+    # creo el merge para editar
+    def execute(self,context):    
+        global relvert
+        global me    
+        global ob 
+        temp = [[ob , [vert.co for vert in ob.data.vertices]]for ob in bpy.data.groups[bpy.context.scene.multimeshedit].objects]
+        vi = 0
+        pi = 0
+        relvert = {}
+        vertlist = []
+        polylist = []
+        for ob in temp:
+            for vert in ob[0].data.vertices:
+                #print(vert.co[:])
+                vertlist.append(vert.co+ob[0].location)    
+            for poly in ob[0].data.polygons:
+                #print(poly.vertices[:])    
+                polylist.append(tuple([vert+vi for vert in poly.vertices[:]]))
+            relvert[ob[0]] = {vert.index:vert.index+vi for vert in  ob[0].data.vertices}
+            vi += len(ob[0].data.vertices)  
+            ob[0].hide = 1
+        me = bpy.data.meshes.new("editMesh")
+        ob = bpy.data.objects.new("editMesh", me)
+        bpy.context.scene.objects.link(ob)
+        me.from_pydata(vertlist,[],polylist)
+        bpy.ops.object.select_all(action="DESELECT")
+        bpy.context.scene.objects.active = ob
+        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+        return {'FINISHED'}  
+
+
+class ApplyEditMultimesh(Operator):
+    """Apply Edit Multi Mesh"""
+    bl_idname = "mesh.apply_edit_multimesh"
+    bl_label = "Apply edit multimesh"
+    bl_options = {"REGISTER", "UNDO"}
+   
+    def execute(self,context):    
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+        for object,rv in relvert.items():
+            for source, target in rv.items():
+                object.data.vertices[source].co = me.vertices[target].co-object.location
+            object.hide = 0    
+        bpy.context.scene.objects.unlink(ob) 
+        return {'FINISHED'} 
+        
+           
