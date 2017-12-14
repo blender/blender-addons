@@ -660,11 +660,10 @@ class createEditMultimesh(Operator):
         vertlist = []
         polylist = []
         for ob in temp:
+            objectMatrix = ob[0].matrix_world.copy()
             for vert in ob[0].data.vertices:
-                #print(vert.co[:])
-                vertlist.append(vert.co+ob[0].location)    
-            for poly in ob[0].data.polygons:
-                #print(poly.vertices[:])    
+                vertlist.append(objectMatrix*vert.co)
+            for poly in ob[0].data.polygons: 
                 polylist.append(tuple([vert+vi for vert in poly.vertices[:]]))
             relvert[ob[0]] = {vert.index:vert.index+vi for vert in  ob[0].data.vertices}
             vi += len(ob[0].data.vertices)  
@@ -688,8 +687,9 @@ class ApplyEditMultimesh(Operator):
     def execute(self,context):    
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
         for object,rv in relvert.items():
+            objectMatrix = object.matrix_world.inverted().copy()
             for source, target in rv.items():
-                object.data.vertices[source].co = me.vertices[target].co-object.location
+                object.data.vertices[source].co = objectMatrix * me.vertices[target].co
             object.hide = 0    
         bpy.context.scene.objects.unlink(ob) 
         return {'FINISHED'} 

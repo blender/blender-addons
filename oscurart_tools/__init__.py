@@ -205,11 +205,11 @@ class OscPanelMesh(Panel):
         colrow = col.row(align=1)
         colrow.operator("lattice.mirror_selected", icon="LATTICE_DATA")
         colrow = col.row(align=1)
-        colrow.label(text="Multimesh")
+        colrow.label(text="Edit Multimesh")
         colrow.prop_search(scene, "multimeshedit", bpy.data, "groups", text="")   
         colrow = col.row(align=1)
-        colrow.operator("mesh.create_edit_multimesh", icon="IMPORT")
-        colrow.operator("mesh.apply_edit_multimesh", icon="EXPORT")
+        colrow.operator("mesh.create_edit_multimesh", icon="IMPORT", text= "StartEdit")
+        colrow.operator("mesh.apply_edit_multimesh", icon="EXPORT", text="FinishEdit")
 
 class OscPanelShapes(Panel):
     bl_idname = "Oscurart Shapes Tools"
