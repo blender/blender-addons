@@ -21,7 +21,7 @@
 bl_info = {
     'name': 'Blender ID authentication',
     'author': 'Francesco Siddi, Inês Almeida and Sybren A. Stüvel',
-    'version': (1, 4, 0),
+    'version': (1, 4, 1),
     'blender': (2, 77, 0),
     'location': 'Add-on preferences',
     'description':

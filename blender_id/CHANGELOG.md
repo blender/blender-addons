@@ -1,5 +1,11 @@
 # Blender ID Add-on Changelog
 
+## Version 1.4.1 (released 2017-12-15)
+
+- Improved error reporting when validating a token fails due to
+  connection errors.
+
+
 ## Version 1.4 (released 2017-12-05)
 
 - Added an extra date/time format for parsing the authentication token expiry date.
