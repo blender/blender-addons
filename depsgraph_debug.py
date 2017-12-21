@@ -44,17 +44,19 @@ def _get_depsgraph(context):
         return scene_layer.depsgraph
 
 
-class SCENE_OT_depsgraph_graphviz(Operator):
-    bl_idname = "scene.depsgraph_graphviz"
-    bl_label = "Save Depsgraph"
-    bl_description = "Save current scene's dependency graph to a graphviz file"
+###############################################################################
+# Save data from depsgraph to a specified file.
 
+class SCENE_OT_depsgraph_save_common:
     filepath = StringProperty(
             name="File Path",
             description="Filepath used for saving the file",
             maxlen=1024,
             subtype='FILE_PATH',
             )
+
+    def _getExtension(self, context):
+        return ""
 
     @classmethod
     def poll(cls, context):
@@ -70,23 +72,53 @@ class SCENE_OT_depsgraph_graphviz(Operator):
             else:
                 blend_filepath = os.path.splitext(blend_filepath)[0]
 
-            self.filepath = blend_filepath + ".dot"
-
+            self.filepath = blend_filepath + self._getExtension(context)
         context.window_manager.fileselect_add(self)
-
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
         depsgraph = _get_depsgraph(context)
-        depsgraph.debug_graphviz(self.filepath)
+        if not self.performSave(context, depsgraph):
+            return {'CANCELLED'}
         return {'FINISHED'}
 
+    def performSave(self, context, depsgraph):
+        pass
 
-class SCENE_OT_depsgraph_image(Operator):
-    bl_idname = "scene.depsgraph_image"
-    bl_label = "Depsgraph as Image"
-    bl_description = "Create new image datablock from the dependency graph"
 
+class SCENE_OT_depsgraph_relations_graphviz(Operator,
+                                            SCENE_OT_depsgraph_save_common):
+    bl_idname = "scene.depsgraph_relations_graphviz"
+    bl_label = "Save Depsgraph"
+    bl_description = "Save current scene's dependency graph to a graphviz file"
+
+    def _getExtension(self, context):
+        return ".dot"
+
+    def performSave(self, context, depsgraph):
+        basename, extension = os.path.splitext(self.filepath)
+        depsgraph.debug_relations_graphviz(self.filepath, absename + ".png")
+        return True
+
+
+class SCENE_OT_depsgraph_stats_gnuplot(Operator,
+                                       SCENE_OT_depsgraph_save_common):
+    bl_idname = "scene.depsgraph_stats_gnuplot"
+    bl_label = "Save Depsgraph Stats"
+    bl_description = "Save current scene's evaluaiton stats to gnuplot file"
+
+    def _getExtension(self, context):
+        return ".plot"
+
+    def performSave(self, context, depsgraph):
+        depsgraph.debug_stats_gnuplot(self.filepath, "")
+        return True
+
+
+###############################################################################
+# Visualize some depsgraph information as an image opening in image editor.
+
+class SCENE_OT_depsgraph_image_common:
     def _getOrCreateImageForAbsPath(self, filepath):
         for image in bpy.data.images:
             if image.filepath == filepath:
@@ -109,37 +141,107 @@ class SCENE_OT_depsgraph_image(Operator):
                         return space
         return first_none_editor
 
-    def execute(self, context):
+    def _createTempFile(self, suffix):
         import os
-        import subprocess
         import tempfile
-        # Create temporary file.
-        fd, dot_filepath = tempfile.mkstemp(suffix=".dot")
+        fd, filepath = tempfile.mkstemp(suffix=suffix)
         os.close(fd)
-        # Save dependency graph to graphviz file.
-        depsgraph = _get_depsgraph(context)
-        depsgraph.debug_graphviz(dot_filepath)
-        # Convert graphviz to PNG image.
-        png_filepath = os.path.join(bpy.app.tempdir, "depsgraph.png")
-        command = ("dot", "-Tpng", dot_filepath, "-o", png_filepath)
-        image = None
-        try:
-            subprocess.run(command)
-            # Open image in Blender.
-            image = self._getOrCreateImageForAbsPath(png_filepath)
-        except:
-            self.report({'ERROR'}, "Error invoking dot command")
-            return {'CANCELLED'}
-        finally:
-            # Remove graphviz file.
-            os.remove(dot_filepath)
+        return filepath
+
+    def _openImageInEditor(self, context, image_filepath):
+        image = self._getOrCreateImageForAbsPath(image_filepath)
         editor = self._findBestImageEditor(context, image)
         if editor:
             editor.image = image
+
+    def execute(self, context):
+        depsgraph = _get_depsgraph(context)
+        if not self.performSave(context, depsgraph):
+            return {'CANCELLED'}
         return {'FINISHED'}
 
+    def performSave(self, context, depsgraph):
+        pass
 
-class SCENE_PT_depsgraph(bpy.types.Panel):
+
+class SCENE_OT_depsgraph_relations_image(Operator,
+                                         SCENE_OT_depsgraph_image_common):
+    bl_idname = "scene.depsgraph_relations_image"
+    bl_label = "Depsgraph as Image"
+    bl_description = "Create new image datablock from the dependency graph"
+
+    def performSave(self, context, depsgraph):
+        import os
+        import subprocess
+        # Create temporary file.
+        dot_filepath = self._createTempFile(suffix=".dot")
+        # Save dependency graph to graphviz file.
+        depsgraph.debug_relations_graphviz(dot_filepath)
+        # Convert graphviz to PNG image.
+        png_filepath = os.path.join(bpy.app.tempdir, "depsgraph.png")
+        command = ("dot", "-Tpng", dot_filepath, "-o", png_filepath)
+        try:
+            subprocess.run(command)
+            self._openImageInEditor(context, png_filepath)
+        except:
+            self.report({'ERROR'}, "Error invoking dot command")
+            return False
+        finally:
+            # Remove graphviz file.
+            os.remove(dot_filepath)
+        return True
+
+
+class SCENE_OT_depsgraph_stats_image(Operator,
+                                     SCENE_OT_depsgraph_image_common):
+    bl_idname = "scene.depsgraph_stats_image"
+    bl_label = "Depsgraph Stats as Image"
+    bl_description = "Create new image datablock from the dependency graph " + \
+                     "execution statistics"
+
+    def performSave(self, context, depsgraph):
+        import os
+        import subprocess
+        # Create temporary file.
+        plot_filepath = self._createTempFile(suffix=".plot")
+        png_filepath = os.path.join(bpy.app.tempdir, "depsgraph_stats.png")
+        # Save dependency graph stats to gnuplot file.
+        depsgraph.debug_stats_gnuplot(plot_filepath, png_filepath)
+        # Convert graphviz to PNG image.
+        command = ("gnuplot", plot_filepath)
+        try:
+            subprocess.run(command)
+            self._openImageInEditor(context, png_filepath)
+        except:
+            self.report({'ERROR'}, "Error invoking gnuplot command")
+            return False
+        finally:
+            # Remove graphviz file.
+            os.remove(plot_filepath)
+        return True
+
+
+###############################################################################
+# Interface.
+
+
+class SCENE_PT_depsgraph_common:
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+        # Everything related on relations and graph topology.
+        col.label(text="Relations:")
+        row = col.row()
+        row.operator("scene.depsgraph_relations_graphviz")
+        row.operator("scene.depsgraph_relations_image")
+        # Everything related on evaluaiton statistics.
+        col.label(text="Statistics:")
+        row = col.row()
+        row.operator("scene.depsgraph_stats_gnuplot")
+        row.operator("scene.depsgraph_stats_image")
+
+
+class SCENE_PT_depsgraph(bpy.types.Panel, SCENE_PT_depsgraph_common):
     bl_label = "Dependency Graph"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
@@ -153,13 +255,8 @@ class SCENE_PT_depsgraph(bpy.types.Panel):
         depsgraph = _get_depsgraph(context)
         return depsgraph is not None
 
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("scene.depsgraph_graphviz")
-        layout.operator("scene.depsgraph_image")
 
-
-class RENDERLAYER_PT_depsgraph(bpy.types.Panel):
+class RENDERLAYER_PT_depsgraph(bpy.types.Panel, SCENE_PT_depsgraph_common):
     bl_label = "Dependency Graph"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
@@ -173,22 +270,21 @@ class RENDERLAYER_PT_depsgraph(bpy.types.Panel):
         depsgraph = _get_depsgraph(context)
         return depsgraph is not None
 
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("scene.depsgraph_graphviz")
-        layout.operator("scene.depsgraph_image")
-
 
 def register():
-    bpy.utils.register_class(SCENE_OT_depsgraph_graphviz)
-    bpy.utils.register_class(SCENE_OT_depsgraph_image)
+    bpy.utils.register_class(SCENE_OT_depsgraph_relations_graphviz)
+    bpy.utils.register_class(SCENE_OT_depsgraph_relations_image)
+    bpy.utils.register_class(SCENE_OT_depsgraph_stats_gnuplot)
+    bpy.utils.register_class(SCENE_OT_depsgraph_stats_image)
     bpy.utils.register_class(SCENE_PT_depsgraph)
     bpy.utils.register_class(RENDERLAYER_PT_depsgraph)
 
 
 def unregister():
-    bpy.utils.unregister_class(SCENE_OT_depsgraph_graphviz)
-    bpy.utils.unregister_class(SCENE_OT_depsgraph_image)
+    bpy.utils.unregister_class(SCENE_OT_depsgraph_relations_graphviz)
+    bpy.utils.unregister_class(SCENE_OT_depsgraph_relations_image)
+    bpy.utils.unregister_class(SCENE_OT_depsgraph_stats_gnuplot)
+    bpy.utils.unregister_class(SCENE_OT_depsgraph_stats_image)
     bpy.utils.unregister_class(SCENE_PT_depsgraph)
     bpy.utils.unregister_class(RENDERLAYER_PT_depsgraph)
 
