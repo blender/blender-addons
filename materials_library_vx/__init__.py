@@ -21,7 +21,7 @@
 bl_info = {
   "name": "Material Library",
   "author": "Mackraken (mackraken2023@hotmail.com)",
-  "version": (0, 5, 7),
+  "version": (0, 5, 8),
   "blender": (2, 7, 8),
   "api": 60995,
   "location": "Properties > Material",
@@ -114,7 +114,7 @@ def check_index(collection, index):
 
 def send_command(cmd, output="sendmat.py"):
     bin = winpath(bpy.app.binary_path)
-    scriptpath = winpath(os.path.join(matlib_path, output))
+    scriptpath = winpath(os.path.join(bpy.app.tempdir, output))
 
     with open(scriptpath, "w") as f:
       f.write(cmd)
