@@ -1294,10 +1294,17 @@ def load(context,
         for context_nurbs in nurbs:
             create_nurbs(context_nurbs, verts_loc, new_objects)
 
+        view_layer = context.view_layer
+        if view_layer.collections.active:
+            collection = view_layer.collections.active.collection
+        else:
+            collection = scene.master_collection.new()
+            view_layer.collections.link(collection)
+
         # Create new obj
         for obj in new_objects:
-            base = scene.objects.link(obj)
-            base.select = True
+            collection.objects.link(obj)
+            obj.select_set('SELECT')
 
             # we could apply this anywhere before scaling.
             obj.matrix_world = global_matrix
