@@ -676,6 +676,8 @@ class IvyGen(bpy.types.Operator):
 
         layout.prop(self, 'updateIvy', icon='CURVE_DATA')
 
+        # Not working, commented out for 2.79a...
+        """
         properties = layout.operator('curve.ivy_gen', text="Add New Ivy")
         properties.randomSeed = self.randomSeed
         properties.maxTime = self.maxTime
@@ -695,6 +697,7 @@ class IvyGen(bpy.types.Operator):
 
         prop_def = layout.operator('curve.ivy_gen', text="Add New Default Ivy")
         prop_def.updateIvy = True
+        """
 
         layout.prop(self, 'growLeaves')
 
