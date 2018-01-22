@@ -64,6 +64,18 @@ MAT_CONVERT_LAMP = fbx_utils.MAT_CONVERT_LAMP.inverted()
 MAT_CONVERT_CAMERA = fbx_utils.MAT_CONVERT_CAMERA.inverted()
 
 
+def validate_blend_names(name):
+    assert(type(name) == bytes)
+    # Blender typically does not accept names over 63 bytes...
+    if len(name) > 63:
+        import hashlib
+        h = hashlib.sha1(name).hexdigest()
+        return name[:55].decode('utf-8', 'replace') + "_" + h[:7]
+    else:
+        # We use 'replace' even though FBX 'specs' say it should always be utf8, see T53841.
+        return name.decode('utf-8', 'replace')
+
+
 def elem_find_first(elem, id_search, default=None):
     for fbx_item in elem.elems:
         if fbx_item.id == id_search:
@@ -124,14 +136,14 @@ def elem_name_ensure_class(elem, clss=...):
     elem_name, elem_class = elem_split_name_class(elem)
     if clss is not ...:
         assert(elem_class == clss)
-    return elem_name.decode('utf-8', 'replace')
+    return validate_blend_names(elem_name)
 
 
 def elem_name_ensure_classes(elem, clss=...):
     elem_name, elem_class = elem_split_name_class(elem)
     if clss is not ...:
         assert(elem_class in clss)
-    return elem_name.decode('utf-8', 'replace')
+    return validate_blend_names(elem_name)
 
 
 def elem_split_name_class_nodeattr(elem):
@@ -312,9 +324,10 @@ def blen_read_custom_properties(fbx_obj, blen_obj, settings):
                     for item in items.split('\r\n'):
                         if item:
                             prop_name, prop_value = item.split('=', 1)
-                            blen_obj[prop_name.strip()] = prop_value.strip()
+                            prop_name = validate_blend_names(prop_name.strip().encode('utf-8'))
+                            blen_obj[prop_name] = prop_value.strip()
                 else:
-                    prop_name = fbx_prop.props[0].decode('utf-8', 'replace')
+                    prop_name = validate_blend_names(fbx_prop.props[0])
                     prop_type = fbx_prop.props[1]
                     if prop_type in {b'Vector', b'Vector3D', b'Color', b'ColorRGB'}:
                         assert(fbx_prop.props_type[4:7] == bytes((data_types.FLOAT64,)) * 3)
@@ -715,7 +728,7 @@ def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, anim_o
 
 def blen_read_geom_layerinfo(fbx_layer):
     return (
-        elem_find_first_string(fbx_layer, b'Name'),
+        validate_blend_names(elem_find_first_string_as_bytes(fbx_layer, b'Name')),
         elem_find_first_string_as_bytes(fbx_layer, b'MappingInformationType'),
         elem_find_first_string_as_bytes(fbx_layer, b'ReferenceInformationType'),
         )
