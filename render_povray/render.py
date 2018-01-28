@@ -1450,7 +1450,7 @@ def write_pov(filename, scene=None, info_callback=None):
             file.write('      BuildWriteMesh2(VecArr, NormArr, UVArr, Iter_U, Iter_V, FileName)\n')
             file.write('   #end\n')
             file.write('#end\n\n')
-        # Empty curves    
+        # Empty curves
         if len(ob.data.splines)==0:
             tabWrite("\n//dummy sphere to represent empty curve location\n")        
             tabWrite("#declare %s =\n"%dataname)
@@ -3013,7 +3013,7 @@ def write_pov(filename, scene=None, info_callback=None):
                         # POV object modifiers such as 
                         # hollow / sturm / double_illuminate etc.
                         write_object_modifiers(scene,ob,file)                        
- 
+
                         #Importance for radiosity sampling added here:
                         tabWrite("radiosity { \n")
                         tabWrite("importance %3g \n" % importance)
@@ -3258,7 +3258,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                                         ob.pov.inside_vector[1],
                                                         ob.pov.inside_vector[2]))
                                             onceCSG = 1
- 
+
                         if me.materials:
                             try:
                                 material = me.materials[0]  # dodgy
@@ -3344,7 +3344,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 tabWrite("%s\n" % data_name)
                                 tabWrite("%s\n" % matrix_str)
                                 tabWrite("}\n")
-    
+
     def exportWorld(world):
         render = scene.render
         camera = scene.camera
@@ -4015,8 +4015,8 @@ class PovrayRender(bpy.types.RenderEngine):
                 self._temp_file_in = os.path.join(preview_dir, povPath)
                 self._temp_file_ini = os.path.join(preview_dir, (os.path.splitext(self._temp_file_in)[0]+".INI"))
                 self._temp_file_log = os.path.join(preview_dir, "alltext.out")
-        
-        
+
+
             '''
             try:
                 os.remove(self._temp_file_in)  # so as not to load the old file
@@ -4086,7 +4086,7 @@ class PovrayRender(bpy.types.RenderEngine):
                 print("Command line arguments passed: " + str(extra_args))
                 #return True
                 self.update_stats("", "POV-Ray 3.7: Parsing File")                  
- 
+
 
                 
             # Indented in main function now so repeated here but still not working 
@@ -4111,7 +4111,7 @@ class PovrayRender(bpy.types.RenderEngine):
                 print(f.read()) 
                 
             self.update_stats("", "")
-            
+
             if scene.pov.tempfiles_enable or scene.pov.deletefiles_enable:
                 self._cleanup()            
         else:
@@ -4465,7 +4465,7 @@ class RunPovTextRender(Operator):
 
             
         bpy.ops.render.render()
- 
+
         #empty text name property engain
         scene.pov.text_block = ""
         return {'FINISHED'}
