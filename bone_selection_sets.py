@@ -18,8 +18,8 @@
 
 bl_info = {
     "name": "Bone Selection Sets",
-    "version": (2, 0, 1),
     "author": "Inês Almeida, Sybren A. Stüvel, Antony Riakiotakis, Dan Eicher",
+    "version": (2, 1, 0),
     "blender": (2, 75, 0),
     "location": "Properties > Object Data (Armature) > Selection Sets",
     "description": "List of Bone sets for easy selection while animating",
