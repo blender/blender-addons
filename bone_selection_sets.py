@@ -142,7 +142,7 @@ class POSE_MT_create_new_selection_set(Menu):
 
 class PluginOperator(Operator):
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         return (context.object and
                 context.object.type == 'ARMATURE' and
                 context.mode == 'POSE')
@@ -150,7 +150,7 @@ class PluginOperator(Operator):
 
 class NeedSelSetPluginOperator(PluginOperator):
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         if super().poll(context):
             arm = context.object
             return (arm.active_selection_set < len(arm.selection_sets) and
@@ -206,7 +206,7 @@ class POSE_OT_selection_set_move(NeedSelSetPluginOperator):
     )
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         if super().poll(context):
             arm = context.object
             return len(arm.selection_sets) > 1
