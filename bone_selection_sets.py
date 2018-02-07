@@ -151,11 +151,10 @@ class PluginOperator(Operator):
 class NeedSelSetPluginOperator(PluginOperator):
     @classmethod
     def poll(cls, context):
-        if super().poll(context):
-            arm = context.object
-            return (arm.active_selection_set < len(arm.selection_sets) and
-                    arm.active_selection_set >= 0)
-        return False
+        if not super().poll(context):
+            return False
+        arm = context.object
+        return 0 <= arm.active_selection_set < len(arm.selection_sets)
 
 
 class POSE_OT_selection_set_delete_all(PluginOperator):
@@ -207,10 +206,10 @@ class POSE_OT_selection_set_move(NeedSelSetPluginOperator):
 
     @classmethod
     def poll(cls, context):
-        if super().poll(context):
-            arm = context.object
-            return len(arm.selection_sets) > 1
-        return False
+        if not super().poll(context):
+            return False
+        arm = context.object
+        return len(arm.selection_sets) > 1
 
     def execute(self, context):
         arm = context.object
