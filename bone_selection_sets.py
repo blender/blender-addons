@@ -31,18 +31,18 @@ bl_info = {
 
 import bpy
 from bpy.types import (
-        Operator,
-        Menu,
-        Panel,
-        UIList,
-        PropertyGroup,
-        )
+    Operator,
+    Menu,
+    Panel,
+    UIList,
+    PropertyGroup,
+)
 from bpy.props import (
-        StringProperty,
-        IntProperty,
-        EnumProperty,
-        CollectionProperty,
-        )
+    StringProperty,
+    IntProperty,
+    EnumProperty,
+    CollectionProperty,
+)
 
 
 # Data Structure ##############################################################
@@ -134,7 +134,7 @@ class POSE_MT_create_new_selection_set(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator("pose.selection_set_add_and_assign",
-            text="New Selection Set")
+                        text="New Selection Set")
 
 
 class POSE_MT_selection_sets(Menu):
@@ -306,7 +306,7 @@ class POSE_OT_selection_set_assign(PluginOperator):
 
         if not (arm.active_selection_set < len(arm.selection_sets)):
             bpy.ops.wm.call_menu("INVOKE_DEFAULT",
-                name="POSE_MT_selection_set_create")
+                                 name="POSE_MT_selection_set_create")
         else:
             bpy.ops.pose.selection_set_assign('EXEC_DEFAULT')
 
@@ -432,15 +432,15 @@ def register():
         bpy.utils.register_class(cls)
 
     bpy.types.Object.selection_sets = CollectionProperty(
-            type=SelectionSet,
-            name="Selection Sets",
-            description="List of groups of bones for easy selection"
-            )
+        type=SelectionSet,
+        name="Selection Sets",
+        description="List of groups of bones for easy selection"
+    )
     bpy.types.Object.active_selection_set = IntProperty(
-            name="Active Selection Set",
-            description="Index of the currently active selection set",
-            default=0
-            )
+        name="Active Selection Set",
+        description="Index of the currently active selection set",
+        default=0
+    )
 
     wm = bpy.context.window_manager
     km = wm.keyconfigs.active.keymaps['Pose']
