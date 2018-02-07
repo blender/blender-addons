@@ -18,8 +18,8 @@
 
 bl_info = {
     "name": "Bone Selection Sets",
-    "author": "Inês Almeida, Antony Riakiotakis, Dan Eicher",
     "version": (2, 0, 1),
+    "author": "Inês Almeida, Sybren A. Stüvel, Antony Riakiotakis, Dan Eicher",
     "blender": (2, 75, 0),
     "location": "Properties > Object Data (Armature) > Selection Sets",
     "description": "List of Bone sets for easy selection while animating",
@@ -129,13 +129,27 @@ class POSE_UL_selection_set(UIList):
 
 
 class POSE_MT_create_new_selection_set(Menu):
-    bl_idname = "POSE_MT_selection_set_create"
     bl_label = "Choose Selection Set"
 
     def draw(self, context):
         layout = self.layout
         layout.operator("pose.selection_set_add_and_assign",
             text="New Selection Set")
+
+
+class POSE_MT_selection_sets(Menu):
+    bl_label = 'Select Selection Set'
+
+    @classmethod
+    def poll(cls, context):
+        return POSE_OT_selection_set_select.poll(context)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'EXEC_DEFAULT'
+        for idx, sel_set in enumerate(context.object.selection_sets):
+            props = layout.operator(POSE_OT_selection_set_select.bl_idname, text=sel_set.name)
+            props.selection_set_index = idx
 
 
 # Operators ###################################################################
@@ -336,12 +350,22 @@ class POSE_OT_selection_set_select(NeedSelSetPluginOperator):
     bl_description = "Add Selection Set bones to current selection"
     bl_options = {'UNDO', 'REGISTER'}
 
+    selection_set_index = IntProperty(
+        name='Selection Set Index',
+        default=-1,
+        description='Which Selection Set to select; -1 uses the active Selection Set')
+
     def execute(self, context):
         arm = context.object
-        act_sel_set = arm.selection_sets[arm.active_selection_set]
+
+        if self.selection_set_index == -1:
+            idx = arm.active_selection_set
+        else:
+            idx = self.selection_set_index
+        sel_set = arm.selection_sets[idx]
 
         for bone in context.visible_pose_bones:
-            if bone.name in act_sel_set.bone_ids:
+            if bone.name in sel_set.bone_ids:
                 bone.bone.select = True
 
         return {'FINISHED'}
@@ -381,6 +405,7 @@ class POSE_OT_selection_set_add_and_assign(PluginOperator):
 classes = (
     POSE_MT_create_new_selection_set,
     POSE_MT_selection_sets_specials,
+    POSE_MT_selection_sets,
     POSE_PT_selection_sets,
     POSE_UL_selection_set,
     SelectionEntry,
@@ -398,6 +423,10 @@ classes = (
 )
 
 
+def add_sss_button(self, context):
+    self.layout.menu('POSE_MT_selection_sets')
+
+
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -412,6 +441,14 @@ def register():
             description="Index of the currently active selection set",
             default=0
             )
+
+    wm = bpy.context.window_manager
+    km = wm.keyconfigs.active.keymaps['Pose']
+
+    kmi = km.keymap_items.new('wm.call_menu', 'W', 'PRESS', alt=True, shift=True)
+    kmi.properties.name = 'POSE_MT_selection_sets'
+
+    bpy.types.VIEW3D_MT_select_pose.append(add_sss_button)
 
 
 def unregister():
