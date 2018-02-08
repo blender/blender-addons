@@ -250,30 +250,12 @@ class POSE_OT_selection_set_add(PluginOperator):
 
     def execute(self, context):
         arm = context.object
-
-        new_sel_set = arm.selection_sets.add()
-
-        # naming
-        if "SelectionSet" not in arm.selection_sets:
-            new_sel_set.name = "SelectionSet"
-        else:
-            sorted_sets = []
-            for selset in arm.selection_sets:
-                if selset.name.startswith("SelectionSet."):
-                    index = selset.name[13:]
-                    if index.isdigit():
-                        sorted_sets.append(index)
-            sorted_sets = sorted(sorted_sets)
-            min_index = 1
-            for num in sorted_sets:
-                num = int(num)
-                if min_index < num:
-                    break
-                min_index = num + 1
-            new_sel_set.name = "SelectionSet.{:03d}".format(min_index)
+        sel_sets = arm.selection_sets
+        new_sel_set = sel_sets.add()
+        new_sel_set.name = uniqify("SelectionSet", sel_sets.keys())
 
         # select newly created set
-        arm.active_selection_set = len(arm.selection_sets) - 1
+        arm.active_selection_set = len(sel_sets) - 1
 
         return {'FINISHED'}
 
@@ -483,12 +465,53 @@ def from_json(context, as_json: str):
 
     sel_set = json.loads(as_json)
 
-    new_sel_set = context.object.selection_sets.add()
-    new_sel_set.name = sel_set['name']
+    sel_sets = context.object.selection_sets
+    new_sel_set = sel_sets.add()
+    new_sel_set.name = uniqify(sel_set['name'], sel_sets.keys())
 
     for bone_name in sel_set['bones']:
         bone_id = new_sel_set.bone_ids.add()
         bone_id.name = bone_name
+
+
+def uniqify(name: str, other_names: list) -> str:
+    """Return a unique name with .xxx suffix if necessary.
+
+    >>> uniqify('hey', ['there'])
+    'hey'
+    >>> uniqify('hey', ['hey.001', 'hey.005'])
+    'hey'
+    >>> uniqify('hey', ['hey', 'hey.001', 'hey.005'])
+    'hey.002'
+    >>> uniqify('hey', ['hey', 'hey.005', 'hey.001'])
+    'hey.002'
+    >>> uniqify('hey', ['hey', 'hey.005', 'hey.001', 'hey.left'])
+    'hey.002'
+    >>> uniqify('hey', ['hey', 'hey.001', 'hey.002'])
+    'hey.003'
+
+    It also works with a dict_keys object:
+    >>> uniqify('hey', {'hey': 1, 'hey.005': 1, 'hey.001': 1}.keys())
+    'hey.002'
+    """
+
+    if name not in other_names:
+        return name
+
+    # Construct the list of numbers already in use.
+    offset = len(name) + 1
+    others = (n[offset:] for n in other_names
+              if n.startswith(name + '.'))
+    numbers = sorted(int(suffix) for suffix in others
+                     if suffix.isdigit())
+
+    # Find the first unused number.
+    min_index = 1
+    for num in numbers:
+        if min_index < num:
+            break
+        min_index = num + 1
+    return "{}.{:03d}".format(name, min_index)
 
 
 def register():
@@ -524,4 +547,7 @@ def unregister():
 
 
 if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()
     register()
