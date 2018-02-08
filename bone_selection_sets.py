@@ -68,6 +68,8 @@ class POSE_MT_selection_sets_specials(Menu):
 
         layout.operator("pose.selection_set_delete_all", icon='X')
         layout.operator("pose.selection_set_remove_bones", icon='X')
+        layout.operator("pose.selection_set_copy", icon='COPYDOWN')
+        layout.operator("pose.selection_set_paste", icon='PASTEDOWN')
 
 
 class POSE_PT_selection_sets(Panel):
@@ -400,6 +402,38 @@ class POSE_OT_selection_set_add_and_assign(PluginOperator):
         return {'FINISHED'}
 
 
+class POSE_OT_selection_set_copy(NeedSelSetPluginOperator):
+    bl_idname = "pose.selection_set_copy"
+    bl_label = "Copy Selection Set to Clipboard"
+    bl_description = "Converts the Selection Set to JSON and places it on the clipboard"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        context.window_manager.clipboard = to_json(context)
+        self.report({'INFO'}, 'Copied Selection Set to Clipboard')
+        return {'FINISHED'}
+
+
+class POSE_OT_selection_set_paste(PluginOperator):
+    bl_idname = "pose.selection_set_paste"
+    bl_label = "Paste Selection Set from Clipboard"
+    bl_description = "Adds a new Selection Set from copied JSON on the clipboard"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        import json
+
+        try:
+            from_json(context, context.window_manager.clipboard)
+        except (json.JSONDecodeError, KeyError):
+            self.report({'ERROR'}, 'The clipboard does not contain a Selection Set')
+        else:
+            # Select the pasted Selection Set.
+            context.object.active_selection_set = len(context.object.selection_sets) - 1
+
+        return {'FINISHED'}
+
+
 # Registry ####################################################################
 
 classes = (
@@ -420,11 +454,41 @@ classes = (
     POSE_OT_selection_set_select,
     POSE_OT_selection_set_deselect,
     POSE_OT_selection_set_add_and_assign,
+    POSE_OT_selection_set_copy,
+    POSE_OT_selection_set_paste,
 )
 
 
 def add_sss_button(self, context):
     self.layout.menu('POSE_MT_selection_sets')
+
+
+def to_json(context) -> str:
+    """Convert the active bone selection set of the current rig to JSON."""
+    import json
+
+    arm = context.object
+    active_idx = arm.active_selection_set
+    sel_set = arm.selection_sets[active_idx]
+
+    return json.dumps({
+        'name': sel_set.name,
+        'bones': [bone_id.name for bone_id in sel_set.bone_ids]
+    })
+
+
+def from_json(context, as_json: str):
+    """Add the single bone selection set from JSON to the current rig."""
+    import json
+
+    sel_set = json.loads(as_json)
+
+    new_sel_set = context.object.selection_sets.add()
+    new_sel_set.name = sel_set['name']
+
+    for bone_name in sel_set['bones']:
+        bone_id = new_sel_set.bone_ids.add()
+        bone_id.name = bone_name
 
 
 def register():
