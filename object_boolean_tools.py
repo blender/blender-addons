@@ -21,8 +21,8 @@
 bl_info = {
     "name": "Bool Tool",
     "author": "Vitor Balbio, Mikhail Rachinskiy, TynkaTopi, Meta-Androcto",
-    "version": (0, 3, 8),
-    "blender": (2, 78, 0),
+    "version": (0, 3, 9),
+    "blender": (2, 79, 2),
     "location": "View3D > Toolshelf",
     "description": "Bool Tool Hotkey: Ctrl Shift B",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -143,7 +143,6 @@ def Operation(context, _operation):
 
     prefs = bpy.context.user_preferences.addons[__name__].preferences
     useWire = prefs.use_wire
-    solver = prefs.solver
 
     for selObj in bpy.context.selected_objects:
         if selObj != context.active_object and (selObj.type == "MESH" or selObj.type == "CURVE"):
@@ -180,7 +179,6 @@ def Operation(context, _operation):
                 clone["BoolToolRoot"] = True
             newMod = actObj.modifiers.new("BTool_" + selObj.name, "BOOLEAN")
             newMod.object = selObj
-            newMod.solver = solver
             if _operation == "SLICE":
                 newMod.operation = "INTERSECT"
             else:
@@ -615,19 +613,6 @@ class BTool_Slice(Operator):
 
 class Auto_Boolean:
 
-    solver = EnumProperty(
-            name="Boolean Solver",
-            description="Specify solver for boolean operation",
-            items=(('BMESH', "BMesh", "BMesh solver is faster, but less stable "
-                                      "and cannot handle coplanar geometry"),
-                   ('CARVE', "Carve", "Carve solver is slower, but more stable "
-                                      "and can handle simple cases of coplanar geometry")),
-            options={'SKIP_SAVE'},
-            )
-
-    def __init__(self):
-        self.solver = bpy.context.user_preferences.addons[__name__].preferences.solver
-
     def objects_prepare(self):
         for ob in bpy.context.selected_objects:
             if ob.type != 'MESH':
@@ -663,7 +648,6 @@ class Auto_Boolean:
         md = obj.modifiers.new("Auto Boolean", 'BOOLEAN')
         md.show_viewport = False
         md.operation = mode
-        md.solver = self.solver
         md.object = ob
 
         bpy.ops.object.modifier_apply(modifier="Auto Boolean")
@@ -1288,15 +1272,6 @@ class PREFS_BoolTool_Props(AddonPreferences):
             default="Tools",
             update=update_panels,
             )
-    solver = EnumProperty(
-            name="Boolean Solver",
-            items=(('BMESH', "BMesh", "BMesh solver is faster, but less stable "
-                                      "and cannot handle coplanar geometry"),
-                   ('CARVE', "Carve", "Carve solver is slower, but more stable "
-                                      "and can handle simple cases of coplanar geometry")),
-            default='BMESH',
-            description="Specify solver for boolean operations",
-            )
     Enable_Tab_01 = BoolProperty(
             default=False
             )
@@ -1309,29 +1284,23 @@ class PREFS_BoolTool_Props(AddonPreferences):
         col = split.column()
         col.label(text="Tab Category:")
         col = split.column()
-        colrow = col.row()
-        colrow.prop(self, "category", text="")
-
-        split = layout.split(percentage=split_percent)
-        col = split.column()
-        col.label("Boolean Solver:")
-        col = split.column()
-        colrow = col.row()
-        colrow.prop(self, "solver", expand=True)
+        col.prop(self, "category", text="")
 
         split = layout.split(percentage=split_percent)
         col = split.column()
         col.label("Experimental Features:")
         col = split.column()
-        colrow = col.row(align=True)
-        colrow.prop(self, "fast_transform", toggle=True)
-        colrow.prop(self, "use_wire", text="Use Wire Instead Of Bbox", toggle=True)
+        col.prop(self, "fast_transform")
+        col.prop(self, "use_wire", text="Use Wire Instead Of Bbox")
+
         layout.separator()
+
         """
         # EXPERIMENTAL
         col.prop(self, "make_vertex_groups")
         col.prop(self, "make_boundary")
         """
+
         layout.prop(self, "Enable_Tab_01", text="Hot Keys", icon="KEYINGSET")
         if self.Enable_Tab_01:
             row = layout.row()
