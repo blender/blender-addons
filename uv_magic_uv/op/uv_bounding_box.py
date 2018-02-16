@@ -20,8 +20,8 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "4.5"
-__date__ = "19 Nov 2017"
+__version__ = "5.0"
+__date__ = "16 Feb 2018"
 
 from enum import IntEnum
 import math
@@ -31,7 +31,7 @@ import bgl
 import mathutils
 import bmesh
 
-from . import muv_common
+from .. import common
 
 
 MAX_VALUE = 100000.0
@@ -602,17 +602,23 @@ class MUV_UVBBUpdater(bpy.types.Operator):
         """
         Get UV coordinate
         """
+        sc = context.scene
         obj = context.active_object
         uv_info = []
         bm = bmesh.from_edit_mesh(obj.data)
-        if muv_common.check_version(2, 73, 0) >= 0:
+        if common.check_version(2, 73, 0) >= 0:
             bm.faces.ensure_lookup_table()
         if not bm.loops.layers.uv:
             return None
         uv_layer = bm.loops.layers.uv.verify()
         for f in bm.faces:
-            if f.select:
-                for i, l in enumerate(f.loops):
+            if not f.select:
+                continue
+            for i, l in enumerate(f.loops):
+                if sc.muv_uvbb_boundary == 'UV_SEL':
+                    if l[uv_layer].select:
+                        uv_info.append((f.index, i, l[uv_layer].uv.copy()))
+                elif sc.muv_uvbb_boundary == 'UV':
                     uv_info.append((f.index, i, l[uv_layer].uv.copy()))
         if not uv_info:
             return None
@@ -661,7 +667,7 @@ class MUV_UVBBUpdater(bpy.types.Operator):
         """
         obj = context.active_object
         bm = bmesh.from_edit_mesh(obj.data)
-        if muv_common.check_version(2, 73, 0) >= 0:
+        if common.check_version(2, 73, 0) >= 0:
             bm.faces.ensure_lookup_table()
         if not bm.loops.layers.uv:
             return
@@ -683,7 +689,7 @@ class MUV_UVBBUpdater(bpy.types.Operator):
 
     def modal(self, context, event):
         props = context.scene.muv_props.uvbb
-        muv_common.redraw_all_areas()
+        common.redraw_all_areas()
         if props.running is False:
             self.__handle_remove(context)
             return {'FINISHED'}
@@ -717,37 +723,3 @@ class MUV_UVBBUpdater(bpy.types.Operator):
         props.running = True
 
         return {'RUNNING_MODAL'}
-
-
-class IMAGE_PT_MUV_UVBB(bpy.types.Panel):
-    """
-    Panel class: UV Bounding Box Menu on Property Panel on UV/ImageEditor
-    """
-
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'UI'
-    bl_label = "UV Bounding Box"
-    bl_context = 'mesh_edit'
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.user_preferences.addons["uv_magic_uv"].preferences
-        return prefs.enable_uvbb
-
-    def draw_header(self, _):
-        layout = self.layout
-        layout.label(text="", icon='IMAGE_COL')
-
-    def draw(self, context):
-        sc = context.scene
-        props = sc.muv_props.uvbb
-        layout = self.layout
-        if props.running is False:
-            layout.operator(
-                MUV_UVBBUpdater.bl_idname, text="Display UV Bounding Box",
-                icon='PLAY')
-        else:
-            layout.operator(
-                MUV_UVBBUpdater.bl_idname, text="Hide UV Bounding Box",
-                icon='PAUSE')
-        layout.prop(sc, "muv_uvbb_uniform_scaling", text="Uniform Scaling")

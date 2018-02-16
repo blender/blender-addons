@@ -20,14 +20,15 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "4.5"
-__date__ = "19 Nov 2017"
+__version__ = "5.0"
+__date__ = "16 Feb 2018"
 
 import bpy
 import bmesh
 from bpy.props import StringProperty, EnumProperty
 from mathutils import Vector
-from . import muv_common
+
+from .. import common
 
 
 class MUV_PreserveUVAspect(bpy.types.Operator):
@@ -71,7 +72,7 @@ class MUV_PreserveUVAspect(bpy.types.Operator):
         obj = context.active_object
         bm = bmesh.from_edit_mesh(obj.data)
 
-        if muv_common.check_version(2, 73, 0) >= 0:
+        if common.check_version(2, 73, 0) >= 0:
             bm.faces.ensure_lookup_table()
 
         if not bm.loops.layers.uv:
@@ -202,22 +203,3 @@ class MUV_PreserveUVAspect(bpy.types.Operator):
         bmesh.update_edit_mesh(obj.data)
 
         return {'FINISHED'}
-
-
-class MUV_PreserveUVAspectMenu(bpy.types.Menu):
-    """
-    Menu class: Preserve UV Aspect
-    """
-
-    bl_idname = "uv.muv_preserve_uv_aspect_menu"
-    bl_label = "Preserve UV Aspect"
-    bl_description = "Preserve UV Aspect"
-
-    def draw(self, _):
-        layout = self.layout
-
-        # create sub menu
-        for key in bpy.data.images.keys():
-            layout.operator(
-                MUV_PreserveUVAspect.bl_idname,
-                text=key, icon="IMAGE_COL").dest_img_name = key

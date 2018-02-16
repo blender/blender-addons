@@ -18,8 +18,8 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "4.5"
-__date__ = "19 Nov 2017"
+__version__ = "5.0"
+__date__ = "16 Feb 2018"
 
 import bpy
 import bmesh
@@ -28,7 +28,8 @@ from bpy.props import (
     EnumProperty,
     FloatProperty,
 )
-from . import muv_common
+
+from .. import common
 
 
 class MUV_UnwrapConstraint(bpy.types.Operator):
@@ -74,18 +75,21 @@ class MUV_UnwrapConstraint(bpy.types.Operator):
     u_const = BoolProperty(
         name="U-Constraint",
         description="Keep UV U-axis coordinate",
-        default=False)
+        default=False
+    )
     v_const = BoolProperty(
         name="V-Constraint",
         description="Keep UV V-axis coordinate",
-        default=False)
+        default=False
+    )
 
     def execute(self, _):
         obj = bpy.context.active_object
         bm = bmesh.from_edit_mesh(obj.data)
-        if muv_common.check_version(2, 73, 0) >= 0:
+        if common.check_version(2, 73, 0) >= 0:
             bm.faces.ensure_lookup_table()
 
+        # bpy.ops.uv.unwrap() makes one UV map at least
         if not bm.loops.layers.uv:
             self.report({'WARNING'}, "Object must have more than one UV map")
             return {'CANCELLED'}

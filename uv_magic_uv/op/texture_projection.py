@@ -20,8 +20,8 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "4.5"
-__date__ = "19 Nov 2017"
+__version__ = "5.0"
+__date__ = "16 Feb 2018"
 
 from collections import namedtuple
 
@@ -31,7 +31,7 @@ import bmesh
 import mathutils
 from bpy_extras import view3d_utils
 
-from . import muv_common
+from .. import common
 
 
 Rect = namedtuple('Rect', 'x0 y0 x1 y1')
@@ -237,28 +237,28 @@ class MUV_TexProjProject(bpy.types.Operator):
     def execute(self, context):
         sc = context.scene
 
-        if context.mode != "EDIT_MESH":
-            self.report({'WARNING'}, "Mesh must be in Edit mode")
-            return {'CANCELLED'}
-
         if sc.muv_texproj_tex_image == "None":
             self.report({'WARNING'}, "No textures are selected")
             return {'CANCELLED'}
 
-        _, region, space = muv_common.get_space(
+        _, region, space = common.get_space(
             'VIEW_3D', 'WINDOW', 'VIEW_3D')
 
         # get faces to be texture projected
         obj = context.active_object
         world_mat = obj.matrix_world
         bm = bmesh.from_edit_mesh(obj.data)
-        if muv_common.check_version(2, 73, 0) >= 0:
+        if common.check_version(2, 73, 0) >= 0:
             bm.faces.ensure_lookup_table()
 
         # get UV and texture layer
         if not bm.loops.layers.uv:
-            self.report({'WARNING'}, "Object must have more than one UV map")
-            return {'CANCELLED'}
+            if sc.muv_texproj_assign_uvmap:
+                bm.loops.layers.uv.new()
+            else:
+                self.report({'WARNING'},
+                            "Object must have more than one UV map")
+                return {'CANCELLED'}
 
         uv_layer = bm.loops.layers.uv.verify()
         tex_layer = bm.faces.layers.tex.verify()
@@ -290,50 +290,7 @@ class MUV_TexProjProject(bpy.types.Operator):
                 l[uv_layer].uv = v_canvas[i].to_2d()
                 i = i + 1
 
-        muv_common.redraw_all_areas()
+        common.redraw_all_areas()
         bmesh.update_edit_mesh(obj.data)
 
         return {'FINISHED'}
-
-
-class OBJECT_PT_TP(bpy.types.Panel):
-    """
-    Panel class: Texture Projection Menu on Property Panel on View3D
-    """
-
-    bl_label = "Texture Projection"
-    bl_description = "Texture Projection Menu"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_context = 'mesh_edit'
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.user_preferences.addons["uv_magic_uv"].preferences
-        return prefs.enable_texproj
-
-    def draw_header(self, _):
-        layout = self.layout
-        layout.label(text="", icon='IMAGE_COL')
-
-    def draw(self, context):
-        sc = context.scene
-        layout = self.layout
-        props = sc.muv_props.texproj
-        if props.running is False:
-            layout.operator(
-                MUV_TexProjStart.bl_idname, text="Start", icon='PLAY')
-        else:
-            layout.operator(
-                MUV_TexProjStop.bl_idname, text="Stop", icon='PAUSE')
-            layout.prop(sc, "muv_texproj_tex_image", text="Image")
-            layout.prop(
-                sc, "muv_texproj_tex_transparency", text="Transparency"
-            )
-            layout.prop(sc, "muv_texproj_adjust_window", text="Adjust Window")
-            if not sc.muv_texproj_adjust_window:
-                layout.prop(sc, "muv_texproj_tex_magnitude", text="Magnitude")
-            layout.prop(
-                sc, "muv_texproj_apply_tex_aspect", text="Texture Aspect Ratio"
-            )
-            layout.operator(MUV_TexProjProject.bl_idname, text="Project")

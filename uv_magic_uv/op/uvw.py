@@ -20,9 +20,8 @@
 
 __author__ = "Alexander Milovsky, Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "4.5"
-__date__ = "19 Nov 2017"
-
+__version__ = "5.0"
+__date__ = "16 Feb 2018"
 
 from math import sin, cos, pi
 
@@ -30,11 +29,12 @@ import bpy
 import bmesh
 from bpy.props import (
     FloatProperty,
-    FloatVectorProperty
+    FloatVectorProperty,
+    BoolProperty
 )
 from mathutils import Vector
 
-from . import muv_common
+from .. import common
 
 
 class MUV_UVWBoxMap(bpy.types.Operator):
@@ -62,6 +62,11 @@ class MUV_UVWBoxMap(bpy.types.Operator):
         default=1.0,
         precision=4
     )
+    assign_uvmap = BoolProperty(
+        name="Assign UVMap",
+        description="Assign UVMap when no UVmaps are available",
+        default=True
+    )
 
     @classmethod
     def poll(cls, context):
@@ -71,15 +76,17 @@ class MUV_UVWBoxMap(bpy.types.Operator):
     def execute(self, context):
         obj = context.active_object
         bm = bmesh.from_edit_mesh(obj.data)
-        if muv_common.check_version(2, 73, 0) >= 0:
+        if common.check_version(2, 73, 0) >= 0:
             bm.faces.ensure_lookup_table()
 
         # get UV layer
         if not bm.loops.layers.uv:
-            self.report(
-                {'WARNING'}, "Object must have more than one UV map")
-            return {'CANCELLED'}
-
+            if self.assign_uvmap:
+                bm.loops.layers.uv.new()
+            else:
+                self.report(
+                    {'WARNING'}, "Object must have more than one UV map")
+                return {'CANCELLED'}
         uv_layer = bm.loops.layers.uv.verify()
 
         scale = 1.0 / self.size
@@ -168,6 +175,11 @@ class MUV_UVWBestPlanerMap(bpy.types.Operator):
         default=1.0,
         precision=4
     )
+    assign_uvmap = BoolProperty(
+        name="Assign UVMap",
+        description="Assign UVMap when no UVmaps are available",
+        default=True
+    )
 
     @classmethod
     def poll(cls, context):
@@ -177,14 +189,17 @@ class MUV_UVWBestPlanerMap(bpy.types.Operator):
     def execute(self, context):
         obj = context.active_object
         bm = bmesh.from_edit_mesh(obj.data)
-        if muv_common.check_version(2, 73, 0) >= 0:
+        if common.check_version(2, 73, 0) >= 0:
             bm.faces.ensure_lookup_table()
 
         # get UV layer
         if not bm.loops.layers.uv:
-            self.report(
-                {'WARNING'}, "Object must have more than one UV map")
-            return {'CANCELLED'}
+            if self.assign_uvmap:
+                bm.loops.layers.uv.new()
+            else:
+                self.report(
+                    {'WARNING'}, "Object must have more than one UV map")
+                return {'CANCELLED'}
 
         uv_layer = bm.loops.layers.uv.verify()
 

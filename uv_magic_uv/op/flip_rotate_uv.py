@@ -20,8 +20,8 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "4.5"
-__date__ = "19 Nov 2017"
+__version__ = "5.0"
+__date__ = "16 Feb 2018"
 
 import bpy
 import bmesh
@@ -29,7 +29,8 @@ from bpy.props import (
     BoolProperty,
     IntProperty,
 )
-from . import muv_common
+
+from .. import common
 
 
 class MUV_FlipRot(bpy.types.Operator):
@@ -63,7 +64,7 @@ class MUV_FlipRot(bpy.types.Operator):
         self.report({'INFO'}, "Flip/Rotate UV")
         obj = context.active_object
         bm = bmesh.from_edit_mesh(obj.data)
-        if muv_common.check_version(2, 73, 0) >= 0:
+        if common.check_version(2, 73, 0) >= 0:
             bm.faces.ensure_lookup_table()
 
         # get UV layer

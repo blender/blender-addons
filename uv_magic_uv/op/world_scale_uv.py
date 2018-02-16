@@ -20,43 +20,32 @@
 
 __author__ = "McBuff, Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "4.5"
-__date__ = "19 Nov 2017"
+__version__ = "5.0"
+__date__ = "16 Feb 2018"
 
+from math import sqrt
 
 import bpy
 import bmesh
 from mathutils import Vector
-from bpy.props import (
-    FloatProperty,
-    BoolProperty,
-    EnumProperty
-)
-from . import muv_common
+from bpy.props import EnumProperty
+
+from .. import common
 
 
-def calc_edge_scale(uv_layer, loop0, loop1):
-    v0 = loop0.vert.co
-    v1 = loop1.vert.co
-    uv0 = loop0[uv_layer].uv.copy()
-    uv1 = loop1[uv_layer].uv.copy()
+def measure_wsuv_info(obj):
+    mesh_area = common.measure_mesh_area(obj)
+    uv_area = common.measure_uv_area(obj)
 
-    dv = v1 - v0
-    duv = uv1 - uv0
+    if not uv_area:
+        return None, None, None
 
-    scale = 0.0
-    if dv.magnitude > 0.00000001:
-        scale = duv.magnitude / dv.magnitude
+    if mesh_area == 0.0:
+        density = 0.0
+    else:
+        density = sqrt(uv_area) / sqrt(mesh_area)
 
-    return scale
-
-
-def calc_face_scale(uv_layer, face):
-    es = 0.0
-    for i, l in enumerate(face.loops[1:]):
-        es = es + calc_edge_scale(uv_layer, face.loops[i], l)
-
-    return es
+    return uv_area, mesh_area, density
 
 
 class MUV_WSUVMeasure(bpy.types.Operator):
@@ -70,30 +59,22 @@ class MUV_WSUVMeasure(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        props = context.scene.muv_props.wsuv
-        obj = bpy.context.active_object
-        bm = bmesh.from_edit_mesh(obj.data)
-        if muv_common.check_version(2, 73, 0) >= 0:
-            bm.verts.ensure_lookup_table()
-            bm.edges.ensure_lookup_table()
-            bm.faces.ensure_lookup_table()
+        sc = context.scene
+        obj = context.active_object
 
-        if not bm.loops.layers.uv:
-            self.report({'WARNING'}, "Object must have more than one UV map")
+        uv_area, mesh_area, density = measure_wsuv_info(obj)
+        if not uv_area:
+            self.report({'WARNING'},
+                        "Object must have more than one UV map and texture")
             return {'CANCELLED'}
-        uv_layer = bm.loops.layers.uv.verify()
 
-        sel_faces = [f for f in bm.faces if f.select]
+        sc.muv_wsuv_src_uv_area = uv_area
+        sc.muv_wsuv_src_mesh_area = mesh_area
+        sc.muv_wsuv_src_density = density
 
-        # measure average face size
-        scale = 0.0
-        for f in sel_faces:
-            scale = scale + calc_face_scale(uv_layer, f)
-
-        props.ref_scale = scale / len(sel_faces)
-
-        self.report(
-            {'INFO'}, "Average face size: {0}".format(props.ref_scale))
+        self.report({'INFO'},
+                    "UV Area: {0}, Mesh Area: {1}, Texel Density: {2}"
+                    .format(uv_area, mesh_area, density))
 
         return {'FINISHED'}
 
@@ -108,16 +89,6 @@ class MUV_WSUVApply(bpy.types.Operator):
     bl_description = "Apply scaled UV based on scale calculation"
     bl_options = {'REGISTER', 'UNDO'}
 
-    proportional_scaling = BoolProperty(
-        name="Proportional Scaling",
-        default=True
-    )
-    scaling_factor = FloatProperty(
-        name="Scaling Factor",
-        default=1.0,
-        max=1000.0,
-        min=0.00001
-    )
     origin = EnumProperty(
         name="Origin",
         description="Aspect Origin",
@@ -139,43 +110,38 @@ class MUV_WSUVApply(bpy.types.Operator):
     def draw(self, _):
         layout = self.layout
 
-        row = layout.row()
-        row.prop(self, "proportional_scaling")
-        row = layout.row()
-        row.prop(self, "scaling_factor")
-        if self.proportional_scaling:
-            row.enabled = False
+        layout.prop(self, "origin")
 
     def execute(self, context):
-        props = context.scene.muv_props.wsuv
-        obj = bpy.context.active_object
+        sc = context.scene
+        obj = context.active_object
         bm = bmesh.from_edit_mesh(obj.data)
-        if muv_common.check_version(2, 73, 0) >= 0:
+        if common.check_version(2, 73, 0) >= 0:
             bm.verts.ensure_lookup_table()
             bm.edges.ensure_lookup_table()
             bm.faces.ensure_lookup_table()
 
-        if not bm.loops.layers.uv:
-            self.report(
-                {'WARNING'}, "Object must have more than one UV map")
-            return {'CANCELLED'}
-        uv_layer = bm.loops.layers.uv.verify()
-
         sel_faces = [f for f in bm.faces if f.select]
 
-        # measure average face size
-        scale = 0.0
-        for f in sel_faces:
-            scale = scale + calc_face_scale(uv_layer, f)
-        scale = scale / len(sel_faces)
+        uv_area, mesh_area, density = measure_wsuv_info(obj)
+        if not uv_area:
+            self.report({'WARNING'},
+                        "Object must have more than one UV map and texture")
+            return {'CANCELLED'}
 
-        self.report(
-            {'INFO'}, "Average face size: {0}".format(scale))
+        uv_layer = bm.loops.layers.uv.verify()
 
-        if self.proportional_scaling:
-            factor = props.ref_scale / scale
-        else:
-            factor = self.scaling_factor
+        if sc.muv_wsuv_mode == 'PROPORTIONAL':
+            tgt_density = sc.muv_wsuv_src_density * sqrt(mesh_area) / \
+                sqrt(sc.muv_wsuv_src_mesh_area)
+        elif sc.muv_wsuv_mode == 'SCALING':
+            tgt_density = sc.muv_wsuv_src_density * sc.muv_wsuv_scaling_factor
+        elif sc.muv_wsuv_mode == 'USER':
+            tgt_density = sc.muv_wsuv_tgt_density
+        elif sc.muv_wsuv_mode == 'CONSTANT':
+            tgt_density = sc.muv_wsuv_src_density
+
+        factor = tgt_density / density
 
         # calculate origin
         if self.origin == 'CENTER':
