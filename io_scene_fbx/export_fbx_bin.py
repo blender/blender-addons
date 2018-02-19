@@ -2194,8 +2194,11 @@ def fbx_data_from_scene(scene, settings):
                     if mod.show_render:
                         use_org_data = False
             if not use_org_data:
-                tmp_me = ob.to_mesh(scene, apply_modifiers=True,
-                                    settings='RENDER' if settings.use_mesh_modifiers_render else 'PREVIEW')
+                tmp_me = ob.to_mesh(
+                    scene,
+                    apply_modifiers=settings.use_mesh_modifiers,
+                    settings='RENDER' if settings.use_mesh_modifiers_render else 'PREVIEW',
+                )
                 data_meshes[ob_obj] = (get_blenderID_key(tmp_me), tmp_me, True)
             # Re-enable temporary disabled modifiers.
             for mod, show_render in tmp_mods:
