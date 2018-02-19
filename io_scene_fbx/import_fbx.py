@@ -557,7 +557,7 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset):
     'Bake' loc/rot/scale into the action,
     taking any pre_ and post_ matrix into account to transform from fbx into blender space.
     """
-    from bpy.types import Object, PoseBone, ShapeKey, Material
+    from bpy.types import Object, PoseBone, ShapeKey, Material, Camera
     from itertools import chain
 
     fbx_curves = []
@@ -577,6 +577,8 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset):
         props = [("diffuse_color", 3, grpname or "Diffuse Color")]
     elif isinstance(item, ShapeKey):
         props = [(item.path_from_id("value"), 1, "Key")]
+    elif isinstance(item, Camera):
+        props = [(item.path_from_id("lens"), 1, "Camera")]
     else:  # Object or PoseBone:
         if item.is_bone:
             bl_obj = item.bl_obj.pose.bones[item.bl_bone]
@@ -620,6 +622,17 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset):
                 assert(fbxprop == b'DeformPercent')
                 assert(channel == 0)
                 value = v / 100.0
+
+            for fc, v in zip(blen_curves, (value,)):
+                fc.keyframe_points.insert(frame, v, {'NEEDED', 'FAST'}).interpolation = 'LINEAR'
+
+    elif isinstance(item, Camera):
+        for frame, values in blen_read_animations_curves_iter(fbx_curves, anim_offset, 0, fps):
+            value = 0.0
+            for v, (fbxprop, channel, _fbx_acdata) in values:
+                assert(fbxprop == b'FocalLength')
+                assert(channel == 0)
+                value = v
 
             for fc, v in zip(blen_curves, (value,)):
                 fc.keyframe_points.insert(frame, v, {'NEEDED', 'FAST'}).interpolation = 'LINEAR'
@@ -686,7 +699,7 @@ def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, anim_o
     Only the first found action is linked to objects, more complex setups are not handled,
     it's up to user to reproduce them!
     """
-    from bpy.types import ShapeKey, Material
+    from bpy.types import ShapeKey, Material, Camera
 
     actions = {}
     for as_uuid, ((fbx_asdata, _blen_data), alayers) in stacks.items():
@@ -698,6 +711,8 @@ def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, anim_o
                     id_data = item
                 elif isinstance(item, ShapeKey):
                     id_data = item.id_data
+                elif isinstance(item, Camera):
+                    id_data = item
                 else:
                     id_data = item.bl_obj
                     # XXX Ignore rigged mesh animations - those are a nightmare to handle, see note about it in
@@ -2838,6 +2853,13 @@ def load(operator, context, filepath="",
                         if keyblocks is None:
                             continue
                         items += [(kb, lnk_prop) for kb in keyblocks]
+                    elif lnk_prop == b'FocalLength':  # Camera lens.
+                        from bpy.types import Camera
+                        fbx_item = fbx_table_nodes.get(n_uuid, None)
+                        if fbx_item is None or not isinstance(fbx_item[1], Camera):
+                            continue
+                        cam = fbx_item[1]
+                        items.append((cam, lnk_prop))
                     elif lnk_prop == b'DiffuseColor':
                         from bpy.types import Material
                         fbx_item = fbx_table_nodes.get(n_uuid, None)
@@ -2874,7 +2896,11 @@ def load(operator, context, filepath="",
                         continue
                     # Note this is an infamous simplification of the compound props stuff,
                     # seems to be standard naming but we'll probably have to be smarter to handle more exotic files?
-                    channel = {b'd|X': 0, b'd|Y': 1, b'd|Z': 2, b'd|DeformPercent': 0}.get(acn_ctype.props[3], None)
+                    channel = {
+                        b'd|X': 0, b'd|Y': 1, b'd|Z': 2,
+                        b'd|DeformPercent': 0,
+                        b'd|FocalLength': 0
+                    }.get(acn_ctype.props[3], None)
                     if channel is None:
                         continue
                     curvenodes[acn_uuid][ac_uuid] = (fbx_acitem, channel)
