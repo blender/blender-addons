@@ -20,8 +20,8 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "5.0"
-__date__ = "16 Feb 2018"
+__version__ = "5.1"
+__date__ = "24 Feb 2018"
 
 import bpy
 from bpy.props import (
@@ -641,6 +641,13 @@ def init_props(scene):
         ]
     )
 
+    # UV Cursor Location
+    scene.muv_uvcloc_enabled = BoolProperty(
+        name="UV Cursor Location Enabled",
+        description="UV Cursor Location is enabled",
+        default=False
+    )
+
 
 def clear_props(scene):
     del scene.muv_props
@@ -753,3 +760,6 @@ def clear_props(scene):
     del scene.muv_auvc_enabled
     del scene.muv_auvc_cursor_loc
     del scene.muv_auvc_align_menu
+
+    # UV Cursor Location
+    del scene.muv_uvcloc_enabled

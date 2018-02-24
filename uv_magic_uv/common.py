@@ -20,8 +20,8 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "5.0"
-__date__ = "16 Feb 2018"
+__version__ = "5.1"
+__date__ = "24 Feb 2018"
 
 from collections import defaultdict
 from pprint import pprint
@@ -295,11 +295,23 @@ def measure_uv_area(obj):
     for f in sel_faces:
         uvs = [l[uv_layer].uv for l in f.loops]
         f_uv_area = calc_polygon_2d_area(uvs)
-        if tex_layer:
-            img = f[tex_layer].image
-            if not img:
-                return None
-            uv_area = uv_area + f_uv_area * img.size[0] * img.size[1]
+
+        if not tex_layer:
+            return None
+        img = f[tex_layer].image
+        # not found, try to search from node
+        if not img:
+            for mat in obj.material_slots:
+                for node in mat.material.node_tree.nodes:
+                    tex_node_types = [
+                        'TEX_ENVIRONMENT',
+                        'TEX_IMAGE',
+                    ]
+                    if (node.type in tex_node_types) and node.image:
+                        img = node.image
+        if not img:
+            return None
+        uv_area = uv_area + f_uv_area * img.size[0] * img.size[1]
 
     return uv_area
 
@@ -565,7 +577,7 @@ def __get_loop_sequence_internal(uv_layer, pairs, island_info, closed):
     return loop_sequences, ""
 
 
-def get_loop_sequences(bm, uv_layer):
+def get_loop_sequences(bm, uv_layer, closed=False):
     sel_faces = [f for f in bm.faces if f.select]
 
     # get candidate loops
@@ -581,11 +593,11 @@ def get_loop_sequences(bm, uv_layer):
     first_loop = cand_loops[0]
     isl_info = get_island_info_from_bmesh(bm, False)
     loop_pairs = __get_loop_pairs(first_loop, uv_layer)
-    loop_pairs, err = __sort_loop_pairs(uv_layer, loop_pairs, False)
+    loop_pairs, err = __sort_loop_pairs(uv_layer, loop_pairs, closed)
     if not loop_pairs:
         return None, err
     loop_seqs, err = __get_loop_sequence_internal(uv_layer, loop_pairs,
-                                                  isl_info, False)
+                                                  isl_info, closed)
     if not loop_seqs:
         return None, err
 
