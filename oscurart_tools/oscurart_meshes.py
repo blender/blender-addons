@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from mathutils import Vector
 from bpy.types import Operator
 from bpy.props import (
         IntProperty,
@@ -580,7 +581,7 @@ def defCopyUvsIsland(self, context):
 
     bpy.ops.object.mode_set(mode="EDIT")        
     
-def defPasteUvsIsland(self, context):
+def defPasteUvsIsland(self, uvOffset, context):
     bpy.ops.object.mode_set(mode="OBJECT")
     selPolys = [poly.index for poly in bpy.context.object.data.polygons if poly.select]
 
@@ -601,8 +602,8 @@ def defPasteUvsIsland(self, context):
                     TobLoop.append(li)    
 
         for source,target in zip(range(min(obLoop),max(obLoop)+1),range(min(TobLoop),max(TobLoop)+1)):
-            bpy.context.object.data.uv_layers.active.data[target].uv = bpy.context.object.data.uv_layers.active.data[source].uv
-   
+            bpy.context.object.data.uv_layers.active.data[target].uv = bpy.context.object.data.uv_layers.active.data[source].uv + Vector((uvOffset,0))
+              
         bpy.ops.object.mode_set(mode="EDIT")   
         
 
@@ -628,6 +629,11 @@ class PasteUvIsland(Operator):
     bl_idname = "mesh.uv_island_paste"
     bl_label = "Paste Uv Island"
     bl_options = {"REGISTER", "UNDO"}
+    
+    uvOffset = BoolProperty(
+            name="Uv Offset",
+            default=False
+            )    
 
     @classmethod
     def poll(cls, context):
@@ -636,7 +642,7 @@ class PasteUvIsland(Operator):
                 context.active_object.mode == "EDIT")
 
     def execute(self, context):
-        defPasteUvsIsland(self, context)
+        defPasteUvsIsland(self, self.uvOffset, context)
         return {'FINISHED'}    
     
     
