@@ -26,7 +26,7 @@
 bl_info = {
     "name": "Materials Utils Specials",
     "author": "Community",
-    "version": (1, 0, 4),
+    "version": (1, 0, 5),
     "blender": (2, 77, 0),
     "location": "Materials Properties Specials > Shift Q",
     "description": "Materials Utils and Convertors",
@@ -1790,9 +1790,8 @@ class VIEW3D_MT_remove_material(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        obj = context.active_object
 
-        if obj.mode in {'TEXTURE_PAINT'}:
+        if context.mode in {'PAINT_TEXTURE'}:
             layout.label(
                 text="Removing materials can lead to loss of painting data",
                 icon="INFO"
@@ -1818,8 +1817,7 @@ class VIEW3D_MT_remove_material(Menu):
             use_separator(self, context)
             layout.operator(
                 "view3d.material_remove_all",
-                text="Remove Material Slots "
-                "(All Selected Objects)",
+                text="Remove Material Slots (All Selected Objects)",
                 icon='CANCEL'
             )
 
