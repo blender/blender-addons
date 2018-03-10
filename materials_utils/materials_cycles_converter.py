@@ -6,7 +6,7 @@ import bpy
 from os import path as os_path
 from bpy.types import Operator
 from math import (
-    log2, ceil,
+    log2, ceil, sqrt,
 )
 from bpy.props import (
     BoolProperty,
@@ -381,7 +381,7 @@ def AutoNode(active=False, operator=None):
             else:
                 # Create Clay Material (Diffuse, Glossy, Layer Weight)
                 shader.inputs['Color'].default_value = PAINT_SC_COLOR
-                shader.inputs['Roughness'].default_value = 0.9
+                shader.inputs['Roughness'].default_value = 0.9486
 
                 # remove Color Ramp and links from the default shader and reroute
                 try:
@@ -415,10 +415,10 @@ def AutoNode(active=False, operator=None):
                     shader.inputs['Roughness'].default_value = cmat.specular_intensity
 
                 if shader.type == 'ShaderNodeBsdfGlossy':
-                    shader.inputs['Roughness'].default_value = 1 - cmat.raytrace_mirror.gloss_factor
+                    shader.inputs['Roughness'].default_value = sqrt(max(1 - cmat.raytrace_mirror.gloss_factor, 0.0))
 
                 if shader.type == 'ShaderNodeBsdfGlass':
-                    shader.inputs['Roughness'].default_value = 1 - cmat.raytrace_mirror.gloss_factor
+                    shader.inputs['Roughness'].default_value = sqrt(max(1 - cmat.raytrace_mirror.gloss_factor, 0.0))
                     shader.inputs['IOR'].default_value = cmat.raytrace_transparency.ior
 
                 if shader.type == 'ShaderNodeEmission':

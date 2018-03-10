@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import bpy
+import math
 from mathutils import Vector
 from bpy.types import Operator
 from .warning_messages_utils import (
@@ -665,7 +666,7 @@ def makeCyclesFromBI(cmat):
 
     # Make Diffuse and Output nodes
     mainShader = makeMainShader(TreeNodes)
-    mainShader.inputs['Roughness'].default_value = cmat.specular_intensity
+    mainShader.inputs['Roughness'].default_value = math.sqrt(max(cmat.specular_intensity, 0.0))
     mainDiffuse = mainShader
     materialOutput = makeMaterialOutput(TreeNodes)
     links.new(mainShader.outputs['BSDF'], materialOutput.inputs['Surface'])
