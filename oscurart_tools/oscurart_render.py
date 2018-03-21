@@ -70,12 +70,20 @@ def defRenderAll(frametype, scenes):
                 for i in scene.render.layers:
                     i.use = False
                 layer.use = 1
+                
                 print("SCENE: %s" % scene.name)
                 print("LAYER: %s" % layer.name)
                 print("OVERRIDE: %s" % str(proptolist))
-                scene.render.filepath = os.path.join(
-                    os.path.dirname(renpath), filename, scene.name, layer.name, "%s_%s_%s" %
-                    (filename, scene.name, layer.name))
+                #scene.render.filepath = os.path.join(
+                #    os.path.dirname(renpath), filename, scene.name, layer.name, "%s_%s_%s" %
+                #    (filename, scene.name, layer.name))
+                tokens = {
+                    "$Scene":bpy.context.scene.name,
+                    "$File":bpy.path.display_name(bpy.data.filepath),
+                    "$Layer":layer.name}
+
+                scene.render.filepath = renpath.replace("$Scene",tokens["$Scene"]).replace("$File",tokens["$File"]).replace("$Layer",tokens["$Layer"])
+                
                 bpy.context.window.screen.scene = scene
                 bpy.ops.render.render(
                     animation=True,
