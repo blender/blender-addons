@@ -78,8 +78,8 @@ def defRenderAll(frametype, scenes):
                 #    os.path.dirname(renpath), filename, scene.name, layer.name, "%s_%s_%s" %
                 #    (filename, scene.name, layer.name))
                 tokens = {
-                    "$Scene":bpy.context.scene.name,
-                    "$File":bpy.path.display_name(bpy.data.filepath),
+                    "$Scene":scene.name,
+                    "$File":os.path.basename(bpy.data.filepath).split(".")[0],
                     "$Layer":layer.name}
 
                 scene.render.filepath = renpath.replace("$Scene",tokens["$Scene"]).replace("$File",tokens["$File"]).replace("$Layer",tokens["$Layer"])
@@ -217,7 +217,14 @@ def defoscBatchMaker(TYPE, BIN):
     SHFILE = os.path.join(
         bpy.data.filepath.rpartition(SYSBAR)[0],
         FILENAME + EXTSYS)
+        
+    renpath = bpy.context.scene.render.filepath    
+    tokens = {
+        "$Scene":bpy.context.scene.name,
+        "$File":os.path.basename(bpy.data.filepath).split(".")[0],
+        "$Layer":bpy.context.scene.render.layers.active.name}
 
+    rfp = bpy.context.scene.render.filepath.replace("$Scene",tokens["$Scene"]).replace("$File",tokens["$File"]).replace("$Layer",tokens["$Layer"])        
     with open(SHFILE, "w") as FILE:
         # assign permission in linux
         if EXTSYS == ".sh":
@@ -228,12 +235,12 @@ def defoscBatchMaker(TYPE, BIN):
                     "** Oscurart Batch maker can not modify the permissions.")
         if not BIN:
             FILE.writelines("%s%s%s -b %s -x 1 -o %s -P %s%s.py  -s %s -e %s -a" %
-                            (QUOTES, BINDIR, QUOTES, bpy.data.filepath, bpy.context.scene.render.filepath,
+                            (QUOTES, BINDIR, QUOTES, bpy.data.filepath, rfp,
                              bpy.data.filepath.rpartition(SYSBAR)[0] + SYSBAR, TYPE,
                              str(bpy.context.scene.frame_start), str(bpy.context.scene.frame_end)))
         else:
             FILE.writelines("%s -b %s -x 1 -o %s -P %s%s.py  -s %s -e %s -a" %
-                            ("blender", bpy.data.filepath, bpy.context.scene.render.filepath,
+                            ("blender", bpy.data.filepath, rfp,
                              bpy.data.filepath.rpartition(SYSBAR)[0] + SYSBAR, TYPE,
                              str(bpy.context.scene.frame_start), str(bpy.context.scene.frame_end)))
 
