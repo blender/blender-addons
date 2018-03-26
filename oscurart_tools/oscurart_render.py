@@ -80,9 +80,10 @@ def defRenderAll(frametype, scenes):
                 tokens = {
                     "$Scene":scene.name,
                     "$File":os.path.basename(bpy.data.filepath).split(".")[0],
-                    "$Layer":layer.name}
+                    "$Layer":layer.name,
+                    "$Camera":scene.camera.name}
 
-                scene.render.filepath = renpath.replace("$Scene",tokens["$Scene"]).replace("$File",tokens["$File"]).replace("$Layer",tokens["$Layer"])
+                scene.render.filepath = renpath.replace("$Scene",tokens["$Scene"]).replace("$File",tokens["$File"]).replace("$Layer",tokens["$Layer"]).replace("$Camera",tokens["$Camera"])
                 
                 bpy.context.window.screen.scene = scene
                 bpy.ops.render.render(
@@ -222,9 +223,10 @@ def defoscBatchMaker(TYPE, BIN):
     tokens = {
         "$Scene":bpy.context.scene.name,
         "$File":os.path.basename(bpy.data.filepath).split(".")[0],
-        "$Layer":bpy.context.scene.render.layers.active.name}
+        "$Layer":bpy.context.scene.render.layers.active.name,
+        "$Camera":bpy.context.scene.camera.name}
 
-    rfp = bpy.context.scene.render.filepath.replace("$Scene",tokens["$Scene"]).replace("$File",tokens["$File"]).replace("$Layer",tokens["$Layer"])        
+    rfp = bpy.context.scene.render.filepath.replace("$Scene",tokens["$Scene"]).replace("$File",tokens["$File"]).replace("$Layer",tokens["$Layer"]).replace("$Camera",tokens["$Camera"])        
     with open(SHFILE, "w") as FILE:
         # assign permission in linux
         if EXTSYS == ".sh":
