@@ -130,7 +130,7 @@ class POSE_UL_selection_set(UIList):
         layout.prop(set, "name", text="", icon='GROUP_BONE', emboss=False)
 
 
-class POSE_MT_create_new_selection_set(Menu):
+class POSE_MT_selection_set_create(Menu):
     bl_label = "Choose Selection Set"
 
     def draw(self, context):
@@ -419,7 +419,7 @@ class POSE_OT_selection_set_paste(PluginOperator):
 # Registry ####################################################################
 
 classes = (
-    POSE_MT_create_new_selection_set,
+    POSE_MT_selection_set_create,
     POSE_MT_selection_sets_specials,
     POSE_MT_selection_sets,
     POSE_PT_selection_sets,
