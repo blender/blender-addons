@@ -37,8 +37,6 @@ bl_info = {
     "category": "3D View"
 }
 
-import sys
-import os
 
 # ----------------------------------------------
 # Import modules

@@ -408,7 +408,7 @@ class MeasureitEditPanel(Panel):
                     row = box.row(True)
                     row.operator("measureit.expandallsegmentbutton", text="Expand all", icon="ZOOMIN")
                     row.operator("measureit.collapseallsegmentbutton", text="Collapse all", icon="ZOOMOUT")
-                    for idx in range(0, mp.measureit_num):
+                    for idx in range(mp.measureit_num):
                         if mp.measureit_segments[idx].glfree is False:
                             add_item(box, idx, mp.measureit_segments[idx])
 
@@ -426,7 +426,7 @@ class MeasureitEditPanel(Panel):
                     myobj = context.object
                     obverts = get_mesh_vertices(myobj)
                     viewtot = False
-                    for idx in range(0, mp.measureit_num):
+                    for idx in range(mp.measureit_num):
                         ms = mp.measureit_segments[idx]
                         if (ms.gltype == 1 or ms.gltype == 12
                             or ms.gltype == 13 or ms.gltype == 14) and ms.gltot != '99' \
@@ -472,7 +472,7 @@ class MeasureitEditPanel(Panel):
                         box = layout.box()
                         box.label("Totals", icon='SOLO_ON')
                         final = 0
-                        for idx in range(0, len(tot)):
+                        for idx in range(len(tot)):
                             if ac[idx] is True:
                                 final += tot[idx]
                                 tx_dist = format_distance(fmt, units, tot[idx])
@@ -1030,7 +1030,7 @@ class AddSegmentOrtoButton(Operator):
                     mainobject.MeasureGenerator.add()
 
                 mp = mainobject.MeasureGenerator[0]
-                for x in range(0, len(mylist)):
+                for x in range(len(mylist)):
                     # -----------------------
                     # Only if not exist
                     # -----------------------
@@ -1658,7 +1658,7 @@ class DeleteAllSumButton(Operator):
         if context.object is not None:
             if 'MeasureGenerator' in context.object:
                 mp = context.object.MeasureGenerator[0]
-                for idx in range(0, mp.measureit_num):
+                for idx in range(mp.measureit_num):
                     ms = mp.measureit_segments[idx]
                     ms.gltot = '99'
 
@@ -2016,14 +2016,14 @@ def draw_main(context):
     if local_view is False:
         # Get visible layers
         if bpy.context.space_data.lock_camera_and_layers is True:
-            for x in range(0, 20):
+            for x in range(20):
                 if bpy.context.scene.layers[x] is True:
-                    layers.extend([x])
+                    layers.append(x)
         else:
             # Lock disabled, use view dependent visible layers
             for x in range(20):
                 if bpy.context.space_data.layers[x] is True:
-                    layers.extend([x])
+                    layers.append(x)
 
     # Display selected or all
     if scene.measureit_gl_ghost is False or local_view is True:
@@ -2041,7 +2041,7 @@ def draw_main(context):
             if 'MeasureGenerator' in myobj:
                 if local_view is False:
                     # verify visible layer
-                    for x in range(0, 20):
+                    for x in range(20):
                         if myobj.layers[x] is True and x in layers:
                             op = myobj.MeasureGenerator[0]
                             draw_segments(context, myobj, op, region, rv3d)
@@ -2128,7 +2128,7 @@ def get_selected_vertex(myobject):
     tv = len(bm.verts)
     for v in bm.verts:
         if v.select:
-            mylist.extend([v.index])
+            mylist.append(v.index)
 
     if flag is True:
         bpy.ops.object.editmode_toggle()
@@ -2162,7 +2162,7 @@ def get_selected_vertex_history(myobject):
 
     bm = from_edit_mesh(myobject.data)
     for v in bm.select_history:
-        mylist.extend([v.index])
+        mylist.append(v.index)
 
     if flag is True:
         bpy.ops.object.editmode_toggle()
@@ -2193,8 +2193,8 @@ def get_smart_selected(myobject):
     bm = from_edit_mesh(myobject.data)
     for e in bm.edges:
         if e.select is True:
-            mylist.extend([e.verts[0].index])
-            mylist.extend([e.verts[1].index])
+            mylist.append(e.verts[0].index)
+            mylist.append(e.verts[1].index)
 
     if flag is True:
         bpy.ops.object.editmode_toggle()
@@ -2224,12 +2224,12 @@ def get_selected_faces(myobject):
 
     bm = from_edit_mesh(myobject.data)
     for e in bm.faces:
-        myface = []
+        myfaces = []
         if e.select is True:
-            for i in range(0, len(e.verts)):
-                myface.extend([e.verts[i].index])
+            for i in range(len(e.verts)):
+                myfaces.append(e.verts[i].index)
 
-            mylist.extend([myface])
+            mylist.extend([myfaces])
 
     if flag is True:
         bpy.ops.object.editmode_toggle()
