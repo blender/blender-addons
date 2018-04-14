@@ -2011,19 +2011,22 @@ def draw_main(context):
         rv3d = context.space_data.region_quadviews[i]
 
     scene = bpy.context.scene
-    # Get visible layers
+    local_view = context.area.spaces.active.local_view is not None
     layers = []
-    if bpy.context.space_data.lock_camera_and_layers is True:
-        for x in range(0, 20):
-            if bpy.context.scene.layers[x] is True:
-                layers.extend([x])
-    else:
-        for x in range(20):
-            if bpy.context.space_data.layers[x] is True:
-                layers.extend([x])
+    if local_view is False:
+        # Get visible layers
+        if bpy.context.space_data.lock_camera_and_layers is True:
+            for x in range(0, 20):
+                if bpy.context.scene.layers[x] is True:
+                    layers.extend([x])
+        else:
+            # Lock disabled, use view dependent visible layers
+            for x in range(20):
+                if bpy.context.space_data.layers[x] is True:
+                    layers.extend([x])
 
     # Display selected or all
-    if scene.measureit_gl_ghost is False:
+    if scene.measureit_gl_ghost is False or local_view is True:
         objlist = context.selected_objects
     else:
         objlist = context.scene.objects
@@ -2036,12 +2039,18 @@ def draw_main(context):
     for myobj in objlist:
         if myobj.hide is False:
             if 'MeasureGenerator' in myobj:
-                # verify visible layer
-                for x in range(0, 20):
-                    if myobj.layers[x] is True and x in layers:
-                        op = myobj.MeasureGenerator[0]
-                        draw_segments(context, myobj, op, region, rv3d)
-                        break
+                if local_view is False:
+                    # verify visible layer
+                    for x in range(0, 20):
+                        if myobj.layers[x] is True and x in layers:
+                            op = myobj.MeasureGenerator[0]
+                            draw_segments(context, myobj, op, region, rv3d)
+                            break
+                else:
+                    # Layer check not needed here, selected objects are not
+                    # added to context.selected_objects if in disabled layers
+                    op = myobj.MeasureGenerator[0]
+                    draw_segments(context, myobj, op, region, rv3d)
     # ---------------------------------------
     # Generate all OpenGL calls for debug
     # ---------------------------------------
