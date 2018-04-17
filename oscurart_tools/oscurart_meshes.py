@@ -154,7 +154,7 @@ class SelectMenor(Operator):
 # -------------------------RESYM VG----------------------------------
 
 
-class resymVertexGroups(Operator):
+class rvg(Operator):
     bl_idname = "mesh.resym_vertex_weights_osc"
     bl_label = "Resym Vertex Weights"
     bl_description = ("Copies the symetrical weight value of the vertices on the X axys\n"
