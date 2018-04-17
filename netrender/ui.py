@@ -35,7 +35,7 @@ ADDRESS_TEST_TIMEOUT = 30
 
 def base_poll(cls, context):
     rd = context.scene.render
-    return (rd.use_game_engine==False) and (rd.engine in cls.COMPAT_ENGINES)
+    return (rd.engine in cls.COMPAT_ENGINES)
 
 
 def init_file():
@@ -96,7 +96,7 @@ class NetRenderButtonsPanel():
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        return rd.engine == 'NET_RENDER' and rd.use_game_engine == False
+        return rd.engine == 'NET_RENDER'
 
 # Setting panel, use in the scene for now.
 class RENDER_PT_network_settings(NetRenderButtonsPanel, bpy.types.Panel):

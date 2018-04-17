@@ -929,10 +929,6 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
             tex = self.create_image_textures(context, img_spec)
             material = self.create_material_for_texture(tex)
 
-        # Game Engine Material Settings
-        material.game_settings.use_backface_culling = False
-        material.game_settings.alpha_blend = 'ALPHA'
-
         # Create and position plane object
         plane = self.create_image_plane(context, material.name, img_spec)
 

@@ -158,15 +158,12 @@ del properties_data_modifier
 from bl_ui import properties_material
 for member in dir(properties_material):
     subclass = getattr(properties_material, member)
-    if subclass not in (properties_material.MATERIAL_PT_transp_game,
-                        properties_material.MATERIAL_PT_game_settings,
-                        properties_material.MATERIAL_PT_physics):
-        try:
-            #mat=context.material
-            #if mat and mat.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes):
-            subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
-        except:
-            pass
+    try:
+        #mat=context.material
+        #if mat and mat.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes):
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
 del properties_material
 
 
@@ -238,7 +235,7 @@ class RenderButtonsPanel():
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        return (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
+        return (rd.engine in cls.COMPAT_ENGINES)
 
 class ModifierButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -250,7 +247,7 @@ class ModifierButtonsPanel():
     def poll(cls, context):
         mods = context.object.modifiers
         rd = context.scene.render
-        return mods and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
+        return mods and (rd.engine in cls.COMPAT_ENGINES)
 
 class MaterialButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -262,7 +259,7 @@ class MaterialButtonsPanel():
     def poll(cls, context):
         mat = context.material
         rd = context.scene.render
-        return mat and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
+        return mat (rd.engine in cls.COMPAT_ENGINES)
 
 
 class TextureButtonsPanel():
@@ -275,7 +272,7 @@ class TextureButtonsPanel():
     def poll(cls, context):
         tex = context.texture
         rd = context.scene.render
-        return tex and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
+        return tex and (rd.engine in cls.COMPAT_ENGINES)
 
 # class TextureTypePanel(TextureButtonsPanel):
 
@@ -296,7 +293,7 @@ class ObjectButtonsPanel():
     def poll(cls, context):
         obj = context.object
         rd = context.scene.render
-        return obj and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
+        return obj and (rd.engine in cls.COMPAT_ENGINES)
 
 class CameraDataButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -308,7 +305,7 @@ class CameraDataButtonsPanel():
     def poll(cls, context):
         cam = context.camera
         rd = context.scene.render
-        return cam and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
+        return cam and (rd.engine in cls.COMPAT_ENGINES)
 
 class WorldButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -320,7 +317,7 @@ class WorldButtonsPanel():
     def poll(cls, context):
         wld = context.world
         rd = context.scene.render
-        return wld and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
+        return wld and (rd.engine in cls.COMPAT_ENGINES)
 
 class TextButtonsPanel():
     bl_space_type = 'TEXT_EDITOR'
@@ -332,7 +329,7 @@ class TextButtonsPanel():
     def poll(cls, context):
         text = context.space_data
         rd = context.scene.render
-        return text and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
+        return text and (rd.engine in cls.COMPAT_ENGINES)
 
 from bl_ui import properties_data_mesh
 # These panels are kept

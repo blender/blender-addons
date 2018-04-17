@@ -805,9 +805,6 @@ class VIEW3D_OT_show_mat_preview(Operator):
                         if is_opaque:
                             col.separator()
                             col.prop(mat, "alpha")
-                            col.separator()
-                            col.label("Viewport Alpha:")
-                            col.prop(mat.game_settings, "alpha_blend", text="")
                     layout.separator()
                 else:
                     other_render = ("*Unavailable with this Renderer*" if not c_render_engine("Both")

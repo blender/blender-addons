@@ -807,7 +807,6 @@ class VIEW3D_MT_Object(Menu):
         layout.menu("VIEW3D_MT_object_track")
         layout.menu("VIEW3D_MT_object_animation")
         UseSeparator(self, context)
-        layout.menu("VIEW3D_MT_object_game")
         layout.menu("VIEW3D_MT_object_showhide")
         UseSeparator(self, context)
         layout.operator_menu_enum("object.convert", "target")

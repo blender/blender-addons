@@ -383,11 +383,6 @@ def obCol(ob, active, context):
     ob.color = active.color
 
 
-def obMas(ob, active, context):
-    ob.game.mass = active.game.mass
-    return('INFO', "Mass copied")
-
-
 def obLok(ob, active, context):
     for index, state in enumerate(active.lock_location):
         ob.lock_location[index] = state
@@ -509,8 +504,6 @@ object_copies = (
         "Copy Dupli from Active to Selected", obDup),
         ('obj_col', "Object Color",
         "Copy Object Color from Active to Selected", obCol),
-        ('obj_mas', "Mass",
-        "Copy Mass from Active to Selected", obMas),
         # ('obj_dmp', "Damping",
         # "Copy Damping from Active to Selected"),
         # ('obj_all', "All Physical Attributes",
