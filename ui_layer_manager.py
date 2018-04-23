@@ -364,7 +364,7 @@ class SCENE_OT_namedlayer_select_objects_by_layer(Operator):
                 for obj in objects:
                     obj.select = False
             else:
-                bpy.ops.object.select_by_layer(extend=self.extend, layers=layer_idx + 1)
+                bpy.ops.object.select_by_layer(match='SHARED', extend=self.extend, layers=layer_idx + 1)
 
         return {'FINISHED'}
 
