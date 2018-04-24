@@ -3161,7 +3161,7 @@ class NWSelectParentChildren(Operator, NWBase):
 
 
 class NWDetachOutputs(Operator, NWBase):
-    """Detach outputs of selected node leaving inluts liked"""
+    """Detach outputs of selected node leaving inputs linked"""
     bl_idname = "node.nw_detach_outputs"
     bl_label = "Detach Outputs"
     bl_options = {'REGISTER', 'UNDO'}
