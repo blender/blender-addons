@@ -279,3 +279,19 @@ def object_merge(context, objects):
 
     # return new object
     return base_base
+
+
+def face_is_distorted(ele, angle_distort):
+    no = ele.normal
+    angle_fn = no.angle
+ 
+    for loop in ele.loops:
+        loopno = loop.calc_normal()
+
+        if loopno.dot(no) < 0.0:
+            loopno.negate()
+
+        if angle_fn(loopno, 1000.0) > angle_distort:
+            return True
+ 
+    return False

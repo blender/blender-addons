@@ -1896,8 +1896,9 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
                                ACNW(ob_obj.key, 'LCL_SCALING', force_key, force_sek, scale))
         p_rots[ob_obj] = rot
 
-    animdata_shapes = OrderedDict()
     force_key = (simplify_fac == 0.0)
+
+    animdata_shapes = OrderedDict()
     for me, (me_key, _shapes_key, shapes) in scene_data.data_deformers_shape.items():
         # Ignore absolute shape keys for now!
         if not me.shape_keys.use_relative:
@@ -1907,6 +1908,12 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
             # Sooooo happy to have to twist again like a mad snake... Yes, we need to write those curves twice. :/
             acnode.add_group(me_key, shape.name, shape.name, (shape.name,))
             animdata_shapes[channel_key] = (acnode, me, shape)
+
+    animdata_cameras = OrderedDict()
+    for cam_obj, cam_key in scene_data.data_cameras.items():
+        cam = cam_obj.bdata.data
+        acnode = AnimationCurveNodeWrapper(cam_key, 'CAMERA_FOCAL', force_key, force_sek, (cam.lens,))
+        animdata_cameras[cam_key] = (acnode, cam)
 
     currframe = f_start
     while currframe <= f_end:
@@ -1927,6 +1934,8 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
             ob_obj.dupli_list_clear()
         for anim_shape, me, shape in animdata_shapes.values():
             anim_shape.add_keyframe(real_currframe, (shape.value * 100.0,))
+        for anim_camera, camera in animdata_cameras.values():
+            anim_camera.add_keyframe(real_currframe, (camera.lens,))
         currframe += bake_step
 
     scene.frame_set(back_currframe, 0.0)
@@ -1953,6 +1962,18 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
         if not anim_shape:
             continue
         for elem_key, group_key, group, fbx_group, fbx_gname in anim_shape.get_final_data(scene, ref_id, force_keep):
+                anim_data = animations.get(elem_key)
+                if anim_data is None:
+                    anim_data = animations[elem_key] = ("dummy_unused_key", OrderedDict())
+                anim_data[1][fbx_group] = (group_key, group, fbx_gname)
+
+    # And cameras' lens keys.
+    for cam_key, (anim_camera, camera) in animdata_cameras.items():
+        final_keys = OrderedDict()
+        anim_camera.simplify(simplify_fac, bake_step, force_keep)
+        if not anim_camera:
+            continue
+        for elem_key, group_key, group, fbx_group, fbx_gname in anim_camera.get_final_data(scene, ref_id, force_keep):
                 anim_data = animations.get(elem_key)
                 if anim_data is None:
                     anim_data = animations[elem_key] = ("dummy_unused_key", OrderedDict())
@@ -2194,8 +2215,11 @@ def fbx_data_from_scene(scene, settings):
                     if mod.show_render:
                         use_org_data = False
             if not use_org_data:
-                tmp_me = ob.to_mesh(scene, apply_modifiers=True,
-                                    settings='RENDER' if settings.use_mesh_modifiers_render else 'PREVIEW')
+                tmp_me = ob.to_mesh(
+                    scene,
+                    apply_modifiers=settings.use_mesh_modifiers,
+                    settings='RENDER' if settings.use_mesh_modifiers_render else 'PREVIEW',
+                )
                 data_meshes[ob_obj] = (get_blenderID_key(tmp_me), tmp_me, True)
             # Re-enable temporary disabled modifiers.
             for mod, show_render in tmp_mods:

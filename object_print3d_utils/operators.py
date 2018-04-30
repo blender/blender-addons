@@ -20,6 +20,8 @@
 
 # All Operator
 
+import array
+
 import bpy
 from bpy.types import Operator
 from bpy.props import (
@@ -129,8 +131,6 @@ class MESH_OT_Print3D_Check_Solid(Operator):
 
     @staticmethod
     def main_check(obj, info):
-        import array
-
         bm = mesh_helpers.bmesh_copy_from_object(obj, transform=False, triangulate=False)
 
         edges_non_manifold = array.array('i', (i for i, ele in enumerate(bm.edges)
@@ -173,7 +173,6 @@ class MESH_OT_Print3D_Check_Degenerate(Operator):
 
     @staticmethod
     def main_check(obj, info):
-        import array
         scene = bpy.context.scene
         print_3d = scene.print_3d
         threshold = print_3d.threshold_zero
@@ -202,27 +201,17 @@ class MESH_OT_Print3D_Check_Distorted(Operator):
 
     @staticmethod
     def main_check(obj, info):
-        import array
-
         scene = bpy.context.scene
         print_3d = scene.print_3d
         angle_distort = print_3d.angle_distort
 
-        def face_is_distorted(ele):
-            no = ele.normal
-            angle_fn = no.angle
-            for loop in ele.loops:
-                loopno = loop.calc_normal()
-                if loopno.dot(no) < 0.0:
-                    loopno.negate()
-                if angle_fn(loopno, 1000.0) > angle_distort:
-                    return True
-            return False
-
         bm = mesh_helpers.bmesh_copy_from_object(obj, transform=True, triangulate=False)
         bm.normal_update()
 
-        faces_distort = array.array('i', (i for i, ele in enumerate(bm.faces) if face_is_distorted(ele)))
+        faces_distort = array.array(
+                'i',
+                (i for i, ele in enumerate(bm.faces) if mesh_helpers.face_is_distorted(ele, angle_distort))
+                )
 
         info.append(("Non-Flat Faces: %d" % len(faces_distort),
                     (bmesh.types.BMFace, faces_distort)))
@@ -418,20 +407,11 @@ class MESH_OT_Print3D_Clean_Distorted(Operator):
         print_3d = scene.print_3d
         angle_distort = print_3d.angle_distort
 
-        def face_is_distorted(ele):
-            no = ele.normal
-            angle_fn = no.angle
-            for loop in ele.loops:
-                if angle_fn(loop.calc_normal(), 1000.0) > angle_distort:
-                    return True
-            return False
-
         obj = context.active_object
         bm = mesh_helpers.bmesh_from_object(obj)
         bm.normal_update()
-        elems_triangulate = [ele for ele in bm.faces if face_is_distorted(ele)]
+        elems_triangulate = [ele for ele in bm.faces if mesh_helpers.face_is_distorted(ele, angle_distort)]
 
-        # edit
         if elems_triangulate:
             bmesh.ops.triangulate(bm, faces=elems_triangulate)
             mesh_helpers.bmesh_to_object(obj, bm)

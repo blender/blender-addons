@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from mathutils import Vector
 from bpy.types import Operator
 from bpy.props import (
         IntProperty,
@@ -31,6 +32,7 @@ import bmesh
 import time
 import blf
 from bpy_extras.view3d_utils import location_3d_to_region_2d
+from random import uniform
 
 C = bpy.context
 D = bpy.data
@@ -152,7 +154,7 @@ class SelectMenor(Operator):
 # -------------------------RESYM VG----------------------------------
 
 
-class resymVertexGroups(Operator):
+class rvg(Operator):
     bl_idname = "mesh.resym_vertex_weights_osc"
     bl_label = "Resym Vertex Weights"
     bl_description = ("Copies the symetrical weight value of the vertices on the X axys\n"
@@ -580,12 +582,12 @@ def defCopyUvsIsland(self, context):
 
     bpy.ops.object.mode_set(mode="EDIT")        
     
-def defPasteUvsIsland(self, context):
+def defPasteUvsIsland(self, uvOffset, rotateUv,context):
     bpy.ops.object.mode_set(mode="OBJECT")
     selPolys = [poly.index for poly in bpy.context.object.data.polygons if poly.select]
-
+        
     for island in selPolys:
-        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.object.mode_set(mode="EDIT")      
         bpy.ops.mesh.select_all(action="DESELECT")        
         bpy.ops.object.mode_set(mode="OBJECT")  
         bpy.context.object.data.polygons[island].select = True
@@ -601,10 +603,20 @@ def defPasteUvsIsland(self, context):
                     TobLoop.append(li)    
 
         for source,target in zip(range(min(obLoop),max(obLoop)+1),range(min(TobLoop),max(TobLoop)+1)):
-            bpy.context.object.data.uv_layers.active.data[target].uv = bpy.context.object.data.uv_layers.active.data[source].uv
-   
+            bpy.context.object.data.uv_layers.active.data[target].uv = bpy.context.object.data.uv_layers.active.data[source].uv + Vector((uvOffset,0))
+              
         bpy.ops.object.mode_set(mode="EDIT")   
         
+    if rotateUv:
+        bpy.ops.object.mode_set(mode="OBJECT") 
+        for poly in selPolys:
+            bpy.context.object.data.polygons[poly].select = True
+        bpy.ops.object.mode_set(mode="EDIT")
+        bm = bmesh.from_edit_mesh(bpy.context.object.data)
+        bmesh.ops.reverse_uvs(bm, faces=[f for f in bm.faces if f.select])
+        bmesh.ops.rotate_uvs(bm, faces=[f for f in bm.faces if f.select]) 
+        #bmesh.update_edit_mesh(bpy.context.object.data, tessface=False, destructive=False)
+
 
 
 class CopyUvIsland(Operator):
@@ -628,7 +640,16 @@ class PasteUvIsland(Operator):
     bl_idname = "mesh.uv_island_paste"
     bl_label = "Paste Uv Island"
     bl_options = {"REGISTER", "UNDO"}
+    
+    uvOffset = BoolProperty(
+            name="Uv Offset",
+            default=False
+            )    
 
+    rotateUv = BoolProperty(
+            name="Rotate Uv Corner",
+            default=False
+            )  
     @classmethod
     def poll(cls, context):
         return (context.active_object is not None and
@@ -636,7 +657,7 @@ class PasteUvIsland(Operator):
                 context.active_object.mode == "EDIT")
 
     def execute(self, context):
-        defPasteUvsIsland(self, context)
+        defPasteUvsIsland(self, self.uvOffset, self.rotateUv, context)
         return {'FINISHED'}    
     
     
@@ -694,4 +715,53 @@ class ApplyEditMultimesh(Operator):
         bpy.context.scene.objects.unlink(ob) 
         return {'FINISHED'} 
         
-           
+# -------------------------VERTEX COLOR MASK----------------------------------
+
+
+class resymVertexGroups(Operator):
+    bl_idname = "mesh.vertex_color_mask"
+    bl_label = "Vertex Color Mask"
+    bl_description = ("Create a Vertex Color Mask")
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return obj is not None
+
+    def execute(self, context):
+        obj = bpy.context.active_object
+        mesh= obj.data
+
+        bpy.ops.object.mode_set(mode='EDIT', toggle=False) 
+        bpy.ops.mesh.select_all(action="DESELECT") 
+
+        bm = bmesh.from_edit_mesh(mesh) 
+        bm.faces.ensure_lookup_table()
+
+        islands = []
+        faces = bm.faces
+
+        try:
+            color_layer = bm.loops.layers.color["RGBMask"]
+        except:    
+            color_layer = bm.loops.layers.color.new("RGBMask")
+
+        while faces:
+            faces[0].select_set(True) 
+            bpy.ops.mesh.select_linked() 
+            islands.append([f for f in faces if f.select])
+            bpy.ops.mesh.hide(unselected=False) 
+            faces = [f for f in bm.faces if not f.hide] 
+
+        bpy.ops.mesh.reveal()
+
+        for island in islands:
+            color = (uniform(0,1),uniform(0,1),uniform(0,1),1) 
+            for face in island:
+                for loop in face.loops:
+                    loop[color_layer] = color    
+            
+        bpy.ops.object.mode_set(mode="VERTEX_PAINT")
+
+        return {'FINISHED'}           

@@ -40,8 +40,8 @@ def _get_depsgraph(context):
     if bpy.app.version < (2, 80, 0,):
         return scene.depsgraph
     else:
-        scene_layer = scene.view_layers.active
-        return scene_layer.depsgraph
+        view_layer = context.view_layer
+        return view_layer.depsgraph
 
 
 ###############################################################################
