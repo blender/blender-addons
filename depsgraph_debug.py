@@ -96,8 +96,9 @@ class SCENE_OT_depsgraph_relations_graphviz(Operator,
         return ".dot"
 
     def performSave(self, context, depsgraph):
+        import os
         basename, extension = os.path.splitext(self.filepath)
-        depsgraph.debug_relations_graphviz(self.filepath, absename + ".png")
+        depsgraph.debug_relations_graphviz(os.path.join(self.filepath, basename + ".dot"))
         return True
 
 
