@@ -47,10 +47,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
     from mathutils import Color, Vector
 
     world = scene.world
-    if world:
-        world_amb = world.ambient_color
-    else:
-        world_amb = Color((0.0, 0.0, 0.0))
+    world_amb = Color((0.0, 0.0, 0.0))
 
     source_dir = os.path.dirname(bpy.data.filepath)
     dest_dir = os.path.dirname(filepath)
@@ -271,7 +268,7 @@ def write_nurb(fw, ob, ob_mat):
     return tot_verts
 
 
-def write_file(filepath, objects, scene,
+def write_file(filepath, objects, depsgraph, scene,
                EXPORT_TRI=False,
                EXPORT_EDGES=False,
                EXPORT_SMOOTH_GROUPS=False,
@@ -388,8 +385,7 @@ def write_file(filepath, objects, scene,
                         # END NURBS
 
                         try:
-                            me = ob.to_mesh(scene, EXPORT_APPLY_MODIFIERS, calc_tessface=False,
-                                            settings='RENDER' if EXPORT_APPLY_MODIFIERS_RENDER else 'PREVIEW')
+                            me = ob.to_mesh(depsgraph, EXPORT_APPLY_MODIFIERS, calc_tessface=False)
                         except RuntimeError:
                             me = None
 
@@ -407,9 +403,8 @@ def write_file(filepath, objects, scene,
                             me.flip_normals()
 
                         if EXPORT_UV:
-                            faceuv = len(me.uv_textures) > 0
+                            faceuv = len(me.uv_layers) > 0
                             if faceuv:
-                                uv_texture = me.uv_textures.active.data[:]
                                 uv_layer = me.uv_layers.active.data[:]
                         else:
                             faceuv = False
@@ -456,16 +451,7 @@ def write_file(filepath, objects, scene,
                         if EXPORT_KEEP_VERT_ORDER:
                             pass
                         else:
-                            if faceuv:
-                                if smooth_groups:
-                                    sort_func = lambda a: (a[0].material_index,
-                                                           hash(uv_texture[a[1]].image),
-                                                           smooth_groups[a[1]] if a[0].use_smooth else False)
-                                else:
-                                    sort_func = lambda a: (a[0].material_index,
-                                                           hash(uv_texture[a[1]].image),
-                                                           a[0].use_smooth)
-                            elif len(materials) > 1:
+                            if len(materials) > 1:
                                 if smooth_groups:
                                     sort_func = lambda a: (a[0].material_index,
                                                            smooth_groups[a[1]] if a[0].use_smooth else False)
@@ -559,9 +545,6 @@ def write_file(filepath, objects, scene,
                         else:
                             loops_to_normals = []
 
-                        if not faceuv:
-                            f_image = None
-
                         subprogress2.step()
 
                         # XXX
@@ -581,15 +564,8 @@ def write_file(filepath, objects, scene,
                                 f_smooth = smooth_groups[f_index]
                             f_mat = min(f.material_index, len(materials) - 1)
 
-                            if faceuv:
-                                tface = uv_texture[f_index]
-                                f_image = tface.image
-
                             # MAKE KEY
-                            if faceuv and f_image:  # Object is always true.
-                                key = material_names[f_mat], f_image.name
-                            else:
-                                key = material_names[f_mat], None  # No image, use None instead.
+                            key = material_names[f_mat], None  # No image, use None instead.
 
                             # Write the vertex group
                             if EXPORT_POLYGROUPS:
@@ -635,7 +611,7 @@ def write_file(filepath, objects, scene,
                                                 i += 1
                                                 tmp_ext = "_%3d" % i
                                             mtl_name += tmp_ext
-                                        mat_data = mtl_dict[key] = mtl_name, materials[f_mat], f_image
+                                        mat_data = mtl_dict[key] = mtl_name, materials[f_mat], False
                                         mtl_rev_dict[mtl_name] = key
 
                                     if EXPORT_GROUP_BY_MAT:
@@ -743,6 +719,7 @@ def _write(context, filepath,
         base_name, ext = os.path.splitext(filepath)
         context_name = [base_name, '', '', ext]  # Base name, scene name, frame number, extension
 
+        depsgraph = context.depsgraph
         scene = context.scene
 
         # Exit edit mode before exporting, so current object states are exported properly.
@@ -774,7 +751,7 @@ def _write(context, filepath,
             # erm... bit of a problem here, this can overwrite files when exporting frames. not too bad.
             # EXPORT THE FILE.
             progress.enter_substeps(1)
-            write_file(full_path, objects, scene,
+            write_file(full_path, objects, depsgraph, scene,
                        EXPORT_TRI,
                        EXPORT_EDGES,
                        EXPORT_SMOOTH_GROUPS,
