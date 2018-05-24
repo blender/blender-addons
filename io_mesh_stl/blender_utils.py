@@ -84,7 +84,7 @@ def faces_from_mesh(ob, global_matrix, use_mesh_modifiers=False, triangulate=Tru
 
     # get the modifiers
     try:
-        mesh = ob.to_mesh(bpy.context.scene, use_mesh_modifiers, "PREVIEW")
+        mesh = ob.to_mesh(bpy.context.depsgraph, use_mesh_modifiers)
     except RuntimeError:
         raise StopIteration
 
