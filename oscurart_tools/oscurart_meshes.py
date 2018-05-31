@@ -348,57 +348,27 @@ class OscObjectToMesh(Operator):
 # ----------------------------- OVERLAP UV -------------------------------
 
 
-def DefOscOverlapUv(valpresicion):
-    inicio = time.time()
-    mode = bpy.context.object.mode
-    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+def DefOscOverlapUv():
+    bm = bmesh.from_edit_mesh(bpy.context.object.data)
+    faces = [face for face in bm.faces if face.select]
 
-    rd = valpresicion
-    ob = bpy.context.object
-    absco = lambda x: (abs(round(x[0], rd)), round(x[1], rd), round(x[2], rd))
-    rounder = lambda x: (round(x[0], rd), round(x[1], rd), round(x[2], rd))
+    faceDict = {}
+    faceReverse = []
+    bm.select_mode = {'FACE'}
+    for face in faces:
+        bpy.ops.mesh.select_all(action= "DESELECT")    
+        face.select = True
+        bpy.ops.mesh.select_mirror()
+        faceDict[face.index] = [mirrorface for mirrorface in bm.faces if mirrorface.select][0].index
+        faceReverse.append([mirrorface for mirrorface in bm.faces if mirrorface.select][0])
 
-    # vertice a vertex
-    vertvertex = {}
-    for vert in ob.data.loops:
-        vertvertex.setdefault(vert.vertex_index, []).append(vert.index)
-
-    vertexvert = {}
-    for vertex in ob.data.loops:
-        vertexvert[vertex.index] = vertex.vertex_index
-
-    # posicion de cada vertice y cada face
-    vertloc = {rounder(vert.co[:]): vert for vert in ob.data.vertices}
-    faceloc = {rounder(poly.center[:]): poly for poly in ob.data.polygons}
-
-    # relativo de cada vertice y cada face
-    verteqind = {vert.index: vertloc.get(
-                 absco(co),
-                 vertloc[co]).index for co,
-                 vert in vertloc.items() if co[0] <= 0}
-    polyeq = {face: faceloc.get(
-              absco(center),
-              faceloc[center]) for center,
-              face in faceloc.items() if center[0] <= 0}
-
-    # loops in faces
-    lif = {poly: [i for i in poly.loop_indices] for poly in ob.data.polygons}
-
-    # acomoda
-    for l, r in polyeq.items():
-        if l.select:
-            for lloop in lif[l]:
-                for rloop in lif[r]:
-                    if (verteqind[vertexvert[lloop]] == vertexvert[rloop] and
-                            ob.data.uv_layers.active.data[rloop].select):
-
-                        ob.data.uv_layers.active.data[
-                            lloop].uv = ob.data.uv_layers.active.data[
-                                rloop].uv
-
-    bpy.ops.object.mode_set(mode=mode, toggle=False)
-
-    print("Time elapsed: %4s seconds" % (time.time() - inicio))
+    for selFace,mirrorFace in faceDict.items():
+        for loop,mirrorLoop in zip(bm.faces[selFace].loops,bm.faces[mirrorFace].loops):
+            mirrorLoop.copy_from(loop)
+            
+    #invierto direcciones        
+    bmesh.ops.reverse_uvs(bm, faces=[f for f in faceReverse])
+    bmesh.ops.rotate_uvs(bm, faces=[f for f in faceReverse])  
 
 
 class OscOverlapUv(Operator):
@@ -413,15 +383,9 @@ class OscOverlapUv(Operator):
         return (context.active_object is not None and
                 context.active_object.type == 'MESH')
 
-    presicion = IntProperty(
-            default=4,
-            min=1,
-            max=10,
-            name="precision"
-            )
 
     def execute(self, context):
-        DefOscOverlapUv(self.presicion)
+        DefOscOverlapUv()
         return {'FINISHED'}
 
 
