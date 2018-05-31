@@ -348,27 +348,40 @@ class OscObjectToMesh(Operator):
 # ----------------------------- OVERLAP UV -------------------------------
 
 
-def DefOscOverlapUv():
-    bm = bmesh.from_edit_mesh(bpy.context.object.data)
+def DefOscOverlapUv(self,offset,rotate):
+    me = bpy.context.object.data
+    bm = bmesh.from_edit_mesh(me)
+    bm.faces.ensure_lookup_table()
     faces = [face for face in bm.faces if face.select]
-
+    uv_layer = bm.loops.layers.uv[bpy.context.object.data.uv_layers.active.name]
+    
     faceDict = {}
     faceReverse = []
     bm.select_mode = {'FACE'}
     for face in faces:
-        bpy.ops.mesh.select_all(action= "DESELECT")    
+        bpy.ops.mesh.select_all(action="DESELECT") 
         face.select = True
         bpy.ops.mesh.select_mirror()
         faceDict[face.index] = [mirrorface for mirrorface in bm.faces if mirrorface.select][0].index
         faceReverse.append([mirrorface for mirrorface in bm.faces if mirrorface.select][0])
+        
+    
 
-    for selFace,mirrorFace in faceDict.items():
-        for loop,mirrorLoop in zip(bm.faces[selFace].loops,bm.faces[mirrorFace].loops):
-            mirrorLoop.copy_from(loop)
-            
+    for selFace,mirrorFace in faceDict.items():   
+        for loop,mirrorLoop in zip(bm.faces[selFace].loops,bm.faces[mirrorFace].loops): 
+            mirrorLoop.copy_from(loop)   
+        if offset:      
+            for loop,mirrorLoop in zip(bm.faces[selFace].loops,bm.faces[mirrorFace].loops):    
+                mirrorLoop[uv_layer].uv += Vector((1,0))  
+   
+                       
     #invierto direcciones        
     bmesh.ops.reverse_uvs(bm, faces=[f for f in faceReverse])
-    bmesh.ops.rotate_uvs(bm, faces=[f for f in faceReverse])  
+    bmesh.ops.rotate_uvs(bm, faces=[f for f in faceReverse]) 
+    if rotate:
+        bmesh.ops.rotate_uvs(bm, faces=[f for f in faceReverse]) 
+
+    bmesh.update_edit_mesh(me)
 
 
 class OscOverlapUv(Operator):
@@ -384,8 +397,17 @@ class OscOverlapUv(Operator):
                 context.active_object.type == 'MESH')
 
 
+    offset = BoolProperty(
+            default=True,
+            name="Offset"
+            )
+    rotate = BoolProperty(
+            default=True,
+            name="Rotate"
+            )
+
     def execute(self, context):
-        DefOscOverlapUv()
+        DefOscOverlapUv(self,self.offset,self.rotate)
         return {'FINISHED'}
 
 
