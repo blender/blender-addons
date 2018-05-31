@@ -402,7 +402,7 @@ class OscOverlapUv(Operator):
             name="Offset"
             )
     rotate = BoolProperty(
-            default=True,
+            default=False,
             name="Rotate"
             )
 
