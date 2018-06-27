@@ -20,8 +20,6 @@
 
 # All Operator
 
-import array
-
 import bpy
 from bpy.types import Operator
 from bpy.props import (
@@ -131,6 +129,8 @@ class MESH_OT_Print3D_Check_Solid(Operator):
 
     @staticmethod
     def main_check(obj, info):
+        import array
+
         bm = mesh_helpers.bmesh_copy_from_object(obj, transform=False, triangulate=False)
 
         edges_non_manifold = array.array('i', (i for i, ele in enumerate(bm.edges)
@@ -173,6 +173,8 @@ class MESH_OT_Print3D_Check_Degenerate(Operator):
 
     @staticmethod
     def main_check(obj, info):
+        import array
+
         scene = bpy.context.scene
         print_3d = scene.print_3d
         threshold = print_3d.threshold_zero
@@ -201,6 +203,8 @@ class MESH_OT_Print3D_Check_Distorted(Operator):
 
     @staticmethod
     def main_check(obj, info):
+        import array
+
         scene = bpy.context.scene
         print_3d = scene.print_3d
         angle_distort = print_3d.angle_distort
@@ -356,7 +360,7 @@ class MESH_OT_Print3D_Clean_Isolated(Operator):
             return ele.is_wire
 
         def vert_is_isolated(ele):
-            return (not bool(ele.link_edges))
+            return not bool(ele.link_edges)
 
         # --- face
         elems_remove = [ele for ele in bm.faces if face_is_isolated(ele)]
