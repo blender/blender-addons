@@ -14,15 +14,17 @@
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
+#  Copyright (C) 2014-2018 Blender Foundation
+#
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
 
 bl_info = {
     'name': 'Blender ID authentication',
-    'author': 'Francesco Siddi, Inês Almeida and Sybren A. Stüvel',
-    'version': (1, 4, 1),
-    'blender': (2, 77, 0),
+    'author': 'Sybren A. Stüvel, Francesco Siddi, and Inês Almeida',
+    'version': (1, 5, 0),
+    'blender': (2, 80, 0),
     'location': 'Add-on preferences',
     'description':
         'Stores your Blender ID credentials for usage with other add-ons',

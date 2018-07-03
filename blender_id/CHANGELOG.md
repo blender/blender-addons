@@ -1,5 +1,10 @@
 # Blender ID Add-on Changelog
 
+# Version 1.5 (released 2018-07-03)
+
+- Support Blender 2.80.
+
+
 ## Version 1.4.1 (released 2017-12-15)
 
 - Improved error reporting when validating a token fails due to
