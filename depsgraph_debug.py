@@ -27,7 +27,7 @@ bl_info = {
     "name": "Dependency Graph Debug",
     "author": "Sergey Sharybin",
     "version": (0, 1),
-    "blender": (2, 79, 0),
+    "blender": (2, 80, 0),
     "description": "Various dependency graph debugging tools",
     "warning": "",
     "wiki_url": "",
