@@ -63,7 +63,7 @@ class PieManipulator(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         # 4 - LEFT
-        pie.operator("wm.tool_set_by_name", text="Translate", icon='MAN_TRANS').name = "Move"
+        pie.operator("wm.tool_set_by_name", text="Translate", icon='MAN_TRANS').name = "Grab"
         # 6 - RIGHT
         pie.operator("wm.tool_set_by_name", text="Scale", icon='MAN_SCALE').name = "Scale"
         # 2 - BOTTOM
