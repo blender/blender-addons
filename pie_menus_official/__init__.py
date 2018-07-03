@@ -31,7 +31,7 @@ bl_info = {
     "name": "UI Pie Menu Official",
     "author": "Antony Riakiotakis, Sebastian Koenig",
     "version": (1, 1, 5),
-    "blender": (2, 7, 7),
+    "blender": (2, 80, 0),
     "description": "Individual Pie Menu Activation List",
     "location": "Addons Preferences",
     "warning": "",
