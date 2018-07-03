@@ -24,7 +24,7 @@ bl_info = {
     "description": "Click an icon to copy its name to the clipboard",
     "author": "roaoao",
     "version": (1, 3, 2),
-    "blender": (2, 75, 0),
+    "blender": (2, 80, 0),
     "location": "Spacebar > Icon Viewer, Text Editor > Properties",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6"
                 "/Py/Scripts/Development/Display_All_Icons",
