@@ -539,6 +539,10 @@ draw_color_sets = {
 }
 
 
+def is_cycles_or_eevee(context):
+    return context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}
+
+
 def nice_hotkey_name(punc):
     # convert the ugly string name into the actual character
     pairs = (
@@ -1577,7 +1581,7 @@ class NWEmissionViewer(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        is_cycles = context.scene.render.engine == 'CYCLES'
+        is_cycles = is_cycles_or_eevee(context)
         if nw_check(context):
             space = context.space_data
             if space.tree_type == 'ShaderNodeTree' and is_cycles:
@@ -2560,7 +2564,7 @@ class NWAddTextureSetup(Operator, NWBase):
         valid = False
         if nw_check(context):
             space = context.space_data
-            if space.tree_type == 'ShaderNodeTree' and context.scene.render.engine == 'CYCLES':
+            if space.tree_type == 'ShaderNodeTree' and is_cycles_or_eevee(context):
                 valid = True
         return valid
 
@@ -2650,7 +2654,7 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
         valid = False
         if nw_check(context):
             space = context.space_data
-            if space.tree_type == 'ShaderNodeTree' and context.scene.render.engine == 'CYCLES':
+            if space.tree_type == 'ShaderNodeTree' and is_cycles_or_eevee(context):
                 valid = True
         return valid
 
@@ -3217,7 +3221,7 @@ class NWLinkToOutputNode(Operator, NWBase):
         if not output_node:
             bpy.ops.node.select_all(action="DESELECT")
             if tree_type == 'ShaderNodeTree':
-                if context.scene.render.engine == 'CYCLES':
+                if is_cycles_or_eevee(context):
                     output_node = nodes.new('ShaderNodeOutputMaterial')
                 else:
                     output_node = nodes.new('ShaderNodeOutput')
@@ -3238,7 +3242,7 @@ class NWLinkToOutputNode(Operator, NWBase):
                     break
 
             out_input_index = 0
-            if tree_type == 'ShaderNodeTree' and context.scene.render.engine == 'CYCLES':
+            if tree_type == 'ShaderNodeTree' and is_cycles_or_eevee(context):
                 if active.outputs[output_index].name == 'Volume':
                     out_input_index = 1
                 elif active.outputs[output_index].type != 'SHADER':  # connect to displacement if not a shader
@@ -3673,7 +3677,7 @@ def drawlayout(context, layout, mode='non-panel'):
     col.menu(NWSwitchNodeTypeMenu.bl_idname, text="Switch Node Type")
     col.separator()
 
-    if tree_type == 'ShaderNodeTree' and context.scene.render.engine == 'CYCLES':
+    if tree_type == 'ShaderNodeTree' and is_cycles_or_eevee(context):
         col = layout.column(align=True)
         col.operator(NWAddTextureSetup.bl_idname, text="Add Texture Setup", icon='NODE_SEL')
         col.operator(NWAddPrincipledSetup.bl_idname, text="Add Principled Setup", icon='NODE_SEL')
@@ -3758,7 +3762,7 @@ class NWMergeNodesMenu(Menu, NWBase):
     def draw(self, context):
         type = context.space_data.tree_type
         layout = self.layout
-        if type == 'ShaderNodeTree' and context.scene.render.engine == 'CYCLES':
+        if type == 'ShaderNodeTree' and is_cycles_or_eevee(context):
             layout.menu(NWMergeShadersMenu.bl_idname, text="Use Shaders")
         layout.menu(NWMergeMixMenu.bl_idname, text="Use Mix Nodes")
         layout.menu(NWMergeMathMenu.bl_idname, text="Use Math Nodes")
@@ -3982,7 +3986,7 @@ class NWVertColMenu(bpy.types.Menu):
         valid = False
         if nw_check(context):
             snode = context.space_data
-            valid = snode.tree_type == 'ShaderNodeTree' and context.scene.render.engine == 'CYCLES'
+            valid = snode.tree_type == 'ShaderNodeTree' and is_cycles_or_eevee(context)
         return valid
 
     def draw(self, context):
@@ -4017,7 +4021,7 @@ class NWSwitchNodeTypeMenu(Menu, NWBase):
         layout = self.layout
         tree = context.space_data.node_tree
         if tree.type == 'SHADER':
-            if context.scene.render.engine == 'CYCLES':
+            if is_cycles_or_eevee(context):
                 layout.menu(NWSwitchShadersInputSubmenu.bl_idname)
                 layout.menu(NWSwitchShadersOutputSubmenu.bl_idname)
                 layout.menu(NWSwitchShadersShaderSubmenu.bl_idname)
@@ -4026,7 +4030,7 @@ class NWSwitchNodeTypeMenu(Menu, NWBase):
                 layout.menu(NWSwitchShadersVectorSubmenu.bl_idname)
                 layout.menu(NWSwitchShadersConverterSubmenu.bl_idname)
                 layout.menu(NWSwitchShadersLayoutSubmenu.bl_idname)
-            if context.scene.render.engine != 'CYCLES':
+            else:
                 layout.menu(NWSwitchMatInputSubmenu.bl_idname)
                 layout.menu(NWSwitchMatOutputSubmenu.bl_idname)
                 layout.menu(NWSwitchMatColorSubmenu.bl_idname)
