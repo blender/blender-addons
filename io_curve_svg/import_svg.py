@@ -118,14 +118,15 @@ def SVGParseFloat(s, i=0):
     return token, i
 
 
-def SVGCreateCurve():
+def SVGCreateCurve(context):
     """
     Create new curve object to hold splines in
     """
 
     cu = bpy.data.curves.new("Curve", 'CURVE')
     obj = bpy.data.objects.new("Curve", cu)
-    bpy.context.scene.objects.link(obj)
+
+    context['collection'].objects.link(obj)
 
     return obj
 
@@ -304,7 +305,6 @@ def SVGGetMaterial(color, context):
 
     mat = bpy.data.materials.new(name='SVGMat')
     mat.diffuse_color = diffuse_color
-    mat.diffuse_intensity = 1.0
 
     materials[color] = mat
 
@@ -1211,7 +1211,7 @@ class SVGGeometryPATH(SVGGeometry):
         Create real geometries
         """
 
-        ob = SVGCreateCurve()
+        ob = SVGCreateCurve(self._context)
         cu = ob.data
 
         if self._node.getAttribute('id'):
@@ -1429,7 +1429,7 @@ class SVGGeometryRECT(SVGGeometry):
         radius = (rx, ry)
 
         # Geometry creation
-        ob = SVGCreateCurve()
+        ob = SVGCreateCurve(self._context)
         cu = ob.data
 
         if self._styles['useFill']:
@@ -1539,7 +1539,7 @@ class SVGGeometryELLIPSE(SVGGeometry):
             return
 
         # Create circle
-        ob = SVGCreateCurve()
+        ob = SVGCreateCurve(self._context)
         cu = ob.data
 
         if self._node.getAttribute('id'):
@@ -1656,7 +1656,7 @@ class SVGGeometryLINE(SVGGeometry):
         y2 = SVGParseCoord(self._y2, crect[1])
 
         # Create cline
-        ob = SVGCreateCurve()
+        ob = SVGCreateCurve(self._context)
         cu = ob.data
 
         coords = [(x1, y1), (x2, y2)]
@@ -1727,7 +1727,7 @@ class SVGGeometryPOLY(SVGGeometry):
         Create real geometries
         """
 
-        ob = SVGCreateCurve()
+        ob = SVGCreateCurve(self._context)
         cu = ob.data
 
         if self._closed and self._styles['useFill']:
@@ -1824,10 +1824,16 @@ class SVGLoader(SVGGeometryContainer):
 
         return None
 
-    def __init__(self, filepath, do_colormanage):
+    def __init__(self, context, filepath, do_colormanage):
         """
         Initialize SVG loader
         """
+        import os
+
+        svg_name = os.path.basename(filepath)
+        scene = context.scene
+        collection = bpy.data.collections.new(name=svg_name)
+        scene.collection.children.link(collection)
 
         node = xml.dom.minidom.parse(filepath)
 
@@ -1845,7 +1851,8 @@ class SVGLoader(SVGGeometryContainer):
                          'materials': {},
                          'styles': [None],
                          'style': None,
-                         'do_colormanage': do_colormanage}
+                         'do_colormanage': do_colormanage,
+                         'collection': collection}
 
         super().__init__(node, self._context)
 
@@ -1882,7 +1889,7 @@ def parseAbstractNode(node, context):
     return None
 
 
-def load_svg(filepath, do_colormanage):
+def load_svg(context, filepath, do_colormanage):
     """
     Load specified SVG file
     """
@@ -1890,7 +1897,7 @@ def load_svg(filepath, do_colormanage):
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
-    loader = SVGLoader(filepath, do_colormanage)
+    loader = SVGLoader(context, filepath, do_colormanage)
     loader.parse()
     loader.createGeom(False)
 
@@ -1901,7 +1908,7 @@ def load(operator, context, filepath=""):
     # non SVG files can give useful messages.
     do_colormanage = context.scene.display_settings.display_device != 'NONE'
     try:
-        load_svg(filepath, do_colormanage)
+        load_svg(context, filepath, do_colormanage)
     except (xml.parsers.expat.ExpatError, UnicodeEncodeError) as e:
         import traceback
         traceback.print_exc()
