@@ -236,7 +236,7 @@ header_comment = \
 def save_single(operator, scene, filepath="",
         global_matrix=None,
         context_objects=None,
-        object_types={'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH'},
+        object_types={'EMPTY', 'CAMERA', 'LIGHT', 'ARMATURE', 'MESH'},
         use_mesh_modifiers=True,
         mesh_smooth_type='FACE',
         use_armature_deform_only=False,
@@ -423,7 +423,7 @@ def save_single(operator, scene, filepath="",
                 matrix_rot = (global_matrix * self.__anim_poselist[frame]).to_3x3()
 
             # Lamps need to be rotated
-            if obj_type == 'LAMP':
+            if obj_type == 'LIGHT':
                 matrix_rot = matrix_rot * mtx_x90
             elif obj_type == 'CAMERA':
                 y = matrix_rot * Vector((0.0, 1.0, 0.0))
@@ -520,7 +520,7 @@ def save_single(operator, scene, filepath="",
                 matrix_rot = rot.to_matrix()
 
                 # Lamps need to be rotated
-                if ob and ob.type == 'LAMP':
+                if ob and ob.type == 'LIGHT':
                     matrix_rot = matrix_rot * mtx_x90
                 elif ob and ob.type == 'CAMERA':
                     y = matrix_rot * Vector((0.0, 1.0, 0.0))
@@ -1243,8 +1243,8 @@ def save_single(operator, scene, filepath="",
 			Property: "CurrentMappingType", "enum", "",0
 			Property: "UVSwap", "bool", "",0''')
 
-        fw('\n\t\t\tProperty: "WrapModeU", "enum", "",%i' % tex.use_clamp_x)
-        fw('\n\t\t\tProperty: "WrapModeV", "enum", "",%i' % tex.use_clamp_y)
+        fw('\n\t\t\tProperty: "WrapModeU", "enum", "",%i' % tex.use_clight_x)
+        fw('\n\t\t\tProperty: "WrapModeV", "enum", "",%i' % tex.use_clight_y)
 
         fw('''
 			Property: "TextureRotationPivot", "Vector3D", "",0,0,0
@@ -1809,8 +1809,8 @@ def save_single(operator, scene, filepath="",
             if tmp_ob_type == 'CAMERA':
                 if 'CAMERA' in object_types:
                     ob_cameras.append(my_object_generic(ob, mtx))
-            elif tmp_ob_type == 'LAMP':
-                if 'LAMP' in object_types:
+            elif tmp_ob_type == 'LIGHT':
+                if 'LIGHT' in object_types:
                     ob_lights.append(my_object_generic(ob, mtx))
             elif tmp_ob_type == 'ARMATURE':
                 if 'ARMATURE' in object_types:
@@ -2086,7 +2086,7 @@ def save_single(operator, scene, filepath="",
         assert(not (materials and ('MESH' not in object_types)))
         assert(not (textures and ('MESH' not in object_types)))
 
-        assert(not (ob_lights and ('LAMP' not in object_types)))
+        assert(not (ob_lights and ('LIGHT' not in object_types)))
 
         assert(not (ob_cameras and ('CAMERA' not in object_types)))
     except AssertionError:

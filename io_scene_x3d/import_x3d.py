@@ -2790,9 +2790,9 @@ def appearance_LoadTexture(tex_node, ancestry, node):
 
     if bpyima:  # Loading can still fail
         repeat_s = tex_node.getFieldAsBool('repeatS', True, ancestry)
-        bpyima.use_clamp_x = not repeat_s
+        bpyima.use_clight_x = not repeat_s
         repeat_t = tex_node.getFieldAsBool('repeatT', True, ancestry)
-        bpyima.use_clamp_y = not repeat_t
+        bpyima.use_clight_y = not repeat_t
 
         # Update the desc-based cache
         if desc:
@@ -3148,7 +3148,7 @@ def importLamp_PointLight(node, ancestry):
     # is_on = node.getFieldAsBool('on', True, ancestry) # TODO
     radius = node.getFieldAsFloat('radius', 100.0, ancestry)
 
-    bpylamp = bpy.data.lamps.new(vrmlname, 'POINT')
+    bpylamp = bpy.data.lights.new(vrmlname, 'POINT')
     bpylamp.energy = intensity
     bpylamp.distance = radius
     bpylamp.color = color
@@ -3169,7 +3169,7 @@ def importLamp_DirectionalLight(node, ancestry):
     intensity = node.getFieldAsFloat('intensity', 1.0, ancestry)  # max is documented to be 1.0 but some files have higher.
     # is_on = node.getFieldAsBool('on', True, ancestry) # TODO
 
-    bpylamp = bpy.data.lamps.new(vrmlname, 'SUN')
+    bpylamp = bpy.data.lights.new(vrmlname, 'SUN')
     bpylamp.energy = intensity
     bpylamp.color = color
 
@@ -3197,7 +3197,7 @@ def importLamp_SpotLight(node, ancestry):
     # is_on = node.getFieldAsBool('on', True, ancestry) # TODO
     radius = node.getFieldAsFloat('radius', 100.0, ancestry)
 
-    bpylamp = bpy.data.lamps.new(vrmlname, 'SPOT')
+    bpylamp = bpy.data.lights.new(vrmlname, 'SPOT')
     bpylamp.energy = intensity
     bpylamp.distance = radius
     bpylamp.color = color

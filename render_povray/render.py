@@ -2067,7 +2067,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             # XXX I moved all those checks here, as there is no need to compute names
             #     for object we won't export here!
-            if (ob.type in {'LAMP', 'CAMERA', #'EMPTY', #empties can bear dupligroups
+            if (ob.type in {'LIGHT', 'CAMERA', #'EMPTY', #empties can bear dupligroups
                             'META', 'ARMATURE', 'LATTICE'}):
                 continue
             smokeFlag=False
@@ -3666,11 +3666,11 @@ def write_pov(filename, scene=None, info_callback=None):
     csg = True
     sel = renderable_objects(scene)
 
-    exportLamps([L for L in sel if (L.type == 'LAMP' and L.pov.object_as != 'RAINBOW')])
+    exportLamps([L for L in sel if (L.type == 'LIGHT' and L.pov.object_as != 'RAINBOW')])
 
     if comments:
         file.write("\n//--Rainbows--\n\n")
-    exportRainbows([L for L in sel if (L.type == 'LAMP' and L.pov.object_as == 'RAINBOW')])
+    exportRainbows([L for L in sel if (L.type == 'LIGHT' and L.pov.object_as == 'RAINBOW')])
 
 
     if comments:

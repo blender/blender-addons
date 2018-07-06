@@ -993,7 +993,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
 
     def find_portal(self, o):
         for child in o.children:
-            if child.type == 'LAMP':
+            if child.type == 'LIGHT':
                 return child
         return None
 
@@ -1002,7 +1002,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
         lamp = self.find_portal(o)
         if self.portal:
             if lamp is None:
-                bpy.ops.object.lamp_add(type='AREA')
+                bpy.ops.object.light_add(type='AREA')
                 lamp = context.active_object
                 lamp.name = "Portal"
                 lamp.parent = o
@@ -1025,7 +1025,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
             d = lamp.data
             context.scene.objects.unlink(lamp)
             bpy.data.objects.remove(lamp)
-            bpy.data.lamps.remove(d)
+            bpy.data.lights.remove(d)
 
         context.scene.objects.active = o
 
@@ -1658,7 +1658,7 @@ class ARCHIPACK_PT_window(Panel):
             box.prop(prop, 'hole_inside_mat')
             box.prop(prop, 'hole_outside_mat')
 
-        layout.prop(prop, 'portal', icon="LAMP_AREA")
+        layout.prop(prop, 'portal', icon="LIGHT_AREA")
 
 
 class ARCHIPACK_PT_window_panel(Panel):
@@ -1751,11 +1751,11 @@ class ARCHIPACK_OT_window(ArchipackCreateTool, Operator):
         if archipack_window.filter(o):
             bpy.ops.archipack.disable_manipulate()
             for child in o.children:
-                if child.type == 'LAMP':
+                if child.type == 'LIGHT':
                     d = child.data
                     context.scene.objects.unlink(child)
                     bpy.data.objects.remove(child)
-                    bpy.data.lamps.remove(d)
+                    bpy.data.lights.remove(d)
                 elif 'archipack_hole' in child:
                     context.scene.objects.unlink(child)
                     bpy.data.objects.remove(child, do_unlink=True)

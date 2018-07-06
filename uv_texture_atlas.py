@@ -127,15 +127,15 @@ class TexAtl_Main(Panel):
             self.layout.prop(group, 'unwrap_type', text='Lightmap', expand=True)
             row = self.layout.row()
             row.operator(
-                "object.ms_auto", text="Auto Unwrap", icon="LAMP_SPOT")
+                "object.ms_auto", text="Auto Unwrap", icon="LIGHT_SPOT")
             row.prop(group, 'autoUnwrapPrecision', text='')
 
             self.layout.label(text="Manual Unwrap:")
             row = self.layout.row()
             row.operator(
-                "object.ms_run", text="StartManualUnwrap", icon="LAMP_SPOT")
+                "object.ms_run", text="StartManualUnwrap", icon="LIGHT_SPOT")
             row.operator(
-                "object.ms_run_remove", text="FinishManualUnwrap", icon="LAMP_SPOT")
+                "object.ms_run_remove", text="FinishManualUnwrap", icon="LIGHT_SPOT")
 
 
 class TexAtl_RunAuto(Operator):

@@ -87,12 +87,12 @@ def prepare_assets(export_settings):
                                     images.add(image)
 
             if ((export_settings['models'] == 'SELECTION' and ob.type == 'MESH') or
-                (export_settings['lamps'] == 'SELECTION' and ob.type == 'LAMP')):
+                (export_settings['lamps'] == 'SELECTION' and ob.type == 'LIGHT')):
 
                 if not ob.select and not ob.hide:
                     ob.hide = True
                     hidden.add(ob)
-            elif export_settings['lamps'] == 'NONE' and ob.type == 'LAMP':
+            elif export_settings['lamps'] == 'NONE' and ob.type == 'LIGHT':
                 if not ob.hide:
                     ob.hide = True
                     hidden.add(ob)

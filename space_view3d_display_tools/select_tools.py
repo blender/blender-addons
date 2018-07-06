@@ -65,7 +65,7 @@ class ShowHideObject(Operator):
                     i.hide = True
                     i.select = False
 
-                    if i.type not in ['CAMERA', 'LAMP']:
+                    if i.type not in ['CAMERA', 'LIGHT']:
                         i.hide_render = True
             except:
                 continue
@@ -103,7 +103,7 @@ class HideAllObjects(Operator):
                 i.hide = True
                 i.select = False
 
-                if i.type not in ['CAMERA', 'LAMP']:
+                if i.type not in ['CAMERA', 'LIGHT']:
                     i.hide_render = True
         else:
             obj_name = context.object.name
@@ -113,7 +113,7 @@ class HideAllObjects(Operator):
                     i.hide = True
                     i.select = False
 
-                    if i.type not in ['CAMERA', 'LAMP']:
+                    if i.type not in ['CAMERA', 'LIGHT']:
                         i.hide_render = True
 
         return {'FINISHED'}
@@ -232,11 +232,11 @@ class OBJECT_OT_HideShowByTypeTemplate():
                 ('LATTICE', 'Lattice', ''),
                 ('EMPTY', 'Empty', ''),
                 ('CAMERA', 'Camera', ''),
-                ('LAMP', 'Lamp', ''),
+                ('LIGHT', 'Lamp', ''),
                 ('ALL', 'All', '')),
             name="Type",
             description="Type",
-            default='LAMP',
+            default='LIGHT',
             options={'ANIMATABLE'}
             )
 

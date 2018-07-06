@@ -216,7 +216,7 @@ class BmeshEdit():
             segments=1,
             profile=0.5,
             vertex_only=False,
-            clamp_overlap=True,
+            clight_overlap=True,
             material=-1,
             use_selection=True):
         """
@@ -245,7 +245,7 @@ class BmeshEdit():
             segments=segments,
             profile=profile,
             vertex_only=vertex_only,
-            clamp_overlap=clamp_overlap,
+            clight_overlap=clight_overlap,
             material=material)
 
         bm.to_mesh(o.data)

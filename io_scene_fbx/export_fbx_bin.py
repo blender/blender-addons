@@ -571,13 +571,13 @@ def fbx_data_empty_elements(root, empty, scene_data):
     # No custom properties, already saved with object (Model).
 
 
-def fbx_data_lamp_elements(root, lamp, scene_data):
+def fbx_data_light_elements(root, lamp, scene_data):
     """
     Write the Lamp data block.
     """
     gscale = scene_data.settings.global_scale
 
-    lamp_key = scene_data.data_lamps[lamp]
+    light_key = scene_data.data_lights[lamp]
     do_light = True
     decay_type = FBX_LIGHT_DECAY_TYPES['CONSTANT']
     do_shadow = False
@@ -589,7 +589,7 @@ def fbx_data_lamp_elements(root, lamp, scene_data):
         do_shadow = lamp.shadow_method not in {'NOSHADOW'}
         shadow_color = lamp.shadow_color
 
-    light = elem_data_single_int64(root, b"NodeAttribute", get_fbx_uuid_from_key(lamp_key))
+    light = elem_data_single_int64(root, b"NodeAttribute", get_fbx_uuid_from_key(light_key))
     light.add_string(fbx_name_class(lamp.name.encode(), b"NodeAttribute"))
     light.add_string(b"Light")
 
@@ -1568,7 +1568,7 @@ def fbx_data_object_elements(root, ob_obj, scene_data):
             obj_type = b"Null"
     elif (ob_obj.type in BLENDER_OBJECT_TYPES_MESHLIKE):
         obj_type = b"Mesh"
-    elif (ob_obj.type == 'LAMP'):
+    elif (ob_obj.type == 'LIGHT'):
         obj_type = b"Light"
     elif (ob_obj.type == 'CAMERA'):
         obj_type = b"Camera"
@@ -2173,8 +2173,8 @@ def fbx_data_from_scene(scene, settings):
 
     perfmon.step("FBX export prepare: Wrapping Data (lamps, cameras, empties)...")
 
-    data_lamps = OrderedDict((ob_obj.bdata.data, get_blenderID_key(ob_obj.bdata.data))
-                             for ob_obj in objects if ob_obj.type == 'LAMP')
+    data_lights = OrderedDict((ob_obj.bdata.data, get_blenderID_key(ob_obj.bdata.data))
+                             for ob_obj in objects if ob_obj.type == 'LIGHT')
     # Unfortunately, FBX camera data contains object-level data (like position, orientation, etc.)...
     data_cameras = OrderedDict((ob_obj, get_blenderID_key(ob_obj.bdata.data))
                                for ob_obj in objects if ob_obj.type == 'CAMERA')
@@ -2374,7 +2374,7 @@ def fbx_data_from_scene(scene, settings):
         tmp_scdata = FBXExportData(
             None, None, None,
             settings, scene, objects, None, None, 0.0, 0.0,
-            data_empties, data_lamps, data_cameras, data_meshes, None,
+            data_empties, data_lights, data_cameras, data_meshes, None,
             data_bones, data_leaf_bones, data_deformers_skin, data_deformers_shape,
             data_world, data_materials, data_textures, data_videos,
         )
@@ -2390,8 +2390,8 @@ def fbx_data_from_scene(scene, settings):
     if data_empties:
         templates[b"Null"] = fbx_template_def_null(scene, settings, nbr_users=len(data_empties))
 
-    if data_lamps:
-        templates[b"Light"] = fbx_template_def_light(scene, settings, nbr_users=len(data_lamps))
+    if data_lights:
+        templates[b"Light"] = fbx_template_def_light(scene, settings, nbr_users=len(data_lights))
 
     if data_cameras:
         templates[b"Camera"] = fbx_template_def_camera(scene, settings, nbr_users=len(data_cameras))
@@ -2489,9 +2489,9 @@ def fbx_data_from_scene(scene, settings):
             bo_data_key = data_bones[ob_obj]
             connections.append((b"OO", get_fbx_uuid_from_key(bo_data_key), ob_obj.fbx_uuid, None))
         else:
-            if ob_obj.type == 'LAMP':
-                lamp_key = data_lamps[ob_obj.bdata.data]
-                connections.append((b"OO", get_fbx_uuid_from_key(lamp_key), ob_obj.fbx_uuid, None))
+            if ob_obj.type == 'LIGHT':
+                light_key = data_lights[ob_obj.bdata.data]
+                connections.append((b"OO", get_fbx_uuid_from_key(light_key), ob_obj.fbx_uuid, None))
             elif ob_obj.type == 'CAMERA':
                 cam_key = data_cameras[ob_obj]
                 connections.append((b"OO", get_fbx_uuid_from_key(cam_key), ob_obj.fbx_uuid, None))
@@ -2592,7 +2592,7 @@ def fbx_data_from_scene(scene, settings):
     return FBXExportData(
         templates, templates_users, connections,
         settings, scene, objects, animations, animated, frame_start, frame_end,
-        data_empties, data_lamps, data_cameras, data_meshes, mesh_mat_indices,
+        data_empties, data_lights, data_cameras, data_meshes, mesh_mat_indices,
         data_bones, data_leaf_bones, data_deformers_skin, data_deformers_shape,
         data_world, data_materials, data_textures, data_videos,
     )
@@ -2801,10 +2801,10 @@ def fbx_objects_elements(root, scene_data):
     for empty in scene_data.data_empties:
         fbx_data_empty_elements(objects, empty, scene_data)
 
-    perfmon.step("FBX export fetch lamps (%d)..." % len(scene_data.data_lamps))
+    perfmon.step("FBX export fetch lamps (%d)..." % len(scene_data.data_lights))
 
-    for lamp in scene_data.data_lamps:
-        fbx_data_lamp_elements(objects, lamp, scene_data)
+    for lamp in scene_data.data_lights:
+        fbx_data_light_elements(objects, lamp, scene_data)
 
     perfmon.step("FBX export fetch cameras (%d)..." % len(scene_data.data_cameras))
 
@@ -2933,7 +2933,7 @@ def save_single(operator, scene, filepath="",
     ObjectWrapper.cache_clear()
 
     if object_types is None:
-        object_types = {'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH', 'OTHER'}
+        object_types = {'EMPTY', 'CAMERA', 'LIGHT', 'ARMATURE', 'MESH', 'OTHER'}
 
     if 'OTHER' in object_types:
         object_types |= BLENDER_OTHER_OBJECT_TYPES

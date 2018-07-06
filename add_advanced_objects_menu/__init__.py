@@ -108,8 +108,8 @@ class INFO_MT_scene_elements_add(Menu):
 
 
 # Define the "Lights" menu
-class INFO_MT_mesh_lamps_add(Menu):
-    bl_idname = "INFO_MT_scene_lamps"
+class INFO_MT_mesh_lights_add(Menu):
+    bl_idname = "INFO_MT_scene_lights"
     bl_label = "Lighting Sets"
 
     def draw(self, context):
@@ -191,7 +191,7 @@ def menu(self, context):
     layout.operator_context = 'INVOKE_REGION_WIN'
     self.layout.separator()
     self.layout.menu("INFO_MT_scene_elements", icon="SCENE_DATA")
-    self.layout.menu("INFO_MT_scene_lamps", icon="LAMP_SPOT")
+    self.layout.menu("INFO_MT_scene_lights", icon="LIGHT_SPOT")
     self.layout.separator()
     self.layout.menu("INFO_MT_array_mods", icon="MOD_ARRAY")
     self.layout.menu("INFO_MT_quick_tools", icon="MOD_BUILD")

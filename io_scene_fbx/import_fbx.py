@@ -60,7 +60,7 @@ fbx_elem_nil = None
 convert_deg_to_rad_iter = units_convertor_iter("degree", "radian")
 
 MAT_CONVERT_BONE = fbx_utils.MAT_CONVERT_BONE.inverted()
-MAT_CONVERT_LAMP = fbx_utils.MAT_CONVERT_LAMP.inverted()
+MAT_CONVERT_LIGHT = fbx_utils.MAT_CONVERT_LIGHT.inverted()
 MAT_CONVERT_CAMERA = fbx_utils.MAT_CONVERT_CAMERA.inverted()
 
 
@@ -1477,7 +1477,7 @@ def blen_read_light(fbx_tmpl, fbx_obj, global_scale):
                  elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
     # rare
     if fbx_props[0] is None:
-        lamp = bpy.data.lamps.new(name=elem_name_utf8, type='POINT')
+        lamp = bpy.data.lights.new(name=elem_name_utf8, type='POINT')
         return lamp
 
     light_type = {
@@ -1485,7 +1485,7 @@ def blen_read_light(fbx_tmpl, fbx_obj, global_scale):
         1: 'SUN',
         2: 'SPOT'}.get(elem_props_get_enum(fbx_props, b'LightType', 0), 'POINT')
 
-    lamp = bpy.data.lamps.new(name=elem_name_utf8, type=light_type)
+    lamp = bpy.data.lights.new(name=elem_name_utf8, type=light_type)
 
     if light_type == 'SPOT':
         spot_size = elem_props_get_number(fbx_props, b'OuterAngle', None)
@@ -1706,7 +1706,7 @@ class FbxImportHelperNode:
             if self.fbx_type == b'Camera':
                 correction_matrix = MAT_CONVERT_CAMERA
             elif self.fbx_type == b'Light':
-                correction_matrix = MAT_CONVERT_LAMP
+                correction_matrix = MAT_CONVERT_LIGHT
 
         self.post_matrix = correction_matrix
 

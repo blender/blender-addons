@@ -1868,7 +1868,7 @@ class RoofGenerator(CutAbleGenerator):
                     segments=d.tile_bevel_segs,
                     profile=0.5,
                     vertex_only=False,
-                    clamp_overlap=True,
+                    clight_overlap=True,
                     material=-1)
 
             if d.tile_solidify:

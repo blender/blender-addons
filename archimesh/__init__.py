@@ -53,7 +53,7 @@ if "bpy" in locals():
     importlib.reload(achm_kitchen_maker)
     importlib.reload(achm_shelves_maker)
     importlib.reload(achm_books_maker)
-    importlib.reload(achm_lamp_maker)
+    importlib.reload(achm_light_maker)
     importlib.reload(achm_curtain_maker)
     importlib.reload(achm_venetian_maker)
     importlib.reload(achm_main_panel)
@@ -66,7 +66,7 @@ else:
     from . import achm_venetian_maker
     from . import achm_door_maker
     from . import achm_kitchen_maker
-    from . import achm_lamp_maker
+    from . import achm_light_maker
     from . import achm_main_panel
     from . import achm_roof_maker
     from . import achm_room_maker
@@ -108,7 +108,7 @@ class AchmInfoMtMeshDecorationAdd(Menu):
     # noinspection PyUnusedLocal
     def draw(self, context):
         self.layout.operator("mesh.archimesh_books", text="Add Books")
-        self.layout.operator("mesh.archimesh_lamp", text="Add Lamp")
+        self.layout.operator("mesh.archimesh_light", text="Add Lamp")
         self.layout.operator("mesh.archimesh_roller", text="Add Roller curtains")
         self.layout.operator("mesh.archimesh_venetian", text="Add Venetian blind")
         self.layout.operator("mesh.archimesh_japan", text="Add Japanese curtains")
@@ -210,7 +210,7 @@ def register():
     bpy.utils.register_class(achm_kitchen_maker.AchmExportInventory)
     bpy.utils.register_class(achm_shelves_maker.AchmShelves)
     bpy.utils.register_class(achm_books_maker.AchmBooks)
-    bpy.utils.register_class(achm_lamp_maker.AchmLamp)
+    bpy.utils.register_class(achm_light_maker.AchmLamp)
     bpy.utils.register_class(achm_curtain_maker.AchmRoller)
     bpy.utils.register_class(achm_curtain_maker.AchmJapan)
     bpy.utils.register_class(achm_venetian_maker.AchmVenetian)
@@ -321,7 +321,7 @@ def unregister():
     bpy.utils.unregister_class(achm_kitchen_maker.AchmExportInventory)
     bpy.utils.unregister_class(achm_shelves_maker.AchmShelves)
     bpy.utils.unregister_class(achm_books_maker.AchmBooks)
-    bpy.utils.unregister_class(achm_lamp_maker.AchmLamp)
+    bpy.utils.unregister_class(achm_light_maker.AchmLamp)
     bpy.utils.unregister_class(achm_curtain_maker.AchmRoller)
     bpy.utils.unregister_class(achm_curtain_maker.AchmJapan)
     bpy.utils.unregister_class(achm_venetian_maker.AchmVenetian)

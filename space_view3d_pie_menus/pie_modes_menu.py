@@ -429,7 +429,7 @@ class PieObjectEditMode(Menu):
                 pie.operator("view3d.pie_interactive_mode_grease_pencil", icon="GREASEPENCIL")
         else:
             message = "Active Object has only Object Mode available" if ob \
-                    and ob.type in {"LAMP", "CAMERA", "EMPTY", "SPEAKER"} else \
+                    and ob.type in {"LIGHT", "CAMERA", "EMPTY", "SPEAKER"} else \
                     "No active object found. Please select one first"
             pie = layout.menu_pie()
             pie.separator()

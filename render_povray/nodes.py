@@ -52,7 +52,7 @@ class ObjectNodeTree(bpy.types.NodeTree):
     @classmethod
     def get_from_context(cls, context):
         ob = context.active_object
-        if ob and ob.type not in {'LAMP'}:
+        if ob and ob.type not in {'LIGHT'}:
             ma = ob.active_material
             if ma is not None:
                 nt_name = ma.node_tree

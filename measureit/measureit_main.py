@@ -1344,7 +1344,7 @@ class AddLinkButton(Operator):
         if o is None:
             return False
         else:
-            if o.type == "MESH" or o.type == "EMPTY" or o.type == "CAMERA" or o.type == "LAMP":
+            if o.type == "MESH" or o.type == "EMPTY" or o.type == "CAMERA" or o.type == "LIGHT":
                 if bpy.context.mode == 'OBJECT':
                     return True
                 else:
@@ -1490,7 +1490,7 @@ class AddOriginButton(Operator):
         if o is None:
             return False
         else:
-            if o.type == "MESH" or o.type == "EMPTY" or o.type == "CAMERA" or o.type == "LAMP":
+            if o.type == "MESH" or o.type == "EMPTY" or o.type == "CAMERA" or o.type == "LIGHT":
                 if bpy.context.mode == 'OBJECT':
                     return True
                 else:

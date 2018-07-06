@@ -107,7 +107,7 @@ shaders_input_nodes_props = (
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_output_nodes_props = (
     ('ShaderNodeOutputMaterial', 'OUTPUT_MATERIAL', 'Material Output'),
-    ('ShaderNodeOutputLamp', 'OUTPUT_LAMP', 'Lamp Output'),
+    ('ShaderNodeOutputLight', 'OUTPUT_LIGHT', 'Light Output'),
     ('ShaderNodeOutputWorld', 'OUTPUT_WORLD', 'World Output'),
 )
 # (rna_type.identifier, type, rna_type.name)
@@ -324,7 +324,7 @@ compo_layout_nodes_props = (
 blender_mat_input_nodes_props = (
     ('ShaderNodeMaterial', 'MATERIAL', 'Material'),
     ('ShaderNodeCameraData', 'CAMERA', 'Camera Data'),
-    ('ShaderNodeLampData', 'LAMP', 'Lamp Data'),
+    ('ShaderNodeLightData', 'LIGHT', 'Light Data'),
     ('ShaderNodeValue', 'VALUE', 'Value'),
     ('ShaderNodeRGB', 'RGB', 'RGB'),
     ('ShaderNodeTexture', 'TEXTURE', 'Texture'),
@@ -1330,7 +1330,7 @@ class NWDeleteUnused(Operator, NWBase):
 
     def is_unused_node(self, node):
         end_types = ['OUTPUT_MATERIAL', 'OUTPUT', 'VIEWER', 'COMPOSITE', \
-                'SPLITVIEWER', 'OUTPUT_FILE', 'LEVELS', 'OUTPUT_LAMP', \
+                'SPLITVIEWER', 'OUTPUT_FILE', 'LEVELS', 'OUTPUT_LIGHT', \
                 'OUTPUT_WORLD', 'GROUP_INPUT', 'GROUP_OUTPUT', 'FRAME']
         if node.type in end_types:
             return False
@@ -1596,13 +1596,13 @@ class NWEmissionViewer(Operator, NWBase):
         space = context.space_data
         shader_type = space.shader_type
         if shader_type == 'OBJECT':
-            if space.id not in [lamp for lamp in bpy.data.lamps]:  # cannot use bpy.data.lamps directly as iterable
+            if space.id not in [light for light in bpy.data.lights]:  # cannot use bpy.data.lights directly as iterable
                 shader_output_type = "OUTPUT_MATERIAL"
                 shader_output_ident = "ShaderNodeOutputMaterial"
                 shader_viewer_ident = "ShaderNodeEmission"
             else:
-                shader_output_type = "OUTPUT_LAMP"
-                shader_output_ident = "ShaderNodeOutputLamp"
+                shader_output_type = "OUTPUT_LIGHT"
+                shader_output_ident = "ShaderNodeOutputLight"
                 shader_viewer_ident = "ShaderNodeEmission"
 
         elif shader_type == 'WORLD':

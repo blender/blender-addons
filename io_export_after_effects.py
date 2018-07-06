@@ -110,7 +110,7 @@ def get_selected(context):
             # not ready yet. is_plane(object) returns False in all cases. This is temporary
             solids.append([ob, convert_name(ob.name)])
 
-        elif ob.type == 'LAMP':
+        elif ob.type == 'LIGHT':
             lights.append([ob, ob.data.type + convert_name(ob.name)])  # Type of lamp added to name
 
         else:

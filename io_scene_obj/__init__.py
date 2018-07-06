@@ -111,7 +111,7 @@ class ImportOBJ(bpy.types.Operator, ImportHelper, IOOBJOrientationHelper):
                    ),
             )
 
-    global_clamp_size = FloatProperty(
+    global_clight_size = FloatProperty(
             name="Clamp Size",
             description="Clamp bounds under this value (zero to disable)",
             min=0.0, max=1000.0,
@@ -167,7 +167,7 @@ class ImportOBJ(bpy.types.Operator, ImportHelper, IOOBJOrientationHelper):
             row.prop(self, "use_groups_as_vgroups")
 
         row = layout.split(percentage=0.67)
-        row.prop(self, "global_clamp_size")
+        row.prop(self, "global_clight_size")
         layout.prop(self, "axis_forward")
         layout.prop(self, "axis_up")
 

@@ -247,7 +247,7 @@ class ExportSketchfab(Operator):
             with open(SKETCHFAB_EXPORT_DATA_FILE, 'w') as s:
                 json.dump({
                         "models": props.models,
-                        "lamps": props.lamps,
+                        "lights": props.lights,
                         }, s)
 
             subprocess.check_call([
@@ -311,7 +311,7 @@ class VIEW3D_PT_sketchfab(Panel):
         layout.label("Export:")
         col = layout.box().column(align=True)
         col.prop(props, "models")
-        col.prop(props, "lamps")
+        col.prop(props, "lights")
 
         layout.label("Model info:")
         col = layout.box().column(align=True)

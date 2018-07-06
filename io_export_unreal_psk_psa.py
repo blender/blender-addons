@@ -1201,8 +1201,8 @@ def parse_mesh(mesh, psk):
                 # does with the mesh Y coordinates. this is otherwise known as MAGIC-2
                 uv[1] = 1.0 - uv[1]
 
-                # clamp UV coords if udk_option_clamp_uv is True
-                if bpy.context.scene.udk_option_clamp_uv:
+                # clamp UV coords if udk_option_clight_uv is True
+                if bpy.context.scene.udk_option_clight_uv:
                     if (uv[0] > 1):
                         uv[0] = 1
                     if (uv[0] < 0):
@@ -2422,7 +2422,7 @@ class Panel_UDKExport(Panel):
             object_name = context.active_object.name
         row10 = layout.row()
         row10.prop(context.scene, "udk_option_smoothing_groups")
-        row10.prop(context.scene, "udk_option_clamp_uv")
+        row10.prop(context.scene, "udk_option_clight_uv")
         row10.prop(context.scene, "udk_option_verbose")
 
         row = layout.row()
@@ -2792,7 +2792,7 @@ class ExportUDKAnimData(Operator):
         scene = context.scene
 
         layout.prop(scene, "udk_option_smoothing_groups")
-        layout.prop(scene, "udk_option_clamp_uv")
+        layout.prop(scene, "udk_option_clight_uv")
         layout.prop(scene, "udk_option_verbose")
         layout.prop(scene, "udk_option_filename_src")
         layout.prop(scene, "udk_option_export")
@@ -2888,7 +2888,7 @@ def register():
             description="Boolean for exporting psa format (Animation Data)",
             default=True
             )
-    bpy.types.Scene.udk_option_clamp_uv = BoolProperty(
+    bpy.types.Scene.udk_option_clight_uv = BoolProperty(
             name="Clamp UV",
             description="True is to limit Clamp UV co-ordinates to [0-1]. False is unrestricted (x,y)",
             default=False
@@ -2977,7 +2977,7 @@ def unregister():
     del bpy.types.Scene.udk_option_filename_src
     del bpy.types.Scene.udk_option_export_psk
     del bpy.types.Scene.udk_option_export_psa
-    del bpy.types.Scene.udk_option_clamp_uv
+    del bpy.types.Scene.udk_option_clight_uv
     del bpy.types.Scene.udk_copy_merge
     del bpy.types.Scene.udk_option_export
     del bpy.types.Scene.udk_option_verbose

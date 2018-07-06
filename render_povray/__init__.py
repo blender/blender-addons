@@ -2278,7 +2278,7 @@ def register():
     bpy.types.INFO_MT_file_import.append(ui.menu_func_import)
     bpy.types.TEXT_MT_templates.append(ui.menu_func_templates)
     bpy.types.RENDER_PT_povray_radiosity.prepend(ui.rad_panel_func)
-    bpy.types.LAMP_PT_POV_lamp.prepend(ui.lamp_panel_func)
+    bpy.types.LIGHT_PT_POV_light.prepend(ui.light_panel_func)
     bpy.types.WORLD_PT_world.prepend(ui.world_panel_func)    
     # was used for parametric objects but made the other addon unreachable on
     # unregister for other tools to use created a user action call instead
@@ -2312,7 +2312,7 @@ def unregister():
     #bpy.types.TEXTURE_PT_context_texture.remove(TEXTURE_PT_povray_type)
     #addon_utils.disable("add_mesh_extra_objects", default_set=False)
     bpy.types.WORLD_PT_world.remove(ui.world_panel_func)
-    bpy.types.LAMP_PT_POV_lamp.remove(ui.lamp_panel_func)    
+    bpy.types.LIGHT_PT_POV_light.remove(ui.light_panel_func)    
     bpy.types.RENDER_PT_povray_radiosity.remove(ui.rad_panel_func)
     bpy.types.TEXT_MT_templates.remove(ui.menu_func_templates)
     bpy.types.INFO_MT_file_import.remove(ui.menu_func_import)

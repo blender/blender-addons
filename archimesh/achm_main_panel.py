@@ -462,10 +462,10 @@ class ArchimeshMainPanel(Panel):
         # Prop Buttons
         # ------------------------------
         box = layout.box()
-        box.label("Props", icon='LAMP_DATA')
+        box.label("Props", icon='LIGHT_DATA')
         row = box.row()
         row.operator("mesh.archimesh_books")
-        row.operator("mesh.archimesh_lamp")
+        row.operator("mesh.archimesh_light")
         row = box.row()
         row.operator("mesh.archimesh_venetian")
         row.operator("mesh.archimesh_roller")

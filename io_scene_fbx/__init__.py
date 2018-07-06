@@ -314,13 +314,13 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
             options={'ENUM_FLAG'},
             items=(('EMPTY', "Empty", ""),
                    ('CAMERA', "Camera", ""),
-                   ('LAMP', "Lamp", ""),
+                   ('LIGHT', "Lamp", ""),
                    ('ARMATURE', "Armature", "WARNING: not supported in dupli/group instances"),
                    ('MESH', "Mesh", ""),
                    ('OTHER', "Other", "Other geometry types, like curve, metaball, etc. (converted to meshes)"),
                    ),
             description="Which kind of object to export",
-            default={'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH', 'OTHER'},
+            default={'EMPTY', 'CAMERA', 'LIGHT', 'ARMATURE', 'MESH', 'OTHER'},
             )
 
     use_mesh_modifiers = BoolProperty(

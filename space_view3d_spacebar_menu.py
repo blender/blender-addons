@@ -489,7 +489,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 # Lamp Object Mode #
-        if obj and obj.type == 'LAMP' and obj.mode in {'OBJECT'}:
+        if obj and obj.type == 'LIGHT' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -841,8 +841,8 @@ class VIEW3D_MT_AddMenu(Menu):
         UseSeparator(self, context)
         layout.operator("object.camera_add", text="Camera",
                         icon='OUTLINER_OB_CAMERA')
-        layout.operator_menu_enum("object.lamp_add", "type",
-                                  icon="OUTLINER_OB_LAMP")
+        layout.operator_menu_enum("object.light_add", "type",
+                                  icon="OUTLINER_OB_LIGHT")
         UseSeparator(self, context)
         layout.operator_menu_enum("object.effector_add", "type",
                                   text="Force Field",

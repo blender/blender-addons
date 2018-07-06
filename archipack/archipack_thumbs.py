@@ -111,7 +111,7 @@ def generateThumb(context, cls, preset):
     p.data.materials.append(m)
 
     # add 3 lights
-    bpy.ops.object.lamp_add(
+    bpy.ops.object.light_add(
         type='POINT',
         radius=1,
         view_align=False,
@@ -123,7 +123,7 @@ def generateThumb(context, cls, preset):
     emit = nodes["Emission"]
     emit.inputs[1].default_value = 2000.0
 
-    bpy.ops.object.lamp_add(
+    bpy.ops.object.light_add(
         type='POINT',
         radius=1,
         view_align=False,
@@ -137,7 +137,7 @@ def generateThumb(context, cls, preset):
     falloff.inputs[0].default_value = 5
     tree.links.new(falloff.outputs[2], emit.inputs[1])
 
-    bpy.ops.object.lamp_add(
+    bpy.ops.object.light_add(
         type='POINT',
         radius=1,
         view_align=False,

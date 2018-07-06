@@ -1618,7 +1618,7 @@ def update_bevel(context):
                         mod.limit_method = 'WEIGHT'
                         mod.width = 0.01
                         mod.profile = 0.699099
-                        mod.use_clamp_overlap = False
+                        mod.use_clight_overlap = False
                         mod.segments = 3
                         mod.loop_slide = False
 
@@ -1676,7 +1676,7 @@ def CreateBevel(context, CurrentObject):
         mod.limit_method = 'WEIGHT'
         mod.width = 0.01
         mod.profile = 0.699099
-        mod.use_clamp_overlap = False
+        mod.use_clight_overlap = False
         mod.segments = 3
         mod.loop_slide = False
 

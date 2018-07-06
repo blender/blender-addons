@@ -738,7 +738,7 @@ class Do:
         if self.import_light:
             type_map = ["NONE", "SUN", "POINT", "SPOT"]
             layer = self.dwg.layers[en.layer]
-            lamp = bpy.data.lamps.new(en.name, type_map[en.light_type])
+            lamp = bpy.data.lights.new(en.name, type_map[en.light_type])
             if en.color != 256:
                 aci = en.color
             else:

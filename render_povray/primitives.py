@@ -1052,7 +1052,7 @@ class POVRAY_OT_rainbow_add(bpy.types.Operator):
 
     def execute(self,context):
         cam = context.scene.camera
-        bpy.ops.object.lamp_add(type='SPOT', radius=1)
+        bpy.ops.object.light_add(type='SPOT', radius=1)
         ob = context.object
         ob.data.show_cone = False
         ob.data.spot_blend = 0.5

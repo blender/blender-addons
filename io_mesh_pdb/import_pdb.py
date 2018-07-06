@@ -536,7 +536,7 @@ def build_stick(radius, length, sectors):
 
 # Function, which puts a camera and light source into the 3D scene
 def camera_light_source(use_camera,
-                        use_lamp,
+                        use_light,
                         object_center_vec,
                         object_size):
 
@@ -592,27 +592,27 @@ def camera_light_source(use_camera,
                                  release_confirm=False)
 
     # Here a lamp is put into the scene, if chosen.
-    if use_lamp == True:
+    if use_light == True:
 
         # This is the distance from the object measured in terms of %
         # of the camera distance. It is set onto 50% (1/2) distance.
-        lamp_dl = sqrt(object_size) * 15 * 0.5
+        light_dl = sqrt(object_size) * 15 * 0.5
         # This is a factor to which extend the lamp shall go to the right
         # (from the camera  point of view).
-        lamp_dy_right = lamp_dl * (3.0/4.0)
+        light_dy_right = light_dl * (3.0/4.0)
 
         # Create x, y and z for the lamp.
-        object_lamp_vec = Vector((lamp_dl,lamp_dy_right,lamp_dl))
-        lamp_xyz_vec = object_center_vec + object_lamp_vec
+        object_light_vec = Vector((light_dl,light_dy_right,light_dl))
+        light_xyz_vec = object_center_vec + object_light_vec
 
         # Create the lamp
         current_layers=bpy.context.scene.layers
-        lamp_data = bpy.data.lamps.new(name="A_lamp", type="POINT")
-        lamp_data.distance = 500.0
-        lamp_data.energy = 3.0
-        lamp_data.shadow_method = 'RAY_SHADOW'
-        lamp = bpy.data.objects.new("A_lamp", lamp_data)
-        lamp.location = lamp_xyz_vec
+        light_data = bpy.data.lights.new(name="A_light", type="POINT")
+        light_data.distance = 500.0
+        light_data.energy = 3.0
+        light_data.shadow_method = 'RAY_SHADOW'
+        lamp = bpy.data.objects.new("A_light", light_data)
+        lamp.location = light_xyz_vec
         lamp.layers = current_layers
         bpy.context.scene.objects.link(lamp)
 
@@ -1145,7 +1145,7 @@ def import_pdb(Ball_type,
                Stick_diameter,
                put_to_center,
                use_camera,
-               use_lamp,
+               use_light,
                filepath_pdb):
 
 
@@ -1376,7 +1376,7 @@ def import_pdb(Ball_type,
     # CAMERA and LIGHT SOURCES
 
     camera_light_source(use_camera,
-                        use_lamp,
+                        use_light,
                         object_center_vec,
                         object_size)
 

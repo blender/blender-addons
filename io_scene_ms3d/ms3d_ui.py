@@ -210,7 +210,7 @@ class Ms3dUi:
         return ms3d_value
 
     ###########################################################################
-    ICON_OPTIONS = 'LAMP'
+    ICON_OPTIONS = 'LIGHT'
     ICON_OBJECT = 'WORLD'
     ICON_PROCESSING = 'OBJECT_DATAMODE'
     ICON_MODIFIER = 'MODIFIER'

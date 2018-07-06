@@ -461,25 +461,25 @@ del properties_data_mesh
 
 
 ################################################################################
-# from bl_ui import properties_data_lamp
-# for member in dir(properties_data_lamp):
-    # subclass = getattr(properties_data_lamp, member)
+# from bl_ui import properties_data_light
+# for member in dir(properties_data_light):
+    # subclass = getattr(properties_data_light, member)
     # try:
         # subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
     # except:
         # pass
-# del properties_data_lamp
-#########################LAMPS################################
+# del properties_data_light
+#########################LIGHTS################################
 
-from bl_ui import properties_data_lamp
+from bl_ui import properties_data_light
 
 # These panels are kept
-properties_data_lamp.DATA_PT_custom_props_lamp.COMPAT_ENGINES.add('POVRAY_RENDER')
-properties_data_lamp.DATA_PT_context_lamp.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_data_light.DATA_PT_custom_props_light.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_data_light.DATA_PT_context_light.COMPAT_ENGINES.add('POVRAY_RENDER')
 
 ## make some native panels contextual to some object variable
 ## by recreating custom panels inheriting their properties
-class PovLampButtonsPanel(properties_data_lamp.DataButtonsPanel):
+class PovLampButtonsPanel(properties_data_light.DataButtonsPanel):
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     POV_OBJECT_TYPES = {'RAINBOW'}
 
@@ -496,17 +496,17 @@ class PovLampButtonsPanel(properties_data_lamp.DataButtonsPanel):
 # Complex py/bpy/rna interactions (with metaclass and all) simply do not allow it to work.
 # So we simply have to explicitly copy here the interesting bits. ;)
 
-class LAMP_PT_POV_preview(PovLampButtonsPanel, bpy.types.Panel):
-    bl_label = properties_data_lamp.DATA_PT_preview.bl_label
+class LIGHT_PT_POV_preview(PovLampButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_light.DATA_PT_preview.bl_label
 
-    draw = properties_data_lamp.DATA_PT_preview.draw
+    draw = properties_data_light.DATA_PT_preview.draw
 
-class LAMP_PT_POV_lamp(PovLampButtonsPanel, bpy.types.Panel):
-    bl_label = properties_data_lamp.DATA_PT_lamp.bl_label
+class LIGHT_PT_POV_light(PovLampButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_light.DATA_PT_light.bl_label
 
-    draw = properties_data_lamp.DATA_PT_lamp.draw
+    draw = properties_data_light.DATA_PT_light.draw
 
-class POV_LAMP_MT_presets(bpy.types.Menu):
+class POV_LIGHT_MT_presets(bpy.types.Menu):
     bl_label = "Lamp Presets"
     preset_subdir = "pov/lamp"
     preset_operator = "script.execute_preset"
@@ -515,19 +515,19 @@ class POV_LAMP_MT_presets(bpy.types.Menu):
 
 class AddPresetLamp(AddPresetBase, bpy.types.Operator):
     '''Add a Lamp Preset'''
-    bl_idname = "object.lamp_preset_add"
+    bl_idname = "object.light_preset_add"
     bl_label = "Add Lamp Preset"
-    preset_menu = "POV_LAMP_MT_presets"
+    preset_menu = "POV_LIGHT_MT_presets"
 
     # variable used for all preset values
     preset_defines = [
-        "lampdata = bpy.context.object.data"
+        "lightdata = bpy.context.object.data"
         ]
 
     # properties to store in the preset
     preset_values = [
-        "lampdata.type",
-        "lampdata.color",      
+        "lightdata.type",
+        "lightdata.color",      
         ]
 
     # where to store the preset
@@ -538,68 +538,68 @@ class AddPresetLamp(AddPresetBase, bpy.types.Operator):
 
 
 # Draw into an existing panel
-def lamp_panel_func(self, context):
+def light_panel_func(self, context):
     layout = self.layout
 
     row = layout.row(align=True)
-    row.menu(POV_LAMP_MT_presets.__name__, text=POV_LAMP_MT_presets.bl_label)
+    row.menu(POV_LIGHT_MT_presets.__name__, text=POV_LIGHT_MT_presets.bl_label)
     row.operator(AddPresetLamp.bl_idname, text="", icon='ZOOMIN')
     row.operator(AddPresetLamp.bl_idname, text="", icon='ZOOMOUT').remove_active = True
 
 
 classes = (
-    POV_LAMP_MT_presets,
+    POV_LIGHT_MT_presets,
     AddPresetLamp,
     )    
     
-class LAMP_PT_POV_sunsky(PovLampButtonsPanel, bpy.types.Panel):
-    bl_label = properties_data_lamp.DATA_PT_sunsky.bl_label
+class LIGHT_PT_POV_sunsky(PovLampButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_light.DATA_PT_sunsky.bl_label
 
     @classmethod
     def poll(cls, context):
-        lamp = context.lamp
+        lamp = context.light
         engine = context.scene.render.engine
         return (lamp and lamp.type == 'SUN') and (engine in cls.COMPAT_ENGINES)
 
-    draw = properties_data_lamp.DATA_PT_sunsky.draw
+    draw = properties_data_light.DATA_PT_sunsky.draw
 
-class LAMP_PT_POV_shadow(PovLampButtonsPanel, bpy.types.Panel):
-    bl_label = properties_data_lamp.DATA_PT_shadow.bl_label
+class LIGHT_PT_POV_shadow(PovLampButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_light.DATA_PT_shadow.bl_label
 
-    draw = properties_data_lamp.DATA_PT_shadow.draw
+    draw = properties_data_light.DATA_PT_shadow.draw
 
-class LAMP_PT_POV_area(PovLampButtonsPanel, bpy.types.Panel):
-    bl_label = properties_data_lamp.DATA_PT_area.bl_label
+class LIGHT_PT_POV_area(PovLampButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_light.DATA_PT_area.bl_label
 
     @classmethod
     def poll(cls, context):
-        lamp = context.lamp
+        lamp = context.light
         engine = context.scene.render.engine
         return (lamp and lamp.type == 'AREA') and (engine in cls.COMPAT_ENGINES)
 
-    draw = properties_data_lamp.DATA_PT_area.draw
+    draw = properties_data_light.DATA_PT_area.draw
 
-class LAMP_PT_POV_spot(PovLampButtonsPanel, bpy.types.Panel):
-    bl_label = properties_data_lamp.DATA_PT_spot.bl_label
+class LIGHT_PT_POV_spot(PovLampButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_light.DATA_PT_spot.bl_label
 
     @classmethod
     def poll(cls, context):
-        lamp = context.lamp
+        lamp = context.light
         engine = context.scene.render.engine
         return (lamp and lamp.type == 'SPOT') and (engine in cls.COMPAT_ENGINES)
-    draw = properties_data_lamp.DATA_PT_spot.draw
+    draw = properties_data_light.DATA_PT_spot.draw
 
-class LAMP_PT_POV_falloff_curve(PovLampButtonsPanel, bpy.types.Panel):
-    bl_label = properties_data_lamp.DATA_PT_falloff_curve.bl_label
-    bl_options = properties_data_lamp.DATA_PT_falloff_curve.bl_options
+class LIGHT_PT_POV_falloff_curve(PovLampButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_light.DATA_PT_falloff_curve.bl_label
+    bl_options = properties_data_light.DATA_PT_falloff_curve.bl_options
 
     @classmethod
     def poll(cls, context):
-        lamp = context.lamp
+        lamp = context.light
         engine = context.scene.render.engine
 
         return (lamp and lamp.type in {'POINT', 'SPOT'} and lamp.falloff_type == 'CUSTOM_CURVE') and (engine in cls.COMPAT_ENGINES)
-    draw = properties_data_lamp.DATA_PT_falloff_curve.draw
+    draw = properties_data_light.DATA_PT_falloff_curve.draw
 
 class OBJECT_PT_povray_obj_rainbow(PovLampButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray Rainbow"
@@ -641,7 +641,7 @@ class OBJECT_PT_povray_obj_rainbow(PovLampButtonsPanel, bpy.types.Panel):
                 col.prop(obj.pov, "arc_angle")
                 col.prop(obj.pov, "falloff_angle")
 
-del properties_data_lamp
+del properties_data_light
 ###############################################################################
 
 class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):

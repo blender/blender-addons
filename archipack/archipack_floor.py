@@ -337,7 +337,7 @@ class FloorGenerator(CutAblePolygon, CutAbleGenerator):
                     segments=1,     # d.bevel_res
                     profile=0.5,
                     vertex_only=False,
-                    clamp_overlap=False,
+                    clight_overlap=False,
                     material=-1)
 
         bm.to_mesh(o.data)

@@ -71,7 +71,7 @@ FBX_ANIM_PROPSGROUP_NAME = "d"
 FBX_KTIME = 46186158000  # This is the number of "ktimes" in one second (yep, precision over the nanosecond...)
 
 
-MAT_CONVERT_LAMP = Matrix.Rotation(math.pi / 2.0, 4, 'X')  # Blender is -Z, FBX is -Y.
+MAT_CONVERT_LIGHT = Matrix.Rotation(math.pi / 2.0, 4, 'X')  # Blender is -Z, FBX is -Y.
 MAT_CONVERT_CAMERA = Matrix.Rotation(math.pi / 2.0, 4, 'Y')  # Blender is -Z, FBX is +X.
 # XXX I can't get this working :(
 # MAT_CONVERT_BONE = Matrix.Rotation(math.pi / 2.0, 4, 'Z')  # Blender is +Y, FBX is -X.
@@ -1069,8 +1069,8 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
             # Apply the bone correction.
             if scene_data.settings.bone_correction_matrix:
                 matrix = matrix * scene_data.settings.bone_correction_matrix
-        elif self.bdata.type == 'LAMP':
-            matrix = matrix * MAT_CONVERT_LAMP
+        elif self.bdata.type == 'LIGHT':
+            matrix = matrix * MAT_CONVERT_LIGHT
         elif self.bdata.type == 'CAMERA':
             matrix = matrix * MAT_CONVERT_CAMERA
 
@@ -1214,7 +1214,7 @@ FBXExportSettings = namedtuple("FBXExportSettings", (
 FBXExportData = namedtuple("FBXExportData", (
     "templates", "templates_users", "connections",
     "settings", "scene", "objects", "animations", "animated", "frame_start", "frame_end",
-    "data_empties", "data_lamps", "data_cameras", "data_meshes", "mesh_mat_indices",
+    "data_empties", "data_lights", "data_cameras", "data_meshes", "mesh_mat_indices",
     "data_bones", "data_leaf_bones", "data_deformers_skin", "data_deformers_shape",
     "data_world", "data_materials", "data_textures", "data_videos",
 ))

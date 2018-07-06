@@ -228,7 +228,7 @@ class OBJECT_OT_create_lightfield_rig(Operator):
 
     def createSpot(self, index, textured=False):
         scene = bpy.context.scene
-        bpy.ops.object.lamp_add(
+        bpy.ops.object.light_add(
                 type='SPOT')
         spot = bpy.context.active_object
 
