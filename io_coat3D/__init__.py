@@ -20,7 +20,7 @@ bl_info = {
     "name": "3D-Coat Applink",
     "author": "Kalle-Samuli Riihikoski (haikalle)",
     "version": (3, 5, 22),
-    "blender": (2, 59, 0),
+    "blender": (2, 8, 0),
     "location": "Scene > 3D-Coat Applink",
     "description": "Transfer data between 3D-Coat/Blender",
     "warning": "",
@@ -59,9 +59,24 @@ def register():
         objpath = StringProperty(
             name="Object_Path"
             )
-        applink_name = StringProperty(
-            name="Object_Applink_name"
+        applink_address = StringProperty(
+            name="Object_Applink_address"
             )
+        applink_name = StringProperty(
+            name="Applink object name"
+            )
+        applink_group = StringProperty(
+            name="Applink group"
+        )
+        applink_skip = StringProperty(
+            name="Object_Applink_Update",
+            default="False"
+        )
+        applink_firsttime = BoolProperty(
+            name="FirstTime",
+            description="FirstTime",
+            default=True
+        )
         coatpath = StringProperty(
             name="Coat_Path"
             )
@@ -216,12 +231,7 @@ def register():
             )
 
         # copy location
-        cursor = FloatVectorProperty(
-            name="Cursor",
-            description="Location",
-            subtype="XYZ",
-            default=(0.0, 0.0, 0.0)
-            )
+
         loca = FloatVectorProperty(
             name="location",
             description="Location",
