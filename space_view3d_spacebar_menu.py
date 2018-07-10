@@ -2085,7 +2085,7 @@ class VIEW3D_MT_View_Border(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("view3d.clip_border", text="Clipping Border...")
         layout.operator("view3d.zoom_border", text="Zoom Border...")
-        layout.operator("view3d.render_border", text="Render Border...").camera_only = False
+        layout.operator("view3d.render_border", text="Render Border...")
 
 
 class VIEW3D_MT_View_Toggle(Menu):
