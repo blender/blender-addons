@@ -154,50 +154,61 @@ class IV_Preferences(bpy.types.AddonPreferences):
     def set_panel_filter(self, value):
         self.panel_icons.filter = value
 
-    panel_filter = bpy.props.StringProperty(
+    panel_filter: bpy.props.StringProperty(
         description="Filter",
         default="",
         get=lambda s: s.panel_icons.filter,
         set=set_panel_filter,
-        options={'TEXTEDIT_UPDATE'})
-    show_panel_icons = bpy.props.BoolProperty(
+        options={'TEXTEDIT_UPDATE'},
+    )
+    show_panel_icons: bpy.props.BoolProperty(
         name="Show Icons",
-        description="Show icons", default=True)
-    show_history = bpy.props.BoolProperty(
+        description="Show icons", default=True,
+    )
+    show_history: bpy.props.BoolProperty(
         name="Show History",
-        description="Show history", default=True)
-    show_brush_icons = bpy.props.BoolProperty(
+        description="Show history", default=True,
+    )
+    show_brush_icons: bpy.props.BoolProperty(
         name="Show Brush Icons",
         description="Show brush icons", default=True,
-        update=update_icons)
-    show_matcap_icons = bpy.props.BoolProperty(
+        update=update_icons,
+    )
+    show_matcap_icons: bpy.props.BoolProperty(
         name="Show Matcap Icons",
         description="Show matcap icons", default=True,
-        update=update_icons)
-    show_colorset_icons = bpy.props.BoolProperty(
+        update=update_icons,
+    )
+    show_colorset_icons: bpy.props.BoolProperty(
         name="Show Colorset Icons",
         description="Show colorset icons", default=True,
-        update=update_icons)
-    copy_on_select = bpy.props.BoolProperty(
+        update=update_icons,
+    )
+    copy_on_select: bpy.props.BoolProperty(
         name="Copy Icon On Click",
-        description="Copy icon on click", default=True)
-    close_on_select = bpy.props.BoolProperty(
+        description="Copy icon on click", default=True,
+    )
+    close_on_select: bpy.props.BoolProperty(
         name="Close Popup On Click",
         description=(
             "Close the popup on click.\n"
             "Not supported by some windows (User Preferences, Render)"
             ),
-        default=False)
-    auto_focus_filter = bpy.props.BoolProperty(
+        default=False,
+    )
+    auto_focus_filter: bpy.props.BoolProperty(
         name="Auto Focus Input Field",
-        description="Auto focus input field", default=True)
-    show_panel = bpy.props.BoolProperty(
+        description="Auto focus input field", default=True,
+    )
+    show_panel: bpy.props.BoolProperty(
         name="Show Panel",
-        description="Show the panel in the Text Editor", default=True)
-    show_header = bpy.props.BoolProperty(
+        description="Show the panel in the Text Editor", default=True,
+    )
+    show_header: bpy.props.BoolProperty(
         name="Show Header",
         description="Show the header in the Python Console",
-        default=True)
+        default=True,
+    )
 
     def draw(self, context):
         layout = self.layout

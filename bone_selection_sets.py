@@ -50,12 +50,12 @@ from bpy.props import (
 # Note: bones are stored by name, this means that if the bone is renamed,
 # there can be problems. However, bone renaming is unlikely during animation
 class SelectionEntry(PropertyGroup):
-    name = StringProperty(name="Bone Name")
+    name: StringProperty(name="Bone Name")
 
 
 class SelectionSet(PropertyGroup):
-    name = StringProperty(name="Set Name")
-    bone_ids = CollectionProperty(type=SelectionEntry)
+    name: StringProperty(name="Set Name")
+    bone_ids: CollectionProperty(type=SelectionEntry)
 
 
 # UI Panel w/ UIList ##########################################################
@@ -210,7 +210,7 @@ class POSE_OT_selection_set_move(NeedSelSetPluginOperator):
     bl_description = "Move the active Selection Set up/down the list of sets"
     bl_options = {'UNDO', 'REGISTER'}
 
-    direction = EnumProperty(
+    direction: EnumProperty(
         name="Move Direction",
         description="Direction to move the active Selection Set: UP (default) or DOWN",
         items=[
@@ -334,10 +334,11 @@ class POSE_OT_selection_set_select(NeedSelSetPluginOperator):
     bl_description = "Add Selection Set bones to current selection"
     bl_options = {'UNDO', 'REGISTER'}
 
-    selection_set_index = IntProperty(
+    selection_set_index: IntProperty(
         name='Selection Set Index',
         default=-1,
-        description='Which Selection Set to select; -1 uses the active Selection Set')
+        description='Which Selection Set to select; -1 uses the active Selection Set',
+    )
 
     def execute(self, context):
         arm = context.object

@@ -48,12 +48,12 @@ def _get_depsgraph(context):
 # Save data from depsgraph to a specified file.
 
 class SCENE_OT_depsgraph_save_common:
-    filepath = StringProperty(
-            name="File Path",
-            description="Filepath used for saving the file",
-            maxlen=1024,
-            subtype='FILE_PATH',
-            )
+    filepath: StringProperty(
+        name="File Path",
+        description="Filepath used for saving the file",
+        maxlen=1024,
+        subtype='FILE_PATH',
+    )
 
     def _getExtension(self, context):
         return ""
@@ -86,8 +86,10 @@ class SCENE_OT_depsgraph_save_common:
         pass
 
 
-class SCENE_OT_depsgraph_relations_graphviz(Operator,
-                                            SCENE_OT_depsgraph_save_common):
+class SCENE_OT_depsgraph_relations_graphviz(
+        Operator,
+        SCENE_OT_depsgraph_save_common,
+):
     bl_idname = "scene.depsgraph_relations_graphviz"
     bl_label = "Save Depsgraph"
     bl_description = "Save current scene's dependency graph to a graphviz file"
@@ -102,8 +104,10 @@ class SCENE_OT_depsgraph_relations_graphviz(Operator,
         return True
 
 
-class SCENE_OT_depsgraph_stats_gnuplot(Operator,
-                                       SCENE_OT_depsgraph_save_common):
+class SCENE_OT_depsgraph_stats_gnuplot(
+        Operator,
+        SCENE_OT_depsgraph_save_common,
+):
     bl_idname = "scene.depsgraph_stats_gnuplot"
     bl_label = "Save Depsgraph Stats"
     bl_description = "Save current scene's evaluaiton stats to gnuplot file"

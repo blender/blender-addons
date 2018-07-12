@@ -179,26 +179,26 @@ def token_expires() -> typing.Optional[datetime.datetime]:
 class BlenderIdPreferences(AddonPreferences):
     bl_idname = __name__
 
-    error_message = StringProperty(
+    error_message: StringProperty(
         name='Error Message',
         default='',
-        options={'HIDDEN', 'SKIP_SAVE'}
+        options={'HIDDEN', 'SKIP_SAVE'},
     )
-    ok_message = StringProperty(
+    ok_message: StringProperty(
         name='Message',
         default='',
-        options={'HIDDEN', 'SKIP_SAVE'}
+        options={'HIDDEN', 'SKIP_SAVE'},
     )
-    blender_id_username = StringProperty(
+    blender_id_username: StringProperty(
         name='E-mail address',
         default='',
-        options={'HIDDEN', 'SKIP_SAVE'}
+        options={'HIDDEN', 'SKIP_SAVE'},
     )
-    blender_id_password = StringProperty(
+    blender_id_password: StringProperty(
         name='Password',
         default='',
         options={'HIDDEN', 'SKIP_SAVE'},
-        subtype='PASSWORD'
+        subtype='PASSWORD',
     )
 
     def reset_messages(self):

@@ -21,13 +21,13 @@
 
 import bpy
 from bpy.props import (
-        BoolProperty,
-        PointerProperty,
-        )
+    BoolProperty,
+    PointerProperty,
+)
 from bpy.types import (
-        PropertyGroup,
-        AddonPreferences,
-        )
+    PropertyGroup,
+    AddonPreferences,
+)
 
 
 bl_info = {
@@ -149,18 +149,18 @@ def disable_all_modules(self, context):
 class PieToolsPreferences(AddonPreferences):
     bl_idname = __name__
 
-    enable_all = BoolProperty(
-            name="Enable all",
-            description="Enable all Pie Modules",
-            default=False,
-            update=enable_all_modules
-            )
-    disable_all = BoolProperty(
-            name="Disable all",
-            description="Disable all Pie Modules",
-            default=False,
-            update=disable_all_modules
-            )
+    enable_all: BoolProperty(
+        name="Enable all",
+        description="Enable all Pie Modules",
+        default=False,
+        update=enable_all_modules
+    )
+    disable_all: BoolProperty(
+        name="Disable all",
+        description="Disable all Pie Modules",
+        default=False,
+        update=disable_all_modules
+    )
 
     def draw(self, context):
         layout = self.layout
@@ -274,17 +274,17 @@ for mod in sub_modules:
         return update
 
     prop = BoolProperty(
-            name=info['name'],
-            description=info.get('description', ''),
-            update=gen_update(mod),
-            )
+        name=info['name'],
+        description=info.get('description', ''),
+        update=gen_update(mod),
+    )
     setattr(PieToolsPreferences, 'use_' + mod_name, prop)
     prop = BoolProperty()
     setattr(PieToolsPreferences, 'show_expanded_' + mod_name, prop)
 
 classes = (
     PieToolsPreferences,
-    )
+)
 
 
 def register():
