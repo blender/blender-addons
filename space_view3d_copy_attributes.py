@@ -33,13 +33,13 @@ bl_info = {
 import bpy
 from mathutils import Matrix
 from bpy.types import (
-        Operator,
-        Menu,
-        )
+    Operator,
+    Menu,
+)
 from bpy.props import (
-        BoolVectorProperty,
-        StringProperty,
-        )
+    BoolVectorProperty,
+    StringProperty,
+)
 
 # First part of the operator Info message
 INFO_MESSAGE = "Copy Attributes: "
@@ -82,7 +82,7 @@ def genops(copylist, oplist, prefix, poll_func, loopfunc):
         exec_func = build_exec(loopfunc, op[3])
         invoke_func = build_invoke(loopfunc, op[3])
         opclass = build_op(prefix + op[0], "Copy " + op[1], op[2],
-           poll_func, exec_func, invoke_func)
+                           poll_func, exec_func, invoke_func)
         oplist.append(opclass)
 
 
@@ -161,13 +161,13 @@ def pVisLocExec(bone, active, context):
 
 def pVisRotExec(bone, active, context):
     rotcopy(bone, getmat(bone, active,
-      context, not context.active_object.data.bones[bone.name].use_inherit_rotation))
+                         context, not context.active_object.data.bones[bone.name].use_inherit_rotation))
 
 
 def pVisScaExec(bone, active, context):
     bone.scale = getmat(bone, active, context,
-       not context.active_object.data.bones[bone.name].use_inherit_scale)\
-          .to_scale()
+                        not context.active_object.data.bones[bone.name].use_inherit_scale)\
+        .to_scale()
 
 
 def pDrwExec(bone, active, context):
@@ -207,29 +207,29 @@ def pBBonesExec(bone, active, context):
 
 
 pose_copies = (
-        ('pose_loc_loc', "Local Location",
-        "Copy Location from Active to Selected", pLocLocExec),
-        ('pose_loc_rot', "Local Rotation",
-        "Copy Rotation from Active to Selected", pLocRotExec),
-        ('pose_loc_sca', "Local Scale",
-        "Copy Scale from Active to Selected", pLocScaExec),
-        ('pose_vis_loc', "Visual Location",
-        "Copy Location from Active to Selected", pVisLocExec),
-        ('pose_vis_rot', "Visual Rotation",
-        "Copy Rotation from Active to Selected", pVisRotExec),
-        ('pose_vis_sca', "Visual Scale",
-        "Copy Scale from Active to Selected", pVisScaExec),
-        ('pose_drw', "Bone Shape",
-        "Copy Bone Shape from Active to Selected", pDrwExec),
-        ('pose_lok', "Protected Transform",
-        "Copy Protected Tranforms from Active to Selected", pLokExec),
-        ('pose_con', "Bone Constraints",
-        "Copy Object Constraints from Active to Selected", pConExec),
-        ('pose_iks', "IK Limits",
-        "Copy IK Limits from Active to Selected", pIKsExec),
-        ('bbone_settings', "BBone Settings",
-        "Copy BBone Settings from Active to Selected", pBBonesExec),
-        )
+    ('pose_loc_loc', "Local Location",
+     "Copy Location from Active to Selected", pLocLocExec),
+    ('pose_loc_rot', "Local Rotation",
+     "Copy Rotation from Active to Selected", pLocRotExec),
+    ('pose_loc_sca', "Local Scale",
+     "Copy Scale from Active to Selected", pLocScaExec),
+    ('pose_vis_loc', "Visual Location",
+     "Copy Location from Active to Selected", pVisLocExec),
+    ('pose_vis_rot', "Visual Rotation",
+     "Copy Rotation from Active to Selected", pVisRotExec),
+    ('pose_vis_sca', "Visual Scale",
+     "Copy Scale from Active to Selected", pVisScaExec),
+    ('pose_drw', "Bone Shape",
+     "Copy Bone Shape from Active to Selected", pDrwExec),
+    ('pose_lok', "Protected Transform",
+     "Copy Protected Tranforms from Active to Selected", pLokExec),
+    ('pose_con', "Bone Constraints",
+     "Copy Object Constraints from Active to Selected", pConExec),
+    ('pose_iks', "IK Limits",
+     "Copy IK Limits from Active to Selected", pIKsExec),
+    ('bbone_settings', "BBone Settings",
+     "Copy BBone Settings from Active to Selected", pBBonesExec),
+)
 
 
 @classmethod
@@ -249,9 +249,9 @@ class CopySelectedPoseConstraints(Operator):
     bl_label = "Copy Selected Constraints"
 
     selection = BoolVectorProperty(
-            size=32,
-            options={'SKIP_SAVE'}
-            )
+        size=32,
+        options={'SKIP_SAVE'}
+    )
 
     poll = pose_poll_func
     invoke = pose_invoke_func
@@ -260,7 +260,7 @@ class CopySelectedPoseConstraints(Operator):
         layout = self.layout
         for idx, const in enumerate(context.active_pose_bone.constraints):
             layout.prop(self, "selection", index=idx, text=const.name,
-               toggle=True)
+                        toggle=True)
 
     def execute(self, context):
         active = context.active_pose_bone
@@ -271,8 +271,8 @@ class CopySelectedPoseConstraints(Operator):
                 if flag:
                     old_constraint = active.constraints[index]
                     new_constraint = bone.constraints.new(
-                                        active.constraints[index].type
-                                        )
+                        active.constraints[index].type
+                    )
                     generic_copy(old_constraint, new_constraint)
         return {'FINISHED'}
 
@@ -425,7 +425,7 @@ def obMod(ob, active, context):
         ob.modifiers.remove(modifier)
     for old_modifier in active.modifiers.values():
         new_modifier = ob.modifiers.new(name=old_modifier.name,
-           type=old_modifier.type)
+                                        type=old_modifier.type)
         generic_copy(old_modifier, new_modifier)
     return('INFO', "Modifiers copied")
 
@@ -479,60 +479,60 @@ def obWei(ob, active, context):
                         for vgs in range(0, len(groups)):
                             if groups[vgs].name == groupName:
                                 groups[vgs].add((v.index,),
-                                   vgroupIndex_weight[i][1], "REPLACE")
+                                                vgroupIndex_weight[i][1], "REPLACE")
     return('INFO', "Weights copied")
 
 
 object_copies = (
-        # ('obj_loc', "Location",
-        # "Copy Location from Active to Selected", obLoc),
-        # ('obj_rot', "Rotation",
-        # "Copy Rotation from Active to Selected", obRot),
-        # ('obj_sca', "Scale",
-        # "Copy Scale from Active to Selected", obSca),
-        ('obj_vis_loc', "Location",
-        "Copy Location from Active to Selected", obVisLoc),
-        ('obj_vis_rot', "Rotation",
-        "Copy Rotation from Active to Selected", obVisRot),
-        ('obj_vis_sca', "Scale",
-        "Copy Scale from Active to Selected", obVisSca),
-        ('obj_drw', "Draw Options",
-        "Copy Draw Options from Active to Selected", obDrw),
-        ('obj_ofs', "Time Offset",
-        "Copy Time Offset from Active to Selected", obOfs),
-        ('obj_dup', "Dupli",
-        "Copy Dupli from Active to Selected", obDup),
-        ('obj_col', "Object Color",
-        "Copy Object Color from Active to Selected", obCol),
-        # ('obj_dmp', "Damping",
-        # "Copy Damping from Active to Selected"),
-        # ('obj_all', "All Physical Attributes",
-        # "Copy Physical Attributes from Active to Selected"),
-        # ('obj_prp', "Properties",
-        # "Copy Properties from Active to Selected"),
-        # ('obj_log', "Logic Bricks",
-        # "Copy Logic Bricks from Active to Selected"),
-        ('obj_lok', "Protected Transform",
-        "Copy Protected Tranforms from Active to Selected", obLok),
-        ('obj_con', "Object Constraints",
-        "Copy Object Constraints from Active to Selected", obCon),
-        # ('obj_nla', "NLA Strips",
-        # "Copy NLA Strips from Active to Selected"),
-        # ('obj_tex', "Texture Space",
-        # "Copy Texture Space from Active to Selected", obTex),
-        # ('obj_sub', "Subsurf Settings",
-        # "Copy Subsurf Setings from Active to Selected"),
-        # ('obj_smo', "AutoSmooth",
-        # "Copy AutoSmooth from Active to Selected"),
-        ('obj_idx', "Pass Index",
-        "Copy Pass Index from Active to Selected", obIdx),
-        ('obj_mod', "Modifiers",
-        "Copy Modifiers from Active to Selected", obMod),
-        ('obj_wei', "Vertex Weights",
-        "Copy vertex weights based on indices", obWei),
-        ('obj_grp', "Group Links",
-        "Copy selected into active object's groups", obGrp)
-        )
+    # ('obj_loc', "Location",
+    # "Copy Location from Active to Selected", obLoc),
+    # ('obj_rot', "Rotation",
+    # "Copy Rotation from Active to Selected", obRot),
+    # ('obj_sca', "Scale",
+    # "Copy Scale from Active to Selected", obSca),
+    ('obj_vis_loc', "Location",
+     "Copy Location from Active to Selected", obVisLoc),
+    ('obj_vis_rot', "Rotation",
+     "Copy Rotation from Active to Selected", obVisRot),
+    ('obj_vis_sca', "Scale",
+     "Copy Scale from Active to Selected", obVisSca),
+    ('obj_drw', "Draw Options",
+     "Copy Draw Options from Active to Selected", obDrw),
+    ('obj_ofs', "Time Offset",
+     "Copy Time Offset from Active to Selected", obOfs),
+    ('obj_dup', "Dupli",
+     "Copy Dupli from Active to Selected", obDup),
+    ('obj_col', "Object Color",
+     "Copy Object Color from Active to Selected", obCol),
+    # ('obj_dmp', "Damping",
+    # "Copy Damping from Active to Selected"),
+    # ('obj_all', "All Physical Attributes",
+    # "Copy Physical Attributes from Active to Selected"),
+    # ('obj_prp', "Properties",
+    # "Copy Properties from Active to Selected"),
+    # ('obj_log', "Logic Bricks",
+    # "Copy Logic Bricks from Active to Selected"),
+    ('obj_lok', "Protected Transform",
+     "Copy Protected Tranforms from Active to Selected", obLok),
+    ('obj_con', "Object Constraints",
+     "Copy Object Constraints from Active to Selected", obCon),
+    # ('obj_nla', "NLA Strips",
+    # "Copy NLA Strips from Active to Selected"),
+    # ('obj_tex', "Texture Space",
+    # "Copy Texture Space from Active to Selected", obTex),
+    # ('obj_sub', "Subsurf Settings",
+    # "Copy Subsurf Setings from Active to Selected"),
+    # ('obj_smo', "AutoSmooth",
+    # "Copy AutoSmooth from Active to Selected"),
+    ('obj_idx', "Pass Index",
+     "Copy Pass Index from Active to Selected", obIdx),
+    ('obj_mod', "Modifiers",
+     "Copy Modifiers from Active to Selected", obMod),
+    ('obj_wei', "Vertex Weights",
+     "Copy vertex weights based on indices", obWei),
+    ('obj_grp', "Group Links",
+     "Copy selected into active object's groups", obGrp)
+)
 
 
 @classmethod
@@ -552,9 +552,9 @@ class CopySelectedObjectConstraints(Operator):
     bl_label = "Copy Selected Constraints"
 
     selection = BoolVectorProperty(
-            size=32,
-            options={'SKIP_SAVE'}
-            )
+        size=32,
+        options={'SKIP_SAVE'}
+    )
 
     poll = object_poll_func
     invoke = object_invoke_func
@@ -563,7 +563,7 @@ class CopySelectedObjectConstraints(Operator):
         layout = self.layout
         for idx, const in enumerate(context.active_object.constraints):
             layout.prop(self, "selection", index=idx, text=const.name,
-               toggle=True)
+                        toggle=True)
 
     def execute(self, context):
         active = context.active_object
@@ -574,8 +574,8 @@ class CopySelectedObjectConstraints(Operator):
                 if flag:
                     old_constraint = active.constraints[index]
                     new_constraint = obj.constraints.new(
-                                            active.constraints[index].type
-                                            )
+                        active.constraints[index].type
+                    )
                     generic_copy(old_constraint, new_constraint)
         return{'FINISHED'}
 
@@ -586,9 +586,9 @@ class CopySelectedObjectModifiers(Operator):
     bl_label = "Copy Selected Modifiers"
 
     selection = BoolVectorProperty(
-            size=32,
-            options={'SKIP_SAVE'}
-            )
+        size=32,
+        options={'SKIP_SAVE'}
+    )
 
     poll = object_poll_func
     invoke = object_invoke_func
@@ -597,7 +597,7 @@ class CopySelectedObjectModifiers(Operator):
         layout = self.layout
         for idx, const in enumerate(context.active_object.modifiers):
             layout.prop(self, 'selection', index=idx, text=const.name,
-               toggle=True)
+                        toggle=True)
 
     def execute(self, context):
         active = context.active_object
@@ -608,9 +608,9 @@ class CopySelectedObjectModifiers(Operator):
                 if flag:
                     old_modifier = active.modifiers[index]
                     new_modifier = obj.modifiers.new(
-                                       type=active.modifiers[index].type,
-                                       name=active.modifiers[index].name
-                                       )
+                        type=active.modifiers[index].type,
+                        name=active.modifiers[index].name
+                    )
                     generic_copy(old_modifier, new_modifier)
         return{'FINISHED'}
 
@@ -662,23 +662,23 @@ class MESH_MT_CopyFaceSettings(Menu):
         layout.separator()
 
         op = layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
-                        text="Copy Material")
+                             text="Copy Material")
         op['layer'] = ''
         op['mode'] = 'MAT'
 
         if mesh.uv_textures.active:
             op = layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
-                        text="Copy Active UV Image")
+                                 text="Copy Active UV Image")
             op['layer'] = ''
             op['mode'] = 'IMAGE'
             op = layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
-                        text="Copy Active UV Coords")
+                                 text="Copy Active UV Coords")
             op['layer'] = ''
             op['mode'] = 'UV'
 
         if mesh.vertex_colors.active:
             op = layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
-                        text="Copy Active Vertex Colors")
+                                 text="Copy Active Vertex Colors")
             op['layer'] = ''
             op['mode'] = 'VCOL'
 
@@ -702,7 +702,7 @@ class MESH_MT_CopyImagesFromLayer(Menu):
     def poll(cls, context):
         obj = context.active_object
         return obj and obj.mode == "EDIT_MESH" and len(
-                obj.data.uv_layers) > 1
+            obj.data.uv_layers) > 1
 
     def draw(self, context):
         mesh = context.active_object.data
@@ -716,7 +716,7 @@ class MESH_MT_CopyUVCoordsFromLayer(Menu):
     def poll(cls, context):
         obj = context.active_object
         return obj and obj.mode == "EDIT_MESH" and len(
-                obj.data.uv_layers) > 1
+            obj.data.uv_layers) > 1
 
     def draw(self, context):
         mesh = context.active_object.data
@@ -730,7 +730,7 @@ class MESH_MT_CopyVertexColorsFromLayer(Menu):
     def poll(cls, context):
         obj = context.active_object
         return obj and obj.mode == "EDIT_MESH" and len(
-                obj.data.vertex_colors) > 1
+            obj.data.vertex_colors) > 1
 
     def draw(self, context):
         mesh = context.active_object.data
@@ -758,13 +758,13 @@ class MESH_OT_CopyFaceSettings(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     mode = StringProperty(
-            name="Mode",
-            options={"HIDDEN"},
-            )
+        name="Mode",
+        options={"HIDDEN"},
+    )
     layer = StringProperty(
-            name="Layer",
-            options={"HIDDEN"},
-            )
+        name="Layer",
+        options={"HIDDEN"},
+    )
 
     @classmethod
     def poll(cls, context):
