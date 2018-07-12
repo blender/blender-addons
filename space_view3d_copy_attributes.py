@@ -836,8 +836,25 @@ class MESH_OT_CopyFaceSettings(Operator):
         return(retval)
 
 
+classes = (
+    CopySelectedPoseConstraints,
+    VIEW3D_MT_posecopypopup,
+    CopySelectedObjectConstraints,
+    CopySelectedObjectModifiers,
+    VIEW3D_MT_copypopup,
+    MESH_MT_CopyFaceSettings,
+    MESH_MT_CopyImagesFromLayer,
+    MESH_MT_CopyUVCoordsFromLayer,
+    MESH_MT_CopyVertexColorsFromLayer,
+    MESH_OT_CopyFaceSettings,
+    *pose_ops,
+    *object_ops,
+)
+
 def register():
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
 
     # mostly to get the keymap working
     kc = bpy.context.window_manager.keyconfigs.addon
@@ -886,7 +903,9 @@ def unregister():
                     if kmi.properties.name == 'VIEW3D_MT_copypopup':
                         km.keymap_items.remove(kmi)
 
-    bpy.utils.unregister_module(__name__)
+    from bpy.utils import unregister_class
+    for cls in classes:
+        unregister_class(cls)
 
 
 if __name__ == "__main__":
