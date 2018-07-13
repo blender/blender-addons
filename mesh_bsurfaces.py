@@ -3156,8 +3156,10 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
                 # XXX gpencil.convert now keep org object as active/selected, *not* newly created curve!
                 # XXX This is far from perfect, but should work in most cases...
                 # self.original_curve = bpy.context.object
+                gplayer_prefix_translated = bpy.app.translations.pgettext_data('GP_Layer')
                 for ob in bpy.context.selected_objects:
-                    if ob != bpy.context.scene.objects.active and ob.name.startswith("GP_Layer"):
+                    if ob != bpy.context.scene.objects.active and \
+                       ob.name.startswith((gplayer_prefix_translated, 'GP_Layer')):
                         self.original_curve = ob
                 self.using_external_curves = False
             elif self.strokes_type == "EXTERNAL_CURVE":
