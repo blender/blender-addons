@@ -1592,10 +1592,11 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         final_ob_duplicate = bpy.context.scene.objects.active
 
         bpy.ops.object.modifier_add('INVOKE_REGION_WIN', type='SHRINKWRAP')
-        final_ob_duplicate.modifiers["Shrinkwrap"].wrap_method = "NEAREST_VERTEX"
-        final_ob_duplicate.modifiers["Shrinkwrap"].target = self.main_object
+        shrinkwrap_modifier = final_ob_duplicate.modifiers[-1]
+        shrinkwrap_modifier.wrap_method = "NEAREST_VERTEX"
+        shrinkwrap_modifier.target = self.main_object
 
-        bpy.ops.object.modifier_apply('INVOKE_REGION_WIN', apply_as='DATA', modifier='Shrinkwrap')
+        bpy.ops.object.modifier_apply('INVOKE_REGION_WIN', apply_as='DATA', modifier=shrinkwrap_modifier.name)
 
         # Make list with verts of original mesh as index and coords as value
         main_object_verts_coords = []
