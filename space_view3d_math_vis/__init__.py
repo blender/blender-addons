@@ -242,18 +242,36 @@ class MathVis(PropertyGroup):
             )
 
 
+classes = (
+    PanelConsoleVars,
+    DeleteVar,
+    ToggleDisplay,
+    ToggleLock,
+    ToggleMatrixBBoxDisplay,
+    CleanupConsole,
+    MathVisStateProp,
+    MathVisVarList,
+    MathVis,
+)
+
+
 def register():
+    from bpy.utils import register_class
+
     draw.callback_enable()
 
     import console_python
     console_python.execute.hooks.append((console_hook, ()))
-    bpy.utils.register_module(__name__)
+    for cls in classes:
+        bpy.utils.register_class(cls)
     bpy.types.WindowManager.MathVisProp = PointerProperty(type=MathVis)
     bpy.types.WindowManager.MathVisStatePropList = CollectionProperty(type=MathVisStateProp)
     bpy.types.CONSOLE_MT_console.prepend(menu_func_cleanup)
 
 
 def unregister():
+    from bpy.utils import unregister_class
+
     draw.callback_disable()
 
     import console_python
@@ -262,4 +280,5 @@ def unregister():
     del bpy.types.WindowManager.MathVisProp
     del bpy.types.WindowManager.MathVisStatePropList
 
-    bpy.utils.unregister_module(__name__)
+    for cls in classes:
+        unregister_class(cls)
