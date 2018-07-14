@@ -21,6 +21,7 @@
 bl_info = {
     "name": "Autodesk 3DS format",
     "author": "Bob Holcomb, Campbell Barton",
+    "version": (1, 0, 0),
     "blender": (2, 74, 0),
     "location": "File > Import-Export",
     "description": "Import-Export 3DS, meshes, uvs, materials, textures, "
