@@ -42,20 +42,20 @@ else:
 
 import bpy
 from bpy.types import (
-        Operator,
-        Panel,
-        PropertyGroup,
-        UIList,
-        )
+    Operator,
+    Panel,
+    PropertyGroup,
+    UIList,
+)
 from bpy.props import (
-        StringProperty,
-        BoolProperty,
-        BoolVectorProperty,
-        FloatProperty,
-        IntProperty,
-        PointerProperty,
-        CollectionProperty,
-        )
+    StringProperty,
+    BoolProperty,
+    BoolVectorProperty,
+    FloatProperty,
+    IntProperty,
+    PointerProperty,
+    CollectionProperty,
+)
 
 
 class PanelConsoleVars(Panel):
@@ -77,14 +77,14 @@ class PanelConsoleVars(Panel):
             col.label("No vars to display")
         else:
             layout.template_list(
-                    'MathVisVarList',
-                    'MathVisStatePropList',
-                    bpy.context.window_manager,
-                    'MathVisStatePropList',
-                    bpy.context.window_manager.MathVisProp,
-                    'index',
-                    rows=10
-                    )
+                'MathVisVarList',
+                'MathVisStatePropList',
+                bpy.context.window_manager,
+                'MathVisStatePropList',
+                bpy.context.window_manager.MathVisProp,
+                'index',
+                rows=10
+            )
         col = layout.column()
         col.prop(bpy.context.window_manager.MathVisProp, "name_hide")
         col.prop(bpy.context.window_manager.MathVisProp, "bbox_hide")
@@ -220,26 +220,26 @@ class MathVisVarList(UIList):
 class MathVis(PropertyGroup):
 
     index = IntProperty(
-            name="index"
-            )
+        name="index"
+    )
     bbox_hide = BoolProperty(
-            name="Hide BBoxes",
-            default=False,
-            description="Hide the bounding boxes rendered for Matrix like items",
-            update=call_console_hook
-            )
+        name="Hide BBoxes",
+        default=False,
+        description="Hide the bounding boxes rendered for Matrix like items",
+        update=call_console_hook
+    )
     name_hide = BoolProperty(
-            name="Hide Names",
-            default=False,
-            description="Hide the names of the rendered items",
-            update=call_console_hook
-            )
+        name="Hide Names",
+        default=False,
+        description="Hide the names of the rendered items",
+        update=call_console_hook
+    )
     bbox_scale = FloatProperty(
-            name="Scale factor",
-            min=0, default=1,
-            description="Resize the Bounding Box and the coordinate "
-                        "lines for the display of Matrix items"
-            )
+        name="Scale factor",
+        min=0, default=1,
+        description="Resize the Bounding Box and the coordinate "
+        "lines for the display of Matrix items"
+    )
 
 
 classes = (
