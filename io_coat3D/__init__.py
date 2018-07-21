@@ -477,6 +477,9 @@ class SCENE_OT_import(bpy.types.Operator):
 
             # 3DC -> Blender workflow
 
+            for old_obj in bpy.context.collection.objects:
+                old_obj.coat3D.applink_old = True
+
             coat3D = bpy.context.scene.coat3D
             scene = context.scene
             Blender_folder = ("%s%sBlender"%(coat3D.exchangedir,os.sep))
@@ -485,28 +488,49 @@ class SCENE_OT_import(bpy.types.Operator):
             path3b_now += ('last_saved_3b_file.txt')
             Blender_export += ('%sexport.txt'%(os.sep))
             mat_list = []
+            nimi = ''
 
             bpy.ops.wm.collada_import(filepath=new_applink_address)
 
-            new_obj = bpy.context.collection.objects[-1]
-            new_obj.coat3D.applink_address = new_applink_address
-            print('addressi on:', new_applink_address)
-            splittext = ntpath.basename(new_applink_address)
-            new_obj.coat3D.applink_name = splittext.split('.')[0]
-            new_obj.coat3D.applink_group = new_obj.name
-            new_obj.coat3D.applink_export = True
-            print('nimi on:', new_obj.coat3D.applink_name)
+            bpy.ops.object.select_all(action='DESELECT')
+            for new_obj in bpy.context.collection.objects:
+
+                if(new_obj.coat3D.applink_old == False):
+                    nimi += new_obj.name + ':::'
+                    print('uusi objekti: ', new_obj)
+                    new_obj.select_set('SELECT')
+                    #bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
+                    new_obj.rotation_euler = (0, 0, 0)
+                    new_obj.select_set('DESELECT')
+                    new_obj.coat3D.applink_address = new_applink_address
+                    print('addressi on:', new_applink_address)
+                    splittext = ntpath.basename(new_applink_address)
+                    new_obj.coat3D.applink_name = splittext.split('.')[0]
+                    new_obj.coat3D.applink_export = True
+                    print('nimi on:', new_obj.coat3D.applink_name)
+                    for material in bpy.data.materials:
+                        if(new_obj.name == material.name):
+                            new_obj.material_slots[0].material = material
+                            break
+
+                    # bpy.ops.object.transforms_to_deltas(mode='ROT')
+
+                    mat_list.append(new_obj.material_slots[0].material)
+                    is_new = True
+                    tex.matlab(mat_list, new_obj, bpy.context.scene, is_new)
+
+            for new_obj in bpy.context.collection.objects:
+                if(new_obj.coat3D.applink_old == False):
+                    new_obj.coat3D.applink_group = nimi
+                    new_obj.coat3D.applink_old = True
+
+
+
+            bpy.ops.object.select_all(action='SELECT')
+            bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
+            bpy.ops.object.select_all(action='DESELECT')
 
             os.remove(Blender_export)
-            new_obj.select_set('SELECT')
-            bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
-            #bpy.ops.object.transforms_to_deltas(mode='ROT')
-            new_obj.rotation_euler = (0, 0, 0)
-
-            mat_list.append(new_obj.material_slots[0].material)
-            is_new = True
-            tex.matlab(mat_list, new_obj, bpy.context.scene,is_new)
-
             for material in bpy.data.materials:
                 if material.use_nodes == True:
                     for node in material.node_tree.nodes:
@@ -640,6 +664,11 @@ class ObjectCoat3D(PropertyGroup):
         name="FirstTime",
         description="FirstTime",
         default=True
+    )
+    applink_old: BoolProperty(
+        name="OldObject",
+        description="Old Object",
+        default=False
     )
     applink_export: BoolProperty(
         name="FirstTime",
