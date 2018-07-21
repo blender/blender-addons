@@ -134,7 +134,6 @@ def set_working_folders():
         else:
             folder_objects  = os.path.dirname(bpy.data.filepath) + os.sep + '3DCApplink' + os.sep + 'Objects'
             folder_textures = os.path.dirname(bpy.data.filepath) + os.sep + '3DCApplink' + os.sep + 'Textures' + os.sep
-            print('mitas sanoo', folder_objects)
         if(not(os.path.isdir(folder_objects))):
             os.makedirs(folder_objects)
         if(not(os.path.isdir(folder_textures))):
@@ -335,20 +334,14 @@ class SCENE_OT_import(bpy.types.Operator):
 
 
                     obj_names = objekti.coat3D.applink_group
-                    print('obj_names:',obj_names)
                     obj_list = obj_names.split(':::')
-                    print('obj_list:',obj_list)
                     applinks = []
                     mat_list = []
                     for app_obj in obj_list:
-                        print('sisalla app_obj')
                         pnimi = app_obj.lstrip()
-                        print('pnimi', pnimi)
                         listed = re.split(r'[:::]', pnimi)
-                        print('listed: ',listed)
                         for tobj in bpy.context.scene.collection.all_objects:
                             if(tobj.name == app_obj):
-                                print('tobj:',tobj)
                                 applinks.append(tobj)
                     if(obj_coat.objecttime != str(os.path.getmtime(obj_coat.applink_address))):
                         materials_old = bpy.data.materials.keys()
@@ -364,10 +357,8 @@ class SCENE_OT_import(bpy.types.Operator):
                         #bpy.data.materials.remove(bpy.data.materials[-1])
                         counter = 1
                         del_list = []
-                        print('applinkki lista:', applinks)
 
                         for obe in applinks:
-                            print('kuka etsii:', obe)
                             counter += 1
                             obe.coat3D.applink_skip = 'True'
                             if(obe.coat3D.applink_address == objekti.coat3D.applink_address and obe.type == 'MESH'):
@@ -385,18 +376,14 @@ class SCENE_OT_import(bpy.types.Operator):
                                 else:
                                     find_name = obe.name + '.001'
                                 for allobjekti in bpy.context.scene.collection.all_objects:
-                                    print('allobject', allobjekti)
-                                    print('find_name', find_name)
                                     counter = 0
 
                                     if(allobjekti.name == find_name):
-                                        print('löyty:',allobjekti)
                                         obj_proxy = allobjekti
                                         del_list.append(allobjekti)
                                         break
 
                                 bpy.ops.object.select_all(action='DESELECT')
-                                print('ja mitahan tassa', obj_proxy)
                                 obj_proxy.select_set('SELECT')
 
                                 bpy.ops.object.select_all(action='TOGGLE')
@@ -422,11 +409,9 @@ class SCENE_OT_import(bpy.types.Operator):
 
                                 objekti.select_set('SELECT')
                                 if (obe.coat3D.applink_firsttime == True):
-                                    print('ensimmainen', obe)
                                     obe.scale = (1, 1, 1)
                                     obe.rotation_euler = (0,0,0)
                                     obe.coat3D.applink_firsttime = False
-                                    print('toimiiko', objekti)
                                 bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
                                 proxy_index -= 1
                                 obe.material_slots[0].material = act_mat
@@ -437,9 +422,7 @@ class SCENE_OT_import(bpy.types.Operator):
 
                         bpy.ops.object.select_all(action='DESELECT')
 
-                        print('tuholista', del_list)
                         for deleting in del_list:
-                            print('tuhotaan: ', deleting)
                             deleting.select_set(action='SELECT')
                             bpy.ops.object.delete()
                         mat_index = 0
@@ -497,17 +480,14 @@ class SCENE_OT_import(bpy.types.Operator):
 
                 if(new_obj.coat3D.applink_old == False):
                     nimi += new_obj.name + ':::'
-                    print('uusi objekti: ', new_obj)
                     new_obj.select_set('SELECT')
                     #bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
                     new_obj.rotation_euler = (0, 0, 0)
                     new_obj.select_set('DESELECT')
                     new_obj.coat3D.applink_address = new_applink_address
-                    print('addressi on:', new_applink_address)
                     splittext = ntpath.basename(new_applink_address)
                     new_obj.coat3D.applink_name = splittext.split('.')[0]
                     new_obj.coat3D.applink_export = True
-                    print('nimi on:', new_obj.coat3D.applink_name)
                     for material in bpy.data.materials:
                         if(new_obj.name == material.name):
                             new_obj.material_slots[0].material = material
