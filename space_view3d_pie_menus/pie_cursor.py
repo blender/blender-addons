@@ -69,7 +69,7 @@ class Snap_CursorMenu(Menu):
                      icon='CLIPUV_HLT').use_offset = False
         # 6 - RIGHT
         pie.operator("view3d.snap_selected_to_cursor",
-                    text="Selection to Cursor (Offset)", icon='CURSOR').use_offset = True
+                    text="Selection to Cursor (Keep Offset)", icon='CURSOR').use_offset = True
         # 2 - BOTTOM
         pie.operator("view3d.snap_cursor_selected_to_center1",
                     text="Selected & Cursor to Center", icon='ALIGN')
