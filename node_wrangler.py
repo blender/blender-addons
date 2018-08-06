@@ -4655,7 +4655,97 @@ kmi_defs = (
 )
 
 
+classes = (
+    NWPrincipledPreferences,
+    NWNodeWrangler,
+    NWLazyMix,
+    NWLazyConnect,
+    NWDeleteUnused,
+    NWSwapLinks,
+    NWResetBG,
+    NWAddAttrNode,
+    NWEmissionViewer,
+    NWFrameSelected,
+    NWReloadImages,
+    NWSwitchNodeType,
+    NWMergeNodes,
+    NWBatchChangeNodes,
+    NWChangeMixFactor,
+    NWCopySettings,
+    NWCopyLabel,
+    NWClearLabel,
+    NWModifyLabels,
+    NWAddTextureSetup,
+    NWAddPrincipledSetup,
+    NWAddReroutes,
+    NWLinkActiveToSelected,
+    NWAlignNodes,
+    NWSelectParentChildren,
+    NWDetachOutputs,
+    NWLinkToOutputNode,
+    NWMakeLink,
+    NWCallInputsMenu,
+    NWAddSequence,
+    NWAddMultipleImages,
+    NWViewerFocus,
+    NWSaveViewer,
+    NWResetNodes,
+    NodeWranglerPanel,
+    NodeWranglerMenu,
+    NWMergeNodesMenu,
+    NWMergeShadersMenu,
+    NWMergeMixMenu,
+    NWConnectionListOutputs,
+    NWConnectionListInputs,
+    NWMergeMathMenu,
+    NWBatchChangeNodesMenu,
+    NWBatchChangeBlendTypeMenu,
+    NWBatchChangeOperationMenu,
+    NWCopyToSelectedMenu,
+    NWCopyLabelMenu,
+    NWAddReroutesMenu,
+    NWLinkActiveToSelectedMenu,
+    NWLinkStandardMenu,
+    NWLinkUseNodeNameMenu,
+    NWLinkUseOutputsNamesMenu,
+    NWVertColMenu,
+    NWSwitchNodeTypeMenu,
+    NWSwitchShadersInputSubmenu,
+    NWSwitchShadersOutputSubmenu,
+    NWSwitchShadersShaderSubmenu,
+    NWSwitchShadersTextureSubmenu,
+    NWSwitchShadersColorSubmenu,
+    NWSwitchShadersVectorSubmenu,
+    NWSwitchShadersConverterSubmenu,
+    NWSwitchShadersLayoutSubmenu,
+    NWSwitchCompoInputSubmenu,
+    NWSwitchCompoOutputSubmenu,
+    NWSwitchCompoColorSubmenu,
+    NWSwitchCompoConverterSubmenu,
+    NWSwitchCompoFilterSubmenu,
+    NWSwitchCompoVectorSubmenu,
+    NWSwitchCompoMatteSubmenu,
+    NWSwitchCompoDistortSubmenu,
+    NWSwitchCompoLayoutSubmenu,
+    NWSwitchMatInputSubmenu,
+    NWSwitchMatOutputSubmenu,
+    NWSwitchMatColorSubmenu,
+    NWSwitchMatVectorSubmenu,
+    NWSwitchMatConverterSubmenu,
+    NWSwitchMatLayoutSubmenu,
+    NWSwitchTexInputSubmenu,
+    NWSwitchTexOutputSubmenu,
+    NWSwitchTexColorSubmenu,
+    NWSwitchTexPatternSubmenu,
+    NWSwitchTexTexturesSubmenu,
+    NWSwitchTexConverterSubmenu,
+    NWSwitchTexDistortSubmenu,
+    NWSwitchTexLayoutSubmenu,
+)
+
 def register():
+    from bpy.utils import register_class
+
     # props
     bpy.types.Scene.NWBusyDrawing = StringProperty(
         name="Busy Drawing!",
@@ -4674,7 +4764,8 @@ def register():
         default=0,
         description="An internal property used to store the source socket in a Lazy Connect operation")
 
-    bpy.utils.register_module(__name__)
+    for cls in classes:
+        register_class(cls)
 
     # keymaps
     addon_keymaps.clear()
@@ -4703,6 +4794,8 @@ def register():
 
 
 def unregister():
+    from bpy.utils import unregister_class
+
     # props
     del bpy.types.Scene.NWBusyDrawing
     del bpy.types.Scene.NWLazySource
@@ -4727,7 +4820,8 @@ def unregister():
     bpy.types.NODE_PT_active_node_generic.remove(reset_nodes_button)
     bpy.types.NODE_MT_node.remove(reset_nodes_button)
 
-    bpy.utils.unregister_module(__name__)
+    for cls in classes:
+        unregister_class(cls)
 
 if __name__ == "__main__":
     register()
