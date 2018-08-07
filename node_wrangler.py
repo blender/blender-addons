@@ -1571,8 +1571,9 @@ class NWAddAttrNode(Operator, NWBase):
     """Add an Attribute node with this name"""
     bl_idname = 'node.nw_add_attr_node'
     bl_label = 'Add UV map'
-    attr_name = StringProperty()
     bl_options = {'REGISTER', 'UNDO'}
+
+    attr_name: StringProperty()
 
     def execute(self, context):
         bpy.ops.node.add_node('INVOKE_DEFAULT', use_transform=True, type="ShaderNodeAttribute")
@@ -1738,9 +1739,19 @@ class NWFrameSelected(Operator, NWBase):
     bl_label = "Frame Selected"
     bl_description = "Add a frame node and parent the selected nodes to it"
     bl_options = {'REGISTER', 'UNDO'}
-    label_prop = StringProperty(name='Label', default=' ', description='The visual name of the frame node')
-    color_prop = FloatVectorProperty(name="Color", description="The color of the frame node", default=(0.6, 0.6, 0.6),
-                                     min=0, max=1, step=1, precision=3, subtype='COLOR_GAMMA', size=3)
+
+    label_prop: StringProperty(
+        name='Label',
+        description='The visual name of the frame node',
+        default=' '
+    )
+    color_prop: FloatVectorProperty(
+        name="Color",
+        description="The color of the frame node",
+        default=(0.6, 0.6, 0.6),
+        min=0, max=1, step=1, precision=3,
+        subtype='COLOR_GAMMA', size=3
+    )
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -2532,16 +2543,16 @@ class NWModifyLabels(Operator, NWBase):
     bl_label = "Modify Labels"
     bl_options = {'REGISTER', 'UNDO'}
 
-    prepend = StringProperty(
+    prepend: StringProperty(
         name="Add to Beginning"
     )
-    append = StringProperty(
+    append: StringProperty(
         name="Add to End"
     )
-    replace_from = StringProperty(
+    replace_from: StringProperty(
         name="Text to Replace"
     )
-    replace_to = StringProperty(
+    replace_to: StringProperty(
         name="Replace with"
     )
 
@@ -2643,19 +2654,21 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
     bl_description = "Add Texture Node Setup for Principled BSDF"
     bl_options = {'REGISTER', 'UNDO'}
 
-    directory = StringProperty(
-                    name='Directory',
-                    subtype='DIR_PATH',
-                    default='',
-                    description='Folder to search in for image files')
-    files = CollectionProperty(
-                    type=bpy.types.OperatorFileListElement,
-                    options={'HIDDEN', 'SKIP_SAVE'})
+    directory: StringProperty(
+        name='Directory',
+        subtype='DIR_PATH',
+        default='',
+        description='Folder to search in for image files'
+    )
+    files: CollectionProperty(
+        type=bpy.types.OperatorFileListElement,
+        options={'HIDDEN', 'SKIP_SAVE'}
+    )
 
     order = [
         "filepath",
         "files",
-        ]
+    ]
 
     @classmethod
     def poll(cls, context):
@@ -3309,9 +3322,17 @@ class NWAddSequence(Operator, ImportHelper):
     bl_idname = 'node.nw_add_sequence'
     bl_label = 'Import Image Sequence'
     bl_options = {'REGISTER', 'UNDO'}
-    directory = StringProperty(subtype="DIR_PATH")
-    filename = StringProperty(subtype="FILE_NAME")
-    files = CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
+
+    directory: StringProperty(
+        subtype="DIR_PATH"
+    )
+    filename: StringProperty(
+        subtype="FILE_NAME"
+    )
+    files: CollectionProperty(
+        type=bpy.types.OperatorFileListElement,
+        options={'HIDDEN', 'SKIP_SAVE'}
+    )
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -3403,8 +3424,13 @@ class NWAddMultipleImages(Operator, ImportHelper):
     bl_idname = 'node.nw_add_multiple_images'
     bl_label = 'Open Selected Images'
     bl_options = {'REGISTER', 'UNDO'}
-    directory = StringProperty(subtype="DIR_PATH")
-    files = CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
+    directory: StringProperty(
+        subtype="DIR_PATH"
+    )
+    files: CollectionProperty(
+        type=bpy.types.OperatorFileListElement,
+        options={'HIDDEN', 'SKIP_SAVE'}
+    )
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
