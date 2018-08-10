@@ -38,6 +38,10 @@ blender.stackexchange.com/questions/40711/how-to-convert-quaternions-keyframes-t
 #     "category": "Animation"}
 
 import bpy
+from bpy.props import (
+    BoolProperty,
+    EnumProperty,
+)
 
 order_list = ['QUATERNION', 'XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']
 
@@ -326,9 +330,19 @@ class CONVERT_OT_quat2eu_all_actions(bpy.types.Operator):
         return {'FINISHED'}
 
 
-def register():
-    IDStore = bpy.types.WindowManager
+### Registering ###
 
+classes = (
+    ToolsPanel,
+    CONVERT_OT_quat2eu_current_action,
+    CONVERT_OT_quat2eu_all_actions,
+)
+
+
+def register():
+    from bpy.utils import register_class
+
+    # Properties.
     items = [('QUATERNION', 'QUATERNION', 'QUATERNION'),
              ('XYZ', 'XYZ', 'XYZ'),
              ('XZY', 'XZY', 'XZY'),
@@ -336,24 +350,27 @@ def register():
              ('YZX', 'YZX', 'YZX'),
              ('ZXY', 'ZXY', 'ZXY'),
              ('ZYX', 'ZYX', 'ZYX')]
+    bpy.types.Scene.order_list = EnumProperty(
+        items=items, name='Convert to',
+        description="The target rotation mode", default='QUATERNION')
 
-    bpy.types.Scene.order_list = bpy.props.EnumProperty(items=items, name='Convert to',
-                                                        description="The target rotation mode", default='QUATERNION')
+    IDStore = bpy.types.WindowManager
+    IDStore.rigify_convert_only_selected = BoolProperty(
+        name="Convert Only Selected",
+        description="Convert selected bones only", default=True)
 
-    IDStore.rigify_convert_only_selected = bpy.props.BoolProperty(
-        name="Convert Only Selected", description="Convert selected bones only", default=True)
+    # Classes.
+    for cls in classes:
+        register_class(cls)
 
-    bpy.utils.register_class(ToolsPanel)
-    bpy.utils.register_class(CONVERT_OT_quat2eu_current_action)
-    bpy.utils.register_class(CONVERT_OT_quat2eu_all_actions)
 
 def unregister():
+    from bpy.utils import unregister_class
+
+    # Classes.
+    for cls in classes:
+        unregister_class(cls)
+
+    # Properties.
     IDStore = bpy.types.WindowManager
-
-    bpy.utils.unregister_class(ToolsPanel)
-    bpy.utils.unregister_class(CONVERT_OT_quat2eu_current_action)
-    bpy.utils.unregister_class(CONVERT_OT_quat2eu_all_actions)
-
     del IDStore.rigify_convert_only_selected
-
-# bpy.utils.register_module(__name__)

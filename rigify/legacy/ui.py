@@ -304,11 +304,11 @@ class Sample(bpy.types.Operator):
     bl_label = "Add a sample metarig for a rig type"
     bl_options = {'UNDO'}
 
-    metarig_type = StringProperty(
-            name="Type",
-            description="Name of the rig type to generate a sample of",
-            maxlen=128,
-            )
+    metarig_type: StringProperty(
+        name="Type",
+        description="Name of the rig type to generate a sample of",
+        maxlen=128,
+    )
 
     def execute(self, context):
         if context.mode == 'EDIT_ARMATURE' and self.metarig_type != "":

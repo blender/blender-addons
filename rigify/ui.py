@@ -19,7 +19,13 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.props import StringProperty
+from bpy.props import (
+    BoolProperty,
+    IntProperty,
+    EnumProperty,
+    StringProperty
+)
+
 from mathutils import Color
 
 from .utils import get_rig_type, MetarigError
@@ -395,28 +401,29 @@ class DATA_OT_rigify_bone_group_add_theme(bpy.types.Operator):
     bl_label = "Rigify Add Bone Group color set from Theme"
     bl_options = {"REGISTER", "UNDO"}
 
-    theme = bpy.props.EnumProperty(items=(('THEME01', 'THEME01', ''),
-                                          ('THEME02', 'THEME02', ''),
-                                          ('THEME03', 'THEME03', ''),
-                                          ('THEME04', 'THEME04', ''),
-                                          ('THEME05', 'THEME05', ''),
-                                          ('THEME06', 'THEME06', ''),
-                                          ('THEME07', 'THEME07', ''),
-                                          ('THEME08', 'THEME08', ''),
-                                          ('THEME09', 'THEME09', ''),
-                                          ('THEME10', 'THEME10', ''),
-                                          ('THEME11', 'THEME11', ''),
-                                          ('THEME12', 'THEME12', ''),
-                                          ('THEME13', 'THEME13', ''),
-                                          ('THEME14', 'THEME14', ''),
-                                          ('THEME15', 'THEME15', ''),
-                                          ('THEME16', 'THEME16', ''),
-                                          ('THEME17', 'THEME17', ''),
-                                          ('THEME18', 'THEME18', ''),
-                                          ('THEME19', 'THEME19', ''),
-                                          ('THEME20', 'THEME20', '')
-                                          ),
-                                   name='Theme')
+    theme: EnumProperty(items=(
+        ('THEME01', 'THEME01', ''),
+        ('THEME02', 'THEME02', ''),
+        ('THEME03', 'THEME03', ''),
+        ('THEME04', 'THEME04', ''),
+        ('THEME05', 'THEME05', ''),
+        ('THEME06', 'THEME06', ''),
+        ('THEME07', 'THEME07', ''),
+        ('THEME08', 'THEME08', ''),
+        ('THEME09', 'THEME09', ''),
+        ('THEME10', 'THEME10', ''),
+        ('THEME11', 'THEME11', ''),
+        ('THEME12', 'THEME12', ''),
+        ('THEME13', 'THEME13', ''),
+        ('THEME14', 'THEME14', ''),
+        ('THEME15', 'THEME15', ''),
+        ('THEME16', 'THEME16', ''),
+        ('THEME17', 'THEME17', ''),
+        ('THEME18', 'THEME18', ''),
+        ('THEME19', 'THEME19', ''),
+        ('THEME20', 'THEME20', '')
+        ),
+         name='Theme')
 
     @classmethod
     def poll(cls, context):
@@ -448,7 +455,7 @@ class DATA_OT_rigify_bone_group_remove(bpy.types.Operator):
     bl_idname = "armature.rigify_bone_group_remove"
     bl_label = "Rigify Remove Bone Group color set"
 
-    idx = bpy.props.IntProperty()
+    idx: IntProperty()
 
     @classmethod
     def poll(cls, context):
@@ -794,18 +801,17 @@ class SwitchToLegacy(bpy.types.Operator):
 
 
 class Sample(bpy.types.Operator):
-    """Create a sample metarig to be modified before generating """ \
-    """the final rig"""
+    """Create a sample metarig to be modified before generating the final rig"""
 
     bl_idname = "armature.metarig_sample_add"
     bl_label = "Add a sample metarig for a rig type"
     bl_options = {'UNDO'}
 
-    metarig_type = StringProperty(
-            name="Type",
-            description="Name of the rig type to generate a sample of",
-            maxlen=128,
-            )
+    metarig_type: StringProperty(
+        name="Type",
+        description="Name of the rig type to generate a sample of",
+        maxlen=128,
+    )
 
     def execute(self, context):
         if context.mode == 'EDIT_ARMATURE' and self.metarig_type != "":
@@ -1074,20 +1080,20 @@ def IktoFk(rig, window='ALL'):
                 break
 
 
-def clearAnimation(act, type, names):
+def clearAnimation(act, anim_type, names):
 
     bones = []
     for group in names:
         if names[group]['limb_type'] == 'arm':
-            if type == 'IK':
+            if anim_type == 'IK':
                 bones.extend([names[group]['controls'][0], names[group]['controls'][4]])
-            elif type == 'FK':
+            elif anim_type == 'FK':
                 bones.extend([names[group]['controls'][1], names[group]['controls'][2], names[group]['controls'][3]])
         else:
-            if type == 'IK':
+            if anim_type == 'IK':
                 bones.extend([names[group]['controls'][0], names[group]['controls'][6], names[group]['controls'][5],
                               names[group]['controls'][4]])
-            elif type == 'FK':
+            elif anim_type == 'FK':
                 bones.extend([names[group]['controls'][1], names[group]['controls'][2], names[group]['controls'][3],
                               names[group]['controls'][4]])
     FCurves = []
@@ -1271,7 +1277,8 @@ class OBJECT_OT_ClearAnimation(bpy.types.Operator):
     bl_idname = "rigify.clear_animation"
     bl_label = "Clear Animation"
     bl_description = "Clear Animation For FK or IK Bones"
-    type = StringProperty()
+
+    anim_type: StringProperty()
 
     def execute(self, context):
 
@@ -1286,7 +1293,7 @@ class OBJECT_OT_ClearAnimation(bpy.types.Operator):
             if not act:
                 return {'FINISHED'}
 
-            clearAnimation(act, self.type, names=get_limb_generated_names(rig))
+            clearAnimation(act, self.anim_type, names=get_limb_generated_names(rig))
         finally:
             context.user_preferences.edit.use_global_undo = use_global_undo
         return {'FINISHED'}
@@ -1296,11 +1303,12 @@ class OBJECT_OT_Rot2Pole(bpy.types.Operator):
     bl_idname = "rigify.rotation_pole"
     bl_label = "Rotation - Pole toggle"
     bl_description = "Toggles IK chain between rotation and pole target"
-    bone_name = bpy.props.StringProperty(default='')
-    window = bpy.props.StringProperty(default='ALL')
-    toggle = bpy.props.BoolProperty(default=True)
-    value = bpy.props.BoolProperty(default=True)
-    bake = bpy.props.BoolProperty(default=True)
+
+    bone_name: StringProperty(default='')
+    window: StringProperty(default='ALL')
+    toggle: BoolProperty(default=True)
+    value: BoolProperty(default=True)
+    bake: BoolProperty(default=True)
 
     def execute(self, context):
         rig = context.object
@@ -1313,74 +1321,60 @@ class OBJECT_OT_Rot2Pole(bpy.types.Operator):
         return {'FINISHED'}
 
 
+### Registering ###
+
+
+classes = (
+    DATA_OT_rigify_add_bone_groups,
+    DATA_OT_rigify_use_standard_colors,
+    DATA_OT_rigify_apply_selection_colors,
+    DATA_OT_rigify_bone_group_add,
+    DATA_OT_rigify_bone_group_add_theme,
+    DATA_OT_rigify_bone_group_remove,
+    DATA_OT_rigify_bone_group_remove_all,
+    DATA_UL_rigify_bone_groups,
+    DATA_MT_rigify_bone_groups_specials,
+    DATA_PT_rigify_bone_groups,
+    DATA_PT_rigify_layer_names,
+    DATA_PT_rigify_buttons,
+    BONE_PT_rigify_buttons,
+    VIEW3D_PT_rigify_animation_tools,
+    VIEW3D_PT_tools_rigify_dev,
+    LayerInit,
+    Generate,
+    UpgradeMetarigTypes,
+    SwitchToLegacy,
+    Sample,
+    EncodeMetarig,
+    EncodeMetarigSample,
+    EncodeWidget,
+    OBJECT_OT_GetFrameRange,
+    OBJECT_OT_FK2IK,
+    OBJECT_OT_IK2FK,
+    OBJECT_OT_TransferFKtoIK,
+    OBJECT_OT_TransferIKtoFK,
+    OBJECT_OT_ClearAnimation,
+    OBJECT_OT_Rot2Pole,
+)
+
+
 def register():
+    from bpy.utils import register_class
 
-    bpy.utils.register_class(DATA_OT_rigify_add_bone_groups)
-    bpy.utils.register_class(DATA_OT_rigify_use_standard_colors)
-    bpy.utils.register_class(DATA_OT_rigify_apply_selection_colors)
-    bpy.utils.register_class(DATA_OT_rigify_bone_group_add)
-    bpy.utils.register_class(DATA_OT_rigify_bone_group_add_theme)
-    bpy.utils.register_class(DATA_OT_rigify_bone_group_remove)
-    bpy.utils.register_class(DATA_OT_rigify_bone_group_remove_all)
-    bpy.utils.register_class(DATA_UL_rigify_bone_groups)
-    bpy.utils.register_class(DATA_MT_rigify_bone_groups_specials)
-    bpy.utils.register_class(DATA_PT_rigify_bone_groups)
-    bpy.utils.register_class(DATA_PT_rigify_layer_names)
-    bpy.utils.register_class(DATA_PT_rigify_buttons)
-    bpy.utils.register_class(BONE_PT_rigify_buttons)
-    bpy.utils.register_class(VIEW3D_PT_rigify_animation_tools)
-    bpy.utils.register_class(VIEW3D_PT_tools_rigify_dev)
-    bpy.utils.register_class(LayerInit)
-    bpy.utils.register_class(Generate)
-    bpy.utils.register_class(UpgradeMetarigTypes)
-    bpy.utils.register_class(SwitchToLegacy)
-    bpy.utils.register_class(Sample)
-    bpy.utils.register_class(EncodeMetarig)
-    bpy.utils.register_class(EncodeMetarigSample)
-    bpy.utils.register_class(EncodeWidget)
-    bpy.utils.register_class(OBJECT_OT_GetFrameRange)
-    bpy.utils.register_class(OBJECT_OT_FK2IK)
-    bpy.utils.register_class(OBJECT_OT_IK2FK)
-    bpy.utils.register_class(OBJECT_OT_TransferFKtoIK)
-    bpy.utils.register_class(OBJECT_OT_TransferIKtoFK)
-    bpy.utils.register_class(OBJECT_OT_ClearAnimation)
-    bpy.utils.register_class(OBJECT_OT_Rot2Pole)
+    # Classes.
+    for cls in classes:
+        register_class(cls)
 
+    # Sub-modules.
     rot_mode.register()
 
 
 def unregister():
+    from bpy.utils import unregister_class
 
-    bpy.utils.unregister_class(DATA_OT_rigify_add_bone_groups)
-    bpy.utils.unregister_class(DATA_OT_rigify_use_standard_colors)
-    bpy.utils.unregister_class(DATA_OT_rigify_apply_selection_colors)
-    bpy.utils.unregister_class(DATA_OT_rigify_bone_group_add)
-    bpy.utils.unregister_class(DATA_OT_rigify_bone_group_add_theme)
-    bpy.utils.unregister_class(DATA_OT_rigify_bone_group_remove)
-    bpy.utils.unregister_class(DATA_OT_rigify_bone_group_remove_all)
-    bpy.utils.unregister_class(DATA_UL_rigify_bone_groups)
-    bpy.utils.unregister_class(DATA_MT_rigify_bone_groups_specials)
-    bpy.utils.unregister_class(DATA_PT_rigify_bone_groups)
-    bpy.utils.unregister_class(DATA_PT_rigify_layer_names)
-    bpy.utils.unregister_class(DATA_PT_rigify_buttons)
-    bpy.utils.unregister_class(BONE_PT_rigify_buttons)
-    bpy.utils.unregister_class(VIEW3D_PT_rigify_animation_tools)
-    bpy.utils.unregister_class(VIEW3D_PT_tools_rigify_dev)
-    bpy.utils.unregister_class(LayerInit)
-    bpy.utils.unregister_class(Generate)
-    bpy.utils.unregister_class(UpgradeMetarigTypes)
-    bpy.utils.unregister_class(SwitchToLegacy)
-    bpy.utils.unregister_class(Sample)
-    bpy.utils.unregister_class(EncodeMetarig)
-    bpy.utils.unregister_class(EncodeMetarigSample)
-    bpy.utils.unregister_class(EncodeWidget)
-    bpy.utils.unregister_class(OBJECT_OT_GetFrameRange)
-    bpy.utils.unregister_class(OBJECT_OT_FK2IK)
-    bpy.utils.unregister_class(OBJECT_OT_IK2FK)
-    bpy.utils.unregister_class(OBJECT_OT_TransferFKtoIK)
-    bpy.utils.unregister_class(OBJECT_OT_TransferIKtoFK)
-    bpy.utils.unregister_class(OBJECT_OT_ClearAnimation)
-    bpy.utils.unregister_class(OBJECT_OT_Rot2Pole)
-
+    # Sub-modules.
     rot_mode.unregister()
 
+    # Classes.
+    for cls in classes:
+        unregister_class(cls)
