@@ -251,7 +251,7 @@ class SCENE_OT_export(bpy.types.Operator):
         #bpy.ops.object.transforms_to_deltas(mode='ROT')
 
         bpy.ops.wm.collada_export(filepath=coa.applink_address, selected=True,
-                                  apply_modifiers=False, triangulate=False)
+                                  apply_modifiers=False, sort_by_name=True, triangulate=False)
 
         file = open(importfile, "w")
         file.write("%s"%(checkname))
@@ -264,7 +264,7 @@ class SCENE_OT_export(bpy.types.Operator):
         for objekti in bpy.context.selected_objects:
             nimi = ''
             for koko in bpy.context.selected_objects:
-                nimi += koko.name + ':::'
+                nimi += koko.data.name + ':::'
             objekti.coat3D.applink_group = nimi
             objekti.coat3D.applink_address = coa.applink_address
             objekti.coat3D.applink_name = coa.applink_name
@@ -296,6 +296,7 @@ class SCENE_OT_import(bpy.types.Operator):
         Blender_export += ('%sexport.txt'%(os.sep))
         new_applink_address = 'False'
         new_object = False
+        print(Blender_export)
         if(os.path.isfile(Blender_export)):
             obj_pathh = open(Blender_export)
             new_object = True
@@ -337,12 +338,21 @@ class SCENE_OT_import(bpy.types.Operator):
                     obj_list = obj_names.split(':::')
                     applinks = []
                     mat_list = []
+                    obj_list.pop()
+                    print('obj_list: ',obj_list)
+
+
                     for app_obj in obj_list:
                         pnimi = app_obj.lstrip()
                         listed = re.split(r'[:::]', pnimi)
-                        for tobj in bpy.context.scene.collection.all_objects:
-                            if(tobj.name == app_obj):
-                                applinks.append(tobj)
+                        for tobj in bpy.context.collection.all_objects:
+                            if(tobj.type == 'MESH'):
+                                print('tobj.data.name: ',tobj.data.name)
+                                print('app_obj: ',app_obj)
+                                if(tobj.data.name == app_obj):
+                                    print('applink appends:',tobj)
+                                    applinks.append(tobj)
+
                     if(obj_coat.objecttime != str(os.path.getmtime(obj_coat.applink_address))):
                         materials_old = bpy.data.materials.keys()
                         obj_coat.dime = objekti.dimensions
@@ -350,7 +360,7 @@ class SCENE_OT_import(bpy.types.Operator):
                         bpy.ops.wm.collada_import(filepath=obj_coat.applink_address)
                         bpy.ops.object.select_all(action='DESELECT')
 
-
+                    
                         materials_new = bpy.data.materials.keys()
                         new_ma = list(set(materials_new).difference(set(materials_old)))
                         proxy_index = -1
@@ -359,6 +369,7 @@ class SCENE_OT_import(bpy.types.Operator):
                         del_list = []
 
                         for obe in applinks:
+                            print('obe: ',obe)
                             counter += 1
                             obe.coat3D.applink_skip = 'True'
                             if(obe.coat3D.applink_address == objekti.coat3D.applink_address and obe.type == 'MESH'):
@@ -371,14 +382,14 @@ class SCENE_OT_import(bpy.types.Operator):
 
                                 #finds a object that was imported
                                 if(obe.coat3D.applink_export == False):
-                                    find_name = obe.name + '-mesh'
+                                    find_name = obe.data.name + '-mesh'
                                     find_name = find_name.replace('.', '_')
                                 else:
-                                    find_name = obe.name + '.001'
+                                    find_name = obe.data.name + '.001'
                                 for allobjekti in bpy.context.scene.collection.all_objects:
                                     counter = 0
 
-                                    if(allobjekti.name == find_name):
+                                    if(allobjekti.data.name == find_name):
                                         obj_proxy = allobjekti
                                         del_list.append(allobjekti)
                                         break
@@ -402,8 +413,8 @@ class SCENE_OT_import(bpy.types.Operator):
 
                                     obj_data = obe.data.id_data
                                     obe.data = obj_proxy.data.id_data
+                                    obe.data.id_data.name = obj_data.name
                                     if(bpy.data.meshes[obj_data.name].users == 0):
-                                        obe.data.id_data.name = obj_data.name
                                         bpy.data.meshes.remove(obj_data)
 
 
@@ -419,16 +430,16 @@ class SCENE_OT_import(bpy.types.Operator):
                                 if (use_smooth):
                                     for data_mesh in obe.data.polygons:
                                         data_mesh.use_smooth = True
-
+                        
                         bpy.ops.object.select_all(action='DESELECT')
-
+                        print('del_list', del_list)
                         for deleting in del_list:
                             deleting.select_set(action='SELECT')
                             bpy.ops.object.delete()
                         mat_index = 0
-                        for obe in applinks:
-                            bpy.data.materials.remove(bpy.data.materials[new_ma[mat_index]])
-                            mat_index +=1
+                        #for obe in applinks:
+                        #    bpy.data.materials.remove(bpy.data.materials[new_ma[mat_index]])
+                        #    mat_index +=1
 
                     if(os.path.isfile(path3b_n)):
                         path3b_fil = open(path3b_n)
@@ -479,7 +490,7 @@ class SCENE_OT_import(bpy.types.Operator):
             for new_obj in bpy.context.collection.objects:
 
                 if(new_obj.coat3D.applink_old == False):
-                    nimi += new_obj.name + ':::'
+                    nimi += new_obj.data.name + ':::'
                     new_obj.select_set('SELECT')
                     #bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
                     new_obj.rotation_euler = (0, 0, 0)
