@@ -20,6 +20,7 @@
 
 UI_SLIDERS = '''
 import bpy
+from bpy.props import StringProperty
 from mathutils import Matrix, Vector
 from math import acos, pi, radians
 
@@ -600,13 +601,13 @@ class Rigify_Arm_FK2IK(bpy.types.Operator):
     bl_label = "Rigify Snap FK arm to IK"
     bl_options = {'UNDO'}
 
-    uarm_fk = bpy.props.StringProperty(name="Upper Arm FK Name")
-    farm_fk = bpy.props.StringProperty(name="Forerm FK Name")
-    hand_fk = bpy.props.StringProperty(name="Hand FK Name")
+    uarm_fk: StringProperty(name="Upper Arm FK Name")
+    farm_fk: StringProperty(name="Forerm FK Name")
+    hand_fk: StringProperty(name="Hand FK Name")
 
-    uarm_ik = bpy.props.StringProperty(name="Upper Arm IK Name")
-    farm_ik = bpy.props.StringProperty(name="Forearm IK Name")
-    hand_ik = bpy.props.StringProperty(name="Hand IK Name")
+    uarm_ik: StringProperty(name="Upper Arm IK Name")
+    farm_ik: StringProperty(name="Forearm IK Name")
+    hand_ik: StringProperty(name="Hand IK Name")
 
     @classmethod
     def poll(cls, context):
@@ -629,16 +630,16 @@ class Rigify_Arm_IK2FK(bpy.types.Operator):
     bl_label = "Rigify Snap IK arm to FK"
     bl_options = {'UNDO'}
 
-    uarm_fk = bpy.props.StringProperty(name="Upper Arm FK Name")
-    farm_fk = bpy.props.StringProperty(name="Forerm FK Name")
-    hand_fk = bpy.props.StringProperty(name="Hand FK Name")
+    uarm_fk: StringProperty(name="Upper Arm FK Name")
+    farm_fk: StringProperty(name="Forerm FK Name")
+    hand_fk: StringProperty(name="Hand FK Name")
 
-    uarm_ik = bpy.props.StringProperty(name="Upper Arm IK Name")
-    farm_ik = bpy.props.StringProperty(name="Forearm IK Name")
-    hand_ik = bpy.props.StringProperty(name="Hand IK Name")
-    pole    = bpy.props.StringProperty(name="Pole IK Name")
+    uarm_ik: StringProperty(name="Upper Arm IK Name")
+    farm_ik: StringProperty(name="Forearm IK Name")
+    hand_ik: StringProperty(name="Hand IK Name")
+    pole   : StringProperty(name="Pole IK Name")
 
-    main_parent = bpy.props.StringProperty(name="Main Parent", default="")
+    main_parent: StringProperty(name="Main Parent", default="")
 
     @classmethod
     def poll(cls, context):
@@ -661,15 +662,15 @@ class Rigify_Leg_FK2IK(bpy.types.Operator):
     bl_label = "Rigify Snap FK leg to IK"
     bl_options = {'UNDO'}
 
-    thigh_fk = bpy.props.StringProperty(name="Thigh FK Name")
-    shin_fk  = bpy.props.StringProperty(name="Shin FK Name")
-    foot_fk  = bpy.props.StringProperty(name="Foot FK Name")
-    mfoot_fk = bpy.props.StringProperty(name="MFoot FK Name")
+    thigh_fk: StringProperty(name="Thigh FK Name")
+    shin_fk:  StringProperty(name="Shin FK Name")
+    foot_fk:  StringProperty(name="Foot FK Name")
+    mfoot_fk: StringProperty(name="MFoot FK Name")
 
-    thigh_ik = bpy.props.StringProperty(name="Thigh IK Name")
-    shin_ik  = bpy.props.StringProperty(name="Shin IK Name")
-    foot_ik  = bpy.props.StringProperty(name="Foot IK Name")
-    mfoot_ik = bpy.props.StringProperty(name="MFoot IK Name")
+    thigh_ik: StringProperty(name="Thigh IK Name")
+    shin_ik:  StringProperty(name="Shin IK Name")
+    foot_ik:  StringProperty(name="Foot IK Name")
+    mfoot_ik: StringProperty(name="MFoot IK Name")
 
     @classmethod
     def poll(cls, context):
@@ -692,18 +693,18 @@ class Rigify_Leg_IK2FK(bpy.types.Operator):
     bl_label = "Rigify Snap IK leg to FK"
     bl_options = {'UNDO'}
 
-    thigh_fk = bpy.props.StringProperty(name="Thigh FK Name")
-    shin_fk  = bpy.props.StringProperty(name="Shin FK Name")
-    mfoot_fk = bpy.props.StringProperty(name="MFoot FK Name")
-    foot_fk = bpy.props.StringProperty(name="Foot FK Name", default="")
-    thigh_ik = bpy.props.StringProperty(name="Thigh IK Name")
-    shin_ik  = bpy.props.StringProperty(name="Shin IK Name")
-    foot_ik  = bpy.props.StringProperty(name="Foot IK Name")
-    footroll = bpy.props.StringProperty(name="Foot Roll Name")
-    pole     = bpy.props.StringProperty(name="Pole IK Name")
-    mfoot_ik = bpy.props.StringProperty(name="MFoot IK Name")
+    thigh_fk: StringProperty(name="Thigh FK Name")
+    shin_fk:  StringProperty(name="Shin FK Name")
+    mfoot_fk: StringProperty(name="MFoot FK Name")
+    foot_fk:  StringProperty(name="Foot FK Name", default="")
+    thigh_ik: StringProperty(name="Thigh IK Name")
+    shin_ik:  StringProperty(name="Shin IK Name")
+    foot_ik:  StringProperty(name="Foot IK Name")
+    footroll: StringProperty(name="Foot Roll Name")
+    pole:     StringProperty(name="Pole IK Name")
+    mfoot_ik: StringProperty(name="MFoot IK Name")
 
-    main_parent = bpy.props.StringProperty(name="Main Parent", default="")
+    main_parent: StringProperty(name="Main Parent", default="")
 
     @classmethod
     def poll(cls, context):
@@ -726,13 +727,14 @@ class Rigify_Rot2PoleSwitch(bpy.types.Operator):
     bl_idname = "pose.rigify_rot2pole_" + rig_id
     bl_label = "Rotation - Pole toggle"
     bl_description = "Toggles IK chain between rotation and pole target"
-    bone_name = bpy.props.StringProperty(default='')
-    limb_type = bpy.props.StringProperty(name="Limb Type")
-    controls = bpy.props.StringProperty(name="Controls string")
-    ik_ctrl = bpy.props.StringProperty(name="IK Controls string")
-    fk_ctrl = bpy.props.StringProperty(name="FK Controls string")
-    parent = bpy.props.StringProperty(name="Parent name")
-    pole = bpy.props.StringProperty(name="Pole name")
+
+    bone_name: StringProperty(default='')
+    limb_type: StringProperty(name="Limb Type")
+    controls: StringProperty(name="Controls string")
+    ik_ctrl: StringProperty(name="IK Controls string")
+    fk_ctrl: StringProperty(name="FK Controls string")
+    parent: StringProperty(name="Parent name")
+    pole: StringProperty(name="Pole name")
 
     def execute(self, context):
         rig = context.object
@@ -841,23 +843,26 @@ class RigLayers(bpy.types.Panel):
 
 UI_REGISTER = '''
 
+classes = (
+    Rigify_Arm_FK2IK,
+    Rigify_Arm_IK2FK,
+    Rigify_Leg_FK2IK,
+    Rigify_Leg_IK2FK,
+    Rigify_Rot2PoleSwitch,
+    RigUI,
+    RigLayers,
+)
+
 def register():
-    bpy.utils.register_class(Rigify_Arm_FK2IK)
-    bpy.utils.register_class(Rigify_Arm_IK2FK)
-    bpy.utils.register_class(Rigify_Leg_FK2IK)
-    bpy.utils.register_class(Rigify_Leg_IK2FK)
-    bpy.utils.register_class(Rigify_Rot2PoleSwitch)
-    bpy.utils.register_class(RigUI)
-    bpy.utils.register_class(RigLayers)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
+
 
 def unregister():
-    bpy.utils.unregister_class(Rigify_Arm_FK2IK)
-    bpy.utils.unregister_class(Rigify_Arm_IK2FK)
-    bpy.utils.unregister_class(Rigify_Leg_FK2IK)
-    bpy.utils.unregister_class(Rigify_Leg_IK2FK)
-    bpy.utils.register_class(Rigify_Rot2PoleSwitch)
-    bpy.utils.unregister_class(RigUI)
-    bpy.utils.unregister_class(RigLayers)
+    from bpy.utils import unregister_class
+    for cls in classes:
+        unregister_class(cls)
 
 register()
 '''
