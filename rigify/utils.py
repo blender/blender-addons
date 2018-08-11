@@ -1026,11 +1026,11 @@ def write_metarig(obj, layers=False, func_name="create", groups=False):
         for i in range(len(arm.rigify_layers)):
             name = arm.rigify_layers[i].name
             row = arm.rigify_layers[i].row
-            set = arm.rigify_layers[i].set
+            selset = arm.rigify_layers[i].selset
             group = arm.rigify_layers[i].group
             code.append('    arm.rigify_layers[' + str(i) + '].name = "' + name + '"')
             code.append('    arm.rigify_layers[' + str(i) + '].row = ' + str(row))
-            code.append('    arm.rigify_layers[' + str(i) + '].set = ' + str(set))
+            code.append('    arm.rigify_layers[' + str(i) + '].selset = ' + str(selset))
             code.append('    arm.rigify_layers[' + str(i) + '].group = ' + str(group))
 
     # write parents first

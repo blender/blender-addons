@@ -240,8 +240,8 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
                 #row.prop(arm, "layers", index=i, text="Layer %d" % (i + 1), toggle=True, icon=icon)
                 row.prop(rigify_layer, "name", text="")
                 row.prop(rigify_layer, "row", text="UI Row")
-                icon = 'RADIOBUT_ON' if rigify_layer.set else 'RADIOBUT_OFF'
-                row.prop(rigify_layer, "set", text="", toggle=True, icon=icon)
+                icon = 'RADIOBUT_ON' if rigify_layer.selset else 'RADIOBUT_OFF'
+                row.prop(rigify_layer, "selset", text="", toggle=True, icon=icon)
                 row.prop(rigify_layer, "group", text="Bone Group")
             else:
                 row = col.row(align=True)
@@ -253,8 +253,8 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
                 row1.prop(rigify_layer, "name", text="")
                 row1.prop(rigify_layer, "row", text="UI Row")
                 row1.enabled = False
-                icon = 'RADIOBUT_ON' if rigify_layer.set else 'RADIOBUT_OFF'
-                row.prop(rigify_layer, "set", text="", toggle=True, icon=icon)
+                icon = 'RADIOBUT_ON' if rigify_layer.selset else 'RADIOBUT_OFF'
+                row.prop(rigify_layer, "selset", text="", toggle=True, icon=icon)
                 row.prop(rigify_layer, "group", text="Bone Group")
             if rigify_layer.group == 0:
                 row.label(text='None')

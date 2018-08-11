@@ -553,7 +553,7 @@ def create_selection_sets(obj, metarig):
     pbones = obj.pose.bones
 
     for i, name in enumerate(metarig.data.rigify_layers.keys()):
-        if name == '' or not metarig.data.rigify_layers[i].set:
+        if name == '' or not metarig.data.rigify_layers[i].selset:
             continue
 
         bpy.ops.pose.select_all(action='DESELECT')

@@ -262,7 +262,7 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    #Properties.
+    # Properties.
     bpy.types.Armature.rigify_layers = CollectionProperty(type=RigifyArmatureLayer)
 
     bpy.types.PoseBone.rigify_type = StringProperty(name="Rigify Type", description="Rig type for this bone")
