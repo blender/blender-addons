@@ -331,6 +331,14 @@ class SCENE_OT_import(bpy.types.Operator):
                         new_object = False
         print('new_pbject:', new_object)
 
+        exportfile = coat3D.exchangedir
+        exportfile += ('%sBlender' % (os.sep))
+        exportfile += ('%sexport.txt' % (os.sep))
+        print('export.txt osoite:', exportfile)
+        if (os.path.isfile(exportfile)):
+            print('poistetaan')
+            os.remove(exportfile)
+
         if(new_object == False):
 
             #Blender -> 3DC -> Blender workflow
@@ -343,6 +351,7 @@ class SCENE_OT_import(bpy.types.Operator):
                         exportfile = coat3D.exchangedir
                         path3b_n = coat3D.exchangedir
                         path3b_n += ('last_saved_3b_file.txt')
+                        exportfile += ('%sBlender' % (os.sep))
                         exportfile += ('%sexport.txt'%(os.sep))
                         if(os.path.isfile(exportfile)):
                             export_file = open(exportfile)
@@ -351,6 +360,7 @@ class SCENE_OT_import(bpy.types.Operator):
                                     objekti.coat3D.coatpath = line
                                     coat['active_coat'] = line
                             export_file.close()
+                            print('poistetaan new')
                             os.remove(exportfile)
 
 
@@ -545,6 +555,7 @@ class SCENE_OT_import(bpy.types.Operator):
                     for node in material.node_tree.nodes:
                         if (node.name).startswith('3DC'):
                             node.location = node.location
+            print('export.txt osoite:', exportfile)
 
 
         return {'FINISHED'}
