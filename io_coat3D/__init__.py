@@ -143,10 +143,7 @@ def set_working_folders():
     platform = os.sys.platform
     coat3D = bpy.context.scene.coat3D
     if(platform == 'win32'):
-        if(bpy.data.filepath == ''):
-            folder_objects = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'ApplinkObjects'
-        else:
-            folder_objects  = os.path.dirname(bpy.data.filepath) + os.sep + '3DCApplink'
+        folder_objects = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'ApplinkObjects'
         if(not(os.path.isdir(folder_objects))):
             os.makedirs(folder_objects)
     else:
@@ -316,6 +313,7 @@ class SCENE_OT_export(bpy.types.Operator):
                                 material.material.node_tree.nodes.remove(node)
 
 
+
         return {'FINISHED'}
 
 class SCENE_OT_import(bpy.types.Operator):
@@ -339,6 +337,10 @@ class SCENE_OT_import(bpy.types.Operator):
         coat3D.exchangedir = set_exchange_folder()
 
         texturelist = make_texture_list(coat3D.exchangedir)
+        for texturepath in texturelist:
+            for image in bpy.data.images:
+                if(image.filepath == texturepath[3]):
+                    bpy.data.images.remove(image)
 
 
         Blender_folder = ("%s%sBlender"%(coat3D.exchangedir,os.sep))
@@ -376,6 +378,8 @@ class SCENE_OT_import(bpy.types.Operator):
 
             old_materials = bpy.data.materials.keys()
             old_objects = bpy.data.objects.keys()
+            old_images = bpy.data.images.keys()
+            image_list = []
             object_list = []
             import_list = []
             mesh_del_list = []
@@ -397,11 +401,15 @@ class SCENE_OT_import(bpy.types.Operator):
 
                 new_materials = bpy.data.materials.keys()
                 new_objects = bpy.data.objects.keys()
+                new_images = bpy.data.images.keys()
 
                 diff_mat = [i for i in new_materials if i not in old_materials]
                 diff_objects = [i for i in new_objects if i not in old_objects]
+                diff_images = [i for i in new_images if i not in old_images]
                 for c_index in diff_mat:
                     bpy.data.materials.remove(bpy.data.materials[c_index])
+                for i in diff_images:
+                    bpy.data.images.remove(bpy.data.images[i])
 
             #The main Applink Object Loop
 

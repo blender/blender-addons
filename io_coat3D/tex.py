@@ -41,13 +41,8 @@ def readtexturefolder(objekti,is_new): #read textures from texture file
     texcoat['nmap'] = []
     texcoat['disp'] = []
 
-    if(is_new == True):
-        files_dir = os.path.dirname(os.path.abspath(objekti.coat3D.applink_address))
-    else:
-        if(bpy.data.filepath == ''):
-            files_dir = os.path.dirname(os.path.abspath(objekti.coat3D.applink_address))
-        else:
-            files_dir = os.path.dirname(bpy.data.filepath) + os.sep + '3DCApplink'
+
+    files_dir = os.path.dirname(os.path.abspath(objekti.coat3D.applink_address))
     files = os.listdir(files_dir)
     materiaali_muutos = objekti.active_material.name
     uusin_mat = materiaali_muutos.replace('Material.','Material_')
@@ -57,7 +52,6 @@ def readtexturefolder(objekti,is_new): #read textures from texture file
             listed = re.split(r'[_.]', i)
             tex_name = listed[-2]
             texcoat[tex_name].append(koko_osoite)
-
 
     createnodes(objekti, texcoat)
     
