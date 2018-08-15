@@ -46,9 +46,8 @@ def readtexturefolder(objekti,is_new): #read textures from texture file
     else:
         if(bpy.data.filepath == ''):
             files_dir = os.path.dirname(os.path.abspath(objekti.coat3D.applink_address))
-            files_dir = files_dir.replace('3DC2Blender' + os.sep + 'Objects','3DC2Blender' + os.sep + 'Textures')
         else:
-            files_dir = os.path.dirname(bpy.data.filepath) + os.sep + '3DCApplink' + os.sep + 'Textures'
+            files_dir = os.path.dirname(bpy.data.filepath) + os.sep + '3DCApplink'
     files = os.listdir(files_dir)
     materiaali_muutos = objekti.active_material.name
     uusin_mat = materiaali_muutos.replace('Material.','Material_')
