@@ -596,60 +596,22 @@ class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        settings = context.tool_settings
+
         layout.operator_context = 'INVOKE_REGION_WIN'
-        coat3D = bpy.context.scene.coat3D
-        Blender_folder = ("%s%sBlender"%(coat3D.exchangedir,os.sep))
-        Blender_export = Blender_folder
-        Blender_export += ('%sexport.txt'%(os.sep))
 
         ob = context
         if ob.mode == 'OBJECT':
-            if(bpy.context.selected_objects):
-                for ind_obj in bpy.context.selected_objects:
-                    if(ind_obj.type == 'MESH'):
-                        layout.active = True
-                        break
-                    layout.active = False
+            if(len(context.selected_objects) > 0):
+                layout.operator("import_applink.pilgway_3d_coat", text="Update Scene")
+                layout.separator()
 
-                if(layout.active == True):
-
-                    layout.operator("import_applink.pilgway_3d_coat", text="Import")
-                    layout.separator()
-
-                    layout.operator("export_applink.pilgway_3d_coat", text="Export")
-                    layout.separator()
-
-                    layout.menu("VIEW3D_MT_ImportMenu")
-                    layout.separator()
-
-                    layout.menu("VIEW3D_MT_ExportMenu")
-                    layout.separator()
-
-                    layout.menu("VIEW3D_MT_ExtraMenu")
-                    layout.separator()
-
-                    if(len(bpy.context.selected_objects) == 1):
-                        if(os.path.isfile(bpy.context.selected_objects[0].coat3D.path3b)):
-                            layout.operator("import_applink.pilgway_3d_coat_3b", text="Load 3b")
-                            layout.separator()
-
-                    if(os.path.isfile(Blender_export)):
-
-                        layout.operator("import3b_applink.pilgway_3d_coat", text="Bring from 3D-Coat")
-                        layout.separator()
-                else:
-                    if(os.path.isfile(Blender_export)):
-                        layout.active = True
-
-                        layout.operator("import3b_applink.pilgway_3d_coat", text="Bring from 3D-Coat")
-                        layout.separator()
+                layout.operator("export_applink.pilgway_3d_coat", text="Transfer selected object(s) into 3D-Coat")
+                layout.separator()
             else:
-                 if(os.path.isfile(Blender_export)):
+                layout.operator("import_applink.pilgway_3d_coat", text="Update")
+                layout.separator()
 
 
-                    layout.operator("import3b_applink.pilgway_3d_coat", text="Bring from 3D-Coat")
-                    layout.separator()
 
 class VIEW3D_MT_ImportMenu(bpy.types.Menu):
     bl_label = "Import Settings"
@@ -671,7 +633,10 @@ class VIEW3D_MT_ExportMenu(bpy.types.Menu):
         layout = self.layout
         coat3D = bpy.context.scene.coat3D
         settings = context.tool_settings
+
         layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("view3d.copybuffer", icon="COPY_ID")
+
         layout.prop(coat3D,"exportover")
         if(coat3D.exportover):
            layout.prop(coat3D,"exportmod")
@@ -902,9 +867,9 @@ classes = (
     SCENE_OT_export,
     SCENE_OT_import,
     VIEW3D_MT_Coat_Dynamic_Menu,
-    VIEW3D_MT_ImportMenu,
-    VIEW3D_MT_ExportMenu,
-    VIEW3D_MT_ExtraMenu,
+    #VIEW3D_MT_ImportMenu,
+    #VIEW3D_MT_ExportMenu,
+    #VIEW3D_MT_ExtraMenu,
     ObjectCoat3D,
     SceneCoat3D,
     MeshCoat3D,
@@ -925,12 +890,12 @@ def register():
     bpy.types.Mesh.coat3D = PointerProperty(type=MeshCoat3D)
 
     kc = bpy.context.window_manager.keyconfigs.addon
-    '''
+
     if kc:
-        km = kc.keymaps.new(name='3D View', space_type='VIEW_3D')
-        kmi = km.keymap_items.new('wm.call_menu2', 'Q', 'PRESS')
+        km = kc.keymaps.new(name="Object Mode")
+        kmi = km.keymap_items.new('wm.call_menu', 'Q', 'PRESS')
         kmi.properties.name = "VIEW3D_MT_Coat_Dynamic_Menu"
-    '''
+
 
 
 def unregister():
@@ -942,15 +907,14 @@ def unregister():
     del bpy.types.Scene.coat3D
     del bpy.types.Mesh.coat3D
     del bpy.coat3D
-    '''
+
     kc = bpy.context.window_manager.keyconfigs.addon
     if kc:
-        km = kc.keymapskeymaps['3D View']
+        km = kc.keymaps.get('Object Mode')
         for kmi in km.keymap_items:
-            if kmi.idname == '':
+            if kmi.idname == 'wm.call_menu':
                 if kmi.properties.name == "VIEW3D_MT_Coat_Dynamic_Menu":
                     km.keymap_items.remove(kmi)
-                    break
-    '''
+
     for cls in reversed(classes):
         unregister_class(cls)
