@@ -214,8 +214,8 @@ def SVGMatrixFromNode(node, context):
     m = Matrix.Translation(Vector((x, y, 0.0)))
     if has_user_coordinate:
         if rect[0] != 0 and rect[1] != 0:
-            m = m * Matrix.Scale(w / rect[0], 4, Vector((1.0, 0.0, 0.0)))
-            m = m * Matrix.Scale(h / rect[1], 4, Vector((0.0, 1.0, 0.0)))
+            m = m @ Matrix.Scale(w / rect[0], 4, Vector((1.0, 0.0, 0.0)))
+            m = m @ Matrix.Scale(h / rect[1], 4, Vector((0.0, 1.0, 0.0)))
 
     if node.getAttribute('viewBox'):
         viewBox = node.getAttribute('viewBox').replace(',', ' ').split()
@@ -238,11 +238,11 @@ def SVGMatrixFromNode(node, context):
 
         tx = (w - vw * scale) / 2
         ty = (h - vh * scale) / 2
-        m = m * Matrix.Translation(Vector((tx, ty, 0.0)))
+        m = m @ Matrix.Translation(Vector((tx, ty, 0.0)))
 
-        m = m * Matrix.Translation(Vector((-vx, -vy, 0.0)))
-        m = m * Matrix.Scale(scale, 4, Vector((1.0, 0.0, 0.0)))
-        m = m * Matrix.Scale(scale, 4, Vector((0.0, 1.0, 0.0)))
+        m = m @ Matrix.Translation(Vector((-vx, -vy, 0.0)))
+        m = m @ Matrix.Scale(scale, 4, Vector((1.0, 0.0, 0.0)))
+        m = m @ Matrix.Scale(scale, 4, Vector((0.0, 1.0, 0.0)))
 
     return m
 
@@ -264,7 +264,7 @@ def SVGParseTransform(transform):
         if proc is None:
             raise Exception('Unknown trasnform function: ' + func)
 
-        m = m * proc(params)
+        m = m @ proc(params)
 
     return m
 
@@ -350,8 +350,8 @@ def SVGTransformScale(params):
 
     m = Matrix()
 
-    m = m * Matrix.Scale(sx, 4, Vector((1.0, 0.0, 0.0)))
-    m = m * Matrix.Scale(sy, 4, Vector((0.0, 1.0, 0.0)))
+    m = m @ Matrix.Scale(sx, 4, Vector((1.0, 0.0, 0.0)))
+    m = m @ Matrix.Scale(sy, 4, Vector((0.0, 1.0, 0.0)))
 
     return m
 
@@ -395,7 +395,7 @@ def SVGTransformRotate(params):
     tm = Matrix.Translation(Vector((cx, cy, 0.0)))
     rm = Matrix.Rotation(ang, 4, Vector((0.0, 0.0, 1.0)))
 
-    return tm * rm * tm.inverted()
+    return tm @ rm @ tm.inverted()
 
 SVGTransforms = {'translate': SVGTransformTranslate,
                  'scale': SVGTransformScale,
@@ -1030,7 +1030,7 @@ class SVGGeometry:
         """
 
         self._context['transform'].append(matrix)
-        self._context['matrix'] = self._context['matrix'] * matrix
+        self._context['matrix'] = self._context['matrix'] @ matrix
 
     def _popMatrix(self):
         """
@@ -1038,7 +1038,7 @@ class SVGGeometry:
         """
 
         matrix = self._context['transform'].pop()
-        self._context['matrix'] = self._context['matrix'] * matrix.inverted()
+        self._context['matrix'] = self._context['matrix'] @ matrix.inverted()
 
     def _pushStyle(self, style):
         """
@@ -1063,7 +1063,7 @@ class SVGGeometry:
 
         v = Vector((point[0], point[1], 0.0))
 
-        return self._context['matrix'] * v
+        return self._context['matrix'] @ v
 
     def getNodeMatrix(self):
         """
@@ -1798,7 +1798,7 @@ class SVGGeometrySVG(SVGGeometryContainer):
         if self._node.getAttribute('inkscape:version'):
             raw_height = self._node.getAttribute('height')
             document_height = SVGParseCoord(raw_height, 1.0)
-            matrix = matrix * Matrix.Translation([0.0, -document_height , 0.0])
+            matrix = matrix @ matrix.Translation([0.0, -document_height , 0.0])
 
         self._pushMatrix(matrix)
         self._pushRect(rect)
@@ -1838,8 +1838,8 @@ class SVGLoader(SVGGeometryContainer):
         node = xml.dom.minidom.parse(filepath)
 
         m = Matrix()
-        m = m * Matrix.Scale(1.0 / 90.0 * 0.3048 / 12.0, 4, Vector((1.0, 0.0, 0.0)))
-        m = m * Matrix.Scale(-1.0 / 90.0 * 0.3048 / 12.0, 4, Vector((0.0, 1.0, 0.0)))
+        m = m @ Matrix.Scale(1.0 / 90.0 * 0.3048 / 12.0, 4, Vector((1.0, 0.0, 0.0)))
+        m = m @ Matrix.Scale(-1.0 / 90.0 * 0.3048 / 12.0, 4, Vector((0.0, 1.0, 0.0)))
 
         rect = (0, 0)
 
