@@ -338,7 +338,7 @@ class SCENE_OT_import(bpy.types.Operator):
                             img_list.append(node.image)
                 if img_list != []:
                     for del_img in img_list:
-                        bpy.data.images.remove(bpy.data.images[del_img])
+                        bpy.data.images.remove(del_img)
 
                 bpy.data.materials.remove(material)
 
@@ -623,6 +623,8 @@ class SCENE_OT_import(bpy.types.Operator):
                     new_obj.select_set('SELECT')
                     #bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
                     new_obj.rotation_euler = (0, 0, 0)
+                    new_obj.scale = (1, 1, 1)
+                    new_obj.coat3D.applink_firsttime = False
                     new_obj.select_set('DESELECT')
                     new_obj.coat3D.applink_address = new_applink_address
                     new_obj.coat3D.objecttime = str(os.path.getmtime(new_obj.coat3D.applink_address))
