@@ -223,15 +223,15 @@ class SCENE_OT_export(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     def invoke(self, context, event):
-        '''
+
         for mesh in bpy.data.meshes:
-            if (mesh.users == 0):
+            if (mesh.users == 0 and mesh.coat3D.name == '3DC'):
                 bpy.data.meshes.remove(mesh)
 
         for material in bpy.data.materials:
-            if (material.users == 0):
+            if (material.users == 1 and material.coat3D.name == '3DC'):
                 bpy.data.materials.remove(material)
-        '''
+
         export_ok = False
         coat3D = bpy.context.scene.coat3D
 
@@ -304,6 +304,7 @@ class SCENE_OT_export(bpy.types.Operator):
             objekti.coat3D.applink_name = coa.applink_name
             objekti.coat3D.applink_firsttime = True
             objekti.coat3D.objecttime = str(os.path.getmtime(objekti.coat3D.applink_address))
+            objekti.data.coat3D.name = '3DC'
 
             if(objekti.material_slots.keys() != []):
                 for material in objekti.material_slots:
@@ -323,15 +324,24 @@ class SCENE_OT_import(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     def invoke(self, context, event):
-        '''
+
         for mesh in bpy.data.meshes:
-            if(mesh.users == 0):
+            if(mesh.users == 0 and mesh.coat3D.name == '3DC'):
                 bpy.data.meshes.remove(mesh)
 
         for material in bpy.data.materials:
-            if (material.users == 0):
+            img_list = []
+            if (material.users == 1 and material.coat3D.name == '3DC'):
+                if material.use_nodes == True:
+                    for node in material.node_tree.nodes:
+                        if node.type == 'TEX_IMAGE' and node.name.startswith('3DC'):
+                            img_list.append(node.image)
+                if img_list != []:
+                    for del_img in img_list:
+                        bpy.data.images.remove(bpy.data.images[del_img])
+
                 bpy.data.materials.remove(material)
-        '''
+
         coat3D = bpy.context.scene.coat3D
         coat = bpy.coat3D
         coat3D.exchangedir = set_exchange_folder()
@@ -406,6 +416,9 @@ class SCENE_OT_import(bpy.types.Operator):
                 diff_mat = [i for i in new_materials if i not in old_materials]
                 diff_objects = [i for i in new_objects if i not in old_objects]
                 diff_images = [i for i in new_images if i not in old_images]
+
+                for mark_mesh in diff_objects:
+                    bpy.data.objects[mark_mesh].data.coat3D.name = '3DC'
                 for c_index in diff_mat:
                     bpy.data.materials.remove(bpy.data.materials[c_index])
                 for i in diff_images:
@@ -423,9 +436,46 @@ class SCENE_OT_import(bpy.types.Operator):
                         find_name = objekti.data.name + '-mesh'
                         find_name = find_name.replace('.', '_')
                     else:
-                        find_name = objekti.data.name + '.001'
+
+
+                        new_name = objekti.data.name
+                        print('Data nimi', objekti.data.name)
+                        name_boxs = new_name.split('.')
+                        if len(name_boxs) > 1:
+                            if len(name_boxs[-1]) == 3:
+                                luku = int(name_boxs[-1])
+                                luku +=1
+                                uusi_nimi = ("%s.%.3d" % (new_name[:-4], luku))
+                                find_name = uusi_nimi
+                        else:
+                            print('tuullekko tienna')
+                            find_name = objekti.data.name
+                            tosi = True
+                            luku = 1
+                            find_name = ("%s.%.3d" % (objekti.data.name, luku))
+                            loyty = False
+                            while tosi:
+                                print('etsitaan', find_name)
+                                for obj in bpy.data.meshes:
+                                    if (obj.name == find_name):
+                                        loyty = True
+                                        break
+                                if(loyty == True):
+                                    luku += 1
+                                    find_name = ("%s.%.3d" % (objekti.data.name, luku))
+                                    loyty = False
+                                else:
+                                    find_name = ("%s.%.3d" % (objekti.data.name, luku-1))
+                                    tosi = False
+
+
+
+
+
+
 
                     for proxy_objects in diff_objects:
+                        print('ovatko samoja',bpy.data.objects[proxy_objects].data.name,find_name)
                         if (bpy.data.objects[proxy_objects].data.name == find_name):
                             obj_proxy = bpy.data.objects[proxy_objects]
                             break
@@ -545,7 +595,25 @@ class SCENE_OT_import(bpy.types.Operator):
             mat_list = []
             nimi = ''
 
+            old_materials = bpy.data.materials.keys()
+            old_objects = bpy.data.objects.keys()
+
             bpy.ops.wm.collada_import(filepath=new_applink_address)
+
+            new_materials = bpy.data.materials.keys()
+            new_objects = bpy.data.objects.keys()
+
+            diff_mat = [i for i in new_materials if i not in old_materials]
+            diff_objects = [i for i in new_objects if i not in old_objects]
+
+            for mark_mesh in diff_mat:
+                bpy.data.materials[mark_mesh].coat3D.name = '3DC'
+                bpy.data.materials[mark_mesh].use_fake_user = True
+            laskuri = 0
+            for c_index in diff_objects:
+                bpy.data.objects[c_index].data.coat3D.name = '3DC'
+                bpy.data.objects[c_index].material_slots[0].material = bpy.data.materials[diff_mat[laskuri]]
+                laskuri += 1
 
             bpy.ops.object.select_all(action='DESELECT')
             for new_obj in bpy.context.collection.objects:
@@ -867,6 +935,11 @@ class MeshCoat3D(PropertyGroup):
         name="ApplinkAddress",
         subtype="APPLINK_ADDRESS",
     )
+class MaterialCoat3D(PropertyGroup):
+    name: StringProperty(
+        name="ApplinkAddress",
+        subtype="APPLINK_ADDRESS",
+    )
 
 
 classes = (
@@ -881,6 +954,7 @@ classes = (
     ObjectCoat3D,
     SceneCoat3D,
     MeshCoat3D,
+    MaterialCoat3D,
     )
 
 def register():
@@ -896,6 +970,7 @@ def register():
     bpy.types.Object.coat3D = PointerProperty(type=ObjectCoat3D)
     bpy.types.Scene.coat3D = PointerProperty(type=SceneCoat3D)
     bpy.types.Mesh.coat3D = PointerProperty(type=MeshCoat3D)
+    bpy.types.Material.coat3D = PointerProperty(type=MaterialCoat3D)
 
     kc = bpy.context.window_manager.keyconfigs.addon
 
