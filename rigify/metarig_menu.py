@@ -174,7 +174,7 @@ def register():
         register_class(arm_sub)
 
     for mf in menu_funcs:
-        bpy.types.INFO_MT_armature_add.append(mf)
+        bpy.types.VIEW3D_MT_armature_add.append(mf)
 
 
 def unregister():
@@ -188,4 +188,4 @@ def unregister():
         unregister_class(arm_sub)
 
     for mf in menu_funcs:
-        bpy.types.INFO_MT_armature_add.remove(mf)
+        bpy.types.VIEW3D_MT_armature_add.remove(mf)

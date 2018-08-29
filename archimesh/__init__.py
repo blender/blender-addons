@@ -92,7 +92,7 @@ from bpy.types import (
         AddonPreferences,
         Menu,
         Scene,
-        INFO_MT_mesh_add,
+        VIEW3D_MT_mesh_add,
         WindowManager,
         )
 
@@ -102,7 +102,7 @@ from bpy.types import (
 
 
 class AchmInfoMtMeshDecorationAdd(Menu):
-    bl_idname = "INFO_MT_mesh_decoration_add"
+    bl_idname = "VIEW3D_MT_mesh_decoration_add"
     bl_label = "Decoration assets"
 
     # noinspection PyUnusedLocal
@@ -119,7 +119,7 @@ class AchmInfoMtMeshDecorationAdd(Menu):
 
 
 class AchmInfoMtMeshCustomMenuAdd(Menu):
-    bl_idname = "INFO_MT_mesh_custom_menu_add"
+    bl_idname = "VIEW3D_MT_mesh_custom_menu_add"
     bl_label = "Archimesh"
 
     # noinspection PyUnusedLocal
@@ -134,7 +134,7 @@ class AchmInfoMtMeshCustomMenuAdd(Menu):
         self.layout.operator("mesh.archimesh_column", text="Add Column")
         self.layout.operator("mesh.archimesh_stairs", text="Add Stairs")
         self.layout.operator("mesh.archimesh_roof", text="Add Roof")
-        self.layout.menu("INFO_MT_mesh_decoration_add", text="Decoration props", icon="GROUP")
+        self.layout.menu("VIEW3D_MT_mesh_decoration_add", text="Decoration props", icon="GROUP")
 
 # --------------------------------------------------------------
 # Register all operators and panels
@@ -189,7 +189,7 @@ class Archi_Pref(AddonPreferences):
 # Define menu
 # noinspection PyUnusedLocal
 def AchmMenu_func(self, context):
-    self.layout.menu("INFO_MT_mesh_custom_menu_add", icon="GROUP")
+    self.layout.menu("VIEW3D_MT_mesh_custom_menu_add", icon="GROUP")
 
 
 def register():
@@ -222,7 +222,7 @@ def register():
     bpy.utils.register_class(achm_window_panel.AchmWinPanel)
     bpy.utils.register_class(achm_window_panel.AchmWindowEditPanel)
     bpy.utils.register_class(Archi_Pref)
-    INFO_MT_mesh_add.append(AchmMenu_func)
+    VIEW3D_MT_mesh_add.append(AchmMenu_func)
     update_panel(None, bpy.context)
     # Define properties
     Scene.archimesh_select_only = BoolProperty(
@@ -333,7 +333,7 @@ def unregister():
     bpy.utils.unregister_class(achm_window_panel.AchmWinPanel)
     bpy.utils.unregister_class(achm_window_panel.AchmWindowEditPanel)
     bpy.utils.unregister_class(Archi_Pref)
-    INFO_MT_mesh_add.remove(AchmMenu_func)
+    VIEW3D_MT_mesh_add.remove(AchmMenu_func)
 
     # Remove properties
     del Scene.archimesh_select_only

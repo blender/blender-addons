@@ -504,12 +504,12 @@ def register():
     bpy.utils.register_class(Archipack_Pref)
     update_panel(None, bpy.context)
     bpy.utils.register_class(ARCHIPACK_MT_create)
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
+    bpy.types.VIEW3D_MT_mesh_add.append(menu_func)
 
 
 def unregister():
     global icons_collection
-    bpy.types.INFO_MT_mesh_add.remove(menu_func)
+    bpy.types.VIEW3D_MT_mesh_add.remove(menu_func)
     bpy.utils.unregister_class(ARCHIPACK_MT_create)
 
     bpy.utils.unregister_class(TOOLS_PT_Archipack_Tools)

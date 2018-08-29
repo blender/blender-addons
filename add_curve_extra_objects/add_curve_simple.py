@@ -1645,8 +1645,8 @@ class SimpleVariables(PropertyGroup):
             )
 
 
-class INFO_MT_simple_menu(Menu):
-    bl_idname = "INFO_MT_simple_menu"
+class VIEW3D_MT_simple_menu(Menu):
+    bl_idname = "VIEW3D_MT_simple_menu"
     bl_label = "2D Objects"
 
     def draw(self, context):
@@ -1714,7 +1714,7 @@ class INFO_MT_simple_menu(Menu):
 def Simple_button(self, context):
     layout = self.layout
     layout.separator()
-    self.layout.menu("INFO_MT_simple_menu", icon="MOD_CURVE")
+    self.layout.menu("VIEW3D_MT_simple_menu", icon="MOD_CURVE")
 
 
 def register():
@@ -1723,10 +1723,10 @@ def register():
     bpy.utils.register_class(BezierDivide)
     bpy.utils.register_class(SimplePanel)
     bpy.utils.register_class(SimpleEdit)
-    bpy.utils.register_class(INFO_MT_simple_menu)
+    bpy.utils.register_class(VIEW3D_MT_simple_menu)
     bpy.utils.register_class(SimpleVariables)
 
-    bpy.types.INFO_MT_curve_add.append(Simple_button)
+    bpy.types.VIEW3D_MT_curve_add.append(Simple_button)
 
     bpy.types.Object.s_curve = PointerProperty(type=SimpleVariables)
 
@@ -1737,10 +1737,10 @@ def unregister():
     bpy.utils.unregister_class(BezierDivide)
     bpy.utils.unregister_class(SimplePanel)
     bpy.utils.unregister_class(SimpleEdit)
-    bpy.utils.unregister_class(INFO_MT_simple_menu)
+    bpy.utils.unregister_class(VIEW3D_MT_simple_menu)
     bpy.utils.unregister_class(SimpleVariables)
 
-    bpy.types.INFO_MT_curve_add.remove(Simple_button)
+    bpy.types.VIEW3D_MT_curve_add.remove(Simple_button)
     del bpy.types.Object.s_curve
 
 

@@ -2865,7 +2865,7 @@ class PskAddonPreferences(AddonPreferences):
 def register():
 
     bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_file_export.append(menu_func)
+    bpy.types.TOPBAR_MT_file_export.append(menu_func)
     update_panel(None, bpy.context)
 
     # Added by [MGVS]
@@ -2972,7 +2972,7 @@ def register():
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_file_export.remove(menu_func)
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func)
 
     del bpy.types.Scene.udk_option_filename_src
     del bpy.types.Scene.udk_option_export_psk

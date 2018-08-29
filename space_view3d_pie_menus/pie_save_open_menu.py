@@ -97,9 +97,9 @@ class pie_fileio(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         box = pie.split().column()
-        box.menu("INFO_MT_file_import", icon='IMPORT')
+        box.menu("TOPBAR_MT_file_import", icon='IMPORT')
         box.separator()
-        box.menu("INFO_MT_file_export", icon='EXPORT')
+        box.menu("TOPBAR_MT_file_export", icon='EXPORT')
 
 
 class ExternalData(Menu):

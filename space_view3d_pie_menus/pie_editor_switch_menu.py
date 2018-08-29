@@ -41,7 +41,7 @@ from bpy.props import (
 
 
 class AreaPieMenu(Menu):
-    bl_idname = "INFO_MT_window_pie"
+    bl_idname = "TOPBAR_MT_window_pie"
     bl_label = "Pie Menu"
     bl_description = "Window Pie Menus"
 
@@ -87,7 +87,7 @@ class AreaPieEditor(Menu):
 
 
 class AreaTypePieOther(Menu):
-    bl_idname = "INFO_MT_window_pie_area_type_other"
+    bl_idname = "TOPBAR_MT_window_pie_area_type_other"
     bl_label = "Editor Type (other)"
     bl_description = "Is pie menu change editor type (other)"
 
@@ -122,7 +122,7 @@ class SetAreaType(Operator):
 
 
 class AreaTypePieAnim(Menu):
-    bl_idname = "INFO_MT_window_pie_area_type_anim"
+    bl_idname = "TOPBAR_MT_window_pie_area_type_anim"
     bl_label = "Editor Type (Animation)"
     bl_description = "Menu for changing editor type (animation related)"
 

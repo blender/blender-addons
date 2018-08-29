@@ -966,7 +966,7 @@ def register():
     bpy.utils.register_class(MakeCameraActive)
     bpy.utils.register_class(AddMarkerBind)
     bpy.utils.register_class(AddDofEmpty)
-    bpy.types.INFO_MT_camera_add.append(add_dolly_crane_buttons)
+    bpy.types.VIEW3D_MT_camera_add.append(add_dolly_crane_buttons)
 
 
 def unregister():
@@ -977,7 +977,7 @@ def unregister():
     bpy.utils.unregister_class(MakeCameraActive)
     bpy.utils.unregister_class(AddMarkerBind)
     bpy.utils.unregister_class(AddDofEmpty)
-    bpy.types.INFO_MT_camera_add.remove(add_dolly_crane_buttons)
+    bpy.types.VIEW3D_MT_camera_add.remove(add_dolly_crane_buttons)
 
 
 if __name__ == "__main__":

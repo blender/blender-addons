@@ -938,14 +938,14 @@ class AntLandscapePropertiesGroup(bpy.types.PropertyGroup):
 
 def register():
     bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_mesh_add.append(menu_func_landscape)
+    bpy.types.VIEW3D_MT_mesh_add.append(menu_func_landscape)
     bpy.types.Object.ant_landscape = PointerProperty(type=AntLandscapePropertiesGroup, name="ANT_Landscape", description="Landscape properties")
     bpy.types.VIEW3D_MT_paint_weight.append(menu_func_eroder)
 
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_mesh_add.remove(menu_func_landscape)
+    bpy.types.VIEW3D_MT_mesh_add.remove(menu_func_landscape)
     bpy.types.VIEW3D_MT_paint_weight.remove(menu_func_eroder)
 
 

@@ -69,13 +69,13 @@ def menu_func_import(self, context):
 def register():
     bpy.utils.register_class(ImportSVG)
 
-    bpy.types.INFO_MT_file_import.append(menu_func_import)
+    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
 
 
 def unregister():
     bpy.utils.unregister_class(ImportSVG)
 
-    bpy.types.INFO_MT_file_import.remove(menu_func_import)
+    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
 
 # NOTES
 # - blender version is hardcoded
