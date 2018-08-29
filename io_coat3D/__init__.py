@@ -282,8 +282,12 @@ class SCENE_OT_export(bpy.types.Operator):
                 objekti.data.materials.append(newmat)
                 matindex += 1
 
+        for objekti in bpy.context.selected_objects:
+            objekti.coat3D.applink_scale = objekti.scale
+
         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
-        #bpy.ops.object.transforms_to_deltas(mode='ROT')
+        #bpy.ops.object.transforms_to_deltas(mode='SCALE')
+
 
         bpy.ops.wm.collada_export(filepath=coa.applink_address, selected=True,
                                   apply_modifiers=False, sort_by_name=True, use_blender_profile=False, triangulate=False)
@@ -508,6 +512,13 @@ class SCENE_OT_import(bpy.types.Operator):
 
                     bpy.ops.object.select_all(action='TOGGLE')
 
+                    if objekti.coat3D.applink_firsttime == True:
+                        objekti.scale = (objekti.scale[0]/objekti.coat3D.applink_scale[0],objekti.scale[1]/objekti.coat3D.applink_scale[1],objekti.scale[2]/objekti.coat3D.applink_scale[2])
+                        bpy.ops.object.transforms_to_deltas(mode='SCALE')
+                        objekti.rotation_euler = (0,0,0)
+                        #objekti.scale = (1,1,1)
+                        objekti.coat3D.applink_firsttime = False
+
                     if(coat3D.importlevel):
                         obj_proxy.select = True
                         obj_proxy.modifiers.new(name='temp',type='MULTIRES')
@@ -531,6 +542,7 @@ class SCENE_OT_import(bpy.types.Operator):
 
                     objekti.select_set('SELECT')
                     bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
+
                     objekti.data.materials.pop()
                     for mat in mat_list:
                         objekti.data.materials.append(mat)
@@ -769,6 +781,10 @@ class ObjectCoat3D(PropertyGroup):
     dime: FloatVectorProperty(
         name="dime",
         description="Dimension"
+    )
+    applink_scale: FloatVectorProperty(
+        name="Scale",
+        description="Scale"
     )
 
 
