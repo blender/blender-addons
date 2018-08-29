@@ -597,13 +597,13 @@ def register():
 
     bpy.types.GRAPH_MT_channel.append(menu_func)
     bpy.types.DOPESHEET_MT_channel.append(menu_func)
-    bpy.types.INFO_MT_curve_add.append(menu)
+    bpy.types.VIEW3D_MT_curve_add.append(menu)
 
 
 def unregister():
     bpy.types.GRAPH_MT_channel.remove(menu_func)
     bpy.types.DOPESHEET_MT_channel.remove(menu_func)
-    bpy.types.INFO_MT_curve_add.remove(menu)
+    bpy.types.VIEW3D_MT_curve_add.remove(menu)
 
     bpy.utils.unregister_module(__name__)
 

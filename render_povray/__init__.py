@@ -2274,8 +2274,8 @@ class PovrayPreferences(AddonPreferences):
 
 def register():
     bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_add.prepend(ui.menu_func_add)
-    bpy.types.INFO_MT_file_import.append(ui.menu_func_import)
+    bpy.types.VIEW3D_MT_add.prepend(ui.menu_func_add)
+    bpy.types.TOPBAR_MT_file_import.append(ui.menu_func_import)
     bpy.types.TEXT_MT_templates.append(ui.menu_func_templates)
     bpy.types.RENDER_PT_povray_radiosity.prepend(ui.rad_panel_func)
     bpy.types.LIGHT_PT_POV_light.prepend(ui.light_panel_func)
@@ -2315,8 +2315,8 @@ def unregister():
     bpy.types.LIGHT_PT_POV_light.remove(ui.light_panel_func)    
     bpy.types.RENDER_PT_povray_radiosity.remove(ui.rad_panel_func)
     bpy.types.TEXT_MT_templates.remove(ui.menu_func_templates)
-    bpy.types.INFO_MT_file_import.remove(ui.menu_func_import)
-    bpy.types.INFO_MT_add.remove(ui.menu_func_add)
+    bpy.types.TOPBAR_MT_file_import.remove(ui.menu_func_import)
+    bpy.types.VIEW3D_MT_add.remove(ui.menu_func_add)
     bpy.utils.unregister_module(__name__)
 
 

@@ -1209,16 +1209,16 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    bpy.types.INFO_MT_file_import.append(import_images_button)
-    bpy.types.INFO_MT_mesh_add.append(import_images_button)
+    bpy.types.TOPBAR_MT_file_import.append(import_images_button)
+    bpy.types.VIEW3D_MT_mesh_add.append(import_images_button)
 
     bpy.app.handlers.load_post.append(register_driver)
     register_driver()
 
 
 def unregister():
-    bpy.types.INFO_MT_file_import.remove(import_images_button)
-    bpy.types.INFO_MT_mesh_add.remove(import_images_button)
+    bpy.types.TOPBAR_MT_file_import.remove(import_images_button)
+    bpy.types.VIEW3D_MT_mesh_add.remove(import_images_button)
 
     # This will only exist if drivers are active
     if check_drivers in bpy.app.handlers.scene_update_post:

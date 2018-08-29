@@ -248,7 +248,7 @@ def register():
     bpy.utils.register_class(DemoModeSetup)
     bpy.utils.register_class(DemoModeRun)
 
-    bpy.types.INFO_MT_file.prepend(menu_func)
+    bpy.types.TOPBAR_MT_file.prepend(menu_func)
 
     extern_demo_mode_register()
 
@@ -257,7 +257,7 @@ def unregister():
     bpy.utils.unregister_class(DemoModeSetup)
     bpy.utils.unregister_class(DemoModeRun)
 
-    bpy.types.INFO_MT_file.remove(menu_func)
+    bpy.types.TOPBAR_MT_file.remove(menu_func)
 
     extern_demo_mode_unregister()
 

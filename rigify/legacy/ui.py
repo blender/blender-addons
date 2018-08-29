@@ -221,8 +221,8 @@ class VIEW3D_PT_tools_rigify_dev(bpy.types.Panel):
                 r = self.layout.row()
                 r.operator("mesh.rigify_encode_mesh_widget", text="Encode Mesh Widget to Python")
 
-#~ class INFO_MT_armature_metarig_add(bpy.types.Menu):
-    #~ bl_idname = "INFO_MT_armature_metarig_add"
+#~ class VIEW3D_MT_armature_metarig_add(bpy.types.Menu):
+    #~ bl_idname = "VIEW3D_MT_armature_metarig_add"
     #~ bl_label = "Meta-Rig"
 
     #~ def draw(self, context):
@@ -410,7 +410,7 @@ class EncodeWidget(bpy.types.Operator):
         return {'FINISHED'}
 
 
-#menu_func = (lambda self, context: self.layout.menu("INFO_MT_armature_metarig_add", icon='OUTLINER_OB_ARMATURE'))
+#menu_func = (lambda self, context: self.layout.menu("VIEW3D_MT_armature_metarig_add", icon='OUTLINER_OB_ARMATURE'))
 
 #from bl_ui import space_info  # ensure the menu is loaded first
 
@@ -425,7 +425,7 @@ def register():
     bpy.utils.register_class(EncodeMetarig)
     bpy.utils.register_class(EncodeMetarigSample)
     bpy.utils.register_class(EncodeWidget)
-    #space_info.INFO_MT_armature_add.append(ui.menu_func)
+    #space_info.VIEW3D_MT_armature_add.append(ui.menu_func)
 
 
 def unregister():

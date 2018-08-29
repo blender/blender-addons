@@ -530,16 +530,16 @@ def menu_func_me(self, context):
 
 def register():
     bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_file_import.append(menu_func_s)
-    bpy.types.INFO_MT_file_import.append(menu_func_mi)
-    bpy.types.INFO_MT_file_export.append(menu_func_me)
+    bpy.types.TOPBAR_MT_file_import.append(menu_func_s)
+    bpy.types.TOPBAR_MT_file_import.append(menu_func_mi)
+    bpy.types.TOPBAR_MT_file_export.append(menu_func_me)
 
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_file_import.remove(menu_func_s)
-    bpy.types.INFO_MT_file_import.remove(menu_func_mi)
-    bpy.types.INFO_MT_file_export.remove(menu_func_me)
+    bpy.types.TOPBAR_MT_file_import.remove(menu_func_s)
+    bpy.types.TOPBAR_MT_file_import.remove(menu_func_mi)
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func_me)
 
 
 if __name__ == "__main__":

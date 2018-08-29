@@ -2582,12 +2582,12 @@ def register():
     bpy.types.Mesh.paper_island_index = bpy.props.IntProperty(
         name="Island List Index",
         default=-1, min=-1, max=100, options={'SKIP_SAVE'})
-    bpy.types.INFO_MT_file_export.append(menu_func)
+    bpy.types.TOPBAR_MT_file_export.append(menu_func)
 
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_file_export.remove(menu_func)
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func)
     if display_islands.handle:
         bpy.types.SpaceView3D.draw_handler_remove(display_islands.handle, 'WINDOW')
         display_islands.handle = None
