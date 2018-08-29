@@ -46,8 +46,6 @@ def readtexturefolder(objekti,is_new): #read textures from texture file
     files = os.listdir(files_dir)
     materiaali_muutos = objekti.active_material.name
     uusin_mat = materiaali_muutos.replace('Material.','Material_')
-    print('tassa pitaisi olla jotain outoo')
-    print(obj_coat.applink_name + '_' + uusin_mat)
     new_name = (obj_coat.applink_name + '_' + uusin_mat)
     name_boxs = new_name.split('.')
     if len(name_boxs) > 1:
@@ -58,7 +56,6 @@ def readtexturefolder(objekti,is_new): #read textures from texture file
             koko_osoite = files_dir + os.sep + i
             listed = re.split(r'[_.]', i)
             tex_name = listed[-2]
-            print('koko osoite', koko_osoite)
             texcoat[tex_name].append(koko_osoite)
 
     createnodes(objekti, texcoat)
@@ -85,7 +82,6 @@ def createnodes(objekti,texcoat): #luo nodes palikat ja linkittaa tekstuurit nii
 
     for node in act_material.node_tree.nodes:
         if(node.type == 'TEX_IMAGE'):
-            print('hhheeetkinen')
             if(node.name == '3DC_color'):
                 bring_color = False
                 node.image.reload()

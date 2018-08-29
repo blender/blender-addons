@@ -439,7 +439,6 @@ class SCENE_OT_import(bpy.types.Operator):
 
 
                         new_name = objekti.data.name
-                        print('Data nimi', objekti.data.name)
                         name_boxs = new_name.split('.')
                         if len(name_boxs) > 1:
                             if len(name_boxs[-1]) == 3:
@@ -448,14 +447,12 @@ class SCENE_OT_import(bpy.types.Operator):
                                 uusi_nimi = ("%s.%.3d" % (new_name[:-4], luku))
                                 find_name = uusi_nimi
                         else:
-                            print('tuullekko tienna')
                             find_name = objekti.data.name
                             tosi = True
                             luku = 1
                             find_name = ("%s.%.3d" % (objekti.data.name, luku))
                             loyty = False
                             while tosi:
-                                print('etsitaan', find_name)
                                 for obj in bpy.data.meshes:
                                     if (obj.name == find_name):
                                         loyty = True
@@ -475,7 +472,6 @@ class SCENE_OT_import(bpy.types.Operator):
 
 
                     for proxy_objects in diff_objects:
-                        print('ovatko samoja',bpy.data.objects[proxy_objects].data.name,find_name)
                         if (bpy.data.objects[proxy_objects].data.name == find_name):
                             obj_proxy = bpy.data.objects[proxy_objects]
                             break
@@ -534,10 +530,6 @@ class SCENE_OT_import(bpy.types.Operator):
                     #tärkee että saadaan oikein käännettyä objekt
 
                     objekti.select_set('SELECT')
-                    if (objekti.coat3D.applink_firsttime == True):
-                        objekti.scale = (1, 1, 1)
-                        objekti.rotation_euler = (0,0,0)
-                        objekti.coat3D.applink_firsttime = False
                     bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
                     objekti.material_slots[0].material = act_mat
 
