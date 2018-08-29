@@ -531,7 +531,9 @@ class SCENE_OT_import(bpy.types.Operator):
 
                     objekti.select_set('SELECT')
                     bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
-                    objekti.material_slots[0].material = act_mat
+                    objekti.data.materials.pop()
+                    for mat in mat_list:
+                        objekti.data.materials.append(mat)
 
                     if (use_smooth):
                         for data_mesh in objekti.data.polygons:
