@@ -631,6 +631,8 @@ class SCENE_OT_import(bpy.types.Operator):
             diff_mat = [i for i in new_materials if i not in old_materials]
             diff_objects = [i for i in new_objects if i not in old_objects]
 
+            print('uudet materiaalit', diff_mat)
+
             for mark_mesh in diff_mat:
                 bpy.data.materials[mark_mesh].coat3D.name = '3DC'
                 bpy.data.materials[mark_mesh].use_fake_user = True
@@ -638,6 +640,7 @@ class SCENE_OT_import(bpy.types.Operator):
             for c_index in diff_objects:
                 bpy.data.objects[c_index].data.coat3D.name = '3DC'
                 bpy.data.objects[c_index].material_slots[0].material = bpy.data.materials[diff_mat[laskuri]]
+                print(bpy.data.materials[diff_mat[laskuri]])
                 laskuri += 1
 
             bpy.ops.object.select_all(action='DESELECT')
@@ -656,12 +659,6 @@ class SCENE_OT_import(bpy.types.Operator):
                     splittext = ntpath.basename(new_applink_address)
                     new_obj.coat3D.applink_name = splittext.split('.')[0]
                     new_obj.coat3D.applink_export = True
-                    for material in bpy.data.materials:
-                        if(new_obj.name == material.name):
-                            new_obj.material_slots[0].material = material
-                            break
-
-                    # bpy.ops.object.transforms_to_deltas(mode='ROT')
 
                     mat_list.append(new_obj.material_slots[0].material)
                     is_new = True
