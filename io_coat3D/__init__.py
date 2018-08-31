@@ -177,16 +177,38 @@ def make_texture_list(texturefolder):
         texturefile.close()
     return texturelist
 
-class ObjectButtonsPanel():
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = "object"
 
-class SCENE_PT_Main(ObjectButtonsPanel,bpy.types.Panel):
+'''
+#Updating objects MESH part ( Mesh, Vertex Groups, Vertex Colors ) 
+'''
+
+def updatemesh(objekti, proxy):
+
+    '''
+    TO DO VERTEX GROUPS, gives an error with this code.
+
+    if(objekti.vertex_groups.keys != []):
+        bpy.ops.object.select_all(action='DESELECT')
+        proxy.select_set('SELECT')
+        objekti.select_set('SELECT')
+        bpy.ops.object.vertex_group_copy_to_selected()
+        bpy.ops.object.select_all(action='DESELECT')
+
+    '''
+    proxy.select_set('SELECT')
+    obj_data = objekti.data.id_data
+    objekti.data = proxy.data.id_data
+    objekti.data.id_data.name = obj_data.name
+    if (bpy.data.meshes[obj_data.name].users == 0):
+        bpy.data.meshes.remove(obj_data)
+
+class SCENE_PT_Main(bpy.types.Panel):
     bl_label = "3D-Coat Applink"
-    bl_space_type = "PROPERTIES"
-    bl_region_type = "WINDOW"
-    bl_context = "scene"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_context = "objectmode"
+    bl_category = '3D-Coat'
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -387,8 +409,10 @@ class SCENE_OT_import(bpy.types.Operator):
 
         if(new_object == False):
 
+            '''
             #Blender -> 3DC -> Blender workflow
             #First check if objects needs to be imported, if imported it will then delete extra mat and objs.
+            '''
 
             old_materials = bpy.data.materials.keys()
             old_objects = bpy.data.objects.keys()
@@ -428,7 +452,7 @@ class SCENE_OT_import(bpy.types.Operator):
                 for i in diff_images:
                     bpy.data.images.remove(bpy.data.images[i])
 
-            #The main Applink Object Loop
+            '''The main Applink Object Loop'''
 
             for oname in object_list:
                 objekti = bpy.data.objects[oname]
@@ -468,12 +492,6 @@ class SCENE_OT_import(bpy.types.Operator):
                                 else:
                                     find_name = ("%s.%.3d" % (objekti.data.name, luku-1))
                                     tosi = False
-
-
-
-
-
-
 
                     for proxy_objects in diff_objects:
                         if (bpy.data.objects[proxy_objects].data.name == find_name):
@@ -527,16 +545,7 @@ class SCENE_OT_import(bpy.types.Operator):
                         bpy.ops.object.select_all(action='TOGGLE')
                         multires_on = False
                     else:
-
-                        #scene.objects.active = obj_proxy HACKKI
-                        obj_proxy.select_set('SELECT')
-
-                        obj_data = objekti.data.id_data
-                        objekti.data = obj_proxy.data.id_data
-                        objekti.data.id_data.name = obj_data.name
-                        if(bpy.data.meshes[obj_data.name].users == 0):
-                            bpy.data.meshes.remove(obj_data)
-
+                        updatemesh(objekti,obj_proxy)
 
                     #tärkee että saadaan oikein käännettyä objekt
 
@@ -586,7 +595,9 @@ class SCENE_OT_import(bpy.types.Operator):
 
         else:
 
-            # 3DC -> Blender workflow
+            '''
+            3DC -> Blender workflow
+            '''
 
             for old_obj in bpy.context.collection.objects:
                 old_obj.coat3D.applink_old = True
