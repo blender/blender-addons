@@ -19,7 +19,7 @@
 bl_info = {
     "name": "3D-Coat Applink",
     "author": "Kalle-Samuli Riihikoski (haikalle)",
-    "version": (3, 5, 22),
+    "version": (5, 0, 00),
     "blender": (2, 80, 0),
     "location": "Scene > 3D-Coat Applink",
     "description": "Transfer data between 3D-Coat/Blender",
@@ -216,7 +216,7 @@ class SCENE_PT_Main(bpy.types.Panel):
         if(bpy.context.active_object):
             coa = bpy.context.active_object.coat3D
 
-        if(bpy.coat3D['status'] == 0 and not(os.path.isdir(coat3D.exchangedir))):
+        if(coat3D.exchange_found == False):
             bpy.coat3D['active_coat'] = set_exchange_folder()
             row = layout.row()
             row.label(text="Applink didn't find your 3d-Coat/Excahnge folder.")
@@ -224,6 +224,8 @@ class SCENE_PT_Main(bpy.types.Panel):
             row.label("Please select it before using Applink.")
             row = layout.row()
             row.prop(coat3D,"exchangedir",text="")
+            row = layout.row()
+            row.operator("update_exchange_folder.pilgway_3d_coat", text="Apply folder")
 
         else:
             #Here you add your GUI
@@ -236,7 +238,22 @@ class SCENE_PT_Main(bpy.types.Panel):
             colR.operator("export_applink.pilgway_3d_coat", text="Transfer")
             colL.operator("import_applink.pilgway_3d_coat", text="Update")
 
+class SCENE_OT_folder(bpy.types.Operator):
+    bl_idname = "update_exchange_folder.pilgway_3d_coat"
+    bl_label = "Export your custom property"
+    bl_description = "Export your custom property"
+    bl_options = {'UNDO'}
 
+    def invoke(self, context, event):
+        coat3D = bpy.context.scene.coat3D
+        print(coat3D.exchangedir)
+        print(os.path.isdir(coat3D.exchangedir))
+        if(os.path.isdir(coat3D.exchangedir)):
+            coat3D.exchange_found = True
+        else:
+            coat3D.exchange_found = False
+
+        return {'FINISHED'}
 
 class SCENE_OT_export(bpy.types.Operator):
     bl_idname = "export_applink.pilgway_3d_coat"
@@ -266,18 +283,17 @@ class SCENE_OT_export(bpy.types.Operator):
             if (export_ok == False):
                 return {'FINISHED'}
 
-        if(coat3D.exchange_found == False):
-            return {'FINISHED'}
-
         activeobj = bpy.context.active_object.name
         checkname = ''
         coa = bpy.context.active_object.coat3D
         coat3D.exchangedir = set_exchange_folder()
 
+        if (not os.path.isdir(coat3D.exchangedir)):
+            coat3D.exchange_found = False
+            return {'FINISHED'}
 
         folder_objects = set_working_folders()
         folder_size(folder_objects)
-
 
         importfile = coat3D.exchangedir
         texturefile = coat3D.exchangedir
@@ -339,8 +355,6 @@ class SCENE_OT_export(bpy.types.Operator):
                             if(node.name.startswith('3DC_') == True):
                                 material.material.node_tree.nodes.remove(node)
 
-
-
         return {'FINISHED'}
 
 class SCENE_OT_import(bpy.types.Operator):
@@ -378,7 +392,6 @@ class SCENE_OT_import(bpy.types.Operator):
                 if(image.filepath == texturepath[3]):
                     bpy.data.images.remove(image)
 
-
         Blender_folder = ("%s%sBlender"%(coat3D.exchangedir,os.sep))
         Blender_export = Blender_folder
         path3b_now = coat3D.exchangedir
@@ -404,8 +417,6 @@ class SCENE_OT_import(bpy.types.Operator):
         exportfile += ('%sexport.txt' % (os.sep))
         if (os.path.isfile(exportfile)):
             os.remove(exportfile)
-
-
 
         if(new_object == False):
 
@@ -511,7 +522,6 @@ class SCENE_OT_import(bpy.types.Operator):
                         export_file.close()
                         os.remove(exportfile)
 
-
                     obj_names = objekti.coat3D.applink_group
                     obj_list = obj_names.split(':::')
                     applinks = []
@@ -572,7 +582,6 @@ class SCENE_OT_import(bpy.types.Operator):
                     if(coat3D.importmesh and not(os.path.isfile(objekti.coat3D.applink_address))):
                         coat3D.importmesh = False
 
-
                     objekti.select_set('SELECT')
                     if(coat3D.importtextures):
                         is_new = False
@@ -592,7 +601,6 @@ class SCENE_OT_import(bpy.types.Operator):
                     for node in material.node_tree.nodes:
                         if (node.name).startswith('3DC'):
                             node.location = node.location
-
         else:
 
             '''
@@ -664,8 +672,6 @@ class SCENE_OT_import(bpy.types.Operator):
                     new_obj.coat3D.applink_group = nimi
                     new_obj.coat3D.applink_old = True
 
-
-
             bpy.ops.object.select_all(action='SELECT')
             bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
             bpy.ops.object.select_all(action='DESELECT')
@@ -677,10 +683,7 @@ class SCENE_OT_import(bpy.types.Operator):
                         if (node.name).startswith('3DC'):
                             node.location = node.location
 
-
         return {'FINISHED'}
-
-
 
 from bpy import *
 from mathutils import Vector, Matrix
@@ -703,10 +706,8 @@ class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
                 layout.operator("export_applink.pilgway_3d_coat", text="Transfer selected object(s) into 3D-Coat")
                 layout.separator()
             else:
-                layout.operator("import_applink.pilgway_3d_coat", text="Update")
+                layout.operator("import_applink.pilgway_3d_coat", text="Update Scene")
                 layout.separator()
-
-
 
 class VIEW3D_MT_ImportMenu(bpy.types.Menu):
     bl_label = "Import Settings"
@@ -797,7 +798,6 @@ class ObjectCoat3D(PropertyGroup):
         name="Scale",
         description="Scale"
     )
-
 
 class SceneCoat3D(PropertyGroup):
     defaultfolder: StringProperty(
@@ -964,10 +964,10 @@ class MaterialCoat3D(PropertyGroup):
         subtype="APPLINK_ADDRESS",
     )
 
-
 classes = (
     #ObjectButtonsPanel,
     SCENE_PT_Main,
+    SCENE_OT_folder,
     SCENE_OT_export,
     SCENE_OT_import,
     VIEW3D_MT_Coat_Dynamic_Menu,
@@ -1001,8 +1001,6 @@ def register():
         km = kc.keymaps.new(name="Object Mode")
         kmi = km.keymap_items.new('wm.call_menu', 'Q', 'PRESS')
         kmi.properties.name = "VIEW3D_MT_Coat_Dynamic_Menu"
-
-
 
 def unregister():
 
