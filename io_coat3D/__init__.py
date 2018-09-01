@@ -677,7 +677,7 @@ class SCENE_OT_import(bpy.types.Operator):
             Blender_export += ('%sexport.txt'%(os.sep))
             mat_list = []
             nimi = ''
-
+            osoite_3b = ''
             if (os.path.isfile(path3b_now)):
                 path3b_fil = open(path3b_now)
                 for lin in path3b_fil:
@@ -727,8 +727,9 @@ class SCENE_OT_import(bpy.types.Operator):
                     new_obj.coat3D.applink_name = splittext.split('.')[0]
                     new_obj.coat3D.applink_export = True
                     print('lokaisson: ', path3b_now)
-                    new_obj.coat3D.applink_3b_path = osoite_3b
-                    new_obj.coat3D.applink_3b_just_name = just_3b_name
+                    if(osoite_3b != ''):
+                        new_obj.coat3D.applink_3b_path = osoite_3b
+                        new_obj.coat3D.applink_3b_just_name = just_3b_name
 
                     mat_list.append(new_obj.material_slots[0].material)
                     is_new = True
