@@ -44,6 +44,7 @@ import re
 
 import time
 import bpy
+import subprocess
 from bpy.types import PropertyGroup
 from bpy.props import (
         BoolProperty,
@@ -238,6 +239,20 @@ class SCENE_PT_Main(bpy.types.Panel):
             colR.operator("export_applink.pilgway_3d_coat", text="Transfer")
             colL.operator("import_applink.pilgway_3d_coat", text="Update")
 
+
+def running():
+    n=0# number of instances of the program running
+    prog=[line.split() for line in subprocess.check_output("tasklist").splitlines()]
+    [prog.pop(e) for e in [0,1,2]] #useless
+    for task in prog:
+        if str(task[0]) == "b'3D-CoatDX64C.exe'" or str(task[0]) == "b'3D-CoatGL64C.exe'":
+            n+=1
+            break
+    if n>0:
+        return True
+    else:
+        return False
+
 class SCENE_OT_folder(bpy.types.Operator):
     bl_idname = "update_exchange_folder.pilgway_3d_coat"
     bl_label = "Export your custom property"
@@ -252,6 +267,28 @@ class SCENE_OT_folder(bpy.types.Operator):
             coat3D.exchange_found = True
         else:
             coat3D.exchange_found = False
+
+        return {'FINISHED'}
+
+class SCENE_OT_opencoat(bpy.types.Operator):
+    bl_idname = "open_3dcoat.pilgway_3d_coat"
+    bl_label = "Export your custom property"
+    bl_description = "Export your custom property"
+    bl_options = {'UNDO'}
+
+    def invoke(self, context, event):
+        coat3D = bpy.context.selected_objects[0].coat3D.applink_3b_path
+        print('3b osoite on:',coat3D)
+        if running() == False:
+            os.popen('"' + 'C:\\Program Files\\3D-Coat-V4.8.21\\3D-CoatDX64C.exe' + '" ' + coat3D)
+            print('C:\\Program Files\\3D-Coat-V4.8.21\\3D-CoatDX64C.exe ' + coat3D)
+        else:
+            importfile = bpy.context.scene.coat3D.exchangedir
+            importfile += ('%simport.txt' % (os.sep))
+            file = open(importfile, "w")
+            file.write("%s" % (coat3D))
+            file.close()
+
 
         return {'FINISHED'}
 
@@ -575,7 +612,9 @@ class SCENE_OT_import(bpy.types.Operator):
                     if(os.path.isfile(path3b_n)):
                         path3b_fil = open(path3b_n)
                         for lin in path3b_fil:
-                            objekti.coat3D.path3b = lin
+                            objekti.coat3D.applink_3b_path = lin
+                        head, tail = os.path.split(objekti.coat3D.applink_3b_path)
+                        objekti.coat3D.applink_3b_just_name = tail
                         path3b_fil.close()
                         os.remove(path3b_n)
 
@@ -614,11 +653,20 @@ class SCENE_OT_import(bpy.types.Operator):
             scene = context.scene
             Blender_folder = ("%s%sBlender"%(coat3D.exchangedir,os.sep))
             Blender_export = Blender_folder
-            path3b_now = coat3D.exchangedir
+            path3b_now = coat3D.exchangedir + os.sep
             path3b_now += ('last_saved_3b_file.txt')
             Blender_export += ('%sexport.txt'%(os.sep))
             mat_list = []
             nimi = ''
+
+            if (os.path.isfile(path3b_now)):
+                path3b_fil = open(path3b_now)
+                for lin in path3b_fil:
+                    osoite_3b = lin
+                path3b_fil.close()
+                head, tail = os.path.split(osoite_3b)
+                just_3b_name = tail
+                os.remove(path3b_now)
 
             old_materials = bpy.data.materials.keys()
             old_objects = bpy.data.objects.keys()
@@ -659,6 +707,9 @@ class SCENE_OT_import(bpy.types.Operator):
                     splittext = ntpath.basename(new_applink_address)
                     new_obj.coat3D.applink_name = splittext.split('.')[0]
                     new_obj.coat3D.applink_export = True
+                    print('lokaisson: ', path3b_now)
+                    new_obj.coat3D.applink_3b_path = osoite_3b
+                    new_obj.coat3D.applink_3b_just_name = just_3b_name
 
                     mat_list.append(new_obj.material_slots[0].material)
                     is_new = True
@@ -702,6 +753,10 @@ class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
 
                 layout.operator("export_applink.pilgway_3d_coat", text="Transfer selected object(s) into 3D-Coat")
                 layout.separator()
+                if(context.selected_objects[0].coat3D.applink_3b_path != ''):
+                    layout.operator("open_3dcoat.pilgway_3d_coat", text="Open " +context.selected_objects[0].coat3D.applink_3b_just_name)
+                    layout.separator()
+
             else:
                 layout.operator("import_applink.pilgway_3d_coat", text="Update Scene")
                 layout.separator()
@@ -753,7 +808,13 @@ class ObjectCoat3D(PropertyGroup):
     applink_address: StringProperty(
         name="Object_Applink_address"
     )
+    applink_3b_path: StringProperty(
+        name="Object_3B_Path"
+    )
     applink_name: StringProperty(
+        name="Applink object name"
+    )
+    applink_3b_just_name: StringProperty(
         name="Applink object name"
     )
     applink_group: StringProperty(
@@ -965,6 +1026,7 @@ classes = (
     #ObjectButtonsPanel,
     SCENE_PT_Main,
     SCENE_OT_folder,
+    SCENE_OT_opencoat,
     SCENE_OT_export,
     SCENE_OT_import,
     VIEW3D_MT_Coat_Dynamic_Menu,
