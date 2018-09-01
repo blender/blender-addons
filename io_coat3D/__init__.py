@@ -279,15 +279,34 @@ class SCENE_OT_opencoat(bpy.types.Operator):
     def invoke(self, context, event):
         coat3D = bpy.context.selected_objects[0].coat3D.applink_3b_path
         print('3b osoite on:',coat3D)
-        if running() == False:
-            os.popen('"' + 'C:\\Program Files\\3D-Coat-V4.8.21\\3D-CoatDX64C.exe' + '" ' + coat3D)
-            print('C:\\Program Files\\3D-Coat-V4.8.21\\3D-CoatDX64C.exe ' + coat3D)
-        else:
-            importfile = bpy.context.scene.coat3D.exchangedir
-            importfile += ('%simport.txt' % (os.sep))
-            file = open(importfile, "w")
-            file.write("%s" % (coat3D))
-            file.close()
+        platform = os.sys.platform
+        prog_path = os.environ['PROGRAMFILES']
+        if (platform == 'win32'):
+            index = 0
+            for file in os.listdir(prog_path):
+                if index == 0:
+                    if file.startswith('3D-Coat-V4'):
+                        modi = os.path.getmtime(prog_path + os.sep + file)
+                        active_3dcoat = prog_path + os.sep + file
+                        index += 1
+                else:
+                    if file.startswith('3D-Coat-V4'):
+                        if(os.path.getmtime(prog_path + os.sep + file) > modi):
+                            modi = os.path.getmtime(prog_path + os.sep + file)
+                            active_3dcoat = prog_path + os.sep + file
+
+            print('haippaa',active_3dcoat)
+            if running() == False:
+                os.popen('"' + active_3dcoat + os.sep + '3D-CoatDX64C.exe' '" ' + coat3D)
+                print('C:\\Program Files\\3D-Coat-V4.8.21\\3D-CoatDX64C.exe ' + coat3D)
+            else:
+                importfile = bpy.context.scene.coat3D.exchangedir
+                importfile += ('%simport.txt' % (os.sep))
+                file = open(importfile, "w")
+                file.write("%s" % (coat3D))
+                file.write("\n%s" % (coat3D))
+                file.write("\n[3B]")
+                file.close()
 
 
         return {'FINISHED'}
