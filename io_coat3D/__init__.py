@@ -308,6 +308,20 @@ class SCENE_OT_opencoat(bpy.types.Operator):
                 file.write("\n[3B]")
                 file.close()
 
+        ''' 
+        If not Windows Os it will only write import.txt. Auto run 3d-coat.exe is disabled. 
+        '''
+
+        else:
+            importfile = bpy.context.scene.coat3D.exchangedir
+            importfile += ('%simport.txt' % (os.sep))
+            file = open(importfile, "w")
+            file.write("%s" % (coat3D))
+            file.write("\n%s" % (coat3D))
+            file.write("\n[3B]")
+            file.close()
+
+
 
         return {'FINISHED'}
 
