@@ -849,8 +849,7 @@ class Screen():
         y_max = h - self.margin
         x_min = self.margin
         x_max = w - self.margin
-        if (system.use_region_overlap and
-                system.window_draw_method in {'TRIPLE_BUFFER', 'AUTOMATIC'}):
+        if system.use_region_overlap:
             area = context.area
 
             for r in area.regions:

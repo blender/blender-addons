@@ -933,7 +933,7 @@ def add_curve_object(
     bpy.context.scene.objects.active = cur
     cur.select = True
     if x_ray is True:
-        cur.show_x_ray = x_ray
+        cur.show_in_front = x_ray
     return
 
 

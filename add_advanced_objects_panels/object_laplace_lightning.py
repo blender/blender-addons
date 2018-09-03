@@ -1087,7 +1087,7 @@ def setupObjects():
     bpy.context.scene.objects.link(oOB)
 
     gOB = bpy.data.objects.new('ELground', None)
-    gOB.empty_draw_type = 'ARROWS'
+    gOB.empty_display_type = 'ARROWS'
     bpy.context.scene.objects.link(gOB)
 
     cME = makeMeshCube(1)

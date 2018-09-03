@@ -78,7 +78,7 @@ class P2E(Operator):
         bpy.ops.object.add(type='EMPTY', location=loc)
         context.object.name = self.nombre
         context.object.show_name = True
-        context.object.show_x_ray = True
+        context.object.show_in_front = True
 
         if self.grupo:
             bpy.ops.group.create(name=self.nombre)

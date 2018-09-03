@@ -1005,7 +1005,7 @@ class Do:
 
         bpy.context.screen.scene = scene
         o = bbox.copy()
-        # o.empty_draw_size = 0.3
+        # o.empty_display_size = 0.3
         o.dupli_type = "GROUP"
         o.dupli_group = block_group
         group.objects.link(o)

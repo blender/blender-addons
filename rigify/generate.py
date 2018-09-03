@@ -96,12 +96,12 @@ def generate_rig(context, metarig):
             rig_old_name = name
             name = rig_new_name or name
             obj = bpy.data.objects.new(name, bpy.data.armatures.new(name))
-            obj.draw_type = 'WIRE'
+            obj.display_type = 'WIRE'
             scene.objects.link(obj)
     else:
         name = rig_new_name or "rig"
         obj = bpy.data.objects.new(name, bpy.data.armatures.new(name))  # in case name 'rig' exists it will be rig.001
-        obj.draw_type = 'WIRE'
+        obj.display_type = 'WIRE'
         scene.objects.link(obj)
 
     id_store.rigify_target_rig = obj.name

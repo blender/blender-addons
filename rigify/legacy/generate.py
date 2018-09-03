@@ -88,7 +88,7 @@ def generate_rig(context, metarig):
         obj = scene.objects[name]
     except KeyError:
         obj = bpy.data.objects.new(name, bpy.data.armatures.new(name))
-        obj.draw_type = 'WIRE'
+        obj.display_type = 'WIRE'
         scene.objects.link(obj)
 
     obj.data.pose_position = 'POSE'

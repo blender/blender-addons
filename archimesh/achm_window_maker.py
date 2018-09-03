@@ -216,7 +216,7 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     myctrl.location.x = 0
     myctrl.location.y = -mp.depth * 3 / 2
     myctrl.location.z = 0
-    myctrl.draw_type = 'BOUNDS'
+    myctrl.display_type = 'BOUNDS'
     myctrl.hide = False
     myctrl.hide_render = True
     if bpy.context.scene.render.engine == 'CYCLES':

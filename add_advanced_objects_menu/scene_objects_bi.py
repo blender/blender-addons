@@ -43,7 +43,7 @@ class add_BI_scene(Operator):
                     )
             cam = bpy.context.active_object.data
             cam.lens = 35
-            cam.draw_size = 0.1
+            cam.display_size = 0.1
             bpy.ops.view3d.viewnumpad(type='CAMERA')
 
             # add point lamp

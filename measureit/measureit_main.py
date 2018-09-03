@@ -1892,7 +1892,7 @@ class AddNoteButton(Operator):
             bpy.ops.object.empty_add(type='PLAIN_AXES')
             myempty = bpy.data.objects[bpy.context.active_object.name]
             myempty.location = bpy.context.scene.cursor_location
-            myempty.empty_draw_size = 0.01
+            myempty.empty_display_size = 0.01
             myempty.name = "Annotation"
             # Add properties
             scene = context.scene

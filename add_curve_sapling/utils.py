@@ -735,13 +735,13 @@ def create_armature(armAnim, leafP, cu, frameRate, leafMesh, leafObj, leafVertSi
     newAction = bpy.data.actions.new(name='windAction')
     armOb.animation_data_create()
     armOb.animation_data.action = newAction
-    arm.draw_type = 'STICK'
+    arm.display_type = 'STICK'
     arm.use_deform_delay = True
     # Add the armature modifier to the curve
     armMod = treeOb.modifiers.new('windSway', 'ARMATURE')
     if previewArm:
         armMod.show_viewport = False
-        arm.draw_type = 'WIRE'
+        arm.display_type = 'WIRE'
         treeOb.hide = True
     armMod.use_apply_on_spline = True
     armMod.object = armOb
@@ -1996,7 +1996,7 @@ def addTree(props):
             armMod = treeObj.modifiers.new('windSway', 'ARMATURE')
             if previewArm:
                 bpy.data.objects['treeArm'].hide = True
-                bpy.data.armatures['tree'].draw_type = 'STICK'
+                bpy.data.armatures['tree'].display_type = 'STICK'
             armMod.object = bpy.data.objects['treeArm']
             armMod.use_bone_envelopes = False
             armMod.use_vertex_groups = True

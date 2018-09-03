@@ -3271,8 +3271,8 @@ def importTransform(bpyscene, node, ancestry, global_matrix):
     bpyob.matrix_world = getFinalMatrix(node, None, ancestry, global_matrix)
 
     # so they are not too annoying
-    bpyob.empty_draw_type = 'PLAIN_AXES'
-    bpyob.empty_draw_size = 0.2
+    bpyob.empty_display_type = 'PLAIN_AXES'
+    bpyob.empty_display_size = 0.2
 
 
 #def importTimeSensor(node):

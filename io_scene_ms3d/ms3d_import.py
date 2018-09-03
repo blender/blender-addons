@@ -690,14 +690,14 @@ class Ms3dImporter():
         blender_armature = blender_context.blend_data.armatures.new(
                 ms3d_armature_name)
         blender_armature.ms3d.name = ms3d_model.name
-        blender_armature.draw_type = 'STICK'
+        blender_armature.display_type = 'STICK'
         blender_armature.show_axes = True
         blender_armature.use_auto_ik = True
         blender_armature_object = blender_context.blend_data.objects.new(
                 ms3d_armature_object_name, blender_armature)
         blender_scene.objects.link(blender_armature_object)
         #blender_armature_object.location = blender_scene.cursor_location
-        blender_armature_object.show_x_ray = True
+        blender_armature_object.show_in_front = True
 
         ##########################
         # create new modifier

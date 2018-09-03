@@ -63,7 +63,7 @@ def createLattice(context, obj, props):
     # the rotation comes from the combined obj world
     # matrix which was converted to euler pairs
     ob.rotation_euler = buildRot_World(obj)
-    ob.show_x_ray = True
+    ob.show_in_front = True
 
     # Link object to scene
     scn = context.scene

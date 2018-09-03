@@ -277,11 +277,11 @@ class SCENE_OT_namedlayer_toggle_wire(Operator):
                     group_layers = scene.layergroups[group_idx].layers
                     layers = obj.layers
                     if True in {layer and group_layer for layer, group_layer in zip(layers, group_layers)}:
-                        obj.draw_type = display
+                        obj.display_type = display
                         scene.layergroups[group_idx].use_wire = use_wire
                 else:
                     if obj.layers[layer_idx]:
-                        obj.draw_type = display
+                        obj.display_type = display
                         scene.namedlayers.layers[layer_idx].use_wire = use_wire
 
         return {'FINISHED'}

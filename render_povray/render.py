@@ -2111,7 +2111,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                     strandShape = 0.0
                                 # Set the number of particles to render count rather than 3d view display
                                 pSys.set_resolution(scene, ob, 'RENDER')
-                                steps = pSys.settings.draw_step
+                                steps = pSys.settings.display_step
                                 steps = 3 ** steps # or (power of 2 rather than 3) + 1 # Formerly : len(particle.hair_keys)
 
                                 totalNumberOfHairs = ( len(pSys.particles) + len(pSys.child_particles) )
@@ -2163,7 +2163,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                             elif step == 0:
                                                 hDiameter = strandStart
                                             else:
-                                                hDiameter += (strandEnd-strandStart)/(pSys.settings.draw_step+1) #XXX +1 or not?
+                                                hDiameter += (strandEnd-strandStart)/(pSys.settings.display_step+1) #XXX +1 or not?
                                             if step == 0 and pSys.settings.use_hair_bspline:
                                                 # Write three times the first point to compensate pov Bezier handling
                                                 file.write('<%.6g,%.6g,%.6g>,%.7g,\n' % (co[0], co[1], co[2], abs(hDiameter)))

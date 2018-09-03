@@ -602,7 +602,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_CursorMenuLite", icon='CURSOR')
             layout.menu("VIEW3D_MT_PoseCopy", icon='FILE')
 
-            if arm.draw_type in {'BBONE', 'ENVELOPE'}:
+            if arm.display_type in {'BBONE', 'ENVELOPE'}:
                 layout.operator("transform.transform",
                                 text="Scale Envelope Distance").mode = 'BONE_SIZE'
 
@@ -1895,7 +1895,7 @@ class VIEW3D_MT_TransformMenu(Menu):
         layout = self.layout
         layout.menu("VIEW3D_MT_ManipulatorMenu1")
         UseSeparator(self, context)
-        layout.operator("transform.translate", text="Grab/Move")
+        layout.operator("transform.translate", text="Move")
         layout.operator("transform.rotate", text="Rotate")
         layout.operator("transform.resize", text="Scale")
         UseSeparator(self, context)
@@ -1925,7 +1925,7 @@ class VIEW3D_MT_TransformMenuEdit(Menu):
         layout = self.layout
         layout.menu("VIEW3D_MT_ManipulatorMenu1")
         UseSeparator(self, context)
-        layout.operator("transform.translate", text="Grab/Move")
+        layout.operator("transform.translate", text="Move")
         layout.operator("transform.rotate", text="Rotate")
         layout.operator("transform.resize", text="Scale")
         UseSeparator(self, context)
@@ -1955,7 +1955,7 @@ class VIEW3D_MT_TransformMenuLite(Menu):
         layout = self.layout
         layout.menu("VIEW3D_MT_ManipulatorMenu1")
         UseSeparator(self, context)
-        layout.operator("transform.translate", text="Grab/Move")
+        layout.operator("transform.translate", text="Move")
         layout.operator("transform.rotate", text="Rotate")
         layout.operator("transform.resize", text="Scale")
         UseSeparator(self, context)
@@ -1976,7 +1976,7 @@ class VIEW3D_MT_TransformMenuCamera(Menu):
         layout.menu("VIEW3D_MT_ManipulatorMenu1")
         layout.menu("VIEW3D_MT_object_clear")
         layout.menu("VIEW3D_MT_object_apply")
-        layout.operator("transform.translate", text="Grab/Move")
+        layout.operator("transform.translate", text="Move")
         layout.operator("transform.rotate", text="Rotate")
         layout.operator("transform.resize", text="Scale")
         layout.operator("object.align")
@@ -1995,7 +1995,7 @@ class VIEW3D_MT_TransformMenuArmature(Menu):
 
         layout.menu("VIEW3D_MT_ManipulatorMenu1")
         UseSeparator(self, context)
-        layout.operator("transform.translate", text="Grab/Move")
+        layout.operator("transform.translate", text="Move")
         layout.operator("transform.rotate", text="Rotate")
         layout.operator("transform.resize", text="Scale")
         UseSeparator(self, context)
@@ -2021,7 +2021,7 @@ class VIEW3D_MT_TransformMenuArmatureEdit(Menu):
         layout = self.layout
         layout.menu("VIEW3D_MT_ManipulatorMenu1")
         UseSeparator(self, context)
-        layout.operator("transform.translate", text="Grab/Move")
+        layout.operator("transform.translate", text="Move")
         layout.operator("transform.rotate", text="Rotate")
         layout.operator("transform.resize", text="Scale")
         UseSeparator(self, context)
@@ -2043,7 +2043,7 @@ class VIEW3D_MT_TransformMenuArmaturePose(Menu):
     def draw(self, context):
         layout = self.layout
         layout.menu("VIEW3D_MT_ManipulatorMenu1")
-        layout.operator("transform.translate", text="Grab/Move")
+        layout.operator("transform.translate", text="Move")
         layout.operator("transform.rotate", text="Rotate")
         layout.operator("transform.resize", text="Scale")
         UseSeparator(self, context)
@@ -2057,9 +2057,9 @@ class VIEW3D_MT_TransformMenuArmaturePose(Menu):
         layout.operator("pose.user_transforms_clear", text="Reset unkeyed")
         obj = context.object
         if obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'}:
-            if obj.data.draw_type == 'BBONE':
+            if obj.data.display_type == 'BBONE':
                 layout.operator("transform.transform", text="Scale BBone").mode = 'BONE_SIZE'
-            elif obj.data.draw_type == 'ENVELOPE':
+            elif obj.data.display_type == 'ENVELOPE':
                 layout.operator("transform.transform", text="Scale Envelope Distance").mode = 'BONE_SIZE'
                 layout.operator("transform.transform", text="Scale Radius").mode = 'BONE_ENVELOPE'
 
@@ -2229,7 +2229,7 @@ class VIEW3D_MT_Shade(Menu):
 
         UseSeparator(self, context)
         layout.operator("view3d.display_wire_all", text="Wire all", icon='WIRE')
-        layout.prop(context.object, "show_x_ray", text="X-Ray", icon="META_CUBE")
+        layout.prop(context.object, "show_in_front", text="X-Ray", icon="META_CUBE")
 
         UseSeparator(self, context)
         layout.prop(context.space_data.fx_settings, "use_ssao",

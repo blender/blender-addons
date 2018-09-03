@@ -189,7 +189,7 @@ class StructureBuilder(DataStructure):
         self.armature = self.object.data
         self.object.name = self.name
         self.armature.name = self.name
-        self.armature.draw_type = 'STICK'
+        self.armature.display_type = 'STICK'
         self.object['source_file_path'] = self.file_path
         self.object['source_scale'] = self.user_def_scale
         self.object['MhxArmature'] = 'Daz'

@@ -622,7 +622,7 @@ class BallRope(Operator):
             bpy.ops.rigidbody.objects_add(type='ACTIVE')
             bpy.context.object.name = "CubeLink"
             if n != 0:
-                bpy.context.object.draw_type = 'WIRE'
+                bpy.context.object.display_type = 'WIRE'
                 bpy.context.object.hide_render = True
             n += 1
             bpy.context.object.scale.z = (longitud * 2) / (segmentos * 2) - separation

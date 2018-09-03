@@ -45,7 +45,7 @@ def write_cameras(context, filepath, frame_start, frame_end, only_selected=False
         'dof_distance',
         'clip_start',
         'clip_end',
-        'draw_size',
+        'display_size',
         )
 
     obj_attrs = (

@@ -394,7 +394,7 @@ def do_ctrl_box(myobject):
     myctrl.location.x = 0
     myctrl.location.y = 0
     myctrl.location.z = 0
-    myctrl.draw_type = 'WIRE'
+    myctrl.display_type = 'WIRE'
     myctrl.hide = False
     myctrl.hide_render = True
     if bpy.context.scene.render.engine == 'CYCLES':

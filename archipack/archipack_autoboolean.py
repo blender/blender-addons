@@ -105,7 +105,7 @@ class ArchipackBoolManager():
         hole.lock_location = (True, True, True)
         hole.lock_rotation = (True, True, True)
         hole.lock_scale = (True, True, True)
-        hole.draw_type = 'WIRE'
+        hole.display_type = 'WIRE'
         hole.hide_render = True
         hole.hide_select = True
         hole.select = True

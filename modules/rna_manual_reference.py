@@ -435,7 +435,7 @@ url_manual_mapping = (
 	("bpy.types.multicamsequence*", "editors/vse/sequencer/strips/effects/multicam.html#bpy-types-multicamsequence"),
 	("bpy.types.multiplysequence*", "editors/vse/sequencer/strips/effects/multiply.html#bpy-types-multiplysequence"),
 	("bpy.types.multiresmodifier*", "modeling/modifiers/generate/multiresolution.html#bpy-types-multiresmodifier"),
-	("bpy.types.object.draw_type*", "editors/3dview/object/properties/display.html#bpy-types-object-draw-type"),
+	("bpy.types.object.display_type*", "editors/3dview/object/properties/display.html#bpy-types-object-draw-type"),
 	("bpy.types.object.use_extra*", "editors/3dview/object/properties/relations/extras.html#bpy-types-object-use-extra"),
 	("bpy.types.overdropsequence*", "editors/vse/sequencer/strips/effects/alpha_over_under_overdrop.html#bpy-types-overdropsequence"),
 	("bpy.types.particlesettings*", "physics/particles/index.html#bpy-types-particlesettings"),

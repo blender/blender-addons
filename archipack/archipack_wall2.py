@@ -1672,7 +1672,7 @@ class ARCHIPACK_OT_wall2_throttle_update(Operator):
                     m = o.modifiers.get("AutoBoolean")
                     if m is not None:
                         o.hide = False
-                        # o.draw_type = 'TEXTURED'
+                        # o.display_type = 'TEXTURED'
                         # m.show_viewport = True
 
                     return self.cancel(context)

@@ -159,9 +159,9 @@ def Operation(context, _operation):
                             obj.modifiers.remove(mod)
             """
             if useWire:
-                selObj.draw_type = "WIRE"
+                selObj.display_type = "WIRE"
             else:
-                selObj.draw_type = "BOUNDS"
+                selObj.display_type = "BOUNDS"
 
             cyclesVis.camera = False
             cyclesVis.diffuse = False
@@ -200,7 +200,7 @@ def Remove(context, thisObj_name, Prop):
             # if it's the brush object
             if obj.name == _thisObj_name:
                 cyclesVis = obj.cycles_visibility
-                obj.draw_type = "TEXTURED"
+                obj.display_type = "TEXTURED"
                 del obj["BoolToolBrush"]
                 del obj["BoolTool_FTransform"]
                 cyclesVis.camera = True
@@ -229,7 +229,7 @@ def Remove(context, thisObj_name, Prop):
                         if (actObj.name in mod.name):
                             Canvas.modifiers.remove(mod)
             cyclesVis = actObj.cycles_visibility
-            actObj.draw_type = "TEXTURED"
+            actObj.display_type = "TEXTURED"
             del actObj["BoolToolBrush"]
             del actObj["BoolTool_FTransform"]
             cyclesVis.camera = True
@@ -509,9 +509,9 @@ class BTool_FastTransform(Operator):
             if isBrush(actObj) and actObj["BoolTool_FTransform"] == "True":
                 EnableThisBrush(bpy.context, "False")
                 if useWire:
-                    actObj.draw_type = "WIRE"
+                    actObj.display_type = "WIRE"
                 else:
-                    actObj.draw_type = "BOUNDS"
+                    actObj.display_type = "BOUNDS"
 
             if self.operator == "Translate":
                 bpy.ops.transform.translate('INVOKE_DEFAULT')
@@ -523,13 +523,13 @@ class BTool_FastTransform(Operator):
         if event.type == 'LEFTMOUSE':
             if isBrush(actObj):
                 EnableThisBrush(bpy.context, "True")
-                actObj.draw_type = "WIRE"
+                actObj.display_type = "WIRE"
             return {'FINISHED'}
 
         if event.type in {'RIGHTMOUSE', 'ESC'}:
             if isBrush(actObj):
                 EnableThisBrush(bpy.context, "True")
-                actObj.draw_type = "WIRE"
+                actObj.display_type = "WIRE"
             return {'CANCELLED'}
 
         return {'RUNNING_MODAL'}

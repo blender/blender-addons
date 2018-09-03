@@ -2073,13 +2073,13 @@ def fbx_animations(scene_data):
                 'delta_location', 'delta_rotation_euler', 'delta_rotation_quaternion', 'delta_scale',
                 'lock_location', 'lock_rotation', 'lock_rotation_w', 'lock_rotations_4d', 'lock_scale',
                 'tag', 'layers', 'select', 'track_axis', 'up_axis', 'active_material', 'active_material_index',
-                'matrix_parent_inverse', 'empty_draw_type', 'empty_draw_size', 'empty_image_offset', 'pass_index',
+                'matrix_parent_inverse', 'empty_display_type', 'empty_display_size', 'empty_image_offset', 'pass_index',
                 'color', 'hide', 'hide_select', 'hide_render', 'use_slow_parent', 'slow_parent_offset',
                 'use_extra_recalc_object', 'use_extra_recalc_data', 'dupli_type', 'use_dupli_frames_speed',
                 'use_dupli_vertices_rotation', 'use_dupli_faces_scale', 'dupli_faces_scale', 'dupli_group',
                 'dupli_frames_start', 'dupli_frames_end', 'dupli_frames_on', 'dupli_frames_off',
-                'draw_type', 'show_bounds', 'draw_bounds_type', 'show_name', 'show_axis', 'show_texture_space',
-                'show_wire', 'show_all_edges', 'show_transparent', 'show_x_ray',
+                'display_type', 'show_bounds', 'display_bounds_type', 'show_name', 'show_axis', 'show_texture_space',
+                'show_wire', 'show_all_edges', 'show_transparent', 'show_in_front',
                 'show_only_shape_key', 'use_shape_key_edit_mode', 'active_shape_key_index',
             )
             for p in props:

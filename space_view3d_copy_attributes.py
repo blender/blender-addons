@@ -356,17 +356,17 @@ def obVisSca(ob, active, context):
 
 
 def obDrw(ob, active, context):
-    ob.draw_type = active.draw_type
+    ob.display_type = active.display_type
     ob.show_axis = active.show_axis
     ob.show_bounds = active.show_bounds
-    ob.draw_bounds_type = active.draw_bounds_type
+    ob.display_bounds_type = active.display_bounds_type
     ob.show_name = active.show_name
     ob.show_texture_space = active.show_texture_space
     ob.show_transparent = active.show_transparent
     ob.show_wire = active.show_wire
-    ob.show_x_ray = active.show_x_ray
-    ob.empty_draw_type = active.empty_draw_type
-    ob.empty_draw_size = active.empty_draw_size
+    ob.show_in_front = active.show_in_front
+    ob.empty_display_type = active.empty_display_type
+    ob.empty_display_size = active.empty_display_size
 
 
 def obOfs(ob, active, context):

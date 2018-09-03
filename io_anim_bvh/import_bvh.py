@@ -319,8 +319,8 @@ def bvh_node_dict2objects(context, bvh_name, bvh_nodes, rotate_mode='NATIVE', fr
         obj.select = True
 
         # nicer drawing.
-        obj.empty_draw_type = 'CUBE'
-        obj.empty_draw_size = 0.1
+        obj.empty_display_type = 'CUBE'
+        obj.empty_display_size = 0.1
 
         return obj
 

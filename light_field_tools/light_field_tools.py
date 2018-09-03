@@ -189,7 +189,7 @@ class OBJECT_OT_create_lightfield_rig(Operator):
             cam.data.angle = scene.lightfield.angle
 
             # display options of the camera
-            cam.data.draw_size = 0.15
+            cam.data.display_size = 0.15
             cam.data.lens_unit = 'FOV'
 
             # handler parent
