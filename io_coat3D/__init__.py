@@ -197,11 +197,14 @@ def updatemesh(objekti, proxy):
 
 
     '''
-    # UV Copy gives an error at this point
+
+    # UV Set Copy
+
     proxy.select_set('SELECT')
     objekti.select_set('SELECT')
 
     if len(objekti.data.uv_layers) > 1:
+        obj_uv_index =  objekti.data.uv_layers.active_index
         index = 0
         for uv_layer in objekti.data.uv_layers:
             if (uv_layer != objekti.data.uv_layers[0]):
@@ -210,6 +213,7 @@ def updatemesh(objekti, proxy):
                 objekti.data.uv_layers.active_index = index
                 bpy.ops.object.join_uvs()
             index += 1
+        proxy.data.uv_layers.active_index = obj_uv_index
 
     bpy.ops.object.select_all(action='DESELECT')
 
