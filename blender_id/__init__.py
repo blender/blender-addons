@@ -357,7 +357,10 @@ def register():
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
+    bpy.utils.unregister_class(BlenderIdLogin)
+    bpy.utils.unregister_class(BlenderIdLogout)
+    bpy.utils.unregister_class(BlenderIdPreferences)
+    bpy.utils.unregister_class(BlenderIdValidate)
 
 
 if __name__ == '__main__':
