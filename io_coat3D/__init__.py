@@ -185,8 +185,8 @@ def make_texture_list(texturefolder):
 
 def updatemesh(objekti, proxy):
 
-    '''
-    TO DO VERTEX GROUPS, gives an error with this code.
+
+    #TO DO VERTEX GROUPS, gives an error with this code.
 
     if(objekti.vertex_groups.keys != []):
         bpy.ops.object.select_all(action='DESELECT')
@@ -196,7 +196,7 @@ def updatemesh(objekti, proxy):
         bpy.ops.object.select_all(action='DESELECT')
 
 
-    '''
+
 
     # UV Set Copy
 
