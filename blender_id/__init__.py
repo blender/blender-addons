@@ -23,7 +23,7 @@
 bl_info = {
     'name': 'Blender ID authentication',
     'author': 'Sybren A. Stüvel, Francesco Siddi, and Inês Almeida',
-    'version': (1, 5, 0),
+    'version': (1, 9, 9),
     'blender': (2, 80, 0),
     'location': 'Add-on preferences',
     'description':
@@ -119,11 +119,11 @@ def get_subclient_user_id(subclient_id: str) -> str:
     Requires that the user has been authenticated at the subclient using
     a call to create_subclient_token(...)
 
-    :returns: the subclient-local user ID, or None if not logged in.
+    :returns: the subclient-local user ID, or the empty string if not logged in.
     """
 
     if not BlenderIdProfile.user_id:
-        return None
+        return ''
 
     return BlenderIdProfile.subclients[subclient_id]['subclient_user_id']
 
@@ -161,9 +161,9 @@ def token_expires() -> typing.Optional[datetime.datetime]:
     # Try parsing as different formats. A new Blender ID is coming,
     # which may change the format in which timestamps are sent.
     formats = [
-        '%Y-%m-%dT%H:%M:%SZ', # ISO 8601 with Z-suffix
-        '%Y-%m-%dT%H:%M:%S.%fZ', # ISO 8601 with fractional seconds and Z-suffix
-        '%a, %d %b %Y %H:%M:%S GMT', # RFC 1123, used by old Blender ID
+        '%Y-%m-%dT%H:%M:%SZ',  # ISO 8601 with Z-suffix
+        '%Y-%m-%dT%H:%M:%S.%fZ',  # ISO 8601 with fractional seconds and Z-suffix
+        '%a, %d %b %Y %H:%M:%S GMT',  # RFC 1123, used by old Blender ID
     ]
     for fmt in formats:
         try:
@@ -182,23 +182,23 @@ class BlenderIdPreferences(AddonPreferences):
     error_message: StringProperty(
         name='Error Message',
         default='',
-        options={'HIDDEN', 'SKIP_SAVE'},
+        options={'HIDDEN', 'SKIP_SAVE'}
     )
     ok_message: StringProperty(
         name='Message',
         default='',
-        options={'HIDDEN', 'SKIP_SAVE'},
+        options={'HIDDEN', 'SKIP_SAVE'}
     )
     blender_id_username: StringProperty(
         name='E-mail address',
         default='',
-        options={'HIDDEN', 'SKIP_SAVE'},
+        options={'HIDDEN', 'SKIP_SAVE'}
     )
     blender_id_password: StringProperty(
         name='Password',
         default='',
         options={'HIDDEN', 'SKIP_SAVE'},
-        subtype='PASSWORD',
+        subtype='PASSWORD'
     )
 
     def reset_messages(self):
@@ -211,10 +211,10 @@ class BlenderIdPreferences(AddonPreferences):
         if self.error_message:
             sub = layout.row()
             sub.alert = True  # labels don't display in red :(
-            sub.label(self.error_message, icon='ERROR')
+            sub.label(text=self.error_message, icon='ERROR')
         if self.ok_message:
             sub = layout.row()
-            sub.label(self.ok_message, icon='FILE_TICK')
+            sub.label(text=self.ok_message, icon='FILE_TICK')
 
         active_profile = get_active_profile()
         if active_profile:
@@ -240,15 +240,17 @@ class BlenderIdPreferences(AddonPreferences):
                     exp_str = 'within seconds'
 
                 if time_left.days < 14:
-                    layout.label('You are logged in as %s.' % active_profile.username,
+                    layout.label(text='You are logged in as %s.' % active_profile.username,
                                  icon='WORLD_DATA')
                     layout.label(text='Your token will expire %s. Please log out and log in again '
-                                 'to refresh it.' % exp_str, icon='PREVIEW_RANGE')
+                                      'to refresh it.' % exp_str, icon='PREVIEW_RANGE')
                 else:
-                    layout.label('You are logged in as %s. Your authentication token expires %s.'
-                                 % (active_profile.username, exp_str), icon='WORLD_DATA')
+                    layout.label(
+                        text='You are logged in as %s. Your authentication token expires %s.'
+                             % (active_profile.username, exp_str),
+                        icon='WORLD_DATA')
 
-            row = layout.row().split(0.8)
+            row = layout.row().split(factor=0.8)
             row.operator('blender_id.logout')
             row.operator('blender_id.validate')
         else:
@@ -345,7 +347,10 @@ def register():
     profiles.register()
     BlenderIdProfile.read_json()
 
-    bpy.utils.register_module(__name__)
+    bpy.utils.register_class(BlenderIdLogin)
+    bpy.utils.register_class(BlenderIdLogout)
+    bpy.utils.register_class(BlenderIdPreferences)
+    bpy.utils.register_class(BlenderIdValidate)
 
     preferences = bpy.context.user_preferences.addons[__name__].preferences
     preferences.reset_messages()

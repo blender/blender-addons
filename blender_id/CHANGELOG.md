@@ -1,5 +1,12 @@
 # Blender ID Add-on Changelog
 
+# Version 2.0 (in development)
+
+- Require Blender 2.80+.
+- API change: `blender_id.get_subclient_user_id()` now returns `''` instead of `None` when the user
+  is not logged in.
+
+
 # Version 1.5 (released 2018-07-03)
 
 - Support Blender 2.80.
