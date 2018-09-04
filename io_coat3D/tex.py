@@ -114,7 +114,7 @@ def createnodes(objekti,texcoat): #luo nodes palikat ja linkittaa tekstuurit nii
         #Metalness
         if(bring_metalness == True and glue_mat.inputs.find('Metallic') != -1 and texcoat['metalness'] != []):
             node = act_material.node_tree.nodes.new('ShaderNodeTexImage')
-            node.location = -600,200
+            node.location = -830,160
             node.name='3DC_metalness'
             if(texcoat['metalness']):
                 node.image = bpy.data.images.load(texcoat['metalness'][0])
@@ -137,8 +137,8 @@ def createnodes(objekti,texcoat): #luo nodes palikat ja linkittaa tekstuurit nii
         if(bring_normal == True and glue_mat.inputs.find('Normal') != -1 and texcoat['nmap'] != []):
             node = act_material.node_tree.nodes.new('ShaderNodeTexImage')
             normal_node = act_material.node_tree.nodes.new('ShaderNodeNormalMap')
-            node.location = -600,-270
-            normal_node.location = -300,-170
+            node.location = -600,-370
+            normal_node.location = -300,-270
             node.name='3DC_normal'
             if(texcoat['nmap']):
                 node.image = bpy.data.images.load(texcoat['nmap'][0])

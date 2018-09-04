@@ -188,7 +188,7 @@ def updatemesh(objekti, proxy):
 
     #TO DO VERTEX GROUPS, gives an error with this code.
 
-    if(objekti.vertex_groups.keys != []):
+    if(objekti.vertex_groups.keys() != []):
         bpy.ops.object.select_all(action='DESELECT')
         proxy.select_set('SELECT')
         objekti.select_set('SELECT')
