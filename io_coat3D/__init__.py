@@ -195,13 +195,34 @@ def updatemesh(objekti, proxy):
         bpy.ops.object.vertex_group_copy_to_selected()
         bpy.ops.object.select_all(action='DESELECT')
 
+
     '''
+    # UV Copy gives an error at this point
+    proxy.select_set('SELECT')
+    objekti.select_set('SELECT')
+
+    if len(objekti.data.uv_layers) > 1:
+        index = 0
+        for uv_layer in objekti.data.uv_layers:
+            if (uv_layer != objekti.data.uv_layers[0]):
+                proxy.data.uv_layers.new(uv_layer.name)
+                proxy.data.uv_layers.active_index = index
+                objekti.data.uv_layers.active_index = index
+                bpy.ops.object.join_uvs()
+            index += 1
+
+    bpy.ops.object.select_all(action='DESELECT')
+
+    #Mesh Copy
+
     proxy.select_set('SELECT')
     obj_data = objekti.data.id_data
     objekti.data = proxy.data.id_data
     objekti.data.id_data.name = obj_data.name
     if (bpy.data.meshes[obj_data.name].users == 0):
         bpy.data.meshes.remove(obj_data)
+
+
 
 class SCENE_PT_Main(bpy.types.Panel):
     bl_label = "3D-Coat Applink"
@@ -308,9 +329,9 @@ class SCENE_OT_opencoat(bpy.types.Operator):
                 file.write("\n[3B]")
                 file.close()
 
-        ''' 
-        If not Windows Os it will only write import.txt. Auto run 3d-coat.exe is disabled. 
-        '''
+                ''' 
+                If not Windows Os it will only write import.txt. Auto run 3d-coat.exe is disabled. 
+                '''
 
         else:
             importfile = bpy.context.scene.coat3D.exchangedir
