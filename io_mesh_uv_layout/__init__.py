@@ -263,7 +263,7 @@ class ExportUVLayout(bpy.types.Operator):
             obj.data.tag = True
 
             if self.modified:
-                mesh = obj.to_mesh(context.scene, True, 'PREVIEW')
+                mesh = obj.to_mesh(context.depsgraph, True)
             else:
                 mesh = obj.data
 
