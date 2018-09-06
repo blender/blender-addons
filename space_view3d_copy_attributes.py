@@ -112,11 +112,11 @@ def getmat(bone, active, context, ignoreparent):
     else:
         parentposemat = parentbonemat = Matrix()
     if parentbonemat == parentposemat or ignoreparent:
-        newmat = bonemat_local.inverted() * otherloc
+        newmat = bonemat_local.inverted() @ otherloc
     else:
-        bonemat = parentbonemat.inverted() * bonemat_local
+        bonemat = parentbonemat.inverted() @ bonemat_local
 
-        newmat = bonemat.inverted() * parentposemat.inverted() * otherloc
+        newmat = bonemat.inverted() @ parentposemat.inverted() @ otherloc
     return newmat
 
 
@@ -248,7 +248,7 @@ class CopySelectedPoseConstraints(Operator):
     bl_idname = "pose.copy_selected_constraints"
     bl_label = "Copy Selected Constraints"
 
-    selection = BoolVectorProperty(
+    selection: BoolVectorProperty(
         size=32,
         options={'SKIP_SAVE'}
     )
@@ -307,9 +307,9 @@ def obLoopExec(self, context, funk):
 
 def world_to_basis(active, ob, context):
     """put world coords of active as basis coords of ob"""
-    local = ob.parent.matrix_world.inverted() * active.matrix_world
-    P = ob.matrix_basis * ob.matrix_local.inverted()
-    mat = P * local
+    local = ob.parent.matrix_world.inverted() @ active.matrix_world
+    P = ob.matrix_basis @ ob.matrix_local.inverted()
+    mat = P @ local
     return(mat)
 
 
@@ -551,7 +551,7 @@ class CopySelectedObjectConstraints(Operator):
     bl_idname = "object.copy_selected_constraints"
     bl_label = "Copy Selected Constraints"
 
-    selection = BoolVectorProperty(
+    selection: BoolVectorProperty(
         size=32,
         options={'SKIP_SAVE'}
     )
@@ -585,7 +585,7 @@ class CopySelectedObjectModifiers(Operator):
     bl_idname = "object.copy_selected_modifiers"
     bl_label = "Copy Selected Modifiers"
 
-    selection = BoolVectorProperty(
+    selection: BoolVectorProperty(
         size=32,
         options={'SKIP_SAVE'}
     )
@@ -757,11 +757,11 @@ class MESH_OT_CopyFaceSettings(Operator):
     bl_label = "Copy Face Settings"
     bl_options = {'REGISTER', 'UNDO'}
 
-    mode = StringProperty(
+    mode: StringProperty(
         name="Mode",
         options={"HIDDEN"},
     )
-    layer = StringProperty(
+    layer: StringProperty(
         name="Layer",
         options={"HIDDEN"},
     )
