@@ -684,6 +684,18 @@ class SCENE_OT_import(bpy.types.Operator):
                         is_new = False
                         tex.matlab(mat_list,objekti,bpy.context.scene,is_new)
                     objekti.select_set('DESELECT')
+                else:
+                    mat_list = []
+
+                    if (objekti.material_slots):
+                        for obj_mat in objekti.material_slots:
+                            mat_list.append(obj_mat.material)
+
+                    if (coat3D.importtextures):
+                        is_new = False
+                        tex.matlab(mat_list, objekti, bpy.context.scene, is_new)
+                    objekti.select_set('DESELECT')
+
 
             bpy.ops.object.select_all(action='DESELECT')
             if(import_list):
