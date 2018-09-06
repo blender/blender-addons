@@ -21,66 +21,75 @@
 import bpy
 
 
-def write(fw, mesh, image_width, image_height, opacity, face_iter_func):
-    fw("%!PS-Adobe-3.0 EPSF-3.0\n")
-    fw("%%%%Creator: Blender %s\n" % bpy.app.version_string)
-    fw("%%Pages: 1\n")
-    fw("%%Orientation: Portrait\n")
-    fw("%%%%BoundingBox: 0 0 %d %d\n" % (image_width, image_height))
-    fw("%%%%HiResBoundingBox: 0.0 0.0 %.4f %.4f\n" %
-       (image_width, image_height))
-    fw("%%EndComments\n")
-    fw("%%Page: 1 1\n")
-    fw("0 0 translate\n")
-    fw("1.0 1.0 scale\n")
-    fw("0 0 0 setrgbcolor\n")
-    fw("[] 0 setdash\n")
-    fw("1 setlinewidth\n")
-    fw("1 setlinejoin\n")
-    fw("1 setlinecap\n")
+class Export_UV_EPS:
+    def begin(self, fw, image_size, opacity):
 
-    polys = mesh.polygons
+        self.fw = fw
+        self.image_width = image_size[0]
+        self.image_height = image_size[1]
+        self.opacity = opacity
 
-    if opacity > 0.0:
-        for i, mat in enumerate(mesh.materials if mesh.materials else [None]):
-            fw("/DRAW_%d {" % i)
-            fw("gsave\n")
-            if mat:
-                color = tuple((1.0 - ((1.0 - c) * opacity))
-                              for c in mat.diffuse_color)
-            else:
-                color = 1.0, 1.0, 1.0
-            fw("%.3g %.3g %.3g setrgbcolor\n" % color)
-            fw("fill\n")
-            fw("grestore\n")
-            fw("0 setgray\n")
-            fw("} def\n")
+        fw("%!PS-Adobe-3.0 EPSF-3.0\n")
+        fw("%%%%Creator: Blender %s\n" % bpy.app.version_string)
+        fw("%%Pages: 1\n")
+        fw("%%Orientation: Portrait\n")
+        fw("%%%%BoundingBox: 0 0 %d %d\n" % (self.image_width, self.image_height))
+        fw("%%%%HiResBoundingBox: 0.0 0.0 %.4f %.4f\n" %
+           (self.image_width, self.image_height))
+        fw("%%EndComments\n")
+        fw("%%Page: 1 1\n")
+        fw("0 0 translate\n")
+        fw("1.0 1.0 scale\n")
+        fw("0 0 0 setrgbcolor\n")
+        fw("[] 0 setdash\n")
+        fw("1 setlinewidth\n")
+        fw("1 setlinejoin\n")
+        fw("1 setlinecap\n")
 
-        # fill
-        for i, uvs in face_iter_func():
-            fw("newpath\n")
-            for j, uv in enumerate(uvs):
-                uv_scale = (uv[0] * image_width, uv[1] * image_height)
-                if j == 0:
-                    fw("%.5f %.5f moveto\n" % uv_scale)
+    def build(self, mesh, face_iter_func):
+        polys = mesh.polygons
+
+        if self.opacity > 0.0:
+            for i, mat in enumerate(mesh.materials if mesh.materials else [None]):
+                self.fw("/DRAW_%d {" % i)
+                self.fw("gsave\n")
+                if mat:
+                    color = tuple((1.0 - ((1.0 - c) * self.opacity))
+                                  for c in mat.diffuse_color)
                 else:
-                    fw("%.5f %.5f lineto\n" % uv_scale)
+                    color = 1.0, 1.0, 1.0
+                self.fw("%.3g %.3g %.3g setrgbcolor\n" % color)
+                self.fw("fill\n")
+                self.fw("grestore\n")
+                self.fw("0 setgray\n")
+                self.fw("} def\n")
 
-            fw("closepath\n")
-            fw("DRAW_%d\n" % polys[i].material_index)
+            # fill
+            for i, uvs in face_iter_func():
+                self.fw("newpath\n")
+                for j, uv in enumerate(uvs):
+                    uv_scale = (uv[0] * self.image_width, uv[1] * self.image_height)
+                    if j == 0:
+                        self.fw("%.5f %.5f moveto\n" % uv_scale)
+                    else:
+                        self.fw("%.5f %.5f lineto\n" % uv_scale)
 
-    # stroke only
-    for i, uvs in face_iter_func():
-        fw("newpath\n")
-        for j, uv in enumerate(uvs):
-            uv_scale = (uv[0] * image_width, uv[1] * image_height)
-            if j == 0:
-                fw("%.5f %.5f moveto\n" % uv_scale)
-            else:
-                fw("%.5f %.5f lineto\n" % uv_scale)
+                self.fw("closepath\n")
+                self.fw("DRAW_%d\n" % polys[i].material_index)
 
-        fw("closepath\n")
-        fw("stroke\n")
+        # stroke only
+        for i, uvs in face_iter_func():
+            self.fw("newpath\n")
+            for j, uv in enumerate(uvs):
+                uv_scale = (uv[0] * self.image_width, uv[1] * self.image_height)
+                if j == 0:
+                    self.fw("%.5f %.5f moveto\n" % uv_scale)
+                else:
+                    self.fw("%.5f %.5f lineto\n" % uv_scale)
 
-    fw("showpage\n")
-    fw("%%EOF\n")
+            self.fw("closepath\n")
+            self.fw("stroke\n")
+
+    def end(self):
+        self.fw("showpage\n")
+        self.fw("%%EOF\n")

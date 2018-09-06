@@ -22,7 +22,7 @@ bl_info = {
     "name": "UV Layout",
     "author": "Campbell Barton, Matt Ebb",
     "version": (1, 1, 1),
-    "blender": (2, 75, 0),
+    "blender": (2, 80, 0),
     "location": "Image-Window > UVs > Export UV Layout",
     "description": "Export the UV layout as a 2D graphic",
     "warning": "",
@@ -114,7 +114,7 @@ class ExportUVLayout(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         obj = context.active_object
-        return (obj and obj.type == 'MESH' and obj.data.uv_textures)
+        return (obj and obj.type == 'MESH' and obj.data.uv_layers)
 
     def _space_image(self, context):
         space_data = context.space_data
@@ -138,27 +138,82 @@ class ExportUVLayout(bpy.types.Operator):
 
         return image_width, image_height
 
-    def _face_uv_iter(self, context, mesh, tessellated):
+    # Trying to be consistent with ED_object_get_active_image
+    # from uvedit_ops.c so that what is exported are the uvs
+    # that are seen in the UV Editor
+    #
+    # returns Image or None
+    def _get_active_texture(self, mat):
+        if mat is None or not mat.use_nodes:
+            return None
+
+        node = self._get_active_texture_nodetree(mat.node_tree)
+
+        if node is not None and node.bl_rna.identifier in {'ShaderNodeTexImage', 'ShaderNodeTexEnvironment'}:
+            return node.image
+
+        return None
+
+    # returns image node or None
+    def _get_active_texture_nodetree(self, node_tree):
+        active_tex_node = None
+        active_group = None
+        has_group = False
+        inactive_node = None
+
+        for node in node_tree.nodes:
+            if node.show_texture:
+                active_tex_node = node
+                if node.select:
+                    return node
+            elif inactive_node is None and node.bl_rna.identifier in {'ShaderNodeTexImage', 'ShaderNodeTexEnvironment'}:
+                inactive_node = node
+            elif node.bl_rna.identifier == 'ShaderNodeGroup':
+                if node.select:
+                    active_group = node
+                else:
+                    has_group = True
+
+        # Not found a selected show_texture node
+        # Try to find a selected show_texture node in the selected group
+        if active_group is not None:
+            node = self._get_active_texture_nodetree(active_group.node_tree)
+            if node is not None:
+                return node
+
+        if active_tex_node is not None:
+            return active_tex_node
+
+        if has_group:
+            for node in node_tree.nodes:
+                if node.bl_rna.identifier == 'ShaderNodeGroup':
+                    n = self._get_active_texture_nodetree(node.node_tree)
+                    if n is not None and (n.show_texture or inactive_node is None):
+                        return n
+
+        return None
+
+    def _face_uv_iter(self, context, material_slots, mesh):
         uv_layer = mesh.uv_layers.active.data
         polys = mesh.polygons
 
         if not self.export_all:
-            uv_tex = mesh.uv_textures.active.data
-            local_image = Ellipsis
+            local_image = None
 
             if context.tool_settings.show_uv_local_view:
                 space_data = self._space_image(context)
                 if space_data:
                     local_image = space_data.image
+                    has_active_texture = [
+                        self._get_active_texture(slot.material)
+                        is local_image for slot in material_slots]
 
             for i, p in enumerate(polys):
                 # context checks
-                if polys[i].select and local_image in {Ellipsis,
-                                                       uv_tex[i].image}:
+                if (polys[i].select and (local_image is None or has_active_texture[polys[i].material_index])):
                     start = p.loop_start
                     end = start + p.loop_total
-                    uvs = tuple((uv.uv[0], uv.uv[1])
-                                for uv in uv_layer[start:end])
+                    uvs = tuple((uv.uv[0], uv.uv[1]) for uv in uv_layer[start:end])
 
                     # just write what we see.
                     yield (i, uvs)
@@ -171,7 +226,6 @@ class ExportUVLayout(bpy.types.Operator):
                 yield (i, uvs)
 
     def execute(self, context):
-
         obj = context.active_object
         is_editmode = (obj.mode == 'EDIT')
         if is_editmode:
@@ -186,24 +240,36 @@ class ExportUVLayout(bpy.types.Operator):
 
         if mode == 'EPS':
             from . import export_uv_eps
-            func = export_uv_eps.write
+            exportUV = export_uv_eps.Export_UV_EPS()
         elif mode == 'PNG':
             from . import export_uv_png
-            func = export_uv_png.write
+            exportUV = export_uv_png.Export_UV_PNG()
         elif mode == 'SVG':
             from . import export_uv_svg
-            func = export_uv_svg.write
+            exportUV = export_uv_svg.Export_UV_SVG()
 
-        if self.modified:
-            mesh = obj.to_mesh(context.scene, True, 'PREVIEW')
-        else:
-            mesh = obj.data
+        obList = [ob for ob in context.selected_objects if ob.type == 'MESH']
 
-        func(fw, mesh, self.size[0], self.size[1], self.opacity,
-             lambda: self._face_uv_iter(context, mesh, self.tessellated))
+        for obj in obList:
+            obj.data.tag = False
 
-        if self.modified:
-            bpy.data.meshes.remove(mesh)
+        exportUV.begin(fw, self.size, self.opacity)
+
+        for obj in obList:
+            if (obj.data.tag):
+                continue
+
+            obj.data.tag = True
+
+            if self.modified:
+                mesh = obj.to_mesh(context.scene, True, 'PREVIEW')
+            else:
+                mesh = obj.data
+
+            exportUV.build(mesh, lambda: self._face_uv_iter(
+                                        context, obj.material_slots, mesh))
+
+        exportUV.end()
 
         if is_editmode:
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -241,6 +307,7 @@ def register():
 def unregister():
     bpy.utils.unregister_module(__name__)
     bpy.types.IMAGE_MT_uvs.remove(menu_func)
+
 
 if __name__ == "__main__":
     register()
