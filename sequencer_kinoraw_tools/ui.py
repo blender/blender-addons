@@ -354,7 +354,7 @@ class JumptoCut(Panel):
                         row.operator("sequencerextra.sourceout", icon='MARKER_HLT', text="OUT")
 
                     row.separator()
-                    row.operator("sequencerextra.setinout", icon="ARROW_LEFTRIGHT", text="")
+                    row.operator("sequencerextra.setinout", icon='ARROW_LEFTRIGHT', text="")
                     row.operator("sequencerextra.triminout", icon="FULLSCREEN_EXIT", text="")
 
                 # miniUI extra actions
@@ -411,7 +411,7 @@ class JumptoCut(Panel):
                 row2 = col.row(align=True)
                 row2.operator("sequencerextra.sourceout", icon='MARKER_HLT', text="Set OUT")
                 row3 = col.row()
-                row3.operator("sequencerextra.setinout", icon="ARROW_LEFTRIGHT", text="Selected")
+                row3.operator("sequencerextra.setinout", icon='ARROW_LEFTRIGHT', text="Selected")
 
                 sub_col = box.split(percentage=0.67, align=True)
                 row4 = sub_col.row(align=True)
