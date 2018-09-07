@@ -295,7 +295,7 @@ class SpiroFitSpline(Operator):
         col.prop(self, "spire_resolution")
         row = col.row(align=True).split(0.9, align=True)
         row.prop(self, "spires")
-        row.prop(self, "direction", toggle=True, text="", icon="ARROW_LEFTRIGHT")
+        row.prop(self, "direction", toggle=True, text="", icon='ARROW_LEFTRIGHT')
         col.prop(self, "offset")
         col.prop(self, "waves")
         col.prop(self, "wave_iscale")
