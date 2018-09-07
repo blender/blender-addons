@@ -1305,4 +1305,3 @@ class UpdatePreviewKey(bpy.types.Operator):
         map = conf.keymaps[mapstr]
         map.keymap_items.new("node.updatepreview",type='RIGHTMOUSE',value="PRESS")
         return {'FINISHED'}
-

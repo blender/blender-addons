@@ -18,4 +18,3 @@ def exportLamp(ob, mx, mw, **common):
         dxfPOINT = DXF.Point(points=[p],**common)
         entities.append(dxfPOINT)
     return entities
-

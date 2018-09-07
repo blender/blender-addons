@@ -57,27 +57,27 @@ class AddPresetWorld(AddPresetBase, bpy.types.Operator):
 
     # variable used for all preset values
     preset_defines = [
-        "scene = bpy.context.scene"    
+        "scene = bpy.context.scene"
         ]
 
     # properties to store in the preset
     preset_values = [
         "scene.world.use_sky_blend",
         "scene.world.horizon_color",
-        "scene.world.zenith_color", 
+        "scene.world.zenith_color",
         "scene.world.ambient_color",
         "scene.world.mist_settings.use_mist",
         "scene.world.mist_settings.intensity",
-        "scene.world.mist_settings.depth",        
+        "scene.world.mist_settings.depth",
         "scene.world.mist_settings.start",
         "scene.pov.media_enable",
-        "scene.pov.media_scattering_type", 
+        "scene.pov.media_scattering_type",
         "scene.pov.media_samples",
         "scene.pov.media_diffusion_scale",
         "scene.pov.media_diffusion_color",
         "scene.pov.media_absorption_scale",
         "scene.pov.media_absorption_color",
-        "scene.pov.media_eccentricity",        
+        "scene.pov.media_eccentricity",
         ]
 
     # where to store the preset
@@ -96,7 +96,7 @@ def world_panel_func(self, context):
 classes = (
     POV_WORLD_MT_presets,
     AddPresetWorld,
-    )  
+    )
 
 # Example of wrapping every class 'as is'
 from bl_ui import properties_texture
@@ -527,7 +527,7 @@ class AddPresetLamp(AddPresetBase, bpy.types.Operator):
     # properties to store in the preset
     preset_values = [
         "lightdata.type",
-        "lightdata.color",      
+        "lightdata.color",
         ]
 
     # where to store the preset
@@ -550,8 +550,8 @@ def light_panel_func(self, context):
 classes = (
     POV_LIGHT_MT_presets,
     AddPresetLamp,
-    )    
-    
+    )
+
 class LIGHT_PT_POV_sunsky(PovLampButtonsPanel, bpy.types.Panel):
     bl_label = properties_data_light.DATA_PT_sunsky.bl_label
 
@@ -708,10 +708,10 @@ class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
 
         scene = context.scene
         #layout.active = (scene.pov.max_trace_level != 0)
-        
+
         if sys.platform[:3] != "win":
             layout.prop(scene.pov, "sdl_window_enable", text="POV-Ray SDL Window")
-            
+
         col = layout.column()
 
         col.label(text="Global Settings:")
@@ -889,9 +889,9 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
             col.prop(scene.pov, "radio_subsurface")
 
 
-            
-            
-            
+
+
+
 class POV_RADIOSITY_MT_presets(bpy.types.Menu):
     bl_label = "Radiosity Presets"
     preset_subdir = "pov/radiosity"
@@ -912,7 +912,7 @@ class AddPresetRadiosity(AddPresetBase, bpy.types.Operator):
 
     # properties to store in the preset
     preset_values = [
-        "scene.pov.radio_display_advanced",    
+        "scene.pov.radio_display_advanced",
         "scene.pov.radio_adc_bailout",
         "scene.pov.radio_always_sample",
         "scene.pov.radio_brightness",
@@ -928,7 +928,7 @@ class AddPresetRadiosity(AddPresetBase, bpy.types.Operator):
         "scene.pov.radio_normal",
         "scene.pov.radio_recursion_limit",
         "scene.pov.radio_pretrace_start",
-        "scene.pov.radio_pretrace_end",     
+        "scene.pov.radio_pretrace_end",
         ]
 
     # where to store the preset
@@ -952,8 +952,8 @@ classes = (
     POV_RADIOSITY_MT_presets,
     AddPresetRadiosity,
     )
-    
-    
+
+
 class RENDER_PT_povray_media(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Atmosphere Media"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -974,14 +974,14 @@ class RENDER_PT_povray_media(WorldButtonsPanel, bpy.types.Panel):
         col.prop(scene.pov, "media_scattering_type", text="")
         col = layout.column()
         col.prop(scene.pov, "media_samples", text="Samples")
-        split = layout.split()        
+        split = layout.split()
         col = split.column(align=True)
         col.label(text="Scattering:")
         col.prop(scene.pov, "media_diffusion_scale")
         col.prop(scene.pov, "media_diffusion_color", text="")
         col = split.column(align=True)
         col.label(text="Absorption:")
-        col.prop(scene.pov, "media_absorption_scale")        
+        col.prop(scene.pov, "media_absorption_scale")
         col.prop(scene.pov, "media_absorption_color", text="")
         if scene.pov.media_scattering_type == '5':
             col = layout.column()
@@ -1026,12 +1026,12 @@ class MODIFIERS_PT_povray_modifiers(ModifierButtonsPanel, bpy.types.Panel):
                         col.prop(ob.pov, "boolean_mod")
                         onceCSG = 1
 
-                    if ob.pov.boolean_mod == "POV": 
+                    if ob.pov.boolean_mod == "POV":
                         split = layout.split()
                         col = layout.column()
                         # Inside Vector for CSG
                         col.prop(ob.pov, "inside_vector")
-       
+
 
 class MATERIAL_PT_povray_activate_node(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Activate Node Settings"
@@ -1514,7 +1514,7 @@ class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
 class OBJECT_PT_povray_obj_parameters(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-    
+
     @classmethod
     def poll(cls, context):
 
@@ -1536,14 +1536,14 @@ class OBJECT_PT_povray_obj_parameters(ObjectButtonsPanel, bpy.types.Panel):
         col.prop(obj.pov, "collect_photons", text="Receive Photon Caustics")
         if obj.pov.collect_photons:
             col.prop(obj.pov, "spacing_multiplier", text="Photons Spacing Multiplier")
-            
+
         split = layout.split()
 
         col = split.column()
         col.prop(obj.pov,"hollow")
         col.prop(obj.pov,"double_illuminate")
 
-     
+
         if obj.type == 'META' or obj.pov.curveshape == 'lathe':
         #if obj.pov.curveshape == 'sor'
             col.prop(obj.pov,"sturm")
@@ -2114,7 +2114,7 @@ class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         text = context.space_data.text
-            
+
         pov_documents = locate_docpath()
         if not pov_documents :
             layout.label(text="Please configure ", icon="INFO")
@@ -2136,7 +2136,7 @@ class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
             row = box.row()
             row.prop(text.pov, "custom_code",expand = True)
             if text.pov.custom_code in {'3dview'}:
-                box.operator("render.render", icon='OUTLINER_DATA_POSE')  
+                box.operator("render.render", icon='OUTLINER_DATA_POSE')
             if text.pov.custom_code in {'text'}:
                 rtext = bpy.context.space_data.text
                 box.operator("text.run", icon='POSE_DATA')
@@ -2145,7 +2145,7 @@ class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
                 box.operator("render.render", icon='POSE_HLT')
                 layout.label(text="Please specify declared", icon="INFO")
                 layout.label(text="items in properties ")
-                #layout.label(text="")                
+                #layout.label(text="")
                 layout.label(text="replacement fields")
 
 

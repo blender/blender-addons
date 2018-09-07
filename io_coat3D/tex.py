@@ -59,7 +59,7 @@ def readtexturefolder(objekti,is_new): #read textures from texture file
             texcoat[tex_name].append(koko_osoite)
 
     createnodes(objekti, texcoat)
-    
+
 def checkmaterial(mat_list, objekti): #check how many materials object has
     mat_list = []
 
@@ -73,7 +73,7 @@ def createnodes(objekti,texcoat): #luo nodes palikat ja linkittaa tekstuurit nii
     bring_roughness = True
     bring_normal = True
     bring_disp = True
-    
+
     act_material = objekti.active_material
     if(objekti.active_material.use_nodes == False):
         objekti.active_material.use_nodes = True
@@ -149,11 +149,11 @@ def createnodes(objekti,texcoat): #luo nodes palikat ja linkittaa tekstuurit nii
 
         bpy.ops.object.editmode_toggle() #HACKKI joka saa tekstuurit nakymaan heti
         bpy.ops.object.editmode_toggle()
-            
-    
+
+
 
 def matlab(mat_list, objekti, scene,is_new):
     #checkmaterial(mat_list, objekti)
     readtexturefolder(objekti,is_new)
-    
+
     return('FINISHED')

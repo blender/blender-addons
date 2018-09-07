@@ -924,4 +924,3 @@ if __name__=='__main__':
 	if not copy:
 		Draw.PupMenu('Error%t|This script requires a full python install')
 	else: test()
-

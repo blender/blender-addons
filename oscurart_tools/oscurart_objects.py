@@ -529,7 +529,7 @@ def DefObjectToGroups():
     try:
         "%s_MSH" % (os.path.basename(bpy.data.filepath).replace(".blend", ""))
         scgr = bpy.data.groups["%s_MSH" % (os.path.basename(bpy.data.filepath).replace(".blend", ""))]
-    except:    
+    except:
         scgr = bpy.data.groups.new(
             "%s_MSH" %
             (os.path.basename(bpy.data.filepath).replace(".blend", "")))

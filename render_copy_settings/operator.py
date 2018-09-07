@@ -195,4 +195,3 @@ classes = (
     RenderCopySettingsOPPreset,
     RenderCopySettingsOPCopy,
 )
-

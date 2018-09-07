@@ -180,7 +180,7 @@ def make_texture_list(texturefolder):
 
 
 '''
-#Updating objects MESH part ( Mesh, Vertex Groups, Vertex Colors ) 
+#Updating objects MESH part ( Mesh, Vertex Groups, Vertex Colors )
 '''
 
 def updatemesh(objekti, proxy):
@@ -333,8 +333,8 @@ class SCENE_OT_opencoat(bpy.types.Operator):
                 file.write("\n[3B]")
                 file.close()
 
-                ''' 
-                If not Windows Os it will only write import.txt. Auto run 3d-coat.exe is disabled. 
+                '''
+                If not Windows Os it will only write import.txt. Auto run 3d-coat.exe is disabled.
                 '''
 
         else:

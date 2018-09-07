@@ -1094,7 +1094,7 @@ def draw_edges(context, myobj, region, rv3d):
     precision = scene.measureit_debug_precision
     # --------------------
     # edge Loop
-    # 
+    #
     # uses lambda for edge midpoint finder (midf) because edit mode
     # edge vert coordinate is not stored in same places as in obj mode
     # --------------------
