@@ -71,7 +71,7 @@ class ApplyTransLocRotPie(Operator):
     bl_description = "Apply Transform: Location, Rotation or Scale"
     bl_options = {'REGISTER', 'UNDO'}
 
-    option = EnumProperty(
+    option: EnumProperty(
             name="Type",
             items=[
                 ("LOC", "Location", "Apply Location"),

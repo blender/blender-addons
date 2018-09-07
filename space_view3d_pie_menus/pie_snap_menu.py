@@ -185,7 +185,8 @@ class SnapTargetVariable(Operator):
     bl_idname = "object.snaptargetvariable"
     bl_label = "Snap Target Variable"
     bl_options = {'REGISTER', 'UNDO'}
-    variable = bpy.props.StringProperty()
+
+    variable: bpy.props.StringProperty()
 
     @classmethod
     def poll(cls, context):

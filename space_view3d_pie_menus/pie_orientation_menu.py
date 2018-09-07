@@ -44,7 +44,7 @@ class OrientPoll(Operator):
     bl_label = "Orientation Poll"
     bl_options = {'INTERNAL'}
 
-    space = StringProperty()
+    space: StringProperty()
 
     @classmethod
     def poll(cls, context):

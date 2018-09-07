@@ -102,7 +102,7 @@ class AlignSelectedXYZ(Operator):
     bl_description = "Align Selected Along the chosen axis"
     bl_options = {'REGISTER', 'UNDO'}
 
-    axis = EnumProperty(
+    axis: EnumProperty(
         name="Axis",
         items=[
             ('X', "X", "X Axis"),
@@ -147,7 +147,7 @@ class AlignToXYZ0(Operator):
     bl_description = "Align Active Object To a chosen X, Y or Z equals 0 Location"
     bl_options = {'REGISTER', 'UNDO'}
 
-    axis = EnumProperty(
+    axis: EnumProperty(
             name="Axis",
             items=[
                 ('0', "X", "X Axis"),
@@ -181,7 +181,7 @@ class AlignXYZAll(Operator):
     bl_description = "Align to a Front or Back along the chosen Axis"
     bl_options = {'REGISTER', 'UNDO'}
 
-    axis = EnumProperty(
+    axis: EnumProperty(
             name="Axis",
             items=[
                 ('0', "X", "X Axis"),
@@ -191,7 +191,7 @@ class AlignXYZAll(Operator):
             description="Choose an axis for alignment",
             default='0'
             )
-    side = EnumProperty(
+    side: EnumProperty(
             name="Side",
             items=[
                 ('POSITIVE', "Front", "Align on the positive chosen axis"),

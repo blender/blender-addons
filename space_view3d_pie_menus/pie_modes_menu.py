@@ -163,7 +163,7 @@ class SetObjectModePie(Operator):
     bl_description = "I set the interactive mode of object"
     bl_options = {'REGISTER'}
 
-    mode = bpy.props.StringProperty(name="Interactive mode", default="OBJECT")
+    mode: bpy.props.StringProperty(name="Interactive mode", default="OBJECT")
 
     def execute(self, context):
         if (context.active_object):

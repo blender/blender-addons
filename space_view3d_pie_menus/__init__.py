@@ -164,17 +164,17 @@ class PieToolsPreferences(AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
-        split = layout.split(percentage=0.5, align=True)
+        split = layout.split(factor=0.5, align=True)
         row = split.row()
         row.alignment = "LEFT"
         sub_box = row.box()
         sub_box.prop(self, "enable_all", emboss=False,
                     icon="VISIBLE_IPO_ON", icon_only=True)
-        row.label("Enable All")
+        row.label(text="Enable All")
 
         row = split.row()
         row.alignment = "RIGHT"
-        row.label("Disable All")
+        row.label(text="Disable All")
         sub_box = row.box()
         sub_box.prop(self, "disable_all", emboss=False,
                     icon="VISIBLE_IPO_OFF", icon_only=True)
@@ -195,42 +195,42 @@ class PieToolsPreferences(AddonPreferences):
             op = sub.operator('wm.context_toggle', text='', icon=icon,
                               emboss=False)
             op.data_path = 'addon_prefs.show_expanded_' + mod_name
-            sub.label('{}: {}'.format(info['category'], info['name']))
+            sub.label(text='{}: {}'.format(info['category'], info['name']))
             sub = row.row()
             sub.alignment = 'RIGHT'
             if info.get('warning'):
-                sub.label('', icon='ERROR')
+                sub.label(text='', icon='ERROR')
             sub.prop(self, 'use_' + mod_name, text='')
 
             # The second stage
             if expand:
                 if info.get('description'):
-                    split = col.row().split(percentage=0.15)
-                    split.label('Description:')
-                    split.label(info['description'])
+                    split = col.row().split(factor=0.15)
+                    split.label(text='Description:')
+                    split.label(text=info['description'])
                 if info.get('location'):
-                    split = col.row().split(percentage=0.15)
-                    split.label('Location:')
-                    split.label(info['location'])
+                    split = col.row().split(factor=0.15)
+                    split.label(text='Location:')
+                    split.label(text=info['location'])
                 """
                 if info.get('author'):
-                    split = col.row().split(percentage=0.15)
-                    split.label('Author:')
+                    split = col.row().split(factor=0.15)
+                    split.label(text='Author:')
                     split.label(info['author'])
                 """
                 if info.get('version'):
-                    split = col.row().split(percentage=0.15)
-                    split.label('Version:')
-                    split.label('.'.join(str(x) for x in info['version']),
+                    split = col.row().split(factor=0.15)
+                    split.label(text='Version:')
+                    split.label(text='.'.join(str(x) for x in info['version']),
                                 translate=False)
                 if info.get('warning'):
-                    split = col.row().split(percentage=0.15)
-                    split.label('Warning:')
-                    split.label('  ' + info['warning'], icon='ERROR')
+                    split = col.row().split(factor=0.15)
+                    split.label(text='Warning:')
+                    split.label(text='  ' + info['warning'], icon='ERROR')
 
                 tot_row = int(bool(info.get('wiki_url')))
                 if tot_row:
-                    split = col.row().split(percentage=0.15)
+                    split = col.row().split(factor=0.15)
                     split.label(text='Internet:')
                     if info.get('wiki_url'):
                         op = split.operator('wm.url_open',

@@ -114,7 +114,7 @@ class SetAreaType(Operator):
     bl_description = "Change Editor Type"
     bl_options = {'REGISTER'}
 
-    types = StringProperty(name="Area Type")
+    types: StringProperty(name="Area Type")
 
     def execute(self, context):
         context.area.type = self.types
