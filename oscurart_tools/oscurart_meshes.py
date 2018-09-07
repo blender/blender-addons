@@ -450,7 +450,7 @@ class ModalIndexOperator(Operator):
             self.tsize -= 1
         elif event.type in {'RIGHTMOUSE', 'ESC', 'TAB'}:
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-            context.area.header_text_set()
+            context.area.header_text_set("")
             return {'CANCELLED'}
 
         return {'PASS_THROUGH'}

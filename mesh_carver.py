@@ -2884,7 +2884,7 @@ class Carver(bpy.types.Operator):
             traceback.print_exc()
 
             context.window.cursor_modal_set("DEFAULT")
-            context.area.header_text_set()
+            context.area.header_text_set("")
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
 
             self.report({'WARNING'},

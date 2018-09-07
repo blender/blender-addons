@@ -801,7 +801,7 @@ class SnapUtilitiesLine(Operator):
                     del self.list_verts_co
 
                     bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-                    context.area.header_text_set()
+                    context.area.header_text_set("")
                     self.sctx.free()
 
                     #restore initial state
