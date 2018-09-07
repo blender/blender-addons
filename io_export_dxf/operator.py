@@ -299,5 +299,3 @@ class DXFExporter(bpy.types.Operator):
         WindowManager = context.window_manager
         WindowManager.fileselect_add(self)
         return {'RUNNING_MODAL'}
-
-

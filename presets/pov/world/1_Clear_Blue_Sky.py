@@ -2,14 +2,14 @@ import bpy
 scene = bpy.context.scene
 
 scene.world.use_sky_blend = True
-#below multiplied by two for a better proportion Clear vs Overcast sky 
+#below multiplied by two for a better proportion Clear vs Overcast sky
 #since Clear sky is 19807 lux vs 2000 for overcast (sun is min 32000 max 100000)
 #http://www.pssurvival.com/PS/Lighting/Typical_LUX_Intensities_for_Day_and_Night-2017.pdf
 #https://en.wikipedia.org/wiki/Daylight
 #https://www.engineeringtoolbox.com/light-level-rooms-d_708.html
 #https://www.cactus2000.de/fr/unit/masslux.shtml
 #https://blendergrid.com/news/cycles-physically-correct-brightness
-#researched result blue is      
+#researched result blue is
     #Hue: 0.6
     #Saturation: 0.533
     #Lightness: 0.7

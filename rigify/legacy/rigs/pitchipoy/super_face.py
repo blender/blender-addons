@@ -2397,4 +2397,3 @@ def create_square_widget(rig, bone_name, size=1.0, bone_transform_name=None):
         return obj
     else:
         return None
-

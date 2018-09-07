@@ -664,11 +664,11 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("fade_distance %.6f\n" % (sqrt(lamp.distance/2.0)))
                     tabWrite("fade_power %d\n" % 2)  # Use blenders lamp quad equivalent
                 elif lamp.falloff_type == 'INVERSE_LINEAR':
-                    tabWrite("fade_distance %.6f\n" % (lamp.distance / 2.0))                
+                    tabWrite("fade_distance %.6f\n" % (lamp.distance / 2.0))
                     tabWrite("fade_power %d\n" % 1)  # Use blenders lamp linear
                 elif lamp.falloff_type == 'CONSTANT':
                     tabWrite("fade_distance %.6f\n" % (lamp.distance / 2.0))
-                    tabWrite("fade_power %d\n" % 3)  
+                    tabWrite("fade_power %d\n" % 3)
                     # Use blenders lamp constant equivalent no attenuation.
                 # Using Custom curve for fade power 3 for now.
                 elif lamp.falloff_type == 'CUSTOM_CURVE':
@@ -1452,10 +1452,10 @@ def write_pov(filename, scene=None, info_callback=None):
             file.write('#end\n\n')
         # Empty curves
         if len(ob.data.splines)==0:
-            tabWrite("\n//dummy sphere to represent empty curve location\n")        
+            tabWrite("\n//dummy sphere to represent empty curve location\n")
             tabWrite("#declare %s =\n"%dataname)
-            tabWrite("sphere {<%.6g, %.6g, %.6g>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n\n" % (ob.location.x, ob.location.y, ob.location.z)) # ob.name > povdataname)    
-        # And non empty curves    
+            tabWrite("sphere {<%.6g, %.6g, %.6g>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n\n" % (ob.location.x, ob.location.y, ob.location.z)) # ob.name > povdataname)
+        # And non empty curves
         else:
             if bezier_sweep == False:
                 tabWrite("#declare %s =\n"%dataname)
@@ -1634,15 +1634,15 @@ def write_pov(filename, scene=None, info_callback=None):
                 meta_elems[prefix].extend(elems)
             else:
                 meta_elems[prefix] = elems
-                
+
             # empty metaball
             if len(elems)==0:
                 tabWrite("\n//dummy sphere to represent empty meta location\n")
-                tabWrite("sphere {<%.6g, %.6g, %.6g>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n\n" % (ob.location.x, ob.location.y, ob.location.z)) # ob.name > povdataname)    
-            # other metaballs    
-            else:                
+                tabWrite("sphere {<%.6g, %.6g, %.6g>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n\n" % (ob.location.x, ob.location.y, ob.location.z)) # ob.name > povdataname)
+            # other metaballs
+            else:
                 for mg, ob in meta_group.items():
-                    if len(meta_elems[mg])!=0:                
+                    if len(meta_elems[mg])!=0:
                         tabWrite("blob{threshold %.4g // %s \n" % (ob.data.threshold, mg))
                         for elems in meta_elems[mg]:
                             elem = elems[0]
@@ -1654,20 +1654,20 @@ def write_pov(filename, scene=None, info_callback=None):
                                 tabWrite("sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g " %
                                          (loc.x, loc.y, loc.z, elem.radius, stiffness))
                                 writeMatrix(global_matrix * elems[1].matrix_world)
-                                tabWrite("}\n")                                         
+                                tabWrite("}\n")
                             elif elem.type == 'ELLIPSOID':
                                 tabWrite("sphere{ <%.6g, %.6g, %.6g>,%.4g,%.4g " %
                                          (loc.x / elem.size_x, loc.y / elem.size_y, loc.z / elem.size_z,
                                           elem.radius, stiffness))
                                 tabWrite("scale <%.6g, %.6g, %.6g>" % (elem.size_x, elem.size_y, elem.size_z))
                                 writeMatrix(global_matrix * elems[1].matrix_world)
-                                tabWrite("}\n")                                
+                                tabWrite("}\n")
                             elif elem.type == 'CAPSULE':
                                 tabWrite("cylinder{ <%.6g, %.6g, %.6g>,<%.6g, %.6g, %.6g>,%.4g,%.4g " %
                                          ((loc.x - elem.size_x), (loc.y), (loc.z),
                                           (loc.x + elem.size_x), (loc.y), (loc.z),
                                           elem.radius, stiffness))
-                                #tabWrite("scale <%.6g, %.6g, %.6g>" % (elem.size_x, elem.size_y, elem.size_z))                                
+                                #tabWrite("scale <%.6g, %.6g, %.6g>" % (elem.size_x, elem.size_y, elem.size_z))
                                 writeMatrix(global_matrix * elems[1].matrix_world)
                                 tabWrite("}\n")
 
@@ -1677,18 +1677,18 @@ def write_pov(filename, scene=None, info_callback=None):
                                 tabWrite("}\n")
                                 tabWrite("cylinder { -y*8, +y*8,%.4g,%.4g translate<%.6g,%.6g,%.6g> scale <1,1/4,1> scale <%.6g, %.6g, %.6g>\n" % (elem.radius*2.0, stiffness/4.0, loc.x, loc.y, loc.z, elem.size_x, elem.size_y, elem.size_z))
                                 writeMatrix(global_matrix * elems[1].matrix_world)
-                                tabWrite("}\n")                                
+                                tabWrite("}\n")
                                 tabWrite("cylinder { -z*8, +z*8,%.4g,%.4g translate<%.6g,%.6g,%.6g> scale <1,1,1/4> scale <%.6g, %.6g, %.6g>\n" % (elem.radius*2.0, stiffness/4.0, loc.x, loc.y, loc.z, elem.size_x, elem.size_y, elem.size_z))
                                 writeMatrix(global_matrix * elems[1].matrix_world)
                                 tabWrite("}\n")
-                                
+
                             elif elem.type == 'PLANE':
                                 tabWrite("cylinder { -x*8, +x*8,%.4g,%.4g translate<%.6g,%.6g,%.6g> scale  <1/4,1,1> scale <%.6g, %.6g, %.6g>\n" % (elem.radius*2.0, stiffness/4.0, loc.x, loc.y, loc.z, elem.size_x, elem.size_y, elem.size_z))
                                 writeMatrix(global_matrix * elems[1].matrix_world)
                                 tabWrite("}\n")
                                 tabWrite("cylinder { -y*8, +y*8,%.4g,%.4g translate<%.6g,%.6g,%.6g> scale <1,1/4,1> scale <%.6g, %.6g, %.6g>\n" % (elem.radius*2.0, stiffness/4.0, loc.x, loc.y, loc.z, elem.size_x, elem.size_y, elem.size_z))
                                 writeMatrix(global_matrix * elems[1].matrix_world)
-                                tabWrite("}\n")            
+                                tabWrite("}\n")
 
                         try:
                             material = elems[1].data.materials[0]  # lame! - blender cant do enything else.
@@ -1709,12 +1709,12 @@ def write_pov(filename, scene=None, info_callback=None):
                             tabWrite("finish{%s} " % safety(material_finish, Level=2))
                         else:
                             tabWrite("pigment{srgb 1} finish{%s} " % (safety(DEF_MAT_NAME, Level=2)))
-                        
+
 
                             writeObjectMaterial(material, ob)
                             #writeObjectMaterial(material, elems[1])
                             tabWrite("radiosity{importance %3g}\n" % ob.pov.importance_value)
-                            tabWrite("}\n\n")  # End of Metaball block                
+                            tabWrite("}\n\n")  # End of Metaball block
 
 
     '''
@@ -2697,7 +2697,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
                     if not me or not me_faces:
                         tabWrite("\n//dummy sphere to represent empty mesh location\n")
-                        tabWrite("#declare %s =sphere {<0, 0, 0>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n" % povdataname)                    
+                        tabWrite("#declare %s =sphere {<0, 0, 0>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n" % povdataname)
                         continue
 
                     uv_textures = me.tessface_uv_textures
@@ -2989,7 +2989,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
                             file.write("\n")
                             tabWrite("}\n")
-                            
+
                         #XXX BOOLEAN
                         onceCSG = 0
                         for mod in ob.modifiers:
@@ -3002,7 +3002,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                                         ob.pov.inside_vector[1],
                                                         ob.pov.inside_vector[2]))
                                             onceCSG = 1
- 
+
                         if me.materials:
                             try:
                                 material = me.materials[0]  # dodgy
@@ -3010,9 +3010,9 @@ def write_pov(filename, scene=None, info_callback=None):
                             except IndexError:
                                 print(me)
 
-                        # POV object modifiers such as 
+                        # POV object modifiers such as
                         # hollow / sturm / double_illuminate etc.
-                        write_object_modifiers(scene,ob,file)                        
+                        write_object_modifiers(scene,ob,file)
 
                         #Importance for radiosity sampling added here:
                         tabWrite("radiosity { \n")
@@ -3245,7 +3245,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
                             file.write("\n")
                             tabWrite("}\n")
-                            
+
                         #XXX BOOLEAN
                         onceCSG = 0
                         for mod in ob.modifiers:
@@ -3266,10 +3266,10 @@ def write_pov(filename, scene=None, info_callback=None):
                             except IndexError:
                                 print(me)
 
-                        # POV object modifiers such as 
+                        # POV object modifiers such as
                         # hollow / sturm / double_illuminate etc.
-                        write_object_modifiers(scene,ob,file)                        
-                                
+                        write_object_modifiers(scene,ob,file)
+
                         #Importance for radiosity sampling added here:
                         tabWrite("radiosity { \n")
                         tabWrite("importance %3g \n" % importance)
@@ -3484,7 +3484,7 @@ def write_pov(filename, scene=None, info_callback=None):
             elif mist.falloff=='QUADRATIC':    # n**2 or squrt(n)?
                 tabWrite("distance %.6f\n" % ((mist.start+mist.depth)**2*0.368))
             elif mist.falloff=='INVERSE_QUADRATIC':    # n**2 or squrt(n)?
-                tabWrite("distance %.6f\n" % ((mist.start+mist.depth)**2*0.368))                
+                tabWrite("distance %.6f\n" % ((mist.start+mist.depth)**2*0.368))
             tabWrite("color rgbt<%.3g, %.3g, %.3g, %.3g>\n" % \
                      (*world.horizon_color, 1.0 - mist.intensity))
             #tabWrite("fog_offset %.6f\n" % mist.start) #create a pov property to prepend
@@ -3497,15 +3497,15 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("media {\n")
             tabWrite("scattering { %d, rgb %.12f*<%.4g, %.4g, %.4g>\n" % \
                      (int(scene.pov.media_scattering_type),
-                     (scene.pov.media_diffusion_scale),                     
+                     (scene.pov.media_diffusion_scale),
                      *(scene.pov.media_diffusion_color[:])))
             if scene.pov.media_scattering_type == '5':
-                tabWrite("eccentricity %.3g\n" % scene.pov.media_eccentricity) 
-            tabWrite("}\n") 
+                tabWrite("eccentricity %.3g\n" % scene.pov.media_eccentricity)
+            tabWrite("}\n")
             tabWrite("absorption %.12f*<%.4g, %.4g, %.4g>\n" % \
                      (scene.pov.media_absorption_scale,
-                     *(scene.pov.media_absorption_color[:]))) 
-            tabWrite("\n")             
+                     *(scene.pov.media_absorption_color[:])))
+            tabWrite("\n")
             tabWrite("samples %.d\n" % scene.pov.media_samples)
             tabWrite("}\n")
 
@@ -3591,7 +3591,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     if scene.pov.photon_map_file_save_load in {'load'}:
                         fullFileName = bpy.path.abspath(scene.pov.photon_map_file)
                         if os.path.exists(fullFileName):
-                            tabWrite('load_file "%s"\n'%fullFileName)                        
+                            tabWrite('load_file "%s"\n'%fullFileName)
                     tabWrite("}\n")
                     oncePhotons = 0
 
@@ -3975,7 +3975,7 @@ class PovrayRender(bpy.types.RenderEngine):
         x = int(r.resolution_x * r.resolution_percentage * 0.01)
         y = int(r.resolution_y * r.resolution_percentage * 0.01)
         print("***INITIALIZING***")
-        
+
         # This makes some tests on the render, returning True if all goes good, and False if
         # it was finished one way or the other.
         # It also pauses the script (time.sleep())
@@ -4000,7 +4000,7 @@ class PovrayRender(bpy.types.RenderEngine):
                 return False
 
             return True
-    
+
         if scene.pov.text_block !="":
             if scene.pov.tempfiles_enable:
                 self._temp_file_in = tempfile.NamedTemporaryFile(suffix=".pov", delete=False).name
@@ -4022,28 +4022,28 @@ class PovrayRender(bpy.types.RenderEngine):
                 os.remove(self._temp_file_in)  # so as not to load the old file
             except OSError:
                 pass
-            '''    
+            '''
             print(scene.pov.text_block)
             text = bpy.data.texts[scene.pov.text_block]
             file=open("%s"%self._temp_file_in,"w")
             # Why are the newlines needed?
             file.write("\n")
             file.write(text.as_string())
-            file.write("\n")    
+            file.write("\n")
             file.close()
 
             # has to be called to update the frame on exporting animations
             scene.frame_set(scene.frame_current)
-            
+
             pov_binary = PovrayRender._locate_binary()
 
             if not pov_binary:
                 print("POV-Ray 3.7: could not execute povray, possibly POV-Ray isn't installed")
                 return False
-                
-                
+
+
             # start ini UI options export
-            self.update_stats("", "POV-Ray 3.7: Exporting ini options from Blender")         
+            self.update_stats("", "POV-Ray 3.7: Exporting ini options from Blender")
 
             write_pov_ini(scene, self._temp_file_ini, self._temp_file_log, self._temp_file_in, self._temp_file_out)
 
@@ -4085,21 +4085,21 @@ class PovrayRender(bpy.types.RenderEngine):
                 print("Engine ready!...")
                 print("Command line arguments passed: " + str(extra_args))
                 #return True
-                self.update_stats("", "POV-Ray 3.7: Parsing File")                  
+                self.update_stats("", "POV-Ray 3.7: Parsing File")
 
 
-                
-            # Indented in main function now so repeated here but still not working 
+
+            # Indented in main function now so repeated here but still not working
             # to bring back render result to its buffer
-   
+
             if os.path.exists(self._temp_file_out):
                 xmin = int(r.border_min_x * x)
                 ymin = int(r.border_min_y * y)
                 xmax = int(r.border_max_x * x)
                 ymax = int(r.border_max_y * y)
-                result = self.begin_result(0, 0, x, y) 
+                result = self.begin_result(0, 0, x, y)
                 lay = result.layers[0]
-                
+
                 time.sleep(self.DELAY)
                 try:
                     lay.load_from_file(self._temp_file_out)
@@ -4108,12 +4108,12 @@ class PovrayRender(bpy.types.RenderEngine):
                 self.end_result(result)
             #print(self._temp_file_log) #bring the pov log to blender console with proper path?
             with open(self._temp_file_log) as f: # The with keyword automatically closes the file when you are done
-                print(f.read()) 
-                
+                print(f.read())
+
             self.update_stats("", "")
 
             if scene.pov.tempfiles_enable or scene.pov.deletefiles_enable:
-                self._cleanup()            
+                self._cleanup()
         else:
 
     ##WIP output format
@@ -4458,12 +4458,12 @@ class RunPovTextRender(Operator):
     bl_label = "Run"
     bl_context = "text"
     bl_description = "Run a render with this text only"
-        
+
     def execute(self, context):
         scene = context.scene
         scene.pov.text_block = context.space_data.text.name
 
-            
+
         bpy.ops.render.render()
 
         #empty text name property engain

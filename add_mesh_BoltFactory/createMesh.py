@@ -2003,7 +2003,5 @@ def Create_New_Mesh(props, context):
     if is_not_mesh_valid:
         print("\n[BoltFactory]\nFunction: create_mesh_object\n"
               "Mesh is not Valid, correcting\n")
-        
+
     object_data_add(context, mesh, operator=props)
-
-

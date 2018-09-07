@@ -386,4 +386,3 @@ class df3:
 #    + Add element access, scalar, and vector functions
 # 07/13/05: 0.10 released
 ###############################################################################
-

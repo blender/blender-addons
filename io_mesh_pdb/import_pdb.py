@@ -1390,4 +1390,3 @@ def import_pdb(Ball_type,
     # activate the last selected object
     if obj:
         bpy.context.scene.objects.active = obj
-

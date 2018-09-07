@@ -538,7 +538,7 @@ def add_item(box, idx, segment):
             row = box.row(True)
             row.prop(segment, 'glarrow_a', text="")
             row.prop(segment, 'glarrow_b', text="")
-            if segment.glarrow_a != '99' or segment.glarrow_b != '99': 
+            if segment.glarrow_a != '99' or segment.glarrow_b != '99':
                 row.prop(segment, 'glarrow_s', text="Size")
 
         if segment.gltype != 2 and segment.gltype != 10:

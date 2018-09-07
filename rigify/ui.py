@@ -1383,4 +1383,3 @@ def unregister():
     bpy.utils.unregister_class(OBJECT_OT_Rot2Pole)
 
     rot_mode.unregister()
-

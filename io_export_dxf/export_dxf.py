@@ -282,5 +282,3 @@ def _exportItem(ctx, o, mw, drawing, settings):
 		e = LampDXFExporter(settings)
 
 	return e.export(ctx, drawing, o, mx, mx_n, color=ecolor, layer=elayer, lineType=eltype)
-
-

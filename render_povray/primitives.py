@@ -1915,4 +1915,3 @@ class ImportPOV(bpy.types.Operator, ImportHelper):
                 # track.up_axis = "UP_Y"
                 # obj.location = (0,0,0)
         return {'FINISHED'}
-

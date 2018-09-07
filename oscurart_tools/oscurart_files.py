@@ -125,7 +125,7 @@ class collectImagesOsc(Operator):
         for image in bpy.data.images:
             try:
                 image.update()
-            
+
                 if image.has_data:
                     if not os.path.exists(os.path.join(imagespath,os.path.basename(image.filepath))):
                         shutil.copy(image.filepath, os.path.join(imagespath,os.path.basename(image.filepath)))
@@ -133,9 +133,9 @@ class collectImagesOsc(Operator):
                     else:
                         print("%s exists." % (image.name))
                 else:
-                    print("%s missing path." % (image.name))   
+                    print("%s missing path." % (image.name))
             except:
-                print("%s missing path." % (image.name))             
+                print("%s missing path." % (image.name))
 
         bpy.ops.file.make_paths_relative()
 
