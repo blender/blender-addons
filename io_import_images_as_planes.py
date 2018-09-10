@@ -614,22 +614,22 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
 
     # ----------------------
     # File dialog properties
-    files = CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
+    files: CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
 
-    directory = StringProperty(maxlen=1024, subtype='FILE_PATH', options={'HIDDEN', 'SKIP_SAVE'})
+    directory: StringProperty(maxlen=1024, subtype='FILE_PATH', options={'HIDDEN', 'SKIP_SAVE'})
 
-    filter_image = BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
-    filter_movie = BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
-    filter_folder = BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
+    filter_image: BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
+    filter_movie: BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
+    filter_folder: BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
 
     # ----------------------
     # Properties - Importing
-    force_reload = BoolProperty(
+    force_reload: BoolProperty(
         name="Force Reload", default=False,
         description="Force reloading of the image if already opened elsewhere in Blender"
     )
 
-    image_sequence = BoolProperty(
+    image_sequence: BoolProperty(
         name="Animate Image Sequences", default=False,
         description="Import sequentially numbered images as an animated "
                     "image sequence instead of separate planes"
@@ -646,7 +646,7 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
         'Z-': Vector(( 0,  0, -1)),
     }
 
-    offset = BoolProperty(name="Offset Planes", default=True, description="Offset Planes From Each Other")
+    offset: BoolProperty(name="Offset Planes", default=True, description="Offset Planes From Each Other")
 
     OFFSET_MODES = (
         ('X+', "X+", "Side by Side to the Left"),
@@ -656,12 +656,12 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
         ('Y-', "Y-", "Side by Side, Upward"),
         ('Z-', "Z-", "Stacked Below"),
     )
-    offset_axis = EnumProperty(
+    offset_axis: EnumProperty(
         name="Orientation", default='X+', items=OFFSET_MODES,
         description="How planes are oriented relative to each others' local axis"
     )
 
-    offset_amount = FloatProperty(
+    offset_amount: FloatProperty(
         name="Offset", soft_min=0, default=0.1, description="Space between planes",
         subtype='DISTANCE', unit='LENGTH'
     )
@@ -676,14 +676,14 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
         ('CAM', "Face Camera", "Facing Camera"),
         ('CAM_AX', "Main Axis", "Facing the Camera's dominant axis"),
     )
-    align_axis = EnumProperty(
+    align_axis: EnumProperty(
         name="Align", default='CAM_AX', items=AXIS_MODES,
         description="How to align the planes"
     )
     # prev_align_axis is used only by update_size_model
-    prev_align_axis = EnumProperty(
+    prev_align_axis: EnumProperty(
         items=AXIS_MODES + (('NONE', '', ''),), default='NONE', options={'HIDDEN', 'SKIP_SAVE'})
-    align_track = BoolProperty(
+    align_track: BoolProperty(
         name="Track Camera", default=False, description="Always face the camera"
     )
 
@@ -707,7 +707,7 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
         ('DPI', "Dpi", "Use definition of the image as dots per inch"),
         ('DPBU', "Dots/BU", "Use definition of the image as dots per Blender Unit"),
     )
-    size_mode = EnumProperty(
+    size_mode: EnumProperty(
         name="Size Mode", default='ABSOLUTE', items=SIZE_MODES,
         update=update_size_mode,
         description="How the size of the plane is computed")
@@ -716,13 +716,13 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
         ('FILL', "Fill", "Fill camera frame, spilling outside the frame"),
         ('FIT', "Fit", "Fit entire image within the camera frame"),
     )
-    fill_mode = EnumProperty(name="Scale", default='FILL', items=FILL_MODES,
+    fill_mode: EnumProperty(name="Scale", default='FILL', items=FILL_MODES,
                              description="How large in the camera frame is the plane")
 
-    height = FloatProperty(name="Height", description="Height of the created plane",
+    height: FloatProperty(name="Height", description="Height of the created plane",
                            default=1.0, min=0.001, soft_min=0.001, subtype='DISTANCE', unit='LENGTH')
 
-    factor = FloatProperty(name="Definition", min=1.0, default=600.0,
+    factor: FloatProperty(name="Definition", min=1.0, default=600.0,
                            description="Number of pixels per inch or Blender Unit")
 
     # ------------------------------
@@ -732,37 +732,37 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
         ('SHADELESS', "Shadeless", "Only visible to camera and reflections."),
         ('EMISSION', "Emit", "Emission Shader"),
     )
-    shader = EnumProperty(name="Shader", items=SHADERS, default='DIFFUSE', description="Node shader to use")
+    shader: EnumProperty(name="Shader", items=SHADERS, default='DIFFUSE', description="Node shader to use")
 
-    emit_strength = FloatProperty(
+    emit_strength: FloatProperty(
         name="Strength", min=0.0, default=1.0, soft_max=10.0,
         step=100, description="Brightness of Emission Texture")
 
-    overwrite_material = BoolProperty(
+    overwrite_material: BoolProperty(
         name="Overwrite Material", default=True,
         description="Overwrite existing Material (based on material name)")
 
-    compositing_nodes = BoolProperty(
+    compositing_nodes: BoolProperty(
         name="Setup Corner Pin", default=False,
         description="Build Compositor Nodes to reference this image "
                     "without re-rendering")
 
     # ------------------
     # Properties - Image
-    use_transparency = BoolProperty(
+    use_transparency: BoolProperty(
         name="Use Alpha", default=True,
         description="Use alphachannel for transparency")
 
     t = bpy.types.Image.bl_rna.properties["alpha_mode"]
     alpha_mode_items = tuple((e.identifier, e.name, e.description) for e in t.enum_items)
-    alpha_mode = EnumProperty(
+    alpha_mode: EnumProperty(
         name=t.name, items=alpha_mode_items, default=t.default,
         description=t.description)
 
     t = bpy.types.ImageUser.bl_rna.properties["use_auto_refresh"]
-    use_auto_refresh = BoolProperty(name=t.name, default=True, description=t.description)
+    use_auto_refresh: BoolProperty(name=t.name, default=True, description=t.description)
 
-    relative = BoolProperty(name="Relative Paths", default=True, description="Use relative file paths")
+    relative: BoolProperty(name="Relative Paths", default=True, description="Use relative file paths")
 
     # -------
     # Draw UI
