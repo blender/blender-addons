@@ -21,8 +21,8 @@
 bl_info = {
     "name": "Import Images as Planes",
     "author": "Florian Meyer (tstscr), mont29, matali, Ted Schundler (SpkyElctrc)",
-    "version": (3, 1, 1),
-    "blender": (2, 78, 0),
+    "version": (3, 2, 0),
+    "blender": (2, 80, 0),
     "location": "File > Import > Images as Planes or Add > Mesh > Images as Planes",
     "description": "Imports images and creates planes with the appropriate aspect ratio. "
                    "The images are mapped to the planes.",
@@ -200,11 +200,10 @@ def offset_planes(planes, gap, axis):
     prior = planes[0]
     offset = Vector()
     for current in planes[1:]:
-
-        local_offset = abs((prior.dimensions + current.dimensions) * axis) / 2.0 + gap
+        local_offset = abs((prior.dimensions + current.dimensions).dot(axis)) / 2.0 + gap
 
         offset += local_offset * axis
-        current.location = current.matrix_world * offset
+        current.location = current.matrix_world @ offset
 
         prior = current
 
@@ -242,7 +241,7 @@ def compute_camera_size(context, center, fill_mode, aspect):
 
 
 def center_in_camera(scene, camera, obj, axis=(1, 1)):
-    """Center object along specified axiis of the camera"""
+    """Center object along specified axis of the camera"""
     camera_matrix_col = camera.matrix_world.col
     location = obj.location
 
@@ -250,11 +249,11 @@ def center_in_camera(scene, camera, obj, axis=(1, 1)):
     delta = camera_matrix_col[3].xyz - location
 
     # How far off center we are along the camera's local X
-    camera_x_mag = delta * camera_matrix_col[0].xyz * axis[0]
+    camera_x_mag = delta.dot(camera_matrix_col[0].xyz) * axis[0]
     # How far off center we are along the camera's local Y
-    camera_y_mag = delta * camera_matrix_col[1].xyz * axis[1]
+    camera_y_mag = delta.dot(camera_matrix_col[1].xyz) * axis[1]
 
-    # Now offet only along camera local axiis
+    # Now offset only along camera local axis
     offset = camera_matrix_col[0].xyz * camera_x_mag + \
         camera_matrix_col[1].xyz * camera_y_mag
 
@@ -262,7 +261,7 @@ def center_in_camera(scene, camera, obj, axis=(1, 1)):
 
 
 # -----------------------------------------------------------------------------
-# Cycles utils
+# Cycles/Eevee utils
 
 def get_input_nodes(node, links):
     """Get nodes that are a inputs to the given node"""
@@ -327,7 +326,7 @@ def clean_node_tree(node_tree):
 
 
 def get_shadeless_node(dest_node_tree):
-    """Return a "shadless" cycles node, creating a node group if nonexistant"""
+    """Return a "shadless" cycles/eevee node, creating a node group if nonexistant"""
     try:
         node_tree = bpy.data.node_groups['IAP_SHADELESS']
 
@@ -474,7 +473,7 @@ def find_plane_corner(object_name, x, y, axis, camera=None, *args, **kwargs):
     v = plane.dimensions.copy()
     v.x *= x / scale.x
     v.y *= y / scale.y
-    v = plane.matrix_world * v
+    v = plane.matrix_world @ v
 
     camera_vertex = world_to_camera_view(
         bpy.context.scene, camera, v)
@@ -795,7 +794,7 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
             box.prop(self, "emit_strength")
 
         engine = context.scene.render.engine
-        if engine not in ('CYCLES', 'BLENDER_RENDER'):
+        if engine not in ('CYCLES', 'BLENDER_EEVEE', 'BLENDER_OPENGL'):
             box.label(text="%s is not supported" % engine, icon='ERROR')
 
         box.prop(self, "overwrite_material")
@@ -853,9 +852,13 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
     # Core functionality
     def invoke(self, context, event):
         engine = context.scene.render.engine
-        if engine not in ('CYCLES', 'BLENDER_RENDER', 'BLENDER_GAME'):
-            # Use default blender texture, but acknowledge things may not work
-            self.report({'WARNING'}, "Cannot generate materials for unknown %s render engine" % engine)
+        if engine not in {'CYCLES', 'BLENDER_EEVEE'}:
+            if engine not in {'BLENDER_OPENGL'}:
+                self.report({'ERROR'}, "Cannot generate materials for unknown %s render engine" % engine)
+                return {'CANCELLED'}
+            else:
+                self.report({'WARNING'},
+                            "Generating Cycles/EEVEE compatible material, but won't be visible with %s engine" % engine)
 
         # Open file browser
         context.window_manager.fileselect_add(self)
@@ -906,7 +909,7 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
 
         # setup new selection
         for plane in planes:
-            plane.select = True
+            plane.select_set('SELECT')
 
         # all done!
         self.report({'INFO'}, "Added {} Image Plane(s)".format(len(planes)))
@@ -919,18 +922,14 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
 
         # Configure material
         engine = context.scene.render.engine
-        if engine == 'CYCLES':
+        if engine in {'CYCLES', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}:
             material = self.create_cycles_material(context, img_spec)
-        else:
-            tex = self.create_image_textures(context, img_spec)
-            material = self.create_material_for_texture(tex)
 
         # Create and position plane object
         plane = self.create_image_plane(context, material.name, img_spec)
 
         # Assign Material
         plane.data.materials.append(material)
-        plane.data.uv_textures[0].data[0].image = img_spec.image
 
         # If applicable, setup Corner Pin node
         if self.compositing_nodes:
@@ -962,48 +961,6 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
 
         texture.extension = 'CLIP'  # Default of "Repeat" can cause artifacts
 
-    # -------------------------------------------------------------------------
-    # Blender Internal Material
-    def create_image_textures(self, context, img_spec):
-        image = img_spec.image
-        fn_full = os.path.normpath(bpy.path.abspath(image.filepath))
-
-        # look for texture referencing this file
-        for texture in bpy.data.textures:
-            if texture.type == 'IMAGE':
-                tex_img = texture.image
-                if (tex_img is not None) and (tex_img.library is None):
-                    fn_tex_full = os.path.normpath(bpy.path.abspath(tex_img.filepath))
-                    if fn_full == fn_tex_full:
-                        if self.overwrite_material:
-                            self.apply_texture_options(texture, img_spec)
-                        return texture
-
-        # if no texture is found: create one
-        name_compat = bpy.path.display_name_from_filepath(image.filepath)
-        texture = bpy.data.textures.new(name=name_compat, type='IMAGE')
-        texture.image = image
-        self.apply_texture_options(texture, img_spec)
-        return texture
-
-    def create_material_for_texture(self, texture):
-        # look for material with the needed texture
-        for material in bpy.data.materials:
-            slot = material.texture_slots[0]
-            if slot and slot.texture == texture:
-                if self.overwrite_material:
-                    self.apply_material_options(material, slot)
-                return material
-
-        # if no material found: create one
-        name_compat = bpy.path.display_name_from_filepath(texture.image.filepath)
-        material = bpy.data.materials.new(name=name_compat)
-        slot = material.texture_slots.add()
-        slot.texture = texture
-        slot.texture_coords = 'UV'
-        self.apply_material_options(material, slot)
-        return material
-
     def apply_material_options(self, material, slot):
         shader = self.shader
 
@@ -1025,7 +982,7 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
         material.emit = self.emit_strength if shader == 'EMISSION' else 0.0
 
     # -------------------------------------------------------------------------
-    # Cycles
+    # Cycles/Eevee
     def create_cycles_texnode(self, context, node_tree, img_spec):
         tex_image = node_tree.nodes.new('ShaderNodeTexImage')
         tex_image.image = img_spec.image
@@ -1083,14 +1040,13 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
 
         # Create new mesh
         bpy.ops.mesh.primitive_plane_add('INVOKE_REGION_WIN')
-        plane = context.scene.objects.active
+        plane = context.active_object
         # Why does mesh.primitive_plane_add leave the object in edit mode???
         if plane.mode is not 'OBJECT':
             bpy.ops.object.mode_set(mode='OBJECT')
         plane.dimensions = width, height, 0.0
         plane.data.name = plane.name = name
         bpy.ops.object.transform_apply(scale=True)
-        plane.data.uv_textures.new()
 
         # If sizing for camera, also insert into the camera's field of view
         if self.size_mode == 'CAMERA':
@@ -1139,7 +1095,7 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
             camera = context.scene.camera
             if (camera):
                 # Find the axis that best corresponds to the camera's view direction
-                axis = camera.matrix_world * \
+                axis = camera.matrix_world @ \
                     Vector((0, 0, 1)) - camera.matrix_world.col[3].xyz
                 # pick the axis with the greatest magnitude
                 mag = max(map(abs, axis))
