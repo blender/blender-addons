@@ -1328,7 +1328,6 @@ def blen_read_material(fbx_tmpl, fbx_obj, settings):
 
     fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                  elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-    #~ assert(fbx_props[0] is not None)  # Some Material may be missing that one, it seems... see T50566.
 
     ma_diff = elem_props_get_color_rgb(fbx_props, b'DiffuseColor', const_color_white)
     ma_spec = elem_props_get_color_rgb(fbx_props, b'SpecularColor', const_color_white)
@@ -1446,7 +1445,6 @@ def blen_read_camera(fbx_tmpl, fbx_obj, global_scale):
 
     fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                  elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-    assert(fbx_props[0] is not None)
 
     camera = bpy.data.cameras.new(name=elem_name_utf8)
 
@@ -1475,10 +1473,6 @@ def blen_read_light(fbx_tmpl, fbx_obj, global_scale):
 
     fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                  elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-    # rare
-    if fbx_props[0] is None:
-        lamp = bpy.data.lights.new(name=elem_name_utf8, type='POINT')
-        return lamp
 
     light_type = {
         0: 'POINT',
@@ -1959,7 +1953,6 @@ class FbxImportHelperNode:
 
         fbx_props = (elem_find_first(self.fbx_elem, b'Properties70'),
                      elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-        assert(fbx_props[0] is not None)
 
         # ----
         # Misc Attributes
@@ -2116,7 +2109,6 @@ class FbxImportHelperNode:
             if self.fbx_elem:
                 fbx_props = (elem_find_first(self.fbx_elem, b'Properties70'),
                              elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-                assert(fbx_props[0] is not None)
 
                 if settings.use_custom_props:
                     blen_read_custom_properties(self.fbx_elem, arm, settings)
@@ -2436,7 +2428,7 @@ def load(operator, context, filepath="",
 
     def fbx_template_get(key):
         ret = fbx_templates.get(key, fbx_elem_nil)
-        if ret is None:
+        if ret is fbx_elem_nil:
             # Newest FBX (7.4 and above) use no more 'K' in their type names...
             key = (key[0], key[1][1:])
             return fbx_templates.get(key, fbx_elem_nil)
@@ -2596,7 +2588,6 @@ def load(operator, context, filepath="",
 
             fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                          elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-            assert(fbx_props[0] is not None)
 
             transform_data = blen_read_object_transform_preprocess(fbx_props, fbx_obj, Matrix(), use_prepost_rot)
             # Note: 'Root' "bones" are handled as (armature) objects.
@@ -2957,8 +2948,6 @@ def load(operator, context, filepath="",
             assert(fbx_obj.id == b'Material')
             fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                          elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-            # Do not assert, it can be None actually, sigh...
-            #~ assert(fbx_props[0] is not None)
             # (x / 7.142) is only a guess, cycles usable range is (0.0 -> 0.5)
             return elem_props_get_number(fbx_props, b'BumpFactor', 2.5) / 7.142
 
@@ -2967,8 +2956,6 @@ def load(operator, context, filepath="",
 
             fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                          elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-            # Do not assert, it can be None actually, sigh...
-            #~ assert(fbx_props[0] is not None)
             return (elem_props_get_vector_3d(fbx_props, b'Translation', (0.0, 0.0, 0.0)),
                     elem_props_get_vector_3d(fbx_props, b'Rotation', (0.0, 0.0, 0.0)),
                     elem_props_get_vector_3d(fbx_props, b'Scaling', (1.0, 1.0, 1.0)),
