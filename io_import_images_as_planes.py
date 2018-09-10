@@ -774,7 +774,7 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
         layout = self.layout
         box = layout.box()
 
-        box.label("Import Options:", icon='IMPORT')
+        box.label(text="Import Options:", icon='IMPORT')
         row = box.row()
         row.active = bpy.data.is_saved
         row.prop(self, "relative")
@@ -787,23 +787,23 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
         layout = self.layout
         box = layout.box()
 
-        box.label("Compositing Nodes:", icon='RENDERLAYERS')
-        box.prop(self, 'compositing_nodes')
+        box.label(text="Compositing Nodes:", icon='RENDERLAYERS')
+        box.prop(self, "compositing_nodes")
 
-        box.label("Material Settings:", icon='MATERIAL')
+        box.label(text="Material Settings:", icon='MATERIAL')
 
         row = box.row()
         row.prop(self, 'shader', expand=True)
         if self.shader == 'EMISSION':
-            box.prop(self, 'emit_strength')
+            box.prop(self, "emit_strength")
 
         engine = context.scene.render.engine
         if engine not in ('CYCLES', 'BLENDER_RENDER'):
-            box.label("%s is not supported" % engine, icon='ERROR')
+            box.label(text="%s is not supported" % engine, icon='ERROR')
 
-        box.prop(self, 'overwrite_material')
+        box.prop(self, "overwrite_material")
 
-        box.label("Texture Settings:", icon='TEXTURE')
+        box.label(text="Texture Settings:", icon='TEXTURE')
         row = box.row()
         row.prop(self, "use_transparency")
         sub = row.row()
@@ -817,34 +817,34 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
         layout = self.layout
         box = layout.box()
 
-        box.label("Position:", icon='SNAP_GRID')
-        box.prop(self, 'offset')
+        box.label(text="Position:", icon='SNAP_GRID')
+        box.prop(self, "offset")
         col = box.column()
         row = col.row()
-        row.prop(self, 'offset_axis', expand=True)
+        row.prop(self, "offset_axis", expand=True)
         row = col.row()
-        row.prop(self, 'offset_amount')
+        row.prop(self, "offset_amount")
         col.enabled = self.offset
 
-        box.label("Plane dimensions:", icon='ARROW_LEFTRIGHT')
+        box.label(text="Plane dimensions:", icon='ARROW_LEFTRIGHT')
         row = box.row()
         row.prop(self, "size_mode", expand=True)
         if self.size_mode == 'ABSOLUTE':
             box.prop(self, "height")
         elif self.size_mode == 'CAMERA':
             row = box.row()
-            row.prop(self, 'fill_mode', expand=True)
+            row.prop(self, "fill_mode", expand=True)
         else:
             box.prop(self, "factor")
 
-        box.label("Orientation:", icon='MANIPUL')
+        box.label(text="Orientation:", icon='MANIPUL')
         row = box.row()
         row.enabled = 'CAM' not in self.size_mode
-        row.prop(self, 'align_axis')
+        row.prop(self, "align_axis")
         row = box.row()
         row.enabled = 'CAM' in self.align_axis
         row.alignment = 'RIGHT'
-        row.prop(self, 'align_track')
+        row.prop(self, "align_track")
 
     def draw(self, context):
 
