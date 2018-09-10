@@ -759,9 +759,6 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
         name=t.name, items=alpha_mode_items, default=t.default,
         description=t.description)
 
-    t = bpy.types.Image.bl_rna.properties["use_fields"]
-    use_fields = BoolProperty(name=t.name, default=False, description=t.description)
-
     t = bpy.types.ImageUser.bl_rna.properties["use_auto_refresh"]
     use_auto_refresh = BoolProperty(name=t.name, default=True, description=t.description)
 
@@ -809,7 +806,6 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
         sub = row.row()
         sub.active = self.use_transparency
         sub.prop(self, "alpha_mode", text="")
-        box.prop(self, "use_fields")
         box.prop(self, "use_auto_refresh")
 
     def draw_spatial_config(self, context):
@@ -945,7 +941,6 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
     def apply_image_options(self, image):
         image.use_alpha = self.use_transparency
         image.alpha_mode = self.alpha_mode
-        image.use_fields = self.use_fields
 
         if self.relative:
             try:  # can't always find the relative path (between drive letters on windows)
