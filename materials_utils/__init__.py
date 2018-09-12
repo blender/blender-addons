@@ -2506,7 +2506,7 @@ def check_mat_name_unique(name_id="Material_new"):
 def included_object_types(objects):
     # Pass the bpy.data.objects.type to avoid needless assigning/removing
     # included - type that can have materials
-    included = ['MESH', 'CURVE', 'SURFACE', 'FONT', 'META']
+    included = ['MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'GPENCIL']
     obj = objects
     return bool(obj and obj in included)
 
