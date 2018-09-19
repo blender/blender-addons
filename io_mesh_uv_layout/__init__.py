@@ -310,5 +310,5 @@ def unregister():
     bpy.types.IMAGE_MT_uvs.remove(menu_func)
 
 
-if __name__ == 'io_mesh_uv_layout':
+if __name__ == "__main__":
     register()
