@@ -87,7 +87,7 @@ def obj_image_load(context_imagepath_map, line, DIR, recursive, relpath):
 
 
 def create_materials(filepath, relpath,
-                     material_libs, unique_materials, unique_material_images,
+                     material_libs, unique_materials,
                      use_image_search, use_cycles, float_func):
     """
     Create all the used materials in this obj,
@@ -133,47 +133,20 @@ def create_materials(filepath, relpath,
                 mat_wrap.diffuse_image_set(image)
                 mat_wrap.diffuse_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
 
-            mtex = blender_material.texture_slots.add()
-            mtex.texture = texture
-            mtex.texture_coords = 'UV'
-            mtex.use_map_color_diffuse = True
-
-            # adds textures to faces (Textured/Alt-Z mode)
-            # Only apply the diffuse texture to the face if the image has not been set with the inline usemat func.
-            unique_material_images[context_material_name] = image  # set the texface image
-
         elif type == 'Ka':
             if use_cycles:
                 # XXX Not supported?
                 print("WARNING, currently unsupported ambient texture, skipped.")
-
-            mtex = blender_material.texture_slots.add()
-            mtex.use_map_color_diffuse = False
-            mtex.texture = texture
-            mtex.texture_coords = 'UV'
-            mtex.use_map_ambient = True
 
         elif type == 'Ks':
             if use_cycles:
                 mat_wrap.specular_image_set(image)
                 mat_wrap.specular_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
 
-            mtex = blender_material.texture_slots.add()
-            mtex.use_map_color_diffuse = False
-            mtex.texture = texture
-            mtex.texture_coords = 'UV'
-            mtex.use_map_color_spec = True
-
         elif type == 'Ke':
             if use_cycles:
                 # XXX Not supported?
                 print("WARNING, currently unsupported emit texture, skipped.")
-
-            mtex = blender_material.texture_slots.add()
-            mtex.use_map_color_diffuse = False
-            mtex.texture = texture
-            mtex.texture_coords = 'UV'
-            mtex.use_map_emit = True
 
         elif type == 'Bump':
             bump_mult = map_options.get(b'-bm')
@@ -185,40 +158,15 @@ def create_materials(filepath, relpath,
                 if bump_mult:
                     mat_wrap.normal_factor_set(bump_mult)
 
-            mtex = blender_material.texture_slots.add()
-            mtex.use_map_color_diffuse = False
-            mtex.texture = texture
-            mtex.texture_coords = 'UV'
-            mtex.use_map_normal = True
-            if bump_mult:
-                mtex.normal_factor = bump_mult
-
         elif type == 'D':
             if use_cycles:
                 mat_wrap.alpha_image_set(image)
                 mat_wrap.alpha_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
 
-            mtex = blender_material.texture_slots.add()
-            mtex.use_map_color_diffuse = False
-            mtex.texture = texture
-            mtex.texture_coords = 'UV'
-            mtex.use_map_alpha = True
-            blender_material.use_transparency = True
-            blender_material.transparency_method = 'Z_TRANSPARENCY'
-            if "alpha" not in context_material_vars:
-                blender_material.alpha = 0.0
-            # Todo, unset diffuse material alpha if it has an alpha channel
-
         elif type == 'disp':
             if use_cycles:
                 mat_wrap.bump_image_set(image)
                 mat_wrap.bump_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
-
-            mtex = blender_material.texture_slots.add()
-            mtex.use_map_color_diffuse = False
-            mtex.texture = texture
-            mtex.texture_coords = 'UV'
-            mtex.use_map_displacement = True
 
         elif type == 'refl':
             map_type = map_options.get(b'-type')
@@ -230,12 +178,6 @@ def create_materials(filepath, relpath,
                 mat_wrap.diffuse_image_set(image, projection='SPHERE')
                 mat_wrap.diffuse_mapping_set(coords='Reflection', translation=map_offset, scale=map_scale)
 
-            mtex = blender_material.texture_slots.add()
-            mtex.use_map_color_diffuse = False
-            mtex.texture = texture
-            mtex.texture_coords = 'REFLECTION'
-            mtex.use_map_color_diffuse = True
-            mtex.mapping = 'SPHERE'
         else:
             raise Exception("invalid type %r" % type)
 
@@ -263,17 +205,10 @@ def create_materials(filepath, relpath,
     for name in unique_materials:  # .keys()
         if name is not None:
             ma = unique_materials[name] = bpy.data.materials.new(name.decode('utf-8', "replace"))
-            unique_material_images[name] = None  # assign None to all material images to start with, add to later.
             if use_cycles:
                 from modules import cycles_shader_compat
                 ma_wrap = cycles_shader_compat.CyclesShaderWrapper(ma)
                 cycles_material_wrap_map[ma] = ma_wrap
-
-
-    # XXX Why was this needed? Cannot find any good reason, and adds stupid empty matslot in case we do not separate
-    #     mesh (see T44947).
-    #~ unique_materials[None] = None
-    #~ unique_material_images[None] = None
 
     for libname in sorted(material_libs):
         # print(libname)
@@ -382,22 +317,15 @@ def create_materials(filepath, relpath,
                         col = (float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
                         if use_cycles:
                             context_mat_wrap.reflect_color_set(col)
-                        context_material.mirror_color = col
-                        # This is highly approximated, but let's try to stick as close from exporter as possible... :/
-                        context_material.ambient = sum(context_material.mirror_color) / 3
                     elif line_id == b'kd':
                         col = (float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
                         if use_cycles:
                             context_mat_wrap.diffuse_color_set(col)
-                        context_material.diffuse_color = col
-                        context_material.diffuse_intensity = 1.0
                     elif line_id == b'ks':
                         col = (float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
                         if use_cycles:
                             context_mat_wrap.specular_color_set(col)
                             context_mat_wrap.hardness_value_set(1.0)
-                        context_material.specular_color = col
-                        context_material.specular_intensity = 1.0
                     elif line_id == b'ke':
                         # We cannot set context_material.emit right now, we need final diffuse color as well for this.
                         emit_colors[:] = [
@@ -405,23 +333,15 @@ def create_materials(filepath, relpath,
                     elif line_id == b'ns':
                         if use_cycles:
                             context_mat_wrap.hardness_value_set(((float_func(line_split[1]) + 3.0) / 50.0) - 0.65)
-                        context_material.specular_hardness = int((float_func(line_split[1]) * 0.51) + 1)
                     elif line_id == b'ni':  # Refraction index (between 1 and 3).
                         if use_cycles:
                             print("WARNING, currently unsupported glass material, skipped.")
-                        context_material.raytrace_transparency.ior = max(1, min(float_func(line_split[1]), 3))
-                        context_material_vars.add("ior")
                     elif line_id == b'd':  # dissolve (transparency)
                         if use_cycles:
                             context_mat_wrap.alpha_value_set(float_func(line_split[1]))
-                        context_material.alpha = float_func(line_split[1])
-                        context_material.use_transparency = True
-                        context_material.transparency_method = 'Z_TRANSPARENCY'
-                        context_material_vars.add("alpha")
                     elif line_id == b'tr':  # translucency
                         if use_cycles:
                             print("WARNING, currently unsupported translucency option, skipped.")
-                        context_material.translucency = float_func(line_split[1])
                     elif line_id == b'tf':
                         # rgb, filter color, blender has no support for this.
                         pass
@@ -601,7 +521,6 @@ def create_mesh(new_objects,
                 verts_tex,
                 faces,
                 unique_materials,
-                unique_material_images,
                 unique_smooth_groups,
                 vertex_groups,
                 dataname,
@@ -756,7 +675,7 @@ def create_mesh(new_objects,
         me.create_normals_split()
 
     if verts_tex and me.polygons:
-        me.uv_textures.new()
+        me.uv_layers.new()
 
     context_material_old = -1  # avoid a dict lookup
     mat = 0  # rare case it may be un-initialized.
@@ -788,11 +707,6 @@ def create_mesh(new_objects,
                 me.loops[lidx].normal[:] = verts_nor[0 if (face_noidx is ...) else face_noidx]
 
         if verts_tex and face_vert_tex_indices:
-            if context_material:
-                image = unique_material_images[context_material]
-                if image:  # Can be none if the material dosnt have an image.
-                    me.uv_textures[0].data[i].image = image
-
             blen_uvs = me.uv_layers[0]
             for face_uvidx, lidx in zip(face_vert_tex_indices, blen_poly.loop_indices):
                 blen_uvs.data[lidx].uv = verts_tex[0 if (face_uvidx is ...) else face_uvidx]
@@ -1036,7 +950,6 @@ def load(context,
 
         # Until we can use sets
         unique_materials = {}
-        unique_material_images = {}
         unique_smooth_groups = {}
         # unique_obects= {} - no use for this variable since the objects are stored in the face.
 
@@ -1258,7 +1171,7 @@ def load(context,
         progress.step("Done, loading materials and images...")
 
         create_materials(filepath, relpath, material_libs, unique_materials,
-                         unique_material_images, use_image_search, use_cycles, float_func)
+                         use_image_search, use_cycles, float_func)
 
         progress.step("Done, building geometries (verts:%i faces:%i materials: %i smoothgroups:%i) ..." %
                       (len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups)))
@@ -1284,7 +1197,6 @@ def load(context,
                         verts_tex if use_vtex else [],
                         faces_split,
                         unique_materials_split,
-                        unique_material_images,
                         unique_smooth_groups,
                         vertex_groups,
                         dataname,

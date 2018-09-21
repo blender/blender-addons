@@ -69,7 +69,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
 
             fw('\nnewmtl %s\n' % mtl_mat_name)  # Define a new material: matname_imgname
 
-            if mat:
+            if False and mat:  # XXX TODO Support nodal materials.
                 use_mirror = mat.raytrace_mirror.use and mat.raytrace_mirror.reflect_factor != 0.0
 
                 # convert from blenders spec to 0 - 1000 range.
@@ -139,7 +139,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                     # so we write the materials image.
                     face_img = None
 
-            if mat:  # No face image. if we havea material search for MTex image.
+            if False and mat:  # XXX TODO support nodal materials. If we have a material search for MTex image.
                 image_map = {}
                 # backwards so topmost are highest priority
                 for mtex in reversed(mat.texture_slots):
@@ -230,7 +230,7 @@ def write_nurb(fw, ob, ob_mat):
         do_endpoints = (do_closed == 0) and nu.use_endpoint_u
 
         for pt in nu.points:
-            fw('v %.6f %.6f %.6f\n' % (ob_mat * pt.co.to_3d())[:])
+            fw('v %.6f %.6f %.6f\n' % (ob_mat @ pt.co.to_3d())[:])
             pt_num += 1
         tot_verts += pt_num
 
@@ -379,7 +379,7 @@ def write_file(filepath, objects, depsgraph, scene,
 
                         # Nurbs curve support
                         if EXPORT_CURVE_AS_NURBS and test_nurbs_compat(ob):
-                            ob_mat = EXPORT_GLOBAL_MATRIX * ob_mat
+                            ob_mat = EXPORT_GLOBAL_MATRIX @ ob_mat
                             totverts += write_nurb(fw, ob, ob_mat)
                             continue
                         # END NURBS
@@ -397,7 +397,7 @@ def write_file(filepath, objects, depsgraph, scene,
                             # _must_ do this first since it re-allocs arrays
                             mesh_triangulate(me)
 
-                        me.transform(EXPORT_GLOBAL_MATRIX * ob_mat)
+                        me.transform(EXPORT_GLOBAL_MATRIX @ ob_mat)
                         # If negative scaling, we have to invert the normals...
                         if ob_mat.determinant() < 0.0:
                             me.flip_normals()
@@ -740,7 +740,7 @@ def _write(context, filepath,
             if EXPORT_ANIMATION:  # Add frame to the filepath.
                 context_name[2] = '_%.6d' % frame
 
-            scene.frame_set(frame, 0.0)
+            scene.frame_set(frame, subframe=0.0)
             if EXPORT_SEL_ONLY:
                 objects = context.selected_objects
             else:
@@ -773,7 +773,7 @@ def _write(context, filepath,
                        )
             progress.leave_substeps()
 
-        scene.frame_set(orig_frame, 0.0)
+        scene.frame_set(orig_frame, subframe=0.0)
         progress.leave_substeps()
 
 
