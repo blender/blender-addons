@@ -585,8 +585,8 @@ def fbx_data_light_elements(root, lamp, scene_data):
     if lamp.type not in {'HEMI'}:
         if lamp.type not in {'SUN', 'AREA'}:
             decay_type = FBX_LIGHT_DECAY_TYPES[lamp.falloff_type]
-        do_light = (not lamp.use_only_shadow) and (lamp.use_specular or lamp.use_diffuse)
-        do_shadow = lamp.shadow_method not in {'NOSHADOW'}
+        do_light = True
+        do_shadow = lamp.use_shadow
         shadow_color = lamp.shadow_color
 
     light = elem_data_single_int64(root, b"NodeAttribute", get_fbx_uuid_from_key(light_key))
@@ -629,8 +629,8 @@ def fbx_data_camera_elements(root, cam_obj, scene_data):
     # Real data now, good old camera!
     # Object transform info.
     loc, rot, scale, matrix, matrix_rot = cam_obj.fbx_object_tx(scene_data)
-    up = matrix_rot * Vector((0.0, 1.0, 0.0))
-    to = matrix_rot * Vector((0.0, 0.0, -1.0))
+    up = matrix_rot @ Vector((0.0, 1.0, 0.0))
+    to = matrix_rot @ Vector((0.0, 0.0, -1.0))
     # Render settings.
     # TODO We could export much more...
     render = scene_data.scene.render
@@ -1206,7 +1206,8 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
 def check_skip_material(mat):
     """Simple helper to check whether we actually support exporting that material or not"""
-    return mat.type not in {'SURFACE'}
+    ### TODO Fix node-to-simpleshader issue...
+    return True or mat.type not in {'SURFACE'}
 
 
 def fbx_data_material_elements(root, mat, scene_data):
@@ -1215,7 +1216,7 @@ def fbx_data_material_elements(root, mat, scene_data):
     """
     ambient_color = (0.0, 0.0, 0.0)
     if scene_data.data_world:
-        ambient_color = next(iter(scene_data.data_world.keys())).ambient_color
+        ambient_color = next(iter(scene_data.data_world.keys())).color
 
     mat_key, _objs = scene_data.data_materials[mat]
     skip_mat = check_skip_material(mat)
@@ -1497,7 +1498,7 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
                 #          http://area.autodesk.com/forum/autodesk-fbx/fbx-sdk/why-the-values-return-
                 #                 by-fbxcluster-gettransformmatrix-x-not-same-with-the-value-in-ascii-fbx-file/
                 elem_data_single_float64_array(fbx_clstr, b"Transform",
-                                               matrix4_to_array(mat_world_bones[bo_obj].inverted_safe() * mat_world_obj))
+                                               matrix4_to_array(mat_world_bones[bo_obj].inverted_safe() @ mat_world_obj))
                 elem_data_single_float64_array(fbx_clstr, b"TransformLink", matrix4_to_array(mat_world_bones[bo_obj]))
                 elem_data_single_float64_array(fbx_clstr, b"TransformAssociateModel", matrix4_to_array(mat_world_arm))
 
@@ -1849,9 +1850,9 @@ def fbx_generate_leaf_bones(settings, data_bones):
         bone_length = (parent.bdata.tail_local - parent.bdata.head_local).length
         matrix = Matrix.Translation((0, bone_length, 0))
         if settings.bone_correction_matrix_inv:
-            matrix = settings.bone_correction_matrix_inv * matrix
+            matrix = settings.bone_correction_matrix_inv @ matrix
         if settings.bone_correction_matrix:
-            matrix = matrix * settings.bone_correction_matrix
+            matrix = matrix @ settings.bone_correction_matrix
         leaf_bones.append((node_name, parent_uuid, node_uuid, attr_uuid, matrix, hide, size))
 
     return leaf_bones
@@ -1864,6 +1865,7 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
     bake_step = scene_data.settings.bake_anim_step
     simplify_fac = scene_data.settings.bake_anim_simplify_factor
     scene = scene_data.scene
+    depsgraph = scene_data.depsgraph
     force_keying = scene_data.settings.bake_anim_use_all_bones
     force_sek = scene_data.settings.bake_anim_force_startend_keying
 
@@ -1874,11 +1876,9 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
                 continue
             if ob_obj.type == 'ARMATURE':
                 objects |= {bo_obj for bo_obj in ob_obj.bones if bo_obj in scene_data.objects}
-            ob_obj.dupli_list_create(scene, 'RENDER')
-            for dp_obj in ob_obj.dupli_list:
+            for dp_obj in ob_obj.dupli_list_gen(depsgraph):
                 if dp_obj in scene_data.objects:
                     objects.add(dp_obj)
-            ob_obj.dupli_list_clear()
     else:
         objects = scene_data.objects
 
@@ -1920,10 +1920,10 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
     currframe = f_start
     while currframe <= f_end:
         real_currframe = currframe - f_start if start_zero else currframe
-        scene.frame_set(int(currframe), currframe - int(currframe))
+        scene.frame_set(int(currframe), subframe=currframe - int(currframe))
 
-        for ob_obj in animdata_ob:
-            ob_obj.dupli_list_create(scene, 'RENDER')
+        for dp_obj in ob_obj.dupli_list_gen(depsgraph):
+            pass  # Merely updating dupli matrix of ObjectWrapper...
         for ob_obj, (anim_loc, anim_rot, anim_scale) in animdata_ob.items():
             # We compute baked loc/rot/scale for all objects (rot being euler-compat with previous value!).
             p_rot = p_rots.get(ob_obj, None)
@@ -1932,15 +1932,13 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
             anim_loc.add_keyframe(real_currframe, loc)
             anim_rot.add_keyframe(real_currframe, tuple(convert_rad_to_deg_iter(rot)))
             anim_scale.add_keyframe(real_currframe, scale)
-        for ob_obj in objects:
-            ob_obj.dupli_list_clear()
         for anim_shape, me, shape in animdata_shapes.values():
             anim_shape.add_keyframe(real_currframe, (shape.value * 100.0,))
         for anim_camera, camera in animdata_cameras.values():
             anim_camera.add_keyframe(real_currframe, (camera.lens,))
         currframe += bake_step
 
-    scene.frame_set(back_currframe, 0.0)
+    scene.frame_set(back_currframe, subframe=0.0)
 
     animations = OrderedDict()
 
@@ -2045,7 +2043,7 @@ def fbx_animations(scene_data):
             add_anim(animations, animated,
                      fbx_animations_do(scene_data, strip, strip.frame_start, strip.frame_end, True, force_keep=True))
             strip.mute = True
-            scene.frame_set(scene.frame_current, 0.0)
+            scene.frame_set(scene.frame_current, subframe=0.0)
 
         for strip in strips:
             strip.mute = False
@@ -2074,7 +2072,7 @@ def fbx_animations(scene_data):
                 'lock_location', 'lock_rotation', 'lock_rotation_w', 'lock_rotations_4d', 'lock_scale',
                 'tag', 'layers', 'select', 'track_axis', 'up_axis', 'active_material', 'active_material_index',
                 'matrix_parent_inverse', 'empty_display_type', 'empty_display_size', 'empty_image_offset', 'pass_index',
-                'color', 'hide', 'hide_select', 'hide_render', 'use_slow_parent', 'slow_parent_offset',
+                'color', 'hide_viewport', 'hide_select', 'hide_render', 'use_slow_parent', 'slow_parent_offset',
                 'use_extra_recalc_object', 'use_extra_recalc_data', 'dupli_type', 'use_dupli_frames_speed',
                 'use_dupli_vertices_rotation', 'use_dupli_faces_scale', 'dupli_faces_scale', 'dupli_group',
                 'dupli_frames_start', 'dupli_frames_end', 'dupli_frames_on', 'dupli_frames_off',
@@ -2124,7 +2122,7 @@ def fbx_animations(scene_data):
                         pbo.matrix_basis = mat.copy()
                 ob.animation_data.action = org_act
                 restore_object(ob, ob_copy)
-                scene.frame_set(scene.frame_current, 0.0)
+                scene.frame_set(scene.frame_current, subframe=0.0)
 
             if pbones_matrices is not ...:
                 for pbo, mat in zip(ob.pose.bones, pbones_matrices):
@@ -2132,19 +2130,19 @@ def fbx_animations(scene_data):
             ob.animation_data.action = org_act
 
             bpy.data.objects.remove(ob_copy)
-            scene.frame_set(scene.frame_current, 0.0)
+            scene.frame_set(scene.frame_current, subframe=0.0)
 
     # Global (containing everything) animstack, only if not exporting NLA strips and/or all actions.
     if not scene_data.settings.bake_anim_use_nla_strips and not scene_data.settings.bake_anim_use_all_actions:
         add_anim(animations, animated, fbx_animations_do(scene_data, None, scene.frame_start, scene.frame_end, False))
 
     # Be sure to update all matrices back to org state!
-    scene.frame_set(scene.frame_current, 0.0)
+    scene.frame_set(scene.frame_current, subframe=0.0)
 
     return animations, animated, frame_start, frame_end
 
 
-def fbx_data_from_scene(scene, settings):
+def fbx_data_from_scene(scene, depsgraph, settings):
     """
     Do some pre-processing over scene's data...
     """
@@ -2166,12 +2164,10 @@ def fbx_data_from_scene(scene, settings):
         ob_obj = ObjectWrapper(ob)
         objects[ob_obj] = None
         # Duplis...
-        ob_obj.dupli_list_create(scene, 'RENDER')
-        for dp_obj in ob_obj.dupli_list:
+        for dp_obj in ob_obj.dupli_list_gen(depsgraph):
             if dp_obj.type not in dp_objtypes:
                 continue
             objects[dp_obj] = None
-        ob_obj.dupli_list_clear()
 
     perfmon.step("FBX export prepare: Wrapping Data (lamps, cameras, empties)...")
 
@@ -2375,7 +2371,7 @@ def fbx_data_from_scene(scene, settings):
         # Kind of hack, we need a temp scene_data for object's space handling to bake animations...
         tmp_scdata = FBXExportData(
             None, None, None,
-            settings, scene, objects, None, None, 0.0, 0.0,
+            settings, scene, depsgraph, objects, None, None, 0.0, 0.0,
             data_empties, data_lights, data_cameras, data_meshes, None,
             data_bones, data_leaf_bones, data_deformers_skin, data_deformers_shape,
             data_world, data_materials, data_textures, data_videos,
@@ -2593,7 +2589,7 @@ def fbx_data_from_scene(scene, settings):
 
     return FBXExportData(
         templates, templates_users, connections,
-        settings, scene, objects, animations, animated, frame_start, frame_end,
+        settings, scene, depsgraph, objects, animations, animated, frame_start, frame_end,
         data_empties, data_lights, data_cameras, data_meshes, mesh_mat_indices,
         data_bones, data_leaf_bones, data_deformers_skin, data_deformers_shape,
         data_world, data_materials, data_textures, data_videos,
@@ -2827,12 +2823,10 @@ def fbx_objects_elements(root, scene_data):
         if ob_obj.is_dupli:
             continue
         fbx_data_object_elements(objects, ob_obj, scene_data)
-        ob_obj.dupli_list_create(scene_data.scene, 'RENDER')
-        for dp_obj in ob_obj.dupli_list:
+        for dp_obj in ob_obj.dupli_list_gen(scene_data.depsgraph):
             if dp_obj not in scene_data.objects:
                 continue
             fbx_data_object_elements(objects, dp_obj, scene_data)
-        ob_obj.dupli_list_clear()
 
     perfmon.step("FBX export fetch remaining...")
 
@@ -2897,7 +2891,7 @@ def fbx_takes_elements(root, scene_data):
 # ##### "Main" functions. #####
 
 # This func can be called with just the filepath
-def save_single(operator, scene, filepath="",
+def save_single(operator, scene, depsgraph, filepath="",
                 global_matrix=Matrix(),
                 apply_unit_scale=False,
                 global_scale=1.0,
@@ -2943,12 +2937,12 @@ def save_single(operator, scene, filepath="",
     # Default Blender unit is equivalent to meter, while FBX one is centimeter...
     unit_scale = units_blender_to_fbx_factor(scene) if apply_unit_scale else 100.0
     if apply_scale_options == 'FBX_SCALE_NONE':
-        global_matrix = Matrix.Scale(unit_scale * global_scale, 4) * global_matrix
+        global_matrix = Matrix.Scale(unit_scale * global_scale, 4) @ global_matrix
         unit_scale = 1.0
     elif apply_scale_options == 'FBX_SCALE_UNITS':
-        global_matrix = Matrix.Scale(global_scale, 4) * global_matrix
+        global_matrix = Matrix.Scale(global_scale, 4) @ global_matrix
     elif apply_scale_options == 'FBX_SCALE_CUSTOM':
-        global_matrix = Matrix.Scale(unit_scale, 4) * global_matrix
+        global_matrix = Matrix.Scale(unit_scale, 4) @ global_matrix
         unit_scale = global_scale
     else: # if apply_scale_options == 'FBX_SCALE_ALL':
         unit_scale = global_scale * unit_scale
@@ -3004,7 +2998,7 @@ def save_single(operator, scene, filepath="",
     start_time = time.process_time()
 
     # Generate some data about exported scene...
-    scene_data = fbx_data_from_scene(scene, settings)
+    scene_data = fbx_data_from_scene(scene, depsgraph, settings)
 
     root = elem_empty(None, b"")  # Root element has no id, as it is not saved per se!
 
@@ -3098,7 +3092,7 @@ def save(operator, context,
 
     ret = None
 
-    active_object = context.scene.objects.active
+    active_object = context.view_layer.objects.active
 
     org_mode = None
     if active_object and active_object.mode != 'OBJECT' and bpy.ops.object.mode_set.poll():
@@ -3112,8 +3106,9 @@ def save(operator, context,
         else:
             kwargs_mod["context_objects"] = context.scene.objects
 
-        ret = save_single(operator, context.scene, filepath, **kwargs_mod)
+        ret = save_single(operator, context.scene, context.depsgraph, filepath, **kwargs_mod)
     else:
+        return # TODO Update for 2.8
         fbxpath = filepath
 
         prefix = os.path.basename(fbxpath)

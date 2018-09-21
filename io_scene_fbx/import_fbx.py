@@ -369,7 +369,7 @@ def blen_read_custom_properties(fbx_obj, blen_obj, settings):
 def blen_read_object_transform_do(transform_data):
     # This is a nightmare. FBX SDK uses Maya way to compute the transformation matrix of a node - utterly simple:
     #
-    #     WorldTransform = ParentWorldTransform * T * Roff * Rp * Rpre * R * Rpost * Rp-1 * Soff * Sp * S * Sp-1
+    #     WorldTransform = ParentWorldTransform @ T @ Roff @ Rp @ Rpre @ R @ Rpost @ Rp-1 @ Soff @ Sp @ S @ Sp-1
     #
     # Where all those terms are 4 x 4 matrices that contain:
     #     WorldTransform: Transformation matrix of the node in global space.
@@ -389,7 +389,7 @@ def blen_read_object_transform_do(transform_data):
     # But it was still too simple, and FBX notion of compatibility is... quite specific. So we also have to
     # support 3DSMax way:
     #
-    #     WorldTransform = ParentWorldTransform * T * R * S * OT * OR * OS
+    #     WorldTransform = ParentWorldTransform @ T @ R @ S @ OT @ OR @ OS
     #
     # Where all those terms are 4 x 4 matrices that contain:
     #     WorldTransform: Transformation matrix of the node in global space
@@ -414,7 +414,7 @@ def blen_read_object_transform_do(transform_data):
 
     # rotation
     to_rot = lambda rot, rot_ord: Euler(convert_deg_to_rad_iter(rot), rot_ord).to_matrix().to_4x4()
-    lcl_rot = to_rot(transform_data.rot, transform_data.rot_ord) * transform_data.rot_alt_mat
+    lcl_rot = to_rot(transform_data.rot, transform_data.rot_ord) @ transform_data.rot_alt_mat
     pre_rot = to_rot(transform_data.pre_rot, transform_data.rot_ord)
     pst_rot = to_rot(transform_data.pst_rot, transform_data.rot_ord)
     geom_rot = to_rot(transform_data.geom_rot, transform_data.rot_ord)
@@ -431,21 +431,21 @@ def blen_read_object_transform_do(transform_data):
     geom_scale[0][0], geom_scale[1][1], geom_scale[2][2] = transform_data.geom_sca
 
     base_mat = (
-        lcl_translation *
-        rot_ofs *
-        rot_piv *
-        pre_rot *
-        lcl_rot *
-        pst_rot *
-        rot_piv.inverted_safe() *
-        sca_ofs *
-        sca_piv *
-        lcl_scale *
+        lcl_translation @
+        rot_ofs @
+        rot_piv @
+        pre_rot @
+        lcl_rot @
+        pst_rot @
+        rot_piv.inverted_safe() @
+        sca_ofs @
+        sca_piv @
+        lcl_scale @
         sca_piv.inverted_safe()
     )
-    geom_mat = geom_loc * geom_rot * geom_scale
+    geom_mat = geom_loc @ geom_rot @ geom_scale
     # We return mat without 'geometric transforms' too, because it is to be used for children, sigh...
-    return (base_mat * geom_mat, base_mat, geom_mat)
+    return (base_mat @ geom_mat, base_mat, geom_mat)
 
 
 # XXX This might be weak, now that we can add vgroups from both bones and shapes, name collisions become
@@ -661,19 +661,19 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset):
 
             # compensate for changes in the local matrix during processing
             if item.anim_compensation_matrix:
-                mat = mat * item.anim_compensation_matrix
+                mat = mat @ item.anim_compensation_matrix
 
             # apply pre- and post matrix
             # post-matrix will contain any correction for lights, camera and bone orientation
             # pre-matrix will contain any correction for a parent's correction matrix or the global matrix
             if item.pre_matrix:
-                mat = item.pre_matrix * mat
+                mat = item.pre_matrix @ mat
             if item.post_matrix:
-                mat = mat * item.post_matrix
+                mat = mat @ item.post_matrix
 
             # And now, remove that rest pose matrix from current mat (also in parent space).
             if restmat_inv:
-                mat = restmat_inv * mat
+                mat = restmat_inv @ mat
 
             # Now we have a virtual matrix of transform from AnimCurves, we can insert keyframes!
             loc, rot, sca = mat.decompose()
@@ -1006,8 +1006,7 @@ def blen_read_geom_layer_uv(fbx_obj, mesh):
             fbx_layer_data = elem_prop_first(elem_find_first(fbx_layer, b'UV'))
             fbx_layer_index = elem_prop_first(elem_find_first(fbx_layer, b'UVIndex'))
 
-            uv_tex = mesh.uv_textures.new(name=fbx_layer_name)
-            uv_lay = mesh.uv_layers[-1]
+            uv_lay = mesh.uv_layers.new(name=fbx_layer_name)
             blen_data = uv_lay.data
 
             # some valid files omit this data
@@ -1165,7 +1164,7 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
     if geom_mat_co is not None:
         def _vcos_transformed_gen(raw_cos, m=None):
             # Note: we could most likely get much better performances with numpy, but will leave this as TODO for now.
-            return chain(*(m * Vector(v) for v in zip(*(iter(raw_cos),) * 3)))
+            return chain(*(m @ Vector(v) for v in zip(*(iter(raw_cos),) * 3)))
         fbx_verts = array.array(fbx_verts.typecode, _vcos_transformed_gen(fbx_verts, geom_mat_co))
 
     if fbx_verts is None:
@@ -1242,7 +1241,7 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
             ok_normals = blen_read_geom_layer_normal(fbx_obj, mesh)
         else:
             def nortrans(v):
-                return geom_mat_no * Vector(v)
+                return geom_mat_no @ Vector(v)
             ok_normals = blen_read_geom_layer_normal(fbx_obj, mesh, nortrans)
 
     mesh.validate(clean_customdata=False)  # *Very* important to not remove lnors here!
@@ -1498,7 +1497,7 @@ def blen_read_light(fbx_tmpl, fbx_obj, global_scale):
     lamp.color = elem_props_get_color_rgb(fbx_props, b'Color', (1.0, 1.0, 1.0))
     lamp.energy = elem_props_get_number(fbx_props, b'Intensity', 100.0) / 100.0
     lamp.distance = elem_props_get_number(fbx_props, b'DecayStart', 25.0) * global_scale
-    lamp.shadow_method = ('RAY_SHADOW' if elem_props_get_bool(fbx_props, b'CastShadow', True) else 'NOSHADOW')
+    lamp.use_shadow = elem_props_get_bool(fbx_props, b'CastShadow', True)
     lamp.shadow_color = elem_props_get_color_rgb(fbx_props, b'ShadowColor', (0.0, 0.0, 0.0))
 
     return lamp
@@ -1612,7 +1611,7 @@ class FbxImportHelperNode:
             self.pre_matrix = settings.global_matrix
 
         if parent_correction_inv:
-            self.pre_matrix = parent_correction_inv * (self.pre_matrix if self.pre_matrix else Matrix())
+            self.pre_matrix = parent_correction_inv @ (self.pre_matrix if self.pre_matrix else Matrix())
 
         correction_matrix = None
 
@@ -1705,7 +1704,7 @@ class FbxImportHelperNode:
         self.post_matrix = correction_matrix
 
         if self.do_bake_transform(settings):
-            self.post_matrix = settings.global_matrix_inv * (self.post_matrix if self.post_matrix else Matrix())
+            self.post_matrix = settings.global_matrix_inv @ (self.post_matrix if self.post_matrix else Matrix())
 
         # process children
         correction_matrix_inv = correction_matrix.inverted_safe() if correction_matrix else None
@@ -1782,29 +1781,29 @@ class FbxImportHelperNode:
     def get_world_matrix_as_parent(self):
         matrix = self.parent.get_world_matrix_as_parent() if self.parent else Matrix()
         if self.matrix_as_parent:
-            matrix = matrix * self.matrix_as_parent
+            matrix = matrix @ self.matrix_as_parent
         return matrix
 
     def get_world_matrix(self):
         matrix = self.parent.get_world_matrix_as_parent() if self.parent else Matrix()
         if self.matrix:
-            matrix = matrix * self.matrix
+            matrix = matrix @ self.matrix
         return matrix
 
     def get_matrix(self):
         matrix = self.matrix if self.matrix else Matrix()
         if self.pre_matrix:
-            matrix = self.pre_matrix * matrix
+            matrix = self.pre_matrix @ matrix
         if self.post_matrix:
-            matrix = matrix * self.post_matrix
+            matrix = matrix @ self.post_matrix
         return matrix
 
     def get_bind_matrix(self):
         matrix = self.bind_matrix if self.bind_matrix else Matrix()
         if self.pre_matrix:
-            matrix = self.pre_matrix * matrix
+            matrix = self.pre_matrix @ matrix
         if self.post_matrix:
-            matrix = matrix * self.post_matrix
+            matrix = matrix @ self.post_matrix
         return matrix
 
     def make_bind_pose_local(self, parent_matrix=None):
@@ -1812,13 +1811,13 @@ class FbxImportHelperNode:
             parent_matrix = Matrix()
 
         if self.bind_matrix:
-            bind_matrix = parent_matrix.inverted_safe() * self.bind_matrix
+            bind_matrix = parent_matrix.inverted_safe() @ self.bind_matrix
         else:
             bind_matrix = self.matrix.copy() if self.matrix else None
 
         self.bind_matrix = bind_matrix
         if bind_matrix:
-            parent_matrix = parent_matrix * bind_matrix
+            parent_matrix = parent_matrix @ bind_matrix
 
         for child in self.children:
             child.make_bind_pose_local(parent_matrix)
@@ -1838,8 +1837,8 @@ class FbxImportHelperNode:
                 child.collect_skeleton_meshes(meshes)
             for m in meshes:
                 old_matrix = m.matrix
-                m.matrix = armature_matrix_inv * m.get_world_matrix()
-                m.anim_compensation_matrix = old_matrix.inverted_safe() * m.matrix
+                m.matrix = armature_matrix_inv @ m.get_world_matrix()
+                m.anim_compensation_matrix = old_matrix.inverted_safe() @ m.matrix
                 m.is_global_animation = True
                 m.parent = self
             self.meshes = meshes
@@ -1914,7 +1913,7 @@ class FbxImportHelperNode:
         bone.tail = bone_tail
 
         # And rotate/move it to its final "rest pose".
-        bone_matrix = parent_matrix * self.get_bind_matrix().normalized()
+        bone_matrix = parent_matrix @ self.get_bind_matrix().normalized()
 
         bone.matrix = bone_matrix
 
@@ -1927,7 +1926,7 @@ class FbxImportHelperNode:
             if child.is_leaf and force_connect_children:
                 # Arggggggggggggggggg! We do not want to create this bone, but we need its 'virtual head' location
                 # to orient current one!!!
-                child_head = (bone_matrix * child.get_bind_matrix().normalized()).translation
+                child_head = (bone_matrix @ child.get_bind_matrix().normalized()).translation
                 child_connect(bone, None, child_head, connect_ctx)
             elif child.is_bone and not child.ignore:
                 child_bone = child.build_skeleton(arm, bone_matrix, bone_size,
@@ -1958,7 +1957,7 @@ class FbxImportHelperNode:
         # Misc Attributes
 
         obj.color[0:3] = elem_props_get_color_rgb(fbx_props, b'Color', (0.8, 0.8, 0.8))
-        obj.hide = not bool(elem_props_get_visibility(fbx_props, b'Visibility', 1.0))
+        obj.hide_viewport = not bool(elem_props_get_visibility(fbx_props, b'Visibility', 1.0))
 
         obj.matrix_basis = self.get_matrix()
 
@@ -1967,12 +1966,12 @@ class FbxImportHelperNode:
 
         return obj
 
-    def build_skeleton_children(self, fbx_tmpl, settings, scene):
+    def build_skeleton_children(self, fbx_tmpl, settings, scene, view_layer):
         if self.is_bone:
             for child in self.children:
                 if child.ignore:
                     continue
-                child.build_skeleton_children(fbx_tmpl, settings, scene)
+                child.build_skeleton_children(fbx_tmpl, settings, scene, view_layer)
             return None
         else:
             # child is not a bone
@@ -1984,11 +1983,11 @@ class FbxImportHelperNode:
             for child in self.children:
                 if child.ignore:
                     continue
-                child.build_skeleton_children(fbx_tmpl, settings, scene)
+                child.build_skeleton_children(fbx_tmpl, settings, scene, view_layer)
 
             # instance in scene
-            obj_base = scene.objects.link(obj)
-            obj_base.select = True
+            view_layer.collections.active.collection.objects.link(obj)
+            obj.select_set('Select')
 
             return obj
 
@@ -2007,7 +2006,7 @@ class FbxImportHelperNode:
                     # Blender attaches to the end of a bone, while FBX attaches to the start.
                     # bone_child_matrix corrects for that.
                     if child.pre_matrix:
-                        child.pre_matrix = self.bone_child_matrix * child.pre_matrix
+                        child.pre_matrix = self.bone_child_matrix @ child.pre_matrix
                     else:
                         child.pre_matrix = self.bone_child_matrix
 
@@ -2027,7 +2026,7 @@ class FbxImportHelperNode:
 
     def set_pose_matrix(self, arm):
         pose_bone = arm.bl_obj.pose.bones[self.bl_bone]
-        pose_bone.matrix_basis = self.get_bind_matrix().inverted_safe() * self.get_matrix()
+        pose_bone.matrix_basis = self.get_bind_matrix().inverted_safe() @ self.get_matrix()
 
         for child in self.children:
             if child.ignore:
@@ -2094,7 +2093,7 @@ class FbxImportHelperNode:
             if child.is_bone and not child.ignore:
                 child.set_bone_weights()
 
-    def build_hierarchy(self, fbx_tmpl, settings, scene):
+    def build_hierarchy(self, fbx_tmpl, settings, scene, view_layer):
         if self.is_armature:
             # create when linking since we need object data
             elem_name_utf8 = self.fbx_name
@@ -2114,15 +2113,15 @@ class FbxImportHelperNode:
                     blen_read_custom_properties(self.fbx_elem, arm, settings)
 
             # instance in scene
-            obj_base = scene.objects.link(arm)
-            obj_base.select = True
+            view_layer.collections.active.collection.objects.link(arm)
+            obj.select_set('Select')
 
             # Add bones:
 
             # Switch to Edit mode.
             scene.objects.active = arm
-            is_hidden = arm.hide
-            arm.hide = False  # Can't switch to Edit mode hidden objects...
+            is_hidden = arm.hide_viewport
+            arm.hide_viewport = False  # Can't switch to Edit mode hidden objects...
             bpy.ops.object.mode_set(mode='EDIT')
 
             for child in self.children:
@@ -2133,7 +2132,7 @@ class FbxImportHelperNode:
 
             bpy.ops.object.mode_set(mode='OBJECT')
 
-            arm.hide = is_hidden
+            arm.hide_viewport = is_hidden
 
             # Set pose matrix
             for child in self.children:
@@ -2146,7 +2145,7 @@ class FbxImportHelperNode:
             for child in self.children:
                 if child.ignore:
                     continue
-                child_obj = child.build_skeleton_children(fbx_tmpl, settings, scene)
+                child_obj = child.build_skeleton_children(fbx_tmpl, settings, scene, view_layer)
 
             return arm
         elif self.fbx_elem and not self.is_bone:
@@ -2154,16 +2153,16 @@ class FbxImportHelperNode:
 
             # walk through children
             for child in self.children:
-                child.build_hierarchy(fbx_tmpl, settings, scene)
+                child.build_hierarchy(fbx_tmpl, settings, scene, view_layer)
 
             # instance in scene
-            obj_base = scene.objects.link(obj)
-            obj_base.select = True
+            view_layer.collections.active.collection.objects.link(obj)
+            obj.select_set('SELECT')
 
             return obj
         else:
             for child in self.children:
-                child.build_hierarchy(fbx_tmpl, settings, scene)
+                child.build_hierarchy(fbx_tmpl, settings, scene, view_layer)
 
             return None
 
@@ -2192,16 +2191,16 @@ class FbxImportHelperNode:
                     #       which we obviously cannot do in Blender. :/
                     if amat is None:
                         amat = self.bind_matrix
-                    amat = settings.global_matrix * (Matrix() if amat is None else amat)
+                    amat = settings.global_matrix @ (Matrix() if amat is None else amat)
                     if self.matrix_geom:
-                        amat = amat * self.matrix_geom
-                    mmat = settings.global_matrix * mmat
+                        amat = amat @ self.matrix_geom
+                    mmat = settings.global_matrix @ mmat
                     if mesh.matrix_geom:
-                        mmat = mmat * mesh.matrix_geom
+                        mmat = mmat @ mesh.matrix_geom
 
                     # Now that we have armature and mesh in there (global) bind 'state' (matrix),
                     # we can compute inverse parenting matrix of the mesh.
-                    me_obj.matrix_parent_inverse = amat.inverted_safe() * mmat * me_obj.matrix_basis.inverted_safe()
+                    me_obj.matrix_parent_inverse = amat.inverted_safe() @ mmat @ me_obj.matrix_basis.inverted_safe()
 
                     mod = mesh.bl_obj.modifiers.new(arm.name, 'ARMATURE')
                     mod.object = arm
@@ -2325,6 +2324,7 @@ def load(operator, context, filepath="",
         material_decals = None
 
     scene = context.scene
+    view_layer = context.view_layer
 
     # #### Get some info from GlobalSettings.
 
@@ -2350,7 +2350,7 @@ def load(operator, context, filepath="",
                       elem_props_get_integer(fbx_settings_props, b'CoordAxisSign', 1))
         axis_key = (axis_up, axis_forward, axis_coord)
         axis_up, axis_forward = {v: k for k, v in RIGHT_HAND_AXES.items()}.get(axis_key, ('Z', 'Y'))
-    global_matrix = (Matrix.Scale(global_scale, 4) *
+    global_matrix = (Matrix.Scale(global_scale, 4) @
                      axis_conversion(from_forward=axis_forward, from_up=axis_up).to_4x4())
 
     # To cancel out unwanted rotation/scale on nodes.
@@ -2682,7 +2682,7 @@ def load(operator, context, filepath="",
                 armature_matrix = tx_arm
 
                 if tx_bone:
-                    mesh_matrix = tx_bone * mesh_matrix
+                    mesh_matrix = tx_bone @ mesh_matrix
                     helper_node.bind_matrix = tx_bone  # overwrite the bind matrix
 
                 # Get the meshes driven by this cluster: (Shouldn't that be only one?)
@@ -2725,7 +2725,7 @@ def load(operator, context, filepath="",
         root_helper.find_correction_matrix(settings)
 
         # build the Object/Armature/Bone hierarchy
-        root_helper.build_hierarchy(fbx_tmpl, settings, scene)
+        root_helper.build_hierarchy(fbx_tmpl, settings, scene, view_layer)
 
         # Link the Object/Armature/Bone hierarchy
         root_helper.link_hierarchy(fbx_tmpl, settings, scene)

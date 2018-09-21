@@ -30,7 +30,7 @@ from itertools import zip_longest, chain
 
 import bpy
 import bpy_extras
-from bpy.types import Object, Bone, PoseBone, DupliObject
+from bpy.types import Object, Bone, PoseBone, DepsgraphObjectInstance
 from mathutils import Vector, Matrix
 
 from . import encode_bin, data_types
@@ -271,14 +271,14 @@ def similar_values_iter(v1, v2, e=1e-6):
 def vcos_transformed_gen(raw_cos, m=None):
     # Note: we could most likely get much better performances with numpy, but will leave this as TODO for now.
     gen = zip(*(iter(raw_cos),) * 3)
-    return gen if m is None else (m * Vector(v) for v in gen)
+    return gen if m is None else (m @ Vector(v) for v in gen)
 
 def nors_transformed_gen(raw_nors, m=None):
     # Great, now normals are also expected 4D!
     # XXX Back to 3D normals for now!
     # gen = zip(*(iter(raw_nors),) * 3 + (_infinite_gen(1.0),))
     gen = zip(*(iter(raw_nors),) * 3)
-    return gen if m is None else (m * Vector(v) for v in gen)
+    return gen if m is None else (m @ Vector(v) for v in gen)
 
 
 # ##### UIDs code. #####
@@ -856,7 +856,7 @@ class AnimationCurveNodeWrapper:
 
 # ##### FBX objects generators. #####
 
-# FBX Model-like data (i.e. Blender objects, dupliobjects and bones) are wrapped in ObjectWrapper.
+# FBX Model-like data (i.e. Blender objects, depsgraph instances and bones) are wrapped in ObjectWrapper.
 # This allows us to have a (nearly) same code FBX-wise for all those types.
 # The wrapper tries to stay as small as possible, by mostly using callbacks (property(get...))
 # to actual Blender data it contains.
@@ -870,9 +870,12 @@ class MetaObjectWrapper(type):
         dup_mat = None
         if isinstance(bdata, Object):
             key = get_blenderID_key(bdata)
-        elif isinstance(bdata, DupliObject):
-            key = "|".join((get_blenderID_key((bdata.id_data, bdata.object)), cls._get_dup_num_id(bdata)))
-            dup_mat = bdata.matrix.copy()
+        elif isinstance(bdata, DepsgraphObjectInstance):
+            if bdata.is_instance:
+                key = "|".join((get_blenderID_key((bdata.parent, bdata.object_instance)), cls._get_dup_num_id(bdata)))
+                dup_mat = bdata.matrix_world.copy()
+            else:
+                key = get_blenderID_key(bdata.object)
         else:  # isinstance(bdata, (Bone, PoseBone)):
             if isinstance(bdata, PoseBone):
                 bdata = armature.data.bones[bdata.name]
@@ -883,9 +886,9 @@ class MetaObjectWrapper(type):
             cache = cls._cache = {}
         instance = cache.get(key)
         if instance is not None:
-            # Duplis hack: since duplis are not persistent in Blender (we have to re-create them to get updated
+            # Duplis hack: since dupli instances are not persistent in Blender (we have to re-create them to get updated
             # info like matrix...), we *always* need to reset that matrix when calling ObjectWrapper() (all
-            # other data is supposed valid during whole cache live, so we can skip resetting it).
+            # other data is supposed valid during whole cache live span, so we can skip resetting it).
             instance._dupli_matrix = dup_mat
             return instance
 
@@ -902,7 +905,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
     This class provides a same common interface for all (FBX-wise) object-like elements:
     * Blender Object
     * Blender Bone and PoseBone
-    * Blender DupliObject
+    * Blender DepsgraphObjectInstance (for dulis).
     Note since a same Blender object might be 'mapped' to several FBX models (esp. with duplis),
     we need to use a key to identify each.
     """
@@ -918,24 +921,42 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
 
     @staticmethod
     def _get_dup_num_id(bdata):
-        return ".".join(str(i) for i in bdata.persistent_id if i != 2147483647)
+        INVALID_IDS = {2147483647, 0}
+        pids = tuple(bdata.persistent_id)
+        idx_valid = 0
+        prev_i = ...
+        for idx, i in enumerate(pids[::-1]):
+            if i not in INVALID_IDS or (idx == len(pids) and i == 0 and prev_i != 0):
+                idx_valid = len(pids) - idx
+                break
+            prev_i = i
+        return ".".join(str(i) for i in pids[:idx_valid])
 
     def __init__(self, bdata, armature=None):
         """
-        bdata might be an Object, DupliObject, Bone or PoseBone.
+        bdata might be an Object (deprecated), DepsgraphObjectInstance, Bone or PoseBone.
         If Bone or PoseBone, armature Object must be provided.
         """
-        if isinstance(bdata, Object):
+        # Note: DepsgraphObjectInstance are purely runtime data, they become invalid as soon as we step to the next item!
+        #       Hence we have to immediately copy *all* needed data...
+        if isinstance(bdata, Object):  # DEPRECATED
             self._tag = 'OB'
             self.name = get_blenderID_name(bdata)
             self.bdata = bdata
             self._ref = None
-        elif isinstance(bdata, DupliObject):
-            self._tag = 'DP'
-            self.name = "|".join((get_blenderID_name((bdata.id_data, bdata.object)),
-                                  "Dupli", self._get_dup_num_id(bdata)))
-            self.bdata = bdata.object
-            self._ref = bdata.id_data
+        elif isinstance(bdata, DepsgraphObjectInstance):
+            if bdata.is_instance:
+                # Note that dupli instance matrix is set by meta-class initialization.
+                self._tag = 'DP'
+                self.name = "|".join((get_blenderID_name((bdata.parent, bdata.object)),
+                                      "Dupli", self._get_dup_num_id(bdata)))
+                self.bdata = bdata.object
+                self._ref = bdata.parent
+            else:
+                self._tag = 'OB'
+                self.name = get_blenderID_name(bdata)
+                self.bdata = bdata
+                self._ref = None
         else:  # isinstance(bdata, (Bone, PoseBone)):
             if isinstance(bdata, PoseBone):
                 bdata = armature.data.bones[bdata.name]
@@ -956,8 +977,9 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         return get_fbx_uuid_from_key(self.key)
     fbx_uuid = property(get_fbx_uuid)
 
+    # XXX Not sure how much that’s useful now... :/
     def get_hide(self):
-        return self.bdata.hide
+        return self.bdata.hide_viewport if self._tag in {'OB', 'DP'} else self.bdata.hide
     hide = property(get_hide)
 
     def get_parent(self):
@@ -974,7 +996,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
                 # Mere object parenting.
                 return ObjectWrapper(self.bdata.parent)
         elif self._tag == 'DP':
-            return ObjectWrapper(self.bdata.parent or self._ref)
+            return ObjectWrapper(self._ref)
         else:  # self._tag == 'BO'
             return ObjectWrapper(self.bdata.parent, self._ref) or ObjectWrapper(self._ref)
     parent = property(get_parent)
@@ -983,12 +1005,12 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         if self._tag == 'OB':
             return self.bdata.matrix_local.copy()
         elif self._tag == 'DP':
-            return self._ref.matrix_world.inverted_safe() * self._dupli_matrix
+            return self._ref.matrix_world.inverted_safe() @ self._dupli_matrix
         else:  # 'BO', current pose
             # PoseBone.matrix is in armature space, bring in back in real local one!
             par = self.bdata.parent
             par_mat_inv = self._ref.pose.bones[par.name].matrix.inverted_safe() if par else Matrix()
-            return par_mat_inv * self._ref.pose.bones[self.bdata.name].matrix
+            return par_mat_inv @ self._ref.pose.bones[self.bdata.name].matrix
     matrix_local = property(get_matrix_local)
 
     def get_matrix_global(self):
@@ -997,7 +1019,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         elif self._tag == 'DP':
             return self._dupli_matrix
         else:  # 'BO', current pose
-            return self._ref.matrix_world * self._ref.pose.bones[self.bdata.name].matrix
+            return self._ref.matrix_world @ self._ref.pose.bones[self.bdata.name].matrix
     matrix_global = property(get_matrix_global)
 
     def get_matrix_rest_local(self):
@@ -1005,14 +1027,14 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
             # Bone.matrix_local is in armature space, bring in back in real local one!
             par = self.bdata.parent
             par_mat_inv = par.matrix_local.inverted_safe() if par else Matrix()
-            return par_mat_inv * self.bdata.matrix_local
+            return par_mat_inv @ self.bdata.matrix_local
         else:
             return self.matrix_local.copy()
     matrix_rest_local = property(get_matrix_rest_local)
 
     def get_matrix_rest_global(self):
         if self._tag == 'BO':
-            return self._ref.matrix_world * self.bdata.matrix_local
+            return self._ref.matrix_world @ self.bdata.matrix_local
         else:
             return self.matrix_global.copy()
     matrix_rest_global = property(get_matrix_rest_global)
@@ -1065,41 +1087,41 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         if self._tag == 'BO':
             # If we have a bone parent we need to undo the parent correction.
             if not is_global and scene_data.settings.bone_correction_matrix_inv and parent and parent.is_bone:
-                matrix = scene_data.settings.bone_correction_matrix_inv * matrix
+                matrix = scene_data.settings.bone_correction_matrix_inv @ matrix
             # Apply the bone correction.
             if scene_data.settings.bone_correction_matrix:
-                matrix = matrix * scene_data.settings.bone_correction_matrix
+                matrix = matrix @ scene_data.settings.bone_correction_matrix
         elif self.bdata.type == 'LIGHT':
-            matrix = matrix * MAT_CONVERT_LIGHT
+            matrix = matrix @ MAT_CONVERT_LIGHT
         elif self.bdata.type == 'CAMERA':
-            matrix = matrix * MAT_CONVERT_CAMERA
+            matrix = matrix @ MAT_CONVERT_CAMERA
 
         if self._tag in {'DP', 'OB'} and parent:
             if parent._tag == 'BO':
                 # In bone parent case, we get transformation in **bone tip** space (sigh).
                 # Have to bring it back into bone root, which is FBX expected value.
-                matrix = Matrix.Translation((0, (parent.bdata.tail - parent.bdata.head).length, 0)) * matrix
+                matrix = Matrix.Translation((0, (parent.bdata.tail - parent.bdata.head).length, 0)) @ matrix
 
         # Our matrix is in local space, time to bring it in its final desired space.
         if parent:
             if is_global:
                 # Move matrix to global Blender space.
-                matrix = (parent.matrix_rest_global if rest else parent.matrix_global) * matrix
+                matrix = (parent.matrix_rest_global if rest else parent.matrix_global) @ matrix
             elif parent.use_bake_space_transform(scene_data):
                 # Blender's and FBX's local space of parent may differ if we use bake_space_transform...
                 # Apply parent's *Blender* local space...
-                matrix = (parent.matrix_rest_local if rest else parent.matrix_local) * matrix
+                matrix = (parent.matrix_rest_local if rest else parent.matrix_local) @ matrix
                 # ...and move it back into parent's *FBX* local space.
                 par_mat = parent.fbx_object_matrix(scene_data, rest=rest, local_space=True)
-                matrix = par_mat.inverted_safe() * matrix
+                matrix = par_mat.inverted_safe() @ matrix
 
         if self.use_bake_space_transform(scene_data):
             # If we bake the transforms we need to post-multiply inverse global transform.
             # This means that the global transform will not apply to children of this transform.
-            matrix = matrix * scene_data.settings.global_matrix_inv
+            matrix = matrix @ scene_data.settings.global_matrix_inv
         if is_global:
             # In any case, pre-multiply the global matrix to get it in FBX global space!
-            matrix = scene_data.settings.global_matrix * matrix
+            matrix = scene_data.settings.global_matrix @ matrix
 
         return matrix
 
@@ -1164,19 +1186,10 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
                 return True
 
     # #### Duplis...
-    def dupli_list_create(self, scene, settings='PREVIEW'):
+    def dupli_list_gen(self, depsgraph):
         if self._tag == 'OB' and self.bdata.is_duplicator:
-            self.bdata.dupli_list_create(scene, settings)
-
-    def dupli_list_clear(self):
-        if self._tag == 'OB'and self.bdata.is_duplicator:
-            self.bdata.dupli_list_clear()
-
-    def get_dupli_list(self):
-        if self._tag == 'OB'and self.bdata.is_duplicator:
-            return (ObjectWrapper(dup) for dup in self.bdata.dupli_list)
+            return (ObjectWrapper(dup) for dup in depsgraph.object_instances if dup.parent == self.bdata)
         return ()
-    dupli_list = property(get_dupli_list)
 
 
 def fbx_name_class(name, cls):
@@ -1213,7 +1226,7 @@ FBXExportSettings = namedtuple("FBXExportSettings", (
 #     * animations.
 FBXExportData = namedtuple("FBXExportData", (
     "templates", "templates_users", "connections",
-    "settings", "scene", "objects", "animations", "animated", "frame_start", "frame_end",
+    "settings", "scene", "depsgraph", "objects", "animations", "animated", "frame_start", "frame_end",
     "data_empties", "data_lights", "data_cameras", "data_meshes", "mesh_mat_indices",
     "data_bones", "data_leaf_bones", "data_deformers_skin", "data_deformers_shape",
     "data_world", "data_materials", "data_textures", "data_videos",
