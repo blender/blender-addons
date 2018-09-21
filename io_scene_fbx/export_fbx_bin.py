@@ -2074,7 +2074,7 @@ def fbx_animations(scene_data):
                 'matrix_parent_inverse', 'empty_display_type', 'empty_display_size', 'empty_image_offset', 'pass_index',
                 'color', 'hide_viewport', 'hide_select', 'hide_render', 'use_slow_parent', 'slow_parent_offset',
                 'dupli_type', 'use_dupli_frames_speed',
-                'use_dupli_vertices_rotation', 'use_dupli_faces_scale', 'dupli_faces_scale', 'dupli_group',
+                'use_dupli_vertices_rotation', 'use_dupli_faces_scale', 'dupli_faces_scale',
                 'dupli_frames_start', 'dupli_frames_end', 'dupli_frames_on', 'dupli_frames_off',
                 'display_type', 'show_bounds', 'display_bounds_type', 'show_name', 'show_axis', 'show_texture_space',
                 'show_wire', 'show_all_edges', 'show_transparent', 'show_in_front',

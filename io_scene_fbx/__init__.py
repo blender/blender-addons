@@ -21,7 +21,7 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (4, 10, 1),
+    "version": (4, 10, 2),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
@@ -52,16 +52,14 @@ from bpy.props import (
 from bpy_extras.io_utils import (
         ImportHelper,
         ExportHelper,
-        orientation_helper_factory,
+        orientation_helper,
         path_reference_mode,
         axis_conversion,
         )
 
 
-IOFBXOrientationHelper = orientation_helper_factory("IOFBXOrientationHelper", axis_forward='-Z', axis_up='Y')
-
-
-class ImportFBX(bpy.types.Operator, ImportHelper, IOFBXOrientationHelper):
+@orientation_helper(axis_forward='-Z', axis_up='Y')
+class ImportFBX(bpy.types.Operator, ImportHelper):
     """Load a FBX file"""
     bl_idname = "import_scene.fbx"
     bl_label = "Import FBX"
@@ -235,7 +233,8 @@ class ImportFBX(bpy.types.Operator, ImportHelper, IOFBXOrientationHelper):
         return import_fbx.load(self, context, **keywords)
 
 
-class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
+@orientation_helper(axis_forward='-Z', axis_up='Y')
+class ExportFBX(bpy.types.Operator, ExportHelper):
     """Write a FBX file"""
     bl_idname = "export_scene.fbx"
     bl_label = "Export FBX"
@@ -435,7 +434,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
             soft_min=0.0, soft_max=10.0,
             default=1.0,  # default: min slope: 0.005, max frame step: 10.
             )
-    path_mode = path_reference_mode
+    path_mode: path_reference_mode
     embed_textures: BoolProperty(
             name="Embed Textures",
             description="Embed textures in FBX binary file (only for \"Copy\" path mode!)",
