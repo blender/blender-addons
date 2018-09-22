@@ -126,8 +126,8 @@ class POSE_PT_selection_sets(Panel):
 
 
 class POSE_UL_selection_set(UIList):
-    def draw_item(self, context, layout, data, set, icon, active_data, active_propname, index):
-        layout.prop(set, "name", text="", icon='GROUP_BONE', emboss=False)
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        layout.prop(item, "name", text="", icon='GROUP_BONE', emboss=False)
 
 
 class POSE_MT_selection_set_create(Menu):
@@ -139,7 +139,7 @@ class POSE_MT_selection_set_create(Menu):
                         text="New Selection Set")
 
 
-class POSE_MT_selection_sets(Menu):
+class POSE_MT_selection_sets_select(Menu):
     bl_label = 'Select Selection Set'
 
     @classmethod
@@ -217,7 +217,8 @@ class POSE_OT_selection_set_move(NeedSelSetPluginOperator):
             ('UP', "Up", "", -1),
             ('DOWN', "Down", "", 1),
         ],
-        default='UP'
+        default='UP',
+        options={'HIDDEN'},
     )
 
     @classmethod
@@ -338,6 +339,7 @@ class POSE_OT_selection_set_select(NeedSelSetPluginOperator):
         name='Selection Set Index',
         default=-1,
         description='Which Selection Set to select; -1 uses the active Selection Set',
+        options={'HIDDEN'},
     )
 
     def execute(self, context):
@@ -419,8 +421,8 @@ class POSE_OT_selection_set_paste(PluginOperator):
 
 # Helper Functions ############################################################
 
-def add_sss_button(self, context):
-    self.layout.menu('POSE_MT_selection_sets')
+def menu_func_select_selection_set(self, context):
+    self.layout.menu('POSE_MT_selection_sets_select', text="Bone Selection Set")
 
 
 def to_json(context) -> str:
@@ -499,7 +501,7 @@ def uniqify(name: str, other_names: list) -> str:
 classes = (
     POSE_MT_selection_set_create,
     POSE_MT_selection_sets_specials,
-    POSE_MT_selection_sets,
+    POSE_MT_selection_sets_select,
     POSE_PT_selection_sets,
     POSE_UL_selection_set,
     SelectionEntry,
@@ -519,7 +521,7 @@ classes = (
 )
 
 
-# store keymaps here to access after registration
+# Store keymaps here to access after registration.
 addon_keymaps = []
 
 
@@ -527,6 +529,7 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
+    # Add properties.
     bpy.types.Object.selection_sets = CollectionProperty(
         type=SelectionSet,
         name="Selection Sets",
@@ -538,27 +541,33 @@ def register():
         default=0
     )
 
+    # Add shortcuts to the keymap.
     wm = bpy.context.window_manager
     km = wm.keyconfigs.addon.keymaps.new(name='Pose')
-
     kmi = km.keymap_items.new('wm.call_menu', 'W', 'PRESS', alt=True, shift=True)
     kmi.properties.name = 'POSE_MT_selection_sets'
     addon_keymaps.append((km, kmi))
 
-    bpy.types.VIEW3D_MT_select_pose.append(add_sss_button)
+    # Add entries to menus.
+    bpy.types.VIEW3D_MT_select_pose.append(menu_func_select_selection_set)
 
 
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
+    # Clear properties.
     del bpy.types.Object.selection_sets
     del bpy.types.Object.active_selection_set
 
-    # handle the keymap
+    # Clear shortcuts from the keymap.
     for km, kmi in addon_keymaps:
         km.keymap_items.remove(kmi)
     addon_keymaps.clear()
+
+    # Clear entries from menus.
+    bpy.types.VIEW3D_MT_select_pose.remove(menu_func_select_selection_set)
+
 
 
 if __name__ == "__main__":
