@@ -48,7 +48,7 @@ from bpy.props import (
 # Data Structure ##############################################################
 
 # Note: bones are stored by name, this means that if the bone is renamed,
-# there can be problems. However, bone renaming is unlikely during animation
+# there can be problems. However, bone renaming is unlikely during animation.
 class SelectionEntry(PropertyGroup):
     name: StringProperty(name="Bone Name")
 
@@ -417,30 +417,7 @@ class POSE_OT_selection_set_paste(PluginOperator):
         return {'FINISHED'}
 
 
-# Registry ####################################################################
-
-classes = (
-    POSE_MT_selection_set_create,
-    POSE_MT_selection_sets_specials,
-    POSE_MT_selection_sets,
-    POSE_PT_selection_sets,
-    POSE_UL_selection_set,
-    SelectionEntry,
-    SelectionSet,
-    POSE_OT_selection_set_delete_all,
-    POSE_OT_selection_set_remove_bones,
-    POSE_OT_selection_set_move,
-    POSE_OT_selection_set_add,
-    POSE_OT_selection_set_remove,
-    POSE_OT_selection_set_assign,
-    POSE_OT_selection_set_unassign,
-    POSE_OT_selection_set_select,
-    POSE_OT_selection_set_deselect,
-    POSE_OT_selection_set_add_and_assign,
-    POSE_OT_selection_set_copy,
-    POSE_OT_selection_set_paste,
-)
-
+# Helper Functions ############################################################
 
 def add_sss_button(self, context):
     self.layout.menu('POSE_MT_selection_sets')
@@ -478,6 +455,8 @@ def from_json(context, as_json: str):
 def uniqify(name: str, other_names: list) -> str:
     """Return a unique name with .xxx suffix if necessary.
 
+    Example usage:
+
     >>> uniqify('hey', ['there'])
     'hey'
     >>> uniqify('hey', ['hey.001', 'hey.005'])
@@ -513,6 +492,31 @@ def uniqify(name: str, other_names: list) -> str:
             break
         min_index = num + 1
     return "{}.{:03d}".format(name, min_index)
+
+
+# Registry ####################################################################
+
+classes = (
+    POSE_MT_selection_set_create,
+    POSE_MT_selection_sets_specials,
+    POSE_MT_selection_sets,
+    POSE_PT_selection_sets,
+    POSE_UL_selection_set,
+    SelectionEntry,
+    SelectionSet,
+    POSE_OT_selection_set_delete_all,
+    POSE_OT_selection_set_remove_bones,
+    POSE_OT_selection_set_move,
+    POSE_OT_selection_set_add,
+    POSE_OT_selection_set_remove,
+    POSE_OT_selection_set_assign,
+    POSE_OT_selection_set_unassign,
+    POSE_OT_selection_set_select,
+    POSE_OT_selection_set_deselect,
+    POSE_OT_selection_set_add_and_assign,
+    POSE_OT_selection_set_copy,
+    POSE_OT_selection_set_paste,
+)
 
 
 # store keymaps here to access after registration
