@@ -41,6 +41,7 @@ from bpy.props import (
     StringProperty,
     IntProperty,
     EnumProperty,
+    BoolProperty,
     CollectionProperty,
 )
 
@@ -56,6 +57,7 @@ class SelectionEntry(PropertyGroup):
 class SelectionSet(PropertyGroup):
     name: StringProperty(name="Set Name")
     bone_ids: CollectionProperty(type=SelectionEntry)
+    is_selected: BoolProperty(name="Is Selected")
 
 
 # UI Panel w/ UIList ##########################################################
@@ -127,7 +129,10 @@ class POSE_PT_selection_sets(Panel):
 
 class POSE_UL_selection_set(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        sel_set = item
         layout.prop(item, "name", text="", icon='GROUP_BONE', emboss=False)
+        if self.layout_type in ('DEFAULT', 'COMPACT'):
+            layout.prop(item, "is_selected", text="")
 
 
 class POSE_MT_selection_set_create(Menu):
@@ -157,6 +162,7 @@ class POSE_MT_selection_sets_select(Menu):
 # Operators ###################################################################
 
 class PluginOperator(Operator):
+    """Operator only available for objects of type armature in pose mode."""
     @classmethod
     def poll(cls, context):
         return (context.object and
@@ -165,6 +171,7 @@ class PluginOperator(Operator):
 
 
 class NeedSelSetPluginOperator(PluginOperator):
+    """Operator only available if the armature has a selected selection set."""
     @classmethod
     def poll(cls, context):
         if not super().poll(context):
@@ -187,8 +194,8 @@ class POSE_OT_selection_set_delete_all(PluginOperator):
 
 class POSE_OT_selection_set_remove_bones(PluginOperator):
     bl_idname = "pose.selection_set_remove_bones"
-    bl_label = "Remove Bones from Sets"
-    bl_description = "Removes the Active Bones from All Sets"
+    bl_label = "Remove Selected Bones from All Sets"
+    bl_description = "Removes the Selected Bones from All Sets"
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
@@ -389,20 +396,20 @@ class POSE_OT_selection_set_add_and_assign(PluginOperator):
 
 class POSE_OT_selection_set_copy(NeedSelSetPluginOperator):
     bl_idname = "pose.selection_set_copy"
-    bl_label = "Copy Selection Set to Clipboard"
-    bl_description = "Converts the Selection Set to JSON and places it on the clipboard"
+    bl_label = "Copy Selection Set(s)"
+    bl_description = "Copies the selected Selection Set(s) to the clipboard"
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
         context.window_manager.clipboard = to_json(context)
-        self.report({'INFO'}, 'Copied Selection Set to Clipboard')
+        self.report({'INFO'}, 'Copied Selection Set(s) to Clipboard')
         return {'FINISHED'}
 
 
 class POSE_OT_selection_set_paste(PluginOperator):
     bl_idname = "pose.selection_set_paste"
-    bl_label = "Paste Selection Set from Clipboard"
-    bl_description = "Adds a new Selection Set from copied JSON on the clipboard"
+    bl_label = "Paste Selection Set(s)"
+    bl_description = "Adds new Selection Set(s) from the Clipboard"
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
@@ -426,32 +433,37 @@ def menu_func_select_selection_set(self, context):
 
 
 def to_json(context) -> str:
-    """Convert the active bone selection set of the current rig to JSON."""
+    """Convert the selected Selection Sets of the current rig to JSON.
+
+    Selected Sets are the active_selection_set determined by the UIList
+    plus any with the is_selected checkbox on."""
     import json
 
     arm = context.object
     active_idx = arm.active_selection_set
-    sel_set = arm.selection_sets[active_idx]
 
-    return json.dumps({
-        'name': sel_set.name,
-        'bones': [bone_id.name for bone_id in sel_set.bone_ids]
-    })
+    json_obj = {}
+    for idx, sel_set in enumerate(context.object.selection_sets):
+        if idx == active_idx or sel_set.is_selected:
+            bones = [bone_id.name for bone_id in sel_set.bone_ids]
+            json_obj[sel_set.name] = bones
+
+    return json.dumps(json_obj)
 
 
 def from_json(context, as_json: str):
-    """Add the single bone selection set from JSON to the current rig."""
+    """Add the selection sets (one or more) from JSON to the current rig."""
     import json
 
-    sel_set = json.loads(as_json)
+    json_obj = json.loads(as_json)
+    arm_sel_sets = context.object.selection_sets
 
-    sel_sets = context.object.selection_sets
-    new_sel_set = sel_sets.add()
-    new_sel_set.name = uniqify(sel_set['name'], sel_sets.keys())
-
-    for bone_name in sel_set['bones']:
-        bone_id = new_sel_set.bone_ids.add()
-        bone_id.name = bone_name
+    for name, bones in json_obj.items():
+        new_sel_set = arm_sel_sets.add()
+        new_sel_set.name = uniqify(name, arm_sel_sets.keys())
+        for bone_name in bones:
+            bone_id = new_sel_set.bone_ids.add()
+            bone_id.name = bone_name
 
 
 def uniqify(name: str, other_names: list) -> str:
