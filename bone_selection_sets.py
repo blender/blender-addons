@@ -557,7 +557,7 @@ def register():
     wm = bpy.context.window_manager
     km = wm.keyconfigs.addon.keymaps.new(name='Pose')
     kmi = km.keymap_items.new('wm.call_menu', 'W', 'PRESS', alt=True, shift=True)
-    kmi.properties.name = 'POSE_MT_selection_sets'
+    kmi.properties.name = 'POSE_MT_selection_sets_select'
     addon_keymaps.append((km, kmi))
 
     # Add entries to menus.
