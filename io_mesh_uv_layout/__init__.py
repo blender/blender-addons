@@ -43,15 +43,20 @@ if "bpy" in locals():
     if "export_uv_svg" in locals():
         importlib.reload(export_uv_svg)
 
+import os
 import bpy
 
+from . import export_uv_eps
+from . import export_uv_png
+from . import export_uv_svg
+
 from bpy.props import (
-        StringProperty,
-        BoolProperty,
-        EnumProperty,
-        IntVectorProperty,
-        FloatProperty,
-        )
+    StringProperty,
+    BoolProperty,
+    EnumProperty,
+    IntVectorProperty,
+    FloatProperty,
+)
 
 
 class ExportUVLayout(bpy.types.Operator):
@@ -62,238 +67,162 @@ class ExportUVLayout(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     filepath: StringProperty(
-            subtype='FILE_PATH',
-            )
-    check_existing: BoolProperty(
-            name="Check Existing",
-            description="Check and warn on overwriting existing files",
-            default=True,
-            options={'HIDDEN'},
-            )
+        subtype='FILE_PATH',
+    )
     export_all: BoolProperty(
-            name="All UVs",
-            description="Export all UVs in this mesh (not just visible ones)",
-            default=False,
-            )
+        name="All UVs",
+        description="Export all UVs in this mesh (not just visible ones)",
+        default=False,
+    )
     modified: BoolProperty(
-            name="Modified",
-            description="Exports UVs from the modified mesh",
-            default=False,
-            )
+        name="Modified",
+        description="Exports UVs from the modified mesh",
+        default=False,
+    )
     mode: EnumProperty(
-            items=(('SVG', "Scalable Vector Graphic (.svg)",
-                    "Export the UV layout to a vector SVG file"),
-                   ('EPS', "Encapsulate PostScript (.eps)",
-                    "Export the UV layout to a vector EPS file"),
-                   ('PNG', "PNG Image (.png)",
-                    "Export the UV layout to a bitmap image"),
-                   ),
-            name="Format",
-            description="File format to export the UV layout to",
-            default='PNG',
-            )
+        items=(('SVG', "Scalable Vector Graphic (.svg)",
+                "Export the UV layout to a vector SVG file"),
+                ('EPS', "Encapsulate PostScript (.eps)",
+                "Export the UV layout to a vector EPS file"),
+                ('PNG', "PNG Image (.png)",
+                "Export the UV layout to a bitmap image"),
+                ),
+        name="Format",
+        description="File format to export the UV layout to",
+        default='PNG',
+    )
     size: IntVectorProperty(
-            name="Size",
-            size=2,
-            default=(1024, 1024),
-            min=8, max=32768,
-            description="Dimensions of the exported file",
-            )
+        size=2,
+        default=(1024, 1024),
+        min=8, max=32768,
+        description="Dimensions of the exported file",
+    )
     opacity: FloatProperty(
-            name="Fill Opacity",
-            min=0.0, max=1.0,
-            default=0.25,
-            description="Set amount of opacity for exported UV layout"
-            )
-    tessellated: BoolProperty(
-            name="Tessellated UVs",
-            description="Export tessellated UVs instead of polygons ones",
-            default=False,
-            options={'HIDDEN'},  # As not working currently :/
-            )
+        name="Fill Opacity",
+        min=0.0, max=1.0,
+        default=0.5,
+        description="Set amount of opacity for exported UV layout"
+    )
 
     @classmethod
     def poll(cls, context):
         obj = context.active_object
-        return (obj and obj.type == 'MESH' and obj.data.uv_layers)
+        return obj is not None and obj.type == 'MESH' and len(obj.data.uv_layers) > 0
 
-    def _space_image(self, context):
-        space_data = context.space_data
-        if isinstance(space_data, bpy.types.SpaceImageEditor):
-            return space_data
-        else:
-            return None
+    def invoke(self, context, event):
+        self.size = self.get_image_size(context)
+        self.filepath = self.get_default_file_name(context) + "." + self.mode.lower()
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
 
-    def _image_size(self, context, default_width=1024, default_height=1024):
-        # fallback if not in image context.
-        image_width, image_height = default_width, default_height
+    def get_default_file_name(self, context):
+        AMOUNT = 3
+        objects = list(self.iter_objects_to_export(context))
+        name = " ".join(sorted([obj.name for obj in objects[:AMOUNT]]))
+        if len(objects) > AMOUNT:
+            name += " and more"
+        return name
 
-        space_data = self._space_image(context)
-        if space_data:
-            image = space_data.image
-            if image:
-                width, height = tuple(context.space_data.image.size)
-                # in case no data is found.
-                if width and height:
-                    image_width, image_height = width, height
+    def check(self, context):
+        if any(self.filepath.endswith(ext) for ext in (".png", ".eps", ".svg")):
+            self.filepath = self.filepath[:-4]
 
-        return image_width, image_height
-
-    # Trying to be consistent with ED_object_get_active_image
-    # from uvedit_ops.c so that what is exported are the uvs
-    # that are seen in the UV Editor
-    #
-    # returns Image or None
-    def _get_active_texture(self, mat):
-        if mat is None or not mat.use_nodes:
-            return None
-
-        node = self._get_active_texture_nodetree(mat.node_tree)
-
-        if node is not None and node.bl_rna.identifier in {'ShaderNodeTexImage', 'ShaderNodeTexEnvironment'}:
-            return node.image
-
-        return None
-
-    # returns image node or None
-    def _get_active_texture_nodetree(self, node_tree):
-        active_tex_node = None
-        active_group = None
-        has_group = False
-        inactive_node = None
-
-        for node in node_tree.nodes:
-            if node.show_texture:
-                active_tex_node = node
-                if node.select:
-                    return node
-            elif inactive_node is None and node.bl_rna.identifier in {'ShaderNodeTexImage', 'ShaderNodeTexEnvironment'}:
-                inactive_node = node
-            elif node.bl_rna.identifier == 'ShaderNodeGroup':
-                if node.select:
-                    active_group = node
-                else:
-                    has_group = True
-
-        # Not found a selected show_texture node
-        # Try to find a selected show_texture node in the selected group
-        if active_group is not None:
-            node = self._get_active_texture_nodetree(active_group.node_tree)
-            if node is not None:
-                return node
-
-        if active_tex_node is not None:
-            return active_tex_node
-
-        if has_group:
-            for node in node_tree.nodes:
-                if node.bl_rna.identifier == 'ShaderNodeGroup':
-                    n = self._get_active_texture_nodetree(node.node_tree)
-                    if n is not None and (n.show_texture or inactive_node is None):
-                        return n
-
-        return None
-
-    def _face_uv_iter(self, context, material_slots, mesh):
-        uv_layer = mesh.uv_layers.active.data
-        polys = mesh.polygons
-
-        if not self.export_all:
-            local_image = None
-
-            if context.tool_settings.show_uv_local_view:
-                space_data = self._space_image(context)
-                if space_data:
-                    local_image = space_data.image
-                    has_active_texture = [
-                        self._get_active_texture(slot.material)
-                        is local_image for slot in material_slots]
-
-            for i, p in enumerate(polys):
-                # context checks
-                if (polys[i].select and (local_image is None or has_active_texture[polys[i].material_index])):
-                    start = p.loop_start
-                    end = start + p.loop_total
-                    uvs = tuple((uv.uv[0], uv.uv[1]) for uv in uv_layer[start:end])
-
-                    # just write what we see.
-                    yield (i, uvs)
-        else:
-            # all, simple
-            for i, p in enumerate(polys):
-                start = p.loop_start
-                end = start + p.loop_total
-                uvs = tuple((uv.uv[0], uv.uv[1]) for uv in uv_layer[start:end])
-                yield (i, uvs)
+        ext = "." + self.mode.lower()
+        self.filepath = bpy.path.ensure_ext(self.filepath, ext)
+        return True
 
     def execute(self, context):
-        obj = context.active_object
-        is_editmode = (obj.mode == 'EDIT')
+        object = context.active_object
+        is_editmode = (object.mode == 'EDIT')
         if is_editmode:
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-        mode = self.mode
-
         filepath = self.filepath
-        filepath = bpy.path.ensure_ext(filepath, "." + mode.lower())
-        file = open(filepath, "w")
-        fw = file.write
+        filepath = bpy.path.ensure_ext(filepath, "." + self.mode.lower())
 
-        if mode == 'EPS':
-            from . import export_uv_eps
-            exportUV = export_uv_eps.Export_UV_EPS()
-        elif mode == 'PNG':
-            from . import export_uv_png
-            exportUV = export_uv_png.Export_UV_PNG()
-        elif mode == 'SVG':
-            from . import export_uv_svg
-            exportUV = export_uv_svg.Export_UV_SVG()
+        meshes = list(self.iter_meshes_to_export(context))
+        polygon_data = list(self.iter_polygon_data_to_draw(context, meshes))
+        different_colors = set(color for _, color in polygon_data)
+        if self.modified:
+            self.free_meshes(meshes)
 
-        obList = [ob for ob in context.selected_objects if ob.type == 'MESH']
-
-        for obj in obList:
-            obj.data.tag = False
-
-        exportUV.begin(fw, self.size, self.opacity)
-
-        for obj in obList:
-            if (obj.data.tag):
-                continue
-
-            obj.data.tag = True
-
-            if self.modified:
-                mesh = obj.to_mesh(context.depsgraph, True)
-            else:
-                mesh = obj.data
-
-            exportUV.build(mesh, lambda: self._face_uv_iter(
-                                        context, obj.material_slots, mesh))
-
-        exportUV.end()
+        export = self.get_exporter()
+        export(filepath, polygon_data, different_colors, self.size[0], self.size[1], self.opacity)
 
         if is_editmode:
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
-        file.close()
-
         return {'FINISHED'}
 
-    def check(self, context):
-        filepath = bpy.path.ensure_ext(self.filepath, "." + self.mode.lower())
-        if filepath != self.filepath:
-            self.filepath = filepath
-            return True
-        else:
-            return False
+    def iter_meshes_to_export(self, context):
+        for object in self.iter_objects_to_export(context):
+            if self.modified:
+                yield object.to_mesh(context.depsgraph, apply_modifiers=True)
+            else:
+                yield object.data
 
-    def invoke(self, context, event):
-        import os
-        self.size = self._image_size(context)
-        self.filepath = os.path.splitext(bpy.data.filepath)[0]
-        wm = context.window_manager
-        wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+    def iter_objects_to_export(self, context):
+        for object in context.selected_objects:
+            if object.type != "MESH":
+                continue
+            mesh = object.data
+            if mesh.uv_layers.active is None:
+                continue
+            yield object
+
+    def free_meshes(self, meshes):
+        for mesh in meshes:
+            bpy.data.meshes.remove(mesh)
+
+    def currently_image_image_editor(self, context):
+        return isinstance(context.space_data, bpy.types.SpaceImageEditor)
+
+    def get_currently_opened_image(self, context):
+        if not self.currently_image_image_editor(context):
+            return None
+        return context.space_data.image
+
+    def get_image_size(self, context):
+        # fallback if not in image context
+        image_width = self.size[0]
+        image_height = self.size[1]
+
+        # get size of "active" image if some exist
+        image = self.get_currently_opened_image(context)
+        if image is not None:
+            width, height = image.size
+            if width and height:
+                image_width = width
+                image_height = height
+
+        return image_width, image_height
+
+    def iter_polygon_data_to_draw(self, context, meshes):
+        for mesh in meshes:
+            uv_layer = mesh.uv_layers.active.data
+            for polygon in mesh.polygons:
+                if self.export_all or polygon.select:
+                    start = polygon.loop_start
+                    end = start + polygon.loop_total
+                    uvs = tuple(tuple(uv.uv) for uv in uv_layer[start:end])
+                    yield (uvs, self.get_polygon_color(mesh, polygon))
+
+    def get_polygon_color(self, mesh, polygon, default = (0.8, 0.8, 0.8)):
+        if polygon.material_index < len(mesh.materials):
+            material = mesh.materials[polygon.material_index]
+            if material is not None:
+                return tuple(material.diffuse_color)
+        return default
+
+    def get_exporter(self):
+        if self.mode == "PNG":
+            return export_uv_png.export
+        elif self.mode == "EPS":
+            return export_uv_eps.export
+        elif self.mode == "SVG":
+            return export_uv_svg.export
+        else:
+            assert False
 
 
 def menu_func(self, context):
@@ -304,11 +233,9 @@ def register():
     bpy.utils.register_class(ExportUVLayout)
     bpy.types.IMAGE_MT_uvs.append(menu_func)
 
-
 def unregister():
     bpy.utils.unregister_class(ExportUVLayout)
     bpy.types.IMAGE_MT_uvs.remove(menu_func)
-
 
 if __name__ == "__main__":
     register()
