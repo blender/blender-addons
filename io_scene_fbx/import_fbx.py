@@ -457,7 +457,7 @@ def add_vgroup_to_objects(vg_indices, vg_weights, vg_name, objects):
             # We replace/override here...
             vg = obj.vertex_groups.get(vg_name)
             if vg is None:
-                vg = obj.vertex_groups.new(vg_name)
+                vg = obj.vertex_groups.new(name=vg_name)
             for i, w in zip(vg_indices, vg_weights):
                 vg.add((i,), w, 'REPLACE')
 
@@ -601,7 +601,7 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset):
         else:  # Euler
             props[1] = (bl_obj.path_from_id("rotation_euler"), 3, grpname or "Euler Rotation")
 
-    blen_curves = [action.fcurves.new(prop, channel, grpname)
+    blen_curves = [action.fcurves.new(prop, index=channel, action_group=grpname)
                    for prop, nbr_channels, grpname in props for channel in range(nbr_channels)]
 
     if isinstance(item, Material):
@@ -613,7 +613,7 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset):
                 value[channel] = v
 
             for fc, v in zip(blen_curves, value):
-                fc.keyframe_points.insert(frame, v, {'NEEDED', 'FAST'}).interpolation = 'LINEAR'
+                fc.keyframe_points.insert(frame, v, options={'NEEDED', 'FAST'}).interpolation = 'LINEAR'
 
     elif isinstance(item, ShapeKey):
         for frame, values in blen_read_animations_curves_iter(fbx_curves, anim_offset, 0, fps):
@@ -624,7 +624,7 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset):
                 value = v / 100.0
 
             for fc, v in zip(blen_curves, (value,)):
-                fc.keyframe_points.insert(frame, v, {'NEEDED', 'FAST'}).interpolation = 'LINEAR'
+                fc.keyframe_points.insert(frame, v, options={'NEEDED', 'FAST'}).interpolation = 'LINEAR'
 
     elif isinstance(item, Camera):
         for frame, values in blen_read_animations_curves_iter(fbx_curves, anim_offset, 0, fps):
@@ -635,7 +635,7 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset):
                 value = v
 
             for fc, v in zip(blen_curves, (value,)):
-                fc.keyframe_points.insert(frame, v, {'NEEDED', 'FAST'}).interpolation = 'LINEAR'
+                fc.keyframe_points.insert(frame, v, options={'NEEDED', 'FAST'}).interpolation = 'LINEAR'
 
     else:  # Object or PoseBone:
         if item.is_bone:
@@ -686,7 +686,7 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset):
                 rot = rot.to_euler(rot_mode, rot_prev)
                 rot_prev = rot
             for fc, value in zip(blen_curves, chain(loc, rot, sca)):
-                fc.keyframe_points.insert(frame, value, {'NEEDED', 'FAST'}).interpolation = 'LINEAR'
+                fc.keyframe_points.insert(frame, value, options={'NEEDED', 'FAST'}).interpolation = 'LINEAR'
 
     # Since we inserted our keyframes in 'FAST' mode, we have to update the fcurves now.
     for fc in blen_curves:
@@ -1987,7 +1987,7 @@ class FbxImportHelperNode:
 
             # instance in scene
             view_layer.collections.active.collection.objects.link(obj)
-            obj.select_set('Select')
+            obj.select_set('SELECT')
 
             return obj
 
@@ -2114,12 +2114,12 @@ class FbxImportHelperNode:
 
             # instance in scene
             view_layer.collections.active.collection.objects.link(arm)
-            obj.select_set('Select')
+            arm.select_set('SELECT')
 
             # Add bones:
 
             # Switch to Edit mode.
-            scene.objects.active = arm
+            view_layer.objects.active = arm
             is_hidden = arm.hide_viewport
             arm.hide_viewport = False  # Can't switch to Edit mode hidden objects...
             bpy.ops.object.mode_set(mode='EDIT')
