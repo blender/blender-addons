@@ -154,7 +154,7 @@ def demo_mode_next_file(step=1):
 
 
 def demo_mode_timer_add():
-    global_state["timer"] = bpy.context.window_manager.event_timer_add(0.8, bpy.context.window)
+    global_state["timer"] = bpy.context.window_manager.event_timer_add(0.8, window=bpy.context.window)
 
 
 def demo_mode_timer_remove():
@@ -418,12 +418,12 @@ class DemoModeControl(bpy.types.Operator):
     bl_idname = "wm.demo_mode_control"
     bl_label = "Control"
 
-    mode = bpy.props.EnumProperty(items=(
-            ('PREV', "Prev", ""),
-            ('PAUSE', "Pause", ""),
-            ('NEXT', "Next", ""),
-            ),
-                name="Mode")
+    mode: bpy.props.EnumProperty(
+        items=(('PREV', "Prev", ""),
+               ('PAUSE', "Pause", ""),
+               ('NEXT', "Next", "")),
+        name="Mode"
+    )
 
     def execute(self, context):
         mode = self.mode
@@ -441,7 +441,7 @@ def menu_func(self, context):
     layout = self.layout
     layout.operator_context = 'EXEC_DEFAULT'
     row = layout.row(align=True)
-    row.label("Demo Mode:")
+    row.label(text="Demo Mode:")
     if not DemoMode.enabled:
         row.operator("wm.demo_mode", icon='PLAY', text="")
     else:
