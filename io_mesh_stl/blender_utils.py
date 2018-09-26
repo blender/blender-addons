@@ -57,12 +57,10 @@ def create_and_link_mesh(name, faces, face_nors, points, global_matrix):
 
     mesh.update()
 
-    scene = bpy.context.scene
-
     obj = bpy.data.objects.new(name, mesh)
-    scene.objects.link(obj)
-    scene.objects.active = obj
-    obj.select = True
+    bpy.context.collection.objects.link(obj)
+    bpy.context.view_layer.objects.active = obj
+    obj.select_set("SELECT")
 
 
 def faces_from_mesh(ob, global_matrix, use_mesh_modifiers=False, triangulate=True):
@@ -88,7 +86,7 @@ def faces_from_mesh(ob, global_matrix, use_mesh_modifiers=False, triangulate=Tru
     except RuntimeError:
         raise StopIteration
 
-    mat = global_matrix * ob.matrix_world
+    mat = global_matrix @ ob.matrix_world
     mesh.transform(mat)
     if mat.is_negative:
         mesh.flip_normals()
