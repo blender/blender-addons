@@ -88,7 +88,7 @@ def obj_image_load(context_imagepath_map, line, DIR, recursive, relpath):
 
 def create_materials(filepath, relpath,
                      material_libs, unique_materials,
-                     use_image_search, use_cycles, float_func):
+                     use_image_search, float_func):
     """
     Create all the used materials in this obj,
     assign colors and images to the materials from all referenced material libs
@@ -99,9 +99,9 @@ def create_materials(filepath, relpath,
     # Don't load the same image multiple times
     context_imagepath_map = {}
 
-    cycles_material_wrap_map = {}
+    nodal_material_wrap_map = {}
 
-    def load_material_image(blender_material, mat_wrap, use_cycles, context_material_name, img_data, line, type):
+    def load_material_image(blender_material, mat_wrap, context_material_name, img_data, line, type):
         """
         Set textures defined in .mtl file.
         """
@@ -129,44 +129,37 @@ def create_materials(filepath, relpath,
 
         # Adds textures for materials (rendering)
         if type == 'Kd':
-            if use_cycles:
-                mat_wrap.diffuse_image_set(image)
-                mat_wrap.diffuse_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
+            mat_wrap.diffuse_image_set(image)
+            mat_wrap.diffuse_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
 
         elif type == 'Ka':
-            if use_cycles:
-                # XXX Not supported?
-                print("WARNING, currently unsupported ambient texture, skipped.")
+            # XXX Not supported?
+            print("WARNING, currently unsupported ambient texture, skipped.")
 
         elif type == 'Ks':
-            if use_cycles:
-                mat_wrap.specular_image_set(image)
-                mat_wrap.specular_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
+            mat_wrap.specular_image_set(image)
+            mat_wrap.specular_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
 
         elif type == 'Ke':
-            if use_cycles:
-                # XXX Not supported?
-                print("WARNING, currently unsupported emit texture, skipped.")
+            # XXX Not supported?
+            print("WARNING, currently unsupported emit texture, skipped.")
 
         elif type == 'Bump':
             bump_mult = map_options.get(b'-bm')
             bump_mult = float(bump_mult[0]) if (bump_mult is not None and len(bump_mult) > 1) else 1.0
 
-            if use_cycles:
-                mat_wrap.normal_image_set(image)
-                mat_wrap.normal_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
-                if bump_mult:
-                    mat_wrap.normal_factor_set(bump_mult)
+            mat_wrap.normal_image_set(image)
+            mat_wrap.normal_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
+            if bump_mult:
+                mat_wrap.normal_factor_set(bump_mult)
 
         elif type == 'D':
-            if use_cycles:
-                mat_wrap.alpha_image_set(image)
-                mat_wrap.alpha_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
+            mat_wrap.alpha_image_set(image)
+            mat_wrap.alpha_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
 
         elif type == 'disp':
-            if use_cycles:
-                mat_wrap.bump_image_set(image)
-                mat_wrap.bump_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
+            mat_wrap.bump_image_set(image)
+            mat_wrap.bump_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
 
         elif type == 'refl':
             map_type = map_options.get(b'-type')
@@ -174,9 +167,8 @@ def create_materials(filepath, relpath,
                 print("WARNING, unsupported reflection type '%s', defaulting to 'sphere'"
                       "" % ' '.join(i.decode() for i in map_type))
 
-            if use_cycles:
-                mat_wrap.diffuse_image_set(image, projection='SPHERE')
-                mat_wrap.diffuse_mapping_set(coords='Reflection', translation=map_offset, scale=map_scale)
+            mat_wrap.diffuse_image_set(image, projection='SPHERE')
+            mat_wrap.diffuse_mapping_set(coords='Reflection', translation=map_offset, scale=map_scale)
 
         else:
             raise Exception("invalid type %r" % type)
@@ -205,10 +197,9 @@ def create_materials(filepath, relpath,
     for name in unique_materials:  # .keys()
         if name is not None:
             ma = unique_materials[name] = bpy.data.materials.new(name.decode('utf-8', "replace"))
-            if use_cycles:
-                from modules import cycles_shader_compat
-                ma_wrap = cycles_shader_compat.CyclesShaderWrapper(ma)
-                cycles_material_wrap_map[ma] = ma_wrap
+            from modules import cycles_shader_compat
+            ma_wrap = cycles_shader_compat.CyclesShaderWrapper(ma)
+            nodal_material_wrap_map[ma] = ma_wrap
 
     for libname in sorted(material_libs):
         # print(libname)
@@ -242,63 +233,44 @@ def create_materials(filepath, relpath,
                     if context_material:
                         emit_value = sum(emit_colors) / 3.0
                         if emit_value > 1e-6:
-                            if use_cycles:
-                                print("WARNING, currently unsupported emit value, skipped.")
+                            print("WARNING, currently unsupported emit value, skipped.")
                             # We have to adapt it to diffuse color too...
                             emit_value /= sum(context_material.diffuse_color) / 3.0
-                        context_material.emit = emit_value
+                        # ~ context_material.emit = emit_value
 
                         if not do_ambient:
                             context_material.ambient = 0.0
 
                         if do_highlight:
-                            if use_cycles:
-                                context_mat_wrap.hardness_value_set(1.0)
+                            context_mat_wrap.hardness_value_set(1.0)
                             # FIXME, how else to use this?
                             context_material.specular_intensity = 1.0
                         else:
-                            if use_cycles:
-                                context_mat_wrap.hardness_value_set(0.0)
+                            context_mat_wrap.hardness_value_set(0.0)
 
                         if do_reflection:
-                            if use_cycles:
-                                context_mat_wrap.reflect_factor_set(1.0)
-                            context_material.raytrace_mirror.use = True
-                            context_material.raytrace_mirror.reflect_factor = 1.0
+                            context_mat_wrap.reflect_factor_set(1.0)
+                            context_material.metallic = 1.0
 
                         if do_transparency:
-                            context_material.use_transparency = True
-                            context_material.transparency_method = 'RAYTRACE' if do_raytrace else 'Z_TRANSPARENCY'
                             if "alpha" not in context_material_vars:
-                                if use_cycles:
-                                    context_mat_wrap.alpha_value_set(0.0)
-                                context_material.alpha = 0.0
+                                context_mat_wrap.alpha_value_set(0.0)
+                            # EEVEE only
+                            context_material.blend_method = 'BLEND'
 
                         if do_glass:
-                            if use_cycles:
-                                print("WARNING, currently unsupported glass material, skipped.")
-                            if "ior" not in context_material_vars:
-                                context_material.raytrace_transparency.ior = 1.5
+                            print("WARNING, currently unsupported glass material, skipped.")
+                            # ~ if "ior" not in context_material_vars:
+                                # ~ context_material.raytrace_transparency.ior = 1.5
 
                         if do_fresnel:
-                            if use_cycles:
-                                print("WARNING, currently unsupported fresnel option, skipped.")
-                            context_material.raytrace_mirror.fresnel = 1.0  # could be any value for 'ON'
-
-                        """
-                        if do_raytrace:
-                            context_material.use_raytrace = True
-                        else:
-                            context_material.use_raytrace = False
-                        """
-                        # XXX, this is not following the OBJ spec, but this was
-                        # written when raytracing wasnt default, annoying to disable for blender users.
-                        context_material.use_raytrace = True
+                            print("WARNING, currently unsupported fresnel option, skipped.")
+                            # ~ context_material.raytrace_mirror.fresnel = 1.0  # could be any value for 'ON'
 
                     context_material_name = line_value(line_split)
                     context_material = unique_materials.get(context_material_name)
-                    if use_cycles and context_material is not None:
-                        context_mat_wrap = cycles_material_wrap_map[context_material]
+                    if context_material is not None:
+                        context_mat_wrap = nodal_material_wrap_map[context_material]
                     context_material_vars.clear()
 
                     emit_colors[:] = [0.0, 0.0, 0.0]
@@ -315,33 +287,26 @@ def create_materials(filepath, relpath,
                     # we need to make a material to assign properties to it.
                     if line_id == b'ka':
                         col = (float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
-                        if use_cycles:
-                            context_mat_wrap.reflect_color_set(col)
+                        context_mat_wrap.reflect_color_set(col)
                     elif line_id == b'kd':
                         col = (float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
-                        if use_cycles:
-                            context_mat_wrap.diffuse_color_set(col)
+                        context_mat_wrap.diffuse_color_set(col)
                     elif line_id == b'ks':
                         col = (float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
-                        if use_cycles:
-                            context_mat_wrap.specular_color_set(col)
-                            context_mat_wrap.hardness_value_set(1.0)
+                        context_mat_wrap.specular_color_set(col)
+                        context_mat_wrap.hardness_value_set(1.0)
                     elif line_id == b'ke':
                         # We cannot set context_material.emit right now, we need final diffuse color as well for this.
                         emit_colors[:] = [
                             float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])]
                     elif line_id == b'ns':
-                        if use_cycles:
-                            context_mat_wrap.hardness_value_set(((float_func(line_split[1]) + 3.0) / 50.0) - 0.65)
+                        context_mat_wrap.hardness_value_set(((float_func(line_split[1]) + 3.0) / 50.0) - 0.65)
                     elif line_id == b'ni':  # Refraction index (between 1 and 3).
-                        if use_cycles:
-                            print("WARNING, currently unsupported glass material, skipped.")
+                        print("WARNING, currently unsupported glass material, skipped.")
                     elif line_id == b'd':  # dissolve (transparency)
-                        if use_cycles:
-                            context_mat_wrap.alpha_value_set(float_func(line_split[1]))
+                        context_mat_wrap.alpha_value_set(float_func(line_split[1]))
                     elif line_id == b'tr':  # translucency
-                        if use_cycles:
-                            print("WARNING, currently unsupported translucency option, skipped.")
+                        print("WARNING, currently unsupported translucency option, skipped.")
                     elif line_id == b'tf':
                         # rgb, filter color, blender has no support for this.
                         pass
@@ -405,44 +370,44 @@ def create_materials(filepath, relpath,
                     elif line_id == b'map_ka':
                         img_data = line.split()[1:]
                         if img_data:
-                            load_material_image(context_material, context_mat_wrap, use_cycles,
+                            load_material_image(context_material, context_mat_wrap,
                                                 context_material_name, img_data, line, 'Ka')
                     elif line_id == b'map_ks':
                         img_data = line.split()[1:]
                         if img_data:
-                            load_material_image(context_material, context_mat_wrap, use_cycles,
+                            load_material_image(context_material, context_mat_wrap,
                                                 context_material_name, img_data, line, 'Ks')
                     elif line_id == b'map_kd':
                         img_data = line.split()[1:]
                         if img_data:
-                            load_material_image(context_material, context_mat_wrap, use_cycles,
+                            load_material_image(context_material, context_mat_wrap,
                                                 context_material_name, img_data, line, 'Kd')
                     elif line_id == b'map_ke':
                         img_data = line.split()[1:]
                         if img_data:
-                            load_material_image(context_material, context_mat_wrap, use_cycles,
+                            load_material_image(context_material, context_mat_wrap,
                                                 context_material_name, img_data, line, 'Ke')
                     elif line_id in {b'map_bump', b'bump'}:  # 'bump' is incorrect but some files use it.
                         img_data = line.split()[1:]
                         if img_data:
-                            load_material_image(context_material, context_mat_wrap, use_cycles,
+                            load_material_image(context_material, context_mat_wrap,
                                                 context_material_name, img_data, line, 'Bump')
                     elif line_id in {b'map_d', b'map_tr'}:  # Alpha map - Dissolve
                         img_data = line.split()[1:]
                         if img_data:
-                            load_material_image(context_material, context_mat_wrap, use_cycles,
+                            load_material_image(context_material, context_mat_wrap,
                                                 context_material_name, img_data, line, 'D')
 
                     elif line_id in {b'map_disp', b'disp'}:  # displacementmap
                         img_data = line.split()[1:]
                         if img_data:
-                            load_material_image(context_material, context_mat_wrap, use_cycles,
+                            load_material_image(context_material, context_mat_wrap,
                                                 context_material_name, img_data, line, 'disp')
 
                     elif line_id in {b'map_refl', b'refl'}:  # reflectionmap
                         img_data = line.split()[1:]
                         if img_data:
-                            load_material_image(context_material, context_mat_wrap, use_cycles,
+                            load_material_image(context_material, context_mat_wrap,
                                                 context_material_name, img_data, line, 'refl')
                     else:
                         print("\t%r:%r (ignored)" % (filepath, line))
@@ -754,7 +719,6 @@ def create_mesh(new_objects,
 
         me.normals_split_custom_set(tuple(zip(*(iter(clnors),) * 3)))
         me.use_auto_smooth = True
-        me.show_edge_sharp = True
 
     ob = bpy.data.objects.new(me.name, me)
     new_objects.append(ob)
@@ -881,7 +845,6 @@ def load(context,
          use_split_groups=True,
          use_image_search=True,
          use_groups_as_vgroups=False,
-         use_cycles=True,
          relpath=None,
          global_matrix=None
          ):
@@ -1171,7 +1134,7 @@ def load(context,
         progress.step("Done, loading materials and images...")
 
         create_materials(filepath, relpath, material_libs, unique_materials,
-                         use_image_search, use_cycles, float_func)
+                         use_image_search, float_func)
 
         progress.step("Done, building geometries (verts:%i faces:%i materials: %i smoothgroups:%i) ..." %
                       (len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups)))
