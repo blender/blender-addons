@@ -3021,6 +3021,21 @@ def load(operator, context, filepath="",
                                 "clamp": tex_map[3],
                                 }
 
+                            """
+                            TODO for clamp:
+                                # awkward conversion UV clamping to minmax
+                                node_map.min = (0.0, 0.0, 0.0)
+                                node_map.max = (1.0, 1.0, 1.0)
+
+                                if clamp in {(False, False), (True, True)}:
+                                    node_map.use_min = node_map.use_max = clamp[0]
+                                else:
+                                    node_map.use_min = node_map.use_max = True
+                                    # use bool as index
+                                    node_map.min[not clamp[0]] = -1000000000.0
+                                    node_map.max[not clamp[0]] = 1000000000.0
+                            """
+
                         if lnk_type in {b'DiffuseColor', b'3dsMax|maps|texmap_diffuse'}:
                             ma_wrap.diffuse_image_set(image)
                             if use_mapping:
