@@ -101,13 +101,16 @@ def getmat(bone, active, context, ignoreparent):
     """Helper function for visual transform copy,
        gets the active transform in bone space
     """
-    obj_act = context.active_object
-    data_bone = obj_act.data.bones[bone.name]
+    obj_bone = bone.id_data
+    obj_active = active.id_data
+    data_bone = obj_bone.data.bones[bone.name]
     # all matrices are in armature space unless commented otherwise
-    otherloc = active.matrix  # final 4x4 mat of target, location.
+    active_to_selected = obj_bone.matrix_world.inverted() @ obj_active.matrix_world
+    active_matrix = active_to_selected @ active.matrix
+    otherloc = active_matrix  # final 4x4 mat of target, location.
     bonemat_local = data_bone.matrix_local.copy()  # self rest matrix
     if data_bone.parent:
-        parentposemat = obj_act.pose.bones[data_bone.parent.name].matrix.copy()
+        parentposemat = obj_bone.pose.bones[data_bone.parent.name].matrix.copy()
         parentbonemat = data_bone.parent.matrix_local.copy()
     else:
         parentposemat = parentbonemat = Matrix()
@@ -160,13 +163,15 @@ def pVisLocExec(bone, active, context):
 
 
 def pVisRotExec(bone, active, context):
+    obj_bone = bone.id_data
     rotcopy(bone, getmat(bone, active,
-                         context, not context.active_object.data.bones[bone.name].use_inherit_rotation))
+                         context, not obj_bone.data.bones[bone.name].use_inherit_rotation))
 
 
 def pVisScaExec(bone, active, context):
+    obj_bone = bone.id_data
     bone.scale = getmat(bone, active, context,
-                        not context.active_object.data.bones[bone.name].use_inherit_scale)\
+                        not obj_bone.data.bones[bone.name].use_inherit_scale)\
         .to_scale()
 
 
