@@ -179,7 +179,6 @@ def load_images(filenames, directory, force_reload=False, frame_start=1, find_se
             frames = image.frame_duration
 
         elif frames > 1:  # Not movie, but multiple frames -> image sequence
-            image.use_animation = True
             image.source = 'SEQUENCE'
 
         yield ImageSpec(image, size, frame_start, offset - 1, frames)
