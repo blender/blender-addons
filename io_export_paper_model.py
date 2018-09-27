@@ -2357,7 +2357,7 @@ class AddPresetPaperModel(bl_operators.presets.AddPresetBase, bpy.types.Operator
     @property
     def preset_values(self):
         op = bpy.ops.export_mesh.paper_model
-        properties = op.get_rna().bl_rna.properties.items()
+        properties = op.get_rna_type().properties.items()
         blacklist = bpy.types.Operator.bl_rna.properties.keys()
         return [
             "op.{}".format(prop_id) for (prop_id, prop) in properties
