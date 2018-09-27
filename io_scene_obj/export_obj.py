@@ -21,8 +21,8 @@
 import os
 
 import bpy
-import mathutils
-import bpy_extras.io_utils
+from mathutils import Matrix, Vector, Color
+from bpy_extras import io_utils, node_shader_utils
 
 from progress_report import ProgressReport, ProgressReportSubstep
 
@@ -44,10 +44,8 @@ def mesh_triangulate(me):
 
 
 def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
-    from mathutils import Color, Vector
-
     world = scene.world
-    world_amb = Color((0.0, 0.0, 0.0))
+    world_amb = Color((0.8, 0.8, 0.8))
 
     source_dir = os.path.dirname(bpy.data.filepath)
     dest_dir = os.path.dirname(filepath)
@@ -63,132 +61,98 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
 
         # Write material/image combinations we have used.
         # Using mtl_dict.values() directly gives un-predictable order.
-        for mtl_mat_name, mat, face_img in mtl_dict_values:
+        for mtl_mat_name, mat in mtl_dict_values:
             # Get the Blender data for the material and the image.
             # Having an image named None will make a bug, dont do it :)
 
             fw('\nnewmtl %s\n' % mtl_mat_name)  # Define a new material: matname_imgname
 
-            if False and mat:  # XXX TODO Support nodal materials.
-                use_mirror = mat.raytrace_mirror.use and mat.raytrace_mirror.reflect_factor != 0.0
+            mat_wrap = node_shader_utils.PrincipledBSDFWrapper(mat) if mat else None
 
-                # convert from blenders spec to 0 - 1000 range.
-                if mat.specular_shader == 'WARDISO':
-                    tspec = (0.4 - mat.specular_slope) / 0.0004
-                else:
-                    tspec = (mat.specular_hardness - 1) / 0.51
-                fw('Ns %.6f\n' % tspec)
-                del tspec
+            if mat_wrap:
+                use_mirror = mat_wrap.metallic != 0.0
+                use_transparency = mat_wrap.transmission != 0.0
+
+                # Convert from principled roughness to 0 - 1000 specular range.
+                # XXX Basic linear conversion, what would be best-matching formula here?
+                fw('Ns %.6f\n' % ((1.0 - mat_wrap.roughness) * 1000))
 
                 # Ambient
                 if use_mirror:
-                    fw('Ka %.6f %.6f %.6f\n' % (mat.raytrace_mirror.reflect_factor * mat.mirror_color)[:])
+                    fw('Ka %.6f %.6f %.6f\n' % (mat_wrap.metallic, mat_wrap.metallic, mat_wrap.metallic))
                 else:
-                    fw('Ka %.6f %.6f %.6f\n' % (mat.ambient, mat.ambient, mat.ambient))  # Do not use world color!
-                fw('Kd %.6f %.6f %.6f\n' % (mat.diffuse_intensity * mat.diffuse_color)[:])  # Diffuse
-                fw('Ks %.6f %.6f %.6f\n' % (mat.specular_intensity * mat.specular_color)[:])  # Specular
+                    fw('Ka %.6f %.6f %.6f\n' % (1.0, 1.0, 1.0))
+                fw('Kd %.6f %.6f %.6f\n' % mat_wrap.diffuse_color[:3])  # Diffuse
+                # XXX TODO Find a way to handle tint and diffuse color, in a consistent way with import...
+                fw('Ks %.6f %.6f %.6f\n' % (mat_wrap.specular, mat_wrap.specular, mat_wrap.specular))  # Specular
                 # Emission, not in original MTL standard but seems pretty common, see T45766.
-                # XXX Blender has no color emission, it's using diffuse color instead...
-                fw('Ke %.6f %.6f %.6f\n' % (mat.emit * mat.diffuse_color)[:])
-                if hasattr(mat, "raytrace_transparency") and hasattr(mat.raytrace_transparency, "ior"):
-                    fw('Ni %.6f\n' % mat.raytrace_transparency.ior)  # Refraction index
-                else:
-                    fw('Ni %.6f\n' % 1.0)
-                fw('d %.6f\n' % mat.alpha)  # Alpha (obj uses 'd' for dissolve)
+                # XXX Not supported by current Principled-based shader.
+                fw('Ke 0.0 0.0 0.0\n')
+                fw('Ni %.6f\n' % mat_wrap.ior)  # Refraction index
+                fw('d %.6f\n' % (1.0 - mat_wrap.transmission))  # Alpha (obj uses 'd' for dissolve)
 
                 # See http://en.wikipedia.org/wiki/Wavefront_.obj_file for whole list of values...
                 # Note that mapping is rather fuzzy sometimes, trying to do our best here.
-                if mat.use_shadeless:
-                    fw('illum 0\n')  # ignore lighting
-                elif mat.specular_intensity == 0:
+                if mat_wrap.specular == 0:
                     fw('illum 1\n')  # no specular.
                 elif use_mirror:
-                    if mat.use_transparency and mat.transparency_method == 'RAYTRACE':
-                        if mat.raytrace_mirror.fresnel != 0.0:
-                            fw('illum 7\n')  # Reflection, Transparency, Ray trace and Fresnel
-                        else:
-                            fw('illum 6\n')  # Reflection, Transparency, Ray trace
-                    elif mat.raytrace_mirror.fresnel != 0.0:
-                        fw('illum 5\n')  # Reflection, Ray trace and Fresnel
+                    if use_transparency:
+                        fw('illum 6\n')  # Reflection, Transparency, Ray trace
                     else:
                         fw('illum 3\n')  # Reflection and Ray trace
-                elif mat.use_transparency and mat.transparency_method == 'RAYTRACE':
+                elif use_transparency:
                     fw('illum 9\n')  # 'Glass' transparency and no Ray trace reflection... fuzzy matching, but...
                 else:
                     fw('illum 2\n')  # light normaly
 
-            else:
-                # Write a dummy material here?
-                fw('Ns 0\n')
-                fw('Ka %.6f %.6f %.6f\n' % world_amb[:])  # Ambient, uses mirror color,
-                fw('Kd 0.8 0.8 0.8\n')
-                fw('Ks 0.8 0.8 0.8\n')
-                fw('d 1\n')  # No alpha
-                fw('illum 2\n')  # light normaly
 
-            # Write images!
-            if face_img:  # We have an image on the face!
-                filepath = face_img.filepath
-                if filepath:  # may be '' for generated images
-                    # write relative image path
-                    filepath = bpy_extras.io_utils.path_reference(filepath, source_dir, dest_dir,
-                                                                  path_mode, "", copy_set, face_img.library)
-                    fw('map_Kd %s\n' % filepath)  # Diffuse mapping image
-                    del filepath
-                else:
-                    # so we write the materials image.
-                    face_img = None
+                #### And now, the image textures...
+                image_map = {
+                        "map_Kd": "diffuse_texture",
+                        "map_Ka": None,  # ambient...
+                        "map_Ks": "specular_texture",
+                        "map_Ns": "roughness_texture",
+                        "map_d": "transmission_texture",
+                        "map_Tr": None,  # transmission roughness?
+                        "map_Bump": "normalmap_texture",
+                        "disp": None,  # displacement...
+                        "refl": "metallic_texture",
+                        "map_Ke": None  # emission...
+                        }
 
-            if False and mat:  # XXX TODO support nodal materials. If we have a material search for MTex image.
-                image_map = {}
-                # backwards so topmost are highest priority
-                for mtex in reversed(mat.texture_slots):
-                    if mtex and mtex.texture and mtex.texture.type == 'IMAGE':
-                        image = mtex.texture.image
-                        if image:
-                            # texface overrides others
-                            if (mtex.use_map_color_diffuse and (face_img is None) and
-                                (mtex.use_map_warp is False) and (mtex.texture_coords != 'REFLECTION')):
-                                image_map["map_Kd"] = (mtex, image)
-                            if mtex.use_map_ambient:
-                                image_map["map_Ka"] = (mtex, image)
-                            # this is the Spec intensity channel but Ks stands for specular Color
-                            '''
-                            if mtex.use_map_specular:
-                                image_map["map_Ks"] = (mtex, image)
-                            '''
-                            if mtex.use_map_color_spec:  # specular color
-                                image_map["map_Ks"] = (mtex, image)
-                            if mtex.use_map_hardness:  # specular hardness/glossiness
-                                image_map["map_Ns"] = (mtex, image)
-                            if mtex.use_map_alpha:
-                                image_map["map_d"] = (mtex, image)
-                            if mtex.use_map_translucency:
-                                image_map["map_Tr"] = (mtex, image)
-                            if mtex.use_map_normal:
-                                image_map["map_Bump"] = (mtex, image)
-                            if mtex.use_map_displacement:
-                                image_map["disp"] = (mtex, image)
-                            if mtex.use_map_color_diffuse and (mtex.texture_coords == 'REFLECTION'):
-                                image_map["refl"] = (mtex, image)
-                            if mtex.use_map_emit:
-                                image_map["map_Ke"] = (mtex, image)
+                for key, mat_wrap_key in sorted(image_map.items()):
+                    if mat_wrap_key is None:
+                        continue
+                    tex_wrap = getattr(mat_wrap, mat_wrap_key, None)
+                    if tex_wrap is None:
+                        continue
+                    image = tex_wrap.image
+                    if image is None:
+                        continue
 
-                for key, (mtex, image) in sorted(image_map.items()):
-                    filepath = bpy_extras.io_utils.path_reference(image.filepath, source_dir, dest_dir,
-                                                                  path_mode, "", copy_set, image.library)
+                    filepath = io_utils.path_reference(image.filepath, source_dir, dest_dir,
+                                                       path_mode, "", copy_set, image.library)
                     options = []
                     if key == "map_Bump":
-                        if mtex.normal_factor != 1.0:
-                            options.append('-bm %.6f' % mtex.normal_factor)
-                    if mtex.offset != Vector((0.0, 0.0, 0.0)):
-                        options.append('-o %.6f %.6f %.6f' % mtex.offset[:])
-                    if mtex.scale != Vector((1.0, 1.0, 1.0)):
-                        options.append('-s %.6f %.6f %.6f' % mtex.scale[:])
+                        if mat_wrap.normalmap_strengh != 1.0:
+                            options.append('-bm %.6f' % mat_wrap.normalmap_strengh)
+                    if tex_wrap.translation != Vector((0.0, 0.0, 0.0)):
+                        options.append('-o %.6f %.6f %.6f' % tex_wrap.translation[:])
+                    if tex_wrap.scale != Vector((1.0, 1.0, 1.0)):
+                        options.append('-s %.6f %.6f %.6f' % tex_wrap.scale[:])
                     if options:
                         fw('%s %s %s\n' % (key, " ".join(options), repr(filepath)[1:-1]))
                     else:
                         fw('%s %s\n' % (key, repr(filepath)[1:-1]))
+
+            else:
+                # Write a dummy material here?
+                fw('Ns 500\n')
+                fw('Ka 0.8 0.8 0.8\n')
+                fw('Kd 0.8 0.8 0.8\n')
+                fw('Ks 0.8 0.8 0.8\n')
+                fw('d 1\n')  # No alpha
+                fw('illum 2\n')  # light normaly
 
 
 def test_nurbs_compat(ob):
@@ -295,7 +259,7 @@ def write_file(filepath, objects, depsgraph, scene,
     write( 'c:\\test\\foobar.obj', Blender.Object.GetSelected() ) # Using default options.
     """
     if EXPORT_GLOBAL_MATRIX is None:
-        EXPORT_GLOBAL_MATRIX = mathutils.Matrix()
+        EXPORT_GLOBAL_MATRIX = Matrix()
 
     def veckey3d(v):
         return round(v.x, 4), round(v.y, 4), round(v.z, 4)
@@ -611,7 +575,7 @@ def write_file(filepath, objects, depsgraph, scene,
                                                 i += 1
                                                 tmp_ext = "_%3d" % i
                                             mtl_name += tmp_ext
-                                        mat_data = mtl_dict[key] = mtl_name, materials[f_mat], False
+                                        mat_data = mtl_dict[key] = mtl_name, materials[f_mat]
                                         mtl_rev_dict[mtl_name] = key
 
                                     if EXPORT_GROUP_BY_MAT:
@@ -690,7 +654,7 @@ def write_file(filepath, objects, depsgraph, scene,
             write_mtl(scene, mtlfilepath, EXPORT_PATH_MODE, copy_set, mtl_dict)
 
         # copy all collected files.
-        bpy_extras.io_utils.path_reference_copy(copy_set)
+        io_utils.path_reference_copy(copy_set)
 
 
 def _write(context, filepath,

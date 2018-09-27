@@ -120,25 +120,27 @@ def create_materials(filepath, relpath,
         # Absolute path - c:\.. etc would work here
         image = obj_image_load(context_imagepath_map, line, DIR, use_image_search, relpath)
 
-        texture = bpy.data.textures.new(name=type, type='IMAGE')
-        if image is not None:
-            texture.image = image
-
         map_offset = map_options.get(b'-o')
         map_scale = map_options.get(b'-s')
 
+        def _generic_tex_set(nodetex, image, texcoords, translation, scale):
+            nodetex.image = image
+            nodetex.texcoords = texcoords
+            if translation is not None:
+                nodetex.translation = translation
+            if scale is not None:
+                nodetex.scale = scale
+
         # Adds textures for materials (rendering)
         if type == 'Kd':
-            mat_wrap.diffuse_image_set(image)
-            mat_wrap.diffuse_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
+            _generic_tex_set(mat_wrap.diffuse_texture, image, 'UV', map_offset, map_scale)
 
         elif type == 'Ka':
             # XXX Not supported?
             print("WARNING, currently unsupported ambient texture, skipped.")
 
         elif type == 'Ks':
-            mat_wrap.specular_image_set(image)
-            mat_wrap.specular_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
+            _generic_tex_set(mat_wrap.specular_texture, image, 'UV', map_offset, map_scale)
 
         elif type == 'Ke':
             # XXX Not supported?
@@ -147,19 +149,18 @@ def create_materials(filepath, relpath,
         elif type == 'Bump':
             bump_mult = map_options.get(b'-bm')
             bump_mult = float(bump_mult[0]) if (bump_mult is not None and len(bump_mult) > 1) else 1.0
+            mat_wrap.normalmap_strength_set(bump_mult)
 
-            mat_wrap.normal_image_set(image)
-            mat_wrap.normal_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
-            if bump_mult:
-                mat_wrap.normal_factor_set(bump_mult)
+            _generic_tex_set(mat_wrap.normalmap_texture, image, 'UV', map_offset, map_scale)
 
         elif type == 'D':
-            mat_wrap.alpha_image_set(image)
-            mat_wrap.alpha_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
+            _generic_tex_set(mat_wrap.transmission_texture, image, 'UV', map_offset, map_scale)
 
         elif type == 'disp':
-            mat_wrap.bump_image_set(image)
-            mat_wrap.bump_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
+            # XXX Not supported?
+            print("WARNING, currently unsupported displacement texture, skipped.")
+            # ~ mat_wrap.bump_image_set(image)
+            # ~ mat_wrap.bump_mapping_set(coords='UV', translation=map_offset, scale=map_scale)
 
         elif type == 'refl':
             map_type = map_options.get(b'-type')
@@ -167,24 +168,11 @@ def create_materials(filepath, relpath,
                 print("WARNING, unsupported reflection type '%s', defaulting to 'sphere'"
                       "" % ' '.join(i.decode() for i in map_type))
 
-            mat_wrap.diffuse_image_set(image, projection='SPHERE')
-            mat_wrap.diffuse_mapping_set(coords='Reflection', translation=map_offset, scale=map_scale)
+            _generic_tex_set(mat_wrap.diffuse_texture, image, 'Reflection', map_offset, map_scale)
+            mat_wrap.diffuse_texture.projection = 'SPHERE'
 
         else:
             raise Exception("invalid type %r" % type)
-
-        if map_offset:
-            mtex.offset.x = float(map_offset[0])
-            if len(map_offset) >= 2:
-                mtex.offset.y = float(map_offset[1])
-            if len(map_offset) >= 3:
-                mtex.offset.z = float(map_offset[2])
-        if map_scale:
-            mtex.scale.x = float(map_scale[0])
-            if len(map_scale) >= 2:
-                mtex.scale.y = float(map_scale[1])
-            if len(map_scale) >= 3:
-                mtex.scale.z = float(map_scale[2])
 
     # Add an MTL with the same name as the obj if no MTLs are spesified.
     temp_mtl = os.path.splitext((os.path.basename(filepath)))[0] + ".mtl"
@@ -197,9 +185,10 @@ def create_materials(filepath, relpath,
     for name in unique_materials:  # .keys()
         if name is not None:
             ma = unique_materials[name] = bpy.data.materials.new(name.decode('utf-8', "replace"))
-            from modules import cycles_shader_compat
-            ma_wrap = cycles_shader_compat.CyclesShaderWrapper(ma)
+            from bpy_extras import node_shader_utils
+            ma_wrap = node_shader_utils.PrincipledBSDFWrapper(ma, is_readonly=False)
             nodal_material_wrap_map[ma] = ma_wrap
+            ma_wrap.use_nodes = True
 
     for libname in sorted(material_libs):
         # print(libname)
@@ -207,13 +196,13 @@ def create_materials(filepath, relpath,
         if not os.path.exists(mtlpath):
             print("\tMaterial not found MTL: %r" % mtlpath)
         else:
-            do_ambient = True
+            # Note: with modern Principled BSDF shader, things like ambient, raytrace or fresnel are always 'ON'
+            # (i.e. automatically controlled by other parameters).
             do_highlight = False
             do_reflection = False
             do_transparency = False
             do_glass = False
-            do_fresnel = False
-            do_raytrace = False
+            spec_colors = [0.0, 0.0, 0.0]
             emit_colors = [0.0, 0.0, 0.0]
 
             # print('\t\tloading mtl: %e' % mtlpath)
@@ -231,41 +220,56 @@ def create_materials(filepath, relpath,
                 if line_id == b'newmtl':
                     # Finalize previous mat, if any.
                     if context_material:
+                        if "specular" in context_material_vars:
+                            # XXX This is highly approximated, not sure whether we can do better...
+                            # TODO: Find a way to guesstimate best value from diffuse color...
+                            # IDEA: Use standard deviation of both spec and diff colors (i.e. how far away they are
+                            #       from some grey), and apply the the proportion between those two as tint factor?
+                            # ~ spec = sum(spec_color) / 3.0
+                            # ~ spec_var = math.sqrt(sum((c - spec) ** 2 for c in spec_color) / 3.0)
+                            # ~ diff = sum(context_mat_wrap.diffuse_color[:3]) / 3.0
+                            # ~ diff_var = math.sqrt(sum((c - diff) ** 2 for c in context_mat_wrap.diffuse_color[:3]) / 3.0)
+                            # ~ tint = min(1.0, spec_var / diff_var)
+                            context_mat_wrap.specular = spec
+                            context_mat_wrap.specular_tint = 0.0
+                            if "roughness" not in context_material_vars:
+                                context_mat_wrap.roughness = 0.0
+
+                        
                         emit_value = sum(emit_colors) / 3.0
                         if emit_value > 1e-6:
-                            print("WARNING, currently unsupported emit value, skipped.")
+                            print("WARNING, emit value unsupported by Principled BSDF shader, skipped.")
                             # We have to adapt it to diffuse color too...
                             emit_value /= sum(context_material.diffuse_color) / 3.0
                         # ~ context_material.emit = emit_value
 
-                        if not do_ambient:
-                            context_material.ambient = 0.0
-
+                        # FIXME, how else to use this?
                         if do_highlight:
-                            context_mat_wrap.hardness_value_set(1.0)
-                            # FIXME, how else to use this?
-                            context_material.specular_intensity = 1.0
+                            if "specular" not in context_material_vars:
+                                context_mat_wrap.specular = 1.0
+                            if "roughness" not in context_material_vars:
+                                context_mat_wrap.roughness = 0.0
                         else:
-                            context_mat_wrap.hardness_value_set(0.0)
+                            if "specular" not in context_material_vars:
+                                context_mat_wrap.specular = 0.0
+                            if "roughness" not in context_material_vars:
+                                context_mat_wrap.roughness = 1.0
 
                         if do_reflection:
-                            context_mat_wrap.reflect_factor_set(1.0)
-                            context_material.metallic = 1.0
+                            if "metallic" not in context_material_vars:
+                                context_mat_wrap.metallic = 1.0
 
                         if do_transparency:
-                            if "alpha" not in context_material_vars:
-                                context_mat_wrap.alpha_value_set(0.0)
+                            if "ior" not in context_material_vars:
+                                context_mat_wrap.ior = 1.0
+                            if "transmission" not in context_material_vars:
+                                context_mat_wrap.transmission = 1.0
                             # EEVEE only
                             context_material.blend_method = 'BLEND'
 
                         if do_glass:
-                            print("WARNING, currently unsupported glass material, skipped.")
-                            # ~ if "ior" not in context_material_vars:
-                                # ~ context_material.raytrace_transparency.ior = 1.5
-
-                        if do_fresnel:
-                            print("WARNING, currently unsupported fresnel option, skipped.")
-                            # ~ context_material.raytrace_mirror.fresnel = 1.0  # could be any value for 'ON'
+                            if "ior" not in context_material_vars:
+                                context_mat_wrap.ior = 1.5
 
                     context_material_name = line_value(line_split)
                     context_material = unique_materials.get(context_material_name)
@@ -273,50 +277,54 @@ def create_materials(filepath, relpath,
                         context_mat_wrap = nodal_material_wrap_map[context_material]
                     context_material_vars.clear()
 
+                    spec_colors = [0.0, 0.0, 0.0]
                     emit_colors[:] = [0.0, 0.0, 0.0]
-                    do_ambient = True
                     do_highlight = False
                     do_reflection = False
                     do_transparency = False
                     do_glass = False
-                    do_fresnel = False
-                    do_raytrace = False
 
 
                 elif context_material:
                     # we need to make a material to assign properties to it.
                     if line_id == b'ka':
-                        col = (float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
-                        context_mat_wrap.reflect_color_set(col)
+                        refl = (float_func(line_split[1]) + float_func(line_split[2]) + float_func(line_split[3])) / 3.0
+                        context_mat_wrap.metallic = refl
+                        context_material_vars.add("metallic")
                     elif line_id == b'kd':
                         col = (float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
-                        context_mat_wrap.diffuse_color_set(col)
+                        context_mat_wrap.diffuse_color[:3] = col
                     elif line_id == b'ks':
-                        col = (float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
-                        context_mat_wrap.specular_color_set(col)
-                        context_mat_wrap.hardness_value_set(1.0)
+                        spec_color = (float_func(line_split[1]) + float_func(line_split[2]) + float_func(line_split[3]))
+                        context_material_vars.add("specular")
                     elif line_id == b'ke':
                         # We cannot set context_material.emit right now, we need final diffuse color as well for this.
+                        # XXX Unsuported currently
                         emit_colors[:] = [
                             float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])]
                     elif line_id == b'ns':
-                        context_mat_wrap.hardness_value_set(((float_func(line_split[1]) + 3.0) / 50.0) - 0.65)
-                    elif line_id == b'ni':  # Refraction index (between 1 and 3).
-                        print("WARNING, currently unsupported glass material, skipped.")
+                        # XXX Basic linear conversion, what would be best-matching formula here?
+                        context_mat_wrap.roughness = 1.0 - (float_func(line_split[1]) / 1000)
+                        context_material_vars.add("roughness")
+                    elif line_id == b'ni':  # Refraction index (between 0.001 and 10).
+                        context_mat_wrap.ior = float_func(line_split[1])
+                        context_material_vars.add("ior")
                     elif line_id == b'd':  # dissolve (transparency)
-                        context_mat_wrap.alpha_value_set(float_func(line_split[1]))
+                        context_mat_wrap.transmission = 1.0 - float_func(line_split[1])
+                        context_material_vars.add("transmission")
                     elif line_id == b'tr':  # translucency
-                        print("WARNING, currently unsupported translucency option, skipped.")
+                        print("WARNING, currently unsupported 'tr' translucency option, skipped.")
                     elif line_id == b'tf':
                         # rgb, filter color, blender has no support for this.
-                        pass
+                        print("WARNING, currently unsupported 'tf' filter color option, skipped.")
                     elif line_id == b'illum':
                         illum = int(line_split[1])
 
                         # inline comments are from the spec, v4.2
                         if illum == 0:
                             # Color on and Ambient off
-                            do_ambient = False
+                            print("WARNING, Principled BSDF shader does not support illumination 0 mode "
+                                  "(colors with no ambient), skipped.")
                         elif illum == 1:
                             # Color on and Ambient on
                             pass
@@ -326,32 +334,25 @@ def create_materials(filepath, relpath,
                         elif illum == 3:
                             # Reflection on and Ray trace on
                             do_reflection = True
-                            do_raytrace = True
                         elif illum == 4:
                             # Transparency: Glass on
                             # Reflection: Ray trace on
                             do_transparency = True
                             do_reflection = True
                             do_glass = True
-                            do_raytrace = True
                         elif illum == 5:
                             # Reflection: Fresnel on and Ray trace on
                             do_reflection = True
-                            do_fresnel = True
-                            do_raytrace = True
                         elif illum == 6:
                             # Transparency: Refraction on
                             # Reflection: Fresnel off and Ray trace on
                             do_transparency = True
                             do_reflection = True
-                            do_raytrace = True
                         elif illum == 7:
                             # Transparency: Refraction on
                             # Reflection: Fresnel on and Ray trace on
                             do_transparency = True
                             do_reflection = True
-                            do_fresnel = True
-                            do_raytrace = True
                         elif illum == 8:
                             # Reflection on and Ray trace off
                             do_reflection = True
@@ -359,12 +360,12 @@ def create_materials(filepath, relpath,
                             # Transparency: Glass on
                             # Reflection: Ray trace off
                             do_transparency = True
-                            do_reflection = True
+                            do_reflection = False
                             do_glass = True
                         elif illum == 10:
                             # Casts shadows onto invisible surfaces
-
-                            # blender can't do this
+                            print("WARNING, Principled BSDF shader does not support illumination 10 mode "
+                                  "(cast shadows on invisible surfaces), skipped.")
                             pass
 
                     elif line_id == b'map_ka':
@@ -410,7 +411,7 @@ def create_materials(filepath, relpath,
                             load_material_image(context_material, context_mat_wrap,
                                                 context_material_name, img_data, line, 'refl')
                     else:
-                        print("\t%r:%r (ignored)" % (filepath, line))
+                        print("WARNING: %r:%r (ignored)" % (filepath, line))
             mtl.close()
 
 
@@ -708,7 +709,6 @@ def create_mesh(new_objects,
         for e in me.edges:
             if e.key in sharp_edges:
                 e.use_edge_sharp = True
-        me.show_edge_sharp = True
 
     if verts_nor:
         clnors = array.array('f', [0.0] * (len(me.loops) * 3))
