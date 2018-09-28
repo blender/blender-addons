@@ -1562,8 +1562,8 @@ class NWResetBG(Operator, NWBase):
 
     def execute(self, context):
         context.space_data.backdrop_zoom = 1
-        context.space_data.backdrop_x = 0
-        context.space_data.backdrop_y = 0
+        context.space_data.backdrop_offset[0] = 0
+        context.space_data.backdrop_offset[1] = 0
         return {'FINISHED'}
 
 
