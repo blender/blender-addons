@@ -48,16 +48,14 @@ from bpy.props import (
 from bpy_extras.io_utils import (
         ImportHelper,
         ExportHelper,
-        orientation_helper_factory,
+        orientation_helper,
         axis_conversion,
         path_reference_mode,
         )
 
 
-IOX3DOrientationHelper = orientation_helper_factory("IOX3DOrientationHelper", axis_forward='Z', axis_up='Y')
-
-
-class ImportX3D(bpy.types.Operator, ImportHelper, IOX3DOrientationHelper):
+@orientation_helper(axis_forward='Z', axis_up='Y')
+class ImportX3D(bpy.types.Operator, ImportHelper):
     """Import an X3D or VRML2 file"""
     bl_idname = "import_scene.x3d"
     bl_label = "Import X3D/VRML2"
@@ -81,7 +79,8 @@ class ImportX3D(bpy.types.Operator, ImportHelper, IOX3DOrientationHelper):
         return import_x3d.load(context, **keywords)
 
 
-class ExportX3D(bpy.types.Operator, ExportHelper, IOX3DOrientationHelper):
+@orientation_helper(axis_forward='Z', axis_up='Y')
+class ExportX3D(bpy.types.Operator, ExportHelper):
     """Export selection to Extensible 3D file (.x3d)"""
     bl_idname = "export_scene.x3d"
     bl_label = 'Export X3D'

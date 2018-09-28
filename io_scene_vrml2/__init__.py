@@ -47,16 +47,14 @@ from bpy.props import (
         )
 from bpy_extras.io_utils import (
         ExportHelper,
-        orientation_helper_factory,
+        orientation_helper,
         path_reference_mode,
         axis_conversion,
         )
 
 
-ExportVRMLOrientationHelper = orientation_helper_factory("ExportVRMLOrientationHelper", axis_forward='Z', axis_up='Y')
-
-
-class ExportVRML(bpy.types.Operator, ExportHelper, ExportVRMLOrientationHelper):
+@orientation_helper(axis_forward='Z', axis_up='Y')
+class ExportVRML(bpy.types.Operator, ExportHelper):
     """Export mesh objects as a VRML2, colors and texture coordinates"""
     bl_idname = "export_scene.vrml2"
     bl_label = "Export VRML2"

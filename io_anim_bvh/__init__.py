@@ -49,15 +49,13 @@ from bpy.props import (
 from bpy_extras.io_utils import (
         ImportHelper,
         ExportHelper,
-        orientation_helper_factory,
+        orientation_helper,
         axis_conversion,
         )
 
 
-ImportBVHOrientationHelper = orientation_helper_factory("ImportBVHOrientationHelper", axis_forward='-Z', axis_up='Y')
-
-
-class ImportBVH(bpy.types.Operator, ImportHelper, ImportBVHOrientationHelper):
+@orientation_helper(axis_forward='-Z', axis_up='Y')
+class ImportBVH(bpy.types.Operator, ImportHelper):
     """Load a BVH motion capture file"""
     bl_idname = "import_anim.bvh"
     bl_label = "Import BVH"

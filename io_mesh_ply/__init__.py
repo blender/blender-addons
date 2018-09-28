@@ -56,12 +56,9 @@ from bpy.props import (
 from bpy_extras.io_utils import (
         ImportHelper,
         ExportHelper,
-        orientation_helper_factory,
+        orientation_helper,
         axis_conversion,
         )
-
-
-IOPLYOrientationHelper = orientation_helper_factory("IOPLYOrientationHelper", axis_forward='Y', axis_up='Z')
 
 
 class ImportPLY(bpy.types.Operator, ImportHelper):
@@ -94,7 +91,9 @@ class ImportPLY(bpy.types.Operator, ImportHelper):
         return {'FINISHED'}
 
 
-class ExportPLY(bpy.types.Operator, ExportHelper, IOPLYOrientationHelper):
+
+@orientation_helper(axis_forward='Y', axis_up='Z')
+class ExportPLY(bpy.types.Operator, ExportHelper):
     """Export a single object as a Stanford PLY with normals, """ \
     """colors and texture coordinates"""
     bl_idname = "export_mesh.ply"
