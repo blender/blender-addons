@@ -1086,7 +1086,6 @@ def blen_read_geom_layer_smooth(fbx_obj, mesh):
             )
         # We only set sharp edges here, not face smoothing itself...
         mesh.use_auto_smooth = True
-        mesh.show_edge_sharp = True
         return False
     elif fbx_layer_mapping == b'ByPolygon':
         blen_data = mesh.polygons
@@ -1256,7 +1255,6 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
 
         mesh.normals_split_custom_set(tuple(zip(*(iter(clnors),) * 3)))
         mesh.use_auto_smooth = True
-        mesh.show_edge_sharp = True
     else:
         mesh.calc_normals()
 
