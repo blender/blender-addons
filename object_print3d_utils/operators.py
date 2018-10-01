@@ -731,11 +731,11 @@ class MESH_OT_Print3D_Scale_To_Bounds(Operator):
             return max(((max(v[i] for v in vecs) - min(v[i] for v in vecs)), i) for i in range(3))
 
         if context.mode == 'EDIT_MESH':
-            length, axis = calc_length([Vector(v) * obj.matrix_world
+            length, axis = calc_length([Vector(v) @ obj.matrix_world
                                         for obj in [context.edit_object]
                                         for v in obj.bound_box])
         else:
-            length, axis = calc_length([Vector(v) * obj.matrix_world
+            length, axis = calc_length([Vector(v) @ obj.matrix_world
                                         for obj in context.selected_editable_objects
                                         if obj.type == 'MESH' for v in obj.bound_box])
 

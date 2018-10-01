@@ -21,7 +21,7 @@
 bl_info = {
     "name": "3D Print Toolbox",
     "author": "Campbell Barton",
-    "blender": (2, 79, 0),
+    "blender": (2, 80, 0),
     "location": "3D View > Toolbox",
     "description": "Utilities for 3D printing",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -186,7 +186,7 @@ classes = (
 
     Print3D_Scene_Props,
     Print3D_Preferences,
-    )
+)
 
 
 def register():
