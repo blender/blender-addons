@@ -59,7 +59,7 @@ def menu_func(self, context):
     self.layout.menu("VIEW3D_MT_edit_mesh_tinycad")
     self.layout.separator()
 
-classes = [
+classes = (
     TinyCADProperties, VIEW3D_MT_edit_mesh_tinycad,
     VTX.TCAutoVTX,
     XALL.TCIntersectAllEdges,
@@ -67,7 +67,7 @@ classes = [
     E2F.TCEdgeToFace,
     CCEN.TCCallBackCCEN, CCEN.TCCircleCenter,
     BIX.TCLineOnBisection
-]
+)
 
 def register():
     register_icons()

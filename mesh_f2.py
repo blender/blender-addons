@@ -375,7 +375,11 @@ class MeshF2(bpy.types.Operator):
 
 
 # registration
-classes = [MeshF2, F2AddonPreferences]
+classes = (
+    MeshF2,
+    F2AddonPreferences,
+)
+
 addon_keymaps = []
 
 
