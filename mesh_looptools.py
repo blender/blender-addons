@@ -5100,7 +5100,7 @@ class LoopPreferences(AddonPreferences):
 
 
 # define classes for registration
-classes = [
+classes = (
     VIEW3D_MT_edit_mesh_looptools,
     VIEW3D_PT_tools_looptools,
     LoopToolsProps,
@@ -5113,13 +5113,13 @@ classes = [
     Space,
     LoopPreferences,
     RemoveGP,
-    ]
+)
 
 
 # registering and menu integration
 def register():
-    for c in classes:
-        bpy.utils.register_class(c)
+    for cls in classes:
+        bpy.utils.register_class(cls)
     bpy.types.VIEW3D_MT_edit_mesh_specials.prepend(menu_func)
     bpy.types.WindowManager.looptools = PointerProperty(type=LoopToolsProps)
     update_panel(None, bpy.context)
@@ -5127,8 +5127,8 @@ def register():
 
 # unregistering and removing menus
 def unregister():
-    for c in classes:
-        bpy.utils.unregister_class(c)
+    for cls in classes:
+        bpy.utils.unregister_class(cls)
     bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_func)
     try:
         del bpy.types.WindowManager.looptools
