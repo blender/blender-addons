@@ -245,12 +245,12 @@ def write_armature(context,
             itrans = Matrix.Translation(-dbone.rest_bone.head_local)
 
             if  dbone.parent:
-                mat_final = dbone.parent.rest_arm_mat * dbone.parent.pose_imat * dbone.pose_mat * dbone.rest_arm_imat
-                mat_final = itrans * mat_final * trans
+                mat_final = dbone.parent.rest_arm_mat @ dbone.parent.pose_imat @ dbone.pose_mat @ dbone.rest_arm_imat
+                mat_final = itrans @ mat_final @ trans
                 loc = mat_final.to_translation() + (dbone.rest_bone.head_local - dbone.parent.rest_bone.head_local)
             else:
-                mat_final = dbone.pose_mat * dbone.rest_arm_imat
-                mat_final = itrans * mat_final * trans
+                mat_final = dbone.pose_mat @ dbone.rest_arm_imat
+                mat_final = itrans @ mat_final @ trans
                 loc = mat_final.to_translation() + dbone.rest_bone.head
 
             # keep eulers compatible, no jumping on interpolation.

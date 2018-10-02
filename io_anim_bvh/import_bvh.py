@@ -308,15 +308,15 @@ def bvh_node_dict2objects(context, bvh_name, bvh_nodes, rotate_mode='NATIVE', fr
 
     scene = context.scene
     for obj in scene.objects:
-        obj.select = False
+        obj.select_set("DESELECT")
 
     objects = []
 
     def add_ob(name):
         obj = bpy.data.objects.new(name, None)
-        scene.objects.link(obj)
+        context.collection.objects.link(obj)
         objects.append(obj)
-        obj.select = True
+        obj.select_set("SELECT")
 
         # nicer drawing.
         obj.empty_display_type = 'CUBE'
@@ -381,15 +381,15 @@ def bvh_node_dict2armature(context,
     # Add the new armature,
     scene = context.scene
     for obj in scene.objects:
-        obj.select = False
+        obj.select_set("DESELECT")
 
     arm_data = bpy.data.armatures.new(bvh_name)
     arm_ob = bpy.data.objects.new(bvh_name, arm_data)
 
-    scene.objects.link(arm_ob)
+    context.collection.objects.link(arm_ob)
 
-    arm_ob.select = True
-    scene.objects.active = arm_ob
+    arm_ob.select_set("SELECT")
+    context.view_layer.objects.active = arm_ob
 
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -538,14 +538,14 @@ def bvh_node_dict2armature(context,
 
                 bone_translate_matrix = Matrix.Translation(
                         Vector(bvh_loc) - bvh_node.rest_head_local)
-                location[frame_i] = (bone_rest_matrix_inv *
+                location[frame_i] = (bone_rest_matrix_inv @
                                      bone_translate_matrix).to_translation()
 
             # For each location x, y, z.
             for axis_i in range(3):
                 curve = action.fcurves.new(data_path=data_path, index=axis_i)
                 keyframe_points = curve.keyframe_points
-                keyframe_points.add(num_frame)
+                keyframe_points.add(count=num_frame)
 
                 for frame_i in range(num_frame):
                     keyframe_points[frame_i].co = \
@@ -572,8 +572,8 @@ def bvh_node_dict2armature(context,
                 # note that the rot_order_str is reversed.
                 euler = Euler(bvh_rot, bvh_node.rot_order_str[::-1])
                 bone_rotation_matrix = euler.to_matrix().to_4x4()
-                bone_rotation_matrix = (bone_rest_matrix_inv *
-                                        bone_rotation_matrix *
+                bone_rotation_matrix = (bone_rest_matrix_inv @
+                                        bone_rotation_matrix @
                                         bone_rest_matrix)
 
                 if 4 == len(rotate[frame_i]):
@@ -587,7 +587,7 @@ def bvh_node_dict2armature(context,
             for axis_i in range(len(rotate[0])):
                 curve = action.fcurves.new(data_path=data_path, index=axis_i)
                 keyframe_points = curve.keyframe_points
-                curve.keyframe_points.add(num_frame)
+                curve.keyframe_points.add(count=num_frame)
 
                 for frame_i in range(0, num_frame):
                     keyframe_points[frame_i].co = \
