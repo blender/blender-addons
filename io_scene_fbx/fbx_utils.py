@@ -872,10 +872,11 @@ class MetaObjectWrapper(type):
             key = get_blenderID_key(bdata)
         elif isinstance(bdata, DepsgraphObjectInstance):
             if bdata.is_instance:
-                key = "|".join((get_blenderID_key((bdata.parent, bdata.instance_object)), cls._get_dup_num_id(bdata)))
+                key = "|".join((get_blenderID_key((bdata.parent.original, bdata.instance_object.original)),
+                                cls._get_dup_num_id(bdata)))
                 dup_mat = bdata.matrix_world.copy()
             else:
-                key = get_blenderID_key(bdata.object)
+                key = get_blenderID_key(bdata.object.original)
         else:  # isinstance(bdata, (Bone, PoseBone)):
             if isinstance(bdata, PoseBone):
                 bdata = armature.data.bones[bdata.name]
@@ -948,14 +949,14 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
             if bdata.is_instance:
                 # Note that dupli instance matrix is set by meta-class initialization.
                 self._tag = 'DP'
-                self.name = "|".join((get_blenderID_name((bdata.parent, bdata.instance_object)),
+                self.name = "|".join((get_blenderID_name((bdata.parent.original, bdata.instance_object.original)),
                                       "Dupli", self._get_dup_num_id(bdata)))
-                self.bdata = bdata.instance_object
-                self._ref = bdata.parent
+                self.bdata = bdata.instance_object.original
+                self._ref = bdata.parent.original
             else:
                 self._tag = 'OB'
                 self.name = get_blenderID_name(bdata)
-                self.bdata = bdata.object
+                self.bdata = bdata.object.original
                 self._ref = None
         else:  # isinstance(bdata, (Bone, PoseBone)):
             if isinstance(bdata, PoseBone):
@@ -1191,7 +1192,8 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
     # #### Duplis...
     def dupli_list_gen(self, depsgraph):
         if self._tag == 'OB' and self.bdata.is_duplicator:
-            return (ObjectWrapper(dup) for dup in depsgraph.object_instances if dup.parent and ObjectWrapper(dup.parent) == self)
+            return (ObjectWrapper(dup) for dup in depsgraph.object_instances
+                                       if dup.parent and ObjectWrapper(dup.parent.original) == self)
         return ()
 
 
