@@ -126,7 +126,6 @@ class object_spec(object):
 
 def read(filepath):
     format = b''
-    texture = b''
     version = b'1.0'
     format_specs = {b'binary_little_endian': '<',
                     b'binary_big_endian': '>',
@@ -168,13 +167,6 @@ def read(filepath):
                 valid_header = True
                 break
             elif tokens[0] == b'comment':
-                if len(tokens) < 2:
-                    continue
-                elif tokens[1] == b'TextureFile':
-                    if len(tokens) < 4:
-                        print('Invalid texture line')
-                    else:
-                        texture = tokens[2]
                 continue
             elif tokens[0] == b'obj_info':
                 continue
@@ -214,7 +206,7 @@ def read(filepath):
 
         obj = obj_spec.load(format_specs[format], plyf)
 
-    return obj_spec, obj, texture
+    return obj_spec, obj
 
 
 import bpy
@@ -222,9 +214,8 @@ import bpy
 
 def load_ply_mesh(filepath, ply_name):
     from bpy_extras.io_utils import unpack_face_list
-    # from bpy_extras.image_utils import load_image  # UNUSED
 
-    obj_spec, obj, texture = read(filepath)
+    obj_spec, obj = read(filepath)
     if obj is None:
         print('Invalid file')
         return
@@ -346,35 +337,8 @@ def load_ply_mesh(filepath, ply_name):
                         col[2] = ply_col[j][2]
                         col[3] = ply_col[j][3]
 
-    mesh.validate()
     mesh.update()
-
-    if texture and uvindices:
-
-        import os
-        import sys
-        from bpy_extras.image_utils import load_image
-
-        encoding = sys.getfilesystemencoding()
-        encoded_texture = texture.decode(encoding=encoding)
-        name = bpy.path.display_name_from_filepath(texture)
-        image = load_image(encoded_texture, os.path.dirname(filepath), recursive=True, place_holder=True)
-
-        if image:
-            texture = bpy.data.textures.new(name=name, type='IMAGE')
-            texture.image = image
-
-            material = bpy.data.materials.new(name=name)
-            material.use_shadeless = True
-
-            mtex = material.texture_slots.add()
-            mtex.texture = texture
-            mtex.texture_coords = 'UV'
-            mtex.use_map_color_diffuse = True
-
-            mesh.materials.append(material)
-            for face in mesh.uv_textures[0].data:
-                face.image = image
+    mesh.validate()
 
     return mesh
 
@@ -389,12 +353,10 @@ def load_ply(filepath):
     if not mesh:
         return {'CANCELLED'}
 
-    scn = bpy.context.scene
-
     obj = bpy.data.objects.new(ply_name, mesh)
-    scn.objects.link(obj)
-    scn.objects.active = obj
-    obj.select = True
+    bpy.context.collection.objects.link(obj)
+    bpy.context.view_layer.objects.active = obj
+    obj.select_set("SELECT")
 
     print('\nSuccessfully imported %r in %.3f sec' % (filepath, time.time() - t))
     return {'FINISHED'}

@@ -100,10 +100,8 @@ def save_mesh(filepath,
             col = active_col_layer[i]
             col = col.color1[:], col.color2[:], col.color3[:], col.color4[:]
 
-        f_verts = f.vertices
-
         pf = ply_faces[i]
-        for j, vidx in enumerate(f_verts):
+        for j, vidx in enumerate(f.vertices):
             v = mesh_verts[vidx]
 
             if smooth:
@@ -119,6 +117,7 @@ def save_mesh(filepath,
                 color = (int(color[0] * 255.0),
                          int(color[1] * 255.0),
                          int(color[2] * 255.0),
+                         255
                          )
             key = normal_key, uvcoord_key, color
 
@@ -193,7 +192,6 @@ def save(operator,
          global_matrix=None
          ):
 
-    scene = context.scene
     obj = context.active_object
 
     if global_matrix is None:
@@ -204,14 +202,15 @@ def save(operator,
         bpy.ops.object.mode_set(mode='OBJECT')
 
     if use_mesh_modifiers and obj.modifiers:
-        mesh = obj.to_mesh(scene, True, 'PREVIEW')
+        mesh = obj.to_mesh(context.depsgraph, True)
+
     else:
         mesh = obj.data.copy()
 
     if not mesh:
         raise Exception("Error, could not get mesh data from active object")
 
-    mesh.transform(global_matrix * obj.matrix_world)
+    mesh.transform(global_matrix @ obj.matrix_world)
     if use_normals:
         mesh.calc_normals()
 
@@ -221,7 +220,6 @@ def save(operator,
                     use_colors=use_colors,
                     )
 
-    if use_mesh_modifiers:
-        bpy.data.meshes.remove(mesh)
+    bpy.data.meshes.remove(mesh)
 
     return ret
