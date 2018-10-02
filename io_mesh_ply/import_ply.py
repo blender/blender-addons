@@ -126,6 +126,7 @@ class object_spec(object):
 
 def read(filepath):
     format = b''
+    texture = b''
     version = b'1.0'
     format_specs = {b'binary_little_endian': '<',
                     b'binary_big_endian': '>',
@@ -167,7 +168,15 @@ def read(filepath):
                 valid_header = True
                 break
             elif tokens[0] == b'comment':
+                if len(tokens) < 2:
+                    continue
+                elif tokens[1] == b'TextureFile':
+                    if len(tokens) < 4:
+                        print('Invalid texture line')
+                    else:
+                        texture = tokens[2]
                 continue
+
             elif tokens[0] == b'obj_info':
                 continue
             elif tokens[0] == b'format':
@@ -206,7 +215,7 @@ def read(filepath):
 
         obj = obj_spec.load(format_specs[format], plyf)
 
-    return obj_spec, obj
+    return obj_spec, obj, texture
 
 
 import bpy
@@ -215,7 +224,8 @@ import bpy
 def load_ply_mesh(filepath, ply_name):
     from bpy_extras.io_utils import unpack_face_list
 
-    obj_spec, obj = read(filepath)
+    obj_spec, obj, texture = read(filepath)
+    # XXX28: use texture
     if obj is None:
         print('Invalid file')
         return
@@ -339,6 +349,36 @@ def load_ply_mesh(filepath, ply_name):
 
     mesh.update()
     mesh.validate()
+
+    if texture and uvindices:
+        pass
+        # XXX28: add support for using texture.
+        '''
+        import os
+        import sys
+        from bpy_extras.image_utils import load_image
+
+        encoding = sys.getfilesystemencoding()
+        encoded_texture = texture.decode(encoding=encoding)
+        name = bpy.path.display_name_from_filepath(texture)
+        image = load_image(encoded_texture, os.path.dirname(filepath), recursive=True, place_holder=True)
+
+        if image:
+            texture = bpy.data.textures.new(name=name, type='IMAGE')
+            texture.image = image
+
+            material = bpy.data.materials.new(name=name)
+            material.use_shadeless = True
+
+            mtex = material.texture_slots.add()
+            mtex.texture = texture
+            mtex.texture_coords = 'UV'
+            mtex.use_map_color_diffuse = True
+
+            mesh.materials.append(material)
+            for face in mesh.uv_textures[0].data:
+                face.image = image
+        '''
 
     return mesh
 
