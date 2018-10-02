@@ -121,43 +121,6 @@ class Print3D_Scene_Props(PropertyGroup):
     )
 
 
-# Update panel category name
-panels = (
-    ui.VIEW3D_PT_Print3D_Object,
-    ui.VIEW3D_PT_Print3D_Mesh,
-    )
-
-
-def update_panels(self, context):
-    try:
-        for panel in panels:
-            if "bl_rna" in panel.__dict__:
-                bpy.utils.unregister_class(panel)
-
-        for panel in panels:
-            panel.bl_category = context.user_preferences.addons[__name__].preferences.category
-            bpy.utils.register_class(panel)
-
-    except Exception as e:
-        message = "3D Print Toolbox: Updating Panel locations has failed"
-        print("\n[{}]\n{}\n\nError:\n{}".format(__name__, message, e))
-
-
-class Print3D_Preferences(AddonPreferences):
-    bl_idname = __name__
-
-    category = StringProperty(
-            name="Tab Category",
-            description="Choose a name for the category of the panel",
-            default="3D Printing",
-            update=update_panels,
-            )
-
-    def draw(self, context):
-        layout = self.layout
-        layout.prop(self, "category")
-
-
 classes = (
     ui.VIEW3D_PT_Print3D_Object,
     ui.VIEW3D_PT_Print3D_Mesh,
@@ -187,7 +150,6 @@ classes = (
     operators.MESH_OT_Print3D_Export,
 
     Print3D_Scene_Props,
-    Print3D_Preferences,
 )
 
 
@@ -196,8 +158,6 @@ def register():
         bpy.utils.register_class(cls)
 
     bpy.types.Scene.print_3d = PointerProperty(type=Print3D_Scene_Props)
-
-    update_panels(None, bpy.context)
 
 
 def unregister():
