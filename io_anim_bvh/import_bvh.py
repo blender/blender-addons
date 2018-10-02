@@ -545,7 +545,7 @@ def bvh_node_dict2armature(context,
             for axis_i in range(3):
                 curve = action.fcurves.new(data_path=data_path, index=axis_i)
                 keyframe_points = curve.keyframe_points
-                keyframe_points.add(count=num_frame)
+                keyframe_points.add(num_frame)
 
                 for frame_i in range(num_frame):
                     keyframe_points[frame_i].co = \
@@ -587,7 +587,7 @@ def bvh_node_dict2armature(context,
             for axis_i in range(len(rotate[0])):
                 curve = action.fcurves.new(data_path=data_path, index=axis_i)
                 keyframe_points = curve.keyframe_points
-                curve.keyframe_points.add(count=num_frame)
+                curve.keyframe_points.add(num_frame)
 
                 for frame_i in range(0, num_frame):
                     keyframe_points[frame_i].co = \
