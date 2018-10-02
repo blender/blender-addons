@@ -254,10 +254,10 @@ def menu_export(self, context):
     self.layout.operator(ExportSTL.bl_idname, text="Stl (.stl)")
 
 
-classes = [
+classes = (
     ImportSTL,
     ExportSTL
-]
+)
 
 def register():
     for cls in classes:

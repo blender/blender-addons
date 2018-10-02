@@ -217,10 +217,10 @@ def menu_func_export(self, context):
     self.layout.operator(ExportBVH.bl_idname, text="Motion Capture (.bvh)")
 
 
-classes = [
+classes = (
     ImportBVH,
     ExportBVH
-]
+)
 
 def register():
     for cls in classes:

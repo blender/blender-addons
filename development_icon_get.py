@@ -487,14 +487,14 @@ class IV_OT_icons_show(bpy.types.Operator):
             self, width=self.width)
 
 
-classes = [
+classes = (
     IV_PT_icons,
     IV_HT_icons,
     IV_OT_panel_menu_call,
     IV_OT_icon_select,
     IV_OT_icons_show,
     IV_Preferences,
-]
+)
 
 
 def register():

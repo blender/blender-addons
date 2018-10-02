@@ -164,10 +164,10 @@ def menu_func_export(self, context):
                          )
 
 
-classes = [
+classes = (
     ImportMDD,
     ExportMDD
-]
+)
 
 def register():
     for cls in classes:
