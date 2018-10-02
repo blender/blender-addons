@@ -91,7 +91,7 @@ def curve_from_uvs(face_data, aspect, thickness):
 
             spline = lines.splines.new("POLY")
             # one point is already there
-            spline.points.add(count=1)
+            spline.points.add(1)
             points = spline.points
 
             points[0].co.x = start[0] * aspect
