@@ -148,7 +148,7 @@ def create_materials(filepath, relpath,
 
         elif type == 'Bump':
             bump_mult = map_options.get(b'-bm')
-            bump_mult = float(bump_mult[0]) if (bump_mult is not None and len(bump_mult) > 1) else 1.0
+            bump_mult = float(bump_mult[0]) if (bump_mult and len(bump_mult[0]) > 1) else 1.0
             mat_wrap.normalmap_strength_set(bump_mult)
 
             _generic_tex_set(mat_wrap.normalmap_texture, image, 'UV', map_offset, map_scale)
