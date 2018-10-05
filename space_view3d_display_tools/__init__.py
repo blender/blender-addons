@@ -394,7 +394,7 @@ class DisplayToolsPanel(Panel):
         row.prop(display_tools, "UiTabDrop", index=4, text="Selection", icon=icon_active_4)
 
         if not SELECT2DROP:
-            row.operator("view3d.select_border", text="", icon="MESH_PLANE")
+            row.operator("view3d.select_box", text="", icon="MESH_PLANE")
             row.operator("view3d.select_circle", text="", icon="MESH_CIRCLE")
             row.label(text="", icon="BLANK1")
         else:

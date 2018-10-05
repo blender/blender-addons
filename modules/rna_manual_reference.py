@@ -332,7 +332,7 @@ url_manual_mapping = (
 	("bpy.ops.sound.bake_animation*", "data_system/scenes/properties.html#bpy-ops-sound-bake-animation"),
 	("bpy.ops.transform.edge_slide*", "modeling/meshes/editing/edges.html#bpy-ops-transform-edge-slide"),
 	("bpy.ops.transform.vert_slide*", "modeling/meshes/editing/vertices.html#bpy-ops-transform-vert-slide"),
-	("bpy.ops.view3d.select_border*", "editors/3dview/object/selecting/tools.html#bpy-ops-view3d-select-border"),
+	("bpy.ops.view3d.select_box*", "editors/3dview/object/selecting/tools.html#bpy-ops-view3d-select-border"),
 	("bpy.ops.view3d.select_circle*", "editors/3dview/object/selecting/tools.html#bpy-ops-view3d-select-circle"),
 	("bpy.types.adjustmentsequence*", "editors/vse/sequencer/strips/effects/adjustment.html#bpy-types-adjustmentsequence"),
 	("bpy.types.alphaundersequence*", "editors/vse/sequencer/strips/effects/alpha_over_under_overdrop.html#bpy-types-alphaundersequence"),

@@ -70,7 +70,7 @@ class PieSelectionsOM(Menu):
         # 7 - TOP - LEFT
         pie.operator("view3d.select_circle", text="Circle Select", icon='BORDER_LASSO')
         # 9 - TOP - RIGHT
-        pie.operator("view3d.select_border", text="Border Select", icon='BORDER_RECT')
+        pie.operator("view3d.select_box", text="Box Select", icon='BORDER_RECT')
         # 1 - BOTTOM - LEFT
         pie.operator("object.select_camera", text="Select Camera", icon='CAMERA_DATA')
         # 3 - BOTTOM - RIGHT
@@ -86,7 +86,7 @@ class PieSelectionsEM(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         # 4 - LEFT
-        pie.operator("view3d.select_border", text="Border Select",
+        pie.operator("view3d.select_box", text="Box Select",
                     icon='BORDER_RECT')
         # 6 - RIGHT
         pie.menu("object.selectloopselection", text="Select Loop Menu", icon='LOOPSEL')

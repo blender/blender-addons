@@ -1653,7 +1653,7 @@ class VIEW3D_MT_Hide_Masks(Menu):
 
         props = layout.operator("paint.mask_lasso_gesture", text="Lasso Mask")
         UseSeparator(self, context)
-        props = layout.operator("view3d.select_border", text="Box Mask", icon="BORDER_RECT")
+        props = layout.operator("view3d.select_box", text="Box Mask", icon="BORDER_RECT")
         props = layout.operator("paint.hide_show", text="Box Hide")
         props.action = 'HIDE'
         props.area = 'INSIDE'
@@ -2272,7 +2272,7 @@ class VIEW3D_MT_Select_Object(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
         UseSeparator(self, context)
         layout.operator("object.select_all").action = 'TOGGLE'
@@ -2322,7 +2322,7 @@ class VIEW3D_MT_Select_Edit_Mesh(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
         UseSeparator(self, context)
         layout.operator("mesh.select_all").action = 'TOGGLE'
@@ -2388,7 +2388,7 @@ class VIEW3D_MT_Select_Edit_Curve(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
         UseSeparator(self, context)
         layout.operator("curve.select_all").action = 'TOGGLE'
@@ -2413,7 +2413,7 @@ class VIEW3D_MT_SelectArmatureMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("armature.select_all")
         layout.operator("armature.select_inverse", text="Inverse")
         layout.operator("armature.select_hierarchy",
@@ -2437,7 +2437,7 @@ class VIEW3D_MT_Select_Edit_Armature(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
 
         UseSeparator(self, context)
@@ -2480,7 +2480,7 @@ class VIEW3D_MT_Select_Pose(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
         UseSeparator(self, context)
         layout.operator("pose.select_all").action = 'TOGGLE'
@@ -2561,7 +2561,7 @@ class VIEW3D_MT_Select_Edit_Surface(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
         UseSeparator(self, context)
         layout.operator("curve.select_all").action = 'TOGGLE'
@@ -2582,7 +2582,7 @@ class VIEW3D_MT_SelectMetaball(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
         UseSeparator(self, context)
         layout.operator("mball.select_all").action = 'TOGGLE'
@@ -2595,7 +2595,7 @@ class VIEW3D_MT_Select_Edit_Metaball(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
         layout.operator("mball.select_all").action = 'TOGGLE'
         layout.operator("mball.select_all", text="Inverse").action = 'INVERT'
@@ -2620,7 +2620,7 @@ class VIEW3D_MT_Select_Particle(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
         UseSeparator(self, context)
 
@@ -2647,7 +2647,7 @@ class VIEW3D_MT_Select_Edit_Lattice(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
         UseSeparator(self, context)
         layout.operator("lattice.select_mirror")
@@ -2667,7 +2667,7 @@ class VIEW3D_MT_Select_Gpencil(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("gpencil.select_border")
+        layout.operator("gpencil.select_box")
         layout.operator("gpencil.select_circle")
 
         UseSeparator(self, context)
@@ -2705,7 +2705,7 @@ class VIEW3D_MT_Select_Paint_Mask(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
         layout.operator("paint.face_select_all").action = 'TOGGLE'
         layout.operator("paint.face_select_all", text="Inverse").action = 'INVERT'
@@ -2717,7 +2717,7 @@ class VIEW3D_MT_Select_Paint_Mask_Vertex(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
         layout.operator("paint.vert_select_all").action = 'TOGGLE'
         layout.operator("paint.vert_select_all", text="Inverse").action = 'INVERT'
