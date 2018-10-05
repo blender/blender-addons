@@ -580,8 +580,8 @@ class SCENE_PT_namedlayer_groups(Panel):
         row.template_list("SCENE_UL_namedlayer_groups", "", scene, "layergroups", scene, "layergroups_index")
 
         col = row.column(align=True)
-        col.operator("scene.namedlayer_group_add", icon='ZOOMIN', text="").layers = scene.layers
-        col.operator("scene.namedlayer_group_remove", icon='ZOOMOUT', text="").group_idx = group_idx
+        col.operator("scene.namedlayer_group_add", icon='ADD', text="").layers = scene.layers
+        col.operator("scene.namedlayer_group_remove", icon='REMOVE', text="").group_idx = group_idx
 
         if bool(scene.layergroups):
             layout.prop(scene.layergroups[group_idx], "layers", text="", toggle=True)
