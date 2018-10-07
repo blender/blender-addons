@@ -157,7 +157,11 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
             # print '%snode: %s, parent: %s' % (len(bvh_nodes_serial) * '  ', name,  bvh_nodes_serial[-1])
 
             lineIdx += 2  # Increment to the next line (Offset)
-            rest_head_local = Vector((float(file_lines[lineIdx][1]), float(file_lines[lineIdx][2]), float(file_lines[lineIdx][3]))) * global_scale
+            rest_head_local = global_scale * Vector((
+                float(file_lines[lineIdx][1]),
+                float(file_lines[lineIdx][2]),
+                float(file_lines[lineIdx][3]),
+            ))
             lineIdx += 1  # Increment to the next line (Channels)
 
             # newChannel[Xposition, Yposition, Zposition, Xrotation, Yrotation, Zrotation]
@@ -200,7 +204,15 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
             else:
                 rest_head_world = my_parent.rest_head_world + rest_head_local
 
-            bvh_node = bvh_nodes[name] = BVH_Node(name, rest_head_world, rest_head_local, my_parent, my_channel, my_rot_order, len(bvh_nodes) - 1)
+            bvh_node = bvh_nodes[name] = BVH_Node(
+                name,
+                rest_head_world,
+                rest_head_local,
+                my_parent,
+                my_channel,
+                my_rot_order,
+                len(bvh_nodes) - 1,
+            )
 
             # If we have another child then we can call ourselves a parent, else
             bvh_nodes_serial.append(bvh_node)
@@ -210,7 +222,11 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
         if file_lines[lineIdx][0].lower() == 'end' and file_lines[lineIdx][1].lower() == 'site':
             # Increment to the next line (Offset)
             lineIdx += 2
-            rest_tail = Vector((float(file_lines[lineIdx][1]), float(file_lines[lineIdx][2]), float(file_lines[lineIdx][3]))) * global_scale
+            rest_tail = global_scale * Vector((
+                float(file_lines[lineIdx][1]),
+                float(file_lines[lineIdx][2]),
+                float(file_lines[lineIdx][3]),
+            ))
 
             bvh_nodes_serial[-1].rest_tail_world = bvh_nodes_serial[-1].rest_head_world + rest_tail
             bvh_nodes_serial[-1].rest_tail_local = bvh_nodes_serial[-1].rest_head_local + rest_tail
@@ -229,16 +245,17 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
         #  Frame Time: dt
         if len(file_lines[lineIdx]) == 1 and file_lines[lineIdx][0].lower() == 'motion':
             lineIdx += 1  # Read frame count.
-            if (len(file_lines[lineIdx]) == 2 and
-                    file_lines[lineIdx][0].lower() == 'frames:'):
-
+            if (
+                    len(file_lines[lineIdx]) == 2 and
+                    file_lines[lineIdx][0].lower() == 'frames:'
+            ):
                 bvh_frame_count = int(file_lines[lineIdx][1])
 
             lineIdx += 1  # Read frame rate.
             if (
-                len(file_lines[lineIdx]) == 3 and
-                file_lines[lineIdx][0].lower() == 'frame' and
-                file_lines[lineIdx][1].lower() == 'time:'
+                    len(file_lines[lineIdx]) == 3 and
+                    file_lines[lineIdx][0].lower() == 'frame' and
+                    file_lines[lineIdx][1].lower() == 'time:'
             ):
                 bvh_frame_time = float(file_lines[lineIdx][2])
 
@@ -471,10 +488,11 @@ def bvh_node_dict2armature(
             bvh_node.temp.parent = bvh_node.parent.temp
 
             # Set the connection state
-            if((not bvh_node.has_loc) and
-               (bvh_node.parent.temp.name not in ZERO_AREA_BONES) and
-               (bvh_node.parent.rest_tail_local == bvh_node.rest_head_local)):
-
+            if(
+                    (not bvh_node.has_loc) and
+                    (bvh_node.parent.temp.name not in ZERO_AREA_BONES) and
+                    (bvh_node.parent.rest_tail_local == bvh_node.rest_head_local)
+            ):
                 bvh_node.temp.use_connect = True
 
     # Replace the editbone with the editbone name,
@@ -572,8 +590,10 @@ def bvh_node_dict2armature(
                 keyframe_points.add(num_frame)
 
                 for frame_i in range(num_frame):
-                    keyframe_points[frame_i].co = \
-                        (time[frame_i], location[frame_i][axis_i])
+                    keyframe_points[frame_i].co = (
+                        time[frame_i],
+                        location[frame_i][axis_i],
+                    )
 
         if bvh_node.has_rot:
             data_path = None
@@ -596,26 +616,30 @@ def bvh_node_dict2armature(
                 # note that the rot_order_str is reversed.
                 euler = Euler(bvh_rot, bvh_node.rot_order_str[::-1])
                 bone_rotation_matrix = euler.to_matrix().to_4x4()
-                bone_rotation_matrix = (bone_rest_matrix_inv @
-                                        bone_rotation_matrix @
-                                        bone_rest_matrix)
+                bone_rotation_matrix = (
+                    bone_rest_matrix_inv @
+                    bone_rotation_matrix @
+                    bone_rest_matrix
+                )
 
-                if 4 == len(rotate[frame_i]):
+                if len(rotate[frame_i]) == 4:
                     rotate[frame_i] = bone_rotation_matrix.to_quaternion()
                 else:
                     rotate[frame_i] = bone_rotation_matrix.to_euler(
                         pose_bone.rotation_mode, prev_euler)
                     prev_euler = rotate[frame_i]
 
-            # For each Euler angle x, y, z (or Quaternion w, x, y, z).
+            # For each euler angle x, y, z (or quaternion w, x, y, z).
             for axis_i in range(len(rotate[0])):
                 curve = action.fcurves.new(data_path=data_path, index=axis_i)
                 keyframe_points = curve.keyframe_points
-                curve.keyframe_points.add(num_frame)
+                keyframe_points.add(num_frame)
 
-                for frame_i in range(0, num_frame):
-                    keyframe_points[frame_i].co = \
-                        (time[frame_i], rotate[frame_i][axis_i])
+                for frame_i in range(num_frame):
+                    keyframe_points[frame_i].co = (
+                        time[frame_i],
+                        rotate[frame_i][axis_i],
+                    )
 
     for cu in action.fcurves:
         if IMPORT_LOOP:
@@ -644,7 +668,7 @@ def load(
         use_fps_scale=False,
         update_scene_fps=False,
         update_scene_duration=False,
-        report=print
+        report=print,
 ):
     import time
     t1 = time.time()
