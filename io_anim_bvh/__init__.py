@@ -26,10 +26,13 @@ bl_info = {
     "location": "File > Import-Export",
     "description": "Import-Export BVH from armature objects",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/Import-Export/BVH_Importer_Exporter",
+    "wiki_url": (
+        "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Import-Export/BVH_Importer_Exporter"
+    ),
     "support": 'OFFICIAL',
-    "category": "Import-Export"}
+    "category": "Import-Export",
+}
 
 if "bpy" in locals():
     import importlib
@@ -213,10 +216,17 @@ class ExportBVH(bpy.types.Operator, ExportHelper):
             self.frame_start = context.scene.frame_start
             self.frame_end = context.scene.frame_end
 
-        keywords = self.as_keywords(ignore=("check_existing", "filter_glob"))
+        keywords = self.as_keywords(
+            ignore=(
+                "axis_forward",
+                "axis_up",
+                "check_existing",
+                "filter_glob",
+            )
+        )
 
         from . import export_bvh
-        return export_bvh.save(self, context, **keywords)
+        return export_bvh.save(context, **keywords)
 
 
 def menu_func_import(self, context):
