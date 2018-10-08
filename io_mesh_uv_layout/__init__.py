@@ -46,10 +46,6 @@ if "bpy" in locals():
 import os
 import bpy
 
-from . import export_uv_eps
-from . import export_uv_png
-from . import export_uv_svg
-
 from bpy.props import (
     StringProperty,
     BoolProperty,
@@ -221,10 +217,13 @@ class ExportUVLayout(bpy.types.Operator):
 
     def get_exporter(self):
         if self.mode == 'PNG':
+            from . import export_uv_png
             return export_uv_png.export
         elif self.mode == 'EPS':
+            from . import export_uv_eps
             return export_uv_eps.export
         elif self.mode == 'SVG':
+            from . import export_uv_svg
             return export_uv_svg.export
         else:
             assert False
