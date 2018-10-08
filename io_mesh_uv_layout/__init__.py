@@ -165,7 +165,7 @@ class ExportUVLayout(bpy.types.Operator):
     @staticmethod
     def iter_objects_to_export(context):
         for obj in context.selected_objects:
-            if obj.type != "MESH":
+            if obj.type != 'MESH':
                 continue
             mesh = obj.data
             if mesh.uv_layers.active is None:
@@ -220,11 +220,11 @@ class ExportUVLayout(bpy.types.Operator):
         return default
 
     def get_exporter(self):
-        if self.mode == "PNG":
+        if self.mode == 'PNG':
             return export_uv_png.export
-        elif self.mode == "EPS":
+        elif self.mode == 'EPS':
             return export_uv_eps.export
-        elif self.mode == "SVG":
+        elif self.mode == 'SVG':
             return export_uv_svg.export
         else:
             assert False
