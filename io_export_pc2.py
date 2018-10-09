@@ -63,7 +63,7 @@ def do_export(context, props, filepath):
     end = props.range_end
     sampling = float(props.sampling)
     apply_modifiers = props.apply_modifiers
-    me = ob.to_mesh(context.depsgraph, apply_modifiers, calc_tessface=False)
+    me = ob.to_mesh(context.depsgraph, apply_modifiers, calc_loop_triangles=False)
     vertCount = len(me.vertices)
     sampletimes = get_sampled_frames(start, end, sampling)
     sampleCount = len(sampletimes)
@@ -80,7 +80,7 @@ def do_export(context, props, filepath):
         # stupid modf() gives decimal part first!
         sc.frame_set(int(frame[1]), subframe=frame[0])
         me = ob.to_mesh(context.depsgraph, apply_modifiers,
-                        calc_tessface=False)
+                        calc_loop_triangles=False)
 
         if len(me.vertices) != vertCount:
             bpy.data.meshes.remove(me, do_unlink=True)

@@ -52,26 +52,15 @@ def get_bmesh_vert_co_array(bm):
 
 
 def get_mesh_tri_verts_array(me):
-    me.calc_tessface()
-    len_tessfaces = len(me.tessfaces)
-    if len_tessfaces:
-        tessfaces = np.empty(len_tessfaces * 4, 'i4')
-        me.tessfaces.foreach_get("vertices_raw", tessfaces)
-        tessfaces.shape = (-1, 4)
-
-        quad_indices = tessfaces[:, 3].nonzero()[0]
-        tris = np.empty(((len_tessfaces + len(quad_indices)), 3), 'i4')
-
-        tris[:len_tessfaces] = tessfaces[:, :3]
-        tris[len_tessfaces:] = tessfaces[quad_indices][:, (0, 2, 3)]
-
-        del tessfaces
-        return tris
+    me.calc_loop_triangles()
+    tris = [tri.vertices[:] for tri in me.loop_triangles]
+    if tris:
+        return np.array(tris, 'i4')
     return None
 
 
 def get_bmesh_tri_verts_array(bm):
-    ltris = bm.calc_tessface()
+    ltris = bm.calc_loop_triangles()
     tris = [[ltri[0].vert.index, ltri[1].vert.index, ltri[2].vert.index] for ltri in ltris if not ltri[0].face.hide]
     if tris:
         return np.array(tris, 'i4')

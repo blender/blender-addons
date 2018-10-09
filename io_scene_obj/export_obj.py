@@ -349,7 +349,7 @@ def write_file(filepath, objects, depsgraph, scene,
                         # END NURBS
 
                         try:
-                            me = ob.to_mesh(depsgraph, EXPORT_APPLY_MODIFIERS, calc_tessface=False)
+                            me = ob.to_mesh(depsgraph, EXPORT_APPLY_MODIFIERS, calc_loop_triangles=False)
                         except RuntimeError:
                             me = None
 
@@ -377,7 +377,6 @@ def write_file(filepath, objects, depsgraph, scene,
 
                         # Make our own list so it can be sorted to reduce context switching
                         face_index_pairs = [(face, index) for index, face in enumerate(me.polygons)]
-                        # faces = [ f for f in me.tessfaces ]
 
                         if EXPORT_EDGES:
                             edges = me.edges

@@ -355,7 +355,7 @@ def draw_line(self, obj, bm, bm_geom, location):
 
     drawing_is_dirt = False
     update_edit_mesh = False
-    tessface = False
+    loop_triangles = False
 
     if bm_geom is None:
         vert = bm.verts.new(location)
@@ -437,7 +437,7 @@ def draw_line(self, obj, bm, bm_geom, location):
                         facesp = bmesh.utils.face_split_edgenet(face, ed_list)
                     del split_faces
                     update_edit_mesh = True
-                    tessface = True
+                    loop_triangles = True
                 else:
                     if self.intersect:
                         facesp = bmesh.ops.connect_vert_pair(bm, verts=[v1, v2], verts_exclude=bm.verts)
@@ -450,7 +450,7 @@ def draw_line(self, obj, bm, bm_geom, location):
                         for edge in facesp['edges']:
                             self.list_edges.append(edge)
                             update_edit_mesh = True
-                            tessface = True
+                            loop_triangles = True
 
         # create face
         if self.create_face:
@@ -469,10 +469,10 @@ def draw_line(self, obj, bm, bm_geom, location):
 
             bmesh.ops.edgenet_fill(bm, edges=list(ed_list))
             update_edit_mesh = True
-            tessface = True
+            loop_triangles = True
             # print('face created')
     if update_edit_mesh:
-        bmesh.update_edit_mesh(obj.data, tessface = tessface)
+        bmesh.update_edit_mesh(obj.data, loop_triangles = loop_triangles)
         self.sctx.update_drawn_snap_object(self.snap_obj)
         #bm.verts.index_update()
     elif drawing_is_dirt:
