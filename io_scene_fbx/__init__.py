@@ -226,8 +226,6 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         keywords = self.as_keywords(ignore=("filter_glob", "directory", "ui_tab"))
-        # XXX TODO get rid of this, EEVEE/Cycles use same nodal system...
-        keywords["use_cycles"] = True #(context.scene.render.engine == 'CYCLES')
 
         from . import import_fbx
         return import_fbx.load(self, context, **keywords)

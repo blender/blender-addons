@@ -1241,7 +1241,7 @@ FBXExportData = namedtuple("FBXExportData", (
 FBXImportSettings = namedtuple("FBXImportSettings", (
     "report", "to_axes", "global_matrix", "global_scale",
     "bake_space_transform", "global_matrix_inv", "global_matrix_inv_transposed",
-    "use_custom_normals", "use_cycles", "use_image_search",
+    "use_custom_normals", "use_image_search",
     "use_alpha_decals", "decal_offset",
     "use_anim", "anim_offset",
     "use_custom_props", "use_custom_props_enum_as_string",
