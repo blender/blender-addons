@@ -82,7 +82,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                     fw('Ka %.6f %.6f %.6f\n' % (mat_wrap.metallic, mat_wrap.metallic, mat_wrap.metallic))
                 else:
                     fw('Ka %.6f %.6f %.6f\n' % (1.0, 1.0, 1.0))
-                fw('Kd %.6f %.6f %.6f\n' % mat_wrap.diffuse_color[:3])  # Diffuse
+                fw('Kd %.6f %.6f %.6f\n' % mat_wrap.base_color[:3])  # Diffuse
                 # XXX TODO Find a way to handle tint and diffuse color, in a consistent way with import...
                 fw('Ks %.6f %.6f %.6f\n' % (mat_wrap.specular, mat_wrap.specular, mat_wrap.specular))  # Specular
                 # Emission, not in original MTL standard but seems pretty common, see T45766.
@@ -108,7 +108,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
 
                 #### And now, the image textures...
                 image_map = {
-                        "map_Kd": "diffuse_texture",
+                        "map_Kd": "base_color_texture",
                         "map_Ka": None,  # ambient...
                         "map_Ks": "specular_texture",
                         "map_Ns": "roughness_texture",
