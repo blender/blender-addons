@@ -349,7 +349,7 @@ def write_file(filepath, objects, depsgraph, scene,
                         # END NURBS
 
                         try:
-                            me = ob.to_mesh(depsgraph, EXPORT_APPLY_MODIFIERS, calc_loop_triangles=False)
+                            me = ob.to_mesh(depsgraph, EXPORT_APPLY_MODIFIERS)
                         except RuntimeError:
                             me = None
 

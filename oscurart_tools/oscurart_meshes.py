@@ -321,8 +321,7 @@ def DefOscObjectToMesh():
     MESH = ACTOBJ.to_mesh(
         scene=bpy.context.scene,
         apply_modifiers=True,
-        settings="RENDER",
-        calc_loop_triangles=True)
+        settings="RENDER")
     OBJECT = bpy.data.objects.new(("%s_Freeze") % (ACTOBJ.name), MESH)
     bpy.context.scene.objects.link(OBJECT)
 

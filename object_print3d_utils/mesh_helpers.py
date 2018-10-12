@@ -32,7 +32,7 @@ def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifier
 
     if apply_modifiers and obj.modifiers:
         import bpy
-        me = obj.to_mesh(bpy.context.scene, True, 'PREVIEW', calc_loop_triangles=False)
+        me = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
         bm = bmesh.new()
         bm.from_mesh(me)
         bpy.data.meshes.remove(me)
@@ -268,7 +268,6 @@ def object_merge(context, objects):
         mesh_new = obj.to_mesh(
             depsgraph=context.depsgraph,
             apply_modifiers=True,
-            calc_loop_triangles=False,
         )
 
         # remove non-active uvs/vcols
