@@ -133,7 +133,7 @@ def create_materials(filepath, relpath,
 
         # Adds textures for materials (rendering)
         if type == 'Kd':
-            _generic_tex_set(mat_wrap.diffuse_texture, image, 'UV', map_offset, map_scale)
+            _generic_tex_set(mat_wrap.base_color_texture, image, 'UV', map_offset, map_scale)
 
         elif type == 'Ka':
             # XXX Not supported?
@@ -168,8 +168,8 @@ def create_materials(filepath, relpath,
                 print("WARNING, unsupported reflection type '%s', defaulting to 'sphere'"
                       "" % ' '.join(i.decode() for i in map_type))
 
-            _generic_tex_set(mat_wrap.diffuse_texture, image, 'Reflection', map_offset, map_scale)
-            mat_wrap.diffuse_texture.projection = 'SPHERE'
+            _generic_tex_set(mat_wrap.base_color_texture, image, 'Reflection', map_offset, map_scale)
+            mat_wrap.base_color_texture.projection = 'SPHERE'
 
         else:
             raise Exception("invalid type %r" % type)
@@ -227,8 +227,8 @@ def create_materials(filepath, relpath,
                             #       from some grey), and apply the the proportion between those two as tint factor?
                             # ~ spec = sum(spec_color) / 3.0
                             # ~ spec_var = math.sqrt(sum((c - spec) ** 2 for c in spec_color) / 3.0)
-                            # ~ diff = sum(context_mat_wrap.diffuse_color[:3]) / 3.0
-                            # ~ diff_var = math.sqrt(sum((c - diff) ** 2 for c in context_mat_wrap.diffuse_color[:3]) / 3.0)
+                            # ~ diff = sum(context_mat_wrap.base_color) / 3.0
+                            # ~ diff_var = math.sqrt(sum((c - diff) ** 2 for c in context_mat_wrap.base_color) / 3.0)
                             # ~ tint = min(1.0, spec_var / diff_var)
                             context_mat_wrap.specular = spec
                             context_mat_wrap.specular_tint = 0.0
@@ -293,7 +293,7 @@ def create_materials(filepath, relpath,
                         context_material_vars.add("metallic")
                     elif line_id == b'kd':
                         col = (float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
-                        context_mat_wrap.diffuse_color[:3] = col
+                        context_mat_wrap.base_color = col
                     elif line_id == b'ks':
                         spec_color = (float_func(line_split[1]) + float_func(line_split[2]) + float_func(line_split[3]))
                         context_material_vars.add("specular")

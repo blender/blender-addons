@@ -619,7 +619,7 @@ class GIMPImageToScene(bpy.types.Operator):
         if self.OpacityMode == 'COMPO' and self.SetupCompo == False:
             box.label('Tip: Enable Node Compositing', icon='INFO')
         box.prop(self, 'AlphaMode', icon='IMAGE_RGB_ALPHA')
-        box.prop(self, 'ShadelessMats', icon='SOLID')
+        box.prop(self, 'ShadelessMats', icon='SHADING_SOLID')
         box.prop(self, 'LayerOffset')
         box.prop(self, 'LayerScale')
 

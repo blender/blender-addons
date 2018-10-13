@@ -514,7 +514,7 @@ class OBJECT_PT_api_navigator(ApiNavigator, Panel):
             elif iterable == 'b':
                 box = self.layout.box()
                 row = box.row()
-                row.label(text="Item Values", icon="OOPS")
+                row.label(text="Item Values", icon='OUTLINER')
                 box = box.box()
                 col = box.column(align=True)
                 collection = list(current_module)

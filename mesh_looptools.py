@@ -831,7 +831,7 @@ def terminate(global_undo):
     # update editmesh cached data
     obj = bpy.context.active_object
     if obj.mode == 'EDIT':
-        bmesh.update_edit_mesh(obj.data, tessface=True, destructive=True)
+        bmesh.update_edit_mesh(obj.data, loop_triangles=True, destructive=True)
 
     bpy.context.user_preferences.edit.use_global_undo = global_undo
 
@@ -3367,7 +3367,7 @@ class Bridge(Operator):
             if self.remove_faces and old_selected_faces:
                 bridge_remove_internal_faces(bm, old_selected_faces)
             # make sure normals are facing outside
-            bmesh.update_edit_mesh(object.data, tessface=False,
+            bmesh.update_edit_mesh(object.data, loop_triangles=False,
                 destructive=True)
             bpy.ops.mesh.normals_make_consistent()
 
@@ -4086,7 +4086,7 @@ class GStretch(Operator):
             lock = [self.lock_x, self.lock_y, self.lock_z]
         else:
             lock = False
-        bmesh.update_edit_mesh(object.data, tessface=True, destructive=True)
+        bmesh.update_edit_mesh(object.data, loop_triangles=True, destructive=True)
         move_verts(object, bm, mapping, move, lock, self.influence)
 
         # cleaning up

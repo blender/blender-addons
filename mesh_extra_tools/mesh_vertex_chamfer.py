@@ -144,7 +144,7 @@ class VertexChamfer(Operator):
             else:
                 v.co += displace * v.normal
 
-        me.calc_tessface()
+        me.calc_loop_triangles()
 
         return {'FINISHED'}
 

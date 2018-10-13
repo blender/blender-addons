@@ -2689,7 +2689,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     importance = ob.pov.importance_value
                     if me:
                         me_materials = me.materials
-                        me_faces = me.tessfaces[:]
+                        me_faces = me.loop_triangles[:]
                     #if len(me_faces)==0:
                         #tabWrite("\n//dummy sphere to represent empty mesh location\n")
                         #tabWrite("#declare %s =sphere {<0, 0, 0>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n" % povdataname)
@@ -2700,25 +2700,22 @@ def write_pov(filename, scene=None, info_callback=None):
                         tabWrite("#declare %s =sphere {<0, 0, 0>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n" % povdataname)
                         continue
 
-                    uv_textures = me.tessface_uv_textures
-                    if len(uv_textures) > 0:
-                        if me.uv_textures.active and uv_textures.active.data:
-                            uv_layer = uv_textures.active.data
+                    uv_layers = me.uv_layers
+                    if len(uv_layers) > 0:
+                        if me.uv_layers.active and uv_layers.active.data:
+                            uv_layer = uv_layers.active.data
                     else:
                         uv_layer = None
 
                     try:
                         #vcol_layer = me.vertex_colors.active.data
-                        vcol_layer = me.tessface_vertex_colors.active.data
+                        vcol_layer = me.vertex_colors.active.data
                     except AttributeError:
                         vcol_layer = None
 
                     faces_verts = [f.vertices[:] for f in me_faces]
                     faces_normals = [f.normal[:] for f in me_faces]
                     verts_normals = [v.normal[:] for v in me.vertices]
-
-                    # quads incur an extra face
-                    quadCount = sum(1 for f in faces_verts if len(f) == 4)
 
                     # Use named declaration to allow reference e.g. for baking. MR
                     file.write("\n")
@@ -2775,12 +2772,8 @@ def write_pov(filename, scene=None, info_callback=None):
                         # Generate unique UV's
                         uniqueUVs = {}
                         #n = 0
-                        for fi, uv in enumerate(uv_layer):
-
-                            if len(faces_verts[fi]) == 4:
-                                uvs = uv_layer[fi].uv[0], uv_layer[fi].uv[1], uv_layer[fi].uv[2], uv_layer[fi].uv[3]
-                            else:
-                                uvs = uv_layer[fi].uv[0], uv_layer[fi].uv[1], uv_layer[fi].uv[2]
+                        for f in me.faces:
+                            uvs = [uv_layer[l].uv[:] for l in f.loops]
 
                             for uv in uvs:
                                 uniqueUVs[uv[:]] = [-1]
@@ -2811,7 +2804,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     if me.vertex_colors:
                         #Write down vertex colors as a texture for each vertex
                         tabWrite("texture_list {\n")
-                        tabWrite("%d\n" % (((len(me_faces)-quadCount) * 3 )+ quadCount * 4)) # works only with tris and quad mesh for now
+                        tabWrite("%d\n" % (len(me_faces) * 3)) # assumes we have only triangles
                         VcolIdx=0
                         if comments:
                             file.write("\n  //Vertex colors: one simple pigment texture per vertex\n")
@@ -2824,12 +2817,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 material = None
                             if material: #and material.use_vertex_color_paint: #Always use vertex color when there is some for now
 
-                                col = vcol_layer[fi]
-
-                                if len(faces_verts[fi]) == 4:
-                                    cols = col.color1, col.color2, col.color3, col.color4
-                                else:
-                                    cols = col.color1, col.color2, col.color3
+                                cols = [vcol_layer[l].color[:] for l in f.loops]
 
                                 for col in cols:
                                     key = col[0], col[1], col[2], material_index  # Material index!
@@ -2857,135 +2845,107 @@ def write_pov(filename, scene=None, info_callback=None):
                         tabWrite("\n}\n")
                         # Face indices
                         tabWrite("\nface_indices {\n")
-                        tabWrite("%d" % (len(me_faces) + quadCount))  # faces count
+                        tabWrite("%d" % (len(me_faces)))  # faces count
                         tabStr = tab * tabLevel
 
                         for fi, f in enumerate(me_faces):
                             fv = faces_verts[fi]
                             material_index = f.material_index
-                            if len(fv) == 4:
-                                indices = (0, 1, 2), (0, 2, 3)
-                            else:
-                                indices = ((0, 1, 2),)
 
                             if vcol_layer:
-                                col = vcol_layer[fi]
-
-                                if len(fv) == 4:
-                                    cols = col.color1, col.color2, col.color3, col.color4
-                                else:
-                                    cols = col.color1, col.color2, col.color3
+                                cols = [vcol_layer[l].color[:] for l in f.loops]
 
                             if not me_materials or me_materials[material_index] is None:  # No materials
-                                for i1, i2, i3 in indices:
-                                    if linebreaksinlists:
-                                        file.write(",\n")
-                                        # vert count
-                                        file.write(tabStr + "<%d,%d,%d>" % (fv[i1], fv[i2], fv[i3]))
-                                    else:
-                                        file.write(", ")
-                                        file.write("<%d,%d,%d>" % (fv[i1], fv[i2], fv[i3]))  # vert count
+                                if linebreaksinlists:
+                                    file.write(",\n")
+                                    # vert count
+                                    file.write(tabStr + "<%d,%d,%d>" % (fv[0], fv[1], fv[2]))
+                                else:
+                                    file.write(", ")
+                                    file.write("<%d,%d,%d>" % (fv[0], fv[1], fv[2]))  # vert count
                             else:
                                 material = me_materials[material_index]
-                                for i1, i2, i3 in indices:
-                                    if me.vertex_colors: #and material.use_vertex_color_paint:
-                                        # Color per vertex - vertex color
+                                if me.vertex_colors: #and material.use_vertex_color_paint:
+                                    # Color per vertex - vertex color
 
-                                        col1 = cols[i1]
-                                        col2 = cols[i2]
-                                        col3 = cols[i3]
+                                    col1 = cols[0]
+                                    col2 = cols[1]
+                                    col3 = cols[2]
 
-                                        ci1 = vertCols[col1[0], col1[1], col1[2], material_index][0]
-                                        ci2 = vertCols[col2[0], col2[1], col2[2], material_index][0]
-                                        ci3 = vertCols[col3[0], col3[1], col3[2], material_index][0]
+                                    ci1 = vertCols[col1[0], col1[1], col1[2], material_index][0]
+                                    ci2 = vertCols[col2[0], col2[1], col2[2], material_index][0]
+                                    ci3 = vertCols[col3[0], col3[1], col3[2], material_index][0]
+                                else:
+                                    # Color per material - flat material color
+                                    if material.subsurface_scattering.use:
+                                        diffuse_color = [i * j for i, j in zip(material.subsurface_scattering.color[:], material.diffuse_color[:])]
                                     else:
-                                        # Color per material - flat material color
-                                        if material.subsurface_scattering.use:
-                                            diffuse_color = [i * j for i, j in zip(material.subsurface_scattering.color[:], material.diffuse_color[:])]
-                                        else:
-                                            diffuse_color = material.diffuse_color[:]
-                                        ci1 = ci2 = ci3 = vertCols[diffuse_color[0], diffuse_color[1], \
-                                                          diffuse_color[2], f.material_index][0]
-                                        # ci are zero based index so we'll subtract 1 from them
-                                    if linebreaksinlists:
-                                        file.write(",\n")
-                                        file.write(tabStr + "<%d,%d,%d>, %d,%d,%d" % \
-                                                   (fv[i1], fv[i2], fv[i3], ci1-1, ci2-1, ci3-1))  # vert count
-                                    else:
-                                        file.write(", ")
-                                        file.write("<%d,%d,%d>, %d,%d,%d" % \
-                                                   (fv[i1], fv[i2], fv[i3], ci1-1, ci2-1, ci3-1))  # vert count
+                                        diffuse_color = material.diffuse_color[:]
+                                    ci1 = ci2 = ci3 = vertCols[diffuse_color[0], diffuse_color[1], \
+                                                      diffuse_color[2], f.material_index][0]
+                                    # ci are zero based index so we'll subtract 1 from them
+                                if linebreaksinlists:
+                                    file.write(",\n")
+                                    file.write(tabStr + "<%d,%d,%d>, %d,%d,%d" % \
+                                               (fv[0], fv[1], fv[2], ci1-1, ci2-1, ci3-1))  # vert count
+                                else:
+                                    file.write(", ")
+                                    file.write("<%d,%d,%d>, %d,%d,%d" % \
+                                               (fv[0], fv[1], fv[2], ci1-1, ci2-1, ci3-1))  # vert count
 
                         file.write("\n")
                         tabWrite("}\n")
 
                         # normal_indices indices
                         tabWrite("normal_indices {\n")
-                        tabWrite("%d" % (len(me_faces) + quadCount))  # faces count
+                        tabWrite("%d" % (len(me_faces)))  # faces count
                         tabStr = tab * tabLevel
                         for fi, fv in enumerate(faces_verts):
 
-                            if len(fv) == 4:
-                                indices = (0, 1, 2), (0, 2, 3)
-                            else:
-                                indices = ((0, 1, 2),)
-
-                            for i1, i2, i3 in indices:
-                                if me_faces[fi].use_smooth:
-                                    if linebreaksinlists:
-                                        file.write(",\n")
-                                        file.write(tabStr + "<%d,%d,%d>" %\
-                                        (uniqueNormals[verts_normals[fv[i1]]][0],\
-                                         uniqueNormals[verts_normals[fv[i2]]][0],\
-                                         uniqueNormals[verts_normals[fv[i3]]][0]))  # vert count
-                                    else:
-                                        file.write(", ")
-                                        file.write("<%d,%d,%d>" %\
-                                        (uniqueNormals[verts_normals[fv[i1]]][0],\
-                                         uniqueNormals[verts_normals[fv[i2]]][0],\
-                                         uniqueNormals[verts_normals[fv[i3]]][0]))  # vert count
+                            if me_faces[fi].use_smooth:
+                                if linebreaksinlists:
+                                    file.write(",\n")
+                                    file.write(tabStr + "<%d,%d,%d>" %\
+                                    (uniqueNormals[verts_normals[fv[0]]][0],\
+                                     uniqueNormals[verts_normals[fv[1]]][0],\
+                                     uniqueNormals[verts_normals[fv[2]]][0]))  # vert count
                                 else:
-                                    idx = uniqueNormals[faces_normals[fi]][0]
-                                    if linebreaksinlists:
-                                        file.write(",\n")
-                                        file.write(tabStr + "<%d,%d,%d>" % (idx, idx, idx))  # vert count
-                                    else:
-                                        file.write(", ")
-                                        file.write("<%d,%d,%d>" % (idx, idx, idx))  # vert count
+                                    file.write(", ")
+                                    file.write("<%d,%d,%d>" %\
+                                    (uniqueNormals[verts_normals[fv[0]]][0],\
+                                     uniqueNormals[verts_normals[fv[1]]][0],\
+                                     uniqueNormals[verts_normals[fv[2]]][0]))  # vert count
+                            else:
+                                idx = uniqueNormals[faces_normals[fi]][0]
+                                if linebreaksinlists:
+                                    file.write(",\n")
+                                    file.write(tabStr + "<%d,%d,%d>" % (idx, idx, idx))  # vert count
+                                else:
+                                    file.write(", ")
+                                    file.write("<%d,%d,%d>" % (idx, idx, idx))  # vert count
 
                         file.write("\n")
                         tabWrite("}\n")
 
                         if uv_layer:
                             tabWrite("uv_indices {\n")
-                            tabWrite("%d" % (len(me_faces) + quadCount))  # faces count
+                            tabWrite("%d" % (len(me_faces)))  # faces count
                             tabStr = tab * tabLevel
-                            for fi, fv in enumerate(faces_verts):
+                            for f in me_faces:
+                                uvs = [uv_layer[l].uv[:] for l in f.loops]
 
-                                if len(fv) == 4:
-                                    indices = (0, 1, 2), (0, 2, 3)
+                                if linebreaksinlists:
+                                    file.write(",\n")
+                                    file.write(tabStr + "<%d,%d,%d>" % (
+                                             uniqueUVs[uvs[0]][0],\
+                                             uniqueUVs[uvs[1]][0],\
+                                             uniqueUVs[uvs[2]][0]))
                                 else:
-                                    indices = ((0, 1, 2),)
-
-                                uv = uv_layer[fi]
-                                if len(faces_verts[fi]) == 4:
-                                    uvs = uv.uv[0][:], uv.uv[1][:], uv.uv[2][:], uv.uv[3][:]
-                                else:
-                                    uvs = uv.uv[0][:], uv.uv[1][:], uv.uv[2][:]
-
-                                for i1, i2, i3 in indices:
-                                    if linebreaksinlists:
-                                        file.write(",\n")
-                                        file.write(tabStr + "<%d,%d,%d>" % (
-                                                 uniqueUVs[uvs[i1]][0],\
-                                                 uniqueUVs[uvs[i2]][0],\
-                                                 uniqueUVs[uvs[i3]][0]))
-                                    else:
-                                        file.write(", ")
-                                        file.write("<%d,%d,%d>" % (
-                                                 uniqueUVs[uvs[i1]][0],\
-                                                 uniqueUVs[uvs[i2]][0],\
-                                                 uniqueUVs[uvs[i3]][0]))
+                                    file.write(", ")
+                                    file.write("<%d,%d,%d>" % (
+                                             uniqueUVs[uvs[0]][0],\
+                                             uniqueUVs[uvs[1]][0],\
+                                             uniqueUVs[uvs[2]][0]))
 
                             file.write("\n")
                             tabWrite("}\n")
@@ -3108,140 +3068,111 @@ def write_pov(filename, scene=None, info_callback=None):
 
                         # Face indices
                         tabWrite("face_indices {\n")
-                        tabWrite("%d" % (len(me_faces) + quadCount))  # faces count
+                        tabWrite("%d" % (len(me_faces)))  # faces count
                         tabStr = tab * tabLevel
 
                         for fi, f in enumerate(me_faces):
                             fv = faces_verts[fi]
                             material_index = f.material_index
-                            if len(fv) == 4:
-                                indices = (0, 1, 2), (0, 2, 3)
-                            else:
-                                indices = ((0, 1, 2),)
 
                             if vcol_layer:
-                                col = vcol_layer[fi]
-
-                                if len(fv) == 4:
-                                    cols = col.color1, col.color2, col.color3, col.color4
-                                else:
-                                    cols = col.color1, col.color2, col.color3
+                                cols = [vcol_layer[l].color[:] for l in f.loops]
 
                             if not me_materials or me_materials[material_index] is None:  # No materials
-                                for i1, i2, i3 in indices:
-                                    if linebreaksinlists:
-                                        file.write(",\n")
-                                        # vert count
-                                        file.write(tabStr + "<%d,%d,%d>" % (fv[i1], fv[i2], fv[i3]))
-                                    else:
-                                        file.write(", ")
-                                        file.write("<%d,%d,%d>" % (fv[i1], fv[i2], fv[i3]))  # vert count
+                                if linebreaksinlists:
+                                    file.write(",\n")
+                                    # vert count
+                                    file.write(tabStr + "<%d,%d,%d>" % (fv[0], fv[1], fv[2]))
+                                else:
+                                    file.write(", ")
+                                    file.write("<%d,%d,%d>" % (fv[0], fv[1], fv[2]))  # vert count
                             else:
                                 material = me_materials[material_index]
-                                for i1, i2, i3 in indices:
-                                    ci1 = ci2 = ci3 = f.material_index
-                                    if me.vertex_colors: #and material.use_vertex_color_paint:
-                                        # Color per vertex - vertex color
+                                ci1 = ci2 = ci3 = f.material_index
+                                if me.vertex_colors: #and material.use_vertex_color_paint:
+                                    # Color per vertex - vertex color
 
-                                        col1 = cols[i1]
-                                        col2 = cols[i2]
-                                        col3 = cols[i3]
+                                    col1 = cols[0]
+                                    col2 = cols[1]
+                                    col3 = cols[2]
 
-                                        ci1 = vertCols[col1[0], col1[1], col1[2], material_index][0]
-                                        ci2 = vertCols[col2[0], col2[1], col2[2], material_index][0]
-                                        ci3 = vertCols[col3[0], col3[1], col3[2], material_index][0]
-                                    elif material.pov.material_use_nodes:
-                                        ci1 = ci2 = ci3 = 0
+                                    ci1 = vertCols[col1[0], col1[1], col1[2], material_index][0]
+                                    ci2 = vertCols[col2[0], col2[1], col2[2], material_index][0]
+                                    ci3 = vertCols[col3[0], col3[1], col3[2], material_index][0]
+                                elif material.pov.material_use_nodes:
+                                    ci1 = ci2 = ci3 = 0
+                                else:
+                                    # Color per material - flat material color
+                                    if material.subsurface_scattering.use:
+                                        diffuse_color = [i * j for i, j in
+                                            zip(material.subsurface_scattering.color[:],
+                                                material.diffuse_color[:])]
                                     else:
-                                        # Color per material - flat material color
-                                        if material.subsurface_scattering.use:
-                                            diffuse_color = [i * j for i, j in
-                                                zip(material.subsurface_scattering.color[:],
-                                                    material.diffuse_color[:])]
-                                        else:
-                                            diffuse_color = material.diffuse_color[:]
-                                        ci1 = ci2 = ci3 = vertCols[diffuse_color[0], diffuse_color[1], \
-                                                          diffuse_color[2], f.material_index][0]
+                                        diffuse_color = material.diffuse_color[:]
+                                    ci1 = ci2 = ci3 = vertCols[diffuse_color[0], diffuse_color[1], \
+                                                      diffuse_color[2], f.material_index][0]
 
-                                    if linebreaksinlists:
-                                        file.write(",\n")
-                                        file.write(tabStr + "<%d,%d,%d>, %d,%d,%d" % \
-                                                   (fv[i1], fv[i2], fv[i3], ci1, ci2, ci3))  # vert count
-                                    else:
-                                        file.write(", ")
-                                        file.write("<%d,%d,%d>, %d,%d,%d" % \
-                                                   (fv[i1], fv[i2], fv[i3], ci1, ci2, ci3))  # vert count
+                                if linebreaksinlists:
+                                    file.write(",\n")
+                                    file.write(tabStr + "<%d,%d,%d>, %d,%d,%d" % \
+                                               (fv[0], fv[1], fv[2], ci1, ci2, ci3))  # vert count
+                                else:
+                                    file.write(", ")
+                                    file.write("<%d,%d,%d>, %d,%d,%d" % \
+                                               (fv[0], fv[1], fv[2], ci1, ci2, ci3))  # vert count
 
                         file.write("\n")
                         tabWrite("}\n")
 
                         # normal_indices indices
                         tabWrite("normal_indices {\n")
-                        tabWrite("%d" % (len(me_faces) + quadCount))  # faces count
+                        tabWrite("%d" % (len(me_faces)))  # faces count
                         tabStr = tab * tabLevel
                         for fi, fv in enumerate(faces_verts):
-
-                            if len(fv) == 4:
-                                indices = (0, 1, 2), (0, 2, 3)
-                            else:
-                                indices = ((0, 1, 2),)
-
-                            for i1, i2, i3 in indices:
-                                if me_faces[fi].use_smooth:
-                                    if linebreaksinlists:
-                                        file.write(",\n")
-                                        file.write(tabStr + "<%d,%d,%d>" %\
-                                        (uniqueNormals[verts_normals[fv[i1]]][0],\
-                                         uniqueNormals[verts_normals[fv[i2]]][0],\
-                                         uniqueNormals[verts_normals[fv[i3]]][0]))  # vert count
-                                    else:
-                                        file.write(", ")
-                                        file.write("<%d,%d,%d>" %\
-                                        (uniqueNormals[verts_normals[fv[i1]]][0],\
-                                         uniqueNormals[verts_normals[fv[i2]]][0],\
-                                         uniqueNormals[verts_normals[fv[i3]]][0]))  # vert count
+                            if me_faces[fi].use_smooth:
+                                if linebreaksinlists:
+                                    file.write(",\n")
+                                    file.write(tabStr + "<%d,%d,%d>" %\
+                                    (uniqueNormals[verts_normals[fv[0]]][0],\
+                                     uniqueNormals[verts_normals[fv[1]]][0],\
+                                     uniqueNormals[verts_normals[fv[2]]][0]))  # vert count
                                 else:
-                                    idx = uniqueNormals[faces_normals[fi]][0]
-                                    if linebreaksinlists:
-                                        file.write(",\n")
-                                        file.write(tabStr + "<%d,%d,%d>" % (idx, idx, idx)) # vertcount
-                                    else:
-                                        file.write(", ")
-                                        file.write("<%d,%d,%d>" % (idx, idx, idx))  # vert count
+                                    file.write(", ")
+                                    file.write("<%d,%d,%d>" %\
+                                    (uniqueNormals[verts_normals[fv[0]]][0],\
+                                     uniqueNormals[verts_normals[fv[1]]][0],\
+                                     uniqueNormals[verts_normals[fv[2]]][0]))  # vert count
+                            else:
+                                idx = uniqueNormals[faces_normals[fi]][0]
+                                if linebreaksinlists:
+                                    file.write(",\n")
+                                    file.write(tabStr + "<%d,%d,%d>" % (idx, idx, idx)) # vertcount
+                                else:
+                                    file.write(", ")
+                                    file.write("<%d,%d,%d>" % (idx, idx, idx))  # vert count
 
                         file.write("\n")
                         tabWrite("}\n")
 
                         if uv_layer:
                             tabWrite("uv_indices {\n")
-                            tabWrite("%d" % (len(me_faces) + quadCount))  # faces count
+                            tabWrite("%d" % (len(me_faces)))  # faces count
                             tabStr = tab * tabLevel
-                            for fi, fv in enumerate(faces_verts):
+                            for f in me_faces:
+                                uvs = [uv_layer[l].uv[:] for l in f.loops]
 
-                                if len(fv) == 4:
-                                    indices = (0, 1, 2), (0, 2, 3)
+                                if linebreaksinlists:
+                                    file.write(",\n")
+                                    file.write(tabStr + "<%d,%d,%d>" % (
+                                             uniqueUVs[uvs[0]][0],\
+                                             uniqueUVs[uvs[1]][0],\
+                                             uniqueUVs[uvs[2]][0]))
                                 else:
-                                    indices = ((0, 1, 2),)
-
-                                uv = uv_layer[fi]
-                                if len(faces_verts[fi]) == 4:
-                                    uvs = uv.uv[0][:], uv.uv[1][:], uv.uv[2][:], uv.uv[3][:]
-                                else:
-                                    uvs = uv.uv[0][:], uv.uv[1][:], uv.uv[2][:]
-
-                                for i1, i2, i3 in indices:
-                                    if linebreaksinlists:
-                                        file.write(",\n")
-                                        file.write(tabStr + "<%d,%d,%d>" % (
-                                                 uniqueUVs[uvs[i1]][0],\
-                                                 uniqueUVs[uvs[i2]][0],\
-                                                 uniqueUVs[uvs[i3]][0]))
-                                    else:
-                                        file.write(", ")
-                                        file.write("<%d,%d,%d>" % (
-                                                 uniqueUVs[uvs[i1]][0],\
-                                                 uniqueUVs[uvs[i2]][0],\
-                                                 uniqueUVs[uvs[i3]][0]))
+                                    file.write(", ")
+                                    file.write("<%d,%d,%d>" % (
+                                             uniqueUVs[uvs[0]][0],\
+                                             uniqueUVs[uvs[1]][0],\
+                                             uniqueUVs[uvs[2]][0]))
 
                             file.write("\n")
                             tabWrite("}\n")

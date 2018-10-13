@@ -914,18 +914,18 @@ class VIEW3D_MT_booltool_menu(Menu):
         layout = self.layout
 
         layout.label("Auto Boolean:")
-        layout.operator(OBJECT_OT_BoolTool_Auto_Difference.bl_idname, text='Difference', icon="ROTACTIVE")
-        layout.operator(OBJECT_OT_BoolTool_Auto_Union.bl_idname, text='Union', icon="ROTATECOLLECTION")
-        layout.operator(OBJECT_OT_BoolTool_Auto_Intersect.bl_idname, text='Intersect', icon="ROTATECENTER")
-        layout.operator(OBJECT_OT_BoolTool_Auto_Slice.bl_idname, text='Slice', icon="ROTATECENTER")
-        layout.operator(OBJECT_OT_BoolTool_Auto_Subtract.bl_idname, text='Subtract', icon="ROTACTIVE")
+        layout.operator(OBJECT_OT_BoolTool_Auto_Difference.bl_idname, text='Difference', icon='PIVOT_ACTIVE')
+        layout.operator(OBJECT_OT_BoolTool_Auto_Union.bl_idname, text='Union', icon='PIVOT_INDIVIDUAL')
+        layout.operator(OBJECT_OT_BoolTool_Auto_Intersect.bl_idname, text='Intersect', icon='PIVOT_MEDIAN')
+        layout.operator(OBJECT_OT_BoolTool_Auto_Slice.bl_idname, text='Slice', icon='PIVOT_MEDIAN')
+        layout.operator(OBJECT_OT_BoolTool_Auto_Subtract.bl_idname, text='Subtract', icon='PIVOT_ACTIVE')
         layout.separator()
 
         layout.label("Brush Boolean:")
-        layout.operator(BTool_Diff.bl_idname, icon="ROTACTIVE")
-        layout.operator(BTool_Union.bl_idname, icon="ROTATECOLLECTION")
-        layout.operator(BTool_Inters.bl_idname, icon="ROTATECENTER")
-        layout.operator(BTool_Slice.bl_idname, icon="ROTATECENTER")
+        layout.operator(BTool_Diff.bl_idname, icon='PIVOT_ACTIVE')
+        layout.operator(BTool_Union.bl_idname, icon='PIVOT_INDIVIDUAL')
+        layout.operator(BTool_Inters.bl_idname, icon='PIVOT_MEDIAN')
+        layout.operator(BTool_Slice.bl_idname, icon='PIVOT_MEDIAN')
 
         if (isCanvas(context.active_object)):
             layout.separator()
@@ -977,16 +977,16 @@ class VIEW3D_PT_booltool_tools(Panel):
         col.enabled = obs_len > 1
         col.label("Auto Boolean:", icon="MODIFIER")
         col.separator()
-        col.operator(OBJECT_OT_BoolTool_Auto_Difference.bl_idname, text='Difference', icon="ROTACTIVE")
-        col.operator(OBJECT_OT_BoolTool_Auto_Union.bl_idname, text='Union', icon="ROTATECOLLECTION")
-        col.operator(OBJECT_OT_BoolTool_Auto_Intersect.bl_idname, text='Intersect', icon="ROTATECENTER")
+        col.operator(OBJECT_OT_BoolTool_Auto_Difference.bl_idname, text='Difference', icon='PIVOT_ACTIVE')
+        col.operator(OBJECT_OT_BoolTool_Auto_Union.bl_idname, text='Union', icon='PIVOT_INDIVIDUAL')
+        col.operator(OBJECT_OT_BoolTool_Auto_Intersect.bl_idname, text='Intersect', icon='PIVOT_MEDIAN')
 
         main.separator()
 
         col = main.column(align=True)
         col.enabled = obs_len == 2
-        col.operator(OBJECT_OT_BoolTool_Auto_Slice.bl_idname, text='Slice', icon="ROTATECENTER")
-        col.operator(OBJECT_OT_BoolTool_Auto_Subtract.bl_idname, text='Subtract', icon="ROTACTIVE")
+        col.operator(OBJECT_OT_BoolTool_Auto_Slice.bl_idname, text='Slice', icon='PIVOT_MEDIAN')
+        col.operator(OBJECT_OT_BoolTool_Auto_Subtract.bl_idname, text='Subtract', icon='PIVOT_ACTIVE')
 
         main.separator()
 
@@ -994,10 +994,10 @@ class VIEW3D_PT_booltool_tools(Panel):
         col.enabled = obs_len > 1
         col.label("Brush Boolean:", icon="MODIFIER")
         col.separator()
-        col.operator(BTool_Diff.bl_idname, text="Difference", icon="ROTACTIVE")
-        col.operator(BTool_Union.bl_idname, text="Union", icon="ROTATECOLLECTION")
-        col.operator(BTool_Inters.bl_idname, text="Intersect", icon="ROTATECENTER")
-        col.operator(BTool_Slice.bl_idname, text="Slice", icon="ROTATECENTER")
+        col.operator(BTool_Diff.bl_idname, text="Difference", icon='PIVOT_ACTIVE')
+        col.operator(BTool_Union.bl_idname, text="Union", icon='PIVOT_INDIVIDUAL')
+        col.operator(BTool_Inters.bl_idname, text="Intersect", icon='PIVOT_MEDIAN')
+        col.operator(BTool_Slice.bl_idname, text="Slice", icon='PIVOT_MEDIAN')
 
         main.separator()
 

@@ -95,7 +95,7 @@ class AreaTypePieOther(Menu):
         # 4 - LEFT
         self.layout.operator(SetAreaType.bl_idname, text="Logic Editor", icon="LOGIC").types = "LOGIC_EDITOR"
         # 6 - RIGHT
-        self.layout.operator(SetAreaType.bl_idname, text="File Browser", icon="FILESEL").types = "FILE_BROWSER"
+        self.layout.operator(SetAreaType.bl_idname, text="File Browser", icon="FILEBROWSER").types = "FILE_BROWSER"
         # 2 - BOTTOM
         self.layout.operator(SetAreaType.bl_idname, text="Python Console", icon="CONSOLE").types = "CONSOLE"
         # 8 - TOP

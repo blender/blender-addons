@@ -95,8 +95,8 @@ class TexAtl_Main(Panel):
         row.template_list("UI_UL_list", "template_list_controls", scene,
                           "ms_lightmap_groups", scene, "ms_lightmap_groups_index", rows=2, maxrows=5)
         col = row.column(align=True)
-        col.operator("scene.ms_add_lightmap_group", icon='ZOOMIN', text="")
-        col.operator("scene.ms_del_lightmap_group", icon='ZOOMOUT', text="")
+        col.operator("scene.ms_add_lightmap_group", icon='ADD', text="")
+        col.operator("scene.ms_del_lightmap_group", icon='REMOVE', text="")
 
         row = self.layout.row(align=True)
 

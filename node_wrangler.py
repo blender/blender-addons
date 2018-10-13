@@ -3752,7 +3752,7 @@ def drawlayout(context, layout, mode='non-panel'):
     col.separator()
 
     col = layout.column(align=True)
-    col.operator(NWAlignNodes.bl_idname, icon='ALIGN')
+    col.operator(NWAlignNodes.bl_idname, icon='CENTER_ONLY')
     col.separator()
 
     col = layout.column(align=True)

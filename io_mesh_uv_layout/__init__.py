@@ -46,10 +46,6 @@ if "bpy" in locals():
 import os
 import bpy
 
-from . import export_uv_eps
-from . import export_uv_png
-from . import export_uv_svg
-
 from bpy.props import (
     StringProperty,
     BoolProperty,
@@ -80,13 +76,14 @@ class ExportUVLayout(bpy.types.Operator):
         default=False,
     )
     mode: EnumProperty(
-        items=(('SVG', "Scalable Vector Graphic (.svg)",
-                "Export the UV layout to a vector SVG file"),
-                ('EPS', "Encapsulate PostScript (.eps)",
-                "Export the UV layout to a vector EPS file"),
-                ('PNG', "PNG Image (.png)",
-                "Export the UV layout to a bitmap image"),
-                ),
+        items=(
+            ('SVG', "Scalable Vector Graphic (.svg)",
+             "Export the UV layout to a vector SVG file"),
+            ('EPS', "Encapsulate PostScript (.eps)",
+             "Export the UV layout to a vector EPS file"),
+            ('PNG', "PNG Image (.png)",
+             "Export the UV layout to a bitmap image"),
+        ),
         name="Format",
         description="File format to export the UV layout to",
         default='PNG',
@@ -100,14 +97,14 @@ class ExportUVLayout(bpy.types.Operator):
     opacity: FloatProperty(
         name="Fill Opacity",
         min=0.0, max=1.0,
-        default=0.5,
-        description="Set amount of opacity for exported UV layout"
+        default=0.25,
+        description="Set amount of opacity for exported UV layout",
     )
 
     @classmethod
     def poll(cls, context):
         obj = context.active_object
-        return obj is not None and obj.type == 'MESH' and len(obj.data.uv_layers) > 0
+        return obj is not None and obj.type == 'MESH' and obj.data.uv_layers
 
     def invoke(self, context, event):
         self.size = self.get_image_size(context)
@@ -132,8 +129,8 @@ class ExportUVLayout(bpy.types.Operator):
         return True
 
     def execute(self, context):
-        object = context.active_object
-        is_editmode = (object.mode == 'EDIT')
+        obj = context.active_object
+        is_editmode = (obj.mode == 'EDIT')
         if is_editmode:
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
@@ -155,26 +152,29 @@ class ExportUVLayout(bpy.types.Operator):
         return {'FINISHED'}
 
     def iter_meshes_to_export(self, context):
-        for object in self.iter_objects_to_export(context):
+        for obj in self.iter_objects_to_export(context):
             if self.modified:
-                yield object.to_mesh(context.depsgraph, apply_modifiers=True)
+                yield obj.to_mesh(context.depsgraph, apply_modifiers=True)
             else:
-                yield object.data
+                yield obj.data
 
-    def iter_objects_to_export(self, context):
-        for object in context.selected_objects:
-            if object.type != "MESH":
+    @staticmethod
+    def iter_objects_to_export(context):
+        for obj in context.selected_objects:
+            if obj.type != 'MESH':
                 continue
-            mesh = object.data
+            mesh = obj.data
             if mesh.uv_layers.active is None:
                 continue
-            yield object
+            yield obj
 
-    def free_meshes(self, meshes):
+    @staticmethod
+    def free_meshes(meshes):
         for mesh in meshes:
             bpy.data.meshes.remove(mesh)
 
-    def currently_image_image_editor(self, context):
+    @staticmethod
+    def currently_image_image_editor(context):
         return isinstance(context.space_data, bpy.types.SpaceImageEditor)
 
     def get_currently_opened_image(self, context):
@@ -207,7 +207,8 @@ class ExportUVLayout(bpy.types.Operator):
                     uvs = tuple(tuple(uv.uv) for uv in uv_layer[start:end])
                     yield (uvs, self.get_polygon_color(mesh, polygon))
 
-    def get_polygon_color(self, mesh, polygon, default = (0.8, 0.8, 0.8)):
+    @staticmethod
+    def get_polygon_color(mesh, polygon, default=(0.8, 0.8, 0.8)):
         if polygon.material_index < len(mesh.materials):
             material = mesh.materials[polygon.material_index]
             if material is not None:
@@ -215,11 +216,14 @@ class ExportUVLayout(bpy.types.Operator):
         return default
 
     def get_exporter(self):
-        if self.mode == "PNG":
+        if self.mode == 'PNG':
+            from . import export_uv_png
             return export_uv_png.export
-        elif self.mode == "EPS":
+        elif self.mode == 'EPS':
+            from . import export_uv_eps
             return export_uv_eps.export
-        elif self.mode == "SVG":
+        elif self.mode == 'SVG':
+            from . import export_uv_svg
             return export_uv_svg.export
         else:
             assert False
@@ -233,9 +237,11 @@ def register():
     bpy.utils.register_class(ExportUVLayout)
     bpy.types.IMAGE_MT_uvs.append(menu_func)
 
+
 def unregister():
     bpy.utils.unregister_class(ExportUVLayout)
     bpy.types.IMAGE_MT_uvs.remove(menu_func)
+
 
 if __name__ == "__main__":
     register()

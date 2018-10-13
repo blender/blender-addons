@@ -21,7 +21,7 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (4, 10, 4),
+    "version": (4, 11, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
@@ -226,8 +226,6 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         keywords = self.as_keywords(ignore=("filter_glob", "directory", "ui_tab"))
-        # XXX TODO get rid of this, EEVEE/Cycles use same nodal system...
-        keywords["use_cycles"] = True #(context.scene.render.engine == 'CYCLES')
 
         from . import import_fbx
         return import_fbx.load(self, context, **keywords)

@@ -2238,8 +2238,8 @@ class ExportPaperModel(bpy.types.Operator):
 
         row = layout.row(align=True)
         row.menu("VIEW3D_MT_paper_model_presets", text=bpy.types.VIEW3D_MT_paper_model_presets.bl_label)
-        row.operator("export_mesh.paper_model_preset_add", text="", icon='ZOOMIN')
-        row.operator("export_mesh.paper_model_preset_add", text="", icon='ZOOMOUT').remove_active = True
+        row.operator("export_mesh.paper_model_preset_add", text="", icon='ADD')
+        row.operator("export_mesh.paper_model_preset_add", text="", icon='REMOVE').remove_active = True
 
         # a little hack: this prints out something like "Scale: 1: 72"
         layout.prop(self.properties, "scale", text="Scale: 1")

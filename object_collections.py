@@ -262,7 +262,7 @@ class OBJECT_PT_collections(Panel):
             row.operator("object.collection_link", text="Add to Collection")
         else:
             row.operator("object.collection_link", text="Add to Collection").collection_index = 0
-        row.operator("object.collection_add", text="", icon='ZOOMIN')
+        row.operator("object.collection_add", text="", icon='ADD')
 
         obj_name = obj.name
         for collection in all_collections_get(context):

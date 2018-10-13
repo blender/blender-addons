@@ -321,8 +321,7 @@ def DefOscObjectToMesh():
     MESH = ACTOBJ.to_mesh(
         scene=bpy.context.scene,
         apply_modifiers=True,
-        settings="RENDER",
-        calc_tessface=True)
+        settings="RENDER")
     OBJECT = bpy.data.objects.new(("%s_Freeze") % (ACTOBJ.name), MESH)
     bpy.context.scene.objects.link(OBJECT)
 
@@ -601,7 +600,7 @@ def defPasteUvsIsland(self, uvOffset, rotateUv,context):
         bm = bmesh.from_edit_mesh(bpy.context.object.data)
         bmesh.ops.reverse_uvs(bm, faces=[f for f in bm.faces if f.select])
         bmesh.ops.rotate_uvs(bm, faces=[f for f in bm.faces if f.select])
-        #bmesh.update_edit_mesh(bpy.context.object.data, tessface=False, destructive=False)
+        #bmesh.update_edit_mesh(bpy.context.object.data, loop_triangles=False, destructive=False)
 
 
 

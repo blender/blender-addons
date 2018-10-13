@@ -105,8 +105,8 @@ class POSE_PT_selection_sets(Panel):
 
         # add/remove/specials UI list Menu
         col = row.column(align=True)
-        col.operator("pose.selection_set_add", icon='ZOOMIN', text="")
-        col.operator("pose.selection_set_remove", icon='ZOOMOUT', text="")
+        col.operator("pose.selection_set_add", icon='ADD', text="")
+        col.operator("pose.selection_set_remove", icon='REMOVE', text="")
         col.menu("POSE_MT_selection_sets_specials", icon='DOWNARROW_HLT', text="")
 
         # move up/down arrows
