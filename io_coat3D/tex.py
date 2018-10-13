@@ -29,9 +29,21 @@ def find_index(objekti):
         luku = luku +1
     return luku
 
+def RemoveFbxNodes(objekti):
+    Node_Tree = objekti.active_material.node_tree
+    for node in Node_Tree.nodes:
+        if node.type != 'OUTPUT_MATERIAL':
+            Node_Tree.nodes.remove(node)
+        else:
+            output = node
+            output.location = 340,400
+    Prin_mat = Node_Tree.nodes.new(type="ShaderNodeBsdfPrincipled")
+    Prin_mat.location = 13, 375
+
+    Node_Tree.links.new(Prin_mat.outputs[0], output.inputs[0])
+
 def readtexturefolder(objekti,is_new): #read textures from texture file
 
-    coat3D = bpy.context.scene.coat3D
     obj_coat = objekti.coat3D
 
     texcoat = {}
@@ -45,12 +57,13 @@ def readtexturefolder(objekti,is_new): #read textures from texture file
     files_dir = os.path.dirname(os.path.abspath(objekti.coat3D.applink_address))
     files = os.listdir(files_dir)
     materiaali_muutos = objekti.active_material.name
-    uusin_mat = materiaali_muutos.replace('Material.','Material_')
-    new_name = (obj_coat.applink_name + '_' + uusin_mat)
-    name_boxs = new_name.split('.')
-    if len(name_boxs) > 1:
-        if len(name_boxs[-1]) == 3:
-            new_name = new_name[:-4]
+    uusin_mat = materiaali_muutos
+    if(is_new == True and objekti.coat3D.obj_mat == ''):
+        obj_coat.obj_mat = (objekti.coat3D.applink_name + '_' + objekti.data.uv_layers[0].name)
+    elif (objekti.coat3D.obj_mat == ''):
+        obj_coat.obj_mat = (objekti.coat3D.applink_name + '_' + uusin_mat)
+
+    new_name = obj_coat.obj_mat + '_'
     for i in files:
         if(i.startswith(new_name)):
             koko_osoite = files_dir + os.sep + i
@@ -74,15 +87,29 @@ def createnodes(objekti,texcoat): #luo nodes palikat ja linkittaa tekstuurit nii
     bring_normal = True
     bring_disp = True
 
-    act_material = objekti.active_material
+    coat3D = bpy.context.scene.coat3D
+    print('createnodes:', objekti)
+
     if(objekti.active_material.use_nodes == False):
         objekti.active_material.use_nodes = True
+    act_material = objekti.active_material.node_tree
+    main_material = objekti.active_material.node_tree
+    applink_group_node = False
 
     #ensimmaiseksi kaydaan kaikki image nodet lapi ja tarkistetaan onko nimi 3DC alkunen jos on niin reload
 
-    for node in act_material.node_tree.nodes:
+    for node in act_material.nodes:
+        if(node.name == '3DC_Applink' and node.type == 'GROUP'):
+            applink_group_node = True
+            act_material = node.node_tree
+            break
+
+
+    for node in act_material.nodes:
+        print(node.name)
         if(node.type == 'TEX_IMAGE'):
             if(node.name == '3DC_color'):
+                print('halloo helsinki')
                 bring_color = False
                 node.image.reload()
             elif(node.name == '3DC_metalness'):
@@ -96,63 +123,152 @@ def createnodes(objekti,texcoat): #luo nodes palikat ja linkittaa tekstuurit nii
                 node.image.reload()
 
     #seuraavaksi lahdemme rakentamaan node tree. Lahdetaan Material Outputista rakentaa
+    if(applink_group_node == False and coat3D.creategroup):
+        group_tree = bpy.data.node_groups.new('3DC_Applink', 'ShaderNodeTree')
+        applink_tree = act_material.nodes.new('ShaderNodeGroup')
+        applink_tree.name = '3DC_Applink'
+        applink_tree.node_tree = group_tree
+        applink_tree.location = -400, 300
+        act_material = group_tree
+        notegroup = act_material.nodes.new('NodeGroupOutput')
 
-    main_mat = act_material.node_tree.nodes['Material Output']
+
+    main_mat = main_material.nodes['Material Output']
     if(main_mat.inputs['Surface'].is_linked == True):
         glue_mat = main_mat.inputs['Surface'].links[0].from_node
+        input_color = glue_mat.inputs.find('Base Color')
+        input_index = 0
 
         #Color
         if(bring_color == True and glue_mat.inputs.find('Base Color') != -1 and texcoat['color'] != []):
-            node = act_material.node_tree.nodes.new('ShaderNodeTexImage')
-            node.location = -400,400
-            node.name='3DC_color'
-            if(texcoat['color']):
+            node = act_material.nodes.new('ShaderNodeTexImage')
+            node.name = '3DC_color'
+            if (texcoat['color']):
                 node.image = bpy.data.images.load(texcoat['color'][0])
-            input_color = glue_mat.inputs.find('Base Color')
-            act_material.node_tree.links.new(node.outputs[0], glue_mat.inputs[input_color])
+            if(coat3D.createnodes):
+                curvenode = act_material.nodes.new('ShaderNodeRGBCurve')
+                curvenode.name = '3DC_RGBCurve'
+                huenode = act_material.nodes.new('ShaderNodeHueSaturation')
+                huenode.name = '3DC_HueSaturation'
+                act_material.links.new(huenode.outputs[0], glue_mat.inputs[input_color])
+                act_material.links.new(curvenode.outputs[0], huenode.inputs[4])
+                act_material.links.new(node.outputs[0], curvenode.inputs[1])
+                node.location = -990, 530
+                curvenode.location = -660, 480
+                huenode.location = -337, 335
+                if(coat3D.creategroup):
+                    act_material.links.new(huenode.outputs[0], notegroup.inputs[input_index])
+                    print('Group nimi', group_tree)
+                    group_tree.outputs[input_index].name = 'Color'
+                    main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
+                    input_index += 1
+            else:
+                if (coat3D.creategroup):
+                    node.location = -400, 400
+                    act_material.links.new(node.outputs[0], notegroup.inputs[input_index])
+                    main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
+                    input_index += 1
+
+                else:
+                    node.location = -400,400
+                    act_material.links.new(node.outputs[0], glue_mat.inputs[input_color])
 
         #Metalness
         if(bring_metalness == True and glue_mat.inputs.find('Metallic') != -1 and texcoat['metalness'] != []):
-            node = act_material.node_tree.nodes.new('ShaderNodeTexImage')
-            node.location = -830,160
+            node = act_material.nodes.new('ShaderNodeTexImage')
             node.name='3DC_metalness'
+            input_color = glue_mat.inputs.find('Metallic')
             if(texcoat['metalness']):
                 node.image = bpy.data.images.load(texcoat['metalness'][0])
                 node.color_space = 'NONE'
-            input_color = glue_mat.inputs.find('Metallic')
-            act_material.node_tree.links.new(node.outputs[0], glue_mat.inputs[input_color])
+            if (coat3D.createnodes):
+                curvenode = act_material.nodes.new('ShaderNodeRGBCurve')
+                curvenode.name = '3DC_RGBCurve'
+                huenode = act_material.nodes.new('ShaderNodeHueSaturation')
+                huenode.name = '3DC_HueSaturation'
+                act_material.links.new(huenode.outputs[0], glue_mat.inputs[input_color])
+                act_material.links.new(curvenode.outputs[0], huenode.inputs[4])
+                act_material.links.new(node.outputs[0], curvenode.inputs[1])
+                node.location = -994, 119
+                curvenode.location = -668, 113
+                huenode.location = -345, 118
+                if (coat3D.creategroup):
+                    act_material.links.new(huenode.outputs[0], notegroup.inputs[input_index])
+                    group_tree.outputs[input_index].name = 'Metalness'
+                    main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
+                    input_index += 1
+            else:
+                if (coat3D.creategroup):
+                    node.location = -830, 160
+                    act_material.links.new(node.outputs[0], notegroup.inputs[input_index])
+                    main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
+                    input_index += 1
+                else:
+                    node.location = -830, 160
+                    act_material.links.new(node.outputs[0], glue_mat.inputs[input_color])
 
         #Roughness
         if(bring_roughness == True and glue_mat.inputs.find('Roughness') != -1 and texcoat['rough'] != []):
-            node = act_material.node_tree.nodes.new('ShaderNodeTexImage')
-            node.location = -550,0
+            node = act_material.nodes.new('ShaderNodeTexImage')
             node.name='3DC_roughness'
+            input_color = glue_mat.inputs.find('Roughness')
             if(texcoat['rough']):
                 node.image = bpy.data.images.load(texcoat['rough'][0])
                 node.color_space = 'NONE'
-            input_color = glue_mat.inputs.find('Roughness')
-            act_material.node_tree.links.new(node.outputs[0], glue_mat.inputs[input_color])
+            if (coat3D.createnodes):
+                curvenode = act_material.nodes.new('ShaderNodeRGBCurve')
+                curvenode.name = '3DC_RGBCurve'
+                huenode = act_material.nodes.new('ShaderNodeHueSaturation')
+                huenode.name = '3DC_HueSaturation'
+                act_material.links.new(huenode.outputs[0], glue_mat.inputs[input_color])
+                act_material.links.new(curvenode.outputs[0], huenode.inputs[4])
+                act_material.links.new(node.outputs[0], curvenode.inputs[1])
+                node.location = -1000, -276
+                curvenode.location = -670, -245
+                huenode.location = -340, -100
+                if (coat3D.creategroup):
+                    act_material.links.new(huenode.outputs[0], notegroup.inputs[input_index])
+                    group_tree.outputs[input_index].name = 'Roughness'
+                    main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
+                    input_index += 1
+            else:
+                if (coat3D.creategroup):
+                    node.location = -550, 0
+                    act_material.links.new(node.outputs[0], notegroup.inputs[input_index])
+                    main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
+                    input_index += 1
+                else:
+                    node.location = -550, 0
+                    act_material.links.new(node.outputs[0], glue_mat.inputs[input_color])
 
         #Normal map
         if(bring_normal == True and glue_mat.inputs.find('Normal') != -1 and texcoat['nmap'] != []):
-            node = act_material.node_tree.nodes.new('ShaderNodeTexImage')
-            normal_node = act_material.node_tree.nodes.new('ShaderNodeNormalMap')
-            node.location = -600,-370
-            normal_node.location = -300,-270
+            node = act_material.nodes.new('ShaderNodeTexImage')
+            normal_node = act_material.nodes.new('ShaderNodeNormalMap')
+            node.location = -600,-670
+            normal_node.location = -300,-300
             node.name='3DC_normal'
+            normal_node.name='3DC_normalnode'
             if(texcoat['nmap']):
                 node.image = bpy.data.images.load(texcoat['nmap'][0])
                 node.color_space = 'NONE'
             input_color = glue_mat.inputs.find('Normal')
-            act_material.node_tree.links.new(node.outputs[0], normal_node.inputs[1])
-            act_material.node_tree.links.new(normal_node.outputs[0], glue_mat.inputs[input_color])
-
-        bpy.ops.object.editmode_toggle() #HACKKI joka saa tekstuurit nakymaan heti
-        bpy.ops.object.editmode_toggle()
+            act_material.links.new(node.outputs[0], normal_node.inputs[1])
+            act_material.links.new(normal_node.outputs[0], glue_mat.inputs[input_color])
+            if (coat3D.creategroup):
+                act_material.links.new(normal_node.outputs[0], notegroup.inputs[input_index])
+                main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
+                input_index += 1
 
 
 
 def matlab(mat_list, objekti, scene,is_new):
+
+    ''' FBX Materials: remove all nodes and create princibles node'''
+    if(is_new):
+        RemoveFbxNodes(objekti)
+
+    '''Main Loop for Texture Update'''
     #checkmaterial(mat_list, objekti)
     readtexturefolder(objekti,is_new)
 
