@@ -1316,9 +1316,11 @@ def blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene):
 # Material
 
 def blen_read_material(fbx_tmpl, fbx_obj, settings):
+    from bpy_extras import node_shader_utils
+
     elem_name_utf8 = elem_name_ensure_class(fbx_obj, b'Material')
 
-    cycles_material_wrap_map = settings.cycles_material_wrap_map
+    nodal_material_wrap_map = settings.nodal_material_wrap_map
     ma = bpy.data.materials.new(name=elem_name_utf8)
 
     const_color_white = 1.0, 1.0, 1.0
@@ -1326,27 +1328,21 @@ def blen_read_material(fbx_tmpl, fbx_obj, settings):
     fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                  elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
 
-    ma_diff = elem_props_get_color_rgb(fbx_props, b'DiffuseColor', const_color_white)
-    ma_spec = elem_props_get_color_rgb(fbx_props, b'SpecularColor', const_color_white)
-    ma_alpha = elem_props_get_number(fbx_props, b'Opacity', 1.0)
-    ma_spec_intensity = ma.specular_intensity = elem_props_get_number(fbx_props, b'SpecularFactor', 0.25) * 2.0
-    ma_spec_hardness = elem_props_get_number(fbx_props, b'Shininess', 9.6)
-    ma_refl_factor = elem_props_get_number(fbx_props, b'ReflectionFactor', 0.0)
-    ma_refl_color = elem_props_get_color_rgb(fbx_props, b'ReflectionColor', const_color_white)
+    ma_wrap = node_shader_utils.PrincipledBSDFWrapper(ma, is_readonly=False, use_nodes=True)
+    ma_wrap.base_color = elem_props_get_color_rgb(fbx_props, b'DiffuseColor', const_color_white)
+    # No specular color in Principled BSDF shader, assumed to be either white or take some tint from diffuse one...
+    # TODO: add way to handle tint option (guesstimate from spec color + intensity...)?
+    ma_wrap.specular = elem_props_get_number(fbx_props, b'SpecularFactor', 0.25) * 2.0
+    # XXX Totally empirical conversion reusing previous 'hardness' computing...
+    ma_wrap.roughness = 1.0 - (((elem_props_get_number(fbx_props, b'Shininess', 9.6) + 3.0) / 5.0) - 0.65)
+    ma_wrap.transmission = 1.0 - elem_props_get_number(fbx_props, b'Opacity', 1.0)
+    ma_wrap.metallic = elem_props_get_number(fbx_props, b'ReflectionFactor', 0.0)
+    # We have no metallic (a.k.a. reflection) color...
+    # elem_props_get_color_rgb(fbx_props, b'ReflectionColor', const_color_white)
+    # (x / 7.142) is only a guess, cycles usable range is (0.0 -> 0.5)
+    ma_wrap.normalmap_strength = elem_props_get_number(fbx_props, b'BumpFactor', 2.5) / 7.142
 
-    from modules import cycles_shader_compat
-    # viewport color
-    ma.diffuse_color = ma_diff
-
-    ma_wrap = cycles_shader_compat.CyclesShaderWrapper(ma)
-    ma_wrap.diffuse_color_set(ma_diff)
-    ma_wrap.specular_color_set([c * ma_spec_intensity for c in ma_spec])
-    ma_wrap.hardness_value_set(((ma_spec_hardness + 3.0) / 5.0) - 0.65)
-    ma_wrap.alpha_value_set(ma_alpha)
-    ma_wrap.reflect_factor_set(ma_refl_factor)
-    ma_wrap.reflect_color_set(ma_refl_color)
-
-    cycles_material_wrap_map[ma] = ma_wrap
+    nodal_material_wrap_map[ma] = ma_wrap
 
     if settings.use_custom_props:
         blen_read_custom_properties(fbx_obj, ma, settings)
@@ -1475,11 +1471,14 @@ def blen_read_light(fbx_tmpl, fbx_obj, global_scale):
             spot_blend = elem_props_get_number(fbx_props, b'HotSpot', 45.0)
         lamp.spot_blend = 1.0 - (spot_blend / spot_size)
 
-    # TODO, cycles
+    # TODO, cycles nodes???
     lamp.color = elem_props_get_color_rgb(fbx_props, b'Color', (1.0, 1.0, 1.0))
     lamp.energy = elem_props_get_number(fbx_props, b'Intensity', 100.0) / 100.0
     lamp.distance = elem_props_get_number(fbx_props, b'DecayStart', 25.0) * global_scale
     lamp.use_shadow = elem_props_get_bool(fbx_props, b'CastShadow', True)
+    if hasattr(lamp, "cycles"):
+        lamp.cycles.cast_shadow = lamp.use_shadow
+    # Keeping this for now, but this is not used nor exposed anymore afaik...
     lamp.shadow_color = elem_props_get_color_rgb(fbx_props, b'ShadowColor', (0.0, 0.0, 0.0))
 
     return lamp
@@ -2291,7 +2290,7 @@ def load(operator, context, filepath="",
 
     basedir = os.path.dirname(filepath)
 
-    cycles_material_wrap_map = {}
+    nodal_material_wrap_map = {}
     image_cache = {}
 
     # Tables: (FBX_byte_id -> [FBX_data, None or Blender_datablock])
@@ -2364,7 +2363,7 @@ def load(operator, context, filepath="",
         use_alpha_decals, decal_offset,
         use_anim, anim_offset,
         use_custom_props, use_custom_props_enum_as_string,
-        cycles_material_wrap_map, image_cache,
+        nodal_material_wrap_map, image_cache,
         ignore_leaf_bones, force_connect_children, automatic_bone_orientation, bone_correction_matrix,
         use_prepost_rot,
     )
@@ -2921,24 +2920,36 @@ def load(operator, context, filepath="",
         fbx_tmpl = fbx_template_get((b'Material', b'KFbxSurfacePhong'))
         # b'KFbxSurfaceLambert'
 
-        # textures that use this material
-        def texture_bumpfac_get(fbx_obj):
-            assert(fbx_obj.id == b'Material')
-            fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
-                         elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-            # (x / 7.142) is only a guess, cycles usable range is (0.0 -> 0.5)
-            return elem_props_get_number(fbx_props, b'BumpFactor', 2.5) / 7.142
-
-        def texture_mapping_get(fbx_obj):
+        def texture_mapping_set(fbx_obj, node_texture):
             assert(fbx_obj.id == b'Texture')
 
             fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                          elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-            return (elem_props_get_vector_3d(fbx_props, b'Translation', (0.0, 0.0, 0.0)),
-                    elem_props_get_vector_3d(fbx_props, b'Rotation', (0.0, 0.0, 0.0)),
-                    elem_props_get_vector_3d(fbx_props, b'Scaling', (1.0, 1.0, 1.0)),
-                    (bool(elem_props_get_enum(fbx_props, b'WrapModeU', 0)),
-                     bool(elem_props_get_enum(fbx_props, b'WrapModeV', 0))))
+            loc = elem_props_get_vector_3d(fbx_props, b'Translation', (0.0, 0.0, 0.0))
+            rot = tuple(-r for r in elem_props_get_vector_3d(fbx_props, b'Rotation', (0.0, 0.0, 0.0)))
+            scale = tuple(((1.0 / s) if s != 0.0 else 1.0)
+                          for s in elem_props_get_vector_3d(fbx_props, b'Scaling', (1.0, 1.0, 1.0)))
+            clamp_uv = (bool(elem_props_get_enum(fbx_props, b'WrapModeU', 0)),
+                        bool(elem_props_get_enum(fbx_props, b'WrapModeV', 0)))
+
+            if (loc == (0.0, 0.0, 0.0) and
+                rot == (0.0, 0.0, 0.0) and
+                scale == (1.0, 1.0, 1.0) and
+                clamp_uv == (False, False)):
+                return
+
+            node_texture.translation = loc
+            node_texture.rotation = rot
+            node_texture.scale = scale
+
+            # awkward conversion UV clamping to min/max
+            node_texture.min = (0.0, 0.0, 0.0)
+            node_texture.max = (1.0, 1.0, 1.0)
+            node_texture.use_min = node_texture.use_max = clamp_uv[0] or clamp_uv[1]
+            if clamp_uv[0] != clamp_uv[1]:
+                # use bool as index
+                node_texture.min[not clamp[0]] = -1e9
+                node_texture.max[not clamp[0]] = 1e9
 
         for fbx_uuid, fbx_item in fbx_table_nodes.items():
             fbx_obj, blen_data = fbx_item
@@ -2953,80 +2964,41 @@ def load(operator, context, filepath="",
                 if fbx_lnk_type.props[0] == b'OP':
                     lnk_type = fbx_lnk_type.props[3]
 
-                    ma_wrap = cycles_material_wrap_map[material]
-
-                    # tx/rot/scale
-                    tex_map = texture_mapping_get(fbx_lnk)
-                    if (tex_map[0] == (0.0, 0.0, 0.0) and
-                            tex_map[1] == (0.0, 0.0, 0.0) and
-                            tex_map[2] == (1.0, 1.0, 1.0) and
-                            tex_map[3] == (False, False)):
-                        use_mapping = False
-                    else:
-                        use_mapping = True
-                        tex_map_kw = {
-                            "translation": tex_map[0],
-                            "rotation": [-i for i in tex_map[1]],
-                            "scale": [((1.0 / i) if i != 0.0 else 1.0) for i in tex_map[2]],
-                            "clamp": tex_map[3],
-                            }
-
-                        """
-                        TODO for clamp:
-                            # awkward conversion UV clamping to minmax
-                            node_map.min = (0.0, 0.0, 0.0)
-                            node_map.max = (1.0, 1.0, 1.0)
-
-                            if clamp in {(False, False), (True, True)}:
-                                node_map.use_min = node_map.use_max = clamp[0]
-                            else:
-                                node_map.use_min = node_map.use_max = True
-                                # use bool as index
-                                node_map.min[not clamp[0]] = -1000000000.0
-                                node_map.max[not clamp[0]] = 1000000000.0
-                        """
+                    ma_wrap = nodal_material_wrap_map[material]
 
                     if lnk_type in {b'DiffuseColor', b'3dsMax|maps|texmap_diffuse'}:
-                        ma_wrap.diffuse_image_set(image)
-                        if use_mapping:
-                            ma_wrap.diffuse_mapping_set(**tex_map_kw)
+                        ma_wrap.base_color_texture.image = image
+                        texture_mapping_set(fbx_lnk, ma_wrap.base_color_texture)
                     elif lnk_type == b'SpecularColor':
-                        ma_wrap.specular_image_set(image)
-                        if use_mapping:
-                            ma_wrap.specular_mapping_set(**tex_map_kw)
+                        # Intensity actually, not color...
+                        ma_wrap.specular_texture.image = image
+                        texture_mapping_set(fbx_lnk, ma_wrap.specular_texture)
                     elif lnk_type in {b'ReflectionColor', b'3dsMax|maps|texmap_reflection'}:
-                        ma_wrap.reflect_image_set(image)
-                        if use_mapping:
-                            ma_wrap.reflect_mapping_set(**tex_map_kw)
-                    elif lnk_type == b'TransparentColor':  # alpha
-                        ma_wrap.alpha_image_set(image)
-                        if use_mapping:
-                            ma_wrap.alpha_mapping_set(**tex_map_kw)
+                        # Intensity actually, not color...
+                        ma_wrap.metallic_texture.image = image
+                        texture_mapping_set(fbx_lnk, ma_wrap.metallic_texture)
+                    elif lnk_type == b'TransparentColor':
+                        # Transparency... sort of...
+                        ma_wrap.transmission_texture.image = image
+                        texture_mapping_set(fbx_lnk, ma_wrap.transmission_texture)
                         if use_alpha_decals:
                             material_decals.add(material)
-                    elif lnk_type == b'DiffuseFactor':
-                        pass  # TODO
                     elif lnk_type == b'ShininessExponent':
-                        ma_wrap.hardness_image_set(image)
-                        if use_mapping:
-                            ma_wrap.hardness_mapping_set(**tex_map_kw)
+                        # That is probably reversed compared to expected results? TODO...
+                        ma_wrap.roughness_texture.image = image
+                        texture_mapping_set(fbx_lnk, ma_wrap.roughness_texture)
                     # XXX, applications abuse bump!
                     elif lnk_type in {b'NormalMap', b'Bump', b'3dsMax|maps|texmap_bump'}:
-                        ma_wrap.normal_image_set(image)
-                        ma_wrap.normal_factor_set(texture_bumpfac_get(fbx_obj))
-                        if use_mapping:
-                            ma_wrap.normal_mapping_set(**tex_map_kw)
+                        ma_wrap.normalmap_texture.image = image
+                        texture_mapping_set(fbx_lnk, ma_wrap.normalmap_texture)
                         """
                     elif lnk_type == b'Bump':
-                        ma_wrap.bump_image_set(image)
-                        ma_wrap.bump_factor_set(texture_bumpfac_get(fbx_obj))
-                        if use_mapping:
-                            ma_wrap.bump_mapping_set(**tex_map_kw)
+                        # TODO displacement...
                         """
                     else:
                         print("WARNING: material link %r ignored" % lnk_type)
 
-                    material_images.setdefault(material, {})[lnk_type] = (image, tex_map)
+                    material_images.setdefault(material, {})[lnk_type] = image
 
         # Check if the diffuse image has an alpha channel,
         # if so, use the alpha channel.
@@ -3037,19 +3009,21 @@ def load(operator, context, filepath="",
             if fbx_obj.id != b'Material':
                 continue
             material = fbx_table_nodes.get(fbx_uuid, (None, None))[1]
-            image, tex_map = material_images.get(material, {}).get(b'DiffuseColor', (None, None))
+            image = material_images.get(material, {}).get(b'DiffuseColor', None)
             # do we have alpha?
             if image and image.depth == 32:
                 if use_alpha_decals:
                     material_decals.add(material)
 
-                ma_wrap = cycles_material_wrap_map[material]
-                if ma_wrap.node_bsdf_alpha.mute:
-                    ma_wrap.alpha_image_set_from_diffuse()
+                ma_wrap = nodal_material_wrap_map[material]
+                ma_wrap.transmission_texture.use_alpha = True
+                ma_wrap.transmission_texture.copy_from(ma_wrap.base_color_texture)
 
-            # propagate mapping from diffuse to all other channels which have none defined.
-            ma_wrap = cycles_material_wrap_map[material]
-            ma_wrap.mapping_set_from_diffuse()
+            # Propagate mapping from diffuse to all other channels which have none defined.
+            # XXX Commenting for now, I do not really understand the logic here, why should diffuse mapping
+            #     be applied to all others if not defined for them???
+            # ~ ma_wrap = nodal_material_wrap_map[material]
+            # ~ ma_wrap.mapping_set_from_diffuse()
 
     _(); del _
 
