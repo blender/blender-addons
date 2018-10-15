@@ -2769,35 +2769,18 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
                 disp_texture.color_space = 'NONE'
 
                 # Add displacement offset nodes
-                math_sub = nodes.new(type='ShaderNodeMath')
-                math_sub.operation = 'SUBTRACT'
-                math_sub.label = 'Offset'
-                math_sub.location = active_node.location + Vector((0, -560))
-                math_mul = nodes.new(type='ShaderNodeMath')
-                math_mul.operation = 'MULTIPLY'
-                math_mul.label = 'Strength'
-                math_mul.location = math_sub.location + Vector((200, 0))
-                link = links.new(math_mul.inputs[0], math_sub.outputs[0])
-                link = links.new(math_sub.inputs[0], disp_texture.outputs[0])
+                disp_node = nodes.new(type='ShaderNodeDisplacement')
+                disp_node.location = active_node.location + Vector((0, -560))
+                link = links.new(disp_node.inputs[0], disp_texture.outputs[0])
 
-                # Turn on true displacement in the material
+                # TODO Turn on true displacement in the material
                 # Too complicated for now
 
-                '''
-                # Frame. Does not update immediatly
-                # Seems to need an editor redraw
-                frame = nodes.new(type='NodeFrame')
-                frame.label = 'Displacement'
-                math_sub.parent = frame
-                math_mul.parent = frame
-                frame.update()
-                '''
-
-                #find ouput node
+                # Find ouput node
                 output_node = [n for n in nodes if n.bl_idname == 'ShaderNodeOutputMaterial']
                 if output_node:
                     if not output_node[0].inputs[2].is_linked:
-                        link = links.new(output_node[0].inputs[2], math_mul.outputs[0])
+                        link = links.new(output_node[0].inputs[2], disp_node.outputs[0])
 
                 continue
 
@@ -2864,23 +2847,24 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
 
         # Alignment
         for i, texture_node in enumerate(texture_nodes):
-            offset = Vector((-400, (i * -260) + 200))
+            offset = Vector((-550, (i * -280) + 200))
             texture_node.location = active_node.location + offset
 
         if normal_node:
             # Extra alignment if normal node was added
-            normal_node.location = normal_node_texture.location + Vector((200, 0))
+            normal_node.location = normal_node_texture.location + Vector((300, 0))
 
         if roughness_node:
             # Alignment of invert node if glossy map
-            invert_node.location = roughness_node.location + Vector((200, 0))
+            invert_node.location = roughness_node.location + Vector((300, 0))
 
         # Add texture input + mapping
         mapping = nodes.new(type='ShaderNodeMapping')
-        mapping.location = active_node.location + Vector((-900, 0))
+        mapping.location = active_node.location + Vector((-1050, 0))
         if len(texture_nodes) > 1:
             # If more than one texture add reroute node in between
             reroute = nodes.new(type='NodeReroute')
+            texture_nodes.append(reroute)
             tex_coords = Vector((texture_nodes[0].location.x, sum(n.location.y for n in texture_nodes)/len(texture_nodes)))
             reroute.location = tex_coords + Vector((-50, -120))
             for texture_node in texture_nodes:
@@ -2893,6 +2877,20 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
         texture_input = nodes.new(type='ShaderNodeTexCoord')
         texture_input.location = mapping.location + Vector((-200, 0))
         link = links.new(mapping.inputs[0], texture_input.outputs[2])
+
+        # Create frame around tex coords and mapping
+        frame = nodes.new(type='NodeFrame')
+        frame.label = 'Mapping'
+        mapping.parent = frame
+        texture_input.parent = frame
+        frame.update()
+
+        # Create frame around texture nodes
+        frame = nodes.new(type='NodeFrame')
+        frame.label = 'Textures'
+        for tnode in texture_nodes:
+            tnode.parent = frame
+        frame.update()
 
         # Just to be sure
         active_node.select = False
