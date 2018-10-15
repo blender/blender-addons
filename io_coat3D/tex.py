@@ -132,15 +132,19 @@ def createnodes(objekti,texcoat): #luo nodes palikat ja linkittaa tekstuurit nii
         act_material = group_tree
         notegroup = act_material.nodes.new('NodeGroupOutput')
 
-
     main_mat = main_material.nodes['Material Output']
     if(main_mat.inputs['Surface'].is_linked == True):
         glue_mat = main_mat.inputs['Surface'].links[0].from_node
-        input_color = glue_mat.inputs.find('Base Color')
+        if(glue_mat.inputs.find('Base Color') == -1):
+            input_color = glue_mat.inputs.find('Color')
+        else:
+            input_color = glue_mat.inputs.find('Base Color')
         input_index = 0
-
+        print('mitsa taalla', input_color)
+        print(bring_color)
         #Color
-        if(bring_color == True and glue_mat.inputs.find('Base Color') != -1 and texcoat['color'] != []):
+        if(bring_color == True and texcoat['color'] != []):
+            print('kkk')
             node = act_material.nodes.new('ShaderNodeTexImage')
             node.name = '3DC_color'
             if (texcoat['color']):
@@ -166,15 +170,17 @@ def createnodes(objekti,texcoat): #luo nodes palikat ja linkittaa tekstuurit nii
                 if (coat3D.creategroup):
                     node.location = -400, 400
                     act_material.links.new(node.outputs[0], notegroup.inputs[input_index])
-                    main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
+                    if (input_color != -1):
+                        main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
                     input_index += 1
 
                 else:
                     node.location = -400,400
-                    act_material.links.new(node.outputs[0], glue_mat.inputs[input_color])
+                    if (input_color != -1):
+                        act_material.links.new(node.outputs[0], glue_mat.inputs[input_color])
 
         #Metalness
-        if(bring_metalness == True and glue_mat.inputs.find('Metallic') != -1 and texcoat['metalness'] != []):
+        if(bring_metalness == True and texcoat['metalness'] != []):
             node = act_material.nodes.new('ShaderNodeTexImage')
             node.name='3DC_metalness'
             input_color = glue_mat.inputs.find('Metallic')
@@ -201,14 +207,16 @@ def createnodes(objekti,texcoat): #luo nodes palikat ja linkittaa tekstuurit nii
                 if (coat3D.creategroup):
                     node.location = -830, 160
                     act_material.links.new(node.outputs[0], notegroup.inputs[input_index])
-                    main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
-                    input_index += 1
+                    if (input_color != -1):
+                        main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
+                        input_index += 1
                 else:
                     node.location = -830, 160
-                    act_material.links.new(node.outputs[0], glue_mat.inputs[input_color])
+                    if (input_color != -1):
+                        act_material.links.new(node.outputs[0], glue_mat.inputs[input_color])
 
         #Roughness
-        if(bring_roughness == True and glue_mat.inputs.find('Roughness') != -1 and texcoat['rough'] != []):
+        if(bring_roughness == True and texcoat['rough'] != []):
             node = act_material.nodes.new('ShaderNodeTexImage')
             node.name='3DC_roughness'
             input_color = glue_mat.inputs.find('Roughness')
@@ -235,14 +243,16 @@ def createnodes(objekti,texcoat): #luo nodes palikat ja linkittaa tekstuurit nii
                 if (coat3D.creategroup):
                     node.location = -550, 0
                     act_material.links.new(node.outputs[0], notegroup.inputs[input_index])
-                    main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
-                    input_index += 1
+                    if (input_color != -1):
+                        main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
+                        input_index += 1
                 else:
                     node.location = -550, 0
-                    act_material.links.new(node.outputs[0], glue_mat.inputs[input_color])
+                    if (input_color != -1):
+                        act_material.links.new(node.outputs[0], glue_mat.inputs[input_color])
 
         #Normal map
-        if(bring_normal == True and glue_mat.inputs.find('Normal') != -1 and texcoat['nmap'] != []):
+        if(bring_normal == True and texcoat['nmap'] != []):
             node = act_material.nodes.new('ShaderNodeTexImage')
             normal_node = act_material.nodes.new('ShaderNodeNormalMap')
             node.location = -600,-670
