@@ -88,7 +88,6 @@ def createnodes(objekti,texcoat): #luo nodes palikat ja linkittaa tekstuurit nii
     bring_disp = True
 
     coat3D = bpy.context.scene.coat3D
-    print('createnodes:', objekti)
 
     if(objekti.active_material.use_nodes == False):
         objekti.active_material.use_nodes = True
@@ -106,7 +105,6 @@ def createnodes(objekti,texcoat): #luo nodes palikat ja linkittaa tekstuurit nii
 
 
     for node in act_material.nodes:
-        print(node.name)
         if(node.type == 'TEX_IMAGE'):
             if(node.name == '3DC_color'):
                 print('halloo helsinki')
@@ -140,11 +138,8 @@ def createnodes(objekti,texcoat): #luo nodes palikat ja linkittaa tekstuurit nii
         else:
             input_color = glue_mat.inputs.find('Base Color')
         input_index = 0
-        print('mitsa taalla', input_color)
-        print(bring_color)
         #Color
         if(bring_color == True and texcoat['color'] != []):
-            print('kkk')
             node = act_material.nodes.new('ShaderNodeTexImage')
             node.name = '3DC_color'
             if (texcoat['color']):
@@ -162,7 +157,6 @@ def createnodes(objekti,texcoat): #luo nodes palikat ja linkittaa tekstuurit nii
                 huenode.location = -337, 335
                 if(coat3D.creategroup):
                     act_material.links.new(huenode.outputs[0], notegroup.inputs[input_index])
-                    print('Group nimi', group_tree)
                     group_tree.outputs[input_index].name = 'Color'
                     main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
                     input_index += 1
