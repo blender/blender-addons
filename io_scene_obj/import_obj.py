@@ -318,7 +318,7 @@ def create_materials(filepath, relpath,
                         # rgb, filter color, blender has no support for this.
                         print("WARNING, currently unsupported 'tf' filter color option, skipped.")
                     elif line_id == b'illum':
-                        illum = int(line_split[1])
+                        illum = get_int(line_split[1])
 
                         # inline comments are from the spec, v4.2
                         if illum == 0:
@@ -833,6 +833,12 @@ def get_float_func(filepath):
     file.close()
     # in case all vert values were ints
     return float
+
+
+def get_int(svalue):
+    if b',' in svalue:
+        return int(float(svalue.replace(b',', b'.')))
+    return int(float(svalue))
 
 
 def load(context,
