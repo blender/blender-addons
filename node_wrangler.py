@@ -1117,7 +1117,7 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
 
                     if self.hotkey_list_filter.lower() in hotkey_name.lower():
                         row = col.row(align=True)
-                        row.label(hotkey_name)
+                        row.label(text=hotkey_name)
                         keystr = nice_hotkey_name(hotkey[1])
                         if hotkey[4]:
                             keystr = "Shift " + keystr
@@ -1125,7 +1125,7 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
                             keystr = "Alt " + keystr
                         if hotkey[3]:
                             keystr = "Ctrl " + keystr
-                        row.label(keystr)
+                        row.label(text=keystr)
 
 
 
