@@ -93,6 +93,8 @@ def create_materials(filepath, relpath,
     Create all the used materials in this obj,
     assign colors and images to the materials from all referenced material libs
     """
+    from math import sqrt
+
     DIR = os.path.dirname(filepath)
     context_material_vars = set()
 
@@ -303,8 +305,9 @@ def create_materials(filepath, relpath,
                         emit_colors[:] = [
                             float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])]
                     elif line_id == b'ns':
-                        # XXX Basic linear conversion, what would be best-matching formula here?
-                        context_mat_wrap.roughness = 1.0 - (float_func(line_split[1]) / 1000)
+                        # XXX Totally empirical conversion, trying to adapt it
+                        #     (from 0.0 - 900.0 OBJ specular exponent range to 1.0 - 0.0 Principled BSDF range)...
+                        context_mat_wrap.roughness = 1.0 - (sqrt(float_func(line_split[1])) / 30)
                         context_material_vars.add("roughness")
                     elif line_id == b'ni':  # Refraction index (between 0.001 and 10).
                         context_mat_wrap.ior = float_func(line_split[1])

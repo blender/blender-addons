@@ -73,9 +73,11 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                 use_mirror = mat_wrap.metallic != 0.0
                 use_transparency = mat_wrap.transmission != 0.0
 
-                # Convert from principled roughness to 0 - 1000 specular range.
-                # XXX Basic linear conversion, what would be best-matching formula here?
-                fw('Ns %.6f\n' % ((1.0 - mat_wrap.roughness) * 1000))
+                # XXX Totally empirical conversion, trying to adapt it
+                #     (from 1.0 - 0.0 Principled BSDF range to 0.0 - 900.0 OBJ specular exponent range)...
+                spec = (1.0 - mat_wrap.roughness) * 30
+                spec *= spec
+                fw('Ns %.6f\n' % spec)
 
                 # Ambient
                 if use_mirror:
