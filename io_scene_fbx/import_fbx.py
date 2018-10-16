@@ -1317,6 +1317,7 @@ def blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene):
 
 def blen_read_material(fbx_tmpl, fbx_obj, settings):
     from bpy_extras import node_shader_utils
+    from math import sqrt
 
     elem_name_utf8 = elem_name_ensure_class(fbx_obj, b'Material')
 
@@ -1333,8 +1334,10 @@ def blen_read_material(fbx_tmpl, fbx_obj, settings):
     # No specular color in Principled BSDF shader, assumed to be either white or take some tint from diffuse one...
     # TODO: add way to handle tint option (guesstimate from spec color + intensity...)?
     ma_wrap.specular = elem_props_get_number(fbx_props, b'SpecularFactor', 0.25) * 2.0
-    # XXX Totally empirical conversion reusing previous 'hardness' computing...
-    ma_wrap.roughness = 1.0 - (((elem_props_get_number(fbx_props, b'Shininess', 9.6) + 3.0) / 5.0) - 0.65)
+    # XXX Totally empirical conversion, trying to adapt it
+    #     (from 1.0 - 0.0 Principled BSDF range to 0.0 - 100.0 FBX shininess range)...
+    fbx_shininess = elem_props_get_number(fbx_props, b'Shininess', 20.0)
+    ma_wrap.roughness = 1.0 - (sqrt(fbx_shininess) / 10.0)
     ma_wrap.transmission = 1.0 - elem_props_get_number(fbx_props, b'Opacity', 1.0)
     ma_wrap.metallic = elem_props_get_number(fbx_props, b'ReflectionFactor', 0.0)
     # We have no metallic (a.k.a. reflection) color...
@@ -2896,17 +2899,17 @@ def load(operator, context, filepath="",
             # So we have to be careful not to re-add endlessly the same material to a mesh!
             # This can easily happen with 'baked' dupliobjects, see T44386.
             # TODO: add an option to link materials to objects in Blender instead?
-            done_mats = set()
+            done_materials = set()
 
             for (fbx_lnk, fbx_lnk_item, fbx_lnk_type) in connection_filter_forward(fbx_uuid, b'Model'):
                 # link materials
                 fbx_lnk_uuid = elem_uuid(fbx_lnk)
                 for (fbx_lnk_material, material, fbx_lnk_material_type) in connection_filter_reverse(fbx_lnk_uuid, b'Material'):
-                    if material not in done_mats:
+                    if material not in done_materials:
                         mesh.materials.append(material)
-                        done_mats.add(material)
+                        done_materials.add(material)
 
-            # We have to validate mesh polygons' mat_idx, see T41015!
+            # We have to validate mesh polygons' ma_idx, see T41015!
             # Some FBX seem to have an extra 'default' material which is not defined in FBX file.
             if mesh.validate_material_indices():
                 print("WARNING: mesh '%s' had invalid material indices, those were reset to first material" % mesh.name)
@@ -2969,15 +2972,15 @@ def load(operator, context, filepath="",
                     if lnk_type in {b'DiffuseColor', b'3dsMax|maps|texmap_diffuse'}:
                         ma_wrap.base_color_texture.image = image
                         texture_mapping_set(fbx_lnk, ma_wrap.base_color_texture)
-                    elif lnk_type == b'SpecularColor':
+                    elif lnk_type in {b'SpecularColor', b'SpecularFactor'}:
                         # Intensity actually, not color...
                         ma_wrap.specular_texture.image = image
                         texture_mapping_set(fbx_lnk, ma_wrap.specular_texture)
-                    elif lnk_type in {b'ReflectionColor', b'3dsMax|maps|texmap_reflection'}:
+                    elif lnk_type in {b'ReflectionColor', b'ReflectionFactor', b'3dsMax|maps|texmap_reflection'}:
                         # Intensity actually, not color...
                         ma_wrap.metallic_texture.image = image
                         texture_mapping_set(fbx_lnk, ma_wrap.metallic_texture)
-                    elif lnk_type == b'TransparentColor':
+                    elif lnk_type in {b'TransparentColor', b'TransparentFactor'}:
                         # Transparency... sort of...
                         ma_wrap.transmission_texture.image = image
                         texture_mapping_set(fbx_lnk, ma_wrap.transmission_texture)

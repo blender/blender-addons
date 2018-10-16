@@ -324,7 +324,7 @@ def _key_to_uuid(uuids, key):
 
 def get_fbx_uuid_from_key(key):
     """
-    Return an UUID for given key, which is assumed hasable.
+    Return an UUID for given key, which is assumed to be hashable.
     """
     uuid = _keys_to_uuids.get(key, None)
     if uuid is None:
@@ -429,6 +429,10 @@ def get_blender_anim_curve_key(scene, ref_id, obj_key, fbx_prop_name, fbx_prop_i
     """Return (stack/layer, ID, fbxprop, item) curve key."""
     return "|".join((get_blender_anim_id_base(scene, ref_id), obj_key, fbx_prop_name,
                      fbx_prop_item_name, "AnimCurve"))
+
+
+def get_blender_nodetexture_key(ma, socket_names):
+    return "|".join((get_blenderID_key(ma), *socket_names))
 
 
 # ##### Element generators. #####
@@ -1232,7 +1236,7 @@ FBXExportSettings = namedtuple("FBXExportSettings", (
 FBXExportData = namedtuple("FBXExportData", (
     "templates", "templates_users", "connections",
     "settings", "scene", "depsgraph", "objects", "animations", "animated", "frame_start", "frame_end",
-    "data_empties", "data_lights", "data_cameras", "data_meshes", "mesh_mat_indices",
+    "data_empties", "data_lights", "data_cameras", "data_meshes", "mesh_material_indices",
     "data_bones", "data_leaf_bones", "data_deformers_skin", "data_deformers_shape",
     "data_world", "data_materials", "data_textures", "data_videos",
 ))
