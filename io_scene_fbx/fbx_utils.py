@@ -24,7 +24,7 @@
 import math
 import time
 
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
 from collections.abc import Iterable
 from itertools import zip_longest, chain
 
@@ -618,12 +618,12 @@ def elem_props_template_init(templates, template_type):
     """
     Init a writing template of given type, for *one* element's properties.
     """
-    ret = OrderedDict()
+    ret = {}
     tmpl = templates.get(template_type)
     if tmpl is not None:
         written = tmpl.written[0]
         props = tmpl.properties
-        ret = OrderedDict((name, [val, ptype, anim, written]) for name, (val, ptype, anim) in props.items())
+        ret = {name: [val, ptype, anim, written] for name, (val, ptype, anim) in props.items()}
     return ret
 
 
@@ -675,14 +675,11 @@ def fbx_templates_generate(root, fbx_templates):
     # for Lights, Cameras, LibNodes, etc.).
     ref_templates = {(tmpl.type_name, tmpl.prop_type_name): tmpl for tmpl in fbx_templates.values()}
 
-    templates = OrderedDict()
+    templates = {}
     for type_name, prop_type_name, properties, nbr_users, _written in fbx_templates.values():
-        tmpl = templates.get(type_name)
-        if tmpl is None:
-            templates[type_name] = [OrderedDict(((prop_type_name, (properties, nbr_users)),)), nbr_users]
-        else:
-            tmpl[0][prop_type_name] = (properties, nbr_users)
-            tmpl[1] += nbr_users
+        tmpl = templates.setdefault(type_name, [{}, 0])
+        tmpl[0][prop_type_name] = (properties, nbr_users)
+        tmpl[1] += nbr_users
 
     for type_name, (subprops, nbr_users) in templates.items():
         template = elem_data_single_string(root, b"ObjectType", type_name)
@@ -848,7 +845,7 @@ class AnimationCurveNodeWrapper:
         for elem_key, fbx_group, fbx_gname, fbx_props in \
             zip(self.elem_keys, self.fbx_group, self.fbx_gname, self.fbx_props):
             group_key = get_blender_anim_curve_node_key(scene, ref_id, elem_key, fbx_group)
-            group = OrderedDict()
+            group = {}
             for c, def_val, fbx_item in zip(curves, self.default_values, fbx_props):
                 fbx_item = FBX_ANIM_PROPSGROUP_NAME + "|" + fbx_item
                 curve_key = get_blender_anim_curve_key(scene, ref_id, elem_key, fbx_group, fbx_item)
