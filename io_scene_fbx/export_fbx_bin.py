@@ -2305,7 +2305,7 @@ def fbx_data_from_scene(scene, depsgraph, settings):
         ma_wrap = node_shader_utils.PrincipledBSDFWrapper(ma, is_readonly=True)
         for sock_name, fbx_name in PRINCIPLED_TEXTURE_SOCKETS_TO_FBX:
             tex = getattr(ma_wrap, sock_name)
-            if tex.image is None:
+            if tex is None or tex.image is None:
                 continue
             blender_tex_key = (ma, sock_name)
             data_textures[blender_tex_key] = (get_blender_nodetexture_key(*blender_tex_key), fbx_name)
