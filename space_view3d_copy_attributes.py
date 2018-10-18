@@ -287,7 +287,6 @@ class VIEW3D_MT_posecopypopup(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("view3d.copybuffer", icon="COPY_ID")
         for op in pose_copies:
             layout.operator("pose.copy_" + op[0])
         layout.operator("pose.copy_selected_constraints")
@@ -663,10 +662,6 @@ class MESH_MT_CopyFaceSettings(Menu):
         vc = len(mesh.vertex_colors) > 1
 
         layout = self.layout
-        layout.operator("view3d.copybuffer", icon="COPY_ID")
-        layout.operator("view3d.pastebuffer", icon="COPY_ID")
-
-        layout.separator()
 
         op = layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
                         text="Copy Material")
