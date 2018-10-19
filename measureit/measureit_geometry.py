@@ -1431,7 +1431,7 @@ def format_distance(fmt, units, value, factor=1):
         d_cm = value * (100 ** factor)
         tx_dist = fmt % d_cm
     # ------------------------
-    # Units milimiters
+    # Units millimeters
     # ------------------------
     elif units == "4":
         if hide_units is False:

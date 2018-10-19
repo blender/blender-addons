@@ -404,7 +404,7 @@ while REPITE:
 class oscPythonBatchMaker (Operator):
     """It creates a file as “Make Render Batch” but it requires Phyton installed and """ \
     """the respective environment variables set up. """ \
-    """If the render crahses, the batch automatically erase the broken frame and writes it again. """ \
+    """If the render crashes, the batch automatically erase the broken frame and writes it again. """ \
     """Its not recommended if there is more than one machine rendering"""
     bl_idname = "file.create_batch_python"
     bl_label = "Make Batch Python"

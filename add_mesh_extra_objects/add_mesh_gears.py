@@ -461,7 +461,7 @@ def add_spokes(teethNum, radius, De, base, width=1, conangle=0, rack=0,
 # crown ... Inward pointing extend of crown teeth
 #
 # @todo: Fix teethNum. Some numbers are not possible yet
-# @todo: Create start & end geoemtry (closing faces)
+# @todo: Create start & end geometry (closing faces)
 
 def add_worm(teethNum, rowNum, radius, Ad, De, p_angle,
              width=1, skew=radians(11.25), crown=0.0):

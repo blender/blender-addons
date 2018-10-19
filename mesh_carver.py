@@ -2893,7 +2893,7 @@ class Carver(bpy.types.Operator):
             return {'FINISHED'}
 
     def cancel(self, context):
-        # Note: used to prevent memory leaks on quiting Blender while the modal operator
+        # Note: used to prevent memory leaks on quitting Blender while the modal operator
         # is still running, gets called on return {"CANCELLED"}
         bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
 

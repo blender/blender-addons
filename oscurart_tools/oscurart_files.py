@@ -91,7 +91,7 @@ class replaceFilePath(Operator):
 # ---------------------- SYNC MISSING GROUPS --------------------------
 
 class reFreshMissingGroups(Operator):
-    """Search on the libraries of the linked source and relink groups and link newones if there are. Usefull to use with the mesh cache tools"""
+    """Search on the libraries of the linked source and relink groups and link newones if there are. Useful to use with the mesh cache tools"""
     bl_idname = "file.sync_missing_groups"
     bl_label = "Sync Missing Groups"
     bl_options = {"REGISTER", "UNDO"}

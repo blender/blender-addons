@@ -290,7 +290,7 @@ class CutAblePolygon():
         # sort by seg and param t of seg
         inter.sort()
 
-        # reorder so we realy start from s_start
+        # reorder so we really start from s_start
         for i, it in enumerate(inter):
             if it[0] >= s_start:
                 order = i
@@ -366,7 +366,7 @@ class CutAblePolygon():
     def slice(self, cutter):
         """
             Simple 2d Boolean between boundary and roof part
-            Dosen't handle slicing roof into multiple parts
+            Doesn't handle slicing roof into multiple parts
 
             4 cases:
             1 pitch has point in boundary -> start from this point

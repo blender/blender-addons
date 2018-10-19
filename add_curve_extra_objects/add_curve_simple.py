@@ -817,7 +817,7 @@ class Simple(Operator):
     # general properties
     Types = [('Point', "Point", "Construct a Point"),
              ('Line', "Line", "Construct a Line"),
-             ('Distance', "Distance", "Contruct a two point Distance"),
+             ('Distance', "Distance", "Construct a two point Distance"),
              ('Angle', "Angle", "Construct an Angle"),
              ('Circle', "Circle", "Construct a Circle"),
              ('Ellipse', "Ellipse", "Construct an Ellipse"),
@@ -1526,7 +1526,7 @@ class SimpleVariables(PropertyGroup):
     # general properties
     Types = [('Point', "Point", "Construct a Point"),
              ('Line', "Line", "Construct a Line"),
-             ('Distance', "Distance", "Contruct a two point Distance"),
+             ('Distance', "Distance", "Construct a two point Distance"),
              ('Angle', "Angle", "Construct an Angle"),
              ('Circle', "Circle", "Construct a Circle"),
              ('Ellipse', "Ellipse", "Construct an Ellipse"),

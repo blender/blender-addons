@@ -364,10 +364,10 @@ def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds, all_atoms):
     split_list = line.split(' ')
 
     # Go to the first entry
-    if "CONECT" not in split_list[0]:
+    if "CONNECT" not in split_list[0]:
         for line in filepath_pdb_p:
             split_list = line.split(' ')
-            if "CONECT" in split_list[0]:
+            if "CONNECT" in split_list[0]:
                 break
 
     Number_of_sticks = 0
@@ -379,8 +379,8 @@ def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds, all_atoms):
         # ... which is broken here (EOF) ...
         if line == "":
             break
-        # ... or here, when no 'CONECT' appears anymore.
-        if "CONECT" not in line:
+        # ... or here, when no 'CONNECT' appears anymore.
+        if "CONNECT" not in line:
             break
 
         # The strings of the atom numbers do have a clear position in the file
@@ -388,13 +388,13 @@ def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds, all_atoms):
         # this. One could also use the split function but then one gets into
         # trouble if there are lots of atoms: For instance, it may happen that
         # one has
-        #                   CONECT 11111  22244444
+        #                   CONNECT 11111  22244444
         #
         # In Fact it means that atom No. 11111 has a connection with atom
         # No. 222 but also with atom No. 44444. The split function would give
         # me only two numbers (11111 and 22244444), which is wrong.
 
-        # Cut spaces from the right and 'CONECT' at the beginning
+        # Cut spaces from the right and 'CONNECT' at the beginning
         line = line.rstrip()
         line = line[6:]
         # Amount of loops
@@ -474,7 +474,7 @@ def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds, all_atoms):
     return all_sticks
 
 
-# Function, which produces a cylinder. All is somewhat easy to undertsand.
+# Function, which produces a cylinder. All is somewhat easy to understand.
 def build_stick(radius, length, sectors):
 
     dphi = 2.0 * pi/(float(sectors)-1)
@@ -1237,7 +1237,7 @@ def import_pdb(Ball_type,
 
     # It may happen that the structure in a PDB file already has an offset
     # If chosen, the structure is first put into the center of the scene
-    # (the offset is substracted).
+    # (the offset is subtracted).
 
     if put_to_center == True:
         sum_vec = Vector((0.0,0.0,0.0))
@@ -1245,7 +1245,7 @@ def import_pdb(Ball_type,
         sum_vec = sum([atom.location for atom in all_atoms], sum_vec)
         # Then the average is taken
         sum_vec = sum_vec / Number_of_total_atoms
-        # After, for each atom the center of gravity is substracted
+        # After, for each atom the center of gravity is subtracted
         for atom in all_atoms:
             atom.location -= sum_vec
 

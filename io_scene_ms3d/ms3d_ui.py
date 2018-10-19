@@ -1133,7 +1133,7 @@ class Ms3dMaterialHelper:
 
     @staticmethod
     def copy_from_blender(cls, blender_context, ms3d_material, blender_material):
-        # copy, bacause of auto update, it would distord original values
+        # copy, because of auto update, it would distord original values
         blender_material_diffuse_color = blender_material.diffuse_color.copy()
         blender_material_diffuse_intensity = blender_material.diffuse_intensity
         blender_material_specular_color = blender_material.specular_color.copy()

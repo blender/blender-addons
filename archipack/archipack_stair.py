@@ -468,7 +468,7 @@ class CurvedStair(Stair, Arc):
         self.l_shape = left_shape
         self.r_shape = right_shape
         self.edges_multiples = round(abs(da), 6) > double_limit
-        # left arc, tangeant at start and end
+        # left arc, tangent at start and end
         self.l_arc, self.l_t0, self.l_t1, self.l_tc = self.set_offset(-left_offset, left_shape)
         self.r_arc, self.r_t0, self.r_t1, self.r_tc = self.set_offset(right_offset, right_shape)
 

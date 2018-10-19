@@ -91,7 +91,7 @@ class oscRemModifiers (Operator):
 
 
 class oscApplyModifiers (Operator):
-    """Applys all the modifiers in the selected objects.(This does not work in objects with shapekeys)"""
+    """Applies all the modifiers in the selected objects.(This does not work in objects with shapekeys)"""
     bl_idname = "object.modifiers_apply_osc"
     bl_label = "Apply modifiers"
     bl_options = {"REGISTER", "UNDO"}
@@ -376,7 +376,7 @@ def DefRenderOnlyInCamera():
 
 
 class RenderOnlyInCamera (Operator):
-    """Create two different groups, one group contains the objetcs that are in the camera frame, """ \
+    """Create two different groups, one group contains the objects that are in the camera frame, """ \
     """those that camera can see, and then a second group that contains the object that the camera can`t see"""
     bl_idname = "group.group_in_out_camera"
     bl_label = "Make a group for objects in outer camera"
@@ -389,7 +389,7 @@ class RenderOnlyInCamera (Operator):
 
 # ------------------------ DUPLICATE OBJECTS SYMMETRY ------------------------
 
-def duplicateSymmetrical(self, disconect):
+def duplicateSymmetrical(self, disconnect):
     for objeto in bpy.context.selected_objects:
 
         bpy.ops.object.select_all(action='DESELECT')
@@ -501,7 +501,7 @@ def duplicateSymmetrical(self, disconect):
                 0].targets[
             0].transform_type = 'ROT_Z'
 
-        if disconect is not True:
+        if disconnect is not True:
             bpy.ops.object.make_single_user(obdata=True, object=True)
             bpy.context.active_object.driver_remove("location")
             bpy.context.active_object.driver_remove("rotation_euler")

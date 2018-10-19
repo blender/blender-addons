@@ -94,12 +94,12 @@ def get_active_cam_for_each_frame(scene, start, end):
     return(active_cam_frames)
 
 
-# create managable list of selected objects
+# create manageable list of selected objects
 def get_selected(context):
     cameras = []  # list of selected cameras
     solids = []  # list of all selected meshes that can be exported as AE's solids
     lights = []  # list of all selected lamps that can be exported as AE's lights
-    nulls = []  # list of all selected objects exept cameras (will be used to create nulls in AE)
+    nulls = []  # list of all selected objects except cameras (will be used to create nulls in AE)
     obs = context.selected_objects
 
     for ob in obs:

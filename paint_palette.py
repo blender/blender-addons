@@ -644,7 +644,7 @@ class VIEW3D_OT_reset_weight_palette(Operator):
 
         except Exception as e:
             self.report({'WARNING'},
-                        "Reset Weight pallete could not be completed (See Console for more info)")
+                        "Reset Weight palette could not be completed (See Console for more info)")
             print("\n[Paint Palette]\nOperator: paint.reset_weight_palette\nError: %s\n" % e)
 
             return {'CANCELLED'}

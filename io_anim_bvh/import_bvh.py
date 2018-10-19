@@ -117,7 +117,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
     # Open the file for importing
     file = open(file_path, 'rU')
 
-    # Seperate into a list of lists, each line a list of words.
+    # Separate into a list of lists, each line a list of words.
     file_lines = file.readlines()
     # Non standard carrage returns?
     if len(file_lines) == 1:

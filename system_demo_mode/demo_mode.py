@@ -526,7 +526,7 @@ def load_config(cfg_name=DEMO_CFG):
 
             blend_lookup.update(dict(blend_dict_items(demo_search_path)))
 
-        # fallback to orginal file
+        # fallback to original file
         return blend_lookup.get(filename, filepath)
     # done with search lookup
 

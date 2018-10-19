@@ -10,7 +10,7 @@ This script/addon:
     - Converts multiple Actions
 
 TO-DO:
-    - To convert object's rotation mode (alrady done in Mutant Bob script,
+    - To convert object's rotation mode (already done in Mutant Bob script,
 		but not done in this one.
     - To understand "EnumProperty" and write it well.
     - Code clean

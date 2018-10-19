@@ -1331,7 +1331,7 @@ class SVGGeometryRECT(SVGGeometry):
     SVG rectangle
     """
 
-    __slots__ = ('_rect',  # coordinate and domensions of rectangle
+    __slots__ = ('_rect',  # coordinate and dimensions of rectangle
                  '_radius',  # Rounded corner radiuses
                  '_styles')  # Styles, used for displaying
 

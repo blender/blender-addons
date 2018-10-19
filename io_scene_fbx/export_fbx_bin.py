@@ -2962,7 +2962,7 @@ def save_single(operator, scene, filepath="",
     if embed_textures and path_mode != 'COPY':
         embed_textures = False
 
-    # Calcuate bone correction matrix
+    # Calculate bone correction matrix
     bone_correction_matrix = None  # Default is None = no change
     bone_correction_matrix_inv = None
     if (primary_bone_axis, secondary_bone_axis) != ('Y', 'X'):

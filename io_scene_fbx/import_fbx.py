@@ -3167,7 +3167,7 @@ def load(operator, context, filepath="",
                     else:
                         for material in mesh.materials:
                             if material in material_decals:
-                                # recieve but dont cast shadows
+                                # receive but dont cast shadows
                                 material.use_raytrace = False
     _(); del _
 

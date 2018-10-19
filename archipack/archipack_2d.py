@@ -674,7 +674,7 @@ class Arc(Circle):
 
     def tangeant(self, t, length):
         """
-            Tangeant line so we are able to chain Circle and lines
+            Tangent line so we are able to chain Circle and lines
             Beware, counterpart on Line does return an Arc !
         """
         a = self.a0 + t * self.da
@@ -688,7 +688,7 @@ class Arc(Circle):
 
     def tangeant_unit_vector(self, t):
         """
-            Return Tangeant vector of length 1
+            Return Tangent vector of length 1
         """
         a = self.a0 + t * self.da
         ca = cos(a)
@@ -700,7 +700,7 @@ class Arc(Circle):
 
     def straight(self, length, t=1):
         """
-            Return a tangeant Line
+            Return a tangent Line
             Counterpart on Line also return a Line
         """
         return self.tangeant(t, length)
@@ -721,7 +721,7 @@ class Arc(Circle):
 
     def rotate(self, a):
         """
-            Rotate center so we rotate ccw arround p0
+            Rotate center so we rotate ccw around p0
         """
         ca = cos(a)
         sa = sin(a)
@@ -941,7 +941,7 @@ class Line3d(Line):
     def sized_normal(self, t, size):
         """
             3d Line perpendicular on plane defined by z_axis and of given size
-            positionned at t in current line
+            positioned at t in current line
             lie on the right side
             p1
             |--x

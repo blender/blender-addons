@@ -43,8 +43,8 @@ Example: D:\Blender\2.72\scripts\addon\
 
 Updates:
 v 0.5.61
-- Libraries arent read on each draw call, only on startup or when added. This fixes potential crashes and is less stressful, but  when a library is deleted blender should be restarted.
--Moved the addon from "System" category to "Materials"
+- Libraries aren't read on each draw call, only on startup or when added. This fixes potential crashes and is less stressful, but when a library is deleted blender should be restarted.
+- Moved the addon from "System" category to "Materials"
 
 v 0.5.6
 - Create new libraries.

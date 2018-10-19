@@ -1807,7 +1807,7 @@ class VIEW3D_MT_remove_material(Menu):
 
         if c_render_engine("Lux"):
             layout.label(text="Sorry, other Menu functions are", icon="INFO")
-            layout.label(text="unvailable with Lux Renderer")
+            layout.label(text="unavailable with Lux Renderer")
             return
 
         layout.operator("view3d.material_remove_slot", icon='COLOR_GREEN')
@@ -2360,7 +2360,7 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
         description="Set the type of Add Material menu",
         items=(
             ('STANDARD', "Standard Menu",
-            "Material entries in the menu are bellow each other"),
+            "Material entries in the menu are below each other"),
             ('COLUMNS', "Column Menu",
             "Material entries are placed in column blocks"),
             ('POPUP', "Pop up Menu",

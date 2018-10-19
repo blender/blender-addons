@@ -327,7 +327,7 @@ def clean_node_tree(node_tree):
 
 
 def get_shadeless_node(dest_node_tree):
-    """Return a "shadless" cycles node, creating a node group if nonexistant"""
+    """Return a "shadless" cycles node, creating a node group if nonexistent"""
     try:
         node_tree = bpy.data.node_groups['IAP_SHADELESS']
 
@@ -458,7 +458,7 @@ def register_watched_object(obj):
 def find_plane_corner(object_name, x, y, axis, camera=None, *args, **kwargs):
     """Find the location in camera space of a plane's corner"""
     if args or kwargs:
-        # I've added args / kwargs as a compatability measure with future versions
+        # I've added args / kwargs as a compatibility measure with future versions
         warnings.warn("Unknown Parameters Passed to \"Images as Planes\".  Maybe you need to upgrade?")
 
     plane = bpy.data.objects[object_name]
@@ -606,7 +606,7 @@ def setup_compositing(context, plane, img_spec):
 # Operator
 
 class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
-    """Create mesh plane(s) from image files with the appropiate aspect ratio"""
+    """Create mesh plane(s) from image files with the appropriate aspect ratio"""
 
     bl_idname = "import_image.to_plane"
     bl_label = "Import Images as Planes"
@@ -1165,7 +1165,7 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
             # Axis-aligned
             axis = self.axis_id_to_vector[self.align_axis]
 
-        # rotate accodingly for x/y axiis
+        # rotate accordingly for x/y axiis
         if not axis.z:
             plane.rotation_euler.x = pi / 2
 

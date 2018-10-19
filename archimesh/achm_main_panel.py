@@ -517,7 +517,7 @@ class ArchimeshMainPanel(Panel):
 class AchmRunHintDisplayButton(Operator):
     bl_idname = "archimesh.runopenglbutton"
     bl_label = "Display hint data manager"
-    bl_description = "Display aditional information in the viewport"
+    bl_description = "Display additional information in the viewport"
     bl_category = 'Archimesh'
 
     _handle = None  # keep function handler

@@ -169,7 +169,7 @@ from struct import pack
 # U = x / sqrt(x^2 + y^2 + z^2)
 # V = y / sqrt(x^2 + y^2 + z^2)
 #
-# Triangles specifed counter clockwise for front face
+# Triangles specified counter clockwise for front face
 #
 # defines for sizeofs
 SIZE_FQUAT = 16
@@ -804,7 +804,7 @@ def is_1d_face(face, mesh):
 
 # ===========================================================================
 # Smoothing group
-# (renamed to seperate it from VVertex.SmoothGroup)
+# (renamed to separate it from VVertex.SmoothGroup)
 # ===========================================================================
 class SmoothingGroup:
 
@@ -1540,7 +1540,7 @@ def parse_animation(armature, udk_bones, actions_to_export, psa):
     restoreAction = armature.animation_data.action    # Q: is animation_data always valid?
     # we already do this in export_proxy, but we'll do it here too for now
     restoreFrame = context.scene.frame_current
-    raw_frame_index = 0  # used to set FirstRawFrame, seperating actions in the raw keyframe array
+    raw_frame_index = 0  # used to set FirstRawFrame, separating actions in the raw keyframe array
 
     # action loop...
     for action in actions_to_export:
@@ -2716,7 +2716,7 @@ class OBJECT_OT_ActionSetAnimUpdate(Operator):
                 # print("remove :",actionlist.name)
                 removeactions.append(actionlist.name)
         # print("Not in the action data list:",len(removeactions))
-        # remove list or chnages in the name the template list
+        # remove list or changes in the name the template list
         for actname in removeactions:
             actioncount = 0
             for actionlist in my_sett:

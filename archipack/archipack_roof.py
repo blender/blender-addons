@@ -297,7 +297,7 @@ class RoofPolygon(CutAblePolygon):
         self.side = side
         # backward deps
         self.backward = False
-        # pointers to neighboors along axis
+        # pointers to neighbors along axis
         self.last = None
         self.next = None
         self.other_side = None
@@ -407,7 +407,7 @@ class RoofPolygon(CutAblePolygon):
         """
             always in axis real direction
         """
-        # backward dependancy relative to axis
+        # backward dependency relative to axis
         if last.backward:
             self.backward = self.side == last.side
 
@@ -475,7 +475,7 @@ class RoofPolygon(CutAblePolygon):
             v1 = -self._axis.v
 
         if last.side == self.side:
-            # contigous, v0 node <- next
+            # contiguous, v0 node <- next
 
             # half angle between segments
             if self.side == 'LEFT':
@@ -1006,7 +1006,7 @@ class RoofGenerator(CutAbleGenerator):
         # on node basis along axis
         # bi-direction Radial around node
         # from left and right to center
-        # contigous -> same
+        # contiguous -> same
         # T: and (x % 2 == 1)
         # First one take precedence over others
         # others inherit from side
@@ -1018,7 +1018,7 @@ class RoofGenerator(CutAbleGenerator):
         #          2
         #          r\ l
         #
-        # X: rigth one r left one l (x % 2 == 0)
+        # X: right one or left one l (x % 2 == 0)
         # inherits from side
         #
         #    l 3 lb         l = left
@@ -1051,7 +1051,7 @@ class RoofGenerator(CutAbleGenerator):
             l_bind = left
             r_bind = right
 
-            # simple case: 2 contigous segments
+            # simple case: 2 contiguous segments
             if nb_segs == 2:
                 s = node.last
                 s.right.bind(r_bind, ccw=False)
@@ -1060,7 +1060,7 @@ class RoofGenerator(CutAbleGenerator):
 
             # More than 2 segments, uneven distribution
             if nb_segs % 2 == 1:
-                # find wich child does take precedence
+                # find which child does take precedence
                 # first one on rootline (arbitrary)
                 center = (nb_segs - 1) / 2
             else:
@@ -1078,7 +1078,7 @@ class RoofGenerator(CutAbleGenerator):
                 # skip axis
                 if i > 0:
                     if i < center:
-                        # right contigous with last
+                        # right contiguous with last
                         s.right.bind(r_bind, ccw=False)
 
                         # next bind to left
@@ -1100,7 +1100,7 @@ class RoofGenerator(CutAbleGenerator):
             for i, s in enumerate(reversed(node.segs)):
                 # skip axis
                 if i < nb_segs - center - 1:
-                    # left contigous with last
+                    # left contiguous with last
                     s.left.bind(l_bind, ccw=True)
                     # next bind to right
                     l_bind = s.right
@@ -1257,12 +1257,12 @@ class RoofGenerator(CutAbleGenerator):
                     if s1.seg.constraint_type == 'SLOPE':
 
                         # 3 cases:
-                        # s0 is root contigous -> sides are same
-                        # s2 is root contigous -> sides are same
+                        # s0 is root contiguous -> sides are same
+                        # s2 is root contiguous -> sides are same
                         # back to back -> sides are not same
 
                         if s0.reversed:
-                            # contigous right / right
+                            # contiguous right / right
                             # 2 cases
                             # right is backward
                             # right is forward
@@ -1284,7 +1284,7 @@ class RoofGenerator(CutAbleGenerator):
                                 else:
                                     main.rotate_next_slope(-a0)
                         elif s2.reversed:
-                            # contigous left / left
+                            # contiguous left / left
                             # 2 cases
                             # left is backward
                             # left is forward
@@ -1455,7 +1455,7 @@ class RoofGenerator(CutAbleGenerator):
         for pan in pans:
             self.pans.extend([pan.left, pan.right])
 
-        # merge contigous with 0 angle diff
+        # merge contiguous with 0 angle diff
         to_remove = []
         for i, pan in enumerate(self.pans):
             if pan.backward:
@@ -2054,9 +2054,9 @@ class RoofGenerator(CutAbleGenerator):
         p2 = s0.p1
         p3 = s1.p1
 
-        # find last neighboor depending on type
+        # find last neighbor depending on type
         if s2.type == 'AXIS' or 'LINK' in s2.type:
-            # apply only on boundarys
+            # apply only on boundaries
             if not s.is_hole:
                 # use last axis
                 if pan.side == 'LEFT':
@@ -2079,7 +2079,7 @@ class RoofGenerator(CutAbleGenerator):
             s2 = s2.offset(offset)
             s4 = s2.offset(offset + width)
 
-        # find next neighboor depending on type
+        # find next neighbor depending on type
         if s3.type == 'AXIS' or 'LINK' in s3.type:
             if not s.is_hole:
                 # use last axis
@@ -2245,9 +2245,9 @@ class RoofGenerator(CutAbleGenerator):
                         tri_0, tri_1 = tri_1, tri_0
 
                     # tiangular use bottom segment direction
-                    # find last neighboor depending on type
+                    # find last neighbor depending on type
                     if s1.type == 'AXIS' or 'LINK' in s1.type:
-                        # apply only on boundarys
+                        # apply only on boundaries
                         if not s.is_hole:
                             # use last axis
                             if pan.side == 'LEFT':
@@ -2266,7 +2266,7 @@ class RoofGenerator(CutAbleGenerator):
                     else:
                         s1 = s1.offset(d.fascia_width)
 
-                    # find next neighboor depending on type
+                    # find next neighbor depending on type
                     if s2.type == 'AXIS' or 'LINK' in s2.type:
                         if not s.is_hole:
                             # use last axis
@@ -2378,9 +2378,9 @@ class RoofGenerator(CutAbleGenerator):
                     f = len(verts)
 
                     # tiangular use segment direction
-                    # find last neighboor depending on type
+                    # find last neighbor depending on type
                     if s1.type == 'AXIS' or 'LINK' in s1.type:
-                        # apply only on boundarys
+                        # apply only on boundaries
                         if not s.is_hole:
                             # use last axis
                             if pan.side == 'LEFT':
@@ -2399,7 +2399,7 @@ class RoofGenerator(CutAbleGenerator):
                     else:
                         s1 = s1.offset(d.gutter_dist + d.gutter_width)
 
-                    # find next neighboor depending on type
+                    # find next neighbor depending on type
                     if s2.type == 'AXIS' or 'LINK' in s2.type:
                         if not s.is_hole:
                             # use last axis
@@ -4732,7 +4732,7 @@ class archipack_roof_cutter_segment(ArchipackCutterPart, PropertyGroup):
         items=(
             ('SIDE', 'Side', 'Side with bargeboard', 0),
             ('BOTTOM', 'Bottom', 'Bottom with gutter', 1),
-            ('LINK', 'Side link', 'Side witout decoration', 2),
+            ('LINK', 'Side link', 'Side without decoration', 2),
             ('AXIS', 'Top', 'Top part with hip and beam', 3)
             # ('LINK_VALLEY', 'Side valley', 'Side with valley', 3),
             # ('LINK_HIP', 'Side hip', 'Side with hip', 4)
@@ -5269,10 +5269,10 @@ class ArchipackThrottleHandler():
             self.start_timer(context)
             return True
 
-        # allready a timer running
+        # already a timer running
         self.stop_timer(context)
 
-        # prevent race conditions when allready in update mode
+        # prevent race conditions when already in update mode
         if self.is_updating:
             return False
 

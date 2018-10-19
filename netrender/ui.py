@@ -422,7 +422,7 @@ class NetRenderSettings(bpy.types.PropertyGroup):
                         default = False)
         NetRenderSettings.cert_path = StringProperty(
                         name="CertPath",
-                        description="Path to ssl certifcate",
+                        description="Path to ssl certificate",
                         maxlen = 128,
                         default = "",
                         subtype='FILE_PATH')

@@ -88,7 +88,7 @@ def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
 
                 """The "nice" method to check if layer has alpha channel
                 sadly GIMP sometimes decides not to export an alpha channel
-                if it's pure white so we are not completly sure here yet"""
+                if it's pure white so we are not completely sure here yet"""
                 if Line.startswith("b'L"): HasAlpha = True
                 else: HasAlpha = False
 
@@ -107,7 +107,7 @@ def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
                         if HasAlpha:
                             if not os.path.isfile(PathSaveRaw+imageFileAlpha): HasAlpha = False
 
-                        # Get Widht and Height from images
+                        # Get Width and Height from images
                         data = open(PathSaveRaw+imageFile, "rb").read()
 
                         hexList = []

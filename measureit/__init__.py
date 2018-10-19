@@ -231,7 +231,7 @@ def register():
     Scene.measureit_units = EnumProperty(items=(('1', "Automatic", "Use scene units"),
                                                 ('2', "Meters", ""),
                                                 ('3', "Centimeters", ""),
-                                                ('4', "Milimiters", ""),
+                                                ('4', "Millimeters", ""),
                                                 ('5', "Feet", ""),
                                                 ('6', "Inches", "")),
                                          name="Units",
@@ -319,7 +319,7 @@ def register():
                                             default=15, min=6, max=500)
 
     Scene.measureit_debug = BoolProperty(name="Debug",
-                                         description="Display information for debuging"
+                                         description="Display information for debugging"
                                                      " (expand/collapse for enabling or disabling)"
                                                      " this information is only renderered for "
                                                      "selected objects",

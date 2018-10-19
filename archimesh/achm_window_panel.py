@@ -1392,7 +1392,7 @@ def get_angle(p1, p2):
 # Point b: (x,z)
 # Point c: (x,z)
 # Return:
-# x, y: center poistion
+# x, y: center position
 #  r: radio
 # ang: angle
 # ---------------------------------------------------------

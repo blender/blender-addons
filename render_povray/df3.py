@@ -26,9 +26,9 @@
 #     clone(indf3) : make this df3 look like indf3
 #
 # Info functions
-#     sizeX(): returns X dimention
-#     sizeY(): returns Y dimention
-#     sizeZ(): returns Z dimention
+#     sizeX(): returns X dimension
+#     sizeY(): returns Y dimension
+#     sizeZ(): returns Z dimension
 #
 # Scalar functions
 #     mult():

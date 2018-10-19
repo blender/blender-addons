@@ -91,7 +91,7 @@ class RenderPovSettingsScene(PropertyGroup):
             default=True)
     pov_editor = BoolProperty(
             name="POV-Ray editor",
-            description="Don't Close POV-Ray editor after rendering (Overriden"
+            description="Don't Close POV-Ray editor after rendering (Overridden"
                         " by /EXIT command)",
             default=False)
     deletefiles_enable = BoolProperty(
@@ -2172,7 +2172,7 @@ class RenderPovSettingsCamera(PropertyGroup):
     dof_aperture = FloatProperty(
             name="Aperture",
             description="Similar to a real camera's aperture effect over focal blur (though not "
-                        "in physical units and independant of focal length). "
+                        "in physical units and independent of focal length). "
                         "Increase to get more blur",
             min=0.01, max=1.00, default=0.50)
 
@@ -2199,7 +2199,7 @@ class RenderPovSettingsCamera(PropertyGroup):
             min=0.01, max=0.99, default=0.20)
 
     normal_enable = BoolProperty(name="Perturbated Camera", default=False)
-    cam_normal = FloatProperty(name="Normal Strenght", min=0.0, max=1.0, default=0.0)
+    cam_normal = FloatProperty(name="Normal Strength", min=0.0, max=1.0, default=0.0)
     normal_patterns = EnumProperty(
             name="Pattern",
             description="",

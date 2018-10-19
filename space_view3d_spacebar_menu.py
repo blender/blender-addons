@@ -2947,7 +2947,7 @@ def UseSeparator(operator, context):
 
 # Use compact brushes menus #
 def UseBrushesLists():
-    # separate function just for more convience
+    # separate function just for more convenience
     useLists = bpy.context.user_preferences.addons[__name__].preferences.use_brushes_lists
 
     return bool(useLists)

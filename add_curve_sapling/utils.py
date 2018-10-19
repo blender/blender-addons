@@ -501,7 +501,7 @@ def growSpline(n, stem, numSplit, splitAng, splitAngV, splineList,
             # If this isn't the last point on a stem, then we need to add it
             # to the list of stems to continue growing
             # print(stem.seg != stem.segMax, stem.seg, stem.segMax)
-            # if stem.seg != stem.segMax: # if probs not nessesary
+            # if stem.seg != stem.segMax: # if probs not necessary
             nstem = stemSpline(
                         newSpline, stem.curv, stem.curvV, stem.vertAtt, stem.seg + 1,
                         stem.segMax, stemL, stem.children,
@@ -1334,7 +1334,7 @@ def perform_pruning(baseSize, baseSplits, childP, cu, currentMax, currentMin, cu
                     numSplit = 0
                 elif (k == 1) and (n == 0):
                     numSplit = baseSplits
-                # allways split at splitHeight
+                # always split at splitHeight
                 elif (n == 0) and (k == int((curveRes[n] - 1) * splitHeight) + 1) and (splitVal > 0):
                     numSplit = 1
                 else:
@@ -1430,7 +1430,7 @@ def perform_pruning(baseSize, baseSplits, childP, cu, currentMax, currentMin, cu
     return ratio, splineToBone
 
 
-# calculate taper automaticly
+# calculate taper automatically
 def findtaper(length, taper, shape, shapeS, levels, customShape):
     taperS = []
     for i, t in enumerate(length):
@@ -1684,7 +1684,7 @@ def addTree(props):
             kickstart_trunk(addstem, levels, leaves, branches, cu, curve, curveRes,
                             curveV, attractUp, length, lengthV, ratio, ratioPower, resU,
                             scale0, scaleV0, scaleVal, taper, minRadius, rootFlare)
-        # If this isn't the trunk then we may have multiple stem to intialise
+        # If this isn't the trunk then we may have multiple stem to initialise
         else:
             # For each of the points defined in the list of stem starting points we need to grow a stem.
             fabricate_stems(addsplinetobone, addstem, baseSize, branches, childP, cu, curve, curveBack,
