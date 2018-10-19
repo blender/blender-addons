@@ -1808,7 +1808,7 @@ class ARCHIPACK_OT_door_draw(ArchpackDrawTool, Operator):
                 ('LEFTCLICK, RET, SPACE, ENTER', 'Create a door'),
                 ('BACKSPACE, CTRL+Z', 'undo last'),
                 ('C', 'Choose another door'),
-                ('SHIFT', 'Make independant copy'),
+                ('SHIFT', 'Make independent copy'),
                 ('RIGHTCLICK or ESC', 'exit')
                 ])
             self.feedback.enable()

@@ -290,7 +290,7 @@ class Do:
         note: en.start_angle + en.end_angle: angles measured from the angle base (angbase) in the direction of
               angdir (1 = clockwise, 0 = counterclockwise)
         """
-        treshold = 0.005
+        threshold = 0.005
 
         if aunits is None:
             aunits = self.dwg.header.get('$AUNITS', 0)
@@ -337,22 +337,22 @@ class Do:
         # start
         spline = list()
         spline.append(vc + start)
-        if abs(angle) - pi / 2 > treshold:  # if angle is more than pi/2 incl. treshold
+        if abs(angle) - pi / 2 > threshold:  # if angle is more than pi/2 incl. threshold
             spline.append(vc + start + start * kappa * rot)
         else:
             spline.append(vc + start + start * kappa * angle / (pi / 2) * rot)
 
         # fill if angle is larger than 90 degrees
         a = pi / 2
-        if abs(angle) - treshold > a:
+        if abs(angle) - threshold > a:
             fill = start
 
-            while abs(angle) - a > treshold:
+            while abs(angle) - a > threshold:
                 fillnext = fill * rot
                 spline.append(vc + fillnext + fill * kappa)
                 spline.append(vc + fillnext)
                 # if this was the last fill control point
-                if abs(angle) - a - pi / 2 < treshold:
+                if abs(angle) - a - pi / 2 < threshold:
                     end_angle = (abs(angle) - a) * abs(angle) / angle
                     spline.append(vc + fillnext + fillnext * kappa * end_angle / (pi / 2) * rot)
                 else:
@@ -578,7 +578,7 @@ class Do:
 
     def polymesh(self, en, bm):
         """
-        en: POLYMESH entitiy
+        en: POLYMESH entity
         bm: Blender bmesh instance
         """
         mc = en.mcount if not en.is_mclosed else en.mcount + 1
@@ -905,7 +905,7 @@ class Do:
             for obj in inserts:
                 obj.parent = o
 
-            # put a copy of the retreived objects into the known_blocks dict, so that the attributes being added to
+            # put a copy of the retrieved objects into the known_blocks dict, so that the attributes being added to
             # the object from this point onwards (from INSERT attributes) are not being copied to new/other INSERTs
             self.known_blocks[name] = [[o.copy() for o in objects], inserts]
 

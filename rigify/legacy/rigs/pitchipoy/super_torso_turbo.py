@@ -408,7 +408,7 @@ class Rig:
         const        = owner_pb.constraints.new( constraint['constraint'] )
         const.target = self.obj
 
-        # filter contraint props to those that actually exist in the currnet
+        # filter constraint props to those that actually exist in the currnet
         # type of constraint, then assign values to each
         for p in [ k for k in constraint.keys() if k in dir(const) ]:
             setattr( const, p, constraint[p] )
@@ -554,7 +554,7 @@ class Rig:
         bpy.ops.object.mode_set(mode ='OBJECT')
         pb = self.obj.pose.bones
 
-        # deform bones bbone segements
+        # deform bones bbone segments
         for bone in bones['def'][:-1]:
             self.obj.data.bones[bone].bbone_segments = 8
 

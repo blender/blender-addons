@@ -39,7 +39,7 @@ Usage:
 A simple interface can be accessed in the tool shelf panel
 in 3D View ([T] Key).
 
-A base mesh has to be provided, which will normaly be a
+A base mesh has to be provided, which will normally be a
 subdivided plane. The script will then create a camera rig
 and a light rig with adjustable properties. A sample camera
 and a spotlight will be created on each vertex of the
@@ -85,7 +85,7 @@ v0.0.1 - Initial version.
 TODO:
 * Restore view after primary camera is changed.
 * Apply object matrix to normals.
-* Allign to normals, somehow,....
+* Align to normals, somehow,....
 * StringProperties with PATH tag, for proper ui.
 """
 

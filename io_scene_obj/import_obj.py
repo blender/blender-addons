@@ -45,7 +45,7 @@ from progress_report import ProgressReport, ProgressReportSubstep
 def line_value(line_split):
     """
     Returns 1 string representing the value for this line
-    None will be returned if theres only 1 word
+    None will be returned if there's only 1 word
     """
     length = len(line_split)
     if length == 1:
@@ -237,7 +237,7 @@ def create_materials(filepath, relpath,
                             if "roughness" not in context_material_vars:
                                 context_mat_wrap.roughness = 0.0
 
-                        
+
                         emit_value = sum(emit_colors) / 3.0
                         if emit_value > 1e-6:
                             print("WARNING, emit value unsupported by Principled BSDF shader, skipped.")
@@ -301,7 +301,7 @@ def create_materials(filepath, relpath,
                         context_material_vars.add("specular")
                     elif line_id == b'ke':
                         # We cannot set context_material.emit right now, we need final diffuse color as well for this.
-                        # XXX Unsuported currently
+                        # XXX Unsupported currently
                         emit_colors[:] = [
                             float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])]
                     elif line_id == b'ns':
@@ -504,7 +504,7 @@ def create_mesh(new_objects,
         smooth_group_users = {context_smooth_group: {} for context_smooth_group in unique_smooth_groups.keys()}
         context_smooth_group_old = -1
 
-    fgon_edges = set()  # Used for storing fgon keys when we need to tesselate/untesselate them (ngons with hole).
+    fgon_edges = set()  # Used for storing fgon keys when we need to tessellate/untessellate them (ngons with hole).
     edges = []
     tot_loops = 0
 
@@ -598,7 +598,7 @@ def create_mesh(new_objects,
     if unique_smooth_groups:
         for edge_dict in smooth_group_users.values():
             for key, users in edge_dict.items():
-                if users == 1:  # This edge is on the boundry of a group
+                if users == 1:  # This edge is on the boundary of a group
                     sharp_edges.add(key)
 
     # map the material names to an index
@@ -1135,7 +1135,7 @@ def load(context,
                     context_nurbs = {}
                     context_parm = b''
 
-                ''' # How to use usemap? depricated?
+                ''' # How to use usemap? deprecated?
                 elif line_start == b'usema': # usemap or usemat
                     context_image= line_value(line_split)
                 '''

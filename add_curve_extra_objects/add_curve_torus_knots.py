@@ -547,8 +547,8 @@ class torus_knot_plus(Operator, AddObjectHelper):
             items=SplineTypes,
             )
     bezierHandles = [
-            ('VECTOR', "Vector", "Bezier Hanles type - Vector"),
-            ('AUTOMATIC', "Auto", "Bezier Hanles type - Automatic"),
+            ('VECTOR', "Vector", "Bezier Handles type - Vector"),
+            ('AUTOMATIC', "Auto", "Bezier Handles type - Automatic"),
             ]
     handleType = EnumProperty(
             name="Handle type",

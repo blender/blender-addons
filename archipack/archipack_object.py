@@ -57,7 +57,7 @@ class ArchipackObject():
             Filter object with this class in data
             return
             True when object contains this datablock
-            False otherwhise
+            False otherwise
             usage:
             class_name.filter(object) from outside world
             self.__class__.filter(object) from instance
@@ -171,7 +171,7 @@ class ArchipackCreateTool():
         d.auto_update = True
 
     def add_material(self, o, material='DEFAULT', category=None):
-        # skip if preset allready add material
+        # skip if preset already add material
         if "archipack_material" in o:
             return
         try:

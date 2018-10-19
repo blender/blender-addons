@@ -157,7 +157,7 @@ class FenceGenerator():
     def param_t(self, angle_limit, post_spacing):
         """
             setup corners and fences dz
-            compute index of fences wich belong to each group of fences between corners
+            compute index of fences which belong to each group of fences between corners
             compute t of each fence
         """
         # segments are group of parts separated by limit angle

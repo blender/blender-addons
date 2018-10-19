@@ -454,7 +454,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
                 finish_while = False
 
                 while True:
-                    # if not it'll pass the p_idx as an index bellow and crash
+                    # if not it'll pass the p_idx as an index below and crash
                     if p_idx < len(surface_splines[sp_idx].bezier_points):
                         p_co = surface_splines[sp_idx].bezier_points[p_idx].co
                         new_dist = (prev_p_co - p_co).length
@@ -2708,7 +2708,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
 
         # Get the coords of all points on first loop-U, for later comparison with its
         # subdivided version, to know which points of the loops-U are crossed by the
-        # original strokes. The indices wiil be the same for the other loops-U
+        # original strokes. The indices will be the same for the other loops-U
         if self.loops_on_strokes:
             coords_loops_U_control_points = []
             for p in ob_ctrl_pts.data.splines[0].bezier_points:
@@ -2787,7 +2787,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
             # Make a dictionary with the number of the edge, in the selected chain V, corresponding to each stroke
             edge_order_number_for_splines = {}
             if self.selection_V_exists:
-                # For two-connected selections add a first hypothetic stroke at the begining.
+                # For two-connected selections add a first hypothetic stroke at the beginning.
                 if selection_type == "TWO_CONNECTED":
                     edge_order_number_for_splines[0] = 0
 
@@ -2973,7 +2973,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
                             surface_splines_parsed[0][i] = verts_middle_position_co
                             surface_splines_parsed[len(surface_splines_parsed) - 1][i] = verts_middle_position_co
 
-        # Delete object with control points and object from grease pencil convertion
+        # Delete object with control points and object from grease pencil conversion
         bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
         ob_ctrl_pts.select = True
         bpy.context.scene.objects.active = ob_ctrl_pts
@@ -3215,7 +3215,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
             # Check if the number of points of each curve has at least the number of points
             # of minimum_points_num, which is a bit more than the face-loops limit.
-            # If not, subdivide to reach at least that number of ponts
+            # If not, subdivide to reach at least that number of points
             for i in range(len(self.temporary_curve.data.splines)):
                 sp = self.temporary_curve.data.splines[i]
 
@@ -3254,7 +3254,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
 
                 # Check if the number of points of each curve has at least the number of points
                 # of minimum_points_num, which is a bit more than the face-loops limit.
-                # If not, subdivide to reach at least that number of ponts
+                # If not, subdivide to reach at least that number of points
                 for i in range(len(self.temporary_curve.data.splines)):
                     sp = self.temporary_curve.data.splines[i]
 
@@ -3369,7 +3369,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
             bpy.context.user_preferences.edit.use_global_undo = self.initial_global_undo_state
 
             if created_faces_count == 0:
-                self.report({'WARNING'}, "There aren't any strokes attatched to the object")
+                self.report({'WARNING'}, "There aren't any strokes attached to the object")
                 return {"CANCELLED"}
             else:
                 return {"FINISHED"}
@@ -3391,7 +3391,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
             return{"CANCELLED"}
 
         elif self.strokes_type == "NO_STROKES":
-            self.report({'WARNING'}, "There aren't any strokes attatched to the object")
+            self.report({'WARNING'}, "There aren't any strokes attached to the object")
             return{"CANCELLED"}
 
         elif self.strokes_type == "CURVE_WITH_NON_BEZIER_SPLINES":
@@ -3463,7 +3463,7 @@ class GPENCIL_OT_SURFSK_edit_strokes(Operator):
             return{"CANCELLED"}
 
         elif self.strokes_type == "NO_STROKES" or self.strokes_type == "SELECTION_ALONE":
-            self.report({'WARNING'}, "There aren't any strokes attatched to the object")
+            self.report({'WARNING'}, "There aren't any strokes attached to the object")
             return{"CANCELLED"}
 
         else:
@@ -3524,7 +3524,7 @@ class CURVE_OT_SURFSK_reorder_splines(Operator):
         # has a limit of 100 subdivisions per iteration
         for x in range(round(minimum_points_num / 100)):
             # Check if the number of points of each curve has at least the number of points
-            # of minimum_points_num. If not, subdivide to reach at least that number of ponts
+            # of minimum_points_num. If not, subdivide to reach at least that number of points
             for i in range(len(curves_duplicate_1.data.splines)):
                 sp = curves_duplicate_1.data.splines[i]
 

@@ -1571,7 +1571,7 @@ class archipack_floor_cutter_segment(ArchipackCutterPart, PropertyGroup):
         items=(
             ('DEFAULT', 'Side', 'Side with rake', 0),
             ('BOTTOM', 'Bottom', 'Bottom with gutter', 1),
-            ('LINK', 'Side link', 'Side witout decoration', 2),
+            ('LINK', 'Side link', 'Side without decoration', 2),
             ('AXIS', 'Top', 'Top part with hip and beam', 3)
             # ('LINK_VALLEY', 'Side valley', 'Side with valley', 3),
             # ('LINK_HIP', 'Side hip', 'Side with hip', 4)

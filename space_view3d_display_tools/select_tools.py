@@ -122,7 +122,7 @@ class HideAllObjects(Operator):
 class SelectAll(Operator):
     bl_idname = "opr.select_all"
     bl_label = "(De)select All"
-    bl_description = "(De)select all objects, verticies, edges or faces"
+    bl_description = "(De)select all objects, vertices, edges or faces"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):

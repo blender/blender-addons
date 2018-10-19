@@ -387,7 +387,7 @@ def GCollector(_obj):
             del _obj["BoolToolRoot"]
 
 
-# Handle the callbacks when modifing things in the scene
+# Handle the callbacks when modifying things in the scene
 @persistent
 def HandleScene(scene):
     if bpy.data.objects.is_updated:
@@ -1259,7 +1259,7 @@ class PREFS_BoolTool_Props(AddonPreferences):
             name="Make Boundary",
             default=False,
             description="When Apply a Brush to the Object it will create a\n"
-                        "new vertex group of the bondary boolean area",
+                        "new vertex group of the boundary boolean area",
             )
     use_wire = BoolProperty(
             name="Use Bmesh",

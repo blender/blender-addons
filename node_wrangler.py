@@ -1053,7 +1053,7 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
             ("NEVER", "Never", "Never collapse the new merge nodes")
         ),
         default='NON_SHADER',
-        description="When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specifiy whether to collapse them or show the full node with options expanded")
+        description="When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify whether to collapse them or show the full node with options expanded")
     merge_position: EnumProperty(
         name="Mix Node Position",
         items=(
@@ -1061,7 +1061,7 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
             ("BOTTOM", "Bottom", "Place the Mix node at the same height as the lowest node")
         ),
         default='CENTER',
-        description="When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specifiy the position of the new nodes")
+        description="When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify the position of the new nodes")
 
     show_hotkey_list: BoolProperty(
         name="Show Hotkey List",
@@ -2702,7 +2702,7 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
             fname = path.splitext(fname)[0]
             # Remove digits
             fname = ''.join(i for i in fname if not i.isdigit())
-            # Seperate CamelCase by space
+            # Separate CamelCase by space
             fname = re.sub("([a-z])([A-Z])","\g<1> \g<2>",fname)
             # Replace common separators with SPACE
             seperators = ['_', '.', '-', '__', '--', '#']
@@ -2776,7 +2776,7 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
                 # TODO Turn on true displacement in the material
                 # Too complicated for now
 
-                # Find ouput node
+                # Find output node
                 output_node = [n for n in nodes if n.bl_idname == 'ShaderNodeOutputMaterial']
                 if output_node:
                     if not output_node[0].inputs[2].is_linked:
@@ -3105,7 +3105,7 @@ class NWAlignNodes(Operator, NWBase):
         elif nodes.active in selection:
             active_loc = copy(nodes.active.location)  # make a copy, not a reference
 
-        # Check if nodes should be layed out horizontally or vertically
+        # Check if nodes should be laid out horizontally or vertically
         x_locs = [n.location.x + (n.dimensions.x / 2) for n in selection]  # use dimension to get center of node, not corner
         y_locs = [n.location.y - (n.dimensions.y / 2) for n in selection]
         x_range = max(x_locs) - min(x_locs)
@@ -4649,7 +4649,7 @@ kmi_defs = (
     (NWResetBG.bl_idname, 'Z', 'PRESS', False, False, False, None, "Reset backdrop image zoom"),
     # Delete unused
     (NWDeleteUnused.bl_idname, 'X', 'PRESS', False, False, True, None, "Delete unused nodes"),
-    # Frame Seleted
+    # Frame Selected
     (NWFrameSelected.bl_idname, 'P', 'PRESS', False, True, False, None, "Frame selected nodes"),
     # Swap Outputs
     (NWSwapLinks.bl_idname, 'S', 'PRESS', False, False, True, None, "Swap Outputs"),

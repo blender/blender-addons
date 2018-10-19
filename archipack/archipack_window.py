@@ -1317,7 +1317,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
                         props.angle_y = self.angle_y
                         props.enable_glass = self.enable_glass
                         props.update(context)
-                # location y + frame width. frame depends on choosen profile (fixed or not)
+                # location y + frame width. frame depends on chosen profile (fixed or not)
                 # update linked childs location too
                 child.location = Vector((origin[panel].x, origin[panel].y + location_y + self.frame_y,
                     self.altitude + offset.y))
@@ -1997,7 +1997,7 @@ class ARCHIPACK_OT_window_draw(ArchpackDrawTool, Operator):
                 ('LEFTCLICK, RET, SPACE, ENTER', 'Create a window'),
                 ('BACKSPACE, CTRL+Z', 'undo last'),
                 ('C', 'Choose another window'),
-                ('SHIFT', 'Make independant copy'),
+                ('SHIFT', 'Make independent copy'),
                 ('RIGHTCLICK or ESC', 'exit')
                 ])
             self.feedback.enable()

@@ -82,7 +82,7 @@ class ARCHIPACK_OT_render_thumbs(Operator):
         Copy factory presets to writeable presets folder
         Two cases here:
         1 there is not presets thumbs found (official version)
-        2 thumbs allready are there (unofficial)
+        2 thumbs already are there (unofficial)
         """
         file_list = []
         # load default presets
@@ -110,7 +110,7 @@ class ARCHIPACK_OT_render_thumbs(Operator):
             if f.endswith(".txt"):
                 skipfiles.append(f)
 
-            # when thumbs allready are in factory folder but not found in user one
+            # when thumbs already are in factory folder but not found in user one
             # simply copy them, and add preset to skip list
             thumb_filename = f[:-3] + ".png"
             if path.exists(source_path + path.sep + thumb_filename):

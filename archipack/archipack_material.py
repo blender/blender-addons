@@ -273,7 +273,7 @@ class MaterialSetManager():
                         material_sets[s_key] = []
                     material_sets[s_key].append(mat_name.strip())
             except:
-                print("Archipack: An error occured while loading {}".format(filename))
+                print("Archipack: An error occurred while loading {}".format(filename))
                 pass
             finally:
                 f.close()
@@ -298,7 +298,7 @@ class MaterialSetManager():
             f = open(filename, 'w')
             f.writelines(lines)
         except:
-            print("Archipack: An error occured while saving {}".format(filename))
+            print("Archipack: An error occurred while saving {}".format(filename))
             pass
         finally:
             f.close()

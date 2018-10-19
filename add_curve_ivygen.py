@@ -67,7 +67,7 @@ def createIvyGeometry(IVY, growLeaves):
     # local_ivyBranchSize = IVY.ivyBranchSize  # * radius * IVY.ivySize
     gaussWeight = (1.0, 2.0, 4.0, 7.0, 9.0, 10.0, 9.0, 7.0, 4.0, 2.0, 1.0)
 
-    # Create a new curve and intialise it
+    # Create a new curve and initialise it
     curve = bpy.data.curves.new("IVY", type='CURVE')
     curve.dimensions = '3D'
     curve.bevel_depth = 1
@@ -277,7 +277,7 @@ class Ivy:
         self.maxAdhesionDistance = maxAdhesionDistance
         self.maxLength = 0.0
 
-        # Normalize all the weights only on intialisation
+        # Normalize all the weights only on initialisation
         sums = self.primaryWeight + self.randomWeight + self.adhesionWeight
         self.primaryWeight /= sums
         self.randomWeight /= sums
@@ -432,7 +432,7 @@ def collision(ob, pos, new_pos):
     if ray_result[0]:
         # Check whether the collision is going into the object
         if tran_dir.dot(ray_result[2]) < 0.0:
-            # Find projection of the piont onto the plane
+            # Find projection of the point onto the plane
             p0 = tran_new_pos - (tran_new_pos -
                                           ray_result[1]).project(ray_result[2])
             # Reflect in the plane

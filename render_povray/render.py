@@ -578,7 +578,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             matrix = global_matrix * ob.matrix_world
 
-            # Color is modified by energy #muiltiplie by 2 for a better match --Maurice
+            # Color is modified by energy #multiplied by 2 for a better match --Maurice
             color = tuple([c * (lamp.energy) for c in lamp.color])
 
             tabWrite("light_source {\n")
@@ -595,7 +595,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 tabWrite("radius %.6f\n" % \
                          ((degrees(lamp.spot_size) / 2.0) * (1.0 - lamp.spot_blend)))
 
-                # Blender does not have a tightness equivilent, 0 is most like blender default.
+                # Blender does not have a tightness equivalent, 0 is most like blender default.
                 tabWrite("tightness 0\n")  # 0:10f
 
                 tabWrite("point_at  <0, 0, -1>\n")
@@ -2303,7 +2303,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     print("This is an instance of " + name)
                     continue
 
-                print("Writing Down First Occurence of " + name)
+                print("Writing Down First Occurrence of " + name)
 
 ############################################Povray Primitives
                 # special exportCurves() function takes care of writing
@@ -3399,7 +3399,7 @@ def write_pov(filename, scene=None, info_callback=None):
             #if world.light_settings.use_indirect_light:
             #    scene.pov.radio_enable=1
 
-            # Maybe change the above to a funtion copyInternalRenderer settings when
+            # Maybe change the above to a function copyInternalRenderer settings when
             # user pushes a button, then:
             #scene.pov.radio_enable = world.light_settings.use_indirect_light
             # and other such translations but maybe this would not be allowed either?

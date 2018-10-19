@@ -169,7 +169,7 @@ def write_armature(
             "rest_arm_imat",
             # Rest_local_mat inverted.
             "rest_local_imat",
-            # Last used euler to preserve euler compability in between keyframes.
+            # Last used euler to preserve euler compatibility in between keyframes.
             "prev_euler",
             # Is the bone disconnected to the parent bone?
             "skip_position",

@@ -105,8 +105,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                 elif use_transparency:
                     fw('illum 9\n')  # 'Glass' transparency and no Ray trace reflection... fuzzy matching, but...
                 else:
-                    fw('illum 2\n')  # light normaly
-
+                    fw('illum 2\n')  # light normally
 
                 #### And now, the image textures...
                 image_map = {
@@ -154,7 +153,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                 fw('Kd 0.8 0.8 0.8\n')
                 fw('Ks 0.8 0.8 0.8\n')
                 fw('d 1\n')  # No alpha
-                fw('illum 2\n')  # light normaly
+                fw('illum 2\n')  # light normally
 
 
 def test_nurbs_compat(ob):
@@ -272,7 +271,7 @@ def write_file(filepath, objects, depsgraph, scene,
     def findVertexGroupName(face, vWeightMap):
         """
         Searches the vertexDict to see what groups is assigned to a given face.
-        We use a frequency system in order to sort out the name because a given vetex can
+        We use a frequency system in order to sort out the name because a given vertex can
         belong to two or more groups at the same time. To find the right name for the face
         we list all the possible vertex group names with their frequency and then sort by
         frequency in descend order. The top element is the one shared by the highest number

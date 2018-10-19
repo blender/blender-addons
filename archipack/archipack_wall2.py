@@ -432,7 +432,7 @@ def update_t_part(self, context):
             # 1 No parents at all
             # 2 o has parent
             # 3 w has parent
-            # 4 o and w share same parent allready
+            # 4 o and w share same parent already
             # 5 o and w dosent share parent
             link_to_parent = False
 

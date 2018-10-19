@@ -17,7 +17,7 @@ scene.world.use_sky_blend = True
 #with very small value like round rgb 0.00002 0.00002 0.00008
 #Sky color at zenith, sun 90Â° elevation = hsl <0.6, 0.533, 0.698>
 #Ground color = rgb <0.996, 0.965, 0.855>  = hsl <0.128, 0.141, 0.996>
-#Ground Brighness = 0.996
+#Ground Brightness = 0.996
 
 scene.world.horizon_color = (0.047, 0.034, 0.025) #24000 or 22000 lux roughly equals (sun+sky)/5
 scene.world.zenith_color = (0.006, 0.013, 0.033) #19807 lux roughly equals hign noon Sun / 5

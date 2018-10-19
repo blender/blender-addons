@@ -269,7 +269,7 @@ class ExportSketchfab(Operator):
                 filename = r["filename"]
 
         except Exception as e:
-            self.report({'WARNING'}, "Error occured while preparing your file: %s" % str(e))
+            self.report({'WARNING'}, "Error occurred while preparing your file: %s" % str(e))
             return {'FINISHED'}
 
         sf_state.uploading = True
@@ -417,7 +417,7 @@ class SketchfabEmailToken(Operator):
             return {'FINISHED'}
 
         if r.status_code != requests.codes.ok:
-            self.report({'ERROR'}, "An error occured. Check the format of your email")
+            self.report({'ERROR'}, "An error occurred. Check the format of your email")
         else:
             self.report({'INFO'}, "Your email was sent at your email address")
 

@@ -53,7 +53,7 @@ class VertexChamfer(Operator):
             )
     relative = BoolProperty(
             name="Relative",
-            description="If Relative, Champfer size is relative to the edge lenght",
+            description="If Relative, Champfer size is relative to the edge length",
             default=True
             )
     dissolve = BoolProperty(

@@ -841,12 +841,12 @@ class archipack_slab(ArchipackObject, Manipulable, PropertyGroup):
                                 if (idx + 1 == next_idx) or (next_idx == 0 and i + 1 == self.n_parts):
                                     # shared: should move last point
                                     # and apply to next segments
-                                    # this is overriden for common segs
+                                    # this is overridden for common segs
                                     # but translate non common ones
                                     dp = seg.p1 - w.segs[idx].p1
                                     w.translate(idx, dp)
 
-                                    # shared: transfert type too
+                                    # shared: transfer type too
                                     if "C_" in part.type:
                                         d.parts[idx].type = 'C_WALL'
                                         w.segs[idx] = CurvedSlab(seg.c, seg.r, seg.a0, seg.da)
@@ -1250,7 +1250,7 @@ class archipack_slab_cutter_segment(ArchipackCutterPart, PropertyGroup):
         items=(
             ('DEFAULT', 'Side', 'Side with rake', 0),
             ('BOTTOM', 'Bottom', 'Bottom with gutter', 1),
-            ('LINK', 'Side link', 'Side witout decoration', 2),
+            ('LINK', 'Side link', 'Side without decoration', 2),
             ('AXIS', 'Top', 'Top part with hip and beam', 3)
             # ('LINK_VALLEY', 'Side valley', 'Side with valley', 3),
             # ('LINK_HIP', 'Side hip', 'Side with hip', 4)

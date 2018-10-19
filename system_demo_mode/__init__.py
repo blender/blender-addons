@@ -233,7 +233,7 @@ def extern_demo_mode_unregister():
     from . import demo_mode
     demo_mode.unregister()
 
-# --- intergration
+# --- integration
 
 
 def menu_func(self, context):

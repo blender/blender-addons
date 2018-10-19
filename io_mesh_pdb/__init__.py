@@ -144,7 +144,7 @@ class ImportPDB(Operator, ImportHelper):
         description="The sticks are round (sectors are not visible)")
     use_sticks_bonds = BoolProperty(
         name="Bonds", default=False,
-        description="Show double and tripple bonds")
+        description="Show double and triple bonds")
     sticks_dist = FloatProperty(
         name="", default = 1.1, min=1.0, max=3.0,
         description="Distance between sticks measured in stick diameter")

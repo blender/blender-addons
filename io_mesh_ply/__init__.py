@@ -24,7 +24,7 @@ bl_info = {
     "version": (1, 0, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
-    "description": "Import-Export PLY mesh data withs UV's and vertex colors",
+    "description": "Import-Export PLY mesh data with UV's and vertex colors",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Import-Export/Stanford_PLY",

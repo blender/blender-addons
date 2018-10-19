@@ -286,7 +286,7 @@ def create_aim_widget(self, name):
 
 
 # =========================================================================
-# Define the fuction to make the camera active
+# Define the function to make the camera active
 # =========================================================================
 def sceneCamera():
     ob = bpy.context.active_object
@@ -535,7 +535,7 @@ def build_dolly_rig(context):
     cam_data_name = bpy.context.object.data.name
     bpy.data.cameras[cam_data_name].display_size = 1.0
     cam.rotation_euler[0] = 1.5708   # rotate the camera 90 degrees in x
-    cam.location = (0.0, -2.0, 0.0)  # move the camera to the correct postion
+    cam.location = (0.0, -2.0, 0.0)  # move the camera to the correct position
     cam.parent = rig
     cam.parent_type = "BONE"
     cam.parent_bone = "CTRL"
@@ -720,7 +720,7 @@ def build_crane_rig(context):
     cam_data_name = bpy.context.object.data.name
     bpy.data.cameras[cam_data_name].display_size = 1.0
     cam.rotation_euler[0] = 1.5708   # rotate the camera 90 degrees in x
-    cam.location = (0.0, -2.0, 0.0)  # move the camera to the correct postion
+    cam.location = (0.0, -2.0, 0.0)  # move the camera to the correct position
     cam.parent = rig
     cam.parent_type = "BONE"
     cam.parent_bone = "CTRL"

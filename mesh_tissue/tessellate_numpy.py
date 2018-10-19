@@ -1196,7 +1196,7 @@ class settings_tessellate(Operator):
                         icon="BLANK1")
             layout.label(text="Settings could not be altered anymore",
                         icon="BLANK1")
-            layout.label(text="Please re-run Tesselate with two new selected objects",
+            layout.label(text="Please re-run Tessellate with two new selected objects",
                         icon="BLANK1")
             return
 

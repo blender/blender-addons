@@ -89,10 +89,10 @@ class md5_bone:
         self.scale = [0.0] * 3
         self.head = [0.0] * 3
         self.tail = [0.0] * 3
-        self.bindmat = [None] * 3  # is this how you initilize a 2d-array
+        self.bindmat = [None] * 3  # is this how you initialize a 2d-array
         for i in range(3):
             self.bindmat[i] = [0.0] * 3
-        self.origmat = [None] * 3  #is this how you initilize a 2d-array
+        self.origmat = [None] * 3  #is this how you initialize a 2d-array
         for i in range(3):
             self.origmat[i] = [0.0] * 3
         self.parent = ""
@@ -628,7 +628,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     print("INIT UV TEXTURE...")
     _matcount = 0
     #for mattexcount in materials:
-        #print("MATERAIL ID:", _matcount)
+        #print("MATERIAL ID:", _matcount)
     _textcount = 0
     for uv in me_ob.tessface_uv_textures: # uv texture
         print("UV TEXTURE ID:",_textcount)

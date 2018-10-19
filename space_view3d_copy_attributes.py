@@ -144,7 +144,7 @@ def pLoopExec(self, context, funk):
         funk(bone, active, context)
 
 
-# The following functions are used o copy attributes frome active to bone
+# The following functions are used o copy attributes from active to bone
 
 def pLocLocExec(bone, active, context):
     bone.location = active.location
@@ -227,7 +227,7 @@ pose_copies = (
     ('pose_drw', "Bone Shape",
      "Copy Bone Shape from Active to Selected", pDrwExec),
     ('pose_lok', "Protected Transform",
-     "Copy Protected Tranforms from Active to Selected", pLokExec),
+     "Copy Protected Transforms from Active to Selected", pLokExec),
     ('pose_con', "Bone Constraints",
      "Copy Object Constraints from Active to Selected", pConExec),
     ('pose_iks', "IK Limits",
@@ -235,7 +235,6 @@ pose_copies = (
     ('bbone_settings', "BBone Settings",
      "Copy BBone Settings from Active to Selected", pBBonesExec),
 )
-
 
 @classmethod
 def pose_poll_func(cls, context):
@@ -517,7 +516,7 @@ object_copies = (
     # ('obj_log', "Logic Bricks",
     # "Copy Logic Bricks from Active to Selected"),
     ('obj_lok', "Protected Transform",
-     "Copy Protected Tranforms from Active to Selected", obLok),
+     "Copy Protected Transforms from Active to Selected", obLok),
     ('obj_con', "Object Constraints",
      "Copy Object Constraints from Active to Selected", obCon),
     # ('obj_nla', "NLA Strips",
@@ -525,7 +524,7 @@ object_copies = (
     # ('obj_tex', "Texture Space",
     # "Copy Texture Space from Active to Selected", obTex),
     # ('obj_sub', "Subsurf Settings",
-    # "Copy Subsurf Setings from Active to Selected"),
+    # "Copy Subsurf Settings from Active to Selected"),
     # ('obj_smo', "AutoSmooth",
     # "Copy AutoSmooth from Active to Selected"),
     ('obj_idx', "Pass Index",

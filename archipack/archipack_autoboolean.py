@@ -226,9 +226,9 @@ class ArchipackBoolManager():
             remove holes not found in childs
 
             robust -> mixed:
-                there is only one object taged with "archipack_robusthole"
+                there is only one object tagged with "archipack_robusthole"
             interactive -> mixed:
-                many modifisers on wall taged with "archipack_hole"
+                many modifisers on wall tagged with "archipack_hole"
                 keep objects
         """
         existing = []

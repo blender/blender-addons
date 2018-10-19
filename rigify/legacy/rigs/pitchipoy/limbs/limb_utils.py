@@ -29,7 +29,7 @@ def make_constraint( cls, bone, constraint ):
 
     constraint['target'] = cls.obj
 
-    # filter contraint props to those that actually exist in the currnet
+    # filter constraint props to those that actually exist in the currnet
     # type of constraint, then assign values to each
     for p in [ k for k in constraint.keys() if k in dir(const) ]:
         if p in dir( const ):

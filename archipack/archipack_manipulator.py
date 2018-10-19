@@ -48,12 +48,12 @@ from .archipack_gl import (
 # as transform.translate in use to allow snap
 # does catch all events.
 # This however has a wanted side effect:
-# the manipulator take precedence over allready running
+# the manipulator take precedence over already running
 # ones, and prevent select mode to start.
 #
 # TODO:
 # Other manipulators should use same technique to take
-# precedence over allready running ones when active
+# precedence over already running ones when active
 #
 # NOTE:
 # Select mode does suffer from this stack effect:
@@ -178,7 +178,7 @@ def empty_stack():
 def add_manipulable(key, manipulable):
     """
         add a ArchipackActiveManip into the stack
-        if not allready present
+        if not already present
         setup reference to manipulable
         return manipulators stack
     """
@@ -263,7 +263,7 @@ class Manipulator():
         else:
             print("Manipulator.exit() handle not found %s" % (type(self).__name__))
 
-    # Mouse event handlers, MUST be overriden
+    # Mouse event handlers, MUST be overridden
     def mouse_press(self, context, event):
         """
             Manipulators must implement
@@ -288,7 +288,7 @@ class Manipulator():
         """
         raise NotImplementedError
 
-    # Keyboard event handlers, MAY be overriden
+    # Keyboard event handlers, MAY be overridden
     def keyboard_done(self, context, event, value):
         """
             Manipulators may implement
@@ -332,8 +332,8 @@ class Manipulator():
         """
         return False
 
-    # Internal, do not override unless you realy
-    # realy realy deeply know what you are doing
+    # Internal, do not override unless you really
+    # really really deeply know what you are doing
     def keyboard_eval(self, context, event):
         """
             evaluate keyboard entry while typing
@@ -1950,7 +1950,7 @@ manipulators_class_lookup = {}
 
 def register_manipulator(type_key, manipulator_class):
     if type_key in manipulators_class_lookup.keys():
-        raise RuntimeError("Manipulator of type {} allready exists, unable to override".format(type_key))
+        raise RuntimeError("Manipulator of type {} already exists, unable to override".format(type_key))
     manipulators_class_lookup[type_key] = manipulator_class
 
 
@@ -1966,9 +1966,9 @@ class archipack_manipulator(PropertyGroup):
     type_key = StringProperty(default='SIZE')
 
     # How 3d points are stored in manipulators ?
-    # SIZE = 2 absolute positionned and a scaling vector
-    # RADIUS = 1 absolute positionned (center) and 2 relatives (sides)
-    # POLYGON = 2 absolute positionned and a relative vector (for rect polygons)
+    # SIZE = 2 absolute positioned and a scaling vector
+    # RADIUS = 1 absolute positioned (center) and 2 relatives (sides)
+    # POLYGON = 2 absolute positioned and a relative vector (for rect polygons)
 
     pts_mode = StringProperty(default='SIZE')
     prop1_name = StringProperty()
@@ -1984,7 +1984,7 @@ class archipack_manipulator(PropertyGroup):
         """
             set 3d location of gl points (in object space)
             pts: array of 3 vectors 3d
-            normal: optionnal vector 3d default to Z axis
+            normal: optional vector 3d default to Z axis
         """
         pts = [Vector(p) for p in pts]
         self.p0, self.p1, self.p2 = pts
@@ -2031,7 +2031,7 @@ class archipack_manipulator(PropertyGroup):
         if self.type_key not in manipulators_class_lookup.keys() or \
                 not manipulators_class_lookup[self.type_key].poll(context):
             # RuntimeError is overkill but may be enabled for debug purposes
-            # Silentely ignore allow skipping manipulators if / when deps as not meet
+            # Silently ignore allow skipping manipulators if / when deps as not meet
             # manip stack will simply be filled with None objects
             # raise RuntimeError("Manipulator of type {} not found".format(self.type_key))
             return None
@@ -2255,9 +2255,9 @@ class Manipulable():
     def manipulable_modal(self, context, event):
         """
             call in operator modal()
-            should not be overriden
+            should not be overridden
             as it provide all needed
-            functionnality out of the box
+            functionality out of the box
         """
         # setup again when manipulators type change
         if self.manipulable_refresh:

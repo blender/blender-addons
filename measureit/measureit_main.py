@@ -256,7 +256,7 @@ class MeasureitProperties(PropertyGroup):
                               description="Create full circunference",
                               default=False)
     glarc_extrad = BoolProperty(name="arcextrad",
-                                description="Adapt radio lengh to arc line",
+                                description="Adapt radio length to arc line",
                                 default=True)
     glarc_rad = BoolProperty(name="arc rad",
                              description="Show arc radius",
