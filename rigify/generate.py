@@ -511,18 +511,7 @@ def generate_rig(context, metarig):
     create_bone_groups(obj, metarig)
 
     # Add rig_ui to logic
-    skip = False
-    ctrls = obj.game.controllers
-
-    for c in ctrls:
-        if 'Python' in c.name and c.text.name == script.name:
-            skip = True
-            break
-    if not skip:
-        bpy.ops.logic.controller_add(type='PYTHON', object=obj.name)
-        ctrl = obj.game.controllers[-1]
-        ctrl.text = bpy.data.texts[script.name]
-
+    create_persistent_rig_ui(obj, script)
 
     t.tick("The rest: ")
     #----------------------------------
@@ -605,6 +594,31 @@ def create_bone_groups(obj, metarig):
         if g_id >= 0:
             name = groups[g_id].name
             b.bone_group = obj.pose.bone_groups[name]
+
+
+def create_persistent_rig_ui(obj, script):
+    """Make sure the ui script always follows the rig around"""
+    skip = False
+    driver = None
+
+    for fcurve in obj.animation_data.drivers:
+        if fcurve.data_path == 'pass_index':
+            driver = fcurve.driver
+            for variable in driver.variables:
+                if variable.name == script.name:
+                    skip = True
+                    break
+            break
+
+    if not skip:
+        if not driver:
+            fcurve = obj.driver_add("pass_index")
+            driver = fcurve.driver
+
+        variable = driver.variables.new()
+        variable.name = script.name
+        variable.targets[0].id_type = 'TEXT'
+        variable.targets[0].id = script
 
 
 def get_bone_rigs(obj, bone_name, halt_on_missing=False):
