@@ -214,7 +214,7 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
                 return
 
         # UI
-        main_row = layout.row(align=True).split(0.05)
+        main_row = layout.row(align=True).split(factor=0.05)
         col1 = main_row.column()
         col2 = main_row.column()
         col1.label()
@@ -554,8 +554,8 @@ class DATA_PT_rigify_bone_groups(bpy.types.Panel):
         row.template_list("DATA_UL_rigify_bone_groups", "", obj.data, "rigify_colors", obj.data, "rigify_colors_index")
 
         col = row.column(align=True)
-        col.operator("armature.rigify_bone_group_add", icon='ZOOMIN', text="")
-        col.operator("armature.rigify_bone_group_remove", icon='ZOOMOUT', text="").idx = obj.data.rigify_colors_index
+        col.operator("armature.rigify_bone_group_add", icon='ZOOM_IN', text="")
+        col.operator("armature.rigify_bone_group_remove", icon='ZOOM_OUT', text="").idx = obj.data.rigify_colors_index
         col.menu("DATA_MT_rigify_bone_groups_specials", icon='DOWNARROW_HLT', text="")
         row = layout.row()
         row.prop(armature, 'rigify_theme_to_add', text = 'Theme')
@@ -688,8 +688,8 @@ class VIEW3D_PT_rigify_animation_tools(bpy.types.Panel):
             row.operator("rigify.transfer_ik_to_fk", text='FK2IK Action', icon='ACTION_TWEAK')
 
             row = self.layout.row(align=True)
-            row.operator("rigify.clear_animation", text="Clear IK Action", icon='CANCEL').type = "IK"
-            row.operator("rigify.clear_animation", text="Clear FK Action", icon='CANCEL').type = "FK"
+            row.operator("rigify.clear_animation", text="Clear IK Action", icon='CANCEL').anim_type = "IK"
+            row.operator("rigify.clear_animation", text="Clear FK Action", icon='CANCEL').anim_type = "FK"
 
             row = self.layout.row(align=True)
             op = row.operator("rigify.rotation_pole", icon='FORCE_HARMONIC', text='Switch to pole')
