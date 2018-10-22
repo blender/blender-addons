@@ -31,7 +31,7 @@ class ArmatureSubMenu(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.label(self.bl_label)
+        layout.label(text=self.bl_label)
         for op, name in self.operators:
             text = capwords(name.replace("_", " ")) + " (Meta-Rig)"
             layout.operator(op, icon='OUTLINER_OB_ARMATURE', text=text)

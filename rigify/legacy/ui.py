@@ -124,7 +124,7 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
                 col = layout.column(align=True)
             row = col.row()
             row.prop(arm, "layers", index=i, text="", toggle=True)
-            split = row.split(percentage=0.8)
+            split = row.split(factor=0.8)
             split.prop(rigify_layer, "name",  text="Layer %d" % (i + 1))
             split.prop(rigify_layer, "row",   text="")
 

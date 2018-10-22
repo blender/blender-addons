@@ -95,7 +95,7 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
             if show_update_metarig:
 
                 layout.label(text="This metarig contains old rig-types that can be automatically upgraded to benefit of rigify's new features.", icon='ERROR')
-                layout.label(text= "To use it as-is you need to enable legacy mode.",)
+                layout.label(text="To use it as-is you need to enable legacy mode.",)
                 layout.operator("pose.rigify_upgrade_types", text="Upgrade Metarig")
 
             row = layout.row()
@@ -117,7 +117,7 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
                 row = col.row(align=True)
                 row.prop(id_store, "rigify_generate_mode", expand=True)
 
-                main_row = col.row(align=True).split(percentage=0.3)
+                main_row = col.row(align=True).split(factor=0.3)
                 col1 = main_row.column()
                 col2 = main_row.column()
                 col1.label(text="Rig Name")
@@ -221,7 +221,7 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
         for i in range(32):
             if i == 16 or i == 29:
                 col1.label()
-            col1.label(str(i+1) + '.')
+            col1.label(text=str(i+1) + '.')
 
         for i, rigify_layer in enumerate(arm.rigify_layers):
             # note: rigify_layer == arm.rigify_layers[i]
@@ -499,9 +499,9 @@ class DATA_OT_rigify_bone_group_remove_all(bpy.types.Operator):
 class DATA_UL_rigify_bone_groups(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         row = layout.row(align=True)
-        row = row.split(percentage=0.1)
+        row = row.split(factor=0.1)
         row.label(text=str(index+1))
-        row = row.split(percentage=0.7)
+        row = row.split(factor=0.7)
         row.prop(item, "name", text='', emboss=False)
         row = row.row(align=True)
         icon = 'LOCKED' if item.standard_colors_lock else 'UNLOCKED'
