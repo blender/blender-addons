@@ -57,8 +57,7 @@ class ImportSVG(bpy.types.Operator, ImportHelper):
     def execute(self, context):
         from . import import_svg
 
-        return import_svg.load(self, context,
-            **self.as_keywords(ignore=("filter_glob",)))
+        return import_svg.load(self, context, filepath=self.filepath)
 
 
 def menu_func_import(self, context):

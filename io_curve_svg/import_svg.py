@@ -1234,7 +1234,7 @@ class SVGGeometryPATH(SVGGeometry):
                     act_spline = cu.splines[-1]
                     act_spline.use_cyclic_u = spline['closed']
                 else:
-                    act_spline.bezier_points.add()
+                    act_spline.bezier_points.add(count=1)
 
                 bezt = act_spline.bezier_points[-1]
                 bezt.co = co
@@ -1378,7 +1378,7 @@ class SVGGeometryRECT(SVGGeometry):
         co = self._transformCoord(coord)
 
         if not firstTime:
-            spline.bezier_points.add()
+            spline.bezier_points.add(count=1)
 
         bezt = spline.bezier_points[-1]
         bezt.co = co
@@ -1578,7 +1578,7 @@ class SVGGeometryELLIPSE(SVGGeometry):
                 spline = cu.splines[-1]
                 spline.use_cyclic_u = True
             else:
-                spline.bezier_points.add()
+                spline.bezier_points.add(count=1)
 
             bezt = spline.bezier_points[-1]
             bezt.co = co
@@ -1670,7 +1670,7 @@ class SVGGeometryLINE(SVGGeometry):
                 spline = cu.splines[-1]
                 spline.use_cyclic_u = True
             else:
-                spline.bezier_points.add()
+                spline.bezier_points.add(count=1)
 
             bezt = spline.bezier_points[-1]
             bezt.co = co
@@ -1746,7 +1746,7 @@ class SVGGeometryPOLY(SVGGeometry):
                 spline = cu.splines[-1]
                 spline.use_cyclic_u = self._closed
             else:
-                spline.bezier_points.add()
+                spline.bezier_points.add(count=1)
 
             bezt = spline.bezier_points[-1]
             bezt.co = co
