@@ -72,6 +72,8 @@ def generate_rig(context, metarig):
     bpy.ops.object.mode_set(mode='OBJECT')
 
     scene = context.scene
+    view_layer = context.view_layer
+    collection = scene.collection
     id_store = context.window_manager
     #------------------------------------------
     # Create/find the rig object and set it up
@@ -97,12 +99,12 @@ def generate_rig(context, metarig):
             name = rig_new_name or name
             obj = bpy.data.objects.new(name, bpy.data.armatures.new(name))
             obj.display_type = 'WIRE'
-            scene.objects.link(obj)
+            collection.objects.link(obj)
     else:
         name = rig_new_name or "rig"
         obj = bpy.data.objects.new(name, bpy.data.armatures.new(name))  # in case name 'rig' exists it will be rig.001
         obj.display_type = 'WIRE'
-        scene.objects.link(obj)
+        collection.objects.link(obj)
 
     id_store.rigify_target_rig = obj.name
     obj.data.pose_position = 'POSE'
@@ -112,23 +114,29 @@ def generate_rig(context, metarig):
     obj.animation_data_clear()
 
     # Select generated rig object
-    metarig.select = False
-    obj.select = True
-    scene.objects.active = obj
+    metarig.select_set('DESELECT')
+    obj.select_set('SELECT')
+    view_layer.objects.active = obj
 
     # Remove wgts if force update is set
     wgts_group_name = "WGTS_" + (rig_old_name or obj.name)
     if wgts_group_name in scene.objects and id_store.rigify_force_widget_update:
         bpy.ops.object.select_all(action='DESELECT')
+        # TODO handle collections visibility WGT_LAYERS
+        """
         for i, lyr in enumerate(WGT_LAYERS):
             if lyr:
                 context.scene.layers[i] = True
+        """
         for wgt in bpy.data.objects[wgts_group_name].children:
-            wgt.select = True
+            wgt.select_set('SELECT')
         bpy.ops.object.delete(use_global=False)
+        # TODO handle collections visibility WGT_LAYERS
+        """
         for i, lyr in enumerate(WGT_LAYERS):
             if lyr:
                 context.scene.layers[i] = False
+        """
         if rig_old_name:
             bpy.data.objects[wgts_group_name].name = "WGTS_" + obj.name
 
@@ -148,18 +156,18 @@ def generate_rig(context, metarig):
     # Create temporary duplicates for merging
     temp_rig_1 = metarig.copy()
     temp_rig_1.data = metarig.data.copy()
-    scene.objects.link(temp_rig_1)
+    collection.objects.link(temp_rig_1)
 
     temp_rig_2 = metarig.copy()
     temp_rig_2.data = obj.data
-    scene.objects.link(temp_rig_2)
+    collection.objects.link(temp_rig_2)
 
     # Select the temp rigs for merging
     for objt in scene.objects:
-        objt.select = False  # deselect all objects
-    temp_rig_1.select = True
-    temp_rig_2.select = True
-    scene.objects.active = temp_rig_2
+        objt.select_set('DESELECT')  # deselect all objects
+    temp_rig_1.select_set('SELECT')
+    temp_rig_2.select_set('SELECT')
+    view_layer.objects.active = temp_rig_2
 
     # Merge the temporary rigs
     bpy.ops.object.join()
@@ -169,9 +177,9 @@ def generate_rig(context, metarig):
 
     # Select the generated rig
     for objt in scene.objects:
-        objt.select = False  # deselect all objects
-    obj.select = True
-    scene.objects.active = obj
+        objt.select_set('DESELECT')  # deselect all objects
+    obj.select_set('SELECT')
+    view_layer.objects.active = obj
 
     # Copy over bone properties
     for bone in metarig.data.bones:
@@ -313,14 +321,15 @@ def generate_rig(context, metarig):
             bpy.data.objects.remove(bpy.data.objects[wgts_group_name])
         mesh = bpy.data.meshes.new(wgts_group_name)
         wgts_obj = bpy.data.objects.new(wgts_group_name, mesh)
-        scene.objects.link(wgts_obj)
-        wgts_obj.layers = WGT_LAYERS
+        collection.objects.link(wgts_obj)
+        # TODO MOVE objects to all WGT_LAYERS collection
+        #wgts_obj.layers = WGT_LAYERS
         t.tick("Create main WGTS: ")
     #
     # if id_store.rigify_generate_mode == 'new':
     #     bpy.ops.object.select_all(action='DESELECT')
     #     for wgt in bpy.data.objects[wgts_group_name].children:
-    #         wgt.select = True
+    #         wgt.select_set('SELECT')
     #     for i, lyr in enumerate(WGT_LAYERS):
     #         if lyr:
     #             context.scene.layers[i] = True
@@ -343,8 +352,8 @@ def generate_rig(context, metarig):
         for rig in rigs:
             # Go into editmode in the rig armature
             bpy.ops.object.mode_set(mode='OBJECT')
-            context.scene.objects.active = obj
-            obj.select = True
+            context.view_layer.objects.active = obj
+            obj.select_set('SELECT')
             bpy.ops.object.mode_set(mode='EDIT')
             scripts = rig.generate()
             if scripts is not None:
@@ -536,9 +545,9 @@ def create_selection_sets(obj, metarig):
 
     bpy.ops.object.mode_set(mode='POSE')
 
-    bpy.context.scene.objects.active = obj
-    obj.select = True
-    metarig.select = False
+    bpy.context.view_layer.objects.active = obj
+    obj.select_set('SELECT')
+    metarig.select_set('DESELECT')
     pbones = obj.pose.bones
 
     for i, name in enumerate(metarig.data.rigify_layers.keys()):
@@ -577,7 +586,7 @@ def create_bone_groups(obj, metarig):
         g_id = l.group - 1
         name = groups[g_id].name
         if name not in obj.pose.bone_groups.keys():
-            bg = obj.pose.bone_groups.new(name)
+            bg = obj.pose.bone_groups.new(name=name)
             bg.color_set = 'CUSTOM'
             bg.colors.normal = gamma_correct(groups[g_id].normal)
             bg.colors.select = gamma_correct(groups[g_id].select)

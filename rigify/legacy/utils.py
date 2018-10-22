@@ -416,11 +416,12 @@ def create_widget(rig, bone_name, bone_transform_name=None):
         # Create mesh object
         mesh = bpy.data.meshes.new(obj_name)
         obj = bpy.data.objects.new(obj_name, mesh)
-        scene.objects.link(obj)
+        collection.objects.link(obj)
 
         # Move object to bone position and set layers
         obj_to_bone(obj, rig, bone_transform_name)
-        obj.layers = WGT_LAYERS
+        # TODO move colleciton to all the WGT_LAYERS collections
+        # obj.layers = WGT_LAYERS
 
         return obj
 

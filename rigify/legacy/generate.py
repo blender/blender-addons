@@ -71,6 +71,8 @@ def generate_rig(context, metarig):
     bpy.ops.object.mode_set(mode='OBJECT')
 
     scene = context.scene
+    view_layer = context.view_layer
+    collection = scene.collection
 
     #------------------------------------------
     # Create/find the rig object and set it up
@@ -89,7 +91,7 @@ def generate_rig(context, metarig):
     except KeyError:
         obj = bpy.data.objects.new(name, bpy.data.armatures.new(name))
         obj.display_type = 'WIRE'
-        scene.objects.link(obj)
+        collection.objects.link(obj)
 
     obj.data.pose_position = 'POSE'
 
@@ -98,9 +100,9 @@ def generate_rig(context, metarig):
     obj.animation_data_clear()
 
     # Select generated rig object
-    metarig.select = False
-    obj.select = True
-    scene.objects.active = obj
+    metarig.select_set('DESELECT')
+    obj.select_set('SELECT')
+    view_layer.objects.active = obj
 
     # Remove all bones from the generated rig armature.
     bpy.ops.object.mode_set(mode='EDIT')
@@ -111,18 +113,18 @@ def generate_rig(context, metarig):
     # Create temporary duplicates for merging
     temp_rig_1 = metarig.copy()
     temp_rig_1.data = metarig.data.copy()
-    scene.objects.link(temp_rig_1)
+    collection.objects.link(temp_rig_1)
 
     temp_rig_2 = metarig.copy()
     temp_rig_2.data = obj.data
-    scene.objects.link(temp_rig_2)
+    collection.objects.link(temp_rig_2)
 
     # Select the temp rigs for merging
     for objt in scene.objects:
-        objt.select = False  # deselect all objects
-    temp_rig_1.select = True
-    temp_rig_2.select = True
-    scene.objects.active = temp_rig_2
+        objt.select_set('DESELECT')  # deselect all objects
+    temp_rig_1.select_set('SELECT')
+    temp_rig_2.select_set('SELECT')
+    view_layer.objects.active = temp_rig_2
 
     # Merge the temporary rigs
     bpy.ops.object.join()
@@ -132,9 +134,9 @@ def generate_rig(context, metarig):
 
     # Select the generated rig
     for objt in scene.objects:
-        objt.select = False  # deselect all objects
-    obj.select = True
-    scene.objects.active = obj
+        objt.select_set('DESELECT') # deselect all objects
+    obj.select_set('SELECT')
+    view_layer.objects.active = obj
 
     # Copy over bone properties
     for bone in metarig.data.bones:
@@ -277,8 +279,8 @@ def generate_rig(context, metarig):
         for rig in rigs:
             # Go into editmode in the rig armature
             bpy.ops.object.mode_set(mode='OBJECT')
-            context.scene.objects.active = obj
-            obj.select = True
+            context.view_layer.objects.active = obj
+            obj.select_set('SELECT')
             bpy.ops.object.mode_set(mode='EDIT')
             scripts = rig.generate()
             if scripts is not None:
