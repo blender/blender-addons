@@ -36,8 +36,6 @@ DEF_PREFIX = "DEF-"  # Prefix of deformation bones.
 WGT_PREFIX = "WGT-"  # Prefix for widget objects
 ROOT_NAME = "root"   # Name of the root bone.
 
-WGT_LAYERS = [x == 19 for x in range(0, 20)]  # Widgets go on the last scene layer.
-
 MODULE_NAME = "rigify"  # Windows/Mac blender is weird, so __package__ doesn't work
 
 
@@ -397,6 +395,7 @@ def create_widget(rig, bone_name, bone_transform_name=None):
 
     obj_name = WGT_PREFIX + bone_name
     scene = bpy.context.scene
+    collection = bpy.context.collection
 
     # Check if it already exists in the scene
     if obj_name in scene.objects:
@@ -420,8 +419,6 @@ def create_widget(rig, bone_name, bone_transform_name=None):
 
         # Move object to bone position and set layers
         obj_to_bone(obj, rig, bone_transform_name)
-        # TODO move colleciton to all the WGT_LAYERS collections
-        # obj.layers = WGT_LAYERS
 
         return obj
 
@@ -938,3 +935,39 @@ def random_id(length=8):
         text += random.choice(chars)
     text += str(hex(int(time.time())))[2:][-tlength:].rjust(tlength, '0')[::-1]
     return text
+
+
+def get_layer_collection_from_collection(children, collection):
+    for layer_collection in children:
+        if collection == layer_collection.collection:
+            return layer_collection
+
+        # go recursive
+        layer_collection = get_layer_collection_from_collection(layer_collection.children, collection)
+        if layer_collection:
+            return layer_collection
+
+
+def ensure_widget_collection(context):
+    wgts_collection_name = "Widgets"
+
+    view_layer = context.view_layer
+    layer_collection = bpy.context.layer_collection
+    collection = layer_collection.collection
+
+    widget_collection = bpy.data.collections.get(wgts_collection_name)
+    if not widget_collection:
+        # ------------------------------------------
+        # Create the widget collection
+        widget_collection = bpy.data.collections.new(wgts_collection_name)
+        widget_collection.hide_viewport = True
+        widget_collection.hide_render = True
+
+        collection.children.link(widget_collection)
+        widget_layer_collection = [c for c in layer_collection.children if c.collection == widget_collection][0]
+    else:
+        widget_layer_collection = get_layer_collection_from_collection(view_layer.collections, widget_collection)
+
+    # Make the widget the active collection for the upcoming added (widget) objects
+    view_layer.collections.active = widget_layer_collection
+    return widget_collection

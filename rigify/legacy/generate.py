@@ -28,7 +28,7 @@ from rna_prop_ui import rna_idprop_ui_prop_get
 from .utils import MetarigError, new_bone, get_rig_type
 from .utils import ORG_PREFIX, MCH_PREFIX, DEF_PREFIX, WGT_PREFIX, ROOT_NAME, make_original_name
 from .utils import RIG_DIR
-from .utils import create_root_widget
+from .utils import create_root_widget, ensure_widget_collection
 from .utils import random_id
 from .utils import copy_attributes
 from .rig_ui_template import UI_SLIDERS, layers_ui, UI_REGISTER
@@ -73,6 +73,7 @@ def generate_rig(context, metarig):
     scene = context.scene
     view_layer = context.view_layer
     collection = scene.collection
+    layer_collection = context.layer_collection
 
     #------------------------------------------
     # Create/find the rig object and set it up
@@ -355,7 +356,10 @@ def generate_rig(context, metarig):
         if obj.data.bones[bone].name.startswith(DEF_PREFIX):
             obj.data.bones[bone].layers = DEF_LAYER
 
-    # Create root bone widget
+    # Create/find widge collection
+    ensure_widget_collection(context)
+
+    #  Create root bone widget
     create_root_widget(obj, "root")
 
     # Assign shapes to bones
@@ -428,6 +432,10 @@ def generate_rig(context, metarig):
     bpy.ops.object.mode_set(mode='OBJECT')
     metarig.data.pose_position = rest_backup
     obj.data.pose_position = 'POSE'
+
+    #----------------------------------
+    # Restore active collection
+    view_layer.collections.active = layer_collection
 
 
 def get_bone_rigs(obj, bone_name, halt_on_missing=False):

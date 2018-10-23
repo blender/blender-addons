@@ -29,6 +29,7 @@ from .utils import MetarigError, new_bone, get_rig_type
 from .utils import ORG_PREFIX, MCH_PREFIX, DEF_PREFIX, WGT_PREFIX, ROOT_NAME, make_original_name
 from .utils import RIG_DIR
 from .utils import create_root_widget
+from .utils import ensure_widget_collection
 from .utils import random_id
 from .utils import copy_attributes
 from .utils import gamma_correct
@@ -40,7 +41,6 @@ ORG_LAYER = [n == 31 for n in range(0, 32)]  # Armature layer that original bone
 MCH_LAYER = [n == 30 for n in range(0, 32)]  # Armature layer that mechanism bones should be moved to.
 DEF_LAYER = [n == 29 for n in range(0, 32)]  # Armature layer that deformation bones should be moved to.
 ROOT_LAYER = [n == 28 for n in range(0, 32)]  # Armature layer that root bone should be moved to.
-WGT_LAYERS = [x == 19 for x in range(0, 20)]  # Widgets go on the last scene layer.
 
 
 class Timer:
@@ -73,8 +73,10 @@ def generate_rig(context, metarig):
 
     scene = context.scene
     view_layer = context.view_layer
-    collection = scene.collection
+    collection = context.collection
+    layer_collection = context.layer_collection
     id_store = context.window_manager
+
     #------------------------------------------
     # Create/find the rig object and set it up
 
@@ -122,21 +124,9 @@ def generate_rig(context, metarig):
     wgts_group_name = "WGTS_" + (rig_old_name or obj.name)
     if wgts_group_name in scene.objects and id_store.rigify_force_widget_update:
         bpy.ops.object.select_all(action='DESELECT')
-        # TODO handle collections visibility WGT_LAYERS
-        """
-        for i, lyr in enumerate(WGT_LAYERS):
-            if lyr:
-                context.scene.layers[i] = True
-        """
         for wgt in bpy.data.objects[wgts_group_name].children:
             wgt.select_set('SELECT')
         bpy.ops.object.delete(use_global=False)
-        # TODO handle collections visibility WGT_LAYERS
-        """
-        for i, lyr in enumerate(WGT_LAYERS):
-            if lyr:
-                context.scene.layers[i] = False
-        """
         if rig_old_name:
             bpy.data.objects[wgts_group_name].name = "WGTS_" + obj.name
 
@@ -311,7 +301,8 @@ def generate_rig(context, metarig):
     rna_idprop_ui_prop_get(obj.data, "rig_id", create=True)
     obj.data["rig_id"] = rig_id
 
-    t.tick("Create root bone: ")
+    # Create/find widge collection
+    widget_collection = ensure_widget_collection(context)
 
     # Create Group widget
     # wgts_group_name = "WGTS"
@@ -321,22 +312,14 @@ def generate_rig(context, metarig):
             bpy.data.objects.remove(bpy.data.objects[wgts_group_name])
         mesh = bpy.data.meshes.new(wgts_group_name)
         wgts_obj = bpy.data.objects.new(wgts_group_name, mesh)
-        collection.objects.link(wgts_obj)
-        # TODO MOVE objects to all WGT_LAYERS collection
-        #wgts_obj.layers = WGT_LAYERS
+        widget_collection.objects.link(wgts_obj)
         t.tick("Create main WGTS: ")
     #
     # if id_store.rigify_generate_mode == 'new':
     #     bpy.ops.object.select_all(action='DESELECT')
     #     for wgt in bpy.data.objects[wgts_group_name].children:
     #         wgt.select_set('SELECT')
-    #     for i, lyr in enumerate(WGT_LAYERS):
-    #         if lyr:
-    #             context.scene.layers[i] = True
     #     bpy.ops.object.make_single_user(obdata=True)
-    #     for i, lyr in enumerate(WGT_LAYERS):
-    #         if lyr:
-    #             context.scene.layers[i] = False
 
     #----------------------------------
     try:
@@ -535,6 +518,11 @@ def generate_rig(context, metarig):
             mat = child.matrix_world.copy()
             child.parent_bone = sub_parent
             child.matrix_world = mat
+
+    #----------------------------------
+    # Restore active collection
+    view_layer.collections.active = layer_collection
+
 
 def create_selection_sets(obj, metarig):
 
