@@ -815,8 +815,8 @@ def align_bone_roll(obj, bone1, bone2):
     bone1_e.roll = roll
 
     # Check if we rolled in the right direction
-    x3 = rot_mat * bone1_e.x_axis
-    check = x2 * x3
+    x3 = rot_mat @ bone1_e.x_axis
+    check = x2 @ x3
 
     # If not, reverse
     if check < 0.9999:

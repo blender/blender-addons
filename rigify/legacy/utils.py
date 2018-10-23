@@ -342,7 +342,7 @@ def obj_to_bone(obj, rig, bone_name):
 
     bone = rig.data.bones[bone_name]
 
-    mat = rig.matrix_world * bone.matrix_local
+    mat = rig.matrix_world @ bone.matrix_local
 
     obj.location = mat.to_translation()
 
@@ -607,8 +607,8 @@ def align_bone_roll(obj, bone1, bone2):
     rot_mat = Matrix.Rotation(angle, 3, axis)
 
     # Roll factor
-    x3 = rot_mat * x1
-    dot = x2 * x3
+    x3 = rot_mat @ x1
+    dot = x2 @ x3
     if dot > 1.0:
         dot = 1.0
     elif dot < -1.0:
@@ -619,7 +619,7 @@ def align_bone_roll(obj, bone1, bone2):
     bone1_e.roll = roll
 
     # Check if we rolled in the right direction
-    x3 = rot_mat * bone1_e.x_axis
+    x3 = rot_mat @ bone1_e.x_axis
     check = x2 * x3
 
     # If not, reverse
