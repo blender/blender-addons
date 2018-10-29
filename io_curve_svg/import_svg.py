@@ -408,7 +408,7 @@ SVGTransforms = {'translate': SVGTransformTranslate,
 def SVGParseStyles(node, context):
     """
     Parse node to get different styles for displaying geometries
-    (materilas, filling flags, etc..)
+    (materials, filling flags, etc..)
     """
 
     styles = SVGEmptyStyles.copy()
@@ -747,7 +747,7 @@ class SVGPathParser:
 
     def _pathCurveToCS(self, code):
         """
-        Cubic BEZIER CurveTo  path command
+        Cubic BEZIER CurveTo path command
         """
 
         c = code.lower()
@@ -784,7 +784,7 @@ class SVGPathParser:
 
     def _pathCurveToQT(self, code):
         """
-        Qyadracic BEZIER CurveTo  path command
+        Quadratic BEZIER CurveTo path command
         """
 
         c = code.lower()
