@@ -961,7 +961,7 @@ class SVGPathParser:
                 raise Exception('Unknown path command: {0}' . format(code))
 
             if cmd in {'Z', 'z'}:
-                closed =True
+                closed = True
             else:
                 closed = False
 
