@@ -28,7 +28,8 @@ bl_info = {
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/System/Demo_Mode#Running_Demo_Mode",
     "support": 'OFFICIAL',
-    "category": "System"}
+    "category": "System",
+}
 
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
@@ -70,9 +71,11 @@ class DemoModeSetup(bpy.types.Operator):
     )
     mode: EnumProperty(
         name="Method",
-        items=(('AUTO', "Auto", ""),
-               ('PLAY', "Play", ""),
-               ('RENDER', "Render", ""))
+        items=(
+            ('AUTO', "Auto", ""),
+            ('PLAY', "Play", ""),
+            ('RENDER', "Render", ""),
+        )
     )
 
     run: BoolProperty(
@@ -243,9 +246,15 @@ def menu_func(self, context):
     layout.separator()
 
 
+classes = (
+    DemoModeSetup,
+    DemoModeRun,
+)
+
 def register():
-    bpy.utils.register_class(DemoModeSetup)
-    bpy.utils.register_class(DemoModeRun)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
 
     bpy.types.TOPBAR_MT_file.prepend(menu_func)
 
@@ -253,8 +262,9 @@ def register():
 
 
 def unregister():
-    bpy.utils.unregister_class(DemoModeSetup)
-    bpy.utils.unregister_class(DemoModeRun)
+    from bpy.utils import unregister_class
+    for cls in classes:
+        unregister_class(cls)
 
     bpy.types.TOPBAR_MT_file.remove(menu_func)
 
