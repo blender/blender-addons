@@ -15,3 +15,6 @@ __pycache__/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# external addons
+cycles/
