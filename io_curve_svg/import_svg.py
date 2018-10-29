@@ -51,6 +51,11 @@ def srgb_to_linearrgb(c):
     else:
         return pow((c + 0.055) * (1.0 / 1.055), 2.4)
 
+def check_points_equal(point_a, point_b):
+    return (abs(point_a[0] - point_b[0]) < 1e-6 and 
+            abs(point_a[1] - point_b[1]) < 1e-6)
+
+
 def SVGParseFloat(s, i=0):
     """
     Parse first float value from string
@@ -644,7 +649,7 @@ class SVGPathParser:
             # filled.
 
             first = self._spline['points'][0]
-            if abs(first['x'] - x) < 1e-6 and abs(first['y'] - y) < 1e-6:
+            if check_points_equal((first['x'], first['y']), (x, y)):
                 if handle_left is not None:
                     first['handle_left'] = handle_left
                     first['handle_left_type'] = 'FREE'
@@ -801,14 +806,15 @@ class SVGPathParser:
 
             x, y = self._getCoordPair(code.islower(), self._point)
 
-            if self._spline is None:
-                self._appendPoint(self._point[0], self._point[1],
-                    handle_left_type='FREE', handle_left=self._point,
-                    handle_right_type='FREE', handle_right=self._point)
+            if not check_points_equal((x, y), self._point):
+                if self._spline is None:
+                    self._appendPoint(self._point[0], self._point[1],
+                        handle_left_type='FREE', handle_left=self._point,
+                        handle_right_type='FREE', handle_right=self._point)
 
-            self._appendPoint(x, y,
-                handle_left_type='FREE', handle_left=(x1, y1),
-                handle_right_type='FREE', handle_right=(x, y))
+                self._appendPoint(x, y,
+                    handle_left_type='FREE', handle_left=(x1, y1),
+                    handle_right_type='FREE', handle_right=(x, y))
 
             self._point = (x, y)
             self._handle = (x1, y1)
