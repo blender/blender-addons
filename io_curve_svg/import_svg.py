@@ -47,10 +47,9 @@ SVGEmptyStyles = {'useFill': None,
 
 def srgb_to_linearrgb(c):
     if c < 0.04045:
-        return 0.0 if c < 0.0 else c * (1.0 / 12.92);
+        return 0.0 if c < 0.0 else c * (1.0 / 12.92)
     else:
-        return pow((c + 0.055) * (1.0 / 1.055), 2.4);
-
+        return pow((c + 0.055) * (1.0 / 1.055), 2.4)
 
 def SVGParseFloat(s, i=0):
     """
