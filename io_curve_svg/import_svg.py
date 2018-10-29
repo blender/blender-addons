@@ -666,6 +666,9 @@ class SVGPathParser:
             if last['handle_right_type'] == 'VECTOR' and handle_left_type == 'FREE':
                 last['handle_right'] = (last['x'], last['y'])
                 last['handle_right_type'] = 'FREE'
+            if last['handle_right_type'] == 'FREE' and handle_left_type == 'VECTOR':
+                handle_left = (x, y)
+                handle_left_type = 'FREE'
 
         point = {'x': x,
                  'y': y,
@@ -1230,6 +1233,19 @@ class SVGGeometryPATH(SVGGeometry):
 
         for spline in self._splines:
             act_spline = None
+
+            if spline['closed'] and len(spline['points']) >= 2:
+                first = spline['points'][0]
+                last = spline['points'][-1]
+                if (    first['handle_left_type'] == 'FREE' and
+                        last['handle_right_type'] == 'VECTOR'):
+                    last['handle_right_type'] = 'FREE'
+                    last['handle_right'] = (last['x'], last['y'])
+                if (    last['handle_right_type'] == 'FREE' and
+                        first['handle_left_type'] == 'VECTOR'):
+                    first['handle_left_type'] = 'FREE'
+                    first['handle_left'] = (first['x'], first['y'])
+
             for point in spline['points']:
                 co = self._transformCoord((point['x'], point['y']))
 
