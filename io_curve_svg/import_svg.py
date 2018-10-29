@@ -796,7 +796,7 @@ class SVGPathParser:
             else:
                 if self._handle is not None:
                     x1, y1 = SVGFlipHandle(self._point[0], self._point[1],
-                                        self._handle[0], self._handle[1])
+                                           self._handle[0], self._handle[1])
                 else:
                     x1, y1 = self._point
 
