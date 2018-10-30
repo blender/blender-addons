@@ -43,8 +43,11 @@ def Bpy_Area_header_text_clear(area):
     #HACK
     import ctypes
     func = area.header_text_set
-    c_func = ctypes.c_void_p.from_address(id(func) + 56).value
+    #(int)(&((struct BPy_FunctionRNA *)0)->func) == object.__basicsize__ + 24
+    c_func = ctypes.c_void_p.from_address(id(func) + object.__basicsize__ + 24).value
+    #(int)(&((struct FunctionRNA *)0)->cont.properties.first) == 24
     c_param = ctypes.c_void_p.from_address(c_func + 24).value
+    #(int)(&((struct PropertyRNA *)0)->flag_parameter) == 40
     flag_parameter = ctypes.c_void_p.from_address(c_param + 40)
     previous_value = flag_parameter.value
     flag_parameter.value = 0
