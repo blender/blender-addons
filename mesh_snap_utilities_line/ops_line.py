@@ -39,22 +39,6 @@ if not __package__:
     __package__ = "mesh_snap_utilities"
 
 
-def Bpy_Area_header_text_clear(area):
-    #HACK
-    import ctypes
-    func = area.header_text_set
-    #(int)(&((struct BPy_FunctionRNA *)0)->func) == object.__basicsize__ + 24
-    c_func = ctypes.c_void_p.from_address(id(func) + object.__basicsize__ + 24).value
-    #(int)(&((struct FunctionRNA *)0)->cont.properties.first) == 24
-    c_param = ctypes.c_void_p.from_address(c_func + 24).value
-    #(int)(&((struct PropertyRNA *)0)->flag_parameter) == 40
-    flag_parameter = ctypes.c_void_p.from_address(c_param + 40)
-    previous_value = flag_parameter.value
-    flag_parameter.value = 0
-    func()
-    flag_parameter.value = previous_value
-
-
 def get_closest_edge(bm, point, dist):
     r_edge = None
     for edge in bm.edges:
@@ -392,8 +376,7 @@ class SnapUtilitiesLine(bpy.types.Operator):
                     del self.list_verts_co
 
                     bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-                    Bpy_Area_header_text_clear(context.area)
-                    # context.area.header_text_set(text=None)
+                    context.area.header_text_set(None)
                     self.sctx.free()
                     del self.draw_cache
 
