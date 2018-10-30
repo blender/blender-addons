@@ -216,10 +216,10 @@ class SnapContext():
                         r_value = value
                         if find_next_index:
                             last_value = value
-                            find_next_index = False
                             r_snap_obj = self._get_snap_obj_by_index(value)
                             if (r_snap_obj is None) or value < (r_snap_obj.data[1].first_index + len(r_snap_obj.data[1].tri_verts)):
                                 continue
+                            find_next_index = False
                         elif (r_snap_obj is None) or\
                             (value < r_snap_obj.data[1].first_index) or\
                             (value >= (r_snap_obj.data[1].first_index + r_snap_obj.data[1].get_tot_elems())):
@@ -422,6 +422,9 @@ class SnapContext():
                 int(self.mval[0]) - self._dist_px, int(self.mval[1]) - self._dist_px,
                 self.threshold, self.threshold, bgl.GL_RED_INTEGER, bgl.GL_UNSIGNED_INT, self._snap_buffer)
         #bgl.glReadBuffer(bgl.GL_BACK)
+        #import numpy as np
+        #a = np.array(self._snap_buffer)
+        #print(a)
 
         snap_obj, index = self._get_nearest_index()
         #print("index:", index)
