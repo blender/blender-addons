@@ -393,7 +393,7 @@ class SnapUtilitiesLine(bpy.types.Operator):
 
                     bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
                     Bpy_Area_header_text_clear(context.area)
-                    #context.area.header_text_set(text = "")
+                    # context.area.header_text_set(text=None)
                     self.sctx.free()
                     del self.draw_cache
 

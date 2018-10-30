@@ -445,7 +445,7 @@ class Manipulator():
                         ret = False
                         self.keyboard_cancel(context, event)
                         pass
-                    context.area.header_text_set("")
+                    context.area.header_text_set(None)
                     self.keyboard_input_active = False
                     self.feedback.disable()
                     return ret
