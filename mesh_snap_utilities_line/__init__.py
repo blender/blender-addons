@@ -22,11 +22,11 @@
 bl_info = {
     "name": "Snap_Utilities_Line",
     "author": "Germano Cavalcante",
-    "version": (5, 8, 22),
+    "version": (5, 8, 23),
     "blender": (2, 80, 0),
-    "location": "View3D > TOOLS > Snap Utilities > snap utilities",
+    "location": "View3D > TOOLS > Make Line",
     "description": "Extends Blender Snap controls",
-    "wiki_url" : "http://blenderartists.org/forum/showthread.php?363859-Addon-CAD-Snap-Utilities",
+    #"wiki_url" : "http://blenderartists.org/forum/showthread.php?363859-Addon-CAD-Snap-Utilities",
     "category": "Mesh"}
 
 if "bpy" in locals():
@@ -73,12 +73,12 @@ def tool_make_line():
     )
 
 
-def get_tool_list(space_type, context_mode):
-    from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
-    cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
-    return cls._tools[context_mode]
-
 def register():
+    def get_tool_list(space_type, context_mode):
+        from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
+        cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
+        return cls._tools[context_mode]
+
     bpy.utils.register_class(preferences.SnapUtilitiesLinePreferences)
     bpy.utils.register_class(ops_line.SnapUtilitiesLine)
 

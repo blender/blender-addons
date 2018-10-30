@@ -26,17 +26,6 @@ from bpy.props import (
     )
 
 
-def update_panel(self, context):
-    try:
-        panel = bpy.types.VIEW3D_PT_snap_utilities
-        panel.bl_category = context.user_preferences.addons[__package__].preferences.category
-        bpy.utils.unregister_class(panel)
-        bpy.utils.register_class(panel)
-    except:
-        print('not update')
-        pass
-
-
 class SnapUtilitiesLinePreferences(bpy.types.AddonPreferences):
     # this must match the addon name, use '__package__'
     # when defining this in a submodule of a python package.
