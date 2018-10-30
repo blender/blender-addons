@@ -111,4 +111,3 @@ class SnapUtilitiesLinePreferences(bpy.types.AddonPreferences):
         col.label(text="Line Tool:")
         col.prop(self, "intersect")
         col.prop(self, "create_face")
-        col.prop(self, "create_new_obj")
