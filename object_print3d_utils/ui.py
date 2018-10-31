@@ -122,7 +122,7 @@ class Print3D_ToolBar:
         col = layout.column()
         rowsub = col.row(align=True)
         rowsub.label(text="Export Path:")
-        rowsub.prop(print_3d, "use_apply_scale", text="", icon='MAN_SCALE')
+        rowsub.prop(print_3d, "use_apply_scale", text="", icon='ORIENTATION_GLOBAL')
         rowsub.prop(print_3d, "use_export_texture", text="", icon='FILE_IMAGE')
         rowsub = col.row()
         rowsub.prop(print_3d, "export_path", text="")
