@@ -20,6 +20,8 @@ import bgl
 import gpu
 import numpy as np
 
+from .common_utilities import snap_utilities
+
 
 class SnapDrawn():
     def __init__(self, out_color, face_color,
@@ -161,19 +163,20 @@ class SnapDrawn():
         gpu.matrix.multiply_matrix(snap_obj.mat)
 
         if isinstance(elem, BMVert):
-            color = self.vert_color
-            edges = np.empty((len(elem.link_edges), 2), [("pos", "f4", 3), ("color", "f4", 4)])
-            edges["pos"][:, 0] = elem.co
-            edges["pos"][:, 1] = [e.other_vert(elem).co for e in elem.link_edges]
-            edges["color"][:, 0] = color
-            edges["color"][:, 1] = (color[0], color[1], color[2], 0.0)
-            edges.shape = -1
+            if elem.link_edges:
+                color = self.vert_color
+                edges = np.empty((len(elem.link_edges), 2), [("pos", "f4", 3), ("color", "f4", 4)])
+                edges["pos"][:, 0] = elem.co
+                edges["pos"][:, 1] = [e.other_vert(elem).co for e in elem.link_edges]
+                edges["color"][:, 0] = color
+                edges["color"][:, 1] = (color[0], color[1], color[2], 0.0)
+                edges.shape = -1
 
-            self._program_smooth_col.bind()
-            bgl.glLineWidth(3.0)
-            batch = self.batch_lines_smooth_color_create(edges["pos"], edges["color"])
-            batch.draw(self._program_smooth_col)
-            bgl.glLineWidth(1.0)
+                self._program_smooth_col.bind()
+                bgl.glLineWidth(3.0)
+                batch = self.batch_lines_smooth_color_create(edges["pos"], edges["color"])
+                batch.draw(self._program_smooth_col)
+                bgl.glLineWidth(1.0)
         else:
             self._program_unif_col.bind()
 
@@ -332,3 +335,104 @@ class CharMap:
             elif event.type == 'RIGHT_ARROW':
                 self.line_pos = (self.line_pos + 1) % (len(self.length_entered) + 1)
 
+
+class MousePointWidget(bpy.types.Gizmo):
+    bl_idname = "VIEW3D_GT_mouse_point"
+
+    __slots__ = (
+        "sctx",
+        "bm",
+        "draw_cache",
+        "geom",
+        "incremental",
+        "preferences",
+        "loc",
+        "snap_obj",
+        "snap_to_grid",
+        "type",
+    )
+
+    def test_select(self, context, mval):
+        #print('test_select', mval)
+        self.snap_obj, prev_loc, self.loc, self.type, self.bm, self.geom, len = snap_utilities(
+                self.sctx,
+                None,
+                mval,
+                increment=self.incremental
+        )
+        context.area.tag_redraw()
+        return False
+
+    def draw(self, context):
+        if self.bm:
+            self.draw_cache.draw_elem(self.snap_obj, self.bm, self.geom)
+        self.draw_cache.draw(self.type, self.loc, None, None, None)
+
+    def setup(self):
+        if not hasattr(self, "sctx"):
+            context = bpy.context
+
+            self.preferences = preferences = context.user_preferences.addons[__package__].preferences
+
+            #Configure the unit of measure
+            self.snap_to_grid = preferences.increments_grid
+            self.incremental = bpy.utils.units.to_value(
+                    context.scene.unit_settings.system, 'LENGTH', str(preferences.incremental))
+
+            self.draw_cache = SnapDrawn(
+                preferences.out_color,
+                preferences.face_color,
+                preferences.edge_color,
+                preferences.vert_color,
+                preferences.center_color,
+                preferences.perpendicular_color,
+                preferences.constrain_shift_color,
+                (*context.user_preferences.themes[0].user_interface.axis_x, 1.0),
+                (*context.user_preferences.themes[0].user_interface.axis_y, 1.0),
+                (*context.user_preferences.themes[0].user_interface.axis_z, 1.0)
+            )
+
+            #Init Snap Context
+            from .snap_context_l import SnapContext
+            from mathutils import Vector
+
+            self.sctx = SnapContext(context.region, context.space_data)
+            self.sctx.set_pixel_dist(12)
+            self.sctx.use_clip_planes(True)
+
+            if preferences.outer_verts:
+                for base in context.visible_bases:
+                    self.sctx.add_obj(base.object, base.object.matrix_world)
+
+            self.sctx.set_snap_mode(True, True, True)
+            self.bm = None
+            self.type = 'OUT'
+            self.loc = Vector()
+
+    def __del__(self):
+        self.sctx.free()
+        del self.draw_cache
+
+
+class MousePointWidgetGroup(bpy.types.GizmoGroup):
+    bl_idname = "MESH_GGT_mouse_point"
+    bl_label = "Draw Mouse Point"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
+    bl_options = {'3D'}
+
+    __slots__ = (
+        "snap_widget",
+    )
+
+    def setup(self, context):
+        if not hasattr(self, "snap_widget"):
+            self.snap_widget = self.gizmos.new(MousePointWidget.bl_idname)
+            props = self.snap_widget.target_set_operator("mesh.make_line")
+            props.wait_for_input = False
+
+            b_sctx_ptr = id(self.snap_widget).to_bytes(8, 'big')
+            props.snap_widget_ptr[0] = int.from_bytes(b_sctx_ptr[0:2], 'big')
+            props.snap_widget_ptr[1] = int.from_bytes(b_sctx_ptr[2:4], 'big')
+            props.snap_widget_ptr[2] = int.from_bytes(b_sctx_ptr[4:6], 'big')
+            props.snap_widget_ptr[3] = int.from_bytes(b_sctx_ptr[6:8], 'big')
