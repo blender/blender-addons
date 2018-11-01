@@ -445,7 +445,7 @@ class SnapUtilitiesLine(bpy.types.Operator):
             #Modify the current state
             bpy.ops.mesh.select_all(action='DESELECT')
             context.user_preferences.view.use_rotate_around_active = True
-            context.tool_settings.mesh_select_mode = (True, True, True)
+            context.tool_settings.mesh_select_mode = (True, False, True)
             context.space_data.overlay.show_face_center = True
 
             #Store values from 3d view context
@@ -496,7 +496,7 @@ class SnapUtilitiesLine(bpy.types.Operator):
                 self.sctx.set_pixel_dist(12)
                 self.sctx.use_clip_planes(True)
 
-                if self.outer_verts:
+                if preferences.outer_verts:
                     for base in context.visible_bases:
                         self.sctx.add_obj(base.object, base.object.matrix_world)
 

@@ -189,13 +189,14 @@ class SnapDrawn():
                 bgl.glLineWidth(1.0)
 
             elif isinstance(elem, BMFace):
-                face_color = self.face_color[0], self.face_color[1], self.face_color[2], self.face_color[3] * 0.2
-                self._program_unif_col.uniform_float("color", face_color)
+                if len(snap_obj.data) == 2:
+                    face_color = self.face_color[0], self.face_color[1], self.face_color[2], self.face_color[3] * 0.2
+                    self._program_unif_col.uniform_float("color", face_color)
 
-                tris = snap_obj.data[1].get_loop_tri_co_by_bmface(bm, elem)
-                tris.shape = (-1, 3)
-                batch = self.batch_triangles_create(tris)
-                batch.draw(self._program_unif_col)
+                    tris = snap_obj.data[1].get_loop_tri_co_by_bmface(bm, elem)
+                    tris.shape = (-1, 3)
+                    batch = self.batch_triangles_create(tris)
+                    batch.draw(self._program_unif_col)
 
         # restore opengl defaults
         bgl.glEnable(bgl.GL_DEPTH_TEST)
