@@ -67,7 +67,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_View_Navigation", icon='PIVOT_BOUNDBOX')
             layout.menu("VIEW3D_MT_View_Toggle", icon='WORKSPACE')
             layout.operator("view3d.snap_cursor_to_center",
-                            text="Cursor to Center")
+                            text="Cursor to World Origin")
             layout.operator("view3d.snap_cursor_to_grid",
                             text="Cursor to Grid")
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
@@ -974,7 +974,7 @@ class VIEW3D_MT_CursorMenu(Menu):
         layout.operator("view3d.snap_cursor_to_selected",
                         text="Cursor to Selected")
         layout.operator("view3d.snap_cursor_to_center",
-                        text="Cursor to Center")
+                        text="Cursor to World Origin")
         layout.operator("view3d.snap_cursor_to_grid",
                         text="Cursor to Grid")
         layout.operator("view3d.snap_cursor_to_active",
@@ -987,7 +987,7 @@ class VIEW3D_MT_CursorMenu(Menu):
         layout.operator("view3d.snap_selected_to_grid",
                         text="Selection to Grid")
         layout.operator("view3d.snap_cursor_selected_to_center",
-                        text="Selection and Cursor to Center")
+                        text="Selection and Cursor to World Origin")
         UseSeparator(self, context)
         layout.menu("VIEW3D_MT_Pivot")
         layout.operator("view3d.pivot_cursor",
@@ -1007,7 +1007,7 @@ class VIEW3D_MT_CursorMenuLite(Menu):
         layout.operator("view3d.snap_cursor_to_selected",
                         text="Cursor to Selected")
         layout.operator("view3d.snap_cursor_to_center",
-                        text="Cursor to Center")
+                        text="Cursor to World Origin")
         layout.operator("view3d.snap_cursor_to_grid",
                         text="Cursor to Grid")
         layout.operator("view3d.snap_cursor_to_active",
@@ -1020,7 +1020,7 @@ class VIEW3D_MT_CursorMenuLite(Menu):
         layout.operator("view3d.snap_selected_to_grid",
                         text="Selection to Grid")
         layout.operator("view3d.snap_cursor_selected_to_center",
-                        text="Selection and Cursor to Center")
+                        text="Selection and Cursor to World Origin")
         UseSeparator(self, context)
         layout.menu("VIEW3D_MT_Pivot")
         layout.operator("view3d.pivot_cursor",
@@ -1415,7 +1415,7 @@ class VIEW3D_MT_EditCursorMenu(Menu):
         layout.operator("view3d.snap_cursor_to_selected",
                         text="Cursor to Selected")
         layout.operator("view3d.snap_cursor_to_center",
-                        text="Cursor to Center")
+                        text="Cursor to World Origin")
         layout.operator("view3d.snap_cursor_to_grid",
                         text="Cursor to Grid")
         layout.operator("view3d.snap_cursor_to_active",
@@ -2926,7 +2926,7 @@ class SetOriginToSelected(Operator):
 # Code thanks to Isaac Weaver (wisaac) D1963
 class SnapCursSelToCenter(Operator):
     bl_idname = "view3d.snap_cursor_selected_to_center"
-    bl_label = "Snap Cursor & Selection to Center"
+    bl_label = "Snap Cursor & Selection to World Origin"
     bl_description = ("Snap 3D cursor and selected objects to the center \n"
                       "Works only in Object Mode")
 

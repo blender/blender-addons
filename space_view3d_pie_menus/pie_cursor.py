@@ -72,9 +72,9 @@ class Snap_CursorMenu(Menu):
                     text="Selection to Cursor (Keep Offset)", icon='CURSOR').use_offset = True
         # 2 - BOTTOM
         pie.operator("view3d.snap_cursor_selected_to_center1",
-                    text="Selected & Cursor to Center", icon='ALIGN')
+                    text="Selected & Cursor to World Origin", icon='ALIGN')
         # 8 - TOP
-        pie.operator("view3d.snap_cursor_to_center", text="Cursor to Center", icon='CLIPUV_DEHLT')
+        pie.operator("view3d.snap_cursor_to_center", text="Cursor to World Origin", icon='CLIPUV_DEHLT')
         # 7 - TOP - LEFT
         pie.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected", icon='ROTACTIVE')
         # 9 - TOP - RIGHT

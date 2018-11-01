@@ -254,7 +254,7 @@ class VIEW3D_PT_3dnavigationPanel(Panel):
         col = layout.column(align=True)
         col.label(text="Cursor:", icon='PIVOT_CURSOR')
         row = col.row(align=True)
-        row.operator("view3d.snap_cursor_to_center", text="Center")
+        row.operator("view3d.snap_cursor_to_center", text="World Origin")
         row.operator("view3d.view_center_cursor", text="View")
         col.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected")
 
