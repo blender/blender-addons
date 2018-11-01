@@ -24,7 +24,10 @@ import bpy
 from mathutils import Matrix, Vector, Color
 from bpy_extras import io_utils, node_shader_utils
 
-from progress_report import ProgressReport, ProgressReportSubstep
+from bpy_extras.wm_utils.progress_report import (
+    ProgressReport,
+    ProgressReportSubstep,
+)
 
 
 def name_compat(name):
