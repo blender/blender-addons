@@ -27,6 +27,7 @@ from .common_classes import (
     SnapDrawn,
     CharMap,
     SnapNavigation,
+    g_snap_widget, #TODO: remove
     )
 
 from .common_utilities import (
@@ -218,11 +219,6 @@ class SnapUtilitiesLine(bpy.types.Operator):
     bl_options = {'REGISTER'}
 
     wait_for_input: bpy.props.BoolProperty(name="Wait for Input", default=True)
-    snap_widget_ptr: bpy.props.IntVectorProperty(
-        name="Adress of a SnapContext object",
-        size=4,
-        default=(0, 0, 0, 0),
-        )
 
     constrain_keys = {
         'X': Vector((1,0,0)),
@@ -261,15 +257,18 @@ class SnapUtilitiesLine(bpy.types.Operator):
         context.area.tag_redraw()
 
         if event.ctrl and event.type == 'Z' and event.value == 'PRESS':
-            del self.bm
-            del self.main_bm
+            if self.bm:
+                self.bm.free()
+                self.bm = None
+            if self.main_bm:
+                self.main_bm.free()
             bpy.ops.ed.undo()
             self.vector_constrain = None
             self.list_verts_co = []
             self.list_verts = []
             self.list_edges = []
             bpy.ops.object.mode_set(mode='EDIT') # just to be sure
-            self.main_bm = bmesh.from_edit_mesh(self.main_snap_obj.data[0])
+            self.main_bm = bmesh.from_edit_mesh(self.main_snap_obj.data[0].data)
             self.sctx.tag_update_drawn_snap_object(self.main_snap_obj)
             return {'RUNNING_MODAL'}
 
@@ -367,15 +366,6 @@ class SnapUtilitiesLine(bpy.types.Operator):
                 self.vector_constrain = None
                 self.list_verts_co = draw_line(self, geom2, point)
 
-            elif event.type == 'TAB':
-                self.keytab = self.keytab is False
-                if self.keytab:
-                    self.sctx.set_snap_mode(False, False, True)
-                    context.tool_settings.mesh_select_mode = (False, False, True)
-                else:
-                    self.sctx.set_snap_mode(True, True, True)
-                    context.tool_settings.mesh_select_mode = (True, True, self.snap_face)
-
             elif event.type == 'F8':
                 self.vector_constrain = None
                 self.keyf8 = self.keyf8 is False
@@ -454,25 +444,17 @@ class SnapUtilitiesLine(bpy.types.Operator):
             # self.obj_glmatrix = bgl.Buffer(bgl.GL_FLOAT, [4, 4], self.obj_matrix.transposed())
 
             #Init event variables
-            self.keytab = False
             self.keyf8 = False
             self.snap_face = True
 
-            snap_widget_ptr = (self.snap_widget_ptr[0] << 48) |\
-                              (self.snap_widget_ptr[1] << 32) |\
-                              (self.snap_widget_ptr[2] << 16) |\
-                              (self.snap_widget_ptr[3] << 00)
+            self.snap_widget = g_snap_widget[0]
 
-            if snap_widget_ptr is not 0:
-                import ctypes
-                self.snap_widget = ctypes.cast(snap_widget_ptr, ctypes.py_object).value
+            if self.snap_widget is not None:
                 self.draw_cache = self.snap_widget.draw_cache
                 self.sctx = self.snap_widget.sctx
 
                 preferences = self.snap_widget.preferences
             else:
-                self.snap_widget = None
-
                 preferences = context.user_preferences.addons[__package__].preferences
 
                 #Init DrawCache

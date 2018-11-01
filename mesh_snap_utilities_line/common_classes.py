@@ -159,50 +159,48 @@ class SnapDrawn():
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glDisable(bgl.GL_DEPTH_TEST)
 
-        gpu.matrix.push()
-        gpu.matrix.multiply_matrix(snap_obj.mat)
+        with gpu.matrix.push_pop():
+            gpu.matrix.multiply_matrix(snap_obj.mat)
 
-        if isinstance(elem, BMVert):
-            if elem.link_edges:
-                color = self.vert_color
-                edges = np.empty((len(elem.link_edges), 2), [("pos", "f4", 3), ("color", "f4", 4)])
-                edges["pos"][:, 0] = elem.co
-                edges["pos"][:, 1] = [e.other_vert(elem).co for e in elem.link_edges]
-                edges["color"][:, 0] = color
-                edges["color"][:, 1] = (color[0], color[1], color[2], 0.0)
-                edges.shape = -1
+            if isinstance(elem, BMVert):
+                if elem.link_edges:
+                    color = self.vert_color
+                    edges = np.empty((len(elem.link_edges), 2), [("pos", "f4", 3), ("color", "f4", 4)])
+                    edges["pos"][:, 0] = elem.co
+                    edges["pos"][:, 1] = [e.other_vert(elem).co for e in elem.link_edges]
+                    edges["color"][:, 0] = color
+                    edges["color"][:, 1] = (color[0], color[1], color[2], 0.0)
+                    edges.shape = -1
 
-                self._program_smooth_col.bind()
-                bgl.glLineWidth(3.0)
-                batch = self.batch_lines_smooth_color_create(edges["pos"], edges["color"])
-                batch.draw(self._program_smooth_col)
-                bgl.glLineWidth(1.0)
-        else:
-            self._program_unif_col.bind()
+                    self._program_smooth_col.bind()
+                    bgl.glLineWidth(3.0)
+                    batch = self.batch_lines_smooth_color_create(edges["pos"], edges["color"])
+                    batch.draw(self._program_smooth_col)
+                    bgl.glLineWidth(1.0)
+            else:
+                self._program_unif_col.bind()
 
-            if isinstance(elem, BMEdge):
-                self._program_unif_col.uniform_float("color", self.edge_color)
+                if isinstance(elem, BMEdge):
+                    self._program_unif_col.uniform_float("color", self.edge_color)
 
-                bgl.glLineWidth(3.0)
-                batch = self.batch_line_strip_create([v.co for v in elem.verts])
-                batch.draw(self._program_unif_col)
-                bgl.glLineWidth(1.0)
-
-            elif isinstance(elem, BMFace):
-                if len(snap_obj.data) == 2:
-                    face_color = self.face_color[0], self.face_color[1], self.face_color[2], self.face_color[3] * 0.2
-                    self._program_unif_col.uniform_float("color", face_color)
-
-                    tris = snap_obj.data[1].get_loop_tri_co_by_bmface(bm, elem)
-                    tris.shape = (-1, 3)
-                    batch = self.batch_triangles_create(tris)
+                    bgl.glLineWidth(3.0)
+                    batch = self.batch_line_strip_create([v.co for v in elem.verts])
                     batch.draw(self._program_unif_col)
+                    bgl.glLineWidth(1.0)
 
-        # restore opengl defaults
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glDisable(bgl.GL_BLEND)
+                elif isinstance(elem, BMFace):
+                    if len(snap_obj.data) == 2:
+                        face_color = self.face_color[0], self.face_color[1], self.face_color[2], self.face_color[3] * 0.2
+                        self._program_unif_col.uniform_float("color", face_color)
 
-        gpu.matrix.pop()
+                        tris = snap_obj.data[1].get_loop_tri_co_by_bmface(bm, elem)
+                        tris.shape = (-1, 3)
+                        batch = self.batch_triangles_create(tris)
+                        batch.draw(self._program_unif_col)
+
+            # restore opengl defaults
+            bgl.glEnable(bgl.GL_DEPTH_TEST)
+            bgl.glDisable(bgl.GL_BLEND)
 
 
 class SnapNavigation():
@@ -336,6 +334,7 @@ class CharMap:
             elif event.type == 'RIGHT_ARROW':
                 self.line_pos = (self.line_pos + 1) % (len(self.length_entered) + 1)
 
+g_snap_widget = [None]
 
 class MousePointWidget(bpy.types.Gizmo):
     bl_idname = "VIEW3D_GT_mouse_point"
@@ -371,6 +370,9 @@ class MousePointWidget(bpy.types.Gizmo):
 
     def setup(self):
         if not hasattr(self, "sctx"):
+            global g_snap_widget
+            g_snap_widget[0] = self
+
             context = bpy.context
 
             self.preferences = preferences = context.user_preferences.addons[__package__].preferences
@@ -411,8 +413,8 @@ class MousePointWidget(bpy.types.Gizmo):
             self.loc = Vector()
 
     def __del__(self):
-        self.sctx.free()
-        del self.draw_cache
+        global g_snap_widget
+        g_snap_widget[0] = None
 
 
 class MousePointWidgetGroup(bpy.types.GizmoGroup):
@@ -428,12 +430,6 @@ class MousePointWidgetGroup(bpy.types.GizmoGroup):
 
     def setup(self, context):
         if not hasattr(self, "snap_widget"):
-            self.snap_widget = self.gizmos.new(MousePointWidget.bl_idname)
-            props = self.snap_widget.target_set_operator("mesh.make_line")
+            snap_widget = self.gizmos.new(MousePointWidget.bl_idname)
+            props = snap_widget.target_set_operator("mesh.make_line")
             props.wait_for_input = False
-
-            b_sctx_ptr = id(self.snap_widget).to_bytes(8, 'big')
-            props.snap_widget_ptr[0] = int.from_bytes(b_sctx_ptr[0:2], 'big')
-            props.snap_widget_ptr[1] = int.from_bytes(b_sctx_ptr[2:4], 'big')
-            props.snap_widget_ptr[2] = int.from_bytes(b_sctx_ptr[4:6], 'big')
-            props.snap_widget_ptr[3] = int.from_bytes(b_sctx_ptr[6:8], 'big')
