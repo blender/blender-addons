@@ -65,11 +65,11 @@ def tool_make_line():
             "Connect them to split faces"
         ),
         icon=os.path.join(icons_dir, "ops.mesh.make_line"),
-        widget="MESH_GGT_mouse_point",
+#        widget="MESH_GGT_mouse_point",
         operator="mesh.make_line",
-#        keymap=(
-#            ("mesh.make_line", dict(wait_for_input=False), dict(type='ACTIONMOUSE', value='PRESS')),
-#        ),
+        keymap=(
+            ("mesh.make_line", None, dict(type='ACTIONMOUSE', value='PRESS')),
+        ),
         draw_settings=draw_settings,
     )
 
@@ -82,8 +82,8 @@ def register():
 
     bpy.utils.register_class(preferences.SnapUtilitiesLinePreferences)
     bpy.utils.register_class(ops_line.SnapUtilitiesLine)
-    bpy.utils.register_class(common_classes.MousePointWidget)
-    bpy.utils.register_class(common_classes.MousePointWidgetGroup)
+#    bpy.utils.register_class(common_classes.MousePointWidget)
+#    bpy.utils.register_class(common_classes.MousePointWidgetGroup)
 
     bpy.utils.register_tool('VIEW_3D', 'EDIT_MESH', tool_make_line)
 
@@ -97,8 +97,8 @@ def register():
 def unregister():
     bpy.utils.unregister_tool('VIEW_3D', 'EDIT_MESH', tool_make_line)
 
-    bpy.utils.unregister_class(common_classes.MousePointWidgetGroup)
-    bpy.utils.unregister_class(common_classes.MousePointWidget)
+#    bpy.utils.unregister_class(common_classes.MousePointWidgetGroup)
+#    bpy.utils.unregister_class(common_classes.MousePointWidget)
     bpy.utils.unregister_class(ops_line.SnapUtilitiesLine)
     bpy.utils.unregister_class(preferences.SnapUtilitiesLinePreferences)
 

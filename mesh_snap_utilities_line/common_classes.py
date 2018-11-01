@@ -429,7 +429,6 @@ class MousePointWidgetGroup(bpy.types.GizmoGroup):
     )
 
     def setup(self, context):
-        if not hasattr(self, "snap_widget"):
-            snap_widget = self.gizmos.new(MousePointWidget.bl_idname)
-            props = snap_widget.target_set_operator("mesh.make_line")
-            props.wait_for_input = False
+        snap_widget = self.gizmos.new(MousePointWidget.bl_idname)
+        props = snap_widget.target_set_operator("mesh.make_line")
+        props.wait_for_input = False
