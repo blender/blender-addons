@@ -36,10 +36,10 @@ import os
 import time
 import bpy
 import mathutils
+
 from bpy_extras.io_utils import unpack_list
 from bpy_extras.image_utils import load_image
-
-from progress_report import ProgressReport, ProgressReportSubstep
+from bpy_extras.wm_utils.progress_report import ProgressReport
 
 
 def line_value(line_split):
