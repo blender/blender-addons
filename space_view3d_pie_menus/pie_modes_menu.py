@@ -23,7 +23,7 @@ bl_info = {
     "description": "Switch between 3d view object/edit modes",
     "author": "pitiwazou, meta-androcto, italic",
     "version": (0, 1, 2),
-    "blender": (2, 77, 0),
+    "blender": (2, 80, 0),
     "location": "3D View",
     "warning": "",
     "wiki_url": "",
@@ -276,7 +276,7 @@ class PieObjectEditotherModes(Menu):
         box.operator("verts.edges", text="Vertex/Edges", icon='VERTEXSEL')
         box.operator("verts.edgesfaces", text="Vertex/Edges/Faces", icon='OBJECT_DATAMODE')
         box.operator("wm.context_toggle", text="Limit to Visible",
-                     icon="ORTHO").data_path = "space_data.use_occlude_geometry"
+                     icon="NONE").data_path = "space_data.use_occlude_geometry"
 
 
 class PieObjectEditMode(Menu):
