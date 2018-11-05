@@ -271,17 +271,10 @@ class SnapNavigation():
 
         for key in self._zoom:
             if evkey == key[0:3]:
-                if snap_location:
-                    v3d = context.space_data
-                    dist_range = (v3d.clip_start, v3d.clip_end)
-                    rv3d = context.region_data
-                    if (key[3] < 0 and rv3d.view_distance < dist_range[1]) or\
-                       (key[3] > 0 and rv3d.view_distance > dist_range[0]):
-                            rv3d.view_location += key[3] * (snap_location - rv3d.view_location) / 6
-                            rv3d.view_distance -= key[3] * rv3d.view_distance / 6
-                    context.area.tag_redraw()
+                if snap_location and key[3]:
+                    bpy.ops.view3d.zoom_custom_target('INVOKE_DEFAULT', delta=key[3], target=snap_location)
                 else:
-                    bpy.ops.view3d.zoom('INVOKE_DEFAULT', delta = key[3])
+                    bpy.ops.view3d.zoom('INVOKE_DEFAULT', delta=key[3])
                 return True
 
         if self.use_ndof:
@@ -458,7 +451,6 @@ class VIEW3D_OT_rotate_custom_pivot(bpy.types.Operator):
 
             self.rv3d.view_location = pos
             self.rv3d.view_rotation = qua
-            #self.rv3d.view_distance = dist
 
             context.area.tag_redraw()
             return {'RUNNING_MODAL'}
@@ -473,3 +465,46 @@ class VIEW3D_OT_rotate_custom_pivot(bpy.types.Operator):
 
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
+
+
+class VIEW3D_OT_zoom_custom_target(bpy.types.Operator):
+    bl_idname = "view3d.zoom_custom_target"
+    bl_label = "Zoom the view"
+    bl_options = {'BLOCKING', 'GRAB_CURSOR'}
+
+    target: bpy.props.FloatVectorProperty("target", subtype='XYZ')
+    delta: bpy.props.IntProperty("delta", default=0)
+    step_factor = 0.333
+
+    def modal(self, context, event):
+        if event.value == 'PRESS' and event.type in {'MOUSEMOVE', 'INBETWEEN_MOUSEMOVE'}:
+            if not hasattr(self, "init_mouse_region_y"):
+                self.init_mouse_region_y = event.mouse_region_y
+                self.heigt_up = context.area.height - self.init_mouse_region_y
+                self.rv3d.view_location = self.target
+
+            fac = (event.mouse_region_y - self.init_mouse_region_y) / self.heigt_up
+            ret = 'RUNNING_MODAL'
+        else:
+            fac = self.step_factor * self.delta
+            ret = 'FINISHED'
+
+        self.rv3d.view_location = self.init_loc + (self.target - self.init_loc) * fac
+        self.rv3d.view_distance = self.init_dist - self.init_dist * fac
+
+        context.area.tag_redraw()
+        return {ret}
+
+    def invoke(self, context, event):
+        v3d = context.space_data
+        dist_range = (v3d.clip_start, v3d.clip_end)
+        self.rv3d = context.region_data
+        self.init_dist = self.rv3d.view_distance
+        if ((self.delta <= 0 and self.init_dist < dist_range[1]) or
+            (self.delta >  0 and self.init_dist > dist_range[0])):
+                self.init_loc = self.rv3d.view_location.copy()
+
+                context.window_manager.modal_handler_add(self)
+                return {'RUNNING_MODAL'}
+
+        return {'FINISHED'}
