@@ -81,6 +81,7 @@ def register():
         return cls._tools[context_mode]
 
     bpy.utils.register_class(preferences.SnapUtilitiesLinePreferences)
+    bpy.utils.register_class(common_classes.VIEW3D_OT_rotate_custom_pivot)
     bpy.utils.register_class(ops_line.SnapUtilitiesLine)
 #    bpy.utils.register_class(common_classes.MousePointWidget)
 #    bpy.utils.register_class(common_classes.MousePointWidgetGroup)
@@ -100,6 +101,7 @@ def unregister():
 #    bpy.utils.unregister_class(common_classes.MousePointWidgetGroup)
 #    bpy.utils.unregister_class(common_classes.MousePointWidget)
     bpy.utils.unregister_class(ops_line.SnapUtilitiesLine)
+    bpy.utils.unregister_class(common_classes.VIEW3D_OT_rotate_custom_pivot)
     bpy.utils.unregister_class(preferences.SnapUtilitiesLinePreferences)
 
 if __name__ == "__main__":

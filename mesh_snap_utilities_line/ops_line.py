@@ -247,7 +247,6 @@ class SnapUtilitiesLine(bpy.types.Operator):
 
         #Restore initial state
         context.tool_settings.mesh_select_mode = self.select_mode
-        context.user_preferences.view.use_rotate_around_active = self.use_rotate_around_active
         context.space_data.overlay.show_face_center = self.show_face_center
 
     def modal(self, context, event):
@@ -428,13 +427,11 @@ class SnapUtilitiesLine(bpy.types.Operator):
             # print('name', __name__, __package__)
 
             #Store current state
-            self.use_rotate_around_active = context.user_preferences.view.use_rotate_around_active
             self.select_mode = context.tool_settings.mesh_select_mode[:]
             self.show_face_center = context.space_data.overlay.show_face_center
 
             #Modify the current state
             bpy.ops.mesh.select_all(action='DESELECT')
-            context.user_preferences.view.use_rotate_around_active = True
             context.tool_settings.mesh_select_mode = (True, False, True)
             context.space_data.overlay.show_face_center = True
 

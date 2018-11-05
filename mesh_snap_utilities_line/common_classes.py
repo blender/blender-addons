@@ -256,7 +256,10 @@ class SnapNavigation():
         evkey = (self.convert_to_flag(event.shift, event.ctrl, event.alt), event.type, event.value)
 
         if evkey in self._rotate:
-            bpy.ops.view3d.rotate('INVOKE_DEFAULT')
+            if snap_location:
+                bpy.ops.view3d.rotate_custom_pivot('INVOKE_DEFAULT', pivot=snap_location)
+            else:
+                bpy.ops.view3d.rotate('INVOKE_DEFAULT', use_mouse_init=True)
             return True
 
         if evkey in self._move:
@@ -432,3 +435,45 @@ class MousePointWidgetGroup(bpy.types.GizmoGroup):
         snap_widget = self.gizmos.new(MousePointWidget.bl_idname)
         props = snap_widget.target_set_operator("mesh.make_line")
         props.wait_for_input = False
+
+
+class VIEW3D_OT_rotate_custom_pivot(bpy.types.Operator):
+    bl_idname = "view3d.rotate_custom_pivot"
+    bl_label = "Rotate the view"
+    bl_options = {'BLOCKING', 'GRAB_CURSOR'}
+
+    pivot = bpy.props.FloatVectorProperty("Pivot", subtype='XYZ')
+    g_up_axis = bpy.props.FloatVectorProperty("up_axis", default=(0.0, 0.0, 1.0), subtype='XYZ')
+    sensitivity = bpy.props.FloatProperty("sensitivity", default=0.007)
+
+    def modal(self, context, event):
+        from mathutils import Matrix
+        if event.value == 'PRESS' and event.type in {'MOUSEMOVE', 'INBETWEEN_MOUSEMOVE'}:
+            dx = self.init_coord[0] - event.mouse_region_x
+            dy = self.init_coord[1] - event.mouse_region_y
+            rot_ver = Matrix.Rotation(dx * self.sensitivity, 3, self.g_up_axis)
+            rot_hor = Matrix.Rotation(dy * self.sensitivity, 3, self.view_rot[0])
+            rot_mat =  rot_hor @ rot_ver
+            view_matrix = self.view_rot @ rot_mat
+
+            pos = self.pos1 @ rot_mat + self.pivot
+            qua = view_matrix.to_quaternion()
+            qua.invert()
+
+            self.rv3d.view_location = pos
+            self.rv3d.view_rotation = qua
+            #self.rv3d.view_distance = dist
+
+            context.area.tag_redraw()
+            return {'RUNNING_MODAL'}
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        self.rv3d = context.region_data
+        self.init_coord = event.mouse_region_x, event.mouse_region_y
+        self.pos1 = self.rv3d.view_location - self.pivot
+        self.view_rot = self.rv3d.view_matrix.to_3x3()
+
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
