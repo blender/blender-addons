@@ -59,9 +59,9 @@ class PieManipulator(Menu):
         # 4 - LEFT
         pie.operator("wm.tool_set_by_name", text="Translate", icon='NONE').name = "Move"
         # 6 - RIGHT
-        pie.operator("wm.tool_set_by_name", text="Scale", icon='NONE').name = "Scale"
-        # 2 - BOTTOM
         pie.operator("wm.tool_set_by_name", text="Rotate", icon='NONE').name = "Rotate"
+        # 2 - BOTTOM
+        pie.operator("wm.tool_set_by_name", text="Scale", icon='NONE').name = "Scale"
         # 8 - TOP
         pie.operator("w.manupulators", text="Show/Hide Toggle", icon='NONE')
 
