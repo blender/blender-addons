@@ -84,7 +84,7 @@ def faces_from_mesh(ob, global_matrix, use_mesh_modifiers=False):
     try:
         mesh = ob.to_mesh(bpy.context.depsgraph, use_mesh_modifiers)
     except RuntimeError:
-        raise StopIteration
+        return
 
     mat = global_matrix @ ob.matrix_world
     mesh.transform(mat)
