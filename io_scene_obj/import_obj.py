@@ -1179,7 +1179,7 @@ def load(context,
             create_nurbs(context_nurbs, verts_loc, new_objects)
 
         view_layer = context.view_layer
-        collection = view_layer.collections.active.collection
+        collection = view_layer.active_layer_collection.collection
 
         # Create new obj
         for obj in new_objects:

@@ -1290,9 +1290,11 @@ def ensure_widget_collection(context):
 
         collection.children.link(widget_collection)
         widget_layer_collection = [c for c in layer_collection.children if c.collection == widget_collection][0]
+    elif widget_collection == view_layer.layer_collection.collection:
+        widget_layer_collection = view_layer.layer_collection
     else:
-        widget_layer_collection = get_layer_collection_from_collection(view_layer.collections, widget_collection)
+        widget_layer_collection = get_layer_collection_from_collection(view_layer.layer_collection.children, widget_collection)
 
     # Make the widget the active collection for the upcoming added (widget) objects
-    view_layer.collections.active = widget_layer_collection
+    view_layer.active_layer_collection = widget_layer_collection
     return widget_collection

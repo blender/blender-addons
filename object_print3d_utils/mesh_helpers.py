@@ -158,12 +158,8 @@ def bmesh_check_thick_object(obj, thickness):
     context = bpy.context
     scene = context.scene
     layer = context.view_layer
-    layer_collection = context.layer_collection
-    if layer_collection is None:
-        scene_collection = scene.master_collection.collections.new("")
-        layer_collection = layer.collections.link(scene_collection)
-    else:
-        scene_collection = layer_collection.collection
+    layer_collection = context.layer_collection or layer.active_layer_collection
+    scene_collection = layer_collection.collection
 
     me_tmp = bpy.data.meshes.new(name="~temp~")
     bm.to_mesh(me_tmp)
@@ -241,12 +237,8 @@ def object_merge(context, objects):
 
     scene = context.scene
     layer = context.view_layer
-    layer_collection = context.layer_collection
-    if layer_collection is None:
-        scene_collection = scene.master_collection.collections.new("")
-        layer_collection = layer.collections.link(scene_collection)
-    else:
-        scene_collection = layer_collection.collection
+    layer_collection = context.layer_collection or layer.active_layer_collection
+    scene_collection = layer_collection.collection
 
     # deselect all
     for obj in scene.objects:

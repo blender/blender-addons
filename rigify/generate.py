@@ -521,7 +521,7 @@ def generate_rig(context, metarig):
 
     #----------------------------------
     # Restore active collection
-    view_layer.collections.active = layer_collection
+    view_layer.active_layer_collection = layer_collection
 
 
 def create_selection_sets(obj, metarig):

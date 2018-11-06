@@ -1970,7 +1970,7 @@ class FbxImportHelperNode:
                 child.build_skeleton_children(fbx_tmpl, settings, scene, view_layer)
 
             # instance in scene
-            view_layer.collections.active.collection.objects.link(obj)
+            view_layer.active_layer_collection.collection.objects.link(obj)
             obj.select_set('SELECT')
 
             return obj
@@ -2097,7 +2097,7 @@ class FbxImportHelperNode:
                     blen_read_custom_properties(self.fbx_elem, arm, settings)
 
             # instance in scene
-            view_layer.collections.active.collection.objects.link(arm)
+            view_layer.active_layer_collection.collection.objects.link(arm)
             arm.select_set('SELECT')
 
             # Add bones:
@@ -2140,7 +2140,7 @@ class FbxImportHelperNode:
                 child.build_hierarchy(fbx_tmpl, settings, scene, view_layer)
 
             # instance in scene
-            view_layer.collections.active.collection.objects.link(obj)
+            view_layer.active_layer_collection.collection.objects.link(obj)
             obj.select_set('SELECT')
 
             return obj
