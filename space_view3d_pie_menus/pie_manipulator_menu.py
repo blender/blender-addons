@@ -44,13 +44,7 @@ class WManupulators(Operator):
     bl_description = " Show/Hide Manipulator"
 
     def execute(self, context):
-
-        if context.space_data.show_manipulator is True:
-            context.space_data.show_manipulator = False
-
-        elif context.space_data.show_manipulator is False:
-            context.space_data.show_manipulator = True
-
+        context.space_data.show_gizmo_tool = not context.space_data.show_gizmo_tool
         return {'FINISHED'}
 
 

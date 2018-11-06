@@ -51,7 +51,7 @@ class OrientPoll(Operator):
         return context.space_data.type == "VIEW_3D"
 
     def execute(self, context):
-        context.space_data.transform_orientation = self.space
+        context.scene.transform_orientation = self.space
         return {'FINISHED'}
 
 
