@@ -1971,7 +1971,7 @@ class FbxImportHelperNode:
 
             # instance in scene
             view_layer.active_layer_collection.collection.objects.link(obj)
-            obj.select_set('SELECT')
+            obj.select_set(True)
 
             return obj
 
@@ -2098,7 +2098,7 @@ class FbxImportHelperNode:
 
             # instance in scene
             view_layer.active_layer_collection.collection.objects.link(arm)
-            arm.select_set('SELECT')
+            arm.select_set(True)
 
             # Add bones:
 
@@ -2141,7 +2141,7 @@ class FbxImportHelperNode:
 
             # instance in scene
             view_layer.active_layer_collection.collection.objects.link(obj)
-            obj.select_set('SELECT')
+            obj.select_set(True)
 
             return obj
         else:

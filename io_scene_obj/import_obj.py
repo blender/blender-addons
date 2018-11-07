@@ -1184,7 +1184,7 @@ def load(context,
         # Create new obj
         for obj in new_objects:
             collection.objects.link(obj)
-            obj.select_set('SELECT')
+            obj.select_set(True)
 
             # we could apply this anywhere before scaling.
             obj.matrix_world = global_matrix

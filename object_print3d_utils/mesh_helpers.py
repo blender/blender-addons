@@ -242,14 +242,14 @@ def object_merge(context, objects):
 
     # deselect all
     for obj in scene.objects:
-        obj.select_set('DESELECT')
+        obj.select_set(False)
 
     # add empty object
     mesh_base = bpy.data.meshes.new(name="~tmp~")
     obj_base = bpy.data.objects.new(name="~tmp~", object_data=mesh_base)
     scene_collection.objects.link(obj_base)
     layer.objects.active = obj_base
-    obj_base.select_set('SELECT')
+    obj_base.select_set(True)
 
     # loop over all meshes
     for obj in objects:

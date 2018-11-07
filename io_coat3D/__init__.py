@@ -194,15 +194,15 @@ def updatemesh(objekti, proxy):
 
     if(objekti.vertex_groups.keys() != []):
         bpy.ops.object.select_all(action='DESELECT')
-        proxy.select_set('SELECT')
-        objekti.select_set('SELECT')
+        proxy.select_set(True)
+        objekti.select_set(True)
         bpy.ops.object.vertex_group_copy_to_selected()
         bpy.ops.object.select_all(action='DESELECT')
 
     # UV Set Copy
 
-    proxy.select_set('SELECT')
-    objekti.select_set('SELECT')
+    proxy.select_set(True)
+    objekti.select_set(True)
 
     if len(objekti.data.uv_layers) > 1:
         obj_uv_index =  objekti.data.uv_layers.active_index
@@ -220,7 +220,7 @@ def updatemesh(objekti, proxy):
 
     #Mesh Copy
 
-    proxy.select_set('SELECT')
+    proxy.select_set(True)
     obj_data = objekti.data.id_data
     objekti.data = proxy.data.id_data
     objekti.data.id_data.name = obj_data.name
@@ -566,7 +566,7 @@ class SCENE_OT_import(bpy.types.Operator):
                 objekti = bpy.data.objects[oname]
                 if(objekti.coat3D.import_mesh and coat3D.importmesh == True):
                     objekti.coat3D.import_mesh = False
-                    objekti.select_set('SELECT')
+                    objekti.select_set(True)
 
                     new_name = objekti.data.name
                     name_boxs = new_name.split('.')
@@ -627,7 +627,7 @@ class SCENE_OT_import(bpy.types.Operator):
                             mat_list.append(obj_mat.material)
 
                     bpy.ops.object.select_all(action='DESELECT')
-                    obj_proxy.select_set('SELECT')
+                    obj_proxy.select_set(True)
 
                     bpy.ops.object.select_all(action='TOGGLE')
 
@@ -650,7 +650,7 @@ class SCENE_OT_import(bpy.types.Operator):
 
                     #tärkee että saadaan oikein käännettyä objekt
 
-                    objekti.select_set('SELECT')
+                    objekti.select_set(True)
                     bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
 
                     objekti.data.materials.pop()
@@ -675,14 +675,14 @@ class SCENE_OT_import(bpy.types.Operator):
                     if(coat3D.importmesh and not(os.path.isfile(objekti.coat3D.applink_address))):
                         coat3D.importmesh = False
 
-                    objekti.select_set('SELECT')
+                    objekti.select_set(True)
                     if(coat3D.importtextures):
                         is_new = False
                         print('matlist: ', mat_list)
                         print('objekti: ', objekti)
                         print('is_new: ', is_new)
                         tex.matlab(objekti,mat_list,texturelist,is_new)
-                    objekti.select_set('DESELECT')
+                    objekti.select_set(False)
                 else:
                     mat_list = []
 
@@ -696,13 +696,13 @@ class SCENE_OT_import(bpy.types.Operator):
                         print('objekti: ', objekti)
                         print('is_new: ', is_new)
                         tex.matlab(objekti,mat_list,texturelist, is_new)
-                    objekti.select_set('DESELECT')
+                    objekti.select_set(False)
 
 
             bpy.ops.object.select_all(action='DESELECT')
             if(import_list):
                 for del_obj in diff_objects:
-                    bpy.context.collection.all_objects[del_obj].select_set('SELECT')
+                    bpy.context.collection.all_objects[del_obj].select_set(True)
                     bpy.ops.object.delete()
 
 
@@ -760,12 +760,12 @@ class SCENE_OT_import(bpy.types.Operator):
 
                 if(new_obj.coat3D.applink_old == False):
                     nimi += new_obj.data.name + ':::'
-                    new_obj.select_set('SELECT')
+                    new_obj.select_set(True)
                     #bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
                     new_obj.rotation_euler = (0, 0, 0)
                     new_obj.scale = (1, 1, 1)
                     new_obj.coat3D.applink_firsttime = False
-                    new_obj.select_set('DESELECT')
+                    new_obj.select_set(False)
                     new_obj.coat3D.applink_address = new_applink_address
                     new_obj.coat3D.objecttime = str(os.path.getmtime(new_obj.coat3D.applink_address))
                     splittext = ntpath.basename(new_applink_address)

@@ -348,7 +348,7 @@ def bvh_node_dict2objects(context, bvh_name, bvh_nodes, rotate_mode='NATIVE', fr
 
     scene = context.scene
     for obj in scene.objects:
-        obj.select_set("DESELECT")
+        obj.select_set(False)
 
     objects = []
 
@@ -356,7 +356,7 @@ def bvh_node_dict2objects(context, bvh_name, bvh_nodes, rotate_mode='NATIVE', fr
         obj = bpy.data.objects.new(name, None)
         context.collection.objects.link(obj)
         objects.append(obj)
-        obj.select_set("SELECT")
+        obj.select_set(True)
 
         # nicer drawing.
         obj.empty_display_type = 'CUBE'
@@ -422,14 +422,14 @@ def bvh_node_dict2armature(
     # Add the new armature,
     scene = context.scene
     for obj in scene.objects:
-        obj.select_set("DESELECT")
+        obj.select_set(False)
 
     arm_data = bpy.data.armatures.new(bvh_name)
     arm_ob = bpy.data.objects.new(bvh_name, arm_data)
 
     context.collection.objects.link(arm_ob)
 
-    arm_ob.select_set("SELECT")
+    arm_ob.select_set(True)
     context.view_layer.objects.active = arm_ob
 
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)

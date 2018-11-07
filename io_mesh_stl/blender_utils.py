@@ -60,7 +60,7 @@ def create_and_link_mesh(name, faces, face_nors, points, global_matrix):
     obj = bpy.data.objects.new(name, mesh)
     bpy.context.collection.objects.link(obj)
     bpy.context.view_layer.objects.active = obj
-    obj.select_set("SELECT")
+    obj.select_set(True)
 
 
 def faces_from_mesh(ob, global_matrix, use_mesh_modifiers=False):

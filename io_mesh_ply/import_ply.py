@@ -398,7 +398,7 @@ def load_ply(filepath):
     obj = bpy.data.objects.new(ply_name, mesh)
     bpy.context.collection.objects.link(obj)
     bpy.context.view_layer.objects.active = obj
-    obj.select_set("SELECT")
+    obj.select_set(True)
 
     print('\nSuccessfully imported %r in %.3f sec' % (filepath, time.time() - t))
     return {'FINISHED'}

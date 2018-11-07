@@ -908,7 +908,7 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
 
         # setup new selection
         for plane in planes:
-            plane.select_set('SELECT')
+            plane.select_set(True)
 
         # all done!
         self.report({'INFO'}, "Added {} Image Plane(s)".format(len(planes)))

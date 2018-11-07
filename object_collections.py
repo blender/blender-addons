@@ -193,7 +193,7 @@ class OBJECT_OT_collection_unlink(Operator):
 
 def select_collection_objects(collection):
     for ob in collection.objects:
-        ob.select_set('SELECT')
+        ob.select_set(True)
 
     for collection_nested in collection.collections:
         select_collection_objects(collection_nested)
