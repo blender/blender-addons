@@ -738,7 +738,7 @@ class SCENE_OT_import(bpy.types.Operator):
             old_materials = bpy.data.materials.keys()
             old_objects = bpy.data.objects.keys()
 
-            bpy.ops.import_scene.fbx(filepath=new_applink_address)
+            bpy.ops.import_scene.fbx(filepath=new_applink_address, global_scale = 0.1,axis_forward='X', axis_up='Z')
 
             new_materials = bpy.data.materials.keys()
             new_objects = bpy.data.objects.keys()
@@ -777,7 +777,7 @@ class SCENE_OT_import(bpy.types.Operator):
 
                     mat_list.append(new_obj.material_slots[0].material)
                     is_new = True
-                    tex.matlab(mat_list, new_obj, bpy.context.scene, is_new)
+                    tex.matlab(new_obj, mat_list, texturelist, is_new)
 
             for new_obj in bpy.context.collection.objects:
                 if(new_obj.coat3D.applink_old == False):
@@ -930,6 +930,9 @@ class ObjectCoat3D(PropertyGroup):
     objpath: StringProperty(
         name="Object_Path"
     )
+    NoteGroup: StringProperty(
+        name="Object_Path"
+    )
     obj_mat: StringProperty(
         name="Object_Path",
         default=''
@@ -984,6 +987,10 @@ class ObjectCoat3D(PropertyGroup):
     applink_scale: FloatVectorProperty(
         name="Scale",
         description="Scale"
+    )
+class MaterialCoat3D(PropertyGroup):
+    Nodegroup: StringProperty(
+        name="NodeGroup",
     )
 
 class SceneCoat3D(PropertyGroup):
