@@ -116,8 +116,8 @@ def generate_rig(context, metarig):
     obj.animation_data_clear()
 
     # Select generated rig object
-    metarig.select_set('DESELECT')
-    obj.select_set('SELECT')
+    metarig.select_set(False)
+    obj.select_set(True)
     view_layer.objects.active = obj
 
     # Remove wgts if force update is set
@@ -125,7 +125,7 @@ def generate_rig(context, metarig):
     if wgts_group_name in scene.objects and id_store.rigify_force_widget_update:
         bpy.ops.object.select_all(action='DESELECT')
         for wgt in bpy.data.objects[wgts_group_name].children:
-            wgt.select_set('SELECT')
+            wgt.select_set(True)
         bpy.ops.object.delete(use_global=False)
         if rig_old_name:
             bpy.data.objects[wgts_group_name].name = "WGTS_" + obj.name
@@ -154,9 +154,9 @@ def generate_rig(context, metarig):
 
     # Select the temp rigs for merging
     for objt in scene.objects:
-        objt.select_set('DESELECT')  # deselect all objects
-    temp_rig_1.select_set('SELECT')
-    temp_rig_2.select_set('SELECT')
+        objt.select_set(False)  # deselect all objects
+    temp_rig_1.select_set(True)
+    temp_rig_2.select_set(True)
     view_layer.objects.active = temp_rig_2
 
     # Merge the temporary rigs
@@ -167,8 +167,8 @@ def generate_rig(context, metarig):
 
     # Select the generated rig
     for objt in scene.objects:
-        objt.select_set('DESELECT')  # deselect all objects
-    obj.select_set('SELECT')
+        objt.select_set(False)  # deselect all objects
+    obj.select_set(True)
     view_layer.objects.active = obj
 
     # Copy over bone properties
@@ -318,7 +318,7 @@ def generate_rig(context, metarig):
     # if id_store.rigify_generate_mode == 'new':
     #     bpy.ops.object.select_all(action='DESELECT')
     #     for wgt in bpy.data.objects[wgts_group_name].children:
-    #         wgt.select_set('SELECT')
+    #         wgt.select_set(True)
     #     bpy.ops.object.make_single_user(obdata=True)
 
     #----------------------------------
@@ -336,7 +336,7 @@ def generate_rig(context, metarig):
             # Go into editmode in the rig armature
             bpy.ops.object.mode_set(mode='OBJECT')
             context.view_layer.objects.active = obj
-            obj.select_set('SELECT')
+            obj.select_set(True)
             bpy.ops.object.mode_set(mode='EDIT')
             scripts = rig.generate()
             if scripts is not None:
@@ -521,7 +521,7 @@ def generate_rig(context, metarig):
 
     #----------------------------------
     # Restore active collection
-    view_layer.collections.active = layer_collection
+    view_layer.active_layer_collection = layer_collection
 
 
 def create_selection_sets(obj, metarig):
@@ -534,8 +534,8 @@ def create_selection_sets(obj, metarig):
     bpy.ops.object.mode_set(mode='POSE')
 
     bpy.context.view_layer.objects.active = obj
-    obj.select_set('SELECT')
-    metarig.select_set('DESELECT')
+    obj.select_set(True)
+    metarig.select_set(False)
     pbones = obj.pose.bones
 
     for i, name in enumerate(metarig.data.rigify_layers.keys()):

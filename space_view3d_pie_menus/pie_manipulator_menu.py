@@ -23,7 +23,7 @@ bl_info = {
     "description": "Extended Manipulator Menu",
     "author": "pitiwazou, meta-androcto",
     "version": (0, 1, 1),
-    "blender": (2, 77, 0),
+    "blender": (2, 80, 0),
     "location": "3D View",
     "warning": "",
     "wiki_url": "",
@@ -44,13 +44,7 @@ class WManupulators(Operator):
     bl_description = " Show/Hide Manipulator"
 
     def execute(self, context):
-
-        if context.space_data.show_manipulator is True:
-            context.space_data.show_manipulator = False
-
-        elif context.space_data.show_manipulator is False:
-            context.space_data.show_manipulator = True
-
+        context.space_data.show_gizmo_tool = not context.space_data.show_gizmo_tool
         return {'FINISHED'}
 
 
@@ -63,13 +57,13 @@ class PieManipulator(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         # 4 - LEFT
-        pie.operator("wm.tool_set_by_name", text="Translate", icon='MAN_TRANS').name = "Move"
+        pie.operator("wm.tool_set_by_name", text="Translate", icon='NONE').name = "Move"
         # 6 - RIGHT
-        pie.operator("wm.tool_set_by_name", text="Scale", icon='MAN_SCALE').name = "Scale"
+        pie.operator("wm.tool_set_by_name", text="Rotate", icon='NONE').name = "Rotate"
         # 2 - BOTTOM
-        pie.operator("wm.tool_set_by_name", text="Rotate", icon='MAN_ROT').name = "Rotate"
+        pie.operator("wm.tool_set_by_name", text="Scale", icon='NONE').name = "Scale"
         # 8 - TOP
-        pie.operator("w.manupulators", text="Show/Hide Toggle", icon='MANIPUL')
+        pie.operator("w.manupulators", text="Show/Hide Toggle", icon='NONE')
 
 
 classes = (

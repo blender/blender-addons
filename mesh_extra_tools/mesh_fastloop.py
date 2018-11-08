@@ -79,7 +79,7 @@ class OBJECT_OT_FastLoop(Operator):
 
     def modal(self, context, event):
         if event.type == 'ESC':
-            context.area.header_text_set("")
+            context.area.header_text_set(None)
             return {'CANCELLED'}
 
         elif event.type == 'LEFTMOUSE' and event.value == 'RELEASE':

@@ -407,7 +407,7 @@ class IV_OT_icons_show(bpy.types.Operator):
 
         row.prop(
             pr, "copy_on_select", text="",
-            icon='BORDER_RECT', toggle=True)
+            icon='COPYDOWN', toggle=True)
         if pr.copy_on_select:
             sub = row.row(align=True)
             if bpy.context.window.screen.name == "temp":

@@ -21,7 +21,7 @@
 bl_info = {
     "name": "STL format",
     "author": "Guillaume Bouchard (Guillaum)",
-    "version": (1, 1, 2),
+    "version": (1, 1, 3),
     "blender": (2, 80, 0),
     "location": "File > Import-Export > Stl",
     "description": "Import-Export STL files",

@@ -29,6 +29,7 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Add_Mesh/Planes_from_Images",
+    "support": 'OFFICIAL',
     "category": "Import-Export",
 }
 
@@ -908,7 +909,7 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
 
         # setup new selection
         for plane in planes:
-            plane.select_set('SELECT')
+            plane.select_set(True)
 
         # all done!
         self.report({'INFO'}, "Added {} Image Plane(s)".format(len(planes)))

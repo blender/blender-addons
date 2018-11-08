@@ -23,7 +23,7 @@ bl_info = {
     "description": "Switch Editor Type Menu",
     "author": "saidenka",
     "version": (0, 1, 0),
-    "blender": (2, 77, 0),
+    "blender": (2, 80, 0),
     "location": "All Editors",
     "warning": "",
     "wiki_url": "",
@@ -73,15 +73,15 @@ class AreaPieEditor(Menu):
         # 6 - RIGHT
         pie.menu(AreaTypePieAnim.bl_idname, text="Animation Editors", icon="ACTION")
         # 2 - BOTTOM
-        pie.operator(SetAreaType.bl_idname, text="Property", icon="BUTS").types = "PROPERTIES"
+        pie.operator(SetAreaType.bl_idname, text="Property", icon="PROPERTIES").types = "PROPERTIES"
         # 8 - TOP
         pie.operator(SetAreaType.bl_idname, text="3D View", icon="MESH_CUBE").types = "VIEW_3D"
         # 7 - TOP - LEFT
-        pie.operator(SetAreaType.bl_idname, text="UV/Image Editor", icon="IMAGE_COL").types = "IMAGE_EDITOR"
+        pie.operator(SetAreaType.bl_idname, text="UV/Image Editor", icon="NONE").types = "IMAGE_EDITOR"
         # 9 - TOP - RIGHT
         pie.operator(SetAreaType.bl_idname, text="Node Editor", icon="NODETREE").types = "NODE_EDITOR"
         # 1 - BOTTOM - LEFT
-        pie.operator(SetAreaType.bl_idname, text="Outliner", icon="OOPS").types = "OUTLINER"
+        pie.operator(SetAreaType.bl_idname, text="Outliner", icon="NONE").types = "OUTLINER"
         # 3 - BOTTOM - RIGHT
         pie.menu(AreaTypePieOther.bl_idname, text="More Editors", icon="QUESTION")
 

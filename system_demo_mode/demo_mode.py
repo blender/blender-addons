@@ -44,23 +44,26 @@ DEMO_CFG = "demo.py"
 # populate from script
 global_config_files = []
 
-global_config = dict(anim_cycles=1,
-                     anim_render=False,
-                     anim_screen_switch=0.0,
-                     anim_time_max=60.0,
-                     anim_time_min=4.0,
-                     mode='AUTO',
-                     display_render=4.0)
+global_config = dict(
+    anim_cycles=1,
+    anim_render=False,
+    anim_screen_switch=0.0,
+    anim_time_max=60.0,
+    anim_time_min=4.0,
+    mode='AUTO',
+    display_render=4.0,
+)
 
 # switch to the next file in 2 sec.
-global_config_fallback = dict(anim_cycles=1,
-                              anim_render=False,
-                              anim_screen_switch=0.0,
-                              anim_time_max=60.0,
-                              anim_time_min=4.0,
-                              mode='AUTO',
-                              display_render=4.0)
-
+global_config_fallback = dict(
+    anim_cycles=1,
+    anim_render=False,
+    anim_screen_switch=0.0,
+    anim_time_max=60.0,
+    anim_time_min=4.0,
+    mode='AUTO',
+    display_render=4.0,
+)
 
 global_state = {
     "init_time": 0.0,
@@ -253,9 +256,10 @@ def demo_mode_update():
             demo_mode_next_file()
             return
         # above cycles and minimum display time
-        if  (time_total > global_config["anim_time_min"]) and \
-            (global_state["anim_cycles"] > global_config["anim_cycles"]):
-
+        if (
+                (time_total > global_config["anim_time_min"]) and
+                (global_state["anim_cycles"] > global_config["anim_cycles"])
+        ):
             # looped enough now.
             demo_mode_next_file()
             return

@@ -36,10 +36,10 @@ import os
 import time
 import bpy
 import mathutils
+
 from bpy_extras.io_utils import unpack_list
 from bpy_extras.image_utils import load_image
-
-from progress_report import ProgressReport, ProgressReportSubstep
+from bpy_extras.wm_utils.progress_report import ProgressReport
 
 
 def line_value(line_split):
@@ -1179,16 +1179,12 @@ def load(context,
             create_nurbs(context_nurbs, verts_loc, new_objects)
 
         view_layer = context.view_layer
-        if view_layer.collections.active:
-            collection = view_layer.collections.active.collection
-        else:
-            collection = scene.master_collection.new()
-            view_layer.collections.link(collection)
+        collection = view_layer.active_layer_collection.collection
 
         # Create new obj
         for obj in new_objects:
             collection.objects.link(obj)
-            obj.select_set('SELECT')
+            obj.select_set(True)
 
             # we could apply this anywhere before scaling.
             obj.matrix_world = global_matrix

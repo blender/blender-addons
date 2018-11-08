@@ -47,9 +47,13 @@ SVGEmptyStyles = {'useFill': None,
 
 def srgb_to_linearrgb(c):
     if c < 0.04045:
-        return 0.0 if c < 0.0 else c * (1.0 / 12.92);
+        return 0.0 if c < 0.0 else c * (1.0 / 12.92)
     else:
-        return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+        return pow((c + 0.055) * (1.0 / 1.055), 2.4)
+
+def check_points_equal(point_a, point_b):
+    return (abs(point_a[0] - point_b[0]) < 1e-6 and 
+            abs(point_a[1] - point_b[1]) < 1e-6)
 
 
 def SVGParseFloat(s, i=0):
@@ -408,7 +412,7 @@ SVGTransforms = {'translate': SVGTransformTranslate,
 def SVGParseStyles(node, context):
     """
     Parse node to get different styles for displaying geometries
-    (materilas, filling flags, etc..)
+    (materials, filling flags, etc..)
     """
 
     styles = SVGEmptyStyles.copy()
@@ -645,7 +649,7 @@ class SVGPathParser:
             # filled.
 
             first = self._spline['points'][0]
-            if abs(first['x'] - x) < 1e-6 and abs(first['y'] - y) < 1e-6:
+            if check_points_equal((first['x'], first['y']), (x, y)):
                 if handle_left is not None:
                     first['handle_left'] = handle_left
                     first['handle_left_type'] = 'FREE'
@@ -662,6 +666,9 @@ class SVGPathParser:
             if last['handle_right_type'] == 'VECTOR' and handle_left_type == 'FREE':
                 last['handle_right'] = (last['x'], last['y'])
                 last['handle_right_type'] = 'FREE'
+            if last['handle_right_type'] == 'FREE' and handle_left_type == 'VECTOR':
+                handle_left = (x, y)
+                handle_left_type = 'FREE'
 
         point = {'x': x,
                  'y': y,
@@ -747,7 +754,7 @@ class SVGPathParser:
 
     def _pathCurveToCS(self, code):
         """
-        Cubic BEZIER CurveTo  path command
+        Cubic BEZIER CurveTo path command
         """
 
         c = code.lower()
@@ -784,7 +791,7 @@ class SVGPathParser:
 
     def _pathCurveToQT(self, code):
         """
-        Qyadracic BEZIER CurveTo  path command
+        Quadratic BEZIER CurveTo path command
         """
 
         c = code.lower()
@@ -796,20 +803,21 @@ class SVGPathParser:
             else:
                 if self._handle is not None:
                     x1, y1 = SVGFlipHandle(self._point[0], self._point[1],
-                                        self._handle[0], self._handle[1])
+                                           self._handle[0], self._handle[1])
                 else:
                     x1, y1 = self._point
 
             x, y = self._getCoordPair(code.islower(), self._point)
 
-            if self._spline is None:
-                self._appendPoint(self._point[0], self._point[1],
-                    handle_left_type='FREE', handle_left=self._point,
-                    handle_right_type='FREE', handle_right=self._point)
+            if not check_points_equal((x, y), self._point):
+                if self._spline is None:
+                    self._appendPoint(self._point[0], self._point[1],
+                        handle_left_type='FREE', handle_left=self._point,
+                        handle_right_type='FREE', handle_right=self._point)
 
-            self._appendPoint(x, y,
-                handle_left_type='FREE', handle_left=(x1, y1),
-                handle_right_type='FREE', handle_right=(x, y))
+                self._appendPoint(x, y,
+                    handle_left_type='FREE', handle_left=(x1, y1),
+                    handle_right_type='FREE', handle_right=(x, y))
 
             self._point = (x, y)
             self._handle = (x1, y1)
@@ -961,7 +969,7 @@ class SVGPathParser:
                 raise Exception('Unknown path command: {0}' . format(code))
 
             if cmd in {'Z', 'z'}:
-                closed =True
+                closed = True
             else:
                 closed = False
 
@@ -1225,6 +1233,19 @@ class SVGGeometryPATH(SVGGeometry):
 
         for spline in self._splines:
             act_spline = None
+
+            if spline['closed'] and len(spline['points']) >= 2:
+                first = spline['points'][0]
+                last = spline['points'][-1]
+                if (    first['handle_left_type'] == 'FREE' and
+                        last['handle_right_type'] == 'VECTOR'):
+                    last['handle_right_type'] = 'FREE'
+                    last['handle_right'] = (last['x'], last['y'])
+                if (    last['handle_right_type'] == 'FREE' and
+                        first['handle_left_type'] == 'VECTOR'):
+                    first['handle_left_type'] = 'FREE'
+                    first['handle_left'] = (first['x'], first['y'])
+
             for point in spline['points']:
                 co = self._transformCoord((point['x'], point['y']))
 

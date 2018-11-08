@@ -307,9 +307,9 @@ def main(context, obj, options, curve_dimension):
 
     # create new object and put into scene
     newCurve = bpy.data.objects.new("Simple_" + obj.name, curve)
-    coll = context.view_layer.collections.active.collection
+    coll = context.view_layer.active_layer_collection.collection
     coll.objects.link(newCurve)
-    newCurve.select_set('SELECT')
+    newCurve.select_set(True)
 
     context.view_layer.objects.active = newCurve
     newCurve.matrix_world = obj.matrix_world

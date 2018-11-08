@@ -1,14 +1,15 @@
-#version 120
+uniform int offset;
 
+#ifdef USE_CLIP_PLANES
 uniform bool use_clip_planes;
-varying vec4 clip_distance;
+in vec4 clip_distance;
+#endif
 
-uniform float offset;
-
-varying float primitive_id_var;
+out uint FragColor;
 
 void main()
 {
+#ifdef USE_CLIP_PLANES
 	if (use_clip_planes &&
 	   ((clip_distance[0] < 0) ||
 	    (clip_distance[1] < 0) ||
@@ -17,6 +18,7 @@ void main()
 	{
 		discard;
 	}
+#endif
 
-	gl_FragColor = vec4(offset + primitive_id_var, 0, 0, 0);
+	FragColor = uint(gl_PrimitiveID + offset);
 }

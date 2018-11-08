@@ -162,6 +162,28 @@ class PieToolsPreferences(AddonPreferences):
         update=disable_all_modules
     )
 
+    for mod in sub_modules:
+        mod_name = mod.__name__.split('.')[-1]
+
+        def gen_update(mod, use_prop_name):
+            def update(self, context):
+                if getattr(self, use_prop_name):
+                    if not mod.__addon_enabled__:
+                        register_submodule(mod)
+                else:
+                    if mod.__addon_enabled__:
+                        unregister_submodule(mod)
+            return update
+
+        use_prop_name = 'use_' + mod_name
+        __annotations__[use_prop_name] = BoolProperty(
+            name=mod.bl_info['name'],
+            description=mod.bl_info.get('description', ''),
+            update=gen_update(mod, use_prop_name),
+        )
+
+        __annotations__['show_expanded_' + mod_name] = BoolProperty()
+
     def draw(self, context):
         layout = self.layout
         split = layout.split(factor=0.5, align=True)
@@ -258,29 +280,6 @@ class PieToolsPreferences(AddonPreferences):
         row.label(text="End of 3D Viewport Pie Menus Activations",
                   icon="FILE_PARENT")
 
-
-for mod in sub_modules:
-    info = mod.bl_info
-    mod_name = mod.__name__.split('.')[-1]
-
-    def gen_update(mod):
-        def update(self, context):
-            if getattr(self, 'use_' + mod.__name__.split('.')[-1]):
-                if not mod.__addon_enabled__:
-                    register_submodule(mod)
-            else:
-                if mod.__addon_enabled__:
-                    unregister_submodule(mod)
-        return update
-
-    prop = BoolProperty(
-        name=info['name'],
-        description=info.get('description', ''),
-        update=gen_update(mod),
-    )
-    setattr(PieToolsPreferences, 'use_' + mod_name, prop)
-    prop = BoolProperty()
-    setattr(PieToolsPreferences, 'show_expanded_' + mod_name, prop)
 
 classes = (
     PieToolsPreferences,

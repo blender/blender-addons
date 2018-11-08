@@ -23,7 +23,7 @@ bl_info = {
     "description": "Snap Element Menu",
     "author": "pitiwazou, meta-androcto",
     "version": (0, 1, 1),
-    "blender": (2, 77, 0),
+    "blender": (2, 80, 0),
     "location": "3d View",
     "warning": "",
     "wiki_url": "",
@@ -60,7 +60,7 @@ class PieSnaping(Menu):
         # 1 - BOTTOM - LEFT
         pie.operator("snap.alignrotation", text="Align rotation", icon='SNAP_NORMAL')
         # 3 - BOTTOM - RIGHT
-        pie.operator("wm.call_menu_pie", text="Snap Target", icon='SNAP_SURFACE').name = "snap.targetmenu"
+        pie.operator("wm.call_menu_pie", text="Snap Target", icon='NONE').name = "snap.targetmenu"
 
 
 class SnapActive(Operator):

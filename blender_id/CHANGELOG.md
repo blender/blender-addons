@@ -5,6 +5,7 @@
 - Require Blender 2.80+.
 - API change: `blender_id.get_subclient_user_id()` now returns `''` instead of `None` when the user
   is not logged in.
+- Log which Blender ID instance is communicated with.
 
 
 # Version 1.5 (released 2018-07-03)

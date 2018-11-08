@@ -321,7 +321,7 @@ class JumptoCut(Panel):
             if prefs.kr_mini_ui:
                 row = layout.row(align=True)
                 row.operator("sequencerextra.extrasnap", text="", icon="SNAP_ON").align = 0
-                row.operator("sequencerextra.extrasnap", text="", icon="SNAP_SURFACE").align = 1
+                row.operator("sequencerextra.extrasnap", text="", icon="NONE").align = 1
                 row.operator("sequencerextra.extrasnap", text="", icon="SNAP_ON").align = 2
 
                 row.separator()

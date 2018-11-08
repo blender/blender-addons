@@ -26,8 +26,8 @@ def depth_get(co, ray_start, ray_dir):
 
 
 def region_2d_to_orig_and_view_vector(region, rv3d, coord):
-    viewinv = rv3d.view_matrix.inverted()
-    persinv = rv3d.perspective_matrix.inverted()
+    viewinv = rv3d.view_matrix.inverted_safe()
+    persinv = rv3d.perspective_matrix.inverted_safe()
 
     dx = (2.0 * coord[0] / region.width) - 1.0
     dy = (2.0 * coord[1] / region.height) - 1.0
@@ -39,7 +39,7 @@ def region_2d_to_orig_and_view_vector(region, rv3d, coord):
 
         w = out.dot(persinv[3].xyz) + persinv[3][3]
 
-        view_vector = ((persinv * out) / w) - origin_start
+        view_vector = ((persinv @ out) / w) - origin_start
     else:
         view_vector = -viewinv.col[2].xyz
 
@@ -52,8 +52,11 @@ def region_2d_to_orig_and_view_vector(region, rv3d, coord):
 
 
 def project_co_v3(sctx, co):
-    proj_co = sctx.proj_mat * co.to_4d()
-    proj_co.xy /= proj_co.w
+    proj_co = sctx.proj_mat @ co.to_4d()
+    try:
+        proj_co.xy /= proj_co.w
+    except Exception as e:
+        print(e)
 
     win_half = sctx.winsize * 0.5
     proj_co[0] = (proj_co[0] + 1.0) * win_half[0]
@@ -210,3 +213,4 @@ def intersect_ray_segment_fac(v0, v1, ray_direction, ray_origin):
         c = n - t
         cray = c.cross(ray_direction)
         return cray.dot(n) / nlen
+

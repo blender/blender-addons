@@ -24,7 +24,7 @@ bl_info = {
     "name": "Hotkey: 'Alt + Spacebar'",
     "author": "Italic_",
     "version": (1, 1, 0),
-    "blender": (2, 77, 0),
+    "blender": (2, 80, 0),
     "description": "Set Transform Orientations",
     "location": "3D View",
     "category": "Orientation Pie"}
@@ -51,7 +51,7 @@ class OrientPoll(Operator):
         return context.space_data.type == "VIEW_3D"
 
     def execute(self, context):
-        context.space_data.transform_orientation = self.space
+        context.scene.transform_orientation = self.space
         return {'FINISHED'}
 
 
