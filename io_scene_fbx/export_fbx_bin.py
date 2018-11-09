@@ -2995,7 +2995,6 @@ def save_single(operator, scene, depsgraph, filepath="",
 def defaults_unity3d():
     return {
         # These options seem to produce the same result as the old Ascii exporter in Unity3D:
-        "version": 'BIN7400',
         "axis_up": 'Y',
         "axis_forward": '-Z',
         "global_matrix": Matrix.Rotation(-math.pi / 2.0, 4, 'X'),
@@ -3034,16 +3033,17 @@ def defaults_unity3d():
 def save(operator, context,
          filepath="",
          use_selection=False,
+         use_active_collection=False,
          batch_mode='OFF',
          use_batch_own_dir=False,
          **kwargs
          ):
     """
-    This is a wrapper around save_single, which handles multi-scenes (or groups) cases, when batch-exporting a whole
-    .blend file.
+    This is a wrapper around save_single, which handles multi-scenes (or collections) cases, when batch-exporting
+    a whole .blend file.
     """
 
-    ret = None
+    ret = {'FINISHED'}
 
     active_object = context.view_layer.objects.active
 
@@ -3054,38 +3054,59 @@ def save(operator, context,
 
     if batch_mode == 'OFF':
         kwargs_mod = kwargs.copy()
-        if use_selection:
-            kwargs_mod["context_objects"] = context.selected_objects
+        if use_active_collection:
+            if use_selection:
+                ctx_objects = tuple(obj
+                                    for obj in context.view_layer.active_layer_collection.collection.all_objects
+                                    if obj.select_get())
+            else:
+                ctx_objects = context.view_layer.active_layer_collection.collection.all_objects
         else:
-            kwargs_mod["context_objects"] = context.view_layer.objects
+            if use_selection:
+                ctx_objects = context.selected_objects
+            else:
+                ctx_objects = context.view_layer.objects
+        kwargs_mod["context_objects"] = ctx_objects
 
         ret = save_single(operator, context.scene, context.depsgraph, filepath, **kwargs_mod)
     else:
-        return # TODO Update for 2.8
+        # XXX We need a way to generate a depsgraph for inactive view_layers first...
+        # XXX Also, what to do in case of batch-exporting scenes, when there is more than one view layer?
+        #     Scenes have no concept of 'active' view layer, that's on window level...
         fbxpath = filepath
 
         prefix = os.path.basename(fbxpath)
         if prefix:
             fbxpath = os.path.dirname(fbxpath)
 
-        if batch_mode == 'GROUP':
-            data_seq = tuple(grp for grp in bpy.data.groups if grp.objects)
+        if batch_mode == 'COLLECTION':
+            data_seq = tuple((coll, coll.name, 'objects') for coll in bpy.data.collections if coll.objects)
+        elif batch_mode in {'SCENE_COLLECTION', 'ACTIVE_SCENE_COLLECTION'}:
+            scenes = [context.scene] if batch_mode == 'ACTIVE_SCENE_COLLECTION' else bpy.data.scenes
+            data_seq = []
+            for scene in scenes:
+                if not scene.objects:
+                    continue
+                #                                      Needed to avoid having tens of 'Master Collection' entries.
+                todo_collections = [(scene.collection, "_".join((scene.name, scene.collection.name)))]
+                while todo_collections:
+                    coll, coll_name = todo_collections.pop()
+                    todo_collections.extend(((c, c.name) for c in coll.children if c.all_objects))
+                    data_seq.append((coll, coll_name, 'all_objects'))
         else:
-            data_seq = bpy.data.scenes
+            data_seq = tuple((scene, scene.name, 'objects') for scene in bpy.data.scenes if scene.objects)
 
         # call this function within a loop with BATCH_ENABLE == False
-        # no scene switching done at the moment.
-        # orig_sce = context.scene
 
         new_fbxpath = fbxpath  # own dir option modifies, we need to keep an original
-        for data in data_seq:  # scene or group
-            newname = "_".join((prefix, bpy.path.clean_name(data.name))) if prefix else bpy.path.clean_name(data.name)
+        for data, data_name, data_obj_propname in data_seq:  # scene or collection
+            newname = "_".join((prefix, bpy.path.clean_name(data_name))) if prefix else bpy.path.clean_name(data_name)
 
             if use_batch_own_dir:
                 new_fbxpath = os.path.join(fbxpath, newname)
-                # path may already exist
-                # TODO - might exist but be a file. unlikely but should probably account for it.
-
+                # path may already exist... and be a file.
+                while os.path.isfile(new_fbxpath):
+                    new_fbxpath = "_".join((new_fbxpath, "dir"))
                 if not os.path.exists(new_fbxpath):
                     os.makedirs(new_fbxpath)
 
@@ -3093,18 +3114,14 @@ def save(operator, context,
 
             print('\nBatch exporting %s as...\n\t%r' % (data, filepath))
 
-            if batch_mode == 'GROUP':  # group
-                # group, so objects update properly, add a dummy scene.
+            if batch_mode in {'COLLECTION', 'SCENE_COLLECTION', 'ACTIVE_SCENE_COLLECTION'}:
+                # Collection, so that objects update properly, add a dummy scene.
                 scene = bpy.data.scenes.new(name="FBX_Temp")
-                scene.layers = [True] * 20
-                # bpy.data.scenes.active = scene # XXX, cant switch
                 src_scenes = {}  # Count how much each 'source' scenes are used.
-                for ob_base in data.objects:
-                    for src_sce in ob_base.users_scene:
-                        if src_sce not in src_scenes:
-                            src_scenes[src_sce] = 0
-                        src_scenes[src_sce] += 1
-                    scene.objects.link(ob_base)
+                for obj in getattr(data, data_obj_propname):
+                    for src_sce in obj.users_scene:
+                        src_scenes[src_sce] = src_scenes.setdefault(src_sce, 0) + 1
+                    scene.collection.objects.link(obj)
 
                 # Find the 'most used' source scene, and use its unit settings. This is somewhat weak, but should work
                 # fine in most cases, and avoids stupid issues like T41931.
@@ -3124,20 +3141,17 @@ def save(operator, context,
                 scene = data
 
             kwargs_batch = kwargs.copy()
-            kwargs_batch["context_objects"] = data.objects
+            kwargs_batch["context_objects"] = getattr(data, data_obj_propname)
 
-            save_single(operator, scene, filepath, **kwargs_batch)
+            save_single(operator, scene, scene.view_layers[0].depsgraph, filepath, **kwargs_batch)
 
-            if batch_mode == 'GROUP':
-                # remove temp group scene
+            if batch_mode in {'COLLECTION', 'SCENE_COLLECTION', 'ACTIVE_SCENE_COLLECTION'}:
+                # Remove temp collection scene.
                 bpy.data.scenes.remove(scene)
 
-        # no active scene changing!
-        # bpy.data.scenes.active = orig_sce
-
-        ret = {'FINISHED'}  # so the script wont run after we have batch exported.
-
-    if active_object and org_mode and bpy.ops.object.mode_set.poll():
-        bpy.ops.object.mode_set(mode=org_mode)
+    if active_object and org_mode:
+        context.view_layer.objects.active = active_object
+        if bpy.ops.object.mode_set.poll():
+            bpy.ops.object.mode_set(mode=org_mode)
 
     return ret
