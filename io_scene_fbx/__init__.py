@@ -21,7 +21,7 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (4, 12, 1),
+    "version": (4, 13, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
@@ -256,7 +256,12 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
 
     use_selection: BoolProperty(
             name="Selected Objects",
-            description="Export selected objects on visible layers",
+            description="Export selected and visible objects only",
+            default=False,
+            )
+    use_active_collection: BoolProperty(
+            name="Active Collection",
+            description="Export only objects from the active collection (and its children)",
             default=False,
             )
     global_scale: FloatProperty(
@@ -442,7 +447,14 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             name="Batch Mode",
             items=(('OFF', "Off", "Active scene to file"),
                    ('SCENE', "Scene", "Each scene as a file"),
-                   ('GROUP', "Group", "Each group as a file"),
+                   ('COLLECTION', "Collection",
+                    "Each collection (data-block ones) as a file, does not include content of children collections"),
+                   ('SCENE_COLLECTION', "Scene Collections",
+                    "Each collection (including master, non-data-block ones) of each scene as a file, "
+                    "including content from children collections"),
+                   ('ACTIVE_SCENE_COLLECTION', "Active Scene Collections",
+                    "Each collection (including master, non-data-block one) of the active scene as a file, "
+                    "including content from children collections"),
                    ),
             )
     use_batch_own_dir: BoolProperty(
@@ -462,6 +474,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         layout.prop(self, "ui_tab", expand=True)
         if self.ui_tab == 'MAIN':
             layout.prop(self, "use_selection")
+            layout.prop(self, "use_active_collection")
 
             col = layout.column(align=True)
             row = col.row(align=True)

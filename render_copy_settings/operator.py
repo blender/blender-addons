@@ -47,7 +47,7 @@ def collection_property_sort(collection, sortkey, start_idx=0):
 
 
 class RenderCopySettingsOPPrepare(bpy.types.Operator):
-    """Prepare internal data for render_copy_settings (gathering all existingrender settings, and scenes)"""
+    """Prepare internal data for render_copy_settings (gathering all existing render settings, and scenes)"""
     bl_idname = "scene.render_copy_settings_prepare"
     bl_label = "Render: Copy Settings Prepare"
     bl_option = {'REGISTER'}
