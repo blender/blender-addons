@@ -85,15 +85,23 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
 
     coat3D = bpy.context.scene.coat3D
     coatMat = mat_list[0]
+    print('matlist[0]', mat_list[0])
 
     if(coatMat.use_nodes == False):
         coatMat.use_nodes = True
     act_material = coatMat.node_tree
+    print('tuleeko materiaali:',act_material.name)
     main_material = coatMat.node_tree
     applink_group_node = False
 
     #ensimmaiseksi kaydaan kaikki image nodet lapi ja tarkistetaan onko nimi 3DC alkunen jos on niin reload
     print('texcoat:',texcoat)
+
+    for node in act_material.nodes:
+        if (node.type == 'OUTPUT_MATERIAL'):
+            main_mat = node
+            break
+
     for node in act_material.nodes:
         if(node.name == '3DC_Applink' and node.type == 'GROUP'):
             applink_group_node = True
@@ -125,8 +133,8 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
         applink_tree.location = -400, 300
         act_material = group_tree
         notegroup = act_material.nodes.new('NodeGroupOutput')
+        print('active material:', act_material.name)
 
-    main_mat = main_material.nodes['Material Output']
     if(main_mat.inputs['Surface'].is_linked == True):
         glue_mat = main_mat.inputs['Surface'].links[0].from_node
         if(glue_mat.inputs.find('Base Color') == -1):

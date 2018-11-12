@@ -194,15 +194,15 @@ def updatemesh(objekti, proxy):
 
     if(objekti.vertex_groups.keys() != []):
         bpy.ops.object.select_all(action='DESELECT')
-        proxy.select_set(True)
-        objekti.select_set(True)
+        proxy.select_set('SELECT')
+        objekti.select_set('SELECT')
         bpy.ops.object.vertex_group_copy_to_selected()
         bpy.ops.object.select_all(action='DESELECT')
 
     # UV Set Copy
 
-    proxy.select_set(True)
-    objekti.select_set(True)
+    proxy.select_set('SELECT')
+    objekti.select_set('SELECT')
 
     if len(objekti.data.uv_layers) > 1:
         obj_uv_index =  objekti.data.uv_layers.active_index
@@ -220,50 +220,12 @@ def updatemesh(objekti, proxy):
 
     #Mesh Copy
 
-    proxy.select_set(True)
+    proxy.select_set('SELECT')
     obj_data = objekti.data.id_data
     objekti.data = proxy.data.id_data
     objekti.data.id_data.name = obj_data.name
     if (bpy.data.meshes[obj_data.name].users == 0):
         bpy.data.meshes.remove(obj_data)
-
-
-
-class SCENE_PT_Main(bpy.types.Panel):
-    bl_label = "3D-Coat Applink"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "TOOLS"
-    bl_context = "objectmode"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-        coat = bpy.coat3D
-        coat3D = bpy.context.scene.coat3D
-        if(bpy.context.active_object):
-            coa = bpy.context.active_object.coat3D
-
-        if(coat['status'] == 0):
-            row = layout.row()
-            row.label(text="Applink didn't find your 3d-Coat/Excahnge folder.")
-            row = layout.row()
-            row.label("Please select it before using Applink.")
-            row = layout.row()
-            row.prop(coat3D,"exchangedir",text="")
-            row = layout.row()
-            row.operator("update_exchange_folder.pilgway_3d_coat", text="Apply folder")
-
-        else:
-            #Here you add your GUI
-            row = layout.row()
-            row.prop(coat3D,"type",text = "")
-            row = layout.row()
-            colL = row.column()
-            colR = row.column()
-
-            colR.operator("export_applink.pilgway_3d_coat", text="Transfer")
-            colL.operator("import_applink.pilgway_3d_coat", text="Update")
-
 
 def running():
     n=0# number of instances of the program running
@@ -397,8 +359,8 @@ class SCENE_OT_export(bpy.types.Operator):
         object_index = 0
 
         while(looking == True):
-            checkname = folder_objects + os.sep + activeobj
-            checkname = ("%s%.2d.fbx"%(checkname,object_index))
+            checkname = folder_objects + os.sep + "3DC"
+            checkname = ("%s%.3d.fbx"%(checkname,object_index))
             if(os.path.isfile(checkname)):
                 object_index += 1
             else:
@@ -407,12 +369,23 @@ class SCENE_OT_export(bpy.types.Operator):
                 coa.applink_address = checkname
 
         matindex = 0
+        name_list = []
+
         for objekti in bpy.context.selected_objects:
             if(objekti.material_slots.keys() == []):
                 newmat = bpy.data.materials.new('Material')
                 newmat.use_nodes = True
                 objekti.data.materials.append(newmat)
                 matindex += 1
+            name_list.append(objekti.data.name)
+            new_name = objekti.data.name
+            name_boxs = new_name.split('.')
+            if(len(name_boxs)>1):
+                objekti.name = name_boxs[0] + name_boxs[1]
+                objekti.data.name = name_boxs[0] + name_boxs[1]
+            else:
+                objekti.name = name_boxs[0]
+                objekti.data.name = name_boxs[0]
 
         for objekti in bpy.context.selected_objects:
             objekti.coat3D.applink_scale = objekti.scale
@@ -433,7 +406,7 @@ class SCENE_OT_export(bpy.types.Operator):
         file.close()
         group_index = -1.0
 
-        for objekti in bpy.context.selected_objects:
+        for idx, objekti in enumerate(bpy.context.selected_objects):
             nimi = ''
             for koko in bpy.context.selected_objects:
                 nimi += koko.data.name + ':::'
@@ -566,40 +539,16 @@ class SCENE_OT_import(bpy.types.Operator):
                 objekti = bpy.data.objects[oname]
                 if(objekti.coat3D.import_mesh and coat3D.importmesh == True):
                     objekti.coat3D.import_mesh = False
-                    objekti.select_set(True)
+                    objekti.select_set('SELECT')
 
                     new_name = objekti.data.name
                     name_boxs = new_name.split('.')
-                    if len(name_boxs) > 1:
-                        if len(name_boxs[-1]) == 3:
-                            luku = int(name_boxs[-1])
-                            luku +=1
-                            uusi_nimi = ("%s.%.3d" % (new_name[:-4], luku))
-                            find_name = uusi_nimi
-                    else:
-                        find_name = objekti.data.name
-                        tosi = True
-                        luku = 1
-                        find_name = ("%s.%.3d" % (objekti.data.name, luku))
-                        loyty = False
-                        while tosi:
-                            for obj in bpy.data.meshes:
-                                if (obj.name == find_name):
-                                    loyty = True
-                                    break
-                            if(loyty == True):
-                                luku += 1
-                                find_name = ("%s.%.3d" % (objekti.data.name, luku))
-                                loyty = False
-                            else:
-                                find_name = ("%s.%.3d" % (objekti.data.name, luku-1))
-                                tosi = False
-
-                    for proxy_objects in diff_objects:
-                        if (bpy.data.objects[proxy_objects].data.name == find_name):
+                    print('diff_objects: ', diff_objects)
+                    for idx, proxy_objects in enumerate(diff_objects):
+                        print('proxy_object', proxy_objects)
+                        if (proxy_objects.startswith(name_boxs[0])):
                             obj_proxy = bpy.data.objects[proxy_objects]
                             break
-
                     exportfile = coat3D.exchangedir
                     path3b_n = coat3D.exchangedir
                     path3b_n += ('last_saved_3b_file.txt')
@@ -627,7 +576,7 @@ class SCENE_OT_import(bpy.types.Operator):
                             mat_list.append(obj_mat.material)
 
                     bpy.ops.object.select_all(action='DESELECT')
-                    obj_proxy.select_set(True)
+                    obj_proxy.select_set('SELECT')
 
                     bpy.ops.object.select_all(action='TOGGLE')
 
@@ -650,7 +599,7 @@ class SCENE_OT_import(bpy.types.Operator):
 
                     #tärkee että saadaan oikein käännettyä objekt
 
-                    objekti.select_set(True)
+                    objekti.select_set('SELECT')
                     bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
 
                     objekti.data.materials.pop()
@@ -675,14 +624,14 @@ class SCENE_OT_import(bpy.types.Operator):
                     if(coat3D.importmesh and not(os.path.isfile(objekti.coat3D.applink_address))):
                         coat3D.importmesh = False
 
-                    objekti.select_set(True)
+                    objekti.select_set('SELECT')
                     if(coat3D.importtextures):
                         is_new = False
                         print('matlist: ', mat_list)
                         print('objekti: ', objekti)
                         print('is_new: ', is_new)
                         tex.matlab(objekti,mat_list,texturelist,is_new)
-                    objekti.select_set(False)
+                    objekti.select_set('DESELECT')
                 else:
                     mat_list = []
 
@@ -696,13 +645,13 @@ class SCENE_OT_import(bpy.types.Operator):
                         print('objekti: ', objekti)
                         print('is_new: ', is_new)
                         tex.matlab(objekti,mat_list,texturelist, is_new)
-                    objekti.select_set(False)
+                    objekti.select_set('DESELECT')
 
 
             bpy.ops.object.select_all(action='DESELECT')
             if(import_list):
                 for del_obj in diff_objects:
-                    bpy.context.collection.all_objects[del_obj].select_set(True)
+                    bpy.context.collection.all_objects[del_obj].select_set('SELECT')
                     bpy.ops.object.delete()
 
 
@@ -760,12 +709,12 @@ class SCENE_OT_import(bpy.types.Operator):
 
                 if(new_obj.coat3D.applink_old == False):
                     nimi += new_obj.data.name + ':::'
-                    new_obj.select_set(True)
+                    new_obj.select_set('SELECT')
                     #bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
                     new_obj.rotation_euler = (0, 0, 0)
                     new_obj.scale = (1, 1, 1)
                     new_obj.coat3D.applink_firsttime = False
-                    new_obj.select_set(False)
+                    new_obj.select_set('DESELECT')
                     new_obj.coat3D.applink_address = new_applink_address
                     new_obj.coat3D.objecttime = str(os.path.getmtime(new_obj.coat3D.applink_address))
                     splittext = ntpath.basename(new_applink_address)
@@ -799,6 +748,40 @@ class SCENE_OT_import(bpy.types.Operator):
 
 from bpy import *
 from mathutils import Vector, Matrix
+
+class SCENE_PT_Main(bpy.types.Panel):
+    bl_label = "3D-Coat Applink"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_context = "objectmode"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        coat = bpy.coat3D
+        coat3D = bpy.context.scene.coat3D
+        if(bpy.context.active_object):
+            coa = bpy.context.active_object.coat3D
+        if(coat['status'] == 0):
+            row = layout.row()
+            row.label(text="Applink didn't find your 3d-Coat/Excahnge folder.")
+            row = layout.row()
+            row.label("Please select it before using Applink.")
+            row = layout.row()
+            row.prop(coat3D,"exchangedir",text="")
+            row = layout.row()
+            row.operator("update_exchange_folder.pilgway_3d_coat", text="Apply folder")
+
+        else:
+            #Here you add your GUI
+            row = layout.row()
+            row.prop(coat3D,"type",text = "")
+            row = layout.row()
+            colL = row.column()
+            colR = row.column()
+
+            colR.operator("export_applink.pilgway_3d_coat", text="Transfer")
+            colL.operator("import_applink.pilgway_3d_coat", text="Update")
 
 class ObjectButtonsPanel():
     bl_space_type = 'PROPERTIES'
