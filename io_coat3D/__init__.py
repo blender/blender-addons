@@ -596,12 +596,14 @@ class SCENE_OT_import(bpy.types.Operator):
                                         coat['active_coat'] = line
                                 export_file.close()
                                 os.remove(exportfile)
+                            remove_path = False
                             if(os.path.isfile(path3b_n)):
                                 export_file = open(path3b_n)
                                 for line in export_file:
                                     objekti.coat3D.applink_3b_path = line
                                 export_file.close()
-                                os.remove(path3b_n)
+                                remove_path = True
+
 
 
                             obj_names = objekti.coat3D.applink_group
@@ -651,17 +653,7 @@ class SCENE_OT_import(bpy.types.Operator):
                                 for data_mesh in objekti.data.polygons:
                                     data_mesh.use_smooth = False
 
-
                                 bpy.ops.object.select_all(action='DESELECT')
-
-                            if(os.path.isfile(path3b_n)):
-                                path3b_fil = open(path3b_n)
-                                for lin in path3b_fil:
-                                    objekti.coat3D.applink_3b_path = lin
-                                head, tail = os.path.split(objekti.coat3D.applink_3b_path)
-                                objekti.coat3D.applink_3b_just_name = tail
-                                path3b_fil.close()
-                                os.remove(path3b_n)
 
                             if(coat3D.importmesh and not(os.path.isfile(objekti.coat3D.applink_address))):
                                 coat3D.importmesh = False
@@ -686,6 +678,8 @@ class SCENE_OT_import(bpy.types.Operator):
                             tex.matlab(objekti,mat_list,texturelist, is_new)
                         objekti.select_set(False)
 
+            if(remove_path == True):
+                os.remove(path3b_n)
 
             bpy.ops.object.select_all(action='DESELECT')
             if(import_list):
