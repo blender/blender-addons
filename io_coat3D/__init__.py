@@ -789,7 +789,7 @@ from bpy import *
 from mathutils import Vector, Matrix
 
 class SCENE_PT_Main(bpy.types.Panel):
-    bl_label = "3D-Coat Applink"
+    bl_label = "3D-Coat"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_context = "objectmode"
@@ -815,12 +815,13 @@ class SCENE_PT_Main(bpy.types.Panel):
             #Here you add your GUI
             row = layout.row()
             row.prop(coat3D,"type",text = "")
-            row = layout.row()
-            colL = row.column()
-            colR = row.column()
+            flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
 
-            colR.operator("export_applink.pilgway_3d_coat", text="Transfer")
-            colL.operator("import_applink.pilgway_3d_coat", text="Update")
+            col = flow.column()
+
+            col.operator("export_applink.pilgway_3d_coat", text="Transfer")
+            col = flow.column()
+            col.operator("import_applink.pilgway_3d_coat", text="Update")
 
 class ObjectButtonsPanel():
     bl_space_type = 'PROPERTIES'
