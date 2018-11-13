@@ -194,15 +194,15 @@ def updatemesh(objekti, proxy):
 
     if(objekti.vertex_groups.keys() != []):
         bpy.ops.object.select_all(action='DESELECT')
-        proxy.select_set('SELECT')
-        objekti.select_set('SELECT')
+        proxy.select_set(True)
+        objekti.select_set(True)
         bpy.ops.object.vertex_group_copy_to_selected()
         bpy.ops.object.select_all(action='DESELECT')
 
     # UV Set Copy
 
-    proxy.select_set('SELECT')
-    objekti.select_set('SELECT')
+    proxy.select_set(True)
+    objekti.select_set(True)
 
     if len(objekti.data.uv_layers) > 1:
         obj_uv_index =  objekti.data.uv_layers.active_index
@@ -220,7 +220,7 @@ def updatemesh(objekti, proxy):
 
     #Mesh Copy
 
-    proxy.select_set('SELECT')
+    proxy.select_set(True)
     obj_data = objekti.data.id_data
     objekti.data = proxy.data.id_data
     objekti.data.id_data.name = obj_data.name
@@ -369,7 +369,6 @@ class SCENE_OT_export(bpy.types.Operator):
                 coa.applink_address = checkname
 
         matindex = 0
-        name_list = []
 
         for objekti in bpy.context.selected_objects:
             if(objekti.material_slots.keys() == []):
@@ -377,15 +376,38 @@ class SCENE_OT_export(bpy.types.Operator):
                 newmat.use_nodes = True
                 objekti.data.materials.append(newmat)
                 matindex += 1
-            name_list.append(objekti.data.name)
             new_name = objekti.data.name
             name_boxs = new_name.split('.')
             if(len(name_boxs)>1):
                 objekti.name = name_boxs[0] + name_boxs[1]
-                objekti.data.name = name_boxs[0] + name_boxs[1]
+                nimi = name_boxs[0] + name_boxs[1]
+                nimiNum = int(name_boxs[1])
+                looking = False
+                lyytyi = False
+                while(looking == False):
+                    for all_ob in bpy.data.meshes:
+                        numero = ("%.3d"%(nimiNum))
+                        nimi2 = name_boxs[0] + numero
+                        print('nimi2',nimi2)
+                        if(all_ob.name == nimi2):
+                            lyytyi = True
+                            break
+                        else:
+                            lyytyi = False
+
+                    if(lyytyi == True):
+                        nimiNum += 1
+                    else:
+                        looking = True
+                objekti.data.name = nimi2
+                objekti.name = nimi2
+
+
+
             else:
                 objekti.name = name_boxs[0]
                 objekti.data.name = name_boxs[0]
+            objekti.coat3D.applink_name = objekti.data.name
 
         for objekti in bpy.context.selected_objects:
             objekti.coat3D.applink_scale = objekti.scale
@@ -405,15 +427,14 @@ class SCENE_OT_export(bpy.types.Operator):
         file.write("\n[%s]"%(coat3D.type))
         file.close()
         group_index = -1.0
-
         for idx, objekti in enumerate(bpy.context.selected_objects):
             nimi = ''
             for koko in bpy.context.selected_objects:
                 nimi += koko.data.name + ':::'
             objekti.coat3D.applink_group = nimi
+            objekti.coat3D.applink_mesh = True
             objekti.coat3D.applink_address = coa.applink_address
             objekti.coat3D.obj_mat = ''
-            objekti.coat3D.applink_name = coa.applink_name
             objekti.coat3D.applink_firsttime = True
             objekti.coat3D.objecttime = str(os.path.getmtime(objekti.coat3D.applink_address))
             objekti.data.coat3D.name = '3DC'
@@ -434,7 +455,6 @@ class SCENE_OT_import(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     def invoke(self, context, event):
-
         for mesh in bpy.data.meshes:
             if(mesh.users == 0 and mesh.coat3D.name == '3DC'):
                 bpy.data.meshes.remove(mesh)
@@ -503,18 +523,20 @@ class SCENE_OT_import(bpy.types.Operator):
             object_list = []
             import_list = []
             mesh_del_list = []
-            for objekti in bpy.context.scene.collection.all_objects:
-                if (objekti.type == 'MESH'):
-                    object_list.append(objekti.name)
+
+            for objekti in bpy.data.objects:
+                if objekti.type == 'MESH':
                     obj_coat = objekti.coat3D
-                    if(obj_coat.applink_address != ''):
+                    if(obj_coat.applink_mesh == True):
+                        object_list.append(objekti.name)
+
                         if (obj_coat.objecttime != str(os.path.getmtime(obj_coat.applink_address))):
                             obj_coat.dime = objekti.dimensions
                             obj_coat.import_mesh = True
                             obj_coat.objecttime = str(os.path.getmtime(obj_coat.applink_address))
                             if(obj_coat.applink_address not in import_list):
                                 import_list.append(obj_coat.applink_address)
-            print('image:', bpy.data.images)
+
             if(import_list):
                 for list in import_list:
                     bpy.ops.import_scene.fbx(filepath=list, global_scale = 1,axis_forward='X')
@@ -534,124 +556,126 @@ class SCENE_OT_import(bpy.types.Operator):
                 for c_index in diff_mat:
                     bpy.data.materials.remove(bpy.data.materials[c_index])
             '''The main Applink Object Loop'''
-
+            print('objekti lista', object_list)
             for oname in object_list:
                 objekti = bpy.data.objects[oname]
-                if(objekti.coat3D.import_mesh and coat3D.importmesh == True):
-                    objekti.coat3D.import_mesh = False
-                    objekti.select_set('SELECT')
+                print('BASE_OBJECT:', objekti,objekti.coat3D.applink_address)
+                if(objekti.coat3D.applink_mesh == True):
+                    print('totta vai tarua:',objekti.coat3D.applink_mesh)
+                    if(objekti.coat3D.import_mesh and coat3D.importmesh == True):
+                        print('ONAME:', oname)
+                        objekti.coat3D.import_mesh = False
+                        objekti.select_set(True)
 
-                    new_name = objekti.data.name
-                    name_boxs = new_name.split('.')
-                    print('diff_objects: ', diff_objects)
-                    for idx, proxy_objects in enumerate(diff_objects):
-                        print('proxy_object', proxy_objects)
-                        if (proxy_objects.startswith(name_boxs[0])):
-                            obj_proxy = bpy.data.objects[proxy_objects]
-                            break
-                    exportfile = coat3D.exchangedir
-                    path3b_n = coat3D.exchangedir
-                    path3b_n += ('last_saved_3b_file.txt')
-                    exportfile += ('%sBlender' % (os.sep))
-                    exportfile += ('%sexport.txt'%(os.sep))
-                    if(os.path.isfile(exportfile)):
-                        export_file = open(exportfile)
-                        for line in export_file:
-                            if line.rfind('.3b'):
-                                coat['active_coat'] = line
-                        export_file.close()
-                        os.remove(exportfile)
+                        new_name = objekti.data.name
+                        name_boxs = new_name.split('.')
+                        print('DIFF_OBJECS:', diff_objects)
+                        print('find name:', name_boxs[0])
+                        found_obj = False
+                        for proxy_objects in diff_objects:
+                            print('applink obj:', objekti.coat3D.applink_name)
+                            if (proxy_objects.startswith(objekti.coat3D.applink_name + '.')):
+                                print('Proxy NAME: ', name_boxs[0])
+                                print('applink obj:', objekti.coat3D.applink_name)
+                                obj_proxy = bpy.data.objects[proxy_objects]
+                                found_obj = True
+                        if(found_obj == True):
+                            exportfile = coat3D.exchangedir
+                            path3b_n = coat3D.exchangedir
+                            path3b_n += ('last_saved_3b_file.txt')
+                            exportfile += ('%sBlender' % (os.sep))
+                            exportfile += ('%sexport.txt'%(os.sep))
+                            if(os.path.isfile(exportfile)):
+                                export_file = open(exportfile)
+                                for line in export_file:
+                                    if line.rfind('.3b'):
+                                        coat['active_coat'] = line
+                                export_file.close()
+                                os.remove(exportfile)
 
-                    obj_names = objekti.coat3D.applink_group
-                    obj_list = obj_names.split(':::')
-                    applinks = []
-                    mat_list = []
-                    obj_list.pop()
+                            obj_names = objekti.coat3D.applink_group
 
-                    use_smooth = objekti.data.polygons[0].use_smooth
+                            use_smooth = objekti.data.polygons[0].use_smooth
 
-                    if(objekti.material_slots):
-                        act_mat = objekti.active_material
-                        for obj_mat in objekti.material_slots:
-                            mat_list.append(obj_mat.material)
+                            mat_list = []
+                            if(objekti.material_slots):
+                                act_mat = objekti.active_material
+                                for obj_mat in objekti.material_slots:
+                                    mat_list.append(obj_mat.material)
+                            bpy.ops.object.select_all(action='DESELECT')
+                            obj_proxy.select_set(True)
 
-                    bpy.ops.object.select_all(action='DESELECT')
-                    obj_proxy.select_set('SELECT')
+                            bpy.ops.object.select_all(action='TOGGLE')
 
-                    bpy.ops.object.select_all(action='TOGGLE')
+                            if objekti.coat3D.applink_firsttime == True:
+                                objekti.scale = (objekti.scale[0]/objekti.coat3D.applink_scale[0],objekti.scale[1]/objekti.coat3D.applink_scale[1],objekti.scale[2]/objekti.coat3D.applink_scale[2])
+                                bpy.ops.object.transforms_to_deltas(mode='SCALE')
+                                objekti.rotation_euler = (0,0,0)
+                                objekti.scale = (0.01,0.01,0.01)
+                                objekti.coat3D.applink_firsttime = False
 
-                    if objekti.coat3D.applink_firsttime == True:
-                        objekti.scale = (objekti.scale[0]/objekti.coat3D.applink_scale[0],objekti.scale[1]/objekti.coat3D.applink_scale[1],objekti.scale[2]/objekti.coat3D.applink_scale[2])
-                        bpy.ops.object.transforms_to_deltas(mode='SCALE')
-                        objekti.rotation_euler = (0,0,0)
-                        objekti.scale = (0.01,0.01,0.01)
-                        objekti.coat3D.applink_firsttime = False
+                            if(coat3D.importlevel):
+                                obj_proxy.select = True
+                                obj_proxy.modifiers.new(name='temp',type='MULTIRES')
+                                objekti.select = True
+                                bpy.ops.object.multires_reshape(modifier=multires_name)
+                                bpy.ops.object.select_all(action='TOGGLE')
+                                multires_on = False
+                            else:
+                                updatemesh(objekti,obj_proxy)
 
-                    if(coat3D.importlevel):
-                        obj_proxy.select = True
-                        obj_proxy.modifiers.new(name='temp',type='MULTIRES')
-                        objekti.select = True
-                        bpy.ops.object.multires_reshape(modifier=multires_name)
-                        bpy.ops.object.select_all(action='TOGGLE')
-                        multires_on = False
+                            #tärkee että saadaan oikein käännettyä objekt
+
+                            objekti.select_set(True)
+                            bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
+
+                            objekti.data.materials.pop()
+                            for mat in mat_list:
+                                objekti.data.materials.append(mat)
+
+                            if (use_smooth):
+                                for data_mesh in objekti.data.polygons:
+                                    data_mesh.use_smooth = True
+
+                                bpy.ops.object.select_all(action='DESELECT')
+
+                            if(os.path.isfile(path3b_n)):
+                                path3b_fil = open(path3b_n)
+                                for lin in path3b_fil:
+                                    objekti.coat3D.applink_3b_path = lin
+                                head, tail = os.path.split(objekti.coat3D.applink_3b_path)
+                                objekti.coat3D.applink_3b_just_name = tail
+                                path3b_fil.close()
+                                os.remove(path3b_n)
+
+                            if(coat3D.importmesh and not(os.path.isfile(objekti.coat3D.applink_address))):
+                                coat3D.importmesh = False
+
+                            objekti.select_set(True)
+                            if(coat3D.importtextures):
+                                is_new = False
+                                print('aMAT:', mat_list)
+                                tex.matlab(objekti,mat_list,texturelist,is_new)
+                            objekti.select_set(False)
                     else:
-                        updatemesh(objekti,obj_proxy)
+                        mat_list = []
 
-                    #tärkee että saadaan oikein käännettyä objekt
+                        if (objekti.material_slots):
+                            for obj_mat in objekti.material_slots:
+                                mat_list.append(obj_mat.material)
 
-                    objekti.select_set('SELECT')
-                    bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
-
-                    objekti.data.materials.pop()
-                    for mat in mat_list:
-                        objekti.data.materials.append(mat)
-
-                    if (use_smooth):
-                        for data_mesh in objekti.data.polygons:
-                            data_mesh.use_smooth = True
-
-                        bpy.ops.object.select_all(action='DESELECT')
-
-                    if(os.path.isfile(path3b_n)):
-                        path3b_fil = open(path3b_n)
-                        for lin in path3b_fil:
-                            objekti.coat3D.applink_3b_path = lin
-                        head, tail = os.path.split(objekti.coat3D.applink_3b_path)
-                        objekti.coat3D.applink_3b_just_name = tail
-                        path3b_fil.close()
-                        os.remove(path3b_n)
-
-                    if(coat3D.importmesh and not(os.path.isfile(objekti.coat3D.applink_address))):
-                        coat3D.importmesh = False
-
-                    objekti.select_set('SELECT')
-                    if(coat3D.importtextures):
-                        is_new = False
-                        print('matlist: ', mat_list)
-                        print('objekti: ', objekti)
-                        print('is_new: ', is_new)
-                        tex.matlab(objekti,mat_list,texturelist,is_new)
-                    objekti.select_set('DESELECT')
-                else:
-                    mat_list = []
-
-                    if (objekti.material_slots):
-                        for obj_mat in objekti.material_slots:
-                            mat_list.append(obj_mat.material)
-
-                    if (coat3D.importtextures):
-                        is_new = False
-                        print('matlist: ',mat_list)
-                        print('objekti: ', objekti)
-                        print('is_new: ', is_new)
-                        tex.matlab(objekti,mat_list,texturelist, is_new)
-                    objekti.select_set('DESELECT')
+                        if (coat3D.importtextures):
+                            is_new = False
+                            print('aMAT:', mat_list)
+                            print('aObject', objekti)
+                            tex.matlab(objekti,mat_list,texturelist, is_new)
+                        objekti.select_set(False)
 
 
             bpy.ops.object.select_all(action='DESELECT')
             if(import_list):
                 for del_obj in diff_objects:
-                    bpy.context.collection.all_objects[del_obj].select_set('SELECT')
+                    bpy.context.collection.all_objects[del_obj].select_set(True)
                     bpy.ops.object.delete()
 
 
@@ -687,7 +711,7 @@ class SCENE_OT_import(bpy.types.Operator):
             old_materials = bpy.data.materials.keys()
             old_objects = bpy.data.objects.keys()
 
-            bpy.ops.import_scene.fbx(filepath=new_applink_address, global_scale = 0.1,axis_forward='X', axis_up='Z')
+            bpy.ops.import_scene.fbx(filepath=new_applink_address, global_scale = 0.0001,axis_forward='X', axis_up='Z')
 
             new_materials = bpy.data.materials.keys()
             new_objects = bpy.data.objects.keys()
@@ -699,6 +723,7 @@ class SCENE_OT_import(bpy.types.Operator):
                 bpy.data.materials[mark_mesh].coat3D.name = '3DC'
                 bpy.data.materials[mark_mesh].use_fake_user = True
             laskuri = 0
+            index = 0
             for c_index in diff_objects:
                 bpy.data.objects[c_index].data.coat3D.name = '3DC'
                 bpy.data.objects[c_index].material_slots[0].material = bpy.data.materials[diff_mat[laskuri]]
@@ -709,16 +734,20 @@ class SCENE_OT_import(bpy.types.Operator):
 
                 if(new_obj.coat3D.applink_old == False):
                     nimi += new_obj.data.name + ':::'
-                    new_obj.select_set('SELECT')
+                    new_obj.select_set(True)
                     #bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
                     new_obj.rotation_euler = (0, 0, 0)
                     new_obj.scale = (1, 1, 1)
                     new_obj.coat3D.applink_firsttime = False
-                    new_obj.select_set('DESELECT')
+                    new_obj.select_set(False)
                     new_obj.coat3D.applink_address = new_applink_address
+                    new_obj.coat3D.applink_mesh = True
                     new_obj.coat3D.objecttime = str(os.path.getmtime(new_obj.coat3D.applink_address))
-                    splittext = ntpath.basename(new_applink_address)
-                    new_obj.coat3D.applink_name = splittext.split('.')[0]
+
+                    new_obj.coat3D.applink_name = diff_objects[index]
+                    print('namee:', new_obj.coat3D.applink_name)
+                    index = index + 1
+
                     new_obj.coat3D.applink_export = True
                     if(osoite_3b != ''):
                         new_obj.coat3D.applink_3b_path = osoite_3b
@@ -726,7 +755,10 @@ class SCENE_OT_import(bpy.types.Operator):
 
                     mat_list.append(new_obj.material_slots[0].material)
                     is_new = True
+                    print('new_obj', new_obj)
+                    print('mat_list', mat_list)
                     tex.matlab(new_obj, mat_list, texturelist, is_new)
+                    mat_list.pop()
 
             for new_obj in bpy.context.collection.objects:
                 if(new_obj.coat3D.applink_old == False):
@@ -941,6 +973,11 @@ class ObjectCoat3D(PropertyGroup):
         default=True
     )
     import_mesh: BoolProperty(
+        name="ImportMesh",
+        description="ImportMesh",
+        default=False
+    )
+    applink_mesh: BoolProperty(
         name="ImportMesh",
         description="ImportMesh",
         default=False

@@ -54,7 +54,6 @@ def readtexturefolder(mat_list,texturelist,is_new): #read textures from texture 
 
 
     for texture_info in texturelist:
-        print('TEX: ',texture_info )
         if texture_info[0] == mat_list[0].name:
             if texture_info[2] == 'color' or texture_info[2] == 'diffuse':
                 texcoat['color'].append(texture_info[3])
@@ -82,22 +81,17 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
     bring_roughness = True
     bring_normal = True
     bring_disp = True
-
     coat3D = bpy.context.scene.coat3D
     coatMat = mat_list[0]
-    print('matlist[0]', mat_list[0])
 
     if(coatMat.use_nodes == False):
         coatMat.use_nodes = True
     act_material = coatMat.node_tree
-    print('tuleeko materiaali:',act_material.name)
     main_material = coatMat.node_tree
     applink_group_node = False
-
     #ensimmaiseksi kaydaan kaikki image nodet lapi ja tarkistetaan onko nimi 3DC alkunen jos on niin reload
-    print('texcoat:',texcoat)
 
-    for node in act_material.nodes:
+    for node in mat_list[0].node_tree.nodes:
         if (node.type == 'OUTPUT_MATERIAL'):
             main_mat = node
             break
@@ -125,6 +119,7 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
                 node.image.reload()
 
     #seuraavaksi lahdemme rakentamaan node tree. Lahdetaan Material Outputista rakentaa
+
     if(applink_group_node == False and coat3D.creategroup):
         group_tree = bpy.data.node_groups.new('3DC_Applink', 'ShaderNodeTree')
         applink_tree = act_material.nodes.new('ShaderNodeGroup')
@@ -133,7 +128,6 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
         applink_tree.location = -400, 300
         act_material = group_tree
         notegroup = act_material.nodes.new('NodeGroupOutput')
-        print('active material:', act_material.name)
 
     if(main_mat.inputs['Surface'].is_linked == True):
         glue_mat = main_mat.inputs['Surface'].links[0].from_node
@@ -144,7 +138,6 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
         input_index = 0
         #Color
         if(bring_color == True and texcoat['color'] != []):
-            print('image:', bpy.data.images)
             node = act_material.nodes.new('ShaderNodeTexImage')
             node.name = '3DC_color'
             if (texcoat['color']):
@@ -159,6 +152,7 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
                     node.image = imagename
                 else:
                     node.image = bpy.data.images.load(texcoat['color'][0])
+
             if(coat3D.createnodes):
                 curvenode = act_material.nodes.new('ShaderNodeRGBCurve')
                 curvenode.name = '3DC_RGBCurve'
@@ -258,7 +252,6 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
                     node.location = -550, 0
                     if (input_color != -1):
                         act_material.links.new(node.outputs[0], glue_mat.inputs[input_color])
-
         #Normal map
         if(bring_normal == True and texcoat['nmap'] != []):
             node = act_material.nodes.new('ShaderNodeTexImage')
@@ -277,8 +270,6 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
                 act_material.links.new(normal_node.outputs[0], notegroup.inputs[input_index])
                 main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
                 input_index += 1
-
-
 
 def matlab(objekti,mat_list,texturelist,is_new):
 
