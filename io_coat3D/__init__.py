@@ -585,7 +585,8 @@ class SCENE_OT_import(bpy.types.Operator):
                         if(found_obj == True):
                             exportfile = coat3D.exchangedir
                             path3b_n = coat3D.exchangedir
-                            path3b_n += ('last_saved_3b_file.txt')
+                            path3b_n += ('%slast_saved_3b_file.txt' % (os.sep))
+                            print('osoite:', path3b_n)
                             exportfile += ('%sBlender' % (os.sep))
                             exportfile += ('%sexport.txt'%(os.sep))
                             if(os.path.isfile(exportfile)):
@@ -595,6 +596,13 @@ class SCENE_OT_import(bpy.types.Operator):
                                         coat['active_coat'] = line
                                 export_file.close()
                                 os.remove(exportfile)
+                            if(os.path.isfile(path3b_n)):
+                                export_file = open(path3b_n)
+                                for line in export_file:
+                                    objekti.coat3D.applink_3b_path = line
+                                export_file.close()
+                                os.remove(path3b_n)
+
 
                             obj_names = objekti.coat3D.applink_group
 
@@ -902,7 +910,7 @@ class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
                 layout.operator("export_applink.pilgway_3d_coat", text="Copy selected object(s) into 3D-Coat")
                 layout.separator()
                 if(context.selected_objects[0].coat3D.applink_3b_path != ''):
-                    layout.operator("open_3dcoat.pilgway_3d_coat", text="Open " +context.selected_objects[0].coat3D.applink_3b_just_name)
+                    layout.operator("open_3dcoat.pilgway_3d_coat", text="Open .3b file" +context.selected_objects[0].coat3D.applink_3b_just_name)
                     layout.separator()
 
             else:
