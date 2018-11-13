@@ -537,7 +537,7 @@ class SCENE_OT_import(bpy.types.Operator):
                             if(obj_coat.applink_address not in import_list):
                                 import_list.append(obj_coat.applink_address)
 
-            if(import_list):
+            if(import_list or coat3D.importmesh):
                 for list in import_list:
                     bpy.ops.import_scene.fbx(filepath=list, global_scale = 1,axis_forward='X')
 
@@ -744,7 +744,7 @@ class SCENE_OT_import(bpy.types.Operator):
                     new_obj.coat3D.applink_mesh = True
                     new_obj.coat3D.objecttime = str(os.path.getmtime(new_obj.coat3D.applink_address))
 
-                    new_obj.coat3D.applink_name = diff_objects[index]
+                    new_obj.coat3D.applink_name = new_obj.material_slots[0].material.name
                     print('namee:', new_obj.coat3D.applink_name)
                     index = index + 1
 
