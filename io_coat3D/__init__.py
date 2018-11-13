@@ -539,7 +539,7 @@ class SCENE_OT_import(bpy.types.Operator):
 
             if(import_list or coat3D.importmesh):
                 for list in import_list:
-                    bpy.ops.import_scene.fbx(filepath=list, global_scale = 1,axis_forward='X')
+                    bpy.ops.import_scene.fbx(filepath=list, global_scale = 1,axis_forward='X',use_custom_normals=False)
 
                 bpy.ops.object.select_all(action='DESELECT')
 
@@ -566,6 +566,9 @@ class SCENE_OT_import(bpy.types.Operator):
                         print('ONAME:', oname)
                         objekti.coat3D.import_mesh = False
                         objekti.select_set(True)
+
+                        use_smooth = objekti.data.polygons[0].use_smooth
+                        print('use smooth:', use_smooth)
 
                         new_name = objekti.data.name
                         name_boxs = new_name.split('.')
@@ -595,7 +598,7 @@ class SCENE_OT_import(bpy.types.Operator):
 
                             obj_names = objekti.coat3D.applink_group
 
-                            use_smooth = objekti.data.polygons[0].use_smooth
+
 
                             mat_list = []
                             if(objekti.material_slots):
@@ -636,6 +639,10 @@ class SCENE_OT_import(bpy.types.Operator):
                             if (use_smooth):
                                 for data_mesh in objekti.data.polygons:
                                     data_mesh.use_smooth = True
+                            else:
+                                for data_mesh in objekti.data.polygons:
+                                    data_mesh.use_smooth = False
+
 
                                 bpy.ops.object.select_all(action='DESELECT')
 
