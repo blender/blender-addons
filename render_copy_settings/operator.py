@@ -127,9 +127,9 @@ class RenderCopySettingsOPPreset(bpy.types.Operator):
     # Enable undo…
     bl_option = {'REGISTER', 'UNDO'}
 
-    presets = EnumProperty(items=(p.rna_enum for p in presets.presets),
-                           default=set(),
-                           options={'ENUM_FLAG'})
+    presets: EnumProperty(items=(p.rna_enum for p in presets.presets),
+                          default=set(),
+                          options={'ENUM_FLAG'})
 
     @staticmethod
     def process_elements(settings, elts):
