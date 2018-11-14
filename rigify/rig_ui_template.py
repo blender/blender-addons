@@ -755,6 +755,7 @@ class RigUI(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_label = "Rig Main Properties"
     bl_idname = rig_id + "_PT_rig_ui"
+    bl_category = 'View'
 
     @classmethod
     def poll(self, context):
@@ -798,6 +799,7 @@ class RigLayers(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_label = "Rig Layers"
     bl_idname = rig_id + "_PT_rig_layers"
+    bl_category = 'View'
 
     @classmethod
     def poll(self, context):
