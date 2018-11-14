@@ -19,135 +19,96 @@
 # <pep8-80 compliant>
 
 import bpy
+import gpu
+import bgl
+from mathutils import Vector, Matrix
+from mathutils.geometry import tessellate_polygon
+from gpu_extras.batch import batch_for_shader
 
-# maybe we could also just use the svg exporter, import it again
-# and render it. Unfortunately the svg importer does not work atm.
 def export(filepath, face_data, colors, width, height, opacity):
-    aspect = width / height
+    offscreen = gpu.types.GPUOffScreen(width, height)
+    offscreen.bind()
 
-    # curves for lines
-    lines = curve_from_uvs(face_data, aspect, 1 / min(width, height))
-    lines_object = bpy.data.objects.new("temp_lines_object", lines)
-    black_material = make_colored_material((0, 0, 0))
-    lines.materials.append(black_material)
+    try:
+        bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
+        draw_image(face_data, opacity)
 
-    # background mesh
-    background_mesh = background_mesh_from_uvs(face_data, colors, aspect, opacity)
-    background_object = bpy.data.objects.new("temp_background_object", background_mesh)
-    background_object.location = (0, 0, -1)
+        pixel_data = get_pixel_data_from_current_back_buffer(width, height)
+        save_pixels(filepath, pixel_data, width, height)
+    finally:
+        offscreen.unbind()
+        offscreen.free()
 
-    # camera
-    camera = bpy.data.cameras.new("temp_camera")
-    camera_object = bpy.data.objects.new("temp_camera_object", camera)
-    camera.type = "ORTHO"
-    camera.ortho_scale = max(1, aspect)
-    camera_object.location = (aspect / 2, 0.5, 1)
-    camera_object.rotation_euler = (0, 0, 0)
+def draw_image(face_data, opacity):
+    bgl.glLineWidth(1)
+    bgl.glEnable(bgl.GL_BLEND)
+    bgl.glEnable(bgl.GL_LINE_SMOOTH)
+    bgl.glHint(bgl.GL_LINE_SMOOTH_HINT, bgl.GL_NICEST)
 
-    # scene
-    scene = bpy.data.scenes.new("temp_scene")
-    scene.render.engine = "BLENDER_EEVEE"
-    scene.render.resolution_x = width
-    scene.render.resolution_y = height
-    scene.render.image_settings.color_mode = "RGBA"
-    scene.render.alpha_mode = "TRANSPARENT"
-    scene.render.filepath = filepath
+    with gpu.matrix.push_pop():
+        gpu.matrix.load_matrix(get_normalize_uvs_matrix())
+        gpu.matrix.load_projection_matrix(Matrix.Identity(4))
 
-    # Link everything to the scene
-    scene.collection.objects.link(lines_object)
-    scene.collection.objects.link(camera_object)
-    scene.collection.objects.link(background_object)
-    scene.camera = camera_object
+        draw_background_colors(face_data, opacity)
+        draw_lines(face_data)
 
-    # Render
-    override = {"scene" : scene}
-    bpy.ops.render.render(override, write_still=True)
+    bgl.glDisable(bgl.GL_BLEND)
+    bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
-    # Cleanup
-    bpy.data.objects.remove(lines_object)
-    bpy.data.objects.remove(camera_object)
-    bpy.data.objects.remove(background_object)
+def get_normalize_uvs_matrix():
+    '''matrix maps x and y coordinates from [0, 1] to [-1, 1]'''
+    matrix = Matrix.Identity(4)
+    matrix.col[3][0] = -1
+    matrix.col[3][1] = -1
+    matrix[0][0] = 2
+    matrix[1][1] = 2
+    return matrix
 
-    for material in background_mesh.materials:
-        bpy.data.materials.remove(material)
-    bpy.data.meshes.remove(background_mesh)
+def draw_background_colors(face_data, opacity):
+    coords = [uv for uvs, _ in face_data for uv in uvs]
+    colors = [(*color, opacity) for uvs, color in face_data for _ in range(len(uvs))]
 
-    bpy.data.cameras.remove(camera)
-    bpy.data.curves.remove(lines)
-    bpy.data.materials.remove(black_material)
-    bpy.data.scenes.remove(scene)
+    indices = []
+    offset = 0
+    for uvs, _ in face_data:
+        triangles = tessellate_uvs(uvs)
+        indices.extend([index + offset for index in triangle] for triangle in triangles)
+        offset += len(uvs)
 
-def curve_from_uvs(face_data, aspect, thickness):
-    lines = bpy.data.curves.new("temp_curve", "CURVE")
-    lines.fill_mode = "BOTH"
-    lines.bevel_depth = thickness
-    lines.offset = -thickness / 2
-    lines.dimensions = "3D"
+    shader = gpu.shader.from_builtin('2D_FLAT_COLOR')
+    batch = batch_for_shader(shader, 'TRIS',
+        {"pos" : coords,
+         "color" : colors},
+        indices=indices)
+    batch.draw(shader)
 
+def tessellate_uvs(uvs):
+    return tessellate_polygon([[Vector(uv) for uv in uvs]])
+
+def draw_lines(face_data):
+    coords = []
     for uvs, _ in face_data:
         for i in range(len(uvs)):
             start = uvs[i]
             end = uvs[(i+1) % len(uvs)]
+            coords.append((start[0], start[1]))
+            coords.append((end[0], end[1]))
 
-            spline = lines.splines.new("POLY")
-            # one point is already there
-            spline.points.add(1)
-            points = spline.points
+    shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+    batch = batch_for_shader(shader, 'LINES', {"pos" : coords})
+    shader.bind()
+    shader.uniform_float("color", (0, 0, 0, 1))
+    batch.draw(shader)
 
-            points[0].co.x = start[0] * aspect
-            points[0].co.y = start[1]
+def get_pixel_data_from_current_back_buffer(width, height):
+    buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
+    bgl.glReadBuffer(bgl.GL_BACK)
+    bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
+    return buffer
 
-            points[1].co.x = end[0] * aspect
-            points[1].co.y = end[1]
-
-    return lines
-
-def background_mesh_from_uvs(face_data, colors, aspect, opacity):
-    mesh = bpy.data.meshes.new("temp_background")
-
-    vertices = []
-    polygons = []
-    for uvs, _ in face_data:
-        polygon = []
-        for uv in uvs:
-            polygon.append(len(vertices))
-            vertices.append((uv[0] * aspect, uv[1], 0))
-        polygons.append(tuple(polygon))
-
-    mesh.from_pydata(vertices, [], polygons)
-
-    materials, material_index_by_color = make_polygon_background_materials(colors, opacity)
-    for material in materials:
-        mesh.materials.append(material)
-
-    for generated_polygon, (_, color) in zip(mesh.polygons, face_data):
-        generated_polygon.material_index = material_index_by_color[color]
-
-    mesh.update()
-    mesh.validate()
-
-    return mesh
-
-def make_polygon_background_materials(colors, opacity=1):
-    materials = []
-    material_index_by_color = {}
-    for i, color in enumerate(colors):
-        material = make_colored_material(color, opacity)
-        materials.append(material)
-        material_index_by_color[color] = i
-    return materials, material_index_by_color
-
-def make_colored_material(color, opacity=1):
-    material = bpy.data.materials.new("temp_material")
-    material.use_nodes = True
-    material.blend_method = "BLEND"
-    tree = material.node_tree
-    tree.nodes.clear()
-
-    output_node = tree.nodes.new("ShaderNodeOutputMaterial")
-    emission_node = tree.nodes.new("ShaderNodeEmission")
-
-    emission_node.inputs["Color"].default_value = [color[0], color[1], color[2], opacity]
-    tree.links.new(emission_node.outputs["Emission"], output_node.inputs["Surface"])
-
-    return material
+def save_pixels(filepath, pixel_data, width, height):
+    image = bpy.data.images.new("temp", width, height, alpha=True)
+    image.filepath = filepath
+    image.pixels = [v / 255 for v in pixel_data]
+    image.save()
+    bpy.data.images.remove(image)
