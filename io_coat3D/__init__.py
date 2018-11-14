@@ -557,6 +557,7 @@ class SCENE_OT_import(bpy.types.Operator):
                     bpy.data.materials.remove(bpy.data.materials[c_index])
             '''The main Applink Object Loop'''
             print('objekti lista', object_list)
+            remove_path = True
             for oname in object_list:
                 objekti = bpy.data.objects[oname]
                 print('BASE_OBJECT:', objekti,objekti.coat3D.applink_address)
@@ -596,13 +597,12 @@ class SCENE_OT_import(bpy.types.Operator):
                                         coat['active_coat'] = line
                                 export_file.close()
                                 os.remove(exportfile)
-                            remove_path = False
                             if(os.path.isfile(path3b_n)):
                                 export_file = open(path3b_n)
                                 for line in export_file:
                                     objekti.coat3D.applink_3b_path = line
                                 export_file.close()
-                                remove_path = True
+                                coat3D.remove_path = True
 
 
 
@@ -678,8 +678,9 @@ class SCENE_OT_import(bpy.types.Operator):
                             tex.matlab(objekti,mat_list,texturelist, is_new)
                         objekti.select_set(False)
 
-            if(remove_path == True):
+            if(coat3D.remove_path == True):
                 os.remove(path3b_n)
+                coat3D.remove_path = False
 
             bpy.ops.object.select_all(action='DESELECT')
             if(import_list):
@@ -1051,6 +1052,11 @@ class SceneCoat3D(PropertyGroup):
         name="Import window",
         description="Allows to skip import dialog",
         default=True
+    )
+    remove_path: BoolProperty(
+        name="Import window",
+        description="Allows to skip import dialog",
+        default=False
     )
     exchange_found: BoolProperty(
         name="Exchange Found",
