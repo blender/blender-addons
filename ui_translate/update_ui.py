@@ -138,11 +138,11 @@ class UI_UL_i18n_languages(UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(item.name, icon_value=icon)
+            layout.label(text=item.name, icon_value=icon)
             layout.prop(item, "use", text="")
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
-            layout.label(item.uid)
+            layout.label(text=item.uid)
             layout.prop(item, "use", text="")
 
 

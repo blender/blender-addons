@@ -227,7 +227,7 @@ def create_materials(filepath, relpath,
                             # TODO: Find a way to guesstimate best value from diffuse color...
                             # IDEA: Use standard deviation of both spec and diff colors (i.e. how far away they are
                             #       from some grey), and apply the the proportion between those two as tint factor?
-                            spec = sum(spec_color) / 3.0
+                            spec = sum(spec_colors) / 3.0
                             # ~ spec_var = math.sqrt(sum((c - spec) ** 2 for c in spec_color) / 3.0)
                             # ~ diff = sum(context_mat_wrap.base_color) / 3.0
                             # ~ diff_var = math.sqrt(sum((c - diff) ** 2 for c in context_mat_wrap.base_color) / 3.0)
@@ -297,7 +297,8 @@ def create_materials(filepath, relpath,
                         col = (float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
                         context_mat_wrap.base_color = col
                     elif line_id == b'ks':
-                        spec_color = (float_func(line_split[1]) + float_func(line_split[2]) + float_func(line_split[3]))
+                        spec_colors[:] = [
+                            float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])]
                         context_material_vars.add("specular")
                     elif line_id == b'ke':
                         # We cannot set context_material.emit right now, we need final diffuse color as well for this.

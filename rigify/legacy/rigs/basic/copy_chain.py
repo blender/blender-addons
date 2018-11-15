@@ -127,8 +127,8 @@ def add_parameters(params):
     """ Add the parameters of this rig type to the
         RigifyParameters PropertyGroup
     """
-    params.make_controls: bpy.props.BoolProperty(name="Controls", default=True, description="Create control bones for the copy")
-    params.make_deforms: bpy.props.BoolProperty(name="Deform", default=True, description="Create deform bones for the copy")
+    params.make_controls = bpy.props.BoolProperty(name="Controls", default=True, description="Create control bones for the copy")
+    params.make_deforms = bpy.props.BoolProperty(name="Deform", default=True, description="Create deform bones for the copy")
 
 
 def parameters_ui(layout, params):

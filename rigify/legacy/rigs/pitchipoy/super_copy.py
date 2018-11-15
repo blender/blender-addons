@@ -91,7 +91,7 @@ def add_parameters(params):
     """ Add the parameters of this rig type to the
         RigifyParameters PropertyGroup
     """
-    params.make_control: bpy.props.BoolProperty(
+    params.make_control = bpy.props.BoolProperty(
         name        = "Control",
         default     = True,
         description = "Create a control bone for the copy"

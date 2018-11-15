@@ -1016,26 +1016,26 @@ def add_parameters(params):
     """
 
     #Setting up extra layers for the tweak bones
-    params.primary_layers_extra: bpy.props.BoolProperty(
+    params.primary_layers_extra = bpy.props.BoolProperty(
         name        = "primary_layers_extra",
         default     = True,
         description = ""
-    )
-    params.primary_layers: bpy.props.BoolVectorProperty(
+        )
+    params.primary_layers = bpy.props.BoolVectorProperty(
         size        = 32,
         description = "Layers for the 1st tweak controls to be on",
         default     = tuple( [ i == 1 for i in range(0, 32) ] )
-    )
-    params.secondary_layers_extra: bpy.props.BoolProperty(
+        )
+    params.secondary_layers_extra = bpy.props.BoolProperty(
         name        = "secondary_layers_extra",
         default     = True,
         description = ""
-    )
-    params.secondary_layers: bpy.props.BoolVectorProperty(
+        )
+    params.secondary_layers = bpy.props.BoolVectorProperty(
         size        = 32,
         description = "Layers for the 2nd tweak controls to be on",
         default     = tuple( [ i == 1 for i in range(0, 32) ] )
-    )
+        )
 
 
 def parameters_ui(layout, params):
