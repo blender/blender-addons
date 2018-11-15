@@ -418,7 +418,8 @@ class SCENE_OT_export(bpy.types.Operator):
         if(coat3D.type == 'ppp' or coat3D.type == 'mv' or coat3D.type == 'ptex'):
             bpy.ops.export_scene.fbx(filepath=coa.applink_address, use_selection=True, use_mesh_modifiers=False, axis_forward='X', axis_up='Y')
         else:
-            bpy.ops.export_scene.fbx(filepath=coa.applink_address, use_selection=True, use_mesh_modifiers=False, axis_up='Z', axis_forward='Y')
+            bpy.ops.export_scene.fbx(filepath=coa.applink_address, use_selection=True, use_mesh_modifiers=False, axis_up='Y', axis_forward='-Z')
+            objekti.coat3D.type = 'Voxel'
 
 
         file = open(importfile, "w")
@@ -576,13 +577,25 @@ class SCENE_OT_import(bpy.types.Operator):
                         print('DIFF_OBJECS:', diff_objects)
                         print('find name:', name_boxs[0])
                         found_obj = False
-                        for proxy_objects in diff_objects:
-                            print('applink obj:', objekti.coat3D.applink_name)
-                            if (proxy_objects.startswith(objekti.coat3D.applink_name + '.')):
-                                print('Proxy NAME: ', name_boxs[0])
+
+                        '''Changes objects mesh into proxy mesh'''
+
+                        if(objekti.coat3D.type == ''):
+                            for proxy_objects in diff_objects:
                                 print('applink obj:', objekti.coat3D.applink_name)
-                                obj_proxy = bpy.data.objects[proxy_objects]
-                                found_obj = True
+                                if (proxy_objects.startswith(objekti.coat3D.applink_name + '.')):
+                                    print('Proxy NAME: ', name_boxs[0])
+                                    print('applink obj:', objekti.coat3D.applink_name)
+                                    obj_proxy = bpy.data.objects[proxy_objects]
+                                    found_obj = True
+                        elif(objekti.coat3D.type == 'Voxel' and len(object_list) == 1):
+                            obj_proxy = bpy.data.objects[diff_objects[0]]
+                            found_obj = True
+                            if objekti.coat3D.applink_firsttime == True:
+                                objekti.rotation_euler[0] = 1.5708
+                                bpy.ops.object.transforms_to_deltas(mode='ROT')
+                                objekti.coat3D.applink_firsttime = False
+
                         if(found_obj == True):
                             exportfile = coat3D.exchangedir
                             path3b_n = coat3D.exchangedir
@@ -953,12 +966,7 @@ class VIEW3D_MT_ExtraMenu(bpy.types.Menu):
         layout.separator()
 
 class ObjectCoat3D(PropertyGroup):
-    objpath: StringProperty(
-        name="Object_Path"
-    )
-    NoteGroup: StringProperty(
-        name="Object_Path"
-    )
+
     obj_mat: StringProperty(
         name="Object_Path",
         default=''
@@ -982,6 +990,11 @@ class ObjectCoat3D(PropertyGroup):
         name="FirstTime",
         description="FirstTime",
         default=True
+    )
+    type: StringProperty(
+        name="type",
+        description="shows type",
+        default=''
     )
     import_mesh: BoolProperty(
         name="ImportMesh",

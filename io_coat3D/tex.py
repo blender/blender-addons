@@ -100,6 +100,8 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
         if(node.name == '3DC_Applink' and node.type == 'GROUP'):
             applink_group_node = True
             act_material = node.node_tree
+            group_tree = node.node_tree
+            applink_tree = node
             break
 
 
@@ -121,6 +123,7 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
     #seuraavaksi lahdemme rakentamaan node tree. Lahdetaan Material Outputista rakentaa
 
     if(applink_group_node == False and coat3D.creategroup):
+        print('tulleekko tanne')
         group_tree = bpy.data.node_groups.new('3DC_Applink', 'ShaderNodeTree')
         applink_tree = act_material.nodes.new('ShaderNodeGroup')
         applink_tree.name = '3DC_Applink'
@@ -128,6 +131,19 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
         applink_tree.location = -400, 300
         act_material = group_tree
         notegroup = act_material.nodes.new('NodeGroupOutput')
+    else:
+        index = 0
+        for node in mat_list[0].node_tree.nodes:
+            if (node.type == 'GROUP' and node.name =='3DC_Applink'):
+                for in_node in node.node_tree.nodes:
+                    if(in_node.type == 'GROUP_OUTPUT'):
+                        notegroup = in_node
+                        index = 1
+                        break
+            if(index == 1):
+                break
+
+
 
     if(main_mat.inputs['Surface'].is_linked == True):
         glue_mat = main_mat.inputs['Surface'].links[0].from_node
@@ -135,9 +151,10 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
             input_color = glue_mat.inputs.find('Color')
         else:
             input_color = glue_mat.inputs.find('Base Color')
-        input_index = 0
+
         #Color
         if(bring_color == True and texcoat['color'] != []):
+            print('Tuleeko color tekstuuri kahteen kertaan')
             node = act_material.nodes.new('ShaderNodeTexImage')
             node.name = '3DC_color'
             if (texcoat['color']):
@@ -164,18 +181,17 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
                 node.location = -990, 530
                 curvenode.location = -660, 480
                 huenode.location = -337, 335
+
                 if(coat3D.creategroup):
-                    act_material.links.new(huenode.outputs[0], notegroup.inputs[input_index])
-                    group_tree.outputs[input_index].name = 'Color'
-                    main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
-                    input_index += 1
+                    act_material.links.new(huenode.outputs[0], notegroup.inputs[len(notegroup.inputs)-1])
+                    group_tree.outputs[len(group_tree.outputs)-1].name = 'Color'
+                    main_material.links.new(applink_tree.outputs[len(applink_tree.outputs)-1], glue_mat.inputs[input_color])
             else:
                 if (coat3D.creategroup):
                     node.location = -400, 400
-                    act_material.links.new(node.outputs[0], notegroup.inputs[input_index])
+                    act_material.links.new(node.outputs[0], notegroup.inputs[len(notegroup.inputs)-1])
                     if (input_color != -1):
-                        main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
-                    input_index += 1
+                        main_material.links.new(applink_tree.outputs[len(applink_tree.outputs)-1], glue_mat.inputs[input_color])
 
                 else:
                     node.location = -400,400
@@ -201,17 +217,15 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
                 curvenode.location = -668, 113
                 huenode.location = -345, 118
                 if (coat3D.creategroup):
-                    act_material.links.new(huenode.outputs[0], notegroup.inputs[input_index])
-                    group_tree.outputs[input_index].name = 'Metalness'
-                    main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
-                    input_index += 1
+                    act_material.links.new(huenode.outputs[0], notegroup.inputs[len(notegroup.inputs)-1])
+                    group_tree.outputs[len(group_tree.outputs) - 1].name = 'Metalness'
+                    main_material.links.new(applink_tree.outputs[len(applink_tree.outputs)-1], glue_mat.inputs[input_color])
             else:
                 if (coat3D.creategroup):
                     node.location = -830, 160
-                    act_material.links.new(node.outputs[0], notegroup.inputs[input_index])
+                    act_material.links.new(node.outputs[0], notegroup.inputs[len(notegroup.inputs)-1])
                     if (input_color != -1):
-                        main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
-                        input_index += 1
+                        main_material.links.new(applink_tree.outputs[len(applink_tree.outputs)-1], glue_mat.inputs[input_color])
                 else:
                     node.location = -830, 160
                     if (input_color != -1):
@@ -237,17 +251,17 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
                 curvenode.location = -670, -245
                 huenode.location = -340, -100
                 if (coat3D.creategroup):
-                    act_material.links.new(huenode.outputs[0], notegroup.inputs[input_index])
-                    group_tree.outputs[input_index].name = 'Roughness'
-                    main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
-                    input_index += 1
+                    act_material.links.new(huenode.outputs[0], notegroup.inputs[len(notegroup.inputs)-1])
+                    group_tree.outputs[len(group_tree.outputs) - 1].name = 'Roughness'
+                    main_material.links.new(applink_tree.outputs[len(applink_tree.outputs)-1], glue_mat.inputs[input_color])
+
             else:
                 if (coat3D.creategroup):
                     node.location = -550, 0
-                    act_material.links.new(node.outputs[0], notegroup.inputs[input_index])
+                    act_material.links.new(node.outputs[0],notegroup.inputs[len(notegroup.inputs)-1])
                     if (input_color != -1):
-                        main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
-                        input_index += 1
+                        main_material.links.new(applink_tree.outputs[len(applink_tree.outputs)-1], glue_mat.inputs[input_color])
+
                 else:
                     node.location = -550, 0
                     if (input_color != -1):
@@ -267,9 +281,9 @@ def createnodes(mat_list,texcoat): #luo nodes palikat ja linkittaa tekstuurit ni
             act_material.links.new(node.outputs[0], normal_node.inputs[1])
             act_material.links.new(normal_node.outputs[0], glue_mat.inputs[input_color])
             if (coat3D.creategroup):
-                act_material.links.new(normal_node.outputs[0], notegroup.inputs[input_index])
-                main_material.links.new(applink_tree.outputs[input_index], glue_mat.inputs[input_color])
-                input_index += 1
+                act_material.links.new(normal_node.outputs[0], notegroup.inputs[len(notegroup.inputs)-1])
+                main_material.links.new(applink_tree.outputs[len(applink_tree.outputs)-1], glue_mat.inputs[input_color])
+
 
 def matlab(objekti,mat_list,texturelist,is_new):
 
