@@ -2124,6 +2124,7 @@ class Manipulable():
             self.manipulable_end_point = Vector((0, 0))
 
         o = context.active_object
+
         if o is not None:
             self.manipulable_exit_selectmode(context)
             remove_manipulable(o.name)
