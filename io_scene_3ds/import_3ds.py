@@ -828,7 +828,10 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                 ob.parent = None
         else:
             if ob.parent != object_list[parent]:
-                ob.parent = object_list[parent]
+                if ob == object_list[parent]:
+                    print('   warning: Cannot assign self to parent ', ob)
+                else:
+                    ob.parent = object_list[parent]
 
             # pivot_list[ind] += pivot_list[parent]  # XXX, not sure this is correct, should parent space matrix be applied before combining?
     # fix pivots
