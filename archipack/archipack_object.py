@@ -100,6 +100,7 @@ class ArchipackObject():
         selected = context.selected_objects[:]
 
         for o in selected:
+
             if self.__class__.datablock(o) == self:
                 self.previously_selected = selected
                 self.previously_active = active
@@ -113,27 +114,41 @@ class ArchipackObject():
 
         try:
             for o in self.previously_selected:
-                o.select = True
+                o.select_set(state=True)
         except:
             pass
         if self.previously_active is not None:
-            self.previously_active.select = True
-            context.scene.objects.active = self.previously_active
+            self.previously_active.select_set(state=True)
+            context.view_layer.objects.active = self.previously_active
         self.previously_selected = None
         self.previously_active = None
+
+    def move_object(self, o, p):
+        """
+         When firstpoint is moving we must move object according
+         p is new x, y location in world coordsys
+        """
+        p = Vector((p.x, p.y, o.matrix_world.translation.z))
+        # p is in o coordsys
+        if o.parent:
+            o.location = p @ o.parent.matrix_world.inverted()
+            o.matrix_world.translation = p
+        else:
+            o.location = p
+            o.matrix_world.translation = p
 
 
 class ArchipackCreateTool():
     """
         Shared property of archipack's create tool Operator
     """
-    auto_manipulate = BoolProperty(
+    auto_manipulate : BoolProperty(
             name="Auto manipulate",
             description="Enable object's manipulators after create",
             options={'SKIP_SAVE'},
             default=True
             )
-    filepath = StringProperty(
+    filepath : StringProperty(
             options={'SKIP_SAVE'},
             name="Preset",
             description="Full filename of python preset to load at create time",
@@ -164,7 +179,10 @@ class ArchipackCreateTool():
             if fallback:
                 # fallback to load preset on background process
                 try:
-                    exec(compile(open(self.filepath).read(), self.filepath, 'exec'))
+                    with open(self.filepath) as f:
+                        lines = f.read()
+                        cmp = compile(lines, self.filepath, 'exec')
+                        exec(cmp)
                 except:
                     print("Archipack unable to load preset file : %s" % (self.filepath))
                     pass
@@ -194,7 +212,7 @@ class ArchipackCreateTool():
                 pass
 
 
-class ArchpackDrawTool():
+class ArchipackDrawTool():
     """
         Draw tools
     """
@@ -225,8 +243,9 @@ class ArchpackDrawTool():
         view_vector_mouse = region_2d_to_vector_3d(region, rv3d, co2d)
         ray_origin_mouse = region_2d_to_origin_3d(region, rv3d, co2d)
         res, pos, normal, face_index, object, matrix_world = context.scene.ray_cast(
-            ray_origin_mouse,
-            view_vector_mouse)
+            view_layer=context.view_layer,
+            origin=ray_origin_mouse,
+            direction=view_vector_mouse)
         return res, pos, normal, face_index, object, matrix_world
 
     def mouse_hover_wall(self, context, event):
@@ -245,5 +264,5 @@ class ArchpackDrawTool():
                 [x.y, y.y, z.y, pt.y],
                 [x.z, y.z, z.z, o.matrix_world.translation.z],
                 [0, 0, 0, 1]
-                ]), o, y
-        return False, Matrix(), None, Vector()
+                ]), o, d.width, y, 0  # d.z_offset
+        return False, Matrix(), None, 0, Vector(), 0

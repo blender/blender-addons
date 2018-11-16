@@ -24,6 +24,7 @@
 # Author: Stephen Leger (s-leger)
 #
 # ----------------------------------------------------------
+import bpy
 
 
 class Keymaps:
@@ -79,6 +80,10 @@ class Keymaps:
             event: simple event signature to compare  like :
               if event == keymap.undo.event:
         """
+        # Headless mode fails without this check
+        if bpy.app.background:
+            return {'type': None, 'event':(False, False, False, False, None, None)}
+
         ev = context.window_manager.keyconfigs.user.keymaps[keyconfig].keymap_items[keymap_item]
         key = ev.type
         if ev.ctrl:
@@ -88,6 +93,7 @@ class Keymaps:
         if ev.shift:
             key += '+SHIFT'
         return {'type': key, 'name': ev.name, 'event': (ev.alt, ev.ctrl, ev.shift, ev.type, ev.value)}
+
 
     def dump_keys(self, context, filename="c:\\tmp\\keymap.txt"):
         """

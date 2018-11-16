@@ -181,7 +181,7 @@ class MatlibsManager():
     def apply(self, context, slot_index, name, link=False):
 
         o = context.active_object
-        o.select = True
+        o.select_set(state=True)
 
         # material with same name exist in scene
         mat = self.from_data(name)
@@ -367,12 +367,12 @@ def update(self, context):
 
 class archipack_material(PropertyGroup):
 
-    category = StringProperty(
+    category : StringProperty(
         name="Category",
         description="Archipack object name",
         default=""
         )
-    material = EnumProperty(
+    material : EnumProperty(
         name="Material",
         description="Material Set name",
         items=material_enum,
@@ -415,13 +415,13 @@ class archipack_material(PropertyGroup):
             return False
 
         for ob in sel:
-            context.scene.objects.active = ob
+            context.view_layer.objects.active = ob
             for slot_index, mat_name in enumerate(mats):
                 if slot_index >= len(ob.material_slots):
                     bpy.ops.object.material_slot_add()
                 self.apply_material(context, slot_index, mat_name)
 
-        context.scene.objects.active = o
+        context.view_layer.objects.active = o
 
         return True
 
@@ -431,7 +431,7 @@ class ARCHIPACK_PT_material(Panel):
     bl_label = "Archipack Material"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    # bl_category = 'ArchiPack'
+    bl_category = 'Archipack'
 
     @classmethod
     def poll(cls, context):
@@ -442,8 +442,8 @@ class ARCHIPACK_PT_material(Panel):
         props = context.active_object.archipack_material[0]
         row = layout.row(align=True)
         row.prop(props, 'material', text="")
-        row.operator('archipack.material_add', icon="ZOOMIN", text="")
-        row.operator('archipack.material_remove', icon="ZOOMOUT", text="")
+        row.operator('archipack.material_add', icon="ADD", text="")
+        row.operator('archipack.material_remove', icon="REMOVE", text="")
 
 
 class ARCHIPACK_OT_material(Operator):
@@ -452,12 +452,12 @@ class ARCHIPACK_OT_material(Operator):
     bl_description = "Add archipack material"
     bl_options = {'REGISTER', 'UNDO'}
 
-    category = StringProperty(
+    category : StringProperty(
         name="Category",
         description="Archipack object name",
         default=""
         )
-    material = StringProperty(
+    material : StringProperty(
         name="Material",
         description="Material Set name",
         default=""
@@ -499,7 +499,7 @@ class ARCHIPACK_OT_material_add(Operator):
     bl_description = "Add a set of archipack material"
     bl_options = {'REGISTER', 'UNDO'}
 
-    material = StringProperty(
+    material : StringProperty(
         name="Material",
         description="Material Set name",
         default=""
@@ -603,5 +603,5 @@ def unregister():
     bpy.utils.unregister_class(ARCHIPACK_OT_material_add)
     bpy.utils.unregister_class(ARCHIPACK_OT_material_remove)
     bpy.utils.unregister_class(ARCHIPACK_OT_material_library)
-    bpy.utils.unregister_class(archipack_material)
     del Object.archipack_material
+    bpy.utils.unregister_class(archipack_material)
