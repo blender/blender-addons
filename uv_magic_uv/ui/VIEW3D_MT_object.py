@@ -24,36 +24,27 @@ __version__ = "5.2"
 __date__ = "17 Nov 2018"
 
 import bpy
-
-from ..op import copy_paste_uv_uvedit
+from ..op import copy_paste_uv_object
 
 
 __all__ = [
-    'PanelCopyPasteUV',
+    'MenuCopyPasteUVObject',
 ]
 
 
-class PanelCopyPasteUV(bpy.types.Panel):
+class MenuCopyPasteUVObject(bpy.types.Menu):
     """
-    Panel class: Copy/Paste UV on Property Panel on UV/ImageEditor
+    Menu class: Master menu of Copy/Paste UV coordinate among object
     """
 
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'TOOLS'
+    bl_idname = "uv.muv_copy_paste_uv_object_menu"
     bl_label = "Copy/Paste UV"
-    bl_category = "Magic UV"
-    bl_context = 'mesh_edit'
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_header(self, _):
-        layout = self.layout
-        layout.label(text="", icon='IMAGE_COL')
+    bl_description = "Copy and Paste UV coordinate among object"
 
     def draw(self, _):
         layout = self.layout
 
-        row = layout.row(align=True)
-        row.operator(copy_paste_uv_uvedit.OperatorCopyUV.bl_idname,
-                     text="Copy")
-        row.operator(copy_paste_uv_uvedit.OperatorPasteUV.bl_idname,
-                     text="Paste")
+        layout.menu(copy_paste_uv_object.MenuCopyUV.bl_idname,
+                    text="Copy")
+        layout.menu(copy_paste_uv_object.MenuPasteUV.bl_idname,
+                    text="Paste")

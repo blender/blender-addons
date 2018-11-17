@@ -20,8 +20,8 @@
 
 __author__ = "Alexander Milovsky, Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "5.1"
-__date__ = "24 Feb 2018"
+__version__ = "5.2"
+__date__ = "17 Nov 2018"
 
 from math import sin, cos, pi
 
@@ -37,8 +37,56 @@ from mathutils import Vector
 from .. import common
 
 
-class MUV_UVWBoxMap(bpy.types.Operator):
-    bl_idname = "uv.muv_uvw_box_map"
+__all__ = [
+    'Properties',
+    'OperatorBoxMap',
+    'OperatorBestPlanerMap',
+]
+
+
+def is_valid_context(context):
+    obj = context.object
+
+    # only edit mode is allowed to execute
+    if obj is None:
+        return False
+    if obj.type != 'MESH':
+        return False
+    if context.object.mode != 'EDIT':
+        return False
+
+    # only 'VIEW_3D' space is allowed to execute
+    for space in context.area.spaces:
+        if space.type == 'VIEW_3D':
+            break
+    else:
+        return False
+
+    return True
+
+
+class Properties:
+    @classmethod
+    def init_props(cls, scene):
+        scene.muv_uvw_enabled = BoolProperty(
+            name="UVW Enabled",
+            description="UVW is enabled",
+            default=False
+        )
+        scene.muv_uvw_assign_uvmap = BoolProperty(
+            name="Assign UVMap",
+            description="Assign UVMap when no UVmaps are available",
+            default=True
+        )
+
+    @classmethod
+    def del_props(cls, scene):
+        del scene.muv_uvw_enabled
+        del scene.muv_uvw_assign_uvmap
+
+
+class OperatorBoxMap(bpy.types.Operator):
+    bl_idname = "uv.muv_uvw_operator_box_map"
     bl_label = "Box Map"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -70,8 +118,10 @@ class MUV_UVWBoxMap(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = context.active_object
-        return obj and obj.type == 'MESH'
+        # we can not get area/space/region from console
+        if common.is_console_mode():
+            return True
+        return is_valid_context(context)
 
     def execute(self, context):
         obj = context.active_object
@@ -151,8 +201,8 @@ class MUV_UVWBoxMap(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class MUV_UVWBestPlanerMap(bpy.types.Operator):
-    bl_idname = "uv.muv_uvw_best_planer_map"
+class OperatorBestPlanerMap(bpy.types.Operator):
+    bl_idname = "uv.muv_uvw_operator_best_planer_map"
     bl_label = "Best Planer Map"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -183,8 +233,10 @@ class MUV_UVWBestPlanerMap(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = context.active_object
-        return obj and obj.type == 'MESH'
+        # we can not get area/space/region from console
+        if common.is_console_mode():
+            return True
+        return is_valid_context(context)
 
     def execute(self, context):
         obj = context.active_object

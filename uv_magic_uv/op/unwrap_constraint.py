@@ -18,8 +18,8 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "5.1"
-__date__ = "24 Feb 2018"
+__version__ = "5.2"
+__date__ = "17 Nov 2018"
 
 import bpy
 import bmesh
@@ -32,12 +32,65 @@ from bpy.props import (
 from .. import common
 
 
-class MUV_UnwrapConstraint(bpy.types.Operator):
+__all__ = [
+    'Properties',
+    'Operator',
+]
+
+
+def is_valid_context(context):
+    obj = context.object
+
+    # only edit mode is allowed to execute
+    if obj is None:
+        return False
+    if obj.type != 'MESH':
+        return False
+    if context.object.mode != 'EDIT':
+        return False
+
+    # only 'VIEW_3D' space is allowed to execute
+    for space in context.area.spaces:
+        if space.type == 'VIEW_3D':
+            break
+    else:
+        return False
+
+    return True
+
+
+class Properties:
+    @classmethod
+    def init_props(cls, scene):
+        scene.muv_unwrap_constraint_enabled = BoolProperty(
+            name="Unwrap Constraint Enabled",
+            description="Unwrap Constraint is enabled",
+            default=False
+        )
+        scene.muv_unwrap_constraint_u_const = BoolProperty(
+            name="U-Constraint",
+            description="Keep UV U-axis coordinate",
+            default=False
+        )
+        scene.muv_unwrap_constraint_v_const = BoolProperty(
+            name="V-Constraint",
+            description="Keep UV V-axis coordinate",
+            default=False
+        )
+
+    @classmethod
+    def del_props(cls, scene):
+        del scene.muv_unwrap_constraint_enabled
+        del scene.muv_unwrap_constraint_u_const
+        del scene.muv_unwrap_constraint_v_const
+
+
+class Operator(bpy.types.Operator):
     """
     Operation class: Unwrap with constrain UV coordinate
     """
 
-    bl_idname = "uv.muv_unwrap_constraint"
+    bl_idname = "uv.muv_unwrap_constraint_operator"
     bl_label = "Unwrap Constraint"
     bl_description = "Unwrap while keeping uv coordinate"
     bl_options = {'REGISTER', 'UNDO'}
@@ -82,6 +135,13 @@ class MUV_UnwrapConstraint(bpy.types.Operator):
         description="Keep UV V-axis coordinate",
         default=False
     )
+
+    @classmethod
+    def poll(cls, context):
+        # we can not get area/space/region from console
+        if common.is_console_mode():
+            return True
+        return is_valid_context(context)
 
     def execute(self, _):
         obj = bpy.context.active_object

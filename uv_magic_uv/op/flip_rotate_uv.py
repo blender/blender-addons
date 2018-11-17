@@ -20,8 +20,8 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "5.1"
-__date__ = "24 Feb 2018"
+__version__ = "5.2"
+__date__ = "17 Nov 2018"
 
 import bpy
 import bmesh
@@ -33,12 +33,59 @@ from bpy.props import (
 from .. import common
 
 
-class MUV_FlipRot(bpy.types.Operator):
+__all__ = [
+    'Properties',
+    'Operator',
+]
+
+
+def is_valid_context(context):
+    obj = context.object
+
+    # only edit mode is allowed to execute
+    if obj is None:
+        return False
+    if obj.type != 'MESH':
+        return False
+    if context.object.mode != 'EDIT':
+        return False
+
+    # only 'VIEW_3D' space is allowed to execute
+    for space in context.area.spaces:
+        if space.type == 'VIEW_3D':
+            break
+    else:
+        return False
+
+    return True
+
+
+class Properties:
+    @classmethod
+    def init_props(cls, scene):
+        scene.muv_flip_rotate_uv_enabled = BoolProperty(
+            name="Flip/Rotate UV Enabled",
+            description="Flip/Rotate UV is enabled",
+            default=False
+        )
+        scene.muv_flip_rotate_uv_seams = BoolProperty(
+            name="Seams",
+            description="Seams",
+            default=True
+        )
+
+    @classmethod
+    def del_props(cls, scene):
+        del scene.muv_flip_rotate_uv_enabled
+        del scene.muv_flip_rotate_uv_seams
+
+
+class Operator(bpy.types.Operator):
     """
     Operation class: Flip and Rotate UV coordinate
     """
 
-    bl_idname = "uv.muv_fliprot"
+    bl_idname = "uv.muv_flip_rotate_uv_operator"
     bl_label = "Flip/Rotate UV"
     bl_description = "Flip/Rotate UV coordinate"
     bl_options = {'REGISTER', 'UNDO'}
@@ -59,6 +106,13 @@ class MUV_FlipRot(bpy.types.Operator):
         description="Seams",
         default=True
     )
+
+    @classmethod
+    def poll(cls, context):
+        # we can not get area/space/region from console
+        if common.is_console_mode():
+            return True
+        return is_valid_context(context)
 
     def execute(self, context):
         self.report({'INFO'}, "Flip/Rotate UV")

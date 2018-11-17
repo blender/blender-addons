@@ -20,8 +20,8 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "5.1"
-__date__ = "24 Feb 2018"
+__version__ = "5.2"
+__date__ = "17 Nov 2018"
 
 import bpy
 
@@ -29,7 +29,12 @@ from ..op import copy_paste_uv
 from ..op import transfer_uv
 
 
-class OBJECT_PT_MUV_CPUV(bpy.types.Panel):
+__all__ = [
+    'PanelCopyPasteUVEditMode',
+]
+
+
+class PanelCopyPasteUVEditMode(bpy.types.Panel):
     """
     Panel class: Copy/Paste UV on Property Panel on View3D
     """
@@ -50,32 +55,33 @@ class OBJECT_PT_MUV_CPUV(bpy.types.Panel):
         layout = self.layout
 
         box = layout.box()
-        box.prop(sc, "muv_cpuv_enabled", text="Copy/Paste UV")
-        if sc.muv_cpuv_enabled:
+        box.prop(sc, "muv_copy_paste_uv_enabled", text="Copy/Paste UV")
+        if sc.muv_copy_paste_uv_enabled:
             row = box.row(align=True)
-            if sc.muv_cpuv_mode == 'DEFAULT':
-                row.menu(copy_paste_uv.MUV_CPUVCopyUVMenu.bl_idname,
+            if sc.muv_copy_paste_uv_mode == 'DEFAULT':
+                row.menu(copy_paste_uv.MenuCopyUV.bl_idname,
                          text="Copy")
-                row.menu(copy_paste_uv.MUV_CPUVPasteUVMenu.bl_idname,
+                row.menu(copy_paste_uv.MenuPasteUV.bl_idname,
                          text="Paste")
-            elif sc.muv_cpuv_mode == 'SEL_SEQ':
-                row.menu(copy_paste_uv.MUV_CPUVSelSeqCopyUVMenu.bl_idname,
+            elif sc.muv_copy_paste_uv_mode == 'SEL_SEQ':
+                row.menu(copy_paste_uv.MenuSelSeqCopyUV.bl_idname,
                          text="Copy")
-                row.menu(copy_paste_uv.MUV_CPUVSelSeqPasteUVMenu.bl_idname,
+                row.menu(copy_paste_uv.MenuSelSeqPasteUV.bl_idname,
                          text="Paste")
-            box.prop(sc, "muv_cpuv_mode", expand=True)
-            box.prop(sc, "muv_cpuv_copy_seams", text="Seams")
-            box.prop(sc, "muv_cpuv_strategy", text="Strategy")
+            box.prop(sc, "muv_copy_paste_uv_mode", expand=True)
+            box.prop(sc, "muv_copy_paste_uv_copy_seams", text="Seams")
+            box.prop(sc, "muv_copy_paste_uv_strategy", text="Strategy")
 
         box = layout.box()
-        box.prop(sc, "muv_transuv_enabled", text="Transfer UV")
-        if sc.muv_transuv_enabled:
+        box.prop(sc, "muv_transfer_uv_enabled", text="Transfer UV")
+        if sc.muv_transfer_uv_enabled:
             row = box.row(align=True)
-            row.operator(transfer_uv.MUV_TransUVCopy.bl_idname, text="Copy")
-            ops = row.operator(transfer_uv.MUV_TransUVPaste.bl_idname,
+            row.operator(transfer_uv.OperatorCopyUV.bl_idname, text="Copy")
+            ops = row.operator(transfer_uv.OperatorPasteUV.bl_idname,
                                text="Paste")
-            ops.invert_normals = sc.muv_transuv_invert_normals
-            ops.copy_seams = sc.muv_transuv_copy_seams
+            ops.invert_normals = sc.muv_transfer_uv_invert_normals
+            ops.copy_seams = sc.muv_transfer_uv_copy_seams
             row = box.row()
-            row.prop(sc, "muv_transuv_invert_normals", text="Invert Normals")
-            row.prop(sc, "muv_transuv_copy_seams", text="Seams")
+            row.prop(sc, "muv_transfer_uv_invert_normals",
+                     text="Invert Normals")
+            row.prop(sc, "muv_transfer_uv_copy_seams", text="Seams")

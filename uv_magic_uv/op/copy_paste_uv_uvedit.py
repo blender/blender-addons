@@ -20,8 +20,8 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>, Jace Priester"
 __status__ = "production"
-__version__ = "5.1"
-__date__ = "24 Feb 2018"
+__version__ = "5.2"
+__date__ = "17 Nov 2018"
 
 import math
 from math import atan2, sin, cos
@@ -33,28 +33,75 @@ from mathutils import Vector
 from .. import common
 
 
-class MUV_CPUVIECopyUV(bpy.types.Operator):
+__all__ = [
+    'Properties',
+    'OperatorCopyUV',
+    'OperatorPasteUV',
+]
+
+
+def is_valid_context(context):
+    obj = context.object
+
+    # only edit mode is allowed to execute
+    if obj is None:
+        return False
+    if obj.type != 'MESH':
+        return False
+    if context.object.mode != 'EDIT':
+        return False
+
+    # 'IMAGE_EDITOR' and 'VIEW_3D' space is allowed to execute.
+    # If 'View_3D' space is not allowed, you can't find option in Tool-Shelf
+    # after the execution
+    for space in context.area.spaces:
+        if (space.type == 'IMAGE_EDITOR') or (space.type == 'VIEW_3D'):
+            break
+    else:
+        return False
+
+    return True
+
+
+class Properties:
+    @classmethod
+    def init_props(cls, scene):
+        class Props():
+            src_uvs = None
+
+        scene.muv_props.copy_paste_uv_uvedit = Props()
+
+    @classmethod
+    def del_props(cls, scene):
+        del scene.muv_props.copy_paste_uv_uvedit
+
+
+class OperatorCopyUV(bpy.types.Operator):
     """
     Operation class: Copy UV coordinate on UV/Image Editor
     """
 
-    bl_idname = "uv.muv_cpuv_ie_copy_uv"
-    bl_label = "Copy UV"
+    bl_idname = "uv.muv_copy_paste_uv_uvedit_operator_copy_uv"
+    bl_label = "Copy UV (UV/Image Editor)"
     bl_description = "Copy UV coordinate (only selected in UV/Image Editor)"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
-        return context.mode == 'EDIT_MESH'
+        # we can not get area/space/region from console
+        if common.is_console_mode():
+            return True
+        return is_valid_context(context)
 
     def execute(self, context):
-        props = context.scene.muv_props.cpuv
+        props = context.scene.muv_props.copy_paste_uv_uvedit
         obj = context.active_object
         bm = bmesh.from_edit_mesh(obj.data)
         uv_layer = bm.loops.layers.uv.verify()
         if common.check_version(2, 73, 0) >= 0:
             bm.faces.ensure_lookup_table()
 
+        props.src_uvs = []
         for face in bm.faces:
             if not face.select:
                 continue
@@ -70,22 +117,29 @@ class MUV_CPUVIECopyUV(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class MUV_CPUVIEPasteUV(bpy.types.Operator):
+class OperatorPasteUV(bpy.types.Operator):
     """
     Operation class: Paste UV coordinate on UV/Image Editor
     """
 
-    bl_idname = "uv.muv_cpuv_ie_paste_uv"
-    bl_label = "Paste UV"
+    bl_idname = "uv.muv_copy_paste_uv_uvedit_operator_paste_uv"
+    bl_label = "Paste UV (UV/Image Editor)"
     bl_description = "Paste UV coordinate (only selected in UV/Image Editor)"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
-        return context.mode == 'EDIT_MESH'
+        # we can not get area/space/region from console
+        if common.is_console_mode():
+            return True
+        sc = context.scene
+        props = sc.muv_props.copy_paste_uv_uvedit
+        if not props.src_uvs:
+            return False
+        return is_valid_context(context)
 
     def execute(self, context):
-        props = context.scene.muv_props.cpuv
+        props = context.scene.muv_props.copy_paste_uv_uvedit
         obj = context.active_object
         bm = bmesh.from_edit_mesh(obj.data)
         uv_layer = bm.loops.layers.uv.verify()

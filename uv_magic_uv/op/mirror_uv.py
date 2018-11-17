@@ -20,13 +20,14 @@
 
 __author__ = "Keith (Wahooney) Boshoff, Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "5.1"
-__date__ = "24 Feb 2018"
+__version__ = "5.2"
+__date__ = "17 Nov 2018"
 
 import bpy
 from bpy.props import (
     EnumProperty,
     FloatProperty,
+    BoolProperty,
 )
 import bmesh
 from mathutils import Vector
@@ -34,12 +35,64 @@ from mathutils import Vector
 from .. import common
 
 
-class MUV_MirrorUV(bpy.types.Operator):
+__all__ = [
+    'Properties',
+    'Operator',
+]
+
+
+def is_valid_context(context):
+    obj = context.object
+
+    # only edit mode is allowed to execute
+    if obj is None:
+        return False
+    if obj.type != 'MESH':
+        return False
+    if context.object.mode != 'EDIT':
+        return False
+
+    # only 'VIEW_3D' space is allowed to execute
+    for space in context.area.spaces:
+        if space.type == 'VIEW_3D':
+            break
+    else:
+        return False
+
+    return True
+
+
+class Properties:
+    @classmethod
+    def init_props(cls, scene):
+        scene.muv_mirror_uv_enabled = BoolProperty(
+            name="Mirror UV Enabled",
+            description="Mirror UV is enabled",
+            default=False
+        )
+        scene.muv_mirror_uv_axis = EnumProperty(
+            items=[
+                ('X', "X", "Mirror Along X axis"),
+                ('Y', "Y", "Mirror Along Y axis"),
+                ('Z', "Z", "Mirror Along Z axis")
+            ],
+            name="Axis",
+            description="Mirror Axis",
+            default='X'
+        )
+
+    @classmethod
+    def del_props(cls, scene):
+        del scene.muv_mirror_uv_enabled
+        del scene.muv_mirror_uv_axis
+
+
+class Operator(bpy.types.Operator):
     """
     Operation class: Mirror UV
     """
 
-    bl_idname = "uv.muv_mirror_uv"
+    bl_idname = "uv.muv_mirror_uv_operator"
     bl_label = "Mirror UV"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -104,8 +157,10 @@ class MUV_MirrorUV(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = context.active_object
-        return obj and obj.type == 'MESH'
+        # we can not get area/space/region from console
+        if common.is_console_mode():
+            return True
+        return is_valid_context(context)
 
     def execute(self, context):
         obj = context.active_object

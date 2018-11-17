@@ -20,8 +20,8 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>, Mifth, MaxRobinot"
 __status__ = "production"
-__version__ = "5.1"
-__date__ = "24 Feb 2018"
+__version__ = "5.2"
+__date__ = "17 Nov 2018"
 
 from collections import OrderedDict
 
@@ -32,19 +32,84 @@ from bpy.props import BoolProperty
 from .. import common
 
 
-class MUV_TransUVCopy(bpy.types.Operator):
+__all__ = [
+    'OperatorCopyUV',
+    'OperatorPasteUV',
+]
+
+
+def is_valid_context(context):
+    obj = context.object
+
+    # only edit mode is allowed to execute
+    if obj is None:
+        return False
+    if obj.type != 'MESH':
+        return False
+    if context.object.mode != 'EDIT':
+        return False
+
+    # only 'VIEW_3D' space is allowed to execute
+    for space in context.area.spaces:
+        if space.type == 'VIEW_3D':
+            break
+    else:
+        return False
+
+    return True
+
+
+class Properties:
+    @classmethod
+    def init_props(cls, scene):
+        class Props():
+            topology_copied = None
+
+        scene.muv_props.transfer_uv = Props()
+
+        scene.muv_transfer_uv_enabled = BoolProperty(
+            name="Transfer UV Enabled",
+            description="Transfer UV is enabled",
+            default=False
+        )
+        scene.muv_transfer_uv_invert_normals = BoolProperty(
+            name="Invert Normals",
+            description="Invert Normals",
+            default=False
+        )
+        scene.muv_transfer_uv_copy_seams = BoolProperty(
+            name="Copy Seams",
+            description="Copy Seams",
+            default=True
+        )
+
+    @classmethod
+    def del_props(cls, scene):
+        del scene.muv_transfer_uv_enabled
+        del scene.muv_transfer_uv_invert_normals
+        del scene.muv_transfer_uv_copy_seams
+
+
+class OperatorCopyUV(bpy.types.Operator):
     """
         Operation class: Transfer UV copy
         Topological based copy
     """
 
-    bl_idname = "uv.muv_transuv_copy"
-    bl_label = "Transfer UV Copy"
-    bl_description = "Transfer UV Copy (Topological based copy)"
+    bl_idname = "uv.muv_transfer_uv_operator_copy_uv"
+    bl_label = "Transfer UV Copy UV"
+    bl_description = "Transfer UV Copy UV (Topological based copy)"
     bl_options = {'REGISTER', 'UNDO'}
 
+    @classmethod
+    def poll(cls, context):
+        # we can not get area/space/region from console
+        if common.is_console_mode():
+            return True
+        return is_valid_context(context)
+
     def execute(self, context):
-        props = context.scene.muv_props.transuv
+        props = context.scene.muv_props.transfer_uv
         active_obj = context.scene.objects.active
         bm = bmesh.from_edit_mesh(active_obj.data)
         if common.check_version(2, 73, 0) >= 0:
@@ -56,7 +121,7 @@ class MUV_TransUVCopy(bpy.types.Operator):
             return {'CANCELLED'}
         uv_layer = bm.loops.layers.uv.verify()
 
-        props.topology_copied.clear()
+        props.topology_copied = []
 
         # get selected faces
         active_face = bm.faces.active
@@ -82,21 +147,23 @@ class MUV_TransUVCopy(bpy.types.Operator):
                 pin_uvs = [l.pin_uv for l in uv_loops]
                 seams = [e.seam for e in edges]
                 props.topology_copied.append([uvs, pin_uvs, seams])
+        else:
+            return {'CANCELLED'}
 
         bmesh.update_edit_mesh(active_obj.data)
 
         return {'FINISHED'}
 
 
-class MUV_TransUVPaste(bpy.types.Operator):
+class OperatorPasteUV(bpy.types.Operator):
     """
         Operation class: Transfer UV paste
         Topological based paste
     """
 
-    bl_idname = "uv.muv_transuv_paste"
-    bl_label = "Transfer UV Paste"
-    bl_description = "Transfer UV Paste (Topological based paste)"
+    bl_idname = "uv.muv_transfer_uv_operator_paste_uv"
+    bl_label = "Transfer UV Paste UV"
+    bl_description = "Transfer UV Paste UV (Topological based paste)"
     bl_options = {'REGISTER', 'UNDO'}
 
     invert_normals = BoolProperty(
@@ -110,8 +177,19 @@ class MUV_TransUVPaste(bpy.types.Operator):
         default=True
     )
 
+    @classmethod
+    def poll(cls, context):
+        # we can not get area/space/region from console
+        if common.is_console_mode():
+            return True
+        sc = context.scene
+        props = sc.muv_props.transfer_uv
+        if not props.topology_copied:
+            return False
+        return is_valid_context(context)
+
     def execute(self, context):
-        props = context.scene.muv_props.transuv
+        props = context.scene.muv_props.transfer_uv
         active_obj = context.scene.objects.active
         bm = bmesh.from_edit_mesh(active_obj.data)
         if common.check_version(2, 73, 0) >= 0:
@@ -153,7 +231,7 @@ class MUV_TransUVPaste(bpy.types.Operator):
                         {'WARNING'},
                         "Mesh has different amount of faces"
                     )
-                    return {'FINISHED'}
+                    return {'CANCELLED'}
 
                 for j, face_data in enumerate(all_sorted_faces.values()):
                     copied_data = props.topology_copied[j]
@@ -175,6 +253,8 @@ class MUV_TransUVPaste(bpy.types.Operator):
                         uvloop.pin_uv = copied_data[1][k]
                         if self.copy_seams:
                             edge.seam = copied_data[2][k]
+            else:
+                return {'CANCELLED'}
 
         bmesh.update_edit_mesh(active_obj.data)
         if self.copy_seams:
@@ -302,7 +382,7 @@ def parse_faces(
                 used_verts.update(shared_face.verts)
                 used_edges.update(shared_face.edges)
 
-                if common.DEBUG:
+                if common.is_debug_mode():
                     shared_face.select = True  # test which faces are parsed
 
                 new_shared_faces.append(shared_face)
