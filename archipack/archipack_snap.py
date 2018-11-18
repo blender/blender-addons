@@ -231,7 +231,7 @@ class ArchipackSnapBase():
             print("helper found")
             if context.scene.objects.get('Archipack_snap_helper') is None:
                 print("link helper")
-                # context.scene.collection.objects.link(helper)
+                # self.link_object_to_scene(context, helper)
                 context.scene.collection.objects.link(helper)
         else:
             print("create helper")

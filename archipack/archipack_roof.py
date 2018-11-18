@@ -3671,7 +3671,7 @@ class archipack_roof_segment(ArchipackSegment, PropertyGroup):
             find witch selected object this instance belongs to
             provide support for "copy to selected"
         """
-        selected = [o for o in context.selected_objects]
+        selected = context.selected_objects[:]
         for o in selected:
             d = archipack_roof.datablock(o)
             if d:
@@ -4387,7 +4387,7 @@ class archipack_roof(ArchipackLines, ArchipackObject, Manipulable, PropertyGroup
         bm.free()
 
     def find_parent(self, context):
-        o = context.scene.objects.get(self.t_parent)
+        o = context.scene.objects.get(self.t_parent.strip())
         return o, archipack_roof.datablock(o)
 
     def intersection_angle(self, t_slope, t_width, p_slope, angle):
@@ -4742,7 +4742,7 @@ class archipack_roof_cutter_segment(ArchipackCutterPart, PropertyGroup):
         )
 
     def find_in_selection(self, context):
-        selected = [o for o in context.selected_objects]
+        selected = context.selected_objects[:]
         for o in selected:
             d = archipack_roof_cutter.datablock(o)
             if d:
@@ -5029,7 +5029,7 @@ class ARCHIPACK_OT_roof(ArchipackCreateTool, Operator):
         d = m.archipack_roof.add()
         # make manipulators selectable
         d.manipulable_selectable = True
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         o.select_set(state=True)
         context.view_layer.objects.active = o
         self.add_material(o)
@@ -5072,7 +5072,7 @@ class ARCHIPACK_OT_roof_cutter(ArchipackCreateTool, Operator):
         m = bpy.data.meshes.new("Roof Cutter")
         o = bpy.data.objects.new("Roof Cutter", m)
         d = m.archipack_roof_cutter.add()
-        parent = context.scene.objects.get(self.parent)
+        parent = context.scene.objects.get(self.parent.strip())
         if parent is not None:
             o.parent = parent
             bbox = parent.bound_box
@@ -5104,7 +5104,7 @@ class ARCHIPACK_OT_roof_cutter(ArchipackCreateTool, Operator):
             o.location = context.scene.cursor_location
         # make manipulators selectable
         d.manipulable_selectable = True
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         o.select_set(state=True)
         context.view_layer.objects.active = o
         self.add_material(o)
@@ -5133,7 +5133,7 @@ class ARCHIPACK_OT_roof_cutter(ArchipackCreateTool, Operator):
 # ------------------------------------------------------------------
 
 
-class ARCHIPACK_OT_roof_from_curve(Operator):
+class ARCHIPACK_OT_roof_from_curve(ArchipackCreateTool, Operator):
     bl_idname = "archipack.roof_from_curve"
     bl_label = "Roof curve"
     bl_description = "Create a roof from a curve"
@@ -5159,7 +5159,7 @@ class ARCHIPACK_OT_roof_from_curve(Operator):
         # make manipulators selectable
         d.manipulable_selectable = True
         d.user_defined_path = curve.name
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         o.select_set(state=True)
         context.view_layer.objects.active = o
         d.update_path(context)
@@ -5318,7 +5318,7 @@ class ARCHIPACK_OT_roof_throttle_update(Operator):
         if self.name in throttle_handlers.keys():
             if throttle_handlers[self.name].modal(context, event):
                 act = context.active_object
-                o = context.scene.objects.get(self.name)
+                o = context.scene.objects.get(self.name.strip())
                 # print("delay update of %s" % (self.name))
                 if o is not None:
                     selected = o.select_get()

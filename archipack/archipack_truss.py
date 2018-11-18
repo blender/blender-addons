@@ -318,7 +318,7 @@ class ARCHIPACK_OT_truss(ArchipackCreateTool, Operator):
         d = m.archipack_truss.add()
         # make manipulators selectable
         # d.manipulable_selectable = True
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         o.select_set(state=True)
         context.view_layer.objects.active = o
         self.load_preset(d)

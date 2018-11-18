@@ -751,7 +751,7 @@ class archipack_fence_part(PropertyGroup):
             find witch selected object this instance belongs to
             provide support for "copy to selected"
         """
-        selected = [o for o in context.selected_objects]
+        selected = context.selected_objects[:]
         for o in selected:
             props = archipack_fence.datablock(o)
             if props is not None:
@@ -1226,9 +1226,7 @@ class archipack_fence(ArchipackObject, Manipulable, PropertyGroup):
         # add parts
         for i in range(len(self.parts), self.n_parts):
             self.parts.add()
-        print("setup_manipulators")
         self.setup_manipulators()
-        print("update_parts.done")
 
     def interpolate_bezier(self, pts, wM, p0, p1, resolution):
         # straight segment, worth testing here
@@ -1309,7 +1307,7 @@ class archipack_fence(ArchipackObject, Manipulable, PropertyGroup):
         o.matrix_world = tM @ Matrix.Translation(pt)
 
     def update_path(self, context):
-        path = context.scene.objects.get(self.user_defined_path)
+        path = context.scene.objects.get(self.user_defined_path.strip())
         if path is not None and path.type == 'CURVE':
             splines = path.data.splines
             if len(splines) > self.user_defined_spline:
@@ -1331,7 +1329,6 @@ class archipack_fence(ArchipackObject, Manipulable, PropertyGroup):
         return g
 
     def update(self, context, manipulable_refresh=False):
-        print("update")
         o = self.find_in_selection(context, self.auto_update)
 
         if o is None:
@@ -1340,7 +1337,7 @@ class archipack_fence(ArchipackObject, Manipulable, PropertyGroup):
         # clean up manipulators before any data model change
         if manipulable_refresh:
             self.manipulable_disable(context)
-        print("update_parts")
+
         self.update_parts()
 
         verts = []
@@ -1355,7 +1352,7 @@ class archipack_fence(ArchipackObject, Manipulable, PropertyGroup):
 
         if self.user_defined_post_enable:
             # user defined posts
-            user_def_post = context.scene.objects.get(self.user_defined_post)
+            user_def_post = context.scene.objects.get(self.user_defined_post.strip())
             if user_def_post is not None and user_def_post.type == 'MESH':
                 g.setup_user_defined_post(user_def_post, self.post_x, self.post_y, self.post_z)
 
@@ -1369,7 +1366,7 @@ class archipack_fence(ArchipackObject, Manipulable, PropertyGroup):
 
         # user defined subs
         if self.user_defined_subs_enable:
-            user_def_subs = context.scene.objects.get(self.user_defined_subs)
+            user_def_subs = context.scene.objects.get(self.user_defined_subs.strip())
             if user_def_subs is not None and user_def_subs.type == 'MESH':
                 g.setup_user_defined_post(user_def_subs, self.subs_x, self.subs_y, self.subs_z)
 
@@ -1615,35 +1612,28 @@ class ARCHIPACK_OT_fence(ArchipackCreateTool, Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def create(self, context):
-        print("Create")
+
         m = bpy.data.meshes.new("Fence")
         o = bpy.data.objects.new("Fence", m)
         d = m.archipack_fence.add()
         # make manipulators selectable
-        print("manipulable_selectable")
 
         d.manipulable_selectable = True
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         o.select_set(state=True)
         context.view_layer.objects.active = o
-        print("load_preset")
         self.load_preset(d)
-        print("add_material")
 
         self.add_material(o)
         return o
 
     def execute(self, context):
         if context.mode == "OBJECT":
-            print("select_all")
             bpy.ops.object.select_all(action="DESELECT")
             o = self.create(context)
-            print("select_all")
             o.location = context.scene.cursor_location
             o.select_set(state=True)
             context.view_layer.objects.active = o
-            print("manipulate")
-
             self.manipulate()
             return {'FINISHED'}
         else:

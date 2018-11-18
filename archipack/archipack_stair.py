@@ -1557,7 +1557,7 @@ class archipack_stair_material(PropertyGroup):
             find witch selected object this instance belongs to
             provide support for "copy to selected"
         """
-        selected = [o for o in context.selected_objects]
+        selected = context.selected_objects[:]
         for o in selected:
             props = archipack_stair.datablock(o)
             if props:
@@ -1630,7 +1630,7 @@ class archipack_stair_part(PropertyGroup):
             find witch selected object this instance belongs to
             provide support for "copy to selected"
         """
-        selected = [o for o in context.selected_objects]
+        selected = context.selected_objects[:]
         for o in selected:
             props = archipack_stair.datablock(o)
             if props:
@@ -2389,7 +2389,7 @@ class archipack_stair(ArchipackObject, Manipulable, PropertyGroup):
 
         if self.user_defined_post_enable:
             # user defined posts
-            user_def_post = context.scene.objects.get(self.user_defined_post)
+            user_def_post = context.scene.objects.get(self.user_defined_post.strip())
             if user_def_post is not None and user_def_post.type == 'MESH':
                 g.setup_user_defined_post(user_def_post, self.post_x, self.post_y, self.post_z)
 
@@ -2408,7 +2408,7 @@ class archipack_stair(ArchipackObject, Manipulable, PropertyGroup):
 
         # user defined subs
         if self.user_defined_subs_enable:
-            user_def_subs = context.scene.objects.get(self.user_defined_subs)
+            user_def_subs = context.scene.objects.get(self.user_defined_subs.strip())
             if user_def_subs is not None and user_def_subs.type == 'MESH':
                 g.setup_user_defined_post(user_def_subs, self.subs_x, self.subs_y, self.subs_z)
 
@@ -2753,7 +2753,7 @@ class ARCHIPACK_OT_stair(ArchipackCreateTool, Operator):
         m = bpy.data.meshes.new("Stair")
         o = bpy.data.objects.new("Stair", m)
         d = m.archipack_stair.add()
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         o.select_set(state=True)
         context.view_layer.objects.active = o
         self.load_preset(d)

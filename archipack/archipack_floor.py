@@ -1400,7 +1400,7 @@ class archipack_floor(ArchipackObject, Manipulable, PropertyGroup):
         self.auto_update = True
 
     def update_path(self, context):
-        user_def_path = context.scene.objects.get(self.user_defined_path)
+        user_def_path = context.scene.objects.get(self.user_defined_path.strip())
         if user_def_path is not None and user_def_path.type == 'CURVE':
             self.from_spline(
                 context,
@@ -1576,7 +1576,7 @@ class archipack_floor_cutter_segment(ArchipackCutterPart, PropertyGroup):
         )
 
     def find_in_selection(self, context):
-        selected = [o for o in context.selected_objects]
+        selected = context.selected_objects[:]
         for o in selected:
             d = archipack_floor_cutter.datablock(o)
             if d:
@@ -1819,7 +1819,7 @@ class ARCHIPACK_OT_floor(ArchipackCreateTool, Operator):
         p.a0 = angle_90
         p.length = x
         d.n_parts = 4
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         o.select_set(state=True)
         context.view_layer.objects.active = o
         self.load_preset(d)
@@ -1949,7 +1949,7 @@ class ARCHIPACK_OT_floor_cutter(ArchipackCreateTool, Operator):
         m = bpy.data.meshes.new("Floor Cutter")
         o = bpy.data.objects.new("Floor Cutter", m)
         d = m.archipack_floor_cutter.add()
-        parent = context.scene.objects.get(self.parent)
+        parent = context.scene.objects.get(self.parent.strip())
         if parent is not None:
             o.parent = parent
             bbox = parent.bound_box
@@ -1981,7 +1981,7 @@ class ARCHIPACK_OT_floor_cutter(ArchipackCreateTool, Operator):
             o.location = context.scene.cursor_location
         # make manipulators selectable
         d.manipulable_selectable = True
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         o.select_set(state=True)
         context.view_layer.objects.active = o
         # self.add_material(o)

@@ -38,7 +38,23 @@ from bpy_extras.view3d_utils import (
     )
 
 
-class ArchipackObject():
+class ArchipackCollectionManager():
+
+    @staticmethod
+    def link_object_to_scene(context, o):
+        coll_main = context.scene.collection.children.get("Archipack")
+        if coll_main is None:
+            coll_main = bpy.data.collections.new(name="Archipack")
+            context.scene.collection.children.link(coll_main)
+        coll_main.objects.link(o)
+
+    @staticmethod
+    def unlink_object_from_scene(o):
+        for coll in o.users_collection:
+            coll.objects.unlink(o)
+
+
+class ArchipackObject(ArchipackCollectionManager):
     """
         Shared property of archipack's objects PropertyGroup
         provide basic support for copy to selected
@@ -138,7 +154,7 @@ class ArchipackObject():
             o.matrix_world.translation = p
 
 
-class ArchipackCreateTool():
+class ArchipackCreateTool(ArchipackCollectionManager):
     """
         Shared property of archipack's create tool Operator
     """
@@ -212,7 +228,7 @@ class ArchipackCreateTool():
                 pass
 
 
-class ArchipackDrawTool():
+class ArchipackDrawTool(ArchipackCollectionManager):
     """
         Draw tools
     """

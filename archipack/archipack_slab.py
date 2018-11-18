@@ -282,7 +282,7 @@ class SlabGenerator(CutAblePolygon, CutAbleGenerator):
                         use_dissolve_boundaries=False,
                         verts=bm.verts,
                         edges=bm.edges,
-                        delimit=1)
+                        delimit={'MATERIAL'})
 
             bm.to_mesh(o.data)
             bm.free()
@@ -330,7 +330,7 @@ class archipack_slab_material(PropertyGroup):
             find witch selected object this instance belongs to
             provide support for "copy to selected"
         """
-        selected = [o for o in context.selected_objects]
+        selected = context.selected_objects[:]
         for o in selected:
             props = archipack_slab.datablock(o)
             if props:
@@ -354,7 +354,7 @@ class archipack_slab_child(PropertyGroup):
 
     def get_child(self, context):
         d = None
-        child = context.scene.objects.get(self.child_name)
+        child = context.scene.objects.get(self.child_name.strip())
         if child is not None and child.data is not None:
             if 'archipack_fence' in child.data:
                 d = child.data.archipack_fence[0]
@@ -531,7 +531,7 @@ class archipack_slab_part(ArchipackSegment, PropertyGroup):
             find witch selected object this instance belongs to
             provide support for "copy to selected"
         """
-        selected = [o for o in context.selected_objects]
+        selected = context.selected_objects[:]
         for o in selected:
             props = archipack_slab.datablock(o)
             if props:
@@ -584,7 +584,7 @@ class archipack_slab(ArchipackObject, Manipulable, PropertyGroup):
     # Global slab offset
     # will only affect slab parts sharing a wall
 
-    childs = CollectionProperty(type=archipack_slab_child)
+    childs : CollectionProperty(type=archipack_slab_child)
     # Flag to prevent mesh update while making bulk changes over variables
     # use :
     # .auto_update = False
@@ -1260,7 +1260,7 @@ class archipack_slab_cutter_segment(ArchipackCutterPart, PropertyGroup):
         )
 
     def find_in_selection(self, context):
-        selected = [o for o in context.selected_objects]
+        selected = context.selected_objects[:]
         for o in selected:
             d = archipack_slab_cutter.datablock(o)
             if d:
@@ -1452,7 +1452,7 @@ class ARCHIPACK_OT_slab(ArchipackCreateTool, Operator):
         d = m.archipack_slab.add()
         # make manipulators selectable
         d.manipulable_selectable = True
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         o.select_set(state=True)
         context.view_layer.objects.active = o
         self.load_preset(d)
@@ -1622,7 +1622,7 @@ class ARCHIPACK_OT_slab_cutter(ArchipackCreateTool, Operator):
         m = bpy.data.meshes.new("Slab Cutter")
         o = bpy.data.objects.new("Slab Cutter", m)
         d = m.archipack_slab_cutter.add()
-        parent = context.scene.objects.get(self.parent)
+        parent = context.scene.objects.get(self.parent.strip())
         if parent is not None:
             o.parent = parent
             bbox = parent.bound_box
@@ -1654,7 +1654,7 @@ class ARCHIPACK_OT_slab_cutter(ArchipackCreateTool, Operator):
             o.location = context.scene.cursor_location
         # make manipulators selectable
         d.manipulable_selectable = True
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         o.select_set(state=True)
         context.view_layer.objects.active = o
         # self.add_material(o)

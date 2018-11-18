@@ -26,13 +26,14 @@
 # ----------------------------------------------------------
 
 import bpy
+from .archipack_object import ArchipackCollectionManager
 
 
 def create_handle(context, parent, mesh):
     old = context.active_object
     handle = bpy.data.objects.new("Handle", mesh)
     handle['archipack_handle'] = True
-    context.scene.collection.objects.link(handle)
+    ArchipackCollectionManager.link_object_to_scene(context, handle)
     modif = handle.modifiers.new('Subsurf', 'SUBSURF')
     modif.render_levels = 4
     modif.levels = 1

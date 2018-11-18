@@ -301,29 +301,8 @@ class Archipack_Pref(AddonPreferences):
         col.prop(self, "constant_handle_size")
 
 # ----------------------------------------------------
-# Archipack panels
+# Archipack panel
 # ----------------------------------------------------
-
-
-class TOOLS_PT_Archipack_Tools(Panel):
-    bl_label = "Archipack Tools"
-    bl_idname = "TOOLS_PT_Archipack_Tools"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "TOOLS"
-    # bl_category = "Tools"
-    bl_context = "objectmode"
-
-    @classmethod
-    def poll(self, context):
-        return True
-
-    def draw(self, context):
-        wm = context.window_manager
-        layout = self.layout
-        box = layout.box()
-        box.label(text="Auto boolean")
-        box.operator("archipack.auto_boolean", text="AutoBoolean", icon='AUTO').mode = 'HYBRID'
-
 
 class TOOLS_PT_Archipack_Create(Panel):
     bl_label = "Archipack"
@@ -342,9 +321,11 @@ class TOOLS_PT_Archipack_Create(Panel):
 
         icons = icons_collection["main"]
         layout = self.layout
+        box = layout.box()
+        box.operator("archipack.auto_boolean", text="Boolean", icon='AUTO').mode = 'HYBRID'
         row = layout.row(align=True)
         box = row.box()
-        box.label(text="Objects")
+        box.label(text="Create")
         row = box.row(align=True)
         row.operator("archipack.window_preset_menu",
                     text="Window",
@@ -508,7 +489,6 @@ def register():
     archipack_floor.register()
     archipack_rendering.register()
     bpy.utils.register_class(Archipack_Pref)
-    bpy.utils.register_class(TOOLS_PT_Archipack_Tools)
     bpy.utils.register_class(TOOLS_PT_Archipack_Create)
     bpy.utils.register_class(ARCHIPACK_MT_create)
     bpy.types.VIEW3D_MT_mesh_add.append(menu_func)
@@ -518,8 +498,6 @@ def unregister():
     global icons_collection
     bpy.types.VIEW3D_MT_mesh_add.remove(menu_func)
     bpy.utils.unregister_class(ARCHIPACK_MT_create)
-
-    bpy.utils.unregister_class(TOOLS_PT_Archipack_Tools)
     bpy.utils.unregister_class(TOOLS_PT_Archipack_Create)
     bpy.utils.unregister_class(Archipack_Pref)
     archipack_material.unregister()

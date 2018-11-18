@@ -41,7 +41,7 @@ from .archipack_handle import create_handle, window_handle_vertical_01, window_h
 from .archipack_manipulator import Manipulable
 from .archipack_preset import ArchipackPreset, PresetMenuOperator
 from .archipack_gl import FeedbackPanel
-from .archipack_object import ArchipackObject, ArchipackCreateTool, ArchipackDrawTool
+from .archipack_object import ArchipackObject, ArchipackCreateTool, ArchipackDrawTool, ArchipackCollectionManager
 from .archipack_keymaps import Keymaps
 
 
@@ -156,7 +156,7 @@ class archipack_window_panelrow(PropertyGroup):
             find witch selected object this instance belongs to
             provide support for "copy to selected"
         """
-        selected = [o for o in context.selected_objects]
+        selected = context.selected_objects[:]
         for o in selected:
             props = archipack_window.datablock(o)
             if props:
@@ -404,7 +404,7 @@ class archipack_window_panel(ArchipackObject, PropertyGroup):
     def remove_handle(self, context, o):
         handle = self.find_handle(o)
         if handle is not None:
-            context.scene.collection.objects.unlink(handle)
+            self.unlink_object_from_scene(handle)
             bpy.data.objects.remove(handle, do_unlink=True)
 
     def update(self, context):
@@ -1002,7 +1002,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
         lamp = self.find_portal(o)
         if self.portal:
             if lamp is None:
-                bpy.ops.object.lamp_add(type='AREA')
+                bpy.ops.object.light_add(type='AREA')
                 lamp = context.active_object
                 lamp.name = "Portal"
                 lamp.parent = o
@@ -1023,7 +1023,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
 
         elif lamp is not None:
             d = lamp.data
-            context.scene.collection.objects.unlink(lamp)
+            self.unlink_object_from_scene(lamp)
             bpy.data.objects.remove(lamp)
             bpy.data.lights.remove(d)
 
@@ -1054,13 +1054,13 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
             if archipack_window_panel.filter(child):
                 to_remove -= 1
                 self.remove_handle(context, child)
-                context.scene.collection.objects.unlink(child)
+                self.unlink_object_from_scene(child)
                 bpy.data.objects.remove(child, do_unlink=True)
 
     def remove_handle(self, context, o):
         handle = self.find_handle(o)
         if handle is not None:
-            context.scene.collection.objects.unlink(handle)
+            self.unlink_object_from_scene(handle)
             bpy.data.objects.remove(handle, do_unlink=True)
 
     def update_rows(self, context, o):
@@ -1127,7 +1127,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
                 id = c_names.index(c.data.name)
             except:
                 self.remove_handle(context, c)
-                context.scene.collection.objects.unlink(c)
+                self.unlink_object_from_scene(c)
                 bpy.data.objects.remove(c, do_unlink=True)
 
         # children ordering may not be the same, so get the right l_childs order
@@ -1145,7 +1145,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
         for i, child in enumerate(childs):
             if order[i] < 0:
                 p = bpy.data.objects.new("Panel", child.data)
-                context.scene.collection.objects.link(p)
+                self.link_object_to_scene(context, p)
                 p.lock_location[0] = True
                 p.lock_location[1] = True
                 p.lock_location[2] = True
@@ -1169,7 +1169,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
                     h = create_handle(context, p, handle.data)
                 h.location = handle.location.copy()
             elif h is not None:
-                context.scene.collection.objects.unlink(h)
+                self.unlink_object_from_scene(h)
                 bpy.data.objects.remove(h, do_unlink=True)
 
             p.location = child.location.copy()
@@ -1182,7 +1182,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
         if l_hole is None:
             l_hole = bpy.data.objects.new("hole", hole.data)
             l_hole['archipack_hole'] = True
-            context.scene.collection.objects.link(l_hole)
+            self.link_object_to_scene(context, l_hole)
             for mat in hole.data.materials:
                 l_hole.data.materials.append(mat)
             l_hole.parent = linked
@@ -1442,7 +1442,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
         if hole_obj is None:
             m = bpy.data.meshes.new("hole")
             hole_obj = bpy.data.objects.new("hole", m)
-            context.scene.collection.objects.link(hole_obj)
+            self.link_object_to_scene(context, hole_obj)
             hole_obj['archipack_hole'] = True
             hole_obj.parent = o
             hole_obj.matrix_world = o.matrix_world.copy()
@@ -1496,7 +1496,7 @@ class archipack_window(ArchipackObject, Manipulable, PropertyGroup):
         m = bpy.data.meshes.new("hole")
         o = bpy.data.objects.new("hole", m)
         o['archipack_robusthole'] = True
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         verts = hole.vertices(self.curve_steps, Vector((0, self.altitude, 0)), center, origin, size, radius,
             self.angle_y, 0, shape_z=shape_z, path_type=self.shape)
 
@@ -1736,7 +1736,7 @@ class ARCHIPACK_OT_window(ArchipackCreateTool, Operator):
         d.y = self.y
         d.z = self.z
         d.altitude = self.altitude
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         o.select_set(state=True)
         context.view_layer.objects.active = o
         self.add_material(o)
@@ -1753,20 +1753,20 @@ class ARCHIPACK_OT_window(ArchipackCreateTool, Operator):
             for child in o.children:
                 if child.type == 'LIGHT':
                     d = child.data
-                    context.scene.collection.objects.unlink(child)
+                    self.unlink_object_from_scene(child)
                     bpy.data.objects.remove(child)
                     bpy.data.lights.remove(d)
                 elif 'archipack_hole' in child:
-                    context.scene.collection.objects.unlink(child)
+                    self.unlink_object_from_scene(child)
                     bpy.data.objects.remove(child, do_unlink=True)
                 elif child.data is not None and 'archipack_window_panel' in child.data:
                     for handle in child.children:
                         if 'archipack_handle' in handle:
-                            context.scene.collection.objects.unlink(handle)
+                            self.unlink_object_from_scene(handle)
                             bpy.data.objects.remove(handle, do_unlink=True)
-                    context.scene.collection.objects.unlink(child)
+                    self.unlink_object_from_scene(child)
                     bpy.data.objects.remove(child, do_unlink=True)
-            context.scene.collection.objects.unlink(o)
+            self.unlink_object_from_scene(o)
             bpy.data.objects.remove(o, do_unlink=True)
 
     def update(self, context):
@@ -1785,7 +1785,7 @@ class ARCHIPACK_OT_window(ArchipackCreateTool, Operator):
 
     def unique(self, context):
         act = context.active_object
-        sel = [o for o in context.selected_objects]
+        sel = context.selected_objects[:]
         bpy.ops.object.select_all(action="DESELECT")
         for o in sel:
             if archipack_window.filter(o):
@@ -1871,19 +1871,19 @@ class ARCHIPACK_OT_window_draw(ArchipackDrawTool, Operator):
             # instance subs
             new_w = o.copy()
             new_w.data = o.data
-            context.scene.collection.objects.link(new_w)
+            self.link_object_to_scene(context, new_w)
             for child in o.children:
                 if "archipack_hole" not in child:
                     new_c = child.copy()
                     new_c.data = child.data
                     new_c.parent = new_w
-                    context.scene.collection.objects.link(new_c)
+                    self.link_object_to_scene(context, new_c)
                     # dup handle if any
                     for c in child.children:
                         new_h = c.copy()
                         new_h.data = c.data
                         new_h.parent = new_c
-                        context.scene.collection.objects.link(new_h)
+                        self.link_object_to_scene(context, new_h)
 
             o = new_w
             o.select_set(state=True)
@@ -1902,7 +1902,7 @@ class ARCHIPACK_OT_window_draw(ArchipackDrawTool, Operator):
     def modal(self, context, event):
 
         context.area.tag_redraw()
-        o = context.scene.objects.get(self.object_name)
+        o = context.scene.objects.get(self.object_name.strip())
 
         if o is None:
             return {'FINISHED'}
@@ -2035,7 +2035,7 @@ class ARCHIPACK_OT_window_portals(Operator):
 # ------------------------------------------------------------------
 
 
-class ARCHIPACK_OT_window_panel(Operator):
+class ARCHIPACK_OT_window_panel(ArchipackCollectionManager, Operator):
     bl_idname = "archipack.window_panel"
     bl_label = "Window panel"
     bl_description = "Window panel"
@@ -2161,7 +2161,7 @@ class ARCHIPACK_OT_window_panel(Operator):
         d.handle_model = self.handle_model
         d.handle_altitude = self.handle_altitude
         d.enable_glass = self.enable_glass
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         o.select_set(state=True)
         context.view_layer.objects.active = o
         m = o.archipack_material.add()

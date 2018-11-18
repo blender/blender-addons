@@ -225,6 +225,8 @@ class MaterialSetManager():
         self.objects = {}
         # hold reference of dynamic enumerator
         self.enums = {}
+        self.default_enum = [('DEFAULT', 'Default', '', 0)]
+
 
     def get_filename(self, object_type):
 
@@ -262,9 +264,9 @@ class MaterialSetManager():
         material_sets = {}
 
         # create file object, and set open mode
-        if os.path.exists(filename):
-            try:
-                f = open(filename, 'r')
+
+        try:
+            with open(filename, 'r') as f:
                 lines = f.readlines()
 
                 for line in lines:
@@ -272,17 +274,15 @@ class MaterialSetManager():
                     if str(s_key) not in material_sets.keys():
                         material_sets[s_key] = []
                     material_sets[s_key].append(mat_name.strip())
-            except:
-                print("Archipack: An error occurred while loading {}".format(filename))
-                pass
-            finally:
-                f.close()
+        except:
+            print("Archipack: material preset for {} not found".format(object_type))
+            pass
 
-            s_keys = material_sets.keys()
-            for s_key in s_keys:
-                self.register_set(object_type, s_key, material_sets[s_key])
+        s_keys = material_sets.keys()
+        for s_key in s_keys:
+            self.register_set(object_type, s_key, material_sets[s_key])
 
-            self.make_enum(object_type, s_keys)
+        self.make_enum(object_type, s_keys)
 
     def save(self, object_type):
         # always save in user prefs
@@ -330,17 +330,15 @@ class MaterialSetManager():
         if object_type not in self.objects.keys():
             self.load(object_type)
         if object_type not in self.objects.keys():
-            print("Archipack: Unknown object type {}".format(object_type))
+            # print("Archipack: Unknown object type {}".format(object_type))
             return None
         if set_name not in self.objects[object_type].keys():
-            print("Archipack: set {} not found".format(set_name))
+            # print("Archipack: set {} not found".format(set_name))
             return None
         return self.objects[object_type][set_name]
 
     def make_enum(self, object_type, s_keys):
-        if len(s_keys) < 1:
-            self.enums[object_type] = [('DEFAULT', 'Default', '', 0)]
-        else:
+        if len(s_keys) > 0:
             self.enums[object_type] = [(s.upper(), s.capitalize(), '', i) for i, s in enumerate(s_keys)]
 
     def get_enum(self, object_type):
@@ -351,7 +349,10 @@ class MaterialSetManager():
         if object_type not in self.objects.keys():
             self.objects[object_type] = {}
 
-        return self.enums[object_type]
+        if object_type in self.enums:
+            return self.enums[object_type]
+
+        return self.default_enum
 
 
 def material_enum(self, context):
@@ -411,7 +412,7 @@ class archipack_material(PropertyGroup):
 
         mats = setman.get_materials(self.category, self.material)
 
-        if mats is None:
+        if mats is None or len(mats) < 1:
             return False
 
         for ob in sel:
@@ -484,13 +485,11 @@ class ARCHIPACK_OT_material(Operator):
             res = False
             pass
 
-        if res:
-            # print("ARCHIPACK_OT_material.apply {} {}".format(self.category, self.material))
-            return {'FINISHED'}
-        else:
+        if not res:
             print("Archipack: unable to add material {} for {}".format(self.material, self.category))
-            self.report({'WARNING'}, 'Material {} for {} not found'.format(self.material, self.category))
-            return {'CANCELLED'}
+            # self.report({'WARNING'}, 'Material {} for {} not found'.format(self.material, self.category))
+
+        return {'FINISHED'}
 
 
 class ARCHIPACK_OT_material_add(Operator):

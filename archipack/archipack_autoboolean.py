@@ -28,9 +28,9 @@ import bpy
 from bpy.types import Operator
 from bpy.props import EnumProperty
 from mathutils import Vector
+from . archipack_object import ArchipackCollectionManager
 
-
-class ArchipackBoolManager():
+class ArchipackBoolManager(ArchipackCollectionManager):
     """
         Handle three methods for booleans
         - interactive: one modifier for each hole right on wall
@@ -196,7 +196,7 @@ class ArchipackBoolManager():
                     m.object = None
                 o.modifiers.remove(m)
             if h is not None:
-                context.scene.collection.objects.unlink(h)
+                self.unlink_object_from_scene(h)
                 bpy.data.objects.remove(h, do_unlink=True)
 
     # Mixed
@@ -204,7 +204,7 @@ class ArchipackBoolManager():
         # print("create_merge_basis")
         h = bpy.data.meshes.new("AutoBoolean")
         hole_obj = bpy.data.objects.new("AutoBoolean", h)
-        context.scene.collection.objects.link(hole_obj)
+        self.link_object_to_scene(context, hole_obj)
         hole_obj['archipack_hybridhole'] = True
         if wall.parent is not None:
             hole_obj.parent = wall.parent
@@ -299,7 +299,7 @@ class ArchipackBoolManager():
                     to_delete.append([m, h])
             # remove modifier and holes not found in new list
             self.remove_modif_and_object(context, hole_obj, to_delete)
-            # context.scene.collection.objects.unlink(hole_obj)
+            self.unlink_object_from_scene(hole_obj)
             bpy.data.objects.remove(hole_obj, do_unlink=True)
 
         to_delete = []
@@ -546,14 +546,6 @@ class ARCHIPACK_OT_single_boolean(Operator):
             ),
         default='HYBRID'
         )
-    solver_mode : EnumProperty(
-        name="Solver",
-        items=(
-            ('CARVE', 'CARVE', 'Slow but robust (could be slow in hybrid mode with many holes)', 0),
-            ('BMESH', 'BMESH', 'Fast but more prone to errors', 1)
-            ),
-        default='BMESH'
-        )
     """
         Wall must be active object
         window or door must be selected
@@ -609,7 +601,6 @@ class ARCHIPACK_OT_auto_boolean(Operator):
         layout = self.layout
         row = layout.row()
         row.prop(self, 'mode')
-        row.prop(self, 'solver_mode')
 
     def execute(self, context):
         if context.mode == "OBJECT":

@@ -422,7 +422,7 @@ def update_t_part(self, context):
     if o is not None:
 
         # w is parent wall
-        w = context.scene.objects.get(self.t_part)
+        w = context.scene.objects.get(self.t_part.strip())
         wd = archipack_wall2.datablock(w)
 
         if wd is not None:
@@ -718,7 +718,7 @@ class archipack_wall2_part(PropertyGroup):
             find witch selected object this instance belongs to
             provide support for "copy to selected"
         """
-        selected = [o for o in context.selected_objects]
+        selected = context.selected_objects[:]
         for o in selected:
             props = archipack_wall2.datablock(o)
             if props:
@@ -777,7 +777,7 @@ class archipack_wall2_child(PropertyGroup):
 
     def get_child(self, context):
         d = None
-        child = context.scene.objects.get(self.child_name)
+        child = context.scene.objects.get(self.child_name.strip())
         if child is not None and child.data is not None:
             cd = child.data
             if 'archipack_window' in cd:
@@ -1670,7 +1670,7 @@ class ARCHIPACK_OT_wall2_throttle_update(Operator):
             # cant rely on TIMER event as another timer may run
             if time.time() - throttle_start > throttle_delay:
                 update_timer_updating = True
-                o = context.scene.objects.get(self.name)
+                o = context.scene.objects.get(self.name.strip())
                 if o is not None:
                     m = o.modifiers.get("AutoBoolean")
                     if m is not None:
@@ -1768,7 +1768,7 @@ class ARCHIPACK_OT_wall2(ArchipackCreateTool, Operator):
         o = bpy.data.objects.new("Wall", m)
         d = m.archipack_wall2.add()
         d.manipulable_selectable = True
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         o.select_set(state=True)
         # around 12 degree
         m.auto_smooth_angle = 0.20944

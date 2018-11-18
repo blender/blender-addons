@@ -40,7 +40,7 @@ from .panel import Panel as DoorPanel
 from .archipack_handle import create_handle, door_handle_horizontal_01
 from .archipack_manipulator import Manipulable
 from .archipack_preset import ArchipackPreset, PresetMenuOperator
-from .archipack_object import ArchipackObject, ArchipackCreateTool, ArchipackDrawTool
+from .archipack_object import ArchipackObject, ArchipackCreateTool, ArchipackDrawTool, ArchipackCollectionManager
 from .archipack_gl import FeedbackPanel
 from .archipack_keymaps import Keymaps
 
@@ -559,7 +559,7 @@ class archipack_door_panel(ArchipackObject, PropertyGroup):
     def remove_handle(self, context, o):
         handle = self.find_handle(o)
         if handle is not None:
-            context.scene.collection.objects.unlink(handle)
+            self.unlink_object_from_scene(handle)
             bpy.data.objects.remove(handle, do_unlink=True)
 
     def update(self, context):
@@ -600,7 +600,7 @@ class ARCHIPACK_PT_door_panel(Panel):
 # ------------------------------------------------------------------
 
 
-class ARCHIPACK_OT_door_panel(Operator):
+class ARCHIPACK_OT_door_panel(ArchipackCollectionManager, Operator):
     bl_idname = "archipack.door_panel"
     bl_label = "Door model 1"
     bl_description = "Door model 1"
@@ -727,7 +727,7 @@ class ARCHIPACK_OT_door_panel(Operator):
         d.panels_x = self.panels_x
         d.panels_y = self.panels_y
         d.handle = self.handle
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         o.lock_location[0] = True
         o.lock_location[1] = True
         o.lock_location[2] = True
@@ -1032,13 +1032,13 @@ class archipack_door(ArchipackObject, Manipulable, PropertyGroup):
             if archipack_door_panel.filter(child):
                 self.remove_handle(context, child)
                 to_remove -= 1
-                context.scene.collection.objects.unlink(child)
+                self.unlink_object_from_scene(child)
                 bpy.data.objects.remove(child, do_unlink=True)
 
     def remove_handle(self, context, o):
         handle = self.find_handle(o)
         if handle is not None:
-            context.scene.collection.objects.unlink(handle)
+            self.unlink_object_from_scene(handle)
             bpy.data.objects.remove(handle, do_unlink=True)
 
     def create_childs(self, context, o):
@@ -1112,7 +1112,7 @@ class archipack_door(ArchipackObject, Manipulable, PropertyGroup):
                 id = c_names.index(c.data.name)
             except:
                 self.remove_handle(context, c)
-                context.scene.collection.objects.unlink(c)
+                self.unlink_object_from_scene(c)
                 bpy.data.objects.remove(c, do_unlink=True)
 
         # children ordering may not be the same, so get the right l_childs order
@@ -1130,7 +1130,7 @@ class archipack_door(ArchipackObject, Manipulable, PropertyGroup):
         for i, child in enumerate(childs):
             if order[i] < 0:
                 p = bpy.data.objects.new("DoorPanel", child.data)
-                context.scene.collection.objects.link(p)
+                self.link_object_to_scene(context, p)
                 p.lock_location[0] = True
                 p.lock_location[1] = True
                 p.lock_location[2] = True
@@ -1158,7 +1158,7 @@ class archipack_door(ArchipackObject, Manipulable, PropertyGroup):
                     # MaterialUtils.add_handle_materials(h)
                 h.location = handle.location.copy()
             elif h is not None:
-                context.scene.collection.objects.unlink(h)
+                self.unlink_object_from_scene(h)
                 bpy.data.objects.remove(h, do_unlink=True)
 
     def _synch_hole(self, context, linked, hole):
@@ -1166,7 +1166,7 @@ class archipack_door(ArchipackObject, Manipulable, PropertyGroup):
         if l_hole is None:
             l_hole = bpy.data.objects.new("hole", hole.data)
             l_hole['archipack_hole'] = True
-            context.scene.collection.objects.link(l_hole)
+            self.link_object_to_scene(context, l_hole)
             l_hole.parent = linked
             l_hole.matrix_world = linked.matrix_world.copy()
             l_hole.location = hole.location.copy()
@@ -1314,7 +1314,7 @@ class archipack_door(ArchipackObject, Manipulable, PropertyGroup):
         if hole_obj is None:
             m = bpy.data.meshes.new("hole")
             hole_obj = bpy.data.objects.new("hole", m)
-            context.scene.collection.objects.link(hole_obj)
+            self.link_object_to_scene(context, hole_obj)
             hole_obj['archipack_hole'] = True
             hole_obj.parent = o
             hole_obj.matrix_world = o.matrix_world.copy()
@@ -1339,7 +1339,7 @@ class archipack_door(ArchipackObject, Manipulable, PropertyGroup):
         m = bpy.data.meshes.new("hole")
         o = bpy.data.objects.new("hole", m)
         o['archipack_robusthole'] = True
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         v = Vector((0, 0, 0))
         offset = Vector((0, -0.001, 0))
         size = Vector((self.x + 2 * self.frame_x, self.z + self.frame_x + 0.001, self.y))
@@ -1556,7 +1556,7 @@ class ARCHIPACK_OT_door(ArchipackCreateTool, Operator):
         d.panels_x = self.panels_x
         d.panels_y = self.panels_y
         d.handle = self.handle
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         o.select_set(state=True)
         context.view_layer.objects.active = o
         self.add_material(o)
@@ -1571,16 +1571,16 @@ class ARCHIPACK_OT_door(ArchipackCreateTool, Operator):
             bpy.ops.archipack.disable_manipulate()
             for child in o.children:
                 if 'archipack_hole' in child:
-                    context.scene.collection.objects.unlink(child)
+                    self.unlink_object_from_scene(child)
                     bpy.data.objects.remove(child, do_unlink=True)
                 elif child.data is not None and 'archipack_door_panel' in child.data:
                     for handle in child.children:
                         if 'archipack_handle' in handle:
-                            context.scene.collection.objects.unlink(handle)
+                            self.unlink_object_from_scene(handle)
                             bpy.data.objects.remove(handle, do_unlink=True)
-                    context.scene.collection.objects.unlink(child)
+                    self.unlink_object_from_scene(child)
                     bpy.data.objects.remove(child, do_unlink=True)
-            context.scene.collection.objects.unlink(o)
+            self.unlink_object_from_scene(o)
             bpy.data.objects.remove(o, do_unlink=True)
 
     def update(self, context):
@@ -1678,20 +1678,20 @@ class ARCHIPACK_OT_door_draw(ArchipackDrawTool, Operator):
 
             new_w = o.copy()
             new_w.data = o.data
-            context.scene.collection.objects.link(new_w)
+            self.link_object_to_scene(context, new_w)
             # instance subs
             for child in o.children:
                 if "archipack_hole" not in child:
                     new_c = child.copy()
                     new_c.data = child.data
                     new_c.parent = new_w
-                    context.scene.collection.objects.link(new_c)
+                    self.link_object_to_scene(context, new_c)
                     # dup handle if any
                     for c in child.children:
                         new_h = c.copy()
                         new_h.data = c.data
                         new_h.parent = new_c
-                        context.scene.collection.objects.link(new_h)
+                        self.link_object_to_scene(context, new_h)
 
             o = new_w
             o.select_set(state=True)
@@ -1710,7 +1710,7 @@ class ARCHIPACK_OT_door_draw(ArchipackDrawTool, Operator):
     def modal(self, context, event):
 
         context.area.tag_redraw()
-        o = context.scene.objects.get(self.object_name)
+        o = context.scene.objects.get(self.object_name.strip())
         if o is None:
             return {'FINISHED'}
 

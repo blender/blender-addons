@@ -690,7 +690,7 @@ class WallSnapManipulator(Manipulator):
 
             # update properties from generator
             idx = 0
-
+            d.auto_update = False
             for p0, p1, selected in gl_pts3d:
 
                 if selected:
@@ -738,7 +738,9 @@ class WallSnapManipulator(Manipulator):
                 idx += 1
 
             self.mouse_release(context, event)
-            d.relocate_childs(context, o, g)
+            if hasattr(d, "relocate_childs"):
+                d.relocate_childs(context, o, g)
+            d.auto_update = True
             d.update(context)
 
         if state == 'CANCEL':
@@ -2124,7 +2126,6 @@ class Manipulable():
             self.manipulable_end_point = Vector((0, 0))
 
         o = context.active_object
-
         if o is not None:
             self.manipulable_exit_selectmode(context)
             remove_manipulable(o.name)

@@ -230,7 +230,6 @@ class PresetMenu():
         self.border = GlPolyline((0.7, 0.7, 0.7, 1), d=2)
         self.keywords = SeekBox()
         self.keywords.colour_normal = (1, 1, 1, 1)
-
         self.border.closed = True
         self.set_pos(context)
 
@@ -555,7 +554,6 @@ class ArchipackPreset(AddPresetBase):
             "cls:" + cls,
             "preset:" + preset
         ]
-        # print(repr(cmd))
 
         subprocess.Popen(cmd)
 

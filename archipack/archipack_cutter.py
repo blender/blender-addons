@@ -655,11 +655,8 @@ class ArchipackCutter():
     parts_expand : BoolProperty(
             default=False
             )
-    closed : BoolProperty(
-            description="keep closed to be wall snap manipulator compatible",
-            options={'SKIP_SAVE'},
-            default=True
-            )
+
+    closed = True
 
     def draw(self, layout, context):
         box = layout.box()
@@ -849,7 +846,8 @@ class ArchipackCutter():
         self.update_parent(context, o)
 
     def update_path(self, context):
-        user_def_path = context.scene.objects.get(self.user_defined_path)
+
+        user_def_path = context.scene.objects.get(self.user_defined_path.strip())
         if user_def_path is not None and user_def_path.type == 'CURVE':
             self.from_spline(context,
                 user_def_path.matrix_world,

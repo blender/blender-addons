@@ -34,6 +34,7 @@ from bpy.props import (
     )
 from mathutils import Vector
 from .bmesh_utils import BmeshEdit as bmed
+from .archipack_object import ArchipackCollectionManager
 
 
 def update(self, context):
@@ -199,7 +200,7 @@ class ARCHIPACK_PT_reference_point(Panel):
         layout.operator('archipack.apply_holes')
 
 
-class ARCHIPACK_OT_reference_point(Operator):
+class ARCHIPACK_OT_reference_point(ArchipackCollectionManager, Operator):
     """Add reference point"""
     bl_idname = "archipack.reference_point"
     bl_label = "Reference point"
@@ -234,7 +235,7 @@ class ARCHIPACK_OT_reference_point(Operator):
         m = bpy.data.meshes.new(name="Reference")
         o = bpy.data.objects.new("Reference", m)
         o.location = Vector((x, y, 0))
-        context.scene.collection.objects.link(o)
+        self.link_object_to_scene(context, o)
         d = o.archipack_reference_point.add()
         d.location_2d = Vector((x, y, 0))
         d.location_3d = self.location_3d
@@ -412,7 +413,7 @@ class ARCHIPACK_OT_move_2d_reference_to_cursor(Operator):
             for child in o.children:
                 child.select_set(state=True)
             bpy.ops.archipack.parent_to_reference()
-            context.scene.collection.objects.unlink(o)
+            self.unlink_object_from_scene(o)
             return {'FINISHED'}
         else:
             self.report({'WARNING'}, "Archipack: Option only valid in Object mode")
