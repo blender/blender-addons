@@ -72,6 +72,8 @@ class RigifyPreferences(AddonPreferences):
 
                 unregister()
 
+                clear_rigify_parameters()
+
                 globals().pop('utils')
                 globals().pop('rig_lists')
                 globals().pop('generate')
@@ -103,6 +105,8 @@ class RigifyPreferences(AddonPreferences):
                 sys.path.pop(id)
 
             unregister()
+
+            clear_rigify_parameters()
 
             globals().pop('utils')
             globals().pop('rig_lists')
@@ -215,6 +219,15 @@ class RigifySelectionColors(bpy.types.PropertyGroup):
 
 class RigifyParameters(bpy.types.PropertyGroup):
     name: StringProperty()
+
+
+# Remember the initial property set
+RIGIFY_PARAMETERS_BASE_DIR = set(dir(RigifyParameters))
+
+def clear_rigify_parameters():
+    for name in list(dir(RigifyParameters)):
+        if name not in RIGIFY_PARAMETERS_BASE_DIR:
+            delattr(RigifyParameters, name)
 
 
 class RigifyArmatureLayer(bpy.types.PropertyGroup):
