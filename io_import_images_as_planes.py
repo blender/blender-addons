@@ -832,7 +832,7 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
         else:
             box.prop(self, "factor")
 
-        box.label(text="Orientation:", icon='MANIPUL')
+        box.label(text="Orientation:")
         row = box.row()
         row.enabled = 'CAM' not in self.size_mode
         row.prop(self, "align_axis")
