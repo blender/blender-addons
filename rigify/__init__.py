@@ -72,8 +72,6 @@ class RigifyPreferences(AddonPreferences):
 
                 unregister()
 
-                clear_rigify_parameters()
-
                 globals().pop('utils')
                 globals().pop('rig_lists')
                 globals().pop('generate')
@@ -105,8 +103,6 @@ class RigifyPreferences(AddonPreferences):
                 sys.path.pop(id)
 
             unregister()
-
-            clear_rigify_parameters()
 
             globals().pop('utils')
             globals().pop('rig_lists')
@@ -399,6 +395,8 @@ def unregister():
     # Classes.
     for cls in classes:
         unregister_class(cls)
+
+    clear_rigify_parameters()
 
     # Sub-modules.
     metarig_menu.unregister()
