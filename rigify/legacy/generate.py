@@ -72,7 +72,7 @@ def generate_rig(context, metarig):
 
     scene = context.scene
     view_layer = context.view_layer
-    collection = scene.collection
+    collection = context.collection
     layer_collection = context.layer_collection
 
     #------------------------------------------
@@ -265,6 +265,9 @@ def generate_rig(context, metarig):
     rna_idprop_ui_prop_get(obj.data, "rig_id", create=True)
     obj.data["rig_id"] = rig_id
 
+    # Create/find widget collection
+    ensure_widget_collection(context)
+
     t.tick("Create root bone: ")
     #----------------------------------
     try:
@@ -355,9 +358,6 @@ def generate_rig(context, metarig):
     for bone in bones:
         if obj.data.bones[bone].name.startswith(DEF_PREFIX):
             obj.data.bones[bone].layers = DEF_LAYER
-
-    # Create/find widge collection
-    ensure_widget_collection(context)
 
     #  Create root bone widget
     create_root_widget(obj, "root")
