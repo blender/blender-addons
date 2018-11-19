@@ -800,8 +800,8 @@ def align_bone_roll(obj, bone1, bone2):
     rot_mat = Matrix.Rotation(angle, 3, axis)
 
     # Roll factor
-    x3 = rot_mat * x1
-    dot = x2 * x3
+    x3 = rot_mat @ x1
+    dot = x2 @ x3
     if dot > 1.0:
         dot = 1.0
     elif dot < -1.0:
