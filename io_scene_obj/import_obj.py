@@ -428,8 +428,8 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
     filename = os.path.splitext((os.path.basename(filepath)))[0]
 
     if not SPLIT_OB_OR_GROUP or not faces:
-        use_verts_nor = any((False if f[1] is ... else True) for f in faces)
-        use_verts_tex = any((False if f[2] is ... else True) for f in faces)
+        use_verts_nor = any(f[1] for f in faces)
+        use_verts_tex = any(f[2] for f in faces)
         # use the filename for the object name since we aren't chopping up the mesh.
         return [(verts_loc, faces, unique_materials, filename, use_verts_nor, use_verts_tex)]
 
@@ -446,7 +446,15 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
     oldkey = -1  # initialize to a value that will never match the key
 
     for face in faces:
-        key = face[5]
+        (face_vert_loc_indices,
+         face_vert_nor_indices,
+         face_vert_tex_indices,
+         context_material,
+         context_smooth_group,
+         context_object,
+         face_invalid_blenpoly,
+         ) = face
+        key = context_object
 
         if oldkey != key:
             # Check the key has changed.
@@ -454,27 +462,25 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
              use_verts_nor, use_verts_tex) = face_split_dict.setdefault(key, ([], [], {}, {}, [], []))
             oldkey = key
 
-        face_vert_loc_indices = face[0]
 
-        if not use_verts_nor and face[1] is not ...:
+        if not use_verts_nor and face_vert_nor_indices:
             use_verts_nor.append(True)
 
-        if not use_verts_tex and face[2] is not ...:
+        if not use_verts_tex and face_vert_tex_indices:
             use_verts_tex.append(True)
 
         # Remap verts to new vert list and add where needed
-        for enum, i in enumerate(face_vert_loc_indices):
-            map_index = vert_remap.get(i)
+        for loop_idx, vert_idx in enumerate(face_vert_loc_indices):
+            map_index = vert_remap.get(vert_idx)
             if map_index is None:
                 map_index = len(verts_split)
-                vert_remap[i] = map_index  # set the new remapped index so we only add once and can reference next time.
-                verts_split.append(verts_loc[i])  # add the vert to the local verts
+                vert_remap[vert_idx] = map_index  # set the new remapped index so we only add once and can reference next time.
+                verts_split.append(verts_loc[vert_idx])  # add the vert to the local verts
 
-            face_vert_loc_indices[enum] = map_index  # remap to the local index
+            face_vert_loc_indices[loop_idx] = map_index  # remap to the local index
 
-            matname = face[3]
-            if matname and matname not in unique_materials_split:
-                unique_materials_split[matname] = unique_materials[matname]
+            if context_material and context_material not in unique_materials_split:
+                unique_materials_split[context_material] = unique_materials[context_material]
 
         faces_split.append(face)
 
@@ -553,7 +559,7 @@ def create_mesh(new_objects,
                 # ignore triangles with invalid indices
                 if len(face_vert_loc_indices) > 3:
                     from bpy_extras.mesh_utils import ngon_tessellate
-                    ngon_face_indices = ngon_tessellate(verts_loc, face_vert_loc_indices)
+                    ngon_face_indices = ngon_tessellate(verts_loc, face_vert_loc_indices, debug_print=bpy.app.debug)
                     faces.extend([([face_vert_loc_indices[ngon[0]],
                                     face_vert_loc_indices[ngon[1]],
                                     face_vert_loc_indices[ngon[2]],
@@ -945,7 +951,7 @@ def load(context,
 
         progress.enter_substeps(3, "Parsing OBJ file...")
         with open(filepath, 'rb') as f:
-            for line in f:  # .readlines():
+            for line in f:
                 line_split = line.split()
 
                 if not line_split:
@@ -1002,14 +1008,14 @@ def load(context,
                             face_vert_tex_indices.append((idx + len(verts_tex) + 1) if (idx < 0) else idx)
                             face_vert_tex_valid = True
                         else:
-                            face_vert_tex_indices.append(...)
+                            face_vert_tex_indices.append(0)
 
                         if len(obj_vert) > 2 and obj_vert[2] and obj_vert[2] != b'0':
                             idx = int(obj_vert[2]) - 1
                             face_vert_nor_indices.append((idx + len(verts_nor) + 1) if (idx < 0) else idx)
                             face_vert_nor_valid = True
                         else:
-                            face_vert_nor_indices.append(...)
+                            face_vert_nor_indices.append(0)
 
                     if not context_multi_line:
                         # Clear nor/tex indices in case we had none defined for this face.
