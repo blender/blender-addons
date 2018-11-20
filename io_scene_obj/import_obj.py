@@ -943,11 +943,15 @@ def load(context,
         face_vert_nor_indices = None
         face_vert_tex_indices = None
         face_vert_nor_valid = face_vert_tex_valid = False
+        verts_loc_len = verts_nor_len = verts_tex_len = 0
         face_items_usage = set()
         face_invalid_blenpoly = None
         prev_vidx = None
         face = None
         vec = []
+
+        quick_vert_failures = 0
+        skip_quick_vert = False
 
         progress.enter_substeps(3, "Parsing OBJ file...")
         with open(filepath, 'rb') as f:
@@ -959,17 +963,39 @@ def load(context,
 
                 line_start = line_split[0]  # we compare with this a _lot_
 
-                if line_start == b'v' or context_multi_line == b'v':
-                    context_multi_line = handle_vec(line_start, context_multi_line, line_split, b'v', verts_loc, vec, 3)
+                # Handling vertex data are pretty similar, factorize that.
+                # Also, most OBJ files store all those on a single line, so try fast parsing for that first,
+                # and only fallback to full multi-line parsing when needed, this gives significant speed-up
+                # (~40% on affected code).
+                if line_start == b'v':
+                    vdata, vdata_len, do_quick_vert = (verts_loc, 3, not skip_quick_vert)
+                elif line_start == b'vn':
+                    vdata, vdata_len, do_quick_vert = (verts_nor, 3, not skip_quick_vert)
+                elif line_start == b'vt':
+                    vdata, vdata_len, do_quick_vert = verts_tex, 2, not skip_quick_vert
+                elif context_multi_line == b'v':
+                    vdata, vdata_len, do_quick_vert = verts_loc, 3, False
+                elif context_multi_line == b'vn':
+                    vdata, vdata_len, do_quick_vert = verts_nor, 3, False
+                elif context_multi_line == b'vt':
+                    vdata, vdata_len, do_quick_vert = verts_tex, 2, False
+                else:
+                    vdata_len = 0
 
-                elif line_start == b'vn' or context_multi_line == b'vn':
-                    context_multi_line = handle_vec(line_start, context_multi_line, line_split, b'vn', verts_nor, vec, 3)
+                if vdata_len:
+                    if do_quick_vert:
+                        try:
+                            vdata.append(tuple(map(float_func, line_split[1:vdata_len + 1])))
+                        except:
+                            do_quick_vert = False
+                            # In case we get too many failures on quick parsing, force fallback to full multi-line one.
+                            # Exception handling can become costly...
+                            quick_vert_failures += 1
+                            if quick_vert_failures > 10000:
+                                skip_quick_vert = True
+                    if not do_quick_vert:
+                        context_multi_line = handle_vec(line_start, context_multi_line, line_split, b'v', vdata, vec, vdata_len)
 
-                elif line_start == b'vt' or context_multi_line == b'vt':
-                    context_multi_line = handle_vec(line_start, context_multi_line, line_split, b'vt', verts_tex, vec, 2)
-
-                # Handle faces lines (as faces) and the second+ lines of fa multiline face here
-                # use 'f' not 'f ' because some objs (very rare have 'fo ' for faces)
                 elif line_start == b'f' or context_multi_line == b'f':
                     if not context_multi_line:
                         line_split = line_split[1:]
@@ -979,14 +1005,17 @@ def load(context,
                          _1, _2, _3, face_invalid_blenpoly) = face
                         faces.append(face)
                         face_items_usage.clear()
+                        verts_loc_len = len(verts_loc)
+                        verts_nor_len = len(verts_nor)
+                        verts_tex_len = len(verts_tex)
                     # Else, use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
 
                     context_multi_line = b'f' if strip_slash(line_split) else b''
 
                     for v in line_split:
                         obj_vert = v.split(b'/')
-                        idx = int(obj_vert[0]) - 1
-                        vert_loc_index = (idx + len(verts_loc) + 1) if (idx < 0) else idx
+                        idx = int(obj_vert[0])  # Note that we assume here we cannot get OBJ invalid 0 index...
+                        vert_loc_index = (idx + verts_loc_len) if (idx < 1) else idx - 1
                         # Add the vertex to the current group
                         # *warning*, this wont work for files that have groups defined around verts
                         if use_groups_as_vgroups and context_vgroup:
@@ -1004,15 +1033,15 @@ def load(context,
                         # formatting for faces with normals and textures is
                         # loc_index/tex_index/nor_index
                         if len(obj_vert) > 1 and obj_vert[1] and obj_vert[1] != b'0':
-                            idx = int(obj_vert[1]) - 1
-                            face_vert_tex_indices.append((idx + len(verts_tex) + 1) if (idx < 0) else idx)
+                            idx = int(obj_vert[1])
+                            face_vert_tex_indices.append((idx + verts_tex_len) if (idx < 1) else idx - 1)
                             face_vert_tex_valid = True
                         else:
                             face_vert_tex_indices.append(0)
 
                         if len(obj_vert) > 2 and obj_vert[2] and obj_vert[2] != b'0':
-                            idx = int(obj_vert[2]) - 1
-                            face_vert_nor_indices.append((idx + len(verts_nor) + 1) if (idx < 0) else idx)
+                            idx = int(obj_vert[2])
+                            face_vert_nor_indices.append((idx + verts_nor_len) if (idx < 1) else idx - 1)
                             face_vert_nor_valid = True
                         else:
                             face_vert_nor_indices.append(0)
