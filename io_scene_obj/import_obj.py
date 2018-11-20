@@ -629,63 +629,37 @@ def create_mesh(new_objects,
     # verts_loc is a list of (x, y, z) tuples
     me.vertices.foreach_set("co", unpack_list(verts_loc))
 
-    loops_vert_idx = []
+    loops_vert_idx = tuple(vidx for (face_vert_loc_indices, _, _, _, _, _, _) in faces for vidx in face_vert_loc_indices)
     faces_loop_start = []
-    faces_loop_total = []
     lidx = 0
     for f in faces:
-        vidx = f[0]
-        nbr_vidx = len(vidx)
-        loops_vert_idx.extend(vidx)
+        face_vert_loc_indices = f[0]
+        nbr_vidx = len(face_vert_loc_indices)
         faces_loop_start.append(lidx)
-        faces_loop_total.append(nbr_vidx)
         lidx += nbr_vidx
+    faces_loop_total = tuple(len(face_vert_loc_indices) for (face_vert_loc_indices, _, _, _, _, _, _) in faces)
 
     me.loops.foreach_set("vertex_index", loops_vert_idx)
     me.polygons.foreach_set("loop_start", faces_loop_start)
     me.polygons.foreach_set("loop_total", faces_loop_total)
 
+    faces_ma_index = tuple(material_mapping[context_material] for (_, _, _, context_material, _, _, _) in faces)
+    me.polygons.foreach_set("material_index", faces_ma_index)
+
+    faces_use_smooth = tuple(bool(context_smooth_group) for (_, _, _, _, context_smooth_group, _, _) in faces)
+    me.polygons.foreach_set("use_smooth", faces_use_smooth)
+
     if verts_nor and me.loops:
         # Note: we store 'temp' normals in loops, since validate() may alter final mesh,
         #       we can only set custom lnors *after* calling it.
         me.create_normals_split()
+        loops_nor = tuple(no for (_, face_vert_nor_indices, _, _, _, _, _) in faces for face_noidx in face_vert_nor_indices for no in verts_nor[face_noidx])
+        me.loops.foreach_set("normal", loops_nor)
 
     if verts_tex and me.polygons:
         me.uv_layers.new()
-
-    context_material_old = -1  # avoid a dict lookup
-    mat = 0  # rare case it may be un-initialized.
-
-    for i, (face, blen_poly) in enumerate(zip(faces, me.polygons)):
-        if len(face[0]) < 3:
-            raise Exception("bad face")  # Shall not happen, we got rid of those earlier!
-
-        (face_vert_loc_indices,
-         face_vert_nor_indices,
-         face_vert_tex_indices,
-         context_material,
-         context_smooth_group,
-         context_object,
-         face_invalid_blenpoly,
-         ) = face
-
-        if context_smooth_group:
-            blen_poly.use_smooth = True
-
-        if context_material:
-            if context_material_old is not context_material:
-                mat = material_mapping[context_material]
-                context_material_old = context_material
-            blen_poly.material_index = mat
-
-        if verts_nor and face_vert_nor_indices:
-            for face_noidx, lidx in zip(face_vert_nor_indices, blen_poly.loop_indices):
-                me.loops[lidx].normal[:] = verts_nor[0 if (face_noidx is ...) else face_noidx]
-
-        if verts_tex and face_vert_tex_indices:
-            blen_uvs = me.uv_layers[0]
-            for face_uvidx, lidx in zip(face_vert_tex_indices, blen_poly.loop_indices):
-                blen_uvs.data[lidx].uv = verts_tex[0 if (face_uvidx is ...) else face_uvidx]
+        loops_uv = tuple(uv for (_, _, face_vert_tex_indices, _, _, _, _) in faces for face_uvidx in face_vert_tex_indices for uv in verts_tex[face_uvidx])
+        me.uv_layers[0].data.foreach_set("uv", loops_uv)
 
     use_edges = use_edges and bool(edges)
     if use_edges:
