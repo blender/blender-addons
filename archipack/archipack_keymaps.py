@@ -52,7 +52,9 @@ class Keymaps:
         """
         # provide abstration between user and addon
         # with different select mouse side
-        mouse_right = context.user_preferences.inputs.select_mouse
+        wm = context.window_manager
+        keyconfig = wm.keyconfigs.active
+        mouse_right = getattr(keyconfig.preferences, "select_mouse", "LEFT")
         if mouse_right == 'LEFT':
             mouse_left = 'RIGHT'
             mouse_right_side = 'Left'

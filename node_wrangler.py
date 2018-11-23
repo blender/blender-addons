@@ -557,7 +557,6 @@ def nice_hotkey_name(punc):
         ('LEFTMOUSE', "LMB"),
         ('MIDDLEMOUSE', "MMB"),
         ('RIGHTMOUSE', "RMB"),
-        ('SELECTMOUSE', "Select"),
         ('WHEELUPMOUSE', "Wheel Up"),
         ('WHEELDOWNMOUSE', "Wheel Down"),
         ('WHEELINMOUSE', "Wheel In"),
