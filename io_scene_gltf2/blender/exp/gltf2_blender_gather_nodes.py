@@ -49,7 +49,7 @@ def gather_node(blender_object, export_settings):
 def __filter_node(blender_object, export_settings):
     if blender_object.users == 0:
         return False
-    if export_settings[gltf2_blender_export_keys.SELECTED] and not blender_object.select:
+    if export_settings[gltf2_blender_export_keys.SELECTED] and blender_object.select_get() is False:
         return False
     if not export_settings[gltf2_blender_export_keys.LAYERS] and not blender_object.layers[0]:
         return False
