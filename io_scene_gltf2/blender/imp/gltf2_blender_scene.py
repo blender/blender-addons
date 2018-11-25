@@ -89,6 +89,7 @@ class BlenderScene():
 
                 bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
 
-                bpy.context.scene.collection.objects.unlink(obj_rotation)
-                bpy.data.objects.remove(obj_rotation)
+            # remove object
+            bpy.context.scene.collection.objects.unlink(obj_rotation)
+            bpy.data.objects.remove(obj_rotation)
 
