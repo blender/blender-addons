@@ -318,7 +318,7 @@ def get_texcoord_index_from_shader_node(glTF, name, shader_node):
 
     # Try to gather map index.
     for blender_mesh in bpy.data.meshes:
-        texCoordIndex = blender_mesh.uv_textures.find(input_node.uv_map)
+        texCoordIndex = blender_mesh.uv_layers.find(input_node.uv_map)
         if texCoordIndex >= 0:
             return texCoordIndex
 
