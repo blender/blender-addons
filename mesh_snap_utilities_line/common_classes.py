@@ -279,16 +279,16 @@ class SnapNavigation():
 
         if self.use_ndof:
             ndofkey = evkey[:2]
-            if evkey in self._ndof_all:
+            if ndofkey in self._ndof_all:
                 bpy.ops.view3d.ndof_all('INVOKE_DEFAULT')
                 return True
-            if evkey in self._ndof_orbit:
+            if ndofkey in self._ndof_orbit:
                 bpy.ops.view3d.ndof_orbit('INVOKE_DEFAULT')
                 return True
-            if evkey in self._ndof_orbit_zoom:
+            if ndofkey in self._ndof_orbit_zoom:
                 bpy.ops.view3d.ndof_orbit_zoom('INVOKE_DEFAULT')
                 return True
-            if evkey in self._ndof_pan:
+            if ndofkey in self._ndof_pan:
                 bpy.ops.view3d.ndof_pan('INVOKE_DEFAULT')
                 return True
 
