@@ -18,6 +18,7 @@
 
 import os
 import bpy
+import datetime
 from bpy_extras.io_utils import ImportHelper, ExportHelper
 from bpy.types import Operator, AddonPreferences
 
@@ -158,11 +159,11 @@ class ExportGLTF2_Base:
         default=False
     )
 
-    export_layers: BoolProperty(
-        name='Export all layers',
-        description='',
-        default=True
-    )
+    # export_layers: BoolProperty(
+    #     name='Export all layers',
+    #     description='',
+    #     default=True
+    # )
 
     export_extras: BoolProperty(
         name='Export extras',
@@ -229,6 +230,12 @@ class ExportGLTF2_Base:
     export_bake_skins: BoolProperty(
         name='Bake skinning constraints',
         description='',
+        default=False
+    )
+
+    export_all_influences: BoolProperty(
+        name='Export all bone influences',
+        description='Export more than four joint vertex influences',
         default=False
     )
 
@@ -307,6 +314,8 @@ class ExportGLTF2_Base:
         # All custom export settings are stored in this container.
         export_settings = {}
 
+        export_settings['timestamp'] = datetime.datetime.now()
+
         export_settings['gltf_filepath'] = bpy.path.ensure_ext(self.filepath, self.filename_ext)
         export_settings['gltf_filedirectory'] = os.path.dirname(export_settings['gltf_filepath']) + '/'
 
@@ -328,7 +337,7 @@ class ExportGLTF2_Base:
         else:
             export_settings['gltf_camera_infinite'] = False
         export_settings['gltf_selected'] = self.export_selected
-        export_settings['gltf_layers'] = self.export_layers
+        export_settings['gltf_layers'] = True #self.export_layers
         export_settings['gltf_extras'] = self.export_extras
         export_settings['gltf_yup'] = self.export_yup
         export_settings['gltf_apply'] = self.export_apply
@@ -346,8 +355,10 @@ class ExportGLTF2_Base:
         export_settings['gltf_skins'] = self.export_skins
         if self.export_skins:
             export_settings['gltf_bake_skins'] = self.export_bake_skins
+            export_settings['gltf_all_vertex_influences'] = self.export_all_influences
         else:
             export_settings['gltf_bake_skins'] = False
+            export_settings['gltf_all_vertex_influences'] = False
         export_settings['gltf_frame_step'] = self.export_frame_step
         export_settings['gltf_morph'] = self.export_morph
         if self.export_morph:
@@ -384,7 +395,7 @@ class ExportGLTF2_Base:
         col = layout.box().column()
         col.label(text='Nodes:')  # , icon='OOPS')
         col.prop(self, 'export_selected')
-        col.prop(self, 'export_layers')
+        #col.prop(self, 'export_layers')
         col.prop(self, 'export_extras')
         col.prop(self, 'export_yup')
 
@@ -414,6 +425,10 @@ class ExportGLTF2_Base:
         col.prop(self, 'export_texture_transform')
 
         col = layout.box().column()
+        col.label(text='Lights:')  # , icon='LIGHT_DATA')
+        col.prop(self, 'export_lights')
+
+        col = layout.box().column()
         col.label(text='Animation:')  # , icon='OUTLINER_DATA_POSE')
         col.prop(self, 'export_animations')
         if self.export_animations:
@@ -426,18 +441,12 @@ class ExportGLTF2_Base:
         col.prop(self, 'export_skins')
         if self.export_skins:
             col.prop(self, 'export_bake_skins')
+            col.prop(self, 'export_all_influences')
         col.prop(self, 'export_morph')
         if self.export_morph:
             col.prop(self, 'export_morph_normal')
             if self.export_morph_normal:
                 col.prop(self, 'export_morph_tangent')
-
-        addon_prefs = context.user_preferences.addons[__name__].preferences
-        if addon_prefs.experimental:
-            col = layout.box().column()
-            col.label(text='Experimental:')  # , icon='RADIO')
-            col.prop(self, 'export_lights')
-            col.prop(self, 'export_displacement')
 
         row = layout.row()
         row.operator(
@@ -472,16 +481,6 @@ class ExportGLTF2_GLB(bpy.types.Operator, ExportGLTF2_Base, ExportHelper):
 def menu_func_export(self, context):
     self.layout.operator(ExportGLTF2_GLTF.bl_idname, text='glTF 2.0 (.gltf)')
     self.layout.operator(ExportGLTF2_GLB.bl_idname, text='Binary glTF 2.0 (.glb)')
-
-
-class ExportGLTF2_AddonPreferences(AddonPreferences):
-    bl_idname = __name__
-
-    experimental: BoolProperty(name='Enable experimental glTF export settings', default=False)
-
-    def draw(self, context):
-        layout = self.layout
-        layout.prop(self, "experimental")
 
 
 class ImportglTF2(Operator, ImportHelper):
@@ -549,7 +548,6 @@ classes = (
     GLTF2ExportSettings,
     ExportGLTF2_GLTF,
     ExportGLTF2_GLB,
-    ExportGLTF2_AddonPreferences,
     ImportglTF2
 )
 

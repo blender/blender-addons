@@ -95,3 +95,4 @@ def from_socket(start_socket: bpy.types.NodeSocket,
 
     return __search_from_socket(start_socket, shader_node_filter, [])
 
+
