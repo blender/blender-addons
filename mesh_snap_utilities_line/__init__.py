@@ -68,7 +68,7 @@ def tool_make_line():
 #        widget="MESH_GGT_mouse_point",
         operator="mesh.make_line",
         keymap=(
-            ("mesh.make_line", None, dict(type='ACTIONMOUSE', value='PRESS')),
+            ("mesh.make_line", dict(type='LEFTMOUSE', value='PRESS'), None),
         ),
         draw_settings=draw_settings,
     )
