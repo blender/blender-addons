@@ -169,7 +169,7 @@ def Operation(context, _operation):
             cyclesVis.shadow = False
             cyclesVis.transmission = False
             if _operation == "SLICE":
-                # copies dupli_group property(empty), but group property is empty (users_group = None)
+                # copies instance_collection property(empty), but group property is empty (users_group = None)
                 clone = context.active_object.copy()
                 # clone.select = True
                 context.scene.objects.link(clone)

@@ -55,7 +55,7 @@ def defRenderAll(frametype, scenes):
             scene.frame_start = FC
 
         for group, material in proptolist:
-            for object in bpy.data.groups[group].objects:
+            for object in bpy.data.collections[group].objects:
                 lenslots = len(object.material_slots)
                 if object.type in types:
                     if len(object.data.materials):

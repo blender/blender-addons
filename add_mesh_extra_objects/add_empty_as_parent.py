@@ -81,15 +81,15 @@ class P2E(Operator):
         context.object.show_in_front = True
 
         if self.grupo:
-            bpy.ops.group.create(name=self.nombre)
-            bpy.ops.group.objects_add_active()
+            bpy.ops.collection.create(name=self.nombre)
+            bpy.ops.collection.objects_add_active()
 
         for o in objs:
             o.select = True
             if not o.parent:
                 bpy.ops.object.parent_set(type='OBJECT')
             if self.grupo:
-                bpy.ops.group.objects_add_active()
+                bpy.ops.collection.objects_add_active()
             o.select = False
         for o in objs:
             if self.renom:

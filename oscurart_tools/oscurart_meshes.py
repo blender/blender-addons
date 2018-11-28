@@ -659,7 +659,7 @@ class createEditMultimesh(Operator):
         global relvert
         global me
         global ob
-        temp = [[ob , [vert.co for vert in ob.data.vertices]]for ob in bpy.data.groups[bpy.context.scene.multimeshedit].objects]
+        temp = [[ob , [vert.co for vert in ob.data.vertices]]for ob in bpy.data.collections[bpy.context.scene.multimeshedit].objects]
         vi = 0
         pi = 0
         relvert = {}

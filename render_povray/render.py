@@ -2266,10 +2266,10 @@ def write_pov(filename, scene=None, info_callback=None):
                 if ob.data:
                     name_orig = "OB" + ob.name
                     dataname_orig = "DATA" + ob.data.name
-                elif ob.is_duplicator:
-                    if ob.dupli_type == 'GROUP':
+                elif ob.is_instancer:
+                    if ob.instance_type == 'COLLECTION':
                         name_orig = "OB" + ob.name
-                        dataname_orig = "DATA" + ob.dupli_group.name
+                        dataname_orig = "DATA" + ob.instance_collection.name
                     else:
                         #hoping only dupligroups have several source datablocks
                         ob.dupli_list_create(scene)
@@ -2671,7 +2671,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
 
 ############################################else try to export mesh
-                elif ob.is_duplicator == False: #except duplis which should be instances groups for now but all duplis later
+                elif ob.is_instancer == False: #except duplis which should be instances groups for now but all duplis later
                     if ob.type == 'EMPTY':
                         tabWrite("\n//dummy sphere to represent Empty location\n")
                         tabWrite("#declare %s =sphere {<0, 0, 0>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n" % povdataname)
@@ -3216,7 +3216,7 @@ def write_pov(filename, scene=None, info_callback=None):
             duplidata_ref = []
             for ob in sel:
                 #matrix = global_matrix * ob.matrix_world
-                if ob.is_duplicator:
+                if ob.is_instancer:
                     tabWrite("\n//--DupliObjects in %s--\n\n"% ob.name)
                     ob.dupli_list_create(scene)
                     dup = ""
@@ -3228,8 +3228,8 @@ def write_pov(filename, scene=None, info_callback=None):
                     for eachduplicate in ob.dupli_list:
                         duplidataname = "OB"+string_strip_hyphen(bpy.path.clean_name(bpy.data.objects[eachduplicate.object.name].data.name))
                         dup += ("\tobject {\n\t\tDATA%s\n\t\t%s\t}\n" %(string_strip_hyphen(bpy.path.clean_name(bpy.data.objects[eachduplicate.object.name].data.name)), MatrixAsPovString(ob.matrix_world.inverted() * eachduplicate.matrix)))
-                        #add object to a list so that it is not rendered for some dupli_types
-                        if ob.dupli_type not in {'GROUP'} and duplidataname not in duplidata_ref:
+                        #add object to a list so that it is not rendered for some instance_types
+                        if ob.instance_type not in {'COLLECTION'} and duplidataname not in duplidata_ref:
                             duplidata_ref.append(duplidataname) #older key [string_strip_hyphen(bpy.path.clean_name("OB"+ob.name))]
                     dup += "}\n"
                     ob.dupli_list_clear()

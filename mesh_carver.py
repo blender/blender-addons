@@ -1707,7 +1707,7 @@ def Picking(context, event):
             if obj.type == 'MESH':
                 yield (obj, obj.matrix_world.copy())
 
-            if obj.dupli_type != 'NONE':
+            if obj.instance_type != 'NONE':
                 obj.dupli_list_create(scene)
                 for dob in obj.dupli_list:
                     obj_dupli = dob.object

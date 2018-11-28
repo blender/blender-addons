@@ -51,7 +51,7 @@ def check_all_objects_visible(self, context):
     group = scene.ms_lightmap_groups[scene.ms_lightmap_groups_index]
     isAllObjectsVisible = True
     bpy.ops.object.select_all(action='DESELECT')
-    for thisObject in bpy.data.groups[group.name].objects:
+    for thisObject in bpy.data.collections[group.name].objects:
         isThisObjectVisible = False
         # scene.objects.active = thisObject
         for thisLayerNumb in range(20):
@@ -68,7 +68,7 @@ def check_group_exist(self, context, use_report=True):
     scene = context.scene
     group = scene.ms_lightmap_groups[scene.ms_lightmap_groups_index]
 
-    if group.name in bpy.data.groups:
+    if group.name in bpy.data.collections:
         return True
     else:
         if use_report:
@@ -162,7 +162,7 @@ class TexAtl_RunAuto(Operator):
         if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-        if group.bake is True and bpy.data.groups[group.name].objects:
+        if group.bake is True and bpy.data.collections[group.name].objects:
 
             # Check if objects are all on the visible Layers.
             isAllObjVisible = check_all_objects_visible(self, context)
@@ -209,7 +209,7 @@ class TexAtl_RunStart(Operator):
         if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-        if group.bake is True and bpy.data.groups[group.name].objects:
+        if group.bake is True and bpy.data.collections[group.name].objects:
 
             # Check if objects are all on the visible Layers.
             isAllObjVisible = check_all_objects_visible(self, context)
@@ -257,7 +257,7 @@ class TexAtl_RunFinish(Operator):
         if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-        if group.bake is True and bpy.data.groups[group.name].objects:
+        if group.bake is True and bpy.data.collections[group.name].objects:
 
             # Check if objects are all on the visible Layers.
             isAllObjVisible = check_all_objects_visible(self, context)
@@ -354,9 +354,9 @@ class TexAtl_AddSelectedToGroup(Operator):
             scene.ms_lightmap_groups_index].name
 
         # Create a New Group if it was deleted.
-        obj_group = bpy.data.groups.get(group_name)
+        obj_group = bpy.data.collections.get(group_name)
         if obj_group is None:
-            obj_group = bpy.data.groups.new(group_name)
+            obj_group = bpy.data.collections.new(group_name)
 
         # Add objects to  a group
         if bpy.ops.object.mode_set.poll():
@@ -387,7 +387,7 @@ class TexAtl_SelectGroup(Operator):
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         bpy.ops.object.select_all(action='DESELECT')
-        obj_group = bpy.data.groups[group_name]
+        obj_group = bpy.data.collections[group_name]
         for object in obj_group.objects:
             object.select = True
         return {'FINISHED'}
@@ -415,7 +415,7 @@ class TexAtl_RemoveFromGroup(Operator):
         for group in scene.ms_lightmap_groups:
             group_name = group.name
 
-            obj_group = bpy.data.groups[group_name]
+            obj_group = bpy.data.collections[group_name]
             for object in context.selected_objects:
                 scene.objects.active = object
 
@@ -451,7 +451,7 @@ class TexAtl_RemoveOtherUVs(Operator):
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
         # bpy.ops.object.select_all(action='DESELECT')
 
-        obj_group = bpy.data.groups[group_name]
+        obj_group = bpy.data.collections[group_name]
 
         # Remove other UVs of selected objects
         for object in context.selected_objects:
@@ -482,7 +482,7 @@ class TexAtl_AddLightmapGroup(Operator):
 
     def execute(self, context):
         scene = context.scene
-        obj_group = bpy.data.groups.new(self.name)
+        obj_group = bpy.data.collections.new(self.name)
 
         item = scene.ms_lightmap_groups.add()
         item.name = obj_group.name
@@ -513,7 +513,7 @@ class TexAtl_DelLightmapGroup(Operator):
             group_name = scene.ms_lightmap_groups[idx].name
 
             # Remove Group
-            group = bpy.data.groups.get(group_name)
+            group = bpy.data.collections.get(group_name)
             if group is not None:
 
                 # Unhide Objects if they are hidden
@@ -521,7 +521,7 @@ class TexAtl_DelLightmapGroup(Operator):
                     obj.hide_render = False
                     obj.hide = False
 
-                bpy.data.groups.remove(group, do_unlink=True)
+                bpy.data.collections.remove(group, do_unlink=True)
 
             # Remove Lightmap Group
             scene.ms_lightmap_groups.remove(scene.ms_lightmap_groups_index)
@@ -553,7 +553,7 @@ class TexAtl_CreateLightmap(Operator):
         image.generated_type = 'COLOR_GRID'
         image.generated_width = self.resolutionX
         image.generated_height = self.resolutionY
-        obj_group = bpy.data.groups[self.group_name]
+        obj_group = bpy.data.collections[self.group_name]
 
         # non MESH objects for removal list
         NON_MESH_LIST = []
@@ -623,7 +623,7 @@ class TexAtl_MergeObjects(Operator):
 
         # We do the MergeList because we will duplicate grouped objects
         mergeList = []
-        for object in bpy.data.groups[self.group_name].objects:
+        for object in bpy.data.collections[self.group_name].objects:
             mergeList.append(object)
 
         for object in mergeList:
@@ -746,7 +746,7 @@ class TexAtl_SeparateObjects(Operator):
             bpy.ops.object.select_all(action='DESELECT')
             ob_merged.hide = False
             ob_merged.select = True
-            groupSeparate = bpy.data.groups.new(ob_merged.name)
+            groupSeparate = bpy.data.collections.new(ob_merged.name)
             groupSeparate.objects.link(ob_merged)
             ob_merged.select = False
 

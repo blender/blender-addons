@@ -204,11 +204,11 @@ def make_duplicator(target_collection, source_object, matrices):
     triangle_scale = 0.1
 
     duplicator = triangle_object_from_matrices(source_object.name + " Duplicator", matrices, triangle_scale)
-    duplicator.dupli_type = 'FACES'
-    duplicator.use_dupli_faces_scale = True
-    duplicator.show_duplicator_for_viewport = True
-    duplicator.show_duplicator_for_render = False
-    duplicator.dupli_faces_scale = 1 / triangle_scale
+    duplicator.instance_type = 'FACES'
+    duplicator.use_instance_faces_scale = True
+    duplicator.show_instancer_for_viewport = True
+    duplicator.show_instancer_for_render = False
+    duplicator.instance_faces_scale = 1 / triangle_scale
 
     copy_obj = source_object.copy()
     copy_obj.name = source_object.name + " - copy"

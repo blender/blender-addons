@@ -434,7 +434,7 @@ def obMod(ob, active, context):
 
 
 def obGrp(ob, active, context):
-    for grp in bpy.data.groups:
+    for grp in bpy.data.collections:
         if active.name in grp.objects and ob.name not in grp.objects:
             grp.objects.link(ob)
     return('INFO', "Groups copied")

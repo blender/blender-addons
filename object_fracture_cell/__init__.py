@@ -163,9 +163,9 @@ def main_object(scene, obj, level, **kw):
 
     # group
     if group_name:
-        group = bpy.data.groups.get(group_name)
+        group = bpy.data.collections.get(group_name)
         if group is None:
-            group = bpy.data.groups.new(group_name)
+            group = bpy.data.collections.new(group_name)
         group_objects = group.objects[:]
         for obj_cell in objects:
             if obj_cell not in group_objects:

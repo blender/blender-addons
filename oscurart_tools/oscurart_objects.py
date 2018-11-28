@@ -198,7 +198,7 @@ def CopyObjectGroupsAndLayers(self):
                     scene.object_bases[OBJECT.name].layers[:] = list(GLOBALLAYERS)
 
             # REMUEVO DE TODO GRUPO
-            for GROUP in bpy.data.groups[:]:
+            for GROUP in bpy.data.collections[:]:
                 if GROUP in OBJECT.users_group[:]:
                     GROUP.objects.unlink(OBJECT)
 
@@ -342,17 +342,17 @@ class SetLayersToOtherScenes (Operator):
 
 def DefRenderOnlyInCamera():
     # crea grupos
-    if "INCAMERA" not in bpy.data.groups:
-        bpy.data.groups.new("INCAMERA")
-    if "NOTINCAMERA" not in bpy.data.groups:
-        bpy.data.groups.new("NOTINCAMERA")
+    if "INCAMERA" not in bpy.data.collections:
+        bpy.data.collections.new("INCAMERA")
+    if "NOTINCAMERA" not in bpy.data.collections:
+        bpy.data.collections.new("NOTINCAMERA")
 
     # limpio grupos
     for ob in bpy.data.objects:
-        if ob.name in bpy.data.groups["INCAMERA"].objects:
-            bpy.data.groups["INCAMERA"].objects.unlink(ob)
-        if ob.name in bpy.data.groups["NOTINCAMERA"].objects:
-            bpy.data.groups["NOTINCAMERA"].objects.unlink(ob)
+        if ob.name in bpy.data.collections["INCAMERA"].objects:
+            bpy.data.collections["INCAMERA"].objects.unlink(ob)
+        if ob.name in bpy.data.collections["NOTINCAMERA"].objects:
+            bpy.data.collections["NOTINCAMERA"].objects.unlink(ob)
 
     # ordeno grupos
     for ob in bpy.data.objects:
@@ -370,9 +370,9 @@ def DefRenderOnlyInCamera():
         else:
             obs = True
         if obs:
-            bpy.data.groups["INCAMERA"].objects.link(ob)
+            bpy.data.collections["INCAMERA"].objects.link(ob)
         else:
-            bpy.data.groups["NOTINCAMERA"].objects.link(ob)
+            bpy.data.collections["NOTINCAMERA"].objects.link(ob)
 
 
 class RenderOnlyInCamera (Operator):
@@ -528,15 +528,15 @@ class oscDuplicateSymmetricalOp (Operator):
 def DefObjectToGroups():
     try:
         "%s_MSH" % (os.path.basename(bpy.data.filepath).replace(".blend", ""))
-        scgr = bpy.data.groups["%s_MSH" % (os.path.basename(bpy.data.filepath).replace(".blend", ""))]
+        scgr = bpy.data.collections["%s_MSH" % (os.path.basename(bpy.data.filepath).replace(".blend", ""))]
     except:
-        scgr = bpy.data.groups.new(
+        scgr = bpy.data.collections.new(
             "%s_MSH" %
             (os.path.basename(bpy.data.filepath).replace(".blend", "")))
     for ob in bpy.data.objects:
         if ob.select:
             if ob.type == "MESH":
-                gr = bpy.data.groups.new(ob.name)
+                gr = bpy.data.collections.new(ob.name)
                 gr.objects.link(ob)
                 scgr.objects.link(ob)
 

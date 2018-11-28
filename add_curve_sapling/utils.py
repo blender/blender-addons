@@ -1797,17 +1797,17 @@ def addTree(props):
 
         # enable duplication
         if leafShape == 'dFace':
-            leafObj.dupli_type = "FACES"
-            leafObj.use_dupli_faces_scale = True
-            leafObj.dupli_faces_scale = 10.0
+            leafObj.instance_type = "FACES"
+            leafObj.use_instance_faces_scale = True
+            leafObj.instance_faces_scale = 10.0
             try:
                 if leafDupliObj not in "NONE":
                     bpy.data.objects[leafDupliObj].parent = leafObj
             except KeyError:
                 pass
         elif leafShape == 'dVert':
-            leafObj.dupli_type = "VERTS"
-            leafObj.use_dupli_vertices_rotation = True
+            leafObj.instance_type = "VERTS"
+            leafObj.use_instance_vertices_rotation = True
             try:
                 if leafDupliObj not in "NONE":
                     bpy.data.objects[leafDupliObj].parent = leafObj

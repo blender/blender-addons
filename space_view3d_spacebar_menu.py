@@ -850,18 +850,18 @@ class VIEW3D_MT_AddMenu(Menu):
         layout.menu("VIEW3D_MT_object_quick_effects", text="Quick Effects", icon='PARTICLES')
         UseSeparator(self, context)
 
-        has_groups = (len(bpy.data.groups) > 0)
+        has_groups = (len(bpy.data.collections) > 0)
         col_group = layout.column()
         col_group.enabled = has_groups
 
-        if not has_groups or len(bpy.data.groups) > 10:
+        if not has_groups or len(bpy.data.collections) > 10:
             col_group.operator_context = 'INVOKE_REGION_WIN'
-            col_group.operator("object.group_instance_add",
-                                text="Group Instance..." if has_groups else "No Groups in Data",
+            col_group.operator("object.collection_instance_add",
+                                text="Collection Instance..." if has_groups else "No Groups in Data",
                                 icon='GROUP_VERTEX')
         else:
-            col_group.operator_menu_enum("object.group_instance_add", "group",
-                                text="Group Instance", icon='GROUP_VERTEX')
+            col_group.operator_menu_enum("object.collection_instance_add", "collection",
+                                text="Collection Instance", icon='GROUP_VERTEX')
 
 
 # ********** Object Manipulator **********
@@ -1178,12 +1178,12 @@ class VIEW3D_MT_GroupMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("group.create")
-        layout.operator("group.objects_add_active")
+        layout.operator("collection.create")
+        layout.operator("collection.objects_add_active")
         UseSeparator(self, context)
-        layout.operator("group.objects_remove")
-        layout.operator("group.objects_remove_all")
-        layout.operator("group.objects_remove_active")
+        layout.operator("collection.objects_remove")
+        layout.operator("collection.objects_remove_all")
+        layout.operator("collection.objects_remove_active")
 
 
 # ********** Object Camera Options **********

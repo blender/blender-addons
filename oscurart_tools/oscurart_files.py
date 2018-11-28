@@ -97,10 +97,10 @@ class reFreshMissingGroups(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
-        for group in bpy.data.groups:
+        for group in bpy.data.collections:
             if group.library is not None:
                 with bpy.data.libraries.load(group.library.filepath, link=True) as (linked, local):
-                    local.groups = linked.groups
+                    local.collections = linked.collections
         return {'FINISHED'}
 
 

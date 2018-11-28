@@ -208,7 +208,7 @@ class OscPanelMesh(Panel):
         colrow.operator("lattice.mirror_selected", icon="LATTICE_DATA")
         colrow = col.row(align=1)
         colrow.label(text="Edit Multimesh")
-        colrow.prop_search(scene, "multimeshedit", bpy.data, "groups", text="")
+        colrow.prop_search(scene, "multimeshedit", bpy.data, "collections", text="")
         colrow = col.row(align=1)
         colrow.operator("mesh.create_edit_multimesh", icon="IMPORT", text= "StartEdit")
         colrow.operator("mesh.apply_edit_multimesh", icon="EXPORT", text="FinishEdit")

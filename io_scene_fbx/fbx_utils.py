@@ -1192,7 +1192,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
 
     # #### Duplis...
     def dupli_list_gen(self, depsgraph):
-        if self._tag == 'OB' and self.bdata.is_duplicator:
+        if self._tag == 'OB' and self.bdata.is_instancer:
             return (ObjectWrapper(dup) for dup in depsgraph.object_instances
                                        if dup.parent and ObjectWrapper(dup.parent.original) == self)
         return ()

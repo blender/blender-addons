@@ -234,7 +234,7 @@ class Ms3dImporter():
 
         blender_scene = blender_context.scene
 
-        blender_group = blender_context.blend_data.groups.new(
+        blender_group = blender_context.blend_data.collections.new(
                 FORMAT_GROUP.format(ms3d_model.name))
         blender_empty_object = blender_context.blend_data.objects.new(
                 FORMAT_EMPTY_OBJECT.format(ms3d_model.name), None)

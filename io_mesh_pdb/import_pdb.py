@@ -685,7 +685,7 @@ def draw_atoms_one_type(draw_all_atoms_type,
         ball.name = "Ball_"+atom[0]
     ball.active_material = atom[1]
     ball.parent = new_atom_mesh
-    new_atom_mesh.dupli_type = 'VERTS'
+    new_atom_mesh.instance_type = 'VERTS'
     # The object is back translated to 'object_center_vec'.
     new_atom_mesh.location = object_center_vec
 
@@ -858,7 +858,7 @@ def draw_sticks_dupliverts(all_atoms,
         # Parenting the mesh to the cylinder.
         stick_cylinder.parent = new_mesh
         stick_cups.parent = new_mesh
-        new_mesh.dupli_type = 'FACES'
+        new_mesh.instance_type = 'FACES'
         new_mesh.location = center
         atom_object_list.append(new_mesh)
 
