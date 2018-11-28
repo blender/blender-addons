@@ -3761,7 +3761,7 @@ class NodeWranglerPanel(Panel, NWBase):
     bl_idname = "NODE_PT_nw_node_wrangler"
     bl_space_type = 'NODE_EDITOR'
     bl_label = "Node Wrangler"
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_category = "Node Wrangler"
 
     prepend: StringProperty(
