@@ -22,8 +22,8 @@
 bl_info = {
     "name": "Snap_Utilities_Line",
     "author": "Germano Cavalcante",
-    "version": (5, 8, 23),
-    "blender": (2, 80, 0),
+    "version": (5, 8, 24),
+    "blender": (0, 0, 0),
     "location": "View3D > TOOLS > Make Line",
     "description": "Extends Blender Snap controls",
     #"wiki_url" : "http://blenderartists.org/forum/showthread.php?363859-Addon-CAD-Snap-Utilities",
