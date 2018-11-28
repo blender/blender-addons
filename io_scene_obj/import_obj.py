@@ -94,6 +94,7 @@ def create_materials(filepath, relpath,
     assign colors and images to the materials from all referenced material libs
     """
     from math import sqrt
+    from bpy_extras import node_shader_utils
 
     DIR = os.path.dirname(filepath)
     context_material_vars = set()
@@ -176,21 +177,19 @@ def create_materials(filepath, relpath,
         else:
             raise Exception("invalid type %r" % type)
 
-    # Add an MTL with the same name as the obj if no MTLs are spesified.
+    # Try to find a MTL with the same name as the OBJ if no MTLs are specified.
     temp_mtl = os.path.splitext((os.path.basename(filepath)))[0] + ".mtl"
-
     if os.path.exists(os.path.join(DIR, temp_mtl)):
         material_libs.add(temp_mtl)
     del temp_mtl
 
     # Create new materials
     for name in unique_materials:  # .keys()
-        if name is not None:
-            ma = unique_materials[name] = bpy.data.materials.new(name.decode('utf-8', "replace"))
-            from bpy_extras import node_shader_utils
-            ma_wrap = node_shader_utils.PrincipledBSDFWrapper(ma, is_readonly=False)
-            nodal_material_wrap_map[ma] = ma_wrap
-            ma_wrap.use_nodes = True
+        ma_name = "Default OBJ" if name is None else name.decode('utf-8', "replace")
+        ma = unique_materials[name] = bpy.data.materials.new(ma_name)
+        ma_wrap = node_shader_utils.PrincipledBSDFWrapper(ma, is_readonly=False)
+        nodal_material_wrap_map[ma] = ma_wrap
+        ma_wrap.use_nodes = True
 
     for libname in sorted(material_libs):
         # print(libname)
@@ -479,7 +478,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
 
             face_vert_loc_indices[loop_idx] = map_index  # remap to the local index
 
-            if context_material and context_material not in unique_materials_split:
+            if context_material not in unique_materials_split:
                 unique_materials_split[context_material] = unique_materials[context_material]
 
         faces_split.append(face)
@@ -902,6 +901,7 @@ def load(context,
         context_parm = b''  # used by nurbs too but could be used elsewhere
 
         # Until we can use sets
+        use_default_material = False
         unique_materials = {}
         unique_smooth_groups = {}
         # unique_obects= {} - no use for this variable since the objects are stored in the face.
@@ -982,6 +982,8 @@ def load(context,
                         verts_loc_len = len(verts_loc)
                         verts_nor_len = len(verts_nor)
                         verts_tex_len = len(verts_tex)
+                        if context_material is None:
+                            use_default_material = True
                     # Else, use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
 
                     context_multi_line = b'f' if strip_slash(line_split) else b''
@@ -1152,6 +1154,8 @@ def load(context,
 
         progress.step("Done, loading materials and images...")
 
+        if use_default_material:
+            unique_materials[None] = None
         create_materials(filepath, relpath, material_libs, unique_materials,
                          use_image_search, float_func)
 
