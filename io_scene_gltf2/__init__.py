@@ -55,8 +55,8 @@ bl_info = {
 
 
 class GLTF2ExportSettings(bpy.types.Operator):
-    """Save the export settings on export (saved in .blend).
-Toggle off to clear settings"""
+    """Save the export settings on export (saved in .blend). """
+    """Toggle off to clear settings"""
     bl_label = "Save Settings"
     bl_idname = "scene.gltf2_export_settings_set"
 
@@ -570,4 +570,3 @@ def unregister():
     # remove from the export / import menu
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
-
