@@ -154,7 +154,7 @@ def generateThumb(context, cls, preset, engine):
     log("Prepare scene")
     # add plane
     bpy.ops.mesh.primitive_plane_add(
-        radius=1000,
+        size=1000,
         view_align=False,
         enter_editmode=False,
         location=(0, 0, 0)
