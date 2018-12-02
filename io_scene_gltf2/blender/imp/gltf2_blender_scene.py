@@ -45,6 +45,9 @@ class BlenderScene():
         else:
             gltf.blender_scene = pyscene.name
 
+        # Switch to newly created main scene
+        bpy.context.window.scene = bpy.data.scenes[gltf.blender_scene]
+
         # Create Yup2Zup empty
         obj_rotation = bpy.data.objects.new("Yup2Zup", None)
         obj_rotation.rotation_mode = 'QUATERNION'
