@@ -1260,7 +1260,7 @@ def register():
 
     if kc:
         km = kc.keymaps.new(name="Object Mode")
-        kmi = km.keymap_items.new('wm.call_menu', 'Q', 'PRESS')
+        kmi = km.keymap_items.new('wm.call_menu', 'Q', 'PRESS', shift=True)
         kmi.properties.name = "VIEW3D_MT_Coat_Dynamic_Menu"
 
 def unregister():
