@@ -24,6 +24,7 @@ from io_scene_gltf2.blender.exp import gltf2_blender_gather_mesh
 from io_scene_gltf2.blender.exp import gltf2_blender_gather_joints
 from io_scene_gltf2.blender.exp import gltf2_blender_extract
 from io_scene_gltf2.blender.exp import gltf2_blender_gather_lights
+from io_scene_gltf2.blender.exp import gltf2_blender_generate_extras
 from io_scene_gltf2.io.com import gltf2_io
 from io_scene_gltf2.io.com import gltf2_io_extensions
 
@@ -57,8 +58,8 @@ def gather_node(blender_object, export_settings):
     if blender_object.type == 'CAMERA' and export_settings[gltf2_blender_export_keys.CAMERAS]:
         correction_node = __get_correction_node(blender_object, export_settings)
         correction_node.camera = node.camera
-        node.camera = None
         node.children.append(correction_node)
+    node.camera = None
 
     return node
 
@@ -129,6 +130,8 @@ def __gather_extensions(blender_object, export_settings):
 
 
 def __gather_extras(blender_object, export_settings):
+    if export_settings['gltf_extras']:
+        return gltf2_blender_generate_extras.generate_extras(blender_object)
     return None
 
 
@@ -138,18 +141,30 @@ def __gather_matrix(blender_object, export_settings):
 
 
 def __gather_mesh(blender_object, export_settings):
-    if blender_object.type == "MESH":
-        # If not using vertex group, they are irrelevant for caching --> ensure that they do not trigger a cache miss
-        vertex_groups = blender_object.vertex_groups
-        modifiers = blender_object.modifiers
-        if len(vertex_groups) == 0:
-            vertex_groups = None
-        if len(modifiers) == 0:
-            modifiers = None
-
-        return gltf2_blender_gather_mesh.gather_mesh(blender_object.data, vertex_groups, modifiers, export_settings)
-    else:
+    if blender_object.type != "MESH":
         return None
+
+    # If not using vertex group, they are irrelevant for caching --> ensure that they do not trigger a cache miss
+    vertex_groups = blender_object.vertex_groups
+    modifiers = blender_object.modifiers
+    if len(vertex_groups) == 0:
+        vertex_groups = None
+    if len(modifiers) == 0:
+        modifiers = None
+
+    if export_settings[gltf2_blender_export_keys.APPLY]:
+        blender_mesh = blender_object.to_mesh(bpy.context.depsgraph, True)
+        skip_filter = True
+    else:
+        blender_mesh = blender_object.data
+        skip_filter = False
+
+    result = gltf2_blender_gather_mesh.gather_mesh(blender_mesh, vertex_groups, modifiers, skip_filter, export_settings)
+
+    if export_settings[gltf2_blender_export_keys.APPLY]:
+        bpy.data.meshes.remove(blender_mesh)
+
+    return result
 
 
 def __gather_name(blender_object, export_settings):
