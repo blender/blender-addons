@@ -57,11 +57,11 @@ def readtexturefolder(mat_list,texturelist,is_new): #read textures from texture 
         if texture_info[0] == mat_list[0].name:
             if texture_info[2] == 'color' or texture_info[2] == 'diffuse':
                 texcoat['color'].append(texture_info[3])
-            if texture_info[2] == 'metalness' or texture_info[2] == 'specular':
+            if texture_info[2] == 'metalness' or texture_info[2] == 'specular' or texture_info[2] == 'reflection':
                 texcoat['metalness'].append(texture_info[3])
             if texture_info[2] == 'rough' or texture_info[2] == 'roughness':
                 texcoat['rough'].append(texture_info[3])
-            if texture_info[2] == 'nmap' or texture_info[2] == 'normalmap':
+            if texture_info[2] == 'nmap' or texture_info[2] == 'normalmap' or texture_info[2] == 'normal_map':
                 texcoat['nmap'].append(texture_info[3])
             if texture_info[2] == 'emissive':
                 texcoat['emissive'].append(texture_info[3])
