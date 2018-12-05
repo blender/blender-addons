@@ -96,7 +96,7 @@ def __gather_double_sided(blender_material, export_settings):
 
 def __gather_emmissive_factor(blender_material, export_settings):
     emissive_socket = gltf2_blender_get.get_socket_or_texture_slot(blender_material, "Emissive")
-    if isinstance(emissive_socket, bpy.types.NodeSocket):
+    if isinstance(emissive_socket, bpy.types.NodeSocket) and not emissive_socket.is_linked:
         return list(emissive_socket.default_value)[0:3]
     return None
 
