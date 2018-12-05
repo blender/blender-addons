@@ -53,13 +53,7 @@ def render_main(self, context, animation=False):
     settings.color_depth = '8'
     # noinspection PyBroadException
     try:
-        # Get visible layers
-        layers = []
         scene = context.scene
-        for x in range(20):
-            if scene.layers[x] is True:
-                layers.append(x)
-
         # Get object list
         objlist = context.scene.objects
         # --------------------
@@ -102,13 +96,12 @@ def render_main(self, context, animation=False):
         # pixels out of visible area
         cut4 = (col_num * tile_x * 4) - width * 4  # pixels aout of drawing area
         totpixel4 = width * height * 4  # total pixels RGBA
-
         viewport_info = bgl.Buffer(bgl.GL_INT, 4)
         bgl.glGetIntegerv(bgl.GL_VIEWPORT, viewport_info)
 
         # Load image on memory
-        img.gl_load(0, bgl.GL_NEAREST, bgl.GL_NEAREST)
-        tex = img.bindcode[0]
+        img.gl_load(frame=0, filter=bgl.GL_NEAREST, mag=bgl.GL_NEAREST)
+        tex = img.bindcode
 
         # --------------------------------------------
         # Create output image (to apply texture)
@@ -131,7 +124,7 @@ def render_main(self, context, animation=False):
                 bgl.glViewport(0, 0, tile_x, tile_y)
 
                 bgl.glMatrixMode(bgl.GL_PROJECTION)
-                bgl.glLoadIdentity()
+                gpu.matrix.load_identity()
 
                 # defines ortographic view for single tile
                 x1 = tile_x * col
@@ -167,15 +160,10 @@ def render_main(self, context, animation=False):
                 # Loop to draw all lines
                 # -----------------------------
                 for myobj in objlist:
-                    if myobj.hide is False:
+                    if myobj.visible_get() is True:
                         if 'MeasureGenerator' in myobj:
-                            # verify visible layer
-                            for x in range(20):
-                                if myobj.layers[x] is True:
-                                    if x in layers:
-                                        op = myobj.MeasureGenerator[0]
-                                        draw_segments(context, myobj, op, None, None)
-                                    break
+                            op = myobj.MeasureGenerator[0]
+                            draw_segments(context, myobj, op, None, None)
 
                 # -----------------------------
                 # Loop to draw all debug
@@ -197,19 +185,16 @@ def render_main(self, context, animation=False):
                             draw_faces(context, myobj, None, None)
 
                 if scene.measureit_rf is True:
-                    bgl.glColor3f(1.0, 1.0, 1.0)
                     rfcolor = scene.measureit_rf_color
                     rfborder = scene.measureit_rf_border
                     rfline = scene.measureit_rf_line
 
                     bgl.glLineWidth(rfline)
-                    bgl.glColor4f(rfcolor[0], rfcolor[1], rfcolor[2], rfcolor[3])
-
                     x1 = rfborder
                     x2 = width - rfborder
                     y1 = int(ceil(rfborder / (width / height)))
                     y2 = height - y1
-                    draw_rectangle((x1, y1), (x2, y2))
+                    draw_rectangle((x1, y1), (x2, y2), rfcolor)
 
                 # --------------------------------
                 # copy pixels to temporary area
@@ -248,7 +233,6 @@ def render_main(self, context, animation=False):
         # -----------------------
         bgl.glLineWidth(1)
         bgl.glDisable(bgl.GL_BLEND)
-        bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
         # Saves image
         if out is not None and (scene.measureit_render is True or animation is True):
             ren_path = bpy.context.scene.render.filepath
