@@ -36,10 +36,7 @@ class BlenderScene():
             # TODO: There is a bug in 2.8 alpha that break CLEAR_KEEP_TRANSFORM
             # if we are creating a new scene
             scene = bpy.context.scene
-            if bpy.app.version < (2, 80, 0):
-                scene.render.engine = "CYCLES"
-            else:
-                scene.render.engine = "BLENDER_EEVEE"
+            scene.render.engine = "BLENDER_EEVEE"
 
             gltf.blender_scene = scene.name
         else:
