@@ -65,14 +65,17 @@ def render_main(self, context, animation=False):
     # Loop to draw all lines in Offsecreen
     # --------------------------------------
     offscreen = gpu.types.GPUOffScreen(width, height)
-    view_matrix = scene.camera.matrix_world.inverted()
-    projection_matrix = scene.camera.calc_matrix_camera(context.depsgraph, x=width, y=height)
+    view_matrix = Matrix([
+        [2 / width, 0, 0, -1],
+        [0, 2 / height, 0, -1],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]])
 
     with offscreen.bind():
         bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
         gpu.matrix.reset()
         gpu.matrix.load_matrix(view_matrix)
-        gpu.matrix.load_projection_matrix(projection_matrix)
+        gpu.matrix.load_projection_matrix(Matrix.Identity(4))
 
         # -----------------------------
         # Loop to draw all objects
@@ -116,7 +119,7 @@ def render_main(self, context, animation=False):
             draw_rectangle((x1, y1), (x2, y2), rfcolor)
 
         buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
-        bgl.glReadBuffer(bgl.GL_BACK)
+        bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
         bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
 
     offscreen.free()
@@ -148,38 +151,6 @@ def render_main(self, context, animation=False):
 
     # restore default value
     settings.color_depth = depth
-
-
-# --------------------------------------------------------------------
-# Get the final render image and return as image object
-#
-# return None if no render available
-# --------------------------------------------------------------------
-def get_render_image(outpath):
-    saved = False
-    # noinspection PyBroadException
-    try:
-        # noinspection PyBroadException
-        try:
-            result = bpy.data.images['Render Result']
-            if result.has_data is False:
-                # this save produce to fill data image
-                result.save_render(outpath)
-                saved = True
-        except:
-            print("No render image found")
-            return None
-
-        # Save and reload
-        if saved is False:
-            result.save_render(outpath)
-
-        img = img_utils.load_image(outpath)
-
-        return img
-    except:
-        print("Unexpected render image error")
-        return None
 
 
 # -------------------------------------
