@@ -59,6 +59,14 @@ bpy.coat3D = dict()
 bpy.coat3D['active_coat'] = ''
 bpy.coat3D['status'] = 0
 
+def update_exe_path():
+    if (bpy.context.scene.coat3D.coat3D_exe != ''):
+        importfile = bpy.context.scene.coat3D.exchangedir
+        importfile += ('%scoat3D_exe.txt' % (os.sep))
+        file = open(importfile, "w")
+        file.write("%s" % (bpy.context.scene.coat3D.coat3D_exe))
+        file.close()
+
 def folder_size(path):
 
     tosi = True
@@ -79,9 +87,12 @@ def set_exchange_folder():
     Blender_export = ""
 
     if(platform == 'win32'):
-        exchange = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3D-CoatV4' + os.sep +'Exchange'
+        exchange = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3D-CoatV48' + os.sep +'Exchange'
         if not(os.path.isdir(exchange)):
-            exchange = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3D-CoatV3' + os.sep +'Exchange'
+            exchange = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3D-CoatV4' + os.sep +'Exchange'
+        if not (os.path.isdir(exchange)):
+            exchange = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3D-CoatV3' + os.sep + 'Exchange'
+
     else:
         exchange = os.path.expanduser("~") + os.sep + '3D-CoatV4' + os.sep + 'Exchange'
         if not(os.path.isdir(exchange)):
@@ -209,7 +220,7 @@ def updatemesh(objekti, proxy):
         index = 0
         for uv_layer in objekti.data.uv_layers:
             if (uv_layer != objekti.data.uv_layers[0]):
-                proxy.data.uv_layers.new(uv_layer.name)
+                proxy.data.uv_layers.new(name=uv_layer.name)
                 proxy.data.uv_layers.active_index = index
                 objekti.data.uv_layers.active_index = index
                 bpy.ops.object.join_uvs()
@@ -263,26 +274,30 @@ class SCENE_OT_opencoat(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     def invoke(self, context, event):
+
+        update_exe_path()
+
+        exefile = bpy.context.scene.coat3D.exchangedir
+        exefile += ('%scoat3D_exe.txt' % (os.sep))
+        exe_path = ''
+        if (os.path.isfile(exefile)):
+
+            ex_pathh = open(exefile)
+            for line in ex_pathh:
+                exe_path = line
+                break
+            ex_pathh.close()
+
         coat3D = bpy.context.selected_objects[0].coat3D.applink_3b_path
         platform = os.sys.platform
         prog_path = os.environ['PROGRAMFILES']
         if (platform == 'win32'):
-            index = 0
-            for file in os.listdir(prog_path):
-                if index == 0:
-                    if file.startswith('3D-Coat-V4'):
-                        modi = os.path.getmtime(prog_path + os.sep + file)
-                        active_3dcoat = prog_path + os.sep + file
-                        index += 1
-                else:
-                    if file.startswith('3D-Coat-V4'):
-                        if(os.path.getmtime(prog_path + os.sep + file) > modi):
-                            modi = os.path.getmtime(prog_path + os.sep + file)
-                            active_3dcoat = prog_path + os.sep + file
+
+            active_3dcoat = exe_path
 
             if running() == False:
-
-                os.popen('"' + active_3dcoat + os.sep + '3D-CoatDX64C.exe' '" ' + coat3D)
+                print('tulele tanne')
+                os.popen('"' + active_3dcoat + '" ' + coat3D)
             else:
                 importfile = bpy.context.scene.coat3D.exchangedir
                 importfile += ('%simport.txt' % (os.sep))
@@ -316,6 +331,8 @@ class SCENE_OT_export(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     def invoke(self, context, event):
+
+        update_exe_path()
 
         for mesh in bpy.data.meshes:
             if (mesh.users == 0 and mesh.coat3D.name == '3DC'):
@@ -456,6 +473,13 @@ class SCENE_OT_import(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     def invoke(self, context, event):
+
+        update_exe_path()
+
+        for node_group in bpy.data.node_groups:
+            if(node_group.users == 0):
+                bpy.data.node_groups.remove(node_group)
+
         for mesh in bpy.data.meshes:
             if(mesh.users == 0 and mesh.coat3D.name == '3DC'):
                 bpy.data.meshes.remove(mesh)
@@ -563,6 +587,9 @@ class SCENE_OT_import(bpy.types.Operator):
                 objekti = bpy.data.objects[oname]
                 print('BASE_OBJECT:', objekti,objekti.coat3D.applink_address)
                 if(objekti.coat3D.applink_mesh == True):
+                    exportfile = coat3D.exchangedir
+                    path3b_n = coat3D.exchangedir
+                    path3b_n += ('%slast_saved_3b_file.txt' % (os.sep))
                     print('totta vai tarua:',objekti.coat3D.applink_mesh)
                     if(objekti.coat3D.import_mesh and coat3D.importmesh == True):
                         print('ONAME:', oname)
@@ -885,7 +912,7 @@ class SCENE_PT_Settings_Folders(ObjectButtonsPanel, bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.use_property_split = True
+        layout.use_property_split = False
         coat3D = bpy.context.scene.coat3D
 
         rd = context.scene.render
@@ -1044,7 +1071,7 @@ class SceneCoat3D(PropertyGroup):
     )
     coat3D_exe: StringProperty(
         name="FilePath",
-        subtype="DIR_PATH",
+        subtype="FILE_PATH",
     )
     cursor_loc: FloatVectorProperty(
         name="Cursor_loc",
@@ -1164,7 +1191,7 @@ class SceneCoat3D(PropertyGroup):
     importmesh: BoolProperty(
         name="Mesh",
         description="Import Mesh",
-        default=True
+        default=False
     )
 
     # copy location
