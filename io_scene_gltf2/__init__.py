@@ -83,8 +83,10 @@ class ExportGLTF2_Base:
                ('GLTF_SEPARATE', 'glTF Separate (.gltf + .bin + textures)',
                 'Exports multiple files, with separate JSON, binary and texture data. '
                 'Easiest to edit later')),
-        description='Output format and embedding options. Binary is most efficient, '
-                    'but JSON (embedded or separate) may be easier to edit later.',
+        description=(
+            'Output format and embedding options. Binary is most efficient, '
+            'but JSON (embedded or separate) may be easier to edit later'
+        ),
         default='GLB'
     )
 
@@ -519,4 +521,3 @@ def unregister():
     # remove from the export / import menu
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
-
