@@ -581,38 +581,29 @@ class SCENE_OT_import(bpy.types.Operator):
                 for c_index in diff_mat:
                     bpy.data.materials.remove(bpy.data.materials[c_index])
             '''The main Applink Object Loop'''
-            print('objekti lista', object_list)
+
             remove_path = True
             for oname in object_list:
                 objekti = bpy.data.objects[oname]
-                print('BASE_OBJECT:', objekti,objekti.coat3D.applink_address)
                 if(objekti.coat3D.applink_mesh == True):
                     exportfile = coat3D.exchangedir
                     path3b_n = coat3D.exchangedir
                     path3b_n += ('%slast_saved_3b_file.txt' % (os.sep))
-                    print('totta vai tarua:',objekti.coat3D.applink_mesh)
                     if(objekti.coat3D.import_mesh and coat3D.importmesh == True):
-                        print('ONAME:', oname)
                         objekti.coat3D.import_mesh = False
                         objekti.select_set(True)
 
                         use_smooth = objekti.data.polygons[0].use_smooth
-                        print('use smooth:', use_smooth)
 
                         new_name = objekti.data.name
                         name_boxs = new_name.split('.')
-                        print('DIFF_OBJECS:', diff_objects)
-                        print('find name:', name_boxs[0])
                         found_obj = False
 
                         '''Changes objects mesh into proxy mesh'''
 
                         if(objekti.coat3D.type == ''):
                             for proxy_objects in diff_objects:
-                                print('applink obj:', objekti.coat3D.applink_name)
                                 if (proxy_objects.startswith(objekti.coat3D.applink_name + '.')):
-                                    print('Proxy NAME: ', name_boxs[0])
-                                    print('applink obj:', objekti.coat3D.applink_name)
                                     obj_proxy = bpy.data.objects[proxy_objects]
                                     found_obj = True
                         elif(objekti.coat3D.type == 'Voxel' and len(object_list) == 1):
@@ -627,7 +618,6 @@ class SCENE_OT_import(bpy.types.Operator):
                             exportfile = coat3D.exchangedir
                             path3b_n = coat3D.exchangedir
                             path3b_n += ('%slast_saved_3b_file.txt' % (os.sep))
-                            print('osoite:', path3b_n)
                             exportfile += ('%sBlender' % (os.sep))
                             exportfile += ('%sexport.txt'%(os.sep))
                             if(os.path.isfile(exportfile)):
@@ -701,7 +691,6 @@ class SCENE_OT_import(bpy.types.Operator):
                             objekti.select_set(True)
                             if(coat3D.importtextures):
                                 is_new = False
-                                print('aMAT:', mat_list)
                                 tex.matlab(objekti,mat_list,texturelist,is_new)
                             objekti.select_set(False)
                     else:
@@ -713,8 +702,6 @@ class SCENE_OT_import(bpy.types.Operator):
 
                         if (coat3D.importtextures):
                             is_new = False
-                            print('aMAT:', mat_list)
-                            print('aObject', objekti)
                             tex.matlab(objekti,mat_list,texturelist, is_new)
                         objekti.select_set(False)
 
@@ -795,7 +782,6 @@ class SCENE_OT_import(bpy.types.Operator):
                     new_obj.coat3D.objecttime = str(os.path.getmtime(new_obj.coat3D.applink_address))
 
                     new_obj.coat3D.applink_name = new_obj.material_slots[0].material.name
-                    print('namee:', new_obj.coat3D.applink_name)
                     index = index + 1
 
                     new_obj.coat3D.applink_export = True
@@ -805,8 +791,6 @@ class SCENE_OT_import(bpy.types.Operator):
 
                     mat_list.append(new_obj.material_slots[0].material)
                     is_new = True
-                    print('new_obj', new_obj)
-                    print('mat_list', mat_list)
                     tex.matlab(new_obj, mat_list, texturelist, is_new)
                     mat_list.pop()
 

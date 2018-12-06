@@ -142,7 +142,6 @@ def createnodes(active_mat,texcoat): #luo nodes palikat ja linkittaa tekstuurit 
     #seuraavaksi lahdemme rakentamaan node tree. Lahdetaan Material Outputista rakentaa
 
     if(applink_group_node == False and coat3D.creategroup):
-        print('tulleekko tanne')
         group_tree = bpy.data.node_groups.new('3DC_Applink', 'ShaderNodeTree')
         applink_tree = act_material.nodes.new('ShaderNodeGroup')
         applink_tree.name = '3DC_Applink'
@@ -173,7 +172,6 @@ def createnodes(active_mat,texcoat): #luo nodes palikat ja linkittaa tekstuurit 
 
         #Color
         if(bring_color == True and texcoat['color'] != []):
-            print('Tuleeko color tekstuuri kahteen kertaan')
             node = act_material.nodes.new('ShaderNodeTexImage')
             node.name = '3DC_color'
             if (texcoat['color']):
