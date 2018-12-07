@@ -146,7 +146,7 @@ def createnodes(active_mat,texcoat): #luo nodes palikat ja linkittaa tekstuurit 
         group_tree.outputs.new("NodeSocketColor", "Color")
         group_tree.outputs.new("NodeSocketColor", "Metallic")
         group_tree.outputs.new("NodeSocketColor", "Roughness")
-        group_tree.outputs.new("NodeSocketColor", "Normal map")
+        group_tree.outputs.new("NodeSocketVector", "Normal map")
         applink_tree = act_material.nodes.new('ShaderNodeGroup')
         applink_tree.name = '3DC_Applink'
         applink_tree.node_tree = group_tree
@@ -164,8 +164,6 @@ def createnodes(active_mat,texcoat): #luo nodes palikat ja linkittaa tekstuurit 
                         break
             if(index == 1):
                 break
-
-
 
     if(out_mat.inputs['Surface'].is_linked == True):
         main_mat = out_mat.inputs['Surface'].links[0].from_node
@@ -201,7 +199,11 @@ def createnodes(active_mat,texcoat): #luo nodes palikat ja linkittaa tekstuurit 
                 act_material.links.new(node.outputs[0], curvenode.inputs[1])
                 if(coat3D.creategroup):
                     act_material.links.new(huenode.outputs[0], notegroup.inputs[0])
-                    main_material.links.new(applink_tree.outputs[0],main_mat.inputs[input_color])
+                    if(main_mat.type != 'MIX_SHADER'):
+                        main_material.links.new(applink_tree.outputs[0],main_mat.inputs[input_color])
+                    else:
+                        location = main_mat.location
+                        applink_tree.location = main_mat.location[0], main_mat.location[1] + 200
                 else:
                     act_material.links.new(huenode.outputs[0], main_mat.inputs[input_color])
                 node.location = -990, 530
@@ -231,6 +233,9 @@ def createnodes(active_mat,texcoat): #luo nodes palikat ja linkittaa tekstuurit 
                 curvenode.name = '3DC_RGBCurve'
                 huenode = act_material.nodes.new('ShaderNodeHueSaturation')
                 huenode.name = '3DC_HueSaturation'
+
+                act_material.links.new(curvenode.outputs[0], huenode.inputs[4])
+                act_material.links.new(node.outputs[0], curvenode.inputs[1])
 
                 if (coat3D.creategroup):
                     act_material.links.new(huenode.outputs[0], notegroup.inputs[1])
@@ -268,6 +273,9 @@ def createnodes(active_mat,texcoat): #luo nodes palikat ja linkittaa tekstuurit 
                 curvenode.name = '3DC_RGBCurve'
                 huenode = act_material.nodes.new('ShaderNodeHueSaturation')
                 huenode.name = '3DC_HueSaturation'
+
+                act_material.links.new(curvenode.outputs[0], huenode.inputs[4])
+                act_material.links.new(node.outputs[0], curvenode.inputs[1])
 
                 if (coat3D.creategroup):
                     act_material.links.new(huenode.outputs[0], notegroup.inputs[2])
