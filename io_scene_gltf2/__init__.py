@@ -274,7 +274,7 @@ class ExportGLTF2_Base:
                     setattr(self, k, v)
                 self.will_save_settings = True
 
-            except AttributeError:
+            except (AttributeError, TypeError):
                 self.report({"ERROR"}, "Loading export settings failed. Removed corrupted settings")
                 del context.scene[self.scene_key]
 
@@ -283,7 +283,7 @@ class ExportGLTF2_Base:
     def save_settings(self, context):
         # find all export_ props
         all_props = self.properties
-        export_props = {x: all_props.get(x) for x in dir(all_props)
+        export_props = {x: getattr(self, x) for x in dir(all_props)
                         if x.startswith("export_") and all_props.get(x) is not None}
 
         context.scene[self.scene_key] = export_props
@@ -521,3 +521,4 @@ def unregister():
     # remove from the export / import menu
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+
