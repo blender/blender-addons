@@ -508,13 +508,17 @@ class SCENE_OT_import(bpy.types.Operator):
                 if(image.filepath == texturepath[3] and image.users == 0):
                     bpy.data.images.remove(image)
 
-        Blender_folder = ("%s%sBlender"%(coat3D.exchangedir,os.sep))
+
+        kokeilu = coat3D.exchangedir[:-10]
+        Blender_folder = ("%s%sExchange%sBlender"%(kokeilu,os.sep,os.sep))
         Blender_export = Blender_folder
         path3b_now = coat3D.exchangedir
         path3b_now += ('last_saved_3b_file.txt')
         Blender_export += ('%sexport.txt'%(os.sep))
         new_applink_address = 'False'
         new_object = False
+
+        print('Blender_export: ', Blender_export)
         if(os.path.isfile(Blender_export)):
             obj_pathh = open(Blender_export)
             new_object = True
@@ -533,7 +537,7 @@ class SCENE_OT_import(bpy.types.Operator):
         exportfile += ('%sexport.txt' % (os.sep))
         if (os.path.isfile(exportfile)):
             os.remove(exportfile)
-
+        print('new_object=', new_object)
         if(new_object == False):
 
             '''
@@ -749,7 +753,7 @@ class SCENE_OT_import(bpy.types.Operator):
             old_materials = bpy.data.materials.keys()
             old_objects = bpy.data.objects.keys()
 
-            bpy.ops.import_scene.fbx(filepath=new_applink_address, global_scale = 0.0001,axis_forward='X', axis_up='Z')
+            bpy.ops.import_scene.fbx(filepath=new_applink_address, global_scale = 0.0001, use_manual_orientation=True, axis_forward='X', axis_up='Y')
 
             new_materials = bpy.data.materials.keys()
             new_objects = bpy.data.objects.keys()
@@ -774,7 +778,7 @@ class SCENE_OT_import(bpy.types.Operator):
                     nimi += new_obj.data.name + ':::'
                     new_obj.select_set(True)
                     #bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
-                    new_obj.rotation_euler = (0, 0, 0)
+                    #new_obj.rotation_euler = (0, 0, 0)
                     new_obj.scale = (1, 1, 1)
                     new_obj.coat3D.applink_firsttime = False
                     new_obj.select_set(False)
