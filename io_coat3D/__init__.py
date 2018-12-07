@@ -555,12 +555,13 @@ class SCENE_OT_import(bpy.types.Operator):
                     if(obj_coat.applink_mesh == True):
                         object_list.append(objekti.name)
 
-                        if (obj_coat.objecttime != str(os.path.getmtime(obj_coat.applink_address))):
-                            obj_coat.dime = objekti.dimensions
-                            obj_coat.import_mesh = True
-                            obj_coat.objecttime = str(os.path.getmtime(obj_coat.applink_address))
-                            if(obj_coat.applink_address not in import_list):
-                                import_list.append(obj_coat.applink_address)
+                        if(os.path.isfile(obj_coat.applink_address)):
+                            if (obj_coat.objecttime != str(os.path.getmtime(obj_coat.applink_address))):
+                                obj_coat.dime = objekti.dimensions
+                                obj_coat.import_mesh = True
+                                obj_coat.objecttime = str(os.path.getmtime(obj_coat.applink_address))
+                                if(obj_coat.applink_address not in import_list):
+                                    import_list.append(obj_coat.applink_address)
 
             if(import_list or coat3D.importmesh):
                 for list in import_list:

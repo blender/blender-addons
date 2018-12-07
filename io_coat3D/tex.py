@@ -142,7 +142,11 @@ def createnodes(active_mat,texcoat): #luo nodes palikat ja linkittaa tekstuurit 
     #seuraavaksi lahdemme rakentamaan node tree. Lahdetaan Material Outputista rakentaa
 
     if(applink_group_node == False and coat3D.creategroup):
-        group_tree = bpy.data.node_groups.new('3DC_Applink', 'ShaderNodeTree')
+        group_tree = bpy.data.node_groups.new( type="ShaderNodeTree", name="3DC_Applink")
+        group_tree.outputs.new("NodeSocketColor", "Color")
+        group_tree.outputs.new("NodeSocketColor", "Metallic")
+        group_tree.outputs.new("NodeSocketColor", "Roughness")
+        group_tree.outputs.new("NodeSocketColor", "Normal map")
         applink_tree = act_material.nodes.new('ShaderNodeGroup')
         applink_tree.name = '3DC_Applink'
         applink_tree.node_tree = group_tree
@@ -192,17 +196,17 @@ def createnodes(active_mat,texcoat): #luo nodes palikat ja linkittaa tekstuurit 
                 curvenode.name = '3DC_RGBCurve'
                 huenode = act_material.nodes.new('ShaderNodeHueSaturation')
                 huenode.name = '3DC_HueSaturation'
-                act_material.links.new(huenode.outputs[0], main_mat.inputs[input_color])
+
                 act_material.links.new(curvenode.outputs[0], huenode.inputs[4])
                 act_material.links.new(node.outputs[0], curvenode.inputs[1])
+                if(coat3D.creategroup):
+                    act_material.links.new(huenode.outputs[0], notegroup.inputs[0])
+                    main_material.links.new(applink_tree.outputs[0],main_mat.inputs[input_color])
+                else:
+                    act_material.links.new(huenode.outputs[0], main_mat.inputs[input_color])
                 node.location = -990, 530
                 curvenode.location = -660, 480
                 huenode.location = -337, 335
-
-                if(coat3D.creategroup):
-                    act_material.links.new(huenode.outputs[0], notegroup.inputs[len(notegroup.inputs)-1])
-                    group_tree.outputs[len(group_tree.outputs)-1].name = 'Color'
-                    main_material.links.new(applink_tree.outputs[len(applink_tree.outputs)-1], main_mat.inputs[input_color])
             else:
                 if (coat3D.creategroup):
                     node.location = -400, 400
@@ -227,17 +231,18 @@ def createnodes(active_mat,texcoat): #luo nodes palikat ja linkittaa tekstuurit 
                 curvenode.name = '3DC_RGBCurve'
                 huenode = act_material.nodes.new('ShaderNodeHueSaturation')
                 huenode.name = '3DC_HueSaturation'
-                act_material.links.new(huenode.outputs[0], main_mat.inputs[input_color])
-                act_material.links.new(curvenode.outputs[0], huenode.inputs[4])
-                act_material.links.new(node.outputs[0], curvenode.inputs[1])
+
+                if (coat3D.creategroup):
+                    act_material.links.new(huenode.outputs[0], notegroup.inputs[1])
+                    if (main_mat.type == 'BSDF_PRINCIPLED'):
+                        main_material.links.new(applink_tree.outputs[1], main_mat.inputs[input_color])
+                else:
+                    act_material.links.new(huenode.outputs[0], main_mat.inputs[input_color])
+
                 node.location = -994, 119
                 curvenode.location = -668, 113
                 huenode.location = -345, 118
-                if (coat3D.creategroup):
-                    act_material.links.new(huenode.outputs[0], notegroup.inputs[len(notegroup.inputs)-1])
-                    group_tree.outputs[len(group_tree.outputs) - 1].name = 'Metalness'
-                    if (input_color != -1):
-                        main_material.links.new(applink_tree.outputs[len(applink_tree.outputs)-1], main_mat.inputs[input_color])
+
             else:
                 if (coat3D.creategroup):
                     node.location = -830, 160
@@ -258,61 +263,42 @@ def createnodes(active_mat,texcoat): #luo nodes palikat ja linkittaa tekstuurit 
                 node.image = bpy.data.images.load(texcoat['rough'][0])
                 node.color_space = 'NONE'
 
-            if(main_mat.type == 'EMISSION'):
+            if (coat3D.createnodes):
+                curvenode = act_material.nodes.new('ShaderNodeRGBCurve')
+                curvenode.name = '3DC_RGBCurve'
+                huenode = act_material.nodes.new('ShaderNodeHueSaturation')
+                huenode.name = '3DC_HueSaturation'
 
-                input_color = main_mat.inputs.find('Strength')
+                if (coat3D.creategroup):
+                    act_material.links.new(huenode.outputs[0], notegroup.inputs[2])
+                    if(main_mat.type == 'BSDF_PRINCIPLED'):
+                        main_material.links.new(applink_tree.outputs[2], main_mat.inputs[input_color])
+                else:
+                    act_material.links.new(huenode.outputs[0], main_mat.inputs[input_color])
 
-                rgbTObw = act_material.nodes.new('ShaderNodeRGBToBW')
-                rgbTObw.name = '3DC_RGBToBW'
-                mathnode = main_material.nodes.new('ShaderNodeMath')
-                mathnode.name = '3DC_Math'
-                mathnode.operation = 'MULTIPLY'
-                mathnode.label = 'Emission multiply'
                 node.location = -1000, -276
-                rgbTObw.location = -670, -245
-                mathnode.location = -300,0
-                act_material.links.new(node.outputs[0], rgbTObw.inputs[0])
-                if(coat3D.creategroup):
-                    act_material.links.new(rgbTObw.outputs[0], notegroup.inputs[len(notegroup.inputs) - 1])
-                if(coat3D.creategroup):
-                    if (input_color != -1):
-                        main_material.links.new(applink_tree.outputs[len(applink_tree.outputs) - 1], mathnode.inputs[0])
-                        #main_material.links.new(mathnode.outputs[0], main_mat.inputs[1])
+                curvenode.location = -670, -245
+                huenode.location = -340, -100
 
             else:
-                if (coat3D.createnodes):
-                    curvenode = act_material.nodes.new('ShaderNodeRGBCurve')
-                    curvenode.name = '3DC_RGBCurve'
-                    huenode = act_material.nodes.new('ShaderNodeHueSaturation')
-                    huenode.name = '3DC_HueSaturation'
-                    act_material.links.new(huenode.outputs[0], main_mat.inputs[input_color])
-                    act_material.links.new(curvenode.outputs[0], huenode.inputs[4])
-                    act_material.links.new(node.outputs[0], curvenode.inputs[1])
-                    node.location = -1000, -276
-                    curvenode.location = -670, -245
-                    huenode.location = -340, -100
-                    if (coat3D.creategroup):
-                        act_material.links.new(huenode.outputs[0], notegroup.inputs[len(notegroup.inputs)-1])
-                        group_tree.outputs[len(group_tree.outputs) - 1].name = 'Roughness'
+                if (coat3D.creategroup):
+                    node.location = -550, 0
+                    act_material.links.new(node.outputs[0],notegroup.inputs[len(notegroup.inputs)-1])
+                    if (input_color != -1):
                         main_material.links.new(applink_tree.outputs[len(applink_tree.outputs)-1], main_mat.inputs[input_color])
 
                 else:
-                    if (coat3D.creategroup):
-                        node.location = -550, 0
-                        act_material.links.new(node.outputs[0],notegroup.inputs[len(notegroup.inputs)-1])
-                        if (input_color != -1):
-                            main_material.links.new(applink_tree.outputs[len(applink_tree.outputs)-1], main_mat.inputs[input_color])
-
-                    else:
-                        node.location = -550, 0
-                        if (input_color != -1):
-                            act_material.links.new(node.outputs[0], main_mat.inputs[input_color])
+                    node.location = -550, 0
+                    if (input_color != -1):
+                        act_material.links.new(node.outputs[0], main_mat.inputs[input_color])
         #Normal map
         if(bring_normal == True and texcoat['nmap'] != []):
             node = act_material.nodes.new('ShaderNodeTexImage')
             normal_node = act_material.nodes.new('ShaderNodeNormalMap')
+
             node.location = -600,-670
             normal_node.location = -300,-300
+
             node.name='3DC_normal'
             normal_node.name='3DC_normalnode'
             if(texcoat['nmap']):
@@ -322,9 +308,9 @@ def createnodes(active_mat,texcoat): #luo nodes palikat ja linkittaa tekstuurit 
             act_material.links.new(node.outputs[0], normal_node.inputs[1])
             act_material.links.new(normal_node.outputs[0], main_mat.inputs[input_color])
             if (coat3D.creategroup):
-                act_material.links.new(normal_node.outputs[0], notegroup.inputs[len(notegroup.inputs)-1])
+                act_material.links.new(normal_node.outputs[0], notegroup.inputs[3])
                 if(main_mat.inputs[input_color].name == 'Normal'):
-                    main_material.links.new(applink_tree.outputs[len(applink_tree.outputs)-1], main_mat.inputs[input_color])
+                    main_material.links.new(applink_tree.outputs[3], main_mat.inputs[input_color])
 
 
 def matlab(objekti,mat_list,texturelist,is_new):
