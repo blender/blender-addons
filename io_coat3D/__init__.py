@@ -527,7 +527,7 @@ class SCENE_OT_import(bpy.types.Operator):
                 break
             obj_pathh.close()
 
-            for scene_objects in bpy.context.collection.objects:
+            for scene_objects in bpy.context.collection.all_objects:
                 if(scene_objects.type == 'MESH'):
                     if(scene_objects.coat3D.applink_address == new_applink_address):
                         new_object = False
