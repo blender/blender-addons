@@ -957,6 +957,32 @@ class SCENE_PT_Settings_Folders(ObjectButtonsPanel, bpy.types.Panel):
         col = flow.column()
         col.prop(coat3D, "coat3D_exe", text="3D-Coat.exe")
 
+# 3D-Coat Dynamic Menu
+class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
+    bl_label = "3D-Coat Applink Menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        ob = context
+        if ob.mode == 'OBJECT':
+            if(len(context.selected_objects) > 0):
+                layout.operator("import_applink.pilgway_3d_coat", text="Update Scene")
+                layout.separator()
+
+                layout.operator("export_applink.pilgway_3d_coat", text="Copy selected object(s) into 3D-Coat")
+                layout.separator()
+                if(context.selected_objects[0].coat3D.applink_3b_path != ''):
+                    layout.operator("open_3dcoat.pilgway_3d_coat", text="Open .3b file" +context.selected_objects[0].coat3D.applink_3b_just_name)
+                    layout.separator()
+
+            else:
+                layout.operator("import_applink.pilgway_3d_coat", text="Update Scene")
+                layout.separator()
+
+
 
 class ObjectCoat3D(PropertyGroup):
 
@@ -1231,6 +1257,7 @@ classes = (
     SCENE_OT_opencoat,
     SCENE_OT_export,
     SCENE_OT_import,
+    VIEW3D_MT_Coat_Dynamic_Menu,
     ObjectCoat3D,
     SceneCoat3D,
     MeshCoat3D,
