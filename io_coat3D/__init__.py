@@ -649,15 +649,15 @@ class SCENE_OT_import(bpy.types.Operator):
                             bpy.ops.object.select_all(action='TOGGLE')
 
                             if objekti.coat3D.applink_firsttime == True and objekti.coat3D.type == 'vox':
-                                #objekti.scale = (objekti.scale[0] / objekti.coat3D.applink_scale[0], objekti.scale[1] / objekti.coat3D.applink_scale[1], objekti.scale[2] / objekti.coat3D.applink_scale[2])
-                                #bpy.ops.object.transforms_to_deltas(mode='SCALE')
+                                objekti.select_set(True)
+
                                 objekti.rotation_euler[0] = 1.5708
                                 objekti.rotation_euler[2] = 1.5708
                                 bpy.ops.object.transforms_to_deltas(mode='ROT')
-                                #objekti.rotation_euler = (0, 0, 0)
-                                objekti.scale = (0.02, 0.02, 0.02)
+                                objekti.scale = (0.01, 0.01, 0.01)
                                 bpy.ops.object.transforms_to_deltas(mode='SCALE')
                                 objekti.coat3D.applink_firsttime = False
+                                objekti.select_set(False)
 
                             elif objekti.coat3D.applink_firsttime == True:
                                 objekti.scale = (objekti.scale[0]/objekti.coat3D.applink_scale[0],objekti.scale[1]/objekti.coat3D.applink_scale[1],objekti.scale[2]/objekti.coat3D.applink_scale[2])
@@ -746,8 +746,6 @@ class SCENE_OT_import(bpy.types.Operator):
                     else:
                         bpy.context.collection.all_objects[del_obj].select_set(True)
                         bpy.ops.object.delete()
-
-
 
         else:
 

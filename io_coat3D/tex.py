@@ -49,11 +49,14 @@ def readtexturefolder(objekti, mat_list, texturelist, is_new): #read textures fr
 
         texcoat = {}
         texcoat['color'] = []
-        texcoat['metalness'] = []
+        texcoat['ao'] = []
         texcoat['rough'] = []
+        texcoat['metalness'] = []
         texcoat['nmap'] = []
         texcoat['disp'] = []
         texcoat['emissive'] = []
+        texcoat['emissive_power'] = []
+        texcoat['displacement'] = []
 
 
         for texture_info in texturelist:
@@ -72,6 +75,15 @@ def readtexturefolder(objekti, mat_list, texturelist, is_new): #read textures fr
                     create_nodes = True
                 if texture_info[2] == 'emissive':
                     texcoat['emissive'].append(texture_info[3])
+                    create_nodes = True
+                if texture_info[2] == 'emissive_power':
+                    texcoat['emissive_power'].append(texture_info[3])
+                    create_nodes = True
+                if texture_info[2] == 'ao':
+                    texcoat['ao'].append(texture_info[3])
+                    create_nodes = True
+                if texture_info[2].startswith('displacement'):
+                    texcoat['displacement'].append(texture_info[3])
                     create_nodes = True
 
         if(create_nodes):
@@ -147,6 +159,10 @@ def createnodes(active_mat,texcoat): #luo nodes palikat ja linkittaa tekstuurit 
         group_tree.outputs.new("NodeSocketColor", "Metallic")
         group_tree.outputs.new("NodeSocketColor", "Roughness")
         group_tree.outputs.new("NodeSocketVector", "Normal map")
+        group_tree.outputs.new("NodeSocketColor", "Displacement")
+        group_tree.outputs.new("NodeSocketColor", "Emissive")
+        group_tree.outputs.new("NodeSocketColor", "Emissive Power")
+        group_tree.outputs.new("NodeSocketColor", "AO")
         applink_tree = act_material.nodes.new('ShaderNodeGroup')
         applink_tree.name = '3DC_Applink'
         applink_tree.node_tree = group_tree
@@ -174,20 +190,11 @@ def createnodes(active_mat,texcoat): #luo nodes palikat ja linkittaa tekstuurit 
 
         #Color
         if(bring_color == True and texcoat['color'] != []):
+            print('Color:', texcoat['color'][0])
             node = act_material.nodes.new('ShaderNodeTexImage')
             node.name = '3DC_color'
             if (texcoat['color']):
-                sameimage = False
-                for image in bpy.data.images:
-                    if(image.filepath == texcoat['color'][0]):
-                        sameimage = True
-                        imagename = image
-                        break
-
-                if sameimage == True:
-                    node.image = imagename
-                else:
-                    node.image = bpy.data.images.load(texcoat['color'][0])
+               node.image = bpy.data.images.load(texcoat['color'][0])
 
             if(coat3D.createnodes):
                 curvenode = act_material.nodes.new('ShaderNodeRGBCurve')
