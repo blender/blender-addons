@@ -857,6 +857,13 @@ class SCENE_PT_Main(bpy.types.Panel):
     bl_region_type = "UI"
     bl_category = 'View'
 
+    @classmethod
+    def poll(cls, context):
+        if bpy.context.mode == 'OBJECT':
+            return True
+        else:
+            return False
+
     def draw(self, context):
         layout = self.layout
         coat = bpy.coat3D
@@ -874,6 +881,7 @@ class SCENE_PT_Main(bpy.types.Panel):
             row.operator("update_exchange_folder.pilgway_3d_coat", text="Apply folder")
 
         else:
+
             #Here you add your GUI
             row = layout.row()
             row.prop(coat3D,"type",text = "")
@@ -884,6 +892,9 @@ class SCENE_PT_Main(bpy.types.Panel):
             col.operator("export_applink.pilgway_3d_coat", text="Transfer")
             col = flow.column()
             col.operator("import_applink.pilgway_3d_coat", text="Update")
+
+
+
 
 class ObjectButtonsPanel():
     bl_space_type = 'PROPERTIES'
