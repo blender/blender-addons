@@ -2184,10 +2184,12 @@ def fbx_data_from_scene(scene, depsgraph, settings):
                 # No need to create a new mesh in this case, if no modifier is active!
                 for mod in ob.modifiers:
                     # For meshes, when armature export is enabled, disable Armature modifiers here!
+                    # XXX Temp hacks here since currently we only have access to a viewport depsgraph...
                     if mod.type == 'ARMATURE' and 'ARMATURE' in settings.object_types:
-                        tmp_mods.append((mod, mod.show_render))
+                        tmp_mods.append((mod, mod.show_render, mod.show_viewport))
                         mod.show_render = False
-                    if mod.show_render:
+                        mod.show_viewport = False
+                    if mod.show_render or mod.show_viewport:
                         use_org_data = False
             if not use_org_data:
                 tmp_me = ob.to_mesh(
@@ -2195,8 +2197,9 @@ def fbx_data_from_scene(scene, depsgraph, settings):
                     apply_modifiers=settings.use_mesh_modifiers)
                 data_meshes[ob_obj] = (get_blenderID_key(tmp_me), tmp_me, True)
             # Re-enable temporary disabled modifiers.
-            for mod, show_render in tmp_mods:
+            for mod, show_render, show_viewport in tmp_mods:
                 mod.show_render = show_render
+                mod.show_viewport = show_viewport
         if use_org_data:
             data_meshes[ob_obj] = (get_blenderID_key(ob.data), ob.data, False)
 
