@@ -29,12 +29,14 @@ from bpy.props import (
     FloatProperty,
 )
 
-from .. import common
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
 __all__ = [
     'Properties',
-    'Operator',
+    'MUV_OT_UnwrapConstraint',
 ]
 
 
@@ -59,7 +61,10 @@ def is_valid_context(context):
     return True
 
 
+@PropertyClassRegistry(legacy=True)
 class Properties:
+    idname = "unwrap_constraint"
+
     @classmethod
     def init_props(cls, scene):
         scene.muv_unwrap_constraint_enabled = BoolProperty(
@@ -85,7 +90,8 @@ class Properties:
         del scene.muv_unwrap_constraint_v_const
 
 
-class Operator(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_UnwrapConstraint(bpy.types.Operator):
     """
     Operation class: Unwrap with constrain UV coordinate
     """

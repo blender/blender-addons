@@ -25,18 +25,21 @@ __date__ = "17 Nov 2018"
 
 import bpy
 
-from ..op import align_uv
-from ..op import smooth_uv
-from ..op import pack_uv
-from ..op import select_uv
-
+from ..op import (
+    align_uv,
+    smooth_uv,
+    pack_uv,
+    select_uv,
+)
+from ...utils.bl_class_registry import BlClassRegistry
 
 __all__ = [
-    'MenuUVManipulation',
+    'MUV_PT_UVEdit_UVManipulation',
 ]
 
 
-class MenuUVManipulation(bpy.types.Panel):
+@BlClassRegistry(legacy=True)
+class MUV_PT_UVEdit_UVManipulation(bpy.types.Panel):
     """
     Panel class: UV Manipulation on Property Panel on UV/ImageEditor
     """
@@ -61,11 +64,11 @@ class MenuUVManipulation(bpy.types.Panel):
         if sc.muv_align_uv_enabled:
             col = box.column()
             row = col.row(align=True)
-            ops = row.operator(align_uv.OperatorCircle.bl_idname,
+            ops = row.operator(align_uv.MUV_OT_AlignUV_Circle.bl_idname,
                                text="Circle")
             ops.transmission = sc.muv_align_uv_transmission
             ops.select = sc.muv_align_uv_select
-            ops = row.operator(align_uv.OperatorStraighten.bl_idname,
+            ops = row.operator(align_uv.MUV_OT_AlignUV_Straighten.bl_idname,
                                text="Straighten")
             ops.transmission = sc.muv_align_uv_transmission
             ops.select = sc.muv_align_uv_select
@@ -73,7 +76,8 @@ class MenuUVManipulation(bpy.types.Panel):
             ops.horizontal = sc.muv_align_uv_horizontal
             ops.mesh_infl = sc.muv_align_uv_mesh_infl
             row = col.row()
-            ops = row.operator(align_uv.OperatorAxis.bl_idname, text="XY-axis")
+            ops = row.operator(align_uv.MUV_OT_AlignUV_Axis.bl_idname,
+                               text="XY-axis")
             ops.transmission = sc.muv_align_uv_transmission
             ops.select = sc.muv_align_uv_select
             ops.vertical = sc.muv_align_uv_vertical
@@ -94,7 +98,7 @@ class MenuUVManipulation(bpy.types.Panel):
         box = layout.box()
         box.prop(sc, "muv_smooth_uv_enabled", text="Smooth UV")
         if sc.muv_smooth_uv_enabled:
-            ops = box.operator(smooth_uv.Operator.bl_idname,
+            ops = box.operator(smooth_uv.MUV_OT_SmoothUV.bl_idname,
                                text="Smooth")
             ops.transmission = sc.muv_smooth_uv_transmission
             ops.select = sc.muv_smooth_uv_select
@@ -109,13 +113,13 @@ class MenuUVManipulation(bpy.types.Panel):
         box.prop(sc, "muv_select_uv_enabled", text="Select UV")
         if sc.muv_select_uv_enabled:
             row = box.row(align=True)
-            row.operator(select_uv.OperatorSelectOverlapped.bl_idname)
-            row.operator(select_uv.OperatorSelectFlipped.bl_idname)
+            row.operator(select_uv.MUV_OT_SelectUV_SelectOverlapped.bl_idname)
+            row.operator(select_uv.MUV_OT_SelectUV_SelectFlipped.bl_idname)
 
         box = layout.box()
         box.prop(sc, "muv_pack_uv_enabled", text="Pack UV (Extension)")
         if sc.muv_pack_uv_enabled:
-            ops = box.operator(pack_uv.Operator.bl_idname, text="Pack UV")
+            ops = box.operator(pack_uv.MUV_OT_PackUV.bl_idname, text="Pack UV")
             ops.allowable_center_deviation = \
                 sc.muv_pack_uv_allowable_center_deviation
             ops.allowable_size_deviation = \

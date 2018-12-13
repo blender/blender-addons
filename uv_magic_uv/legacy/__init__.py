@@ -25,22 +25,14 @@ __date__ = "17 Nov 2018"
 
 if "bpy" in locals():
     import importlib
-    importlib.reload(copy_paste_uv)
-    importlib.reload(copy_paste_uv_object)
-    importlib.reload(copy_paste_uv_uvedit)
-    importlib.reload(flip_rotate_uv)
-    importlib.reload(mirror_uv)
-    importlib.reload(move_uv)
-    importlib.reload(transfer_uv)
-    importlib.reload(uvw)
+    importlib.reload(op)
+    importlib.reload(ui)
+    importlib.reload(properites)
+    importlib.reload(preferences)
 else:
-    from . import copy_paste_uv
-    from . import copy_paste_uv_object
-    from . import copy_paste_uv_uvedit
-    from . import flip_rotate_uv
-    from . import mirror_uv
-    from . import move_uv
-    from . import transfer_uv
-    from . import uvw
+    from . import op
+    from . import ui
+    from . import properites
+    from . import preferences
 
 import bpy

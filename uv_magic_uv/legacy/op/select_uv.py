@@ -27,13 +27,15 @@ import bpy
 import bmesh
 from bpy.props import BoolProperty
 
-from .. import common
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
 __all__ = [
     'Properties',
-    'OperatorSelectFlipped',
-    'OperatorSelectOverlapped',
+    'MUV_OT_SelectUV_SelectFlipped',
+    'MUV_OT_SelectUV_SelectOverlapped',
 ]
 
 
@@ -60,7 +62,10 @@ def is_valid_context(context):
     return True
 
 
+@PropertyClassRegistry(legacy=True)
 class Properties:
+    idname = "select_uv"
+
     @classmethod
     def init_props(cls, scene):
         scene.muv_select_uv_enabled = BoolProperty(
@@ -74,7 +79,8 @@ class Properties:
         del scene.muv_select_uv_enabled
 
 
-class OperatorSelectOverlapped(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_SelectUV_SelectOverlapped(bpy.types.Operator):
     """
     Operation class: Select faces which have overlapped UVs
     """
@@ -118,7 +124,8 @@ class OperatorSelectOverlapped(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class OperatorSelectFlipped(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_SelectUV_SelectFlipped(bpy.types.Operator):
     """
     Operation class: Select faces which have flipped UVs
     """

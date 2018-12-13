@@ -26,20 +26,21 @@ __date__ = "17 Nov 2018"
 import bpy
 
 from ..op import copy_paste_uv_uvedit
-
+from ..utils.bl_class_registry import BlClassRegistry
 
 __all__ = [
-    'PanelCopyPasteUV',
+    'MUV_PT_UVEdit_CopyPasteUV',
 ]
 
 
-class PanelCopyPasteUV(bpy.types.Panel):
+@BlClassRegistry()
+class MUV_PT_UVEdit_CopyPasteUV(bpy.types.Panel):
     """
     Panel class: Copy/Paste UV on Property Panel on UV/ImageEditor
     """
 
     bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'TOOLS'
+    bl_region_type = 'UI'
     bl_label = "Copy/Paste UV"
     bl_category = "Magic UV"
     bl_context = 'mesh_edit'
@@ -47,13 +48,15 @@ class PanelCopyPasteUV(bpy.types.Panel):
 
     def draw_header(self, _):
         layout = self.layout
-        layout.label(text="", icon='IMAGE_COL')
+        layout.label(text="", icon='IMAGE')
 
     def draw(self, _):
         layout = self.layout
 
         row = layout.row(align=True)
-        row.operator(copy_paste_uv_uvedit.OperatorCopyUV.bl_idname,
-                     text="Copy")
-        row.operator(copy_paste_uv_uvedit.OperatorPasteUV.bl_idname,
-                     text="Paste")
+        row.operator(
+            copy_paste_uv_uvedit.MUV_OT_CopyPasteUVUVEdit_CopyUV.bl_idname,
+            text="Copy")
+        row.operator(
+            copy_paste_uv_uvedit.MUV_OT_CopyPasteUVUVEdit_PasteUV.bl_idname,
+            text="Paste")

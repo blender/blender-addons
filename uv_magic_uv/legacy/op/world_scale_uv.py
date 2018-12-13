@@ -35,15 +35,17 @@ from bpy.props import (
     BoolProperty,
 )
 
-from .. import common
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
 __all__ = [
     'Properties',
-    'OperatorMeasure',
-    'OperatorApplyManual',
-    'OperatorApplyScalingDensity',
-    'OperatorApplyProportionalToMesh',
+    'MUV_OT_WorldScaleUV_Measure',
+    'MUV_OT_WorldScaleUV_ApplyManual',
+    'MUV_OT_WorldScaleUV_ApplyScalingDensity',
+    'MUV_OT_WorldScaleUV_ApplyProportionalToMesh',
 ]
 
 
@@ -83,7 +85,10 @@ def measure_wsuv_info(obj, tex_size=None):
     return uv_area, mesh_area, density
 
 
+@PropertyClassRegistry(legacy=True)
 class Properties:
+    idname = "world_scale_uv"
+
     @classmethod
     def init_props(cls, scene):
         scene.muv_world_scale_uv_enabled = BoolProperty(
@@ -172,7 +177,8 @@ class Properties:
         del scene.muv_world_scale_uv_origin
 
 
-class OperatorMeasure(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_WorldScaleUV_Measure(bpy.types.Operator):
     """
     Operation class: Measure face size
     """
@@ -310,7 +316,8 @@ def apply(obj, origin, factor):
     bmesh.update_edit_mesh(obj.data)
 
 
-class OperatorApplyManual(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_WorldScaleUV_ApplyManual(bpy.types.Operator):
     """
     Operation class: Apply scaled UV (Manual)
     """
@@ -407,7 +414,8 @@ class OperatorApplyManual(bpy.types.Operator):
         return self.__apply_manual(context)
 
 
-class OperatorApplyScalingDensity(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_WorldScaleUV_ApplyScalingDensity(bpy.types.Operator):
     """
     Operation class: Apply scaled UV (Scaling Density)
     """
@@ -529,7 +537,8 @@ class OperatorApplyScalingDensity(bpy.types.Operator):
         return self.__apply_scaling_density(context)
 
 
-class OperatorApplyProportionalToMesh(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_WorldScaleUV_ApplyProportionalToMesh(bpy.types.Operator):
     """
     Operation class: Apply scaled UV (Proportional to mesh)
     """

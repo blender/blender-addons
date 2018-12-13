@@ -28,12 +28,14 @@ from mathutils import Vector
 from bpy.props import EnumProperty, BoolProperty, FloatVectorProperty
 import bmesh
 
-from .. import common
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
 __all__ = [
     'Properties',
-    'Operator',
+    'MUV_OT_AlignUVCursor',
 ]
 
 
@@ -50,7 +52,10 @@ def is_valid_context(context):
     return True
 
 
+@PropertyClassRegistry(legacy=True)
 class Properties:
+    idname = "align_uv_cursor"
+
     @classmethod
     def init_props(cls, scene):
         def auvc_get_cursor_loc(self):
@@ -121,7 +126,8 @@ class Properties:
         del scene.muv_uv_cursor_location_enabled
 
 
-class Operator(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_AlignUVCursor(bpy.types.Operator):
 
     bl_idname = "uv.muv_align_uv_cursor_operator"
     bl_label = "Align UV Cursor"

@@ -26,29 +26,40 @@ __date__ = "17 Nov 2018"
 import bpy
 
 from ..op import copy_paste_uv_object
-from ..utils.bl_class_registry import BlClassRegistry
+from ...utils.bl_class_registry import BlClassRegistry
 
 __all__ = [
-    'MUV_MT_CopyPasteUV_Object',
+    'MUV_PT_View3D_Object_CopyPasteUV',
 ]
 
 
-@BlClassRegistry()
-class MUV_MT_CopyPasteUV_Object(bpy.types.Menu):
+@BlClassRegistry(legacy=True)
+class MUV_PT_View3D_Object_CopyPasteUV(bpy.types.Panel):
     """
-    Menu class: Master menu of Copy/Paste UV coordinate among object
+    Panel class: Copy/Paste UV on Property Panel on View3D
     """
 
-    bl_idname = "uv.muv_copy_paste_uv_object_menu"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
     bl_label = "Copy/Paste UV"
-    bl_description = "Copy and Paste UV coordinate among object"
+    bl_category = "Magic UV"
+    bl_context = 'objectmode'
+    bl_options = {'DEFAULT_CLOSED'}
 
-    def draw(self, _):
+    def draw_header(self, _):
+        layout = self.layout
+        layout.label(text="", icon='IMAGE_COL')
+
+    def draw(self, context):
+        sc = context.scene
         layout = self.layout
 
-        layout.menu(
+        row = layout.row(align=True)
+        row.menu(
             copy_paste_uv_object.MUV_MT_CopyPasteUVObject_CopyUV.bl_idname,
             text="Copy")
-        layout.menu(
+        row.menu(
             copy_paste_uv_object.MUV_MT_CopyPasteUVObject_PasteUV.bl_idname,
             text="Paste")
+        layout.prop(sc, "muv_copy_paste_uv_object_copy_seams",
+                    text="Seams")

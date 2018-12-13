@@ -23,24 +23,39 @@ __status__ = "production"
 __version__ = "5.2"
 __date__ = "17 Nov 2018"
 
-if "bpy" in locals():
-    import importlib
-    importlib.reload(copy_paste_uv)
-    importlib.reload(copy_paste_uv_object)
-    importlib.reload(copy_paste_uv_uvedit)
-    importlib.reload(flip_rotate_uv)
-    importlib.reload(mirror_uv)
-    importlib.reload(move_uv)
-    importlib.reload(transfer_uv)
-    importlib.reload(uvw)
-else:
-    from . import copy_paste_uv
-    from . import copy_paste_uv_object
-    from . import copy_paste_uv_uvedit
-    from . import flip_rotate_uv
-    from . import mirror_uv
-    from . import move_uv
-    from . import transfer_uv
-    from . import uvw
 
-import bpy
+from ..utils.property_class_registry import PropertyClassRegistry
+
+__all__ = [
+    'MUV_Properties',
+    'init_props',
+    'clear_props',
+]
+
+
+# Properties used in this add-on.
+# pylint: disable=W0612
+class MUV_Properties():
+    def __init__(self):
+        self.prefs = MUV_Prefs()
+
+
+class MUV_Prefs():
+    expanded = {
+        "info_desc": False,
+        "info_loc": False,
+        "conf_uvsculpt": False,
+        "conf_uvinsp": False,
+        "conf_texproj": False,
+        "conf_uvbb": False
+    }
+
+
+def init_props(scene):
+    scene.muv_props = MUV_Properties()
+    PropertyClassRegistry.init_props(scene)
+
+
+def clear_props(scene):
+    PropertyClassRegistry.del_props(scene)
+    del scene.muv_props

@@ -27,12 +27,14 @@ import bpy
 import bmesh
 from bpy.props import BoolProperty, FloatProperty
 
-from .. import common
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
 __all__ = [
     'Properties',
-    'Operator',
+    'MUV_OT_SmoothUV',
 ]
 
 
@@ -59,7 +61,10 @@ def is_valid_context(context):
     return True
 
 
+@PropertyClassRegistry(legacy=True)
 class Properties:
+    idname = "smooth_uv"
+
     @classmethod
     def init_props(cls, scene):
         scene.muv_smooth_uv_enabled = BoolProperty(
@@ -93,7 +98,8 @@ class Properties:
         del scene.muv_smooth_uv_select
 
 
-class Operator(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_SmoothUV(bpy.types.Operator):
 
     bl_idname = "uv.muv_smooth_uv_operator"
     bl_label = "Smooth"

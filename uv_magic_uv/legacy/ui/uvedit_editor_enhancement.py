@@ -25,17 +25,20 @@ __date__ = "17 Nov 2018"
 
 import bpy
 
-from ..op import align_uv_cursor
-from ..op import uv_bounding_box
-from ..op import uv_inspection
-
+from ..op import (
+    align_uv_cursor,
+    uv_bounding_box,
+    uv_inspection,
+)
+from ...utils.bl_class_registry import BlClassRegistry
 
 __all__ = [
-    'PanelEditorEnhancement',
+    'MUV_PT_UVEdit_EditorEnhancement',
 ]
 
 
-class PanelEditorEnhancement(bpy.types.Panel):
+@BlClassRegistry(legacy=True)
+class MUV_PT_UVEdit_EditorEnhancement(bpy.types.Panel):
     """
     Panel class: UV/Image Editor Enhancement
     """
@@ -63,43 +66,43 @@ class PanelEditorEnhancement(bpy.types.Panel):
             col = box.column(align=True)
 
             row = col.row(align=True)
-            ops = row.operator(align_uv_cursor.Operator.bl_idname,
+            ops = row.operator(align_uv_cursor.MUV_OT_AlignUVCursor.bl_idname,
                                text="Left Top")
             ops.position = 'LEFT_TOP'
             ops.base = sc.muv_align_uv_cursor_align_method
-            ops = row.operator(align_uv_cursor.Operator.bl_idname,
+            ops = row.operator(align_uv_cursor.MUV_OT_AlignUVCursor.bl_idname,
                                text="Middle Top")
             ops.position = 'MIDDLE_TOP'
             ops.base = sc.muv_align_uv_cursor_align_method
-            ops = row.operator(align_uv_cursor.Operator.bl_idname,
+            ops = row.operator(align_uv_cursor.MUV_OT_AlignUVCursor.bl_idname,
                                text="Right Top")
             ops.position = 'RIGHT_TOP'
             ops.base = sc.muv_align_uv_cursor_align_method
 
             row = col.row(align=True)
-            ops = row.operator(align_uv_cursor.Operator.bl_idname,
+            ops = row.operator(align_uv_cursor.MUV_OT_AlignUVCursor.bl_idname,
                                text="Left Middle")
             ops.position = 'LEFT_MIDDLE'
             ops.base = sc.muv_align_uv_cursor_align_method
-            ops = row.operator(align_uv_cursor.Operator.bl_idname,
+            ops = row.operator(align_uv_cursor.MUV_OT_AlignUVCursor.bl_idname,
                                text="Center")
             ops.position = 'CENTER'
             ops.base = sc.muv_align_uv_cursor_align_method
-            ops = row.operator(align_uv_cursor.Operator.bl_idname,
+            ops = row.operator(align_uv_cursor.MUV_OT_AlignUVCursor.bl_idname,
                                text="Right Middle")
             ops.position = 'RIGHT_MIDDLE'
             ops.base = sc.muv_align_uv_cursor_align_method
 
             row = col.row(align=True)
-            ops = row.operator(align_uv_cursor.Operator.bl_idname,
+            ops = row.operator(align_uv_cursor.MUV_OT_AlignUVCursor.bl_idname,
                                text="Left Bottom")
             ops.position = 'LEFT_BOTTOM'
             ops.base = sc.muv_align_uv_cursor_align_method
-            ops = row.operator(align_uv_cursor.Operator.bl_idname,
+            ops = row.operator(align_uv_cursor.MUV_OT_AlignUVCursor.bl_idname,
                                text="Middle Bottom")
             ops.position = 'MIDDLE_BOTTOM'
             ops.base = sc.muv_align_uv_cursor_align_method
-            ops = row.operator(align_uv_cursor.Operator.bl_idname,
+            ops = row.operator(align_uv_cursor.MUV_OT_AlignUVCursor.bl_idname,
                                text="Right Bottom")
             ops.position = 'RIGHT_BOTTOM'
             ops.base = sc.muv_align_uv_cursor_align_method
@@ -113,13 +116,14 @@ class PanelEditorEnhancement(bpy.types.Panel):
         box = layout.box()
         box.prop(sc, "muv_uv_bounding_box_enabled", text="UV Bounding Box")
         if sc.muv_uv_bounding_box_enabled:
-            box.prop(sc, "muv_uv_bounding_box_show",
-                     text="Hide"
-                     if uv_bounding_box.Operator.is_running(context)
-                     else "Show",
-                     icon='RESTRICT_VIEW_OFF'
-                     if uv_bounding_box.Operator.is_running(context)
-                     else 'RESTRICT_VIEW_ON')
+            box.prop(
+                sc, "muv_uv_bounding_box_show",
+                text="Hide"
+                if uv_bounding_box.MUV_OT_UVBoundingBox.is_running(context)
+                else "Show",
+                icon='RESTRICT_VIEW_OFF'
+                if uv_bounding_box.MUV_OT_UVBoundingBox.is_running(context)
+                else 'RESTRICT_VIEW_ON')
             box.prop(sc, "muv_uv_bounding_box_uniform_scaling",
                      text="Uniform Scaling")
             box.prop(sc, "muv_uv_bounding_box_boundary", text="Boundary")
@@ -128,14 +132,15 @@ class PanelEditorEnhancement(bpy.types.Panel):
         box.prop(sc, "muv_uv_inspection_enabled", text="UV Inspection")
         if sc.muv_uv_inspection_enabled:
             row = box.row()
-            row.prop(sc, "muv_uv_inspection_show",
-                     text="Hide"
-                     if uv_inspection.OperatorRender.is_running(context)
-                     else "Show",
-                     icon='RESTRICT_VIEW_OFF'
-                     if uv_inspection.OperatorRender.is_running(context)
-                     else 'RESTRICT_VIEW_ON')
-            row.operator(uv_inspection.OperatorUpdate.bl_idname,
+            row.prop(
+                sc, "muv_uv_inspection_show",
+                text="Hide"
+                if uv_inspection.MUV_OT_UVInspection_Render.is_running(context)
+                else "Show",
+                icon='RESTRICT_VIEW_OFF'
+                if uv_inspection.MUV_OT_UVInspection_Render.is_running(context)
+                else 'RESTRICT_VIEW_ON')
+            row.operator(uv_inspection.MUV_OT_UVInspection_Update.bl_idname,
                          text="Update")
             row = box.row()
             row.prop(sc, "muv_uv_inspection_show_overlapped")

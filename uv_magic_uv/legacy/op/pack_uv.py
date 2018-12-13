@@ -35,12 +35,14 @@ from bpy.props import (
 )
 from mathutils import Vector
 
-from .. import common
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
 __all__ = [
     'Properties',
-    'Operator',
+    'MUV_OT_PackUV',
 ]
 
 
@@ -67,7 +69,10 @@ def is_valid_context(context):
     return True
 
 
+@PropertyClassRegistry(legacy=True)
 class Properties:
+    idname = "pack_uv"
+
     @classmethod
     def init_props(cls, scene):
         scene.muv_pack_uv_enabled = BoolProperty(
@@ -99,7 +104,8 @@ class Properties:
         del scene.muv_pack_uv_allowable_size_deviation
 
 
-class Operator(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_PackUV(bpy.types.Operator):
     """
     Operation class: Pack UV with same UV islands are integrated
     Island matching algorithm

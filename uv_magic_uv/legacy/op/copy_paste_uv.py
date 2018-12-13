@@ -33,10 +33,10 @@ from bpy.props import (
     EnumProperty,
 )
 
-from ..impl import copy_paste_uv_impl as impl
-from .. import common
-from ..utils.bl_class_registry import BlClassRegistry
-from ..utils.property_class_registry import PropertyClassRegistry
+from ...impl import copy_paste_uv_impl as impl
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 __all__ = [
     'Properties',
@@ -51,7 +51,7 @@ __all__ = [
 ]
 
 
-@PropertyClassRegistry()
+@PropertyClassRegistry(legacy=True)
 class Properties:
     idname = "copy_paste_uv"
 
@@ -102,7 +102,7 @@ class Properties:
         del scene.muv_copy_paste_uv_strategy
 
 
-@BlClassRegistry()
+@BlClassRegistry(legacy=True)
 class MUV_OT_CopyPasteUV_CopyUV(bpy.types.Operator):
     """
     Operation class: Copy UV coordinate
@@ -113,7 +113,7 @@ class MUV_OT_CopyPasteUV_CopyUV(bpy.types.Operator):
     bl_description = "Copy UV coordinate"
     bl_options = {'REGISTER', 'UNDO'}
 
-    uv_map: StringProperty(default="__default", options={'HIDDEN'})
+    uv_map = StringProperty(default="__default", options={'HIDDEN'})
 
     @classmethod
     def poll(cls, context):
@@ -133,7 +133,7 @@ class MUV_OT_CopyPasteUV_CopyUV(bpy.types.Operator):
             return {'CANCELLED'}
 
         # get selected face
-        src_info = impl.get_src_face_info(self, bm, uv_layers)
+        src_info = impl.get_src_face_info(self, bm, uv_layers, True)
         if src_info is None:
             return {'CANCELLED'}
         props.src_info = src_info
@@ -144,7 +144,7 @@ class MUV_OT_CopyPasteUV_CopyUV(bpy.types.Operator):
         return {'FINISHED'}
 
 
-@BlClassRegistry()
+@BlClassRegistry(legacy=True)
 class MUV_MT_CopyPasteUV_CopyUV(bpy.types.Menu):
     """
     Menu class: Copy UV coordinate
@@ -178,7 +178,7 @@ class MUV_MT_CopyPasteUV_CopyUV(bpy.types.Menu):
             ops.uv_map = m
 
 
-@BlClassRegistry()
+@BlClassRegistry(legacy=True)
 class MUV_OT_CopyPasteUV_PasteUV(bpy.types.Operator):
     """
     Operation class: Paste UV coordinate
@@ -189,8 +189,8 @@ class MUV_OT_CopyPasteUV_PasteUV(bpy.types.Operator):
     bl_description = "Paste UV coordinate"
     bl_options = {'REGISTER', 'UNDO'}
 
-    uv_map: StringProperty(default="__default", options={'HIDDEN'})
-    strategy: EnumProperty(
+    uv_map = StringProperty(default="__default", options={'HIDDEN'})
+    strategy = EnumProperty(
         name="Strategy",
         description="Paste Strategy",
         items=[
@@ -199,18 +199,18 @@ class MUV_OT_CopyPasteUV_PasteUV(bpy.types.Operator):
         ],
         default="N_M"
     )
-    flip_copied_uv: BoolProperty(
+    flip_copied_uv = BoolProperty(
         name="Flip Copied UV",
         description="Flip Copied UV...",
         default=False
     )
-    rotate_copied_uv: IntProperty(
+    rotate_copied_uv = IntProperty(
         default=0,
         name="Rotate Copied UV",
         min=0,
         max=30
     )
-    copy_seams: BoolProperty(
+    copy_seams = BoolProperty(
         name="Seams",
         description="Copy Seams",
         default=True
@@ -243,7 +243,8 @@ class MUV_OT_CopyPasteUV_PasteUV(bpy.types.Operator):
 
         # get selected face
         dest_info = impl.get_dest_face_info(self, bm, uv_layers,
-                                            props.src_info, self.strategy)
+                                            props.src_info, self.strategy,
+                                            True)
         if dest_info is None:
             return {'CANCELLED'}
 
@@ -258,11 +259,13 @@ class MUV_OT_CopyPasteUV_PasteUV(bpy.types.Operator):
         self.report({'INFO'}, "{} face(s) are pasted".format(face_count))
 
         bmesh.update_edit_mesh(obj.data)
+        if self.copy_seams is True:
+            obj.data.show_edge_seams = True
 
         return {'FINISHED'}
 
 
-@BlClassRegistry()
+@BlClassRegistry(legacy=True)
 class MUV_MT_CopyPasteUV_PasteUV(bpy.types.Menu):
     """
     Menu class: Paste UV coordinate
@@ -313,7 +316,7 @@ class MUV_MT_CopyPasteUV_PasteUV(bpy.types.Menu):
             ops.strategy = sc.muv_copy_paste_uv_strategy
 
 
-@BlClassRegistry()
+@BlClassRegistry(legacy=True)
 class MUV_OT_CopyPasteUV_SelSeqCopyUV(bpy.types.Operator):
     """
     Operation class: Copy UV coordinate by selection sequence
@@ -324,7 +327,7 @@ class MUV_OT_CopyPasteUV_SelSeqCopyUV(bpy.types.Operator):
     bl_description = "Copy UV data by selection sequence"
     bl_options = {'REGISTER', 'UNDO'}
 
-    uv_map: StringProperty(default="__default", options={'HIDDEN'})
+    uv_map = StringProperty(default="__default", options={'HIDDEN'})
 
     @classmethod
     def poll(cls, context):
@@ -355,7 +358,7 @@ class MUV_OT_CopyPasteUV_SelSeqCopyUV(bpy.types.Operator):
         return {'FINISHED'}
 
 
-@BlClassRegistry()
+@BlClassRegistry(legacy=True)
 class MUV_MT_CopyPasteUV_SelSeqCopyUV(bpy.types.Menu):
     """
     Menu class: Copy UV coordinate by selection sequence
@@ -389,7 +392,7 @@ class MUV_MT_CopyPasteUV_SelSeqCopyUV(bpy.types.Menu):
             ops.uv_map = m
 
 
-@BlClassRegistry()
+@BlClassRegistry(legacy=True)
 class MUV_OT_CopyPasteUV_SelSeqPasteUV(bpy.types.Operator):
     """
     Operation class: Paste UV coordinate by selection sequence
@@ -400,8 +403,8 @@ class MUV_OT_CopyPasteUV_SelSeqPasteUV(bpy.types.Operator):
     bl_description = "Paste UV coordinate by selection sequence"
     bl_options = {'REGISTER', 'UNDO'}
 
-    uv_map: StringProperty(default="__default", options={'HIDDEN'})
-    strategy: EnumProperty(
+    uv_map = StringProperty(default="__default", options={'HIDDEN'})
+    strategy = EnumProperty(
         name="Strategy",
         description="Paste Strategy",
         items=[
@@ -410,18 +413,18 @@ class MUV_OT_CopyPasteUV_SelSeqPasteUV(bpy.types.Operator):
         ],
         default="N_M"
     )
-    flip_copied_uv: BoolProperty(
+    flip_copied_uv = BoolProperty(
         name="Flip Copied UV",
         description="Flip Copied UV...",
         default=False
     )
-    rotate_copied_uv: IntProperty(
+    rotate_copied_uv = IntProperty(
         default=0,
         name="Rotate Copied UV",
         min=0,
         max=30
     )
-    copy_seams: BoolProperty(
+    copy_seams = BoolProperty(
         name="Seams",
         description="Copy Seams",
         default=True
@@ -470,11 +473,13 @@ class MUV_OT_CopyPasteUV_SelSeqPasteUV(bpy.types.Operator):
         self.report({'INFO'}, "{} face(s) are pasted".format(face_count))
 
         bmesh.update_edit_mesh(obj.data)
+        if self.copy_seams is True:
+            obj.data.show_edge_seams = True
 
         return {'FINISHED'}
 
 
-@BlClassRegistry()
+@BlClassRegistry(legacy=True)
 class MUV_MT_CopyPasteUV_SelSeqPasteUV(bpy.types.Menu):
     """
     Menu class: Paste UV coordinate by selection sequence

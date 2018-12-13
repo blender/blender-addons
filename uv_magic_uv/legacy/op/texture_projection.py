@@ -36,13 +36,15 @@ from bpy.props import (
     FloatProperty,
 )
 
-from .. import common
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
 __all__ = [
     'Properties',
-    'Operator',
-    'OperatorProject',
+    'MUV_OT_TextureProjection',
+    'MUV_OT_TextureProjection_Project',
 ]
 
 
@@ -143,11 +145,14 @@ def is_valid_context(context):
     return True
 
 
+@PropertyClassRegistry(legacy=True)
 class Properties:
+    idname = "texture_projection"
+
     @classmethod
     def init_props(cls, scene):
         def get_func(_):
-            return Operator.is_running(bpy.context)
+            return MUV_OT_TextureProjection.is_running(bpy.context)
 
         def set_func(_, __):
             pass
@@ -214,7 +219,8 @@ class Properties:
         del scene.muv_texture_projection_assign_uvmap
 
 
-class Operator(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_TextureProjection(bpy.types.Operator):
     """
     Operation class: Texture Projection
     Render texture
@@ -240,7 +246,7 @@ class Operator(bpy.types.Operator):
     @classmethod
     def handle_add(cls, obj, context):
         cls.__handle = bpy.types.SpaceView3D.draw_handler_add(
-            Operator.draw_texture,
+            MUV_OT_TextureProjection.draw_texture,
             (obj, context), 'WINDOW', 'POST_PIXEL')
 
     @classmethod
@@ -301,10 +307,10 @@ class Operator(bpy.types.Operator):
         bgl.glEnd()
 
     def invoke(self, context, _):
-        if not Operator.is_running(context):
-            Operator.handle_add(self, context)
+        if not MUV_OT_TextureProjection.is_running(context):
+            MUV_OT_TextureProjection.handle_add(self, context)
         else:
-            Operator.handle_remove()
+            MUV_OT_TextureProjection.handle_remove()
 
         if context.area:
             context.area.tag_redraw()
@@ -312,7 +318,8 @@ class Operator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class OperatorProject(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_TextureProjection_Project(bpy.types.Operator):
     """
     Operation class: Project texture
     """
@@ -327,7 +334,7 @@ class OperatorProject(bpy.types.Operator):
         # we can not get area/space/region from console
         if common.is_console_mode():
             return True
-        if not Operator.is_running(context):
+        if not MUV_OT_TextureProjection.is_running(context):
             return False
         return is_valid_context(context)
 

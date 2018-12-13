@@ -26,24 +26,24 @@ __date__ = "17 Nov 2018"
 import bpy
 
 from ..op import (
-    copy_paste_uv,
     transfer_uv,
+    copy_paste_uv,
 )
-from ..utils.bl_class_registry import BlClassRegistry
+from ...utils.bl_class_registry import BlClassRegistry
 
 __all__ = [
-    'MUV_PT_CopyPasteUVEditMode',
+    'MUV_PT_View3D_Edit_CopyPasteUV',
 ]
 
 
-@BlClassRegistry()
-class MUV_PT_CopyPasteUVEditMode(bpy.types.Panel):
+@BlClassRegistry(legacy=True)
+class MUV_PT_View3D_Edit_CopyPasteUV(bpy.types.Panel):
     """
     Panel class: Copy/Paste UV on Property Panel on View3D
     """
 
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
+    bl_region_type = 'TOOLS'
     bl_label = "Copy/Paste UV"
     bl_category = "Magic UV"
     bl_context = 'mesh_edit'
@@ -51,7 +51,7 @@ class MUV_PT_CopyPasteUVEditMode(bpy.types.Panel):
 
     def draw_header(self, _):
         layout = self.layout
-        layout.label(text="", icon='IMAGE')
+        layout.label(text="", icon='IMAGE_COL')
 
     def draw(self, context):
         sc = context.scene

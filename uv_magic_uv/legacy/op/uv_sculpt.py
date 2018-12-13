@@ -39,12 +39,14 @@ from bpy.props import (
     FloatProperty,
 )
 
-from .. import common
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
 __all__ = [
     'Properties',
-    'Operator',
+    'MUV_OT_UVSculpt',
 ]
 
 
@@ -69,11 +71,14 @@ def is_valid_context(context):
     return True
 
 
+@PropertyClassRegistry(legacy=True)
 class Properties:
+    idname = "uv_sculpt"
+
     @classmethod
     def init_props(cls, scene):
         def get_func(_):
-            return Operator.is_running(bpy.context)
+            return MUV_OT_UVSculpt.is_running(bpy.context)
 
         def set_func(_, __):
             pass
@@ -151,7 +156,8 @@ class Properties:
         del scene.muv_uv_sculpt_relax_method
 
 
-class Operator(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_UVSculpt(bpy.types.Operator):
     """
     Operation class: UV Sculpt in View3D
     """
@@ -427,8 +433,8 @@ class Operator(bpy.types.Operator):
         if context.area:
             context.area.tag_redraw()
 
-        if not Operator.is_running(context):
-            Operator.handle_remove(context)
+        if not MUV_OT_UVSculpt.is_running(context):
+            MUV_OT_UVSculpt.handle_remove(context)
 
             return {'FINISHED'}
 
@@ -469,9 +475,9 @@ class Operator(bpy.types.Operator):
         if context.area:
             context.area.tag_redraw()
 
-        if Operator.is_running(context):
-            Operator.handle_remove(context)
+        if MUV_OT_UVSculpt.is_running(context):
+            MUV_OT_UVSculpt.handle_remove(context)
         else:
-            Operator.handle_add(self, context)
+            MUV_OT_UVSculpt.handle_add(self, context)
 
         return {'RUNNING_MODAL'}

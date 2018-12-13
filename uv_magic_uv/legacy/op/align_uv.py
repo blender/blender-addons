@@ -31,14 +31,16 @@ import bmesh
 from mathutils import Vector
 from bpy.props import EnumProperty, BoolProperty, FloatProperty
 
-from .. import common
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
 __all__ = [
     'Properties',
-    'OperatorCircle',
-    'OperatorStraighten',
-    'OperatorAxis',
+    'MUV_OT_AlignUV_Circle',
+    'MUV_OT_AlignUV_Straighten',
+    'MUV_OT_AlignUV_Axis',
 ]
 
 
@@ -65,59 +67,10 @@ def is_valid_context(context):
     return True
 
 
-# get sum vertex length of loop sequences
-def get_loop_vert_len(loops):
-    length = 0
-    for l1, l2 in zip(loops[:-1], loops[1:]):
-        diff = l2.vert.co - l1.vert.co
-        length = length + abs(diff.length)
-
-    return length
-
-
-# get sum uv length of loop sequences
-def get_loop_uv_len(loops, uv_layer):
-    length = 0
-    for l1, l2 in zip(loops[:-1], loops[1:]):
-        diff = l2[uv_layer].uv - l1[uv_layer].uv
-        length = length + abs(diff.length)
-
-    return length
-
-
-# get center/radius of circle by 3 vertices
-def get_circle(v):
-    alpha = atan2((v[0].y - v[1].y), (v[0].x - v[1].x)) + math.pi / 2
-    beta = atan2((v[1].y - v[2].y), (v[1].x - v[2].x)) + math.pi / 2
-    ex = (v[0].x + v[1].x) / 2.0
-    ey = (v[0].y + v[1].y) / 2.0
-    fx = (v[1].x + v[2].x) / 2.0
-    fy = (v[1].y + v[2].y) / 2.0
-    cx = (ey - fy - ex * tan(alpha) + fx * tan(beta)) / \
-         (tan(beta) - tan(alpha))
-    cy = ey - (ex - cx) * tan(alpha)
-    center = Vector((cx, cy))
-
-    r = v[0] - center
-    radian = r.length
-
-    return center, radian
-
-
-# get position on circle with same arc length
-def calc_v_on_circle(v, center, radius):
-    base = v[0]
-    theta = atan2(base.y - center.y, base.x - center.x)
-    new_v = []
-    for i in range(len(v)):
-        angle = theta + i * 2 * math.pi / len(v)
-        new_v.append(Vector((center.x + radius * sin(angle),
-                             center.y + radius * cos(angle))))
-
-    return new_v
-
-
+@PropertyClassRegistry(legacy=True)
 class Properties:
+    idname = "align_uv"
+
     @classmethod
     def init_props(cls, scene):
         scene.muv_align_uv_enabled = BoolProperty(
@@ -176,7 +129,60 @@ class Properties:
         del scene.muv_align_uv_location
 
 
-class OperatorCircle(bpy.types.Operator):
+# get sum vertex length of loop sequences
+def get_loop_vert_len(loops):
+    length = 0
+    for l1, l2 in zip(loops[:-1], loops[1:]):
+        diff = l2.vert.co - l1.vert.co
+        length = length + abs(diff.length)
+
+    return length
+
+
+# get sum uv length of loop sequences
+def get_loop_uv_len(loops, uv_layer):
+    length = 0
+    for l1, l2 in zip(loops[:-1], loops[1:]):
+        diff = l2[uv_layer].uv - l1[uv_layer].uv
+        length = length + abs(diff.length)
+
+    return length
+
+
+# get center/radius of circle by 3 vertices
+def get_circle(v):
+    alpha = atan2((v[0].y - v[1].y), (v[0].x - v[1].x)) + math.pi / 2
+    beta = atan2((v[1].y - v[2].y), (v[1].x - v[2].x)) + math.pi / 2
+    ex = (v[0].x + v[1].x) / 2.0
+    ey = (v[0].y + v[1].y) / 2.0
+    fx = (v[1].x + v[2].x) / 2.0
+    fy = (v[1].y + v[2].y) / 2.0
+    cx = (ey - fy - ex * tan(alpha) + fx * tan(beta)) / \
+         (tan(beta) - tan(alpha))
+    cy = ey - (ex - cx) * tan(alpha)
+    center = Vector((cx, cy))
+
+    r = v[0] - center
+    radian = r.length
+
+    return center, radian
+
+
+# get position on circle with same arc length
+def calc_v_on_circle(v, center, radius):
+    base = v[0]
+    theta = atan2(base.y - center.y, base.x - center.x)
+    new_v = []
+    for i in range(len(v)):
+        angle = theta + i * 2 * math.pi / len(v)
+        new_v.append(Vector((center.x + radius * sin(angle),
+                             center.y + radius * cos(angle))))
+
+    return new_v
+
+
+@BlClassRegistry(legacy=True)
+class MUV_OT_AlignUV_Circle(bpy.types.Operator):
 
     bl_idname = "uv.muv_align_uv_operator_circle"
     bl_label = "Align UV (Circle)"
@@ -437,7 +443,8 @@ def get_vdiff_uv(uv_layer, loop_seqs, vidx, hidx):
     return int((vidx + 1) / 2) * v_uv / (len(hseq) / 2)
 
 
-class OperatorStraighten(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_AlignUV_Straighten(bpy.types.Operator):
 
     bl_idname = "uv.muv_align_uv_operator_straighten"
     bl_label = "Align UV (Straighten)"
@@ -587,7 +594,8 @@ class OperatorStraighten(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class OperatorAxis(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_AlignUV_Axis(bpy.types.Operator):
 
     bl_idname = "uv.muv_align_uv_operator_axis"
     bl_label = "Align UV (XY-Axis)"

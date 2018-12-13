@@ -32,12 +32,14 @@ import mathutils
 import bmesh
 from bpy.props import BoolProperty, EnumProperty
 
-from .. import common
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
 __all__ = [
     'Properties',
-    'Operator',
+    'MUV_OT_UVBoundingBox',
 ]
 
 
@@ -67,7 +69,10 @@ def is_valid_context(context):
     return True
 
 
+@PropertyClassRegistry(legacy=True)
 class Properties:
+    idname = "uv_bounding_box"
+
     @classmethod
     def init_props(cls, scene):
         class Props():
@@ -78,7 +83,7 @@ class Properties:
         scene.muv_props.uv_bounding_box = Props()
 
         def get_func(_):
-            return Operator.is_running(bpy.context)
+            return MUV_OT_UVBoundingBox.is_running(bpy.context)
 
         def set_func(_, __):
             pass
@@ -599,7 +604,8 @@ class StateManager():
         return self.__state
 
 
-class Operator(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_UVBoundingBox(bpy.types.Operator):
     """
     Operation class: UV Bounding Box
     """
@@ -677,7 +683,7 @@ class Operator(bpy.types.Operator):
         """
         props = context.scene.muv_props.uv_bounding_box
 
-        if not Operator.is_running(context):
+        if not MUV_OT_UVBoundingBox.is_running(context):
             return
 
         if not is_valid_context(context):
@@ -781,11 +787,11 @@ class Operator(bpy.types.Operator):
         props = context.scene.muv_props.uv_bounding_box
         common.redraw_all_areas()
 
-        if not Operator.is_running(context):
+        if not MUV_OT_UVBoundingBox.is_running(context):
             return {'FINISHED'}
 
         if not is_valid_context(context):
-            Operator.handle_remove(context)
+            MUV_OT_UVBoundingBox.handle_remove(context)
             return {'FINISHED'}
 
         region_types = [
@@ -812,15 +818,15 @@ class Operator(bpy.types.Operator):
     def invoke(self, context, _):
         props = context.scene.muv_props.uv_bounding_box
 
-        if Operator.is_running(context):
-            Operator.handle_remove(context)
+        if MUV_OT_UVBoundingBox.is_running(context):
+            MUV_OT_UVBoundingBox.handle_remove(context)
             return {'FINISHED'}
 
         props.uv_info_ini = self.__get_uv_info(context)
         if props.uv_info_ini is None:
             return {'CANCELLED'}
 
-        Operator.handle_add(self, context)
+        MUV_OT_UVBoundingBox.handle_add(self, context)
 
         props.ctrl_points_ini = self.__get_ctrl_point(props.uv_info_ini)
         trans_mat = self.__cmd_exec.execute()

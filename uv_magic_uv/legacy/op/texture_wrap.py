@@ -29,13 +29,15 @@ from bpy.props import (
     BoolProperty,
 )
 
-from .. import common
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
 __all__ = [
     'Properties',
-    'OperatorRefer',
-    'OperatorSet',
+    'MUV_OT_TextureWrap_Refer',
+    'MUV_OT_TextureWrap_Set',
 ]
 
 
@@ -60,7 +62,10 @@ def is_valid_context(context):
     return True
 
 
+@PropertyClassRegistry(legacy=True)
 class Properties:
+    idname = "texture_wrap"
+
     @classmethod
     def init_props(cls, scene):
         class Props():
@@ -93,7 +98,8 @@ class Properties:
         del scene.muv_texture_wrap_selseq
 
 
-class OperatorRefer(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_TextureWrap_Refer(bpy.types.Operator):
     """
     Operation class: Refer UV
     """
@@ -132,7 +138,8 @@ class OperatorRefer(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class OperatorSet(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_TextureWrap_Set(bpy.types.Operator):
     """
     Operation class: Set UV
     """

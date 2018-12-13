@@ -28,13 +28,15 @@ import bmesh
 import bgl
 from bpy.props import BoolProperty, EnumProperty
 
-from .. import common
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
 __all__ = [
     'Properties',
-    'OperatorRender',
-    'OperatorUpdate',
+    'MUV_OT_UVInspection_Render',
+    'MUV_OT_UVInspection_Update',
 ]
 
 
@@ -61,7 +63,10 @@ def is_valid_context(context):
     return True
 
 
+@PropertyClassRegistry(legacy=True)
 class Properties:
+    idname = "uv_inspection"
+
     @classmethod
     def init_props(cls, scene):
         class Props():
@@ -71,7 +76,7 @@ class Properties:
         scene.muv_props.uv_inspection = Props()
 
         def get_func(_):
-            return OperatorRender.is_running(bpy.context)
+            return MUV_OT_UVInspection_Render.is_running(bpy.context)
 
         def set_func(_, __):
             pass
@@ -122,7 +127,8 @@ class Properties:
         del scene.muv_uv_inspection_show_mode
 
 
-class OperatorRender(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_UVInspection_Render(bpy.types.Operator):
     """
     Operation class: Render UV Inspection
     No operation (only rendering)
@@ -149,7 +155,8 @@ class OperatorRender(bpy.types.Operator):
     def handle_add(cls, obj, context):
         sie = bpy.types.SpaceImageEditor
         cls.__handle = sie.draw_handler_add(
-            OperatorRender.draw, (obj, context), 'WINDOW', 'POST_PIXEL')
+            MUV_OT_UVInspection_Render.draw, (obj, context),
+            'WINDOW', 'POST_PIXEL')
 
     @classmethod
     def handle_remove(cls):
@@ -164,7 +171,7 @@ class OperatorRender(bpy.types.Operator):
         props = sc.muv_props.uv_inspection
         prefs = context.user_preferences.addons["uv_magic_uv"].preferences
 
-        if not OperatorRender.is_running(context):
+        if not MUV_OT_UVInspection_Render.is_running(context):
             return
 
         # OpenGL configuration
@@ -213,11 +220,11 @@ class OperatorRender(bpy.types.Operator):
                     bgl.glEnd()
 
     def invoke(self, context, _):
-        if not OperatorRender.is_running(context):
+        if not MUV_OT_UVInspection_Render.is_running(context):
             update_uvinsp_info(context)
-            OperatorRender.handle_add(self, context)
+            MUV_OT_UVInspection_Render.handle_add(self, context)
         else:
-            OperatorRender.handle_remove()
+            MUV_OT_UVInspection_Render.handle_remove()
 
         if context.area:
             context.area.tag_redraw()
@@ -244,7 +251,8 @@ def update_uvinsp_info(context):
     props.flipped_info = common.get_flipped_uv_info(sel_faces, uv_layer)
 
 
-class OperatorUpdate(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_UVInspection_Update(bpy.types.Operator):
     """
     Operation class: Update
     """
@@ -259,7 +267,7 @@ class OperatorUpdate(bpy.types.Operator):
         # we can not get area/space/region from console
         if common.is_console_mode():
             return True
-        if not OperatorRender.is_running(context):
+        if not MUV_OT_UVInspection_Render.is_running(context):
             return False
         return is_valid_context(context)
 

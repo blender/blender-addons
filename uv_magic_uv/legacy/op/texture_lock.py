@@ -31,14 +31,16 @@ import bmesh
 from mathutils import Vector
 from bpy.props import BoolProperty
 
-from .. import common
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
 __all__ = [
     'Properties',
-    'OperatorLock',
-    'OperatorUnlock',
-    'OperatorIntr',
+    'MUV_OT_TextureLock_Lock',
+    'MUV_OT_TextureLock_Unlock',
+    'MUV_OT_TextureLock_Intr',
 ]
 
 
@@ -213,7 +215,10 @@ def is_valid_context(context):
     return True
 
 
+@PropertyClassRegistry(legacy=True)
 class Properties:
+    idname = "texture_lock"
+
     @classmethod
     def init_props(cls, scene):
         class Props():
@@ -222,7 +227,7 @@ class Properties:
         scene.muv_props.texture_lock = Props()
 
         def get_func(_):
-            return OperatorIntr.is_running(bpy.context)
+            return MUV_OT_TextureLock_Intr.is_running(bpy.context)
 
         def set_func(_, __):
             pass
@@ -256,7 +261,8 @@ class Properties:
         del scene.muv_texture_lock_connect
 
 
-class OperatorLock(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_TextureLock_Lock(bpy.types.Operator):
     """
     Operation class: Lock Texture
     """
@@ -302,7 +308,8 @@ class OperatorLock(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class OperatorUnlock(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_TextureLock_Unlock(bpy.types.Operator):
     """
     Operation class: Unlock Texture
     """
@@ -326,7 +333,11 @@ class OperatorUnlock(bpy.types.Operator):
         props = sc.muv_props.texture_lock
         if not props.verts_orig:
             return False
-        return OperatorLock.is_ready(context) and is_valid_context(context)
+        if not MUV_OT_TextureLock_Lock.is_ready(context):
+            return False
+        if not is_valid_context(context):
+            return False
+        return True
 
     def execute(self, context):
         sc = context.scene
@@ -383,7 +394,8 @@ class OperatorUnlock(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class OperatorIntr(bpy.types.Operator):
+@BlClassRegistry(legacy=True)
+class MUV_OT_TextureLock_Intr(bpy.types.Operator):
     """
     Operation class: Texture Lock (Interactive mode)
     """
@@ -500,10 +512,10 @@ class OperatorIntr(bpy.types.Operator):
 
     def modal(self, context, event):
         if not is_valid_context(context):
-            OperatorIntr.handle_remove(context)
+            MUV_OT_TextureLock_Intr.handle_remove(context)
             return {'FINISHED'}
 
-        if not OperatorIntr.is_running(context):
+        if not MUV_OT_TextureLock_Intr.is_running(context):
             return {'FINISHED'}
 
         if context.area:
@@ -521,11 +533,11 @@ class OperatorIntr(bpy.types.Operator):
         if not is_valid_context(context):
             return {'CANCELLED'}
 
-        if not OperatorIntr.is_running(context):
-            OperatorIntr.handle_add(self, context)
+        if not MUV_OT_TextureLock_Intr.is_running(context):
+            MUV_OT_TextureLock_Intr.handle_add(self, context)
             return {'RUNNING_MODAL'}
         else:
-            OperatorIntr.handle_remove(context)
+            MUV_OT_TextureLock_Intr.handle_remove(context)
 
         if context.area:
             context.area.tag_redraw()

@@ -25,22 +25,26 @@ __date__ = "17 Nov 2018"
 
 if "bpy" in locals():
     import importlib
-    importlib.reload(copy_paste_uv)
-    importlib.reload(copy_paste_uv_object)
-    importlib.reload(copy_paste_uv_uvedit)
-    importlib.reload(flip_rotate_uv)
-    importlib.reload(mirror_uv)
-    importlib.reload(move_uv)
-    importlib.reload(transfer_uv)
-    importlib.reload(uvw)
+    importlib.reload(view3d_copy_paste_uv_objectmode)
+    importlib.reload(view3d_copy_paste_uv_editmode)
+    importlib.reload(view3d_uv_manipulation)
+    importlib.reload(view3d_uv_mapping)
+    importlib.reload(uvedit_copy_paste_uv)
+    importlib.reload(uvedit_uv_manipulation)
+    importlib.reload(uvedit_editor_enhancement)
+    importlib.reload(VIEW3D_MT_uv_map)
+    importlib.reload(VIEW3D_MT_object)
+    importlib.reload(IMAGE_MT_uvs)
 else:
-    from . import copy_paste_uv
-    from . import copy_paste_uv_object
-    from . import copy_paste_uv_uvedit
-    from . import flip_rotate_uv
-    from . import mirror_uv
-    from . import move_uv
-    from . import transfer_uv
-    from . import uvw
+    from . import view3d_copy_paste_uv_objectmode
+    from . import view3d_copy_paste_uv_editmode
+    from . import view3d_uv_manipulation
+    from . import view3d_uv_mapping
+    from . import uvedit_copy_paste_uv
+    from . import uvedit_uv_manipulation
+    from . import uvedit_editor_enhancement
+    from . import VIEW3D_MT_uv_map
+    from . import VIEW3D_MT_object
+    from . import IMAGE_MT_uvs
 
 import bpy

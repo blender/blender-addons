@@ -27,10 +27,10 @@ import bpy
 import bmesh
 from bpy.props import BoolProperty
 
-from .. import common
-from ..impl import transfer_uv_impl as impl
-from ..utils.bl_class_registry import BlClassRegistry
-from ..utils.property_class_registry import PropertyClassRegistry
+from ... import common
+from ...impl import transfer_uv_impl as impl
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
 __all__ = [
@@ -40,7 +40,7 @@ __all__ = [
 ]
 
 
-@PropertyClassRegistry()
+@PropertyClassRegistry(legacy=True)
 class Properties:
     idname = "transfer_uv"
 
@@ -74,7 +74,7 @@ class Properties:
         del scene.muv_transfer_uv_copy_seams
 
 
-@BlClassRegistry()
+@BlClassRegistry(legacy=True)
 class MUV_OT_TransferUV_CopyUV(bpy.types.Operator):
     """
         Operation class: Transfer UV copy
@@ -95,9 +95,10 @@ class MUV_OT_TransferUV_CopyUV(bpy.types.Operator):
 
     def execute(self, context):
         props = context.scene.muv_props.transfer_uv
-        active_obj = context.active_object
+        active_obj = context.scene.objects.active
         bm = bmesh.from_edit_mesh(active_obj.data)
-        bm.faces.ensure_lookup_table()
+        if common.check_version(2, 73, 0) >= 0:
+            bm.faces.ensure_lookup_table()
 
         uv_layer = impl.get_uv_layer(self, bm)
         if uv_layer is None:
@@ -113,7 +114,7 @@ class MUV_OT_TransferUV_CopyUV(bpy.types.Operator):
         return {'FINISHED'}
 
 
-@BlClassRegistry()
+@BlClassRegistry(legacy=True)
 class MUV_OT_TransferUV_PasteUV(bpy.types.Operator):
     """
         Operation class: Transfer UV paste
@@ -125,12 +126,12 @@ class MUV_OT_TransferUV_PasteUV(bpy.types.Operator):
     bl_description = "Transfer UV Paste UV (Topological based paste)"
     bl_options = {'REGISTER', 'UNDO'}
 
-    invert_normals: BoolProperty(
+    invert_normals = BoolProperty(
         name="Invert Normals",
         description="Invert Normals",
         default=False
     )
-    copy_seams: BoolProperty(
+    copy_seams = BoolProperty(
         name="Copy Seams",
         description="Copy Seams",
         default=True
@@ -149,9 +150,10 @@ class MUV_OT_TransferUV_PasteUV(bpy.types.Operator):
 
     def execute(self, context):
         props = context.scene.muv_props.transfer_uv
-        active_obj = context.active_object
+        active_obj = context.scene.objects.active
         bm = bmesh.from_edit_mesh(active_obj.data)
-        bm.faces.ensure_lookup_table()
+        if common.check_version(2, 73, 0) >= 0:
+            bm.faces.ensure_lookup_table()
 
         # get UV layer
         uv_layer = impl.get_uv_layer(self, bm)
@@ -164,5 +166,7 @@ class MUV_OT_TransferUV_PasteUV(bpy.types.Operator):
             return {'CANCELLED'}
 
         bmesh.update_edit_mesh(active_obj.data)
+        if self.copy_seams:
+            active_obj.data.show_edge_seams = True
 
         return {'FINISHED'}
