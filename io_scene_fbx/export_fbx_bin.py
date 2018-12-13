@@ -533,7 +533,17 @@ def fbx_data_element_custom_properties(props, bid):
     """
     Store custom properties of blender ID bid (any mapping-like object, in fact) into FBX properties props.
     """
-    for k, v in bid.items():
+    items = bid.items()
+
+    if not items:
+        return
+
+    rna_properties = {prop.identifier for prop in bid.bl_rna.properties if prop.is_runtime}
+
+    for k, v in items:
+        if k == '_RNA_UI' or k in rna_properties:
+            continue
+
         list_val = getattr(v, "to_list", lambda: None)()
 
         if isinstance(v, str):
