@@ -925,7 +925,7 @@ class SCENE_PT_Settings_Update(ObjectButtonsPanel, bpy.types.Panel):
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
 
         col = flow.column()
-        col.prop(coat3D, "importmesh", text="Update Mesh")
+        col.prop(coat3D, "importmesh", text="Update Mesh/UV")
         col = flow.column()
         col.prop(coat3D, "createnodes", text="Create Extra Nodes")
         col = flow.column()
