@@ -84,7 +84,7 @@ class BlenderGlTF():
         # Blender material
         if gltf.data.materials:
             for material in gltf.data.materials:
-                material.blender_material = None
+                material.blender_material = {}
 
                 if material.pbr_metallic_roughness:
                     # Init
