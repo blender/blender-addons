@@ -118,7 +118,7 @@ class BlenderPrimitive():
         for texcoord in [attr for attr in pyprimitive.attributes.keys() if attr[:9] == "TEXCOORD_"]:
             if texcoord not in mesh.uv_layers:
                 mesh.uv_layers.new(name=texcoord)
-                pyprimitive.blender_texcoord[int(texcoord[9:])] = texcoord
+            pyprimitive.blender_texcoord[int(texcoord[9:])] = texcoord
 
             texcoord_data = BinaryData.get_data_from_accessor(gltf, pyprimitive.attributes[texcoord])
             for poly in mesh.polygons:
