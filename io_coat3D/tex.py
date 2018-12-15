@@ -85,7 +85,6 @@ def readtexturefolder(objekti, mat_list, texturelist, is_new): #read textures fr
                 if texture_info[2].startswith('displacement'):
                     texcoat['displacement'].append(texture_info[3])
                     create_nodes = True
-
         if(create_nodes):
             coat3D = bpy.context.scene.coat3D
             path3b_n = coat3D.exchangedir
@@ -137,7 +136,7 @@ def createnodes(active_mat,texcoat): # Cretes new nodes and link textures into t
             applink_tree = node
             break
 
-
+    print('TeXture UPDATE happens')
     for node in act_material.nodes:
         if(node.type == 'TEX_IMAGE'):
             if(node.name == '3DC_color'):

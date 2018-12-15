@@ -618,6 +618,12 @@ class SCENE_OT_import(bpy.types.Operator):
                                     obj_proxy.coat3D.delete_proxy_mesh = True
                                     found_obj = True
 
+                        mat_list = []
+                        if (objekti.material_slots):
+                            act_mat = objekti.active_material
+                            for obj_mat in objekti.material_slots:
+                                mat_list.append(obj_mat.material)
+
                         if(found_obj == True):
                             exportfile = coat3D.exchangedir
                             path3b_n = coat3D.exchangedir
@@ -638,11 +644,8 @@ class SCENE_OT_import(bpy.types.Operator):
                                 export_file.close()
                                 coat3D.remove_path = True
 
-                            mat_list = []
-                            if(objekti.material_slots):
-                                act_mat = objekti.active_material
-                                for obj_mat in objekti.material_slots:
-                                    mat_list.append(obj_mat.material)
+
+
                             bpy.ops.object.select_all(action='DESELECT')
                             obj_proxy.select_set(True)
 
@@ -699,13 +702,13 @@ class SCENE_OT_import(bpy.types.Operator):
                                 coat3D.importmesh = False
 
                             objekti.select_set(True)
-                            if(coat3D.importtextures):
-                                is_new = False
-                                tex.matlab(objekti,mat_list,texturelist,is_new)
-                            objekti.select_set(False)
+                        if(coat3D.importtextures):
+                            is_new = False
+                            tex.matlab(objekti,mat_list,texturelist,is_new)
+                        objekti.select_set(False)
                     else:
+                        print('JAAKO TAHAN KOHTAAN 2')
                         mat_list = []
-
                         if (objekti.material_slots):
                             for obj_mat in objekti.material_slots:
                                 mat_list.append(obj_mat.material)
