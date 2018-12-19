@@ -2928,7 +2928,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
                 for i in range(0, len(surface_splines_parsed[0])):
                     surface_splines_parsed[0][i] = self.main_object.matrix_world * verts_ordered_V2[i].co
 
-        # When "Automatic join" option is active (and the selection type is not "TWO_CONNECTED"),
+        # When "Automatic join" option is active (and the selection type != "TWO_CONNECTED"),
         # merge the verts of the tips of the loops when they are "near enough"
         if self.automatic_join and selection_type != "TWO_CONNECTED":
             # Join the tips of "Follow" loops that are near enough and must be "closed"

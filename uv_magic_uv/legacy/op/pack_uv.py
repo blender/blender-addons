@@ -20,8 +20,8 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "5.1"
-__date__ = "24 Feb 2018"
+__version__ = "5.2"
+__date__ = "17 Nov 2018"
 
 from math import fabs
 
@@ -35,10 +35,77 @@ from bpy.props import (
 )
 from mathutils import Vector
 
-from .. import common
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
-class MUV_PackUV(bpy.types.Operator):
+__all__ = [
+    'Properties',
+    'MUV_OT_PackUV',
+]
+
+
+def is_valid_context(context):
+    obj = context.object
+
+    # only edit mode is allowed to execute
+    if obj is None:
+        return False
+    if obj.type != 'MESH':
+        return False
+    if context.object.mode != 'EDIT':
+        return False
+
+    # 'IMAGE_EDITOR' and 'VIEW_3D' space is allowed to execute.
+    # If 'View_3D' space is not allowed, you can't find option in Tool-Shelf
+    # after the execution
+    for space in context.area.spaces:
+        if (space.type == 'IMAGE_EDITOR') or (space.type == 'VIEW_3D'):
+            break
+    else:
+        return False
+
+    return True
+
+
+@PropertyClassRegistry(legacy=True)
+class Properties:
+    idname = "pack_uv"
+
+    @classmethod
+    def init_props(cls, scene):
+        scene.muv_pack_uv_enabled = BoolProperty(
+            name="Pack UV Enabled",
+            description="Pack UV is enabled",
+            default=False
+        )
+        scene.muv_pack_uv_allowable_center_deviation = FloatVectorProperty(
+            name="Allowable Center Deviation",
+            description="Allowable center deviation to judge same UV island",
+            min=0.000001,
+            max=0.1,
+            default=(0.001, 0.001),
+            size=2
+        )
+        scene.muv_pack_uv_allowable_size_deviation = FloatVectorProperty(
+            name="Allowable Size Deviation",
+            description="Allowable sizse deviation to judge same UV island",
+            min=0.000001,
+            max=0.1,
+            default=(0.001, 0.001),
+            size=2
+        )
+
+    @classmethod
+    def del_props(cls, scene):
+        del scene.muv_pack_uv_enabled
+        del scene.muv_pack_uv_allowable_center_deviation
+        del scene.muv_pack_uv_allowable_size_deviation
+
+
+@BlClassRegistry(legacy=True)
+class MUV_OT_PackUV(bpy.types.Operator):
     """
     Operation class: Pack UV with same UV islands are integrated
     Island matching algorithm
@@ -47,7 +114,7 @@ class MUV_PackUV(bpy.types.Operator):
      - Same number of UV
     """
 
-    bl_idname = "uv.muv_packuv"
+    bl_idname = "uv.muv_pack_uv_operator"
     bl_label = "Pack UV"
     bl_description = "Pack UV (Same UV Islands are integrated)"
     bl_options = {'REGISTER', 'UNDO'}
@@ -78,6 +145,13 @@ class MUV_PackUV(bpy.types.Operator):
         default=(0.001, 0.001),
         size=2
     )
+
+    @classmethod
+    def poll(cls, context):
+        # we can not get area/space/region from console
+        if common.is_console_mode():
+            return True
+        return is_valid_context(context)
 
     def execute(self, context):
         obj = context.active_object

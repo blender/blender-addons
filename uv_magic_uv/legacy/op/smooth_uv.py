@@ -20,19 +20,88 @@
 
 __author__ = "imdjs, Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "5.1"
-__date__ = "24 Feb 2018"
+__version__ = "5.2"
+__date__ = "17 Nov 2018"
 
 import bpy
 import bmesh
 from bpy.props import BoolProperty, FloatProperty
 
-from .. import common
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
-class MUV_AUVSmooth(bpy.types.Operator):
+__all__ = [
+    'Properties',
+    'MUV_OT_SmoothUV',
+]
 
-    bl_idname = "uv.muv_auv_smooth"
+
+def is_valid_context(context):
+    obj = context.object
+
+    # only edit mode is allowed to execute
+    if obj is None:
+        return False
+    if obj.type != 'MESH':
+        return False
+    if context.object.mode != 'EDIT':
+        return False
+
+    # 'IMAGE_EDITOR' and 'VIEW_3D' space is allowed to execute.
+    # If 'View_3D' space is not allowed, you can't find option in Tool-Shelf
+    # after the execution
+    for space in context.area.spaces:
+        if (space.type == 'IMAGE_EDITOR') or (space.type == 'VIEW_3D'):
+            break
+    else:
+        return False
+
+    return True
+
+
+@PropertyClassRegistry(legacy=True)
+class Properties:
+    idname = "smooth_uv"
+
+    @classmethod
+    def init_props(cls, scene):
+        scene.muv_smooth_uv_enabled = BoolProperty(
+            name="Smooth UV Enabled",
+            description="Smooth UV is enabled",
+            default=False
+        )
+        scene.muv_smooth_uv_transmission = BoolProperty(
+            name="Transmission",
+            description="Smooth linked UVs",
+            default=False
+        )
+        scene.muv_smooth_uv_mesh_infl = FloatProperty(
+            name="Mesh Influence",
+            description="Influence rate of mesh vertex",
+            min=0.0,
+            max=1.0,
+            default=0.0
+        )
+        scene.muv_smooth_uv_select = BoolProperty(
+            name="Select",
+            description="Select UVs which are smoothed",
+            default=False
+        )
+
+    @classmethod
+    def del_props(cls, scene):
+        del scene.muv_smooth_uv_enabled
+        del scene.muv_smooth_uv_transmission
+        del scene.muv_smooth_uv_mesh_infl
+        del scene.muv_smooth_uv_select
+
+
+@BlClassRegistry(legacy=True)
+class MUV_OT_SmoothUV(bpy.types.Operator):
+
+    bl_idname = "uv.muv_smooth_uv_operator"
     bl_label = "Smooth"
     bl_description = "Smooth UV coordinates"
     bl_options = {'REGISTER', 'UNDO'}
@@ -57,7 +126,10 @@ class MUV_AUVSmooth(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.mode == 'EDIT_MESH'
+        # we can not get area/space/region from console
+        if common.is_console_mode():
+            return True
+        return is_valid_context(context)
 
     def __smooth_wo_transmission(self, loop_seqs, uv_layer):
         # calculate path length

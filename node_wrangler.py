@@ -2372,7 +2372,10 @@ class NWCopySettings(Operator, NWBase):
     def poll(cls, context):
         valid = False
         if nw_check(context):
-            if context.active_node is not None and context.active_node.type is not 'FRAME':
+            if (
+                    context.active_node is not None and
+                    context.active_node.type != 'FRAME'
+            ):
                 valid = True
         return valid
 
@@ -2955,7 +2958,7 @@ class NWAddReroutes(Operator, NWBase):
             reroutes_count = 0  # will be used when aligning reroutes added to hidden nodes
             for out_i, output in enumerate(node.outputs):
                 pass_used = False  # initial value to be analyzed if 'R_LAYERS'
-                # if node is not 'R_LAYERS' - "pass_used" not needed, so set it to True
+                # if node != 'R_LAYERS' - "pass_used" not needed, so set it to True
                 if node.type != 'R_LAYERS':
                     pass_used = True
                 else:  # if 'R_LAYERS' check if output represent used render pass

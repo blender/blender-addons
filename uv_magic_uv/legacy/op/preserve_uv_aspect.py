@@ -20,23 +20,99 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "5.1"
-__date__ = "24 Feb 2018"
+__version__ = "5.2"
+__date__ = "17 Nov 2018"
 
 import bpy
 import bmesh
-from bpy.props import StringProperty, EnumProperty
+from bpy.props import StringProperty, EnumProperty, BoolProperty
 from mathutils import Vector
 
-from .. import common
+from ... import common
+from ...utils.bl_class_registry import BlClassRegistry
+from ...utils.property_class_registry import PropertyClassRegistry
 
 
-class MUV_PreserveUVAspect(bpy.types.Operator):
+__all__ = [
+    'Properties',
+    'MUV_OT_PreserveUVAspect',
+]
+
+
+def is_valid_context(context):
+    obj = context.object
+
+    # only edit mode is allowed to execute
+    if obj is None:
+        return False
+    if obj.type != 'MESH':
+        return False
+    if context.object.mode != 'EDIT':
+        return False
+
+    # only 'VIEW_3D' space is allowed to execute
+    for space in context.area.spaces:
+        if space.type == 'VIEW_3D':
+            break
+    else:
+        return False
+
+    return True
+
+
+@PropertyClassRegistry(legacy=True)
+class Properties:
+    idname = "preserve_uv_aspect"
+
+    @classmethod
+    def init_props(cls, scene):
+        def get_loaded_texture_name(_, __):
+            items = [(key, key, "") for key in bpy.data.images.keys()]
+            items.append(("None", "None", ""))
+            return items
+
+        scene.muv_preserve_uv_aspect_enabled = BoolProperty(
+            name="Preserve UV Aspect Enabled",
+            description="Preserve UV Aspect is enabled",
+            default=False
+        )
+        scene.muv_preserve_uv_aspect_tex_image = EnumProperty(
+            name="Image",
+            description="Texture Image",
+            items=get_loaded_texture_name
+        )
+        scene.muv_preserve_uv_aspect_origin = EnumProperty(
+            name="Origin",
+            description="Aspect Origin",
+            items=[
+                ('CENTER', 'Center', 'Center'),
+                ('LEFT_TOP', 'Left Top', 'Left Bottom'),
+                ('LEFT_CENTER', 'Left Center', 'Left Center'),
+                ('LEFT_BOTTOM', 'Left Bottom', 'Left Bottom'),
+                ('CENTER_TOP', 'Center Top', 'Center Top'),
+                ('CENTER_BOTTOM', 'Center Bottom', 'Center Bottom'),
+                ('RIGHT_TOP', 'Right Top', 'Right Top'),
+                ('RIGHT_CENTER', 'Right Center', 'Right Center'),
+                ('RIGHT_BOTTOM', 'Right Bottom', 'Right Bottom')
+
+            ],
+            default="CENTER"
+        )
+
+    @classmethod
+    def del_props(cls, scene):
+        del scene.muv_preserve_uv_aspect_enabled
+        del scene.muv_preserve_uv_aspect_tex_image
+        del scene.muv_preserve_uv_aspect_origin
+
+
+@BlClassRegistry(legacy=True)
+class MUV_OT_PreserveUVAspect(bpy.types.Operator):
     """
     Operation class: Preserve UV Aspect
     """
 
-    bl_idname = "uv.muv_preserve_uv_aspect"
+    bl_idname = "uv.muv_preserve_uv_aspect_operator"
     bl_label = "Preserve UV Aspect"
     bl_description = "Choose Image"
     bl_options = {'REGISTER', 'UNDO'}
@@ -62,8 +138,10 @@ class MUV_PreserveUVAspect(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = context.active_object
-        return obj and obj.type == 'MESH'
+        # we can not get area/space/region from console
+        if common.is_console_mode():
+            return True
+        return is_valid_context(context)
 
     def execute(self, context):
         # Note: the current system only works if the
