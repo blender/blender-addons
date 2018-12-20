@@ -63,6 +63,7 @@ def update_exe_path():
     if (bpy.context.scene.coat3D.coat3D_exe != ''):
         importfile = bpy.context.scene.coat3D.exchangedir
         importfile += ('%scoat3D_exe.txt' % (os.sep))
+        print('Filepath: ',importfile)
         file = open(importfile, "w")
         file.write("%s" % (bpy.context.scene.coat3D.coat3D_exe))
         file.close()
@@ -332,7 +333,7 @@ class SCENE_OT_export(bpy.types.Operator):
 
     def invoke(self, context, event):
 
-        update_exe_path()
+
 
         for mesh in bpy.data.meshes:
             if (mesh.users == 0 and mesh.coat3D.name == '3DC'):
@@ -358,6 +359,8 @@ class SCENE_OT_export(bpy.types.Operator):
         checkname = ''
         coa = bpy.context.active_object.coat3D
         coat3D.exchangedir = set_exchange_folder()
+
+        update_exe_path()
 
         if (not os.path.isdir(coat3D.exchangedir)):
             coat3D.exchange_found = False
@@ -433,7 +436,7 @@ class SCENE_OT_export(bpy.types.Operator):
             bpy.ops.object.transforms_to_deltas(mode='ROT')
 
 
-        bpy.ops.export_scene.fbx(filepath=coa.applink_address, use_selection=True, use_mesh_modifiers=coat3D.exportmod, axis_forward='X', axis_up='Y')
+        bpy.ops.export_scene.fbx(filepath=coa.applink_address, use_selection=True, use_mesh_modifiers=coat3D.exportmod, axis_forward='-Z', axis_up='Y')
 
         file = open(importfile, "w")
         file.write("%s"%(checkname))
@@ -780,7 +783,7 @@ class SCENE_OT_import(bpy.types.Operator):
             old_materials = bpy.data.materials.keys()
             old_objects = bpy.data.objects.keys()
 
-            bpy.ops.import_scene.fbx(filepath=new_applink_address, global_scale = 0.001, use_manual_orientation=True, axis_forward='X', axis_up='Y')
+            bpy.ops.import_scene.fbx(filepath=new_applink_address, global_scale = 0.001, use_manual_orientation=True, axis_forward='-Z', axis_up='Y')
 
             new_materials = bpy.data.materials.keys()
             new_objects = bpy.data.objects.keys()
