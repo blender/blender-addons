@@ -22,8 +22,6 @@ import numpy as np
 from mathutils import Matrix
 import gpu
 
-_Hash = {}
-
 def load_shader(shadername):
     from os import path
     with open(path.join(path.dirname(__file__), 'shaders', shadername), 'r') as f:
@@ -177,6 +175,7 @@ class GPU_Indices_Mesh():
         "users"
     )
 
+    _Hash = {}
     shader = None
 
     @classmethod
@@ -218,8 +217,8 @@ class GPU_Indices_Mesh():
     def __init__(self, obj, draw_tris, draw_edges, draw_verts):
         self.obj = obj
 
-        if obj.data in _Hash:
-            src = _Hash[obj.data]
+        if obj.data in GPU_Indices_Mesh._Hash:
+            src = GPU_Indices_Mesh._Hash[obj.data]
             dst = self
 
             dst.draw_tris    = src.draw_tris
@@ -238,7 +237,7 @@ class GPU_Indices_Mesh():
             update = obj.type == 'MESH' and obj.data.is_editmode
 
         else:
-            _Hash[obj.data] = self
+            GPU_Indices_Mesh._Hash[obj.data] = self
             self.users = [self]
             update = True;
 
@@ -372,8 +371,7 @@ class GPU_Indices_Mesh():
 
     def __del__(self):
         if len(self.users) == 1:
-            self.free_gl()
-            _Hash.pop(obj.data)
+            GPU_Indices_Mesh._Hash.pop(obj.data)
 
         self.user.remove(self)
         #print('mesh_del', self.obj.name)
@@ -410,3 +408,7 @@ def gpu_Indices_use_clip_planes(rv3d, value):
 def gpu_Indices_set_ProjectionMatrix(P):
     gpu.matrix.load_projection_matrix(P)
     GPU_Indices_Mesh.P[:] = P
+
+
+def gpu_Indices_mesh_cache_clear():
+    GPU_Indices_Mesh._Hash.clear()
