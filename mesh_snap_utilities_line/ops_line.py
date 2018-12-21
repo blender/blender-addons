@@ -430,6 +430,8 @@ class SnapUtilitiesLine(bpy.types.Operator):
 
             elif event.type in {'RIGHTMOUSE', 'ESC'}:
                 if not self.wait_for_input or not is_making_lines or event.type == 'ESC':
+                    if self.geom:
+                        self.geom.select = True
                     self._exit(context)
                     return {'FINISHED'}
                 else:
