@@ -720,7 +720,7 @@ def NoiseCurve(type=0, number=100, length=2.0, size=0.5,
 def align_matrix(context):
 
     loc = Matrix.Translation(context.scene.cursor_location)
-    obj_align = context.user_preferences.edit.object_align
+    obj_align = context.preferences.edit.object_align
 
     if (context.space_data.type == 'VIEW_3D' and
                 obj_align == 'VIEW'):
@@ -1429,8 +1429,8 @@ class Curveaceous_galore(Operator):
 
     def execute(self, context):
         # turn off undo
-        undo = context.user_preferences.edit.use_global_undo
-        context.user_preferences.edit.use_global_undo = False
+        undo = context.preferences.edit.use_global_undo
+        context.preferences.edit.use_global_undo = False
 
         # deal with 2D - 3D curve differences
         if self.ProfileType in ['Helix', 'Cycloid', 'Noise']:
@@ -1455,7 +1455,7 @@ class Curveaceous_galore(Operator):
         main(context, self, self.align_matrix or Matrix())
 
         # restore pre operator undo state
-        context.user_preferences.edit.use_global_undo = undo
+        context.preferences.edit.use_global_undo = undo
 
         return {'FINISHED'}
 

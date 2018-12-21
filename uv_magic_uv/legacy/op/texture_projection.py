@@ -63,7 +63,7 @@ def get_canvas(context, magnitude):
     Get canvas to be renderred texture
     """
     sc = context.scene
-    prefs = context.user_preferences.addons["uv_magic_uv"].preferences
+    prefs = context.preferences.addons["uv_magic_uv"].preferences
 
     region_w = context.region.width
     region_h = context.region.height

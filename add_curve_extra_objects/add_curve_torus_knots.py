@@ -154,7 +154,7 @@ def align_matrix(self, context):
     userLoc = Matrix.Translation(self.location)
     userRot = self.rotation.to_matrix().to_4x4()
 
-    obj_align = context.user_preferences.edit.object_align
+    obj_align = context.preferences.edit.object_align
     if (context.space_data.type == 'VIEW_3D' and obj_align == 'VIEW'):
         rot = context.space_data.region_3d.view_matrix.to_3x3().inverted().to_4x4()
     else:
@@ -712,14 +712,14 @@ class torus_knot_plus(Operator, AddObjectHelper):
         self.align_matrix = align_matrix(self, context)
 
         # turn off undo
-        #undo = bpy.context.user_preferences.edit.use_global_undo
-        #bpy.context.user_preferences.edit.use_global_undo = False
+        #undo = bpy.context.preferences.edit.use_global_undo
+        #bpy.context.preferences.edit.use_global_undo = False
 
         # create the curve
         create_torus_knot(self, context)
 
         # restore pre operator undo state
-        #bpy.context.user_preferences.edit.use_global_undo = undo
+        #bpy.context.preferences.edit.use_global_undo = undo
 
         return {'FINISHED'}
 

@@ -869,14 +869,14 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
             self.relative = False
 
         # this won't work in edit mode
-        editmode = context.user_preferences.edit.use_enter_edit_mode
-        context.user_preferences.edit.use_enter_edit_mode = False
+        editmode = context.preferences.edit.use_enter_edit_mode
+        context.preferences.edit.use_enter_edit_mode = False
         if context.active_object and context.active_object.mode == 'EDIT':
             bpy.ops.object.mode_set(mode='OBJECT')
 
         self.import_images(context)
 
-        context.user_preferences.edit.use_enter_edit_mode = editmode
+        context.preferences.edit.use_enter_edit_mode = editmode
 
         return {'FINISHED'}
 

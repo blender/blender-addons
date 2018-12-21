@@ -806,7 +806,7 @@ def draw_text(myobj, pos2d, display_text, rgba, fsize, align='L', text_rot=0.0):
     if pos2d is None:
         return
 
-    # dpi = bpy.context.user_preferences.system.dpi
+    # dpi = bpy.context.preferences.system.dpi
     gap = 12
     x_pos, y_pos = pos2d
     font_id = 0

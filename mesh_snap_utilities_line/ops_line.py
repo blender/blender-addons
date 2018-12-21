@@ -493,7 +493,7 @@ class SnapUtilitiesLine(bpy.types.Operator):
 
                 preferences = self.snap_widget.preferences
             else:
-                preferences = context.user_preferences.addons[__package__].preferences
+                preferences = context.preferences.addons[__package__].preferences
 
                 #Init DrawCache
                 self.draw_cache = SnapDrawn(
@@ -504,9 +504,9 @@ class SnapUtilitiesLine(bpy.types.Operator):
                     preferences.center_color,
                     preferences.perpendicular_color,
                     preferences.constrain_shift_color,
-                    tuple(context.user_preferences.themes[0].user_interface.axis_x) + (1.0,),
-                    tuple(context.user_preferences.themes[0].user_interface.axis_y) + (1.0,),
-                    tuple(context.user_preferences.themes[0].user_interface.axis_z) + (1.0,)
+                    tuple(context.preferences.themes[0].user_interface.axis_x) + (1.0,),
+                    tuple(context.preferences.themes[0].user_interface.axis_y) + (1.0,),
+                    tuple(context.preferences.themes[0].user_interface.axis_z) + (1.0,)
                 )
 
                 self.sctx = None

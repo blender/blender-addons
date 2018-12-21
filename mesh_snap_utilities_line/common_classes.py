@@ -216,7 +216,7 @@ class SnapNavigation():
     def __init__(self, context, use_ndof):
         # TO DO:
         # 'View Orbit', 'View Pan', 'NDOF Orbit View', 'NDOF Pan View'
-        self.use_ndof = use_ndof and context.user_preferences.inputs.use_ndof
+        self.use_ndof = use_ndof and context.preferences.inputs.use_ndof
 
         self._rotate = set()
         self._move = set()
@@ -371,7 +371,7 @@ class MousePointWidget(bpy.types.Gizmo):
 
             context = bpy.context
 
-            self.preferences = preferences = context.user_preferences.addons[__package__].preferences
+            self.preferences = preferences = context.preferences.addons[__package__].preferences
 
             #Configure the unit of measure
             self.snap_to_grid = preferences.increments_grid
@@ -386,9 +386,9 @@ class MousePointWidget(bpy.types.Gizmo):
                 preferences.center_color,
                 preferences.perpendicular_color,
                 preferences.constrain_shift_color,
-                (*context.user_preferences.themes[0].user_interface.axis_x, 1.0),
-                (*context.user_preferences.themes[0].user_interface.axis_y, 1.0),
-                (*context.user_preferences.themes[0].user_interface.axis_z, 1.0)
+                (*context.preferences.themes[0].user_interface.axis_x, 1.0),
+                (*context.preferences.themes[0].user_interface.axis_y, 1.0),
+                (*context.preferences.themes[0].user_interface.axis_z, 1.0)
             )
 
             #Init Snap Context

@@ -428,7 +428,7 @@ class StateNone(StateBase):
         """
         Update state
         """
-        prefs = context.user_preferences.addons["uv_magic_uv"].preferences
+        prefs = context.preferences.addons["uv_magic_uv"].preferences
         cp_react_size = prefs.uv_bounding_box_cp_react_size
         is_uscaling = context.scene.muv_uv_bounding_box_uniform_scaling
         if (event.type == 'LEFTMOUSE') and (event.value == 'PRESS'):
@@ -660,7 +660,7 @@ class MUV_OT_UVBoundingBox(bpy.types.Operator):
         """
         Draw control point
         """
-        prefs = context.user_preferences.addons["uv_magic_uv"].preferences
+        prefs = context.preferences.addons["uv_magic_uv"].preferences
         cp_size = prefs.uv_bounding_box_cp_size
         offset = cp_size / 2
         verts = [

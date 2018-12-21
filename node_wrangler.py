@@ -614,7 +614,7 @@ def force_update(context):
 
 
 def dpifac():
-    prefs = bpy.context.user_preferences.system
+    prefs = bpy.context.preferences.system
     return prefs.dpi * prefs.pixel_size / 72
 
 
@@ -2042,7 +2042,7 @@ class NWMergeNodes(Operator, NWBase):
     )
 
     def execute(self, context):
-        settings = context.user_preferences.addons[__name__].preferences
+        settings = context.preferences.addons[__name__].preferences
         merge_hide = settings.merge_hide
         merge_position = settings.merge_position  # 'center' or 'bottom'
 
@@ -2717,7 +2717,7 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
 
         # Filter textures names for texturetypes in filenames
         # [Socket Name, [abbreviations and keyword list], Filename placeholder]
-        tags = context.user_preferences.addons[__name__].preferences.principled_tags
+        tags = context.preferences.addons[__name__].preferences.principled_tags
         normal_abbr = tags.normal.split(' ')
         bump_abbr = tags.bump.split(' ')
         gloss_abbr = tags.gloss.split(' ')

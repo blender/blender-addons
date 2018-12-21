@@ -382,7 +382,7 @@ def SimpleTrapezoid(a=2.0, b=1.0, h=1.0, center=True):
 
 def align_matrix(context, location):
     loc = Matrix.Translation(location)
-    obj_align = context.user_preferences.edit.object_align
+    obj_align = context.preferences.edit.object_align
     if (context.space_data.type == 'VIEW_3D' and
             obj_align == 'VIEW'):
         rot = context.space_data.region_3d.view_matrix.to_3x3().inverted().to_4x4()

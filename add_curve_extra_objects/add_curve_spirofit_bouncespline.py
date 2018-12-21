@@ -323,8 +323,8 @@ class SpiroFitSpline(Operator):
                         "Active Object is not a Mesh. Operation Cancelled")
             return {'CANCELLED'}
 
-        #undo = context.user_preferences.edit.use_global_undo
-        #context.user_preferences.edit.use_global_undo = False
+        #undo = context.preferences.edit.use_global_undo
+        #context.preferences.edit.use_global_undo = False
 
         #bpy.ops.object.select_all(action='DESELECT')
 
@@ -364,7 +364,7 @@ class SpiroFitSpline(Operator):
         if self.auto_refresh is False:
             self.refresh = False
 
-        #context.user_preferences.edit.use_global_undo = undo
+        #context.preferences.edit.use_global_undo = undo
         return {'FINISHED'}
 
 
@@ -598,8 +598,8 @@ class BounceSpline(Operator):
         if obj.type != 'MESH':
             return {'CANCELLED'}
 
-        #undo = context.user_preferences.edit.use_global_undo
-        #context.user_preferences.edit.use_global_undo = False
+        #undo = context.preferences.edit.use_global_undo
+        #context.preferences.edit.use_global_undo = False
 
         #bpy.ops.object.select_all(action='DESELECT')
 
@@ -636,7 +636,7 @@ class BounceSpline(Operator):
         if self.auto_refresh is False:
             self.refresh = False
 
-        #context.user_preferences.edit.use_global_undo = undo
+        #context.preferences.edit.use_global_undo = undo
         return {'FINISHED'}
 
 
@@ -841,8 +841,8 @@ class CatenaryCurve(Operator):
 
         #bpy.ops.object.select_all(action='DESELECT')
 
-        #undo = context.user_preferences.edit.use_global_undo
-        #context.user_preferences.edit.use_global_undo = False
+        #undo = context.preferences.edit.use_global_undo
+        #context.preferences.edit.use_global_undo = False
 
         r.seed(self.random_seed)
 
@@ -876,7 +876,7 @@ class CatenaryCurve(Operator):
         if self.auto_refresh is False:
             self.refresh = False
 
-        #context.user_preferences.edit.use_global_undo = undo
+        #context.preferences.edit.use_global_undo = undo
         return {'FINISHED'}
 
 

@@ -45,7 +45,7 @@ from bpy.utils.toolsystem import ToolDef
 def tool_make_line():
     import os
     def draw_settings(context, layout, tool):
-        addon_prefs = context.user_preferences.addons["mesh_snap_utilities_line"].preferences
+        addon_prefs = context.preferences.addons["mesh_snap_utilities_line"].preferences
 
         layout.prop(addon_prefs, "incremental")
         layout.prop(addon_prefs, "increments_grid")
