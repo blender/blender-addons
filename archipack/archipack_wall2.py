@@ -2127,7 +2127,7 @@ class ARCHIPACK_OT_wall2_draw(ArchipackDrawTool, Operator):
             snap_point(takeloc=self.takeloc,
                        draw=self.sp_draw,
                        takemat=self.takemat,
-                       transform_orientation=context.scene.transform_orientation,
+                       transform_orientation=context.scene.transform_orientation_slots[0].type,
                        callback=self.sp_callback,
                        constraint_axis=(True, True, False),
                        release_confirm=self.max_style_draw_tool)
