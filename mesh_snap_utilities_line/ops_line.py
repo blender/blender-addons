@@ -410,8 +410,7 @@ class SnapUtilitiesLine(bpy.types.Operator):
                 self.vector_constrain = None
                 self.keyf8 = self.keyf8 is False
 
-        elif event.value == 'RELEASE':
-            if event.type in {'RET', 'NUMPAD_ENTER'}:
+            elif event.type in {'RET', 'NUMPAD_ENTER'}:
                 if self.length_entered != "" and self.list_verts_co:
                     try:
                         text_value = bpy.utils.units.to_value(self.unit_system, 'LENGTH', self.length_entered)
@@ -426,9 +425,8 @@ class SnapUtilitiesLine(bpy.types.Operator):
                     except:  # ValueError:
                         self.report({'INFO'}, "Operation not supported yet")
 
-                if not self.wait_for_input:
-                    self._exit(context)
-                    return {'FINISHED'}
+                self._exit(context)
+                return {'FINISHED'}
 
             elif event.type in {'RIGHTMOUSE', 'ESC'}:
                 if not self.wait_for_input or not is_making_lines or event.type == 'ESC':
