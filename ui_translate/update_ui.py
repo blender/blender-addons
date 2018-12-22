@@ -178,6 +178,8 @@ class UI_PT_i18n_update_translations_settings(Panel):
             col.separator()
             col.operator("ui.i18n_updatetranslation_svn_branches", text="Update Branches")
             col.operator("ui.i18n_updatetranslation_svn_trunk", text="Update Trunk")
+            col.separator()
+            col.operator("ui.i18n_cleanuptranslation_svn_branches", text="Clean up Branches")
             col.operator("ui.i18n_updatetranslation_svn_statistics", text="Statistics")
 
             if i18n_sett.active_lang >= 0 and i18n_sett.active_lang < len(i18n_sett.langs):
