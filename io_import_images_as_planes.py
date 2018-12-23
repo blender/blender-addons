@@ -728,7 +728,7 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
     # Properties - Material / Shader
     SHADERS = (
         ('DIFFUSE', "Diffuse", "Diffuse Shader"),
-        ('SHADELESS', "Shadeless", "Only visible to camera and reflections."),
+        ('SHADELESS', "Shadeless", "Only visible to camera and reflections"),
         ('EMISSION', "Emit", "Emission Shader"),
     )
     shader: EnumProperty(name="Shader", items=SHADERS, default='DIFFUSE', description="Node shader to use")

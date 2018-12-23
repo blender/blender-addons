@@ -47,7 +47,7 @@ from bpy.app.translations import pgettext_iface as iface_
 # Data ########################################################################
 
 class I18nUpdateTranslationLanguage(PropertyGroup):
-    """Settings/info about a language."""
+    """Settings/info about a language"""
 
     uid: StringProperty(
         name="Language ID",
