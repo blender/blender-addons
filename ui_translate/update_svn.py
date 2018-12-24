@@ -201,10 +201,8 @@ class UI_OT_i18n_updatetranslation_svn_trunk(Operator):
 
 
 class UI_OT_i18n_updatetranslation_svn_statistics(Operator):
-    """Create or extend a 'i18n_info.txt' Text datablock
-
-    It will contain statistics and checks about current branches and/or trunk.
-    """
+    """Create or extend a 'i18n_info.txt' Text datablock"""
+    """(it will contain statistics and checks about current branches and/or trunk)"""
     bl_idname = "ui.i18n_updatetranslation_svn_statistics"
     bl_label = "Update I18n Statistics"
 

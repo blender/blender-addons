@@ -750,7 +750,7 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
     # Properties - Image
     use_transparency: BoolProperty(
         name="Use Alpha", default=True,
-        description="Use alphachannel for transparency")
+        description="Use alpha channel for transparency")
 
     t = bpy.types.Image.bl_rna.properties["alpha_mode"]
     alpha_mode_items = tuple((e.identifier, e.name, e.description) for e in t.enum_items)
