@@ -519,16 +519,18 @@ class SCENE_OT_import(bpy.types.Operator):
                     bpy.data.images.remove(image)
 
 
-        kokeilu = coat3D.exchangedir[:-10]
-        Blender_folder = ("%s%sExchange%sBlender"%(kokeilu,os.sep,os.sep))
+        kokeilu = coat3D.exchangedir
+        print('kokeilu', kokeilu)
+        Blender_folder = ("%s%sBlender"%(kokeilu,os.sep))
         Blender_export = Blender_folder
         path3b_now = coat3D.exchangedir
         path3b_now += ('last_saved_3b_file.txt')
         Blender_export += ('%sexport.txt'%(os.sep))
         new_applink_address = 'False'
         new_object = False
-
+        print('Blender_export', Blender_export)
         if(os.path.isfile(Blender_export)):
+            print('Blender_export', Blender_export)
             obj_pathh = open(Blender_export)
             new_object = True
             for line in obj_pathh:
@@ -546,7 +548,9 @@ class SCENE_OT_import(bpy.types.Operator):
         exportfile += ('%sexport.txt' % (os.sep))
         if (os.path.isfile(exportfile)):
             os.remove(exportfile)
+
         if(new_object == False):
+            print('tanne pitas tulla')
 
             '''
             #Blender -> 3DC -> Blender workflow
