@@ -378,15 +378,20 @@ class SCENE_OT_export(bpy.types.Operator):
         looking = True
         object_index = 0
 
-        while(looking == True):
-            checkname = folder_objects + os.sep + "3DC"
-            checkname = ("%s%.3d.fbx"%(checkname,object_index))
-            if(os.path.isfile(checkname)):
-                object_index += 1
-            else:
-                looking = False
-                coa.applink_name = ("%s%.2d"%(activeobj,object_index))
-                coa.applink_address = checkname
+        if(coat3D.type == 'autopo'):
+            checkname = folder_objects + os.sep
+            checkname = ("%sretopo.fbx" % (checkname))
+
+        else:
+            while(looking == True):
+                checkname = folder_objects + os.sep + "3DC"
+                checkname = ("%s%.3d.fbx"%(checkname,object_index))
+                if(os.path.isfile(checkname)):
+                    object_index += 1
+                else:
+                    looking = False
+                    coa.applink_name = ("%s%.2d"%(activeobj,object_index))
+                    coa.applink_address = checkname
 
         matindex = 0
 
@@ -435,8 +440,13 @@ class SCENE_OT_export(bpy.types.Operator):
         if(len(bpy.context.selected_objects) > 1 and coat3D.type != 'vox'):
             bpy.ops.object.transforms_to_deltas(mode='ROT')
 
-
-        bpy.ops.export_scene.fbx(filepath=coa.applink_address, use_selection=True, use_mesh_modifiers=coat3D.exportmod, axis_forward='-Z', axis_up='Y')
+        if(coat3D.type == 'autopo'):
+            coat3D.bring_retopo = True
+            coat3D.bring_retopo_path = checkname
+            bpy.ops.export_scene.fbx(filepath=checkname, use_selection=True, use_mesh_modifiers=coat3D.exportmod, axis_forward='-Z', axis_up='Y')
+        else:
+            coat3D.bring_retopo = False
+            bpy.ops.export_scene.fbx(filepath=coa.applink_address, use_selection=True, use_mesh_modifiers=coat3D.exportmod, axis_forward='-Z', axis_up='Y')
 
         file = open(importfile, "w")
         file.write("%s"%(checkname))
@@ -752,6 +762,12 @@ class SCENE_OT_import(bpy.types.Operator):
                     else:
                         bpy.context.collection.all_objects[del_obj].select_set(True)
                         bpy.ops.object.delete()
+
+            if (coat3D.bring_retopo or coat3D.bring_retopo_path):
+                if(os.path.isfile(coat3D.bring_retopo_path)):
+                    bpy.ops.import_scene.fbx(filepath=coat3D.bring_retopo_path, global_scale=1, axis_forward='X', use_custom_normals=False)
+                    os.remove(coat3D.bring_retopo_path)
+
 
         else:
 
@@ -1097,6 +1113,15 @@ class SceneCoat3D(PropertyGroup):
         name="Import window",
         description="Allows to skip import dialog",
         default=True
+    )
+    bring_retopo: BoolProperty(
+        name="Import window",
+        description="Allows to skip import dialog",
+        default=False
+    )
+    bring_retopo_path: StringProperty(
+        name="FilePath",
+        subtype="DIR_PATH",
     )
     remove_path: BoolProperty(
         name="Import window",
