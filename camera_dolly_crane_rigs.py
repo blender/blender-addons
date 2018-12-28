@@ -387,8 +387,8 @@ def add_DOF_Empty():
     cam.dof_object = obj
     # reselect the rig
     view_layer.objects.active = rig
-    obj.select = False
-    rig.select = True
+    obj.select_set(False)
+    rig.select_set(True)
 
     bpy.ops.object.mode_set(mode=smode, toggle=False)
 
