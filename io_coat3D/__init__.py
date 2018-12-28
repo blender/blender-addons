@@ -155,14 +155,21 @@ def set_exchange_folder():
 def set_working_folders():
     platform = os.sys.platform
     coat3D = bpy.context.scene.coat3D
+
     if(platform == 'win32'):
-        folder_objects = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'ApplinkObjects'
-        if(not(os.path.isdir(folder_objects))):
-            os.makedirs(folder_objects)
+        if (coat3D.defaultfolder != '' and os.path.isdir(coat3D.defaultfolder)):
+            return coat3D.defaultfolder
+        else:
+            folder_objects = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'ApplinkObjects'
+            if(not(os.path.isdir(folder_objects))):
+                os.makedirs(folder_objects)
     else:
-        folder_objects = os.path.expanduser("~") + os.sep + '3DC2Blender' + os.sep + 'ApplinkObjects'
-        if(not(os.path.isdir(folder_objects))):
-            os.makedirs(folder_objects)
+        if (coat3D.defaultfolder != '' and os.path.isdir(coat3D.defaultfolder)):
+            return coat3D.defaultfolder
+        else:
+            folder_objects = os.path.expanduser("~") + os.sep + '3DC2Blender' + os.sep + 'ApplinkObjects'
+            if(not(os.path.isdir(folder_objects))):
+                os.makedirs(folder_objects)
 
     return folder_objects
 
@@ -979,6 +986,9 @@ class SCENE_PT_Settings_Folders(ObjectButtonsPanel, bpy.types.Panel):
 
         col = flow.column()
         col.prop(coat3D, "exchangedir", text="Exchange folder")
+
+        col = flow.column()
+        col.prop(coat3D, "defaultfolder", text="Object/Texture folder")
 
         col = flow.column()
         col.prop(coat3D, "coat3D_exe", text="3D-Coat.exe")
