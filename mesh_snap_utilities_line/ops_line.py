@@ -377,6 +377,7 @@ class SnapUtilitiesLine(bpy.types.Operator):
                         self.length_entered_value = 0.0 #invalid
                         self.report({'INFO'}, "Operation not supported yet")
                 else:
+                    self.length_entered_value = 0.0
                     self.bool_update = True
 
             elif event.type in self.constrain_keys:
