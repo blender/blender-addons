@@ -346,10 +346,10 @@ class SnapUtilitiesLine(bpy.types.Operator):
                 location = intersect_point_line(lloc, orig, (orig + view_vec))
                 vec = (location[0] - lloc)
                 ax, ay, az = abs(vec.x), abs(vec.y), abs(vec.z)
-                vec.x = ax > ay > az or ax > az > ay
-                vec.y = ay > ax > az or ay > az > ax
-                vec.z = az > ay > ax or az > ax > ay
-                if not (vec.x and vec.y and vec.z):
+                vec.x = ax > ay and ax > az
+                vec.y = ay > ax and ay > az
+                vec.z = az > ay and az > ax
+                if not (vec.x or vec.y or vec.z):
                     self.vector_constrain = None
                 else:
                     vc = lloc + vec
