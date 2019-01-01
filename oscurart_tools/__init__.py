@@ -140,14 +140,14 @@ classes = (
     apply_linked_meshes.ApplyLRT,
     )
 
-def register():
+def register():   
     from bpy.types import Scene
     Scene.multimeshedit = StringProperty()
     bpy.types.VIEW3D_MT_edit_mesh_specials.prepend(menu_funcMesh)
     bpy.types.IMAGE_MT_specials.prepend(menu_funcImage)
     bpy.types.VIEW3D_MT_object_specials.prepend(menu_funcObject)
     bpy.app.handlers.render_pre.append(render_tokens.replaceTokens)
-    bpy.app.handlers.render_post.append(render_tokens.restoreTokens)
+    bpy.app.handlers.render_post.append(render_tokens.restoreTokens) 
     
 
     from bpy.utils import register_class

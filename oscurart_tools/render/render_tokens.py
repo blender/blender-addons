@@ -20,8 +20,9 @@
 
 import bpy
 import os
+from bpy.app.handlers import persistent
 
-
+@persistent
 def replaceTokens (dummy):
     global renpath
     tokens = {
@@ -32,16 +33,14 @@ def replaceTokens (dummy):
     
     renpath = bpy.context.scene.render.filepath
     
-    bpy.context.scene.render.filepath = renpath.replace("$Scene",tokens["$Scene"]).replace("$File",tokens["$File"]).        replace("$ViewLayer",tokens["$ViewLayer"]).replace("$Camera",tokens["$Camera"])
+    bpy.context.scene.render.filepath = renpath.replace("$Scene",tokens["$Scene"]).replace("$File",tokens["$File"]).replace("$ViewLayer",tokens["$ViewLayer"]).replace("$Camera",tokens["$Camera"])
     print(bpy.context.scene.render.filepath)
 
+
+@persistent
 def restoreTokens (dummy):
     global renpath
     bpy.context.scene.render.filepath = renpath
 
 
 # //RENDER/$Scene/$File/$ViewLayer/$Camera
-"""
-bpy.app.handlers.render_pre.append(replaceTokens)
-bpy.app.handlers.render_post.append(restoreTokens)
-"""
