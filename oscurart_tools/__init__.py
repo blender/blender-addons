@@ -46,6 +46,7 @@ from oscurart_tools.object import selection
 from oscurart_tools.object import search_and_select
 from oscurart_tools.mesh import apply_linked_meshes
 from oscurart_tools.render import render_tokens
+from oscurart_tools.render import batch_maker
 
 from bpy.types import (
         AddonPreferences,
@@ -74,6 +75,7 @@ class VIEW3D_MT_edit_mesh_oscurarttools(Menu):
         layout.operator("image.reload_images_osc")      
         layout.operator("file.save_incremental_backup")
         layout.operator("file.collect_all_images")
+        layout.operator("file.create_batch_maker_osc")
 
 def menu_funcMesh(self, context):
     self.layout.menu("VIEW3D_MT_edit_mesh_oscurarttools")
@@ -93,6 +95,7 @@ class IMAGE_MT_uvs_oscurarttools(Menu):
         layout.operator("image.reload_images_osc")      
         layout.operator("file.save_incremental_backup")
         layout.operator("file.collect_all_images")
+        layout.operator("file.create_batch_maker_osc")
 
 def menu_funcImage(self, context):
     self.layout.menu("IMAGE_MT_uvs_oscurarttools")
@@ -114,6 +117,7 @@ class VIEW3D_MT_object_oscurarttools(Menu):
         layout.operator("image.reload_images_osc")      
         layout.operator("file.save_incremental_backup")
         layout.operator("file.collect_all_images")
+        layout.operator("file.create_batch_maker_osc")
 
 def menu_funcObject(self, context):
     self.layout.menu("VIEW3D_MT_object_oscurarttools")
@@ -138,6 +142,7 @@ classes = (
     shapes_to_objects.ShapeToObjects,
     search_and_select.SearchAndSelectOt,
     apply_linked_meshes.ApplyLRT,
+    batch_maker.oscBatchMaker
     )
 
 def register():   
