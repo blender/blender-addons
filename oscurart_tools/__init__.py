@@ -20,19 +20,19 @@
 
 bl_info = {
     "name": "Oscurart Tools",
-    "author": "Oscurart, CodemanX",
+    "author": "Oscurart",
     "version": (4, 0, 0),
     "blender": (2, 80, 0),
     "location": "View3D > Toolbar and View3D > Specials (W-key)",
     "description": "Tools for objects, render, shapes, and files.",
     "warning": "",
-    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/3D_interaction/Oscurart_Tools",
+    "wiki_url": "https://www.oscurart.com.ar",
     "category": "Object",
     }
     
 
 import bpy
+from bpy.app.handlers import persistent
 from bpy.types import Menu
 from oscurart_tools.files import reload_images
 from oscurart_tools.files import save_incremental
@@ -45,6 +45,7 @@ from oscurart_tools.object import distribute
 from oscurart_tools.object import selection
 from oscurart_tools.object import search_and_select
 from oscurart_tools.mesh import apply_linked_meshes
+from oscurart_tools.render import render_tokens
 
 from bpy.types import (
         AddonPreferences,
@@ -145,6 +146,9 @@ def register():
     bpy.types.VIEW3D_MT_edit_mesh_specials.prepend(menu_funcMesh)
     bpy.types.IMAGE_MT_specials.prepend(menu_funcImage)
     bpy.types.VIEW3D_MT_object_specials.prepend(menu_funcObject)
+    bpy.app.handlers.render_pre.append(render_tokens.replaceTokens)
+    bpy.app.handlers.render_post.append(render_tokens.restoreTokens)
+    
 
     from bpy.utils import register_class
     for cls in classes:
