@@ -182,14 +182,9 @@ def draw_line(self, bm_geom, location):
         if self.create_face:
             ed_list = set(self.list_edges)
             for edge in v2.link_edges:
-                if edge not in ed_list:
-                    if edge.other_vert(v2) in self.list_verts:
-                        ed_list.add(edge)
-                        break
-                else:
-                    continue
-                # Inner loop had a break, break the outer
-                break
+                if edge not in ed_list and edge.other_vert(v2) in self.list_verts:
+                    ed_list.add(edge)
+                    break
 
             ed_list.update(get_loose_linked_edges(v2))
 
