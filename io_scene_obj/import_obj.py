@@ -177,6 +177,61 @@ def create_materials(filepath, relpath,
         else:
             raise Exception("invalid type %r" % type)
 
+    def finalize_material(context_material, context_material_vars, spec_colors, emit_colors,
+                          do_highlight, do_reflection, do_transparency, do_glass):
+        # Finalize previous mat, if any.
+        if context_material:
+            if "specular" in context_material_vars:
+                # XXX This is highly approximated, not sure whether we can do better...
+                # TODO: Find a way to guesstimate best value from diffuse color...
+                # IDEA: Use standard deviation of both spec and diff colors (i.e. how far away they are
+                #       from some grey), and apply the the proportion between those two as tint factor?
+                spec = sum(spec_colors) / 3.0
+                # ~ spec_var = math.sqrt(sum((c - spec) ** 2 for c in spec_color) / 3.0)
+                # ~ diff = sum(context_mat_wrap.base_color) / 3.0
+                # ~ diff_var = math.sqrt(sum((c - diff) ** 2 for c in context_mat_wrap.base_color) / 3.0)
+                # ~ tint = min(1.0, spec_var / diff_var)
+                context_mat_wrap.specular = spec
+                context_mat_wrap.specular_tint = 0.0
+                if "roughness" not in context_material_vars:
+                    context_mat_wrap.roughness = 0.0
+
+
+            emit_value = sum(emit_colors) / 3.0
+            if emit_value > 1e-6:
+                print("WARNING, emit value unsupported by Principled BSDF shader, skipped.")
+                # We have to adapt it to diffuse color too...
+                emit_value /= sum(context_material.diffuse_color) / 3.0
+            # ~ context_material.emit = emit_value
+
+            # FIXME, how else to use this?
+            if do_highlight:
+                if "specular" not in context_material_vars:
+                    context_mat_wrap.specular = 1.0
+                if "roughness" not in context_material_vars:
+                    context_mat_wrap.roughness = 0.0
+            else:
+                if "specular" not in context_material_vars:
+                    context_mat_wrap.specular = 0.0
+                if "roughness" not in context_material_vars:
+                    context_mat_wrap.roughness = 1.0
+
+            if do_reflection:
+                if "metallic" not in context_material_vars:
+                    context_mat_wrap.metallic = 1.0
+
+            if do_transparency:
+                if "ior" not in context_material_vars:
+                    context_mat_wrap.ior = 1.0
+                if "transmission" not in context_material_vars:
+                    context_mat_wrap.transmission = 1.0
+                # EEVEE only
+                context_material.blend_method = 'BLEND'
+
+            if do_glass:
+                if "ior" not in context_material_vars:
+                    context_mat_wrap.ior = 1.5
+
     # Try to find a MTL with the same name as the OBJ if no MTLs are specified.
     temp_mtl = os.path.splitext((os.path.basename(filepath)))[0] + ".mtl"
     if os.path.exists(os.path.join(DIR, temp_mtl)):
@@ -220,57 +275,8 @@ def create_materials(filepath, relpath,
 
                 if line_id == b'newmtl':
                     # Finalize previous mat, if any.
-                    if context_material:
-                        if "specular" in context_material_vars:
-                            # XXX This is highly approximated, not sure whether we can do better...
-                            # TODO: Find a way to guesstimate best value from diffuse color...
-                            # IDEA: Use standard deviation of both spec and diff colors (i.e. how far away they are
-                            #       from some grey), and apply the the proportion between those two as tint factor?
-                            spec = sum(spec_colors) / 3.0
-                            # ~ spec_var = math.sqrt(sum((c - spec) ** 2 for c in spec_color) / 3.0)
-                            # ~ diff = sum(context_mat_wrap.base_color) / 3.0
-                            # ~ diff_var = math.sqrt(sum((c - diff) ** 2 for c in context_mat_wrap.base_color) / 3.0)
-                            # ~ tint = min(1.0, spec_var / diff_var)
-                            context_mat_wrap.specular = spec
-                            context_mat_wrap.specular_tint = 0.0
-                            if "roughness" not in context_material_vars:
-                                context_mat_wrap.roughness = 0.0
-
-
-                        emit_value = sum(emit_colors) / 3.0
-                        if emit_value > 1e-6:
-                            print("WARNING, emit value unsupported by Principled BSDF shader, skipped.")
-                            # We have to adapt it to diffuse color too...
-                            emit_value /= sum(context_material.diffuse_color) / 3.0
-                        # ~ context_material.emit = emit_value
-
-                        # FIXME, how else to use this?
-                        if do_highlight:
-                            if "specular" not in context_material_vars:
-                                context_mat_wrap.specular = 1.0
-                            if "roughness" not in context_material_vars:
-                                context_mat_wrap.roughness = 0.0
-                        else:
-                            if "specular" not in context_material_vars:
-                                context_mat_wrap.specular = 0.0
-                            if "roughness" not in context_material_vars:
-                                context_mat_wrap.roughness = 1.0
-
-                        if do_reflection:
-                            if "metallic" not in context_material_vars:
-                                context_mat_wrap.metallic = 1.0
-
-                        if do_transparency:
-                            if "ior" not in context_material_vars:
-                                context_mat_wrap.ior = 1.0
-                            if "transmission" not in context_material_vars:
-                                context_mat_wrap.transmission = 1.0
-                            # EEVEE only
-                            context_material.blend_method = 'BLEND'
-
-                        if do_glass:
-                            if "ior" not in context_material_vars:
-                                context_mat_wrap.ior = 1.5
+                    finalize_material(context_material, context_material_vars, spec_colors, emit_colors,
+                                      do_highlight, do_reflection, do_transparency, do_glass)
 
                     context_material_name = line_value(line_split)
                     context_material = unique_materials.get(context_material_name)
@@ -415,6 +421,10 @@ def create_materials(filepath, relpath,
                                                 context_material_name, img_data, line, 'refl')
                     else:
                         print("WARNING: %r:%r (ignored)" % (filepath, line))
+
+            # Finalize last mat, if any.
+            finalize_material(context_material, context_material_vars, spec_colors, emit_colors,
+                              do_highlight, do_reflection, do_transparency, do_glass)
             mtl.close()
 
 
