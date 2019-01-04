@@ -334,7 +334,8 @@ def create_materials(filepath, relpath,
                         # rgb, filter color, blender has no support for this.
                         print("WARNING, currently unsupported 'tf' filter color option, skipped.")
                     elif line_id == b'illum':
-                        illum = get_int(line_split[1])
+                        # Some MTL files incorrectly use a float for this value, see T60135.
+                        illum = any_number_as_int(line_split[1])
 
                         # inline comments are from the spec, v4.2
                         if illum == 0:
@@ -835,9 +836,9 @@ def get_float_func(filepath):
     return float
 
 
-def get_int(svalue):
+def any_number_as_int(svalue):
     if b',' in svalue:
-        return int(float(svalue.replace(b',', b'.')))
+        svalue = svalue.replace(b',', b'.')
     return int(float(svalue))
 
 
