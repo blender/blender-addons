@@ -219,6 +219,9 @@ def create_materials(filepath, relpath,
             if do_reflection:
                 if "metallic" not in context_material_vars:
                     context_mat_wrap.metallic = 1.0
+            else:
+                # since we are (ab)using ambient term for metallic (which can be non-zero)
+                context_mat_wrap.metallic = 0.0
 
             if do_transparency:
                 if "ior" not in context_material_vars:
