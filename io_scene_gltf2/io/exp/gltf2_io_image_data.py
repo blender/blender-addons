@@ -132,6 +132,6 @@ class ImageData:
         return b"".join([
             b'\x89PNG\r\n\x1a\n',
             png_pack(b'IHDR', struct.pack("!2I5B", self.width, self.height, 8, 6, 0, 0, 0)),
-            png_pack(b'IDAT', zlib.compress(raw_data, 9)),
+            png_pack(b'IDAT', zlib.compress(raw_data)),
             png_pack(b'IEND', b'')])
 
