@@ -138,8 +138,8 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                                                        path_mode, "", copy_set, image.library)
                     options = []
                     if key == "map_Bump":
-                        if mat_wrap.normalmap_strengh != 1.0:
-                            options.append('-bm %.6f' % mat_wrap.normalmap_strengh)
+                        if mat_wrap.normalmap_strength != 1.0:
+                            options.append('-bm %.6f' % mat_wrap.normalmap_strength)
                     if tex_wrap.translation != Vector((0.0, 0.0, 0.0)):
                         options.append('-o %.6f %.6f %.6f' % tex_wrap.translation[:])
                     if tex_wrap.scale != Vector((1.0, 1.0, 1.0)):
