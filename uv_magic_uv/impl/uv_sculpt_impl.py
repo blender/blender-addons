@@ -23,14 +23,35 @@ __status__ = "production"
 __version__ = "5.2"
 __date__ = "17 Nov 2018"
 
-if "bpy" in locals():
-    import importlib
-    importlib.reload(addon_updator)
-    importlib.reload(bl_class_registry)
-    importlib.reload(property_class_registry)
-else:
-    from . import addon_updator
-    from . import bl_class_registry
-    from . import property_class_registry
 
-import bpy
+def is_valid_context(context):
+    obj = context.object
+
+    # only edit mode is allowed to execute
+    if obj is None:
+        return False
+    if obj.type != 'MESH':
+        return False
+    if context.object.mode != 'EDIT':
+        return False
+
+    # only 'VIEW_3D' space is allowed to execute
+    for space in context.area.spaces:
+        if space.type == 'VIEW_3D':
+            break
+    else:
+        return False
+
+    return True
+
+
+def get_strength(p, len_, factor):
+    f = factor
+
+    if p > len_:
+        return 0.0
+
+    if p < 0.0:
+        return f
+
+    return (len_ - p) * f / len_
