@@ -978,7 +978,7 @@ class SCENE_PT_Settings(ObjectButtonsPanel,bpy.types.Panel):
 class SCENE_PT_Settings_Update(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Update"
     bl_parent_id = "SCENE_PT_Settings"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -1005,7 +1005,7 @@ class SCENE_PT_Settings_Update(ObjectButtonsPanel, bpy.types.Panel):
 class SCENE_PT_Settings_Folders(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Folders"
     bl_parent_id = "SCENE_PT_Settings"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
