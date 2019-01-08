@@ -399,7 +399,7 @@ def write_file(filepath, objects, depsgraph, scene,
                         loops = me.loops
 
                         if (EXPORT_SMOOTH_GROUPS or EXPORT_SMOOTH_GROUPS_BITFLAGS) and face_index_pairs:
-                            smooth_groups, smooth_groups_tot = me.calc_smooth_groups(EXPORT_SMOOTH_GROUPS_BITFLAGS)
+                            smooth_groups, smooth_groups_tot = me.calc_smooth_groups(use_bitflags=EXPORT_SMOOTH_GROUPS_BITFLAGS)
                             if smooth_groups_tot <= 1:
                                 smooth_groups, smooth_groups_tot = (), 0
                         else:
