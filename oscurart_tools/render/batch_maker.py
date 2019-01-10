@@ -27,9 +27,9 @@ def batchMaker(BIN):
 
     with open(SHFILE, "w") as FILE:
         if not BIN:
-            FILE.writelines("%s -b %s --python-text Text -a" % (bpy.app.binary_path,bpy.data.filepath))
+            FILE.writelines(r"'%s' -b '%s' --python-text Text -a" % (bpy.app.binary_path,bpy.data.filepath))
         else:
-            FILE.writelines("blender -b %s --python-text Text -a" % (bpy.data.filepath))
+            FILE.writelines(r"blender -b '%s' --python-text Text -a" % (bpy.data.filepath))
             
             
 
