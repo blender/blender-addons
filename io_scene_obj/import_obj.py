@@ -856,6 +856,14 @@ def load(context,
     This function passes the file and sends the data off
         to be split into objects and then converted into mesh objects
     """
+    def unique_name(existing_names, name_orig):
+        i = 0
+        name = name_orig
+        while name in existing_names:
+            name = b"%s.%03d" % (name_orig, i)
+            i += 1
+        existing_names.add(name)
+        return name
 
     def handle_vec(line_start, context_multi_line, line_split, tag, data, vec, vec_len):
         ret_context_multi_line = tag if strip_slash(line_split) else b''
@@ -907,6 +915,8 @@ def load(context,
         context_smooth_group = None
         context_object = None
         context_vgroup = None
+
+        objects_names = set()
 
         # Nurbs
         context_nurbs = {}
@@ -1086,12 +1096,12 @@ def load(context,
 
                 elif line_start == b'o':
                     if use_split_objects:
-                        context_object = line_value(line_split)
+                        context_object = unique_name(objects_names, line_value(line_split))
                         # unique_obects[context_object]= None
 
                 elif line_start == b'g':
                     if use_split_groups:
-                        context_object = line_value(line.split())
+                        context_object = unique_name(objects_names, line_value(line_split))
                         # print 'context_object', context_object
                         # unique_obects[context_object]= None
                     elif use_groups_as_vgroups:
