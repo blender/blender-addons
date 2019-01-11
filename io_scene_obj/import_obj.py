@@ -969,9 +969,9 @@ def load(context,
                 # and only fallback to full multi-line parsing when needed, this gives significant speed-up
                 # (~40% on affected code).
                 if line_start == b'v':
-                    vdata, vdata_len, do_quick_vert = (verts_loc, 3, not skip_quick_vert)
+                    vdata, vdata_len, do_quick_vert = verts_loc, 3, not skip_quick_vert
                 elif line_start == b'vn':
-                    vdata, vdata_len, do_quick_vert = (verts_nor, 3, not skip_quick_vert)
+                    vdata, vdata_len, do_quick_vert = verts_nor, 3, not skip_quick_vert
                 elif line_start == b'vt':
                     vdata, vdata_len, do_quick_vert = verts_tex, 2, not skip_quick_vert
                 elif context_multi_line == b'v':
@@ -995,7 +995,8 @@ def load(context,
                             if quick_vert_failures > 10000:
                                 skip_quick_vert = True
                     if not do_quick_vert:
-                        context_multi_line = handle_vec(line_start, context_multi_line, line_split, b'v', vdata, vec, vdata_len)
+                        context_multi_line = handle_vec(line_start, context_multi_line, line_split,
+                                                        context_multi_line or line_start, vdata, vec, vdata_len)
 
                 elif line_start == b'f' or context_multi_line == b'f':
                     if not context_multi_line:
