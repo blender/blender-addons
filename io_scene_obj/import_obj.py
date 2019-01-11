@@ -125,6 +125,10 @@ def create_materials(filepath, relpath,
 
         map_offset = map_options.get(b'-o')
         map_scale = map_options.get(b'-s')
+        if map_offset is not None:
+            map_offset = tuple(map(float_func, map_offset))
+        if map_scale is not None:
+            map_scale = tuple(map(float_func, map_scale))
 
         def _generic_tex_set(nodetex, image, texcoords, translation, scale):
             nodetex.image = image
