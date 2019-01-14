@@ -456,7 +456,6 @@ class SCENE_OT_export(bpy.types.Operator):
                         uvtiles_index.append([poly.material_index,objekti.data.uv_layers.active.data[loop_index].uv[0]])
                     if(len(final_material_indexs) == len(objekti.material_slots)):
                         break
-                print(final_material_indexs)
 
                 material_index = 0
                 if (len(final_material_indexs) != len(objekti.material_slots)):
@@ -467,7 +466,6 @@ class SCENE_OT_export(bpy.types.Operator):
                             mod_mat_list[objekti.name].append([material_index, temp_mat])
                         material_index = material_index + 1
 
-        print('uvtiles_index', uvtiles_index)
         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
         if(len(bpy.context.selected_objects) > 1 and coat3D.type != 'vox'):
             bpy.ops.object.transforms_to_deltas(mode='ROT')
@@ -507,13 +505,11 @@ class SCENE_OT_export(bpy.types.Operator):
                                 if(node.name.startswith('3DC_') == True):
                                     material.material.node_tree.nodes.remove(node)
 
-            print('halloo', mod_mat_list)
+
             for ind, mat_list in enumerate(mod_mat_list):
-                print('terve', mat_list)
                 if(mat_list == objekti.name):
                     for ind, mat in enumerate(mod_mat_list[mat_list]):
                         objekti.material_slots[mod_mat_list[mat_list][ind][0]].material = mod_mat_list[mat_list][ind][1]
-                        print('hipphhhuurrei', mod_mat_list[mat_list][ind][0], mod_mat_list[mat_list][ind][1])
 
         return {'FINISHED'}
 
@@ -561,7 +557,6 @@ class SCENE_OT_import(bpy.types.Operator):
 
 
         kokeilu = coat3D.exchangedir
-        print('kokeilu', kokeilu)
         Blender_folder = ("%s%sBlender"%(kokeilu,os.sep))
         Blender_export = Blender_folder
         path3b_now = coat3D.exchangedir
@@ -569,9 +564,7 @@ class SCENE_OT_import(bpy.types.Operator):
         Blender_export += ('%sexport.txt'%(os.sep))
         new_applink_address = 'False'
         new_object = False
-        print('Blender_export', Blender_export)
         if(os.path.isfile(Blender_export)):
-            print('Blender_export', Blender_export)
             obj_pathh = open(Blender_export)
             new_object = True
             for line in obj_pathh:
@@ -591,7 +584,6 @@ class SCENE_OT_import(bpy.types.Operator):
             os.remove(exportfile)
 
         if(new_object == False):
-            print('tanne pitas tulla')
 
             '''
             #Blender -> 3DC -> Blender workflow
