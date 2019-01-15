@@ -37,6 +37,7 @@ from . import op
 from . import ui
 from .utils.bl_class_registry import BlClassRegistry
 from .utils.addon_updator import AddonUpdatorManager
+from .utils import compatibility as compat
 
 
 def view3d_uvmap_menu_fn(self, context):
@@ -44,7 +45,7 @@ def view3d_uvmap_menu_fn(self, context):
     sc = context.scene
 
     layout.separator()
-    layout.label(text="Copy/Paste UV", icon='IMAGE')
+    layout.label(text="Copy/Paste UV", icon=compat.icon('IMAGE'))
     # Copy/Paste UV
     layout.menu(ui.VIEW3D_MT_uv_map.MUV_MT_CopyPasteUV.bl_idname,
                 text="Copy/Paste UV")
@@ -53,7 +54,7 @@ def view3d_uvmap_menu_fn(self, context):
                 text="Transfer UV")
 
     layout.separator()
-    layout.label(text="UV Manipulation", icon='IMAGE')
+    layout.label(text="UV Manipulation", icon=compat.icon('IMAGE'))
     # Flip/Rotate UV
     ops = layout.operator(op.flip_rotate_uv.MUV_OT_FlipRotate.bl_idname,
                           text="Flip/Rotate UV")
@@ -80,7 +81,7 @@ def view3d_uvmap_menu_fn(self, context):
     layout.prop(sc, "muv_uv_sculpt_enable", text="UV Sculpt")
 
     layout.separator()
-    layout.label(text="UV Mapping", icon='IMAGE')
+    layout.label(text="UV Mapping", icon=compat.icon('IMAGE'))
     # Unwrap Constraint
     ops = layout.operator(
         op.unwrap_constraint.MUV_OT_UnwrapConstraint.bl_idname,
@@ -98,7 +99,7 @@ def view3d_object_menu_fn(self, _):
     layout = self.layout
 
     layout.separator()
-    layout.label(text="Copy/Paste UV", icon='IMAGE')
+    layout.label(text="Copy/Paste UV", icon=compat.icon('IMAGE'))
     # Copy/Paste UV (Among Object)
     layout.menu(ui.VIEW3D_MT_object.MUV_MT_CopyPasteUV_Object.bl_idname,
                 text="Copy/Paste UV")
@@ -110,13 +111,13 @@ def image_uvs_menu_fn(self, context):
 
     layout.separator()
     # Copy/Paste UV (on UV/Image Editor)
-    layout.label(text="Copy/Paste UV", icon='IMAGE')
+    layout.label(text="Copy/Paste UV", icon=compat.icon('IMAGE'))
     layout.menu(ui.IMAGE_MT_uvs.MUV_MT_CopyPasteUV_UVEdit.bl_idname,
                 text="Copy/Paste UV")
 
     layout.separator()
     # Pack UV
-    layout.label(text="UV Manipulation", icon='IMAGE')
+    layout.label(text="UV Manipulation", icon=compat.icon('IMAGE'))
     ops = layout.operator(op.pack_uv.MUV_OT_PackUV.bl_idname, text="Pack UV")
     ops.allowable_center_deviation = sc.muv_pack_uv_allowable_center_deviation
     ops.allowable_size_deviation = sc.muv_pack_uv_allowable_size_deviation
@@ -133,7 +134,7 @@ def image_uvs_menu_fn(self, context):
 
     layout.separator()
     # Align UV Cursor
-    layout.label(text="Editor Enhancement", icon='IMAGE')
+    layout.label(text="Editor Enhancement", icon=compat.icon('IMAGE'))
     layout.menu(ui.IMAGE_MT_uvs.MUV_MT_AlignUVCursor.bl_idname,
                 text="Align UV Cursor")
     # UV Bounding Box
@@ -170,13 +171,14 @@ class MUV_OT_CheckAddonUpdate(bpy.types.Operator):
 
 
 @BlClassRegistry()
+@compat.make_annotations
 class MUV_OT_UpdateAddon(bpy.types.Operator):
     bl_idname = "uv.muv_update_addon"
     bl_label = "Update"
     bl_description = "Update Add-on"
     bl_options = {'REGISTER', 'UNDO'}
 
-    branch_name: StringProperty(
+    branch_name = StringProperty(
         name="Branch Name",
         description="Branch name to update",
         default="",
@@ -198,6 +200,7 @@ def get_update_candidate_branches(_, __):
 
 
 @BlClassRegistry()
+@compat.make_annotations
 class Preferences(AddonPreferences):
     """Preferences class: Preferences for this add-on"""
 
@@ -210,7 +213,7 @@ class Preferences(AddonPreferences):
             remove_builtin_menu()
 
     # enable to add features to built-in menu
-    enable_builtin_menu: BoolProperty(
+    enable_builtin_menu = BoolProperty(
         name="Built-in Menu",
         description="Enable built-in menu",
         default=True,
@@ -218,7 +221,7 @@ class Preferences(AddonPreferences):
     )
 
     # for UV Sculpt
-    uv_sculpt_brush_color: FloatVectorProperty(
+    uv_sculpt_brush_color = FloatVectorProperty(
         name="Color",
         description="Color",
         default=(1.0, 0.4, 0.4, 1.0),
@@ -229,7 +232,7 @@ class Preferences(AddonPreferences):
     )
 
     # for Overlapped UV
-    uv_inspection_overlapped_color: FloatVectorProperty(
+    uv_inspection_overlapped_color = FloatVectorProperty(
         name="Color",
         description="Color",
         default=(0.0, 0.0, 1.0, 0.3),
@@ -240,7 +243,7 @@ class Preferences(AddonPreferences):
     )
 
     # for Flipped UV
-    uv_inspection_flipped_color: FloatVectorProperty(
+    uv_inspection_flipped_color = FloatVectorProperty(
         name="Color",
         description="Color",
         default=(1.0, 0.0, 0.0, 0.3),
@@ -251,7 +254,7 @@ class Preferences(AddonPreferences):
     )
 
     # for Texture Projection
-    texture_projection_canvas_padding: FloatVectorProperty(
+    texture_projection_canvas_padding = FloatVectorProperty(
         name="Canvas Padding",
         description="Canvas Padding",
         size=2,
@@ -260,13 +263,13 @@ class Preferences(AddonPreferences):
         default=(20.0, 20.0))
 
     # for UV Bounding Box
-    uv_bounding_box_cp_size: FloatProperty(
+    uv_bounding_box_cp_size = FloatProperty(
         name="Size",
         description="Control Point Size",
         default=6.0,
         min=3.0,
         max=100.0)
-    uv_bounding_box_cp_react_size: FloatProperty(
+    uv_bounding_box_cp_react_size = FloatProperty(
         name="React Size",
         description="Size event fired",
         default=10.0,
@@ -274,7 +277,7 @@ class Preferences(AddonPreferences):
         max=100.0)
 
     # for UI
-    category: EnumProperty(
+    category = EnumProperty(
         name="Category",
         description="Preferences Category",
         items=[
@@ -284,39 +287,39 @@ class Preferences(AddonPreferences):
         ],
         default='INFO'
     )
-    info_desc_expanded: BoolProperty(
+    info_desc_expanded = BoolProperty(
         name="Description",
         description="Description",
         default=False
     )
-    info_loc_expanded: BoolProperty(
+    info_loc_expanded = BoolProperty(
         name="Location",
         description="Location",
         default=False
     )
-    conf_uv_sculpt_expanded: BoolProperty(
+    conf_uv_sculpt_expanded = BoolProperty(
         name="UV Sculpt",
         description="UV Sculpt",
         default=False
     )
-    conf_uv_inspection_expanded: BoolProperty(
+    conf_uv_inspection_expanded = BoolProperty(
         name="UV Inspection",
         description="UV Inspection",
         default=False
     )
-    conf_texture_projection_expanded: BoolProperty(
+    conf_texture_projection_expanded = BoolProperty(
         name="Texture Projection",
         description="Texture Projection",
         default=False
     )
-    conf_uv_bounding_box_expanded: BoolProperty(
+    conf_uv_bounding_box_expanded = BoolProperty(
         name="UV Bounding Box",
         description="UV Bounding Box",
         default=False
     )
 
     # for add-on updater
-    updater_branch_to_update: EnumProperty(
+    updater_branch_to_update = EnumProperty(
         name="branch",
         description="Target branch to update add-on",
         items=get_update_candidate_branches
@@ -349,27 +352,27 @@ class Preferences(AddonPreferences):
                 else 'DISCLOSURE_TRI_RIGHT')
             if self.info_loc_expanded:
                 row = layout.row(align=True)
-                sp = row.split(factor=0.5)
+                sp = compat.layout_split(row, 0.5)
                 sp.label(text="3D View > Tool shelf > " +
                               "Copy/Paste UV (Object mode)")
-                sp = sp.split(factor=1.0)
+                sp = compat.layout_split(sp, 1.0)
                 col = sp.column(align=True)
                 col.label(text="Copy/Paste UV (Among objects)")
 
                 row = layout.row(align=True)
-                sp = row.split(factor=0.5)
+                sp = compat.layout_split(row, 0.5)
                 sp.label(text="3D View > Tool shelf > " +
                               "Copy/Paste UV (Edit mode)")
-                sp = sp.split(factor=1.0)
+                sp = compat.layout_split(sp, 1.0)
                 col = sp.column(align=True)
                 col.label(text="Copy/Paste UV (Among faces in 3D View)")
                 col.label(text="Transfer UV")
 
                 row = layout.row(align=True)
-                sp = row.split(factor=0.5)
+                sp = compat.layout_split(row, 0.5)
                 sp.label(text="3D View > Tool shelf > " +
                               "UV Manipulation (Edit mode)")
-                sp = sp.split(factor=1.0)
+                sp = compat.layout_split(sp, 1.0)
                 col = sp.column(align=True)
                 col.label(text="Flip/Rotate UV")
                 col.label(text="Mirror UV")
@@ -381,26 +384,26 @@ class Preferences(AddonPreferences):
                 col.label(text="UV Sculpt")
 
                 row = layout.row(align=True)
-                sp = row.split(factor=0.5)
+                sp = compat.layout_split(row, 0.5)
                 sp.label(text="3D View > Tool shelf > " +
                               "UV Manipulation (Edit mode)")
-                sp = sp.split(factor=1.0)
+                sp = compat.layout_split(sp, 1.0)
                 col = sp.column(align=True)
                 col.label(text="Unwrap Constraint")
                 col.label(text="Texture Projection")
                 col.label(text="UVW")
 
                 row = layout.row(align=True)
-                sp = row.split(factor=0.5)
+                sp = compat.layout_split(row, 0.5)
                 sp.label(text="UV/Image Editor > Tool shelf > Copy/Paste UV")
-                sp = sp.split(factor=1.0)
+                sp = compat.layout_split(sp, 1.0)
                 col = sp.column(align=True)
                 col.label(text="Copy/Paste UV (Among faces in UV/Image Editor)")
 
                 row = layout.row(align=True)
-                sp = row.split(factor=0.5)
+                sp = compat.layout_split(row, 0.5)
                 sp.label(text="UV/Image Editor > Tool shelf > UV Manipulation")
-                sp = sp.split(factor=1.0)
+                sp = compat.layout_split(sp, 1.0)
                 col = sp.column(align=True)
                 col.label(text="Align UV")
                 col.label(text="Smooth UV")
@@ -408,10 +411,10 @@ class Preferences(AddonPreferences):
                 col.label(text="Pack UV (Extension)")
 
                 row = layout.row(align=True)
-                sp = row.split(factor=0.5)
+                sp = compat.layout_split(row, 0.5)
                 sp.label(text="UV/Image Editor > Tool shelf > " +
                               "Editor Enhancement")
-                sp = sp.split(factor=1.0)
+                sp = compat.layout_split(sp, 1.0)
                 col = sp.column(align=True)
                 col.label(text="Align UV Cursor")
                 col.label(text="UV Cursor Location")
@@ -430,9 +433,9 @@ class Preferences(AddonPreferences):
                 icon='DISCLOSURE_TRI_DOWN' if self.conf_uv_sculpt_expanded
                 else 'DISCLOSURE_TRI_RIGHT')
             if self.conf_uv_sculpt_expanded:
-                sp = layout.split(factor=0.05)
+                sp = compat.layout_split(layout, 0.05)
                 col = sp.column()  # spacer
-                sp = sp.split(factor=0.3)
+                sp = compat.layout_split(sp, 0.3)
                 col = sp.column()
                 col.label(text="Brush Color:")
                 col.prop(self, "uv_sculpt_brush_color", text="")
@@ -443,13 +446,13 @@ class Preferences(AddonPreferences):
                 icon='DISCLOSURE_TRI_DOWN' if self.conf_uv_inspection_expanded
                 else 'DISCLOSURE_TRI_RIGHT')
             if self.conf_uv_inspection_expanded:
-                sp = layout.split(factor=0.05)
+                sp = compat.layout_split(layout, 0.05)
                 col = sp.column()  # spacer
-                sp = sp.split(factor=0.3)
+                sp = compat.layout_split(sp, 0.3)
                 col = sp.column()
                 col.label(text="Overlapped UV Color:")
                 col.prop(self, "uv_inspection_overlapped_color", text="")
-                sp = sp.split(factor=0.45)
+                sp = compat.layout_split(sp, 0.45)
                 col = sp.column()
                 col.label(text="Flipped UV Color:")
                 col.prop(self, "uv_inspection_flipped_color", text="")
@@ -462,9 +465,9 @@ class Preferences(AddonPreferences):
                 if self.conf_texture_projection_expanded
                 else 'DISCLOSURE_TRI_RIGHT')
             if self.conf_texture_projection_expanded:
-                sp = layout.split(factor=0.05)
+                sp = compat.layout_split(layout, 0.05)
                 col = sp.column()       # spacer
-                sp = sp.split(factor=0.3)
+                sp = compat.layout_split(sp, 0.3)
                 col = sp.column()
                 col.prop(self, "texture_projection_canvas_padding")
                 layout.separator()
@@ -475,9 +478,9 @@ class Preferences(AddonPreferences):
                 if self.conf_uv_bounding_box_expanded
                 else 'DISCLOSURE_TRI_RIGHT')
             if self.conf_uv_bounding_box_expanded:
-                sp = layout.split(factor=0.05)
+                sp = compat.layout_split(layout, 0.05)
                 col = sp.column()       # spacer
-                sp = sp.split(factor=0.3)
+                sp = compat.layout_split(sp, 0.3)
                 col = sp.column()
                 col.label(text="Control Point:")
                 col.prop(self, "uv_bounding_box_cp_size")
