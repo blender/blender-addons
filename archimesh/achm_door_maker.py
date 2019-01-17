@@ -281,49 +281,49 @@ def shape_children(mainobject, update=False):
 # Define property group class to create or modify
 # ------------------------------------------------------------------
 class ObjectProperties(PropertyGroup):
-    frame_width = FloatProperty(
+    frame_width: FloatProperty(
             name='Frame width',
             min=0.25, max=10,
             default=1, precision=2,
             description='Doorframe width', update=update_object,
             )
-    frame_height = FloatProperty(
+    frame_height: FloatProperty(
             name='Frame height',
             min=0.25, max=10,
             default=2.1, precision=2,
             description='Doorframe height', update=update_object,
             )
-    frame_thick = FloatProperty(
+    frame_thick: FloatProperty(
             name='Frame thickness',
             min=0.05, max=0.50,
             default=0.08, precision=2,
             description='Doorframe thickness', update=update_object,
             )
-    frame_size = FloatProperty(
+    frame_size: FloatProperty(
             name='Frame size',
             min=0.05, max=0.25,
             default=0.08, precision=2,
             description='Doorframe size', update=update_object,
             )
-    crt_mat = BoolProperty(
+    crt_mat: BoolProperty(
             name="Create default Cycles materials",
             description="Create default materials for Cycles render",
             default=True,
             update=update_object,
             )
-    factor = FloatProperty(
+    factor: FloatProperty(
             name='',
             min=0.2, max=1,
             default=0.5, precision=3, description='Door ratio',
             update=update_object,
             )
-    r = FloatProperty(
+    r: FloatProperty(
             name='Rotation', min=0, max=360,
             default=0, precision=1,
             description='Door rotation', update=update_object,
             )
 
-    openside = EnumProperty(
+    openside: EnumProperty(
             name="Open side",
             items=(
                 ('1', "Right open", ""),
@@ -334,7 +334,7 @@ class ObjectProperties(PropertyGroup):
             update=update_object,
             )
 
-    model = EnumProperty(
+    model: EnumProperty(
             name="Model",
             items=(
                 ('1', "Model 01", ""),
@@ -348,7 +348,7 @@ class ObjectProperties(PropertyGroup):
             update=update_object,
             )
 
-    handle = EnumProperty(
+    handle: EnumProperty(
             name="Handle",
             items=(
                 ('1', "Handle 01", ""),
@@ -362,27 +362,27 @@ class ObjectProperties(PropertyGroup):
             )
 
     # opengl internal data
-    glpoint_a = FloatVectorProperty(
+    glpoint_a: FloatVectorProperty(
             name="glpointa",
             description="Hidden property for opengl",
             default=(0, 0, 0),
             )
-    glpoint_b = FloatVectorProperty(
+    glpoint_b: FloatVectorProperty(
             name="glpointb",
             description="Hidden property for opengl",
             default=(0, 0, 0),
             )
-    glpoint_c = FloatVectorProperty(
+    glpoint_c: FloatVectorProperty(
             name="glpointc",
             description="Hidden property for opengl",
             default=(0, 0, 0),
             )
-    glpoint_d = FloatVectorProperty(
+    glpoint_d: FloatVectorProperty(
             name="glpointc",
             description="Hidden property for opengl",
             default=(0, 0, 0),
             )
-    glpoint_e = FloatVectorProperty(
+    glpoint_e: FloatVectorProperty(
             name="glpointc",
             description="Hidden property for opengl",
             default=(0, 0, 0),

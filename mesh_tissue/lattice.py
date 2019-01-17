@@ -173,80 +173,80 @@ class lattice_along_surface(Operator):
                       "Lattice's topology")
     bl_options = {'REGISTER', 'UNDO'}
 
-    set_parent = BoolProperty(
+    set_parent: BoolProperty(
             name="Set Parent",
             default=True,
             description="Automatically set the Lattice as parent"
             )
-    flipNormals = BoolProperty(
+    flipNormals: BoolProperty(
             name="Flip Normals",
             default=False,
             description="Flip normals direction"
             )
-    swapUV = BoolProperty(
+    swapUV: BoolProperty(
             name="Swap UV",
             default=False,
             description="Flip grid's U and V"
             )
-    flipU = BoolProperty(
+    flipU: BoolProperty(
             name="Flip U",
             default=False,
             description="Flip grid's U")
 
-    flipV = BoolProperty(
+    flipV: BoolProperty(
             name="Flip V",
             default=False,
             description="Flip grid's V"
             )
-    flipW = BoolProperty(
+    flipW: BoolProperty(
             name="Flip W",
             default=False,
             description="Flip grid's W"
             )
-    use_groups = BoolProperty(
+    use_groups: BoolProperty(
             name="Vertex Group",
             default=False,
             description="Use active Vertex Group for lattice's thickness"
             )
-    high_quality_lattice = BoolProperty(
+    high_quality_lattice: BoolProperty(
             name="High quality",
             default=True,
             description="Increase the the subdivisions in normal direction for a "
                         "more correct result"
             )
-    hide_lattice = BoolProperty(
+    hide_lattice: BoolProperty(
             name="Hide Lattice",
             default=True,
             description="Automatically hide the Lattice object"
             )
-    scale_x = FloatProperty(
+    scale_x: FloatProperty(
             name="Scale X",
             default=1,
             min=0.001,
             max=1,
             description="Object scale"
             )
-    scale_y = FloatProperty(
+    scale_y: FloatProperty(
             name="Scale Y", default=1,
             min=0.001,
             max=1,
             description="Object scale"
             )
-    scale_z = FloatProperty(
+    scale_z: FloatProperty(
             name="Scale Z",
             default=1,
             min=0.001,
             max=1,
             description="Object scale"
             )
-    thickness = FloatProperty(
+    thickness: FloatProperty(
             name="Thickness",
             default=1,
             soft_min=0,
             soft_max=5,
             description="Lattice thickness"
             )
-    displace = FloatProperty(
+    displace: FloatProperty(
             name="Displace",
             default=0,
             soft_min=-1,

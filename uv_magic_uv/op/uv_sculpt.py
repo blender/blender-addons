@@ -98,12 +98,12 @@ class _Properties:
         def update_func(_, __):
             bpy.ops.uv.muv_uv_sculpt_operator('INVOKE_REGION_WIN')
 
-        scene.muv_uv_sculpt_enabled = BoolProperty(
+        scene.muv_uv_sculpt_enabled: BoolProperty(
             name="UV Sculpt",
             description="UV Sculpt is enabled",
             default=False
         )
-        scene.muv_uv_sculpt_enable = BoolProperty(
+        scene.muv_uv_sculpt_enable: BoolProperty(
             name="UV Sculpt Showed",
             description="UV Sculpt is enabled",
             default=False,
@@ -111,21 +111,21 @@ class _Properties:
             set=set_func,
             update=update_func
         )
-        scene.muv_uv_sculpt_radius = IntProperty(
+        scene.muv_uv_sculpt_radius: IntProperty(
             name="Radius",
             description="Radius of the brush",
             min=1,
             max=500,
             default=30
         )
-        scene.muv_uv_sculpt_strength = FloatProperty(
+        scene.muv_uv_sculpt_strength: FloatProperty(
             name="Strength",
             description="How powerful the effect of the brush when applied",
             min=0.0,
             max=1.0,
             default=0.03,
         )
-        scene.muv_uv_sculpt_tools = EnumProperty(
+        scene.muv_uv_sculpt_tools: EnumProperty(
             name="Tools",
             description="Select Tools for the UV sculpt brushes",
             items=[
@@ -135,17 +135,17 @@ class _Properties:
             ],
             default='GRAB'
         )
-        scene.muv_uv_sculpt_show_brush = BoolProperty(
+        scene.muv_uv_sculpt_show_brush: BoolProperty(
             name="Show Brush",
             description="Show Brush",
             default=True
         )
-        scene.muv_uv_sculpt_pinch_invert = BoolProperty(
+        scene.muv_uv_sculpt_pinch_invert: BoolProperty(
             name="Invert",
             description="Pinch UV to invert direction",
             default=False
         )
-        scene.muv_uv_sculpt_relax_method = EnumProperty(
+        scene.muv_uv_sculpt_relax_method: EnumProperty(
             name="Method",
             description="Algorithm used for relaxation",
             items=[

@@ -339,27 +339,27 @@ class AddRoundCube(Operator, object_utils.AddObjectHelper):
     sanity_check_verts = 200000
     vert_count = 0
 
-    radius = FloatProperty(
+    radius: FloatProperty(
             name="Radius",
             description="Radius of vertices for sphere, capsule or cuboid bevel",
             default=1.0, min=0.0, soft_min=0.01, step=10
             )
-    size = FloatVectorProperty(
+    size: FloatVectorProperty(
             name="Size",
             description="Size",
             subtype='XYZ',
             )
-    arc_div = IntProperty(
+    arc_div: IntProperty(
             name="Arc Divisions",
             description="Arc curve divisions, per quadrant, 0=derive from Linear",
             default=4, min=1
             )
-    lin_div = FloatProperty(
+    lin_div: FloatProperty(
             name="Linear Divisions",
             description="Linear unit divisions (Edges/Faces), 0=derive from Arc",
             default=0.0, min=0.0, step=100, precision=1
             )
-    div_type = EnumProperty(
+    div_type: EnumProperty(
             name='Type',
             description='Division type',
             items=(
@@ -368,11 +368,11 @@ class AddRoundCube(Operator, object_utils.AddObjectHelper):
                 ('ALL', 'All', 'Sphere / Corners, extruded edges and faces (size)')),
             default='CORNERS',
             )
-    odd_axis_align = BoolProperty(
+    odd_axis_align: BoolProperty(
             name='Odd Axis Align',
             description='Align odd arc divisions with axes (Note: triangle corners!)',
             )
-    no_limit = BoolProperty(
+    no_limit: BoolProperty(
             name='No Limit',
             description='Do not limit to ' + str(sanity_check_verts) + ' vertices (sanity check)',
             options={'HIDDEN'}

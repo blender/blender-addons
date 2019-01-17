@@ -275,31 +275,31 @@ def update_data(self, context):
 
 
 class IskeyFreeProperties(PropertyGroup):
-    data = StringProperty(
+    data: StringProperty(
         name="Key", maxlen=32,
         description="Shortcut to verify"
     )
-    use_crtl = BoolProperty(
+    use_crtl: BoolProperty(
         name="Ctrl",
         description="Ctrl key used in shortcut",
         default=False
     )
-    use_alt = BoolProperty(
+    use_alt: BoolProperty(
         name="Alt",
         description="Alt key used in shortcut",
         default=False
     )
-    use_shift = BoolProperty(
+    use_shift: BoolProperty(
         name="Shift",
         description="Shift key used in shortcut",
         default=False
     )
-    use_oskey = BoolProperty(
+    use_oskey: BoolProperty(
         name="OsKey",
         description="Operating system key used in shortcut",
         default=False
     )
-    numpad = EnumProperty(
+    numpad: EnumProperty(
         items=(
             ('NONE', "Select key", ""),
             ("LEFTMOUSE", "LEFTMOUSE", ""),

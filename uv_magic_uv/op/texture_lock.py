@@ -228,12 +228,12 @@ class _Properties:
         def update_func(_, __):
             bpy.ops.uv.muv_texture_lock_operator_intr('INVOKE_REGION_WIN')
 
-        scene.muv_texture_lock_enabled = BoolProperty(
+        scene.muv_texture_lock_enabled: BoolProperty(
             name="Texture Lock Enabled",
             description="Texture Lock is enabled",
             default=False
         )
-        scene.muv_texture_lock_lock = BoolProperty(
+        scene.muv_texture_lock_lock: BoolProperty(
             name="Texture Lock Locked",
             description="Texture Lock is locked",
             default=False,
@@ -241,7 +241,7 @@ class _Properties:
             set=set_func,
             update=update_func
         )
-        scene.muv_texture_lock_connect = BoolProperty(
+        scene.muv_texture_lock_connect: BoolProperty(
             name="Connect UV",
             default=True
         )
@@ -312,7 +312,7 @@ class MUV_OT_TextureLock_Unlock(bpy.types.Operator):
     bl_description = "Unlock Texture"
     bl_options = {'REGISTER', 'UNDO'}
 
-    connect = BoolProperty(
+    connect: BoolProperty(
         name="Connect UV",
         default=True
     )

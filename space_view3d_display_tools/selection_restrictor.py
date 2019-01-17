@@ -190,7 +190,7 @@ class RestrictorShow(Operator):
     bl_option = {'REGISTER', 'UNDO'}
     bl_description = "Show/Hide Selection Restrictors"
 
-    hide = StringProperty()
+    hide: StringProperty()
 
     def execute(self, context):
         global show
@@ -213,7 +213,7 @@ class IgnoreRestrictors(Operator):
     bl_label = "Ignore Restrictor by Selected Objects"
     bl_option = {'REGISTER', 'UNDO'}
     bl_description = "Ignore or do not ignore Restrictor by selected objects"
-    ignore = BoolProperty()
+    ignore: BoolProperty()
 
     def execute(self, context):
         if self.ignore is True:
@@ -237,7 +237,7 @@ class RestrictorMesh(Operator):
     bl_label = "restrictor meshes"
     bl_option = {'REGISTER', 'UNDO'}
     bl_description = "Meshes selection restrictor"
-    mesh = StringProperty()
+    mesh: StringProperty()
 
     def execute(self, context):
         global mesh

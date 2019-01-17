@@ -54,12 +54,12 @@ class AchmExportInventory(Operator, ExportHelper):
 
     # From ExportHelper. Filter filenames.
     filename_ext = ".txt"
-    filter_glob = StringProperty(
+    filter_glob: StringProperty(
             default="*.txt",
             options={'HIDDEN'},
             )
 
-    filepath = StringProperty(
+    filepath: StringProperty(
             name="File Path",
             description="File path used for exporting room data file",
             maxlen=1024, default="",
@@ -251,35 +251,35 @@ def getinventory():
 # ------------------------------------------------------------------
 class CabinetProperties(PropertyGroup):
     # Cabinet width
-    sX = FloatProperty(
+    sX: FloatProperty(
             name='width', min=0.001, max=10, default=0.60, precision=3,
             description='Cabinet width',
             )
-    wY = FloatProperty(
+    wY: FloatProperty(
             name='', min=-10, max=10, default=0, precision=3,
             description='Modify depth size',
             )
-    wZ = FloatProperty(
+    wZ: FloatProperty(
             name='', min=-10, max=10, default=0, precision=3,
             description='Modify height size',
             )
 
     # Cabinet position shift
-    pX = FloatProperty(
+    pX: FloatProperty(
             name='', min=-10, max=10, default=0, precision=3,
             description='Position x shift',
             )
-    pY = FloatProperty(
+    pY: FloatProperty(
             name='', min=-10, max=10, default=0, precision=3,
             description='Position y shift',
             )
-    pZ = FloatProperty(
+    pZ: FloatProperty(
             name='', min=-10, max=10, default=0, precision=3,
             description='Position z shift',
             )
 
     # Door type
-    dType = EnumProperty(
+    dType: EnumProperty(
             items=(
                 ('1', "Single R", ""),
                 ('2', "Single L", ""),
@@ -298,47 +298,47 @@ class CabinetProperties(PropertyGroup):
             )
 
     # Shelves
-    sNum = IntProperty(
+    sNum: IntProperty(
             name='Shelves', min=0, max=10, default=1,
             description='Number total of shelves',
             )
     # Drawers
-    dNum = IntProperty(
+    dNum: IntProperty(
             name='Num', min=1, max=10, default=3,
             description='Number total of drawers',
             )
     # Glass Factor
-    gF = FloatProperty(
+    gF: FloatProperty(
             name='', min=0.001, max=1, default=0.1, precision=3,
             description='Glass ratio',
             )
     # Handle flag
-    hand = BoolProperty(
+    hand: BoolProperty(
             name="Handle",
             description="Create a handle", default=True,
             )
     # Left baseboard
-    bL = BoolProperty(
+    bL: BoolProperty(
             name="Left Baseboard",
             description="Create a left baseboard", default=False,
             )
     # Right baseboard
-    bR = BoolProperty(
+    bR: BoolProperty(
             name="Right Baseboard",
             description="Create a left baseboard", default=False,
             )
     # Fill countertop spaces
-    tC = BoolProperty(
+    tC: BoolProperty(
             name="Countertop fill",
             description="Fill empty spaces with countertop", default=True,
             )
     # Add countertop edge
-    tE = BoolProperty(
+    tE: BoolProperty(
             name="Countertop edge",
             description="Add edge to countertop", default=True,
             )
     # cabinet rotation
-    rotate = EnumProperty(
+    rotate: EnumProperty(
             items=(
                 ('9', "Default", ""),
                 ('1', "90 CW", ""),
@@ -365,7 +365,7 @@ class AchmKitchen(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     # Define properties
-    type_cabinet = EnumProperty(
+    type_cabinet: EnumProperty(
             items=(('1', "Floor", ""),
                 ('2', "Wall", "")),
             name="Type",
@@ -373,19 +373,19 @@ class AchmKitchen(Operator):
             )
     oldtype = type_cabinet
 
-    thickness = FloatProperty(
+    thickness: FloatProperty(
             name='Thickness', min=0.001, max=5, default=0.018, precision=3,
             description='Board thickness',
             )
-    depth = FloatProperty(
+    depth: FloatProperty(
             name='Depth', min=0.001, max=50, default=0.59, precision=3,
             description='Default cabinet depth',
             )
-    height = FloatProperty(
+    height: FloatProperty(
             name='Height', min=0.001, max=50, default=0.70, precision=3,
             description='Default cabinet height',
             )
-    handle = EnumProperty(
+    handle: EnumProperty(
             items=(
                 ('1', "Model 1", ""),
                 ('2', "Model 2", ""),
@@ -400,69 +400,69 @@ class AchmKitchen(Operator):
             name="Handle",
             description="Type of handle",
             )
-    handle_x = FloatProperty(
+    handle_x: FloatProperty(
             name='', min=0.001, max=10,
             default=0.05, precision=3,
             description='Displacement in X relative position (limited to door size)',
             )
-    handle_z = FloatProperty(
+    handle_z: FloatProperty(
             name='', min=0.001, max=10,
             default=0.05, precision=3,
             description='Displacement in Z relative position (limited to door size)',
             )
 
-    baseboard = BoolProperty(
+    baseboard: BoolProperty(
             name="Baseboard",
             description="Create a baseboard automatically",
             default=True,
             )
-    baseheight = FloatProperty(
+    baseheight: FloatProperty(
             name='height', min=0.001, max=10,
             default=0.16, precision=3,
             description='Baseboard height',
             )
-    basefactor = FloatProperty(
+    basefactor: FloatProperty(
             name='sink', min=0, max=1,
             default=0.90, precision=3,
             description='Baseboard sink',
             )
 
-    countertop = BoolProperty(
+    countertop: BoolProperty(
             name="Countertop",
             description="Create a countertop automatically (only default cabinet height)",
             default=True,
             )
-    counterheight = FloatProperty(
+    counterheight: FloatProperty(
             name='height', min=0.001, max=10,
             default=0.02, precision=3,
             description='Countertop height',
             )
-    counterextend = FloatProperty(
+    counterextend: FloatProperty(
             name='extend', min=0.001, max=10,
             default=0.03, precision=3,
             description='Countertop extent',
             )
 
-    fitZ = BoolProperty(
+    fitZ: BoolProperty(
             name="Floor origin in Z=0",
             description="Use Z=0 axis as vertical origin floor position",
             default=True,
             )
-    moveZ = FloatProperty(
+    moveZ: FloatProperty(
             name='Z position', min=0.001, max=10,
             default=1.5, precision=3,
             description='Wall cabinet Z position from floor',
             )
 
-    cabinet_num = IntProperty(
+    cabinet_num: IntProperty(
             name='Number of Cabinets', min=1, max=30,
             default=1,
             description='Number total of cabinets in the Kitchen',
             )
-    cabinets = CollectionProperty(type=CabinetProperties)
+    cabinets: CollectionProperty(type=CabinetProperties)
 
     # Materials
-    crt_mat = BoolProperty(
+    crt_mat: BoolProperty(
             name="Create default Cycles materials",
             description="Create default materials for Cycles render",
             default=True,

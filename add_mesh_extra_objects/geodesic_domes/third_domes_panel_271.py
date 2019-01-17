@@ -34,23 +34,23 @@ class GenerateGeodesicDome(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     # PKHG_NEW saving and loading parameters
-    save_parameters = BoolProperty(
+    save_parameters: BoolProperty(
             name="Save params",
             description="Activation save */tmp/GD_0.GD",
             default=False
             )
-    load_parameters = BoolProperty(
+    load_parameters: BoolProperty(
             name="Load params",
             description="Read */tmp/GD_0.GD",
             default=False
             )
-    gd_help_text_width = IntProperty(
+    gd_help_text_width: IntProperty(
             name="Text Width",
             description="The width above which the text wraps",
             default=60,
             max=180, min=20
             )
-    mainpages = EnumProperty(
+    mainpages: EnumProperty(
             name="Menu",
             description="Create Faces, Struts & Hubs",
             items=[("Main", "Main", "Geodesic objects"),
@@ -62,7 +62,7 @@ class GenerateGeodesicDome(Operator):
             default='Main'
             )
     # for Faces
-    facetype_menu = EnumProperty(
+    facetype_menu: EnumProperty(
             name="Faces",
             description="choose a facetype",
             items=[("0", "strip", "strip"),
@@ -79,43 +79,43 @@ class GenerateGeodesicDome(Operator):
                   ],
             default='0'
             )
-    facetoggle = BoolProperty(
+    facetoggle: BoolProperty(
             name="Activate: Face Object",
             description="Activate Faces for Geodesic object",
             default=False
             )
-    face_use_imported_object = BoolProperty(
+    face_use_imported_object: BoolProperty(
             name="Use: Imported Object",
             description="Activate faces on your Imported object",
             default=False
             )
-    facewidth = FloatProperty(
+    facewidth: FloatProperty(
             name="Face Width",
             min=-1, soft_min=0.001, max=4,
             default=.50
             )
-    fwtog = BoolProperty(
+    fwtog: BoolProperty(
             name="Width tweak",
             default=False
             )
-    faceheight = FloatProperty(
+    faceheight: FloatProperty(
             name="Face Height",
             min=0.001, max=4,
             default=1
             )
-    fhtog = BoolProperty(
+    fhtog: BoolProperty(
             name="Height tweak",
             default=False
             )
-    face_detach = BoolProperty(
+    face_detach: BoolProperty(
             name="Detach Faces",
             default=False
             )
-    fmeshname = StringProperty(
+    fmeshname: StringProperty(
             name="Face Mesh name",
             default="defaultface"
             )
-    geodesic_types = EnumProperty(
+    geodesic_types: EnumProperty(
             name="Objects",
             description="Choose Geodesic, Grid, Cylinder, Parabola, "
                         "Torus, Sphere, Import your mesh or Superparameters",
@@ -129,12 +129,12 @@ class GenerateGeodesicDome(Operator):
                   ],
             default='Geodesic'
             )
-    import_mesh_name = StringProperty(
+    import_mesh_name: StringProperty(
             name="Mesh to import",
             description="the name has to be the name of a meshobject",
             default="None"
             )
-    base_type = EnumProperty(
+    base_type: EnumProperty(
             name="Hedron",
             description="Choose between Tetrahedron, Octahedron, Icosahedron ",
             items=[("Tetrahedron", "Tetrahedron", "Generate Tetrahedron"),
@@ -143,7 +143,7 @@ class GenerateGeodesicDome(Operator):
                     ],
             default='Tetrahedron'
             )
-    orientation = EnumProperty(
+    orientation: EnumProperty(
             name="Point^",
             description="Point (Vert), Edge or Face pointing upwards",
             items=[("PointUp", "PointUp", "Point up"),
@@ -152,7 +152,7 @@ class GenerateGeodesicDome(Operator):
                    ],
             default='PointUp'
             )
-    geodesic_class = EnumProperty(
+    geodesic_class: EnumProperty(
             name="Class",
             description="Subdivide Basic/Triacon",
             items=[("Class 1", "Class 1", "class one"),
@@ -160,7 +160,7 @@ class GenerateGeodesicDome(Operator):
                    ],
             default='Class 1'
             )
-    tri_hex_star = EnumProperty(
+    tri_hex_star: EnumProperty(
             name="Shape",
             description="Choose between tri hex star face types",
             items=[("tri", "tri", "tri faces"),
@@ -169,7 +169,7 @@ class GenerateGeodesicDome(Operator):
                     ],
             default='tri'
             )
-    spherical_flat = EnumProperty(
+    spherical_flat: EnumProperty(
             name="Round",
             description="Choose between spherical or flat ",
             items=[("spherical", "spherical", "Generate spherical"),
@@ -177,280 +177,280 @@ class GenerateGeodesicDome(Operator):
                     ],
             default='spherical'
             )
-    use_imported_mesh = BoolProperty(
+    use_imported_mesh: BoolProperty(
             name="use import",
             description="Use an imported mesh",
             default=False
             )
     # Cylinder
-    cyxres = IntProperty(
+    cyxres: IntProperty(
             name="Resolution x/y",
             min=3, max=32,
             description="Number of faces around x/y",
             default=5
             )
-    cyyres = IntProperty(
+    cyyres: IntProperty(
             name="Resolution z",
             min=3, max=32,
             description="Number of faces in z direction",
             default=5
             )
-    cyxsz = FloatProperty(
+    cyxsz: FloatProperty(
             name="Scale x/y",
             min=0.01, max=10,
             description="Scale in x/y direction",
             default=1
             )
-    cyysz = FloatProperty(
+    cyysz: FloatProperty(
             name="Scale z",
             min=0.01, max=10,
             description="Scale in z direction",
             default=1
             )
-    cyxell = FloatProperty(
+    cyxell: FloatProperty(
             name="Stretch x",
             min=0.001, max=4,
             description="Stretch in x direction",
             default=1
             )
-    cygap = FloatProperty(
+    cygap: FloatProperty(
             name="Gap",
             min=-2, max=2,
             description="Shrink in % around radius",
             default=1
             )
-    cygphase = FloatProperty(
+    cygphase: FloatProperty(
             name="Phase", min=-4, max=4,
             description="Rotate around pivot x/y",
             default=0
             )
     # Parabola
-    paxres = IntProperty(
+    paxres: IntProperty(
             name="Resolution x/y",
             min=3, max=32,
             description="Number of faces around x/y",
             default=5
             )
-    payres = IntProperty(
+    payres: IntProperty(
             name="Resolution z",
             min=3, max=32,
             description="Number of faces in z direction",
             default=5
             )
-    paxsz = FloatProperty(
+    paxsz: FloatProperty(
             name="Scale x/y",
             min=0.001, max=10,
             description="scale in x/y direction",
             default=0.30
             )
-    paysz = FloatProperty(
+    paysz: FloatProperty(
             name="Scale z",
             min=0.001, max=10,
             description="Scale in z direction",
             default=1
             )
-    paxell = FloatProperty(
+    paxell: FloatProperty(
             name="Stretch x",
             min=0.001, max=4,
             description="Stretch in x direction",
             default=1
             )
-    pagap = FloatProperty(
+    pagap: FloatProperty(
             name="Gap",
             min=-2, max=2,
             description="Shrink in % around radius",
             default=1
             )
-    pagphase = FloatProperty(
+    pagphase: FloatProperty(
             name="Phase",
             min=-4, max=4,
             description="Rotate around pivot x/y",
             default=0
             )
     # Torus
-    ures = IntProperty(
+    ures: IntProperty(
             name="Resolution x/y",
             min=3, max=32,
             description="Number of faces around x/y",
             default=8)
-    vres = IntProperty(
+    vres: IntProperty(
             name="Resolution z",
             min=3, max=32,
             description="Number of faces in z direction",
             default=8)
-    urad = FloatProperty(
+    urad: FloatProperty(
             name="Radius x/y",
             min=0.001, max=10,
             description="Radius in x/y plane",
             default=1
             )
-    vrad = FloatProperty(
+    vrad: FloatProperty(
             name="Radius z",
             min=0.001, max=10,
             description="Radius in z plane",
             default=0.250
             )
-    uellipse = FloatProperty(
+    uellipse: FloatProperty(
             name="Stretch x",
             min=0.001, max=10,
             description="Number of faces in z direction",
             default=1
             )
-    vellipse = FloatProperty(
+    vellipse: FloatProperty(
             name="Stretch z",
             min=0.001, max=10,
             description="Number of faces in z direction",
             default=1
             )
-    upart = FloatProperty(
+    upart: FloatProperty(
             name="Gap x/y",
             min=-4, max=4,
             description="Shrink faces around x/y",
             default=1
             )
-    vpart = FloatProperty(
+    vpart: FloatProperty(
             name="Gap z",
             min=-4, max=4,
             description="Shrink faces in z direction",
             default=1
             )
-    ugap = FloatProperty(
+    ugap: FloatProperty(
             name="Phase x/y",
             min=-4, max=4,
             description="Rotate around pivot x/y",
             default=0
             )
-    vgap = FloatProperty(
+    vgap: FloatProperty(
             name="Phase z",
             min=-4, max=4,
             description="Rotate around pivot z",
             default=0
             )
-    uphase = FloatProperty(
+    uphase: FloatProperty(
             name="uphase",
             min=-4, max=4,
             description="Number of faces in z direction",
             default=0
             )
-    vphase = FloatProperty(
+    vphase: FloatProperty(
             name="vphase",
             min=-4, max=4,
             description="Number of faces in z direction",
             default=0
             )
-    uexp = FloatProperty(
+    uexp: FloatProperty(
             name="uexp",
             min=-4, max=4,
             description="Number of faces in z direction",
             default=0
             )
-    vexp = FloatProperty(
+    vexp: FloatProperty(
             name="vexp",
             min=-4, max=4,
             description="Number of faces in z direction",
             default=0
             )
-    usuper = FloatProperty(
+    usuper: FloatProperty(
             name="usuper",
             min=-4, max=4,
             description="First set of superform parameters",
             default=2
             )
-    vsuper = FloatProperty(
+    vsuper: FloatProperty(
             name="vsuper",
             min=-4, max=4,
             description="Second set of superform parameters",
             default=2
             )
-    utwist = FloatProperty(
+    utwist: FloatProperty(
             name="Twist x/y",
             min=-4, max=4,
             description="Use with superformular u",
             default=0
              )
-    vtwist = FloatProperty(
+    vtwist: FloatProperty(
             name="Twist z",
             min=-4, max=4,
             description="Use with superformular v",
             default=0
             )
     # Sphere
-    bures = IntProperty(
+    bures: IntProperty(
             name="Resolution x/y",
             min=3, max=32,
             description="Number of faces around x/y",
             default=8
             )
-    bvres = IntProperty(
+    bvres: IntProperty(
             name="Resolution z",
             min=3, max=32,
             description="Number of faces in z direction",
             default=8
             )
-    burad = FloatProperty(
+    burad: FloatProperty(
             name="Radius",
             min=-4, max=4,
             description="overall radius",
             default=1
             )
-    bupart = FloatProperty(
+    bupart: FloatProperty(
             name="Gap x/y",
             min=-4, max=4,
             description="Shrink faces around x/y",
             default=1
             )
-    bvpart = FloatProperty(
+    bvpart: FloatProperty(
             name="Gap z",
             min=-4, max=4,
             description="Shrink faces in z direction",
             default=1
             )
-    buphase = FloatProperty(
+    buphase: FloatProperty(
             name="Phase x/y",
             min=-4, max=4,
             description="Rotate around pivot x/y",
             default=0
             )
-    bvphase = FloatProperty(
+    bvphase: FloatProperty(
             name="Phase z",
             min=-4, max=4,
             description="Rotate around pivot z",
             default=0
             )
-    buellipse = FloatProperty(
+    buellipse: FloatProperty(
             name="Stretch x",
             min=0.001, max=4,
             description="Stretch in the x direction",
             default=1
             )
-    bvellipse = FloatProperty(
+    bvellipse: FloatProperty(
             name="Stretch z",
             min=0.001, max=4,
             description="Stretch in the z direction",
             default=1
             )
     # Grid
-    grxres = IntProperty(
+    grxres: IntProperty(
             name="Resolution x",
             min=2, soft_max=10, max=20,
             description="Number of faces in x direction",
             default=5
             )
-    gryres = IntProperty(
+    gryres: IntProperty(
             name="Resolution z",
             min=2, soft_min=2,
             soft_max=10, max=20,
             description="Number of faces in x direction",
             default=2
             )
-    grxsz = FloatProperty(
+    grxsz: FloatProperty(
             name="X size",
             min=1, soft_min=0.01,
             soft_max=5, max=10,
             description="X size",
             default=2.0
             )
-    grysz = FloatProperty(
+    grysz: FloatProperty(
             name="Y size",
             min=1, soft_min=0.01,
             soft_max=5, max=10,
@@ -459,66 +459,66 @@ class GenerateGeodesicDome(Operator):
             )
 
     # PKHG_TODO_??? what means cart
-    cart = IntProperty(
+    cart: IntProperty(
             name="cart",
             min=0, max=2,
             default=0
             )
-    frequency = IntProperty(
+    frequency: IntProperty(
             name="Frequency",
             min=1, max=8,
             description="Subdivide base triangles",
             default=1
             )
-    eccentricity = FloatProperty(
+    eccentricity: FloatProperty(
             name="Eccentricity",
             min=0.01, max=4,
             description="Scaling in x/y dimension",
             default=1
             )
-    squish = FloatProperty(
+    squish: FloatProperty(
             name="Squish",
             min=0.01,
             soft_max=4, max=10,
             description="Scaling in z dimension",
             default=1
             )
-    radius = FloatProperty(
+    radius: FloatProperty(
             name="Radius",
             min=0.01,
             soft_max=4, max=10,
             description="Overall radius",
             default=1
             )
-    squareness = FloatProperty(
+    squareness: FloatProperty(
             name="Square x/y",
             min=0.1, max=5,
             description="Superelipse action in x/y",
             default=2
             )
-    squarez = FloatProperty(
+    squarez: FloatProperty(
             name="Square z",
             min=0.1, soft_max=5, max=10,
             description="Superelipse action in z",
             default=2
             )
-    baselevel = IntProperty(
+    baselevel: IntProperty(
             name="baselevel",
             default=5
             )
-    dual = BoolProperty(
+    dual: BoolProperty(
             name="Dual",
             description="Faces become verts, "
                         "verts become faces, edges flip",
             default=False
             )
-    rotxy = FloatProperty(
+    rotxy: FloatProperty(
             name="Rotate x/y",
             min=-4, max=4,
             description="Rotate superelipse action in x/y",
             default=0
             )
-    rotz = FloatProperty(
+    rotz: FloatProperty(
             name="Rotate z",
             min=-4, max=4,
             description="Rotate superelipse action in z",
@@ -526,94 +526,94 @@ class GenerateGeodesicDome(Operator):
             )
 
     # for choice of superformula
-    uact = BoolProperty(
+    uact: BoolProperty(
             name="Superformula u (x/y)",
             description="Activate superformula u parameters",
             default=False
             )
-    vact = BoolProperty(
+    vact: BoolProperty(
             name="Superformula v (z)",
             description="Activate superformula v parameters",
             default=False
             )
-    um = FloatProperty(
+    um: FloatProperty(
             name="Pinch x/y",
             min=0, soft_min=0.1,
             soft_max=5, max=10,
             description="Pinch the mesh on x/y",
             default=3
             )
-    un1 = FloatProperty(
+    un1: FloatProperty(
             name="Squash x/y",
             min=0, soft_min=0.1,
             soft_max=5, max=20,
             description="Squash the mesh x/y",
             default=1
             )
-    un2 = FloatProperty(
+    un2: FloatProperty(
             name="Inflate x/y",
             min=0, soft_min=0.1,
             soft_max=5, max=10,
             description="Inflate the mesh x/y",
             default=1
             )
-    un3 = FloatProperty(
+    un3: FloatProperty(
             name="Roundify x/y",
             min=0, soft_min=0.1,
             soft_max=5, max=10,
             description="Roundify x/y",
             default=1
             )
-    ua = FloatProperty(
+    ua: FloatProperty(
             name="Shrink",
             min=0, soft_min=0.1,
             soft_max=5, max=10,
             description="Shrink",
             default=1.0
             )
-    ub = FloatProperty(
+    ub: FloatProperty(
             name="Shrink x/y",
             min=0, soft_min=0.1,
             soft_max=5, max=10,
             description="Shrink y/x",
             default=4.0
             )
-    vm = FloatProperty(
+    vm: FloatProperty(
             name="Scale Z Base",
             min=0, soft_min=0.1,
             soft_max=5, max=10,
             description="Scale Z Base",
             default=1
             )
-    vn1 = FloatProperty(
+    vn1: FloatProperty(
             name="Scale lock Top Z",
             min=0, soft_min=0.1,
             soft_max=5, max=10,
             description="Scale lock Top Z",
             default=1
             )
-    vn2 = FloatProperty(
+    vn2: FloatProperty(
             name="Inflate Base",
             min=0, soft_min=0.1,
             soft_max=5, max=10,
             description="Inflate Base",
             default=1
             )
-    vn3 = FloatProperty(
+    vn3: FloatProperty(
             name="Inflate",
             min=0, soft_min=0.1,
             soft_max=5, max=10,
             description="Inflate",
             default=1
             )
-    va = FloatProperty(
+    va: FloatProperty(
             name="Scale 1",
             min=0, soft_min=0.1,
             soft_max=5, max=10,
             description="Scale 1",
             default=1
             )
-    vb = FloatProperty(
+    vb: FloatProperty(
             name="Scale 2",
             min=0, soft_min=0.1,
             soft_max=5, max=10,
@@ -621,28 +621,28 @@ class GenerateGeodesicDome(Operator):
             default=1
             )
 
-    uturn = FloatProperty(
+    uturn: FloatProperty(
             name="x/y Vert cycle",
             min=0, soft_min=0.1,
             soft_max=5, max=10,
             description="x/y Vert cycle",
             default=0
             )
-    vturn = FloatProperty(
+    vturn: FloatProperty(
             name="z Vert cycle",
             min=0, soft_min=0.1,
             soft_max=5, max=10,
             description="z Vert cycle",
             default=0
             )
-    utwist = FloatProperty(
+    utwist: FloatProperty(
             name="x/y Twist cycle",
             min=0, soft_min=0.1,
             soft_max=5, max=10,
             description="x/y Twist cycle",
             default=0
             )
-    vtwist = FloatProperty(
+    vtwist: FloatProperty(
             name="z Twist cycle",
             min=0, soft_min=0.1,
             soft_max=5, max=10,
@@ -650,113 +650,113 @@ class GenerateGeodesicDome(Operator):
             default=0
             )
     # Strut
-    struttype = IntProperty(
+    struttype: IntProperty(
             name="Strut type",
             default=0
             )
-    struttoggle = BoolProperty(
+    struttoggle: BoolProperty(
             name="Use Struts",
             default=False
             )
-    strutimporttoggle = BoolProperty(
+    strutimporttoggle: BoolProperty(
             name="Strut import toggle",
             default=False
             )
-    strutimpmesh = StringProperty(
+    strutimpmesh: StringProperty(
             name="Strut import mesh",
             default="None"
             )
-    strutwidth = FloatProperty(
+    strutwidth: FloatProperty(
             name="Strut width",
             min=-10, soft_min=5,
             soft_max=5, max=10,
             default=1
             )
-    swtog = BoolProperty(
+    swtog: BoolProperty(
             name="Width enable",
             default=False
             )
-    strutheight = FloatProperty(
+    strutheight: FloatProperty(
             name="Strut height",
             min=-5, soft_min=-1,
             soft_max=5, max=10,
             default=1
             )
-    shtog = BoolProperty(
+    shtog: BoolProperty(
             name="Height tweak",
             default=False
             )
-    strutshrink = FloatProperty(
+    strutshrink: FloatProperty(
             name="Strut shrink",
             min=0.001, max=4,
             default=1
             )
-    sstog = BoolProperty(
+    sstog: BoolProperty(
             name="Shrink tweak",
             default=False
             )
-    stretch = FloatProperty(
+    stretch: FloatProperty(
             name="Stretch",
             min=-4, max=4,
             default=1.0
             )
-    lift = FloatProperty(
+    lift: FloatProperty(
             name="Lift",
             min=0.001, max=10,
             default=0
             )
-    smeshname = StringProperty(
+    smeshname: StringProperty(
             name="Strut mesh name",
             default="defaultstrut"
             )
     # Hubs
-    hubtype = BoolProperty(
+    hubtype: BoolProperty(
             name="Hub type",
             description="not used",
             default=True
             )
-    hubtoggle = BoolProperty(
+    hubtoggle: BoolProperty(
             name="Use Hubs",
             default=False
             )
-    hubimporttoggle = BoolProperty(
+    hubimporttoggle: BoolProperty(
             name="New import",
             description="Import a mesh",
             default=False
             )
-    hubimpmesh = StringProperty(
+    hubimpmesh: StringProperty(
             name="Hub mesh import",
             description="Name of mesh to import",
             default="None"
             )
-    hubwidth = FloatProperty(
+    hubwidth: FloatProperty(
             name="Hub width",
             min=0.01, max=10,
             default=1
             )
-    hwtog = BoolProperty(
+    hwtog: BoolProperty(
             name="Width tweak",
             default=False
             )
-    hubheight = FloatProperty(
+    hubheight: FloatProperty(
             name="Hub height",
             min=0.01, max=10,
             default=1
             )
-    hhtog = BoolProperty(
+    hhtog: BoolProperty(
             name="Height tweak",
             default=False
             )
-    hublength = FloatProperty(
+    hublength: FloatProperty(
             name="Hub length",
             min=0.1, max=10,
             default=1
             )
-    hstog = BoolProperty(
+    hstog: BoolProperty(
             name="Hub s tweak",
             default=False
             )
-    hmeshname = StringProperty(
+    hmeshname: StringProperty(
             name="Hub mesh name",
             description="Name of an existing mesh needed!",
             default="None"

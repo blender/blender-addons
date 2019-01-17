@@ -496,7 +496,7 @@ class FlipColorsAll(Operator):
     bl_idname = "view3d.sv3_flip_colors_all"
     bl_description = "Switch between Foreground and Background colors"
 
-    is_tex = BoolProperty(
+    is_tex: BoolProperty(
                 default=False,
                 options={'HIDDEN'}
                 )

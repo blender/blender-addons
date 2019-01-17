@@ -470,113 +470,113 @@ UNION = 1
 class CarverPrefs(bpy.types.AddonPreferences):
     bl_idname = __name__
 
-    Enable_Tab_01 = BoolProperty(
+    Enable_Tab_01: BoolProperty(
         name="Info",
         description="Some general information and settings about the add-on",
         default=False
     )
-    Enable_Tab_02 = BoolProperty(
+    Enable_Tab_02: BoolProperty(
         name="Hotkeys",
         description="List of the shortcuts used during carving",
         default=False
     )
-    bpy.types.Scene.Key_Create = StringProperty(
+    bpy.types.Scene.Key_Create: StringProperty(
         name="Object creation",
         description="Object creation",
         maxlen=1,
         default="C"
     )
-    bpy.types.Scene.Key_Update = StringProperty(
+    bpy.types.Scene.Key_Update: StringProperty(
         name="Auto Bevel Update",
         description="Auto Bevel Update",
         maxlen=1,
         default="A",
     )
-    bpy.types.Scene.Key_Bool = StringProperty(
+    bpy.types.Scene.Key_Bool: StringProperty(
         name="Boolean type",
         description="Boolean operation type",
         maxlen=1,
         default="T",
     )
-    bpy.types.Scene.Key_Brush = StringProperty(
+    bpy.types.Scene.Key_Brush: StringProperty(
             name="Brush Mode",
             description="Brush Mode",
             maxlen=1,
             default="B",
             )
-    bpy.types.Scene.Key_Help = StringProperty(
+    bpy.types.Scene.Key_Help: StringProperty(
         name="Help display",
         description="Help display",
         maxlen=1,
         default="H",
     )
-    bpy.types.Scene.Key_Instant = StringProperty(
+    bpy.types.Scene.Key_Instant: StringProperty(
         name="Instantiate",
         description="Instantiate object",
         maxlen=1,
         default="I",
     )
-    bpy.types.Scene.Key_Close = StringProperty(
+    bpy.types.Scene.Key_Close: StringProperty(
         name="Close polygonal shape",
         description="Close polygonal shape",
         maxlen=1,
         default="X",
     )
-    bpy.types.Scene.Key_Apply = StringProperty(
+    bpy.types.Scene.Key_Apply: StringProperty(
         name="Apply operation",
         description="Apply operation",
         maxlen=1,
         default="Q",
     )
-    bpy.types.Scene.Key_Scale = StringProperty(
+    bpy.types.Scene.Key_Scale: StringProperty(
         name="Scale object",
         description="Scale object",
         maxlen=1,
         default="S",
     )
-    bpy.types.Scene.Key_Gapy = StringProperty(
+    bpy.types.Scene.Key_Gapy: StringProperty(
         name="Gap rows",
         description="Scale gap between columns",
         maxlen=1,
         default="J",
     )
-    bpy.types.Scene.Key_Gapx = StringProperty(
+    bpy.types.Scene.Key_Gapx: StringProperty(
         name="Gap columns",
         description="Scale gap between columns",
         maxlen=1,
         default="U",
     )
-    bpy.types.Scene.Key_Depth = StringProperty(
+    bpy.types.Scene.Key_Depth: StringProperty(
         name="Depth",
         description="Cursor depth or solidify pattern",
         maxlen=1,
         default="D",
     )
-    bpy.types.Scene.Key_BrushDepth = StringProperty(
+    bpy.types.Scene.Key_BrushDepth: StringProperty(
         name="Brush Depth",
         description="Brush depth",
         maxlen=1,
         default="C",
     )
-    bpy.types.Scene.Key_Subadd = StringProperty(
+    bpy.types.Scene.Key_Subadd: StringProperty(
         name="Add subdivision",
         description="Add subdivision",
         maxlen=1,
         default="X",
     )
-    bpy.types.Scene.Key_Subrem = StringProperty(
+    bpy.types.Scene.Key_Subrem: StringProperty(
         name="Remove subdivision",
         description="Remove subdivision",
         maxlen=1,
         default="W",
     )
-    bpy.types.Scene.Key_Randrot = StringProperty(
+    bpy.types.Scene.Key_Randrot: StringProperty(
         name="Random rotation",
         description="Random rotation",
         maxlen=1,
         default="R",
     )
-    bpy.types.Scene.ProfilePrefix = StringProperty(
+    bpy.types.Scene.ProfilePrefix: StringProperty(
         name="Profile prefix",
         description="Prefix to look for profiles with",
         default="Carver_Profile-"
@@ -3408,23 +3408,23 @@ class Carver(bpy.types.Operator):
 
 
 class CarverProperties(bpy.types.PropertyGroup):
-    DepthCursor = BoolProperty(
+    DepthCursor: BoolProperty(
         name="DepthCursor",
         default=False
     )
-    OInstanciate = BoolProperty(
+    OInstanciate: BoolProperty(
         name="Obj_Instantiate",
         default=False
     )
-    ORandom = BoolProperty(
+    ORandom: BoolProperty(
         name="Random_Rotation",
         default=False
     )
-    DontApply = BoolProperty(
+    DontApply: BoolProperty(
         name="Dont_Apply",
         default=False
     )
-    nProfile = IntProperty(
+    nProfile: IntProperty(
         name="Num_Profile",
         default=0
     )

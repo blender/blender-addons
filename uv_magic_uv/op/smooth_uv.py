@@ -62,24 +62,24 @@ class _Properties:
 
     @classmethod
     def init_props(cls, scene):
-        scene.muv_smooth_uv_enabled = BoolProperty(
+        scene.muv_smooth_uv_enabled: BoolProperty(
             name="Smooth UV Enabled",
             description="Smooth UV is enabled",
             default=False
         )
-        scene.muv_smooth_uv_transmission = BoolProperty(
+        scene.muv_smooth_uv_transmission: BoolProperty(
             name="Transmission",
             description="Smooth linked UVs",
             default=False
         )
-        scene.muv_smooth_uv_mesh_infl = FloatProperty(
+        scene.muv_smooth_uv_mesh_infl: FloatProperty(
             name="Mesh Influence",
             description="Influence rate of mesh vertex",
             min=0.0,
             max=1.0,
             default=0.0
         )
-        scene.muv_smooth_uv_select = BoolProperty(
+        scene.muv_smooth_uv_select: BoolProperty(
             name="Select",
             description="Select UVs which are smoothed",
             default=False
@@ -102,19 +102,19 @@ class MUV_OT_SmoothUV(bpy.types.Operator):
     bl_description = "Smooth UV coordinates"
     bl_options = {'REGISTER', 'UNDO'}
 
-    transmission = BoolProperty(
+    transmission: BoolProperty(
         name="Transmission",
         description="Smooth linked UVs",
         default=False
     )
-    mesh_infl = FloatProperty(
+    mesh_infl: FloatProperty(
         name="Mesh Influence",
         description="Influence rate of mesh vertex",
         min=0.0,
         max=1.0,
         default=0.0
     )
-    select = BoolProperty(
+    select: BoolProperty(
         name="Select",
         description="Select UVs which are smoothed",
         default=False

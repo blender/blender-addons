@@ -145,7 +145,7 @@ class EmptyGroup(PropertyGroup):
 # bpy.utils.register_class(EmptyGroup)
 
 class matlibMaterials(PropertyGroup):
-  category = StringProperty()
+  category: StringProperty()
 # bpy.utils.register_class(matlibMaterials)
 
 #bpy.types.Scene.matlib_categories = CollectionProperty(type=EmptyGroup)
@@ -283,13 +283,13 @@ class matlibProperties(PropertyGroup):
   #MATLIB PROPERTIES
 
   #libraries are read from the xml
-  lib_index = IntProperty(min = -1, default = 2, update=update_lib_index)
-  all_materials = CollectionProperty(type = matlibMaterials)
-  materials = CollectionProperty(type = matlibMaterials)
-  mat_index = IntProperty(min = -1, default = -1)
-  categories = CollectionProperty(type = EmptyGroup)
-  cat_index = IntProperty(min = -1, default = -1, update=update_cat_index)
-  search = StringProperty(name="Search", description="Find By Name", update=update_search_index)
+  lib_index: IntProperty(min = -1, default = 2, update=update_lib_index)
+  all_materials: CollectionProperty(type = matlibMaterials)
+  materials: CollectionProperty(type = matlibMaterials)
+  mat_index: IntProperty(min = -1, default = -1)
+  categories: CollectionProperty(type = EmptyGroup)
+  cat_index: IntProperty(min = -1, default = -1, update=update_cat_index)
+  search: StringProperty(name="Search", description="Find By Name", update=update_search_index)
 
   #MATLIB OPTIONS
   #link: import material linked
@@ -299,12 +299,12 @@ class matlibProperties(PropertyGroup):
   #filter: enable or disable category filter
   #last selected: store the last selected object to regain focus when apply a material.
   #hide_search: Hides Search Field
-  link = BoolProperty(name = "Linked", description="Link the material", default = False)
-  force_import = BoolProperty(name = "Force Import", description="Use Scene Materials by default", default = False)
-  filter = BoolProperty(name = "Filter",description="Filter Categories", default = False, update=update_filter)
-  show_prefs = BoolProperty(name = "show_prefs", description="Preferences", default = False)
-  last_selected = StringProperty(name="Last Selected")
-  hide_search = BoolProperty(name="Hide Search", description="Use Blender Search Only")
+  link: BoolProperty(name = "Linked", description="Link the material", default = False)
+  force_import: BoolProperty(name = "Force Import", description="Use Scene Materials by default", default = False)
+  filter: BoolProperty(name = "Filter",description="Filter Categories", default = False, update=update_filter)
+  show_prefs: BoolProperty(name = "show_prefs", description="Preferences", default = False)
+  last_selected: StringProperty(name="Last Selected")
+  hide_search: BoolProperty(name="Hide Search", description="Use Blender Search Only")
   #import_file = StringProperty("Import File", subtype="FILE_PATH")
   #path = os.path.dirname(path)
   #Development only
@@ -918,10 +918,10 @@ class MATLIB_OT_operator(Operator):
   bl_idname = "matlib.operator"
   __doc__ = "Add, Remove, Reload, Apply, Preview, Clean Material"
 
-  category = StringProperty(name="Category")
-  filepath = StringProperty(options={'HIDDEN'})
-  cmd = bpy.props.StringProperty(name="Command", options={'HIDDEN'})
-  filter_glob = StringProperty(default="*.blend", options={'HIDDEN'})
+  category: StringProperty(name="Category")
+  filepath: StringProperty(options={'HIDDEN'})
+  cmd: bpy.props.StringProperty(name="Command", options={'HIDDEN'})
+  filter_glob: StringProperty(default="*.blend", options={'HIDDEN'})
   @classmethod
   def poll(cls, context):
     return context.active_object is not None
@@ -1210,7 +1210,7 @@ def reload_library(self, context):
 class matlibvxPref(AddonPreferences):
     bl_idname = __name__
 
-    matlib_path = StringProperty(
+    matlib_path: StringProperty(
         name="Additional Path",
         description="User defined path to .blend libraries files",
         default="",

@@ -90,12 +90,12 @@ class _Properties:
         def update_func(_, __):
             bpy.ops.uv.muv_uv_bounding_box_operator('INVOKE_REGION_WIN')
 
-        scene.muv_uv_bounding_box_enabled = BoolProperty(
+        scene.muv_uv_bounding_box_enabled: BoolProperty(
             name="UV Bounding Box Enabled",
             description="UV Bounding Box is enabled",
             default=False
         )
-        scene.muv_uv_bounding_box_show = BoolProperty(
+        scene.muv_uv_bounding_box_show: BoolProperty(
             name="UV Bounding Box Showed",
             description="UV Bounding Box is showed",
             default=False,
@@ -103,12 +103,12 @@ class _Properties:
             set=set_func,
             update=update_func
         )
-        scene.muv_uv_bounding_box_uniform_scaling = BoolProperty(
+        scene.muv_uv_bounding_box_uniform_scaling: BoolProperty(
             name="Uniform Scaling",
             description="Enable Uniform Scaling",
             default=False
         )
-        scene.muv_uv_bounding_box_boundary = EnumProperty(
+        scene.muv_uv_bounding_box_boundary: EnumProperty(
             name="Boundary",
             description="Boundary",
             default='UV_SEL',

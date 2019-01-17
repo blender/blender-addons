@@ -67,17 +67,17 @@ class _Properties:
 
         scene.muv_props.texture_wrap = Props()
 
-        scene.muv_texture_wrap_enabled = BoolProperty(
+        scene.muv_texture_wrap_enabled: BoolProperty(
             name="Texture Wrap",
             description="Texture Wrap is enabled",
             default=False
         )
-        scene.muv_texture_wrap_set_and_refer = BoolProperty(
+        scene.muv_texture_wrap_set_and_refer: BoolProperty(
             name="Set and Refer",
             description="Refer and set UV",
             default=True
         )
-        scene.muv_texture_wrap_selseq = BoolProperty(
+        scene.muv_texture_wrap_selseq: BoolProperty(
             name="Selection Sequence",
             description="Set UV sequentially",
             default=False

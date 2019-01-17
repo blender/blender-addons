@@ -68,7 +68,7 @@ class OBJECT_OT_FastLoop(Operator):
     bl_description = ("Create multiple edge loops in succession\n"
                       "Runs modal until ESC is pressed twice")
 
-    active = BoolProperty(
+    active: BoolProperty(
                 name="active",
                 default=False
                 )

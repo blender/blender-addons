@@ -99,7 +99,7 @@ class VIEW3D_stored_views_initialize(Operator):
 class VIEW3D_stored_views_preferences(AddonPreferences):
     bl_idname = __name__
 
-    show_exporters = BoolProperty(
+    show_exporters: BoolProperty(
         name="Enable I/O Operators",
         default=False,
         description="Enable Import/Export Operations in the UI:\n"
@@ -107,7 +107,7 @@ class VIEW3D_stored_views_preferences(AddonPreferences):
                     "Export Stored Views preset and \n"
                     "Import stored views from scene",
     )
-    view_3d_update_rate = IntProperty(
+    view_3d_update_rate: IntProperty(
         name="3D view update",
         description="Update rate of the 3D view redraw\n"
                     "Increse the value if the UI feels sluggish",

@@ -694,7 +694,7 @@ class addBeam(Operator):
     bl_description = "Create beam meshes of various profiles"
     bl_options = {'REGISTER', 'UNDO'}
 
-    Type = EnumProperty(
+    Type: EnumProperty(
             items=(
             ('0', "Box Profile", "Square Beam"),
             ("1", "U Profile", "U Profile Beam"),
@@ -705,34 +705,34 @@ class addBeam(Operator):
             ),
             description="Beam form"
             )
-    beamZ = FloatProperty(
+    beamZ: FloatProperty(
             name="Height",
             min=0.01, max=100,
             default=1
             )
-    beamX = FloatProperty(
+    beamX: FloatProperty(
             name="Width",
             min=0.01, max=100,
             default=.5
             )
-    beamY = FloatProperty(
+    beamY: FloatProperty(
             name="Depth",
             min=0.01,
             max=100,
             default=2
             )
-    beamW = FloatProperty(
+    beamW: FloatProperty(
             name="Thickness",
             min=0.01, max=1,
             default=0.1
             )
-    edgeA = IntProperty(
+    edgeA: IntProperty(
             name="Taper",
             min=0, max=100,
             default=0,
             description="Angle beam edges"
             )
-    Cursor = BoolProperty(
+    Cursor: BoolProperty(
             name="Use 3D Cursor",
             default=False,
             description="Draw the beam where the 3D Cursor is"

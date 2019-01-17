@@ -333,17 +333,17 @@ class _Properties:
 
         scene.muv_props.transfer_uv = Props()
 
-        scene.muv_transfer_uv_enabled = BoolProperty(
+        scene.muv_transfer_uv_enabled: BoolProperty(
             name="Transfer UV Enabled",
             description="Transfer UV is enabled",
             default=False
         )
-        scene.muv_transfer_uv_invert_normals = BoolProperty(
+        scene.muv_transfer_uv_invert_normals: BoolProperty(
             name="Invert Normals",
             description="Invert Normals",
             default=False
         )
-        scene.muv_transfer_uv_copy_seams = BoolProperty(
+        scene.muv_transfer_uv_copy_seams: BoolProperty(
             name="Copy Seams",
             description="Copy Seams",
             default=True
@@ -409,12 +409,12 @@ class MUV_OT_TransferUV_PasteUV(bpy.types.Operator):
     bl_description = "Transfer UV Paste UV (Topological based paste)"
     bl_options = {'REGISTER', 'UNDO'}
 
-    invert_normals = BoolProperty(
+    invert_normals: BoolProperty(
         name="Invert Normals",
         description="Invert Normals",
         default=False
     )
-    copy_seams = BoolProperty(
+    copy_seams: BoolProperty(
         name="Copy Seams",
         description="Copy Seams",
         default=True

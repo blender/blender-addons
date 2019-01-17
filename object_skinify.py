@@ -707,50 +707,50 @@ class BONE_PT_custom_shape(Panel):
 
 # define the scene properties in a group - call them with context.scene.skinify
 class Skinify_Properties(PropertyGroup):
-    sub_level = IntProperty(
+    sub_level: IntProperty(
             name="Sub level",
             min=0, max=4,
             default=1,
             description="Mesh density"
             )
-    thickness = FloatProperty(
+    thickness: FloatProperty(
             name="Thickness",
             min=0.01,
             default=0.8,
             description="Adjust shape thickness"
             )
-    finger_thickness = FloatProperty(
+    finger_thickness: FloatProperty(
             name="Finger Thickness",
             min=0.01, max=1.0,
             default=0.25,
             description="Adjust finger thickness relative to body"
             )
-    connect_mesh = BoolProperty(
+    connect_mesh: BoolProperty(
             name="Solid Shape",
             default=False,
             description="Makes solid shape from bone chains"
             )
-    connect_parents = BoolProperty(
+    connect_parents: BoolProperty(
             name="Fill Gaps",
             default=False,
             description="Fills the gaps between parented bones"
             )
-    generate_all = BoolProperty(
+    generate_all: BoolProperty(
             name="All Shapes",
             default=False,
             description="Generates shapes from all bones"
             )
-    head_ornaments = BoolProperty(
+    head_ornaments: BoolProperty(
             name="Head Ornaments",
             default=False,
             description="Includes head ornaments"
             )
-    apply_mod = BoolProperty(
+    apply_mod: BoolProperty(
             name="Apply Modifiers",
             default=True,
             description="Applies Modifiers to mesh"
             )
-    parent_armature = BoolProperty(
+    parent_armature: BoolProperty(
             name="Parent Armature",
             default=True,
             description="Applies mesh to Armature"

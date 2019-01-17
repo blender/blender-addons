@@ -101,12 +101,12 @@ class _Properties:
         def update_func(_, __):
             bpy.ops.uv.muv_uv_inspection_operator_render('INVOKE_REGION_WIN')
 
-        scene.muv_uv_inspection_enabled = BoolProperty(
+        scene.muv_uv_inspection_enabled: BoolProperty(
             name="UV Inspection Enabled",
             description="UV Inspection is enabled",
             default=False
         )
-        scene.muv_uv_inspection_show = BoolProperty(
+        scene.muv_uv_inspection_show: BoolProperty(
             name="UV Inspection Showed",
             description="UV Inspection is showed",
             default=False,
@@ -114,17 +114,17 @@ class _Properties:
             set=set_func,
             update=update_func
         )
-        scene.muv_uv_inspection_show_overlapped = BoolProperty(
+        scene.muv_uv_inspection_show_overlapped: BoolProperty(
             name="Overlapped",
             description="Show overlapped UVs",
             default=False
         )
-        scene.muv_uv_inspection_show_flipped = BoolProperty(
+        scene.muv_uv_inspection_show_flipped: BoolProperty(
             name="Flipped",
             description="Show flipped UVs",
             default=False
         )
-        scene.muv_uv_inspection_show_mode = EnumProperty(
+        scene.muv_uv_inspection_show_mode: EnumProperty(
             name="Mode",
             description="Show mode",
             items=[

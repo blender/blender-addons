@@ -1553,7 +1553,7 @@ def create_ctrl_box(parentobj, objname):
 # Define property group class to create or modify
 # ------------------------------------------------------------------
 class GeneralPanelProperties(PropertyGroup):
-    prs = EnumProperty(
+    prs: EnumProperty(
             items=(
                 ('1', "WINDOW 250X200", ""),
                 ('2', "WINDOW 200X200", ""),
@@ -1569,40 +1569,40 @@ class GeneralPanelProperties(PropertyGroup):
             update=update_using_default,
             )
     son = prs
-    gen = IntProperty(
+    gen: IntProperty(
             name='H Count', min=1, max=8, default=3,
             description='Horizontal Panes',
             update=update_window,
             )
-    yuk = IntProperty(
+    yuk: IntProperty(
             name='V Count', min=1, max=5, default=1,
             description='Vertical Panes',
             update=update_window,
             )
-    kl1 = IntProperty(
+    kl1: IntProperty(
             name='Outer Frame', min=2, max=50, default=5,
             description='Outside Frame Thickness',
             update=update_window,
             )
-    kl2 = IntProperty(
+    kl2: IntProperty(
             name='Risers', min=2, max=50, default=5,
             description='Risers Width',
             update=update_window,
             )
-    fk = IntProperty(
+    fk: IntProperty(
             name='Inner Frame', min=1, max=20, default=2,
             description='Inside Frame Thickness',
             update=update_window,
             )
 
-    mr = BoolProperty(name='Sill', default=True, description='Window Sill', update=update_window)
-    mr1 = IntProperty(name='', min=1, max=20, default=4, description='Height', update=update_window)
-    mr2 = IntProperty(name='', min=0, max=20, default=4, description='First Depth', update=update_window)
-    mr3 = IntProperty(name='', min=1, max=50, default=20, description='Second Depth', update=update_window)
-    mr4 = IntProperty(name='', min=0, max=50, default=0, description='Extrusion for Jamb',
+    mr: BoolProperty(name='Sill', default=True, description='Window Sill', update=update_window)
+    mr1: IntProperty(name='', min=1, max=20, default=4, description='Height', update=update_window)
+    mr2: IntProperty(name='', min=0, max=20, default=4, description='First Depth', update=update_window)
+    mr3: IntProperty(name='', min=1, max=50, default=20, description='Second Depth', update=update_window)
+    mr4: IntProperty(name='', min=0, max=50, default=0, description='Extrusion for Jamb',
                                 update=update_window)
 
-    mt1 = EnumProperty(
+    mt1: EnumProperty(
             items=(
                 ('1', "PVC", ""),
                 ('2', "WOOD", ""),
@@ -1613,7 +1613,7 @@ class GeneralPanelProperties(PropertyGroup):
             description='Material to use',
             update=update_window,
             )
-    mt2 = EnumProperty(
+    mt2: EnumProperty(
             items=(
                 ('1', "PVC", ""),
                 ('2', "WOOD", ""),
@@ -1625,14 +1625,14 @@ class GeneralPanelProperties(PropertyGroup):
             update=update_window,
             )
 
-    r = FloatProperty(
+    r: FloatProperty(
             name='Rotation',
             min=0, max=360, default=0, precision=1,
             description='Panel rotation',
             update=update_window,
             )
 
-    UST = EnumProperty(
+    UST: EnumProperty(
             items=(
                 ('1', "Flat", ""),
                 ('2', "Arch", ""),
@@ -1643,7 +1643,7 @@ class GeneralPanelProperties(PropertyGroup):
             description='Type of window upper section',
             update=update_window,
             )
-    DT2 = EnumProperty(
+    DT2: EnumProperty(
             items=(
                 ('1', "Difference", ""),
                 ('2', "Radius", ""),
@@ -1652,7 +1652,7 @@ class GeneralPanelProperties(PropertyGroup):
             default='1',
             update=update_window,
             )
-    DT3 = EnumProperty(
+    DT3: EnumProperty(
             items=(
                 ('1', "Difference", ""),
                 ('2', "Incline %", ""),
@@ -1662,102 +1662,102 @@ class GeneralPanelProperties(PropertyGroup):
             default='1', update=update_window,
             )
 
-    VL1 = IntProperty(name='', min=-10000, max=10000, default=30, update=update_window)  # Fark
-    VL2 = IntProperty(name='', min=1, max=10000, default=30, update=update_window)  # Cap
-    VL3 = IntProperty(name='', min=-100, max=100, default=30, update=update_window)  # Egim %
-    VL4 = IntProperty(name='', min=-45, max=45, default=30, update=update_window)  # Egim Aci
+    VL1: IntProperty(name='', min=-10000, max=10000, default=30, update=update_window)  # Fark
+    VL2: IntProperty(name='', min=1, max=10000, default=30, update=update_window)  # Cap
+    VL3: IntProperty(name='', min=-100, max=100, default=30, update=update_window)  # Egim %
+    VL4: IntProperty(name='', min=-45, max=45, default=30, update=update_window)  # Egim Aci
 
-    res = IntProperty(name='Resolution', min=2, max=360, default=36, update=update_window)  # Res
+    res: IntProperty(name='Resolution', min=2, max=360, default=36, update=update_window)  # Res
 
-    gnx0 = IntProperty(name='', min=1, max=300, default=60, description='1st Window Width',
+    gnx0: IntProperty(name='', min=1, max=300, default=60, description='1st Window Width',
                                  update=update_window)
-    gnx1 = IntProperty(name='', min=1, max=300, default=110, description='2nd Window Width',
+    gnx1: IntProperty(name='', min=1, max=300, default=110, description='2nd Window Width',
                                  update=update_window)
-    gnx2 = IntProperty(name='', min=1, max=300, default=60, description='3rd Window Width',
+    gnx2: IntProperty(name='', min=1, max=300, default=60, description='3rd Window Width',
                                  update=update_window)
-    gnx3 = IntProperty(name='', min=1, max=300, default=60, description='4th Window Width',
+    gnx3: IntProperty(name='', min=1, max=300, default=60, description='4th Window Width',
                                  update=update_window)
-    gnx4 = IntProperty(name='', min=1, max=300, default=60, description='5th Window Width',
+    gnx4: IntProperty(name='', min=1, max=300, default=60, description='5th Window Width',
                                  update=update_window)
-    gnx5 = IntProperty(name='', min=1, max=300, default=60, description='6th Window Width',
+    gnx5: IntProperty(name='', min=1, max=300, default=60, description='6th Window Width',
                                  update=update_window)
-    gnx6 = IntProperty(name='', min=1, max=300, default=60, description='7th Window Width',
+    gnx6: IntProperty(name='', min=1, max=300, default=60, description='7th Window Width',
                                  update=update_window)
-    gnx7 = IntProperty(name='', min=1, max=300, default=60, description='8th Window Width',
-                                 update=update_window)
-
-    gny0 = IntProperty(name='', min=1, max=300, default=190, description='1st Row Height',
-                                 update=update_window)
-    gny1 = IntProperty(name='', min=1, max=300, default=45, description='2nd Row Height',
-                                 update=update_window)
-    gny2 = IntProperty(name='', min=1, max=300, default=45, description='3rd Row Height',
-                                 update=update_window)
-    gny3 = IntProperty(name='', min=1, max=300, default=45, description='4th Row Height',
-                                 update=update_window)
-    gny4 = IntProperty(name='', min=1, max=300, default=45, description='5th Row Height',
+    gnx7: IntProperty(name='', min=1, max=300, default=60, description='8th Window Width',
                                  update=update_window)
 
-    k00 = BoolProperty(name='', default=True, update=update_window)
-    k01 = BoolProperty(name='', default=False, update=update_window)
-    k02 = BoolProperty(name='', default=True, update=update_window)
-    k03 = BoolProperty(name='', default=False, update=update_window)
-    k04 = BoolProperty(name='', default=False, update=update_window)
-    k05 = BoolProperty(name='', default=False, update=update_window)
-    k06 = BoolProperty(name='', default=False, update=update_window)
-    k07 = BoolProperty(name='', default=False, update=update_window)
+    gny0: IntProperty(name='', min=1, max=300, default=190, description='1st Row Height',
+                                 update=update_window)
+    gny1: IntProperty(name='', min=1, max=300, default=45, description='2nd Row Height',
+                                 update=update_window)
+    gny2: IntProperty(name='', min=1, max=300, default=45, description='3rd Row Height',
+                                 update=update_window)
+    gny3: IntProperty(name='', min=1, max=300, default=45, description='4th Row Height',
+                                 update=update_window)
+    gny4: IntProperty(name='', min=1, max=300, default=45, description='5th Row Height',
+                                 update=update_window)
 
-    k10 = BoolProperty(name='', default=False, update=update_window)
-    k11 = BoolProperty(name='', default=False, update=update_window)
-    k12 = BoolProperty(name='', default=False, update=update_window)
-    k13 = BoolProperty(name='', default=False, update=update_window)
-    k14 = BoolProperty(name='', default=False, update=update_window)
-    k15 = BoolProperty(name='', default=False, update=update_window)
-    k16 = BoolProperty(name='', default=False, update=update_window)
-    k17 = BoolProperty(name='', default=False, update=update_window)
+    k00: BoolProperty(name='', default=True, update=update_window)
+    k01: BoolProperty(name='', default=False, update=update_window)
+    k02: BoolProperty(name='', default=True, update=update_window)
+    k03: BoolProperty(name='', default=False, update=update_window)
+    k04: BoolProperty(name='', default=False, update=update_window)
+    k05: BoolProperty(name='', default=False, update=update_window)
+    k06: BoolProperty(name='', default=False, update=update_window)
+    k07: BoolProperty(name='', default=False, update=update_window)
 
-    k20 = BoolProperty(name='', default=False, update=update_window)
-    k21 = BoolProperty(name='', default=False, update=update_window)
-    k22 = BoolProperty(name='', default=False, update=update_window)
-    k23 = BoolProperty(name='', default=False, update=update_window)
-    k24 = BoolProperty(name='', default=False, update=update_window)
-    k25 = BoolProperty(name='', default=False, update=update_window)
-    k26 = BoolProperty(name='', default=False, update=update_window)
-    k27 = BoolProperty(name='', default=False, update=update_window)
+    k10: BoolProperty(name='', default=False, update=update_window)
+    k11: BoolProperty(name='', default=False, update=update_window)
+    k12: BoolProperty(name='', default=False, update=update_window)
+    k13: BoolProperty(name='', default=False, update=update_window)
+    k14: BoolProperty(name='', default=False, update=update_window)
+    k15: BoolProperty(name='', default=False, update=update_window)
+    k16: BoolProperty(name='', default=False, update=update_window)
+    k17: BoolProperty(name='', default=False, update=update_window)
 
-    k30 = BoolProperty(name='', default=False, update=update_window)
-    k31 = BoolProperty(name='', default=False, update=update_window)
-    k32 = BoolProperty(name='', default=False, update=update_window)
-    k33 = BoolProperty(name='', default=False, update=update_window)
-    k34 = BoolProperty(name='', default=False, update=update_window)
-    k35 = BoolProperty(name='', default=False, update=update_window)
-    k36 = BoolProperty(name='', default=False, update=update_window)
-    k37 = BoolProperty(name='', default=False, update=update_window)
+    k20: BoolProperty(name='', default=False, update=update_window)
+    k21: BoolProperty(name='', default=False, update=update_window)
+    k22: BoolProperty(name='', default=False, update=update_window)
+    k23: BoolProperty(name='', default=False, update=update_window)
+    k24: BoolProperty(name='', default=False, update=update_window)
+    k25: BoolProperty(name='', default=False, update=update_window)
+    k26: BoolProperty(name='', default=False, update=update_window)
+    k27: BoolProperty(name='', default=False, update=update_window)
 
-    k40 = BoolProperty(name='', default=False, update=update_window)
-    k41 = BoolProperty(name='', default=False, update=update_window)
-    k42 = BoolProperty(name='', default=False, update=update_window)
-    k43 = BoolProperty(name='', default=False, update=update_window)
-    k44 = BoolProperty(name='', default=False, update=update_window)
-    k45 = BoolProperty(name='', default=False, update=update_window)
-    k46 = BoolProperty(name='', default=False, update=update_window)
-    k47 = BoolProperty(name='', default=False, update=update_window)
+    k30: BoolProperty(name='', default=False, update=update_window)
+    k31: BoolProperty(name='', default=False, update=update_window)
+    k32: BoolProperty(name='', default=False, update=update_window)
+    k33: BoolProperty(name='', default=False, update=update_window)
+    k34: BoolProperty(name='', default=False, update=update_window)
+    k35: BoolProperty(name='', default=False, update=update_window)
+    k36: BoolProperty(name='', default=False, update=update_window)
+    k37: BoolProperty(name='', default=False, update=update_window)
+
+    k40: BoolProperty(name='', default=False, update=update_window)
+    k41: BoolProperty(name='', default=False, update=update_window)
+    k42: BoolProperty(name='', default=False, update=update_window)
+    k43: BoolProperty(name='', default=False, update=update_window)
+    k44: BoolProperty(name='', default=False, update=update_window)
+    k45: BoolProperty(name='', default=False, update=update_window)
+    k46: BoolProperty(name='', default=False, update=update_window)
+    k47: BoolProperty(name='', default=False, update=update_window)
     # opengl internal data
-    glpoint_a = FloatVectorProperty(
+    glpoint_a: FloatVectorProperty(
             name="glpointa",
             description="Hidden property for opengl",
             default=(0, 0, 0),
             )
-    glpoint_b = FloatVectorProperty(
+    glpoint_b: FloatVectorProperty(
             name="glpointb",
             description="Hidden property for opengl",
             default=(0, 0, 0),
             )
-    glpoint_c = FloatVectorProperty(
+    glpoint_c: FloatVectorProperty(
             name="glpointc",
             description="Hidden property for opengl",
             default=(0, 0, 0),
             )
-    glpoint_d = FloatVectorProperty(
+    glpoint_d: FloatVectorProperty(
             name="glpointc",
             description="Hidden property for opengl",
             default=(0, 0, 0),

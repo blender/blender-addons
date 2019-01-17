@@ -221,7 +221,7 @@ class OBJECT_OT_HideShowByTypeTemplate():
 
     bl_options = {'UNDO', 'REGISTER'}
 
-    type = EnumProperty(
+    type: EnumProperty(
             items=(
                 ('MESH', 'Mesh', ''),
                 ('CURVE', 'Curve', ''),
@@ -285,18 +285,18 @@ class OBJECT_OT_HideByType(OBJECT_OT_HideShowByTypeTemplate, Operator):
     bl_idname = "object.hide_by_type"
     bl_label = "Hide By Type"
 
-    hide_or_show = BoolProperty(
+    hide_or_show: BoolProperty(
             name="Hide",
             description="Inverse effect",
             options={'HIDDEN'},
             default=1
             )
-    hide_selected = BoolProperty(
+    hide_selected: BoolProperty(
             name="Selected",
             description="Hide only selected objects",
             default=0
             )
-    hide_render_restricted = BoolProperty(
+    hide_render_restricted: BoolProperty(
             name="Only Render-Restricted",
             description="Hide only render restricted objects",
             default=0
@@ -307,18 +307,18 @@ class OBJECT_OT_ShowByType(OBJECT_OT_HideShowByTypeTemplate, Operator):
     bl_idname = "object.show_by_type"
     bl_label = "Show By Type"
 
-    hide_or_show = BoolProperty(
+    hide_or_show: BoolProperty(
             name="Hide",
             description="Inverse effect",
             options={'HIDDEN'},
             default=0
             )
-    hide_selected = BoolProperty(
+    hide_selected: BoolProperty(
             name="Selected",
             options={'HIDDEN'},
             default=0
             )
-    hide_render_restricted = BoolProperty(
+    hide_render_restricted: BoolProperty(
             name="Only Renderable",
             description="Show only non render restricted objects",
             default=0

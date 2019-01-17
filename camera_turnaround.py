@@ -184,47 +184,47 @@ class RunAction(Operator):
 # ------------------------------------------------------
 class CameraTurnProps(PropertyGroup):
 
-    camera_revol_x = FloatProperty(
+    camera_revol_x: FloatProperty(
             name='X', min=0, max=25,
             default=0, precision=2,
             description='Number total of revolutions in X axis'
             )
-    camera_revol_y = FloatProperty(
+    camera_revol_y: FloatProperty(
             name='Y', min=0, max=25,
             default=0, precision=2,
             description='Number total of revolutions in Y axis'
             )
-    camera_revol_z = FloatProperty(
+    camera_revol_z: FloatProperty(
             name='Z', min=0, max=25,
             default=1, precision=2,
             description='Number total of revolutions in Z axis'
             )
-    inverse_x = BoolProperty(
+    inverse_x: BoolProperty(
             name="-X",
             description="Inverse rotation",
             default=False
             )
-    inverse_y = BoolProperty(
+    inverse_y: BoolProperty(
             name="-Y",
             description="Inverse rotation",
             default=False
             )
-    inverse_z = BoolProperty(
+    inverse_z: BoolProperty(
             name="-Z",
             description="Inverse rotation",
             default=False
             )
-    use_cursor = BoolProperty(
+    use_cursor: BoolProperty(
             name="Use cursor position",
             description="Use cursor position instead of object origin",
             default=False
             )
-    back_forw = BoolProperty(
+    back_forw: BoolProperty(
             name="Back and forward",
             description="Create back and forward animation",
             default=False
             )
-    dolly_zoom = EnumProperty(
+    dolly_zoom: EnumProperty(
             items=(
                 ('0', "None", ""),
                 ('1', "Dolly zoom", ""),
@@ -233,24 +233,24 @@ class CameraTurnProps(PropertyGroup):
             name="Lens Effects",
             description="Create a camera lens movement"
             )
-    camera_from_lens = FloatProperty(
+    camera_from_lens: FloatProperty(
             name="From",
             min=1, max=500, default=35,
             precision=3,
             description="Start lens value"
             )
-    camera_to_lens = FloatProperty(
+    camera_to_lens: FloatProperty(
             name="To",
             min=1, max=500,
             default=35, precision=3,
             description="End lens value"
             )
-    track = BoolProperty(
+    track: BoolProperty(
             name="Create track constraint",
             description="Add a track constraint to the camera",
             default=False
             )
-    reset_cam_anim = BoolProperty(
+    reset_cam_anim: BoolProperty(
             name="Clear Camera",
             description="Clear previous camera animations if there are any\n"
                         "(For instance, previous Dolly Zoom)",

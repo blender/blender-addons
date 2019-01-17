@@ -2282,17 +2282,17 @@ class OBJECT_OT_UTRebuildArmature(Operator):
 
 
 class UDKActionSetListPG(PropertyGroup):
-    bool = BoolProperty(default=False)
-    string = StringProperty()
-    actionname = StringProperty()
-    bmatch = BoolProperty(
+    bool: BoolProperty(default=False)
+    string: StringProperty()
+    actionname: StringProperty()
+    bmatch: BoolProperty(
             default=False,
             name="Match",
             options={"HIDDEN"},
             description="This check against bone names and action group "
                         "names matches and override boolean if true"
             )
-    bexport = BoolProperty(
+    bexport: BoolProperty(
             default=False,
             name="Export",
             description="Check this to export the animation"
@@ -2307,21 +2307,21 @@ class UL_UDKActionSetList(UIList):
 
 
 class UDKObjListPG(PropertyGroup):
-    bool = BoolProperty(default=False)
-    string = StringProperty()
-    bexport = BoolProperty(
+    bool: BoolProperty(default=False)
+    string: StringProperty()
+    bexport: BoolProperty(
             default=False,
             name="Export",
             options={"HIDDEN"},
             description="This will be ignore when exported"
             )
-    bselect = BoolProperty(
+    bselect: BoolProperty(
             default=False,
             name="Select",
             options={"HIDDEN"},
             description="This will be ignore when exported"
             )
-    otype = StringProperty(
+    otype: StringProperty(
             name="Type",
             description="This will be ignore when exported"
             )
@@ -2335,23 +2335,23 @@ class UL_UDKObjList(UIList):
 
 
 class UDKMeshListPG(PropertyGroup):
-    bool = BoolProperty(
+    bool: BoolProperty(
             default=False
             )
-    string = StringProperty()
-    bexport = BoolProperty(
+    string: StringProperty()
+    bexport: BoolProperty(
             default=False,
             name="Export",
             options={"HIDDEN"},
             description="This object will be export when true"
             )
-    bselect = BoolProperty(
+    bselect: BoolProperty(
             default=False,
             name="Select",
             options={"HIDDEN"},
             description="Make sure you have Mesh is parent to Armature"
             )
-    otype = StringProperty(
+    otype: StringProperty(
             name="Type",
             description="This will be ignore when exported"
             )
@@ -2365,21 +2365,21 @@ class UL_UDKMeshList(UIList):
 
 
 class UDKArmListPG(PropertyGroup):
-    bool = BoolProperty(default=False)
-    string = StringProperty()
-    bexport = BoolProperty(
+    bool: BoolProperty(default=False)
+    string: StringProperty()
+    bexport: BoolProperty(
             default=False,
             name="Export",
             options={"HIDDEN"},
             description="This will be ignore when exported"
             )
-    bselect = BoolProperty(
+    bselect: BoolProperty(
             default=False,
             name="Select",
             options={"HIDDEN"},
             description="This will be ignore when exported"
             )
-    otype = StringProperty(
+    otype: StringProperty(
             name="Type",
             description="This will be ignore when exported"
             )
@@ -2547,7 +2547,7 @@ class OBJECT_OT_UDKObjUpdate(Operator):
     bl_idname = "object.selobjectpdate"
     bl_label = "Update Object(s)"
 
-    actionname = bpy.props.StringProperty()
+    actionname: bpy.props.StringProperty()
 
     def execute(self, context):
         udkupdateobjects()
@@ -2646,7 +2646,7 @@ class OBJECT_OT_ActionSetAnimUpdate(Operator):
     bl_idname = "action.setanimupdate"
     bl_label = "Update Action Set(s)"
 
-    actionname = bpy.props.StringProperty()
+    actionname: bpy.props.StringProperty()
 
     def execute(self, context):
         my_sett = bpy.context.scene.udkas_list
@@ -2737,20 +2737,20 @@ class ExportUDKAnimData(Operator):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
 
-    filepath = StringProperty(
+    filepath: StringProperty(
             subtype='FILE_PATH',
             )
-    filter_glob = StringProperty(
+    filter_glob: StringProperty(
             default="*.psk;*.psa",
             options={'HIDDEN'},
             )
-    udk_option_scale = FloatProperty(
+    udk_option_scale: FloatProperty(
             name="UDK Scale",
             description="In case you don't want to scale objects manually - "
                         "This will just scale position when on export for the skeleton mesh and animation data",
             default=1
             )
-    udk_option_rebuildobjects = BoolProperty(
+    udk_option_rebuildobjects: BoolProperty(
             name="Rebuild Objects",
             description="In case of deform skeleton mesh and animations data - "
                         "This will rebuild objects from raw format on export when checked",
@@ -2843,7 +2843,7 @@ class PskAddonPreferences(AddonPreferences):
     # when defining this in a submodule of a python package.
     bl_idname = __name__
 
-    category = StringProperty(
+    category: StringProperty(
             name="Tab Category",
             description="Choose a name for the category of the panel",
             default="File I/O",

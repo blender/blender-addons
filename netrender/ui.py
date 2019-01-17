@@ -374,7 +374,7 @@ class NetRenderSlave(bpy.types.PropertyGroup):
     @classmethod
     def register(NetRenderSlave):
 
-        NetRenderSlave.name = StringProperty(
+        NetRenderSlave.name: StringProperty(
                         name="Name of the slave",
                         description="",
                         maxlen = 64,
@@ -384,7 +384,7 @@ class NetRenderJob(bpy.types.PropertyGroup):
     @classmethod
     def register(NetRenderJob):
 
-        NetRenderJob.name = StringProperty(
+        NetRenderJob.name: StringProperty(
                         name="Name of the job",
                         description="",
                         maxlen = 128,
@@ -398,78 +398,78 @@ class NetRenderSettings(bpy.types.PropertyGroup):
             netsettings = context.scene.network_render
             verify_address(netsettings, True)
 
-        NetRenderSettings.server_address = StringProperty(
+        NetRenderSettings.server_address: StringProperty(
                         name="Server address",
                         description="IP or name of the master render server",
                         maxlen = 128,
                         default = "[default]",
                         update = address_update_callback)
 
-        NetRenderSettings.server_port = IntProperty(
+        NetRenderSettings.server_port: IntProperty(
                         name="Server port",
                         description="port of the master render server",
                         default = 8000,
                         min=1,
                         max=65535)
 
-        NetRenderSettings.use_master_broadcast = BoolProperty(
+        NetRenderSettings.use_master_broadcast: BoolProperty(
                         name="Broadcast",
                         description="broadcast master server address on local network",
                         default = True)
-        NetRenderSettings.use_ssl = BoolProperty(
+        NetRenderSettings.use_ssl: BoolProperty(
                         name="use ssl",
                         description="use ssl encryption for communication",
                         default = False)
-        NetRenderSettings.cert_path = StringProperty(
+        NetRenderSettings.cert_path: StringProperty(
                         name="CertPath",
                         description="Path to ssl certificate",
                         maxlen = 128,
                         default = "",
                         subtype='FILE_PATH')
-        NetRenderSettings.key_path = StringProperty(
+        NetRenderSettings.key_path: StringProperty(
                         name="key",
                         description="Path to ssl key file",
                         maxlen = 128,
                         default = "",
                         subtype='FILE_PATH')
 
-        NetRenderSettings.use_slave_clear = BoolProperty(
+        NetRenderSettings.use_slave_clear: BoolProperty(
                         name="Clear on exit",
                         description="delete downloaded files on exit",
                         default = True)
 
-        NetRenderSettings.use_slave_thumb = BoolProperty(
+        NetRenderSettings.use_slave_thumb: BoolProperty(
                         name="Generate thumbnails",
                         description="Generate thumbnails on slaves instead of master",
                         default = False)
 
-        NetRenderSettings.slave_tags = StringProperty(
+        NetRenderSettings.slave_tags: StringProperty(
                         name="Tags",
                         description="Tags to associate with the slave (semi-colon separated)",
                         maxlen = 256,
                         default = "")
 
-        NetRenderSettings.use_slave_output_log = BoolProperty(
+        NetRenderSettings.use_slave_output_log: BoolProperty(
                         name="Output render log on console",
                         description="Output render text log to console as well as sending it to the master",
                         default = True)
 
-        NetRenderSettings.slave_render = BoolProperty(
+        NetRenderSettings.slave_render: BoolProperty(
                         name="Render on slave",
                         description="Use slave for render jobs",
                         default = True)
 
-        NetRenderSettings.slave_bake = BoolProperty(
+        NetRenderSettings.slave_bake: BoolProperty(
                         name="Bake on slave",
                         description="Use slave for baking jobs",
                         default = True)
 
-        NetRenderSettings.use_master_clear = BoolProperty(
+        NetRenderSettings.use_master_clear: BoolProperty(
                         name="Clear on exit",
                         description="Delete saved files on exit",
                         default = False)
 
-        NetRenderSettings.use_master_force_upload = BoolProperty(
+        NetRenderSettings.use_master_force_upload: BoolProperty(
                         name="Force Dependency Upload",
                         description="Force client to upload dependency files to master",
                         default = False)
@@ -484,14 +484,14 @@ class NetRenderSettings(bpy.types.PropertyGroup):
         elif not default_path.endswith(os.sep):
             default_path += os.sep
 
-        NetRenderSettings.path = StringProperty(
+        NetRenderSettings.path: StringProperty(
                         name="Path",
                         description="Path for temporary files",
                         maxlen = 128,
                         default = default_path,
                         subtype='FILE_PATH')
 
-        NetRenderSettings.job_type = EnumProperty(
+        NetRenderSettings.job_type: EnumProperty(
                                 items=(
                                                 ("JOB_BLENDER", "Blender", "Standard Blender Job"),
                                                 ("JOB_PROCESS", "Process", "Custom Process Job"),
@@ -501,25 +501,25 @@ class NetRenderSettings(bpy.types.PropertyGroup):
                                 description="Type of render job",
                                 default="JOB_BLENDER")
 
-        NetRenderSettings.job_name = StringProperty(
+        NetRenderSettings.job_name: StringProperty(
                         name="Job name",
                         description="Name of the job",
                         maxlen = 128,
                         default = "[default]")
 
-        NetRenderSettings.job_category = StringProperty(
+        NetRenderSettings.job_category: StringProperty(
                         name="Job category",
                         description="Category of the job",
                         maxlen = 128,
                         default = "")
 
-        NetRenderSettings.job_tags = StringProperty(
+        NetRenderSettings.job_tags: StringProperty(
                         name="Tags",
                         description="Tags to associate with the job (semi-colon separated)",
                         maxlen = 256,
                         default = "")
 
-        NetRenderSettings.job_render_engine = EnumProperty(
+        NetRenderSettings.job_render_engine: EnumProperty(
                                 items = (
                                                 ("BLENDER_RENDER", "BLENDER", "Standard Blender Render"),
                                                 ("CYCLES", "CYCLES", "Cycle Render"),
@@ -529,83 +529,83 @@ class NetRenderSettings(bpy.types.PropertyGroup):
                                 description="Render engine used to render this job",
                                 default="BLENDER_RENDER")
 
-        NetRenderSettings.job_render_engine_other = StringProperty(
+        NetRenderSettings.job_render_engine_other: StringProperty(
                         name="Render engine",
                         description="Render engine other than the builtin defaults (POVRAY_RENDER, ...)",
                         maxlen = 128,
                         default = "")
 
-        NetRenderSettings.save_before_job = BoolProperty(
+        NetRenderSettings.save_before_job: BoolProperty(
                         name="Save Before Job",
                         description="Save current file before sending a job",
                         default = False)
 
-        NetRenderSettings.chunks = IntProperty(
+        NetRenderSettings.chunks: IntProperty(
                         name="Chunks",
                         description="Number of frame to dispatch to each slave in one chunk",
                         default = 5,
                         min=1,
                         max=65535)
 
-        NetRenderSettings.priority = IntProperty(
+        NetRenderSettings.priority: IntProperty(
                         name="Priority",
                         description="Priority of the job",
                         default = 1,
                         min=1,
                         max=10)
 
-        NetRenderSettings.vcs_wpath = StringProperty(
+        NetRenderSettings.vcs_wpath: StringProperty(
                         name="Working Copy",
                         description="Path of the local working copy",
                         maxlen = 1024,
                         default = "")
 
-        NetRenderSettings.vcs_rpath = StringProperty(
+        NetRenderSettings.vcs_rpath: StringProperty(
                         name="Remote Path",
                         description="Path of the server copy (protocol specific)",
                         maxlen = 1024,
                         default = "")
 
-        NetRenderSettings.vcs_revision = StringProperty(
+        NetRenderSettings.vcs_revision: StringProperty(
                         name="Revision",
                         description="Revision for this job",
                         maxlen = 256,
                         default = "")
 
-        NetRenderSettings.vcs_system = EnumProperty(
+        NetRenderSettings.vcs_system: EnumProperty(
                                 items= netrender.versioning.ITEMS,
                                 name="VCS mode",
                                 description="Version Control System",
                                 default=netrender.versioning.ITEMS[0][0])
 
-        NetRenderSettings.job_id = StringProperty(
+        NetRenderSettings.job_id: StringProperty(
                         name="Network job id",
                         description="id of the last sent render job",
                         maxlen = 64,
                         default = "")
 
-        NetRenderSettings.active_slave_index = IntProperty(
+        NetRenderSettings.active_slave_index: IntProperty(
                         name="Index of the active slave",
                         description="",
                         default = -1,
                         min= -1,
                         max=65535)
 
-        NetRenderSettings.active_blacklisted_slave_index = IntProperty(
+        NetRenderSettings.active_blacklisted_slave_index: IntProperty(
                         name="Index of the active slave",
                         description="",
                         default = -1,
                         min= -1,
                         max=65535)
 
-        NetRenderSettings.active_job_index = IntProperty(
+        NetRenderSettings.active_job_index: IntProperty(
                         name="Index of the active job",
                         description="",
                         default = -1,
                         min= -1,
                         max=65535)
 
-        NetRenderSettings.mode = EnumProperty(
+        NetRenderSettings.mode: EnumProperty(
                                 items=(
                                                 ("RENDER_CLIENT", "Client", "Act as render client"),
                                                 ("RENDER_MASTER", "Master", "Act as render master"),
@@ -615,9 +615,9 @@ class NetRenderSettings(bpy.types.PropertyGroup):
                                 description="Mode of operation of this instance",
                                 default="RENDER_CLIENT")
 
-        NetRenderSettings.slaves = CollectionProperty(type=NetRenderSlave, name="Slaves", description="")
-        NetRenderSettings.slaves_blacklist = CollectionProperty(type=NetRenderSlave, name="Slaves Blacklist", description="")
-        NetRenderSettings.jobs = CollectionProperty(type=NetRenderJob, name="Job List", description="")
+        NetRenderSettings.slaves: CollectionProperty(type=NetRenderSlave, name="Slaves", description="")
+        NetRenderSettings.slaves_blacklist: CollectionProperty(type=NetRenderSlave, name="Slaves Blacklist", description="")
+        NetRenderSettings.jobs: CollectionProperty(type=NetRenderJob, name="Job List", description="")
 
         bpy.types.Scene.network_render = PointerProperty(type=NetRenderSettings, name="Network Render", description="Network Render Settings")
 

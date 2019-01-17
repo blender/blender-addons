@@ -145,13 +145,13 @@ def disable_all_modules(self, context):
 class AdvancedObjPreferences1(AddonPreferences):
     bl_idname = __name__
 
-    enable_all = BoolProperty(
+    enable_all: BoolProperty(
             name="Enable all",
             description="Enable all Advanced Objects' Panels",
             default=False,
             update=enable_all_modules
             )
-    disable_all = BoolProperty(
+    disable_all: BoolProperty(
             name="Disable all",
             description="Disable all Advanced Objects' Panels",
             default=False,
@@ -280,100 +280,100 @@ for mod in sub_modules:
 class AdvancedObjProperties1(PropertyGroup):
 
     # object_laplace_lighting props
-    ORIGIN = FloatVectorProperty(
+    ORIGIN: FloatVectorProperty(
             name="Origin charge"
             )
-    GROUNDZ = IntProperty(
+    GROUNDZ: IntProperty(
             name="Ground Z coordinate"
             )
-    HORDER = IntProperty(
+    HORDER: IntProperty(
             name="Secondary paths orders",
             default=1
             )
     # object_laplace_lighting UI props
-    TSTEPS = IntProperty(
+    TSTEPS: IntProperty(
             name="Iterations",
             default=350,
             description="Number of cells to create\n"
                         "Will end early if hits ground plane or cloud"
             )
-    GSCALE = FloatProperty(
+    GSCALE: FloatProperty(
             name="Grid unit size",
             default=0.12,
             description="scale of cells, .25 = 4 cells per blenderUnit"
             )
-    BIGVAR = FloatProperty(
+    BIGVAR: FloatProperty(
             name="Straightness",
             default=6.3,
             description="Straightness/branchiness of bolt, \n"
                         "<2 is mush, >12 is staight line, 6.3 is good"
             )
-    GROUNDBOOL = BoolProperty(
+    GROUNDBOOL: BoolProperty(
             name="Use Ground object",
             description="Use ground plane or not",
             default=True
             )
-    GROUNDC = IntProperty(
+    GROUNDC: IntProperty(
             name="Ground charge",
             default=-250,
             description="Charge of the ground plane"
             )
-    CLOUDBOOL = BoolProperty(
+    CLOUDBOOL: BoolProperty(
             name="Use Cloud object",
             default=False,
             description="Use cloud object - attracts and terminates like ground but\n"
                         "any obj instead of z plane\n"
                         "Can slow down loop if obj is large, overrides ground"
             )
-    CLOUDC = IntProperty(
+    CLOUDC: IntProperty(
             name="Cloud charge",
             default=-1,
             description="Charge of a cell in cloud object\n"
                         "(so total charge also depends on obj size)"
             )
-    VMMESH = BoolProperty(
+    VMMESH: BoolProperty(
             name="Multi mesh",
             default=True,
             description="Output to multi-meshes for different materials on main/sec/side branches"
             )
-    VSMESH = BoolProperty(
+    VSMESH: BoolProperty(
             name="Single mesh",
             default=False,
             description="Output to single mesh for using build modifier and particles for effects"
             )
-    VCUBE = BoolProperty(
+    VCUBE: BoolProperty(
             name="Cubes",
             default=False,
             description="CTRL-J after run to JOIN\n"
                         "Outputs a bunch of cube objects, mostly for testing"
             )
-    VVOX = BoolProperty(
+    VVOX: BoolProperty(
             name="Voxel (experimental)",
             default=False,
             description="Output to a voxel file to bpy.data.filepath\FSLGvoxels.raw\n"
                         "(doesn't work well right now)"
             )
-    IBOOL = BoolProperty(
+    IBOOL: BoolProperty(
             name="Use Insulator object",
             default=False,
             description="Use insulator mesh object to prevent growth of bolt in areas"
             )
-    OOB = StringProperty(
+    OOB: StringProperty(
             name="Select",
             default="",
             description="Origin of bolt, can be an Empty\n"
                         "if object is a mesh will use all verts as charges")
-    GOB = StringProperty(
+    GOB: StringProperty(
             name="Select",
             default="",
             description="Object to use as ground plane, uses z coord only"
             )
-    COB = StringProperty(
+    COB: StringProperty(
             name="Select",
             default="",
             description="Object to use as cloud, best to use a cube"
             )
-    IOB = StringProperty(
+    IOB: StringProperty(
             name="Select",
             default="",
             description="Object to use as insulator, 'voxelized'\n"
@@ -386,88 +386,88 @@ class AdvancedObjProperties1(PropertyGroup):
             subtype='XYZ',
             description="Constrains Mangle Direction"
             )
-    mangle_random_magnitude = IntProperty(
+    mangle_random_magnitude: IntProperty(
             name="Mangle Severity",
             default=5,
             min=1, max=30,
             description="Severity of mangling"
             )
-    mangle_name = StringProperty(
+    mangle_name: StringProperty(
             name="Shape Key Name",
             default="mangle",
             description="Name given for mangled shape keys"
             )
     # unfold_transition properties
-    unfold_arm_name = StringProperty(
+    unfold_arm_name: StringProperty(
             default=""
             )
-    unfold_modo = EnumProperty(
+    unfold_modo: EnumProperty(
             name="",
             items=[("cursor", "3D Cursor", "Use the Distance to 3D Cursor"),
                    ("weight", "Weight Map", "Use a Painted Weight map"),
                    ("index", "Mesh Indices", "Use Faces and Vertices index")],
             description="How to Sort Bones for animation", default="cursor"
             )
-    unfold_flip = BoolProperty(
+    unfold_flip: BoolProperty(
             name="Flipping Faces",
             default=False,
             description="Rotate faces around the Center and skip Scaling - "
                         "keep checked for both operators"
             )
-    unfold_fold_duration = IntProperty(
+    unfold_fold_duration: IntProperty(
             name="Total Time",
             min=5, soft_min=25,
             max=10000, soft_max=2500,
             default=200,
             description="Total animation length"
             )
-    unfold_sca_time = IntProperty(
+    unfold_sca_time: IntProperty(
             name="Scale Time",
             min=1,
             max=5000, soft_max=500,
             default=10,
             description="Faces scaling time"
             )
-    unfold_rot_time = IntProperty(
+    unfold_rot_time: IntProperty(
             name="Rotation Time",
             min=1, soft_min=5,
             max=5000, soft_max=500,
             default=15,
             description="Faces rotation time"
             )
-    unfold_rot_max = IntProperty(
+    unfold_rot_max: IntProperty(
             name="Angle",
             min=-180,
             max=180,
             default=135,
             description="Faces rotation angle"
             )
-    unfold_fold_noise = IntProperty(
+    unfold_fold_noise: IntProperty(
             name="Noise",
             min=0,
             max=500, soft_max=50,
             default=0,
             description="Offset some faces animation"
             )
-    unfold_bounce = FloatProperty(
+    unfold_bounce: FloatProperty(
             name="Bounce",
             min=0,
             max=10, soft_max=2.5,
             default=0,
             description="Add some bounce to rotation"
             )
-    unfold_from_point = BoolProperty(
+    unfold_from_point: BoolProperty(
             name="Point",
             default=False,
             description="Scale faces from a Point instead of from an Edge"
             )
-    unfold_wiggle_rot = BoolProperty(
+    unfold_wiggle_rot: BoolProperty(
             name="Wiggle",
             default=False,
             description="Use all Axis + Random Rotation instead of X Aligned"
             )
     # oscurart_constellation
-    constellation_limit = FloatProperty(
+    constellation_limit: FloatProperty(
             name="Initial Threshold",
             description="Edges will be created only if the distance\n"
                         "between vertices is smaller than this value\n"

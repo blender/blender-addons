@@ -66,17 +66,17 @@ class _Properties:
             items.append(("None", "None", ""))
             return items
 
-        scene.muv_preserve_uv_aspect_enabled = BoolProperty(
+        scene.muv_preserve_uv_aspect_enabled: BoolProperty(
             name="Preserve UV Aspect Enabled",
             description="Preserve UV Aspect is enabled",
             default=False
         )
-        scene.muv_preserve_uv_aspect_tex_image = EnumProperty(
+        scene.muv_preserve_uv_aspect_tex_image: EnumProperty(
             name="Image",
             description="Texture Image",
             items=get_loaded_texture_name
         )
-        scene.muv_preserve_uv_aspect_origin = EnumProperty(
+        scene.muv_preserve_uv_aspect_origin: EnumProperty(
             name="Origin",
             description="Aspect Origin",
             items=[
@@ -113,8 +113,8 @@ class MUV_OT_PreserveUVAspect(bpy.types.Operator):
     bl_description = "Choose Image"
     bl_options = {'REGISTER', 'UNDO'}
 
-    dest_img_name = StringProperty(options={'HIDDEN'})
-    origin = EnumProperty(
+    dest_img_name: StringProperty(options={'HIDDEN'})
+    origin: EnumProperty(
         name="Origin",
         description="Aspect Origin",
         items=[

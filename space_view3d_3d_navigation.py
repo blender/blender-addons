@@ -94,7 +94,7 @@ class PanUpViewsAll(Operator):
     bl_label = "Pan View"
     bl_description = "Pan the 3D View"
 
-    panning = StringProperty(
+    panning: StringProperty(
             default="PANUP",
             options={"HIDDEN"}
             )
@@ -339,7 +339,7 @@ class NavAddonPreferences(AddonPreferences):
     # when defining this in a submodule of a python package.
     bl_idname = __name__
 
-    category = StringProperty(
+    category: StringProperty(
             name="Tab Category",
             description="Choose a name for the category of the panel",
             default="Display",

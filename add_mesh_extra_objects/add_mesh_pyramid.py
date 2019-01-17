@@ -107,31 +107,31 @@ class AddPyramid(Operator, AddObjectHelper):
     bl_description = "Construct a step pyramid mesh"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    num_sides = IntProperty(
+    num_sides: IntProperty(
             name="Number Sides",
             description="How many sides each step will have",
             min=3, max=20,
             default=4
             )
-    num_steps = IntProperty(
+    num_steps: IntProperty(
             name="Number of Steps",
             description="How many steps for the overall pyramid",
             min=1, max=20,
             default=10
             )
-    width = FloatProperty(
+    width: FloatProperty(
             name="Initial Width",
             description="Initial base step width",
             min=0.01, max=100.0,
             default=2
             )
-    height = FloatProperty(
+    height: FloatProperty(
             name="Height",
             description="How tall each step will be",
             min=0.01, max=100.0,
             default=0.1
             )
-    reduce_by = FloatProperty(
+    reduce_by: FloatProperty(
             name="Reduce Step By",
             description="How much to reduce each succeeding step by",
             min=.01, max=2.0,

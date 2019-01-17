@@ -467,11 +467,11 @@ class DisplayToolsPanel(Panel):
 # define scene props
 class display_tools_scene_props(PropertyGroup):
     # Init delay variables
-    Delay = BoolProperty(
+    Delay: BoolProperty(
             default=False,
             description="Activate delay return to normal viewport mode"
             )
-    DelayTime = IntProperty(
+    DelayTime: IntProperty(
             default=30,
             min=0,
             max=500,
@@ -480,7 +480,7 @@ class display_tools_scene_props(PropertyGroup):
             description="Delay time to return to normal viewport"
                         "mode after move your mouse cursor"
             )
-    DelayTimeGlobal = IntProperty(
+    DelayTimeGlobal: IntProperty(
             default=30,
             min=1,
             max=500,
@@ -490,40 +490,40 @@ class display_tools_scene_props(PropertyGroup):
                         "mode after move your mouse cursor"
             )
     # Init variable for fast navigate
-    EditActive = BoolProperty(
+    EditActive: BoolProperty(
             default=True,
             description="Activate for fast navigate in edit mode too"
             )
     # Init properties for scene
-    FastNavigateStop = BoolProperty(
+    FastNavigateStop: BoolProperty(
             name="Fast Navigate Stop",
             description="Stop fast navigate mode",
             default=False
             )
-    OriginalMode = EnumProperty(
+    OriginalMode: EnumProperty(
             items=[('TEXTURED', 'Texture', 'Texture display mode'),
                    ('SOLID', 'Solid', 'Solid display mode')],
             name="Normal",
             default='SOLID'
             )
-    BoundingMode = EnumProperty(
+    BoundingMode: EnumProperty(
             items=[('BOX', 'Box', 'Box shape'),
                    ('SPHERE', 'Sphere', 'Sphere shape'),
                    ('CYLINDER', 'Cylinder', 'Cylinder shape'),
                    ('CONE', 'Cone', 'Cone shape')],
             name="BB Mode"
             )
-    FastMode = EnumProperty(
+    FastMode: EnumProperty(
             items=[('WIREFRAME', 'Wireframe', 'Wireframe display'),
                    ('BOUNDBOX', 'Bounding Box', 'Bounding Box display')],
             name="Fast"
             )
-    ShowParticles = BoolProperty(
+    ShowParticles: BoolProperty(
             name="Show Particles",
             description="Show or hide particles on fast navigate mode",
             default=True
             )
-    ParticlesPercentageDisplay = IntProperty(
+    ParticlesPercentageDisplay: IntProperty(
             name="Fast Display",
             description="Display only a percentage of particles when active",
             default=25,
@@ -533,7 +533,7 @@ class display_tools_scene_props(PropertyGroup):
             soft_max=100,
             subtype='FACTOR'
             )
-    InitialParticles = IntProperty(
+    InitialParticles: IntProperty(
             name="Normal Display",
             description="When idle, how much particles are displayed\n"
                         "Overrides the Particles settings",
@@ -543,11 +543,11 @@ class display_tools_scene_props(PropertyGroup):
             soft_min=0,
             soft_max=100
             )
-    Symplify = IntProperty(
+    Symplify: IntProperty(
             name="Integer",
             description="Enter an integer"
             )
-    ScreenStart = IntProperty(
+    ScreenStart: IntProperty(
             name="Left Limit",
             default=0,
             min=0,
@@ -556,7 +556,7 @@ class display_tools_scene_props(PropertyGroup):
             description="Limit the screen active area width from the left side\n"
                         "Changed values will take effect on the next run",
             )
-    ScreenEnd = IntProperty(
+    ScreenEnd: IntProperty(
             name="Right Limit",
             default=0,
             min=0,
@@ -572,10 +572,10 @@ class display_tools_scene_props(PropertyGroup):
             default=(False,) * 6,
             size=6,
             )
-    WT_handler_enable = BoolProperty(
+    WT_handler_enable: BoolProperty(
             default=False
             )
-    WT_handler_previous_object = StringProperty(
+    WT_handler_previous_object: StringProperty(
             default=""
             )
 
@@ -608,7 +608,7 @@ class DisplayToolsPreferences(AddonPreferences):
     # when defining this in a submodule of a python package.
     bl_idname = __name__
 
-    category = StringProperty(
+    category: StringProperty(
             name="Tab Category",
             description="Choose a name for the category of the panel",
             default="Display",

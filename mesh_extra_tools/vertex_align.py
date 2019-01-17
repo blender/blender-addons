@@ -203,7 +203,7 @@ class Vertex_align_coord_menu(Operator):
     bl_description = "Change the custom coordinates for aligning"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def_axis_coord = FloatVectorProperty(
+    def_axis_coord: FloatVectorProperty(
             name="",
             description="Enter the values of coordinates",
             default=(0.0, 0.0, 0.0),

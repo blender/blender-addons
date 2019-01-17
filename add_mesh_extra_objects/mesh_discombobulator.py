@@ -577,7 +577,7 @@ class unchooseDoodad(Operator):
     bl_description = "Remove the saved Doodad Object(s)"
     bl_options = {'REGISTER'}
 
-    remove_all = bpy.props.BoolProperty(
+    remove_all: bpy.props.BoolProperty(
                         name="Remove all Doodads",
                         default=False,
                         )

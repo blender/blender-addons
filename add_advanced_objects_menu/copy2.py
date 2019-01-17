@@ -67,7 +67,7 @@ class Copy2(Operator):
                         ('Y', "Y", "Secondary axis Y")]
         return sec_list
 
-    copytype = EnumProperty(
+    copytype: EnumProperty(
             items=(('V', "Vertex",
                     "Paste the Copied Geometry to Vertices of the Active Object", 'VERTEXSEL', 0),
                    ('E', "Edge",
@@ -75,27 +75,27 @@ class Copy2(Operator):
                    ('F', "Face",
                     "Paste the Copied Geometry to Faces of the Active Object", 'FACESEL', 2)),
             )
-    copyfromobject = EnumProperty(
+    copyfromobject: EnumProperty(
             name="Copy from",
             description="Copy an Object from the list",
             items=obj_list_cb
             )
-    priaxes = EnumProperty(
+    priaxes: EnumProperty(
             description="Primary axes used for Copied Object orientation",
             items=(('X', "X", "Along X"),
                    ('Y', "Y", "Along Y"),
                    ('Z', "Z", "Along Z")),
             )
-    edgescale = BoolProperty(
+    edgescale: BoolProperty(
             name="Scale to fill edge",
             default=False
             )
-    secaxes = EnumProperty(
+    secaxes: EnumProperty(
             name="Secondary Axis",
             description="Secondary axis used for Copied Object orientation",
             items=sec_axes_list_cb
             )
-    scale = FloatProperty(
+    scale: FloatProperty(
             name="Scale",
             default=1.0,
             min=0.0,

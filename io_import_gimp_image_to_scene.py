@@ -554,31 +554,31 @@ class GIMPImageToScene(bpy.types.Operator):
     bl_description = "Imports GIMP multilayer image files into 3D Scenes"
     bl_options = {'REGISTER', 'UNDO'}
 
-    filename = StringProperty(name="File Name",
+    filename: StringProperty(name="File Name",
         description="Name of the file")
-    directory = StringProperty(name="Directory",
+    directory: StringProperty(name="Directory",
         description="Directory of the file")
 
-    LayerViewers = BoolProperty(name="Layer Viewers",
+    LayerViewers: BoolProperty(name="Layer Viewers",
         description="Add Viewer nodes to each Render Layer node",
         default=True)
 
-    MixerViewers = BoolProperty(name="Mixer Viewers",
+    MixerViewers: BoolProperty(name="Mixer Viewers",
         description="Add Viewer nodes to each Mix node",
         default=True)
 
-    AlphaMode = EnumProperty(name="Alpha Mode",
+    AlphaMode: EnumProperty(name="Alpha Mode",
         description="Representation of alpha information in the RGBA pixels",
         items=(
             ('STRAIGHT', 'Texture Alpha Factor', 'Transparent RGB and alpha pixels are unmodified'),
             ('PREMUL', 'Material Alpha Value', 'Transparent RGB pixels are multiplied by the alpha channel')),
         default='STRAIGHT')
 
-    ShadelessMats = BoolProperty(name="Shadeless Material",
+    ShadelessMats: BoolProperty(name="Shadeless Material",
         description="Set Materials as Shadeless",
         default=True)
 
-    OpacityMode = EnumProperty(name="Opacity Mode",
+    OpacityMode: EnumProperty(name="Opacity Mode",
         description="Layer Opacity management",
         items=(
             ('TEX', 'Texture Alpha Factor', ''),
@@ -587,24 +587,24 @@ class GIMPImageToScene(bpy.types.Operator):
             ('BAKE', 'Baked in Image Alpha', '')),
         default='TEX')
 
-    SetCamera = BoolProperty(name="Set Camera",
+    SetCamera: BoolProperty(name="Set Camera",
         description="Create an Ortho Camera matching image resolution",
         default=True)
 
-    SetupCompo = BoolProperty(name="Setup Node Compositing",
+    SetupCompo: BoolProperty(name="Setup Node Compositing",
         description="Create a compositing node setup (will delete existing nodes)",
         default=False)
 
-    GroupUntagged = BoolProperty(name="Group Untagged",
+    GroupUntagged: BoolProperty(name="Group Untagged",
         description="Layers with no tag go to a single Render Layer",
         default=False)
 
-    LayerOffset = FloatProperty(name="Layer Separation",
+    LayerOffset: FloatProperty(name="Layer Separation",
         description="Distance between each 3D Layer in the Z axis",
         min=0,
         default=0.50)
 
-    LayerScale = FloatProperty(name="Layer Scale",
+    LayerScale: FloatProperty(name="Layer Scale",
         description="Scale pixel resolution by Blender units",
         min=0,
         default=0.01)

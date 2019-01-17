@@ -148,28 +148,28 @@ class AddStar(bpy.types.Operator):
     bl_description = "Construct a star mesh"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    points = IntProperty(
+    points: IntProperty(
         name="Points",
         description="Number of points for the star",
         min=2,
         max=256,
         default=5
         )
-    outer_radius = FloatProperty(
+    outer_radius: FloatProperty(
         name="Outer Radius",
         description="Outer radius of the star",
         min=0.01,
         max=9999.0,
         default=1.0
         )
-    innter_radius = FloatProperty(
+    innter_radius: FloatProperty(
         name="Inner Radius",
         description="Inner radius of the star",
         min=0.01,
         max=9999.0,
         default=0.5
         )
-    height = FloatProperty(name="Height",
+    height: FloatProperty(name="Height",
         description="Height of the star",
         min=0.01,
         max=9999.0,

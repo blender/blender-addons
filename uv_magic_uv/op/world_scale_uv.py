@@ -183,36 +183,36 @@ class _Properties:
 
     @classmethod
     def init_props(cls, scene):
-        scene.muv_world_scale_uv_enabled = BoolProperty(
+        scene.muv_world_scale_uv_enabled: BoolProperty(
             name="World Scale UV Enabled",
             description="World Scale UV is enabled",
             default=False
         )
-        scene.muv_world_scale_uv_src_mesh_area = FloatProperty(
+        scene.muv_world_scale_uv_src_mesh_area: FloatProperty(
             name="Mesh Area",
             description="Source Mesh Area",
             default=0.0,
             min=0.0
         )
-        scene.muv_world_scale_uv_src_uv_area = FloatProperty(
+        scene.muv_world_scale_uv_src_uv_area: FloatProperty(
             name="UV Area",
             description="Source UV Area",
             default=0.0,
             min=0.0
         )
-        scene.muv_world_scale_uv_src_density = FloatProperty(
+        scene.muv_world_scale_uv_src_density: FloatProperty(
             name="Density",
             description="Source Texel Density",
             default=0.0,
             min=0.0
         )
-        scene.muv_world_scale_uv_tgt_density = FloatProperty(
+        scene.muv_world_scale_uv_tgt_density: FloatProperty(
             name="Density",
             description="Target Texel Density",
             default=0.0,
             min=0.0
         )
-        scene.muv_world_scale_uv_tgt_scaling_factor = FloatProperty(
+        scene.muv_world_scale_uv_tgt_scaling_factor: FloatProperty(
             name="Scaling Factor",
             default=1.0,
             max=1000.0,
@@ -225,7 +225,7 @@ class _Properties:
             soft_max=10240,
             default=(1024, 1024),
         )
-        scene.muv_world_scale_uv_mode = EnumProperty(
+        scene.muv_world_scale_uv_mode: EnumProperty(
             name="Mode",
             description="Density calculation mode",
             items=[
@@ -239,7 +239,7 @@ class _Properties:
             ],
             default='MANUAL'
         )
-        scene.muv_world_scale_uv_origin = EnumProperty(
+        scene.muv_world_scale_uv_origin: EnumProperty(
             name="Origin",
             description="Aspect Origin",
             items=[
@@ -319,7 +319,7 @@ class MUV_OT_WorldScaleUV_ApplyManual(bpy.types.Operator):
     bl_description = "Apply scaled UV based on user specification"
     bl_options = {'REGISTER', 'UNDO'}
 
-    tgt_density = FloatProperty(
+    tgt_density: FloatProperty(
         name="Density",
         description="Target Texel Density",
         default=1.0,
@@ -332,7 +332,7 @@ class MUV_OT_WorldScaleUV_ApplyManual(bpy.types.Operator):
         soft_max=10240,
         default=(1024, 1024),
     )
-    origin = EnumProperty(
+    origin: EnumProperty(
         name="Origin",
         description="Aspect Origin",
         items=[
@@ -349,7 +349,7 @@ class MUV_OT_WorldScaleUV_ApplyManual(bpy.types.Operator):
         ],
         default='CENTER'
     )
-    show_dialog = BoolProperty(
+    show_dialog: BoolProperty(
         name="Show Diaglog Menu",
         description="Show dialog menu if true",
         default=True,
@@ -417,13 +417,13 @@ class MUV_OT_WorldScaleUV_ApplyScalingDensity(bpy.types.Operator):
     bl_description = "Apply scaled UV with scaling density"
     bl_options = {'REGISTER', 'UNDO'}
 
-    tgt_scaling_factor = FloatProperty(
+    tgt_scaling_factor: FloatProperty(
         name="Scaling Factor",
         default=1.0,
         max=1000.0,
         min=0.00001
     )
-    origin = EnumProperty(
+    origin: EnumProperty(
         name="Origin",
         description="Aspect Origin",
         items=[
@@ -440,20 +440,20 @@ class MUV_OT_WorldScaleUV_ApplyScalingDensity(bpy.types.Operator):
         ],
         default='CENTER'
     )
-    src_density = FloatProperty(
+    src_density: FloatProperty(
         name="Density",
         description="Source Texel Density",
         default=0.0,
         min=0.0,
         options={'HIDDEN'}
     )
-    same_density = BoolProperty(
+    same_density: BoolProperty(
         name="Same Density",
         description="Apply same density",
         default=False,
         options={'HIDDEN'}
     )
-    show_dialog = BoolProperty(
+    show_dialog: BoolProperty(
         name="Show Diaglog Menu",
         description="Show dialog menu if true",
         default=True,
@@ -541,7 +541,7 @@ class MUV_OT_WorldScaleUV_ApplyProportionalToMesh(bpy.types.Operator):
     bl_description = "Apply scaled UV proportionaled to mesh"
     bl_options = {'REGISTER', 'UNDO'}
 
-    origin = EnumProperty(
+    origin: EnumProperty(
         name="Origin",
         description="Aspect Origin",
         items=[
@@ -558,28 +558,28 @@ class MUV_OT_WorldScaleUV_ApplyProportionalToMesh(bpy.types.Operator):
         ],
         default='CENTER'
     )
-    src_density = FloatProperty(
+    src_density: FloatProperty(
         name="Source Density",
         description="Source Texel Density",
         default=0.0,
         min=0.0,
         options={'HIDDEN'}
     )
-    src_uv_area = FloatProperty(
+    src_uv_area: FloatProperty(
         name="Source UV Area",
         description="Source UV Area",
         default=0.0,
         min=0.0,
         options={'HIDDEN'}
     )
-    src_mesh_area = FloatProperty(
+    src_mesh_area: FloatProperty(
         name="Source Mesh Area",
         description="Source Mesh Area",
         default=0.0,
         min=0.0,
         options={'HIDDEN'}
     )
-    show_dialog = BoolProperty(
+    show_dialog: BoolProperty(
         name="Show Diaglog Menu",
         description="Show dialog menu if true",
         default=True,

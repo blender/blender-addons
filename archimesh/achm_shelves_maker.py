@@ -34,34 +34,34 @@ from .achm_tools import *
 # Define property group class for shelves properties
 # ------------------------------------------------------------------
 class ShelvesProperties(PropertyGroup):
-    sX = FloatProperty(name='width', min=0.001, max=10, default=1,
+    sX: FloatProperty(name='width', min=0.001, max=10, default=1,
                        precision=3, description='Furniture width')
-    wY = FloatProperty(name='', min=-10, max=10, default=0, precision=3, description='Modify y size')
-    wZ = FloatProperty(name='', min=-10, max=10, default=0, precision=3, description='Modify z size')
+    wY: FloatProperty(name='', min=-10, max=10, default=0, precision=3, description='Modify y size')
+    wZ: FloatProperty(name='', min=-10, max=10, default=0, precision=3, description='Modify z size')
     # Cabinet position shift
-    pX = FloatProperty(name='', min=0, max=10, default=0, precision=3, description='Position x shift')
-    pY = FloatProperty(name='', min=-10, max=10, default=0, precision=3, description='Position y shift')
-    pZ = FloatProperty(name='', min=-10, max=10, default=0, precision=3, description='Position z shift')
+    pX: FloatProperty(name='', min=0, max=10, default=0, precision=3, description='Position x shift')
+    pY: FloatProperty(name='', min=-10, max=10, default=0, precision=3, description='Position y shift')
+    pZ: FloatProperty(name='', min=-10, max=10, default=0, precision=3, description='Position z shift')
 
     # Shelves
-    sNum = IntProperty(name='Shelves', min=0, max=12, default=6, description='Number total of shelves')
+    sNum: IntProperty(name='Shelves', min=0, max=12, default=6, description='Number total of shelves')
 
     # 12 shelves (shelf)
-    Z01 = FloatProperty(name='zS1', min=-10, max=10, default=0, precision=3, description='Position z shift')
-    Z02 = FloatProperty(name='zS2', min=-10, max=10, default=0, precision=3, description='Position z shift')
-    Z03 = FloatProperty(name='zS3', min=-10, max=10, default=0, precision=3, description='Position z shift')
-    Z04 = FloatProperty(name='zS4', min=-10, max=10, default=0, precision=3, description='Position z shift')
-    Z05 = FloatProperty(name='zS5', min=-10, max=10, default=0, precision=3, description='Position z shift')
-    Z06 = FloatProperty(name='zS6', min=-10, max=10, default=0, precision=3, description='Position z shift')
-    Z07 = FloatProperty(name='zS7', min=-10, max=10, default=0, precision=3, description='Position z shift')
-    Z08 = FloatProperty(name='zS8', min=-10, max=10, default=0, precision=3, description='Position z shift')
-    Z09 = FloatProperty(name='zS9', min=-10, max=10, default=0, precision=3, description='Position z shift')
-    Z10 = FloatProperty(name='zS10', min=-10, max=10, default=0, precision=3, description='Position z shift')
-    Z11 = FloatProperty(name='zS11', min=-10, max=10, default=0, precision=3, description='Position z shift')
-    Z12 = FloatProperty(name='zS12', min=-10, max=10, default=0, precision=3, description='Position z shift')
+    Z01: FloatProperty(name='zS1', min=-10, max=10, default=0, precision=3, description='Position z shift')
+    Z02: FloatProperty(name='zS2', min=-10, max=10, default=0, precision=3, description='Position z shift')
+    Z03: FloatProperty(name='zS3', min=-10, max=10, default=0, precision=3, description='Position z shift')
+    Z04: FloatProperty(name='zS4', min=-10, max=10, default=0, precision=3, description='Position z shift')
+    Z05: FloatProperty(name='zS5', min=-10, max=10, default=0, precision=3, description='Position z shift')
+    Z06: FloatProperty(name='zS6', min=-10, max=10, default=0, precision=3, description='Position z shift')
+    Z07: FloatProperty(name='zS7', min=-10, max=10, default=0, precision=3, description='Position z shift')
+    Z08: FloatProperty(name='zS8', min=-10, max=10, default=0, precision=3, description='Position z shift')
+    Z09: FloatProperty(name='zS9', min=-10, max=10, default=0, precision=3, description='Position z shift')
+    Z10: FloatProperty(name='zS10', min=-10, max=10, default=0, precision=3, description='Position z shift')
+    Z11: FloatProperty(name='zS11', min=-10, max=10, default=0, precision=3, description='Position z shift')
+    Z12: FloatProperty(name='zS12', min=-10, max=10, default=0, precision=3, description='Position z shift')
 
-    right = BoolProperty(name="Right", description="Create right side", default=True)
-    left = BoolProperty(name="Left", description="Create left side", default=True)
+    right: BoolProperty(name="Right", description="Create right side", default=True)
+    left: BoolProperty(name="Left", description="Create left side", default=True)
 
 bpy.utils.register_class(ShelvesProperties)
 
@@ -77,37 +77,37 @@ class AchmShelves(Operator):
     bl_category = 'Archimesh'
     bl_options = {'REGISTER', 'UNDO'}
 
-    thickness = FloatProperty(
+    thickness: FloatProperty(
             name='Side Thickness', min=0.001, max=5,
             default=0.03, precision=3,
             description='Board thickness',
             )
-    sthickness = FloatProperty(
+    sthickness: FloatProperty(
             name='Shelves Thickness', min=0.001, max=5,
             default=0.03, precision=3,
             description='Board thickness',
             )
-    depth = FloatProperty(
+    depth: FloatProperty(
             name='Depth', min=0.001, max=50,
             default=0.28, precision=3,
             description='Default unit depth',
             )
-    height = FloatProperty(
+    height: FloatProperty(
             name='Height', min=0.001, max=50,
             default=2, precision=3,
             description='Default unit height',
             )
-    top = FloatProperty(
+    top: FloatProperty(
             name='Top', min=0, max=50,
             default=0.03, precision=3,
             description='Default top shelf position',
             )
-    bottom = FloatProperty(
+    bottom: FloatProperty(
             name='Bottom', min=0, max=50,
             default=0.07, precision=3,
             description='Default bottom self position',
             )
-    stype = EnumProperty(
+    stype: EnumProperty(
             items=(
                 ('1', "Full side", ""),
                 ('4', "4 Legs", ""),
@@ -116,22 +116,22 @@ class AchmShelves(Operator):
             description="Type of side construction",
             )
 
-    fitZ = BoolProperty(
+    fitZ: BoolProperty(
             name="Floor origin in Z=0",
             description="Use Z=0 axis as vertical origin floor position",
             default=True,
             )
 
-    shelves_num = IntProperty(
+    shelves_num: IntProperty(
             name='Number of Units',
             min=1, max=10,
             default=1,
             description='Number total of shelves units',
             )
-    shelves = CollectionProperty(type=ShelvesProperties)
+    shelves: CollectionProperty(type=ShelvesProperties)
 
     # Materials
-    crt_mat = BoolProperty(
+    crt_mat: BoolProperty(
             name="Create default Cycles materials",
             description="Create default materials for Cycles render",
             default=True,

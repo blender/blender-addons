@@ -48,12 +48,12 @@ class AchmExportRoom(Operator, ExportHelper):
 
     # From ExportHelper. Filter filenames.
     filename_ext = ".dat"
-    filter_glob = StringProperty(
+    filter_glob: StringProperty(
             default="*.dat",
             options={'HIDDEN'},
             )
 
-    filepath = StringProperty(
+    filepath: StringProperty(
             name="File Path",
             description="File path used for exporting room data file",
             maxlen=1024, default="",
@@ -160,12 +160,12 @@ class AchmImportRoom(Operator, ImportHelper):
 
     # From Helper. Filter filenames.
     filename_ext = ".dat"
-    filter_glob = StringProperty(
+    filter_glob: StringProperty(
             default="*.dat",
             options={'HIDDEN'},
             )
 
-    filepath = StringProperty(
+    filepath: StringProperty(
             name="File Path",
             description="File path used for exporting room data file",
             maxlen=1024, default="",
@@ -835,7 +835,7 @@ def create_floor(rp, typ, myroom):
 # Define property group class to create, or modify, room walls.
 # ------------------------------------------------------------------
 class WallProperties(PropertyGroup):
-    w = FloatProperty(
+    w: FloatProperty(
             name='Length',
             min=-150, max=150,
             default=1, precision=3,
@@ -843,33 +843,33 @@ class WallProperties(PropertyGroup):
             update=update_room,
             )
 
-    a = BoolProperty(
+    a: BoolProperty(
             name="Advanced",
             description="Define advanced parameters of the wall",
             default=False,
             update=update_room,
             )
 
-    curved = BoolProperty(
+    curved: BoolProperty(
             name="Curved",
             description="Enable curved wall parameters",
             default=False,
             update=update_room,
             )
-    curve_factor = FloatProperty(
+    curve_factor: FloatProperty(
             name='Factor',
             min=-5, max=5,
             default=1, precision=1,
             description='Curvature variation',
             update=update_room,
             )
-    curve_arc_deg = FloatProperty(
+    curve_arc_deg: FloatProperty(
             name='Degrees', min=1, max=359,
             default=180, precision=1,
             description='Degrees of the curve arc (must be >= steps)',
             update=update_room,
             )
-    curve_steps = IntProperty(
+    curve_steps: IntProperty(
             name='Steps',
             min=2, max=50,
             default=12,
@@ -877,19 +877,19 @@ class WallProperties(PropertyGroup):
             update=update_room,
             )
 
-    m = FloatProperty(
+    m: FloatProperty(
             name='Peak', min=0, max=50,
             default=0, precision=3,
             description='Middle height variation',
             update=update_room,
             )
-    f = FloatProperty(
+    f: FloatProperty(
             name='Factor', min=-1, max=1,
             default=0, precision=3,
             description='Middle displacement',
             update=update_room,
             )
-    r = FloatProperty(
+    r: FloatProperty(
             name='Angle',
             min=-180, max=180,
             default=0, precision=1,
@@ -897,7 +897,7 @@ class WallProperties(PropertyGroup):
             update=update_room,
             )
 
-    h = EnumProperty(
+    h: EnumProperty(
             items=(
                 ('0', "Visible", ""),
                 ('1', "Baseboard", ""),
@@ -910,12 +910,12 @@ class WallProperties(PropertyGroup):
             )
 
     # opengl internal data
-    glpoint_a = FloatVectorProperty(
+    glpoint_a: FloatVectorProperty(
             name="glpointa",
             description="Hidden property for opengl",
             default=(0, 0, 0),
             )
-    glpoint_b = FloatVectorProperty(
+    glpoint_b: FloatVectorProperty(
             name="glpointb",
             description="Hidden property for opengl",
             default=(0, 0, 0),
@@ -1492,90 +1492,90 @@ def is_in_nextface(idx, activefaces, verts, x, y):
 # Define property group class to create or modify a rooms.
 # ------------------------------------------------------------------
 class RoomProperties(PropertyGroup):
-    room_height = FloatProperty(
+    room_height: FloatProperty(
             name='Height', min=0.001, max=50,
             default=2.4, precision=3,
             description='Room height', update=update_room,
             )
-    wall_width = FloatProperty(
+    wall_width: FloatProperty(
             name='Thickness', min=0.000, max=10,
             default=0.0, precision=3,
             description='Thickness of the walls', update=update_room,
             )
-    inverse = BoolProperty(
+    inverse: BoolProperty(
             name="Inverse", description="Inverse normals to outside",
             default=False,
             update=update_room,
             )
-    crt_mat = BoolProperty(
+    crt_mat: BoolProperty(
             name="Create default Cycles materials",
             description="Create default materials for Cycles render",
             default=True,
             update=update_room,
             )
 
-    wall_num = IntProperty(
+    wall_num: IntProperty(
             name='Number of Walls', min=1, max=50,
             default=1,
             description='Number total of walls in the room', update=add_room_wall,
             )
 
-    baseboard = BoolProperty(
+    baseboard: BoolProperty(
             name="Baseboard", description="Create a baseboard automatically",
             default=True,
             update=update_room,
             )
 
-    base_width = FloatProperty(
+    base_width: FloatProperty(
             name='Width', min=0.001, max=10,
             default=0.015, precision=3,
             description='Baseboard width', update=update_room,
             )
-    base_height = FloatProperty(
+    base_height: FloatProperty(
             name='Height', min=0.05, max=20,
             default=0.12, precision=3,
             description='Baseboard height', update=update_room,
             )
 
-    ceiling = BoolProperty(
+    ceiling: BoolProperty(
             name="Ceiling", description="Create a ceiling",
             default=False, update=update_room,
             )
-    floor = BoolProperty(
+    floor: BoolProperty(
             name="Floor", description="Create a floor automatically",
             default=False,
             update=update_room,
             )
 
-    merge = BoolProperty(
+    merge: BoolProperty(
             name="Close walls", description="Close walls to create a full closed room",
             default=False, update=update_room,
             )
 
-    walls = CollectionProperty(
+    walls: CollectionProperty(
             type=WallProperties,
             )
 
-    shell = BoolProperty(
+    shell: BoolProperty(
             name="Wall cover", description="Create a cover of boards",
             default=False, update=update_room,
             )
-    shell_thick = FloatProperty(
+    shell_thick: FloatProperty(
             name='Thickness', min=0.001, max=1,
             default=0.025, precision=3,
             description='Cover board thickness', update=update_room,
             )
-    shell_height = FloatProperty(
+    shell_height: FloatProperty(
             name='Height', min=0.05, max=1,
             default=0.20, precision=3,
             description='Cover board height', update=update_room,
             )
-    shell_factor = FloatProperty(
+    shell_factor: FloatProperty(
             name='Top', min=0.1, max=1,
             default=1, precision=1,
             description='Percentage for top covering (1 Full)', update=update_room,
             )
-    shell_bfactor = FloatProperty(
+    shell_bfactor: FloatProperty(
             name='Bottom', min=0.1, max=1,
             default=1, precision=1,
             description='Percentage for bottom covering (1 Full)', update=update_room,

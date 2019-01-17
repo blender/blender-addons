@@ -97,7 +97,7 @@ class Relax(bpy.types.Operator):
     bl_label = 'Relax'
     bl_options = {'REGISTER', 'UNDO'}
 
-    iterations = IntProperty(name="Relax iterations",
+    iterations: IntProperty(name="Relax iterations",
                 default=1, min=0, max=100, soft_min=0, soft_max=10)
 
     @classmethod

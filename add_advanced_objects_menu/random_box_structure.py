@@ -30,40 +30,40 @@ class makestructure(Operator):
                       "Needs an existing Active Mesh Object")
     bl_options = {'REGISTER', 'UNDO'}
 
-    dc = BoolProperty(
+    dc: BoolProperty(
             name="Delete Base Mesh(es)",
             default=True
             )
-    wh = BoolProperty(
+    wh: BoolProperty(
             name="Stay Within Bounds",
             description="Keeps cubes from exceeding base mesh bounds",
             default=True
             )
-    uf = BoolProperty(
+    uf: BoolProperty(
             name="Uniform Cube Quantity",
             default=False
             )
-    qn = IntProperty(
+    qn: IntProperty(
             name="Cube Quantity",
             default=10,
             min=1, max=1500
             )
-    mn = FloatVectorProperty(
+    mn: FloatVectorProperty(
             name="Min Scales",
             default=(0.1, 0.1, 0.1),
             subtype='XYZ'
             )
-    mx = FloatVectorProperty(
+    mx: FloatVectorProperty(
             name="Max Scales",
             default=(2.0, 2.0, 2.0),
             subtype='XYZ'
             )
-    lo = FloatVectorProperty(
+    lo: FloatVectorProperty(
             name="XYZ Offset",
             default=(0.0, 0.0, 0.0),
             subtype='XYZ'
             )
-    rsd = FloatProperty(
+    rsd: FloatProperty(
             name="Random Seed",
             default=1
             )

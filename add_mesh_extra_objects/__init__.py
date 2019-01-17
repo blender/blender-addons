@@ -253,94 +253,94 @@ class VIEW3D_MT_mesh_pipe_joints_add(Menu):
 class discombobulator_scene_props(bpy.types.PropertyGroup):
     DISC_doodads = []
     # Protusions Buttons:
-    repeatprot = IntProperty(
+    repeatprot: IntProperty(
             name="Repeat protusions",
             description=("Make several layers of protusion \n"
                          "Use carefully, runs recursively the discombulator"),
             default=1, min=1, max=4  # set to 4 because it's 2**n reqursive
             )
-    doprots = BoolProperty(
+    doprots: BoolProperty(
             name="Make protusions",
             description="Check if we want to add protusions to the mesh",
             default=True
             )
-    subpolygon1 = BoolProperty(
+    subpolygon1: BoolProperty(
             name="1",
             default=True
             )
-    subpolygon2 = BoolProperty(
+    subpolygon2: BoolProperty(
             name="2",
             default=True
             )
-    subpolygon3 = BoolProperty(
+    subpolygon3: BoolProperty(
             name="3",
             default=True
             )
-    subpolygon4 = BoolProperty(
+    subpolygon4: BoolProperty(
             name="4",
             default=True
             )
-    polygonschangedpercent = FloatProperty(
+    polygonschangedpercent: FloatProperty(
             name="Polygon %",
             description="Percentage of changed polygons",
             default=1.0
             )
-    minHeight = FloatProperty(
+    minHeight: FloatProperty(
             name="Min height",
             description="Minimal height of the protusions",
             default=0.2
             )
-    maxHeight = FloatProperty(
+    maxHeight: FloatProperty(
             name="Max height",
             description="Maximal height of the protusions",
             default=0.4
             )
-    minTaper = FloatProperty(
+    minTaper: FloatProperty(
             name="Min taper",
             description="Minimal height of the protusions",
             default=0.15, min=0.0, max=1.0,
             subtype='PERCENTAGE'
             )
-    maxTaper = FloatProperty(
+    maxTaper: FloatProperty(
             name="Max taper",
             description="Maximal height of the protusions",
             default=0.35, min=0.0, max=1.0,
             subtype='PERCENTAGE'
             )
     # Doodads buttons:
-    dodoodads = BoolProperty(
+    dodoodads: BoolProperty(
             name="Make doodads",
             description="Check if we want to generate doodads",
             default=False
             )
-    mindoodads = IntProperty(
+    mindoodads: IntProperty(
             name="Minimum doodads number",
             description="Ask for the minimum number of doodads to generate per polygon",
             default=1, min=0, max=50
             )
-    maxdoodads = IntProperty(
+    maxdoodads: IntProperty(
             name="Maximum doodads number",
             description="Ask for the maximum number of doodads to generate per polygon",
             default=6, min=1, max=50
             )
-    doodMinScale = FloatProperty(
+    doodMinScale: FloatProperty(
             name="Scale min", description="Minimum scaling of doodad",
             default=0.5, min=0.0, max=1.0,
             subtype='PERCENTAGE'
             )
-    doodMaxScale = FloatProperty(
+    doodMaxScale: FloatProperty(
             name="Scale max",
             description="Maximum scaling of doodad",
             default=1.0, min=0.0, max=1.0,
             subtype='PERCENTAGE'
             )
     # Materials buttons:
-    sideProtMat = IntProperty(
+    sideProtMat: IntProperty(
             name="Side's prot mat",
             description="Material of protusion's sides",
             default=0, min=0
             )
-    topProtMat = IntProperty(
+    topProtMat: IntProperty(
             name="Prot's top mat",
             description="Material of protusion's top",
             default=0, min=0

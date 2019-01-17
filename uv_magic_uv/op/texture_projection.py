@@ -158,12 +158,12 @@ class _Properties:
         def update_func(_, __):
             bpy.ops.uv.muv_texture_projection_operator('INVOKE_REGION_WIN')
 
-        scene.muv_texture_projection_enabled = BoolProperty(
+        scene.muv_texture_projection_enabled: BoolProperty(
             name="Texture Projection Enabled",
             description="Texture Projection is enabled",
             default=False
         )
-        scene.muv_texture_projection_enable = BoolProperty(
+        scene.muv_texture_projection_enable: BoolProperty(
             name="Texture Projection Enabled",
             description="Texture Projection is enabled",
             default=False,
@@ -171,36 +171,36 @@ class _Properties:
             set=set_func,
             update=update_func
         )
-        scene.muv_texture_projection_tex_magnitude = FloatProperty(
+        scene.muv_texture_projection_tex_magnitude: FloatProperty(
             name="Magnitude",
             description="Texture Magnitude",
             default=0.5,
             min=0.0,
             max=100.0
         )
-        scene.muv_texture_projection_tex_image = EnumProperty(
+        scene.muv_texture_projection_tex_image: EnumProperty(
             name="Image",
             description="Texture Image",
             items=get_loaded_texture_name
         )
-        scene.muv_texture_projection_tex_transparency = FloatProperty(
+        scene.muv_texture_projection_tex_transparency: FloatProperty(
             name="Transparency",
             description="Texture Transparency",
             default=0.2,
             min=0.0,
             max=1.0
         )
-        scene.muv_texture_projection_adjust_window = BoolProperty(
+        scene.muv_texture_projection_adjust_window: BoolProperty(
             name="Adjust Window",
             description="Size of renderered texture is fitted to window",
             default=True
         )
-        scene.muv_texture_projection_apply_tex_aspect = BoolProperty(
+        scene.muv_texture_projection_apply_tex_aspect: BoolProperty(
             name="Texture Aspect Ratio",
             description="Apply Texture Aspect ratio to displayed texture",
             default=True
         )
-        scene.muv_texture_projection_assign_uvmap = BoolProperty(
+        scene.muv_texture_projection_assign_uvmap: BoolProperty(
             name="Assign UVMap",
             description="Assign UVMap when no UVmaps are available",
             default=True

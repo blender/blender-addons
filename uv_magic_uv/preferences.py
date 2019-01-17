@@ -178,7 +178,7 @@ class MUV_OT_UpdateAddon(bpy.types.Operator):
     bl_description = "Update Add-on"
     bl_options = {'REGISTER', 'UNDO'}
 
-    branch_name = StringProperty(
+    branch_name: StringProperty(
         name="Branch Name",
         description="Branch name to update",
         default="",
@@ -213,7 +213,7 @@ class Preferences(AddonPreferences):
             remove_builtin_menu()
 
     # enable to add features to built-in menu
-    enable_builtin_menu = BoolProperty(
+    enable_builtin_menu: BoolProperty(
         name="Built-in Menu",
         description="Enable built-in menu",
         default=True,
@@ -221,7 +221,7 @@ class Preferences(AddonPreferences):
     )
 
     # for UV Sculpt
-    uv_sculpt_brush_color = FloatVectorProperty(
+    uv_sculpt_brush_color: FloatVectorProperty(
         name="Color",
         description="Color",
         default=(1.0, 0.4, 0.4, 1.0),
@@ -232,7 +232,7 @@ class Preferences(AddonPreferences):
     )
 
     # for Overlapped UV
-    uv_inspection_overlapped_color = FloatVectorProperty(
+    uv_inspection_overlapped_color: FloatVectorProperty(
         name="Color",
         description="Color",
         default=(0.0, 0.0, 1.0, 0.3),
@@ -243,7 +243,7 @@ class Preferences(AddonPreferences):
     )
 
     # for Flipped UV
-    uv_inspection_flipped_color = FloatVectorProperty(
+    uv_inspection_flipped_color: FloatVectorProperty(
         name="Color",
         description="Color",
         default=(1.0, 0.0, 0.0, 0.3),
@@ -254,7 +254,7 @@ class Preferences(AddonPreferences):
     )
 
     # for Texture Projection
-    texture_projection_canvas_padding = FloatVectorProperty(
+    texture_projection_canvas_padding: FloatVectorProperty(
         name="Canvas Padding",
         description="Canvas Padding",
         size=2,
@@ -263,13 +263,13 @@ class Preferences(AddonPreferences):
         default=(20.0, 20.0))
 
     # for UV Bounding Box
-    uv_bounding_box_cp_size = FloatProperty(
+    uv_bounding_box_cp_size: FloatProperty(
         name="Size",
         description="Control Point Size",
         default=6.0,
         min=3.0,
         max=100.0)
-    uv_bounding_box_cp_react_size = FloatProperty(
+    uv_bounding_box_cp_react_size: FloatProperty(
         name="React Size",
         description="Size event fired",
         default=10.0,
@@ -277,7 +277,7 @@ class Preferences(AddonPreferences):
         max=100.0)
 
     # for UI
-    category = EnumProperty(
+    category: EnumProperty(
         name="Category",
         description="Preferences Category",
         items=[
@@ -287,39 +287,39 @@ class Preferences(AddonPreferences):
         ],
         default='INFO'
     )
-    info_desc_expanded = BoolProperty(
+    info_desc_expanded: BoolProperty(
         name="Description",
         description="Description",
         default=False
     )
-    info_loc_expanded = BoolProperty(
+    info_loc_expanded: BoolProperty(
         name="Location",
         description="Location",
         default=False
     )
-    conf_uv_sculpt_expanded = BoolProperty(
+    conf_uv_sculpt_expanded: BoolProperty(
         name="UV Sculpt",
         description="UV Sculpt",
         default=False
     )
-    conf_uv_inspection_expanded = BoolProperty(
+    conf_uv_inspection_expanded: BoolProperty(
         name="UV Inspection",
         description="UV Inspection",
         default=False
     )
-    conf_texture_projection_expanded = BoolProperty(
+    conf_texture_projection_expanded: BoolProperty(
         name="Texture Projection",
         description="Texture Projection",
         default=False
     )
-    conf_uv_bounding_box_expanded = BoolProperty(
+    conf_uv_bounding_box_expanded: BoolProperty(
         name="UV Bounding Box",
         description="UV Bounding Box",
         default=False
     )
 
     # for add-on updater
-    updater_branch_to_update = EnumProperty(
+    updater_branch_to_update: EnumProperty(
         name="branch",
         description="Target branch to update add-on",
         items=get_update_candidate_branches

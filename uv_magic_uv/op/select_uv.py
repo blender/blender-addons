@@ -61,7 +61,7 @@ class _Properties:
 
     @classmethod
     def init_props(cls, scene):
-        scene.muv_select_uv_enabled = BoolProperty(
+        scene.muv_select_uv_enabled: BoolProperty(
             name="Select UV Enabled",
             description="Select UV is enabled",
             default=False

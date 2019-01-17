@@ -1044,10 +1044,10 @@ class IMPORT_OT_psa(bpy.types.Operator):
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
 
-    filepath = StringProperty(
+    filepath: StringProperty(
             subtype='FILE_PATH',
             )
-    filter_glob = StringProperty(
+    filter_glob: StringProperty(
             default="*.psa",
             options={'HIDDEN'},
             )

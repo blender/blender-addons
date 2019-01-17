@@ -275,30 +275,30 @@ class TexAtl_RunFinish(Operator):
 
 
 class TexAtl_UVLayers(PropertyGroup):
-    name = StringProperty(default="")
+    name: StringProperty(default="")
 
 
 class TexAtl_VertexGroups(PropertyGroup):
-    name = StringProperty(default="")
+    name: StringProperty(default="")
 
 
 class TexAtl_Groups(PropertyGroup):
-    name = StringProperty(default="")
+    name: StringProperty(default="")
 
 
 class TexAtl_MSLightmapGroups(PropertyGroup):
 
-    name = StringProperty(default="")
-    bake = BoolProperty(default=True)
+    name: StringProperty(default="")
+    bake: BoolProperty(default=True)
 
-    unwrap_type = EnumProperty(
+    unwrap_type: EnumProperty(
         name="unwrap_type",
         items=(('0', 'Smart_Unwrap', 'Smart_Unwrap'),
                ('1', 'Lightmap', 'Lightmap'),
                ('2', 'No_Unwrap', 'No_Unwrap'),
                ),
     )
-    resolutionX = EnumProperty(
+    resolutionX: EnumProperty(
         name="resolutionX",
         items=(('256', '256', ''),
                ('512', '512', ''),
@@ -310,7 +310,7 @@ class TexAtl_MSLightmapGroups(PropertyGroup):
                ),
         default='1024'
     )
-    resolutionY = EnumProperty(
+    resolutionY: EnumProperty(
         name="resolutionY",
         items=(('256', '256', ''),
                ('512', '512', ''),
@@ -322,25 +322,25 @@ class TexAtl_MSLightmapGroups(PropertyGroup):
                ),
         default='1024'
     )
-    autoUnwrapPrecision = FloatProperty(
+    autoUnwrapPrecision: FloatProperty(
         name="autoUnwrapPrecision",
         default=0.01,
         min=0.001,
         max=10
     )
-    template_list_controls = StringProperty(
+    template_list_controls: StringProperty(
         default="bake",
         options={"HIDDEN"},
     )
 
 
 class TexAtl_MergedObjects(PropertyGroup):
-    name = StringProperty()
-    vertex_groups = CollectionProperty(
+    name: StringProperty()
+    vertex_groups: CollectionProperty(
         type=TexAtl_VertexGroups,
     )
-    groups = CollectionProperty(type=TexAtl_Groups)
-    uv_layers = CollectionProperty(type=TexAtl_UVLayers)
+    groups: CollectionProperty(type=TexAtl_Groups)
+    uv_layers: CollectionProperty(type=TexAtl_UVLayers)
 
 
 class TexAtl_AddSelectedToGroup(Operator):
@@ -478,7 +478,7 @@ class TexAtl_AddLightmapGroup(Operator):
     bl_label = "add Lightmap"
     bl_description = "Adds a new Lightmap Group"
 
-    name = StringProperty(name="Group Name", default='TextureAtlas')
+    name: StringProperty(name="Group Name", default='TextureAtlas')
 
     def execute(self, context):
         scene = context.scene
@@ -537,9 +537,9 @@ class TexAtl_CreateLightmap(Operator):
     bl_label = "TextureAtlas - Generate Lightmap"
     bl_description = "Generates a Lightmap"
 
-    group_name = StringProperty(default='')
-    resolutionX = IntProperty(default=1024)
-    resolutionY = IntProperty(default=1024)
+    group_name: StringProperty(default='')
+    resolutionX: IntProperty(default=1024)
+    resolutionY: IntProperty(default=1024)
 
     def execute(self, context):
         scene = context.scene
@@ -598,8 +598,8 @@ class TexAtl_MergeObjects(Operator):
     bl_label = "TextureAtlas - TexAtl_MergeObjects"
     bl_description = "Merges Objects and stores Origins"
 
-    group_name = StringProperty(default='')
-    unwrap = BoolProperty(default=False)
+    group_name: StringProperty(default='')
+    unwrap: BoolProperty(default=False)
 
     def execute(self, context):
         scene = context.scene
@@ -733,7 +733,7 @@ class TexAtl_SeparateObjects(Operator):
     bl_label = "TextureAtlas - Separate Objects"
     bl_description = "Separates Objects and restores Origin"
 
-    group_name = StringProperty(default='')
+    group_name: StringProperty(default='')
 
     def execute(self, context):
         scene = context.scene

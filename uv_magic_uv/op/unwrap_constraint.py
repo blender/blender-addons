@@ -62,17 +62,17 @@ class _Properties:
 
     @classmethod
     def init_props(cls, scene):
-        scene.muv_unwrap_constraint_enabled = BoolProperty(
+        scene.muv_unwrap_constraint_enabled: BoolProperty(
             name="Unwrap Constraint Enabled",
             description="Unwrap Constraint is enabled",
             default=False
         )
-        scene.muv_unwrap_constraint_u_const = BoolProperty(
+        scene.muv_unwrap_constraint_u_const: BoolProperty(
             name="U-Constraint",
             description="Keep UV U-axis coordinate",
             default=False
         )
-        scene.muv_unwrap_constraint_v_const = BoolProperty(
+        scene.muv_unwrap_constraint_v_const: BoolProperty(
             name="V-Constraint",
             description="Keep UV V-axis coordinate",
             default=False
@@ -98,7 +98,7 @@ class MUV_OT_UnwrapConstraint(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     # property for original unwrap
-    method = EnumProperty(
+    method: EnumProperty(
         name="Method",
         description="Unwrapping method",
         items=[
@@ -106,20 +106,20 @@ class MUV_OT_UnwrapConstraint(bpy.types.Operator):
             ('CONFORMAL', 'Conformal', 'Conformal')
         ],
         default='ANGLE_BASED')
-    fill_holes = BoolProperty(
+    fill_holes: BoolProperty(
         name="Fill Holes",
         description="Virtual fill holes in meshes before unwrapping",
         default=True)
-    correct_aspect = BoolProperty(
+    correct_aspect: BoolProperty(
         name="Correct Aspect",
         description="Map UVs taking image aspect ratio into account",
         default=True)
-    use_subsurf_data = BoolProperty(
+    use_subsurf_data: BoolProperty(
         name="Use Subsurf Modifier",
         description="""Map UVs taking vertex position after subsurf
                        into account""",
         default=False)
-    margin = FloatProperty(
+    margin: FloatProperty(
         name="Margin",
         description="Space between islands",
         max=1.0,
@@ -127,12 +127,12 @@ class MUV_OT_UnwrapConstraint(bpy.types.Operator):
         default=0.001)
 
     # property for this operation
-    u_const = BoolProperty(
+    u_const: BoolProperty(
         name="U-Constraint",
         description="Keep UV U-axis coordinate",
         default=False
     )
-    v_const = BoolProperty(
+    v_const: BoolProperty(
         name="V-Constraint",
         description="Keep UV V-axis coordinate",
         default=False

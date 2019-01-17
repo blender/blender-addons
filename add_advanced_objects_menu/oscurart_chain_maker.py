@@ -245,11 +245,11 @@ class MESH_OT_primitive_oscurart_chain_add(Operator):
                       "The Active/Last Selected Object must be an Armature")
     bl_options = {'REGISTER', 'UNDO'}
 
-    curverig = BoolProperty(
+    curverig: BoolProperty(
             name="Curve Rig",
             default=False
             )
-    multiplier = FloatProperty(
+    multiplier: FloatProperty(
             name="Scale",
             default=1,
             min=0.01, max=100.0

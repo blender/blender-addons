@@ -45,52 +45,52 @@ class AchmBooks(Operator):
     bl_category = 'Archimesh'
     bl_options = {'REGISTER', 'UNDO'}
 
-    width = FloatProperty(
+    width: FloatProperty(
             name='Width', min=0.001, max=1, default=0.045, precision=3,
             description='Bounding book width',
             )
-    depth = FloatProperty(
+    depth: FloatProperty(
             name='Depth', min=0.001, max=1, default=0.22, precision=3,
             description='Bounding book depth',
             )
-    height = FloatProperty(
+    height: FloatProperty(
             name='Height', min=0.001, max=1, default=0.30, precision=3,
             description='Bounding book height',
             )
-    num = IntProperty(
+    num: IntProperty(
             name='Number of books', min=1, max=100, default=20,
             description='Number total of books',
             )
 
-    rX = FloatProperty(
+    rX: FloatProperty(
             name='X', min=0.000, max=0.999, default=0, precision=3,
             description='Randomness for X axis',
             )
-    rY = FloatProperty(
+    rY: FloatProperty(
             name='Y', min=0.000, max=0.999, default=0, precision=3,
             description='Randomness for Y axis',
             )
-    rZ = FloatProperty(
+    rZ: FloatProperty(
             name='Z', min=0.000, max=0.999, default=0, precision=3,
             description='Randomness for Z axis',
             )
 
-    rot = FloatProperty(
+    rot: FloatProperty(
             name='Rotation', min=0.000, max=1, default=0, precision=3,
             description='Randomness for vertical position (0-> All straight)',
             )
-    afn = IntProperty(
+    afn: IntProperty(
             name='Affinity', min=0, max=10, default=5,
             description='Number of books with same rotation angle',
             )
 
     # Materials
-    crt_mat = BoolProperty(
+    crt_mat: BoolProperty(
             name="Create default Cycles materials",
             description="Create default materials for Cycles render",
             default=True,
             )
-    objcol = FloatVectorProperty(
+    objcol: FloatVectorProperty(
             name="Color",
             description="Color for material",
             default=(1.0, 1.0, 1.0, 1.0),
@@ -98,7 +98,7 @@ class AchmBooks(Operator):
             subtype='COLOR',
             size=4,
             )
-    rC = FloatProperty(
+    rC: FloatProperty(
             name='Randomness',
             min=0.000, max=1, default=0, precision=3,
             description='Randomness for color ',

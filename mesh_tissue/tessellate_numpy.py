@@ -432,24 +432,24 @@ def store_parameters(operator, ob):
 
 
 class tissue_tessellate_prop(PropertyGroup):
-    generator = StringProperty()
-    component = StringProperty()
-    offset = FloatProperty()
-    zscale = FloatProperty(default=1)
-    merge = BoolProperty()
-    merge_thres = FloatProperty()
-    gen_modifiers = BoolProperty()
-    com_modifiers = BoolProperty()
-    mode = StringProperty()
-    rotation_mode = StringProperty()
-    scale_mode = StringProperty()
-    fill_mode = StringProperty()
-    bool_random = BoolProperty()
-    random_seed = IntProperty()
-    vertexgroup = StringProperty()
-    bool_vertex_group = BoolProperty()
-    bool_selection = BoolProperty()
-    bool_shapekeys = BoolProperty()
+    generator: StringProperty()
+    component: StringProperty()
+    offset: FloatProperty()
+    zscale: FloatProperty(default=1)
+    merge: BoolProperty()
+    merge_thres: FloatProperty()
+    gen_modifiers: BoolProperty()
+    com_modifiers: BoolProperty()
+    mode: StringProperty()
+    rotation_mode: StringProperty()
+    scale_mode: StringProperty()
+    fill_mode: StringProperty()
+    bool_random: BoolProperty()
+    random_seed: IntProperty()
+    vertexgroup: StringProperty()
+    bool_vertex_group: BoolProperty()
+    bool_selection: BoolProperty()
+    bool_shapekeys: BoolProperty()
 
 
 class tessellate(Operator):
@@ -459,23 +459,23 @@ class tessellate(Operator):
                       "faces, adapting the shape to the different faces")
     bl_options = {'REGISTER', 'UNDO'}
 
-    object_name = StringProperty(
+    object_name: StringProperty(
             name="",
             description="Name of the generated object"
             )
-    zscale = FloatProperty(
+    zscale: FloatProperty(
             name="Scale",
             default=1,
             soft_min=0,
             soft_max=10,
             description="Scale factor for the component thickness"
             )
-    scale_mode = EnumProperty(
+    scale_mode: EnumProperty(
             items=(('CONSTANT', "Constant", ""), ('ADAPTIVE', "Proportional", "")),
             default='CONSTANT',
             name="Z-Scale according to faces size"
             )
-    offset = FloatProperty(
+    offset: FloatProperty(
             name="Surface Offset",
             default=0,
             min=-1, max=1,
@@ -483,77 +483,77 @@ class tessellate(Operator):
             soft_max=1,
             description="Surface offset"
             )
-    mode = EnumProperty(
+    mode: EnumProperty(
             items=(('CONSTANT', "Constant", ""), ('ADAPTIVE', "Adaptive", "")),
             default='ADAPTIVE',
             name="Component Mode"
             )
-    rotation_mode = EnumProperty(
+    rotation_mode: EnumProperty(
             items=(('RANDOM', "Random", ""),
                    ('UV', "Active UV", ""),
                    ('DEFAULT', "Default", "")),
             default='DEFAULT',
             name="Component Rotation"
             )
-    fill_mode = EnumProperty(
+    fill_mode: EnumProperty(
             items=(('QUAD', "Quad", ""), ('FAN', "Fan", "")),
             default='QUAD',
             name="Fill Mode"
             )
-    gen_modifiers = BoolProperty(
+    gen_modifiers: BoolProperty(
             name="Generator Modifiers",
             default=False,
             description="Apply modifiers to base object"
             )
-    com_modifiers = BoolProperty(
+    com_modifiers: BoolProperty(
             name="Component Modifiers",
             default=False,
             description="Apply modifiers to component object"
             )
-    merge = BoolProperty(
+    merge: BoolProperty(
             name="Merge",
             default=False,
             description="Merge vertices in adjacent duplicates"
             )
-    merge_thres = FloatProperty(
+    merge_thres: FloatProperty(
             name="Distance",
             default=0.001,
             soft_min=0,
             soft_max=10,
             description="Limit below which to merge vertices"
             )
-    generator = StringProperty(
+    generator: StringProperty(
             name="",
             description="Base object for the tessellation"
             )
-    component = StringProperty(
+    component: StringProperty(
             name="",
             description="Component object for the tessellation"
             )
-    bool_random = BoolProperty(
+    bool_random: BoolProperty(
             name="Randomize",
             default=False,
             description="Randomize component rotation"
             )
-    random_seed = IntProperty(
+    random_seed: IntProperty(
             name="Seed",
             default=0,
             soft_min=0,
             soft_max=10,
             description="Random seed"
             )
-    bool_vertex_group = BoolProperty(
+    bool_vertex_group: BoolProperty(
             name="Map Vertex Group",
             default=False,
             description="Map the active "
                         "Vertex Group from the Base object to generated geometry"
             )
-    bool_selection = BoolProperty(
+    bool_selection: BoolProperty(
             name="On selected Faces",
             default=False,
             description="Create Tessellation only on selected faces"
             )
-    bool_shapekeys = BoolProperty(
+    bool_shapekeys: BoolProperty(
             name="Use Shape Keys",
             default=False,
             description="Use component's active Shape Key according to "
@@ -1046,23 +1046,23 @@ class settings_tessellate(Operator):
                       "Allow also to change tessellation's parameters")
     bl_options = {'REGISTER', 'UNDO'}
 
-    object_name = StringProperty(
+    object_name: StringProperty(
             name="",
             description="Name of the generated object"
             )
-    zscale = FloatProperty(
+    zscale: FloatProperty(
             name="Scale",
             default=1,
             soft_min=0,
             soft_max=10,
             description="Scale factor for the component thickness"
             )
-    scale_mode = EnumProperty(
+    scale_mode: EnumProperty(
             items=(('CONSTANT', "Constant", ""), ('ADAPTIVE', "Proportional", "")),
             default='ADAPTIVE',
             name="Scale variation"
             )
-    offset = FloatProperty(
+    offset: FloatProperty(
             name="Surface Offset",
             default=0,
             min=-1, max=1,
@@ -1070,76 +1070,76 @@ class settings_tessellate(Operator):
             soft_max=1,
             description="Surface offset"
             )
-    mode = EnumProperty(
+    mode: EnumProperty(
             items=(('CONSTANT', "Constant", ""), ('ADAPTIVE', "Adaptive", "")),
             default='ADAPTIVE',
             name="Component Mode"
             )
-    rotation_mode = EnumProperty(
+    rotation_mode: EnumProperty(
             items=(('RANDOM', "Random", ""), ('UV', "Active UV", ""),
                    ('DEFAULT', "Default", "")),
             default='DEFAULT',
             name="Component Rotation"
             )
-    fill_mode = EnumProperty(
+    fill_mode: EnumProperty(
             items=(('QUAD', "Quad", ""), ('FAN', "Fan", "")),
             default='QUAD',
             name="Fill Mode"
             )
-    gen_modifiers = BoolProperty(
+    gen_modifiers: BoolProperty(
             name="Generator Modifiers",
             default=False,
             description="Apply modifiers to base object"
             )
-    com_modifiers = BoolProperty(
+    com_modifiers: BoolProperty(
             name="Component Modifiers",
             default=False,
             description="Apply modifiers to component object"
             )
-    merge = BoolProperty(
+    merge: BoolProperty(
             name="Merge",
             default=False,
             description="Merge vertices in adjacent duplicates"
             )
-    merge_thres = FloatProperty(
+    merge_thres: FloatProperty(
             name="Distance",
             default=0.001,
             soft_min=0,
             soft_max=10,
             description="Limit below which to merge vertices"
             )
-    generator = StringProperty(
+    generator: StringProperty(
             name="",
             description="Base object for the tessellation"
             )
-    component = StringProperty(
+    component: StringProperty(
             name="",
             description="Component object for the tessellation"
             )
-    bool_random = BoolProperty(
+    bool_random: BoolProperty(
             name="Randomize",
             default=False,
             description="Randomize component rotation"
             )
-    random_seed = IntProperty(
+    random_seed: IntProperty(
             name="Seed",
             default=0,
             soft_min=0,
             soft_max=10,
             description="Random seed"
             )
-    bool_vertex_group = BoolProperty(
+    bool_vertex_group: BoolProperty(
             name="Map Vertex Group",
             default=False,
             description="Map on generated "
                         "geometry the active Vertex Group from the base object"
             )
-    bool_selection = BoolProperty(
+    bool_selection: BoolProperty(
             name="On selected Faces",
             default=False,
             description="Create Tessellation only on select faces"
             )
-    bool_shapekeys = BoolProperty(
+    bool_shapekeys: BoolProperty(
             name="Use Shape Keys",
             default=False,
             description="Use component's active Shape Key according to active "

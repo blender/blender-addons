@@ -66,7 +66,7 @@ from bpy.props import (
 class btrace_preferences(AddonPreferences):
     bl_idname = __name__
 
-    expand_enum = EnumProperty(
+    expand_enum: EnumProperty(
             name="UI Options",
             items=[
                  ('list', "Drop down list",

@@ -15,7 +15,7 @@ class VIEW3D_stored_views_save(Operator):
     bl_label = "Save Current"
     bl_description = "Save the view 3d current state"
 
-    index = IntProperty()
+    index: IntProperty()
 
     def execute(self, context):
         mode = context.scene.stored_views.mode
@@ -32,7 +32,7 @@ class VIEW3D_stored_views_set(Operator):
     bl_label = "Set"
     bl_description = "Update the view 3D according to this view"
 
-    index = IntProperty()
+    index: IntProperty()
 
     def execute(self, context):
         mode = context.scene.stored_views.mode
@@ -49,7 +49,7 @@ class VIEW3D_stored_views_delete(Operator):
     bl_label = "Delete"
     bl_description = "Delete this view"
 
-    index = IntProperty()
+    index: IntProperty()
 
     def execute(self, context):
         data = DataStore()

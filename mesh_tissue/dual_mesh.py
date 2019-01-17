@@ -55,7 +55,7 @@ class dual_mesh(Operator):
     bl_description = ("Convert a generic mesh into a polygonal mesh")
     bl_options = {'REGISTER', 'UNDO'}
 
-    quad_method = EnumProperty(
+    quad_method: EnumProperty(
             items=[('BEAUTY', 'Beauty',
                     'Split the quads in nice triangles, slower method'),
                     ('FIXED', 'Fixed',
@@ -70,7 +70,7 @@ class dual_mesh(Operator):
             default="FIXED",
             options={'LIBRARY_EDITABLE'}
             )
-    polygon_method = EnumProperty(
+    polygon_method: EnumProperty(
             items=[
                 ('BEAUTY', 'Beauty', 'Arrange the new triangles evenly'),
                 ('CLIP', 'Clip',
@@ -80,12 +80,12 @@ class dual_mesh(Operator):
             default="BEAUTY",
             options={'LIBRARY_EDITABLE'}
             )
-    preserve_borders = BoolProperty(
+    preserve_borders: BoolProperty(
             name="Preserve Borders",
             default=True,
             description="Preserve original borders"
             )
-    apply_modifiers = BoolProperty(
+    apply_modifiers: BoolProperty(
             name="Apply Modifiers",
             default=True,
             description="Apply object's modifiers"

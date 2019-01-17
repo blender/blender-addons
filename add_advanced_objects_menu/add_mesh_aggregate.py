@@ -71,92 +71,92 @@ class OBJECT_OT_agregate_mesh(Operator):
                       "Needs at least two selected Mesh objects")
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    volX = FloatProperty(
+    volX: FloatProperty(
             name="Volume X",
             min=0.1, max=25,
             default=3,
             description="The cloud around cursor"
             )
-    volY = FloatProperty(
+    volY: FloatProperty(
             name="Volume Y",
             min=0.1, max=25,
             default=3,
             description="The cloud around cursor"
             )
-    volZ = FloatProperty(
+    volZ: FloatProperty(
             name="Volume Z",
             min=0.1, max=25,
             default=3,
             description="The cloud around cursor"
             )
-    baseSca = FloatProperty(
+    baseSca: FloatProperty(
             name="Scale",
             min=0.01, max=5,
             default=.25,
             description="Particle Scale"
             )
-    varSca = FloatProperty(
+    varSca: FloatProperty(
             name="Var",
             min=0, max=1,
             default=0,
             description="Particle Scale Variation"
             )
-    rotX = FloatProperty(
+    rotX: FloatProperty(
             name="Rot Var X",
             min=0, max=2,
             default=0,
             description="X Rotation Variation"
             )
-    rotY = FloatProperty(
+    rotY: FloatProperty(
             name="Rot Var Y",
             min=0, max=2,
             default=0,
             description="Y Rotation Variation"
             )
-    rotZ = FloatProperty(
+    rotZ: FloatProperty(
             name="Rot Var Z",
             min=0, max=2,
             default=1,
             description="Z Rotation Variation"
             )
-    rSeed = IntProperty(
+    rSeed: IntProperty(
             name="Random seed",
             min=0, max=999999,
             default=1,
             description="Seed to feed random values"
             )
-    numP = IntProperty(
+    numP: IntProperty(
             name="Number",
             min=1,
             max=9999, soft_max=500,
             default=50,
             description="Number of particles"
             )
-    nor = BoolProperty(
+    nor: BoolProperty(
             name="Normal Oriented",
             default=False,
             description="Align Z axis with Faces normals"
             )
-    cent = BoolProperty(
+    cent: BoolProperty(
             name="Use Face Center",
             default=False,
             description="Center on Faces"
             )
-    track = BoolProperty(
+    track: BoolProperty(
             name="Cursor Follows",
             default=False,
             description="Cursor moves as structure grows / more compact results"
             )
-    anim = BoolProperty(
+    anim: BoolProperty(
             name="Animatable",
             default=False,
             description="Sort faces so you can regrow with Build Modifier, materials are lost"
             )
-    refresh = BoolProperty(
+    refresh: BoolProperty(
             name="Update",
             default=False
             )
-    auto_refresh = BoolProperty(
+    auto_refresh: BoolProperty(
             name="Auto",
             description="Auto update spline",
             default=False

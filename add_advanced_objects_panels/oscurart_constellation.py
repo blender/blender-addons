@@ -73,7 +73,7 @@ class Oscurart_Constellation(Operator):
                       "Needs an existing Active Mesh Object")
     bl_options = {'REGISTER', 'UNDO'}
 
-    limit = FloatProperty(
+    limit: FloatProperty(
             name="Threshold",
             description="Edges will be created only if the distance\n"
                         "between vertices is smaller than this value",

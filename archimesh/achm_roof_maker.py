@@ -43,38 +43,38 @@ class AchmRoof(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     # Define properties
-    roof_width = IntProperty(
+    roof_width: IntProperty(
             name='Num tiles X',
             min=1, max=100, default=6,
             description='Tiles in X axis',
             )
-    roof_height = IntProperty(
+    roof_height: IntProperty(
             name='Num tiles Y',
             min=1, max=100, default=3,
             description='Tiles in Y axis',
             )
 
-    roof_thick = FloatProperty(
+    roof_thick: FloatProperty(
             name='Tile thickness',
             min=0.000, max=0.50, default=0.012, precision=3,
             description='Thickness of the roof tile',
             )
-    roof_angle = FloatProperty(
+    roof_angle: FloatProperty(
             name='Roof slope', min=0.0, max=70.0, default=0.0, precision=1,
             description='Roof angle of slope',
             )
-    roof_scale = FloatProperty(
+    roof_scale: FloatProperty(
             name='Tile scale', min=0.001, max=10, default=1, precision=3,
             description='Scale of roof tile',
             )
 
-    crt_mat = BoolProperty(
+    crt_mat: BoolProperty(
             name="Create default Cycles materials",
             description="Create default materials for Cycles render",
             default=True,
             )
 
-    model = EnumProperty(
+    model: EnumProperty(
             items=(
                 ('1', "Model 01", ""),
                 ('2', "Model 02", ""),

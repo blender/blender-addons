@@ -55,7 +55,7 @@ class TerrainPanel(Panel):
     # functions to the property itself because they result in a recursion
     # error. Instead, we use another, hidden, property to store the scaled
     # resolution.
-    bpy.types.Object.dtm_resolution = FloatProperty(
+    bpy.types.Object.dtm_resolution: FloatProperty(
         subtype="PERCENTAGE",
         name="New Resolution",
         description=(
@@ -70,7 +70,7 @@ class TerrainPanel(Panel):
         ),
         min=1.0, max=100.0, default=10.0
     )
-    bpy.types.Object.scaled_dtm_resolution = FloatProperty(
+    bpy.types.Object.scaled_dtm_resolution: FloatProperty(
         options={'HIDDEN'},
         name="Scaled Terrain Model Resolution",
         get=(lambda self: self.dtm_resolution / 100.0)

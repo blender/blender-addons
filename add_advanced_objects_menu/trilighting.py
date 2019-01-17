@@ -21,40 +21,40 @@ class TriLighting(Operator):
                       "Needs an existing Active Object")
     bl_options = {'REGISTER', 'UNDO'}
 
-    height = FloatProperty(
+    height: FloatProperty(
             name="Height",
             default=5
             )
-    distance = FloatProperty(
+    distance: FloatProperty(
             name="Distance",
             default=5,
             min=0.1,
             subtype="DISTANCE"
             )
-    energy = IntProperty(
+    energy: IntProperty(
             name="Base Energy",
             default=3,
             min=1
             )
-    contrast = IntProperty(
+    contrast: IntProperty(
             name="Contrast",
             default=50,
             min=-100, max=100,
             subtype="PERCENTAGE"
             )
-    leftangle = IntProperty(
+    leftangle: IntProperty(
             name="Left Angle",
             default=26,
             min=1, max=90,
             subtype="ANGLE"
             )
-    rightangle = IntProperty(
+    rightangle: IntProperty(
             name="Right Angle",
             default=45,
             min=1, max=90,
             subtype="ANGLE"
             )
-    backangle = IntProperty(
+    backangle: IntProperty(
             name="Back Angle",
             default=235,
             min=90, max=270,
@@ -67,14 +67,14 @@ class TriLighting(Operator):
             ('HEMI', "Hemi", "Hemi Light"),
             ('AREA', "Area", "Area Light")
             ]
-    primarytype = EnumProperty(
+    primarytype: EnumProperty(
             attr='tl_type',
             name="Key Type",
             description="Choose the types of Key Lights you would like",
             items=Light_Type_List,
             default='HEMI'
             )
-    secondarytype = EnumProperty(
+    secondarytype: EnumProperty(
             attr='tl_type',
             name="Fill + Back Type",
             description="Choose the types of secondary Lights you would like",

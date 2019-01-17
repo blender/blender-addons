@@ -107,12 +107,12 @@ class _Properties:
 
     @classmethod
     def init_props(cls, scene):
-        scene.muv_mirror_uv_enabled = BoolProperty(
+        scene.muv_mirror_uv_enabled: BoolProperty(
             name="Mirror UV Enabled",
             description="Mirror UV is enabled",
             default=False
         )
-        scene.muv_mirror_uv_axis = EnumProperty(
+        scene.muv_mirror_uv_axis: EnumProperty(
             items=[
                 ('X', "X", "Mirror Along X axis"),
                 ('Y', "Y", "Mirror Along Y axis"),
@@ -140,7 +140,7 @@ class MUV_OT_MirrorUV(bpy.types.Operator):
     bl_label = "Mirror UV"
     bl_options = {'REGISTER', 'UNDO'}
 
-    axis = EnumProperty(
+    axis: EnumProperty(
         items=(
             ('X', "X", "Mirror Along X axis"),
             ('Y', "Y", "Mirror Along Y axis"),
@@ -150,7 +150,7 @@ class MUV_OT_MirrorUV(bpy.types.Operator):
         description="Mirror Axis",
         default='X'
     )
-    error = FloatProperty(
+    error: FloatProperty(
         name="Error",
         description="Error threshold",
         default=0.001,

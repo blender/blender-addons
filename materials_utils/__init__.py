@@ -969,12 +969,12 @@ class VIEW3D_OT_assign_material(Operator):
     bl_property = "matname"
     bl_options = {'REGISTER', 'UNDO'}
 
-    is_existing = BoolProperty(
+    is_existing: BoolProperty(
         name="Is it a new Material",
         options={'HIDDEN'},
         default=True,
     )
-    matname = StringProperty(
+    matname: StringProperty(
         name="Material Name",
         description="Name of the Material to Assign",
         options={'HIDDEN'},
@@ -1171,7 +1171,7 @@ class VIEW3D_OT_select_material_by_name(Operator):
     bl_description = "Select geometry with this material assigned to it"
     bl_options = {'REGISTER', 'UNDO'}
 
-    matname = StringProperty(
+    matname: StringProperty(
         name="Material Name",
         description="Name of Material to Select",
         maxlen=63,
@@ -1234,23 +1234,23 @@ class VIEW3D_OT_replace_material(Operator):
     bl_description = "Replace a material by name"
     bl_options = {'REGISTER', 'UNDO'}
 
-    matorg = StringProperty(
+    matorg: StringProperty(
         name="Original",
         description="Material to replace",
         maxlen=63,
     )
-    matrep = StringProperty(
+    matrep: StringProperty(
         name="Replacement",
         description="Replacement material",
         maxlen=63,
     )
-    all_objects = BoolProperty(
+    all_objects: BoolProperty(
         name="All objects",
         description="If enabled, replace for all objects in this blend file\n"
                     "If disabled, only selected objects will be affected",
         default=False,
     )
-    update_selection = BoolProperty(
+    update_selection: BoolProperty(
         name="Update Selection",
         description="Select affected objects and deselect unaffected",
         default=True,
@@ -1286,13 +1286,13 @@ class VIEW3D_OT_fake_user_set(Operator):
     bl_description = "Enable/disable fake user for materials"
     bl_options = {'REGISTER', 'UNDO'}
 
-    fake_user = EnumProperty(
+    fake_user: EnumProperty(
         name="Fake User",
         description="Turn fake user on or off",
         items=(('ON', "On", "Enable fake user"), ('OFF', "Off", "Disable fake user")),
         default='ON',
     )
-    materials = EnumProperty(
+    materials: EnumProperty(
         name="Materials",
         description="Chose what objects and materials to affect",
         items=(('ACTIVE', "Active object", "Materials of active object only"),
@@ -1441,11 +1441,11 @@ class MATERIAL_OT_link_to_base_names(Operator):
                       "Material/Name on All Materials/Objects")
     bl_options = {'REGISTER', 'UNDO'}
 
-    mat_keep = StringProperty(
+    mat_keep: StringProperty(
         name="Material to keep",
         default="",
     )
-    is_auto = BoolProperty(
+    is_auto: BoolProperty(
         name="Auto Rename/Replace",
         description="Automatically Replace names by stripping numerical suffix",
         default=False,
@@ -2160,7 +2160,7 @@ class MATERIAL_OT_converter_report(Operator):
     bl_description = "Report about done Material Conversions"
     bl_options = {'REGISTER', 'INTERNAL'}
 
-    message = StringProperty(maxlen=8192)
+    message: StringProperty(maxlen=8192)
 
     def draw(self, context):
         layout = self.layout
@@ -2181,62 +2181,62 @@ class MATERIAL_OT_converter_report(Operator):
 
 # Scene Properties
 class material_specials_scene_mats(PropertyGroup):
-    name = StringProperty()
-    mat_lib = BoolProperty(
+    name: StringProperty()
+    mat_lib: BoolProperty(
         default=False
     )
-    mat_fake_user = BoolProperty(
+    mat_fake_user: BoolProperty(
         default=False
     )
 
 
 class material_specials_scene_props(PropertyGroup):
-    conv_path = StringProperty(
+    conv_path: StringProperty(
         name="Save Directory",
         description="Path to save images during conversion\n"
                     "Default is the location of the blend file",
         default="//",
         subtype='DIR_PATH'
     )
-    EXTRACT_ALPHA = BoolProperty(
+    EXTRACT_ALPHA: BoolProperty(
         attr="EXTRACT_ALPHA",
         default=False,
         description="Extract Alpha channel from non-procedural images\n"
                     "Don't use this option if the image doesn't have Alpha"
     )
-    SET_FAKE_USER = BoolProperty(
+    SET_FAKE_USER: BoolProperty(
         attr="SET_FAKE_USER",
         default=False,
         description="Set fake user on unused images, so they can be kept in the .blend"
     )
-    EXTRACT_PTEX = BoolProperty(
+    EXTRACT_PTEX: BoolProperty(
         attr="EXTRACT_PTEX",
         default=False,
         description="Extract procedural images and bake them to jpeg"
     )
-    EXTRACT_OW = BoolProperty(
+    EXTRACT_OW: BoolProperty(
         attr="Overwrite",
         default=False,
         description="Extract textures again instead of re-using previously extracted textures"
     )
-    SCULPT_PAINT = BoolProperty(
+    SCULPT_PAINT: BoolProperty(
         attr="SCULPT_PAINT",
         default=False,
         description="Conversion geared towards sculpting and painting.\n"
                     "Creates a diffuse, glossy mixed with layer weight.\n"
                     "Image nodes are not connected"
     )
-    UV_UNWRAP = BoolProperty(
+    UV_UNWRAP: BoolProperty(
         attr="UV_UNWRAP",
         default=False,
         description="Use automatic Angle based UV Unwrap for the Active Object"
     )
-    enable_report = BoolProperty(
+    enable_report: BoolProperty(
         attr="enable_report",
         default=False,
         description="Enable Converter Report in the UI"
     )
-    img_bake_size = EnumProperty(
+    img_bake_size: EnumProperty(
         name="Bake Image Size",
         description="Set the resolution size of baked images \n",
         items=(
@@ -2246,7 +2246,7 @@ class material_specials_scene_props(PropertyGroup):
         ),
         default='1024'
     )
-    set_material_name = StringProperty(
+    set_material_name: StringProperty(
         name="New Material name",
         description="What Base name pattern to use for a new created Material\n"
                     "It is appended by an automatic numeric pattern depending\n"
@@ -2254,12 +2254,12 @@ class material_specials_scene_props(PropertyGroup):
         default="Material_New",
         maxlen=128
     )
-    use_tweak = BoolProperty(
+    use_tweak: BoolProperty(
         name="Tweak Settings",
         description="Open Preview Active Material after new Material creation",
         default=False
     )
-    index_mat = IntProperty(
+    index_mat: IntProperty(
         name="index",
         options={"HIDDEN"}
     )
@@ -2269,19 +2269,19 @@ class material_specials_scene_props(PropertyGroup):
 class VIEW3D_MT_material_utils_pref(AddonPreferences):
     bl_idname = __name__
 
-    show_warnings = BoolProperty(
+    show_warnings: BoolProperty(
         name="Enable Warning messages",
         default=False,
         description="Show warning messages when an action is executed or failed"
     )
-    show_remove_mat = BoolProperty(
+    show_remove_mat: BoolProperty(
         name="Enable Remove all Materials",
         default=False,
         description="Enable Remove all Materials for all Selected Objects\n\n"
                     "Use with care - if you want to keep materials after\n"
                     "closing or reloading Blender, Set Fake User for them"
     )
-    show_mat_preview = BoolProperty(
+    show_mat_preview: BoolProperty(
         name="Enable Material Preview",
         default=True,
         description="Material Preview of the Active Object\n"
@@ -2289,7 +2289,7 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
                     "Use nodes, Color, Specular and Transparency\n"
                     "settings depending on the Context and Preferences"
     )
-    set_cleanmatslots = BoolProperty(
+    set_cleanmatslots: BoolProperty(
         name="Enable Auto Clean",
         default=True,
         description="Enable Automatic Removal of unused Material Slots\n"
@@ -2298,18 +2298,18 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
                     "adding materials, enabling it can have some\n"
                     "performance impact on very dense meshes"
     )
-    show_separators = BoolProperty(
+    show_separators: BoolProperty(
         name="Use Separators in the menus",
         default=True,
         description="Use separators in the menus, a trade-off between\n"
                     "readability vs. using more space for displaying items"
     )
-    show_converters = BoolProperty(
+    show_converters: BoolProperty(
         name="Enable Converters",
         default=False,
         description="Enable Material Converters"
     )
-    set_preview_size = EnumProperty(
+    set_preview_size: EnumProperty(
         name="Preview Menu Size",
         description="Set the preview menu size\n"
                     "depending on the number of materials\n"
@@ -2326,7 +2326,7 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
         ),
         default='3x3'
     )
-    set_preview_type = EnumProperty(
+    set_preview_type: EnumProperty(
         name="Preview Menu Type",
         description="Set the the Preview menu type",
         items=(
@@ -2342,7 +2342,7 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
         ),
         default='PREVIEW'
     )
-    set_experimental_type = EnumProperty(
+    set_experimental_type: EnumProperty(
         name="Experimental Features",
         description="Set the type of converters enabled",
         items=(
@@ -2355,7 +2355,7 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
         ),
         default='ALL',
     )
-    set_add_material_menu = EnumProperty(
+    set_add_material_menu: EnumProperty(
         name="Add Material Menu",
         description="Set the type of Add Material menu",
         items=(

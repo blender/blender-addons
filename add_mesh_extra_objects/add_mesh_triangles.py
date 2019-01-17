@@ -74,33 +74,33 @@ class MakeTriangle(Operator):
             ]
 
     # add definitions for some manipulation buttons
-    flipX = BoolProperty(
+    flipX: BoolProperty(
             name="Flip X sign",
             description="Draw on the other side of the X axis (Mirror on Y axis)",
             default=False
             )
-    flipY = BoolProperty(
+    flipY: BoolProperty(
             name="Flip Y sign",
             description="Draw on the other side of the Y axis (Mirror on X axis)",
             default=False
             )
-    scale = FloatProperty(
+    scale: FloatProperty(
             name="Scale",
             description="Triangle scale",
             default=1.0,
             min=1.0
             )
-    triangleType = EnumProperty(
+    triangleType: EnumProperty(
             items=triangleTypeList,
             name="Type",
             description="Triangle Type"
             )
-    triangleFace = EnumProperty(
+    triangleFace: EnumProperty(
             items=triangleFaceList,
             name="Face types",
             description="Triangle Face Types"
             )
-    at_3Dcursor = BoolProperty(
+    at_3Dcursor: BoolProperty(
             name="Use 3D Cursor",
             description="Draw the triangle where the 3D cursor is",
             default=False

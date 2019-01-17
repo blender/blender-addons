@@ -346,21 +346,21 @@ class FractureSimple(bpy.types.Operator):
     bl_label = "Fracture Object"
     bl_options = {'REGISTER', 'UNDO'}
 
-    exe = BoolProperty(name="Execute",
+    exe: BoolProperty(name="Execute",
         description="If it shall actually run, for optimal performance",
         default=False)
 
-    hierarchy = BoolProperty(name="Generate hierarchy",
+    hierarchy: BoolProperty(name="Generate hierarchy",
         description="Hierarchy is useful for simulation of objects" \
                     " breaking in motion",
         default=False)
 
-    nshards = IntProperty(name="Number of shards",
+    nshards: IntProperty(name="Number of shards",
         description="Number of shards the object should be split into",
         min=2,
         default=5)
 
-    crack_type = EnumProperty(name='Crack type',
+    crack_type: EnumProperty(name='Crack type',
         items=(
             ('FLAT', 'Flat', 'a'),
             ('FLAT_ROUGH', 'Flat rough', 'a'),
@@ -369,7 +369,7 @@ class FractureSimple(bpy.types.Operator):
         description='Look of the fracture surface',
         default='FLAT')
 
-    roughness = FloatProperty(name="Roughness",
+    roughness: FloatProperty(name="Roughness",
         description="Roughness of the fracture surface",
         min=0.0,
         max=3.0,
@@ -399,11 +399,11 @@ class FractureGroup(bpy.types.Operator):
     bl_label = "Fracture Object (Group)"
     bl_options = {'REGISTER', 'UNDO'}
 
-    exe = BoolProperty(name="Execute",
+    exe: BoolProperty(name="Execute",
                        description="If it shall actually run, for optimal performance",
                        default=False)
 
-    group = StringProperty(name="Group",
+    group: StringProperty(name="Group",
                            description="Specify the group used for fracturing")
 
 #    e = []

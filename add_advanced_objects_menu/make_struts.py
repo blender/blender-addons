@@ -506,36 +506,36 @@ class Struts(Operator):
                       "Needs an existing Active Mesh Object")
     bl_options = {'REGISTER', 'UNDO'}
 
-    ind = FloatProperty(
+    ind: FloatProperty(
             name="Inside Diameter",
             description="Diameter of inner surface",
             min=0.0, soft_min=0.0,
             max=100, soft_max=100,
             default=0.04
             )
-    od = FloatProperty(
+    od: FloatProperty(
             name="Outside Diameter",
             description="Diameter of outer surface",
             min=0.001, soft_min=0.001,
             max=100, soft_max=100,
             default=0.05
             )
-    manifold = BoolProperty(
+    manifold: BoolProperty(
             name="Manifold",
             description="Connect struts to form a single solid",
             default=False
             )
-    solid = BoolProperty(
+    solid: BoolProperty(
             name="Solid",
             description="Create inner surface",
             default=False
             )
-    loops = BoolProperty(
+    loops: BoolProperty(
             name="Loops",
             description="Create sub-surf friendly loops",
             default=False
             )
-    segments = IntProperty(
+    segments: IntProperty(
             name="Segments",
             description="Number of segments around strut",
             min=3, soft_min=3,

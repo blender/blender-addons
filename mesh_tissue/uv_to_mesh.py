@@ -53,22 +53,22 @@ class uv_to_mesh(Operator):
     bl_description = ("Create a new Mesh based on active UV")
     bl_options = {'REGISTER', 'UNDO'}
 
-    apply_modifiers = BoolProperty(
+    apply_modifiers: BoolProperty(
             name="Apply Modifiers",
             default=False,
             description="Apply object's modifiers"
             )
-    vertex_groups = BoolProperty(
+    vertex_groups: BoolProperty(
             name="Keep Vertex Groups",
             default=False,
             description="Transfer all the Vertex Groups"
             )
-    materials = BoolProperty(
+    materials: BoolProperty(
             name="Keep Materials",
             default=True,
             description="Transfer all the Materials"
             )
-    auto_scale = BoolProperty(
+    auto_scale: BoolProperty(
             name="Resize",
             default=True,
             description="Scale the new object in order to preserve the average surface area"

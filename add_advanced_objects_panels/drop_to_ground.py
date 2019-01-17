@@ -224,11 +224,11 @@ def drop_objects(self, context):
 
 # define base dummy class for inheritance
 class DropBaseAtributes:
-    align = BoolProperty(
+    align: BoolProperty(
             name="Align to ground",
             description="Aligns the objects' rotation to the ground",
             default=True)
-    use_origin = BoolProperty(
+    use_origin: BoolProperty(
             name="Use Origins",
             description="Drop to objects' origins\n"
                         "Use this option for dropping all types of Objects",
@@ -300,7 +300,7 @@ class Drop_help(Operator):
     bl_description = "Clik for some information about Drop to Ground"
     bl_options = {"REGISTER", "INTERNAL"}
 
-    is_all = BoolProperty(
+    is_all: BoolProperty(
             default=True,
             options={"HIDDEN"}
             )

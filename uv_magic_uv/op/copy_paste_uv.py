@@ -280,17 +280,17 @@ class _Properties:
         scene.muv_props.copy_paste_uv = Props()
         scene.muv_props.copy_paste_uv_selseq = Props()
 
-        scene.muv_copy_paste_uv_enabled = BoolProperty(
+        scene.muv_copy_paste_uv_enabled: BoolProperty(
             name="Copy/Paste UV Enabled",
             description="Copy/Paste UV is enabled",
             default=False
         )
-        scene.muv_copy_paste_uv_copy_seams = BoolProperty(
+        scene.muv_copy_paste_uv_copy_seams: BoolProperty(
             name="Seams",
             description="Copy Seams",
             default=True
         )
-        scene.muv_copy_paste_uv_mode = EnumProperty(
+        scene.muv_copy_paste_uv_mode: EnumProperty(
             items=[
                 ('DEFAULT', "Default", "Default Mode"),
                 ('SEL_SEQ', "Selection Sequence", "Selection Sequence Mode")
@@ -299,7 +299,7 @@ class _Properties:
             description="Copy/Paste UV Mode",
             default='DEFAULT'
         )
-        scene.muv_copy_paste_uv_strategy = EnumProperty(
+        scene.muv_copy_paste_uv_strategy: EnumProperty(
             name="Strategy",
             description="Paste Strategy",
             items=[
@@ -331,7 +331,7 @@ class MUV_OT_CopyPasteUV_CopyUV(bpy.types.Operator):
     bl_description = "Copy UV coordinate"
     bl_options = {'REGISTER', 'UNDO'}
 
-    uv_map = StringProperty(default="__default", options={'HIDDEN'})
+    uv_map: StringProperty(default="__default", options={'HIDDEN'})
 
     @classmethod
     def poll(cls, context):
@@ -408,8 +408,8 @@ class MUV_OT_CopyPasteUV_PasteUV(bpy.types.Operator):
     bl_description = "Paste UV coordinate"
     bl_options = {'REGISTER', 'UNDO'}
 
-    uv_map = StringProperty(default="__default", options={'HIDDEN'})
-    strategy = EnumProperty(
+    uv_map: StringProperty(default="__default", options={'HIDDEN'})
+    strategy: EnumProperty(
         name="Strategy",
         description="Paste Strategy",
         items=[
@@ -418,18 +418,18 @@ class MUV_OT_CopyPasteUV_PasteUV(bpy.types.Operator):
         ],
         default="N_M"
     )
-    flip_copied_uv = BoolProperty(
+    flip_copied_uv: BoolProperty(
         name="Flip Copied UV",
         description="Flip Copied UV...",
         default=False
     )
-    rotate_copied_uv = IntProperty(
+    rotate_copied_uv: IntProperty(
         default=0,
         name="Rotate Copied UV",
         min=0,
         max=30
     )
-    copy_seams = BoolProperty(
+    copy_seams: BoolProperty(
         name="Seams",
         description="Copy Seams",
         default=True
@@ -548,7 +548,7 @@ class MUV_OT_CopyPasteUV_SelSeqCopyUV(bpy.types.Operator):
     bl_description = "Copy UV data by selection sequence"
     bl_options = {'REGISTER', 'UNDO'}
 
-    uv_map = StringProperty(default="__default", options={'HIDDEN'})
+    uv_map: StringProperty(default="__default", options={'HIDDEN'})
 
     @classmethod
     def poll(cls, context):
@@ -625,8 +625,8 @@ class MUV_OT_CopyPasteUV_SelSeqPasteUV(bpy.types.Operator):
     bl_description = "Paste UV coordinate by selection sequence"
     bl_options = {'REGISTER', 'UNDO'}
 
-    uv_map = StringProperty(default="__default", options={'HIDDEN'})
-    strategy = EnumProperty(
+    uv_map: StringProperty(default="__default", options={'HIDDEN'})
+    strategy: EnumProperty(
         name="Strategy",
         description="Paste Strategy",
         items=[
@@ -635,18 +635,18 @@ class MUV_OT_CopyPasteUV_SelSeqPasteUV(bpy.types.Operator):
         ],
         default="N_M"
     )
-    flip_copied_uv = BoolProperty(
+    flip_copied_uv: BoolProperty(
         name="Flip Copied UV",
         description="Flip Copied UV...",
         default=False
     )
-    rotate_copied_uv = IntProperty(
+    rotate_copied_uv: IntProperty(
         default=0,
         name="Rotate Copied UV",
         min=0,
         max=30
     )
-    copy_seams = BoolProperty(
+    copy_seams: BoolProperty(
         name="Seams",
         description="Copy Seams",
         default=True

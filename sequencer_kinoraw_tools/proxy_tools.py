@@ -141,7 +141,7 @@ class CreateProxyOperator(Operator):
                       "and setup proxies for selected strip")
     bl_options = {'REGISTER', 'UNDO'}
 
-    size = IntProperty(
+    size: IntProperty(
             name="Proxy Size",
             default=1
             )
@@ -198,7 +198,7 @@ class CreateBIProxyOperator(Operator):
     bl_description = "Use BI system to create a proxy"
     bl_options = {'REGISTER', 'UNDO'}
 
-    size = IntProperty(
+    size: IntProperty(
             name="Proxy Size",
             default=1
             )

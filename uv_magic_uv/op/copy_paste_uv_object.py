@@ -75,7 +75,7 @@ class _Properties:
 
         scene.muv_props.copy_paste_uv_object = Props()
 
-        scene.muv_copy_paste_uv_object_copy_seams = BoolProperty(
+        scene.muv_copy_paste_uv_object_copy_seams: BoolProperty(
             name="Seams",
             description="Copy Seams",
             default=True
@@ -108,7 +108,7 @@ class MUV_OT_CopyPasteUVObject_CopyUV(bpy.types.Operator):
     bl_description = "Copy UV coordinate (Among Objects)"
     bl_options = {'REGISTER', 'UNDO'}
 
-    uv_map = StringProperty(default="__default", options={'HIDDEN'})
+    uv_map: StringProperty(default="__default", options={'HIDDEN'})
 
     @classmethod
     def poll(cls, context):
@@ -186,8 +186,8 @@ class MUV_OT_CopyPasteUVObject_PasteUV(bpy.types.Operator):
     bl_description = "Paste UV coordinate (Among Objects)"
     bl_options = {'REGISTER', 'UNDO'}
 
-    uv_map = StringProperty(default="__default", options={'HIDDEN'})
-    copy_seams = BoolProperty(
+    uv_map: StringProperty(default="__default", options={'HIDDEN'})
+    copy_seams: BoolProperty(
         name="Seams",
         description="Copy Seams",
         default=True

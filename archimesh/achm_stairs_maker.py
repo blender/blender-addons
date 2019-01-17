@@ -43,7 +43,7 @@ class AchmStairs(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     # Define properties
-    model = EnumProperty(
+    model: EnumProperty(
             items=(
                 ('1', "Rectangular", ""),
                 ('2', "Rounded", ""),
@@ -51,85 +51,85 @@ class AchmStairs(Operator):
             name="Model",
             description="Type of steps",
             )
-    radio = FloatProperty(
+    radio: FloatProperty(
             name='',
             min=0.001, max=0.500,
             default=0.20, precision=3,
             description='Radius factor for rounded',
             )
-    curve = BoolProperty(
+    curve: BoolProperty(
             name="Include deformation handles",
             description="Include a curve to modify the stairs curve",
             default=False,
             )
 
-    step_num = IntProperty(
+    step_num: IntProperty(
             name='Number of steps',
             min=1, max=1000,
             default=3,
             description='Number total of steps',
             )
-    max_width = FloatProperty(
+    max_width: FloatProperty(
             name='Width',
             min=0.001, max=10,
             default=1, precision=3,
             description='Step maximum width',
             )
-    depth = FloatProperty(
+    depth: FloatProperty(
             name='Depth',
             min=0.001, max=10,
             default=0.30, precision=3,
             description='Depth of the step',
             )
-    shift = FloatProperty(
+    shift: FloatProperty(
             name='Shift',
             min=0.001, max=1,
             default=1, precision=3,
             description='Step shift in Y axis',
             )
-    thickness = FloatProperty(
+    thickness: FloatProperty(
             name='Thickness',
             min=0.001, max=10,
             default=0.03, precision=3,
             description='Step thickness',
             )
-    sizev = BoolProperty(
+    sizev: BoolProperty(
             name="Variable width",
             description="Steps are not equal in width",
             default=False,
             )
-    back = BoolProperty(
+    back: BoolProperty(
             name="Close sides",
             description="Close all steps side to make a solid structure",
             default=False,
             )
-    min_width = FloatProperty(
+    min_width: FloatProperty(
             name='',
             min=0.001, max=10,
             default=1, precision=3,
             description='Step minimum width',
             )
 
-    height = FloatProperty(
+    height: FloatProperty(
             name='height',
             min=0.001, max=10,
             default=0.14, precision=3,
             description='Step height',
             )
-    front_gap = FloatProperty(
+    front_gap: FloatProperty(
             name='Front',
             min=0, max=10,
             default=0.03,
             precision=3,
             description='Front gap',
             )
-    side_gap = FloatProperty(
+    side_gap: FloatProperty(
             name='Side',
             min=0, max=10,
             default=0, precision=3,
             description='Side gap',
             )
-    crt_mat = BoolProperty(
+    crt_mat: BoolProperty(
             name="Create default Cycles materials",
             description="Create default materials for Cycles render",
             default=True,

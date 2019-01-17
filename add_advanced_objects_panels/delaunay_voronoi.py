@@ -228,7 +228,7 @@ class OBJECT_OT_VoronoiButton(Operator):
                       "Needs an existing Active Mesh Object")
     bl_options = {"REGISTER", "UNDO"}
 
-    meshType = EnumProperty(
+    meshType: EnumProperty(
             items=[('Edges', "Edges", "Edges Only - do not fill Faces"),
                    ('Faces', "Faces", "Fill Faces in the new Object")],
             name="Mesh type",

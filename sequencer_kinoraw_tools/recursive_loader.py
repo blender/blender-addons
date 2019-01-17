@@ -35,17 +35,17 @@ class Sequencer_Extra_RecursiveLoader(Operator):
     bl_label = "Recursive Load"
     bl_options = {'REGISTER', 'UNDO'}
 
-    recursive = BoolProperty(
+    recursive: BoolProperty(
             name="Recursive",
             description="Load in recursive folders",
             default=False
             )
-    recursive_select_by_extension = BoolProperty(
+    recursive_select_by_extension: BoolProperty(
             name="Select by extension",
             description="Load only clips with selected extension",
             default=False
             )
-    ext = EnumProperty(
+    ext: EnumProperty(
             items=functions.movieextdict,
             name="Extension",
             default='3'
