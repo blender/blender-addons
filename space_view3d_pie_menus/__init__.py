@@ -176,13 +176,13 @@ class PieToolsPreferences(AddonPreferences):
             return update
 
         use_prop_name = 'use_' + mod_name
-        __annotations__[use_prop_name]: BoolProperty(
+        __annotations__[use_prop_name] = BoolProperty(
             name=mod.bl_info['name'],
             description=mod.bl_info.get('description', ''),
             update=gen_update(mod, use_prop_name),
         )
 
-        __annotations__['show_expanded_' + mod_name]: BoolProperty()
+        __annotations__['show_expanded_' + mod_name] = BoolProperty()
 
     def draw(self, context):
         layout = self.layout
