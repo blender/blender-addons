@@ -50,18 +50,19 @@ _Rect = namedtuple('Rect', 'x0 y0 x1 y1')
 _Rect2 = namedtuple('Rect2', 'x y width height')
 
 
-def get_loaded_texture_name(_, __):
+def _get_loaded_texture_name(_, __):
     items = [(key, key, "") for key in bpy.data.images.keys()]
     items.append(("None", "None", ""))
     return items
 
 
-def get_canvas(context, magnitude):
+def _get_canvas(context, magnitude):
     """
     Get canvas to be renderred texture
     """
     sc = context.scene
-    prefs = compat.get_user_preferences(context).addons["uv_magic_uv"].preferences
+    user_prefs = compat.get_user_preferences(context)
+    prefs = user_prefs.addons["uv_magic_uv"].preferences
 
     region_w = context.region.width
     region_h = context.region.height
@@ -101,7 +102,7 @@ def get_canvas(context, magnitude):
     return _Rect(x0, y0, x1, y1)
 
 
-def rect_to_rect2(rect):
+def _rect_to_rect2(rect):
     """
     Convert Rect1 to Rect2
     """
@@ -109,12 +110,12 @@ def rect_to_rect2(rect):
     return _Rect2(rect.x0, rect.y0, rect.x1 - rect.x0, rect.y1 - rect.y0)
 
 
-def region_to_canvas(rg_vec, canvas):
+def _region_to_canvas(rg_vec, canvas):
     """
     Convert screen region to canvas
     """
 
-    cv_rect = rect_to_rect2(canvas)
+    cv_rect = _rect_to_rect2(canvas)
     cv_vec = mathutils.Vector()
     cv_vec.x = (rg_vec.x - cv_rect.x) / cv_rect.width
     cv_vec.y = (rg_vec.y - cv_rect.y) / cv_rect.height
@@ -122,7 +123,7 @@ def region_to_canvas(rg_vec, canvas):
     return cv_vec
 
 
-def is_valid_context(context):
+def _is_valid_context(context):
     obj = context.object
 
     # only edit mode is allowed to execute
@@ -156,14 +157,14 @@ class _Properties:
             pass
 
         def update_func(_, __):
-            bpy.ops.uv.muv_texture_projection_operator('INVOKE_REGION_WIN')
+            bpy.ops.uv.muv_ot_texture_projection('INVOKE_REGION_WIN')
 
-        scene.muv_texture_projection_enabled: BoolProperty(
+        scene.muv_texture_projection_enabled = BoolProperty(
             name="Texture Projection Enabled",
             description="Texture Projection is enabled",
             default=False
         )
-        scene.muv_texture_projection_enable: BoolProperty(
+        scene.muv_texture_projection_enable = BoolProperty(
             name="Texture Projection Enabled",
             description="Texture Projection is enabled",
             default=False,
@@ -171,36 +172,36 @@ class _Properties:
             set=set_func,
             update=update_func
         )
-        scene.muv_texture_projection_tex_magnitude: FloatProperty(
+        scene.muv_texture_projection_tex_magnitude = FloatProperty(
             name="Magnitude",
             description="Texture Magnitude",
             default=0.5,
             min=0.0,
             max=100.0
         )
-        scene.muv_texture_projection_tex_image: EnumProperty(
+        scene.muv_texture_projection_tex_image = EnumProperty(
             name="Image",
             description="Texture Image",
-            items=get_loaded_texture_name
+            items=_get_loaded_texture_name
         )
-        scene.muv_texture_projection_tex_transparency: FloatProperty(
+        scene.muv_texture_projection_tex_transparency = FloatProperty(
             name="Transparency",
             description="Texture Transparency",
             default=0.2,
             min=0.0,
             max=1.0
         )
-        scene.muv_texture_projection_adjust_window: BoolProperty(
+        scene.muv_texture_projection_adjust_window = BoolProperty(
             name="Adjust Window",
             description="Size of renderered texture is fitted to window",
             default=True
         )
-        scene.muv_texture_projection_apply_tex_aspect: BoolProperty(
+        scene.muv_texture_projection_apply_tex_aspect = BoolProperty(
             name="Texture Aspect Ratio",
             description="Apply Texture Aspect ratio to displayed texture",
             default=True
         )
-        scene.muv_texture_projection_assign_uvmap: BoolProperty(
+        scene.muv_texture_projection_assign_uvmap = BoolProperty(
             name="Assign UVMap",
             description="Assign UVMap when no UVmaps are available",
             default=True
@@ -224,7 +225,7 @@ class MUV_OT_TextureProjection(bpy.types.Operator):
     Render texture
     """
 
-    bl_idname = "uv.muv_texture_projection_operator"
+    bl_idname = "uv.muv_ot_texture_projection"
     bl_description = "Render selected texture"
     bl_label = "Texture renderer"
 
@@ -235,7 +236,7 @@ class MUV_OT_TextureProjection(bpy.types.Operator):
         # we can not get area/space/region from console
         if common.is_console_mode():
             return False
-        return is_valid_context(context)
+        return _is_valid_context(context)
 
     @classmethod
     def is_running(cls, _):
@@ -268,7 +269,7 @@ class MUV_OT_TextureProjection(bpy.types.Operator):
         img = bpy.data.images[sc.muv_texture_projection_tex_image]
 
         # setup rendering region
-        rect = get_canvas(context, sc.muv_texture_projection_tex_magnitude)
+        rect = _get_canvas(context, sc.muv_texture_projection_tex_magnitude)
         positions = [
             [rect.x0, rect.y0],
             [rect.x0, rect.y1],
@@ -296,10 +297,10 @@ class MUV_OT_TextureProjection(bpy.types.Operator):
             if img.bindcode:
                 bind = img.bindcode[0]
                 bgl.glBindTexture(bgl.GL_TEXTURE_2D, bind)
-                bgl.glTexParameteri(
-                    bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
-                bgl.glTexParameteri(
-                    bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_LINEAR)
+                bgl.glTexParameteri(bgl.GL_TEXTURE_2D,
+                                    bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
+                bgl.glTexParameteri(bgl.GL_TEXTURE_2D,
+                                    bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_LINEAR)
                 bgl.glTexEnvi(
                     bgl.GL_TEXTURE_ENV, bgl.GL_TEXTURE_ENV_MODE,
                     bgl.GL_MODULATE)
@@ -307,7 +308,7 @@ class MUV_OT_TextureProjection(bpy.types.Operator):
         # render texture
         bgl.glBegin(bgl.GL_QUADS)
         bgl.glColor4f(1.0, 1.0, 1.0,
-                       sc.muv_texture_projection_tex_transparency)
+                      sc.muv_texture_projection_tex_transparency)
         for (v1, v2), (u, v) in zip(positions, tex_coords):
             bgl.glTexCoord2f(u, v)
             bgl.glVertex2f(v1, v2)
@@ -331,7 +332,7 @@ class MUV_OT_TextureProjection_Project(bpy.types.Operator):
     Operation class: Project texture
     """
 
-    bl_idname = "uv.muv_texture_projection_operator_project"
+    bl_idname = "uv.muv_ot_texture_projection_project"
     bl_label = "Project Texture"
     bl_description = "Project Texture"
     bl_options = {'REGISTER', 'UNDO'}
@@ -343,7 +344,7 @@ class MUV_OT_TextureProjection_Project(bpy.types.Operator):
             return True
         if not MUV_OT_TextureProjection.is_running(context):
             return False
-        return is_valid_context(context)
+        return _is_valid_context(context)
 
     def execute(self, context):
         sc = context.scene
@@ -387,17 +388,18 @@ class MUV_OT_TextureProjection_Project(bpy.types.Operator):
 
         # transform screen region to canvas
         v_canvas = [
-            region_to_canvas(
+            _region_to_canvas(
                 v,
-                get_canvas(bpy.context,
-                           sc.muv_texture_projection_tex_magnitude)
+                _get_canvas(bpy.context,
+                            sc.muv_texture_projection_tex_magnitude)
             ) for v in v_screen
         ]
 
         if compat.check_version(2, 80, 0) >= 0:
             # set texture
             nodes = common.find_texture_nodes(obj)
-            nodes[0].image = bpy.data.images[sc.muv_texture_projection_tex_image]
+            nodes[0].image = \
+                bpy.data.images[sc.muv_texture_projection_tex_image]
 
         # project texture to object
         i = 0

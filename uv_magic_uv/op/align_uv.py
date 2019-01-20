@@ -296,41 +296,41 @@ class _Properties:
 
     @classmethod
     def init_props(cls, scene):
-        scene.muv_align_uv_enabled: BoolProperty(
+        scene.muv_align_uv_enabled = BoolProperty(
             name="Align UV Enabled",
             description="Align UV is enabled",
             default=False
         )
-        scene.muv_align_uv_transmission: BoolProperty(
+        scene.muv_align_uv_transmission = BoolProperty(
             name="Transmission",
             description="Align linked UVs",
             default=False
         )
-        scene.muv_align_uv_select: BoolProperty(
+        scene.muv_align_uv_select = BoolProperty(
             name="Select",
             description="Select UVs which are aligned",
             default=False
         )
-        scene.muv_align_uv_vertical: BoolProperty(
+        scene.muv_align_uv_vertical = BoolProperty(
             name="Vert-Infl (Vertical)",
             description="Align vertical direction influenced "
                         "by mesh vertex proportion",
             default=False
         )
-        scene.muv_align_uv_horizontal: BoolProperty(
+        scene.muv_align_uv_horizontal = BoolProperty(
             name="Vert-Infl (Horizontal)",
             description="Align horizontal direction influenced "
                         "by mesh vertex proportion",
             default=False
         )
-        scene.muv_align_uv_mesh_infl: FloatProperty(
+        scene.muv_align_uv_mesh_infl = FloatProperty(
             name="Mesh Influence",
             description="Influence rate of mesh vertex",
             min=0.0,
             max=1.0,
             default=0.0
         )
-        scene.muv_align_uv_location: EnumProperty(
+        scene.muv_align_uv_location = EnumProperty(
             name="Location",
             description="Align location",
             items=[
@@ -356,17 +356,17 @@ class _Properties:
 @compat.make_annotations
 class MUV_OT_AlignUV_Circle(bpy.types.Operator):
 
-    bl_idname = "uv.muv_align_uv_operator_circle"
+    bl_idname = "uv.muv_ot_align_uv_circle"
     bl_label = "Align UV (Circle)"
     bl_description = "Align UV coordinates to Circle"
     bl_options = {'REGISTER', 'UNDO'}
 
-    transmission: BoolProperty(
+    transmission = BoolProperty(
         name="Transmission",
         description="Align linked UVs",
         default=False
     )
-    select: BoolProperty(
+    select = BoolProperty(
         name="Select",
         description="Select UVs which are aligned",
         default=False
@@ -442,34 +442,34 @@ class MUV_OT_AlignUV_Circle(bpy.types.Operator):
 @compat.make_annotations
 class MUV_OT_AlignUV_Straighten(bpy.types.Operator):
 
-    bl_idname = "uv.muv_align_uv_operator_straighten"
+    bl_idname = "uv.muv_ot_align_uv_straighten"
     bl_label = "Align UV (Straighten)"
     bl_description = "Straighten UV coordinates"
     bl_options = {'REGISTER', 'UNDO'}
 
-    transmission: BoolProperty(
+    transmission = BoolProperty(
         name="Transmission",
         description="Align linked UVs",
         default=False
     )
-    select: BoolProperty(
+    select = BoolProperty(
         name="Select",
         description="Select UVs which are aligned",
         default=False
     )
-    vertical: BoolProperty(
+    vertical = BoolProperty(
         name="Vert-Infl (Vertical)",
         description="Align vertical direction influenced "
                     "by mesh vertex proportion",
         default=False
     )
-    horizontal: BoolProperty(
+    horizontal = BoolProperty(
         name="Vert-Infl (Horizontal)",
         description="Align horizontal direction influenced "
                     "by mesh vertex proportion",
         default=False
     )
-    mesh_infl: FloatProperty(
+    mesh_infl = FloatProperty(
         name="Mesh Influence",
         description="Influence rate of mesh vertex",
         min=0.0,
@@ -594,34 +594,34 @@ class MUV_OT_AlignUV_Straighten(bpy.types.Operator):
 @compat.make_annotations
 class MUV_OT_AlignUV_Axis(bpy.types.Operator):
 
-    bl_idname = "uv.muv_align_uv_operator_axis"
+    bl_idname = "uv.muv_ot_align_uv_axis"
     bl_label = "Align UV (XY-Axis)"
     bl_description = "Align UV to XY-axis"
     bl_options = {'REGISTER', 'UNDO'}
 
-    transmission: BoolProperty(
+    transmission = BoolProperty(
         name="Transmission",
         description="Align linked UVs",
         default=False
     )
-    select: BoolProperty(
+    select = BoolProperty(
         name="Select",
         description="Select UVs which are aligned",
         default=False
     )
-    vertical: BoolProperty(
+    vertical = BoolProperty(
         name="Vert-Infl (Vertical)",
         description="Align vertical direction influenced "
                     "by mesh vertex proportion",
         default=False
     )
-    horizontal: BoolProperty(
+    horizontal = BoolProperty(
         name="Vert-Infl (Horizontal)",
         description="Align horizontal direction influenced "
                     "by mesh vertex proportion",
         default=False
     )
-    location: EnumProperty(
+    location = EnumProperty(
         name="Location",
         description="Align location",
         items=[
@@ -631,7 +631,7 @@ class MUV_OT_AlignUV_Axis(bpy.types.Operator):
         ],
         default='MIDDLE'
     )
-    mesh_infl: FloatProperty(
+    mesh_infl = FloatProperty(
         name="Mesh Influence",
         description="Influence rate of mesh vertex",
         min=0.0,

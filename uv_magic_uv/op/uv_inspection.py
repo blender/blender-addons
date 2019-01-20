@@ -99,14 +99,14 @@ class _Properties:
             pass
 
         def update_func(_, __):
-            bpy.ops.uv.muv_uv_inspection_operator_render('INVOKE_REGION_WIN')
+            bpy.ops.uv.muv_ot_uv_inspection_render('INVOKE_REGION_WIN')
 
-        scene.muv_uv_inspection_enabled: BoolProperty(
+        scene.muv_uv_inspection_enabled = BoolProperty(
             name="UV Inspection Enabled",
             description="UV Inspection is enabled",
             default=False
         )
-        scene.muv_uv_inspection_show: BoolProperty(
+        scene.muv_uv_inspection_show = BoolProperty(
             name="UV Inspection Showed",
             description="UV Inspection is showed",
             default=False,
@@ -114,17 +114,17 @@ class _Properties:
             set=set_func,
             update=update_func
         )
-        scene.muv_uv_inspection_show_overlapped: BoolProperty(
+        scene.muv_uv_inspection_show_overlapped = BoolProperty(
             name="Overlapped",
             description="Show overlapped UVs",
             default=False
         )
-        scene.muv_uv_inspection_show_flipped: BoolProperty(
+        scene.muv_uv_inspection_show_flipped = BoolProperty(
             name="Flipped",
             description="Show flipped UVs",
             default=False
         )
-        scene.muv_uv_inspection_show_mode: EnumProperty(
+        scene.muv_uv_inspection_show_mode = EnumProperty(
             name="Mode",
             description="Show mode",
             items=[
@@ -151,7 +151,7 @@ class MUV_OT_UVInspection_Render(bpy.types.Operator):
     No operation (only rendering)
     """
 
-    bl_idname = "uv.muv_uv_inspection_operator_render"
+    bl_idname = "uv.muv_ot_uv_inspection_render"
     bl_description = "Render overlapped/flipped UVs"
     bl_label = "Overlapped/Flipped UV renderer"
 
@@ -186,7 +186,8 @@ class MUV_OT_UVInspection_Render(bpy.types.Operator):
     def draw(_, context):
         sc = context.scene
         props = sc.muv_props.uv_inspection
-        prefs = compat.get_user_preferences(context).addons["uv_magic_uv"].preferences
+        user_prefs = compat.get_user_preferences(context)
+        prefs = user_prefs.addons["uv_magic_uv"].preferences
 
         if not MUV_OT_UVInspection_Render.is_running(context):
             return
@@ -257,7 +258,7 @@ class MUV_OT_UVInspection_Update(bpy.types.Operator):
     Operation class: Update
     """
 
-    bl_idname = "uv.muv_uv_inspection_operator_update"
+    bl_idname = "uv.muv_ot_uv_inspection_update"
     bl_label = "Update UV Inspection"
     bl_description = "Update UV Inspection"
     bl_options = {'REGISTER', 'UNDO'}

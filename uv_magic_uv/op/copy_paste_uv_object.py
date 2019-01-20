@@ -75,7 +75,7 @@ class _Properties:
 
         scene.muv_props.copy_paste_uv_object = Props()
 
-        scene.muv_copy_paste_uv_object_copy_seams: BoolProperty(
+        scene.muv_copy_paste_uv_object_copy_seams = BoolProperty(
             name="Seams",
             description="Copy Seams",
             default=True
@@ -103,12 +103,12 @@ class MUV_OT_CopyPasteUVObject_CopyUV(bpy.types.Operator):
     Operation class: Copy UV coordinate among objects
     """
 
-    bl_idname = "object.muv_copy_paste_uv_object_operator_copy_uv"
+    bl_idname = "object.muv_ot_copy_paste_uv_object_copy_uv"
     bl_label = "Copy UV (Among Objects)"
     bl_description = "Copy UV coordinate (Among Objects)"
     bl_options = {'REGISTER', 'UNDO'}
 
-    uv_map: StringProperty(default="__default", options={'HIDDEN'})
+    uv_map = StringProperty(default="__default", options={'HIDDEN'})
 
     @classmethod
     def poll(cls, context):
@@ -147,7 +147,7 @@ class MUV_MT_CopyPasteUVObject_CopyUV(bpy.types.Menu):
     Menu class: Copy UV coordinate among objects
     """
 
-    bl_idname = "object.muv_copy_paste_uv_object_menu_copy_uv"
+    bl_idname = "object.muv_mt_copy_paste_uv_object_copy_uv"
     bl_label = "Copy UV (Among Objects) (Menu)"
     bl_description = "Menu of Copy UV coordinate (Among Objects)"
 
@@ -181,13 +181,13 @@ class MUV_OT_CopyPasteUVObject_PasteUV(bpy.types.Operator):
     Operation class: Paste UV coordinate among objects
     """
 
-    bl_idname = "object.muv_copy_paste_uv_object_operator_paste_uv"
+    bl_idname = "object.muv_ot_copy_paste_uv_object_paste_uv"
     bl_label = "Paste UV (Among Objects)"
     bl_description = "Paste UV coordinate (Among Objects)"
     bl_options = {'REGISTER', 'UNDO'}
 
-    uv_map: StringProperty(default="__default", options={'HIDDEN'})
-    copy_seams: BoolProperty(
+    uv_map = StringProperty(default="__default", options={'HIDDEN'})
+    copy_seams = BoolProperty(
         name="Seams",
         description="Copy Seams",
         default=True
@@ -212,7 +212,9 @@ class MUV_OT_CopyPasteUVObject_PasteUV(bpy.types.Operator):
             return {'CANCELLED'}
 
         for o in bpy.data.objects:
-            if not compat.object_has_uv_layers(o) or not compat.get_object_select(o):
+            if not compat.object_has_uv_layers(o):
+                continue
+            if not compat.get_object_select(o):
                 continue
 
             bpy.ops.object.mode_set(mode='OBJECT')
@@ -258,7 +260,7 @@ class MUV_MT_CopyPasteUVObject_PasteUV(bpy.types.Menu):
     Menu class: Paste UV coordinate among objects
     """
 
-    bl_idname = "object.muv_copy_paste_uv_object_menu_paste_uv"
+    bl_idname = "object.muv_mt_copy_paste_uv_object_paste_uv"
     bl_label = "Paste UV (Among Objects) (Menu)"
     bl_description = "Menu of Paste UV coordinate (Among Objects)"
 
@@ -276,8 +278,11 @@ class MUV_MT_CopyPasteUVObject_PasteUV(bpy.types.Menu):
         # create sub menu
         uv_maps = []
         for obj in bpy.data.objects:
-            if compat.object_has_uv_layers(obj) and compat.get_object_select(obj):
-                uv_maps.extend(compat.get_object_uv_layers(obj).keys())
+            if not compat.object_has_uv_layers(obj):
+                continue
+            if not compat.get_object_select(obj):
+                continue
+            uv_maps.extend(compat.get_object_uv_layers(obj).keys())
 
         ops = layout.operator(MUV_OT_CopyPasteUVObject_PasteUV.bl_idname,
                               text="[Default]")

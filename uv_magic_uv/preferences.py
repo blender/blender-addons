@@ -29,15 +29,38 @@ from bpy.props import (
     FloatVectorProperty,
     BoolProperty,
     EnumProperty,
-    StringProperty,
 )
 from bpy.types import AddonPreferences
 
-from . import op
-from . import ui
+from . import common
+from .op.flip_rotate_uv import MUV_OT_FlipRotate
+from .op.mirror_uv import MUV_OT_MirrorUV
+from .op.move_uv import MUV_OT_MoveUV
+from .op.unwrap_constraint import MUV_OT_UnwrapConstraint
+from .op.pack_uv import MUV_OT_PackUV
+from .op.smooth_uv import MUV_OT_SmoothUV
+from .ui.VIEW3D_MT_uv_map import (
+    MUV_MT_CopyPasteUV,
+    MUV_MT_TransferUV,
+    MUV_MT_WorldScaleUV,
+    MUV_MT_PreserveUVAspect,
+    MUV_MT_TextureLock,
+    MUV_MT_TextureWrap,
+    MUV_MT_TextureProjection,
+    MUV_MT_UVW,
+)
+from .ui.VIEW3D_MT_object import MUV_MT_CopyPasteUV_Object
+from .ui.IMAGE_MT_uvs import (
+    MUV_MT_CopyPasteUV_UVEdit,
+    MUV_MT_SelectUV,
+    MUV_MT_AlignUV,
+    MUV_MT_AlignUVCursor,
+    MUV_MT_UVInspection,
+)
 from .utils.bl_class_registry import BlClassRegistry
 from .utils.addon_updator import AddonUpdatorManager
 from .utils import compatibility as compat
+from . import updater
 
 
 def view3d_uvmap_menu_fn(self, context):
@@ -47,52 +70,42 @@ def view3d_uvmap_menu_fn(self, context):
     layout.separator()
     layout.label(text="Copy/Paste UV", icon=compat.icon('IMAGE'))
     # Copy/Paste UV
-    layout.menu(ui.VIEW3D_MT_uv_map.MUV_MT_CopyPasteUV.bl_idname,
-                text="Copy/Paste UV")
+    layout.menu(MUV_MT_CopyPasteUV.bl_idname, text="Copy/Paste UV")
     # Transfer UV
-    layout.menu(ui.VIEW3D_MT_uv_map.MUV_MT_TransferUV.bl_idname,
-                text="Transfer UV")
+    layout.menu(MUV_MT_TransferUV.bl_idname, text="Transfer UV")
 
     layout.separator()
     layout.label(text="UV Manipulation", icon=compat.icon('IMAGE'))
     # Flip/Rotate UV
-    ops = layout.operator(op.flip_rotate_uv.MUV_OT_FlipRotate.bl_idname,
-                          text="Flip/Rotate UV")
+    ops = layout.operator(MUV_OT_FlipRotate.bl_idname, text="Flip/Rotate UV")
     ops.seams = sc.muv_flip_rotate_uv_seams
     # Mirror UV
-    ops = layout.operator(op.mirror_uv.MUV_OT_MirrorUV.bl_idname,
-                          text="Mirror UV")
+    ops = layout.operator(MUV_OT_MirrorUV.bl_idname, text="Mirror UV")
     ops.axis = sc.muv_mirror_uv_axis
     # Move UV
-    layout.operator(op.move_uv.MUV_OT_MoveUV.bl_idname, text="Move UV")
+    layout.operator(MUV_OT_MoveUV.bl_idname, text="Move UV")
     # World Scale UV
-    layout.menu(ui.VIEW3D_MT_uv_map.MUV_MT_WorldScaleUV.bl_idname,
-                text="World Scale UV")
+    layout.menu(MUV_MT_WorldScaleUV.bl_idname, text="World Scale UV")
     # Preserve UV
-    layout.menu(ui.VIEW3D_MT_uv_map.MUV_MT_PreserveUVAspect.bl_idname,
-                text="Preserve UV")
+    layout.menu(MUV_MT_PreserveUVAspect.bl_idname, text="Preserve UV")
     # Texture Lock
-    layout.menu(ui.VIEW3D_MT_uv_map.MUV_MT_TextureLock.bl_idname,
-                text="Texture Lock")
+    layout.menu(MUV_MT_TextureLock.bl_idname, text="Texture Lock")
     # Texture Wrap
-    layout.menu(ui.VIEW3D_MT_uv_map.MUV_MT_TextureWrap.bl_idname,
-                text="Texture Wrap")
+    layout.menu(MUV_MT_TextureWrap.bl_idname, text="Texture Wrap")
     # UV Sculpt
     layout.prop(sc, "muv_uv_sculpt_enable", text="UV Sculpt")
 
     layout.separator()
     layout.label(text="UV Mapping", icon=compat.icon('IMAGE'))
     # Unwrap Constraint
-    ops = layout.operator(
-        op.unwrap_constraint.MUV_OT_UnwrapConstraint.bl_idname,
-        text="Unwrap Constraint")
+    ops = layout.operator(MUV_OT_UnwrapConstraint.bl_idname,
+                          text="Unwrap Constraint")
     ops.u_const = sc.muv_unwrap_constraint_u_const
     ops.v_const = sc.muv_unwrap_constraint_v_const
     # Texture Projection
-    layout.menu(ui.VIEW3D_MT_uv_map.MUV_MT_TextureProjection.bl_idname,
-                text="Texture Projection")
+    layout.menu(MUV_MT_TextureProjection.bl_idname, text="Texture Projection")
     # UVW
-    layout.menu(ui.VIEW3D_MT_uv_map.MUV_MT_UVW.bl_idname, text="UVW")
+    layout.menu(MUV_MT_UVW.bl_idname, text="UVW")
 
 
 def view3d_object_menu_fn(self, _):
@@ -101,8 +114,7 @@ def view3d_object_menu_fn(self, _):
     layout.separator()
     layout.label(text="Copy/Paste UV", icon=compat.icon('IMAGE'))
     # Copy/Paste UV (Among Object)
-    layout.menu(ui.VIEW3D_MT_object.MUV_MT_CopyPasteUV_Object.bl_idname,
-                text="Copy/Paste UV")
+    layout.menu(MUV_MT_CopyPasteUV_Object.bl_idname, text="Copy/Paste UV")
 
 
 def image_uvs_menu_fn(self, context):
@@ -112,36 +124,32 @@ def image_uvs_menu_fn(self, context):
     layout.separator()
     # Copy/Paste UV (on UV/Image Editor)
     layout.label(text="Copy/Paste UV", icon=compat.icon('IMAGE'))
-    layout.menu(ui.IMAGE_MT_uvs.MUV_MT_CopyPasteUV_UVEdit.bl_idname,
-                text="Copy/Paste UV")
+    layout.menu(MUV_MT_CopyPasteUV_UVEdit.bl_idname, text="Copy/Paste UV")
 
     layout.separator()
     # Pack UV
     layout.label(text="UV Manipulation", icon=compat.icon('IMAGE'))
-    ops = layout.operator(op.pack_uv.MUV_OT_PackUV.bl_idname, text="Pack UV")
+    ops = layout.operator(MUV_OT_PackUV.bl_idname, text="Pack UV")
     ops.allowable_center_deviation = sc.muv_pack_uv_allowable_center_deviation
     ops.allowable_size_deviation = sc.muv_pack_uv_allowable_size_deviation
     # Select UV
-    layout.menu(ui.IMAGE_MT_uvs.MUV_MT_SelectUV.bl_idname, text="Select UV")
+    layout.menu(MUV_MT_SelectUV.bl_idname, text="Select UV")
     # Smooth UV
-    ops = layout.operator(op.smooth_uv.MUV_OT_SmoothUV.bl_idname,
-                          text="Smooth")
+    ops = layout.operator(MUV_OT_SmoothUV.bl_idname, text="Smooth")
     ops.transmission = sc.muv_smooth_uv_transmission
     ops.select = sc.muv_smooth_uv_select
     ops.mesh_infl = sc.muv_smooth_uv_mesh_infl
     # Align UV
-    layout.menu(ui.IMAGE_MT_uvs.MUV_MT_AlignUV.bl_idname, text="Align UV")
+    layout.menu(MUV_MT_AlignUV.bl_idname, text="Align UV")
 
     layout.separator()
     # Align UV Cursor
     layout.label(text="Editor Enhancement", icon=compat.icon('IMAGE'))
-    layout.menu(ui.IMAGE_MT_uvs.MUV_MT_AlignUVCursor.bl_idname,
-                text="Align UV Cursor")
+    layout.menu(MUV_MT_AlignUVCursor.bl_idname, text="Align UV Cursor")
     # UV Bounding Box
     layout.prop(sc, "muv_uv_bounding_box_show", text="UV Bounding Box")
     # UV Inspection
-    layout.menu(ui.IMAGE_MT_uvs.MUV_MT_UVInspection.bl_idname,
-                text="UV Inspection")
+    layout.menu(MUV_MT_UVInspection.bl_idname, text="UV Inspection")
 
 
 def add_builtin_menu():
@@ -156,47 +164,25 @@ def remove_builtin_menu():
     bpy.types.VIEW3D_MT_uv_map.remove(view3d_uvmap_menu_fn)
 
 
-@BlClassRegistry()
-class MUV_OT_CheckAddonUpdate(bpy.types.Operator):
-    bl_idname = "uv.muv_check_addon_update"
-    bl_label = "Check Update"
-    bl_description = "Check Add-on Update"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        updater = AddonUpdatorManager.get_instance()
-        updater.check_update_candidate()
-
-        return {'FINISHED'}
-
-
-@BlClassRegistry()
-@compat.make_annotations
-class MUV_OT_UpdateAddon(bpy.types.Operator):
-    bl_idname = "uv.muv_update_addon"
-    bl_label = "Update"
-    bl_description = "Update Add-on"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    branch_name: StringProperty(
-        name="Branch Name",
-        description="Branch name to update",
-        default="",
-    )
-
-    def execute(self, context):
-        updater = AddonUpdatorManager.get_instance()
-        updater.update(self.branch_name)
-
-        return {'FINISHED'}
-
-
 def get_update_candidate_branches(_, __):
-    updater = AddonUpdatorManager.get_instance()
-    if not updater.candidate_checked():
+    manager = AddonUpdatorManager.get_instance()
+    if not manager.candidate_checked():
         return []
 
-    return [(name, name, "") for name in updater.get_candidate_branch_names()]
+    return [(name, name, "") for name in manager.get_candidate_branch_names()]
+
+
+def set_debug_mode(self, value):
+    self['enable_debug_mode'] = value
+
+
+def get_debug_mode(self):
+    enabled = self.get('enable_debug_mode', False)
+    if enabled:
+        common.enable_debugg_mode()
+    else:
+        common.disable_debug_mode()
+    return enabled
 
 
 @BlClassRegistry()
@@ -213,15 +199,24 @@ class Preferences(AddonPreferences):
             remove_builtin_menu()
 
     # enable to add features to built-in menu
-    enable_builtin_menu: BoolProperty(
+    enable_builtin_menu = BoolProperty(
         name="Built-in Menu",
         description="Enable built-in menu",
         default=True,
         update=update_enable_builtin_menu,
     )
 
+    # enable debug mode
+    enable_debug_mode = BoolProperty(
+        name="Debug Mode",
+        description="Enable debugging mode",
+        default=False,
+        set=set_debug_mode,
+        get=get_debug_mode,
+    )
+
     # for UV Sculpt
-    uv_sculpt_brush_color: FloatVectorProperty(
+    uv_sculpt_brush_color = FloatVectorProperty(
         name="Color",
         description="Color",
         default=(1.0, 0.4, 0.4, 1.0),
@@ -232,7 +227,7 @@ class Preferences(AddonPreferences):
     )
 
     # for Overlapped UV
-    uv_inspection_overlapped_color: FloatVectorProperty(
+    uv_inspection_overlapped_color = FloatVectorProperty(
         name="Color",
         description="Color",
         default=(0.0, 0.0, 1.0, 0.3),
@@ -243,7 +238,7 @@ class Preferences(AddonPreferences):
     )
 
     # for Flipped UV
-    uv_inspection_flipped_color: FloatVectorProperty(
+    uv_inspection_flipped_color = FloatVectorProperty(
         name="Color",
         description="Color",
         default=(1.0, 0.0, 0.0, 0.3),
@@ -254,7 +249,7 @@ class Preferences(AddonPreferences):
     )
 
     # for Texture Projection
-    texture_projection_canvas_padding: FloatVectorProperty(
+    texture_projection_canvas_padding = FloatVectorProperty(
         name="Canvas Padding",
         description="Canvas Padding",
         size=2,
@@ -263,13 +258,13 @@ class Preferences(AddonPreferences):
         default=(20.0, 20.0))
 
     # for UV Bounding Box
-    uv_bounding_box_cp_size: FloatProperty(
+    uv_bounding_box_cp_size = FloatProperty(
         name="Size",
         description="Control Point Size",
         default=6.0,
         min=3.0,
         max=100.0)
-    uv_bounding_box_cp_react_size: FloatProperty(
+    uv_bounding_box_cp_react_size = FloatProperty(
         name="React Size",
         description="Size event fired",
         default=10.0,
@@ -277,7 +272,7 @@ class Preferences(AddonPreferences):
         max=100.0)
 
     # for UI
-    category: EnumProperty(
+    category = EnumProperty(
         name="Category",
         description="Preferences Category",
         items=[
@@ -287,45 +282,45 @@ class Preferences(AddonPreferences):
         ],
         default='INFO'
     )
-    info_desc_expanded: BoolProperty(
+    info_desc_expanded = BoolProperty(
         name="Description",
         description="Description",
         default=False
     )
-    info_loc_expanded: BoolProperty(
+    info_loc_expanded = BoolProperty(
         name="Location",
         description="Location",
         default=False
     )
-    conf_uv_sculpt_expanded: BoolProperty(
+    conf_uv_sculpt_expanded = BoolProperty(
         name="UV Sculpt",
         description="UV Sculpt",
         default=False
     )
-    conf_uv_inspection_expanded: BoolProperty(
+    conf_uv_inspection_expanded = BoolProperty(
         name="UV Inspection",
         description="UV Inspection",
         default=False
     )
-    conf_texture_projection_expanded: BoolProperty(
+    conf_texture_projection_expanded = BoolProperty(
         name="Texture Projection",
         description="Texture Projection",
         default=False
     )
-    conf_uv_bounding_box_expanded: BoolProperty(
+    conf_uv_bounding_box_expanded = BoolProperty(
         name="UV Bounding Box",
         description="UV Bounding Box",
         default=False
     )
 
     # for add-on updater
-    updater_branch_to_update: EnumProperty(
+    updater_branch_to_update = EnumProperty(
         name="branch",
         description="Target branch to update add-on",
         items=get_update_candidate_branches
     )
 
-    def draw(self, context):
+    def draw(self, _):
         layout = self.layout
 
         layout.row().prop(self, "category", expand=True)
@@ -340,11 +335,11 @@ class Preferences(AddonPreferences):
             if self.info_desc_expanded:
                 col = layout.column(align=True)
                 col.label(text="Magic UV is composed of many UV editing" +
-                               " features.")
+                          " features.")
                 col.label(text="See tutorial page if you are new to this" +
-                               " add-on.")
+                          " add-on.")
                 col.label(text="https://github.com/nutti/Magic-UV" +
-                               "/wiki/Tutorial")
+                          "/wiki/Tutorial")
 
             layout.prop(
                 self, "info_loc_expanded", text="Location",
@@ -354,7 +349,7 @@ class Preferences(AddonPreferences):
                 row = layout.row(align=True)
                 sp = compat.layout_split(row, 0.5)
                 sp.label(text="3D View > Tool shelf > " +
-                              "Copy/Paste UV (Object mode)")
+                         "Copy/Paste UV (Object mode)")
                 sp = compat.layout_split(sp, 1.0)
                 col = sp.column(align=True)
                 col.label(text="Copy/Paste UV (Among objects)")
@@ -362,7 +357,7 @@ class Preferences(AddonPreferences):
                 row = layout.row(align=True)
                 sp = compat.layout_split(row, 0.5)
                 sp.label(text="3D View > Tool shelf > " +
-                              "Copy/Paste UV (Edit mode)")
+                         "Copy/Paste UV (Edit mode)")
                 sp = compat.layout_split(sp, 1.0)
                 col = sp.column(align=True)
                 col.label(text="Copy/Paste UV (Among faces in 3D View)")
@@ -371,7 +366,7 @@ class Preferences(AddonPreferences):
                 row = layout.row(align=True)
                 sp = compat.layout_split(row, 0.5)
                 sp.label(text="3D View > Tool shelf > " +
-                              "UV Manipulation (Edit mode)")
+                         "UV Manipulation (Edit mode)")
                 sp = compat.layout_split(sp, 1.0)
                 col = sp.column(align=True)
                 col.label(text="Flip/Rotate UV")
@@ -386,7 +381,7 @@ class Preferences(AddonPreferences):
                 row = layout.row(align=True)
                 sp = compat.layout_split(row, 0.5)
                 sp.label(text="3D View > Tool shelf > " +
-                              "UV Manipulation (Edit mode)")
+                         "UV Manipulation (Edit mode)")
                 sp = compat.layout_split(sp, 1.0)
                 col = sp.column(align=True)
                 col.label(text="Unwrap Constraint")
@@ -398,7 +393,8 @@ class Preferences(AddonPreferences):
                 sp.label(text="UV/Image Editor > Tool shelf > Copy/Paste UV")
                 sp = compat.layout_split(sp, 1.0)
                 col = sp.column(align=True)
-                col.label(text="Copy/Paste UV (Among faces in UV/Image Editor)")
+                col.label(text="Copy/Paste UV " +
+                          "(Among faces in UV/Image Editor)")
 
                 row = layout.row(align=True)
                 sp = compat.layout_split(row, 0.5)
@@ -413,7 +409,7 @@ class Preferences(AddonPreferences):
                 row = layout.row(align=True)
                 sp = compat.layout_split(row, 0.5)
                 sp.label(text="UV/Image Editor > Tool shelf > " +
-                              "Editor Enhancement")
+                         "Editor Enhancement")
                 sp = compat.layout_split(sp, 1.0)
                 col = sp.column(align=True)
                 col.label(text="Align UV Cursor")
@@ -425,6 +421,7 @@ class Preferences(AddonPreferences):
             layout.separator()
 
             layout.prop(self, "enable_builtin_menu", text="Built-in Menu")
+            layout.prop(self, "enable_debug_mode", text="Debug Mode")
 
             layout.separator()
 
@@ -488,51 +485,4 @@ class Preferences(AddonPreferences):
                 layout.separator()
 
         elif self.category == 'UPDATE':
-            updater = AddonUpdatorManager.get_instance()
-
-            layout.separator()
-
-            if not updater.candidate_checked():
-                col = layout.column()
-                col.scale_y = 2
-                row = col.row()
-                row.operator(MUV_OT_CheckAddonUpdate.bl_idname,
-                             text="Check 'Magic UV' add-on update",
-                             icon='FILE_REFRESH')
-            else:
-                row = layout.row(align=True)
-                row.scale_y = 2
-                col = row.column()
-                col.operator(MUV_OT_CheckAddonUpdate.bl_idname,
-                             text="Check 'Magic UV' add-on update",
-                             icon='FILE_REFRESH')
-                col = row.column()
-                if updater.latest_version() != "":
-                    col.enabled = True
-                    ops = col.operator(
-                        MUV_OT_UpdateAddon.bl_idname,
-                        text="Update to the latest release version (version: {})"
-                             .format(updater.latest_version()),
-                        icon='TRIA_DOWN_BAR')
-                    ops.branch_name = updater.latest_version()
-                else:
-                    col.enabled = False
-                    col.operator(MUV_OT_UpdateAddon.bl_idname,
-                                text="No updates are available.")
-
-                layout.separator()
-                layout.label(text="Manual Update:")
-                row = layout.row(align=True)
-                row.prop(self, "updater_branch_to_update", text="Target")
-                ops = row.operator(
-                    MUV_OT_UpdateAddon.bl_idname, text="Update",
-                    icon='TRIA_DOWN_BAR')
-                ops.branch_name = self.updater_branch_to_update
-
-                layout.separator()
-                if updater.has_error():
-                    box = layout.box()
-                    box.label(text=updater.error(), icon='CANCEL')
-                elif updater.has_info():
-                    box = layout.box()
-                    box.label(text=updater.info(), icon='ERROR')
+            updater.draw_updater_ui(self)

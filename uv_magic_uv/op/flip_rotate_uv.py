@@ -144,12 +144,12 @@ class _Properties:
 
     @classmethod
     def init_props(cls, scene):
-        scene.muv_flip_rotate_uv_enabled: BoolProperty(
+        scene.muv_flip_rotate_uv_enabled = BoolProperty(
             name="Flip/Rotate UV Enabled",
             description="Flip/Rotate UV is enabled",
             default=False
         )
-        scene.muv_flip_rotate_uv_seams: BoolProperty(
+        scene.muv_flip_rotate_uv_seams = BoolProperty(
             name="Seams",
             description="Seams",
             default=True
@@ -168,23 +168,23 @@ class MUV_OT_FlipRotate(bpy.types.Operator):
     Operation class: Flip and Rotate UV coordinate
     """
 
-    bl_idname = "uv.muv_flip_rotate_uv_operator"
+    bl_idname = "uv.muv_ot_flip_rotate_uv"
     bl_label = "Flip/Rotate UV"
     bl_description = "Flip/Rotate UV coordinate"
     bl_options = {'REGISTER', 'UNDO'}
 
-    flip: BoolProperty(
+    flip = BoolProperty(
         name="Flip UV",
         description="Flip UV...",
         default=False
     )
-    rotate: IntProperty(
+    rotate = IntProperty(
         default=0,
         name="Rotate UV",
         min=0,
         max=30
     )
-    seams: BoolProperty(
+    seams = BoolProperty(
         name="Seams",
         description="Seams",
         default=True

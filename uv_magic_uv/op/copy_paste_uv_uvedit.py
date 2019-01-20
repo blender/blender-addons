@@ -23,15 +23,14 @@ __status__ = "production"
 __version__ = "5.2"
 __date__ = "17 Nov 2018"
 
-import bpy
 import math
 from math import atan2, sin, cos
 
+import bpy
 import bmesh
 from mathutils import Vector
 
 from .. import common
-
 from ..utils.bl_class_registry import BlClassRegistry
 from ..utils.property_class_registry import PropertyClassRegistry
 
@@ -81,7 +80,7 @@ class MUV_OT_CopyPasteUVUVEdit_CopyUV(bpy.types.Operator):
     Operation class: Copy UV coordinate on UV/Image Editor
     """
 
-    bl_idname = "uv.muv_copy_paste_uv_uvedit_operator_copy_uv"
+    bl_idname = "uv.muv_ot_copy_paste_uv_uvedit_copy_uv"
     bl_label = "Copy UV (UV/Image Editor)"
     bl_description = "Copy UV coordinate (only selected in UV/Image Editor)"
     bl_options = {'REGISTER', 'UNDO'}
@@ -123,7 +122,7 @@ class MUV_OT_CopyPasteUVUVEdit_PasteUV(bpy.types.Operator):
     Operation class: Paste UV coordinate on UV/Image Editor
     """
 
-    bl_idname = "uv.muv_copy_paste_uv_uvedit_operator_paste_uv"
+    bl_idname = "uv.muv_ot_copy_paste_uv_uvedit_paste_uv"
     bl_label = "Paste UV (UV/Image Editor)"
     bl_description = "Paste UV coordinate (only selected in UV/Image Editor)"
     bl_options = {'REGISTER', 'UNDO'}

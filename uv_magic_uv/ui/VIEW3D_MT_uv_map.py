@@ -25,10 +25,19 @@ __date__ = "17 Nov 2018"
 
 import bpy.utils
 
-from ..op import (
-    copy_paste_uv,
-    transfer_uv,
-    uvw,
+from ..op.copy_paste_uv import (
+    MUV_MT_CopyPasteUV_CopyUV,
+    MUV_MT_CopyPasteUV_PasteUV,
+    MUV_MT_CopyPasteUV_SelSeqCopyUV,
+    MUV_MT_CopyPasteUV_SelSeqPasteUV,
+)
+from ..op.transfer_uv import (
+    MUV_OT_TransferUV_CopyUV,
+    MUV_OT_TransferUV_PasteUV,
+)
+from ..op.uvw import (
+    MUV_OT_UVW_BoxMap,
+    MUV_OT_UVW_BestPlanerMap,
 )
 from ..op.preserve_uv_aspect import MUV_OT_PreserveUVAspect
 from ..op.texture_lock import (
@@ -55,7 +64,7 @@ class MUV_MT_CopyPasteUV(bpy.types.Menu):
     Menu class: Master menu of Copy/Paste UV coordinate
     """
 
-    bl_idname = "uv.muv_copy_paste_uv_menu"
+    bl_idname = "uv.muv_mt_copy_paste_uv"
     bl_label = "Copy/Paste UV"
     bl_description = "Copy and Paste UV coordinate"
 
@@ -63,18 +72,14 @@ class MUV_MT_CopyPasteUV(bpy.types.Menu):
         layout = self.layout
 
         layout.label(text="Default")
-        layout.menu(copy_paste_uv.MUV_MT_CopyPasteUV_CopyUV.bl_idname,
-                    text="Copy")
-        layout.menu(copy_paste_uv.MUV_MT_CopyPasteUV_PasteUV.bl_idname,
-                    text="Paste")
+        layout.menu(MUV_MT_CopyPasteUV_CopyUV.bl_idname, text="Copy")
+        layout.menu(MUV_MT_CopyPasteUV_PasteUV.bl_idname, text="Paste")
 
         layout.separator()
 
         layout.label(text="Selection Sequence")
-        layout.menu(copy_paste_uv.MUV_MT_CopyPasteUV_SelSeqCopyUV.bl_idname,
-                    text="Copy")
-        layout.menu(copy_paste_uv.MUV_MT_CopyPasteUV_SelSeqPasteUV.bl_idname,
-                    text="Paste")
+        layout.menu(MUV_MT_CopyPasteUV_SelSeqCopyUV.bl_idname, text="Copy")
+        layout.menu(MUV_MT_CopyPasteUV_SelSeqPasteUV.bl_idname, text="Paste")
 
 
 @BlClassRegistry()
@@ -83,7 +88,7 @@ class MUV_MT_TransferUV(bpy.types.Menu):
     Menu class: Master menu of Transfer UV coordinate
     """
 
-    bl_idname = "uv.muv_transfer_uv_menu"
+    bl_idname = "uv.muv_mt_transfer_uv"
     bl_label = "Transfer UV"
     bl_description = "Transfer UV coordinate"
 
@@ -91,9 +96,8 @@ class MUV_MT_TransferUV(bpy.types.Menu):
         layout = self.layout
         sc = context.scene
 
-        layout.operator(transfer_uv.MUV_OT_TransferUV_CopyUV.bl_idname,
-                        text="Copy")
-        ops = layout.operator(transfer_uv.MUV_OT_TransferUV_PasteUV.bl_idname,
+        layout.operator(MUV_OT_TransferUV_CopyUV.bl_idname, text="Copy")
+        ops = layout.operator(MUV_OT_TransferUV_PasteUV.bl_idname,
                               text="Paste")
         ops.invert_normals = sc.muv_transfer_uv_invert_normals
         ops.copy_seams = sc.muv_transfer_uv_copy_seams
@@ -105,7 +109,7 @@ class MUV_MT_TextureLock(bpy.types.Menu):
     Menu class: Master menu of Texture Lock
     """
 
-    bl_idname = "uv.muv_texture_lock_menu"
+    bl_idname = "uv.muv_mt_texture_lock"
     bl_label = "Texture Lock"
     bl_description = "Lock texture when vertices of mesh (Preserve UV)"
 
@@ -135,7 +139,7 @@ class MUV_MT_WorldScaleUV(bpy.types.Menu):
     Menu class: Master menu of world scale UV
     """
 
-    bl_idname = "uv.muv_world_scale_uv_menu"
+    bl_idname = "uv.muv_mt_world_scale_uv"
     bl_label = "World Scale UV"
     bl_description = ""
 
@@ -177,7 +181,7 @@ class MUV_MT_TextureWrap(bpy.types.Menu):
     Menu class: Master menu of Texture Wrap
     """
 
-    bl_idname = "uv.muv_texture_wrap_menu"
+    bl_idname = "uv.muv_mt_texture_wrap"
     bl_label = "Texture Wrap"
     bl_description = ""
 
@@ -194,7 +198,7 @@ class MUV_MT_UVW(bpy.types.Menu):
     Menu class: Master menu of UVW
     """
 
-    bl_idname = "uv.muv_uvw_menu"
+    bl_idname = "uv.muv_mt_uvw"
     bl_label = "UVW"
     bl_description = ""
 
@@ -202,10 +206,10 @@ class MUV_MT_UVW(bpy.types.Menu):
         layout = self.layout
         sc = context.scene
 
-        ops = layout.operator(uvw.MUV_OT_UVW_BoxMap.bl_idname, text="Box")
+        ops = layout.operator(MUV_OT_UVW_BoxMap.bl_idname, text="Box")
         ops.assign_uvmap = sc.muv_uvw_assign_uvmap
 
-        ops = layout.operator(uvw.MUV_OT_UVW_BestPlanerMap.bl_idname,
+        ops = layout.operator(MUV_OT_UVW_BestPlanerMap.bl_idname,
                               text="Best Planner")
         ops.assign_uvmap = sc.muv_uvw_assign_uvmap
 
@@ -216,7 +220,7 @@ class MUV_MT_PreserveUVAspect(bpy.types.Menu):
     Menu class: Master menu of Preserve UV Aspect
     """
 
-    bl_idname = "uv.muv_preserve_uv_aspect_menu"
+    bl_idname = "uv.muv_mt_preserve_uv_aspect"
     bl_label = "Preserve UV Aspect"
     bl_description = ""
 
@@ -236,7 +240,7 @@ class MUV_MT_TextureProjection(bpy.types.Menu):
     Menu class: Master menu of Texture Projection
     """
 
-    bl_idname = "uv.muv_texture_projection_menu"
+    bl_idname = "uv.muv_mt_texture_projection"
     bl_label = "Texture Projection"
     bl_description = ""
 

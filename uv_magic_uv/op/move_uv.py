@@ -74,7 +74,7 @@ class _Properties:
 
     @classmethod
     def init_props(cls, scene):
-        scene.muv_move_uv_enabled: BoolProperty(
+        scene.muv_move_uv_enabled = BoolProperty(
             name="Move UV Enabled",
             description="Move UV is enabled",
             default=False
@@ -91,7 +91,7 @@ class MUV_OT_MoveUV(bpy.types.Operator):
     Operator class: Move UV
     """
 
-    bl_idname = "uv.muv_move_uv_operator"
+    bl_idname = "uv.muv_ot_move_uv"
     bl_label = "Move UV"
     bl_options = {'REGISTER', 'UNDO'}
 

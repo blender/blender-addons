@@ -88,14 +88,14 @@ class _Properties:
             pass
 
         def update_func(_, __):
-            bpy.ops.uv.muv_uv_bounding_box_operator('INVOKE_REGION_WIN')
+            bpy.ops.uv.muv_ot_uv_bounding_box('INVOKE_REGION_WIN')
 
-        scene.muv_uv_bounding_box_enabled: BoolProperty(
+        scene.muv_uv_bounding_box_enabled = BoolProperty(
             name="UV Bounding Box Enabled",
             description="UV Bounding Box is enabled",
             default=False
         )
-        scene.muv_uv_bounding_box_show: BoolProperty(
+        scene.muv_uv_bounding_box_show = BoolProperty(
             name="UV Bounding Box Showed",
             description="UV Bounding Box is showed",
             default=False,
@@ -103,12 +103,12 @@ class _Properties:
             set=set_func,
             update=update_func
         )
-        scene.muv_uv_bounding_box_uniform_scaling: BoolProperty(
+        scene.muv_uv_bounding_box_uniform_scaling = BoolProperty(
             name="Uniform Scaling",
             description="Enable Uniform Scaling",
             default=False
         )
-        scene.muv_uv_bounding_box_boundary: EnumProperty(
+        scene.muv_uv_bounding_box_boundary = EnumProperty(
             name="Boundary",
             description="Boundary",
             default='UV_SEL',
@@ -243,7 +243,7 @@ class ScalingCommand(CommandBase):
         if self.__dir_y == 1:
             ms[1][1] = (ty - toy) * self.__dir_y / (tiy - toy)
         return compat.matmul(compat.matmul(compat.matmul(
-                        compat.matmul(mi, mto), ms), mtoi), m)
+            compat.matmul(mi, mto), ms), mtoi), m)
 
     def set(self, x, y):
         self.__x = x
@@ -308,7 +308,7 @@ class UniformScalingCommand(CommandBase):
         ms[1][1] = sr * self.__dir_y
 
         return compat.matmul(compat.matmul(compat.matmul(
-                        compat.matmul(mi, mto), ms), mtoi), m)
+            compat.matmul(mi, mto), ms), mtoi), m)
 
     def set(self, x, y):
         self.__x = x
@@ -429,7 +429,8 @@ class StateNone(StateBase):
         """
         Update state
         """
-        prefs = compat.get_user_preferences(context).addons["uv_magic_uv"].preferences
+        user_prefs = compat.get_user_preferences(context)
+        prefs = user_prefs.addons["uv_magic_uv"].preferences
         cp_react_size = prefs.uv_bounding_box_cp_react_size
         is_uscaling = context.scene.muv_uv_bounding_box_uniform_scaling
         if (event.type == 'LEFTMOUSE') and (event.value == 'PRESS'):
@@ -611,7 +612,7 @@ class MUV_OT_UVBoundingBox(bpy.types.Operator):
     Operation class: UV Bounding Box
     """
 
-    bl_idname = "uv.muv_uv_bounding_box_operator"
+    bl_idname = "uv.muv_ot_uv_bounding_box"
     bl_label = "UV Bounding Box"
     bl_description = "Internal operation for UV Bounding Box"
     bl_options = {'REGISTER', 'UNDO'}
@@ -661,7 +662,8 @@ class MUV_OT_UVBoundingBox(bpy.types.Operator):
         """
         Draw control point
         """
-        prefs = compat.get_user_preferences(context).addons["uv_magic_uv"].preferences
+        user_prefs = compat.get_user_preferences(context)
+        prefs = user_prefs.addons["uv_magic_uv"].preferences
         cp_size = prefs.uv_bounding_box_cp_size
         offset = cp_size / 2
         verts = [

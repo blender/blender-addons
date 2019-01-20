@@ -67,17 +67,17 @@ class _Properties:
 
         scene.muv_props.texture_wrap = Props()
 
-        scene.muv_texture_wrap_enabled: BoolProperty(
+        scene.muv_texture_wrap_enabled = BoolProperty(
             name="Texture Wrap",
             description="Texture Wrap is enabled",
             default=False
         )
-        scene.muv_texture_wrap_set_and_refer: BoolProperty(
+        scene.muv_texture_wrap_set_and_refer = BoolProperty(
             name="Set and Refer",
             description="Refer and set UV",
             default=True
         )
-        scene.muv_texture_wrap_selseq: BoolProperty(
+        scene.muv_texture_wrap_selseq = BoolProperty(
             name="Selection Sequence",
             description="Set UV sequentially",
             default=False
@@ -97,7 +97,7 @@ class MUV_OT_TextureWrap_Refer(bpy.types.Operator):
     Operation class: Refer UV
     """
 
-    bl_idname = "uv.muv_texture_wrap_operator_refer"
+    bl_idname = "uv.muv_ot_texture_wrap_refer"
     bl_label = "Refer"
     bl_description = "Refer UV"
     bl_options = {'REGISTER', 'UNDO'}
@@ -137,7 +137,7 @@ class MUV_OT_TextureWrap_Set(bpy.types.Operator):
     Operation class: Set UV
     """
 
-    bl_idname = "uv.muv_texture_wrap_operator_set"
+    bl_idname = "uv.muv_ot_texture_wrap_set"
     bl_label = "Set"
     bl_description = "Set UV"
     bl_options = {'REGISTER', 'UNDO'}

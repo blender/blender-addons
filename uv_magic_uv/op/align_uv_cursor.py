@@ -86,13 +86,13 @@ class _Properties:
             cy = bd_size[1] * value[1]
             space.cursor_location = Vector((cx, cy))
 
-        scene.muv_align_uv_cursor_enabled: BoolProperty(
+        scene.muv_align_uv_cursor_enabled = BoolProperty(
             name="Align UV Cursor Enabled",
             description="Align UV Cursor is enabled",
             default=False
         )
 
-        scene.muv_align_uv_cursor_cursor_loc: FloatVectorProperty(
+        scene.muv_align_uv_cursor_cursor_loc = FloatVectorProperty(
             name="UV Cursor Location",
             size=2,
             precision=4,
@@ -103,7 +103,7 @@ class _Properties:
             get=auvc_get_cursor_loc,
             set=auvc_set_cursor_loc
         )
-        scene.muv_align_uv_cursor_align_method: EnumProperty(
+        scene.muv_align_uv_cursor_align_method = EnumProperty(
             name="Align Method",
             description="Align Method",
             default='TEXTURE',
@@ -114,7 +114,7 @@ class _Properties:
             ]
         )
 
-        scene.muv_uv_cursor_location_enabled: BoolProperty(
+        scene.muv_uv_cursor_location_enabled = BoolProperty(
             name="UV Cursor Location Enabled",
             description="UV Cursor Location is enabled",
             default=False
@@ -133,12 +133,12 @@ class _Properties:
 @compat.make_annotations
 class MUV_OT_AlignUVCursor(bpy.types.Operator):
 
-    bl_idname = "uv.muv_align_uv_cursor_operator"
+    bl_idname = "uv.muv_ot_align_uv_cursor"
     bl_label = "Align UV Cursor"
     bl_description = "Align cursor to the center of UV island"
     bl_options = {'REGISTER', 'UNDO'}
 
-    position: EnumProperty(
+    position = EnumProperty(
         items=(
             ('CENTER', "Center", "Align to Center"),
             ('LEFT_TOP', "Left Top", "Align to Left Top"),
@@ -154,7 +154,7 @@ class MUV_OT_AlignUVCursor(bpy.types.Operator):
         description="Align position",
         default='CENTER'
     )
-    base: EnumProperty(
+    base = EnumProperty(
         items=(
             ('TEXTURE', "Texture", "Align based on Texture"),
             ('UV', "UV", "Align to UV"),

@@ -226,14 +226,14 @@ class _Properties:
             pass
 
         def update_func(_, __):
-            bpy.ops.uv.muv_texture_lock_operator_intr('INVOKE_REGION_WIN')
+            bpy.ops.uv.muv_ot_texture_lock_intr('INVOKE_REGION_WIN')
 
-        scene.muv_texture_lock_enabled: BoolProperty(
+        scene.muv_texture_lock_enabled = BoolProperty(
             name="Texture Lock Enabled",
             description="Texture Lock is enabled",
             default=False
         )
-        scene.muv_texture_lock_lock: BoolProperty(
+        scene.muv_texture_lock_lock = BoolProperty(
             name="Texture Lock Locked",
             description="Texture Lock is locked",
             default=False,
@@ -241,7 +241,7 @@ class _Properties:
             set=set_func,
             update=update_func
         )
-        scene.muv_texture_lock_connect: BoolProperty(
+        scene.muv_texture_lock_connect = BoolProperty(
             name="Connect UV",
             default=True
         )
@@ -260,7 +260,7 @@ class MUV_OT_TextureLock_Lock(bpy.types.Operator):
     Operation class: Lock Texture
     """
 
-    bl_idname = "uv.muv_texture_lock_operator_lock"
+    bl_idname = "uv.muv_ot_texture_lock_lock"
     bl_label = "Lock Texture"
     bl_description = "Lock Texture"
     bl_options = {'REGISTER', 'UNDO'}
@@ -307,12 +307,12 @@ class MUV_OT_TextureLock_Unlock(bpy.types.Operator):
     Operation class: Unlock Texture
     """
 
-    bl_idname = "uv.muv_texture_lock_operator_unlock"
+    bl_idname = "uv.muv_ot_texture_lock_unlock"
     bl_label = "Unlock Texture"
     bl_description = "Unlock Texture"
     bl_options = {'REGISTER', 'UNDO'}
 
-    connect: BoolProperty(
+    connect = BoolProperty(
         name="Connect UV",
         default=True
     )
@@ -392,7 +392,7 @@ class MUV_OT_TextureLock_Intr(bpy.types.Operator):
     Operation class: Texture Lock (Interactive mode)
     """
 
-    bl_idname = "uv.muv_texture_lock_operator_intr"
+    bl_idname = "uv.muv_ot_texture_lock_intr"
     bl_label = "Texture Lock (Interactive mode)"
     bl_description = "Internal operation for Texture Lock (Interactive mode)"
 

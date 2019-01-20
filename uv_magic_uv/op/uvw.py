@@ -155,11 +155,7 @@ def _apply_planer_map(bm, uv_layer, size, offset, rotation, tex_aspect):
     # update UV coordinate
     for f in sel_faces:
         for l in f.loops:
-            if common.check_version(2, 80, 0) >= 0:
-                # pylint: disable=E0001
-                co = q @ l.vert.co
-            else:
-                co = q * l.vert.co
+            co = compat.matmul(q, l.vert.co)
             x = co.x * sx
             y = co.y * sy
 
@@ -175,12 +171,12 @@ class _Properties:
 
     @classmethod
     def init_props(cls, scene):
-        scene.muv_uvw_enabled: BoolProperty(
+        scene.muv_uvw_enabled = BoolProperty(
             name="UVW Enabled",
             description="UVW is enabled",
             default=False
         )
-        scene.muv_uvw_assign_uvmap: BoolProperty(
+        scene.muv_uvw_assign_uvmap = BoolProperty(
             name="Assign UVMap",
             description="Assign UVMap when no UVmaps are available",
             default=True
@@ -195,31 +191,31 @@ class _Properties:
 @BlClassRegistry()
 @compat.make_annotations
 class MUV_OT_UVW_BoxMap(bpy.types.Operator):
-    bl_idname = "uv.muv_uvw_operator_box_map"
+    bl_idname = "uv.muv_ot_uvw_box_map"
     bl_label = "Box Map"
     bl_options = {'REGISTER', 'UNDO'}
 
-    size: FloatProperty(
+    size = FloatProperty(
         name="Size",
         default=1.0,
         precision=4
     )
-    rotation: FloatVectorProperty(
+    rotation = FloatVectorProperty(
         name="XYZ Rotation",
         size=3,
         default=(0.0, 0.0, 0.0)
     )
-    offset: FloatVectorProperty(
+    offset = FloatVectorProperty(
         name="XYZ Offset",
         size=3,
         default=(0.0, 0.0, 0.0)
     )
-    tex_aspect: FloatProperty(
+    tex_aspect = FloatProperty(
         name="Texture Aspect",
         default=1.0,
         precision=4
     )
-    assign_uvmap: BoolProperty(
+    assign_uvmap = BoolProperty(
         name="Assign UVMap",
         description="Assign UVMap when no UVmaps are available",
         default=True
@@ -253,30 +249,30 @@ class MUV_OT_UVW_BoxMap(bpy.types.Operator):
 @BlClassRegistry()
 @compat.make_annotations
 class MUV_OT_UVW_BestPlanerMap(bpy.types.Operator):
-    bl_idname = "uv.muv_uvw_operator_best_planer_map"
+    bl_idname = "uv.muv_ot_uvw_best_planer_map"
     bl_label = "Best Planer Map"
     bl_options = {'REGISTER', 'UNDO'}
 
-    size: FloatProperty(
+    size = FloatProperty(
         name="Size",
         default=1.0,
         precision=4
     )
-    rotation: FloatProperty(
+    rotation = FloatProperty(
         name="XY Rotation",
         default=0.0
     )
-    offset: FloatVectorProperty(
+    offset = FloatVectorProperty(
         name="XY Offset",
         size=2,
         default=(0.0, 0.0)
     )
-    tex_aspect: FloatProperty(
+    tex_aspect = FloatProperty(
         name="Texture Aspect",
         default=1.0,
         precision=4
     )
-    assign_uvmap: BoolProperty(
+    assign_uvmap = BoolProperty(
         name="Assign UVMap",
         description="Assign UVMap when no UVmaps are available",
         default=True

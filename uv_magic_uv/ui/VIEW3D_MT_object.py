@@ -25,7 +25,10 @@ __date__ = "17 Nov 2018"
 
 import bpy
 
-from ..op import copy_paste_uv_object
+from ..op.copy_paste_uv_object import (
+    MUV_MT_CopyPasteUVObject_CopyUV,
+    MUV_MT_CopyPasteUVObject_PasteUV,
+)
 from ..utils.bl_class_registry import BlClassRegistry
 
 
@@ -35,16 +38,12 @@ class MUV_MT_CopyPasteUV_Object(bpy.types.Menu):
     Menu class: Master menu of Copy/Paste UV coordinate among object
     """
 
-    bl_idname = "uv.muv_copy_paste_uv_object_menu"
+    bl_idname = "uv.muv_mt_copy_paste_uv_object"
     bl_label = "Copy/Paste UV"
     bl_description = "Copy and Paste UV coordinate among object"
 
     def draw(self, _):
         layout = self.layout
 
-        layout.menu(
-            copy_paste_uv_object.MUV_MT_CopyPasteUVObject_CopyUV.bl_idname,
-            text="Copy")
-        layout.menu(
-            copy_paste_uv_object.MUV_MT_CopyPasteUVObject_PasteUV.bl_idname,
-            text="Paste")
+        layout.menu(MUV_MT_CopyPasteUVObject_CopyUV.bl_idname, text="Copy")
+        layout.menu(MUV_MT_CopyPasteUVObject_PasteUV.bl_idname, text="Paste")
