@@ -20,7 +20,7 @@ bl_info = {
     "name": "AnimAll",
     "author": "Daniel Salazar <zanqdo@gmail.com>",
     "version": (0, 8, 1),
-    "blender": (2, 73),
+    "blender": (2, 73, 0),
     "location": "Tool bar > Animation tab > AnimAll",
     "description": "Allows animation of mesh, lattice, curve and surface data",
     "warning": "",
