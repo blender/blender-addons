@@ -20,7 +20,7 @@ bl_info = {
     "name": "Skinify Rig",
     "author": "Albert Makac (karab44)",
     "version": (0, 11, 0),
-    "blender": (2, 7, 9),
+    "blender": (2, 79, 0),
     "location": "Properties > Bone > Skinify Rig (visible on pose mode only)",
     "description": "Creates a mesh object from selected bones",
     "warning": "",

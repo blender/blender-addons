@@ -24,7 +24,7 @@ bl_info = {
                    "(suitable for terrain modelling) or Voronoi diagram in 2D",
     "author": "Domlysz, Oscurart",
     "version": (1, 3),
-    "blender": (2, 7, 0),
+    "blender": (2, 70, 0),
     "location": "3D View > Toolshelf > Create > Delaunay Voronoi",
     "warning": "",
     "wiki_url": "https://github.com/domlysz/BlenderGIS/wiki",

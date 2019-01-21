@@ -33,7 +33,7 @@ bl_info = {
     "name": "Dual Mesh",
     "author": "Alessandro Zomparelli (Co-de-iT)",
     "version": (0, 3),
-    "blender": (2, 7, 8),
+    "blender": (2, 78, 0),
     "location": "",
     "description": "Convert a generic mesh to its dual",
     "warning": "",

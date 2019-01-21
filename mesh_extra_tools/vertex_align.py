@@ -24,7 +24,7 @@ bl_info = {
     "name": "Vertex Align",
     "author": "",
     "version": (0, 1, 7),
-    "blender": (2, 6, 1),
+    "blender": (2, 61, 0),
     "location": "View3D > Tool Shelf",
     "description": "",
     "warning": "",

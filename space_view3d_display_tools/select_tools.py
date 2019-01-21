@@ -21,7 +21,7 @@ bl_info = {
     "name": "Select Tools",
     "author": "Jakub Belcik",
     "version": (1, 0, 2),
-    "blender": (2, 7, 3),
+    "blender": (2, 73, 0),
     "location": "3D View > Tools",
     "description": "Selection Tools",
     "warning": "",

@@ -10,7 +10,7 @@ bl_info = {
     "description": "Super fast cutting and mirroring for Mesh objects",
     "author": "Lapineige",
     "version": (2, 4, 2),
-    "blender": (2, 7, 1),
+    "blender": (2, 71, 0),
     "location": "View 3D > Toolbar > Tools tab > AutoMirror (panel)",
     "warning": "",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/"

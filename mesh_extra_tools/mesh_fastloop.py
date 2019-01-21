@@ -21,7 +21,7 @@ bl_info = {
     "description": "Add loops fast",
     "author": "Andy Davies (metalliandy)",
     "version": (0, 1, 7),
-    "blender": (2, 5, 6),
+    "blender": (2, 56, 0),
     "location": "Tool Shelf",
     "warning": "",
     "wiki_url": "",

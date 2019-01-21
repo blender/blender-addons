@@ -21,7 +21,7 @@ bl_info = {
     "description": "Save and restore User defined views, pov, layers and display configs",
     "author": "nfloyd, Francesco Siddi",
     "version": (0, 3, 7),
-    "blender": (2, 7, 8),
+    "blender": (2, 78, 0),
     "location": "View3D > Properties > Stored Views",
     "warning": "",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.5/"

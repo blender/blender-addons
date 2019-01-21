@@ -26,7 +26,7 @@ bl_info = {
     "name": "Add Advanced Object Panels",
     "author": "meta-androcto",
     "version": (1, 1, 5),
-    "blender": (2, 7, 7),
+    "blender": (2, 77, 0),
     "description": "Individual Create Panel Activation List",
     "location": "Addons Preferences",
     "warning": "",

@@ -20,7 +20,7 @@ bl_info = {
     "name": "Sketchfab Exporter",
     "author": "Bart Crouch",
     "version": (1, 2, 3),
-    "blender": (2, 7, 0),
+    "blender": (2, 70, 0),
     "location": "Tools > File I/O tab",
     "description": "Upload your model to Sketchfab",
     "warning": "",

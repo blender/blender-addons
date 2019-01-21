@@ -22,7 +22,7 @@ bl_info = {
   "name": "Material Library",
   "author": "Mackraken (mackraken2023@hotmail.com)",
   "version": (0, 5, 8),
-  "blender": (2, 7, 8),
+  "blender": (2, 78, 0),
   "api": 60995,
   "location": "Properties > Material",
   "description": "Material Library VX",

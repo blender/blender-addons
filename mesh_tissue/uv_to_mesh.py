@@ -32,7 +32,7 @@ bl_info = {
     "name": "UV to Mesh",
     "author": "Alessandro Zomparelli (Co-de-iT)",
     "version": (0, 1, 1),
-    "blender": (2, 7, 9),
+    "blender": (2, 79, 0),
     "location": "",
     "description": "Create a new Mesh based on active UV",
     "warning": "",

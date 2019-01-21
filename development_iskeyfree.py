@@ -22,7 +22,7 @@ bl_info = {
     "name": "Is key Free",
     "author": "Antonio Vazquez (antonioya)",
     "version": (1, 1, 1),
-    "blender": (2, 6, 9),
+    "blender": (2, 69, 0),
     "location": "Text Editor > Props Shelf (Ctrl/t > IsKeyFree Tools",
     "description": "Find free shortcuts, inform about used and print a key list",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6"

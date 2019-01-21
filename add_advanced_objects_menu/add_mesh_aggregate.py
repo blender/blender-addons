@@ -25,7 +25,7 @@ bl_info = {
     "name": "Aggregate Mesh",
     "author": "liero",
     "version": (0, 0, 5),
-    "blender": (2, 7, 0),
+    "blender": (2, 70, 0),
     "location": "View3D > Tool Shelf",
     "description": "Adds geometry to a mesh like in DLA aggregators",
     "category": "Object"}

@@ -25,7 +25,7 @@ bl_info = {
     "description": "Dynamic rope (with cloth) creator",
     "author": "Jorge Hernandez - Melenedez",
     "version": (0, 2, 2),
-    "blender": (2, 7, 3),
+    "blender": (2, 73, 0),
     "location": "Left Toolbar > ClothRope",
     "warning": "",
     "wiki_url": "",

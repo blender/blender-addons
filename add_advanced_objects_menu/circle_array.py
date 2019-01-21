@@ -6,7 +6,7 @@ bl_info = {
     "name": "Circle Array",
     "author": "Antonis Karvelas",
     "version": (1, 0, 1),
-    "blender": (2, 6, 7),
+    "blender": (2, 67, 0),
     "location": "View3D > Object > Circle_Array",
     "description": "Uses an existing array and creates an empty, "
                    "rotates it properly and makes a Circle Array",

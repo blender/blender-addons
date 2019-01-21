@@ -31,7 +31,7 @@ bl_info = {
     "name": "Lattice",
     "author": "Alessandro Zomparelli (Co-de-iT)",
     "version": (0, 3),
-    "blender": (2, 7, 8),
+    "blender": (2, 78, 0),
     "location": "",
     "description": "Generate a Lattice based on a grid mesh",
     "warning": "",

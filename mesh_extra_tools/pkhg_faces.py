@@ -4,7 +4,7 @@ bl_info = {
     "name": "PKHG faces",
     "author": "PKHG",
     "version": (0, 0, 6),
-    "blender": (2, 7, 1),
+    "blender": (2, 71, 0),
     "location": "View3D > Tools > PKHG (tab)",
     "description": "Faces selected will become added faces of different style",
     "warning": "",

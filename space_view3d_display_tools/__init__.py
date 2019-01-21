@@ -26,7 +26,7 @@ bl_info = {
     "name": "Display Tools",
     "author": "Jordi Vall-llovera Medina, Jhon Wallace",
     "version": (1, 6, 4),
-    "blender": (2, 7, 0),
+    "blender": (2, 70, 0),
     "location": "Toolshelf",
     "description": "Display tools for fast navigation/interaction with the viewport",
     "warning": "",

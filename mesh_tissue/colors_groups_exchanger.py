@@ -37,7 +37,7 @@ bl_info = {
     "name": "Colors/Groups Exchanger",
     "author": "Alessandro Zomparelli (Co-de-iT)",
     "version": (0, 3, 2),
-    "blender": (2, 7, 8),
+    "blender": (2, 78, 0),
     "location": "",
     "description": ("Convert vertex colors channels to vertex groups and vertex"
                     " groups to colors"),

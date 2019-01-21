@@ -5,7 +5,7 @@ bl_info = {
     "description": "Edges length",
     "author": "Giuseppe De Marco [BlenderLab] inspired by NirenYang",
     "version": (0, 1, 0),
-    "blender": (2, 7, 1),
+    "blender": (2, 71, 0),
     "location": "Toolbar > Tools > Mesh Tools: set Length(Shit+Alt+E)",
     "warning": "",
     "wiki_url": "",

@@ -22,7 +22,7 @@ bl_info = {
     "name": "Split Solidify",
     "author": "zmj100, updated by zeffii to BMesh",
     "version": (0, 1, 2),
-    "blender": (2, 7, 7),
+    "blender": (2, 77, 0),
     "location": "View3D > Tool Shelf",
     "description": "",
     "warning": "",

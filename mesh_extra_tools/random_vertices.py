@@ -4,7 +4,7 @@ bl_info = {
     "name": "Random Vertices",
     "author": "Oscurart, Greg",
     "version": (1, 3),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     "location": "Object > Transform > Random Vertices",
     "description": "Randomize selected components of active object",
     "warning": "",

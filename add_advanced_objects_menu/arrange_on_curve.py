@@ -4,7 +4,7 @@ bl_info = {
     "name": "Arrange on Curve",
     "author": "Mano-Wii",
     "version": (6, 3, 0),
-    "blender": (2, 7, 7),
+    "blender": (2, 77, 0),
     "location": "3D View > Toolshelf > Create > Arrange on Curve",
     "description": "Arrange objects along a curve",
     "warning": "Select curve",
