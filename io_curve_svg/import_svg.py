@@ -26,6 +26,9 @@ import bpy
 from mathutils import Vector, Matrix
 
 from . import svg_colors
+from .svg_util import (srgb_to_linearrgb,
+                       check_points_equal,
+                       parse_array_of_floats)
 
 #### Common utilities ####
 
@@ -44,17 +47,6 @@ SVGUnits = {"": 1.0,
 
 SVGEmptyStyles = {'useFill': None,
                   'fill': None}
-
-def srgb_to_linearrgb(c):
-    if c < 0.04045:
-        return 0.0 if c < 0.0 else c * (1.0 / 12.92)
-    else:
-        return pow((c + 0.055) * (1.0 / 1.055), 2.4)
-
-def check_points_equal(point_a, point_b):
-    return (abs(point_a[0] - point_b[0]) < 1e-6 and
-            abs(point_a[1] - point_b[1]) < 1e-6)
-
 
 def SVGParseFloat(s, i=0):
     """
@@ -1729,9 +1721,7 @@ class SVGGeometryPOLY(SVGGeometry):
 
         self._styles = SVGParseStyles(self._node, self._context)
 
-        points = self._node.getAttribute('points')
-        points = points.replace(',', ' ').replace('-', ' -')
-        points = points.split()
+        points = parse_array_of_floats(self._node.getAttribute('points'))
 
         prev = None
         self._points = []
@@ -1740,7 +1730,7 @@ class SVGGeometryPOLY(SVGGeometry):
             if prev is None:
                 prev = p
             else:
-                self._points.append((float(prev), float(p)))
+                self._points.append((prev, p))
                 prev = None
 
     def _doCreateGeom(self, instancing):
