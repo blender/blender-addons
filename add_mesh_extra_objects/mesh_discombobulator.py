@@ -339,7 +339,7 @@ def doodads(object1, mesh1, dmin, dmax):
             # First we have to apply scaling and rotation to the mesh
             bpy.ops.object.select_pattern(pattern=bpy.context.scene.discomb.DISC_doodads[type_dood], extend=False)
             bpy.context.scene.objects.active = bpy.data.objects[bpy.context.scene.discomb.DISC_doodads[type_dood]]
-            bpy.ops.object.transform_apply(rotation=True, scale=True)
+            bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
 
             for polygon in bpy.data.objects[bpy.context.scene.discomb.DISC_doodads[type_dood]].data.polygons:
                 polygons_add.append(polygon.vertices)

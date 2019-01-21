@@ -1046,7 +1046,7 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
             bpy.ops.object.mode_set(mode='OBJECT')
         plane.dimensions = width, height, 0.0
         plane.data.name = plane.name = name
-        bpy.ops.object.transform_apply(scale=True)
+        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
         # If sizing for camera, also insert into the camera's field of view
         if self.size_mode == 'CAMERA':
