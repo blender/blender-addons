@@ -87,17 +87,41 @@ class BlenderScene():
 
         # Parent root node to rotation object
         if list_nodes is not None:
+            exclude_nodes = []
             for node_idx in list_nodes:
-                bpy.data.objects[gltf.data.nodes[node_idx].blender_object].parent = obj_rotation
+                if gltf.data.nodes[node_idx].is_joint:
+                    # Do not change parent if root node is already parented (can be the case for skinned mesh)
+                    if not bpy.data.objects[gltf.data.nodes[node_idx].blender_armature_name].parent:
+                        bpy.data.objects[gltf.data.nodes[node_idx].blender_armature_name].parent = obj_rotation
+                    else:
+                        exclude_nodes.append(node_idx)
+                else:
+                    # Do not change parent if root node is already parented (can be the case for skinned mesh)
+                    if not bpy.data.objects[gltf.data.nodes[node_idx].blender_object].parent:
+                        bpy.data.objects[gltf.data.nodes[node_idx].blender_object].parent = obj_rotation
+                    else:
+                        exclude_nodes.append(node_idx)
 
             if gltf.animation_object is False:
 
 
+
+
                 for node_idx in list_nodes:
+
+                    if node_idx in exclude_nodes:
+                        continue # for root node that are parented by the process
+                        # for example skinned meshes
+
                     for obj_ in bpy.context.scene.objects:
                         obj_.select_set(False)
-                    bpy.data.objects[gltf.data.nodes[node_idx].blender_object].select_set(True)
-                    bpy.context.view_layer.objects.active = bpy.data.objects[gltf.data.nodes[node_idx].blender_object]
+                    if gltf.data.nodes[node_idx].is_joint:
+                        bpy.data.objects[gltf.data.nodes[node_idx].blender_armature_name].select_set(True)
+                        bpy.context.view_layer.objects.active = bpy.data.objects[gltf.data.nodes[node_idx].blender_armature_name]
+
+                    else:
+                        bpy.data.objects[gltf.data.nodes[node_idx].blender_object].select_set(True)
+                        bpy.context.view_layer.objects.active = bpy.data.objects[gltf.data.nodes[node_idx].blender_object]
 
                     bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
 
