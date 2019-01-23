@@ -564,6 +564,7 @@ class SCENE_OT_import(bpy.types.Operator):
         Blender_export += ('%sexport.txt'%(os.sep))
         new_applink_address = 'False'
         new_object = False
+        print('mitas: ', Blender_export)
         if(os.path.isfile(Blender_export)):
             obj_pathh = open(Blender_export)
             new_object = True

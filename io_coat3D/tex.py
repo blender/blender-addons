@@ -288,9 +288,13 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
                     curvenode.name = '3DC_RGBCurve'
                     huenode = act_material.nodes.new('ShaderNodeHueSaturation')
                     huenode.name = '3DC_HueSaturation'
+                    rampnode = act_material.nodes.new('ShaderNodeValToRGB')
+                    rampnode.name = '3DC_ColorRamp'
 
-                    act_material.links.new(curvenode.outputs[0], huenode.inputs[4])
                     act_material.links.new(node.outputs[0], curvenode.inputs[1])
+                    act_material.links.new(curvenode.outputs[0], rampnode.inputs[0])
+                    act_material.links.new(rampnode.outputs[0], huenode.inputs[4])
+
 
                     if (coat3D.creategroup):
                         act_material.links.new(huenode.outputs[0], notegroup.inputs[1])
@@ -299,8 +303,9 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
                     else:
                         act_material.links.new(huenode.outputs[0], main_mat.inputs[input_color])
 
-                    node.location = -994, 119
-                    curvenode.location = -668, 113
+                    node.location = -1300, 119
+                    curvenode.location = -1000, 113
+                    rampnode.location = -670, 115
                     huenode.location = -345, 118
 
                 else:
@@ -330,9 +335,12 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
                     curvenode.name = '3DC_RGBCurve'
                     huenode = act_material.nodes.new('ShaderNodeHueSaturation')
                     huenode.name = '3DC_HueSaturation'
+                    rampnode = act_material.nodes.new('ShaderNodeValToRGB')
+                    rampnode.name = '3DC_ColorRamp'
 
-                    act_material.links.new(curvenode.outputs[0], huenode.inputs[4])
                     act_material.links.new(node.outputs[0], curvenode.inputs[1])
+                    act_material.links.new(curvenode.outputs[0], rampnode.inputs[0])
+                    act_material.links.new(rampnode.outputs[0], huenode.inputs[4])
 
                     if (coat3D.creategroup):
                         act_material.links.new(huenode.outputs[0], notegroup.inputs[2])
@@ -341,8 +349,9 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
                     else:
                         act_material.links.new(huenode.outputs[0], main_mat.inputs[input_color])
 
-                    node.location = -1000, -276
-                    curvenode.location = -670, -245
+                    node.location = -1300, -276
+                    curvenode.location = -1000, -245
+                    rampnode.location = -670, -200
                     huenode.location = -340, -100
 
                 else:
@@ -364,7 +373,7 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
                 normal_node = act_material.nodes.new('ShaderNodeNormalMap')
 
                 node.location = -600,-670
-                normal_node.location = -300,-300
+                normal_node.location = -250,-350
 
                 node.name='3DC_normal'
                 node.label = 'Normal Map'
@@ -397,9 +406,12 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
                     curvenode.name = '3DC_RGBCurve'
                     huenode = act_material.nodes.new('ShaderNodeHueSaturation')
                     huenode.name = '3DC_HueSaturation'
+                    rampnode = act_material.nodes.new('ShaderNodeValToRGB')
+                    rampnode.name = '3DC_ColorRamp'
     
-                    act_material.links.new(curvenode.outputs[0], huenode.inputs[4])
                     act_material.links.new(node.outputs[0], curvenode.inputs[1])
+                    act_material.links.new(curvenode.outputs[0], rampnode.inputs[0])
+                    act_material.links.new(rampnode.outputs[0], huenode.inputs[4])
                     '''
 
                     if (coat3D.creategroup):
