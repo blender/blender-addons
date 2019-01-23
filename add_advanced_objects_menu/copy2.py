@@ -110,11 +110,11 @@ class Copy2(Operator):
         layout = self.layout
 
         layout.prop(self, "copyfromobject")
-        layout.label("to:")
+        layout.label(text="to:")
         layout.prop(self, "copytype", expand=True)
-        layout.label("Primary axis:")
+        layout.label(text="Primary axis:")
         layout.prop(self, "priaxes", expand=True)
-        layout.label("Secondary axis:")
+        layout.label(text="Secondary axis:")
         layout.prop(self, "secaxes", expand=True)
         if self.copytype == "E":
             layout.prop(self, "edgescale")

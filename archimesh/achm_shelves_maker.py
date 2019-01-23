@@ -148,7 +148,7 @@ class AchmShelves(Operator):
             # Imperial units warning
             if bpy.context.scene.unit_settings.system == "IMPERIAL":
                 row = layout.row()
-                row.label("Warning: Imperial units not supported", icon='COLOR_RED')
+                row.label(text="Warning: Imperial units not supported", icon='COLOR_RED')
 
             box = layout.box()
             row = box.row()
@@ -179,7 +179,7 @@ class AchmShelves(Operator):
             box.prop(self, 'crt_mat')
         else:
             row = layout.row()
-            row.label("Warning: Operator does not work in local view mode", icon='ERROR')
+            row.label(text="Warning: Operator does not work in local view mode", icon='ERROR')
 
     # -----------------------------------------------------
     # Execute
@@ -204,7 +204,7 @@ class AchmShelves(Operator):
 # -----------------------------------------------------
 def add_shelves(self, box, num, sh):
     row = box.row()
-    row.label("Unit " + str(num))
+    row.label(text="Unit " + str(num))
     row.prop(sh, 'sX')
 
     row = box.row()

@@ -284,7 +284,7 @@ class add_tapercurve(Operator):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.label("Settings:")
+        col.label(text="Settings:")
         split = layout.split(percentage=0.95, align=True)
         split.active = not self.link2
         col = split.column(align=True)

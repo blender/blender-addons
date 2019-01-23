@@ -308,12 +308,12 @@ class VIEW3D_PT_sketchfab(Panel):
                 load_token()
         layout = self.layout
 
-        layout.label("Export:")
+        layout.label(text="Export:")
         col = layout.box().column(align=True)
         col.prop(props, "models")
         col.prop(props, "lights")
 
-        layout.label("Model info:")
+        layout.label(text="Model info:")
         col = layout.box().column(align=True)
         col.prop(props, "title")
         col.prop(props, "description")
@@ -322,7 +322,7 @@ class VIEW3D_PT_sketchfab(Panel):
         if props.private:
             col.prop(props, "password")
 
-        layout.label("Sketchfab account:")
+        layout.label(text="Sketchfab account:")
         col = layout.box().column(align=True)
         col.prop(props, "token")
         row = col.row()

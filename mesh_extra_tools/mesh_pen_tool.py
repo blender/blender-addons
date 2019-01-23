@@ -328,12 +328,12 @@ class pen_tool_panel(Panel):
             layout.label(text="Pen Tool Active", icon="INFO")
         else:
             col = layout.column(align=True)
-            col.label("Font:")
+            col.label(text="Font:")
             col.prop(pen_tool_props, "fs", text="Size", slider=True)
             col.prop(pen_tool_props, "a", text="Alpha", slider=True)
 
             col = layout.column(align=True)
-            col.label("Settings:")
+            col.label(text="Settings:")
             col.prop(pen_tool_props, "b0", text="Angles", toggle=True)
             col.prop(pen_tool_props, "b1", text="Edge Length", toggle=True)
             col.prop(pen_tool_props, "b2", text="Mouse Location 3D", toggle=True)

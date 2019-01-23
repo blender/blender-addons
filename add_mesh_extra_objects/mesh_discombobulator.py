@@ -636,7 +636,7 @@ class discombobulator_dodads_list(Menu):
         layout = self.layout
 
         doodle = len(bpy.context.scene.discomb.DISC_doodads)
-        layout.label("Saved doodads : {}".format(doodle))
+        layout.label(text="Saved doodads : {}".format(doodle))
         layout.separator()
         if doodle > 0:
             for name in bpy.context.scene.discomb.DISC_doodads:
@@ -654,19 +654,19 @@ class discombob_help(Menu):
         layout.label(text="Usage Information:", icon="INFO")
         layout.separator()
         layout.label(text="Quads only, not Triangles or Ngons", icon="ERROR")
-        layout.label("Works only with Mesh object that have faces")
+        layout.label(text="Works only with Mesh object that have faces")
         layout.separator()
-        layout.label("Select a face or faces")
-        layout.label("Press Discombobulate to create greebles")
-        layout.label("In object mode, still needs a selection in Edit Mode")
+        layout.label(text="Select a face or faces")
+        layout.label(text="Press Discombobulate to create greebles")
+        layout.label(text="In object mode, still needs a selection in Edit Mode")
         layout.separator()
-        layout.label("Doodads - additional objects layered on the mesh surface")
+        layout.label(text="Doodads - additional objects layered on the mesh surface")
         layout.label("(Similar to dupliverts - but as one separate object)")
         layout.separator()
         layout.label(text="Limitations:", icon="MOD_EXPLODE")
-        layout.label("Be careful with the repeat protusions setting")
+        layout.label(text="Be careful with the repeat protusions setting")
         layout.label("(Runs reqursively)")
-        layout.label("If possible, avoid using on a high polycount base mesh")
+        layout.label(text="If possible, avoid using on a high polycount base mesh")
         layout.label("(It can run out of memory and take a long time to compute)")
 
 
@@ -690,7 +690,7 @@ class VIEW3D_OT_tools_discombobulate(Operator):
         row = layout.row()
         row.menu('HELP_MT_discombobulator', icon='INFO')
         box = layout.box()
-        box.label("Protusions settings")
+        box.label(text="Protusions settings")
         row = box.row()
         row.prop(context.scene.discomb, 'doprots')
         row = box.row()
@@ -713,7 +713,7 @@ class VIEW3D_OT_tools_discombobulate(Operator):
         row = box.row()
         row.prop(context.scene.discomb, "repeatprot")
         box = layout.box()
-        box.label("Doodads settings")
+        box.label(text="Doodads settings")
         row = box.row()
         is_doodad = context.scene.discomb.dodoodads
         row.prop(context.scene.discomb, 'dodoodads')
@@ -744,7 +744,7 @@ class VIEW3D_OT_tools_discombobulate(Operator):
                      text="List of saved Doodads ({})".format(doodle))
 
         box = layout.box()
-        box.label("Materials settings")
+        box.label(text="Materials settings")
         row = box.row()
         row.prop(context.scene.discomb, 'topProtMat')
         row = box.row()

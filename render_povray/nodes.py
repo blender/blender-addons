@@ -834,7 +834,7 @@ class ShaderTextureMapNode(Node, ObjectNodeTree):
 
         if self.inputs[0].default_value =='brick':
             layout.prop(self, "brick_mortar")
-            layout.label("Brick size:")
+            layout.label(text="Brick size:")
             layout.prop(self, "brick_size_x")
             layout.prop(self, "brick_size_y")
             layout.prop(self, "brick_size_z")
@@ -843,7 +843,7 @@ class ShaderTextureMapNode(Node, ObjectNodeTree):
 
         if self.inputs[0].default_value =='brick':
             layout.prop(self, "brick_mortar")
-            layout.label("Brick size:")
+            layout.label(text="Brick size:")
             layout.prop(self, "brick_size_x")
             layout.prop(self, "brick_size_y")
             layout.prop(self, "brick_size_z")
@@ -1015,7 +1015,7 @@ class TextureOutputNode(Node, TextureNodeTree):
 
     def draw_buttons(self, context, layout):
 
-        layout.label("Color Ramps:")
+        layout.label(text="Color Ramps:")
 
     def draw_label(self):
         return "Color Map"

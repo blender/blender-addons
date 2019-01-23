@@ -483,13 +483,13 @@ class ClothRope(Operator):
         box = layout.box()
         col = box.column(align=True)
 
-        col.label("Rope settings:")
+        col.label(text="Rope settings:")
         rowsub0 = col.row()
         rowsub0.prop(self, "ropelength", text="Length")
         rowsub0.prop(self, "ropesegments", text="Segments")
         rowsub0.prop(self, "radiusrope", text="Radius")
 
-        col.label("Quality Settings:")
+        col.label(text="Quality Settings:")
         col.prop(self, "resrope", text="Resolution curve")
         col.prop(self, "qcr", text="Quality Collision")
         col.prop(self, "substeps", text="Substeps")
@@ -795,7 +795,7 @@ class BallRope(Operator):
         box = layout.box()
         col = box.column(align=True)
 
-        col.label("Rope settings:")
+        col.label(text="Rope settings:")
         rowsub0 = col.row()
         rowsub0.prop(self, "hidecubes", text="Hide Link Cubes")
 
@@ -811,7 +811,7 @@ class BallRope(Operator):
         rowsub3.prop(self, "grados", text="Degrees")
         rowsub3.prop(self, "separacion", text="Separation Link Cubes")
 
-        col.label("Quality Settings:")
+        col.label(text="Quality Settings:")
         col.prop(self, "resrope", text="Resolution Rope")
         col.prop(self, "massball", text="Ball Mass")
         col.prop(self, "worldsteps", text="World Steps")

@@ -110,7 +110,7 @@ class ToolsPanelDelaunay(Panel):
 
         box = layout.box()
         col = box.column(align=True)
-        col.label("Point Cloud:")
+        col.label(text="Point Cloud:")
         col.operator("delaunay.triangulation")
         col.operator("voronoi.tesselation")
 

@@ -132,19 +132,19 @@ class LengthSet(Operator):
     def draw(self, context):
         layout = self.layout
 
-        layout.label("Original Active length is: {:.3f}".format(self.old_length))
+        layout.label(text="Original Active length is: {:.3f}".format(self.old_length))
 
-        layout.label("Input Mode:")
+        layout.label(text="Input Mode:")
         layout.prop(self, "set_length_type", expand=True)
         if self.set_length_type == 'manual':
             layout.prop(self, "target_length")
         else:
             layout.prop(self, "existing_length", text="")
 
-        layout.label("Mode:")
+        layout.label(text="Mode:")
         layout.prop(self, "mode", text="")
 
-        layout.label("Resize Behavior:")
+        layout.label(text="Resize Behavior:")
         layout.prop(self, "behaviour", text="")
 
     def get_existing_edge_length(self, bm):

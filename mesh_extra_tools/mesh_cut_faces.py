@@ -200,13 +200,13 @@ class MESH_xOT_cut_faces(Operator):
     def draw(self, context):
         layout = self.layout
 
-        layout.label("Number of Cuts:")
+        layout.label(text="Number of Cuts:")
         layout.prop(self, "num_cuts", text="")
 
         layout.prop(self, "use_single_edge")
         layout.prop(self, "use_grid_fill")
 
-        layout.label("Quad Corner Type:")
+        layout.label(text="Quad Corner Type:")
         layout.prop(self, "corner_type", text="")
 
     def cut_edges(self, context):

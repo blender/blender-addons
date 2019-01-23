@@ -1806,7 +1806,7 @@ class AchmWindowEditPanel(Panel):
 
         layout = self.layout
         if bpy.context.mode == 'EDIT_MESH':
-            layout.label('Warning: Operator does not work in edit mode.', icon='ERROR')
+            layout.label(text='Warning: Operator does not work in edit mode.', icon='ERROR')
         else:
             myobject = o.WindowPanelGenerator[0]
             layout.prop(myobject, 'prs')
@@ -1827,8 +1827,8 @@ class AchmWindowEditPanel(Panel):
                 row.prop(myobject, 'mr3')
                 row.prop(myobject, 'mr4')
             row = layout.row()
-            row.label('Frame')
-            row.label('Inner Frame')
+            row.label(text='Frame')
+            row.label(text='Inner Frame')
             row = layout.row()
             row.prop(myobject, 'mt1')
             row.prop(myobject, 'mt2')

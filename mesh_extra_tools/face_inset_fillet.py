@@ -276,7 +276,7 @@ class MESH_OT_face_inset_fillet(Operator):
     def draw(self, context):
         layout = self.layout
 
-        layout.label("Corner Type:")
+        layout.label(text="Corner Type:")
 
         row = layout.row()
         row.prop(self, "type_enum", text="")

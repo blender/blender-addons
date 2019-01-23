@@ -203,7 +203,7 @@ class MESH_OT_add_faces_to_object(Operator):
         col.separator()
         col.label(text="Using Active Object", icon="INFO")
         col.separator()
-        col.label("Face Types:")
+        col.label(text="Face Types:")
         col.prop(self, "face_types", text="")
         col.separator()
         col.prop(self, "use_relative")

@@ -613,18 +613,18 @@ class GIMPImageToScene(bpy.types.Operator):
         layout = self.layout
 
         box = layout.box()
-        box.label('3D Layers:', icon='SORTSIZE')
+        box.label(text='3D Layers:', icon='SORTSIZE')
         box.prop(self, 'SetCamera', icon='OUTLINER_DATA_CAMERA')
         box.prop(self, 'OpacityMode', icon='GHOST')
         if self.OpacityMode == 'COMPO' and self.SetupCompo == False:
-            box.label('Tip: Enable Node Compositing', icon='INFO')
+            box.label(text='Tip: Enable Node Compositing', icon='INFO')
         box.prop(self, 'AlphaMode', icon='IMAGE_RGB_ALPHA')
         box.prop(self, 'ShadelessMats', icon='SHADING_SOLID')
         box.prop(self, 'LayerOffset')
         box.prop(self, 'LayerScale')
 
         box = layout.box()
-        box.label('Compositing:', icon='RENDERLAYERS')
+        box.label(text='Compositing:', icon='RENDERLAYERS')
         box.prop(self, 'SetupCompo', icon='NODETREE')
         if self.SetupCompo:
             box.prop(self, 'GroupUntagged', icon='IMAGE_ZDEPTH')

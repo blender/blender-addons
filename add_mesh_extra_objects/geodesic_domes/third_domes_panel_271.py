@@ -831,7 +831,7 @@ class GenerateGeodesicDome(Operator):
                 col.prop(self, "orientation")
                 col.prop(self, "tri_hex_star")
                 col.prop(self, "spherical_flat")
-                col.label("Geodesic Object Parameters:")
+                col.label(text="Geodesic Object Parameters:")
                 row = layout.row()
                 row.prop(self, "frequency")
                 row = layout.row()
@@ -851,7 +851,7 @@ class GenerateGeodesicDome(Operator):
                 row = layout.row()
                 row.prop(self, "dual")
             elif tmp == 'Torus':
-                col.label("Torus Parameters")
+                col.label(text="Torus Parameters")
                 row = layout.row()
                 row.prop(self, "ures")
                 row = layout.row()
@@ -874,7 +874,7 @@ class GenerateGeodesicDome(Operator):
                 row = layout.row()
 
             elif tmp == 'Sphere':
-                col.label("Sphere Parameters")
+                col.label(text="Sphere Parameters")
                 row = layout.row()
                 row.prop(self, "bures")
                 row = layout.row()
@@ -894,7 +894,7 @@ class GenerateGeodesicDome(Operator):
                 row = layout.row()
                 row.prop(self, "bvellipse")
             elif tmp == 'Parabola':
-                col.label("Parabola Parameters")
+                col.label(text="Parabola Parameters")
                 row = layout.row()
                 row.prop(self, "paxres")
                 row = layout.row()
@@ -910,7 +910,7 @@ class GenerateGeodesicDome(Operator):
                 row = layout.row()
                 row.prop(self, "pagphase")
             elif tmp == 'Cylinder':
-                col.label("Cylinder Parameters")
+                col.label(text="Cylinder Parameters")
                 col.prop(self, "cyxres")
                 col.prop(self, "cyyres")
                 col.prop(self, "cyxsz")
@@ -919,7 +919,7 @@ class GenerateGeodesicDome(Operator):
                 col.prop(self, "cygap")
                 col.prop(self, "cygphase")
             elif tmp == 'Grid':
-                col.label("Grid Parameters")
+                col.label(text="Grid Parameters")
                 row = layout.row()
                 row.prop(self, "grxres")
                 row = layout.row()
@@ -941,7 +941,7 @@ class GenerateGeodesicDome(Operator):
                 if (self.uact is False) and (self.vact is False):
                     row.label(text="No checkbox active", icon="INFO")
                 else:
-                    row.label("Superform Parameters")
+                    row.label(text="Superform Parameters")
                 if self.uact:
                     row = layout.row()
                     row.prop(self, "um")
@@ -983,13 +983,13 @@ class GenerateGeodesicDome(Operator):
             row = layout.row()
             if self.hubimpmesh == "None":
                 row = layout.row()
-                row.label("Name of a hub to use")
+                row.label(text="Name of a hub to use")
                 row = layout.row()
             row.prop(self, "hubimpmesh")
             row = layout.row()
             if self.hmeshname == "None":
                 row = layout.row()
-                row.label("Name of mesh to be filled in")
+                row.label(text="Name of mesh to be filled in")
                 row = layout.row()
             row.prop(self, "hmeshname")
             row = layout.row()

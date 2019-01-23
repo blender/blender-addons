@@ -125,7 +125,7 @@ class Constellation_Operator_Panel(Panel):
 
         box = layout.box()
         col = box.column(align=True)
-        col.label("Constellation:")
+        col.label(text="Constellation:")
         col.operator("mesh.constellation", text="Cross Section")
         col.prop(adv_obj, "constellation_limit")
 

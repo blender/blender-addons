@@ -821,7 +821,7 @@ class PovraySocketFloat_0_10(bpy.types.NodeSocket):
     default_value: bpy.props.FloatProperty(description="Input node Value_0_10",min=0,max=10,default=0)
     def draw(self, context, layout, node, text):
         if node.bl_idname == 'ShaderNormalMapNode' and node.inputs[2].is_linked:
-            layout.label('')
+            layout.label(text='')
             self.hide_value=True
         if self.is_linked:
             layout.label(text)
@@ -836,7 +836,7 @@ class PovraySocketFloat_10(bpy.types.NodeSocket):
     default_value: bpy.props.FloatProperty(description="Input node Value_10",min=-10,max=10,default=0)
     def draw(self, context, layout, node, text):
         if node.bl_idname == 'ShaderNormalMapNode' and node.inputs[2].is_linked:
-            layout.label('')
+            layout.label(text='')
             self.hide_value=True
         if self.is_linked:
             layout.label(text)
@@ -923,7 +923,7 @@ class PovraySocketPattern(bpy.types.NodeSocket):
 
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
-            layout.label("Pattern")
+            layout.label(text="Pattern")
         else:
             layout.prop(self, "default_value", text=text)
 

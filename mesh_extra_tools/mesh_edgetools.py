@@ -822,12 +822,12 @@ class Spline(Operator):
         layout.prop(self, "alg")
         layout.prop(self, "segments")
 
-        layout.label("Edge 1:")
+        layout.label(text="Edge 1:")
         split = layout.split(percentage=0.8, align=True)
         split.prop(self, "ten1")
         split.prop(self, "flip1", text="", icon="ALIGN", toggle=True)
 
-        layout.label("Edge 2:")
+        layout.label(text="Edge 2:")
         split = layout.split(percentage=0.8, align=True)
         split.prop(self, "ten2")
         split.prop(self, "flip2", text="", icon="ALIGN", toggle=True)
@@ -1001,7 +1001,7 @@ class Ortho(Operator):
     def draw(self, context):
         layout = self.layout
 
-        layout.label("Creation:")
+        layout.label(text="Creation:")
         split = layout.split()
         col = split.column()
 
@@ -1012,7 +1012,7 @@ class Ortho(Operator):
         col.prop(self, "vert3", toggle=True)
         col.prop(self, "vert4", toggle=True)
 
-        layout.label("Direction:")
+        layout.label(text="Direction:")
         row = layout.row(align=False)
         row.alignment = 'EXPAND'
         row.prop(self, "pos")
@@ -1478,7 +1478,7 @@ class Slice(Operator):
         layout.prop(self, "make_copy")
         if not self.make_copy:
             layout.prop(self, "rip")
-            layout.label("Remove Side:")
+            layout.label(text="Remove Side:")
             layout.prop(self, "pos")
             layout.prop(self, "neg")
 

@@ -279,7 +279,7 @@ class MocapPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        layout.label("Preprocessing:")
+        layout.label(text="Preprocessing:")
 
         row = layout.row(align=True)
         row.operator("mocap.denoise", text='Clean noise')
@@ -291,7 +291,7 @@ class MocapPanel(bpy.types.Panel):
         row.operator("mocap.limitdof", text='Constrain Rig')
         row.operator("mocap.removelimitdof", text='Unconstrain Rig')
 
-        layout.label("Retargeting:")
+        layout.label(text="Retargeting:")
         enduser_obj = bpy.context.active_object
         performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj]
         if enduser_obj is None or len(performer_obj) != 1:
@@ -299,8 +299,8 @@ class MocapPanel(bpy.types.Panel):
         else:
             layout.operator("mocap.guessmapping", text="Guess Hierarchy Mapping")
             labelRow = layout.row(align=True)
-            labelRow.label("Performer Rig")
-            labelRow.label("End user Rig")
+            labelRow.label(text="Performer Rig")
+            labelRow.label(text="End user Rig")
             performer_obj = performer_obj[0]
             if performer_obj.data and enduser_obj.data:
                 if performer_obj.data.name in bpy.data.armatures and enduser_obj.data.name in bpy.data.armatures:
@@ -336,9 +336,9 @@ class MocapPanel(bpy.types.Panel):
                             IKCol.prop(pose_bone, 'IKRetarget')
                             IKLabel.label(label_mod)
                         else:
-                            twistCol.label(" ")
-                            IKCol.label(" ")
-                            IKLabel.label(" ")
+                            twistCol.label(text=" ")
+                            IKCol.label(text=" ")
+                            IKLabel.label(text=" ")
                     mapRow = layout.row()
                     mapRow.operator("mocap.savemapping", text='Save mapping')
                     mapRow.operator("mocap.loadmapping", text='Load mapping')
@@ -392,16 +392,16 @@ class MocapConstraintsPanel(bpy.types.Panel):
                             if m_constraint.type == "distance" or m_constraint.type == "point":
                                 box.prop_search(m_constraint, 'constrained_boneB', enduser_obj.pose, "bones", icon='CONSTRAINT_BONE')
                             frameRow = box.row()
-                            frameRow.label("Frame Range:")
+                            frameRow.label(text="Frame Range:")
                             frameRow.prop(m_constraint, 's_frame')
                             frameRow.prop(m_constraint, 'e_frame')
                             smoothRow = box.row()
-                            smoothRow.label("Smoothing:")
+                            smoothRow.label(text="Smoothing:")
                             smoothRow.prop(m_constraint, 'smooth_in')
                             smoothRow.prop(m_constraint, 'smooth_out')
                             targetRow = box.row()
                             targetLabelCol = targetRow.column()
-                            targetLabelCol.label("Target settings:")
+                            targetLabelCol.label(text="Target settings:")
                             targetPropCol = targetRow.column()
                             if m_constraint.type == "floor":
                                 targetPropCol.prop_search(m_constraint, 'targetMesh', bpy.data, "objects")
@@ -437,10 +437,10 @@ class ExtraToolsPanel(bpy.types.Panel):
             enduser_arm = context.active_object.data
             selectBox = layout.box()
             selectRetargets = selectBox.row()
-            selectRetargets.label("Retargeted Animations:")
+            selectRetargets.label(text="Retargeted Animations:")
             selectRetargets.prop_search(enduser_arm, "active_mocap", enduser_arm, "mocapNLATracks")
             stitchBox = layout.box()
-            stitchBox.label("Animation Stitching")
+            stitchBox.label(text="Animation Stitching")
             settings = enduser_arm.stitch_settings
             stitchBox.prop_search(settings, "first_action", enduser_arm, "mocapNLATracks")
             stitchBox.prop_search(settings, "second_action", enduser_arm, "mocapNLATracks")

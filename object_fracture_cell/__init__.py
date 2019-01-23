@@ -475,7 +475,7 @@ class FractureCell(Operator):
         layout = self.layout
         box = layout.box()
         col = box.column()
-        col.label("Point Source")
+        col.label(text="Point Source")
         rowsub = col.row()
         rowsub.prop(self, "source")
         rowsub = col.row()
@@ -486,7 +486,7 @@ class FractureCell(Operator):
 
         box = layout.box()
         col = box.column()
-        col.label("Recursive Shatter")
+        col.label(text="Recursive Shatter")
         rowsub = col.row(align=True)
         rowsub.prop(self, "recursion")
         rowsub.prop(self, "recursion_source_limit")
@@ -497,7 +497,7 @@ class FractureCell(Operator):
 
         box = layout.box()
         col = box.column()
-        col.label("Mesh Data")
+        col.label(text="Mesh Data")
         rowsub = col.row()
         rowsub.prop(self, "use_smooth_faces")
         rowsub.prop(self, "use_sharp_edges")
@@ -516,7 +516,7 @@ class FractureCell(Operator):
 
         box = layout.box()
         col = box.column()
-        col.label("Physics")
+        col.label(text="Physics")
         rowsub = col.row(align=True)
         rowsub.prop(self, "mass_mode")
         rowsub.prop(self, "mass")
@@ -524,14 +524,14 @@ class FractureCell(Operator):
 
         box = layout.box()
         col = box.column()
-        col.label("Object")
+        col.label(text="Object")
         rowsub = col.row(align=True)
         rowsub.prop(self, "use_recenter")
 
 
         box = layout.box()
         col = box.column()
-        col.label("Scene")
+        col.label(text="Scene")
         rowsub = col.row(align=True)
         rowsub.prop(self, "use_layer_index")
         rowsub.prop(self, "use_layer_next")
@@ -539,7 +539,7 @@ class FractureCell(Operator):
 
         box = layout.box()
         col = box.column()
-        col.label("Debug")
+        col.label(text="Debug")
         rowsub = col.row(align=True)
         rowsub.prop(self, "use_debug_redraw")
         rowsub.prop(self, "use_debug_points")
@@ -548,7 +548,7 @@ class FractureCell(Operator):
 
 def menu_func(self, context):
     layout = self.layout
-    layout.label("Cell Fracture:")
+    layout.label(text="Cell Fracture:")
     layout.operator("object.add_fracture_cell_objects",
                     text="Cell Fracture")
 

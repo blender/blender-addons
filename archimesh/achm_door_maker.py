@@ -430,7 +430,7 @@ class AchmDoorObjectgeneratorpanel(Panel):
 
         layout = self.layout
         if bpy.context.mode == 'EDIT_MESH':
-            layout.label('Warning: Operator does not work in edit mode.', icon='ERROR')
+            layout.label(text='Warning: Operator does not work in edit mode.', icon='ERROR')
         else:
             myobjdat = o.DoorObjectGenerator[0]
             space = bpy.context.space_data
@@ -438,7 +438,7 @@ class AchmDoorObjectgeneratorpanel(Panel):
                 # Imperial units warning
                 if bpy.context.scene.unit_settings.system == "IMPERIAL":
                     row = layout.row()
-                    row.label("Warning: Imperial units not supported", icon='COLOR_RED')
+                    row.label(text="Warning: Imperial units not supported", icon='COLOR_RED')
                 box = layout.box()
                 row = box.row()
                 row.prop(myobjdat, 'frame_width')
@@ -464,7 +464,7 @@ class AchmDoorObjectgeneratorpanel(Panel):
                 box.prop(myobjdat, 'crt_mat')
             else:
                 row = layout.row()
-                row.label("Warning: Operator does not work in local view mode", icon='ERROR')
+                row.label(text="Warning: Operator does not work in local view mode", icon='ERROR')
 
 
 # ------------------------------------------------------------------------------

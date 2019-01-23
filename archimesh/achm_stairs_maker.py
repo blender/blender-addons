@@ -146,7 +146,7 @@ class AchmStairs(Operator):
             # Imperial units warning
             if bpy.context.scene.unit_settings.system == "IMPERIAL":
                 row = layout.row()
-                row.label("Warning: Imperial units not supported", icon='COLOR_RED')
+                row.label(text="Warning: Imperial units not supported", icon='COLOR_RED')
 
             box = layout.box()
             row = box.row()
@@ -183,7 +183,7 @@ class AchmStairs(Operator):
             box.prop(self, 'crt_mat')
         else:
             row = layout.row()
-            row.label("Warning: Operator does not work in local view mode", icon='ERROR')
+            row.label(text="Warning: Operator does not work in local view mode", icon='ERROR')
 
     # -----------------------------------------------------
     # Execute

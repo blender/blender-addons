@@ -1108,7 +1108,7 @@ class Eroder(bpy.types.Operator):
 
         box = layout.box()
         col = box.column(align=True)
-        col.label("River erosion")
+        col.label(text="River erosion")
         col.prop(self, 'IterRiver')
         col.prop(self, 'Kz')
         col.prop(self, 'Ks')

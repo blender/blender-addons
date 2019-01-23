@@ -828,7 +828,7 @@ class VIEW3D_OT_show_mat_preview(Operator):
                 "*Only available in Solid Shading*" if c_render_engine("Cycles") else
                 other_render
             )
-            layout.label(no_col_label, icon="INFO")
+            layout.label(text=no_col_label, icon="INFO")
             return
 
         color_txt = "Viewport Color:" if c_render_engine("Cycles") else "Diffuse"
@@ -863,7 +863,7 @@ class VIEW3D_OT_show_mat_preview(Operator):
                 col.separator()
                 col.prop(mat, "alpha")
                 col.separator()
-                col.label("Viewport Alpha:")
+                col.label(text="Viewport Alpha:")
                 col.prop(mat.game_settings, "alpha_blend", text="")
         layout.separator()
 
@@ -952,7 +952,7 @@ class VIEW3D_OT_set_new_material_name(Operator):
         scene = context.scene.mat_specials
 
         box = layout.box()
-        box.label("Base name:")
+        box.label(text="Base name:")
         box.prop(scene, "set_material_name", text="", icon="SYNTAX_ON")
         layout.separator()
         layout.prop(scene, "use_tweak")
@@ -1656,12 +1656,12 @@ def draw_ui_list_popups(self, context, obj_data=False):
               icon="INFO")
     sub_split = col.split(percentage=0.7, align=True)
     sub_box_1 = sub_split.box()
-    sub_box_1.label("Name")
+    sub_box_1.label(text="Name")
     sub_split_2 = sub_split.split(percentage=0.5, align=True)
     sub_box_2 = sub_split_2.box()
-    sub_box_2.label("Fake")
+    sub_box_2.label(text="Fake")
     sub_box_3 = sub_split_2.box()
-    sub_box_3.label("Lib")
+    sub_box_3.label(text="Lib")
 
     col.template_list(
         "VIEW3D_UL_assign_material_popup_ui",
@@ -1994,9 +1994,9 @@ class MATERIAL_MT_scenemassive_opt(Menu):
         layout.prop(scene, "enable_report", text="Enable Report in the UI")
         use_separator(self, context)
 
-        layout.label("Set the Bake Resolution")
+        layout.label(text="Set the Bake Resolution")
         res = str(scene.img_bake_size)
-        layout.label("Current Setting is : %s" % (res + "x" + res), icon='INFO')
+        layout.label(text="Current Setting is : %s" % (res + "x" + res), icon='INFO')
         use_separator(self, context)
         layout.prop(scene, "img_bake_size", icon='NODE_SEL', expand=True)
 
@@ -2035,7 +2035,7 @@ class MATERIAL_PT_scenemassive(Panel):
         row.menu("scenemassive.opt", text="Advanced Options", icon='SCRIPTWIN')
 
         box = col.box()
-        box.label("Save Directory")
+        box.label(text="Save Directory")
         split = box.split(0.85)
         split.prop(sc.mat_specials, "conv_path", text="", icon="RENDER_RESULT")
         split.operator("material.check_converter_path",
@@ -2376,7 +2376,7 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
         col_m = layout.column(align=True)
 
         box = col_m.box()
-        box.label("Save Directory")
+        box.label(text="Save Directory")
         split = box.split(0.85)
         split.prop(sc.mat_specials, "conv_path", text="", icon="RENDER_RESULT")
         split.operator(
@@ -2393,7 +2393,7 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
         col.prop(self, "show_separators")
 
         col = split.column(align=True)
-        col.label("Apply / Select Material mode:")
+        col.label(text="Apply / Select Material mode:")
         col.prop(self, "set_add_material_menu", expand=True)
 
         box = col_m.box()

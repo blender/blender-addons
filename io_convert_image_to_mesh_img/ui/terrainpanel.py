@@ -100,19 +100,19 @@ class TerrainPanel(Panel):
         metadata_panel = layout.box()
 
         dtm_resolution = metadata_panel.row()
-        dtm_resolution.label('Current Resolution: ')
+        dtm_resolution.label(text='Current Resolution: ')
         dtm_resolution.label('{:9,.2%}'.format(
             obj['DTM_RESOLUTION']
         ))
 
         mesh_scale = metadata_panel.row()
-        mesh_scale.label('Current Scale: ')
+        mesh_scale.label(text='Current Scale: ')
         mesh_scale.label('{:9,.2f} m/post'.format(
             obj['MESH_SCALE']
         ))
 
         dtm_scale = metadata_panel.row()
-        dtm_scale.label('Original Scale: ')
+        dtm_scale.label(text='Original Scale: ')
         dtm_scale.label('{:9,.2f} m/post'.format(
             obj['MAP_SCALE']
         ))

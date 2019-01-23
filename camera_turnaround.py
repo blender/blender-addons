@@ -277,7 +277,7 @@ class PanelUI(Panel):
             bpy.context.scene.camera.name
         except AttributeError:
             row = layout.row(align=False)
-            row.label("No defined camera for scene", icon="INFO")
+            row.label(text="No defined camera for scene", icon="INFO")
             return
 
         if context.active_object is not None:
@@ -287,11 +287,11 @@ class PanelUI(Panel):
                 row.operator("object.rotate_around", icon='OUTLINER_DATA_CAMERA')
                 box = row.box()
                 box.scale_y = 0.5
-                box.label(buf, icon='MESH_DATA')
+                box.label(text=buf, icon='MESH_DATA')
                 row = layout.row(align=False)
                 row.prop(scene, "camera")
 
-                layout.label("Rotation:")
+                layout.label(text="Rotation:")
                 row = layout.row(align=True)
                 row.prop(scene, "frame_start")
                 row.prop(scene, "frame_end")
@@ -308,7 +308,7 @@ class PanelUI(Panel):
                 split.prop(turn_camera, "inverse_z", toggle=True)
 
                 col = layout.column(align=True)
-                col.label("Options:")
+                col.label(text="Options:")
                 row = col.row(align=True)
                 row.prop(turn_camera, "back_forw", toggle=True)
                 row.prop(turn_camera, "reset_cam_anim", toggle=True)
@@ -324,7 +324,7 @@ class PanelUI(Panel):
 
             else:
                 buf = "No valid object selected"
-                layout.label(buf, icon='MESH_DATA')
+                layout.label(text=buf, icon='MESH_DATA')
 
 
 # ------------------------------------------------------

@@ -285,7 +285,7 @@ class CreateProxyToolPanel(Panel):
             if prefs.use_bi_custom_directory:
                 row.prop(prefs, "proxy_dir", text="")
                 filename = strip.filepath.rpartition("/")[2].rpartition(".")[0]
-                layout.label("sample dir: //" + bpy.path.abspath(prefs.proxy_dir + filename))
+                layout.label(text="sample dir: //" + bpy.path.abspath(prefs.proxy_dir + filename))
 
             layout = self.layout
             col = layout.column()
@@ -299,7 +299,7 @@ class CreateProxyToolPanel(Panel):
                 col.prop(prefs, "timecode")
 
             layout = self.layout
-            layout.label("Setup and create BI proxy:")
+            layout.label(text="Setup and create BI proxy:")
             row = layout.row(align=True)
 
             for i in range(4):
@@ -316,13 +316,13 @@ class CreateProxyToolPanel(Panel):
             layout.prop(prefs, "proxy_dir", text="Path for proxies")
 
             layout = self.layout
-            layout.label("Create and import proxy from clip:")
+            layout.label(text="Create and import proxy from clip:")
             row = layout.row(align=True)
 
             layout = self.layout
             layout.prop(prefs, "ffmpeg_command", text="command")
 
-            layout.label("{} = filename, with, height, fileoutput")
+            layout.label(text="{} = filename, with, height, fileoutput")
             label = prefs.ffmpeg_command.format("filename", "with", "height", "fileoutput")
             layout.label(label)
 

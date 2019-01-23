@@ -587,7 +587,7 @@ class addTracerObjectPanel(Panel):
         def color_blender():
             # Buttons for Color Blender
             row = box.row()
-            row.label("Color palette")
+            row.label(text="Color palette")
             row.prop(Btrace, "mmColors", text="")
 
             # Show Custom Colors if selected
@@ -730,7 +730,7 @@ class addTracerObjectPanel(Panel):
         # Default option (can be expanded into help)
         if Btrace.btrace_toolmenu == 'tool_help':
             row = layout.row()
-            row.label("Pick an option", icon="HELP")
+            row.label(text="Pick an option", icon="HELP")
 
         # Object Trace
         elif Btrace.btrace_toolmenu == 'tool_objectTrace':
@@ -817,14 +817,14 @@ class addTracerObjectPanel(Panel):
                     row.prop(Btrace, "fol_sel_option", expand=True)
                     row = box.row()
                     if Btrace.fol_sel_option == 'RANDOM':
-                        row.label("Random Select of Total")
+                        row.label(text="Random Select of Total")
                         row.prop(Btrace, "fol_perc_verts", text="%")
                     if Btrace.fol_sel_option == 'CUSTOM':
-                        row.label("Choose selection in Edit Mode")
+                        row.label(text="Choose selection in Edit Mode")
                     if Btrace.fol_sel_option == 'ALL':
-                        row.label("Select All items")
+                        row.label(text="Select All items")
                 col = box.column(align=True)
-                col.label("Time Options", icon="TIME")
+                col.label(text="Time Options", icon="TIME")
                 col.prop(Btrace, "particle_step")
                 row = col.row(align=True)
                 row.prop(Btrace, "fol_start_frame")

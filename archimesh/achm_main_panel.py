@@ -411,7 +411,7 @@ class ArchimeshMainPanel(Panel):
         try:
             if 'RoomGenerator' in myobj:
                 box = layout.box()
-                box.label("Room Tools", icon='MODIFIER')
+                box.label(text="Room Tools", icon='MODIFIER')
                 row = box.row(align=False)
                 row.operator("object.archimesh_cut_holes", icon='GRID')
                 row.prop(scene, "archimesh_select_only")
@@ -431,7 +431,7 @@ class ArchimeshMainPanel(Panel):
         try:
             if myobj["archimesh.sku"] is not None:
                 box = layout.box()
-                box.label("Kitchen Tools", icon='MODIFIER')
+                box.label(text="Kitchen Tools", icon='MODIFIER')
                 # Export
                 row = box.row(align=False)
                 row.operator("io_export.kitchen_inventory", text="Export inventory", icon='PASTEDOWN')
@@ -442,7 +442,7 @@ class ArchimeshMainPanel(Panel):
         # Elements Buttons
         # ------------------------------
         box = layout.box()
-        box.label("Elements", icon='GROUP')
+        box.label(text="Elements", icon='GROUP')
         row = box.row()
         row.operator("mesh.archimesh_room")
         row.operator("mesh.archimesh_column")
@@ -462,7 +462,7 @@ class ArchimeshMainPanel(Panel):
         # Prop Buttons
         # ------------------------------
         box = layout.box()
-        box.label("Props", icon='LIGHT_DATA')
+        box.label(text="Props", icon='LIGHT_DATA')
         row = box.row()
         row.operator("mesh.archimesh_books")
         row.operator("mesh.archimesh_light")
@@ -476,7 +476,7 @@ class ArchimeshMainPanel(Panel):
         # OpenGL Buttons
         # ------------------------------
         box = layout.box()
-        box.label("Display hints", icon='QUESTION')
+        box.label(text="Display hints", icon='QUESTION')
         row = box.row()
         if context.window_manager.archimesh_run_opengl is False:
             icon = 'PLAY'
@@ -501,7 +501,7 @@ class ArchimeshMainPanel(Panel):
         # Grease pencil tools
         # ------------------------------
         box = layout.box()
-        box.label("Pencil Tools", icon='MODIFIER')
+        box.label(text="Pencil Tools", icon='MODIFIER')
         row = box.row(align=False)
         row.operator("object.archimesh_pencil_room", icon='GREASEPENCIL')
         row = box.row(align=False)

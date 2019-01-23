@@ -2379,7 +2379,7 @@ class VIEW3D_PT_paper_model_tools(bpy.types.Panel):
         layout.operator("export_mesh.paper_model")
 
         col = layout.column(align=True)
-        col.label("Customization:")
+        col.label(text="Customization:")
         col.operator("mesh.unfold")
 
         if context.mode == 'EDIT_MESH':
@@ -2432,7 +2432,7 @@ class VIEW3D_PT_paper_model_islands(bpy.types.Panel):
                 row.prop(list_item, "abbreviation")
         else:
             layout.label(text="Not unfolded")
-            layout.box().label("Use the 'Unfold' tool")
+            layout.box().label(text="Use the 'Unfold' tool")
         sub = layout.column(align=True)
         sub.active = bool(mesh and mesh.paper_island_list)
         sub.prop(sce.paper_model, "display_islands", icon='RESTRICT_VIEW_OFF')

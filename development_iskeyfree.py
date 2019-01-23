@@ -245,11 +245,11 @@ class UIControlPanel(Panel):
             cmd = mychecker.getlast()
             if cmd is not None:
                 row = layout.row()
-                row.label("Current uses of " + str(cmd), icon="PARTICLE_DATA")
+                row.label(text="Current uses of " + str(cmd), icon="PARTICLE_DATA")
             for e in mylist:
                 if oldcontext != e[0]:
                     box = layout.box()
-                    box.label(e[0], icon="UNPINNED")
+                    box.label(text=e[0], icon="UNPINNED")
                     oldcontext = e[0]
 
                 row = box.row(align=True)

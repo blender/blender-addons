@@ -269,10 +269,10 @@ class AchmLamp(Operator):
             # Imperial units warning
             if bpy.context.scene.unit_settings.system == "IMPERIAL":
                 row = layout.row()
-                row.label("Warning: Imperial units not supported", icon='COLOR_RED')
+                row.label(text="Warning: Imperial units not supported", icon='COLOR_RED')
 
             box = layout.box()
-            box.label("Lamp base")
+            box.label(text="Lamp base")
             row = box.row()
             row.prop(self, 'preset')
             row = box.row()
@@ -338,7 +338,7 @@ class AchmLamp(Operator):
                 row.prop(self, 'bz12', slider=True)
 
             box = layout.box()
-            box.label("Lampshade")
+            box.label(text="Lampshade")
             row = box.row()
             row.prop(self, 'top_height')
             row.prop(self, 'top_segments')
@@ -362,7 +362,7 @@ class AchmLamp(Operator):
                 row.prop(self, 'objcol')
         else:
             row = layout.row()
-            row.label("Warning: Operator does not work in local view mode", icon='ERROR')
+            row.label(text="Warning: Operator does not work in local view mode", icon='ERROR')
 
     # -----------------------------------------------------
     # Execute

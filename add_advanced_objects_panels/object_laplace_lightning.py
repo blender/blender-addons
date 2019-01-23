@@ -1354,7 +1354,7 @@ class OBJECT_PT_fslg(Panel):
 
         col = layout.column()
         col.operator("object.setup_objects_operator", text="Create Setup objects")
-        col.label("Origin object")
+        col.label(text="Origin object")
         col.prop_search(winmgr, "OOB", context.scene, "objects")
 
         box = layout.box()

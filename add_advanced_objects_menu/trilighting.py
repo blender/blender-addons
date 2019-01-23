@@ -89,26 +89,26 @@ class TriLighting(Operator):
     def draw(self, context):
         layout = self.layout
 
-        layout.label("Position:")
+        layout.label(text="Position:")
         col = layout.column(align=True)
         col.prop(self, "height")
         col.prop(self, "distance")
 
-        layout.label("Light:")
+        layout.label(text="Light:")
         col = layout.column(align=True)
         col.prop(self, "energy")
         col.prop(self, "contrast")
 
-        layout.label("Orientation:")
+        layout.label(text="Orientation:")
         col = layout.column(align=True)
         col.prop(self, "leftangle")
         col.prop(self, "rightangle")
         col.prop(self, "backangle")
 
         col = layout.column()
-        col.label("Key Light Type:")
+        col.label(text="Key Light Type:")
         col.prop(self, "primarytype", text="")
-        col.label("Fill + Back Type:")
+        col.label(text="Fill + Back Type:")
         col.prop(self, "secondarytype", text="")
 
     def execute(self, context):

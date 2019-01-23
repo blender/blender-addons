@@ -421,18 +421,18 @@ class AddRoundCube(Operator, object_utils.AddObjectHelper):
         row = box.row()
         row.alignment = 'CENTER'
         row.scale_y = 0.1
-        row.label('Divisions')
+        row.label(text='Divisions')
         row = box.row()
         col = row.column()
         col.alignment = 'RIGHT'
-        col.label('Arc:')
+        col.label(text='Arc:')
         col.prop(self, 'arc_div', text='')
-        col.label('[ {} ]'.format(self.arcdiv))
+        col.label(text='[ {} ]'.format(self.arcdiv))
         col = row.column()
         col.alignment = 'RIGHT'
-        col.label('Linear:')
+        col.label(text='Linear:')
         col.prop(self, 'lin_div', text='')
-        col.label('[ {:.3g} ]'.format(self.lindiv))
+        col.label(text='[ {:.3g} ]'.format(self.lindiv))
         box.row().prop(self, 'div_type')
         row = box.row()
         row.active = self.arcdiv % 2

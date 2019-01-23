@@ -684,12 +684,12 @@ class BONE_PT_custom_shape(Panel):
         row.operator("object.skinify_rig", text="Add Shape", icon='BONE_DATA')
 
         split = layout.split(percentage=0.3)
-        split.label("Thickness:")
+        split.label(text="Thickness:")
         split.prop(scn, "thickness", text="Body", icon='MOD_SKIN')
         split.prop(scn, "finger_thickness", text="Fingers", icon='HAND')
 
         split = layout.split(percentage=0.3)
-        split.label("Mesh Density:")
+        split.label(text="Mesh Density:")
         split.prop(scn, "sub_level", icon='MESH_ICOSPHERE')
 
         row = layout.row()

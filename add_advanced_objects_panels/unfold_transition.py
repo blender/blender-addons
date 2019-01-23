@@ -304,7 +304,7 @@ class PanelFOLD(Panel):
         col = box.column()
         col.operator("object.set_up_fold", text="1. Set Up Unfold")
         col.separator()
-        col.label("Unfold Mode:")
+        col.label(text="Unfold Mode:")
         col.prop(adv_obj, "unfold_modo")
         col.prop(adv_obj, "unfold_flip")
 

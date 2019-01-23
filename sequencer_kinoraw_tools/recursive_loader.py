@@ -250,7 +250,7 @@ class ExifInfoPanel(Panel):
                         row = col.row()
                         col.label(text=d)
                         col = split.column()
-                        col.label(str(sce['metadata'][0][d]))
+                        col.label(text=str(sce['metadata'][0][d]))
                 else:
                     for d in sce['metadata'][frame - f]:
                         split = layout.split(percentage=0.5)
@@ -258,7 +258,7 @@ class ExifInfoPanel(Panel):
                         row = col.row()
                         col.label(text=d)
                         col = split.column()
-                        col.label(str(sce['metadata'][frame - f][d]))
+                        col.label(text=str(sce['metadata'][frame - f][d]))
 
             except (IndexError, KeyError):
                 pass

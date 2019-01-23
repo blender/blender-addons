@@ -1144,7 +1144,7 @@ class MATLIB_PT_vxPanel(Panel):
     if matlib.active_material:
       row.label(matlib.active_material.category)
     else:
-      row.label("")
+      row.label(text="")
 #
 #    #search
     if not matlib.hide_search:

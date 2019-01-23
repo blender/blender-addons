@@ -479,7 +479,7 @@ class AchmKitchen(Operator):
             # Imperial units warning
             if bpy.context.scene.unit_settings.system == "IMPERIAL":
                 row = layout.row()
-                row.label("Warning: Imperial units not supported", icon='COLOR_RED')
+                row.label(text="Warning: Imperial units not supported", icon='COLOR_RED')
 
             box = layout.box()
             row = box.row()
@@ -527,7 +527,7 @@ class AchmKitchen(Operator):
             box.prop(self, 'crt_mat')
         else:
             row = layout.row()
-            row.label("Warning: Operator does not work in local view mode", icon='ERROR')
+            row.label(text="Warning: Operator does not work in local view mode", icon='ERROR')
 
     # -----------------------------------------------------
     # Execute
@@ -564,7 +564,7 @@ class AchmKitchen(Operator):
 def add_cabinet(self, box, num, cabinet):
     doortype = cabinet.dType
     row = box.row()
-    row.label("Cabinet " + str(num))
+    row.label(text="Cabinet " + str(num))
     row.prop(cabinet, 'sX')
 
     row = box.row()

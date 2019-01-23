@@ -190,7 +190,7 @@ class BisectMirror(Panel):
 
         if obj and obj.type == 'MESH':
             layout.operator("object.automirror", icon="MOD_MIRROR")
-            layout.label("Options:")
+            layout.label(text="Options:")
             layout.prop(auto_m, "axis", text="Mirror Axis", expand=True)
             layout.prop(auto_m, "orientation", text="Orientation")
             layout.prop(auto_m, "threshold", text="Threshold")

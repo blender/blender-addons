@@ -191,20 +191,20 @@ class VIEW3D_PT_animall(Panel):
             row = split.row()
 
             if ShapeKeyIndex > 0:
-                row.label(ShapeKey.name, icon="SHAPEKEY_DATA")
+                row.label(text=ShapeKey.name, icon="SHAPEKEY_DATA")
                 row.prop(ShapeKey, "value", text="")
                 row.prop(Obj, "show_only_shape_key", text="")
                 if ShapeKey.value < 1:
                     row = layout.row()
-                    row.label('Maybe set "%s" to 1.0?' % ShapeKey.name, icon="INFO")
+                    row.label(text='Maybe set "%s" to 1.0?' % ShapeKey.name, icon="INFO")
             elif ShapeKey:
-                row.label("Can not key on Basis Shape", icon="ERROR")
+                row.label(text="Can not key on Basis Shape", icon="ERROR")
             else:
-                row.label("No active Shape Key", icon="ERROR")
+                row.label(text="No active Shape Key", icon="ERROR")
 
         if context.window_manager.key_points and context.window_manager.key_shape:
             row = layout.row()
-            row.label('"Points" and "Shape" are redundant?', icon="INFO")
+            row.label(text='"Points" and "Shape" are redundant?', icon="INFO")
 
 
 class ANIM_OT_insert_keyframe_animall(Operator):

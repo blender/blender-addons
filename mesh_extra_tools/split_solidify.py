@@ -151,18 +151,18 @@ class MESH_OT_split_solidify(Operator):
 
     def draw(self, context):
         layout = self.layout
-        layout.label("Normal:")
+        layout.label(text="Normal:")
         layout.prop(self, "normal_extr", expand=True)
         layout.prop(self, "loc_random")
 
         if not self.loc_random:
-            layout.label("Distance:")
+            layout.label(text="Distance:")
             layout.prop(self, "distance")
         elif self.loc_random:
-            layout.label("Random distance:")
+            layout.label(text="Random distance:")
             layout.prop(self, "random_dist")
 
-        layout.label("Thickness:")
+        layout.label(text="Thickness:")
         layout.prop(self, "thickness")
         layout.prop(self, "del_original")
 

@@ -366,7 +366,7 @@ class Ms3dImportOperator(Operator, ImportHelper):
         layout = self.layout
 
         box = layout.box()
-        box.label(ms3d_str['LABEL_NAME_OPTIONS'], icon=Ms3dUi.ICON_OPTIONS)
+        box.label(text=ms3d_str['LABEL_NAME_OPTIONS'], icon=Ms3dUi.ICON_OPTIONS)
         box.prop(self, 'verbose', icon='SPEAKER')
 
         box = layout.box()
@@ -375,7 +375,7 @@ class Ms3dImportOperator(Operator, ImportHelper):
         box.prop(self, 'use_extended_normal_handling')
 
         box = layout.box()
-        box.label(ms3d_str['LABEL_NAME_ANIMATION'], icon=Ms3dUi.ICON_ANIMATION)
+        box.label(text=ms3d_str['LABEL_NAME_ANIMATION'], icon=Ms3dUi.ICON_ANIMATION)
         box.prop(self, 'use_animation')
         if (self.use_animation):
             box.prop(self, 'rotation_mode', icon=Ms3dUi.ICON_ROTATION_MODE,
@@ -560,7 +560,7 @@ class Ms3dExportOperator(Operator, ExportHelper):
 
         box = layout.box()
         flow = box.column_flow()
-        flow.label(ms3d_str['LABEL_NAME_OPTIONS'], icon=Ms3dUi.ICON_OPTIONS)
+        flow.label(text=ms3d_str['LABEL_NAME_OPTIONS'], icon=Ms3dUi.ICON_OPTIONS)
         flow.prop(self, 'verbose', icon='SPEAKER')
 
         box = layout.box()
@@ -568,7 +568,7 @@ class Ms3dExportOperator(Operator, ExportHelper):
         flow.label(ms3d_str['LABEL_NAME_PROCESSING'],
                 icon=Ms3dUi.ICON_PROCESSING)
         row = flow.row()
-        row.label(ms3d_str['PROP_NAME_ACTIVE'], icon='ROTACTIVE')
+        row.label(text=ms3d_str['PROP_NAME_ACTIVE'], icon='ROTACTIVE')
         row.label(blender_context.active_object.name)
         ##flow.prop(self, 'object_name')
         flow.prop(self, 'use_blender_names')

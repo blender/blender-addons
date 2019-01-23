@@ -152,7 +152,7 @@ class DisplayToolsPanel(Panel):
 
             if render.use_simplify is True:
                 col = layout.column(align=True)
-                col.label("Settings :")
+                col.label(text="Settings :")
                 col.prop(render, "simplify_subdivision", "Subdivision")
                 col.prop(render, "simplify_shadow_samples", "Shadow Samples")
                 col.prop(render, "simplify_child_particles", "Child Particles")
@@ -227,7 +227,7 @@ class DisplayToolsPanel(Panel):
 
             col = layout.column(align=True)
             col.alignment = 'EXPAND'
-            col.label("Bounding Box:")
+            col.label(text="Bounding Box:")
             row = col.row()
             row.prop(display_tools, "BoundingMode", text="Type")
             row = col.row()
@@ -340,7 +340,7 @@ class DisplayToolsPanel(Panel):
             col.separator()
 
             row = col.row()
-            row.label("Subsurf Visibility:", icon="ALIASED")
+            row.label(text="Subsurf Visibility:", icon="ALIASED")
 
             col = layout.column(align=True)
             row1 = col.row(align=True)
@@ -376,7 +376,7 @@ class DisplayToolsPanel(Panel):
             col.separator()
 
             row = col.row(align=True)
-            row.label("Subdivision Level:", icon="MOD_SUBSURF")
+            row.label(text="Subdivision Level:", icon="MOD_SUBSURF")
 
             row = col.row(align=True)
             row.operator("view3d.modifiers_subsurf_level_set", text="0").level = 0
@@ -442,7 +442,7 @@ class DisplayToolsPanel(Panel):
             col.operator("view3d.fast_navigate_operator", icon="NEXT_KEYFRAME")
             col.operator("view3d.fast_navigate_stop", icon="PANEL_CLOSE")
 
-            layout.label("Settings:")
+            layout.label(text="Settings:")
             layout.prop(display_tools, "OriginalMode")
             layout.prop(display_tools, "FastMode")
             layout.prop(display_tools, "EditActive", "Edit mode")
@@ -459,7 +459,7 @@ class DisplayToolsPanel(Panel):
             col.prop(display_tools, "ParticlesPercentageDisplay")
 
             col = layout.column(align=True)
-            col.label("Screen Active Area:")
+            col.label(text="Screen Active Area:")
             col.prop(display_tools, "ScreenStart")
             col.prop(display_tools, "ScreenEnd")
 

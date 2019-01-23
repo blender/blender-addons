@@ -70,11 +70,11 @@ class SelVertEdgeFace(Operator):
     def draw(self, context):
         layout = self.layout
 
-        layout.label("Selection Type:")
+        layout.label(text="Selection Type:")
         layout.prop(self, "select_type", text="")
         layout.separator()
 
-        layout.label("Selected:")
+        layout.label(text="Selected:")
         layout.prop(self, "indice", text="", slider=True)
 
         d_text = self.delta_text[self.select_type]

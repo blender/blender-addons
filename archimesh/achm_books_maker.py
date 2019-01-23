@@ -115,10 +115,10 @@ class AchmBooks(Operator):
             # Imperial units warning
             if bpy.context.scene.unit_settings.system == "IMPERIAL":
                 row = layout.row()
-                row.label("Warning: Imperial units not supported", icon='COLOR_RED')
+                row.label(text="Warning: Imperial units not supported", icon='COLOR_RED')
 
             box = layout.box()
-            box.label("Book size")
+            box.label(text="Book size")
             row = box.row()
             row.prop(self, 'width')
             row.prop(self, 'depth')
@@ -127,7 +127,7 @@ class AchmBooks(Operator):
             row.prop(self, 'num', slider=True)
 
             box = layout.box()
-            box.label("Randomness")
+            box.label(text="Randomness")
             row = box.row()
             row.prop(self, 'rX', slider=True)
             row.prop(self, 'rY', slider=True)
@@ -147,7 +147,7 @@ class AchmBooks(Operator):
                 row.prop(self, 'rC', slider=True)
         else:
             row = layout.row()
-            row.label("Warning: Operator does not work in local view mode", icon='ERROR')
+            row.label(text="Warning: Operator does not work in local view mode", icon='ERROR')
 
     # -----------------------------------------------------
     # Execute

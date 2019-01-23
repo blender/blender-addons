@@ -119,11 +119,11 @@ class PALETTE_MT_menu(Menu):
         layout = self.layout
 
         if bpy.data.filepath == "":
-            layout.label("*Please save the .blend file first*")
+            layout.label(text="*Please save the .blend file first*")
             return
 
         if not searchpaths[0]:
-            layout.label("* Missing Paths *")
+            layout.label(text="* Missing Paths *")
             return
 
         # collect paths

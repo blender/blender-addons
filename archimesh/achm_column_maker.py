@@ -244,7 +244,7 @@ class AchmColumn(bpy.types.Operator):
             # Imperial units warning
             if bpy.context.scene.unit_settings.system == "IMPERIAL":
                 row = layout.row()
-                row.label("Warning: Imperial units not supported", icon='COLOR_RED')
+                row.label(text="Warning: Imperial units not supported", icon='COLOR_RED')
             box = layout.box()
             box.prop(self, 'model')
             # Circular
@@ -311,7 +311,7 @@ class AchmColumn(bpy.types.Operator):
                 row.prop(self, 'array_num_x')
                 row.prop(self, 'array_num_y')
                 if self.arc_top is True:
-                    box.label("Use arch radio and thickness to set distances")
+                    box.label(text="Use arch radio and thickness to set distances")
 
                 if self.arc_top is False:
                     row = box.row()
@@ -327,7 +327,7 @@ class AchmColumn(bpy.types.Operator):
             box.prop(self, 'crt_mat')
         else:
             row = layout.row()
-            row.label("Warning: Operator does not work in local view mode", icon='ERROR')
+            row.label(text="Warning: Operator does not work in local view mode", icon='ERROR')
 
     # -----------------------------------------------------
     # Execute

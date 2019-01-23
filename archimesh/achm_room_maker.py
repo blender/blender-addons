@@ -1589,7 +1589,7 @@ Object.RoomGenerator = CollectionProperty(type=RoomProperties)
 # Add wall parameters to the panel.
 # -----------------------------------------------------
 def add_wall(idx, box, wall):
-    box.label("Wall " + str(idx))
+    box.label(text="Wall " + str(idx))
     row = box.row()
     row.prop(wall, 'w')
     row.prop(wall, 'a')
@@ -1650,7 +1650,7 @@ class AchmRoomGeneratorPanel(Panel):
 
         layout = self.layout
         if bpy.context.mode == 'EDIT_MESH':
-            layout.label('Warning: Operator does not work in edit mode.', icon='ERROR')
+            layout.label(text='Warning: Operator does not work in edit mode.', icon='ERROR')
         else:
             room = o.RoomGenerator[0]
             row = layout.row()

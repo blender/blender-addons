@@ -117,7 +117,7 @@ class Vertex_align_original(Operator):
 
     def draw(self, context):
         layout = self.layout
-        layout.label("Axis:")
+        layout.label(text="Axis:")
 
         row = layout.row(align=True)
         row.prop(context.scene.mesh_extra_tools, "vert_align_axis",
@@ -233,7 +233,7 @@ class Vertex_align_coord_menu(Operator):
         layout = self.layout
 
         if self.using_store(context) and self.is_not_undo:
-            layout.label("Using Stored Coordinates", icon="INFO")
+            layout.label(text="Using Stored Coordinates", icon="INFO")
 
         row = layout.split(0.25)
         row.prop(self, "use_axis_coord", index=0, text="X")
