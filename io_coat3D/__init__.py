@@ -991,8 +991,6 @@ class SCENE_PT_Settings_Update(ObjectButtonsPanel, bpy.types.Panel):
         col = flow.column()
         col.prop(coat3D, "importtextures", text="Update Textures")
         col = flow.column()
-        col.prop(coat3D, "creategroup", text="Group Nodes")
-        col = flow.column()
         col.prop(coat3D, "exportmod", text="Export with modifiers")
 
 class SCENE_PT_Settings_Folders(ObjectButtonsPanel, bpy.types.Panel):
@@ -1174,46 +1172,6 @@ class SceneCoat3D(PropertyGroup):
         description="Alert if Exchange folder is not found",
         default=True
     )
-    export_box: BoolProperty(
-        name="Export window",
-        description="Allows to skip export dialog",
-        default=True
-    )
-    export_color: BoolProperty(
-        name="Export color",
-        description="Export color texture",
-        default=True
-    )
-    export_spec: BoolProperty(
-        name="Export specular",
-        description="Export specular texture",
-        default=True
-    )
-    export_normal: BoolProperty(
-        name="Export Normal",
-        description="Export normal texture",
-        default=True
-    )
-    export_disp: BoolProperty(
-        name="Export Displacement",
-        description="Export displacement texture",
-        default=True
-    )
-    export_position: BoolProperty(
-        name="Export Source Position",
-        description="Export source position",
-        default=True
-    )
-    export_zero_layer: BoolProperty(
-        name="Export from Layer 0",
-        description="Export mesh from Layer 0",
-        default=True
-    )
-    export_coarse: BoolProperty(
-        name="Export Coarse",
-        description="Export Coarse",
-        default=True
-    )
     exportfile: BoolProperty(
         name="No Import File",
         description="Add Modifiers and export",
@@ -1229,11 +1187,6 @@ class SceneCoat3D(PropertyGroup):
         description="Export modifiers",
         default=False
     )
-    export_pos: BoolProperty(
-        name="Remember Position",
-        description="Remember position",
-        default=True
-    )
     importtextures: BoolProperty(
         name="Bring Textures",
         description="Import Textures",
@@ -1244,19 +1197,9 @@ class SceneCoat3D(PropertyGroup):
         description="Import Textures",
         default=True
     )
-    creategroup: BoolProperty(
-        name="Bring Textures",
-        description="Import Textures",
-        default=True
-    )
     importlevel: BoolProperty(
         name="Multires. Level",
         description="Bring Specific Multires Level",
-        default=False
-    )
-    exportover: BoolProperty(
-        name="Export Obj",
-        description="Import Textures",
         default=False
     )
     importmesh: BoolProperty(
