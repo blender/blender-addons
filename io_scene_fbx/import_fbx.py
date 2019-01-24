@@ -1995,6 +1995,7 @@ class FbxImportHelperNode:
                         child.pre_matrix = self.bone_child_matrix
 
                     child_obj.matrix_basis = child.get_matrix()
+                child.link_skeleton_children(fbx_tmpl, settings, scene)
             return None
         else:
             obj = self.bl_obj
