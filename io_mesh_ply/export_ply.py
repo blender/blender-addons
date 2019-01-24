@@ -115,7 +115,7 @@ def save_mesh(filepath,
                 color = (int(color[0] * 255.0),
                          int(color[1] * 255.0),
                          int(color[2] * 255.0),
-                         255
+                         int(color[3] * 255.0),
                          )
             key = normal_key, uvcoord_key, color
 
