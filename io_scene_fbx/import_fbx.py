@@ -252,9 +252,9 @@ def elem_props_get_bool(elem, elem_prop_id, default=None):
     elem_prop = elem_props_find_first(elem, elem_prop_id)
     if elem_prop is not None:
         assert(elem_prop.props[0] == elem_prop_id)
-        assert(elem_prop.props[1] == b'bool')
+        # b'Bool' with a capital seems to be used for animated property... go figure...
+        assert(elem_prop.props[1] in {b'bool', b'Bool'})
         assert(elem_prop.props[2] == b'')
-        assert(elem_prop.props[3] == b'')
 
         # we could allow other number types
         assert(elem_prop.props_type[4] == data_types.INT32)
