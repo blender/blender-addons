@@ -24,8 +24,8 @@
 bl_info = {
     "name": "Relax",
     "author": "Fabian Fricke",
-    "version": (1, 1),
-    "blender": (2, 57, 0),
+    "version": (1, 2, 0),
+    "blender": (2, 80, 0),
     "location": "View3D > Specials > Relax ",
     "description": "Relax the selected verts while retaining the shape",
     "warning": "",
@@ -53,13 +53,14 @@ def relax_mesh(context):
 
     # deselect everything that's not related
     for obj in context.selected_objects:
-        obj.select = False
+        #obj.select = False
+        obj.select_set(False)
 
     # get active object
     obj = context.active_object
 
     # duplicate the object so it can be used for the shrinkwrap modifier
-    obj.select = True # make sure the object is selected!
+    obj.select_set(True) # make sure the object is selected!
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.duplicate()
     target = context.active_object
@@ -68,7 +69,8 @@ def relax_mesh(context):
     for m in range(0, len(target.modifiers)):
         target.modifiers.remove(target.modifiers[0])
 
-    context.scene.objects.active = obj
+    #context.scene.objects.active = obj
+    context.view_layer.objects.active = obj
 
     sw = obj.modifiers.new(type='SHRINKWRAP', name='relax_target')
     sw.target = target
@@ -82,12 +84,12 @@ def relax_mesh(context):
     bpy.ops.object.modifier_apply(modifier='relax_target')
 
     # delete the target object
-    obj.select = False
-    target.select = True
+    obj.select_set(False)
+    target.select_set(True)
     bpy.ops.object.delete()
 
     # go back to initial state
-    obj.select = True
+    obj.select_set(True)
     bpy.ops.object.mode_set(mode='EDIT')
 
 class Relax(bpy.types.Operator):
@@ -116,13 +118,15 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.utils.register_module(__name__)
+    bpy.utils.register_class(Relax)
+    #bpy.utils.register_module(__name__)
 
     bpy.types.VIEW3D_MT_edit_mesh_specials.append(menu_func)
     bpy.types.VIEW3D_MT_edit_mesh_vertices.append(menu_func)
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
+    bpy.utils.unregister_class(Relax)
+    #bpy.utils.unregister_module(__name__)
 
     bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_func)
     bpy.types.VIEW3D_MT_edit_mesh_vertices.remove(menu_func)
