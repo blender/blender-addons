@@ -3028,7 +3028,7 @@ def importShape_ProcessObject(
     # bpymesh.transform(getFinalMatrix(node))
     bpyob = node.blendObject = bpy.data.objects.new(vrmlname, bpydata)
     bpyob.matrix_world = getFinalMatrix(node, None, ancestry, global_matrix)
-    bpyscene.objects.link(bpyob).select = True
+    bpyscene.objects.link(bpyob).select_set(True)
 
     if DEBUG:
         bpyob["source_line_no"] = geom.lineno
@@ -3082,7 +3082,7 @@ def importShape(bpyscene, node, ancestry, global_matrix):
         bpyob = node.blendData = node.blendObject = bpyob.copy()
         # Could transform data, but better the object so we can instance the data
         bpyob.matrix_world = getFinalMatrix(node, None, ancestry, global_matrix)
-        bpyscene.objects.link(bpyob).select = True
+        bpyscene.objects.link(bpyob).select_set(True)
         return
 
     vrmlname = node.getDefName()
@@ -3230,7 +3230,7 @@ def importLamp(bpyscene, node, spec, ancestry, global_matrix):
         raise ValueError
 
     bpyob = node.blendData = node.blendObject = bpy.data.objects.new(bpylamp.name, bpylamp)
-    bpyscene.objects.link(bpyob).select = True
+    bpyscene.objects.link(bpyob).select_set(True)
 
     bpyob.matrix_world = getFinalMatrix(node, mtx, ancestry, global_matrix)
 
@@ -3256,7 +3256,7 @@ def importViewpoint(bpyscene, node, ancestry, global_matrix):
     mtx = Matrix.Translation(Vector(position)) * translateRotation(orientation)
 
     bpyob = node.blendData = node.blendObject = bpy.data.objects.new(name, bpycam)
-    bpyscene.objects.link(bpyob).select = True
+    bpyscene.objects.link(bpyob).select_set(True)
     bpyob.matrix_world = getFinalMatrix(node, mtx, ancestry, global_matrix)
 
 
@@ -3266,7 +3266,7 @@ def importTransform(bpyscene, node, ancestry, global_matrix):
         name = 'Transform'
 
     bpyob = node.blendData = node.blendObject = bpy.data.objects.new(name, None)
-    bpyscene.objects.link(bpyob).select = True
+    bpyscene.objects.link(bpyob).select_set(True)
 
     bpyob.matrix_world = getFinalMatrix(node, None, ancestry, global_matrix)
 
@@ -3528,7 +3528,7 @@ def load_web3d(
                 node = defDict[key]
                 if node.blendData is None:  # Add an object if we need one for animation
                     node.blendData = node.blendObject = bpy.data.objects.new('AnimOb', None)  # , name)
-                    bpyscene.objects.link(node.blendObject).select = True
+                    bpyscene.objects.link(node.blendObject).select_set(True)
 
                 if node.blendData.animation_data is None:
                     node.blendData.animation_data_create()

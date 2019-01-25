@@ -665,7 +665,7 @@ def addBeamObj(sRef, context):
     beamObj = bpy.data.objects.new("Beam", beamMesh)
     context.scene.objects.link(beamObj)
     context.scene.objects.active = beamObj
-    beamObj.select = True
+    beamObj.select_set(True)
 
     beamMesh.from_pydata(verts, [], faces)
     beamMesh.update(calc_edges=True)

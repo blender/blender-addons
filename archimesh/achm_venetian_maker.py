@@ -71,7 +71,7 @@ class AchmVenetian(Operator):
 def create_object(self, context):
     # deselect all objects
     for o in bpy.data.objects:
-        o.select = False
+        o.select_set(False)
 
     # we create main object and mesh
     mainmesh = bpy.data.meshes.new("VenetianFrane")
@@ -84,7 +84,7 @@ def create_object(self, context):
     shape_mesh_and_create_children(mainobject, mainmesh)
 
     # we select, and activate, main object
-    mainobject.select = True
+    mainobject.select_set(True)
     bpy.context.scene.objects.active = mainobject
 
 
@@ -100,12 +100,12 @@ def update_object(self, context):
     oldmesh = o.data
     oldname = o.data.name
     # Now we deselect that object to not delete it.
-    o.select = False
+    o.select_set(False)
     # and we create a new mesh
     tmp_mesh = bpy.data.meshes.new("temp")
     # deselect all objects
     for obj in bpy.data.objects:
-        obj.select = False
+        obj.select_set(False)
 
     # -----------------------
     # remove all children
@@ -123,7 +123,7 @@ def update_object(self, context):
     bpy.data.meshes.remove(oldmesh)
     tmp_mesh.name = oldname
     # and select, and activate, the main object
-    o.select = True
+    o.select_set(True)
     bpy.context.scene.objects.active = o
 
 
@@ -319,7 +319,7 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True and o.name != mainobject.name:
-            o.select = False
+            o.select_set(False)
 
     return
 

@@ -71,7 +71,7 @@ class AchmDoor(Operator):
 def create_object(self, context):
     # deselect all objects
     for o in bpy.data.objects:
-        o.select = False
+        o.select_set(False)
 
     # we create main object and mesh
     mainmesh = bpy.data.meshes.new("DoorFrane")
@@ -85,7 +85,7 @@ def create_object(self, context):
     shape_children(mainobject)
 
     # we select, and activate, main object
-    mainobject.select = True
+    mainobject.select_set(True)
     bpy.context.scene.objects.active = mainobject
 
 
@@ -101,12 +101,12 @@ def update_object(self, context):
     oldmesh = o.data
     oldname = o.data.name
     # Now we deselect that object to not delete it.
-    o.select = False
+    o.select_set(False)
     # and we create a new mesh
     tmp_mesh = bpy.data.meshes.new("temp")
     # deselect all objects
     for obj in bpy.data.objects:
-        obj.select = False
+        obj.select_set(False)
 
     # ---------------------------------
     #  Clear Parent objects (autohole)
@@ -124,13 +124,13 @@ def update_object(self, context):
                 child.hide = False  # must be visible to avoid bug
                 child.hide_render = False  # must be visible to avoid bug
                 old = child.data
-                child.select = True
+                child.select_set(True)
                 bpy.ops.object.delete()
                 bpy.data.meshes.remove(old)
             except:
                 dummy = -1
 
-        myparent.select = True
+        myparent.select_set(True)
         bpy.ops.object.delete()
 
     # -----------------------
@@ -150,7 +150,7 @@ def update_object(self, context):
     bpy.data.meshes.remove(oldmesh)
     tmp_mesh.name = oldname
     # and select, and activate, the main object
-    o.select = True
+    o.select_set(True)
     bpy.context.scene.objects.active = o
 
 
@@ -274,7 +274,7 @@ def shape_children(mainobject, update=False):
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True and o.name != mainobject.name:
-            o.select = False
+            o.select_set(False)
 
 
 # ------------------------------------------------------------------
@@ -535,7 +535,7 @@ def make_one_door(self, myframe, width, openside):
     handle2 = None
     if self.handle != "0":
         handle1 = create_handle(self, mydoor, "Front", width, openside)
-        handle1.select = True
+        handle1.select_set(True)
         bpy.context.scene.objects.active = handle1
         set_smooth(handle1)
         set_modifier_subsurf(handle1)

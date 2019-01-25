@@ -585,7 +585,7 @@ class POVRAY_OT_loft_add(bpy.types.Operator):
         scn = bpy.context.scene
         scn.objects.link(ob)
         scn.objects.active = ob
-        ob.select = True
+        ob.select_set(True)
         ob.pov.curveshape = "loft"
         return {'FINISHED'}
 
@@ -1074,7 +1074,7 @@ class POVRAY_OT_rainbow_add(bpy.types.Operator):
 
         #refocus on the actual rainbow
         bpy.context.scene.objects.active = ob
-        ob.select=True
+        ob.select_set(True)
 
         return {'FINISHED'}
 
@@ -1296,7 +1296,7 @@ class POVRAY_OT_prism_add(bpy.types.Operator):
         scn = bpy.context.scene
         scn.objects.link(ob)
         scn.objects.active = ob
-        ob.select = True
+        ob.select_set(True)
         ob.pov.curveshape = "prism"
         ob.name = ob.data.name = "Prism"
         return {'FINISHED'}

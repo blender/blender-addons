@@ -158,11 +158,11 @@ def replace_material(m1, m2, all_objects=False, update_selection=False, operator
 
                         # Indicate which objects were affected
                         if update_selection:
-                            ob.select = True
+                            ob.select_set(True)
                             match = True
 
                 if update_selection and not match:
-                    ob.select = False
+                    ob.select_set(False)
     else:
         if operator:
             warning_messages(operator, "REP_MAT_NONE")
@@ -197,16 +197,16 @@ def select_material_by_name(find_mat_name):
                 ms = ob.material_slots
                 for m in ms:
                     if m.material == find_mat:
-                        ob.select = True
+                        ob.select_set(True)
                         # the active object may not have the mat!
                         # set it to one that does!
                         scn.objects.active = ob
                         break
                     else:
-                        ob.select = False
+                        ob.select_set(False)
             # deselect non-meshes
             else:
-                ob.select = False
+                ob.select_set(False)
     else:
         # it's edit mode, so select the polygons
         ob = actob
@@ -355,7 +355,7 @@ def cleanmatslots(operator=None):
 
         # is active object selected ?
         selected = bool(actob.select)
-        actob.select = True
+        actob.select_set(True)
 
     objs = bpy.context.selected_editable_objects
     # collect all object names for warning_messages
@@ -493,7 +493,7 @@ def assign_mat_mesh_edit(matname="Default", operator=None):
         # is selected ?
         selected = bool(actob.select)
         # select active object
-        actob.select = True
+        actob.select_set(True)
 
         # activate the chosen material
         actob.active_material_index = i
@@ -516,7 +516,7 @@ def assign_mat(matname="Default", operator=None):
 
     # is active object selected ?
     selected = bool(actob.select)
-    actob.select = True
+    actob.select_set(True)
 
     # check if material exists, if it doesn't then create it
     target = bpy.data.materials.get(matname)

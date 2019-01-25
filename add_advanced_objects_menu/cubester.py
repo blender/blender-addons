@@ -199,7 +199,7 @@ def create_mesh_from_audio(self, scene, verts, faces):
     ob = bpy.data.objects.new("cubed", mesh)
     bpy.context.scene.objects.link(ob)
     bpy.context.scene.objects.active = ob
-    ob.select = True
+    ob.select_set(True)
 
     # initial vertex colors
     if adv_obj.cubester_materials == "image" and adv_obj.cubester_color_image != "":
@@ -335,8 +335,8 @@ def create_mesh_from_audio(self, scene, verts, faces):
         # correct for z height
         curve.scale = (curve.scale[0], curve.scale[0], curve.scale[0])
 
-        ob.select = True
-        curve.select = False
+        ob.select_set(True)
+        curve.select_set(False)
         scene.objects.active = ob
 
         # data was collected and then multi-variable regression was done in Excel
@@ -414,7 +414,7 @@ def create_mesh_from_image(self, scene, verts, faces):
     ob = bpy.data.objects.new("cubed", mesh)
     context.scene.objects.link(ob)
     context.scene.objects.active = ob
-    ob.select = True
+    ob.select_set(True)
 
     # uv unwrap
     if adv_obj.cubester_mesh_style == "blocks":

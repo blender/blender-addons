@@ -207,7 +207,7 @@ def create_stairs_mesh(self):
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True:
-            o.select = False
+            o.select_set(False)
 
     bpy.ops.object.select_all(False)
 
@@ -216,7 +216,7 @@ def create_stairs_mesh(self):
     # ------------------------
     mydata = create_stairs(self, "Stairs")
     mystairs = mydata[0]
-    mystairs.select = True
+    mystairs.select_set(True)
     bpy.context.scene.objects.active = mystairs
     remove_doubles(mystairs)
     set_normals(mystairs)
@@ -246,7 +246,7 @@ def create_stairs_mesh(self):
         set_material(mystairs, mat)
 
     bpy.ops.object.select_all(False)
-    mystairs.select = True
+    mystairs.select_set(True)
     bpy.context.scene.objects.active = mystairs
 
     return

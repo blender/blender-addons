@@ -356,7 +356,7 @@ def create_column_mesh(self):
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True:
-            o.select = False
+            o.select_set(False)
 
     bpy.ops.object.select_all(False)
 
@@ -380,7 +380,7 @@ def create_column_mesh(self):
     if self.model == "1":
         bpy.ops.object.select_all(False)
         mycolumn = create_circular_column(self, "Column", radio_top, radio_mid, radio_bottom, height)
-        mycolumn.select = True
+        mycolumn.select_set(True)
         bpy.context.scene.objects.active = mycolumn
         # Subsurf
         set_smooth(mycolumn)
@@ -391,7 +391,7 @@ def create_column_mesh(self):
     if self.model == "2":
         mycolumn = create_rectangular_base(self, "Column", self.col_sx, self.col_sy, height)
         bpy.ops.object.select_all(False)
-        mycolumn.select = True
+        mycolumn.select_set(True)
         bpy.context.scene.objects.active = mycolumn
         set_normals(mycolumn)
     # ------------------------
@@ -400,7 +400,7 @@ def create_column_mesh(self):
     if self.cir_base is True:
         cir_bottom = create_torus("Column_cir_bottom", radio_bottom, self.cir_base_r, self.cir_base_z)
         bpy.ops.object.select_all(False)
-        cir_bottom.select = True
+        cir_bottom.select_set(True)
         bpy.context.scene.objects.active = cir_bottom
         set_modifier_subsurf(cir_bottom)
         set_smooth(cir_bottom)
@@ -416,7 +416,7 @@ def create_column_mesh(self):
         box_bottom = create_rectangular_base(self, "Column_box_bottom", self.box_base_x, self.box_base_y,
                                              self.box_base_z)
         bpy.ops.object.select_all(False)
-        box_bottom.select = True
+        box_bottom.select_set(True)
         bpy.context.scene.objects.active = box_bottom
         box_bottom.parent = mycolumn
         set_normals(box_bottom)
@@ -432,7 +432,7 @@ def create_column_mesh(self):
     if self.cir_top is True:
         cir_top = create_torus("Column_cir_top", radio_top, self.cir_top_r, self.cir_top_z)
         bpy.ops.object.select_all(False)
-        cir_top.select = True
+        cir_top.select_set(True)
         bpy.context.scene.objects.active = cir_top
         set_modifier_subsurf(cir_top)
         set_smooth(cir_top)
@@ -448,7 +448,7 @@ def create_column_mesh(self):
         box_top = create_rectangular_base(self, "Column_box_top", self.box_top_x, self.box_top_y,
                                           self.box_top_z, self.ramp)
         bpy.ops.object.select_all(False)
-        box_top.select = True
+        box_top.select_set(True)
         bpy.context.scene.objects.active = box_top
         set_normals(box_top)
         box_top.parent = mycolumn
@@ -464,7 +464,7 @@ def create_column_mesh(self):
                            self.array_space_factor)
         myarc.parent = mycolumn
         bpy.ops.object.select_all(False)
-        myarc.select = True
+        myarc.select_set(True)
         bpy.context.scene.objects.active = myarc
         set_normals(myarc)
         set_modifier_mirror(myarc, "X")
@@ -554,7 +554,7 @@ def create_column_mesh(self):
             set_material(myarc, mat)
 
     bpy.ops.object.select_all(False)
-    mycolumn.select = True
+    mycolumn.select_set(True)
     bpy.context.scene.objects.active = mycolumn
 
     return

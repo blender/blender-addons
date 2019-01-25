@@ -63,7 +63,7 @@ class ShowHideObject(Operator):
                     i.hide_render = False
                 else:
                     i.hide = True
-                    i.select = False
+                    i.select_set(False)
 
                     if i.type not in ['CAMERA', 'LIGHT']:
                         i.hide_render = True
@@ -101,7 +101,7 @@ class HideAllObjects(Operator):
         if context.object is None:
             for i in bpy.data.objects:
                 i.hide = True
-                i.select = False
+                i.select_set(False)
 
                 if i.type not in ['CAMERA', 'LIGHT']:
                     i.hide_render = True
@@ -111,7 +111,7 @@ class HideAllObjects(Operator):
             for i in bpy.data.objects:
                 if i.name != obj_name:
                     i.hide = True
-                    i.select = False
+                    i.select_set(False)
 
                     if i.type not in ['CAMERA', 'LIGHT']:
                         i.hide_render = True

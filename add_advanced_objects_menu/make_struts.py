@@ -479,7 +479,7 @@ def create_struts(self, context, ind, od, segments, solid, loops, manifold):
     for truss_obj in bpy.context.scene.objects:
         if not truss_obj.select:
             continue
-        truss_obj.select = False
+        truss_obj.select_set(False)
         truss_mesh = truss_obj.to_mesh(context.scene, True, 'PREVIEW')
         if not truss_mesh.edges:
             continue
@@ -492,7 +492,7 @@ def create_struts(self, context, ind, od, segments, solid, loops, manifold):
         mesh.from_pydata(verts, [], faces)
         obj = bpy.data.objects.new("Struts", mesh)
         bpy.context.scene.objects.link(obj)
-        obj.select = True
+        obj.select_set(True)
         obj.location = truss_obj.location
         bpy.context.scene.objects.active = obj
         mesh.update()

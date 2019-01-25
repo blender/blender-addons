@@ -192,7 +192,7 @@ def write_mesh(context, info, report_cb):
         # restore context
         base = None
         for base in context_backup["selected_bases"]:
-            base.select = True
+            base.select_set(True)
         del base
         scene.objects.active = context_backup["active_object"]
 

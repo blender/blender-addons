@@ -103,7 +103,7 @@ class SetSceneCamera(Operator):
                 c.hide = (c != chosen_camera)
         scene.camera = chosen_camera
         bpy.ops.object.select_all(action='DESELECT')
-        chosen_camera.select = True
+        chosen_camera.select_set(True)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -122,7 +122,7 @@ class PreviewSceneCamera(Operator):
         chosen_camera = context.active_object
         bpy.ops.view3d.object_as_camera()
         bpy.ops.object.select_all(action="DESELECT")
-        chosen_camera.select = True
+        chosen_camera.select_set(True)
         return {'FINISHED'}
 
 

@@ -77,9 +77,9 @@ def set_smooth(myobject):
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True:
-            o.select = False
+            o.select_set(False)
 
-    myobject.select = True
+    myobject.select_set(True)
     bpy.context.scene.objects.active = myobject
     if bpy.context.scene.objects.active.name == myobject.name:
         bpy.ops.object.shade_smooth()
@@ -102,7 +102,7 @@ def set_modifier_subsurf(myobject):
 # --------------------------------------------------------------------
 def set_modifier_mirror(myobject, axis="Y"):
     bpy.ops.object.select_all(False)
-    myobject.select = True
+    myobject.select_set(True)
     bpy.context.scene.objects.active = myobject
     if bpy.context.scene.objects.active.name == myobject.name:
         bpy.ops.object.modifier_add(type='MIRROR')
@@ -131,7 +131,7 @@ def set_modifier_mirror(myobject, axis="Y"):
 # --------------------------------------------------------------------
 def set_modifier_array(myobject, axis, move, repeat, fix=False, fixmove=0, zmove=0):
     bpy.ops.object.select_all(False)
-    myobject.select = True
+    myobject.select_set(True)
     bpy.context.scene.objects.active = myobject
     if bpy.context.scene.objects.active.name == myobject.name:
         bpy.ops.object.modifier_add(type='ARRAY')
@@ -212,7 +212,7 @@ def set_material(myobject, mymaterial):
 # --------------------------------------------------------------------
 def set_material_faces(myobject, idx):
     bpy.context.scene.objects.active = myobject
-    myobject.select = True
+    myobject.select_set(True)
     bpy.context.object.active_material_index = idx
     if bpy.context.scene.objects.active.name == myobject.name:
         bpy.ops.object.mode_set(mode='EDIT')
@@ -226,7 +226,7 @@ def set_material_faces(myobject, idx):
 # Select faces
 # --------------------------------------------------------------------
 def select_faces(myobject, selface, clear):
-    myobject.select = True
+    myobject.select_set(True)
     bpy.context.scene.objects.active = myobject
     if bpy.context.scene.objects.active.name == myobject.name:
         # deselect everything
@@ -243,7 +243,7 @@ def select_faces(myobject, selface, clear):
 # Select vertices
 # --------------------------------------------------------------------
 def select_vertices(myobject, selvertices, clear=True):
-    myobject.select = True
+    myobject.select_set(True)
     bpy.context.scene.objects.active = myobject
     if bpy.context.scene.objects.active.name == myobject.name:
         # deselect everything
@@ -272,7 +272,7 @@ def select_vertices(myobject, selvertices, clear=True):
 def mark_seam(myobject):
     # noinspection PyBroadException
     try:
-        myobject.select = True
+        myobject.select_set(True)
         bpy.context.scene.objects.active = myobject
         if bpy.context.scene.objects.active.name == myobject.name:
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -288,7 +288,7 @@ def mark_seam(myobject):
 def unwrap_mesh(myobject, allfaces=True):
     # noinspection PyBroadException
     try:
-        myobject.select = True
+        myobject.select_set(True)
         bpy.context.scene.objects.active = myobject
         if bpy.context.scene.objects.active.name == myobject.name:
             # Unwrap
@@ -887,8 +887,8 @@ def parentobject(parentobj, childobj):
     try:
         bpy.ops.object.select_all(action='DESELECT')
         bpy.context.scene.objects.active = parentobj
-        parentobj.select = True
-        childobj.select = True
+        parentobj.select_set(True)
+        childobj.select_set(True)
         bpy.ops.object.parent_set(type='OBJECT', keep_transform=False)
         return True
     except:
@@ -952,11 +952,11 @@ def remove_children(myobject):
             # clear child data
             if child.type == 'MESH':
                 old = child.data
-                child.select = True
+                child.select_set(True)
                 bpy.ops.object.delete()
                 bpy.data.meshes.remove(old)
             if child.type == 'CURVE':
-                child.select = True
+                child.select_set(True)
                 bpy.ops.object.delete()
         except:
             pass

@@ -117,8 +117,8 @@ class AchmHoleAction(Operator):
             # Parent the empty to the room (the parent of frame)
             if obj.parent is not None:
                 bpy.ops.object.select_all(action='DESELECT')
-                parentobj.select = True
-                obj.parent.select = True  # parent of object
+                parentobj.select_set(True)
+                obj.parent.select_set(True)  # parent of object
                 bpy.ops.object.parent_set(type='OBJECT', keep_transform=False)
             # ---------------------------------------
             # Add the modifier to controller

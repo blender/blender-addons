@@ -316,12 +316,12 @@ class SCENE_OT_namedlayer_lock_all(Operator):
                     layers = obj.layers
                     if True in {layer and group_layer for layer, group_layer in zip(layers, group_layers)}:
                         obj.hide_select = not use_lock
-                        obj.select = False
+                        obj.select_set(False)
                         scene.layergroups[group_idx].use_lock = not use_lock
                 else:
                     if obj.layers[layer_idx]:
                         obj.hide_select = not use_lock
-                        obj.select = False
+                        obj.select_set(False)
                         scene.namedlayers.layers[layer_idx].use_lock = not use_lock
 
         return {'FINISHED'}
@@ -362,7 +362,7 @@ class SCENE_OT_namedlayer_select_objects_by_layer(Operator):
                         not_all_selected += 1
             if not not_all_selected:
                 for obj in objects:
-                    obj.select = False
+                    obj.select_set(False)
             else:
                 bpy.ops.object.select_by_layer(match='SHARED', extend=self.extend, layers=layer_idx + 1)
 

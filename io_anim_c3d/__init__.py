@@ -274,7 +274,7 @@ class C3DImporter(bpy.types.Operator):
             o.show_name = self.properties.show_names
             o.show_in_front = self.properties.x_ray
         for name in unames.values():
-            bpy.context.scene.objects[name].select = True
+            bpy.context.scene.objects[name].select_set(True)
         return unames
 
     def create_armature_obj(self, ms, scale):

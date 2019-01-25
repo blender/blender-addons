@@ -97,7 +97,7 @@ class Circle_Array(Operator):
 
                 active.modifiers[0].use_object_offset = True
                 active.modifiers[0].use_relative_offset = False
-                active.select = False
+                active.select_set(False)
                 bpy.context.scene.objects.active = context.active_object
                 bpy.ops.view3d.snap_cursor_to_selected()
 
@@ -112,11 +112,11 @@ class Circle_Array(Operator):
                 bpy.context.scene.objects.active = active
                 num = active.modifiers["Array"].count
                 rotate_num = 360 / num
-                active.select = True
+                active.select_set(True)
                 bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
                 empty_name.rotation_euler = (0, 0, radians(rotate_num))
-                empty_name.select = False
-                active.select = True
+                empty_name.select_set(False)
+                active.select_set(True)
                 bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
 
                 return {'FINISHED'}
@@ -137,11 +137,11 @@ class Circle_Array(Operator):
                 bpy.context.scene.objects.active = active
                 num = active.modifiers["Array"].count
                 rotate_num = 360 / num
-                active.select = True
+                active.select_set(True)
                 bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
                 empty_name.rotation_euler = (0, 0, radians(rotate_num))
-                empty_name.select = False
-                active.select = True
+                empty_name.select_set(False)
+                active.select_set(True)
 
                 return {'FINISHED'}
 

@@ -254,8 +254,8 @@ def vertex_copy(scene, obj, source_obj, axes):
 
     # select all copied objects
     for copy in copy_list:
-        copy.select = True
-    obj.select = False
+        copy.select_set(True)
+    obj.select_set(False)
 
 
 def edge_copy(scene, obj, source_obj, axes, es, scale):
@@ -297,8 +297,8 @@ def edge_copy(scene, obj, source_obj, axes, es, scale):
 
     # select all copied objects
     for copy in copy_list:
-        copy.select = True
-    obj.select = False
+        copy.select_set(True)
+    obj.select_set(False)
 
 
 def face_copy(scene, obj, source_obj, axes):
@@ -323,8 +323,8 @@ def face_copy(scene, obj, source_obj, axes):
 
     # select all copied objects
     for copy in copy_list:
-        copy.select = True
-    obj.select = False
+        copy.select_set(True)
+    obj.select_set(False)
 
 
 def register():

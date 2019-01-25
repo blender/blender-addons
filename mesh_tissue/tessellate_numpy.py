@@ -888,7 +888,7 @@ class tessellate(Operator):
 
             scene = bpy.context.scene
             scene.objects.link(new_ob)
-            new_ob.select = True
+            new_ob.select_set(True)
             bpy.context.scene.objects.active = new_ob
             if self.merge:
                 bpy.ops.object.mode_set(mode='EDIT')
@@ -1431,7 +1431,7 @@ class settings_tessellate(Operator):
         # Create object in order to transfer vertex group
         scene = bpy.context.scene
         scene.objects.link(temp_ob)
-        temp_ob.select = True
+        temp_ob.select_set(True)
         bpy.context.scene.objects.active = temp_ob
 
         try:

@@ -88,7 +88,7 @@ class RunAction(Operator):
         # (make empty active object)
         # -------------------------
         bpy.ops.object.select_all(False)
-        myempty.select = True
+        myempty.select_set(True)
         context.scene.objects.active = myempty
         # save current configuration
         savedinterpolation = context.preferences.edit.keyframe_new_interpolation_type
@@ -172,7 +172,7 @@ class RunAction(Operator):
         # Back to old selection
         # -------------------------
         bpy.ops.object.select_all(False)
-        selectobject.select = True
+        selectobject.select_set(True)
         bpy.context.scene.objects.active = selectobject
         bpy.context.scene.frame_set(savedframe)
 

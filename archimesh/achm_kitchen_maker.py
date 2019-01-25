@@ -608,7 +608,7 @@ def create_kitchen_mesh(self):
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True:
-            o.select = False
+            o.select_set(False)
     bpy.ops.object.select_all(False)
     # Create cabinets
     generate_cabinets(self)

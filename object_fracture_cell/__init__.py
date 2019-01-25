@@ -72,7 +72,7 @@ def main_object(scene, obj, level, **kw):
     from . import fracture_cell_setup
 
     # not essential but selection is visual distraction.
-    obj.select = False
+    obj.select_set(False)
 
     if kw_copy["use_debug_redraw"]:
         obj_display_type_prev = obj.display_type
@@ -198,7 +198,7 @@ def main(context, **kw):
 
     bpy.ops.object.select_all(action='DESELECT')
     for obj_cell in objects:
-        obj_cell.select = True
+        obj_cell.select_set(True)
 
     if mass_mode == 'UNIFORM':
         for obj_cell in objects:

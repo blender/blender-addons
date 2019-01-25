@@ -171,7 +171,7 @@ def create_book_mesh(self):
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True:
-            o.select = False
+            o.select_set(False)
     bpy.ops.object.select_all(False)
     generate_books(self)
 
@@ -231,9 +231,9 @@ def generate_books(self):
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True:
-            o.select = False
+            o.select_set(False)
 
-    boxes[0].select = True
+    boxes[0].select_set(True)
     bpy.context.scene.objects.active = boxes[0]
 
     return

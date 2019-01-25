@@ -576,7 +576,7 @@ def main(context):
     oldRotation = None
     oldScale = None
     armature_object = scn.objects.active
-    armature_object.select = True
+    armature_object.select_set(True)
 
     old_pose_pos = armature_object.data.pose_position
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -620,20 +620,20 @@ def main(context):
     if sknfy.apply_mod and sknfy.parent_armature:
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.select_all(action='DESELECT')
-        ob.select = True
-        armature_object.select = True
+        ob.select_set(True)
+        armature_object.select_set(True)
         scn.objects.active = armature_object
 
         bpy.ops.object.parent_set(type='ARMATURE_AUTO')
         armature_object.data.pose_position = old_pose_pos
-        armature_object.select = False
+        armature_object.select_set(False)
     else:
         bpy.ops.object.mode_set(mode='OBJECT')
         ob.location = oldLocation
         ob.rotation_euler = oldRotation
         ob.scale = oldScale
-        ob.select = False
-        armature_object.select = True
+        ob.select_set(False)
+        armature_object.select_set(True)
         scn.objects.active = armature_object
 
     armature_object.location = oldLocation

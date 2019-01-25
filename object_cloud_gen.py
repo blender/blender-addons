@@ -192,7 +192,7 @@ def getMeshandPutinEditMode(scene, object):
     bpy.ops.object.select_all(action='DESELECT')
 
     # Select the object
-    object.select = True
+    object.select_set(True)
     scene.objects.active = object
 
     # Go into Edit Mode
@@ -297,7 +297,7 @@ def applyScaleRotLoc(scene, obj):
     bpy.ops.object.select_all(action='DESELECT')
 
     # Select the object
-    obj.select = True
+    obj.select_set(True)
     scene.objects.active = obj
 
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
@@ -324,7 +324,7 @@ def addNewObject(scene, name, copyobj):
 
     # Link new object to the given scene and select it
     scene.objects.link(ob_new)
-    ob_new.select = True
+    ob_new.select_set(True)
 
     return ob_new
 
@@ -348,7 +348,7 @@ def removeParticleSystemFromObj(scene, obj):
     bpy.ops.object.select_all(action='DESELECT')
 
     # Select the object
-    obj.select = True
+    obj.select_set(True)
     scene.objects.active = obj
 
     bpy.ops.object.particle_system_remove()
@@ -359,7 +359,7 @@ def removeParticleSystemFromObj(scene, obj):
 
 def convertParticlesToMesh(scene, particlesobj, destobj, replacemesh):
     # Select the Destination object
-    destobj.select = True
+    destobj.select_set(True)
     scene.objects.active = destobj
 
     # Go to Edit Mode
@@ -398,7 +398,7 @@ def combineObjects(scene, combined, listobjs):
     bpy.ops.object.select_all(action='DESELECT')
 
     # Select the new object.
-    combined.select = True
+    combined.select_set(True)
     scene.objects.active = combined
 
     # Add data
@@ -564,7 +564,7 @@ class GenerateCloud(Operator):
             # press generate again if they want
             for eachMember in definitionObjects:
                 eachMember.display_type = 'SOLID'
-                eachMember.select = True
+                eachMember.select_set(True)
                 eachMember.hide_render = False
 
         elif WhatToDo == 'CLOUD_CONVERT_TO_MESH':
@@ -692,7 +692,7 @@ class GenerateCloud(Operator):
             bpy.ops.object.select_all(action='DESELECT')
 
             # Select the object.
-            bounds.select = True
+            bounds.select_set(True)
             scene.objects.active = bounds
 
             # Turn bounds object into a box. Use itself as a reference
@@ -922,7 +922,7 @@ class GenerateCloud(Operator):
                 cloud.hide = True
 
             # Select the object.
-            bounds.select = True
+            bounds.select_set(True)
             scene.objects.active = bounds
 
             # Let's resize the bound box to be more accurate.

@@ -159,7 +159,7 @@ def create_roof_mesh(self):
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True:
-            o.select = False
+            o.select_set(False)
     bpy.ops.object.select_all(False)
 
     mydata = create_roof(self)
@@ -167,10 +167,10 @@ def create_roof_mesh(self):
 
     # active object and deactivate others
     if bpy.context.scene.objects.active is not None:
-        bpy.context.scene.objects.active.select = False
+        bpy.context.scene.objects.active.select_set(False)
 
     bpy.context.scene.objects.active = myroof
-    myroof.select = True
+    myroof.select_set(True)
 
     # Thicknes
     if self.roof_thick > 0.0:
@@ -211,7 +211,7 @@ def create_roof_mesh(self):
         set_material(myroof, mat)
 
     bpy.ops.object.select_all(False)
-    myroof.select = True
+    myroof.select_set(True)
     bpy.context.scene.objects.active = myroof
     return
 

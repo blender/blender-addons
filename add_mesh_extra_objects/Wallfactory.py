@@ -877,7 +877,7 @@ class add_mesh_wallb(Operator):
         # leave this out to prevent 'Tab key" going into edit mode :)
         # Use rmb click to select and still modify.
         scene.objects.active = ob_new
-        ob_new.select = True
+        ob_new.select_set(True)
 
         ob_new.location = tuple(context.scene.cursor_location)
         ob_new.rotation_quaternion = [1.0, 0.0, 0.0, 0.0]

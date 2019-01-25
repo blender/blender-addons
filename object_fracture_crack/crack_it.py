@@ -82,7 +82,7 @@ def _makeJoin(active_name, active_layer):
     if fractures:
         # Execute join
         bpy.context.scene.objects.active = fractures[0]
-        fractures[0].select = True
+        fractures[0].select_set(True)
         bpy.ops.object.join()
     else:
         error_handlers(

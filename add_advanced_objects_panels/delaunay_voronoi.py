@@ -150,8 +150,8 @@ class OBJECT_OT_TriangulateButton(Operator):
             my = bpy.data.objects.new("TIN", mesh)
             context.scene.objects.link(my)
             my.matrix_world = obj.matrix_world.copy()
-            obj.select = False
-            my.select = True
+            obj.select_set(False)
+            my.select_set(True)
             context.scene.objects.active = my
             self.report({'INFO'}, "Mesh created (" + str(len(faces)) + " triangles)")
             print("Total :%s faces  %s verts" % (len(faces), len(points_3D)))
@@ -212,8 +212,8 @@ class OBJECT_OT_TriangulateButton(Operator):
         # Update scene
         bpy.context.scene.objects.link(tinObj)  # Link object to scene
         bpy.context.scene.objects.active = tinObj
-        tinObj.select = True
-        obj.select = False
+        tinObj.select_set(True)
+        obj.select_set(False)
 
         self.report({"INFO"},
                      "Mesh created (" + str(len(triangles)) + " triangles)")
@@ -315,8 +315,8 @@ class OBJECT_OT_VoronoiButton(Operator):
         # update scene
         bpy.context.scene.objects.link(voronoiObj)  # Link object to scene
         bpy.context.scene.objects.active = voronoiObj
-        voronoiObj.select = True
-        obj.select = False
+        voronoiObj.select_set(True)
+        obj.select_set(False)
 
         # Report
         if self.meshType == "Edges":

@@ -316,7 +316,7 @@ class lattice_along_surface(Operator):
             if o.name != grid_obj.name and o.type in \
                     ('MESH', 'CURVE', 'SURFACE', 'FONT'):
                 obj = o
-                o.select = False
+                o.select_set(False)
                 break
         try:
             obj_dim = obj.dimensions
@@ -339,7 +339,7 @@ class lattice_along_surface(Operator):
         if len(grid_mesh.polygons) > 64 * 64:
             bpy.ops.object.delete(use_global=False)
             bpy.context.scene.objects.active = obj
-            obj.select = True
+            obj.select_set(True)
             self.report({'ERROR'}, "Maximum resolution allowed for Lattice is 64")
             return {'CANCELLED'}
 
@@ -385,8 +385,8 @@ class lattice_along_surface(Operator):
 
         # set as parent
         if self.set_parent:
-            obj.select = True
-            lattice.select = True
+            obj.select_set(True)
+            lattice.select_set(True)
             bpy.context.scene.objects.active = lattice
             bpy.ops.object.parent_set(type='LATTICE')
 
@@ -432,12 +432,12 @@ class lattice_along_surface(Operator):
                                 target_point.z / bpy.data.objects[lattice.name].scale.z
         except:
             bpy.ops.object.mode_set(mode='OBJECT')
-            grid_obj.select = True
-            lattice.select = True
-            obj.select = False
+            grid_obj.select_set(True)
+            lattice.select_set(True)
+            obj.select_set(False)
             bpy.ops.object.delete(use_global=False)
             bpy.context.scene.objects.active = obj
-            obj.select = True
+            obj.select_set(True)
             bpy.ops.object.modifier_remove(modifier=obj.modifiers[-1].name)
             if nu > 64 or nv > 64:
                 self.report({'ERROR'}, "Maximum resolution allowed for Lattice is 64")
@@ -451,12 +451,12 @@ class lattice_along_surface(Operator):
         # grid_obj.matrix_world = old_grid_matrix
 
         bpy.ops.object.mode_set(mode='OBJECT')
-        grid_obj.select = True
-        lattice.select = False
-        obj.select = False
+        grid_obj.select_set(True)
+        lattice.select_set(False)
+        obj.select_set(False)
         bpy.ops.object.delete(use_global=False)
         bpy.context.scene.objects.active = lattice
-        lattice.select = True
+        lattice.select_set(True)
 
         if self.high_quality_lattice:
             bpy.context.object.data.points_w = 8
@@ -467,8 +467,8 @@ class lattice_along_surface(Operator):
             bpy.ops.object.hide_view_set(unselected=False)
 
         bpy.context.scene.objects.active = obj
-        obj.select = True
-        lattice.select = False
+        obj.select_set(True)
+        lattice.select_set(False)
 
         if self.flipNormals:
             try:

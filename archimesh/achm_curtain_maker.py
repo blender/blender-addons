@@ -164,7 +164,7 @@ def create_japan_mesh(self):
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True:
-            o.select = False
+            o.select_set(False)
     bpy.ops.object.select_all(False)
     # Create units
     generate_japan(self)
@@ -250,7 +250,7 @@ def create_roller_mesh(self):
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True:
-            o.select = False
+            o.select_set(False)
     bpy.ops.object.select_all(False)
     generate_roller(self)
 
@@ -410,9 +410,9 @@ def generate_japan(self):
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True:
-            o.select = False
+            o.select_set(False)
 
-    myrail.select = True
+    myrail.select_set(True)
     bpy.context.scene.objects.active = myrail
 
     return
@@ -714,9 +714,9 @@ def generate_roller(self):
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True:
-            o.select = False
+            o.select_set(False)
 
-    myroller.select = True
+    myroller.select_set(True)
     bpy.context.scene.objects.active = myroller
 
     return

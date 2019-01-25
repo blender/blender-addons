@@ -389,7 +389,7 @@ class TexAtl_SelectGroup(Operator):
         bpy.ops.object.select_all(action='DESELECT')
         obj_group = bpy.data.collections[group_name]
         for object in obj_group.objects:
-            object.select = True
+            object.select_set(True)
         return {'FINISHED'}
 
 
@@ -608,7 +608,7 @@ class TexAtl_MergeObjects(Operator):
         bpy.ops.object.select_all(action='DESELECT')
         ob_merged_old = bpy.data.objects.get(self.group_name + "_mergedObject")
         if ob_merged_old is not None:
-            ob_merged_old.select = True
+            ob_merged_old.select_set(True)
             scene.objects.active = ob_merged_old
             bpy.ops.object.delete(use_global=True)
 
@@ -617,7 +617,7 @@ class TexAtl_MergeObjects(Operator):
         ob_merge.location = scene.cursor_location   # position object at 3d-cursor
         scene.objects.link(ob_merge)                # Link object to scene
         me.update()
-        ob_merge.select = False
+        ob_merge.select_set(False)
 
         bpy.ops.object.select_all(action='DESELECT')
 
@@ -633,7 +633,7 @@ class TexAtl_MergeObjects(Operator):
             object.hide_select = False
 
             bpy.ops.object.select_all(action='DESELECT')
-            object.select = True
+            object.select_set(True)
 
             # activate lightmap uv if existent
             for uv in object.data.uv_textures:
@@ -643,16 +643,16 @@ class TexAtl_MergeObjects(Operator):
 
             # Duplicate Temp Object
             bpy.ops.object.select_all(action='DESELECT')
-            object.select = True
+            object.select_set(True)
             scene.objects.active = object
             bpy.ops.object.duplicate(linked=False, mode='TRANSLATION')
             activeNowObject = scene.objects.active
-            activeNowObject.select = True
+            activeNowObject.select_set(True)
 
             # hide render of original mesh
             object.hide_render = True
             object.hide = True
-            object.select = False
+            object.select_set(False)
             object.hide_select = isObjHideSelect
 
             # remove unused UV
@@ -690,8 +690,8 @@ class TexAtl_MergeObjects(Operator):
 
             # merge objects together
             bpy.ops.object.select_all(action='DESELECT')
-            activeNowObject.select = True
-            ob_merge.select = True
+            activeNowObject.select_set(True)
+            ob_merge.select_set(True)
             scene.objects.active = ob_merge
             bpy.ops.object.join()
 
@@ -699,7 +699,7 @@ class TexAtl_MergeObjects(Operator):
 
         # make Unwrap
         bpy.ops.object.select_all(action='DESELECT')
-        ob_merge.select = True
+        ob_merge.select_set(True)
         scene.objects.active = ob_merge
 
         # Unfide all faces
@@ -745,17 +745,17 @@ class TexAtl_SeparateObjects(Operator):
                 # bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
             bpy.ops.object.select_all(action='DESELECT')
             ob_merged.hide = False
-            ob_merged.select = True
+            ob_merged.select_set(True)
             groupSeparate = bpy.data.collections.new(ob_merged.name)
             groupSeparate.objects.link(ob_merged)
-            ob_merged.select = False
+            ob_merged.select_set(False)
 
             doUnhidePolygons = False
             for ms_obj in ob_merged.ms_merged_objects:
                 # select vertex groups and separate group from merged
                 # object
                 bpy.ops.object.select_all(action='DESELECT')
-                ob_merged.select = True
+                ob_merged.select_set(True)
                 scene.objects.active = ob_merged
 
                 bpy.ops.object.mode_set(mode='EDIT')
@@ -781,27 +781,27 @@ class TexAtl_SeparateObjects(Operator):
 
                 # Copy UV Coordinates to the original mesh
                 if ms_obj.name in scene.objects:
-                    ob_merged.select = False
+                    ob_merged.select_set(False)
                     ob_original = scene.objects[ms_obj.name]
                     isOriginalToSelect = ob_original.hide_select
                     ob_original.hide_select = False
                     ob_original.hide = False
-                    ob_original.select = True
+                    ob_original.select_set(True)
                     scene.objects.active = ob_separeted
                     bpy.ops.object.join_uvs()
                     ob_original.hide_render = False
-                    ob_original.select = False
+                    ob_original.select_set(False)
                     ob_original.hide_select = isOriginalToSelect
                     ob_original.data.update()
 
                 # delete separated object
                 bpy.ops.object.select_all(action='DESELECT')
-                ob_separeted.select = True
+                ob_separeted.select_set(True)
                 bpy.ops.object.delete(use_global=False)
 
             # delete duplicated object
             bpy.ops.object.select_all(action='DESELECT')
-            ob_merged.select = True
+            ob_merged.select_set(True)
             bpy.ops.object.delete(use_global=False)
 
         return{'FINISHED'}

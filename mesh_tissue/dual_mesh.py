@@ -138,7 +138,7 @@ class dual_mesh(Operator):
                 bpy.ops.object.convert(target='MESH')
             ob.data = ob.data.copy()
             bpy.ops.object.select_all(action='DESELECT')
-            ob.select = True
+            ob.select_set(True)
             bpy.context.scene.objects.active = ob0
             bpy.ops.object.mode_set(mode='EDIT')
 
@@ -274,7 +274,7 @@ class dual_mesh(Operator):
                 o.data = ob.data
 
         for o in sel:
-            o.select = True
+            o.select_set(True)
 
         bpy.context.scene.objects.active = act
         bpy.ops.object.mode_set(mode=mode)

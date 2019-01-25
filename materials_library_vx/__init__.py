@@ -534,7 +534,7 @@ if mat:
           self.last_selected = ""
       except:
         context.scene.objects.active = None
-    dummy.select = False
+    dummy.select_set(False)
       #objects = context.selected_objects
 
     material = None

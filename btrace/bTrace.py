@@ -132,7 +132,7 @@ class OBJECT_OT_objectconnect(Operator):
 
             for a in obnames:
                 lists.append(a)
-                a.select = False
+                a.select_set(False)
 
             # trace the origins
             tracer = bpy.data.curves.new('tracer', 'CURVE')
@@ -162,16 +162,16 @@ class OBJECT_OT_objectconnect(Operator):
 
             # place hooks
             for i in range(len(lists)):
-                lists[i].select = True
+                lists[i].select_set(True)
                 curve.data.splines[0].bezier_points[i].select_control_point = True
                 bpy.ops.object.mode_set(mode='EDIT')
                 bpy.ops.object.hook_add_selob()
                 bpy.ops.object.mode_set(mode='OBJECT')
                 curve.data.splines[0].bezier_points[i].select_control_point = False
-                lists[i].select = False
+                lists[i].select_set(False)
 
             bpy.ops.object.select_all(action='DESELECT')
-            curve.select = True  # selected curve after it's created
+            curve.select_set(True)  # selected curve after it's created
             # Materials
             check_materials = True
             trace_mats = addtracemat(bpy.context.object.data)
@@ -269,7 +269,7 @@ class OBJECT_OT_particletrace(Operator):
             # add to group
             bpy.ops.object.select_all(action='DESELECT')
             for curveobject in curvelist:
-                curveobject.select = True
+                curveobject.select_set(True)
                 bpy.context.scene.objects.active = curveobject
                 bpy.ops.object.collection_link(group="Btrace")
                 # Materials
@@ -372,7 +372,7 @@ class OBJECT_OT_traceallparticles(Operator):
                         bp.keyframe_insert('handle_right')
             # Select new curve
             bpy.ops.object.select_all(action='DESELECT')
-            curve.select = True
+            curve.select_set(True)
             bpy.context.scene.objects.active = curve
 
             # Materials
@@ -741,7 +741,7 @@ class OBJECT_OT_meshfollow(Operator):
             bpy.ops.object.select_all(action='DESELECT')
             for curveobject in curvelist:
                 if curveobject.type == 'CURVE':
-                    curveobject.select = True
+                    curveobject.select_set(True)
                     context.scene.objects.active = curveobject
                     bpy.ops.object.collection_link(group="Btrace")
                     # Materials
@@ -749,16 +749,16 @@ class OBJECT_OT_meshfollow(Operator):
                     if not trace_mats and check_materials is True:
                         check_materials = False
 
-                    curveobject.select = False
+                    curveobject.select_set(False)
 
             if Btrace.animate:  # Add grow curve
                 for curveobject in curvelist:
-                    curveobject.select = True
+                    curveobject.select_set(True)
                 bpy.ops.curve.btgrow()
                 for curveobject in curvelist:
-                    curveobject.select = False
+                    curveobject.select_set(False)
 
-            obj.select = False  # Deselect original object
+            obj.select_set(False)  # Deselect original object
 
             if check_materials is False:
                 self.report({'WARNING'}, "Some Materials could not be added")

@@ -229,7 +229,7 @@ class object_duplicate_flatten_modifiers(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')
 
         scene.objects.active = new_object
-        new_object.select = True
+        new_object.select_set(True)
 
         return {'FINISHED'}
 

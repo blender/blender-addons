@@ -237,7 +237,7 @@ def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
 
     # activate and select object
     scene.objects.active = dobj
-    dobj.select = True
+    dobj.select_set(True)
     obj = bpy.context.active_object
 
     # flip all face normals outside

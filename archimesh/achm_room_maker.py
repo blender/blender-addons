@@ -349,7 +349,7 @@ class AchmRoom(Operator):
 def create_room(self, context):
     # deselect all objects
     for o in bpy.data.objects:
-        o.select = False
+        o.select_set(False)
 
     # we create main object and mesh for walls
     roommesh = bpy.data.meshes.new("Room")
@@ -363,7 +363,7 @@ def create_room(self, context):
     shape_walls_and_create_children(roomobject, roommesh)
 
     # we select, and activate, main object for the room.
-    roomobject.select = True
+    roomobject.select_set(True)
     bpy.context.scene.objects.active = roomobject
 
 
@@ -395,12 +395,12 @@ def update_room(self, context):
     oldmesh = o.data
     oldname = o.data.name
     # Now we deselect that room object to not delete it.
-    o.select = False
+    o.select_set(False)
     # and we create a new mesh for the walls:
     tmp_mesh = bpy.data.meshes.new("temp")
     # deselect all objects
     for obj in bpy.data.objects:
-        obj.select = False
+        obj.select_set(False)
     # Remove children created by this addon:
     for child in o.children:
         # noinspection PyBroadException
@@ -418,7 +418,7 @@ def update_room(self, context):
                     pass
                 # clear data
                 old = child.data
-                child.select = True
+                child.select_set(True)
                 bpy.ops.object.delete()
                 bpy.data.meshes.remove(old)
         except:
@@ -430,7 +430,7 @@ def update_room(self, context):
     bpy.data.meshes.remove(oldmesh)
     tmp_mesh.name = oldname
     # and select, and activate, the main object of the room.
-    o.select = True
+    o.select_set(True)
     bpy.context.scene.objects.active = o
 
 
@@ -497,7 +497,7 @@ def shape_walls_and_create_children(myroom, tmp_mesh, update=False):
         mybase.location = (0, 0, 0)
         bpy.context.scene.objects.link(mybase)
         mybase.parent = myroom
-        mybase.select = True
+        mybase.select_set(True)
         mybase["archimesh.room_object"] = True
         mybase["archimesh.room_baseboard"] = True
 
@@ -572,7 +572,7 @@ def shape_walls_and_create_children(myroom, tmp_mesh, update=False):
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True and o.name != myroom.name:
-            o.select = False
+            o.select_set(False)
 
 
 # ------------------------------------------------------------------------------

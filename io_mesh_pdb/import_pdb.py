@@ -579,7 +579,7 @@ def camera_light_source(use_camera,
         # Rotate the camera around its axis by 90° such that we have a nice
         # camera position and view onto the object.
         bpy.ops.object.select_all(action='DESELECT')
-        camera.select = True
+        camera.select_set(True)
         bpy.ops.transform.rotate(value=(90.0*2*pi/360.0),
                                  axis=object_camera_vec,
                                  constraint_axis=(False, False, False),
@@ -851,8 +851,8 @@ def draw_sticks_dupliverts(all_atoms,
         # Smooth the cylinders.
         if use_sticks_smooth == True:
             bpy.ops.object.select_all(action='DESELECT')
-            stick_cylinder.select = True
-            stick_cups.select = True
+            stick_cylinder.select_set(True)
+            stick_cups.select_set(True)
             bpy.ops.object.shade_smooth()
 
         # Parenting the mesh to the cylinder.
@@ -1072,7 +1072,7 @@ def draw_sticks_normal(all_atoms,
         # Smooth the cylinder.
         if use_sticks_smooth == True:
             bpy.ops.object.select_all(action='DESELECT')
-            stick.select = True
+            stick.select_set(True)
             bpy.ops.object.shade_smooth()
 
         list_group_sub.append(stick)
@@ -1081,7 +1081,7 @@ def draw_sticks_normal(all_atoms,
             if counter == use_sticks_one_object_nr:
                 bpy.ops.object.select_all(action='DESELECT')
                 for stick in list_group_sub:
-                    stick.select = True
+                    stick.select_set(True)
                 bpy.ops.object.join()
                 list_group.append(bpy.context.scene.objects.active)
                 bpy.ops.object.select_all(action='DESELECT')
@@ -1094,13 +1094,13 @@ def draw_sticks_normal(all_atoms,
     if use_sticks_one_object == True:
         bpy.ops.object.select_all(action='DESELECT')
         for stick in list_group_sub:
-            stick.select = True
+            stick.select_set(True)
         bpy.ops.object.join()
         list_group.append(bpy.context.scene.objects.active)
         bpy.ops.object.select_all(action='DESELECT')
 
         for group in list_group:
-            group.select = True
+            group.select_set(True)
         bpy.ops.object.join()
         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY',
                                    center='MEDIAN')
@@ -1385,7 +1385,7 @@ def import_pdb(Ball_type,
     bpy.ops.object.select_all(action='DESELECT')
     obj = None
     for obj in atom_object_list:
-        obj.select = True
+        obj.select_set(True)
 
     # activate the last selected object
     if obj:

@@ -390,7 +390,7 @@ def create_light_mesh(self):
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True:
-            o.select = False
+            o.select_set(False)
     bpy.ops.object.select_all(False)
     generate_light(self)
 
@@ -493,9 +493,9 @@ def generate_light(self):
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True:
-            o.select = False
+            o.select_set(False)
 
-    mybase.select = True
+    mybase.select_set(True)
     bpy.context.scene.objects.active = mybase
 
     return

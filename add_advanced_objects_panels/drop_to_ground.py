@@ -109,9 +109,9 @@ def drop_objectsall(self, context):
     name = ground.name
 
     for obs in bpy.context.scene.objects:
-        obs.select = True
+        obs.select_set(True)
         if obs.name == name:
-            obs.select = False
+            obs.select_set(False)
 
     obs2 = context.selected_objects
 
@@ -158,11 +158,11 @@ def drop_objectsall(self, context):
 
     # cleanup
     bpy.ops.object.select_all(action='DESELECT')
-    tmp_ground.select = True
+    tmp_ground.select_set(True)
     bpy.ops.object.delete('EXEC_DEFAULT')
     for ob in obs2:
-        ob.select = True
-    ground.select = True
+        ob.select_set(True)
+    ground.select_set(True)
 
 
 def drop_objects(self, context):
@@ -215,11 +215,11 @@ def drop_objects(self, context):
 
     # cleanup
     bpy.ops.object.select_all(action='DESELECT')
-    tmp_ground.select = True
+    tmp_ground.select_set(True)
     bpy.ops.object.delete('EXEC_DEFAULT')
     for ob in obs:
-        ob.select = True
-    ground.select = True
+        ob.select_set(True)
+    ground.select_set(True)
 
 
 # define base dummy class for inheritance

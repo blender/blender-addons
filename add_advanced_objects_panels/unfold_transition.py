@@ -151,7 +151,7 @@ class Set_Up_Fold(Operator):
                 b.tail, b.head = fb[1], fb[2]
 
             b.align_roll(f.normal)
-            b.select = False
+            b.select_set(False)
             b.layers = vis
             b.parent = root
             vg = obj.vertex_groups.new(name=b.name)
@@ -162,7 +162,7 @@ class Set_Up_Fold(Operator):
         if adv_obj.unfold_modo == "weight":
             obj.vertex_groups.active_index = 0
         scn.objects.active = rig
-        obj.select = False
+        obj.select_set(False)
 
         return {"FINISHED"}
 

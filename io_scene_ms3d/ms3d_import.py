@@ -289,7 +289,7 @@ class Ms3dImporter():
         #blender_mesh_object.location = blender_scene.cursor_location
         enable_edit_mode(False, blender_context)
         select_all(False)
-        blender_mesh_object.select = True
+        blender_mesh_object.select_set(True)
         blender_scene.objects.active = blender_mesh_object
 
         ##########################

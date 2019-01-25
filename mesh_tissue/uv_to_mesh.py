@@ -77,8 +77,8 @@ class uv_to_mesh(Operator):
     def execute(self, context):
         bpy.ops.object.mode_set(mode='OBJECT')
         for o in bpy.data.objects:
-            o.select = False
-        bpy.context.object.select = True
+            o.select_set(False)
+        bpy.context.object.select_set(True)
 
         if self.apply_modifiers:
             bpy.ops.object.duplicate_move()
@@ -121,7 +121,7 @@ class uv_to_mesh(Operator):
         scn = bpy.context.scene
         scn.objects.link(ob)
         scn.objects.active = ob
-        ob.select = True
+        ob.select_set(True)
 
         # Create mesh from given verts, faces.
         me.from_pydata(verts, [], faces)
@@ -148,7 +148,7 @@ class uv_to_mesh(Operator):
             except:
                 pass
 
-        ob0.select = False
+        ob0.select_set(False)
         if self.auto_scale:
             scaleFactor = math.pow(area / new_area, 1 / 2)
             ob.scale = Vector((scaleFactor, scaleFactor, scaleFactor))
@@ -173,10 +173,10 @@ class uv_to_mesh(Operator):
 
         if self.apply_modifiers:
             bpy.ops.object.mode_set(mode='OBJECT')
-            ob.select = False
-            ob0.select = True
+            ob.select_set(False)
+            ob0.select_set(True)
             bpy.ops.object.delete(use_global=False)
-            ob.select = True
+            ob.select_set(True)
             bpy.context.scene.objects.active = ob
 
         return {'FINISHED'}

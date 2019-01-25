@@ -392,9 +392,9 @@ def cell_fracture_boolean(scene, obj, objects,
         # this is ugly and Im not proud of this - campbell
         base = None
         for base in scene.object_bases:
-            base.select = False
+            base.select_set(False)
         for obj_cell in objects_boolean:
-            obj_cell.select = True
+            obj_cell.select_set(True)
 
         bpy.ops.mesh.separate(type='LOOSE')
 

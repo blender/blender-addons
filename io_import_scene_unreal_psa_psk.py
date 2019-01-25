@@ -425,8 +425,8 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
             bpy.context.scene.objects.link(ob_new)
             #bpy.ops.object.mode_set(mode='OBJECT')
             for i in bpy.context.scene.objects:
-                i.select = False #deselect all objects
-            ob_new.select = True
+                i.select_set(False) #deselect all objects
+            ob_new.select_set(True)
             #set current armature to edit the bone
             bpy.context.scene.objects.active = ob_new
             #set mode to able to edit the bone
@@ -699,10 +699,10 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     me_ob.update()
     bpy.context.scene.objects.link(obmesh)
     bpy.context.scene.update()
-    obmesh.select = False
-    ob_new.select = False
-    obmesh.select = True
-    ob_new.select = True
+    obmesh.select_set(False)
+    ob_new.select_set(False)
+    obmesh.select_set(True)
+    ob_new.select_set(True)
     bpy.ops.object.parent_set(type="ARMATURE")
 
     print ("PSK2Blender completed")

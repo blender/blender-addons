@@ -127,13 +127,13 @@ def which_vertex_are_selected(ob):
 
 def seleccionar_por_nombre(nombre):
     scn = bpy.context.scene
-    bpy.data.objects[nombre].select = True
+    bpy.data.objects[nombre].select_set(True)
 
     scn.objects.active = bpy.data.objects[nombre]
 
 
 def deseleccionar_por_nombre(nombre):
-    bpy.data.objects[nombre].select = False
+    bpy.data.objects[nombre].select_set(False)
 
 
 def crear_vertices(ob):

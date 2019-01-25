@@ -231,7 +231,7 @@ class AchmWinPanel(Operator):
 def create_window():
     # deselect all objects
     for o in bpy.data.objects:
-        o.select = False
+        o.select_set(False)
     # Create main object
     window_mesh = bpy.data.meshes.new("Window")
     window_object = bpy.data.objects.new("Window", window_mesh)
@@ -247,15 +247,15 @@ def create_window():
     # deactivate others
     for o in bpy.data.objects:
         if o.select is True and o.name != window_object.name:
-            o.select = False
+            o.select_set(False)
 
     # Select, and activate object
-    window_object.select = True
+    window_object.select_set(True)
     bpy.context.scene.objects.active = window_object
 
     do_ctrl_box(window_object)
     # Reselect
-    window_object.select = True
+    window_object.select_set(True)
     bpy.context.scene.objects.active = window_object
 
 
@@ -269,12 +269,12 @@ def update_window(self, context):
     oldmesh = o.data
     oldname = o.data.name
     # Now deselect that object to not delete it.
-    o.select = False
+    o.select_set(False)
     # # and create a new mesh for the object:
     # tmp_mesh = bpy.data.meshes.new("temp")
     # deselect all objects
     for obj in bpy.data.objects:
-        obj.select = False
+        obj.select_set(False)
     # ---------------------------------
     #  Clear Parent objects (autohole)
     # ---------------------------------
@@ -294,13 +294,13 @@ def update_window(self, context):
                 child.hide = False  # must be visible to avoid bug
                 child.hide_render = False  # must be visible to avoid bug
                 old = child.data
-                child.select = True
+                child.select_set(True)
                 bpy.ops.object.delete()
                 bpy.data.meshes.remove(old)
             except:
                 pass
 
-        myparent.select = True
+        myparent.select_set(True)
         bpy.ops.object.delete()
 
     # Finally create all that again
@@ -317,15 +317,15 @@ def update_window(self, context):
     # deactivate others
     for ob in bpy.data.objects:
         if ob.select is True and ob.name != o.name:
-            ob.select = False
+            ob.select_set(False)
     # and select, and activate, the object.
-    o.select = True
+    o.select_set(True)
     bpy.context.scene.objects.active = o
 
     do_ctrl_box(o)
 
     # Reselect
-    o.select = True
+    o.select_set(True)
     bpy.context.scene.objects.active = o
 
 

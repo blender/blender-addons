@@ -240,7 +240,7 @@ class OBJECT_OT_agregate_mesh(Operator):
 
         bpy.ops.object.mode_set()
         bpy.ops.object.select_all(action='DESELECT')
-        obj.select = True
+        obj.select_set(True)
         msv = []
 
         for i in range(len(obj.modifiers)):
@@ -283,7 +283,7 @@ class OBJECT_OT_agregate_mesh(Operator):
             newobj.scale = [self.baseSca + self.baseSca * rg(self.varSca)] * 3
 
             if self.anim:
-                newobj.select = True
+                newobj.select_set(True)
                 bpy.ops.object.make_single_user(type='SELECTED_OBJECTS', obdata=True)
                 bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
@@ -306,7 +306,7 @@ class OBJECT_OT_agregate_mesh(Operator):
 
             else:
                 scn.objects.active = obj
-                newobj.select = True
+                newobj.select_set(True)
                 bpy.ops.object.join()
 
             if self.track:
@@ -316,9 +316,9 @@ class OBJECT_OT_agregate_mesh(Operator):
             obj.modifiers[i].show_viewport = msv[i]
 
         for o in par:
-            o.select = True
+            o.select_set(True)
 
-        obj.select = True
+        obj.select_set(True)
 
         if self.auto_refresh is False:
             self.refresh = False

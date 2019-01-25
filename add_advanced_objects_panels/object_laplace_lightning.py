@@ -342,9 +342,9 @@ def writeArrayToCubes(arr, gridBU, orig, cBOOL=False, jBOOL=True):
         # Selects all cubes w/ ?bpy.ops.object.join() b/c
         # Can't join all cubes to a single mesh right... argh...
         for q in bpy.context.scene.objects:
-            q.select = False
+            q.select_set(False)
             if q.name[0:5] == 'xCUBE':
-                q.select = True
+                q.select_set(True)
                 bpy.context.scene.objects.active = q
 
 

@@ -986,9 +986,9 @@ def triangulate_mesh(object):
     bpy.ops.object.mode_set(mode='OBJECT')
 
     for i in scene.objects:
-        i.select = False  # deselect all objects
+        i.select_set(False)  # deselect all objects
 
-    me_ob.select = True
+    me_ob.select_set(True)
     scene.objects.active = me_ob
 
     print("Copy and Convert mesh just incase any way...")
@@ -1031,14 +1031,14 @@ def meshmerge(selectedobjects):
                 cloneobjects.append(me_ob)  # add object to the array
 
         for i in bpy.data.objects:
-            i.select = False  # deselect all objects
+            i.select_set(False)  # deselect all objects
         count = 0  # reset count
         # begin merging the mesh together as one
         for count in range(len(cloneobjects)):
             if count == 0:
                 bpy.context.scene.objects.active = cloneobjects[count]
                 print("Set Active Object:", cloneobjects[count].name)
-            cloneobjects[count].select = True
+            cloneobjects[count].select_set(True)
         bpy.ops.object.join()  # join object together
         if len(cloneobjects) > 1:
             bpy.types.Scene.udk_copy_merge = True
@@ -1085,7 +1085,7 @@ def parse_mesh(mesh, psk):
     scene = bpy.context.scene
 
     for i in scene.objects:
-        i.select = False  # deselect all objects
+        i.select_set(False)  # deselect all objects
 
     scene.objects.active = mesh
     setmesh = mesh
@@ -2027,9 +2027,9 @@ class OBJECT_OT_UTSelectedFaceSmooth(Operator):
                 bpy.ops.object.mode_set(mode='OBJECT')  # it need to go into object mode to able to select the faces
 
                 for i in bpy.context.scene.objects:
-                    i.select = False  # deselect all objects
+                    i.select_set(False)  # deselect all objects
 
-                obj.select = True  # set current object select
+                obj.select_set(True)  # set current object select
                 bpy.context.scene.objects.active = obj  # set active object
                 mesh = bmesh.new()
                 mesh.from_mesh(obj.data)
@@ -2087,8 +2087,8 @@ def rebuildmesh(obj):
     bpy.ops.object.mode_set(mode='OBJECT')
 
     for i in bpy.context.scene.objects:
-        i.select = False  # deselect all objects
-    obj.select = True
+        i.select_set(False)  # deselect all objects
+    obj.select_set(True)
     bpy.context.scene.objects.active = obj
 
     me_ob = bpy.data.meshes.new(("Re_" + obj.name))
@@ -2220,9 +2220,9 @@ def rebuildarmature(obj):
     # bpy.ops.object.mode_set(mode='OBJECT')
 
     for i in bpy.context.scene.objects:
-        i.select = False  # deselect all objects
+        i.select_set(False)  # deselect all objects
 
-    ob_new.select = True
+    ob_new.select_set(True)
     bpy.context.scene.objects.active = obj
 
     bpy.ops.object.mode_set(mode='EDIT')
@@ -2234,7 +2234,7 @@ def rebuildarmature(obj):
     bpy.ops.object.mode_set(mode='OBJECT')
 
     for i in bpy.context.scene.objects:
-        i.select = False  # deselect all objects
+        i.select_set(False)  # deselect all objects
 
     bpy.context.scene.objects.active = ob_new
     bpy.ops.object.mode_set(mode='EDIT')
@@ -2564,9 +2564,9 @@ def udkcheckmeshline():
     bpy.ops.object.mode_set(mode='OBJECT')
 
     for i in bpy.context.scene.objects:
-        i.select = False  # deselect all objects
+        i.select_set(False)  # deselect all objects
 
-    objmesh.select = True
+    objmesh.select_set(True)
     bpy.context.scene.objects.active = objmesh  # set active mesh
     wedges = ObjMap()
     points = ObjMap()

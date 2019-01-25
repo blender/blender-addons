@@ -75,7 +75,7 @@ def create_cutter(context, crack_type, scale, roughness):
                 v.co[1] += roughness * scale * 0.1 * (random.random() - 0.5)
                 v.co[2] += roughness * scale * 0.1 * (random.random() - 0.5)
 
-    bpy.context.active_object.select = True
+    bpy.context.active_object.select_set(True)
 #    bpy.context.scene.objects.active.select = True
 
     '''
@@ -143,7 +143,7 @@ def getIslands(shard):
         for gi in range(0, gindex):
             bpy.ops.object.select_all(action='DESELECT')
             bpy.context.scene.objects.active = shard
-            shard.select = True
+            shard.select_set(True)
             bpy.ops.object.duplicate(linked=False, mode='DUMMY')
             a = bpy.context.scene.objects.active
             sm = a.data
@@ -184,9 +184,9 @@ def boolop(ob, cutter, op):
     gsize = sizex + sizey + sizez
 
     bpy.ops.object.select_all()
-    ob.select = True
+    ob.select_set(True)
     sce.objects.active = ob
-    cutter.select = False
+    cutter.select_set(False)
 
     bpy.ops.object.modifier_add(type='BOOLEAN')
     a = sce.objects.active
