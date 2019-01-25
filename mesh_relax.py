@@ -53,7 +53,6 @@ def relax_mesh(context):
 
     # deselect everything that's not related
     for obj in context.selected_objects:
-        #obj.select = False
         obj.select_set(False)
 
     # get active object
@@ -69,7 +68,6 @@ def relax_mesh(context):
     for m in range(0, len(target.modifiers)):
         target.modifiers.remove(target.modifiers[0])
 
-    #context.scene.objects.active = obj
     context.view_layer.objects.active = obj
 
     sw = obj.modifiers.new(type='SHRINKWRAP', name='relax_target')
@@ -119,14 +117,12 @@ def menu_func(self, context):
 
 def register():
     bpy.utils.register_class(Relax)
-    #bpy.utils.register_module(__name__)
 
     bpy.types.VIEW3D_MT_edit_mesh_specials.append(menu_func)
     bpy.types.VIEW3D_MT_edit_mesh_vertices.append(menu_func)
 
 def unregister():
     bpy.utils.unregister_class(Relax)
-    #bpy.utils.unregister_module(__name__)
 
     bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_func)
     bpy.types.VIEW3D_MT_edit_mesh_vertices.remove(menu_func)
