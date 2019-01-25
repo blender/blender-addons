@@ -798,8 +798,8 @@ def move_verts(object, bm, mapping, move, lock, influence):
             if influence < 0:
                 new_loc = loc
             else:
-                new_loc = loc @ (influence / 100) + \
-                                 bm.verts[index].co @ ((100 - influence) / 100)
+                new_loc = loc * (influence / 100) + \
+                                 bm.verts[index].co * ((100 - influence) / 100)
             bm.verts[index].co = new_loc
     bm.normal_update()
     object.data.update()
