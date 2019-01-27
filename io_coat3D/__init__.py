@@ -88,12 +88,7 @@ def set_exchange_folder():
     Blender_export = ""
 
     if(platform == 'win32'):
-        exchange = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3D-CoatV48' + os.sep +'Exchange'
-        if not(os.path.isdir(exchange)):
-            exchange = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3D-CoatV4' + os.sep +'Exchange'
-        if not (os.path.isdir(exchange)):
-            exchange = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3D-CoatV3' + os.sep + 'Exchange'
-
+        exchange = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + 'Applinks' + os.sep + '3D-Coat' + os.sep +'Exchange'
     else:
         exchange = os.path.expanduser("~") + os.sep + '3D-CoatV4' + os.sep + 'Exchange'
         if not(os.path.isdir(exchange)):
