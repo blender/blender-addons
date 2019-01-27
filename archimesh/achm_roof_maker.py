@@ -35,11 +35,11 @@ from .achm_tools import *
 # Define UI class
 # Rooms
 # ------------------------------------------------------------------
-class AchmRoof(Operator):
+class ARCHIMESH_OT_Roof(Operator):
     bl_idname = "mesh.archimesh_roof"
     bl_label = "Roof"
     bl_description = "Roof Generator"
-    bl_category = 'Archimesh'
+    bl_category = 'View'
     bl_options = {'REGISTER', 'UNDO'}
 
     # Define properties
@@ -124,14 +124,14 @@ class AchmRoof(Operator):
             y = tilesize_y * self.roof_scale * self.roof_height
 
             buf = 'Size: {0:.2f} * {1:.2f} aprox.'.format(x, y)
-            box.label(buf)
+            box.label(text=buf)
 
             box = layout.box()
             box.prop(self, 'roof_thick')
             box.prop(self, 'roof_angle')
 
             box = layout.box()
-            if not context.scene.render.engine == 'CYCLES':
+            if not context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
                 box.enabled = False
             box.prop(self, 'crt_mat')
         else:
@@ -158,7 +158,7 @@ class AchmRoof(Operator):
 def create_roof_mesh(self):
     # deactivate others
     for o in bpy.data.objects:
-        if o.select is True:
+        if o.select_get() is True:
             o.select_set(False)
     bpy.ops.object.select_all(False)
 
@@ -166,10 +166,10 @@ def create_roof_mesh(self):
     myroof = mydata[0]
 
     # active object and deactivate others
-    if bpy.context.scene.objects.active is not None:
-        bpy.context.scene.objects.active.select_set(False)
+    if bpy.context.view_layer.objects.active is not None:
+        bpy.context.view_layer.objects.active.select_set(False)
 
-    bpy.context.scene.objects.active = myroof
+    bpy.context.view_layer.objects.active = myroof
     myroof.select_set(True)
 
     # Thicknes
@@ -205,14 +205,14 @@ def create_roof_mesh(self):
     myroof.rotation_euler = (radians(self.roof_angle), 0.0, 0.0)
 
     # Create materials
-    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
+    if self.crt_mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         # material
         mat = create_diffuse_material("Roof_material", False, 0.482, 0.061, 0.003, 0.581, 0.105, 0.068, 0.01)
         set_material(myroof, mat)
 
     bpy.ops.object.select_all(False)
     myroof.select_set(True)
-    bpy.context.scene.objects.active = myroof
+    bpy.context.view_layer.objects.active = myroof
     return
 
 
@@ -243,7 +243,7 @@ def create_roof(self):
     myobject = bpy.data.objects.new("Roof", mymesh)
 
     myobject.location = bpy.context.scene.cursor_location
-    bpy.context.scene.objects.link(myobject)
+    bpy.context.collection.objects.link(myobject)
 
     mymesh.from_pydata(verts, [], faces)
     mymesh.update(calc_edges=True)

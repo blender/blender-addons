@@ -196,11 +196,11 @@ def set_defaults(s):
 # ------------------------------------------------------------------
 # Define operator class to create window panels
 # ------------------------------------------------------------------
-class AchmWinPanel(Operator):
+class ARCHIMESH_PT_Win(Operator):
     bl_idname = "mesh.archimesh_winpanel"
     bl_label = "Panel Window"
     bl_description = "Generate editable flat windows"
-    bl_category = 'Archimesh'
+    bl_category = 'View'
     bl_options = {'REGISTER', 'UNDO'}
 
     # -----------------------------------------------------
@@ -210,7 +210,7 @@ class AchmWinPanel(Operator):
     def draw(self, context):
         layout = self.layout
         row = layout.row()
-        row.label("Use Properties panel (N) to define parms", icon='INFO')
+        row.label(text="Use Properties panel (N) to define parms", icon='INFO')
 
     # -----------------------------------------------------
     # Execute
@@ -237,7 +237,7 @@ def create_window():
     window_object = bpy.data.objects.new("Window", window_mesh)
 
     # Link object to scene
-    bpy.context.scene.objects.link(window_object)
+    bpy.context.collection.objects.link(window_object)
     window_object.WindowPanelGenerator.add()
     window_object.location = bpy.context.scene.cursor_location
 
@@ -246,17 +246,17 @@ def create_window():
 
     # deactivate others
     for o in bpy.data.objects:
-        if o.select is True and o.name != window_object.name:
+        if o.select_get() is True and o.name != window_object.name:
             o.select_set(False)
 
     # Select, and activate object
     window_object.select_set(True)
-    bpy.context.scene.objects.active = window_object
+    bpy.context.view_layer.objects.active = window_object
 
     do_ctrl_box(window_object)
     # Reselect
     window_object.select_set(True)
-    bpy.context.scene.objects.active = window_object
+    bpy.context.view_layer.objects.active = window_object
 
 
 # ------------------------------------------------------------------------------
@@ -291,7 +291,7 @@ def update_window(self, context):
             # noinspection PyBroadException
             try:
                 # clear child data
-                child.hide = False  # must be visible to avoid bug
+                child.hide_viewport = False  # must be visible to avoid bug
                 child.hide_render = False  # must be visible to avoid bug
                 old = child.data
                 child.select_set(True)
@@ -316,17 +316,17 @@ def update_window(self, context):
     tmp_mesh.name = oldname
     # deactivate others
     for ob in bpy.data.objects:
-        if ob.select is True and ob.name != o.name:
+        if ob.select_get() is True and ob.name != o.name:
             ob.select_set(False)
     # and select, and activate, the object.
     o.select_set(True)
-    bpy.context.scene.objects.active = o
+    bpy.context.view_layer.objects.active = o
 
     do_ctrl_box(o)
 
     # Reselect
     o.select_set(True)
-    bpy.context.scene.objects.active = o
+    bpy.context.view_layer.objects.active = o
 
 
 # ------------------------------------------------------------------------------
@@ -395,9 +395,9 @@ def do_ctrl_box(myobject):
     myctrl.location.y = 0
     myctrl.location.z = 0
     myctrl.display_type = 'WIRE'
-    myctrl.hide = False
+    myctrl.hide_viewport = False
     myctrl.hide_render = True
-    if bpy.context.scene.render.engine == 'CYCLES':
+    if bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         myctrl.cycles_visibility.camera = False
         myctrl.cycles_visibility.diffuse = False
         myctrl.cycles_visibility.glossy = False
@@ -1541,7 +1541,7 @@ def create_ctrl_box(parentobj, objname):
     myobj = bpy.data.objects.new(objname, mymesh)
 
     myobj.location = bpy.context.scene.cursor_location
-    bpy.context.scene.objects.link(myobj)
+    bpy.context.collection.objects.link(myobj)
 
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)
@@ -1568,7 +1568,21 @@ class GeneralPanelProperties(PropertyGroup):
             description='Predefined types',
             update=update_using_default,
             )
-    son = prs
+    son: EnumProperty(
+            items=(
+                ('1', "WINDOW 250X200", ""),
+                ('2', "WINDOW 200X200", ""),
+                ('3', "WINDOW 180X200", ""),
+                ('4', "WINDOW 180X160", ""),
+                ('5', "WINDOW 160X160", ""),
+                ('6', "WINDOW 50X50", ""),
+                ('7', "DOOR 80X250", ""),
+                ('8', "DOOR 80X230", ""),
+                ),
+            name="",
+            description='Predefined types',
+            update=update_using_default,
+            )
     gen: IntProperty(
             name='H Count', min=1, max=8, default=3,
             description='Horizontal Panes',
@@ -1771,12 +1785,12 @@ Object.WindowPanelGenerator = CollectionProperty(type=GeneralPanelProperties)
 # ------------------------------------------------------------------
 # Define panel class to modify myobjects.
 # ------------------------------------------------------------------
-class AchmWindowEditPanel(Panel):
+class ARCHIMESH_PT_WindowEdit(Panel):
     bl_idname = "ARCHIMESH_PT_window_edit"
     bl_label = "Window Panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Window'
+    bl_category = 'View'
 
     # -----------------------------------------------------
     # Verify if visible

@@ -70,11 +70,11 @@ bpy.utils.register_class(ShelvesProperties)
 # Define UI class
 # Shelves
 # ------------------------------------------------------------------
-class AchmShelves(Operator):
+class ARCHIMESH_OT_Shelves(Operator):
     bl_idname = "mesh.archimesh_shelves"
     bl_label = "Shelves"
     bl_description = "Shelves Generator"
-    bl_category = 'Archimesh'
+    bl_category = 'View'
     bl_options = {'REGISTER', 'UNDO'}
 
     thickness: FloatProperty(
@@ -174,7 +174,7 @@ class AchmShelves(Operator):
                     add_shelves(self, box, idx + 1, self.shelves[idx])
 
             box = layout.box()
-            if not context.scene.render.engine == 'CYCLES':
+            if not context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
                 box.enabled = False
             box.prop(self, 'crt_mat')
         else:
@@ -262,7 +262,7 @@ def add_shelves(self, box, num, sh):
 def create_shelves_mesh(self):
     # deactivate others
     for o in bpy.data.objects:
-        if o.select is True:
+        if o.select_get() is True:
             o.select_set(False)
     bpy.ops.object.select_all(False)
     # Create units
@@ -311,14 +311,14 @@ def generate_shelves(self):
 
     # deactivate others
     for o in bpy.data.objects:
-        if o.select is True:
+        if o.select_get() is True:
             o.select_set(False)
 
     boxes[0].select_set(True)
-    bpy.context.scene.objects.active = boxes[0]
+    bpy.context.view_layer.objects.active = boxes[0]
 
     # Create materials
-    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
+    if self.crt_mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         mat = create_diffuse_material("Shelves_material", False, 0.8, 0.8, 0.8)
         for box in boxes:
             set_material(box, mat)
@@ -462,7 +462,7 @@ def create_unit(stype, objname, thickness, sthickness, sx, sy, sz, px, py, pz, l
     myobject.location[0] = px
     myobject.location[1] = py
     myobject.location[2] = pz
-    bpy.context.scene.objects.link(myobject)
+    bpy.context.collection.objects.link(myobject)
 
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)

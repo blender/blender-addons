@@ -40,10 +40,10 @@ from .achm_tools import *
 # ----------------------------------------------------------
 # Export menu UI
 # ----------------------------------------------------------
-class AchmExportRoom(Operator, ExportHelper):
+class ARCHIMESH_OT_ExportRoom(Operator, ExportHelper):
     bl_idname = "io_export.roomdata"
     bl_description = 'Export Room data (.dat)'
-    bl_category = 'Archimesh'
+    bl_category = 'View'
     bl_label = "Export"
 
     # From ExportHelper. Filter filenames.
@@ -152,10 +152,10 @@ class AchmExportRoom(Operator, ExportHelper):
 # ----------------------------------------------------------
 # Import menu UI
 # ----------------------------------------------------------
-class AchmImportRoom(Operator, ImportHelper):
+class ARCHIMESH_OT_ImportRoom(Operator, ImportHelper):
     bl_idname = "io_import.roomdata"
     bl_description = 'Import Room data (.dat)'
-    bl_category = 'Archimesh'
+    bl_category = 'View'
     bl_label = "Import"
 
     # From Helper. Filter filenames.
@@ -312,11 +312,11 @@ class AchmImportRoom(Operator, ImportHelper):
 # ------------------------------------------------------------------
 # Define operator class to create rooms
 # ------------------------------------------------------------------
-class AchmRoom(Operator):
+class ARCHIMESH_OT_Room(Operator):
     bl_idname = "mesh.archimesh_room"
     bl_label = "Room"
     bl_description = "Generate room with walls, baseboard, floor and ceiling"
-    bl_category = 'Archimesh'
+    bl_category = 'View'
     bl_options = {'REGISTER', 'UNDO'}
 
     # -----------------------------------------------------
@@ -326,7 +326,7 @@ class AchmRoom(Operator):
     def draw(self, context):
         layout = self.layout
         row = layout.row()
-        row.label("Use Properties panel (N) to define parms", icon='INFO')
+        row.label(text="Use Properties panel (N) to define parms", icon='INFO')
         row = layout.row(align=False)
         row.operator("io_import.roomdata", text="Import", icon='COPYDOWN')
 
@@ -355,7 +355,7 @@ def create_room(self, context):
     roommesh = bpy.data.meshes.new("Room")
     roomobject = bpy.data.objects.new("Room", roommesh)
     roomobject.location = bpy.context.scene.cursor_location
-    bpy.context.scene.objects.link(roomobject)
+    bpy.context.collection.objects.link(roomobject)
     roomobject.RoomGenerator.add()
     roomobject.RoomGenerator[0].walls.add()
 
@@ -363,8 +363,8 @@ def create_room(self, context):
     shape_walls_and_create_children(roomobject, roommesh)
 
     # we select, and activate, main object for the room.
+    bpy.context.view_layer.objects.active = roomobject
     roomobject.select_set(True)
-    bpy.context.scene.objects.active = roomobject
 
 
 # -----------------------------------------------------
@@ -431,7 +431,7 @@ def update_room(self, context):
     tmp_mesh.name = oldname
     # and select, and activate, the main object of the room.
     o.select_set(True)
-    bpy.context.scene.objects.active = o
+    bpy.context.view_layer.objects.active = o
 
 
 # -----------------------------------------------------
@@ -495,7 +495,7 @@ def shape_walls_and_create_children(myroom, tmp_mesh, update=False):
         baseboardmesh = bpy.data.meshes.new("Baseboard")
         mybase = bpy.data.objects.new("Baseboard", baseboardmesh)
         mybase.location = (0, 0, 0)
-        bpy.context.scene.objects.link(mybase)
+        bpy.context.collection.objects.link(mybase)
         mybase.parent = myroom
         mybase.select_set(True)
         mybase["archimesh.room_object"] = True
@@ -544,7 +544,7 @@ def shape_walls_and_create_children(myroom, tmp_mesh, update=False):
             movetotopsolidify(mybase)
 
     # Create materials
-    if rp.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
+    if rp.crt_mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         # Wall material (two faces)
         mat = create_diffuse_material("Wall_material", False, 0.765, 0.650, 0.588, 0.8, 0.621, 0.570, 0.1, True)
         set_material(myroom, mat)
@@ -571,7 +571,7 @@ def shape_walls_and_create_children(myroom, tmp_mesh, update=False):
 
     # deactivate others
     for o in bpy.data.objects:
-        if o.select is True and o.name != myroom.name:
+        if o.select_get() is True and o.name != myroom.name:
             o.select_set(False)
 
 
@@ -791,7 +791,7 @@ def make_curved_wall(myvertex, myfaces, size, wall_angle, lastx, lasty, height,
 # ------------------------------------------------------------------------------
 
 def create_floor(rp, typ, myroom):
-    bpy.context.scene.objects.active = myroom
+    bpy.context.view_layer.objects.active = myroom
 
     myvertex = []
     myfaces = []
@@ -823,7 +823,7 @@ def create_floor(rp, typ, myroom):
     myobject = bpy.data.objects.new(typ, mymesh)
 
     myobject.location = (0, 0, 0)
-    bpy.context.scene.objects.link(myobject)
+    bpy.context.collection.objects.link(myobject)
 
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)
@@ -1144,7 +1144,7 @@ def add_shell(selobject, objname, rp):
     myobject = bpy.data.objects.new(objname, mesh)
 
     myobject.location = selobject.location
-    bpy.context.scene.objects.link(myobject)
+    bpy.context.collection.objects.link(myobject)
 
     mesh.from_pydata(myvertex, [], myfaces)
     mesh.update(calc_edges=True)
@@ -1615,12 +1615,12 @@ def add_wall(idx, box, wall):
 # ------------------------------------------------------------------
 # Define panel class to modify rooms.
 # ------------------------------------------------------------------
-class AchmRoomGeneratorPanel(Panel):
+class ARCHIMESH_PT_RoomGenerator(Panel):
     bl_idname = "OBJECT_PT_room_generator"
     bl_label = "Room"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Archimesh'
+    bl_category = 'View'
 
     # -----------------------------------------------------
     # Verify if visible
@@ -1692,6 +1692,6 @@ class AchmRoomGeneratorPanel(Panel):
                 row.prop(room, 'shell_bfactor', slider=True)
 
             box = layout.box()
-            if not context.scene.render.engine == 'CYCLES':
+            if not context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
                 box.enabled = False
             box.prop(room, 'crt_mat')

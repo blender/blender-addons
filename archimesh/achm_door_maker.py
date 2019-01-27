@@ -34,11 +34,11 @@ from .achm_tools import *
 # ------------------------------------------------------------------
 # Define operator class to create object
 # ------------------------------------------------------------------
-class AchmDoor(Operator):
+class ARCHIMESH_OT_Door(Operator):
     bl_idname = "mesh.archimesh_door"
     bl_label = "Door"
     bl_description = "Door"
-    bl_category = 'Archimesh'
+    bl_category = 'View'
     bl_options = {'REGISTER', 'UNDO'}
 
     # -----------------------------------------------------
@@ -48,7 +48,7 @@ class AchmDoor(Operator):
     def draw(self, context):
         layout = self.layout
         row = layout.row()
-        row.label("Use Properties panel (N) to define parms", icon='INFO')
+        row.label(text="Use Properties panel (N) to define parms", icon='INFO')
 
     # -----------------------------------------------------
     # Execute
@@ -77,7 +77,7 @@ def create_object(self, context):
     mainmesh = bpy.data.meshes.new("DoorFrane")
     mainobject = bpy.data.objects.new("DoorFrame", mainmesh)
     mainobject.location = bpy.context.scene.cursor_location
-    bpy.context.scene.objects.link(mainobject)
+    bpy.context.collection.objects.link(mainobject)
     mainobject.DoorObjectGenerator.add()
 
     # we shape the main object and create other objects as children
@@ -86,7 +86,7 @@ def create_object(self, context):
 
     # we select, and activate, main object
     mainobject.select_set(True)
-    bpy.context.scene.objects.active = mainobject
+    bpy.context.view_layer.objects.active = mainobject
 
 
 # ------------------------------------------------------------------------------
@@ -121,7 +121,7 @@ def update_object(self, context):
             # noinspection PyBroadException
             try:
                 # clear child data
-                child.hide = False  # must be visible to avoid bug
+                child.hide_viewport = False  # must be visible to avoid bug
                 child.hide_render = False  # must be visible to avoid bug
                 old = child.data
                 child.select_set(True)
@@ -151,7 +151,7 @@ def update_object(self, context):
     tmp_mesh.name = oldname
     # and select, and activate, the main object
     o.select_set(True)
-    bpy.context.scene.objects.active = o
+    bpy.context.view_layer.objects.active = o
 
 
 # ------------------------------------------------------------------------------
@@ -205,7 +205,7 @@ def shape_children(mainobject, update=False):
         mydoor = make_one_door(mp, mainobject, widthr + mp.frame_size, "1")
         mydoor.location.x = mp.frame_width / 2 - mp.frame_size
 
-    if mp.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
+    if mp.crt_mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         mat = create_diffuse_material("Door_material", False, 0.8, 0.8, 0.8)
         set_material(mainobject, mat)
 
@@ -234,9 +234,9 @@ def shape_children(mainobject, update=False):
     myctrl.location.y = -((mp.frame_thick * 3) / 2)
     myctrl.location.z = -gap
     myctrl.display_type = 'BOUNDS'
-    myctrl.hide = False
+    myctrl.hide_viewport = False
     myctrl.hide_render = True
-    if bpy.context.scene.render.engine == 'CYCLES':
+    if bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         myctrl.cycles_visibility.camera = False
         myctrl.cycles_visibility.diffuse = False
         myctrl.cycles_visibility.glossy = False
@@ -257,9 +257,9 @@ def shape_children(mainobject, update=False):
     myctrlbase.location.y = -0.15 - (mp.frame_thick / 3)
     myctrlbase.location.z = -0.10
     myctrlbase.display_type = 'BOUNDS'
-    myctrlbase.hide = False
+    myctrlbase.hide_viewport = False
     myctrlbase.hide_render = True
-    if bpy.context.scene.render.engine == 'CYCLES':
+    if bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         myctrlbase.cycles_visibility.camera = False
         myctrlbase.cycles_visibility.diffuse = False
         myctrlbase.cycles_visibility.glossy = False
@@ -273,7 +273,7 @@ def shape_children(mainobject, update=False):
 
     # deactivate others
     for o in bpy.data.objects:
-        if o.select is True and o.name != mainobject.name:
+        if o.select_get() is True and o.name != mainobject.name:
             o.select_set(False)
 
 
@@ -390,18 +390,18 @@ class ObjectProperties(PropertyGroup):
 
 # Register
 bpy.utils.register_class(ObjectProperties)
-Object.DoorObjectGenerator = CollectionProperty(type=ObjectProperties)
+Object.DoorObjectGenerator= CollectionProperty(type=ObjectProperties)
 
 
 # ------------------------------------------------------------------
 # Define panel class to modify object
 # ------------------------------------------------------------------
-class AchmDoorObjectgeneratorpanel(Panel):
+class ARCHIMESH_PT_DoorObjectgenerator(Panel):
     bl_idname = "OBJECT_PT_door_generator"
     bl_label = "Door"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Archimesh'
+    bl_category = 'View'
 
     # -----------------------------------------------------
     # Verify if visible
@@ -459,7 +459,7 @@ class AchmDoorObjectgeneratorpanel(Panel):
                 layout.prop(myobjdat, 'handle')
 
                 box = layout.box()
-                if not context.scene.render.engine == 'CYCLES':
+                if not context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
                     box.enabled = False
                 box.prop(myobjdat, 'crt_mat')
             else:
@@ -536,14 +536,14 @@ def make_one_door(self, myframe, width, openside):
     if self.handle != "0":
         handle1 = create_handle(self, mydoor, "Front", width, openside)
         handle1.select_set(True)
-        bpy.context.scene.objects.active = handle1
+        bpy.context.view_layer.objects.active = handle1
         set_smooth(handle1)
         set_modifier_subsurf(handle1)
         handle2 = create_handle(self, mydoor, "Back", width, openside)
         set_smooth(handle2)
         set_modifier_subsurf(handle2)
     # Create materials
-    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
+    if self.crt_mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         # Door material
         mat = create_diffuse_material("Door_material", False, 0.8, 0.8, 0.8)
         set_material(mydoor, mat)
@@ -602,7 +602,7 @@ def create_door_data(self, myframe, width, openside):
     myobject = bpy.data.objects.new("Door", mymesh)
 
     myobject.location = bpy.context.scene.cursor_location
-    bpy.context.scene.objects.link(myobject)
+    bpy.context.collection.objects.link(myobject)
 
     mymesh.from_pydata(verts, [], faces)
     mymesh.update(calc_edges=True)
@@ -654,7 +654,7 @@ def create_handle(self, mydoor, pos, frame_width, openside):
     myobject = bpy.data.objects.new("Handle_" + pos, mymesh)
 
     myobject.location = bpy.context.scene.cursor_location
-    bpy.context.scene.objects.link(myobject)
+    bpy.context.collection.objects.link(myobject)
 
     mymesh.from_pydata(verts, [], faces)
     mymesh.update(calc_edges=True)

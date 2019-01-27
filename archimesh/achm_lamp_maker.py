@@ -129,11 +129,11 @@ def set_preset(self):
 # Define UI class
 # Lamps
 # ------------------------------------------------------------------
-class AchmLamp(Operator):
+class ARCHIMESH_PT_Lamp(Operator):
     bl_idname = "mesh.archimesh_light"
     bl_label = "Lamp"
     bl_description = "Lamp Generator"
-    bl_category = 'Archimesh'
+    bl_category = 'View'
     bl_options = {'REGISTER', 'UNDO'}
     # preset
     preset: EnumProperty(
@@ -147,7 +147,17 @@ class AchmLamp(Operator):
             name="Predefined",
             description="Apply predefined design",
             )
-    oldpreset = preset
+    oldpreset: EnumProperty(
+            items=(
+                ('0', "None", ""),
+                ('1', "Sphere", ""),
+                ('2', "Pear", ""),
+                ('3', "Vase", ""),
+                ('4', "Rectangular", ""),
+                ),
+            name="Predefined",
+            description="Apply predefined design",
+            )
 
     base_height: FloatProperty(
             name='Height',
@@ -354,7 +364,7 @@ class AchmLamp(Operator):
                 row.prop(self, 'tr03')
 
             box = layout.box()
-            if not context.scene.render.engine == 'CYCLES':
+            if not context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
                 box.enabled = False
             box.prop(self, 'crt_mat')
             if self.crt_mat:
@@ -389,7 +399,7 @@ class AchmLamp(Operator):
 def create_light_mesh(self):
     # deactivate others
     for o in bpy.data.objects:
-        if o.select is True:
+        if o.select_get() is True:
             o.select_set(False)
     bpy.ops.object.select_all(False)
     generate_light(self)
@@ -481,22 +491,22 @@ def generate_light(self):
     # Light bulb
     # ---------------------
     radbulb = 0.02
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=16, size=radbulb)
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=16, radius=radbulb)
     mybulb = bpy.data.objects[bpy.context.active_object.name]
     mybulb.name = "Lamp_Bulb"
     mybulb.parent = myholder
     mybulb.location = (0, 0, radbulb + self.holder + 0.04)
-    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
+    if self.crt_mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         mat = create_emission_material(mybulb.name, True, 0.8, 0.8, 0.8, self.energy)
         set_material(mybulb, mat)
 
     # deactivate others
     for o in bpy.data.objects:
-        if o.select is True:
+        if o.select_get() is True:
             o.select_set(False)
 
     mybase.select_set(True)
-    bpy.context.scene.objects.active = mybase
+    bpy.context.view_layer.objects.active = mybase
 
     return
 
@@ -534,7 +544,7 @@ def create_light_base(objname, height, px, py, pz, segments, rings, radios, rati
 
     mymesh = bpy.data.meshes.new(objname)
     mycylinder = bpy.data.objects.new(objname, mymesh)
-    bpy.context.scene.objects.link(mycylinder)
+    bpy.context.collection.objects.link(mycylinder)
 
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)
@@ -543,7 +553,7 @@ def create_light_base(objname, height, px, py, pz, segments, rings, radios, rati
     mycylinder.location.y = py
     mycylinder.location.z = pz
     # Materials
-    if mat and bpy.context.scene.render.engine == 'CYCLES':
+    if mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         rgb = objcol
         mymat = create_diffuse_material(mycylinder.name + "_material", True, rgb[0], rgb[1], rgb[2], rgb[0], rgb[1],
                                         rgb[2], 0.1)
@@ -571,7 +581,7 @@ def create_lightholder(objname, height, px, py, pz, mat):
 
     mymesh = bpy.data.meshes.new(objname)
     mycylinder = bpy.data.objects.new(objname, mymesh)
-    bpy.context.scene.objects.link(mycylinder)
+    bpy.context.collection.objects.link(mycylinder)
 
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)
@@ -581,7 +591,7 @@ def create_lightholder(objname, height, px, py, pz, mat):
     mycylinder.location.z = pz
 
     # Materials
-    if mat and bpy.context.scene.render.engine == 'CYCLES':
+    if mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         mat = create_diffuse_material(mycylinder.name + "_material", True, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.1)
         set_material(mycylinder, mat)
 
@@ -609,7 +619,7 @@ def create_lightholder_strings(objname, height, px, py, pz, radio, shadeh, mat):
 
     mymesh = bpy.data.meshes.new(objname)
     mycylinder = bpy.data.objects.new(objname, mymesh)
-    bpy.context.scene.objects.link(mycylinder)
+    bpy.context.collection.objects.link(mycylinder)
 
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)
@@ -627,7 +637,7 @@ def create_lightholder_strings(objname, height, px, py, pz, radio, shadeh, mat):
     box2.location = (-0.021, 0, height + 0.004)
 
     # Materials
-    if mat and bpy.context.scene.render.engine == 'CYCLES':
+    if mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         mat = create_diffuse_material(mycylinder.name + "_material", True, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.1)
         set_material(mycylinder, mat)
         set_material(box1, mat)
@@ -664,7 +674,7 @@ def create_lightshade(objname, height, px, py, pz, segments, radio1, radio2, ple
 
     mymesh = bpy.data.meshes.new(objname)
     mycylinder = bpy.data.objects.new(objname, mymesh)
-    bpy.context.scene.objects.link(mycylinder)
+    bpy.context.collection.objects.link(mycylinder)
 
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)
@@ -673,7 +683,7 @@ def create_lightshade(objname, height, px, py, pz, segments, radio1, radio2, ple
     mycylinder.location.y = py
     mycylinder.location.z = pz
     # materials
-    if mat and bpy.context.scene.render.engine == 'CYCLES':
+    if mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         mymat = create_translucent_material(mycylinder.name + "_material", True, 0.8, 0.65, 0.45, 0.8, 0.65, 0.45,
                                             opacity)
         set_material(mycylinder, mymat)
@@ -699,7 +709,7 @@ def create_box_segments(objname, height, shift):
 
     mymesh = bpy.data.meshes.new(objname)
     mysegment = bpy.data.objects.new(objname, mymesh)
-    bpy.context.scene.objects.link(mysegment)
+    bpy.context.collection.objects.link(mysegment)
 
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)

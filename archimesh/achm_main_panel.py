@@ -49,11 +49,11 @@ def isboolean(myobject, childobject):
 # ------------------------------------------------------
 # Button: Action to link windows and doors
 # ------------------------------------------------------
-class AchmHoleAction(Operator):
+class ARCHIMESH_OT_Hole(Operator):
     bl_idname = "object.archimesh_cut_holes"
     bl_label = "Auto Holes"
     bl_description = "Enable windows and doors holes for any selected object (needs wall thickness)"
-    bl_category = 'Archimesh'
+    bl_category = 'View'
 
     # ------------------------------
     # Execute
@@ -70,7 +70,7 @@ class AchmHoleAction(Operator):
             # noinspection PyBroadException
             try:
                 if obj["archimesh.hole_enable"]:
-                    if obj.select is True or scene.archimesh_select_only is False:
+                    if obj.select_get() is True or scene.archimesh_select_only is False:
                         listobj.extend([obj])
             except:
                 continue
@@ -149,7 +149,7 @@ class AchmHoleAction(Operator):
                 # noinspection PyBroadException
                 try:
                     if obj["archimesh.ctrl_base"]:
-                        if obj.select is True or scene.archimesh_select_only is False:
+                        if obj.select_get() is True or scene.archimesh_select_only is False:
                             # add boolean modifier
                             if isboolean(mybaseboard, obj) is False:
                                 set_modifier_boolean(mybaseboard, obj)
@@ -170,7 +170,7 @@ class AchmHoleAction(Operator):
                 # noinspection PyBroadException
                 try:
                     if obj["archimesh.ctrl_hole"]:
-                        if obj.select is True or scene.archimesh_select_only is False:
+                        if obj.select_get() is True or scene.archimesh_select_only is False:
                             # add boolean modifier
                             if isboolean(myshell, obj) is False:
                                 set_modifier_boolean(myshell, obj)
@@ -183,11 +183,11 @@ class AchmHoleAction(Operator):
 # ------------------------------------------------------
 # Button: Action to create room from grease pencil
 # ------------------------------------------------------
-class AchmPencilAction(Operator):
+class ARCHIMESH_OT_Pencil(Operator):
     bl_idname = "object.archimesh_pencil_room"
     bl_label = "Room from Draw"
     bl_description = "Create a room base on grease pencil strokes (draw from top view (7 key))"
-    bl_category = 'Archimesh'
+    bl_category = 'View'
 
     # ------------------------------
     # Execute
@@ -387,12 +387,12 @@ class AchmPencilAction(Operator):
 # ------------------------------------------------------------------
 # Define panel class for main functions.
 # ------------------------------------------------------------------
-class ArchimeshMainPanel(Panel):
+class ARCHIMESH_PT_Main(Panel):
     bl_idname = "ARCHIMESH_PT_main"
     bl_label = "Archimesh"
     bl_space_type = "VIEW_3D"
-    bl_region_type = "TOOLS"
-    bl_category = "Create"
+    bl_region_type = "UI"
+    bl_category = "View"
     bl_context = "objectmode"
 
     # ------------------------------
@@ -486,7 +486,7 @@ class ArchimeshMainPanel(Panel):
             txt = 'Hide'
         row.operator("archimesh.runopenglbutton", text=txt, icon=icon)
         row = box.row()
-        row.prop(scene, "archimesh_gl_measure", toggle=True, icon="ALIGN")
+        row.prop(scene, "archimesh_gl_measure", toggle=True, icon="ALIGN_CENTER")
         row.prop(scene, "archimesh_gl_name", toggle=True, icon="OUTLINER_OB_FONT")
         row.prop(scene, "archimesh_gl_ghost", icon='GHOST_ENABLED')
         row = box.row()
@@ -514,11 +514,11 @@ class ArchimeshMainPanel(Panel):
 # Defines button for enable/disable the tip display
 #
 # -------------------------------------------------------------
-class AchmRunHintDisplayButton(Operator):
+class ARCHIMESH_OT_HintDisplay(Operator):
     bl_idname = "archimesh.runopenglbutton"
     bl_label = "Display hint data manager"
     bl_description = "Display additional information in the viewport"
-    bl_category = 'Archimesh'
+    bl_category = 'View'
 
     _handle = None  # keep function handler
 
@@ -527,8 +527,8 @@ class AchmRunHintDisplayButton(Operator):
     # ----------------------------------
     @staticmethod
     def handle_add(self, context):
-        if AchmRunHintDisplayButton._handle is None:
-            AchmRunHintDisplayButton._handle = SpaceView3D.draw_handler_add(draw_callback_px, (self, context),
+        if ARCHIMESH_OT_HintDisplay._handle is None:
+            ARCHIMESH_OT_HintDisplay._handle = SpaceView3D.draw_handler_add(draw_callback_px, (self, context),
                                                                                       'WINDOW',
                                                                                       'POST_PIXEL')
             context.window_manager.archimesh_run_opengl = True
@@ -539,9 +539,9 @@ class AchmRunHintDisplayButton(Operator):
     # noinspection PyUnusedLocal
     @staticmethod
     def handle_remove(self, context):
-        if AchmRunHintDisplayButton._handle is not None:
-            SpaceView3D.draw_handler_remove(AchmRunHintDisplayButton._handle, 'WINDOW')
-        AchmRunHintDisplayButton._handle = None
+        if ARCHIMESH_OT_HintDisplay._handle is not None:
+            SpaceView3D.draw_handler_remove(ARCHIMESH_OT_HintDisplay._handle, 'WINDOW')
+        ARCHIMESH_OT_HintDisplay._handle = None
         context.window_manager.archimesh_run_opengl = False
 
     # ------------------------------

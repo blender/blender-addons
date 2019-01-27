@@ -46,10 +46,10 @@ RotationType_R180 = 3
 # ----------------------------------------------------------
 #    Export menu UI
 # ----------------------------------------------------------
-class AchmExportInventory(Operator, ExportHelper):
+class ARCHIMESH_OT_ExportInventory(Operator, ExportHelper):
     bl_idname = "io_export.kitchen_inventory"
     bl_description = 'Export kitchen inventory (.txt)'
-    bl_category = 'Archimesh'
+    bl_category = 'View'
     bl_label = "Export"
 
     # From ExportHelper. Filter filenames.
@@ -357,11 +357,11 @@ bpy.utils.register_class(CabinetProperties)
 # Define UI class
 # Kitchens
 # ------------------------------------------------------------------
-class AchmKitchen(Operator):
+class ARCHIMESH_OT_Kitchen(Operator):
     bl_idname = "mesh.archimesh_kitchen"
     bl_label = "Cabinets"
     bl_description = "Cabinet Generator"
-    bl_category = 'Archimesh'
+    bl_category = 'View'
     bl_options = {'REGISTER', 'UNDO'}
 
     # Define properties
@@ -371,7 +371,12 @@ class AchmKitchen(Operator):
             name="Type",
             description="Type of cabinets",
             )
-    oldtype = type_cabinet
+    oldtype:  EnumProperty(
+            items=(('1', "Floor", ""),
+                ('2', "Wall", "")),
+            name="Type",
+            description="Type of cabinets",
+            )
 
     thickness: FloatProperty(
             name='Thickness', min=0.001, max=5, default=0.018, precision=3,
@@ -522,7 +527,7 @@ class AchmKitchen(Operator):
                     add_cabinet(self, box, idx + 1, self.cabinets[idx])
 
             box = layout.box()
-            if not context.scene.render.engine == 'CYCLES':
+            if not context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
                 box.enabled = False
             box.prop(self, 'crt_mat')
         else:
@@ -607,7 +612,7 @@ def add_cabinet(self, box, num, cabinet):
 def create_kitchen_mesh(self):
     # deactivate others
     for o in bpy.data.objects:
-        if o.select is True:
+        if o.select_get() is True:
             o.select_set(False)
     bpy.ops.object.select_all(False)
     # Create cabinets
@@ -833,7 +838,7 @@ def generate_cabinets(self):
         set_normals(base)
 
     # Create materials
-    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
+    if self.crt_mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         mat = create_diffuse_material("Cabinet_material", False, 0.8, 0.8, 0.8)
         for box in boxes:
             set_material(box, mat)
@@ -908,7 +913,7 @@ def create_box(type_cabinet, objname, thickness, sx, sy, sz, px, py, pz, doortyp
     myobject.location[0] = px
     myobject.location[1] = py
     myobject.location[2] = pz
-    bpy.context.scene.objects.link(myobject)
+    bpy.context.collection.objects.link(myobject)
 
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)
@@ -1050,13 +1055,13 @@ def create_baseboard(objname, sx, sy, sz, mat, bl, br, depth, doortype, gap):
     mybaseboard.location[0] = 0
     mybaseboard.location[1] = 0
     mybaseboard.location[2] = 0
-    bpy.context.scene.objects.link(mybaseboard)
+    bpy.context.collection.objects.link(mybaseboard)
 
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)
 
     # Material
-    if mat and bpy.context.scene.render.engine == 'CYCLES':
+    if mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         mat = create_diffuse_material("Baseboard_material", False, 0.8, 0.8, 0.8)
         set_material(mybaseboard, mat)
 
@@ -1118,13 +1123,13 @@ def create_countertop(objname, sx, sy, sz, over, mat, doortype, depth, edge):
     mycountertop.location[0] = 0
     mycountertop.location[1] = 0
     mycountertop.location[2] = 0
-    bpy.context.scene.objects.link(mycountertop)
+    bpy.context.collection.objects.link(mycountertop)
 
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)
 
     # Material
-    if mat and bpy.context.scene.render.engine == 'CYCLES':
+    if mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         mat = create_diffuse_material("countertop_material", False, 0, 0, 0, 0.2, 0.2, 0.2, 0.15)
         set_material(mycountertop, mat)
 
@@ -1196,7 +1201,7 @@ def create_door(type_cabinet, objname, thickness, sx, sz, doortype, gf, mat, han
 
     mydoor.location[1] = 0
     mydoor.location[2] = 0
-    bpy.context.scene.objects.link(mydoor)
+    bpy.context.collection.objects.link(mydoor)
 
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)
@@ -1238,7 +1243,7 @@ def create_door(type_cabinet, objname, thickness, sx, sz, doortype, gf, mat, han
 
         create_handle(handle_model, mydoor, thickness, hpos, mat, handle_x, handle_z)
 
-    if mat and bpy.context.scene.render.engine == 'CYCLES':
+    if mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         # Door material
         mat = create_diffuse_material("Door_material", False, 0.8, 0.8, 0.8, 0.279, 0.337, 0.6, 0.2)
         set_material(mydoor, mat)
@@ -1306,7 +1311,7 @@ def create_drawer(objname, thickness, sx, sy, sz, mat, handle, handle_model, han
     mydrawer.location[0] = 0
     mydrawer.location[1] = 0
     mydrawer.location[2] = 0
-    bpy.context.scene.objects.link(mydrawer)
+    bpy.context.collection.objects.link(mydrawer)
 
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)
@@ -1324,7 +1329,7 @@ def create_drawer(objname, thickness, sx, sy, sz, mat, handle, handle_model, han
         create_handle(model, mydrawer, thickness, "TM", mat, 0, handle_z)  # always in the top area/middle
 
     # Material
-    if mat and bpy.context.scene.render.engine == 'CYCLES':
+    if mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         mat = create_diffuse_material("Drawer_material", False, 0.8, 0.8, 0.8, 0.6, 0.6, 0.6, 0.2)
         set_material(mydrawer, mat)
 
@@ -1379,7 +1384,7 @@ def create_handle(model, mydoor, thickness, handle_position, mat, handle_x, hand
     mymesh = bpy.data.meshes.new("Handle")
     myhandle = bpy.data.objects.new("Handle", mymesh)
 
-    bpy.context.scene.objects.link(myhandle)
+    bpy.context.collection.objects.link(myhandle)
 
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)
@@ -1447,7 +1452,7 @@ def create_handle(model, mydoor, thickness, handle_position, mat, handle_x, hand
     # parent
     myhandle.parent = mydoor
     # Materials
-    if mat and bpy.context.scene.render.engine == 'CYCLES':
+    if mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         mat = create_glossy_material("Handle_material", False, 0.733, 0.779, 0.8, 0.733, 0.779, 0.8, 0.02)
         set_material(myhandle, mat)
 

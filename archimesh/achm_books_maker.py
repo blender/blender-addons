@@ -38,11 +38,11 @@ from .achm_tools import *
 # Define UI class
 # Books
 # ------------------------------------------------------------------
-class AchmBooks(Operator):
+class ARCHIMESH_OT_Books(Operator):
     bl_idname = "mesh.archimesh_books"
     bl_label = "Books"
     bl_description = "Books Generator"
-    bl_category = 'Archimesh'
+    bl_category = 'View'
     bl_options = {'REGISTER', 'UNDO'}
 
     width: FloatProperty(
@@ -58,7 +58,7 @@ class AchmBooks(Operator):
             description='Bounding book height',
             )
     num: IntProperty(
-            name='Number of books', min=1, max=100, default=20,
+            name='Number of books', min=1, max=100, default=5,
             description='Number total of books',
             )
 
@@ -137,7 +137,7 @@ class AchmBooks(Operator):
             row.prop(self, 'afn', slider=True)
 
             box = layout.box()
-            if not context.scene.render.engine == 'CYCLES':
+            if not context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
                 box.enabled = False
             box.prop(self, 'crt_mat')
             if self.crt_mat:
@@ -170,7 +170,7 @@ class AchmBooks(Operator):
 def create_book_mesh(self):
     # deactivate others
     for o in bpy.data.objects:
-        if o.select is True:
+        if o.select_get() is True:
             o.select_set(False)
     bpy.ops.object.select_all(False)
     generate_books(self)
@@ -203,7 +203,7 @@ def generate_books(self):
         mydata = create_book("Book" + str(x),
                              self.width, self.depth, self.height,
                              lastx, myloc.y, myloc.z,
-                             self.crt_mat if bpy.context.scene.render.engine == 'CYCLES' else False,
+                             self.crt_mat if bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'} else False,
                              self.rX, self.rY, self.rZ, self.rot, ox, oy, oz, ot,
                              self.objcol, self.rC)
         boxes.extend([mydata[0]])
@@ -230,11 +230,11 @@ def generate_books(self):
 
     # deactivate others
     for o in bpy.data.objects:
-        if o.select is True:
+        if o.select_get() is True:
             o.select_set(False)
 
     boxes[0].select_set(True)
-    bpy.context.scene.objects.active = boxes[0]
+    bpy.context.view_layer.objects.active = boxes[0]
 
     return
 
@@ -361,7 +361,7 @@ def create_book(objname, sx, sy, sz, px, py, pz, mat, frx,
     mybook.location[0] = px
     mybook.location[1] = py
     mybook.location[2] = pz + sin(radians(rot)) * sx
-    bpy.context.scene.objects.link(mybook)
+    bpy.context.collection.objects.link(mybook)
 
     mymesh.from_pydata(myvertex, [], myfaces)
     mymesh.update(calc_edges=True)
@@ -369,7 +369,7 @@ def create_book(objname, sx, sy, sz, px, py, pz, mat, frx,
     # ---------------------------------
     # Materials and UV Maps
     # ---------------------------------
-    if mat and bpy.context.scene.render.engine == 'CYCLES':
+    if mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         rgb = objcol
         # External
         mat = create_diffuse_material(objname + "_material", True,

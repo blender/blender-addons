@@ -35,11 +35,11 @@ from .achm_tools import *
 # Define UI class
 # Stairs
 # ------------------------------------------------------------------
-class AchmStairs(Operator):
+class ARCHIMESH_OT_Stairs(Operator):
     bl_idname = "mesh.archimesh_stairs"
     bl_label = "Stairs"
     bl_description = "Stairs Generator"
-    bl_category = 'Archimesh'
+    bl_category = 'View'
     bl_options = {'REGISTER', 'UNDO'}
 
     # Define properties
@@ -178,7 +178,7 @@ class AchmStairs(Operator):
                 row.prop(self, 'side_gap')
 
             box = layout.box()
-            if not context.scene.render.engine == 'CYCLES':
+            if not context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
                 box.enabled = False
             box.prop(self, 'crt_mat')
         else:
@@ -206,7 +206,7 @@ def create_stairs_mesh(self):
 
     # deactivate others
     for o in bpy.data.objects:
-        if o.select is True:
+        if o.select_get() is True:
             o.select_set(False)
 
     bpy.ops.object.select_all(False)
@@ -217,7 +217,7 @@ def create_stairs_mesh(self):
     mydata = create_stairs(self, "Stairs")
     mystairs = mydata[0]
     mystairs.select_set(True)
-    bpy.context.scene.objects.active = mystairs
+    bpy.context.view_layer.objects.active = mystairs
     remove_doubles(mystairs)
     set_normals(mystairs)
     set_modifier_mirror(mystairs, "X")
@@ -240,14 +240,14 @@ def create_stairs_mesh(self):
     # ------------------------
     # Create materials
     # ------------------------
-    if self.crt_mat and bpy.context.scene.render.engine == 'CYCLES':
+    if self.crt_mat and bpy.context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}:
         # Stairs material
         mat = create_diffuse_material("Stairs_material", False, 0.8, 0.8, 0.8)
         set_material(mystairs, mat)
 
     bpy.ops.object.select_all(False)
     mystairs.select_set(True)
-    bpy.context.scene.objects.active = mystairs
+    bpy.context.view_layer.objects.active = mystairs
 
     return
 
@@ -274,7 +274,7 @@ def create_stairs(self, objname):
     myobject = bpy.data.objects.new(objname, mesh)
 
     myobject.location = bpy.context.scene.cursor_location
-    bpy.context.scene.objects.link(myobject)
+    bpy.context.collection.objects.link(myobject)
 
     mesh.from_pydata(myvertex, [], myfaces)
     mesh.update(calc_edges=True)
@@ -422,7 +422,7 @@ def create_bezier(objname, points, origin):
     myobject.location = origin
     myobject.rotation_euler[2] = radians(90)
 
-    bpy.context.scene.objects.link(myobject)
+    bpy.context.collection.objects.link(myobject)
 
     polyline = curvedata.splines.new('BEZIER')
     polyline.bezier_points.add(len(points) - 1)
