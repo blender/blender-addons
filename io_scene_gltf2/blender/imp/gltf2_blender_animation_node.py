@@ -147,3 +147,6 @@ class BlenderNodeAnim():
                             group='ShapeKeys'
                         )
 
+        if action.name not in gltf.current_animation_names.keys():
+            gltf.current_animation_names[name] = action.name
+
