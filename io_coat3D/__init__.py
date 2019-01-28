@@ -832,7 +832,7 @@ class SCENE_OT_import(bpy.types.Operator):
             old_materials = bpy.data.materials.keys()
             old_objects = bpy.data.objects.keys()
 
-            bpy.ops.import_scene.fbx(filepath=new_applink_address, global_scale = 0.001, use_manual_orientation=True, axis_forward='-Z', axis_up='Y')
+            bpy.ops.import_scene.fbx(filepath=new_applink_address, global_scale = 1, use_manual_orientation=True, axis_forward='-Z', axis_up='Y', use_custom_normals=False)
 
             new_materials = bpy.data.materials.keys()
             new_objects = bpy.data.objects.keys()
@@ -850,6 +850,7 @@ class SCENE_OT_import(bpy.types.Operator):
                 bpy.data.objects[c_index].material_slots[0].material = bpy.data.materials[diff_mat[laskuri]]
                 laskuri += 1
 
+
             bpy.ops.object.select_all(action='DESELECT')
             for new_obj in bpy.context.collection.objects:
 
@@ -857,7 +858,7 @@ class SCENE_OT_import(bpy.types.Operator):
                     new_obj.select_set(True)
                     #bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
                     #new_obj.rotation_euler = (0, 0, 0)
-                    new_obj.scale = (0.03, 0.03, 0.03)
+                    #new_obj.scale = (0.01, 0.01, 0.01)
                     new_obj.coat3D.applink_firsttime = False
                     new_obj.select_set(False)
                     new_obj.coat3D.applink_address = new_applink_address
@@ -1128,10 +1129,6 @@ class SceneCoat3D(PropertyGroup):
         name="FilePath",
         subtype="FILE_PATH",
     )
-    cursor_loc: FloatVectorProperty(
-        name="Cursor_loc",
-        description="location"
-    )
     exchangedir: StringProperty(
         name="FilePath",
         subtype="DIR_PATH"
@@ -1139,14 +1136,6 @@ class SceneCoat3D(PropertyGroup):
     exchangefolder: StringProperty(
         name="FilePath",
         subtype="DIR_PATH"
-    )
-    wasactive: StringProperty(
-        name="Pass active object",
-    )
-    import_box: BoolProperty(
-        name="Import window",
-        description="Allows to skip import dialog",
-        default=True
     )
     bring_retopo: BoolProperty(
         name="Import window",
