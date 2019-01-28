@@ -297,7 +297,6 @@ url_manual_mapping = (
 	("bpy.types.inflowfluidsettings*", "physics/fluid/types/flow.html#bpy-types-inflowfluidsettings"),
 	("bpy.types.kinematicconstraint*", "rigging/constraints/tracking/ik_solver.html#bpy-types-kinematicconstraint"),
 	("bpy.types.movietrackingcamera*", "editors/movie_clip_editor/tracking/clip/properties/camera_data.html#bpy-types-movietrackingcamera"),
-	("bpy.types.object.dupli_frames*", "editors/3dview/object/properties/duplication/dupliframes.html#bpy-types-object-dupli-frames"),
 	("bpy.types.particledupliweight*", "physics/particles/emitter/vertex_groups.html#bpy-types-particledupliweight"),
 	("bpy.types.poseboneconstraints*", "rigging/armatures/posing/bone_constraints/index.html#bpy-types-poseboneconstraints"),
 	("bpy.types.rigidbodyconstraint*", "physics/rigid_body/constraints/index.html#bpy-types-rigidbodyconstraint"),
