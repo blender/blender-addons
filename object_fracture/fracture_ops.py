@@ -281,7 +281,7 @@ def fracture_basic(context, nshards, crack_type, roughness):
     shards = []
 
     for ob in context.scene.objects:
-        if ob.select:
+        if ob.select_get():
             tobesplit.append(ob)
 
     i = 1     # I counts shards, starts with 1 - the original object

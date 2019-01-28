@@ -642,7 +642,7 @@ class OBJECT_OT_meshfollow(Operator):
                 else:
                     if seloption == 'CUSTOM':
                         for i in meshobjs:
-                            if i.select is True:
+                            if i.select_get() is True:
                                 sel.append(i.index)
                     if seloption == 'RANDOM':
                         for i in list(meshobjs):

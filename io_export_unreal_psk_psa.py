@@ -1766,7 +1766,7 @@ def find_armature_and_mesh():
             elif len(all_armatures) > 1:  # if there more armature then find the select armature
                 barmselect = False
                 for _armobj in all_armatures:
-                    if _armobj.select:
+                    if _armobj.select_get():
                         armature = _armobj
                         barmselect = True
                         break
@@ -1785,7 +1785,7 @@ def find_armature_and_mesh():
 
         for obj in armature.children:
             # print(dir(obj))
-            if obj.type == 'MESH' and obj.select is True:
+            if obj.type == 'MESH' and obj.select_get() is True:
                 meshselected.append(obj)
         # try the active object
         if active_object and active_object.type == 'MESH' and len(meshselected) == 0:
@@ -2021,7 +2021,7 @@ class OBJECT_OT_UTSelectedFaceSmooth(Operator):
         print("Init Select Face(s):")
         bselected = False
         for obj in bpy.data.objects:
-            if obj.type == 'MESH' and obj.select is True:
+            if obj.type == 'MESH' and obj.select_get() is True:
                 smoothcount = 0
                 flatcount = 0
                 bpy.ops.object.mode_set(mode='OBJECT')  # it need to go into object mode to able to select the faces
@@ -2066,7 +2066,7 @@ class OBJECT_OT_MeshClearWeights(Operator):
 
     def invoke(self, context, event):
         for obj in bpy.data.objects:
-            if obj.type == 'MESH' and obj.select is True:
+            if obj.type == 'MESH' and obj.select_get() is True:
                 for vg in obj.vertex_groups:
                     obj.vertex_groups.remove(vg)
                 self.report({'INFO'}, "Mesh Vertex Groups Removed")
@@ -2200,7 +2200,7 @@ class OBJECT_OT_UTRebuildMesh(Operator):
         bpy.ops.object.mode_set(mode='OBJECT')
 
         for obj in bpy.data.objects:
-            if obj.type == 'MESH' and obj.select is True:
+            if obj.type == 'MESH' and obj.select_get() is True:
                 rebuildmesh(obj)
 
         self.report({'INFO'}, "Rebuild Mesh Finished!")
@@ -2273,7 +2273,7 @@ class OBJECT_OT_UTRebuildArmature(Operator):
         print("Init Rebuild Armature...")
         bselected = False
         for obj in bpy.data.objects:
-            if obj.type == 'ARMATURE' and obj.select is True:
+            if obj.type == 'ARMATURE' and obj.select_get() is True:
                 rebuildarmature(obj)
         self.report({'INFO'}, "Rebuild Armature Finish!")
         print("End of Rebuild Armature.")
@@ -2557,7 +2557,7 @@ class OBJECT_OT_UDKObjUpdate(Operator):
 def udkcheckmeshline():
     objmesh = None
     for obj in bpy.context.scene.objects:
-        if obj.type == 'MESH' and obj.select is True:
+        if obj.type == 'MESH' and obj.select_get() is True:
             objmesh = obj
 
     objmesh = triangulate_mesh(objmesh)  # create a copy of the mesh
@@ -2659,7 +2659,7 @@ class OBJECT_OT_ActionSetAnimUpdate(Operator):
             if objarm.type == 'ARMATURE':
                 # print("ADDED ARMATURE...")
                 armatures.append(objarm)
-                if objarm.select is True:
+                if objarm.select_get() is True:
                     armatureselected.append(objarm)
 
         if len(armatureselected) == len(armatures) == 1:

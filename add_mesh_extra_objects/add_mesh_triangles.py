@@ -287,7 +287,7 @@ class MakeTriangle(Operator):
 
             if self.at_3Dcursor is True:
                 # we'll need to be sure there is actually an object selected
-                if NewObj.select is True:
+                if NewObj.select_get() is True:
                     # we also have to check if we're considered to be in 3D View (view3d)
                     if bpy.ops.view3d.snap_selected_to_cursor.poll() is True:
                         bpy.ops.view3d.snap_selected_to_cursor()

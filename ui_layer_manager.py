@@ -231,7 +231,7 @@ class SCENE_OT_namedlayer_move_to_layer(Operator):
 
         # Cycle all objects in the layer
         for obj in scene.objects:
-            if obj.select:
+            if obj.select_get():
                 # If object is in at least one of the scene's visible layers...
                 if True in {ob_layer and sce_layer for ob_layer, sce_layer in zip(obj.layers, scene.layers)}:
                     if self.extend:
@@ -358,7 +358,7 @@ class SCENE_OT_namedlayer_select_objects_by_layer(Operator):
                     not_all_selected -= 1
                     if self.active:
                         context.scene.objects.active = obj
-                    if obj.select:
+                    if obj.select_get():
                         not_all_selected += 1
             if not not_all_selected:
                 for obj in objects:

@@ -675,7 +675,7 @@ def addBeamObj(sRef, context):
         bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
 
     if sRef.Cursor:
-        if beamObj.select is True:
+        if beamObj.select_get() is True:
             # we also have to check if we're considered to be in 3D View (view3d)
             if bpy.ops.view3d.snap_selected_to_cursor.poll():
                 bpy.ops.view3d.snap_selected_to_cursor()

@@ -477,7 +477,7 @@ def create_struts(self, context, ind, od, segments, solid, loops, manifold):
     build_cossin(segments)
 
     for truss_obj in bpy.context.scene.objects:
-        if not truss_obj.select:
+        if not truss_obj.select_get():
             continue
         truss_obj.select_set(False)
         truss_mesh = truss_obj.to_mesh(context.scene, True, 'PREVIEW')

@@ -193,7 +193,7 @@ class ShowRenderAllSelected(Operator):
     def execute(self, context):
         for ob in bpy.data.objects:
             try:
-                if ob.select is True:
+                if ob.select_get() is True:
                     ob.hide_render = False
             except:
                 continue
@@ -209,7 +209,7 @@ class HideRenderAllSelected(Operator):
     def execute(self, context):
         for ob in bpy.data.objects:
             try:
-                if ob.select is True:
+                if ob.select_get() is True:
                     ob.hide_render = True
             except:
                 continue
