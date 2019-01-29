@@ -172,7 +172,9 @@ def create_material(scene, ob, name):
 
 
 # generate mesh from audio
-def create_mesh_from_audio(self, scene, verts, faces):
+def create_mesh_from_audio(self, context, verts, faces):
+    scene = context.scene
+    view_layer = context.view_layer
     adv_obj = scene.advanced_objects
     audio_filepath = adv_obj.cubester_audio_path
     width = adv_obj.cubester_audio_width_blocks
@@ -337,7 +339,7 @@ def create_mesh_from_audio(self, scene, verts, faces):
 
         ob.select_set(True)
         curve.select_set(False)
-        scene.objects.active = ob
+        view_layer.objects.active = ob
 
         # data was collected and then multi-variable regression was done in Excel
         # influence of width and length
@@ -912,7 +914,7 @@ class CubeSter(Operator):
                     path.isfile(adv_obj.cubester_audio_path) and
                     adv_obj.cubester_check_audio is True):
 
-                create_mesh_from_audio(self, scene, verts, faces)
+                create_mesh_from_audio(self, context, verts, faces)
                 created = adv_obj.cubester_audio_file_length
             else:
                 self.report({'WARNING'},

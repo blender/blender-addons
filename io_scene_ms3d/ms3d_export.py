@@ -219,6 +219,7 @@ class Ms3dExporter():
 
     ###########################################################################
     def create_geometry(self, blender_context, ms3d_model, blender_mesh_objects, blender_to_ms3d_bones):
+        blender_view_layer = blender_context.view_layer
         blender_scene = blender_context.scene
 
         blender_to_ms3d_vertices = {}
@@ -271,7 +272,7 @@ class Ms3dExporter():
             blender_mesh_object_temp = blender_mesh_object.copy()
             blender_mesh_object_temp.data = blender_mesh_temp
             blender_scene.objects.link(blender_mesh_object_temp)
-            blender_scene.objects.active = blender_mesh_object_temp
+            blender_view_layer.objects.active = blender_mesh_object_temp
 
             # apply transform
             if self.options_apply_transform:

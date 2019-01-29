@@ -285,12 +285,13 @@ class Ms3dImporter():
         # blender stuff:
         # link to blender scene
         blender_scene = blender_context.scene
+        blender_view_layer = blender_context.view_layer
         blender_scene.objects.link(blender_mesh_object)
         #blender_mesh_object.location = blender_scene.cursor_location
         enable_edit_mode(False, blender_context)
         select_all(False)
         blender_mesh_object.select_set(True)
-        blender_scene.objects.active = blender_mesh_object
+        blender_view_layer.objects.active = blender_mesh_object
 
         ##########################
         # take this as active object after import
@@ -827,7 +828,7 @@ class Ms3dImporter():
         if joint_length < 0.01:
             joint_length = 0.01
 
-        blender_scene.objects.active = blender_armature_object
+        blender_view_layer.objects.active = blender_armature_object
         enable_edit_mode(True, blender_context)
         for ms3d_joint in ms3d_joints_ordered:
             blender_edit_bone = blender_armature.edit_bones.new(ms3d_joint.name)

@@ -194,7 +194,7 @@ def write_mesh(context, info, report_cb):
         for base in context_backup["selected_bases"]:
             base.select_set(True)
         del base
-        scene.objects.active = context_backup["active_object"]
+        layer.objects.active = context_backup["active_object"]
 
     if 'FINISHED' in ret:
         info.append(("%r ok" % os.path.basename(filepath), None))

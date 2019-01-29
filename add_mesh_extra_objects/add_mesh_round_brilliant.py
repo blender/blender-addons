@@ -220,9 +220,6 @@ def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
                 cf.append(i)
         fa(*cf)
 
-    # bpy variables / shortcuts
-    scene = bpy.context.scene
-
     # deactivate possible active Objects
     bpy.context.view_layer.objects.active = None
 
@@ -236,7 +233,7 @@ def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
     dobj = object_utils.object_data_add(context, dmesh, operator=None, name="dobj").object
 
     # activate and select object
-    scene.objects.active = dobj
+    bpy.context.view_layer.objects.active = dobj
     dobj.select_set(True)
     obj = bpy.context.active_object
 

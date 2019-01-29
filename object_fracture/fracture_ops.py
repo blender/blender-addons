@@ -234,6 +234,7 @@ def boolop(ob, cutter, op):
 
 def splitobject(context, ob, crack_type, roughness):
     scene = context.scene
+    view_layer = context.view_layer
 
     size = getsizefrommesh(ob)
     shards = []
@@ -251,7 +252,7 @@ def splitobject(context, ob, crack_type, roughness):
         random.random() * 5000.0,
         random.random() * 5000.0]
 
-    scene.objects.active = ob
+    view_layer.objects.active = ob
     operations = ['INTERSECT', 'DIFFERENCE']
 
     for op in operations:

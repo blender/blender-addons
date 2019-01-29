@@ -978,6 +978,7 @@ def triangulate_mesh(object):
     verbose(header("triangulateNMesh"))
     # print(type(object))
     scene = bpy.context.scene
+    view_layer = bpy.context.view_layer
 
     me_ob = object.copy()
     me_ob.data = object.to_mesh(bpy.context.scene, True, 'PREVIEW')  # write data object
@@ -989,7 +990,7 @@ def triangulate_mesh(object):
         i.select_set(False)  # deselect all objects
 
     me_ob.select_set(True)
-    scene.objects.active = me_ob
+    view_layer.objects.active = me_ob
 
     print("Copy and Convert mesh just incase any way...")
 
@@ -1083,11 +1084,12 @@ def parse_mesh(mesh, psk):
     print(header("MESH", 'RIGHT'))
     print("Mesh object:", mesh.name)
     scene = bpy.context.scene
+    view_layer = bpy.context.view_layer
 
     for i in scene.objects:
         i.select_set(False)  # deselect all objects
 
-    scene.objects.active = mesh
+    view_layer.objects.active = mesh
     setmesh = mesh
     mesh = triangulate_mesh(mesh)
 

@@ -865,8 +865,6 @@ class add_mesh_wallb(Operator):
         # Make a mesh from a list of verts/edges/faces.
         mesh.from_pydata(verts_array, [], faces_array)
 
-        scene = context.scene
-
         # Deselect all objects.
         bpy.ops.object.select_all(action='DESELECT')
 
@@ -876,7 +874,7 @@ class add_mesh_wallb(Operator):
         scene.objects.link(ob_new)
         # leave this out to prevent 'Tab key" going into edit mode :)
         # Use rmb click to select and still modify.
-        scene.objects.active = ob_new
+        context.view_layer.objects.active = ob_new
         ob_new.select_set(True)
 
         ob_new.location = tuple(context.scene.cursor_location)

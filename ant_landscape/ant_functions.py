@@ -205,7 +205,7 @@ class AntLandscapeRegenerate(bpy.types.Operator):
         undo = bpy.context.preferences.edit.use_global_undo
         bpy.context.preferences.edit.use_global_undo = False
 
-        scene = bpy.context.scene
+        view_layer = bpy.context.view_layer
         # ant object items
         obj = bpy.context.active_object
 
@@ -321,12 +321,12 @@ class AntLandscapeRegenerate(bpy.types.Operator):
             new_ob.select_set(False)
 
             obj.select_set(True)
-            scene.objects.active = obj
+            view_layer.objects.active = obj
             bpy.ops.object.delete(use_global=False)
 
             # Select landscape and make active
             new_ob.select_set(True)
-            scene.objects.active = new_ob
+            view_layer.objects.active = new_ob
 
             # restore pre operator undo state
             context.preferences.edit.use_global_undo = undo
