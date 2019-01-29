@@ -871,7 +871,7 @@ class add_mesh_wallb(Operator):
         mesh.update()
 
         ob_new = bpy.data.objects.new("Wall", mesh)
-        scene.objects.link(ob_new)
+        context.collection.objects.link(ob_new)
         # leave this out to prevent 'Tab key" going into edit mode :)
         # Use rmb click to select and still modify.
         context.view_layer.objects.active = ob_new

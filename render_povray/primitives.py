@@ -1826,7 +1826,7 @@ class ImportPOV(bpy.types.Operator, ImportHelper):
 
                             me = bpy.data.meshes.new(name) ########
                             ob = bpy.data.objects.new(name, me) ##########
-                            bpy.context.scene.objects.link(ob) #########
+                            bpy.context.collection.objects.link(ob) #########
                             me.from_pydata(verts, [], faces) ############
 
                             for mat in bpy.data.materials: ##############

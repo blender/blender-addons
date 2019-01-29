@@ -422,7 +422,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
             ob_new = bpy.data.objects.new(meshname, armdata)
             #ob_new = bpy.data.objects.new(meshname, 'ARMATURE')
             #ob_new.data = armdata
-            bpy.context.scene.objects.link(ob_new)
+            bpy.context.collection.objects.link(ob_new)
             #bpy.ops.object.mode_set(mode='OBJECT')
             for i in bpy.context.scene.objects:
                 i.select_set(False) #deselect all objects
@@ -697,7 +697,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     #bpy.ops.object.select_name(name=str(ob_new.name))
     #bpy.context.scene.objects.active = ob_new
     me_ob.update()
-    bpy.context.scene.objects.link(obmesh)
+    bpy.context.collection.objects.link(obmesh)
     bpy.context.scene.update()
     obmesh.select_set(False)
     ob_new.select_set(False)

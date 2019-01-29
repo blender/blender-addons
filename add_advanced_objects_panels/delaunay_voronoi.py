@@ -148,7 +148,7 @@ class OBJECT_OT_TriangulateButton(Operator):
             mesh.from_pydata(points_3D, [], faces)
             mesh.update(calc_edges=True)
             my = bpy.data.objects.new("TIN", mesh)
-            context.scene.objects.link(my)
+            context.collection.objects.link(my)
             my.matrix_world = obj.matrix_world.copy()
             obj.select_set(False)
             my.select_set(True)
@@ -210,7 +210,7 @@ class OBJECT_OT_TriangulateButton(Operator):
         tinObj.scale = s
 
         # Update scene
-        bpy.context.scene.objects.link(tinObj)  # Link object to scene
+        bpy.context.collection.objects.link(tinObj)  # Link object to collection 
         bpy.context.view_layer.objects.active = tinObj
         tinObj.select_set(True)
         obj.select_set(False)
@@ -313,7 +313,7 @@ class OBJECT_OT_VoronoiButton(Operator):
         voronoiObj.scale = s
 
         # update scene
-        bpy.context.scene.objects.link(voronoiObj)  # Link object to scene
+        bpy.context.collection.objects.link(voronoiObj)  # Link object to collection
         bpy.context.view_layer.objects.active = voronoiObj
         voronoiObj.select_set(True)
         obj.select_set(False)

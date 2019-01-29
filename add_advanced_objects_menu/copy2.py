@@ -139,7 +139,7 @@ class Copy2(Operator):
             return {"CANCELLED"}
         try:
             copy_to_from(
-                    context.scene,
+                    context.collection,
                     copy_to_object,
                     copy_from_object,
                     self.copytype,
@@ -162,18 +162,18 @@ class Copy2(Operator):
         return {"FINISHED"}
 
 
-def copy_to_from(scene, to_obj, from_obj, copymode, axes, edgescale, scale):
+def copy_to_from(collection, to_obj, from_obj, copymode, axes, edgescale, scale):
     if copymode == 'V':
-        vertex_copy(scene, to_obj, from_obj, axes)
+        vertex_copy(collection, to_obj, from_obj, axes)
 
     if copymode == 'E':
         # don't pass edgescalling to object types that cannot be scaled
         if from_obj.type in ["CAMERA", "LIGHT", "EMPTY", "ARMATURE", "SPEAKER", "META"]:
             edgescale = False
-        edge_copy(scene, to_obj, from_obj, axes, edgescale, scale)
+        edge_copy(collection, to_obj, from_obj, axes, edgescale, scale)
 
     if copymode == 'F':
-        face_copy(scene, to_obj, from_obj, axes)
+        face_copy(collection, to_obj, from_obj, axes)
 
 
 axes_dict = {'XY': (1, 2, 0),
@@ -184,13 +184,13 @@ axes_dict = {'XY': (1, 2, 0),
              'ZY': (1, 0, 2)}
 
 
-def copyto(scene, source_obj, pos, xdir, zdir, axes, scale=None):
+def copyto(collection, source_obj, pos, xdir, zdir, axes, scale=None):
     """
     copy the source_obj to pos, so its primary axis points in zdir and its
     secondary axis points in xdir
     """
     copy_obj = source_obj.copy()
-    scene.objects.link(copy_obj)
+    collection.objects.link(copy_obj)
 
     xdir = xdir.normalized()
     zdir = zdir.normalized()
@@ -219,7 +219,7 @@ def copyto(scene, source_obj, pos, xdir, zdir, axes, scale=None):
     return copy_obj
 
 
-def vertex_copy(scene, obj, source_obj, axes):
+def vertex_copy(collection, obj, source_obj, axes):
     # vertex select mode
     sel_verts = []
     copy_list = []
@@ -249,7 +249,7 @@ def vertex_copy(scene, obj, source_obj, axes):
         xdir = edir - edir.dot(zdir) * zdir
         xdir = -xdir.normalized()
 
-        copy = copyto(scene, source_obj, pos, xdir, zdir, axes)
+        copy = copyto(collection, source_obj, pos, xdir, zdir, axes)
         copy_list.append(copy)
 
     # select all copied objects
@@ -258,7 +258,7 @@ def vertex_copy(scene, obj, source_obj, axes):
     obj.select_set(False)
 
 
-def edge_copy(scene, obj, source_obj, axes, es, scale):
+def edge_copy(collection, obj, source_obj, axes, es, scale):
     # edge select mode
     sel_edges = []
     copy_list = []
@@ -292,7 +292,7 @@ def edge_copy(scene, obj, source_obj, axes, es, scale):
             i = list('XYZ').index(axes[1])
             escale[i] = scale * xlen / source_obj.dimensions[i]
 
-        copy = copyto(scene, source_obj, pos, xdir, zdir, axes, scale=escale)
+        copy = copyto(collection, source_obj, pos, xdir, zdir, axes, scale=escale)
         copy_list.append(copy)
 
     # select all copied objects
@@ -301,7 +301,7 @@ def edge_copy(scene, obj, source_obj, axes, es, scale):
     obj.select_set(False)
 
 
-def face_copy(scene, obj, source_obj, axes):
+def face_copy(collection, obj, source_obj, axes):
     # face select mode
     sel_faces = []
     copy_list = []
@@ -318,7 +318,7 @@ def face_copy(scene, obj, source_obj, axes):
         fn = (f.center + f.normal) * obj.matrix_world.transposed() - fco
         fn = fn.normalized()
 
-        copy = copyto(scene, source_obj, fco, vco - fco, fn, axes)
+        copy = copyto(collection, source_obj, fco, vco - fco, fn, axes)
         copy_list.append(copy)
 
     # select all copied objects

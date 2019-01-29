@@ -90,7 +90,7 @@ def makeChain(self, context, mult, curverig):
             (23, 22, 19, 18), (21, 17, 14, 20), (15, 23, 18, 12)]
             )
         mesh.validate()
-        bpy.context.scene.objects.link(object)
+        bpy.context.collection.objects.link(object)
         # scale to the bone
         bpy.data.objects["HardLink" + str(hueso.name)].scale = (hueso.length * mult,
                                                                 hueso.length * mult,
@@ -142,7 +142,7 @@ def makeChain(self, context, mult, curverig):
             (22, 21, 20, 19), (23, 22, 19, 18), (21, 17, 14, 20), (15, 23, 18, 12)]
             )
         mesh.validate()
-        bpy.context.scene.objects.link(object)
+        bpy.context.collection.objects.link(object)
         # scale to the bone
         bpy.data.objects["NewLink" + str(hueso.name)].scale = (hueso.length * mult,
                                                                   hueso.length * mult,
@@ -171,7 +171,7 @@ def makeChain(self, context, mult, curverig):
         # create data and link the object to the scene
         crv = bpy.data.curves.new("CurvaCable", "CURVE")
         obCable = bpy.data.objects.new("Cable", crv)
-        bpy.context.scene.objects.link(obCable)
+        bpy.context.collection.objects.link(obCable)
 
         # set the attributes
         crv.dimensions = "3D"

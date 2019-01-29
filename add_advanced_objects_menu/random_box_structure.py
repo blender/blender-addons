@@ -184,7 +184,7 @@ class makestructure(Operator):
             bpy.context.view_layer.objects.active = select
 
             if self.dc is True:
-                bpy.context.scene.objects.unlink(obj)
+                bpy.context.collection.objects.unlink(obj)
 
         return {'FINISHED'}
 

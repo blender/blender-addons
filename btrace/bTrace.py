@@ -140,7 +140,7 @@ class OBJECT_OT_objectconnect(Operator):
             spline = tracer.splines.new('BEZIER')
             spline.bezier_points.add(len(lists) - 1)
             curve = bpy.data.objects.new('curve', tracer)
-            bpy.context.scene.objects.link(curve)
+            bpy.context.collection.objects.link(curve)
 
             # render ready curve
             tracer.resolution_u = Btrace.curve_u
@@ -205,7 +205,7 @@ def curvetracer(curvename, splinename):
     tracer = bpy.data.curves.new(splinename, 'CURVE')
     tracer.dimensions = '3D'
     curve = bpy.data.objects.new(curvename, tracer)
-    bpy.context.scene.objects.link(curve)
+    bpy.context.collection.objects.link(curve)
     try:
         tracer.fill_mode = 'FULL'
     except:
@@ -336,7 +336,7 @@ class OBJECT_OT_traceallparticles(Operator):
             # Create new object with settings listed above
             curve = bpy.data.objects.new('Tracer', tracer)
             # Link newly created object to the scene
-            bpy.context.scene.objects.link(curve)
+            bpy.context.collection.objects.link(curve)
             # add a new Bezier point in the new curve
             spline = tracer.splines.new('BEZIER')
             spline.bezier_points.add(setting.count - 1)

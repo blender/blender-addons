@@ -604,6 +604,7 @@ class TexAtl_MergeObjects(Operator):
     unwrap: BoolProperty(default=False)
 
     def execute(self, context):
+        collection = context.collection
         scene = context.scene
         view_layer = context.view_layer
 
@@ -618,7 +619,7 @@ class TexAtl_MergeObjects(Operator):
         me = bpy.data.meshes.new(self.group_name + '_mergedObject')
         ob_merge = bpy.data.objects.new(self.group_name + '_mergedObject', me)
         ob_merge.location = scene.cursor_location   # position object at 3d-cursor
-        scene.objects.link(ob_merge)                # Link object to scene
+        collection.objects.link(ob_merge)           # Link object to collection
         me.update()
         ob_merge.select_set(False)
 

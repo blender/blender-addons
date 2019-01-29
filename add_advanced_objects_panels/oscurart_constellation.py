@@ -61,7 +61,7 @@ def OscConstellation(limit):
 
     mesh = bpy.data.meshes.new("rsdata")
     obj = bpy.data.objects.new("rsObject", mesh)
-    bpy.context.scene.objects.link(obj)
+    bpy.context.collection.objects.link(obj)
     mesh.from_pydata(vertlist, edgelist, [])
 
 

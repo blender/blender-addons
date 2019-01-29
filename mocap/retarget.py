@@ -120,7 +120,7 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
     #creates the intermediate armature object
     inter_obj = enduser_obj.copy()
     inter_obj.data = inter_obj.data.copy()  # duplicate data
-    bpy.context.scene.objects.link(inter_obj)
+    bpy.context.collection.objects.link(inter_obj)
     inter_obj.name = "intermediate"
     bpy.context.view_layer.objects.active = inter_obj
     bpy.ops.object.mode_set(mode='EDIT')

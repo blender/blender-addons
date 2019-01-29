@@ -522,14 +522,14 @@ def build_stick(radius, length, sectors):
     cylinder.from_pydata(vertices, [], faces1)
     cylinder.update()
     new_cylinder = bpy.data.objects.new("Sticks_Cylinder", cylinder)
-    bpy.context.scene.objects.link(new_cylinder)
+    bpy.context.collection.objects.link(new_cylinder)
 
     # Build the mesh, Cups
     cups = bpy.data.meshes.new("Sticks_Cups")
     cups.from_pydata(vertices, [], faces2)
     cups.update()
     new_cups = bpy.data.objects.new("Sticks_Cups", cups)
-    bpy.context.scene.objects.link(new_cups)
+    bpy.context.collection.objects.link(new_cups)
 
     return (new_cylinder, new_cups)
 
@@ -563,7 +563,7 @@ def camera_light_source(use_camera,
         camera = bpy.data.objects.new("A_camera", camera_data)
         camera.location = camera_xyz_vec
         camera.layers = current_layers
-        bpy.context.scene.objects.link(camera)
+        bpy.context.collection.objects.link(camera)
 
         # Here the camera is rotated such it looks towards the center of
         # the object. The [0.0, 0.0, 1.0] vector along the z axis
@@ -614,7 +614,7 @@ def camera_light_source(use_camera,
         lamp = bpy.data.objects.new("A_light", light_data)
         lamp.location = light_xyz_vec
         lamp.layers = current_layers
-        bpy.context.scene.objects.link(lamp)
+        bpy.context.collection.objects.link(lamp)
 
         # Some settings for the World: a bit ambient occlusion
         bpy.context.scene.world.light_settings.use_ambient_occlusion = True
@@ -645,7 +645,7 @@ def draw_atoms_one_type(draw_all_atoms_type,
     atom_mesh.from_pydata(atom_vertices, [], [])
     atom_mesh.update()
     new_atom_mesh = bpy.data.objects.new(atom[0], atom_mesh)
-    bpy.context.scene.objects.link(new_atom_mesh)
+    bpy.context.collection.objects.link(new_atom_mesh)
 
     # Now, build a representative sphere (atom).
     current_layers = bpy.context.scene.layers
@@ -838,7 +838,7 @@ def draw_sticks_dupliverts(all_atoms,
         mesh.from_pydata(vertices, [], faces)
         mesh.update()
         new_mesh = bpy.data.objects.new("Sticks"+stick[0], mesh)
-        bpy.context.scene.objects.link(new_mesh)
+        bpy.context.collection.objects.link(new_mesh)
 
         # Build the object.
         # Get the cylinder from the 'build_stick' function.
@@ -958,7 +958,7 @@ def draw_sticks_skin(all_atoms,
     stick_mesh.from_pydata(stick_vertices, stick_edges, [])
     stick_mesh.update()
     new_stick_mesh = bpy.data.objects.new("Sticks", stick_mesh)
-    bpy.context.scene.objects.link(new_stick_mesh)
+    bpy.context.collection.objects.link(new_stick_mesh)
 
     # Apply the skin modifier.
     new_stick_mesh.modifiers.new(name="Sticks_skin", type='SKIN')

@@ -886,8 +886,7 @@ class tessellate(Operator):
             new_ob.location = ob0.location
             new_ob.matrix_world = ob0.matrix_world
 
-            scene = bpy.context.scene
-            scene.objects.link(new_ob)
+            bpy.context.collection.objects.link(new_ob)
             new_ob.select_set(True)
             bpy.context.view_layer.objects.active = new_ob
             if self.merge:
@@ -1429,8 +1428,7 @@ class settings_tessellate(Operator):
         self.ob.data = temp_ob.data
 
         # Create object in order to transfer vertex group
-        scene = bpy.context.scene
-        scene.objects.link(temp_ob)
+        bpy.context.collection.objects.link(temp_ob)
         temp_ob.select_set(True)
         bpy.context.view_layer.objects.active = temp_ob
 
@@ -1439,7 +1437,7 @@ class settings_tessellate(Operator):
         except:
             pass
 
-        scene.objects.unlink(temp_ob)
+        bpy.context.scene.objects.unlink(temp_ob)
         bpy.data.objects.remove(temp_ob)
         bpy.context.view_layer.objects.active = self.ob
 

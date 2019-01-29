@@ -277,7 +277,7 @@ class MakeTriangle(Operator):
 
             NewMesh.update()
             NewObj = bpy.data.objects.new("Triangle", NewMesh)
-            context.scene.objects.link(NewObj)
+            context.collection.objects.link(NewObj)
 
             # before doing the deselect make sure edit mode isn't active
             exitEditMode()

@@ -45,7 +45,7 @@ from bpy.props import (
 
 from bpy.types import Operator
 
-def main_object(scene, obj, level, **kw):
+def main_object(context, obj, level, **kw):
     import random
 
     # pull out some args
@@ -66,6 +66,8 @@ def main_object(scene, obj, level, **kw):
     use_sharp_edges = kw_copy.pop("use_sharp_edges")
     use_sharp_edges_apply = kw_copy.pop("use_sharp_edges_apply")
 
+    collection = context.collection
+
     if level != 0:
         kw_copy["source_limit"] = recursion_source_limit
 
@@ -78,8 +80,8 @@ def main_object(scene, obj, level, **kw):
         obj_display_type_prev = obj.display_type
         obj.display_type = 'WIRE'
 
-    objects = fracture_cell_setup.cell_fracture_objects(scene, obj, **kw_copy)
-    objects = fracture_cell_setup.cell_fracture_boolean(scene, obj, objects,
+    objects = fracture_cell_setup.cell_fracture_objects(context, obj, **kw_copy)
+    objects = fracture_cell_setup.cell_fracture_boolean(context, obj, objects,
                                                         use_island_split=use_island_split,
                                                         use_interior_hide=(use_interior_vgroup or use_sharp_edges),
                                                         use_debug_bool=use_debug_bool,
@@ -123,9 +125,9 @@ def main_object(scene, obj, level, **kw):
             objects_recursive = []
             for i, obj_cell in objects_recurse_input:
                 assert(objects[i] is obj_cell)
-                objects_recursive += main_object(scene, obj_cell, level_sub, **kw)
+                objects_recursive += main_object(context, obj_cell, level_sub, **kw)
                 if use_remove_original:
-                    scene.objects.unlink(obj_cell)
+                    collection.objects.unlink(obj_cell)
                     del objects[i]
                 if recursion_clamp and len(objects) + len(objects_recursive) >= recursion_clamp:
                     break
@@ -182,7 +184,6 @@ def main_object(scene, obj, level, **kw):
 def main(context, **kw):
     import time
     t = time.time()
-    scene = context.scene
     objects_context = context.selected_editable_objects
 
     kw_copy = kw.copy()
@@ -194,7 +195,7 @@ def main(context, **kw):
     objects = []
     for obj in objects_context:
         if obj.type == 'MESH':
-            objects += main_object(scene, obj, 0, **kw_copy)
+            objects += main_object(context, obj, 0, **kw_copy)
 
     bpy.ops.object.select_all(action='DESELECT')
     for obj_cell in objects:

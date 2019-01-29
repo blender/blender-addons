@@ -19,7 +19,7 @@ def add_lights(self, context):
         constraint.track_axis = 'TRACK_NEGATIVE_Z'
         constraint.up_axis = 'UP_X'
         constraint.owner_space = 'LOCAL'
-        bpy.context.scene.objects.link(ob)
+        bpy.context.collection.objects.link(ob)
         ob.rotation_euler[2] = -0.785398
 
     if self.bFillLight:
@@ -34,7 +34,7 @@ def add_lights(self, context):
         constraint.track_axis = 'TRACK_NEGATIVE_Z'
         constraint.up_axis = 'UP_X'
         constraint.owner_space = 'LOCAL'
-        bpy.context.scene.objects.link(ob)
+        bpy.context.collection.objects.link(ob)
         ob.rotation_euler[2] = 0.785398
         ob.data.energy = 0.3
 
@@ -50,7 +50,7 @@ def add_lights(self, context):
         constraint.track_axis = 'TRACK_NEGATIVE_Z'
         constraint.up_axis = 'UP_X'
         constraint.owner_space = 'LOCAL'
-        bpy.context.scene.objects.link(ob)
+        bpy.context.collection.objects.link(ob)
         ob.rotation_euler[2] = 3.14159
         ob.data.energy = 0.2
 

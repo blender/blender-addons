@@ -266,7 +266,7 @@ class DupliCurve(Operator):
                             j += 1
                             dx -= dist  # Calculating the remaining length of the section
                             obj = object.copy()
-                            context.scene.objects.link(obj)
+                            context.collection.objects.link(obj)
                             obj.matrix_world = quat * yawMatrix * pitchMatrix * rollMatrix
                             # Placing in the correct position
                             obj.matrix_world.translation = point - v_norm * dx
@@ -296,7 +296,7 @@ class DupliCurve(Operator):
                             j += 1
                             dx -= dist  # Calculating the remaining length of the section
                             obj = object.copy()
-                            context.scene.objects.link(obj)
+                            context.collection.objects.link(obj)
                             obj.matrix_world = quat * yawMatrix * pitchMatrix * rollMatrix
                             # Placing in the correct position
                             obj.matrix_world.translation = point - v_norm * dx
@@ -332,7 +332,7 @@ class DupliCurve(Operator):
                             object = G_Objeto[j % len(G_Objeto)]
                             j += 1
                             obj = object.copy()
-                            context.scene.objects.link(obj)
+                            context.collection.objects.link(obj)
                             obj.matrix_world = quat * yawMatrix * pitchMatrix * rollMatrix
                             # Placing in the correct position
                             obj.matrix_world.translation = point - v_norm * dx

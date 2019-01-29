@@ -1340,7 +1340,7 @@ def CreateCutSquare(self, context):
     PlaneNormalised = PlaneNormal.normalized()
 
     # Link object to scene
-    context.scene.objects.link(ob)
+    context.collection.objects.link(ob)
 
     # New bmesh
     t_bm = bmesh.new()
@@ -1406,7 +1406,7 @@ def CreateCutLine(self, context):
     PlaneNormal = depthLocation
     PlaneNormalised = PlaneNormal.normalized()
 
-    context.scene.objects.link(ob)
+    context.collection.objects.link(ob)
 
     t_bm = bmesh.new()
     t_bm.from_mesh(me)
@@ -1505,7 +1505,7 @@ def CreateCutCircle(self, context):
     PlaneNormal = depthLocation
     PlaneNormalised = PlaneNormal.normalized()
 
-    context.scene.objects.link(ob)
+    context.collection.objects.link(ob)
 
     t_bm = bmesh.new()
     t_bm.from_mesh(me)
@@ -3080,9 +3080,8 @@ class Carver(bpy.types.Operator):
             # Copy the brush object
             ob = bpy.data.objects.new("CarverBrushCopy", context.object.data.copy())
             ob.location = self.ObjectBrush.location
-            scene = context.scene
-            scene.objects.link(ob)
-            scene.update()
+            context.collection.objects.link(ob)
+            context.scene.update()
 
             # Get default variables
             self.InitBrushPosition = self.ObjectBrush.location.copy()

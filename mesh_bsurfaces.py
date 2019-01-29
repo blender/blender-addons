@@ -1355,7 +1355,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
 
         ob = bpy.data.objects.new(me_name, me)
         ob.data = me
-        bpy.context.scene.objects.link(ob)
+        bpy.context.collection.objects.link(ob)
 
         bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
         ob.select_set(True)
@@ -1533,7 +1533,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         me_surf.update()
 
         ob_surface = bpy.data.objects.new(surf_me_name, me_surf)
-        bpy.context.scene.objects.link(ob_surface)
+        bpy.context.collection.objects.link(ob_surface)
 
         # Delete final points temporal object
         bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
@@ -2419,7 +2419,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
                 # Create a curve object for the actual spline "cyclic extension"
                 simplified_curve.append(bpy.data.curves.new('SURFSKIO_simpl_crv', 'CURVE'))
                 ob_simplified_curve.append(bpy.data.objects.new('SURFSKIO_simpl_crv', simplified_curve[i]))
-                bpy.context.scene.objects.link(ob_simplified_curve[i])
+                bpy.context.collection.objects.link(ob_simplified_curve[i])
 
                 simplified_curve[i].dimensions = "3D"
 
@@ -2587,7 +2587,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         me = bpy.data.meshes.new(mesh_ctrl_pts_name)
         ob_ctrl_pts = bpy.data.objects.new(mesh_ctrl_pts_name, me)
         ob_ctrl_pts.data = me
-        bpy.context.scene.objects.link(ob_ctrl_pts)
+        bpy.context.collection.objects.link(ob_ctrl_pts)
 
         cyclic_loops_U = []
         first_verts = []
@@ -2741,7 +2741,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         for i in range(len(ob_curves_surf.data.splines)):
             spline_U_curve = bpy.data.curves.new('SURFSKIO_spline_U_' + str(i), 'CURVE')
             ob_spline_U = bpy.data.objects.new('SURFSKIO_spline_U_' + str(i), spline_U_curve)
-            bpy.context.scene.objects.link(ob_spline_U)
+            bpy.context.collection.objects.link(ob_spline_U)
 
             spline_U_curve.dimensions = "3D"
 
@@ -3013,7 +3013,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         me_surf.update()
 
         ob_surface = bpy.data.objects.new(surf_me_name, me_surf)
-        bpy.context.scene.objects.link(ob_surface)
+        bpy.context.collection.objects.link(ob_surface)
 
         # Select all the "unselected but participating" verts, from closed selection
         # or double selections with middle-vertex, for later join with remove doubles
@@ -3046,7 +3046,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
             # Build splines from the "last saved splines".
             last_saved_curve = bpy.data.curves.new('SURFSKIO_last_crv', 'CURVE')
             self.main_splines = bpy.data.objects.new('SURFSKIO_last_crv', last_saved_curve)
-            bpy.context.scene.objects.link(self.main_splines)
+            bpy.context.collection.objects.link(self.main_splines)
 
             last_saved_curve.dimensions = "3D"
 

@@ -221,6 +221,7 @@ class Ms3dExporter():
     def create_geometry(self, blender_context, ms3d_model, blender_mesh_objects, blender_to_ms3d_bones):
         blender_view_layer = blender_context.view_layer
         blender_scene = blender_context.scene
+        blender_collection = blender_context.collection
 
         blender_to_ms3d_vertices = {}
         blender_to_ms3d_triangles = {}
@@ -271,7 +272,7 @@ class Ms3dExporter():
             blender_mesh_temp = blender_mesh_object.data.copy()
             blender_mesh_object_temp = blender_mesh_object.copy()
             blender_mesh_object_temp.data = blender_mesh_temp
-            blender_scene.objects.link(blender_mesh_object_temp)
+            blender_collection.objects.link(blender_mesh_object_temp)
             blender_view_layer.objects.active = blender_mesh_object_temp
 
             # apply transform
@@ -532,7 +533,7 @@ class Ms3dExporter():
 
             ##########################
             # remove the temporary data
-            blender_scene.objects.unlink(blender_mesh_object_temp)
+            blender_collection.objects.unlink(blender_mesh_object_temp)
             if blender_mesh_temp is not None:
                 blender_mesh_temp.user_clear()
                 blender_context.blend_data.meshes.remove(blender_mesh_temp)

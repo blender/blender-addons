@@ -199,7 +199,7 @@ def create_mesh_from_audio(self, context, verts, faces):
     mesh = bpy.data.meshes.new("cubed")
     mesh.from_pydata(verts, [], faces)
     ob = bpy.data.objects.new("cubed", mesh)
-    bpy.context.scene.objects.link(ob)
+    bpy.context.collection.objects.link(ob)
     bpy.context.view_layer.objects.active = ob
     ob.select_set(True)
 
@@ -414,7 +414,7 @@ def create_mesh_from_image(self, scene, verts, faces):
     mesh = bpy.data.meshes.new("cubed")
     mesh.from_pydata(verts, [], faces)
     ob = bpy.data.objects.new("cubed", mesh)
-    context.scene.objects.link(ob)
+    context.collection.objects.link(ob)
     context.view_layer.objects.active = ob
     ob.select_set(True)
 

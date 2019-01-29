@@ -982,7 +982,7 @@ def triangulate_mesh(object):
 
     me_ob = object.copy()
     me_ob.data = object.to_mesh(bpy.context.scene, True, 'PREVIEW')  # write data object
-    bpy.context.scene.objects.link(me_ob)
+    bpy.context.collection.objects.link(me_ob)
     bpy.context.scene.update()
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -1027,7 +1027,7 @@ def meshmerge(selectedobjects):
                 me_ob = selectedobjects[count].copy()  # copy object
                 # note two copy two types else it will use the current data or mesh
                 me_ob.data = me_da  # assign the data
-                bpy.context.scene.objects.link(me_ob)  # link the object to the scene #current object location
+                bpy.context.collection.objects.link(me_ob)  # link the object to the collection (current obj location)
                 print("Index:", count, "clone object", me_ob.name)  # print clone object
                 cloneobjects.append(me_ob)  # add object to the array
 
@@ -1094,7 +1094,7 @@ def parse_mesh(mesh, psk):
     mesh = triangulate_mesh(mesh)
 
     if bpy.types.Scene.udk_copy_merge is True:
-        bpy.context.scene.objects.unlink(setmesh)
+        bpy.context.collection.objects.unlink(setmesh)
 
     # print("FACES----:",len(mesh.data.tessfaces))
     verbose("Working mesh object: {}".format(mesh.name))
@@ -1399,7 +1399,7 @@ def parse_mesh(mesh, psk):
         verbose("Removing temporary triangle mesh: {}".format(mesh.name))
         bpy.ops.object.mode_set(mode='OBJECT')    # OBJECT mode
         mesh.parent = None                        # unparent to avoid phantom links
-        bpy.context.scene.objects.unlink(mesh)    # unlink
+        bpy.context.collection.objects.unlink(mesh)    # unlink
 
 
 # ===========================================================================
@@ -1930,9 +1930,9 @@ def export(filepath):
     if bpy.context.scene.udk_option_rebuildobjects:
         print("Unlinking Objects")
         print("Armature Object Name:", udk_armature.name)  # display object name
-        bpy.context.scene.objects.unlink(udk_armature)     # remove armature from the scene
+        bpy.context.collection.objects.unlink(udk_armature)     # remove armature from the collection
         print("Mesh Object Name:", udk_mesh.name)          # display object name
-        bpy.context.scene.objects.unlink(udk_mesh)         # remove mesh from the scene
+        bpy.context.collection.objects.unlink(udk_mesh)         # remove mesh from the collection
 
     print("Export completed in {:.2f} seconds".format((time.clock() - t)))
 
@@ -2175,7 +2175,7 @@ def rebuildmesh(obj):
         group = obmesh.vertex_groups.new(name=vgroup)
         for v in vertGroups[vgroup]:
             group.add([v[0]], v[1], 'ADD')  # group.add(array[vertex id],weight,add)
-    bpy.context.scene.objects.link(obmesh)
+    bpy.context.collection.objects.link(obmesh)
     # print("Mesh Material Count:",len(me_ob.materials))
     matcount = 0
     # print("MATERIAL ID OREDER:")
@@ -2218,7 +2218,7 @@ def rebuildarmature(obj):
     meshname = "ArmatureObjectPSK"
     armdata = bpy.data.armatures.new(objectname)
     ob_new = bpy.data.objects.new(meshname, armdata)
-    bpy.context.scene.objects.link(ob_new)
+    bpy.context.collection.objects.link(ob_new)
     # bpy.ops.object.mode_set(mode='OBJECT')
 
     for i in bpy.context.scene.objects:

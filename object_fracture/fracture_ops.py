@@ -169,7 +169,7 @@ def getIslands(shard):
 
             shards.append(a)
 
-        bpy.context.scene.objects.unlink(shard)
+        bpy.context.collection.objects.unlink(shard)
 
     return shards
 
@@ -233,6 +233,7 @@ def boolop(ob, cutter, op):
 
 
 def splitobject(context, ob, crack_type, roughness):
+    collection = context.collection
     scene = context.scene
     view_layer = context.view_layer
 
@@ -262,17 +263,17 @@ def splitobject(context, ob, crack_type, roughness):
         if fault > 0:
             # Delete all shards in case of fault from previous operation.
             for s in shards:
-                scene.objects.unlink(s)
+                collection.objects.unlink(s)
 
-            scene.objects.unlink(cutter)
+            collection.objects.unlink(cutter)
             #print('splitobject: fault')
 
             return [ob]
 
     if shards[0] != ob:
-        bpy.context.scene.objects.unlink(ob)
+        bpy.context.collection.objects.unlink(ob)
 
-    bpy.context.scene.objects.unlink(cutter)
+    bpy.context.collection.objects.unlink(cutter)
 
     return shards
 
@@ -331,7 +332,7 @@ def fracture_group(context, group):
             if fault == 1:
                # Delete all shards in case of fault from previous operation.
                 for s in shards:
-                    bpy.context.scene.objects.unlink(s)
+                    bpy.context.collection.objects.unlink(s)
 
                 #print('fracture_group: fault')
                 #print('fracture_group: ' + str(i))

@@ -444,7 +444,7 @@ def discombobulate(minHeight, maxHeight, minTaper, maxTaper, sf1, sf2, sf3, sf4,
     # Create the discombobulated mesh
     mesh = bpy.data.meshes.new("tmp")
     object = bpy.data.objects.new("tmp", mesh)
-    bpy.context.scene.objects.link(object)
+    bpy.context.collection.objects.link(object)
 
     # init final verts and polygons tuple
     nPolygons = []
@@ -486,7 +486,7 @@ def discombobulate(minHeight, maxHeight, minTaper, maxTaper, sf1, sf2, sf3, sf4,
     # Fill in the discombobulated mesh with the new polygons
     mesh1 = bpy.data.meshes.new("discombobulated_object")
     object1 = bpy.data.objects.new("discombobulated_mesh", mesh1)
-    bpy.context.scene.objects.link(object1)
+    bpy.context.collection.objects.link(object1)
     mesh1.from_pydata(Verts, [], Polygons)
     mesh1.update(calc_edges=True)
 
@@ -507,7 +507,7 @@ def discombobulate(minHeight, maxHeight, minTaper, maxTaper, sf1, sf2, sf3, sf4,
         doodads(object1, mesh1, dmin, dmax)
         mesh2 = bpy.data.meshes.new("dood_mesh")
         object2 = bpy.data.objects.new("dood_obj", mesh2)
-        bpy.context.scene.objects.link(object2)
+        bpy.context.collection.objects.link(object2)
         mesh2.from_pydata(dVerts, [], dPolygons)
         mesh2.update(calc_edges=True)
         setMatDood(object2)

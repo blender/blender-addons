@@ -335,7 +335,7 @@ def writeArrayToCubes(arr, gridBU, orig, cBOOL=False, jBOOL=True):
             if a[3] > 0:
                 col = (0.0, 0.0, a[3], 1.0)
             ob.color = col
-        bpy.context.scene.objects.link(ob)
+        bpy.context.collection.objects.link(ob)
         bpy.context.scene.update()
 
     if jBOOL:
@@ -371,7 +371,7 @@ def addEdge(ob, va, vb):
 def newMesh(mname):
     mmesh = bpy.data.meshes.new(mname)
     omesh = bpy.data.objects.new(mname, mmesh)
-    bpy.context.scene.objects.link(omesh)
+    bpy.context.collection.objects.link(omesh)
     return omesh
 
 
@@ -399,7 +399,7 @@ def writeArrayToCurves(cname, arr, gridBU, bd=.05, rpt=None):
 
     if rpt:
         addReportProp(cob, rpt)
-    bpy.context.scene.objects.link(cob)
+    bpy.context.collection.objects.link(cob)
     cur.splines.new('BEZIER')
     cspline = cur.splines[0]
     div = 1  # spacing for handles (2 - 1/2 way, 1 - next bezier)
@@ -1084,17 +1084,17 @@ def setupObjects():
     winmgr = bpy.context.scene.advanced_objects1
     oOB = bpy.data.objects.new('ELorigin', None)
     oOB.location = ((0, 0, 10))
-    bpy.context.scene.objects.link(oOB)
+    bpy.context.collection.objects.link(oOB)
 
     gOB = bpy.data.objects.new('ELground', None)
     gOB.empty_display_type = 'ARROWS'
-    bpy.context.scene.objects.link(gOB)
+    bpy.context.collection.objects.link(gOB)
 
     cME = makeMeshCube(1)
     cOB = bpy.data.objects.new('ELcloud', cME)
     cOB.location = ((-2, 8, 12))
     cOB.hide_render = True
-    bpy.context.scene.objects.link(cOB)
+    bpy.context.collection.objects.link(cOB)
 
     iME = makeMeshCube(1)
     for v in iME.vertices:
@@ -1106,7 +1106,7 @@ def setupObjects():
     iOB = bpy.data.objects.new('ELinsulator', iME)
     iOB.location = ((0, 0, 5))
     iOB.hide_render = True
-    bpy.context.scene.objects.link(iOB)
+    bpy.context.collection.objects.link(iOB)
 
     try:
         winmgr.OOB = 'ELorigin'

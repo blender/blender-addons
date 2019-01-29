@@ -113,6 +113,7 @@ class TriLighting(Operator):
 
     def execute(self, context):
         try:
+            collection = context.collection
             scene = context.scene
             view = context.space_data
             if view.type == 'VIEW_3D' and not view.lock_camera_and_layers:
@@ -123,7 +124,7 @@ class TriLighting(Operator):
             if (camera is None):
                 cam_data = bpy.data.cameras.new(name='Camera')
                 cam_obj = bpy.data.objects.new(name='Camera', object_data=cam_data)
-                scene.objects.link(cam_obj)
+                collection.objects.link(cam_obj)
                 scene.camera = cam_obj
                 bpy.ops.view3d.camera_to_view()
                 camera = cam_obj
@@ -177,7 +178,7 @@ class TriLighting(Operator):
             backData.energy = backEnergy
 
             backLamp = bpy.data.objects.new(name="TriLamp-Back", object_data=backData)
-            scene.objects.link(backLamp)
+            collection.objects.link(backLamp)
             backLamp.location = (backx, backy, self.height)
 
             trackToBack = backLamp.constraints.new(type="TRACK_TO")
@@ -199,7 +200,7 @@ class TriLighting(Operator):
             rightData = bpy.data.lights.new(name="TriLamp-Fill", type=self.secondarytype)
             rightData.energy = fillEnergy
             rightLamp = bpy.data.objects.new(name="TriLamp-Fill", object_data=rightData)
-            scene.objects.link(rightLamp)
+            collection.objects.link(rightLamp)
             rightLamp.location = (rightx, righty, self.height)
             trackToRight = rightLamp.constraints.new(type="TRACK_TO")
             trackToRight.target = obj
@@ -219,7 +220,7 @@ class TriLighting(Operator):
             leftData.energy = keyEnergy
 
             leftLamp = bpy.data.objects.new(name="TriLamp-Key", object_data=leftData)
-            scene.objects.link(leftLamp)
+            collection.objects.link(leftLamp)
             leftLamp.location = (leftx, lefty, self.height)
             trackToLeft = leftLamp.constraints.new(type="TRACK_TO")
             trackToLeft.target = obj

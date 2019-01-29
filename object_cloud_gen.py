@@ -313,7 +313,7 @@ def makeParent(parentobj, childobj, view_layer):
     childobj.parent = parentobj
 
 
-def addNewObject(scene, name, copyobj):
+def addNewObject(collection, name, copyobj):
     # avoid creating not needed meshes pro forme
     # Create a new object
     tempme = copyobj.data
@@ -323,7 +323,7 @@ def addNewObject(scene, name, copyobj):
     ob_new.location = copyobj.location
 
     # Link new object to the given scene and select it
-    scene.objects.link(ob_new)
+    collection.objects.link(ob_new)
     ob_new.select_set(True)
 
     return ob_new
@@ -508,6 +508,7 @@ class GenerateCloud(Operator):
         active_object = context.active_object
 
         # Make variable scene that is current scene
+        collection = context.collection
         scene = context.scene
         view_layer = context.view_layer
 
@@ -575,7 +576,7 @@ class GenerateCloud(Operator):
 
             # Create CloudPnts for putting points in #
             # Create a new object cloudPnts
-            cloudPnts = addNewObject(scene, "CloudPoints", bounds)
+            cloudPnts = addNewObject(collection, "CloudPoints", bounds)
             cloudPnts["CloudMember"] = "CreatedObj"
             cloudPnts.display_type = 'WIRE'
             cloudPnts.hide_render = True
@@ -603,7 +604,7 @@ class GenerateCloud(Operator):
 
             # Create a new object bounds
             bounds = addNewObject(
-                            scene, "CloudBounds",
+                            collection, "CloudBounds",
                             selectedObjects[0]
                             )
 
@@ -645,7 +646,7 @@ class GenerateCloud(Operator):
 
             # Create Cloud for putting Cloud Mesh #
             # Create a new object cloud.
-            cloud = addNewObject(scene, "CloudMesh", bounds)
+            cloud = addNewObject(collection, "CloudMesh", bounds)
             cloud["CloudMember"] = "CreatedObj"
             cloud.display_type = 'WIRE'
             cloud.hide_render = True
@@ -835,7 +836,7 @@ class GenerateCloud(Operator):
             if not scene.cloudparticles:
                 # Create CloudPnts for putting points in #
                 # Create a new object cloudPnts
-                cloudPnts = addNewObject(scene, "CloudPoints", bounds)
+                cloudPnts = addNewObject(collection, "CloudPoints", bounds)
                 cloudPnts["CloudMember"] = "CreatedObj"
                 cloudPnts.display_type = 'WIRE'
                 cloudPnts.hide_render = True

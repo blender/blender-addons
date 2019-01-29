@@ -491,7 +491,7 @@ def create_struts(self, context, ind, od, segments, solid, loops, manifold):
         mesh = bpy.data.meshes.new("Struts")
         mesh.from_pydata(verts, [], faces)
         obj = bpy.data.objects.new("Struts", mesh)
-        bpy.context.scene.objects.link(obj)
+        bpy.context.collection.objects.link(obj)
         obj.select_set(True)
         obj.location = truss_obj.location
         bpy.context.view_layer.objects.active = obj

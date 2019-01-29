@@ -319,6 +319,7 @@ class OBJECT_OT_create_lightfield_basemesh(Operator):
         return normal * vl
 
     def addMeshObj(self, mesh):
+        collection = bpy.context.collection
         scene = bpy.context.scene
         view_layer = bpy.context.view_layer
 
@@ -327,7 +328,7 @@ class OBJECT_OT_create_lightfield_basemesh(Operator):
 
         mesh.update()
         nobj = bpy.data.objects.new(self.objName, mesh)
-        scene.objects.link(nobj)
+        collection.objects.link(nobj)
         nobj.select_set(True)
 
         if view_layer.objects.active is None or view_layer.objects.active.mode == 'OBJECT':

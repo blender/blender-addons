@@ -1047,7 +1047,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
                 ngons[fi]= fpol  # Deal with them later
 
         ob= bpy.data.objects.new(layer_data.name, me)
-        bpy.context.scene.objects.link(ob)
+        bpy.context.collection.objects.link(ob)
         ob_dict[layer_data.index]= [ob, layer_data.parent_index]
 
         # Move the object so the pivot is in the right place.
