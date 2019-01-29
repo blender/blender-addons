@@ -198,7 +198,7 @@ def create_mesh_from_audio(self, scene, verts, faces):
     mesh.from_pydata(verts, [], faces)
     ob = bpy.data.objects.new("cubed", mesh)
     bpy.context.scene.objects.link(ob)
-    bpy.context.scene.objects.active = ob
+    bpy.context.view_layer.objects.active = ob
     ob.select_set(True)
 
     # initial vertex colors
@@ -413,7 +413,7 @@ def create_mesh_from_image(self, scene, verts, faces):
     mesh.from_pydata(verts, [], faces)
     ob = bpy.data.objects.new("cubed", mesh)
     context.scene.objects.link(ob)
-    context.scene.objects.active = ob
+    context.view_layer.objects.active = ob
     ob.select_set(True)
 
     # uv unwrap

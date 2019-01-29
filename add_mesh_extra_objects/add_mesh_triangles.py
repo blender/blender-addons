@@ -283,7 +283,7 @@ class MakeTriangle(Operator):
             exitEditMode()
             bpy.ops.object.select_all(action="DESELECT")
             NewObj.select_set(True)
-            context.scene.objects.active = NewObj
+            context.view_layer.objects.active = NewObj
 
             if self.at_3Dcursor is True:
                 # we'll need to be sure there is actually an object selected

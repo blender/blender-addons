@@ -152,7 +152,7 @@ class OBJECT_OT_TriangulateButton(Operator):
             my.matrix_world = obj.matrix_world.copy()
             obj.select_set(False)
             my.select_set(True)
-            context.scene.objects.active = my
+            context.view_layer.objects.active = my
             self.report({'INFO'}, "Mesh created (" + str(len(faces)) + " triangles)")
             print("Total :%s faces  %s verts" % (len(faces), len(points_3D)))
             return {'FINISHED'}
@@ -211,7 +211,7 @@ class OBJECT_OT_TriangulateButton(Operator):
 
         # Update scene
         bpy.context.scene.objects.link(tinObj)  # Link object to scene
-        bpy.context.scene.objects.active = tinObj
+        bpy.context.view_layer.objects.active = tinObj
         tinObj.select_set(True)
         obj.select_set(False)
 
@@ -314,7 +314,7 @@ class OBJECT_OT_VoronoiButton(Operator):
 
         # update scene
         bpy.context.scene.objects.link(voronoiObj)  # Link object to scene
-        bpy.context.scene.objects.active = voronoiObj
+        bpy.context.view_layer.objects.active = voronoiObj
         voronoiObj.select_set(True)
         obj.select_set(False)
 

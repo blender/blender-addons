@@ -833,7 +833,7 @@ class importmesh(mesh):
         mesh.__init__(self)
 
         obj = bpy.data.objects[meshname]
-        bpy.context.scene.objects.active = obj
+        bpy.context.view_layer.objects.active = obj
         obj.select_set(True)
         impmesh = None
         if not breakquadflag:

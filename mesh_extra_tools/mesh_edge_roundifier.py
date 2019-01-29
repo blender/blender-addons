@@ -487,7 +487,7 @@ class EdgeRoundifier(Operator):
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.mode_set(mode='EDIT')
 
-        mesh = context.scene.objects.active.data
+        mesh = context.view_layer.objects.active.data
         bm = bmesh.new()
         bm.from_mesh(mesh)
 
@@ -619,7 +619,7 @@ class EdgeRoundifier(Operator):
 
         self.resetValues(parameters["workMode"])
 
-        self.obj = context.scene.objects.active
+        self.obj = context.view_layer.objects.active
         scaledEdges = self.scaleDuplicatedEdges(bm, edges, parameters)
 
         if len(scaledEdges) > 0:
@@ -1335,7 +1335,7 @@ class EdgeRoundifier(Operator):
     def selectEdgesAfterRoundifier(self, context, edges):
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.mode_set(mode='EDIT')
-        mesh = context.scene.objects.active.data
+        mesh = context.view_layer.objects.active.data
         bmnew = bmesh.new()
         bmnew.from_mesh(mesh)
 

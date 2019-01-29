@@ -338,7 +338,7 @@ class lattice_along_surface(Operator):
 
         if len(grid_mesh.polygons) > 64 * 64:
             bpy.ops.object.delete(use_global=False)
-            bpy.context.scene.objects.active = obj
+            bpy.context.view_layer.objects.active = obj
             obj.select_set(True)
             self.report({'ERROR'}, "Maximum resolution allowed for Lattice is 64")
             return {'CANCELLED'}
@@ -379,7 +379,7 @@ class lattice_along_surface(Operator):
         if bb.z == 0:
             lattice.scale.z = 1
 
-        bpy.context.scene.objects.active = obj
+        bpy.context.view_layer.objects.active = obj
         bpy.ops.object.modifier_add(type='LATTICE')
         obj.modifiers[-1].object = lattice
 
@@ -387,7 +387,7 @@ class lattice_along_surface(Operator):
         if self.set_parent:
             obj.select_set(True)
             lattice.select_set(True)
-            bpy.context.scene.objects.active = lattice
+            bpy.context.view_layer.objects.active = lattice
             bpy.ops.object.parent_set(type='LATTICE')
 
         # reading grid structure
@@ -436,7 +436,7 @@ class lattice_along_surface(Operator):
             lattice.select_set(True)
             obj.select_set(False)
             bpy.ops.object.delete(use_global=False)
-            bpy.context.scene.objects.active = obj
+            bpy.context.view_layer.objects.active = obj
             obj.select_set(True)
             bpy.ops.object.modifier_remove(modifier=obj.modifiers[-1].name)
             if nu > 64 or nv > 64:
@@ -455,7 +455,7 @@ class lattice_along_surface(Operator):
         lattice.select_set(False)
         obj.select_set(False)
         bpy.ops.object.delete(use_global=False)
-        bpy.context.scene.objects.active = lattice
+        bpy.context.view_layer.objects.active = lattice
         lattice.select_set(True)
 
         if self.high_quality_lattice:
@@ -466,7 +466,7 @@ class lattice_along_surface(Operator):
         if self.hide_lattice:
             bpy.ops.object.hide_view_set(unselected=False)
 
-        bpy.context.scene.objects.active = obj
+        bpy.context.view_layer.objects.active = obj
         obj.select_set(True)
         lattice.select_set(False)
 

@@ -89,7 +89,7 @@ class RunAction(Operator):
         # -------------------------
         bpy.ops.object.select_all(False)
         myempty.select_set(True)
-        context.scene.objects.active = myempty
+        context.view_layer.objects.active = myempty
         # save current configuration
         savedinterpolation = context.preferences.edit.keyframe_new_interpolation_type
         # change interpolation mode
@@ -158,7 +158,7 @@ class RunAction(Operator):
 
         # Track constraint
         if turn_camera.track is True:
-            bpy.context.scene.objects.active = camera
+            bpy.context.view_layer.objects.active = camera
             bpy.ops.object.constraint_add(type='TRACK_TO')
             bpy.context.object.constraints[-1].track_axis = 'TRACK_NEGATIVE_Z'
             bpy.context.object.constraints[-1].up_axis = 'UP_Y'
@@ -173,7 +173,7 @@ class RunAction(Operator):
         # -------------------------
         bpy.ops.object.select_all(False)
         selectobject.select_set(True)
-        bpy.context.scene.objects.active = selectobject
+        bpy.context.view_layer.objects.active = selectobject
         bpy.context.scene.frame_set(savedframe)
 
         return {'FINISHED'}

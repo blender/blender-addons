@@ -183,9 +183,9 @@ class StructureBuilder(DataStructure):
         """
             Create the armature and leave it in edit mode
         """
-        bpy.context.scene.objects.active = None
+        bpy.context.view_layer.objects.active = None
         bpy.ops.object.add(type='ARMATURE', enter_editmode=True)
-        self.object = bpy.context.scene.objects.active
+        self.object = bpy.context.view_layer.objects.active
         self.armature = self.object.data
         self.object.name = self.name
         self.armature.name = self.name

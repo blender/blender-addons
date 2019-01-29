@@ -73,7 +73,7 @@ class POVRAY_OT_lathe_add(bpy.types.Operator):
             rotation=(0, 0, 0),
             layers=layers,
         )
-        ob = context.scene.objects.active
+        ob = context.view_layer.objects.active
         ob_data = ob.data
         ob.name = ob_data.name = "PovLathe"
         ob_data.dimensions = '2D'
@@ -1073,7 +1073,7 @@ class POVRAY_OT_rainbow_add(bpy.types.Operator):
         ob.location = -cam.location
 
         #refocus on the actual rainbow
-        bpy.context.scene.objects.active = ob
+        bpy.context.view_layer.objects.active = ob
         ob.select_set(True)
 
         return {'FINISHED'}

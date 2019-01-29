@@ -139,7 +139,7 @@ class dual_mesh(Operator):
             ob.data = ob.data.copy()
             bpy.ops.object.select_all(action='DESELECT')
             ob.select_set(True)
-            bpy.context.scene.objects.active = ob0
+            bpy.context.view_layer.objects.active = ob0
             bpy.ops.object.mode_set(mode='EDIT')
 
             # prevent borders erosion
@@ -276,7 +276,7 @@ class dual_mesh(Operator):
         for o in sel:
             o.select_set(True)
 
-        bpy.context.scene.objects.active = act
+        bpy.context.view_layer.objects.active = act
         bpy.ops.object.mode_set(mode=mode)
 
         return {'FINISHED'}

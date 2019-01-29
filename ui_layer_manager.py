@@ -357,7 +357,7 @@ class SCENE_OT_namedlayer_select_objects_by_layer(Operator):
                     objects.append(obj)
                     not_all_selected -= 1
                     if self.active:
-                        context.scene.objects.active = obj
+                        context.view_layer.objects.active = obj
                     if obj.select_get():
                         not_all_selected += 1
             if not not_all_selected:

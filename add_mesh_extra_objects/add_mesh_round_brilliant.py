@@ -224,7 +224,7 @@ def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
     scene = bpy.context.scene
 
     # deactivate possible active Objects
-    bpy.context.scene.objects.active = None
+    bpy.context.view_layer.objects.active = None
 
     # create actual mesh and object based on Verts and Faces given
     dmesh = bpy.data.meshes.new("dmesh")

@@ -102,7 +102,7 @@ def get_object_select(obj):
 
 def set_active_object(obj):
     if check_version(2, 80, 0) < 0:
-        bpy.context.scene.objects.active = obj
+        bpy.context.view_layer.objects.active = obj
     else:
         bpy.context.view_layer.objects.active = obj
 

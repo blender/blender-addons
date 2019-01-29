@@ -514,7 +514,7 @@ if mat:
         return "WARNING", "Can't preview on EDIT MODE"
       if dummy!= active:
         self.last_selected = context.object.name
-      context.scene.objects.active = dummy
+      context.view_layer.objects.active = dummy
       objects.append(dummy)
     #apply
     else:
@@ -529,11 +529,11 @@ if mat:
       try:
         last = context.scene.objects[self.last_selected]
         if last in context.selected_objects:
-          context.scene.objects.active = last
+          context.view_layer.objects.active = last
         else:
           self.last_selected = ""
       except:
-        context.scene.objects.active = None
+        context.view_layer.objects.active = None
     dummy.select_set(False)
       #objects = context.selected_objects
 
@@ -893,7 +893,7 @@ class MATLIB_OT_flush(Operator):
     dummy = matlib.get_dummy(context)
     if dummy == context.object:
       try:
-        context.scene.objects.active = context.scene.objects[matlib.last_selected]
+        context.view_layer.objects.active = context.scene.objects[matlib.last_selected]
       except:
         pass
 
@@ -1023,7 +1023,7 @@ class MATLIB_OT_operator(Operator):
       dummy = matlib.get_dummy(context)
       if dummy == context.object:
         try:
-          context.scene.objects.active = context.scene.objects[matlib.last_selected]
+          context.view_layer.objects.active = context.scene.objects[matlib.last_selected]
         except:
           pass
 

@@ -129,7 +129,7 @@ class TriLighting(Operator):
                 camera = cam_obj
                 bpy.ops.view3d.viewnumpad(type='TOP')
 
-            obj = bpy.context.scene.objects.active
+            obj = bpy.context.view_layer.objects.active
 
             # Calculate Energy for each Lamp
             if(self.contrast > 0):

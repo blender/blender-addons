@@ -157,11 +157,11 @@ class Ms3dExporter():
 
             post_setup_environment(self, blender_context)
             # restore active object
-            blender_context.scene.objects.active = self.active_object
+            blender_context.view_layer.objects.active = self.active_object
 
-            if ((not blender_context.scene.objects.active)
+            if ((not blender_context.view_layer.objects.active)
                     and (blender_context.selected_objects)):
-                blender_context.scene.objects.active \
+                blender_context.view_layer.objects.active \
                         = blender_context.selected_objects[0]
 
             # restore pre operator undo state

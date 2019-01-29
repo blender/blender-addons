@@ -592,7 +592,7 @@ def assign_mat(matname="Default", operator=None):
                 me.update()
 
     # restore the active object
-    bpy.context.scene.objects.active = actob
+    bpy.context.view_layer.objects.active = actob
 
     # restore selection state
     actob.select = selected

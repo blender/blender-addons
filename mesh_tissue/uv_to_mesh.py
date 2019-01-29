@@ -177,7 +177,7 @@ class uv_to_mesh(Operator):
             ob0.select_set(True)
             bpy.ops.object.delete(use_global=False)
             ob.select_set(True)
-            bpy.context.scene.objects.active = ob
+            bpy.context.view_layer.objects.active = ob
 
         return {'FINISHED'}
 

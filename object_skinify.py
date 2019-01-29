@@ -181,7 +181,7 @@ def init_props():
 
 # selects vertices
 def select_vertices(mesh_obj, idx):
-    bpy.context.scene.objects.active = mesh_obj
+    bpy.context.view_layer.objects.active = mesh_obj
     mode = mesh_obj.mode
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='DESELECT')

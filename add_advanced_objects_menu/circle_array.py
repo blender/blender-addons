@@ -90,7 +90,7 @@ class Circle_Array(Operator):
                     check_mod.use_relative_offset = False
                 else:
                     # fallback
-                    bpy.context.scene.objects.active = active
+                    bpy.context.view_layer.objects.active = active
                     bpy.ops.object.modifier_add(type='ARRAY')
                     active.modifiers[0].use_object_offset = True
                     active.modifiers[0].use_relative_offset = False
@@ -98,7 +98,7 @@ class Circle_Array(Operator):
                 active.modifiers[0].use_object_offset = True
                 active.modifiers[0].use_relative_offset = False
                 active.select_set(False)
-                bpy.context.scene.objects.active = context.active_object
+                bpy.context.view_layer.objects.active = context.active_object
                 bpy.ops.view3d.snap_cursor_to_selected()
 
                 if active.modifiers[0].offset_object is None:
@@ -109,7 +109,7 @@ class Circle_Array(Operator):
                 else:
                     empty_name = active.modifiers[0].offset_object
 
-                bpy.context.scene.objects.active = active
+                bpy.context.view_layer.objects.active = active
                 num = active.modifiers["Array"].count
                 rotate_num = 360 / num
                 active.select_set(True)
@@ -134,7 +134,7 @@ class Circle_Array(Operator):
                 else:
                     empty_name = active.modifiers[0].offset_object
 
-                bpy.context.scene.objects.active = active
+                bpy.context.view_layer.objects.active = active
                 num = active.modifiers["Array"].count
                 rotate_num = 360 / num
                 active.select_set(True)

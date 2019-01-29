@@ -102,7 +102,7 @@ class makestructure(Operator):
 
         for obj in oblst:
             bpy.ops.object.select_pattern(pattern=obj.name)  # Select base mesh
-            bpy.context.scene.objects.active = obj
+            bpy.context.view_layer.objects.active = obj
             if obj.data.uv_layers[:] != []:
                 uvyes = 1
             else:
@@ -173,7 +173,7 @@ class makestructure(Operator):
                     constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED',
                     proportional_edit_falloff='SMOOTH', proportional_size=1, release_confirm=True
                     )
-            bpy.context.scene.objects.active = obj  # Again needed to avoid poll() taking me down
+            bpy.context.view_layer.objects.active = obj  # Again needed to avoid poll() taking me down
             bpy.ops.object.make_links_data(type='MODIFIERS')
             bpy.ops.object.make_links_data(type='MATERIAL')
 
@@ -181,7 +181,7 @@ class makestructure(Operator):
                 bpy.ops.object.join_uvs()
 
             bpy.ops.collection.objects_remove()
-            bpy.context.scene.objects.active = select
+            bpy.context.view_layer.objects.active = select
 
             if self.dc is True:
                 bpy.context.scene.objects.unlink(obj)

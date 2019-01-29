@@ -207,7 +207,7 @@ def makeChain(self, context, mult, curverig):
         # select the curve
         bpy.ops.object.select_all(action='DESELECT')
         bpy.data.objects['Cable'].select = 1
-        bpy.context.scene.objects.active = bpy.data.objects['Cable']
+        bpy.context.view_layer.objects.active = bpy.data.objects['Cable']
         # switch to Edit mode
         bpy.ops.object.mode_set(mode='EDIT')
 
@@ -223,7 +223,7 @@ def makeChain(self, context, mult, curverig):
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.select_all(action='DESELECT')
         ACTARM.select = 1
-        bpy.context.scene.objects.active = bpy.data.objects['Armature']
+        bpy.context.view_layer.objects.active = bpy.data.objects['Armature']
         bpy.ops.object.mode_set(mode='POSE')
         bpy.ops.pose.select_all(action='DESELECT')
         ACTARM.data.bones[-1].select = 1

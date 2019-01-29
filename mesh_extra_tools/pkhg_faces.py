@@ -309,7 +309,7 @@ class MESH_OT_add_faces_to_object(Operator):
 
             # PKHG>INFO now the extruded facec have to move in normal direction
             bpy.ops.object.mode_set(mode='EDIT')
-            obj = bpy.context.scene.objects.active
+            obj = bpy.context.view_layer.objects.active
             bm = bmesh.from_edit_mesh(obj.data)
             todo_faces = [face for face in bm.faces if face.select]
             for face in todo_faces:
@@ -680,7 +680,7 @@ def prepare(self, context, remove_start_faces=True):
        Start for a face selected change of faces
        select an object of type mesh, with activated several (all) faces
     """
-    obj = bpy.context.scene.objects.active
+    obj = bpy.context.view_layer.objects.active
     bpy.ops.object.mode_set(mode='OBJECT')
     selectedpolygons = [el for el in obj.data.polygons if el.select]
 

@@ -70,7 +70,7 @@ class OBJECT_OT_objecttrace(Operator):
                     brushObj = context.selected_objects
 
             for i in brushObj:
-                context.scene.objects.active = i
+                context.view_layer.objects.active = i
                 if i and i.type != 'CURVE':
                     bpy.ops.object.btconvertcurve()
                     # Materials
@@ -157,7 +157,7 @@ class OBJECT_OT_objectconnect(Operator):
                 p.handle_right_type = curve_handle
                 p.handle_left_type = curve_handle
 
-            bpy.context.scene.objects.active = curve
+            bpy.context.view_layer.objects.active = curve
             bpy.ops.object.mode_set(mode='OBJECT')
 
             # place hooks
@@ -270,7 +270,7 @@ class OBJECT_OT_particletrace(Operator):
             bpy.ops.object.select_all(action='DESELECT')
             for curveobject in curvelist:
                 curveobject.select_set(True)
-                bpy.context.scene.objects.active = curveobject
+                bpy.context.view_layer.objects.active = curveobject
                 bpy.ops.object.collection_link(group="Btrace")
                 # Materials
                 trace_mats = addtracemat(curveobject.data)
@@ -373,7 +373,7 @@ class OBJECT_OT_traceallparticles(Operator):
             # Select new curve
             bpy.ops.object.select_all(action='DESELECT')
             curve.select_set(True)
-            bpy.context.scene.objects.active = curve
+            bpy.context.view_layer.objects.active = curve
 
             # Materials
             trace_mats = addtracemat(curve.data)
@@ -451,7 +451,7 @@ class OBJECT_OT_writing(Operator):
             writeObj = context.selected_objects
             if Btrace.animate:
                 for i in writeObj:
-                    context.scene.objects.active = i
+                    context.view_layer.objects.active = i
                     bpy.ops.curve.btgrow()
                     # Materials
                     trace_mats = addtracemat(bpy.context.object.data)
@@ -459,16 +459,16 @@ class OBJECT_OT_writing(Operator):
                         check_materials = False
             else:
                 for i in writeObj:
-                    context.scene.objects.active = i
+                    context.view_layer.objects.active = i
                     # Materials
                     trace_mats = addtracemat(bpy.context.object.data)
                     if not trace_mats and check_materials is True:
                         check_materials = False
 
             # Delete grease pencil strokes
-            context.scene.objects.active = gactive
+            context.view_layer.objects.active = gactive
             bpy.ops.gpencil.data_unlink()
-            context.scene.objects.active = gactiveCurve
+            context.view_layer.objects.active = gactiveCurve
             # Smooth object
             bpy.ops.object.shade_smooth()
             # Return to first frame
@@ -742,7 +742,7 @@ class OBJECT_OT_meshfollow(Operator):
             for curveobject in curvelist:
                 if curveobject.type == 'CURVE':
                     curveobject.select_set(True)
-                    context.scene.objects.active = curveobject
+                    context.view_layer.objects.active = curveobject
                     bpy.ops.object.collection_link(group="Btrace")
                     # Materials
                     trace_mats = addtracemat(curveobject.data)
@@ -1167,7 +1167,7 @@ class OBJECT_OT_curvegrow(Operator):
             objs = context.selected_objects
             # Execute on multiple selected objects
             for i in objs:
-                context.scene.objects.active = i
+                context.view_layer.objects.active = i
                 obj = context.active_object
                 try:
                     obj.data.fill_mode = 'FULL'
@@ -1242,7 +1242,7 @@ class OBJECT_OT_reset(Operator):
         try:
             objs = context.selected_objects
             for i in objs:  # Execute on multiple selected objects
-                context.scene.objects.active = i
+                context.view_layer.objects.active = i
                 obj = context.active_object
                 obj.animation_data_clear()
                 if obj.type == 'CURVE':

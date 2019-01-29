@@ -420,7 +420,7 @@ def build_edge_frames(edges):
 
 
 def make_manifold_struts(truss_obj, od, segments):
-    bpy.context.scene.objects.active = truss_obj
+    bpy.context.view_layer.objects.active = truss_obj
     bpy.ops.object.editmode_toggle()
     truss_mesh = bmesh.from_edit_mesh(truss_obj.data).copy()
     bpy.ops.object.editmode_toggle()
@@ -494,7 +494,7 @@ def create_struts(self, context, ind, od, segments, solid, loops, manifold):
         bpy.context.scene.objects.link(obj)
         obj.select_set(True)
         obj.location = truss_obj.location
-        bpy.context.scene.objects.active = obj
+        bpy.context.view_layer.objects.active = obj
         mesh.update()
 
 

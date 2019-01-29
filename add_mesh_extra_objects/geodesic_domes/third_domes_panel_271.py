@@ -1121,7 +1121,7 @@ class GenerateGeodesicDome(Operator):
                 vefm_271.vefm_add_object(mesh)
                 last_generated_object = context.active_object
                 last_generated_object.location = (0, 0, 0)
-                context.scene.objects.active = last_generated_object
+                context.view_layer.objects.active = last_generated_object
             elif self.geodesic_types == 'Grid':
                 basegeodesic = forms_271.grid(self.grxres, self.gryres,
                        self.grxsz, self.grysz, 1.0, 1.0, 0, 0, 0,

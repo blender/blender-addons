@@ -1036,7 +1036,7 @@ def meshmerge(selectedobjects):
         # begin merging the mesh together as one
         for count in range(len(cloneobjects)):
             if count == 0:
-                bpy.context.scene.objects.active = cloneobjects[count]
+                bpy.context.view_layer.objects.active = cloneobjects[count]
                 print("Set Active Object:", cloneobjects[count].name)
             cloneobjects[count].select_set(True)
         bpy.ops.object.join()  # join object together
@@ -2030,7 +2030,7 @@ class OBJECT_OT_UTSelectedFaceSmooth(Operator):
                     i.select_set(False)  # deselect all objects
 
                 obj.select_set(True)  # set current object select
-                bpy.context.scene.objects.active = obj  # set active object
+                bpy.context.view_layer.objects.active = obj  # set active object
                 mesh = bmesh.new()
                 mesh.from_mesh(obj.data)
 
@@ -2089,7 +2089,7 @@ def rebuildmesh(obj):
     for i in bpy.context.scene.objects:
         i.select_set(False)  # deselect all objects
     obj.select_set(True)
-    bpy.context.scene.objects.active = obj
+    bpy.context.view_layer.objects.active = obj
 
     me_ob = bpy.data.meshes.new(("Re_" + obj.name))
     mesh = obj.data
@@ -2223,7 +2223,7 @@ def rebuildarmature(obj):
         i.select_set(False)  # deselect all objects
 
     ob_new.select_set(True)
-    bpy.context.scene.objects.active = obj
+    bpy.context.view_layer.objects.active = obj
 
     bpy.ops.object.mode_set(mode='EDIT')
     for bone in obj.data.edit_bones:
@@ -2236,7 +2236,7 @@ def rebuildarmature(obj):
     for i in bpy.context.scene.objects:
         i.select_set(False)  # deselect all objects
 
-    bpy.context.scene.objects.active = ob_new
+    bpy.context.view_layer.objects.active = ob_new
     bpy.ops.object.mode_set(mode='EDIT')
 
     for bone in obj.data.bones:
@@ -2567,7 +2567,7 @@ def udkcheckmeshline():
         i.select_set(False)  # deselect all objects
 
     objmesh.select_set(True)
-    bpy.context.scene.objects.active = objmesh  # set active mesh
+    bpy.context.view_layer.objects.active = objmesh  # set active mesh
     wedges = ObjMap()
     points = ObjMap()
     bpy.ops.object.mode_set(mode='EDIT')  # set in edit mode

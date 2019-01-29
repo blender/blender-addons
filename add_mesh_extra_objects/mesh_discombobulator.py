@@ -338,7 +338,7 @@ def doodads(object1, mesh1, dmin, dmax):
 
             # First we have to apply scaling and rotation to the mesh
             bpy.ops.object.select_pattern(pattern=bpy.context.scene.discomb.DISC_doodads[type_dood], extend=False)
-            bpy.context.scene.objects.active = bpy.data.objects[bpy.context.scene.discomb.DISC_doodads[type_dood]]
+            bpy.context.view_layer.objects.active = bpy.data.objects[bpy.context.scene.discomb.DISC_doodads[type_dood]]
             bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
 
             for polygon in bpy.data.objects[bpy.context.scene.discomb.DISC_doodads[type_dood]].data.polygons:
@@ -382,7 +382,7 @@ def protusions_repeat(object1, mesh1, r_prot):
 def setMatProt(discObj, origObj, sideProtMat, topProtMat):
     # First we put the materials in their slots
     bpy.ops.object.select_pattern(pattern=discObj.name, extend=False)
-    bpy.context.scene.objects.active = bpy.data.objects[discObj.name]
+    bpy.context.view_layer.objects.active = bpy.data.objects[discObj.name]
     try:
         origObj.material_slots[topProtMat]
         origObj.material_slots[sideProtMat]
@@ -405,7 +405,7 @@ def setMatProt(discObj, origObj, sideProtMat, topProtMat):
 def setMatDood(doodObj):
     # First we add the materials slots
     bpy.ops.object.select_pattern(pattern=doodObj.name, extend=False)
-    bpy.context.scene.objects.active = doodObj
+    bpy.context.view_layer.objects.active = doodObj
     for name in bpy.context.scene.discomb.DISC_doodads:
         try:
             bpy.ops.object.material_slot_add()
@@ -477,7 +477,7 @@ def discombobulate(minHeight, maxHeight, minTaper, maxTaper, sf1, sf2, sf3, sf4,
     # Reload the datas
     bpy.ops.object.select_all(action="DESELECT")
     bpy.ops.object.select_pattern(pattern=object.name, extend=False)
-    bpy.context.scene.objects.active = bpy.data.objects[object.name]
+    bpy.context.view_layer.objects.active = bpy.data.objects[object.name]
     obverts = bpy.context.active_object.data.vertices
     obpolygons = bpy.context.active_object.data.polygons
 
@@ -494,7 +494,7 @@ def discombobulate(minHeight, maxHeight, minTaper, maxTaper, sf1, sf2, sf3, sf4,
     setMatProt(object1, origObj, sideProtMat, topProtMat)
 
     bpy.ops.object.select_pattern(pattern=object1.name, extend=False)
-    bpy.context.scene.objects.active = bpy.data.objects[object1.name]
+    bpy.context.view_layer.objects.active = bpy.data.objects[object1.name]
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.normals_make_consistent(inside=False)
     bpy.ops.mesh.select_all(action='DESELECT')
@@ -516,11 +516,11 @@ def discombobulate(minHeight, maxHeight, minTaper, maxTaper, sf1, sf2, sf3, sf4,
         object2.scale = to_scale
 
     bpy.ops.object.select_pattern(pattern=object.name, extend=False)
-    bpy.context.scene.objects.active = bpy.data.objects[object.name]
+    bpy.context.view_layer.objects.active = bpy.data.objects[object.name]
     bpy.ops.object.delete()
 
     bpy.ops.object.select_pattern(pattern=object1.name, extend=False)
-    bpy.context.scene.objects.active = bpy.data.objects[object1.name]
+    bpy.context.view_layer.objects.active = bpy.data.objects[object1.name]
     bpy.context.scene.update()
 
     # translate, scale and rotate discombobulated results

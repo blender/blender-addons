@@ -889,7 +889,7 @@ class tessellate(Operator):
             scene = bpy.context.scene
             scene.objects.link(new_ob)
             new_ob.select_set(True)
-            bpy.context.scene.objects.active = new_ob
+            bpy.context.view_layer.objects.active = new_ob
             if self.merge:
                 bpy.ops.object.mode_set(mode='EDIT')
                 bpy.ops.mesh.select_mode(
@@ -1432,7 +1432,7 @@ class settings_tessellate(Operator):
         scene = bpy.context.scene
         scene.objects.link(temp_ob)
         temp_ob.select_set(True)
-        bpy.context.scene.objects.active = temp_ob
+        bpy.context.view_layer.objects.active = temp_ob
 
         try:
             bpy.ops.object.vertex_group_copy_to_linked()
@@ -1441,7 +1441,7 @@ class settings_tessellate(Operator):
 
         scene.objects.unlink(temp_ob)
         bpy.data.objects.remove(temp_ob)
-        bpy.context.scene.objects.active = self.ob
+        bpy.context.view_layer.objects.active = self.ob
 
         if self.merge:
             bpy.ops.object.mode_set(mode='EDIT')
@@ -1544,9 +1544,9 @@ class rotate_face(Operator):
         bpy.ops.object.mode_set(mode='OBJECT')
         for o in [obj for obj in bpy.data.objects if
                   obj.tissue_tessellate.generator == ob.name]:
-            bpy.context.scene.objects.active = o
+            bpy.context.view_layer.objects.active = o
             bpy.ops.object.update_tessellate()
-        bpy.context.scene.objects.active = ob
+        bpy.context.view_layer.objects.active = ob
         bpy.ops.object.mode_set(mode='EDIT')
 
         return {'FINISHED'}

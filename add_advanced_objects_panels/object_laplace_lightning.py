@@ -345,7 +345,7 @@ def writeArrayToCubes(arr, gridBU, orig, cBOOL=False, jBOOL=True):
             q.select_set(False)
             if q.name[0:5] == 'xCUBE':
                 q.select_set(True)
-                bpy.context.scene.objects.active = q
+                bpy.context.view_layer.objects.active = q
 
 
 def addVert(ob, pt, conni=-1):

@@ -255,7 +255,7 @@ def main(context, lat_props):
 
         bpy.ops.object.select_all(action='DESELECT')
         bpy.ops.object.select_pattern(pattern=lat.name, extend=False)
-        context.scene.objects.active = lat
+        context.view_layer.objects.active = lat
 
         context.scene.update()
 

@@ -60,7 +60,7 @@ def pix(self, obj):
     sca = self.size * (100 - self.gap) * .005
     bpy.ops.mesh.primitive_cube_add(layers=[True] + [False] * 19)
     bpy.ops.transform.resize(value=[sca] * 3)
-    bpy.context.scene.objects.active = dup
+    bpy.context.view_layer.objects.active = dup
     bpy.ops.object.parent_set(type='OBJECT')
 
 

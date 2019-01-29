@@ -70,7 +70,7 @@ def create_cutter(context, crack_type, scale, roughness):
             v.co *= scale
 
         if crack_type == 'SPHERE_ROUGH':
-            for v in context.scene.objects.active.data.vertices:
+            for v in context.view_layer.objects.active.data.vertices:
                 v.co[0] += roughness * scale * 0.2 * (random.random() - 0.5)
                 v.co[1] += roughness * scale * 0.1 * (random.random() - 0.5)
                 v.co[2] += roughness * scale * 0.1 * (random.random() - 0.5)
@@ -142,10 +142,10 @@ def getIslands(shard):
         shards = []
         for gi in range(0, gindex):
             bpy.ops.object.select_all(action='DESELECT')
-            bpy.context.scene.objects.active = shard
+            bpy.context.view_layer.objects.active = shard
             shard.select_set(True)
             bpy.ops.object.duplicate(linked=False, mode='DUMMY')
-            a = bpy.context.scene.objects.active
+            a = bpy.context.view_layer.objects.active
             sm = a.data
             print (a.name)
 
@@ -159,7 +159,7 @@ def getIslands(shard):
                     #print('getIslands: ' + str(x))
                     a.data.vertices[x].select = True
 
-            print(bpy.context.scene.objects.active.name)
+            print(bpy.context.view_layer.objects.active.name)
 
             bpy.ops.object.editmode_toggle()
             bpy.ops.mesh.delete()

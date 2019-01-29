@@ -215,7 +215,7 @@ class ModifiersSubsurfLevel_Set(Operator, BasePollCheck):
         try:
             if not selection:
                 for obj in bpy.data.objects:
-                    context.scene.objects.active = obj
+                    context.view_layer.objects.active = obj
                     bpy.ops.object.modifier_add(type='SUBSURF')
                     value = 0
                     for mod in obj.modifiers:

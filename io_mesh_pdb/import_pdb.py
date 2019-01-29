@@ -676,7 +676,7 @@ def draw_atoms_one_type(draw_all_atoms_type,
                         enter_editmode=False, location=(0, 0, 0),
                         rotation=(0, 0, 0), layers=current_layers)
 
-    ball = bpy.context.scene.objects.active
+    ball = bpy.context.view_layer.objects.active
     ball.scale  = (atom[3]*Ball_radius_factor,) * 3
 
     if atom[0] == "Vacancy":
@@ -977,7 +977,7 @@ def draw_sticks_skin(all_atoms,
 
     # This is for putting the radiu of the sticks onto
     # the desired value 'Stick_diameter'
-    bpy.context.scene.objects.active = new_stick_mesh
+    bpy.context.view_layer.objects.active = new_stick_mesh
     # EDIT mode
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
     bm = bmesh.from_edit_mesh(new_stick_mesh.data)
@@ -1062,7 +1062,7 @@ def draw_sticks_normal(all_atoms,
                                             rotation=(0, 0, 0),
                                             layers=current_layers)
         # Put the stick into the scene ...
-        stick = bpy.context.scene.objects.active
+        stick = bpy.context.view_layer.objects.active
         # ... and rotate the stick.
         stick.rotation_euler = euler
         # ... and name
@@ -1083,7 +1083,7 @@ def draw_sticks_normal(all_atoms,
                 for stick in list_group_sub:
                     stick.select_set(True)
                 bpy.ops.object.join()
-                list_group.append(bpy.context.scene.objects.active)
+                list_group.append(bpy.context.view_layer.objects.active)
                 bpy.ops.object.select_all(action='DESELECT')
                 list_group_sub = []
                 counter = 0
@@ -1096,7 +1096,7 @@ def draw_sticks_normal(all_atoms,
         for stick in list_group_sub:
             stick.select_set(True)
         bpy.ops.object.join()
-        list_group.append(bpy.context.scene.objects.active)
+        list_group.append(bpy.context.view_layer.objects.active)
         bpy.ops.object.select_all(action='DESELECT')
 
         for group in list_group:
@@ -1104,7 +1104,7 @@ def draw_sticks_normal(all_atoms,
         bpy.ops.object.join()
         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY',
                                    center='MEDIAN')
-        sticks = bpy.context.scene.objects.active
+        sticks = bpy.context.view_layer.objects.active
         sticks.active_material = stick_material
     else:
         bpy.ops.object.empty_add(type='ARROWS',
@@ -1112,7 +1112,7 @@ def draw_sticks_normal(all_atoms,
                                   location=(0, 0, 0),
                                   rotation=(0, 0, 0),
                                   layers=current_layers)
-        sticks = bpy.context.scene.objects.active
+        sticks = bpy.context.view_layer.objects.active
         for stick in list_group_sub:
             stick.parent = sticks
 
@@ -1389,4 +1389,4 @@ def import_pdb(Ball_type,
 
     # activate the last selected object
     if obj:
-        bpy.context.scene.objects.active = obj
+        bpy.context.view_layer.objects.active = obj

@@ -428,7 +428,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
                 i.select_set(False) #deselect all objects
             ob_new.select_set(True)
             #set current armature to edit the bone
-            bpy.context.scene.objects.active = ob_new
+            bpy.context.view_layer.objects.active = ob_new
             #set mode to able to edit the bone
             if bpy.ops.object.mode_set.poll():
                 bpy.ops.object.mode_set(mode='EDIT')
