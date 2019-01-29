@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Turnaround Camera",
     "author": "Antonio Vazquez (antonioya)",
-    "version": (0, 2, 5),
-    "blender": (2, 68, 0),
+    "version": (0, 3, 0),
+    "blender": (2, 80, 0),
     "location": "View3D > Toolshelf > Animation Tab > Turnaround Camera",
     "description": "Add a camera rotation around selected object",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -46,7 +46,7 @@ from bpy.types import (
 # ------------------------------------------------------
 # Action class
 # ------------------------------------------------------
-class RunAction(Operator):
+class CAMERATURN_OT_RunAction(Operator):
     bl_idname = "object.rotate_around"
     bl_label = "Turnaround"
     bl_description = "Create camera rotation around selected object"
@@ -182,7 +182,7 @@ class RunAction(Operator):
 # ------------------------------------------------------
 # Define Properties
 # ------------------------------------------------------
-class CameraTurnProps(PropertyGroup):
+class CAMERATURN_Props(PropertyGroup):
 
     camera_revol_x: FloatProperty(
             name='X', min=0, max=25,
@@ -261,12 +261,12 @@ class CameraTurnProps(PropertyGroup):
 # ------------------------------------------------------
 # UI Class
 # ------------------------------------------------------
-class PanelUI(Panel):
+class CAMERATURN_PT_ui(Panel):
     bl_idname = "CAMERA_TURN_PT_main"
     bl_label = "Turnaround Camera"
     bl_space_type = "VIEW_3D"
-    bl_region_type = "TOOLS"
-    bl_category = "Animation"
+    bl_region_type = "UI"
+    bl_category = "View"
 
     def draw(self, context):
         layout = self.layout
@@ -297,13 +297,13 @@ class PanelUI(Panel):
                 row.prop(scene, "frame_end")
 
                 col = layout.column(align=True)
-                split = col.split(percentage=0.85, align=True)
+                split = col.split(factor=0.85, align=True)
                 split.prop(turn_camera, "camera_revol_x")
                 split.prop(turn_camera, "inverse_x", toggle=True)
-                split = col.split(percentage=0.85, align=True)
+                split = col.split(factor=0.85, align=True)
                 split.prop(turn_camera, "camera_revol_y")
                 split.prop(turn_camera, "inverse_y", toggle=True)
-                split = col.split(percentage=0.85, align=True)
+                split = col.split(factor=0.85, align=True)
                 split.prop(turn_camera, "camera_revol_z")
                 split.prop(turn_camera, "inverse_z", toggle=True)
 
@@ -330,17 +330,24 @@ class PanelUI(Panel):
 # ------------------------------------------------------
 # Registration
 # ------------------------------------------------------
-def register():
-    bpy.utils.register_class(RunAction)
-    bpy.utils.register_class(PanelUI)
-    bpy.utils.register_class(CameraTurnProps)
-    bpy.types.Scene.turn_camera = PointerProperty(type=CameraTurnProps)
+classes = (
+    CAMERATURN_OT_RunAction,
+    CAMERATURN_PT_ui,
+    CAMERATURN_Props
+)
 
+def register():
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
+
+    bpy.types.Scene.turn_camera = PointerProperty(type=CAMERATURN_Props)
 
 def unregister():
-    bpy.utils.unregister_class(RunAction)
-    bpy.utils.unregister_class(PanelUI)
-    bpy.utils.unregister_class(CameraTurnProps)
+    from bpy.utils import unregister_class
+    for cls in reversed(classes):
+        unregister_class(cls)
+
     del bpy.types.Scene.turn_camera
 
 
