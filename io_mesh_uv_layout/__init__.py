@@ -212,7 +212,7 @@ class ExportUVLayout(bpy.types.Operator):
         if polygon.material_index < len(mesh.materials):
             material = mesh.materials[polygon.material_index]
             if material is not None:
-                return tuple(material.diffuse_color)
+                return tuple(material.diffuse_color)[:3]
         return default
 
     def get_exporter(self):
