@@ -205,7 +205,7 @@ def create_materials(filepath, relpath,
             if emit_value > 1e-6:
                 print("WARNING, emit value unsupported by Principled BSDF shader, skipped.")
                 # We have to adapt it to diffuse color too...
-                emit_value /= sum(context_material.diffuse_color) / 3.0
+                emit_value /= sum(tuple(context_material.diffuse_color)[:3]) / 3.0
             # ~ context_material.emit = emit_value
 
             # FIXME, how else to use this?
