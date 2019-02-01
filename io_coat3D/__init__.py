@@ -26,7 +26,7 @@ bl_info = {
     "warning": "",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Import-Export/3dcoat_applink",
-    "category": "Import-Export",
+    "category": "3D View",
 }
 
 
