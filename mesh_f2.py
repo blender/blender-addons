@@ -160,7 +160,8 @@ def quad_from_edge(bm, edge_sel, context, event):
                             uv_ori[loop.vert.index] = loop[uv_layer].uv
                 if len(uv_ori) == 4 or len(uv_ori) == 3:
                     for loop in face.loops:
-                        loop[uv_layer].uv = uv_ori[loop.vert.index]
+                        if loop.vert.index in uv_ori:
+                            loop[uv_layer].uv = uv_ori[loop.vert.index]
 
     # toggle mode, to force correct drawing
     bpy.ops.object.mode_set(mode='OBJECT')
