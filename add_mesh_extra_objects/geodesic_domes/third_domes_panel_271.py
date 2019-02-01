@@ -16,12 +16,13 @@ from bpy.props import (
 from math import pi
 from mathutils import Vector  # used for vertex.vector values
 
-
 # global #
 last_generated_object = None
 last_imported_mesh = None
 basegeodesic = None
 imported_hubmesh_to_use = None
+error_message = ""
+geodesic_not_yet_called = True
 # global end #
 
 # ###### EIND FOR SHAPEKEYS ######
@@ -1087,14 +1088,14 @@ class GenerateGeodesicDome(Operator):
             multi_label(help_text, box, text_width)
 
     def execute(self, context):
-        global last_generated_object, last_imported_mesh, basegeodesic, imported_hubmesh_to_use
+        global last_generated_object, last_imported_mesh, basegeodesic, imported_hubmesh_to_use, error_message
         # default superformparam = [3, 10, 10, 10, 1, 1, 4, 10, 10, 10, 1, 1, 0, 0, 0.0, 0.0, 0, 0]]
         superformparam = [self.um, self.un1, self.un2, self.un3, self.ua,
                           self.ub, self.vm, self.vn1, self.vn2, self.vn3,
                           self.va, self.vb, self.uact, self.vact,
                           self.uturn * pi, self.vturn * pi,
                           self.utwist, self.vtwist]
-        context.scene.error_message = ""
+        error_message = ""
         if self.mainpages == 'Main':
             if self.geodesic_types == "Geodesic":
                 tmp_fs = self.tri_hex_star
@@ -1170,7 +1171,7 @@ class GenerateGeodesicDome(Operator):
                 obj_name = self.import_mesh_name
                 if obj_name == "None":
                     message = "Fill in a name \nof an existing mesh\nto be imported"
-                    context.scene.error_message = message
+                    error_message = message
                     self.report({"INFO"}, message)
                     print("***INFO*** You have to fill in the name of an existing mesh")
                 else:
@@ -1185,7 +1186,7 @@ class GenerateGeodesicDome(Operator):
                         bpy.context.active_object.location = (0, 0, 0)
                     else:
                         message = obj_name + " does not exist \nor is not a Mesh"
-                        context.scene.error_message = message
+                        error_message = message
                         bpy.ops.object.dialog_operator('INVOKE_DEFAULT')
                         self.report({'ERROR'}, message)
                         print("***ERROR***" + obj_name + " does not exist or is not a Mesh")
@@ -1218,12 +1219,12 @@ class GenerateGeodesicDome(Operator):
                 except:
                     message = "***ERROR*** \nEither no mesh for hub\nor " + \
                               hmeshname + " available"
-                    context.scene.error_message = message
+                    error_message = message
                     bpy.ops.object.dialog_operator('INVOKE_DEFAULT')
                     print(message)
             else:
                 message = "***INFO***\nEnable Hubs first"
-                context.scene.error_message = message
+                error_message = message
                 print("\n***INFO*** Enable Hubs first")
         elif self.mainpages == "Struts":
             struttype = self.struttype
@@ -1255,7 +1256,7 @@ class GenerateGeodesicDome(Operator):
                     last_generated_object.location = (0, 0, 0)
                 else:
                     message = "***ERROR***\nStrut object " + strutimpmesh + "\nis not a Mesh"
-                    context.scene.error_message = message
+                    error_message = message
                     bpy.ops.object.dialog_operator('INVOKE_DEFAULT')
                     print("***ERROR*** Strut object is not a Mesh")
             else:
@@ -1287,7 +1288,7 @@ class GenerateGeodesicDome(Operator):
                                             )
                     else:
                         message = "***ERROR***\nNo imported message available\n" + "last geodesic used"
-                        context.scene.error_message = message
+                        error_message = message
                         bpy.ops.object.dialog_operator('INVOKE_DEFAULT')
                         print("\n***ERROR*** No imported mesh available \nLast geodesic used!")
                         faceobject = vefm_271.facetype(
@@ -1325,7 +1326,7 @@ class GenerateGeodesicDome(Operator):
             except:
                 message = "***ERROR***\n Contakt PKHG, something wrong happened"
 
-            context.scene.error_message = message
+            error_message = message
             bpy.ops.object.dialog_operator('INVOKE_DEFAULT')
 
         if self.load_parameters:
@@ -1352,17 +1353,16 @@ class GenerateGeodesicDome(Operator):
                     # bpy.context.scene.instant_filenames = filenames
             except:
                 message = "***ERROR***\n Contakt PKHG,\nsomething went wrong reading params happened"
-            context.scene.error_message = message
+            error_message = message
             bpy.ops.object.dialog_operator('INVOKE_DEFAULT')
 
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        global basegeodesic
+        global basegeodesic, geodesic_not_yet_called
         bpy.ops.view3d.snap_cursor_to_center()
-        tmp = context.scene.geodesic_not_yet_called
-        if tmp:
-            context.scene.geodesic_not_yet_called = False
+        if geodesic_not_yet_called:
+            geodesic_not_yet_called = False
         self.execute(context)
 
         return {'FINISHED'}
@@ -1436,7 +1436,7 @@ class DialogOperator(Operator):
 
     def draw(self, context):
         layout = self.layout
-        message = context.scene.error_message
+        message = error_message
         col = layout.column()
         tmp = message.split("\n")
         for el in tmp:

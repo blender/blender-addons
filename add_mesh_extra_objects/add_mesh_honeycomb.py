@@ -230,7 +230,7 @@ class add_mesh_honeycomb(bpy.types.Operator):
             min=1, max=100,
             description='Number of the columns'
             )
-    layers = BoolVectorProperty(
+    layers: BoolVectorProperty(
             name="Layers",
             size=20,
             subtype='LAYER',

@@ -182,12 +182,12 @@ def add_diamond(segments, girdle_radius, table_radius,
 
         # Row for flat side
         verts_flat.append(len(verts))
-        vec = quat * Vector((table_radius, 0.0, height_flat))
+        vec = quat @ Vector((table_radius, 0.0, height_flat))
         verts.append(vec)
 
         # Row for the middle/girdle
         verts_girdle.append(len(verts))
-        vec = quat * Vector((girdle_radius, 0.0, height_middle))
+        vec = quat @ Vector((girdle_radius, 0.0, height_middle))
         verts.append(vec)
 
     # Flat face

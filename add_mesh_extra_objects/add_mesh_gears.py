@@ -261,7 +261,7 @@ def add_gear(teethNum, radius, Ad, De, base, p_angle,
     if rack:
         teethNum = 1
 
-    print(radius, width, conangle)
+    #print(radius, width, conangle)
     scale = (radius - 2 * width * tan(conangle)) / radius
 
     verts = []
@@ -660,8 +660,7 @@ class AddGear(Operator):
             )
 
         # Actually create the mesh object from this geometry data.
-        base = create_mesh_object(context, verts, [], faces, "Gear")
-        obj = base.object
+        obj = create_mesh_object(context, verts, [], faces, "Gear")
 
         # XXX, supporting adding in editmode is move involved
         if obj.mode != 'EDIT':
@@ -784,16 +783,15 @@ class AddWormGear(Operator):
             )
 
         # Actually create the mesh object from this geometry data.
-        base = create_mesh_object(context, verts, [], faces, "Worm Gear")
-        obj = base.object
+        obj = create_mesh_object(context, verts, [], faces, "Worm Gear")
 
         # XXX, supporting adding in editmode is move involved
         if obj.mode != 'EDIT':
             # Create vertex groups from stored vertices.
-            tipGroup = obj.vertex_groups.new(name='Tips')
+            tipGroup = obj.vertex_groups.new(name = 'Tips')
             tipGroup.add(verts_tip, 1.0, 'ADD')
 
-            valleyGroup = obj.vertex_groups.new('Valleys')
+            valleyGroup = obj.vertex_groups.new(name = 'Valleys')
             valleyGroup.add(verts_valley, 1.0, 'ADD')
 
         return {'FINISHED'}

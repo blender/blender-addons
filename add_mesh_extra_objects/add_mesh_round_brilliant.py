@@ -230,7 +230,7 @@ def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
 
     # Create object and link it into scene.
     from bpy_extras import object_utils
-    dobj = object_utils.object_data_add(context, dmesh, operator=None, name="dobj").object
+    dobj = object_utils.object_data_add(context, dmesh, operator=None, name="dobj")
 
     # activate and select object
     bpy.context.view_layer.objects.active = dobj

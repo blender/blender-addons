@@ -169,7 +169,7 @@ class AddMengerSponge(bpy.types.Operator):
             name="Rotation",
             subtype='EULER',
             )
-    layers = BoolVectorProperty(
+    layers: BoolVectorProperty(
             name="Layers",
             size=20,
             subtype='LAYER',
@@ -184,7 +184,7 @@ class AddMengerSponge(bpy.types.Operator):
         mesh = bpy.data.meshes.new(name='Sponge')
         mesh.from_pydata(vertices, [], faces)
         uvs = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)]
-        mesh.uv_textures.new()
+        mesh.uv_layers.new()
         for i, uvloop in enumerate(mesh.uv_layers.active.data):
             uvloop.uv = uvs[i % 4]
 

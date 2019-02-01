@@ -742,9 +742,9 @@ class addBeam(Operator):
         layout = self.layout
 
         box = layout.box()
-        split = box.split(percentage=0.85, align=True)
+        split = box.split(factor=0.85, align=True)
         split.prop(self, "Type", text="")
-        split.prop(self, "Cursor", text="", icon="CURSOR")
+        split.prop(self, "Cursor", text="")
 
         box.prop(self, "beamZ")
         box.prop(self, "beamX")

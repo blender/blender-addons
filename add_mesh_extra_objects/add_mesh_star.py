@@ -123,11 +123,11 @@ def add_star(points, outer_radius, inner_radius, height):
             radius = inner_radius
 
         edgeloop_top.append(len(verts))
-        vec = quat * Vector((radius, 0, half_height))
+        vec = quat @ Vector((radius, 0, half_height))
         verts.append(vec)
 
         edgeloop_bottom.append(len(verts))
-        vec = quat * Vector((radius, 0, -half_height))
+        vec = quat @ Vector((radius, 0, -half_height))
         verts.append(vec)
 
     faces_top = createFaces([vert_idx_top], edgeloop_top, closed=True)
