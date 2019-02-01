@@ -1413,6 +1413,7 @@ def x3d_parse(path):
     """
     import xml.dom.minidom
     import xml.sax
+    from xml.sax import handler
 
     '''
     try:    doc = xml.dom.minidom.parse(path)
@@ -1438,6 +1439,8 @@ def x3d_parse(path):
 
     parser = xml.sax.make_parser()
     orig_set_content_handler = parser.setContentHandler
+    parser.setFeature(handler.feature_external_ges, False)
+    parser.setFeature(handler.feature_external_pes, False)
     parser.setContentHandler = set_content_handler
 
     doc = xml.dom.minidom.parseString(data, parser)
