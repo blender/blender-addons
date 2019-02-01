@@ -244,11 +244,6 @@ class SpiroFitSpline(Operator):
             precision=3,
             description="Randomise radius of spline controlpoints"
             )
-    x_ray : BoolProperty(
-            name="X-Ray",
-            default=False,
-            description="X-Ray - make the object draw in front of others"
-            )
     random_seed : IntProperty(
             name="Random Seed",
             default=1,
@@ -284,7 +279,6 @@ class SpiroFitSpline(Operator):
         row.prop(self, "auto_refresh", toggle=True, icon="AUTO", icon_only=True)
         row.prop(self, "refresh", toggle=True, icon="FILE_REFRESH", icon_only=True)
         row.operator("object.add_spirofit_spline", text="Add")
-        row.prop(self, "x_ray", toggle=True, icon_only=True, icon="RESTRICT_VIEW_OFF")
         row.prop(self, "origin_to_start", toggle=True, icon="CURVE_DATA", icon_only=True)
 
         col = layout.column(align=True)
@@ -293,7 +287,7 @@ class SpiroFitSpline(Operator):
         col.prop(self, "map_method")
         col.separator()
         col.prop(self, "spire_resolution")
-        row = col.row(align=True).split(0.9, align=True)
+        row = col.row(align=True).split(factor=0.9, align=True)
         row.prop(self, "spires")
         row.prop(self, "direction", toggle=True, text="", icon='ARROW_LEFTRIGHT')
         col.prop(self, "offset")
@@ -326,7 +320,7 @@ class SpiroFitSpline(Operator):
         #undo = context.preferences.edit.use_global_undo
         #context.preferences.edit.use_global_undo = False
 
-        #bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.select_all(action='DESELECT')
 
         r.seed(self.random_seed)
 
@@ -354,8 +348,7 @@ class SpiroFitSpline(Operator):
                 self.random_radius,
                 self.twist_mode,
                 self.twist_smooth,
-                self.tilt,
-                self.x_ray
+                self.tilt
                 )
 
         if self.origin_to_start is True:
@@ -526,11 +519,6 @@ class BounceSpline(Operator):
             precision=3,
             description="Randomise radius of spline controlpoints"
             )
-    x_ray : BoolProperty(
-            name="X-Ray",
-            default=False,
-            description="X-Ray - make the object draw in front of others"
-            )
     random_seed : IntProperty(
             name="Random Seed",
             default=1,
@@ -565,7 +553,6 @@ class BounceSpline(Operator):
         row.prop(self, "auto_refresh", toggle=True, icon="AUTO", icon_only=True)
         row.prop(self, "refresh", toggle=True, icon="FILE_REFRESH", icon_only=True)
         row.operator("object.add_bounce_spline", text="Add")
-        row.prop(self, "x_ray", toggle=True, icon_only=True, icon="RESTRICT_VIEW_OFF")
         row.prop(self, "origin_to_start", toggle=True, icon="CURVE_DATA", icon_only=True)
 
         col = layout.column(align=True)
@@ -601,7 +588,7 @@ class BounceSpline(Operator):
         #undo = context.preferences.edit.use_global_undo
         #context.preferences.edit.use_global_undo = False
 
-        #bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.select_all(action='DESELECT')
 
         r.seed(self.random_seed)
 
@@ -626,8 +613,7 @@ class BounceSpline(Operator):
                 self.random_radius,
                 self.twist_mode,
                 self.twist_smooth,
-                self.tilt,
-                self.x_ray
+                self.tilt
                 )
 
         if self.origin_to_start is True:
@@ -757,11 +743,6 @@ class CatenaryCurve(Operator):
             precision=3,
             description="Randomise radius of spline controlpoints"
             )
-    x_ray : BoolProperty(
-            name="X-Ray",
-            default=False,
-            description="X-Ray - make the object draw in front of others"
-            )
     random_seed : IntProperty(
             name="Random Seed",
             default=1,
@@ -797,7 +778,6 @@ class CatenaryCurve(Operator):
         row.prop(self, "auto_refresh", toggle=True, icon="AUTO", icon_only=True)
         row.prop(self, "refresh", toggle=True, icon="FILE_REFRESH", icon_only=True)
         row.operator("object.add_catenary_curve", text="Add")
-        row.prop(self, "x_ray", toggle=True, icon_only=True, icon="RESTRICT_VIEW_OFF")
         row.prop(self, "origin_to_start", toggle=True, icon="CURVE_DATA", icon_only=True)
 
         col = layout.column(align=True)
@@ -824,9 +804,11 @@ class CatenaryCurve(Operator):
             return {'PASS_THROUGH'}
 
         try:
-            ob1 = bpy.context.active_object
-            ob1.select_set(False)
-            ob2 = bpy.context.selected_objects[0]
+            #ob1 = bpy.context.active_object
+            #ob1.select = False
+            ob1 = bpy.context.selected_objects[0]
+            ob2 = bpy.context.selected_objects[1]
+
             start = ob1.location
             end = ob2.location
             if (start[0] == end[0]) and (start[1] == end[1]):
@@ -839,7 +821,7 @@ class CatenaryCurve(Operator):
                         "Catenary could not be completed. Operation Cancelled")
             return {'CANCELLED'}
 
-        #bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.select_all(action='DESELECT')
 
         #undo = context.preferences.edit.use_global_undo
         #context.preferences.edit.use_global_undo = False
@@ -864,8 +846,7 @@ class CatenaryCurve(Operator):
                 self.random_radius,
                 self.twist_mode,
                 self.twist_smooth,
-                self.tilt,
-                self.x_ray
+                self.tilt
                 )
 
         if self.origin_to_start is True:
@@ -895,15 +876,15 @@ def add_curve_object(
             spline_radius=0.0,
             twist_mode='MINIMUM',
             twist_smooth=0.0,
-            tilt=0.0,
-            x_ray=False
+            tilt=0.0
             ):
 
+    scene = bpy.context.scene
+    vl = bpy.context.view_layer
     curve = bpy.data.curves.new(spline_name, 'CURVE')
     curve.dimensions = '3D'
     spline = curve.splines.new(spline_type)
     cur = bpy.data.objects.new(spline_name, curve)
-
     spline.radius_interpolation = 'BSPLINE'
     spline.tilt_interpolation = 'BSPLINE'
 
@@ -920,7 +901,7 @@ def add_curve_object(
         for i in range(len(verts)):
             spline.points[i].co = verts[i][0], verts[i][1], verts[i][2], 1
 
-    bpy.context.scene.collection.objects.link(cur)
+    scene.collection.objects.link(cur)
     cur.data.use_uv_as_generated = True
     cur.data.resolution_u = resolution_u
     cur.data.fill_mode = 'FULL'
@@ -930,21 +911,21 @@ def add_curve_object(
     cur.data.twist_mode = twist_mode
     cur.data.twist_smooth = twist_smooth
     cur.matrix_world = matrix
-    #bpy.context.scene.objects.active = cur
     cur.select_set(True)
-    if x_ray is True:
-        cur.show_x_ray = x_ray
+    vl.objects.active = cur
     return
 
 
 def move_origin_to_start():
     active = bpy.context.active_object
     spline = active.data.splines[0]
+
     if spline.type == 'BEZIER':
-        start = active.matrix_world * spline.bezier_points[0].co
+        start = active.matrix_world @ spline.bezier_points[0].co
     else:
-        start = active.matrix_world * spline.points[0].co
+        start = active.matrix_world @ spline.points[0].co
         start = start[:-1]
+
     cursor = bpy.context.scene.cursor_location.copy()
     bpy.context.scene.cursor_location = start
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
@@ -976,22 +957,22 @@ def draw_spline_settings(self):
 
 
 # ------------------------------------------------------------
-# Tools Panel > Create
+# Spline Panel > VIEW_3D
 # ------------------------------------------------------------
 class SplinePanel(Panel):
+    bl_label = "Spline Generator"
     bl_idname = "VIEW3D_PT_spirofit_spline"
     bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
     bl_context = "objectmode"
-    bl_region_type = "TOOLS"
-    bl_label = "Spline"
-    #bl_category = "Create"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_category = "Spline"
+    #bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         col = self.layout.column(align=True)
-        col.operator(SpiroFitSpline.bl_idname, icon="FORCE_MAGNETIC")
-        col.operator(BounceSpline.bl_idname, icon="FORCE_HARMONIC")
-        col.operator(CatenaryCurve.bl_idname, icon="FORCE_CURVE")
+        col.operator(SpiroFitSpline.bl_idname, icon="CURVE_DATA")
+        col.operator(BounceSpline.bl_idname, icon="CURVE_DATA")
+        col.operator(CatenaryCurve.bl_idname, icon="CURVE_DATA")
 
 
 # ------------------------------------------------------------
