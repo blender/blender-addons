@@ -244,13 +244,12 @@ class INFO_MT_curve_knots_add(Menu):
 
 # Define "Extras" menus
 def menu_func(self, context):
-    if context.mode != 'OBJECT':
-        # fix in D2142 will allow to work in EDIT_CURVE
-        return None
-
     layout = self.layout
 
     layout.operator_menu_enum("curve.curveaceous_galore", "ProfileType", icon='CURVE_DATA')
+    if context.mode != 'OBJECT':
+        # fix in D2142 will allow to work in EDIT_CURVE
+        return None
     layout.operator_menu_enum("curve.spirals", "spiral_type", icon='CURVE_DATA')
     layout.separator()
 

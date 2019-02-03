@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Simple Curve",
     "author": "Spivak Vladimir (http://cwolf3d.korostyshev.net)",
-    "version": (1, 5, 4),
+    "version": (1, 5, 5),
     "blender": (2, 80, 0),
     "location": "View3D > Add > Curve",
     "description": "Adds Simple Curve",
@@ -32,6 +32,7 @@ bl_info = {
 # ------------------------------------------------------------
 
 import bpy
+from bpy_extras import object_utils
 from bpy.types import (
         Operator,
         Menu,
@@ -392,56 +393,74 @@ def align_matrix(context, location):
 
     return align_matrix
 
+# ------------------------------------------------------------
+# get array of vertcoordinates according to splinetype
+def vertsToPoints(Verts, splineType):
+
+    # main vars
+    vertArray = []
+
+    # array for BEZIER spline output (V3)
+    if splineType == 'BEZIER':
+        for v in Verts:
+            vertArray += v
+
+    # array for nonBEZIER output (V4)
+    else:
+        for v in Verts:
+            vertArray += v
+            if splineType == 'NURBS':
+                # for nurbs w=1
+                vertArray.append(1)
+            else:
+                # for poly w=0
+                vertArray.append(0)
+    return vertArray
+
 
 # ------------------------------------------------------------
 # Main Function
 
 def main(context, self, align_matrix):
-    # create object
-    scene = bpy.context.scene
+    # output splineType 'POLY' 'NURBS' 'BEZIER'
+    splineType = self.outputType
     
+    # create object
     if bpy.context.mode == 'EDIT_CURVE':
-        newCurve = context.active_object.data
-        newSpline = newCurve.splines.new('BEZIER')          # spline
+        Curve = context.active_object
+        newSpline = Curve.data.splines.new(type=splineType)          # spline
+        Curve.matrix_world = align_matrix  # apply matrix
+        Curve.rotation_euler = self.Simple_rotation_euler
     else:
         name = self.Simple_Type  # Type as name
         # create curve
     
         newCurve = bpy.data.curves.new(name, type='CURVE')  # curvedatablock
-        newSpline = newCurve.splines.new('BEZIER')          # spline
+        newSpline = newCurve.splines.new(type=splineType)          # spline
 
         # set curveOptions
         newCurve.dimensions = self.shape
         
         # create object with newCurve
-        SimpleCurve = bpy.data.objects.new(name, newCurve)  # object
-        scene.collection.objects.link(SimpleCurve)  # place in active scene
+        SimpleCurve = object_utils.object_data_add(context, newCurve, operator=self)  # place in active scene
         SimpleCurve.select_set(True)
         SimpleCurve.matrix_world = align_matrix  # apply matrix
         SimpleCurve.rotation_euler = self.Simple_rotation_euler
-
-    
-    newSpline.use_endpoint_u = True
 
     sides = abs(int((self.Simple_endangle - self.Simple_startangle) / 90))
 
     # get verts
     if self.Simple_Type == 'Point':
         verts = SimplePoint()
-        newSpline.use_cyclic_u = False
 
     if self.Simple_Type == 'Line':
         verts = SimpleLine(self.Simple_startlocation, self.Simple_endlocation)
-        newSpline.use_cyclic_u = False
-        newCurve.dimensions = '3D'
 
     if self.Simple_Type == 'Distance':
         verts = SimpleDistance(self.Simple_length, self.Simple_center)
-        newSpline.use_cyclic_u = False
 
     if self.Simple_Type == 'Angle':
         verts = SimpleAngle(self.Simple_length, self.Simple_angle)
-        newSpline.use_cyclic_u = False
 
     if self.Simple_Type == 'Circle':
         if self.Simple_sides < 4:
@@ -449,11 +468,9 @@ def main(context, self, align_matrix):
         if self.Simple_radius == 0:
             return {'FINISHED'}
         verts = SimpleCircle(self.Simple_sides, self.Simple_radius)
-        newSpline.use_cyclic_u = True
 
     if self.Simple_Type == 'Ellipse':
         verts = SimpleEllipse(self.Simple_a, self.Simple_b)
-        newSpline.use_cyclic_u = True
 
     if self.Simple_Type == 'Arc':
         if self.Simple_sides < sides:
@@ -464,7 +481,6 @@ def main(context, self, align_matrix):
                     self.Simple_sides, self.Simple_radius,
                     self.Simple_startangle, self.Simple_endangle
                     )
-        newSpline.use_cyclic_u = False
 
     if self.Simple_Type == 'Sector':
         if self.Simple_sides < sides:
@@ -475,7 +491,6 @@ def main(context, self, align_matrix):
                     self.Simple_sides, self.Simple_radius,
                     self.Simple_startangle, self.Simple_endangle
                     )
-        newSpline.use_cyclic_u = True
 
     if self.Simple_Type == 'Segment':
         if self.Simple_sides < sides:
@@ -492,20 +507,17 @@ def main(context, self, align_matrix):
                     self.Simple_sides, self.Simple_b, self.Simple_a,
                     self.Simple_startangle, self.Simple_endangle
                     )
-        newSpline.use_cyclic_u = True
 
     if self.Simple_Type == 'Rectangle':
         verts = SimpleRectangle(
                     self.Simple_width, self.Simple_length,
                     self.Simple_rounded, self.Simple_center
                     )
-        newSpline.use_cyclic_u = True
 
     if self.Simple_Type == 'Rhomb':
         verts = SimpleRhomb(
                     self.Simple_width, self.Simple_length, self.Simple_center
                     )
-        newSpline.use_cyclic_u = True
 
     if self.Simple_Type == 'Polygon':
         if self.Simple_sides < 3:
@@ -513,7 +525,6 @@ def main(context, self, align_matrix):
         verts = SimplePolygon(
                     self.Simple_sides, self.Simple_radius
                     )
-        newSpline.use_cyclic_u = True
 
     if self.Simple_Type == 'Polygon_ab':
         if self.Simple_sides < 3:
@@ -521,248 +532,258 @@ def main(context, self, align_matrix):
         verts = SimplePolygon_ab(
                     self.Simple_sides, self.Simple_a, self.Simple_b
                     )
-        newSpline.use_cyclic_u = True
 
     if self.Simple_Type == 'Trapezoid':
         verts = SimpleTrapezoid(
                     self.Simple_a, self.Simple_b, self.Simple_h, self.Simple_center
                     )
-        newSpline.use_cyclic_u = True
 
-    vertArray = []
-    for v in verts:
-        vertArray += v
+    # set curveOptions
+    newSpline.use_cyclic_u = self.use_cyclic_u
+    newSpline.use_endpoint_u = self.endp_u
+    newSpline.order_u = self.order_u
+    
+    # turn verts into array
+    vertArray = vertsToPoints(verts, splineType)
+        
+    # create spline from vertarray
+    if splineType == 'BEZIER':
+        newSpline.bezier_points.add(int(len(vertArray) * 0.33))
+        newSpline.bezier_points.foreach_set('co', vertArray)
+        all_points = [p for p in newSpline.bezier_points]
+        for point in newSpline.bezier_points:
+            point.handle_right_type = self.handleType
+            point.handle_left_type = self.handleType
+    else:
+        newSpline.points.add(int(len(vertArray) * 0.25 - 1))
+        newSpline.points.foreach_set('co', vertArray)
+        newSpline.use_endpoint_u = True
+        all_points = [p for p in newSpline.points]
+    
+    n = len(all_points)
 
-    newSpline.bezier_points.add(int(len(vertArray) * 0.333333333))
-    newSpline.bezier_points.foreach_set('co', vertArray)
-
-    all_points = [p for p in newSpline.bezier_points]
     d = 2 * 0.27606262
-    n = 0
-    for p in all_points:
-        p.handle_right_type = 'VECTOR'
-        p.handle_left_type = 'VECTOR'
-        n += 1
 
-    if self.Simple_Type == 'Circle' or self.Simple_Type == 'Arc' or \
-            self.Simple_Type == 'Sector' or self.Simple_Type == 'Segment' or \
-            self.Simple_Type == 'Ellipse':
+    if splineType == 'BEZIER':
+        if self.Simple_Type == 'Circle' or self.Simple_Type == 'Arc' or \
+           self.Simple_Type == 'Sector' or self.Simple_Type == 'Segment' or \
+           self.Simple_Type == 'Ellipse':
 
-        for p in all_points:
-            p.handle_right_type = 'FREE'
-            p.handle_left_type = 'FREE'
+            for p in all_points:
+                p.handle_right_type = 'FREE'
+                p.handle_left_type = 'FREE'
 
-    if self.Simple_Type == 'Circle':
-        i = 0
-        for p1 in all_points:
-            if i != n - 1:
-                p2 = all_points[i + 1]
-                u1 = asin(p1.co.y / self.Simple_radius)
-                u2 = asin(p2.co.y / self.Simple_radius)
-                if p1.co.x > 0 and p2.co.x < 0:
-                    u1 = acos(p1.co.x / self.Simple_radius)
-                    u2 = acos(p2.co.x / self.Simple_radius)
-                elif p1.co.x < 0 and p2.co.x > 0:
-                    u1 = acos(p1.co.x / self.Simple_radius)
-                    u2 = acos(p2.co.x / self.Simple_radius)
-                u = u2 - u1
-                if u < 0:
-                    u = -u
-                l = 4 / 3 * tan(1 / 4 * u) * self.Simple_radius
-                v1 = Vector((-p1.co.y, p1.co.x, 0))
-                v1.normalize()
-                v2 = Vector((-p2.co.y, p2.co.x, 0))
-                v2.normalize()
-                vh1 = v1 * l
-                vh2 = v2 * l
-                v1 = Vector((p1.co.x, p1.co.y, 0)) + vh1
-                v2 = Vector((p2.co.x, p2.co.y, 0)) - vh2
-                p1.handle_right = v1
-                p2.handle_left = v2
-            if i == n - 1:
-                p2 = all_points[0]
-                u1 = asin(p1.co.y / self.Simple_radius)
-                u2 = asin(p2.co.y / self.Simple_radius)
-                if p1.co.x > 0 and p2.co.x < 0:
-                    u1 = acos(p1.co.x / self.Simple_radius)
-                    u2 = acos(p2.co.x / self.Simple_radius)
-                elif p1.co.x < 0 and p2.co.x > 0:
-                    u1 = acos(p1.co.x / self.Simple_radius)
-                    u2 = acos(p2.co.x / self.Simple_radius)
-                u = u2 - u1
-                if u < 0:
-                    u = -u
-                l = 4 / 3 * tan(1 / 4 * u) * self.Simple_radius
-                v1 = Vector((-p1.co.y, p1.co.x, 0))
-                v1.normalize()
-                v2 = Vector((-p2.co.y, p2.co.x, 0))
-                v2.normalize()
-                vh1 = v1 * l
-                vh2 = v2 * l
-                v1 = Vector((p1.co.x, p1.co.y, 0)) + vh1
-                v2 = Vector((p2.co.x, p2.co.y, 0)) - vh2
-                p1.handle_right = v1
-                p2.handle_left = v2
-            i += 1
-
-    if self.Simple_Type == 'Ellipse':
-        all_points[0].handle_right = Vector((self.Simple_a, self.Simple_b * d, 0))
-        all_points[0].handle_left = Vector((self.Simple_a, -self.Simple_b * d, 0))
-        all_points[1].handle_right = Vector((-self.Simple_a * d, self.Simple_b, 0))
-        all_points[1].handle_left = Vector((self.Simple_a * d, self.Simple_b, 0))
-        all_points[2].handle_right = Vector((-self.Simple_a, -self.Simple_b * d, 0))
-        all_points[2].handle_left = Vector((-self.Simple_a, self.Simple_b * d, 0))
-        all_points[3].handle_right = Vector((self.Simple_a * d, -self.Simple_b, 0))
-        all_points[3].handle_left = Vector((-self.Simple_a * d, -self.Simple_b, 0))
-
-    if self.Simple_Type == 'Arc':
-        i = 0
-        for p1 in all_points:
-            if i != n - 1:
-                p2 = all_points[i + 1]
-                u1 = asin(p1.co.y / self.Simple_radius)
-                u2 = asin(p2.co.y / self.Simple_radius)
-                if p1.co.x > 0 and p2.co.x < 0:
-                    u1 = acos(p1.co.x / self.Simple_radius)
-                    u2 = acos(p2.co.x / self.Simple_radius)
-                elif p1.co.x < 0 and p2.co.x > 0:
-                    u1 = acos(p1.co.x / self.Simple_radius)
-                    u2 = acos(p2.co.x / self.Simple_radius)
-                u = u2 - u1
-                if u < 0:
-                    u = -u
-                l = 4 / 3 * tan(1 / 4 * u) * self.Simple_radius
-                v1 = Vector((-p1.co.y, p1.co.x, 0))
-                v1.normalize()
-                v2 = Vector((-p2.co.y, p2.co.x, 0))
-                v2.normalize()
-                vh1 = v1 * l
-                vh2 = v2 * l
-                if self.Simple_startangle < self.Simple_endangle:
+        if self.Simple_Type == 'Circle':
+            i = 0
+            for p1 in all_points:
+                if i != (n - 1):
+                    p2 = all_points[i + 1]
+                    u1 = asin(p1.co.y / self.Simple_radius)
+                    u2 = asin(p2.co.y / self.Simple_radius)
+                    if p1.co.x > 0 and p2.co.x < 0:
+                        u1 = acos(p1.co.x / self.Simple_radius)
+                        u2 = acos(p2.co.x / self.Simple_radius)
+                    elif p1.co.x < 0 and p2.co.x > 0:
+                        u1 = acos(p1.co.x / self.Simple_radius)
+                        u2 = acos(p2.co.x / self.Simple_radius)
+                    u = u2 - u1
+                    if u < 0:
+                        u = -u
+                    l = 4 / 3 * tan(1 / 4 * u) * self.Simple_radius
+                    v1 = Vector((-p1.co.y, p1.co.x, 0))
+                    v1.normalize()
+                    v2 = Vector((-p2.co.y, p2.co.x, 0))
+                    v2.normalize()
+                    vh1 = v1 * l
+                    vh2 = v2 * l
                     v1 = Vector((p1.co.x, p1.co.y, 0)) + vh1
                     v2 = Vector((p2.co.x, p2.co.y, 0)) - vh2
                     p1.handle_right = v1
                     p2.handle_left = v2
-                else:
-                    v1 = Vector((p1.co.x, p1.co.y, 0)) - vh1
-                    v2 = Vector((p2.co.x, p2.co.y, 0)) + vh2
-                    p1.handle_right = v1
-                    p2.handle_left = v2
-            i += 1
-
-    if self.Simple_Type == 'Sector':
-        i = 0
-        for p1 in all_points:
-            if i == 0:
-                p1.handle_right_type = 'VECTOR'
-                p1.handle_left_type = 'VECTOR'
-            elif i != n - 1:
-                p2 = all_points[i + 1]
-                u1 = asin(p1.co.y / self.Simple_radius)
-                u2 = asin(p2.co.y / self.Simple_radius)
-                if p1.co.x > 0 and p2.co.x < 0:
-                    u1 = acos(p1.co.x / self.Simple_radius)
-                    u2 = acos(p2.co.x / self.Simple_radius)
-                elif p1.co.x < 0 and p2.co.x > 0:
-                    u1 = acos(p1.co.x / self.Simple_radius)
-                    u2 = acos(p2.co.x / self.Simple_radius)
-                u = u2 - u1
-                if u < 0:
-                    u = -u
-                l = 4 / 3 * tan(1 / 4 * u) * self.Simple_radius
-                v1 = Vector((-p1.co.y, p1.co.x, 0))
-                v1.normalize()
-                v2 = Vector((-p2.co.y, p2.co.x, 0))
-                v2.normalize()
-                vh1 = v1 * l
-                vh2 = v2 * l
-                if self.Simple_startangle < self.Simple_endangle:
+                if i == (n - 1):
+                    p2 = all_points[0]
+                    u1 = asin(p1.co.y / self.Simple_radius)
+                    u2 = asin(p2.co.y / self.Simple_radius)
+                    if p1.co.x > 0 and p2.co.x < 0:
+                        u1 = acos(p1.co.x / self.Simple_radius)
+                        u2 = acos(p2.co.x / self.Simple_radius)
+                    elif p1.co.x < 0 and p2.co.x > 0:
+                        u1 = acos(p1.co.x / self.Simple_radius)
+                        u2 = acos(p2.co.x / self.Simple_radius)
+                    u = u2 - u1
+                    if u < 0:
+                        u = -u
+                    l = 4 / 3 * tan(1 / 4 * u) * self.Simple_radius
+                    v1 = Vector((-p1.co.y, p1.co.x, 0))
+                    v1.normalize()
+                    v2 = Vector((-p2.co.y, p2.co.x, 0))
+                    v2.normalize()
+                    vh1 = v1 * l
+                    vh2 = v2 * l
                     v1 = Vector((p1.co.x, p1.co.y, 0)) + vh1
                     v2 = Vector((p2.co.x, p2.co.y, 0)) - vh2
                     p1.handle_right = v1
                     p2.handle_left = v2
-                else:
-                    v1 = Vector((p1.co.x, p1.co.y, 0)) - vh1
-                    v2 = Vector((p2.co.x, p2.co.y, 0)) + vh2
-                    p1.handle_right = v1
-                    p2.handle_left = v2
-            i += 1
-
-    if self.Simple_Type == 'Segment':
-        i = 0
-        if self.Simple_a > self.Simple_b:
-            Segment_a = self.Simple_a
-            Segment_b = self.Simple_b
-        if self.Simple_a < self.Simple_b:
-            Segment_b = self.Simple_a
-            Segment_a = self.Simple_b
-        for p1 in all_points:
-            if i < n / 2 - 1:
-                p2 = all_points[i + 1]
-                u1 = asin(p1.co.y / Segment_a)
-                u2 = asin(p2.co.y / Segment_a)
-                if p1.co.x > 0 and p2.co.x < 0:
-                    u1 = acos(p1.co.x / Segment_a)
-                    u2 = acos(p2.co.x / Segment_a)
-                elif p1.co.x < 0 and p2.co.x > 0:
-                    u1 = acos(p1.co.x / Segment_a)
-                    u2 = acos(p2.co.x / Segment_a)
-                u = u2 - u1
-                if u < 0:
-                    u = -u
-                l = 4 / 3 * tan(1 / 4 * u) * Segment_a
-                v1 = Vector((-p1.co.y, p1.co.x, 0))
-                v1.normalize()
-                v2 = Vector((-p2.co.y, p2.co.x, 0))
-                v2.normalize()
-                vh1 = v1 * l
-                vh2 = v2 * l
-                if self.Simple_startangle < self.Simple_endangle:
-                    v1 = Vector((p1.co.x, p1.co.y, 0)) + vh1
-                    v2 = Vector((p2.co.x, p2.co.y, 0)) - vh2
-                    p1.handle_right = v1
-                    p2.handle_left = v2
-                else:
-                    v1 = Vector((p1.co.x, p1.co.y, 0)) - vh1
-                    v2 = Vector((p2.co.x, p2.co.y, 0)) + vh2
-                    p1.handle_right = v1
-                    p2.handle_left = v2
-            elif i != n / 2 - 1 and i != n - 1:
-                p2 = all_points[i + 1]
-                u1 = asin(p1.co.y / Segment_b)
-                u2 = asin(p2.co.y / Segment_b)
-                if p1.co.x > 0 and p2.co.x < 0:
-                    u1 = acos(p1.co.x / Segment_b)
-                    u2 = acos(p2.co.x / Segment_b)
-                elif p1.co.x < 0 and p2.co.x > 0:
-                    u1 = acos(p1.co.x / Segment_b)
-                    u2 = acos(p2.co.x / Segment_b)
-                u = u2 - u1
-                if u < 0:
-                    u = -u
-                l = 4 / 3 * tan(1 / 4 * u) * Segment_b
-                v1 = Vector((-p1.co.y, p1.co.x, 0))
-                v1.normalize()
-                v2 = Vector((-p2.co.y, p2.co.x, 0))
-                v2.normalize()
-                vh1 = v1 * l
-                vh2 = v2 * l
-                if self.Simple_startangle < self.Simple_endangle:
-                    v1 = Vector((p1.co.x, p1.co.y, 0)) - vh1
-                    v2 = Vector((p2.co.x, p2.co.y, 0)) + vh2
-                    p1.handle_right = v1
-                    p2.handle_left = v2
-                else:
-                    v1 = Vector((p1.co.x, p1.co.y, 0)) + vh1
-                    v2 = Vector((p2.co.x, p2.co.y, 0)) - vh2
-                    p1.handle_right = v1
-                    p2.handle_left = v2
-
-            i += 1
-        all_points[0].handle_left_type = 'VECTOR'
-        all_points[n - 1].handle_right_type = 'VECTOR'
-        all_points[int(n / 2) - 1].handle_right_type = 'VECTOR'
-        all_points[int(n / 2)].handle_left_type = 'VECTOR'
+                i += 1
+    
+        if self.Simple_Type == 'Ellipse':
+            all_points[0].handle_right = Vector((self.Simple_a, self.Simple_b * d, 0))
+            all_points[0].handle_left = Vector((self.Simple_a, -self.Simple_b * d, 0))
+            all_points[1].handle_right = Vector((-self.Simple_a * d, self.Simple_b, 0))
+            all_points[1].handle_left = Vector((self.Simple_a * d, self.Simple_b, 0))
+            all_points[2].handle_right = Vector((-self.Simple_a, -self.Simple_b * d, 0))
+            all_points[2].handle_left = Vector((-self.Simple_a, self.Simple_b * d, 0))
+            all_points[3].handle_right = Vector((self.Simple_a * d, -self.Simple_b, 0))
+            all_points[3].handle_left = Vector((-self.Simple_a * d, -self.Simple_b, 0))
+    
+        if self.Simple_Type == 'Arc':
+            i = 0
+            for p1 in all_points:
+                if i != (n - 1):
+                    p2 = all_points[i + 1]
+                    u1 = asin(p1.co.y / self.Simple_radius)
+                    u2 = asin(p2.co.y / self.Simple_radius)
+                    if p1.co.x > 0 and p2.co.x < 0:
+                        u1 = acos(p1.co.x / self.Simple_radius)
+                        u2 = acos(p2.co.x / self.Simple_radius)
+                    elif p1.co.x < 0 and p2.co.x > 0:
+                        u1 = acos(p1.co.x / self.Simple_radius)
+                        u2 = acos(p2.co.x / self.Simple_radius)
+                    u = u2 - u1
+                    if u < 0:
+                        u = -u
+                    l = 4 / 3 * tan(1 / 4 * u) * self.Simple_radius
+                    v1 = Vector((-p1.co.y, p1.co.x, 0))
+                    v1.normalize()
+                    v2 = Vector((-p2.co.y, p2.co.x, 0))
+                    v2.normalize()
+                    vh1 = v1 * l
+                    vh2 = v2 * l
+                    if self.Simple_startangle < self.Simple_endangle:
+                        v1 = Vector((p1.co.x, p1.co.y, 0)) + vh1
+                        v2 = Vector((p2.co.x, p2.co.y, 0)) - vh2
+                        p1.handle_right = v1
+                        p2.handle_left = v2
+                    else:
+                        v1 = Vector((p1.co.x, p1.co.y, 0)) - vh1
+                        v2 = Vector((p2.co.x, p2.co.y, 0)) + vh2
+                        p1.handle_right = v1
+                        p2.handle_left = v2
+                i += 1
+    
+        if self.Simple_Type == 'Sector':
+            i = 0
+            for p1 in all_points:
+                if i == 0:
+                    p1.handle_right_type = 'VECTOR'
+                    p1.handle_left_type = 'VECTOR'
+                elif i != (n - 1):
+                    p2 = all_points[i + 1]
+                    u1 = asin(p1.co.y / self.Simple_radius)
+                    u2 = asin(p2.co.y / self.Simple_radius)
+                    if p1.co.x > 0 and p2.co.x < 0:
+                        u1 = acos(p1.co.x / self.Simple_radius)
+                        u2 = acos(p2.co.x / self.Simple_radius)
+                    elif p1.co.x < 0 and p2.co.x > 0:
+                        u1 = acos(p1.co.x / self.Simple_radius)
+                        u2 = acos(p2.co.x / self.Simple_radius)
+                    u = u2 - u1
+                    if u < 0:
+                        u = -u
+                    l = 4 / 3 * tan(1 / 4 * u) * self.Simple_radius
+                    v1 = Vector((-p1.co.y, p1.co.x, 0))
+                    v1.normalize()
+                    v2 = Vector((-p2.co.y, p2.co.x, 0))
+                    v2.normalize()
+                    vh1 = v1 * l
+                    vh2 = v2 * l
+                    if self.Simple_startangle < self.Simple_endangle:
+                        v1 = Vector((p1.co.x, p1.co.y, 0)) + vh1
+                        v2 = Vector((p2.co.x, p2.co.y, 0)) - vh2
+                        p1.handle_right = v1
+                        p2.handle_left = v2
+                    else:
+                        v1 = Vector((p1.co.x, p1.co.y, 0)) - vh1
+                        v2 = Vector((p2.co.x, p2.co.y, 0)) + vh2
+                        p1.handle_right = v1
+                        p2.handle_left = v2
+                i += 1
+    
+        if self.Simple_Type == 'Segment':
+            i = 0
+            if self.Simple_a > self.Simple_b:
+                Segment_a = self.Simple_a
+                Segment_b = self.Simple_b
+            if self.Simple_a < self.Simple_b:
+                Segment_b = self.Simple_a
+                Segment_a = self.Simple_b
+            for p1 in all_points:
+                if i < (n / 2 - 1):
+                    p2 = all_points[i + 1]
+                    u1 = asin(p1.co.y / Segment_a)
+                    u2 = asin(p2.co.y / Segment_a)
+                    if p1.co.x > 0 and p2.co.x < 0:
+                        u1 = acos(p1.co.x / Segment_a)
+                        u2 = acos(p2.co.x / Segment_a)
+                    elif p1.co.x < 0 and p2.co.x > 0:
+                        u1 = acos(p1.co.x / Segment_a)
+                        u2 = acos(p2.co.x / Segment_a)
+                    u = u2 - u1
+                    if u < 0:
+                        u = -u
+                    l = 4 / 3 * tan(1 / 4 * u) * Segment_a
+                    v1 = Vector((-p1.co.y, p1.co.x, 0))
+                    v1.normalize()
+                    v2 = Vector((-p2.co.y, p2.co.x, 0))
+                    v2.normalize()
+                    vh1 = v1 * l
+                    vh2 = v2 * l
+                    if self.Simple_startangle < self.Simple_endangle:
+                        v1 = Vector((p1.co.x, p1.co.y, 0)) + vh1
+                        v2 = Vector((p2.co.x, p2.co.y, 0)) - vh2
+                        p1.handle_right = v1
+                        p2.handle_left = v2
+                    else:
+                        v1 = Vector((p1.co.x, p1.co.y, 0)) - vh1
+                        v2 = Vector((p2.co.x, p2.co.y, 0)) + vh2
+                        p1.handle_right = v1
+                        p2.handle_left = v2
+                elif i != (n / 2 - 1) and i != (n - 1):
+                    p2 = all_points[i + 1]
+                    u1 = asin(p1.co.y / Segment_b)
+                    u2 = asin(p2.co.y / Segment_b)
+                    if p1.co.x > 0 and p2.co.x < 0:
+                        u1 = acos(p1.co.x / Segment_b)
+                        u2 = acos(p2.co.x / Segment_b)
+                    elif p1.co.x < 0 and p2.co.x > 0:
+                        u1 = acos(p1.co.x / Segment_b)
+                        u2 = acos(p2.co.x / Segment_b)
+                    u = u2 - u1
+                    if u < 0:
+                        u = -u
+                    l = 4 / 3 * tan(1 / 4 * u) * Segment_b
+                    v1 = Vector((-p1.co.y, p1.co.x, 0))
+                    v1.normalize()
+                    v2 = Vector((-p2.co.y, p2.co.x, 0))
+                    v2.normalize()
+                    vh1 = v1 * l
+                    vh2 = v2 * l
+                    if self.Simple_startangle < self.Simple_endangle:
+                        v1 = Vector((p1.co.x, p1.co.y, 0)) - vh1
+                        v2 = Vector((p2.co.x, p2.co.y, 0)) + vh2
+                        p1.handle_right = v1
+                        p2.handle_left = v2
+                    else:
+                        v1 = Vector((p1.co.x, p1.co.y, 0)) + vh1
+                        v2 = Vector((p2.co.x, p2.co.y, 0)) - vh2
+                        p1.handle_right = v1
+                        p2.handle_left = v2
+    
+                i += 1
+            all_points[0].handle_left_type = 'VECTOR'
+            all_points[n - 1].handle_right_type = 'VECTOR'
+            all_points[int(n / 2) - 1].handle_right_type = 'VECTOR'
+            all_points[int(n / 2)].handle_left_type = 'VECTOR'
 
     return
 
@@ -776,69 +797,70 @@ def Simple_curve_edit_menu(self, context):
 
 def menu(self, context):
     oper1 = self.layout.operator(Simple.bl_idname, text="Angle", icon="MOD_CURVE")
-    oper1.Simple_Change = False
     oper1.Simple_Type = "Angle"
+    oper1.use_cyclic_u = False
 
     oper2 = self.layout.operator(Simple.bl_idname, text="Arc", icon="MOD_CURVE")
-    oper2.Simple_Change = False
     oper2.Simple_Type = "Arc"
+    oper2.use_cyclic_u = False
 
     oper3 = self.layout.operator(Simple.bl_idname, text="Circle", icon="MOD_CURVE")
-    oper3.Simple_Change = False
     oper3.Simple_Type = "Circle"
+    oper3.use_cyclic_u = True
 
     oper4 = self.layout.operator(Simple.bl_idname, text="Distance", icon="MOD_CURVE")
-    oper4.Simple_Change = False
     oper4.Simple_Type = "Distance"
+    oper4.use_cyclic_u = False
 
     oper5 = self.layout.operator(Simple.bl_idname, text="Ellipse", icon="MOD_CURVE")
-    oper5.Simple_Change = False
     oper5.Simple_Type = "Ellipse"
+    oper5.use_cyclic_u = True
 
     oper6 = self.layout.operator(Simple.bl_idname, text="Line", icon="MOD_CURVE")
-    oper6.Simple_Change = False
     oper6.Simple_Type = "Line"
+    oper6.use_cyclic_u = False
+    oper6.shape = '3D'
 
     oper7 = self.layout.operator(Simple.bl_idname, text="Point", icon="MOD_CURVE")
-    oper7.Simple_Change = False
     oper7.Simple_Type = "Point"
+    oper7.use_cyclic_u = False
 
     oper8 = self.layout.operator(Simple.bl_idname, text="Polygon", icon="MOD_CURVE")
-    oper8.Simple_Change = False
     oper8.Simple_Type = "Polygon"
+    oper8.use_cyclic_u = True
 
     oper9 = self.layout.operator(Simple.bl_idname, text="Polygon ab", icon="MOD_CURVE")
-    oper9.Simple_Change = False
     oper9.Simple_Type = "Polygon_ab"
+    oper9.use_cyclic_u = True
 
     oper10 = self.layout.operator(Simple.bl_idname, text="Rectangle", icon="MOD_CURVE")
-    oper10.Simple_Change = False
     oper10.Simple_Type = "Rectangle"
+    oper10.use_cyclic_u = True
 
     oper11 = self.layout.operator(Simple.bl_idname, text="Rhomb", icon="MOD_CURVE")
-    oper11.Simple_Change = False
     oper11.Simple_Type = "Rhomb"
+    oper11.use_cyclic_u = True
 
     oper12 = self.layout.operator(Simple.bl_idname, text="Sector", icon="MOD_CURVE")
-    oper12.Simple_Change = False
     oper12.Simple_Type = "Sector"
+    oper12.use_cyclic_u = True
 
     oper13 = self.layout.operator(Simple.bl_idname, text="Segment", icon="MOD_CURVE")
-    oper13.Simple_Change = False
     oper13.Simple_Type = "Segment"
+    oper13.use_cyclic_u = True
 
     oper14 = self.layout.operator(Simple.bl_idname, text="Trapezoid", icon="MOD_CURVE")
-    oper14.Simple_Change = False
     oper14.Simple_Type = "Trapezoid"
+    oper14.use_cyclic_u = True
     
 # ------------------------------------------------------------
 # Simple operator
 
-class Simple(Operator):
+class Simple(Operator, object_utils.AddObjectHelper):
     bl_idname = "curve.simple"
     bl_label = "Simple Curve"
     bl_description = "Construct a Simple Curve"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     # align_matrix for the invoke
     align_matrix : Matrix()
@@ -995,6 +1017,40 @@ class Simple(Operator):
             items=shapeItems,
             description="2D or 3D Curve"
             )
+    outputType : EnumProperty(
+            name="Output splines",
+            description="Type of splines to output",
+            items=[
+            ('POLY', "Poly", "Poly Spline type"),
+            ('NURBS', "Nurbs", "Nurbs Spline type"),
+            ('BEZIER', "Bezier", "Bezier Spline type")],
+            default='BEZIER'
+            )
+    use_cyclic_u : BoolProperty(
+            name="Cyclic",
+            default=True,
+            description="make curve closed"
+            )
+    endp_u : BoolProperty(
+            name="Use endpoint u",
+            default=True,
+            description="stretch to endpoints"
+            )
+    order_u : IntProperty(
+            name="Order u",
+            default=4,
+            min=2, soft_min=2,
+            max=6, soft_max=6,
+            description="Order of nurbs spline"
+            )
+    handleType : EnumProperty(
+            name="Handle type",
+            default='VECTOR',
+            description="Bezier handles type",
+            items=[
+            ('VECTOR', "Vector", "Vector type Bezier handles"),
+            ('AUTO', "Auto", "Automatic type Bezier handles")]
+            )
 
     def draw(self, context):
         layout = self.layout
@@ -1029,8 +1085,8 @@ class Simple(Operator):
             col.prop(self, "Simple_length")
             col.prop(self, "Simple_angle")
 
-            row = layout.row()
-            row.prop(self, "Simple_degrees_or_radians", expand=True)
+            #row = layout.row()
+            #row.prop(self, "Simple_degrees_or_radians", expand=True)
 
         if self.Simple_Type == 'Circle':
             box = layout.box()
@@ -1065,8 +1121,8 @@ class Simple(Operator):
             col = box.column(align=True)
             col.prop(self, "Simple_startangle")
             col.prop(self, "Simple_endangle")
-            row = layout.row()
-            row.prop(self, "Simple_degrees_or_radians", expand=True)
+            #row = layout.row()
+            #row.prop(self, "Simple_degrees_or_radians", expand=True)
 
             l = abs(pi * self.Simple_radius * (self.Simple_endangle - self.Simple_startangle) / 180)
 
@@ -1080,8 +1136,8 @@ class Simple(Operator):
             col = box.column(align=True)
             col.prop(self, "Simple_startangle")
             col.prop(self, "Simple_endangle")
-            row = layout.row()
-            row.prop(self, "Simple_degrees_or_radians", expand=True)
+            #row = layout.row()
+            #row.prop(self, "Simple_degrees_or_radians", expand=True)
 
             l = abs(pi * self.Simple_radius *
                    (self.Simple_endangle - self.Simple_startangle) / 180) + self.Simple_radius * 2
@@ -1101,8 +1157,8 @@ class Simple(Operator):
             col.prop(self, "Simple_startangle")
             col.prop(self, "Simple_endangle")
 
-            row = layout.row()
-            row.prop(self, "Simple_degrees_or_radians", expand=True)
+            #row = layout.row()
+            #row.prop(self, "Simple_degrees_or_radians", expand=True)
 
             la = abs(pi * self.Simple_a * (self.Simple_endangle - self.Simple_startangle) / 180)
             lb = abs(pi * self.Simple_b * (self.Simple_endangle - self.Simple_startangle) / 180)
@@ -1170,6 +1226,20 @@ class Simple(Operator):
 
         row = layout.row()
         row.prop(self, "shape", expand=True)
+        
+        # output options
+        col = layout.column()
+        col.label(text="Output Curve Type:")
+        col.row().prop(self, "outputType", expand=True)
+        
+        if self.outputType == 'NURBS':
+            col.prop(self, "order_u")
+        elif self.outputType == 'BEZIER':
+            col.row().prop(self, 'handleType', expand=True)
+
+        col = layout.column()
+        col.row().prop(self, "use_cyclic_u", expand=True)
+        
         box = layout.box()
         box.label(text="Location:")
         box.prop(self, "Simple_startlocation")

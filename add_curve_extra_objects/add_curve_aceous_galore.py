@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Curveaceous Galore!",
     "author": "Jimmy Hazevoet, testscreenings",
-    "version": (0, 2, 2),
+    "version": (0, 2, 3),
     "blender": (2, 80),
     "location": "View3D > Add > Curve",
     "description": "Adds many different types of Curves",
@@ -32,11 +32,13 @@ bl_info = {
 """
 
 import bpy
+from bpy_extras import object_utils
 from bpy.props import (
         BoolProperty,
         EnumProperty,
         FloatProperty,
         IntProperty,
+        FloatVectorProperty
         )
 from mathutils import Matrix, Vector
 from bpy.types import Operator
@@ -717,35 +719,17 @@ def NoiseCurve(type=0, number=100, length=2.0, size=0.5,
 # ------------------------------------------------------------
 # calculates the matrix for the new object
 # depending on user pref
-def align_matrix(context):
-
-    loc = Matrix.Translation(context.scene.cursor_location)
+def align_matrix(context, location):
+    loc = Matrix.Translation(location)
     obj_align = context.preferences.edit.object_align
-
     if (context.space_data.type == 'VIEW_3D' and
-                obj_align == 'VIEW'):
+            obj_align == 'VIEW'):
         rot = context.space_data.region_3d.view_matrix.to_3x3().inverted().to_4x4()
     else:
         rot = Matrix()
-
     align_matrix = loc @ rot
+
     return align_matrix
-
-
-# ------------------------------------------------------------
-# Curve creation functions, sets bezierhandles to auto
-def setBezierHandles(obj, mode='AUTO'):
-    scene = bpy.context.scene
-
-    if obj.type != 'CURVE':
-        return
-
-    #scene.objects.active = obj
-    #bpy.ops.object.mode_set(mode='EDIT', toggle=True)
-    #bpy.ops.curve.select_all(action='SELECT')
-    #obj.select_set(action='SELECT')
-    #bpy.ops.curve.handle_type_set(type=mode)
-    #bpy.ops.object.mode_set(mode='OBJECT', toggle=True)
 
 # get array of vertcoordinates according to splinetype
 def vertsToPoints(Verts, splineType):
@@ -773,17 +757,31 @@ def vertsToPoints(Verts, splineType):
 
 # create new CurveObject from vertarray and splineType
 def createCurve(context, vertArray, self, align_matrix):
-    scene = bpy.context.scene
-
     # output splineType 'POLY' 'NURBS' 'BEZIER'
     splineType = self.outputType
-
+    
     # GalloreType as name
     name = self.ProfileType
+    
+    # create object
+    if bpy.context.mode == 'EDIT_CURVE':
+        Curve = context.active_object
+        newSpline = Curve.data.splines.new(type=splineType)          # spline
+        Curve.matrix_world = align_matrix  # apply matrix
+        Curve.rotation_euler = self.rotation_euler
+    else:
+        # create curve
+        newCurve = bpy.data.curves.new(name, type='CURVE')  # curve data block
+        newSpline = newCurve.splines.new(type=splineType)          # spline
 
-    # create curve
-    newCurve = bpy.data.curves.new(name, type='CURVE')
-    newSpline = newCurve.splines.new(type=splineType)
+        # set curveOptions
+        newCurve.dimensions = self.shape
+        
+        # create object with newCurve
+        SimpleCurve = object_utils.object_data_add(context, newCurve, operator=self)  # place in active scene
+        SimpleCurve.select_set(True)
+        SimpleCurve.matrix_world = align_matrix  # apply matrix
+        SimpleCurve.rotation_euler = self.rotation_euler
 
     # create spline from vertarray
     if splineType == 'BEZIER':
@@ -798,32 +796,15 @@ def createCurve(context, vertArray, self, align_matrix):
         newSpline.use_endpoint_u = True
 
     # set curveOptions
-    newCurve.dimensions = self.shape
     newSpline.use_cyclic_u = self.use_cyclic_u
     newSpline.use_endpoint_u = self.endp_u
     newSpline.order_u = self.order_u
-
-    # create object with newCurve
-    new_obj = bpy.data.objects.new(name, newCurve)
-    scene.collection.objects.link(new_obj)
-    new_obj.select_set(True)
-    #scene.objects.active = new_obj
-    new_obj.matrix_world = align_matrix
-
-    # set bezierhandles
-    #if splineType == 'BEZIER':
-        #bpy.ops.curve.handle_type_set(type='AUTO')
-        #setBezierHandles(new_obj, self.handleType)
-
     return
 
 
 # ------------------------------------------------------------
 # Main Function
 def main(context, self, align_matrix):
-    # deselect all objects
-    #bpy.ops.object.select_all(action='DESELECT')
-
     # options
     proType = self.ProfileType
     splineType = self.outputType
@@ -934,14 +915,14 @@ def main(context, self, align_matrix):
     return
 
 
-class Curveaceous_galore(Operator):
+class Curveaceous_galore(Operator, object_utils.AddObjectHelper):
     bl_idname = "curve.curveaceous_galore"
     bl_label = "Curve Profiles"
     bl_description = "Construct many types of curves"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     # align_matrix for the invoke
-    align_matrix = None
+    align_matrix : Matrix()
 
     # general properties
     ProfileType : EnumProperty(
@@ -1294,6 +1275,19 @@ class Curveaceous_galore(Operator):
             min=0,
             description="Random Seed"
             )
+    # Line properties
+    startlocation : FloatVectorProperty(
+            name="",
+            description="Start location",
+            default=(0.0, 0.0, 0.0),
+            subtype='TRANSLATION'
+            )
+    rotation_euler : FloatVectorProperty(
+            name="",
+            description="Rotation",
+            default=(0.0, 0.0, 0.0),
+            subtype='EULER'
+            )
 
     def draw(self, context):
         layout = self.layout
@@ -1413,15 +1407,25 @@ class Curveaceous_galore(Operator):
             col.prop(self, "noiseBasis")
             col.prop(self, "noiseSeed")
 
+        # output options
         col = layout.column()
         col.label(text="Output Curve Type:")
         col.row().prop(self, "outputType", expand=True)
-
-        # output options
+        
         if self.outputType == 'NURBS':
             col.prop(self, 'order_u')
         elif self.outputType == 'BEZIER':
             col.row().prop(self, 'handleType', expand=True)
+
+        #col = layout.column()
+        #col.row().prop(self, "use_cyclic_u", expand=True)
+
+        box = layout.box()
+        box.label(text="Location:")
+        box.prop(self, "startlocation")
+        box = layout.box()
+        box.label(text="Rotation:")
+        box.prop(self, "rotation_euler")
 
     @classmethod
     def poll(cls, context):
@@ -1452,17 +1456,11 @@ class Curveaceous_galore(Operator):
                 self.use_cyclic_u = True
 
         # main function
+        self.align_matrix = align_matrix(context, self.startlocation)
         main(context, self, self.align_matrix or Matrix())
 
         # restore pre operator undo state
         context.preferences.edit.use_global_undo = undo
-
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        # store creation_matrix
-        self.align_matrix = align_matrix(context)
-        self.execute(context)
 
         return {'FINISHED'}
 
