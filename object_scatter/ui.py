@@ -107,6 +107,7 @@ class ObjectScatterProperties(bpy.types.PropertyGroup):
 
 
 class ObjectScatterPanel(bpy.types.Panel):
+    bl_idname = "OBJECT_PT_object_scatter"
     bl_label = "Object Scatter"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
