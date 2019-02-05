@@ -93,14 +93,3 @@ class add_corrective_pose_shape_fast(bpy.types.Operator):
         func_add_corrective_pose_shape_fast(source, target)
 
         return {'FINISHED'}
-
-
-def register():
-    bpy.utils.register_module(__name__)
-
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
-if __name__ == "__main__":
-    register()
