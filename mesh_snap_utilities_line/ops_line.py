@@ -27,17 +27,15 @@ from .common_classes import (
     SnapDrawn,
     CharMap,
     SnapNavigation,
-    g_snap_widget, #TODO: remove
+    SnapUtilities,
     )
 
 from .common_utilities import (
-    get_units_info,
-    convert_distance,
     snap_utilities,
     )
 
 if not __package__:
-    __package__ = "mesh_snap_utilities"
+    __package__ = "mesh_snap_utilities_line"
 
 
 def get_closest_edge(bm, point, dist):
@@ -79,7 +77,7 @@ def get_loose_linked_edges(bmvert):
     return linked
 
 
-def draw_line(self, bm_geom, location):
+def make_line(self, bm_geom, location):
     obj = self.main_snap_obj.data[0]
     bm = self.main_bm
     split_faces = set()
@@ -113,8 +111,9 @@ def draw_line(self, bm_geom, location):
                 edge, vert = bmesh.utils.edge_split(bm_geom, bm_geom.verts[0], ret[1])
                 update_edit_mesh = True
 
-            self.list_verts.append(vert)
-            self.geom = vert # hack to highlight in the drawing
+            if self.list_verts == [] or self.list_verts[-1] != vert:
+                self.list_verts.append(vert)
+                self.geom = vert # hack to highlight in the drawing
             # self.list_edges.append(edge)
 
         else:  # constrain point is near
@@ -134,7 +133,6 @@ def draw_line(self, bm_geom, location):
         edge = bm.edges.get([v1, v2])
         if edge:
                 self.list_edges.append(edge)
-
         else:
             if not v2.link_edges:
                 edge = bm.edges.new([v1, v2])
@@ -206,71 +204,31 @@ def draw_line(self, bm_geom, location):
     return [obj.matrix_world @ v.co for v in self.list_verts]
 
 
-class SnapUtilitiesLine(bpy.types.Operator):
+class SnapUtilitiesLine(SnapUtilities, bpy.types.Operator):
     """Make Lines. Connect them to split faces"""
-    bl_idname = "mesh.make_line"
+    bl_idname = "mesh.snap_utilities_line"
     bl_label = "Line Tool"
     bl_options = {'REGISTER'}
 
     wait_for_input: bpy.props.BoolProperty(name="Wait for Input", default=True)
 
-    constrain_keys = {
-        'X': Vector((1,0,0)),
-        'Y': Vector((0,1,0)),
-        'Z': Vector((0,0,1)),
-        'RIGHT_SHIFT': 'shift',
-        'LEFT_SHIFT': 'shift',
-    }
-
     def _exit(self, context):
-        del self.main_bm #avoids unpredictable crashs
-        del self.bm
+        #avoids unpredictable crashs
+        del self.main_snap_obj
+        del self.main_bm
         del self.list_edges
         del self.list_verts
         del self.list_verts_co
 
         bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
         context.area.header_text_set(None)
-
-        if not self.snap_widget:
-            self.sctx.free()
-            del self.draw_cache
-        else:
-            self.sctx = None
-            self.draw_cache = None
+        self.snap_context_free()
 
         #Restore initial state
         context.tool_settings.mesh_select_mode = self.select_mode
         context.space_data.overlay.show_face_center = self.show_face_center
 
-    def _init_snap_context(self, context):
-        if self.sctx:
-            self.sctx.clear_snap_objects()
-        else:
-            #Create Snap Context
-            from .snap_context_l import SnapContext
-            self.sctx = SnapContext(context.region, context.space_data)
-            self.sctx.set_pixel_dist(12)
-            self.sctx.use_clip_planes(True)
-
-        if self.outer_verts:
-            for base in context.visible_bases:
-                self.sctx.add_obj(base.object, base.object.matrix_world)
-
-        self.sctx.set_snap_mode(True, True, self.snap_face)
-
-        if self.snap_widget:
-            self.geom = self.snap_widget.geom
-            self.type = self.snap_widget.type
-            self.location = self.snap_widget.loc
-            if self.snap_widget.snap_obj:
-                context.view_layer.objects.active = self.snap_widget.snap_obj.data[0]
-        else:
-            #init these variables to avoid errors
-            self.geom = None
-            self.type = 'OUT'
-            self.location = Vector()
-
+    def _init_snap_line_context(self, context):
         self.prevloc = Vector()
         self.list_verts = []
         self.list_edges = []
@@ -278,9 +236,6 @@ class SnapUtilitiesLine(bpy.types.Operator):
         self.bool_update = False
         self.vector_constrain = ()
         self.len = 0
-        self.length_entered = ""
-        self.length_entered_value = 0.0
-        self.line_pos = 0
 
         active_object = context.active_object
         mesh = active_object.data
@@ -295,22 +250,29 @@ class SnapUtilitiesLine(bpy.types.Operator):
         context.area.tag_redraw()
 
         if event.ctrl and event.type == 'Z' and event.value == 'PRESS':
-            del self.bm
-            del self.main_bm
-
             bpy.ops.ed.undo()
-            bpy.ops.object.mode_set(mode='EDIT') # just to be sure
-            bpy.ops.mesh.select_all(action='DESELECT')
-            context.tool_settings.mesh_select_mode = (True, False, True)
-            context.space_data.overlay.show_face_center = True
+            if not self.wait_for_input:
+                self._exit(context)
+                return {'FINISHED'}
+            else:
+                del self.bm
+                del self.main_bm
+                self.charmap.clear()
 
-            self._init_snap_context(context)
-            self.sctx.update_all()
-            return {'RUNNING_MODAL'}
+                bpy.ops.object.mode_set(mode='EDIT') # just to be sure
+                bpy.ops.mesh.select_all(action='DESELECT')
+                context.tool_settings.mesh_select_mode = (True, False, True)
+                context.space_data.overlay.show_face_center = True
+
+                self.snap_context_update(context)
+                self._init_snap_line_context(context)
+                self.sctx.update_all()
+
+                return {'RUNNING_MODAL'}
 
         is_making_lines = bool(self.list_verts_co)
 
-        if (event.type == 'MOUSEMOVE' or self.bool_update) and self.length_entered_value == 0.0:
+        if (event.type == 'MOUSEMOVE' or self.bool_update) and self.charmap.length_entered_value == 0.0:
             if self.rv3d.view_matrix != self.rotMat:
                 self.rotMat = self.rv3d.view_matrix.copy()
                 self.bool_update = True
@@ -326,14 +288,9 @@ class SnapUtilitiesLine(bpy.types.Operator):
                     mval,
                     constrain=self.vector_constrain,
                     previous_vert=(self.list_verts[-1] if self.list_verts else None),
-                    increment=self.incremental
-            )
+                    increment=self.incremental)
 
-            if self.snap_to_grid and self.type == 'OUT':
-                loc = self.location / self.rd
-                self.location = Vector((round(loc.x),
-                                        round(loc.y),
-                                        round(loc.z))) * self.rd
+            self.snap_to_grid()
 
             if is_making_lines and self.keyf8:
                 lloc = self.list_verts_co[-1]
@@ -356,24 +313,14 @@ class SnapUtilitiesLine(bpy.types.Operator):
                 #del view_vec, orig, location, ax, ay, az, vec
 
         if event.value == 'PRESS':
-            if is_making_lines and (event.ascii in CharMap.ascii or event.type in CharMap.type):
-                CharMap.modal(self, context, event)
+            if is_making_lines and self.charmap.modal_(context, event):
+                self.bool_update = self.charmap.length_entered_value == 0.0
 
-                if self.length_entered != "":
-                    try:
-                        self.length_entered_value = bpy.utils.units.to_value(
-                                self.unit_system, 'LENGTH', self.length_entered)
-
-                        vector = (self.location - self.list_verts_co[-1]).normalized()
-                        self.location = (self.list_verts_co[-1] + (vector * self.length_entered_value))
-                        del vector
-
-                    except:  # ValueError:
-                        self.length_entered_value = 0.0 #invalid
-                        self.report({'INFO'}, "Operation not supported yet")
-                else:
-                    self.length_entered_value = 0.0
-                    self.bool_update = True
+                if not self.bool_update:
+                    text_value = self.charmap.length_entered_value
+                    vector = (self.location - self.list_verts_co[-1]).normalized()
+                    self.location = self.list_verts_co[-1] + (vector * text_value)
+                    del vector
 
             elif event.type in self.constrain_keys:
                 self.bool_update = True
@@ -400,7 +347,7 @@ class SnapUtilitiesLine(bpy.types.Operator):
                         self.vector_constrain = [loc, loc + self.constrain_keys[event.type], event.type]
 
             elif event.type in {'LEFTMOUSE', 'RET', 'NUMPAD_ENTER'}:
-                if event.type == 'LEFTMOUSE' or self.length_entered_value != 0.0:
+                if event.type == 'LEFTMOUSE' or self.charmap.length_entered_value != 0.0:
                     if not is_making_lines and self.bm:
                         self.main_snap_obj = self.snap_obj
                         self.main_bm = self.bm
@@ -415,12 +362,10 @@ class SnapUtilitiesLine(bpy.types.Operator):
                     if self.vector_constrain:
                         geom2 = get_closest_edge(self.main_bm, point, .001)
 
-                    self.list_verts_co = draw_line(self, geom2, point)
+                    self.list_verts_co = make_line(self, geom2, point)
 
                     self.vector_constrain = None
-                    self.length_entered = ""
-                    self.length_entered_value = 0.0
-                    self.line_pos = 0
+                    self.charmap.clear()
                 else:
                     self._exit(context)
                     return {'FINISHED'}
@@ -441,19 +386,11 @@ class SnapUtilitiesLine(bpy.types.Operator):
                     self.list_edges = []
                     self.list_verts = []
                     self.list_verts_co = []
-                    self.length_entered = ""
-                    self.length_entered_value = 0.0
-                    self.line_pos = 0
+                    self.charmap.clear()
 
         a = ""
         if is_making_lines:
-            if self.length_entered:
-                pos = self.line_pos
-                a = 'length: ' + self.length_entered[:pos] + '|' + self.length_entered[pos:]
-            else:
-                length = self.len
-                length = convert_distance(length, self.uinfo)
-                a = 'length: ' + length
+            a = 'length: ' + self.charmap.get_converted_length_str(self.len)
 
         context.area.header_text_set(text = "hit: %.3f %.3f %.3f %s" % (*self.location, a))
 
@@ -469,6 +406,14 @@ class SnapUtilitiesLine(bpy.types.Operator):
 
     def invoke(self, context, event):
         if context.space_data.type == 'VIEW_3D':
+            self.snap_context_init(context)
+            self.intersect = self.preferences.intersect
+            self.create_face = self.preferences.create_face
+            self.navigation_ops = SnapNavigation(context, True)
+            self.charmap = CharMap(context)
+
+            self._init_snap_line_context(context)
+
             # print('name', __name__, __package__)
 
             #Store current state
@@ -487,57 +432,14 @@ class SnapUtilitiesLine(bpy.types.Operator):
 
             #Init event variables
             self.keyf8 = False
-            self.snap_face = True
-
-            self.snap_widget = g_snap_widget[0]
-
-            if self.snap_widget is not None:
-                self.draw_cache = self.snap_widget.draw_cache
-                self.sctx = self.snap_widget.sctx
-
-                preferences = self.snap_widget.preferences
-            else:
-                preferences = context.preferences.addons[__package__].preferences
-
-                #Init DrawCache
-                self.draw_cache = SnapDrawn(
-                    preferences.out_color,
-                    preferences.face_color,
-                    preferences.edge_color,
-                    preferences.vert_color,
-                    preferences.center_color,
-                    preferences.perpendicular_color,
-                    preferences.constrain_shift_color,
-                    tuple(context.preferences.themes[0].user_interface.axis_x) + (1.0,),
-                    tuple(context.preferences.themes[0].user_interface.axis_y) + (1.0,),
-                    tuple(context.preferences.themes[0].user_interface.axis_z) + (1.0,)
-                )
-
-                self.sctx = None
-
-            #Configure the unit of measure
-            self.unit_system = context.scene.unit_settings.system
-            scale = context.scene.unit_settings.scale_length
-            separate_units = context.scene.unit_settings.use_separate
-            self.uinfo = get_units_info(scale, self.unit_system, separate_units)
-            scale /= context.space_data.overlay.grid_scale * preferences.relative_scale
-            self.rd = bpy.utils.units.to_value(self.unit_system, 'LENGTH', str(1 / scale))
-
-            self.intersect = preferences.intersect
-            self.create_face = preferences.create_face
-            self.outer_verts = preferences.outer_verts
-            self.snap_to_grid = preferences.increments_grid
-            self.incremental = bpy.utils.units.to_value(self.unit_system, 'LENGTH', str(preferences.incremental))
-
-            self.navigation_ops = SnapNavigation(context, True)
-
-            self._init_snap_context(context)
 
             #modals
             context.window_manager.modal_handler_add(self)
 
             if not self.wait_for_input:
-                self.modal(context, event)
+                mat_inv = context.object.matrix_world.inverted_safe()
+                point = mat_inv @ self.location
+                self.list_verts_co = make_line(self, self.geom, point)
 
             self._handle = bpy.types.SpaceView3D.draw_handler_add(self.draw_callback_px, (), 'WINDOW', 'POST_VIEW')
 

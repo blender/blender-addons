@@ -18,7 +18,13 @@
 import bpy
 import bgl
 
-from .common_utilities import snap_utilities
+from mathutils import Vector
+
+from .common_utilities import (
+    convert_distance,
+    get_units_info,
+    snap_utilities,
+    )
 
 
 class SnapDrawn():
@@ -52,8 +58,6 @@ class SnapDrawn():
         self._program_smooth_col = gpu.shader.from_builtin("3D_SMOOTH_COLOR")
 
         self._batch_point = None
-        self._batch_circle = None
-        self._batch_vector = None
 
 
     def batch_line_strip_create(self, coords):
@@ -171,6 +175,7 @@ class SnapDrawn():
         gpu.matrix.pop()
 
     def draw_elem(self, snap_obj, bm, elem):
+        #TODO: Cache coords (because antialiasing)
         import gpu
         from bmesh.types import(
             BMVert,
@@ -332,122 +337,67 @@ class CharMap:
         'LEFT_ARROW', 'RIGHT_ARROW'
         }
 
-    @staticmethod
-    def modal(self, context, event):
-        c = event.ascii
-        if c:
-            if c == ",":
-                c = "."
-            self.length_entered = self.length_entered[:self.line_pos] + c + self.length_entered[self.line_pos:]
-            self.line_pos += 1
-        if self.length_entered:
-            if event.type == 'BACK_SPACE':
-                self.length_entered = self.length_entered[:self.line_pos - 1] + self.length_entered[self.line_pos:]
-                self.line_pos -= 1
+    def __init__(self, context):
+        scale = context.scene.unit_settings.scale_length
+        separate_units = context.scene.unit_settings.use_separate
+        self.unit_system = context.scene.unit_settings.system
+        self.uinfo = get_units_info(scale, self.unit_system, separate_units)
 
-            elif event.type == 'DEL':
-                self.length_entered = self.length_entered[:self.line_pos] + self.length_entered[self.line_pos + 1:]
+        self.clear()
 
-            elif event.type == 'LEFT_ARROW':
-                self.line_pos = (self.line_pos - 1) % (len(self.length_entered) + 1)
+    def modal_(self, context, event):
+        if event.value == 'PRESS':
+            type = event.type
+            ascii = event.ascii
+            if (type in self.type) or (ascii in self.ascii):
+                if ascii:
+                    pos = self.line_pos
+                    if ascii == ",":
+                        ascii = "."
+                    self.length_entered = self.length_entered[:pos] + ascii + self.length_entered[pos:]
+                    self.line_pos += 1
 
-            elif event.type == 'RIGHT_ARROW':
-                self.line_pos = (self.line_pos + 1) % (len(self.length_entered) + 1)
+                if self.length_entered:
+                    pos = self.line_pos
+                    if type == 'BACK_SPACE':
+                        self.length_entered = self.length_entered[:pos - 1] + self.length_entered[pos:]
+                        self.line_pos -= 1
 
-g_snap_widget = [None]
+                    elif type == 'DEL':
+                        self.length_entered = self.length_entered[:pos] + self.length_entered[pos + 1:]
 
-class MousePointWidget(bpy.types.Gizmo):
-    bl_idname = "VIEW3D_GT_mouse_point"
+                    elif type == 'LEFT_ARROW':
+                        self.line_pos = (pos - 1) % (len(self.length_entered) + 1)
 
-    __slots__ = (
-        "sctx",
-        "bm",
-        "draw_cache",
-        "geom",
-        "incremental",
-        "preferences",
-        "loc",
-        "snap_obj",
-        "snap_to_grid",
-        "type",
-    )
+                    elif type == 'RIGHT_ARROW':
+                        self.line_pos = (pos + 1) % (len(self.length_entered) + 1)
 
-    def test_select(self, context, mval):
-        #print('test_select', mval)
-        self.snap_obj, prev_loc, self.loc, self.type, self.bm, self.geom, len = snap_utilities(
-                self.sctx,
-                None,
-                mval,
-                increment=self.incremental
-        )
-        context.area.tag_redraw()
+                    try:
+                        self.length_entered_value = bpy.utils.units.to_value(
+                                self.unit_system, 'LENGTH', self.length_entered)
+                    except:  # ValueError:
+                        self.length_entered_value = 0.0 #invalid
+                        #self.report({'INFO'}, "Operation not supported yet")
+                else:
+                    self.length_entered_value = 0.0
+
+                return True
+
         return False
 
-    def draw(self, context):
-        if self.bm:
-            self.draw_cache.draw_elem(self.snap_obj, self.bm, self.geom)
-        self.draw_cache.draw(self.type, self.loc, None, None, None)
+    def get_converted_length_str(self, length):
+        if self.length_entered:
+            pos = self.line_pos
+            ret = self.length_entered[:pos] + '|' + self.length_entered[pos:]
+        else:
+            ret = convert_distance(length, self.uinfo)
 
-    def setup(self):
-        if not hasattr(self, "sctx"):
-            global g_snap_widget
-            g_snap_widget[0] = self
+        return ret
 
-            context = bpy.context
-
-            self.preferences = preferences = context.preferences.addons[__package__].preferences
-
-            #Configure the unit of measure
-            self.snap_to_grid = preferences.increments_grid
-            self.incremental = bpy.utils.units.to_value(
-                    context.scene.unit_settings.system, 'LENGTH', str(preferences.incremental))
-
-            self.draw_cache = SnapDrawn(
-                preferences.out_color,
-                preferences.face_color,
-                preferences.edge_color,
-                preferences.vert_color,
-                preferences.center_color,
-                preferences.perpendicular_color,
-                preferences.constrain_shift_color,
-                (*context.preferences.themes[0].user_interface.axis_x, 1.0),
-                (*context.preferences.themes[0].user_interface.axis_y, 1.0),
-                (*context.preferences.themes[0].user_interface.axis_z, 1.0)
-            )
-
-            #Init Snap Context
-            from .snap_context_l import SnapContext
-            from mathutils import Vector
-
-            self.sctx = SnapContext(context.region, context.space_data)
-            self.sctx.set_pixel_dist(12)
-            self.sctx.use_clip_planes(True)
-
-            if preferences.outer_verts:
-                for base in context.visible_bases:
-                    self.sctx.add_obj(base.object, base.object.matrix_world)
-
-            self.sctx.set_snap_mode(True, True, True)
-            self.bm = None
-            self.type = 'OUT'
-            self.loc = Vector()
-
-    def __del__(self):
-        global g_snap_widget
-        g_snap_widget[0] = None
-
-
-class MousePointWidgetGroup(bpy.types.GizmoGroup):
-    bl_idname = "MESH_GGT_mouse_point"
-    bl_label = "Draw Mouse Point"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'WINDOW'
-    bl_options = {'3D'}
-
-    def setup(self, context):
-        snap_widget = self.gizmos.new(MousePointWidget.bl_idname)
-        props = snap_widget.target_set_operator("mesh.make_line")
-        props.wait_for_input = False
+    def clear(self):
+        self.length_entered = ''
+        self.length_entered_value = 0.0
+        self.line_pos = 0
 
 
 class VIEW3D_OT_rotate_custom_pivot(bpy.types.Operator):
@@ -532,3 +482,292 @@ class VIEW3D_OT_zoom_custom_target(bpy.types.Operator):
                 return {'RUNNING_MODAL'}
 
         return {'FINISHED'}
+
+
+class SnapUtilities:
+#    __slots__ = (
+#        "sctx",
+#        "draw_cache",
+#        "outer_verts",
+#        "snap_face",
+#        "snap_to_grid",
+#        "unit_system",
+#        "rd",
+#        "incremental",
+#    )
+
+    constrain_keys = {
+        'X': Vector((1,0,0)),
+        'Y': Vector((0,1,0)),
+        'Z': Vector((0,0,1)),
+        'RIGHT_SHIFT': 'shift',
+        'LEFT_SHIFT': 'shift',
+        }
+
+    snap_widget = None
+    snap_widget_refcnt = 0
+    constrain = None
+
+    @staticmethod
+    def set_contrain(context, key):
+        widget = SnapUtilities.snap_widget
+        if SnapUtilities.constrain == key:
+            SnapUtilities.constrain = None
+            return
+
+        SnapUtilities.constrain = key
+
+
+    def visible_objects_and_duplis(self, context):
+        if self.preferences.outer_verts:
+            for obj in context.visible_objects:
+                yield (obj, obj.matrix_world)
+
+                if obj.instance_type == 'COLLECTION':
+                    mat = obj.matrix_world.copy()
+                    for ob in obj.instance_collection.objects:
+                        yield (ob, mat @ ob.matrix_world)
+        else:
+            for obj in context.objects_in_mode_unique_data:
+                yield (obj, obj.matrix_world)
+
+
+    def snap_context_init(self, context, snap_edge_and_vert = True):
+        from .snap_context_l import global_snap_context_get
+
+        #Create Snap Context
+        self.sctx = global_snap_context_get(context.region, context.space_data)
+        self.sctx.set_pixel_dist(12)
+        self.sctx.use_clip_planes(True)
+
+        widget = self.snap_widget
+
+        if widget is not None:
+            self.preferences = widget.preferences
+            self.draw_cache = widget.draw_cache
+        else:
+            preferences = context.preferences.addons[__package__].preferences
+            self.preferences = preferences
+            #Init DrawCache
+            self.draw_cache = SnapDrawn(
+                preferences.out_color,
+                preferences.face_color,
+                preferences.edge_color,
+                preferences.vert_color,
+                preferences.center_color,
+                preferences.perpendicular_color,
+                preferences.constrain_shift_color,
+                tuple(context.preferences.themes[0].user_interface.axis_x) + (1.0,),
+                tuple(context.preferences.themes[0].user_interface.axis_y) + (1.0,),
+                tuple(context.preferences.themes[0].user_interface.axis_z) + (1.0,)
+            )
+
+        self.snap_vert = self.snap_edge = snap_edge_and_vert
+
+        shading = context.space_data.shading
+        self.snap_face = not (snap_edge_and_vert and
+                             (shading.show_xray or shading.type == 'WIREFRAME'))
+
+        self.snap_context_update(context)
+
+        #Configure the unit of measure
+        unit_system = context.scene.unit_settings.system
+        scale = context.scene.unit_settings.scale_length
+        scale /= context.space_data.overlay.grid_scale
+        self.rd = bpy.utils.units.to_value(unit_system, 'LENGTH', str(1 / scale))
+
+        self.incremental = bpy.utils.units.to_value(
+                unit_system, 'LENGTH', str(self.preferences.incremental))
+
+    def snap_context_update(self, context):
+        self.sctx.set_snap_mode(
+                 self.snap_vert, self.snap_edge, self.snap_face)
+
+        self.sctx.clear_snap_objects()
+
+        for obj, matrix in self.visible_objects_and_duplis(context):
+            self.sctx.add_obj(obj, matrix)
+
+        widget = self.snap_widget
+
+        if widget:
+            self.snap_obj = widget.snap_obj
+            self.bm = widget.bm
+            self.geom = widget.geom
+            self.type = widget.type
+            self.location = widget.location
+        else:
+            #init these variables to avoid errors
+            self.snap_obj = None
+            self.bm = None
+            self.geom = None
+            self.type = 'OUT'
+            self.location = Vector()
+
+    def snap_to_grid(self):
+        if self.type == 'OUT' and self.preferences.increments_grid:
+            loc = self.location / self.rd
+            self.location = Vector((round(loc.x),
+                                    round(loc.y),
+                                    round(loc.z))) * self.rd
+
+    def snap_context_free(self):
+        del self.sctx
+
+        del self.bm
+        del self.draw_cache
+        del self.geom
+        del self.location
+        del self.rd
+        del self.snap_face
+        del self.snap_obj
+        del self.type
+
+        del self.preferences
+
+        SnapUtilities.constrain = None
+
+
+#def mesh_runtime_batchcache_isdirty(me):
+#    import ctypes
+#    batch_cache = ctypes.c_void_p.from_address(me.as_pointer() + 1440)
+#    if batch_cache:
+#        return ctypes.c_bool.from_address(batch_cache.value + 549).value
+#    return False
+
+
+class SnapWidgetCommon:
+    def draw_point_and_elem(self):
+        if self.bm:
+            if self.bm.is_valid and self.geom.is_valid:
+                self.draw_cache.draw_elem(self.snap_obj, self.bm, self.geom)
+            else:
+                self.bm = None
+                self.geom = None
+                self.sctx.update_all()
+
+        self.draw_cache.draw(self.type, self.location, None, None, None)
+
+    def init_snap_widget(self, context, snap_edge_and_vert = True):
+        self.snap_context_init(context, snap_edge_and_vert)
+        self.mode = context.mode
+        self.wm_operators = context.window_manager.operators
+        self.last_operator = self.wm_operators[-1] if self.wm_operators else None
+        self.last_mval = None
+
+    def update_snap(self, context, mval):
+        if self.last_mval == mval:
+            return -1
+        else:
+            self.last_mval = mval
+
+        last_operator = self.wm_operators[-1] if self.wm_operators else None
+        if last_operator != self.last_operator:
+            if (not last_operator or
+                last_operator.name not in {'Select', 'Loop Select', '(De)select All'}):
+                    ## Something has changed since the last time.
+                    # Has the mesh been changed?
+                    # In the doubt lets clear the snap context.
+                    self.sctx.update_all()
+
+            self.last_operator = last_operator
+
+        #print('test_select', mval)
+        space = context.space_data
+        self.sctx.update_viewport_context(context.region, space)
+
+        shading = space.shading
+        snap_face = not ((self.snap_vert or self.snap_edge) and
+                        (shading.show_xray or shading.type == 'WIREFRAME'))
+
+        if snap_face != self.snap_face:
+            self.snap_face = snap_face
+            self.sctx.set_snap_mode(
+                     self.snap_vert, self.snap_edge, self.snap_face)
+
+        self.snap_obj, prev_loc, self.location, self.type, self.bm, self.geom, len = snap_utilities(
+                self.sctx,
+                None,
+                mval,
+                increment=self.incremental
+        )
+
+    def __del__(self):
+        from .snap_context_l import global_snap_context_get
+        sctx = global_snap_context_get(None, None)
+        if sctx:
+            sctx.clear_snap_objects()
+
+
+class SnapPointWidget(SnapUtilities, SnapWidgetCommon, bpy.types.Gizmo):
+    bl_idname = "VIEW3D_GT_snap_point"
+
+    __slots__ = (
+        "bm",
+        "draw_cache",
+        "geom",
+        "incremental",
+        "preferences",
+        "last_operator",
+        "location",
+        "mode",
+        "snap_edge",
+        "snap_face",
+        "snap_vert",
+        "snap_obj",
+        "type",
+        "wm_operators",
+    )
+
+    def test_select(self, context, mval):
+        self.update_snap(context, mval)
+        self.snap_to_grid()
+
+        context.area.tag_redraw()
+        return -1
+
+    def draw(self, context):
+        self.draw_point_and_elem()
+
+    def setup(self):
+        self.init_snap_widget(bpy.context)
+        SnapUtilities.snap_widget = self
+
+
+def context_mode_check(context, widget_group):
+    workspace = context.workspace
+    mode = workspace.tools_mode
+    for tool in workspace.tools:
+        if (tool.widget == widget_group) and (tool.mode == mode):
+            break
+    else:
+        return False
+    return True
+
+class SnapWidgetCommon:
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
+    bl_options = {'3D'}
+
+    @classmethod
+    def poll(cls, context):
+        return context_mode_check(context, cls.bl_idname)
+#        return context_mode_change(
+#                context, SnapUtilities.snap_widget, cls.bl_idname)
+
+    def init_tool(self, context, gizmo_name):
+        self.gizmos.new(gizmo_name)
+        SnapUtilities.snap_widget_refcnt += 1
+
+    def __del__(self):
+        SnapUtilities.snap_widget_refcnt -= 1
+        if SnapUtilities.snap_widget_refcnt == 0:
+            SnapUtilities.snap_widget = None
+
+
+class SnapPointWidgetGroup(SnapWidgetCommon, bpy.types.GizmoGroup):
+    bl_idname = "MESH_GGT_snap_point"
+    bl_label = "Draw Snap Point"
+
+    def setup(self, context):
+        self.init_tool(context, SnapPointWidget.bl_idname)
