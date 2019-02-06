@@ -53,6 +53,7 @@ def tool_line():
 
         layout.prop(addon_prefs, "incremental")
         layout.prop(addon_prefs, "increments_grid")
+        layout.prop(addon_prefs, "intersect")
         layout.prop(addon_prefs, "create_face")
         if context.mode == 'EDIT_MESH':
             layout.prop(addon_prefs, "outer_verts")
