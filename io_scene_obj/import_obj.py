@@ -678,9 +678,6 @@ def create_mesh(new_objects,
     if verts_tex and me.polygons:
         me.uv_layers.new()
         loops_uv = tuple(uv for (_, _, face_vert_tex_indices, _, _, _, _) in faces for face_uvidx in face_vert_tex_indices for uv in verts_tex[face_uvidx])
-        print(sum((len(face_vert_tex_indices) for (face_vert_loc_indices, _, face_vert_tex_indices, _, _, _, _) in faces)))
-        print(sum((len(face_vert_loc_indices) for (face_vert_loc_indices, _, face_vert_tex_indices, _, _, _, _) in faces)))
-        print(len(loops_uv), len(me.uv_layers[0].data))
         me.uv_layers[0].data.foreach_set("uv", loops_uv)
 
     use_edges = use_edges and bool(edges)
