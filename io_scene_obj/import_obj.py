@@ -678,6 +678,9 @@ def create_mesh(new_objects,
     if verts_tex and me.polygons:
         me.uv_layers.new()
         loops_uv = tuple(uv for (_, _, face_vert_tex_indices, _, _, _, _) in faces for face_uvidx in face_vert_tex_indices for uv in verts_tex[face_uvidx])
+        print(sum((len(face_vert_tex_indices) for (face_vert_loc_indices, _, face_vert_tex_indices, _, _, _, _) in faces)))
+        print(sum((len(face_vert_loc_indices) for (face_vert_loc_indices, _, face_vert_tex_indices, _, _, _, _) in faces)))
+        print(len(loops_uv), len(me.uv_layers[0].data))
         me.uv_layers[0].data.foreach_set("uv", loops_uv)
 
     use_edges = use_edges and bool(edges)
@@ -947,7 +950,6 @@ def load(context,
         face_vert_loc_indices = None
         face_vert_nor_indices = None
         face_vert_tex_indices = None
-        face_vert_nor_valid = face_vert_tex_valid = False
         verts_loc_len = verts_nor_len = verts_tex_len = 0
         face_items_usage = set()
         face_invalid_blenpoly = None
@@ -1043,25 +1045,16 @@ def load(context,
                         if len(obj_vert) > 1 and obj_vert[1] and obj_vert[1] != b'0':
                             idx = int(obj_vert[1])
                             face_vert_tex_indices.append((idx + verts_tex_len) if (idx < 1) else idx - 1)
-                            face_vert_tex_valid = True
                         else:
                             face_vert_tex_indices.append(0)
 
                         if len(obj_vert) > 2 and obj_vert[2] and obj_vert[2] != b'0':
                             idx = int(obj_vert[2])
                             face_vert_nor_indices.append((idx + verts_nor_len) if (idx < 1) else idx - 1)
-                            face_vert_nor_valid = True
                         else:
                             face_vert_nor_indices.append(0)
 
                     if not context_multi_line:
-                        # Clear nor/tex indices in case we had none defined for this face.
-                        if not face_vert_nor_valid:
-                            face_vert_nor_indices.clear()
-                        if not face_vert_tex_valid:
-                            face_vert_tex_indices.clear()
-                        face_vert_nor_valid = face_vert_tex_valid = False
-
                         # Means we have finished a face, we have to do final check if ngon is suspected to be blender-invalid...
                         if face_invalid_blenpoly:
                             face_invalid_blenpoly.clear()
