@@ -424,7 +424,7 @@ class ExportGLTF2_Base:
 class ExportGLTF2(bpy.types.Operator, ExportGLTF2_Base, ExportHelper):
     """Export scene as glTF 2.0 file"""
     bl_idname = 'export_scene.gltf'
-    bl_label = 'glTF 2.0 (.glb/.gltf)'
+    bl_label = 'Export glTF 2.0 (.glb/.gltf)'
 
     filename_ext = ''
 
@@ -437,7 +437,7 @@ def menu_func_export(self, context):
 
 class ImportGLTF2(Operator, ImportHelper):
     bl_idname = 'import_scene.gltf'
-    bl_label = 'glTF 2.0 (.glb/.gltf)'
+    bl_label = 'Import glTF 2.0 (.glb/.gltf)'
 
     filter_glob: StringProperty(default="*.glb;*.gltf", options={'HIDDEN'})
 
@@ -497,7 +497,7 @@ class ImportGLTF2(Operator, ImportHelper):
 
 
 def menu_func_import(self, context):
-    self.layout.operator(ImportGLTF2.bl_idname, text=ImportGLTF2.bl_label)
+    self.layout.operator(ImportGLTF2.bl_idname, text='glTF 2.0 (.glb/.gltf)')
 
 
 classes = (
