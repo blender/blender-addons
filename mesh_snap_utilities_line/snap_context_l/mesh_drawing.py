@@ -234,7 +234,7 @@ class GPU_Indices_Mesh():
 
 
     def __init__(self, depsgraph, obj, draw_tris, draw_edges, draw_verts):
-        self.ob_data = obj.data.original
+        self.ob_data = obj.original.data
 
         if self.ob_data in GPU_Indices_Mesh._Hash:
             src = GPU_Indices_Mesh._Hash[self.ob_data]
