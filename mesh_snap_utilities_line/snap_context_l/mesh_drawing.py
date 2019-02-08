@@ -233,8 +233,8 @@ class GPU_Indices_Mesh():
         gpu.matrix.load_matrix(MV)
 
 
-    def __init__(self, obj, draw_tris, draw_edges, draw_verts):
-        self.ob_data = obj.data
+    def __init__(self, depsgraph, obj, draw_tris, draw_edges, draw_verts):
+        self.ob_data = obj.data.original
 
         if self.ob_data in GPU_Indices_Mesh._Hash:
             src = GPU_Indices_Mesh._Hash[self.ob_data]
@@ -270,7 +270,7 @@ class GPU_Indices_Mesh():
             GPU_Indices_Mesh.init_opengl()
 
             ## Init Array ##
-            mesh_arrays = _Mesh_Arrays(obj, draw_tris, draw_edges, draw_verts)
+            mesh_arrays = _Mesh_Arrays(depsgraph.id_eval_get(obj), draw_tris, draw_edges, draw_verts)
 
             if mesh_arrays.verts_co is None:
                 self.draw_tris = False

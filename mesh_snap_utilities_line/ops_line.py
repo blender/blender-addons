@@ -407,6 +407,8 @@ class SnapUtilitiesLine(SnapUtilities, bpy.types.Operator):
     def invoke(self, context, event):
         if context.space_data.type == 'VIEW_3D':
             self.snap_context_init(context)
+            self.snap_context_update(context)
+
             self.intersect = self.preferences.intersect
             self.create_face = self.preferences.create_face
             self.navigation_ops = SnapNavigation(context, True)

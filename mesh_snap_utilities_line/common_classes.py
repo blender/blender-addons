@@ -504,13 +504,12 @@ class SnapUtilities:
         'LEFT_SHIFT': 'shift',
         }
 
-    snap_widget = None
-    snap_widget_refcnt = 0
+    snapwidgets = []
     constrain = None
 
     @staticmethod
     def set_contrain(context, key):
-        widget = SnapUtilities.snap_widget
+        widget = SnapUtilities.snapwidgets[-1] if SnapUtilities.snapwidgets else None
         if SnapUtilities.constrain == key:
             SnapUtilities.constrain = None
             return
@@ -518,34 +517,51 @@ class SnapUtilities:
         SnapUtilities.constrain = key
 
 
-    def visible_objects_and_duplis(self, context):
-        if self.preferences.outer_verts:
-            for obj in context.visible_objects:
-                yield (obj, obj.matrix_world)
+    def snap_context_update(self, context):
+        def visible_objects_and_duplis():
+            if self.preferences.outer_verts:
+                for obj in context.visible_objects:
+                    yield (obj, obj.matrix_world)
 
-                if obj.instance_type == 'COLLECTION':
-                    mat = obj.matrix_world.copy()
-                    for ob in obj.instance_collection.objects:
-                        yield (ob, mat @ ob.matrix_world)
-        else:
-            for obj in context.objects_in_mode_unique_data:
-                yield (obj, obj.matrix_world)
+                    if obj.instance_type == 'COLLECTION':
+                        mat = obj.matrix_world.copy()
+                        for ob in obj.instance_collection.objects:
+                            yield (ob, mat @ ob.matrix_world)
+            else:
+                for obj in context.objects_in_mode_unique_data:
+                    yield (obj, obj.matrix_world)
+
+        self.sctx.clear_snap_objects()
+        for obj, matrix in visible_objects_and_duplis():
+            self.sctx.add_obj(obj, matrix)
 
 
     def snap_context_init(self, context, snap_edge_and_vert = True):
         from .snap_context_l import global_snap_context_get
 
         #Create Snap Context
-        self.sctx = global_snap_context_get(context.region, context.space_data)
+        self.sctx = global_snap_context_get(context.depsgraph, context.region, context.space_data)
         self.sctx.set_pixel_dist(12)
         self.sctx.use_clip_planes(True)
 
-        widget = self.snap_widget
+        if SnapUtilities.snapwidgets:
+            widget = SnapUtilities.snapwidgets[-1]
 
-        if widget is not None:
+            self.snap_obj = widget.snap_obj
+            self.bm = widget.bm
+            self.geom = widget.geom
+            self.type = widget.type
+            self.location = widget.location
             self.preferences = widget.preferences
             self.draw_cache = widget.draw_cache
         else:
+            #init these variables to avoid errors
+            self.snap_obj = None
+            self.bm = None
+            self.geom = None
+            self.type = 'OUT'
+            self.location = Vector()
+
             preferences = context.preferences.addons[__package__].preferences
             self.preferences = preferences
             #Init DrawCache
@@ -568,7 +584,8 @@ class SnapUtilities:
         self.snap_face = not (snap_edge_and_vert and
                              (shading.show_xray or shading.type == 'WIREFRAME'))
 
-        self.snap_context_update(context)
+        self.sctx.set_snap_mode(
+                 self.snap_vert, self.snap_edge, self.snap_face)
 
         #Configure the unit of measure
         unit_system = context.scene.unit_settings.system
@@ -579,31 +596,6 @@ class SnapUtilities:
         self.incremental = bpy.utils.units.to_value(
                 unit_system, 'LENGTH', str(self.preferences.incremental))
 
-    def snap_context_update(self, context):
-        self.sctx.set_snap_mode(
-                 self.snap_vert, self.snap_edge, self.snap_face)
-
-        self.sctx.clear_snap_objects()
-
-        for obj, matrix in self.visible_objects_and_duplis(context):
-            self.sctx.add_obj(obj, matrix)
-
-        widget = self.snap_widget
-
-        if widget:
-            self.snap_obj = widget.snap_obj
-            self.bm = widget.bm
-            self.geom = widget.geom
-            self.type = widget.type
-            self.location = widget.location
-        else:
-            #init these variables to avoid errors
-            self.snap_obj = None
-            self.bm = None
-            self.geom = None
-            self.type = 'OUT'
-            self.location = Vector()
-
     def snap_to_grid(self):
         if self.type == 'OUT' and self.preferences.increments_grid:
             loc = self.location / self.rd
@@ -612,6 +604,7 @@ class SnapUtilities:
                                     round(loc.z))) * self.rd
 
     def snap_context_free(self):
+        self.sctx = None
         del self.sctx
 
         del self.bm
@@ -636,7 +629,18 @@ class SnapUtilities:
 #    return False
 
 
-class SnapWidgetCommon:
+class SnapWidgetCommon(SnapUtilities):
+    snap_to_update = False
+
+    def handler(self, scene):
+        cls = SnapWidgetCommon
+        if cls.snap_to_update is False:
+            last_operator = self.wm_operators[-1] if self.wm_operators else None
+            if (not last_operator or
+                last_operator.name not in {'Select', 'Loop Select', '(De)select All'}):
+                    cls.snap_to_update = self.depsgraph.id_type_updated('MESH') or\
+                                         self.depsgraph.id_type_updated('OBJECT')
+
     def draw_point_and_elem(self):
         if self.bm:
             if self.bm.is_valid and self.geom.is_valid:
@@ -648,12 +652,32 @@ class SnapWidgetCommon:
 
         self.draw_cache.draw(self.type, self.location, None, None, None)
 
-    def init_snap_widget(self, context, snap_edge_and_vert = True):
+    def init_snapwidget(self, context, snap_edge_and_vert = True):
         self.snap_context_init(context, snap_edge_and_vert)
+        self.snap_context_update(context)
         self.mode = context.mode
-        self.wm_operators = context.window_manager.operators
-        self.last_operator = self.wm_operators[-1] if self.wm_operators else None
         self.last_mval = None
+
+        self.wm_operators = context.window_manager.operators
+        self.depsgraph = context.depsgraph
+        bpy.app.handlers.depsgraph_update_post.append(self.handler)
+        SnapWidgetCommon.snap_to_update = False
+
+        SnapUtilities.snapwidgets.append(self)
+
+    def end_snapwidget(self):
+        SnapUtilities.snapwidgets.remove(self)
+
+        #from .snap_context_l import global_snap_context_get
+        #sctx = global_snap_context_get(None, None, None)
+
+        StructRNA = bpy.types.bpy_struct
+        sctx = super(StructRNA, self).__getattribute__("sctx")
+        if sctx and not SnapUtilities.snapwidgets:
+            sctx.clear_snap_objects()
+
+        handler = super(StructRNA, self).__getattribute__("handler")
+        bpy.app.handlers.depsgraph_update_post.remove(handler)
 
     def update_snap(self, context, mval):
         if self.last_mval == mval:
@@ -661,20 +685,16 @@ class SnapWidgetCommon:
         else:
             self.last_mval = mval
 
-        last_operator = self.wm_operators[-1] if self.wm_operators else None
-        if last_operator != self.last_operator:
-            if (not last_operator or
-                last_operator.name not in {'Select', 'Loop Select', '(De)select All'}):
-                    ## Something has changed since the last time.
-                    # Has the mesh been changed?
-                    # In the doubt lets clear the snap context.
-                    self.sctx.update_all()
-
-            self.last_operator = last_operator
+        if (SnapWidgetCommon.snap_to_update):
+            ## Something has changed since the last time.
+            # Has the mesh been changed?
+            # In the doubt lets clear the snap context.
+            self.snap_context_update(context)
+            SnapWidgetCommon.snap_to_update = False
 
         #print('test_select', mval)
         space = context.space_data
-        self.sctx.update_viewport_context(context.region, space)
+        self.sctx.update_viewport_context(context.depsgraph, context.region, space, True)
 
         shading = space.shading
         snap_face = not ((self.snap_vert or self.snap_edge) and
@@ -692,32 +712,9 @@ class SnapWidgetCommon:
                 increment=self.incremental
         )
 
-    def __del__(self):
-        from .snap_context_l import global_snap_context_get
-        sctx = global_snap_context_get(None, None)
-        if sctx:
-            sctx.clear_snap_objects()
 
-
-class SnapPointWidget(SnapUtilities, SnapWidgetCommon, bpy.types.Gizmo):
+class SnapPointWidget(SnapWidgetCommon, bpy.types.Gizmo):
     bl_idname = "VIEW3D_GT_snap_point"
-
-    __slots__ = (
-        "bm",
-        "draw_cache",
-        "geom",
-        "incremental",
-        "preferences",
-        "last_operator",
-        "location",
-        "mode",
-        "snap_edge",
-        "snap_face",
-        "snap_vert",
-        "snap_obj",
-        "type",
-        "wm_operators",
-    )
 
     def test_select(self, context, mval):
         self.update_snap(context, mval)
@@ -730,8 +727,7 @@ class SnapPointWidget(SnapUtilities, SnapWidgetCommon, bpy.types.Gizmo):
         self.draw_point_and_elem()
 
     def setup(self):
-        self.init_snap_widget(bpy.context)
-        SnapUtilities.snap_widget = self
+        self.init_snapwidget(bpy.context)
 
 
 def context_mode_check(context, widget_group):
@@ -744,7 +740,8 @@ def context_mode_check(context, widget_group):
         return False
     return True
 
-class SnapWidgetCommon:
+
+class SnapWidgetGroupCommon:
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
     bl_options = {'3D'}
@@ -752,20 +749,16 @@ class SnapWidgetCommon:
     @classmethod
     def poll(cls, context):
         return context_mode_check(context, cls.bl_idname)
-#        return context_mode_change(
-#                context, SnapUtilities.snap_widget, cls.bl_idname)
 
     def init_tool(self, context, gizmo_name):
-        self.gizmos.new(gizmo_name)
-        SnapUtilities.snap_widget_refcnt += 1
+        self.widget = self.gizmos.new(gizmo_name)
 
     def __del__(self):
-        SnapUtilities.snap_widget_refcnt -= 1
-        if SnapUtilities.snap_widget_refcnt == 0:
-            SnapUtilities.snap_widget = None
+        if hasattr(self, "widget"):
+            super(bpy.types.bpy_struct, self.widget).__getattribute__("end_snapwidget")()
 
 
-class SnapPointWidgetGroup(SnapWidgetCommon, bpy.types.GizmoGroup):
+class SnapPointWidgetGroup(SnapWidgetGroupCommon, bpy.types.GizmoGroup):
     bl_idname = "MESH_GGT_snap_point"
     bl_label = "Draw Snap Point"
 

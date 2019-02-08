@@ -105,7 +105,7 @@ def register_snap_tools():
 
     tools[:index] += None, tool_line
 
-    del tools
+    del tool, tools, index
 
     keyconfigs = bpy.context.window_manager.keyconfigs
     kc_defaultconf = keyconfigs.get("blender")
@@ -126,8 +126,7 @@ def unregister_snap_tools():
     tools.pop(index)
     tools.remove(tool_line)
 
-    del tools
-    del index
+    del tools, index
 
     keyconfigs = bpy.context.window_manager.keyconfigs
     defaultmap = keyconfigs.get("blender").keymaps
@@ -144,7 +143,7 @@ def unregister_snap_tools():
 # Addon Registraion
 
 classes = (
-    preferences.SnapUtilitiesLinePreferences,
+    preferences.SnapUtilitiesPreferences,
     ops_line.SnapUtilitiesLine,
     common_classes.VIEW3D_OT_rotate_custom_pivot,
     common_classes.VIEW3D_OT_zoom_custom_target,

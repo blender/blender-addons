@@ -192,7 +192,7 @@ class SnapContext():
     :type space: :class:`bpy.types.SpaceView3D`
     """
 
-    def __init__(self, region, space):
+    def __init__(self, depsgraph, region, space):
         #print('Render:', bgl.glGetString(bgl.GL_RENDERER))
         #print('OpenGL Version:', bgl.glGetString(bgl.GL_VERSION))
 
@@ -202,6 +202,7 @@ class SnapContext():
         self._offset_cur = 1 # Starts with index 1
         self.region = region
         self.rv3d = space.region_3d
+        self.depsgraph = depsgraph
 
         if self.rv3d.is_perspective:
             self.depth_range = Vector((space.clip_start, space.clip_end))
@@ -337,12 +338,13 @@ class SnapContext():
 
     ## PUBLIC ##
 
-    def update_viewport_context(self, region, space):
+    def update_viewport_context(self, depsgraph, region, space, resize = False):
         rv3d = space.region_3d
 
-        if region == self.region and rv3d == self.rv3d:
+        if not resize and self.rv3d == rv3d and self.region == region:
             return
 
+        self.depsgraph = depsgraph
         self.region = region
         self.rv3d = rv3d
 
@@ -351,8 +353,11 @@ class SnapContext():
         else:
             self.depth_range = Vector((-space.clip_end, space.clip_end))
 
-        self.winsize = Vector((self.region.width, self.region.height))
-        self._offscreen.resize(*self.winsize)
+        winsize = Vector((self.region.width, self.region.height))
+
+        if winsize != self.winsize:
+            self.winsize = winsize
+            self._offscreen.resize(*self.winsize)
 
     def clear_snap_objects(self):
         self.update_all()
@@ -392,7 +397,7 @@ class SnapContext():
             snap_obj.data[1].free()
             snap_obj.data.pop(1)
 
-        data = GPU_Indices_Mesh(snap_obj.data[0], snap_face, snap_edge, snap_vert)
+        data = GPU_Indices_Mesh(self.depsgraph, snap_obj.data[0], snap_face, snap_edge, snap_vert)
         snap_obj.data.append(data)
 
         _Internal.gpu_Indices_restore_state()
@@ -479,7 +484,7 @@ class SnapContext():
                     draw_face = snap_face and not is_bound and obj.display_type != 'WIRE'
                     draw_edge = snap_edge and not is_bound
                     draw_vert = snap_vert and not is_bound
-                    snap_obj.data.append(GPU_Indices_Mesh(obj, draw_face, draw_edge, draw_vert))
+                    snap_obj.data.append(GPU_Indices_Mesh(self.depsgraph, obj, draw_face, draw_edge, draw_vert))
 
                 snap_obj.data[1].set_draw_mode(snap_face, snap_edge, snap_vert)
                 snap_obj.data[1].set_ModelViewMatrix(snap_obj.mat)
@@ -520,25 +525,20 @@ class SnapContext():
         self.__del__()
         self.freed = True
 
-def global_snap_context_get(region, space):
+def global_snap_context_get(depsgraph, region, space):
     if _Internal.global_snap_context == None:
-        if region is None or space is None:
+        if depsgraph is None or region is None or space is None:
             return
 
         import atexit
 
-        _Internal.global_snap_context = SnapContext(region, space)
+        _Internal.global_snap_context = SnapContext(depsgraph, region, space)
 
         # Make sure we only registered the callback once.
         atexit.unregister(_Internal.snap_context_free)
         atexit.register(_Internal.snap_context_free)
 
-    elif region is not None:
-        _Internal.global_snap_context.update_viewport_context(region, space)
-
-        if ((region.width != _Internal.global_snap_context._offscreen.width) or
-            (region.height != _Internal.global_snap_context._offscreen.height)):
-                _Internal.global_snap_context.winsize[:] = region.width, region.height
-                _Internal.global_snap_context._offscreen.resize(region.width, region.height)
+    elif depsgraph is not None:
+        _Internal.global_snap_context.update_viewport_context(depsgraph, region, space, True)
 
     return _Internal.global_snap_context

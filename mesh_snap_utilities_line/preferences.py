@@ -26,7 +26,7 @@ from bpy.props import (
     )
 
 
-class SnapUtilitiesLinePreferences(bpy.types.AddonPreferences):
+class SnapUtilitiesPreferences(bpy.types.AddonPreferences):
     # this must match the addon name, use '__package__'
     # when defining this in a submodule of a python package.
     bl_idname = __package__
