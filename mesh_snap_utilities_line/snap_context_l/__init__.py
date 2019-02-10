@@ -569,3 +569,4 @@ def global_snap_context_get(depsgraph, region, space):
 def global_snap_context_destroy():
     if _Internal.global_snap_context != None:
         _Internal.global_snap_context.free()
+        _Internal.global_snap_context = None
