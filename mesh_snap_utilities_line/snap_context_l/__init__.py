@@ -27,6 +27,12 @@ EDGE = 2
 FACE = 4
 
 
+def check_gl_error():
+    error = bgl.glGetError()
+    if error != bgl.GL_NO_ERROR:
+        raise Exception(error)
+
+
 class _Internal:
     global_snap_context = None
 
@@ -79,15 +85,14 @@ class _SnapOffscreen():
 
         bgl.glGenRenderbuffers(1, self.buf_depth)
         bgl.glGenTextures(1, self.buf_color)
-        self._config_textures()
 
-        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_NEAREST)
-        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_NEAREST)
+        self._config_textures()
 
         bgl.glGetIntegerv(bgl.GL_FRAMEBUFFER_BINDING, self.cur_fbo)
 
         bgl.glGenFramebuffers(1, self.fbo)
         bgl.glBindFramebuffer(bgl.GL_FRAMEBUFFER, self.fbo[0])
+
         bgl.glFramebufferRenderbuffer(
                 bgl.GL_FRAMEBUFFER, bgl.GL_DEPTH_ATTACHMENT,
                 bgl.GL_RENDERBUFFER, self.buf_depth[0])
@@ -116,6 +121,8 @@ class _SnapOffscreen():
                 0, bgl.GL_RED_INTEGER, bgl.GL_UNSIGNED_INT, NULL)
         del NULL
 
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_NEAREST)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_NEAREST)
 
     def bind(self):
         if self is not _SnapOffscreen.bound:
@@ -134,7 +141,7 @@ class _SnapOffscreen():
             _SnapOffscreen.bound = None
 
     def clear(self):
-        is_bound =  self is _SnapOffscreen.bound
+        is_bound = self is _SnapOffscreen.bound
         if not is_bound:
             self.bind()
 
@@ -160,7 +167,6 @@ class _SnapOffscreen():
 
         if not is_bound:
             self.unbind()
-
 
     def __del__(self):
         if not self.freed:
@@ -200,14 +206,6 @@ class SnapContext():
         self.snap_objects = []
         self.drawn_count = 0
         self._offset_cur = 1 # Starts with index 1
-        self.region = region
-        self.rv3d = space.region_3d
-        self.depsgraph = depsgraph
-
-        if self.rv3d.is_perspective:
-            self.depth_range = Vector((space.clip_start, space.clip_end))
-        else:
-            self.depth_range = Vector((-space.clip_end, space.clip_end))
 
         self.proj_mat = None
         self.mval = Vector((0, 0))
@@ -215,11 +213,25 @@ class SnapContext():
 
         self.set_pixel_dist(12)
 
-        self._offscreen = _SnapOffscreen(self.region.width, self.region.height)
+        self.region = region
+        self.depsgraph = depsgraph
+
+        if not (depsgraph or region or space):
+            self.rv3d = None
+            self.depth_range = Vector((-1.0, 1.0))
+            self._offscreen = _SnapOffscreen(1, 1)
+        else:
+            self.rv3d = space.region_3d
+
+            if self.rv3d.is_perspective:
+                self.depth_range = Vector((space.clip_start, space.clip_end))
+            else:
+                self.depth_range = Vector((-space.clip_end, space.clip_end))
+
+            self._offscreen = _SnapOffscreen(self.region.width, self.region.height)
+            self._offscreen.clear()
 
         self.winsize = Vector((self._offscreen.width, self._offscreen.height))
-
-        self._offscreen.clear()
 
 
     ## PRIVATE ##
@@ -360,7 +372,13 @@ class SnapContext():
             self._offscreen.resize(*self.winsize)
 
     def clear_snap_objects(self):
-        self.update_all()
+        for snap_obj in self.snap_objects:
+            if len(snap_obj.data) == 2:
+                snap_obj.data[1].free()
+                del snap_obj.data[1:]
+
+        self.update_drawing(False)
+
         self.snap_objects.clear()
         _Internal.gpu_Indices_mesh_cache_clear()
 
@@ -372,10 +390,11 @@ class SnapContext():
 
         self.update_drawing()
 
-    def update_drawing(self):
+    def update_drawing(self, clear_offscreen = True):
         self.drawn_count = 0
         self._offset_cur = 1
-        self._offscreen.clear()
+        if clear_offscreen:
+            self._offscreen.clear()
 
     def tag_update_drawn_snap_object(self, snap_obj):
         if len(snap_obj.data) > 1:
@@ -502,9 +521,11 @@ class SnapContext():
                 self.drawn_count += 1
 
         bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
+
         bgl.glReadPixels(
                 int(self.mval[0]) - self._dist_px, int(self.mval[1]) - self._dist_px,
                 self.threshold, self.threshold, bgl.GL_RED_INTEGER, bgl.GL_UNSIGNED_INT, self._snap_buffer)
+
         #bgl.glReadBuffer(bgl.GL_BACK)
         #import numpy as np
         #a = np.array(self._snap_buffer)
@@ -516,6 +537,7 @@ class SnapContext():
             ret = self._get_loc(snap_obj, index)
 
         bgl.glDisable(bgl.GL_DEPTH_TEST)
+
         self._offscreen.unbind()
         _Internal.gpu_Indices_restore_state()
 
@@ -525,11 +547,9 @@ class SnapContext():
         self.__del__()
         self.freed = True
 
-def global_snap_context_get(depsgraph, region, space):
-    if _Internal.global_snap_context == None:
-        if depsgraph is None or region is None or space is None:
-            return
 
+def global_snap_context_init(depsgraph, region, space):
+    if _Internal.global_snap_context == None:
         import atexit
 
         _Internal.global_snap_context = SnapContext(depsgraph, region, space)
@@ -538,7 +558,14 @@ def global_snap_context_get(depsgraph, region, space):
         atexit.unregister(_Internal.snap_context_free)
         atexit.register(_Internal.snap_context_free)
 
-    elif depsgraph is not None:
+
+def global_snap_context_get(depsgraph, region, space):
+    if (depsgraph and region and space):
         _Internal.global_snap_context.update_viewport_context(depsgraph, region, space, True)
 
     return _Internal.global_snap_context
+
+
+def global_snap_context_destroy():
+    if _Internal.global_snap_context != None:
+        _Internal.global_snap_context.free()

@@ -131,66 +131,6 @@ class SnapPointWidget(SnapWidgetCommon, bpy.types.Gizmo):
         self.init_snapwidget(bpy.context)
 
 
-class SnapFaceWidget(SnapWidgetCommon, bpy.types.Gizmo):
-    bl_idname = "VIEW3D_GT_snap_face_point"
-
-    def test_select(self, context, mval):
-        self.update_snap(context, mval)
-        self.snap_to_grid()
-
-        context.area.tag_redraw()
-        return -1
-
-    def draw(self, context):
-        self.draw_point_and_elem()
-
-    def setup(self):
-        self.init_snapwidget(bpy.context, False)
-
-
-class SnapCircleWidget(SnapWidgetCommon, bpy.types.Gizmo):
-    bl_idname = "VIEW3D_GT_snap_circle"
-
-    from mathutils import Vector
-    zero_vector = Vector()
-    default_normal = Vector((0.0, 0.0, 1.0))
-
-    def get_normal(self, context):
-        if self.constrain:
-            return
-
-        view_vector, orig = self.sctx.last_ray
-        if not self.rv3d.is_perspective:
-            #temporary hack
-            orig -= view_vector * 100
-
-        normal_face = context.scene.ray_cast(context.view_layer, orig, view_vector)[2]
-        if normal_face and normal_face != self.zero_vector:
-            self.normal = normal_face
-        else:
-            self.normal = self.default_normal
-
-    def test_select(self, context, mval):
-        self.update_snap(context, mval)
-        self.snap_to_grid()
-        self.get_normal(context)
-
-        context.area.tag_redraw()
-        return -1
-
-    def draw(self, context):
-        self.draw_point_and_elem()
-        self.draw_cache.draw_rot_tool(
-                self.rv3d.view_distance / 15,
-                self.location, self.normal, None)
-
-    def setup(self):
-        context = bpy.context
-        self.init_snapwidget(context)
-        self.rv3d = context.region_data
-        self.normal = self.default_normal
-
-
 def context_mode_check(context, widget_group):
     workspace = context.workspace
     mode = workspace.tools_mode
@@ -226,19 +166,3 @@ class SnapPointWidgetGroup(SnapWidgetGroupCommon, bpy.types.GizmoGroup):
 
     def setup(self, context):
         self.init_tool(context, SnapPointWidget.bl_idname)
-
-
-class SnapCircleWidgetGroup(SnapWidgetGroupCommon, bpy.types.GizmoGroup):
-    bl_idname = "MESH_GGT_snap_circle"
-    bl_label = "Draw Snap Circle"
-
-    def setup(self, context):
-        self.init_tool(context, SnapCircleWidget.bl_idname)
-
-
-class SnapFaceWidgetGroup(SnapWidgetGroupCommon, bpy.types.GizmoGroup):
-    bl_idname = "MESH_GGT_face_snap_point"
-    bl_label = "Draw Face and Snap Point"
-
-    def setup(self, context):
-        self.init_tool(context, SnapFaceWidget.bl_idname)
