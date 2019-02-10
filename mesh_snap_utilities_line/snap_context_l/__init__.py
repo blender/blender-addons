@@ -329,7 +329,7 @@ class SnapContext():
             for snap_obj in self.snap_objects:
                 if len(snap_obj.data) == 2:
                     snap_obj.data[1].free()
-                    snap_obj.data.pop(1)
+                    del snap_obj.data[1:]
 
                 del snap_obj.data
                 del snap_obj.mat
@@ -368,7 +368,7 @@ class SnapContext():
         for snap_obj in self.snap_objects:
             if len(snap_obj.data) == 2:
                 snap_obj.data[1].free()
-                snap_obj.data.pop(1)
+                del snap_obj.data[1:]
 
         self.update_drawing()
 
@@ -380,7 +380,7 @@ class SnapContext():
     def tag_update_drawn_snap_object(self, snap_obj):
         if len(snap_obj.data) > 1:
             snap_obj.data[1].free()
-            snap_obj.data.pop(1)
+            del snap_obj.data[1:]
             #self.update_drawing()
             # Update on next snap_get call #
             self.proj_mat = None
@@ -395,7 +395,7 @@ class SnapContext():
 
         if len(snap_obj.data) > 1:
             snap_obj.data[1].free()
-            snap_obj.data.pop(1)
+            del snap_obj.data[1:]
 
         data = GPU_Indices_Mesh(self.depsgraph, snap_obj.data[0], snap_face, snap_edge, snap_vert)
         snap_obj.data.append(data)

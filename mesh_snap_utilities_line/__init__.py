@@ -22,22 +22,24 @@
 bl_info = {
     "name": "Snap_Utilities_Line",
     "author": "Germano Cavalcante",
-    "version": (5, 9, 00),
+    "version": (5, 9, 1),
     "blender": (2, 80, 0),
     "location": "View3D > TOOLS > Line Tool",
     "description": "Extends Blender Snap controls",
-    #"wiki_url" : "http://blenderartists.org/forum/showthread.php?363859-Addon-CAD-Snap-Utilities",
+    "wiki_url" : "http://blenderartists.org/forum/showthread.php?363859-Addon-CAD-Snap-Utilities",
     "category": "Mesh"}
 
 if "bpy" in locals():
     import importlib
-    importlib.reload(common_classes)
+    importlib.reload(navigation_ops)
+    importlib.reload(widgets)
     importlib.reload(preferences)
-    importlib.reload(ops_line)
+    importlib.reload(op_line)
 else:
-    from . import common_classes
+    from . import navigation_ops
+    from . import widgets
     from . import preferences
-    from . import ops_line
+    from . import op_line
 
 import bpy
 from bpy.utils.toolsystem import ToolDef
@@ -105,7 +107,7 @@ def register_snap_tools():
 
     tools[:index] += None, tool_line
 
-    del tool, tools, index
+    del tools, index
 
     keyconfigs = bpy.context.window_manager.keyconfigs
     kc_defaultconf = keyconfigs.get("blender")
@@ -144,11 +146,11 @@ def unregister_snap_tools():
 
 classes = (
     preferences.SnapUtilitiesPreferences,
-    ops_line.SnapUtilitiesLine,
-    common_classes.VIEW3D_OT_rotate_custom_pivot,
-    common_classes.VIEW3D_OT_zoom_custom_target,
-    common_classes.SnapPointWidget,
-    common_classes.SnapPointWidgetGroup,
+    op_line.SnapUtilitiesLine,
+    navigation_ops.VIEW3D_OT_rotate_custom_pivot,
+    navigation_ops.VIEW3D_OT_zoom_custom_target,
+    widgets.SnapPointWidget,
+    widgets.SnapPointWidgetGroup,
 )
 
 def register():

@@ -15,24 +15,20 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import bpy, bmesh
-
-from bpy.props import FloatProperty
+import bpy
+import bmesh
 
 from mathutils import Vector
-
 from mathutils.geometry import intersect_point_line
 
+from .drawing_utilities import SnapDrawn
+from .common_utilities import snap_utilities
 from .common_classes import (
-    SnapDrawn,
     CharMap,
     SnapNavigation,
     SnapUtilities,
     )
 
-from .common_utilities import (
-    snap_utilities,
-    )
 
 if not __package__:
     __package__ = "mesh_snap_utilities_line"
@@ -276,7 +272,7 @@ class SnapUtilitiesLine(SnapUtilities, bpy.types.Operator):
             if self.rv3d.view_matrix != self.rotMat:
                 self.rotMat = self.rv3d.view_matrix.copy()
                 self.bool_update = True
-                snap_utilities.cache.snp_obj = None # hack for snap edge elemens update
+                snap_utilities.edge_cache.snp_obj = None # hack for snap edge elemens update
             else:
                 self.bool_update = False
 
@@ -381,7 +377,7 @@ class SnapUtilitiesLine(SnapUtilities, bpy.types.Operator):
                     self._exit(context)
                     return {'FINISHED'}
                 else:
-                    snap_utilities.cache.snp_obj = None # hack for snap edge elemens update
+                    snap_utilities.edge_cache.snp_obj = None # hack for snap edge elemens update
                     self.vector_constrain = None
                     self.list_edges = []
                     self.list_verts = []
