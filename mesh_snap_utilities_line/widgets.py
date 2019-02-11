@@ -53,7 +53,12 @@ class SnapWidgetCommon(SnapUtilities):
 
         self.draw_cache.draw(self.type, self.location, None, None, None)
 
+    def init_delayed(self):
+        self.inited = False
+
     def init_snapwidget(self, context, snap_edge_and_vert = True):
+        self.inited = True
+
         self.snap_context_init(context, snap_edge_and_vert)
         self.snap_context_update(context)
         self.mode = context.mode
@@ -118,6 +123,9 @@ class SnapPointWidget(SnapWidgetCommon, bpy.types.Gizmo):
     bl_idname = "VIEW3D_GT_snap_point"
 
     def test_select(self, context, mval):
+        if not self.inited:
+            self.init_snapwidget(context)
+
         self.update_snap(context, mval)
         self.snap_to_grid()
 
@@ -125,11 +133,11 @@ class SnapPointWidget(SnapWidgetCommon, bpy.types.Gizmo):
         return -1
 
     def draw(self, context):
-        self.draw_point_and_elem()
+        if self.inited:
+            self.draw_point_and_elem()
 
     def setup(self):
-        self.init_snapwidget(bpy.context)
-
+        self.init_delayed()
 
 def context_mode_check(context, widget_group):
     workspace = context.workspace

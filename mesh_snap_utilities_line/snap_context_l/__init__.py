@@ -548,7 +548,7 @@ class SnapContext():
         self.freed = True
 
 
-def global_snap_context_init(depsgraph, region, space):
+def global_snap_context_get(depsgraph, region, space):
     if _Internal.global_snap_context == None:
         import atexit
 
@@ -558,15 +558,7 @@ def global_snap_context_init(depsgraph, region, space):
         atexit.unregister(_Internal.snap_context_free)
         atexit.register(_Internal.snap_context_free)
 
-
-def global_snap_context_get(depsgraph, region, space):
-    if (depsgraph and region and space):
+    elif (depsgraph and region and space):
         _Internal.global_snap_context.update_viewport_context(depsgraph, region, space, True)
 
     return _Internal.global_snap_context
-
-
-def global_snap_context_destroy():
-    if _Internal.global_snap_context != None:
-        _Internal.global_snap_context.free()
-        _Internal.global_snap_context = None

@@ -22,7 +22,7 @@
 bl_info = {
     "name": "Snap_Utilities_Line",
     "author": "Germano Cavalcante",
-    "version": (5, 9, 2),
+    "version": (5, 9, 3),
     "blender": (2, 80, 0),
     "location": "View3D > TOOLS > Line Tool",
     "description": "Extends Blender Snap controls",
@@ -154,10 +154,6 @@ classes = (
 )
 
 def register():
-    from .snap_context_l import global_snap_context_init
-    # This makes sure that the framebuffer is created in the correct context
-    global_snap_context_init(None, None, None)
-
     for cls in classes:
         bpy.utils.register_class(cls)
 
@@ -165,9 +161,6 @@ def register():
 
 
 def unregister():
-    from .snap_context_l import global_snap_context_destroy
-    global_snap_context_destroy()
-
     unregister_snap_tools()
 
     for cls in reversed(classes):
