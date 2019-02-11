@@ -311,7 +311,7 @@ class SnapUtilities:
         if SnapUtilities.snapwidgets:
             widget = SnapUtilities.snapwidgets[-1]
 
-            self.snap_obj = widget.snap_obj
+            self.obj = widget.snap_obj.data[0] if widget.snap_obj else context.active_object
             self.bm = widget.bm
             self.geom = widget.geom
             self.type = widget.type
@@ -325,7 +325,7 @@ class SnapUtilities:
 
         else:
             #init these variables to avoid errors
-            self.snap_obj = None
+            self.obj = context.active_object
             self.bm = None
             self.geom = None
             self.type = 'OUT'

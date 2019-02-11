@@ -49,7 +49,6 @@ class SnapWidgetCommon(SnapUtilities):
             else:
                 self.bm = None
                 self.geom = None
-                self.sctx.update_all()
 
         self.draw_cache.draw(self.type, self.location, None, None, None)
 

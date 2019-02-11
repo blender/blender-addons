@@ -233,11 +233,11 @@ class SnapUtilitiesLine(SnapUtilities, bpy.types.Operator):
         self.vector_constrain = ()
         self.len = 0
 
-        active_object = context.active_object
-        mesh = active_object.data
+        self.main_snap_obj = self.snap_obj = self.sctx._get_snap_obj_by_obj(self.obj)
+        if self.bm == None:
+            self.bm = bmesh.from_edit_mesh(self.obj.data)
 
-        self.main_snap_obj = self.snap_obj = self.sctx._get_snap_obj_by_obj(active_object)
-        self.main_bm = self.bm = bmesh.from_edit_mesh(mesh)
+        self.main_bm = self.bm
 
     def modal(self, context, event):
         if self.navigation_ops.run(context, event, self.prevloc if self.vector_constrain else self.location):
@@ -435,7 +435,7 @@ class SnapUtilitiesLine(SnapUtilities, bpy.types.Operator):
             context.window_manager.modal_handler_add(self)
 
             if not self.wait_for_input:
-                mat_inv = context.object.matrix_world.inverted_safe()
+                mat_inv = self.obj.matrix_world.inverted_safe()
                 point = mat_inv @ self.location
                 self.list_verts_co = make_line(self, self.geom, point)
 
