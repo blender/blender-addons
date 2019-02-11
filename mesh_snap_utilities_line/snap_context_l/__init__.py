@@ -371,13 +371,13 @@ class SnapContext():
             self.winsize = winsize
             self._offscreen.resize(*self.winsize)
 
-    def clear_snap_objects(self):
+    def clear_snap_objects(self, clear_offscreen = False):
         for snap_obj in self.snap_objects:
             if len(snap_obj.data) == 2:
                 snap_obj.data[1].free()
                 del snap_obj.data[1:]
 
-        self.update_drawing(False)
+        self.update_drawing(clear_offscreen)
 
         self.snap_objects.clear()
         _Internal.gpu_Indices_mesh_cache_clear()

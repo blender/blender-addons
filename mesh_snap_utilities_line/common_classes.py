@@ -262,7 +262,7 @@ class SnapUtilities:
 
         moving_objects.difference_update(children)
 
-        self.sctx.clear_snap_objects()
+        self.sctx.clear_snap_objects(True)
 
         for obj in context.visible_objects:
             is_moving = obj in moving_objects or obj in children
@@ -295,7 +295,8 @@ class SnapUtilities:
                 for obj in context.objects_in_mode_unique_data:
                     yield (obj, obj.matrix_world)
 
-        self.sctx.clear_snap_objects()
+        self.sctx.clear_snap_objects(True)
+
         for obj, matrix in visible_objects_and_duplis():
             self.sctx.add_obj(obj, matrix)
 
