@@ -233,10 +233,11 @@ class SnapUtilitiesLine(SnapUtilities, bpy.types.Operator):
         self.vector_constrain = ()
         self.len = 0
 
-        self.main_snap_obj = self.snap_obj = self.sctx._get_snap_obj_by_obj(self.obj)
-        if self.bm == None:
+        if not (self.bm and self.obj):
+            self.obj = context.edit_object
             self.bm = bmesh.from_edit_mesh(self.obj.data)
 
+        self.main_snap_obj = self.snap_obj = self.sctx._get_snap_obj_by_obj(self.obj)
         self.main_bm = self.bm
 
     def modal(self, context, event):
