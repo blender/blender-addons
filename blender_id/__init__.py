@@ -267,9 +267,14 @@ class BlenderIdPreferences(AddonPreferences):
 class BlenderIdMixin:
     @staticmethod
     def addon_prefs(context):
-        preferences = context.user_preferences.addons[__name__].preferences
-        preferences.reset_messages()
-        return preferences
+        try:
+            prefs = context.preferences
+        except AttributeError:
+            prefs = context.user_preferences
+
+        addon_prefs = prefs.addons[__name__].preferences
+        addon_prefs.reset_messages()
+        return addon_prefs
 
 
 class BlenderIdLogin(BlenderIdMixin, Operator):
@@ -356,7 +361,7 @@ def register():
     bpy.utils.register_class(BlenderIdPreferences)
     bpy.utils.register_class(BlenderIdValidate)
 
-    preferences = bpy.context.user_preferences.addons[__name__].preferences
+    preferences = BlenderIdMixin.addon_prefs(bpy.context)
     preferences.reset_messages()
 
 
