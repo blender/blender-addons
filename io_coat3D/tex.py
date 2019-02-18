@@ -78,8 +78,8 @@ def UVTiling(objekti, texturelist):
 def readtexturefolder(objekti, mat_list, texturelist, is_new): #read textures from texture file
 
     create_nodes = False
-
-    if texturelist[0][0] == '1001':
+    print('texturelist:', texturelist)
+    if texturelist[0][0].startswith('100'):
         print('This is UVTiling')
         texturelist = UVTiling(objekti, texturelist)
     print('texturelist:', texturelist)
@@ -98,7 +98,7 @@ def readtexturefolder(objekti, mat_list, texturelist, is_new): #read textures fr
 
         create_group_node = False
         for texture_info in texturelist:
-            if texture_info[0] == objekti.data.uv_layers[0].name:
+            if texture_info[0] == index_mat.name:
                 if texture_info[2] == 'color' or texture_info[2] == 'diffuse':
                     texcoat['color'].append(texture_info[3])
                     create_nodes = True

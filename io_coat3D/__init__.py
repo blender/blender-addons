@@ -559,7 +559,7 @@ class SCENE_OT_export(bpy.types.Operator):
                             final_bake_name = toi[:-1]
                             bpy.data.images[bake_image].save()
                             print('Baking OBJ:', objekti)
-                            temp_string += '''\n[script ImportTexture("''' + bake_list[index_bake_tex][1] + '''","''' + objekti.data.uv_layers[0].name + '''","''' +  final_bake_name + '''");]'''
+                            temp_string += '''\n[script ImportTexture("''' + bake_list[index_bake_tex][1] + '''","''' + objekti.material_slots[bake_mat_index].material.name + '''","''' +  final_bake_name + '''");]'''
 
                             bake_index += 1
 
