@@ -41,6 +41,7 @@ from io_coat3D import tex
 import os
 import ntpath
 import re
+import shutil
 
 import time
 import bpy
@@ -142,9 +143,20 @@ def set_exchange_folder():
 
         if(not(os.path.isdir(Blender_folder))):
             os.makedirs(Blender_folder)
-            Blender_folder = os.path.join(Blender_folder,"run.txt")
-            file = open(Blender_folder, "w")
+            Blender_folder1 = os.path.join(Blender_folder,"run.txt")
+            file = open(Blender_folder1, "w")
             file.close()
+
+            Blender_folder2 = os.path.join(Blender_folder, "extension.txt")
+            file = open(Blender_folder2, "w")
+            file.write("fbx")
+            file.close()
+
+            Blender_folder3 = os.path.join(Blender_folder, "preset.txt")
+            file = open(Blender_folder3, "w")
+            file.write("Blender Cycles")
+            file.close()
+
     return exchange
 
 def set_working_folders():
@@ -379,6 +391,7 @@ class SCENE_OT_export(bpy.types.Operator):
 
         looking = True
         object_index = 0
+        active_render =  bpy.context.scene.render.engine
 
         if(coat3D.type == 'autopo'):
             checkname = folder_objects + os.sep
@@ -435,7 +448,19 @@ class SCENE_OT_export(bpy.types.Operator):
                 objekti.data.name = name_boxs[0]
             objekti.coat3D.applink_name = objekti.data.name
         mod_mat_list = {}
+
+        if (coat3D.bake_textures):
+            bake_location = folder_objects + os.sep + 'Bake'
+            print('bake_location:', bake_location)
+            if (os.path.isdir(bake_location)):
+                shutil.rmtree(bake_location)
+                os.makedirs(bake_location)
+            else:
+                os.makedirs(bake_location)
+
+        temp_string = ''
         for objekti in bpy.context.selected_objects:
+            print('Main OBJ:', objekti)
             mod_mat_list[objekti.name] = []
             objekti.coat3D.applink_scale = objekti.scale
 
@@ -461,6 +486,99 @@ class SCENE_OT_export(bpy.types.Operator):
                             mod_mat_list[objekti.name].append([material_index, temp_mat])
                         material_index = material_index + 1
 
+                for layer in objekti.data.uv_layers:
+                    if(layer.name.startswith(objekti.name) == False):
+                        uv_name = layer.name
+                        layer.name = objekti.name + '_' + uv_name
+
+
+
+                bake_list = []
+                if(coat3D.bake_diffuse):
+                    bake_list.append(['DIFFUSE', '$LOADTEX'])
+                if (coat3D.bake_ao):
+                    bake_list.append(['AO', '$ExternalAO'])
+                if (coat3D.bake_normal):
+                    bake_list.append(['NORMAL', '$LOADLOPOLYTANG'])
+                if (coat3D.bake_roughness):
+                    bake_list.append(['SPECULAR', '$LOADROUGHNESS'])
+                if (coat3D.bake_metalness):
+                    bake_list.append(['REFLECTION', '$LOADMETAL'])
+
+                if(coat3D.bake_resolution == 'res_64'):
+                    res_size = 64
+                elif (coat3D.bake_resolution == 'res_128'):
+                    res_size = 128
+                elif (coat3D.bake_resolution == 'res_256'):
+                    res_size = 256
+                elif (coat3D.bake_resolution == 'res_512'):
+                    res_size = 512
+                elif (coat3D.bake_resolution == 'res_1024'):
+                    res_size = 1024
+                elif (coat3D.bake_resolution == 'res_2048'):
+                    res_size = 2048
+                elif (coat3D.bake_resolution == 'res_4096'):
+                    res_size = 4096
+                elif (coat3D.bake_resolution == 'res_8192'):
+                    res_size = 8192
+
+
+
+
+                if(len(bake_list) > 0):
+                    index_bake_tex = 0
+                    while(index_bake_tex < len(bake_list)):
+                        bake_index = 0
+                        for bake_mat_index in final_material_indexs:
+                            bake_node = objekti.material_slots[bake_mat_index].material.node_tree.nodes.new('ShaderNodeTexImage')
+                            bake_node.name = 'ApplinkBake' + str(bake_index)
+                            bpy.ops.image.new(name=bake_node.name, width=res_size, height=res_size)
+                            bake_node.image = bpy.data.images[bake_node.name]
+                            objekti.material_slots[bake_mat_index].material.node_tree.nodes.active = bake_node
+
+                            bake_index += 1
+                        print('final_material_indexs: ' , final_material_indexs)
+                        if(bpy.context.scene.render.engine != 'CYCLES'):
+                            bpy.context.scene.render.engine = 'CYCLES'
+                        bpy.context.scene.render.bake.use_pass_direct = False
+                        bpy.context.scene.render.bake.use_pass_indirect = False
+                        bpy.context.scene.render.bake.use_pass_color = True
+
+                        bpy.ops.object.bake(type=bake_list[index_bake_tex][0], margin=1, width=res_size, height=res_size)
+
+                        bake_index = 0
+                        for bake_mat_index in final_material_indexs:
+                            bake_image = 'ApplinkBake' + str(bake_index)
+                            bpy.data.images[bake_image].filepath_raw = bake_location + os.sep + objekti.name + '_' + bake_image + '_' + bake_list[index_bake_tex][0] + ".png"
+                            image_bake_name =  bpy.data.images[bake_image].filepath_raw
+                            tie = image_bake_name.split(os.sep)
+                            toi = ''
+                            for sana in tie:
+                                toi += sana
+                                toi += "/"
+                            final_bake_name = toi[:-1]
+                            bpy.data.images[bake_image].save()
+                            print('Baking OBJ:', objekti)
+                            temp_string += '''\n[script ImportTexture("''' + bake_list[index_bake_tex][1] + '''","''' + objekti.data.uv_layers[0].name + '''","''' +  final_bake_name + '''");]'''
+
+                            bake_index += 1
+
+                        for material in objekti.material_slots:
+                            if material.material.use_nodes == True:
+                                for node in material.material.node_tree.nodes:
+                                    if (node.name.startswith('ApplinkBake') == True):
+                                        material.material.node_tree.nodes.remove(node)
+
+                        for image in bpy.data.images:
+                            if (image.name.startswith('ApplinkBake') == True):
+                                bpy.data.images.remove(image)
+
+
+
+
+                        index_bake_tex += 1
+                    print('Folder_location: ', folder_objects)
+
         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
         if(len(bpy.context.selected_objects) > 1 and coat3D.type != 'vox'):
             bpy.ops.object.transforms_to_deltas(mode='ROT')
@@ -473,10 +591,16 @@ class SCENE_OT_export(bpy.types.Operator):
             coat3D.bring_retopo = False
             bpy.ops.export_scene.fbx(filepath=coa.applink_address, use_selection=True, use_mesh_modifiers=coat3D.exportmod, axis_forward='-Z', axis_up='Y')
 
+        print('testi: ', importfile)
         file = open(importfile, "w")
         file.write("%s"%(checkname))
         file.write("\n%s"%(checkname))
         file.write("\n[%s]"%(coat3D.type))
+        if(coat3D.type == 'ppp' or coat3D.type == 'mv' or coat3D.type == 'ptex'):
+            file.write("\n[export_preset Blender Cycles]")
+            file.write(temp_string)
+            #file.write('''\n[script ImportTexture("$LOADTEX","Material", "C:/Temp/West.jpg");]''')
+            #file.write('''\n[script ImportTexture("$ExternalAO","Material", "C:/Temp/West.jpg");]''')
         file.close()
         group_index = -1.0
         for idx, objekti in enumerate(bpy.context.selected_objects):
@@ -505,7 +629,7 @@ class SCENE_OT_export(bpy.types.Operator):
                 if(mat_list == objekti.name):
                     for ind, mat in enumerate(mod_mat_list[mat_list]):
                         objekti.material_slots[mod_mat_list[mat_list][ind][0]].material = mod_mat_list[mat_list][ind][1]
-
+        bpy.context.scene.render.engine = active_render
         return {'FINISHED'}
 
 class SCENE_OT_import(bpy.types.Operator):
@@ -724,16 +848,34 @@ class SCENE_OT_import(bpy.types.Operator):
                                 bpy.ops.object.select_all(action='TOGGLE')
                                 multires_on = False
                             else:
+                                list_total_mat = []
+
+
+                                bpy.context.view_layer.objects.active = obj_proxy
+                                mat_count = len(obj_proxy.material_slots) - len(objekti.material_slots)
+                                bpy.context.object.active_material_index = 0
+                                index_t = 0
+                                while (index_t < mat_count):
+                                    temp_len = len(obj_proxy.material_slots)-1
+                                    bpy.context.object.active_material_index = temp_len
+                                    bpy.ops.object.material_slot_remove()
+                                    index_t +=1
+                                for index, material in enumerate(objekti.material_slots):
+                                    obj_proxy.material_slots[index-1].material = material.material
+
+                                print('Montako1: ', len(objekti.material_slots))
+                                print('Montako2: ', len(obj_proxy.material_slots))
                                 updatemesh(objekti,obj_proxy)
+
+                                bpy.context.view_layer.objects.active = objekti
+
+
 
                             #tärkee että saadaan oikein käännettyä objekt
 
                             objekti.select_set(True)
                             bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
 
-                            objekti.data.materials.pop()
-                            for mat in mat_list:
-                                objekti.data.materials.append(mat)
 
                             if (use_smooth):
                                 for data_mesh in objekti.data.polygons:
@@ -748,6 +890,7 @@ class SCENE_OT_import(bpy.types.Operator):
                                 coat3D.importmesh = False
 
                             objekti.select_set(True)
+                        print('Montako: ', len(objekti.material_slots))
                         if(coat3D.importtextures):
                             is_new = False
                             tex.matlab(objekti,mat_list,texturelist,is_new)
@@ -989,6 +1132,34 @@ class SCENE_PT_Settings_Update(ObjectButtonsPanel, bpy.types.Panel):
         col = flow.column()
         col.prop(coat3D, "exportmod", text="Export with modifiers")
 
+class SCENE_PT_Bake_Settings(ObjectButtonsPanel, bpy.types.Panel):
+    bl_label = "Bake"
+    bl_parent_id = "SCENE_PT_Settings"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = False
+        coat3D = bpy.context.scene.coat3D
+
+        rd = context.scene.render
+
+        layout.active = True
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
+
+        col = flow.column()
+        col.prop(coat3D, "bake_resolution", text="Resolution")
+        col = flow.column()
+        col = flow.column()
+        col.prop(coat3D, "bake_diffuse", text="Diffuse")
+        col = flow.column()
+        col.prop(coat3D, "bake_ao", text="AO")
+        col = flow.column()
+        col.prop(coat3D, "bake_metalness", text="Metalness")
+        col = flow.column()
+        col.prop(coat3D, "bake_roughness", text="Roughness")
+
 class SCENE_PT_Settings_Folders(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Folders"
     bl_parent_id = "SCENE_PT_Settings"
@@ -1013,6 +1184,8 @@ class SCENE_PT_Settings_Folders(ObjectButtonsPanel, bpy.types.Panel):
 
         col = flow.column()
         col.prop(coat3D, "coat3D_exe", text="3D-Coat.exe")
+
+
 
 # 3D-Coat Dynamic Menu
 class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
@@ -1235,6 +1408,62 @@ class SceneCoat3D(PropertyGroup):
                ),
         default="ppp"
     )
+    bake_resolution: EnumProperty(
+        name="Bake Resolution",
+        description="Bake resolution.",
+        items=(("res_64", "64 x 64", ""),
+               ("res_128", "128 x 128", ""),
+               ("res_256", "256 x 256", ""),
+               ("res_512", "512 x 512", ""),
+               ("res_1024", "1024 x 1024", ""),
+               ("res_2048", "2048 x 2048", ""),
+               ("res_4096", "4096 x 4096", ""),
+               ("res_8192", "8192 x 8192", ""),
+               ),
+        default="res_1024"
+    )
+    bake_textures: BoolProperty(
+        name="Bake all textures",
+        description="Add Modifiers and export",
+        default=False
+    )
+    bake_diffuse: BoolProperty(
+        name="Bake diffuse texture",
+        description="Add Modifiers and export",
+        default=False
+    )
+    bake_ao: BoolProperty(
+        name="Bake AO texture",
+        description="Add Modifiers and export",
+        default=False
+    )
+    bake_roughness: BoolProperty(
+        name="Bake roughness texture",
+        description="Add Modifiers and export",
+        default=False
+    )
+    bake_metalness: BoolProperty(
+        name="Bake metalness texture",
+        description="Add Modifiers and export",
+        default=False
+    )
+    bake_emissive: BoolProperty(
+        name="Bake emissive texture",
+        description="Add Modifiers and export",
+        default=False
+    )
+    bake_normal: BoolProperty(
+        name="Bake normal texture",
+        description="Add Modifiers and export",
+        default=False
+    )
+    bake_displacement: BoolProperty(
+        name="Bake displacement",
+        description="Add Modifiers and export",
+        default=False
+    )
+
+
 class MeshCoat3D(PropertyGroup):
     applink_address: StringProperty(
         name="ApplinkAddress",
@@ -1251,6 +1480,7 @@ classes = (
     SCENE_PT_Main,
     SCENE_PT_Settings,
     SCENE_PT_Settings_Update,
+    SCENE_PT_Bake_Settings,
     SCENE_PT_Settings_Folders,
     SCENE_OT_folder,
     SCENE_OT_opencoat,

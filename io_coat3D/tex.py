@@ -98,7 +98,7 @@ def readtexturefolder(objekti, mat_list, texturelist, is_new): #read textures fr
 
         create_group_node = False
         for texture_info in texturelist:
-            if texture_info[0] == index_mat.name:
+            if texture_info[0] == objekti.data.uv_layers[0].name:
                 if texture_info[2] == 'color' or texture_info[2] == 'diffuse':
                     texcoat['color'].append(texture_info[3])
                     create_nodes = True
