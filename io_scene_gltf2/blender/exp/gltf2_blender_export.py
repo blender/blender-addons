@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import time
 
 import bpy
 import sys
@@ -29,10 +30,20 @@ def save(context, export_settings):
     if bpy.context.active_object is not None:
         bpy.ops.object.mode_set(mode='OBJECT')
 
+    original_frame = bpy.context.scene.frame_current
+    if not export_settings['gltf_current_frame']:
+        bpy.context.scene.frame_set(0)
+
     __notify_start(context)
+    start_time = time.time()
     json, buffer = __export(export_settings)
     __write_file(json, buffer, export_settings)
-    __notify_end(context)
+
+    end_time = time.time()
+    __notify_end(context, end_time - start_time)
+
+    if not export_settings['gltf_current_frame']:
+        bpy.context.scene.frame_set(original_frame)
     return {'FINISHED'}
 
 
@@ -123,8 +134,8 @@ def __notify_start(context):
     context.window_manager.progress_update(0)
 
 
-def __notify_end(context):
-    print_console('INFO', 'Finished glTF 2.0 export')
+def __notify_end(context, elapsed):
+    print_console('INFO', 'Finished glTF 2.0 export in {} s'.format(elapsed))
     context.window_manager.progress_end()
     print_newline()
 
