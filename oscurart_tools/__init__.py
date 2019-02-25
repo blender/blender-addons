@@ -41,12 +41,14 @@ from oscurart_tools.mesh import overlap_uvs
 from oscurart_tools.mesh import overlap_island
 from oscurart_tools.mesh import select_doubles
 from oscurart_tools.mesh import shapes_to_objects
+from oscurart_tools.mesh import remove_modifiers
 from oscurart_tools.object import distribute
 from oscurart_tools.object import selection
 from oscurart_tools.object import search_and_select
 from oscurart_tools.mesh import apply_linked_meshes
 from oscurart_tools.render import render_tokens
 from oscurart_tools.render import batch_maker
+
 
 from bpy.types import (
         AddonPreferences,
@@ -110,6 +112,7 @@ class VIEW3D_MT_object_oscurarttools(Menu):
         layout = self.layout
 
         layout.operator("object.distribute_osc")
+        layout.operator("mesh.remove_modifiers")
         layout.operator("object.search_and_select_osc")
         layout.operator("object.shape_key_to_objects_osc")
         layout.operator("mesh.apply_linked_meshes")        
@@ -142,7 +145,8 @@ classes = (
     shapes_to_objects.ShapeToObjects,
     search_and_select.SearchAndSelectOt,
     apply_linked_meshes.ApplyLRT,
-    batch_maker.oscBatchMaker
+    batch_maker.oscBatchMaker,
+    remove_modifiers.RemoveModifiers
     )
 
 def register():   
