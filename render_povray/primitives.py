@@ -753,7 +753,7 @@ def pov_sphere_define(context, op, ob, loc):
             bpy.ops.mesh.select_all(action='SELECT')
             bpy.ops.mesh.delete(type='VERT')
             bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, size=ob.pov.sphere_radius, location=loc, rotation=obrot)
-            #bpy.ops.transform.rotate(axis=obrot,constraint_orientation='GLOBAL')
+            #bpy.ops.transform.rotate(axis=obrot,orient_type='GLOBAL')
             bpy.ops.transform.resize(value=obscale)
             #bpy.ops.transform.rotate(axis=obrot, proportional_size=1)
 
@@ -761,7 +761,7 @@ def pov_sphere_define(context, op, ob, loc):
             bpy.ops.mesh.hide(unselected=False)
             bpy.ops.object.mode_set(mode="OBJECT")
             bpy.ops.object.shade_smooth()
-            #bpy.ops.transform.rotate(axis=obrot,constraint_orientation='GLOBAL')
+            #bpy.ops.transform.rotate(axis=obrot,orient_type='GLOBAL')
 
         if not ob:
             bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, size=R, location=loc)
@@ -1710,7 +1710,7 @@ class ImportPOV(bpy.types.Operator, ImportHelper):
                                 # bpy.ops.object.mode_set(mode='EDIT')
                                 # bpy.ops.mesh.reveal()
                                 # bpy.ops.mesh.select_all(action='SELECT')
-                                # bpy.ops.transform.resize(value=(1,1,scaleZ), constraint_orientation='LOCAL')
+                                # bpy.ops.transform.resize(value=(1,1,scaleZ), orient_type='LOCAL')
                                 # bpy.ops.mesh.hide(unselected=False)
                                 # bpy.ops.object.mode_set(mode='OBJECT')
 

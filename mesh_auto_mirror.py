@@ -98,13 +98,13 @@ class AutoMirror(Operator):
         bpy.ops.transform.translate(
                 value=(X * orientation, Y * orientation, Z * orientation),
                 constraint_axis=((X == 1), (Y == 1), (Z == 1)),
-                constraint_orientation='LOCAL'
+                orient_type='LOCAL'
                 )
         v2 = Vector((loc[0], loc[1], loc[2]))
         bpy.ops.transform.translate(
                 value=(-X * orientation, -Y * orientation, -Z * orientation),
                 constraint_axis=((X == 1), (Y == 1), (Z == 1)),
-                constraint_orientation='LOCAL'
+                orient_type='LOCAL'
                 )
 
         bpy.ops.object.mode_set(mode="EDIT")

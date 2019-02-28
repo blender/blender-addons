@@ -128,7 +128,7 @@ class AlignSelectedXYZ(Operator):
         constraint_value = values[self.axis][1]
         bpy.ops.transform.resize(
                 value=chosen_value, constraint_axis=constraint_value,
-                constraint_orientation='GLOBAL',
+                orient_type='GLOBAL',
                 mirror=False, proportional='DISABLED',
                 proportional_edit_falloff='SMOOTH',
                 proportional_size=1

@@ -2093,7 +2093,7 @@ def Rebool(context, self):
         TRANSFORM_OT_translate={
             "value": (0, 0, 0),
             "constraint_axis": (False, False, False),
-            "constraint_orientation": 'GLOBAL',
+            "orient_type": 'GLOBAL',
             "mirror": False,
             "proportional": 'DISABLED',
             "proportional_edit_falloff": 'SMOOTH',
