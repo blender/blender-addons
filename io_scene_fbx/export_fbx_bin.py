@@ -1706,18 +1706,11 @@ def fbx_data_animation_elements(root, scene_data):
                         acurve.add_string(fbx_name_class(b"", b"AnimCurve"))
                         acurve.add_string(b"")
 
-                        # special case, if all keys are constant, set const interpolation mode
-                        constant = True
-                        for key in keys:
-                            if key.interpolation != 'CONSTANT':
-                                constant = False
-                                break
-
                         # key attributes...
                         nbr_keys = len(keys)
                         # flags...
                         keyattr_flags = (
-                            1 << (1 if constant else 2) |   # interpolation mode, 1 = constant, 2 = linear, 3 = cubic.
+                            1 << 2 |   # interpolation mode, 1 = constant, 2 = linear, 3 = cubic.
                             1 << 8 |   # tangent mode, 8 = auto, 9 = TCB, 10 = user, 11 = generic break,
                             1 << 13 |  # tangent mode, 12 = generic clamp, 13 = generic time independent,
                             1 << 14 |  # tangent mode, 13 + 14 = generic clamp progressive.
