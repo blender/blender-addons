@@ -1065,7 +1065,7 @@ class EdgeRoundifier(Operator):
         if parameters["refObject"] == "ORG":
             refObjectLocation = [0, 0, 0]
         elif parameters["refObject"] == "CUR":
-            refObjectLocation = bpy.context.scene.cursor_location - objectLocation
+            refObjectLocation = bpy.context.scene.cursor.location - objectLocation
         else:
             refObjectLocation = self.calc.getEdgeReference(edge, edgeCenter, parameters["plane"])
 

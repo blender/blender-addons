@@ -2738,7 +2738,7 @@ def edgeIntersect(context, operator):
         return
 
     point = line[0].lerp(line[1], 0.5)
-    context.scene.cursor_location = obj.matrix_world * point
+    context.scene.cursor.location = obj.matrix_world * point
 
 
 # Cursor Edge Intersection Operator #
@@ -2789,16 +2789,16 @@ class SetObjectMode(Operator):
 # Origin To Selected Edit Mode #
 def vfeOrigin(context):
     try:
-        cursorPositionX = context.scene.cursor_location[0]
-        cursorPositionY = context.scene.cursor_location[1]
-        cursorPositionZ = context.scene.cursor_location[2]
+        cursorPositionX = context.scene.cursor.location[0]
+        cursorPositionY = context.scene.cursor.location[1]
+        cursorPositionZ = context.scene.cursor.location[2]
         bpy.ops.view3d.snap_cursor_to_selected()
         bpy.ops.object.mode_set()
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
         bpy.ops.object.mode_set(mode='EDIT')
-        context.scene.cursor_location[0] = cursorPositionX
-        context.scene.cursor_location[1] = cursorPositionY
-        context.scene.cursor_location[2] = cursorPositionZ
+        context.scene.cursor.location[0] = cursorPositionX
+        context.scene.cursor.location[1] = cursorPositionY
+        context.scene.cursor.location[2] = cursorPositionZ
         return True
     except:
         return False
@@ -2834,7 +2834,7 @@ class SnapCursSelToCenter(Operator):
         return (context.area.type == "VIEW_3D" and context.mode == "OBJECT")
 
     def execute(self, context):
-        context.space_data.cursor_location = (0, 0, 0)
+        context.scene.cursor.location = (0, 0, 0)
         for obj in context.selected_objects:
             obj.location = (0, 0, 0)
         return {'FINISHED'}

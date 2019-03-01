@@ -49,14 +49,14 @@ class AlignVertices(Operator):
         auto_m = context.scene.auto_mirror
         bpy.ops.object.mode_set(mode='OBJECT')
 
-        x1, y1, z1 = bpy.context.scene.cursor_location
+        x1, y1, z1 = bpy.context.scene.cursor.location
         bpy.ops.view3d.snap_cursor_to_selected()
 
-        x2, y2, z2 = bpy.context.scene.cursor_location
+        x2, y2, z2 = bpy.context.scene.cursor.location
 
-        bpy.context.scene.cursor_location[0], \
-        bpy.context.scene.cursor_location[1], \
-        bpy.context.scene.cursor_location[2] = 0, 0, 0
+        bpy.context.scene.cursor.location[0], \
+        bpy.context.scene.cursor.location[1], \
+        bpy.context.scene.cursor.location[2] = 0, 0, 0
 
         # Vertices coordinate to 0 (local coordinate, so on the origin)
         for vert in bpy.context.object.data.vertices:
@@ -69,10 +69,10 @@ class AlignVertices(Operator):
                     axis = 2
                 vert.co[axis] = 0
 
-        bpy.context.scene.cursor_location = x2, y2, z2
+        bpy.context.scene.cursor.location = x2, y2, z2
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
 
-        bpy.context.scene.cursor_location = x1, y1, z1
+        bpy.context.scene.cursor.location = x1, y1, z1
         bpy.ops.object.mode_set(mode='EDIT')
 
         return {'FINISHED'}
