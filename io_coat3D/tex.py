@@ -60,7 +60,6 @@ def UVTiling(objekti, texturelist):
             uvtiles_index.append([poly.material_index, objekti.data.uv_layers.active.data[loop_index].uv[0]])
         if (len(final_material_indexs) == len(objekti.material_slots)):
             break
-    print(final_material_indexs)
 
     for texture_info in texturelist:
         name = texture_info[0]
@@ -71,18 +70,16 @@ def UVTiling(objekti, texturelist):
                 texture_info[0] = objekti.material_slots[list_tiles[0]].material.name
 
 
-    print('uvtiles_index', uvtiles_index)
+
     return texturelist
 
 
 def readtexturefolder(objekti, mat_list, texturelist, is_new): #read textures from texture file
 
     create_nodes = False
-    print('texturelist:', texturelist)
     if texturelist[0][0].startswith('100'):
         print('This is UVTiling')
         texturelist = UVTiling(objekti, texturelist)
-    print('texturelist:', texturelist)
 
     for index_mat in objekti.material_slots:
 
@@ -302,6 +299,7 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
         disp_node = main_material.nodes.new('ShaderNodeDisplacement')
         node.location = -630, -1160
         disp_node.location = 90, -460
+        disp_node.inputs[2].default_value = 0.1
         disp_node.name = '3DC_dispnode'
 
     node.name = '3DC_' + type['name']
@@ -372,8 +370,6 @@ def createExtraNodes(act_material, node, type):
     curvenode.name = '3DC_RGBCurve'
     huenode = act_material.nodes.new('ShaderNodeHueSaturation')
     huenode.name = '3DC_HueSaturation'
-    print('tieto:', type)
-    print('ttoto: ', type['rampnode'])
     if(type['rampnode'] == 'yes'):
         rampnode = act_material.nodes.new('ShaderNodeValToRGB')
         rampnode.name = '3DC_ColorRamp'

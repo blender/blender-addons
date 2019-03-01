@@ -229,9 +229,6 @@ def updatemesh(objekti, proxy):
 
     #Mesh Copy
 
-    print('SAAAMULI-RIIHI')
-    print('objekti', len(objekti.data.vertices))
-    print('objekti', len(proxy.data.vertices))
     for ind, v in enumerate(objekti.data.vertices):
         v.co = proxy.data.vertices[ind].co
 
@@ -301,7 +298,6 @@ class SCENE_OT_opencoat(bpy.types.Operator):
             active_3dcoat = exe_path
 
             if running() == False:
-                print('tulele tanne')
                 os.popen('"' + active_3dcoat + '" ' + coat3D)
             else:
                 importfile = bpy.context.scene.coat3D.exchangedir
@@ -441,7 +437,6 @@ class SCENE_OT_export(bpy.types.Operator):
 
         if (coat3D.bake_textures):
             bake_location = folder_objects + os.sep + 'Bake'
-            print('bake_location:', bake_location)
             if (os.path.isdir(bake_location)):
                 shutil.rmtree(bake_location)
                 os.makedirs(bake_location)
@@ -450,7 +445,6 @@ class SCENE_OT_export(bpy.types.Operator):
 
         temp_string = ''
         for objekti in bpy.context.selected_objects:
-            print('Main OBJ:', objekti)
             mod_mat_list[objekti.name] = []
             objekti.coat3D.applink_scale = objekti.scale
 
@@ -507,8 +501,6 @@ class SCENE_OT_export(bpy.types.Operator):
                     res_size = 8192
 
 
-
-
                 if(len(bake_list) > 0):
                     index_bake_tex = 0
                     while(index_bake_tex < len(bake_list)):
@@ -521,7 +513,6 @@ class SCENE_OT_export(bpy.types.Operator):
                             objekti.material_slots[bake_mat_index].material.node_tree.nodes.active = bake_node
 
                             bake_index += 1
-                        print('final_material_indexs: ' , final_material_indexs)
                         if(bpy.context.scene.render.engine != 'CYCLES'):
                             bpy.context.scene.render.engine = 'CYCLES'
                         bpy.context.scene.render.bake.use_pass_direct = False
@@ -542,7 +533,6 @@ class SCENE_OT_export(bpy.types.Operator):
                                 toi += "/"
                             final_bake_name = toi[:-1]
                             bpy.data.images[bake_image].save()
-                            print('Baking OBJ:', objekti)
                             temp_string += '''\n[script ImportTexture("''' + bake_list[index_bake_tex][1] + '''","''' + objekti.material_slots[bake_mat_index].material.name + '''","''' +  final_bake_name + '''");]'''
 
                             bake_index += 1
@@ -557,11 +547,7 @@ class SCENE_OT_export(bpy.types.Operator):
                             if (image.name.startswith('ApplinkBake') == True):
                                 bpy.data.images.remove(image)
 
-
-
-
                         index_bake_tex += 1
-                    print('Folder_location: ', folder_objects)
 
         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
         if(len(bpy.context.selected_objects) > 1 and coat3D.type != 'vox'):
@@ -575,7 +561,6 @@ class SCENE_OT_export(bpy.types.Operator):
             coat3D.bring_retopo = False
             bpy.ops.export_scene.fbx(filepath=coa.applink_address,global_scale = 0.01, use_selection=True, use_mesh_modifiers=coat3D.exportmod, axis_forward='-Z', axis_up='Y')
 
-        print('testi: ', importfile)
         file = open(importfile, "w")
         file.write("%s"%(checkname))
         file.write("\n%s"%(checkname))
@@ -658,7 +643,6 @@ class SCENE_OT_import(bpy.types.Operator):
                 if(image.filepath == texturepath[3] and image.users == 0):
                     bpy.data.images.remove(image)
 
-
         kokeilu = coat3D.exchangedir
         Blender_folder = ("%s%sBlender"%(kokeilu,os.sep))
         Blender_export = Blender_folder
@@ -667,7 +651,7 @@ class SCENE_OT_import(bpy.types.Operator):
         Blender_export += ('%sexport.txt'%(os.sep))
         new_applink_address = 'False'
         new_object = False
-        print('mitas: ', Blender_export)
+
         if(os.path.isfile(Blender_export)):
             obj_pathh = open(Blender_export)
             new_object = True
@@ -718,7 +702,6 @@ class SCENE_OT_import(bpy.types.Operator):
                                     import_type.append(coat3D.type)
 
             if(import_list or coat3D.importmesh):
-                print('import_list:', import_list)
                 for idx, list in enumerate(import_list):
                     bpy.ops.import_scene.fbx(filepath=list, global_scale = 0.01,axis_forward='X',use_custom_normals=False)
                     cache_objects = bpy.data.objects.keys()
@@ -728,9 +711,7 @@ class SCENE_OT_import(bpy.types.Operator):
                         bpy.data.objects[cache_object].coat3D.applink_address = list
                         cache_base.append(cache_object)
 
-
                 bpy.ops.object.select_all(action='DESELECT')
-
                 new_materials = bpy.data.materials.keys()
                 new_objects = bpy.data.objects.keys()
                 new_images = bpy.data.images.keys()
@@ -743,6 +724,7 @@ class SCENE_OT_import(bpy.types.Operator):
                     bpy.data.objects[mark_mesh].data.coat3D.name = '3DC'
                 for c_index in diff_mat:
                     bpy.data.materials.remove(bpy.data.materials[c_index])
+
             '''The main Applink Object Loop'''
 
             remove_path = True
@@ -798,8 +780,6 @@ class SCENE_OT_import(bpy.types.Operator):
                                 export_file.close()
                                 coat3D.remove_path = True
 
-
-
                             bpy.ops.object.select_all(action='DESELECT')
                             obj_proxy.select_set(True)
 
@@ -847,10 +827,7 @@ class SCENE_OT_import(bpy.types.Operator):
                                 for index, material in enumerate(objekti.material_slots):
                                     obj_proxy.material_slots[index-1].material = material.material
 
-                                print('Montako1: ', len(objekti.material_slots))
-                                print('Montako2: ', len(obj_proxy.material_slots))
                                 updatemesh(objekti,obj_proxy)
-
                                 bpy.context.view_layer.objects.active = objekti
 
 
@@ -874,13 +851,11 @@ class SCENE_OT_import(bpy.types.Operator):
                                 coat3D.importmesh = False
 
                             objekti.select_set(True)
-                        print('Montako: ', len(objekti.material_slots))
                         if(coat3D.importtextures):
                             is_new = False
                             tex.matlab(objekti,mat_list,texturelist,is_new)
                         objekti.select_set(False)
                     else:
-                        print('JAAKO TAHAN KOHTAAN 2')
                         mat_list = []
                         if (objekti.material_slots):
                             for obj_mat in objekti.material_slots:
@@ -898,7 +873,6 @@ class SCENE_OT_import(bpy.types.Operator):
             bpy.ops.object.select_all(action='DESELECT')
             if(import_list):
                 for del_obj in diff_objects:
-                    print('diff_objects', diff_objects)
 
                     if(bpy.context.collection.all_objects[del_obj].coat3D.type == 'vox' and bpy.context.collection.all_objects[del_obj].coat3D.delete_proxy_mesh == False):
                         bpy.context.collection.all_objects[del_obj].select_set(True)
