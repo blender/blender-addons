@@ -216,43 +216,33 @@ def make_texture_list(texturefolder):
 def updatemesh(objekti, proxy):
 
 
-    #TO DO VERTEX GROUPS, gives an error with this code.
-
-    if(objekti.vertex_groups.keys() != []):
-        bpy.ops.object.select_all(action='DESELECT')
-        proxy.select_set(True)
-        objekti.select_set(True)
-        bpy.ops.object.vertex_group_copy_to_selected()
-        bpy.ops.object.select_all(action='DESELECT')
-
     # UV Set Copy
 
     proxy.select_set(True)
     objekti.select_set(True)
 
-    if len(objekti.data.uv_layers) > 1:
-        obj_uv_index =  objekti.data.uv_layers.active_index
-        index = 0
-        for uv_layer in objekti.data.uv_layers:
-            if (uv_layer != objekti.data.uv_layers[0]):
-                proxy.data.uv_layers.new(name=uv_layer.name)
-                proxy.data.uv_layers.active_index = index
-                objekti.data.uv_layers.active_index = index
-                bpy.ops.object.join_uvs()
-            index += 1
-        proxy.data.uv_layers.active_index = obj_uv_index
+    for poly in objekti.data.polygons:
+        for indi in poly.loop_indices:
+            objekti.data.uv_layers[0].data[indi].uv[0] = proxy.data.uv_layers[0].data[indi].uv[0]
+            objekti.data.uv_layers[0].data[indi].uv[1] = proxy.data.uv_layers[0].data[indi].uv[1]
 
-    bpy.ops.object.select_all(action='DESELECT')
 
     #Mesh Copy
 
+    print('SAAAMULI-RIIHI')
+    print('objekti', len(objekti.data.vertices))
+    print('objekti', len(proxy.data.vertices))
+    for ind, v in enumerate(objekti.data.vertices):
+        v.co = proxy.data.vertices[ind].co
+
+    '''
     proxy.select_set(True)
     obj_data = objekti.data.id_data
     objekti.data = proxy.data.id_data
     objekti.data.id_data.name = obj_data.name
     if (bpy.data.meshes[obj_data.name].users == 0):
         bpy.data.meshes.remove(obj_data)
-
+    '''
 def running():
     n=0# number of instances of the program running
     prog=[line.split() for line in subprocess.check_output("tasklist").splitlines()]
@@ -486,12 +476,6 @@ class SCENE_OT_export(bpy.types.Operator):
                             mod_mat_list[objekti.name].append([material_index, temp_mat])
                         material_index = material_index + 1
 
-                for layer in objekti.data.uv_layers:
-                    if(layer.name.startswith(objekti.name) == False):
-                        uv_name = layer.name
-                        layer.name = objekti.name + '_' + uv_name
-
-
 
                 bake_list = []
                 if(coat3D.bake_diffuse):
@@ -589,7 +573,7 @@ class SCENE_OT_export(bpy.types.Operator):
             bpy.ops.export_scene.fbx(filepath=checkname, use_selection=True, use_mesh_modifiers=coat3D.exportmod, axis_forward='-Z', axis_up='Y')
         else:
             coat3D.bring_retopo = False
-            bpy.ops.export_scene.fbx(filepath=coa.applink_address, use_selection=True, use_mesh_modifiers=coat3D.exportmod, axis_forward='-Z', axis_up='Y')
+            bpy.ops.export_scene.fbx(filepath=coa.applink_address,global_scale = 0.01, use_selection=True, use_mesh_modifiers=coat3D.exportmod, axis_forward='-Z', axis_up='Y')
 
         print('testi: ', importfile)
         file = open(importfile, "w")
@@ -736,7 +720,7 @@ class SCENE_OT_import(bpy.types.Operator):
             if(import_list or coat3D.importmesh):
                 print('import_list:', import_list)
                 for idx, list in enumerate(import_list):
-                    bpy.ops.import_scene.fbx(filepath=list, global_scale = 1,axis_forward='X',use_custom_normals=False)
+                    bpy.ops.import_scene.fbx(filepath=list, global_scale = 0.01,axis_forward='X',use_custom_normals=False)
                     cache_objects = bpy.data.objects.keys()
                     cache_objects = [i for i in cache_objects if i not in cache_base]
                     for cache_object in cache_objects:
@@ -827,7 +811,7 @@ class SCENE_OT_import(bpy.types.Operator):
                                 objekti.rotation_euler[0] = 1.5708
                                 objekti.rotation_euler[2] = 1.5708
                                 bpy.ops.object.transforms_to_deltas(mode='ROT')
-                                objekti.scale = (0.01, 0.01, 0.01)
+                                #objekti.scale = (0.01, 0.01, 0.01)
                                 bpy.ops.object.transforms_to_deltas(mode='SCALE')
                                 objekti.coat3D.applink_firsttime = False
                                 objekti.select_set(False)
@@ -837,7 +821,7 @@ class SCENE_OT_import(bpy.types.Operator):
                                 bpy.ops.object.transforms_to_deltas(mode='SCALE')
                                 if(objekti.coat3D.applink_onlyone == False):
                                     objekti.rotation_euler = (0,0,0)
-                                objekti.scale = (0.01,0.01,0.01)
+                                #objekti.scale = (0.01,0.01,0.01)
                                 objekti.coat3D.applink_firsttime = False
 
                             if(coat3D.importlevel):
@@ -1001,7 +985,7 @@ class SCENE_OT_import(bpy.types.Operator):
                     new_obj.select_set(True)
                     #bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
                     #new_obj.rotation_euler = (0, 0, 0)
-                    #new_obj.scale = (0.01, 0.01, 0.01)
+                    new_obj.scale = (1, 1, 1)
                     new_obj.coat3D.applink_firsttime = False
                     new_obj.select_set(False)
                     new_obj.coat3D.applink_address = new_applink_address
@@ -1042,6 +1026,10 @@ class SCENE_OT_import(bpy.types.Operator):
                     for node in material.node_tree.nodes:
                         if (node.name).startswith('3DC'):
                             node.location = node.location
+
+        if(bpy.context.scene.render.engine == 'CYCLES'): # HACK textures are updated in cycles render
+            bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+            bpy.context.scene.render.engine = 'CYCLES'
 
         return {'FINISHED'}
 
@@ -1362,7 +1350,7 @@ class SceneCoat3D(PropertyGroup):
     importmesh: BoolProperty(
         name="Mesh",
         description="Import Mesh",
-        default=False
+        default=True
     )
 
     # copy location

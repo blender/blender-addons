@@ -239,7 +239,7 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
                     emission_shader.name = '3DC_Emission'
 
                     add_shader.location = 420, 110
-                    emission_shader.location = 40, -330
+                    emission_shader.location = 70, -330
                     out_mat.location = 670, 130
 
                     main_material.links.new(from_output.outputs[0], add_shader.inputs[0])
@@ -269,19 +269,23 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
 
         if(out_mat.inputs['Surface'].is_linked == True):
             if(bring_color == True and texcoat['color'] != []):
-                CreateTextureLine(data['color'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree)
+                CreateTextureLine(data['color'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat)
 
             if(bring_metalness == True and texcoat['metalness'] != []):
-                CreateTextureLine(data['metalness'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree)
+                CreateTextureLine(data['metalness'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat)
 
             if(bring_roughness == True and texcoat['rough'] != []):
-                CreateTextureLine(data['rough'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree)
+                CreateTextureLine(data['rough'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat)
 
             if(bring_normal == True and texcoat['nmap'] != []):
-                CreateTextureLine(data['nmap'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree)
+                CreateTextureLine(data['nmap'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat)
 
             if (bring_normal == True and texcoat['emissive'] != []):
-                CreateTextureLine(data['emissive'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree)
+                CreateTextureLine(data['emissive'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat)
+
+            if (bring_normal == True and texcoat['displacement'] != []):
+                CreateTextureLine(data['displacement'], act_material, main_mat, texcoat, coat3D, notegroup, main_material,
+                                  applink_tree, out_mat, coatMat)
 
 
             ''' DISPLACEMENT '''
@@ -318,7 +322,7 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
                     node.location = -550, 0
                     act_material.links.new(node.outputs[0], notegroup.inputs[4])
 
-def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree):
+def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat):
 
     node = act_material.nodes.new('ShaderNodeTexImage')
 
@@ -328,19 +332,27 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
         normal_node.location = -350, -350
         normal_node.name = '3DC_normalnode'
 
+    elif type['name'] == 'displacement':
+        disp_node = main_material.nodes.new('ShaderNodeDisplacement')
+        node.location = -276, -579
+        disp_node.location = 70, -460
+        disp_node.name = '3DC_dispnode'
+
     node.name = '3DC_' + type['name']
     node.label = type['name']
 
-    for input_index in type['find_input']:
-        input_color = main_mat.inputs.find(input_index)
-        if(input_color != -1):
-            break
+    if (type['name'] != 'displacement'):
+        for input_index in type['find_input']:
+            input_color = main_mat.inputs.find(input_index)
+            if(input_color != -1):
+                break
 
     node.image = bpy.data.images.load(texcoat[type['name']][0])
     if(type['colorspace'] == 'noncolor'):
         node.color_space = 'NONE'
 
     if (coat3D.createnodes):
+
         if(type['name'] == 'nmap'):
             act_material.links.new(node.outputs[0], normal_node.inputs[1])
             if(input_color != -1):
@@ -349,6 +361,14 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
             act_material.links.new(normal_node.outputs[0], notegroup.inputs[type['input']])
             if (main_mat.inputs[input_color].name == 'Normal' and input_color != -1):
                 main_material.links.new(applink_tree.outputs[type['input']], main_mat.inputs[input_color])
+
+        elif (type['name'] == 'displacement'):
+            act_material.links.new(node.outputs[0], notegroup.inputs[4])
+
+            main_material.links.new(applink_tree.outputs[4], disp_node.inputs[0])
+            main_material.links.new(disp_node.outputs[0], out_mat.inputs[2])
+            coatMat.cycles.displacement_method = 'BOTH'
+
         else:
 
             huenode = createExtraNodes(act_material, node, type)
