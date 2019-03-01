@@ -60,7 +60,7 @@ def UVTiling(objekti, texturelist):
             uvtiles_index.append([poly.material_index, objekti.data.uv_layers.active.data[loop_index].uv[0]])
         if (len(final_material_indexs) == len(objekti.material_slots)):
             break
-
+    print(final_material_indexs)
 
     for texture_info in texturelist:
         name = texture_info[0]
@@ -71,7 +71,7 @@ def UVTiling(objekti, texturelist):
                 texture_info[0] = objekti.material_slots[list_tiles[0]].material.name
 
 
-
+    print('uvtiles_index', uvtiles_index)
     return texturelist
 
 
@@ -218,8 +218,8 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
             group_tree.outputs.new("NodeSocketColor", "Metallic")
             group_tree.outputs.new("NodeSocketColor", "Roughness")
             group_tree.outputs.new("NodeSocketVector", "Normal map")
-            group_tree.outputs.new("NodeSocketColor", "Displacement")
             group_tree.outputs.new("NodeSocketColor", "Emissive")
+            group_tree.outputs.new("NodeSocketColor", "Displacement")
             group_tree.outputs.new("NodeSocketColor", "Emissive Power")
             group_tree.outputs.new("NodeSocketColor", "AO")
             applink_tree = act_material.nodes.new('ShaderNodeGroup')
@@ -288,40 +288,6 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
                                   applink_tree, out_mat, coatMat)
 
 
-            ''' DISPLACEMENT '''
-
-            if (bring_displacement == True and texcoat['displacement'] != []):
-                node = act_material.nodes.new('ShaderNodeTexImage')
-                node.name = '3DC_displacement'
-                node.label = 'Displacement'
-                # input_color = main_mat.inputs.find('Roughness') Blender 2.8 Does not support Displacement yet.
-                if (texcoat['displacement']):
-                    node.image = bpy.data.images.load(texcoat['displacement'][0])
-                    node.color_space = 'NONE'
-
-                if (coat3D.createnodes):
-                    '''
-                    curvenode = act_material.nodes.new('ShaderNodeRGBCurve')
-                    curvenode.name = '3DC_RGBCurve'
-                    huenode = act_material.nodes.new('ShaderNodeHueSaturation')
-                    huenode.name = '3DC_HueSaturation'
-                    rampnode = act_material.nodes.new('ShaderNodeValToRGB')
-                    rampnode.name = '3DC_ColorRamp'
-    
-                    act_material.links.new(node.outputs[0], curvenode.inputs[1])
-                    act_material.links.new(curvenode.outputs[0], rampnode.inputs[0])
-                    act_material.links.new(rampnode.outputs[0], huenode.inputs[4])
-                    '''
-                    act_material.links.new(node.outputs[0], notegroup.inputs[4])
-
-                    #if (main_mat.type == 'BSDF_PRINCIPLED'):
-                        #main_material.links.new(applink_tree.outputs[2], main_mat.inputs[input_color])
-                    node.location = -276, -579
-
-                else:
-                    node.location = -550, 0
-                    act_material.links.new(node.outputs[0], notegroup.inputs[4])
-
 def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat):
 
     node = act_material.nodes.new('ShaderNodeTexImage')
@@ -334,8 +300,8 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
 
     elif type['name'] == 'displacement':
         disp_node = main_material.nodes.new('ShaderNodeDisplacement')
-        node.location = -276, -579
-        disp_node.location = 70, -460
+        node.location = -630, -1160
+        disp_node.location = 90, -460
         disp_node.name = '3DC_dispnode'
 
     node.name = '3DC_' + type['name']
@@ -363,9 +329,15 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
                 main_material.links.new(applink_tree.outputs[type['input']], main_mat.inputs[input_color])
 
         elif (type['name'] == 'displacement'):
-            act_material.links.new(node.outputs[0], notegroup.inputs[4])
 
-            main_material.links.new(applink_tree.outputs[4], disp_node.inputs[0])
+            rampnode = act_material.nodes.new('ShaderNodeValToRGB')
+            rampnode.name = '3DC_ColorRamp'
+            rampnode.location = -270, -956
+
+            act_material.links.new(node.outputs[0], rampnode.inputs[0])
+            act_material.links.new(rampnode.outputs[0], notegroup.inputs[5])
+
+            main_material.links.new(applink_tree.outputs[5], disp_node.inputs[0])
             main_material.links.new(disp_node.outputs[0], out_mat.inputs[2])
             coatMat.cycles.displacement_method = 'BOTH'
 
@@ -400,7 +372,8 @@ def createExtraNodes(act_material, node, type):
     curvenode.name = '3DC_RGBCurve'
     huenode = act_material.nodes.new('ShaderNodeHueSaturation')
     huenode.name = '3DC_HueSaturation'
-
+    print('tieto:', type)
+    print('ttoto: ', type['rampnode'])
     if(type['rampnode'] == 'yes'):
         rampnode = act_material.nodes.new('ShaderNodeValToRGB')
         rampnode.name = '3DC_ColorRamp'

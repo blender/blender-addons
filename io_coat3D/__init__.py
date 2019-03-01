@@ -229,6 +229,9 @@ def updatemesh(objekti, proxy):
 
     #Mesh Copy
 
+    print('SAAAMULI-RIIHI')
+    print('objekti', len(objekti.data.vertices))
+    print('objekti', len(proxy.data.vertices))
     for ind, v in enumerate(objekti.data.vertices):
         v.co = proxy.data.vertices[ind].co
 
@@ -298,7 +301,7 @@ class SCENE_OT_opencoat(bpy.types.Operator):
             active_3dcoat = exe_path
 
             if running() == False:
-
+                print('tulele tanne')
                 os.popen('"' + active_3dcoat + '" ' + coat3D)
             else:
                 importfile = bpy.context.scene.coat3D.exchangedir
@@ -572,7 +575,7 @@ class SCENE_OT_export(bpy.types.Operator):
             coat3D.bring_retopo = False
             bpy.ops.export_scene.fbx(filepath=coa.applink_address,global_scale = 0.01, use_selection=True, use_mesh_modifiers=coat3D.exportmod, axis_forward='-Z', axis_up='Y')
 
-
+        print('testi: ', importfile)
         file = open(importfile, "w")
         file.write("%s"%(checkname))
         file.write("\n%s"%(checkname))
@@ -664,6 +667,7 @@ class SCENE_OT_import(bpy.types.Operator):
         Blender_export += ('%sexport.txt'%(os.sep))
         new_applink_address = 'False'
         new_object = False
+        print('mitas: ', Blender_export)
         if(os.path.isfile(Blender_export)):
             obj_pathh = open(Blender_export)
             new_object = True
@@ -714,6 +718,7 @@ class SCENE_OT_import(bpy.types.Operator):
                                     import_type.append(coat3D.type)
 
             if(import_list or coat3D.importmesh):
+                print('import_list:', import_list)
                 for idx, list in enumerate(import_list):
                     bpy.ops.import_scene.fbx(filepath=list, global_scale = 0.01,axis_forward='X',use_custom_normals=False)
                     cache_objects = bpy.data.objects.keys()
@@ -842,6 +847,8 @@ class SCENE_OT_import(bpy.types.Operator):
                                 for index, material in enumerate(objekti.material_slots):
                                     obj_proxy.material_slots[index-1].material = material.material
 
+                                print('Montako1: ', len(objekti.material_slots))
+                                print('Montako2: ', len(obj_proxy.material_slots))
                                 updatemesh(objekti,obj_proxy)
 
                                 bpy.context.view_layer.objects.active = objekti
@@ -867,13 +874,13 @@ class SCENE_OT_import(bpy.types.Operator):
                                 coat3D.importmesh = False
 
                             objekti.select_set(True)
-
+                        print('Montako: ', len(objekti.material_slots))
                         if(coat3D.importtextures):
                             is_new = False
                             tex.matlab(objekti,mat_list,texturelist,is_new)
                         objekti.select_set(False)
                     else:
-
+                        print('JAAKO TAHAN KOHTAAN 2')
                         mat_list = []
                         if (objekti.material_slots):
                             for obj_mat in objekti.material_slots:
