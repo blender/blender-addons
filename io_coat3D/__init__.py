@@ -215,8 +215,36 @@ def make_texture_list(texturefolder):
 
 def updatemesh(objekti, proxy):
 
+    # Vertex colors
+    if(len(proxy.data.vertex_colors) > 0):
+        bring_vertex_map = True
+    else:
+        bring_vertex_map = False
 
-    # UV Set Copy
+    if(bring_vertex_map):
+        if(len(objekti.data.vertex_colors) > 0):
+            for vertex_map in objekti.data.vertex_colors:
+                if vertex_map.name == 'Col':
+                    copy_data = True
+                    vertex_map_copy = vertex_map
+                    break
+                else:
+                    copy_data = False
+        else:
+            copy_data = False
+
+        if(copy_data):
+            for poly in objekti.data.polygons:
+                for loop_index in poly.loop_indices:
+                    vertex_map_copy.data[loop_index].color = proxy.data.vertex_colors[0].data[loop_index].color
+        else:
+            objekti.data.vertex_colors.new()
+            vertex_map_copy = objekti.data.vertex_colors[-1]
+            for poly in objekti.data.polygons:
+                for loop_index in poly.loop_indices:
+                    vertex_map_copy.data[loop_index].color = proxy.data.vertex_colors[0].data[loop_index].color
+
+    # UV -Sets
 
     proxy.select_set(True)
     objekti.select_set(True)
@@ -227,10 +255,13 @@ def updatemesh(objekti, proxy):
             objekti.data.uv_layers[0].data[indi].uv[1] = proxy.data.uv_layers[0].data[indi].uv[1]
 
 
-    #Mesh Copy
+    # Mesh Copy
 
     for ind, v in enumerate(objekti.data.vertices):
         v.co = proxy.data.vertices[ind].co
+
+
+
 
     '''
     proxy.select_set(True)
@@ -962,6 +993,7 @@ class SCENE_OT_import(bpy.types.Operator):
                     new_obj.scale = (1, 1, 1)
                     new_obj.coat3D.applink_firsttime = False
                     new_obj.select_set(False)
+                    new_obj.coat3D.type = 'import'
                     new_obj.coat3D.applink_address = new_applink_address
                     new_obj.coat3D.applink_mesh = True
                     new_obj.coat3D.objecttime = str(os.path.getmtime(new_obj.coat3D.applink_address))

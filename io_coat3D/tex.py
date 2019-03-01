@@ -74,6 +74,29 @@ def UVTiling(objekti, texturelist):
     return texturelist
 
 
+def updatetextures(objekti): # Update 3DC textures
+
+    for index_mat in objekti.material_slots:
+
+        for node in index_mat.material.node_tree.nodes:
+            if (node.type == 'TEX_IMAGE'):
+                if (node.name == '3DC_color'):
+                    node.image.reload()
+                elif (node.name == '3DC_metalness'):
+                    node.image.reload()
+                elif (node.name == '3DC_rough'):
+                    node.image.reload()
+                elif (node.name == '3DC_nmap'):
+                    node.image.reload()
+                elif (node.name == '3DC_displacement'):
+                    node.image.reload()
+                elif (node.name == '3DC_emissive'):
+                    node.image.reload()
+                elif (node.name == '3DC_AO'):
+                    node.image.reload()
+
+
+
 def readtexturefolder(objekti, mat_list, texturelist, is_new): #read textures from texture file
 
     create_nodes = False
@@ -413,7 +436,10 @@ def matlab(objekti,mat_list,texturelist,is_new):
         RemoveFbxNodes(objekti)
 
     '''Main Loop for Texture Update'''
+
     #checkmaterial(mat_list, objekti)
-    readtexturefolder(objekti,mat_list,texturelist,is_new)
+    updatetextures(objekti)
+    if(texturelist != []):
+        readtexturefolder(objekti,mat_list,texturelist,is_new)
 
     return('FINISHED')
