@@ -60,7 +60,7 @@ def UVTiling(objekti, texturelist):
             uvtiles_index.append([poly.material_index, objekti.data.uv_layers.active.data[loop_index].uv[0]])
         if (len(final_material_indexs) == len(objekti.material_slots)):
             break
-    print(final_material_indexs)
+
 
     for texture_info in texturelist:
         name = texture_info[0]
@@ -71,7 +71,7 @@ def UVTiling(objekti, texturelist):
                 texture_info[0] = objekti.material_slots[list_tiles[0]].material.name
 
 
-    print('uvtiles_index', uvtiles_index)
+
     return texturelist
 
 
@@ -400,8 +400,7 @@ def createExtraNodes(act_material, node, type):
     curvenode.name = '3DC_RGBCurve'
     huenode = act_material.nodes.new('ShaderNodeHueSaturation')
     huenode.name = '3DC_HueSaturation'
-    print('tieto:', type)
-    print('ttoto: ', type['rampnode'])
+
     if(type['rampnode'] == 'yes'):
         rampnode = act_material.nodes.new('ShaderNodeValToRGB')
         rampnode.name = '3DC_ColorRamp'
