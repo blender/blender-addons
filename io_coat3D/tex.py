@@ -69,10 +69,7 @@ def UVTiling(objekti, texturelist):
             if(list_tiles[1] >= (tiling_number - 1) and list_tiles[1] <= tiling_number ):
                 texture_info[0] = objekti.material_slots[list_tiles[0]].material.name
 
-
-
     return texturelist
-
 
 def updatetextures(objekti): # Update 3DC textures
 
@@ -94,7 +91,6 @@ def updatetextures(objekti): # Update 3DC textures
                     node.image.reload()
                 elif (node.name == '3DC_AO'):
                     node.image.reload()
-
 
 
 def readtexturefolder(objekti, mat_list, texturelist, is_new): #read textures from texture file
@@ -183,7 +179,8 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
     act_material = coatMat.node_tree
     main_material = coatMat.node_tree
     applink_group_node = False
-    #ensimmaiseksi kaydaan kaikki image nodet lapi ja tarkistetaan onko nimi 3DC alkunen jos on niin reload
+
+    # First go throug all image nodes and let's check if it starts with 3DC and reload if needed
 
     for node in coatMat.node_tree.nodes:
         if (node.type == 'OUTPUT_MATERIAL'):
@@ -223,7 +220,8 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
                 bring_AO = False
                 node.image.reload()
 
-    #seuraavaksi lahdemme rakentamaan node tree. Lahdetaan Material Outputista rakentaa
+    #Let's start to build new node tree. Let's start linking with Material Output
+
     if(create_group_node):
         if(applink_group_node == False):
             main_mat2 = out_mat.inputs['Surface'].links[0].from_node
@@ -283,6 +281,7 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
                     break
 
         # READ DATA.JSON FILE
+
         json_address = os.path.dirname(bpy.app.binary_path) + os.sep + '2.80' + os.sep + 'scripts' + os.sep + 'addons' + os.sep + 'io_coat3D' + os.sep + 'data.json'
         with open(json_address, encoding='utf-8') as data_file:
             data = json.loads(data_file.read())
@@ -300,10 +299,10 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
             if(bring_normal == True and texcoat['nmap'] != []):
                 CreateTextureLine(data['nmap'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat)
 
-            if (bring_normal == True and texcoat['emissive'] != []):
+            if (bring_emissive == True and texcoat['emissive'] != []):
                 CreateTextureLine(data['emissive'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat)
 
-            if (bring_normal == True and texcoat['displacement'] != []):
+            if (bring_displacement == True and texcoat['displacement'] != []):
                 CreateTextureLine(data['displacement'], act_material, main_mat, texcoat, coat3D, notegroup, main_material,
                                   applink_tree, out_mat, coatMat)
 

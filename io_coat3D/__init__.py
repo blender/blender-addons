@@ -86,7 +86,6 @@ def folder_size(path):
 def set_exchange_folder():
     platform = os.sys.platform
     coat3D = bpy.context.scene.coat3D
-    Blender_export = ""
 
     if(platform == 'win32'):
         exchange = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + 'Applinks' + os.sep + '3D-Coat' + os.sep +'Exchange'
@@ -323,7 +322,6 @@ class SCENE_OT_opencoat(bpy.types.Operator):
 
         coat3D = bpy.context.selected_objects[0].coat3D.applink_3b_path
         platform = os.sys.platform
-        prog_path = os.environ['PROGRAMFILES']
         if (platform == 'win32'):
 
             active_3dcoat = exe_path
@@ -437,7 +435,6 @@ class SCENE_OT_export(bpy.types.Operator):
             name_boxs = new_name.split('.')
             if(len(name_boxs)>1):
                 objekti.name = name_boxs[0] + name_boxs[1]
-                nimi = name_boxs[0] + name_boxs[1]
                 nimiNum = int(name_boxs[1])
                 looking = False
                 lyytyi = False
@@ -580,7 +577,7 @@ class SCENE_OT_export(bpy.types.Operator):
 
                         index_bake_tex += 1
 
-        bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
+        #bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
         if(len(bpy.context.selected_objects) > 1 and coat3D.type != 'vox'):
             bpy.ops.object.transforms_to_deltas(mode='ROT')
 
@@ -599,10 +596,8 @@ class SCENE_OT_export(bpy.types.Operator):
         if(coat3D.type == 'ppp' or coat3D.type == 'mv' or coat3D.type == 'ptex'):
             file.write("\n[export_preset Blender Cycles]")
             file.write(temp_string)
-            #file.write('''\n[script ImportTexture("$LOADTEX","Material", "C:/Temp/West.jpg");]''')
-            #file.write('''\n[script ImportTexture("$ExternalAO","Material", "C:/Temp/West.jpg");]''')
+
         file.close()
-        group_index = -1.0
         for idx, objekti in enumerate(bpy.context.selected_objects):
 
             if(len(bpy.context.selected_objects) == 1):
@@ -745,7 +740,6 @@ class SCENE_OT_import(bpy.types.Operator):
                 bpy.ops.object.select_all(action='DESELECT')
                 new_materials = bpy.data.materials.keys()
                 new_objects = bpy.data.objects.keys()
-                new_images = bpy.data.images.keys()
 
 
                 diff_mat = [i for i in new_materials if i not in old_materials]
@@ -758,11 +752,9 @@ class SCENE_OT_import(bpy.types.Operator):
 
             '''The main Applink Object Loop'''
 
-            remove_path = True
             for oname in object_list:
                 objekti = bpy.data.objects[oname]
                 if(objekti.coat3D.applink_mesh == True):
-                    exportfile = coat3D.exchangedir
                     path3b_n = coat3D.exchangedir
                     path3b_n += ('%slast_saved_3b_file.txt' % (os.sep))
                     if(objekti.coat3D.import_mesh and coat3D.importmesh == True):
@@ -770,9 +762,6 @@ class SCENE_OT_import(bpy.types.Operator):
                         objekti.select_set(True)
 
                         use_smooth = objekti.data.polygons[0].use_smooth
-
-                        new_name = objekti.data.name
-                        name_boxs = new_name.split('.')
                         found_obj = False
 
                         '''Changes objects mesh into proxy mesh'''
@@ -787,7 +776,6 @@ class SCENE_OT_import(bpy.types.Operator):
 
                         mat_list = []
                         if (objekti.material_slots):
-                            act_mat = objekti.active_material
                             for obj_mat in objekti.material_slots:
                                 mat_list.append(obj_mat.material)
 
@@ -822,7 +810,6 @@ class SCENE_OT_import(bpy.types.Operator):
                                 objekti.rotation_euler[0] = 1.5708
                                 objekti.rotation_euler[2] = 1.5708
                                 bpy.ops.object.transforms_to_deltas(mode='ROT')
-                                #objekti.scale = (0.01, 0.01, 0.01)
                                 bpy.ops.object.transforms_to_deltas(mode='SCALE')
                                 objekti.coat3D.applink_firsttime = False
                                 objekti.select_set(False)
@@ -832,7 +819,6 @@ class SCENE_OT_import(bpy.types.Operator):
                                 bpy.ops.object.transforms_to_deltas(mode='SCALE')
                                 if(objekti.coat3D.applink_onlyone == False):
                                     objekti.rotation_euler = (0,0,0)
-                                #objekti.scale = (0.01,0.01,0.01)
                                 objekti.coat3D.applink_firsttime = False
 
                             if(coat3D.importlevel):
@@ -841,10 +827,7 @@ class SCENE_OT_import(bpy.types.Operator):
                                 objekti.select = True
                                 bpy.ops.object.multires_reshape(modifier=multires_name)
                                 bpy.ops.object.select_all(action='TOGGLE')
-                                multires_on = False
                             else:
-                                list_total_mat = []
-
 
                                 bpy.context.view_layer.objects.active = obj_proxy
                                 mat_count = len(obj_proxy.material_slots) - len(objekti.material_slots)
@@ -866,8 +849,6 @@ class SCENE_OT_import(bpy.types.Operator):
                             #tärkee että saadaan oikein käännettyä objekt
 
                             objekti.select_set(True)
-                            bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
-
 
                             if (use_smooth):
                                 for data_mesh in objekti.data.polygons:
@@ -910,7 +891,6 @@ class SCENE_OT_import(bpy.types.Operator):
                         objekti = bpy.context.collection.all_objects[del_obj]
                         objekti.rotation_euler[2] = 1.5708
                         bpy.ops.object.transforms_to_deltas(mode='ROT')
-                        # objekti.rotation_euler = (0, 0, 0)
                         objekti.scale = (0.02, 0.02, 0.02)
                         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
@@ -944,7 +924,6 @@ class SCENE_OT_import(bpy.types.Operator):
                 old_obj.coat3D.applink_old = True
 
             coat3D = bpy.context.scene.coat3D
-            scene = context.scene
             Blender_folder = ("%s%sBlender"%(coat3D.exchangedir,os.sep))
             Blender_export = Blender_folder
             path3b_now = coat3D.exchangedir + os.sep
@@ -988,12 +967,10 @@ class SCENE_OT_import(bpy.types.Operator):
 
                 if(new_obj.coat3D.applink_old == False):
                     new_obj.select_set(True)
-                    #bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
-                    #new_obj.rotation_euler = (0, 0, 0)
-                    new_obj.scale = (1, 1, 1)
+                    new_obj.scale = (0.01, 0.01, 0.01)
                     new_obj.coat3D.applink_firsttime = False
                     new_obj.select_set(False)
-                    new_obj.coat3D.type = 'import'
+                    new_obj.coat3D.type = 'ppp'
                     new_obj.coat3D.applink_address = new_applink_address
                     new_obj.coat3D.applink_mesh = True
                     new_obj.coat3D.objecttime = str(os.path.getmtime(new_obj.coat3D.applink_address))
@@ -1085,8 +1062,6 @@ class SCENE_PT_Main(bpy.types.Panel):
             col.operator("import_applink.pilgway_3d_coat", text="Update")
 
 
-
-
 class ObjectButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -1111,8 +1086,6 @@ class SCENE_PT_Settings_Update(ObjectButtonsPanel, bpy.types.Panel):
         layout.use_property_split = False
         coat3D = bpy.context.scene.coat3D
 
-        rd = context.scene.render
-
         layout.active = True
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
@@ -1136,15 +1109,12 @@ class SCENE_PT_Bake_Settings(ObjectButtonsPanel, bpy.types.Panel):
         layout.use_property_split = False
         coat3D = bpy.context.scene.coat3D
 
-        rd = context.scene.render
-
         layout.active = True
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
 
         col = flow.column()
         col.prop(coat3D, "bake_resolution", text="Resolution")
-        col = flow.column()
         col = flow.column()
         col.prop(coat3D, "bake_diffuse", text="Diffuse")
         col = flow.column()
@@ -1163,8 +1133,6 @@ class SCENE_PT_Settings_Folders(ObjectButtonsPanel, bpy.types.Panel):
         layout = self.layout
         layout.use_property_split = False
         coat3D = bpy.context.scene.coat3D
-
-        rd = context.scene.render
 
         layout.active = True
 
