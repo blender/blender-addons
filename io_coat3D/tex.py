@@ -154,14 +154,6 @@ def readtexturefolder(objekti, mat_list, texturelist, is_new): #read textures fr
             createnodes(index_mat, texcoat, create_group_node)
 
 
-def checkmaterial(mat_list, objekti): #check how many materials object has
-    mat_list = []
-
-    for obj_mate in objekti.material_slots:
-        if(obj_mate.material.use_nodes == False):
-            obj_mate.material.use_nodes = True
-
-
 def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and link textures into them
     bring_color = True # Meaning of these is to check if we can only update textures or do we need to create new nodes
     bring_metalness = True
@@ -200,25 +192,18 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
         if(node.type == 'TEX_IMAGE'):
             if(node.name == '3DC_color'):
                 bring_color = False
-                node.image.reload()
             elif(node.name == '3DC_metalness'):
                 bring_metalness = False
-                node.image.reload()
             elif(node.name == '3DC_rough'):
                 bring_roughness = False
-                node.image.reload()
             elif(node.name == '3DC_nmap'):
                 bring_normal = False
-                node.image.reload()
             elif(node.name == '3DC_displacement'):
                 bring_displacement = False
-                node.image.reload()
             elif (node.name == '3DC_emissive'):
                 bring_emissive = False
-                node.image.reload()
             elif (node.name == '3DC_AO'):
                 bring_AO = False
-                node.image.reload()
 
     #Let's start to build new node tree. Let's start linking with Material Output
 
@@ -436,7 +421,6 @@ def matlab(objekti,mat_list,texturelist,is_new):
 
     '''Main Loop for Texture Update'''
 
-    #checkmaterial(mat_list, objekti)
     updatetextures(objekti)
     if(texturelist != []):
         readtexturefolder(objekti,mat_list,texturelist,is_new)
