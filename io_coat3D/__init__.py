@@ -992,10 +992,6 @@ class SCENE_OT_import(bpy.types.Operator):
                 if(new_obj.coat3D.applink_old == False):
                     new_obj.coat3D.applink_old = True
 
-            bpy.ops.object.select_all(action='SELECT')
-            bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
-            bpy.ops.object.select_all(action='DESELECT')
-
             kokeilu = coat3D.exchangedir[:-10]
             Blender_folder2 = ("%s%sExchange%sBlender" % (kokeilu, os.sep, os.sep))
             Blender_folder2 += ('%sexport.txt' % (os.sep))
