@@ -65,9 +65,11 @@ def UVTiling(objekti, texturelist):
         name = texture_info[0]
         final_name = name[1:]
         tiling_number = int(final_name)
+
         for list_tiles in uvtiles_index:
             if(list_tiles[1] >= (tiling_number - 1) and list_tiles[1] <= tiling_number ):
                 texture_info[0] = objekti.material_slots[list_tiles[0]].material.name
+                break
 
     return texturelist
 
@@ -92,8 +94,37 @@ def updatetextures(objekti): # Update 3DC textures
                 elif (node.name == '3DC_AO'):
                     node.image.reload()
 
+    for index_node_group in bpy.data.node_groups:
+
+        for node in index_node_group.nodes:
+            if (node.type == 'TEX_IMAGE'):
+                if (node.name == '3DC_color'):
+                    node.image.reload()
+                elif (node.name == '3DC_metalness'):
+                    node.image.reload()
+                elif (node.name == '3DC_rough'):
+                    node.image.reload()
+                elif (node.name == '3DC_nmap'):
+                    node.image.reload()
+                elif (node.name == '3DC_displacement'):
+                    node.image.reload()
+                elif (node.name == '3DC_emissive'):
+                    node.image.reload()
+                elif (node.name == '3DC_AO'):
+                    node.image.reload()
+
 
 def readtexturefolder(objekti, mat_list, texturelist, is_new): #read textures from texture file
+
+    # Let's check are we UVSet or MATERIAL mode
+
+    uv_name = texturelist[0][0]
+    Main_mode = ''
+    for uv_set in objekti.data.uv_layers:
+        if(uv_name == uv_set.name):
+            Main_mode = uv_set.name
+            break
+
 
     create_nodes = False
     if texturelist[0][0].startswith('100'):
@@ -183,7 +214,6 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
         if(node.name == '3DC_Applink' and node.type == 'GROUP'):
             applink_group_node = True
             act_material = node.node_tree
-            group_tree = node.node_tree
             applink_tree = node
             break
 
@@ -295,15 +325,29 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
 def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat):
 
     node = act_material.nodes.new('ShaderNodeTexImage')
+    uv_node = act_material.nodes.new('ShaderNodeUVMap')
+    uv_node.uv_map = '3DC_' + coatMat.name
+    act_material.links.new(uv_node.outputs[0], node.inputs[0])
+
+    node.use_custom_color = True
+    uv_node.use_custom_color = True
+
+    node.color = (type['node_color'][0],type['node_color'][1],type['node_color'][2])
+    uv_node.color = (type['node_color'][0], type['node_color'][1], type['node_color'][2])
 
     if type['name'] == 'nmap':
         normal_node = act_material.nodes.new('ShaderNodeNormalMap')
-        node.location = -650, -500
+        normal_node.use_custom_color = True
+        normal_node.color = (type['node_color'][0], type['node_color'][1], type['node_color'][2])
+
+        node.location = -671, -510
+        uv_node.location = -750, -600
         normal_node.location = -350, -350
         normal_node.name = '3DC_normalnode'
 
     elif type['name'] == 'displacement':
         disp_node = main_material.nodes.new('ShaderNodeDisplacement')
+
         node.location = -630, -1160
         disp_node.location = 90, -460
         disp_node.inputs[2].default_value = 0.1
@@ -337,6 +381,8 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
 
             rampnode = act_material.nodes.new('ShaderNodeValToRGB')
             rampnode.name = '3DC_ColorRamp'
+            rampnode.use_custom_color = True
+            rampnode.color = (type['node_color'][0], type['node_color'][1], type['node_color'][2])
             rampnode.location = -270, -956
 
             act_material.links.new(node.outputs[0], rampnode.inputs[0])
@@ -363,9 +409,14 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
                         main_material.links.new(applink_tree.outputs[type['input']], material.inputs[0])
                         break
 
+        uv_node.location = node.location
+        uv_node.location[0] -= 300
+        uv_node.location[1] -= 200
 
     else:
         node.location = type['node_location'][0], type['node_location'][1]
+        uv_node.location = node.location
+        uv_node.location[0] -= 300
         act_material.links.new(node.outputs[0], notegroup.inputs[type['input']])
         if (input_color != -1):
             main_material.links.new(applink_tree.outputs[type['input']], main_mat.inputs[input_color])
@@ -375,19 +426,41 @@ def createExtraNodes(act_material, node, type):
 
     curvenode = act_material.nodes.new('ShaderNodeRGBCurve')
     curvenode.name = '3DC_RGBCurve'
-    huenode = act_material.nodes.new('ShaderNodeHueSaturation')
-    huenode.name = '3DC_HueSaturation'
+    curvenode.use_custom_color = True
+    curvenode.color = (type['node_color'][0], type['node_color'][1], type['node_color'][2])
+
+    if(type['huenode'] == 'yes'):
+        huenode = act_material.nodes.new('ShaderNodeHueSaturation')
+        huenode.name = '3DC_HueSaturation'
+        huenode.use_custom_color = True
+        huenode.color = (type['node_color'][0], type['node_color'][1], type['node_color'][2])
+    else:
+        huenode = act_material.nodes.new('ShaderNodeMath')
+        huenode.name = '3DC_HueSaturation'
+        huenode.operation = 'MULTIPLY'
+        huenode.use_custom_color = True
+        huenode.color = (type['node_color'][0], type['node_color'][1], type['node_color'][2])
+
+
     if(type['rampnode'] == 'yes'):
         rampnode = act_material.nodes.new('ShaderNodeValToRGB')
         rampnode.name = '3DC_ColorRamp'
+        rampnode.use_custom_color = True
+        rampnode.color = (type['node_color'][0], type['node_color'][1], type['node_color'][2])
 
     if (type['rampnode'] == 'yes'):
         act_material.links.new(node.outputs[0], curvenode.inputs[1])
         act_material.links.new(curvenode.outputs[0], rampnode.inputs[0])
-        act_material.links.new(rampnode.outputs[0], huenode.inputs[4])
+        if(type['huenode'] == 'yes'):
+            act_material.links.new(rampnode.outputs[0], huenode.inputs[4])
+        else:
+            act_material.links.new(rampnode.outputs[0], huenode.inputs[0])
     else:
         act_material.links.new(node.outputs[0], curvenode.inputs[1])
-        act_material.links.new(curvenode.outputs[0], huenode.inputs[4])
+        if (type['huenode'] == 'yes'):
+            act_material.links.new(curvenode.outputs[0], huenode.inputs[4])
+        else:
+            act_material.links.new(curvenode.outputs[0], huenode.inputs[0])
 
     if type['name'] == 'metalness':
         node.location = -1300, 119

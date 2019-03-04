@@ -29,7 +29,6 @@ bl_info = {
     "category": "3D View",
 }
 
-
 if "bpy" in locals():
     import importlib
     importlib.reload(coat)
@@ -54,7 +53,6 @@ from bpy.props import (
         StringProperty,
         PointerProperty,
         )
-
 
 bpy.coat3D = dict()
 bpy.coat3D['active_coat'] = ''
@@ -248,19 +246,30 @@ def updatemesh(objekti, proxy):
     proxy.select_set(True)
     objekti.select_set(True)
 
-    for poly in objekti.data.polygons:
-        for indi in poly.loop_indices:
-            objekti.data.uv_layers[0].data[indi].uv[0] = proxy.data.uv_layers[0].data[indi].uv[0]
-            objekti.data.uv_layers[0].data[indi].uv[1] = proxy.data.uv_layers[0].data[indi].uv[1]
-
+    Create_uv = True
+    if(len(proxy.data.uv_layers) > 0):
+        for proxy_layer in proxy.data.uv_layers:
+            for objekti_layer in objekti.data.uv_layers:
+                uv_new_name = '3DC_' + proxy_layer.name
+                if(objekti_layer.name == uv_new_name):
+                    for poly in objekti.data.polygons:
+                        for indi in poly.loop_indices:
+                            objekti_layer.data[indi].uv[0] = proxy_layer.data[indi].uv[0]
+                            objekti_layer.data[indi].uv[1] = proxy_layer.data[indi].uv[1]
+                    Create_uv = False
+                    break
+            if(Create_uv):
+                name = '3DC_' + proxy_layer.name
+                objekti.data.uv_layers.new(name=name)
+                for poly in objekti.data.polygons:
+                    for indi in poly.loop_indices:
+                        objekti.data.uv_layers[-1].data[indi].uv[0] = proxy_layer.data[indi].uv[0]
+                        objekti.data.uv_layers[-1].data[indi].uv[1] = proxy_layer.data[indi].uv[1]
 
     # Mesh Copy
 
     for ind, v in enumerate(objekti.data.vertices):
         v.co = proxy.data.vertices[ind].co
-
-
-
 
     '''
     proxy.select_set(True)
@@ -362,8 +371,6 @@ class SCENE_OT_export(bpy.types.Operator):
 
     def invoke(self, context, event):
 
-
-
         for mesh in bpy.data.meshes:
             if (mesh.users == 0 and mesh.coat3D.name == '3DC'):
                 bpy.data.meshes.remove(mesh)
@@ -379,10 +386,17 @@ class SCENE_OT_export(bpy.types.Operator):
             return {'FINISHED'}
         else:
             for objec in bpy.context.selected_objects:
+                delete_uvmaps = []
                 if objec.type == 'MESH':
+                    for uv_layer in objec.data.uv_layers:
+                        if(uv_layer.name.startswith('3DC_')):
+                            delete_uvmaps.append(uv_layer.name)
+                    for uv_name in delete_uvmaps:
+                        objec.data.uv_layers.remove(objec.data.uv_layers[uv_name])
                     export_ok = True
             if (export_ok == False):
                 return {'FINISHED'}
+
 
         activeobj = bpy.context.active_object.name
         checkname = ''
@@ -394,7 +408,6 @@ class SCENE_OT_export(bpy.types.Operator):
         if (not os.path.isdir(coat3D.exchangedir)):
             coat3D.exchange_found = False
             return {'FINISHED'}
-
 
         folder_objects = set_working_folders()
         folder_size(folder_objects)
@@ -455,8 +468,6 @@ class SCENE_OT_export(bpy.types.Operator):
                 objekti.data.name = nimi2
                 objekti.name = nimi2
 
-
-
             else:
                 objekti.name = name_boxs[0]
                 objekti.data.name = name_boxs[0]
@@ -498,7 +509,6 @@ class SCENE_OT_export(bpy.types.Operator):
                             mod_mat_list[objekti.name].append([material_index, temp_mat])
                         material_index = material_index + 1
 
-
                 bake_list = []
                 if(coat3D.bake_diffuse):
                     bake_list.append(['DIFFUSE', '$LOADTEX'])
@@ -527,7 +537,6 @@ class SCENE_OT_export(bpy.types.Operator):
                     res_size = 4096
                 elif (coat3D.bake_resolution == 'res_8192'):
                     res_size = 8192
-
 
                 if(len(bake_list) > 0):
                     index_bake_tex = 0
@@ -913,7 +922,6 @@ class SCENE_OT_import(bpy.types.Operator):
                     bpy.ops.import_scene.fbx(filepath=coat3D.bring_retopo_path, global_scale=1, axis_forward='X', use_custom_normals=False)
                     os.remove(coat3D.bring_retopo_path)
 
-
         else:
 
             '''
@@ -960,7 +968,6 @@ class SCENE_OT_import(bpy.types.Operator):
                 bpy.data.objects[c_index].data.coat3D.name = '3DC'
                 bpy.data.objects[c_index].material_slots[0].material = bpy.data.materials[diff_mat[laskuri]]
                 laskuri += 1
-
 
             bpy.ops.object.select_all(action='DESELECT')
             for new_obj in bpy.context.collection.objects:
@@ -1036,7 +1043,7 @@ class SCENE_PT_Main(bpy.types.Panel):
             coa = bpy.context.active_object.coat3D
         if(coat['status'] == 0):
             row = layout.row()
-            row.label(text="Applink didn't find your 3d-Coat/Excahnge folder.")
+            row.label(text="Applink didn't find your 3d-Coat/Exchange folder.")
             row = layout.row()
             row.label("Please select it before using Applink.")
             row = layout.row()
