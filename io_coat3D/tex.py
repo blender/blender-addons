@@ -46,32 +46,41 @@ def RemoveFbxNodes(objekti):
     Node_Tree.links.new(Prin_mat.outputs[0], output.inputs[0])
 
 
-def UVTiling(objekti, texturelist):
-    """ Checks what materials are linked into UV """
+def UVTiling(objekti, index, texturelist):
+    """ Checks what Tiles are linked with Material """
 
     objekti.coat3D.applink_scale = objekti.scale
-    final_material_indexs = []
-    uvtiles_index = []
-
+    tiles_index = []
+    tile_number =''
     for poly in objekti.data.polygons:
-        if (poly.material_index not in final_material_indexs):
-            final_material_indexs.append(poly.material_index)
+        if (poly.material_index == (index)):
             loop_index = poly.loop_indices[0]
-            uvtiles_index.append([poly.material_index, objekti.data.uv_layers.active.data[loop_index].uv[0]])
-        if (len(final_material_indexs) == len(objekti.material_slots)):
-            break
+            uv_x = objekti.data.uv_layers.active.data[loop_index].uv[0]
+            if(uv_x >= 0 and uv_x <=1):
+                tile_number = '1001'
+            elif (uv_x >= 1 and uv_x <= 2):
+                tile_number = '1002'
+            elif (uv_x >= 2 and uv_x <= 3):
+                tile_number = '1003'
+            elif (uv_x >= 3 and uv_x <= 4):
+                tile_number = '1004'
+            elif (uv_x >= 4 and uv_x <= 5):
+                tile_number = '1005'
+            elif (uv_x >= 5 and uv_x <= 6):
+                tile_number = '1006'
+            elif (uv_x >= 6 and uv_x <= 7):
+                tile_number = '1007'
+            elif (uv_x >= 7 and uv_x <= 8):
+                tile_number = '1008'
+            elif (uv_x >= 8 and uv_x <= 9):
+                tile_number = '1009'
+            elif (uv_x >= 9 and uv_x <= 10):
+                tile_number = '1010'
 
-    for texture_info in texturelist:
-        name = texture_info[0]
-        final_name = name[1:]
-        tiling_number = int(final_name)
+            if tile_number not in tiles_index:
+                tiles_index.append(tile_number)
 
-        for list_tiles in uvtiles_index:
-            if(list_tiles[1] >= (tiling_number - 1) and list_tiles[1] <= tiling_number ):
-                texture_info[0] = objekti.material_slots[list_tiles[0]].material.name
-                break
-
-    return texturelist
+    return tiles_index
 
 def updatetextures(objekti): # Update 3DC textures
 
@@ -113,25 +122,28 @@ def updatetextures(objekti): # Update 3DC textures
                 elif (node.name == '3DC_AO'):
                     node.image.reload()
 
+def link_material_into_uvset(objekti, material, material_index):
 
-def readtexturefolder(objekti, mat_list, texturelist, is_new): #read textures from texture file
+    for layer in objekti.data.uv_layers:
+        for face in objekti.data.polygons:
+            for vert_idx, loop_idx in zip(face.vertices, face.loop_indices):
+                uv_coords = layer.data[loop_idx].uv
+
+
+def readtexturefolder(objekti, mat_list, texturelist, is_new, udim_textures): #read textures from texture file
 
     # Let's check are we UVSet or MATERIAL mode
 
-    uv_name = texturelist[0][0]
-    Main_mode = ''
-    for uv_set in objekti.data.uv_layers:
-        if(uv_name == uv_set.name):
-            Main_mode = uv_set.name
-            break
-
-
     create_nodes = False
-    if texturelist[0][0].startswith('100'):
-        print('This is UVTiling')
-        texturelist = UVTiling(objekti, texturelist)
 
-    for index_mat in objekti.material_slots:
+    for ind, index_mat in enumerate(objekti.material_slots):
+
+        active_uvset = link_material_into_uvset(objekti, index_mat, ind)
+
+        if(udim_textures):
+            tile_list = UVTiling(objekti,ind, texturelist)
+        else:
+            tile_list = []
 
         texcoat = {}
         texcoat['color'] = []
@@ -144,33 +156,66 @@ def readtexturefolder(objekti, mat_list, texturelist, is_new): #read textures fr
         texcoat['displacement'] = []
 
         create_group_node = False
-        for texture_info in texturelist:
-            if texture_info[0] == index_mat.name:
+        if(udim_textures == False):
+            for texture_info in texturelist:
+
+                if texture_info[0] == index_mat.name:
+                    if texture_info[2] == 'color' or texture_info[2] == 'diffuse':
+                        texcoat['color'].append(texture_info[3])
+                        create_nodes = True
+                    elif texture_info[2] == 'metalness' or texture_info[2] == 'specular' or texture_info[2] == 'reflection':
+                        texcoat['metalness'].append(texture_info[3])
+                        create_nodes = True
+                    elif texture_info[2] == 'rough' or texture_info[2] == 'roughness':
+                        texcoat['rough'].append(texture_info[3])
+                        create_nodes = True
+                    elif texture_info[2] == 'nmap' or texture_info[2] == 'normalmap' or texture_info[2] == 'normal_map'  or texture_info[2] == 'normal':
+                        texcoat['nmap'].append(texture_info[3])
+                        create_nodes = True
+                    elif texture_info[2] == 'emissive':
+                        texcoat['emissive'].append(texture_info[3])
+                        create_nodes = True
+                    elif texture_info[2] == 'emissive_power':
+                        texcoat['emissive_power'].append(texture_info[3])
+                        create_nodes = True
+                    elif texture_info[2] == 'ao':
+                        texcoat['ao'].append(texture_info[3])
+                        create_nodes = True
+                    elif texture_info[2].startswith('displacement'):
+                        texcoat['displacement'].append(texture_info[3])
+                        create_nodes = True
+                    create_group_node = True
+        else:
+            for texture_info in texturelist:
+
                 if texture_info[2] == 'color' or texture_info[2] == 'diffuse':
-                    texcoat['color'].append(texture_info[3])
+                    texcoat['color'].append([texture_info[0],texture_info[3]])
                     create_nodes = True
-                elif texture_info[2] == 'metalness' or texture_info[2] == 'specular' or texture_info[2] == 'reflection':
-                    texcoat['metalness'].append(texture_info[3])
+                elif texture_info[2] == 'metalness' or texture_info[2] == 'specular' or texture_info[
+                    2] == 'reflection':
+                    texcoat['metalness'].append([texture_info[0],texture_info[3]])
                     create_nodes = True
                 elif texture_info[2] == 'rough' or texture_info[2] == 'roughness':
-                    texcoat['rough'].append(texture_info[3])
+                    texcoat['rough'].append([texture_info[0],texture_info[3]])
                     create_nodes = True
-                elif texture_info[2] == 'nmap' or texture_info[2] == 'normalmap' or texture_info[2] == 'normal_map'  or texture_info[2] == 'normal':
-                    texcoat['nmap'].append(texture_info[3])
+                elif texture_info[2] == 'nmap' or texture_info[2] == 'normalmap' or texture_info[
+                    2] == 'normal_map' or texture_info[2] == 'normal':
+                    texcoat['nmap'].append([texture_info[0],texture_info[3]])
                     create_nodes = True
                 elif texture_info[2] == 'emissive':
-                    texcoat['emissive'].append(texture_info[3])
+                    texcoat['emissive'].append([texture_info[0],texture_info[3]])
                     create_nodes = True
                 elif texture_info[2] == 'emissive_power':
-                    texcoat['emissive_power'].append(texture_info[3])
+                    texcoat['emissive_power'].append([texture_info[0],texture_info[3]])
                     create_nodes = True
                 elif texture_info[2] == 'ao':
-                    texcoat['ao'].append(texture_info[3])
+                    texcoat['ao'].append([texture_info[0],texture_info[3]])
                     create_nodes = True
                 elif texture_info[2].startswith('displacement'):
-                    texcoat['displacement'].append(texture_info[3])
+                    texcoat['displacement'].append([texture_info[0],texture_info[3]])
                     create_nodes = True
                 create_group_node = True
+
         if(create_nodes):
             coat3D = bpy.context.scene.coat3D
             path3b_n = coat3D.exchangedir
@@ -182,10 +227,11 @@ def readtexturefolder(objekti, mat_list, texturelist, is_new): #read textures fr
                     objekti.coat3D.applink_3b_path = line
                 export_file.close()
                 coat3D.remove_path = True
-            createnodes(index_mat, texcoat, create_group_node)
+            createnodes(index_mat, texcoat, create_group_node, tile_list, objekti)
 
 
-def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and link textures into them
+
+def createnodes(active_mat,texcoat, create_group_node, tile_list, objekti): # Cretes new nodes and link textures into them
     bring_color = True # Meaning of these is to check if we can only update textures or do we need to create new nodes
     bring_metalness = True
     bring_roughness = True
@@ -303,37 +349,135 @@ def createnodes(active_mat,texcoat, create_group_node): # Cretes new nodes and l
 
         if(out_mat.inputs['Surface'].is_linked == True):
             if(bring_color == True and texcoat['color'] != []):
-                CreateTextureLine(data['color'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat)
+                CreateTextureLine(data['color'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat, tile_list, objekti)
 
             if(bring_metalness == True and texcoat['metalness'] != []):
-                CreateTextureLine(data['metalness'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat)
+                CreateTextureLine(data['metalness'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat, tile_list, objekti)
 
             if(bring_roughness == True and texcoat['rough'] != []):
-                CreateTextureLine(data['rough'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat)
+                CreateTextureLine(data['rough'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat,tile_list, objekti)
 
             if(bring_normal == True and texcoat['nmap'] != []):
-                CreateTextureLine(data['nmap'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat)
+                CreateTextureLine(data['nmap'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat, tile_list, objekti)
 
             if (bring_emissive == True and texcoat['emissive'] != []):
-                CreateTextureLine(data['emissive'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat)
+                CreateTextureLine(data['emissive'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat, tile_list, objekti)
 
             if (bring_displacement == True and texcoat['displacement'] != []):
                 CreateTextureLine(data['displacement'], act_material, main_mat, texcoat, coat3D, notegroup, main_material,
-                                  applink_tree, out_mat, coatMat)
+                                  applink_tree, out_mat, coatMat, tile_list, objekti)
 
 
-def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat):
+def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat, tile_list, objekti):
 
-    node = act_material.nodes.new('ShaderNodeTexImage')
-    uv_node = act_material.nodes.new('ShaderNodeUVMap')
-    uv_node.uv_map = '3DC_' + coatMat.name
-    act_material.links.new(uv_node.outputs[0], node.inputs[0])
+    if(tile_list):
+        texture_name = coatMat.name + '_' + type['name']
+        texture_tree = bpy.data.node_groups.new(type="ShaderNodeTree", name=texture_name)
+        texture_tree.outputs.new("NodeSocketColor", "Color")
+        texture_node_tree = act_material.nodes.new('ShaderNodeGroup')
+        texture_node_tree.name = '3DC_' + type['name']
+        texture_node_tree.node_tree = texture_tree
+        texture_node_tree.location[0] = type['node_location'][0]
+        texture_node_tree.location[0] -= 400
+        texture_node_tree.location[1] = type['node_location'][1]
+        notegroupend = texture_tree.nodes.new('NodeGroupOutput')
+
+        count = len(tile_list)
+        uv_loc = [-1400, 200]
+        map_loc = [-1100, 200]
+        tex_loc = [-700, 200]
+        mix_loc = [-400, 100]
+
+        nodes = []
+
+        for index, tile in enumerate(tile_list):
+
+            tex_img_node = texture_tree.nodes.new('ShaderNodeTexImage')
+
+            if(type['colorspace'] == 'color' ):
+                tex_img_node.color_space = 'COLOR'
+            else:
+                tex_img_node.color_space = 'NONE'
+
+
+            for ind, tex_index in enumerate(texcoat[type['name']]):
+                if(tex_index[0] == tile):
+                    tex_img_node.image = bpy.data.images.load(texcoat[type['name']][ind][1])
+                    break
+            tex_img_node.location = tex_loc
+
+            tex_uv_node = texture_tree.nodes.new('ShaderNodeUVMap')
+            tex_uv_node.location = uv_loc
+            tex_uv_node.uv_map = objekti.data.uv_layers[0].name
+
+            map_node = texture_tree.nodes.new('ShaderNodeMapping')
+            map_node.location = map_loc
+            map_node.name = '3DC_' + tile
+            map_node.vector_type = 'TEXTURE'
+            map_node.use_min = True
+            map_node.use_max = True
+
+            tile_int = int(tile[2:])
+
+            map_node.min[0] = tile_int - 1
+            map_node.max[0] = tile_int
+
+
+            if(index == 0):
+                nodes.append(tex_img_node.name)
+            if(count == 1):
+                texture_tree.links.new(tex_img_node.outputs[0], notegroupend.inputs[0])
+
+            if(index > 0):
+                mix_node = texture_tree.nodes.new('ShaderNodeMixRGB')
+                mix_node.blend_type = 'ADD'
+                mix_node.inputs[0].default_value = 1
+                mix_node.location = mix_loc
+                mix_loc[1] -= 300
+                texture_tree.links.new(tex_img_node.outputs[0], mix_node.inputs[2])
+                texture_tree.links.new(texture_tree.nodes[nodes[0]].outputs[0], mix_node.inputs[1])
+                nodes.clear()
+                nodes.append(mix_node.name)
+
+
+            elif(index > 1):
+                mix_node = texture_tree.nodes.new('ShaderNodeMixRGB')
+                mix_node.blend_type = 'ADD'
+                mix_node.inputs[0].default_value = 1
+                mix_node.location = mix_loc
+                mix_loc[1] -= 300
+                texture_tree.links.new(texture_tree.nodes[nodes[0]].outputs[0], mix_node.inputs[1])
+                texture_tree.links.new(tex_img_node.outputs[0], mix_node.inputs[2])
+                nodes.clear()
+                nodes.append(tex_img_node.name)
+                nodes.append(mix_node.name)
+
+            tex_loc[1] -= 300
+            uv_loc[1] -=  300
+            map_loc[1] -= 300
+
+            texture_tree.links.new(tex_uv_node.outputs[0], map_node.inputs[0])
+            texture_tree.links.new(map_node.outputs[0], tex_img_node.inputs[0])
+
+        if(count > 1):
+            texture_tree.links.new(mix_node.outputs[0], notegroupend.inputs[0])
+
+
+
+    if(tile_list):
+        node = texture_node_tree
+
+    else:
+        node = act_material.nodes.new('ShaderNodeTexImage')
+        uv_node = act_material.nodes.new('ShaderNodeUVMap')
+        uv_node.uv_map = objekti.data.uv_layers[0].name
+        act_material.links.new(uv_node.outputs[0], node.inputs[0])
+        uv_node.use_custom_color = True
+        uv_node.color = (type['node_color'][0], type['node_color'][1], type['node_color'][2])
 
     node.use_custom_color = True
-    uv_node.use_custom_color = True
-
     node.color = (type['node_color'][0],type['node_color'][1],type['node_color'][2])
-    uv_node.color = (type['node_color'][0], type['node_color'][1], type['node_color'][2])
+
 
     if type['name'] == 'nmap':
         normal_node = act_material.nodes.new('ShaderNodeNormalMap')
@@ -341,7 +485,8 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
         normal_node.color = (type['node_color'][0], type['node_color'][1], type['node_color'][2])
 
         node.location = -671, -510
-        uv_node.location = -750, -600
+        if(tile_list == []):
+            uv_node.location = -750, -600
         normal_node.location = -350, -350
         normal_node.name = '3DC_normalnode'
 
@@ -362,9 +507,10 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
             if(input_color != -1):
                 break
 
-    node.image = bpy.data.images.load(texcoat[type['name']][0])
-    if(type['colorspace'] == 'noncolor'):
-        node.color_space = 'NONE'
+    if(tile_list == []):
+        node.image = bpy.data.images.load(texcoat[type['name']][0])
+        if(type['colorspace'] == 'noncolor'):
+            node.color_space = 'NONE'
 
     if (coat3D.createnodes):
 
@@ -408,15 +554,16 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
                     if(material.name == '3DC_Emission'):
                         main_material.links.new(applink_tree.outputs[type['input']], material.inputs[0])
                         break
-
-        uv_node.location = node.location
-        uv_node.location[0] -= 300
-        uv_node.location[1] -= 200
+        if(tile_list == []):
+            uv_node.location = node.location
+            uv_node.location[0] -= 300
+            uv_node.location[1] -= 200
 
     else:
         node.location = type['node_location'][0], type['node_location'][1]
-        uv_node.location = node.location
-        uv_node.location[0] -= 300
+        if (tile_list == []):
+            uv_node.location = node.location
+            uv_node.location[0] -= 300
         act_material.links.new(node.outputs[0], notegroup.inputs[type['input']])
         if (input_color != -1):
             main_material.links.new(applink_tree.outputs[type['input']], main_mat.inputs[input_color])
@@ -496,6 +643,18 @@ def matlab(objekti,mat_list,texturelist,is_new):
 
     updatetextures(objekti)
     if(texturelist != []):
-        readtexturefolder(objekti,mat_list,texturelist,is_new)
+        udim_textures = False
+        if texturelist[0][0].startswith('100'):
+            udim_textures = True
+
+        if(udim_textures == False):
+
+            readtexturefolder(objekti,mat_list,texturelist,is_new, udim_textures)
+        else:
+            path = texturelist[0][3]
+            only_name = os.path.basename(path)
+            if(only_name.startswith(objekti.coat3D.applink_index)):
+                readtexturefolder(objekti, mat_list, texturelist, is_new, udim_textures)
+
 
     return('FINISHED')

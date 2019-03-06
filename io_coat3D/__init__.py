@@ -210,7 +210,7 @@ def make_texture_list(texturefolder):
 #Updating objects MESH part ( Mesh, Vertex Groups, Vertex Colors )
 '''
 
-def updatemesh(objekti, proxy):
+def updatemesh(objekti, proxy, texturelist):
 
     # Vertex colors
     if(len(proxy.data.vertex_colors) > 0):
@@ -243,42 +243,35 @@ def updatemesh(objekti, proxy):
 
     # UV -Sets
 
+    udim_textures = False
+    if(texturelist[0][0].startswith('100')):
+        udim_textures =True
+
     proxy.select_set(True)
     objekti.select_set(True)
 
-    Create_uv = True
-    if(len(proxy.data.uv_layers) > 0):
-        for proxy_layer in proxy.data.uv_layers:
-            for objekti_layer in objekti.data.uv_layers:
-                uv_new_name = '3DC_' + proxy_layer.name
-                if(objekti_layer.name == uv_new_name):
-                    for poly in objekti.data.polygons:
-                        for indi in poly.loop_indices:
-                            objekti_layer.data[indi].uv[0] = proxy_layer.data[indi].uv[0]
-                            objekti_layer.data[indi].uv[1] = proxy_layer.data[indi].uv[1]
-                    Create_uv = False
-                    break
-            if(Create_uv):
-                name = '3DC_' + proxy_layer.name
-                objekti.data.uv_layers.new(name=name)
-                for poly in objekti.data.polygons:
-                    for indi in poly.loop_indices:
-                        objekti.data.uv_layers[-1].data[indi].uv[0] = proxy_layer.data[indi].uv[0]
-                        objekti.data.uv_layers[-1].data[indi].uv[1] = proxy_layer.data[indi].uv[1]
+    uv_count = len(proxy.data.uv_layers)
+    index = 0
+    while(index < uv_count):
+        for poly in proxy.data.polygons:
+            for indi in poly.loop_indices:
+                if(proxy.data.uv_layers[index].data[indi].uv[0] != -1):
+
+                    if(udim_textures):
+                        udim = proxy.data.uv_layers[index].name
+                        udim_index = int(udim[2:]) - 1
+
+                    objekti.data.uv_layers[0].data[indi].uv[0] = proxy.data.uv_layers[index].data[indi].uv[0]
+                    objekti.data.uv_layers[0].data[indi].uv[1] = proxy.data.uv_layers[index].data[indi].uv[1]
+                    if(udim_textures):
+                        objekti.data.uv_layers[0].data[indi].uv[0] += udim_index
+        index = index + 1
 
     # Mesh Copy
 
     for ind, v in enumerate(objekti.data.vertices):
         v.co = proxy.data.vertices[ind].co
 
-    '''
-    proxy.select_set(True)
-    obj_data = objekti.data.id_data
-    objekti.data = proxy.data.id_data
-    objekti.data.id_data.name = obj_data.name
-    if (bpy.data.meshes[obj_data.name].users == 0):
-        bpy.data.meshes.remove(obj_data)
-    '''
 def running():
     n=0# number of instances of the program running
     prog=[line.split() for line in subprocess.check_output("tasklist").splitlines()]
@@ -362,6 +355,170 @@ class SCENE_OT_opencoat(bpy.types.Operator):
 
 
         return {'FINISHED'}
+
+def deleteNodes(type):
+
+    deletelist = []
+    deleteimages = []
+    deletegroup =[]
+    delete_images = bpy.context.scene.coat3D.delete_images
+
+    if type == 'Material':
+        if(len(bpy.context.selected_objects) == 1):
+            material = bpy.context.selected_objects[0].active_material
+            if(material.use_nodes):
+                for node in material.node_tree.nodes:
+                    if(node.name.startswith('3DC')):
+                        if (node.type == 'GROUP'):
+                            deletegroup.append(node.node_tree.name)
+                        deletelist.append(node.name)
+                        if node.type == 'TEX_IMAGE' and delete_images == True:
+                            deleteimages.append(node.image.name)
+                if deletelist:
+                    for node in deletelist:
+                        material.node_tree.nodes.remove(material.node_tree.nodes[node])
+                if deleteimages:
+                    for image in deleteimages:
+                        bpy.data.images.remove(bpy.data.images[image])
+
+    elif type == 'Object':
+        if (len(bpy.context.selected_objects) > 0):
+            for objekti in bpy.context.selected_objects:
+                for material in objekti.material_slots:
+                    if (material.material.use_nodes):
+                        for node in material.material.node_tree.nodes:
+                            if (node.name.startswith('3DC')):
+                                if(node.type == 'GROUP'):
+                                    deletegroup.append(node.node_tree.name)
+                                deletelist.append(node.name)
+                                if node.type == 'TEX_IMAGE' and delete_images == True:
+                                    deleteimages.append(node.image.name)
+                    if deletelist:
+                        for node in deletelist:
+                            material.material.node_tree.nodes.remove(material.material.node_tree.nodes[node])
+                            deletelist = []
+
+                    if deleteimages:
+                        for image in deleteimages:
+                            bpy.data.images.remove(bpy.data.images[image])
+                            deleteimages = []
+
+    elif type == 'Collection':
+        for collection_object in bpy.context.view_layer.active_layer_collection.collection.all_objects:
+            if(collection_object.type == 'MESH'):
+                for material in collection_object.material_slots:
+                    if (material.material.use_nodes):
+                        for node in material.material.node_tree.nodes:
+                            if (node.name.startswith('3DC')):
+                                if (node.type == 'GROUP'):
+                                    deletegroup.append(node.node_tree.name)
+                                deletelist.append(node.name)
+                                if node.type == 'TEX_IMAGE' and delete_images == True:
+                                    deleteimages.append(node.image.name)
+
+                    if deletelist:
+                        for node in deletelist:
+                            material.material.node_tree.nodes.remove(material.material.node_tree.nodes[node])
+                            deletelist = []
+
+                    if deleteimages:
+                        for image in deleteimages:
+                            bpy.data.images.remove(bpy.data.images[image])
+                            deleteimages = []
+
+    elif type == 'Scene':
+        for collection in bpy.data.collections:
+            for collection_object in collection.all_objects:
+                if (collection_object.type == 'MESH'):
+                    for material in collection_object.material_slots:
+                        if (material.material.use_nodes):
+                            for node in material.material.node_tree.nodes:
+                                if (node.name.startswith('3DC')):
+                                    if (node.type == 'GROUP'):
+                                        deletegroup.append(node.node_tree.name)
+
+                                    deletelist.append(node.name)
+                                    if node.type == 'TEX_IMAGE' and delete_images == True:
+                                        deleteimages.append(node.image.name)
+                        if deletelist:
+                            for node in deletelist:
+                                material.material.node_tree.nodes.remove(material.material.node_tree.nodes[node])
+                                deletelist = []
+
+                        if deleteimages:
+                            for image in deleteimages:
+                                bpy.data.images.remove(bpy.data.images[image])
+                                deleteimages = []
+
+        if(deletelist):
+            for node in deletelist:
+                bpy.data.node_groups.remove(bpy.data.node_groups[node])
+
+        for image in bpy.data.images:
+            if (image.name.startswith('3DC') and image.name[6] == '_'):
+                deleteimages.append(image.name)
+
+
+    if(deletegroup):
+        for node in deletegroup:
+            bpy.data.node_groups.remove(bpy.data.node_groups[node])
+
+    if deleteimages:
+        for image in deleteimages:
+            bpy.data.images.remove(bpy.data.images[image])
+
+
+
+
+
+''' DELETE NODES BUTTONS'''
+
+class SCENE_OT_delete_material_nodes(bpy.types.Operator):
+    bl_idname = "delete_material_nodes.pilgway_3d_coat"
+    bl_label = "Delete material nodes"
+    bl_description = "Delete material nodes"
+    bl_options = {'UNDO'}
+
+    def invoke(self, context, event):
+        type = bpy.context.scene.coat3D.deleteMode = 'Material'
+        deleteNodes(type)
+        return {'FINISHED'}
+
+class SCENE_OT_delete_object_nodes(bpy.types.Operator):
+    bl_idname = "delete_object_nodes.pilgway_3d_coat"
+    bl_label = "Delete material nodes"
+    bl_description = "Delete material nodes"
+    bl_options = {'UNDO'}
+
+    def invoke(self, context, event):
+        type = bpy.context.scene.coat3D.deleteMode = 'Object'
+        deleteNodes(type)
+        return {'FINISHED'}
+
+class SCENE_OT_delete_collection_nodes(bpy.types.Operator):
+    bl_idname = "delete_collection_nodes.pilgway_3d_coat"
+    bl_label = "Delete material nodes"
+    bl_description = "Delete material nodes"
+    bl_options = {'UNDO'}
+
+    def invoke(self, context, event):
+        type = bpy.context.scene.coat3D.deleteMode = 'Collection'
+        deleteNodes(type)
+        return {'FINISHED'}
+
+class SCENE_OT_delete_scene_nodes(bpy.types.Operator):
+    bl_idname = "delete_scene_nodes.pilgway_3d_coat"
+    bl_label = "Delete material nodes"
+    bl_description = "Delete material nodes"
+    bl_options = {'UNDO'}
+
+    def invoke(self, context, event):
+        type = bpy.context.scene.coat3D.deleteMode = 'Scene'
+        deleteNodes(type)
+        return {'FINISHED'}
+
+
+''' TRANSFER AND UPDATE BUTTONS'''
 
 class SCENE_OT_export(bpy.types.Operator):
     bl_idname = "export_applink.pilgway_3d_coat"
@@ -614,6 +771,8 @@ class SCENE_OT_export(bpy.types.Operator):
             objekti.coat3D.type = coat3D.type
             objekti.coat3D.applink_mesh = True
             objekti.coat3D.obj_mat = ''
+            objekti.coat3D.applink_index = ("3DC%.3d" % (object_index))
+
             objekti.coat3D.applink_firsttime = True
             if(coat3D.type != 'autopo'):
                 objekti.coat3D.applink_address = coa.applink_address
@@ -666,6 +825,16 @@ class SCENE_OT_import(bpy.types.Operator):
                         bpy.data.images.remove(del_img)
 
                 bpy.data.materials.remove(material)
+
+        image_del_list = []
+        for image in bpy.data.images:
+            if (image.name.startswith('3DC')):
+                if image.users == 0:
+                    image_del_list.append(image.name)
+
+        if (image_del_list != []):
+            for image in image_del_list:
+                bpy.data.images.remove(bpy.data.images[image])
 
         coat3D = bpy.context.scene.coat3D
         coat = bpy.coat3D
@@ -850,7 +1019,7 @@ class SCENE_OT_import(bpy.types.Operator):
                                 for index, material in enumerate(objekti.material_slots):
                                     obj_proxy.material_slots[index-1].material = material.material
 
-                                updatemesh(objekti,obj_proxy)
+                                updatemesh(objekti,obj_proxy, texturelist)
                                 bpy.context.view_layer.objects.active = objekti
 
 
@@ -1150,6 +1319,32 @@ class SCENE_PT_Settings_Folders(ObjectButtonsPanel, bpy.types.Panel):
         col = flow.column()
         col.prop(coat3D, "coat3D_exe", text="3D-Coat.exe")
 
+class SCENE_PT_Settings_DeleteNodes(ObjectButtonsPanel, bpy.types.Panel):
+    bl_label = "Delete 3DC nodes from selected..."
+    bl_parent_id = "SCENE_PT_Settings"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = False
+        coat3D = bpy.context.scene.coat3D
+
+        layout.active = True
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
+
+        col = flow.column()
+        col.operator("delete_material_nodes.pilgway_3d_coat", text="Material")
+
+        col.operator("delete_object_nodes.pilgway_3d_coat", text="Object(s)")
+
+        col = flow.column()
+        col.operator("delete_collection_nodes.pilgway_3d_coat", text="Collection")
+
+        col.operator("delete_scene_nodes.pilgway_3d_coat", text="Scene")
+        col = flow.column()
+        col.prop(coat3D, "delete_images", text="Delete nodes images")
+
 
 
 # 3D-Coat Dynamic Menu
@@ -1164,18 +1359,37 @@ class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
         ob = context
         if ob.mode == 'OBJECT':
             if(len(context.selected_objects) > 0):
-                layout.operator("import_applink.pilgway_3d_coat", text="Update Scene")
+                layout.operator("import_applink.pilgway_3d_coat",
+                                text="Update Scene")
                 layout.separator()
 
-                layout.operator("export_applink.pilgway_3d_coat", text="Copy selected object(s) into 3D-Coat")
+                layout.operator("export_applink.pilgway_3d_coat",
+                                text="Copy selected object(s) into 3D-Coat")
                 layout.separator()
+
                 if(context.selected_objects[0].coat3D.applink_3b_path != ''):
-                    layout.operator("open_3dcoat.pilgway_3d_coat", text="Open .3b file" +context.selected_objects[0].coat3D.applink_3b_just_name)
+                    layout.operator("open_3dcoat.pilgway_3d_coat",
+                                    text="Open .3b file" +context.selected_objects[0].coat3D.applink_3b_just_name)
                     layout.separator()
 
             else:
-                layout.operator("import_applink.pilgway_3d_coat", text="Update Scene")
+                layout.operator("import_applink.pilgway_3d_coat",
+                                text="Update Scene")
                 layout.separator()
+
+            if (len(context.selected_objects) > 0):
+                layout.operator("delete_material_nodes.pilgway_3d_coat",
+                                text="Delete 3D-Coat nodes from active material")
+
+                layout.operator("delete_object_nodes.pilgway_3d_coat",
+                                text="Delete 3D-Coat nodes from selected obejcts")
+
+            layout.operator("delete_object_nodes.pilgway_3d_coat",
+                            text="Delete 3D-Coat nodes from active collection")
+
+            layout.operator("delete_object_nodes.pilgway_3d_coat",
+                            text="Delete all 3D-Coat nodes")
+            layout.separator()
 
 
 
@@ -1186,6 +1400,9 @@ class ObjectCoat3D(PropertyGroup):
         default=''
     )
     applink_address: StringProperty(
+        name="Object_Applink_address"
+    )
+    applink_index: StringProperty(
         name="Object_Applink_address"
     )
     applink_3b_path: StringProperty(
@@ -1263,6 +1480,11 @@ class SceneCoat3D(PropertyGroup):
         name="FilePath",
         subtype="DIR_PATH",
     )
+    deleteMode: StringProperty(
+        name="FilePath",
+        subtype="DIR_PATH",
+        default=''
+    )
     coat3D_exe: StringProperty(
         name="FilePath",
         subtype="FILE_PATH",
@@ -1279,6 +1501,11 @@ class SceneCoat3D(PropertyGroup):
         name="Import window",
         description="Allows to skip import dialog",
         default=False
+    )
+    delete_images: BoolProperty(
+        name="Import window",
+        description="Allows to skip import dialog",
+        default=True
     )
     bring_retopo_path: StringProperty(
         name="FilePath",
@@ -1447,10 +1674,15 @@ classes = (
     SCENE_PT_Settings_Update,
     SCENE_PT_Bake_Settings,
     SCENE_PT_Settings_Folders,
+    SCENE_PT_Settings_DeleteNodes,
     SCENE_OT_folder,
     SCENE_OT_opencoat,
     SCENE_OT_export,
     SCENE_OT_import,
+    SCENE_OT_delete_material_nodes,
+    SCENE_OT_delete_object_nodes,
+    SCENE_OT_delete_collection_nodes,
+    SCENE_OT_delete_scene_nodes,
     VIEW3D_MT_Coat_Dynamic_Menu,
     ObjectCoat3D,
     SceneCoat3D,

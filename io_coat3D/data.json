@@ -15,7 +15,7 @@
 
   "metalness": {
     "name": "metalness",
-    "colorspace": "color",
+    "colorspace": "noncolor",
     "normal": "no",
     "displacement": "no",
     "find_input": [ "Metallic" ],
@@ -28,7 +28,7 @@
 
   "rough": {
     "name": "rough",
-    "colorspace": "color",
+    "colorspace": "noncolor",
     "normal": "no",
     "displacement": "no",
     "find_input": [ "Roughness" ],
@@ -55,11 +55,12 @@
 
   "displacement": {
     "name": "displacement",
-    "colorspace": "color",
+    "colorspace": "noncolor",
     "normal": "no",
     "displacement": "yes",
     "rampnode": "yes",
     "huenode": "no",
+    "node_location": [ 100, 100 ],
     "input": 5,
     "node_color": [ 0.608, 0.591, 0.498 ]
   },
@@ -72,6 +73,7 @@
     "find_input": [ "Emissive" ],
     "rampnode": "no",
     "huenode": "yes",
+    "node_location": [ 100, 100 ],
     "input": 4,
     "node_color": [ 0.0, 0.0, 0.0 ]
   },
@@ -83,16 +85,18 @@
     "displacement": "no",
     "rampnode": "no",
     "huenode": "no",
+    "node_location": [ 100, 100 ],
     "node_color": [ 0.0, 0.0, 0.0 ]
   },
 
   "ao": {
     "name": "ao",
-    "colorspace": "color",
+    "colorspace": "noncolor",
     "normal": "no",
     "displacement": "no",
     "rampnode": "yes",
     "huenode": "no",
+    "node_location": [ 100, 100 ],
     "node_color": [ 0.1, 0.5, 0.1 ]
   }
 
