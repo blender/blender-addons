@@ -250,10 +250,10 @@ def readtexturefolder(objekti, mat_list, texturelist, is_new, udim_textures): #r
                     objekti.coat3D.applink_3b_path = line
                 export_file.close()
                 coat3D.remove_path = True
-            createnodes(index_mat, texcoat, create_group_node, tile_list, objekti)
+            createnodes(index_mat, texcoat, create_group_node, tile_list, objekti, ind, is_new)
 
 
-def createnodes(active_mat,texcoat, create_group_node, tile_list, objekti): # Cretes new nodes and link textures into them
+def createnodes(active_mat,texcoat, create_group_node, tile_list, objekti, ind, is_new): # Cretes new nodes and link textures into them
     bring_color = True # Meaning of these is to check if we can only update textures or do we need to create new nodes
     bring_metalness = True
     bring_roughness = True
@@ -371,26 +371,31 @@ def createnodes(active_mat,texcoat, create_group_node, tile_list, objekti): # Cr
 
         if(out_mat.inputs['Surface'].is_linked == True):
             if(bring_color == True and texcoat['color'] != []):
-                CreateTextureLine(data['color'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat, tile_list, objekti)
+                CreateTextureLine(data['color'], act_material, main_mat, texcoat, coat3D, notegroup,
+                                  main_material, applink_tree, out_mat, coatMat, tile_list, objekti, ind, is_new)
 
             if(bring_metalness == True and texcoat['metalness'] != []):
-                CreateTextureLine(data['metalness'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat, tile_list, objekti)
+                CreateTextureLine(data['metalness'], act_material, main_mat, texcoat, coat3D, notegroup,
+                                  main_material, applink_tree, out_mat, coatMat, tile_list, objekti, ind, is_new)
 
             if(bring_roughness == True and texcoat['rough'] != []):
-                CreateTextureLine(data['rough'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat,tile_list, objekti)
+                CreateTextureLine(data['rough'], act_material, main_mat, texcoat, coat3D, notegroup,
+                                  main_material, applink_tree, out_mat, coatMat,tile_list, objekti, ind, is_new)
 
             if(bring_normal == True and texcoat['nmap'] != []):
-                CreateTextureLine(data['nmap'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat, tile_list, objekti)
+                CreateTextureLine(data['nmap'], act_material, main_mat, texcoat, coat3D, notegroup,
+                                  main_material, applink_tree, out_mat, coatMat, tile_list, objekti, ind, is_new)
 
             if (bring_emissive == True and texcoat['emissive'] != []):
-                CreateTextureLine(data['emissive'], act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat, tile_list, objekti)
+                CreateTextureLine(data['emissive'], act_material, main_mat, texcoat, coat3D, notegroup,
+                                  main_material, applink_tree, out_mat, coatMat, tile_list, objekti, ind, is_new)
 
             if (bring_displacement == True and texcoat['displacement'] != []):
-                CreateTextureLine(data['displacement'], act_material, main_mat, texcoat, coat3D, notegroup, main_material,
-                                  applink_tree, out_mat, coatMat, tile_list, objekti)
+                CreateTextureLine(data['displacement'], act_material, main_mat, texcoat, coat3D, notegroup,
+                                  main_material, applink_tree, out_mat, coatMat, tile_list, objekti, ind, is_new)
 
 
-def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat, tile_list, objekti):
+def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, main_material, applink_tree, out_mat, coatMat, tile_list, objekti, ind, is_new):
 
     if(tile_list):
         texture_name = coatMat.name + '_' + type['name']
@@ -430,7 +435,10 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
 
             tex_uv_node = texture_tree.nodes.new('ShaderNodeUVMap')
             tex_uv_node.location = uv_loc
-            tex_uv_node.uv_map = objekti.data.uv_layers[0].name
+            if(is_new):
+                tex_uv_node.uv_map = objekti.data.uv_layers[ind].name
+            else:
+                tex_uv_node.uv_map = objekti.data.uv_layers[0].name
 
             map_node = texture_tree.nodes.new('ShaderNodeMapping')
             map_node.location = map_loc
@@ -492,7 +500,10 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
     else:
         node = act_material.nodes.new('ShaderNodeTexImage')
         uv_node = act_material.nodes.new('ShaderNodeUVMap')
-        uv_node.uv_map = objekti.data.uv_layers[0].name
+        if (is_new):
+            uv_node.uv_map = objekti.data.uv_layers[ind].name
+        else:
+            uv_node.uv_map = objekti.data.uv_layers[0].name
         act_material.links.new(uv_node.outputs[0], node.inputs[0])
         uv_node.use_custom_color = True
         uv_node.color = (type['node_color'][0], type['node_color'][1], type['node_color'][2])

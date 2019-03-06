@@ -251,7 +251,6 @@ def updatemesh(objekti, proxy, texturelist):
     objekti.select_set(True)
 
     uv_count = len(proxy.data.uv_layers)
-    print('proxy uv layers count:', uv_count)
     index = 0
     while(index < uv_count):
         for poly in proxy.data.polygons:
@@ -469,8 +468,14 @@ def deleteNodes(type):
             bpy.data.images.remove(bpy.data.images[image])
 
 
-
-
+def delete_materials_from_end(keep_materials_count, objekti):
+    bpy.context.object.active_material_index = 0
+    index_t = 0
+    while (index_t < keep_materials_count):
+        temp_len = len(objekti.material_slots)-1
+        bpy.context.object.active_material_index = temp_len
+        bpy.ops.object.material_slot_remove()
+        index_t +=1
 
 ''' DELETE NODES BUTTONS'''
 
@@ -1009,14 +1014,10 @@ class SCENE_OT_import(bpy.types.Operator):
                             else:
 
                                 bpy.context.view_layer.objects.active = obj_proxy
-                                mat_count = len(obj_proxy.material_slots) - len(objekti.material_slots)
-                                bpy.context.object.active_material_index = 0
-                                index_t = 0
-                                while (index_t < mat_count):
-                                    temp_len = len(obj_proxy.material_slots)-1
-                                    bpy.context.object.active_material_index = temp_len
-                                    bpy.ops.object.material_slot_remove()
-                                    index_t +=1
+                                keep_materials_count = len(obj_proxy.material_slots) - len(objekti.material_slots)
+
+                                delete_materials_from_end(keep_materials_count, obj_proxy)
+
                                 for index, material in enumerate(objekti.material_slots):
                                     obj_proxy.material_slots[index-1].material = material.material
 
@@ -1144,7 +1145,7 @@ class SCENE_OT_import(bpy.types.Operator):
 
                 if(new_obj.coat3D.applink_old == False):
                     new_obj.select_set(True)
-                    new_obj.scale = (0.01, 0.01, 0.01)
+                    new_obj.scale = (1, 1, 1)
                     new_obj.coat3D.applink_firsttime = False
                     new_obj.select_set(False)
                     new_obj.coat3D.type = 'ppp'
@@ -1152,8 +1153,12 @@ class SCENE_OT_import(bpy.types.Operator):
                     new_obj.coat3D.applink_mesh = True
                     new_obj.coat3D.objecttime = str(os.path.getmtime(new_obj.coat3D.applink_address))
 
-                    new_obj.coat3D.applink_name = new_obj.material_slots[0].material.name
+                    new_obj.coat3D.applink_name = new_obj.name
                     index = index + 1
+
+                    bpy.context.view_layer.objects.active = new_obj
+                    keep_materials_count = len(new_obj.material_slots) - len(new_obj.data.uv_layers)
+                    delete_materials_from_end(keep_materials_count, new_obj)
 
                     new_obj.coat3D.applink_export = True
                     if(osoite_3b != ''):
