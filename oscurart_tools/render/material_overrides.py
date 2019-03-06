@@ -30,8 +30,8 @@ def RestoreOverrides(dummy):
 
 
 class OscOverridesProp(bpy.types.PropertyGroup):
-    matoverride = bpy.props.StringProperty()
-    grooverride = bpy.props.StringProperty()
+    matoverride: bpy.props.StringProperty()
+    grooverride: bpy.props.StringProperty()
     
 bpy.utils.register_class(OscOverridesProp)  
 bpy.types.Scene.ovlist = bpy.props.CollectionProperty(type=OscOverridesProp)    
@@ -118,7 +118,7 @@ class OscOverridesUp(bpy.types.Operator):
     bl_label = 'Move Override up'
     bl_options = {'INTERNAL'}
 
-    index = bpy.props.IntProperty(min=0)
+    index: bpy.props.IntProperty(min=0)
 
     @classmethod
     def poll(self, context):
@@ -137,7 +137,7 @@ class OscOverridesDown(bpy.types.Operator):
     bl_label = 'Move Override down'
     bl_options = {'INTERNAL'}
 
-    index = bpy.props.IntProperty(min=0)
+    index: bpy.props.IntProperty(min=0)
 
     @classmethod
     def poll(self, context):
@@ -155,7 +155,7 @@ class OscOverridesKill(bpy.types.Operator):
     bl_label = 'Kill Override'
     bl_options = {'INTERNAL'}
 
-    index = bpy.props.IntProperty(min=0)
+    index: bpy.props.IntProperty(min=0)
 
     @classmethod
     def poll(self, context):
