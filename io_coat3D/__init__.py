@@ -1249,6 +1249,46 @@ class SCENE_PT_Settings(ObjectButtonsPanel,bpy.types.Panel):
     def draw(self, context):
         pass
 
+class MaterialButtonsPanel():
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "material"
+
+class SCENE_PT_Material(MaterialButtonsPanel,bpy.types.Panel):
+    bl_label = "3D-Coat Applink"
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
+    bl_context = "material"
+
+    def draw(self, context):
+        pass
+
+class SCENE_PT_Material_Import(MaterialButtonsPanel, bpy.types.Panel):
+    bl_label = "Import Textures:"
+    bl_parent_id = "SCENE_PT_Material"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = False
+        coat3D = bpy.context.active_object.active_material
+
+        layout.active = True
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
+
+        col = flow.column()
+        col.prop(coat3D, "coat3D_diffuse", text="Diffuse")
+        col.prop(coat3D, "coat3D_metalness", text="Metalness")
+        col.prop(coat3D, "coat3D_roughness", text="Roughness")
+        col.prop(coat3D, "coat3D_ao", text="AO")
+        col = flow.column()
+        col.prop(coat3D, "coat3D_normal", text="NormalMap")
+        col.prop(coat3D, "coat3D_displacement", text="Displacement")
+        col.prop(coat3D, "coat3D_emissive", text="Emissive")
+
+
+
 class SCENE_PT_Settings_Update(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Update"
     bl_parent_id = "SCENE_PT_Settings"
@@ -1471,10 +1511,6 @@ class ObjectCoat3D(PropertyGroup):
         name="Scale",
         description="Scale"
     )
-class MaterialCoat3D(PropertyGroup):
-    Nodegroup: StringProperty(
-        name="NodeGroup",
-    )
 
 class SceneCoat3D(PropertyGroup):
     defaultfolder: StringProperty(
@@ -1656,26 +1692,58 @@ class SceneCoat3D(PropertyGroup):
         default=False
     )
 
-
 class MeshCoat3D(PropertyGroup):
     applink_address: StringProperty(
         name="ApplinkAddress",
         subtype="APPLINK_ADDRESS",
     )
+
 class MaterialCoat3D(PropertyGroup):
-    name: StringProperty(
+    name: BoolProperty(
         name="ApplinkAddress",
         subtype="APPLINK_ADDRESS",
+        default=True
+    )
+    bring_diffuse: BoolProperty(
+        name="Import diffuse texture",
+        description="Import diffuse texture",
+        default=True
+    )
+    bring_metalness: BoolProperty(
+        name="Import diffuse texture",
+        description="Import diffuse texture",
+        default=True
+    )
+    bring_roughness: BoolProperty(
+        name="Import diffuse texture",
+        description="Import diffuse texture",
+        default=True
+    )
+    bring_normal: BoolProperty(
+        name="Import diffuse texture",
+        description="Import diffuse texture",
+        default=True
+    )
+    bring_displacement: BoolProperty(
+        name="Import diffuse texture",
+        description="Import diffuse texture",
+        default=True
+    )
+    bring_emissive: BoolProperty(
+        name="Import diffuse texture",
+        description="Import diffuse texture",
+        default=True
     )
 
 classes = (
-    #ObjectButtonsPanel,
     SCENE_PT_Main,
     SCENE_PT_Settings,
+    SCENE_PT_Material,
     SCENE_PT_Settings_Update,
     SCENE_PT_Bake_Settings,
     SCENE_PT_Settings_Folders,
     SCENE_PT_Settings_DeleteNodes,
+    SCENE_PT_Material_Import,
     SCENE_OT_folder,
     SCENE_OT_opencoat,
     SCENE_OT_export,
@@ -1696,6 +1764,43 @@ def register():
     bpy.coat3D['active_coat'] = ''
     bpy.coat3D['status'] = 1
     bpy.coat3D['kuva'] = 1
+
+    bpy.types.Material.coat3D_diffuse = BoolProperty(
+        name="Import diffuse texture",
+        description="Import diffuse texture",
+        default=True
+    )
+    bpy.types.Material.coat3D_roughness = BoolProperty(
+        name="Import diffuse texture",
+        description="Import diffuse texture",
+        default=True
+    )
+    bpy.types.Material.coat3D_metalness = BoolProperty(
+        name="Import diffuse texture",
+        description="Import diffuse texture",
+        default=True
+    )
+    bpy.types.Material.coat3D_normal = BoolProperty(
+        name="Import diffuse texture",
+        description="Import diffuse texture",
+        default=True
+    )
+    bpy.types.Material.coat3D_displacement = BoolProperty(
+        name="Import diffuse texture",
+        description="Import diffuse texture",
+        default=True
+    )
+    bpy.types.Material.coat3D_emissive = BoolProperty(
+        name="Import diffuse texture",
+        description="Import diffuse texture",
+        default=True
+    )
+    bpy.types.Material.coat3D_ao = BoolProperty(
+        name="Import diffuse texture",
+        description="Import diffuse texture",
+        default=True
+    )
+
 
     from bpy.utils import register_class
     for cls in classes:
@@ -1720,7 +1825,13 @@ def unregister():
 
     del bpy.types.Object.coat3D
     del bpy.types.Scene.coat3D
-    del bpy.types.Mesh.coat3D
+    del bpy.types.Material.coat3D
+    bpy.types.Material.coat3D_diffuse
+    bpy.types.Material.coat3D_metalness
+    bpy.types.Material.coat3D_roughness
+    bpy.types.Material.coat3D_normal
+    bpy.types.Material.coat3D_displacement
+    bpy.types.Material.coat3D_emissive
     del bpy.coat3D
 
     kc = bpy.context.window_manager.keyconfigs.addon
