@@ -129,7 +129,6 @@ def link_material_into_uvset(objekti, material, material_index):
             for vert_idx, loop_idx in zip(face.vertices, face.loop_indices):
                 uv_coords = layer.data[loop_idx].uv
 
-
 def readtexturefolder(objekti, mat_list, texturelist, is_new, udim_textures): #read textures from texture file
 
     # Let's check are we UVSet or MATERIAL mode
@@ -228,7 +227,6 @@ def readtexturefolder(objekti, mat_list, texturelist, is_new, udim_textures): #r
                 export_file.close()
                 coat3D.remove_path = True
             createnodes(index_mat, texcoat, create_group_node, tile_list, objekti)
-
 
 
 def createnodes(active_mat,texcoat, create_group_node, tile_list, objekti): # Cretes new nodes and link textures into them

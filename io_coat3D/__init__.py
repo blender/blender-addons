@@ -251,11 +251,12 @@ def updatemesh(objekti, proxy, texturelist):
     objekti.select_set(True)
 
     uv_count = len(proxy.data.uv_layers)
+    print('proxy uv layers count:', uv_count)
     index = 0
     while(index < uv_count):
         for poly in proxy.data.polygons:
             for indi in poly.loop_indices:
-                if(proxy.data.uv_layers[index].data[indi].uv[0] != -1):
+                if(proxy.data.uv_layers[index].data[indi].uv[0] != 0 and proxy.data.uv_layers[index].data[indi].uv[1] != 0):
 
                     if(udim_textures):
                         udim = proxy.data.uv_layers[index].name
