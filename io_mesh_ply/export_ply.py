@@ -116,10 +116,12 @@ def save_mesh(filepath,
 
             if has_vcol:
                 color = col[j]
-                color = (int(color[0] * 255.0),
-                         int(color[1] * 255.0),
-                         int(color[2] * 255.0),
-                         )
+                color = (
+                    int(color[0] * 255.0),
+                    int(color[1] * 255.0),
+                    int(color[2] * 255.0),
+                    int(color[3] * 255.0),
+                )
             key = normal_key, uvcoord_key, color
 
             vdict_local = vdict[vidx]
