@@ -551,11 +551,9 @@ class SCENE_OT_export(bpy.types.Operator):
             for objec in bpy.context.selected_objects:
                 delete_uvmaps = []
                 if objec.type == 'MESH':
-                    for uv_layer in objec.data.uv_layers:
-                        if(uv_layer.name.startswith('3DC_')):
-                            delete_uvmaps.append(uv_layer.name)
-                    for uv_name in delete_uvmaps:
-                        objec.data.uv_layers.remove(objec.data.uv_layers[uv_name])
+                    if(len(objec.data.uv_layers) == 0):
+                        objec.data.uv_layers.new(name='UVMap', do_init = False)
+
                     export_ok = True
             if (export_ok == False):
                 return {'FINISHED'}
@@ -952,7 +950,6 @@ class SCENE_OT_import(bpy.types.Operator):
                         print('ONAME:',oname)
                         if(objekti.coat3D.type):
                             for proxy_objects in diff_objects:
-                                print('tryis to found: ',proxy_objects)
                                 if (proxy_objects.startswith(objekti.coat3D.applink_name + '.')):
                                     obj_proxy = bpy.data.objects[proxy_objects]
                                     obj_proxy.coat3D.delete_proxy_mesh = True
