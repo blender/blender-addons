@@ -76,13 +76,12 @@ def menu_func_landscape(self, context):
 
 # Landscape Add Panel
 class AntLandscapeAddPanel(bpy.types.Panel):
+    bl_category = "A.N.T. Landscape"
+    bl_label = "Landscape"
     bl_idname = "ANTLANDSCAPE_PT_add"
     bl_space_type = "VIEW_3D"
-    bl_context = "objectmode"
     bl_region_type = "UI"
-    bl_label = "Landscape"
-    bl_category = "A.N.T. Landscape"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_context = "objectmode"
 
     def draw(self, context):
         col = self.layout.column()
@@ -91,12 +90,12 @@ class AntLandscapeAddPanel(bpy.types.Panel):
 
 # Landscape Tools:
 class AntLandscapeToolsPanel(bpy.types.Panel):
+    bl_category = "A.N.T. Landscape"
+    bl_label = "Landscape Tools"
     bl_idname = "ANTLANDSCAPE_PT_tools"
     bl_space_type = "VIEW_3D"
-    bl_context = "objectmode"
     bl_region_type = "UI"
-    bl_label = "Landscape Tools"
-    bl_category = "A.N.T. Landscape"
+    bl_context = "objectmode"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -116,12 +115,12 @@ class AntLandscapeToolsPanel(bpy.types.Panel):
 
 # Landscape Main Settings
 class AntMainSettingsPanel(bpy.types.Panel):
-    bl_idname = "ANTMAIN_PT_layout"
-    bl_options = {'DEFAULT_CLOSED'}
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_context = "object"
+    bl_category = "A.N.T. Landscape"
     bl_label = "Landscape Main"
+    bl_idname = "ANTLANDSCAPE_PT_main"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -158,12 +157,12 @@ class AntMainSettingsPanel(bpy.types.Panel):
 
 # Landscape Noise Settings
 class AntNoiseSettingsPanel(bpy.types.Panel):
-    bl_idname = "ANTNOISE_PT_layout"
-    bl_options = {'DEFAULT_CLOSED'}
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_context = "object"
+    bl_category = "A.N.T. Landscape"
     bl_label = "Landscape Noise"
+    bl_idname = "ANTLANDSCAPE_PT_noise"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -356,12 +355,12 @@ class AntNoiseSettingsPanel(bpy.types.Panel):
 
 # Landscape Displace Settings
 class AntDisplaceSettingsPanel(bpy.types.Panel):
-    bl_idname = "ANTDISP_PT_layout"
-    bl_options = {'DEFAULT_CLOSED'}
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_context = "object"
+    bl_category = "A.N.T. Landscape"
     bl_label = "Landscape Displace"
+    bl_idname = "ANTLANDSCAPE_PT_disp"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
