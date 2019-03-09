@@ -138,7 +138,7 @@ class AntMainSettingsPanel(bpy.types.Panel):
         col.operator('mesh.ant_landscape_regenerate', text="Regenerate", icon="LOOP_FORWARDS")
         row = box.row(align=True)
         split = row.split(align=True)
-        split.prop(ant, "smooth_mesh", toggle=True, text="Smooth", icon='SOLID')
+        split.prop(ant, "smooth_mesh", toggle=True, text="Smooth", icon='SHADING_SOLID')
         split.prop(ant, "tri_face", toggle=True, text="Triangulate", icon='MESH_DATA')
         if ant.sphere_mesh:
             split.prop(ant, "remove_double", toggle=True, text="Remove Doubles", icon='MESH_DATA')
@@ -347,7 +347,7 @@ class AntNoiseSettingsPanel(bpy.types.Panel):
             col.prop(ant, "fx_turb")
 
             col = box.column(align=True)
-            row = col.row(align=True).split(0.92, align=True)
+            row = col.row(align=True).split(factor=0.92, align=True)
             row.prop(ant, "fx_height")
             row.prop(ant, "fx_invert", toggle=True, text="", icon='ARROW_LEFTRIGHT')
             col.prop(ant, "fx_offset")
@@ -381,7 +381,7 @@ class AntDisplaceSettingsPanel(bpy.types.Panel):
             col.operator('mesh.ant_landscape_refresh', text="Refresh", icon="FILE_REFRESH")
 
         col = box.column(align=True)
-        row = col.row(align=True).split(0.92, align=True)
+        row = col.row(align=True).split(factor=0.92, align=True)
         row.prop(ant, "height")
         row.prop(ant, "height_invert", toggle=True, text="", icon='ARROW_LEFTRIGHT')
         col.prop(ant, "height_offset")
@@ -567,7 +567,7 @@ class AntLandscapePropertiesGroup(bpy.types.PropertyGroup):
             name="vlNoise Basis",
             default=ant_noise.noise_basis_default,
             description="VLNoise basis algorithms",
-            items =  ant_noise.noise_basis
+            items = ant_noise.noise_basis
             )
     distortion: FloatProperty(
             name="Distortion",
