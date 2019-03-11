@@ -581,7 +581,7 @@ class BTool_Slice(Operator):
         return {'FINISHED'}
 
 
-# Auto Boolean operators (maintainer Mikhail Rachinskiy)
+# Auto Boolean operators
 # --------------------------------------------------------------------------------------
 
 
@@ -626,7 +626,6 @@ class Auto_Boolean:
         bpy.ops.object.modifier_apply(modifier="Auto Boolean")
         if not ob_delete:
             return
-        # bpy.context.scene.objects.unlink(ob)
         bpy.data.objects.remove(ob)
 
 
@@ -696,26 +695,6 @@ class OBJECT_OT_BoolTool_Auto_Slice(Operator, Auto_Boolean):
         bpy.context.view_layer.objects.active = obj_copy
         self.boolean_mod(obj_copy, ob, 'INTERSECT')
         obj_copy.select_set(state=True)
-
-        return {'FINISHED'}
-
-
-class OBJECT_OT_BoolTool_Auto_Subtract(Operator, Auto_Boolean):
-    bl_idname = "object.booltool_auto_subtract"
-    bl_label = "Bool Tool Subtract"
-    bl_description = "Subtract selected object from active object, subtracted object not removed"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        self.objects_prepare()
-
-        obj = context.active_object
-        obj.select_set(state=False)
-        ob = context.selected_objects[0]
-
-        self.mesh_selection(obj, 'DESELECT')
-        self.mesh_selection(ob, 'SELECT')
-        self.boolean_mod(obj, ob, 'DIFFERENCE', ob_delete=False)
 
         return {'FINISHED'}
 
@@ -885,15 +864,15 @@ class VIEW3D_MT_booltool_menu(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.label(text="Auto Boolean:")
+        layout.label(text="Auto Boolean")
         layout.operator(OBJECT_OT_BoolTool_Auto_Difference.bl_idname, text='Difference', icon='PIVOT_ACTIVE')
         layout.operator(OBJECT_OT_BoolTool_Auto_Union.bl_idname, text='Union', icon='PIVOT_INDIVIDUAL')
         layout.operator(OBJECT_OT_BoolTool_Auto_Intersect.bl_idname, text='Intersect', icon='PIVOT_MEDIAN')
         layout.operator(OBJECT_OT_BoolTool_Auto_Slice.bl_idname, text='Slice', icon='PIVOT_MEDIAN')
-        layout.operator(OBJECT_OT_BoolTool_Auto_Subtract.bl_idname, text='Subtract', icon='PIVOT_ACTIVE')
+
         layout.separator()
 
-        layout.label(text="Brush Boolean:")
+        layout.label(text="Brush Boolean")
         layout.operator(BTool_Diff.bl_idname, icon='PIVOT_ACTIVE')
         layout.operator(BTool_Union.bl_idname, icon='PIVOT_INDIVIDUAL')
         layout.operator(BTool_Inters.bl_idname, icon='PIVOT_MEDIAN')
@@ -936,42 +915,37 @@ class VIEW3D_PT_booltool_tools(Panel):
         obj = context.active_object
         obs_len = len(context.selected_objects)
 
-        row = layout.split(factor=0.7)
-        row.label(text="Help:")
+        row = layout.row()
+        row.alignment = "RIGHT"
+        row.scale_x = 1.5
         row.operator("wm.booltool_help", text="", icon="QUESTION")
 
         main = layout.column(align=True)
         main.enabled = obj.type == 'MESH' and obs_len > 0
 
-        main.separator()
-
         col = main.column(align=True)
         col.enabled = obs_len > 1
-        col.label(text="Auto Boolean:", icon="MODIFIER")
+        col.label(text="Auto Boolean", icon="MODIFIER")
         col.separator()
         col.operator(OBJECT_OT_BoolTool_Auto_Difference.bl_idname, text='Difference', icon='PIVOT_ACTIVE')
         col.operator(OBJECT_OT_BoolTool_Auto_Union.bl_idname, text='Union', icon='PIVOT_INDIVIDUAL')
         col.operator(OBJECT_OT_BoolTool_Auto_Intersect.bl_idname, text='Intersect', icon='PIVOT_MEDIAN')
-
-        main.separator()
-
-        col = main.column(align=True)
-        col.enabled = obs_len == 2
-        col.operator(OBJECT_OT_BoolTool_Auto_Slice.bl_idname, text='Slice', icon='PIVOT_MEDIAN')
-        col.operator(OBJECT_OT_BoolTool_Auto_Subtract.bl_idname, text='Subtract', icon='PIVOT_ACTIVE')
+        sub = col.column(align=True)
+        sub.enabled = obs_len == 2
+        sub.operator(OBJECT_OT_BoolTool_Auto_Slice.bl_idname, text='Slice', icon='PIVOT_MEDIAN')
 
         main.separator()
 
         col = main.column(align=True)
         col.enabled = obs_len > 1
-        col.label(text="Brush Boolean:", icon="MODIFIER")
+        col.label(text="Brush Boolean", icon="MODIFIER")
         col.separator()
         col.operator(BTool_Diff.bl_idname, text="Difference", icon='PIVOT_ACTIVE')
         col.operator(BTool_Union.bl_idname, text="Union", icon='PIVOT_INDIVIDUAL')
         col.operator(BTool_Inters.bl_idname, text="Intersect", icon='PIVOT_MEDIAN')
         col.operator(BTool_Slice.bl_idname, text="Slice", icon='PIVOT_MEDIAN')
 
-        #TODO Draw Poly Brush
+        # TODO Draw Poly Brush
         # main.separator()
 
         # col = main.column(align=True)
@@ -1162,12 +1136,12 @@ class WM_OT_BoolTool_Help(Operator):
 
         layout.separator()
 
-        layout.label(text="Auto Boolean:")
+        layout.label(text="Auto Boolean")
         layout.label(text="Apply Boolean operation directly.")
 
         layout.separator()
 
-        layout.label(text="Brush Boolean:")
+        layout.label(text="Brush Boolean")
         layout.label(text="Create a Boolean brush setup.")
 
     def execute(self, context):
@@ -1315,13 +1289,12 @@ classes = (
     OBJECT_OT_BoolTool_Auto_Difference,
     OBJECT_OT_BoolTool_Auto_Intersect,
     OBJECT_OT_BoolTool_Auto_Slice,
-    OBJECT_OT_BoolTool_Auto_Subtract,
 
     BTool_Union,
     BTool_Diff,
     BTool_Inters,
     BTool_Slice,
-    #TODO Draw Poly Brush
+    # TODO Draw Poly Brush
     # BTool_DrawPolyBrush,
     BTool_Remove,
     BTool_AllBrushToMesh,
