@@ -107,26 +107,6 @@ def isFTransf():
         return False
 
 
-"""
-# EXPERIMENTAL FEATURES
-def isMakeVertexGroup():
-    preferences = bpy.context.preferences
-    addon_prefs = preferences.addons[__name__].preferences
-    if addon_prefs.make_vertex_groups:
-        return True
-    else:
-        return False
-
-def isMakeBoundary():
-    preferences = bpy.context.preferences
-    addon_prefs = preferences.addons[__name__].preferences
-    if addon_prefs.make_boundary:
-        return True
-    else:
-        return False
-"""
-
-
 def ConvertToMesh(obj):
     act = bpy.context.view_layer.objects.active
     bpy.context.view_layer.objects.active = obj
@@ -147,13 +127,7 @@ def Operation(context, _operation):
             actObj = context.active_object
             selObj.hide_render = True
             cyclesVis = selObj.cycles_visibility
-            """
-            for obj in bpy.context.view_layer.objects:
-                if isCanvas(obj):
-                    for mod in obj.modifiers:
-                        if(mod.name == "BTool_" + selObj.name):
-                            obj.modifiers.remove(mod)
-            """
+
             if useWire:
                 selObj.display_type = "WIRE"
             else:
@@ -328,21 +302,6 @@ def ApplyThisBrush(context, brush):
         if isCanvas(obj):
             for mod in obj.modifiers:
                 if ("BTool_" + brush.name in mod.name):
-                    """
-                    # EXPERIMENTAL
-                    if isMakeVertexGroup():
-                        # Turn all faces of the Brush selected
-                        bpy.context.view_layer.objects.active = brush
-                        bpy.ops.object.mode_set(mode='EDIT')
-                        bpy.ops.mesh.select_all(action='SELECT')
-                        bpy.ops.object.mode_set(mode='OBJECT')
-
-                        # Turn off al faces of the Canvas selected
-                        bpy.context.view_layer.objects.active = canvas
-                        bpy.ops.object.mode_set(mode='EDIT')
-                        bpy.ops.mesh.select_all(action='DESELECT')
-                        bpy.ops.object.mode_set(mode='OBJECT')
-                    """
 
                     # Apply This Brush
                     context.view_layer.objects.active = obj
@@ -353,18 +312,6 @@ def ApplyThisBrush(context, brush):
                         bpy.ops.object.modifier_apply(modifier=mod.name)
                     bpy.ops.object.select_all(action='TOGGLE')
                     bpy.ops.object.select_all(action='DESELECT')
-
-                    """
-                    # EXPERIMENTAL
-                    if isMakeVertexGroup():
-                        # Make Vertex Group
-                        bpy.ops.object.mode_set(mode='EDIT')
-                        bpy.ops.object.vertex_group_assign_new()
-                        bpy.ops.mesh.select_all(action='DESELECT')
-                        bpy.ops.object.mode_set(mode='OBJECT')
-
-                        canvas.vertex_groups.active.name = "BTool_" + brush.name
-                    """
 
     # Garbage Collector
     brush.select_set(state=True)
@@ -1241,12 +1188,6 @@ class PREFS_BoolTool_Props(AddonPreferences):
         col.prop(self, "use_wire", text="Use Wire Instead Of Bbox")
 
         layout.separator()
-
-        """
-        # EXPERIMENTAL
-        col.prop(self, "make_vertex_groups")
-        col.prop(self, "make_boundary")
-        """
 
         layout.prop(self, "Enable_Tab_01", text="Hot Keys", icon="KEYINGSET")
         if self.Enable_Tab_01:
