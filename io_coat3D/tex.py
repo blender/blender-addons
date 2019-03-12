@@ -287,16 +287,33 @@ def createnodes(active_mat,texcoat, create_group_node, tile_list, objekti, ind, 
 
     print('TeXture UPDATE happens')
     for node in act_material.nodes:
-        if(node.type == 'TEX_IMAGE'):
-            if(node.name == '3DC_color'):
+        if (node.type != 'GROUP'):
+            if (node.type != 'GROUP_OUTPUT'):
+                if (node.type == 'TEX_IMAGE'):
+                    if (node.name == '3DC_color'):
+                        bring_color = False
+                    elif (node.name == '3DC_metalness'):
+                        bring_metalness = False
+                    elif (node.name == '3DC_roughness'):
+                        bring_roughness = False
+                    elif (node.name == '3DC_nmap'):
+                        bring_normal = False
+                    elif (node.name == '3DC_displacement'):
+                        bring_displacement = False
+                    elif (node.name == '3DC_emissive'):
+                        bring_emissive = False
+                    elif (node.name == '3DC_AO'):
+                        bring_AO = False
+        elif (node.type == 'GROUP' and node.name.startswith('3DC_')):
+            if (node.name == '3DC_color'):
                 bring_color = False
-            elif(node.name == '3DC_metalness'):
+            elif (node.name == '3DC_metalness'):
                 bring_metalness = False
-            elif(node.name == '3DC_rough'):
+            elif (node.name == '3DC_roughness'):
                 bring_roughness = False
-            elif(node.name == '3DC_nmap'):
+            elif (node.name == '3DC_nmap'):
                 bring_normal = False
-            elif(node.name == '3DC_displacement'):
+            elif (node.name == '3DC_displacement'):
                 bring_displacement = False
             elif (node.name == '3DC_emissive'):
                 bring_emissive = False
@@ -323,6 +340,7 @@ def createnodes(active_mat,texcoat, create_group_node, tile_list, objekti, ind, 
             group_tree.outputs.new("NodeSocketColor", "Displacement")
             group_tree.outputs.new("NodeSocketColor", "Emissive Power")
             group_tree.outputs.new("NodeSocketColor", "AO")
+            group_tree.outputs.new("NodeSocketColor", "Alpha")
             applink_tree = act_material.nodes.new('ShaderNodeGroup')
             applink_tree.name = '3DC_Applink'
             applink_tree.node_tree = group_tree
@@ -401,6 +419,7 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
         texture_name = coatMat.name + '_' + type['name']
         texture_tree = bpy.data.node_groups.new(type="ShaderNodeTree", name=texture_name)
         texture_tree.outputs.new("NodeSocketColor", "Color")
+        texture_tree.outputs.new("NodeSocketColor", "Alpha")
         texture_node_tree = act_material.nodes.new('ShaderNodeGroup')
         texture_node_tree.name = '3DC_' + type['name']
         texture_node_tree.node_tree = texture_tree
@@ -457,6 +476,7 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
                 nodes.append(tex_img_node.name)
             if(count == 1):
                 texture_tree.links.new(tex_img_node.outputs[0], notegroupend.inputs[0])
+                texture_tree.links.new(tex_img_node.outputs[1], notegroupend.inputs[1])
 
             if(index > 0):
                 mix_node = texture_tree.nodes.new('ShaderNodeMixRGB')
@@ -466,8 +486,17 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
                 mix_loc[1] -= 300
                 texture_tree.links.new(tex_img_node.outputs[0], mix_node.inputs[2])
                 texture_tree.links.new(texture_tree.nodes[nodes[0]].outputs[0], mix_node.inputs[1])
+
+                mix_node_alpha = texture_tree.nodes.new('ShaderNodeMixRGB')
+                mix_node_alpha.blend_type = 'ADD'
+                mix_node_alpha.inputs[0].default_value = 1
+                mix_node_alpha.location = mix_loc
+                mix_loc[1] -= 200
+                texture_tree.links.new(tex_img_node.outputs[1], mix_node_alpha.inputs[2])
+                texture_tree.links.new(texture_tree.nodes[nodes[0]].outputs[0], mix_node_alpha.inputs[1])
                 nodes.clear()
                 nodes.append(mix_node.name)
+                nodes.append(mix_node_alpha.name)
 
 
             elif(index > 1):
@@ -478,6 +507,15 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
                 mix_loc[1] -= 300
                 texture_tree.links.new(texture_tree.nodes[nodes[0]].outputs[0], mix_node.inputs[1])
                 texture_tree.links.new(tex_img_node.outputs[0], mix_node.inputs[2])
+
+                mix_node_alpha = texture_tree.nodes.new('ShaderNodeMixRGB')
+                mix_node_alpha.blend_type = 'ADD'
+                mix_node_alpha.inputs[0].default_value = 1
+                mix_node_alpha.location = mix_loc
+                mix_loc[1] -= 200
+                texture_tree.links.new(texture_tree.nodes[nodes[0]].outputs[1], mix_node_alpha.inputs[1])
+                texture_tree.links.new(tex_img_node.outputs[1], mix_node_alpha.inputs[2])
+
                 nodes.clear()
                 nodes.append(tex_img_node.name)
                 nodes.append(mix_node.name)
@@ -491,11 +529,14 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
 
         if(count > 1):
             texture_tree.links.new(mix_node.outputs[0], notegroupend.inputs[0])
+            texture_tree.links.new(mix_node_alpha.outputs[0], notegroupend.inputs[1])
 
 
 
     if(tile_list):
         node = texture_node_tree
+        act_material.links.new(node.outputs[1], notegroup.inputs[8])
+
 
     else:
         node = act_material.nodes.new('ShaderNodeTexImage')
@@ -572,6 +613,9 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
             coatMat.cycles.displacement_method = 'BOTH'
 
         else:
+
+            if(type['name'] == 'color'):
+                act_material.links.new(node.outputs[1], notegroup.inputs[8])
 
             huenode = createExtraNodes(act_material, node, type)
 
