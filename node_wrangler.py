@@ -4656,7 +4656,7 @@ kmi_defs = (
     # Lazy Mix
     (NWLazyMix.bl_idname, 'RIGHTMOUSE', 'PRESS', False, False, True, None, "Lazy Mix"),
     # Lazy Connect
-    (NWLazyConnect.bl_idname, 'RIGHTMOUSE', 'PRESS', True, False, False, None, "Lazy Connect"),
+    (NWLazyConnect.bl_idname, 'RIGHTMOUSE', 'PRESS', True, False, False, (('with_menu', False),), "Lazy Connect"),
     # Lazy Connect with Menu
     (NWLazyConnect.bl_idname, 'RIGHTMOUSE', 'PRESS', True, True, False, (('with_menu', True),), "Lazy Connect with Socket Menu"),
     # Viewer Tile Center
