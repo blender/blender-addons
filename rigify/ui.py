@@ -514,7 +514,7 @@ class DATA_UL_rigify_bone_groups(bpy.types.UIList):
         row2.enabled = not bpy.context.object.data.rigify_colors_lock
 
 
-class DATA_MT_rigify_bone_groups_specials(bpy.types.Menu):
+class DATA_MT_rigify_bone_groups_context_menu(bpy.types.Menu):
     bl_label = 'Rigify Bone Groups Specials'
 
     def draw(self, context):
@@ -556,7 +556,7 @@ class DATA_PT_rigify_bone_groups(bpy.types.Panel):
         col = row.column(align=True)
         col.operator("armature.rigify_bone_group_add", icon='ZOOM_IN', text="")
         col.operator("armature.rigify_bone_group_remove", icon='ZOOM_OUT', text="").idx = obj.data.rigify_colors_index
-        col.menu("DATA_MT_rigify_bone_groups_specials", icon='DOWNARROW_HLT', text="")
+        col.menu("DATA_MT_rigify_bone_groups_context_menu", icon='DOWNARROW_HLT', text="")
         row = layout.row()
         row.prop(armature, 'rigify_theme_to_add', text = 'Theme')
         op = row.operator("armature.rigify_bone_group_add_theme", text="Add From Theme")
@@ -1333,7 +1333,7 @@ classes = (
     DATA_OT_rigify_bone_group_remove,
     DATA_OT_rigify_bone_group_remove_all,
     DATA_UL_rigify_bone_groups,
-    DATA_MT_rigify_bone_groups_specials,
+    DATA_MT_rigify_bone_groups_context_menu,
     DATA_PT_rigify_bone_groups,
     DATA_PT_rigify_layer_names,
     DATA_PT_rigify_buttons,
