@@ -502,7 +502,7 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
                 texture_tree.links.new(tex_img_node.outputs[0], notegroupend.inputs[0])
                 texture_tree.links.new(tex_img_node.outputs[1], notegroupend.inputs[1])
 
-            if(index > 0):
+            if(index == 1):
                 mix_node = texture_tree.nodes.new('ShaderNodeMixRGB')
                 mix_node.blend_type = 'ADD'
                 mix_node.inputs[0].default_value = 1
@@ -510,15 +510,13 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
                 mix_loc[1] -= 300
                 texture_tree.links.new(tex_img_node.outputs[0], mix_node.inputs[2])
                 texture_tree.links.new(texture_tree.nodes[nodes[0]].outputs[0], mix_node.inputs[1])
-
-                mix_node_alpha = texture_tree.nodes.new('ShaderNodeMixRGB')
-                mix_node_alpha.blend_type = 'ADD'
-                mix_node_alpha.inputs[0].default_value = 1
+                mix_node_alpha = texture_tree.nodes.new('ShaderNodeMath')
                 mix_node_alpha.location = mix_loc
                 mix_loc[1] -= 200
-                texture_tree.links.new(tex_img_node.outputs[1], mix_node_alpha.inputs[2])
-                texture_tree.links.new(texture_tree.nodes[nodes[0]].outputs[0], mix_node_alpha.inputs[1])
+                texture_tree.links.new(tex_img_node.outputs[1], mix_node_alpha.inputs[1])
+                texture_tree.links.new(texture_tree.nodes[nodes[0]].outputs[1], mix_node_alpha.inputs[0])
                 nodes.clear()
+                nodes.append(tex_img_node.name)
                 nodes.append(mix_node.name)
                 nodes.append(mix_node_alpha.name)
 
@@ -529,20 +527,18 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
                 mix_node.inputs[0].default_value = 1
                 mix_node.location = mix_loc
                 mix_loc[1] -= 300
-                texture_tree.links.new(texture_tree.nodes[nodes[0]].outputs[0], mix_node.inputs[1])
+                texture_tree.links.new(texture_tree.nodes[nodes[1]].outputs[0], mix_node.inputs[1])
                 texture_tree.links.new(tex_img_node.outputs[0], mix_node.inputs[2])
-
-                mix_node_alpha = texture_tree.nodes.new('ShaderNodeMixRGB')
-                mix_node_alpha.blend_type = 'ADD'
-                mix_node_alpha.inputs[0].default_value = 1
+                mix_node_alpha = texture_tree.nodes.new('ShaderNodeMath')
                 mix_node_alpha.location = mix_loc
                 mix_loc[1] -= 200
-                texture_tree.links.new(texture_tree.nodes[nodes[0]].outputs[1], mix_node_alpha.inputs[1])
-                texture_tree.links.new(tex_img_node.outputs[1], mix_node_alpha.inputs[2])
+                texture_tree.links.new(texture_tree.nodes[nodes[2]].outputs[0], mix_node_alpha.inputs[0])
+                texture_tree.links.new(tex_img_node.outputs[1], mix_node_alpha.inputs[1])
 
                 nodes.clear()
                 nodes.append(tex_img_node.name)
                 nodes.append(mix_node.name)
+                nodes.append(mix_node_alpha.name)
 
             tex_loc[1] -= 300
             uv_loc[1] -=  300
