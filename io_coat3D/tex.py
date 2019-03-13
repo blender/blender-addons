@@ -122,6 +122,8 @@ def updatetextures(objekti): # Update 3DC textures
                     node.image.reload()
                 elif (node.name == '3DC_AO'):
                     node.image.reload()
+                elif (node.name == '3DC_alpha'):
+                    node.image.reload()
 
     for index_node_group in bpy.data.node_groups:
 
@@ -140,6 +142,8 @@ def updatetextures(objekti): # Update 3DC textures
                 elif (node.name == '3DC_emissive'):
                     node.image.reload()
                 elif (node.name == '3DC_AO'):
+                    node.image.reload()
+                elif (node.name == '3DC_alpha'):
                     node.image.reload()
 
 def link_material_into_uvset(objekti, material, material_index):
@@ -173,6 +177,7 @@ def readtexturefolder(objekti, mat_list, texturelist, is_new, udim_textures): #r
         texcoat['emissive'] = []
         texcoat['emissive_power'] = []
         texcoat['displacement'] = []
+        texcoat['alpha'] = []
 
         create_group_node = False
         if(udim_textures == False):
@@ -227,6 +232,12 @@ def readtexturefolder(objekti, mat_list, texturelist, is_new, udim_textures): #r
                             create_nodes = True
                         else:
                             os.remove(texture_info[3])
+                    elif texture_info[2] == 'alpha' or texture_info[2] == 'opacity':
+                        if (index_mat.material.coat3D_metalness):
+                            texcoat['alpha'].append(texture_info[3])
+                            create_nodes = True
+                        else:
+                            os.remove(texture_info[3])
                     create_group_node = True
         else:
             for texture_info in texturelist:
@@ -257,6 +268,9 @@ def readtexturefolder(objekti, mat_list, texturelist, is_new, udim_textures): #r
                 elif texture_info[2].startswith('displacement'):
                     texcoat['displacement'].append([texture_info[0],texture_info[3]])
                     create_nodes = True
+                if texture_info[2] == 'alpha' or texture_info[2] == 'opacity':
+                    texcoat['alpha'].append([texture_info[0], texture_info[3]])
+                    create_nodes = True
                 create_group_node = True
 
         if(create_nodes):
@@ -281,6 +295,7 @@ def createnodes(active_mat,texcoat, create_group_node, tile_list, objekti, ind, 
     bring_displacement = True
     bring_emissive = True
     bring_AO = True
+    bring_alpha = True
 
     coat3D = bpy.context.scene.coat3D
     coatMat = active_mat.material
@@ -324,6 +339,8 @@ def createnodes(active_mat,texcoat, create_group_node, tile_list, objekti, ind, 
                         bring_emissive = False
                     elif (node.name == '3DC_AO'):
                         bring_AO = False
+                    elif (node.name == '3DC_alpha'):
+                        bring_alpha = False
         elif (node.type == 'GROUP' and node.name.startswith('3DC_')):
             if (node.name == '3DC_color'):
                 bring_color = False
@@ -339,6 +356,8 @@ def createnodes(active_mat,texcoat, create_group_node, tile_list, objekti, ind, 
                 bring_emissive = False
             elif (node.name == '3DC_AO'):
                 bring_AO = False
+            elif (node.name == '3DC_alpha'):
+                bring_alpha = False
 
     #Let's start to build new node tree. Let's start linking with Material Output
 
@@ -430,6 +449,9 @@ def createnodes(active_mat,texcoat, create_group_node, tile_list, objekti, ind, 
 
             if (bring_displacement == True and texcoat['displacement'] != []):
                 CreateTextureLine(data['displacement'], act_material, main_mat, texcoat, coat3D, notegroup,
+                                  main_material, applink_tree, out_mat, coatMat, tile_list, objekti, ind, is_new)
+            if (bring_color == True and texcoat['alpha'] != []):
+                CreateTextureLine(data['alpha'], act_material, main_mat, texcoat, coat3D, notegroup,
                                   main_material, applink_tree, out_mat, coatMat, tile_list, objekti, ind, is_new)
 
 
@@ -551,12 +573,14 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
             texture_tree.links.new(mix_node.outputs[0], notegroupend.inputs[0])
             texture_tree.links.new(mix_node_alpha.outputs[0], notegroupend.inputs[1])
 
-
-
     if(tile_list):
         node = texture_node_tree
-        if (type['name'] == 'color'):
-            act_material.links.new(node.outputs[1], notegroup.inputs[8])
+        if(texcoat['alpha'] != []):
+            if (type['name'] == 'color'):
+                act_material.links.new(node.outputs[1], notegroup.inputs[8])
+        else:
+            if(type['name'] == 'alpha'):
+                act_material.links.new(node.outputs[1], notegroup.inputs[8])
 
 
     else:
@@ -635,8 +659,12 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
 
         else:
 
-            if(type['name'] == 'color'):
-                act_material.links.new(node.outputs[1], notegroup.inputs[8])
+            if (texcoat['alpha'] != []):
+                if (type['name'] == 'color'):
+                    act_material.links.new(node.outputs[1], notegroup.inputs[8])
+            else:
+                if (type['name'] == 'alpha'):
+                    act_material.links.new(node.outputs[1], notegroup.inputs[8])
 
             huenode = createExtraNodes(act_material, node, type)
 
@@ -683,6 +711,7 @@ def createExtraNodes(act_material, node, type):
         huenode = act_material.nodes.new('ShaderNodeMath')
         huenode.name = '3DC_HueSaturation'
         huenode.operation = 'MULTIPLY'
+        huenode.inputs[1].default_value = 1
         huenode.use_custom_color = True
         huenode.color = (type['node_color'][0], type['node_color'][1], type['node_color'][2])
 
@@ -728,6 +757,12 @@ def createExtraNodes(act_material, node, type):
         node.location = -1200, -900
         curvenode.location = -900, -900
         huenode.location = -340, -700
+
+    elif type['name'] == 'alpha':
+        node.location = -1200, -1200
+        curvenode.location = -900, -1250
+        rampnode.location = -600, -1200
+        huenode.location = -300, -1200
 
     return huenode
 
