@@ -57,25 +57,45 @@ def UVTiling(objekti, index, texturelist):
             loop_index = poly.loop_indices[0]
             uv_x = objekti.data.uv_layers.active.data[loop_index].uv[0]
             if(uv_x >= 0 and uv_x <=1):
-                tile_number = '1001'
+                tile_number_x = '1'
             elif (uv_x >= 1 and uv_x <= 2):
-                tile_number = '1002'
+                tile_number_x = '2'
             elif (uv_x >= 2 and uv_x <= 3):
-                tile_number = '1003'
+                tile_number_x = '3'
             elif (uv_x >= 3 and uv_x <= 4):
-                tile_number = '1004'
+                tile_number_x = '4'
             elif (uv_x >= 4 and uv_x <= 5):
-                tile_number = '1005'
+                tile_number_x = '5'
             elif (uv_x >= 5 and uv_x <= 6):
-                tile_number = '1006'
+                tile_number_x = '6'
             elif (uv_x >= 6 and uv_x <= 7):
-                tile_number = '1007'
+                tile_number_x = '7'
             elif (uv_x >= 7 and uv_x <= 8):
-                tile_number = '1008'
+                tile_number_x = '8'
             elif (uv_x >= 8 and uv_x <= 9):
-                tile_number = '1009'
-            elif (uv_x >= 9 and uv_x <= 10):
-                tile_number = '1010'
+                tile_number_x = '9'
+
+            uv_y = objekti.data.uv_layers.active.data[loop_index].uv[1]
+            if (uv_y >= 0 and uv_y <= 1):
+                tile_number_y = '0'
+            elif (uv_y >= 1 and uv_y <= 2):
+                tile_number_y = '1'
+            elif (uv_x >= 2 and uv_y <= 3):
+                tile_number_y = '2'
+            elif (uv_x >= 3 and uv_y <= 4):
+                tile_number_y = '3'
+            elif (uv_x >= 4 and uv_y <= 5):
+                tile_number_y = '4'
+            elif (uv_x >= 5 and uv_y <= 6):
+                tile_number_y = '5'
+            elif (uv_x >= 6 and uv_y <= 7):
+                tile_number_y = '6'
+            elif (uv_x >= 7 and uv_y <= 8):
+                tile_number_y = '7'
+            elif (uv_x >= 8 and uv_y <= 9):
+                tile_number_y = '8'
+
+            tile_number = '10' + tile_number_y + tile_number_x
 
             if tile_number not in tiles_index:
                 tiles_index.append(tile_number)
@@ -466,10 +486,14 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
             map_node.use_min = True
             map_node.use_max = True
 
-            tile_int = int(tile[2:])
+            tile_int_x = int(tile[3])
+            tile_int_y = int(tile[2])
 
-            map_node.min[0] = tile_int - 1
-            map_node.max[0] = tile_int
+            map_node.min[0] = tile_int_x - 1
+            map_node.max[0] = tile_int_x
+
+            map_node.min[1] = tile_int_y
+            map_node.max[1] = tile_int_y + 1
 
 
             if(index == 0):
