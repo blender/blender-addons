@@ -203,11 +203,12 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
             description="Apply modifiers",
             default=True,
             )
-    use_mesh_modifiers_render: BoolProperty(
-            name="Use Modifiers Render Settings",
-            description="Use render settings when applying modifiers to mesh objects",
-            default=False,
-            )
+    # Non working in Blender 2.8 currently.
+    # ~ use_mesh_modifiers_render: BoolProperty(
+            # ~ name="Use Modifiers Render Settings",
+            # ~ description="Use render settings when applying modifiers to mesh objects",
+            # ~ default=False,
+            # ~ )
 
     # extra data group
     use_edges: BoolProperty(
