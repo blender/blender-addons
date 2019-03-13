@@ -555,7 +555,8 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
 
     if(tile_list):
         node = texture_node_tree
-        act_material.links.new(node.outputs[1], notegroup.inputs[8])
+        if (type['name'] == 'color'):
+            act_material.links.new(node.outputs[1], notegroup.inputs[8])
 
 
     else:
