@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2014-08-19
+#  Last modified                 : 2019-03-14
 #
 #  Acknowledgements
 #  ================
@@ -36,14 +36,13 @@
 
 bl_info = {
     "name": "Atomic Blender - PDB",
-    "description": "Loading and manipulating atoms from PDB files",
+    "description": "Importing atoms described in PDB files into Blender as balls",
     "author": "Clemens Barth",
-    "version": (1, 7),
-    "blender": (2, 71, 0),
+    "version": (1, 8),
+    "blender": (2, 80, 0),
     "location": "File -> Import -> PDB (.pdb)",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/Import-Export/PDB",
+    "wiki_url": "... will be updated when possible ...",
     "category": "Import-Export",
 }
 
@@ -299,13 +298,21 @@ def menu_func_import(self, context):
 def menu_func_export(self, context):
     self.layout.operator(ExportPDB.bl_idname, text="Protein Data Bank (.pdb)")
 
+classes = (ImportPDB, ExportPDB)
+
 def register():
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
+    
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        unregister_class(cls)
+
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
 
