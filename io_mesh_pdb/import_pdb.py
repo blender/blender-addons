@@ -575,20 +575,26 @@ def camera_light_source(use_camera,
         # 4 is the size of the matrix.
         camera.rotation_euler  = Matrix.Rotation(angle, 4, axis_vec).to_euler()
 
+        print(camera.rotation_euler)
+
         # Rotate the camera around its axis by 90° such that we have a nice
         # camera position and view onto the object.
         bpy.ops.object.select_all(action='DESELECT')
         camera.select_set(True)
-        bpy.ops.transform.rotate(value=(90.0*2*pi/360.0),
-                                 axis=object_camera_vec,
-                                 constraint_axis=(False, False, False),
-                                 orient_type='GLOBAL',
-                                 mirror=False, proportional='DISABLED',
-                                 proportional_edit_falloff='SMOOTH',
-                                 proportional_size=1, snap=False,
-                                 snap_target='CLOSEST', snap_point=(0, 0, 0),
-                                 snap_align=False, snap_normal=(0, 0, 0),
-                                 release_confirm=False)
+        
+        # This will be done at some point ...
+        #
+        #bpy.ops.transform.rotate(value=(90.0*2*pi/360.0),
+        #                         axis=object_camera_vec,
+        #                         orient_matrix=camera.rotation_euler,
+        #                         constraint_axis=(False, False, False),
+        #                         orient_type='GLOBAL',
+        #                         mirror=False, proportional='DISABLED',
+        #                         proportional_edit_falloff='SMOOTH',
+        #                         proportional_size=1, snap=False,
+        #                         snap_target='CLOSEST', snap_point=(0, 0, 0),
+        #                         snap_align=False, snap_normal=(0, 0, 0),
+        #                         release_confirm=False)
 
     # Here a lamp is put into the scene, if chosen.
     if use_light == True:
@@ -605,10 +611,9 @@ def camera_light_source(use_camera,
         light_xyz_vec = object_center_vec + object_light_vec
 
         # Create the lamp
-        light_data = bpy.data.lights.new(name="A_light", type="POINT")
+        light_data = bpy.data.lights.new(name="A_light", type="SUN")
         light_data.distance = 500.0
         light_data.energy = 3.0
-        light_data.shadow_method = 'RAY_SHADOW'
         lamp = bpy.data.objects.new("A_light", light_data)
         lamp.location = light_xyz_vec
         bpy.context.collection.objects.link(lamp)
