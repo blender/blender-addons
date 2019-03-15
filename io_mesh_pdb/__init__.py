@@ -24,13 +24,25 @@
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2019-03-14
+#  Last modified                 : 2019-03-15
 #
 #  Acknowledgements
 #  ================
-#  Blender: ideasman, meta_androcto, truman, kilon, CoDEmanX, dairin0d, PKHG,
-#           Valter, ...
-#  Other  : Frank Palmino
+#
+#  Blender developers
+#  ------------------
+#  Campbell Barton      (ideasman) 
+#  Brendon Murphy       (meta_androcto) 
+#  Truman Melton (?)    (truman)
+#  Kilon Alios          (kilon)
+#  ??                   (CoDEmanX)
+#  Dima Glib            (dairin0d)
+#  Peter K.H. Gragert   (PKHG)
+#  Valter Battioli (?)  (valter)
+#
+#  Other
+#  -----
+#  Frank Palmino
 #
 #
 
