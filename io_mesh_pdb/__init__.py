@@ -36,13 +36,13 @@
 
 bl_info = {
     "name": "Atomic Blender - PDB",
-    "description": "Importing atoms described in PDB files into Blender as balls",
+    "description": "Importing atoms described in PDB files as balls into Blender",
     "author": "Clemens Barth",
     "version": (1, 8),
     "blender": (2, 80, 0),
     "location": "File -> Import -> PDB (.pdb)",
     "warning": "",
-    "wiki_url": "... will be updated when possible ...",
+    "wiki_url": "... will be updated asap ...",
     "category": "Import-Export",
 }
 
