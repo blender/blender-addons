@@ -67,7 +67,7 @@ from . import (
 #                                                                           GUI
 
 # This is the class for the file dialog of the importer.
-class ImportPDB(Operator, ImportHelper):
+class IMPORT_OT_pdb(Operator, ImportHelper):
     bl_idname = "import_mesh.pdb"
     bl_label  = "Import Protein Data Bank(*.pdb)"
     bl_options = {'PRESET', 'UNDO'}
@@ -262,7 +262,7 @@ class ImportPDB(Operator, ImportHelper):
 
 
 # This is the class for the file dialog of the exporter.
-class ExportPDB(Operator, ExportHelper):
+class EXPORT_OT_pdb(Operator, ExportHelper):
     bl_idname = "export_mesh.pdb"
     bl_label  = "Export Protein Data Bank(*.pdb)"
     filename_ext = ".pdb"
@@ -292,13 +292,14 @@ class ExportPDB(Operator, ExportHelper):
 
 # The entry into the menu 'file -> import'
 def menu_func_import(self, context):
-    self.layout.operator(ImportPDB.bl_idname, text="Protein Data Bank (.pdb)")
+    self.layout.operator(IMPORT_OT_pdb.bl_idname, text="Protein Data Bank (.pdb)")
 
 # The entry into the menu 'file -> export'
 def menu_func_export(self, context):
-    self.layout.operator(ExportPDB.bl_idname, text="Protein Data Bank (.pdb)")
+    self.layout.operator(EXPORT_OT_pdb.bl_idname, text="Protein Data Bank (.pdb)")
 
-classes = (ImportPDB, ExportPDB)
+classes = (IMPORT_OT_pdb, 
+           EXPORT_OT_pdb)
 
 def register():
     from bpy.utils import register_class
