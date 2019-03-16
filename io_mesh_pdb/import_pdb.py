@@ -480,7 +480,7 @@ def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds, all_atoms):
 
 
 # Function, which produces a cylinder. All is somewhat easy to understand.
-def build_stick(radius, length, sectors):
+def build_stick(radius, length, sectors, element_name):
 
     dphi = 2.0 * pi/(float(sectors)-1)
 
@@ -523,17 +523,17 @@ def build_stick(radius, length, sectors):
         faces2.append(face_bottom)
 
     # Build the mesh, Cylinder
-    cylinder = bpy.data.meshes.new("Sticks_Cylinder")
+    cylinder = bpy.data.meshes.new(element_name+"_sticks_cylinder")
     cylinder.from_pydata(vertices, [], faces1)
     cylinder.update()
-    new_cylinder = bpy.data.objects.new("Sticks_Cylinder", cylinder)
+    new_cylinder = bpy.data.objects.new(element_name+"_sticks_cylinder", cylinder)
     bpy.context.collection.objects.link(new_cylinder)
 
     # Build the mesh, Cups
-    cups = bpy.data.meshes.new("Sticks_Cups")
+    cups = bpy.data.meshes.new(element_name+"_sticks_cup")
     cups.from_pydata(vertices, [], faces2)
     cups.update()
-    new_cups = bpy.data.objects.new("Sticks_Cups", cups)
+    new_cups = bpy.data.objects.new(element_name+"_sticks_cup", cups)
     bpy.context.collection.objects.link(new_cups)
 
     return (new_cylinder, new_cups)
@@ -811,7 +811,7 @@ def draw_sticks_dupliverts(all_atoms,
             dv = stick[2]
             v1 = stick[1]
             n  = dv / dv.length
-            gamma = -n * v1
+            gamma = -n.dot(v1)
             b     = v1 + gamma * n
             n_b   = b / b.length
 
@@ -836,15 +836,18 @@ def draw_sticks_dupliverts(all_atoms,
                 i += 1
 
         # Build the mesh.
-        mesh = bpy.data.meshes.new("Sticks_"+stick[0])
+        mesh = bpy.data.meshes.new("Sticks_"+stick[0][1:])
         mesh.from_pydata(vertices, [], faces)
         mesh.update()
-        new_mesh = bpy.data.objects.new(stick[0]+"_sticks_mesh", mesh)
+        new_mesh = bpy.data.objects.new(stick[0][1:]+"_sticks_mesh", mesh)
         bpy.context.collection.objects.link(new_mesh)
 
         # Build the object.
         # Get the cylinder from the 'build_stick' function.
-        object_stick = build_stick(Stick_diameter, dl, Stick_sectors)
+        object_stick = build_stick(Stick_diameter, 
+                                   dl, 
+                                   Stick_sectors, 
+                                   stick[0][1:])
         stick_cylinder = object_stick[0]
         stick_cylinder.active_material = stick[3]
         stick_cups = object_stick[1]
