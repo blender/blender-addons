@@ -747,7 +747,6 @@ def export(file,
                         temp_tri = [None] * 3
                         for pidx in polygons_group:
                             for ltri in polygons_to_loop_triangles_indices[pidx]:
-                                print(pidx, ltri.vertices[:])
                                 for tri_vidx, (lidx, vidx) in enumerate(zip(ltri.loops, ltri.vertices)):
                                     key = vertex_key(lidx)
                                     vh = vertex_hash[vidx]
@@ -759,7 +758,6 @@ def export(file,
                                         vert_tri_list.append(x3d_v)
                                         totvert += 1
                                     temp_tri[tri_vidx] = x3d_v
-                                print(temp_tri)
 
                                 face_tri_list[totface][:] = temp_tri[:]
                                 totface += 1
