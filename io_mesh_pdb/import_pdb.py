@@ -292,6 +292,7 @@ def read_pdb_file(filepath_pdb, radiustype):
                             break
                     if FOUND == False:
                         short_name = short_name2
+
             # ....................................................... to here.
 
             # Go through all elements and find the element of the current atom.
@@ -380,7 +381,7 @@ def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds, all_atoms):
         # ... which is broken here (EOF) ...
         if line == "":
             break
-        # ... or here, when no 'CONNECT' appears anymore.
+        # ... or here, when no 'CONECT' appears anymore.
         if "CONECT" not in line:
             break
 
@@ -426,7 +427,7 @@ def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds, all_atoms):
 
                 if number == 2 or number == 3:
                     basis_list = list(set(atom_list[1:]))
-
+                    
                     if len(basis_list) > 1:
                         basis1 = (all_atoms[atom1-1].location
                                 - all_atoms[basis_list[0]-1].location)
@@ -443,6 +444,7 @@ def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds, all_atoms):
                                 - all_atoms[atom2-1].location)
                         dist_n = Vector((dist_n[1],-dist_n[0],0))
                         dist_n = dist_n / dist_n.length
+
                 elif number > 3:
                     number = 1
                     dist_n = None
@@ -578,8 +580,6 @@ def camera_light_source(use_camera,
         # Rotate 'axis_vec' by 'angle' and convert this to euler parameters.
         # 4 is the size of the matrix.
         camera.rotation_euler  = Matrix.Rotation(angle, 4, axis_vec).to_euler()
-
-        print(camera.rotation_euler)
 
         # Rotate the camera around its axis by 90° such that we have a nice
         # camera position and view onto the object.
@@ -722,7 +722,6 @@ def draw_sticks_dupliverts(all_atoms,
                 continue
             sticks_list = []
             for stick in all_sticks:
-
                 for repeat in range(stick.number):
 
                     atom1 = copy(all_atoms[stick.atom1-1].location)-center
@@ -1009,7 +1008,6 @@ def draw_sticks_skin(all_atoms,
                              snap_point=(0, 0, 0),
                              snap_align=False,
                              snap_normal=(0, 0, 0),
-                             texture_space=False,
                              release_confirm=False)
     # Back to the OBJECT mode.
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
@@ -1228,7 +1226,6 @@ def import_pdb(Ball_type,
     all_sticks = read_pdb_file_sticks(filepath_pdb,
                                       use_sticks_bonds,
                                       all_atoms)
-
     #
     # So far, all atoms, sticks and materials have been registered.
     #
