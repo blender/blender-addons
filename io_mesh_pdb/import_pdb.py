@@ -365,10 +365,10 @@ def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds, all_atoms):
     split_list = line.split(' ')
 
     # Go to the first entry
-    if "CONNECT" not in split_list[0]:
+    if "CONECT" not in split_list[0]:
         for line in filepath_pdb_p:
             split_list = line.split(' ')
-            if "CONNECT" in split_list[0]:
+            if "CONECT" in split_list[0]:
                 break
 
     Number_of_sticks = 0
@@ -381,21 +381,25 @@ def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds, all_atoms):
         if line == "":
             break
         # ... or here, when no 'CONNECT' appears anymore.
-        if "CONNECT" not in line:
+        if "CONECT" not in line:
             break
+
+        # Note 2019-03-16: in a PDB file the identifier for sticks is called 
+        # 'CONECT' and NOT 'CONNECT'! Please leave this as is, otherwise the 
+        # sticks are NOT correctly loaded.
 
         # The strings of the atom numbers do have a clear position in the file
         # (From 7 to 12, from 13 to 18 and so on.) and one needs to consider
         # this. One could also use the split function but then one gets into
         # trouble if there are lots of atoms: For instance, it may happen that
         # one has
-        #                   CONNECT 11111  22244444
+        #                   CONECT 11111  22244444
         #
         # In Fact it means that atom No. 11111 has a connection with atom
         # No. 222 but also with atom No. 44444. The split function would give
         # me only two numbers (11111 and 22244444), which is wrong.
 
-        # Cut spaces from the right and 'CONNECT' at the beginning
+        # Cut spaces from the right and 'CONECT' at the beginning
         line = line.rstrip()
         line = line[6:]
         # Amount of loops
@@ -832,10 +836,10 @@ def draw_sticks_dupliverts(all_atoms,
                 i += 1
 
         # Build the mesh.
-        mesh = bpy.data.meshes.new("Sticks"+stick[0])
+        mesh = bpy.data.meshes.new("Sticks_"+stick[0])
         mesh.from_pydata(vertices, [], faces)
         mesh.update()
-        new_mesh = bpy.data.objects.new("Sticks"+stick[0], mesh)
+        new_mesh = bpy.data.objects.new(stick[0]+"_sticks_mesh", mesh)
         bpy.context.collection.objects.link(new_mesh)
 
         # Build the object.
@@ -1142,8 +1146,7 @@ def import_pdb(Ball_type,
                use_camera,
                use_light,
                filepath_pdb):
-
-
+        
     # List of materials
     atom_material_list = []
 
