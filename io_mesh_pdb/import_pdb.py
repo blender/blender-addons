@@ -646,7 +646,7 @@ def draw_atoms_one_type(draw_all_atoms_type,
     atom_mesh = bpy.data.meshes.new("Mesh_"+atom[0])
     atom_mesh.from_pydata(atom_vertices, [], [])
     atom_mesh.update()
-    new_atom_mesh = bpy.data.objects.new(atom[0], atom_mesh)
+    new_atom_mesh = bpy.data.objects.new(atom[0] + "_mesh", atom_mesh)
     bpy.context.collection.objects.link(new_atom_mesh)
 
     # Now, build a representative sphere (atom).
@@ -678,9 +678,9 @@ def draw_atoms_one_type(draw_all_atoms_type,
     ball.scale  = (atom[3]*Ball_radius_factor,) * 3
 
     if atom[0] == "Vacancy":
-        ball.name = "Cube_"+atom[0]
+        ball.name = atom[0] + "_cube"
     else:
-        ball.name = "Ball_"+atom[0]
+        ball.name = atom[0] + "_ball" 
     ball.active_material = atom[1]
     ball.parent = new_atom_mesh
     new_atom_mesh.instance_type = 'VERTS'
