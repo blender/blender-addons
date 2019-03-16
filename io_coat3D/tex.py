@@ -329,7 +329,7 @@ def createnodes(active_mat,texcoat, create_group_node, tile_list, objekti, ind, 
                         bring_color = False
                     elif (node.name == '3DC_metalness'):
                         bring_metalness = False
-                    elif (node.name == '3DC_roughness'):
+                    elif (node.name == '3DC_rough'):
                         bring_roughness = False
                     elif (node.name == '3DC_nmap'):
                         bring_normal = False
@@ -346,7 +346,7 @@ def createnodes(active_mat,texcoat, create_group_node, tile_list, objekti, ind, 
                 bring_color = False
             elif (node.name == '3DC_metalness'):
                 bring_metalness = False
-            elif (node.name == '3DC_roughness'):
+            elif (node.name == '3DC_rough'):
                 bring_roughness = False
             elif (node.name == '3DC_nmap'):
                 bring_normal = False
