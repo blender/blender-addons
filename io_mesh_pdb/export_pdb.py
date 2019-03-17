@@ -30,9 +30,10 @@ class AtomPropExport(object):
 def export_pdb(obj_type, filepath_pdb):
 
     list_atoms = []
+    i = 0
     for obj in bpy.context.selected_objects:
 
-        if "Stick" in obj.name:
+        if "STICK" in obj.name.upper():
             continue
 
         if obj.type not in {'MESH', 'SURFACE', 'META'}:
@@ -54,18 +55,19 @@ def export_pdb(obj_type, filepath_pdb):
 
         if len(obj.children) != 0:
             for vertex in obj.data.vertices:
-                location = obj.matrix_world*vertex.co
+                location = obj.matrix_world @ vertex.co
                 list_atoms.append(AtomPropExport(name, location))
         else:
             if not obj.parent:
                 location = obj.location
                 list_atoms.append(AtomPropExport(name, location))
 
+        i = i+1
+
     pdb_file_p = open(filepath_pdb, "w")
     pdb_file_p.write("REMARK This pdb file has been created with Blender "
                      "and the addon Atomic Blender - PDB\n"
-                     "REMARK For more details see wiki.blender.org/index.php/"
-                     "Extensions:2.6/Py/Scripts/Import-Export/PDB\n"
+                     "REMARK For more details see the wiki pages of Blender.\n"
                      "REMARK\n"
                      "REMARK\n")
 
