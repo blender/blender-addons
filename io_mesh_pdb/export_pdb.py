@@ -30,7 +30,6 @@ class AtomPropExport(object):
 def export_pdb(obj_type, filepath_pdb):
 
     list_atoms = []
-    i = 0
     for obj in bpy.context.selected_objects:
 
         if "STICK" in obj.name.upper():
@@ -61,8 +60,6 @@ def export_pdb(obj_type, filepath_pdb):
             if not obj.parent:
                 location = obj.location
                 list_atoms.append(AtomPropExport(name, location))
-
-        i = i+1
 
     pdb_file_p = open(filepath_pdb, "w")
     pdb_file_p.write("REMARK This pdb file has been created with Blender "
