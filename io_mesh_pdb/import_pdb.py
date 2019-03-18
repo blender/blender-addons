@@ -702,6 +702,11 @@ def draw_atoms_one_type(draw_all_atoms_type,
                         rotation=(0, 0, 0))
 
     ball = bpy.context.view_layer.objects.active
+    # Hide this ball because its appearance has no meaning. It is just the
+    # representative ball. The ball is visible at the vertices of the mesh.
+    # Rememmber, this is a dupliverts construct!
+    ball.hide_set(True)
+    # Scale up/down the ball radius.
     ball.scale  = (atom[3]*Ball_radius_factor,) * 3
 
     if atom[0] == "Vacancy":
@@ -900,6 +905,12 @@ def draw_sticks_dupliverts(all_atoms,
         # Link active object to the new collection
         coll.objects.link(object_stick[0])
         coll.objects.link(object_stick[1])
+
+        # Hide these objects because their appearance has no meaning. They are
+        # just the representative objects. The cylinder and cups are visible at 
+        # the vertices of the mesh. Rememmber, this is a dupliverts construct!
+        object_stick[0].hide_set(True)
+        object_stick[1].hide_set(True)
 
         stick_cylinder = object_stick[0]
         stick_cylinder.active_material = stick[3]
