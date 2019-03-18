@@ -50,9 +50,9 @@ class VIEW3D_PIE_manipulator_of(Menu):
         layout = self.layout
 
         pie = layout.menu_pie()
-        pie.operator("wm.tool_set_by_name", icon='MAN_TRANS', text="Translate").name = "Move"
-        pie.operator("wm.tool_set_by_name", icon='MAN_ROT', text="Rotate").name = "Rotate"
-        pie.operator("wm.tool_set_by_name", icon='MAN_SCALE', text="Scale").name = "Scale"
+        pie.operator("wm.tool_set_by_id", icon='MAN_TRANS', text="Translate").name = "builtin.move"
+        pie.operator("wm.tool_set_by_id", icon='MAN_ROT', text="Rotate").name = "builtin.rotate"
+        pie.operator("wm.tool_set_by_id", icon='MAN_SCALE', text="Scale").name = "builtin.scale"
         pie.prop(context.space_data, "show_gizmo")
 
 
