@@ -358,6 +358,7 @@ class SnapUtilities:
         else:
             #init these variables to avoid errors
             self.obj = context.active_object
+            self.bm = None
             self.geom = None
             self.type = 'OUT'
             self.location = Vector()
