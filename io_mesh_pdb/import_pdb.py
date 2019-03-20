@@ -544,6 +544,25 @@ def build_stick(radius, length, sectors, element_name):
     return (new_cylinder, new_cups)
 
 
+# Rotate an object.
+def rotate_object(rot_mat, obj):
+
+    bpy.ops.object.select_all(action='DESELECT')
+    obj.select_set(True)
+
+    # Decompose world_matrix's components, and from them assemble 4x4 matrices.
+    orig_loc, orig_rot, orig_scale = obj.matrix_world.decompose()
+
+    orig_loc_mat   = Matrix.Translation(orig_loc)
+    orig_rot_mat   = orig_rot.to_matrix().to_4x4()
+    orig_scale_mat = (Matrix.Scale(orig_scale[0],4,(1,0,0)) @ 
+                      Matrix.Scale(orig_scale[1],4,(0,1,0)) @ 
+                      Matrix.Scale(orig_scale[2],4,(0,0,1)))
+
+    # Assemble the new matrix.
+    obj.matrix_world = orig_loc_mat @ rot_mat @ orig_rot_mat @ orig_scale_mat 
+
+
 # Function, which puts a camera and light source into the 3D scene
 def camera_light_source(use_camera,
                         use_light,
@@ -589,19 +608,10 @@ def camera_light_source(use_camera,
         bpy.ops.object.select_all(action='DESELECT')
         camera.select_set(True)
         
-        # This will be done at some point ...
-        #
-        #bpy.ops.transform.rotate(value=(90.0*2*pi/360.0),
-        #                         axis=object_camera_vec,
-        #                         orient_matrix=camera.rotation_euler,
-        #                         constraint_axis=(False, False, False),
-        #                         orient_type='GLOBAL',
-        #                         mirror=False, proportional='DISABLED',
-        #                         proportional_edit_falloff='SMOOTH',
-        #                         proportional_size=1, snap=False,
-        #                         snap_target='CLOSEST', snap_point=(0, 0, 0),
-        #                         snap_align=False, snap_normal=(0, 0, 0),
-        #                         release_confirm=False)
+        # Rotate the camera around its axis 'object_camera_vec' by 90° such 
+        # that we have a nice camera view onto the object.
+        matrix_rotation = Matrix.Rotation(90/360*2*pi, 4, object_camera_vec)
+        rotate_object(matrix_rotation, camera)
 
     # Here a lamp is put into the scene, if chosen.
     if use_light == True:
@@ -627,7 +637,11 @@ def camera_light_source(use_camera,
 
         # Some settings for the World: a bit ambient occlusion
         bpy.context.scene.world.light_settings.use_ambient_occlusion = True
-        bpy.context.scene.world.light_settings.ao_factor = 0.2
+        bpy.context.scene.world.light_settings.ao_factor = 0.1
+        # Some properties for cycles
+        lamp.data.use_nodes = True
+        lmp_P_BSDF = lamp.data.node_tree.nodes['Emission']
+        lmp_P_BSDF.inputs['Strength'].default_value = 5
 
 
 # Function, which draws the atoms of one type (balls). This is one
