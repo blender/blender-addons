@@ -4,9 +4,9 @@ from   ...utils       import copy_bone, flip_bone
 from   ...utils       import org, strip_org, make_deformer_name, connected_children_names, make_mechanism_name
 from   ...utils       import create_circle_widget, create_sphere_widget, create_widget, create_cube_widget
 from   ...utils       import MetarigError
-from   rna_prop_ui    import rna_idprop_ui_prop_get
 from   .super_widgets import create_face_widget, create_eye_widget, create_eyes_widget, create_ear_widget, create_jaw_widget, create_teeth_widget
 
+from ....utils.mechanism import make_property
 
 script = """
 all_controls   = [%s]
@@ -920,16 +920,11 @@ class Rig:
 
         for bone, prop_name in zip( [ jaw_ctrl, eyes_ctrl ], [ jaw_prop, eyes_prop ] ):
             if bone == jaw_ctrl:
-                pb[ bone ][ prop_name ] = 0.0
+                defval = 0.0
             else:
-                pb[ bone ][ prop_name ] = 1.0
+                defval = 1.0
 
-            prop = rna_idprop_ui_prop_get( pb[ bone ], prop_name )
-            prop["min"]         = 0.0
-            prop["max"]         = 1.0
-            prop["soft_min"]    = 0.0
-            prop["soft_max"]    = 1.0
-            prop["description"] = prop_name
+            make_property(pb[ bone ], prop_name, defval)
 
         # Jaw drivers
         mch_jaws = all_bones['mch']['jaw'][1:-1]
