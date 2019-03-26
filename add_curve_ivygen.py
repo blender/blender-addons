@@ -23,7 +23,7 @@ bl_info = {
     "author": "testscreenings, PKHG, TrumanBlending",
     "version": (0, 1, 5),
     "blender": (2, 80, 0),
-    "location": "View3D > Properties Panel > Ivy Generator",
+    "location": "View3D > Sidebar > Ivy Generator (Create Tab)",
     "description": "Adds generated ivy to a mesh object starting "
                    "at the 3D cursor",
     "warning": "",
