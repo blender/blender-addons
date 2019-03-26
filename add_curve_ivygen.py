@@ -601,7 +601,7 @@ class CURVE_PT_IvyGenPanel(Panel):
     bl_idname = "CURVE_PT_IvyGenPanel"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "View"
+    bl_category = "Create"
     bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
