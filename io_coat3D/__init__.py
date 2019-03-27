@@ -638,13 +638,13 @@ class SCENE_OT_export(bpy.types.Operator):
             objekti.coat3D.applink_name = objekti.data.name
         mod_mat_list = {}
 
-        if (coat3D.bake_textures):
-            bake_location = folder_objects + os.sep + 'Bake'
-            if (os.path.isdir(bake_location)):
-                shutil.rmtree(bake_location)
-                os.makedirs(bake_location)
-            else:
-                os.makedirs(bake_location)
+       
+        bake_location = folder_objects + os.sep + 'Bake'
+        if (os.path.isdir(bake_location)):
+            shutil.rmtree(bake_location)
+            os.makedirs(bake_location)
+        else:
+            os.makedirs(bake_location)
 
         temp_string = ''
         for objekti in bpy.context.selected_objects:
