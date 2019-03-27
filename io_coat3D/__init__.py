@@ -638,7 +638,7 @@ class SCENE_OT_export(bpy.types.Operator):
             objekti.coat3D.applink_name = objekti.data.name
         mod_mat_list = {}
 
-       
+
         bake_location = folder_objects + os.sep + 'Bake'
         if (os.path.isdir(bake_location)):
             shutil.rmtree(bake_location)
@@ -681,9 +681,9 @@ class SCENE_OT_export(bpy.types.Operator):
                 if (coat3D.bake_normal):
                     bake_list.append(['NORMAL', '$LOADLOPOLYTANG'])
                 if (coat3D.bake_roughness):
-                    bake_list.append(['SPECULAR', '$LOADROUGHNESS'])
-                if (coat3D.bake_metalness):
-                    bake_list.append(['REFLECTION', '$LOADMETAL'])
+                    bake_list.append(['ROUGHNESS', '$LOADROUGHNESS'])
+                if (coat3D.bake_subsurface):
+                    bake_list.append(['SUBSURFACE', '$LOADMETAL'])
 
                 if(coat3D.bake_resolution == 'res_64'):
                     res_size = 64
@@ -1284,7 +1284,7 @@ class SCENE_PT_Material_Import(MaterialButtonsPanel, bpy.types.Panel):
 
         col = flow.column()
         col.prop(coat3D, "coat3D_diffuse", text="Diffuse")
-        col.prop(coat3D, "coat3D_metalness", text="Metalness")
+        col.prop(coat3D, "coat3D_subsurface", text="Subsurface")
         col.prop(coat3D, "coat3D_roughness", text="Roughness")
         col.prop(coat3D, "coat3D_ao", text="AO")
         col = flow.column()
@@ -1338,7 +1338,7 @@ class SCENE_PT_Bake_Settings(ObjectButtonsPanel, bpy.types.Panel):
         col = flow.column()
         col.prop(coat3D, "bake_ao", text="AO")
         col = flow.column()
-        col.prop(coat3D, "bake_metalness", text="Metalness")
+        col.prop(coat3D, "bake_subsurface", text="Subsurface")
         col = flow.column()
         col.prop(coat3D, "bake_roughness", text="Roughness")
 
@@ -1693,7 +1693,7 @@ class SceneCoat3D(PropertyGroup):
         description="Add Modifiers and export",
         default=False
     )
-    bake_metalness: BoolProperty(
+    bake_subsurface: BoolProperty(
         name="Bake metalness texture",
         description="Add Modifiers and export",
         default=False
@@ -1797,7 +1797,7 @@ def register():
         description="Import diffuse texture",
         default=True
     )
-    bpy.types.Material.coat3D_metalness = BoolProperty(
+    bpy.types.Material.coat3D_subsurface = BoolProperty(
         name="Import diffuse texture",
         description="Import diffuse texture",
         default=True
@@ -1849,7 +1849,7 @@ def unregister():
     del bpy.types.Scene.coat3D
     del bpy.types.Material.coat3D
     bpy.types.Material.coat3D_diffuse
-    bpy.types.Material.coat3D_metalness
+    bpy.types.Material.coat3D_subsurface
     bpy.types.Material.coat3D_roughness
     bpy.types.Material.coat3D_normal
     bpy.types.Material.coat3D_displacement
