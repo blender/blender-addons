@@ -42,9 +42,8 @@ class VIEW3D_manipulator_set_of(Operator):
         return {'FINISHED'}
 
 
-class VIEW3D_PIE_manipulator_of(Menu):
+class VIEW3D_MT_manipulator_of(Menu):
     bl_label = "Manipulator"
-    bl_idname = "view3d.manipulator_of"
 
     def draw(self, context):
         layout = self.layout
@@ -58,7 +57,7 @@ class VIEW3D_PIE_manipulator_of(Menu):
 
 classes = (
     VIEW3D_manipulator_set_of,
-    VIEW3D_PIE_manipulator_of,
+    VIEW3D_MT_manipulator_of,
     )
 
 addon_keymaps = []
@@ -73,7 +72,7 @@ def register():
         # Align
         km = wm.keyconfigs.addon.keymaps.new(name='Object Non-modal')
         kmi = km.keymap_items.new('wm.call_menu_pie', 'SPACE', 'PRESS', ctrl=True)
-        kmi.properties.name = "view3d.manipulator_of"
+        kmi.properties.name = VIEW3D_MT_manipulator_of.__name__
         addon_keymaps.append((km, kmi))
 
 
