@@ -679,7 +679,7 @@ def import_xyz(Ball_type,
             elif Ball_type == "1":
                 bpy.ops.mesh.primitive_uv_sphere_add(
                             segments=Ball_azimuth, ring_count=Ball_zenith,
-                            size=1, view_align=False, enter_editmode=False,
+                            view_align=False, enter_editmode=False,
                             location=(0,0,0), rotation=(0, 0, 0))
             # Meta balls
             elif Ball_type == "2":
@@ -691,7 +691,9 @@ def import_xyz(Ball_type,
         # Hide this ball because its appearance has no meaning. It is just the
         # representative ball. The ball is visible at the vertices of the mesh.
         # Rememmber, this is a dupliverts construct!
-        ball.hide_set(True)
+        # However, hiding does not work with meta balls!
+        if Ball_type == "0" or Ball_type == "1":
+            ball.hide_set(True)
         # Scale up/down the ball radius.
         ball.scale  = (atom.radius*Ball_radius_factor,) * 3
 
