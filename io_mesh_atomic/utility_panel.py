@@ -434,6 +434,9 @@ def separate_atoms(scn):
         coll.objects.link(obj_dupli)
         obj_dupli.location = location
         obj_dupli.name = obj.name + "_sep"
+        # Do not hide the object!
+        obj_dupli.hide_set(False)
+            
 
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     bpy.context.view_layer.objects.active = mesh
