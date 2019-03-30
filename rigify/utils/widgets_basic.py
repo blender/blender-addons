@@ -109,12 +109,12 @@ def create_limb_widget(rig, bone_name, bone_transform_name=None):
         mesh.update()
 
 
-def create_bone_widget(rig, bone_name, bone_transform_name=None):
+def create_bone_widget(rig, bone_name, r1=0.1, l1=0.0, r2=0.04, l2=1.0, bone_transform_name=None):
     """ Creates a basic bone widget, a simple obolisk-esk shape.
     """
     obj = create_widget(rig, bone_name, bone_transform_name)
     if obj != None:
-        verts = [(0.04, 1.0, -0.04), (0.1, 0.0, -0.1), (-0.1, 0.0, -0.1), (-0.04, 1.0, -0.04), (0.04, 1.0, 0.04), (0.1, 0.0, 0.1), (-0.1, 0.0, 0.1), (-0.04, 1.0, 0.04)]
+        verts = [(r2, l2, -r2), (r1, l1, -r1), (-r1, l1, -r1), (-r2, l2, -r2), (r2, l2, r2), (r1, l1, r1), (-r1, l1, r1), (-r2, l2, r2)]
         edges = [(1, 2), (0, 1), (0, 3), (2, 3), (4, 5), (5, 6), (6, 7), (4, 7), (1, 5), (0, 4), (2, 6), (3, 7)]
         mesh = obj.data
         mesh.from_pydata(verts, edges, [])

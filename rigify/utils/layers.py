@@ -21,6 +21,12 @@
 import bpy
 
 
+ORG_LAYER = [n == 31 for n in range(0, 32)]  # Armature layer that original bones should be moved to.
+MCH_LAYER = [n == 30 for n in range(0, 32)]  # Armature layer that mechanism bones should be moved to.
+DEF_LAYER = [n == 29 for n in range(0, 32)]  # Armature layer that deformation bones should be moved to.
+ROOT_LAYER = [n == 28 for n in range(0, 32)]  # Armature layer that root bone should be moved to.
+
+
 def get_layers(layers):
     """ Does its best to extract a set of layers from any data thrown at it.
     """
@@ -68,6 +74,9 @@ class ControlLayersOption:
 
     def assign(self, params, bone_set, bone_list):
         layers = self.get(params)
+
+        if isinstance(bone_set, bpy.types.Object):
+            bone_set = bone_set.data.bones
 
         if layers:
             for name in bone_list:

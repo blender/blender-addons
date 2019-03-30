@@ -18,6 +18,7 @@
 
 import os
 import traceback
+import importlib
 
 from . import utils
 from . import feature_set_list
@@ -63,7 +64,8 @@ def get_rigs(base_dir, base_path, *, path=[], feature_set=feature_set_list.DEFAU
             # Check straight-up python files
             subpath = [*path, f[:-3]]
             key = '.'.join(subpath)
-            rig_module = utils.get_resource('.'.join(base_path + subpath))
+            # Don't reload rig modules - it breaks isinstance
+            rig_module = importlib.import_module('.'.join(base_path + subpath))
             if hasattr(rig_module, "Rig"):
                 rigs[key] = {"module": rig_module,
                              "feature_set": feature_set}

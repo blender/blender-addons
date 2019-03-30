@@ -21,6 +21,8 @@ class Rig:
             self.limb = pawRig(obj, bone_name, params)
 
     def generate(self):
+        self.limb.rigify_generator = self.rigify_generator
+        self.limb.rigify_wrapper = self.rigify_wrapper
 
         return self.limb.generate()
 

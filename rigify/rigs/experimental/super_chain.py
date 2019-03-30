@@ -14,7 +14,7 @@ class Rig:
     def __init__(self, obj, bone_name, params):
         """ Chain with pivot Rig """
 
-        eb = obj.data.edit_bones
+        eb = obj.data.bones
 
         self.obj = obj
         self.org_bones = [bone_name] + connected_children_names(obj, bone_name)

@@ -17,17 +17,8 @@ from ...utils.mechanism import make_property, make_driver
 from ..widgets import create_ikarrow_widget
 from math import trunc, pi
 
-extra_script = """
-controls = [%s]
-ctrl    = '%s'
+from ...utils.switch_parent import SwitchParentBuilder
 
-if is_selected( controls ):
-    layout.prop( pose_bones[ ctrl ], '["%s"]')
-    if '%s' in pose_bones[ctrl].keys():
-        layout.prop( pose_bones[ ctrl ], '["%s"]', slider = True )
-    if '%s' in pose_bones[ctrl].keys():
-        layout.prop( pose_bones[ ctrl ], '["%s"]', slider = True )
-"""
 
 IMPLEMENTATION = True   # Include and set True if Rig is just an implementation for a wrapper class
                         # add_parameters and parameters_ui are unused for implementation classes
@@ -599,35 +590,6 @@ class Rig:
         eb[ctrl].parent = None
         eb[ctrl].use_connect = False
 
-        # MCH for ik control
-        ctrl_socket = copy_bone(self.obj, org_bones[2], get_bone_name( org_bones[2], 'mch', 'ik_socket'))
-        eb[ctrl_socket].tail = eb[ctrl_socket].head + 0.8*(eb[ctrl_socket].tail-eb[ctrl_socket].head)
-        eb[ctrl_socket].parent = None
-        eb[ctrl].parent = eb[ctrl_socket]
-
-        # MCH for pole ik control
-        ctrl_pole_socket = copy_bone(self.obj, org_bones[2], get_bone_name(org_bones[2], 'mch', 'pole_ik_socket'))
-        eb[ctrl_pole_socket].tail = eb[ctrl_pole_socket].head + 0.8 * (eb[ctrl_pole_socket].tail - eb[ctrl_pole_socket].head)
-        eb[ctrl_pole_socket].parent = None
-        eb[pole_target].parent = eb[ctrl_pole_socket]
-
-        ctrl_root = copy_bone(self.obj, org_bones[2], get_bone_name( org_bones[2], 'mch', 'ik_root'))
-        eb[ctrl_root].tail = eb[ctrl_root].head + 0.7*(eb[ctrl_root].tail-eb[ctrl_root].head)
-        eb[ctrl_root].use_connect = False
-        eb[ctrl_root].parent = eb['root']
-
-        if eb[org_bones[0]].parent:
-            leg_parent = eb[org_bones[0]].parent
-            ctrl_parent = copy_bone(self.obj, org_bones[2], get_bone_name( org_bones[2], 'mch', 'ik_parent'))
-            eb[ctrl_parent].tail = eb[ctrl_parent].head + 0.6*(eb[ctrl_parent].tail-eb[ctrl_parent].head)
-            eb[ctrl_parent].use_connect = False
-            if eb[org_bones[0]].parent_recursive:
-                eb[ctrl_parent].parent = eb[org_bones[0]].parent_recursive[-1]
-            else:
-                eb[ctrl_parent].parent = eb[org_bones[0]].parent
-        else:
-            leg_parent = None
-
         mch_name = get_bone_name(strip_org(org_bones[0]), 'mch', 'parent_socket')
         mch_main_parent = copy_bone(self.obj, org_bones[0], mch_name)
         eb[mch_main_parent].length = eb[org_bones[0]].length / 12
@@ -658,6 +620,26 @@ class Rig:
             eb[ctrl].tail[2] = eb[ctrl].head[2]
             eb[ctrl].roll = 0
 
+        # Switchable parent
+        pbuilder = SwitchParentBuilder(self.rigify_generator)
+
+        if eb[org_bones[0]].parent:
+            pbuilder.register_parent(self.rigify_wrapper, eb[org_bones[0]].parent.name)
+
+        pbuilder.register_parent(self.rigify_wrapper, org_bones[2], exclude_self=True)
+
+        pcontrols = [ bones['main_parent'], bones['ik']['ctrl']['limb'], heel, ctrl, pole_target ]
+
+        pbuilder.build_child(
+            self.rigify_wrapper, ctrl,
+            prop_bone=bones['main_parent'], prop_id='IK_parent', prop_name='IK Parent', controls=pcontrols,
+        )
+
+        pbuilder.build_child(
+            self.rigify_wrapper, pole_target, extra_parents=[(bones['ik']['mch_target'], ctrl)],
+            prop_bone=bones['main_parent'], prop_id='pole_parent', prop_name='Pole Parent', controls=pcontrols,
+            no_fix_rotation=True, no_fix_scale=True
+        )
 
         # Parent
         eb[ heel ].use_connect = False
@@ -847,30 +829,6 @@ class Rig:
 
         # Set up constraints
 
-        # Constrain ik ctrl to root / parent
-
-        make_constraint( self, ctrl_socket, {
-            'constraint'  : 'COPY_TRANSFORMS',
-            'subtarget'   : ctrl_root,
-        })
-
-        make_constraint(self, ctrl_pole_socket, {
-            'constraint': 'COPY_TRANSFORMS',
-            'subtarget': ctrl_root,
-        })
-
-        if leg_parent:
-            make_constraint( self, ctrl_socket, {
-                'constraint'  : 'COPY_TRANSFORMS',
-                'subtarget'   : ctrl_parent,
-                'influence'   : 0.0,
-            })
-
-            make_constraint(self, ctrl_pole_socket, {
-                'constraint': 'COPY_TRANSFORMS',
-                'subtarget': bones['ik']['mch_target'],
-            })
-
         # Constrain mch target bone to the ik control and mch stretch
         make_constraint( self, bones['ik']['mch_target'], {
             'constraint'  : 'COPY_LOCATION',
@@ -982,11 +940,6 @@ class Rig:
 
         bones['ik']['ctrl']['terminal'] += [ heel, ctrl ]
 
-        if leg_parent:
-            bones['ik']['mch_foot'] = [ctrl_socket, ctrl_pole_socket, ctrl_root, ctrl_parent]
-        else:
-            bones['ik']['mch_foot'] = [ctrl_socket, ctrl_pole_socket, ctrl_root]
-
         return bones
 
     def create_drivers(self, bones):
@@ -994,13 +947,10 @@ class Rig:
         bpy.ops.object.mode_set(mode='OBJECT')
         pb = self.obj.pose.bones
 
-        ctrl = pb[bones['ik']['mch_foot'][0]]
-        ctrl_pole = pb[bones['ik']['mch_foot'][1]]
-
         #owner = pb[bones['ik']['ctrl']['limb']]
         owner = pb[bones['main_parent']]
 
-        props = ["IK_follow", "root/parent", "pole_vector", "pole_follow"]
+        props = ["pole_vector"]
 
         for prop in props:
 
@@ -1030,31 +980,6 @@ class Rig:
                         else:
                             make_driver(cns, "mute", variables=[(self.obj, owner, prop)], polynomial=[1.0, -1.0])
 
-
-            elif prop == 'IK_follow':
-                make_property(owner, prop, True)
-
-                make_driver(ctrl.constraints[0], "mute", variables=[(self.obj, owner, prop)], polynomial=[1.0, -1.0])
-
-                if len(ctrl.constraints) > 1:
-                    make_driver(ctrl.constraints[1], "mute", variables=[(self.obj, owner, prop)], polynomial=[1.0, -1.0])
-
-                make_driver(ctrl_pole.constraints[0], "mute", variables=[(self.obj, owner, prop)], polynomial=[1.0, -1.0])
-
-                if len(ctrl_pole.constraints) > 1:
-                    make_driver(ctrl_pole.constraints[1], "mute", variables=[(self.obj, owner, prop)], polynomial=[1.0, -1.0])
-
-            elif prop == 'root/parent':
-                if len(ctrl.constraints) > 1:
-                    make_property(owner, prop, 0.0)
-
-                    make_driver(ctrl.constraints[1], "influence", variables=[(self.obj, owner, prop)])
-
-            elif prop == 'pole_follow':
-                if len(ctrl_pole.constraints) > 1:
-                    make_property(owner, prop, 0.0)
-
-                    make_driver(ctrl_pole.constraints[1], "influence", variables=[(self.obj, owner, prop)])
 
     @staticmethod
     def get_future_names(bones):
@@ -1133,22 +1058,13 @@ class Rig:
         bones = self.create_leg(bones)
         self.create_drivers(bones)
 
-        controls = [bones['ik']['ctrl']['limb'], bones['ik']['ctrl']['terminal'][-1], bones['ik']['ctrl']['terminal'][-2] ]
-
-        controls.append(bones['main_parent'])
-
         # Create UI
-        controls_string = ", ".join(["'" + x + "'" for x in controls])
-
         script = create_script(bones, 'leg')
-        script += extra_script % (controls_string, bones['main_parent'], 'IK_follow',
-                                  'pole_follow', 'pole_follow', 'root/parent', 'root/parent')
 
         return {
             'script': [script],
             'utilities': UTILITIES_RIG_LEG,
             'register': REGISTER_RIG_LEG,
-            'noparent_bones': [bones['ik']['mch_foot'][i] for i in [0,1]],
         }
 
 

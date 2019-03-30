@@ -8,6 +8,8 @@ from ...utils import MetarigError, make_mechanism_name, create_cube_widget
 from ...utils import ControlLayersOption
 from ...utils.mechanism import make_property, make_driver
 
+from ...utils.switch_parent import SwitchParentBuilder
+
 script = """
 controls = [%s]
 torso    = '%s'
@@ -950,6 +952,14 @@ class Rig:
             bones['neck'] = self.create_neck(neck_bones)
             bones['chest'] = self.create_chest(upper_torso_bones)
             bones['hips'] = self.create_hips(lower_torso_bones)
+
+            # Register viable parent bones
+            pbuilder = SwitchParentBuilder(self.rigify_generator)
+            pbuilder.register_parent(self.rigify_wrapper, bones['pivot']['ctrl'], name='Torso')
+            pbuilder.register_parent(self.rigify_wrapper, bone_chains['lower'][0], name='Hips')
+            pbuilder.register_parent(self.rigify_wrapper, bone_chains['upper'][-1], name='Chest')
+            if self.use_head:
+                pbuilder.register_parent(self.rigify_wrapper, bone_chains['neck'][-1], name='Head')
 
             # TODO: Add create tail
             if tail_bones:
