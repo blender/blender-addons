@@ -63,7 +63,7 @@ class PanelConsoleVars(Panel):
     bl_region_type = 'WINDOW'
     bl_context = 'scene'
     bl_label = "Math Vis Console"
-    bl_idname = "mathvis.panel_console_vars"
+    bl_idname = "MATHVIS_PT_panel_console_vars"
     bl_category = "Math Vis"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -182,6 +182,7 @@ class MathVisStateProp(PropertyGroup):
 
 
 class MathVisVarList(UIList):
+    bl_idname = "MATHVIS_UL_MathVisVarList"
 
     def draw_item(self,
                   context,
