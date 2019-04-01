@@ -21,6 +21,7 @@
 import bpy
 import blf
 import gpu
+import bgl
 from gpu_extras.batch import batch_for_shader
 
 from . import utils
@@ -131,6 +132,11 @@ def draw_callback_view():
     settings = bpy.context.window_manager.MathVisProp
     scale = settings.bbox_scale
     with_bounding_box = not settings.bbox_hide
+
+    if settings.in_front:
+        bgl.glDepthFunc(bgl.GL_ALWAYS)
+    else:
+        bgl.glDepthFunc(bgl.GL_LESS)
 
     data_matrix, data_quat, data_euler, data_vector, data_vector_array = utils.console_math_data()
 

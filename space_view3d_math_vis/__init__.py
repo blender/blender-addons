@@ -88,6 +88,7 @@ class PanelConsoleVars(Panel):
         col = layout.column()
         col.prop(bpy.context.window_manager.MathVisProp, "name_hide")
         col.prop(bpy.context.window_manager.MathVisProp, "bbox_hide")
+        col.prop(bpy.context.window_manager.MathVisProp, "in_front")
         col.prop(bpy.context.window_manager.MathVisProp, "bbox_scale")
         col.operator("mathvis.cleanup_console")
 
@@ -242,6 +243,12 @@ class MathVis(PropertyGroup):
         "lines for the display of Matrix items"
     )
 
+    in_front: BoolProperty(
+        name="Always In Front",
+        default=True,
+        description="Draw Points and lines alwasy in front",
+        update=call_console_hook
+    )
 
 classes = (
     PanelConsoleVars,
