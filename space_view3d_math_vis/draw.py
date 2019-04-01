@@ -32,6 +32,10 @@ callback_handle = []
 single_color_shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
 smooth_color_shader = gpu.shader.from_builtin('3D_SMOOTH_COLOR')
 
+COLOR_POINT = (1.0, 0.0, 1.0, 1)
+COLOR_LINE = (0.5, 0.5, 1, 1)
+COLOR_BOUNDING_BOX = (1.0, 1.0, 1.0, 1.0)
+
 def tag_redraw_areas():
     context = bpy.context
 
@@ -155,17 +159,16 @@ def draw_callback_view():
             derived_matrices.append(matrix)
         draw_matrices(derived_matrices, scale, with_bounding_box)
 
-
 def draw_points(points):
     batch = batch_from_points(points, "POINTS")
     single_color_shader.bind()
-    single_color_shader.uniform_float("color", (0.5, 0.5, 1, 1))
+    single_color_shader.uniform_float("color", COLOR_POINT)
     batch.draw(single_color_shader)
 
 def draw_line(points):
     batch = batch_from_points(points, "LINE_STRIP")
     single_color_shader.bind()
-    single_color_shader.uniform_float("color", (0.5, 0.5, 1, 1))
+    single_color_shader.uniform_float("color", COLOR_LINE)
     batch.draw(single_color_shader)
 
 def batch_from_points(points, type):
@@ -206,7 +209,7 @@ def draw_matrices(matrices, scale, with_bounding_box):
     batch.draw(smooth_color_shader)
 
     if with_bounding_box:
-        draw_bounding_boxes(matrices, scale, (1.0, 1.0, 1.0, 1.0))
+        draw_bounding_boxes(matrices, scale, COLOR_BOUNDING_BOX)
 
 def draw_bounding_boxes(matrices, scale, color):
     boundbox_points = []
