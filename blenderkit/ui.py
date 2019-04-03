@@ -939,7 +939,7 @@ class AssetBarOperator(bpy.types.Operator):
             return {'CANCELLED'}
 
         if self.area not in areas or self.area.type != 'VIEW_3D':
-            print('search areas')
+            # print('search areas')
             # stopping here model by now - because of:
             #   switching layouts or maximizing area now fails to assign new area throwing the bug
             #   internal error: modal gizmo-map handler has invalid area
@@ -1225,7 +1225,6 @@ class AssetBarOperator(bpy.types.Operator):
                             utils.selection_set(sel)
 
                         if not ui_props.has_hit:
-                            print('select fun')
                             return {'RUNNING_MODAL'}
 
                         else:
