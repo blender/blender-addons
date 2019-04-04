@@ -1385,8 +1385,17 @@ def register():
 
 
 def unregister():
-    for cls in classes:
-        bpy.utils.unregister_class(cls)
+
+    ui.unregister_ui()
+    search.unregister_search()
+    asset_inspector.unregister_asset_inspector()
+    download.unregister_download()
+    upload.unregister_upload()
+    ratings.unregister_ratings()
+    autothumb.unregister_thumbnailer()
+    ui_panels.unregister_ui_panels()
+    bg_blender.unregister()
+    overrides.unregister_overrides()
 
     del bpy.types.Scene.blenderkit_models
     del bpy.types.Scene.blenderkit_scene
@@ -1398,13 +1407,5 @@ def unregister():
     del bpy.types.Material.blenderkit
     del bpy.types.Brush.blenderkit
 
-    search.unregister_search()
-    asset_inspector.unregister_asset_inspector()
-    download.unregister_download()
-    upload.unregister_upload()
-    ratings.unregister_ratings()
-    autothumb.unregister_thumbnailer()
-    ui.unregister_ui()
-    ui_panels.unregister_ui_panels()
-    bg_blender.unregister()
-    overrides.unregister_overrides()
+    for cls in classes:
+        bpy.utils.unregister_class(cls)

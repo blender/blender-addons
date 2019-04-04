@@ -1412,13 +1412,14 @@ def register_ui():
 def unregister_ui():
     global handler_2d, handler_3d
 
+    bpy.types.SpaceView3D.draw_handler_remove(handler_2d, 'WINDOW')
+    bpy.types.SpaceView3D.draw_handler_remove(handler_3d, 'WINDOW')
+
     for c in classess:
         bpy.utils.unregister_class(c)
 
     args = (None, bpy.context)
 
-    bpy.types.SpaceView3D.draw_handler_remove(handler_2d, 'WINDOW')
-    bpy.types.SpaceView3D.draw_handler_remove(handler_3d, 'WINDOW')
 
     wm = bpy.context.window_manager
     if not wm.keyconfigs.addon:
