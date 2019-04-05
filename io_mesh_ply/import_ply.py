@@ -255,9 +255,9 @@ def load_ply_mesh(filepath, ply_name):
             else:
                 colindices = el.index(b'red'), el.index(b'green'), el.index(b'blue'), el.index(b'alpha')
             if -1 in colindices:
-                colindices = None
                 if any(idx > -1 for idx in colindices):
                     print("Warning: At least one obligatory color channel is missing, ignoring vertex colors.")
+                colindices = None
             else:  # if not a float assume uchar
                 colmultiply = [1.0 if el.properties[i].numeric_type in {'f', 'd'} else (1.0 / 255.0) for i in colindices]
 
