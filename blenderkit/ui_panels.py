@@ -277,7 +277,7 @@ def draw_panel_model_search(self, context):
     if props.report == 'Available only in higher plans.':
         layout.operator("wm.url_open", text="Check plans", icon='URL').url = paths.BLENDERKIT_PLANS
 
-    layout.prop(props, "search_style")
+    # layout.prop(props, "search_style")
     # if props.search_style == 'OTHER':
     #     layout.prop(props, "search_style_other")
     # layout.prop(props, "search_engine")
@@ -292,8 +292,8 @@ def draw_panel_model_search(self, context):
         # layout.label(text = "common searches keywords:")
         # layout.prop(props, "search_global_keywords", text = "")
         # layout.prop(props, "search_modifier_keywords")
-        if props.search_engine == 'OTHER':
-            layout.prop(props, "search_engine_keyword")
+        # if props.search_engine == 'OTHER':
+        #     layout.prop(props, "search_engine_keyword")
 
         # AGE
         layout.prop(props, "search_condition")  # , text ='condition of object new/old e.t.c.')
@@ -345,10 +345,10 @@ def draw_panel_scene_search(self, context):
 
     label_multiline(layout, text=props.report)
 
-    layout.prop(props, "search_style")
-    if props.search_style == 'OTHER':
-        layout.prop(props, "search_style_other")
-    layout.prop(props, "search_engine")
+    # layout.prop(props, "search_style")
+    # if props.search_style == 'OTHER':
+    #     layout.prop(props, "search_style_other")
+    #layout.prop(props, "search_engine")
     layout.separator()
     draw_panel_categories(self, context)
 
@@ -447,12 +447,12 @@ def draw_panel_material_search(self, context):
 
     label_multiline(layout, text=props.report)
 
-    layout.prop(props, 'search_style')
-    if props.search_style == 'OTHER':
-        layout.prop(props, 'search_style_other')
-    layout.prop(props, 'search_engine')
-    if props.search_engine == 'OTHER':
-        layout.prop(props, 'search_engine_other')
+    # layout.prop(props, 'search_style')
+    # if props.search_style == 'OTHER':
+    #     layout.prop(props, 'search_style_other')
+    # layout.prop(props, 'search_engine')
+    # if props.search_engine == 'OTHER':
+    #     layout.prop(props, 'search_engine_other')
 
     layout.prop(props, 'automap')
 
