@@ -285,6 +285,11 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
     id = asset_data['asset_base_id']
     scene['assets rated'][id] = scene['assets rated'].get(id, False)
 
+    user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
+
+    if user_preferences.api_key == '':
+        user_preferences.asset_counter+=1
+
     if asset_data['asset_type'] == 'scene':
         scene = append_link.append_scene(file_names[0], link=False, fake_user=False)
         props = scene.blenderkit

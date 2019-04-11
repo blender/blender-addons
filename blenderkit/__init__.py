@@ -1280,6 +1280,13 @@ class BlenderKitAddonPreferences(AddonPreferences):
                                    min=0,
                                    max=20)
 
+    asset_counter:  IntProperty(name="Usage Counter",
+                                   description="Counts usages so it asks for registration only after reaching a limit",
+                                   default=0,
+                                   min=0,
+                                   max=20000)
+
+
     # allow_proximity : BoolProperty(
     #     name="allow proximity data reports",
     #     description="This sends anonymized proximity data \n \

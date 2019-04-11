@@ -174,20 +174,27 @@ def load_prefs():
             user_preferences.api_key = prefs['API_key']
             user_preferences.global_dir = prefs['global_dir']
 
-
 def save_prefs(self, context):
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
     if user_preferences.api_key != '':
-        prefs = {
-            'API_key': user_preferences.api_key,
-            'global_dir': user_preferences.global_dir,
-        }
-        # user_preferences.api_key = user_preferences.api_key.strip()
-        fpath = paths.BLENDERKIT_SETTINGS_FILENAME
-        f = open(fpath, 'w')
-        with open(fpath, 'w') as s:
-            json.dump(prefs, s)
-
+        print(len(user_preferences.api_key))
+        print('length')
+        if len(user_preferences.api_key)>35:
+            prefs = {
+                'API_key': user_preferences.api_key,
+                'global_dir': user_preferences.global_dir,
+            }
+            # user_preferences.api_key = user_preferences.api_key.strip()
+            fpath = paths.BLENDERKIT_SETTINGS_FILENAME
+            f = open(fpath, 'w')
+            with open(fpath, 'w') as s:
+                json.dump(prefs, s)
+            bpy.ops.wm.save_userpref()
+        else:
+            # reset the api key in case the user writes some nonsense, e.g. a search string instead of the Key
+            user_preferences.api_key = ''
+            props = get_search_props()
+            props.report = 'Please paste a correct API Key.'
 
 def load_categories():
     categories.copy_categories()
