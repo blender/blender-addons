@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Blender Kit",
+    "name": "BlenderKit Asset Library",
     "author": "Vilem Duha",
     "version": (1, 0, 22),
     "blender": (2, 80, 0),
