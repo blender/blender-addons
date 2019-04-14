@@ -664,7 +664,7 @@ class WORLD_PT_POV_world(WorldButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        world = context.world
+        world = context.world.pov
 
         row = layout.row(align=True)
         row.menu(POV_WORLD_MT_presets.__name__, text=POV_WORLD_MT_presets.bl_label)
@@ -684,7 +684,7 @@ class WORLD_PT_POV_world(WorldButtonsPanel, bpy.types.Panel):
         row.column().prop(world, "ambient_color")
 
         #row = layout.row()
-        #row.prop(world, "exposure")
+        #row.prop(world, "exposure") #Re-implement later as a light multiplier
         #row.prop(world, "color_range")
 
 class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
@@ -1075,7 +1075,57 @@ class MODIFIERS_PT_povray_modifiers(ModifierButtonsPanel, bpy.types.Panel):
                         # Inside Vector for CSG
                         col.prop(ob.pov, "inside_vector")
 
+class MATERIAL_PT_POV_sss(MaterialButtonsPanel, bpy.types.Panel):
+    bl_label = "Subsurface Scattering"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
 
+    @classmethod
+    def poll(cls, context):
+        mat = context.material
+        engine = context.scene.render.engine
+        return check_material(mat) and (mat.pov.type in {'SURFACE', 'WIRE'}) and (engine in cls.COMPAT_ENGINES)
+
+    def draw_header(self, context):
+        mat = context.material #FORMERLY : #active_node_mat(context.material)
+        sss = mat.pov_subsurface_scattering
+
+        self.layout.active = (not mat.pov.use_shadeless)
+        self.layout.prop(sss, "use", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        mat = active_node_mat(context.material)
+        sss = mat.pov_subsurface_scattering
+
+        layout.active = (sss.use) and (not mat.pov.use_shadeless)
+
+        row = layout.row().split()
+        sub = row.row(align=True).split(align=True, percentage=0.75)
+        sub.menu("MATERIAL_MT_sss_presets", text=bpy.types.MATERIAL_MT_sss_presets.bl_label)
+        sub.operator("material.sss_preset_add", text="", icon='ADD')
+        sub.operator("material.sss_preset_add", text="", icon='REMOVE').remove_active = True
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(sss, "ior")
+        col.prop(sss, "scale")
+        col.prop(sss, "color", text="")
+        col.prop(sss, "radius", text="RGB Radius", expand=True)
+
+        col = split.column()
+        sub = col.column(align=True)
+        sub.label(text="Blend:")
+        sub.prop(sss, "color_factor", text="Color")
+        sub.prop(sss, "texture_factor", text="Texture")
+        sub.label(text="Scattering Weight:")
+        sub.prop(sss, "front")
+        sub.prop(sss, "back")
+        col.separator()
+        col.prop(sss, "error_threshold", text="Error")
+        
 class MATERIAL_PT_povray_activate_node(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Activate Node Settings"
     bl_context = "material"
@@ -1147,8 +1197,64 @@ class MATERIAL_PT_povray_active_node(MaterialButtonsPanel, bpy.types.Panel):
                                 socket.draw(context, row, node, socket.name)
                 else:
                     layout.label("No active nodes!")
+                    
+class MATERIAL_PT_POV_mirror(MaterialButtonsPanel, bpy.types.Panel):
+    bl_label = "Mirror"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
 
+    @classmethod
+    def poll(cls, context):
+        mat = context.material
+        engine = context.scene.render.engine
+        return check_material(mat) and (mat.pov.type in {'SURFACE', 'WIRE'}) and (engine in cls.COMPAT_ENGINES)
 
+    def draw_header(self, context):
+        mat = context.material
+        raym = mat.pov_raytrace_mirror
+
+        self.layout.prop(raym, "use", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        mat = context.material #Formerly : #mat = active_node_mat(context.material)
+        raym = mat.pov_raytrace_mirror
+
+        layout.active = raym.use
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(raym, "reflect_factor")
+        col.prop(mat, "mirror_color", text="")
+
+        col = split.column()
+        col.prop(raym, "fresnel")
+        sub = col.column()
+        sub.active = (raym.fresnel > 0.0)
+        sub.prop(raym, "fresnel_factor", text="Blend")
+
+        split = layout.split()
+
+        col = split.column()
+        col.separator()
+        col.prop(raym, "depth")
+        col.prop(raym, "distance", text="Max Dist")
+        col.separator()
+        sub = col.split(percentage=0.4)
+        sub.active = (raym.distance > 0.0)
+        sub.label(text="Fade To:")
+        sub.prop(raym, "fade_to", text="")
+
+        col = split.column()
+        col.label(text="Gloss:")
+        col.prop(raym, "gloss_factor", text="Amount")
+        sub = col.column()
+        sub.active = (raym.gloss_factor < 1.0)
+        sub.prop(raym, "gloss_threshold", text="Threshold")
+        sub.prop(raym, "gloss_samples", text="Samples")
+        sub.prop(raym, "gloss_anisotropic", text="Anisotropic")
 class MATERIAL_PT_povray_reflection(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray Reflection"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -1158,7 +1264,7 @@ class MATERIAL_PT_povray_reflection(MaterialButtonsPanel, bpy.types.Panel):
         engine = context.scene.render.engine
         mat=context.material
         ob = context.object
-        return mat and mat.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes)
+        return mat and mat.pov.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes)
 
     def draw(self, context):
         layout = self.layout
@@ -1173,9 +1279,9 @@ class MATERIAL_PT_povray_reflection(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(mat.pov, "conserve_energy")
         col2=col.split().column()
 
-        if not mat.raytrace_mirror.use:
+        if not mat.pov_raytrace_mirror.use:
             col2.label(text="Please Check Mirror settings :")
-        col2.active = mat.raytrace_mirror.use
+        col2.active = mat.pov_raytrace_mirror.use
         col2.prop(mat.pov, "mirror_use_IOR")
         if mat.pov.mirror_use_IOR:
             col2.alignment = 'CENTER'
@@ -2109,7 +2215,7 @@ class TEXT_OT_povray_insert(bpy.types.Operator):
     bl_idname = "text.povray_insert"
     bl_label = "Insert"
 
-    filepath = bpy.props.StringProperty(name="Filepath", subtype='FILE_PATH')
+    filepath : bpy.props.StringProperty(name="Filepath", subtype='FILE_PATH')
 
     @classmethod
     def poll(cls, context):
@@ -2216,8 +2322,9 @@ def menu_func_templates(self, context):
 
 
 classes = (
-    #POV_WORLD_MT_presets,
-    #AddPresetWorld,
+    WORLD_PT_POV_world,
+    POV_WORLD_MT_presets,
+    AddPresetWorld,
     #RenderButtonsPanel,
     #ModifierButtonsPanel,
     #MaterialButtonsPanel,
@@ -2249,8 +2356,10 @@ classes = (
     AddPresetRadiosity,
     RENDER_PT_povray_media,
     MODIFIERS_PT_povray_modifiers,
+    MATERIAL_PT_POV_sss,
     MATERIAL_PT_povray_activate_node,
     MATERIAL_PT_povray_active_node,
+    MATERIAL_PT_POV_mirror,
     MATERIAL_PT_povray_reflection,
     MATERIAL_PT_povray_fade_color,
     MATERIAL_PT_povray_caustics,
