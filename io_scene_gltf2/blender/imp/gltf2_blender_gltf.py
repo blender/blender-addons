@@ -25,7 +25,8 @@ class BlenderGlTF():
     @staticmethod
     def create(gltf):
         """Create glTF main method."""
-        bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+        if bpy.context.scene.render.engine not in ['CYCLES', 'BLENDER_EEVEE']:
+            bpy.context.scene.render.engine = 'BLENDER_EEVEE'
         BlenderGlTF.pre_compute(gltf)
 
         if gltf.data.scenes is not None:
