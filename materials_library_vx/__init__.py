@@ -114,7 +114,7 @@ def check_index(collection, index):
 
 def send_command(cmd, output="sendmat.py"):
     bin = winpath(bpy.app.binary_path)
-    scriptpath = winpath(os.path.join(bpy.app.tempdir, output))
+    scriptpath = winpath(os.path.join(matlib_path, output))
 
     with open(scriptpath, "w") as f:
       f.write(cmd)
