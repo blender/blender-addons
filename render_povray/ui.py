@@ -1178,7 +1178,7 @@ class MATERIAL_PT_povray_active_node(MaterialButtonsPanel, bpy.types.Panel):
                         value_inputs = [socket for socket in node.inputs if socket.enabled and not socket.is_linked]
                         if value_inputs:
                             layout.separator()
-                            layout.label("Inputs:")
+                            layout.label(text="Inputs:")
                             for socket in value_inputs:
                                 row = layout.row()
                                 socket.draw(context, row, node, socket.name)
@@ -1191,12 +1191,12 @@ class MATERIAL_PT_povray_active_node(MaterialButtonsPanel, bpy.types.Panel):
                         value_inputs = [socket for socket in node.inputs if socket.enabled and not socket.is_linked]
                         if value_inputs:
                             layout.separator()
-                            layout.label("Inputs:")
+                            layout.label(text="Inputs:")
                             for socket in value_inputs:
                                 row = layout.row()
                                 socket.draw(context, row, node, socket.name)
                 else:
-                    layout.label("No active nodes!")
+                    layout.label(text="No active nodes!")
                     
 class MATERIAL_PT_POV_mirror(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Mirror"
@@ -1242,7 +1242,7 @@ class MATERIAL_PT_POV_mirror(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(raym, "depth")
         col.prop(raym, "distance", text="Max Dist")
         col.separator()
-        sub = col.split(percentage=0.4)
+        sub = col.split(factor=0.4)
         sub.active = (raym.distance > 0.0)
         sub.label(text="Fade To:")
         sub.prop(raym, "fade_to", text="")
@@ -1389,7 +1389,7 @@ class TEXTURE_PT_povray_type(TextureButtonsPanel, bpy.types.Panel):
 
         tex = context.texture
 
-        split = layout.split(percentage=0.2)
+        split = layout.split(factor=0.2)
         split.label(text="POV:")
         split.prop(tex.pov, "tex_pattern_type", text="")
 
@@ -2045,7 +2045,7 @@ class BasicShapesMenu(bpy.types.Menu):
         layout.separator()
         layout.operator("pov.addblobsphere", text="Blob Sphere",icon = 'META_DATA')
         layout.separator()
-        layout.label("Isosurfaces")
+        layout.label(text="Isosurfaces")
         layout.operator("pov.addisosurfacebox", text="Isosurface Box",icon="META_CUBE")
         layout.operator("pov.addisosurfacesphere", text="Isosurface Sphere",icon="META_BALL")
         layout.operator("pov.addsupertorus", text="Supertorus",icon="SURFACE_NTORUS")

@@ -3292,14 +3292,14 @@ def write_pov(filename, scene=None, info_callback=None):
                 # display issue:
                 if render.alpha_mode == 'TRANSPARENT':
                     tabWrite("background {rgbt<%.3g, %.3g, %.3g, 0.75>}\n" % \
-                             (world.horizon_color[:]))
+                             (world.color[:]))
                 #Currently using no alpha with Sky option:
                 elif render.alpha_mode == 'SKY':
-                    tabWrite("background {rgbt<%.3g, %.3g, %.3g, 0>}\n" % (world.horizon_color[:]))
+                    tabWrite("background {rgbt<%.3g, %.3g, %.3g, 0>}\n" % (world.color[:]))
                 #StraightAlpha:
                 # XXX Does not exists anymore
                 #else:
-                    #tabWrite("background {rgbt<%.3g, %.3g, %.3g, 1>}\n" % (world.horizon_color[:]))
+                    #tabWrite("background {rgbt<%.3g, %.3g, %.3g, 1>}\n" % (world.color[:]))
 
             worldTexCount = 0
             #For Background image textures
@@ -3382,14 +3382,14 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("color_map {\n")
                     # XXX Does not exists anymore
                     #if render.alpha_mode == 'STRAIGHT':
-                        #tabWrite("[0.0 rgbt<%.3g, %.3g, %.3g, 1>]\n" % (world.horizon_color[:]))
+                        #tabWrite("[0.0 rgbt<%.3g, %.3g, %.3g, 1>]\n" % (world.color[:]))
                         #tabWrite("[1.0 rgbt<%.3g, %.3g, %.3g, 1>]\n" % (world.zenith_color[:]))
                     if render.alpha_mode == 'TRANSPARENT':
-                        tabWrite("[0.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n" % (world.horizon_color[:]))
+                        tabWrite("[0.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n" % (world.color[:]))
                         # aa premult not solved with transmit 1
                         tabWrite("[1.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n" % (world.zenith_color[:]))
                     else:
-                        tabWrite("[0.0 rgbt<%.3g, %.3g, %.3g, 0>]\n" % (world.horizon_color[:]))
+                        tabWrite("[0.0 rgbt<%.3g, %.3g, %.3g, 0>]\n" % (world.color[:]))
                         tabWrite("[1.0 rgbt<%.3g, %.3g, %.3g, 0>]\n" % (world.zenith_color[:]))
                     tabWrite("}\n")
                     tabWrite("}\n")
@@ -3418,7 +3418,7 @@ def write_pov(filename, scene=None, info_callback=None):
             elif mist.falloff=='INVERSE_QUADRATIC':    # n**2 or squrt(n)?
                 tabWrite("distance %.6f\n" % ((mist.start+mist.depth)**2*0.368))
             tabWrite("color rgbt<%.3g, %.3g, %.3g, %.3g>\n" % \
-                     (*world.horizon_color, 1.0 - mist.intensity))
+                     (*world.color, 1.0 - mist.intensity))
             #tabWrite("fog_offset %.6f\n" % mist.start) #create a pov property to prepend
             #tabWrite("fog_alt %.6f\n" % mist.height) #XXX right?
             #tabWrite("turbulence 0.2\n")
