@@ -23,7 +23,7 @@ import sys #really import here and in render.py?
 import os #really import here and in render.py?
 from os.path import isfile
 from bl_operators.presets import AddPresetBase
-from bpy.utils import register_class
+from bpy.utils import register_class, unregister_class
 
 # Example of wrapping every class 'as is'
 from bl_ui import properties_output
@@ -2412,9 +2412,6 @@ def register():
 def unregister():
     #from bpy.utils import unregister_class
 
-    for cls in classes:
-        unregister_class(cls)
-        
     #bpy.types.TEXTURE_PT_context_texture.remove(TEXTURE_PT_povray_type)
     #addon_utils.disable("add_mesh_extra_objects", default_set=False)
     #bpy.types.WORLD_PT_POV_world.remove(world_panel_func)
@@ -2423,3 +2420,7 @@ def unregister():
     bpy.types.TEXT_MT_templates.remove(menu_func_templates)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
     bpy.types.VIEW3D_MT_add.remove(menu_func_add)
+
+    for cls in reversed(classes):
+        unregister_class(cls)
+

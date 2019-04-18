@@ -40,7 +40,7 @@ if "bpy" in locals():
 
 else:
     import bpy
-    from bpy.utils import register_class
+    from bpy.utils import register_class, unregister_class
     #import addon_utils # To use some other addons
     import nodeitems_utils #for Nodes
     from nodeitems_utils import NodeCategory, NodeItem #for Nodes
@@ -3633,26 +3633,32 @@ class PovrayPreferences(AddonPreferences):
         layout.prop(self, "docpath_povray")
 
 
+classes = (
+    PovrayPreferences,
+    RenderPovSettingsCamera,
+    RenderPovSettingsWorld,
+    RenderPovSettingsMaterial,
+    MaterialRaytraceMirror, 
+    MaterialSubsurfaceScattering,
+    RenderPovSettingsObject,
+    RenderPovSettingsScene,
+    RenderPovSettingsText,
+    RenderPovSettingsTexture,
+)
+
 
 def register():
 
     #bpy.utils.register_module(__name__) #DEPRECATED Now imported from bpy.utils import register_class
-    
+
+    for cls in classes:
+        register_class(cls)
+ 
     render.register()
     ui.register()
     primitives.register()
     nodes.register()
-    
-    register_class(PovrayPreferences)
-    register_class(RenderPovSettingsCamera)
-    register_class(RenderPovSettingsWorld)
-    register_class(RenderPovSettingsMaterial)
-    register_class(MaterialRaytraceMirror)    
-    register_class(MaterialSubsurfaceScattering)
-    register_class(RenderPovSettingsObject)
-    register_class(RenderPovSettingsScene)
-    register_class(RenderPovSettingsText)
-    register_class(RenderPovSettingsTexture)
+
     '''    
         bpy.types.VIEW3D_MT_add.prepend(ui.menu_func_add)
         bpy.types.TOPBAR_MT_file_import.append(ui.menu_func_import)
@@ -3703,6 +3709,15 @@ def unregister():
     bpy.types.VIEW3D_MT_add.remove(ui.menu_func_add)
     '''
     #bpy.utils.unregister_module(__name__)
+
+    nodes.unregister()
+    primitives.unregister()
+    ui.unregister()
+    render.unregister()
+
+    for cls in reversed(classes):
+        unregister_class(cls)
+ 
 
 
 if __name__ == "__main__":
