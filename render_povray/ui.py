@@ -227,7 +227,7 @@ for member in dir(properties_material):
     subclass = getattr(properties_material, member)
     try:
         #mat=context.material
-        #if mat and mat.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes):
+        #if mat and mat.pov.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes):
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
     except:
         pass
@@ -254,6 +254,16 @@ for member in dir(properties_particle):  # add all "particle" panels from blende
     except:
         pass
 del properties_particle
+
+
+def check_material(mat):
+    if mat is not None:
+        if mat.use_nodes:
+            if not mat.nodetree: #FORMERLY : #mat.active_node_material is not None: 
+                return True
+            return False
+        return True
+    return False
 
 def check_add_mesh_extra_objects():
     if "add_mesh_extra_objects" in bpy.context.preferences.addons.keys():
@@ -1096,7 +1106,7 @@ class MATERIAL_PT_POV_sss(MaterialButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        mat = active_node_mat(context.material)
+        mat = context.material #FORMERLY : #active_node_mat(context.material)
         sss = mat.pov_subsurface_scattering
 
         layout.active = (sss.use) and (not mat.pov.use_shadeless)
@@ -1137,7 +1147,7 @@ class MATERIAL_PT_povray_activate_node(MaterialButtonsPanel, bpy.types.Panel):
         engine = context.scene.render.engine
         mat=context.material
         ob = context.object
-        return mat and mat.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes)
+        return mat and mat.pov.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes)
 
     def draw(self, context):
         layout = self.layout
@@ -1157,7 +1167,7 @@ class MATERIAL_PT_povray_active_node(MaterialButtonsPanel, bpy.types.Panel):
         engine = context.scene.render.engine
         mat=context.material
         ob = context.object
-        return mat and mat.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and mat.pov.material_use_nodes
+        return mat and mat.pov.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and mat.pov.material_use_nodes
 
 
     def draw(self, context):
@@ -1299,7 +1309,7 @@ class MATERIAL_PT_povray_fade_color(MaterialButtonsPanel, bpy.types.Panel):
         engine = context.scene.render.engine
         mat=context.material
         ob = context.object
-        return mat and mat.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes)
+        return mat and mat.pov.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes)
 
 
     def draw_header(self, context):
@@ -1329,7 +1339,7 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
         engine = context.scene.render.engine
         mat=context.material
         ob = context.object
-        return mat and mat.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes)
+        return mat and mat.pov.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes)
 
 
     def draw_header(self, context):
@@ -2420,7 +2430,7 @@ def unregister():
     bpy.types.TEXT_MT_templates.remove(menu_func_templates)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
     bpy.types.VIEW3D_MT_add.remove(menu_func_add)
-
+    
     for cls in reversed(classes):
         unregister_class(cls)
-
+    
