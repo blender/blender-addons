@@ -62,7 +62,7 @@ def fetch_categories(API_key):
 
     url = paths.get_bkit_url() + 'categories/'
 
-    headers = utils.get_headers(api_key)
+    headers = utils.get_headers(API_key)
 
     tempdir = paths.get_temp_dir()
     categories_filepath = os.path.join(tempdir, 'categories.json')
