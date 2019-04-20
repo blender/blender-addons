@@ -88,7 +88,7 @@ def fetch_server_data():
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
     url = paths.BLENDERKIT_ADDON_URL
     api_key = user_preferences.api_key
-    version_checker.check_version_thread(url, api_key, blenderkit)
+    # version_checker.check_version_thread(url, api_key, blenderkit)
     categories.fetch_categories_thread(api_key)
 
 
