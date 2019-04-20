@@ -21,8 +21,12 @@ if "bpy" in locals():
 
     imp.reload(paths)
     imp.reload(utils)
+    imp.reload(categories)
+    imp.reload(ui)
+    imp.reload(version_checker)
 else:
     from blenderkit import paths, utils, categories, ui, version_checker
+
 import blenderkit
 from bpy.app.handlers import persistent
 
@@ -513,17 +517,8 @@ class Searcher(threading.Thread):
         tempdir = paths.get_temp_dir('%s_search' % query['asset_type'])
         json_filepath = os.path.join(tempdir, '%s_searchresult.json' % query['asset_type'])
 
-        if query['token'] != '':
-            headers = {
-                "accept": "application/json",
-                "Authorization": "Bearer %s" % query['token'],
-                # "Content-Type": "application/json",
-            }
-        else:
-            headers = {
-                "accept": "application/json",
-                # "Content-Type": "application/json",
-            }
+        headers = utils.get_headers(query['token'])
+
         rdata = {}
         rdata['results'] = []
 

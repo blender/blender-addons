@@ -372,6 +372,15 @@ def requests_post_thread(url, json, headers):
     r = requests.post(url, json=json, verify=True, headers=headers)
 
 
+def get_headers(api_key):
+    headers = {
+        "accept": "application/json",
+    }
+    if api_key != '':
+        headers["Authorization"] = "Bearer %s" % api_key
+    return headers
+
+
 # map uv cubic and switch of auto tex space and set it to 1,1,1
 def automap(target_object=None, target_slot=None, tex_size=1, bg_exception=False):
     from blenderkit import bg_blender as bg

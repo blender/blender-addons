@@ -29,6 +29,7 @@ if "bpy" in locals():
 
     imp.reload(paths)
     imp.reload(append_link)
+    imp.reload(utils)
 
 else:
     from blenderkit import paths, append_link, utils
@@ -171,7 +172,7 @@ def report_usages():
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
     api_key = user_preferences.api_key
     sid = get_scene_id()
-    headers = {"accept": "application/json", "Authorization": "Bearer %s" % api_key}
+    headers = utils.get_headers(api_key)
     url = paths.get_bkit_url() + paths.BLENDERKIT_REPORT_URL
 
     assets = {}
@@ -526,8 +527,7 @@ def main_thread(asset_data, tcom, scene_id, api_key):
 
     with open(file_name, "wb") as f:
         print("Downloading %s" % file_name)
-        headers = {"accept": "application/json",
-                   "Authorization": "Bearer %s" % api_key}
+        headers = utils.get_headers(api_key)
 
         response = requests.get(asset_data['url'], stream=True)
         total_length = response.headers.get('Content-Length')
@@ -560,10 +560,7 @@ def download(asset_data, **kwargs):
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
     api_key = user_preferences.api_key
     scene_id = get_scene_id()
-    if api_key == '':
-        props = utils.get_search_props()
-        props.report = 'Register online to use the free library.'
-        return
+
     tcom = ThreadCom()
 
     tcom.passargs = kwargs
@@ -680,10 +677,9 @@ def fprint(text):
 def get_download_url(asset_data, scene_id, api_key, tcom=None):
     ''''retrieves the download url. The server checks if user can download the item.'''
     mt = time.time()
-    headers = {
-        "accept": "application/json",
-        "Authorization": "Bearer %s" % api_key,
-    }
+
+    headers = utils.get_headers(api_key)
+
     data = {
         'scene_uuid': scene_id
     }

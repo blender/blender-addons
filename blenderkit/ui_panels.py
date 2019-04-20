@@ -524,7 +524,7 @@ class VIEW3D_PT_blenderkit_unified(Panel):
 
         w = context.region.width
 
-        if len(user_preferences.api_key) < 35 and user_preferences.counter >10:
+        if len(user_preferences.api_key) < 35 and user_preferences.asset_counter >25:
             op = layout.operator("wm.url_open", text="Register online",
                                  icon='QUESTION')
             op.url = paths.BLENDERKIT_SIGNUP_URL

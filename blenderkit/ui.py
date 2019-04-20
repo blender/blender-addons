@@ -567,7 +567,7 @@ def draw_callback_2d_search(self, context):
                     # object type icons - just a test..., adds clutter/ not so userfull:
                     # icons = ('type_finished.png', 'type_template.png', 'type_particle_system.png')
 
-                    if not result.get('can_download', True) == True or user_preferences.api_key == '':
+                    if (result.get('can_download', True)) == 0:
                         img = utils.get_thumbnail('locked.png')
                         ui_bgl.draw_image(x + 2, y + 2, 24, 24, img, 1)
 
@@ -577,7 +577,7 @@ def draw_callback_2d_search(self, context):
                         ui_bgl.draw_image(x + ui_props.thumb_size - 26, y + 2, 24, 24, img, 1)
 
             if user_preferences.api_key == '':
-                report = 'Please register on BlenderKit website to use the free content.'
+                report = 'Register on BlenderKit website to upload your own assets.'
                 ui_bgl.draw_text(report, ui_props.bar_x + ui_props.margin,
                                  ui_props.bar_y - 25 - ui_props.margin - ui_props.bar_height, 15)
             elif len(search_results) == 0:
