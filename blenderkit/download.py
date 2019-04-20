@@ -106,8 +106,9 @@ def check_unused():
 def scene_save(context):
     ''' does cleanup of blenderkit props and sends a message to the server about assets used.'''
     # TODO this can be optimized by merging these 2 functions, since both iterate over all objects.
-    check_unused()
-    report_usages()
+    if not bpy.app.background:
+        check_unused()
+        report_usages()
 
 
 @persistent
