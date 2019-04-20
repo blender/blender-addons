@@ -328,7 +328,13 @@ def draw_tooltip(x, y, text, img):
     y -= 2 * ttipmargin
 
     width = isizex + 2 * ttipmargin
-    x = min(x + width, region.width) - width
+
+    properties_width = 0
+    for r in bpy.context.area.regions:
+        if r.type == 'UI':
+            properties_width = r.width
+
+    x = min(x + width, region.width - properties_width) - width
 
     bgcol = bpy.context.preferences.themes[0].user_interface.wcol_tooltip.inner
     textcol = bpy.context.preferences.themes[0].user_interface.wcol_tooltip.text
@@ -1419,7 +1425,6 @@ def unregister_ui():
         bpy.utils.unregister_class(c)
 
     args = (None, bpy.context)
-
 
     wm = bpy.context.window_manager
     if not wm.keyconfigs.addon:
