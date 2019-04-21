@@ -57,7 +57,6 @@ if "bpy" in locals():
     importlib.reload(add_mesh_menger_sponge)
     importlib.reload(add_mesh_vertex)
     importlib.reload(add_empty_as_parent)
-    importlib.reload(mesh_discombobulator)
     importlib.reload(add_mesh_beam_builder)
     importlib.reload(Blocks)
     importlib.reload(Wallfactory)
@@ -80,7 +79,6 @@ else:
     from . import add_mesh_menger_sponge
     from . import add_mesh_vertex
     from . import add_empty_as_parent
-    from . import mesh_discombobulator
     from . import add_mesh_beam_builder
     from . import Blocks
     from . import Wallfactory
@@ -250,9 +248,6 @@ def menu_func(self, context):
     lay_out.menu("VIEW3D_MT_mesh_torus_add",
                 text="Torus Objects")
     lay_out.separator()
-    lay_out.operator("discombobulate.ops",
-                    text="Discombobulator")
-    lay_out.separator()
     lay_out.menu("VIEW3D_MT_mesh_extras_add",
                 text="Extras")
     lay_out.separator()
@@ -297,12 +292,6 @@ classes = [
     add_mesh_vertex.AddSymmetricalVert,
     add_empty_as_parent.P2E,
     add_empty_as_parent.PreFix,
-    mesh_discombobulator.discombobulator,
-    mesh_discombobulator.discombobulator_dodads_list,
-    mesh_discombobulator.discombob_help,
-    mesh_discombobulator.VIEW3D_OT_tools_discombobulate,
-    mesh_discombobulator.chooseDoodad,
-    mesh_discombobulator.unchooseDoodad,
     add_mesh_beam_builder.addBeam,
     Wallfactory.add_mesh_wallb,
     add_mesh_triangles.MakeTriangle
