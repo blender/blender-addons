@@ -175,11 +175,10 @@ def load_prefs():
             user_preferences.global_dir = prefs['global_dir']
 
 def save_prefs(self, context):
-    if not bpy.app.background:
+    # print(type(context),type(bpy.context))
+    if not bpy.app.background and hasattr(bpy.context, 'view_layer'):
         user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
         if user_preferences.api_key != '':
-            print(len(user_preferences.api_key))
-            print('length')
             if len(user_preferences.api_key)>35:
                 prefs = {
                     'API_key': user_preferences.api_key,

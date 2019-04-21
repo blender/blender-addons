@@ -687,7 +687,6 @@ def get_download_url(asset_data, scene_id, api_key, tcom=None):
     r = None
     try:
         r = requests.get(asset_data['download_url'], params=data, headers=headers)
-        fprint(r.text)
     except Exception as e:
         print(e)
         if tcom is not None:
