@@ -254,6 +254,45 @@ def menu_func(self, context):
     lay_out.operator("object.parent_to_empty",
                     text="Parent To Empty")
 
+def Extras_contex_menu(self, context):
+    bl_label = 'Change'
+    
+    obj = context.object
+    layout = self.layout
+    
+    if 'Gear' in obj.keys():
+        props = layout.operator("mesh.primitive_gear", text="Change Gear")
+        props.change = True
+        props.delete = obj.name
+        props.startlocation = obj.location
+        props.number_of_teeth = obj["number_of_teeth"]
+        props.radius = obj["radius"]
+        props.addendum = obj["addendum"]
+        props.dedendum = obj["dedendum"]
+        props.base = obj["base"]
+        props.angle = obj["angle"]
+        props.width = obj["width"]
+        props.skew = obj["skew"]
+        props.conangle = obj["conangle"]
+        props.crown = obj["crown"]
+        layout.separator()
+
+    if 'WormGear' in obj.keys():
+        props = layout.operator("mesh.primitive_worm_gear", text="Change WormGear")
+        props.change = True
+        props.delete = obj.name
+        props.startlocation = obj.location
+        props.number_of_teeth = obj["number_of_teeth"]
+        props.number_of_rows = obj["number_of_rows"]
+        props.radius = obj["radius"]
+        props.addendum = obj["addendum"]
+        props.dedendum = obj["dedendum"]
+        props.angle = obj["angle"]
+        props.row_height = obj["row_height"]
+        props.skew = obj["skew"]
+        props.crown = obj["crown"]
+        layout.separator()
+
 # Register
 classes = [
     VIEW3D_MT_mesh_vert_add,
@@ -302,12 +341,14 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    # Add "Extras" menu to the "Add Mesh" menu
+    # Add "Extras" menu to the "Add Mesh" menu and context menu.
     bpy.types.VIEW3D_MT_mesh_add.append(menu_func)
+    bpy.types.VIEW3D_MT_object_context_menu.prepend(Extras_contex_menu)
 
 
 def unregister():
-    # Remove "Extras" menu from the "Add Mesh" menu.
+    # Remove "Extras" menu from the "Add Mesh" menu and context menu.
+    bpy.types.VIEW3D_MT_object_context_menu.remove(Extras_contex_menu)
     bpy.types.VIEW3D_MT_mesh_add.remove(menu_func)
     
     from bpy.utils import unregister_class
