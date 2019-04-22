@@ -259,7 +259,7 @@ del properties_particle
 def check_material(mat):
     if mat is not None:
         if mat.use_nodes:
-            if not mat.nodetree: #FORMERLY : #mat.active_node_material is not None: 
+            if not mat.node_tree: #FORMERLY : #mat.active_node_material is not None: 
                 return True
             return False
         return True
@@ -336,7 +336,7 @@ class MaterialButtonsPanel():
     def poll(cls, context):
         mat = context.material
         rd = context.scene.render
-        return mat (rd.engine in cls.COMPAT_ENGINES)
+        return mat and (rd.engine in cls.COMPAT_ENGINES)
 
 
 class TextureButtonsPanel():
