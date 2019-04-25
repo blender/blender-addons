@@ -41,9 +41,11 @@ if "bpy" in locals():
     importlib.reload(bg_blender)
     importlib.reload(paths)
     importlib.reload(utils)
+    importlib.reload(oauth)
+    importlib.reload(tasks_queue)
 else:
     from blenderkit import asset_inspector, search, download, upload, ratings, autothumb, ui, bg_blender, paths, utils, \
-        overrides, ui_panels, categories
+        overrides, ui_panels, categories, oauth, tasks_queue
 
 import os
 import math
@@ -70,7 +72,6 @@ from bpy.types import (
     AddonPreferences,
     PropertyGroup,
 )
-
 
 # logging.basicConfig(filename = 'blenderkit.log', level = logging.INFO,
 #                     format = '	%(asctime)s:%(filename)s:%(funcName)s:%(lineno)d:%(message)s')
@@ -1208,9 +1209,8 @@ class BlenderKitAddonPreferences(AddonPreferences):
     # this must match the addon name, use '__package__'
     # when defining this in a submodule of a python package.
     bl_idname = __name__
-    from os.path import expanduser
-    home = expanduser("~")
-    default_global_dict = home + os.sep + 'blenderkit_data'
+
+    default_global_dict = paths.default_global_dict()
 
     api_key: StringProperty(
         name="BlenderKit API Key",
@@ -1218,6 +1218,20 @@ class BlenderKitAddonPreferences(AddonPreferences):
         default="",
         subtype="PASSWORD",
         update=utils.save_prefs
+    )
+
+    api_key_refresh: StringProperty(
+        name="BlenderKit refresh API Key",
+        description="API key used to refresh the token regularly.",
+        default="",
+        subtype="PASSWORD",
+        update=utils.save_prefs
+    )
+
+    login_attempt: BoolProperty(
+        name="Login/Signup attempt",
+        description="When this is on, BlenderKit is trying to connect and login.",
+        default=False
     )
 
     global_dir: StringProperty(
@@ -1389,6 +1403,8 @@ def register():
     bpy.app.handlers.load_post.append(scene_load)
     utils.load_prefs()
     overrides.register_overrides()
+    oauth.register()
+    tasks_queue.register()
 
 
 def unregister():
@@ -1403,6 +1419,8 @@ def unregister():
     ui_panels.unregister_ui_panels()
     bg_blender.unregister()
     overrides.unregister_overrides()
+    oauth.unregister()
+    tasks_queue.unregister()
 
     del bpy.types.Scene.blenderkit_models
     del bpy.types.Scene.blenderkit_scene

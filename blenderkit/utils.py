@@ -171,17 +171,22 @@ def load_prefs():
     if os.path.exists(fpath):
         with open(fpath, 'r') as s:
             prefs = json.load(s)
-            user_preferences.api_key = prefs['API_key']
-            user_preferences.global_dir = prefs['global_dir']
+            user_preferences.api_key = prefs.get('API_key','')
+            user_preferences.global_dir = prefs.get('global_dir', paths.default_global_dict())
+
+            user_preferences.api_key_refresh = prefs.get('API_key_refresh','')
 
 def save_prefs(self, context):
     # print(type(context),type(bpy.context))
     if not bpy.app.background and hasattr(bpy.context, 'view_layer'):
         user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
         if user_preferences.api_key != '':
-            if len(user_preferences.api_key)>35:
+            #we test the api key for lenght, so not a random accidentaly typed sequence gets saved.
+            if len(user_preferences.api_key)>25:
+
                 prefs = {
                     'API_key': user_preferences.api_key,
+                    'API_key_refresh': user_preferences.api_key_refresh,
                     'global_dir': user_preferences.global_dir,
                 }
                 # user_preferences.api_key = user_preferences.api_key.strip()
@@ -194,7 +199,7 @@ def save_prefs(self, context):
                 # reset the api key in case the user writes some nonsense, e.g. a search string instead of the Key
                 user_preferences.api_key = ''
                 props = get_search_props()
-                props.report = 'Please paste a correct API Key.'
+                props.report = 'Login failed. Please paste a correct API Key.'
 
 def load_categories():
     categories.copy_categories()

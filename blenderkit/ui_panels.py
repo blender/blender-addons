@@ -523,13 +523,17 @@ class VIEW3D_PT_blenderkit_unified(Panel):
         row.prop(ui_props, 'asset_type', expand=True, icon_only=True)
 
         w = context.region.width
+        if user_preferences.login_attempt:
+            layout.label(text = 'Login through browser')
+            layout.label(text = 'in progress.')
+            layout.operator("wm.blenderkit_login_cancel", text = "Cancel", icon = 'CANCEL')
+            return
 
-        if len(user_preferences.api_key) < 35 and user_preferences.asset_counter >25:
-            op = layout.operator("wm.url_open", text="Register online",
-                                 icon='QUESTION')
-            op.url = paths.BLENDERKIT_SIGNUP_URL
-            layout.label(text='Paste your API Key:')
-            layout.prop(user_preferences, 'api_key', text='')
+        if len(user_preferences.api_key) < 20 and user_preferences.asset_counter >-10:
+            layout.operator("wm.blenderkit_login", text="Login/ Sign up",
+                                 icon='URL')
+            # layout.label(text='Paste your API Key:')
+            # layout.prop(user_preferences, 'api_key', text='')
             layout.separator()
         elif bpy.data.filepath == '':
 

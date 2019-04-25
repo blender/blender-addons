@@ -465,7 +465,7 @@ def mark_for_validation(self, context, asset_type):
         "verificationStatus": "ready"
     }
 
-    url = paths.get_bkit_url() + 'assets/'
+    url = paths.get_api_url() + 'assets/'
 
     headers = utils.get_headers(user_preferences.api_key)
 
@@ -559,7 +559,7 @@ def start_upload(self, context, asset_type, as_new, metadata_only):
         return {'CANCELLED'}
 
     # first upload metadata to server, so it can be saved inside the current file
-    url = paths.get_bkit_url() + 'assets/'
+    url = paths.get_api_url() + 'assets/'
 
     headers = utils.get_headers(upload_data['token'])
 

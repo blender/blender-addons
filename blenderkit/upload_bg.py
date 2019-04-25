@@ -76,7 +76,7 @@ def upload_files(filepath, upload_data, files):
             'fileIndex': f['index'],
             'originalFilename': os.path.basename(f['file_path'])
         }
-        upload_create_url = paths.get_bkit_url() + 'uploads/'
+        upload_create_url = paths.get_api_url() + 'uploads/'
         upload = requests.post(upload_create_url, json=upload_info, headers=headers, verify=True)
         upload = upload.json()
 
@@ -108,7 +108,7 @@ def upload_files(filepath, upload_data, files):
                     time.sleep(1)
 
                 # confirm single file upload to bkit server
-                upload_done_url = paths.get_bkit_url() + 'uploads_s3/' + upload['id'] + '/upload-file/'
+                upload_done_url = paths.get_api_url() + 'uploads_s3/' + upload['id'] + '/upload-file/'
                 upload_response = requests.post(upload_done_url, headers=headers, verify=True)
 
         bg_blender.progress('finished uploading')
@@ -187,7 +187,7 @@ if __name__ == "__main__":
             "verificationStatus": "uploaded"
         }
 
-        url = paths.get_bkit_url() + 'assets/'
+        url = paths.get_api_url() + 'assets/'
 
         headers = utils.get_headers(upload_data['token'])
 

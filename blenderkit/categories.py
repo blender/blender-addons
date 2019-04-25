@@ -60,7 +60,7 @@ def copy_categories():
 def fetch_categories(API_key):
     BLENDERKIT_API_MAIN = "https://www.blenderkit.com/api/v1/"
 
-    url = paths.get_bkit_url() + 'categories/'
+    url = paths.get_api_url() + 'categories/'
 
     headers = utils.get_headers(API_key)
 

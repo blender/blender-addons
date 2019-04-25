@@ -24,8 +24,9 @@ if "bpy" in locals():
     imp.reload(categories)
     imp.reload(ui)
     imp.reload(version_checker)
+    imp.reload(oauth)
 else:
-    from blenderkit import paths, utils, categories, ui, version_checker
+    from blenderkit import paths, utils, categories, ui, oauth, version_checker
 
 import blenderkit
 from bpy.app.handlers import persistent
@@ -79,7 +80,7 @@ def scene_load(context):
     wm = bpy.context.window_manager
     fetch_server_data()
     # following doesn't necessarilly happen if version isn't checked yet or similar, first run.
-    wm['bkit_update'] = version_checker.compare_versions(blenderkit)
+    # wm['bkit_update'] = version_checker.compare_versions(blenderkit)
     utils.load_categories()
 
 
@@ -89,6 +90,7 @@ def fetch_server_data():
     url = paths.BLENDERKIT_ADDON_URL
     api_key = user_preferences.api_key
     # version_checker.check_version_thread(url, api_key, blenderkit)
+    oauth.refresh_token_thread()
     categories.fetch_categories_thread(api_key)
 
 
@@ -534,7 +536,7 @@ class Searcher(threading.Thread):
                     params['get_next'] = False
         if not params['get_next']:
             # build a new request
-            url = paths.get_bkit_url() + 'search/'
+            url = paths.get_api_url() + 'search/'
 
             nquery = {
                 # 'tags': query['keywords'],
