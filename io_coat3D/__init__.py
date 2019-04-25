@@ -637,13 +637,13 @@ class SCENE_OT_export(bpy.types.Operator):
             objekti.coat3D.applink_name = objekti.data.name
         mod_mat_list = {}
 
-        if (coat3D.bake_textures):
-            bake_location = folder_objects + os.sep + 'Bake'
-            if (os.path.isdir(bake_location)):
-                shutil.rmtree(bake_location)
-                os.makedirs(bake_location)
-            else:
-                os.makedirs(bake_location)
+
+        bake_location = folder_objects + os.sep + 'Bake'
+        if (os.path.isdir(bake_location)):
+            shutil.rmtree(bake_location)
+            os.makedirs(bake_location)
+        else:
+            os.makedirs(bake_location)
 
         temp_string = ''
         for objekti in bpy.context.selected_objects:
@@ -680,9 +680,7 @@ class SCENE_OT_export(bpy.types.Operator):
                 if (coat3D.bake_normal):
                     bake_list.append(['NORMAL', '$LOADLOPOLYTANG'])
                 if (coat3D.bake_roughness):
-                    bake_list.append(['SPECULAR', '$LOADROUGHNESS'])
-                if (coat3D.bake_metalness):
-                    bake_list.append(['REFLECTION', '$LOADMETAL'])
+                    bake_list.append(['ROUGHNESS', '$LOADROUGHNESS'])
 
                 if(coat3D.bake_resolution == 'res_64'):
                     res_size = 64
@@ -1136,7 +1134,6 @@ class SCENE_OT_import(bpy.types.Operator):
             index = 0
             for c_index in diff_objects:
                 bpy.data.objects[c_index].data.coat3D.name = '3DC'
-                bpy.data.objects[c_index].material_slots[0].material = bpy.data.materials[diff_mat[laskuri]]
                 laskuri += 1
 
             bpy.ops.object.select_all(action='DESELECT')
@@ -1156,8 +1153,6 @@ class SCENE_OT_import(bpy.types.Operator):
                     index = index + 1
 
                     bpy.context.view_layer.objects.active = new_obj
-                    keep_materials_count = len(new_obj.material_slots) - len(new_obj.data.uv_layers)
-                    delete_materials_from_end(keep_materials_count, new_obj)
 
                     new_obj.coat3D.applink_export = True
                     if(osoite_3b != ''):
@@ -1337,7 +1332,7 @@ class SCENE_PT_Bake_Settings(ObjectButtonsPanel, bpy.types.Panel):
         col = flow.column()
         col.prop(coat3D, "bake_ao", text="AO")
         col = flow.column()
-        col.prop(coat3D, "bake_metalness", text="Metalness")
+        col.prop(coat3D, "bake_normal", text="Normal")
         col = flow.column()
         col.prop(coat3D, "bake_roughness", text="Roughness")
 
@@ -1720,7 +1715,7 @@ class MeshCoat3D(PropertyGroup):
     )
 
 class MaterialCoat3D(PropertyGroup):
-    name: BoolProperty(
+    name: StringProperty(
         name="ApplinkAddress",
         # subtype="APPLINK_ADDRESS",
         default=True
@@ -1762,8 +1757,8 @@ classes = (
     SCENE_PT_Material,
     SCENE_PT_Settings_Update,
     SCENE_PT_Bake_Settings,
-    SCENE_PT_Settings_Folders,
     SCENE_PT_Settings_DeleteNodes,
+    SCENE_PT_Settings_Folders,
     SCENE_PT_Material_Import,
     SCENE_OT_folder,
     SCENE_OT_opencoat,
