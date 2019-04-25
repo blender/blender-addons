@@ -832,7 +832,6 @@ def matlab(objekti,mat_list,texturelist,is_new):
     ''' FBX Materials: remove all nodes and create princibles node'''
     if(is_new):
         RemoveFbxNodes(objekti)
-        print('hei hai hoi')
 
     '''Main Loop for Texture Update'''
 
