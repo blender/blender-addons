@@ -517,8 +517,6 @@ class SCENE_OT_export(bpy.types.Operator):
         coa = bpy.context.active_object.coat3D
         coat3D.exchangedir = set_exchange_folder()
 
-        update_exe_path()
-
         if (not os.path.isdir(coat3D.exchangedir)):
             coat3D.exchange_found = False
             return {'FINISHED'}
