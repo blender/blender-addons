@@ -3563,10 +3563,10 @@ class RenderPovSettingsWorld(PropertyGroup):
             name="Blend Sky", description="Render background with natural progression from horizon to zenith",
             default=False)
     use_sky_paper: BoolProperty(
-            name="Blend Sky", description="Flatten blend or texture coordinates",
+            name="Paper Sky", description="Flatten blend or texture coordinates",
             default=False)
     use_sky_real: BoolProperty(
-            name="Blend Sky", description="Render background with a real horizon, relative to the camera angle",
+            name="Real Sky", description="Render background with a real horizon, relative to the camera angle",
             default=False)
             
     horizon_color: FloatVectorProperty(
@@ -3690,6 +3690,7 @@ def register():
 def unregister():
     del bpy.types.Scene.pov
     del bpy.types.Material.pov
+    del bpy.types.Material.pov_subsurface_scattering
     #del bpy.types.Modifier.pov
     del bpy.types.Texture.pov
     del bpy.types.Object.pov
