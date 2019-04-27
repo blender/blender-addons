@@ -1406,10 +1406,10 @@ class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
                 layout.operator("delete_object_nodes.pilgway_3d_coat",
                                 text="Delete 3D-Coat nodes from selected objects")
 
-            layout.operator("delete_object_nodes.pilgway_3d_coat",
+            layout.operator("delete_collection_nodes.pilgway_3d_coat",
                             text="Delete 3D-Coat nodes from active collection")
 
-            layout.operator("delete_object_nodes.pilgway_3d_coat",
+            layout.operator("delete_scene_nodes.pilgway_3d_coat",
                             text="Delete all 3D-Coat nodes")
             layout.separator()
 
