@@ -103,12 +103,6 @@ class AddPresetWorld(AddPresetBase, bpy.types.Operator):
     # where to store the preset
     preset_subdir = "pov/world"
 
-
-# classes = (
-    # POV_WORLD_MT_presets,
-    # AddPresetWorld,
-    # )
-
 # Example of wrapping every class 'as is'
 from bl_ui import properties_texture
 from bl_ui.properties_texture import context_tex_datablock
@@ -567,11 +561,6 @@ def light_panel_func(self, context):
     row.operator(AddPresetLamp.bl_idname, text="", icon='ADD')
     row.operator(AddPresetLamp.bl_idname, text="", icon='REMOVE').remove_active = True
 
-
-# classes = (
-    # POV_LIGHT_MT_presets,
-    # AddPresetLamp,
-    # )
 '''#TORECREATE##DEPRECATED#
 class LIGHT_PT_POV_sunsky(PovLampButtonsPanel, bpy.types.Panel):
     bl_label = properties_data_light.DATA_PT_sunsky.bl_label
@@ -1000,13 +989,6 @@ def rad_panel_func(self, context):
     row.operator(AddPresetRadiosity.bl_idname, text="", icon='ADD')
     row.operator(AddPresetRadiosity.bl_idname, text="", icon='REMOVE').remove_active = True
 
-
-# classes = (
-    # POV_RADIOSITY_MT_presets,
-    # AddPresetRadiosity,
-    # )
-
-
 class RENDER_PT_povray_media(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Atmosphere Media"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -1140,9 +1122,9 @@ class MATERIAL_PT_POV_sss(MaterialButtonsPanel, bpy.types.Panel):
 
         row = layout.row().split()
         sub = row.row(align=True).split(align=True, factor=0.75)
-        sub.menu("MATERIAL_MT_POV_sss_presets", text=MATERIAL_MT_POV_sss_presets.bl_label)
-        sub.operator("AddPresetSSS.bl_idname", text="", icon='ADD')
-        sub.operator("AddPresetSSS.bl_idname", text="", icon='REMOVE').remove_active = True
+        sub.menu(MATERIAL_MT_POV_sss_presets.__name__, text=MATERIAL_MT_POV_sss_presets.bl_label)
+        sub.operator(AddPresetSSS.bl_idname, text="", icon='ADD')
+        sub.operator(AddPresetSSS.bl_idname, text="", icon='REMOVE').remove_active = True
 
         split = layout.split()
 
@@ -1264,7 +1246,7 @@ class MATERIAL_PT_POV_mirror(MaterialButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.prop(raym, "reflect_factor")
-        col.prop(mat, "mirror_color", text="")
+        col.prop(raym, "mirror_color", text="")
 
         col = split.column()
         col.prop(raym, "fresnel")
