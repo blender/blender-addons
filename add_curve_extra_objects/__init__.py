@@ -248,14 +248,13 @@ def menu_func(self, context):
 
     layout.operator_menu_enum("curve.curveaceous_galore", "ProfileType", icon='CURVE_DATA')
     layout.operator_menu_enum("curve.spirals", "spiral_type", icon='CURVE_DATA')
+    layout.separator()
+    layout.operator("curve.curlycurve", text="Curly Curve", icon='CURVE_DATA')
     if context.mode != 'OBJECT':
         # fix in D2142 will allow to work in EDIT_CURVE
         return None
     layout.separator()
-
     layout.menu(INFO_MT_curve_knots_add.bl_idname, text="Knots", icon='CURVE_DATA')
-    layout.separator()
-    layout.operator("curve.curlycurve", text="Curly Curve", icon='CURVE_DATA')
     #layout.menu(VIEW3D_MT_bevel_taper_curve_menu, text="Bevel/Taper", icon='CURVE_DATA')
 
 
