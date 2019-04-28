@@ -129,7 +129,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.menu("VIEW3D_MT_EditCursorMenu", icon='PIVOT_CURSOR')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_UV_Map", icon='MOD_UVPROJECT')
-            layout.menu("VIEW3D_MT_edit_mesh_context_menu", icon='SOLO_OFF')
+            layout.menu("VIEW3D_MT_edit_mesh_context_menu",  text="Specials", icon='SOLO_OFF')
             layout.menu("VIEW3D_MT_edit_mesh_extrude", icon='XRAY')
             UseSeparator(self, context)
             layout.operator_menu_enum("object.modifier_add", "type", icon='MODIFIER')
@@ -1252,7 +1252,7 @@ class VIEW3D_MT_Edit_Mesh(Menu):
 
         layout.prop(toolsettings, "use_mesh_automerge")
         # Double Threshold - two tab spaces to align it with the rest of the menu
-        layout.prop(toolsettings, "double_threshold", text="       Double Threshold")
+        layout.prop(toolsettings, "double_threshold", text="Double Threshold")
 
         UseSeparator(self, context)
         layout.menu("VIEW3D_MT_edit_mesh_showhide")
@@ -1348,8 +1348,8 @@ class VIEW3D_MT_EditCursorMenu(Menu):
         layout.operator("object.setorigintoselected",
                         text="Origin to Selected V/F/E")
         UseSeparator(self, context)
-        layout.menu("VIEW3D_Snap_Origin")
-        layout.menu("VIEW3D_Snap_Context")
+        layout.menu("VIEW3D_MT_Snap_Origin")
+        layout.menu("VIEW3D_MT_Snap_Context")
         UseSeparator(self, context)
         layout.operator("view3d.snap_cursor_to_selected",
                         text="Cursor to Selected")
@@ -1651,8 +1651,7 @@ class VIEW3D_MT_Sculpt_Specials(Menu):
             UseSeparator(self, context)
             layout.prop(settings.sculpt, "use_smooth_shading", "Smooth")
         else:
-            layout.operator("sculpt.dynamic_topology_toggle",
-                            icon='SCULPT_DYNTOPO', text="Enable Dyntopo")
+            layout.operator("sculpt.dynamic_topology_toggle", text="Enable Dyntopo")
 
 
 # Display Wire (Thanks to marvin.k.breuer) #
