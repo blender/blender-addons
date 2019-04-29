@@ -83,7 +83,8 @@ def scene_load(context):
     ui_props = bpy.context.scene.blenderkitUI
     ui_props.assetbar_on = False
     ui_props.turn_off = False
-
+    preferences = bpy.context.preferences.addons['blenderkit'].preferences
+    preferences.login_attempt = False
 
 licenses = (
     ('royalty_free', 'Royalty Free', 'royalty free commercial license'),
@@ -205,14 +206,19 @@ def switch_search_results(self, context):
     props = s.blenderkitUI
     if props.asset_type == 'MODEL':
         s['search results'] = s.get('bkit model search')
+        s['search results orig'] = s.get('bkit model search orig')
     elif props.asset_type == 'SCENE':
         s['search results'] = s.get('bkit scene search')
+        s['search results orig'] = s.get('bkit scene search orig')
     elif props.asset_type == 'MATERIAL':
         s['search results'] = s.get('bkit material search')
+        s['search results orig'] = s.get('bkit material search orig')
     elif props.asset_type == 'TEXTURE':
         s['search results'] = s.get('bkit texture search')
+        s['search results orig'] = s.get('bkit texture search orig')
     elif props.asset_type == 'BRUSH':
         s['search results'] = s.get('bkit brush search')
+        s['search results orig'] = s.get('bkit brush search orig')
     search.load_previews()
 
 
@@ -1313,9 +1319,8 @@ class BlenderKitAddonPreferences(AddonPreferences):
         layout = self.layout
 
         if self.api_key.strip() == '':
-            op = layout.operator("wm.url_open", text="Register online and get your API Key",
-                                 icon='QUESTION')
-            op.url = paths.BLENDERKIT_SIGNUP_URL
+            layout.operator("wm.blenderkit_login", text="Login/ Sign up",
+                            icon='URL')
         layout.prop(self, "api_key", text='Your API Key')
         # layout.label(text='After you paste API Key, categories are downloaded, so blender will freeze for a few seconds.')
         layout.prop(self, "global_dir")

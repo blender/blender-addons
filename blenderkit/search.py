@@ -25,8 +25,9 @@ if "bpy" in locals():
     imp.reload(ui)
     imp.reload(version_checker)
     imp.reload(oauth)
+    imp.reload(tasks_queue)
 else:
-    from blenderkit import paths, utils, categories, ui, oauth, version_checker
+    from blenderkit import paths, utils, categories, ui, oauth, version_checker, tasks_queue
 
 import blenderkit
 from bpy.app.handlers import persistent
@@ -91,6 +92,7 @@ def fetch_server_data():
     api_key = user_preferences.api_key
     # version_checker.check_version_thread(url, api_key, blenderkit)
     oauth.refresh_token_thread()
+    get_profile()
     categories.fetch_categories_thread(api_key)
 
 
@@ -177,7 +179,9 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff.
                                               'tooltip': tooltip,
                                               'tags': r['tags'],
                                               'can_download': r.get('canDownload', True),
-                                              'verification_status': r['verificationStatus']
+                                              'verification_status': r['verificationStatus'],
+                                              'author_id': str(r['author']['id'])
+                                              # 'author': r['author']['firstName'] + ' ' + r['author']['lastName']
                                               # 'description': r['description'],
                                               # 'author': r['description'],
                                               }
@@ -217,6 +221,7 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff.
                                 # results = rdata['results']
                 s[search_name] = result_field
                 s['search results'] = result_field
+                s[search_name + ' orig'] = rdata
                 s['search results orig'] = rdata
                 load_previews()
                 ui_props = bpy.context.scene.blenderkitUI
@@ -432,17 +437,35 @@ def generate_tooltip(mdata):
     # generator is for both upload preview and search, this is only after search
     if mdata.get('versionNumber'):
         # t = writeblockm(t, mdata, key='versionNumber', pretext='version')
-
-        t += 'author: %s %s\n' % (mdata['author']['firstName'], mdata['author']['lastName'])
-        # t += '\n'
+        a_id = mdata['author'].get('id')
+        if a_id != None:
+            adata = bpy.context.window_manager['bkit authors'].get(str(a_id))
+            if adata != None:
+                t += generate_author_textblock(adata)
 
     at = mdata['assetType']
     t += '\n'
+
+    return t
+
+def get_random_tip():
     if at == 'brush' or at == 'texture':
         t += 'click to link %s' % mdata['assetType']
     if at == 'model' or at == 'material':
-        t += 'click or drag in scene to link/append %s' % mdata['assetType']
+        tips = ['Click or drag in scene to link/append %s' % mdata['assetType'],
+                # "'A' key to search assets by same author",
+                "'W' key to open Authors webpage",
+                ]
+        tip = 'Tip: ' + random.choice(tips)
+        t = writeblock(t, tip)
 
+def generate_author_textblock(adata):
+    t = ''
+    if adata not in (None, ''):
+        t += 'author: %s %s\n' % (adata['firstName'], adata['lastName'])
+        t = writeblockm(t, adata, key='aboutMe', pretext='')
+        t += '\n'
+        t = writeblockm(t, adata, key='aboutMeUrl', pretext='')
     return t
 
 
@@ -490,6 +513,80 @@ class ThumbDownloader(threading.Thread):
             # with open(path, 'wb') as f:
             #     for chunk in r.iter_content(1048576*4):
             #         f.write(chunk)
+
+
+def write_author(a_id, adata):
+    utils.p('writing author back')
+    authors = bpy.context.window_manager['bkit authors']
+    if authors.get(a_id) in (None, ''):
+        adata['tooltip'] = generate_author_textblock
+        authors[a_id] = adata
+
+
+def fetch_author(a_id, api_key):
+    utils.p('fetch author')
+    try:
+        a_url = paths.get_api_url() + 'accounts/' + a_id + '/'
+        headers = utils.get_headers(api_key)
+        r = requests.get(a_url, headers=headers)
+        adata = r.json()
+        if not hasattr(adata, 'id'):
+            utils.p(adata)
+        # utils.p(adata)
+        tasks_queue.add_task((write_author, (a_id, adata)))
+    except Exception as e:
+        utils.p(e)
+    utils.p('finish fetch')
+
+
+def get_author(r):
+    a_id = str(r['author']['id'])
+    preferences = bpy.context.preferences.addons['blenderkit'].preferences
+
+    authors = bpy.context.window_manager.get('bkit authors', {})
+    if authors == {}:
+        bpy.context.window_manager['bkit authors'] = authors
+    a = authors.get(a_id)
+    if a is None or a is '':
+        authors[a_id] = ''
+        thread = threading.Thread(target=fetch_author, args=(a_id, preferences.api_key), daemon=True)
+        thread.start()
+    return a
+
+
+def write_profile(adata):
+    utils.p('writing profile')
+    utils.p(adata.keys())
+    adata['user']['sumAssetFilesSize'] = str(round(adata['user']['sumAssetFilesSize'] / 1024 / 1024)) + ' Mb'
+    adata['user']['sumPrivateAssetFilesSize'] = str(
+        round(adata['user']['sumPrivateAssetFilesSize'] / 1024 / 1024)) + ' Mb'
+    adata['user']['remainingPrivateQuota'] = str(round(adata['user']['remainingPrivateQuota'] / 1024 / 1024)) + ' Mb'
+    bpy.context.window_manager['bkit profile'] = adata
+
+
+def fetch_profile(api_key):
+    utils.p('fetch profile')
+    try:
+        a_url = paths.get_api_url() + 'me/'
+        headers = utils.get_headers(api_key)
+        r = requests.get(a_url, headers=headers)
+        adata = r.json()
+        if not hasattr(adata, 'user'):
+            utils.p(adata)
+            utils.p('getting profile failed')
+            return
+        tasks_queue.add_task((write_profile, (adata,)))
+    except Exception as e:
+        utils.p(e)
+
+
+def get_profile():
+    preferences = bpy.context.preferences.addons['blenderkit'].preferences
+    a = bpy.context.window_manager.get('bkit profile')
+    if a is None:
+        thread = threading.Thread(target=fetch_profile, args=(preferences.api_key,), daemon=True)
+        thread.start()
+    return a
 
 
 class Searcher(threading.Thread):
@@ -561,10 +658,10 @@ class Searcher(threading.Thread):
             urlquery = url + requeststring
 
         try:
-            # print(urlquery)
+            # utils.p(urlquery)
             r = requests.get(urlquery, headers=headers)
             reports = ''
-            # print(r.text)
+            # utils.p(r.text)
         except requests.exceptions.RequestException as e:
             print(e)
             reports = e
@@ -596,7 +693,7 @@ class Searcher(threading.Thread):
 
         # print('number of results: ', len(rdata.get('results', [])))
         if self.stopped():
-            print('stopping search : ' + query['keywords'])
+            utils.p('stopping search : ' + query['keywords'])
             return
 
         mt('search finished')
@@ -607,7 +704,12 @@ class Searcher(threading.Thread):
         thumb_full_urls = []
         thumb_full_filepaths = []
         # END OF PARSING
+        getting_authors = {}
         for d in rdata.get('results', []):
+            if getting_authors.get(d['author']['id']) is None:
+                get_author(d)
+                getting_authors[d['author']['id']] = True
+
             for f in d['files']:
                 # TODO move validation of published assets to server, too manmy checks here.
                 if f['fileType'] == 'thumbnail' and f['fileThumbnail'] != None and f['fileThumbnailLarge'] != None:
@@ -650,7 +752,7 @@ class Searcher(threading.Thread):
         # TODO do the killing/ stopping here! remember threads might have finished inbetween!
 
         if self.stopped():
-            print('stopping search : ' + query['keywords'])
+            utils.p('stopping search : ' + query['keywords'])
             return
 
         # this loop handles downloading of small thumbnails
@@ -669,12 +771,12 @@ class Searcher(threading.Thread):
                         for tk, thread in threads_copy.items():
                             if not thread.is_alive():
                                 thread.join()
-                                # print(x)
+                                # utils.p(x)
                                 del (thumb_sml_download_threads[tk])
-                                # print('fetched thumbnail ', i)
+                                # utils.p('fetched thumbnail ', i)
                                 i += 1
         if self.stopped():
-            print('stopping search : ' + query['keywords'])
+            utils.p('stopping search : ' + query['keywords'])
             return
         idx = 0
         while len(thumb_sml_download_threads) > 0:
@@ -686,7 +788,7 @@ class Searcher(threading.Thread):
                     i += 1
 
         if self.stopped():
-            print('stopping search : ' + query['keywords'])
+            utils.p('stopping search : ' + query['keywords'])
             return
 
         # start downloading full thumbs in the end
@@ -842,7 +944,7 @@ def mt(text):
     alltime = time.time() - search_start_time
     since_last = time.time() - prev_time
     prev_time = time.time()
-    print(text, alltime, since_last)
+    utils.p(text, alltime, since_last)
 
 
 def add_search_process(query, params):
@@ -908,7 +1010,7 @@ def search(own=False, category='', get_next=False, free_only=False):
     if category != '':
         query['category'] = category
 
-    # print('searching')
+    # utils.p('searching')
     props.is_searching = True
 
     params = {
@@ -925,6 +1027,7 @@ def search(own=False, category='', get_next=False, free_only=False):
 
 
 def search_update(self, context):
+    utils.p('search updater')
     if self.search_keywords != '':
         search()
 

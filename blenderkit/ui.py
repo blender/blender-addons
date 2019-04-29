@@ -493,6 +493,7 @@ def draw_callback_2d_search(self, context):
     # background of asset bar
     if not ui_props.dragging:
         search_results = s.get('search results')
+        search_results_orig = s.get('search results orig')
         if search_results == None:
             return
         h_draw = min(ui_props.hcount, math.ceil(len(search_results) / ui_props.wcount))
@@ -524,7 +525,7 @@ def draw_callback_2d_search(self, context):
                                       ui_props.thumb_size,
                                       img,
                                       1)
-                if len(search_results) - ui_props.scrolloffset > (ui_props.wcount * ui_props.hcount):
+                if search_results_orig['count'] - ui_props.scrolloffset > (ui_props.wcount * ui_props.hcount):
                     if ui_props.active_index == -1:
                         ui_bgl.draw_rect(ui_props.bar_x + ui_props.bar_width - 25,
                                          ui_props.bar_y - ui_props.bar_height, 25,
@@ -913,8 +914,8 @@ class AssetBarOperator(bpy.types.Operator):
         default="", options={'SKIP_SAVE'})
 
     def search_more(self):
-        sro = bpy.context.scene.get('search results orig', {})
-        if sro.get('next') != None:
+        sro = bpy.context.scene.get('search results orig')
+        if sro is not None and sro.get('next') is not None:
             search.search(get_next=True)
 
     def exit_modal(self):
@@ -1311,6 +1312,13 @@ class AssetBarOperator(bpy.types.Operator):
             else:
                 return {'RUNNING_MODAL'}
 
+        if event.type == 'A' and ui_props.active_index != -3:
+            sr = bpy.context.scene['search results']
+            asset_data = sr[ui_props.active_index]
+            a = bpy.context.window_manager['bkit authors'].get(asset_data['author_id'])
+            if a is not None:
+                if a.get('aboutMeUrl') is not None:
+                    bpy.ops.wm.url_open(url=a['aboutMeUrl'])
         if event.type == 'X' and ui_props.active_index != -3:
             sr = bpy.context.scene['search results']
             asset_data = sr[ui_props.active_index]

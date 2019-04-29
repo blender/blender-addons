@@ -25,6 +25,7 @@ from urllib.parse import parse_qs, urlparse
 
 import requests
 import threading
+import blenderkit
 from blenderkit import tasks_queue, utils, paths
 
 CLIENT_ID = "IdFRwa3SGA8eMpzhRVFMg5Ts8sPK93xBjif93x0F"
@@ -99,8 +100,8 @@ def login_thread():
 def login():
     authenticator = SimpleOAuthAuthenticator(server_url=paths.get_bkit_url(), client_id=CLIENT_ID, ports=PORTS)
     auth_token, refresh_token = authenticator.get_new_token()
-    print('tokens retrieved')
-    tasks_queue.tasks_queue.put('blenderkit.oauth.write_tokens("%s", "%s")' % (auth_token, refresh_token))
+    utils.p('tokens retrieved')
+    tasks_queue.add_task((write_tokens , (auth_token, refresh_token)))
 
 
 def refresh_token_thread():
@@ -113,11 +114,12 @@ def refresh_token_thread():
 def refresh_token(api_key_refresh):
     authenticator = SimpleOAuthAuthenticator(server_url=paths.get_bkit_url(), client_id=CLIENT_ID, ports=PORTS)
     auth_token, refresh_token = authenticator.get_refreshed_token(api_key_refresh)
-    tasks_queue.tasks_queue.put('blenderkit.oauth.write_tokens("%s", "%s")' % (auth_token, refresh_token))
+    if auth_token is not None and refresh_token is not None:
+        tasks_queue.add_task((blenderkit.oauth.write_tokens , (auth_token, refresh_token)))
 
 
 def write_tokens(auth_token, refresh_token):
-    print('writing tokens?')
+    utils.p('writing tokens?')
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
     preferences.api_key = auth_token
     preferences.api_key_refresh = refresh_token
@@ -144,6 +146,25 @@ class RegisterLoginOnline(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class Logout(bpy.types.Operator):
+    """Bring linked object hierarchy to scene and make it editable."""
+
+    bl_idname = "wm.blenderkit_logout"
+    bl_label = "BlenderKit logout"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+        preferences = bpy.context.preferences.addons['blenderkit'].preferences
+        preferences.login_attempt = False
+        preferences.api_key_refresh = ''
+        preferences.api_key = ''
+        return {'FINISHED'}
+
+
 class CancelLoginOnline(bpy.types.Operator):
     """Cancel login attempt."""
 
@@ -163,6 +184,7 @@ class CancelLoginOnline(bpy.types.Operator):
 classess = (
     RegisterLoginOnline,
     CancelLoginOnline,
+    Logout,
 )
 
 

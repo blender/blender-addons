@@ -173,7 +173,6 @@ def load_prefs():
             prefs = json.load(s)
             user_preferences.api_key = prefs.get('API_key','')
             user_preferences.global_dir = prefs.get('global_dir', paths.default_global_dict())
-
             user_preferences.api_key_refresh = prefs.get('API_key_refresh','')
 
 def save_prefs(self, context):
@@ -268,6 +267,9 @@ def get_brush_props(context):
         return brush.blenderkit
     return None
 
+def p(text):
+    if bpy.app.debug != 0:
+        print(p)
 
 def pprint(data):
     print(json.dumps(data, indent=4, sort_keys=True))

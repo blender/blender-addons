@@ -44,7 +44,7 @@ def label_multiline(layout, text='', icon='NONE', width=-1):
     else:
         threshold = 35
     maxlines = 3
-    li =0
+    li = 0
     for l in lines:
         while len(l) > threshold:
             i = l.rfind(' ', 0, threshold)
@@ -54,10 +54,10 @@ def label_multiline(layout, text='', icon='NONE', width=-1):
             layout.label(text=l1, icon=icon)
             icon = 'NONE'
             l = l[i:]
-            li+=1
+            li += 1
             if li > maxlines:
                 break;
-        if li>maxlines:
+        if li > maxlines:
             break;
         layout.label(text=l, icon=icon)
         icon = 'NONE'
@@ -348,7 +348,7 @@ def draw_panel_scene_search(self, context):
     # layout.prop(props, "search_style")
     # if props.search_style == 'OTHER':
     #     layout.prop(props, "search_style_other")
-    #layout.prop(props, "search_engine")
+    # layout.prop(props, "search_engine")
     layout.separator()
     draw_panel_categories(self, context)
 
@@ -380,6 +380,45 @@ class VIEW3D_PT_blenderkit_model_properties(Panel):
 
         layout.operator('object.blenderkit_bring_to_scene', text='Bring to scene')
         # layout.operator('object.blenderkit_color_corrector')
+
+
+class VIEW3D_PT_blenderkit_profile(Panel):
+    bl_category = "BlenderKit"
+    bl_idname = "VIEW3D_PT_blenderkit_profile"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Profile"
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def draw(self, context):
+        # draw asset properties here
+        layout = self.layout
+        user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
+
+        if user_preferences.login_attempt:
+            layout.label(text='Login through browser')
+            layout.label(text='in progress.')
+            layout.operator("wm.blenderkit_login_cancel", text="Cancel", icon='CANCEL')
+            return
+
+        if len(user_preferences.api_key) < 20:
+            layout.operator("wm.blenderkit_login", text="Login/ Sign up",
+                            icon='URL')
+
+        else:
+            me = bpy.context.window_manager.get('bkit profile')
+            if me is not None:
+                me = me['user']
+                layout.label(text='User: %s %s' % (me['firstName'], me['lastName']))
+                layout.label(text='Email: %s' % (me['email']))
+                layout.label(text='Public assets sum: %s ' % (me['sumAssetFilesSize']))
+                layout.label(text='Private assets sum: %s ' % (me['sumPrivateAssetFilesSize']))
+                layout.label(text='Remaining private storage: %s' % (me['remainingPrivateQuota']))
+            layout.operator("wm.blenderkit_logout", text="Logout",
+                            icon='URL')
 
 
 def draw_panel_model_rating(self, context):
@@ -524,14 +563,14 @@ class VIEW3D_PT_blenderkit_unified(Panel):
 
         w = context.region.width
         if user_preferences.login_attempt:
-            layout.label(text = 'Login through browser')
-            layout.label(text = 'in progress.')
-            layout.operator("wm.blenderkit_login_cancel", text = "Cancel", icon = 'CANCEL')
+            layout.label(text='Login through browser')
+            layout.label(text='in progress.')
+            layout.operator("wm.blenderkit_login_cancel", text="Cancel", icon='CANCEL')
             return
 
-        if len(user_preferences.api_key) < 20 and user_preferences.asset_counter >-10:
+        if len(user_preferences.api_key) < 20 and user_preferences.asset_counter > 5:
             layout.operator("wm.blenderkit_login", text="Login/ Sign up",
-                                 icon='URL')
+                            icon='URL')
             # layout.label(text='Paste your API Key:')
             # layout.prop(user_preferences, 'api_key', text='')
             layout.separator()
@@ -759,7 +798,7 @@ classess = (
     VIEW3D_PT_blenderkit_unified,
     VIEW3D_PT_blenderkit_model_properties,
     VIEW3D_PT_blenderkit_downloads,
-
+    VIEW3D_PT_blenderkit_profile
 )
 
 
