@@ -1,13 +1,22 @@
 import bpy
+from bpy.app.handlers import persistent
 
 import queue
 
 from blenderkit import utils
 
+@persistent
+def scene_load(context):
+    if not(bpy.app.timers.is_registered(queue_worker)):
+        bpy.app.timers.register(queue_worker)
+
 def get_queue():
-    if not hasattr(bpy.types.VIEW3D_PT_blenderkit_unified, 'task_queue'):
-        bpy.types.VIEW3D_PT_blenderkit_unified.task_queue = queue.Queue()
-    return bpy.types.VIEW3D_PT_blenderkit_unified.task_queue
+    # we pick just a random one of blender types, to try to get a persistent queue
+    t = bpy.types.Scene
+
+    if not hasattr(t, 'task_queue'):
+        t.task_queue = queue.Queue()
+    return t.task_queue
 
 
 def add_task(task):
@@ -15,12 +24,12 @@ def add_task(task):
     q.put(task)
 
 
-def every_2_seconds():
+def queue_worker():
     q = get_queue()
-
+    utils.p('queue timer')
     while not q.empty():
         utils.p('as a task:   ')
-        q = bpy.types.VIEW3D_PT_blenderkit_unified.task_queue
+        print('window manager', bpy.context.window_manager)
         task = q.get()
         try:
             task[0](*task[1])
@@ -31,8 +40,10 @@ def every_2_seconds():
 
 
 def register():
-    bpy.app.timers.register(every_2_seconds)
+    bpy.app.handlers.load_post.append(scene_load)
+
 
 
 def unregister():
-    bpy.app.timers.unregister(every_2_seconds)
+    bpy.app.handlers.load_post.remove(scene_load)
+

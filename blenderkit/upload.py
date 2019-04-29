@@ -445,6 +445,7 @@ def get_upload_data(self, context, asset_type):
         upload_data["category"] = props.subcategory
     upload_data["license"] = props.license
     upload_data["isFree"] = props.is_free
+    upload_data["isPrivate"] = props.is_private
     upload_data["token"] = user_preferences.api_key
 
     if props.asset_base_id != '':
@@ -570,6 +571,7 @@ def start_upload(self, context, asset_type, as_new, metadata_only):
         try:
             r = requests.post(url, json=json_metadata, headers=headers, verify=True)  # files = files,
             props.upload_state = 'uploaded metadata'
+            utils.p(r.text)
         except requests.exceptions.RequestException as e:
             print(e)
             props.upload_state = str(e)
@@ -591,6 +593,7 @@ def start_upload(self, context, asset_type, as_new, metadata_only):
             props.upload_state = str(e)
             props.uploading = False
             return {'CANCELLED'}
+
 
     # props.upload_state = 'step 1'
     if metadata_only:

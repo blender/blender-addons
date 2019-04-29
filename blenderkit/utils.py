@@ -267,15 +267,18 @@ def get_brush_props(context):
         return brush.blenderkit
     return None
 
-def p(text):
-    if bpy.app.debug != 0:
-        print(p)
+def p(text,text1 = '',text2 = '',text3 = '',text4 = '',text5 = ''):
+    '''debug printing depending on blender's debug value'''
+    if bpy.app.debug_value != 0:
+        print(text, text1, text2, text3, text4,text5)
 
 def pprint(data):
+    '''pretty print jsons'''
     print(json.dumps(data, indent=4, sort_keys=True))
 
 
 def get_hierarchy(ob):
+    '''get all objects in a tree'''
     obs = []
     doobs = [ob]
     while len(doobs) > 0:

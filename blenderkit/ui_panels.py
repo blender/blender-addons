@@ -134,7 +134,9 @@ def draw_upload_common(layout, props, asset_type, context):
     if asset_type == 'MODEL' and props.subcategory != '':  # by now block this for other asset types.
         layout.prop(props, 'subcategory')
 
+    layout.prop(props, 'is_private')
     layout.prop(props, 'license')
+
 
 
 def poll_local_panels():
@@ -414,9 +416,11 @@ class VIEW3D_PT_blenderkit_profile(Panel):
                 me = me['user']
                 layout.label(text='User: %s %s' % (me['firstName'], me['lastName']))
                 layout.label(text='Email: %s' % (me['email']))
-                layout.label(text='Public assets sum: %s ' % (me['sumAssetFilesSize']))
-                layout.label(text='Private assets sum: %s ' % (me['sumPrivateAssetFilesSize']))
+                layout.label(text='Public assets: %s ' % (me['sumAssetFilesSize']))
+                layout.label(text='Private assets: %s ' % (me['sumPrivateAssetFilesSize']))
                 layout.label(text='Remaining private storage: %s' % (me['remainingPrivateQuota']))
+            layout.operator("wm.url_open", text="See my uploads",
+                            icon='URL').url = paths.BLENDERKIT_USER_ASSETS
             layout.operator("wm.blenderkit_logout", text="Logout",
                             icon='URL')
 
@@ -621,9 +625,7 @@ class VIEW3D_PT_blenderkit_unified(Panel):
                     label_multiline(layout, text='switch to paint or sculpt mode.', width=context.region.width)
                     return
 
-            # blocking this now. It became terribly slow.
-            layout.operator("wm.url_open", text="See my uploads",
-                            icon='URL').url = paths.BLENDERKIT_USER_ASSETS
+
         elif ui_props.down_up == 'UPLOAD':
             if not ui_props.assetbar_on:
                 text = 'Show asset preview - ;'

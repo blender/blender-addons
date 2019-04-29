@@ -560,7 +560,7 @@ def write_profile(adata):
     adata['user']['sumAssetFilesSize'] = str(round(adata['user']['sumAssetFilesSize'] / 1024 / 1024)) + ' Mb'
     adata['user']['sumPrivateAssetFilesSize'] = str(
         round(adata['user']['sumPrivateAssetFilesSize'] / 1024 / 1024)) + ' Mb'
-    adata['user']['remainingPrivateQuota'] = str(round(adata['user']['remainingPrivateQuota'] / 1024 / 1024)) + ' Mb'
+    adata['user']['remainingPrivateQuota'] = str(max(0,round(adata['user']['remainingPrivateQuota'] / 1024 / 1024))) + ' Mb'
     bpy.context.window_manager['bkit profile'] = adata
 
 
@@ -571,7 +571,7 @@ def fetch_profile(api_key):
         headers = utils.get_headers(api_key)
         r = requests.get(a_url, headers=headers)
         adata = r.json()
-        if not hasattr(adata, 'user'):
+        if adata.get('user') is None:
             utils.p(adata)
             utils.p('getting profile failed')
             return

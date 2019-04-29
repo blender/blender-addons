@@ -449,6 +449,10 @@ class BlenderKitCommonUploadProps(object):
         default='royalty_free',
         description='License. Please read our help for choosing the right licenses',
     )
+    is_private: BoolProperty(name="Asset is Private",
+                          description="If not marked private, your asset will go into the validation process automatically\n"
+                                      "Private assets are limited by quota.",
+                          default=False)
 
     is_free: BoolProperty(name="Free for Everyone",
                           description="You consent you want to release this asset as free for everyone",
@@ -1405,12 +1409,12 @@ def register():
     ui.register_ui()
     ui_panels.register_ui_panels()
     bg_blender.register()
-    bpy.app.handlers.load_post.append(scene_load)
     utils.load_prefs()
     overrides.register_overrides()
     oauth.register()
     tasks_queue.register()
 
+    bpy.app.handlers.load_post.append(scene_load)
 
 def unregister():
 
@@ -1439,3 +1443,5 @@ def unregister():
 
     for cls in classes:
         bpy.utils.unregister_class(cls)
+
+    bpy.app.handlers.load_post.remove(scene_load)
