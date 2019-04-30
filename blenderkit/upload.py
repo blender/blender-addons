@@ -22,11 +22,12 @@ if "bpy" in locals():
     imp.reload(asset_inspector)
     imp.reload(paths)
     imp.reload(utils)
+    imp.reload(search)
     imp.reload(bg_blender)
     imp.reload(autothumb)
     imp.reload(version_checker)
 else:
-    from blenderkit import asset_inspector, paths, utils, bg_blender, autothumb, version_checker
+    from blenderkit import asset_inspector, paths, utils, bg_blender, autothumb, version_checker, search
 
 import tempfile, os, subprocess, json, re
 
@@ -500,9 +501,32 @@ def get_upload_location(props):
         return None
     return None
 
+def check_storage_quota(props):
+    if not props.is_private:
+        return True
+
+    profile = bpy.context.window_manager.get('bkit profile')
+    if profile is None or profile.get('remainingPrivateQuota') is None:
+        preferences = bpy.context.preferences.addons['blenderkit'].preferences
+        adata = search.request_profile(preferences.api_key)
+        if adata is None:
+            props.report = 'User profile not retrieved.'
+            return False
+        search.write_profile(adata)
+        profile = adata
+    print(profile.keys())
+    if profile['user'].get('remainingPrivateQuota')>0:
+        return True
+    props.report = 'Private storage quota exceeded.'
+    return False
 
 def start_upload(self, context, asset_type, as_new, metadata_only):
     props = utils.get_upload_props()
+    storage_quota_ok = check_storage_quota(props)
+    if not storage_quota_ok:
+        self.report({'ERROR_INVALID_INPUT'}, props.report)
+        return {'CANCELLED'}
+
     location = get_upload_location(props)
     props.upload_state = 'preparing upload'
     # do this for fixing long tags in some upload cases

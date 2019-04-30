@@ -64,8 +64,8 @@ def check_errors(rdata):
     if rdata.get('statusCode') == 401:
         if rdata.get('detail') == 'Invalid token.':
             # reset the api key, so it can be requested again.
-            user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
-            user_preferences.api_key = ''
+            # user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
+            # user_preferences.api_key = ''
             return False, 'Missing or wrong api_key in addon preferences'
     return True, ''
 
@@ -448,6 +448,7 @@ def generate_tooltip(mdata):
 
     return t
 
+
 def get_random_tip():
     if at == 'brush' or at == 'texture':
         t += 'click to link %s' % mdata['assetType']
@@ -458,6 +459,7 @@ def get_random_tip():
                 ]
         tip = 'Tip: ' + random.choice(tips)
         t = writeblock(t, tip)
+
 
 def generate_author_textblock(adata):
     t = ''
@@ -542,7 +544,6 @@ def fetch_author(a_id, api_key):
 def get_author(r):
     a_id = str(r['author']['id'])
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
-
     authors = bpy.context.window_manager.get('bkit authors', {})
     if authors == {}:
         bpy.context.window_manager['bkit authors'] = authors
@@ -557,25 +558,34 @@ def get_author(r):
 def write_profile(adata):
     utils.p('writing profile')
     utils.p(adata.keys())
-    adata['user']['sumAssetFilesSize'] = str(round(adata['user']['sumAssetFilesSize'] / 1024 / 1024)) + ' Mb'
-    adata['user']['sumPrivateAssetFilesSize'] = str(
-        round(adata['user']['sumPrivateAssetFilesSize'] / 1024 / 1024)) + ' Mb'
-    adata['user']['remainingPrivateQuota'] = str(max(0,round(adata['user']['remainingPrivateQuota'] / 1024 / 1024))) + ' Mb'
+    print(adata)
+    user = adata['user']
+    # we have to convert to MB here, numbers too big for python int type
+    user['sumAssetFilesSize'] /= (1024 * 1024)
+    user['sumPrivateAssetFilesSize'] /= (1024 * 1024)
+    user['remainingPrivateQuota'] /= (1024 * 1024)
+
     bpy.context.window_manager['bkit profile'] = adata
+
+
+def request_profile(api_key):
+    a_url = paths.get_api_url() + 'me/'
+    headers = utils.get_headers(api_key)
+    r = requests.get(a_url, headers=headers)
+    adata = r.json()
+    if adata.get('user') is None:
+        utils.p(adata)
+        utils.p('getting profile failed')
+        return None
+    return adata
 
 
 def fetch_profile(api_key):
     utils.p('fetch profile')
     try:
-        a_url = paths.get_api_url() + 'me/'
-        headers = utils.get_headers(api_key)
-        r = requests.get(a_url, headers=headers)
-        adata = r.json()
-        if adata.get('user') is None:
-            utils.p(adata)
-            utils.p('getting profile failed')
-            return
-        tasks_queue.add_task((write_profile, (adata,)))
+        adata = request_profile(api_key)
+        if adata is not None:
+            tasks_queue.add_task((write_profile, (adata,)))
     except Exception as e:
         utils.p(e)
 

@@ -425,7 +425,6 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
         else:
             target_object.material_slots[kwargs['material_target_slot']].material = material
 
-        props = material.blenderkit
         parent = material
 
     parent['asset_data'] = asset_data  # TODO remove this??? should write to blenderkit Props?

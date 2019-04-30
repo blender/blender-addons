@@ -128,15 +128,15 @@ def draw_upload_common(layout, props, asset_type, context):
             row = layout.row()
 
             row.prop(props, 'asset_base_id', icon='FILE_TICK')
-        layout.operator("object.blenderkit_mark_for_validation", icon='EXPORT')
+        # layout.operator("object.blenderkit_mark_for_validation", icon='EXPORT')
 
     layout.prop(props, 'category')
     if asset_type == 'MODEL' and props.subcategory != '':  # by now block this for other asset types.
         layout.prop(props, 'subcategory')
 
     layout.prop(props, 'is_private')
-    layout.prop(props, 'license')
-
+    if not props.is_private:
+        layout.prop(props, 'license')
 
 
 def poll_local_panels():
@@ -416,9 +416,10 @@ class VIEW3D_PT_blenderkit_profile(Panel):
                 me = me['user']
                 layout.label(text='User: %s %s' % (me['firstName'], me['lastName']))
                 layout.label(text='Email: %s' % (me['email']))
-                layout.label(text='Public assets: %s ' % (me['sumAssetFilesSize']))
-                layout.label(text='Private assets: %s ' % (me['sumPrivateAssetFilesSize']))
-                layout.label(text='Remaining private storage: %s' % (me['remainingPrivateQuota']))
+                if me.get('sumAssetFilesSize') is not None:  # TODO remove this when production server has these too.
+                    layout.label(text='Public assets: %i Mb' % (me['sumAssetFilesSize']))
+                    layout.label(text='Private assets: %i Mb' % (me['sumPrivateAssetFilesSize']))
+                    layout.label(text='Remaining private storage: %i Mb' % (me['remainingPrivateQuota']))
             layout.operator("wm.url_open", text="See my uploads",
                             icon='URL').url = paths.BLENDERKIT_USER_ASSETS
             layout.operator("wm.blenderkit_logout", text="Logout",

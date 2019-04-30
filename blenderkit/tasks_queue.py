@@ -5,10 +5,12 @@ import queue
 
 from blenderkit import utils
 
+
 @persistent
 def scene_load(context):
-    if not(bpy.app.timers.is_registered(queue_worker)):
+    if not (bpy.app.timers.is_registered(queue_worker)):
         bpy.app.timers.register(queue_worker)
+
 
 def get_queue():
     # we pick just a random one of blender types, to try to get a persistent queue
@@ -26,11 +28,12 @@ def add_task(task):
 
 def queue_worker():
     q = get_queue()
-    utils.p('queue timer')
+    # utils.p('queue timer')
     while not q.empty():
         utils.p('as a task:   ')
         print('window manager', bpy.context.window_manager)
         task = q.get()
+        utils.p(task)
         try:
             task[0](*task[1])
         except Exception as e:
@@ -43,7 +46,5 @@ def register():
     bpy.app.handlers.load_post.append(scene_load)
 
 
-
 def unregister():
     bpy.app.handlers.load_post.remove(scene_load)
-
