@@ -176,8 +176,10 @@ class VIEW3D_PT_PanelLinkedEdit(bpy.types.Panel):
         layout.prop(scene, "use_instance")
 
     def draw(self, context: bpy.context):
-        layout = self.layout
         scene = context.scene
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
         icon = "OUTLINER_DATA_" + context.active_object.type
 
         target = None
