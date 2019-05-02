@@ -61,9 +61,9 @@ looptools_cache = {}
 
 
 def get_grease_pencil(object, context):
-    gp = object.grease_pencil
+    gp = bpy.data.grease_pencils
     if not gp:
-        gp = context.scene.grease_pencil
+        gp = context.view_layers.grease_pencils
     return gp
 
 
@@ -2792,7 +2792,9 @@ def gstretch_erase_stroke(stroke, context):
     if erase_stroke:
         erase_stroke[0]['is_start'] = True
     #bpy.ops.gpencil.draw(mode='ERASER', stroke=erase_stroke)
-    bpy.ops.gpencil.layer_remove()
+    bpy.ops.gpencil.data_unlink()
+
+
 
 # get point on stroke, given by relative distance (0.0 - 1.0)
 def gstretch_eval_stroke(stroke, distance, stroke_lengths_cache=False):
@@ -2841,13 +2843,13 @@ def gstretch_get_strokes(object, context):
     gp = get_grease_pencil(object, context)
     if not gp:
         return(None)
-    layer = gp.layers.active
+    layer = context.active_gpencil_layer
     if not layer:
         return(None)
-    frame = layer.active_frame
+    frame = context.active_gpencil_frame
     if not frame:
         return(None)
-    strokes = frame.strokes
+    strokes = context.editable_gpencil_strokes
     if len(strokes) < 1:
         return(None)
 
