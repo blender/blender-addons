@@ -161,7 +161,7 @@ class VIEW3D_PT_PanelLinkedEdit(bpy.types.Panel):
     bl_label = "Edit Linked Library"
     bl_space_type = "VIEW_3D"
     bl_region_type = 'UI'
-    bl_category = "View"
+    bl_category = "Item"
     bl_context = 'objectmode'
 
     @classmethod
