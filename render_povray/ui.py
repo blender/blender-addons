@@ -24,7 +24,10 @@ import os #really import here and in render.py?
 from os.path import isfile
 from bl_operators.presets import AddPresetBase
 from bpy.utils import register_class, unregister_class
-
+from bpy.types import (
+        Operator,
+        UIList        
+        )
 # Example of wrapping every class 'as is'
 from bl_ui import properties_output
 for member in dir(properties_output):
@@ -69,7 +72,7 @@ class POV_WORLD_MT_presets(bpy.types.Menu):
     draw = bpy.types.Menu.draw_preset
 
 
-class AddPresetWorld(AddPresetBase, bpy.types.Operator):
+class AddPresetWorld(AddPresetBase, Operator):
     '''Add a World Preset'''
     bl_idname = "object.world_preset_add"
     bl_label = "Add World Preset"
@@ -528,7 +531,7 @@ class POV_LIGHT_MT_presets(bpy.types.Menu):
     draw = bpy.types.Menu.draw_preset
 
 
-class AddPresetLamp(AddPresetBase, bpy.types.Operator):
+class AddPresetLamp(AddPresetBase, Operator):
     '''Add a Lamp Preset'''
     bl_idname = "object.light_preset_add"
     bl_label = "Add Lamp Preset"
@@ -941,7 +944,7 @@ class POV_RADIOSITY_MT_presets(bpy.types.Menu):
     draw = bpy.types.Menu.draw_preset
 
 
-class AddPresetRadiosity(AddPresetBase, bpy.types.Operator):
+class AddPresetRadiosity(AddPresetBase, Operator):
     '''Add a Radiosity Preset'''
     bl_idname = "scene.radiosity_preset_add"
     bl_label = "Add Radiosity Preset"
@@ -1073,7 +1076,7 @@ class MATERIAL_MT_POV_sss_presets(bpy.types.Menu):
     preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
 
-class AddPresetSSS(AddPresetBase, bpy.types.Operator):
+class AddPresetSSS(AddPresetBase, Operator):
     '''Add an SSS Preset'''
     bl_idname = "material.sss_preset_add"
     bl_label = "Add SSS Preset"
@@ -2229,7 +2232,7 @@ class CAMERA_PT_povray_replacement_text(CameraDataButtonsPanel, bpy.types.Panel)
 # Text Povray Settings
 ###############################################################################
 
-class TEXT_OT_povray_insert(bpy.types.Operator):
+class TEXT_OT_povray_insert(Operator):
     """Tooltip"""
     bl_idname = "text.povray_insert"
     bl_label = "Insert"
@@ -2339,11 +2342,33 @@ def menu_func_templates(self, context):
     # Do not depend on POV-Ray being active renderer here...
     self.layout.menu("TEXT_MT_templates_pov")
 
+class WORLD_TEXTURE_SLOTS_UL_List(UIList):
+    """Texture Slots UIList."""
+
+
+    def draw_item(self, context, layout, world, item, icon, active_data,
+                  world_texture_list_index, index):
+        world = context.world#.pov
+        active_data = world.pov
+        #tex = context.texture #may be needed later?
+        
+        
+        # We could write some code to decide which icon to use here...
+        custom_icon = 'TEXTURE'
+
+        # Make sure your code supports all 3 layout types
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.label(item.name, icon = custom_icon)
+
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label("", icon = custom_icon)
 
 classes = (
     WORLD_PT_POV_world,
     POV_WORLD_MT_presets,
     AddPresetWorld,
+    WORLD_TEXTURE_SLOTS_UL_List,
     #RenderButtonsPanel,
     #ModifierButtonsPanel,
     #MaterialButtonsPanel,
