@@ -52,8 +52,10 @@ def make_constraint(
     """
     con = owner.constraints.new(type)
 
-    if target is not None and subtarget is not None:
+    if target is not None and hasattr(con, 'target'):
         con.target = target
+
+    if subtarget is not None:
         con.subtarget = subtarget
 
     if space is not None:
@@ -130,10 +132,12 @@ def _init_driver_target(drv_target, var_info, target_id):
 
     else:
         # { 'id': ..., ... }
+        target_id = var_info.get('id', target_id)
+
         if target_id is not None:
             drv_target.id = target_id
 
-        for tp, tv in tdata.items():
+        for tp, tv in var_info.items():
             setattr(drv_target, tp, tv)
 
 
@@ -236,6 +240,29 @@ def make_driver(owner, prop, *, index=-1, type='SUM', expression=None, variables
             drv_modifier.coefficients[i] = v
 
     return fcu
+
+
+def driver_var_transform(target, bone=None, *, type='LOC_X', space='WORLD'):
+    """
+    Create a Transform Channel driver variable specification.
+
+    Usage:
+        make_driver(..., variables=[driver_var_transform(...)])
+    """
+
+    assert space in {'WORLD', 'TRANSFORM', 'LOCAL'}
+
+    target_map = {
+        'id': target,
+        'transform_type': type,
+        'transform_space': space + '_SPACE',
+    }
+
+    if bone is not None:
+        target_map['bone_target'] = bone
+
+    return { 'type': 'TRANSFORMS', 'targets': [ target_map ] }
+
 
 #=============================================
 # Utility mixin
