@@ -159,7 +159,7 @@ class BlenderScene():
 
         # Make first root object the new active one
         if list_nodes is not None:
-            bpy.context.scene.objects.active = bpy.data.objects[gltf.data.nodes[list_nodes[0]].blender_object]
+            bpy.context.view_layer.objects.active = bpy.data.objects[gltf.data.nodes[list_nodes[0]].blender_object]
 
     @staticmethod
     def get_root_nodes(gltf):
