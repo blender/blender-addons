@@ -286,4 +286,6 @@ class MechanismUtilityMixin(object):
 
     def make_driver(self, owner, prop, **args):
         assert(self.obj.mode == 'OBJECT')
+        if isinstance(owner, str):
+            owner = self.obj.pose.bones[owner]
         return make_driver(owner, prop, target_id=self.obj, **args)
