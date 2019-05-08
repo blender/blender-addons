@@ -36,6 +36,7 @@ BLENDERKIT_SETTINGS_FILENAME = os.path.join(_presets, "bkit.json")
 
 
 def get_bkit_url():
+    # bpy.app.debug_value = 2
     d = bpy.app.debug_value
     # d = 2
     if d == 1:

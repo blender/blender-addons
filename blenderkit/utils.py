@@ -171,34 +171,36 @@ def load_prefs():
     if os.path.exists(fpath):
         with open(fpath, 'r') as s:
             prefs = json.load(s)
-            user_preferences.api_key = prefs.get('API_key','')
+            user_preferences.api_key = prefs.get('API_key', '')
             user_preferences.global_dir = prefs.get('global_dir', paths.default_global_dict())
-            user_preferences.api_key_refresh = prefs.get('API_key_refresh','')
+            user_preferences.api_key_refresh = prefs.get('API_key_refresh', '')
+
 
 def save_prefs(self, context):
-    # print(type(context),type(bpy.context))
+    # first check context, so we don't do this on registration or blender startup
     if not bpy.app.background and hasattr(bpy.context, 'view_layer'):
         user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
-        if user_preferences.api_key != '':
-            #we test the api key for lenght, so not a random accidentaly typed sequence gets saved.
-            if len(user_preferences.api_key)>25:
+        # we test the api key for lenght, so not a random accidentaly typed sequence gets saved.
+        lk = len(user_preferences.api_key)
+        if 0 < lk < 25:
+            # reset the api key in case the user writes some nonsense, e.g. a search string instead of the Key
+            user_preferences.api_key = ''
+            props = get_search_props()
+            props.report = 'Login failed. Please paste a correct API Key.'
 
-                prefs = {
-                    'API_key': user_preferences.api_key,
-                    'API_key_refresh': user_preferences.api_key_refresh,
-                    'global_dir': user_preferences.global_dir,
-                }
-                # user_preferences.api_key = user_preferences.api_key.strip()
-                fpath = paths.BLENDERKIT_SETTINGS_FILENAME
-                f = open(fpath, 'w')
-                with open(fpath, 'w') as s:
-                    json.dump(prefs, s)
-                bpy.ops.wm.save_userpref()
-            else:
-                # reset the api key in case the user writes some nonsense, e.g. a search string instead of the Key
-                user_preferences.api_key = ''
-                props = get_search_props()
-                props.report = 'Login failed. Please paste a correct API Key.'
+        prefs = {
+            'API_key': user_preferences.api_key,
+            'API_key_refresh': user_preferences.api_key_refresh,
+            'global_dir': user_preferences.global_dir,
+        }
+        # user_preferences.api_key = user_preferences.api_key.strip()
+        fpath = paths.BLENDERKIT_SETTINGS_FILENAME
+        f = open(fpath, 'w')
+        with open(fpath, 'w') as s:
+            json.dump(prefs, s)
+        bpy.ops.wm.save_userpref()
+
+
 
 def load_categories():
     categories.copy_categories()
@@ -267,10 +269,12 @@ def get_brush_props(context):
         return brush.blenderkit
     return None
 
-def p(text,text1 = '',text2 = '',text3 = '',text4 = '',text5 = ''):
+
+def p(text, text1='', text2='', text3='', text4='', text5=''):
     '''debug printing depending on blender's debug value'''
-    if bpy.app.debug_value != 0:
-        print(text, text1, text2, text3, text4,text5)
+    if bpy.app.debug_value != 10:
+        print(text, text1, text2, text3, text4, text5)
+
 
 def pprint(data):
     '''pretty print jsons'''

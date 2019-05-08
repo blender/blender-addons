@@ -501,6 +501,7 @@ def get_upload_location(props):
         return None
     return None
 
+
 def check_storage_quota(props):
     if not props.is_private:
         return True
@@ -514,11 +515,12 @@ def check_storage_quota(props):
             return False
         search.write_profile(adata)
         profile = adata
-    print(profile.keys())
-    if profile['user'].get('remainingPrivateQuota')>0:
+    quota = profile['user'].get('remainingPrivateQuota')
+    if quota is None or quota > 0:
         return True
     props.report = 'Private storage quota exceeded.'
     return False
+
 
 def start_upload(self, context, asset_type, as_new, metadata_only):
     props = utils.get_upload_props()
@@ -618,7 +620,6 @@ def start_upload(self, context, asset_type, as_new, metadata_only):
             props.uploading = False
             return {'CANCELLED'}
 
-
     # props.upload_state = 'step 1'
     if metadata_only:
         props.uploading = False
@@ -717,7 +718,7 @@ class ModelUploadOperator(Operator):
             self.metadata_only = False
             props.name_changed = False
 
-        result =    start_upload(self, context, self.asset_type, self.as_new, self.metadata_only)
+        result = start_upload(self, context, self.asset_type, self.as_new, self.metadata_only)
 
         return result
 

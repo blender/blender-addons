@@ -331,6 +331,8 @@ def writeblockm(tooltip, mdata, key='', pretext=None):  # for longer texts
         intext = mdata[key]
         if type(intext) == list:
             intext = list_to_str(intext)
+        if type(intext) == float:
+            intext = round(intext,3)
         intext = str(intext)
         if intext.rstrip() == '':
             return tooltip
@@ -419,7 +421,7 @@ def generate_tooltip(mdata):
     # t = writeblockm(t, mparams, key='shaders')
 
     if has(mparams, 'textureSizeMeters'):
-        t = writeblockm(t, mparams, key='textureSizeMeters', pretext='texture size in meters')
+        t += 'texture size: %s\n' % fmt_length(mparams['textureSizeMeters'])
 
     if has(mparams, 'textureResolutionMax') and mparams['textureResolutionMax'] > 0:
         if mparams['textureResolutionMin'] == mparams['textureResolutionMax']:
@@ -668,7 +670,7 @@ class Searcher(threading.Thread):
             urlquery = url + requeststring
 
         try:
-            # utils.p(urlquery)
+            utils.p(urlquery)
             r = requests.get(urlquery, headers=headers)
             reports = ''
             # utils.p(r.text)

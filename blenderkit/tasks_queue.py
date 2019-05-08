@@ -28,7 +28,6 @@ def add_task(task):
 
 def queue_worker():
     q = get_queue()
-    # utils.p('queue timer')
     while not q.empty():
         utils.p('as a task:   ')
         print('window manager', bpy.context.window_manager)
@@ -48,3 +47,5 @@ def register():
 
 def unregister():
     bpy.app.handlers.load_post.remove(scene_load)
+
+

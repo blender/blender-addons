@@ -119,13 +119,12 @@ def refresh_token(api_key_refresh):
 
 
 def write_tokens(auth_token, refresh_token):
-    utils.p('writing tokens?')
+    utils.p('writing tokens')
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
-    preferences.api_key = auth_token
     preferences.api_key_refresh = refresh_token
+    preferences.api_key = auth_token
     preferences.login_attempt = False
     props = utils.get_search_props()
-    search.get_profile()
     props.report = 'Login success!'
     search.get_profile()
 

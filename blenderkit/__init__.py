@@ -1235,7 +1235,6 @@ class BlenderKitAddonPreferences(AddonPreferences):
         description="API key used to refresh the token regularly.",
         default="",
         subtype="PASSWORD",
-        update=utils.save_prefs
     )
 
     login_attempt: BoolProperty(
