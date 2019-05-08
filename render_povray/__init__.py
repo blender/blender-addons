@@ -68,8 +68,6 @@ else:
 
 def string_strip_hyphen(name):
     return name.replace("-", "")
-
-
 ###############################################################################
 # Scene POV properties.
 ###############################################################################
@@ -295,6 +293,18 @@ class RenderPovSettingsScene(PropertyGroup):
                         "sampling. Antialias Gamma sets the Gamma before "
                         "comparison",
             min=0.0, max=5.0, soft_min=0.01, soft_max=2.5, default=2.5)
+
+    alpha_mode: EnumProperty(
+            name="Alpha",
+            description="Representation of alpha information in the RGBA pixels",
+            items=(("SKY", "Sky", "Transparent pixels are filled with sky color"),
+                   ("TRANSPARENT", "Transparent", "Transparent, World background is transparent with premultiplied alpha")),
+            default="SKY")
+
+    use_shadows: BoolProperty(
+            name="Shadows",
+            description="Calculate shadows while rendering",
+            default=True)
 
     max_trace_level: IntProperty(
             name="Max Trace Level",
@@ -705,10 +715,10 @@ class RenderPovSettingsMaterial(PropertyGroup):
             description="How intense (bright) the specular reflection is",
             min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default=0.5, precision=3)
 
-    # specular_ior: FloatProperty(
-            # name="IOR",
-            # description="Specular index of refraction",
-            # min=-10.0, max=10.0, soft_min=0.0, soft_max=10.0, default=1.0, precision=3)
+    specular_ior: FloatProperty(
+            name="IOR",
+            description="Specular index of refraction",
+            min=-10.0, max=10.0, soft_min=0.0, soft_max=10.0, default=1.0, precision=3)
             
     # ior: FloatProperty(
             # name="IOR",
@@ -3559,7 +3569,16 @@ class RenderPovSettingsCamera(PropertyGroup):
             description="Type the declared name in custom POV code or an external .inc "
                         "it points at. camera {} expected",
             default="")
-
+###############################################################################
+# Light POV properties.
+###############################################################################
+class RenderPovSettingsLight(PropertyGroup):
+    shadow_method: EnumProperty(
+                name="Shadow",
+                description="",
+                items=(("NOSHADOW", "No Shadow", "No Shadow"),
+                       ("RAY_SHADOW", "Ray Shadow", "Ray Shadow, Use ray tracing for shadow")),
+                default="RAY_SHADOW")
 ###############################################################################
 # World POV properties.
 ###############################################################################
@@ -3714,6 +3733,7 @@ class PovrayPreferences(AddonPreferences):
 classes = (
     PovrayPreferences,
     RenderPovSettingsCamera,
+    RenderPovSettingsLight,    
     RenderPovSettingsWorld,
     WorldTextureSlot,
     RenderPovSettingsMaterial,
@@ -3761,6 +3781,7 @@ def register():
     bpy.types.Texture.pov = PointerProperty(type=RenderPovSettingsTexture)
     bpy.types.Object.pov = PointerProperty(type=RenderPovSettingsObject)
     bpy.types.Camera.pov = PointerProperty(type=RenderPovSettingsCamera)
+    bpy.types.Light.pov = PointerProperty(type=RenderPovSettingsLight)
     bpy.types.World.pov = PointerProperty(type=RenderPovSettingsWorld)
     bpy.types.World.texture_slots = CollectionProperty(type = WorldTextureSlot)
     bpy.types.Text.pov = PointerProperty(type=RenderPovSettingsText)
@@ -3776,6 +3797,7 @@ def unregister():
     del bpy.types.Texture.pov
     del bpy.types.Object.pov
     del bpy.types.Camera.pov
+    del bpy.types.Light.pov
     del bpy.types.World.pov    
     del bpy.types.Text.pov
     nodeitems_utils.unregister_node_categories("POVRAYNODES")

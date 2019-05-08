@@ -654,8 +654,8 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("jitter\n")
 
             # No shadow checked either at global or light level:
-            if(not scene.render.use_shadows or
-               (lamp.shadow_method == 'NOSHADOW')):
+            if(not scene.pov.use_shadows or
+               (lamp.pov.shadow_method == 'NOSHADOW')):
                 tabWrite("shadowless\n")
 
             # Sun shouldn't be attenuated. Area lights have no falloff attribute so they
@@ -3278,7 +3278,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 tabWrite("}\n")
 
     def exportWorld(world):
-        render = scene.render
+        render = scene.pov
         camera = scene.camera
         matrix = global_matrix @ camera.matrix_world
         if not world:
