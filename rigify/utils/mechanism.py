@@ -179,10 +179,10 @@ def make_driver(owner, prop, *, index=-1, type='SUM', expression=None, variables
 
     Specification format:
         If the variables argument is a dictionary, keys specify variable names.
-        Otherwise names are set to var0, var1... etc:
+        Otherwise names are set to var, var1, var2, ... etc:
 
           variables = [ ..., ..., ... ]
-          variables = { 'var0': ..., 'var1': ..., 'var2': ... }
+          variables = { 'var': ..., 'var1': ..., 'var2': ... }
 
         Variable specifications are constructed as nested dictionaries and lists that
         follow the property structure of the original Blender objects, but the most
@@ -226,7 +226,8 @@ def make_driver(owner, prop, *, index=-1, type='SUM', expression=None, variables
     if isinstance(variables, list):
         # variables = [ info, ... ]
         for i, var_info in enumerate(variables):
-            _add_driver_variable(drv, 'var'+str(i), var_info, target_id)
+            var_name = 'var' if i == 0 else 'var' + str(i)
+            _add_driver_variable(drv, var_name, var_info, target_id)
     else:
         # variables = { 'varname': info, ... }
         for var_name, var_info in variables.items():
