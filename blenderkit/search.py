@@ -59,13 +59,15 @@ import bpy
 search_start_time = 0
 prev_time = 0
 
-
 def check_errors(rdata):
     if rdata.get('statusCode') == 401:
         if rdata.get('detail') == 'Invalid token.':
             # reset the api key, so it can be requested again.
             # user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
             # user_preferences.api_key = ''
+            if user_preferences.api_key != '':
+                oauth.refresh_token_thread()
+                return False, "You've been logged out. Logging in...."
             return False, 'Missing or wrong api_key in addon preferences'
     return True, ''
 
