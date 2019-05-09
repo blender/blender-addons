@@ -447,13 +447,15 @@ def generate_tooltip(mdata):
             if adata != None:
                 t += generate_author_textblock(adata)
 
-    at = mdata['assetType']
-    t += '\n'
 
+    t += '\n'
+    t += get_random_tip(mdata)
     return t
 
 
-def get_random_tip():
+def get_random_tip(mdata):
+    at = mdata['assetType']
+    t = ''
     if at == 'brush' or at == 'texture':
         t += 'click to link %s' % mdata['assetType']
     if at == 'model' or at == 'material':
@@ -463,7 +465,7 @@ def get_random_tip():
                 ]
         tip = 'Tip: ' + random.choice(tips)
         t = writeblock(t, tip)
-
+    return t
 
 def generate_author_textblock(adata):
     t = ''
