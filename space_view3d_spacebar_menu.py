@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Dynamic Context Menu",
     "author": "meta-androcto",
-    "version": (1, 9, 0),
+    "version": (1, 9, 1),
     "blender": (2, 80, 0),
     "location": "View3D > Spacebar",
     "description": "Object Mode Context Sensitive Spacebar Menu",
@@ -774,6 +774,41 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.prop(view, "show_region_toolbar", icon='MENU_PANEL')
                 layout.prop(view, "show_region_ui", icon='MENU_PANEL')
 
+    # Grease Pencil Menu #
+            if obj and obj.type == 'GPENCIL':
+                layout.operator_context = 'INVOKE_REGION_WIN'
+                layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                UseSeparator(self, context)
+                layout.menu("INFO_MT_area", icon='WORKSPACE')
+                layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
+                layout.menu("VIEW3D_MT_View_Directions", icon='ZOOM_ALL')
+                layout.menu("VIEW3D_MT_View_Navigation", icon='PIVOT_BOUNDBOX')
+                layout.operator("view3d.snap_cursor_to_center",
+                                text="Cursor to World Origin")
+                layout.operator("view3d.snap_cursor_to_grid",
+                                text="Cursor to Grid")
+                layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
+                UseSeparator(self, context)
+                layout.prop(view, "show_region_toolbar", icon='MENU_PANEL')
+                layout.prop(view, "show_region_ui", icon='MENU_PANEL')
+
+    # Light Probe Menu #
+            if obj and obj.type == 'LIGHT_PROBE':
+                layout.operator_context = 'INVOKE_REGION_WIN'
+                layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                UseSeparator(self, context)
+                layout.menu("INFO_MT_area", icon='WORKSPACE')
+                layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
+                layout.menu("VIEW3D_MT_View_Directions", icon='ZOOM_ALL')
+                layout.menu("VIEW3D_MT_View_Navigation", icon='PIVOT_BOUNDBOX')
+                layout.operator("view3d.snap_cursor_to_center",
+                                text="Cursor to World Origin")
+                layout.operator("view3d.snap_cursor_to_grid",
+                                text="Cursor to Grid")
+                layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
+                UseSeparator(self, context)
+                layout.prop(view, "show_region_toolbar", icon='MENU_PANEL')
+                layout.prop(view, "show_region_ui", icon='MENU_PANEL')
 
 # Object Menus #
 
