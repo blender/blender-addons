@@ -984,7 +984,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
 
     # XXX Not sure how much that’s useful now... :/
     def get_hide(self):
-        return self.bdata.hide_get() if self._tag in {'OB', 'DP'} else self.bdata.hide
+        return self.bdata.hide_viewport if self._tag in {'OB', 'DP'} else self.bdata.hide
     hide = property(get_hide)
 
     def get_parent(self):

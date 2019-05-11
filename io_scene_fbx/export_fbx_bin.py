@@ -2076,7 +2076,7 @@ def fbx_animations(scene_data):
                 'lock_location', 'lock_rotation', 'lock_rotation_w', 'lock_rotations_4d', 'lock_scale',
                 'tag', 'track_axis', 'up_axis', 'active_material', 'active_material_index',
                 'matrix_parent_inverse', 'empty_display_type', 'empty_display_size', 'empty_image_offset', 'pass_index',
-                'color', 'hide_select', 'hide_render', 'instance_type',
+                'color', 'hide_viewport', 'hide_select', 'hide_render', 'instance_type',
                 'use_instance_vertices_rotation', 'use_instance_faces_scale', 'instance_faces_scale',
                 'display_type', 'show_bounds', 'display_bounds_type', 'show_name', 'show_axis', 'show_texture_space',
                 'show_wire', 'show_all_edges', 'show_transparent', 'show_in_front',
