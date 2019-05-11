@@ -904,7 +904,7 @@ class VIEW3D_MT_AddMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator_context = 'EXEC_REGION_WIN'
 
         layout.menu("VIEW3D_MT_mesh_add", text="Add Mesh",
                     icon='OUTLINER_OB_MESH')
@@ -916,38 +916,55 @@ class VIEW3D_MT_AddMenu(Menu):
                                   icon='OUTLINER_OB_META')
         layout.operator("object.text_add", text="Add Text",
                         icon='OUTLINER_OB_FONT')
+        layout.operator_menu_enum("object.gpencil_add", "type", text="Grease Pencil", icon='OUTLINER_OB_GREASEPENCIL')
         UseSeparator(self, context)
+
         layout.menu("VIEW3D_MT_armature_add", text="Add Armature",
                     icon='OUTLINER_OB_ARMATURE')
         layout.operator("object.add", text="Lattice",
                         icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
+        UseSeparator(self, context)
+
         layout.operator_menu_enum("object.empty_add", "type", text="Empty", icon='OUTLINER_OB_EMPTY')
+        layout.menu("VIEW3D_MT_image_add", text="Image", icon='OUTLINER_OB_IMAGE')
         UseSeparator(self, context)
-        layout.operator("object.speaker_add", text="Speaker", icon='OUTLINER_OB_SPEAKER')
-        UseSeparator(self, context)
-        layout.operator("object.camera_add", text="Camera",
-                        icon='OUTLINER_OB_CAMERA')
+
         layout.operator_menu_enum("object.light_add", "type",
                                   icon="OUTLINER_OB_LIGHT")
+        layout.menu("VIEW3D_MT_lightprobe_add", icon='OUTLINER_OB_LIGHTPROBE')
         UseSeparator(self, context)
+        
+        layout.operator("object.camera_add", text="Camera",
+                        icon='OUTLINER_OB_CAMERA')
+        UseSeparator(self, context)
+
+        layout.operator("object.speaker_add", text="Speaker", icon='OUTLINER_OB_SPEAKER')
+        UseSeparator(self, context)
+
         layout.operator_menu_enum("object.effector_add", "type",
                                   text="Force Field",
                                   icon='FORCE_FORCE')
         layout.menu("VIEW3D_MT_object_quick_effects", text="Quick Effects", icon='PARTICLES')
         UseSeparator(self, context)
 
-        has_groups = (len(bpy.data.collections) > 0)
-        col_group = layout.column()
-        col_group.enabled = has_groups
+        has_collections = bool(bpy.data.collections)
+        col = layout.column()
+        col.enabled = has_collections
 
-        if not has_groups or len(bpy.data.collections) > 10:
-            col_group.operator_context = 'INVOKE_REGION_WIN'
-            col_group.operator("object.collection_instance_add",
-                                text="Collection Instance..." if has_groups else "No Groups in Data",
-                                icon='GROUP_VERTEX')
+        if not has_collections or len(bpy.data.collections) > 10:
+            col.operator_context = 'INVOKE_REGION_WIN'
+            col.operator(
+                "object.collection_instance_add",
+                text="Collection Instance..." if has_collections else "No Collections to Instance",
+                icon='OUTLINER_OB_GROUP_INSTANCE',
+            )
         else:
-            col_group.operator_menu_enum("object.collection_instance_add", "collection",
-                                text="Collection Instance", icon='GROUP_VERTEX')
+            col.operator_menu_enum(
+                "object.collection_instance_add",
+                "collection",
+                text="Collection Instance",
+                icon='OUTLINER_OB_GROUP_INSTANCE',
+            )
 
 
 # ********** Object Mirror **********
