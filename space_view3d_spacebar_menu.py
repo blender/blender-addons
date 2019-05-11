@@ -62,11 +62,15 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+            layout.menu("VIEW3D_MT_Animation_Player",
+                        text="Playback Animation", icon='PLAY')
             UseSeparator(self, context)
             layout.menu("INFO_MT_area", icon='WORKSPACE')
-            layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
             layout.menu("VIEW3D_MT_View_Directions", icon='ZOOM_ALL')
             layout.menu("VIEW3D_MT_View_Navigation", icon='PIVOT_BOUNDBOX')
+            UseSeparator(self, context)
+            layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
+            UseSeparator(self, context)
             layout.operator("view3d.snap_cursor_to_center",
                             text="Cursor to World Origin")
             layout.operator("view3d.snap_cursor_to_grid",
@@ -84,6 +88,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -118,6 +124,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             if obj and obj.type == 'MESH' and obj.mode in {'EDIT'}:
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Edit_Mesh", icon='RESTRICT_SELECT_OFF')
@@ -223,6 +231,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -256,6 +266,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             if obj and obj.type == 'CURVE' and obj.mode in {'EDIT'}:
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Edit_Curve",
@@ -287,6 +299,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -319,6 +333,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             if obj and obj.type == 'SURFACE' and obj.mode in {'EDIT'}:
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Edit_Surface", icon='RESTRICT_SELECT_OFF')
@@ -350,6 +366,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -381,6 +399,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             if obj and obj.type == 'META' and obj.mode in {'EDIT'}:
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_SelectMetaball", icon='RESTRICT_SELECT_OFF')
@@ -411,6 +431,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -447,6 +469,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_select_edit_text", icon='VIEW3D')
@@ -464,6 +488,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -495,6 +521,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -526,6 +554,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -558,6 +588,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             if obj and obj.type == 'ARMATURE' and obj.mode in {'EDIT'}:
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Edit_Armature",
@@ -593,6 +625,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 arm = context.active_object.data
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Pose", icon='RESTRICT_SELECT_OFF')
@@ -628,6 +662,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -661,6 +697,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             if obj and obj.type == 'LATTICE' and obj.mode in {'EDIT'}:
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Edit_Lattice",
@@ -688,6 +726,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -720,6 +760,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -747,6 +789,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             if obj and context.mode == 'PARTICLE':
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Particle",
@@ -778,6 +822,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             if obj and obj.type == 'GPENCIL':
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("INFO_MT_area", icon='WORKSPACE')
                 layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
@@ -795,12 +841,17 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
     # Light Probe Menu #
             if obj and obj.type == 'LIGHT_PROBE':
                 layout.operator_context = 'INVOKE_REGION_WIN'
+
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Playback Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("INFO_MT_area", icon='WORKSPACE')
-                layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
                 layout.menu("VIEW3D_MT_View_Directions", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_View_Navigation", icon='PIVOT_BOUNDBOX')
+                UseSeparator(self, context)
+                layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
+                UseSeparator(self, context)
                 layout.operator("view3d.snap_cursor_to_center",
                                 text="Cursor to World Origin")
                 layout.operator("view3d.snap_cursor_to_grid",
@@ -2087,8 +2138,7 @@ class VIEW3D_MT_View_Menu(Menu):
         UseSeparator(self, context)
         layout.operator("render.opengl", icon='RENDER_STILL')
         layout.operator("render.opengl", text="Viewport Render Animation", icon='RENDER_ANIMATION').animation = True
-        layout.menu("VIEW3D_MT_Animation_Player",
-                    text="Playback Animation", icon='PLAY')
+
 
 class VIEW3D_MT_View_Navigation(Menu):
     bl_label = "Navigation"
