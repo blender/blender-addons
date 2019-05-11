@@ -1257,7 +1257,18 @@ def fbx_data_material_elements(root, ma, scene_data):
     # Not in Principled BSDF, so assuming always 0
     elem_props_template_set(tmpl, props, "p_color", b"AmbientColor", ambient_color)
     elem_props_template_set(tmpl, props, "p_number", b"AmbientFactor", 0.0)
-    elem_props_template_set(tmpl, props, "p_color", b"TransparentColor", ma_wrap.base_color)
+    # Sweetness... Looks like we are not the only ones to not know exactly how FBX is supposed to work (see T59850).
+    # According to one of its developers, Unity uses that formula to extract alpha value:
+    #
+    #   alpha = 1 - TransparencyFactor
+    #   if (alpha == 1 or alpha == 0):
+    #       alpha = 1 - TransparentColor.r
+    #
+    # Until further info, let's assume this is correct way to do, hence the following code for TransparentColor.
+    if ma_wrap.transmission < 1.0e-5 or ma_wrap.transmission > (1.0 - 1.0e-5):
+        elem_props_template_set(tmpl, props, "p_color", b"TransparentColor", (ma_wrap.transmission,) * 3)
+    else:
+        elem_props_template_set(tmpl, props, "p_color", b"TransparentColor", ma_wrap.base_color)
     elem_props_template_set(tmpl, props, "p_number", b"TransparencyFactor", ma_wrap.transmission)
     elem_props_template_set(tmpl, props, "p_number", b"Opacity", 1.0 - ma_wrap.transmission)
     elem_props_template_set(tmpl, props, "p_vector_3d", b"NormalMap", (0.0, 0.0, 0.0))
