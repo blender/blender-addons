@@ -1928,7 +1928,7 @@ class FbxImportHelperNode:
         child_connect_finalize(bone, connect_ctx)
         return bone
 
-    def build_node_obj(self, fbx_tmpl, settings):
+    def build_node_obj(self, fbx_tmpl, settings, view_layer):
         if self.bl_obj:
             return self.bl_obj
 
@@ -1948,12 +1948,18 @@ class FbxImportHelperNode:
         # Misc Attributes
 
         obj.color[0:3] = elem_props_get_color_rgb(fbx_props, b'Color', (0.8, 0.8, 0.8))
-        obj.hide_viewport = not bool(elem_props_get_visibility(fbx_props, b'Visibility', 1.0))
 
         obj.matrix_basis = self.get_matrix()
 
         if settings.use_custom_props:
             blen_read_custom_properties(self.fbx_elem, obj, settings)
+
+        # Instance in scene.
+        view_layer.active_layer_collection.collection.objects.link(obj)
+
+        # This has to be done after instancing in scene.
+        obj.hide_set(not bool(elem_props_get_visibility(fbx_props, b'Visibility', 1.0)))
+        obj.select_set(True)
 
         return obj
 
@@ -1966,7 +1972,7 @@ class FbxImportHelperNode:
             return None
         else:
             # child is not a bone
-            obj = self.build_node_obj(fbx_tmpl, settings)
+            obj = self.build_node_obj(fbx_tmpl, settings, view_layer)
 
             if obj is None:
                 return None
@@ -1975,10 +1981,6 @@ class FbxImportHelperNode:
                 if child.ignore:
                     continue
                 child.build_skeleton_children(fbx_tmpl, settings, scene, view_layer)
-
-            # instance in scene
-            view_layer.active_layer_collection.collection.objects.link(obj)
-            obj.select_set(True)
 
             return obj
 
@@ -2112,8 +2114,8 @@ class FbxImportHelperNode:
 
             # Switch to Edit mode.
             view_layer.objects.active = arm
-            is_hidden = arm.hide_viewport
-            arm.hide_viewport = False  # Can't switch to Edit mode hidden objects...
+            is_hidden = arm.hide_get()
+            arm.hide_set(False)  # Can't switch to Edit mode hidden objects...
             bpy.ops.object.mode_set(mode='EDIT')
 
             for child in self.children:
@@ -2124,7 +2126,7 @@ class FbxImportHelperNode:
 
             bpy.ops.object.mode_set(mode='OBJECT')
 
-            arm.hide_viewport = is_hidden
+            arm.hide_set(is_hidden)
 
             # Set pose matrix
             for child in self.children:
@@ -2141,15 +2143,11 @@ class FbxImportHelperNode:
 
             return arm
         elif self.fbx_elem and not self.is_bone:
-            obj = self.build_node_obj(fbx_tmpl, settings)
+            obj = self.build_node_obj(fbx_tmpl, settings, view_layer)
 
             # walk through children
             for child in self.children:
                 child.build_hierarchy(fbx_tmpl, settings, scene, view_layer)
-
-            # instance in scene
-            view_layer.active_layer_collection.collection.objects.link(obj)
-            obj.select_set(True)
 
             return obj
         else:
