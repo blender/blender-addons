@@ -63,7 +63,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.menu("VIEW3D_MT_Animation_Player",
-                        text="Playback Animation", icon='PLAY')
+                        text="Animation", icon='PLAY')
             UseSeparator(self, context)
             layout.menu("INFO_MT_area", icon='WORKSPACE')
             layout.menu("VIEW3D_MT_View_Directions", icon='ZOOM_ALL')
@@ -89,7 +89,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -125,7 +125,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Edit_Mesh", icon='RESTRICT_SELECT_OFF')
@@ -232,7 +232,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -267,7 +267,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Edit_Curve",
@@ -300,7 +300,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -334,7 +334,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Edit_Surface", icon='RESTRICT_SELECT_OFF')
@@ -367,7 +367,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -400,7 +400,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_SelectMetaball", icon='RESTRICT_SELECT_OFF')
@@ -432,7 +432,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -470,7 +470,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_select_edit_text", icon='VIEW3D')
@@ -489,7 +489,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -522,7 +522,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -555,7 +555,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -589,7 +589,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Edit_Armature",
@@ -626,7 +626,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Pose", icon='RESTRICT_SELECT_OFF')
@@ -663,7 +663,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -698,7 +698,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Edit_Lattice",
@@ -727,7 +727,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -761,7 +761,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
@@ -790,7 +790,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_Select_Particle",
@@ -823,7 +823,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("INFO_MT_area", icon='WORKSPACE')
                 layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
@@ -844,7 +844,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
-                            text="Playback Animation", icon='PLAY')
+                            text="Animation", icon='PLAY')
                 UseSeparator(self, context)
                 layout.menu("INFO_MT_area", icon='WORKSPACE')
                 layout.menu("VIEW3D_MT_View_Directions", icon='ZOOM_ALL')
@@ -2117,24 +2117,25 @@ class VIEW3D_MT_View_Menu(Menu):
         view = context.space_data
 
         layout.menu("INFO_MT_area")
+        UseSeparator(self, context)
         layout.operator("view3d.view_selected", text="Frame Selected").use_all_regions = False
         if view.region_quadviews:
             layout.operator("view3d.view_selected", text="Frame Selected (Quad View)").use_all_regions = True
         layout.operator("view3d.view_all", text="Frame All").center = False
         layout.operator("view3d.view_persportho", text="Perspective/Orthographic")
+        layout.menu("VIEW3D_MT_View_Local")
         UseSeparator(self, context)
         layout.menu("VIEW3D_MT_view_cameras", text="Cameras")
+        UseSeparator(self, context)
         layout.menu("VIEW3D_MT_View_Directions")
         layout.menu("VIEW3D_MT_View_Navigation")
         UseSeparator(self, context)
         layout.menu("VIEW3D_MT_View_Align")
-        layout.menu("VIEW3D_MT_Shade")
-        UseSeparator(self, context)
-        layout.menu("VIEW3D_MT_View_Local")
+        layout.menu("VIEW3D_MT_view_align_selected")
         UseSeparator(self, context)
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.menu("VIEW3D_MT_View_Border")
-#        layout.operator("view3d.layers", text="Show All Layers").nr = 0
+        layout.menu("VIEW3D_MT_view_regions", text="View Regions")
+        layout.menu("VIEW3D_MT_Shade")
         UseSeparator(self, context)
         layout.operator("render.opengl", icon='RENDER_STILL')
         layout.operator("render.opengl", text="Viewport Render Animation", icon='RENDER_ANIMATION').animation = True
@@ -2171,8 +2172,6 @@ class VIEW3D_MT_View_Align(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.menu("VIEW3D_MT_view_align_selected")
-        UseSeparator(self, context)
         layout.operator("view3d.camera_to_view", text="Align Active Camera to View")
         layout.operator("view3d.camera_to_view_selected", text="Align Active Camera to Selected")
         UseSeparator(self, context)
@@ -2238,11 +2237,11 @@ class VIEW3D_MT_Shade(Menu):
 
         if context.active_object:
             if(context.mode == 'EDIT_MESH'):
-                layout.operator("MESH_OT_faces_shade_smooth")
-                layout.operator("MESH_OT_faces_shade_flat")
+                layout.operator("MESH_OT_faces_shade_smooth", icon='SHADING_RENDERED')
+                layout.operator("MESH_OT_faces_shade_flat", icon='SHADING_SOLID')
             else:
-                layout.operator("OBJECT_OT_shade_smooth")
-                layout.operator("OBJECT_OT_shade_flat")
+                layout.operator("OBJECT_OT_shade_smooth", icon='SHADING_RENDERED')
+                layout.operator("OBJECT_OT_shade_flat", icon='SHADING_SOLID')
 
         UseSeparator(self, context)
         layout.operator("view3d.display_wire_all", text="Wire all", icon='SHADING_WIRE')
@@ -2262,7 +2261,7 @@ class VIEW3D_MT_Shade(Menu):
 
 # Animation Player (Thanks to marvin.k.breuer) #
 class VIEW3D_MT_Animation_Player(Menu):
-    bl_label = "Animation Player"
+    bl_label = "Animation"
 
     def draw(self, context):
         layout = self.layout
@@ -2278,6 +2277,7 @@ class VIEW3D_MT_Animation_Player(Menu):
 
         layout.operator("screen.keyframe_jump", text="Next FR", icon='NEXT_KEYFRAME').next = True
         layout.operator("screen.frame_jump", text="Jump FF", icon='FF').end = True
+        layout.menu("VIEW3D_MT_KeyframeMenu", text="Keyframes", icon='DECORATE_ANIMATE')
 
 
 # Select Menu's #
