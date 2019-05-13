@@ -138,7 +138,7 @@ class AntMainSettingsPanel(bpy.types.Panel):
         col.operator('mesh.ant_landscape_regenerate', text="Regenerate", icon="LOOP_FORWARDS")
         row = box.row(align=True)
         split = row.split(align=True)
-        split.prop(ant, "smooth_mesh", toggle=False, text="Smooth", icon='SHADING_SOLID')
+        split.prop(ant, "smooth_mesh", toggle=True, text="Smooth", icon='SHADING_SOLID')
         split.prop(ant, "tri_face", toggle=True, text="Triangulate", icon='MESH_DATA')
         if ant.sphere_mesh:
             split.prop(ant, "remove_double", toggle=True, text="Remove Doubles", icon='MESH_DATA')
@@ -436,7 +436,7 @@ class AntLandscapePropertiesGroup(bpy.types.PropertyGroup):
             )
     smooth_mesh: BoolProperty(
             name="Smooth",
-            default=False,
+            default=True,
             description="Shade smooth"
             )
     tri_face: BoolProperty(
