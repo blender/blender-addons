@@ -26,8 +26,8 @@
 bl_info = {
     "name": "Materials Utils Specials",
     "author": "Community",
-    "version": (1, 0, 5),
-    "blender": (2, 80, 0),
+    "version": (1, 0, 6),
+    "blender": (2, 79, 0),
     "location": "Materials Properties Specials > Shift Q",
     "description": "Materials Utils and Convertors",
     "warning": "",
