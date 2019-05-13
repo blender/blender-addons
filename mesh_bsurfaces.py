@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Bsurfaces GPL Edition",
     "author": "Eclectiel, Spivak Vladimir(cwolf3d)",
-    "version": (1, 5, 2),
+    "version": (1, 6, 0),
     "blender": (2, 80, 0),
     "location": "View3D > EditMode > ToolShelf",
     "description": "Modeling and retopology tool",
@@ -184,6 +184,8 @@ def get_strokes_type(context):
     if strokes_type == "":
         strokes_type = "NO_STROKES"
 
+    print(strokes_type)
+    
     return strokes_type
 
 
@@ -195,7 +197,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     is_fill_faces: BoolProperty(
-                    default=True
+                    default=False
                     )
     selection_U_exists: BoolProperty(
                     default=False
@@ -3076,6 +3078,9 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
 
     def execute(self, context):
 
+        if bpy.ops.object.mode_set.poll():
+             bpy.ops.object.mode_set(mode='OBJECT')
+        
         bsurfaces_props = bpy.context.scene.bsurfaces
         
         self.main_object = bsurfaces_props.SURFSK_object_with_retopology
@@ -3174,6 +3179,9 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
     def invoke(self, context, event):
         #self.initial_global_undo_state = bpy.context.preferences.edit.use_global_undo
 
+        if bpy.ops.object.mode_set.poll():
+             bpy.ops.object.mode_set(mode='OBJECT')
+        
         bsurfaces_props = bpy.context.scene.bsurfaces
         self.cyclic_cross = bsurfaces_props.SURFSK_cyclic_cross
         self.cyclic_follow = bsurfaces_props.SURFSK_cyclic_follow
@@ -3194,8 +3202,6 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         #bpy.context.preferences.edit.use_global_undo = False
         bpy.ops.wm.context_set_value(data_path='tool_settings.mesh_select_mode',
                                      value='True, False, False')
-
-        self.edges_U = bsurfaces_props.SURFSK_edges_U
 
         if self.loops_on_strokes:
             self.edges_V = 1
@@ -3357,8 +3363,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
             for sp_idx in range(len(self.temporary_curve.data.splines)):
                 self.last_strokes_splines_coords.append([])
                 for bp_idx in range(len(self.temporary_curve.data.splines[sp_idx].bezier_points)):
-                    coords = self.temporary_curve.matrix_world @ \
-                             self.temporary_curve.data.splines[sp_idx].bezier_points[bp_idx].co
+                    coords = self.temporary_curve.data.splines[sp_idx].bezier_points[bp_idx].co
                     self.last_strokes_splines_coords[sp_idx].append([coords[0], coords[1], coords[2]])
 
             # Check for cyclic splines, put the first and last points in the middle of their actual positions
@@ -3509,6 +3514,7 @@ class GPENCIL_OT_SURFSK_init(Operator):
             bpy.context.view_layer.objects.active = gpencil_object
             bpy.ops.object.mode_set(mode='PAINT_GPENCIL')
             bpy.context.scene.bsurfaces.SURFSK_object_with_strokes = gpencil_object
+            gpencil_object.data.stroke_depth_order = '3D'
         
         if context.scene.bsurfaces.SURFSK_use_annotation:
             bpy.ops.wm.tool_set_by_id(name="builtin.annotate")
