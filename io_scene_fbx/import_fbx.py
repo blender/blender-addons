@@ -722,7 +722,7 @@ def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, anim_o
                 if id_data is None:
                     continue
 
-                # Create new action if needed (should always be needed!
+                # Create new action if needed (should always be needed, except for keyblocks from shapekeys cases).
                 key = (as_uuid, al_uuid, id_data)
                 action = actions.get(key)
                 if action is None:
