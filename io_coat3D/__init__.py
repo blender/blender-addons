@@ -1695,7 +1695,7 @@ class MaterialCoat3D(PropertyGroup):
     name: StringProperty(
         name="ApplinkAddress",
         # subtype="APPLINK_ADDRESS",
-        default=True
+        default=''
     )
     bring_diffuse: BoolProperty(
         name="Import diffuse texture",
@@ -1705,7 +1705,7 @@ class MaterialCoat3D(PropertyGroup):
     bring_metalness: BoolProperty(
         name="Import diffuse texture",
         description="Import diffuse texture",
-        default=''
+        default=True
     )
     bring_roughness: BoolProperty(
         name="Import diffuse texture",
