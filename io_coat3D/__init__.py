@@ -1705,7 +1705,7 @@ class MaterialCoat3D(PropertyGroup):
     bring_metalness: BoolProperty(
         name="Import diffuse texture",
         description="Import diffuse texture",
-        default=True
+        default=''
     )
     bring_roughness: BoolProperty(
         name="Import diffuse texture",
