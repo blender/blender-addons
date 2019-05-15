@@ -74,7 +74,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
 
             if mat_wrap:
                 use_mirror = mat_wrap.metallic != 0.0
-                use_transparency = mat_wrap.transmission != 0.0
+                use_transparency = mat_wrap.alpha != 1.0
 
                 # XXX Totally empirical conversion, trying to adapt it
                 #     (from 1.0 - 0.0 Principled BSDF range to 0.0 - 900.0 OBJ specular exponent range)...
@@ -94,7 +94,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                 # XXX Not supported by current Principled-based shader.
                 fw('Ke 0.0 0.0 0.0\n')
                 fw('Ni %.6f\n' % mat_wrap.ior)  # Refraction index
-                fw('d %.6f\n' % (1.0 - mat_wrap.transmission))  # Alpha (obj uses 'd' for dissolve)
+                fw('d %.6f\n' % mat_wrap.alpha)  # Alpha (obj uses 'd' for dissolve)
 
                 # See http://en.wikipedia.org/wiki/Wavefront_.obj_file for whole list of values...
                 # Note that mapping is rather fuzzy sometimes, trying to do our best here.
@@ -116,7 +116,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                         "map_Ka": None,  # ambient...
                         "map_Ks": "specular_texture",
                         "map_Ns": "roughness_texture",
-                        "map_d": "transmission_texture",
+                        "map_d": "alpha_texture",
                         "map_Tr": None,  # transmission roughness?
                         "map_Bump": "normalmap_texture",
                         "disp": None,  # displacement...
