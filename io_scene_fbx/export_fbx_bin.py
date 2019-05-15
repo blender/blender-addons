@@ -1265,12 +1265,12 @@ def fbx_data_material_elements(root, ma, scene_data):
     #       alpha = 1 - TransparentColor.r
     #
     # Until further info, let's assume this is correct way to do, hence the following code for TransparentColor.
-    if ma_wrap.transmission < 1.0e-5 or ma_wrap.transmission > (1.0 - 1.0e-5):
-        elem_props_template_set(tmpl, props, "p_color", b"TransparentColor", (ma_wrap.transmission,) * 3)
+    if ma_wrap.alpha < 1.0e-5 or ma_wrap.alpha > (1.0 - 1.0e-5):
+        elem_props_template_set(tmpl, props, "p_color", b"TransparentColor", (1.0 - ma_wrap.alpha,) * 3)
     else:
         elem_props_template_set(tmpl, props, "p_color", b"TransparentColor", ma_wrap.base_color)
-    elem_props_template_set(tmpl, props, "p_number", b"TransparencyFactor", ma_wrap.transmission)
-    elem_props_template_set(tmpl, props, "p_number", b"Opacity", 1.0 - ma_wrap.transmission)
+    elem_props_template_set(tmpl, props, "p_number", b"TransparencyFactor", 1.0 - ma_wrap.alpha)
+    elem_props_template_set(tmpl, props, "p_number", b"Opacity", ma_wrap.alpha)
     elem_props_template_set(tmpl, props, "p_vector_3d", b"NormalMap", (0.0, 0.0, 0.0))
     # Not sure about those...
     """
@@ -1748,7 +1748,7 @@ def fbx_data_animation_elements(root, scene_data):
 PRINCIPLED_TEXTURE_SOCKETS_TO_FBX = (
     # ("diffuse", "diffuse", b"DiffuseFactor"),
     ("base_color_texture", b"DiffuseColor"),
-    ("transmission_texture", b"TransparencyFactor"),
+    ("alpha_texture", b"TransparencyFactor"),  # Will be inverted in fact, not much we can do really...
     # ("base_color_texture", b"TransparentColor"),  # Uses diffuse color in Blender!
     # ("emit", "emit", b"EmissiveFactor"),
     # ("diffuse", "diffuse", b"EmissiveColor"),  # Uses diffuse color in Blender!
