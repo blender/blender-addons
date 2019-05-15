@@ -292,7 +292,7 @@ def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
                 LayerNum += 1
 
         # Object
-        bpy.ops.mesh.primitive_plane_add(view_align=False,
+        bpy.ops.mesh.primitive_plane_add(align='WORLD',
                                          enter_editmode=False,
                                          rotation=(0, 0, 0))
 

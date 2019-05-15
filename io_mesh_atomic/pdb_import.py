@@ -694,24 +694,24 @@ def draw_atoms_one_type(draw_all_atoms_type,
     # Now, build a representative sphere (atom).
     if atom[0] == "Vacancy":
         bpy.ops.mesh.primitive_cube_add(
-                        view_align=False, enter_editmode=False,
+                        align='WORLD', enter_editmode=False,
                         location=(0.0, 0.0, 0.0),
                         rotation=(0.0, 0.0, 0.0))
     else:
         # NURBS balls
         if Ball_type == "0":
             bpy.ops.surface.primitive_nurbs_surface_sphere_add(
-                        view_align=False, enter_editmode=False,
+                        align='WORLD', enter_editmode=False,
                         location=(0,0,0), rotation=(0.0, 0.0, 0.0))
         # UV balls
         elif Ball_type == "1":
             bpy.ops.mesh.primitive_uv_sphere_add(
                         segments=Ball_azimuth, ring_count=Ball_zenith,
-                        view_align=False, enter_editmode=False,
+                        align='WORLD', enter_editmode=False,
                         location=(0,0,0), rotation=(0, 0, 0))
         # Meta balls
         elif Ball_type == "2":
-            bpy.ops.object.metaball_add(type='BALL', view_align=False,
+            bpy.ops.object.metaball_add(type='BALL', align='WORLD',
                         enter_editmode=False, location=(0, 0, 0),
                         rotation=(0, 0, 0))
 
@@ -1141,7 +1141,7 @@ def draw_sticks_normal(all_atoms,
                                                     radius=Stick_diameter,
                                                     depth=v.length,
                                                     end_fill_type='NGON',
-                                                    view_align=False,
+                                                    align='WORLD',
                                                     enter_editmode=False,
                                                     location=location,
                                                     rotation=(0, 0, 0))
@@ -1211,7 +1211,7 @@ def draw_sticks_normal(all_atoms,
     else:
         # Here we use an empty ...
         bpy.ops.object.empty_add(type='ARROWS',
-                                  view_align=False,
+                                  align='WORLD',
                                   location=(0, 0, 0),
                                   rotation=(0, 0, 0))
         sticks_empty = bpy.context.view_layer.objects.active

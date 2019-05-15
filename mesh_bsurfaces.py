@@ -3507,7 +3507,7 @@ class GPENCIL_OT_SURFSK_init(Operator):
         
         if not context.scene.bsurfaces.SURFSK_use_annotation and bs.SURFSK_object_with_strokes == None:
             bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
-            bpy.ops.object.gpencil_add(radius=1.0, view_align=False, location=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0), type='EMPTY')
+            bpy.ops.object.gpencil_add(radius=1.0, align='WORLD', location=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0), type='EMPTY')
             bpy.context.scene.tool_settings.gpencil_stroke_placement_view3d = 'SURFACE'
             gpencil_object = bpy.context.scene.objects[bpy.context.scene.objects[-1].name]
             gpencil_object.select_set(True)
