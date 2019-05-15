@@ -300,9 +300,13 @@ def get_bounds_snappable(obs, use_modifiers=False):
         if ob.type == 'MESH' or ob.type == 'CURVE':
             # If to_mesh() works we can use it on curves and any other ob type almost.
             # disabled to_mesh for 2.8 by now, not wanting to use dependency graph yet.
-            mesh = ob.to_mesh(depsgraph=bpy.context.depsgraph, apply_modifiers=True, calc_undeformed=False)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            mesh = ob.evaluated_get(depsgraph).to_mesh()
 
-            # to_mesh(context.depsgraph, apply_modifiers=self.applyModifiers, calc_undeformed=False)
+            # if self.applyModifiers:
+            #     evaluated_get(depsgraph).to_mesh()
+            # else:
+            #     to_mesh()
             obcount += 1
             for c in mesh.vertices:
                 coord = c.co
@@ -339,7 +343,8 @@ def get_bounds_worldspace(obs, use_modifiers=False):
         # bb=ob.bound_box
         mw = ob.matrix_world
         if ob.type == 'MESH' or ob.type == 'CURVE':
-            mesh = ob.to_mesh(depsgraph=bpy.context.depsgraph, apply_modifiers=True, calc_undeformed=False)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            mesh = ob.evaluated_get(depsgraph).to_mesh()
             obcount += 1
             for c in mesh.vertices:
                 coord = c.co

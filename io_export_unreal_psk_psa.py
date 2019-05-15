@@ -981,7 +981,8 @@ def triangulate_mesh(object):
     view_layer = bpy.context.view_layer
 
     me_ob = object.copy()
-    me_ob.data = object.to_mesh(bpy.context.scene, True, 'PREVIEW')  # write data object
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    me_ob.data = object.evaluated_get(depsgraph).to_mesh()  # write data object
     bpy.context.collection.objects.link(me_ob)
     bpy.context.scene.update()
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -1006,7 +1007,7 @@ def triangulate_mesh(object):
 
     verbose("Triangulated mesh")
 
-    me_ob.data = me_ob.to_mesh(bpy.context.scene, True, 'PREVIEW')  # write data object
+    me_ob.data = me_ob.evaluated_get(depsgraph).to_mesh()  # write data object
     bpy.context.scene.update()
     return me_ob
 
@@ -2100,7 +2101,8 @@ def rebuildmesh(obj):
     smoothings = []
     uvfaces = []
     # print("creating array build mesh...")
-    mmesh = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    mmesh = obj.evaluated_get(depsgraph).to_mesh()
     uv_layer = mmesh.tessface_uv_textures.active
 
     for face in mmesh.tessfaces:

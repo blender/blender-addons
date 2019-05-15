@@ -32,7 +32,8 @@ def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifier
 
     if apply_modifiers and obj.modifiers:
         import bpy
-        me = obj.to_mesh(depsgraph=bpy.context.depsgraph, apply_modifiers=True)
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        me = obj.evaluated_get(depsgraph).to_mesh()
         bm = bmesh.new()
         bm.from_mesh(me)
         bpy.data.meshes.remove(me)
@@ -251,16 +252,15 @@ def object_merge(context, objects):
     layer.objects.active = obj_base
     obj_base.select_set(True)
 
+    depsgraph = context.evaluated_depsgraph_get()
+
     # loop over all meshes
     for obj in objects:
         if obj.type != 'MESH':
             continue
 
         # convert each to a mesh
-        mesh_new = obj.to_mesh(
-            depsgraph=context.depsgraph,
-            apply_modifiers=True,
-        )
+        mesh_new = obj.evaluated_get(depsgraph).to_mesh()
 
         # remove non-active uvs/vcols
         cd_remove_all_but_active(mesh_new.vertex_colors)

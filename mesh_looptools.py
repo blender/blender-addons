@@ -526,7 +526,8 @@ def get_derived_bmesh(object, bm):
                 mod.show_viewport = False
         # get derived mesh
         bm_mod = bmesh.new()
-        mesh_mod = object.to_mesh(bpy.context.depsgraph, True)
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        mesh_mod = object.evaluated_get(depsgraph).to_mesh()
         bm_mod.from_mesh(mesh_mod)
         bpy.context.blend_data.meshes.remove(mesh_mod)
         # re-enable other modifiers

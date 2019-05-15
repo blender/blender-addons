@@ -1021,6 +1021,7 @@ def save(operator,
     mesh_objects = []
 
     scene = context.scene
+    depsgraph = context.evaluated_depsgraph_get()
 
     if use_selection:
         objects = (ob for ob in scene.objects if ob.is_visible(scene) and ob.select)
@@ -1039,7 +1040,7 @@ def save(operator,
                 continue
 
             try:
-                data = ob_derived.to_mesh(scene, True, 'PREVIEW')
+                data = ob_derived.evaluated_get(depsgraph).to_mesh()
             except:
                 data = None
 

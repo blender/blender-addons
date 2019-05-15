@@ -2677,8 +2677,11 @@ def write_pov(filename, scene=None, info_callback=None):
                         tabWrite("\n//dummy sphere to represent Empty location\n")
                         tabWrite("#declare %s =sphere {<0, 0, 0>,0 pigment{rgbt 1} no_image no_reflection no_radiosity photons{pass_through collect off} hollow}\n" % povdataname)
 
+                    # TODO(sergey): PovRay is a render engine, so should be using dependency graph
+                    # which was given to it via render engine API.
+                    depsgraph = bpy.context.evaluated_depsgraph_get()
                     try:
-                        me = ob.to_mesh(bpy.context.depsgraph, True, 'RENDER')
+                        me = ob.evaluated_get(depsgraph).to_mesh()
 
                     #XXX Here? identify the specific exception for mesh object with no data
                     #XXX So that we can write something for the dataname !

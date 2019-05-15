@@ -371,15 +371,14 @@ class MeshExportObject(ExportObject):
                 for Modifier in DeactivatedModifierList:
                     Modifier.show_viewport = False
 
-                Mesh = self.BlenderObject.to_mesh(self.Exporter.context.scene,
-                    True, 'PREVIEW')
+               depsgraph = self.Exporter.context.evaluated_depsgraph_get()
+                Mesh = self.BlenderObject.evaluated_get(depsgraph).to_mesh()
 
                 # Restore the deactivated modifiers
                 for Modifier in DeactivatedModifierList:
                     Modifier.show_viewport = True
             else:
-                Mesh = self.BlenderObject.to_mesh(self.Exporter.context.scene,
-                    False, 'PREVIEW')
+                Mesh = self.BlenderObject.to_mesh()
             self.Exporter.Log("Done")
 
             self.__WriteMesh(Mesh)

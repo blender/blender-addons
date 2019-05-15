@@ -205,7 +205,8 @@ def check_meshprops(props, obs):
     for ob in obs:
         if ob.type == 'MESH' or ob.type == 'CURVE':
             if ob.type == 'CURVE':
-                mesh = ob.to_mesh(depsgraph=bpy.context.depsgraph, apply_modifiers=True, calc_undeformed=False)
+                depsgraph = bpy.context.evaluated_depsgraph_get()
+                mesh = ob.evaluated_get(depsgraph).to_mesh()
             else:
                 mesh = ob.data
             fco = len(mesh.polygons)

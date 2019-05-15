@@ -202,7 +202,8 @@ def save(
         bpy.ops.object.mode_set(mode='OBJECT')
 
     if use_mesh_modifiers and obj.modifiers:
-        mesh = obj.to_mesh(context.depsgraph, True)
+        depsgraph = context.evaluated_depsgraph_get()
+        mesh = obj.evaluated_get(depsgraph).to_mesh()
 
     else:
         mesh = obj.data.copy()

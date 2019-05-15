@@ -226,7 +226,8 @@ def __gather_mesh(blender_object, export_settings):
                     armature_modifiers[idx] = modifier.show_viewport
                     modifier.show_viewport = False
 
-        blender_mesh = blender_object.to_mesh(bpy.context.depsgraph, True)
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        blender_mesh = blender_object.evaluated_get(depsgraph).to_mesh()
         for prop in blender_object.data.keys():
             blender_mesh[prop] = blender_object.data[prop]
         skip_filter = True
@@ -306,7 +307,8 @@ def __gather_skin(blender_object, export_settings):
         return None
 
     # check if any vertices in the mesh are part of a vertex group
-    blender_mesh = blender_object.to_mesh(bpy.context.depsgraph, True)
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    blender_mesh = blender_object.evaluated_get(depsgraph).to_mesh()
     if not any(vertex.groups is not None and len(vertex.groups) > 0 for vertex in blender_mesh.vertices):
         return None
 

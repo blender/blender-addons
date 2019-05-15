@@ -438,7 +438,8 @@ def bvhtree_from_object(ob):
     import bmesh
     bm = bmesh.new()
 
-    mesh = ob.to_mesh(bpy.context.depsgraph, True)
+    depsgraph = context.evaluated_depsgraph_get()
+    mesh = ob.evaluated_get(depsgraph).to_mesh()
     bm.from_mesh(mesh)
     bm.transform(ob.matrix_world)
 

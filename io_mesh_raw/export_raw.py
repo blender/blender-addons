@@ -64,12 +64,13 @@ def write(filepath,
           ):
 
     scene = bpy.context.scene
+    depsgraph = bpy.context.evaluated_depsgraph_get()
 
     faces = []
     for obj in bpy.context.selected_objects:
         if applyMods or obj.type != 'MESH':
             try:
-                me = obj.to_mesh(scene, True, "PREVIEW")
+                me = obj.evaluated_get(depsgraph).to_mesh()
             except:
                 me = None
             is_tmp_mesh = True

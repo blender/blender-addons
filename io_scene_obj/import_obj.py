@@ -1243,7 +1243,7 @@ def load(context,
             # we could apply this anywhere before scaling.
             obj.matrix_world = global_matrix
 
-        scene.update()
+        view_layer.update()
 
         axis_min = [1000000000] * 3
         axis_max = [-1000000000] * 3

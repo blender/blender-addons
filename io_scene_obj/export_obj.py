@@ -347,8 +347,10 @@ def write_file(filepath, objects, depsgraph, scene,
                             continue
                         # END NURBS
 
+                        ob_for_convert = ob.evaluated_get(depsgraph) if EXPORT_APPLY_MODIFIERS else ob.original
+
                         try:
-                            me = ob.to_mesh(depsgraph, EXPORT_APPLY_MODIFIERS)
+                            me = ob_for_convert.to_mesh()
                         except RuntimeError:
                             me = None
 
@@ -678,7 +680,7 @@ def _write(context, filepath,
         base_name, ext = os.path.splitext(filepath)
         context_name = [base_name, '', '', ext]  # Base name, scene name, frame number, extension
 
-        depsgraph = context.depsgraph
+        depsgraph = context.evaluated_depsgraph_get()
         scene = context.scene
 
         # Exit edit mode before exporting, so current object states are exported properly.

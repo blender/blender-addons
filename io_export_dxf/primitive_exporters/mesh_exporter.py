@@ -52,7 +52,8 @@ class MeshDXFExporter(BasePrimitiveDXFExporter):
     def _getMeshData(self, ctx, obj, settings):
         if obj.modifiers and settings['apply_modifiers']:
             #this gets mesh with applied modifiers
-            data = obj.to_mesh(ctx.scene, True, 'PREVIEW')
+            depsgraph = ctx.evaluated_depsgraph_get()
+            data = obj.evaluated_get(depsgraph).to_mesh()
         else:
     #        me = ob.getData(mesh=1) # is a Mesh if mesh>0 (otherwise it is a NMesh)
             data = obj.data

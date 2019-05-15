@@ -65,10 +65,9 @@ def _points_from_object(obj, source):
             matrix = obj.matrix_world.copy()
             points.extend([matrix * v.co for v in mesh.vertices])
         else:
+            depsgraph = bpy.context.evaluated_depsgraph_get()
             try:
-                mesh = ob.to_mesh(scene=bpy.context.scene,
-                                  apply_modifiers=True,
-                                  settings='PREVIEW')
+                mesh = ob.evaluated_get(depsgraph).to_mesh()
             except:
                 mesh = None
 
@@ -324,6 +323,7 @@ def cell_fracture_boolean(context, obj, objects,
     objects_boolean = []
     collection = context.collection
     scene = context.scene
+    depsgraph = context.evaluated_depsgraph_get()
 
     if use_interior_hide and level == 0:
         # only set for level 0
@@ -339,9 +339,7 @@ def cell_fracture_boolean(context, obj, objects,
             if use_interior_hide:
                 obj_cell.data.polygons.foreach_set("hide", [True] * len(obj_cell.data.polygons))
 
-            mesh_new = obj_cell.to_mesh(scene,
-                                        apply_modifiers=True,
-                                        settings='PREVIEW')
+            mesh_new = obj_cell.evaluated_get(depsgraph).to_mesh()
             mesh_old = obj_cell.data
             obj_cell.data = mesh_new
             obj_cell.modifiers.remove(mod)

@@ -82,7 +82,11 @@ def faces_from_mesh(ob, global_matrix, use_mesh_modifiers=False):
 
     # get the modifiers
     try:
-        mesh = ob.to_mesh(bpy.context.depsgraph, use_mesh_modifiers)
+        if use_mesh_modifiers:
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            mesh = ob.evaluated_get(depsgraph).to_mesh()
+        else:
+            mesh = ob.to_mesh()
     except RuntimeError:
         return
 
