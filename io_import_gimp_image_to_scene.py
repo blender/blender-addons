@@ -243,7 +243,7 @@ def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
         Render.resolution_x = ResX
         Render.resolution_y = ResY
         Render.resolution_percentage = 100
-    Render.alpha_mode = 'TRANSPARENT'
+    Render.film_transparent = True
 
     #-------------------------------------------------
     # 3D VIEW SETTINGS
