@@ -204,9 +204,11 @@ def check_meshprops(props, obs):
 
     for ob in obs:
         if ob.type == 'MESH' or ob.type == 'CURVE':
+            ob_eval = None
             if ob.type == 'CURVE':
                 depsgraph = bpy.context.evaluated_depsgraph_get()
-                mesh = ob.evaluated_get(depsgraph).to_mesh()
+                ob_eval = ob.evaluated_get(depsgraph)
+                mesh = ob_eval.to_mesh()
             else:
                 mesh = ob.data
             fco = len(mesh.polygons)
@@ -243,6 +245,9 @@ def check_meshprops(props, obs):
                 if m.type == 'DECIMATE':
                     fcor *= m.ratio
             fcr += fcor
+
+            if ob_eval:
+                ob_eval.to_mesh_clear()
 
     # write out props
     props.face_count = fc

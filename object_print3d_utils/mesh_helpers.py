@@ -33,10 +33,11 @@ def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifier
     if apply_modifiers and obj.modifiers:
         import bpy
         depsgraph = bpy.context.evaluated_depsgraph_get()
-        me = obj.evaluated_get(depsgraph).to_mesh()
+        obj_eval = obj.evaluated_get(depsgraph)
+        me = obj_eval.to_mesh()
         bm = bmesh.new()
         bm.from_mesh(me)
-        bpy.data.meshes.remove(me)
+        obj_eval.to_mesh_clear()
         del bpy
     else:
         me = obj.data
@@ -260,7 +261,8 @@ def object_merge(context, objects):
             continue
 
         # convert each to a mesh
-        mesh_new = obj.evaluated_get(depsgraph).to_mesh()
+        obj_eval = obj.evaluated_get(depsgraph)
+        mesh_new = obj_eval.to_mesh()
 
         # remove non-active uvs/vcols
         cd_remove_all_but_active(mesh_new.vertex_colors)
@@ -282,7 +284,7 @@ def object_merge(context, objects):
         # scene_collection.objects.unlink(obj_new)
         # bpy.data.objects.remove(obj_new)
 
-        bpy.data.meshes.remove(mesh_new)
+        obj_eval.to_mesh_clear()
 
     scene.update()
 

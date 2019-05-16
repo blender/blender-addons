@@ -2680,8 +2680,9 @@ def write_pov(filename, scene=None, info_callback=None):
                     # TODO(sergey): PovRay is a render engine, so should be using dependency graph
                     # which was given to it via render engine API.
                     depsgraph = bpy.context.evaluated_depsgraph_get()
+                    ob_eval = ob.evaluated_get(depsgraph)
                     try:
-                        me = ob.evaluated_get(depsgraph).to_mesh()
+                        me = ob_eval.to_mesh()
 
                     #XXX Here? identify the specific exception for mesh object with no data
                     #XXX So that we can write something for the dataname !
@@ -3214,7 +3215,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
 
 
-                    bpy.data.meshes.remove(me)
+                    ob_eval.to_mesh_clear()
 
         if csg:
             duplidata_ref = []

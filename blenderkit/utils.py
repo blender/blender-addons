@@ -301,7 +301,8 @@ def get_bounds_snappable(obs, use_modifiers=False):
             # If to_mesh() works we can use it on curves and any other ob type almost.
             # disabled to_mesh for 2.8 by now, not wanting to use dependency graph yet.
             depsgraph = bpy.context.evaluated_depsgraph_get()
-            mesh = ob.evaluated_get(depsgraph).to_mesh()
+            object_eval = ob.evaluated_get(depsgraph)
+            mesh = object_eval.to_mesh()
 
             # if self.applyModifiers:
             #     evaluated_get(depsgraph).to_mesh()
@@ -318,7 +319,8 @@ def get_bounds_snappable(obs, use_modifiers=False):
                 maxx = max(maxx, parent_coord.x)
                 maxy = max(maxy, parent_coord.y)
                 maxz = max(maxz, parent_coord.z)
-            # bpy.data.meshes.remove(mesh)
+
+            object_eval.to_mesh_clear()
 
     if obcount == 0:
         minx, miny, minz, maxx, maxy, maxz = 0, 0, 0, 0, 0, 0
@@ -344,7 +346,8 @@ def get_bounds_worldspace(obs, use_modifiers=False):
         mw = ob.matrix_world
         if ob.type == 'MESH' or ob.type == 'CURVE':
             depsgraph = bpy.context.evaluated_depsgraph_get()
-            mesh = ob.evaluated_get(depsgraph).to_mesh()
+            ob_eval = ob.evaluated_get(depsgraph)
+            mesh = ob_eval.to_mesh()
             obcount += 1
             for c in mesh.vertices:
                 coord = c.co
@@ -355,6 +358,7 @@ def get_bounds_worldspace(obs, use_modifiers=False):
                 maxx = max(maxx, world_coord.x)
                 maxy = max(maxy, world_coord.y)
                 maxz = max(maxz, world_coord.z)
+            ob_eval.to_mesh_clear()
 
     if obcount == 0:
         minx, miny, minz, maxx, maxy, maxz = 0, 0, 0, 0, 0, 0

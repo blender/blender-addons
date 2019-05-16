@@ -1451,7 +1451,7 @@ def export(file,
 
                     # free mesh created with create_mesh()
                     if do_remove:
-                        bpy.data.meshes.remove(me)
+                        obj_for_mesh.to_mesh_clear()
 
             elif obj_type == 'LIGHT':
                 data = obj.data

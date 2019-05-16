@@ -163,9 +163,11 @@ def save_object(fw, global_matrix,
         if is_editmode:
             bpy.ops.object.editmode_toggle()
 
-        me = obj.evaluated_get(depsgraph).to_mesh()
+        obj_eval = obj.evaluated_get(depsgraph)
+        me = obj_eval.to_mesh()
         bm = bmesh.new()
         bm.from_mesh(me)
+        obj_eval.to_mesh_clear()
 
         if is_editmode:
             bpy.ops.object.editmode_toggle()

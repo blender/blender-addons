@@ -66,15 +66,16 @@ def _points_from_object(obj, source):
             points.extend([matrix * v.co for v in mesh.vertices])
         else:
             depsgraph = bpy.context.evaluated_depsgraph_get()
+            ob_eval = ob.evaluated_get(depsgraph)
             try:
-                mesh = ob.evaluated_get(depsgraph).to_mesh()
+                mesh = ob_eval.to_mesh()
             except:
                 mesh = None
 
             if mesh is not None:
                 matrix = obj.matrix_world.copy()
                 points.extend([matrix * v.co for v in mesh.vertices])
-                bpy.data.meshes.remove(mesh)
+                ob_eval.to_mesh_clear()
 
     def points_from_particles(obj):
         points.extend([p.location.copy()
@@ -339,7 +340,8 @@ def cell_fracture_boolean(context, obj, objects,
             if use_interior_hide:
                 obj_cell.data.polygons.foreach_set("hide", [True] * len(obj_cell.data.polygons))
 
-            mesh_new = obj_cell.evaluated_get(depsgraph).to_mesh()
+            obj_cell_eval = obj_cell.evaluated_get(depsgraph)
+            mesh_new = bpy.data.meshes.new_from_object(obj_cell_eval)
             mesh_old = obj_cell.data
             obj_cell.data = mesh_new
             obj_cell.modifiers.remove(mod)

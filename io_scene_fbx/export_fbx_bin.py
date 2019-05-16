@@ -2228,7 +2228,10 @@ def fbx_data_from_scene(scene, depsgraph, settings):
                 if backup_pose_positions:
                     depsgraph.update()
                 ob_to_convert = ob.evaluated_get(depsgraph) if settings.use_mesh_modifiers else ob
-                tmp_me = ob_to_convert.to_mesh()
+                # NOTE: The dependency graph might be re-evaluating multiple times, which could
+                # potentially free the mesh created early on. So we put those meshes to bmain and
+                # free them afterwards. Not ideal but ensures correct ownerwhip.
+                tmp_me = bpy.data.meshes.new_from_object(ob_to_convert)
                 data_meshes[ob_obj] = (get_blenderID_key(tmp_me), tmp_me, True)
             # Change armatures back.
             for armature, pose_position in backup_pose_positions:

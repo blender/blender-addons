@@ -68,9 +68,11 @@ def write(filepath,
 
     faces = []
     for obj in bpy.context.selected_objects:
+        obj_eval = None
         if applyMods or obj.type != 'MESH':
             try:
-                me = obj.evaluated_get(depsgraph).to_mesh()
+                obj_eval = obj.evaluated_get(depsgraph)
+                me = obj_eval.to_mesh()
             except:
                 me = None
             is_tmp_mesh = True
@@ -90,7 +92,7 @@ def write(filepath,
                     faces.append(fv)
 
             if is_tmp_mesh:
-                bpy.data.meshes.remove(me)
+                obj_eval.to_mesh_clear()
 
     # write the faces to a file
     file = open(filepath, "w")

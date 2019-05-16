@@ -982,7 +982,7 @@ def triangulate_mesh(object):
 
     me_ob = object.copy()
     depsgraph = bpy.context.evaluated_depsgraph_get()
-    me_ob.data = object.evaluated_get(depsgraph).to_mesh()  # write data object
+    me_ob.data = bpy.data.meshes.new_from_object(object.evaluated_get(depsgraph))  # write data object
     bpy.context.collection.objects.link(me_ob)
     bpy.context.scene.update()
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -1007,7 +1007,7 @@ def triangulate_mesh(object):
 
     verbose("Triangulated mesh")
 
-    me_ob.data = me_ob.evaluated_get(depsgraph).to_mesh()  # write data object
+    me_ob.data = bpy.data.meshes.new_from_object(me_ob.evaluated_get(depsgraph))  # write data object
     bpy.context.scene.update()
     return me_ob
 
@@ -2102,7 +2102,8 @@ def rebuildmesh(obj):
     uvfaces = []
     # print("creating array build mesh...")
     depsgraph = bpy.context.evaluated_depsgraph_get()
-    mmesh = obj.evaluated_get(depsgraph).to_mesh()
+    obj_eval = obj.evaluated_get(depsgraph)
+    mmesh = obj_eval.to_mesh()
     uv_layer = mmesh.tessface_uv_textures.active
 
     for face in mmesh.tessfaces:
@@ -2118,6 +2119,8 @@ def rebuildmesh(obj):
             faces.extend([(face.vertices[0], face.vertices[1], face.vertices[2], 0)])
         else:
             faces.extend([(face.vertices[0], face.vertices[1], face.vertices[2], face.vertices[3])])
+
+    obj_eval.to_mesh_clear()
 
     # vertex positions
     for vertex in mesh.vertices:

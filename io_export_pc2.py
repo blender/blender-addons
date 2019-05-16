@@ -112,7 +112,10 @@ def do_export(context, props, filepath):
                                      float(v.co[2]))
             file.write(thisVertex)
 
-        bpy.data.meshes.remove(me, do_unlink=True)
+    if apply_modifiers:
+        ob.evaluated_get(depsgraph).to_mesh_clear()
+    else:
+        me = ob.to_mesh_clear()
 
     file.flush()
     file.close()

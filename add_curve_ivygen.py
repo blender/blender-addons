@@ -439,12 +439,13 @@ def bvhtree_from_object(ob):
     bm = bmesh.new()
 
     depsgraph = context.evaluated_depsgraph_get()
-    mesh = ob.evaluated_get(depsgraph).to_mesh()
+    ob_eval = ob.evaluated_get(depsgraph)
+    mesh = ob_eval.to_mesh()
     bm.from_mesh(mesh)
     bm.transform(ob.matrix_world)
 
     bvhtree = BVHTree.FromBMesh(bm)
-    bpy.data.meshes.remove(mesh)
+    ob_eval.to_mesh_clear()
     return bvhtree
 
 def check_mesh_faces(ob):

@@ -42,7 +42,11 @@ class MeshDXFExporter(BasePrimitiveDXFExporter):
                         entities = self._writeInsert(ob, mx, me.name, **(kwargs))
 
             else: # no other instances, so go the standard way
-                return self._standard_way(drawing, me, mx, mx_n)
+                self._standard_way(drawing, me, mx, mx_n)
+
+        if obj.modifiers and settings['apply_modifiers']:
+            depsgraph = ctx.evaluated_depsgraph_get()
+            obj.evaluated_get(depsgraph).to_mesh_clear()
 
     def _writeInsert(self, drawing, ob, mx, insert_name, **kwargs):
         from insert_exporter import InsertDXFExporter

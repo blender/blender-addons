@@ -299,11 +299,14 @@ class Ms3dExporter():
 
             # convert to tris by using the triangulate modifier
             blender_mesh_object_temp.modifiers.new("temp", 'TRIANGULATE')
-            blender_mesh_temp = blender_mesh_object_temp.evaluated_get(blender_depsgraph).to_mesh()
+            blender_mesh_object_temp_eval = blender_mesh_object_temp.evaluated_get(blender_depsgraph)
+            blender_mesh_temp = blender_mesh_object_temp_eval.to_mesh()
 
             enable_edit_mode(True, blender_context)
             bm = bmesh.new()
             bm.from_mesh(blender_mesh_temp)
+
+            blender_mesh_object_temp_eval.to_mesh_clear()
 
             layer_texture = bm.faces.layers.tex.get(
                     ms3d_str['OBJECT_LAYER_TEXTURE'])

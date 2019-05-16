@@ -49,7 +49,8 @@ class ShapeToObjects(Operator):
                 print(SHAPE.name)
                 bpy.ops.object.shape_key_clear()
                 SHAPE.value = 1
-                mesh = OBJACT.evaluated_get(depsgraph).to_mesh()
+                OBJACT_eval = OBJACT.evaluated_get(depsgraph)
+                mesh = bpy.data.meshes.new_from_object(OBJACT_eval)
                 object = bpy.data.objects.new(SHAPE.name, mesh)
                 bpy.context.scene.collection.objects.link(object)
         else:

@@ -461,12 +461,13 @@ def bvhtree_from_object(object):
     bm = bmesh.new()
 
     depsgraph = context.evaluated_depsgraph_get()
-    mesh = object.evaluated_get(depsgraph).to_mesh()
+    object_eval = object.evaluated_get(depsgraph)
+    mesh = object_eval.to_mesh()
     bm.from_mesh(mesh)
     bm.transform(object.matrix_world)
 
     bvhtree = BVHTree.FromBMesh(bm)
-    bpy.data.meshes.remove(mesh)
+    object_eval.to_mesh_clear()
     return bvhtree
 
 def shoot_region_2d_ray(bvhtree, position_2d):

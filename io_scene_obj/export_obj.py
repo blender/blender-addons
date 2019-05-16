@@ -639,7 +639,7 @@ def write_file(filepath, objects, depsgraph, scene,
                         totno += no_unique_count
 
                         # clean up
-                        bpy.data.meshes.remove(me)
+                        ob_for_convert.to_mesh_clear()
 
                 subprogress1.leave_substeps("Finished writing geometry of '%s'." % ob_main.name)
             subprogress1.leave_substeps()

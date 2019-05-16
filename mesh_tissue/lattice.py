@@ -319,9 +319,10 @@ class lattice_along_surface(Operator):
                 obj = o
                 o.select_set(False)
                 break
+        obj_eval = obj.evaluated_get(depsgraph)
         try:
             obj_dim = obj.dimensions
-            obj_me = obj.evaluated_get(depsgraph).to_mesh()
+            obj_me = obj_eval.to_mesh()
         except:
             self.report({'ERROR'}, "The object to deform is not valid. Only "
                         "Mesh, Curve, Surface and Font objects are allowed.")
@@ -359,6 +360,8 @@ class lattice_along_surface(Operator):
             if vert[2] > max[2] or first:
                 max[2] = vert[2]
             first = False
+
+        obj_eval.to_mesh_clear()
 
         bb = max - min
         lattice_loc = (max + min) / 2
