@@ -573,7 +573,7 @@ class VIEW3D_PT_blenderkit_unified(Panel):
             layout.operator("wm.blenderkit_login_cancel", text="Cancel", icon='CANCEL')
             return
 
-        if len(user_preferences.api_key) < 20 and user_preferences.asset_counter > 5:
+        if len(user_preferences.api_key) < 20 and user_preferences.asset_counter > 20:
             layout.operator("wm.blenderkit_login", text="Login/ Sign up",
                             icon='URL')
             # layout.label(text='Paste your API Key:')

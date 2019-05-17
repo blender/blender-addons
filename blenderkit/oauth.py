@@ -26,7 +26,7 @@ from urllib.parse import parse_qs, urlparse
 import requests
 import threading
 import blenderkit
-from blenderkit import tasks_queue, utils, paths, search
+from blenderkit import tasks_queue, utils, paths, search, categories
 
 CLIENT_ID = "IdFRwa3SGA8eMpzhRVFMg5Ts8sPK93xBjif93x0F"
 PORTS = [62485, 1234]
@@ -127,6 +127,7 @@ def write_tokens(auth_token, refresh_token):
     props = utils.get_search_props()
     props.report = 'Login success!'
     search.get_profile()
+    categories.fetch_categories_thread(auth_token)
 
 
 class RegisterLoginOnline(bpy.types.Operator):

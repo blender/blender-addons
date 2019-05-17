@@ -201,24 +201,6 @@ def save_prefs(self, context):
         bpy.ops.wm.save_userpref()
 
 
-
-def load_categories():
-    categories.copy_categories()
-    tempdir = paths.get_temp_dir()
-    categories_filepath = os.path.join(tempdir, 'categories.json')
-
-    wm = bpy.context.window_manager
-    with open(categories_filepath, 'r') as catfile:
-        wm['bkit_categories'] = json.load(catfile)
-
-    wm['active_category'] = {
-        'MODEL': ['model'],
-        'SCENE': ['scene'],
-        'MATERIAL': ['material'],
-        'BRUSH': ['brush'],
-    }
-
-
 def get_hidden_image(tpath, bdata_name, force_reload=False):
     hidden_name = '.%s' % bdata_name
     img = bpy.data.images.get(hidden_name)

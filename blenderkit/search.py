@@ -62,9 +62,7 @@ prev_time = 0
 def check_errors(rdata):
     if rdata.get('statusCode') == 401:
         if rdata.get('detail') == 'Invalid token.':
-            # reset the api key, so it can be requested again.
-            # user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
-            # user_preferences.api_key = ''
+            user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
             if user_preferences.api_key != '':
                 oauth.refresh_token_thread()
                 return False, "You've been logged out. Logging in...."
@@ -77,6 +75,12 @@ thumb_sml_download_threads = {}
 thumb_full_download_threads = {}
 reports = ''
 
+def refresh_token_timer():
+    ''' this timer gets run every 20 hours. It refreshes tokens and categories.'''
+    print( 'refresh timer')
+    fetch_server_data()
+    categories.load_categories()
+    return 72000
 
 @persistent
 def scene_load(context):
@@ -84,7 +88,9 @@ def scene_load(context):
     fetch_server_data()
     # following doesn't necessarilly happen if version isn't checked yet or similar, first run.
     # wm['bkit_update'] = version_checker.compare_versions(blenderkit)
-    utils.load_categories()
+    categories.load_categories()
+    if not bpy.app.timers.is_registered(refresh_token_timer):
+        bpy.app.timers.register(refresh_token_timer, persistent=True, first_interval = 72000)
 
 
 def fetch_server_data():
@@ -471,7 +477,7 @@ def generate_author_textblock(adata):
     t = ''
     if adata not in (None, ''):
         t += 'author: %s %s\n' % (adata['firstName'], adata['lastName'])
-        t = writeblockm(t, adata, key='aboutMe', pretext='')
+        t = writeblockm(t, adata, key='aboutMe', pretext='about me')
         t += '\n'
         t = writeblockm(t, adata, key='aboutMeUrl', pretext='')
     return t
@@ -524,10 +530,10 @@ class ThumbDownloader(threading.Thread):
 
 
 def write_author(a_id, adata):
-    utils.p('writing author back')
+    # utils.p('writing author back')
     authors = bpy.context.window_manager['bkit authors']
     if authors.get(a_id) in (None, ''):
-        adata['tooltip'] = generate_author_textblock
+        adata['tooltip'] = generate_author_textblock(adata)
         authors[a_id] = adata
 
 
@@ -563,13 +569,12 @@ def get_author(r):
 
 def write_profile(adata):
     utils.p('writing profile')
-    utils.p(adata.keys())
-    print(adata)
     user = adata['user']
     # we have to convert to MB here, numbers too big for python int type
-    user['sumAssetFilesSize'] /= (1024 * 1024)
-    user['sumPrivateAssetFilesSize'] /= (1024 * 1024)
-    user['remainingPrivateQuota'] /= (1024 * 1024)
+    if user.get('sumAssetFileSize') is not None:
+        user['sumAssetFilesSize'] /= (1024 * 1024)
+        user['sumPrivateAssetFilesSize'] /= (1024 * 1024)
+        user['remainingPrivateQuota'] /= (1024 * 1024)
 
     bpy.context.window_manager['bkit profile'] = adata
 
@@ -1089,7 +1094,7 @@ def register_search():
 
     # bpy.app.timers.register(timer_update, persistent = True)
 
-    utils.load_categories()
+    categories.load_categories()
 
 
 def unregister_search():

@@ -30,7 +30,7 @@ def queue_worker():
     q = get_queue()
     while not q.empty():
         utils.p('as a task:   ')
-        print('window manager', bpy.context.window_manager)
+        # print('window manager', bpy.context.window_manager)
         task = q.get()
         utils.p(task)
         try:
