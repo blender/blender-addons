@@ -460,7 +460,7 @@ def bvhtree_from_object(object):
     import bmesh
     bm = bmesh.new()
 
-    depsgraph = context.evaluated_depsgraph_get()
+    depsgraph = bpy.context.evaluated_depsgraph_get()
     object_eval = object.evaluated_get(depsgraph)
     mesh = object_eval.to_mesh()
     bm.from_mesh(mesh)
