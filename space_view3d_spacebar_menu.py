@@ -1369,49 +1369,14 @@ class VIEW3D_MT_Edit_Multi(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_WIN'
 
-        prop = layout.operator("wm.context_set_value", text="Vertex Select",
-                               icon='VERTEXSEL')
-        prop.value = "(True, False, False)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-
-        prop = layout.operator("wm.context_set_value", text="Edge Select",
-                               icon='EDGESEL')
-        prop.value = "(False, True, False)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-
-        prop = layout.operator("wm.context_set_value", text="Face Select",
-                               icon='FACESEL')
-        prop.value = "(False, False, True)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-        UseSeparator(self, context)
-
-        prop = layout.operator("wm.context_set_value",
-                               text="Vertex & Edge Select",
-                               icon='EDITMODE_HLT')
-        prop.value = "(True, True, False)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-
-        prop = layout.operator("wm.context_set_value",
-                               text="Vertex & Face Select",
-                               icon='XRAY')
-        prop.value = "(True, False, True)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-
-        prop = layout.operator("wm.context_set_value",
-                               text="Edge & Face Select",
-                               icon='SNAP_FACE')
-        prop.value = "(False, True, True)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-        UseSeparator(self, context)
-
-        prop = layout.operator("wm.context_set_value",
-                               text="Vertex & Edge & Face Select",
-                               icon='SNAP_VOLUME')
-        prop.value = "(True, True, True)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-
+        layout.operator("multiedit.vertex", text="Vertex", icon='VERTEXSEL')
+        layout.operator("multiedit.edge", text="Edge", icon='EDGESEL')
+        layout.operator("multiedit.face", text="Face", icon='FACESEL')
+        layout.operator("multiedit.vertsfaces", text="Vertex/Faces", icon='VERTEXSEL')
+        layout.operator("multiedit.vertsedges", text="Vertex/Edges", icon='EDGESEL')
+        layout.operator("multiedit.edgesfaces", text="Edges/Faces", icon='FACESEL')
+        layout.operator("multiedit.vertsedgesfaces", text="Vertex/Edges/Faces", icon='OBJECT_DATAMODE')
 
 # ********** Edit Mesh Edge **********
 class VIEW3D_MT_EditM_Edge(Menu):
@@ -2923,6 +2888,110 @@ class VIEW3D_OT_SetOriginToSelected(Operator):
 
         return {'FINISHED'}
 
+# multiple edit select modes.
+class VIEW3D_OT_MultieditVertex(Operator):
+    bl_idname = "multiedit.vertex"
+    bl_label = "Vertex Mode"
+    bl_description = "Vert Select"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if context.object.mode != "EDIT":
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
+        if bpy.ops.mesh.select_mode != "EDGE, FACE":
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
+            return {'FINISHED'}
+
+
+class VIEW3D_OT_MultieditEdge(Operator):
+    bl_idname = "multiedit.edge"
+    bl_label = "Edge Mode"
+    bl_description = "Edge Select"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if context.object.mode != "EDIT":
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
+        if bpy.ops.mesh.select_mode != "VERT, FACE":
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
+            return {'FINISHED'}
+
+
+class VIEW3D_OT_MultieditFace(Operator):
+    bl_idname = "multiedit.face"
+    bl_label = "Multiedit Face"
+    bl_description = "Face Mode"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if context.object.mode != "EDIT":
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
+        if bpy.ops.mesh.select_mode != "VERT, EDGE":
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
+            return {'FINISHED'}
+
+# Components Multi Selection Mode
+class VIEW3D_OT_MultieditVertsEdges(Operator):
+    bl_idname = "multiedit.vertsedges"
+    bl_label = "Verts Edges Mode"
+    bl_description = "Vert/Edge Select"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if context.object.mode != "EDIT":
+            bpy.ops.object.mode_set(mode="EDIT")
+            context.tool_settings.mesh_select_mode = (True, True, False)
+        if context.object.mode == "EDIT":
+            context.tool_settings.mesh_select_mode = (True, True, False)
+            return {'FINISHED'}
+
+
+class VIEW3D_OT_MultieditEdgesFaces(Operator):
+    bl_idname = "multiedit.edgesfaces"
+    bl_label = "Edges Faces Mode"
+    bl_description = "Edge/Face Select"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if context.object.mode != "EDIT":
+            bpy.ops.object.mode_set(mode="EDIT")
+            context.tool_settings.mesh_select_mode = (False, True, True)
+        if context.object.mode == "EDIT":
+            context.tool_settings.mesh_select_mode = (False, True, True)
+            return {'FINISHED'}
+
+
+class VIEW3D_OT_MultieditVertsFaces(Operator):
+    bl_idname = "multiedit.vertsfaces"
+    bl_label = "Verts Faces Mode"
+    bl_description = "Vert/Face Select"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if context.object.mode != "EDIT":
+            bpy.ops.object.mode_set(mode="EDIT")
+            context.tool_settings.mesh_select_mode = (True, False, True)
+        if context.object.mode == "EDIT":
+            context.tool_settings.mesh_select_mode = (True, False, True)
+            return {'FINISHED'}
+
+
+class VIEW3D_OT_MultieditVertsEdgesFaces(Operator):
+    bl_idname = "multiedit.vertsedgesfaces"
+    bl_label = "Verts Edges Faces Mode"
+    bl_description = "Vert/Edge/Face Select"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if context.object.mode != "EDIT":
+            bpy.ops.object.mode_set(mode="EDIT")
+            context.tool_settings.mesh_select_mode = (True, True, True)
+        if context.object.mode == "EDIT":
+            context.tool_settings.mesh_select_mode = (True, True, True)
+            return {'FINISHED'}
 
 # Code thanks to Isaac Weaver (wisaac) D1963
 class VIEW3D_OT_SnapCursSelToCenter(Operator):
@@ -3072,6 +3141,13 @@ classes = (
     VIEW3D_MT_Paint_Weights,
     VIEW3D_OT_Interactive_Mode_Grease_Pencil,
     VIEW3D_MT_Edit_Gpencil,
+    VIEW3D_OT_MultieditVertex,
+    VIEW3D_OT_MultieditEdge,
+    VIEW3D_OT_MultieditFace,
+    VIEW3D_OT_MultieditVertsEdges,
+    VIEW3D_OT_MultieditEdgesFaces,
+    VIEW3D_OT_MultieditVertsFaces,
+    VIEW3D_OT_MultieditVertsEdgesFaces
 )
 
 
