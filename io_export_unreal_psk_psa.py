@@ -984,7 +984,7 @@ def triangulate_mesh(object):
     depsgraph = bpy.context.evaluated_depsgraph_get()
     me_ob.data = bpy.data.meshes.new_from_object(object.evaluated_get(depsgraph))  # write data object
     bpy.context.collection.objects.link(me_ob)
-    bpy.context.scene.update()
+    view_layer.update()
     bpy.ops.object.mode_set(mode='OBJECT')
 
     for i in scene.objects:
@@ -999,7 +999,7 @@ def triangulate_mesh(object):
     bpy.ops.mesh.select_all(action='SELECT')  # select all the face/vertex/edge
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.quads_convert_to_tris()
-    bpy.context.scene.update()
+    view_layer.update()
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -1008,7 +1008,7 @@ def triangulate_mesh(object):
     verbose("Triangulated mesh")
 
     me_ob.data = bpy.data.meshes.new_from_object(me_ob.evaluated_get(depsgraph))  # write data object
-    bpy.context.scene.update()
+    view_layer.update()
     return me_ob
 
 
@@ -1557,7 +1557,7 @@ def parse_animation(armature, udk_bones, actions_to_export, psa):
         # apply action to armature and update scene
         # note if loop all actions that is not armature it will override and will break armature animation
         armature.animation_data.action = action
-        context.scene.update()
+        context.view_layer.update()
 
         # min/max frames define range
         framemin, framemax = action.frame_range
@@ -2048,7 +2048,7 @@ class OBJECT_OT_UTSelectedFaceSmooth(Operator):
                         flatcount += 1
                         face.select = False
                 mesh.to_mesh(obj.data)
-                bpy.context.scene.update()
+                bpy.context.view_layer.update()
                 bpy.ops.object.mode_set(mode='EDIT')
                 print("Select Smooth Count(s):", smoothcount, " Flat Count(s):", flatcount)
                 bselected = True
@@ -2163,7 +2163,7 @@ def rebuildmesh(obj):
 
     me_ob.update()  # need to update the information to able to see into the secne
     obmesh = bpy.data.objects.new(("Re_" + obj.name), me_ob)
-    bpy.context.scene.update()
+    bpy.context.view_layer.update()
 
     # Build tmp materials
     materialname = "ReMaterial"
@@ -2189,7 +2189,7 @@ def rebuildmesh(obj):
         matcount += 1
 
     print("Mesh Object Name:", obmesh.name)
-    bpy.context.scene.update()
+    bpy.context.view_layer.update()
 
     return obmesh
 
@@ -2628,7 +2628,7 @@ def udkcheckmeshline():
                     break
         bpy.ops.object.mode_set(mode='EDIT')  # set in edit mode to see the select vertex
         objmesh.data.update()       # update object
-        bpy.context.scene.update()  # update scene
+        bpy.context.view_layer.update()  # update scene
         message = "MESH PASS"
         if len(vertex_list) > 0:
             message = "MESH FAIL"

@@ -158,7 +158,6 @@ def bmesh_check_thick_object(obj, thickness):
 
     # Create a real mesh (lame!)
     context = bpy.context
-    scene = context.scene
     layer = context.view_layer
     layer_collection = context.layer_collection or layer.active_layer_collection
     scene_collection = layer_collection.collection
@@ -181,7 +180,7 @@ def bmesh_check_thick_object(obj, thickness):
         base.layers_from_view(context.space_data)
     '''
 
-    scene.update()
+    layer.update()
     ray_cast = obj_tmp.ray_cast
 
     EPS_BIAS = 0.0001
@@ -217,7 +216,7 @@ def bmesh_check_thick_object(obj, thickness):
     bpy.data.objects.remove(obj_tmp)
     bpy.data.meshes.remove(me_tmp)
 
-    scene.update()
+    layer.update()
 
     return array.array('i', faces_error)
 
@@ -286,7 +285,7 @@ def object_merge(context, objects):
 
         obj_eval.to_mesh_clear()
 
-    scene.update()
+    layer.update()
 
     # return new object
     return obj_base

@@ -138,7 +138,7 @@ def cell_fracture_objects(context, obj,
 
     from . import fracture_cell_calc
     collection = context.collection
-    scene = context.scene
+    view_layer = context.view_layer
 
     # -------------------------------------------------------------------------
     # GET POINTS
@@ -296,10 +296,10 @@ def cell_fracture_objects(context, obj,
                 slot_dst.material = slot_src.material
 
         if use_debug_redraw:
-            scene.update()
+            view_layer.update()
             _redraw_yasiamevil()
 
-    scene.update()
+    view_layer.update()
 
     # move this elsewhere...
     for obj_cell in objects:
@@ -404,7 +404,7 @@ def cell_fracture_boolean(context, obj, objects,
 
         objects_boolean[:] = [obj_cell for obj_cell in scene.objects if obj_cell.select]
 
-    scene.update()
+    context.view_layer.update()
 
     return objects_boolean
 

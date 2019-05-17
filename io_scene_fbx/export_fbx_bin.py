@@ -3182,7 +3182,8 @@ def save(operator, context,
                 scene.unit_settings.system_rotation = best_src_scene.unit_settings.system_rotation
                 scene.unit_settings.scale_length = best_src_scene.unit_settings.scale_length
 
-                scene.update()
+                # new scene [only one viewlayer to update]
+                scene.view_layers[0].update()
                 # TODO - BUMMER! Armatures not in the group wont animate the mesh
             else:
                 scene = data
