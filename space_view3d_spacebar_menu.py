@@ -1312,7 +1312,6 @@ class VIEW3D_MT_AutoSmooth(Menu):
             layout.operator("mesh.flip_normals")
             UseSeparator(self, context)
 
-        layout.prop(obj_data, "show_double_sided", text="Normals: Double Sided")
         UseSeparator(self, context)
         layout.prop(obj_data, "use_auto_smooth", text="Normals: Auto Smooth")
 
