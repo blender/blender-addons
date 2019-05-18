@@ -58,7 +58,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
         view = context.space_data
 # No Object Selected #
         ob = bpy.context.object
-        if not ob.select_get():
+        if not ob or not ob.select_get():
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
