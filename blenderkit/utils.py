@@ -230,6 +230,7 @@ def get_hidden_image(tpath, bdata_name, force_reload=False):
         if img.packed_file is not None:
             img.unpack(method='USE_ORIGINAL')
         img.reload()
+    img.colorspace_settings.name = 'Linear'
     return img
 
 
@@ -239,6 +240,7 @@ def get_thumbnail(name):
     img = bpy.data.images.get(name)
     if img == None:
         img = bpy.data.images.load(p)
+        img.colorspace_settings.name = 'Linear'
         img.name = name
         img.name = name
 
@@ -297,13 +299,14 @@ def get_bounds_snappable(obs, use_modifiers=False):
             # If to_mesh() works we can use it on curves and any other ob type almost.
             # disabled to_mesh for 2.8 by now, not wanting to use dependency graph yet.
             depsgraph = bpy.context.evaluated_depsgraph_get()
-            object_eval = ob.evaluated_get(depsgraph)
-            mesh = object_eval.to_mesh()
 
-            # if self.applyModifiers:
-            #     evaluated_get(depsgraph).to_mesh()
-            # else:
-            #     to_mesh()
+            object_eval = ob.evaluated_get(depsgraph)
+            if ob.type == 'CURVE':
+                mesh = object_eval.to_mesh()
+            else:
+                mesh = object_eval.data
+
+            # to_mesh(context.depsgraph, apply_modifiers=self.applyModifiers, calc_undeformed=False)
             obcount += 1
             for c in mesh.vertices:
                 coord = c.co
@@ -315,8 +318,9 @@ def get_bounds_snappable(obs, use_modifiers=False):
                 maxx = max(maxx, parent_coord.x)
                 maxy = max(maxy, parent_coord.y)
                 maxz = max(maxz, parent_coord.z)
-
-            object_eval.to_mesh_clear()
+            # bpy.data.meshes.remove(mesh)
+            if ob.type == 'CURVE':
+                object_eval.to_mesh_clear()
 
     if obcount == 0:
         minx, miny, minz, maxx, maxy, maxz = 0, 0, 0, 0, 0, 0

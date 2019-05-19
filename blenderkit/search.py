@@ -292,7 +292,7 @@ def load_previews():
                         img.unpack(method='USE_ORIGINAL')
                     img.filepath = tpath
                     img.reload()
-
+                img.colorspace_settings.name = 'Linear'
             i += 1
     # print('previews loaded')
 
@@ -571,7 +571,7 @@ def write_profile(adata):
     utils.p('writing profile')
     user = adata['user']
     # we have to convert to MB here, numbers too big for python int type
-    if user.get('sumAssetFileSize') is not None:
+    if user.get('sumAssetFilesSize') is not None:
         user['sumAssetFilesSize'] /= (1024 * 1024)
         user['sumPrivateAssetFilesSize'] /= (1024 * 1024)
         user['remainingPrivateQuota'] /= (1024 * 1024)
@@ -604,9 +604,8 @@ def fetch_profile(api_key):
 def get_profile():
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
     a = bpy.context.window_manager.get('bkit profile')
-    if a is None:
-        thread = threading.Thread(target=fetch_profile, args=(preferences.api_key,), daemon=True)
-        thread.start()
+    thread = threading.Thread(target=fetch_profile, args=(preferences.api_key,), daemon=True)
+    thread.start()
     return a
 
 
