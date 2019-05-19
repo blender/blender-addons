@@ -556,6 +556,379 @@ class RenderPovSettingsScene(PropertyGroup):
 ###############################################################################
 # Material POV properties.
 ###############################################################################
+class MaterialTextureSlot(PropertyGroup):
+
+    alpha_factor: FloatProperty(
+            name="Alpha",
+            description="Amount texture affects alpha",
+            default = 0.0)
+
+    ambient_factor: FloatProperty(
+            name="",
+            description="Amount texture affects ambient",
+            default = 0.0)
+
+    bump_method: EnumProperty(
+            name="",
+            description="Method to use for bump mapping",
+            items=(("BUMP_ORIGINAL", "Bump Original", ""),
+                   ("BUMP_COMPATIBLE", "Bump Compatible", ""),
+                   ("BUMP_DEFAULT", "Bump Default", ""),
+                   ("BUMP_BEST_QUALITY", "Bump Best Quality", "")),
+            default="BUMP_ORIGINAL")            
+
+    bump_objectspace: EnumProperty(
+            name="",
+            description="Space to apply bump mapping in",
+            items=(("BUMP_VIEWSPACE", "Bump Viewspace", ""),
+                   ("BUMP_OBJECTSPACE", "Bump Objectspace", ""),
+                   ("BUMP_TEXTURESPACE", "Bump Texturespace", "")),
+            default="BUMP_VIEWSPACE")
+
+    density_factor: FloatProperty(
+            name="",
+            description="Amount texture affects density",
+            default = 0.0)
+
+    diffuse_color_factor: FloatProperty(
+            name="",
+            description="Amount texture affects diffuse color",
+            default = 0.0)
+
+    diffuse_factor: FloatProperty(
+            name="",
+            description="Amount texture affects diffuse reflectivity",
+            default = 0.0)
+
+    displacement_factor: FloatProperty(
+            name="",
+            description="Amount texture displaces the surface",
+            default = 0.0)
+
+    emission_color_factor: FloatProperty(
+            name="",
+            description="Amount texture affects emission color",
+            default = 0.0)
+
+    emission_factor: FloatProperty(
+            name="",
+            description="Amount texture affects emission",
+            default = 0.0)
+
+    emit_factor: FloatProperty(
+            name="",
+            description="Amount texture affects emission",
+            default = 0.0)
+
+    hardness_factor: FloatProperty(
+            name="",
+            description="Amount texture affects hardness",
+            default = 0.0)
+
+    mapping: EnumProperty(
+            name="",
+            description="",
+            items=(("FLAT", "Flat", ""),
+                   ("CUBE", "Cube", ""),
+                   ("TUBE", "Tube", ""),
+                   ("SPHERE", "Sphere", "")),
+            default="FLAT")            
+
+    mapping_x: EnumProperty(
+            name="",
+            description="",
+            items=(("NONE", "", ""),
+                   ("X", "", ""),
+                   ("Y", "", ""),
+                   ("Z", "", "")),
+            default="NONE")      
+
+    mapping_y: EnumProperty(
+            name="",
+            description="",
+            items=(("NONE", "", ""),
+                   ("X", "", ""),
+                   ("Y", "", ""),
+                   ("Z", "", "")),
+            default="NONE")   
+
+    mapping_z: EnumProperty(
+            name="",
+            description="",
+            items=(("NONE", "", ""),
+                   ("X", "", ""),
+                   ("Y", "", ""),
+                   ("Z", "", "")),
+            default="NONE")   
+
+    mirror_factor: FloatProperty(
+            name="",
+            description="Amount texture affects mirror color",
+            default = 0.0)
+
+    normal_factor: FloatProperty(
+            name="",
+            description="Amount texture affects normal values",
+            default = 0.0)
+
+    normal_map_space: EnumProperty(
+            name="",
+            description="Sets space of normal map image",
+            items=(("CAMERA", "Camera", ""),
+                   ("WORLD", "World", ""),
+                   ("OBJECT", "Object", ""),
+                   ("TANGENT", "Tangent", "")),
+            default="CAMERA") 
+
+    object: StringProperty(
+            name="Object",
+            description="Object to use for mapping with Object texture coordinates",
+            default ="")
+
+    raymir_factor: FloatProperty(
+            name="",
+            description="Amount texture affects ray mirror",
+            default = 0.0)
+
+    reflection_color_factor: FloatProperty(
+            name="",
+            description="Amount texture affects color of out-scattered light",
+            default = 0.0)
+
+    reflection_factor: FloatProperty(
+            name="",
+            description="Amount texture affects brightness of out-scattered light",
+            default = 0.0)
+
+    scattering_factor: FloatProperty(
+            name="",
+            description="Amount texture affects scattering",
+            default = 0.0)
+
+    specular_color_factor: FloatProperty(
+            name="",
+            description="Amount texture affects specular color",
+            default = 0.0)
+
+    specular_factor: FloatProperty(
+            name="",
+            description="Amount texture affects specular reflectivity",
+            default = 0.0)
+
+    texture_coords: EnumProperty(
+            name="",
+            description="",
+            items=(("GLOBAL", "Global", ""),
+                   ("OBJECT", "Object", ""),
+                   ("UV", "UV", ""),
+                   ("ORCO", "Original Coordinates", ""),
+                   ("STRAND", "Strand", ""),
+                   ("STICKY", "Sticky", ""),
+                   ("WINDOW", "Window", ""),
+                   ("NORMAL", "Normal", ""),
+                   ("REFLECTION", "Reflection", ""),
+                   ("STRESS", "Stress", ""),
+                   ("TANGENT", "Tangent", "")),
+            default="GLOBAL")
+
+    translucency_factor: FloatProperty(
+            name="",
+            description="Amount texture affects translucency",
+            default = 0.0)
+
+    transmission_color_factor: FloatProperty(
+            name="",
+            description="Amount texture affects result color after light has been scattered/absorbed",
+            default = 0.0)
+
+    use: BoolProperty(
+            name="",
+            description="Enable this material texture slot",
+            default = False)
+
+    use_from_dupli: BoolProperty(
+            name="",
+            description="Dupli’s instanced from verts, faces or particles, inherit texture coordinate from their parent",
+            default = False)
+
+    use_from_original: BoolProperty(
+            name="",
+            description="Dupli’s derive their object coordinates from the original objects transformation",
+            default = False)
+
+    use_map_alpha: BoolProperty(
+            name="",
+            description="Causes the texture to affect the alpha value",
+            default = False)
+
+    use_map_ambient: BoolProperty(
+            name="",
+            description="Causes the texture to affect the value of ambient",
+            default = False)
+
+    use_map_color_diffuse: BoolProperty(
+            name="",
+            description="Causes the texture to affect basic color of the material",
+            default = False)
+
+    use_map_color_emission: BoolProperty(
+            name="",
+            description="Causes the texture to affect the color of emission",
+            default = False)
+
+    use_map_color_reflection: BoolProperty(
+            name="",
+            description="Causes the texture to affect the color of scattered light",
+            default = False)
+
+    use_map_color_spec: BoolProperty(
+            name="",
+            description="Causes the texture to affect the specularity color",
+            default = False)
+
+    use_map_color_transmission: BoolProperty(
+            name="",
+            description="Causes the texture to affect the result color after other light has been scattered/absorbed",
+            default = False)
+
+    use_map_density: BoolProperty(
+            name="",
+            description="Causes the texture to affect the volume’s density",
+            default = False)
+
+    use_map_diffuse: BoolProperty(
+            name="",
+            description="Causes the texture to affect the value of the materials diffuse reflectivity",
+            default = False)
+
+    use_map_displacement: BoolProperty(
+            name="",
+            description="Let the texture displace the surface",
+            default = False)
+
+    use_map_emission: BoolProperty(
+            name="",
+            description="Causes the texture to affect the volume’s emission",
+            default = False)
+
+    use_map_emit: BoolProperty(
+            name="",
+            description="Causes the texture to affect the emit value",
+            default = False)
+
+    use_map_hardness: BoolProperty(
+            name="",
+            description="Causes the texture to affect the hardness value",
+            default = False)
+
+    use_map_mirror: BoolProperty(
+            name="",
+            description="Causes the texture to affect the mirror color",
+            default = False)
+
+    use_map_normal: BoolProperty(
+            name="",
+            description="Causes the texture to affect the rendered normal",
+            default = False)
+
+    use_map_raymir: BoolProperty(
+            name="",
+            description="Causes the texture to affect the ray-mirror value",
+            default = False)
+
+    use_map_reflect: BoolProperty(
+            name="",
+            description="Causes the texture to affect the reflected light’s brightness",
+            default = False)
+
+    use_map_scatter: BoolProperty(
+            name="",
+            description="Causes the texture to affect the volume’s scattering",
+            default = False)
+
+    use_map_specular: BoolProperty(
+            name="",
+            description="Causes the texture to affect the value of specular reflectivity",
+            default = False)
+
+    use_map_translucency: BoolProperty(
+            name="",
+            description="Causes the texture to affect the translucency value",
+            default = False)
+
+    use_map_warp: BoolProperty(
+            name="",
+            description="Let the texture warp texture coordinates of next channels",
+            default = False)
+
+    uv_layer: StringProperty(
+            name="",
+            description="UV layer to use for mapping with UV texture coordinates",
+            default = "")
+
+    warp_factor: FloatProperty(
+            name="",
+            description="Amount texture affects texture coordinates of next channels",
+            default = 0.0)
+    
+ 
+#######################################"    
+    
+    blend_factor: FloatProperty(
+                name="Blend",
+                description="Amount texture affects color progression of the "
+                            "background",
+                soft_min=0.0, soft_max=1.0, default=1.0)
+
+    horizon_factor: FloatProperty(
+                name="Horizon",
+                description="Amount texture affects color of the horizon"
+                            "",
+                soft_min=0.0, soft_max=1.0, default=1.0)
+
+    object: StringProperty(
+                name="Object",
+                description="Object to use for mapping with Object texture coordinates",
+                default="")
+
+    texture_coords: EnumProperty(
+                name="Coordinates",
+                description="Texture coordinates used to map the texture onto the background",
+                items=(("VIEW", "View", "Use view vector for the texture coordinates"),
+                       ("GLOBAL", "Global", "Use global coordinates for the texture coordinates (interior mist)"),
+                       ("ANGMAP", "AngMap", "Use 360 degree angular coordinates, e.g. for spherical light probes"),
+                       ("SPHERE", "Sphere", "For 360 degree panorama sky, spherical mapped, only top half"),
+                       ("EQUIRECT", "Equirectangular", "For 360 degree panorama sky, equirectangular mapping"),
+                       ("TUBE", "Tube", "For 360 degree panorama sky, cylindrical mapped, only top half"),
+                       ("OBJECT", "Object", "Use linked object’s coordinates for texture coordinates")),
+                default="VIEW")
+
+    use_map_blend: BoolProperty(
+                name="Blend Map", description="Affect the color progression of the background",
+                default=True)
+
+    use_map_horizon: BoolProperty(
+                name="Horizon Map", description="Affect the color of the horizon",
+                default=False)
+
+    use_map_zenith_down: BoolProperty(
+                name="", description="Affect the color of the zenith below",
+                default=False)
+
+    use_map_zenith_up: BoolProperty(
+                name="Zenith Up Map", description="Affect the color of the zenith above",
+                default=False)
+
+    zenith_down_factor: FloatProperty(
+                name="Zenith Down",
+                description="Amount texture affects color of the zenith below",
+                soft_min=0.0, soft_max=1.0, default=1.0)
+
+    zenith_up_factor: FloatProperty(
+                name="Zenith Up",
+                description="Amount texture affects color of the zenith above",
+                soft_min=0.0, soft_max=1.0, default=1.0)
+
 class RenderPovSettingsMaterial(PropertyGroup):
 ######################Begin Old Blender Internal Props#########################
 
@@ -720,10 +1093,10 @@ class RenderPovSettingsMaterial(PropertyGroup):
             description="Specular index of refraction",
             min=-10.0, max=10.0, soft_min=0.0, soft_max=10.0, default=1.0, precision=3)
             
-    # ior: FloatProperty(
-            # name="IOR",
-            # description="Index of refraction",
-            # min=-10.0, max=10.0, soft_min=0.0, soft_max=10.0, default=1.0, precision=3)   
+    ior: FloatProperty(
+            name="IOR",
+            description="Index of refraction",
+            min=-10.0, max=10.0, soft_min=0.0, soft_max=10.0, default=1.0, precision=3)   
 
     specular_shader: EnumProperty(
             name="Specular Shader Model",
@@ -1098,6 +1471,8 @@ class RenderPovSettingsMaterial(PropertyGroup):
     object_preview_scale: FloatProperty(name="XYZ", min=0.5, max=2.0, default=1.0)
     object_preview_rotate: FloatVectorProperty(name="Rotate", description="", min=-180.0, max=180.0,default=(0.0,0.0,0.0), subtype='XYZ')
     object_preview_bgcontrast: FloatProperty(name="Contrast", min=0.0, max=1.0, default=0.5)
+
+#TODO?: class MaterialRaytraceTransparency(PropertyGroup):    
     
 class MaterialRaytraceMirror(PropertyGroup):
     bl_description = "Raytraced reflection settings for the Material",  
@@ -3735,6 +4110,7 @@ classes = (
     RenderPovSettingsCamera,
     RenderPovSettingsLight,    
     RenderPovSettingsWorld,
+    MaterialTextureSlot,
     WorldTextureSlot,
     RenderPovSettingsMaterial,
     MaterialRaytraceMirror, 
@@ -3783,6 +4159,7 @@ def register():
     bpy.types.Camera.pov = PointerProperty(type=RenderPovSettingsCamera)
     bpy.types.Light.pov = PointerProperty(type=RenderPovSettingsLight)
     bpy.types.World.pov = PointerProperty(type=RenderPovSettingsWorld)
+    bpy.types.Material.texture_slots = CollectionProperty(type = MaterialTextureSlot)
     bpy.types.World.texture_slots = CollectionProperty(type = WorldTextureSlot)
     bpy.types.Text.pov = PointerProperty(type=RenderPovSettingsText)
 
