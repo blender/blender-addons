@@ -1222,6 +1222,8 @@ class BlenderKitAddonPreferences(AddonPreferences):
 
     default_global_dict = paths.default_global_dict()
 
+    enable_oauth = False
+
     api_key: StringProperty(
         name="BlenderKit API Key",
         description="Your blenderkit API Key. Get it from your page on the website",
@@ -1322,8 +1324,14 @@ class BlenderKitAddonPreferences(AddonPreferences):
         layout = self.layout
 
         if self.api_key.strip() == '':
-            layout.operator("wm.blenderkit_login", text="Login/ Sign up",
+            if self.enable_oauth:
+                layout.operator("wm.blenderkit_login", text="Login/ Sign up",
                             icon='URL')
+            else:
+                op = layout.operator("wm.url_open", text="Register online and get your API Key",
+                                     icon='QUESTION')
+                op.url = paths.BLENDERKIT_SIGNUP_URL
+
         layout.prop(self, "api_key", text='Your API Key')
         # layout.label(text='After you paste API Key, categories are downloaded, so blender will freeze for a few seconds.')
         layout.prop(self, "global_dir")

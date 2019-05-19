@@ -393,7 +393,10 @@ class VIEW3D_PT_blenderkit_profile(Panel):
 
     @classmethod
     def poll(cls, context):
-        return True
+        user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
+        if user_preferences.enable_oauth:
+            return True
+        return False
 
     def draw(self, context):
         # draw asset properties here
@@ -574,12 +577,17 @@ class VIEW3D_PT_blenderkit_unified(Panel):
             return
 
         if len(user_preferences.api_key) < 20 and user_preferences.asset_counter > 20:
-            layout.operator("wm.blenderkit_login", text="Login/ Sign up",
-                            icon='URL')
-            # layout.label(text='Paste your API Key:')
-            # layout.prop(user_preferences, 'api_key', text='')
+            if user_preferences.enable_oauth:
+                layout.operator("wm.blenderkit_login", text="Login/ Sign up",
+                                icon='URL')
+            else:
+                op = layout.operator("wm.url_open", text="Get your API Key",
+                                     icon='QUESTION')
+                op.url = paths.BLENDERKIT_SIGNUP_URL
+                layout.label(text='Paste your API Key:')
+                layout.prop(user_preferences, 'api_key', text='')
             layout.separator()
-        elif bpy.data.filepath == '':
+        if bpy.data.filepath == '':
 
             label_multiline(layout, text="It's better to save the file first.", width=w)
             layout.separator()
