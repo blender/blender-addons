@@ -19,7 +19,7 @@
 bl_info = {
     "name": "BlenderKit Asset Library",
     "author": "Vilem Duha",
-    "version": (1, 0, 22),
+    "version": (1, 0, 23),
     "blender": (2, 80, 0),
     "location": "View3D > Properties > BlenderKit",
     "description": "Online BlenderKit library (materials, models, brushes and more)",
