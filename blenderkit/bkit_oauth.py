@@ -48,7 +48,7 @@ def refresh_token(api_key_refresh):
     authenticator = oauth.SimpleOAuthAuthenticator(server_url=paths.get_bkit_url(), client_id=CLIENT_ID, ports=PORTS)
     auth_token, refresh_token = authenticator.get_refreshed_token(api_key_refresh)
     if auth_token is not None and refresh_token is not None:
-        tasks_queue.add_task((blenderkit.oauth.write_tokens , (auth_token, refresh_token)))
+        tasks_queue.add_task((blenderkit.bkit_oauth.write_tokens , (auth_token, refresh_token)))
 
 
 def write_tokens(auth_token, refresh_token):
