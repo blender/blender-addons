@@ -939,7 +939,7 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
 
     def apply_image_options(self, image):
         if self.use_transparency == False:
-            image.alpha_mode = 'IGNORE'
+            image.alpha_mode = 'NONE'
         else:
             image.alpha_mode = self.alpha_mode
 

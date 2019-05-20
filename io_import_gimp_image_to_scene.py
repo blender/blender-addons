@@ -395,7 +395,7 @@ def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
 
                 Img = bpy.data.images.new(NameShort+'_A', 128, 128)
                 Img.source = 'FILE'
-                Img.alpha_mode = 'IGNORE'
+                Img.alpha_mode = 'NONE'
                 Img.filepath = '%s%s_A%s' % (PathSaveRaw, Name, ExtSave)
 
                 Tex.image = Img

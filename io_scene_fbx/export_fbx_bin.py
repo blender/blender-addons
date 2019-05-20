@@ -1336,7 +1336,7 @@ def fbx_data_texture_file_elements(root, blender_tex_key, scene_data):
     elem_data_single_string_unicode(fbx_tex, b"RelativeFilename", fname_rel)
 
     alpha_source = 0  # None
-    if img.alpha_mode != 'IGNORE':
+    if img.alpha_mode != 'NONE':
         # ~ if tex.texture.use_calculate_alpha:
             # ~ alpha_source = 1  # RGBIntensity as alpha.
         # ~ else:
