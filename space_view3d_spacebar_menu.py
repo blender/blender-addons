@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Dynamic Context Menu",
     "author": "meta-androcto",
-    "version": (1, 9, 1),
+    "version": (1, 9, 2),
     "blender": (2, 80, 0),
     "location": "View3D > Spacebar",
     "description": "Object Mode Context Sensitive Spacebar Menu",
@@ -818,17 +818,125 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.prop(view, "show_region_toolbar", icon='MENU_PANEL')
                 layout.prop(view, "show_region_ui", icon='MENU_PANEL')
 
-    # Grease Pencil Menu #
-            if obj and obj.type == 'GPENCIL':
+    # Grease Pencil Object Mode #
+            if obj and obj.type == 'GPENCIL' and obj.mode in {'OBJECT'}:
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
                 UseSeparator(self, context)
-                layout.menu("INFO_MT_area", icon='WORKSPACE')
+                layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
+                layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
+                UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
+                layout.menu("VIEW3D_MT_Object", icon='VIEW3D')
+                UseSeparator(self, context)
+                layout.menu("VIEW3D_MT_TransformMenu", icon='EMPTY_ARROWS')
+                layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
+                layout.menu("VIEW3D_MT_CursorMenu", icon='PIVOT_CURSOR')
+                UseSeparator(self, context)
+                layout.menu("VIEW3D_MT_ParentMenu", icon='PIVOT_ACTIVE')
+                layout.menu("VIEW3D_MT_GroupMenu", icon='GROUP')
+                UseSeparator(self, context)
+                layout.menu("VIEW3D_MT_object_context_menu", text="Specials", icon='SOLO_OFF')
+                if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
+                    layout.menu("VIEW3D_MT_Edit_Gpencil", icon='GREASEPENCIL')
+                layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
+#                layout.operator_menu_enum("object.modifier_add", "type", icon='MODIFIER') #change for gpencil modifiers
+                layout.operator_menu_enum("object.constraint_add",
+                                          "type", text="Add Constraint", icon='CONSTRAINT')
+                UseSeparator(self, context)
+                layout.operator("object.delete", text="Delete Object", icon='X')
+                UseSeparator(self, context)
+                layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
+                layout.menu("VIEW3D_MT_InteractiveMode", icon='EDITMODE_HLT')
+                UseSeparator(self, context)
+                layout.prop(view, "show_region_toolbar", icon='MENU_PANEL')
+                layout.prop(view, "show_region_ui", icon='MENU_PANEL')
+
+    # Grease Pencil Edit Mode #
+            if obj and obj.type == 'GPENCIL' and obj.mode in {'EDIT_GPENCIL'}:
+                layout.operator_context = 'INVOKE_REGION_WIN'
+
+                layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Animation", icon='PLAY')
+                UseSeparator(self, context)
+                layout.menu("INFO_MT_area", icon='WORKSPACE')
                 layout.menu("VIEW3D_MT_View_Directions", icon='ZOOM_ALL')
                 layout.menu("VIEW3D_MT_View_Navigation", icon='PIVOT_BOUNDBOX')
+                UseSeparator(self, context)
+                layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
+                UseSeparator(self, context)
+                layout.operator("view3d.snap_cursor_to_center",
+                                text="Cursor to World Origin")
+                layout.operator("view3d.snap_cursor_to_grid",
+                                text="Cursor to Grid")
+                layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
+                UseSeparator(self, context)
+                layout.prop(view, "show_region_toolbar", icon='MENU_PANEL')
+                layout.prop(view, "show_region_ui", icon='MENU_PANEL')
+
+    # Grease Pencil Sculpt Mode #
+            if obj and obj.type == 'GPENCIL' and obj.mode in {'SCULPT_GPENCIL'}:
+                layout.operator_context = 'INVOKE_REGION_WIN'
+
+                layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Animation", icon='PLAY')
+                UseSeparator(self, context)
+                layout.menu("INFO_MT_area", icon='WORKSPACE')
+                layout.menu("VIEW3D_MT_View_Directions", icon='ZOOM_ALL')
+                layout.menu("VIEW3D_MT_View_Navigation", icon='PIVOT_BOUNDBOX')
+                UseSeparator(self, context)
+                layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
+                UseSeparator(self, context)
+                layout.operator("view3d.snap_cursor_to_center",
+                                text="Cursor to World Origin")
+                layout.operator("view3d.snap_cursor_to_grid",
+                                text="Cursor to Grid")
+                layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
+                UseSeparator(self, context)
+                layout.prop(view, "show_region_toolbar", icon='MENU_PANEL')
+                layout.prop(view, "show_region_ui", icon='MENU_PANEL')
+
+    # Grease Pencil Paint Mode #
+            if obj and obj.type == 'GPENCIL' and obj.mode in {'PAINT_GPENCIL'}:
+                layout.operator_context = 'INVOKE_REGION_WIN'
+
+                layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Animation", icon='PLAY')
+                UseSeparator(self, context)
+                layout.menu("INFO_MT_area", icon='WORKSPACE')
+                layout.menu("VIEW3D_MT_View_Directions", icon='ZOOM_ALL')
+                layout.menu("VIEW3D_MT_View_Navigation", icon='PIVOT_BOUNDBOX')
+                UseSeparator(self, context)
+                layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
+                UseSeparator(self, context)
+                layout.operator("view3d.snap_cursor_to_center",
+                                text="Cursor to World Origin")
+                layout.operator("view3d.snap_cursor_to_grid",
+                                text="Cursor to Grid")
+                layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
+                UseSeparator(self, context)
+                layout.prop(view, "show_region_toolbar", icon='MENU_PANEL')
+                layout.prop(view, "show_region_ui", icon='MENU_PANEL')
+
+    # Grease Pencil Weight Mode #
+            if obj and obj.type == 'GPENCIL' and obj.mode in {'WEIGHT_GPENCIL'}:
+                layout.operator_context = 'INVOKE_REGION_WIN'
+
+                layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.menu("VIEW3D_MT_Animation_Player",
+                            text="Animation", icon='PLAY')
+                UseSeparator(self, context)
+                layout.menu("INFO_MT_area", icon='WORKSPACE')
+                layout.menu("VIEW3D_MT_View_Directions", icon='ZOOM_ALL')
+                layout.menu("VIEW3D_MT_View_Navigation", icon='PIVOT_BOUNDBOX')
+                UseSeparator(self, context)
+                layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
+                UseSeparator(self, context)
                 layout.operator("view3d.snap_cursor_to_center",
                                 text="Cursor to World Origin")
                 layout.operator("view3d.snap_cursor_to_grid",
