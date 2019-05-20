@@ -931,7 +931,14 @@ class MaterialTextureSlot(PropertyGroup):
 
 class RenderPovSettingsMaterial(PropertyGroup):
 ######################Begin Old Blender Internal Props#########################
-
+    transparency_method: EnumProperty(
+            name="Specular Shader Model",
+            description="Method to use for rendering transparency",   
+            items=(("MASK", "Mask", "Mask the background"),
+                   ("Z_TRANSPARENCY", "Z Transparency", "Use alpha buffer for transparent faces"),#TO DEPRECATE
+                   ("RAYTRACE", "Raytrace", "Use raytracing for transparent refraction rendering")),
+            default="MASK")
+            
     use_transparency: BoolProperty(
             name="Transparency", description="Render material as transparent",
             default=False)
@@ -1472,8 +1479,61 @@ class RenderPovSettingsMaterial(PropertyGroup):
     object_preview_rotate: FloatVectorProperty(name="Rotate", description="", min=-180.0, max=180.0,default=(0.0,0.0,0.0), subtype='XYZ')
     object_preview_bgcontrast: FloatProperty(name="Contrast", min=0.0, max=1.0, default=0.5)
 
-#TODO?: class MaterialRaytraceTransparency(PropertyGroup):    
-    
+class MaterialRaytraceTransparency(PropertyGroup):        
+           
+    depth: IntProperty(
+            name="Depth",
+            description="Maximum allowed number of light inter-refractions",
+            min=0, max=32767, default=2)
+            
+    depth_max: FloatProperty(
+            name="Depth",
+            description="Maximum depth for light to travel through the "
+                        "transparent material before becoming fully filtered (0.0 is disabled)",
+            min=0, max=100, default=0.0)
+            
+    falloff: FloatProperty(
+            name="Falloff",
+            description="Falloff power for transmissivity filter effect (1.0 is linear)",
+            min=0.1, max=10.0, default=1.0, precision=3)
+    filter: FloatProperty(
+            name="Filter",
+            description="Amount to blend in the material’s diffuse color in raytraced "
+                        "transparency (simulating absorption)",
+            min=0.0, max=1.0, default=0.0, precision=3)
+
+    fresnel: FloatProperty(
+            name="Fresnel",
+            description="Power of Fresnel for transparency (Ray or ZTransp)",
+            min=0.0, max=5.0, soft_min=0.0, soft_max=5.0, default=0.0, precision=3)
+
+    fresnel_factor: FloatProperty(
+            name="Blend",
+            description="Blending factor for Fresnel",
+            min=0.0, max=5.0, soft_min=0.0, soft_max=5.0, default=1.250, precision=3)
+            
+    gloss_factor: FloatProperty(
+            name="Amount",
+            description="The clarity of the refraction. "
+                        "(values < 1.0 give diffuse, blurry refractions)",
+            min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default=1.0, precision=3)
+
+    gloss_samples: IntProperty(
+            name="Samples",
+            description="Number of cone samples averaged for blurry refractions",
+            min=0, max=1024, default=18)
+
+    gloss_threshold: FloatProperty(
+            name="Threshold",
+            description="Threshold for adaptive sampling (if a sample "
+                        "contributes less than this amount [as a percentage], "
+                        "sampling is stopped)",
+            min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default=0.005, precision=3)
+
+    ior: FloatProperty(
+            name="IOR", description="Sets angular index of refraction for raytraced refraction",
+            min=-0.0, max=10.0, soft_min=0.25, soft_max=4.0, default=1.3)
+            
 class MaterialRaytraceMirror(PropertyGroup):
     bl_description = "Raytraced reflection settings for the Material",  
     use: BoolProperty(
@@ -1589,7 +1649,7 @@ class MaterialSubsurfaceScattering(PropertyGroup):
 
     ior: FloatProperty(
             name="IOR", description="Index of refraction (higher values are denser)",
-            min=-10.0, max=10.0,default=1.3)
+            min=-0.0, max=10.0, soft_min=0.1, soft_max=2.0, default=1.3)
 
     radius: FloatVectorProperty(
             name="RGB Radius",
@@ -4113,6 +4173,7 @@ classes = (
     MaterialTextureSlot,
     WorldTextureSlot,
     RenderPovSettingsMaterial,
+    MaterialRaytraceTransparency,
     MaterialRaytraceMirror, 
     MaterialSubsurfaceScattering,
     RenderPovSettingsObject,
@@ -4151,6 +4212,7 @@ def register():
     nodeitems_utils.register_node_categories("POVRAYNODES", node_categories)
     bpy.types.Scene.pov = PointerProperty(type=RenderPovSettingsScene)
     #bpy.types.Modifier.pov = PointerProperty(type=RenderPovSettingsModifier)
+    bpy.types.Material.pov_raytrace_transparency = PointerProperty(type=MaterialRaytraceTransparency)
     bpy.types.Material.pov = PointerProperty(type=RenderPovSettingsMaterial)
     bpy.types.Material.pov_subsurface_scattering = PointerProperty(type=MaterialSubsurfaceScattering)
     bpy.types.Material.pov_raytrace_mirror = PointerProperty(type=MaterialRaytraceMirror)
@@ -4170,6 +4232,7 @@ def unregister():
     del bpy.types.Material.pov
     del bpy.types.Material.pov_subsurface_scattering
     del bpy.types.Material.pov_raytrace_mirror
+    del bpy.types.Material.pov_raytrace_transparency
     #del bpy.types.Modifier.pov
     del bpy.types.Texture.pov
     del bpy.types.Object.pov

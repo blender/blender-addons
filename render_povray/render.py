@@ -485,15 +485,15 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("dispersion_samples %.d\n" % material.pov.photons_dispersion_samples)
             #TODO
             # Other interior args
-            if material.use_transparency and material.transparency_method == 'RAYTRACE':
+            if material.pov.use_transparency and material.pov.transparency_method == 'RAYTRACE':
                 # fade_distance
                 # In Blender this value has always been reversed compared to what tooltip says.
                 # 100.001 rather than 100 so that it does not get to 0
                 # which deactivates the feature in POV
                 tabWrite("fade_distance %.3g\n" % \
-                         (100.001 - material.raytrace_transparency.depth_max))
+                         (100.001 - material.pov_raytrace_transparency.depth_max))
                 # fade_power
-                tabWrite("fade_power %.3g\n" % material.raytrace_transparency.falloff)
+                tabWrite("fade_power %.3g\n" % material.pov_raytrace_transparency.falloff)
                 # fade_color
                 tabWrite("fade_color <%.3g, %.3g, %.3g>\n" % material.pov.interior_fade_color[:])
 
@@ -1699,7 +1699,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             diffuse_color = material.diffuse_color
                             trans = 1.0 - material.alpha
                             if material.use_transparency and material.transparency_method == 'RAYTRACE':
-                                povFilter = material.raytrace_transparency.filter * (1.0 - material.alpha)
+                                povFilter = material.pov_raytrace_transparency.filter * (1.0 - material.alpha)
                                 trans = (1.0 - material.alpha) - povFilter
                             else:
                                 povFilter = 0.0
@@ -1764,7 +1764,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     diffuse_color = material.diffuse_color
                     trans = 1.0 - material.alpha
                     if material.use_transparency and material.transparency_method == 'RAYTRACE':
-                        povFilter = material.raytrace_transparency.filter * (1.0 - material.alpha)
+                        povFilter = material.pov_raytrace_transparency.filter * (1.0 - material.alpha)
                         trans = (1.0 - material.alpha) - povFilter
                     else:
                         povFilter = 0.0
