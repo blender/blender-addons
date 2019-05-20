@@ -41,11 +41,11 @@ if "bpy" in locals():
     importlib.reload(bg_blender)
     importlib.reload(paths)
     importlib.reload(utils)
-    importlib.reload(oauth)
+    importlib.reload(bkit_oauth)
     importlib.reload(tasks_queue)
 else:
     from blenderkit import asset_inspector, search, download, upload, ratings, autothumb, ui, bg_blender, paths, utils, \
-        overrides, ui_panels, categories, oauth, tasks_queue
+        overrides, ui_panels, categories, bkit_oauth, tasks_queue
 
 import os
 import math
@@ -1418,7 +1418,7 @@ def register():
     bg_blender.register()
     utils.load_prefs()
     overrides.register_overrides()
-    oauth.register()
+    bkit_oauth.register()
     tasks_queue.register()
 
     bpy.app.handlers.load_post.append(scene_load)
@@ -1435,7 +1435,7 @@ def unregister():
     ui_panels.unregister_ui_panels()
     bg_blender.unregister()
     overrides.unregister_overrides()
-    oauth.unregister()
+    bkit_oauth.unregister()
     tasks_queue.unregister()
 
     del bpy.types.Scene.blenderkit_models

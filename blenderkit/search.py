@@ -24,10 +24,10 @@ if "bpy" in locals():
     imp.reload(categories)
     imp.reload(ui)
     imp.reload(version_checker)
-    imp.reload(oauth)
+    imp.reload(bkit_oauth)
     imp.reload(tasks_queue)
 else:
-    from blenderkit import paths, utils, categories, ui, oauth, version_checker, tasks_queue
+    from blenderkit import paths, utils, categories, ui, bkit_oauth, version_checker, tasks_queue
 
 import blenderkit
 from bpy.app.handlers import persistent
@@ -64,7 +64,7 @@ def check_errors(rdata):
         if rdata.get('detail') == 'Invalid token.':
             user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
             if user_preferences.api_key != '':
-                oauth.refresh_token_thread()
+                bkit_oauth.refresh_token_thread()
                 return False, "You've been logged out. Logging in...."
             return False, 'Missing or wrong api_key in addon preferences'
     return True, ''
@@ -99,7 +99,7 @@ def fetch_server_data():
     url = paths.BLENDERKIT_ADDON_URL
     api_key = user_preferences.api_key
     # version_checker.check_version_thread(url, api_key, blenderkit)
-    oauth.refresh_token_thread()
+    bkit_oauth.refresh_token_thread()
     get_profile()
     categories.fetch_categories_thread(api_key)
 

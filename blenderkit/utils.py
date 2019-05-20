@@ -256,7 +256,7 @@ def get_brush_props(context):
 
 def p(text, text1='', text2='', text3='', text4='', text5=''):
     '''debug printing depending on blender's debug value'''
-    if bpy.app.debug_value != 10:
+    if bpy.app.debug_value > 0:
         print(text, text1, text2, text3, text4, text5)
 
 
