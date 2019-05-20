@@ -952,7 +952,6 @@ def add_search_process(query, params):
 
     tempdir = paths.get_temp_dir('%s_search' % query['asset_type'])
     thread = Searcher(query, params)
-    # thread = threading.Thread(target=Searcher, args=([query]), daemon=True)
     thread.start()
 
     search_threads.append([thread, tempdir, query['asset_type']])

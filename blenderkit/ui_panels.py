@@ -288,7 +288,7 @@ def draw_panel_model_search(self, context):
     # layout.prop(props, 'append_link', expand=True, icon_only=False)
     # layout.prop(props, 'import_as', expand=True, icon_only=False)
 
-    #layout.prop(props, "search_advanced")
+    # layout.prop(props, "search_advanced")
     if props.search_advanced:
         layout.separator()
 
@@ -589,7 +589,6 @@ class VIEW3D_PT_blenderkit_unified(Panel):
                 layout.prop(user_preferences, 'api_key', text='')
             layout.separator()
         if bpy.data.filepath == '':
-
             label_multiline(layout, text="It's better to save the file first.", width=w)
             layout.separator()
         if wm.get('bkit_update'):
@@ -802,6 +801,7 @@ class VIEW3D_PT_blenderkit_downloads(Panel):
             row = layout.row()
             row.label(text=asset_data['name'])
             row.label(text=str(int(tcom.progress)) + ' %')
+            row.operator('scene.blenderkit_download_kill', text='', icon='CANCEL')
 
 
 classess = (

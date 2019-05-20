@@ -290,7 +290,7 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
 
     if user_preferences.api_key == '':
-        user_preferences.asset_counter+=1
+        user_preferences.asset_counter += 1
 
     if asset_data['asset_type'] == 'scene':
         scene = append_link.append_scene(file_names[0], link=False, fake_user=False)
@@ -507,41 +507,69 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff, not 
     return .2
 
 
-def main_thread(asset_data, tcom, scene_id, api_key):
-    '''try to download file from blenderkit'''
+class Downloader(threading.Thread):
+    def __init__(self, asset_data, tcom, scene_id, api_key):
+        super(Downloader, self).__init__()
+        self.asset_data = asset_data
+        self.tcom = tcom
+        self.scene_id = scene_id
+        self.api_key = api_key
+        self._stop_event = threading.Event()
 
-    # TODO get real link here...
-    get_download_url(asset_data, scene_id, api_key, tcom=tcom)
-    if tcom.error:
-        return
-    # only now we can check if the file allready exists. This should have 2 levels, for materials and for brushes
-    # different than for the non free content. delete is here when called after failed append tries.
-    if check_existing(asset_data) and not tcom.passargs.get('delete'):
-        # this sends the thread for processing, where another check should occur, since the file might be corrupted.
-        tcom.downloaded = 100
-        print('not downloading, trying to append again')
-        return;
-    file_name = paths.get_download_filenames(asset_data)[0]  # prefer global dir if possible.
-    # for k in asset_data:
-    #    print(asset_data[k])
+    def stop(self):
+        self._stop_event.set()
 
-    with open(file_name, "wb") as f:
-        print("Downloading %s" % file_name)
-        headers = utils.get_headers(api_key)
+    def stopped(self):
+        return self._stop_event.is_set()
 
-        response = requests.get(asset_data['url'], stream=True)
-        total_length = response.headers.get('Content-Length')
+    # def main_download_thread(asset_data, tcom, scene_id, api_key):
+    def run(self):
+        '''try to download file from blenderkit'''
+        asset_data = self.asset_data
+        tcom = self.tcom
+        scene_id = self.scene_id
+        api_key = self.api_key
 
-        if total_length is None:  # no content length header
-            f.write(response.content)
-        else:
-            tcom.file_size = int(total_length)
-            dl = 0
-            for data in response.iter_content(chunk_size=4096):
-                dl += len(data)
-                tcom.downloaded = dl
-                tcom.progress = int(100 * tcom.downloaded / tcom.file_size)
-                f.write(data)
+        # TODO get real link here...
+        get_download_url(asset_data, scene_id, api_key, tcom=tcom)
+        if tcom.error:
+            return
+        # only now we can check if the file allready exists. This should have 2 levels, for materials and for brushes
+        # different than for the non free content. delete is here when called after failed append tries.
+        if check_existing(asset_data) and not tcom.passargs.get('delete'):
+            # this sends the thread for processing, where another check should occur, since the file might be corrupted.
+            tcom.downloaded = 100
+            print('not downloading, trying to append again')
+            return;
+        file_name = paths.get_download_filenames(asset_data)[0]  # prefer global dir if possible.
+        # for k in asset_data:
+        #    print(asset_data[k])
+        if self.stopped():
+            utils.p('stopping download: ' + asset_data['name'])
+            return;
+
+        with open(file_name, "wb") as f:
+            print("Downloading %s" % file_name)
+            headers = utils.get_headers(api_key)
+
+            response = requests.get(asset_data['url'], stream=True)
+            total_length = response.headers.get('Content-Length')
+
+            if total_length is None:  # no content length header
+                f.write(response.content)
+            else:
+                tcom.file_size = int(total_length)
+                dl = 0
+                for data in response.iter_content(chunk_size=4096):
+                    dl += len(data)
+                    tcom.downloaded = dl
+                    tcom.progress = int(100 * tcom.downloaded / tcom.file_size)
+                    f.write(data)
+                    if self.stopped():
+                        utils.p('stopping download: ' + asset_data['name'])
+                        f.close()
+                        os.remove(file_name)
+                        return;
 
 
 class ThreadCom:  # object passed to threads to read background process stdout info
@@ -572,8 +600,7 @@ def download(asset_data, **kwargs):
     else:
         asset_data = asset_data.to_dict()
 
-    # main_thread(asset_data, tcom, scene_id, api_key)
-    readthread = threading.Thread(target=main_thread, args=([asset_data, tcom, scene_id, api_key]), daemon=True)
+    readthread = Downloader(asset_data, tcom, scene_id, api_key)
     readthread.start()
 
     global download_threads
@@ -761,6 +788,22 @@ asset_types = (
 )
 
 
+class BlenderkitKillDownloadOperator(bpy.types.Operator):
+    """Kill a download."""
+    bl_idname = "scene.blenderkit_download_kill"
+    bl_label = "BlenderKit Kill Asset Download"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    thread_index: IntProperty(name="Thread index", description='index of the thread to kill', default=-1)
+
+    def execute(self, context):
+        global download_threads
+        td = download_threads[self.thread_index]
+        download_threads.remove(td)
+        td[0].stop()
+        return {'FINISHED'}
+
+
 class BlenderkitDownloadOperator(bpy.types.Operator):
     """Download and link asset to scene. Only link if asset allready available locally."""
     bl_idname = "scene.blenderkit_download"
@@ -820,6 +863,7 @@ class BlenderkitDownloadOperator(bpy.types.Operator):
 
 def register_download():
     bpy.utils.register_class(BlenderkitDownloadOperator)
+    bpy.utils.register_class(BlenderkitKillDownloadOperator)
     bpy.app.handlers.load_post.append(scene_load)
     bpy.app.handlers.save_pre.append(scene_save)
     # bpy.app.timers.register(timer_update,  persistent = True)
@@ -827,6 +871,7 @@ def register_download():
 
 def unregister_download():
     bpy.utils.unregister_class(BlenderkitDownloadOperator)
+    bpy.utils.unregister_class(BlenderkitKillDownloadOperator)
     bpy.app.handlers.load_post.remove(scene_load)
     bpy.app.handlers.save_pre.remove(scene_save)
     # bpy.app.timers.unregister(timer_update)
