@@ -636,7 +636,7 @@ class Searcher(threading.Thread):
         tempdir = paths.get_temp_dir('%s_search' % query['asset_type'])
         json_filepath = os.path.join(tempdir, '%s_searchresult.json' % query['asset_type'])
 
-        headers = utils.get_headers(query['token'])
+        headers = utils.get_headers(params['api_key'])
 
         rdata = {}
         rdata['results'] = []
@@ -655,22 +655,13 @@ class Searcher(threading.Thread):
             # build a new request
             url = paths.get_api_url() + 'search/'
 
-            nquery = {
-                # 'tags': query['keywords'],
-                'asset_type': query['asset_type'],
-            }
-            if query.get('category'):
-                nquery['category_subtree'] = query['category']
-
-            if query.get('style'):
-               nquery['model_style'] = query['style']
             # build request manually
             # TODO use real queries
             requeststring = '?query=' + query['keywords'].lower() + '+'
             #
-            for i, q in enumerate(nquery):
-                requeststring += q + ':' + str(nquery[q])
-                if i < len(nquery) - 1:
+            for i, q in enumerate(query):
+                requeststring += q + ':' + str(query[q]).lower()
+                if i < len(query) - 1:
                     requeststring += '+'
 
             requeststring += '&addon_version=%s' % params['addon_version']
@@ -825,9 +816,7 @@ class Searcher(threading.Thread):
 
 
 def build_query_common(query, props):
-    user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
     query_common = {
-        "token": user_preferences.api_key,
         "keywords": props.search_keywords
     }
     query.update(query_common)
@@ -841,14 +830,14 @@ def build_query_model():
     props = bpy.context.scene.blenderkit_models
     query = {
         "asset_type": 'model',
-        "engine": props.search_engine,
-        "adult": props.search_adult,
+        # "engine": props.search_engine,
+        # "adult": props.search_adult,
     }
     if props.search_style != 'ANY':
         if props.search_style != 'OTHER':
-            query["style"] = props.search_style
+            query["model_style"] = props.search_style
         else:
-            query["style"] = props.search_style_other
+            query["model_style"] = props.search_style_other
     if props.search_advanced:
         if props.search_condition != 'UNSPECIFIED':
             query["condition"] = props.search_condition
@@ -863,26 +852,6 @@ def build_query_model():
             query["textureResolutionMax"] = props.search_texture_resolution_max
 
     build_query_common(query, props)
-    # query = {
-    #     "query": {
-    #         "exists": {"field": "faceCount"},
-    #
-    #         "range": {
-    #
-    #             "faceCount": {
-    #                 "gte": query["polyCountMin"],
-    #                 "lte": query["polyCountMax"],
-    #                 "boost": 2.0
-    #             }
-    #
-    #         },
-    #
-    #          "match": {
-    #              "asset_type": 'model',
-    #          }
-    #
-    #     }
-    # }
 
     return query
 
@@ -893,7 +862,7 @@ def build_query_scene():
     props = bpy.context.scene.blenderkit_scene
     query = {
         "asset_type": 'scene',
-        "engine": props.search_engine,
+        # "engine": props.search_engine,
         # "adult": props.search_adult,
     }
     build_query_common(query, props)
@@ -906,12 +875,12 @@ def build_query_material():
         "asset_type": 'material',
 
     }
-    if props.search_engine == 'NONE':
-        query["engine"] = ''
-    if props.search_engine != 'OTHER':
-        query["engine"] = props.search_engine
-    else:
-        query["engine"] = props.search_engine_other
+    # if props.search_engine == 'NONE':
+    #     query["engine"] = ''
+    # if props.search_engine != 'OTHER':
+    #     query["engine"] = props.search_engine
+    # else:
+    #     query["engine"] = props.search_engine_other
     if props.search_style != 'ANY':
         if props.search_style != 'OTHER':
             query["style"] = props.search_style
@@ -990,6 +959,8 @@ def add_search_process(query, params):
 def search(own=False, category='', get_next=False, free_only=False):
     ''' initialize searching'''
     global search_start_time
+    user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
+
 
     search_start_time = time.time()
     mt('start')
@@ -1028,9 +999,8 @@ def search(own=False, category='', get_next=False, free_only=False):
 
     if props.is_searching and get_next == True:
         return;
-    query['own'] = own
     if category != '':
-        query['category'] = category
+        query['category_subtree'] = category
 
     # utils.p('searching')
     props.is_searching = True
@@ -1038,6 +1008,7 @@ def search(own=False, category='', get_next=False, free_only=False):
     params = {
         'scene_uuid': bpy.context.scene.get('uuid', None),
         'addon_version': version_checker.get_addon_version(),
+        'api_key': user_preferences.api_key,
         'get_next': get_next
     }
 

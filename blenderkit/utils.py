@@ -262,7 +262,7 @@ def p(text, text1='', text2='', text3='', text4='', text5=''):
 
 def pprint(data):
     '''pretty print jsons'''
-    print(json.dumps(data, indent=4, sort_keys=True))
+    p(json.dumps(data, indent=4, sort_keys=True))
 
 
 def get_hierarchy(ob):
