@@ -2394,11 +2394,11 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
 
         box = col_m.box()
         size_split = 0.3 if self.show_mat_preview else 1.0
-        split = box.split(percentage=size_split, align=True)
+        split = box.split(factor=size_split, align=True)
         split.prop(self, "show_mat_preview")
 
         if self.show_mat_preview:
-            subsplit = split.split(percentage=0.7, align=True)
+            subsplit = split.split(factor=0.7, align=True)
             row = subsplit.row(align=True)
             row.prop(self, "set_preview_type", expand=True)
 
@@ -2408,7 +2408,7 @@ class VIEW3D_MT_material_utils_pref(AddonPreferences):
 
         box = col_m.box()
         size_split = 0.3 if self.show_converters else 1.0
-        split = box.split(percentage=size_split, align=True)
+        split = box.split(factor=size_split, align=True)
         split.prop(self, "show_converters")
 
         if self.show_converters:

@@ -430,11 +430,11 @@ class EditToolsPanel(Panel):
                     row = layout.row()
                     row.label(text="Custom Colors:", icon="COLOR")
 
-                    col = layout.column().split(percentage=0.1, align=True)
+                    col = layout.column().split(factor=0.1, align=True)
                     col.label(text="", icon_value=tris.icon_id)
                     col.prop(mesh_check, "custom_tri_color", text="")
 
-                    col = layout.column().split(percentage=0.1, align=True)
+                    col = layout.column().split(factor=0.1, align=True)
                     col.label(text="", icon_value=ngons.icon_id)
                     col.prop(mesh_check, "custom_ngons_color", text="")
 

@@ -580,7 +580,7 @@ class EdgeRoundifier(Operator):
 
     def addParameterToUI(self, layout, alignment, percent, label, properties, disable=True):
         row = layout.row(align=alignment)
-        split = row.split(percentage=percent)
+        split = row.split(factor=percent)
         col = split.column()
 
         col.label(label)
@@ -595,7 +595,7 @@ class EdgeRoundifier(Operator):
             row.label(label)
         row2 = layout.row(align=alignment)
         if property2:
-            split = row2.split(percentage=0.5)
+            split = row2.split(factor=0.5)
             split.prop(self, property1, toggle=True)
             split.prop(self, property2, toggle=True)
         else:
@@ -604,7 +604,7 @@ class EdgeRoundifier(Operator):
 
     def addEnumParameterToUI(self, layout, alignment, percent, label, properties):
         row = layout.row(align=alignment)
-        split = row.split(percentage=percent)
+        split = row.split(factor=percent)
         col = split.column()
 
         col.label(label)

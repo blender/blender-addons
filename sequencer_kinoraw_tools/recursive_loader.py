@@ -245,7 +245,7 @@ class ExifInfoPanel(Panel):
             try:
                 if len(sce['metadata']) == 1:
                     for d in sce['metadata'][0]:
-                        split = layout.split(percentage=0.5)
+                        split = layout.split(factor=0.5)
                         col = split.column()
                         row = col.row()
                         col.label(text=d)
@@ -253,7 +253,7 @@ class ExifInfoPanel(Panel):
                         col.label(text=str(sce['metadata'][0][d]))
                 else:
                     for d in sce['metadata'][frame - f]:
-                        split = layout.split(percentage=0.5)
+                        split = layout.split(factor=0.5)
                         col = split.column()
                         row = col.row()
                         col.label(text=d)

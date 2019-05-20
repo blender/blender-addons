@@ -123,7 +123,7 @@ def clip_clip_menu_func(self, context):
 
 
 def draw_color_balance(layout, color_balance):
-    layout = layout.split(percentage=0.33)
+    layout = layout.split(factor=0.33)
     col = layout.column()
     col.label(text="Lift:")
     col.template_color_picker(color_balance, "lift", value_slider=True, cubic=True)
@@ -227,7 +227,7 @@ class JumptoCut(Panel):
         # jump to cut main controls
         col = layout.column(align=True)
         row = col.row(align=True)
-        split = row.split(percentage=0.33, align=True)
+        split = row.split(factor=0.33, align=True)
         box = split.box()
 
         row = box.row(align=True)
@@ -252,7 +252,7 @@ class JumptoCut(Panel):
         rd = scn.render
         screen = context.screen
         row = col.row(align=True)
-        split = row.split(percentage=0.33, align=True)
+        split = row.split(factor=0.33, align=True)
         sub_box = split.box()
         sub_row = sub_box.row(align=True)
         sub_row.alignment = "CENTER"
@@ -299,18 +299,18 @@ class JumptoCut(Panel):
 
         # panel setup
         row = layout.row(align=True)
-        split = row.split(percentage=0.5)
+        split = row.split(factor=0.5)
         sub_row = split.row(align=True)
         sub_row.prop(prefs, "kr_show_tools", text="Tools", icon='SEQ_SEQUENCER')
         if prefs.kr_show_tools:
             sub_row.prop(prefs, "kr_mini_ui", text="Compact UI", toggle=True)
 
         row = split.row()
-        row = row.split(percentage=0.33)
+        row = row.split(factor=0.33)
         row.prop(prefs, "kr_show_info", text="", icon='VIEWZOOM')
-        row = row.split(percentage=0.5)
+        row = row.split(factor=0.5)
         row.prop(prefs, "kr_extra_info", text="", icon='BORDERMOVE')
-        row = row.split(percentage=1)
+        row = row.split(factor=1)
         row.prop(prefs, "kr_show_modifiers", text="", icon='RESTRICT_VIEW_OFF')
 
         if prefs.kr_show_tools:
@@ -413,7 +413,7 @@ class JumptoCut(Panel):
                 row3 = col.row()
                 row3.operator("sequencerextra.setinout", icon='ARROW_LEFTRIGHT', text="Selected")
 
-                sub_col = box.split(percentage=0.67, align=True)
+                sub_col = box.split(factor=0.67, align=True)
                 row4 = sub_col.row(align=True)
 
                 if scn.kr_auto_markers is False:
@@ -459,11 +459,11 @@ class JumptoCut(Panel):
         if strip is not None:
             if prefs.kr_show_info:
                 layout = layout.box()
-                row = layout.split(percentage=0.075)
+                row = layout.split(factor=0.075)
                 row.prop(prefs, "kr_show_info", text="", icon='VIEWZOOM', emboss=True)
-                row = row.split(percentage=0.3)
+                row = row.split(factor=0.3)
                 row.prop(strip, "type", text="")
-                row = row.split(percentage=1)
+                row = row.split(factor=1)
                 row.prop(strip, "name", text="")
 
                 # mute information
@@ -476,7 +476,7 @@ class JumptoCut(Panel):
                 row.prop(strip, "frame_final_duration")
 
                 # source info
-                row = layout.split(percentage=0.8)
+                row = layout.split(factor=0.8)
 
                 if strip.type == 'MOVIE':
                     row.prop(strip, "filepath", text="")
@@ -502,7 +502,7 @@ class JumptoCut(Panel):
 
                 # trim info
                 if strip.type not in {"SPEED", "WIPE", "CROSS", "ADJUSTMENT"}:
-                    row = row.split(percentage=1)
+                    row = row.split(factor=1)
                     row.prop(prefs, "kr_show_trim", text="Trim", toggle=True)
                     if prefs.kr_show_trim:
                         box = layout.box()
@@ -619,7 +619,7 @@ class JumptoCut(Panel):
                     row.prop(strip, "mute", toggle=True, icon_only=True)
                     row.prop(strip, "lock", toggle=True, icon_only=True)
 
-                    split = box.split(percentage=0.5)
+                    split = box.split(factor=0.5)
                     left_box = split.box()
                     row = left_box.row()
                     row.prop(strip, "strobe")
@@ -687,12 +687,12 @@ class JumptoCut(Panel):
                 layout = layout.box()
                 # mute this box
                 layout.active = (not strip.mute)
-                row = layout.split(percentage=0.075)
+                row = layout.split(factor=0.075)
                 row.prop(prefs, "kr_show_modifiers", text="",
                         icon='RESTRICT_VIEW_OFF', emboss=True)
-                row = row.split(percentage=0.40)
+                row = row.split(factor=0.40)
                 row.prop(strip, "use_linear_modifiers", text="Linear")
-                row = row.split(percentage=1)
+                row = row.split(factor=1)
                 row.operator_menu_enum("sequencer.strip_modifier_add", "type")
 
                 for mod in strip.modifiers:

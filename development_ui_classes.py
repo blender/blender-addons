@@ -58,7 +58,7 @@ class TEXT_PT_ui_cheat_sheet(Panel):
         col.prop(scene, "dev_ui_cheat_type", expand=True)
 
         row = layout.row(align=True)
-        split = row.split(percentage=0.8, align=True)
+        split = row.split(factor=0.8, align=True)
         split.operator("text.ui_cheat_sheet")
         split.prop(scene, "searchable", text="", icon='SHORTDISPLAY')
 

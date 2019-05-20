@@ -823,12 +823,12 @@ class Spline(Operator):
         layout.prop(self, "segments")
 
         layout.label(text="Edge 1:")
-        split = layout.split(percentage=0.8, align=True)
+        split = layout.split(factor=0.8, align=True)
         split.prop(self, "ten1")
         split.prop(self, "flip1", text="", icon="ALIGN", toggle=True)
 
         layout.label(text="Edge 2:")
-        split = layout.split(percentage=0.8, align=True)
+        split = layout.split(factor=0.8, align=True)
         split.prop(self, "ten2")
         split.prop(self, "flip2", text="", icon="ALIGN", toggle=True)
 

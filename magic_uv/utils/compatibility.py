@@ -81,7 +81,7 @@ def matmul(m1, m2):
 
 def layout_split(layout, factor=0.0, align=False):
     if check_version(2, 80, 0) < 0:
-        return layout.split(percentage=factor, align=align)
+        return layout.split(factor=factor, align=align)
 
     return layout.split(factor=factor, align=align)
 

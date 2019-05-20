@@ -94,7 +94,7 @@ class DATA_PT_info_panel(Panel):
 
         box = layout.box()
         col = box.column()
-        split = col.split(percentage=0.6 if check_used else 0.75, align=True)
+        split = col.split(factor=0.6 if check_used else 0.75, align=True)
         split.prop(mesh_extra_tools, "mesh_info_show", toggle=True)
         split.prop(mesh_extra_tools, "mesh_info_delay")
 
