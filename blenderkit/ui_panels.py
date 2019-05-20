@@ -280,6 +280,7 @@ def draw_panel_model_search(self, context):
         layout.operator("wm.url_open", text="Check plans", icon='URL').url = paths.BLENDERKIT_PLANS
 
     layout.prop(props, "search_style")
+    layout.prop(props, "free_only")
     # if props.search_style == 'OTHER':
     #     layout.prop(props, "search_style_other")
     # layout.prop(props, "search_engine")
@@ -750,9 +751,9 @@ def draw_panel_categories(self, context):
             op.category = ''
     cats = categories.get_category(wm['bkit_categories'], cat_path=acat)
     # draw freebies only in models parent category
-    if ui_props.asset_type == 'MODEL' and len(acat) == 1:
-        op = col.operator('view3d.blenderkit_asset_bar', text='freebies')
-        op.free_only = True
+    # if ui_props.asset_type == 'MODEL' and len(acat) == 1:
+    #     op = col.operator('view3d.blenderkit_asset_bar', text='freebies')
+    #     op.free_only = True
 
     for c in cats['children']:
         if c['assetCount'] > 0:

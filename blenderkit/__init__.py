@@ -1063,6 +1063,9 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
         update=search.search_update
     )
 
+    free_only: BoolProperty(name="Free only", description="show only free models.",
+                                  default=False)
+
     search_advanced: BoolProperty(name="Advanced Search Options", description="use advanced search properties",
                                   default=False)
 

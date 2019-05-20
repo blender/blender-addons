@@ -838,6 +838,10 @@ def build_query_model():
             query["model_style"] = props.search_style
         else:
             query["model_style"] = props.search_style_other
+
+    if props.free_only:
+        query["is_free"] = True
+
     if props.search_advanced:
         if props.search_condition != 'UNSPECIFIED':
             query["condition"] = props.search_condition
@@ -1012,8 +1016,8 @@ def search(own=False, category='', get_next=False, free_only=False):
         'get_next': get_next
     }
 
-    if free_only:
-        query['keywords'] += '+is_free:true'
+    # if free_only:
+    #     query['keywords'] += '+is_free:true'
 
     add_search_process(query, params)
     props.report = 'BlenderKit searching....'
