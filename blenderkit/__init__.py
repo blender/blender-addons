@@ -1040,7 +1040,7 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
     search_style: EnumProperty(
         name="Style",
         items=search_model_styles,
-        description="keywords defining style (realistic, painted, polygonal, other)",
+        description="Keywords defining style (realistic, painted, polygonal, other)",
         default="ANY",
         update=search.search_update
     )
@@ -1058,12 +1058,12 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
     )
     search_engine_other: StringProperty(
         name="Engine",
-        description="engine not specified by addon",
+        description="Engine not specified by addon",
         default="",
         update=search.search_update
     )
 
-    free_only: BoolProperty(name="Free only", description="show only free models.",
+    free_only: BoolProperty(name="Free only", description="Show only free models",
                                   default=False)
 
     search_advanced: BoolProperty(name="Advanced Search Options", description="use advanced search properties",
@@ -1073,7 +1073,7 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
     search_condition: EnumProperty(
         items=conditions,
         default='UNSPECIFIED',
-        description='condition of the object',
+        description='Condition of the object',
         update=search.search_update
     )
 
