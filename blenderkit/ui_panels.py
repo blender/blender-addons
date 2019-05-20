@@ -279,7 +279,7 @@ def draw_panel_model_search(self, context):
     if props.report == 'Available only in higher plans.':
         layout.operator("wm.url_open", text="Check plans", icon='URL').url = paths.BLENDERKIT_PLANS
 
-    # layout.prop(props, "search_style")
+    layout.prop(props, "search_style")
     # if props.search_style == 'OTHER':
     #     layout.prop(props, "search_style_other")
     # layout.prop(props, "search_engine")
@@ -287,7 +287,7 @@ def draw_panel_model_search(self, context):
     # layout.prop(props, 'append_link', expand=True, icon_only=False)
     # layout.prop(props, 'import_as', expand=True, icon_only=False)
 
-    # layout.prop(props, "search_advanced")
+    #layout.prop(props, "search_advanced")
     if props.search_advanced:
         layout.separator()
 

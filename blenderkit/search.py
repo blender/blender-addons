@@ -662,6 +662,8 @@ class Searcher(threading.Thread):
             if query.get('category'):
                 nquery['category_subtree'] = query['category']
 
+            if query.get('style'):
+               nquery['model_style'] = query['style']
             # build request manually
             # TODO use real queries
             requeststring = '?query=' + query['keywords'].lower() + '+'
