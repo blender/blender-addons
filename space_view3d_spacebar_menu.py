@@ -862,16 +862,17 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
                 UseSeparator(self, context)
-                layout.menu("INFO_MT_area", icon='WORKSPACE')
-                layout.menu("VIEW3D_MT_View_Directions", icon='ZOOM_ALL')
-                layout.menu("VIEW3D_MT_View_Navigation", icon='PIVOT_BOUNDBOX')
+                layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
+                layout.menu("VIEW3D_MT_select_gpencil", icon='RESTRICT_SELECT_OFF')
+                layout.menu("VIEW3D_MT_edit_gpencil", icon='GREASEPENCIL')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
                 UseSeparator(self, context)
                 layout.operator("view3d.snap_cursor_to_center",
-                                text="Cursor to World Origin")
+                                text="Cursor to World Origin", icon='CURSOR')
                 layout.operator("view3d.snap_cursor_to_grid",
-                                text="Cursor to Grid")
+                                text="Cursor to Grid", icon='SNAP_GRID')
+                UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
                 UseSeparator(self, context)
                 layout.prop(view, "show_region_toolbar", icon='MENU_PANEL')
@@ -885,16 +886,16 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
                 UseSeparator(self, context)
-                layout.menu("INFO_MT_area", icon='WORKSPACE')
-                layout.menu("VIEW3D_MT_View_Directions", icon='ZOOM_ALL')
-                layout.menu("VIEW3D_MT_View_Navigation", icon='PIVOT_BOUNDBOX')
+                layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
+                layout.menu("VIEW3D_MT_select_gpencil", icon='RESTRICT_SELECT_OFF')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
                 UseSeparator(self, context)
                 layout.operator("view3d.snap_cursor_to_center",
-                                text="Cursor to World Origin")
+                                text="Cursor to World Origin", icon='CURSOR')
                 layout.operator("view3d.snap_cursor_to_grid",
-                                text="Cursor to Grid")
+                                text="Cursor to Grid", icon='SNAP_GRID')
+                UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
                 UseSeparator(self, context)
                 layout.prop(view, "show_region_toolbar", icon='MENU_PANEL')
@@ -908,16 +909,16 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
                 UseSeparator(self, context)
-                layout.menu("INFO_MT_area", icon='WORKSPACE')
-                layout.menu("VIEW3D_MT_View_Directions", icon='ZOOM_ALL')
-                layout.menu("VIEW3D_MT_View_Navigation", icon='PIVOT_BOUNDBOX')
+                layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
+                layout.menu("VIEW3D_MT_paint_gpencil", icon='RESTRICT_SELECT_OFF')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
                 UseSeparator(self, context)
                 layout.operator("view3d.snap_cursor_to_center",
-                                text="Cursor to World Origin")
+                                text="Cursor to World Origin", icon='CURSOR')
                 layout.operator("view3d.snap_cursor_to_grid",
-                                text="Cursor to Grid")
+                                text="Cursor to Grid", icon='SNAP_GRID')
+                UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
                 UseSeparator(self, context)
                 layout.prop(view, "show_region_toolbar", icon='MENU_PANEL')
@@ -931,16 +932,11 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
                 UseSeparator(self, context)
-                layout.menu("INFO_MT_area", icon='WORKSPACE')
-                layout.menu("VIEW3D_MT_View_Directions", icon='ZOOM_ALL')
-                layout.menu("VIEW3D_MT_View_Navigation", icon='PIVOT_BOUNDBOX')
+                layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
+                layout.menu("VIEW3D_MT_weight_gpencil", icon="GPBRUSH_WEIGHT")
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
                 UseSeparator(self, context)
-                layout.operator("view3d.snap_cursor_to_center",
-                                text="Cursor to World Origin")
-                layout.operator("view3d.snap_cursor_to_grid",
-                                text="Cursor to Grid")
                 layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
                 UseSeparator(self, context)
                 layout.prop(view, "show_region_toolbar", icon='MENU_PANEL')
@@ -961,9 +957,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
                 UseSeparator(self, context)
                 layout.operator("view3d.snap_cursor_to_center",
-                                text="Cursor to World Origin")
+                                text="Cursor to World Origin", icon='CURSOR')
                 layout.operator("view3d.snap_cursor_to_grid",
-                                text="Cursor to Grid")
+                                text="Cursor to Grid", icon='SNAP_GRID')
+                UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
                 UseSeparator(self, context)
                 layout.prop(view, "show_region_toolbar", icon='MENU_PANEL')
