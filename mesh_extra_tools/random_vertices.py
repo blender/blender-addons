@@ -104,12 +104,12 @@ class MESH_OT_random_vertices(Operator):
             description="Base Multiplier of the randomization effect",
             default=1
             )
-    valmin = IntVectorProperty(
+    valmin: IntVectorProperty(
             name="Min XYZ",
             description="Define the minimum range of randomization values",
             default=(0, 0, 0)
             )
-    valmax = IntVectorProperty(
+    valmax: IntVectorProperty(
             name="Max XYZ",
             description="Define the maximum range of randomization values",
             default=(1, 1, 1)

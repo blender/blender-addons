@@ -156,7 +156,7 @@ class AutoTileSizeSettings(PropertyGroup):
     threads_error: BoolProperty(
             options={'HIDDEN'}
             )
-    num_tiles = IntVectorProperty(
+    num_tiles: IntVectorProperty(
             default=(0, 0),
             size=2,
             options={'HIDDEN'}
@@ -173,7 +173,7 @@ class AutoTileSizeSettings(PropertyGroup):
             default='',
             options={'HIDDEN'}
             )
-    prev_res = IntVectorProperty(
+    prev_res: IntVectorProperty(
             default=(0, 0),
             size=2,
             options={'HIDDEN'}
@@ -187,7 +187,7 @@ class AutoTileSizeSettings(PropertyGroup):
             size=4,
             options={'HIDDEN'}
             )
-    prev_actual_tile_size = IntVectorProperty(
+    prev_actual_tile_size: IntVectorProperty(
             default=(0, 0),
             size=2,
             options={'HIDDEN'}

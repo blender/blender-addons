@@ -78,13 +78,13 @@ class DisplayData(PropertyGroup):
 
 
 class ViewData(PropertyGroup):
-    pov = PointerProperty(
+    pov: PointerProperty(
             type=POVData
             )
-    layers = PointerProperty(
+    layers: PointerProperty(
             type=LayersData
             )
-    display = PointerProperty(
+    display: PointerProperty(
             type=DisplayData
             )
     name: StringProperty()
@@ -111,7 +111,7 @@ class StoredViewsData(PropertyGroup):
                    ('DISPLAY', "Display", "Display settings")],
             default='VIEW'
             )
-    current_indices = IntVectorProperty(
+    current_indices: IntVectorProperty(
             size=4,
             default=[-1, -1, -1, -1]
             )
