@@ -638,12 +638,7 @@ class Rigify_Arm_FK2IK(bpy.types.Operator):
         return (context.active_object != None and context.mode == 'POSE')
 
     def execute(self, context):
-        use_global_undo = context.preferences.edit.use_global_undo
-        context.preferences.edit.use_global_undo = False
-        try:
-            fk2ik_arm(context.active_object, fk=[self.uarm_fk, self.farm_fk, self.hand_fk], ik=[self.uarm_ik, self.farm_ik, self.hand_ik])
-        finally:
-            context.preferences.edit.use_global_undo = use_global_undo
+        fk2ik_arm(context.active_object, fk=[self.uarm_fk, self.farm_fk, self.hand_fk], ik=[self.uarm_ik, self.farm_ik, self.hand_ik])
         return {'FINISHED'}
 
 
@@ -670,12 +665,7 @@ class Rigify_Arm_IK2FK(bpy.types.Operator):
         return (context.active_object != None and context.mode == 'POSE')
 
     def execute(self, context):
-        use_global_undo = context.preferences.edit.use_global_undo
-        context.preferences.edit.use_global_undo = False
-        try:
-            ik2fk_arm(context.active_object, fk=[self.uarm_fk, self.farm_fk, self.hand_fk], ik=[self.uarm_ik, self.farm_ik, self.hand_ik, self.pole, self.main_parent])
-        finally:
-            context.preferences.edit.use_global_undo = use_global_undo
+        ik2fk_arm(context.active_object, fk=[self.uarm_fk, self.farm_fk, self.hand_fk], ik=[self.uarm_ik, self.farm_ik, self.hand_ik, self.pole, self.main_parent])
         return {'FINISHED'}
 ''']
 
@@ -708,12 +698,7 @@ class Rigify_Leg_FK2IK(bpy.types.Operator):
         return (context.active_object != None and context.mode == 'POSE')
 
     def execute(self, context):
-        use_global_undo = context.preferences.edit.use_global_undo
-        context.preferences.edit.use_global_undo = False
-        try:
-            fk2ik_leg(context.active_object, fk=[self.thigh_fk, self.shin_fk, self.foot_fk, self.mfoot_fk], ik=[self.thigh_ik, self.shin_ik, self.foot_ik, self.mfoot_ik])
-        finally:
-            context.preferences.edit.use_global_undo = use_global_undo
+        fk2ik_leg(context.active_object, fk=[self.thigh_fk, self.shin_fk, self.foot_fk, self.mfoot_fk], ik=[self.thigh_ik, self.shin_ik, self.foot_ik, self.mfoot_ik])
         return {'FINISHED'}
 
 
@@ -742,12 +727,7 @@ class Rigify_Leg_IK2FK(bpy.types.Operator):
         return (context.active_object != None and context.mode == 'POSE')
 
     def execute(self, context):
-        use_global_undo = context.preferences.edit.use_global_undo
-        context.preferences.edit.use_global_undo = False
-        try:
-            ik2fk_leg(context.active_object, fk=[self.thigh_fk, self.shin_fk, self.mfoot_fk, self.foot_fk], ik=[self.thigh_ik, self.shin_ik, self.foot_ik, self.footroll, self.pole, self.mfoot_ik, self.main_parent])
-        finally:
-            context.preferences.edit.use_global_undo = use_global_undo
+        ik2fk_leg(context.active_object, fk=[self.thigh_fk, self.shin_fk, self.mfoot_fk, self.foot_fk], ik=[self.thigh_ik, self.shin_ik, self.foot_ik, self.footroll, self.pole, self.mfoot_ik, self.main_parent])
         return {'FINISHED'}
 ''']
 

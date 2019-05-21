@@ -755,14 +755,10 @@ class Generate(bpy.types.Operator):
         import importlib
         importlib.reload(generate)
 
-        use_global_undo = context.preferences.edit.use_global_undo
-        context.preferences.edit.use_global_undo = False
         try:
             generate.generate_rig(context, context.object)
         except MetarigError as rig_exception:
             rigify_report_exception(self, rig_exception)
-        finally:
-            context.preferences.edit.use_global_undo = use_global_undo
 
         return {'FINISHED'}
 
@@ -813,8 +809,6 @@ class Sample(bpy.types.Operator):
 
     def execute(self, context):
         if context.mode == 'EDIT_ARMATURE' and self.metarig_type != "":
-            use_global_undo = context.preferences.edit.use_global_undo
-            context.preferences.edit.use_global_undo = False
             try:
                 rig = rig_lists.rigs[self.metarig_type]["module"]
                 create_sample = rig.create_sample
@@ -823,7 +817,6 @@ class Sample(bpy.types.Operator):
             else:
                 create_sample(context.active_object)
             finally:
-                context.preferences.edit.use_global_undo = use_global_undo
                 bpy.ops.object.mode_set(mode='EDIT')
 
         return {'FINISHED'}
@@ -1280,8 +1273,6 @@ class OBJECT_OT_ClearAnimation(bpy.types.Operator):
 
     def execute(self, context):
 
-        use_global_undo = context.preferences.edit.use_global_undo
-        context.preferences.edit.use_global_undo = False
         try:
             rig = context.object
             scn = context.scene
@@ -1292,8 +1283,6 @@ class OBJECT_OT_ClearAnimation(bpy.types.Operator):
                 return {'FINISHED'}
 
             clearAnimation(act, self.anim_type, names=get_limb_generated_names(rig))
-        finally:
-            context.preferences.edit.use_global_undo = use_global_undo
         return {'FINISHED'}
 
 
