@@ -70,7 +70,7 @@ def extract_vert_coords(ob, verts):
 def extract_mapped_coords(ob, shape_verts):
     totvert = len(shape_verts)
 
-    depsgraph = context.evaluated_depsgraph_get()
+    depsgraph = bpy.context.evaluated_depsgraph_get()
     ob_eval = ob.evaluated_get(depsgraph)
     mesh = ob_eval.to_mesh()
 
