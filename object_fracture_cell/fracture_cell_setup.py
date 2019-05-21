@@ -324,6 +324,7 @@ def cell_fracture_boolean(context, obj, objects,
     objects_boolean = []
     collection = context.collection
     scene = context.scene
+    view_layer = context.view_layer
     depsgraph = context.evaluated_depsgraph_get()
 
     if use_interior_hide and level == 0:
@@ -394,9 +395,8 @@ def cell_fracture_boolean(context, obj, objects,
 
     if (not use_debug_bool) and use_island_split:
         # this is ugly and Im not proud of this - campbell
-        base = None
-        for base in scene.object_bases:
-            base.select_set(False)
+        for ob in view_layer.objects:
+            ob.select_set(True)
         for obj_cell in objects_boolean:
             obj_cell.select_set(True)
 
