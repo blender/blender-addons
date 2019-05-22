@@ -21,8 +21,8 @@
 bl_info = {
     "name": "Layer Management",
     "author": "Alfonso Annarumma, Bastien Montagne",
-    "version": (1, 5, 4),
-    "blender": (2, 76, 0),
+    "version": (1, 5, 5),
+    "blender": (2, 79, 0),
     "location": "Toolshelf > Layers Tab",
     "warning": "",
     "description": "Display and Edit Layer Name",
@@ -410,7 +410,7 @@ class SCENE_OT_namedlayer_show_all(Operator):
 
 class SCENE_PT_namedlayer_layers(Panel):
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+    bl_region_type = 'UI'
     bl_label = "Layer Management"
     bl_category = "Layers"
     bl_context = "objectmode"
@@ -560,7 +560,7 @@ class SCENE_UL_namedlayer_groups(UIList):
 
 class SCENE_PT_namedlayer_groups(Panel):
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+    bl_region_type = 'UI'
     bl_context = "objectmode"
     bl_category = "Layers"
     bl_label = "Layer Groups"
@@ -633,23 +633,41 @@ class LayerMAddonPreferences(AddonPreferences):
         col.label(text="Tab Category:")
         col.prop(self, "category", text="")
 
+classes = (
+    NamedLayer,
+    NamedLayers,
+    LayerGroup,
+    SCENE_OT_namedlayer_group_add,
+    SCENE_OT_namedlayer_group_remove,
+    SCENE_OT_namedlayer_toggle_visibility,
+    SCENE_OT_namedlayer_move_to_layer,
+    SCENE_OT_namedlayer_toggle_wire,
+    SCENE_OT_namedlayer_lock_all,
+    SCENE_OT_namedlayer_select_objects_by_layer,
+    SCENE_OT_namedlayer_show_all,
+    SCENE_PT_namedlayer_layers,
+    SCENE_UL_namedlayer_groups,
+    LayerMAddonPreferences
+)
 
 def register():
-    bpy.utils.register_module(__name__)
+    for cls in classes:
+        bpy.utils.register_class(cls)
     bpy.types.Scene.layergroups = CollectionProperty(type=LayerGroup)
     # Unused, but this is needed for the TemplateList to work...
     bpy.types.Scene.layergroups_index = IntProperty(default=-1)
     bpy.types.Scene.namedlayers = PointerProperty(type=NamedLayers)
-    bpy.app.handlers.scene_update_post.append(check_init_data)
+    bpy.app.handlers.depsgraph_update_pre.append(check_init_data)
     update_panel(None, bpy.context)
 
 
 def unregister():
-    bpy.app.handlers.scene_update_post.remove(check_init_data)
+    bpy.app.handlers.depsgraph_update_pre.remove(check_init_data)
     del bpy.types.Scene.layergroups
     del bpy.types.Scene.layergroups_index
     del bpy.types.Scene.namedlayers
-    bpy.utils.unregister_module(__name__)
+    for cls in classes:
+        bpy.utils.unregister_class(cls)
 
 
 if __name__ == "__main__":
