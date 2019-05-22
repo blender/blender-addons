@@ -59,6 +59,7 @@ import bpy
 search_start_time = 0
 prev_time = 0
 
+
 def check_errors(rdata):
     if rdata.get('statusCode') == 401:
         if rdata.get('detail') == 'Invalid token.':
@@ -75,12 +76,14 @@ thumb_sml_download_threads = {}
 thumb_full_download_threads = {}
 reports = ''
 
+
 def refresh_token_timer():
     ''' this timer gets run every 20 hours. It refreshes tokens and categories.'''
-    print( 'refresh timer')
+    print('refresh timer')
     fetch_server_data()
     categories.load_categories()
     return 72000
+
 
 @persistent
 def scene_load(context):
@@ -90,7 +93,7 @@ def scene_load(context):
     # wm['bkit_update'] = version_checker.compare_versions(blenderkit)
     categories.load_categories()
     if not bpy.app.timers.is_registered(refresh_token_timer):
-        bpy.app.timers.register(refresh_token_timer, persistent=True, first_interval = 72000)
+        bpy.app.timers.register(refresh_token_timer, persistent=True, first_interval=72000)
 
 
 def fetch_server_data():
@@ -340,7 +343,7 @@ def writeblockm(tooltip, mdata, key='', pretext=None):  # for longer texts
         if type(intext) == list:
             intext = list_to_str(intext)
         if type(intext) == float:
-            intext = round(intext,3)
+            intext = round(intext, 3)
         intext = str(intext)
         if intext.rstrip() == '':
             return tooltip
@@ -453,7 +456,6 @@ def generate_tooltip(mdata):
             if adata != None:
                 t += generate_author_textblock(adata)
 
-
     t += '\n'
     t += get_random_tip(mdata)
     return t
@@ -466,12 +468,13 @@ def get_random_tip(mdata):
         t += 'click to link %s' % mdata['assetType']
     if at == 'model' or at == 'material':
         tips = ['Click or drag in scene to link/append %s' % mdata['assetType'],
-                # "'A' key to search assets by same author",
+                "'A' key to search assets by same author",
                 "'W' key to open Authors webpage",
                 ]
         tip = 'Tip: ' + random.choice(tips)
         t = writeblock(t, tip)
     return t
+
 
 def generate_author_textblock(adata):
     t = ''
@@ -959,11 +962,10 @@ def add_search_process(query, params):
     mt('thread started')
 
 
-def search(own=False, category='', get_next=False, free_only=False):
+def search(category='', get_next=False, author_id=''):
     ''' initialize searching'''
     global search_start_time
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
-
 
     search_start_time = time.time()
     mt('start')
@@ -1002,8 +1004,12 @@ def search(own=False, category='', get_next=False, free_only=False):
 
     if props.is_searching and get_next == True:
         return;
+
     if category != '':
         query['category_subtree'] = category
+
+    if author_id != '' and user_preferences.enable_author_search:
+        query['author_id'] = author_id
 
     # utils.p('searching')
     props.is_searching = True
@@ -1041,6 +1047,11 @@ class SearchOperator(Operator):
         description="search only subtree of this category",
         default="")
 
+    author_id: StringProperty(
+        name="Author ID",
+        description="Author ID - search only assets by this author",
+        default="")
+
     get_next: BoolProperty(name="next page",
                            description="get next page from previous search",
                            default=False)
@@ -1050,7 +1061,7 @@ class SearchOperator(Operator):
         return True
 
     def execute(self, context):
-        search(own=self.own, category=self.category, get_next=self.get_next)
+        search(own=self.own, category=self.category, get_next=self.get_next, author_id=self.author_id)
         bpy.ops.view3d.blenderkit_asset_bar()
 
         return {'FINISHED'}

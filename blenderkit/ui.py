@@ -1419,6 +1419,14 @@ class AssetBarOperator(bpy.types.Operator):
                 if a.get('aboutMeUrl') is not None:
                     bpy.ops.wm.url_open(url=a['aboutMeUrl'])
             return {'RUNNING_MODAL'}
+        if event.type == 'A' and ui_props.active_index != -3:
+            sr = bpy.context.scene['search results']
+            asset_data = sr[ui_props.active_index]
+            a = asset_data['author_id']
+            if a is not None:
+                utils.p('author:', a)
+                search.search(author_id = a)
+            return {'RUNNING_MODAL'}
         if event.type == 'X' and ui_props.active_index != -3:
             sr = bpy.context.scene['search results']
             asset_data = sr[ui_props.active_index]
@@ -1439,7 +1447,7 @@ class AssetBarOperator(bpy.types.Operator):
             if self.category != '':
                 sprops = utils.get_search_props()
                 sprops.search_keywords = ''
-            search.search(category=self.category, free_only=self.free_only)
+            search.search(category=self.category)
 
         if ui_props.assetbar_on:
             # we don't want to run the assetbar many times, that's why it has a switch on/off behaviour,
