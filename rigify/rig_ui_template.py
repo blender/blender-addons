@@ -623,7 +623,7 @@ class Rigify_Arm_FK2IK(bpy.types.Operator):
     """
     bl_idname = "pose.rigify_arm_fk2ik_" + rig_id
     bl_label = "Rigify Snap FK arm to IK"
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'INTERNAL'}
 
     uarm_fk: StringProperty(name="Upper Arm FK Name")
     farm_fk: StringProperty(name="Forerm FK Name")
@@ -647,7 +647,7 @@ class Rigify_Arm_IK2FK(bpy.types.Operator):
     """
     bl_idname = "pose.rigify_arm_ik2fk_" + rig_id
     bl_label = "Rigify Snap IK arm to FK"
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'INTERNAL'}
 
     uarm_fk: StringProperty(name="Upper Arm FK Name")
     farm_fk: StringProperty(name="Forerm FK Name")
@@ -681,7 +681,7 @@ class Rigify_Leg_FK2IK(bpy.types.Operator):
     """
     bl_idname = "pose.rigify_leg_fk2ik_" + rig_id
     bl_label = "Rigify Snap FK leg to IK"
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'INTERNAL'}
 
     thigh_fk: StringProperty(name="Thigh FK Name")
     shin_fk:  StringProperty(name="Shin FK Name")
@@ -707,7 +707,7 @@ class Rigify_Leg_IK2FK(bpy.types.Operator):
     """
     bl_idname = "pose.rigify_leg_ik2fk_" + rig_id
     bl_label = "Rigify Snap IK leg to FK"
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'INTERNAL'}
 
     thigh_fk: StringProperty(name="Thigh FK Name")
     shin_fk:  StringProperty(name="Shin FK Name")
