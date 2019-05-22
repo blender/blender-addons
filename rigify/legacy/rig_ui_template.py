@@ -479,8 +479,8 @@ class RigUI(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Rig Main Properties"
-    bl_idname = rig_id + "_PT_rig_ui"
-    bl_category = 'View'
+    bl_idname = "VIEW3D_PT_rig_ui_" + rig_id
+    bl_category = 'Item'
 
     @classmethod
     def poll(self, context):
@@ -523,8 +523,8 @@ class RigLayers(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Rig Layers"
-    bl_idname = rig_id + "_PT_rig_layers"
-    bl_category = 'View'
+    bl_idname = "VIEW3D_PT_rig_layers_" + rig_id
+    bl_category = 'Item'
 
     @classmethod
     def poll(self, context):

@@ -1277,17 +1277,15 @@ class OBJECT_OT_ClearAnimation(bpy.types.Operator):
     anim_type: StringProperty()
 
     def execute(self, context):
+        rig = context.object
+        scn = context.scene
+        if not rig.animation_data:
+            return {'FINISHED'}
+        act = rig.animation_data.action
+        if not act:
+            return {'FINISHED'}
 
-        try:
-            rig = context.object
-            scn = context.scene
-            if not rig.animation_data:
-                return {'FINISHED'}
-            act = rig.animation_data.action
-            if not act:
-                return {'FINISHED'}
-
-            clearAnimation(act, self.anim_type, names=get_limb_generated_names(rig))
+        clearAnimation(act, self.anim_type, names=get_limb_generated_names(rig))
         return {'FINISHED'}
 
 
