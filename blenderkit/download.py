@@ -475,12 +475,9 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff, not 
                 if len(file_names) == 2:  # todo this should try to check if both files exist and are ok.
                     shutil.copyfile(file_names[0], file_names[1])
 
-                print('appending asset')
+                utils.p('appending asset')
                 # progress bars:
-                if bpy.context.scene['search results'] is not None:
-                    for sres in bpy.context.scene['search results']:
-                        if asset_data['id'] == sres['id']:
-                            sres['downloaded'] = 100
+
                 # we need to check if mouse isn't down, which means an operator can be running.
                 # Especially for sculpt mode, where appending a brush during a sculpt stroke causes crasehes
                 #
@@ -495,6 +492,7 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff, not 
                     done = try_finished_append(asset_data, **tcom.passargs)
                     if not done:
                         at = asset_data['asset_type']
+                        tcom.passargs['retry_counter'] = tcom.passargs.get('retry_counter',0) +1
                         if at in ('model', 'material'):
                             download(asset_data, **tcom.passargs)
                         elif asset_data['asset_type'] == 'material':
@@ -503,7 +501,12 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff, not 
                             download(asset_data, **tcom.passargs)
                         elif asset_data['asset_type'] == 'brush' or asset_data['asset_type'] == 'texture':
                             download(asset_data, **tcom.passargs)
-                print('finished download thread')
+                    if bpy.context.scene['search results'] is not None and done:
+                        for sres in bpy.context.scene['search results']:
+                            if asset_data['id'] == sres['id']:
+                                sres['downloaded'] = 100
+
+                utils.p('finished download thread')
     return .2
 
 
@@ -590,8 +593,14 @@ def download(asset_data, **kwargs):
     scene_id = get_scene_id()
 
     tcom = ThreadCom()
-
     tcom.passargs = kwargs
+
+    if kwargs.get('retry_counter',0) > 3:
+        sprops = utils.get_search_props()
+        sprops.report = f"Maximum retries exceeded for {asset_data['name']}"
+        utils.p(sprops.report)
+        return
+
 
     # incoming data can be either directly dict from python, or blender id property
     # (recovering failed downloads on reload)
@@ -654,7 +663,7 @@ def try_finished_append(asset_data, **kwargs):  # location=None, material_target
      This means probably wrong download, so download should restart'''
     file_names = paths.get_download_filenames(asset_data)
     done = False
-    print('try to append allready existing asset')
+    utils.p('try to append allready existing asset')
     if len(file_names) > 0:
         if os.path.isfile(file_names[-1]):
             kwargs['name'] = asset_data['name']

@@ -802,6 +802,12 @@ class VIEW3D_PT_blenderkit_downloads(Panel):
             row.label(text=asset_data['name'])
             row.label(text=str(int(tcom.progress)) + ' %')
             row.operator('scene.blenderkit_download_kill', text='', icon='CANCEL')
+            if tcom.passargs.get('retry_counter',0)>0:
+                row = layout.row()
+                row.label(text = 'failed. retrying ... ', icon='ERROR')
+                row.label(text = str(tcom.passargs["retry_counter"]))
+                
+                layout.separator()
 
 
 classess = (
