@@ -184,7 +184,7 @@ def write_mesh(context, info, report_cb):
         del obj_tmp, obj, mesh
 
         # restore context
-        for ob in context_backup["selected_objects"]
+        for ob in context_backup["selected_objects"]:
             ob.select_set(True)
         layer.objects.active = context_backup["active_object"]
 
