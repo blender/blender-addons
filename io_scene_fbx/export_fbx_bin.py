@@ -1130,9 +1130,8 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     # Face's materials.
     me_fbxmaterials_idx = scene_data.mesh_material_indices.get(me)
     if me_fbxmaterials_idx is not None:
-        # Mapping to indices is done using original material pointers, so need to go from evaluated
-        # to original (this is for the case mesh is a result of evaluated modifier stack).
-        me_blmaterials = [material.original for material in  me.materials]
+        # We cannot use me.materials here, as this array is filled with None in case materials are linked to object...
+        me_blmaterials = [mat_slot.material for mat_slot in me_obj.material_slots]
         if me_fbxmaterials_idx and me_blmaterials:
             lay_ma = elem_data_single_int32(geom, b"LayerElementMaterial", 0)
             elem_data_single_int32(lay_ma, b"Version", FBX_GEOMETRY_MATERIAL_VERSION)
