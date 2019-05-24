@@ -26,7 +26,7 @@ bl_info = {
     "blender": (2, 80, 0),
     "location": "View3D > Tools",
     "description": "Creates Dynamic Sky for Cycles",
-    "warning": "wip, manually select the dynamic sky world",
+    "warning": "",
     "wiki_url": "http://www.dragoneex.com/downloads/dynamic-skyadd-on",
     "category": "Lighting",
     }
