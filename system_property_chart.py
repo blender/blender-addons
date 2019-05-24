@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Property Chart",
     "author": "Campbell Barton (ideasman42)",
-    "version": (0, 1),
+    "version": (0, 1, 1),
     "blender": (2, 80, 0),
     "location": "Tool Shelf",
     "description": ("Edit arbitrary selected properties for "
@@ -208,7 +208,7 @@ class SequencerEditProps(Panel):
     bl_idname = "SYSPROP_CHART_PT_sequencer"
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
-
+    bl_category = "Item"
     bl_label = "Property Chart"
 
     _PROP_STORAGE_ID = "sequencer_edit_props"
