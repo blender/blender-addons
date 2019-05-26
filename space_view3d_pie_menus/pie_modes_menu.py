@@ -37,7 +37,7 @@ from bpy.types import (
 )
 
 
-class ClassObject(Operator):
+class PIE_OT_ClassObject(Operator):
     bl_idname = "class.object"
     bl_label = "Class Object"
     bl_description = "Edit/Object Mode Switch"
@@ -51,7 +51,7 @@ class ClassObject(Operator):
         return {'FINISHED'}
 
 
-class ClassVertex(Operator):
+class PIE_OT_ClassVertex(Operator):
     bl_idname = "class.vertex"
     bl_label = "Class Vertex"
     bl_description = "Vert Select"
@@ -66,7 +66,7 @@ class ClassVertex(Operator):
             return {'FINISHED'}
 
 
-class ClassEdge(Operator):
+class PIE_OT_ClassEdge(Operator):
     bl_idname = "class.edge"
     bl_label = "Class Edge"
     bl_description = "Edge Select"
@@ -81,7 +81,7 @@ class ClassEdge(Operator):
             return {'FINISHED'}
 
 
-class ClassFace(Operator):
+class PIE_OT_ClassFace(Operator):
     bl_idname = "class.face"
     bl_label = "Class Face"
     bl_description = "Face Select"
@@ -96,7 +96,7 @@ class ClassFace(Operator):
             return {'FINISHED'}
 
 
-class ClassTexturePaint(Operator):
+class PIE_OT_ClassTexturePaint(Operator):
     bl_idname = "class.pietexturepaint"
     bl_label = "Class Texture Paint"
     bl_description = "Texture Paint"
@@ -111,7 +111,7 @@ class ClassTexturePaint(Operator):
         return {'FINISHED'}
 
 
-class ClassWeightPaint(Operator):
+class PIE_OT_ClassWeightPaint(Operator):
     bl_idname = "class.pieweightpaint"
     bl_label = "Class Weight Paint"
     bl_description = "Weight Paint"
@@ -126,7 +126,7 @@ class ClassWeightPaint(Operator):
         return {'FINISHED'}
 
 
-class ClassVertexPaint(Operator):
+class PIE_OT_ClassVertexPaint(Operator):
     bl_idname = "class.pievertexpaint"
     bl_label = "Class Vertex Paint"
     bl_description = "Vertex Paint"
@@ -141,7 +141,7 @@ class ClassVertexPaint(Operator):
         return {'FINISHED'}
 
 
-class ClassParticleEdit(Operator):
+class PIE_OT_ClassParticleEdit(Operator):
     bl_idname = "class.pieparticleedit"
     bl_label = "Class Particle Edit"
     bl_description = "Particle Edit (must have active particle system)"
@@ -157,7 +157,7 @@ class ClassParticleEdit(Operator):
 
 
 # Set Mode Operator #
-class SetObjectModePie(Operator):
+class PIE_OT_SetObjectModePie(Operator):
     bl_idname = "object.set_object_mode_pie"
     bl_label = "Set the object interactive mode"
     bl_description = "I set the interactive mode of object"
@@ -178,7 +178,7 @@ class SetObjectModePie(Operator):
 
 
 # Components Selection Mode
-class VertsEdges(Operator):
+class PIE_OT_VertsEdges(Operator):
     bl_idname = "verts.edges"
     bl_label = "Verts Edges"
     bl_description = "Vert/Edge Select"
@@ -193,7 +193,7 @@ class VertsEdges(Operator):
             return {'FINISHED'}
 
 
-class EdgesFaces(Operator):
+class PIE_OT_EdgesFaces(Operator):
     bl_idname = "edges.faces"
     bl_label = "EdgesFaces"
     bl_description = "Edge/Face Select"
@@ -208,7 +208,7 @@ class EdgesFaces(Operator):
             return {'FINISHED'}
 
 
-class VertsFaces(Operator):
+class PIE_OT_VertsFaces(Operator):
     bl_idname = "verts.faces"
     bl_label = "Verts Faces"
     bl_description = "Vert/Face Select"
@@ -223,7 +223,7 @@ class VertsFaces(Operator):
             return {'FINISHED'}
 
 
-class VertsEdgesFaces(Operator):
+class PIE_OT_VertsEdgesFaces(Operator):
     bl_idname = "verts.edgesfaces"
     bl_label = "Verts Edges Faces"
     bl_description = "Vert/Edge/Face Select"
@@ -239,7 +239,7 @@ class VertsEdgesFaces(Operator):
 
 
 # Grease Pencil Interactive Mode
-class PieInteractiveModeGreasePencil(Operator):
+class PIE_OT_InteractiveModeGreasePencil(Operator):
     bl_idname = "view3d.pie_interactive_mode_grease_pencil"
     bl_label = "Edit Strokes"
     bl_description = "Toggle Edit Strokes for Grease Pencil"
@@ -258,7 +258,7 @@ class PieInteractiveModeGreasePencil(Operator):
 
 
 # Menus
-class PieObjectEditotherModes(Menu):
+class PIE_MT_ObjectEditotherModes(Menu):
     """Edit/Object Others modes"""
     bl_idname = "MENU_MT_objecteditmodeothermodes"
     bl_label = "Edit Selection Modes"
@@ -277,7 +277,7 @@ class PieObjectEditotherModes(Menu):
         box.operator("verts.edgesfaces", text="Vertex/Edges/Faces", icon='OBJECT_DATAMODE')
 
 
-class PieObjectEditMode(Menu):
+class PIE_MT_ObjectEditMode(Menu):
     """Modes Switch"""
     bl_idname = "PIE_MT_objecteditmode"
     bl_label = "Modes Menu (Tab)"
@@ -438,22 +438,22 @@ class PieObjectEditMode(Menu):
 
 
 classes = (
-    PieObjectEditMode,
-    ClassObject,
-    ClassVertex,
-    ClassEdge,
-    ClassFace,
-    PieObjectEditotherModes,
-    ClassTexturePaint,
-    ClassWeightPaint,
-    ClassVertexPaint,
-    ClassParticleEdit,
-    PieInteractiveModeGreasePencil,
-    VertsEdges,
-    EdgesFaces,
-    VertsFaces,
-    VertsEdgesFaces,
-    SetObjectModePie,
+    PIE_MT_ObjectEditMode,
+    PIE_OT_ClassObject,
+    PIE_OT_ClassVertex,
+    PIE_OT_ClassEdge,
+    PIE_OT_ClassFace,
+    PIE_MT_ObjectEditotherModes,
+    PIE_OT_ClassTexturePaint,
+    PIE_OT_ClassWeightPaint,
+    PIE_OT_ClassVertexPaint,
+    PIE_OT_ClassParticleEdit,
+    PIE_OT_InteractiveModeGreasePencil,
+    PIE_OT_VertsEdges,
+    PIE_OT_EdgesFaces,
+    PIE_OT_VertsFaces,
+    PIE_OT_VertsEdgesFaces,
+    PIE_OT_SetObjectModePie,
     )
 
 addon_keymaps = []

@@ -35,7 +35,7 @@ from bpy.types import Menu
 
 
 # Pie Selection Object Mode - A
-class PieSelectionsMore(Menu):
+class PIE_MT_SelectionsMore(Menu):
     bl_idname = "PIE_MT_selectionsmore"
     bl_label = "Pie Selections Object Mode"
 
@@ -50,7 +50,7 @@ class PieSelectionsMore(Menu):
 
 
 # Pie Selection Object Mode - A
-class PieSelectionsOM(Menu):
+class PIE_MT_SelectionsOM(Menu):
     bl_idname = "PIE_MT_selectionsom"
     bl_label = "Pie Selections Object Mode"
 
@@ -78,7 +78,7 @@ class PieSelectionsOM(Menu):
 
 
 # Pie Selection Edit Mode
-class PieSelectionsEM(Menu):
+class PIE_MT_SelectionsEM(Menu):
     bl_idname = "PIE_MT_selectionsem"
     bl_label = "Pie Selections Edit Mode"
 
@@ -110,7 +110,7 @@ class PieSelectionsEM(Menu):
 
 
 # Select All By Selection
-class SelectAllBySelection(Menu):
+class PIE_MT_SelectAllBySelection(Menu):
     bl_idname = "PIE_MT_selectallbyselection"
     bl_label = "Verts Edges Faces"
     bl_options = {'REGISTER', 'UNDO'}
@@ -141,7 +141,7 @@ class SelectAllBySelection(Menu):
         prop.data_path = "tool_settings.mesh_select_mode"
 
 
-class SelectLoopSelection(Menu):
+class PIE_MT_SelectLoopSelection(Menu):
     bl_idname = "OBJECT_MT_selectloopselection"
     bl_label = "Verts Edges Faces"
     bl_options = {'REGISTER', 'UNDO'}
@@ -156,11 +156,11 @@ class SelectLoopSelection(Menu):
 
 
 classes = (
-    PieSelectionsOM,
-    PieSelectionsEM,
-    SelectAllBySelection,
-    PieSelectionsMore,
-    SelectLoopSelection,
+    PIE_MT_SelectionsOM,
+    PIE_MT_SelectionsEM,
+    PIE_MT_SelectAllBySelection,
+    PIE_MT_SelectionsMore,
+    PIE_MT_SelectLoopSelection,
     )
 
 addon_keymaps = []
