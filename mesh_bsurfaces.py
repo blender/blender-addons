@@ -62,7 +62,7 @@ from bpy.types import (
 class VIEW3D_PT_tools_SURFSK_mesh(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Tools'
+    bl_category = 'Edit'
     #bl_context = "mesh_edit"
     bl_label = "Bsurfaces"
 
@@ -99,7 +99,7 @@ class VIEW3D_PT_tools_SURFSK_curve(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_context = "curve_edit"
-    bl_category = 'Tools'
+    bl_category = 'Edit'
     bl_label = "Bsurfaces"
 
     @classmethod
@@ -4097,7 +4097,7 @@ class BsurfPreferences(AddonPreferences):
     category: StringProperty(
             name="Tab Category",
             description="Choose a name for the category of the panel",
-            default="Tools",
+            default="Edit",
             update=update_panel
             )
 
