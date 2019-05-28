@@ -128,7 +128,7 @@ def draw_upload_common(layout, props, asset_type, context):
             row = layout.row()
 
             row.prop(props, 'asset_base_id', icon='FILE_TICK')
-        # layout.operator("object.blenderkit_mark_for_validation", icon='EXPORT')
+        layout.operator("object.blenderkit_mark_for_validation", icon='EXPORT')
 
     layout.prop(props, 'category')
     if asset_type == 'MODEL' and props.subcategory != '':  # by now block this for other asset types.
