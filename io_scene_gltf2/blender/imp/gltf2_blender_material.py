@@ -49,6 +49,8 @@ class BlenderMaterial():
         mat = bpy.data.materials.new(name)
         pymaterial.blender_material[vertex_color] = mat.name
 
+        mat.use_backface_culling = (pymaterial.double_sided != True)
+
         ignore_map = False
 
         if pymaterial.extensions is not None :
