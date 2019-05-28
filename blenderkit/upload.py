@@ -26,8 +26,9 @@ if "bpy" in locals():
     imp.reload(bg_blender)
     imp.reload(autothumb)
     imp.reload(version_checker)
+    imp.reload(ui_panels)
 else:
-    from blenderkit import asset_inspector, paths, utils, bg_blender, autothumb, version_checker, search
+    from blenderkit import asset_inspector, paths, utils, bg_blender, autothumb, version_checker, search,ui_panels
 
 import tempfile, os, subprocess, json, re
 
@@ -549,6 +550,7 @@ def start_upload(self, context, asset_type, as_new, metadata_only):
     if props.report != '':
         self.report({'ERROR_INVALID_INPUT'}, props.report)
         return {'CANCELLED'}
+
     if as_new:
         props.asset_base_id = ''
         props.id = ''
@@ -723,13 +725,26 @@ class ModelUploadOperator(Operator):
         return result
 
     def draw(self, context):
+        props = utils.get_upload_props()
         layout = self.layout
-        layout.label(text="Really upload as new? ")
-        layout.label(text="Do this only when you create a new asset from an old one.")
-        layout.label(text="For updates of thumbnail or model use reupload.")
+
+        if self.as_new:
+            layout.label(text="Really upload as new? ")
+            layout.label(text="Do this only when you create a new asset from an old one.")
+            layout.label(text="For updates of thumbnail or model use reupload.")
+
+        if props.is_private == 'PUBLIC':
+            ui_panels.label_multiline(layout, text='Since this version (1.0.24), '
+                                                   'PUBLIC ASSETS ARE VALIDATED AUTOMATICALLY '
+                                                   ' after upload. '
+                                                   'Click Ok to proceed.')
+
+
 
     def invoke(self, context, event):
-        if self.as_new:
+        props = utils.get_upload_props()
+
+        if self.as_new or props.is_private == 'PUBLIC':
             return context.window_manager.invoke_props_dialog(self)
         else:
             return self.execute(context)

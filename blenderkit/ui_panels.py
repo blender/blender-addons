@@ -43,7 +43,7 @@ def label_multiline(layout, text='', icon='NONE', width=-1):
         threshold = int(width / 5.5)
     else:
         threshold = 35
-    maxlines = 3
+    maxlines = 6
     li = 0
     for l in lines:
         while len(l) > threshold:
@@ -128,7 +128,7 @@ def draw_upload_common(layout, props, asset_type, context):
             row = layout.row()
 
             row.prop(props, 'asset_base_id', icon='FILE_TICK')
-        layout.operator("object.blenderkit_mark_for_validation", icon='EXPORT')
+        # layout.operator("object.blenderkit_mark_for_validation", icon='EXPORT')
 
     layout.prop(props, 'category')
     if asset_type == 'MODEL' and props.subcategory != '':  # by now block this for other asset types.
@@ -420,7 +420,9 @@ class VIEW3D_PT_blenderkit_profile(Panel):
                 layout.label(text='Email: %s' % (me['email']))
                 if me.get('sumAssetFilesSize') is not None:  # TODO remove this when production server has these too.
                     layout.label(text='Public assets: %i Mb' % (me['sumAssetFilesSize']))
+                if me.get('sumPrivateAssetFilesSize') is not None:
                     layout.label(text='Private assets: %i Mb' % (me['sumPrivateAssetFilesSize']))
+                if me.get('remainingPrivateQuota') is not None:
                     layout.label(text='Remaining private storage: %i Mb' % (me['remainingPrivateQuota']))
             layout.operator("wm.url_open", text="See my uploads",
                             icon='URL').url = paths.BLENDERKIT_USER_ASSETS

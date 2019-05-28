@@ -580,7 +580,7 @@ def write_profile(adata):
         user['sumPrivateAssetFilesSize'] /= (1024 * 1024)
     if user.get('remainingPrivateQuota') is not None:
         user['remainingPrivateQuota'] /= (1024 * 1024)
-        
+
     bpy.context.window_manager['bkit profile'] = adata
 
 
