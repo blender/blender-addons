@@ -420,11 +420,11 @@ class VIEW3D_PT_blenderkit_profile(Panel):
                 layout.label(text='User: %s %s' % (me['firstName'], me['lastName']))
                 layout.label(text='Email: %s' % (me['email']))
                 if me.get('sumAssetFilesSize') is not None:  # TODO remove this when production server has these too.
-                    layout.label(text='Public assets: %i Mb' % (me['sumAssetFilesSize']))
+                    layout.label(text='Public assets: %i MiB' % (me['sumAssetFilesSize']))
                 if me.get('sumPrivateAssetFilesSize') is not None:
-                    layout.label(text='Private assets: %i Mb' % (me['sumPrivateAssetFilesSize']))
+                    layout.label(text='Private assets: %i MiB' % (me['sumPrivateAssetFilesSize']))
                 if me.get('remainingPrivateQuota') is not None:
-                    layout.label(text='Remaining private storage: %i Mb' % (me['remainingPrivateQuota']))
+                    layout.label(text='Remaining private storage: %i MiB' % (me['remainingPrivateQuota']))
             layout.operator("wm.url_open", text="See my uploads",
                             icon='URL').url = paths.BLENDERKIT_USER_ASSETS
             if user_preferences.enable_oauth:

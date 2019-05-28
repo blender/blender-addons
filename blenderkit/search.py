@@ -573,7 +573,7 @@ def get_author(r):
 def write_profile(adata):
     utils.p('writing profile')
     user = adata['user']
-    # we have to convert to MB here, numbers too big for python int type
+    # we have to convert to MiB here, numbers too big for python int type
     if user.get('sumAssetFilesSize') is not None:
         user['sumAssetFilesSize'] /= (1024 * 1024)
     if user.get('sumPrivateAssetFilesSize') is not None:
