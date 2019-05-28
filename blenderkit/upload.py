@@ -446,7 +446,7 @@ def get_upload_data(self, context, asset_type):
         upload_data["category"] = props.subcategory
     upload_data["license"] = props.license
     upload_data["isFree"] = props.is_free
-    upload_data["isPrivate"] = props.is_private
+    upload_data["isPrivate"] = props.is_private == 'PRIVATE'
     upload_data["token"] = user_preferences.api_key
 
     if props.asset_base_id != '':
@@ -503,7 +503,7 @@ def get_upload_location(props):
 
 
 def check_storage_quota(props):
-    if not props.is_private:
+    if props.is_private =='PUBLIC':
         return True
 
     profile = bpy.context.window_manager.get('bkit profile')

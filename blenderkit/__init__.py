@@ -449,10 +449,22 @@ class BlenderKitCommonUploadProps(object):
         default='royalty_free',
         description='License. Please read our help for choosing the right licenses',
     )
-    is_private: BoolProperty(name="Asset is Private",
-                          description="If not marked private, your asset will go into the validation process automatically\n"
+
+    is_private: EnumProperty(
+        name="Thumbnail Style",
+        items=(
+            ('PRIVATE', 'Private', "You asset will be hidden to public. The private assets are limited by a quota."),
+            ('PUBLIC', 'Public', '"Your asset will go into the validation process automatically')
+        ),
+        description="If not marked private, your asset will go into the validation process automatically\n"
                                       "Private assets are limited by quota.",
-                          default=False)
+        default="PUBLIC",
+    )
+
+    # is_private: BoolProperty(name="Asset is Private",
+    #                       description="If not marked private, your asset will go into the validation process automatically\n"
+    #                                   "Private assets are limited by quota.",
+    #                       default=False)
 
     is_free: BoolProperty(name="Free for Everyone",
                           description="You consent you want to release this asset as free for everyone",

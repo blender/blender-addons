@@ -134,8 +134,8 @@ def draw_upload_common(layout, props, asset_type, context):
     if asset_type == 'MODEL' and props.subcategory != '':  # by now block this for other asset types.
         layout.prop(props, 'subcategory')
 
-    layout.prop(props, 'is_private')
-    if not props.is_private:
+    layout.prop(props, 'is_private', expand=True)
+    if props.is_private == 'PUBLIC':
         layout.prop(props, 'license')
 
 
@@ -394,10 +394,8 @@ class VIEW3D_PT_blenderkit_profile(Panel):
 
     @classmethod
     def poll(cls, context):
-        user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
-        if user_preferences.enable_oauth:
-            return True
-        return False
+
+        return True
 
     def draw(self, context):
         # draw asset properties here
@@ -411,9 +409,9 @@ class VIEW3D_PT_blenderkit_profile(Panel):
             return
 
         if len(user_preferences.api_key) < 20:
-            layout.operator("wm.blenderkit_login", text="Login/ Sign up",
-                            icon='URL')
-
+            if user_preferences.enable_oauth:
+                layout.operator("wm.blenderkit_login", text="Login/ Sign up",
+                                icon='URL')
         else:
             me = bpy.context.window_manager.get('bkit profile')
             if me is not None:
@@ -426,8 +424,9 @@ class VIEW3D_PT_blenderkit_profile(Panel):
                     layout.label(text='Remaining private storage: %i Mb' % (me['remainingPrivateQuota']))
             layout.operator("wm.url_open", text="See my uploads",
                             icon='URL').url = paths.BLENDERKIT_USER_ASSETS
-            layout.operator("wm.blenderkit_logout", text="Logout",
-                            icon='URL')
+            if user_preferences.enable_oauth:
+                layout.operator("wm.blenderkit_logout", text="Logout",
+                                icon='URL')
 
 
 def draw_panel_model_rating(self, context):
@@ -802,11 +801,11 @@ class VIEW3D_PT_blenderkit_downloads(Panel):
             row.label(text=asset_data['name'])
             row.label(text=str(int(tcom.progress)) + ' %')
             row.operator('scene.blenderkit_download_kill', text='', icon='CANCEL')
-            if tcom.passargs.get('retry_counter',0)>0:
+            if tcom.passargs.get('retry_counter', 0) > 0:
                 row = layout.row()
-                row.label(text = 'failed. retrying ... ', icon='ERROR')
-                row.label(text = str(tcom.passargs["retry_counter"]))
-                
+                row.label(text='failed. retrying ... ', icon='ERROR')
+                row.label(text=str(tcom.passargs["retry_counter"]))
+
                 layout.separator()
 
 
