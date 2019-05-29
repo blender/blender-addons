@@ -1010,7 +1010,7 @@ def search(category='', get_next=False, author_id=''):
     if category != '':
         query['category_subtree'] = category
 
-    if author_id != '' and user_preferences.enable_author_search:
+    if author_id != '':
         query['author_id'] = author_id
 
     # utils.p('searching')
