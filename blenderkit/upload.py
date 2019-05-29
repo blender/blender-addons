@@ -16,19 +16,20 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-if "bpy" in locals():
-    import imp
 
-    imp.reload(asset_inspector)
-    imp.reload(paths)
-    imp.reload(utils)
-    imp.reload(search)
-    imp.reload(bg_blender)
-    imp.reload(autothumb)
-    imp.reload(version_checker)
-    imp.reload(ui_panels)
+if "bpy" in locals():
+    from importlib import reload
+
+    asset_inspector = reload(asset_inspector)
+    paths = reload(paths)
+    utils = reload(utils)
+    bg_blender = reload(bg_blender)
+    autothumb = reload(autothumb)
+    version_checker = reload(version_checker)
+    search = reload(searchr)
+    ui_panels = reload(ui_panels)
 else:
-    from blenderkit import asset_inspector, paths, utils, bg_blender, autothumb, version_checker, search,ui_panels
+    from blenderkit import asset_inspector, paths, utils, bg_blender, autothumb, version_checker, search, ui_panels
 
 import tempfile, os, subprocess, json, re
 
@@ -504,7 +505,7 @@ def get_upload_location(props):
 
 
 def check_storage_quota(props):
-    if props.is_private =='PUBLIC':
+    if props.is_private == 'PUBLIC':
         return True
 
     profile = bpy.context.window_manager.get('bkit profile')
@@ -738,8 +739,6 @@ class ModelUploadOperator(Operator):
                                                    'PUBLIC ASSETS ARE VALIDATED AUTOMATICALLY '
                                                    ' after upload. '
                                                    'Click Ok to proceed.')
-
-
 
     def invoke(self, context, event):
         props = utils.get_upload_props()

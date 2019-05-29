@@ -16,25 +16,46 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+if "bpy" in locals():
+    from importlib import reload
+
+    tasks_queue = reload(tasks_queue)
+    utils = reload(utils)
+    paths = reload(paths)
+    search = reload(search)
+    categories = reload(categories)
+    oauth = reload(oauth)
+else:
+    from blenderkit import tasks_queue, utils, paths, search, categories, oauth
+
 import bpy
 
 import threading
-import blenderkit
-from blenderkit import tasks_queue, utils, paths, search, categories, oauth
+
+from bpy.props import (
+    BoolProperty,
+)
 
 CLIENT_ID = "IdFRwa3SGA8eMpzhRVFMg5Ts8sPK93xBjif93x0F"
 PORTS = [62485, 1234]
 
-def login_thread():
-    thread = threading.Thread(target=login, args=([]), daemon=True)
+
+def login_thread(signup=False):
+    thread = threading.Thread(target=login, args=([signup]), daemon=True)
     thread.start()
 
 
-def login():
-    authenticator = oauth.SimpleOAuthAuthenticator(server_url=paths.get_bkit_url(), client_id=CLIENT_ID, ports=PORTS)
+def login(signup):
+    if signup:
+        r_url = paths.BLENDERKIT_SIGNUP_URL
+    else:
+        r_url = paths.BLENDERKIT_LOGIN_URL
+
+    authenticator = oauth.SimpleOAuthAuthenticator(server_url=paths.get_bkit_url(), client_id=CLIENT_ID, ports=PORTS,
+                                                   redirect_url=r_url)
     auth_token, refresh_token = authenticator.get_new_token()
     utils.p('tokens retrieved')
-    tasks_queue.add_task((write_tokens , (auth_token, refresh_token)))
+    tasks_queue.add_task((write_tokens, (auth_token, refresh_token)))
 
 
 def refresh_token_thread():
@@ -45,10 +66,11 @@ def refresh_token_thread():
 
 
 def refresh_token(api_key_refresh):
-    authenticator = oauth.SimpleOAuthAuthenticator(server_url=paths.get_bkit_url(), client_id=CLIENT_ID, ports=PORTS)
+    authenticator = oauth.SimpleOAuthAuthenticator(server_url=paths.get_bkit_url(), client_id=CLIENT_ID, ports=PORTS,
+                                                   redirect_url='')
     auth_token, refresh_token = authenticator.get_refreshed_token(api_key_refresh)
     if auth_token is not None and refresh_token is not None:
-        tasks_queue.add_task((blenderkit.bkit_oauth.write_tokens , (auth_token, refresh_token)))
+        tasks_queue.add_task((blenderkit.bkit_oauth.write_tokens, (auth_token, refresh_token)))
 
 
 def write_tokens(auth_token, refresh_token):
@@ -70,6 +92,13 @@ class RegisterLoginOnline(bpy.types.Operator):
     bl_label = "BlenderKit login or signup"
     bl_options = {'REGISTER', 'UNDO'}
 
+    signup: BoolProperty(
+        name="create a new account",
+        description="True for register, otherwise login",
+        default=False,
+        options={'SKIP_SAVE'}
+    )
+
     @classmethod
     def poll(cls, context):
         return True
@@ -77,7 +106,7 @@ class RegisterLoginOnline(bpy.types.Operator):
     def execute(self, context):
         preferences = bpy.context.preferences.addons['blenderkit'].preferences
         preferences.login_attempt = True
-        login_thread()
+        login_thread(self.signup)
         return {'FINISHED'}
 
 
@@ -115,6 +144,7 @@ class CancelLoginOnline(bpy.types.Operator):
         preferences = bpy.context.preferences.addons['blenderkit'].preferences
         preferences.login_attempt = False
         return {'FINISHED'}
+
 
 classess = (
     RegisterLoginOnline,

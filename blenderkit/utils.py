@@ -16,12 +16,14 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-if "bpy" in locals():
-    import imp
 
-    imp.reload(paths)
+if "bpy" in locals():
+    from importlib import reload
+
+    paths = reload(paths)
 else:
-    from blenderkit import paths, categories
+    from blenderkit import paths
+
 import bpy
 from mathutils import Vector
 import json

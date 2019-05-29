@@ -26,10 +26,11 @@ import requests
 
 
 class SimpleOAuthAuthenticator(object):
-    def __init__(self, server_url, client_id, ports):
+    def __init__(self, server_url, client_id, ports, redirect_url):
         self.server_url = server_url
         self.client_id = client_id
         self.ports = ports
+        self.redirect_url = redirect_url
 
     def _get_tokens(self, authorization_code=None, refresh_token=None, grant_type="authorization_code"):
         data = {
@@ -62,7 +63,14 @@ class SimpleOAuthAuthenticator(object):
                 if 'code' in self.path:
                     self.auth_code = self.path.split('=')[1]
                     # Display to the user that they no longer need the browser window
-                    self.wfile.write(bytes('<html><h1>You may now close this window.</h1></html>', 'utf-8'))
+                    self.wfile.write(bytes(
+                        '<html>'
+                        '<head><meta http-equiv="refresh" content="0;url=%(redirect_url)s"></head>'
+                        '<script> window.location.href="%(redirect_url)s"; </script>'
+                        '<h1>You may now close this window.</h1>'
+                        '</html>' % {'redirect_url': self.redirect_url},
+                        'utf-8',
+                    ))
                     qs = parse_qs(urlparse(self.path).query)
                     self.server.authorization_code = qs['code'][0]
 

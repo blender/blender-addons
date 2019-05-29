@@ -17,16 +17,15 @@
 # ##### END GPL LICENSE BLOCK #####
 
 if "bpy" in locals():
-    import imp
+    import importlib
 
-    imp.reload(paths)
-    imp.reload(ratings)
-    imp.reload(utils)
-    imp.reload(download)
-    imp.reload(categories)
-    imp.reload(ui)
+    paths = importlib.reload(paths)
+    ratings = importlib.reload(ratings)
+    utils = importlib.reload(utils)
+    download = importlib.reload(download)
+    categories = importlib.reload(categories)
 else:
-    from blenderkit import paths, ratings, utils, download, categories, ui
+    from blenderkit import paths, ratings, utils, download, categories
 
 from bpy.types import (
     Panel
@@ -411,8 +410,7 @@ class VIEW3D_PT_blenderkit_profile(Panel):
 
         if len(user_preferences.api_key) < 20:
             if user_preferences.enable_oauth:
-                layout.operator("wm.blenderkit_login", text="Login/ Sign up",
-                                icon='URL')
+                draw_login_buttons(layout)
         else:
             me = bpy.context.window_manager.get('bkit profile')
             if me is not None:
@@ -545,6 +543,13 @@ def draw_panel_brush_ratings(self, context):
     op.asset_type = 'BRUSH'
 
 
+def draw_login_buttons(layout):
+    layout.operator("wm.blenderkit_login", text="Login",
+                    icon='URL').signup = False
+    layout.operator("wm.blenderkit_login", text="Sign up",
+                    icon='URL').signup = True
+
+
 class VIEW3D_PT_blenderkit_unified(Panel):
     bl_category = "BlenderKit"
     bl_idname = "VIEW3D_PT_blenderkit_unified"
@@ -581,8 +586,7 @@ class VIEW3D_PT_blenderkit_unified(Panel):
 
         if len(user_preferences.api_key) < 20 and user_preferences.asset_counter > 20:
             if user_preferences.enable_oauth:
-                layout.operator("wm.blenderkit_login", text="Login/ Sign up",
-                                icon='URL')
+                draw_login_buttons(layout)
             else:
                 op = layout.operator("wm.url_open", text="Get your API Key",
                                      icon='QUESTION')
