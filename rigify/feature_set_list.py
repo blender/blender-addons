@@ -221,7 +221,7 @@ class DATA_OT_rigify_remove_feature_set(bpy.types.Operator):
             if os.path.exists(set_path):
                 rmtree(set_path)
 
-        addon_prefs.update_external_rigs()
+        addon_prefs.update_external_rigs(force=True)
         return {'FINISHED'}
 
 def register():

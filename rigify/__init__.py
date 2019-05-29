@@ -127,14 +127,14 @@ class RigifyPreferences(AddonPreferences):
 
             register()
 
-    def update_external_rigs(self):
+    def update_external_rigs(self, force=False):
         """Get external feature sets"""
         if self.legacy_mode:
             return
 
         set_list = feature_set_list.get_installed_list()
 
-        if len(set_list) > 0:
+        if force or len(set_list) > 0:
             # Reload rigs
             print('Reloading external rigs...')
             rig_lists.get_external_rigs(set_list)
