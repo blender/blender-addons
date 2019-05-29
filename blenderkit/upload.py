@@ -26,7 +26,7 @@ if "bpy" in locals():
     bg_blender = reload(bg_blender)
     autothumb = reload(autothumb)
     version_checker = reload(version_checker)
-    search = reload(searchr)
+    search = reload(search)
     ui_panels = reload(ui_panels)
 else:
     from blenderkit import asset_inspector, paths, utils, bg_blender, autothumb, version_checker, search, ui_panels

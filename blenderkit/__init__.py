@@ -1243,7 +1243,7 @@ class BlenderKitAddonPreferences(AddonPreferences):
 
     default_global_dict = paths.default_global_dict()
 
-    enable_oauth = True
+    enable_oauth = False
 
     api_key: StringProperty(
         name="BlenderKit API Key",
