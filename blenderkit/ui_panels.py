@@ -22,8 +22,9 @@ if "bpy" in locals():
     imp.reload(paths)
     imp.reload(ratings)
     imp.reload(utils)
-    imp.reload(search)
-    imp.reload(upload)
+    imp.reload(download)
+    imp.reload(categories)
+    imp.reload(ui)
 else:
     from blenderkit import paths, ratings, utils, download, categories, ui
 
