@@ -2220,7 +2220,7 @@ def fbx_data_from_scene(scene, depsgraph, settings):
                             armature = object.data
                             backup_pose_positions.append((armature, armature.pose_position))
                             armature.pose_position = 'REST'
-                    if mod.show_render or mod.show_viewport:
+                    elif mod.show_render or mod.show_viewport:
                         use_org_data = False
             if not use_org_data:
                 # If modifiers has been altered need to update dependency graph.
