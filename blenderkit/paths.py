@@ -29,11 +29,12 @@ BLENDERKIT_MANUAL = "https://youtu.be/1hVgcQhIAo8"
 BLENDERKIT_MODEL_UPLOAD_INSTRUCTIONS_URL = "https://www.blenderkit.com/docs/upload/"
 BLENDERKIT_MATERIAL_UPLOAD_INSTRUCTIONS_URL = "https://www.blenderkit.com/docs/uploading-material/"
 BLENDERKIT_LOGIN_URL = "https://www.blenderkit.com/accounts/login"
+BLENDERKIT_OAUTH_LANDING_URL = "/oauth-landing/"
 BLENDERKIT_SIGNUP_URL = "https://www.blenderkit.com/accounts/register"
 BLENDERKIT_ADDON_URL = "https://www.blenderkit.com/api/v1/assets/6923b215-7df0-46f3-95ae-a2b5ff44ddd5/"
 BLENDERKIT_ADDON_FILE_URL = "https://www.blenderkit.com/get-blenderkit/"
-_presets = os.path.join(bpy.utils.user_resource('SCRIPTS'), "presets")
 BLENDERKIT_SETTINGS_FILENAME = os.path.join(_presets, "bkit.json")
+_presets = os.path.join(bpy.utils.user_resource('SCRIPTS'), "presets")
 
 
 def get_bkit_url():
@@ -51,6 +52,9 @@ def get_bkit_url():
 
 def get_api_url():
     return get_bkit_url() + BLENDERKIT_API
+
+def get_oauth_landing_url():
+    return get_bkit_url() + BLENDERKIT_OAUTH_LANDING_URL
 
 
 def default_global_dict():

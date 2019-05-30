@@ -544,10 +544,17 @@ def draw_panel_brush_ratings(self, context):
 
 
 def draw_login_buttons(layout):
-    layout.operator("wm.blenderkit_login", text="Login",
-                    icon='URL').signup = False
-    layout.operator("wm.blenderkit_login", text="Sign up",
-                    icon='URL').signup = True
+    user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
+
+    if user_preferences.login_attempt:
+        layout.label(text='Login through browser')
+        layout.label(text='in progress.')
+        layout.operator("wm.blenderkit_login_cancel", text="Cancel", icon='CANCEL')
+    else:
+        layout.operator("wm.blenderkit_login", text="Login",
+                        icon='URL').signup = False
+        layout.operator("wm.blenderkit_login", text="Sign up",
+                        icon='URL').signup = True
 
 
 class VIEW3D_PT_blenderkit_unified(Panel):

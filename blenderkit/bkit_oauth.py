@@ -46,14 +46,10 @@ def login_thread(signup=False):
 
 
 def login(signup):
-    if signup:
-        r_url = paths.BLENDERKIT_SIGNUP_URL
-    else:
-        r_url = paths.BLENDERKIT_LOGIN_URL
+    r_url = paths.get_oauth_landing_url()
 
-    authenticator = oauth.SimpleOAuthAuthenticator(server_url=paths.get_bkit_url(), client_id=CLIENT_ID, ports=PORTS,
-                                                   redirect_url=r_url)
-    auth_token, refresh_token = authenticator.get_new_token()
+    authenticator = oauth.SimpleOAuthAuthenticator(server_url=paths.get_bkit_url(), client_id=CLIENT_ID, ports=PORTS)
+    auth_token, refresh_token = authenticator.get_new_token(register = signup, redirect_url=r_url)
     utils.p('tokens retrieved')
     tasks_queue.add_task((write_tokens, (auth_token, refresh_token)))
 
