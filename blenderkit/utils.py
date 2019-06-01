@@ -437,6 +437,5 @@ def automap(target_object=None, target_slot=None, tex_size=1, bg_exception=False
                 correct_aspect=False)  # it's 2.0 because blender can't tell size of a cube :)
             bpy.ops.object.editmode_toggle()
             tob.data.uv_layers.active = tob.data.uv_layers['automap']
-            # tob.data.uv_textures["automap"].active_render = True
-
+            tob.data.uv_layers["automap"].active_render = True
             bpy.context.view_layer.objects.active = actob
