@@ -51,51 +51,6 @@ class PIE_OT_ClassObject(Operator):
         return {'FINISHED'}
 
 
-class PIE_OT_ClassVertex(Operator):
-    bl_idname = "class.vertex"
-    bl_label = "Class Vertex"
-    bl_description = "Vert Select"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        if context.object.mode != "EDIT":
-            bpy.ops.object.mode_set(mode="EDIT")
-            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
-        if bpy.ops.mesh.select_mode != "EDGE, FACE":
-            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
-            return {'FINISHED'}
-
-
-class PIE_OT_ClassEdge(Operator):
-    bl_idname = "class.edge"
-    bl_label = "Class Edge"
-    bl_description = "Edge Select"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        if context.object.mode != "EDIT":
-            bpy.ops.object.mode_set(mode="EDIT")
-            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
-        if bpy.ops.mesh.select_mode != "VERT, FACE":
-            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
-            return {'FINISHED'}
-
-
-class PIE_OT_ClassFace(Operator):
-    bl_idname = "class.face"
-    bl_label = "Class Face"
-    bl_description = "Face Select"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        if context.object.mode != "EDIT":
-            bpy.ops.object.mode_set(mode="EDIT")
-            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
-        if bpy.ops.mesh.select_mode != "VERT, EDGE":
-            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
-            return {'FINISHED'}
-
-
 class PIE_OT_ClassTexturePaint(Operator):
     bl_idname = "class.pietexturepaint"
     bl_label = "Class Texture Paint"
@@ -177,64 +132,118 @@ class PIE_OT_SetObjectModePie(Operator):
         return {'FINISHED'}
 
 
-# Components Selection Mode
-class PIE_OT_VertsEdges(Operator):
-    bl_idname = "verts.edges"
-    bl_label = "Verts Edges"
-    bl_description = "Vert/Edge Select"
+# Edit Selection Modes 
+class PIE_OT_ClassVertex(Operator):
+    bl_idname = "class.vertex"
+    bl_label = "Class Vertex"
+    bl_description = "Vert Select Mode"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         if context.object.mode != "EDIT":
             bpy.ops.object.mode_set(mode="EDIT")
-            context.tool_settings.mesh_select_mode = (True, True, False)
-        if context.object.mode == "EDIT":
-            context.tool_settings.mesh_select_mode = (True, True, False)
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
+        if bpy.ops.mesh.select_mode != "EDGE, FACE":
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
+            return {'FINISHED'}
+
+
+class PIE_OT_ClassEdge(Operator):
+    bl_idname = "class.edge"
+    bl_label = "Class Edge"
+    bl_description = "Edge Select Mode"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if context.object.mode != "EDIT":
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
+        if bpy.ops.mesh.select_mode != "VERT, FACE":
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
+            return {'FINISHED'}
+
+
+class PIE_OT_ClassFace(Operator):
+    bl_idname = "class.face"
+    bl_label = "Class Face"
+    bl_description = "Face Select Mode"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if context.object.mode != "EDIT":
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
+        if bpy.ops.mesh.select_mode != "VERT, EDGE":
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
+            return {'FINISHED'}
+
+
+class PIE_OT_VertsEdges(Operator):
+    bl_idname = "verts.edges"
+    bl_label = "Verts Edges"
+    bl_description = "Vert/Edge Select Mode"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if context.object.mode != "EDIT":
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
+        if bpy.ops.mesh.select_mode != "VERT, EDGE, FACE":
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
+            bpy.ops.mesh.select_mode(use_extend=True, use_expand=False, type='EDGE')
             return {'FINISHED'}
 
 
 class PIE_OT_EdgesFaces(Operator):
     bl_idname = "edges.faces"
     bl_label = "EdgesFaces"
-    bl_description = "Edge/Face Select"
+    bl_description = "Edge/Face Select Mode"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         if context.object.mode != "EDIT":
             bpy.ops.object.mode_set(mode="EDIT")
-            context.tool_settings.mesh_select_mode = (False, True, True)
-        if context.object.mode == "EDIT":
-            context.tool_settings.mesh_select_mode = (False, True, True)
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
+        if bpy.ops.mesh.select_mode != "VERT, EDGE, FACE":
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
+            bpy.ops.mesh.select_mode(use_extend=True, use_expand=False, type='FACE')
             return {'FINISHED'}
 
 
 class PIE_OT_VertsFaces(Operator):
     bl_idname = "verts.faces"
     bl_label = "Verts Faces"
-    bl_description = "Vert/Face Select"
+    bl_description = "Vert/Face Select Mode"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         if context.object.mode != "EDIT":
             bpy.ops.object.mode_set(mode="EDIT")
-            context.tool_settings.mesh_select_mode = (True, False, True)
-        if context.object.mode == "EDIT":
-            context.tool_settings.mesh_select_mode = (True, False, True)
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
+        if bpy.ops.mesh.select_mode != "VERT, EDGE, FACE":
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
+            bpy.ops.mesh.select_mode(use_extend=True, use_expand=False, type='FACE')
             return {'FINISHED'}
 
 
 class PIE_OT_VertsEdgesFaces(Operator):
     bl_idname = "verts.edgesfaces"
     bl_label = "Verts Edges Faces"
-    bl_description = "Vert/Edge/Face Select"
+    bl_description = "Vert/Edge/Face Select Mode"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         if context.object.mode != "EDIT":
             bpy.ops.object.mode_set(mode="EDIT")
-            context.tool_settings.mesh_select_mode = (True, True, True)
-        if context.object.mode == "EDIT":
-            context.tool_settings.mesh_select_mode = (True, True, True)
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
+        if bpy.ops.mesh.select_mode != "VERT, EDGE, FACE":
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
+            bpy.ops.mesh.select_mode(use_extend=True, use_expand=False, type='EDGE')
+            bpy.ops.mesh.select_mode(use_extend=True, use_expand=False, type='FACE')
             return {'FINISHED'}
 
 
