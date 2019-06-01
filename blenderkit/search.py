@@ -308,11 +308,13 @@ def split_subs(text):
     threshold = 40
     text = text.rstrip()
     lines = []
+
     while len(text) > threshold:
         i = text.rfind(' ', 0, threshold)
         i1 = text.rfind(',', 0, threshold)
-        i = max(i, i1)
-        if i == -1:
+        i2 = text.rfind('.', 0, threshold)
+        i = max(i, i1, i2)
+        if i <= 0:
             i = threshold
         lines.append(text[:i])
         text = text[i:]
