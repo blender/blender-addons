@@ -174,7 +174,7 @@ class BlenderNodeAnim():
 
                 if animation.samplers[channel.sampler].interpolation == "CUBICSPLINE":
                     factor = 3
-                    delta = len(keys)
+                    delta = nb_targets
                 else:
                     factor = 1
                     delta = 0
