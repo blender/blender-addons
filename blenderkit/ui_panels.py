@@ -425,9 +425,6 @@ class VIEW3D_PT_blenderkit_profile(Panel):
                     layout.label(text='Remaining private storage: %i MiB' % (me['remainingPrivateQuota']))
             layout.operator("wm.url_open", text="See my uploads",
                             icon='URL').url = paths.BLENDERKIT_USER_ASSETS
-            if user_preferences.enable_oauth:
-                layout.operator("wm.blenderkit_logout", text="Logout",
-                                icon='URL')
 
 
 def draw_panel_model_rating(self, context):
