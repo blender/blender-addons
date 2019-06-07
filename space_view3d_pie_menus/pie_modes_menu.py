@@ -366,11 +366,11 @@ class PIE_MT_ObjectEditMode(Menu):
         elif ob and ob.type == 'ARMATURE':
             pie = layout.menu_pie()
             # 4 - LEFT
-            pie.operator(SetObjectModePie.bl_idname, text="Object", icon="OBJECT_DATAMODE").mode = "OBJECT"
+            pie.operator(PIE_OT_SetObjectModePie.bl_idname, text="Object", icon="OBJECT_DATAMODE").mode = "OBJECT"
             # 6 - RIGHT
-            pie.operator(SetObjectModePie.bl_idname, text="Pose", icon="POSE_HLT").mode = "POSE"
+            pie.operator(PIE_OT_SetObjectModePie.bl_idname, text="Pose", icon="POSE_HLT").mode = "POSE"
             # 2 - BOTTOM
-            pie.operator(SetObjectModePie.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
+            pie.operator(PIE_OT_SetObjectModePie.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
             # 8 - TOP
             pie.operator("object.editmode_toggle", text="Edit Mode", icon='OBJECT_DATAMODE')
             # 7 - TOP - LEFT
