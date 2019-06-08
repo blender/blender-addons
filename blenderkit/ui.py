@@ -219,6 +219,7 @@ def get_rating_scalevalues(asset_type):
             xs.append(x)
     return scalevalues, xs
 
+
 def draw_ratings_bgl():
     # return;
     ui = bpy.context.scene.blenderkitUI
@@ -993,16 +994,16 @@ def is_rating_possible():
 def interact_rating(r, mx, my, event):
     ui = bpy.context.scene.blenderkitUI
     rating_possible, rated, asset, asset_data = is_rating_possible()
-
     if rating_possible:
         bkit_ratings = asset.bkit_ratings
 
         t = time.time() - ui.last_rating_time
-        # if t>2:
-        #     if rated:
-        #         ui_props.rating_button_on = True
-        #         ui_props.rating_menu_on = False
-        if ui.rating_button_on and event.type == 'LEFTMOUSE' and event.value == 'RELEASE':
+        if bpy.context.mode in ('SCULPT', 'PAINT_TEXTURE'):
+            accept_value = 'PRESS'
+        else:
+            accept_value = 'RELEASE'
+
+        if ui.rating_button_on and event.type == 'LEFTMOUSE' and event.value == accept_value:
             if mouse_in_area(mx, my,
                              ui.rating_x,
                              ui.rating_y - ui.rating_button_width,
