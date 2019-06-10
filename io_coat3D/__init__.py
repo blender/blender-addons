@@ -1210,9 +1210,9 @@ class SCENE_PT_Main(bpy.types.Panel):
 
             col = flow.column()
 
-            col.operator("export_applink.pilgway_3d_coat", text="Transfer")
+            col.operator("export_applink.pilgway_3d_coat", text="Send")
             col = flow.column()
-            col.operator("import_applink.pilgway_3d_coat", text="Update")
+            col.operator("import_applink.pilgway_3d_coat", text="GetBack")
 
 
 class ObjectButtonsPanel():
