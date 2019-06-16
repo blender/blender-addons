@@ -23,7 +23,7 @@ bl_info = {
     "author": "gabhead, Lell, Anfeo",
     "version": (0, 3, 4),
     "blender": (2, 80, 0),
-    "location": "View3D > Tool Shelf > Tools",
+    "location": "View3D > Sidebar > Item Tab",
     "description": "Align Selected Objects to Active Object",
     "warning": "",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
