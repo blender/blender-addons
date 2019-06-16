@@ -23,7 +23,7 @@ bl_info = {
     "author": "Vitor Balbio, Mikhail Rachinskiy, TynkaTopi, Meta-Androcto, Simon Appelt",
     "version": (0, 4, 0),
     "blender": (2, 80, 0),
-    "location": "View3D > Sidebar",
+    "location": "View3D > Sidebar > Edit Tab",
     "description": "Bool Tool Hotkey: Ctrl Shift B",
     "category": "Object",
 }
