@@ -482,7 +482,7 @@ def get_random_tip(mdata):
              "Click on brushes to link them into scene.",
              "All materials are free.",
              "All brushes are free.",
-             "Locked models are available if you subscribe to standard plan.",
+             "Locked models are available if you subscribe to Full plan.",
              "Login to upload your own models, materials or brushes.",
              "Use 'A' key to search assets by same author.",
              "Use 'W' key to open Authors webpage.", ]
