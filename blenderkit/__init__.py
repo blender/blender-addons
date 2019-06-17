@@ -243,7 +243,7 @@ class BlenderKitUIProps(PropertyGroup):
         name="Active Asset Type",
         items=(
             ('MODEL', 'Model', 'Browse models', 'OBJECT_DATAMODE', 0),
-            ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
+            # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
             ('MATERIAL', 'Material', 'Browse models', 'MATERIAL', 2),
             # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
             ('BRUSH', 'Brush', 'Browse brushes', 'BRUSH_DATA', 3)
