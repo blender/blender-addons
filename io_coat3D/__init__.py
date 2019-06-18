@@ -704,6 +704,12 @@ class SCENE_OT_export(bpy.types.Operator):
             coat3D.bring_retopo = True
             coat3D.bring_retopo_path = checkname
             bpy.ops.export_scene.fbx(filepath=checkname, use_selection=True, use_mesh_modifiers=coat3D.exportmod, axis_forward='-Z', axis_up='Y')
+
+        elif (coat3D.type == 'vox'):
+            coat3D.bring_retopo = False
+            bpy.ops.export_scene.fbx(filepath=coa.applink_address, global_scale=1, use_selection=True,
+                                     use_mesh_modifiers=coat3D.exportmod, axis_forward='-Z', axis_up='Y')
+
         else:
             coat3D.bring_retopo = False
             bpy.ops.export_scene.fbx(filepath=coa.applink_address,global_scale = 0.01, use_selection=True, use_mesh_modifiers=coat3D.exportmod, axis_forward='-Z', axis_up='Y')
