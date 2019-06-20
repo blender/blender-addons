@@ -26,6 +26,7 @@ bl_info = {
     "location": "Properties > Active Tool and Workspace Settings > Assign Shape Keys",
     "description": "Assigns one or more Bezier curves as shape keys to another Bezier curve",
     "category": "Object",
+    "wiki_url": "https://github.com/Shriinivas/assignshapekey/blob/master/README.md",
     "blender": (2, 80, 0),
 }
 
