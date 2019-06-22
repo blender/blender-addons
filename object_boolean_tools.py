@@ -977,10 +977,10 @@ class VIEW3D_PT_booltool_config(Panel):
             if isFTransf():
                 row = layout.row(align=True)
                 row.operator(BTool_EnableFTransform.bl_idname, text="Fast Vis", icon=icon)
-                row.operator(BTool_EnableThisBrush.bl_idname, text="Enable", icon="VISIBLE_IPO_ON")
+                row.operator(BTool_EnableThisBrush.bl_idname, text="Enable", icon="HIDE_OFF")
                 row = layout.row(align=True)
             else:
-                row.operator(BTool_EnableThisBrush.bl_idname, icon="VISIBLE_IPO_ON")
+                row.operator(BTool_EnableThisBrush.bl_idname, icon="HIDE_OFF")
                 row = layout.row(align=True)
 
         if isPolyBrush(actObj):
