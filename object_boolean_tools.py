@@ -355,7 +355,7 @@ class BTool_DrawPolyBrush(Operator):
             actObj.select_set(state=True)
             bpy.ops.gpencil.draw("INVOKE_DEFAULT", mode="DRAW_POLY")
 
-        if event.type in {"RIGHTMOUSE"}:
+        if event.type == "RIGHTMOUSE":
             # use this to pass to the Grease Pencil eraser (see T52321)
             pass
 
@@ -396,7 +396,7 @@ class BTool_DrawPolyBrush(Operator):
 
             return {"FINISHED"}
 
-        if event.type in {"ESC"}:
+        if event.type == "ESC":
             bpy.ops.ed.undo()  # remove o Grease Pencil
             self.set_cont_draw(context)
 
