@@ -381,24 +381,15 @@ class Path:
 
         return newCurveData
 
-    def addCurve(self):
-        curveData = self.getNewCurveData()
-        obj = self.curve.copy()
-        obj.data = curveData
-        if(obj.data.shape_keys != None):
-            keyblocks = reversed(obj.data.shape_keys.key_blocks)
+    def updateCurve(self):
+        curveData = self.curve.data
+        #Remove existing shape keys first
+        if(curveData.shape_keys != None):
+            keyblocks = reversed(curveData.shape_keys.key_blocks)
             for sk in keyblocks:
-                obj.shape_key_remove(sk)
-
-        collections = self.curve.users_collection
-        for collection in collections:
-            collection.objects.link(obj)
-
-        if(self.curve.name in bpy.context.scene.collection.objects and \
-            obj.name not in bpy.context.scene.collection.objects):
-            bpy.context.scene.collection.objects.link(obj)
-
-        return obj
+                self.curve.shape_key_remove(sk)
+        self.curve.data = self.getNewCurveData()
+        bpy.data.curves.remove(curveData)
 
 def main(removeOriginal, space, matchParts, matchCriteria, alignBy, alignValues):
     targetObj = bpy.context.active_object
@@ -437,15 +428,16 @@ def main(removeOriginal, space, matchParts, matchCriteria, alignBy, alignValues)
         for j, part in enumerate(path.parts):
             part.toClose = allToClose[j]
 
-    curve = target.addCurve()
+    target.updateCurve()
 
-    curve.shape_key_add(name = 'Basis')
+    target.curve.shape_key_add(name = 'Basis')
 
-    addShapeKey(curve, shapekeys, space)
+    addShapeKeys(target.curve, shapekeys, space)
 
     if(removeOriginal):
         for path in userSel:
-            safeRemoveCurveObj(path.curve)
+            if(path.curve != target.curve):
+                safeRemoveCurveObj(path.curve)
 
     return {}
 
@@ -730,7 +722,7 @@ def getExistingShapeKeyPaths(path):
             paths.append(Path(obj, datacopy, key.name))
     return paths
 
-def addShapeKey(curve, paths, space):
+def addShapeKeys(curve, paths, space):
     for path in paths:
         key = curve.shape_key_add(name = path.name)
         pts = [pt for pset in path.getBezierPtsBySpline() for pt in pset]
