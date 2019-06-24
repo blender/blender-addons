@@ -648,7 +648,7 @@ def start_upload(self, context, asset_type, as_new, metadata_only):
     try:
         rj = r.json()
         utils.pprint(rj)
-        if r.status_code != 200:
+        if r.status_code not in (200, 201):
             if r.status_code == 401:
                 ui.add_report(r.detail, 5, colors.RED)
             return {'CANCELLED'}
