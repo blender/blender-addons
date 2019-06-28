@@ -230,6 +230,7 @@ class Constrain:
             self.orientation[1] = obj.matrix_world.to_3x3().transposed()
 
         self.orientation_id = 0
+        self.center = Vector((0.0, 0.0, 0.0))
         self.center_2d = Vector((0.0, 0.0))
         self.projected_vecs = Matrix(([0.0, 0.0], [0.0, 0.0], [0.0, 0.0]))
 
@@ -300,16 +301,19 @@ class Constrain:
         else:
             self.preferences.auto_constrain = True
 
-    def update(self, region, rv3d, mcursor, location):
-        if rv3d.view_matrix != self.rotMat:
+    def update(self, region, rv3d, mcursor, center):
+        if rv3d.view_matrix != self.rotMat or self.center != center:
             self.rotMat = rv3d.view_matrix.copy()
 
-            self.center_2d = location_3d_to_region_2d(region, rv3d, location)
+            self.center = center.copy()
+            self.center_2d = location_3d_to_region_2d(region, rv3d, self.center)
 
-            orig = location_3d_to_region_2d(region, rv3d, Vector())
-            self.projected_vecs[0] = location_3d_to_region_2d(region, rv3d, self.orientation[self.orientation_id][0]) - orig
-            self.projected_vecs[1] = location_3d_to_region_2d(region, rv3d, self.orientation[self.orientation_id][1]) - orig
-            self.projected_vecs[2] = location_3d_to_region_2d(region, rv3d, self.orientation[self.orientation_id][2]) - orig
+            vec = self.center + self.orientation[self.orientation_id][0]
+            self.projected_vecs[0] = location_3d_to_region_2d(region, rv3d, vec) - self.center_2d
+            vec = self.center + self.orientation[self.orientation_id][1]
+            self.projected_vecs[1] = location_3d_to_region_2d(region, rv3d, vec) - self.center_2d
+            vec = self.center + self.orientation[self.orientation_id][2]
+            self.projected_vecs[2] = location_3d_to_region_2d(region, rv3d, vec) - self.center_2d
 
             self.projected_vecs[0].normalize()
             self.projected_vecs[1].normalize()
@@ -478,8 +482,7 @@ class SnapUtilities:
                 preferences.constrain_shift_color,
                 tuple(context.preferences.themes[0].user_interface.axis_x) + (1.0,),
                 tuple(context.preferences.themes[0].user_interface.axis_y) + (1.0,),
-                tuple(context.preferences.themes[0].user_interface.axis_z) + (1.0,)
-            )
+                tuple(context.preferences.themes[0].user_interface.axis_z) + (1.0,))
 
         self.snap_vert = self.snap_edge = snap_edge_and_vert
 
