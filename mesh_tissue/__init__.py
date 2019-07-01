@@ -37,7 +37,7 @@ bl_info = {
     "blender": (2, 80, 0),
     "location": "",
     "description": "Tools for Computational Design",
-    "warning": "",
+    "warning": "Work In Progress",
     "wiki_url": "https://github.com/alessandro-zomparelli/tissue/wiki",
     "tracker_url": "https://github.com/alessandro-zomparelli/tissue/issues",
     "category": "Mesh"}
