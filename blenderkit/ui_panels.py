@@ -410,9 +410,8 @@ class VIEW3D_PT_blenderkit_profile(Panel):
             layout.operator("wm.blenderkit_login_cancel", text="Cancel", icon='CANCEL')
             return
 
-        if len(user_preferences.api_key) < 20:
-            if user_preferences.enable_oauth:
-                draw_login_buttons(layout)
+        if user_preferences.enable_oauth:
+            draw_login_buttons(layout)
         else:
             me = bpy.context.window_manager.get('bkit profile')
             if me is not None:
