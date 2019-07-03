@@ -34,10 +34,10 @@ bl_info = {
     "name": "Tissue",
     "author": "Alessandro Zomparelli (Co-de-iT)",
     "version": (0, 3, 25),
-    "blender": (2, 79, 0),
+    "blender": (2, 80, 0),
     "location": "",
     "description": "Tools for Computational Design",
-    "warning": "Work In Progress",
+    "warning": "",
     "wiki_url": "https://github.com/alessandro-zomparelli/tissue/wiki",
     "tracker_url": "https://github.com/alessandro-zomparelli/tissue/issues",
     "category": "Mesh"}

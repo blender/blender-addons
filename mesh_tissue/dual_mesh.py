@@ -29,16 +29,6 @@
 #                                                                              #
 # ############################################################################ #
 
-bl_info = {
-    "name": "Dual Mesh",
-    "author": "Alessandro Zomparelli (Co-de-iT)",
-    "version": (0, 4),
-    "blender": (2, 8, 0),
-    "location": "",
-    "description": "Convert a generic mesh to its dual",
-    "warning": "",
-    "wiki_url": "",
-    "category": "Mesh"}
 
 import bpy
 from bpy.types import Operator
@@ -131,9 +121,6 @@ class dual_mesh_tessellated(Operator):
         ob.tissue_tessellate.merge = True
         ob.tissue_tessellate.bool_dissolve_seams = True
         if self.source_faces == 'TRI': ob.tissue_tessellate.fill_mode = 'FAN'
-        print(ob1)
-        print(ob0)
-        print(bpy.context.object)
         bpy.ops.object.update_tessellate()
         ob.location = ob0.location
         ob.matrix_world = ob0.matrix_world
