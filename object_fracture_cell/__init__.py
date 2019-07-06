@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Cell Fracture",
     "author": "ideasman42, phymec, Sergey Sharybin, Nobuyuki Hirakata",
-    "version": (1, 0, 1),
+    "version": (1, 0, 2),
     "blender": (2, 80, 0),
     "location": "View3D > Sidebar > Transform tab",
     "description": "Fractured Object, or Cracked Surface",
@@ -51,7 +51,7 @@ from bpy.props import (
 from bpy.types import (
         Panel,
         PropertyGroup,
-        )        
+        )
 
 
 class FRACTURE_PT_Menu(Panel):
@@ -59,19 +59,19 @@ class FRACTURE_PT_Menu(Panel):
     bl_label = "Fracture Cell"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "Transform"
+    bl_category = "Create"
     bl_context = 'objectmode'
     bl_options = {"DEFAULT_CLOSED"}
-    
+
     def draw(self, context):
         # Show pop-upped menu when the button is hit.
         layout = self.layout
         #layout.label(text="Cell Fracture:")
         layout.operator(operator.FRACTURE_OT_Cell.bl_idname,
-                    text="1. Cell Fracture")       
+                    text="1. Cell Fracture")
         layout.operator(operator.FRACTURE_OT_Crack.bl_idname,
                     text="2. Cell to Crack")
-        
+
         material_props = context.window_manager.fracture_material_props
         layout.separator()
         box = layout.box()
@@ -88,10 +88,10 @@ class FRACTURE_PT_Menu(Panel):
 
         row = box.row()
         row.operator(operator.FRACTURE_OT_Material.bl_idname, icon="MATERIAL_DATA",
-                    text="Append Material")       
+                    text="Append Material")
 
 
-class FractureCellProperties(PropertyGroup):              
+class FractureCellProperties(PropertyGroup):
     # -------------------------------------------------------------------------
     # Source Options
     source_vert_own: IntProperty(
@@ -130,16 +130,16 @@ class FractureCellProperties(PropertyGroup):
             min=0, max=2000,
             default=0,
             )
-    '''        
+    '''
     source_limit: IntProperty(
             name="Source Limit",
             description="Limit the number of input points, 0 for unlimited",
             min=0, max=5000,
             default=100,
             )
-    '''    
+    '''
     # -------------------------------------------------------------------------
-    # Transform 
+    # Transform
     source_noise: FloatProperty(
             name="Noise",
             description="Randomize point distribution",
@@ -187,7 +187,7 @@ class FractureCellProperties(PropertyGroup):
     recursion_source_limit: IntProperty(
             name="Fracture Each",
             description="Limit the number of input points, 0 for unlimited (applies to recursion only)",
-            min=2, max=2000, # Oviously, dividing in more than two objects is needed, to avoid no fracture object. 
+            min=2, max=2000, # Oviously, dividing in more than two objects is needed, to avoid no fracture object.
             default=8,
             )
     recursion_clamp: IntProperty(
@@ -197,7 +197,7 @@ class FractureCellProperties(PropertyGroup):
             default=250,
             )
     recursion_chance: FloatProperty(
-            name="Recursion Chance",
+            name="Rec Chance",
             description="Likelihood of recursion",
             min=0.0, max=1.0,
             default=1.00,
@@ -245,17 +245,17 @@ class FractureCellProperties(PropertyGroup):
             default=False,
             )
     # -------------------------------------------------------------------------
-    # Scene Options    
+    # Scene Options
     use_collection: BoolProperty(
             name="Use Collection",
             description="Use collection to organize fracture objects",
             default=True,
-            )    
+            )
     new_collection: BoolProperty(
-            name="New Collection",
+            name="Use New",
             description="Make new collection for fracture objects",
             default=True,
-            )  
+            )
     collection_name: StringProperty(
             name="Name",
             description="Collection name.",
@@ -272,12 +272,12 @@ class FractureCellProperties(PropertyGroup):
             default=False,
             )
     # -------------------------------------------------------------------------
-    # Custom Property Options    
+    # Custom Property Options
     use_mass: BoolProperty(
         name="Mass",
         description="Append mass data on custom properties of cell objects.",
         default=False,
-        )   
+        )
     mass_name: StringProperty(
         name="Property Name",
         description="Name for custome properties.",
@@ -316,7 +316,7 @@ class FractureCellProperties(PropertyGroup):
             default=False,
             )
 
-            
+
 class FractureCrackProperties(PropertyGroup):
     modifier_decimate : FloatProperty(
         name="Reduce Faces",
@@ -357,10 +357,10 @@ class FractureCrackProperties(PropertyGroup):
             name="Wireframe Modifier",
             description="Wireframe Modifier",
             default=False
-            )  
+            )
 
 
-class FractureMaterialProperties(PropertyGroup):  
+class FractureMaterialProperties(PropertyGroup):
     # Note: you can choose the original name in the library blend
     # or the prop name
     material_preset : EnumProperty(
@@ -384,7 +384,7 @@ class FractureMaterialProperties(PropertyGroup):
                         "instead of the one defined in the Preset",
             default=True
             )
-    
+
 classes = (
     FractureCellProperties,
     FractureCrackProperties,
@@ -408,13 +408,17 @@ def register():
     )
     bpy.types.WindowManager.fracture_material_props = PointerProperty(
         type=FractureMaterialProperties
-    )    
-    
+    )
+
 def unregister():
     del bpy.types.WindowManager.fracture_material_props
     del bpy.types.WindowManager.fracture_crack_props
     del bpy.types.WindowManager.fracture_cell_props
-    
+
     from bpy.utils import unregister_class
     for cls in reversed(classes):
         unregister_class(cls)
+
+if __name__ == "__main__":
+	register()
+
