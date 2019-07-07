@@ -30,7 +30,7 @@ _redraw_yasiamevil.opr = bpy.ops.wm.redraw_timer
 _redraw_yasiamevil.arg = dict(type='DRAW_WIN_SWAP', iterations=1)
 
 
-def _points_from_object(obj, source):
+def _points_from_object(scene, obj, source):
 
     _source_all = {
         'PARTICLE_OWN', 'PARTICLE_CHILD',
@@ -63,7 +63,7 @@ def _points_from_object(obj, source):
         if obj.type == 'MESH':
             mesh = obj.data
             matrix = obj.matrix_world.copy()
-            points.extend([matrix * v.co for v in mesh.vertices])
+            points.extend([matrix @ v.co for v in mesh.vertices])
         else:
             depsgraph = bpy.context.evaluated_depsgraph_get()
             ob_eval = ob.evaluated_get(depsgraph)
@@ -74,7 +74,7 @@ def _points_from_object(obj, source):
 
             if mesh is not None:
                 matrix = obj.matrix_world.copy()
-                points.extend([matrix * v.co for v in mesh.vertices])
+                points.extend([matrix @ v.co for v in mesh.vertices])
                 ob_eval.to_mesh_clear()
 
     def points_from_particles(obj):
@@ -111,7 +111,8 @@ def _points_from_object(obj, source):
             return []
 
     if 'PENCIL' in source:
-        gp = obj.grease_pencil
+        # Used to be from object in 2.7x, now from scene.
+        gp = scene.grease_pencil
         if gp:
             points.extend([p for spline in get_splines(gp)
                              for p in spline])
@@ -137,17 +138,18 @@ def cell_fracture_objects(context, obj,
                           ):
 
     from . import fracture_cell_calc
+    scene = context.scene
     collection = context.collection
     view_layer = context.view_layer
 
     # -------------------------------------------------------------------------
     # GET POINTS
 
-    points = _points_from_object(obj, source)
+    points = _points_from_object(scene, obj, source)
 
     if not points:
         # print using fallback
-        points = _points_from_object(obj, {'VERT_OWN'})
+        points = _points_from_object(scene, obj, {'VERT_OWN'})
 
     if not points:
         print("no points found")
@@ -174,7 +176,7 @@ def cell_fracture_objects(context, obj,
         # boundbox approx of overall scale
         from mathutils import Vector
         matrix = obj.matrix_world.copy()
-        bb_world = [matrix * Vector(v) for v in obj.bound_box]
+        bb_world = [matrix @ Vector(v) for v in obj.bound_box]
         scalar = source_noise * ((bb_world[0] - bb_world[6]).length / 2.0)
 
         from mathutils.noise import random_unit_vector
@@ -194,7 +196,7 @@ def cell_fracture_objects(context, obj,
 
     mesh = obj.data
     matrix = obj.matrix_world.copy()
-    verts = [matrix * v.co for v in mesh.vertices]
+    verts = [matrix @ v.co for v in mesh.vertices]
 
     cells = fracture_cell_calc.points_as_bmesh_cells(verts,
                                                      points,
@@ -270,7 +272,7 @@ def cell_fracture_objects(context, obj,
             mesh_src = obj.data
             for mat in mesh_src.materials:
                 mesh_dst.materials.append(mat)
-            for lay_attr in ("vertex_colors", "uv_textures"):
+            for lay_attr in ("vertex_colors", "uv_layers"):
                 lay_src = getattr(mesh_src, lay_attr)
                 lay_dst = getattr(mesh_dst, lay_attr)
                 for key in lay_src.keys():
@@ -300,13 +302,6 @@ def cell_fracture_objects(context, obj,
             _redraw_yasiamevil()
 
     view_layer.update()
-
-    # move this elsewhere...
-    for obj_cell in objects:
-        game = obj_cell.game
-        game.physics_type = 'RIGID_BODY'
-        game.use_collision_bounds = True
-        game.collision_bounds_type = 'CONVEX_HULL'
 
     return objects
 
@@ -400,9 +395,13 @@ def cell_fracture_boolean(context, obj, objects,
         for obj_cell in objects_boolean:
             obj_cell.select_set(True)
 
+        objects_before = set(scene.objects)
+
         bpy.ops.mesh.separate(type='LOOSE')
 
-        objects_boolean[:] = [obj_cell for obj_cell in scene.objects if obj_cell.select]
+        objects_boolean[:] = [obj_cell for obj_cell in scene.objects if obj_cell not in objects_before]
+
+        del objects_before
 
     context.view_layer.update()
 
@@ -441,7 +440,6 @@ def cell_fracture_interior_handle(objects,
             obj_cell.vertex_groups.new(name="Interior")
 
         if use_sharp_edges:
-            mesh.show_edge_sharp = True
             for bm_edge in bm.edges:
                 if len({bm_face.hide for bm_face in bm_edge.link_faces}) == 2:
                     bm_edge.smooth = False
