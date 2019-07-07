@@ -30,7 +30,7 @@ _redraw_yasiamevil.opr = bpy.ops.wm.redraw_timer
 _redraw_yasiamevil.arg = dict(type='DRAW_WIN_SWAP', iterations=1)
 
 
-def _points_from_object(scene, obj, source):
+def _points_from_object(depsgraph, scene, obj, source):
 
     _source_all = {
         'PARTICLE_OWN', 'PARTICLE_CHILD',
@@ -65,7 +65,6 @@ def _points_from_object(scene, obj, source):
             matrix = obj.matrix_world.copy()
             points.extend([matrix @ v.co for v in mesh.vertices])
         else:
-            depsgraph = bpy.context.evaluated_depsgraph_get()
             ob_eval = ob.evaluated_get(depsgraph)
             try:
                 mesh = ob_eval.to_mesh()
@@ -78,8 +77,9 @@ def _points_from_object(scene, obj, source):
                 ob_eval.to_mesh_clear()
 
     def points_from_particles(obj):
+        obj_eval = obj.evaluated_get(depsgraph)
         points.extend([p.location.copy()
-                       for psys in obj.particle_systems
+                       for psys in obj_eval.particle_systems
                        for p in psys.particles])
 
     # geom own
@@ -138,6 +138,7 @@ def cell_fracture_objects(context, obj,
                           ):
 
     from . import fracture_cell_calc
+    depsgraph = context.evaluated_depsgraph_get()
     scene = context.scene
     collection = context.collection
     view_layer = context.view_layer
@@ -145,11 +146,11 @@ def cell_fracture_objects(context, obj,
     # -------------------------------------------------------------------------
     # GET POINTS
 
-    points = _points_from_object(scene, obj, source)
+    points = _points_from_object(depsgraph, scene, obj, source)
 
     if not points:
         # print using fallback
-        points = _points_from_object(scene, obj, {'VERT_OWN'})
+        points = _points_from_object(depsgraph, scene, obj, {'VERT_OWN'})
 
     if not points:
         print("no points found")
