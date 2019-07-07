@@ -391,17 +391,13 @@ def cell_fracture_boolean(context, obj, objects,
     if (not use_debug_bool) and use_island_split:
         # this is ugly and Im not proud of this - campbell
         for ob in view_layer.objects:
-            ob.select_set(True)
+            ob.select_set(False)
         for obj_cell in objects_boolean:
             obj_cell.select_set(True)
 
-        objects_before = set(scene.objects)
-
         bpy.ops.mesh.separate(type='LOOSE')
 
-        objects_boolean[:] = [obj_cell for obj_cell in scene.objects if obj_cell not in objects_before]
-
-        del objects_before
+        objects_boolean[:] = [obj_cell for obj_cell in view_layer.objects if obj_cell.select_get()]
 
     context.view_layer.update()
 

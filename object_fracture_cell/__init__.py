@@ -199,9 +199,9 @@ def main(context, **kw):
             def _getObjectBBMinMax():
                 min_co = Vector((1000000.0, 1000000.0, 1000000.0))
                 max_co = -min_co
-                matrix = obj_cell.matrix_world
+                matrix = obj_cell.matrix_world.copy()
                 for i in range(0, 8):
-                    bb_vec = obj_cell.matrix_world * Vector(obj_cell.bound_box[i])
+                    bb_vec = matrix @ Vector(obj_cell.bound_box[i])
                     min_co[0] = min(bb_vec[0], min_co[0])
                     min_co[1] = min(bb_vec[1], min_co[1])
                     min_co[2] = min(bb_vec[2], min_co[2])
