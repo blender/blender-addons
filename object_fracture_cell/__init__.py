@@ -93,6 +93,8 @@ def main_object(context, obj, level, **kw):
         bpy.ops.object.origin_set({"selected_editable_objects": objects},
                                   type='ORIGIN_GEOMETRY', center='MEDIAN')
 
+    #----------
+    # Recursion
     if level == 0:
         for level_sub in range(1, recursion + 1):
 
@@ -250,7 +252,7 @@ class FractureCell(Operator):
                                                       "source object")),
                    ('PARTICLE_CHILD', "Child Particles", ("All particle systems of the "
                                                           "child objects")),
-                   ('PENCIL', "Annotations", "Use points from visible annotation"),
+                   ('PENCIL', "Annotation Pencil", "Annotation Grease Pencil."),
                    ),
             options={'ENUM_FLAG'},
             default={'PARTICLE_OWN'},
@@ -324,7 +326,8 @@ class FractureCell(Operator):
     # Mesh Data Options
 
     use_smooth_faces: BoolProperty(
-            name="Smooth Faces",
+            name="Smooth Interior",
+            description="Smooth Faces of inner side",
             default=False,
             )
 
@@ -428,7 +431,8 @@ class FractureCell(Operator):
     use_debug_redraw: BoolProperty(
             name="Show Progress Realtime",
             description="Redraw as fracture is done",
-            default=True,
+            # FIXME(campbell): causes crash in 2.8.
+            default=False,
             )
 
     use_debug_bool: BoolProperty(
@@ -446,7 +450,7 @@ class FractureCell(Operator):
 
 
     def invoke(self, context, event):
-        print(self.recursion_chance_select)
+        # print(self.recursion_chance_select)
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=600)
 
