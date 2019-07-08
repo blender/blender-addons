@@ -714,6 +714,13 @@ class Searcher(threading.Thread):
                 if i < len(query) - 1:
                     requeststring += '+'
 
+            # result ordering: _score - relevance, score - BlenderKit score
+            if query.get('category_subtree') is not None:
+                requeststring += '+order:_score,-score'
+            else:
+                requeststring += '+order:-score'
+
+
             requeststring += '&addon_version=%s' % params['addon_version']
             if params.get('scene_uuid') is not None:
                 requeststring += '&scene_uuid=%s' % params['scene_uuid']
