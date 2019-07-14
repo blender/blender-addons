@@ -426,7 +426,8 @@ def automap(target_object=None, target_slot=None, tex_size=1, bg_exception=False
             if tob.data.use_auto_texspace:
                 tob.data.use_auto_texspace = False
 
-            tob.data.texspace_size = (1, 1, 1)
+            if not just_scale:
+                tob.data.texspace_size = (1, 1, 1)
 
             if 'automap' not in tob.data.uv_layers:
                 bpy.ops.mesh.uv_texture_add()
