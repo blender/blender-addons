@@ -197,13 +197,15 @@ def save_prefs(self, context):
             'API_key_refresh': user_preferences.api_key_refresh,
             'global_dir': user_preferences.global_dir,
         }
-        # user_preferences.api_key = user_preferences.api_key.strip()
-        fpath = paths.BLENDERKIT_SETTINGS_FILENAME
-        f = open(fpath, 'w')
-        with open(fpath, 'w') as s:
-            json.dump(prefs, s)
-        # this was crashing blender 2.8 since some point, probably not needed since autosave is in preferences.
-        # bpy.ops.wm.save_userpref()
+        try:
+            fpath = paths.BLENDERKIT_SETTINGS_FILENAME
+            if not os.path.exists(paths._presets):
+                os.makedirs(paths._presets)
+            f = open(fpath, 'w')
+            with open(fpath, 'w') as s:
+                json.dump(prefs, s)
+        except Exception as e:
+            print(e)
 
 
 def get_hidden_image(tpath, bdata_name, force_reload=False):
