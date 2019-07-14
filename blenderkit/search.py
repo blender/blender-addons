@@ -588,7 +588,7 @@ def fetch_author(a_id, api_key):
             # utils.p(adata)
             tasks_queue.add_task((write_author, (a_id, adata)))
             if adata.get('gravatarHash') is not None:
-                gravatar_path = paths.get_temp_dir(subdir=None) + adata['gravatarHash'] + '.jpg'
+                gravatar_path = paths.get_temp_dir(subdir='g/') + adata['gravatarHash'] + '.jpg'
                 url = "https://www.gravatar.com/avatar/" + adata['gravatarHash'] + '?d=404'
                 r = requests.get(url, stream=False)
                 if r.status_code == 200:
