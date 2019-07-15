@@ -429,25 +429,30 @@ def main(context, self, align_matrix):
     if bpy.context.mode == 'EDIT_CURVE':
         Curve = context.active_object
         newSpline = Curve.data.splines.new(type=splineType)          # spline
-        Curve.matrix_world = align_matrix  # apply matrix
-        Curve.rotation_euler = self.Simple_rotation_euler
     else:
         name = self.Simple_Type  # Type as name
-        # create curve
     
-        newCurve = bpy.data.curves.new(name, type='CURVE')  # curvedatablock
-        newSpline = newCurve.splines.new(type=splineType)          # spline
+        dataCurve = bpy.data.curves.new(name, type='CURVE')  # curve data block
+        newSpline = dataCurve.splines.new(type=splineType)          # spline
 
-        # set curveOptions
-        newCurve.dimensions = self.shape
-        newCurve.use_path = True
-        
-        # create object with newCurve
-        SimpleCurve = object_utils.object_data_add(context, newCurve, operator=self)  # place in active scene
-        SimpleCurve.select_set(True)
-        SimpleCurve.matrix_world = align_matrix  # apply matrix
-        SimpleCurve.rotation_euler = self.Simple_rotation_euler
-
+        # create object with new Curve
+        Curve = object_utils.object_data_add(context, dataCurve, operator=self)  # place in active scene
+        Curve.matrix_world = align_matrix  # apply matrix
+        Curve.rotation_euler = self.Simple_rotation_euler
+    
+    # set newSpline Options
+    newSpline.use_cyclic_u = self.use_cyclic_u
+    newSpline.use_endpoint_u = self.endp_u
+    newSpline.order_u = self.order_u
+    
+    # set curve Options
+    Curve.data.dimensions = self.shape
+    Curve.data.use_path = True
+    if self.shape == '3D':
+        Curve.data.fill_mode = 'FULL'
+    else:
+        Curve.data.fill_mode = 'BOTH'
+    
     sides = abs(int((self.Simple_endangle - self.Simple_startangle) / 90))
 
     # get verts
@@ -538,28 +543,39 @@ def main(context, self, align_matrix):
         verts = SimpleTrapezoid(
                     self.Simple_a, self.Simple_b, self.Simple_h, self.Simple_center
                     )
-
-    # set curveOptions
-    newSpline.use_cyclic_u = self.use_cyclic_u
-    newSpline.use_endpoint_u = self.endp_u
-    newSpline.order_u = self.order_u
     
     # turn verts into array
     vertArray = vertsToPoints(verts, splineType)
-        
+    
+    for spline in Curve.data.splines:
+        if spline.type == 'BEZIER':
+            for point in spline.bezier_points:
+                point.select_control_point = False
+                point.select_left_handle = False
+                point.select_right_handle = False
+        else:
+            for point in spline.points:
+                point.select = False
+    
     # create spline from vertarray
+    all_points = []
     if splineType == 'BEZIER':
         newSpline.bezier_points.add(int(len(vertArray) * 0.33))
         newSpline.bezier_points.foreach_set('co', vertArray)
-        all_points = [p for p in newSpline.bezier_points]
         for point in newSpline.bezier_points:
             point.handle_right_type = self.handleType
             point.handle_left_type = self.handleType
+            point.select_control_point = True
+            point.select_left_handle = True
+            point.select_right_handle = True
+            all_points.append(point)
     else:
         newSpline.points.add(int(len(vertArray) * 0.25 - 1))
         newSpline.points.foreach_set('co', vertArray)
         newSpline.use_endpoint_u = True
-        all_points = [p for p in newSpline.points]
+        for point in newSpline.points:
+            all_points.append(point)
+            point.select = True
     
     n = len(all_points)
 
@@ -786,6 +802,13 @@ def main(context, self, align_matrix):
             all_points[int(n / 2) - 1].handle_right_type = 'VECTOR'
             all_points[int(n / 2)].handle_left_type = 'VECTOR'
 
+    # move and rotate spline in edit mode
+    if bpy.context.mode == 'EDIT_CURVE':
+        bpy.ops.transform.translate(value = self.Simple_startlocation)
+        bpy.ops.transform.rotate(value = self.Simple_rotation_euler[0], orient_axis = 'X')
+        bpy.ops.transform.rotate(value = self.Simple_rotation_euler[1], orient_axis = 'Y')
+        bpy.ops.transform.rotate(value = self.Simple_rotation_euler[2], orient_axis = 'Z')
+    
     return
 
 # ### MENU append ###

@@ -96,6 +96,7 @@ def poly_line(curve, points, join=True, type='NURBS'):
 def poly_lines(objname, curvename, lines, bevel=None, joins=False, ctype='NURBS'):
     curve = bpy.data.curves.new(name=curvename, type='CURVE')
     curve.dimensions = '3D'
+    curve.fill_mode = 'FULL'
 
     obj = bpy.data.objects.new(objname, curve)
     obj.location = (0, 0, 0)  # object origin
