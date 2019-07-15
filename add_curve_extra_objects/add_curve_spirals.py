@@ -534,9 +534,19 @@ class CURVE_OT_spirals(Operator):
         return context.scene is not None
 
     def execute(self, context):
+        # turn off 'Enter Edit Mode'
+        use_enter_edit_mode = bpy.context.preferences.edit.use_enter_edit_mode
+        bpy.context.preferences.edit.use_enter_edit_mode = False
+        
         time_start = time.time()
         self.align_matrix = align_matrix(context, self.startlocation)
         draw_curve(self, context, self.align_matrix)
+        
+        if use_enter_edit_mode:
+            bpy.ops.object.mode_set(mode = 'EDIT')
+        
+        # restore pre operator state
+        bpy.context.preferences.edit.use_enter_edit_mode = use_enter_edit_mode
 
         #self.report({'INFO'},
                     #"Drawing Spiral Finished: %.4f sec" % (time.time() - time_start))

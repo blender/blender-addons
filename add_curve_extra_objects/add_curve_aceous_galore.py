@@ -1460,9 +1460,19 @@ class Curveaceous_galore(Operator, object_utils.AddObjectHelper):
         return context.scene is not None
 
     def execute(self, context):
+        # turn off 'Enter Edit Mode'
+        use_enter_edit_mode = bpy.context.preferences.edit.use_enter_edit_mode
+        bpy.context.preferences.edit.use_enter_edit_mode = False
+        
         # main function
         self.align_matrix = align_matrix(context, self.startlocation)
         main(context, self, self.align_matrix or Matrix())
+        
+        if use_enter_edit_mode:
+            bpy.ops.object.mode_set(mode = 'EDIT')
+        
+        # restore pre operator state
+        bpy.context.preferences.edit.use_enter_edit_mode = use_enter_edit_mode
         
         return {'FINISHED'}
         

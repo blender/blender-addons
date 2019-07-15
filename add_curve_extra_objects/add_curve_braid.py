@@ -229,6 +229,10 @@ class Braid(Operator):
         col.prop(self, "resolution")
 
     def execute(self, context):
+         # turn off 'Enter Edit Mode'
+        use_enter_edit_mode = bpy.context.preferences.edit.use_enter_edit_mode
+        bpy.context.preferences.edit.use_enter_edit_mode = False
+        
         circle = defaultCircle(self.strandsize)
         context.scene.collection.objects.link(circle)
         braid = awesome_braid(
@@ -244,8 +248,14 @@ class Braid(Operator):
 
         for ob in context.scene.objects:
             ob.select_set(False)
-        #base.select_set(True)
-        #context.scene.objects.active = braid
+        braid.select_set(True)
+        bpy.context.view_layer.objects.active = braid
+        
+        if use_enter_edit_mode:
+            bpy.ops.object.mode_set(mode = 'EDIT')
+        
+        # restore pre operator state
+        bpy.context.preferences.edit.use_enter_edit_mode = use_enter_edit_mode
 
         return {'FINISHED'}
 

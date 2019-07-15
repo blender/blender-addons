@@ -509,6 +509,10 @@ class add_curlycurve(Operator, AddObjectHelper):
         row.prop(self, "shape", expand=True)
 
     def execute(self, context):
+        # turn off 'Enter Edit Mode'
+        use_enter_edit_mode = bpy.context.preferences.edit.use_enter_edit_mode
+        bpy.context.preferences.edit.use_enter_edit_mode = False
+        
         if self.types == 1:
             add_type1(self, context)
         if self.types == 2:
@@ -529,6 +533,12 @@ class add_curlycurve(Operator, AddObjectHelper):
             add_type9(self, context)
         if self.types == 10:
             add_type10(self, context)
+            
+        if use_enter_edit_mode:
+            bpy.ops.object.mode_set(mode = 'EDIT')
+        
+        # restore pre operator state
+        bpy.context.preferences.edit.use_enter_edit_mode = use_enter_edit_mode
 
         return {'FINISHED'}
 

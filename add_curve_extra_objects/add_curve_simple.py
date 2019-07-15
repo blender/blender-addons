@@ -421,37 +421,9 @@ def vertsToPoints(Verts, splineType):
 # ------------------------------------------------------------
 # Main Function
 
-def main(context, self, align_matrix):
+def main(context, self, align_matrix, use_enter_edit_mode):
     # output splineType 'POLY' 'NURBS' 'BEZIER'
     splineType = self.outputType
-    
-    # create object
-    if bpy.context.mode == 'EDIT_CURVE':
-        Curve = context.active_object
-        newSpline = Curve.data.splines.new(type=splineType)          # spline
-    else:
-        name = self.Simple_Type  # Type as name
-    
-        dataCurve = bpy.data.curves.new(name, type='CURVE')  # curve data block
-        newSpline = dataCurve.splines.new(type=splineType)          # spline
-
-        # create object with new Curve
-        Curve = object_utils.object_data_add(context, dataCurve, operator=self)  # place in active scene
-        Curve.matrix_world = align_matrix  # apply matrix
-        Curve.rotation_euler = self.Simple_rotation_euler
-    
-    # set newSpline Options
-    newSpline.use_cyclic_u = self.use_cyclic_u
-    newSpline.use_endpoint_u = self.endp_u
-    newSpline.order_u = self.order_u
-    
-    # set curve Options
-    Curve.data.dimensions = self.shape
-    Curve.data.use_path = True
-    if self.shape == '3D':
-        Curve.data.fill_mode = 'FULL'
-    else:
-        Curve.data.fill_mode = 'BOTH'
     
     sides = abs(int((self.Simple_endangle - self.Simple_startangle) / 90))
 
@@ -546,6 +518,22 @@ def main(context, self, align_matrix):
     
     # turn verts into array
     vertArray = vertsToPoints(verts, splineType)
+    
+    # create object
+    if bpy.context.mode == 'EDIT_CURVE':
+        Curve = context.active_object
+        newSpline = Curve.data.splines.new(type=splineType)          # spline
+    else:
+        name = self.Simple_Type  # Type as name
+    
+        dataCurve = bpy.data.curves.new(name, type='CURVE')  # curve data block
+        newSpline = dataCurve.splines.new(type=splineType)          # spline
+
+        # create object with new Curve
+        Curve = object_utils.object_data_add(context, dataCurve, operator=self)  # place in active scene
+        Curve.matrix_world = align_matrix  # apply matrix
+        Curve.rotation_euler = self.Simple_rotation_euler
+        Curve.select_set(True)
     
     for spline in Curve.data.splines:
         if spline.type == 'BEZIER':
@@ -809,7 +797,18 @@ def main(context, self, align_matrix):
         bpy.ops.transform.rotate(value = self.Simple_rotation_euler[1], orient_axis = 'Y')
         bpy.ops.transform.rotate(value = self.Simple_rotation_euler[2], orient_axis = 'Z')
     
-    return
+    # set newSpline Options
+    newSpline.use_cyclic_u = self.use_cyclic_u
+    newSpline.use_endpoint_u = self.endp_u
+    newSpline.order_u = self.order_u
+    
+    # set curve Options
+    Curve.data.dimensions = self.shape
+    Curve.data.use_path = True
+    if self.shape == '3D':
+        Curve.data.fill_mode = 'FULL'
+    else:
+        Curve.data.fill_mode = 'BOTH'
 
 # ### MENU append ###
 def Simple_curve_edit_menu(self, context):
@@ -1286,9 +1285,20 @@ class Simple(Operator, object_utils.AddObjectHelper):
         return context.scene is not None
 
     def execute(self, context):
+        
+        # turn off 'Enter Edit Mode'
+        use_enter_edit_mode = bpy.context.preferences.edit.use_enter_edit_mode
+        bpy.context.preferences.edit.use_enter_edit_mode = False
+        
         # main function
         self.align_matrix = align_matrix(context, self.Simple_startlocation)
-        main(context, self, self.align_matrix)
+        main(context, self, self.align_matrix, use_enter_edit_mode)
+        
+        if use_enter_edit_mode:
+            bpy.ops.object.mode_set(mode = 'EDIT')
+        
+        # restore pre operator state
+        bpy.context.preferences.edit.use_enter_edit_mode = use_enter_edit_mode
 
         return {'FINISHED'}
 
