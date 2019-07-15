@@ -161,6 +161,7 @@ def main_object(context, obj, level, **kw):
         group_objects = group.objects[:]
         for obj_cell in objects:
             if obj_cell not in group_objects:
+                collection.objects.unlink(obj_cell)
                 group.objects.link(obj_cell)
 
     if kw_copy["use_debug_redraw"]:
