@@ -90,9 +90,9 @@ def get_addon_preferences(name=''):
                     cls = _get_pref_class(mod)
                     if cls:
                         prop = PointerProperty(type=cls)
-                        create_property(UIToolsPreferences, name, prop)
-                        bpy.utils.unregister_class(UIToolsPreferences)
-                        bpy.utils.register_class(UIToolsPreferences)
+                        create_property(PIEToolsPreferences, name, prop)
+                        bpy.utils.unregister_class(PIEToolsPreferences)
+                        bpy.utils.register_class(PIEToolsPreferences)
         return getattr(addon_prefs, name, None)
     else:
         return addon_prefs
