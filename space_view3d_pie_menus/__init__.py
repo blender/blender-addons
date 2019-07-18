@@ -33,7 +33,7 @@ from bpy.types import (
 bl_info = {
     "name": "3D Viewport Pie Menus",
     "author": "meta-androcto, pitiwazou, chromoly, italic",
-    "version": (1, 2, 0),
+    "version": (1, 1, 9),
     "blender": (2, 80, 0),
     "description": "Individual Pie Menu Activation List",
     "location": "Addons Preferences",
@@ -64,7 +64,8 @@ sub_modules_names = (
     )
 
 
-sub_modules = [__import__(__package__ + "." + submod, {}, {}, submod) for submod in sub_modules_names]
+sub_modules = [__import__(__package__ + "." + submod, {}, {}, submod) for
+              submod in sub_modules_names]
 sub_modules.sort(key=lambda mod: (mod.bl_info['category'], mod.bl_info['name']))
 
 
@@ -90,22 +91,20 @@ def get_addon_preferences(name=''):
                     cls = _get_pref_class(mod)
                     if cls:
                         prop = PointerProperty(type=cls)
-                        create_property(PIEToolsPreferences, name, prop)
-                        bpy.utils.unregister_class(PIEToolsPreferences)
-                        bpy.utils.register_class(PIEToolsPreferences)
+                        setattr(PieToolsPreferences, name, prop)
+                        bpy.utils.unregister_class(PieToolsPreferences)
+                        bpy.utils.register_class(PieToolsPreferences)
         return getattr(addon_prefs, name, None)
     else:
         return addon_prefs
 
-def create_property(cls, name, prop):
-    if not hasattr(cls, '__annotations__'):
-        cls.__annotations__ = dict()
-    cls.__annotations__[name] = prop
-
 
 def register_submodule(mod):
-    mod.register()
-    mod.__addon_enabled__ = True
+    if not hasattr(mod, '__addon_enabled__'):
+        mod.__addon_enabled__ = False
+    if not mod.__addon_enabled__:
+        mod.register()
+        mod.__addon_enabled__ = True
 
 
 def unregister_submodule(mod):
@@ -115,20 +114,91 @@ def unregister_submodule(mod):
 
         prefs = get_addon_preferences()
         name = mod.__name__.split('.')[-1]
-        if hasattr(PIEToolsPreferences, name):
-            delattr(PIEToolsPreferences, name)
+        if hasattr(PieToolsPreferences, name):
+            delattr(PieToolsPreferences, name)
             if prefs:
-                bpy.utils.unregister_class(PIEToolsPreferences)
-                bpy.utils.register_class(PIEToolsPreferences)
+                bpy.utils.unregister_class(PieToolsPreferences)
+                bpy.utils.register_class(PieToolsPreferences)
                 if name in prefs:
                     del prefs[name]
 
 
-class PIEToolsPreferences(AddonPreferences):
+def enable_all_modules(self, context):
+    for mod in sub_modules:
+        mod_name = mod.__name__.split('.')[-1]
+        setattr(self, 'use_' + mod_name, False)
+        if not mod.__addon_enabled__:
+            setattr(self, 'use_' + mod_name, True)
+            mod.__addon_enabled__ = True
+
+    return None
+
+
+def disable_all_modules(self, context):
+    for mod in sub_modules:
+        mod_name = mod.__name__.split('.')[-1]
+
+        if mod.__addon_enabled__:
+            setattr(self, 'use_' + mod_name, False)
+            mod.__addon_enabled__ = False
+
+    return None
+
+
+class PieToolsPreferences(AddonPreferences):
     bl_idname = __name__
+
+    enable_all: BoolProperty(
+        name="Enable all",
+        description="Enable all Pie Modules",
+        default=False,
+        update=enable_all_modules
+    )
+    disable_all: BoolProperty(
+        name="Disable all",
+        description="Disable all Pie Modules",
+        default=False,
+        update=disable_all_modules
+    )
+
+    for mod in sub_modules:
+        mod_name = mod.__name__.split('.')[-1]
+
+        def gen_update(mod, use_prop_name):
+            def update(self, context):
+                if getattr(self, use_prop_name):
+                    if not mod.__addon_enabled__:
+                        register_submodule(mod)
+                else:
+                    if mod.__addon_enabled__:
+                        unregister_submodule(mod)
+            return update
+
+        use_prop_name = 'use_' + mod_name
+        __annotations__[use_prop_name] = BoolProperty(
+            name=mod.bl_info['name'],
+            description=mod.bl_info.get('description', ''),
+            update=gen_update(mod, use_prop_name),
+        )
+
+        __annotations__['show_expanded_' + mod_name] = BoolProperty()
 
     def draw(self, context):
         layout = self.layout
+        split = layout.split(factor=0.5, align=True)
+        row = split.row()
+        row.alignment = "LEFT"
+        sub_box = row.box()
+        sub_box.prop(self, "enable_all", emboss=False,
+                    icon="HIDE_OFF", icon_only=True)
+        row.label(text="Enable All")
+
+        row = split.row()
+        row.alignment = "RIGHT"
+        row.label(text="Disable All")
+        sub_box = row.box()
+        sub_box.prop(self, "disable_all", emboss=False,
+                    icon="HIDE_ON", icon_only=True)
 
         for mod in sub_modules:
             mod_name = mod.__name__.split('.')[-1]
@@ -167,7 +237,7 @@ class PIEToolsPreferences(AddonPreferences):
                 if info.get('author'):
                     split = col.row().split(factor=0.15)
                     split.label(text='Author:')
-                    split.label(text=info['author'])
+                    split.label(info['author'])
                 """
                 if info.get('version'):
                     split = col.row().split(factor=0.15)
@@ -206,41 +276,12 @@ class PIEToolsPreferences(AddonPreferences):
                         del prefs.layout
 
         row = layout.row()
-        row.label(text="End of Pie Menu Activations", icon="FILE_PARENT")
-
-
-for mod in sub_modules:
-    info = mod.bl_info
-    mod_name = mod.__name__.split('.')[-1]
-
-    def gen_update(mod):
-        def update(self, context):
-            enabled = getattr(self, 'use_' + mod.__name__.split('.')[-1])
-            if enabled:
-                register_submodule(mod)
-            else:
-                unregister_submodule(mod)
-            mod.__addon_enabled__ = enabled
-        return update
-
-    create_property(
-        PIEToolsPreferences,
-        'use_' + mod_name,
-        BoolProperty(
-            name=info['name'],
-            description=info.get('description', ''),
-            update=gen_update(mod),
-            default=True,
-        ))
-
-    create_property(
-        PIEToolsPreferences,
-        'show_expanded_' + mod_name,
-        BoolProperty())
+        row.label(text="End of 3D Viewport Pie Menus Activations",
+                  icon="FILE_PARENT")
 
 
 classes = (
-    PIEToolsPreferences,
+    PieToolsPreferences,
 )
 
 
