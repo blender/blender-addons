@@ -94,8 +94,8 @@ class PIE_MT_AreaTypePieOther(Menu):
     def draw(self, context):
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="File Browser", icon="FILEBROWSER").types = "FILE_BROWSER"
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Python Console", icon="CONSOLE").types = "CONSOLE"
-        self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="User Preferences",
-                             icon="PREFERENCES").types = "USER_PREFERENCES"
+        self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Preferences",
+                             icon="PREFERENCES").types = "PREFERENCES"
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Info", icon="INFO").types = "INFO"
 
 
