@@ -121,7 +121,7 @@ class PIE_MT_AreaTypePieAnim(Menu):
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="NLA Editor", icon="NLA").types = "NLA_EDITOR"
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="DopeSheet", icon="ACTION").types = "DOPESHEET_EDITOR"
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Graph Editor", icon="GRAPH").types = "GRAPH_EDITOR"
-        self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Timeline", icon="TIME").types = "TIMELINE"
+#        self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Timeline", icon="TIME").types = "TIMELINE"
         self.layout.operator(PIE_OT_SetAreaType.bl_idname,
                              text="Video Sequence Editor", icon="SEQUENCE").types = "SEQUENCE_EDITOR"
         self.layout.operator(PIE_OT_SetAreaType.bl_idname,
