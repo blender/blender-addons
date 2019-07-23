@@ -38,7 +38,7 @@ from bpy.props import (
 )
 
 CLIENT_ID = "IdFRwa3SGA8eMpzhRVFMg5Ts8sPK93xBjif93x0F"
-PORTS = [62485, 1234]
+PORTS = [62485, 65425, 55428, 49452]
 
 
 def login_thread(signup=False):
