@@ -1565,6 +1565,8 @@ class AssetBarOperator(bpy.types.Operator):
             asset_data = sr[ui_props.active_index]
             a = asset_data['author_id']
             if a is not None:
+                sprops = utils.get_search_props()
+                sprops.search_keywords = ''
                 utils.p('author:', a)
                 search.search(author_id=a)
             return {'RUNNING_MODAL'}
