@@ -61,11 +61,14 @@ looptools_cache = {}
 
 
 def get_annotation(self, context):
-    try:
-        layer = bpy.data.grease_pencils[0].layers.active
-        return True
-    except:
-        self.report({'WARNING'}, "active Annotation not found")
+    if self.use_annotation:
+        try:
+            strokes = bpy.data.grease_pencils[0].layers.active.active_frame.strokes
+            return True
+        except:
+            self.report({'WARNING'}, "active Annotation strokes not found")
+            return False
+    else:
         return False
 
 # force a full recalculation next time
@@ -3933,6 +3936,10 @@ class GStretch(Operator):
                     "stroke",
         default='regular'
         )
+    use_annotation: BoolProperty(
+        name="Use Annotation",
+        default=True
+        )
 
     @classmethod
     def poll(cls, context):
@@ -3942,7 +3949,10 @@ class GStretch(Operator):
     def draw(self, context):
         layout = self.layout
         col = layout.column()
-
+        
+        col.separator()
+        col.prop(self, "use_annotation")
+        col.separator()
         col.prop(self, "method")
         col.separator()
 
@@ -4500,6 +4510,7 @@ class VIEW3D_PT_tools_looptools(Panel):
         # gstretch settings
         if lt.display_gstretch:
             box = col.column(align=True).box().column()
+            box.prop(lt, "gstretch_use_annotation")
             box.prop(lt, "gstretch_method")
 
             col_conv = box.column(align=True)
@@ -4970,6 +4981,10 @@ class LoopToolsProps(PropertyGroup):
         description="Method of distributing the vertices over the Grease "
                     "Pencil stroke",
         default='regular'
+        )
+    gstretch_use_annotation: BoolProperty(
+        name="Use Annotation",
+        default=False
         )
 
     # relax properties
