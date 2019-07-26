@@ -496,16 +496,17 @@ class SCENE_OT_export(bpy.types.Operator):
             if bpy.app.timers.is_registered(run_import_periodically):
                 bpy.app.timers.unregister(run_import_periodically)
                 print('Disabling listener')
-            run_background_update = False
+                run_background_update = False
         else:
             if not bpy.app.timers.is_registered(run_import_periodically):
                 bpy.app.timers.register(run_import_periodically, persistent=True)
                 print('Enabling listener')
-            run_background_update = True
+                run_background_update = True
         return {'FINISHED'}
 
     def execute(self, context):
-
+        global run_background_update
+        run_background_update = False
         for mesh in bpy.data.meshes:
             if (mesh.users == 0 and mesh.coat3D.name == '3DC'):
                 bpy.data.meshes.remove(mesh)
@@ -793,15 +794,20 @@ class SCENE_OT_import(bpy.types.Operator):
             if bpy.app.timers.is_registered(run_import_periodically):
                 bpy.app.timers.unregister(run_import_periodically)
                 print('Disabling listener')
-            run_background_update = False
+                run_background_update = False
+
         else:
             if not bpy.app.timers.is_registered(run_import_periodically):
                 bpy.app.timers.register(run_import_periodically, persistent=True)
                 print('Enabling listener')
-            run_background_update = True
+                run_background_update = True
+
         return {'FINISHED'}
 
     def execute(self, context):
+
+        global run_background_update
+        run_background_update = True
 
         for node_group in bpy.data.node_groups:
             if(node_group.users == 0):
@@ -870,7 +876,6 @@ class SCENE_OT_import(bpy.types.Operator):
         exportfile = coat3D.exchangedir
         exportfile += ('%sBlender' % (os.sep))
         exportfile += ('%sexport.txt' % (os.sep))
-        print('export:', exportfile)
         if (os.path.isfile(exportfile)):
             os.remove(exportfile)
 
@@ -1085,7 +1090,6 @@ class SCENE_OT_import(bpy.types.Operator):
                         bpy.context.collection.all_objects[del_obj].select_set(False)
 
                     else:
-                        print('del_obj', del_obj)
                         bpy.context.collection.all_objects[del_obj].select_set(True)
                         bpy.data.objects.remove(bpy.data.objects[del_obj])
 
@@ -1231,7 +1235,6 @@ def run_import_periodically():
     kokeilu = coat3D.exchangedir[:-9]
     Blender_folder2 = ("%s%sExchange" % (kokeilu, os.sep))
     Blender_folder2 += ('%sexport.txt' % (os.sep))
-    print('Blender_folder2:', Blender_folder2)
     global run_background_update
 
     try:

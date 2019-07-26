@@ -334,7 +334,6 @@ def readtexturefolder(objekti, mat_list, texturelist, is_new, udim_textures): #r
                     create_nodes = True
                 create_group_node = True
 
-        print('texcoat:', texcoat)
         if(create_nodes):
             coat3D = bpy.context.scene.coat3D
             path3b_n = coat3D.exchangedir
@@ -717,16 +716,11 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
             coatMat.cycles.displacement_method = 'BOTH'
 
         else:
-            print('ELSE')
             if (texcoat['alpha'] != []):
-                print('111')
                 if (type['name'] == 'color'):
-                    print('222')
                     act_material.links.new(node.outputs[1], notegroup.inputs[8])
             else:
-                print('333')
                 if (type['name'] == 'color'):
-                    print('444')
                     act_material.links.new(node.outputs[1], notegroup.inputs[8])
 
             huenode = createExtraNodes(act_material, node, type)
