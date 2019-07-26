@@ -817,6 +817,13 @@ def Simple_curve_edit_menu(self, context):
     self.layout.operator("curve.bezier_points_fillet", text="Fillet")
     self.layout.operator("curve.bezier_spline_divide", text="Divide")
     self.layout.separator()
+    
+def Simple_curve_object_menu(self, context):
+    bl_label = 'Simple edit'
+   
+    if context.active_object.type == "CURVE":
+        self.layout.operator("curve.scale_reset", text="Scale Reset")
+        self.layout.separator()
 
 def menu(self, context):
     oper1 = self.layout.operator(Simple.bl_idname, text="Angle", icon="MOD_CURVE")
@@ -1522,12 +1529,46 @@ class BezierDivide(Operator):
                     selected_all[0].handle_left = h[4]                
 
         return {'FINISHED'}
+        
+# ------------------------------------------------------------
+# CurveScaleReset Operator
+
+class CurveScaleReset(Operator):
+    bl_idname = "curve.scale_reset"
+    bl_label = "Curve Scale Reset"
+    bl_description = "Curve Scale Reset"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene is not None
+
+    def execute(self, context):
+        # main function
+        oldCurve = context.active_object
+        oldCurveName = oldCurve.name
+        
+        bpy.ops.object.duplicate_move(OBJECT_OT_duplicate=None, TRANSFORM_OT_translate=None)
+        newCurve = context.active_object
+        newCurve.data.splines.clear()
+        newCurve.scale = (1.0, 1.0, 1.0)
+        
+        oldCurve.select_set(True)
+        newCurve.select_set(True)
+        bpy.context.view_layer.objects.active = newCurve
+        bpy.ops.object.join()
+        
+        joinCurve = context.active_object
+        joinCurve.name = oldCurveName
+
+        return {'FINISHED'}
 
 # Register
 classes = [
     Simple,
     BezierDivide,
-    BezierPointsFillet
+    BezierPointsFillet,
+    CurveScaleReset
 ]
 
 def register():
@@ -1537,6 +1578,7 @@ def register():
 
     bpy.types.VIEW3D_MT_curve_add.append(menu)
     bpy.types.VIEW3D_MT_edit_curve_context_menu.prepend(Simple_curve_edit_menu)
+    bpy.types.VIEW3D_MT_object_context_menu.prepend(Simple_curve_object_menu)
 
 def unregister():
     from bpy.utils import unregister_class
@@ -1545,6 +1587,7 @@ def unregister():
 
     bpy.types.VIEW3D_MT_curve_add.remove(menu)
     bpy.types.VIEW3D_MT_edit_curve_context_menu.remove(Simple_curve_edit_menu)
+    bpy.types.VIEW3D_MT_object_context_menu.remove(Simple_curve_object_menu)
 
 if __name__ == "__main__":
     register()
