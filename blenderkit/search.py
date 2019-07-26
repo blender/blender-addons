@@ -716,9 +716,9 @@ class Searcher(threading.Thread):
 
             # result ordering: _score - relevance, score - BlenderKit score
             if query.get('category_subtree') is not None:
-                requeststring += '+order:_score,-score'
+                requeststring += '+order:-score,_score'
             else:
-                requeststring += '+order:-score'
+                requeststring += '+order:_score'
 
 
             requeststring += '&addon_version=%s' % params['addon_version']
