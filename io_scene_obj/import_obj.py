@@ -915,6 +915,8 @@ def load(context,
     """
     def unique_name(existing_names, name_orig):
         i = 0
+        if name_orig is None:
+            name_orig = b"ObjObject"
         name = name_orig
         while name in existing_names:
             name = b"%s.%03d" % (name_orig, i)
