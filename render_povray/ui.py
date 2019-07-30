@@ -831,7 +831,7 @@ class WORLD_PT_POV_mist(WorldButtonsPanel, Panel):
         layout.prop(world.mist_settings, "falloff")
         
 class RENDER_PT_povray_export_settings(RenderButtonsPanel, Panel):
-    bl_label = "INI Options"
+    bl_label = "Start Options"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -878,7 +878,7 @@ class RENDER_PT_povray_export_settings(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_povray_render_settings(RenderButtonsPanel, Panel):
-    bl_label = "Render Settings"
+    bl_label = "Global Settings"
     bl_icon = 'SETTINGS'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -886,9 +886,9 @@ class RENDER_PT_povray_render_settings(RenderButtonsPanel, Panel):
     def draw_header(self, context):
         scene = context.scene
         if scene.pov.global_settings_advanced:
-            self.layout.prop(scene.pov, "global_settings_advanced", text="", icon='PREFERENCES')
-        else:
             self.layout.prop(scene.pov, "global_settings_advanced", text="", icon='SETTINGS')
+        else:
+            self.layout.prop(scene.pov, "global_settings_advanced", text="", icon='PREFERENCES')
     def draw(self, context):
         layout = self.layout
 
@@ -900,7 +900,7 @@ class RENDER_PT_povray_render_settings(RenderButtonsPanel, Panel):
             layout.prop(scene.pov, "sdl_window_enable", text="POV-Ray SDL Window")
    
         col = layout.column()
-        col.label(text="Global Settings:")
+        col.label(text="Main Path Tracing:")
         col.prop(scene.pov, "max_trace_level", text="Ray Depth")
         align = True   
         layout.active = scene.pov.global_settings_advanced
@@ -1031,7 +1031,7 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_povray_radiosity(RenderButtonsPanel, Panel):
-    bl_label = "Radiosity"
+    bl_label = "Diffuse Radiosity"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     def draw_header(self, context):
