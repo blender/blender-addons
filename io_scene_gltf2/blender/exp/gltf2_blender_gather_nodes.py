@@ -239,7 +239,7 @@ def __gather_mesh(blender_object, export_settings):
 
         armature_modifiers = {}
         if export_settings[gltf2_blender_export_keys.SKINS]:
-            # temprorary disable Armature modifiers if exporting skins
+            # temporarily disable Armature modifiers if exporting skins
             for idx, modifier in enumerate(blender_object.modifiers):
                 if modifier.type == 'ARMATURE':
                     armature_modifiers[idx] = modifier.show_viewport

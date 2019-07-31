@@ -977,7 +977,7 @@ def is_rating_possible():
             ad = ao.get('asset_data')
             if ad is not None:
                 rated = bpy.context.scene['assets rated'].get(ad['asset_base_id'])
-                # originally hidden for allready rated assets
+                # originally hidden for already rated assets
                 return True, rated, ao, ad
 
             # check also materials
@@ -1599,7 +1599,7 @@ class AssetBarOperator(bpy.types.Operator):
                 # this sends message to the originally running operator, so it quits, and then it ends this one too.
                 # If it initiated a search, the search will finish in a thread. The switch off procedure is run
                 # by the 'original' operator, since if we get here, it means
-                # same operator is allready running.
+                # same operator is already running.
                 ui_props.turn_off = True
                 # if there was an error, we need to turn off these props so we can restart after 2 clicks
                 ui_props.assetbar_on = False

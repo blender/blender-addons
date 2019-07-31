@@ -274,7 +274,7 @@ class BlenderKitUIProps(PropertyGroup):
     thumb_size: IntProperty(name="Thumbnail Size", default=thumb_size_def, min=-1, max=256)
 
     margin: IntProperty(name="Margin", default=margin_def, min=-1, max=256)
-    highlight_margin: IntProperty(name="Higlight Margin", default=int(margin_def / 2), min=-10, max=256)
+    highlight_margin: IntProperty(name="Highlight Margin", default=int(margin_def / 2), min=-10, max=256)
 
     bar_height: IntProperty(name="Bar Height", default=thumb_size_def + 2 * margin_def, min=-1, max=2048)
     bar_x_offset: IntProperty(name="Bar X Offset", default=20, min=0, max=5000)

@@ -92,7 +92,7 @@ def refresh_token_timer():
 def scene_load(context):
     wm = bpy.context.window_manager
     fetch_server_data()
-    # following doesn't necessarilly happen if version isn't checked yet or similar, first run.
+    # following doesn't necessarily happen if version isn't checked yet or similar, first run.
     # wm['bkit_update'] = version_checker.compare_versions(blenderkit)
     categories.load_categories()
     if not bpy.app.timers.is_registered(refresh_token_timer):
@@ -116,7 +116,7 @@ def fetch_server_data():
 def timer_update():  # TODO might get moved to handle all blenderkit stuff.
 
     global search_threads
-    # don't do anything while dragging - this could switch asset type during drag, and make results list lenght different,
+    # don't do anything while dragging - this could switch asset type during drag, and make results list length different,
     # causing a lot of throuble literally.
     if len(search_threads) == 0 or bpy.context.scene.blenderkitUI.dragging:
         return 1
@@ -803,7 +803,7 @@ class Searcher(threading.Thread):
         full_thbs = zip(thumb_full_filepaths, thumb_full_urls)
 
         # we save here because a missing thumbnail check is in the previous loop
-        # we can also prepend previous results. These have allready thumbnails downloaded...
+        # we can also prepend previous results. These have already thumbnails downloaded...
         if params['get_next']:
             rdata['results'][0:0] = origdata['results']
 
@@ -1149,12 +1149,12 @@ def unregister_search():
 
 
 '''
-search - 
+search -
 build query
 START THREAD
-send query (bg allready)
-get result - metadata, small thumbnails, big thumbnails paths (now genereate this?)
-write metadata, possibly to 
+send query (bg already)
+get result - metadata, small thumbnails, big thumbnails paths (now generate this?)
+write metadata, possibly to
 download small thumbnails first
 start big thumbnails download. these don't have to be there on updates, if they aren't the Image in image editor doesn't get updated.
 parse metadata, save it in json in the temp dir which gets read on each update of the search.

@@ -4207,7 +4207,7 @@ class Relax(Operator):
 class Space(Operator):
     bl_idname = "mesh.looptools_space"
     bl_label = "Space"
-    bl_description = "Space the vertices in a regular distrubtion on the loop"
+    bl_description = "Space the vertices in a regular distribution on the loop"
     bl_options = {'REGISTER', 'UNDO'}
 
     influence: FloatProperty(

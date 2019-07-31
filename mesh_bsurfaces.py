@@ -3457,8 +3457,8 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
 class GPENCIL_OT_SURFSK_init(Operator):
     bl_idname = "gpencil.surfsk_init"
     bl_label = "Bsurfaces initialize"
-    bl_description = "Bsurfaces initialiaze"
-    
+    bl_description = "Bsurfaces initialize"
+
     active_object: PointerProperty(type=bpy.types.Object)
 
     def execute(self, context):

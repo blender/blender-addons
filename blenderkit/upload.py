@@ -631,7 +631,7 @@ def start_upload(self, context, asset_type, as_new, metadata_only):
                 json_metadata["verificationStatus"] = "uploading"
             r = requests.put(url, json=json_metadata, headers=headers, verify=True)  # files = files,
             props.upload_state = 'uploaded metadata'
-            # parse the reqest
+            # parse the request
             # print('uploaded metadata')
             # print(r.text)
         except requests.exceptions.RequestException as e:
@@ -714,7 +714,7 @@ class ModelUploadOperator(Operator):
 
     as_new: BoolProperty(
         name="upload as new",
-        description="delets asset id and uploads as new file",
+        description="deletes asset id and uploads as new file",
         default=False,
         options={'SKIP_SAVE'}
     )
