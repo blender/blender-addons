@@ -738,7 +738,7 @@ def create_mesh(new_objects,
         me.edges.foreach_set("vertices", unpack_list(edges))
 
     me.validate(clean_customdata=False)  # *Very* important to not remove lnors here!
-    me.update(calc_edges=use_edges)
+    me.update(calc_edges=use_edges, calc_edges_loose=use_edges)
 
     # Un-tessellate as much as possible, in case we had to triangulate some ngons...
     if fgon_edges:
