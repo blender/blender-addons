@@ -1041,7 +1041,7 @@ class VIEW3D_MT_AddMenu(Menu):
                                   icon="OUTLINER_OB_LIGHT")
         layout.menu("VIEW3D_MT_lightprobe_add", icon='OUTLINER_OB_LIGHTPROBE')
         UseSeparator(self, context)
-        
+
         layout.operator("object.camera_add", text="Camera",
                         icon='OUTLINER_OB_CAMERA')
         UseSeparator(self, context)
@@ -1766,7 +1766,6 @@ class VIEW3D_MT_Sculpts(Menu):
 
         UseSeparator(self, context)
         layout.prop(sculpt, "show_brush")
-        layout.prop(sculpt, "show_diffuse_color")
 
 
 class VIEW3D_MT_Hide_Masks(Menu):
