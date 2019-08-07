@@ -595,6 +595,8 @@ def fetch_author(a_id, api_key):
                     with open(gravatar_path, 'wb') as f:
                         f.write(r.content)
                     adata['gravatarImg'] = gravatar_path
+                elif r.status_code == '404':
+                    adata['gravatarHash']= None
     except Exception as e:
         utils.p(e)
     utils.p('finish fetch')
