@@ -536,7 +536,12 @@ class Downloader(threading.Thread):
         api_key = self.api_key
 
         # TODO get real link here...
-        get_download_url(asset_data, scene_id, api_key, tcom=tcom)
+        has_url = get_download_url(asset_data, scene_id, api_key, tcom=tcom)
+
+        if not has_url:
+            tasks_queue.add_task(
+                (ui.add_report, ('Failed to obtain download URL for %s.' % asset_data['name'], 5, colors.RED)))
+            return;
         if tcom.error:
             return
         # only now we can check if the file already exists. This should have 2 levels, for materials and for brushes
