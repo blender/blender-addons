@@ -18,25 +18,7 @@ from mathutils import (
         Vector,
         Matrix,
         )
-
-# Create a new mesh (object) from verts/edges/faces.
-# verts/edges/faces ... List of vertices/edges/faces for the
-#                       new mesh (as used in from_pydata)
-# name ... Name of the new mesh (& object)
-
-def create_mesh_object(context, verts, edges, faces, name):
-    # Create new mesh
-    mesh = bpy.data.meshes.new(name)
-
-    # Make a mesh from a list of verts/edges/faces.
-    mesh.from_pydata(verts, edges, faces)
-
-    # Update mesh geometry after adding stuff.
-    mesh.update()
-
-    from bpy_extras import object_utils
-    return object_utils.object_data_add(context, mesh, operator=None)
-
+from bpy_extras import object_utils
 
 # A very simple "bridge" tool.
 # Connects two equally long vertex rows with faces.
@@ -552,16 +534,6 @@ def add_worm(teethNum, rowNum, radius, Ad, De, p_angle,
         edgeloop_prev = edgeloop
 
     return verts, faces, vgroup_top, vgroup_valley
-
-#### Delete object
-def ObjectDelete(self, context, delete):
-
-    bpy.context.view_layer.update()
-    bpy.ops.object.mode_set(mode = 'OBJECT')
-    bpy.ops.object.delete()
-    bpy.context.view_layer.update()
-
-    return
     
 ##------------------------------------------------------------
 # calculates the matrix for the new object
@@ -715,9 +687,6 @@ class AddGear(Operator):
 
     def execute(self, context):
 
-        if self.change:
-            ObjectDelete(self, context, self.delete)
-
         verts, faces, verts_tip, verts_valley = add_gear(
             self.number_of_teeth,
             self.radius,
@@ -730,10 +699,18 @@ class AddGear(Operator):
             conangle=self.conangle,
             crown=self.crown
             )
-
-        # Actually create the mesh object from this geometry data.
-        obj = create_mesh_object(context, verts, [], faces, "Gear")
         
+        if self.change:
+            obj = context.active_object
+            mesh = bpy.data.meshes.new("Gear")
+            mesh.from_pydata(verts, [], faces)
+            obj.data = mesh
+            bpy.ops.object.vertex_group_remove(all=True)
+        else:
+            mesh = bpy.data.meshes.new("Gear")
+            mesh.from_pydata(verts, [], faces)
+            obj = object_utils.object_data_add(context, mesh, operator=None)
+
         self.align_matrix = align_matrix(context, self.startlocation)
         
         obj.matrix_world = self.align_matrix  # apply matrix
@@ -910,9 +887,6 @@ class AddWormGear(Operator):
 
     def execute(self, context):
 
-        if self.change:
-            ObjectDelete(self, context, self.delete)
-        
         verts, faces, verts_tip, verts_valley = add_worm(
             self.number_of_teeth,
             self.number_of_rows,
@@ -924,9 +898,17 @@ class AddWormGear(Operator):
             skew=self.skew,
             crown=self.crown
             )
-
-        # Actually create the mesh object from this geometry data.
-        obj = create_mesh_object(context, verts, [], faces, "Worm Gear")
+            
+        if self.change:
+            obj = context.active_object
+            mesh = bpy.data.meshes.new("Worm Gear")
+            mesh.from_pydata(verts, [], faces)
+            obj.data = mesh
+            bpy.ops.object.vertex_group_remove(all=True)
+        else:
+            mesh = bpy.data.meshes.new("Worm Gear")
+            mesh.from_pydata(verts, [], faces)
+            obj = object_utils.object_data_add(context, mesh, operator=None)
         
         self.align_matrix = align_matrix(context, self.startlocation)
         
