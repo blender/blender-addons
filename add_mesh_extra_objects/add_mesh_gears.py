@@ -19,6 +19,7 @@ from mathutils import (
         Matrix,
         )
 from bpy_extras import object_utils
+from sys import *
 
 # A very simple "bridge" tool.
 # Connects two equally long vertex rows with faces.
@@ -534,22 +535,27 @@ def add_worm(teethNum, rowNum, radius, Ad, De, p_angle,
         edgeloop_prev = edgeloop
 
     return verts, faces, vgroup_top, vgroup_valley
+
+def AddGearMesh(self, context):
     
-##------------------------------------------------------------
-# calculates the matrix for the new object
-# depending on user pref
-def align_matrix(context, location):
+    verts, faces, verts_tip, verts_valley = add_gear(
+            self.number_of_teeth,
+            self.radius,
+            self.addendum,
+            self.dedendum,
+            self.base,
+            self.angle,
+            width=self.width,
+            skew=self.skew,
+            conangle=self.conangle,
+            crown=self.crown
+            )
+            
+    mesh = bpy.data.meshes.new("Gear")
+    mesh.from_pydata(verts, [], faces)
+    
+    return mesh, verts_tip, verts_valley
 
-    loc = Matrix.Translation(location)
-    obj_align = context.preferences.edit.object_align
-    if (context.space_data.type == 'VIEW_3D'
-        and obj_align == 'VIEW'):
-        rot = context.space_data.region_3d.view_matrix.to_3x3().inverted().to_4x4()
-    else:
-        rot = Matrix()
-    align_matrix = loc @ rot
-
-    return align_matrix
 
 class AddGear(Operator):
     bl_idname = "mesh.primitive_gear"
@@ -571,21 +577,6 @@ class AddGear(Operator):
     change : BoolProperty(name = "Change",
                 default = False,
                 description = "change Gear")
-
-    delete : StringProperty(name = "Delete",
-                    description = "Delete Gear")
-
-    startlocation : FloatVectorProperty(name = "",
-                description = "Start location",
-                default = (0.0, 0.0, 0.0),
-                subtype = 'XYZ')
-
-    rotation_euler : FloatVectorProperty(
-            name="",
-            description="Rotation",
-            default=(0.0, 0.0, 0.0),
-            subtype='EULER'
-            )
 
     number_of_teeth: IntProperty(name="Number of Teeth",
             description="Number of teeth on the gear",
@@ -678,90 +669,82 @@ class AddGear(Operator):
         box.prop(self, 'conangle')
         box.prop(self, 'crown')
 
-        box = layout.box()
-        box.label(text="Location:")
-        box.prop(self, "startlocation")
-        box = layout.box()
-        box.label(text="Rotation:")
-        box.prop(self, "rotation_euler")
-
     def execute(self, context):
+        
+        if self.change == True and self.change != None:
+            obj = context.active_object
+            if 'Gear' in obj.data.keys():
+                oldmesh = obj.data
+                oldmeshname = obj.data.name
+                mesh, verts_tip, verts_valley = AddGearMesh(self, context)
+                obj.data = mesh
+                try:
+                    bpy.ops.object.vertex_group_remove(all=True)
+                except:
+                    pass
+                bpy.data.meshes.remove(oldmesh)
+                obj.data.name = oldmeshname
+            else:
+                mesh, verts_tip, verts_valley = AddGearMesh(self, context)
+                obj = object_utils.object_data_add(context, mesh, operator=None)
+        else:
+            mesh, verts_tip, verts_valley = AddGearMesh(self, context)
+            obj = object_utils.object_data_add(context, mesh, operator=None)
 
-        verts, faces, verts_tip, verts_valley = add_gear(
+        # Create vertex groups from stored vertices.
+        tipGroup = obj.vertex_groups.new(name='Tips')
+        tipGroup.add(verts_tip, 1.0, 'ADD')
+
+        valleyGroup = obj.vertex_groups.new(name='Valleys')
+        valleyGroup.add(verts_valley, 1.0, 'ADD')
+
+        obj.data["Gear"] = True
+        obj.data["change"] = False
+        for prm in GearParameters():
+            obj.data[prm] = getattr(self, prm)
+
+        return {'FINISHED'}
+
+def GearParameters():
+    GearParameters = [
+        "number_of_teeth",
+        "radius",
+        "addendum",
+        "dedendum",
+        "base",
+        "angle",
+        "width",
+        "skew",
+        "conangle",
+        "crown",
+        ]
+    return GearParameters
+
+def AddWormGearMesh(self, context):
+
+    verts, faces, verts_tip, verts_valley = add_worm(
             self.number_of_teeth,
+            self.number_of_rows,
             self.radius,
             self.addendum,
             self.dedendum,
-            self.base,
             self.angle,
-            width=self.width,
+            width=self.row_height,
             skew=self.skew,
-            conangle=self.conangle,
             crown=self.crown
             )
-        
-        if self.change:
-            obj = context.active_object
-            mesh = bpy.data.meshes.new("Gear")
-            mesh.from_pydata(verts, [], faces)
-            obj.data = mesh
-            bpy.ops.object.vertex_group_remove(all=True)
-        else:
-            mesh = bpy.data.meshes.new("Gear")
-            mesh.from_pydata(verts, [], faces)
-            obj = object_utils.object_data_add(context, mesh, operator=None)
+    
+    mesh = bpy.data.meshes.new("Worm Gear")
+    mesh.from_pydata(verts, [], faces)
+    
+    return mesh, verts_tip, verts_valley
 
-        self.align_matrix = align_matrix(context, self.startlocation)
-        
-        obj.matrix_world = self.align_matrix  # apply matrix
-        obj.rotation_euler = self.rotation_euler
-
-        # XXX, supporting adding in editmode is move involved
-        if obj.mode != 'EDIT':
-            # Create vertex groups from stored vertices.
-            tipGroup = obj.vertex_groups.new(name='Tips')
-            tipGroup.add(verts_tip, 1.0, 'ADD')
-
-            valleyGroup = obj.vertex_groups.new(name='Valleys')
-            valleyGroup.add(verts_valley, 1.0, 'ADD')
-
-        obj["Gear"] = True
-        obj["change"] = False
-        obj["number_of_teeth"] = self.number_of_teeth
-        obj["radius"] = self.radius
-        obj["addendum"] = self.addendum
-        obj["dedendum"] = self.dedendum
-        obj["base"] = self.base
-        obj["angle"] = self.angle
-        obj["width"] = self.width
-        obj["skew"] = self.skew
-        obj["conangle"] = self.conangle
-        obj["crown"] = self.crown
-
-        return {'FINISHED'}
-
-    ##### INVOKE #####
-    def invoke(self, context, event):
-        bpy.context.view_layer.update()
-        if self.change:
-            bpy.context.scene.cursor.location = self.startlocation
-        else:
-            self.startlocation = bpy.context.scene.cursor.location
-        
-        self.align_matrix = align_matrix(context, self.startlocation)
-
-        self.execute(context)
-
-        return {'FINISHED'}
 
 class AddWormGear(Operator):
     bl_idname = "mesh.primitive_worm_gear"
     bl_label = "Add Worm Gear"
     bl_description = "Construct a worm gear mesh"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
-
-    # align_matrix for the invoke
-    align_matrix : Matrix()
 
     WormGear : BoolProperty(name = "WormGear",
                 default = True,
@@ -774,21 +757,6 @@ class AddWormGear(Operator):
     change : BoolProperty(name = "Change",
                 default = False,
                 description = "change WormGear")
-
-    delete : StringProperty(name = "Delete",
-                    description = "Delete WormGear")
-
-    startlocation : FloatVectorProperty(name = "",
-                description = "Start location",
-                default = (0.0, 0.0, 0.0),
-                subtype = 'XYZ')
-
-    rotation_euler : FloatVectorProperty(
-            name="",
-            description="Rotation",
-            default=(0.0, 0.0, 0.0),
-            subtype='EULER'
-            )
 
     number_of_teeth: IntProperty(
             name="Number of Teeth",
@@ -878,78 +846,52 @@ class AddWormGear(Operator):
         box.prop(self, "skew")
         box.prop(self, "crown")
 
-        box = layout.box()
-        box.label(text="Location:")
-        box.prop(self, "startlocation")
-        box = layout.box()
-        box.label(text="Rotation:")
-        box.prop(self, "rotation_euler")
-
     def execute(self, context):
 
-        verts, faces, verts_tip, verts_valley = add_worm(
-            self.number_of_teeth,
-            self.number_of_rows,
-            self.radius,
-            self.addendum,
-            self.dedendum,
-            self.angle,
-            width=self.row_height,
-            skew=self.skew,
-            crown=self.crown
-            )
-            
-        if self.change:
+        if self.change == True and self.change != None:
             obj = context.active_object
-            mesh = bpy.data.meshes.new("Worm Gear")
-            mesh.from_pydata(verts, [], faces)
-            obj.data = mesh
-            bpy.ops.object.vertex_group_remove(all=True)
+            if 'WormGear' in obj.data.keys():
+                oldmesh = obj.data
+                oldmeshname = obj.data.name
+                mesh, verts_tip, verts_valley = AddWormGearMesh(self, context)
+                obj.data = mesh
+                try:
+                    bpy.ops.object.vertex_group_remove(all=True)
+                except:
+                    pass
+                bpy.data.meshes.remove(oldmesh)
+                obj.data.name = oldmeshname
+            else:
+                mesh, verts_tip, verts_valley = AddWormGearMesh(self, context)
+                obj = object_utils.object_data_add(context, mesh, operator=None)
         else:
-            mesh = bpy.data.meshes.new("Worm Gear")
-            mesh.from_pydata(verts, [], faces)
+            mesh, verts_tip, verts_valley = AddWormGearMesh(self, context)
             obj = object_utils.object_data_add(context, mesh, operator=None)
-        
-        self.align_matrix = align_matrix(context, self.startlocation)
-        
-        obj.matrix_world = self.align_matrix  # apply matrix
-        obj.rotation_euler = self.rotation_euler
 
-        # XXX, supporting adding in editmode is move involved
-        if obj.mode != 'EDIT':
-            # Create vertex groups from stored vertices.
-            tipGroup = obj.vertex_groups.new(name = 'Tips')
-            tipGroup.add(verts_tip, 1.0, 'ADD')
+        # Create vertex groups from stored vertices.
+        tipGroup = obj.vertex_groups.new(name = 'Tips')
+        tipGroup.add(verts_tip, 1.0, 'ADD')
 
-            valleyGroup = obj.vertex_groups.new(name = 'Valleys')
-            valleyGroup.add(verts_valley, 1.0, 'ADD')
+        valleyGroup = obj.vertex_groups.new(name = 'Valleys')
+        valleyGroup.add(verts_valley, 1.0, 'ADD')
         
-        self.align_matrix = align_matrix(context, self.startlocation)
-        
-        obj["WormGear"] = True
-        obj["change"] = False
-        obj["number_of_teeth"] = self.number_of_teeth
-        obj["number_of_rows"] = self.number_of_rows
-        obj["radius"] = self.radius
-        obj["addendum"] = self.addendum
-        obj["dedendum"] = self.dedendum
-        obj["angle"] = self.angle
-        obj["row_height"] = self.row_height
-        obj["skew"] = self.skew
-        obj["crown"] = self.crown
+        obj.data["WormGear"] = True
+        obj.data["change"] = False
+        for prm in WormGearParameters():
+            obj.data[prm] = getattr(self, prm)
 
         return {'FINISHED'}
 
-    ##### INVOKE #####
-    def invoke(self, context, event):
-        bpy.context.view_layer.update()
-        if self.change:
-            bpy.context.scene.cursor.location = self.startlocation
-        else:
-            self.startlocation = bpy.context.scene.cursor.location
-        
-        self.align_matrix = align_matrix(context, self.startlocation)
-
-        self.execute(context)
-
-        return {'FINISHED'}
+def WormGearParameters():
+    WormGearParameters = [
+        "number_of_teeth",
+        "number_of_rows",
+        "radius",
+        "addendum",
+        "dedendum",
+        "angle",
+        "row_height",
+        "skew",
+        "crown",
+        ]
+    return WormGearParameters

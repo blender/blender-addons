@@ -86,6 +86,7 @@ else:
 
 import bpy
 from bpy.types import Menu
+from sys import *
 
 class VIEW3D_MT_mesh_vert_add(Menu):
     # Define the "Single Vert" menu
@@ -260,39 +261,32 @@ def Extras_contex_menu(self, context):
     obj = context.object
     layout = self.layout
     
-    if 'Gear' in obj.keys():
+    if 'Gear' in obj.data.keys():
         props = layout.operator("mesh.primitive_gear", text="Change Gear")
         props.change = True
-        props.delete = obj.name
-        props.startlocation = obj.location
-        props.rotation_euler = obj.rotation_euler
-        props.number_of_teeth = obj["number_of_teeth"]
-        props.radius = obj["radius"]
-        props.addendum = obj["addendum"]
-        props.dedendum = obj["dedendum"]
-        props.base = obj["base"]
-        props.angle = obj["angle"]
-        props.width = obj["width"]
-        props.skew = obj["skew"]
-        props.conangle = obj["conangle"]
-        props.crown = obj["crown"]
+        for prm in add_mesh_gears.GearParameters():
+            setattr(props, prm, obj.data[prm])
         layout.separator()
 
-    if 'WormGear' in obj.keys():
+    if 'WormGear' in obj.data.keys():
         props = layout.operator("mesh.primitive_worm_gear", text="Change WormGear")
         props.change = True
-        props.delete = obj.name
-        props.startlocation = obj.location
-        props.rotation_euler = obj.rotation_euler
-        props.number_of_teeth = obj["number_of_teeth"]
-        props.number_of_rows = obj["number_of_rows"]
-        props.radius = obj["radius"]
-        props.addendum = obj["addendum"]
-        props.dedendum = obj["dedendum"]
-        props.angle = obj["angle"]
-        props.row_height = obj["row_height"]
-        props.skew = obj["skew"]
-        props.crown = obj["crown"]
+        for prm in add_mesh_gears.WormGearParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+        
+    if 'Beam' in obj.data.keys():
+        props = layout.operator("mesh.add_beam", text="Change Beam")
+        props.change = True
+        for prm in add_mesh_beam_builder.BeamParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+
+    if 'Wall' in obj.data.keys():
+        props = layout.operator("mesh.wall_add", text="Change Wall")
+        props.change = True
+        for prm in Wallfactory.WallParameters():
+            setattr(props, prm, obj.data[prm])
         layout.separator()
 
 # Register
@@ -335,7 +329,7 @@ classes = [
     add_empty_as_parent.PreFix,
     add_mesh_beam_builder.addBeam,
     Wallfactory.add_mesh_wallb,
-    add_mesh_triangles.MakeTriangle
+    add_mesh_triangles.MakeTriangle,
 ]
 
 def register():
