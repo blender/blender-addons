@@ -27,7 +27,6 @@ def ApplyOverrides(dummy):
 @persistent
 def RestoreOverrides(dummy):
     global obDict
-    print(obDict)
     for set in obDict:
         set[0].data.materials[0] = set[1]
 
