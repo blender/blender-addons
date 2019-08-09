@@ -1,7 +1,7 @@
 # ------------------------------------------------
 
 
-obDict = {}
+obDict = []
 import bpy
 from bpy.app.handlers import persistent
 
@@ -14,7 +14,7 @@ def ApplyOverrides(dummy):
         for ob in bpy.data.collections[override.grooverride].objects:
             if ob.type == "MESH":
                 if not ob.hide_viewport and not ob.hide_render:
-                    obDict[ob] = ob.data.materials[0]
+                    obDict.append([ob,ob.data.materials[0]]) 
 
     for override in bpy.context.scene.ovlist:
         obMss = {}
@@ -28,9 +28,8 @@ def ApplyOverrides(dummy):
 def RestoreOverrides(dummy):
     global obDict
     print(obDict)
-    for ob,mat in obDict.items():
-        if ob.type == "MESH":
-            ob.data.materials[0] = mat
+    for set in obDict:
+        set[0].data.materials[0] = set[1]
 
 
 # ---------------------------------------------------
