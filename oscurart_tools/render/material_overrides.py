@@ -27,11 +27,11 @@ def ApplyOverrides(dummy):
 @persistent
 def RestoreOverrides(dummy):
     global obDict
+    print(obDict)
     for ob,mat in obDict.items():
         if ob.type == "MESH":
-            if not ob.hide_viewport and not ob.hide_render:
-                ob.data.materials[0] = mat
-            
+            ob.data.materials[0] = mat
+
 
 # ---------------------------------------------------
 
