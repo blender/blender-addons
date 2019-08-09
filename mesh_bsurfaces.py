@@ -1727,12 +1727,12 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
                            self.main_object_selected_verts_count == 0:
 
                             ob_surface.data.vertices[i].co = final_ob_duplicate.data.vertices[i].co
-                            ob_surface.data.vertices[i].select_set(True)
+                            ob_surface.data.vertices[i].select = True
                             crosshatch_verts_to_merge.append(i)
 
                             # Make sure the vert in the main object is selected,
                             # in case it wasn't selected and the "join crosshatch" option is active
-                            self.main_object.data.vertices[main_object_related_vert_idx].select_set(True)
+                            self.main_object.data.vertices[main_object_related_vert_idx].select = True
 
         # Delete duplicated object
         bpy.ops.object.delete({"selected_objects": [final_ob_duplicate]})
@@ -2721,7 +2721,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
                     # Move the first vert to the center coordinates
                     ob_ctrl_pts.data.vertices[first_verts[i]].co = verts_center_co
                     # Select the last verts from Cyclic loops, for later deletion all at once
-                    v[last_verts[i]].select_set(True)
+                    v[last_verts[i]].select = True
                 else:
                     cyclic_loops_U.append(False)
             else:
@@ -3056,7 +3056,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         # Select all the "unselected but participating" verts, from closed selection
         # or double selections with middle-vertex, for later join with remove doubles
         for v_idx in single_unselected_verts:
-            self.main_object.data.vertices[v_idx].select_set(True)
+            self.main_object.data.vertices[v_idx].select = True
 
         # Join the new mesh to the main object
         ob_surface.select_set(True)
@@ -4168,11 +4168,11 @@ class BsurfacesProps(PropertyGroup):
                 max=100
                 )
     SURFSK_object_with_retopology: PointerProperty(
-                name="Retopology",
+                name="Mesh of BSurface",
                 type=bpy.types.Object
                 )
     SURFSK_object_with_strokes: PointerProperty(
-                name="Strokes",
+                name="GPensil or Curve object",
                 type=bpy.types.Object
                 )
 
