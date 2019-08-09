@@ -1,28 +1,33 @@
 # ------------------------------------------------
 
 
-obDict = []
+obDict = {}
 import bpy
 from bpy.app.handlers import persistent
 
 
 @persistent
 def ApplyOverrides(dummy):
-    global obDict    
+    global obDict 
+
     for override in bpy.context.scene.ovlist:
         for ob in bpy.data.collections[override.grooverride].objects:
-            obMss = {}
-            for i,ms in enumerate(ob.material_slots):
-                obMss[i] = ms.material
-                ms.material = bpy.data.materials[override.matoverride]      
-            obDict.append([ob,obMss])  
+            if ob.type == "MESH":
+                obDict[ob] = ob.data.materials[0]
+
+    for override in bpy.context.scene.ovlist:
+        obMss = {}
+        for ob in bpy.data.collections[override.grooverride].objects:
+            if ob.type == "MESH":
+                obMss[ob] = ob.data.materials[0]
+                ob.data.materials[0] = bpy.data.materials[override.matoverride] 
 
 @persistent
 def RestoreOverrides(dummy):
     global obDict
-    for ob in obDict:
-        for ms,material in ob[1].items():
-            ob[0].material_slots[ms].material = material
+    for ob,mat in obDict.items():
+        if ob.type == "MESH":
+            ob.data.materials[0] = mat
             
 
 # ---------------------------------------------------
