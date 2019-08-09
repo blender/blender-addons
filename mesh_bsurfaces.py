@@ -3147,11 +3147,17 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
             
             # Delete grease pencil strokes
             if self.strokes_type == "GP_STROKES" and not self.stopping_errors and not self.keep_strokes:
-                bpy.context.scene.bsurfaces.SURFSK_object_with_strokes.data.layers.active.clear()
+                try:
+                    bpy.context.scene.bsurfaces.SURFSK_object_with_strokes.data.layers.active.clear()
+                except:
+                    pass
                 
             # Delete annotations
             if self.strokes_type == "GP_ANNOTATION" and not self.stopping_errors and not self.keep_strokes:
-                bpy.data.grease_pencils[0].layers.active.clear()
+                try:
+                    bpy.data.grease_pencils[0].layers.active.clear()
+                except:
+                    pass
 
             bsurfaces_props.SURFSK_edges_U = self.edges_U
             bsurfaces_props.SURFSK_edges_V = self.edges_V
@@ -3398,11 +3404,17 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
 
             # Delete grease pencil strokes
             if self.strokes_type == "GP_STROKES" and not self.stopping_errors and not self.keep_strokes:
-                bpy.context.scene.bsurfaces.SURFSK_object_with_strokes.data.layers.active.clear()
+                try:
+                    bpy.context.scene.bsurfaces.SURFSK_object_with_strokes.data.layers.active.clear()
+                except:
+                    pass
                 
             # Delete grease pencil strokes
             if self.strokes_type == "GP_ANNOTATION" and not self.stopping_errors and not self.keep_strokes:
-                bpy.data.grease_pencils[0].layers.active.clear()
+                try:
+                    bpy.data.grease_pencils[0].layers.active.clear()
+                except:
+                    pass
             
             bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
             self.main_object.select_set(True)
@@ -3614,7 +3626,10 @@ class GPENCIL_OT_SURFSK_edit_strokes(Operator):
             ob_gp_strokes = bpy.context.object
 
             # Delete grease pencil strokes
-            bpy.context.scene.bsurfaces.SURFSK_object_with_strokes.data.layers.active.clear()
+            try:
+                bpy.context.scene.bsurfaces.SURFSK_object_with_strokes.data.layers.active.clear()
+            except:
+                pass
 
             # Clean up curves
             bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
@@ -3870,7 +3885,11 @@ class CURVE_OT_SURFSK_reorder_splines(Operator):
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         bpy.ops.curve.select_all('INVOKE_REGION_WIN', action='DESELECT')
 
-        bpy.context.scene.bsurfaces.SURFSK_object_with_strokes.data.layers.active.clear()
+        try:
+            bpy.context.scene.bsurfaces.SURFSK_object_with_strokes.data.layers.active.clear()
+        except:
+            pass
+        
 
         return {"FINISHED"}
 
