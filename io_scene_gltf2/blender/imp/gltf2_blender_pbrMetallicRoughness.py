@@ -129,7 +129,6 @@ class BlenderPbr():
             mapping.location = -1500, 500
             mapping.vector_type = 'POINT'
             if text_node.image is not None: # Sometimes images can't be retrieved (bad gltf file ...)
-                print("OK")
                 tex_transform = text_node.image['tex_transform'][str(pypbr.base_color_texture.index)]
                 mapping.translation[0] = texture_transform_gltf_to_blender(tex_transform)['offset'][0]
                 mapping.translation[1] = texture_transform_gltf_to_blender(tex_transform)['offset'][1]
@@ -196,7 +195,6 @@ class BlenderPbr():
                 mapping.location = -1500, 500
             mapping.vector_type = 'POINT'
             if text_node.image is not None: # Sometimes images can't be retrieved (bad gltf file ...)
-                print("OK")
                 tex_transform = text_node.image['tex_transform'][str(pypbr.base_color_texture.index)]
                 mapping.translation[0] = texture_transform_gltf_to_blender(tex_transform)['offset'][0]
                 mapping.translation[1] = texture_transform_gltf_to_blender(tex_transform)['offset'][1]
