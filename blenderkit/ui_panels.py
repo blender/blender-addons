@@ -125,12 +125,13 @@ def draw_upload_common(layout, props, asset_type, context):
         op.reupload = False
 
         # layout.label(text = 'asset id, overwrite only for reuploading')
-        row = layout.row()
-        row.enabled = False
-        row.prop(props, 'asset_base_id', icon='FILE_TICK')
-        row = layout.row()
-        row.enabled = False
-        row.prop(props, 'id', icon='FILE_TICK')
+        layout.label(text = 'asset has a version online.')
+        # row = layout.row()
+        # row.enabled = False
+        # row.prop(props, 'asset_base_id', icon='FILE_TICK')
+        # row = layout.row()
+        # row.enabled = False
+        # row.prop(props, 'id', icon='FILE_TICK')
 
     layout.prop(props, 'category')
     if asset_type == 'MODEL' and props.subcategory != '':  # by now block this for other asset types.
