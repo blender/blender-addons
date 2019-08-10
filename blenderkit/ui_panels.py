@@ -110,27 +110,27 @@ def draw_upload_common(layout, props, asset_type, context):
 
     if props.asset_base_id == '':
         optext = 'Upload %s' % asset_type.lower()
-    else:
-        optext = 'Reupload %s (with thumbnail)' % asset_type.lower()
-
-    op = layout.operator("object.blenderkit_upload", text=optext, icon='EXPORT')
-    op.asset_type = asset_type
-    op.as_new = False
+        op = layout.operator("object.blenderkit_upload", text=optext, icon='EXPORT')
+        op.asset_type = asset_type
 
     if props.asset_base_id != '':
-        op = layout.operator("object.blenderkit_upload", text='Reupload only metadata', icon='EXPORT')
+
+        op = layout.operator("object.blenderkit_upload", text='Reupload asset', icon='EXPORT')
         op.asset_type = asset_type
-        op.metadata_only = True
+        op.reupload = True
+
 
         op = layout.operator("object.blenderkit_upload", text='Upload as new asset', icon='EXPORT')
         op.asset_type = asset_type
-        op.as_new = True
-        # layout.label(text = 'asset id, overwrite only for reuploading')
-        if props.asset_base_id != '':
-            row = layout.row()
+        op.reupload = False
 
-            row.prop(props, 'asset_base_id', icon='FILE_TICK')
-        # layout.operator("object.blenderkit_mark_for_validation", icon='EXPORT')
+        # layout.label(text = 'asset id, overwrite only for reuploading')
+        row = layout.row()
+        row.enabled = False
+        row.prop(props, 'asset_base_id', icon='FILE_TICK')
+        row = layout.row()
+        row.enabled = False
+        row.prop(props, 'id', icon='FILE_TICK')
 
     layout.prop(props, 'category')
     if asset_type == 'MODEL' and props.subcategory != '':  # by now block this for other asset types.
