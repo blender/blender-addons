@@ -112,14 +112,14 @@ def get_missing_data_model(props):
 
     if props.name == '':
         write_to_report(props, 'Set model name')
-    if props.tags == '':
-        write_to_report(props, 'Write at least 3 tags')
+    # if props.tags == '':
+    #     write_to_report(props, 'Write at least 3 tags')
     if not props.has_thumbnail:
         write_to_report(props, 'Add thumbnail:')
 
         props.report += props.thumbnail_generating_state + '\n'
-    if props.work_hours == 0.0:
-        write_to_report(props, 'Fill in work hours')
+    # if props.work_hours == 0.0:
+    #     write_to_report(props, 'Fill in work hours')
     if props.engine == 'NONE':
         write_to_report(props, 'Set at least one rendering/output engine')
     if not any(props.dimensions):
@@ -132,14 +132,14 @@ def get_missing_data_scene(props):
 
     if props.name == '':
         write_to_report(props, 'Set scene name')
-    if props.tags == '':
-        write_to_report(props, 'Write at least 3 tags')
+    # if props.tags == '':
+    #     write_to_report(props, 'Write at least 3 tags')
     if not props.has_thumbnail:
         write_to_report(props, 'Add thumbnail:')
 
         props.report += props.thumbnail_generating_state + '\n'
-    if props.work_hours == 0.0:
-        write_to_report(props, 'Fill in work hours')
+    # if props.work_hours == 0.0:
+    #     write_to_report(props, 'Fill in work hours')
     if props.engine == 'NONE':
         write_to_report(props, 'Set at least one rendering/output engine')
 
@@ -149,8 +149,8 @@ def get_missing_data_material(props):
     autothumb.update_upload_material_preview(None, None)
     if props.name == '':
         write_to_report(props, 'Set material name')
-    if props.tags == '':
-        write_to_report(props, 'Write at least 3 tags')
+    # if props.tags == '':
+    #     write_to_report(props, 'Write at least 3 tags')
     if not props.has_thumbnail:
         write_to_report(props, 'Add thumbnail:')
         props.report += props.thumbnail_generating_state
@@ -163,8 +163,8 @@ def get_missing_data_brush(props):
     props.report = ''
     if props.name == '':
         write_to_report(props, 'Set brush name')
-    if props.tags == '':
-        write_to_report(props, 'Write at least 3 tags')
+    # if props.tags == '':
+    #     write_to_report(props, 'Write at least 3 tags')
     if not props.has_thumbnail:
         write_to_report(props, 'Add thumbnail:')
         props.report += props.thumbnail_generating_state

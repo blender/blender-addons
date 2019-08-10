@@ -188,7 +188,7 @@ def draw_panel_model_upload(self, context):
         label_multiline(layout, text=props.thumbnail_generating_state)
 
     layout.prop(props, 'description')
-    prop_needed(layout, props, 'tags', props.tags)
+    layout.prop(props, 'tags')
     # prop_needed(layout, props, 'style', props.style)
     # prop_needed(layout, props, 'production_level', props.production_level)
     layout.prop(props, 'style')
@@ -254,7 +254,7 @@ def draw_panel_scene_upload(self, context):
     #     label_multiline(layout, text = props.thumbnail_generating_state)
 
     layout.prop(props, 'description')
-    prop_needed(layout, props, 'tags', props.tags)
+    layout.prop(props, 'tags')
     layout.prop(props, 'style')
     layout.prop(props, 'production_level')
     layout.prop(props, 'use_design_year')
@@ -456,7 +456,7 @@ def draw_panel_material_upload(self, context):
     # layout.prop(props, 'engine')
     # if props.engine == 'OTHER':
     #     layout.prop(props, 'engine_other')
-    prop_needed(layout, props, 'tags', props.tags)
+    layout.prop(props, 'tags')
     # layout.prop(props,'shaders')#TODO autofill on upload
     # row = layout.row()
     layout.prop(props, 'pbr')
