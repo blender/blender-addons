@@ -142,6 +142,7 @@ def start_thumbnailer(self, context):
                 "thumbnail_angle": bkit.thumbnail_angle,
                 "thumbnail_snap_to": bkit.thumbnail_snap_to,
                 "thumbnail_background_lightness": bkit.thumbnail_background_lightness,
+                "thumbnail_resolution": bkit.thumbnail_resolution,
                 "thumbnail_samples": bkit.thumbnail_samples,
                 "thumbnail_denoising": bkit.thumbnail_denoising,
             }, s)

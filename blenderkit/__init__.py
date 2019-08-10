@@ -820,6 +820,13 @@ class BlenderKitModelUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
         description='typical placing of the interior. Leave on ground for most objects that respect gravity :)',
     )
 
+    thumbnail_resolution: EnumProperty(
+        name="Resolution",
+        items=thumbnail_resolutions,
+        description="Thumbnail resolution.",
+        default="512",
+    )
+
     thumbnail_samples: IntProperty(name="Cycles Samples",
                                    description="cycles samples setting", default=200,
                                    min=5, max=5000)
