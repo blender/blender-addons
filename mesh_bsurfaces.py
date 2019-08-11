@@ -147,43 +147,41 @@ def get_strokes_type(context):
         pass
         
     # Check if they are mesh
-    try:
-       main_object = bpy.context.scene.bsurfaces.SURFSK_object_with_retopology
-    except:
-        pass
+    main_object = bpy.context.scene.bsurfaces.SURFSK_object_with_retopology
+    total_vert_sel = len([v for v in main_object.data.vertices if v.select])
 
     # Check if they are curves, if there aren't grease pencil strokes
     if strokes_type == "":
-        if len(bpy.context.selected_objects) == 2:
-            for ob in bpy.context.selected_objects:
-                if ob != bpy.context.view_layer.objects.active and ob.type == "CURVE":
-                    strokes_type = "EXTERNAL_CURVE"
-                    strokes_num = len(ob.data.splines)
+        try:
+            ob = bpy.context.scene.bsurfaces.SURFSK_object_with_strokes
+            if ob.type == "CURVE":
+                strokes_type = "EXTERNAL_CURVE"
+                strokes_num = len(ob.data.splines)
+        
+                # Check if there is any non-bezier spline
+                for i in range(len(ob.data.splines)):
+                    if ob.data.splines[i].type != "BEZIER":
+                        strokes_type = "CURVE_WITH_NON_BEZIER_SPLINES"
+                        break
 
-                    # Check if there is any non-bezier spline
-                    for i in range(len(ob.data.splines)):
-                        if ob.data.splines[i].type != "BEZIER":
-                            strokes_type = "CURVE_WITH_NON_BEZIER_SPLINES"
-                            break
-
-                elif ob != bpy.context.view_layer.objects.active and ob.type != "CURVE":
-                    strokes_type = "EXTERNAL_NO_CURVE"
-        elif len(bpy.context.selected_objects) > 2:
-            strokes_type = "MORE_THAN_ONE_EXTERNAL"
+            else:
+                strokes_type = "EXTERNAL_NO_CURVE"
+        except:
+            pass
 
     # Check if there is a single stroke without any selection in the object
-    if strokes_num == 1 and main_object.data.total_vert_sel == 0:
+    if strokes_num == 1 and total_vert_sel == 0:
         if strokes_type == "EXTERNAL_CURVE":
             strokes_type = "SINGLE_CURVE_STROKE_NO_SELECTION"
         elif strokes_type == "GP_STROKES":
             strokes_type = "SINGLE_GP_STROKE_NO_SELECTION"
 
-    if strokes_num == 0 and main_object.data.total_vert_sel > 0:
+    if strokes_num == 0 and total_vert_sel > 0:
         strokes_type = "SELECTION_ALONE"
 
     if strokes_type == "":
         strokes_type = "NO_STROKES"
-    
+        
     return strokes_type
 
 
@@ -3206,7 +3204,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
             return{"CANCELLED"}
         bpy.context.view_layer.objects.active = self.main_object
 
-        self.main_object_selected_verts_count = int(self.main_object.data.total_vert_sel)
+        self.main_object_selected_verts_count = len([v for v in self.main_object.data.vertices if v.select])
 
         bpy.ops.wm.context_set_value(data_path='tool_settings.mesh_select_mode',
                                      value='True, False, False')
@@ -3258,9 +3256,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
                 self.using_external_curves = False
                 
             elif self.strokes_type == "EXTERNAL_CURVE":
-                for ob in bpy.context.selected_objects:
-                    if ob != bpy.context.view_layer.objects.active:
-                        self.original_curve = ob
+                self.original_curve = bsurfaces_props.SURFSK_object_with_strokes
                 self.using_external_curves = True
 
                 bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
