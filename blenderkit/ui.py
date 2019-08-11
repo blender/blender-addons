@@ -1128,7 +1128,7 @@ def update_ui_size(area, region):
         (ui.bar_width - 2 * ui.drawoffset) / (ui.thumb_size + ui.margin))
 
     search_results = bpy.context.scene.get('search results')
-    if search_results != None:
+    if search_results != None and ui.wcount>0:
         ui.hcount = min(user_preferences.max_assetbar_rows, math.ceil(len(search_results) / ui.wcount))
     else:
         ui.hcount = 1
