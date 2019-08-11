@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 bl_info = {
-    "name": "Hotkey: 'Ctrl Alt S ",
+    "name": "Hotkey: 'Ctrl Alt S' ",
     "description": "Switch Editor Type Menu",
     "author": "saidenka, meta-androcto",
     "version": (0, 1, 0),
@@ -111,6 +111,16 @@ class PIE_OT_SetAreaType(Operator):
         context.area.type = self.types
         return {'FINISHED'}
 
+class PIE_OT_Timeline(Operator):
+    bl_idname = "wm.set_timeline"
+    bl_label = "Change Editor Type"
+    bl_description = "Change Editor Type"
+    bl_options = {'REGISTER'}
+
+    def execute(self, context):
+        bpy.context.area.ui_type = 'TIMELINE'
+        return {'FINISHED'}
+
 
 class PIE_MT_AreaTypePieAnim(Menu):
     bl_idname = "TOPBAR_MT_window_pie_area_type_anim"
@@ -121,7 +131,7 @@ class PIE_MT_AreaTypePieAnim(Menu):
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="NLA Editor", icon="NLA").types = "NLA_EDITOR"
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="DopeSheet", icon="ACTION").types = "DOPESHEET_EDITOR"
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Graph Editor", icon="GRAPH").types = "GRAPH_EDITOR"
-#        self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Timeline", icon="TIME").types = "TIMELINE"
+        self.layout.operator(PIE_OT_Timeline.bl_idname, text="Timeline", icon="TIME")
         self.layout.operator(PIE_OT_SetAreaType.bl_idname,
                              text="Video Sequence Editor", icon="SEQUENCE").types = "SEQUENCE_EDITOR"
         self.layout.operator(PIE_OT_SetAreaType.bl_idname,
@@ -135,6 +145,7 @@ classes = (
     PIE_MT_AreaTypePieOther,
     PIE_OT_SetAreaType,
     PIE_MT_AreaTypePieAnim,
+    PIE_OT_Timeline
     )
 
 addon_keymaps = []
