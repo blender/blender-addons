@@ -624,7 +624,7 @@ class BlenderKitMaterialUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
                                    description="size of material preview object in meters "
                                                "- change for materials that look better at sizes different than 1m",
                                    default=1, min=0.00001, max=10)
-    thumbnail_background: BoolProperty(name="Thumbnail Background",
+    thumbnail_background: BoolProperty(name="Thumbnail Background (for Glass only)",
                                        description="For refractive materials, you might need a background. "
                                                    "Don't use if thumbnail looks good without it!",
                                        default=False)
