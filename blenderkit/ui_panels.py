@@ -452,8 +452,8 @@ def draw_panel_material_upload(self, context):
     prop_needed(layout, props, 'name', props.name)
     layout.prop(props, 'description')
     layout.prop(props, 'style')
-    if props.style == 'OTHER':
-        layout.prop(props, 'style_other')
+    # if props.style == 'OTHER':
+    #     layout.prop(props, 'style_other')
     # layout.prop(props, 'engine')
     # if props.engine == 'OTHER':
     #     layout.prop(props, 'engine_other')

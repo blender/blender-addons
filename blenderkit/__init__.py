@@ -108,8 +108,8 @@ model_styles = (
     ('PAINTERLY', 'Painterly', 'hand painted with visible strokes, mostly for games'),
     ('LOWPOLY', 'Lowpoly', "Lowpoly art -don't mix up with polycount!"),
     ('ANIME', 'Anime', 'Anime style'),
-    ('2D VECTOR', '2d Vector', '2d vector'),
-    ('3D GRAPHICS', '3d Graphics', '3d graphics'),
+    ('2D_VECTOR', '2d Vector', '2d vector'),
+    ('3D_GRAPHICS', '3d Graphics', '3d graphics'),
     ('OTHER', 'Other', 'Other style'),
 )
 search_model_styles = (
@@ -117,8 +117,8 @@ search_model_styles = (
     ('PAINTERLY', 'Painterly', 'hand painted with visible strokes, mostly for games'),
     ('LOWPOLY', 'Lowpoly', "Lowpoly art -don't mix up with polycount!"),
     ('ANIME', 'Anime', 'Anime style'),
-    ('2D VECTOR', '2d Vector', '2d vector'),
-    ('3D GRAPHICS', '3d Graphics', '3d graphics'),
+    ('2D_VECTOR', '2d Vector', '2d vector'),
+    ('3D_GRAPHICS', '3d Graphics', '3d graphics'),
     ('OTHER', 'Other', 'Other Style'),
     ('ANY', 'Any', 'Any Style'),
 )

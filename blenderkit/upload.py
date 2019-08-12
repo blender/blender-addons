@@ -217,8 +217,8 @@ def get_upload_data(self, context, asset_type):
             engines.append(props.engine_other.lower())
 
         style = props.style.lower()
-        if style == 'OTHER':
-            style = props.style_other.lower()
+        # if style == 'OTHER':
+        #     style = props.style_other.lower()
 
         pl_dict = {'FINISHED': 'finished', 'TEMPLATE': 'template'}
 
@@ -301,8 +301,8 @@ def get_upload_data(self, context, asset_type):
             engines.append(props.engine_other.lower())
 
         style = props.style.lower()
-        if style == 'OTHER':
-            style = props.style_other.lower()
+        # if style == 'OTHER':
+        #     style = props.style_other.lower()
 
         pl_dict = {'FINISHED': 'finished', 'TEMPLATE': 'template'}
 
@@ -363,8 +363,8 @@ def get_upload_data(self, context, asset_type):
             engine = props.engine_other
         engine = engine.lower()
         style = props.style.lower()
-        if style == 'OTHER':
-            style = props.style_other.lower()
+        # if style == 'OTHER':
+        #     style = props.style_other.lower()
 
         upload_data = {
             "assetType": 'material',
@@ -421,8 +421,8 @@ def get_upload_data(self, context, asset_type):
 
     elif asset_type == 'TEXTURE':
         style = props.style
-        if style == 'OTHER':
-            style = props.style_other
+        # if style == 'OTHER':
+        #     style = props.style_other
 
         upload_data = {
             "assetType": 'texture',
