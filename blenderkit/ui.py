@@ -602,11 +602,17 @@ def draw_callback_2d(self, context):
         # self.area might throw error just by itself.
         a1 = self.area
         go = True
+        if len(a.spaces[0].region_quadviews)>0:
+           # print(dir(bpy.context.region_data))
+            #print('quad', a.spaces[0].region_3d, a.spaces[0].region_quadviews[0])
+            if a.spaces[0].region_3d != context.region_data:
+                go = False
     except:
         # bpy.types.SpaceView3D.draw_handler_remove(self._handle_2d, 'WINDOW')
         # bpy.types.SpaceView3D.draw_handler_remove(self._handle_3d, 'WINDOW')
         go = False
     if go and a == a1:
+
         props = context.scene.blenderkitUI
         if props.down_up == 'SEARCH':
             draw_ratings_bgl()
