@@ -108,7 +108,8 @@ def fetch_server_data():
         # version_checker.check_version_thread(url, api_key, blenderkit)
         if user_preferences.enable_oauth:
             bkit_oauth.refresh_token_thread()
-        get_profile()
+        if api_key != '':
+            get_profile()
         categories.fetch_categories_thread(api_key)
 
 
