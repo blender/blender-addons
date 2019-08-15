@@ -86,7 +86,6 @@ else:
 
 import bpy
 from bpy.types import Menu
-from sys import *
 
 class VIEW3D_MT_mesh_vert_add(Menu):
     # Define the "Single Vert" menu
@@ -286,6 +285,41 @@ def Extras_contex_menu(self, context):
         props = layout.operator("mesh.wall_add", text="Change Wall")
         props.change = True
         for prm in Wallfactory.WallParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+
+    if 'ElbowJoint' in obj.data.keys():
+        props = layout.operator("mesh.primitive_elbow_joint_add", text="Change ElbowJoint")
+        props.change = True
+        for prm in add_mesh_pipe_joint.ElbowJointParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+
+    if 'TeeJoint' in obj.data.keys():
+        props = layout.operator("mesh.primitive_tee_joint_add", text="Change TeeJoint")
+        props.change = True
+        for prm in add_mesh_pipe_joint.TeeJointParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+
+    if 'WyeJoint' in obj.data.keys():
+        props = layout.operator("mesh.primitive_wye_joint_add", text="Change WyeJoint")
+        props.change = True
+        for prm in add_mesh_pipe_joint.WyeJointParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+
+    if 'CrossJoint' in obj.data.keys():
+        props = layout.operator("mesh.primitive_cross_joint_add", text="Change CrossJoint")
+        props.change = True
+        for prm in add_mesh_pipe_joint.CrossJointParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+
+    if 'NJoint' in obj.data.keys():
+        props = layout.operator("mesh.primitive_n_joint_add", text="Change NJoint")
+        props.change = True
+        for prm in add_mesh_pipe_joint.NJointParameters():
             setattr(props, prm, obj.data[prm])
         layout.separator()
 

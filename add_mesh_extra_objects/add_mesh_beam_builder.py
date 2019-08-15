@@ -790,9 +790,20 @@ class addBeam(Operator):
                 obj.data[prm] = getattr(self, prm)
 
             return {'FINISHED'}
+            
+        if bpy.context.mode == "EDIT_MESH":
+            active_object = context.active_object
+            name_active_object = active_object.name
+            bpy.ops.object.mode_set(mode='OBJECT')
+            mesh = addBeamMesh(self, context)
+            obj = object_utils.object_data_add(context, mesh, operator=None)
+            obj.select_set(True)
+            active_object.select_set(True)
+            bpy.ops.object.join()
+            context.active_object.name = name_active_object
+            bpy.ops.object.mode_set(mode='EDIT')
 
-        self.report({'WARNING'}, "Option only valid in Object mode")
-        return {'CANCELLED'}
+        return {'FINISHED'}
 
 def BeamParameters():
     BeamParameters = [

@@ -872,26 +872,40 @@ class add_mesh_wallb(Operator):
                                         stepBack
                                         )
 
-        if self.change == True and self.change != None:
-            obj = context.active_object
-            oldmesh = obj.data
-            oldmeshname = obj.data.name
-            mesh = bpy.data.meshes.new("Wall")
-            mesh.from_pydata(verts_array, [], faces_array)
-            obj.data = mesh
-            bpy.data.meshes.remove(oldmesh)
-            obj.data.name = oldmeshname
-        else:
-            mesh = bpy.data.meshes.new("Wall")
+        if bpy.context.mode == "OBJECT":
+            if self.change == True and self.change != None:
+                obj = context.active_object
+                oldmesh = obj.data
+                oldmeshname = obj.data.name
+                mesh = bpy.data.meshes.new("Wall")
+                mesh.from_pydata(verts_array, [], faces_array)
+                obj.data = mesh
+                bpy.data.meshes.remove(oldmesh)
+                obj.data.name = oldmeshname
+            else:
+                mesh = bpy.data.meshes.new("Wall")
+                mesh.from_pydata(verts_array, [], faces_array)
+                obj = object_utils.object_data_add(context, mesh, operator=None)
+            
+            mesh.update()
+            
+            obj.data["Wall"] = True
+            obj.data["change"] = False
+            for prm in WallParameters():
+                obj.data[prm] = getattr(self, prm)
+                
+        if bpy.context.mode == "EDIT_MESH":
+            active_object = context.active_object
+            name_active_object = active_object.name
+            bpy.ops.object.mode_set(mode='OBJECT')
+            mesh = bpy.data.meshes.new("TMP")
             mesh.from_pydata(verts_array, [], faces_array)
             obj = object_utils.object_data_add(context, mesh, operator=None)
-        
-        mesh.update()
-        
-        obj.data["Wall"] = True
-        obj.data["change"] = False
-        for prm in WallParameters():
-            obj.data[prm] = getattr(self, prm)
+            obj.select_set(True)
+            active_object.select_set(True)
+            bpy.ops.object.join()
+            context.active_object.name = name_active_object
+            bpy.ops.object.mode_set(mode='EDIT')
 
         return {'FINISHED'}
 

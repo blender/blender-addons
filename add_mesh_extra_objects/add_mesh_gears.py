@@ -19,7 +19,6 @@ from mathutils import (
         Matrix,
         )
 from bpy_extras import object_utils
-from sys import *
 
 # A very simple "bridge" tool.
 # Connects two equally long vertex rows with faces.
@@ -671,38 +670,58 @@ class AddGear(Operator):
 
     def execute(self, context):
         
-        if self.change == True and self.change != None:
-            obj = context.active_object
-            if 'Gear' in obj.data.keys():
-                oldmesh = obj.data
-                oldmeshname = obj.data.name
-                mesh, verts_tip, verts_valley = AddGearMesh(self, context)
-                obj.data = mesh
-                try:
-                    bpy.ops.object.vertex_group_remove(all=True)
-                except:
-                    pass
-                bpy.data.meshes.remove(oldmesh)
-                obj.data.name = oldmeshname
+        if bpy.context.mode == "OBJECT":
+            if self.change == True and self.change != None:
+                obj = context.active_object
+                if 'Gear' in obj.data.keys():
+                    oldmesh = obj.data
+                    oldmeshname = obj.data.name
+                    mesh, verts_tip, verts_valley = AddGearMesh(self, context)
+                    obj.data = mesh
+                    try:
+                        bpy.ops.object.vertex_group_remove(all=True)
+                    except:
+                        pass
+                    bpy.data.meshes.remove(oldmesh)
+                    obj.data.name = oldmeshname
+                else:
+                    mesh, verts_tip, verts_valley = AddGearMesh(self, context)
+                    obj = object_utils.object_data_add(context, mesh, operator=None)
             else:
                 mesh, verts_tip, verts_valley = AddGearMesh(self, context)
                 obj = object_utils.object_data_add(context, mesh, operator=None)
-        else:
+    
+            # Create vertex groups from stored vertices.
+            tipGroup = obj.vertex_groups.new(name='Tips')
+            tipGroup.add(verts_tip, 1.0, 'ADD')
+    
+            valleyGroup = obj.vertex_groups.new(name='Valleys')
+            valleyGroup.add(verts_valley, 1.0, 'ADD')
+    
+            obj.data["Gear"] = True
+            obj.data["change"] = False
+            for prm in GearParameters():
+                obj.data[prm] = getattr(self, prm)
+
+        if bpy.context.mode == "EDIT_MESH":
+            active_object = context.active_object
+            name_active_object = active_object.name
+            bpy.ops.object.mode_set(mode='OBJECT')
             mesh, verts_tip, verts_valley = AddGearMesh(self, context)
             obj = object_utils.object_data_add(context, mesh, operator=None)
-
-        # Create vertex groups from stored vertices.
-        tipGroup = obj.vertex_groups.new(name='Tips')
-        tipGroup.add(verts_tip, 1.0, 'ADD')
-
-        valleyGroup = obj.vertex_groups.new(name='Valleys')
-        valleyGroup.add(verts_valley, 1.0, 'ADD')
-
-        obj.data["Gear"] = True
-        obj.data["change"] = False
-        for prm in GearParameters():
-            obj.data[prm] = getattr(self, prm)
-
+            
+            # Create vertex groups from stored vertices.
+            tipGroup = obj.vertex_groups.new(name='Tips')
+            tipGroup.add(verts_tip, 1.0, 'ADD')
+    
+            valleyGroup = obj.vertex_groups.new(name='Valleys')
+            valleyGroup.add(verts_valley, 1.0, 'ADD')
+            
+            obj.select_set(True)
+            active_object.select_set(True)
+            bpy.ops.object.join()
+            context.active_object.name = name_active_object
+            bpy.ops.object.mode_set(mode='EDIT')
         return {'FINISHED'}
 
 def GearParameters():
@@ -848,37 +867,58 @@ class AddWormGear(Operator):
 
     def execute(self, context):
 
-        if self.change == True and self.change != None:
-            obj = context.active_object
-            if 'WormGear' in obj.data.keys():
-                oldmesh = obj.data
-                oldmeshname = obj.data.name
-                mesh, verts_tip, verts_valley = AddWormGearMesh(self, context)
-                obj.data = mesh
-                try:
-                    bpy.ops.object.vertex_group_remove(all=True)
-                except:
-                    pass
-                bpy.data.meshes.remove(oldmesh)
-                obj.data.name = oldmeshname
+        if bpy.context.mode == "OBJECT":
+            if self.change == True and self.change != None:
+                obj = context.active_object
+                if 'WormGear' in obj.data.keys():
+                    oldmesh = obj.data
+                    oldmeshname = obj.data.name
+                    mesh, verts_tip, verts_valley = AddWormGearMesh(self, context)
+                    obj.data = mesh
+                    try:
+                        bpy.ops.object.vertex_group_remove(all=True)
+                    except:
+                        pass
+                    bpy.data.meshes.remove(oldmesh)
+                    obj.data.name = oldmeshname
+                else:
+                    mesh, verts_tip, verts_valley = AddWormGearMesh(self, context)
+                    obj = object_utils.object_data_add(context, mesh, operator=None)
             else:
                 mesh, verts_tip, verts_valley = AddWormGearMesh(self, context)
                 obj = object_utils.object_data_add(context, mesh, operator=None)
-        else:
+    
+            # Create vertex groups from stored vertices.
+            tipGroup = obj.vertex_groups.new(name = 'Tips')
+            tipGroup.add(verts_tip, 1.0, 'ADD')
+    
+            valleyGroup = obj.vertex_groups.new(name = 'Valleys')
+            valleyGroup.add(verts_valley, 1.0, 'ADD')
+            
+            obj.data["WormGear"] = True
+            obj.data["change"] = False
+            for prm in WormGearParameters():
+                obj.data[prm] = getattr(self, prm)
+
+        if bpy.context.mode == "EDIT_MESH":
+            active_object = context.active_object
+            name_active_object = active_object.name
+            bpy.ops.object.mode_set(mode='OBJECT')
             mesh, verts_tip, verts_valley = AddWormGearMesh(self, context)
             obj = object_utils.object_data_add(context, mesh, operator=None)
-
-        # Create vertex groups from stored vertices.
-        tipGroup = obj.vertex_groups.new(name = 'Tips')
-        tipGroup.add(verts_tip, 1.0, 'ADD')
-
-        valleyGroup = obj.vertex_groups.new(name = 'Valleys')
-        valleyGroup.add(verts_valley, 1.0, 'ADD')
-        
-        obj.data["WormGear"] = True
-        obj.data["change"] = False
-        for prm in WormGearParameters():
-            obj.data[prm] = getattr(self, prm)
+            
+            # Create vertex groups from stored vertices.
+            tipGroup = obj.vertex_groups.new(name = 'Tips')
+            tipGroup.add(verts_tip, 1.0, 'ADD')
+    
+            valleyGroup = obj.vertex_groups.new(name = 'Valleys')
+            valleyGroup.add(verts_valley, 1.0, 'ADD')
+            
+            obj.select_set(True)
+            active_object.select_set(True)
+            bpy.ops.object.join()
+            context.active_object.name = name_active_object
+            bpy.ops.object.mode_set(mode='EDIT')
 
         return {'FINISHED'}
 
