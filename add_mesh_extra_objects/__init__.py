@@ -323,6 +323,27 @@ def Extras_contex_menu(self, context):
             setattr(props, prm, obj.data[prm])
         layout.separator()
 
+    if 'Diamond' in obj.data.keys():
+        props = layout.operator("mesh.primitive_diamond_add", text="Change Diamond")
+        props.change = True
+        for prm in add_mesh_gemstones.DiamondParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+        
+    if 'Gem' in obj.data.keys():
+        props = layout.operator("mesh.primitive_gem_add", text="Change Gem")
+        props.change = True
+        for prm in add_mesh_gemstones.GemParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+        
+    if 'Brilliant' in obj.data.keys():
+        props = layout.operator("mesh.primitive_brilliant_add", text="Change Brilliant")
+        props.change = True
+        for prm in add_mesh_round_brilliant.BrilliantParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+
 # Register
 classes = [
     VIEW3D_MT_mesh_vert_add,
