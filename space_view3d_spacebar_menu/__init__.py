@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Dynamic Context Menu",
     "author": "meta-androcto",
-    "version": (1, 9, 3),
+    "version": (1, 9, 4),
     "blender": (2, 80, 0),
     "location": "View3D > Spacebar",
     "description": "Object Mode Context Sensitive Spacebar Menu",
@@ -85,6 +85,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+            layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
             layout.menu("VIEW3D_MT_Animation_Player",
                         text="Animation", icon='PLAY')
             layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
@@ -111,6 +112,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
@@ -148,6 +150,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             if obj and obj.type == 'MESH' and obj.mode in {'EDIT'}:
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
@@ -183,6 +186,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
             if obj and obj.type == 'MESH' and obj.mode in {'SCULPT'}:
 
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
@@ -208,6 +212,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_InteractiveMode", icon='EDITMODE_HLT')
@@ -229,6 +234,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_InteractiveMode", icon='EDITMODE_HLT')
@@ -250,6 +256,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_InteractiveMode", icon='EDITMODE_HLT')
@@ -268,6 +275,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
 
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
@@ -306,6 +314,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
@@ -340,6 +349,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
@@ -375,6 +385,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
@@ -409,6 +420,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
@@ -443,6 +455,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
@@ -476,6 +489,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.operator("view3d.interactive_mode_text", icon='VIEW3D')
@@ -514,6 +528,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.operator("object.editmode_toggle", text="Enter Object Mode",
@@ -534,6 +549,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
@@ -568,6 +584,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
@@ -602,6 +619,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_Object_Interactive_Armature", icon='VIEW3D')
@@ -637,6 +655,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_Object_Interactive_Armature", icon='VIEW3D')
@@ -675,6 +694,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_Object_Interactive_Armature", icon='VIEW3D')
@@ -714,6 +734,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
@@ -750,6 +771,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
@@ -780,6 +802,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
@@ -815,6 +838,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
@@ -845,6 +869,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_InteractiveMode", icon='VIEW3D')
@@ -879,6 +904,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_interactive_mode_gpencil", icon='EDITMODE_HLT')
@@ -917,6 +943,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_interactive_mode_gpencil", icon='EDITMODE_HLT')
@@ -943,6 +970,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_interactive_mode_gpencil", icon='EDITMODE_HLT')
@@ -968,6 +996,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_interactive_mode_gpencil", icon='EDITMODE_HLT')
@@ -993,6 +1022,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_interactive_mode_gpencil", icon='EDITMODE_HLT')
@@ -1013,6 +1043,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.menu("VIEW3D_MT_Animation_Player",
                             text="Animation", icon='PLAY')
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
                 UseSeparator(self, context)
                 layout.menu("INFO_MT_area", icon='WORKSPACE')
