@@ -45,6 +45,7 @@ BLENDERKIT_EXPORT_DATA_FILE = "data.json"
 from bpy.props import (  # TODO only keep the ones actually used when cleaning
     EnumProperty,
     BoolProperty,
+    StringProperty,
 )
 from bpy.types import (
     Operator,
@@ -464,27 +465,19 @@ def get_upload_data(self, context, asset_type):
     return export_data, upload_data, eval_path_computing, eval_path_state, eval_path, props
 
 
-def mark_for_validation(self, context, asset_type):
-    props = utils.get_upload_props()
-    props.upload_state = 'marking for validation'
+def verification_status_change(self, context, asset_id, state):
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
-
     upload_data = {
-        "verificationStatus": "ready"
+        "verificationStatus": state
     }
-
-    url = paths.get_api_url() + 'assets/'
-
+    url = paths.get_api_url() + 'assets/' + str(asset_id) + '/'
     headers = utils.get_headers(user_preferences.api_key)
-
-    url += props.id + '/'
-
     try:
         r = requests.patch(url, json=upload_data, headers=headers, verify=True)  # files = files,
-        props.upload_state = 'marked for validation'
+        #print('changed status ')
+        #print(r.text)
     except requests.exceptions.RequestException as e:
-        props.upload_state = str(e)
-        props.uploading = False
+        print(e)
         return {'CANCELLED'}
     return {'FINISHED'}
 
@@ -644,7 +637,7 @@ def start_upload(self, context, asset_type, reupload, upload_set):
     # props.upload_state = 'step 1'
     if upload_set == ['METADATA']:
         props.uploading = False
-
+        props.upload_state = 'upload finished successfully'
         return {'FINISHED'}
     try:
         rj = r.json()
@@ -798,9 +791,48 @@ class UploadOperator(Operator):
             return self.execute(context)
 
 
+
+class AssetVerificationStatusChange(Operator):
+    """Change verification status"""
+    bl_idname = "object.blenderkit_change_status"
+    bl_description = "Change asset ststus"
+    bl_label = "Change verification status"
+
+    # type of upload - model, material, textures, e.t.c.
+    asset_id: StringProperty(
+        name="asset id",
+    )
+
+    state: StringProperty(
+        name="verification_status",
+        default = 'uploaded'
+    )
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        #if self.state == 'deleted':
+        layout.label(text='Really delete asset from BlenderKit online storage?')
+        # layout.prop(self, 'state')
+
+    def execute(self, context):
+        result = verification_status_change(self, context, self.asset_id, self.state)
+        return result
+
+    def invoke(self, context, event):
+        print(self.state)
+        if self.state =='deleted':
+            wm = context.window_manager
+            return wm.invoke_props_dialog(self)
+
+
 def register_upload():
     bpy.utils.register_class(UploadOperator)
+    bpy.utils.register_class(AssetVerificationStatusChange)
 
 
 def unregister_upload():
     bpy.utils.unregister_class(UploadOperator)
+    bpy.utils.unregister_class(AssetVerificationStatusChange)

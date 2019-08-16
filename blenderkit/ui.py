@@ -1323,11 +1323,23 @@ class AssetBarOperator(bpy.types.Operator):
             # if event.type == 'TRACKPADPAN' :
             #     print(dir(event))
             #     print(event.value, event.oskey, event.)
-            if (event.type == 'WHEELDOWNMOUSE') and len(sr) - ui_props.scrolloffset > ui_props.wcount:
-                ui_props.scrolloffset += 1
+            if (event.type == 'WHEELDOWNMOUSE') and len(sr) - ui_props.scrolloffset > (
+                    ui_props.wcount * ui_props.hcount):
+                if ui_props.hcount > 1:
+                    ui_props.scrolloffset += ui_props.wcount
+                else:
+                    ui_props.scrolloffset += 1
+                if len(sr) - ui_props.scrolloffset < (ui_props.wcount * ui_props.hcount):
+                    ui_props.scrolloffset = len(sr) - (ui_props.wcount * ui_props.hcount)
 
             if event.type == 'WHEELUPMOUSE' and ui_props.scrolloffset > 0:
-                ui_props.scrolloffset -= 1
+                if ui_props.hcount > 1:
+                    ui_props.scrolloffset -= ui_props.wcount
+                else:
+                    ui_props.scrolloffset -= 1
+                if ui_props.scrolloffset < 0:
+                    ui_props.scrolloffset = 0
+
             return {'RUNNING_MODAL'}
         if event.type == 'MOUSEMOVE':  # Apply
 
@@ -1358,7 +1370,6 @@ class AssetBarOperator(bpy.types.Operator):
                 ui_props.draw_snapped_bounds = False
                 ui_props.draw_tooltip = False
                 bpy.context.window.cursor_set("DEFAULT")
-                print('out of region')
                 return {'PASS_THROUGH'}
 
             sr = bpy.context.scene['search results']
@@ -1411,6 +1422,14 @@ class AssetBarOperator(bpy.types.Operator):
                     ui_props.draw_snapped_bounds = False
                     ui_props.draw_drag_image = True
             return {'RUNNING_MODAL'}
+
+        if event.type == 'RIGHTMOUSE':
+            mx = event.mouse_x - r.x
+            my = event.mouse_y - r.y
+
+            if event.value == 'PRESS' and mouse_in_asset_bar(mx, my):
+                bpy.ops.wm.call_menu(name='OBJECT_MT_blenderkit_asset_menu')
+                return {'RUNNING_MODAL'}
 
         if event.type == 'LEFTMOUSE':
 

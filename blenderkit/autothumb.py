@@ -253,7 +253,7 @@ def start_material_thumbnailer(self, context):
 
 
 class GenerateThumbnailOperator(bpy.types.Operator):
-    """Tooltip"""
+    """Generate Cycles thumbnail for model assets"""
     bl_idname = "object.blenderkit_generate_thumbnail"
     bl_label = "BlenderKit Thumbnail Generator"
 

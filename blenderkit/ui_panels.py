@@ -114,18 +114,16 @@ def draw_upload_common(layout, props, asset_type, context):
         op.asset_type = asset_type
 
     if props.asset_base_id != '':
-
         op = layout.operator("object.blenderkit_upload", text='Reupload asset', icon='EXPORT')
         op.asset_type = asset_type
         op.reupload = True
-
 
         op = layout.operator("object.blenderkit_upload", text='Upload as new asset', icon='EXPORT')
         op.asset_type = asset_type
         op.reupload = False
 
         # layout.label(text = 'asset id, overwrite only for reuploading')
-        layout.label(text = 'asset has a version online.')
+        layout.label(text='asset has a version online.')
         # row = layout.row()
         # row.enabled = False
         # row.prop(props, 'asset_base_id', icon='FILE_TICK')
@@ -387,10 +385,12 @@ class VIEW3D_PT_blenderkit_model_properties(Panel):
         layout.operator('object.blenderkit_bring_to_scene', text='Bring to scene')
         # layout.operator('object.blenderkit_color_corrector')
 
+
 def draw_login_progress(layout):
     layout.label(text='Login through browser')
     layout.label(text='in progress.')
     layout.operator("wm.blenderkit_login_cancel", text="Cancel", icon='CANCEL')
+
 
 class VIEW3D_PT_blenderkit_profile(Panel):
     bl_category = "BlenderKit"
@@ -416,7 +416,6 @@ class VIEW3D_PT_blenderkit_profile(Panel):
         if user_preferences.enable_oauth:
             draw_login_buttons(layout)
 
-
         if user_preferences.api_key != '':
             me = bpy.context.window_manager.get('bkit profile')
             if me is not None:
@@ -429,7 +428,7 @@ class VIEW3D_PT_blenderkit_profile(Panel):
                     layout.label(text='Private assets: %i MiB' % (me['sumPrivateAssetFilesSize']))
                 if me.get('remainingPrivateQuota') is not None:
                     layout.label(text='Remaining private storage: %i MiB' % (me['remainingPrivateQuota']))
-                    
+
             layout.operator("wm.url_open", text="See my uploads",
                             icon='URL').url = paths.BLENDERKIT_USER_ASSETS
 
@@ -561,11 +560,9 @@ def draw_login_buttons(layout):
 
         else:
             layout.operator("wm.blenderkit_login", text="Login as someone else",
-                           icon='URL').signup = False
+                            icon='URL').signup = False
             layout.operator("wm.blenderkit_logout", text="Logout",
                             icon='URL')
-
-
 
 
 class VIEW3D_PT_blenderkit_unified(Panel):
@@ -721,6 +718,53 @@ class VIEW3D_PT_blenderkit_unified(Panel):
                 layout.label(text='not yet implemented')
 
 
+class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
+    bl_label = "Asset options:"
+    bl_idname = "OBJECT_MT_blenderkit_asset_menu"
+
+    def draw(self, context):
+        layout = self.layout
+        ui_props = context.scene.blenderkitUI
+
+        sr = bpy.context.scene['search results']
+        sr = bpy.context.scene['search results orig']['results']
+        asset_data = sr[ui_props.active_index]
+        author_id = str(asset_data['author']['id'])
+        a = bpy.context.window_manager['bkit authors'].get(author_id)
+        if a is not None:
+            # utils.p('author:', a)
+            if a.get('aboutMeUrl') is not None:
+                op = layout.operator('wm.url_open', text="Open author's website")
+                op.url = a['aboutMeUrl']
+        op = layout.operator('view3d.blenderkit_search', text='search assets by same author')
+        op.author_id = author_id
+
+        op = layout.operator('view3d.blenderkit_search', text='search similar')
+        print(dir(asset_data))
+        op.keywords = asset_data['name'] + ' ' + asset_data['description'] + ' ' + ''.join(asset_data['tags'])
+
+        wm = bpy.context.window_manager
+        profile = wm.get('bkit profile')
+        if profile is not None:
+            # validation by admin
+            if profile['user']['id'] == 2:
+                if asset_data['verificationStatus'] != 'validated':
+                    op = layout.operator('object.blenderkit_change_status', text='Validate')
+                    op.asset_id = asset_data['id']
+                    op.state = 'validated'
+
+            if author_id == str(profile['user']['id']):
+                layout.label(text='Management tools:')
+                row = layout.row()
+                row.operator_context = 'INVOKE_DEFAULT'
+                op = row.operator('object.blenderkit_change_status', text='Delete')
+                op.asset_id = asset_data['id']
+                op.state = 'deleted'
+            # else:
+            #     #not an author - can rate
+            #     draw_ratings(layout, context)
+
+
 class SetCategoryOperator(bpy.types.Operator):
     """Visit subcategory"""
     bl_idname = "view3d.blenderkit_set_category"
@@ -838,7 +882,8 @@ classess = (
     VIEW3D_PT_blenderkit_unified,
     VIEW3D_PT_blenderkit_model_properties,
     VIEW3D_PT_blenderkit_downloads,
-    VIEW3D_PT_blenderkit_profile
+    VIEW3D_PT_blenderkit_profile,
+    OBJECT_MT_blenderkit_asset_menu
 )
 
 
