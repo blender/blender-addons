@@ -430,7 +430,7 @@ class VIEW3D_PT_blenderkit_profile(Panel):
                     layout.label(text='Remaining private storage: %i MiB' % (me['remainingPrivateQuota']))
 
             layout.operator("wm.url_open", text="See my uploads",
-                            icon='URL').url = paths.BLENDERKIT_USER_ASSETS
+                            icon='URL').url = paths.get_bkit_url() + paths.BLENDERKIT_USER_ASSETS
 
 
 def draw_panel_model_rating(self, context):
