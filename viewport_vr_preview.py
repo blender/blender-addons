@@ -26,19 +26,19 @@ bl_info = {
     "version": (0, 0, 1),
     "blender": (2, 81, 0),
     "location": "Window > Toggle VR Session",
-    "description": ("Enable viewing the Blender viewport within virtual "
-                    "reality glasses."),
-    "warning": "This is an early, limited preview of in development VR "
-               "support for Blender.",
+    "description": ("Enable viewing the Blender viewport within "
+                    "virtual reality glasses."),
+    "support": "OFFICIAL",
+    "warning": "This is an early, limited preview of in development "
+               "VR support for Blender.",
     "category": "3D View",
 }
 
 
 def window_menu_append_func(self, context):
-    self.layout.separator()
-
-    # TODO WITH_OPENXR
-    self.layout.operator("wm.xr_session_toggle")
+    if bpy.app.build_options.openxr:
+        self.layout.separator()
+        self.layout.operator("wm.xr_session_toggle")
 
 
 classes = (
