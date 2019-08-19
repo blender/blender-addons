@@ -547,13 +547,13 @@ def write_pov(filename, scene=None, info_callback=None):
                      tuple([degrees(e) for e in matrix.to_3x3().to_euler()]))
             tabWrite("translate <%.6f, %.6f, %.6f>\n" % matrix.translation[:])
             if camera.data.dof.use_dof and (focal_point != 0 or camera.data.dof.focus_object):
-                tabWrite("aperture %.3g\n" % 1/camera.data.dof.aperture_fstop*1000)
+                tabWrite("aperture %.3g\n" % (1/camera.data.dof.aperture_fstop*1000))
                 tabWrite("blur_samples %d %d\n" % \
                          (camera.data.pov.dof_samples_min, camera.data.pov.dof_samples_max))
                 tabWrite("variance 1/%d\n" % camera.data.pov.dof_variance)
                 tabWrite("confidence %.3g\n" % camera.data.pov.dof_confidence)
-                if camera.data.dof_object:
-                    focalOb = scene.objects[camera.data.dof_object.name]
+                if camera.data.dof.focus_object:
+                    focalOb = scene.objects[camera.data.dof.focus_object.name]
                     matrixBlur = global_matrix @ focalOb.matrix_world
                     tabWrite("focal_point <%.4f,%.4f,%.4f>\n"% matrixBlur.translation[:])
                 else:
