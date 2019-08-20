@@ -26,8 +26,8 @@ bl_info = {
     "version": (0, 0, 1),
     "blender": (2, 81, 0),
     "location": "Window > Toggle VR Session",
-    "description": ("Enable viewing the Blender viewport within "
-                    "virtual reality glasses."),
+    "description": ("View the viewport with virtual reality glasses "
+                    "(head-mounted displays)"),
     "support": "OFFICIAL",
     "warning": "This is an early, limited preview of in development "
                "VR support for Blender.",
