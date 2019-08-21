@@ -1032,42 +1032,53 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         if scene_data.settings.use_tspace:
             tspacenumber = len(me.uv_layers)
             if tspacenumber:
-                t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
-                # t_lnw = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops)
-                uv_names = [uvlayer.name for uvlayer in me.uv_layers]
-                for name in uv_names:
-                    me.calc_tangents(uvmap=name)
-                for idx, uvlayer in enumerate(me.uv_layers):
-                    name = uvlayer.name
-                    # Loop bitangents (aka binormals).
-                    # NOTE: this is not supported by importer currently.
-                    me.loops.foreach_get("bitangent", t_ln)
-                    lay_nor = elem_data_single_int32(geom, b"LayerElementBinormal", idx)
-                    elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_BINORMAL_VERSION)
-                    elem_data_single_string_unicode(lay_nor, b"Name", name)
-                    elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
-                    elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
-                    elem_data_single_float64_array(lay_nor, b"Binormals",
-                                                   chain(*nors_transformed_gen(t_ln, geom_mat_no)))
-                    # Binormal weights, no idea what it is.
-                    # elem_data_single_float64_array(lay_nor, b"BinormalsW", t_lnw)
+                # We can only compute tspace on tesellated meshes, need to check that here...
+                t_lt = [None] * len(me.polygons)
+                me.polygons.foreach_get("loop_total", t_lt)
+                if any((lt > 4 for lt in t_lt)):
+                    del t_lt
+                    scene_data.settings.report(
+                        {'WARNING'},
+                        "Mesh '%s' has polygons with more than 4 vertices, "
+                        "cannot compute/export tangent space for it" % me.name)
+                else:
+                    del t_lt
+                    t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
+                    # t_lnw = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops)
+                    uv_names = [uvlayer.name for uvlayer in me.uv_layers]
+                    for name in uv_names:
+                        me.calc_tangents(uvmap=name)
+                    for idx, uvlayer in enumerate(me.uv_layers):
+                        name = uvlayer.name
+                        # Loop bitangents (aka binormals).
+                        # NOTE: this is not supported by importer currently.
+                        me.loops.foreach_get("bitangent", t_ln)
+                        lay_nor = elem_data_single_int32(geom, b"LayerElementBinormal", idx)
+                        elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_BINORMAL_VERSION)
+                        elem_data_single_string_unicode(lay_nor, b"Name", name)
+                        elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
+                        elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
+                        elem_data_single_float64_array(lay_nor, b"Binormals",
+                                                       chain(*nors_transformed_gen(t_ln, geom_mat_no)))
+                        # Binormal weights, no idea what it is.
+                        # elem_data_single_float64_array(lay_nor, b"BinormalsW", t_lnw)
 
-                    # Loop tangents.
-                    # NOTE: this is not supported by importer currently.
-                    me.loops.foreach_get("tangent", t_ln)
-                    lay_nor = elem_data_single_int32(geom, b"LayerElementTangent", idx)
-                    elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_TANGENT_VERSION)
-                    elem_data_single_string_unicode(lay_nor, b"Name", name)
-                    elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
-                    elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
-                    elem_data_single_float64_array(lay_nor, b"Tangents",
-                                                   chain(*nors_transformed_gen(t_ln, geom_mat_no)))
-                    # Tangent weights, no idea what it is.
-                    # elem_data_single_float64_array(lay_nor, b"TangentsW", t_lnw)
+                        # Loop tangents.
+                        # NOTE: this is not supported by importer currently.
+                        me.loops.foreach_get("tangent", t_ln)
+                        lay_nor = elem_data_single_int32(geom, b"LayerElementTangent", idx)
+                        elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_TANGENT_VERSION)
+                        elem_data_single_string_unicode(lay_nor, b"Name", name)
+                        elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
+                        elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
+                        elem_data_single_float64_array(lay_nor, b"Tangents",
+                                                       chain(*nors_transformed_gen(t_ln, geom_mat_no)))
+                        # Tangent weights, no idea what it is.
+                        # elem_data_single_float64_array(lay_nor, b"TangentsW", t_lnw)
 
-                del t_ln
-                # del t_lnw
-                me.free_tangents()
+                    del t_ln
+                    # del t_lnw
+                    me.free_tangents()
 
         me.free_normals_split()
 
