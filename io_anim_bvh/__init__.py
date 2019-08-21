@@ -199,7 +199,7 @@ class BVH_PT_import_transform(bpy.types.Panel):
         operator = sfile.active_operator
 
         layout.prop(operator, "global_scale")
-        layout.prop(operator, "rotation_mode")
+        layout.prop(operator, "rotate_mode")
         layout.prop(operator, "axis_forward")
         layout.prop(operator, "axis_up")
 
