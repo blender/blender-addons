@@ -426,13 +426,11 @@ class ExportGLTF2_Base:
 
     def draw_general_settings(self):
         col = self.layout.box().column()
-        col.prop(self, 'export_format')
-        col.prop(self, 'export_selected')
         col.prop(self, 'export_apply')
         col.prop(self, 'export_yup')
-        col.prop(self, 'export_extras')
-        col.prop(self, 'will_save_settings')
-        col.prop(self, 'export_copyright')
+        
+        
+        
 
     def draw_mesh_settings(self):
         col = self.layout.box().column()
@@ -477,6 +475,60 @@ class ExportGLTF2_Base:
             col.prop(self, 'export_morph_normal')
             if self.export_morph_normal:
                 col.prop(self, 'export_morph_tangent')
+
+
+class GLTF_PT_export_main(bpy.types.Panel):
+    bl_space_type = 'FILE_BROWSER'
+    bl_region_type = 'TOOL_PROPS'
+    bl_label = ""
+    bl_parent_id = "FILE_PT_operator"
+    bl_options = {'HIDE_HEADER'}
+
+    @classmethod
+    def poll(cls, context):
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+        return operator.bl_idname == "EXPORT_SCENE_OT_gltf"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+        layout.prop(operator, 'export_format')
+        layout.prop(operator, 'export_extras')
+        layout.prop(operator, 'export_copyright')
+        layout.prop(operator, 'will_save_settings')
+
+
+class GLTF_PT_export_include(bpy.types.Panel):
+    bl_space_type = 'FILE_BROWSER'
+    bl_region_type = 'TOOL_PROPS'
+    bl_label = "Include"
+    bl_parent_id = "FILE_PT_operator"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+        return operator.bl_idname == "EXPORT_SCENE_OT_gltf"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+        layout.prop(operator, 'export_selected')
+        layout.prop(operator, 'export_extras')
 
 
 class ExportGLTF2(bpy.types.Operator, ExportGLTF2_Base, ExportHelper):
@@ -573,6 +625,8 @@ def menu_func_import(self, context):
 
 classes = (
     ExportGLTF2,
+    GLTF_PT_export_main,
+    GLTF_PT_export_include,
     ImportGLTF2
 )
 
