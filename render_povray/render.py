@@ -600,13 +600,13 @@ def write_pov(filename, scene=None, info_callback=None):
                 tabWrite("tightness 0\n")  # 0:10f
 
                 tabWrite("point_at  <0, 0, -1>\n")
-                if lamp.use_halo:
+                if lamp.pov.use_halo:
                     tabWrite("looks_like{\n")
                     tabWrite("sphere{<0,0,0>,%.6f\n" %lamp.distance)
                     tabWrite("hollow\n")
                     tabWrite("material{\n")
                     tabWrite("texture{\n")
-                    tabWrite("pigment{rgbf<1,1,1,%.4f>}\n" % (lamp.halo_intensity*5.0))
+                    tabWrite("pigment{rgbf<1,1,1,%.4f>}\n" % (lamp.pov.halo_intensity*5.0))
                     tabWrite("}\n")
                     tabWrite("interior{\n")
                     tabWrite("media{\n")
@@ -635,19 +635,19 @@ def write_pov(filename, scene=None, info_callback=None):
                 # for those?
                 tabWrite("fade_power %d\n" % 2)
                 size_x = lamp.size
-                samples_x = lamp.shadow_ray_samples_x
+                samples_x = lamp.pov.shadow_ray_samples_x
                 if lamp.shape == 'SQUARE':
                     size_y = size_x
                     samples_y = samples_x
                 else:
                     size_y = lamp.size_y
-                    samples_y = lamp.shadow_ray_samples_y
+                    samples_y = lamp.pov.shadow_ray_samples_y
 
                 tabWrite("area_light <%.6f,0,0>,<0,%.6f,0> %d, %d\n" % \
                          (size_x, size_y, samples_x, samples_y))
                 tabWrite("area_illumination\n")
-                if lamp.shadow_ray_sample_method == 'CONSTANT_JITTERED':
-                    if lamp.use_jitter:
+                if lamp.pov.shadow_ray_sample_method == 'CONSTANT_JITTERED':
+                    if lamp.pov.use_jitter:
                         tabWrite("jitter\n")
                 else:
                     tabWrite("adaptive 1\n")
