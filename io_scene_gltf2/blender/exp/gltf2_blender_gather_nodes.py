@@ -91,7 +91,12 @@ def __filter_node(blender_object, blender_scene, export_settings):
     if blender_scene is not None:
         instanced =  any([blender_object.name in layer.objects for layer in blender_scene.view_layers])
         if instanced is False:
-            return False
+            # Check if object is from a linked collection
+            if any([blender_object.name in coll.objects for coll in bpy.data.collections if coll.library is not None]):
+                pass
+            else:
+                # Not instanced, not linked -> We don't keep this object
+                return False
     if export_settings[gltf2_blender_export_keys.SELECTED] and blender_object.select_get() is False:
         return False
 
@@ -219,6 +224,11 @@ def __gather_mesh(blender_object, export_settings):
     if blender_object.type != "MESH":
         return None
 
+    modifier_normal_types = [
+        "NORMAL_EDIT",
+        "WEIGHTED_NORMAL"
+    ]
+
     # If not using vertex group, they are irrelevant for caching --> ensure that they do not trigger a cache miss
     vertex_groups = blender_object.vertex_groups
     modifiers = blender_object.modifiers
@@ -234,7 +244,7 @@ def __gather_mesh(blender_object, export_settings):
             edge_split = blender_object.modifiers.new('Temporary_Auto_Smooth', 'EDGE_SPLIT')
             edge_split.split_angle = blender_object.data.auto_smooth_angle
             edge_split.use_edge_angle = not blender_object.data.has_custom_normals
-            blender_object.data.use_auto_smooth = False
+            blender_object.data.use_auto_smooth = any([m in modifier_normal_types for m in [mod.type for mod in blender_object.modifiers]])
             bpy.context.view_layer.update()
 
         armature_modifiers = {}

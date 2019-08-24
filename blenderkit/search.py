@@ -108,7 +108,8 @@ def fetch_server_data():
         # version_checker.check_version_thread(url, api_key, blenderkit)
         if user_preferences.enable_oauth:
             bkit_oauth.refresh_token_thread()
-        get_profile()
+        if api_key != '':
+            get_profile()
         categories.fetch_categories_thread(api_key)
 
 
@@ -595,6 +596,8 @@ def fetch_author(a_id, api_key):
                     with open(gravatar_path, 'wb') as f:
                         f.write(r.content)
                     adata['gravatarImg'] = gravatar_path
+                elif r.status_code == '404':
+                    adata['gravatarHash'] = None
     except Exception as e:
         utils.p(e)
     utils.p('finish fetch')
@@ -719,7 +722,6 @@ class Searcher(threading.Thread):
                 requeststring += '+order:-score,_score'
             else:
                 requeststring += '+order:_score'
-
 
             requeststring += '&addon_version=%s' % params['addon_version']
             if params.get('scene_uuid') is not None:
@@ -1094,10 +1096,11 @@ class SearchOperator(Operator):
     """Tooltip"""
     bl_idname = "view3d.blenderkit_search"
     bl_label = "BlenderKit asset search"
-
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
     own: BoolProperty(name="own assets only",
                       description="Find all own assets",
                       default=False)
+
     category: StringProperty(
         name="category",
         description="search only subtree of this category",
@@ -1112,13 +1115,26 @@ class SearchOperator(Operator):
                            description="get next page from previous search",
                            default=False)
 
+    keywords = StringProperty(
+        name="Keywords",
+        description="Keywords",
+        default="")
+
     @classmethod
     def poll(cls, context):
         return True
 
     def execute(self, context):
-        search(own=self.own, category=self.category, get_next=self.get_next, author_id=self.author_id)
-        bpy.ops.view3d.blenderkit_asset_bar()
+        # TODO ; this should all get transferred to properties of the search operator, so sprops don't have to be fetched here at all.
+        sprops = utils.get_search_props()
+        if self.author_id != '':
+            sprops.search_keywords = ''
+        if self.keywords != '':
+            sprops.search_keywords = self.keywords
+
+
+        search(category=self.category, get_next=self.get_next, author_id=self.author_id)
+        #bpy.ops.view3d.blenderkit_asset_bar()
 
         return {'FINISHED'}
 

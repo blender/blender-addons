@@ -303,6 +303,32 @@ def locate_docpath():
             return pov_documents
     return ""
 
+def pov_context_tex_datablock(context):
+    idblock = context.material
+    if idblock:
+        return active_node_mat(idblock)
+
+    idblock = context.lamp
+    if idblock:
+        return idblock
+
+    idblock = context.world
+    if idblock:
+        return idblock
+
+    idblock = context.brush
+    if idblock:
+        return idblock
+
+    idblock = context.line_style
+    if idblock:
+        return idblock
+
+    if context.particle_system:
+        idblock = context.particle_system.settings
+
+    return idblock
+
 class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -596,6 +622,70 @@ class LIGHT_PT_POV_shadow(PovLampButtonsPanel, Panel):
         lamp = context.lamp
 
         layout.row().prop(lamp, "shadow_method", expand=True)
+        
+        split = layout.split()
+
+        col = split.column()
+        sub = col.column()
+        sub.prop(lamp, "spot_size", text="Size")
+        sub.prop(lamp, "spot_blend", text="Blend", slider=True)
+        col.prop(lamp, "use_square")
+        col.prop(lamp, "show_cone")
+
+        col = split.column()
+
+        col.active = (lamp.shadow_method != 'BUFFER_SHADOW' or lamp.shadow_buffer_type != 'DEEP')
+        col.prop(lamp, "use_halo")
+        sub = col.column(align=True)
+        sub.active = lamp.use_halo
+        sub.prop(lamp, "halo_intensity", text="Intensity")
+        if lamp.shadow_method == 'BUFFER_SHADOW':
+            sub.prop(lamp, "halo_step", text="Step")
+        if lamp.shadow_method == 'NOSHADOW' and lamp.type == 'AREA':
+            split = layout.split()
+
+            col = split.column()
+            col.label(text="Form factor sampling:")
+
+            sub = col.row(align=True)
+
+            if lamp.shape == 'SQUARE':
+                sub.prop(lamp, "shadow_ray_samples_x", text="Samples")
+            elif lamp.shape == 'RECTANGLE':
+                sub.prop(lamp.pov, "shadow_ray_samples_x", text="Samples X")
+                sub.prop(lamp.pov, "shadow_ray_samples_y", text="Samples Y")
+
+        if lamp.shadow_method != 'NOSHADOW':
+            split = layout.split()
+
+            col = split.column()
+            col.prop(lamp, "shadow_color", text="")
+
+            col = split.column()
+            col.prop(lamp, "use_shadow_layer", text="This Layer Only")
+            col.prop(lamp, "use_only_shadow")
+
+        if lamp.shadow_method == 'RAY_SHADOW':
+            split = layout.split()
+
+            col = split.column()
+            col.label(text="Sampling:")
+
+            if lamp.type in {'POINT', 'SUN', 'SPOT'}:
+                sub = col.row()
+
+                sub.prop(lamp, "shadow_ray_samples", text="Samples")
+                sub.prop(lamp, "shadow_soft_size", text="Soft Size")
+
+            elif lamp.type == 'AREA':
+                sub = col.row(align=True)
+
+                if lamp.shape == 'SQUARE':
+                    sub.prop(lamp, "shadow_ray_samples_x", text="Samples")
+                elif lamp.shape == 'RECTANGLE':
+                    sub.prop(lamp, "shadow_ray_samples_x", text="Samples X")
+                    sub.prop(lamp, "shadow_ray_samples_y", text="Samples Y")
+            
 '''
         if lamp.shadow_method == 'NOSHADOW' and lamp.type == 'AREA':
             split = layout.split()
@@ -1571,6 +1661,16 @@ class MATERIAL_PT_povray_replacement_text(MaterialButtonsPanel, Panel):
         col.label(text="Replace properties with:")
         col.prop(mat.pov, "replacement_text", text="")
 
+class TEXTURE_MT_specials(bpy.types.Menu):
+    bl_label = "Texture Specials"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("texture.slot_copy", icon='COPYDOWN')
+        layout.operator("texture.slot_paste", icon='PASTEDOWN')
+
 class MATERIAL_TEXTURE_SLOTS_UL_List(UIList):
     """Texture Slots UIList."""
 
@@ -1630,7 +1730,7 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
                  context.light or
                  context.texture or
                  context.line_style or
-                 context.particle_system or
+                 context.particle_system or 
                  isinstance(context.space_data.pin_id, ParticleSettings) or
                  context.texture_user) and
                 (engine in cls.COMPAT_ENGINES))
@@ -1651,15 +1751,19 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
             spacedependant = wld             
         lgt = getattr(context, "light", None)
         if lgt != None:
-            spacedependant = lgt             
+            spacedependant = lgt 
+
+
+        #idblock = context.particle_system.settings
+            
         tex = getattr(context, "texture", None)
         if tex != None:
             spacedependant = tex             
 
 
         
-        
-        idblock = context_tex_datablock(context)
+        scene = context.scene
+        idblock = scene.pov#pov_context_tex_datablock(context) 
         pin_id = space.pin_id
 
         #spacedependant.use_limited_texture_context = True
@@ -1704,11 +1808,13 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
             
             pov = getattr(context, "pov", None)
             active_texture_index = getattr(spacedependant, "active_texture_index", None)
+            print (pov)
+            print(idblock)
             print(active_texture_index)
             row = layout.row()
 
             row.template_list("TEXTURE_UL_texslots", "", idblock, "texture_slots",
-                              idblock, "active_texture_index", rows=2)
+                              idblock, "active_texture_index", rows=2, maxrows=16, type="DEFAULT")
                               
             # row.template_list("WORLD_TEXTURE_SLOTS_UL_List", "texture_slots", world,
                               # world.texture_slots, world, "active_texture_index", rows=2)
@@ -1736,6 +1842,52 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
                     split.prop(slot, "output_node", text="")
             else:
                 split.label(text="Type:")
+
+class TEXTURE_PT_colors(TextureButtonsPanel, Panel):
+    bl_label = "Colors"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        tex = context.texture
+
+        layout.prop(tex, "use_color_ramp", text="Ramp")
+        if tex.use_color_ramp:
+            layout.template_color_ramp(tex, "color_ramp", expand=True)
+
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="RGB Multiply:")
+        sub = col.column(align=True)
+        sub.prop(tex, "factor_red", text="R")
+        sub.prop(tex, "factor_green", text="G")
+        sub.prop(tex, "factor_blue", text="B")
+
+        col = split.column()
+        col.label(text="Adjust:")
+        col.prop(tex, "intensity")
+        col.prop(tex, "contrast")
+        col.prop(tex, "saturation")
+
+        col = layout.column()
+        col.prop(tex, "use_clamp", text="Clamp")
+
+# Texture Slot Panels #
+
+
+class TextureSlotPanel(TextureButtonsPanel):
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        if not hasattr(context, "texture_slot"):
+            return False
+
+        engine = context.scene.render.engine
+        return TextureButtonsPanel.poll(cls, context) and (engine in cls.COMPAT_ENGINES)
 
 class TEXTURE_PT_povray_type(TextureButtonsPanel, Panel):
     bl_label = "POV-ray Textures"
@@ -1990,6 +2142,214 @@ class TEXTURE_PT_povray_parameters(TextureButtonsPanel, Panel):
             row=col.row()
             row.prop(tex.pov, "warp_turbulence_z", text="Z")
             row.prop(tex.pov, "modifier_omega", text="Omega")
+
+class TEXTURE_PT_influence(TextureSlotPanel, Panel):
+    bl_label = "Influence"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        idblock = context_tex_datablock(context)
+        if isinstance(idblock, Brush):
+            return False
+
+        if not getattr(context, "texture_slot", None):
+            return False
+
+        engine = context.scene.render.engine
+        return (engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+
+        layout = self.layout
+
+        idblock = context_tex_datablock(context)
+
+        tex = context.texture_slot
+
+        def factor_but(layout, toggle, factor, name):
+            row = layout.row(align=True)
+            row.prop(tex, toggle, text="")
+            sub = row.row(align=True)
+            sub.active = getattr(tex, toggle)
+            sub.prop(tex, factor, text=name, slider=True)
+            return sub  # XXX, temp. use_map_normal needs to override.
+
+        if isinstance(idblock, Material):
+            if idblock.type in {'SURFACE', 'WIRE'}:
+                split = layout.split()
+
+                col = split.column()
+                col.label(text="Diffuse:")
+                factor_but(col, "use_map_diffuse", "diffuse_factor", "Intensity")
+                factor_but(col, "use_map_color_diffuse", "diffuse_color_factor", "Color")
+                factor_but(col, "use_map_alpha", "alpha_factor", "Alpha")
+                factor_but(col, "use_map_translucency", "translucency_factor", "Translucency")
+
+                col.label(text="Specular:")
+                factor_but(col, "use_map_specular", "specular_factor", "Intensity")
+                factor_but(col, "use_map_color_spec", "specular_color_factor", "Color")
+                factor_but(col, "use_map_hardness", "hardness_factor", "Hardness")
+
+                col = split.column()
+                col.label(text="Shading:")
+                factor_but(col, "use_map_ambient", "ambient_factor", "Ambient")
+                factor_but(col, "use_map_emit", "emit_factor", "Emit")
+                factor_but(col, "use_map_mirror", "mirror_factor", "Mirror")
+                factor_but(col, "use_map_raymir", "raymir_factor", "Ray Mirror")
+
+                col.label(text="Geometry:")
+                # XXX replace 'or' when displacement is fixed to not rely on normal influence value.
+                sub_tmp = factor_but(col, "use_map_normal", "normal_factor", "Normal")
+                sub_tmp.active = (tex.use_map_normal or tex.use_map_displacement)
+                # END XXX
+
+                factor_but(col, "use_map_warp", "warp_factor", "Warp")
+                factor_but(col, "use_map_displacement", "displacement_factor", "Displace")
+
+                # ~ sub = col.column()
+                # ~ sub.active = tex.use_map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
+                #~ sub.prop(tex, "default_value", text="Amount", slider=True)
+            elif idblock.type == 'HALO':
+                layout.label(text="Halo:")
+
+                split = layout.split()
+
+                col = split.column()
+                factor_but(col, "use_map_color_diffuse", "diffuse_color_factor", "Color")
+                factor_but(col, "use_map_alpha", "alpha_factor", "Alpha")
+
+                col = split.column()
+                factor_but(col, "use_map_raymir", "raymir_factor", "Size")
+                factor_but(col, "use_map_hardness", "hardness_factor", "Hardness")
+                factor_but(col, "use_map_translucency", "translucency_factor", "Add")
+            elif idblock.type == 'VOLUME':
+                layout.label(text="Volume:")
+
+                split = layout.split()
+
+                col = split.column()
+                factor_but(col, "use_map_density", "density_factor", "Density")
+                factor_but(col, "use_map_emission", "emission_factor", "Emission")
+                factor_but(col, "use_map_scatter", "scattering_factor", "Scattering")
+                factor_but(col, "use_map_reflect", "reflection_factor", "Reflection")
+
+                col = split.column()
+                col.label(text=" ")
+                factor_but(col, "use_map_color_emission", "emission_color_factor", "Emission Color")
+                factor_but(col, "use_map_color_transmission", "transmission_color_factor", "Transmission Color")
+                factor_but(col, "use_map_color_reflection", "reflection_color_factor", "Reflection Color")
+
+                layout.label(text="Geometry:")
+
+                split = layout.split()
+
+                col = split.column()
+                factor_but(col, "use_map_warp", "warp_factor", "Warp")
+
+                col = split.column()
+                factor_but(col, "use_map_displacement", "displacement_factor", "Displace")
+
+        elif isinstance(idblock, Lamp):
+            split = layout.split()
+
+            col = split.column()
+            factor_but(col, "use_map_color", "color_factor", "Color")
+
+            col = split.column()
+            factor_but(col, "use_map_shadow", "shadow_factor", "Shadow")
+
+        elif isinstance(idblock, World):
+            split = layout.split()
+
+            col = split.column()
+            factor_but(col, "use_map_blend", "blend_factor", "Blend")
+            factor_but(col, "use_map_horizon", "horizon_factor", "Horizon")
+
+            col = split.column()
+            factor_but(col, "use_map_zenith_up", "zenith_up_factor", "Zenith Up")
+            factor_but(col, "use_map_zenith_down", "zenith_down_factor", "Zenith Down")
+        elif isinstance(idblock, ParticleSettings):
+            split = layout.split()
+
+            col = split.column()
+            col.label(text="General:")
+            factor_but(col, "use_map_time", "time_factor", "Time")
+            factor_but(col, "use_map_life", "life_factor", "Lifetime")
+            factor_but(col, "use_map_density", "density_factor", "Density")
+            factor_but(col, "use_map_size", "size_factor", "Size")
+
+            col = split.column()
+            col.label(text="Physics:")
+            factor_but(col, "use_map_velocity", "velocity_factor", "Velocity")
+            factor_but(col, "use_map_damp", "damp_factor", "Damp")
+            factor_but(col, "use_map_gravity", "gravity_factor", "Gravity")
+            factor_but(col, "use_map_field", "field_factor", "Force Fields")
+
+            layout.label(text="Hair:")
+
+            split = layout.split()
+
+            col = split.column()
+            factor_but(col, "use_map_length", "length_factor", "Length")
+            factor_but(col, "use_map_clump", "clump_factor", "Clump")
+            factor_but(col, "use_map_twist", "twist_factor", "Twist")
+
+            col = split.column()
+            factor_but(col, "use_map_kink_amp", "kink_amp_factor", "Kink Amplitude")
+            factor_but(col, "use_map_kink_freq", "kink_freq_factor", "Kink Frequency")
+            factor_but(col, "use_map_rough", "rough_factor", "Rough")
+
+        elif isinstance(idblock, FreestyleLineStyle):
+            split = layout.split()
+
+            col = split.column()
+            factor_but(col, "use_map_color_diffuse", "diffuse_color_factor", "Color")
+            col = split.column()
+            factor_but(col, "use_map_alpha", "alpha_factor", "Alpha")
+
+        layout.separator()
+
+        if not isinstance(idblock, ParticleSettings):
+            split = layout.split()
+
+            col = split.column()
+            col.prop(tex, "blend_type", text="Blend")
+            col.prop(tex, "use_rgb_to_intensity")
+            # color is used on gray-scale textures even when use_rgb_to_intensity is disabled.
+            col.prop(tex, "color", text="")
+
+            col = split.column()
+            col.prop(tex, "invert", text="Negative")
+            col.prop(tex, "use_stencil")
+
+        if isinstance(idblock, (Material, World)):
+            col.prop(tex, "default_value", text="DVar", slider=True)
+
+        if isinstance(idblock, Material):
+            layout.label(text="Bump Mapping:")
+
+            # only show bump settings if activated but not for normal-map images
+            row = layout.row()
+
+            sub = row.row()
+            sub.active = (
+                (tex.use_map_normal or tex.use_map_warp) and
+                not (tex.texture.type == 'IMAGE' and
+                     (tex.texture.use_normal_map or tex.texture.use_derivative_map))
+            )
+            sub.prop(tex, "bump_method", text="Method")
+
+            # the space setting is supported for: derivative-maps + bump-maps
+            # (DEFAULT,BEST_QUALITY), not for normal-maps
+            sub = row.row()
+            sub.active = (
+                (tex.use_map_normal or tex.use_map_warp) and
+                not (tex.texture.type == 'IMAGE' and tex.texture.use_normal_map) and
+                ((tex.bump_method in {'BUMP_LOW_QUALITY', 'BUMP_MEDIUM_QUALITY', 'BUMP_BEST_QUALITY'}) or
+                 (tex.texture.type == 'IMAGE' and tex.texture.use_derivative_map))
+            )
+            sub.prop(tex, "bump_objectspace", text="Space")
 
 class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, Panel):
     bl_label = "Image Gamma"
@@ -2733,6 +3093,7 @@ classes = (
     MATERIAL_PT_povray_fade_color,
     MATERIAL_PT_povray_caustics,
     MATERIAL_PT_povray_replacement_text,
+    TEXTURE_MT_specials,
     TEXTURE_PT_POV_context_texture,    
     TEXTURE_PT_povray_type,
     TEXTURE_PT_povray_preview,
@@ -2757,7 +3118,7 @@ classes = (
     TEXT_OT_povray_insert,
     TEXT_MT_insert,
     TEXT_PT_povray_custom_code,
-    TEXT_MT_templates_pov,
+    TEXT_MT_templates_pov
 )
 
 

@@ -19,7 +19,7 @@
 bl_info = {
     "name": "BlenderKit Asset Library",
     "author": "Vilem Duha, Petr Dlouhy",
-    "version": (1, 0, 26),
+    "version": (1, 0, 27),
     "blender": (2, 80, 0),
     "location": "View3D > Properties > BlenderKit",
     "description": "Online BlenderKit library (materials, models, brushes and more)",
@@ -108,8 +108,8 @@ model_styles = (
     ('PAINTERLY', 'Painterly', 'hand painted with visible strokes, mostly for games'),
     ('LOWPOLY', 'Lowpoly', "Lowpoly art -don't mix up with polycount!"),
     ('ANIME', 'Anime', 'Anime style'),
-    ('2D VECTOR', '2d Vector', '2d vector'),
-    ('3D GRAPHICS', '3d Graphics', '3d graphics'),
+    ('2D_VECTOR', '2d Vector', '2d vector'),
+    ('3D_GRAPHICS', '3d Graphics', '3d graphics'),
     ('OTHER', 'Other', 'Other style'),
 )
 search_model_styles = (
@@ -117,8 +117,8 @@ search_model_styles = (
     ('PAINTERLY', 'Painterly', 'hand painted with visible strokes, mostly for games'),
     ('LOWPOLY', 'Lowpoly', "Lowpoly art -don't mix up with polycount!"),
     ('ANIME', 'Anime', 'Anime style'),
-    ('2D VECTOR', '2d Vector', '2d vector'),
-    ('3D GRAPHICS', '3d Graphics', '3d graphics'),
+    ('2D_VECTOR', '2d Vector', '2d vector'),
+    ('3D_GRAPHICS', '3d Graphics', '3d graphics'),
     ('OTHER', 'Other', 'Other Style'),
     ('ANY', 'Any', 'Any Style'),
 )
@@ -624,7 +624,7 @@ class BlenderKitMaterialUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
                                    description="size of material preview object in meters "
                                                "- change for materials that look better at sizes different than 1m",
                                    default=1, min=0.00001, max=10)
-    thumbnail_background: BoolProperty(name="Thumbnail Background",
+    thumbnail_background: BoolProperty(name="Thumbnail Background (for Glass only)",
                                        description="For refractive materials, you might need a background. "
                                                    "Don't use if thumbnail looks good without it!",
                                        default=False)
@@ -818,6 +818,13 @@ class BlenderKitModelUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
         items=thumbnail_snap,
         default='GROUND',
         description='typical placing of the interior. Leave on ground for most objects that respect gravity :)',
+    )
+
+    thumbnail_resolution: EnumProperty(
+        name="Resolution",
+        items=thumbnail_resolutions,
+        description="Thumbnail resolution.",
+        default="512",
     )
 
     thumbnail_samples: IntProperty(name="Cycles Samples",

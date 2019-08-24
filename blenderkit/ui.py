@@ -602,11 +602,17 @@ def draw_callback_2d(self, context):
         # self.area might throw error just by itself.
         a1 = self.area
         go = True
+        if len(a.spaces[0].region_quadviews) > 0:
+            # print(dir(bpy.context.region_data))
+            # print('quad', a.spaces[0].region_3d, a.spaces[0].region_quadviews[0])
+            if a.spaces[0].region_3d != context.region_data:
+                go = False
     except:
         # bpy.types.SpaceView3D.draw_handler_remove(self._handle_2d, 'WINDOW')
         # bpy.types.SpaceView3D.draw_handler_remove(self._handle_3d, 'WINDOW')
         go = False
     if go and a == a1:
+
         props = context.scene.blenderkitUI
         if props.down_up == 'SEARCH':
             draw_ratings_bgl()
@@ -973,12 +979,19 @@ def is_rating_possible():
                 rated = bpy.context.scene['assets rated'].get(ad['asset_base_id'])
                 return True, rated, b, ad
         if ao is not None:
-            # TODO ADD BRUSHES HERE
-            ad = ao.get('asset_data')
-            if ad is not None:
-                rated = bpy.context.scene['assets rated'].get(ad['asset_base_id'])
-                # originally hidden for already rated assets
-                return True, rated, ao, ad
+            ad = None
+            # crawl parents to reach active asset. there could have been parenting so we need to find the first onw
+            ao_check = ao
+            while ad is None or (ad is None and ao_check.parent is not None):
+                ad = ao_check.get('asset_data')
+                if ad is not None:
+                    rated = bpy.context.scene['assets rated'].get(ad['asset_base_id'])
+                    # originally hidden for already rated assets
+                    return True, rated, ao_check, ad
+                elif ao_check.parent is not None:
+                    ao_check = ao_check.parent
+                else:
+                    break;
 
             # check also materials
             m = ao.active_material
@@ -1120,7 +1133,7 @@ def update_ui_size(area, region):
         (ui.bar_width - 2 * ui.drawoffset) / (ui.thumb_size + ui.margin))
 
     search_results = bpy.context.scene.get('search results')
-    if search_results != None:
+    if search_results != None and ui.wcount > 0:
         ui.hcount = min(user_preferences.max_assetbar_rows, math.ceil(len(search_results) / ui.wcount))
     else:
         ui.hcount = 1
@@ -1141,7 +1154,7 @@ class AssetBarOperator(bpy.types.Operator):
     '''runs search and displays the asset bar at the same time'''
     bl_idname = "view3d.blenderkit_asset_bar"
     bl_label = "BlenderKit Asset Bar UI"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
     do_search: BoolProperty(name="Run Search", description='', default=True, options={'SKIP_SAVE'})
     keep_running: BoolProperty(name="Keep Running", description='', default=True, options={'SKIP_SAVE'})
@@ -1180,20 +1193,20 @@ class AssetBarOperator(bpy.types.Operator):
 
         areas = []
 
-        for w in context.window_manager.windows:
-            areas.extend(w.screen.areas)
         if bpy.context.scene != self.scene:
             self.exit_modal()
-            ui_props.assetbar_on = False
             return {'CANCELLED'}
 
-        if self.area not in areas or self.area.type != 'VIEW_3D':
-            # print('search areas')
+        for w in context.window_manager.windows:
+            areas.extend(w.screen.areas)
+
+        if self.area not in areas or self.area.type != 'VIEW_3D' or self.has_quad_views != (
+                len(self.area.spaces[0].region_quadviews) > 0):
+            # print('search areas')   bpy.context.area.spaces[0].region_quadviews
             # stopping here model by now - because of:
             #   switching layouts or maximizing area now fails to assign new area throwing the bug
             #   internal error: modal gizmo-map handler has invalid area
             self.exit_modal()
-            ui_props.assetbar_on = False
             return {'CANCELLED'}
 
             newarea = None
@@ -1220,6 +1233,7 @@ class AssetBarOperator(bpy.types.Operator):
         bg_blender.bg_update()
 
         if context.region != self.region:
+            print(time.time(), 'pass trough because of region')
             return {'PASS_THROUGH'}
 
         # this was here to check if sculpt stroke is running, but obviously that didn't help,
@@ -1309,11 +1323,23 @@ class AssetBarOperator(bpy.types.Operator):
             # if event.type == 'TRACKPADPAN' :
             #     print(dir(event))
             #     print(event.value, event.oskey, event.)
-            if (event.type == 'WHEELDOWNMOUSE') and len(sr) - ui_props.scrolloffset > ui_props.wcount:
-                ui_props.scrolloffset += 1
+            if (event.type == 'WHEELDOWNMOUSE') and len(sr) - ui_props.scrolloffset > (
+                    ui_props.wcount * ui_props.hcount):
+                if ui_props.hcount > 1:
+                    ui_props.scrolloffset += ui_props.wcount
+                else:
+                    ui_props.scrolloffset += 1
+                if len(sr) - ui_props.scrolloffset < (ui_props.wcount * ui_props.hcount):
+                    ui_props.scrolloffset = len(sr) - (ui_props.wcount * ui_props.hcount)
 
             if event.type == 'WHEELUPMOUSE' and ui_props.scrolloffset > 0:
-                ui_props.scrolloffset -= 1
+                if ui_props.hcount > 1:
+                    ui_props.scrolloffset -= ui_props.wcount
+                else:
+                    ui_props.scrolloffset -= 1
+                if ui_props.scrolloffset < 0:
+                    ui_props.scrolloffset = 0
+
             return {'RUNNING_MODAL'}
         if event.type == 'MOUSEMOVE':  # Apply
 
@@ -1335,8 +1361,13 @@ class AssetBarOperator(bpy.types.Operator):
                     ui_props.dragging = True
                     ui_props.drag_init = False
 
-            if not (ui_props.dragging and mouse_in_region(r, mx, my)) and not mouse_in_asset_bar(mx, my):
+            if not (ui_props.dragging and mouse_in_region(r, mx, my)) and not mouse_in_asset_bar(mx, my):  #
+
+                ui_props.dragging = False
+                ui_props.has_hit = False
                 ui_props.active_index = -3
+                ui_props.draw_drag_image = False
+                ui_props.draw_snapped_bounds = False
                 ui_props.draw_tooltip = False
                 bpy.context.window.cursor_set("DEFAULT")
                 return {'PASS_THROUGH'}
@@ -1391,6 +1422,14 @@ class AssetBarOperator(bpy.types.Operator):
                     ui_props.draw_snapped_bounds = False
                     ui_props.draw_drag_image = True
             return {'RUNNING_MODAL'}
+
+        if event.type == 'RIGHTMOUSE':
+            mx = event.mouse_x - r.x
+            my = event.mouse_y - r.y
+
+            if event.value == 'PRESS' and mouse_in_asset_bar(mx, my):
+                bpy.ops.wm.call_menu(name='OBJECT_MT_blenderkit_asset_menu')
+                return {'RUNNING_MODAL'}
 
         if event.type == 'LEFTMOUSE':
 
@@ -1621,6 +1660,7 @@ class AssetBarOperator(bpy.types.Operator):
             args = (self, context)
             self.area = context.area
             self.scene = bpy.context.scene
+            self.has_quad_views = len(bpy.context.area.spaces[0].region_quadviews) > 0
 
             for r in self.area.regions:
                 if r.type == 'WINDOW':
@@ -1643,9 +1683,27 @@ class AssetBarOperator(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
+class TransferBlenderkitData(bpy.types.Operator):
+    """Regenerate cobweb"""
+    bl_idname = "object.blenderkit_data_trasnfer"
+    bl_label = "Transfer BlenderKit data"
+    bl_description = "Transfer blenderKit metadata from one object to another when fixing uploads with wrong parenting."
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        source_ob = bpy.context.active_object
+        for target_ob in bpy.context.selected_objects:
+            if target_ob != source_ob:
+                target_ob.property_unset('blenderkit')
+                for k in source_ob.keys():
+                    target_ob[k] = source_ob[k]
+        source_ob.property_unset('blenderkit')
+        return {'FINISHED'}
+
+
 classess = (
     AssetBarOperator,
-
+    TransferBlenderkitData
 )
 
 # store keymap items here to access after registration
