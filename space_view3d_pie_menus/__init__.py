@@ -45,20 +45,19 @@ bl_info = {
     }
 
 sub_modules_names = (
-    "pie_modes_menu",
-    "pie_views_numpad_menu",
-    "pie_sculpt_menu",
-    "pie_origin",
-    "pie_manipulator_menu",
-    "pie_snap_menu",
-    "pie_shading_menu",
     "pie_align_menu",
-    "pie_delete_menu",
-    "pie_apply_transform_menu",
-    "pie_select_menu",
     "pie_animation_menu",
-    "pie_save_open_menu",
+    "pie_apply_transform_menu",
+    "pie_delete_menu",
     "pie_editor_switch_menu",
+    "pie_manipulator_menu",
+    "pie_modes_menu",
+    "pie_origin",
+    "pie_save_open_menu",
+    "pie_sculpt_menu",
+    "pie_select_menu",
+    "pie_shading_menu",
+    "pie_views_numpad_menu",
     )
 
 
