@@ -579,8 +579,8 @@ def write_pov(filename, scene=None, info_callback=None):
 
             matrix = global_matrix @ ob.matrix_world
 
-            # Color is modified by energy #multiplied by 2 for a better match --Maurice
-            color = tuple([c * (lamp.energy) for c in lamp.color])
+            # Color is no longer modified by energy 
+            color = tuple([c for c in lamp.color])
 
             tabWrite("light_source {\n")
             tabWrite("< 0,0,0 >\n")
