@@ -990,6 +990,11 @@ class RenderPovSettingsMaterial(PropertyGroup):
             name="Alpha",
             description="Alpha transparency of the material",
             min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default=1.0, precision=3)
+
+    specular_alpha: FloatProperty(
+            name="Specular alpha",
+            description="Alpha transparency for specular areas",
+            min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default=1.0, precision=3)
             
     ambient: FloatProperty(
             name="Ambient",
@@ -1714,10 +1719,6 @@ class MaterialSubsurfaceScattering(PropertyGroup):
 
                 # Halo settings for the material
                 # Type:	MaterialHalo, (readonly, never None)            
-            # alpha¶
-
-                # Alpha transparency of the material
-                # Type:	float in [0, 1], default 0.0
 
             # ambient
 
@@ -1912,10 +1913,6 @@ class MaterialSubsurfaceScattering(PropertyGroup):
                 # Shadow raytracing bias to prevent terminator problems on shadow boundary
                 # Type:	float in [0, 0.25], default 0.0
 
-            # specular_alpha
-
-                # Alpha transparency for specular areas
-                # Type:	float in [0, 1], default 0.0
 
             # specular_color
 

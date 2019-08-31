@@ -1697,10 +1697,10 @@ def write_pov(filename, scene=None, info_callback=None):
                             material = None
                         if material:
                             diffuse_color = material.diffuse_color
-                            trans = 1.0 - material.alpha
+                            trans = 1.0 - material.pov.alpha
                             if material.use_transparency and material.transparency_method == 'RAYTRACE':
                                 povFilter = material.pov_raytrace_transparency.filter * (1.0 - material.alpha)
-                                trans = (1.0 - material.alpha) - povFilter
+                                trans = (1.0 - material.pov.alpha) - povFilter
                             else:
                                 povFilter = 0.0
                             material_finish = materialNames[material.name]
@@ -1762,10 +1762,10 @@ def write_pov(filename, scene=None, info_callback=None):
 
                 if material:
                     diffuse_color = material.diffuse_color
-                    trans = 1.0 - material.alpha
+                    trans = 1.0 - material.pov.alpha
                     if material.use_transparency and material.transparency_method == 'RAYTRACE':
                         povFilter = material.pov_raytrace_transparency.filter * (1.0 - material.alpha)
-                        trans = (1.0 - material.alpha) - povFilter
+                        trans = (1.0 - material.pov.alpha) - povFilter
                     else:
                         povFilter = 0.0
 
