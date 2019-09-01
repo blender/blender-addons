@@ -2085,9 +2085,9 @@ def write_pov(filename, scene=None, info_callback=None):
                     renderEmitter = True
                     if hasattr(ob, 'particle_systems'):
                         renderEmitter = False
+                        if ob.show_instancer_for_render:
+                            renderEmitter = True                        
                         for pSys in ob.particle_systems:
-                            if pSys.settings.use_render_emitter:
-                                renderEmitter = True
                             for mod in [m for m in ob.modifiers if (m is not None) and (m.type == 'PARTICLE_SYSTEM')]:
                                 if (pSys.settings.render_type == 'PATH') and mod.show_render and (pSys.name == mod.particle_system.name):
                                     tstart = time.time()

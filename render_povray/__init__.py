@@ -529,7 +529,7 @@ class RenderPovSettingsScene(PropertyGroup):
             name="Nearest Count",
             description="Number of old ambient values blended together to "
                         "create a new interpolated value",
-            min=1, max=20, default=5)
+            min=1, max=20, default=1)
 
     radio_normal: BoolProperty(
             name="Normals", description="Radiosity estimation can be affected by normals",
@@ -1414,8 +1414,8 @@ class RenderPovSettingsMaterial(PropertyGroup):
 
     refraction_type: EnumProperty(
             items=[
-                   ("1", "Fake Caustics", "use fake caustics"),
-                   ("2", "Photons Caustics", "use photons for refractive caustics")],
+                   ("1", "Z Transparency Fake Caustics", "use fake caustics"),
+                   ("2", "Raytrace Photons Caustics", "use photons for refractive caustics")],
             name="Refraction Type:",
             description="use fake caustics (fast) or true photons for refractive Caustics",
             default="1")
