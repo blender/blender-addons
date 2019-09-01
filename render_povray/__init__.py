@@ -1714,7 +1714,62 @@ class MaterialSubsurfaceScattering(PropertyGroup):
             name="Texture",
             description="Texture scattering blend factor",
             min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default=0.0, precision=3)
-                
+
+class MaterialStrandSettings(PropertyGroup):
+    bl_description = "Strand settings for the material",          
+
+    blend_distance: FloatProperty(
+            name="Distance",
+            description="Worldspace distance over which to blend in the surface normal",
+            min=0.0, max=10.0, soft_min=0.0, soft_max=10.0, default=0.0, precision=3)
+
+    root_size: FloatProperty(
+            name="Root",
+            description="Start size of strands in pixels or Blender units",
+            min=0.25, default=1.0, precision=5)
+
+    shape: FloatProperty(
+            name="Shape",
+            description="Positive values make strands rounder, negative ones make strands spiky",
+            min=-0.9, max=0.9, default=0.0, precision=3)
+
+    size_min: FloatProperty(
+            name="Minimum",
+            description="Minimum size of strands in pixels",
+            min=0.001, max=10.0, default=1.0, precision=3)
+
+    tip_size: FloatProperty(
+            name="Tip",
+            description="End size of strands in pixels or Blender units",
+            min=0.0, default=1.0, precision=5)
+
+    use_blender_units: BoolProperty(
+            name="Blender Units", 
+            description="Use Blender units for widths instead of pixels",
+            default=False)
+
+    use_surface_diffuse: BoolProperty(
+            name="Surface diffuse", 
+            description="Make diffuse shading more similar to shading the surface",
+            default=False)
+
+    use_tangent_shading: BoolProperty(
+            name="Tangent Shading", 
+            description="Use direction of strands as normal for tangent-shading",
+            default=True)
+
+    uv_layer: StringProperty(
+            name="UV Layer",
+            #icon="GROUP_UVS",
+            description="Name of UV map to override",
+            default="")
+
+    width_fade: FloatProperty(
+            name="Width Fade",
+            description="Transparency along the width of the strand",
+            min=0.0, max=2.0, default=0.0, precision=3)
+
+            
             # halo
 
                 # Halo settings for the material
@@ -4295,6 +4350,7 @@ classes = (
     MaterialRaytraceTransparency,
     MaterialRaytraceMirror, 
     MaterialSubsurfaceScattering,
+    MaterialStrandSettings,
     RenderPovSettingsObject,
     RenderPovSettingsScene,
     RenderPovSettingsText,
@@ -4334,6 +4390,7 @@ def register():
     bpy.types.Material.pov_raytrace_transparency = PointerProperty(type=MaterialRaytraceTransparency)
     bpy.types.Material.pov = PointerProperty(type=RenderPovSettingsMaterial)
     bpy.types.Material.pov_subsurface_scattering = PointerProperty(type=MaterialSubsurfaceScattering)
+    bpy.types.Material.strand = PointerProperty(type= MaterialStrandSettings)
     bpy.types.Material.pov_raytrace_mirror = PointerProperty(type=MaterialRaytraceMirror)
     bpy.types.Texture.pov = PointerProperty(type=RenderPovSettingsTexture)
     bpy.types.Object.pov = PointerProperty(type=RenderPovSettingsObject)
@@ -4350,6 +4407,7 @@ def unregister():
     del bpy.types.Scene.pov
     del bpy.types.Material.pov
     del bpy.types.Material.pov_subsurface_scattering
+    del bpy.types.Material.strand
     del bpy.types.Material.pov_raytrace_mirror
     del bpy.types.Material.pov_raytrace_transparency
     #del bpy.types.Modifier.pov

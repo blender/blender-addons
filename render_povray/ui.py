@@ -1390,7 +1390,7 @@ class MATERIAL_PT_POV_sss(MaterialButtonsPanel, Panel):
         sub.prop(sss, "back")
         col.separator()
         col.prop(sss, "error_threshold", text="Error")
-
+        
 class MATERIAL_PT_povray_activate_node(MaterialButtonsPanel, Panel):
     bl_label = "Activate Node Settings"
     bl_context = "material"
@@ -1715,7 +1715,52 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, Panel):
                 col.label(text="Caustics override is on, ")
                 col.label(text="but you didn't chose any !")
 
+class MATERIAL_PT_strand(MaterialButtonsPanel, Panel):
+    bl_label = "Strand"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
 
+    @classmethod
+    def poll(cls, context):
+        mat = context.material
+        engine = context.scene.render.engine
+        return mat and (mat.type in {'SURFACE', 'WIRE', 'HALO'}) and (engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+
+        mat = context.material  # don't use node material
+        tan = mat.strand
+
+        split = layout.split()
+
+        col = split.column()
+        sub = col.column(align=True)
+        sub.label(text="Size:")
+        sub.prop(tan, "root_size", text="Root")
+        sub.prop(tan, "tip_size", text="Tip")
+        sub.prop(tan, "size_min", text="Minimum")
+        sub.prop(tan, "use_blender_units")
+        sub = col.column()
+        sub.active = (not mat.pov.use_shadeless)
+        sub.prop(tan, "use_tangent_shading")
+        col.prop(tan, "shape")
+
+        col = split.column()
+        col.label(text="Shading:")
+        col.prop(tan, "width_fade")
+        ob = context.object
+        if ob and ob.type == 'MESH':
+            col.prop_search(tan, "uv_layer", ob.data, "uv_textures", text="")
+        else:
+            col.prop(tan, "uv_layer", text="")
+        col.separator()
+        sub = col.column()
+        sub.active = (not mat.pov.use_shadeless)
+        sub.label("Surface diffuse:")
+        sub = col.column()
+        sub.prop(tan, "blend_distance", text="Distance")
+        
 class MATERIAL_PT_povray_replacement_text(MaterialButtonsPanel, Panel):
     bl_label = "Custom POV Code"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -3154,6 +3199,7 @@ classes = (
     MATERIAL_PT_POV_sss,
     MATERIAL_MT_POV_sss_presets,
     AddPresetSSS,
+    MATERIAL_PT_strand,
     MATERIAL_PT_povray_activate_node,
     MATERIAL_PT_povray_active_node,
     MATERIAL_PT_POV_mirror,
