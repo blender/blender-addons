@@ -42,7 +42,11 @@ class BrushOptionsMenu(Menu):
         has_brush = utils_core.get_brush_link(context, types="brush")
         icons = brushes.brush_icon[mode][has_brush.sculpt_tool] if \
                 has_brush else "BRUSH_DATA"
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
         layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
+        layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
+        layout.separator()
         layout.row().menu("VIEW3D_MT_sv3_brushes_menu",
                             icon=icons)
 
@@ -65,7 +69,11 @@ class BrushOptionsMenu(Menu):
         icons = brushes.brush_icon[mode][has_brush.vertex_tool] if \
                 has_brush else "BRUSH_DATA"
 
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
         layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
+        layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
+        layout.separator()
         
         if mode == 'VERTEX_PAINT':		
             layout.row().operator(ColorPickerPopup.bl_idname, icon="COLOR")
@@ -118,7 +126,10 @@ class BrushOptionsMenu(Menu):
                 layout.row().label(text="Missing Data", icon='ERROR')
                 layout.row().label(text="See Mask Properties", icon='FORWARD')
                 layout.row().separator()
+                layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
                 layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
+                layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
+                layout.row().separator()
                 layout.row().menu("VIEW3D_MT_sv3_brushes_menu",
                                     icon=icons)
                 
@@ -128,7 +139,11 @@ class BrushOptionsMenu(Menu):
                 layout.row().label(text="Missing Data", icon="INFO")
         
         else:
+            layout.operator_context = 'INVOKE_REGION_WIN'
+            layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
+            layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
+            layout.separator()
             
             if has_brush and has_brush.image_tool in {'DRAW', 'FILL'} and \
                has_brush.blend not in {'ERASE_ALPHA', 'ADD_ALPHA'}:
@@ -160,7 +175,11 @@ class BrushOptionsMenu(Menu):
     def particle(self, layout, context):
         particle_edit = context.tool_settings.particle_edit
         
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
         layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
+        layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
+        layout.separator()
 
         layout.row().menu("VIEW3D_MT_sv3_brushes_menu",
                             icon="BRUSH_DATA")
