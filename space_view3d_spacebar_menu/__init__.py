@@ -645,10 +645,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(Menu):
                 layout.menu("VIEW3D_MT_InteractiveMode", icon='VIEW3D')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-                layout.menu("VIEW3D_MT_Select_Particle",
-                            icon='RESTRICT_SELECT_OFF')
                 layout.menu("VIEW3D_MT_select_particle",
-                            text="Select and Display Mode", icon='PARTICLE_PATH')
+                            text="Select", icon='PARTICLE_PATH')
                 UseSeparator(self, context)
                 layout.menu("VIEW3D_MT_TransformMenu", icon='EMPTY_ARROWS')
                 layout.menu("VIEW3D_MT_mirror", icon='MOD_MIRROR')
