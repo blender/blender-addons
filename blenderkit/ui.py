@@ -1116,7 +1116,7 @@ def update_ui_size(area, region):
     ui_scale = bpy.context.preferences.view.ui_scale
 
     ui.margin = ui.bl_rna.properties['margin'].default * ui_scale
-    ui.thumb_size = ui.bl_rna.properties['thumb_size'].default * ui_scale
+    ui.thumb_size = user_preferences.thumb_size * ui_scale
 
     reg_multiplier = 1
     if not bpy.context.preferences.system.use_region_overlap:
