@@ -311,7 +311,8 @@ class OBJ_PT_export_geometry(bpy.types.Panel):
         operator = sfile.active_operator
 
         layout.prop(operator, 'use_mesh_modifiers')
-        layout.prop(operator, 'use_mesh_modifiers_render')
+        # Property definition disabled, not working in 2.8 currently.
+        # layout.prop(operator, 'use_mesh_modifiers_render')
         layout.prop(operator, 'use_smooth_groups')
         layout.prop(operator, 'use_smooth_groups_bitflags')
         layout.prop(operator, 'use_normals')
