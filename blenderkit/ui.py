@@ -1096,6 +1096,7 @@ def mouse_in_area(mx, my, x, y, w, h):
 
 def mouse_in_asset_bar(mx, my):
     ui_props = bpy.context.scene.blenderkitUI
+
     if ui_props.bar_y - ui_props.bar_height < my < ui_props.bar_y \
             and mx > ui_props.bar_x and mx < ui_props.bar_x + ui_props.bar_width:
         return True
@@ -1401,7 +1402,7 @@ class AssetBarOperator(bpy.types.Operator):
 
             else:
                 result = False
-                if ui_props.dragging and not mouse_in_asset_bar(mx, my) and mouse_in_region(r, mx, my):
+                if ui_props.dragging and mouse_in_region(r, mx, my):
                     ui_props.has_hit, ui_props.snapped_location, ui_props.snapped_normal, ui_props.snapped_rotation, face_index, object, matrix = mouse_raycast(
                         context, mx, my)
                     # MODELS can be dragged on scene floor
