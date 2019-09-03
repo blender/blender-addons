@@ -22,7 +22,7 @@ bl_info = {
     "name": "STL format",
     "author": "Guillaume Bouchard (Guillaum)",
     "version": (1, 1, 3),
-    "blender": (2, 80, 0),
+    "blender": (2, 81, 6),
     "location": "File > Import-Export > Stl",
     "description": "Import-Export STL files",
     "warning": "",
@@ -150,7 +150,7 @@ class ImportSTL(Operator, ImportHelper):
             blender_utils.create_and_link_mesh(objName, tris, tri_nors, pts, global_matrix)
 
         return {'FINISHED'}
-    
+
     def draw(self, context):
         pass
 
@@ -178,7 +178,7 @@ class STL_PT_import_transform(bpy.types.Panel):
 
         layout.prop(operator, "global_scale")
         layout.prop(operator, "use_scene_unit")
-        
+
         layout.prop(operator, "axis_forward")
         layout.prop(operator, "axis_up")
 
@@ -298,7 +298,7 @@ class ExportSTL(Operator, ExportHelper):
                 stl_utils.write_stl(faces=faces, **keywords_temp)
 
         return {'FINISHED'}
-    
+
     def draw(self, context):
         pass
 
@@ -376,7 +376,7 @@ class STL_PT_export_transform(bpy.types.Panel):
 
         layout.prop(operator, "global_scale")
         layout.prop(operator, "use_scene_unit")
-        
+
         layout.prop(operator, "axis_forward")
         layout.prop(operator, "axis_up")
 

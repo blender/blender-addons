@@ -22,7 +22,7 @@ bl_info = {
     "name": "Wavefront OBJ format",
     "author": "Campbell Barton, Bastien Montagne",
     "version": (3, 5, 15),
-    "blender": (2, 80, 0),
+    "blender": (2, 81, 6),
     "location": "File > Import-Export",
     "description": "Import-Export OBJ, Import OBJ mesh, UV's, materials and textures",
     "warning": "",
@@ -216,7 +216,7 @@ class OBJ_PT_import_geometry(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         sfile = context.space_data
         operator = sfile.active_operator
 
@@ -224,7 +224,7 @@ class OBJ_PT_import_geometry(bpy.types.Panel):
 
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
-        
+
         col = layout.column()
         if operator.split_mode == 'ON':
             col.prop(operator, "use_split_objects", text="Split by Object")

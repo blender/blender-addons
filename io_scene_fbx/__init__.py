@@ -22,7 +22,7 @@ bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
     "version": (4, 15, 1),
-    "blender": (2, 80, 0),
+    "blender": (2, 81, 6),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
     "warning": "",
@@ -195,7 +195,7 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
 
     def draw(self, context):
         pass
-            
+
     def execute(self, context):
         keywords = self.as_keywords(ignore=("filter_glob", "directory", "ui_tab"))
 
@@ -683,7 +683,7 @@ class FBX_PT_export_transform(bpy.types.Panel):
 
         layout.prop(operator, "apply_unit_scale")
         layout.prop(operator, "bake_space_transform")
-        
+
 
 class FBX_PT_export_geometry(bpy.types.Panel):
     bl_space_type = 'FILE_BROWSER'
@@ -740,7 +740,7 @@ class FBX_PT_export_armature(bpy.types.Panel):
 
         sfile = context.space_data
         operator = sfile.active_operator
-        
+
         layout.prop(operator, "primary_bone_axis")
         layout.prop(operator, "secondary_bone_axis")
         layout.prop(operator, "armature_nodetype")

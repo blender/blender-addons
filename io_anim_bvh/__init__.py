@@ -22,7 +22,7 @@ bl_info = {
     "name": "BioVision Motion Capture (BVH) format",
     "author": "Campbell Barton",
     "version": (1, 0, 0),
-    "blender": (2, 80, 0),
+    "blender": (2, 81, 6),
     "location": "File > Import-Export",
     "description": "Import-Export BVH from armature objects",
     "warning": "",
@@ -230,7 +230,7 @@ class BVH_PT_import_animation(bpy.types.Panel):
         layout.prop(operator, "use_cyclic")
 
         layout.prop(operator, "update_scene_fps")
-        layout.prop(operator, "update_scene_duration")   
+        layout.prop(operator, "update_scene_duration")
 
 
 class ExportBVH(bpy.types.Operator, ExportHelper):
@@ -309,7 +309,7 @@ class ExportBVH(bpy.types.Operator, ExportHelper):
 
         from . import export_bvh
         return export_bvh.save(context, **keywords)
-    
+
     def draw(self, context):
         pass
 
