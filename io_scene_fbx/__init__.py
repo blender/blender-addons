@@ -593,6 +593,29 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     def draw(self, context):
         pass
 
+    @property
+    def check_extension(self):
+        return self.batch_mode == 'OFF'
+
+    def execute(self, context):
+        from mathutils import Matrix
+        if not self.filepath:
+            raise Exception("filepath not set")
+
+        global_matrix = (axis_conversion(to_forward=self.axis_forward,
+                                         to_up=self.axis_up,
+                                         ).to_4x4())
+
+        keywords = self.as_keywords(ignore=("check_existing",
+                                            "filter_glob",
+                                            "ui_tab",
+                                            ))
+
+        keywords["global_matrix"] = global_matrix
+
+        from . import export_fbx_bin
+        return export_fbx_bin.save(self, context, **keywords)
+
 
 class FBX_PT_export_main(bpy.types.Panel):
     bl_space_type = 'FILE_BROWSER'
@@ -783,30 +806,6 @@ class FBX_PT_export_bake_animation(bpy.types.Panel):
         layout.prop(operator, "bake_anim_force_startend_keying")
         layout.prop(operator, "bake_anim_step")
         layout.prop(operator, "bake_anim_simplify_factor")
-
-
-    @property
-    def check_extension(self):
-        return self.batch_mode == 'OFF'
-
-    def execute(self, context):
-        from mathutils import Matrix
-        if not self.filepath:
-            raise Exception("filepath not set")
-
-        global_matrix = (axis_conversion(to_forward=self.axis_forward,
-                                         to_up=self.axis_up,
-                                         ).to_4x4())
-
-        keywords = self.as_keywords(ignore=("check_existing",
-                                            "filter_glob",
-                                            "ui_tab",
-                                            ))
-
-        keywords["global_matrix"] = global_matrix
-
-        from . import export_fbx_bin
-        return export_fbx_bin.save(self, context, **keywords)
 
 
 def menu_func_import(self, context):
