@@ -1390,7 +1390,7 @@ class RenderPovSettingsMaterial(PropertyGroup):
             description="Values typically range from 0.0 to 1.0 or higher. Zero is no caustics. "
                         "Low, non-zero values give broad hot-spots while higher values give "
                         "tighter, smaller simulated focal points",
-            min=0.00, max=10.0, soft_min=0.00, soft_max=5.0, default=0.07)
+            min=0.00, max=10.0, soft_min=0.00, soft_max=5.0, default=0.15)
 
     refraction_caustics: BoolProperty(
             name="Refractive Caustics", description="hotspots of light focused when going through the material",

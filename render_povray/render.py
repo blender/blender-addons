@@ -451,10 +451,10 @@ def write_pov(filename, scene=None, info_callback=None):
             # reflections if IOR Mirror option is checked.
             elif material.pov.mirror_use_IOR:
                 tabWrite("interior {\n")
-                tabWrite("ior %.6f\n" % material.pov.ior)
+                tabWrite("ior %.6f\n" % material.pov_raytrace_transparency.ior)
             else:
                 tabWrite("interior {\n")
-                tabWrite("ior %.6f\n" % material.pov.ior)
+                tabWrite("ior %.6f\n" % material.pov_raytrace_transparency.ior)
 
             pov_fake_caustics = False
             pov_photons_refraction = False
