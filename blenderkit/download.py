@@ -402,9 +402,9 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
             shutil.copy(thumbpath, asset_thumb_path)
             brush.icon_filepath = asset_thumb_path
 
-        if bpy.context.sculpt_object:
+        if bpy.context.view_layer.objects.active.mode == 'SCULPT':
             bpy.context.tool_settings.sculpt.brush = brush
-        elif bpy.context.image_paint_object:  # could be just else, but for future possible more types...
+        elif bpy.context.view_layer.objects.active.mode == 'TEXTURE_PAINT':  # could be just else, but for future possible more types...
             bpy.context.tool_settings.image_paint.brush = brush
         # TODO set brush by by asset data(user can be downloading while switching modes.)
 
@@ -510,7 +510,7 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff, not 
                                 sres['downloaded'] = 100
 
                 utils.p('finished download thread')
-    return .2
+    return .5
 
 
 class Downloader(threading.Thread):
@@ -886,7 +886,7 @@ def register_download():
     bpy.utils.register_class(BlenderkitKillDownloadOperator)
     bpy.app.handlers.load_post.append(scene_load)
     bpy.app.handlers.save_pre.append(scene_save)
-    # bpy.app.timers.register(timer_update,  persistent = True)
+    bpy.app.timers.register(timer_update,  persistent = True)
 
 
 def unregister_download():
@@ -894,4 +894,4 @@ def unregister_download():
     bpy.utils.unregister_class(BlenderkitKillDownloadOperator)
     bpy.app.handlers.load_post.remove(scene_load)
     bpy.app.handlers.save_pre.remove(scene_save)
-    # bpy.app.timers.unregister(timer_update)
+    bpy.app.timers.unregister(timer_update)

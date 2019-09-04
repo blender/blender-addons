@@ -87,13 +87,37 @@ def append_scene(file_name, scenename=None, link=False, fake_user=False):
 def link_group(file_name, obnames=[], location=(0, 0, 0), link=False, **kwargs):
     '''link an instanced group - model type asset'''
     sel = utils.selection_get()
-    bpy.ops.wm.link(directory=file_name + "/Collection/", filename=kwargs['name'], link=link, instance_collections=True,
-                    autoselect=True)
 
-    main_object = bpy.context.active_object
+    with bpy.data.libraries.load(file_name, link=link, relative=True) as (data_from, data_to):
+        scols = []
+        for col in data_from.collections:
+            print('linking this ', col)
+            if col == kwargs['name']:
+                data_to.collections = [col]
+
+    rotation = (0,0,0)
     if kwargs.get('rotation') is not None:
-        main_object.rotation_euler = kwargs['rotation']
-    main_object.location = location
+        rotation = kwargs['rotation']
+
+
+    bpy.ops.object.empty_add(type='PLAIN_AXES', location=location, rotation = rotation)
+    main_object = bpy.context.view_layer.objects.active
+    main_object.instance_type = 'COLLECTION'
+    for col in bpy.data.collections:
+        print(col.name, col.library, file_name)
+        if col.library is not None:
+            if col.library.filepath == file_name:
+                main_object.instance_collection = col
+                break;
+
+
+    # bpy.ops.wm.link(directory=file_name + "/Collection/", filename=kwargs['name'], link=link, instance_collections=True,
+    #                 autoselect=True)
+    # main_object = bpy.context.view_layer.objects.active
+    # if kwargs.get('rotation') is not None:
+    #     main_object.rotation_euler = kwargs['rotation']
+    # main_object.location = location
+
     utils.selection_set(sel)
     return main_object, []
 

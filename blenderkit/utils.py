@@ -38,8 +38,8 @@ def activate(ob):
 
 
 def selection_get():
-    aob = bpy.context.active_object
-    selobs = bpy.context.selected_objects
+    aob = bpy.context.view_layer.objects.active
+    selobs = bpy.context.view_layer.objects.selected[:]
     return (aob, selobs)
 
 
