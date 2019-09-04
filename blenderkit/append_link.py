@@ -104,7 +104,6 @@ def link_group(file_name, obnames=[], location=(0, 0, 0), link=False, **kwargs):
     main_object = bpy.context.view_layer.objects.active
     main_object.instance_type = 'COLLECTION'
     for col in bpy.data.collections:
-        print(col.name, col.library, file_name)
         if col.library is not None:
             if col.library.filepath == file_name:
                 main_object.instance_collection = col
