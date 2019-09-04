@@ -113,8 +113,13 @@ class BrushOptionsMenu(Menu):
                     has_brush else "BRUSH_DATA"
 
         if context.image_paint_object and not toolsettings.detect_data():
-            if toolsettings.missing_uvs or toolsettings.missing_materials or \
-               toolsettings.missing_texture:
+            if toolsettings.missing_uvs:
+                layout.row().label(text="Missing UVs", icon='ERROR')
+                layout.row().operator("paint.add_simple_uvs")
+                
+                return
+            
+            elif toolsettings.missing_materials or toolsettings.missing_texture:
                 layout.row().label(text="Missing Data", icon='ERROR')
                 layout.row().operator_menu_enum("paint.add_texture_paint_slot", \
                                                   "type", \
