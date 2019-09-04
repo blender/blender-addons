@@ -465,3 +465,22 @@ def automap(target_object=None, target_slot=None, tex_size=1, bg_exception=False
             if just_scale:
                 scale_uvs(tob, scale=Vector((1/tex_size, 1/tex_size)))
             bpy.context.view_layer.objects.active = actob
+
+def name_update():
+    props = get_upload_props()
+    if props.name_old != props.name:
+        props.name_changed = True
+        props.name_old = props.name
+        nname = props.name.strip()
+        nname = nname.replace('_', ' ')
+
+        if nname.isupper():
+            nname = nname.lower()
+        nname = nname[0].upper() + nname[1:]
+        props.name = nname
+        # here we need to fix the name for blender data = ' or " give problems in path evaluation down the road.
+    fname = props.name
+    fname = fname.replace('\'', '')
+    fname = fname.replace('\"', '')
+    asset = get_active_asset()
+    asset.name = fname
