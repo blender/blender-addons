@@ -15,7 +15,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (0, 9, 54),
+    "version": (0, 9, 55),
     'blender': (2, 81, 6),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -410,6 +410,11 @@ class ExportGLTF2_Base:
             bpy.path.ensure_ext(self.filepath,self.filename_ext)))[0] + '.bin'
 
         return gltf2_blender_export.save(context, export_settings)
+
+
+
+
+
 
     def draw(self, context):
         pass
