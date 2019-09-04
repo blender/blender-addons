@@ -31,6 +31,8 @@ class BrushOptionsMenu(Menu):
         layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
         layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
         layout.menu("SCREEN_MT_user_menu", text="Quick Favorites", icon='HEART')
+        layout.operator_menu_enum("object.mode_set", "mode",
+                                  text="Interactive Mode", icon='VIEW3D')
         layout.separator()
         
         
