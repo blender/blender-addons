@@ -21,13 +21,12 @@
 bl_info = {
     "name": "Web3D X3D/VRML2 format",
     "author": "Campbell Barton, Bart, Bastien Montagne, Seva Alekseyev",
-    "version": (2, 2, 2),
+    "version": (2, 2, 3),
     "blender": (2, 81, 6),
     "location": "File > Import-Export",
     "description": "Import-Export X3D, Import VRML2",
     "warning": "",
     "wiki_url": "https://docs.blender.org/manual/en/latest/addons/io_scene_x3d.html",
-    "support": 'OFFICIAL',
     "category": "Import-Export",
 }
 
