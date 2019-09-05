@@ -238,7 +238,7 @@ def report_usages():
     scene['assets reported'] = assets_reported
 
     if new_assets_count == 0:
-        print('no new assets were added')
+        # print('no new assets were added')
         return;
     usage_report = {
         'scene': sid,

@@ -133,8 +133,8 @@ def bg_update():
                 readthread = threading.Thread(target=threadread, args=([tcom]), daemon=True)
                 readthread.start()
                 p[0] = readthread
-    if len(bg_processes) == 0:
-        bpy.app.timers.unregister(bg_update)
+    # if len(bg_processes) == 0:
+    #     bpy.app.timers.unregister(bg_update)
     if len(bg_processes) > 0:
         return .3
     return 1.
