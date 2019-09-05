@@ -200,7 +200,7 @@ def __get_channel_groups(blender_action: bpy.types.Action, blender_object: bpy.t
                         shape_key = blender_object.data.shape_keys.path_resolve(object_path)
                         if shape_key.mute is True:
                             continue
-                            target = blender_object.data.shape_keys
+                        target = blender_object.data.shape_keys
                     except:
                         # Something is wrong, for example a bone animation is linked to an object mesh...
                         gltf2_io_debug.print_console("WARNING", "Animation target {} not found".format(object_path))
