@@ -569,7 +569,7 @@ def animall_update_handler(scene):
     '''Force data refresh on frame change.
     To be removed when T68666 is fixed, probably.'''
     for obj in scene.objects:
-        if obj.data is not None:
+        if obj.data is not None and obj.data.animation_data is not None:
             obj.update_tag(refresh={'DATA'})
 
 
