@@ -584,12 +584,15 @@ class VIEW3D_PT_blenderkit_unified(Panel):
         wm = bpy.context.window_manager
         layout = self.layout
 
+        # layout.prop_tabs_enum(ui_props, "asset_type", icon_only = True)
         row = layout.row()
-
+        row.scale_x = 1.6
+        row.scale_y = 1.6
         #
         row.prop(ui_props, 'down_up', expand=True, icon_only=True)
         # row.label(text='')
         row = row.split().row()
+
         row.prop(ui_props, 'asset_type', expand=True, icon_only=True)
 
         w = context.region.width

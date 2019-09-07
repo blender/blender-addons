@@ -107,7 +107,7 @@ def link_group(file_name, obnames=[], location=(0, 0, 0), link=False, **kwargs):
         if col.library is not None:
             fp = bpy.path.abspath(col.library.filepath)
             fp1 = bpy.path.abspath(file_name)
-            if fp1 == fp1:
+            if fp == fp1:
                 main_object.instance_collection = col
                 break;
 

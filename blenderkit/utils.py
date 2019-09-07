@@ -315,17 +315,18 @@ def get_bounds_snappable(obs, use_modifiers=False):
 
             # to_mesh(context.depsgraph, apply_modifiers=self.applyModifiers, calc_undeformed=False)
             obcount += 1
-            for c in mesh.vertices:
-                coord = c.co
-                parent_coord = matrix_parent.inverted() @ mw @ Vector(
-                    (coord[0], coord[1], coord[2]))  # copy this when it works below.
-                minx = min(minx, parent_coord.x)
-                miny = min(miny, parent_coord.y)
-                minz = min(minz, parent_coord.z)
-                maxx = max(maxx, parent_coord.x)
-                maxy = max(maxy, parent_coord.y)
-                maxz = max(maxz, parent_coord.z)
-            # bpy.data.meshes.remove(mesh)
+            if mesh is not None:
+                for c in mesh.vertices:
+                    coord = c.co
+                    parent_coord = matrix_parent.inverted() @ mw @ Vector(
+                        (coord[0], coord[1], coord[2]))  # copy this when it works below.
+                    minx = min(minx, parent_coord.x)
+                    miny = min(miny, parent_coord.y)
+                    minz = min(minz, parent_coord.z)
+                    maxx = max(maxx, parent_coord.x)
+                    maxy = max(maxy, parent_coord.y)
+                    maxz = max(maxz, parent_coord.z)
+                # bpy.data.meshes.remove(mesh)
             if ob.type == 'CURVE':
                 object_eval.to_mesh_clear()
 
@@ -356,15 +357,16 @@ def get_bounds_worldspace(obs, use_modifiers=False):
             ob_eval = ob.evaluated_get(depsgraph)
             mesh = ob_eval.to_mesh()
             obcount += 1
-            for c in mesh.vertices:
-                coord = c.co
-                world_coord = mw @ Vector((coord[0], coord[1], coord[2]))
-                minx = min(minx, world_coord.x)
-                miny = min(miny, world_coord.y)
-                minz = min(minz, world_coord.z)
-                maxx = max(maxx, world_coord.x)
-                maxy = max(maxy, world_coord.y)
-                maxz = max(maxz, world_coord.z)
+            if mesh is not None:
+                for c in mesh.vertices:
+                    coord = c.co
+                    world_coord = mw @ Vector((coord[0], coord[1], coord[2]))
+                    minx = min(minx, world_coord.x)
+                    miny = min(miny, world_coord.y)
+                    minz = min(minz, world_coord.z)
+                    maxx = max(maxx, world_coord.x)
+                    maxy = max(maxy, world_coord.y)
+                    maxz = max(maxz, world_coord.z)
             ob_eval.to_mesh_clear()
 
     if obcount == 0:
