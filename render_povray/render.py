@@ -452,6 +452,9 @@ def write_pov(filename, scene=None, info_callback=None):
             elif material.pov.mirror_use_IOR:
                 tabWrite("interior {\n")
                 tabWrite("ior %.6f\n" % material.pov_raytrace_transparency.ior)
+            elif material.pov.transparency_method=='Z_TRANSPARENCY':
+                tabWrite("interior {\n")
+                tabWrite("ior 1.0\n")                
             else:
                 tabWrite("interior {\n")
                 tabWrite("ior %.6f\n" % material.pov_raytrace_transparency.ior)
