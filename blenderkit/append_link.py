@@ -21,8 +21,9 @@ if "bpy" in locals():
     from importlib import reload
 
     utils = reload(utils)
+    ui = reload(ui)
 else:
-    from blenderkit import utils
+    from blenderkit import utils, ui
 
 import bpy
 import uuid
@@ -84,7 +85,7 @@ def append_scene(file_name, scenename=None, link=False, fake_user=False):
     return scene
 
 
-def link_group(file_name, obnames=[], location=(0, 0, 0), link=False, **kwargs):
+def link_group(file_name, obnames=[], location=(0, 0, 0), link=False, parent = None, **kwargs):
     '''link an instanced group - model type asset'''
     sel = utils.selection_get()
 
@@ -95,14 +96,17 @@ def link_group(file_name, obnames=[], location=(0, 0, 0), link=False, **kwargs):
             if col == kwargs['name']:
                 data_to.collections = [col]
 
-    rotation = (0,0,0)
+    rotation = (0, 0, 0)
     if kwargs.get('rotation') is not None:
         rotation = kwargs['rotation']
 
-
-    bpy.ops.object.empty_add(type='PLAIN_AXES', location=location, rotation = rotation)
+    bpy.ops.object.empty_add(type='PLAIN_AXES', location=location, rotation=rotation)
     main_object = bpy.context.view_layer.objects.active
     main_object.instance_type = 'COLLECTION'
+
+    main_object.parent = parent
+    main_object.matrix_world.translation = location
+
     for col in bpy.data.collections:
         if col.library is not None:
             fp = bpy.path.abspath(col.library.filepath)
@@ -111,6 +115,7 @@ def link_group(file_name, obnames=[], location=(0, 0, 0), link=False, **kwargs):
                 main_object.instance_collection = col
                 break;
 
+    main_object.name = main_object.instance_collection.name
 
     # bpy.ops.wm.link(directory=file_name + "/Collection/", filename=kwargs['name'], link=link, instance_collections=True,
     #                 autoselect=True)
@@ -176,6 +181,7 @@ def append_particle_system(file_name, obnames=[], location=(0, 0, 0), link=False
 
 def append_objects(file_name, obnames=[], location=(0, 0, 0), link=False, **kwargs):
     '''append objects into scene individually'''
+
     with bpy.data.libraries.load(file_name, link=link, relative=True) as (data_from, data_to):
         sobs = []
         for ob in data_from.objects:
@@ -207,7 +213,6 @@ def append_objects(file_name, obnames=[], location=(0, 0, 0), link=False, **kwar
                     hidden_objects.append(obj)
                     obj.hide_viewport = False
             return_obs.append(obj)
-
     # Only after all objects are in scene! Otherwise gets broken relationships
     if link == True:
         bpy.ops.object.make_local(type='SELECT_OBJECT')
@@ -216,7 +221,14 @@ def append_objects(file_name, obnames=[], location=(0, 0, 0), link=False, **kwar
 
     if kwargs.get('rotation') is not None:
         main_object.rotation_euler = kwargs['rotation']
+
+    if kwargs.get('parent') is not None:
+        main_object.parent = bpy.data.objects[kwargs['parent']]
+        main_object.matrix_world.translation = location
+
     bpy.ops.object.select_all(action='DESELECT')
 
     utils.selection_set(sel)
+
+
     return main_object, return_obs

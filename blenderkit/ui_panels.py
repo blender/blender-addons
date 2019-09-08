@@ -733,18 +733,33 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
         sr = bpy.context.scene['search results orig']['results']
         asset_data = sr[ui_props.active_index]
         author_id = str(asset_data['author']['id'])
-        a = bpy.context.window_manager['bkit authors'].get(author_id)
-        if a is not None:
-            # utils.p('author:', a)
-            if a.get('aboutMeUrl') is not None:
-                op = layout.operator('wm.url_open', text="Open author's website")
-                op.url = a['aboutMeUrl']
-        op = layout.operator('view3d.blenderkit_search', text='search assets by same author')
-        op.author_id = author_id
+
+        wm = bpy.context.window_manager
+        if wm.get('bkit authors') is not None:
+            a = bpy.context.window_manager['bkit authors'].get(author_id)
+            if a is not None:
+                # utils.p('author:', a)
+                if a.get('aboutMeUrl') is not None:
+                    op = layout.operator('wm.url_open', text="Open author's website")
+                    op.url = a['aboutMeUrl']
+
+                op = layout.operator('view3d.blenderkit_search', text='search assets by same author')
+                op.author_id = author_id
 
         op = layout.operator('view3d.blenderkit_search', text='search similar')
         print(dir(asset_data))
         op.keywords = asset_data['name'] + ' ' + asset_data['description'] + ' ' + ''.join(asset_data['tags'])
+
+        if bpy.context.active_object is not None and ui_props.asset_type == 'MODEL':
+            aob = bpy.context.active_object
+            op = layout.operator('scene.blenderkit_download', text='replace active ' + ui_props.asset_type.lower())
+            op.asset_type = ui_props.asset_type
+            op.asset_index = ui_props.active_index
+            op.model_location = aob.location
+            op.model_rotation = aob.rotation_euler
+            op.target_object = aob.name
+            op.material_target_slot = aob.active_material_index
+            op.replace = True
 
         wm = bpy.context.window_manager
         profile = wm.get('bkit profile')
@@ -807,7 +822,6 @@ def draw_panel_categories(self, context):
     # row = layout.row()
     # row.prop(ui_props, 'asset_type', expand=True, icon_only=True)
     layout.separator()
-
 
     layout.label(text='Categories')
     wm = bpy.context.window_manager

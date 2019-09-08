@@ -65,14 +65,18 @@ def get_selected_models():
     parents = []
     for ob in obs:
         if ob not in done:
-            while ob.parent is not None and ob not in done:
+            while ob.parent is not None and ob not in done and ob.blenderkit.asset_base_id != '' and ob.instance_collection is not None:
                 done[ob] = True
                 ob = ob.parent
 
             if ob not in parents and ob not in done:
-                if ob.blenderkit.name != '':
+                if ob.blenderkit.name != '' or ob.instance_collection is not None:
                     parents.append(ob)
             done[ob] = True
+
+    #if no blenderkit - like objects were found, use the original selection.
+    if len(parents) == 0:
+        parents = obs
     return parents
 
 
@@ -282,6 +286,15 @@ def get_hierarchy(ob):
         obs.append(o)
     return obs
 
+def select_hierarchy(ob, state = True):
+    obs = get_hierarchy(ob)
+    for ob in obs:
+        ob.select_set(state)
+    return obs
+
+def delete_hierarchy(ob):
+    obs = get_hierarchy(ob)
+    bpy.ops.object.delete({"selected_objects": obs})
 
 def get_bounds_snappable(obs, use_modifiers=False):
     # progress('getting bounds of object(s)')
