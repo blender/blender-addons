@@ -28,7 +28,7 @@ def get_operator_classes():
     classes = []
     print(__name__)
     for path in module_paths:
-        module = importlib.import_module(path, package="blender_power_sequencer.operators")
+        module = importlib.import_module(path, package="power_sequencer.operators")
         operator_names = [entry for entry in dir(module) if entry.startswith("POWER_SEQUENCER_OT")]
         classes.extend([getattr(module, name) for name in operator_names])
     return classes
