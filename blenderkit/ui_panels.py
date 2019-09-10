@@ -332,7 +332,7 @@ def draw_panel_model_search(self, context):
     draw_panel_categories(self, context)
 
     layout.separator()
-    layout.label(text='how to import assets:')
+    layout.label(text='Import method:')
     col = layout.column()
     col.prop(props, 'append_method', expand=True, icon_only=False)
     layout.prop(props, 'randomize_rotation')
@@ -743,16 +743,16 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
                     op = layout.operator('wm.url_open', text="Open author's website")
                     op.url = a['aboutMeUrl']
 
-                op = layout.operator('view3d.blenderkit_search', text='search assets by same author')
+                op = layout.operator('view3d.blenderkit_search', text="Show assets by author." + ui_props.asset_type.lower())
+                op.keywords = ''
                 op.author_id = author_id
 
-        op = layout.operator('view3d.blenderkit_search', text='search similar')
-        print(dir(asset_data))
-        op.keywords = asset_data['name'] + ' ' + asset_data['description'] + ' ' + ''.join(asset_data['tags'])
+        op = layout.operator('view3d.blenderkit_search', text='Search similar')
+        op.keywords = asset_data['name'] + ' ' + asset_data['description'] + ' ' + ' '.join(asset_data['tags'])
 
         if bpy.context.active_object is not None and ui_props.asset_type == 'MODEL':
             aob = bpy.context.active_object
-            op = layout.operator('scene.blenderkit_download', text='replace active ' + ui_props.asset_type.lower())
+            op = layout.operator('scene.blenderkit_download', text='Replace active ' + ui_props.asset_type.lower())
             op.asset_type = ui_props.asset_type
             op.asset_index = ui_props.active_index
             op.model_location = aob.location
