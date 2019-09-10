@@ -238,7 +238,7 @@ def report_usages():
     scene['assets reported'] = assets_reported
 
     if new_assets_count == 0:
-        # print('no new assets were added')
+        utils.p('no new assets were added')
         return;
     usage_report = {
         'scene': sid,
@@ -267,7 +267,6 @@ def report_usages():
         scene['assets rated'][k] = scene['assets rated'].get(k, False)
     thread = threading.Thread(target=utils.requests_post_thread, args=(url, usage_report, headers))
     thread.start()
-    # r = rerequests.post(url, headers=headers, json=usage_report)
     mt = time.time() - mt
     print('report generation:                ', mt)
 
@@ -702,9 +701,10 @@ def asset_in_scene(asset_data):
     scene = bpy.context.scene
     au = scene.get('assets used', {})
 
-    if id in au.keys():
+    for id in au.keys():
         ad = au[id]
         if ad.get('file_name') != None:
+
             asset_data['file_name'] = ad['file_name']
             asset_data['url'] = ad['url']
 
