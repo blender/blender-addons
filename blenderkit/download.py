@@ -281,13 +281,7 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
     # link the group we are interested in( there are more groups in File!!!! , have to get the correct one!)
     #
     scene = bpy.context.scene
-    scene['assets used'] = scene.get('assets used', {})
-    scene['assets used'][asset_data['asset_base_id']] = asset_data.copy()
 
-    scene['assets rated'] = scene.get('assets rated', {})
-
-    id = asset_data['asset_base_id']
-    scene['assets rated'][id] = scene['assets rated'].get(id, False)
 
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
 
@@ -432,6 +426,14 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
             target_object.material_slots[kwargs['material_target_slot']].material = material
 
         parent = material
+
+    scene['assets used'] = scene.get('assets used', {})
+    scene['assets used'][asset_data['asset_base_id']] = asset_data.copy()
+
+    scene['assets rated'] = scene.get('assets rated', {})
+
+    id = asset_data['asset_base_id']
+    scene['assets rated'][id] = scene['assets rated'].get(id, False)
 
     parent['asset_data'] = asset_data  # TODO remove this??? should write to blenderkit Props?
     # moving reporting to on save.
@@ -701,7 +703,8 @@ def asset_in_scene(asset_data):
     scene = bpy.context.scene
     au = scene.get('assets used', {})
 
-    for id in au.keys():
+    id = asset_data['asset_base_id']
+    if id in au.keys():
         ad = au[id]
         if ad.get('file_name') != None:
 
