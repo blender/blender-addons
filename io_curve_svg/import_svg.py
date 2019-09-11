@@ -1816,6 +1816,35 @@ class SVGGeometrySVG(SVGGeometryContainer):
 
         matrix = self.getNodeMatrix()
 
+        # Better SVG compatibility: match svg-document units
+        # with blender units    
+       
+        viewbox = []
+        unit = ''
+         
+        if self._node.getAttribute('height'):
+            raw_height = self._node.getAttribute('height')
+            token, last_char = SVGParseFloat(raw_height)
+            document_height = float(token)
+            unit = raw_height[last_char:].strip() 
+       
+        if self._node.getAttribute('viewBox'):
+            viewbox = parse_array_of_floats(self._node.getAttribute('viewBox'))
+            
+        if len(viewbox) == 4 and unit in ('cm', 'mm', 'in', 'pt', 'pc'):
+
+            #one unit equals whis svg units:
+            unitscale = document_height / (viewbox[3] - viewbox[1])
+            
+            #convert units to BU: 
+            unitscale = unitscale * SVGUnits[unit] / 90 * 1000 / 39.3701 
+            
+            #apply blender unit scale: 
+            unitscale = unitscale / bpy.context.scene.unit_settings.scale_length
+        
+            matrix = matrix @ Matrix.Scale(unitscale, 4, Vector((1.0, 0.0, 0.0)))
+            matrix = matrix @ Matrix.Scale(unitscale, 4, Vector((0.0, 1.0, 0.0)))    
+
         # match document origin with 3D space origin.
         if self._node.getAttribute('viewBox'):
             viewbox = parse_array_of_floats(self._node.getAttribute('viewBox'))
