@@ -1816,12 +1816,10 @@ class SVGGeometrySVG(SVGGeometryContainer):
 
         matrix = self.getNodeMatrix()
 
-        # Better Inkscape compatibility: match document origin with
-        # 3D space origin.
-        if self._node.getAttribute('inkscape:version'):
-            raw_height = self._node.getAttribute('height')
-            document_height = SVGParseCoord(raw_height, 1.0)
-            matrix = matrix @ matrix.Translation([0.0, -document_height , 0.0])
+        # match document origin with 3D space origin.
+        if self._node.getAttribute('viewBox'):
+            viewbox = parse_array_of_floats(self._node.getAttribute('viewBox'))
+            matrix = matrix @ matrix.Translation([0.0, - viewbox[1] - viewbox[3], 0.0])
 
         self._pushMatrix(matrix)
         self._pushRect(rect)
