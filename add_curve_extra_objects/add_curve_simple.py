@@ -1342,7 +1342,8 @@ class BezierPointsFillet(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.scene is not None
+        return (context.object is not None and
+                context.object.type == 'CURVE')
 
     def execute(self, context):
         # main function
@@ -1469,7 +1470,8 @@ class BezierDivide(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.scene is not None
+        return (context.object is not None and
+                context.object.type == 'CURVE')
 
     def execute(self, context):
         # main function
@@ -1557,7 +1559,8 @@ class CurveScaleReset(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.scene is not None
+        return (context.object is not None and
+                context.object.type == 'CURVE')
 
     def execute(self, context):
         # main function
