@@ -306,18 +306,23 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
             sprops.append_link = 'APPEND'
             sprops.import_as = 'INDIVIDUAL'
 
+        #copy for override
+        al = sprops.append_link
+        import_as = sprops.import_as
         # set consistency for objects already in scene, otherwise this literally breaks blender :)
         ain = asset_in_scene(asset_data)
+        #override based on history
         if ain is not False:
             if ain == 'LINKED':
-                sprops.append_link = 'LINK'
-                sprops.import_as = 'GROUP'
+                al = 'LINK'
+                import_as = 'GROUP'
             else:
-                sprops.append_link = 'APPEND'
-                sprops.import_as = 'INDIVIDUAL'
+                al = 'APPEND'
+                import_as = 'INDIVIDUAL'
+
 
         # first get conditions for append link
-        link = sprops.append_link == 'LINK'
+        link = al == 'LINK'
         # then append link
         if downloaders:
             for downloader in downloaders:
