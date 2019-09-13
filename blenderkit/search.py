@@ -82,11 +82,13 @@ reports = ''
 
 
 def refresh_token_timer():
-    ''' this timer gets run every 20 hours. It refreshes tokens and categories.'''
-    print('refresh timer')
+    ''' this timer gets run every time the token needs refresh. It refreshes tokens and also categories.'''
+    utils.p('refresh timer')
+    user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
     fetch_server_data()
     categories.load_categories()
-    return 72000
+
+    return max(3600, user_preferences.api_key_life - 3600)
 
 
 @persistent
@@ -97,7 +99,7 @@ def scene_load(context):
     # wm['bkit_update'] = version_checker.compare_versions(blenderkit)
     categories.load_categories()
     if not bpy.app.timers.is_registered(refresh_token_timer):
-        bpy.app.timers.register(refresh_token_timer, persistent=True, first_interval=72000)
+        bpy.app.timers.register(refresh_token_timer, persistent=True, first_interval=36000)
 
 
 def fetch_server_data():
@@ -106,8 +108,10 @@ def fetch_server_data():
         user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
         url = paths.BLENDERKIT_ADDON_URL
         api_key = user_preferences.api_key
-        # version_checker.check_version_thread(url, api_key, blenderkit)
-        if user_preferences.enable_oauth:
+        # Only refresh new type of tokens(by length), and only one hour before the token timeouts.
+        if user_preferences.enable_oauth and \
+                len(user_preferences.api_key)<38 and \
+                user_preferences.api_key_timeout<time.time()+ 3600:
             bkit_oauth.refresh_token_thread()
         if api_key != '':
             get_profile()

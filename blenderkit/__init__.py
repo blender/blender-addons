@@ -1273,6 +1273,24 @@ class BlenderKitAddonPreferences(AddonPreferences):
         subtype="PASSWORD",
     )
 
+    api_key_timeout: IntProperty(
+        name = 'api key timeout',
+        description = 'time where the api key will need to be refreshed',
+        default = 0,
+    )
+
+    api_key_life: IntProperty(
+        name='api key life time',
+        description='maximum lifetime of the api key, in seconds',
+        default=0,
+    )
+
+    refresh_in_progress: BoolProperty(
+        name="Api key refresh in progress",
+        description="Api key is currently being refreshed. Don't refresh it again.",
+        default=False
+    )
+
     login_attempt: BoolProperty(
         name="Login/Signup attempt",
         description="When this is on, BlenderKit is trying to connect and login.",
