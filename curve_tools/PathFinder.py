@@ -241,14 +241,9 @@ class PathFinder(bpy.types.Operator):
                 subtype = 'XYZ')
                 
     handlers = []
-    
-    def __init__(self):
-        self.report({'INFO'}, "ESC or TAB - cancel")
-
-    def __del__(self):
-        self.report({'INFO'}, "PathFinder deactivated")
         
     def execute(self, context):
+        self.report({'INFO'}, "ESC or TAB - cancel")
         bpy.ops.object.mode_set(mode = 'EDIT')
         
         # color change in the panel
@@ -266,6 +261,7 @@ class PathFinder(bpy.types.Operator):
                     pass
             for handler in self.handlers:
                 self.handlers.remove(handler)
+            self.report({'INFO'}, "PathFinder deactivated")
             return {'CANCELLED'}
             
         if event.type in {'X', 'DEL'}:  # Cancel

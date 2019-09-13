@@ -447,7 +447,7 @@ class CurveAddonPreferences(AddonPreferences):
     category: StringProperty(
             name="Tab Category",
             description="Choose a name for the category of the panel",
-            default="Tools",
+            default="CurveTools",
             update=update_panel
             )
 
@@ -485,7 +485,6 @@ classes = cad.operators + toolpath.operators + exports.operators + [
     Operators.OperatorSplinesRemoveZeroSegment,
     Operators.OperatorSplinesRemoveShort,
     Operators.OperatorSplinesJoinNeighbouring,
-    VIEW3D_PT_CurvePanel,
     SeparateOutline,
     Operators.ConvertSelectedFacesToBezier,
     Operators.ConvertBezierToSurface,
@@ -527,6 +526,9 @@ def register():
     
     for cls in classes:
         bpy.utils.register_class(cls)
+
+    for panel in panels:
+        bpy.utils.register_class(panel)
     
     auto_loft.register()
     
@@ -537,6 +539,8 @@ def register():
     bpy.types.TOPBAR_MT_file_export.append(menu_file_export)
     
     bpy.types.Scene.curvetools = bpy.props.PointerProperty(type=CurveTools2Settings)
+    
+    update_panel(None, bpy.context)
 
 
 def unregister():
@@ -554,6 +558,9 @@ def unregister():
     curve_remove_doubles.unregister()
     
     bpy.types.TOPBAR_MT_file_export.remove(menu_file_export)
+    
+    for panel in panels:
+        bpy.utils.unregister_class(panel)
     
     for cls in classes:
         bpy.utils.unregister_class(cls)
