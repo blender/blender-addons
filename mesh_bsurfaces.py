@@ -4226,11 +4226,17 @@ classes = (
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
+        
+    for panel in panels:
+        bpy.utils.register_class(panel)
 
     bpy.types.Scene.bsurfaces = PointerProperty(type=BsurfacesProps)
     update_panel(None, bpy.context)
 
 def unregister():
+    for panel in panels:
+        bpy.utils.unregister_class(panel)
+    
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
