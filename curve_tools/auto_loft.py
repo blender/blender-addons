@@ -7,7 +7,7 @@ from curve_tools import Util
 
 
 class OperatorAutoLoftCurves(Operator):
-    bl_idname = "curvetools2.create_auto_loft"
+    bl_idname = "curvetools.create_auto_loft"
     bl_label = "Loft"
     bl_description = "Lofts selected curves"
 
@@ -44,7 +44,7 @@ class OperatorAutoLoftCurves(Operator):
 
 class AutoLoftModalOperator(Operator):
     """Auto Loft"""
-    bl_idname = "curvetools2.update_auto_loft_curves"
+    bl_idname = "curvetools.update_auto_loft_curves"
     bl_label = "Update Auto Loft"
     bl_description = "Update Lofts selected curves"
 

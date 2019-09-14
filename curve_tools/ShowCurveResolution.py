@@ -39,7 +39,7 @@ from bpy_extras.view3d_utils import location_3d_to_region_2d as loc3d2d
 
  
  
-def get_points(spline):
+def get_points(spline, matrix_world):
 
     bezier_points = spline.bezier_points
 
@@ -56,10 +56,10 @@ def get_points(spline):
     for i in range(segments):
         inext = (i + 1) % len(bezier_points)
  
-        bezier_points1 = bezier_points[i].co
-        handle1 = bezier_points[i].handle_right
-        handle2 = bezier_points[inext].handle_left
-        bezier_points2 = bezier_points[inext].co
+        bezier_points1 = matrix_world @ bezier_points[i].co
+        handle1 = matrix_world @ bezier_points[i].handle_right
+        handle2 = matrix_world @ bezier_points[inext].handle_left
+        bezier_points2 = matrix_world @ bezier_points[inext].co
         
         bezier = bezier_points1, handle1, handle2, bezier_points2, r
         points = interpolate_bezier(*bezier)
@@ -67,9 +67,9 @@ def get_points(spline):
  
     return point_list
  
-def draw(self, context, spline, curve_vertcolor):
+def draw(self, context, spline, curve_vertcolor, matrix_world):
     
-    points = get_points(spline)
+    points = get_points(spline, matrix_world)
     
     shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
     batch = batch_for_shader(shader, 'POINTS', {"pos": points})
@@ -113,8 +113,9 @@ class ShowCurveResolution(bpy.types.Operator):
             
             
             splines = context.active_object.data.splines
+            matrix_world = context.active_object.matrix_world
             for spline in splines:
-                args = (self, context, spline, curve_vertcolor)
+                args = (self, context, spline, curve_vertcolor, matrix_world)
             
                 # Add the region OpenGL drawing callback
                 # draw in view space with 'POST_VIEW' and 'PRE_VIEW'

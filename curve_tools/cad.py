@@ -28,6 +28,7 @@ bl_info = {
 
 import bpy
 from . import internal
+from . import Util
 
 class Fillet(bpy.types.Operator):
     bl_idname = 'curve.bezier_cad_fillet'
@@ -40,7 +41,7 @@ class Fillet(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return internal.curveObject()
+        return Util.Selected1OrMoreCurves()
 
     def execute(self, context):
         splines = internal.getSelectedSplines(True, True, True)
@@ -65,22 +66,29 @@ class Boolean(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return internal.curveObject()
+        return Util.Selected1OrMoreCurves()
 
     def execute(self, context):
+        current_mode = bpy.context.object.mode
+        
+        bpy.ops.object.mode_set(mode = 'EDIT')
+        
         if bpy.context.object.data.dimensions != '2D':
             self.report({'WARNING'}, 'Can only be applied in 2D')
             return {'CANCELLED'}
         splines = internal.getSelectedSplines(True, True)
         if len(splines) != 2:
-            self.report({'WARNING'}, 'Invalid selection')
+            self.report({'WARNING'}, 'Invalid selection. Only work to selected two spline.')
             return {'CANCELLED'}
         bpy.ops.curve.spline_type_set(type='BEZIER')
         splineA = bpy.context.object.data.splines.active
         splineB = splines[0] if (splines[1] == splineA) else splines[1]
         if not internal.bezierBooleanGeometry(splineA, splineB, self.operation):
-            self.report({'WARNING'}, 'Invalid selection')
+            self.report({'WARNING'}, 'Invalid selection. Only work to selected two spline.')
             return {'CANCELLED'}
+        
+        bpy.ops.object.mode_set (mode = current_mode)
+        
         return {'FINISHED'}
 
 class Intersection(bpy.types.Operator):
@@ -90,7 +98,7 @@ class Intersection(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return internal.curveObject()
+        return Util.Selected1OrMoreCurves()
 
     def execute(self, context):
         segments = internal.bezierSegments(bpy.context.object.data.splines, True)
@@ -108,7 +116,7 @@ class MergeEnds(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return internal.curveObject()
+        return Util.Selected1OrMoreCurves()
 
     def execute(self, context):
         points = []
@@ -161,9 +169,13 @@ class Subdivide(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return internal.curveObject()
+        return Util.Selected1OrMoreCurves()
 
     def execute(self, context):
+        current_mode = bpy.context.object.mode
+        
+        bpy.ops.object.mode_set(mode = 'EDIT')
+
         segments = internal.bezierSegments(bpy.context.object.data.splines, True)
         if len(segments) == 0:
             self.report({'WARNING'}, 'Nothing selected')
@@ -176,6 +188,8 @@ class Subdivide(bpy.types.Operator):
         for segment in segments:
             segment['cuts'].extend(cuts)
         internal.subdivideBezierSegments(segments)
+        
+        bpy.ops.object.mode_set (mode = current_mode)
         return {'FINISHED'}
 
 class Array(bpy.types.Operator):
@@ -183,14 +197,14 @@ class Array(bpy.types.Operator):
     bl_description = bl_label = 'Array'
     bl_options = {'REGISTER', 'UNDO'}
 
-    offset: bpy.props.FloatVectorProperty(name='Offset', unit='LENGTH', description='Vector between to copies', subtype='DIRECTION', default=(0.0, 0.0, -1.0), size=3)
+    offset: bpy.props.FloatVectorProperty(name='Offset', unit='LENGTH', description='Vector between to copies', subtype='DIRECTION', default=(1.0, 0.0, 0.0), size=3)
     count: bpy.props.IntProperty(name='Count', description='Number of copies', min=1, default=2)
     connect: bpy.props.BoolProperty(name='Connect', description='Concatenate individual copies', default=False)
     serpentine: bpy.props.BoolProperty(name='Serpentine', description='Switch direction of every second copy', default=False)
 
     @classmethod
     def poll(cls, context):
-        return internal.curveObject()
+        return Util.Selected1OrMoreCurves()
 
     def execute(self, context):
         splines = internal.getSelectedSplines(True, True)
@@ -207,7 +221,7 @@ class Circle(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return internal.curveObject()
+        return Util.Selected1OrMoreCurves()
 
     def execute(self, context):
         segments = internal.bezierSegments(bpy.context.object.data.splines, True)
@@ -231,7 +245,7 @@ class Length(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return internal.curveObject()
+        return Util.Selected1OrMoreCurves()
 
     def execute(self, context):
         segments = internal.bezierSegments(bpy.context.object.data.splines, True)

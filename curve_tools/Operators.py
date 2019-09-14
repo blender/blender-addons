@@ -17,7 +17,7 @@ from . import Math
 # 1 CURVE SELECTED
 # ################
 class OperatorCurveInfo(bpy.types.Operator):
-    bl_idname = "curvetools2.operatorcurveinfo"
+    bl_idname = "curvetools.operatorcurveinfo"
     bl_label = "Info"
     bl_description = "Displays general info about the active/selected curve"
 
@@ -45,7 +45,7 @@ class OperatorCurveInfo(bpy.types.Operator):
 
 
 class OperatorCurveLength(bpy.types.Operator):
-    bl_idname = "curvetools2.operatorcurvelength"
+    bl_idname = "curvetools.operatorcurvelength"
     bl_label = "Length"
     bl_description = "Calculates the length of the active/selected curve"
 
@@ -65,7 +65,7 @@ class OperatorCurveLength(bpy.types.Operator):
 
 
 class OperatorSplinesInfo(bpy.types.Operator):
-    bl_idname = "curvetools2.operatorsplinesinfo"
+    bl_idname = "curvetools.operatorsplinesinfo"
     bl_label = "Info"
     bl_description = "Displays general info about the splines of the active/selected curve"
 
@@ -98,7 +98,7 @@ class OperatorSplinesInfo(bpy.types.Operator):
 
 
 class OperatorSegmentsInfo(bpy.types.Operator):
-    bl_idname = "curvetools2.operatorsegmentsinfo"
+    bl_idname = "curvetools.operatorsegmentsinfo"
     bl_label = "Info"
     bl_description = "Displays general info about the segments of the active/selected curve"
 
@@ -139,7 +139,7 @@ class OperatorSegmentsInfo(bpy.types.Operator):
 
 
 class OperatorOriginToSpline0Start(bpy.types.Operator):
-    bl_idname = "curvetools2.operatororigintospline0start"
+    bl_idname = "curvetools.operatororigintospline0start"
     bl_label = "OriginToSpline0Start"
     bl_description = "Sets the origin of the active/selected curve to the starting point of the (first) spline. Nice for curve modifiers."
 
@@ -150,19 +150,24 @@ class OperatorOriginToSpline0Start(bpy.types.Operator):
 
 
     def execute(self, context):
+        
+        
         blCurve = context.active_object
         blSpline = blCurve.data.splines[0]
         newOrigin = blCurve.matrix_world @ blSpline.bezier_points[0].co
 
         origOrigin = bpy.context.scene.cursor.location.copy()
-        print("--", "origOrigin: %.6f, %.6f, %.6f" % (origOrigin.x, origOrigin.y, origOrigin.z))
-        print("--", "newOrigin: %.6f, %.6f, %.6f" % (newOrigin.x, newOrigin.y, newOrigin.z))
+        self.report({'INFO'}, "origOrigin: %.6f, %.6f, %.6f" % (origOrigin.x, origOrigin.y, origOrigin.z))
+        self.report({'INFO'}, "newOrigin: %.6f, %.6f, %.6f" % (newOrigin.x, newOrigin.y, newOrigin.z))
 
+        current_mode = bpy.context.object.mode
+        
+        bpy.ops.object.mode_set(mode = 'OBJECT')
         bpy.context.scene.cursor.location = newOrigin
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
         bpy.context.scene.cursor.location = origOrigin
-
-        self.report({'INFO'}, "TODO: OperatorOriginToSpline0Start")
+        
+        bpy.ops.object.mode_set (mode = current_mode)
 
         return {'FINISHED'}
 
@@ -171,7 +176,7 @@ class OperatorOriginToSpline0Start(bpy.types.Operator):
 # 2 CURVES SELECTED
 # #################
 class OperatorIntersectCurves(bpy.types.Operator):
-    bl_idname = "curvetools2.operatorintersectcurves"
+    bl_idname = "curvetools.operatorintersectcurves"
     bl_label = "Intersect"
     bl_description = "Intersects selected curves"
 
@@ -218,9 +223,11 @@ class OperatorIntersectCurves(bpy.types.Operator):
         
         return {'FINISHED'}
 
+# ------------------------------------------------------------
+# OperatorLoftCurves
 
 class OperatorLoftCurves(bpy.types.Operator):
-    bl_idname = "curvetools2.operatorloftcurves"
+    bl_idname = "curvetools.operatorloftcurves"
     bl_label = "Loft"
     bl_description = "Lofts selected curves"
 
@@ -241,9 +248,11 @@ class OperatorLoftCurves(bpy.types.Operator):
         return {'FINISHED'}
 
 
+# ------------------------------------------------------------
+# OperatorSweepCurves
 
 class OperatorSweepCurves(bpy.types.Operator):
-    bl_idname = "curvetools2.operatorsweepcurves"
+    bl_idname = "curvetools.operatorsweepcurves"
     bl_label = "Sweep"
     bl_description = "Sweeps the active curve along to other curve (rail)"
 
@@ -268,7 +277,7 @@ class OperatorSweepCurves(bpy.types.Operator):
 # 3 CURVES SELECTED
 # #################
 class OperatorBirail(bpy.types.Operator):
-    bl_idname = "curvetools2.operatorbirail"
+    bl_idname = "curvetools.operatorbirail"
     bl_label = "Birail"
     bl_description = "Generates a birailed surface from 3 selected curves -- in order: rail1, rail2 and profile"
 
@@ -291,7 +300,7 @@ class OperatorBirail(bpy.types.Operator):
 # 1 OR MORE CURVES SELECTED
 # #########################
 class OperatorSplinesSetResolution(bpy.types.Operator):
-    bl_idname = "curvetools2.operatorsplinessetresolution"
+    bl_idname = "curvetools.operatorsplinessetresolution"
     bl_label = "SplinesSetResolution"
     bl_description = "Sets the resolution of all splines"
 
@@ -311,10 +320,11 @@ class OperatorSplinesSetResolution(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
+# ------------------------------------------------------------
+# OperatorSplinesRemoveZeroSegment
 
 class OperatorSplinesRemoveZeroSegment(bpy.types.Operator):
-    bl_idname = "curvetools2.operatorsplinesremovezerosegment"
+    bl_idname = "curvetools.operatorsplinesremovezerosegment"
     bl_label = "SplinesRemoveZeroSegment"
     bl_description = "Removes splines with no segments -- they seem to creep up, sometimes.."
 
@@ -344,10 +354,11 @@ class OperatorSplinesRemoveZeroSegment(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
+# ------------------------------------------------------------
+# OperatorSplinesRemoveShort
 
 class OperatorSplinesRemoveShort(bpy.types.Operator):
-    bl_idname = "curvetools2.operatorsplinesremoveshort"
+    bl_idname = "curvetools.operatorsplinesremoveshort"
     bl_label = "SplinesRemoveShort"
     bl_description = "Removes splines with a length smaller than the threshold"
 
@@ -372,10 +383,11 @@ class OperatorSplinesRemoveShort(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
+# ------------------------------------------------------------
+# OperatorSplinesJoinNeighbouring
 
 class OperatorSplinesJoinNeighbouring(bpy.types.Operator):
-    bl_idname = "curvetools2.operatorsplinesjoinneighbouring"
+    bl_idname = "curvetools.operatorsplinesjoinneighbouring"
     bl_label = "SplinesJoinNeighbouring"
     bl_description = "Joins neighbouring splines within a distance smaller than the threshold"
 
@@ -403,6 +415,9 @@ class OperatorSplinesJoinNeighbouring(bpy.types.Operator):
 
         return {'FINISHED'}
         
+# ------------------------------------------------------------
+# SurfaceFromBezier
+
 def SurfaceFromBezier(surfacedata, points, center):
     
     len_points = len(points) - 1
@@ -524,8 +539,11 @@ def SurfaceFromBezier(surfacedata, points, center):
         for p in s.points:
             p.select = False
 
+# ------------------------------------------------------------
+# Convert selected faces to Bezier
+
 class ConvertSelectedFacesToBezier(bpy.types.Operator):
-    bl_idname = "curvetools2.convert_selected_face_to_bezier"
+    bl_idname = "curvetools.convert_selected_face_to_bezier"
     bl_label = "Convert selected faces to Bezier"
     bl_description = "Convert selected faces to Bezier"
     bl_options = {'REGISTER', 'UNDO'}
@@ -560,8 +578,11 @@ class ConvertSelectedFacesToBezier(bpy.types.Operator):
                                   
         return {'FINISHED'}
         
+# ------------------------------------------------------------
+# Convert Bezier to Surface
+
 class ConvertBezierToSurface(bpy.types.Operator):
-    bl_idname = "curvetools2.convert_bezier_to_surface"
+    bl_idname = "curvetools.convert_bezier_to_surface"
     bl_label = "Convert Bezier to Surface"
     bl_description = "Convert Bezier to Surface"
     bl_options = {'REGISTER', 'UNDO'}
@@ -632,3 +653,293 @@ class ConvertBezierToSurface(bpy.types.Operator):
             surfacedata.resolution_v = self.Resolution_V
 
         return {'FINISHED'}
+        
+# ------------------------------------------------------------
+# Fillet
+
+class BezierPointsFillet(bpy.types.Operator):
+    bl_idname = "curvetools.bezier_points_fillet"
+    bl_label = "Bezier points Fillet"
+    bl_description = "Bezier points Fillet"
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+
+    Fillet_radius : FloatProperty(
+            name="Radius",
+            default=0.25,
+            unit='LENGTH',
+            description="Radius"
+            )
+    Types = [('Round', "Round", "Round"),
+             ('Chamfer', "Chamfer", "Chamfer")]
+    Fillet_Type : EnumProperty(
+            name="Type",
+            description="Fillet type",
+            items=Types
+            )
+
+    def draw(self, context):
+        layout = self.layout
+
+        # general options
+        col = layout.column()
+        col.prop(self, "Fillet_radius")
+        col.prop(self, "Fillet_Type", expand=True)
+
+    @classmethod
+    def poll(cls, context):
+        return (context.object is not None and
+                context.object.type == 'CURVE')
+
+    def execute(self, context):
+        # main function
+        if bpy.ops.object.mode_set.poll():
+            bpy.ops.object.mode_set(mode='EDIT')
+        
+        splines = bpy.context.object.data.splines
+        bpy.ops.curve.spline_type_set(type='BEZIER')
+            
+        bpy.ops.curve.handle_type_set(type='VECTOR')
+        s = []
+        for spline in splines:
+            n = 0
+            ii = []
+            for p in spline.bezier_points:
+                if p.select_control_point:
+                    ii.append(n)
+                    n += 1
+                else:
+                    n += 1
+            s.append(ii)
+
+        sn = 0
+        for spline in splines:
+            ii = s[sn]
+            n = len(spline.bezier_points)
+            if n > 2:
+                jn = 0
+                for j in ii:
+    
+                    j += jn
+    
+                    selected_all = [p for p in spline.bezier_points]
+    
+                    bpy.ops.curve.select_all(action='DESELECT')
+    
+                    if j != 0 and j != n - 1:
+                        selected_all[j].select_control_point = True
+                        selected_all[j + 1].select_control_point = True
+                        bpy.ops.curve.subdivide()
+                        selected_all = [p for p in spline.bezier_points]
+                        selected4 = [selected_all[j - 1], selected_all[j],
+                                     selected_all[j + 1], selected_all[j + 2]]
+                        jn += 1
+                        n += 1
+    
+                    elif j == 0:
+                        selected_all[j].select_control_point = True
+                        selected_all[j + 1].select_control_point = True
+                        bpy.ops.curve.subdivide()
+                        selected_all = [p for p in spline.bezier_points]
+                        selected4 = [selected_all[n], selected_all[0],
+                                     selected_all[1], selected_all[2]]
+                        jn += 1
+                        n += 1
+    
+                    elif j == n - 1:
+                        selected_all[j].select_control_point = True
+                        selected_all[j - 1].select_control_point = True
+                        bpy.ops.curve.subdivide()
+                        selected_all = [p for p in spline.bezier_points]
+                        selected4 = [selected_all[0], selected_all[n],
+                                     selected_all[n - 1], selected_all[n - 2]]
+    
+                    selected4[2].co = selected4[1].co
+                    s1 = Vector(selected4[0].co) - Vector(selected4[1].co)
+                    s2 = Vector(selected4[3].co) - Vector(selected4[2].co)
+                    s1.normalize()
+                    s11 = Vector(selected4[1].co) + s1 * self.Fillet_radius
+                    selected4[1].co = s11
+                    s2.normalize()
+                    s22 = Vector(selected4[2].co) + s2 * self.Fillet_radius
+                    selected4[2].co = s22
+    
+                    if self.Fillet_Type == 'Round':
+                        if j != n - 1:
+                            selected4[2].handle_right_type = 'VECTOR'
+                            selected4[1].handle_left_type = 'VECTOR'
+                            selected4[1].handle_right_type = 'ALIGNED'
+                            selected4[2].handle_left_type = 'ALIGNED'
+                        else:
+                            selected4[1].handle_right_type = 'VECTOR'
+                            selected4[2].handle_left_type = 'VECTOR'
+                            selected4[2].handle_right_type = 'ALIGNED'
+                            selected4[1].handle_left_type = 'ALIGNED'
+                    if self.Fillet_Type == 'Chamfer':
+                        selected4[2].handle_right_type = 'VECTOR'
+                        selected4[1].handle_left_type = 'VECTOR'
+                        selected4[1].handle_right_type = 'VECTOR'
+                        selected4[2].handle_left_type = 'VECTOR'
+            sn += 1
+
+        return {'FINISHED'}
+
+# ------------------------------------------------------------
+# BezierDivide Operator
+
+class BezierDivide(bpy.types.Operator):
+    bl_idname = "curvetools.bezier_spline_divide"
+    bl_label = "Bezier Spline Divide"
+    bl_description = "Bezier Divide (enters edit mode) for Fillet Curves"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # align_matrix for the invoke
+    align_matrix : Matrix()
+
+    Bezier_t : FloatProperty(
+            name="t (0% - 100%)",
+            default=50.0,
+            min=0.0, soft_min=0.0,
+            max=100.0, soft_max=100.0,
+            description="t (0% - 100%)"
+            )
+
+    @classmethod
+    def poll(cls, context):
+        return (context.object is not None and
+                context.object.type == 'CURVE')
+
+    def execute(self, context):
+        # main function
+        if bpy.ops.object.mode_set.poll():
+            bpy.ops.object.mode_set(mode='EDIT')
+
+        splines = bpy.context.object.data.splines
+        s = []
+        for spline in splines:
+            bpy.ops.curve.spline_type_set(type='BEZIER')
+
+            n = 0
+            ii = []
+            for p in spline.bezier_points:
+                if p.select_control_point:
+                    ii.append(n)
+                    n += 1
+                else:
+                    n += 1
+            s.append(ii)
+
+        sn = 0
+        for spline in splines:
+            ii = s[sn]
+            n = len(spline.bezier_points)
+            if n > 2:
+                jn = 0
+                for j in ii:
+    
+                    selected_all = [p for p in spline.bezier_points]
+    
+                    bpy.ops.curve.select_all(action='DESELECT')
+    
+                    if (j in ii) and (j + 1 in ii):
+                        selected_all[j + jn].select_control_point = True
+                        selected_all[j + 1 + jn].select_control_point = True
+                        h = Math.subdivide_cubic_bezier(
+                            selected_all[j + jn].co, selected_all[j + jn].handle_right,
+                            selected_all[j + 1 + jn].handle_left, selected_all[j + 1 + jn].co, self.Bezier_t / 100
+                            )
+                        bpy.ops.curve.subdivide(1)
+                        selected_all = [p for p in spline.bezier_points]
+                        selected_all[j + jn].handle_right_type = 'FREE'
+                        selected_all[j + jn].handle_right = h[0]
+                        selected_all[j + 1 + jn].co = h[2]
+                        selected_all[j + 1 + jn].handle_left_type = 'FREE'
+                        selected_all[j + 1 + jn].handle_left = h[1]
+                        selected_all[j + 1 + jn].handle_right_type = 'FREE'
+                        selected_all[j + 1 + jn].handle_right = h[3]
+                        selected_all[j + 2 + jn].handle_left_type = 'FREE'
+                        selected_all[j + 2 + jn].handle_left = h[4]
+                        jn += 1
+                    
+                    if j == n - 1 and (0 in ii) and spline.use_cyclic_u:
+                        selected_all[j + jn].select_control_point = True
+                        selected_all[0].select_control_point = True
+                        h = Math.subdivide_cubic_bezier(
+                            selected_all[j + jn].co, selected_all[j + jn].handle_right,
+                            selected_all[0].handle_left, selected_all[0].co, self.Bezier_t / 100
+                            )
+                        bpy.ops.curve.subdivide(1)
+                        selected_all = [p for p in spline.bezier_points]
+                        selected_all[j + jn].handle_right_type = 'FREE'
+                        selected_all[j + jn].handle_right = h[0]
+                        selected_all[j + 1 + jn].co = h[2]
+                        selected_all[j + 1 + jn].handle_left_type = 'FREE'
+                        selected_all[j + 1 + jn].handle_left = h[1]
+                        selected_all[j + 1 + jn].handle_right_type = 'FREE'
+                        selected_all[j + 1 + jn].handle_right = h[3]
+                        selected_all[0].handle_left_type = 'FREE'
+                        selected_all[0].handle_left = h[4]                
+
+            sn += 1
+
+        return {'FINISHED'}
+        
+# ------------------------------------------------------------
+# CurveScaleReset Operator
+
+class CurveScaleReset(bpy.types.Operator):
+    bl_idname = "curvetools.scale_reset"
+    bl_label = "Curve Scale Reset"
+    bl_description = "Curve Scale Reset"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.object is not None and
+                context.object.type == 'CURVE')
+
+    def execute(self, context):
+        # main function
+        current_mode = bpy.context.object.mode
+        
+        bpy.ops.object.mode_set(mode = 'OBJECT')
+        
+        oldCurve = context.active_object
+        oldCurveName = oldCurve.name
+        
+        bpy.ops.object.duplicate_move(OBJECT_OT_duplicate=None, TRANSFORM_OT_translate=None)
+        newCurve = context.active_object
+        newCurve.data.splines.clear()
+        newCurve.scale = (1.0, 1.0, 1.0)
+        
+        oldCurve.select_set(True)
+        newCurve.select_set(True)
+        bpy.context.view_layer.objects.active = newCurve
+        bpy.ops.object.join()
+        
+        joinCurve = context.active_object
+        joinCurve.name = oldCurveName
+        
+        bpy.ops.object.mode_set (mode = current_mode)
+
+        return {'FINISHED'}
+
+operators = [
+    OperatorCurveInfo,
+    OperatorCurveLength,
+    OperatorSplinesInfo,
+    OperatorSegmentsInfo,
+    OperatorOriginToSpline0Start,
+    OperatorIntersectCurves,
+    OperatorLoftCurves,
+    OperatorSweepCurves,
+    OperatorBirail,
+    OperatorSplinesSetResolution,
+    OperatorSplinesRemoveZeroSegment,
+    OperatorSplinesRemoveShort,
+    OperatorSplinesJoinNeighbouring,
+    ConvertSelectedFacesToBezier,
+    ConvertBezierToSurface,
+    BezierPointsFillet,
+    BezierDivide,
+    CurveScaleReset,
+    ]

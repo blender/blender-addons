@@ -228,7 +228,7 @@ def click(self, context, event):
                         point.select = True    
 
 class PathFinder(bpy.types.Operator):
-    bl_idname = "curvetools2.pathfinder"
+    bl_idname = "curvetools.pathfinder"
     bl_label = "Path Finder"
     bl_description = "Path Finder"
     bl_options = {'REGISTER', 'UNDO'}

@@ -22,7 +22,7 @@
 
 
 bl_info = {
-    "name": "Curve Tools 2",
+    "name": "Curve Tools",
     "description": "Adds some functionality for bezier/nurbs curve/surface modeling",
     "author": "Mackraken",
     "version": (0, 3, 3),
@@ -54,7 +54,6 @@ from . import Properties
 from . import Operators
 from . import auto_loft
 from . import curve_outline
-from . import curve_remove_doubles
 from . import PathFinder
 from . import ShowCurveResolution
 from . import internal, cad, toolpath, exports
@@ -99,10 +98,10 @@ class SeparateOutline(Operator):
         return {'FINISHED'}
 
 
-class CurveTools2Settings(PropertyGroup):
+class curvetoolsSettings(PropertyGroup):
     # selection
     SelectedObjects: CollectionProperty(
-            type=Properties.CurveTools2SelectedObject
+            type=Properties.curvetoolsSelectedObject
             )
     NrSelectedObjects: IntProperty(
             name="NrSelectedObjects",
@@ -224,7 +223,7 @@ class CurveTools2Settings(PropertyGroup):
 
 
 class VIEW3D_PT_CurvePanel(Panel):
-    bl_label = "Curve Tools 2"
+    bl_label = "Curve Tools"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_options = {'DEFAULT_CLOSED'}
@@ -254,22 +253,22 @@ class VIEW3D_PT_CurvePanel(Panel):
             row = col.row(align=True)
 
             # A.1 curve info/length
-            row.operator("curvetools2.operatorcurveinfo", text="Curve info")
+            row.operator("curvetools.operatorcurveinfo", text="Curve info")
             row = col.row(align=True)
-            row.operator("curvetools2.operatorcurvelength", text="Calc Length")
+            row.operator("curvetools.operatorcurvelength", text="Calc Length")
             row.prop(context.scene.curvetools, "CurveLength", text="")
 
             # A.2 splines info
             row = col.row(align=True)
-            row.operator("curvetools2.operatorsplinesinfo", text="Curve splines info")
+            row.operator("curvetools.operatorsplinesinfo", text="Curve splines info")
 
             # A.3 segments info
             row = col.row(align=True)
-            row.operator("curvetools2.operatorsegmentsinfo", text="Curve segments info")
+            row.operator("curvetools.operatorsegmentsinfo", text="Curve segments info")
 
             # A.4 origin to spline0start
             row = col.row(align=True)
-            row.operator("curvetools2.operatororigintospline0start", text="Set origin to spline start")
+            row.operator("curvetools.operatororigintospline0start", text="Set origin to spline start")
 
         # Double Curve options
         box2 = self.layout.box()
@@ -283,7 +282,7 @@ class VIEW3D_PT_CurvePanel(Panel):
 
             # B.1 curve intersections
             row = col.row(align=True)
-            row.operator("curvetools2.operatorintersectcurves", text="Intersect curves")
+            row.operator("curvetools.operatorintersectcurves", text="Intersect curves")
 
             row = col.row(align=True)
             row.prop(context.scene.curvetools, "LimitDistance", text="LimitDistance")
@@ -309,13 +308,13 @@ class VIEW3D_PT_CurvePanel(Panel):
             wm = context.window_manager
             scene = context.scene
             layout = self.layout
-            layout.operator("curvetools2.create_auto_loft")
+            layout.operator("curvetools.create_auto_loft")
             lofters = [o for o in scene.objects if "autoloft" in o.keys()]
             for o in lofters:
                 layout.label(text=o.name)
             # layout.prop(o, '["autoloft"]', toggle=True)
             layout.prop(wm, "auto_loft", toggle=True)
-            layout.operator("curvetools2.update_auto_loft_curves")
+            layout.operator("curvetools.update_auto_loft_curves")
 
         # Advanced options
         box1 = self.layout.box()
@@ -327,21 +326,19 @@ class VIEW3D_PT_CurvePanel(Panel):
             row = col.row(align=True)
             row.operator("object._curve_outline", text="Curve Outline")
             row = col.row(align=True)
-            row.operator("object.sep_outline", text="Separate Outline")
+            row.operator("object.sep_outline", text="Separate Outline or selected")
             row = col.row(align=True)
-            row.operator("curve.remove_doubles", text="Remove Doubles")
+            row.operator("curvetools.bezier_points_fillet", text='Fillet')
             row = col.row(align=True)
-            row.operator("curve.bezier_points_fillet", text='Fillet')
+            row.operator("curvetools.bezier_spline_divide", text='Divide')
             row = col.row(align=True)
-            row.operator("curve.bezier_spline_divide", text='Divide')
+            row.operator("curvetools.scale_reset", text='Scale Reset')
             row = col.row(align=True)
-            row.operator("curve.scale_reset", text='Scale Reset')
-            row = col.row(align=True)
-            row.operator("curvetools2.operatorbirail", text="Birail")
+            row.operator("curvetools.operatorbirail", text="Birail")
             row = col.row(align=True)        
-            row.operator("curvetools2.convert_selected_face_to_bezier", text="Convert selected faces to Bezier")
+            row.operator("curvetools.convert_selected_face_to_bezier", text="Convert selected faces to Bezier")
             row = col.row(align=True)
-            row.operator("curvetools2.convert_bezier_to_surface", text="Convert Bezier to Surface")
+            row.operator("curvetools.convert_bezier_to_surface", text="Convert Bezier to Surface")
         
         # Extended options
         box1 = self.layout.box()
@@ -349,13 +346,16 @@ class VIEW3D_PT_CurvePanel(Panel):
         row = col.row(align=True)
         row.prop(scene, "UTExtendedDrop", icon="TRIA_DOWN")
         if EXTENDEDDROP:
-            for operator in cad.operators:
-                row = col.row(align=True)
-                row.operator(operator.bl_idname)
-            
-            for operator in toolpath.operators:
-                row = col.row(align=True)
-                row.operator(operator.bl_idname)
+            row = col.row(align=True)
+            row.operator("curve.add_toolpath_offset_curve", text="Offset Curve")
+            row = col.row(align=True)
+            row.operator("curve.bezier_cad_boolean", text="Boolean 2 selected spline")
+            row = col.row(align=True)
+            row.operator("curve.bezier_cad_subdivide", text="Multi Subdivide")
+            row = col.row(align=True)
+            row.operator("curve.add_toolpath_discretize_curve", text="Discretize Curve")
+            row = col.row(align=True)
+            row.operator("curve.bezier_cad_array", text="Array selected spline")
 
         # Utils Curve options
         box1 = self.layout.box()
@@ -367,7 +367,7 @@ class VIEW3D_PT_CurvePanel(Panel):
             row = col.row(align=True)
             row.label(text="Show point Resolution:")
             row = col.row(align=True)
-            row.operator("curvetools2.operatorsplinessetresolution", text="Set resolution")
+            row.operator("curvetools.operatorsplinessetresolution", text="Set resolution")
             row.prop(context.scene.curvetools, "SplineResolution", text="")
             row = col.row(align=True)
             row.prop(context.scene.curvetools, "curve_vertcolor", text="")
@@ -378,9 +378,9 @@ class VIEW3D_PT_CurvePanel(Panel):
             row = col.row(align=True)
             row.label(text="Remove splines:")
             row = col.row(align=True)
-            row.operator("curvetools2.operatorsplinesremovezerosegment", text="Remove 0-segments splines")
+            row.operator("curvetools.operatorsplinesremovezerosegment", text="Remove 0-segments splines")
             row = col.row(align=True)
-            row.operator("curvetools2.operatorsplinesremoveshort", text="Remove short splines")
+            row.operator("curvetools.operatorsplinesremoveshort", text="Remove short splines")
             row = col.row(align=True)
             row.prop(context.scene.curvetools, "SplineRemoveLength", text="Threshold remove")
 
@@ -388,7 +388,7 @@ class VIEW3D_PT_CurvePanel(Panel):
             row = col.row(align=True)
             row.label(text="Join splines:")
             row = col.row(align=True)
-            row.operator("curvetools2.operatorsplinesjoinneighbouring", text="Join neighbouring splines")
+            row.operator("curvetools.operatorsplinesjoinneighbouring", text="Join neighbouring splines")
             row = col.row(align=True)
             row.prop(context.scene.curvetools, "SplineJoinDistance", text="Threshold join")
             row = col.row(align=True)
@@ -404,7 +404,7 @@ class VIEW3D_PT_CurvePanel(Panel):
             row.prop(context.scene.curvetools, "path_color", text="")
             row.prop(context.scene.curvetools, "path_thickness", text="")
             row = col.row(align=True)
-            row.operator("curvetools2.pathfinder", text="Run Path Finder [ESC]")
+            row.operator("curvetools.pathfinder", text="Run Path Finder [ESC]")
             row = col.row(align=True)
             row.label(text="ESC or TAB - exit from PathFinder")
             row = col.row(align=True)
@@ -424,7 +424,7 @@ panels = (
 
 
 def update_panel(self, context):
-    message = "Curve Tools 2: Updating Panel locations has failed"
+    message = "Curve Tools: Updating Panel locations has failed"
     try:
         for panel in panels:
             if "bl_rna" in panel.__dict__:
@@ -468,26 +468,11 @@ def menu_file_import(self, context):
         self.layout.operator(operator.bl_idname)
 
 # REGISTER
-classes = cad.operators + toolpath.operators + exports.operators + [
-    Properties.CurveTools2SelectedObject,
+classes = cad.operators + toolpath.operators + exports.operators + Operators.operators + [
+    Properties.curvetoolsSelectedObject,
     CurveAddonPreferences,
-    CurveTools2Settings,
-    Operators.OperatorCurveInfo,
-    Operators.OperatorCurveLength,
-    Operators.OperatorSplinesInfo,
-    Operators.OperatorSegmentsInfo,
-    Operators.OperatorOriginToSpline0Start,
-    Operators.OperatorIntersectCurves,
-    Operators.OperatorLoftCurves,
-    Operators.OperatorSweepCurves,
-    Operators.OperatorBirail,
-    Operators.OperatorSplinesSetResolution,
-    Operators.OperatorSplinesRemoveZeroSegment,
-    Operators.OperatorSplinesRemoveShort,
-    Operators.OperatorSplinesJoinNeighbouring,
+    curvetoolsSettings,
     SeparateOutline,
-    Operators.ConvertSelectedFacesToBezier,
-    Operators.ConvertBezierToSurface,
     PathFinder.PathFinder,
     ShowCurveResolution.ShowCurveResolution,
     ]
@@ -534,11 +519,9 @@ def register():
     
     curve_outline.register()
     
-    curve_remove_doubles.register()
-    
     bpy.types.TOPBAR_MT_file_export.append(menu_file_export)
     
-    bpy.types.Scene.curvetools = bpy.props.PointerProperty(type=CurveTools2Settings)
+    bpy.types.Scene.curvetools = bpy.props.PointerProperty(type=curvetoolsSettings)
     
     update_panel(None, bpy.context)
 
@@ -554,8 +537,6 @@ def unregister():
     auto_loft.unregister()
     
     curve_outline.unregister()
-    
-    curve_remove_doubles.unregister()
     
     bpy.types.TOPBAR_MT_file_export.remove(menu_file_export)
     

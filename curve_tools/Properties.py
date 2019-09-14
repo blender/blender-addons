@@ -5,7 +5,7 @@ from bpy.props import *
 
 
 
-class CurveTools2SelectedObjectHeader(bpy.types.Header):
+class curvetoolsSelectedObjectHeader(bpy.types.Header):
     bl_label = "Selection"
     bl_space_type = "VIEW_3D"
 
@@ -24,9 +24,9 @@ class CurveTools2SelectedObjectHeader(bpy.types.Header):
 
         blenderObjectsToAdd = []
         for blenderObject in blenderSelectedObjects:
-            if not CurveTools2SelectedObject.ListContains(selectedObjects, blenderObject): blenderObjectsToAdd.append(blenderObject)
+            if not curvetoolsSelectedObject.ListContains(selectedObjects, blenderObject): blenderObjectsToAdd.append(blenderObject)
         for blenderObject in blenderObjectsToAdd:
-            newSelectedObject = CurveTools2SelectedObject(blenderObject)
+            newSelectedObject = curvetoolsSelectedObject(blenderObject)
             selectedObjects.append(newSelectedObject)
 
 
@@ -39,7 +39,7 @@ class CurveTools2SelectedObjectHeader(bpy.types.Header):
         row.label(text="Sel: " + str(nrSelectedObjects))
 
 
-class CurveTools2SelectedObject(bpy.types.PropertyGroup):
+class curvetoolsSelectedObject(bpy.types.PropertyGroup):
     name: StringProperty(name = "name", default = "??")
 
 
