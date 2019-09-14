@@ -21,6 +21,8 @@
 import bpy
 import math
 
+from mathutils import Matrix
+
 from .errors import MetarigError
 from .collections import ensure_widget_collection
 
@@ -132,13 +134,39 @@ def create_circle_polygon(number_verts, axis, radius=1.0, head_tail=0.0):
     return verts, edges
 
 
+def adjust_widget_axis(obj, axis='y', offset=0.0):
+    mesh = obj.data
+
+    if axis[0] == '-':
+        s = -1.0
+        axis = axis[1]
+    else:
+        s = 1.0
+
+    trans_matrix = Matrix.Translation((0.0, offset, 0.0))
+    rot_matrix = Matrix.Diagonal((1.0, s, 1.0, 1.0))
+
+    if axis == "x":
+        rot_matrix = Matrix.Rotation(-s*math.pi/2, 4, 'Z')
+        trans_matrix = Matrix.Translation((offset, 0.0, 0.0))
+
+    elif axis == "z":
+        rot_matrix = Matrix.Rotation(s*math.pi/2, 4, 'X')
+        trans_matrix = Matrix.Translation((0.0, 0.0, offset))
+
+    matrix = trans_matrix @ rot_matrix
+
+    for vert in mesh.vertices:
+        vert.co = matrix @ vert.co
+
+
 def write_widget(obj):
     """ Write a mesh object as a python script for widget use.
     """
     script = ""
     script += "def create_thing_widget(rig, bone_name, size=1.0, bone_transform_name=None):\n"
     script += "    obj = create_widget(rig, bone_name, bone_transform_name)\n"
-    script += "    if obj != None:\n"
+    script += "    if obj is not None:\n"
 
     # Vertices
     script += "        verts = ["
@@ -167,7 +195,6 @@ def write_widget(obj):
     # Build mesh
     script += "\n        mesh = obj.data\n"
     script += "        mesh.from_pydata(verts, edges, faces)\n"
-    script += "        mesh.update()\n"
     script += "        mesh.update()\n"
     script += "        return obj\n"
     script += "    else:\n"
