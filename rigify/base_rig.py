@@ -236,6 +236,12 @@ class BaseRig(GenerateCallbackHost, RaiseErrorMixin, BoneUtilityMixin, Mechanism
         """
         layout.label(text="No options")
 
+    @classmethod
+    def on_parameter_update(cls, context, pose_bone, params, param_name):
+        """
+        A callback invoked whenever a parameter value is changed by the user.
+        """
+
 
 #=============================================
 # Rig Utility

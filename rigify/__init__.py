@@ -267,6 +267,31 @@ class RigifySelectionColors(bpy.types.PropertyGroup):
 class RigifyParameters(bpy.types.PropertyGroup):
     name: StringProperty()
 
+# Parameter update callback
+
+in_update = False
+
+def update_callback(prop_name):
+    from .utils.rig import get_rigify_type
+
+    def callback(params, context):
+        global in_update
+        # Do not recursively call if the callback updates other parameters
+        if not in_update:
+            try:
+                in_update = True
+                bone = context.active_pose_bone
+
+                if bone and bone.rigify_parameters == params:
+                    rig_info = rig_lists.rigs.get(get_rigify_type(bone), None)
+                    if rig_info:
+                        rig_cb = getattr(rig_info["module"].Rig, 'on_parameter_update', None)
+                        if rig_cb:
+                            rig_cb(context, bone, params, prop_name)
+            finally:
+                in_update = False
+
+    return callback
 
 # Remember the initial property set
 RIGIFY_PARAMETERS_BASE_DIR = set(dir(RigifyParameters))
@@ -327,6 +352,9 @@ class RigifyParameterValidator(object):
 
         # actually defining the property modifies the dictionary with new parameters, so copy it now
         new_def = (val[0], val[1].copy())
+
+        # inject a generic update callback that calls the appropriate rig classmethod
+        val[1]['update'] = update_callback(name)
 
         setattr(self.__params, name, val)
         self.__prop_table[name] = (self.__rig_name, new_def)
