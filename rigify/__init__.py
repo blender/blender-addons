@@ -515,7 +515,8 @@ def register_rig_parameters():
             rig_class = rig_module.Rig
             r = rig_class if hasattr(rig_class, 'add_parameters') else rig_module
             try:
-                r.add_parameters(RigifyParameterValidator(RigifyParameters, rig, RIGIFY_PARAMETER_TABLE))
+                if hasattr(r, 'add_parameters'):
+                    r.add_parameters(RigifyParameterValidator(RigifyParameters, rig, RIGIFY_PARAMETER_TABLE))
             except Exception:
                 import traceback
                 traceback.print_exc()
