@@ -299,7 +299,7 @@ def parse_bone_names(names_string):
 
 ''']
 
-UTILITIES_FUNC_ARM_FKIK = ['''
+UTILITIES_FUNC_OLD_ARM_FKIK = ['''
 ######################
 ## IK Arm functions ##
 ######################
@@ -416,7 +416,7 @@ def ik2fk_arm(obj, fk, ik):
     correct_scale(view_layer, uarmi, uarm.matrix)
 ''']
 
-UTILITIES_FUNC_LEG_FKIK = ['''
+UTILITIES_FUNC_OLD_LEG_FKIK = ['''
 ######################
 ## IK Leg functions ##
 ######################
@@ -558,7 +558,7 @@ def ik2fk_leg(obj, fk, ik):
     correct_scale(view_layer, thighi, thigh.matrix)
 ''']
 
-UTILITIES_FUNC_POLE = ['''
+UTILITIES_FUNC_OLD_POLE = ['''
 ################################
 ## IK Rotation-Pole functions ##
 ################################
@@ -623,9 +623,9 @@ def rotPoleToggle(rig, limb_type, controls, ik_ctrl, fk_ctrl, parent, pole):
             bpy.ops.pose.select_all(action='DESELECT')
 ''']
 
-REGISTER_OP_ARM_FKIK = ['Rigify_Arm_FK2IK', 'Rigify_Arm_IK2FK']
+REGISTER_OP_OLD_ARM_FKIK = ['Rigify_Arm_FK2IK', 'Rigify_Arm_IK2FK']
 
-UTILITIES_OP_ARM_FKIK = ['''
+UTILITIES_OP_OLD_ARM_FKIK = ['''
 ##################################
 ## IK/FK Arm snapping operators ##
 ##################################
@@ -681,9 +681,9 @@ class Rigify_Arm_IK2FK(bpy.types.Operator):
         return {'FINISHED'}
 ''']
 
-REGISTER_OP_LEG_FKIK = ['Rigify_Leg_FK2IK', 'Rigify_Leg_IK2FK']
+REGISTER_OP_OLD_LEG_FKIK = ['Rigify_Leg_FK2IK', 'Rigify_Leg_IK2FK']
 
-UTILITIES_OP_LEG_FKIK = ['''
+UTILITIES_OP_OLD_LEG_FKIK = ['''
 ##################################
 ## IK/FK Leg snapping operators ##
 ##################################
@@ -743,9 +743,9 @@ class Rigify_Leg_IK2FK(bpy.types.Operator):
         return {'FINISHED'}
 ''']
 
-REGISTER_OP_POLE = ['Rigify_Rot2PoleSwitch']
+REGISTER_OP_OLD_POLE = ['Rigify_Rot2PoleSwitch']
 
-UTILITIES_OP_POLE = ['''
+UTILITIES_OP_OLD_POLE = ['''
 ###########################
 ## IK Rotation Pole Snap ##
 ###########################
@@ -774,24 +774,24 @@ class Rigify_Rot2PoleSwitch(bpy.types.Operator):
         return {'FINISHED'}
 ''']
 
-REGISTER_RIG_ARM = REGISTER_OP_ARM_FKIK + REGISTER_OP_POLE
+REGISTER_RIG_OLD_ARM = REGISTER_OP_OLD_ARM_FKIK + REGISTER_OP_OLD_POLE
 
-UTILITIES_RIG_ARM = [
+UTILITIES_RIG_OLD_ARM = [
     *UTILITIES_FUNC_COMMON_IKFK,
-    *UTILITIES_FUNC_ARM_FKIK,
-    *UTILITIES_FUNC_POLE,
-    *UTILITIES_OP_ARM_FKIK,
-    *UTILITIES_OP_POLE,
+    *UTILITIES_FUNC_OLD_ARM_FKIK,
+    *UTILITIES_FUNC_OLD_POLE,
+    *UTILITIES_OP_OLD_ARM_FKIK,
+    *UTILITIES_OP_OLD_POLE,
 ]
 
-REGISTER_RIG_LEG = REGISTER_OP_LEG_FKIK + REGISTER_OP_POLE
+REGISTER_RIG_OLD_LEG = REGISTER_OP_OLD_LEG_FKIK + REGISTER_OP_OLD_POLE
 
-UTILITIES_RIG_LEG = [
+UTILITIES_RIG_OLD_LEG = [
     *UTILITIES_FUNC_COMMON_IKFK,
-    *UTILITIES_FUNC_LEG_FKIK,
-    *UTILITIES_FUNC_POLE,
-    *UTILITIES_OP_LEG_FKIK,
-    *UTILITIES_OP_POLE,
+    *UTILITIES_FUNC_OLD_LEG_FKIK,
+    *UTILITIES_FUNC_OLD_POLE,
+    *UTILITIES_OP_OLD_LEG_FKIK,
+    *UTILITIES_OP_OLD_POLE,
 ]
 
 ##############################
@@ -801,18 +801,9 @@ UTILITIES_RIG_LEG = [
 UI_REGISTER = [
     'RigUI',
     'RigLayers',
-    *REGISTER_OP_ARM_FKIK,
-    *REGISTER_OP_LEG_FKIK,
 ]
 
-# Include arm and leg utilities for now in case somebody wants to use
-# legacy limb rigs, which expect these to be available by default.
 UI_UTILITIES = [
-    *UTILITIES_FUNC_COMMON_IKFK,
-    *UTILITIES_FUNC_ARM_FKIK,
-    *UTILITIES_FUNC_LEG_FKIK,
-    *UTILITIES_OP_ARM_FKIK,
-    *UTILITIES_OP_LEG_FKIK,
 ]
 
 UI_SLIDERS = '''

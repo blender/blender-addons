@@ -670,8 +670,15 @@ class VIEW3D_PT_rigify_animation_tools(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.object and context.object.type == 'ARMATURE'\
-               and context.active_object.data.get("rig_id") is not None
+        obj = context.active_object
+        if obj and obj.type == 'ARMATURE':
+            rig_id = obj.data.get("rig_id")
+            if rig_id is not None:
+                has_arm = hasattr(bpy.types, 'POSE_OT_rigify_arm_ik2fk_' + rig_id)
+                has_leg = hasattr(bpy.types, 'POSE_OT_rigify_leg_ik2fk_' + rig_id)
+                return has_arm or has_leg
+
+        return False
 
     def draw(self, context):
         obj = context.active_object
