@@ -106,6 +106,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
           ctrl_bone         User visible control bone that depends on this parent (for switch & keep transform)
           no_fix_*          Disable "Switch and Keep Transform" correction for specific channels.
           copy_*            Override the specified components by copying from another bone.
+          inherit_scale     Inherit scale mode for the child bone (default: AVERAGE).
 
         Lazy parameters:
           'extra_parents', 'select_parent', 'prop_bone', 'controls', 'copy_*'
@@ -161,6 +162,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
         'ctrl_bone': None,
         'no_fix_location': False, 'no_fix_rotation': False, 'no_fix_scale': False,
         'copy_location': None, 'copy_rotation': None, 'copy_scale': None,
+        'inherit_scale': 'AVERAGE',
     }
 
     def assign_child_options(self, child, options):
@@ -217,6 +219,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
             # Parent child to the MCH proxy
             if mch != child['bone']:
                 rig.set_bone_parent(child['bone'], mch)
+                rig.get_bone(child['bone']).inherit_scale = child['inherit_scale']
 
     def configure_bones(self):
         for child in self.child_list:

@@ -150,8 +150,8 @@ def copy_bone(obj, bone_name, assign_name='', *, parent=False, bbone=False, leng
             edit_bone_2.use_connect = edit_bone_1.use_connect
 
             edit_bone_2.use_inherit_rotation = edit_bone_1.use_inherit_rotation
-            edit_bone_2.use_inherit_scale = edit_bone_1.use_inherit_scale
             edit_bone_2.use_local_location = edit_bone_1.use_local_location
+            edit_bone_2.inherit_scale = edit_bone_1.inherit_scale
 
         if bbone:
             for name in ['bbone_segments',

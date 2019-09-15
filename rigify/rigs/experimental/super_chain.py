@@ -303,15 +303,15 @@ class Rig:
 
         for i, twk in enumerate(bones['chain']['tweak']):
             eb[twk].parent = eb[bones['chain']['mch_ctrl'][i+1]]
-            eb[twk].use_inherit_scale = False
+            eb[twk].inherit_scale = 'NONE'
 
         eb[bones['chain']['ctrl'][0]].parent = eb[bones['chain']['mch_ctrl'][0]] if bones['chain']['mch_ctrl'] else None
-        eb[bones['chain']['ctrl'][0]].use_inherit_scale = False
+        eb[bones['chain']['ctrl'][0]].inherit_scale = 'NONE'
         eb[bones['chain']['ctrl'][1]].parent = eb[bones['chain']['mch_ctrl'][-1]] if bones['chain']['mch_ctrl'] else None
-        eb[bones['chain']['ctrl'][1]].use_inherit_scale = False
+        eb[bones['chain']['ctrl'][1]].inherit_scale = 'NONE'
 
         if 'pivot' in bones.keys():
-            eb[bones['pivot']['ctrl']].use_inherit_scale = False
+            eb[bones['pivot']['ctrl']].inherit_scale = 'NONE'
 
         for i, mch in enumerate(bones['chain']['mch']):
             if mch == bones['chain']['mch'][0]:

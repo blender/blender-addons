@@ -74,7 +74,7 @@ class Rig(TweakChainRig):
             self.make_constraint(
                 ctrl, 'COPY_ROTATION', prev_ctrl,
                 use_xyz=self.copy_rotation_axes,
-                space='LOCAL', use_offset=True
+                space='LOCAL', mix_mode='BEFORE',
             )
 
     # Widgets

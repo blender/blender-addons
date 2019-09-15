@@ -257,7 +257,7 @@ class Rig(BaseHeadTailRig):
         mch = self.bones.mch
         for bone in mch.chain:
             self.set_bone_parent(bone, mch.stretch)
-            self.get_bone(bone).use_inherit_scale = False
+            self.get_bone(bone).inherit_scale = 'NONE'
 
     @stage.rig_bones
     def rig_mch_chain(self):
