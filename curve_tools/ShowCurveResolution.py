@@ -22,7 +22,6 @@
 import bpy
 from bpy import *
 from bpy.props import *
-from bpy.types import AddonPreferences, PropertyGroup
 
 import bgl
 import blf
@@ -34,11 +33,7 @@ import mathutils
 from mathutils import Vector
 from mathutils.geometry import interpolate_bezier
 
-import bpy_extras
-from bpy_extras.view3d_utils import location_3d_to_region_2d as loc3d2d
 
- 
- 
 def get_points(spline, matrix_world):
 
     bezier_points = spline.bezier_points
@@ -47,6 +42,8 @@ def get_points(spline, matrix_world):
         return []
 
     r = spline.resolution_u + 1
+    if r < 2:
+       return []
     segments = len(bezier_points)
     
     if not spline.use_cyclic_u:
@@ -67,16 +64,18 @@ def get_points(spline, matrix_world):
  
     return point_list
  
-def draw(self, context, spline, curve_vertcolor, matrix_world):
+def draw(self, context, splines, curve_vertcolor, matrix_world):
     
-    points = get_points(spline, matrix_world)
+    for spline in splines:
+        points = get_points(spline, matrix_world)
+        
+        shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+
+        batch = batch_for_shader(shader, 'POINTS', {"pos": points})
     
-    shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-    batch = batch_for_shader(shader, 'POINTS', {"pos": points})
-    
-    shader.bind()
-    shader.uniform_float("color", curve_vertcolor)
-    batch.draw(shader)
+        shader.bind()
+        shader.uniform_float("color", curve_vertcolor)
+        batch.draw(shader)
 
 
 class ShowCurveResolution(bpy.types.Operator):
@@ -109,17 +108,15 @@ class ShowCurveResolution(bpy.types.Operator):
             # color change in the panel
             curve_vertcolor = bpy.context.scene.curvetools.curve_vertcolor
             
-            # the arguments we pass the the callback
-            
-            
             splines = context.active_object.data.splines
             matrix_world = context.active_object.matrix_world
-            for spline in splines:
-                args = (self, context, spline, curve_vertcolor, matrix_world)
             
-                # Add the region OpenGL drawing callback
-                # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
-                self.handlers.append(bpy.types.SpaceView3D.draw_handler_add(draw, args, 'WINDOW', 'POST_VIEW'))
+            # the arguments we pass the the callback
+            args = (self, context, splines, curve_vertcolor, matrix_world)
+            
+            # Add the region OpenGL drawing callback
+            # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
+            self.handlers.append(bpy.types.SpaceView3D.draw_handler_add(draw, args, 'WINDOW', 'POST_VIEW'))
 
             context.window_manager.modal_handler_add(self)
             return {'RUNNING_MODAL'}
@@ -127,3 +124,8 @@ class ShowCurveResolution(bpy.types.Operator):
             self.report({'WARNING'}, 
             "View3D not found, cannot run operator")
             return {'CANCELLED'}
+            
+    @classmethod
+    def poll(cls, context):
+        return (context.object is not None and
+                context.object.type == 'CURVE')

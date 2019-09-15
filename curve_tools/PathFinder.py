@@ -18,7 +18,7 @@
 
 bl_info = {
     'name': 'PathFinder',
-    'author': 'Spivak Vladimir (http://cwolf3d.korostyshev.net)',
+    'author': 'Spivak Vladimir (cwolf3d)',
     'version': (0, 5, 0),
     'blender': (2, 80, 0),
     'location': 'Curve Tools addon. (N) Panel',
@@ -225,7 +225,16 @@ def click(self, context, event):
                     self.handlers.append(bpy.types.SpaceView3D.draw_handler_add(draw_points, args, 'WINDOW', 'POST_VIEW'))
                         
                     for point in spline.points:
-                        point.select = True    
+                        point.select = True
+
+def remove_handler(handlers):
+    for handler in handlers:
+        try:
+            bpy.types.SpaceView3D.draw_handler_remove(handler, 'WINDOW')
+        except:
+            pass
+    for handler in handlers:
+        handlers.remove(handler)                        
 
 class PathFinder(bpy.types.Operator):
     bl_idname = "curvetools.pathfinder"
@@ -254,41 +263,32 @@ class PathFinder(bpy.types.Operator):
         context.area.tag_redraw()
         
         if event.type in {'ESC', 'TAB'}:  # Cancel
-            for handler in self.handlers:
-                try:
-                    bpy.types.SpaceView3D.draw_handler_remove(handler, 'WINDOW')
-                except:
-                    pass
-            for handler in self.handlers:
-                self.handlers.remove(handler)
-            self.report({'INFO'}, "PathFinder deactivated")
+            remove_handler(self.handlers)
             return {'CANCELLED'}
             
         if event.type in {'X', 'DEL'}:  # Cancel
-            for handler in self.handlers:
-                try:
-                    bpy.types.SpaceView3D.draw_handler_remove(handler, 'WINDOW')
-                except:
-                    pass
-            for handler in self.handlers:
-                self.handlers.remove(handler)
+            remove_handler(self.handlers)
             bpy.ops.curve.delete(type='VERT') 
             return {'RUNNING_MODAL'}         
         
-        elif event.alt and event.type == 'LEFTMOUSE':
+        elif event.alt and not event.shift and event.type == 'LEFTMOUSE':
+            remove_handler(self.handlers)
+            bpy.ops.curve.select_all(action='DESELECT')
+            click(self, context, event)
+            
+        elif event.alt and event.shift and event.type == 'LEFTMOUSE':
             click(self, context, event)
                                     
         elif event.alt and event.type == 'RIGHTMOUSE':
+           remove_handler(self.handlers)
+           bpy.ops.curve.select_all(action='DESELECT')
            click(self, context, event)
+
+        elif event.alt and not event.shift and event.shift and event.type == 'RIGHTMOUSE':
+            click(self, context, event)
             
         elif event.type == 'A':
-            for handler in self.handlers:
-                try:
-                    bpy.types.SpaceView3D.draw_handler_remove(handler, 'WINDOW')
-                except:
-                    pass
-            for handler in self.handlers:
-                self.handlers.remove(handler)
+            remove_handler(self.handlers)
             bpy.ops.curve.select_all(action='DESELECT')
             
         elif event.type == 'MOUSEMOVE':  # 

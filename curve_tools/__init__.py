@@ -56,6 +56,7 @@ from . import auto_loft
 from . import curve_outline
 from . import PathFinder
 from . import ShowCurveResolution
+from . import SplinesSequence
 from . import internal, cad, toolpath, exports
 
 if 'internal' in locals():
@@ -220,6 +221,27 @@ class curvetoolsSettings(PropertyGroup):
             soft_min=2,
             description="Path thickness (px)"
             )
+    sequence_color: FloatVectorProperty(
+            name="OUT",
+            default=(0.2, 0.9, 0.9, 1),
+            size=4,
+            subtype="COLOR",
+            min=0,
+            max=1
+            )
+    font_thickness: IntProperty(
+            name="Font thickness",
+            default=1,
+            min=1, max=1024,
+            soft_min=2,
+            description="Font thickness (px)"
+            )
+    font_size: FloatProperty(
+            name="Font size",
+            default=0.5,
+            precision=3,
+            description="Font size"
+            )
 
 
 class VIEW3D_PT_CurvePanel(Panel):
@@ -373,6 +395,21 @@ class VIEW3D_PT_CurvePanel(Panel):
             row.prop(context.scene.curvetools, "curve_vertcolor", text="")
             row = col.row(align=True)
             row.operator("curve.show_resolution", text="Run [ESC]")
+            
+            # D.1 set spline sequence
+            row = col.row(align=True)
+            row.label(text="Show and rearrange spline sequence:")
+            row = col.row(align=True)
+            row.prop(context.scene.curvetools, "sequence_color", text="")
+            row.prop(context.scene.curvetools, "font_thickness", text="")
+            row.prop(context.scene.curvetools, "font_size", text="")
+            row = col.row(align=True)
+            oper = row.operator("curve.rearrange_spline", text="<")
+            oper.command = 'PREV'
+            oper = row.operator("curve.rearrange_spline", text=">")
+            oper.command = 'NEXT'
+            row = col.row(align=True)
+            row.operator("curve.show_splines_sequence", text="Run [ESC]")
 
             # D.2 remove splines
             row = col.row(align=True)
@@ -475,6 +512,8 @@ classes = cad.operators + toolpath.operators + exports.operators + Operators.ope
     SeparateOutline,
     PathFinder.PathFinder,
     ShowCurveResolution.ShowCurveResolution,
+    SplinesSequence.ShowSplinesSequence,
+    SplinesSequence.RearrangeSpline,
     ]
 
 def register():
