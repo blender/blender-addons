@@ -303,7 +303,7 @@ def ApplyAll(context, list):
 
     bpy.ops.object.select_all(action="DESELECT")
     for obj in objDeleteList:
-        obj.select_set(state=True)
+        obj.select_set(True)
     bpy.ops.object.delete()
 
 
@@ -324,7 +324,7 @@ def ApplyThisBrush(context, brush):
                     bpy.ops.object.select_all(action="DESELECT")
 
     # Garbage Collector
-    brush.select_set(state=True)
+    brush.select_set(True)
     # bpy.ops.object.delete()
 
 
@@ -361,7 +361,7 @@ def ApplyThisBrush(context, brush):
 #         self.count += 1
 #         actObj = bpy.context.active_object
 #         if self.count == 1:
-#             actObj.select_set(state=True)
+#             actObj.select_set(True)
 #             bpy.ops.gpencil.draw("INVOKE_DEFAULT", mode="DRAW_POLY")
 
 #         if event.type == "RIGHTMOUSE":
@@ -378,7 +378,7 @@ def ApplyThisBrush(context, brush):
 #                     obj.name = "PolyDraw"
 #                     bpy.context.view_layer.objects.active = obj
 #                     bpy.ops.object.select_all(action="DESELECT")
-#                     obj.select_set(state=True)
+#                     obj.select_set(True)
 #                     bpy.ops.object.convert(target="MESH")
 #                     bpy.ops.object.mode_set(mode="EDIT")
 #                     bpy.ops.mesh.select_all(action="SELECT")
@@ -397,8 +397,8 @@ def ApplyThisBrush(context, brush):
 #                     bpy.ops.object.select_all(action="DESELECT")
 #                     bpy.context.view_layer.objects.active = actObj
 #                     bpy.context.view_layer.update()
-#                     actObj.select_set(state=True)
-#                     obj.select_set(state=True)
+#                     actObj.select_set(True)
+#                     obj.select_set(True)
 
 #                     bpy.context.view_layer.grease_pencil.clear()
 #                     bpy.ops.gpencil.data_unlink()
@@ -479,70 +479,59 @@ class BTool_FastTransform(Operator):
 
 # -------------------  Bool Tool OPERATOR CLASSES --------------------------------------------------------
 
-# Brush Operators --------------------------------------------
 
-# Boolean Union Operator
-class BTool_Union(Operator):
+# Brush operators
+# --------------------------------------------------------------------------------------
+
+
+class BToolSetup():
+
+    def execute(self, context):
+        Operation(context, self.mode)
+        return {"FINISHED"}
+
+    def invoke(self, context, event):
+        if len(context.selected_objects) < 2:
+            self.report({"ERROR"}, "At least two objects must be selected")
+            return {"CANCELLED"}
+
+        return self.execute(context)
+
+
+class BTool_Union(Operator, BToolSetup):
     bl_idname = "btool.boolean_union"
     bl_label = "Brush Union"
     bl_description = "This operator add a union brush to a canvas"
     bl_options = {"REGISTER", "UNDO"}
 
-    @classmethod
-    def poll(cls, context):
-        return context.active_object is not None
-
-    def execute(self, context):
-        Operation(context, "UNION")
-        return {"FINISHED"}
+    mode = "UNION"
 
 
-# Boolean Intersection Operator
-class BTool_Inters(Operator):
+class BTool_Inters(Operator, BToolSetup):
     bl_idname = "btool.boolean_inters"
     bl_label = "Brush Intersection"
     bl_description = "This operator add a intersect brush to a canvas"
     bl_options = {"REGISTER", "UNDO"}
 
-    @classmethod
-    def poll(cls, context):
-        return context.active_object is not None
-
-    def execute(self, context):
-        Operation(context, "INTERSECT")
-        return {"FINISHED"}
+    mode = "INTERSECT"
 
 
-# Boolean Difference Operator
-class BTool_Diff(Operator):
+class BTool_Diff(Operator, BToolSetup):
     bl_idname = "btool.boolean_diff"
     bl_label = "Brush Difference"
     bl_description = "This operator add a difference brush to a canvas"
     bl_options = {"REGISTER", "UNDO"}
 
-    @classmethod
-    def poll(cls, context):
-        return context.active_object is not None
-
-    def execute(self, context):
-        Operation(context, "DIFFERENCE")
-        return {"FINISHED"}
+    mode = "DIFFERENCE"
 
 
-# Boolean Slices Operator
-class BTool_Slice(Operator):
+class BTool_Slice(Operator, BToolSetup):
     bl_idname = "btool.boolean_slice"
     bl_label = "Brush Slice"
     bl_description = "This operator add a intersect brush to a canvas"
     bl_options = {"REGISTER", "UNDO"}
 
-    @classmethod
-    def poll(cls, context):
-        return context.active_object is not None
-
-    def execute(self, context):
-        Operation(context, "SLICE")
-        return {"FINISHED"}
+    mode = "SLICE"
 
 
 # Auto Boolean operators
@@ -550,10 +539,11 @@ class BTool_Slice(Operator):
 
 
 class Auto_Boolean:
+
     def objects_prepare(self):
         for ob in bpy.context.selected_objects:
             if ob.type != "MESH":
-                ob.select_set(state=False)
+                ob.select_set(False)
         bpy.ops.object.make_single_user(object=True, obdata=True)
         bpy.ops.object.convert(target="MESH")
 
@@ -571,14 +561,16 @@ class Auto_Boolean:
 
     def boolean_operation(self):
         obj = bpy.context.active_object
-        obj.select_set(state=False)
+        obj.select_set(False)
         obs = bpy.context.selected_objects
 
         self.mesh_selection(obj, "DESELECT")
+
         for ob in obs:
             self.mesh_selection(ob, "SELECT")
             self.boolean_mod(obj, ob, self.mode)
-        obj.select_set(state=True)
+
+        obj.select_set(True)
 
     def boolean_mod(self, obj, ob, mode, ob_delete=True):
         md = obj.modifiers.new("Auto Boolean", "BOOLEAN")
@@ -586,10 +578,23 @@ class Auto_Boolean:
         md.operation = mode
         md.object = ob
 
-        bpy.ops.object.modifier_apply(modifier="Auto Boolean")
-        if not ob_delete:
-            return
-        bpy.data.objects.remove(ob)
+        override = {"object": obj}
+        bpy.ops.object.modifier_apply(override, modifier=md.name)
+
+        if ob_delete:
+            bpy.data.objects.remove(ob)
+
+    def execute(self, context):
+        self.objects_prepare()
+        self.boolean_operation()
+        return {"FINISHED"}
+
+    def invoke(self, context, event):
+        if len(context.selected_objects) < 2:
+            self.report({"ERROR"}, "At least two objects must be selected")
+            return {"CANCELLED"}
+
+        return self.execute(context)
 
 
 class OBJECT_OT_BoolTool_Auto_Union(Operator, Auto_Boolean):
@@ -600,11 +605,6 @@ class OBJECT_OT_BoolTool_Auto_Union(Operator, Auto_Boolean):
 
     mode = "UNION"
 
-    def execute(self, context):
-        self.objects_prepare()
-        self.boolean_operation()
-        return {"FINISHED"}
-
 
 class OBJECT_OT_BoolTool_Auto_Difference(Operator, Auto_Boolean):
     bl_idname = "object.booltool_auto_difference"
@@ -613,11 +613,6 @@ class OBJECT_OT_BoolTool_Auto_Difference(Operator, Auto_Boolean):
     bl_options = {"REGISTER", "UNDO"}
 
     mode = "DIFFERENCE"
-
-    def execute(self, context):
-        self.objects_prepare()
-        self.boolean_operation()
-        return {"FINISHED"}
 
 
 class OBJECT_OT_BoolTool_Auto_Intersect(Operator, Auto_Boolean):
@@ -628,42 +623,40 @@ class OBJECT_OT_BoolTool_Auto_Intersect(Operator, Auto_Boolean):
 
     mode = "INTERSECT"
 
-    def execute(self, context):
-        self.objects_prepare()
-        self.boolean_operation()
-        return {"FINISHED"}
-
 
 class OBJECT_OT_BoolTool_Auto_Slice(Operator, Auto_Boolean):
     bl_idname = "object.booltool_auto_slice"
     bl_label = "Bool Tool Slice"
-    bl_description = "Slice active object along the selected object"
+    bl_description = "Slice active object along the selected objects"
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
-        self.objects_prepare()
-
-        obj = context.active_object
-        obj.select_set(state=False)
-        ob = context.selected_objects[0]
-
-        self.mesh_selection(obj, "DESELECT")
-        self.mesh_selection(ob, "SELECT")
-
-        obj_copy = obj.copy()
-        obj_copy.data = obj.data.copy()
-        context.collection.objects.link(obj_copy)
-
         space_data = context.space_data
         is_local_view = bool(space_data.local_view)
+        self.objects_prepare()
 
-        if is_local_view:
-            obj_copy.local_view_set(space_data, True)
+        ob1 = context.active_object
+        ob1.select_set(False)
+        self.mesh_selection(ob1, "DESELECT")
 
-        self.boolean_mod(obj, ob, "DIFFERENCE", ob_delete=False)
-        context.view_layer.objects.active = obj_copy
-        self.boolean_mod(obj_copy, ob, "INTERSECT")
-        obj_copy.select_set(state=True)
+        for ob2 in context.selected_objects:
+
+            self.mesh_selection(ob2, "SELECT")
+
+            ob1_copy = ob1.copy()
+            ob1_copy.data = ob1.data.copy()
+
+            for coll in ob1.users_collection:
+                coll.objects.link(ob1_copy)
+
+            if is_local_view:
+                ob1_copy.local_view_set(space_data, True)
+
+            self.boolean_mod(ob1, ob2, "DIFFERENCE", ob_delete=False)
+            self.boolean_mod(ob1_copy, ob2, "INTERSECT")
+            ob1_copy.select_set(True)
+
+        context.view_layer.objects.active = ob1_copy
 
         return {"FINISHED"}
 
@@ -827,7 +820,7 @@ class BTool_BrushToMesh(Operator):
 
 # 3Dview Header Menu
 class VIEW3D_MT_booltool_menu(Menu):
-    bl_label = "BoolTool Operators"
+    bl_label = "Bool Tool"
     bl_idname = "VIEW3D_MT_booltool_menu"
 
     def draw(self, context):
@@ -887,28 +880,16 @@ class VIEW3D_PT_booltool_tools(Panel):
     def draw(self, context):
         layout = self.layout
         obj = context.active_object
-        obs_len = len(context.selected_objects)
 
-        main = layout.column(align=True)
-        main.enabled = obj.type == "MESH" and obs_len > 0
-
-        col = main.column(align=True)
-        col.enabled = obs_len > 1
+        col = layout.column(align=True)
         col.label(text="Auto Boolean")
-        col.separator()
         col.operator(OBJECT_OT_BoolTool_Auto_Difference.bl_idname, text="Difference", icon="SELECT_SUBTRACT")
         col.operator(OBJECT_OT_BoolTool_Auto_Union.bl_idname, text="Union", icon="SELECT_EXTEND")
         col.operator(OBJECT_OT_BoolTool_Auto_Intersect.bl_idname, text="Intersect", icon="SELECT_INTERSECT")
-        sub = col.column(align=True)
-        sub.enabled = obs_len == 2
-        sub.operator(OBJECT_OT_BoolTool_Auto_Slice.bl_idname, text="Slice", icon="SELECT_DIFFERENCE")
+        col.operator(OBJECT_OT_BoolTool_Auto_Slice.bl_idname, text="Slice", icon="SELECT_DIFFERENCE")
 
-        main.separator()
-
-        col = main.column(align=True)
-        col.enabled = obs_len > 1
+        col = layout.column(align=True)
         col.label(text="Brush Boolean")
-        col.separator()
         col.operator(BTool_Diff.bl_idname, text="Difference", icon="SELECT_SUBTRACT")
         col.operator(BTool_Union.bl_idname, text="Union", icon="SELECT_EXTEND")
         col.operator(BTool_Inters.bl_idname, text="Intersect", icon="SELECT_INTERSECT")
@@ -1081,7 +1062,7 @@ class VIEW3D_PT_booltool_bviewer(Panel):
                     Dw.direction = "DOWN"
 
                 else:
-                    row.label(mod.name)
+                    row.label(text=mod.name)
                     # Stack Changer
                     Up = row.operator("btool.move_stack", icon="TRIA_UP", emboss=False)
                     Up.modif = mod.name
