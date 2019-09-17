@@ -28,47 +28,9 @@ from bpy.props import (
         StringProperty,
         )
 
-from .object_menus import *
-
+from . edit_mesh import *
 
 # View Menu's #
-
-class VIEW3D_MT_View_Directions(Menu):
-    bl_label = "Viewpoint"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("view3d.view_camera", text="Camera")
-
-        layout.separator()
-
-        layout.operator("view3d.view_axis", text="Top").type = 'TOP'
-        layout.operator("view3d.view_axis", text="Bottom").type = 'BOTTOM'
-
-        layout.separator()
-
-        layout.operator("view3d.view_axis", text="Front").type = 'FRONT'
-        layout.operator("view3d.view_axis", text="Back").type = 'BACK'
-
-        layout.separator()
-
-        layout.operator("view3d.view_axis", text="Right").type = 'RIGHT'
-        layout.operator("view3d.view_axis", text="Left").type = 'LEFT'
-
-
-class VIEW3D_MT_View_Border(Menu):
-    bl_label = "View Border"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_WIN'
-#        layout.operator("view3d.clip_border", text="Clipping Border...")
-        layout.operator("view3d.zoom_border", text="Zoom Border...")
-        layout.operator("view3d.render_border", text="Render Border...")
-        layout.operator("view3d.clear_render_border")
-
-
 class VIEW3D_MT_View_Menu(Menu):
     bl_label = "View"
 
@@ -76,128 +38,104 @@ class VIEW3D_MT_View_Menu(Menu):
         layout = self.layout
         view = context.space_data
 
+        layout.menu("VIEW3D_MT_view_viewpoint")
+        layout.menu("VIEW3D_MT_view_align")
+        layout.menu("VIEW3D_MT_view_navigation")
         layout.menu("INFO_MT_area")
-        layout.separator()
-        layout.operator("view3d.view_selected", text="Frame Selected").use_all_regions = False
-        if view.region_quadviews:
-            layout.operator("view3d.view_selected", text="Frame Selected (Quad View)").use_all_regions = True
-        layout.operator("view3d.view_all", text="Frame All").center = False
-        layout.operator("view3d.view_persportho", text="Perspective/Orthographic")
-        layout.menu("VIEW3D_MT_View_Local")
-        layout.separator()
-        layout.menu("VIEW3D_MT_view_cameras", text="Cameras")
-        layout.separator()
-        layout.menu("VIEW3D_MT_View_Directions")
-        layout.menu("VIEW3D_MT_View_Navigation")
-        layout.separator()
-        layout.menu("VIEW3D_MT_View_Align")
-        layout.menu("VIEW3D_MT_view_align_selected")
-        layout.separator()
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.menu("VIEW3D_MT_view_regions", text="View Regions")
         layout.menu("VIEW3D_MT_Shade")
         layout.separator()
-        layout.operator("render.opengl", icon='RENDER_STILL')
+
+        layout.operator("view3d.view_selected", text="Frame Selected").use_all_regions = False
+        if view.region_quadviews:
+            layout.operator("view3d.view_selected", text="Frame Selected (Quad View)").use_all_regions = True
+        layout.operator("view3d.view_all", text="Frame All").center = False
+        layout.separator()
+
+        layout.operator("view3d.view_persportho", text="Perspective/Orthographic")
+        layout.menu("VIEW3D_MT_view_local")
+        layout.separator()
+
+        layout.operator("render.opengl", text="Viewport Render Image", icon='RENDER_STILL')
         layout.operator("render.opengl", text="Viewport Render Animation", icon='RENDER_ANIMATION').animation = True
-
-
-class VIEW3D_MT_View_Navigation(Menu):
-    bl_label = "Navigation"
-
-    def draw(self, context):
-        from math import pi
-        layout = self.layout
-        layout.operator_enum("view3d.view_orbit", "type")
-        props = layout.operator("view3d.view_orbit", text ="Orbit Opposite")
-        props.type = 'ORBITRIGHT'
-        props.angle = pi
-
         layout.separator()
-        layout.operator("view3d.view_roll", text="Roll Left").type = 'LEFT'
-        layout.operator("view3d.view_roll", text="Roll Right").type = 'RIGHT'
-        layout.separator()
-        layout.operator_enum("view3d.view_pan", "type")
-        layout.separator()
-        layout.operator("view3d.zoom", text="Zoom In").delta = 1
-        layout.operator("view3d.zoom", text="Zoom Out").delta = -1
-        layout.separator()
-        layout.operator("view3d.zoom_camera_1_to_1", text="Zoom Camera 1:1")
-        layout.separator()
-        layout.operator("view3d.fly")
-        layout.operator("view3d.walk")
+
+        layout.prop(view, "show_region_toolbar")
+        layout.prop(view, "show_region_ui")
+        layout.prop(view, "show_region_tool_header")
+        layout.prop(view, "show_region_hud")
 
 
-class VIEW3D_MT_View_Align(Menu):
-    bl_label = "Align View"
 
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("view3d.camera_to_view", text="Align Active Camera to View")
-        layout.operator("view3d.camera_to_view_selected", text="Align Active Camera to Selected")
-        layout.separator()
-        layout.operator("view3d.view_all", text="Center Cursor and View All").center = True
-        layout.operator("view3d.view_center_cursor")
-        layout.separator()
-        layout.operator("view3d.view_lock_to_active")
-        layout.operator("view3d.view_lock_clear")
+# Display Wire (Thanks to marvin.k.breuer) #
+class VIEW3D_OT_Display_Wire_All(Operator):
+    bl_label = "Wire on All Objects"
+    bl_idname = "view3d.display_wire_all"
+    bl_description = "Enable/Disable Display Wire on All Objects"
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object is not None
+
+    def execute(self, context):
+        is_error = False
+        for obj in bpy.data.objects:
+            try:
+                if obj.show_wire:
+                    obj.show_all_edges = False
+                    obj.show_wire = False
+                else:
+                    obj.show_all_edges = True
+                    obj.show_wire = True
+            except:
+                is_error = True
+                pass
+
+        if is_error:
+            self.report({'WARNING'},
+                        "Wire on All Objects could not be completed for some objects")
+
+        return {'FINISHED'}
 
 
-class VIEW3D_MT_View_Align_Selected(Menu):
-    bl_label = "Align View to Active"
+# Matcap and AO, Wire all and X-Ray entries thanks to marvin.k.breuer
+class VIEW3D_MT_Shade(Menu):
+    bl_label = "Shade"
 
     def draw(self, context):
         layout = self.layout
-        props = layout.operator("view3d.viewnumpad", text="Top")
-        props.align_active = True
-        props.type = 'TOP'
-        props = layout.operator("view3d.viewnumpad", text="Bottom")
-        props.align_active = True
-        props.type = 'BOTTOM'
-        props = layout.operator("view3d.viewnumpad", text="Front")
-        props.align_active = True
-        props.type = 'FRONT'
-        props = layout.operator("view3d.viewnumpad", text="Back")
-        props.align_active = True
-        props.type = 'BACK'
-        props = layout.operator("view3d.viewnumpad", text="Right")
-        props.align_active = True
-        props.type = 'RIGHT'
-        props = layout.operator("view3d.viewnumpad", text="Left")
-        props.align_active = True
-        props.type = 'LEFT'
 
+#        layout.prop(context.space_data, "viewport_shade", expand=True)
 
-class VIEW3D_MT_View_Cameras(Menu):
-    bl_label = "Cameras"
+        if context.active_object:
+            if(context.mode == 'EDIT_MESH'):
+                layout.operator("MESH_OT_faces_shade_smooth", icon='SHADING_RENDERED')
+                layout.operator("MESH_OT_faces_shade_flat", icon='SHADING_SOLID')
+            else:
+                layout.operator("OBJECT_OT_shade_smooth", icon='SHADING_RENDERED')
+                layout.operator("OBJECT_OT_shade_flat", icon='SHADING_SOLID')
 
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("view3d.object_as_camera")
-        layout.operator("view3d.viewnumpad", text="Active Camera").type = 'CAMERA'
+        layout.separator()
+        layout.operator("view3d.display_wire_all", text="Wire all", icon='SHADING_WIRE')
 
-class VIEW3D_MT_View_Local(Menu):
-    bl_label = "Local View"
+#        layout.prop(context.space_data, "use_matcap", icon="MATCAP_01")
 
-    def draw(self, context):
-        layout = self.layout
-        view = context.space_data
+#        if context.space_data.use_matcap:
+#            row = layout.column(1)
+#            row.scale_y = 0.3
+#            row.scale_x = 0.5
+#            row.template_icon_view(context.space_data, "matcap_icon")
 
-        layout.operator("view3d.localview", text="Toggle Local View")
-        layout.operator("view3d.localview_remove_from")
-        layout.operator("view3d.view_persportho")
-
+def menu_func(self, context):
+    self.layout.menu("VIEW3D_MT_Shade")
 
 # List The Classes #
 
 classes = (
-    VIEW3D_MT_View_Directions,
-    VIEW3D_MT_View_Border,
-    VIEW3D_MT_View_Menu,
-    VIEW3D_MT_View_Navigation,
-    VIEW3D_MT_View_Align,
-    VIEW3D_MT_View_Align_Selected,
-    VIEW3D_MT_View_Cameras,
-    VIEW3D_MT_View_Local,
+    VIEW3D_MT_Shade,
+    VIEW3D_OT_Display_Wire_All,
+    VIEW3D_MT_View_Menu
 )
 
 
@@ -212,7 +150,6 @@ def unregister():
 
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
-
 
 if __name__ == "__main__":
     register()

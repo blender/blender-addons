@@ -15,17 +15,14 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-# Contributed to by:
-# Pontiac, Fourmadmen, varkenvarken, tuga3d, meta-androcto, metalliandy     #
-# dreampainter, cotejrp1, liero, Kayo Phoenix, sugiany, dommetysk, Jambay   #
-# Phymec, Anthony D'Agostino, Pablo Vazquez, Richard Wilks, lijenstina,     #
-# Sjaak-de-Draak, Phil Cote, cotejrp1, xyz presets by elfnor, revolt_randy, #
-
+# Contributed to by: Chichiri, Jace Priester #
+# codemanx, blender dev team, Lijenstina, Spivak Vladimir (cwolf3d) #
+# Originally by Evan J. Rosky (syrux)
 
 bl_info = {
     "name": "Discombobulator",
-    "author": "Multiple Authors",
-    "version": (0, 0, 9),
+    "author": "Evan J. Rosky (syrux)",
+    "version": (0, 1, 0),
     "blender": (2, 80, 0),
     "location": "View3D > Add > Mesh",
     "description": "Add Discombobulator",
@@ -57,12 +54,12 @@ from bpy.props import (
 
 # Define "Extras" menu
 def menu_func(self, context):
-    lay_out = self.layout
-    lay_out.operator_context = 'INVOKE_REGION_WIN'
+    layout = self.layout
+    layout.operator_context = 'INVOKE_REGION_WIN'
 
-    lay_out.separator()
-    lay_out.operator("discombobulate.ops",
-                    text="Discombobulator")
+    layout.separator()
+    layout.operator("discombobulate.ops",
+                    text="Discombobulator", icon="MOD_BUILD")
 
 
 # Properties

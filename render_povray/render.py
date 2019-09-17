@@ -451,10 +451,13 @@ def write_pov(filename, scene=None, info_callback=None):
             # reflections if IOR Mirror option is checked.
             elif material.pov.mirror_use_IOR:
                 tabWrite("interior {\n")
-                tabWrite("ior %.6f\n" % material.pov.ior)
+                tabWrite("ior %.6f\n" % material.pov_raytrace_transparency.ior)
+            elif material.pov.transparency_method=='Z_TRANSPARENCY':
+                tabWrite("interior {\n")
+                tabWrite("ior 1.0\n")                
             else:
                 tabWrite("interior {\n")
-                tabWrite("ior %.6f\n" % material.pov.ior)
+                tabWrite("ior %.6f\n" % material.pov_raytrace_transparency.ior)
 
             pov_fake_caustics = False
             pov_photons_refraction = False
@@ -579,8 +582,8 @@ def write_pov(filename, scene=None, info_callback=None):
 
             matrix = global_matrix @ ob.matrix_world
 
-            # Color is modified by energy #multiplied by 2 for a better match --Maurice
-            color = tuple([c * (lamp.energy) for c in lamp.color])
+            # Color is no longer modified by energy
+            color = tuple([c for c in lamp.color])
 
             tabWrite("light_source {\n")
             tabWrite("< 0,0,0 >\n")
@@ -1697,10 +1700,10 @@ def write_pov(filename, scene=None, info_callback=None):
                             material = None
                         if material:
                             diffuse_color = material.diffuse_color
-                            trans = 1.0 - material.alpha
+                            trans = 1.0 - material.pov.alpha
                             if material.use_transparency and material.transparency_method == 'RAYTRACE':
                                 povFilter = material.pov_raytrace_transparency.filter * (1.0 - material.alpha)
-                                trans = (1.0 - material.alpha) - povFilter
+                                trans = (1.0 - material.pov.alpha) - povFilter
                             else:
                                 povFilter = 0.0
                             material_finish = materialNames[material.name]
@@ -1762,10 +1765,10 @@ def write_pov(filename, scene=None, info_callback=None):
 
                 if material:
                     diffuse_color = material.diffuse_color
-                    trans = 1.0 - material.alpha
+                    trans = 1.0 - material.pov.alpha
                     if material.use_transparency and material.transparency_method == 'RAYTRACE':
                         povFilter = material.pov_raytrace_transparency.filter * (1.0 - material.alpha)
-                        trans = (1.0 - material.alpha) - povFilter
+                        trans = (1.0 - material.pov.alpha) - povFilter
                     else:
                         povFilter = 0.0
 
@@ -2064,7 +2067,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
         ob_num = 0
         for ob in sel:
-            #subtract original from the count of their instances as were not counted before 2.8 
+            #subtract original from the count of their instances as were not counted before 2.8
             if not (ob.is_instancer and ob.original != ob):
                 ob_num += 1
 
@@ -2085,9 +2088,9 @@ def write_pov(filename, scene=None, info_callback=None):
                     renderEmitter = True
                     if hasattr(ob, 'particle_systems'):
                         renderEmitter = False
+                        if ob.show_instancer_for_render:
+                            renderEmitter = True
                         for pSys in ob.particle_systems:
-                            if pSys.settings.use_render_emitter:
-                                renderEmitter = True
                             for mod in [m for m in ob.modifiers if (m is not None) and (m.type == 'PARTICLE_SYSTEM')]:
                                 if (pSys.settings.render_type == 'PATH') and mod.show_render and (pSys.name == mod.particle_system.name):
                                     tstart = time.time()
@@ -2113,11 +2116,16 @@ def write_pov(filename, scene=None, info_callback=None):
                                         strandEnd = 0.01
                                         strandShape = 0.0
                                     # Set the number of particles to render count rather than 3d view display
-                                    pSys.set_resolution(scene, ob, 'RENDER')
+                                    #pSys.set_resolution(scene, ob, 'RENDER') # DEPRECATED
+                                    # When you render, the entire dependency graph will be
+                                    # evaluated at render resolution, including the particles.
+                                    # In the viewport it will be at viewport resolution.
+                                    # So there is no need fo render engines to use this function anymore,
+                                    # it's automatic now.
                                     steps = pSys.settings.display_step
                                     steps = 3 ** steps # or (power of 2 rather than 3) + 1 # Formerly : len(particle.hair_keys)
 
-                                    totalNumberOfHairs = ( len(pSys.particles) + len(pSys.child_particles) )
+                                    totalNumberOfHairs = ( pSys.settings.count + pSys.settings.rendered_child_count )
                                     #hairCounter = 0
                                     file.write('#declare HairArray = array[%i] {\n' % totalNumberOfHairs)
                                     for pindex in range(0, totalNumberOfHairs):
@@ -2135,7 +2143,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                                 file.write('linear_spline ')
                                                 file.write('%i,\n' % (steps))
                                             #changing world coordinates to object local coordinates by multiplying with inverted matrix
-                                            initCo = ob.matrix_world.inverted()*(pSys.co_hair(ob, pindex, 0))
+                                            initCo = ob.matrix_world.inverted() @ (pSys.co_hair(ob, particle_no = pindex, step = 0))
                                             if ob.material_slots[pSys.settings.material - 1].material and ob.active_material is not None:
                                                 pmaterial = ob.material_slots[pSys.settings.material-1].material
                                                 for th in pmaterial.texture_slots:
@@ -2159,7 +2167,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                                             #only overwrite variable for each competing texture for now
                                                             initColor=th.texture.evaluate((initCo[0],initCo[1],initCo[2]))
                                             for step in range(0, steps):
-                                                co = ob.matrix_world.inverted()*(pSys.co_hair(ob, pindex, step))
+                                                co = ob.matrix_world.inverted() @ (pSys.co_hair(ob, particle_no = pindex, step = step))
                                             #for controlPoint in particle.hair_keys:
                                                 if pSys.settings.clump_factor != 0:
                                                     hDiameter = pSys.settings.clump_factor / 200.0 * random.uniform(0.5, 1)
@@ -2256,8 +2264,12 @@ def write_pov(filename, scene=None, info_callback=None):
                                     print('Number of tufts (particle systems)', len(ob.particle_systems))
 
                                     # Set back the displayed number of particles to preview count
-                                    pSys.set_resolution(scene, ob, 'PREVIEW')
-
+                                    # pSys.set_resolution(scene, ob, 'PREVIEW') #DEPRECATED
+                                    # When you render, the entire dependency graph will be
+                                    # evaluated at render resolution, including the particles.
+                                    # In the viewport it will be at viewport resolution.
+                                    # So there is no need fo render engines to use this function anymore,
+                                    # it's automatic now.
                                     if renderEmitter == False:
                                         continue #don't render mesh, skip to next object.
 
@@ -3224,6 +3236,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
         if csg:
             duplidata_ref = []
+            _dupnames_seen = dict()  # avoid duplicate output during introspection
             for ob in sel:
                 #matrix = global_matrix @ ob.matrix_world
                 if ob.is_instancer:
@@ -3238,9 +3251,23 @@ def write_pov(filename, scene=None, info_callback=None):
                         dup = "#declare DATA%s = union{\n" %(string_strip_hyphen(bpy.path.clean_name(ob.name)))
                     for eachduplicate in depsgraph.object_instances:
                         if eachduplicate.is_instance:  # Real dupli instance filtered because original included in list since 2.8
-                            duplidataname = "OB"+string_strip_hyphen(bpy.path.clean_name(bpy.data.objects[eachduplicate.object.name].data.name))
+                            _dupname = eachduplicate.object.name
+                            _dupobj = bpy.data.objects[_dupname]
+                            # BEGIN introspection for troubleshooting purposes
+                            if not "name" in dir(_dupobj.data):
+                                if _dupname not in _dupnames_seen:
+                                    print("WARNING: bpy.data.objects[%s].data (of type %s) has no 'name' attribute" % (_dupname, type(_dupobj.data)))
+                                    for _thing in dir(_dupobj):
+                                        print("||  %s.%s = %s" % (_dupname, _thing, getattr(_dupobj, _thing)))
+                                    _dupnames_seen[_dupname] = 1
+                                    print("''=>  Unparseable objects so far: %s" % (_dupnames_seen))
+                                else:
+                                    _dupnames_seen[_dupname] += 1
+                                continue  # don't try to parse data objects with no name attribute
+                            # END introspection for troubleshooting purposes
+                            duplidataname = "OB"+string_strip_hyphen(bpy.path.clean_name(_dupobj.data.name))
                             dupmatrix = eachduplicate.matrix_world.copy() #has to be copied to not store instance since 2.8
-                            dup += ("\tobject {\n\t\tDATA%s\n\t\t%s\t}\n" %(string_strip_hyphen(bpy.path.clean_name(bpy.data.objects[eachduplicate.object.name].data.name)), MatrixAsPovString(ob.matrix_world.inverted() @ dupmatrix)))
+                            dup += ("\tobject {\n\t\tDATA%s\n\t\t%s\t}\n" %(string_strip_hyphen(bpy.path.clean_name(_dupobj.data.name)), MatrixAsPovString(ob.matrix_world.inverted() @ dupmatrix)))
                             #add object to a list so that it is not rendered for some instance_types
                             if ob.instance_type not in {'COLLECTION'} and duplidataname not in duplidata_ref:
                                 duplidata_ref.append(duplidataname) #older key [string_strip_hyphen(bpy.path.clean_name("OB"+ob.name))]
@@ -3249,7 +3276,8 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite(dup)
                 else:
                     continue
-            print(duplidata_ref)
+            print("WARNING: Unparseable objects in current .blend file:\n''=> %s" % (_dupnames_seen))
+            print("duplidata_ref = %s" % (duplidata_ref))
             for data_name, inst in data_ref.items():
                 for ob_name, matrix_str in inst:
                     if ob_name not in duplidata_ref: #.items() for a dictionary
@@ -3812,7 +3840,6 @@ class PovrayRender(bpy.types.RenderEngine):
     def _export(self, depsgraph, povPath, renderImagePath):
         import tempfile
         scene = bpy.context.scene
-        
         if scene.pov.tempfiles_enable:
             self._temp_file_in = tempfile.NamedTemporaryFile(suffix=".pov", delete=False).name
             # PNG with POV 3.7, can show the background color with alpha. In the long run using the

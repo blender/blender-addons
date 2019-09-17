@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Bsurfaces GPL Edition",
     "author": "Eclectiel, Spivak Vladimir(cwolf3d)",
-    "version": (1, 6, 1),
+    "version": (1, 6, 2),
     "blender": (2, 80, 0),
     "location": "View3D EditMode > Sidebar > Edit Tab",
     "description": "Modeling and retopology tool",
@@ -75,6 +75,7 @@ class VIEW3D_PT_tools_SURFSK_mesh(Panel):
         row = layout.row()
         row.separator()
         col.operator("gpencil.surfsk_init", text="Initialize")
+        col.operator("gpencil.surfsk_add_modifiers", text="Add Mirror and others modifiers")
         col.prop(scn, "SURFSK_object_with_retopology")
         col.row().prop(scn, "SURFSK_guide", expand=True)
         if not scn.SURFSK_guide == 'Annotation':
@@ -3537,6 +3538,82 @@ class GPENCIL_OT_SURFSK_init(Operator):
         self.execute(context)
 
         return {"FINISHED"}
+        
+# Edit strokes operator
+class GPENCIL_OT_SURFSK_add_modifiers(Operator):
+    bl_idname = "gpencil.surfsk_add_modifiers"
+    bl_label = "Add Mirror and others modifiers"
+    bl_description = "Add modifiers: Mirror, Shrinkwrap, Subdivision, Solidify "
+
+    active_object: PointerProperty(type=bpy.types.Object)
+
+    def execute(self, context):
+    
+        bs = bpy.context.scene.bsurfaces
+    
+        if bpy.ops.object.mode_set.poll():
+             bpy.ops.object.mode_set(mode='OBJECT')
+        
+        if bs.SURFSK_object_with_retopology == None:
+            self.report({'ERROR_INVALID_INPUT'}, "Please select Mesh of BSurface or click Initialize")
+        else:
+            mesh_object = bs.SURFSK_object_with_retopology
+            
+            try:
+                mesh_object.select_set(True)
+            except:
+                self.report({'ERROR_INVALID_INPUT'}, "Mesh of BSurface does not exist")
+                return {"CANCEL"}
+            
+            bpy.context.view_layer.objects.active = mesh_object
+            
+            try:
+                shrinkwrap = mesh_object.modifiers["Shrinkwrap"]
+                if self.active_object is not None and self.active_object != mesh_object:
+                    shrinkwrap.target = self.active_object
+                    shrinkwrap.wrap_method = 'TARGET_PROJECT'
+                    shrinkwrap.wrap_mode = 'OUTSIDE_SURFACE'
+            except:
+                bpy.ops.object.modifier_add(type='SHRINKWRAP')
+                shrinkwrap = mesh_object.modifiers["Shrinkwrap"]
+                if self.active_object is not None and self.active_object != mesh_object:
+                    shrinkwrap.target = self.active_object
+                    shrinkwrap.wrap_method = 'TARGET_PROJECT'
+                    shrinkwrap.wrap_mode = 'OUTSIDE_SURFACE'
+            
+            try:
+                mirror = mesh_object.modifiers["Mirror"]
+                mirror.use_clip = True
+            except:
+                bpy.ops.object.modifier_add(type='MIRROR')
+                mirror = mesh_object.modifiers["Mirror"]
+                mirror.use_clip = True
+            
+            try:
+                subsurf = mesh_object.modifiers["Subdivision"]
+            except:
+                bpy.ops.object.modifier_add(type='SUBSURF')
+                subsurf = mesh_object.modifiers["Subdivision"]
+            
+            try:
+                solidify = mesh_object.modifiers["Solidify"]
+                solidify.thickness = 0.01
+            except:
+                bpy.ops.object.modifier_add(type='SOLIDIFY')
+                solidify = mesh_object.modifiers["Solidify"]
+                solidify.thickness = 0.01
+
+        return {"FINISHED"}
+
+    def invoke(self, context, event):
+        if bpy.context.active_object:
+            self.active_object = bpy.context.active_object
+        else:
+            self.active_object = None
+        
+        self.execute(context)
+
+        return {"FINISHED"}
 
 # Edit surface operator
 class GPENCIL_OT_SURFSK_edit_surface(Operator):
@@ -4212,6 +4289,7 @@ class BsurfacesProps(PropertyGroup):
 
 classes = (
     GPENCIL_OT_SURFSK_init,
+    GPENCIL_OT_SURFSK_add_modifiers,
     GPENCIL_OT_SURFSK_add_surface,
     GPENCIL_OT_SURFSK_edit_surface,    
     GPENCIL_OT_SURFSK_add_strokes,
@@ -4226,11 +4304,17 @@ classes = (
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
+        
+    for panel in panels:
+        bpy.utils.register_class(panel)
 
     bpy.types.Scene.bsurfaces = PointerProperty(type=BsurfacesProps)
     update_panel(None, bpy.context)
 
 def unregister():
+    for panel in panels:
+        bpy.utils.unregister_class(panel)
+    
     for cls in classes:
         bpy.utils.unregister_class(cls)
 

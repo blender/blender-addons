@@ -1639,8 +1639,10 @@ class archipack_wall2(ArchipackObject, Manipulable, PropertyGroup):
             # prevent self intersect
             o.hide_viewport = True
             res, pos, normal, face_index, r, matrix_world = context.scene.ray_cast(
-                p,
-                up)
+                view_layer=context.view_layer,
+                origin=p,
+                direction=up)
+
             o.hide_viewport = False
             # print("res:%s" % res)
             if res and r.data is not None and "archipack_roof" in r.data:

@@ -67,13 +67,16 @@ def create_cube_widget(rig, bone_name, radius=0.5, bone_transform_name=None):
         mesh.update()
 
 
-def create_chain_widget(rig, bone_name, radius=0.5, invert=False, bone_transform_name=None):
+def create_chain_widget(rig, bone_name, cube=False, radius=0.5, invert=False, bone_transform_name=None, axis="y", offset=0.0):
     """Creates a basic chain widget
     """
     obj = create_widget(rig, bone_name, bone_transform_name)
-    if obj != None:
+    if obj is not None:
         r = radius
-        rh = radius/2
+        if cube:
+            rh = r
+        else:
+            rh = radius/2
         if invert:
             verts = [(rh, rh, rh), (r, -r, r), (-r, -r, r), (-rh, rh, rh), (rh, rh, -rh), (r, -r, -r), (-r, -r, -r), (-rh, rh, -rh)]
         else:
@@ -82,6 +85,9 @@ def create_chain_widget(rig, bone_name, radius=0.5, invert=False, bone_transform
         mesh = obj.data
         mesh.from_pydata(verts, edges, [])
         mesh.update()
+        from .widgets import adjust_widget_axis
+        adjust_widget_axis(obj, axis=axis, offset=offset)
+        return obj
 
 
 def create_sphere_widget(rig, bone_name, bone_transform_name=None):
@@ -109,12 +115,12 @@ def create_limb_widget(rig, bone_name, bone_transform_name=None):
         mesh.update()
 
 
-def create_bone_widget(rig, bone_name, bone_transform_name=None):
+def create_bone_widget(rig, bone_name, r1=0.1, l1=0.0, r2=0.04, l2=1.0, bone_transform_name=None):
     """ Creates a basic bone widget, a simple obolisk-esk shape.
     """
     obj = create_widget(rig, bone_name, bone_transform_name)
     if obj != None:
-        verts = [(0.04, 1.0, -0.04), (0.1, 0.0, -0.1), (-0.1, 0.0, -0.1), (-0.04, 1.0, -0.04), (0.04, 1.0, 0.04), (0.1, 0.0, 0.1), (-0.1, 0.0, 0.1), (-0.04, 1.0, 0.04)]
+        verts = [(r2, l2, -r2), (r1, l1, -r1), (-r1, l1, -r1), (-r2, l2, -r2), (r2, l2, r2), (r1, l1, r1), (-r1, l1, r1), (-r2, l2, r2)]
         edges = [(1, 2), (0, 1), (0, 3), (2, 3), (4, 5), (5, 6), (6, 7), (4, 7), (1, 5), (0, 4), (2, 6), (3, 7)]
         mesh = obj.data
         mesh.from_pydata(verts, edges, [])

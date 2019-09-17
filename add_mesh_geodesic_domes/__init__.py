@@ -15,10 +15,13 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
+# Contributed to by PKHG, Meta Androcto, Noctumsolis, Lijenstina, 
+# Spivak Vladimir (cwolf3d)
+# Origunally an addon by Andy Houston
 
 bl_info = {
-    "name": "Geodesic Domes2",
-    "author": "Noctumsolis, PKHG, Meta Androcto, Andy Houston",
+    "name": "Geodesic Domes",
+    "author": "Andy Houston",
     "version": (0, 3, 4),
     "blender": (2, 80, 0),
     "location": "View3D > Add > Mesh",
@@ -186,7 +189,7 @@ def menu_func(self, context):
 
     lay_out.separator()
     lay_out.operator("mesh.generate_geodesic_dome",
-                    text="Geodesic Dome")
+                    text="Geodesic Dome", icon="MESH_ICOSPHERE")
 
 # Register
 classes = [

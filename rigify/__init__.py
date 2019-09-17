@@ -20,9 +20,9 @@
 
 bl_info = {
     "name": "Rigify",
-    "version": (0, 5, 1),
-    "author": "Nathan Vegdahl, Lucio Rossi, Ivan Cappiello",
-    "blender": (2, 80, 0),
+    "version": (0, 6, 0),
+    "author": "Nathan Vegdahl, Lucio Rossi, Ivan Cappiello, Alexander Gavrilov",
+    "blender": (2, 81, 0),
     "description": "Automatic rigging from building-block components",
     "location": "Armature properties, Bone properties, View3d tools panel, Armature Add menu",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
@@ -32,14 +32,17 @@ bl_info = {
 
 if "bpy" in locals():
     import importlib
+    # Don't reload base_rig or base_generate, because it would break issubclass checks,
+    # unless _all_ modules with classes inheriting from BaseRig are also reloaded.
+    importlib.reload(utils)
+    importlib.reload(rig_ui_template)
+    importlib.reload(feature_set_list)
+    importlib.reload(rig_lists)
     importlib.reload(generate)
     importlib.reload(ui)
-    importlib.reload(utils)
-    importlib.reload(feature_set_list)
     importlib.reload(metarig_menu)
-    importlib.reload(rig_lists)
 else:
-    from . import (utils, feature_set_list, rig_lists, generate, ui, metarig_menu)
+    from . import (utils, base_rig, base_generate, rig_ui_template, feature_set_list, rig_lists, generate, ui, metarig_menu)
 
 import bpy
 import sys
@@ -264,6 +267,31 @@ class RigifySelectionColors(bpy.types.PropertyGroup):
 class RigifyParameters(bpy.types.PropertyGroup):
     name: StringProperty()
 
+# Parameter update callback
+
+in_update = False
+
+def update_callback(prop_name):
+    from .utils.rig import get_rigify_type
+
+    def callback(params, context):
+        global in_update
+        # Do not recursively call if the callback updates other parameters
+        if not in_update:
+            try:
+                in_update = True
+                bone = context.active_pose_bone
+
+                if bone and bone.rigify_parameters == params:
+                    rig_info = rig_lists.rigs.get(get_rigify_type(bone), None)
+                    if rig_info:
+                        rig_cb = getattr(rig_info["module"].Rig, 'on_parameter_update', None)
+                        if rig_cb:
+                            rig_cb(context, bone, params, prop_name)
+            finally:
+                in_update = False
+
+    return callback
 
 # Remember the initial property set
 RIGIFY_PARAMETERS_BASE_DIR = set(dir(RigifyParameters))
@@ -324,6 +352,9 @@ class RigifyParameterValidator(object):
 
         # actually defining the property modifies the dictionary with new parameters, so copy it now
         new_def = (val[0], val[1].copy())
+
+        # inject a generic update callback that calls the appropriate rig classmethod
+        val[1]['update'] = update_callback(name)
 
         setattr(self.__params, name, val)
         self.__prop_table[name] = (self.__rig_name, new_def)
@@ -459,12 +490,6 @@ def register():
     IDStore.rigify_transfer_only_selected = BoolProperty(
         name="Transfer Only Selected",
         description="Transfer selected bones only", default=True)
-    IDStore.rigify_transfer_start_frame = IntProperty(
-        name="Start Frame",
-        description="First Frame to Transfer", default=0, min= 0)
-    IDStore.rigify_transfer_end_frame = IntProperty(
-        name="End Frame",
-        description="Last Frame to Transfer", default=0, min= 0)
 
     # Update legacy on restart or reload.
     if (ui and 'legacy' in str(ui)) or bpy.context.preferences.addons['rigify'].preferences.legacy_mode:
@@ -486,11 +511,15 @@ def register_rig_parameters():
                 pass
     else:
         for rig in rig_lists.rigs:
-            r = rig_lists.rigs[rig]['module']
+            rig_module = rig_lists.rigs[rig]['module']
+            rig_class = rig_module.Rig
+            r = rig_class if hasattr(rig_class, 'add_parameters') else rig_module
             try:
-                r.add_parameters(RigifyParameterValidator(RigifyParameters, rig, RIGIFY_PARAMETER_TABLE))
-            except AttributeError:
-                pass
+                if hasattr(r, 'add_parameters'):
+                    r.add_parameters(RigifyParameterValidator(RigifyParameters, rig, RIGIFY_PARAMETER_TABLE))
+            except Exception:
+                import traceback
+                traceback.print_exc()
 
 
 def unregister():
@@ -522,8 +551,6 @@ def unregister():
     del IDStore.rigify_rig_ui
     del IDStore.rigify_rig_basename
     del IDStore.rigify_transfer_only_selected
-    del IDStore.rigify_transfer_start_frame
-    del IDStore.rigify_transfer_end_frame
 
     # Classes.
     for cls in classes:
