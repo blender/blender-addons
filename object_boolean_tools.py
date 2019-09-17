@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Bool Tool",
     "author": "Vitor Balbio, Mikhail Rachinskiy, TynkaTopi, Meta-Androcto, Simon Appelt",
-    "version": (0, 4, 0),
+    "version": (0, 4, 1),
     "blender": (2, 80, 0),
     "location": "View3D > Sidebar > Edit Tab",
     "description": "Bool Tool Hotkey: Ctrl Shift B",
@@ -54,7 +54,6 @@ def update_BoolHide(self, context):
         o.hide_viewport = hide_state
 
 
-# Object is a Canvas
 def isCanvas(_obj):
     try:
         if _obj["BoolToolRoot"]:
@@ -63,7 +62,6 @@ def isCanvas(_obj):
         return False
 
 
-# Object is a Brush Tool Bool
 def isBrush(_obj):
     try:
         if _obj["BoolToolBrush"]:
@@ -72,13 +70,13 @@ def isBrush(_obj):
         return False
 
 
-# Object is a Poly Brush Tool Bool collection
-def isPolyBrush(_obj):
-    try:
-        if _obj["BoolToolPolyBrush"]:
-            return True
-    except:
-        return False
+# TODO
+# def isPolyBrush(_obj):
+#     try:
+#         if _obj["BoolToolPolyBrush"]:
+#             return True
+#     except:
+#         return False
 
 
 def BT_ObjectByName(obj):
@@ -917,22 +915,17 @@ class VIEW3D_PT_booltool_config(Panel):
 
     @classmethod
     def poll(cls, context):
-
-        result = False
-        actObj = bpy.context.active_object
-        if isCanvas(actObj) or isBrush(actObj) or isPolyBrush(actObj):
-            result = True
-        return result
+        actObj = context.active_object
+        return isCanvas(actObj) or isBrush(actObj) #  or isPolyBrush(actObj)
 
     def draw(self, context):
-        actObj = bpy.context.active_object
-        icon = ""
-
         layout = self.layout
+        actObj = context.active_object
+
         row = layout.row(align=True)
 
-        # CANVAS ---------------------------------------------------
         if isCanvas(actObj):
+
             row.label(text="CANVAS", icon="MESH_GRID")
             row = layout.row()
             row.prop(context.scene, "BoolHide", text="Hide Bool objects")
@@ -947,7 +940,6 @@ class VIEW3D_PT_booltool_config(Panel):
             if isBrush(actObj):
                 layout.separator()
 
-        # BRUSH ------------------------------------------------------
         if isBrush(actObj):
 
             if actObj["BoolToolBrush"] == "DIFFERENCE":
@@ -959,10 +951,8 @@ class VIEW3D_PT_booltool_config(Panel):
             elif actObj["BoolToolBrush"] == "SLICE":
                 icon = "SELECT_DIFFERENCE"
 
-            row = layout.row(align=True)
             row.label(text="BRUSH", icon=icon)
 
-            icon = ""
             if actObj["BoolTool_FTransform"] == "True":
                 icon = "PMARKER_ACT"
             else:
@@ -974,28 +964,19 @@ class VIEW3D_PT_booltool_config(Panel):
                 row = layout.row(align=True)
                 row.operator(BTool_EnableFTransform.bl_idname, text="Fast Vis", icon=icon)
                 row.operator(BTool_EnableThisBrush.bl_idname, text="Enable", icon="HIDE_OFF")
-                row = layout.row(align=True)
             else:
                 row.operator(BTool_EnableThisBrush.bl_idname, icon="HIDE_OFF")
-                row = layout.row(align=True)
 
-        if isPolyBrush(actObj):
-            row = layout.row(align=False)
-            row.label(text="POLY BRUSH", icon="LINE_DATA")
-            mod = actObj.modifiers["BTool_PolyBrush"]
-            row = layout.row(align=False)
-            row.prop(mod, "thickness", text="Size")
-            layout.separator()
-
-        if isBrush(actObj):
-            row = layout.row(align=True)
-            row.operator(BTool_BrushToMesh.bl_idname, icon="MOD_LATTICE", text="Apply Brush")
-            row = layout.row(align=True)
-            Rem = row.operator(BTool_Remove.bl_idname, icon="X", text="Remove Brush")
+            layout.operator(BTool_BrushToMesh.bl_idname, icon="MOD_LATTICE", text="Apply Brush")
+            Rem = layout.operator(BTool_Remove.bl_idname, icon="X", text="Remove Brush")
             Rem.thisObj = ""
             Rem.Prop = "BRUSH"
 
-        layout.separator()
+        # TODO
+        # if isPolyBrush(actObj):
+        #     layout.label(text="POLY BRUSH", icon="LINE_DATA")
+        #     mod = actObj.modifiers["BTool_PolyBrush"]
+        #     layout.prop(mod, "thickness", text="Size")
 
 
 # ---------- Toolshelf: Brush Viewer -------------------------------------------------------
@@ -1021,15 +1002,15 @@ class VIEW3D_PT_booltool_bviewer(Panel):
     def draw(self, context):
 
         actObj = bpy.context.active_object
-        icon = ""
 
         if isCanvas(actObj):
 
             for mod in actObj.modifiers:
                 container = self.layout.box()
                 row = container.row(align=True)
-                icon = ""
+
                 if "BTool_" in mod.name:
+
                     if mod.operation == "DIFFERENCE":
                         icon = "SELECT_SUBTRACT"
                     elif mod.operation == "UNION":
@@ -1048,29 +1029,20 @@ class VIEW3D_PT_booltool_bviewer(Panel):
                     Enable = row.operator(BTool_EnableBrush.bl_idname, icon=EnableIcon, emboss=False)
                     Enable.thisObj = mod.object.name
 
-                    Remove = row.operator("btool.remove", icon="X", emboss=False)
+                    Remove = row.operator("btool.remove", text="", icon="X", emboss=False)
                     Remove.thisObj = mod.object.name
                     Remove.Prop = "THIS"
 
-                    # Stack Changer
-                    Up = row.operator("btool.move_stack", icon="TRIA_UP", emboss=False)
-                    Up.modif = mod.name
-                    Up.direction = "UP"
-
-                    Dw = row.operator("btool.move_stack", icon="TRIA_DOWN", emboss=False)
-                    Dw.modif = mod.name
-                    Dw.direction = "DOWN"
-
                 else:
                     row.label(text=mod.name)
-                    # Stack Changer
-                    Up = row.operator("btool.move_stack", icon="TRIA_UP", emboss=False)
-                    Up.modif = mod.name
-                    Up.direction = "UP"
 
-                    Dw = row.operator("btool.move_stack", icon="TRIA_DOWN", emboss=False)
-                    Dw.modif = mod.name
-                    Dw.direction = "DOWN"
+                Up = row.operator("btool.move_stack", icon="TRIA_UP", emboss=False)
+                Up.modif = mod.name
+                Up.direction = "UP"
+
+                Dw = row.operator("btool.move_stack", icon="TRIA_DOWN", emboss=False)
+                Dw.modif = mod.name
+                Dw.direction = "DOWN"
 
 
 # ------------------ BOOL TOOL Help ----------------------------
@@ -1109,14 +1081,32 @@ class WM_OT_BoolTool_Help(Operator):
 # ------------------ BOOL TOOL ADD-ON PREFERENCES ----------------------------
 
 
+shortcut_list = (
+    ("3D View", None),
+    ("Menu", "Ctrl Shift B"),
+
+    ("Auto Operators", None),
+    ("Difference", "Ctrl Shift Num -"),
+    ("Union", "Ctrl Shift Num +"),
+    ("Intersect", "Ctrl Shift Num *"),
+    ("Slice", "Ctrl Shift Num /"),
+
+    ("Brush Operators", None),
+    ("Difference", "Ctrl Num -"),
+    ("Union", "Ctrl Num +"),
+    ("Intersect", "Ctrl Num *"),
+    ("Slice", "Ctrl Num /"),
+    ("Brush To Mesh", "Ctrl Num Enter"),
+    ("All Brushes To Mesh", "Ctrl Shift Num Enter"),
+)
+
+
 def UpdateBoolTool_Pref(self, context):
     if self.fast_transform:
         RegisterFastT()
     else:
         UnRegisterFastT()
 
-
-# Add-ons Preferences Update Panel
 
 # Define Panel classes for updating
 panels = (
@@ -1143,85 +1133,62 @@ def update_panels(self, context):
         print("\n[{}]\n{}\n\nError:\n{}".format(__name__, message, e))
 
 
+def icon_tria(prop):
+    if prop:
+        return "TRIA_DOWN"
+    return "TRIA_RIGHT"
+
+
 class PREFS_BoolTool_Props(AddonPreferences):
     bl_idname = __name__
 
     fast_transform: BoolProperty(
         name="Fast Transformations",
-        default=False,
         update=UpdateBoolTool_Pref,
         description="Replace the Transform HotKeys (G,R,S)\n"
         "for a custom version that can optimize the visualization of Brushes",
     )
-    make_vertex_groups: BoolProperty(
-        name="Make Vertex Groups",
-        default=False,
-        description="When Applying a Brush to the Object it will create\n"
-        "a new vertex group for the new faces",
-    )
-    make_boundary: BoolProperty(
-        name="Make Boundary",
-        default=False,
-        description="When Apply a Brush to the Object it will create a\n"
-        "new vertex group of the boundary boolean area",
-    )
     use_wire: BoolProperty(
-        name="Use Bmesh",
-        default=False,
-        description="Use The Wireframe Instead of Bounding Box for visualization",
+        name="Display As Wirewrame",
+        description="Display brush as wireframe instead of bounding box",
     )
     category: StringProperty(
-        name="Tab Category",
-        description="Choose a name for the category of the panel",
+        name="Tab Name",
+        description="Set sidebar tab name",
         default="Edit",
         update=update_panels,
     )
-    Enable_Tab_01: BoolProperty(default=False)
+    show_shortcuts: BoolProperty(name="Shortcuts")
 
     def draw(self, context):
         layout = self.layout
-        split_percent = 0.3
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
-        split = layout.split(factor=split_percent)
-        col = split.column()
-        col.label(text="Tab Category:")
-        col = split.column()
-        col.prop(self, "category", text="")
 
-        split = layout.split(factor=split_percent)
-        col = split.column()
-        col.label(text="Experimental Features:")
-        col = split.column()
+        col = layout.column()
+        col.prop(self, "category")
         col.prop(self, "fast_transform")
-        col.prop(self, "use_wire", text="Use Wire Instead Of Bbox")
+        col.prop(self, "use_wire")
 
-        layout.separator()
+        col = layout.column()
+        col.scale_y = 1.2
+        col.use_property_split = False
+        col.prop(self, "show_shortcuts", icon=icon_tria(self.show_shortcuts))
 
-        layout.prop(self, "Enable_Tab_01", text="Hot Keys", icon="KEYINGSET")
-        if self.Enable_Tab_01:
-            row = layout.row()
+        if self.show_shortcuts:
 
-            col = row.column()
-            col.label(text="Hotkey List:")
-            col.label(text="Menu: Ctrl Shift B")
+            col = layout.column()
 
-            row = layout.row()
-            col = row.column()
-            col.label(text="Brush Operators:")
-            col.label(text="Union: Ctrl Num +")
-            col.label(text="Diff: Ctrl Num -")
-            col.label(text="Intersect: Ctrl Num *")
-            col.label(text="Slice: Ctrl Num /")
-
-            row = layout.row()
-            col = row.column()
-            col.label(text="Auto Operators:")
-            col.label(text="Difference: Ctrl Shift Num -")
-            col.label(text="Union: Ctrl Shift Num +")
-            col.label(text="Intersect: Ctrl Shift Num *")
-            col.label(text="Slice: Ctrl Shift Num /")
-            col.label(text="BTool Brush To Mesh: Ctrl Num Enter")
-            col.label(text="BTool All Brush To Mesh: Ctrl Shift Num Enter")
+            for key_name, key_comb in shortcut_list:
+                if key_comb is None:
+                    col.separator()
+                    col.label(text=key_name)
+                else:
+                    row = col.row(align=True)
+                    row.scale_y = 0.7
+                    row.box().label(text=key_name)
+                    row.box().label(text=key_comb)
 
 
 # ------------------- Class List ------------------------------------------------
@@ -1301,12 +1268,7 @@ def register():
         description="Hide boolean objects",
         update=update_BoolHide,
     )
-
     bpy.types.VIEW3D_MT_object.append(VIEW3D_BoolTool_Menu)
-    try:
-        bpy.types.VIEW3D_MT_Object.prepend(VIEW3D_BoolTool_Menu)
-    except:
-        pass
 
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
@@ -1385,13 +1347,7 @@ def unregister():
 
     addon_keymaps.clear()
     UnRegisterFastT()
-
     bpy.types.VIEW3D_MT_object.remove(VIEW3D_BoolTool_Menu)
-    try:
-        bpy.types.VIEW3D_MT_Object.remove(VIEW3D_BoolTool_Menu)
-    except:
-        pass
-
     del bpy.types.Scene.BoolHide
 
     for cls in classes:
