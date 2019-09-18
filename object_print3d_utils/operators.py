@@ -434,7 +434,7 @@ class MESH_OT_Print3D_Clean_Non_Manifold(Operator):
     sides: bpy.props.IntProperty(
         name="sides",
         description="Number of sides in hole required to fill",
-        default=4,
+        default=0,
     )
 
     def execute(self, context):
@@ -552,10 +552,6 @@ class MESH_OT_Print3D_Clean_Non_Manifold(Operator):
         """fill holes and then fill in any remnant non-manifolds"""
         bpy.ops.mesh.select_all(action='SELECT')
         bpy.ops.mesh.fill_holes(sides=sides)
-
-        # fill selected edge faces, which could be additional holes
-        cls.select_non_manifold_verts(use_boundary=True)
-        bpy.ops.mesh.fill()
 
     @classmethod
     def delete_newly_generated_non_manifold_verts(cls):
