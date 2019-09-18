@@ -22,13 +22,13 @@ bl_info = {
     "name": "3D Print Toolbox",
     "author": "Campbell Barton",
     "blender": (2, 80, 0),
-    "location": "3D View > Toolbox",
+    "location": "3D View > Sidebar",
     "description": "Utilities for 3D printing",
-    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/Modeling/PrintToolbox",
+    # TODO
+    # "wiki_url": "",
     "support": 'OFFICIAL',
     "category": "Mesh",
-    }
+}
 
 
 if "bpy" in locals():
@@ -40,22 +40,19 @@ else:
     import math
 
     import bpy
+    from bpy.types import PropertyGroup
     from bpy.props import (
-            StringProperty,
-            BoolProperty,
-            FloatProperty,
-            EnumProperty,
-            PointerProperty,
-            )
-    from bpy.types import (
-            AddonPreferences,
-            PropertyGroup,
-            )
+        StringProperty,
+        BoolProperty,
+        FloatProperty,
+        EnumProperty,
+        PointerProperty,
+    )
 
     from . import (
-            ui,
-            operators,
-            )
+        ui,
+        operators,
+    )
 
 
 class Print3D_Scene_Props(PropertyGroup):
@@ -122,12 +119,13 @@ class Print3D_Scene_Props(PropertyGroup):
 
 
 classes = (
+    Print3D_Scene_Props,
+
     ui.VIEW3D_PT_Print3D_Object,
     ui.VIEW3D_PT_Print3D_Mesh,
 
     operators.MESH_OT_Print3D_Info_Volume,
     operators.MESH_OT_Print3D_Info_Area,
-
     operators.MESH_OT_Print3D_Check_Degenerate,
     operators.MESH_OT_Print3D_Check_Distorted,
     operators.MESH_OT_Print3D_Check_Solid,
@@ -136,20 +134,14 @@ classes = (
     operators.MESH_OT_Print3D_Check_Sharp,
     operators.MESH_OT_Print3D_Check_Overhang,
     operators.MESH_OT_Print3D_Check_All,
-
     operators.MESH_OT_Print3D_Clean_Isolated,
     operators.MESH_OT_Print3D_Clean_Distorted,
     # operators.MESH_OT_Print3D_Clean_Thin,
     operators.MESH_OT_Print3D_Clean_Non_Manifold,
-
     operators.MESH_OT_Print3D_Select_Report,
-
     operators.MESH_OT_Print3D_Scale_To_Volume,
     operators.MESH_OT_Print3D_Scale_To_Bounds,
-
     operators.MESH_OT_Print3D_Export,
-
-    Print3D_Scene_Props,
 )
 
 

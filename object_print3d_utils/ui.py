@@ -35,7 +35,7 @@ class Print3D_ToolBar:
         bmesh.types.BMVert: 'VERTEXSEL',
         bmesh.types.BMEdge: 'EDGESEL',
         bmesh.types.BMFace: 'FACESEL',
-        }
+    }
 
     @classmethod
     def poll(cls, context):
@@ -52,17 +52,18 @@ class Print3D_ToolBar:
             layout.label(text="Output:")
             box = layout.box()
             col = box.column(align=False)
-            # box.alert = True
+
             for i, (text, data) in enumerate(info):
                 if obj and data and data[1]:
                     bm_type, bm_array = data
-                    col.operator("mesh.print3d_select_report",
-                                 text=text,
-                                 icon=Print3D_ToolBar._type_to_icon[bm_type]).index = i
+                    col.operator(
+                        "mesh.print3d_select_report",
+                        text=text,
+                        icon=Print3D_ToolBar._type_to_icon[bm_type],
+                    ).index = i
                     layout.operator("mesh.select_non_manifold", text='Non Manifold Extended')
                 else:
                     col.label(text=text)
-
 
     def draw(self, context):
         layout = self.layout

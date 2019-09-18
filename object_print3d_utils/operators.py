@@ -213,12 +213,11 @@ class MESH_OT_Print3D_Check_Distorted(Operator):
         bm.normal_update()
 
         faces_distort = array.array(
-                'i',
-                (i for i, ele in enumerate(bm.faces) if mesh_helpers.face_is_distorted(ele, angle_distort))
-                )
+            'i',
+            (i for i, ele in enumerate(bm.faces) if mesh_helpers.face_is_distorted(ele, angle_distort))
+        )
 
-        info.append(("Non-Flat Faces: %d" % len(faces_distort),
-                    (bmesh.types.BMFace, faces_distort)))
+        info.append(("Non-Flat Faces: %d" % len(faces_distort), (bmesh.types.BMFace, faces_distort)))
 
         bm.free()
 
@@ -238,9 +237,7 @@ class MESH_OT_Print3D_Check_Thick(Operator):
         print_3d = scene.print_3d
 
         faces_error = mesh_helpers.bmesh_check_thick_object(obj, print_3d.thickness_min)
-
-        info.append(("Thin Faces: %d" % len(faces_error),
-                    (bmesh.types.BMFace, faces_error)))
+        info.append(("Thin Faces: %d" % len(faces_error), (bmesh.types.BMFace, faces_error)))
 
     def execute(self, context):
         return execute_check(self, context)
@@ -260,11 +257,12 @@ class MESH_OT_Print3D_Check_Sharp(Operator):
         bm = mesh_helpers.bmesh_copy_from_object(obj, transform=True, triangulate=False)
         bm.normal_update()
 
-        edges_sharp = [ele.index for ele in bm.edges
-                       if ele.is_manifold and ele.calc_face_angle_signed() > angle_sharp]
+        edges_sharp = [
+            ele.index for ele in bm.edges
+            if ele.is_manifold and ele.calc_face_angle_signed() > angle_sharp
+        ]
 
-        info.append(("Sharp Edge: %d" % len(edges_sharp),
-                    (bmesh.types.BMEdge, edges_sharp)))
+        info.append(("Sharp Edge: %d" % len(edges_sharp), (bmesh.types.BMEdge, edges_sharp)))
         bm.free()
 
     def execute(self, context):
@@ -296,11 +294,12 @@ class MESH_OT_Print3D_Check_Overhang(Operator):
         z_down_angle = z_down.angle
 
         # 4.0 ignores zero area faces
-        faces_overhang = [ele.index for ele in bm.faces
-                          if z_down_angle(ele.normal, 4.0) < angle_overhang]
+        faces_overhang = [
+            ele.index for ele in bm.faces
+            if z_down_angle(ele.normal, 4.0) < angle_overhang
+        ]
 
-        info.append(("Overhang Face: %d" % len(faces_overhang),
-                    (bmesh.types.BMFace, faces_overhang)))
+        info.append(("Overhang Face: %d" % len(faces_overhang), (bmesh.types.BMFace, faces_overhang)))
         bm.free()
 
     def execute(self, context):
@@ -320,7 +319,7 @@ class MESH_OT_Print3D_Check_All(Operator):
         MESH_OT_Print3D_Check_Thick,
         MESH_OT_Print3D_Check_Sharp,
         MESH_OT_Print3D_Check_Overhang,
-        )
+    )
 
     def execute(self, context):
         obj = context.active_object
@@ -368,8 +367,7 @@ class MESH_OT_Print3D_Clean_Isolated(Operator):
         for ele in elems_remove:
             remove(ele)
         change |= bool(elems_remove)
-        info.append(("Faces Removed: %d" % len(elems_remove),
-                    None))
+        info.append(("Faces Removed: %d" % len(elems_remove), None))
         del elems_remove
         # --- edge
         elems_remove = [ele for ele in bm.edges if edge_is_isolated(ele)]
@@ -377,8 +375,7 @@ class MESH_OT_Print3D_Clean_Isolated(Operator):
         for ele in elems_remove:
             remove(ele)
         change |= bool(elems_remove)
-        info.append(("Edge Removed: %d" % len(elems_remove),
-                    None))
+        info.append(("Edge Removed: %d" % len(elems_remove), None))
         del elems_remove
         # --- vert
         elems_remove = [ele for ele in bm.verts if vert_is_isolated(ele)]
@@ -386,8 +383,7 @@ class MESH_OT_Print3D_Clean_Isolated(Operator):
         for ele in elems_remove:
             remove(ele)
         change |= bool(elems_remove)
-        info.append(("Verts Removed: %d" % len(elems_remove),
-                    None))
+        info.append(("Verts Removed: %d" % len(elems_remove), None))
         del elems_remove
         # ---
 
@@ -463,12 +459,14 @@ class MESH_OT_Print3D_Clean_Non_Manifold(Operator):
             bpy.ops.object.mode_set(mode='OBJECT')
 
         self.report(
-                {'INFO'},
-                "Modified Verts:%+d, Edges:%+d, Faces:%+d" %
-                (bm_key[0] - bm_key_orig[0],
-                 bm_key[1] - bm_key_orig[1],
-                 bm_key[2] - bm_key_orig[2],
-                 ))
+            {'INFO'},
+            "Modified Verts:%+d, Edges:%+d, Faces:%+d" %
+            (
+                bm_key[0] - bm_key_orig[0],
+                bm_key[1] - bm_key_orig[1],
+                bm_key[2] - bm_key_orig[2],
+            )
+        )
 
         return {'FINISHED'}
 
@@ -522,7 +520,6 @@ class MESH_OT_Print3D_Clean_Non_Manifold(Operator):
 
         while True:
             cls.fill_non_manifold(sides)
-
             cls.delete_newly_generated_non_manifold_verts()
 
             bm_key = cls.elem_count(context)
@@ -533,30 +530,26 @@ class MESH_OT_Print3D_Clean_Non_Manifold(Operator):
 
     @staticmethod
     def select_non_manifold_verts(
-            use_wire=False,
-            use_boundary=False,
-            use_multi_face=False,
-            use_non_contiguous=False,
-            use_verts=False,
-            ):
+        use_wire=False,
+        use_boundary=False,
+        use_multi_face=False,
+        use_non_contiguous=False,
+        use_verts=False
+    ):
         """select non-manifold vertices"""
         bpy.ops.mesh.select_non_manifold(
-                extend=False,
-                use_wire=use_wire,
-                use_boundary=use_boundary,
-                use_multi_face=use_multi_face,
-                use_non_contiguous=use_non_contiguous,
-                use_verts=use_verts,
-                )
+            extend=False,
+            use_wire=use_wire,
+            use_boundary=use_boundary,
+            use_multi_face=use_multi_face,
+            use_non_contiguous=use_non_contiguous,
+            use_verts=use_verts,
+        )
 
     @classmethod
     def count_non_manifold_verts(cls, context):
         """return a set of coordinates of non-manifold vertices"""
-        cls.select_non_manifold_verts(
-                use_wire=True,
-                use_boundary=True,
-                use_verts=True,
-                )
+        cls.select_non_manifold_verts(use_wire=True, use_boundary=True, use_verts=True)
 
         bm = bmesh.from_edit_mesh(context.edit_object.data)
         return sum((1 for v in bm.verts if v.select))
@@ -606,13 +599,13 @@ class MESH_OT_Print3D_Select_Report(Operator):
         bmesh.types.BMVert: 'VERT',
         bmesh.types.BMEdge: 'EDGE',
         bmesh.types.BMFace: 'FACE',
-        }
+    }
 
     _type_to_attr = {
         bmesh.types.BMVert: "verts",
         bmesh.types.BMEdge: "edges",
         bmesh.types.BMFace: "faces",
-        }
+    }
 
     def execute(self, context):
         obj = context.edit_object
@@ -689,8 +682,7 @@ class MESH_OT_Print3D_Scale_To_Volume(Operator):
         if context.mode == 'EDIT_MESH':
             volume = calc_volume(context.edit_object)
         else:
-            volume = sum(calc_volume(obj) for obj in context.selected_editable_objects
-                         if obj.type == 'MESH')
+            volume = sum(calc_volume(obj) for obj in context.selected_editable_objects if obj.type == 'MESH')
 
         if volume == 0.0:
             self.report({'WARNING'}, "Object has zero volume")
@@ -717,14 +709,17 @@ class MESH_OT_Print3D_Scale_To_Bounds(Operator):
     length: FloatProperty(
         name="Length Limit",
         unit='LENGTH',
-        min=0.0, max=100000.0,
+        min=0.0,
+        max=100000.0,
     )
 
     def execute(self, context):
         scale = self.length / self.length_init
-        _scale(scale,
-               report=self.report,
-               report_suffix=", Clamping %s-Axis" % "XYZ"[self.axis_init])
+        _scale(
+            scale,
+            report=self.report,
+            report_suffix=", Clamping %s-Axis" % "XYZ"[self.axis_init]
+        )
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -734,13 +729,17 @@ class MESH_OT_Print3D_Scale_To_Bounds(Operator):
             return max(((max(v[i] for v in vecs) - min(v[i] for v in vecs)), i) for i in range(3))
 
         if context.mode == 'EDIT_MESH':
-            length, axis = calc_length([Vector(v) @ obj.matrix_world
-                                        for obj in [context.edit_object]
-                                        for v in obj.bound_box])
+            length, axis = calc_length(
+                [Vector(v) @ obj.matrix_world for obj in [context.edit_object] for v in obj.bound_box]
+            )
         else:
-            length, axis = calc_length([Vector(v) @ obj.matrix_world
-                                        for obj in context.selected_editable_objects
-                                        if obj.type == 'MESH' for v in obj.bound_box])
+            length, axis = calc_length(
+                [
+                    Vector(v) @ obj.matrix_world for obj in context.selected_editable_objects
+                    if obj.type == 'MESH'
+                    for v in obj.bound_box
+                ]
+            )
 
         if length == 0.0:
             self.report({'WARNING'}, "Object has zero bounds")
@@ -770,5 +769,5 @@ class MESH_OT_Print3D_Export(Operator):
 
         if ret:
             return {'FINISHED'}
-        else:
-            return {'CANCELLED'}
+
+        return {'CANCELLED'}
