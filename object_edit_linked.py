@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Edit Linked Library",
     "author": "Jason van Gumster (Fweeb), Bassam Kurdali, Pablo Vazquez, Rainer Trummer",
-    "version": (0, 9, 1),
+    "version": (0, 9, 2),
     "blender": (2, 80, 0),
     "location": "File > External Data / View3D > Sidebar > Item Tab",
     "description": "Allows editing of objects linked from a .blend library.",
@@ -180,6 +180,8 @@ class VIEW3D_PT_PanelLinkedEdit(bpy.types.Panel):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
+
+        active_collection = context.active_object.instance_collection
         icon = "OUTLINER_DATA_" + context.active_object.type
 
         target = None
@@ -212,7 +214,7 @@ class VIEW3D_PT_PanelLinkedEdit(bpy.types.Panel):
 
         elif settings["original_file"] != "":
 
-            if scene.use_instance:
+            if scene.use_instance and active_collection:
                 layout.operator("wm.return_to_original",
                                 text="Reload Current File",
                                 icon="FILE_REFRESH").use_autosave = False
