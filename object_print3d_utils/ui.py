@@ -61,7 +61,7 @@ class Print3D_ToolBar:
                         text=text,
                         icon=Print3D_ToolBar._type_to_icon[bm_type],
                     ).index = i
-                    layout.operator("mesh.select_non_manifold", text='Non Manifold Extended')
+                    layout.operator("mesh.select_non_manifold", text="Non Manifold Extended")
                 else:
                     col.label(text=text)
 

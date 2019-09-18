@@ -63,15 +63,17 @@ class MESH_OT_Print3D_Info_Volume(Operator):
         volume = bm.calc_volume()
         bm.free()
 
-        info = []
         if unit.system == 'METRIC':
-            info.append(("Volume: %s cm³" % clean_float("%.4f" % ((volume * (scale ** 3.0)) / (0.01 ** 3.0))), None))
+            volume = volume * (scale ** 3.0) / (0.01 ** 3.0)
+            volume_fmt = clean_float(f"{volume:.4f}") + " cm"
         elif unit.system == 'IMPERIAL':
-            info.append(("Volume: %s \"³" % clean_float("%.4f" % ((volume * (scale ** 3.0)) / (0.0254 ** 3.0))), None))
+            volume = volume * (scale ** 3.0) / (0.0254 ** 3.0)
+            volume_fmt = clean_float(f"{volume:.4f}") + ' "'
         else:
-            info.append(("Volume: %s³" % clean_float("%.8f" % volume), None))
+            volume_fmt = clean_float(f"{volume:.8f}")
 
-        report.update(*info)
+        report.update((f"Volume: {volume_fmt}³", None))
+
         return {'FINISHED'}
 
 
@@ -90,15 +92,17 @@ class MESH_OT_Print3D_Info_Area(Operator):
         area = mesh_helpers.bmesh_calc_area(bm)
         bm.free()
 
-        info = []
         if unit.system == 'METRIC':
-            info.append(("Area: %s cm²" % clean_float("%.4f" % ((area * (scale ** 2.0)) / (0.01 ** 2.0))), None))
+            area = area * (scale ** 2.0) / (0.01 ** 2.0)
+            area_fmt = clean_float(f"{area:.4f}") + " cm"
         elif unit.system == 'IMPERIAL':
-            info.append(("Area: %s \"²" % clean_float("%.4f" % ((area * (scale ** 2.0)) / (0.0254 ** 2.0))), None))
+            area = area * (scale ** 2.0) / (0.0254 ** 2.0)
+            area_fmt = clean_float(f"{area:.4f}") + ' "'
         else:
-            info.append(("Area: %s²" % clean_float("%.8f" % area), None))
+            area_fmt = clean_float(f"{area:.8f}")
 
-        report.update(*info)
+        report.update((f"Area: {area_fmt}²", None))
+
         return {'FINISHED'}
 
 
@@ -133,16 +137,14 @@ class MESH_OT_Print3D_Check_Solid(Operator):
 
         bm = mesh_helpers.bmesh_copy_from_object(obj, transform=False, triangulate=False)
 
-        edges_non_manifold = array.array('i', (i for i, ele in enumerate(bm.edges)
-                if not ele.is_manifold))
-        edges_non_contig = array.array('i', (i for i, ele in enumerate(bm.edges)
-                if ele.is_manifold and (not ele.is_contiguous)))
+        edges_non_manifold = array.array('i', (i for i, ele in enumerate(bm.edges) if not ele.is_manifold))
+        edges_non_contig = array.array(
+            'i',
+            (i for i, ele in enumerate(bm.edges) if ele.is_manifold and (not ele.is_contiguous)),
+        )
 
-        info.append(("Non Manifold Edge: %d" % len(edges_non_manifold),
-                    (bmesh.types.BMEdge, edges_non_manifold)))
-
-        info.append(("Bad Contig. Edges: %d" % len(edges_non_contig),
-                    (bmesh.types.BMEdge, edges_non_contig)))
+        info.append((f"Non Manifold Edge: {len(edges_non_manifold)}", (bmesh.types.BMEdge, edges_non_manifold)))
+        info.append((f"Bad Contig. Edges: {len(edges_non_contig)}", (bmesh.types.BMEdge, edges_non_contig)))
 
         bm.free()
 
@@ -158,8 +160,7 @@ class MESH_OT_Print3D_Check_Intersections(Operator):
     @staticmethod
     def main_check(obj, info):
         faces_intersect = mesh_helpers.bmesh_check_self_intersect_object(obj)
-        info.append(("Intersect Face: %d" % len(faces_intersect),
-                    (bmesh.types.BMFace, faces_intersect)))
+        info.append((f"Intersect Face: {len(faces_intersect)}", (bmesh.types.BMFace, faces_intersect)))
 
     def execute(self, context):
         return execute_check(self, context)
@@ -184,11 +185,8 @@ class MESH_OT_Print3D_Check_Degenerate(Operator):
         faces_zero = array.array('i', (i for i, ele in enumerate(bm.faces) if ele.calc_area() <= threshold))
         edges_zero = array.array('i', (i for i, ele in enumerate(bm.edges) if ele.calc_length() <= threshold))
 
-        info.append(("Zero Faces: %d" % len(faces_zero),
-                    (bmesh.types.BMFace, faces_zero)))
-
-        info.append(("Zero Edges: %d" % len(edges_zero),
-                    (bmesh.types.BMEdge, edges_zero)))
+        info.append((f"Zero Faces: {len(faces_zero)}", (bmesh.types.BMFace, faces_zero)))
+        info.append((f"Zero Edges: {len(edges_zero)}", (bmesh.types.BMEdge, edges_zero)))
 
         bm.free()
 
@@ -217,7 +215,7 @@ class MESH_OT_Print3D_Check_Distorted(Operator):
             (i for i, ele in enumerate(bm.faces) if mesh_helpers.face_is_distorted(ele, angle_distort))
         )
 
-        info.append(("Non-Flat Faces: %d" % len(faces_distort), (bmesh.types.BMFace, faces_distort)))
+        info.append((f"Non-Flat Faces: {len(faces_distort)}", (bmesh.types.BMFace, faces_distort)))
 
         bm.free()
 
@@ -237,7 +235,7 @@ class MESH_OT_Print3D_Check_Thick(Operator):
         print_3d = scene.print_3d
 
         faces_error = mesh_helpers.bmesh_check_thick_object(obj, print_3d.thickness_min)
-        info.append(("Thin Faces: %d" % len(faces_error), (bmesh.types.BMFace, faces_error)))
+        info.append((f"Thin Faces: {len(faces_error)}", (bmesh.types.BMFace, faces_error)))
 
     def execute(self, context):
         return execute_check(self, context)
@@ -262,7 +260,7 @@ class MESH_OT_Print3D_Check_Sharp(Operator):
             if ele.is_manifold and ele.calc_face_angle_signed() > angle_sharp
         ]
 
-        info.append(("Sharp Edge: %d" % len(edges_sharp), (bmesh.types.BMEdge, edges_sharp)))
+        info.append((f"Sharp Edge: {len(edges_sharp)}", (bmesh.types.BMEdge, edges_sharp)))
         bm.free()
 
     def execute(self, context):
@@ -299,7 +297,7 @@ class MESH_OT_Print3D_Check_Overhang(Operator):
             if z_down_angle(ele.normal, 4.0) < angle_overhang
         ]
 
-        info.append(("Overhang Face: %d" % len(faces_overhang), (bmesh.types.BMFace, faces_overhang)))
+        info.append((f"Overhang Face: {len(faces_overhang)}", (bmesh.types.BMFace, faces_overhang)))
         bm.free()
 
     def execute(self, context):
@@ -367,23 +365,25 @@ class MESH_OT_Print3D_Clean_Isolated(Operator):
         for ele in elems_remove:
             remove(ele)
         change |= bool(elems_remove)
-        info.append(("Faces Removed: %d" % len(elems_remove), None))
+        info.append((f"Faces Removed: {len(elems_remove)}", None))
         del elems_remove
+
         # --- edge
         elems_remove = [ele for ele in bm.edges if edge_is_isolated(ele)]
         remove = bm.edges.remove
         for ele in elems_remove:
             remove(ele)
         change |= bool(elems_remove)
-        info.append(("Edge Removed: %d" % len(elems_remove), None))
+        info.append((f"Edge Removed: {len(elems_remove)}", None))
         del elems_remove
+
         # --- vert
         elems_remove = [ele for ele in bm.verts if vert_is_isolated(ele)]
         remove = bm.verts.remove
         for ele in elems_remove:
             remove(ele)
         change |= bool(elems_remove)
-        info.append(("Verts Removed: %d" % len(elems_remove), None))
+        info.append((f"Verts Removed: {len(elems_remove)}", None))
         del elems_remove
         # ---
 
@@ -416,8 +416,8 @@ class MESH_OT_Print3D_Clean_Distorted(Operator):
             bmesh.ops.triangulate(bm, faces=elems_triangulate)
             mesh_helpers.bmesh_to_object(obj, bm)
             return {'FINISHED'}
-        else:
-            return {'CANCELLED'}
+
+        return {'CANCELLED'}
 
 
 class MESH_OT_Print3D_Clean_Non_Manifold(Operator):
@@ -447,10 +447,7 @@ class MESH_OT_Print3D_Clean_Non_Manifold(Operator):
         self.delete_loose()
         self.remove_doubles(self.threshold)
         self.dissolve_degenerate(self.threshold)
-
-        # may take a while
-        self.fix_non_manifold(context, self.sides)
-
+        self.fix_non_manifold(context, self.sides)  # may take a while
         self.make_normals_consistently_outwards()
 
         bm_key = self.elem_count(context)
@@ -458,15 +455,11 @@ class MESH_OT_Print3D_Clean_Non_Manifold(Operator):
         if mode_orig != 'EDIT_MESH':
             bpy.ops.object.mode_set(mode='OBJECT')
 
-        self.report(
-            {'INFO'},
-            "Modified Verts:%+d, Edges:%+d, Faces:%+d" %
-            (
-                bm_key[0] - bm_key_orig[0],
-                bm_key[1] - bm_key_orig[1],
-                bm_key[2] - bm_key_orig[2],
-            )
-        )
+        verts = bm_key[0] - bm_key_orig[0]
+        edges = bm_key[1] - bm_key_orig[1]
+        faces = bm_key[2] - bm_key_orig[2]
+
+        self.report({'INFO'}, f"Modified Verts:{verts:+}, Edges:{edges:+}, Faces:{faces:+}")
 
         return {'FINISHED'}
 
@@ -534,7 +527,7 @@ class MESH_OT_Print3D_Clean_Non_Manifold(Operator):
         use_boundary=False,
         use_multi_face=False,
         use_non_contiguous=False,
-        use_verts=False
+        use_verts=False,
     ):
         """select non-manifold vertices"""
         bpy.ops.mesh.select_non_manifold(
@@ -646,7 +639,8 @@ def _scale(scale, report=None, report_suffix=""):
             texture_space=False,
         )
     if report is not None:
-        report({'INFO'}, "Scaled by %s%s" % (clean_float("%.6f" % scale), report_suffix))
+        scale_fmt = clean_float(f"{scale:.6f}")
+        report({'INFO'}, f"Scaled by {scale_fmt}{report_suffix}")
 
 
 class MESH_OT_Print3D_Scale_To_Volume(Operator):
@@ -667,7 +661,8 @@ class MESH_OT_Print3D_Scale_To_Volume(Operator):
     def execute(self, context):
         import math
         scale = math.pow(self.volume, 1 / 3) / math.pow(self.volume_init, 1 / 3)
-        self.report({'INFO'}, "Scaled by %s" % clean_float("%.6f" % scale))
+        scale_fmt = clean_float(f"{scale:.6f}")
+        self.report({'INFO'}, f"Scaled by {scale_fmt}")
         _scale(scale, self.report)
         return {'FINISHED'}
 
@@ -715,11 +710,8 @@ class MESH_OT_Print3D_Scale_To_Bounds(Operator):
 
     def execute(self, context):
         scale = self.length / self.length_init
-        _scale(
-            scale,
-            report=self.report,
-            report_suffix=", Clamping %s-Axis" % "XYZ"[self.axis_init]
-        )
+        axis = "XYZ"[self.axis_init]
+        _scale(scale, report=self.report, report_suffix=f", Clamping {axis}-Axis")
         return {'FINISHED'}
 
     def invoke(self, context, event):

@@ -43,7 +43,7 @@ def image_copy_guess(filepath, objects):
             ext = os.path.splitext(imagepath)[1]
 
             imagepath_dst = filepath_noext + ext
-            print("copying texture: %r -> %r" % (imagepath, imagepath_dst))
+            print(f"copying texture: {imagepath!r} -> {imagepath_dst!r}")
             try:
                 shutil.copy(imagepath, imagepath_dst)
             except:
@@ -91,7 +91,7 @@ def write_mesh(context, info, report_cb):
         name = "untitled"
 
     # add object name
-    name += "-%s" % bpy.path.clean_name(obj.name)
+    name += f"-{bpy.path.clean_name(obj.name)}"
 
     # first ensure the path is created
     if export_path:
@@ -190,11 +190,11 @@ def write_mesh(context, info, report_cb):
         layer.objects.active = context_backup["active_object"]
 
     if 'FINISHED' in ret:
-        info.append(("%r ok" % os.path.basename(filepath), None))
+        info.append((f"{os.path.basename(filepath)!r} ok", None))
 
         if report_cb is not None:
-            report_cb({'INFO'}, "Exported: %r" % filepath)
+            report_cb({'INFO'}, f"Exported: {filepath!r}")
         return True
     else:
-        info.append(("%r fail" % os.path.basename(filepath), None))
+        info.append((f"{os.path.basename(filepath)!r} fail", None))
         return False
