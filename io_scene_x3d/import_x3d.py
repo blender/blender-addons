@@ -2375,7 +2375,7 @@ def importMesh_LineSet(geom, ancestry):
     return bpycurve
 
 
-def importMesh_IndexedLineSet(geom, ancestry, _):
+def importMesh_IndexedLineSet(geom, ancestry):
     # VRML not x3d
     # coord = geom.getChildByName('coord') # 'Coordinate'
     coord = geom.getChildBySpec('Coordinate')  # works for x3d and vrml
@@ -2419,7 +2419,7 @@ def importMesh_IndexedLineSet(geom, ancestry, _):
     return bpycurve
 
 
-def importMesh_PointSet(geom, ancestry, _):
+def importMesh_PointSet(geom, ancestry):
     # VRML not x3d
     coord = geom.getChildBySpec('Coordinate')  # works for x3d and vrml
     if coord:
