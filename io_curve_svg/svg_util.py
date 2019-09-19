@@ -40,10 +40,18 @@ array_of_floats_pattern = f"({match_number})|{match_first_comma}|{match_comma_pa
 re_array_of_floats_pattern = re.compile(array_of_floats_pattern)
 
 def parse_array_of_floats(text):
+    """
+    Accepts comma or space separated list of floats (without units) and returns an array
+    of floating point values.
+    """
     elements = re_array_of_floats_pattern.findall(text)
     return [value_to_float(v[0]) for v in elements]
 
+
 def value_to_float(value_encoded: str):
+    """
+    A simple wrapper around float() which supports empty strings (which are converted to 0).
+    """
     if len(value_encoded) == 0:
         return 0
     return float(value_encoded)
