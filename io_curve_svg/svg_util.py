@@ -36,11 +36,11 @@ match_first_comma = r"^\s*(?=,)"
 match_comma_pair = r",\s*(?=,)"
 match_last_comma = r",\s*$"
 
-pattern = f"({match_number})|{match_first_comma}|{match_comma_pair}|{match_last_comma}"
-re_pattern = re.compile(pattern)
+array_of_floats_pattern = f"({match_number})|{match_first_comma}|{match_comma_pair}|{match_last_comma}"
+re_array_of_floats_pattern = re.compile(array_of_floats_pattern)
 
 def parse_array_of_floats(text):
-    elements = re_pattern.findall(text)
+    elements = re_array_of_floats_pattern.findall(text)
     return [value_to_float(v[0]) for v in elements]
 
 def value_to_float(value_encoded: str):
