@@ -20,6 +20,20 @@
 
 import re
 
+
+units = {"": 1.0,
+         "px": 1.0,
+         "in": 90.0,
+         "mm": 90.0 / 25.4,
+         "cm": 90.0 / 2.54,
+         "pt": 1.25,
+         "pc": 15.0,
+         "em": 1.0,
+         "ex": 1.0,
+         "INVALID": 1.0,  # some DocBook files contain this
+         }
+
+
 def srgb_to_linearrgb(c):
     if c < 0.04045:
         return 0.0 if c < 0.0 else c * (1.0 / 12.92)
@@ -48,6 +62,90 @@ def parse_array_of_floats(text):
     return [value_to_float(v[0]) for v in elements]
 
 
+def read_float(s: str, i: int = 0):
+    """
+    Reads floating point value from a string. Parsing starts at the given index.
+
+    Returns the value itself (as a string) and index of first character after the value.
+    """
+    start = i
+    n = len(s)
+    token = ''
+
+    # Skip leading whitespace characters
+    while i < n and (s[i].isspace() or s[i] == ','):
+        i += 1
+
+    if i == n:
+        return "0", i
+
+    # Read sign
+    if s[i] == '-':
+        token += '-'
+        i += 1
+    elif s[i] == '+':
+        i += 1
+
+    # Read integer part
+    if s[i].isdigit():
+        while i < n and s[i].isdigit():
+            token += s[i]
+            i += 1
+
+    # Fractional part
+    if i < n and s[i] == '.':
+        token += '.'
+        i += 1
+
+        if i < n and s[i].isdigit():
+            while i < n and s[i].isdigit():
+                token += s[i]
+                i += 1
+        elif i == n or s[i].isspace() or s[i] == ',':
+            # Inkscape sometimes uses weird float format with missed
+            # fractional part after dot. Suppose zero fractional part
+            # for this case
+            pass
+        else:
+            raise Exception('Invalid float value near ' + s[start:start + 10])
+
+    # Degree
+    if i < n and (s[i] == 'e' or s[i] == 'E'):
+        token += s[i]
+        i += 1
+        if s[i] == '+' or s[i] == '-':
+            token += s[i]
+            i += 1
+
+        if s[i].isdigit():
+            while i < n and s[i].isdigit():
+                token += s[i]
+                i += 1
+        else:
+            raise Exception('Invalid float value near ' + s[start:start + 10])
+
+    return token, i
+
+
+def parse_coord(coord, size):
+    """
+    Parse coordinate component to common basis
+
+    Needed to handle coordinates set in cm, mm, inches.
+    """
+
+    token, last_char = read_float(coord)
+    val = float(token)
+    unit = coord[last_char:].strip()  # strip() in case there is a space
+
+    if unit == '%':
+        return float(size) / 100.0 * val
+    else:
+        return val * units[unit]
+
+    return val
+
+
 def value_to_float(value_encoded: str):
     """
     A simple wrapper around float() which supports empty strings (which are converted to 0).
@@ -55,4 +153,3 @@ def value_to_float(value_encoded: str):
     if len(value_encoded) == 0:
         return 0
     return float(value_encoded)
-
