@@ -118,7 +118,7 @@ class ReadFloatTest(unittest.TestCase):
     def test_not_a_number(self):
         # TODO(sergey): Make this more concrete.
         with self.assertRaises(Exception):
-            value, endptr = read_float("1.2eV", 3)
+            read_float("1.2eV", 3)
 
     def test_missing_fractional(self):
         value, endptr = read_float("1.", 0)
@@ -142,6 +142,9 @@ class ParseCoordTest(unittest.TestCase):
 
     def test_unit_cm(self):
         self.assertAlmostEqual(parse_coord("1.2cm", 200), 42.51968503937008)
+
+    def test_unit_ex(self):
+        self.assertAlmostEqual(parse_coord("1.2ex", 200), 1.2)
 
     def test_unit_percentage(self):
         self.assertEqual(parse_coord("1.2%", 200), 2.4)

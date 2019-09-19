@@ -46,9 +46,12 @@ def check_points_equal(point_a, point_b):
             abs(point_a[1] - point_b[1]) < 1e-6)
 
 match_number = r"-?\d+(\.\d+)?([eE][-+]?\d+)?"
+match_number_optional_fractional = r"-?\d+(\.\d*)?([eE][-+]?\d+)?"
 match_first_comma = r"^\s*(?=,)"
 match_comma_pair = r",\s*(?=,)"
 match_last_comma = r",\s*$"
+
+re_match_number_optional_fractional = re.compile(match_number_optional_fractional)
 
 array_of_floats_pattern = f"({match_number})|{match_first_comma}|{match_comma_pair}|{match_last_comma}"
 re_array_of_floats_pattern = re.compile(array_of_floats_pattern)
@@ -62,69 +65,32 @@ def parse_array_of_floats(text):
     return [value_to_float(v[0]) for v in elements]
 
 
-def read_float(s: str, i: int = 0):
+def read_float(text: str, start_index: int = 0):
     """
     Reads floating point value from a string. Parsing starts at the given index.
 
     Returns the value itself (as a string) and index of first character after the value.
     """
-    start = i
-    n = len(s)
-    token = ''
 
-    # Skip leading whitespace characters
-    while i < n and (s[i].isspace() or s[i] == ','):
-        i += 1
+    n = len(text)
 
-    if i == n:
-        return "0", i
+    # Skip leading whitespace characters and characters which we consider ignorable for float
+    # (like values separator).
+    while start_index < n and (text[start_index].isspace() or text[start_index] == ','):
+        start_index += 1
+    if start_index == n:
+        return "0", start_index
 
-    # Read sign
-    if s[i] == '-':
-        token += '-'
-        i += 1
-    elif s[i] == '+':
-        i += 1
+    text_part = text[start_index:]
+    match = re_match_number_optional_fractional.match(text_part)
 
-    # Read integer part
-    if s[i].isdigit():
-        while i < n and s[i].isdigit():
-            token += s[i]
-            i += 1
+    if match is None:
+        raise Exception('Invalid float value near ' + text[start_index:start_index + 10])
 
-    # Fractional part
-    if i < n and s[i] == '.':
-        token += '.'
-        i += 1
+    token = match.group(0)
+    endptr = start_index + match.end(0)
 
-        if i < n and s[i].isdigit():
-            while i < n and s[i].isdigit():
-                token += s[i]
-                i += 1
-        elif i == n or s[i].isspace() or s[i] == ',':
-            # Inkscape sometimes uses weird float format with missed
-            # fractional part after dot. Suppose zero fractional part
-            # for this case
-            pass
-        else:
-            raise Exception('Invalid float value near ' + s[start:start + 10])
-
-    # Degree
-    if i < n and (s[i] == 'e' or s[i] == 'E'):
-        token += s[i]
-        i += 1
-        if s[i] == '+' or s[i] == '-':
-            token += s[i]
-            i += 1
-
-        if s[i].isdigit():
-            while i < n and s[i].isdigit():
-                token += s[i]
-                i += 1
-        else:
-            raise Exception('Invalid float value near ' + s[start:start + 10])
-
-    return token, i
+    return token, endptr
 
 
 def parse_coord(coord, size):
