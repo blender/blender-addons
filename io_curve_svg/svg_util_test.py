@@ -20,7 +20,13 @@
 
 # <pep8 compliant>
 
-from .svg_util import parse_array_of_floats
+
+# XXX Not really nice, but that hack is needed to allow execution of that test
+#     from both automated CTest and by directly running the file manually...
+if __name__ == '__main__':
+    from svg_util import parse_array_of_floats
+else:
+    from .svg_util import parse_array_of_floats
 import unittest
 
 
