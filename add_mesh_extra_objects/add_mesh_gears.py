@@ -682,8 +682,6 @@ class AddGear(Operator):
                 if 'Gear' in obj.data.keys():
                     oldmesh = obj.data
                     oldmeshname = obj.data.name
-                    oldmeshmaterials = obj.data.materials
-                    
                     mesh, verts_tip, verts_valley = AddGearMesh(self, context)
                     obj.data = mesh
                     try:
@@ -691,7 +689,7 @@ class AddGear(Operator):
                     except:
                         pass
                     
-                    for material in oldmeshmaterials:
+                    for material in oldmesh.materials:
                         obj.data.materials.append(material)
                     
                     bpy.data.meshes.remove(oldmesh)
@@ -885,7 +883,6 @@ class AddWormGear(Operator):
                 if 'WormGear' in obj.data.keys():
                     oldmesh = obj.data
                     oldmeshname = obj.data.name
-                    oldmeshmaterials = obj.data.materials
 
                     mesh, verts_tip, verts_valley = AddWormGearMesh(self, context)
                     obj.data = mesh
@@ -894,7 +891,7 @@ class AddWormGear(Operator):
                     except:
                         pass
                     
-                    for material in oldmeshmaterials:
+                    for material in oldmesh.materials:
                         obj.data.materials.append(material)
                         
                     bpy.data.meshes.remove(oldmesh)
