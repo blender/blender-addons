@@ -343,7 +343,6 @@ class MESH_OT_Print3D_Clean_Isolated(Operator):
         obj = context.active_object
         bm = mesh_helpers.bmesh_from_object(obj)
 
-        info = []
         change = False
 
         def face_is_isolated(ele):
@@ -365,7 +364,7 @@ class MESH_OT_Print3D_Clean_Isolated(Operator):
         for ele in elems_remove:
             remove(ele)
         change |= bool(elems_remove)
-        info.append((f"Faces Removed: {len(elems_remove)}", None))
+        face_count = len(elems_remove)
         del elems_remove
 
         # --- edge
@@ -374,7 +373,7 @@ class MESH_OT_Print3D_Clean_Isolated(Operator):
         for ele in elems_remove:
             remove(ele)
         change |= bool(elems_remove)
-        info.append((f"Edge Removed: {len(elems_remove)}", None))
+        edge_count = len(elems_remove)
         del elems_remove
 
         # --- vert
@@ -383,11 +382,11 @@ class MESH_OT_Print3D_Clean_Isolated(Operator):
         for ele in elems_remove:
             remove(ele)
         change |= bool(elems_remove)
-        info.append((f"Verts Removed: {len(elems_remove)}", None))
+        vert_count = len(elems_remove)
         del elems_remove
         # ---
 
-        report.update(*info)
+        self.report({'INFO'}, f"Removed Verts: {vert_count}, Edges: {edge_count}, Faces: {face_count}")
 
         if change:
             mesh_helpers.bmesh_to_object(obj, bm)
@@ -411,6 +410,8 @@ class MESH_OT_Print3D_Clean_Distorted(Operator):
         bm = mesh_helpers.bmesh_from_object(obj)
         bm.normal_update()
         elems_triangulate = [ele for ele in bm.faces if mesh_helpers.face_is_distorted(ele, angle_distort)]
+
+        self.report({'INFO'}, f"Triangulated Faces: {len(elems_triangulate)}")
 
         if elems_triangulate:
             bmesh.ops.triangulate(bm, faces=elems_triangulate)
