@@ -55,7 +55,7 @@ else:
     )
 
 
-class Print3D_Scene_Props(PropertyGroup):
+class SceneProperties(PropertyGroup):
     export_format: EnumProperty(
         name="Format",
         description="Format type to export to",
@@ -126,29 +126,29 @@ class Print3D_Scene_Props(PropertyGroup):
 
 
 classes = (
-    Print3D_Scene_Props,
+    SceneProperties,
 
-    ui.VIEW3D_PT_Print3D_Object,
-    ui.VIEW3D_PT_Print3D_Mesh,
+    ui.VIEW3D_PT_print3d_object,
+    ui.VIEW3D_PT_print3d_mesh,
 
-    operators.MESH_OT_Print3D_Info_Volume,
-    operators.MESH_OT_Print3D_Info_Area,
-    operators.MESH_OT_Print3D_Check_Degenerate,
-    operators.MESH_OT_Print3D_Check_Distorted,
-    operators.MESH_OT_Print3D_Check_Solid,
-    operators.MESH_OT_Print3D_Check_Intersections,
-    operators.MESH_OT_Print3D_Check_Thick,
-    operators.MESH_OT_Print3D_Check_Sharp,
-    operators.MESH_OT_Print3D_Check_Overhang,
-    operators.MESH_OT_Print3D_Check_All,
-    operators.MESH_OT_Print3D_Clean_Isolated,
-    operators.MESH_OT_Print3D_Clean_Distorted,
-    # operators.MESH_OT_Print3D_Clean_Thin,
-    operators.MESH_OT_Print3D_Clean_Non_Manifold,
-    operators.MESH_OT_Print3D_Select_Report,
-    operators.MESH_OT_Print3D_Scale_To_Volume,
-    operators.MESH_OT_Print3D_Scale_To_Bounds,
-    operators.MESH_OT_Print3D_Export,
+    operators.MESH_OT_print3d_info_volume,
+    operators.MESH_OT_print3d_info_area,
+    operators.MESH_OT_print3d_check_degenerate,
+    operators.MESH_OT_print3d_check_distorted,
+    operators.MESH_OT_print3d_check_solid,
+    operators.MESH_OT_print3d_check_intersections,
+    operators.MESH_OT_print3d_check_thick,
+    operators.MESH_OT_print3d_check_sharp,
+    operators.MESH_OT_print3d_check_overhang,
+    operators.MESH_OT_print3d_check_all,
+    operators.MESH_OT_print3d_clean_isolated,
+    operators.MESH_OT_print3d_clean_distorted,
+    # operators.MESH_OT_print3d_clean_thin,
+    operators.MESH_OT_print3d_clean_non_manifold,
+    operators.MESH_OT_print3d_select_report,
+    operators.MESH_OT_print3d_scale_to_volume,
+    operators.MESH_OT_print3d_scale_to_bounds,
+    operators.MESH_OT_print3d_export,
 )
 
 
@@ -156,7 +156,7 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    bpy.types.Scene.print_3d = PointerProperty(type=Print3D_Scene_Props)
+    bpy.types.Scene.print_3d = PointerProperty(type=SceneProperties)
 
 
 def unregister():
