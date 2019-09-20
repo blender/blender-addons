@@ -44,9 +44,9 @@ def clean_float(text):
         text = head + tail
     return text
 
+
 # ---------
 # Mesh Info
-
 
 class MESH_OT_Print3D_Info_Volume(Operator):
     """Report the volume of the active mesh"""
@@ -64,11 +64,11 @@ class MESH_OT_Print3D_Info_Volume(Operator):
         bm.free()
 
         if unit.system == 'METRIC':
-            volume = volume * (scale ** 3.0) / (0.01 ** 3.0)
-            volume_fmt = clean_float(f"{volume:.4f}") + " cm"
+            volume_cm = volume * (scale ** 3.0) / (0.01 ** 3.0)
+            volume_fmt = "{} cm".format(clean_float(f"{volume_cm:.4f}"))
         elif unit.system == 'IMPERIAL':
-            volume = volume * (scale ** 3.0) / (0.0254 ** 3.0)
-            volume_fmt = clean_float(f"{volume:.4f}") + ' "'
+            volume_inch = volume * (scale ** 3.0) / (0.0254 ** 3.0)
+            volume_fmt = '{} "'.format(clean_float(f"{volume_inch:.4f}"))
         else:
             volume_fmt = clean_float(f"{volume:.8f}")
 
@@ -93,11 +93,11 @@ class MESH_OT_Print3D_Info_Area(Operator):
         bm.free()
 
         if unit.system == 'METRIC':
-            area = area * (scale ** 2.0) / (0.01 ** 2.0)
-            area_fmt = clean_float(f"{area:.4f}") + " cm"
+            area_cm = area * (scale ** 2.0) / (0.01 ** 2.0)
+            area_fmt = "{} cm".format(clean_float(f"{area_cm:.4f}"))
         elif unit.system == 'IMPERIAL':
-            area = area * (scale ** 2.0) / (0.0254 ** 2.0)
-            area_fmt = clean_float(f"{area:.4f}") + ' "'
+            area_inch = area * (scale ** 2.0) / (0.0254 ** 2.0)
+            area_fmt = '{} "'.format(clean_float(f"{area_inch:.4f}"))
         else:
             area_fmt = clean_float(f"{area:.8f}")
 
@@ -392,8 +392,8 @@ class MESH_OT_Print3D_Clean_Isolated(Operator):
         if change:
             mesh_helpers.bmesh_to_object(obj, bm)
             return {'FINISHED'}
-        else:
-            return {'CANCELLED'}
+
+        return {'CANCELLED'}
 
 
 class MESH_OT_Print3D_Clean_Distorted(Operator):
@@ -616,9 +616,6 @@ class MESH_OT_Print3D_Select_Report(Operator):
             # possible arrays are out of sync
             self.report({'WARNING'}, "Report is out of date, re-run check")
 
-        # cool, but in fact annoying
-        # bpy.ops.view3d.view_selected(use_all_regions=False)
-
         return {'FINISHED'}
 
 
@@ -627,13 +624,7 @@ class MESH_OT_Print3D_Select_Report(Operator):
 
 def _scale(scale, report=None, report_suffix=""):
     if scale != 1.0:
-        bpy.ops.transform.resize(
-            value=(scale,) * 3,
-            mirror=False,
-            use_proportional_edit=False,
-            snap=False,
-            texture_space=False,
-        )
+        bpy.ops.transform.resize(value=(scale,) * 3)
     if report is not None:
         scale_fmt = clean_float(f"{scale:.6f}")
         report({'INFO'}, f"Scaled by {scale_fmt}{report_suffix}")
@@ -651,7 +642,8 @@ class MESH_OT_Print3D_Scale_To_Volume(Operator):
     volume: FloatProperty(
         name="Volume",
         unit='VOLUME',
-        min=0.0, max=100000.0,
+        min=0.0,
+        max=100000.0,
     )
 
     def execute(self, context):

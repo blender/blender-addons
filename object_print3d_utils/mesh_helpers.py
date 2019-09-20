@@ -36,7 +36,6 @@ def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifier
         bm = bmesh.new()
         bm.from_mesh(me)
         obj_eval.to_mesh_clear()
-        del bpy
     else:
         me = obj.data
         if obj.mode == 'EDIT':
@@ -79,10 +78,7 @@ def bmesh_to_object(obj, bm):
         bmesh.update_edit_mesh(me, True)
     else:
         bm.to_mesh(me)
-
-    # grr... cause an update
-    if me.vertices:
-        me.vertices[0].co[0] = me.vertices[0].co[0]
+        me.update()
 
 
 def bmesh_calc_area(bm):
@@ -109,11 +105,11 @@ def bmesh_check_self_intersect_object(obj):
 def bmesh_face_points_random(f, num_points=1, margin=0.05):
     import random
     from random import uniform
-    uniform_args = 0.0 + margin, 1.0 - margin
 
     # for pradictable results
     random.seed(f.index)
 
+    uniform_args = 0.0 + margin, 1.0 - margin
     vecs = [v.co for v in f.verts]
 
     for i in range(num_points):
@@ -150,12 +146,10 @@ def bmesh_check_thick_object(obj, thickness):
     # Create a real mesh (lame!)
     context = bpy.context
     layer = context.view_layer
-    layer_collection = context.layer_collection or layer.active_layer_collection
-    scene_collection = layer_collection.collection
+    scene_collection = context.layer_collection.collection
 
     me_tmp = bpy.data.meshes.new(name="~temp~")
     bm.to_mesh(me_tmp)
-    # bm.free()  # delay free
     obj_tmp = bpy.data.objects.new(name=me_tmp.name, object_data=me_tmp)
     scene_collection.objects.link(obj_tmp)
 
@@ -187,7 +181,7 @@ def bmesh_check_thick_object(obj, thickness):
                     f_org_index = face_index_map_org[f_org]
                     faces_error.add(f_org_index)
 
-    bm.free()  # finished with bm
+    bm.free()
 
     scene_collection.objects.unlink(obj_tmp)
     bpy.data.objects.remove(obj_tmp)
@@ -213,19 +207,17 @@ def object_merge(context, objects):
 
     scene = context.scene
     layer = context.view_layer
-    layer_collection = context.layer_collection or layer.active_layer_collection
-    scene_collection = layer_collection.collection
+    scene_collection = context.layer_collection.collection
 
     # deselect all
     for obj in scene.objects:
         obj.select_set(False)
 
     # add empty object
-    mesh_base = bpy.data.meshes.new(name="~tmp~")
-    obj_base = bpy.data.objects.new(name="~tmp~", object_data=mesh_base)
-    scene_collection.objects.link(obj_base)
-    layer.objects.active = obj_base
-    obj_base.select_set(True)
+    mesh_tmp = bpy.data.meshes.new(name="~tmp~")
+    obj_tmp = bpy.data.objects.new(name="~tmp~", object_data=mesh_tmp)
+    scene_collection.objects.link(obj_tmp)
+    obj_tmp.select_set(True)
 
     depsgraph = context.evaluated_depsgraph_get()
 
@@ -244,22 +236,20 @@ def object_merge(context, objects):
 
         # join into base mesh
         obj_new = bpy.data.objects.new(name="~tmp-new~", object_data=mesh_new)
-        base_new = scene_collection.objects.link(obj_new)
+        scene_collection.objects.link(obj_new)
         obj_new.matrix_world = obj.matrix_world
 
-        fake_context = context.copy()
-        fake_context["active_object"] = obj_base
-        fake_context["selected_editable_objects"] = [obj_base, obj_new]
+        override = context.copy()
+        override["active_object"] = obj_tmp
+        override["selected_editable_objects"] = [obj_tmp, obj_new]
 
-        bpy.ops.object.join(fake_context)
-        del base_new, obj_new
+        bpy.ops.object.join(override)
 
         obj_eval.to_mesh_clear()
 
     layer.update()
 
-    # return new object
-    return obj_base
+    return obj_tmp
 
 
 def face_is_distorted(ele, angle_distort):

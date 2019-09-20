@@ -44,6 +44,7 @@ def image_copy_guess(filepath, objects):
 
             imagepath_dst = filepath_noext + ext
             print(f"copying texture: {imagepath!r} -> {imagepath_dst!r}")
+
             try:
                 shutil.copy(imagepath, imagepath_dst)
             except:
@@ -181,7 +182,6 @@ def write_mesh(context, info, report_cb):
         collection.objects.unlink(obj)
         bpy.data.objects.remove(obj)
         bpy.data.meshes.remove(mesh)
-        del obj_tmp, obj, mesh
 
         # restore context
         for ob in context_backup["selected_objects"]:
@@ -195,6 +195,6 @@ def write_mesh(context, info, report_cb):
         if report_cb is not None:
             report_cb({'INFO'}, f"Exported: {filepath!r}")
         return True
-    else:
-        info.append((f"{os.path.basename(filepath)!r} fail", None))
-        return False
+
+    info.append((f"{os.path.basename(filepath)!r} fail", None))
+    return False

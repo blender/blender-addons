@@ -81,40 +81,47 @@ class Print3D_Scene_Props(PropertyGroup):
     export_path: StringProperty(
         name="Export Directory",
         description="Path to directory where the files are created",
-        default="//", maxlen=1024, subtype="DIR_PATH",
+        default="//",
+        maxlen=1024,
+        subtype="DIR_PATH",
     )
     thickness_min: FloatProperty(
         name="Thickness",
         description="Minimum thickness",
         subtype='DISTANCE',
         default=0.001,  # 1mm
-        min=0.0, max=10.0,
+        min=0.0,
+        max=10.0,
     )
     threshold_zero: FloatProperty(
         name="Threshold",
         description="Limit for checking zero area/length",
         default=0.0001,
         precision=5,
-        min=0.0, max=0.2,
+        min=0.0,
+        max=0.2,
     )
     angle_distort: FloatProperty(
         name="Angle",
         description="Limit for checking distorted faces",
         subtype='ANGLE',
         default=math.radians(45.0),
-        min=0.0, max=math.radians(180.0),
+        min=0.0,
+        max=math.radians(180.0),
     )
     angle_sharp: FloatProperty(
         name="Angle",
         subtype='ANGLE',
         default=math.radians(160.0),
-        min=0.0, max=math.radians(180.0),
+        min=0.0,
+        max=math.radians(180.0),
     )
     angle_overhang: FloatProperty(
         name="Angle",
         subtype='ANGLE',
         default=math.radians(45.0),
-        min=0.0, max=math.radians(90.0),
+        min=0.0,
+        max=math.radians(90.0),
     )
 
 
