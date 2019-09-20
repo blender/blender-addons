@@ -271,14 +271,14 @@ class PathFinder(bpy.types.Operator):
             bpy.ops.curve.delete(type='VERT') 
             return {'RUNNING_MODAL'}         
         
+        elif event.alt and event.shift and event.type == 'LEFTMOUSE':
+            click(self, context, event)
+        
         elif event.alt and not event.shift and event.type == 'LEFTMOUSE':
             remove_handler(self.handlers)
             bpy.ops.curve.select_all(action='DESELECT')
             click(self, context, event)
             
-        elif event.alt and event.shift and event.type == 'LEFTMOUSE':
-            click(self, context, event)
-                                    
         elif event.alt and event.type == 'RIGHTMOUSE':
            remove_handler(self.handlers)
            bpy.ops.curve.select_all(action='DESELECT')
