@@ -1142,7 +1142,7 @@ class SCENE_OT_import(bpy.types.Operator):
                             bpy.context.collection.all_objects[del_obj].select_set(True)
                             objekti = bpy.context.collection.all_objects[del_obj]
                             #bpy.ops.object.transforms_to_deltas(mode='ROT')
-                            objekti.scale = (2.7, 2.7, 2.7)
+                            objekti.scale = (0.01, 0.01, 0.01)
                             bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
                             objekti.data.coat3D.name = '3DC'
