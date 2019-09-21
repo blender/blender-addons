@@ -318,13 +318,7 @@ def load_ply_mesh(filepath, ply_name):
     if b'face' in obj:
         for f in obj[b'face']:
             ind = f[findex]
-            len_ind = len(ind)
-            if len_ind <= 4:
-                add_face(verts, ind, uvindices, colindices)
-            else:
-                # Fan fill the face
-                for j in range(len_ind - 2):
-                    add_face(verts, (ind[0], ind[j + 1], ind[j + 2]), uvindices, colindices)
+            add_face(verts, ind, uvindices, colindices)
 
     if b'tristrips' in obj:
         for t in obj[b'tristrips']:
