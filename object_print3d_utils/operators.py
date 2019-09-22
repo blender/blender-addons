@@ -744,9 +744,7 @@ class MESH_OT_print3d_export(Operator):
     def execute(self, context):
         from . import export
 
-        info = []
-        ret = export.write_mesh(context, info, self.report)
-        report.update(*info)
+        ret = export.write_mesh(context, self.report)
 
         if ret:
             return {'FINISHED'}

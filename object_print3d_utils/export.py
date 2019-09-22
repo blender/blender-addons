@@ -52,7 +52,7 @@ def image_copy_guess(filepath, objects):
                 traceback.print_exc()
 
 
-def write_mesh(context, info, report_cb):
+def write_mesh(context, report_cb):
     scene = context.scene
     collection = context.collection
     layer = context.view_layer
@@ -190,11 +190,12 @@ def write_mesh(context, info, report_cb):
         layer.objects.active = context_backup["active_object"]
 
     if 'FINISHED' in ret:
-        info.append((f"{os.path.basename(filepath)!r} ok", None))
-
         if report_cb is not None:
             report_cb({'INFO'}, f"Exported: {filepath!r}")
+
         return True
 
-    info.append((f"{os.path.basename(filepath)!r} fail", None))
+    if report_cb is not None:
+        report_cb({'ERROR'}, "Export failed")
+
     return False
