@@ -27,10 +27,10 @@ from bpy.props import (
         FloatProperty,
         IntProperty,
         FloatVectorProperty,
+        StringProperty,
         )
 from . import createMesh
-
-
+from bpy_extras import object_utils
 
 
 class add_mesh_bolt(Operator, AddObjectHelper):
@@ -42,6 +42,17 @@ class add_mesh_bolt(Operator, AddObjectHelper):
 
     MAX_INPUT_NUMBER = 50
 
+    Bolt : BoolProperty(name = "Bolt",
+                default = True,
+                description = "Bolt")
+
+    #### change properties
+    name : StringProperty(name = "Name",
+                    description = "Name")
+
+    change : BoolProperty(name = "Change",
+                default = False,
+                description = "change Bolt")
 
     # Model Types
     Model_Type_List = [('bf_Model_Bolt', 'BOLT', 'Bolt Model'),
@@ -306,7 +317,50 @@ class add_mesh_bolt(Operator, AddObjectHelper):
         return context.scene is not None
 
     def execute(self, context):
-        createMesh.Create_New_Mesh(self, context)
+    
+        if bpy.context.mode == "OBJECT":
+            if self.change == True and self.change != None:
+                obj = context.active_object
+                if 'Bolt' in obj.data.keys():
+                    oldmesh = obj.data
+                    oldmeshname = obj.data.name
+                    mesh = createMesh.Create_New_Mesh(self, context)
+                    obj.data = mesh
+                    try:
+                        bpy.ops.object.vertex_group_remove(all=True)
+                    except:
+                        pass
+                    
+                    for material in oldmesh.materials:
+                        obj.data.materials.append(material)
+                        
+                    bpy.data.meshes.remove(oldmesh)
+                    obj.data.name = oldmeshname
+                else:
+                    mesh = createMesh.Create_New_Mesh(self, context)
+                    obj = object_utils.object_data_add(context, mesh, operator=None)
+            else:
+                mesh = createMesh.Create_New_Mesh(self, context)
+                obj = object_utils.object_data_add(context, mesh, operator=None)
+                
+            obj.data["Bolt"] = True
+            obj.data["change"] = False
+            for prm in BoltParameters():
+                obj.data[prm] = getattr(self, prm)
+
+        if bpy.context.mode == "EDIT_MESH":
+            active_object = context.active_object
+            name_active_object = active_object.name
+            bpy.ops.object.mode_set(mode='OBJECT')
+            mesh = createMesh.Create_New_Mesh(self, context)
+            obj = object_utils.object_data_add(context, mesh, operator=None)
+            
+            obj.select_set(True)
+            active_object.select_set(True)
+            bpy.ops.object.join()
+            context.active_object.name = name_active_object
+            bpy.ops.object.mode_set(mode='EDIT')
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -315,6 +369,19 @@ class add_mesh_bolt(Operator, AddObjectHelper):
         return {'FINISHED'}
 
 # Register:
+def Bolt_contex_menu(self, context):
+    bl_label = 'Change'
+    
+    obj = context.object
+    layout = self.layout
+    
+    if 'Bolt' in obj.data.keys():
+        props = layout.operator("mesh.bolt_add", text="Change Bolt")
+        props.change = True
+        for prm in BoltParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+
 def menu_func_bolt(self, context):
     layout = self.layout
     layout.separator()
@@ -330,14 +397,45 @@ classes = (
 		
 		
 def register():
-    from bpy.utils import register_class
     for cls in classes:
-        register_class(cls)
+        bpy.utils.register_class(cls)
     bpy.types.VIEW3D_MT_mesh_add.append(menu_func_bolt)
+    bpy.types.VIEW3D_MT_object_context_menu.prepend(Bolt_contex_menu)
 
 
 def unregister():
-    from bpy.utils import unregister_class
-    for cls in reversed(classes):
-        unregister_class(cls)
+    bpy.types.VIEW3D_MT_object_context_menu.remove(Bolt_contex_menu)
     bpy.types.VIEW3D_MT_mesh_add.remove(menu_func_bolt)
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)
+
+def BoltParameters():
+    BoltParameters = [
+    "bf_Model_Type",
+    "bf_Head_Type",
+    "bf_Bit_Type",
+    "bf_Nut_Type",
+    "bf_Shank_Length",
+    "bf_Shank_Dia",
+    "bf_Phillips_Bit_Depth",
+    "bf_Allen_Bit_Depth",
+    "bf_Allen_Bit_Flat_Distance",
+    "bf_Hex_Head_Height",
+    "bf_Hex_Head_Flat_Distance",
+    "bf_CounterSink_Head_Dia",
+    "bf_Cap_Head_Height",
+    "bf_Cap_Head_Dia",
+    "bf_Dome_Head_Dia",
+    "bf_Pan_Head_Dia",
+    "bf_Philips_Bit_Dia",
+    "bf_Thread_Length",
+    "bf_Major_Dia",
+    "bf_Pitch",
+    "bf_Minor_Dia",
+    "bf_Crest_Percent",
+    "bf_Root_Percent",
+    "bf_Div_Count",
+    "bf_Hex_Nut_Height",
+    "bf_Hex_Nut_Flat_Distance",
+        ]
+    return BoltParameters
