@@ -2001,6 +2001,7 @@ def Create_New_Mesh(props, context):
     is_not_mesh_valid = mesh.validate()
 
     if is_not_mesh_valid:
-        props.report({'INFO'}, "Mesh is not Valid, correcting")
+        print("\n[BoltFactory]\nFunction: create_mesh_object\n"
+              "Mesh is not Valid, correcting\n")
 
-    return mesh
+    object_data_add(context, mesh, operator=props)
