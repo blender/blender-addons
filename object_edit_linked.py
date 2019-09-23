@@ -180,7 +180,7 @@ class VIEW3D_PT_PanelLinkedEdit(bpy.types.Panel):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
-        icon = "OUTLINER_DATA_" + context.active_object.type
+        icon = "OUTLINER_DATA_" + context.active_object.type.replace("LIGHT_PROBE", "LIGHTPROBE")
 
         target = None
 
