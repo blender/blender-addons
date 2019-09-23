@@ -24,7 +24,7 @@ bl_info = {
     "name": "Assign Shape Keys",
     "author": "Shrinivas Kulkarni",
     "version": (1, 0, 0),
-    "location": "View 3D > Sidebar > Edit Tab",
+    "location": "View 3D > Sidebar > Create Tab",
     "description": "Assigns one or more Bezier curves as shape keys to another Bezier curve",
     "category": "Add Curve",
     "wiki_url": "https://github.com/Shriinivas/assignshapekey/blob/master/README.md",
@@ -1040,7 +1040,8 @@ class AssignShapeKeysPanel(Panel):
     bl_idname = "CURVE_PT_assign_shape_keys"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "Edit"
+    bl_category = "Create"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -1102,7 +1103,7 @@ class AssignShapeKeysPreferences(AddonPreferences):
     category: StringProperty(
             name = "Tab Category",
             description = "Choose a name for the category of the panel",
-            default = "Edit",
+            default = "Create",
             update = updatePanel
     )
 
