@@ -99,153 +99,176 @@ class add_mesh_bolt(Operator, AddObjectHelper):
             attr='bf_Shank_Length',
             name='Shank Length', default=0,
             min=0, soft_min=0, max=MAX_INPUT_NUMBER,
-            description='Length of the unthreaded shank'
+            description='Length of the unthreaded shank',
+            unit='LENGTH',
             )
     bf_Shank_Dia: FloatProperty(
             attr='bf_Shank_Dia',
             name='Shank Dia', default=3,
             min=0, soft_min=0,
             max=MAX_INPUT_NUMBER,
-            description='Diameter of the shank'
+            description='Diameter of the shank',
+            unit='LENGTH',
             )
     bf_Phillips_Bit_Depth: FloatProperty(
             attr='bf_Phillips_Bit_Depth',
             name='Bit Depth', default=1.1431535482406616,
             min=0, soft_min=0,
             max=MAX_INPUT_NUMBER,
-            description='Depth of the Phillips Bit'
+            description='Depth of the Phillips Bit',
+            unit='LENGTH',
             )
     bf_Allen_Bit_Depth: FloatProperty(
             attr='bf_Allen_Bit_Depth',
             name='Bit Depth', default=1.5,
             min=0, soft_min=0,
             max=MAX_INPUT_NUMBER,
-            description='Depth of the Allen Bit'
+            description='Depth of the Allen Bit',
+            unit='LENGTH',
             )
     bf_Allen_Bit_Flat_Distance: FloatProperty(
             attr='bf_Allen_Bit_Flat_Distance',
             name='Flat Dist', default=2.5,
             min=0, soft_min=0,
             max=MAX_INPUT_NUMBER,
-            description='Flat Distance of the Allen Bit'
+            description='Flat Distance of the Allen Bit',
+            unit='LENGTH',
             )
     bf_Hex_Head_Height: FloatProperty(
             attr='bf_Hex_Head_Height',
             name='Head Height', default=2,
             min=0, soft_min=0, max=MAX_INPUT_NUMBER,
-            description='Height of the Hex Head'
+            description='Height of the Hex Head',
+            unit='LENGTH',
             )
     bf_Hex_Head_Flat_Distance: FloatProperty(
             attr='bf_Hex_Head_Flat_Distance',
             name='Flat Dist', default=5.5,
             min=0, soft_min=0,
             max=MAX_INPUT_NUMBER,
-            description='Flat Distance of the Hex Head'
+            description='Flat Distance of the Hex Head',
+            unit='LENGTH',
             )
     bf_CounterSink_Head_Dia: FloatProperty(
             attr='bf_CounterSink_Head_Dia',
             name='Head Dia', default=6.300000190734863,
             min=0, soft_min=0,
             max=MAX_INPUT_NUMBER,
-            description='Diameter of the Counter Sink Head'
+            description='Diameter of the Counter Sink Head',
+            unit='LENGTH',
             )
     bf_Cap_Head_Height: FloatProperty(
             attr='bf_Cap_Head_Height',
             name='Head Height', default=3,
             min=0, soft_min=0,
             max=MAX_INPUT_NUMBER,
-            description='Height of the Cap Head'
+            description='Height of the Cap Head',
+            unit='LENGTH',
             )
     bf_Cap_Head_Dia: FloatProperty(
             attr='bf_Cap_Head_Dia',
             name='Head Dia', default=5.5,
             min=0, soft_min=0,
             max=MAX_INPUT_NUMBER,
-            description='Diameter of the Cap Head'
+            description='Diameter of the Cap Head',
+            unit='LENGTH',
             )
     bf_Dome_Head_Dia: FloatProperty(
             attr='bf_Dome_Head_Dia',
             name='Dome Head Dia', default=5.599999904632568,
             min=0, soft_min=0,
             max=MAX_INPUT_NUMBER,
-            description='Length of the unthreaded shank'
+            description='Length of the unthreaded shank',
+            unit='LENGTH',
             )
     bf_Pan_Head_Dia: FloatProperty(
             attr='bf_Pan_Head_Dia',
             name='Pan Head Dia', default=5.599999904632568,
             min=0, soft_min=0,
             max=MAX_INPUT_NUMBER,
-            description='Diameter of the Pan Head')
+            description='Diameter of the Pan Head',
+            unit='LENGTH',
+            )
 
     bf_Philips_Bit_Dia: FloatProperty(
             attr='bf_Philips_Bit_Dia',
             name='Bit Dia', default=1.8199999332427979,
             min=0, soft_min=0,
             max=MAX_INPUT_NUMBER,
-            description='Diameter of the Philips Bit')
+            description='Diameter of the Philips Bit',
+            unit='LENGTH',
+            )
 
     bf_Thread_Length: FloatProperty(
             attr='bf_Thread_Length',
             name='Thread Length', default=6,
             min=0, soft_min=0,
             max=MAX_INPUT_NUMBER,
-            description='Length of the Thread')
+            description='Length of the Thread',
+            unit='LENGTH',
+            )
 
     bf_Major_Dia: FloatProperty(
             attr='bf_Major_Dia',
             name='Major Dia', default=3,
             min=0, soft_min=0,
             max=MAX_INPUT_NUMBER,
-            description='Outside diameter of the Thread')
+            description='Outside diameter of the Thread',
+            unit='LENGTH',
+            )
 
     bf_Pitch: FloatProperty(
             attr='bf_Pitch',
             name='Pitch', default=0.3499999940395355,
             min=0.1, soft_min=0.1,
             max=7.0,
-            description='Pitch if the thread'
+            description='Pitch if the thread',
+            unit='LENGTH',
             )
     bf_Minor_Dia: FloatProperty(
             attr='bf_Minor_Dia',
             name='Minor Dia', default=2.6211137771606445,
             min=0, soft_min=0,
             max=MAX_INPUT_NUMBER,
-            description='Inside diameter of the Thread'
+            description='Inside diameter of the Thread',
+            unit='LENGTH',
             )
     bf_Crest_Percent: IntProperty(
             attr='bf_Crest_Percent',
             name='Crest Percent', default=10,
             min=1, soft_min=1,
             max=90,
-            description='Percent of the pitch that makes up the Crest'
+            description='Percent of the pitch that makes up the Crest',
             )
     bf_Root_Percent: IntProperty(
             attr='bf_Root_Percent',
             name='Root Percent', default=10,
             min=1, soft_min=1,
             max=90,
-            description='Percent of the pitch that makes up the Root'
+            description='Percent of the pitch that makes up the Root',
             )
     bf_Div_Count: IntProperty(
             attr='bf_Div_Count',
             name='Div count', default=36,
             min=4, soft_min=4,
             max=4096,
-            description='Div count determine circle resolution'
+            description='Div count determine circle resolution',
             )
     bf_Hex_Nut_Height: FloatProperty(
             attr='bf_Hex_Nut_Height',
             name='Hex Nut Height', default=2.4000000953674316,
             min=0, soft_min=0,
             max=MAX_INPUT_NUMBER,
-            description='Height of the Hex Nut'
+            description='Height of the Hex Nut',
+            unit='LENGTH',
             )
     bf_Hex_Nut_Flat_Distance: FloatProperty(
             attr='bf_Hex_Nut_Flat_Distance',
             name='Hex Nut Flat Dist', default=5.5,
             min=0, soft_min=0,
             max=MAX_INPUT_NUMBER,
-            description='Flat distance of the Hex Nut'
+            description='Flat distance of the Hex Nut',
+            unit='LENGTH',
             )
 
     def draw(self, context):
