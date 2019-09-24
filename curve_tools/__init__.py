@@ -375,6 +375,8 @@ class VIEW3D_PT_CurvePanel(Panel):
             row = col.row(align=True)
             row.operator("curve.bezier_cad_subdivide", text="Multi Subdivide")
             row = col.row(align=True)
+            row.operator("curvetools.split", text='Split by selected points')            
+            row = col.row(align=True)
             row.operator("curve.add_toolpath_discretize_curve", text="Discretize Curve")
             row = col.row(align=True)
             row.operator("curve.bezier_cad_array", text="Array selected spline")
