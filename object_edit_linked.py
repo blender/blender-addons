@@ -163,6 +163,7 @@ class VIEW3D_PT_PanelLinkedEdit(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_category = "Item"
     bl_context = 'objectmode'
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context: bpy.context):
