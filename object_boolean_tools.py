@@ -79,6 +79,20 @@ def isBrush(_obj):
 #         return False
 
 
+def cycles_visibility_set(ob, value=False):
+    if not hasattr(ob, "cycles_visibility"):
+        return
+
+    vis = ob.cycles_visibility
+
+    vis.camera = value
+    vis.diffuse = value
+    vis.glossy = value
+    vis.shadow = value
+    vis.transmission = value
+    vis.scatter = value
+
+
 def BT_ObjectByName(obj):
     for ob in bpy.context.view_layer.objects:
         if isCanvas(ob) or isBrush(ob):
@@ -126,18 +140,13 @@ def Operation(context, _operation):
                 ConvertToMesh(selObj)
             actObj = context.active_object
             selObj.hide_render = True
-            cyclesVis = selObj.cycles_visibility
 
             if useWire:
                 selObj.display_type = "WIRE"
             else:
                 selObj.display_type = "BOUNDS"
 
-            cyclesVis.camera = False
-            cyclesVis.diffuse = False
-            cyclesVis.glossy = False
-            cyclesVis.shadow = False
-            cyclesVis.transmission = False
+            cycles_visibility_set(selObj, value=False)
 
             if _operation == "SLICE":
                 # copies instance_collection property(empty), but group property is empty (users_group = None)
@@ -178,15 +187,10 @@ def Remove(context, thisObj_name, Prop):
         for obj in bpy.context.view_layer.objects:
             # if it's the brush object
             if obj.name == _thisObj_name:
-                cyclesVis = obj.cycles_visibility
                 obj.display_type = "TEXTURED"
                 del obj["BoolToolBrush"]
                 del obj["BoolTool_FTransform"]
-                cyclesVis.camera = True
-                cyclesVis.diffuse = True
-                cyclesVis.glossy = True
-                cyclesVis.shadow = True
-                cyclesVis.transmission = True
+                cycles_visibility_set(obj, value=True)
 
                 # Remove it from the Canvas
                 for mod in actObj.modifiers:
@@ -202,20 +206,16 @@ def Remove(context, thisObj_name, Prop):
         # Remove the Brush Property
         if Prop == "BRUSH":
             Canvas = FindCanvas(actObj)
+
             if Canvas:
                 for mod in Canvas.modifiers:
-                    if "BTool_" in mod.name:
-                        if actObj.name in mod.name:
-                            Canvas.modifiers.remove(mod)
-            cyclesVis = actObj.cycles_visibility
+                    if "BTool_" in mod.name and actObj.name in mod.name:
+                        Canvas.modifiers.remove(mod)
+
             actObj.display_type = "TEXTURED"
             del actObj["BoolToolBrush"]
             del actObj["BoolTool_FTransform"]
-            cyclesVis.camera = True
-            cyclesVis.diffuse = True
-            cyclesVis.glossy = True
-            cyclesVis.shadow = True
-            cyclesVis.transmission = True
+            cycles_visibility_set(actObj, value=True)
 
         if Prop == "CANVAS":
             for mod in actObj.modifiers:
