@@ -266,7 +266,8 @@ class CAMERATURN_PT_ui(Panel):
     bl_label = "Turnaround Camera"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "View"
+    bl_category = "Animation"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
