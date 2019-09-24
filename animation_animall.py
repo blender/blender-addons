@@ -21,7 +21,7 @@ bl_info = {
     "author": "Daniel Salazar <zanqdo@gmail.com>",
     "version": (0, 8, 3),
     "blender": (2, 80, 0),
-    "location": "3D View > Toolbox > Animation tab > AnimAll",
+    "location": "3D View > Sidebar > Animation tab > AnimAll",
     "description": "Allows animation of mesh, lattice, curve and surface data",
     "warning": "",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -141,6 +141,7 @@ class VIEW3D_PT_animall(Panel):
     bl_region_type = 'UI'
     bl_category = "Animation"
     bl_label = 'AnimAll'
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(self, context):
