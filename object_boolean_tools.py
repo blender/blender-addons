@@ -872,13 +872,8 @@ class VIEW3D_PT_booltool_tools(Panel):
     def poll(cls, context):
         return context.active_object is not None
 
-    def draw_header(self, context):
-        layout = self.layout
-        layout.operator("wm.booltool_help", text="", icon="QUESTION")
-
     def draw(self, context):
         layout = self.layout
-        obj = context.active_object
 
         col = layout.column(align=True)
         col.label(text="Auto Boolean")
@@ -917,7 +912,7 @@ class VIEW3D_PT_booltool_config(Panel):
     @classmethod
     def poll(cls, context):
         actObj = context.active_object
-        return isCanvas(actObj) or isBrush(actObj) #  or isPolyBrush(actObj)
+        return isCanvas(actObj) or isBrush(actObj)  # or isPolyBrush(actObj)
 
     def draw(self, context):
         layout = self.layout
@@ -1046,39 +1041,6 @@ class VIEW3D_PT_booltool_bviewer(Panel):
                 Dw.direction = "DOWN"
 
 
-# ------------------ BOOL TOOL Help ----------------------------
-
-
-class WM_OT_BoolTool_Help(Operator):
-    bl_idname = "wm.booltool_help"
-    bl_label = "Bool Tool Help"
-    bl_description = "Help - click to read basic information"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.label(text="To use:")
-        layout.label(text="Select two or more objects,")
-        layout.label(text="choose one option from the panel")
-        layout.label(text="or from the Ctrl + Shift + B menu")
-
-        layout.separator()
-
-        layout.label(text="Auto Boolean:")
-        layout.label(text="Apply Boolean operation directly to mesh.")
-
-        layout.separator()
-
-        layout.label(text="Brush Boolean:")
-        layout.label(text="Create a Boolean brush modifier setup.")
-
-    def execute(self, context):
-        return {"FINISHED"}
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_popup(self, width=220)
-
-
 # ------------------ BOOL TOOL ADD-ON PREFERENCES ----------------------------
 
 
@@ -1166,7 +1128,6 @@ class PREFS_BoolTool_Props(AddonPreferences):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-
         col = layout.column()
         col.prop(self, "category")
         col.prop(self, "fast_transform")
@@ -1219,7 +1180,6 @@ classes = (
     BTool_EnableThisBrush,
     BTool_EnableFTransform,
     BTool_FastTransform,
-    WM_OT_BoolTool_Help,
 )
 
 
