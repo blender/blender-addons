@@ -21,7 +21,7 @@ bl_info = {
     "author": "Daniel Salazar <zanqdo@gmail.com>",
     "version": (0, 8, 3),
     "blender": (2, 80, 0),
-    "location": "3D View > Sidebar > Animation tab > AnimAll",
+    "location": "3D View > Toolbox > Animation tab > AnimAll",
     "description": "Allows animation of mesh, lattice, curve and surface data",
     "warning": "",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -139,7 +139,7 @@ def delete_key(data, key):
 class VIEW3D_PT_animall(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "Animation"
+    bl_category = "Animate"
     bl_label = 'AnimAll'
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -552,7 +552,7 @@ class AnimallAddonPreferences(AddonPreferences):
     category: StringProperty(
         name="Tab Category",
         description="Choose a name for the category of the panel",
-        default="Animation",
+        default="Animate",
         update=update_panel
     )
 

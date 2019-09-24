@@ -21,11 +21,11 @@ bl_info = {
     "author": "Antonio Vazquez (antonioya)",
     "version": (0, 3, 0),
     "blender": (2, 80, 0),
-    "location": "View3D > Sidebar > Animation Tab > Turnaround Camera",
+    "location": "View3D > Sidebar > View Tab > Turnaround Camera",
     "description": "Add a camera rotation around selected object",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Animation/TurnaroundCamera",
-    "category": "Camera"}
+    "category": "Animation"}
 
 
 import bpy
@@ -266,7 +266,7 @@ class CAMERATURN_PT_ui(Panel):
     bl_label = "Turnaround Camera"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "Animation"
+    bl_category = "Animate"
     bl_context = "objectmode"
     bl_options = {'DEFAULT_CLOSED'}
 
