@@ -48,23 +48,18 @@ class VIEW3D_PT_print3d(Panel):
         info = report.info()
 
         if info:
-            obj = context.edit_object
-            show_select = False
+            is_edit = context.edit_object is not None
 
             layout.label(text="Report")
             box = layout.box()
             col = box.column()
 
             for i, (text, data) in enumerate(info):
-                if obj and data and data[1]:
+                if is_edit and data and data[1]:
                     bm_type, bm_array = data
                     col.operator("mesh.print3d_select_report", text=text, icon=self._type_to_icon[bm_type],).index = i
-                    show_select = True
                 else:
                     col.label(text=text)
-
-            if show_select:
-                layout.operator("mesh.select_non_manifold")
 
     def draw(self, context):
         layout = self.layout
@@ -97,8 +92,7 @@ class VIEW3D_PT_print3d(Panel):
         row = col.row(align=True)
         row.operator("mesh.print3d_check_overhang", text="Overhang")
         row.prop(print_3d, "angle_overhang", text="")
-        col = layout.column()
-        col.operator("mesh.print3d_check_all", text="Check All")
+        layout.operator("mesh.print3d_check_all", text="Check All")
 
         self.draw_report(context)
 
@@ -121,10 +115,9 @@ class VIEW3D_PT_print3d_cleanup(Panel):
         row = col.row(align=True)
         row.operator("mesh.print3d_clean_distorted", text="Distorted")
         row.prop(print_3d, "angle_distort", text="")
-        col = layout.column()
-        col.operator("mesh.print3d_clean_non_manifold", text="Make Manifold")
+        layout.operator("mesh.print3d_clean_non_manifold", text="Make Manifold")
         # XXX TODO
-        # col.operator("mesh.print3d_clean_thin", text="Wall Thickness")
+        # layout.operator("mesh.print3d_clean_thin", text="Wall Thickness")
 
         layout.label(text="Scale To")
         row = layout.row(align=True)
