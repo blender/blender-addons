@@ -1898,7 +1898,11 @@ class FbxImportHelperNode:
 
             meshes = set()
             for child in self.children:
-                child.collect_skeleton_meshes(meshes)
+                # Children meshes may be linked to children armatures, in which case we do not want to link them
+                # to a parent one. See T70244.
+                child.collect_armature_meshes()
+                if not child.meshes:
+                    child.collect_skeleton_meshes(meshes)
             for m in meshes:
                 old_matrix = m.matrix
                 m.matrix = armature_matrix_inv @ m.get_world_matrix()
