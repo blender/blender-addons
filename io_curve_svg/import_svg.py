@@ -1757,11 +1757,8 @@ class SVGGeometrySVG(SVGGeometryContainer):
             
         if len(viewbox) == 4 and unit in ('cm', 'mm', 'in', 'pt', 'pc'):
 
-            #one unit equals whis svg units:
-            unitscale = document_height / (viewbox[3] - viewbox[1])
-            
             #convert units to BU: 
-            unitscale = unitscale * units[unit] / 90 * 1000 / 39.3701 
+            unitscale = units[unit] / 90 * 1000 / 39.3701 
             
             #apply blender unit scale: 
             unitscale = unitscale / bpy.context.scene.unit_settings.scale_length
