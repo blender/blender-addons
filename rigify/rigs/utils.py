@@ -1,4 +1,4 @@
-from ..utils import connected_children_names
+from ..utils.rig import connected_children_names
 from ..utils.naming import strip_mch, strip_org, make_mechanism_name
 import re
 

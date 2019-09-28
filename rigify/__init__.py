@@ -29,24 +29,97 @@ bl_info = {
                 "Scripts/Rigging/Rigify",
     "category": "Rigging"}
 
-
-if "bpy" in locals():
-    import importlib
-    # Don't reload base_rig or base_generate, because it would break issubclass checks,
-    # unless _all_ modules with classes inheriting from BaseRig are also reloaded.
-    importlib.reload(utils)
-    importlib.reload(rig_ui_template)
-    importlib.reload(feature_set_list)
-    importlib.reload(rig_lists)
-    importlib.reload(generate)
-    importlib.reload(ui)
-    importlib.reload(metarig_menu)
-else:
-    from . import (utils, base_rig, base_generate, rig_ui_template, feature_set_list, rig_lists, generate, ui, metarig_menu)
-
-import bpy
+import importlib
 import sys
+import bpy
 import os
+
+
+# The order in which core modules of the addon are loaded and reloaded.
+# Modules not in this list are removed from memory upon reload.
+# With the sole exception of 'utils', modules must be listed in the
+# correct dependency order.
+initial_load_order = [
+    'utils',
+    'utils.errors',
+    'utils.misc',
+    'utils.rig',
+    'utils.naming',
+    'utils.bones',
+    'utils.collections',
+    'utils.layers',
+    'utils.widgets',
+    'utils.widgets_basic',
+    'utils.widgets_special',
+    'utils.mechanism',
+    'utils.animation',
+    'utils.metaclass',
+    'feature_sets',
+    'rigs',
+    'rigs.utils',
+    'base_rig',
+    'base_generate',
+    'feature_set_list',
+    'rig_lists',
+    'metarig_menu',
+    'rig_ui_template',
+    'generate',
+    'rot_mode',
+    'ui',
+]
+
+
+def get_loaded_modules():
+    prefix = __name__ + '.'
+    return [name for name in sys.modules if name.startswith(prefix)]
+
+def reload_modules():
+    fixed_modules = set(reload_list)
+
+    for name in get_loaded_modules():
+        if name not in fixed_modules:
+            del sys.modules[name]
+
+    for name in reload_list:
+        importlib.reload(sys.modules[name])
+
+def load_initial_modules():
+    load_list = [ __name__ + '.' + name for name in initial_load_order ]
+
+    for i, name in enumerate(load_list):
+        importlib.import_module(name)
+
+        module_list = get_loaded_modules()
+        expected_list = load_list[0 : max(11, i+1)]
+
+        if module_list != expected_list:
+            print('!!! RIGIFY: initial load order mismatch after '+name+' - expected: \n', expected_list, '\nGot:\n', module_list)
+
+    return load_list
+
+def load_rigs():
+    if not legacy_loaded:
+        rig_lists.get_internal_rigs()
+        metarig_menu.init_metarig_menu()
+
+
+if "reload_list" in locals():
+    reload_modules()
+else:
+    legacy_loaded = False
+
+    load_list = load_initial_modules()
+
+    from . import (base_rig, base_generate, rig_ui_template, feature_set_list, rig_lists, generate, ui, metarig_menu)
+
+    reload_list = reload_list_init = get_loaded_modules()
+
+    if reload_list != load_list:
+        print('!!! RIGIFY: initial load order mismatch - expected: \n', load_list, '\nGot:\n', reload_list)
+
+load_rigs()
+
+
 from bpy.types import AddonPreferences
 from bpy.props import (
     BoolProperty,
@@ -65,16 +138,14 @@ class RigifyPreferences(AddonPreferences):
     bl_idname = __name__
 
     def update_legacy(self, context):
-        if self.legacy_mode:
+        global legacy_loaded, reload_list
 
-            if 'ui' in globals() and 'legacy' in str(globals()['ui']):    # already in legacy mode. needed when rigify is reloaded
+        if self.legacy_mode:
+            if legacy_loaded:    # already in legacy mode. needed when rigify is reloaded
                 return
             else:
-                rigify_dir = os.path.dirname(os.path.realpath(__file__))
-                if rigify_dir not in sys.path:
-                    sys.path.append(rigify_dir)
-
                 unregister()
+                reload_modules()
 
                 globals().pop('utils')
                 globals().pop('rig_lists')
@@ -82,13 +153,12 @@ class RigifyPreferences(AddonPreferences):
                 globals().pop('ui')
                 globals().pop('metarig_menu')
 
-                import legacy.utils
-                import legacy.rig_lists
-                import legacy.generate
-                import legacy.ui
-                import legacy.metarig_menu
+                from .legacy import utils, rig_lists, generate, ui, metarig_menu
 
                 print("ENTERING RIGIFY LEGACY\r\n")
+
+                legacy_loaded = True
+                reload_list += [ m.__name__ for m in [ legacy, utils, rig_lists, generate, ui, metarig_menu ] ]
 
                 globals()['utils'] = legacy.utils
                 globals()['rig_lists'] = legacy.rig_lists
@@ -99,13 +169,6 @@ class RigifyPreferences(AddonPreferences):
                 register()
 
         else:
-
-            rigify_dir = os.path.dirname(os.path.realpath(__file__))
-
-            if rigify_dir in sys.path:
-                id = sys.path.index(rigify_dir)
-                sys.path.pop(id)
-
             unregister()
 
             globals().pop('utils')
@@ -114,11 +177,7 @@ class RigifyPreferences(AddonPreferences):
             globals().pop('ui')
             globals().pop('metarig_menu')
 
-            from . import utils
-            from . import rig_lists
-            from . import generate
-            from . import ui
-            from . import metarig_menu
+            from . import utils, rig_lists, generate, ui, metarig_menu
 
             print("EXIT RIGIFY LEGACY\r\n")
 
@@ -127,6 +186,12 @@ class RigifyPreferences(AddonPreferences):
             globals()['generate'] = generate
             globals()['ui'] = ui
             globals()['metarig_menu'] = metarig_menu
+
+            legacy_loaded = False
+            reload_list = reload_list_init
+            reload_modules()
+
+            load_rigs()
 
             register()
 
@@ -492,7 +557,7 @@ def register():
         description="Transfer selected bones only", default=True)
 
     # Update legacy on restart or reload.
-    if (ui and 'legacy' in str(ui)) or bpy.context.preferences.addons['rigify'].preferences.legacy_mode:
+    if legacy_loaded or bpy.context.preferences.addons['rigify'].preferences.legacy_mode:
         bpy.context.preferences.addons['rigify'].preferences.legacy_mode = True
 
     bpy.context.preferences.addons['rigify'].preferences.update_external_rigs()

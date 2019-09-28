@@ -2,6 +2,8 @@
 # that expects a single utils.py file. New code should import directly from
 # the modules that contain the utilities. Also, don't add more imports here.
 
+from . import errors, misc, rig, naming, bones, collections, layers, widgets, widgets_basic, widgets_special
+
 from .errors import MetarigError
 
 from .misc import angle_on_plane, linsrgb_to_srgb, gamma_correct, copy_attributes

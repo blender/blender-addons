@@ -28,10 +28,12 @@ from bpy.props import (
 
 from mathutils import Color
 
-from .utils import MetarigError
-from .utils import write_metarig, write_widget
-from .utils import unique_name
-from .utils import upgradeMetarigTypes, outdated_types
+from .utils.errors import MetarigError
+from .utils.rig import write_metarig
+from .utils.widgets import write_widget
+from .utils.naming import unique_name
+from .utils.rig import upgradeMetarigTypes, outdated_types
+
 from .rigs.utils import get_limb_generated_names
 
 from .utils.animation import get_keyed_frames_in_range, bones_in_frame, overwrite_prop_animation
@@ -767,9 +769,6 @@ class Generate(bpy.types.Operator):
     bl_description = 'Generates a rig from the active metarig armature'
 
     def execute(self, context):
-        import importlib
-        importlib.reload(generate)
-
         try:
             generate.generate_rig(context, context.object)
         except MetarigError as rig_exception:
