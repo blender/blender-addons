@@ -299,7 +299,7 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
         s = bpy.context.scene
         sprops = s.blenderkit_models
         # TODO this is here because combinations of linking objects or appending groups are rather not-userfull
-        if sprops.append_method == 'LINK_GROUP':
+        if sprops.append_method == 'LINK_COLLECTION':
             sprops.append_link = 'LINK'
             sprops.import_as = 'GROUP'
         else:
@@ -337,7 +337,7 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
                     return
 
                 if sprops.import_as == 'GROUP':
-                    parent, newobs = append_link.link_group(file_names[-1],
+                    parent, newobs = append_link.link_collection(file_names[-1],
                                                             location=downloader['location'],
                                                             rotation=downloader['rotation'],
                                                             link=link,
@@ -359,7 +359,7 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
 
         elif kwargs.get('model_location') is not None:
             if sprops.import_as == 'GROUP':
-                parent, newobs = append_link.link_group(file_names[-1],
+                parent, newobs = append_link.link_collection(file_names[-1],
                                                         location=kwargs['model_location'],
                                                         rotation=kwargs['model_rotation'],
                                                         link=link,

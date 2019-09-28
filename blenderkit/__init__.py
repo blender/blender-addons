@@ -1167,11 +1167,11 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
     append_method: EnumProperty(
         name="Import Method",
         items=(
-            ('LINK_GROUP', 'Link Group', ''),
+            ('LINK_COLLECTION', 'Link Collection', ''),
             ('APPEND_OBJECTS', 'Append Objects', ''),
         ),
         description="choose if the assets will be linked or appended",
-        default="LINK_GROUP"
+        default="LINK_COLLECTION"
     )
     append_link: EnumProperty(
         name="How to Attach",
