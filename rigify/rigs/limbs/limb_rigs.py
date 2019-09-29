@@ -407,10 +407,10 @@ class BaseLimbRig(BaseRig):
         else:
             roll = pi/2
 
-        create_ikarrow_widget(self.obj, ctrl, bone_transform_name=None, roll=roll)
+        create_ikarrow_widget(self.obj, ctrl, roll=roll)
 
     def make_ik_pole_widget(self, ctrl):
-        create_sphere_widget(self.obj, ctrl, bone_transform_name=None)
+        create_sphere_widget(self.obj, ctrl)
 
     def make_ik_ctrl_widget(self, ctrl):
         raise NotImplementedError()

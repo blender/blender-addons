@@ -144,7 +144,6 @@ class Rig(BaseHeadTailRig):
             self.obj, ctrl,
             radius=radius,
             head_tail=0.5,
-            bone_transform_name=None
         )
 
     def make_neck_bend_widget(self, ctrl):
@@ -154,7 +153,6 @@ class Rig(BaseHeadTailRig):
             self.obj, ctrl,
             radius=radius/2,
             head_tail=0.0,
-            bone_transform_name=None
         )
 
     def make_head_widget(self, ctrl):
@@ -169,7 +167,6 @@ class Rig(BaseHeadTailRig):
             radius              = 0.5,
             head_tail           = head_tail,
             with_line           = False,
-            bone_transform_name = None
         )
 
     ####################################################

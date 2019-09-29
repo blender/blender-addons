@@ -127,7 +127,7 @@ class Rig(BaseLimbRig):
         pbuilder.register_parent(self, self.bones.org.main[2], exclude_self=True)
 
     def make_ik_ctrl_widget(self, ctrl):
-        create_foot_widget(self.obj, ctrl, bone_transform_name=None)
+        create_foot_widget(self.obj, ctrl)
 
 
     ####################################################
@@ -159,7 +159,7 @@ class Rig(BaseLimbRig):
 
     @stage.generate_widgets
     def generate_heel_control_widget(self):
-        create_ballsocket_widget(self.obj, self.bones.ctrl.heel, bone_transform_name=None)
+        create_ballsocket_widget(self.obj, self.bones.ctrl.heel)
 
 
     ####################################################

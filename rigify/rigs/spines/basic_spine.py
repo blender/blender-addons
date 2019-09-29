@@ -125,9 +125,9 @@ class Rig(BaseSpineRig):
         create_circle_widget(
             self.obj, ctrl,
             radius=1.0,
-            head_tail=0.75,
+            head_tail=0.0,
+            head_tail_x=1.0,
             with_line=False,
-            bone_transform_name=wgt_mch
         )
 
     ####################################################

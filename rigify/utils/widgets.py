@@ -33,7 +33,7 @@ WGT_PREFIX = "WGT-"  # Prefix for widget objects
 #=============================================
 
 
-def obj_to_bone(obj, rig, bone_name):
+def obj_to_bone(obj, rig, bone_name, bone_transform_name=None):
     """ Places an object at the location/rotation/scale of the given bone.
     """
     if bpy.context.mode == 'EDIT_ARMATURE':
@@ -45,7 +45,9 @@ def obj_to_bone(obj, rig, bone_name):
     if bone.use_custom_shape_bone_size:
         scale *= bone.length
 
-    if bone.custom_shape_transform:
+    if bone_transform_name is not None:
+        bone = rig.pose.bones[bone_transform_name]
+    elif bone.custom_shape_transform:
         bone = bone.custom_shape_transform
 
     mat = rig.matrix_world @ bone.bone.matrix_local
@@ -63,9 +65,6 @@ def obj_to_bone(obj, rig, bone_name):
 def create_widget(rig, bone_name, bone_transform_name=None):
     """ Creates an empty widget object for a bone, and returns the object.
     """
-    if bone_transform_name is None:
-        bone_transform_name = bone_name
-
     obj_name = WGT_PREFIX + rig.name + '_' + bone_name
     scene = bpy.context.scene
     collection = ensure_widget_collection(bpy.context)
@@ -74,7 +73,7 @@ def create_widget(rig, bone_name, bone_transform_name=None):
     if obj_name in scene.objects:
         # Move object to bone position, in case it changed
         obj = scene.objects[obj_name]
-        obj_to_bone(obj, rig, bone_transform_name)
+        obj_to_bone(obj, rig, bone_name, bone_transform_name)
 
         return None
     else:
@@ -91,7 +90,7 @@ def create_widget(rig, bone_name, bone_transform_name=None):
         collection.objects.link(obj)
 
         # Move object to bone position and set layers
-        obj_to_bone(obj, rig, bone_transform_name)
+        obj_to_bone(obj, rig, bone_name, bone_transform_name)
         wgts_group_name = 'WGTS_' + rig.name
         if wgts_group_name in bpy.data.objects.keys():
             obj.parent = bpy.data.objects[wgts_group_name]

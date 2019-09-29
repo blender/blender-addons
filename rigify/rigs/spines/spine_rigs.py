@@ -79,7 +79,6 @@ class BaseSpineRig(TweakChainRig):
         create_cube_widget(
             self.obj, self.bones.ctrl.master,
             radius=0.5,
-            bone_transform_name=None
         )
 
     ####################################################
