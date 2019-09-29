@@ -261,7 +261,7 @@ def flip_bone_chain(obj, bone_names):
         bone.use_connect = True
 
 
-def put_bone(obj, bone_name, pos):
+def put_bone(obj, bone_name, pos, *, matrix=None, length=None, scale=None):
     """ Places a bone at the given position.
     """
     if bone_name not in obj.data.edit_bones:
@@ -270,8 +270,25 @@ def put_bone(obj, bone_name, pos):
     if obj == bpy.context.active_object and bpy.context.mode == 'EDIT_ARMATURE':
         bone = obj.data.edit_bones[bone_name]
 
-        delta = pos - bone.head
-        bone.translate(delta)
+        if matrix is not None:
+            old_len = len(matrix)
+            matrix = matrix.to_4x4()
+
+            if pos is not None:
+                matrix.translation = pos
+            elif old_len < 4:
+                matrix.translation = bone.head
+
+            bone.matrix = matrix
+
+        else:
+            delta = pos - bone.head
+            bone.translate(delta)
+
+        if length is not None:
+            bone.length = length
+        elif scale is not None:
+            bone.length *= scale
     else:
         raise MetarigError("Cannot 'put' bones outside of edit mode")
 
@@ -394,18 +411,20 @@ class BoneUtilityMixin(object):
         """Get the name of the parent bone, or None."""
         return get_name(self.get_bone(bone_name).parent)
 
-    def set_bone_parent(self, bone_name, parent_name, use_connect=False):
+    def set_bone_parent(self, bone_name, parent_name, use_connect=False, inherit_scale=None):
         """Set the parent of the bone."""
         eb = self.obj.data.edit_bones
         bone = eb[bone_name]
         if use_connect is not None:
             bone.use_connect = use_connect
+        if inherit_scale is not None:
+            bone.inherit_scale = inherit_scale
         bone.parent = (eb[parent_name] if parent_name else None)
 
-    def parent_bone_chain(self, bone_names, use_connect=None):
+    def parent_bone_chain(self, bone_names, use_connect=None, inherit_scale=None):
         """Link bones into a chain with parenting. First bone may be None."""
         for parent, child in pairwise(bone_names):
-            self.set_bone_parent(child, parent, use_connect=use_connect)
+            self.set_bone_parent(child, parent, use_connect=use_connect, inherit_scale=inherit_scale)
 
 #=============================================
 # B-Bones

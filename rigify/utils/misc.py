@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+import bpy
 import math
 import collections
 
@@ -55,6 +56,28 @@ def angle_on_plane(plane, vec1, vec2):
         sign = -1
 
     return angle * sign
+
+
+# Convert between a matrix and axis+roll representations.
+# Re-export the C implementation internally used by bones.
+matrix_from_axis_roll = bpy.types.Bone.MatrixFromAxisRoll
+axis_roll_from_matrix = bpy.types.Bone.AxisRollFromMatrix
+
+
+def matrix_from_axis_pair(y_axis, other_axis, axis_name):
+    assert axis_name in 'xz'
+
+    y_axis = Vector(y_axis).normalized()
+
+    if axis_name == 'x':
+        z_axis = Vector(other_axis).cross(y_axis).normalized()
+        x_axis = y_axis.cross(z_axis)
+    else:
+        x_axis = y_axis.cross(other_axis).normalized()
+        z_axis = x_axis.cross(y_axis)
+
+    return Matrix((x_axis, y_axis, z_axis)).transposed()
+
 
 #=============================================
 # Color correction functions

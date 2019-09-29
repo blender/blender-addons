@@ -127,3 +127,35 @@ def create_bone_widget(rig, bone_name, r1=0.1, l1=0.0, r2=0.04, l2=1.0, bone_tra
         mesh.update()
 
 
+def create_pivot_widget(rig, bone_name, axis_size=1.0, cap_size=1.0, square=False, bone_transform_name=None):
+    """Creates a widget similar to Plain Axes empty, but with a cross or
+       a square on the end of each axis line.
+    """
+    obj = create_widget(rig, bone_name, bone_transform_name)
+    if obj is not None:
+        axis = 0.5 * axis_size
+        cap = 0.05 * cap_size
+        if square:
+            verts = [(0, 0, -axis), (-axis, 0, 0), (0, 0, axis), (axis, 0, 0), (axis, cap, -cap), (axis, cap, cap),
+                     (0, -axis, 0), (0, axis, 0), (cap, axis, cap), (cap, axis, -cap), (axis, -cap, -cap), (axis, -cap, cap),
+                     (-cap, axis, cap), (-cap, axis, -cap), (-axis, cap, cap), (-axis, cap, -cap), (-axis, -cap, cap), (-axis, -cap, -cap),
+                     (-cap, -axis, cap), (-cap, -axis, -cap), (cap, -axis, cap), (cap, -axis, -cap), (-cap, -cap, -axis), (-cap, cap, -axis),
+                     (cap, -cap, -axis), (cap, cap, -axis), (-cap, cap, axis), (-cap, -cap, axis), (cap, cap, axis), (cap, -cap, axis) ]
+            edges = [(10, 4), (4, 5), (8, 9), (0, 2), (12, 8), (6, 7), (11, 10), (13, 12), (5, 11), (9, 13),
+                     (3, 1), (14, 15), (16, 14), (17, 16), (15, 17), (18, 19), (20, 18), (21, 20), (19, 21), (22, 23),
+                     (24, 22), (25, 24), (23, 25), (26, 27), (28, 26), (29, 28), (27, 29) ]
+        else:
+            verts = [(0, 0, -axis), (-axis, 0, 0), (0, 0, axis), (axis, 0, 0), (-cap, 0, -axis), (-axis, 0, -cap),
+                     (-axis, 0, cap), (-cap, 0, axis), (cap, 0, axis), (axis, 0, cap), (axis, 0, -cap), (cap, 0, -axis),
+                     (0, -axis, 0), (0, axis, 0), (0, -cap, -axis), (0, -axis, -cap), (0, -axis, cap), (0, -cap, axis),
+                     (0, cap, axis), (0, axis, cap), (0, axis, -cap), (0, cap, -axis), (-axis, -cap, 0), (-cap, -axis, 0),
+                     (cap, -axis, 0), (axis, -cap, 0), (axis, cap, 0), (cap, axis, 0), (-cap, axis, 0), (-axis, cap, 0) ]
+            edges = [(4, 0), (6, 1), (8, 2), (10, 3), (1, 5), (2, 7), (3, 9), (0, 11), (16, 12), (0, 21),
+                     (2, 17), (20, 13), (12, 15), (0, 2), (18, 2), (13, 19), (12, 13), (1, 29), (22, 1), (3, 25),
+                     (13, 27), (14, 0), (26, 3), (28, 13), (24, 12), (12, 23), (3, 1) ]
+        mesh = obj.data
+        mesh.from_pydata(verts, edges, [])
+        mesh.update()
+        return obj
+    else:
+        return None

@@ -38,7 +38,7 @@ def _set_default_attr(obj, options, attr, value):
 
 def make_constraint(
         owner, type, target=None, subtarget=None, *, insert_index=None,
-        space=None, track_axis=None, use_xyz=None, use_limit_xyz=None,
+        space=None, track_axis=None, use_xyz=None, use_limit_xyz=None, invert_xyz=None,
         **options):
     """
     Creates and initializes constraint of the specified type for the owner bone.
@@ -51,6 +51,7 @@ def make_constraint(
       track_axis       : allows shorter X, Y, Z, -X, -Y, -Z notation
       use_xyz          : list of 3 items is assigned to use_x, use_y and use_z options
       use_limit_xyz    : list of 3 items is assigned to use_limit_x/y/z options
+      invert_xyz       : list of 3 items is assigned to invert_x, invert_y and invert_z options
       min/max_x/y/z    : a corresponding use_(min/max/limit)_(x/y/z) option is set to True
 
     Other keyword arguments are directly assigned to the constraint options.
@@ -79,6 +80,9 @@ def make_constraint(
 
     if use_limit_xyz is not None:
         con.use_limit_x, con.use_limit_y, con.use_limit_z = use_limit_xyz[0:3]
+
+    if invert_xyz is not None:
+        con.invert_x, con.invert_y, con.invert_z = invert_xyz[0:3]
 
     for key in ['min_x', 'max_x', 'min_y', 'max_y', 'min_z', 'max_z']:
         if key in options:

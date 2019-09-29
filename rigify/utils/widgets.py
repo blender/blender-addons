@@ -160,6 +160,14 @@ def adjust_widget_axis(obj, axis='y', offset=0.0):
         vert.co = matrix @ vert.co
 
 
+def adjust_widget_transform(obj, matrix):
+    """Adjust the generated widget by applying a world space correction matrix to the mesh."""
+    if obj:
+        obmat = obj.matrix_basis
+        matrix = obmat.inverted() @ matrix @ obmat
+        obj.data.transform(matrix)
+
+
 def write_widget(obj):
     """ Write a mesh object as a python script for widget use.
     """
@@ -170,9 +178,9 @@ def write_widget(obj):
 
     # Vertices
     script += "        verts = ["
-    for v in obj.data.vertices:
-        script += "(" + str(v.co[0]) + "*size, " + str(v.co[1]) + "*size, " + str(v.co[2]) + "*size),"
-        script += "\n                 "
+    for i, v in enumerate(obj.data.vertices):
+        script += "({:g}*size, {:g}*size, {:g}*size),".format(v.co[0], v.co[1], v.co[2])
+        script += "\n                 " if i % 2 == 1 else " "
     script += "]\n"
 
     # Edges
