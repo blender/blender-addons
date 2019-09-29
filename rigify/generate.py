@@ -463,7 +463,7 @@ class Generator(base_generate.BaseGenerator):
         create_selection_sets(obj, metarig)
 
         # Create Bone Groups
-        create_bone_groups(obj, metarig)
+        create_bone_groups(obj, metarig, self.layer_group_priorities)
 
         t.tick("The rest: ")
 
@@ -544,12 +544,13 @@ def create_selection_sets(obj, metarig):
                     bone_id.name = bone.name
 
 
-def create_bone_groups(obj, metarig):
+def create_bone_groups(obj, metarig, priorities={}):
 
     bpy.ops.object.mode_set(mode='OBJECT')
     pb = obj.pose.bones
     layers = metarig.data.rigify_layers
     groups = metarig.data.rigify_colors
+    dummy = {}
 
     # Create BGs
     for l in layers:
@@ -566,7 +567,9 @@ def create_bone_groups(obj, metarig):
 
     for b in pb:
         try:
-            layer_index = b.bone.layers[:].index(True)
+            prios = priorities.get(b.name, dummy)
+            enabled = [ i for i, v in enumerate(b.bone.layers) if v ]
+            layer_index = max(enabled, key=lambda i: prios.get(i, 0))
         except ValueError:
             continue
         if layer_index > len(layers) - 1:   # bone is on reserved layers

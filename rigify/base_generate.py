@@ -21,6 +21,7 @@
 import bpy
 import sys
 import traceback
+import collections
 
 from .utils.errors import MetarigError, RaiseErrorMixin
 from .utils.naming import random_id
@@ -210,6 +211,9 @@ class BaseGenerator:
         # Set of bones that should be left without parent
         self.noparent_bones = set()
 
+        # Table of layer priorities for defining bone groups
+        self.layer_group_priorities = collections.defaultdict(dict)
+
         # Random string with time appended so that
         # different rigs don't collide id's
         self.rig_id = random_id(16)
@@ -218,6 +222,12 @@ class BaseGenerator:
     def disable_auto_parent(self, bone_name):
         """Prevent automatically parenting the bone to root if parentless."""
         self.noparent_bones.add(bone_name)
+
+
+    def set_layer_group_priority(self, bone_name, layers, priority):
+        for i, val in enumerate(layers):
+            if val:
+                self.layer_group_priorities[bone_name][i] = priority
 
 
     def __run_object_stage(self, method_name):

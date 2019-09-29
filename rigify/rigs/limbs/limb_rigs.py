@@ -268,7 +268,8 @@ class BaseLimbRig(BaseRig):
         for args in zip(count(0), self.bones.ctrl.fk, self.bones.org.main):
             self.configure_fk_control_bone(*args)
 
-        ControlLayersOption.FK.assign(self.params, self.obj, self.bones.ctrl.fk[0:3])
+        ControlLayersOption.FK.assign_rig(self, self.bones.ctrl.fk[0:3])
+        ControlLayersOption.FK.assign_rig(self, self.bones.ctrl.fk[3:], combine=True, priority=1)
 
     def configure_fk_control_bone(self, i, ctrl, org):
         self.copy_bone_properties(org, ctrl)
@@ -624,7 +625,7 @@ class BaseLimbRig(BaseRig):
         for args in zip(count(0), self.bones.ctrl.tweak, self.segment_table_tweak):
             self.configure_tweak_bone(*args)
 
-        ControlLayersOption.TWEAK.assign(self.params, self.obj, self.bones.ctrl.tweak)
+        ControlLayersOption.TWEAK.assign_rig(self, self.bones.ctrl.tweak)
 
     def configure_tweak_bone(self, i, tweak, entry):
         tweak_pb = self.get_bone(tweak)
