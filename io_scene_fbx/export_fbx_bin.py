@@ -887,7 +887,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
             elem_data_single_int32(geom, b"PreserveHardEdges", 0)
             elem_data_single_int32(geom, b"PropagateEdgeHardness", 0)
 
-            write_crease = mod.use_creases
+            write_crease = last_subsurf.use_creases
 
     elem_data_single_int32(geom, b"GeometryVersion", FBX_GEOMETRY_VERSION)
 
