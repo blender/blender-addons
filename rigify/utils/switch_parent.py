@@ -96,6 +96,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
           use_parent_mch    Create an intermediate MCH bone for the constraints and parent the child to it.
           select_parent     Select the specified bone instead of the last one.
           ignore_global     Ignore the is_global flag of potential parents.
+          exclude_self      Ignore parents registered by the rig itself.
           context_rig       Rig to use for selecting parents.
 
           prop_bone         Name of the bone to add the property to.
@@ -158,7 +159,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
     child_option_table = {
         'extra_parents': None,
         'prop_bone': None, 'prop_id': None, 'prop_name': None, 'controls': None,
-        'select_parent': None, 'ignore_global': False, 'context_rig': None,
+        'select_parent': None, 'ignore_global': False, 'exclude_self': False, 'context_rig': None,
         'ctrl_bone': None,
         'no_fix_location': False, 'no_fix_rotation': False, 'no_fix_scale': False,
         'copy_location': None, 'copy_rotation': None, 'copy_scale': None,
@@ -186,7 +187,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
 
             for parent in self.parent_list:
                 if parent['rig'] is child_rig:
-                    if parent['exclude_self']:
+                    if parent['exclude_self'] or child['exclude_self']:
                         continue
                 elif parent['is_global'] and not child['ignore_global']:
                     # Can't use parents from own children, even if global (cycle risk)
@@ -218,8 +219,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
 
             # Parent child to the MCH proxy
             if mch != child['bone']:
-                rig.set_bone_parent(child['bone'], mch)
-                rig.get_bone(child['bone']).inherit_scale = child['inherit_scale']
+                rig.set_bone_parent(child['bone'], mch, inherit_scale=child['inherit_scale'])
 
     def configure_bones(self):
         for child in self.child_list:

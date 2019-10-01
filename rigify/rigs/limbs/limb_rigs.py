@@ -218,7 +218,7 @@ class BaseLimbRig(BaseRig):
     def parent_mch_follow_bone(self):
         mch = self.bones.mch.follow
         align_bone_orientation(self.obj, mch, 'root')
-        self.set_bone_parent(mch, self.rig_parent_bone)
+        self.set_bone_parent(mch, self.rig_parent_bone, inherit_scale='FIX_SHEAR')
 
     @stage.configure_bones
     def configure_mch_follow_bone(self):
@@ -232,8 +232,9 @@ class BaseLimbRig(BaseRig):
     def rig_mch_follow_bone(self):
         mch = self.bones.mch.follow
 
+        self.make_constraint(mch, 'COPY_SCALE', 'root', use_make_uniform=True)
+
         con = self.make_constraint(mch, 'COPY_ROTATION', 'root')
-        self.make_constraint(mch, 'COPY_SCALE', 'root')
 
         self.make_driver(con, 'influence', variables=[(self.prop_bone, 'FK_limb_follow')])
 
@@ -311,7 +312,7 @@ class BaseLimbRig(BaseRig):
 
     def parent_fk_parent_bone(self, i, parent_mch, prev_ctrl, org, prev_org):
         if i == 2:
-            self.set_bone_parent(parent_mch, prev_ctrl, use_connect=True)
+            self.set_bone_parent(parent_mch, prev_ctrl, use_connect=True, inherit_scale='NONE')
 
     @stage.rig_bones
     def rig_fk_parent_chain(self):
@@ -320,7 +321,7 @@ class BaseLimbRig(BaseRig):
 
     def rig_fk_parent_bone(self, i, parent_mch, org):
         if i == 2:
-            self.make_constraint(parent_mch, 'COPY_SCALE', 'root')
+            self.make_constraint(parent_mch, 'COPY_SCALE', 'root', use_make_uniform=True)
 
 
     ####################################################
@@ -691,7 +692,7 @@ class BaseLimbRig(BaseRig):
             self.make_constraint(tweak, 'DAMPED_TRACK', next_tweak)
 
         elif entry.seg_idx is not None:
-            self.make_constraint(tweak, 'COPY_SCALE', 'root')
+            self.make_constraint(tweak, 'COPY_SCALE', 'root', use_make_uniform=True)
 
 
     ####################################################

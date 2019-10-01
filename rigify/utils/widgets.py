@@ -50,16 +50,8 @@ def obj_to_bone(obj, rig, bone_name, bone_transform_name=None):
     elif bone.custom_shape_transform:
         bone = bone.custom_shape_transform
 
-    mat = rig.matrix_world @ bone.bone.matrix_local
-
-    obj.location = mat.to_translation()
-
     obj.rotation_mode = 'XYZ'
-    obj.rotation_euler = mat.to_euler()
-
-    scl = mat.to_scale()
-    scl_avg = (scl[0] + scl[1] + scl[2]) / 3
-    obj.scale = (scale * scl_avg), (scale * scl_avg), (scale * scl_avg)
+    obj.matrix_basis = rig.matrix_world @ bone.bone.matrix_local @ Matrix.Scale(scale, 4)
 
 
 def create_widget(rig, bone_name, bone_transform_name=None):
@@ -159,11 +151,22 @@ def adjust_widget_axis(obj, axis='y', offset=0.0):
         vert.co = matrix @ vert.co
 
 
-def adjust_widget_transform(obj, matrix):
-    """Adjust the generated widget by applying a world space correction matrix to the mesh."""
+def adjust_widget_transform_mesh(obj, matrix, local=None):
+    """Adjust the generated widget by applying a correction matrix to the mesh.
+       If local is false, the matrix is in world space.
+       If local is True, it's in the local space of the widget.
+       If local is a bone, it's in the local space of the bone.
+    """
     if obj:
-        obmat = obj.matrix_basis
-        matrix = obmat.inverted() @ matrix @ obmat
+        if local is not True:
+            if local:
+                assert isinstance(local, bpy.types.PoseBone)
+                bonemat = local.id_data.matrix_world @ local.bone.matrix_local
+                matrix = bonemat @ matrix @ bonemat.inverted()
+
+            obmat = obj.matrix_basis
+            matrix = obmat.inverted() @ matrix @ obmat
+
         obj.data.transform(matrix)
 
 
