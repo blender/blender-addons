@@ -122,9 +122,8 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff.
     # causing a lot of throuble literally.
     if len(search_threads) == 0 or bpy.context.scene.blenderkitUI.dragging:
         return 1
-    for thread in search_threads:  # TODO this doesn't check all processess when one gets removed, but most time only
-        # one is running anyway
-
+    for thread in search_threads:  # TODO this doesn't check all processes when one gets removed,
+                                   # but most of the time only one is running anyway
         if not thread[0].is_alive():
             print('parsing')
             search_threads.remove(thread)  #
@@ -808,7 +807,7 @@ class Searcher(threading.Thread):
         full_thbs = zip(thumb_full_filepaths, thumb_full_urls)
 
         # we save here because a missing thumbnail check is in the previous loop
-        # we can also prepend previous results. These have already thumbnails downloaded...
+        # we can also prepend previous results. These have downloaded thumbnails already...
         if params['get_next']:
             rdata['results'][0:0] = origdata['results']
 

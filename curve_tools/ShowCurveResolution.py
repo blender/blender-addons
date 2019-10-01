@@ -18,7 +18,7 @@
 #
 
 
-# LOAD MODUL #
+# LOAD MODULE #
 import bpy
 from bpy import *
 from bpy.props import *

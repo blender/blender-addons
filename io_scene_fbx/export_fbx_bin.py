@@ -1070,7 +1070,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         if scene_data.settings.use_tspace:
             tspacenumber = len(me.uv_layers)
             if tspacenumber:
-                # We can only compute tspace on tesellated meshes, need to check that here...
+                # We can only compute tspace on tessellated meshes, need to check that here...
                 t_lt = [None] * len(me.polygons)
                 me.polygons.foreach_get("loop_total", t_lt)
                 if any((lt > 4 for lt in t_lt)):

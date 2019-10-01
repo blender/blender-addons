@@ -177,7 +177,7 @@ def Operation(context, _operation):
             selObj["BoolTool_FTransform"] = "False"
 
 
-# Remove Obejcts form the BoolTool System
+# Remove Objects form the BoolTool System
 def Remove(context, thisObj_name, Prop):
     # Find the Brush pointed in the Tree View and Restore it, active is the Canvas
     actObj = context.active_object

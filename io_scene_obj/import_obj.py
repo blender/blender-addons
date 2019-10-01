@@ -62,7 +62,7 @@ def filenames_group_by_ext(line, ext):
     """
     Splits material libraries supporting spaces, so:
     b'foo bar.mtl baz spam.MTL' -> (b'foo bar.mtl', b'baz spam.MTL')
-    Also handle " chars (some softwares use those to protect filenames with spaces, see T67266... sic).
+    Also handle " chars (some software use those to protect filenames with spaces, see T67266... sic).
     """
     # Note that we assume that if there are some " in that line,
     # then all filenames are properly enclosed within those...
@@ -93,7 +93,7 @@ def obj_image_load(context_imagepath_map, line, DIR, recursive, relpath):
     But we try all space-separated items from current line when file is not found with last one
     (users keep generating/using image files with spaces in a format that does not support them, sigh...)
     Also tries to replace '_' with ' ' for Max's exporter replaces spaces with underscores.
-    Also handle " chars (some softwares use those to protect filenames with spaces, see T67266... sic).
+    Also handle " chars (some software use those to protect filenames with spaces, see T67266... sic).
     """
     filepath_parts = line.split(b' ')
 

@@ -83,7 +83,7 @@ def vrml_split_fields(value):
                 if (field_context_len > 2) and (field_context[-2] in {'DEF', 'USE'}):
                     field_context.append(v)
                 elif (not iskey(field_context[-1])) or ((field_context_len == 3 and field_context[1] == 'IS')):
-                    # this IS a key but the previous value was not a key, ot it was a defined field.
+                    # this IS a key but the previous value was not a key, or it was a defined field.
                     field_list.append(field_context)
                     field_context = [v]
                 else:
@@ -1053,7 +1053,7 @@ class vrmlNode(object):
 
                             # if self.getExternprotoName():
                             if self.getExternprotoName():
-                                if not extern_key:  # if none is spesified - use the name
+                                if not extern_key:  # if none is specified - use the name
                                     extern_key = self.getSpec()
 
                                 if extern_key:
@@ -2463,7 +2463,7 @@ def importMesh_Sphere(geom, ancestry):
     else:
         nr = ns = GLOBALS['CIRCLE_DETAIL']
         # used as both ring count and segment count
-    lau = pi / nr  # Unit angle of latitude (rings) for the given tesselation
+    lau = pi / nr  # Unit angle of latitude (rings) for the given tessellation
     lou = 2 * pi / ns  # Unit angle of longitude (segments)
 
     bpymesh = bpy.data.meshes.new(name="Sphere")
@@ -2997,7 +2997,7 @@ def appearance_LoadPixelTexture(pixelTexture, ancestry):
     elif plane_count == 1:  # Intensity - does Blender even support that?
         bpyima.pixels = [(cco & 0xff) / 255 for pixel in pixels
                          for cco in (pixel, pixel, pixel, 255)]
-    elif plane_count == 2:  # Intensity/aplha
+    elif plane_count == 2:  # Intensity/alpha
         bpyima.pixels = [(cco & 0xff) / 255 for pixel in pixels
                          for cco
                          in (pixel >> 8, pixel >> 8, pixel >> 8, pixel)]
@@ -3431,7 +3431,7 @@ def importRoute(node, ancestry):
     # for getting definitions
     defDict = node.getDefDict()
     """
-    Handles routing nodes to eachother
+    Handles routing nodes to each other
 
 ROUTE vpPI.value_changed TO champFly001.set_position
 ROUTE vpOI.value_changed TO champFly001.set_orientation

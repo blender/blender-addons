@@ -869,7 +869,7 @@ class BlenderkitDownloadOperator(bpy.types.Operator):
         s = bpy.context.scene
         sr = s['search results']
 
-        asset_data = sr[self.asset_index].to_dict()  # TODO CHECK ALL OCCURANCES OF PASSING BLENDER ID PROPS TO THREADS!
+        asset_data = sr[self.asset_index].to_dict()  # TODO CHECK ALL OCCURRENCES OF PASSING BLENDER ID PROPS TO THREADS!
         au = s.get('assets used')
         if au == None:
             s['assets used'] = {}
