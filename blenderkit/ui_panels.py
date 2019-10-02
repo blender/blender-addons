@@ -737,19 +737,19 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
             if a is not None:
                 # utils.p('author:', a)
                 if a.get('aboutMeUrl') is not None:
-                    op = layout.operator('wm.url_open', text="Open author's website")
+                    op = layout.operator('wm.url_open', text="Open Author's Website")
                     op.url = a['aboutMeUrl']
 
-                op = layout.operator('view3d.blenderkit_search', text="Show assets by author.")
+                op = layout.operator('view3d.blenderkit_search', text="Show Assets By Author")
                 op.keywords = ''
                 op.author_id = author_id
 
-        op = layout.operator('view3d.blenderkit_search', text='Search similar')
+        op = layout.operator('view3d.blenderkit_search', text='Search Similar')
         op.keywords = asset_data['name'] + ' ' + asset_data['description'] + ' ' + ' '.join(asset_data['tags'])
 
         if bpy.context.active_object is not None and ui_props.asset_type == 'MODEL':
             aob = bpy.context.active_object
-            op = layout.operator('scene.blenderkit_download', text='Replace active ' + ui_props.asset_type.lower())
+            op = layout.operator('scene.blenderkit_download', text='Replace Active Models')
             op.asset_type = ui_props.asset_type
             op.asset_index = ui_props.active_index
             op.model_location = aob.location
