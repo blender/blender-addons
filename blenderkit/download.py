@@ -298,7 +298,7 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
         downloaders = kwargs.get('downloaders')
         s = bpy.context.scene
         sprops = s.blenderkit_models
-        # TODO this is here because combinations of linking objects or appending groups are rather not-userfull
+        # TODO this is here because combinations of linking objects or appending groups are rather not-usefull
         if sprops.append_method == 'LINK_COLLECTION':
             sprops.append_link = 'LINK'
             sprops.import_as = 'GROUP'

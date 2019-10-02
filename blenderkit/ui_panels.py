@@ -108,6 +108,7 @@ def draw_upload_common(layout, props, asset_type, context):
     # if props.upload_state.find('Error') > -1:
     #     layout.label(text = props.upload_state)
 
+
     if props.asset_base_id == '':
         optext = 'Upload %s' % asset_type.lower()
         op = layout.operator("object.blenderkit_upload", text=optext, icon='EXPORT')
@@ -206,8 +207,6 @@ def draw_panel_model_upload(self, context):
         layout.prop(props, 'design_year')
 
     row = layout.row()
-    if props.work_hours == 0:
-        row.label(text='', icon='ERROR')
     row.prop(props, 'work_hours')
 
     layout.prop(props, 'adult')
@@ -261,8 +260,6 @@ def draw_panel_scene_upload(self, context):
         layout.prop(props, 'design_year')
     layout.prop(props, 'condition')
     row = layout.row()
-    if props.work_hours == 0:
-        row.label(text='', icon='ERROR')
     row.prop(props, 'work_hours')
     layout.prop(props, 'adult')
 
@@ -362,12 +359,12 @@ class VIEW3D_PT_blenderkit_model_properties(Panel):
     bl_idname = "VIEW3D_PT_blenderkit_model_properties"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "Model tweaking"
+    bl_label = "Selected Asset"
     bl_context = "objectmode"
 
     @classmethod
     def poll(cls, context):
-        p = bpy.context.active_object is not None and bpy.context.active_object.get('asset_data') is not None
+        p = bpy.context.active_object is not None
         return p
 
     def draw(self, context):
@@ -743,7 +740,7 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
                     op = layout.operator('wm.url_open', text="Open author's website")
                     op.url = a['aboutMeUrl']
 
-                op = layout.operator('view3d.blenderkit_search', text="Show assets by author." + ui_props.asset_type.lower())
+                op = layout.operator('view3d.blenderkit_search', text="Show assets by author.")
                 op.keywords = ''
                 op.author_id = author_id
 
