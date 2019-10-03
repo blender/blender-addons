@@ -1010,7 +1010,9 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         for e in me.edges:
             if e.key not in edges_map:
                 continue  # Only loose edges, in theory!
-            t_ec[edges_map[e.key]] = e.crease
+            # Blender squares those values before sending them to OpenSubdiv, when other softwares don't,
+            # so we need to compensate that to get similar results through FBX...
+            t_ec[edges_map[e.key]] = e.crease * e.crease
 
         lay_crease = elem_data_single_int32(geom, b"LayerElementEdgeCrease", 0)
         elem_data_single_int32(lay_crease, b"Version", FBX_GEOMETRY_CREASE_VERSION)

@@ -1117,6 +1117,8 @@ def blen_read_geom_layer_smooth(fbx_obj, mesh):
         return False
 
 def blen_read_geom_layer_edge_crease(fbx_obj, mesh):
+    from math import sqrt
+
     fbx_layer = elem_find_first(fbx_obj, b'LayerElementEdgeCrease')
 
     if fbx_layer is None:
@@ -1151,6 +1153,9 @@ def blen_read_geom_layer_edge_crease(fbx_obj, mesh):
             fbx_layer_data, None,
             fbx_layer_mapping, fbx_layer_ref,
             1, 1, layer_id,
+            # Blender squares those values before sending them to OpenSubdiv, when other softwares don't,
+            # so we need to compensate that to get similar results through FBX...
+            xform=sqrt,
             )
     else:
         print("warning layer %r mapping type unsupported: %r" % (fbx_layer.id, fbx_layer_mapping))
