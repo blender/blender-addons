@@ -15,7 +15,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (0, 9, 81),
+    "version": (0, 9, 82),
     'blender': (2, 81, 6),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -247,7 +247,7 @@ class ExportGLTF2_Base:
     export_force_sampling: BoolProperty(
         name='Always Sample Animations',
         description='Apply sampling to all animations',
-        default=False
+        default=True
     )
 
     export_nla_strips: BoolProperty(
