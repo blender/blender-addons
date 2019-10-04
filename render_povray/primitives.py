@@ -594,9 +594,9 @@ class POVRAY_OT_plane_add(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self,context):
-        layers = 20*[False]
-        layers[0] = True
-        bpy.ops.mesh.primitive_plane_add(radius = 100000,layers=layers)
+        #layers = 20*[False]
+        #layers[0] = True
+        bpy.ops.mesh.primitive_plane_add(size = 100000)
         ob = context.object
         ob.name = ob.data.name = 'PovInfinitePlane'
         bpy.ops.object.mode_set(mode="EDIT")
