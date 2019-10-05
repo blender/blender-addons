@@ -639,7 +639,7 @@ def pov_cylinder_define(context, op, ob, radius, loc, loc_cap):
     vec = Vector(loc_cap) - Vector(loc)
     depth = vec.length
     rot = Vector((0, 0, 1)).rotation_difference(vec)  # Rotation from Z axis.
-    trans = rot * Vector((0, 0, depth / 2)) # Such that origin is at center of the base of the cylinder.
+    trans = rot @ Vector((0, 0, depth / 2)) # Such that origin is at center of the base of the cylinder.
     roteuler = rot.to_euler()
     if not ob:
         bpy.ops.object.add(type='MESH', location=loc)
@@ -1694,7 +1694,7 @@ class ImportPOV(bpy.types.Operator, ImportHelper):
                                 vec = Vector(imported_cyl_loc_cap ) - Vector(imported_cyl_loc)
                                 depth = vec.length
                                 rot = Vector((0, 0, 1)).rotation_difference(vec)  # Rotation from Z axis.
-                                trans = rot * Vector((0, 0, depth / 2)) # Such that origin is at center of the base of the cylinder.
+                                trans = rot @ Vector((0, 0, depth / 2)) # Such that origin is at center of the base of the cylinder.
                                 #center = ((x0 + x1)/2,(y0 + y1)/2,(z0 + z1)/2)
                                 scaleZ = sqrt((x1-x0)**2+(y1-y0)**2+(z1-z0)**2)/2
                                 bpy.ops.pov.addcylinder(R=r, imported_cyl_loc=imported_cyl_loc, imported_cyl_loc_cap=imported_cyl_loc_cap)
