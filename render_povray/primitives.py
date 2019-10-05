@@ -750,7 +750,7 @@ def pov_sphere_define(context, op, ob, loc):
             bpy.ops.mesh.reveal()
             bpy.ops.mesh.select_all(action='SELECT')
             bpy.ops.mesh.delete(type='VERT')
-            bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, size=ob.pov.sphere_radius, location=loc, rotation=obrot)
+            bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, radius=ob.pov.sphere_radius, location=loc, rotation=obrot)
             #bpy.ops.transform.rotate(axis=obrot,orient_type='GLOBAL')
             bpy.ops.transform.resize(value=obscale)
             #bpy.ops.transform.rotate(axis=obrot, proportional_size=1)
@@ -762,7 +762,7 @@ def pov_sphere_define(context, op, ob, loc):
             #bpy.ops.transform.rotate(axis=obrot,orient_type='GLOBAL')
 
         if not ob:
-            bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, size=R, location=loc)
+            bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, radius=R, location=loc)
             ob = context.object
             ob.name =  ob.data.name = "PovSphere"
             ob.pov.object_as = "SPHERE"
