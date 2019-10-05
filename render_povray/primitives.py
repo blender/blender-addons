@@ -51,7 +51,7 @@ def pov_define_mesh(mesh, verts, edges, faces, name, hide_geometry=True):
         mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(verts, edges, faces)
     mesh.update()
-    mesh.validate(False)  # Set it to True to see debug messages (helps ensure you generate valid geometry).
+    mesh.validate(verbose = False)  # Set it to True to see debug messages (helps ensure you generate valid geometry).
     if hide_geometry:
         mesh.vertices.foreach_set("hide", [True] * len(mesh.vertices))
         mesh.edges.foreach_set("hide", [True] * len(mesh.edges))
