@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Bsurfaces GPL Edition",
     "author": "Eclectiel, Spivak Vladimir(cwolf3d)",
-    "version": (1, 6, 4),
+    "version": (1, 6, 5),
     "blender": (2, 80, 0),
     "location": "View3D EditMode > Sidebar > Edit Tab",
     "description": "Modeling and retopology tool",
@@ -61,7 +61,7 @@ from bpy.types import (
         )
 
 # GLOBAL
-global_color = (1.0, 0.0, 0.0, 1.0)
+global_color = [1.0, 0.0, 0.0, 1.0]
 global_offset = 0.01
 global_in_front = False
 
@@ -1770,8 +1770,6 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         if len(self.main_object.modifiers) > 0:
             for m_idx in range(len(self.main_object.modifiers)):
                 self.main_object.modifiers[m_idx].show_viewport = self.modifiers_prev_viewport_state[m_idx]
-
-        self.update()
         
         return {'FINISHED'}
 
@@ -3086,22 +3084,31 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         bpy.ops.mesh.normals_make_consistent('INVOKE_REGION_WIN', inside=False)
         bpy.ops.mesh.select_all('INVOKE_REGION_WIN', action='DESELECT')
         
-        self.update()
-        
         return{'FINISHED'}
 
     def update(self):
-        global global_color
-        global global_offset
-        global global_in_front
-        shrinkwrap = self.main_object.modifiers["Shrinkwrap"]
-        shrinkwrap.offset = global_offset
-        material = makeMaterial("BSurfaceMesh", global_color)
-        if self.main_object.data.materials:
-            self.main_object.data.materials[0] = material
-        else:
-            self.main_object.data.materials.append(material)
-        self.main_object.show_in_front = global_in_front
+        try:
+            global global_offset
+            shrinkwrap = self.main_object.modifiers["Shrinkwrap"]
+            shrinkwrap.offset = global_offset
+            bpy.context.scene.bsurfaces.SURFSK_Shrinkwrap_offset = global_offset
+        except:
+            self.report({'WARNING'}, "Shrinkwrap modifier not found")
+            
+        try:        
+            global global_color
+            material = makeMaterial("BSurfaceMesh", global_color)
+            if self.main_object.data.materials:
+                self.main_object.data.materials[0] = material
+            else:
+                self.main_object.data.materials.append(material)
+            bpy.context.scene.bsurfaces.SURFSK_mesh_color = global_color
+            
+            global global_in_front
+            self.main_object.show_in_front = global_in_front
+            bpy.context.scene.bsurfaces.SURFSK_in_front = global_in_front
+        except:
+            pass
         
         return{'FINISHED'}
     
@@ -3304,7 +3311,11 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
                     bpy.ops.object.delete({"selected_objects": [o]})
 
             #bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
-            self.original_curve.select_set(True)
+            try:
+                self.original_curve.select_set(True)
+            except:
+                self.report({'WARNING'}, "Specify the name of the object with curve")
+                return{"CANCELLED"}
             bpy.context.view_layer.objects.active = self.original_curve
 
             bpy.ops.object.duplicate('INVOKE_REGION_WIN')
@@ -3525,18 +3536,21 @@ class GPENCIL_OT_SURFSK_init(Operator):
         bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='OBJECT')
         
         if bs.SURFSK_mesh == None:
+            global global_color
+            global global_offset
+            global global_in_front
             bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
             mesh = bpy.data.meshes.new('BSurfaceMesh')
             mesh_object = object_utils.object_data_add(context, mesh, operator=None)
             mesh_object.select_set(True)
             mesh_object.show_all_edges = True
-            in_front = bpy.context.scene.bsurfaces.SURFSK_in_front
-            mesh_object.show_in_front = in_front
+            global_in_front = bpy.context.scene.bsurfaces.SURFSK_in_front
+            mesh_object.show_in_front = global_in_front
             mesh_object.display_type = 'SOLID'
             mesh_object.show_wire = True
             bpy.context.view_layer.objects.active = mesh_object
-            color = bpy.context.scene.bsurfaces.SURFSK_mesh_color
-            material = makeMaterial("BSurfaceMesh", color)
+            global_color = bpy.context.scene.bsurfaces.SURFSK_mesh_color
+            material = makeMaterial("BSurfaceMesh", global_color)
             mesh_object.data.materials.append(material)
             bpy.ops.object.modifier_add(type='SHRINKWRAP')
             modifier = mesh_object.modifiers["Shrinkwrap"]
@@ -3545,7 +3559,8 @@ class GPENCIL_OT_SURFSK_init(Operator):
                 modifier.wrap_method = 'TARGET_PROJECT'
                 modifier.wrap_mode = 'OUTSIDE_SURFACE'
                 modifier.show_on_cage = True
-                modifier.offset = bpy.context.scene.bsurfaces.SURFSK_Shrinkwrap_offset
+                global_offset = bpy.context.scene.bsurfaces.SURFSK_Shrinkwrap_offset
+                modifier.offset = global_offset
             
             bpy.context.scene.bsurfaces.SURFSK_mesh = mesh_object
             
@@ -4270,37 +4285,35 @@ def makeMaterial(name, diffuse):
     return material
 
 def update_color(self, context):
-    try:
+    try:    
         global global_color
-        global_color = bpy.context.scene.bsurfaces.SURFSK_mesh_color
-        material = makeMaterial("BSurfaceMesh", global_color)
         mesh_object = bpy.context.scene.bsurfaces.SURFSK_mesh
+        material = makeMaterial("BSurfaceMesh", bpy.context.scene.bsurfaces.SURFSK_mesh_color)
         if mesh_object.data.materials:
             mesh_object.data.materials[0] = material
         else:
             mesh_object.data.materials.append(material)
-        #bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='OBJECT')
+        diffuse_color = material.diffuse_color
+        global_color = (diffuse_color[0], diffuse_color[1], diffuse_color[2], diffuse_color[3])
     except Exception as e:
         pass
         
 def update_Shrinkwrap_offset(self, context):
     try:
-        mesh_object = bpy.context.scene.bsurfaces.SURFSK_mesh
-        modifier = mesh_object.modifiers["Shrinkwrap"]
         global global_offset
         global_offset = bpy.context.scene.bsurfaces.SURFSK_Shrinkwrap_offset
+        mesh_object = bpy.context.scene.bsurfaces.SURFSK_mesh
+        modifier = mesh_object.modifiers["Shrinkwrap"]
         modifier.offset = global_offset
-        #bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='OBJECT')
     except Exception as e:
-        pass
+        self.report({'WARNING'}, "Shrinkwrap modifier not found")
         
 def update_in_front(self, context):
     try:
-        mesh_object = bpy.context.scene.bsurfaces.SURFSK_mesh
         global global_in_front
         global_in_front = bpy.context.scene.bsurfaces.SURFSK_in_front
+        mesh_object = bpy.context.scene.bsurfaces.SURFSK_mesh
         mesh_object.show_in_front = global_in_front
-        #bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='OBJECT')
     except Exception as e:
         pass
     
