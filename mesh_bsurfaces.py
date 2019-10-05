@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Bsurfaces GPL Edition",
     "author": "Eclectiel, Spivak Vladimir(cwolf3d)",
-    "version": (1, 6, 3),
+    "version": (1, 6, 4),
     "blender": (2, 80, 0),
     "location": "View3D EditMode > Sidebar > Edit Tab",
     "description": "Modeling and retopology tool",
@@ -60,6 +60,10 @@ from bpy.types import (
         AddonPreferences,
         )
 
+# GLOBAL
+global_color = (1.0, 0.0, 0.0, 1.0)
+global_offset = 0.01
+global_in_front = False
 
 class VIEW3D_PT_tools_SURFSK_mesh(Panel):
     bl_space_type = 'VIEW_3D'
@@ -89,6 +93,7 @@ class VIEW3D_PT_tools_SURFSK_mesh(Panel):
             col.prop(scn, "SURFSK_strokes", text="")
         col.separator()
         props = col.operator("gpencil.surfsk_add_surface", text="Add Surface")
+        
         col.operator("gpencil.surfsk_edit_surface", text="Edit Surface")
         if scn.SURFSK_guide == 'GPencil':
            col.operator("gpencil.surfsk_add_strokes", text="Add Strokes")
@@ -1766,6 +1771,8 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
             for m_idx in range(len(self.main_object.modifiers)):
                 self.main_object.modifiers[m_idx].show_viewport = self.modifiers_prev_viewport_state[m_idx]
 
+        self.update()
+        
         return {'FINISHED'}
 
     def rectangular_surface(self):
@@ -3078,18 +3085,37 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         bpy.ops.mesh.remove_doubles('INVOKE_REGION_WIN', threshold=0.0001)
         bpy.ops.mesh.normals_make_consistent('INVOKE_REGION_WIN', inside=False)
         bpy.ops.mesh.select_all('INVOKE_REGION_WIN', action='DESELECT')
-
+        
+        self.update()
+        
         return{'FINISHED'}
 
+    def update(self):
+        global global_color
+        global global_offset
+        global global_in_front
+        shrinkwrap = self.main_object.modifiers["Shrinkwrap"]
+        shrinkwrap.offset = global_offset
+        material = makeMaterial("BSurfaceMesh", global_color)
+        if self.main_object.data.materials:
+            self.main_object.data.materials[0] = material
+        else:
+            self.main_object.data.materials.append(material)
+        self.main_object.show_in_front = global_in_front
+        
+        return{'FINISHED'}
+    
     def execute(self, context):
-
+        
         bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='OBJECT')
         
         bsurfaces_props = bpy.context.scene.bsurfaces
         self.main_object = bsurfaces_props.SURFSK_mesh
         self.main_object.select_set(True)
         bpy.context.view_layer.objects.active = self.main_object
-
+        
+        self.update()
+        
         if not self.is_fill_faces:
             bpy.ops.wm.context_set_value(data_path='tool_settings.mesh_select_mode',
                                          value='True, False, False')
@@ -3191,10 +3217,13 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
             bpy.context.view_layer.objects.active = self.main_object
 
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
-
+            
+            self.update()
+        
         return{'FINISHED'}
 
     def invoke(self, context, event):
+        
         bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='OBJECT')
 
         bsurfaces_props = bpy.context.scene.bsurfaces
@@ -3204,22 +3233,21 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         self.loops_on_strokes = bsurfaces_props.SURFSK_loops_on_strokes
         self.keep_strokes = bsurfaces_props.SURFSK_keep_strokes
         self.main_object = bsurfaces_props.SURFSK_mesh
+        
         try:
             self.main_object.select_set(True)
         except:
             self.report({'WARNING'}, "Specify the name of the object with retopology")
             return{"CANCELLED"}
         bpy.context.view_layer.objects.active = self.main_object
-
+        
+        self.update()
+        
         self.main_object_selected_verts_count = len([v for v in self.main_object.data.vertices if v.select])
 
         bpy.ops.wm.context_set_value(data_path='tool_settings.mesh_select_mode',
                                      value='True, False, False')
 
-        #if self.loops_on_strokes:
-        #    self.edges_V = 1
-        #else:
-        #    self.edges_V = bsurfaces_props.SURFSK_edges_V
         self.edges_U = bsurfaces_props.SURFSK_edges_U
         self.edges_V = bsurfaces_props.SURFSK_edges_V
 
@@ -3481,7 +3509,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
 
         else:
             return{"CANCELLED"}
-
+            
 # Edit strokes operator
 class GPENCIL_OT_SURFSK_init(Operator):
     bl_idname = "gpencil.surfsk_init"
@@ -3516,9 +3544,21 @@ class GPENCIL_OT_SURFSK_init(Operator):
                 modifier.target = self.active_object
                 modifier.wrap_method = 'TARGET_PROJECT'
                 modifier.wrap_mode = 'OUTSIDE_SURFACE'
-                modifier.offset = 0.05
+                modifier.show_on_cage = True
+                modifier.offset = bpy.context.scene.bsurfaces.SURFSK_Shrinkwrap_offset
             
             bpy.context.scene.bsurfaces.SURFSK_mesh = mesh_object
+            
+            bpy.context.scene.tool_settings.snap_elements = {'FACE'}
+            bpy.context.scene.tool_settings.use_snap = True
+            bpy.context.scene.tool_settings.use_snap_self = False
+            bpy.context.scene.tool_settings.use_snap_align_rotation = True
+            bpy.context.scene.tool_settings.use_snap_project = True
+            bpy.context.scene.tool_settings.use_snap_rotate = True
+            bpy.context.scene.tool_settings.use_snap_scale = True
+
+            bpy.context.scene.tool_settings.use_mesh_automerge = True
+            bpy.context.scene.tool_settings.double_threshold = 0.01
         
         if context.scene.bsurfaces.SURFSK_guide == 'GPencil' and bs.SURFSK_strokes == None:
             bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
@@ -3580,6 +3620,8 @@ class GPENCIL_OT_SURFSK_add_modifiers(Operator):
                     shrinkwrap.target = self.active_object
                     shrinkwrap.wrap_method = 'TARGET_PROJECT'
                     shrinkwrap.wrap_mode = 'OUTSIDE_SURFACE'
+                    shrinkwrap.show_on_cage = True
+                    shrinkwrap.offset = bpy.context.scene.bsurfaces.SURFSK_Shrinkwrap_offset
             except:
                 bpy.ops.object.modifier_add(type='SHRINKWRAP')
                 shrinkwrap = mesh_object.modifiers["Shrinkwrap"]
@@ -3587,6 +3629,8 @@ class GPENCIL_OT_SURFSK_add_modifiers(Operator):
                     shrinkwrap.target = self.active_object
                     shrinkwrap.wrap_method = 'TARGET_PROJECT'
                     shrinkwrap.wrap_mode = 'OUTSIDE_SURFACE'
+                    shrinkwrap.show_on_cage = True
+                    shrinkwrap.offset = bpy.context.scene.bsurfaces.SURFSK_Shrinkwrap_offset
             
             try:
                 mirror = mesh_object.modifiers["Mirror"]
@@ -4227,14 +4271,15 @@ def makeMaterial(name, diffuse):
 
 def update_color(self, context):
     try:
-        color = bpy.context.scene.bsurfaces.SURFSK_mesh_color
-        material = makeMaterial("BSurfaceMesh", color)
+        global global_color
+        global_color = bpy.context.scene.bsurfaces.SURFSK_mesh_color
+        material = makeMaterial("BSurfaceMesh", global_color)
         mesh_object = bpy.context.scene.bsurfaces.SURFSK_mesh
         if mesh_object.data.materials:
             mesh_object.data.materials[0] = material
         else:
             mesh_object.data.materials.append(material)
-             
+        #bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='OBJECT')
     except Exception as e:
         pass
         
@@ -4242,17 +4287,23 @@ def update_Shrinkwrap_offset(self, context):
     try:
         mesh_object = bpy.context.scene.bsurfaces.SURFSK_mesh
         modifier = mesh_object.modifiers["Shrinkwrap"]
-        modifier.offset = bpy.context.scene.bsurfaces.SURFSK_Shrinkwrap_offset
+        global global_offset
+        global_offset = bpy.context.scene.bsurfaces.SURFSK_Shrinkwrap_offset
+        modifier.offset = global_offset
+        #bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='OBJECT')
     except Exception as e:
         pass
         
 def update_in_front(self, context):
     try:
         mesh_object = bpy.context.scene.bsurfaces.SURFSK_mesh
-        in_front = bpy.context.scene.bsurfaces.SURFSK_in_front
-        mesh_object.show_in_front = in_front
+        global global_in_front
+        global_in_front = bpy.context.scene.bsurfaces.SURFSK_in_front
+        mesh_object.show_in_front = global_in_front
+        #bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='OBJECT')
     except Exception as e:
         pass
+    
 
 class BsurfPreferences(AddonPreferences):
     # this must match the addon name, use '__package__'
@@ -4343,22 +4394,22 @@ class BsurfacesProps(PropertyGroup):
                 description="GPensil or Curve object",
                 )
     SURFSK_mesh_color: FloatVectorProperty(
-            name="Mesh color",
-            default=(1.0, 0.0, 0.0, 1.0),
-            size=4,
-            subtype="COLOR",
-            min=0,
-            max=1,
-            update=update_color,
-            description="Mesh color",
-            )
+                name="Mesh color",
+                default=(1.0, 0.0, 0.0, 1.0),
+                size=4,
+                subtype="COLOR",
+                min=0,
+                max=1,
+                update=update_color,
+                description="Mesh color",
+                )
     SURFSK_Shrinkwrap_offset: FloatProperty(
-            name="Shrinkwrap offset",
-            default=0.1,
-            precision=2,
-            description="Distance to keep from the target",
-            update=update_Shrinkwrap_offset,
-            )
+                name="Shrinkwrap offset",
+                default=0.01,
+                precision=3,
+                description="Distance to keep from the target",
+                update=update_Shrinkwrap_offset,
+                )
     SURFSK_in_front: BoolProperty(
                 name="In Front",
                 description="Make the object draw in front of others",
