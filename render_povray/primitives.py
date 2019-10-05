@@ -615,9 +615,9 @@ class POVRAY_OT_box_add(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self,context):
-        layers = 20*[False]
-        layers[0] = True
-        bpy.ops.mesh.primitive_cube_add(layers=layers)
+        # layers = 20*[False]
+        # layers[0] = True
+        bpy.ops.mesh.primitive_cube_add()
         ob = context.object
         ob.name = ob.data.name = 'PovBox'
         bpy.ops.object.mode_set(mode="EDIT")
