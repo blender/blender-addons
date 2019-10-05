@@ -969,9 +969,9 @@ class POVRAY_OT_isosurface_box_add(bpy.types.Operator):
 
 
     def execute(self,context):
-        layers = 20*[False]
-        layers[0] = True
-        bpy.ops.mesh.primitive_cube_add(layers = layers)
+        #layers = 20*[False]
+        #layers[0] = True
+        bpy.ops.mesh.primitive_cube_add()
         ob = context.object
         bpy.ops.object.mode_set(mode="EDIT")
         self.report({'INFO'}, "This native POV-Ray primitive "
@@ -991,9 +991,9 @@ class POVRAY_OT_isosurface_sphere_add(bpy.types.Operator):
 
 
     def execute(self,context):
-        layers = 20*[False]
-        layers[0] = True
-        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4,layers=layers)
+        #layers = 20*[False]
+        #layers[0] = True
+        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4)
         ob = context.object
         bpy.ops.object.mode_set(mode="EDIT")
         self.report({'INFO'}, "This native POV-Ray primitive "
@@ -1013,9 +1013,9 @@ class POVRAY_OT_sphere_sweep_add(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self,context):
-        layers = 20*[False]
-        layers[0] = True
-        bpy.ops.curve.primitive_nurbs_curve_add(layers = layers)
+        #layers = 20*[False]
+        #layers[0] = True
+        bpy.ops.curve.primitive_nurbs_curve_add()
         ob = context.object
         ob.name = ob.data.name = "PovSphereSweep"
         ob.pov.curveshape = "sphere_sweep"
@@ -1033,9 +1033,9 @@ class POVRAY_OT_blob_add(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self,context):
-        layers = 20*[False]
-        layers[0] = True
-        bpy.ops.object.metaball_add(type = 'BALL',layers = layers)
+        #layers = 20*[False]
+        #layers[0] = True
+        bpy.ops.object.metaball_add(type = 'BALL')
         ob = context.object
         ob.name = "PovBlob"
         return {'FINISHED'}
