@@ -67,12 +67,12 @@ class POVRAY_OT_lathe_add(bpy.types.Operator):
 
 
     def execute(self, context):
-        layers=[False]*20
-        layers[0]=True
+        #ayers=[False]*20
+        #layers[0]=True
         bpy.ops.curve.primitive_bezier_curve_add(
             location=context.scene.cursor.location,
             rotation=(0, 0, 0),
-            layers=layers,
+            #layers=layers,
         )
         ob = context.view_layer.objects.active
         ob_data = ob.data
@@ -1270,7 +1270,7 @@ class POVRAY_OT_prism_add(bpy.types.Operator):
         loftData = bpy.data.curves.new('Prism', type='CURVE')
         loftData.dimensions = '2D'
         loftData.resolution_u = 2
-        loftData.show_normal_face = False
+        #loftData.show_normal_face = False
         loftData.extrude = 2
         n=props.prism_n
         r=props.prism_r
