@@ -581,7 +581,7 @@ class POVRAY_OT_loft_add(bpy.types.Operator):
             nurbs.use_cyclic_u = True
         ob = bpy.data.objects.new('Loft_shape', loftData)
         scn = bpy.context.scene
-        scn.objects.link(ob)
+        scn.collection.objects.link(ob)
         context.view_layer.objects.active = ob
         ob.select_set(True)
         ob.pov.curveshape = "loft"
@@ -686,8 +686,8 @@ class POVRAY_OT_cylinder_add(bpy.types.Operator):
         props = self.properties
         R = props.R
         ob = context.object
-        layers = 20*[False]
-        layers[0] = True
+        #layers = 20*[False]
+        #layers[0] = True
         if ob:
             if ob.pov.imported_cyl_loc:
                 LOC = ob.pov.imported_cyl_loc
@@ -808,10 +808,10 @@ class POVRAY_OT_sphere_add(bpy.types.Operator):
         return {'FINISHED'}
 
     # def execute(self,context):
-        # layers = 20*[False]
-        # layers[0] = True
+        ## layers = 20*[False]
+        ## layers[0] = True
 
-        # bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, radius=ob.pov.sphere_radius, layers=layers)
+        # bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, radius=ob.pov.sphere_radius)
         # ob = context.object
         # bpy.ops.object.mode_set(mode="EDIT")
         # self.report({'INFO'}, "This native POV-Ray primitive "
@@ -1128,14 +1128,14 @@ class POVRAY_OT_height_field_add(bpy.types.Operator, ImportHelper):
         mat = bpy.data.materials.new('Tex_%s_hf'%im_name)
         hf_slot = mat.texture_slots.create(-1)
         hf_slot.texture = hf_tex
-        layers = 20*[False]
-        layers[0] = True
+        #layers = 20*[False]
+        #layers[0] = True
         quality = props.quality
         res = 100/quality
         w,h = hf_tex.image.size[:]
         w = int(w/res)
         h = int(h/res)
-        bpy.ops.mesh.primitive_grid_add(x_subdivisions=w, y_subdivisions=h,radius = 0.5,layers=layers)
+        bpy.ops.mesh.primitive_grid_add(x_subdivisions=w, y_subdivisions=h,radius = 0.5)
         ob = context.object
         ob.name = ob.data.name = '%s'%im_name
         ob.data.materials.append(mat)
@@ -1291,7 +1291,7 @@ class POVRAY_OT_prism_add(bpy.types.Operator):
 
         ob = bpy.data.objects.new('Prism_shape', loftData)
         scn = bpy.context.scene
-        scn.objects.link(ob)
+        scn.collection.objects.link(ob)
         context.view_layer.objects.active = ob
         ob.select_set(True)
         ob.pov.curveshape = "prism"
@@ -1444,20 +1444,20 @@ class POVRAY_OT_shape_polygon_to_circle_add(bpy.types.Operator):
         ngonR = props.polytocircle_ngonR
         circleR = props.polytocircle_circleR
         resolution = props.polytocircle_resolution
-        layers = 20*[False]
-        layers[0] = True
-        bpy.ops.mesh.primitive_circle_add(vertices=ngon, radius=ngonR, fill_type='NGON',enter_editmode=True, layers=layers)
+        #layers = 20*[False]
+        #layers[0] = True
+        bpy.ops.mesh.primitive_circle_add(vertices=ngon, radius=ngonR, fill_type='NGON',enter_editmode=True)
         bpy.ops.transform.translate(value=(0, 0, 1))
         bpy.ops.mesh.subdivide(number_cuts=resolution)
         numCircleVerts = ngon + (ngon*resolution)
         bpy.ops.mesh.select_all(action='DESELECT')
-        bpy.ops.mesh.primitive_circle_add(vertices=numCircleVerts, radius=circleR, fill_type='NGON',enter_editmode=True, layers=layers)
+        bpy.ops.mesh.primitive_circle_add(vertices=numCircleVerts, radius=circleR, fill_type='NGON',enter_editmode=True)
         bpy.ops.transform.translate(value=(0, 0, -1))
         bpy.ops.mesh.select_all(action='SELECT')
         bpy.ops.mesh.bridge_edge_loops()
         if ngon < 5:
             bpy.ops.mesh.select_all(action='DESELECT')
-            bpy.ops.mesh.primitive_circle_add(vertices=ngon, radius=ngonR, fill_type='TRIFAN',enter_editmode=True, layers=layers)
+            bpy.ops.mesh.primitive_circle_add(vertices=ngon, radius=ngonR, fill_type='TRIFAN',enter_editmode=True)
             bpy.ops.transform.translate(value=(0, 0, 1))
             bpy.ops.mesh.select_all(action='SELECT')
             bpy.ops.mesh.remove_doubles()
