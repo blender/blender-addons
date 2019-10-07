@@ -26,11 +26,14 @@ import bmesh
 from . import report
 
 
-class VIEW3D_PT_print3d(Panel):
-    bl_label = "3D-Print"
+class Setup:
     bl_category = "3D-Print"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
+
+
+class VIEW3D_PT_print3d_analyze(Panel, Setup):
+    bl_label = "Analyze"
 
     _type_to_icon = {
         bmesh.types.BMVert: 'VERTEXSEL',
@@ -50,7 +53,7 @@ class VIEW3D_PT_print3d(Panel):
         if info:
             is_edit = context.edit_object is not None
 
-            layout.label(text="Report")
+            layout.label(text="Result")
             box = layout.box()
             col = box.column()
 
@@ -97,19 +100,15 @@ class VIEW3D_PT_print3d(Panel):
         self.draw_report(context)
 
 
-class VIEW3D_PT_print3d_cleanup(Panel):
-    bl_label = "Cleanup & Modify"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
+class VIEW3D_PT_print3d_cleanup(Panel, Setup):
+    bl_label = "Clean Up"
     bl_options = {"DEFAULT_CLOSED"}
-    bl_parent_id = "VIEW3D_PT_print3d"
 
     def draw(self, context):
         layout = self.layout
 
         print_3d = context.scene.print_3d
 
-        layout.label(text="Cleanup")
         col = layout.column(align=True)
         col.operator("mesh.print3d_clean_isolated", text="Isolated")
         row = col.row(align=True)
@@ -119,18 +118,23 @@ class VIEW3D_PT_print3d_cleanup(Panel):
         # XXX TODO
         # layout.operator("mesh.print3d_clean_thin", text="Wall Thickness")
 
+
+class VIEW3D_PT_print3d_transform(Panel, Setup):
+    bl_label = "Transform"
+    bl_options = {"DEFAULT_CLOSED"}
+
+    def draw(self, context):
+        layout = self.layout
+
         layout.label(text="Scale To")
         row = layout.row(align=True)
         row.operator("mesh.print3d_scale_to_volume", text="Volume")
         row.operator("mesh.print3d_scale_to_bounds", text="Bounds")
 
 
-class VIEW3D_PT_print3d_export(Panel):
+class VIEW3D_PT_print3d_export(Panel, Setup):
     bl_label = "Export"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
     bl_options = {"DEFAULT_CLOSED"}
-    bl_parent_id = "VIEW3D_PT_print3d"
 
     def draw(self, context):
         layout = self.layout
