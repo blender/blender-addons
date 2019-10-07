@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Bsurfaces GPL Edition",
     "author": "Eclectiel, Spivak Vladimir(cwolf3d)",
-    "version": (1, 7, 0),
+    "version": (1, 7, 1),
     "blender": (2, 80, 0),
     "location": "View3D EditMode > Sidebar > Edit Tab",
     "description": "Modeling and retopology tool",
@@ -484,27 +484,6 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         simplified_spline.append(spline_coords[len(spline_coords) - 1])
 
         return simplified_spline
-
-    # Cleans up the scene and gets it the same it was at the beginning,
-    # in case the script is interrupted in the middle of the execution
-    def cleanup_on_interruption(self):
-        # If the original strokes curve comes from conversion
-        # from grease pencil and wasn't made by hand, delete it
-        if not self.using_external_curves:
-            try:
-                bpy.ops.object.delete({"selected_objects": [self.original_curve]})
-            except:
-                pass
-
-            #bpy.ops.object.delete({"selected_objects": [self.main_object]})
-        else:
-            bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
-            self.original_curve.select_set(True)
-            self.main_object.select_set(True)
-            bpy.context.view_layer.objects.active = self.main_object
-
-        #bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
-        bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='OBJECT')
 
     # Returns a list with the coords of the points distributed over the splines
     # passed to this method according to the proportions parameter
@@ -1924,8 +1903,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
             else:
                 # The type of the selection was not identified, the script stops.
                 self.report({'WARNING'}, "The selection isn't valid.")
-                bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
-                self.cleanup_on_interruption()
+
                 self.stopping_errors = True
 
                 return{'CANCELLED'}
@@ -1941,17 +1919,13 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
                     # If the selection was not identified and there is only one stroke,
                     # there's no possibility to build a surface, so the script is interrupted
                     self.report({'WARNING'}, "The selection isn't valid.")
-                    bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
-                    self.cleanup_on_interruption()
+
                     self.stopping_errors = True
 
                     return{'CANCELLED'}
             else:
                 # The type of the selection was not identified, the script stops
                 self.report({'WARNING'}, "The selection isn't valid.")
-
-                bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
-                self.cleanup_on_interruption()
 
                 self.stopping_errors = True
 
@@ -1961,8 +1935,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         if selection_type == "TWO_NOT_CONNECTED" and len(self.main_splines.data.splines) == 1:
             self.report({'WARNING'},
                         "At least two strokes are needed when there are two not connected selections")
-            bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
-            self.cleanup_on_interruption()
+
             self.stopping_errors = True
 
             return{'CANCELLED'}
@@ -2410,7 +2383,6 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
             # Display a warning
             self.report({'WARNING'}, "Both selections must have the same number of edges")
 
-            self.cleanup_on_interruption()
             self.stopping_errors = True
 
             return{'CANCELLED'}
@@ -3106,7 +3078,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
             shrinkwrap.offset = global_offset
             bpy.context.scene.bsurfaces.SURFSK_Shrinkwrap_offset = global_offset
         except:
-            self.report({'WARNING'}, "Shrinkwrap modifier not found")
+            pass
             
         try:        
             global global_color
@@ -3161,14 +3133,12 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
                 for p in range(0, len(sp)):
                     spline.bezier_points[p].co = [sp[p][0], sp[p][1], sp[p][2]]
 
-            #bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
             bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='OBJECT')
 
             bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
             self.main_splines.select_set(True)
             bpy.context.view_layer.objects.active = self.main_splines
 
-            #bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
             bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='EDIT')
 
             bpy.ops.curve.select_all('INVOKE_REGION_WIN', action='SELECT')
@@ -3200,7 +3170,6 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
                 self.crosshatch_surface_execute()
 
             # Delete main splines
-            #bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
             bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='OBJECT')
             if self.keep_strokes:
                 self.main_splines.name = "keep_strokes"
@@ -3272,6 +3241,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         self.update()
         
         self.main_object_selected_verts_count = len([v for v in self.main_object.data.vertices if v.select])
+        print(self.main_object_selected_verts_count)
 
         bpy.ops.wm.context_set_value(data_path='tool_settings.mesh_select_mode',
                                      value='True, False, False')
@@ -3325,7 +3295,6 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
                 if o.name.find("SURFSKIO_") != -1:
                     bpy.ops.object.delete({"selected_objects": [o]})
 
-            #bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
             try:
                 self.original_curve.select_set(True)
             except:
