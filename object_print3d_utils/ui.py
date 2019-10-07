@@ -27,7 +27,7 @@ from . import report
 
 
 class VIEW3D_PT_print3d(Panel):
-    bl_label = "Print3D"
+    bl_label = "3D-Print"
     bl_category = "3D-Print"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'

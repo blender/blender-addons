@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 bl_info = {
-    "name": "3D Print Toolbox",
+    "name": "3D-Print Toolbox",
     "author": "Campbell Barton",
     "blender": (2, 80, 0),
     "location": "3D View > Sidebar",
