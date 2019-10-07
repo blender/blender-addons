@@ -1386,7 +1386,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         return
 
     # Part of the Crosshatch process that is repeated when the operator is tweaked
-    def crosshatch_surface_execute(self):
+    def crosshatch_surface_execute(self, context):
         # If the main object uses modifiers deactivate them temporarily until the surface is joined
         # (without this the surface verts merging with the main object doesn't work well)
         self.modifiers_prev_viewport_state = []
@@ -1413,12 +1413,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
                     all_edges.append((len(all_verts_coords) - 2, len(all_verts_coords) - 1))
 
         me.from_pydata(all_verts_coords, all_edges, [])
-
-        me.update()
-
-        ob = bpy.data.objects.new(me_name, me)
-        ob.data = me
-        bpy.context.collection.objects.link(ob)
+        ob = object_utils.object_data_add(context, me)
 
         bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
         ob.select_set(True)
@@ -1590,13 +1585,8 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         # Build the mesh
         surf_me_name = "SURFSKIO_surface"
         me_surf = bpy.data.meshes.new(surf_me_name)
-
         me_surf.from_pydata(all_surface_verts_co, [], all_surface_faces)
-
-        me_surf.update()
-
-        ob_surface = bpy.data.objects.new(surf_me_name, me_surf)
-        bpy.context.collection.objects.link(ob_surface)
+        ob_surface = object_utils.object_data_add(context, me_surf)
 
         # Delete final points temporal object
         bpy.ops.object.delete({"selected_objects": [final_points_ob]})
@@ -1765,7 +1755,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         
         return {'FINISHED'}
 
-    def rectangular_surface(self):
+    def rectangular_surface(self, context):
         # Selected edges
         all_selected_edges_idx = []
         all_selected_verts = []
@@ -3043,13 +3033,8 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         # Build the mesh
         surf_me_name = "SURFSKIO_surface"
         me_surf = bpy.data.meshes.new(surf_me_name)
-
         me_surf.from_pydata(all_surface_verts_co, [], all_surface_faces)
-
-        me_surf.update()
-
-        ob_surface = bpy.data.objects.new(surf_me_name, me_surf)
-        bpy.context.collection.objects.link(ob_surface)
+        ob_surface = object_utils.object_data_add(context, me_surf)
 
         # Select all the "unselected but participating" verts, from closed selection
         # or double selections with middle-vertex, for later join with remove doubles
@@ -3165,7 +3150,7 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
 
             if strokes_for_rectangular_surface:
-                self.rectangular_surface()
+                self.rectangular_surface(context)
             elif strokes_for_crosshatch:
                 self.crosshatch_surface_execute()
 
@@ -3241,7 +3226,6 @@ class GPENCIL_OT_SURFSK_add_surface(Operator):
         self.update()
         
         self.main_object_selected_verts_count = len([v for v in self.main_object.data.vertices if v.select])
-        print(self.main_object_selected_verts_count)
 
         bpy.ops.wm.context_set_value(data_path='tool_settings.mesh_select_mode',
                                      value='True, False, False')
@@ -3520,10 +3504,13 @@ class GPENCIL_OT_SURFSK_init(Operator):
     
         bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='OBJECT')
         
+        global global_color
+        global global_offset
+        global global_in_front
+        global global_mesh_object
+        global global_gpencil_object
+        
         if bs.SURFSK_mesh == None:
-            global global_color
-            global global_offset
-            global global_in_front
             bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
             mesh = bpy.data.meshes.new('BSurfaceMesh')
             mesh_object = object_utils.object_data_add(context, mesh)
@@ -3546,8 +3533,7 @@ class GPENCIL_OT_SURFSK_init(Operator):
                 modifier.show_on_cage = True
                 global_offset = bpy.context.scene.bsurfaces.SURFSK_Shrinkwrap_offset
                 modifier.offset = global_offset
-            
-            global global_mesh_object
+
             global_mesh_object = mesh_object.name
             bpy.context.scene.bsurfaces.SURFSK_mesh = bpy.data.objects[global_mesh_object]
             
@@ -3570,7 +3556,6 @@ class GPENCIL_OT_SURFSK_init(Operator):
             gpencil_object.select_set(True)
             bpy.context.view_layer.objects.active = gpencil_object
             bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='PAINT_GPENCIL')
-            global global_gpencil_object
             global_gpencil_object = gpencil_object.name
             bpy.context.scene.bsurfaces.SURFSK_gpencil = bpy.data.objects[global_gpencil_object]
             gpencil_object.data.stroke_depth_order = '3D'
@@ -3580,6 +3565,9 @@ class GPENCIL_OT_SURFSK_init(Operator):
         if context.scene.bsurfaces.SURFSK_guide == 'Annotation':
             bpy.ops.wm.tool_set_by_id(name="builtin.annotate")
             bpy.context.scene.tool_settings.annotation_stroke_placement_view3d = 'SURFACE'
+            
+        if context.scene.bsurfaces.SURFSK_guide == 'Curve':
+            bpy.data.objects[global_mesh_object].data.vertices.add(1)
 
         return {"FINISHED"}
 
