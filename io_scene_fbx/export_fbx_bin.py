@@ -1686,7 +1686,9 @@ def fbx_data_object_elements(root, ob_obj, scene_data):
 
     # Custom properties.
     if scene_data.settings.use_custom_props:
-        fbx_data_element_custom_properties(props, ob_obj.bdata)
+        # Here we want customprops from the 'pose' bone, not the 'edit' bone...
+        bdata = ob_obj.bdata_pose_bone if ob_obj.is_bone else ob_obj.bdata
+        fbx_data_element_custom_properties(props, bdata)
 
     # Those settings would obviously need to be edited in a complete version of the exporter, may depends on
     # object type, etc.
