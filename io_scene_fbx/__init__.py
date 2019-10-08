@@ -21,7 +21,7 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (4, 18, 0),
+    "version": (4, 18, 1),
     "blender": (2, 81, 6),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
@@ -688,8 +688,11 @@ class FBX_PT_export_include(bpy.types.Panel):
         sfile = context.space_data
         operator = sfile.active_operator
 
-        layout.prop(operator, "use_selection")
-        layout.prop(operator, "use_active_collection")
+        sublayout = layout.column()
+        sublayout.enabled = (operator.batch_mode == 'OFF')
+        sublayout.prop(operator, "use_selection")
+        sublayout.prop(operator, "use_active_collection")
+
         layout.column().prop(operator, "object_types")
         layout.prop(operator, "use_custom_props")
 
