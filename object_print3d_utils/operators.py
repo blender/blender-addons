@@ -344,7 +344,7 @@ class MESH_OT_print3d_clean_distorted(Operator):
     bl_description = "Tessellate distorted faces"
     bl_options = {'REGISTER', 'UNDO'}
 
-    angle_distort: FloatProperty(
+    angle: FloatProperty(
         name="Angle",
         description="Limit for checking distorted faces",
         subtype='ANGLE',
@@ -357,7 +357,7 @@ class MESH_OT_print3d_clean_distorted(Operator):
         obj = context.active_object
         bm = mesh_helpers.bmesh_from_object(obj)
         bm.normal_update()
-        elems_triangulate = [ele for ele in bm.faces if mesh_helpers.face_is_distorted(ele, self.angle_distort)]
+        elems_triangulate = [ele for ele in bm.faces if mesh_helpers.face_is_distorted(ele, self.angle)]
 
         if elems_triangulate:
             bmesh.ops.triangulate(bm, faces=elems_triangulate)
@@ -369,7 +369,7 @@ class MESH_OT_print3d_clean_distorted(Operator):
 
     def invoke(self, context, event):
         print_3d = context.scene.print_3d
-        self.angle_distort = print_3d.angle_distort
+        self.angle = print_3d.angle_distort
 
         return self.execute(context)
 

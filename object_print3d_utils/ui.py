@@ -31,6 +31,11 @@ class Setup:
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
 
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return obj is not None and obj.type == 'MESH' and obj.mode in {'OBJECT', 'EDIT'}
+
 
 class VIEW3D_PT_print3d_analyze(Panel, Setup):
     bl_label = "Analyze"
@@ -40,11 +45,6 @@ class VIEW3D_PT_print3d_analyze(Panel, Setup):
         bmesh.types.BMEdge: 'EDGESEL',
         bmesh.types.BMFace: 'FACESEL',
     }
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.active_object
-        return obj is not None and obj.type == 'MESH' and obj.mode in {'OBJECT', 'EDIT'}
 
     def draw_report(self, context):
         layout = self.layout
