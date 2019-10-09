@@ -26,7 +26,7 @@ import bmesh
 from . import report
 
 
-class Setup:
+class View3DPrintPanel:
     bl_category = "3D-Print"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -37,7 +37,7 @@ class Setup:
         return obj is not None and obj.type == 'MESH' and obj.mode in {'OBJECT', 'EDIT'}
 
 
-class VIEW3D_PT_print3d_analyze(Panel, Setup):
+class VIEW3D_PT_print3d_analyze(View3DPrintPanel, Panel):
     bl_label = "Analyze"
 
     _type_to_icon = {
@@ -100,7 +100,7 @@ class VIEW3D_PT_print3d_analyze(Panel, Setup):
         self.draw_report(context)
 
 
-class VIEW3D_PT_print3d_cleanup(Panel, Setup):
+class VIEW3D_PT_print3d_cleanup(View3DPrintPanel, Panel):
     bl_label = "Clean Up"
     bl_options = {"DEFAULT_CLOSED"}
 
@@ -117,7 +117,7 @@ class VIEW3D_PT_print3d_cleanup(Panel, Setup):
         # layout.operator("mesh.print3d_clean_thin", text="Wall Thickness")
 
 
-class VIEW3D_PT_print3d_transform(Panel, Setup):
+class VIEW3D_PT_print3d_transform(View3DPrintPanel, Panel):
     bl_label = "Transform"
     bl_options = {"DEFAULT_CLOSED"}
 
@@ -130,7 +130,7 @@ class VIEW3D_PT_print3d_transform(Panel, Setup):
         row.operator("mesh.print3d_scale_to_bounds", text="Bounds")
 
 
-class VIEW3D_PT_print3d_export(Panel, Setup):
+class VIEW3D_PT_print3d_export(View3DPrintPanel, Panel):
     bl_label = "Export"
     bl_options = {"DEFAULT_CLOSED"}
 
