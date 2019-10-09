@@ -363,7 +363,7 @@ class MESH_OT_print3d_clean_distorted(Operator):
             bmesh.ops.triangulate(bm, faces=elems_triangulate)
             mesh_helpers.bmesh_to_object(obj, bm)
 
-        self.report({'INFO'}, f"Triangulated Faces: {len(elems_triangulate)}")
+        self.report({'INFO'}, f"Triangulated {len(elems_triangulate)} faces")
 
         return {'FINISHED'}
 
@@ -414,7 +414,7 @@ class MESH_OT_print3d_clean_non_manifold(Operator):
         edges = bm_key[1] - bm_key_orig[1]
         faces = bm_key[2] - bm_key_orig[2]
 
-        self.report({'INFO'}, f"Modified Verts:{verts:+}, Edges:{edges:+}, Faces:{faces:+}")
+        self.report({'INFO'}, f"Modified: {verts:+} vertices, {edges:+} edges, {faces:+} faces")
 
         return {'FINISHED'}
 
