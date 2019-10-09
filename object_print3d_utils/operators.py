@@ -427,18 +427,18 @@ class MESH_OT_print3d_clean_distorted(Operator):
 
 class MESH_OT_print3d_clean_non_manifold(Operator):
     bl_idname = "mesh.print3d_clean_non_manifold"
-    bl_label = "3D-Print Clean Non-Manifold and Inverted"
+    bl_label = "3D-Print Clean Non-Manifold"
     bl_description = "Cleanup problems, like holes, non-manifold vertices and inverted normals"
     bl_options = {'REGISTER', 'UNDO'}
 
-    threshold: bpy.props.FloatProperty(
-        name="threshold",
+    threshold: FloatProperty(
+        name="Merge Distance",
         description="Minimum distance between elements to merge",
         default=0.0001,
     )
-    sides: bpy.props.IntProperty(
-        name="sides",
-        description="Number of sides in hole required to fill",
+    sides: IntProperty(
+        name="Sides",
+        description="Number of sides in hole required to fill (zero fills all holes)",
         default=0,
     )
 
