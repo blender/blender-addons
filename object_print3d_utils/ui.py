@@ -109,9 +109,7 @@ class VIEW3D_PT_print3d_cleanup(Panel, Setup):
 
         print_3d = context.scene.print_3d
 
-        col = layout.column(align=True)
-        col.operator("mesh.print3d_clean_isolated", text="Isolated")
-        row = col.row(align=True)
+        row = layout.row(align=True)
         row.operator("mesh.print3d_clean_distorted", text="Distorted")
         row.prop(print_3d, "angle_distort", text="")
         layout.operator("mesh.print3d_clean_non_manifold", text="Make Manifold")

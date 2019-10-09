@@ -143,7 +143,6 @@ classes = (
     operators.MESH_OT_print3d_check_sharp,
     operators.MESH_OT_print3d_check_overhang,
     operators.MESH_OT_print3d_check_all,
-    operators.MESH_OT_print3d_clean_isolated,
     operators.MESH_OT_print3d_clean_distorted,
     # operators.MESH_OT_print3d_clean_thin,
     operators.MESH_OT_print3d_clean_non_manifold,

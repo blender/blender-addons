@@ -337,68 +337,6 @@ class MESH_OT_print3d_check_all(Operator):
         return {'FINISHED'}
 
 
-class MESH_OT_print3d_clean_isolated(Operator):
-    bl_idname = "mesh.print3d_clean_isolated"
-    bl_label = "3D-Print Clean Isolated"
-    bl_description = "Cleanup isolated vertices and edges"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        obj = context.active_object
-        bm = mesh_helpers.bmesh_from_object(obj)
-
-        change = False
-
-        def face_is_isolated(ele):
-            for loop in ele.loops:
-                loop_next = loop.link_loop_radial_next
-                if loop is not loop_next:
-                    return False
-            return True
-
-        def edge_is_isolated(ele):
-            return ele.is_wire
-
-        def vert_is_isolated(ele):
-            return not bool(ele.link_edges)
-
-        # --- face
-        elems_remove = [ele for ele in bm.faces if face_is_isolated(ele)]
-        remove = bm.faces.remove
-        for ele in elems_remove:
-            remove(ele)
-        change |= bool(elems_remove)
-        face_count = len(elems_remove)
-        del elems_remove
-
-        # --- edge
-        elems_remove = [ele for ele in bm.edges if edge_is_isolated(ele)]
-        remove = bm.edges.remove
-        for ele in elems_remove:
-            remove(ele)
-        change |= bool(elems_remove)
-        edge_count = len(elems_remove)
-        del elems_remove
-
-        # --- vert
-        elems_remove = [ele for ele in bm.verts if vert_is_isolated(ele)]
-        remove = bm.verts.remove
-        for ele in elems_remove:
-            remove(ele)
-        change |= bool(elems_remove)
-        vert_count = len(elems_remove)
-        del elems_remove
-        # ---
-
-        self.report({'INFO'}, f"Removed Verts: {vert_count}, Edges: {edge_count}, Faces: {face_count}")
-
-        if change:
-            mesh_helpers.bmesh_to_object(obj, bm)
-            return {'FINISHED'}
-
-        return {'CANCELLED'}
-
-
 class MESH_OT_print3d_clean_distorted(Operator):
     bl_idname = "mesh.print3d_clean_distorted"
     bl_label = "3D-Print Clean Distorted"
