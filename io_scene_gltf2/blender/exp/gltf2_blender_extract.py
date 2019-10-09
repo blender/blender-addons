@@ -1162,3 +1162,4 @@ def extract_primitives(glTF, blender_mesh, blender_object, blender_vertex_groups
     print_console('INFO', 'Primitives created: ' + str(len(result_primitives)))
 
     return result_primitives
+
