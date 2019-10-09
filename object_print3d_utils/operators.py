@@ -199,7 +199,7 @@ class MESH_OT_print3d_check_degenerate(Operator):
 class MESH_OT_print3d_check_distorted(Operator):
     bl_idname = "mesh.print3d_check_distort"
     bl_label = "3D-Print Check Distorted Faces"
-    bl_description = "Check for non-flat faces "
+    bl_description = "Check for non-flat faces"
 
     @staticmethod
     def main_check(obj, info):
@@ -428,7 +428,7 @@ class MESH_OT_print3d_clean_distorted(Operator):
 class MESH_OT_print3d_clean_non_manifold(Operator):
     bl_idname = "mesh.print3d_clean_non_manifold"
     bl_label = "3D-Print Clean Non-Manifold and Inverted"
-    bl_description = "Cleanup problems, like holes, non-manifold vertices, and inverted normals"
+    bl_description = "Cleanup problems, like holes, non-manifold vertices and inverted normals"
     bl_options = {'REGISTER', 'UNDO'}
 
     threshold: bpy.props.FloatProperty(
@@ -450,6 +450,7 @@ class MESH_OT_print3d_clean_non_manifold(Operator):
         bm_key_orig = self.elem_count(context)
 
         self.delete_loose()
+        self.delete_interior()
         self.remove_doubles(self.threshold)
         self.dissolve_degenerate(self.threshold)
         self.fix_non_manifold(context, self.sides)  # may take a while
@@ -491,6 +492,13 @@ class MESH_OT_print3d_clean_non_manifold(Operator):
         """delete loose vertices/edges/faces"""
         bpy.ops.mesh.select_all(action='SELECT')
         bpy.ops.mesh.delete_loose()
+
+    @staticmethod
+    def delete_interior():
+        """delete interior faces"""
+        bpy.ops.mesh.select_all(action='DESELECT')
+        bpy.ops.mesh.select_interior_faces()
+        bpy.ops.mesh.delete(type='FACE')
 
     @staticmethod
     def dissolve_degenerate(threshold):
