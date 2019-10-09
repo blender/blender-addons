@@ -491,7 +491,7 @@ class MESH_OT_print3d_clean_non_manifold(Operator):
     def delete_loose():
         """delete loose vertices/edges/faces"""
         bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.delete_loose()
+        bpy.ops.mesh.delete_loose(use_verts=True, use_edges=True, use_faces=True)
 
     @staticmethod
     def delete_interior():
