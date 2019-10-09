@@ -20,6 +20,8 @@
 
 # All Operator
 
+import math
+
 import bpy
 from bpy.types import Operator
 from bpy.props import (
@@ -278,7 +280,6 @@ class MESH_OT_print3d_check_overhang(Operator):
 
     @staticmethod
     def main_check(obj, info):
-        import math
         from mathutils import Vector
 
         scene = bpy.context.scene
@@ -343,24 +344,34 @@ class MESH_OT_print3d_clean_distorted(Operator):
     bl_description = "Tessellate distorted faces"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def execute(self, context):
-        scene = bpy.context.scene
-        print_3d = scene.print_3d
-        angle_distort = print_3d.angle_distort
+    angle_distort: FloatProperty(
+        name="Angle",
+        description="Limit for checking distorted faces",
+        subtype='ANGLE',
+        default=math.radians(45.0),
+        min=0.0,
+        max=math.radians(180.0),
+    )
 
+    def execute(self, context):
         obj = context.active_object
         bm = mesh_helpers.bmesh_from_object(obj)
         bm.normal_update()
-        elems_triangulate = [ele for ele in bm.faces if mesh_helpers.face_is_distorted(ele, angle_distort)]
-
-        self.report({'INFO'}, f"Triangulated Faces: {len(elems_triangulate)}")
+        elems_triangulate = [ele for ele in bm.faces if mesh_helpers.face_is_distorted(ele, self.angle_distort)]
 
         if elems_triangulate:
             bmesh.ops.triangulate(bm, faces=elems_triangulate)
             mesh_helpers.bmesh_to_object(obj, bm)
-            return {'FINISHED'}
 
-        return {'CANCELLED'}
+        self.report({'INFO'}, f"Triangulated Faces: {len(elems_triangulate)}")
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        print_3d = context.scene.print_3d
+        self.angle_distort = print_3d.angle_distort
+
+        return self.execute(context)
 
 
 class MESH_OT_print3d_clean_non_manifold(Operator):
@@ -598,7 +609,6 @@ class MESH_OT_print3d_scale_to_volume(Operator):
     )
 
     def execute(self, context):
-        import math
         scale = math.pow(self.volume, 1 / 3) / math.pow(self.volume_init, 1 / 3)
         scale_fmt = clean_float(f"{scale:.6f}")
         self.report({'INFO'}, f"Scaled by {scale_fmt}")
