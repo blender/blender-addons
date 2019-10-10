@@ -372,14 +372,21 @@ class VIEW3D_PT_blenderkit_model_properties(Panel):
         layout = self.layout
 
         o = bpy.context.active_object
-        ad = o['asset_data']
-        layout.label(text=str(ad['name']))
-        # proxies just don't make it in 2.79... they should stay hidden and used only by pros ...
-        # if 'rig' in ad['tags']:
-        #     # layout.label(text = 'can make proxy')
-        #     layout.operator('object.blenderkit_make_proxy', text = 'Make Armature proxy')
+        if o.get('asset_data') is not None:
+            ad = o['asset_data']
+            layout.label(text=str(ad['name']))
+            if o.instance_type == 'COLLECTION' and o.instance_collection is not None:
+                layout.operator('object.blenderkit_bring_to_scene', text='Bring to scene')
 
-        layout.operator('object.blenderkit_bring_to_scene', text='Bring to scene')
+            # if 'rig' in ad['tags']:
+            #     # layout.label(text = 'can make proxy')
+            #     layout.operator('object.blenderkit_make_proxy', text = 'Make Armature proxy')
+        #fast upload, blocked by now
+        # else:
+        #     op = layout.operator("object.blenderkit_upload", text='Store as private', icon='EXPORT')
+        #     op.asset_type = 'MODEL'
+        #     op.fast = True
+        #fun override project, not finished
         # layout.operator('object.blenderkit_color_corrector')
 
 
