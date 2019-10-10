@@ -224,4 +224,15 @@ class GCodeExport(bpy.types.Operator, ExportHelper):
                                 f.write(speed_code+' X{:.3f} Y{:.3f} Z{:.3f}\n'.format(position[0], position[1], position[2]))
         return {'FINISHED'}
 
+def register():
+    for cls in classes:
+        bpy.utils.register_class(operators)
+
+def unregister():
+    for cls in classes:
+        bpy.utils.unregister_class(operators)
+
+if __name__ == "__main__":
+    register()
+
 operators = [SvgExport, GCodeExport]

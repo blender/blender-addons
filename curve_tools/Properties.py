@@ -87,3 +87,18 @@ class curvetoolsSelectedObject(bpy.types.PropertyGroup):
         for blObject in blenderSelectedObjects: rvNames.append(blObject.name)
 
         return rvNames
+
+def register():
+    for cls in classes:
+        bpy.utils.register_class(operators)
+
+def unregister():
+    for cls in classes:
+        bpy.utils.unregister_class(operators)
+
+if __name__ == "__main__":
+    register()
+
+operators = [
+    curvetoolsSelectedObject,
+    ]

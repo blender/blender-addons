@@ -1,8 +1,8 @@
 import bpy
 import bmesh
 
-from . import Math
-from . import Curves
+from . import mathematics
+from . import curves
 
 
 
@@ -62,8 +62,8 @@ class LoftedSurface:
         blenderOtherCurve = selObjects[0]
         if blenderActiveCurve == blenderOtherCurve: blenderOtherCurve = selObjects[1]
 
-        aCurve = Curves.Curve(blenderActiveCurve)
-        oCurve = Curves.Curve(blenderOtherCurve)
+        aCurve = curves.Curve(blenderActiveCurve)
+        oCurve = curves.Curve(blenderOtherCurve)
 
         name = "TODO: autoname"
 
@@ -162,7 +162,7 @@ class SweptSplineSurface:
         prevDerivativeO = localDerivativesO[0]
         for iO in range(self.resolutionO):
             currDerivativeO = localDerivativesO[iO]
-            localRotMatO = Math.CalcRotationMatrix(prevDerivativeO, currDerivativeO)
+            localRotMatO = mathematics.CalcRotationMatrix(prevDerivativeO, currDerivativeO)
 
             currLocalAToLocalO = worldMatrixOInv @ currWorldMatrixA
             worldPointsA = []
@@ -210,8 +210,8 @@ class SweptSurface:
         blenderOtherCurve = selObjects[0]
         if blenderActiveCurve == blenderOtherCurve: blenderOtherCurve = selObjects[1]
 
-        aCurve = Curves.Curve(blenderActiveCurve)
-        oCurve = Curves.Curve(blenderOtherCurve)
+        aCurve = curves.Curve(blenderActiveCurve)
+        oCurve = curves.Curve(blenderOtherCurve)
 
         name = "TODO: autoname"
 
@@ -315,7 +315,7 @@ class BirailedSplineSurface:
         prevDerivativeRail1 = localDerivativesRail1[0]
         for iRail in range(self.resolutionRails):
             currDerivativeRail1 = localDerivativesRail1[iRail]
-            localRotMatRail1 = Math.CalcRotationMatrix(prevDerivativeRail1, currDerivativeRail1)
+            localRotMatRail1 = mathematics.CalcRotationMatrix(prevDerivativeRail1, currDerivativeRail1)
 
             currLocalProfileToLocalRail1 = worldMatrixRail1Inv @ currWorldMatrixProfile
             worldPointsProfileRail1 = []
@@ -336,7 +336,7 @@ class BirailedSplineSurface:
                 scaleFactorRail2 = v3To.magnitude / v3From.magnitude
             else:
                 scaleFactorRail2 = 1
-            rotMatRail2 = Math.CalcRotationMatrix(v3From, v3To)
+            rotMatRail2 = mathematics.CalcRotationMatrix(v3From, v3To)
 
             worldOffsetsProfileRail2 = []
             for iProfile in range(self.resolutionProfile):
@@ -397,9 +397,9 @@ class BirailedSurface:
         if profileBlenderCurve is None: raise Exception("profileBlenderCurve is None")
 
 
-        rail1Curve = Curves.Curve(rail1BlenderCurve)
-        rail2Curve = Curves.Curve(rail2BlenderCurve)
-        profileCurve = Curves.Curve(profileBlenderCurve)
+        rail1Curve = curves.Curve(rail1BlenderCurve)
+        rail2Curve = curves.Curve(rail2BlenderCurve)
+        profileCurve = curves.Curve(profileBlenderCurve)
 
         name = "TODO: autoname"
 

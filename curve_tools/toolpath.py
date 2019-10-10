@@ -21,7 +21,7 @@ from mathutils import Vector, Matrix
 from . import internal
 
 class OffsetCurve(bpy.types.Operator):
-    bl_idname = 'curve.add_toolpath_offset_curve'
+    bl_idname = 'curvetools.add_toolpath_offset_curve'
     bl_description = bl_label = 'Offset Curve'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -64,7 +64,7 @@ class OffsetCurve(bpy.types.Operator):
         return {'FINISHED'}
 
 class SliceMesh(bpy.types.Operator):
-    bl_idname = 'curve.add_toolpath_slice_mesh'
+    bl_idname = 'curvetools.add_toolpath_slice_mesh'
     bl_description = bl_label = 'Slice Mesh'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -116,7 +116,7 @@ class SliceMesh(bpy.types.Operator):
         return {'FINISHED'}
 
 class DiscretizeCurve(bpy.types.Operator):
-    bl_idname = 'curve.add_toolpath_discretize_curve'
+    bl_idname = 'curvetools.add_toolpath_discretize_curve'
     bl_description = bl_label = 'Discretize Curve'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -151,7 +151,7 @@ class DiscretizeCurve(bpy.types.Operator):
         return {'FINISHED'}
 
 class Truncate(bpy.types.Operator):
-    bl_idname = 'curve.add_toolpath_truncate'
+    bl_idname = 'curvetools.add_toolpath_truncate'
     bl_description = bl_label = 'Truncate'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -197,7 +197,7 @@ class Truncate(bpy.types.Operator):
         return {'FINISHED'}
 
 class RectMacro(bpy.types.Operator):
-    bl_idname = 'curve.add_toolpath_rect_macro'
+    bl_idname = 'curvetools.add_toolpath_rect_macro'
     bl_description = bl_label = 'Rect Macro'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -233,7 +233,7 @@ class RectMacro(bpy.types.Operator):
         return {'FINISHED'}
 
 class DrillMacro(bpy.types.Operator):
-    bl_idname = 'curve.add_toolpath_drill_macro'
+    bl_idname = 'curvetools.add_toolpath_drill_macro'
     bl_description = bl_label = 'Drill Macro'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -283,5 +283,16 @@ class DrillMacro(bpy.types.Operator):
         vertices += [origin+Vector((0.0, 0.0, height)), origin]
         internal.addPolygonSpline(bpy.context.object, False, vertices, weights)
         return {'FINISHED'}
+
+def register():
+    for cls in classes:
+        bpy.utils.register_class(operators)
+
+def unregister():
+    for cls in classes:
+        bpy.utils.unregister_class(operators)
+
+if __name__ == "__main__":
+    register()
 
 operators = [OffsetCurve, SliceMesh, DiscretizeCurve, Truncate, RectMacro, DrillMacro]

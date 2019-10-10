@@ -28,20 +28,20 @@ bl_info = {
 
 import bpy
 from . import internal
-from . import Util
+from . import util
 
 class Fillet(bpy.types.Operator):
-    bl_idname = 'curve.bezier_cad_fillet'
+    bl_idname = 'curvetools.bezier_cad_fillet'
     bl_description = bl_label = 'Fillet'
     bl_options = {'REGISTER', 'UNDO'}
 
     radius: bpy.props.FloatProperty(name='Radius', description='Radius of the rounded corners', unit='LENGTH', min=0.0, default=0.1)
     chamfer_mode: bpy.props.BoolProperty(name='Chamfer', description='Cut off sharp without rounding', default=False)
-    limit_half_way: bpy.props.BoolProperty(name='Limit Half Way', description='Limits the segments to half their length in order to prevent collisions', default=False)
+    limit_half_way: bpy.props.BoolProperty(name='Limit Half Way', description='Limits the segements to half their length in order to prevent collisions', default=False)
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1OrMoreCurves()
+        return util.Selected1OrMoreCurves()
 
     def execute(self, context):
         splines = internal.getSelectedSplines(True, True, True)
@@ -54,7 +54,7 @@ class Fillet(bpy.types.Operator):
         return {'FINISHED'}
 
 class Boolean(bpy.types.Operator):
-    bl_idname = 'curve.bezier_cad_boolean'
+    bl_idname = 'curvetools.bezier_cad_boolean'
     bl_description = bl_label = 'Boolean'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -66,7 +66,7 @@ class Boolean(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1OrMoreCurves()
+        return util.Selected1OrMoreCurves()
 
     def execute(self, context):
         current_mode = bpy.context.object.mode
@@ -80,7 +80,7 @@ class Boolean(bpy.types.Operator):
         if len(splines) != 2:
             self.report({'WARNING'}, 'Invalid selection. Only work to selected two spline.')
             return {'CANCELLED'}
-        bpy.ops.curve.spline_type_set(type='BEZIER')
+        bpy.ops.curvetools.spline_type_set(type='BEZIER')
         splineA = bpy.context.object.data.splines.active
         splineB = splines[0] if (splines[1] == splineA) else splines[1]
         if not internal.bezierBooleanGeometry(splineA, splineB, self.operation):
@@ -92,13 +92,13 @@ class Boolean(bpy.types.Operator):
         return {'FINISHED'}
 
 class Intersection(bpy.types.Operator):
-    bl_idname = 'curve.bezier_cad_intersection'
+    bl_idname = 'curvetools.bezier_cad_intersection'
     bl_description = bl_label = 'Intersection'
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1OrMoreCurves()
+        return util.Selected1OrMoreCurves()
 
     def execute(self, context):
         segments = internal.bezierSegments(bpy.context.object.data.splines, True)
@@ -108,15 +108,33 @@ class Intersection(bpy.types.Operator):
 
         internal.bezierMultiIntersection(segments)
         return {'FINISHED'}
+        
+class HandleProjection(bpy.types.Operator):
+    bl_idname = 'curvetools.bezier_cad_handle_projection'
+    bl_description = bl_label = 'Handle Projection'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return internal.curveObject()
+
+    def execute(self, context):
+        segments = internal.bezierSegments(bpy.context.object.data.splines, True)
+        if len(segments) < 1:
+            self.report({'WARNING'}, 'Nothing selected')
+            return {'CANCELLED'}
+
+        internal.bezierProjectHandles(segments)
+        return {'FINISHED'}
 
 class MergeEnds(bpy.types.Operator):
-    bl_idname = 'curve.bezier_cad_merge_ends'
+    bl_idname = 'curvetools.bezier_cad_merge_ends'
     bl_description = bl_label = 'Merge Ends'
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1OrMoreCurves()
+        return util.Selected1OrMoreCurves()
 
     def execute(self, context):
         points = []
@@ -151,17 +169,17 @@ class MergeEnds(bpy.types.Operator):
             points[0].handle_left = handle
         points[0].co = new_co
 
-        bpy.ops.curve.select_all(action='DESELECT')
+        bpy.ops.curvetools.select_all(action='DESELECT')
         points[1].select_control_point = True
-        bpy.ops.curve.delete()
+        bpy.ops.curvetools.delete()
         selected_splines[0].bezier_points[-1 if is_last_point[0] else 0].select_control_point = True
         selected_splines[1].bezier_points[-1 if is_last_point[1] else 0].select_control_point = True
-        bpy.ops.curve.make_segment()
-        bpy.ops.curve.select_all(action='DESELECT')
+        bpy.ops.curvetools.make_segment()
+        bpy.ops.curvetools.select_all(action='DESELECT')
         return {'FINISHED'}
 
 class Subdivide(bpy.types.Operator):
-    bl_idname = 'curve.bezier_cad_subdivide'
+    bl_idname = 'curvetools.bezier_cad_subdivide'
     bl_description = bl_label = 'Subdivide'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -169,7 +187,7 @@ class Subdivide(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1OrMoreCurves()
+        return util.Selected1OrMoreCurves()
 
     def execute(self, context):
         current_mode = bpy.context.object.mode
@@ -193,7 +211,7 @@ class Subdivide(bpy.types.Operator):
         return {'FINISHED'}
 
 class Array(bpy.types.Operator):
-    bl_idname = 'curve.bezier_cad_array'
+    bl_idname = 'curvetools.bezier_cad_array'
     bl_description = bl_label = 'Array'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -204,7 +222,7 @@ class Array(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1OrMoreCurves()
+        return util.Selected1OrMoreCurves()
 
     def execute(self, context):
         splines = internal.getSelectedSplines(True, True)
@@ -215,13 +233,13 @@ class Array(bpy.types.Operator):
         return {'FINISHED'}
 
 class Circle(bpy.types.Operator):
-    bl_idname = 'curve.bezier_cad_circle'
+    bl_idname = 'curvetools.bezier_cad_circle'
     bl_description = bl_label = 'Circle'
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1OrMoreCurves()
+        return util.Selected1OrMoreCurves()
 
     def execute(self, context):
         segments = internal.bezierSegments(bpy.context.object.data.splines, True)
@@ -240,12 +258,12 @@ class Circle(bpy.types.Operator):
         return {'FINISHED'}
 
 class Length(bpy.types.Operator):
-    bl_idname = 'curve.bezier_cad_length'
+    bl_idname = 'curvetools.bezier_cad_length'
     bl_description = bl_label = 'Length'
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1OrMoreCurves()
+        return util.Selected1OrMoreCurves()
 
     def execute(self, context):
         segments = internal.bezierSegments(bpy.context.object.data.splines, True)
@@ -259,4 +277,15 @@ class Length(bpy.types.Operator):
         self.report({'INFO'}, bpy.utils.units.to_string(bpy.context.scene.unit_settings.system, 'LENGTH', length))
         return {'FINISHED'}
 
-operators = [Fillet, Boolean, Intersection, MergeEnds, Subdivide, Array, Circle, Length]
+def register():
+    for cls in classes:
+        bpy.utils.register_class(operators)
+
+def unregister():
+    for cls in classes:
+        bpy.utils.unregister_class(operators)
+
+if __name__ == "__main__":
+    register()
+
+operators = [Fillet, Boolean, Intersection, HandleProjection, MergeEnds, Subdivide, Array, Circle, Length]

@@ -1,7 +1,7 @@
 import bpy
-from . import Math
-from . import Curves
-from . import Util
+from . import mathematics
+from . import curves
+from . import util
 
 from mathutils import Vector
 
@@ -58,7 +58,7 @@ class BezierSegmentsIntersector:
                 Q0 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar20)
                 Q1 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar21)
 
-                intersectionPointData = Math.CalcIntersectionPointLineSegments(P0, P1, Q0, Q1, limitDistance)
+                intersectionPointData = mathematics.CalcIntersectionPointLineSegments(P0, P1, Q0, Q1, limitDistance)
                 if intersectionPointData is None:
                     continue
 
@@ -94,15 +94,15 @@ class BezierSegmentsIntersector:
                 Q0 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar20)
                 Q1 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar21)
 
-                intersectionPointData = Math.CalcIntersectionPointLineSegments(P0, P1, Q0, Q1, limitDistance)
+                intersectionPointData = mathematics.CalcIntersectionPointLineSegments(P0, P1, Q0, Q1, limitDistance)
                 if intersectionPointData is None:
                     continue
 
                 # intersection point can't be an existing point
                 intersectionSegment1Parameter = segPar10 + (intersectionPointData[0] / (fltNrSamples1))
                 worldPoint1 = self.worldMatrix1 @ self.segment1.CalcPoint(parameter=intersectionSegment1Parameter)
-                if (Math.IsSamePoint(P0, worldPoint1, limitDistance)) or \
-                   (Math.IsSamePoint(P1, worldPoint1, limitDistance)):
+                if (mathematics.IsSamePoint(P0, worldPoint1, limitDistance)) or \
+                   (mathematics.IsSamePoint(P1, worldPoint1, limitDistance)):
 
                     intersectionPoint1 = None
                 else:
@@ -112,8 +112,8 @@ class BezierSegmentsIntersector:
 
                 intersectionSegment2Parameter = segPar20 + (intersectionPointData[1] / (fltNrSamples2))
                 worldPoint2 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=intersectionSegment2Parameter)
-                if (Math.IsSamePoint(Q0, worldPoint2, limitDistance)) or \
-                   (Math.IsSamePoint(Q1, worldPoint2, limitDistance)):
+                if (mathematics.IsSamePoint(Q0, worldPoint2, limitDistance)) or \
+                   (mathematics.IsSamePoint(Q1, worldPoint2, limitDistance)):
 
                     intersectionPoint2 = None
                 else:
@@ -143,7 +143,7 @@ class BezierSegmentsIntersector:
                 Q0 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar20)
                 Q1 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar21)
 
-                intersectionPointData = Math.CalcIntersectionPointsLineSegmentsDIR(P0, P1, Q0, Q1, algoDIR)
+                intersectionPointData = mathematics.CalcIntersectionPointsLineSegmentsDIR(P0, P1, Q0, Q1, algoDIR)
                 if intersectionPointData is None:
                     continue
 
@@ -183,15 +183,15 @@ class BezierSegmentsIntersector:
                 Q0 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar20)
                 Q1 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar21)
 
-                intersectionPointData = Math.CalcIntersectionPointsLineSegmentsDIR(P0, P1, Q0, Q1, algoDIR)
+                intersectionPointData = mathematics.CalcIntersectionPointsLineSegmentsDIR(P0, P1, Q0, Q1, algoDIR)
                 if intersectionPointData is None:
                     continue
 
                 # intersection point can't be an existing point
                 intersectionSegment1Parameter = segPar10 + (intersectionPointData[0] / (fltNrSamples1))
                 worldPoint1 = self.worldMatrix1 @ self.segment1.CalcPoint(parameter=intersectionSegment1Parameter)
-                if (Math.IsSamePoint(P0, worldPoint1, limitDistance)) or \
-                   (Math.IsSamePoint(P1, worldPoint1, limitDistance)):
+                if (mathematics.IsSamePoint(P0, worldPoint1, limitDistance)) or \
+                   (mathematics.IsSamePoint(P1, worldPoint1, limitDistance)):
 
                     intersectionPoint1 = None
                 else:
@@ -201,8 +201,8 @@ class BezierSegmentsIntersector:
 
                 intersectionSegment2Parameter = segPar20 + (intersectionPointData[1] / (fltNrSamples2))
                 worldPoint2 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=intersectionSegment2Parameter)
-                if (Math.IsSamePoint(Q0, worldPoint2, limitDistance)) or \
-                   (Math.IsSamePoint(Q1, worldPoint2, limitDistance)):
+                if (mathematics.IsSamePoint(Q0, worldPoint2, limitDistance)) or \
+                   (mathematics.IsSamePoint(Q1, worldPoint2, limitDistance)):
 
                     intersectionPoint2 = None
                 else:
@@ -232,7 +232,7 @@ class BezierSegmentsIntersector:
                 Q0 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar20)
                 Q1 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar21)
 
-                intersectionPointData = Math.CalcIntersectionPointsLineSegmentsPOV(P0, P1, Q0, Q1, algoPOV)
+                intersectionPointData = mathematics.CalcIntersectionPointsLineSegmentsPOV(P0, P1, Q0, Q1, algoPOV)
                 if intersectionPointData is None:
                     continue
 
@@ -272,15 +272,15 @@ class BezierSegmentsIntersector:
                 Q0 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar20)
                 Q1 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar21)
 
-                intersectionPointData = Math.CalcIntersectionPointsLineSegmentsPOV(P0, P1, Q0, Q1, algoPOV)
+                intersectionPointData = mathematics.CalcIntersectionPointsLineSegmentsPOV(P0, P1, Q0, Q1, algoPOV)
                 if intersectionPointData is None:
                     continue
 
                 # intersection point can't be an existing point
                 intersectionSegment1Parameter = segPar10 + (intersectionPointData[0] / fltNrSamples1)
                 worldPoint1 = self.worldMatrix1 @ self.segment1.CalcPoint(parameter=intersectionSegment1Parameter)
-                if (Math.IsSamePoint(P0, worldPoint1, limitDistance)) or \
-                   (Math.IsSamePoint(P1, worldPoint1, limitDistance)):
+                if (mathematics.IsSamePoint(P0, worldPoint1, limitDistance)) or \
+                   (mathematics.IsSamePoint(P1, worldPoint1, limitDistance)):
 
                     intersectionPoint1 = None
                 else:
@@ -290,8 +290,8 @@ class BezierSegmentsIntersector:
 
                 intersectionSegment2Parameter = segPar20 + (intersectionPointData[1] / fltNrSamples2)
                 worldPoint2 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=intersectionSegment2Parameter)
-                if (Math.IsSamePoint(Q0, worldPoint2, limitDistance)) or \
-                   (Math.IsSamePoint(Q1, worldPoint2, limitDistance)):
+                if (mathematics.IsSamePoint(Q0, worldPoint2, limitDistance)) or \
+                   (mathematics.IsSamePoint(Q1, worldPoint2, limitDistance)):
 
                     intersectionPoint2 = None
                 else:
@@ -341,7 +341,7 @@ class BezierSegmentsIntersector:
                 Q0 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar20)
                 Q1 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar21)
 
-                intersectionPointData = Math.CalcIntersectionPointLineSegments(P0, P1, Q0, Q1, limitDistance)
+                intersectionPointData = mathematics.CalcIntersectionPointLineSegments(P0, P1, Q0, Q1, limitDistance)
                 if intersectionPointData is None:
                     continue
 
@@ -382,7 +382,7 @@ class BezierSegmentsIntersector:
                 Q0 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar20)
                 Q1 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar21)
 
-                intersectionPointData = Math.CalcIntersectionPointsLineSegmentsDIR(P0, P1, Q0, Q1, algoDIR)
+                intersectionPointData = mathematics.CalcIntersectionPointsLineSegmentsDIR(P0, P1, Q0, Q1, algoDIR)
                 if intersectionPointData is None:
                     continue
 
@@ -423,7 +423,7 @@ class BezierSegmentsIntersector:
                 Q0 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar20)
                 Q1 = self.worldMatrix2 @ self.segment2.CalcPoint(parameter=segPar21)
 
-                intersectionPointData = Math.CalcIntersectionPointsLineSegmentsPOV(P0, P1, Q0, Q1, algoPOV)
+                intersectionPointData = mathematics.CalcIntersectionPointsLineSegmentsPOV(P0, P1, Q0, Q1, algoPOV)
                 if intersectionPointData is None:
                     continue
 
@@ -508,8 +508,8 @@ class CurvesIntersector:
         if blenderActiveCurve == blenderOtherCurve:
             blenderOtherCurve = selObjects[1]
 
-        aCurve = Curves.Curve(blenderActiveCurve)
-        oCurve = Curves.Curve(blenderOtherCurve)
+        aCurve = curves.Curve(blenderActiveCurve)
+        oCurve = curves.Curve(blenderOtherCurve)
 
         return CurvesIntersector(aCurve, oCurve)
 
@@ -528,7 +528,7 @@ class CurvesIntersector:
 
         algo = bpy.context.scene.curvetools.IntersectCurvesAlgorithm
         if algo == 'From View':
-            regionView3D = Util.GetFirstRegionView3D()
+            regionView3D = util.GetFirstRegionView3D()
             if regionView3D is None:
                 print("### ERROR: regionView3D is None. Stopping.")
                 return

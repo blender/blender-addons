@@ -41,12 +41,8 @@ from bpy_extras import object_utils, view3d_utils
 from mathutils import  *
 from math import  *
 
-from . import Properties
-from . import Curves
-from . import CurveIntersections
-from . import Util
-from . import Surfaces
-from . import Math
+from . import mathematics
+from . import util
 
 def get_bezier_points(spline, matrix_world):
     point_list = []
@@ -55,7 +51,7 @@ def get_bezier_points(spline, matrix_world):
         for i in range(0, len_bezier_points - 1):
             point_list.extend([matrix_world @ spline.bezier_points[i].co])
             for t in range(0, 100, 2):
-                h = Math.subdivide_cubic_bezier(spline.bezier_points[i].co,
+                h = mathematics.subdivide_cubic_bezier(spline.bezier_points[i].co,
                                            spline.bezier_points[i].handle_right,
                                            spline.bezier_points[i + 1].handle_left,
                                            spline.bezier_points[i + 1].co,
@@ -64,7 +60,7 @@ def get_bezier_points(spline, matrix_world):
         if spline.use_cyclic_u and len_bezier_points > 2:
             point_list.extend([matrix_world @ spline.bezier_points[len_bezier_points - 1].co])
             for t in range(0, 100, 2):
-                h = Math.subdivide_cubic_bezier(spline.bezier_points[len_bezier_points - 1].co,
+                h = mathematics.subdivide_cubic_bezier(spline.bezier_points[len_bezier_points - 1].co,
                                            spline.bezier_points[len_bezier_points - 1].handle_right,
                                            spline.bezier_points[0].handle_left,
                                            spline.bezier_points[0].co,
@@ -160,7 +156,7 @@ def click(self, context, event):
                         
                     if i < len_bezier_points - 1:
                         for t in range(0, 100, 2):
-                            h = Math.subdivide_cubic_bezier(spline.bezier_points[i].co,
+                            h = mathematics.subdivide_cubic_bezier(spline.bezier_points[i].co,
                                            spline.bezier_points[i].handle_right,
                                            spline.bezier_points[i + 1].handle_left,
                                            spline.bezier_points[i + 1].co,
@@ -172,7 +168,7 @@ def click(self, context, event):
 
                     if spline.use_cyclic_u and len_bezier_points > 2:
                         for t in range(0, 100, 2):
-                            h = Math.subdivide_cubic_bezier(spline.bezier_points[len_bezier_points - 1].co,
+                            h = mathematics.subdivide_cubic_bezier(spline.bezier_points[len_bezier_points - 1].co,
                                            spline.bezier_points[len_bezier_points - 1].handle_right,
                                            spline.bezier_points[0].handle_left,
                                            spline.bezier_points[0].co,
@@ -312,14 +308,18 @@ class PathFinder(bpy.types.Operator):
         
     @classmethod
     def poll(cls, context):
-        return (context.object is not None and
-                context.object.type == 'CURVE')
+        return util.Selected1OrMoreCurves()
 
 def register():
-    bpy.utils.register_class(PathFinder)
+    for cls in classes:
+        bpy.utils.register_class(operators)
 
 def unregister():
-    bpy.utils.unregister_class(PathFinder)
+    for cls in classes:
+        bpy.utils.unregister_class(operators)
 
 if __name__ == "__main__":
     register()
+
+
+operators = [PathFinder]

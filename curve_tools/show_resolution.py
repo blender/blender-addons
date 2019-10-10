@@ -18,7 +18,7 @@
 #
 
 
-# LOAD MODULE #
+# LOAD MODUL #
 import bpy
 from bpy import *
 from bpy.props import *
@@ -79,7 +79,7 @@ def draw(self, context, splines, curve_vertcolor, matrix_world):
 
 
 class ShowCurveResolution(bpy.types.Operator):
-    bl_idname = "curve.show_resolution"
+    bl_idname = "curvetools.show_resolution"
     bl_label = "Show Curve Resolution"
     bl_description = "Show curve Resolution / [ESC] - remove"
     
@@ -129,3 +129,18 @@ class ShowCurveResolution(bpy.types.Operator):
     def poll(cls, context):
         return (context.object is not None and
                 context.object.type == 'CURVE')
+
+def register():
+    for cls in classes:
+        bpy.utils.register_class(operators)
+
+def unregister():
+    for cls in classes:
+        bpy.utils.unregister_class(operators)
+
+if __name__ == "__main__":
+    register()
+
+operators = [
+    ShowCurveResolution,
+    ]
