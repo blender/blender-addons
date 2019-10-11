@@ -675,6 +675,8 @@ def main(context, self, align_matrix, use_enter_edit_mode):
                         p1.handle_right = v1
                         p2.handle_left = v2
                 i += 1
+            all_points[0].handle_left_type = 'VECTOR'
+            all_points[-1].handle_right_type = 'VECTOR'
     
         if self.Simple_Type == 'Sector':
             i = 0
@@ -713,6 +715,10 @@ def main(context, self, align_matrix, use_enter_edit_mode):
                         p1.handle_right = v1
                         p2.handle_left = v2
                 i += 1
+            all_points[0].handle_left_type = 'VECTOR'
+            all_points[0].handle_right_type = 'VECTOR'
+            all_points[1].handle_left_type = 'VECTOR'
+            all_points[-1].handle_right_type = 'VECTOR'
     
         if self.Simple_Type == 'Segment':
             i = 0
@@ -1066,6 +1072,11 @@ class Simple(Operator, object_utils.AddObjectHelper):
             ('VECTOR', "Vector", "Vector type Bezier handles"),
             ('AUTO', "Auto", "Automatic type Bezier handles")]
             )
+    edit_mode : BoolProperty(
+            name="Show in edit mode",
+            default=True,
+            description="Show in edit mode"
+            )
 
     def draw(self, context):
         layout = self.layout
@@ -1255,6 +1266,9 @@ class Simple(Operator, object_utils.AddObjectHelper):
         col = layout.column()
         col.row().prop(self, "use_cyclic_u", expand=True)
         
+        col = layout.column()
+        col.row().prop(self, "edit_mode", expand=True)
+        
         box = layout.box()
         box.label(text="Location:")
         box.prop(self, "Simple_startlocation")
@@ -1291,6 +1305,11 @@ class Simple(Operator, object_utils.AddObjectHelper):
         
         # restore pre operator state
         bpy.context.preferences.edit.use_enter_edit_mode = use_enter_edit_mode
+        
+        if self.edit_mode:
+            bpy.ops.object.mode_set(mode = 'EDIT')
+        else:
+            bpy.ops.object.mode_set(mode = 'OBJECT')
 
         return {'FINISHED'}
 
