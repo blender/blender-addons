@@ -699,7 +699,7 @@ class MESH_OT_print3d_scale_to_bounds(Operator):
 class MESH_OT_print3d_export(Operator):
     bl_idname = "mesh.print3d_export"
     bl_label = "3D-Print Export"
-    bl_description = "Export active object using 3D-Print settings"
+    bl_description = "Export selected objects using 3D-Print settings"
 
     def execute(self, context):
         from . import export
