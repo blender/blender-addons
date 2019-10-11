@@ -64,7 +64,7 @@ class property_spec(object):
                 ans = []
                 for i in range(count):
                     s = stream[i]
-                    if len(s) < 2 or s[0] != '"' or s[-1] != '"':
+                    if not (len(s) >= 2 and s.startswith(b'"') and s.endswith(b'"')):
                         print('Invalid string', s)
                         print('Note: ply_import.py does not handle whitespace in strings')
                         return None
