@@ -177,11 +177,7 @@ def write_mesh(context, report_cb):
             image_copy_guess(filepath, context_override["selected_objects"])
 
     if obj_tmp is not None:
-        obj = obj_tmp
-        mesh = obj.data
-        collection.objects.unlink(obj)
-        bpy.data.objects.remove(obj)
-        bpy.data.meshes.remove(mesh)
+        bpy.data.meshes.remove(obj_tmp.data)  # Automatically unlinks and removes object
 
         # restore context
         for ob in context_backup["selected_objects"]:
