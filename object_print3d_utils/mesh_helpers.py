@@ -228,7 +228,7 @@ def object_merge(context, objects):
 
         # convert each to a mesh
         obj_eval = obj.evaluated_get(depsgraph)
-        mesh_new = obj_eval.to_mesh()
+        mesh_new = obj_eval.to_mesh().copy()
 
         # remove non-active uvs/vcols
         cd_remove_all_but_active(mesh_new.vertex_colors)
@@ -245,6 +245,7 @@ def object_merge(context, objects):
 
         bpy.ops.object.join(override)
 
+        bpy.data.meshes.remove(mesh_new)
         obj_eval.to_mesh_clear()
 
     layer.update()
