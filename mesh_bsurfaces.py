@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Bsurfaces GPL Edition",
     "author": "Eclectiel, Spivak Vladimir(cwolf3d)",
-    "version": (1, 7, 1),
+    "version": (1, 7, 2),
     "blender": (2, 80, 0),
     "location": "View3D EditMode > Sidebar > Edit Tab",
     "description": "Modeling and retopology tool",
@@ -3502,7 +3502,8 @@ class GPENCIL_OT_SURFSK_init(Operator):
     
         bs = bpy.context.scene.bsurfaces
     
-        bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='OBJECT')
+        if bpy.ops.object.mode_set.poll():
+            bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='OBJECT')
         
         global global_color
         global global_offset
@@ -3567,7 +3568,9 @@ class GPENCIL_OT_SURFSK_init(Operator):
             bpy.context.scene.tool_settings.annotation_stroke_placement_view3d = 'SURFACE'
             
         if context.scene.bsurfaces.SURFSK_guide == 'Curve':
-            bpy.data.objects[global_mesh_object].data.vertices.add(1)
+            #bpy.data.objects[global_mesh_object].data.vertices.add(1)
+            if bpy.ops.object.mode_set.poll():
+                bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='EDIT')
 
         return {"FINISHED"}
 
