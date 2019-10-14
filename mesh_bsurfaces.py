@@ -3752,8 +3752,8 @@ class GPENCIL_OT_SURFSK_edit_strokes(Operator):
         gpencil_object.select_set(True)
         bpy.context.view_layer.objects.active = gpencil_object
         
-        bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='PAINT_GPENCIL')
-        bpy.ops.wm.tool_set_by_id(name="builtin_brush.Draw")
+        bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='EDIT_GPENCIL')
+        bpy.ops.gpencil.select_all(action='SELECT')
 
     def invoke(self, context, event):
         try:
