@@ -19,13 +19,14 @@
 # <pep8 compliant>
 
 bl_info = {
+    #coming soon: "name": "POV-3.8",
     "name": "POV-3.7",
     "author": "Campbell Barton, Maurice Raybaud, Leonid Desyatkov, "
               "Bastien Montagne, Constantin Rahn, Silvio Falcinelli",
     "version": (0, 1, 0),
     "blender": (2, 80, 0),
-    "location": "Render > Engine > POV-Ray 3.7",
-    "description": "POV-Ray 3.7 integration for blender",
+    "location": "Render > Engine > Persistence Of Vision",
+    "description": "POV-Ray integration for blender",
     "wiki_url": "https://archive.blender.org/wiki/index.php/"
                 "Extensions:2.6/Py/Scripts/Render/POV-Ray/",
     "category": "Render",

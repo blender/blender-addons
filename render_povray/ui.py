@@ -214,6 +214,15 @@ for member in dir(properties_particle):  # add all "particle" panels from blende
         pass
 del properties_particle
 
+# Example of wrapping every class 'as is'
+from bl_ui import properties_output
+for member in dir(properties_output):
+    subclass = getattr(properties_output, member)
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
+del properties_output
 
 class POV_WORLD_MT_presets(bpy.types.Menu):
     bl_label = "World Presets"
