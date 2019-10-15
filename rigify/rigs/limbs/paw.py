@@ -126,7 +126,7 @@ class Rig(BaseLimbRig):
 
     @stage.parent_bones
     def parent_heel_control_bone(self):
-        self.set_bone_parent(self.bones.ctrl.heel, self.bones.ctrl.ik)
+        self.set_bone_parent(self.bones.ctrl.heel, self.get_ik_control_output())
 
     @stage.configure_bones
     def configure_heel_control_bone(self):
@@ -150,7 +150,7 @@ class Rig(BaseLimbRig):
     def parent_fk_parent_bone(self, i, parent_mch, prev_ctrl, org, prev_org):
         if i == 3:
             self.set_bone_parent(parent_mch, prev_org, use_connect=True)
-            self.set_bone_parent(self.bones.mch.toe_socket, self.bones.ctrl.ik)
+            self.set_bone_parent(self.bones.mch.toe_socket, self.get_ik_control_output())
 
         else:
             super().parent_fk_parent_bone(i, parent_mch, prev_ctrl, org, prev_org)

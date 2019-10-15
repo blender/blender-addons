@@ -156,6 +156,14 @@ def map_apply(func, *inputs):
 # Misc
 #=============================================
 
+
+def force_lazy(value):
+    if callable(value):
+        return value()
+    else:
+        return value
+
+
 def copy_attributes(a, b):
     keys = dir(a)
     for key in keys:

@@ -29,6 +29,7 @@ from ...utils.naming import strip_org, make_derived_name
 from ...utils.layers import ControlLayersOption
 from ...utils.misc import pairwise_nozip, padnone, map_list
 from ...utils.switch_parent import SwitchParentBuilder
+from ...utils.components import CustomPivotControl
 
 from ...base_rig import stage, BaseRig
 
@@ -64,6 +65,7 @@ class BaseLimbRig(BaseRig):
 
         self.segments = self.params.segments
         self.bbone_segments = self.params.bbones
+        self.use_ik_pivot = self.params.make_custom_pivot
 
         rot_axis = self.params.rotation_axis
 
@@ -154,6 +156,8 @@ class BaseLimbRig(BaseRig):
     #     IK controls
     #   ik_vispole
     #     IK pole visualization.
+    #   ik_pivot
+    #     Custom IK pivot (optional).
     # mch:
     #   master:
     #     Parent of the master control.
@@ -161,6 +165,8 @@ class BaseLimbRig(BaseRig):
     #     FK follow behavior.
     #   fk[]:
     #     FK chain parents (or None)
+    #   ik_pivot
+    #     Custom IK pivot result (optional).
     #   ik_stretch
     #     IK stretch switch implementation.
     #   ik_target
@@ -332,17 +338,24 @@ class BaseLimbRig(BaseRig):
 
     def get_all_ik_controls(self):
         ctrl = self.bones.ctrl
-        return [ctrl.ik_base, ctrl.ik_pole, ctrl.ik] + self.get_extra_ik_controls()
+        controls = [ctrl.ik_base, ctrl.ik_pole, ctrl.ik]
+        if self.component_ik_pivot:
+            controls.append(self.component_ik_pivot.control)
+        return controls + self.get_extra_ik_controls()
 
     @stage.generate_bones
     def make_ik_controls(self):
         orgs = self.bones.org.main
 
-        self.bones.ctrl.ik_base = self.copy_bone(orgs[0], make_derived_name(orgs[0], 'ctrl', '_ik'))
+        self.bones.ctrl.ik_base = self.make_ik_base_bone(orgs)
         self.bones.ctrl.ik_pole = self.make_ik_pole_bone(orgs)
-        self.bones.ctrl.ik = self.make_ik_control_bone(orgs)
+        self.bones.ctrl.ik = ik_name = self.make_ik_control_bone(orgs)
 
+        self.component_ik_pivot = self.build_ik_pivot(ik_name)
         self.build_ik_parent_switch(SwitchParentBuilder(self.generator))
+
+    def make_ik_base_bone(self, orgs):
+        return self.copy_bone(orgs[0], make_derived_name(orgs[0], 'ctrl', '_ik'))
 
     def make_ik_pole_bone(self, orgs):
         name = self.copy_bone(orgs[0], make_derived_name(orgs[0], 'ctrl', '_ik_target'))
@@ -356,6 +369,16 @@ class BaseLimbRig(BaseRig):
 
     def make_ik_control_bone(self, orgs):
         return self.copy_bone(orgs[2], make_derived_name(orgs[2], 'ctrl', '_ik'))
+
+    def build_ik_pivot(self, ik_name, **args):
+        if self.use_ik_pivot:
+            return CustomPivotControl(self, 'ik_pivot', ik_name, parent=ik_name, **args)
+
+    def get_ik_control_output(self):
+        if self.component_ik_pivot:
+            return self.component_ik_pivot.output
+        else:
+            return self.bones.ctrl.ik
 
     def register_switch_parents(self, pbuilder):
         if self.rig_parent_bone:
@@ -453,7 +476,7 @@ class BaseLimbRig(BaseRig):
     ik_input_head_tail = 0.0
 
     def get_ik_input_bone(self):
-        return self.bones.ctrl.ik
+        return self.get_ik_control_output()
 
     def get_ik_output_chain(self):
         return [self.bones.ctrl.ik_base, self.bones.mch.ik_end, self.bones.mch.ik_target]
@@ -799,6 +822,12 @@ class BaseLimbRig(BaseRig):
             description = 'Number of segments'
         )
 
+        params.make_custom_pivot = bpy.props.BoolProperty(
+            name        = "Custom Pivot Control",
+            default     = False,
+            description = "Create a rotation pivot control that can be repositioned arbitrarily"
+        )
+
         # Setting up extra layers for the FK and tweak
         ControlLayersOption.FK.add_parameters(params)
         ControlLayersOption.TWEAK.add_parameters(params)
@@ -819,6 +848,8 @@ class BaseLimbRig(BaseRig):
 
         r = layout.row()
         r.prop(params, "bbones")
+
+        layout.prop(params, 'make_custom_pivot', text="Custom IK Pivot")
 
         ControlLayersOption.FK.parameters_ui(layout, params)
         ControlLayersOption.TWEAK.parameters_ui(layout, params)

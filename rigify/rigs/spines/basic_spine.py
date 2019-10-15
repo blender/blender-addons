@@ -80,13 +80,9 @@ class Rig(BaseSpineRig):
     ####################################################
     # Master control bone
 
-    @stage.generate_bones
-    def make_master_control(self):
-        super().make_master_control()
-
-        # Put the main control in the middle of the hip bone
-        base_bone = self.get_bone(self.bones.org[0])
-        put_bone(self.obj, self.bones.ctrl.master, (base_bone.head + base_bone.tail) / 2)
+    def get_master_control_pos(self, orgs):
+        base_bone = self.get_bone(orgs[0])
+        return (base_bone.head + base_bone.tail) / 2
 
     ####################################################
     # Main control bones
@@ -112,8 +108,9 @@ class Rig(BaseSpineRig):
     @stage.parent_bones
     def parent_end_control_bones(self):
         ctrl = self.bones.ctrl
-        self.set_bone_parent(ctrl.hips, ctrl.master)
-        self.set_bone_parent(ctrl.chest, ctrl.master)
+        pivot = self.get_master_control_output()
+        self.set_bone_parent(ctrl.hips, pivot)
+        self.set_bone_parent(ctrl.chest, pivot)
 
     @stage.generate_widgets
     def make_end_control_widgets(self):
@@ -247,7 +244,7 @@ class Rig(BaseSpineRig):
 
     @stage.parent_bones
     def parent_mch_chain(self):
-        master = self.bones.ctrl.master
+        master = self.get_master_control_output()
         chain = self.bones.mch.chain
         fk = self.fk_result
         for child, parent in zip(reversed(chain.hips), [master, *reversed(fk.hips)]):
