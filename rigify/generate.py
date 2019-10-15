@@ -165,7 +165,12 @@ class Generator(base_generate.BaseGenerator):
         # Select the target rig and join
         select_object(context, obj)
 
+        saved_matrix = obj.matrix_world.copy()
+        obj.matrix_world = metarig.matrix_world
+
         bpy.ops.object.join()
+
+        obj.matrix_world = saved_matrix
 
         # Select the generated rig
         select_object(context, obj, deselect_all=True)
