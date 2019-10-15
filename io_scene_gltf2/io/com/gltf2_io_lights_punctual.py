@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# FIXME, this goes against Blender's best practice.
-from io_scene_gltf2.io.com.gltf2_io import *
+from io_scene_gltf2.io.com.gltf2_io import from_dict, from_union, from_none, from_float, from_str, from_list
+from io_scene_gltf2.io.com.gltf2_io import to_float, to_class
 
 
 class LightSpot:
@@ -74,3 +74,4 @@ class Light:
                                           self.extensions)
         result["extras"] = self.extras
         return result
+
