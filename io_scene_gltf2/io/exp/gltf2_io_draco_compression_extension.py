@@ -14,7 +14,10 @@
 
 import bpy
 import sys
+
+# FIXME, this goes against Blender's best practice.
 from ctypes import *
+
 from pathlib import Path
 
 from io_scene_gltf2.io.exp.gltf2_io_binary_data import BinaryData
@@ -240,4 +243,3 @@ def __compress_primitive(primitive, dll, export_settings):
     dll.disposeCompressor(compressor)
 
     pass
-
