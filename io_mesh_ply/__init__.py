@@ -21,11 +21,10 @@
 bl_info = {
     "name": "Stanford PLY format",
     "author": "Bruce Merry, Campbell Barton",
-    "version": (1, 0, 0),
-    "blender": (2, 81, 6),
+    "version": (1, 1, 0),
+    "blender": (2, 82, 0),
     "location": "File > Import-Export",
     "description": "Import-Export PLY mesh data with UV's and vertex colors",
-    "warning": "",
     "wiki_url": "https://docs.blender.org/manual/en/latest/addons/io_mesh_ply.html",
     "support": 'OFFICIAL',
     "category": "Import-Export",
@@ -34,8 +33,6 @@ bl_info = {
 # Copyright (C) 2004, 2005: Bruce Merry, bmerry@cs.uct.ac.za
 # Contributors: Bruce Merry, Campbell Barton
 
-# To support reload properly, try to access a package var,
-# if it's there, reload everything
 if "bpy" in locals():
     import importlib
     if "export_ply" in locals():
@@ -44,13 +41,11 @@ if "bpy" in locals():
         importlib.reload(import_ply)
 
 
-import os
 import bpy
 from bpy.props import (
     CollectionProperty,
     StringProperty,
     BoolProperty,
-    EnumProperty,
     FloatProperty,
 )
 from bpy_extras.io_utils import (
@@ -81,6 +76,8 @@ class ImportPLY(bpy.types.Operator, ImportHelper):
     filter_glob: StringProperty(default="*.ply", options={'HIDDEN'})
 
     def execute(self, context):
+        import os
+
         paths = [os.path.join(self.directory, name.name)
                  for name in self.files]
         if not paths:
@@ -96,10 +93,9 @@ class ImportPLY(bpy.types.Operator, ImportHelper):
 
 @orientation_helper(axis_forward='Y', axis_up='Z')
 class ExportPLY(bpy.types.Operator, ExportHelper):
-    """Export a single object as a Stanford PLY with normals, """ \
-    """colors and texture coordinates"""
     bl_idname = "export_mesh.ply"
     bl_label = "Export PLY"
+    bl_description = "Export as a Stanford PLY with normals, vertex colors and texture coordinates"
 
     filename_ext = ".ply"
     filter_glob: StringProperty(default="*.ply", options={'HIDDEN'})

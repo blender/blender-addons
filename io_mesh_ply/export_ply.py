@@ -21,20 +21,12 @@
 """
 This script exports Stanford PLY files from Blender. It supports normals,
 colors, and texture coordinates per face or per vertex.
-Only one mesh can be exported at a time.
 """
 
-import bpy
-import os
 
-
-def save_mesh(
-        filepath,
-        mesh,
-        use_normals=True,
-        use_uv_coords=True,
-        use_colors=True,
-):
+def save_mesh(filepath, mesh, use_normals=True, use_uv_coords=True, use_colors=True):
+    import os
+    import bpy
 
     def rvec3d(v):
         return round(v[0], 6), round(v[1], 6), round(v[2], 6)
@@ -186,16 +178,17 @@ def save_mesh(
 
 
 def save(
-        operator,
-        context,
-        filepath="",
-        use_selection=False,
-        use_mesh_modifiers=True,
-        use_normals=True,
-        use_uv_coords=True,
-        use_colors=True,
-        global_matrix=None
+    operator,
+    context,
+    filepath="",
+    use_selection=False,
+    use_mesh_modifiers=True,
+    use_normals=True,
+    use_uv_coords=True,
+    use_colors=True,
+    global_matrix=None
 ):
+    import bpy
     import bmesh
 
     if bpy.ops.object.mode_set.poll():

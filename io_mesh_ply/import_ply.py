@@ -18,9 +18,6 @@
 
 # <pep8 compliant>
 
-import re
-import struct
-
 
 class element_spec(object):
     __slots__ = (
@@ -59,14 +56,16 @@ class property_spec(object):
         self.numeric_type = numeric_type
 
     def read_format(self, format, count, num_type, stream):
+        import struct
+
         if format == b'ascii':
             if num_type == 's':
                 ans = []
                 for i in range(count):
                     s = stream[i]
                     if not (len(s) >= 2 and s.startswith(b'"') and s.endswith(b'"')):
-                        print('Invalid string', s)
-                        print('Note: ply_import.py does not handle whitespace in strings')
+                        print("Invalid string", s)
+                        print("Note: ply_import.py does not handle whitespace in strings")
                         return None
                     ans.append(s[1:-1])
                 stream[:count] = []
@@ -104,29 +103,30 @@ class property_spec(object):
 
 
 class object_spec(object):
-    __slots__ = ("specs",
-                )
-    'A list of element_specs'
+    __slots__ = ("specs",)
+
     def __init__(self):
+        # A list of element_specs
         self.specs = []
 
     def load(self, format, stream):
         return dict([(i.name, [i.load(format, stream) for j in range(i.count)]) for i in self.specs])
 
-        '''
         # Longhand for above LC
-        answer = {}
-        for i in self.specs:
-            answer[i.name] = []
-            for j in range(i.count):
-                if not j % 100 and meshtools.show_progress:
-                    Blender.Window.DrawProgressBar(float(j) / i.count, 'Loading ' + i.name)
-                answer[i.name].append(i.load(format, stream))
-        return answer
-            '''
+
+        # answer = {}
+        # for i in self.specs:
+        #     answer[i.name] = []
+        #     for j in range(i.count):
+        #         if not j % 100 and meshtools.show_progress:
+        #             Blender.Window.DrawProgressBar(float(j) / i.count, 'Loading ' + i.name)
+        #         answer[i.name].append(i.load(format, stream))
+        # return answer
 
 
 def read(filepath):
+    import re
+
     format = b''
     texture = b''
     version = b'1.0'
@@ -161,7 +161,7 @@ def read(filepath):
         signature = plyf.readline()
 
         if not signature.startswith(b'ply'):
-            print('Signature line was invalid')
+            print("Signature line was invalid")
             return invalid_ply
 
         valid_header = False
@@ -178,7 +178,7 @@ def read(filepath):
                     continue
                 elif tokens[1] == b'TextureFile':
                     if len(tokens) < 4:
-                        print('Invalid texture line')
+                        print("Invalid texture line")
                     else:
                         texture = tokens[2]
                 continue
@@ -187,29 +187,29 @@ def read(filepath):
                 continue
             elif tokens[0] == b'format':
                 if len(tokens) < 3:
-                    print('Invalid format line')
+                    print("Invalid format line")
                     return invalid_ply
                 if tokens[1] not in format_specs:
-                    print('Unknown format', tokens[1])
+                    print("Unknown format", tokens[1])
                     return invalid_ply
                 try:
                     version_test = float(tokens[2])
                 except Exception as ex:
-                    print('Unknown version', ex)
+                    print("Unknown version", ex)
                     version_test = None
                 if version_test != float(version):
-                    print('Unknown version', tokens[2])
+                    print("Unknown version", tokens[2])
                     return invalid_ply
                 del version_test
                 format = tokens[1]
             elif tokens[0] == b'element':
                 if len(tokens) < 3:
-                    print(b'Invalid element line')
+                    print("Invalid element line")
                     return invalid_ply
                 obj_spec.specs.append(element_spec(tokens[1], int(tokens[2])))
             elif tokens[0] == b'property':
                 if not len(obj_spec.specs):
-                    print('Property without element')
+                    print("Property without element")
                     return invalid_ply
                 if tokens[1] == b'list':
                     obj_spec.specs[-1].properties.append(property_spec(tokens[4], type_specs[tokens[2]], type_specs[tokens[3]]))
@@ -224,22 +224,20 @@ def read(filepath):
     return obj_spec, obj, texture
 
 
-import bpy
-
-
 def load_ply_mesh(filepath, ply_name):
-    from bpy_extras.io_utils import unpack_face_list
+    import bpy
 
     obj_spec, obj, texture = read(filepath)
     # XXX28: use texture
     if obj is None:
-        print('Invalid file')
+        print("Invalid file")
         return
 
     uvindices = colindices = None
     colmultiply = None
 
-    # noindices = None # Ignore normals
+    # TODO import normals
+    # noindices = None
 
     for el in obj_spec.specs:
         if el.name == b'vertex':
@@ -376,38 +374,38 @@ def load_ply_mesh(filepath, ply_name):
     if texture and uvindices:
         pass
         # XXX28: add support for using texture.
-        '''
-        import os
-        import sys
-        from bpy_extras.image_utils import load_image
 
-        encoding = sys.getfilesystemencoding()
-        encoded_texture = texture.decode(encoding=encoding)
-        name = bpy.path.display_name_from_filepath(texture)
-        image = load_image(encoded_texture, os.path.dirname(filepath), recursive=True, place_holder=True)
+        # import os
+        # import sys
+        # from bpy_extras.image_utils import load_image
 
-        if image:
-            texture = bpy.data.textures.new(name=name, type='IMAGE')
-            texture.image = image
+        # encoding = sys.getfilesystemencoding()
+        # encoded_texture = texture.decode(encoding=encoding)
+        # name = bpy.path.display_name_from_filepath(texture)
+        # image = load_image(encoded_texture, os.path.dirname(filepath), recursive=True, place_holder=True)
 
-            material = bpy.data.materials.new(name=name)
-            material.use_shadeless = True
+        # if image:
+        #     texture = bpy.data.textures.new(name=name, type='IMAGE')
+        #     texture.image = image
 
-            mtex = material.texture_slots.add()
-            mtex.texture = texture
-            mtex.texture_coords = 'UV'
-            mtex.use_map_color_diffuse = True
+        #     material = bpy.data.materials.new(name=name)
+        #     material.use_shadeless = True
 
-            mesh.materials.append(material)
-            for face in mesh.uv_textures[0].data:
-                face.image = image
-        '''
+        #     mtex = material.texture_slots.add()
+        #     mtex.texture = texture
+        #     mtex.texture_coords = 'UV'
+        #     mtex.use_map_color_diffuse = True
+
+        #     mesh.materials.append(material)
+        #     for face in mesh.uv_textures[0].data:
+        #         face.image = image
 
     return mesh
 
 
 def load_ply(filepath):
     import time
+    import bpy
 
     t = time.time()
     ply_name = bpy.path.display_name_from_filepath(filepath)
@@ -421,7 +419,7 @@ def load_ply(filepath):
     bpy.context.view_layer.objects.active = obj
     obj.select_set(True)
 
-    print('\nSuccessfully imported %r in %.3f sec' % (filepath, time.time() - t))
+    print("\nSuccessfully imported %r in %.3f sec" % (filepath, time.time() - t))
     return {'FINISHED'}
 
 
