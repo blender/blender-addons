@@ -41,7 +41,32 @@ def window_menu_append_func(self, context):
         self.layout.operator("wm.xr_session_toggle")
 
 
+class VIEW3D_PT_vr_session(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "VR"
+    bl_label = "VR Session"
+
+    def draw(self, context):
+        layout = self.layout
+        session_settings = context.window_manager.xr_session_settings
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        layout.prop(session_settings, "shading_type", text="Shading")
+        layout.prop(session_settings, "show_floor", text="Floor")
+        layout.prop(session_settings, "show_annotation", text="Annotations")
+
+        layout.separator()
+
+        col = layout.column(align=True)
+        col.prop(session_settings, "clip_start", text="Clip Start")
+        col.prop(session_settings, "clip_end", text="End")
+
+
 classes = (
+    VIEW3D_PT_vr_session,
 )
 
 
