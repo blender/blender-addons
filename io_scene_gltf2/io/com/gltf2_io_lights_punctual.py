@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# FIXME, this goes against Blender's best practice.
 from io_scene_gltf2.io.com.gltf2_io import *
 
 
@@ -73,4 +74,3 @@ class Light:
                                           self.extensions)
         result["extras"] = self.extras
         return result
-
