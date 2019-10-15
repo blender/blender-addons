@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 
-class element_spec(object):
+class ElementSpec:
     __slots__ = (
         "name",
         "count",
@@ -43,7 +43,7 @@ class element_spec(object):
         return -1
 
 
-class property_spec(object):
+class PropertySpec:
     __slots__ = (
         "name",
         "list_type",
@@ -102,7 +102,7 @@ class property_spec(object):
             return self.read_format(format, 1, self.numeric_type, stream)[0]
 
 
-class object_spec(object):
+class ObjectSpec:
     __slots__ = ("specs",)
 
     def __init__(self):
@@ -113,15 +113,16 @@ class object_spec(object):
         return dict([(i.name, [i.load(format, stream) for j in range(i.count)]) for i in self.specs])
 
         # Longhand for above LC
-
-        # answer = {}
-        # for i in self.specs:
-        #     answer[i.name] = []
-        #     for j in range(i.count):
-        #         if not j % 100 and meshtools.show_progress:
-        #             Blender.Window.DrawProgressBar(float(j) / i.count, 'Loading ' + i.name)
-        #         answer[i.name].append(i.load(format, stream))
-        # return answer
+        """
+        answer = {}
+        for i in self.specs:
+            answer[i.name] = []
+            for j in range(i.count):
+                if not j % 100 and meshtools.show_progress:
+                    Blender.Window.DrawProgressBar(float(j) / i.count, 'Loading ' + i.name)
+                answer[i.name].append(i.load(format, stream))
+        return answer
+        """
 
 
 def read(filepath):
@@ -154,7 +155,7 @@ def read(filepath):
         b'double': 'd',
         b'string': 's',
     }
-    obj_spec = object_spec()
+    obj_spec = ObjectSpec()
     invalid_ply = (None, None, None)
 
     with open(filepath, 'rb') as plyf:
@@ -206,15 +207,15 @@ def read(filepath):
                 if len(tokens) < 3:
                     print("Invalid element line")
                     return invalid_ply
-                obj_spec.specs.append(element_spec(tokens[1], int(tokens[2])))
+                obj_spec.specs.append(ElementSpec(tokens[1], int(tokens[2])))
             elif tokens[0] == b'property':
                 if not len(obj_spec.specs):
                     print("Property without element")
                     return invalid_ply
                 if tokens[1] == b'list':
-                    obj_spec.specs[-1].properties.append(property_spec(tokens[4], type_specs[tokens[2]], type_specs[tokens[3]]))
+                    obj_spec.specs[-1].properties.append(PropertySpec(tokens[4], type_specs[tokens[2]], type_specs[tokens[3]]))
                 else:
-                    obj_spec.specs[-1].properties.append(property_spec(tokens[2], None, type_specs[tokens[1]]))
+                    obj_spec.specs[-1].properties.append(PropertySpec(tokens[2], None, type_specs[tokens[1]]))
         if not valid_header:
             print("Invalid header ('end_header' line not found!)")
             return invalid_ply
@@ -373,7 +374,7 @@ def load_ply_mesh(filepath, ply_name):
 
     if texture and uvindices:
         pass
-        # XXX28: add support for using texture.
+        # TODO add support for using texture.
 
         # import os
         # import sys

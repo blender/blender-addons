@@ -34,44 +34,26 @@ def save_mesh(filepath, mesh, use_normals=True, use_uv_coords=True, use_colors=T
     def rvec2d(v):
         return round(v[0], 6), round(v[1], 6)
 
-    has_uv = bool(mesh.uv_layers)
-    has_vcol = bool(mesh.vertex_colors)
-
-    if not has_uv:
+    if use_uv_coords and mesh.uv_layers:
+        active_uv_layer = mesh.uv_layers.active.data
+    else:
         use_uv_coords = False
-    if not has_vcol:
+
+    if use_colors and mesh.vertex_colors:
+        active_col_layer = mesh.vertex_colors.active.data
+    else:
         use_colors = False
-
-    if not use_uv_coords:
-        has_uv = False
-    if not use_colors:
-        has_vcol = False
-
-    if has_uv:
-        active_uv_layer = mesh.uv_layers.active
-        if not active_uv_layer:
-            use_uv_coords = False
-            has_uv = False
-        else:
-            active_uv_layer = active_uv_layer.data
-
-    if has_vcol:
-        active_col_layer = mesh.vertex_colors.active
-        if not active_col_layer:
-            use_colors = False
-            has_vcol = False
-        else:
-            active_col_layer = active_col_layer.data
 
     # in case
     color = uvcoord = uvcoord_key = normal = normal_key = None
 
-    mesh_verts = mesh.vertices  # save a lookup
-    ply_verts = []  # list of dictionaries
+    mesh_verts = mesh.vertices
     # vdict = {} # (index, normal, uv) -> new index
     vdict = [{} for i in range(len(mesh_verts))]
+    ply_verts = []
     ply_faces = [[] for f in range(len(mesh.polygons))]
     vert_count = 0
+
     for i, f in enumerate(mesh.polygons):
 
         smooth = not use_normals or f.use_smooth
@@ -79,12 +61,12 @@ def save_mesh(filepath, mesh, use_normals=True, use_uv_coords=True, use_colors=T
             normal = f.normal[:]
             normal_key = rvec3d(normal)
 
-        if has_uv:
+        if use_uv_coords:
             uv = [
                 active_uv_layer[l].uv[:]
                 for l in range(f.loop_start, f.loop_start + f.loop_total)
             ]
-        if has_vcol:
+        if use_colors:
             col = [
                 active_col_layer[l].color[:]
                 for l in range(f.loop_start, f.loop_start + f.loop_total)
@@ -98,11 +80,11 @@ def save_mesh(filepath, mesh, use_normals=True, use_uv_coords=True, use_colors=T
                 normal = v.normal[:]
                 normal_key = rvec3d(normal)
 
-            if has_uv:
+            if use_uv_coords:
                 uvcoord = uv[j][0], uv[j][1]
                 uvcoord_key = rvec2d(uvcoord)
 
-            if has_vcol:
+            if use_colors:
                 color = col[j]
                 color = (
                     int(color[0] * 255.0),
@@ -115,7 +97,7 @@ def save_mesh(filepath, mesh, use_normals=True, use_uv_coords=True, use_colors=T
             vdict_local = vdict[vidx]
             pf_vidx = vdict_local.get(key)  # Will be None initially
 
-            if pf_vidx is None:  # same as vdict_local.has_key(key)
+            if pf_vidx is None:  # Same as vdict_local.has_key(key)
                 pf_vidx = vdict_local[key] = vert_count
                 ply_verts.append((vidx, normal, uvcoord, color))
                 vert_count += 1
@@ -136,13 +118,11 @@ def save_mesh(filepath, mesh, use_normals=True, use_uv_coords=True, use_colors=T
         )
 
         fw(f"element vertex {len(ply_verts)}\n")
-
         fw(
             "property float x\n"
             "property float y\n"
             "property float z\n"
         )
-
         if use_normals:
             fw(
                 "property float nx\n"
@@ -164,6 +144,7 @@ def save_mesh(filepath, mesh, use_normals=True, use_uv_coords=True, use_colors=T
 
         fw(f"element face {len(mesh.polygons)}\n")
         fw("property list uchar uint vertex_indices\n")
+
         fw("end_header\n")
 
         # Vertex data
