@@ -189,43 +189,59 @@ def save(
         operator,
         context,
         filepath="",
+        use_selection=False,
         use_mesh_modifiers=True,
         use_normals=True,
         use_uv_coords=True,
         use_colors=True,
         global_matrix=None
 ):
-    obj = context.active_object
-
-    if global_matrix is None:
-        from mathutils import Matrix
-        global_matrix = Matrix()
+    import bmesh
 
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
-    mesh_owner_object = None
-    if use_mesh_modifiers and obj.modifiers:
-        depsgraph = context.evaluated_depsgraph_get()
-        mesh_owner_object = obj.evaluated_get(depsgraph)
-        mesh = mesh_owner_object.to_mesh()
+    if use_selection:
+        obs = context.selected_objects
     else:
-        mesh_owner_object = obj
-        mesh = mesh_owner_object.to_mesh()
+        obs = context.scene.objects
 
-    if not mesh:
-        raise Exception("Error, could not get mesh data from active object")
+    depsgraph = context.evaluated_depsgraph_get()
+    bm = bmesh.new()
 
-    mesh.transform(global_matrix @ obj.matrix_world)
+    for ob in obs:
+        if use_mesh_modifiers:
+            ob_eval = ob.evaluated_get(depsgraph)
+        else:
+            ob_eval = ob
+
+        try:
+            me = ob_eval.to_mesh()
+        except RuntimeError:
+            continue
+
+        me.transform(ob.matrix_world)
+        bm.from_mesh(me)
+        ob_eval.to_mesh_clear()
+
+    mesh = bpy.data.meshes.new("TMP PLY EXPORT")
+    bm.to_mesh(mesh)
+    bm.free()
+
+    if global_matrix is not None:
+        mesh.transform(global_matrix)
+
     if use_normals:
         mesh.calc_normals()
 
-    ret = save_mesh(filepath, mesh,
-                    use_normals=use_normals,
-                    use_uv_coords=use_uv_coords,
-                    use_colors=use_colors,
-                    )
+    ret = save_mesh(
+        filepath,
+        mesh,
+        use_normals=use_normals,
+        use_uv_coords=use_uv_coords,
+        use_colors=use_colors,
+    )
 
-    mesh_owner_object.to_mesh_clear()
+    bpy.data.meshes.remove(mesh)
 
     return ret

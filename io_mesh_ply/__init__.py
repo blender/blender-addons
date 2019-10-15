@@ -104,6 +104,11 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
     filename_ext = ".ply"
     filter_glob: StringProperty(default="*.ply", options={'HIDDEN'})
 
+    use_selection: BoolProperty(
+        name="Selection Only",
+        description="Export selected objects only",
+        default=False,
+    )
     use_mesh_modifiers: BoolProperty(
         name="Apply Modifiers",
         description="Apply Modifiers to the exported mesh",
@@ -136,10 +141,6 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
         default=1.0,
     )
 
-    @classmethod
-    def poll(cls, context):
-        return context.active_object is not None
-
     def execute(self, context):
         from . import export_ply
 
@@ -167,6 +168,30 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
 
     def draw(self, context):
         pass
+
+
+class PLY_PT_export_include(bpy.types.Panel):
+    bl_space_type = 'FILE_BROWSER'
+    bl_region_type = 'TOOL_PROPS'
+    bl_label = "Include"
+    bl_parent_id = "FILE_PT_operator"
+
+    @classmethod
+    def poll(cls, context):
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+        return operator.bl_idname == "EXPORT_MESH_OT_ply"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+        layout.prop(operator, "use_selection")
 
 
 class PLY_PT_export_transform(bpy.types.Panel):
@@ -233,6 +258,7 @@ def menu_func_export(self, context):
 classes = (
     ImportPLY,
     ExportPLY,
+    PLY_PT_export_include,
     PLY_PT_export_transform,
     PLY_PT_export_geometry,
 )
@@ -252,6 +278,7 @@ def unregister():
 
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
+
 
 if __name__ == "__main__":
     register()
