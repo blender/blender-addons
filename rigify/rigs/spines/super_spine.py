@@ -81,7 +81,7 @@ class Rig(SubstitutionRig, BoneUtilityMixin):
             bpy.ops.object.mode_set(mode='OBJECT')
 
         # Create the parts
-        self.assign_params(spine_orgs[0], params_copy, pivot_pos=pivot_pos)
+        self.assign_params(spine_orgs[0], params_copy, pivot_pos=pivot_pos, make_fk_controls=False)
 
         result = [ self.instantiate_rig(basic_spine.Rig, spine_orgs[0]) ]
 
@@ -132,6 +132,8 @@ def add_parameters(params):
 
 def parameters_ui(layout, params):
     """ Create the ui for the rig parameters."""
+
+    layout.label(text="Note: this combined rig is deprecated.", icon='INFO')
 
     r = layout.row(align=True)
     r.prop(params, "use_head", toggle=True, text="Head")
