@@ -34,9 +34,6 @@ def save_mesh(filepath, mesh, use_normals=True, use_uv_coords=True, use_colors=T
     def rvec2d(v):
         return round(v[0], 6), round(v[1], 6)
 
-    file = open(filepath, "w", encoding="utf8", newline="\n")
-    fw = file.write
-
     has_uv = bool(mesh.uv_layers)
     has_vcol = bool(mesh.vertex_colors)
 
@@ -125,54 +122,73 @@ def save_mesh(filepath, mesh, use_normals=True, use_uv_coords=True, use_colors=T
 
             pf.append(pf_vidx)
 
-    fw("ply\n")
-    fw("format ascii 1.0\n")
-    fw("comment Created by Blender %s - "
-       "www.blender.org, source file: %r\n" %
-       (bpy.app.version_string, os.path.basename(bpy.data.filepath)))
+    with open(filepath, "w", encoding="utf-8", newline="\n") as file:
+        fw = file.write
 
-    fw("element vertex %d\n" % len(ply_verts))
+        # Header
+        # ---------------------------
 
-    fw("property float x\n"
-       "property float y\n"
-       "property float z\n")
+        fw("ply\n")
+        fw("format ascii 1.0\n")
+        fw(
+            f"comment Created by Blender {bpy.app.version_string} - "
+            f"www.blender.org, source file: {os.path.basename(bpy.data.filepath)!r}\n"
+        )
 
-    if use_normals:
-        fw("property float nx\n"
-           "property float ny\n"
-           "property float nz\n")
-    if use_uv_coords:
-        fw("property float s\n"
-           "property float t\n")
-    if use_colors:
-        fw("property uchar red\n"
-           "property uchar green\n"
-           "property uchar blue\n"
-           "property uchar alpha\n")
+        fw(f"element vertex {len(ply_verts)}\n")
 
-    fw("element face %d\n" % len(mesh.polygons))
-    fw("property list uchar uint vertex_indices\n")
-    fw("end_header\n")
+        fw(
+            "property float x\n"
+            "property float y\n"
+            "property float z\n"
+        )
 
-    for i, v in enumerate(ply_verts):
-        fw("%.6f %.6f %.6f" % mesh_verts[v[0]].co[:])  # co
         if use_normals:
-            fw(" %.6f %.6f %.6f" % v[1])  # no
+            fw(
+                "property float nx\n"
+                "property float ny\n"
+                "property float nz\n"
+            )
         if use_uv_coords:
-            fw(" %.6f %.6f" % v[2])  # uv
+            fw(
+                "property float s\n"
+                "property float t\n"
+            )
         if use_colors:
-            fw(" %u %u %u %u" % v[3])  # col
-        fw("\n")
+            fw(
+                "property uchar red\n"
+                "property uchar green\n"
+                "property uchar blue\n"
+                "property uchar alpha\n"
+            )
 
-    for pf in ply_faces:
-        # fw(f"{len(pf)} {' '.join(str(x) for x in pf)}\n")
-        fw("%d" % len(pf))
-        for v in pf:
-            fw(" %d" % v)
-        fw("\n")
+        fw(f"element face {len(mesh.polygons)}\n")
+        fw("property list uchar uint vertex_indices\n")
+        fw("end_header\n")
 
-    file.close()
-    print("writing %r done" % filepath)
+        # Vertex data
+        # ---------------------------
+
+        for i, v in enumerate(ply_verts):
+            fw("%.6f %.6f %.6f" % mesh_verts[v[0]].co[:])
+            if use_normals:
+                fw(" %.6f %.6f %.6f" % v[1])
+            if use_uv_coords:
+                fw(" %.6f %.6f" % v[2])
+            if use_colors:
+                fw(" %u %u %u %u" % v[3])
+            fw("\n")
+
+        # Face data
+        # ---------------------------
+
+        for pf in ply_faces:
+            fw(f"{len(pf)}")
+            for v in pf:
+                fw(f" {v}")
+            fw("\n")
+
+        print(f"Writing {filepath!r} done")
 
     return {'FINISHED'}
 
