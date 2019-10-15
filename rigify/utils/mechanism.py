@@ -37,8 +37,8 @@ def _set_default_attr(obj, options, attr, value):
         options.setdefault(attr, value)
 
 def make_constraint(
-        owner, type, target=None, subtarget=None, *,
-        space=None, track_axis=None, use_xyz=None, use_limit_xyz=None,
+        owner, type, target=None, subtarget=None, *, insert_index=None,
+        space=None, track_axis=None, use_xyz=None, use_limit_xyz=None, invert_xyz=None,
         **options):
     """
     Creates and initializes constraint of the specified type for the owner bone.
@@ -46,16 +46,21 @@ def make_constraint(
     Specially handled keyword arguments:
 
       target, subtarget: if both not None, passed through to the constraint
+      insert_index     : insert at the specified index in the stack, instead of at the end
       space            : assigned to both owner_space and target_space
       track_axis       : allows shorter X, Y, Z, -X, -Y, -Z notation
       use_xyz          : list of 3 items is assigned to use_x, use_y and use_z options
       use_limit_xyz    : list of 3 items is assigned to use_limit_x/y/z options
+      invert_xyz       : list of 3 items is assigned to invert_x, invert_y and invert_z options
       min/max_x/y/z    : a corresponding use_(min/max/limit)_(x/y/z) option is set to True
 
     Other keyword arguments are directly assigned to the constraint options.
     Returns the newly created constraint.
     """
     con = owner.constraints.new(type)
+
+    if insert_index is not None:
+        owner.constraints.move(len(owner.constraints)-1, insert_index)
 
     if target is not None and hasattr(con, 'target'):
         con.target = target
@@ -75,6 +80,9 @@ def make_constraint(
 
     if use_limit_xyz is not None:
         con.use_limit_x, con.use_limit_y, con.use_limit_z = use_limit_xyz[0:3]
+
+    if invert_xyz is not None:
+        con.invert_x, con.invert_y, con.invert_z = invert_xyz[0:3]
 
     for key in ['min_x', 'max_x', 'min_y', 'max_y', 'min_z', 'max_z']:
         if key in options:
@@ -264,7 +272,7 @@ def make_driver(owner, prop, *, index=-1, type='SUM', expression=None, variables
     return fcu
 
 
-def driver_var_transform(target, bone=None, *, type='LOC_X', space='WORLD'):
+def driver_var_transform(target, bone=None, *, type='LOC_X', space='WORLD', rotation_mode='AUTO'):
     """
     Create a Transform Channel driver variable specification.
 
@@ -278,6 +286,7 @@ def driver_var_transform(target, bone=None, *, type='LOC_X', space='WORLD'):
         'id': target,
         'transform_type': type,
         'transform_space': space + '_SPACE',
+        'rotation_mode': rotation_mode,
     }
 
     if bone is not None:

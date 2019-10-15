@@ -18,11 +18,13 @@
 
 # <pep8 compliant>
 
+import bpy
 import math
 import collections
 
 from itertools import tee, chain, islice, repeat
 from mathutils import Vector, Matrix, Color
+from rna_prop_ui import rna_idprop_value_to_python
 
 
 #=============================================
@@ -55,6 +57,28 @@ def angle_on_plane(plane, vec1, vec2):
         sign = -1
 
     return angle * sign
+
+
+# Convert between a matrix and axis+roll representations.
+# Re-export the C implementation internally used by bones.
+matrix_from_axis_roll = bpy.types.Bone.MatrixFromAxisRoll
+axis_roll_from_matrix = bpy.types.Bone.AxisRollFromMatrix
+
+
+def matrix_from_axis_pair(y_axis, other_axis, axis_name):
+    assert axis_name in 'xz'
+
+    y_axis = Vector(y_axis).normalized()
+
+    if axis_name == 'x':
+        z_axis = Vector(other_axis).cross(y_axis).normalized()
+        x_axis = y_axis.cross(z_axis)
+    else:
+        x_axis = y_axis.cross(other_axis).normalized()
+        z_axis = x_axis.cross(y_axis)
+
+    return Matrix((x_axis, y_axis, z_axis)).transposed()
+
 
 #=============================================
 # Color correction functions
@@ -147,8 +171,30 @@ def copy_attributes(a, b):
                 pass
 
 
+def property_to_python(value):
+    value = rna_idprop_value_to_python(value)
+
+    if isinstance(value, dict):
+        return { k: property_to_python(v) for k, v in value.items() }
+    elif isinstance(value, list):
+        return map_list(property_to_python, value)
+    else:
+        return value
+
+
+def clone_parameters(target):
+    return property_to_python(dict(target))
+
+
 def assign_parameters(target, val_dict=None, **params):
-    data = { **val_dict, **params } if val_dict else params
+    if val_dict is not None:
+        for key in list(target.keys()):
+            del target[key]
+
+        data = { **val_dict, **params }
+    else:
+        data = params
+
     for key, value in data.items():
         try:
             target[key] = value

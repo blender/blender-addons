@@ -408,6 +408,25 @@ def bezierMultiIntersection(segments):
     prepareSegmentIntersections(segments)
     subdivideBezierSegments(segments)
 
+def bezierProjectHandles(segments):
+    insertions = []
+    index_offset = 0
+    for segment in segments:
+        if len(insertions) > 0 and insertions[-1][0] != segment['spline']:
+            index_offset = 0
+        points = bezierSegmentPoints(segment['beginPoint'], segment['endPoint'])
+        paramA, paramB, pointA, pointB = nearestPointOfLines(points[0], points[1]-points[0], points[3], points[2]-points[3])
+        if pointA and pointB:
+            segment['cuts'].append({'param': 0.5})
+            insertions.append((segment['spline'], segment['beginIndex']+1+index_offset, (pointA+pointB)*0.5))
+            index_offset += 1
+    subdivideBezierSegments(segments)
+    for insertion in insertions:
+        bezier_point = insertion[0].bezier_points[insertion[1]]
+        bezier_point.co = insertion[2]
+        bezier_point.handle_left_type = 'VECTOR'
+        bezier_point.handle_right_type = 'VECTOR'
+
 def bezierSubivideAt(points, params):
     if len(params) == 0:
         return []

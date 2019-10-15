@@ -26,6 +26,7 @@ from ...utils.naming import make_derived_name
 from ...utils.bones import align_bone_orientation
 from ...utils.widgets_basic import create_circle_widget, create_cube_widget
 from ...utils.widgets_special import create_neck_bend_widget, create_neck_tweak_widget
+from ...utils.switch_parent import SwitchParentBuilder
 from ...utils.misc import map_list
 
 from ...base_rig import stage
@@ -144,7 +145,6 @@ class Rig(BaseHeadTailRig):
             self.obj, ctrl,
             radius=radius,
             head_tail=0.5,
-            bone_transform_name=None
         )
 
     def make_neck_bend_widget(self, ctrl):
@@ -154,7 +154,6 @@ class Rig(BaseHeadTailRig):
             self.obj, ctrl,
             radius=radius/2,
             head_tail=0.0,
-            bone_transform_name=None
         )
 
     def make_head_widget(self, ctrl):
@@ -169,7 +168,6 @@ class Rig(BaseHeadTailRig):
             radius              = 0.5,
             head_tail           = head_tail,
             with_line           = False,
-            bone_transform_name = None
         )
 
     ####################################################
@@ -256,8 +254,7 @@ class Rig(BaseHeadTailRig):
     def parent_mch_chain(self):
         mch = self.bones.mch
         for bone in mch.chain:
-            self.set_bone_parent(bone, mch.stretch)
-            self.get_bone(bone).inherit_scale = 'NONE'
+            self.set_bone_parent(bone, mch.stretch, inherit_scale='NONE')
 
     @stage.rig_bones
     def rig_mch_chain(self):
@@ -320,6 +317,12 @@ class Rig(BaseHeadTailRig):
 
     ####################################################
     # ORG and DEF bones
+
+    @stage.generate_bones
+    def register_parent_bones(self):
+        rig = self.rigify_parent or self
+        builder = SwitchParentBuilder(self.generator)
+        builder.register_parent(rig, self.bones.org[-1], name='Head', exclude_self=True)
 
     @stage.configure_bones
     def configure_bbone_chain(self):

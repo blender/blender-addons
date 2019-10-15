@@ -235,8 +235,8 @@ def write_metarig(obj, layers=False, func_name="create", groups=False):
     for bone_name in bones:
         bone = arm.edit_bones[bone_name]
         code.append("    bone = arm.edit_bones.new(%r)" % bone.name)
-        code.append("    bone.head[:] = %.4f, %.4f, %.4f" % bone.head.to_tuple(4))
-        code.append("    bone.tail[:] = %.4f, %.4f, %.4f" % bone.tail.to_tuple(4))
+        code.append("    bone.head = %.4f, %.4f, %.4f" % bone.head.to_tuple(4))
+        code.append("    bone.tail = %.4f, %.4f, %.4f" % bone.tail.to_tuple(4))
         code.append("    bone.roll = %.4f" % bone.roll)
         code.append("    bone.use_connect = %s" % str(bone.use_connect))
         if bone.parent:

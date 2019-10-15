@@ -33,7 +33,7 @@ WGT_PREFIX = "WGT-"  # Prefix for widget objects
 #=============================================
 
 
-def obj_to_bone(obj, rig, bone_name):
+def obj_to_bone(obj, rig, bone_name, bone_transform_name=None):
     """ Places an object at the location/rotation/scale of the given bone.
     """
     if bpy.context.mode == 'EDIT_ARMATURE':
@@ -45,27 +45,18 @@ def obj_to_bone(obj, rig, bone_name):
     if bone.use_custom_shape_bone_size:
         scale *= bone.length
 
-    if bone.custom_shape_transform:
+    if bone_transform_name is not None:
+        bone = rig.pose.bones[bone_transform_name]
+    elif bone.custom_shape_transform:
         bone = bone.custom_shape_transform
 
-    mat = rig.matrix_world @ bone.bone.matrix_local
-
-    obj.location = mat.to_translation()
-
     obj.rotation_mode = 'XYZ'
-    obj.rotation_euler = mat.to_euler()
-
-    scl = mat.to_scale()
-    scl_avg = (scl[0] + scl[1] + scl[2]) / 3
-    obj.scale = (scale * scl_avg), (scale * scl_avg), (scale * scl_avg)
+    obj.matrix_basis = rig.matrix_world @ bone.bone.matrix_local @ Matrix.Scale(scale, 4)
 
 
 def create_widget(rig, bone_name, bone_transform_name=None):
     """ Creates an empty widget object for a bone, and returns the object.
     """
-    if bone_transform_name is None:
-        bone_transform_name = bone_name
-
     obj_name = WGT_PREFIX + rig.name + '_' + bone_name
     scene = bpy.context.scene
     collection = ensure_widget_collection(bpy.context)
@@ -74,7 +65,7 @@ def create_widget(rig, bone_name, bone_transform_name=None):
     if obj_name in scene.objects:
         # Move object to bone position, in case it changed
         obj = scene.objects[obj_name]
-        obj_to_bone(obj, rig, bone_transform_name)
+        obj_to_bone(obj, rig, bone_name, bone_transform_name)
 
         return None
     else:
@@ -91,7 +82,7 @@ def create_widget(rig, bone_name, bone_transform_name=None):
         collection.objects.link(obj)
 
         # Move object to bone position and set layers
-        obj_to_bone(obj, rig, bone_transform_name)
+        obj_to_bone(obj, rig, bone_name, bone_transform_name)
         wgts_group_name = 'WGTS_' + rig.name
         if wgts_group_name in bpy.data.objects.keys():
             obj.parent = bpy.data.objects[wgts_group_name]
@@ -160,6 +151,25 @@ def adjust_widget_axis(obj, axis='y', offset=0.0):
         vert.co = matrix @ vert.co
 
 
+def adjust_widget_transform_mesh(obj, matrix, local=None):
+    """Adjust the generated widget by applying a correction matrix to the mesh.
+       If local is false, the matrix is in world space.
+       If local is True, it's in the local space of the widget.
+       If local is a bone, it's in the local space of the bone.
+    """
+    if obj:
+        if local is not True:
+            if local:
+                assert isinstance(local, bpy.types.PoseBone)
+                bonemat = local.id_data.matrix_world @ local.bone.matrix_local
+                matrix = bonemat @ matrix @ bonemat.inverted()
+
+            obmat = obj.matrix_basis
+            matrix = obmat.inverted() @ matrix @ obmat
+
+        obj.data.transform(matrix)
+
+
 def write_widget(obj):
     """ Write a mesh object as a python script for widget use.
     """
@@ -170,9 +180,9 @@ def write_widget(obj):
 
     # Vertices
     script += "        verts = ["
-    for v in obj.data.vertices:
-        script += "(" + str(v.co[0]) + "*size, " + str(v.co[1]) + "*size, " + str(v.co[2]) + "*size),"
-        script += "\n                 "
+    for i, v in enumerate(obj.data.vertices):
+        script += "({:g}*size, {:g}*size, {:g}*size),".format(v.co[0], v.co[1], v.co[2])
+        script += "\n                 " if i % 2 == 1 else " "
     script += "]\n"
 
     # Edges

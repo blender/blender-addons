@@ -20,7 +20,8 @@ import os
 import traceback
 import importlib
 
-from . import utils
+from .utils.rig import RIG_DIR
+
 from . import feature_set_list
 
 
@@ -76,15 +77,16 @@ def get_rigs(base_dir, base_path, *, path=[], feature_set=feature_set_list.DEFAU
 
 
 # Public variables
+rigs = {}
+implementation_rigs = {}
+
 def get_internal_rigs():
+    global rigs, implementation_rigs
+
     BASE_RIGIFY_DIR = os.path.dirname(__file__)
     BASE_RIGIFY_PATH = __name__.split('.')[:-1]
 
-    return get_rigs(os.path.join(BASE_RIGIFY_DIR, utils.RIG_DIR), [*BASE_RIGIFY_PATH, utils.RIG_DIR])
-
-
-rigs, implementation_rigs = get_internal_rigs()
-
+    rigs, implementation_rigs = get_rigs(os.path.join(BASE_RIGIFY_DIR, RIG_DIR), [*BASE_RIGIFY_PATH, RIG_DIR])
 
 def get_external_rigs(set_list):
     # Clear and fill rigify rigs and implementation rigs public variables
@@ -97,7 +99,7 @@ def get_external_rigs(set_list):
     # Get external rigs
     for feature_set in set_list:
         try:
-            base_dir, base_path = feature_set_list.get_dir_path(feature_set, utils.RIG_DIR)
+            base_dir, base_path = feature_set_list.get_dir_path(feature_set, RIG_DIR)
 
             external_rigs, external_impl_rigs = get_rigs(base_dir, base_path, feature_set=feature_set)
         except Exception:

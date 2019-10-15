@@ -69,36 +69,45 @@ class Generator(base_generate.BaseGenerator):
     def __create_rig_object(self):
         scene = self.scene
         id_store = self.id_store
+        meta_data = self.metarig.data
 
         # Check if the generated rig already exists, so we can
         # regenerate in the same object.  If not, create a new
         # object to generate the rig in.
         print("Fetch rig.")
 
-        if id_store.rigify_generate_mode == 'overwrite':
-            name = id_store.rigify_target_rig or "rig"
-            try:
+        self.rig_new_name = name = meta_data.rigify_rig_basename or "rig"
+
+        obj = None
+
+        if meta_data.rigify_generate_mode == 'overwrite':
+            obj = meta_data.rigify_target_rig
+
+            if not obj and name in scene.objects:
                 obj = scene.objects[name]
-                self.rig_old_name = name
-                obj.name = self.rig_new_name or name
+
+            if obj:
+                self.rig_old_name = obj.name
+
+                obj.name = name
+                obj.data.name = obj.name
 
                 rig_collections = filter_layer_collections_by_object(self.usable_collections, obj)
                 self.layer_collection = (rig_collections + [self.layer_collection])[0]
                 self.collection = self.layer_collection.collection
 
-            except KeyError:
-                self.rig_old_name = name
-                name = self.rig_new_name or name
-                obj = bpy.data.objects.new(name, bpy.data.armatures.new(name))
-                obj.display_type = 'WIRE'
-                self.collection.objects.link(obj)
-        else:
-            name = self.rig_new_name or "rig"
-            obj = bpy.data.objects.new(name, bpy.data.armatures.new(name))  # in case name 'rig' exists it will be rig.001
+            elif name in bpy.data.objects:
+                obj = bpy.data.objects[name]
+
+        if not obj:
+            obj = bpy.data.objects.new(name, bpy.data.armatures.new(name))
             obj.display_type = 'WIRE'
             self.collection.objects.link(obj)
 
-        id_store.rigify_target_rig = obj.name
+        elif obj.name not in self.collection.objects:  # rig exists but was deleted
+            self.collection.objects.link(obj)
+
+        meta_data.rigify_target_rig = obj
         obj.data.pose_position = 'POSE'
 
         self.obj = obj
@@ -114,8 +123,8 @@ class Generator(base_generate.BaseGenerator):
         self.widget_collection = ensure_widget_collection(context)
 
         # Remove wgts if force update is set
-        wgts_group_name = "WGTS_" + (self.rig_old_name or obj.name)
-        if wgts_group_name in scene.objects and id_store.rigify_force_widget_update:
+        wgts_group_name = "WGTS_" + (self.rig_old_name or self.obj.name)
+        if wgts_group_name in scene.objects and self.metarig.data.rigify_force_widget_update:
             bpy.ops.object.mode_set(mode='OBJECT')
             bpy.ops.object.select_all(action='DESELECT')
             for wgt in bpy.data.objects[wgts_group_name].children:
@@ -156,7 +165,12 @@ class Generator(base_generate.BaseGenerator):
         # Select the target rig and join
         select_object(context, obj)
 
+        saved_matrix = obj.matrix_world.copy()
+        obj.matrix_world = metarig.matrix_world
+
         bpy.ops.object.join()
+
+        obj.matrix_world = saved_matrix
 
         # Select the generated rig
         select_object(context, obj, deselect_all=True)
@@ -320,9 +334,6 @@ class Generator(base_generate.BaseGenerator):
 
         #------------------------------------------
         # Create/find the rig object and set it up
-        if id_store.rigify_rig_basename:
-            self.rig_new_name = id_store.rigify_rig_basename + "_rig"
-
         obj = self.__create_rig_object()
 
         # Get rid of anim data in case the rig already existed
@@ -463,7 +474,7 @@ class Generator(base_generate.BaseGenerator):
         create_selection_sets(obj, metarig)
 
         # Create Bone Groups
-        create_bone_groups(obj, metarig)
+        create_bone_groups(obj, metarig, self.layer_group_priorities)
 
         t.tick("The rest: ")
 
@@ -544,12 +555,13 @@ def create_selection_sets(obj, metarig):
                     bone_id.name = bone.name
 
 
-def create_bone_groups(obj, metarig):
+def create_bone_groups(obj, metarig, priorities={}):
 
     bpy.ops.object.mode_set(mode='OBJECT')
     pb = obj.pose.bones
     layers = metarig.data.rigify_layers
     groups = metarig.data.rigify_colors
+    dummy = {}
 
     # Create BGs
     for l in layers:
@@ -566,7 +578,9 @@ def create_bone_groups(obj, metarig):
 
     for b in pb:
         try:
-            layer_index = b.bone.layers[:].index(True)
+            prios = priorities.get(b.name, dummy)
+            enabled = [ i for i, v in enumerate(b.bone.layers) if v ]
+            layer_index = max(enabled, key=lambda i: prios.get(i, 0))
         except ValueError:
             continue
         if layer_index > len(layers) - 1:   # bone is on reserved layers

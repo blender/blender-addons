@@ -1,4 +1,4 @@
-from . import Math
+from . import mathematics
 
 import bpy
 
@@ -559,11 +559,11 @@ class Curve:
 
                     currEndPoint = currentSpline.segments[-1].bezierPoint2.co
                     nextStartPoint = nextSpline.segments[0].bezierPoint1.co
-                    if Math.IsSamePoint(currEndPoint, nextStartPoint, threshold): return [currentSpline, nextSpline]
+                    if mathematics.IsSamePoint(currEndPoint, nextStartPoint, threshold): return [currentSpline, nextSpline]
 
                     nextEndPoint = nextSpline.segments[-1].bezierPoint2.co
                     currStartPoint = currentSpline.segments[0].bezierPoint1.co
-                    if Math.IsSamePoint(nextEndPoint, currStartPoint, threshold): return [nextSpline, currentSpline]
+                    if mathematics.IsSamePoint(nextEndPoint, currStartPoint, threshold): return [nextSpline, currentSpline]
 
             return None
         else:
@@ -575,18 +575,18 @@ class Curve:
 
                     currEndPoint = currentSpline.segments[-1].bezierPoint2.co
                     nextStartPoint = nextSpline.segments[0].bezierPoint1.co
-                    if Math.IsSamePoint(currEndPoint, nextStartPoint, threshold): return [currentSpline, nextSpline]
+                    if mathematics.IsSamePoint(currEndPoint, nextStartPoint, threshold): return [currentSpline, nextSpline]
 
                     nextEndPoint = nextSpline.segments[-1].bezierPoint2.co
                     currStartPoint = currentSpline.segments[0].bezierPoint1.co
-                    if Math.IsSamePoint(nextEndPoint, currStartPoint, threshold): return [nextSpline, currentSpline]
+                    if mathematics.IsSamePoint(nextEndPoint, currStartPoint, threshold): return [nextSpline, currentSpline]
 
-                    if Math.IsSamePoint(currEndPoint, nextEndPoint, threshold):
+                    if mathematics.IsSamePoint(currEndPoint, nextEndPoint, threshold):
                         nextSpline.Reverse()
                         #print("## ", "nextSpline.Reverse()")
                         return [currentSpline, nextSpline]
 
-                    if Math.IsSamePoint(currStartPoint, nextStartPoint, threshold):
+                    if mathematics.IsSamePoint(currStartPoint, nextStartPoint, threshold):
                         currentSpline.Reverse()
                         #print("## ", "currentSpline.Reverse()")
                         return [currentSpline, nextSpline]

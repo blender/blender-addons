@@ -115,17 +115,21 @@ class Rig(BaseRig):
 
     @stage.parent_bones
     def parent_master_control(self):
-        self.set_bone_parent(self.bones.ctrl.master, self.rig_parent_bone)
+        self.set_bone_parent(self.bones.ctrl.master, self.rig_parent_bone, inherit_scale='AVERAGE')
 
         if self.make_secondary:
-            self.set_bone_parent(self.bones.ctrl.secondary, self.rig_parent_bone)
+            self.set_bone_parent(self.bones.ctrl.secondary, self.rig_parent_bone, inherit_scale='AVERAGE')
 
     @stage.configure_bones
     def configure_master_control(self):
-        self.copy_bone_properties(self.bones.org[-1], self.bones.ctrl.master)
+        self.configure_control_bone(self.bones.ctrl.master, self.bones.org[-1])
 
         if self.make_secondary:
-            self.copy_bone_properties(self.bones.org[0], self.bones.ctrl.secondary)
+            self.configure_control_bone(self.bones.ctrl.secondary, self.bones.org[0])
+
+    def configure_control_bone(self, ctrl, org):
+        self.copy_bone_properties(org, ctrl)
+        self.get_bone(ctrl).lock_scale = (True, True, True)
 
     @stage.generate_widgets
     def make_master_control_widgets(self):
@@ -179,8 +183,7 @@ class Rig(BaseRig):
     @stage.parent_bones
     def parent_org_chain(self):
         for org in self.bones.org:
-            self.set_bone_parent(org, self.rig_parent_bone)
-            self.get_bone(org).inherit_scale = 'NONE'
+            self.set_bone_parent(org, self.rig_parent_bone, inherit_scale='NONE')
 
     @stage.rig_bones
     def rig_org_chain(self):

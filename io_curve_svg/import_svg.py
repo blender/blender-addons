@@ -26,92 +26,16 @@ import bpy
 from mathutils import Vector, Matrix
 
 from . import svg_colors
-from .svg_util import (srgb_to_linearrgb,
+from .svg_util import (units,
+                       srgb_to_linearrgb,
                        check_points_equal,
-                       parse_array_of_floats)
+                       parse_array_of_floats,
+                       read_float)
 
 #### Common utilities ####
 
-# TODO: "em" and "ex" aren't actually supported
-SVGUnits = {"": 1.0,
-            "px": 1.0,
-            "in": 90.0,
-            "mm": 90.0 / 25.4,
-            "cm": 90.0 / 2.54,
-            "pt": 1.25,
-            "pc": 15.0,
-            "em": 1.0,
-            "ex": 1.0,
-            "INVALID": 1.0,  # some DocBook files contain this
-            }
-
 SVGEmptyStyles = {'useFill': None,
                   'fill': None}
-
-def SVGParseFloat(s, i=0):
-    """
-    Parse first float value from string
-
-    Returns value as string
-    """
-
-    start = i
-    n = len(s)
-    token = ''
-
-    # Skip leading whitespace characters
-    while i < n and (s[i].isspace() or s[i] == ','):
-        i += 1
-
-    if i == n:
-        return None, i
-
-    # Read sign
-    if s[i] == '-':
-        token += '-'
-        i += 1
-    elif s[i] == '+':
-        i += 1
-
-    # Read integer part
-    if s[i].isdigit():
-        while i < n and s[i].isdigit():
-            token += s[i]
-            i += 1
-
-    # Fractional part
-    if i < n and s[i] == '.':
-        token += '.'
-        i += 1
-
-        if s[i].isdigit():
-            while i < n and s[i].isdigit():
-                token += s[i]
-                i += 1
-        elif s[i].isspace() or s[i] == ',':
-            # Inkscape sometimes uses weird float format with missed
-            # fractional part after dot. Suppose zero fractional part
-            # for this case
-            pass
-        else:
-            raise Exception('Invalid float value near ' + s[start:start + 10])
-
-    # Degree
-    if i < n and (s[i] == 'e' or s[i] == 'E'):
-        token += s[i]
-        i += 1
-        if s[i] == '+' or s[i] == '-':
-            token += s[i]
-            i += 1
-
-        if s[i].isdigit():
-            while i < n and s[i].isdigit():
-                token += s[i]
-                i += 1
-        else:
-            raise Exception('Invalid float value near ' + s[start:start + 10])
-
-    return token, i
 
 
 def SVGCreateCurve(context):
@@ -150,17 +74,17 @@ def SVGParseCoord(coord, size):
     """
     Parse coordinate component to common basis
 
-    Needed to handle coordinates set in cm, mm, iches..
+    Needed to handle coordinates set in cm, mm, inches.
     """
 
-    token, last_char = SVGParseFloat(coord)
+    token, last_char = read_float(coord)
     val = float(token)
     unit = coord[last_char:].strip()  # strip() in case there is a space
 
     if unit == '%':
         return float(size) / 100.0 * val
     else:
-        return val * SVGUnits[unit]
+        return val * units[unit]
 
     return val
 
@@ -493,7 +417,7 @@ class SVGPathData:
             elif c.lower() in commands:
                 tokens.append(c)
             elif c in ['-', '.'] or c.isdigit():
-                token, last_char = SVGParseFloat(d, i)
+                token, last_char = read_float(d, i)
                 tokens.append(token)
 
                 # in most cases len(token) and (last_char - i) are the same
@@ -1824,7 +1748,7 @@ class SVGGeometrySVG(SVGGeometryContainer):
          
         if self._node.getAttribute('height'):
             raw_height = self._node.getAttribute('height')
-            token, last_char = SVGParseFloat(raw_height)
+            token, last_char = read_float(raw_height)
             document_height = float(token)
             unit = raw_height[last_char:].strip() 
        
@@ -1833,11 +1757,8 @@ class SVGGeometrySVG(SVGGeometryContainer):
             
         if len(viewbox) == 4 and unit in ('cm', 'mm', 'in', 'pt', 'pc'):
 
-            #one unit equals whis svg units:
-            unitscale = document_height / (viewbox[3] - viewbox[1])
-            
             #convert units to BU: 
-            unitscale = unitscale * SVGUnits[unit] / 90 * 1000 / 39.3701 
+            unitscale = units[unit] / 90 * 1000 / 39.3701 
             
             #apply blender unit scale: 
             unitscale = unitscale / bpy.context.scene.unit_settings.scale_length

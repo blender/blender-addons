@@ -65,7 +65,7 @@ class Rig(BaseLimbRig):
         pbuilder.register_parent(self, self.bones.org.main[2], exclude_self=True)
 
     def make_ik_ctrl_widget(self, ctrl):
-        create_hand_widget(self.obj, ctrl, bone_transform_name=None)
+        create_hand_widget(self.obj, ctrl)
 
     ####################################################
     # Settings

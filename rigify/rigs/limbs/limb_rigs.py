@@ -218,7 +218,7 @@ class BaseLimbRig(BaseRig):
     def parent_mch_follow_bone(self):
         mch = self.bones.mch.follow
         align_bone_orientation(self.obj, mch, 'root')
-        self.set_bone_parent(mch, self.rig_parent_bone)
+        self.set_bone_parent(mch, self.rig_parent_bone, inherit_scale='FIX_SHEAR')
 
     @stage.configure_bones
     def configure_mch_follow_bone(self):
@@ -232,8 +232,9 @@ class BaseLimbRig(BaseRig):
     def rig_mch_follow_bone(self):
         mch = self.bones.mch.follow
 
+        self.make_constraint(mch, 'COPY_SCALE', 'root', use_make_uniform=True)
+
         con = self.make_constraint(mch, 'COPY_ROTATION', 'root')
-        self.make_constraint(mch, 'COPY_SCALE', 'root')
 
         self.make_driver(con, 'influence', variables=[(self.prop_bone, 'FK_limb_follow')])
 
@@ -268,7 +269,8 @@ class BaseLimbRig(BaseRig):
         for args in zip(count(0), self.bones.ctrl.fk, self.bones.org.main):
             self.configure_fk_control_bone(*args)
 
-        ControlLayersOption.FK.assign(self.params, self.obj, self.bones.ctrl.fk[0:3])
+        ControlLayersOption.FK.assign_rig(self, self.bones.ctrl.fk[0:3])
+        ControlLayersOption.FK.assign_rig(self, self.bones.ctrl.fk[3:], combine=True, priority=1)
 
     def configure_fk_control_bone(self, i, ctrl, org):
         self.copy_bone_properties(org, ctrl)
@@ -310,7 +312,7 @@ class BaseLimbRig(BaseRig):
 
     def parent_fk_parent_bone(self, i, parent_mch, prev_ctrl, org, prev_org):
         if i == 2:
-            self.set_bone_parent(parent_mch, prev_ctrl, use_connect=True)
+            self.set_bone_parent(parent_mch, prev_ctrl, use_connect=True, inherit_scale='NONE')
 
     @stage.rig_bones
     def rig_fk_parent_chain(self):
@@ -319,7 +321,7 @@ class BaseLimbRig(BaseRig):
 
     def rig_fk_parent_bone(self, i, parent_mch, org):
         if i == 2:
-            self.make_constraint(parent_mch, 'COPY_SCALE', 'root')
+            self.make_constraint(parent_mch, 'COPY_SCALE', 'root', use_make_uniform=True)
 
 
     ####################################################
@@ -406,10 +408,10 @@ class BaseLimbRig(BaseRig):
         else:
             roll = pi/2
 
-        create_ikarrow_widget(self.obj, ctrl, bone_transform_name=None, roll=roll)
+        create_ikarrow_widget(self.obj, ctrl, roll=roll)
 
     def make_ik_pole_widget(self, ctrl):
-        create_sphere_widget(self.obj, ctrl, bone_transform_name=None)
+        create_sphere_widget(self.obj, ctrl)
 
     def make_ik_ctrl_widget(self, ctrl):
         raise NotImplementedError()
@@ -624,7 +626,7 @@ class BaseLimbRig(BaseRig):
         for args in zip(count(0), self.bones.ctrl.tweak, self.segment_table_tweak):
             self.configure_tweak_bone(*args)
 
-        ControlLayersOption.TWEAK.assign(self.params, self.obj, self.bones.ctrl.tweak)
+        ControlLayersOption.TWEAK.assign_rig(self, self.bones.ctrl.tweak)
 
     def configure_tweak_bone(self, i, tweak, entry):
         tweak_pb = self.get_bone(tweak)
@@ -690,7 +692,7 @@ class BaseLimbRig(BaseRig):
             self.make_constraint(tweak, 'DAMPED_TRACK', next_tweak)
 
         elif entry.seg_idx is not None:
-            self.make_constraint(tweak, 'COPY_SCALE', 'root')
+            self.make_constraint(tweak, 'COPY_SCALE', 'root', use_make_uniform=True)
 
 
     ####################################################

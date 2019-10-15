@@ -64,11 +64,26 @@ class BaseSpineRig(TweakChainRig):
 
         align_bone_to_axis(self.obj, name, 'y', length=self.length * 0.6)
 
-        SwitchParentBuilder(self.generator).register_parent(self, name)
+        self.build_parent_switch(name)
+
+    def build_parent_switch(self, master_name):
+        pbuilder = SwitchParentBuilder(self.generator)
+        pbuilder.register_parent(self, master_name, name='Torso')
+        pbuilder.build_child(
+            self, master_name, exclude_self=True,
+            prop_id='torso_parent', prop_name='Torso Parent',
+            controls=lambda: self.bones.flatten('ctrl'),
+        )
+
+        self.register_parent_bones(pbuilder)
+
+    def register_parent_bones(self, pbuilder):
+        pbuilder.register_parent(self, self.bones.org[0], name='Hips', exclude_self=True)
+        pbuilder.register_parent(self, self.bones.org[-1], name='Chest', exclude_self=True)
 
     @stage.parent_bones
     def parent_master_control(self):
-        self.set_bone_parent(self.bones.ctrl.master, self.rig_parent_bone)
+        pass
 
     @stage.configure_bones
     def configure_master_control(self):
@@ -79,7 +94,6 @@ class BaseSpineRig(TweakChainRig):
         create_cube_widget(
             self.obj, self.bones.ctrl.master,
             radius=0.5,
-            bone_transform_name=None
         )
 
     ####################################################

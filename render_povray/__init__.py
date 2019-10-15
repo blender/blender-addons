@@ -19,13 +19,14 @@
 # <pep8 compliant>
 
 bl_info = {
+    #coming soon: "name": "POV-3.8",
     "name": "POV-3.7",
     "author": "Campbell Barton, Maurice Raybaud, Leonid Desyatkov, "
               "Bastien Montagne, Constantin Rahn, Silvio Falcinelli",
     "version": (0, 1, 0),
     "blender": (2, 80, 0),
-    "location": "Render > Engine > POV-Ray 3.7",
-    "description": "POV-Ray 3.7 integration for blender",
+    "location": "Render > Engine > Persistence Of Vision",
+    "description": "POV-Ray integration for blender",
     "wiki_url": "https://archive.blender.org/wiki/index.php/"
                 "Extensions:2.6/Py/Scripts/Render/POV-Ray/",
     "category": "Render",
@@ -1188,7 +1189,7 @@ class RenderPovSettingsMaterial(PropertyGroup):
             name="Specular Shader Model",
             description="Method to use for rendering transparency",   
             items=(("MASK", "Mask", "Mask the background"),
-                   ("Z_TRANSPARENCY", "Z Transparency", "Use alpha buffer for transparent faces"),#TO DEPRECATE
+                   ("Z_TRANSPARENCY", "Z Transparency", "Use an ior of 1 for transparent faces"),
                    ("RAYTRACE", "Raytrace", "Use raytracing for transparent refraction rendering")),
             default="MASK")
             
@@ -1196,9 +1197,9 @@ class RenderPovSettingsMaterial(PropertyGroup):
             name="Type",
             description="Material type defining how the object is rendered",   
             items=(("SURFACE", "Surface", "Render object as a surface"),
-                   ("WIRE", "Wire", "Render the edges of faces as wires (not supported in raytracing)"),#TO UPDATE > USE MACRO AND CHNGE DESCRIPTION
+                   ("WIRE", "Wire", "Render the edges of faces as wires (not supported in raytracing)"),#TO UPDATE > USE MACRO AND CHANGE DESCRIPTION
                    ("VOLUME", "Volume", "Render object as a volume"),
-                   ("‘HALO’", "Halo", "Render object as halo particles")), #TO UPDATE > USE MACRO AND CHNGE DESCRIPTION
+                   ("‘HALO’", "Halo", "Render object as halo particles")), #TO UPDATE > USE MACRO AND CHANGE DESCRIPTION
             default="SURFACE")
             
     use_cast_shadows: BoolProperty(

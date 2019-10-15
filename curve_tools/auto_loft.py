@@ -1,9 +1,9 @@
 import bpy
 from bpy.props import BoolProperty
 from bpy.types import Operator, Panel
-from curve_tools.Surfaces import LoftedSurface
-from curve_tools.Curves import Curve
-from curve_tools import Util
+from . import surfaces
+from . import curves
+from . import util
 
 
 class OperatorAutoLoftCurves(Operator):
@@ -13,16 +13,16 @@ class OperatorAutoLoftCurves(Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected2Curves()
+        return util.Selected2Curves()
 
     def execute(self, context):
-        #print("### TODO: OperatorLoftCurves.execute()")
+        #print("### TODO: OperatorLoftcurves.execute()")
         mesh = bpy.data.meshes.new("LoftMesh")
 
         curve0 = context.selected_objects[0]
         curve1 = context.selected_objects[1]
 
-        ls = LoftedSurface(Curve(curve0), Curve(curve1), "AutoLoft")
+        ls = surfaces.LoftedSurface(curves.Curve(curve0), curves.Curve(curve1), "AutoLoft")
 
         ls.bMesh.to_mesh(mesh)
 
@@ -37,8 +37,6 @@ class OperatorAutoLoftCurves(Operator):
                            "description": "Auto loft from %s to %s" % (curve0.name, curve1.name),
                            "curve0": curve0.name,
                            "curve1": curve1.name}
-        #print(loftobj['_RNA_UI'].to_dict())
-        #self.report({'INFO'}, "OperatorAutoLoftCurves.execute()")
 
         return {'FINISHED'}
 
@@ -61,12 +59,11 @@ class AutoLoftModalOperator(Operator):
         #print("TIMER", lofters)
 
         for loftmesh in lofters:
-            #loftmesh.hide_select = True
             rna = loftmesh['_RNA_UI']["autoloft"].to_dict()
             curve0 = scene.objects.get(rna["curve0"])
             curve1 = scene.objects.get(rna["curve1"])
             if curve0 and curve1:
-                ls = LoftedSurface(Curve(curve0), Curve(curve1), loftmesh.name)
+                ls = surfaces.LoftedSurface(curves.Curve(curve0), curves.Curve(curve1), loftmesh.name)
                 ls.bMesh.to_mesh(loftmesh.data)
         return {'FINISHED'}
 

@@ -89,7 +89,7 @@ def draw(self, context, splines, sequence_color, font_thickness, font_size, matr
             i += font_size + font_size * 0.5
 
 class ShowSplinesSequence(bpy.types.Operator):
-    bl_idname = "curve.show_splines_sequence"
+    bl_idname = "curvetools.show_splines_sequence"
     bl_label = "Show Splines Sequence"
     bl_description = "Show Splines Sequence / [ESC] - remove"
     
@@ -229,7 +229,7 @@ def rearrange(dataCurve, select_spline, command):
             rearrangesplines(dataCurve, select_spline, select_spline - 1)
                 
 class RearrangeSpline(bpy.types.Operator):
-    bl_idname = "curve.rearrange_spline"
+    bl_idname = "curvetools.rearrange_spline"
     bl_label = "Rearrange Spline"
     bl_description = "Rearrange Spline"
     
@@ -273,3 +273,16 @@ class RearrangeSpline(bpy.types.Operator):
     def poll(cls, context):
         return (context.object is not None and
                 context.object.type == 'CURVE')
+
+def register():
+    for cls in classes:
+        bpy.utils.register_class(operators)
+
+def unregister():
+    for cls in classes:
+        bpy.utils.unregister_class(operators)
+
+if __name__ == "__main__":
+    register()
+
+operators = [ShowSplinesSequence, RearrangeSpline]

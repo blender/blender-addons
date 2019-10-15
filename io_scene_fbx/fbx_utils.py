@@ -594,10 +594,12 @@ def _elem_props_flags(animatable, animated, custom):
                 return b"A+U"
             return b"A+"
         if custom:
-            return b"AU"
+            # Seems that customprops always need those 'flags', see T69554. Go figure...
+            return b"A+U"
         return b"A"
     if custom:
-        return b"U"
+        # Seems that customprops always need those 'flags', see T69554. Go figure...
+        return b"A+U"
     return b""
 
 
@@ -1006,6 +1008,12 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         else:  # self._tag == 'BO'
             return ObjectWrapper(self.bdata.parent, self._ref) or ObjectWrapper(self._ref)
     parent = property(get_parent)
+
+    def get_bdata_pose_bone(self):
+        if self._tag == 'BO':
+            return self._ref.pose.bones[self.bdata.name]
+        return None
+    bdata_pose_bone = property(get_bdata_pose_bone)
 
     def get_matrix_local(self):
         if self._tag == 'OB':

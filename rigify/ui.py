@@ -28,10 +28,12 @@ from bpy.props import (
 
 from mathutils import Color
 
-from .utils import MetarigError
-from .utils import write_metarig, write_widget
-from .utils import unique_name
-from .utils import upgradeMetarigTypes, outdated_types
+from .utils.errors import MetarigError
+from .utils.rig import write_metarig
+from .utils.widgets import write_widget
+from .utils.naming import unique_name
+from .utils.rig import upgradeMetarigTypes, outdated_types
+
 from .rigs.utils import get_limb_generated_names
 
 from .utils.animation import get_keyed_frames_in_range, bones_in_frame, overwrite_prop_animation
@@ -75,6 +77,7 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
         id_store = C.window_manager
 
         if obj.mode in {'POSE', 'OBJECT'}:
+            armature_id_store = C.object.data
 
             WARNING = "Warning: Some features may change after generation"
             show_warning = False
@@ -125,7 +128,7 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
 
             row.enabled = enable_generate_and_advanced
 
-            if id_store.rigify_advanced_generation:
+            if armature_id_store.rigify_advanced_generation:
                 icon = 'UNLOCKED'
             else:
                 icon = 'LOCKED'
@@ -133,12 +136,12 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
             col = layout.column()
             col.enabled = enable_generate_and_advanced
             row = col.row()
-            row.prop(id_store, "rigify_advanced_generation", toggle=True, icon=icon)
+            row.prop(armature_id_store, "rigify_advanced_generation", toggle=True, icon=icon)
 
-            if id_store.rigify_advanced_generation:
+            if armature_id_store.rigify_advanced_generation:
 
                 row = col.row(align=True)
-                row.prop(id_store, "rigify_generate_mode", expand=True)
+                row.prop(armature_id_store, "rigify_generate_mode", expand=True)
 
                 main_row = col.row(align=True).split(factor=0.3)
                 col1 = main_row.column()
@@ -146,41 +149,25 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
                 col1.label(text="Rig Name")
                 row = col1.row()
                 row.label(text="Target Rig")
-                row.enabled = (id_store.rigify_generate_mode == "overwrite")
+                row.enabled = (armature_id_store.rigify_generate_mode == "overwrite")
                 row = col1.row()
                 row.label(text="Target UI")
-                row.enabled = (id_store.rigify_generate_mode == "overwrite")
+                row.enabled = (armature_id_store.rigify_generate_mode == "overwrite")
 
                 row = col2.row(align=True)
-                row.prop(id_store, "rigify_rig_basename", text="", icon="SORTALPHA")
+                row.prop(armature_id_store, "rigify_rig_basename", text="", icon="SORTALPHA")
 
                 row = col2.row(align=True)
-                for i in range(0, len(id_store.rigify_target_rigs)):
-                    id_store.rigify_target_rigs.remove(0)
-
-                for ob in context.scene.objects:
-                    if type(ob.data) == bpy.types.Armature and "rig_id" in ob.data:
-                        id_store.rigify_target_rigs.add()
-                        id_store.rigify_target_rigs[-1].name = ob.name
-
-                row.prop_search(id_store, "rigify_target_rig", id_store, "rigify_target_rigs", text="",
-                                icon='OUTLINER_OB_ARMATURE')
-                row.enabled = (id_store.rigify_generate_mode == "overwrite")
-
-                for i in range(0, len(id_store.rigify_rig_uis)):
-                    id_store.rigify_rig_uis.remove(0)
-
-                for t in bpy.data.texts:
-                    id_store.rigify_rig_uis.add()
-                    id_store.rigify_rig_uis[-1].name = t.name
+                row.prop(armature_id_store, "rigify_target_rig", text="")
+                row.enabled = (armature_id_store.rigify_generate_mode == "overwrite")
 
                 row = col2.row()
-                row.prop_search(id_store, "rigify_rig_ui", id_store, "rigify_rig_uis", text="", icon='TEXT')
-                row.enabled = (id_store.rigify_generate_mode == "overwrite")
+                row.prop(armature_id_store, "rigify_rig_ui", text="", icon='TEXT')
+                row.enabled = (armature_id_store.rigify_generate_mode == "overwrite")
 
                 row = col.row()
-                row.prop(id_store, "rigify_force_widget_update")
-                if id_store.rigify_generate_mode == 'new':
+                row.prop(armature_id_store, "rigify_force_widget_update")
+                if armature_id_store.rigify_generate_mode == 'new':
                     row.enabled = False
 
         elif obj.mode == 'EDIT':
@@ -767,9 +754,6 @@ class Generate(bpy.types.Operator):
     bl_description = 'Generates a rig from the active metarig armature'
 
     def execute(self, context):
-        import importlib
-        importlib.reload(generate)
-
         try:
             generate.generate_rig(context, context.object)
         except MetarigError as rig_exception:

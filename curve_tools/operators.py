@@ -7,12 +7,12 @@ from bpy_extras import object_utils, view3d_utils
 from mathutils import  *
 from math import  *
 
-from . import Properties
-from . import Curves
-from . import CurveIntersections
-from . import Util
-from . import Surfaces
-from . import Math
+from . import properties
+from . import curves
+from . import intersections
+from . import util
+from . import surfaces
+from . import mathematics
 
 # 1 CURVE SELECTED
 # ################
@@ -24,11 +24,11 @@ class OperatorCurveInfo(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1Curve()
+        return util.Selected1Curve()
 
 
     def execute(self, context):
-        curve = Curves.Curve(context.active_object)
+        curve = curves.Curve(context.active_object)
 
         nrSplines = len(curve.splines)
         nrSegments = 0
@@ -52,11 +52,11 @@ class OperatorCurveLength(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1Curve()
+        return util.Selected1Curve()
 
 
     def execute(self, context):
-        curve = Curves.Curve(context.active_object)
+        curve = curves.Curve(context.active_object)
 
         context.scene.curvetools.CurveLength = curve.length
 
@@ -72,11 +72,11 @@ class OperatorSplinesInfo(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1Curve()
+        return util.Selected1Curve()
 
 
     def execute(self, context):
-        curve = Curves.Curve(context.active_object)
+        curve = curves.Curve(context.active_object)
         nrSplines = len(curve.splines)
 
         print("")
@@ -105,11 +105,11 @@ class OperatorSegmentsInfo(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1Curve()
+        return util.Selected1Curve()
 
 
     def execute(self, context):
-        curve = Curves.Curve(context.active_object)
+        curve = curves.Curve(context.active_object)
         nrSplines = len(curve.splines)
         nrSegments = 0
 
@@ -146,7 +146,7 @@ class OperatorOriginToSpline0Start(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1Curve()
+        return util.Selected1Curve()
 
 
     def execute(self, context):
@@ -183,11 +183,11 @@ class OperatorIntersectCurves(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected2OrMoreCurves()
+        return util.Selected2OrMoreCurves()
 
 
     def execute(self, context):
-        print("### TODO: OperatorIntersectCurves.execute()")
+        print("### TODO: OperatorIntersectcurves.execute()")
 
         algo = context.scene.curvetools.IntersectCurvesAlgorithm
         print("-- algo:", algo)
@@ -213,7 +213,7 @@ class OperatorIntersectCurves(bpy.types.Operator):
                     selected_objects[j].select_set(True)
         
                     if selected_objects[i].type == 'CURVE' and selected_objects[j].type == 'CURVE':
-                        curveIntersector = CurveIntersections.CurvesIntersector.FromSelection()
+                        curveIntersector = intersections.CurvesIntersector.FromSelection()
                         rvIntersectionNrs = curveIntersector.CalcAndApplyIntersections()
 
                         self.report({'INFO'}, "Active curve points: %d; other curve points: %d" % (rvIntersectionNrs[0], rvIntersectionNrs[1]))
@@ -234,16 +234,16 @@ class OperatorLoftCurves(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected2Curves()
+        return util.Selected2Curves()
 
 
     def execute(self, context):
-        #print("### TODO: OperatorLoftCurves.execute()")
+        #print("### TODO: OperatorLoftcurves.execute()")
 
-        loftedSurface = Surfaces.LoftedSurface.FromSelection()
+        loftedSurface = surfaces.LoftedSurface.FromSelection()
         loftedSurface.AddToScene()
 
-        self.report({'INFO'}, "OperatorLoftCurves.execute()")
+        self.report({'INFO'}, "OperatorLoftcurves.execute()")
 
         return {'FINISHED'}
 
@@ -259,16 +259,16 @@ class OperatorSweepCurves(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected2Curves()
+        return util.Selected2Curves()
 
 
     def execute(self, context):
-        #print("### TODO: OperatorSweepCurves.execute()")
+        #print("### TODO: OperatorSweepcurves.execute()")
 
-        sweptSurface = Surfaces.SweptSurface.FromSelection()
+        sweptSurface = surfaces.SweptSurface.FromSelection()
         sweptSurface.AddToScene()
 
-        self.report({'INFO'}, "OperatorSweepCurves.execute()")
+        self.report({'INFO'}, "OperatorSweepcurves.execute()")
 
         return {'FINISHED'}
 
@@ -284,11 +284,11 @@ class OperatorBirail(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected3Curves()
+        return util.Selected3Curves()
 
 
     def execute(self, context):
-        birailedSurface = Surfaces.BirailedSurface.FromSelection()
+        birailedSurface = surfaces.BirailedSurface.FromSelection()
         birailedSurface.AddToScene()
 
         self.report({'INFO'}, "OperatorBirail.execute()")
@@ -307,12 +307,12 @@ class OperatorSplinesSetResolution(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1OrMoreCurves()
+        return util.Selected1OrMoreCurves()
 
 
     def execute(self, context):
         splRes = context.scene.curvetools.SplineResolution
-        selCurves = Util.GetSelectedCurves()
+        selCurves = util.GetSelectedCurves()
 
         for blCurve in selCurves:
             for spline in blCurve.data.splines:
@@ -331,14 +331,14 @@ class OperatorSplinesRemoveZeroSegment(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1OrMoreCurves()
+        return util.Selected1OrMoreCurves()
 
 
     def execute(self, context):
-        selCurves = Util.GetSelectedCurves()
+        selCurves = util.GetSelectedCurves()
 
         for blCurve in selCurves:
-            curve = Curves.Curve(blCurve)
+            curve = curves.Curve(blCurve)
             nrSplines = curve.nrSplines
 
             splinesToRemove = []
@@ -365,15 +365,15 @@ class OperatorSplinesRemoveShort(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1OrMoreCurves()
+        return util.Selected1OrMoreCurves()
 
 
     def execute(self, context):
         threshold = context.scene.curvetools.SplineRemoveLength
-        selCurves = Util.GetSelectedCurves()
+        selCurves = util.GetSelectedCurves()
 
         for blCurve in selCurves:
-            curve = Curves.Curve(blCurve)
+            curve = curves.Curve(blCurve)
             nrSplines = curve.nrSplines
 
             nrRemovedSplines = curve.RemoveShortSplines(threshold)
@@ -394,14 +394,14 @@ class OperatorSplinesJoinNeighbouring(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1OrMoreCurves()
+        return util.Selected1OrMoreCurves()
 
 
     def execute(self, context):
-        selCurves = Util.GetSelectedCurves()
+        selCurves = util.GetSelectedCurves()
 
         for blCurve in selCurves:
-            curve = Curves.Curve(blCurve)
+            curve = curves.Curve(blCurve)
             nrSplines = curve.nrSplines
 
             threshold = context.scene.curvetools.SplineJoinDistance
@@ -423,7 +423,7 @@ def SurfaceFromBezier(surfacedata, points, center):
     len_points = len(points) - 1
     
     if len_points % 2 == 0:
-        h = Math.subdivide_cubic_bezier(
+        h = mathematics.subdivide_cubic_bezier(
                         points[len_points].co, points[len_points].handle_right,
                         points[0].handle_left, points[0].co, 0.5
                         )
@@ -550,7 +550,7 @@ class ConvertSelectedFacesToBezier(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected1Mesh()
+        return util.Selected1Mesh()
 
     def execute(self, context):
         # main function
@@ -620,8 +620,7 @@ class ConvertBezierToSurface(bpy.types.Operator):
     
     @classmethod
     def poll(cls, context):
-        return (context.object is not None and
-                context.object.type == 'CURVE')
+        return util.Selected1OrMoreCurves()
 
     def execute(self, context):
         # main function
@@ -687,8 +686,7 @@ class BezierPointsFillet(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return (context.object is not None and
-                context.object.type == 'CURVE')
+        return util.Selected1OrMoreCurves()
 
     def execute(self, context):
         # main function
@@ -714,44 +712,39 @@ class BezierPointsFillet(bpy.types.Operator):
         sn = 0
         for spline in splines:
             ii = s[sn]
-            n = len(spline.bezier_points)
+            bezier_points = spline.bezier_points
+            n = len(bezier_points)
             if n > 2:
                 jn = 0
                 for j in ii:
-    
                     j += jn
-    
-                    selected_all = [p for p in spline.bezier_points]
     
                     bpy.ops.curve.select_all(action='DESELECT')
     
                     if j != 0 and j != n - 1:
-                        selected_all[j].select_control_point = True
-                        selected_all[j + 1].select_control_point = True
+                        bezier_points[j].select_control_point = True
+                        bezier_points[j + 1].select_control_point = True
                         bpy.ops.curve.subdivide()
-                        selected_all = [p for p in spline.bezier_points]
-                        selected4 = [selected_all[j - 1], selected_all[j],
-                                     selected_all[j + 1], selected_all[j + 2]]
+                        selected4 = [bezier_points[j - 1], bezier_points[j],
+                                     bezier_points[j + 1], bezier_points[j + 2]]
                         jn += 1
                         n += 1
     
                     elif j == 0:
-                        selected_all[j].select_control_point = True
-                        selected_all[j + 1].select_control_point = True
+                        bezier_points[j].select_control_point = True
+                        bezier_points[j + 1].select_control_point = True
                         bpy.ops.curve.subdivide()
-                        selected_all = [p for p in spline.bezier_points]
-                        selected4 = [selected_all[n], selected_all[0],
-                                     selected_all[1], selected_all[2]]
+                        selected4 = [bezier_points[n], bezier_points[0],
+                                     bezier_points[1], bezier_points[2]]
                         jn += 1
                         n += 1
     
                     elif j == n - 1:
-                        selected_all[j].select_control_point = True
-                        selected_all[j - 1].select_control_point = True
+                        bezier_points[j].select_control_point = True
+                        bezier_points[j - 1].select_control_point = True
                         bpy.ops.curve.subdivide()
-                        selected_all = [p for p in spline.bezier_points]
-                        selected4 = [selected_all[0], selected_all[n],
-                                     selected_all[n - 1], selected_all[n - 2]]
+                        selected4 = [bezier_points[0], bezier_points[n],
+                                     bezier_points[n - 1], bezier_points[n - 2]]
     
                     selected4[2].co = selected4[1].co
                     s1 = Vector(selected4[0].co) - Vector(selected4[1].co)
@@ -805,8 +798,7 @@ class BezierDivide(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return (context.object is not None and
-                context.object.type == 'CURVE')
+        return util.Selected1OrMoreCurves()
 
     def execute(self, context):
         # main function
@@ -831,53 +823,50 @@ class BezierDivide(bpy.types.Operator):
         sn = 0
         for spline in splines:
             ii = s[sn]
-            n = len(spline.bezier_points)
+            bezier_points = spline.bezier_points
+            n = len(bezier_points)
             if n > 2:
                 jn = 0
                 for j in ii:
     
-                    selected_all = [p for p in spline.bezier_points]
-    
                     bpy.ops.curve.select_all(action='DESELECT')
     
                     if (j in ii) and (j + 1 in ii):
-                        selected_all[j + jn].select_control_point = True
-                        selected_all[j + 1 + jn].select_control_point = True
-                        h = Math.subdivide_cubic_bezier(
-                            selected_all[j + jn].co, selected_all[j + jn].handle_right,
-                            selected_all[j + 1 + jn].handle_left, selected_all[j + 1 + jn].co, self.Bezier_t / 100
+                        bezier_points[j + jn].select_control_point = True
+                        bezier_points[j + 1 + jn].select_control_point = True
+                        h = mathematics.subdivide_cubic_bezier(
+                            bezier_points[j + jn].co, bezier_points[j + jn].handle_right,
+                            bezier_points[j + 1 + jn].handle_left, bezier_points[j + 1 + jn].co, self.Bezier_t / 100
                             )
                         bpy.ops.curve.subdivide(1)
-                        selected_all = [p for p in spline.bezier_points]
-                        selected_all[j + jn].handle_right_type = 'FREE'
-                        selected_all[j + jn].handle_right = h[0]
-                        selected_all[j + 1 + jn].co = h[2]
-                        selected_all[j + 1 + jn].handle_left_type = 'FREE'
-                        selected_all[j + 1 + jn].handle_left = h[1]
-                        selected_all[j + 1 + jn].handle_right_type = 'FREE'
-                        selected_all[j + 1 + jn].handle_right = h[3]
-                        selected_all[j + 2 + jn].handle_left_type = 'FREE'
-                        selected_all[j + 2 + jn].handle_left = h[4]
+                        bezier_points[j + jn].handle_right_type = 'FREE'
+                        bezier_points[j + jn].handle_right = h[0]
+                        bezier_points[j + 1 + jn].co = h[2]
+                        bezier_points[j + 1 + jn].handle_left_type = 'FREE'
+                        bezier_points[j + 1 + jn].handle_left = h[1]
+                        bezier_points[j + 1 + jn].handle_right_type = 'FREE'
+                        bezier_points[j + 1 + jn].handle_right = h[3]
+                        bezier_points[j + 2 + jn].handle_left_type = 'FREE'
+                        bezier_points[j + 2 + jn].handle_left = h[4]
                         jn += 1
                     
                     if j == n - 1 and (0 in ii) and spline.use_cyclic_u:
-                        selected_all[j + jn].select_control_point = True
-                        selected_all[0].select_control_point = True
-                        h = Math.subdivide_cubic_bezier(
-                            selected_all[j + jn].co, selected_all[j + jn].handle_right,
-                            selected_all[0].handle_left, selected_all[0].co, self.Bezier_t / 100
+                        bezier_points[j + jn].select_control_point = True
+                        bezier_points[0].select_control_point = True
+                        h = mathematics.subdivide_cubic_bezier(
+                            bezier_points[j + jn].co, bezier_points[j + jn].handle_right,
+                            bezier_points[0].handle_left, bezier_points[0].co, self.Bezier_t / 100
                             )
                         bpy.ops.curve.subdivide(1)
-                        selected_all = [p for p in spline.bezier_points]
-                        selected_all[j + jn].handle_right_type = 'FREE'
-                        selected_all[j + jn].handle_right = h[0]
-                        selected_all[j + 1 + jn].co = h[2]
-                        selected_all[j + 1 + jn].handle_left_type = 'FREE'
-                        selected_all[j + 1 + jn].handle_left = h[1]
-                        selected_all[j + 1 + jn].handle_right_type = 'FREE'
-                        selected_all[j + 1 + jn].handle_right = h[3]
-                        selected_all[0].handle_left_type = 'FREE'
-                        selected_all[0].handle_left = h[4]                
+                        bezier_points[j + jn].handle_right_type = 'FREE'
+                        bezier_points[j + jn].handle_right = h[0]
+                        bezier_points[j + 1 + jn].co = h[2]
+                        bezier_points[j + 1 + jn].handle_left_type = 'FREE'
+                        bezier_points[j + 1 + jn].handle_left = h[1]
+                        bezier_points[j + 1 + jn].handle_right_type = 'FREE'
+                        bezier_points[j + 1 + jn].handle_right = h[3]
+                        bezier_points[0].handle_left_type = 'FREE'
+                        bezier_points[0].handle_left = h[4]                
 
             sn += 1
 
@@ -923,6 +912,126 @@ class CurveScaleReset(bpy.types.Operator):
 
         return {'FINISHED'}
 
+# ------------------------------------------------------------
+# Split Operator
+
+class Split(bpy.types.Operator):
+    bl_idname = "curvetools.split"
+    bl_label = "Split"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return util.Selected1OrMoreCurves()
+
+    def execute(self, context):
+        selected_Curves = util.GetSelectedCurves()
+        
+        for curve in selected_Curves:
+            spline_points = []
+            select_points = {}
+            bezier_spline_points = []
+            select_bezier_points = {}
+            i_bp = 0
+            i_p = 0
+            for spline in curve.data.splines:
+                if spline.type == 'BEZIER':
+                    points = {}
+                    select_bezier_points[i_bp] = [len(spline.bezier_points)]
+                    for i in range(len(spline.bezier_points)):
+                        bezier_point = spline.bezier_points[i]
+                        points[i]=[bezier_point.co[:], bezier_point.handle_left[:], bezier_point.handle_right[:]]
+                        
+                        if spline.bezier_points[i].select_control_point:
+                            select_bezier_points[i_bp].append(i)
+                    i_bp+=1
+                    bezier_spline_points.append(points)
+                else:
+                    points = {}
+                    select_points[i_p] = [len(spline.points)]
+                    for i in range(len(spline.points)):
+                        point = spline.points[i]
+                        points[i]=[point.co[:], spline.type]
+                        if spline.points[i].select:
+                            select_points[i_p].append(i)
+                    i_p+=1
+                    spline_points.append(points)
+    
+            curve.data.splines.clear()
+            
+            for key in select_bezier_points:
+                
+                num=0
+                
+                if select_bezier_points[key][-1] == select_bezier_points[key][0]-1:
+                    select_bezier_points[key].pop()
+    
+                for i in select_bezier_points[key][1:]+[select_bezier_points[key][0]-1]:
+                    if i != 0:
+                        spline = curve.data.splines.new('BEZIER')
+                        spline.bezier_points.add(i-num)
+                      
+                        for j in range(num, i):
+                            bezier_point = spline.bezier_points[j-num]
+                           
+                            bezier_point.co = bezier_spline_points[key][j][0]
+                            bezier_point.handle_left = bezier_spline_points[key][j][1]
+                            bezier_point.handle_right = bezier_spline_points[key][j][2]
+                        bezier_point = spline.bezier_points[-1]
+                        bezier_point.co = bezier_spline_points[key][i][0]
+                        bezier_point.handle_left = bezier_spline_points[key][i][1]
+                        bezier_point.handle_right = bezier_spline_points[key][i][2]
+                        num=i
+                        
+            for key in select_points:
+                
+                num=0
+                
+                if select_points[key][-1] == select_points[key][0]-1:
+                    select_points[key].pop()
+    
+                for i in select_points[key][1:]+[select_points[key][0]-1]:
+                    if i != 0:
+                        spline = curve.data.splines.new(spline_points[key][i][1])
+                        spline.points.add(i-num)
+                      
+                        for j in range(num, i):
+                            point = spline.points[j-num]
+                           
+                            point.co = spline_points[key][j][0]
+                        point = spline.points[-1]
+                        point.co = spline_points[key][i][0]
+                        num=i
+   
+        return {'FINISHED'}
+        
+class SeparateOutline(bpy.types.Operator):
+    bl_idname = "curvetools.sep_outline"
+    bl_label = "Separate Outline"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Makes 'Outline' separate mesh"
+
+    @classmethod
+    def poll(cls, context):
+        return util.Selected1OrMoreCurves()
+
+    def execute(self, context):
+        bpy.ops.object.mode_set(mode = 'EDIT')
+        bpy.ops.curve.separate()
+
+        return {'FINISHED'}
+
+def register():
+    for cls in classes:
+        bpy.utils.register_class(operators)
+
+def unregister():
+    for cls in classes:
+        bpy.utils.unregister_class(operators)
+
+if __name__ == "__main__":
+    register()
+
 operators = [
     OperatorCurveInfo,
     OperatorCurveLength,
@@ -942,4 +1051,6 @@ operators = [
     BezierPointsFillet,
     BezierDivide,
     CurveScaleReset,
+    Split,
+    SeparateOutline,
     ]
