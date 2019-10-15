@@ -33,7 +33,7 @@ class Rig(SubstitutionRig, BoneUtilityMixin):
     """Compatibility proxy for the monolithic super_spine rig that splits it into parts."""
 
     def substitute(self):
-        params_copy = dict(self.params)
+        params_copy = self.params_copy
         orgs = [self.base_bone] + connected_children_names(self.obj, self.base_bone)
 
         # Split the bone list according to the settings
