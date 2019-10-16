@@ -24,7 +24,6 @@ import json
 from ...utils.animation import add_generic_snap_fk_to_ik, add_fk_ik_snap_buttons
 from ...utils.rig import connected_children_names
 from ...utils.bones import BoneDict, put_bone, compute_chain_x_axis, align_bone_orientation
-from ...utils.bones import align_bone_x_axis, align_bone_y_axis, align_bone_z_axis
 from ...utils.naming import strip_org, make_derived_name
 from ...utils.layers import ControlLayersOption
 from ...utils.misc import pairwise_nozip, padnone, map_list
@@ -125,15 +124,6 @@ class BaseLimbRig(BaseRig):
     def get_segment_pos(self, org, seg):
         bone = self.get_bone(org)
         return bone.head + bone.vector * (seg / self.segments)
-
-    def align_roll_bone(self, org, name, y_axis):
-        if y_axis:
-            align_bone_y_axis(self.obj, name, y_axis)
-
-        if self.main_axis == 'x':
-            align_bone_x_axis(self.obj, name, self.get_bone(org).x_axis)
-        else:
-            align_bone_z_axis(self.obj, name, self.get_bone(org).z_axis)
 
     @staticmethod
     def vector_without_z(vector):
