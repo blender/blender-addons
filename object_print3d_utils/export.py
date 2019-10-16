@@ -20,13 +20,13 @@
 
 # Export wrappers and integration with external tools.
 
-import os
 
 import bpy
 
 
 def image_copy_guess(filepath, objects):
     # 'filepath' is the path we are writing to.
+    import os
     import shutil
     from bpy_extras import object_utils
 
@@ -53,6 +53,8 @@ def image_copy_guess(filepath, objects):
 
 
 def write_mesh(context, report_cb):
+    import os
+
     scene = context.scene
     layer = context.view_layer
     unit = scene.unit_settings
