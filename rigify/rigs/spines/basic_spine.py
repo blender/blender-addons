@@ -305,9 +305,8 @@ class Rig(BaseSpineRig):
 
         layout.prop(params, 'make_fk_controls')
 
-        col = layout.column()
-        col.active = params.make_fk_controls
-        ControlLayersOption.FK.parameters_ui(col, params)
+        if params.make_fk_controls:
+            ControlLayersOption.FK.parameters_ui(layout, params)
 
 
 def create_sample(obj):
