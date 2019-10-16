@@ -54,34 +54,15 @@ def image_copy_guess(filepath, objects):
 
 def write_mesh(context, report_cb):
     scene = context.scene
-    collection = context.collection
     layer = context.view_layer
     unit = scene.unit_settings
     print_3d = scene.print_3d
 
-    obj = layer.objects.active
-
     export_format = print_3d.export_format
     global_scale = unit.scale_length if (unit.system != 'NONE' and print_3d.use_apply_scale) else 1.0
     path_mode = 'COPY' if print_3d.use_export_texture else 'AUTO'
-
-    context_override = context.copy()
-    obj_tmp = None
-
-    # PLY can only export single mesh objects!
-    if export_format == 'PLY':
-        context_backup = context.copy()
-        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-
-        from . import mesh_helpers
-        obj_tmp = mesh_helpers.object_merge(context, context_override["selected_objects"])
-        context_override["active_object"] = obj_tmp
-        context_override["selected_objects"] = [obj_tmp]
-    else:
-        if obj not in context_override["selected_objects"]:
-            context_override["selected_objects"].append(obj)
-
     export_path = bpy.path.abspath(print_3d.export_path)
+    obj = layer.objects.active
 
     # Create name 'export_path/blendname-objname'
     # add the filename component
@@ -119,7 +100,6 @@ def write_mesh(context, report_cb):
         addon_ensure("io_mesh_stl")
         filepath = bpy.path.ensure_ext(filepath, ".stl")
         ret = bpy.ops.export_mesh.stl(
-            context_override,
             filepath=filepath,
             ascii=False,
             use_mesh_modifiers=True,
@@ -130,16 +110,15 @@ def write_mesh(context, report_cb):
         addon_ensure("io_mesh_ply")
         filepath = bpy.path.ensure_ext(filepath, ".ply")
         ret = bpy.ops.export_mesh.ply(
-            context_override,
             filepath=filepath,
             use_mesh_modifiers=True,
+            use_selection=True,
             global_scale=global_scale,
         )
     elif export_format == 'X3D':
         addon_ensure("io_scene_x3d")
         filepath = bpy.path.ensure_ext(filepath, ".x3d")
         ret = bpy.ops.export_scene.x3d(
-            context_override,
             filepath=filepath,
             use_mesh_modifiers=True,
             use_selection=True,
@@ -150,7 +129,6 @@ def write_mesh(context, report_cb):
         addon_ensure("io_scene_vrml2")
         filepath = bpy.path.ensure_ext(filepath, ".wrl")
         ret = bpy.ops.export_scene.vrml2(
-            context_override,
             filepath=filepath,
             use_mesh_modifiers=True,
             use_selection=True,
@@ -161,7 +139,6 @@ def write_mesh(context, report_cb):
         addon_ensure("io_scene_obj")
         filepath = bpy.path.ensure_ext(filepath, ".obj")
         ret = bpy.ops.export_scene.obj(
-            context_override,
             filepath=filepath,
             use_mesh_modifiers=True,
             use_selection=True,
@@ -174,16 +151,7 @@ def write_mesh(context, report_cb):
     # for formats that don't support images
     if export_format in {'STL', 'PLY'}:
         if path_mode == 'COPY':
-            image_copy_guess(filepath, context_override["selected_objects"])
-
-    if obj_tmp is not None:
-        bpy.data.meshes.remove(obj_tmp.data)  # Automatically unlinks and removes object
-
-        # restore context
-        for ob in context_backup["selected_objects"]:
-            ob.select_set(True)
-
-        layer.objects.active = context_backup["active_object"]
+            image_copy_guess(filepath, context.selected_objects)
 
     if 'FINISHED' in ret:
         if report_cb is not None:
