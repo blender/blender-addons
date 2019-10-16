@@ -63,7 +63,6 @@ class SceneProperties(PropertyGroup):
         items=(
             ('STL', "STL", ""),
             ('PLY', "PLY", ""),
-            ('WRL', "VRML2", ""),
             ('X3D', "X3D", ""),
             ('OBJ', "OBJ", ""),
         ),

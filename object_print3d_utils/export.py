@@ -127,16 +127,6 @@ def write_mesh(context, report_cb):
             path_mode=path_mode,
             global_scale=global_scale,
         )
-    elif export_format == 'WRL':
-        addon_ensure("io_scene_vrml2")
-        filepath = bpy.path.ensure_ext(filepath, ".wrl")
-        ret = bpy.ops.export_scene.vrml2(
-            filepath=filepath,
-            use_mesh_modifiers=True,
-            use_selection=True,
-            path_mode=path_mode,
-            global_scale=global_scale,
-        )
     elif export_format == 'OBJ':
         addon_ensure("io_scene_obj")
         filepath = bpy.path.ensure_ext(filepath, ".obj")
