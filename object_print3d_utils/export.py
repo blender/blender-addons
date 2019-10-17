@@ -24,19 +24,35 @@
 import bpy
 
 
+def image_get(mat):
+    from bpy_extras import node_shader_utils
+
+    if mat.use_nodes:
+        mat_wrap = node_shader_utils.PrincipledBSDFWrapper(mat)
+        base_color_tex = mat_wrap.base_color_texture
+        if base_color_tex and base_color_tex.image:
+            return base_color_tex.image
+
+
 def image_copy_guess(filepath, objects):
     # 'filepath' is the path we are writing to.
-    import os
-    import shutil
-    from bpy_extras import object_utils
-
     image = None
+    mats = set()
+
     for obj in objects:
-        image = object_utils.object_image_guess(obj)
+        for slot in obj.material_slots:
+            if slot.material:
+                mats.add(slot.material)
+
+    for mat in mats:
+        image = image_get(mat)
         if image is not None:
             break
 
     if image is not None:
+        import os
+        import shutil
+
         imagepath = bpy.path.abspath(image.filepath, library=image.library)
         if os.path.exists(imagepath):
             filepath_noext = os.path.splitext(filepath)[0]
