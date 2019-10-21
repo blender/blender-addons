@@ -1794,6 +1794,27 @@ class TEXTURE_MT_specials(bpy.types.Menu):
         layout.operator("texture.slot_copy", icon='COPYDOWN')
         layout.operator("texture.slot_paste", icon='PASTEDOWN')
 
+class TEXTURE_UL_texture_slots(bpy.types.UIList):
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+        ob = data
+        slot = item
+        #ma = slot.name
+        # draw_item must handle the three layout types... Usually 'DEFAULT' and 'COMPACT' can share the same code.
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            # You should always start your row layout by a label (icon + text), or a non-embossed text field,
+            # this will also make the row easily selectable in the list! The later also enables ctrl-click rename.
+            # We use icon_value of label, as our given icon is an integer value, not an enum ID.
+            # Note "data" names should never be translated!
+            if slot:
+                layout.prop(item, "texture", text="", emboss=False, icon='TEXTURE')
+            else:
+                layout.label(text="New", translate=False, icon_value=icon)
+        # 'GRID' layout type should be as compact as possible (typically a single icon!).
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon_value=icon)
+'''
 class MATERIAL_TEXTURE_SLOTS_UL_List(UIList):
     """Texture Slots UIList."""
 
@@ -1815,7 +1836,7 @@ class MATERIAL_TEXTURE_SLOTS_UL_List(UIList):
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label("", icon = custom_icon)
-            
+'''            
 class WORLD_TEXTURE_SLOTS_UL_List(UIList):
     """Texture Slots UIList."""
 
@@ -1846,6 +1867,7 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
+        return (engine in cls.COMPAT_ENGINES)        
         # if not (hasattr(context, "texture_slot") or hasattr(context, "texture_node")):
         #     return False
         return ((context.material or
@@ -1860,7 +1882,30 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-
+        
+        scene = context.scene
+        layout.prop(scene, "texture_context", expand=True)
+        if scene.texture_context == 'MATERIAL':
+            mat = context.scene.view_layers["View Layer"].objects.active.active_material
+            row = layout.row()
+            row.template_list("MATERIAL_TEXTURE_SLOTS_UL_layerlist", "", mat, "pov_texture_slots", mat.pov, "active_texture_index")
+            col = row.column(align=True)
+            col.operator("pov.textureslotadd",icon='ADD',text='')
+            col.operator("pov.textureslotremove",icon='REMOVE',text='')
+            col.separator()
+            
+            if mat.pov_texture_slots:
+                index = mat.pov.active_texture_index
+                slot = mat.pov_texture_slots[index]
+                povtex = slot.name
+                tex = bpy.data.textures[povtex]
+                col.prop(tex,'use_fake_user',text = '')
+                layout.label(text='Find texture:')
+                layout.prop_search(slot,'texture_search',bpy.data,'textures',text='')
+            # else:
+                # for i in range(18):  # length of material texture slots
+                    # mat.pov_texture_slots.add()            
+'''
         slot = getattr(context, "texture_slot", None)
         node = getattr(context, "texture_node", None)
         space = context.space_data
@@ -1965,7 +2010,7 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
                     split.prop(slot, "output_node", text="")
             else:
                 split.label(text="Type:")
-
+'''
 class TEXTURE_PT_colors(TextureButtonsPanel, Panel):
     bl_label = "Colors"
     bl_options = {'DEFAULT_CLOSED'}
@@ -2001,12 +2046,46 @@ class TEXTURE_PT_colors(TextureButtonsPanel, Panel):
 # Texture Slot Panels #
 
 
+class POV_OT_texture_slot_add(Operator):
+    bl_idname = "pov.textureslotadd"
+    bl_label = "Add"
+    bl_description = "Add texture_slot"
+    bl_options = {'REGISTER', 'UNDO'}
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def execute(self,context):
+
+        tex = bpy.data.textures.new(name = 'Texture',type = 'IMAGE')
+        tex.use_fake_user = True
+        ob = context.scene.view_layers["View Layer"].objects.active
+        slot = ob.active_material.pov_texture_slots.add()
+        slot.name = tex.name
+        slot.texture = tex.name
+
+        return {'FINISHED'}
+
+
+class POV_OT_texture_slot_remove(Operator):
+    bl_idname = "pov.textureslotremove"
+    bl_label = "Remove"
+    bl_description = "Remove texture_slot"
+    bl_options = {'REGISTER', 'UNDO'}
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def execute(self,context):
+        pass
+        # tex = bpy.data.textures.new()
+        # tex_slot = context.object.active_material.pov_texture_slots.add()
+        # tex_slot.name = tex.name
+
+        return {'FINISHED'}
+
 class TextureSlotPanel(TextureButtonsPanel):
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
     @classmethod
     def poll(cls, context):
-        if not hasattr(context, "texture_slot"):
+        if not hasattr(context, "pov_texture_slot"):
             return False
 
         engine = context.scene.render.engine
@@ -2039,7 +2118,7 @@ class TEXTURE_PT_povray_preview(TextureButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        if not hasattr(context, "texture_slot"):
+        if not hasattr(context, "pov_texture_slot"):
             return False
         tex=context.texture
         mat=context.material
@@ -2047,7 +2126,7 @@ class TEXTURE_PT_povray_preview(TextureButtonsPanel, Panel):
 
     def draw(self, context):
         tex = context.texture
-        slot = getattr(context, "texture_slot", None)
+        slot = getattr(context, "pov_texture_slot", None)
         idblock = context_tex_datablock(context)
         layout = self.layout
         # if idblock:
@@ -2276,7 +2355,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
         if isinstance(idblock, Brush):
             return False
 
-        if not getattr(context, "texture_slot", None):
+        if not getattr(context, "pov_texture_slot", None):
             return False
 
         engine = context.scene.render.engine
@@ -3243,7 +3322,12 @@ classes = (
     TEXT_OT_povray_insert,
     TEXT_MT_insert,
     TEXT_PT_povray_custom_code,
-    TEXT_MT_templates_pov
+    TEXT_MT_templates_pov,
+    # TEXTURE_PT_context,
+    #TEXTURE_PT_POV_povray_texture_slots,
+    TEXTURE_UL_texture_slots,
+    POV_OT_texture_slot_add,
+    POV_OT_texture_slot_remove
 )
 
 
