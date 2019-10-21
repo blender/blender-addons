@@ -96,6 +96,8 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
           ignore_global     Ignore the is_global flag of potential parents.
           exclude_self      Ignore parents registered by the rig itself.
           context_rig       Rig to use for selecting parents.
+          no_implicit       Only use parents listed as extra_parents.
+          only_selected     Like no_implicit, but allow the 'default' selected parent.
 
           prop_bone         Name of the bone to add the property to.
           prop_id           Actual name of the control property.
@@ -159,6 +161,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
         'prop_bone': None, 'prop_id': None, 'prop_name': None, 'controls': None,
         'select_parent': None, 'ignore_global': False, 'exclude_self': False,
         'context_rig': None, 'select_tags': None,
+        'no_implicit': False, 'only_selected': False,
         'ctrl_bone': None,
         'no_fix_location': False, 'no_fix_rotation': False, 'no_fix_scale': False,
         'copy_location': None, 'copy_rotation': None, 'copy_scale': None,
@@ -255,32 +258,56 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
                 parent_tags[parent['bone']] |= parent['tags']
 
         last_main_parent_bone = child['parents'][-1]['bone']
-        num_main_parents = len(parent_map.items())
+        extra_parents = set()
 
         for parent in force_lazy(child['extra_parents'] or []):
             if not isinstance(parent, tuple):
                 parent = (parent, None)
+            extra_parents.add(parent[0])
             if parent[0] not in parent_map:
                 parent_map[parent[0]] = parent[1]
 
+        for parent in parent_map:
+            if parent in self.child_map:
+                parent_tags[parent] |= {'child'}
+
         parent_bones = list(parent_map.items())
-        child['parent_bones'] = parent_bones
 
         # Find which bone to select
         select_bone = force_lazy(child['select_parent']) or last_main_parent_bone
         select_tags = force_lazy(child['select_tags']) or []
-        select_index = num_main_parents
+
+        if child['no_implicit']:
+            assert len(extra_parents) > 0
+            parent_bones = [ item for item in parent_bones if item[0] in extra_parents ]
+            if last_main_parent_bone not in extra_parents:
+                last_main_parent_bone = parent_bones[-1][0]
+
+        for tag in select_tags:
+            tag_set = tag if isinstance(tag, set) else {tag}
+            matching = [
+                bone for (bone, _) in parent_bones
+                if not tag_set.isdisjoint(parent_tags[bone])
+            ]
+            if len(matching) > 0:
+                select_bone = matching[-1]
+                break
+
+        if select_bone not in parent_map:
+            print("RIGIFY ERROR: Can't find bone '%s' to select as default parent of '%s'\n" % (select_bone, bone))
+            select_bone = last_main_parent_bone
+
+        if child['only_selected']:
+            filter_set = { select_bone, *extra_parents }
+            parent_bones = [ item for item in parent_bones if item[0] in filter_set ]
 
         try:
             select_index = 1 + next(i for i, (bone, _) in enumerate(parent_bones) if bone == select_bone)
         except StopIteration:
-            print("RIGIFY ERROR: Can't find bone '%s' to select as default parent of '%s'\n" % (select_bone, bone))
+            select_index = len(parent_bones)
+            print("RIGIFY ERROR: Invalid default parent '%s' of '%s'\n" % (select_bone, bone))
 
-        for tag in select_tags:
-            matching = [ i for i, (bone, _) in enumerate(parent_bones) if tag in parent_tags[bone] ]
-            if len(matching) > 0:
-                select_index = 1 + matching[-1]
-                break
+        child['parent_bones'] = parent_bones
 
         # Create the controlling property
         prop_bone = child['prop_bone'] = force_lazy(child['prop_bone']) or bone
