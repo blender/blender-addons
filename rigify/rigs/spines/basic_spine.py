@@ -27,7 +27,7 @@ from mathutils import Matrix
 from ...utils.errors import MetarigError
 from ...utils.layers import ControlLayersOption
 from ...utils.naming import strip_org, make_deformer_name, make_mechanism_name, make_derived_name
-from ...utils.bones import BoneDict, put_bone, align_bone_to_axis, align_bone_orientation
+from ...utils.bones import BoneDict, put_bone, align_bone_to_axis, align_bone_orientation, set_bone_widget_transform
 from ...utils.widgets import adjust_widget_transform_mesh
 from ...utils.widgets_basic import create_circle_widget
 from ...utils.misc import map_list
@@ -123,7 +123,7 @@ class Rig(BaseSpineRig):
         shape_bone = self.get_bone(wgt_mch)
         is_horizontal = abs(shape_bone.z_axis.normalized().y) < 0.7
 
-        self.get_bone(ctrl).custom_shape_transform = shape_bone
+        set_bone_widget_transform(self.obj, ctrl, wgt_mch)
 
         obj = create_circle_widget(
             self.obj, ctrl,

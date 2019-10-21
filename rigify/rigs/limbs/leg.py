@@ -121,10 +121,10 @@ class Rig(BaseLimbRig):
     # IK controls
 
     def get_extra_ik_controls(self):
+        controls = super().get_extra_ik_controls() + [self.bones.ctrl.heel]
         if self.pivot_type == 'ANKLE_TOE':
-            return [self.bones.ctrl.heel, self.bones.ctrl.ik_spin]
-        else:
-            return [self.bones.ctrl.heel]
+            controls += [self.bones.ctrl.ik_spin]
+        return controls
 
     def make_ik_control_bone(self, orgs):
         name = self.copy_bone(orgs[2], make_derived_name(orgs[2], 'ctrl', '_ik'))

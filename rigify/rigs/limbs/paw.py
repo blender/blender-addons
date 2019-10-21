@@ -84,7 +84,7 @@ class Rig(BaseLimbRig):
     # IK controls
 
     def get_extra_ik_controls(self):
-        return [self.bones.ctrl.heel]
+        return super().get_extra_ik_controls() + [self.bones.ctrl.heel]
 
     def make_ik_control_bone(self, orgs):
         name = self.copy_bone(orgs[3], make_derived_name(orgs[2], 'ctrl', '_ik'))

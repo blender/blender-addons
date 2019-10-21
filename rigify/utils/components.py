@@ -17,7 +17,8 @@ class CustomPivotControl(RigComponent):
 
     def __init__(
         self, rig, id_name, org_bone, *,
-        name=None, parent=None, position=None, matrix=None, scale=1.0,
+        name=None, parent=None, position=None, matrix=None,
+        scale=1.0, scale_mch=None,
         move_to=None, align_to=None, snap_to=None,
         widget_axis=1.5, widget_cap=1.0, widget_square=True,
     ):
@@ -30,6 +31,7 @@ class CustomPivotControl(RigComponent):
 
         self.parent = parent
         self.scale = scale or 1
+        self.scale_mch = scale_mch or (self.scale * 0.7)
         self.move_to = move_to
         self.align_to = align_to
         self.snap_to = snap_to
@@ -51,7 +53,7 @@ class CustomPivotControl(RigComponent):
 
     def do_make_bones(self, org, name, position, matrix):
         self.bones.ctrl[self.id_name] = self.ctrl = self.copy_bone(org, name, parent=not self.parent, scale=self.scale)
-        self.bones.mch[self.id_name] = self.mch = self.copy_bone(org, make_derived_name(name, 'mch'), scale=self.scale * 0.7)
+        self.bones.mch[self.id_name] = self.mch = self.copy_bone(org, make_derived_name(name, 'mch'), scale=self.scale_mch)
 
         if position or matrix:
             put_bone(self.obj, self.ctrl, position, matrix=matrix)
@@ -61,7 +63,7 @@ class CustomPivotControl(RigComponent):
         if self.snap_to:
             bone = force_lazy(self.snap_to)
             copy_bone_position(self.obj, bone, self.ctrl, scale=self.scale)
-            copy_bone_position(self.obj, bone, self.mch, scale=self.scale * 0.7)
+            copy_bone_position(self.obj, bone, self.mch, scale=self.scale_mch)
 
         if self.move_to:
             pos = self.get_bone(force_lazy(self.move_to)).head

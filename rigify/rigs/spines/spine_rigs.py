@@ -24,7 +24,7 @@ from itertools import count
 
 from ...utils.layers import ControlLayersOption
 from ...utils.naming import make_derived_name
-from ...utils.bones import align_bone_orientation, align_bone_to_axis, put_bone
+from ...utils.bones import align_bone_orientation, align_bone_to_axis, put_bone, set_bone_widget_transform
 from ...utils.widgets_basic import create_cube_widget
 from ...utils.switch_parent import SwitchParentBuilder
 from ...utils.components import CustomPivotControl
@@ -123,10 +123,9 @@ class BaseSpineRig(TweakChainRig):
 
     @stage.generate_widgets
     def make_master_control_widget(self):
-        create_cube_widget(
-            self.obj, self.bones.ctrl.master,
-            radius=0.5,
-        )
+        master = self.bones.ctrl.master
+        set_bone_widget_transform(self.obj, master, self.get_master_control_output())
+        create_cube_widget(self.obj, master, radius=0.5)
 
     ####################################################
     # Tweak bones

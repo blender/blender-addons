@@ -23,7 +23,7 @@ import json
 
 from ...utils.animation import add_generic_snap_fk_to_ik, add_fk_ik_snap_buttons
 from ...utils.rig import connected_children_names
-from ...utils.bones import BoneDict, put_bone, compute_chain_x_axis, align_bone_orientation
+from ...utils.bones import BoneDict, put_bone, compute_chain_x_axis, align_bone_orientation, set_bone_widget_transform
 from ...utils.naming import strip_org, make_derived_name
 from ...utils.layers import ControlLayersOption
 from ...utils.misc import pairwise_nozip, padnone, map_list
@@ -324,13 +324,14 @@ class BaseLimbRig(BaseRig):
     # IK controls
 
     def get_extra_ik_controls(self):
-        return []
+        if self.component_ik_pivot:
+            return [self.component_ik_pivot.control]
+        else:
+            return []
 
     def get_all_ik_controls(self):
         ctrl = self.bones.ctrl
         controls = [ctrl.ik_base, ctrl.ik_pole, ctrl.ik]
-        if self.component_ik_pivot:
-            controls.append(self.component_ik_pivot.control)
         return controls + self.get_extra_ik_controls()
 
     @stage.generate_bones
@@ -411,9 +412,13 @@ class BaseLimbRig(BaseRig):
 
     @stage.generate_widgets
     def make_ik_control_widgets(self):
-        self.make_ik_base_widget(self.bones.ctrl.ik_base)
-        self.make_ik_pole_widget(self.bones.ctrl.ik_pole)
-        self.make_ik_ctrl_widget(self.bones.ctrl.ik)
+        ctrl = self.bones.ctrl
+
+        set_bone_widget_transform(self.obj, ctrl.ik, self.get_ik_control_output())
+
+        self.make_ik_base_widget(ctrl.ik_base)
+        self.make_ik_pole_widget(ctrl.ik_pole)
+        self.make_ik_ctrl_widget(ctrl.ik)
 
     def make_ik_base_widget(self, ctrl):
         if self.main_axis == 'x':
