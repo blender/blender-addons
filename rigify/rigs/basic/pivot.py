@@ -85,13 +85,13 @@ class Rig(BaseRig):
         params.make_extra_control = bpy.props.BoolProperty(
             name        = "Extra Control",
             default     = False,
-            description = "Create an extended control"
+            description = "Create an optional control"
         )
 
         params.make_extra_deform = bpy.props.BoolProperty(
             name        = "Extra Deform",
             default     = False,
-            description = "Create an extra deform bone"
+            description = "Create an optional deform bone"
         )
 
 

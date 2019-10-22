@@ -809,17 +809,17 @@ class BaseLimbRig(BaseRig):
         )
 
         params.segments = bpy.props.IntProperty(
-            name        = 'limb segments',
+            name        = 'Limb Segments',
             default     = 2,
             min         = 1,
-            description = 'Number of segments'
+            description = 'Number of limb segments'
         )
 
         params.bbones = bpy.props.IntProperty(
-            name        = 'bbone segments',
+            name        = 'B-Bone Segments',
             default     = 10,
             min         = 1,
-            description = 'Number of segments'
+            description = 'Number of B-Bone segments'
         )
 
         params.make_custom_pivot = bpy.props.BoolProperty(
