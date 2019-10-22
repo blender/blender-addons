@@ -869,8 +869,6 @@ class RigifyLimbIk2FkBase:
     ctrl_bones:   StringProperty(name="IK Controls")
     extra_ctrls:  StringProperty(name="Extra IK Controls")
 
-    keyflags = None
-
     def init_execute(self, context):
         if self.fk_bones:
             self.fk_bone_list = json.loads(self.fk_bones)
@@ -947,13 +945,11 @@ class RigifyLimbIk2FkBase:
 class POSE_OT_rigify_limb_ik2fk(RigifyLimbIk2FkBase, RigifySingleUpdateMixin, bpy.types.Operator):
     bl_idname = "pose.rigify_limb_ik2fk_" + rig_id
     bl_label = "Snap IK->FK"
-    bl_options = {'UNDO', 'INTERNAL'}
     bl_description = "Snap the IK chain to FK result"
 
 class POSE_OT_rigify_limb_ik2fk_bake(RigifyLimbIk2FkBase, RigifyBakeKeyframesMixin, bpy.types.Operator):
     bl_idname = "pose.rigify_limb_ik2fk_bake_" + rig_id
     bl_label = "Apply Snap IK->FK To Keyframes"
-    bl_options = {'UNDO', 'INTERNAL'}
     bl_description = "Snap the IK chain keyframes to FK result"
 
     def execute_scan_curves(self, context, obj):
@@ -994,8 +990,6 @@ SCRIPT_UTILITIES_OP_TOGGLE_POLE = SCRIPT_UTILITIES_OP_SNAP_IK_FK + ['''
 class RigifyLimbTogglePoleBase(RigifyLimbIk2FkBase):
     use_pole: bpy.props.BoolProperty(name="Use Pole Vector")
 
-    keyflags_switch = None
-
     def save_frame_state(self, context, obj):
         return get_chain_transform_matrices(obj, self.ik_bone_list)
 
@@ -1033,13 +1027,11 @@ class RigifyLimbTogglePoleBase(RigifyLimbIk2FkBase):
 class POSE_OT_rigify_limb_toggle_pole(RigifyLimbTogglePoleBase, RigifySingleUpdateMixin, bpy.types.Operator):
     bl_idname = "pose.rigify_limb_toggle_pole_" + rig_id
     bl_label = "Toggle Pole"
-    bl_options = {'UNDO', 'INTERNAL'}
     bl_description = "Switch the IK chain between pole and rotation"
 
 class POSE_OT_rigify_limb_toggle_pole_bake(RigifyLimbTogglePoleBase, RigifyBakeKeyframesMixin, bpy.types.Operator):
     bl_idname = "pose.rigify_limb_toggle_pole_bake_" + rig_id
     bl_label = "Apply Toggle Pole To Keyframes"
-    bl_options = {'UNDO', 'INTERNAL'}
     bl_description = "Switch the IK chain between pole and rotation over a frame range"
 
     def execute_scan_curves(self, context, obj):

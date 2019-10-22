@@ -372,9 +372,6 @@ class RigifySwitchParentBase:
         items=lambda s,c: RigifySwitchParentBase.parent_items
     )
 
-    keyflags = None
-    keyflags_switch = None
-
     def save_frame_state(self, context, obj):
         return get_transform_matrix(obj, self.bone, with_constraints=False)
 
@@ -392,16 +389,6 @@ class RigifySwitchParentBase:
             obj, self.bone, old_matrix, keyflags=self.keyflags,
             no_loc=self.locks[0], no_rot=self.locks[1], no_scale=self.locks[2]
         )
-
-    def get_bone_props(self):
-        props = set()
-        if not self.locks[0]:
-            props |= TRANSFORM_PROPS_LOCATION
-        if not self.locks[1]:
-            props |= TRANSFORM_PROPS_ROTATION
-        if not self.locks[2]:
-            props |= TRANSFORM_PROPS_SCALE
-        return props
 
     def init_invoke(self, context):
         pose = context.active_object.pose
@@ -435,11 +422,10 @@ class POSE_OT_rigify_switch_parent(RigifySwitchParentBase, RigifySingleUpdateMix
 class POSE_OT_rigify_switch_parent_bake(RigifySwitchParentBase, RigifyBakeKeyframesMixin, bpy.types.Operator):
     bl_idname = "pose.rigify_switch_parent_bake_" + rig_id
     bl_label = "Apply Switch Parent To Keyframes"
-    bl_options = {'UNDO', 'INTERNAL'}
     bl_description = "Switch parent over a frame range, adjusting keys to preserve the bone position and orientation"
 
     def execute_scan_curves(self, context, obj):
-        return self.bake_add_bone_frames(self.bone, self.get_bone_props())
+        return self.bake_add_bone_frames(self.bone, transform_props_with_locks(*self.locks))
 
     def execute_before_apply(self, context, obj, range, range_raw):
         self.bake_replace_custom_prop_keys_constant(self.prop_bone, self.prop_id, int(self.selected))
