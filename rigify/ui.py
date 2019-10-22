@@ -740,7 +740,7 @@ def rigify_report_exception(operator, exception):
 
     message.reverse()  # XXX - stupid! menu's are upside down!
 
-    operator.report({'INFO'}, '\n'.join(message))
+    operator.report({'ERROR'}, '\n'.join(message))
 
 
 class LayerInit(bpy.types.Operator):
@@ -776,6 +776,13 @@ class Generate(bpy.types.Operator):
             traceback.print_exc()
 
             rigify_report_exception(self, rig_exception)
+        except Exception as rig_exception:
+            import traceback
+            traceback.print_exc()
+
+            self.report({'ERROR'}, 'Generation has thrown an exception: ' + str(rig_exception))
+        finally:
+            bpy.ops.object.mode_set(mode='OBJECT')
 
         return {'FINISHED'}
 
