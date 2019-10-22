@@ -13,7 +13,8 @@ from .misc import map_list, map_apply, force_lazy
 from ..base_rig import *
 from ..base_generate import GeneratorPlugin
 
-from itertools import count, repeat
+from collections import defaultdict
+from itertools import count, repeat, chain
 
 
 def _rig_is_child(rig, parent):
@@ -40,7 +41,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
 
         self.child_list = []
         self.global_parents = []
-        self.local_parents = []
+        self.local_parents = defaultdict(list)
         self.child_map = {}
         self.frozen = False
 
@@ -77,7 +78,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
         if is_global:
             self.global_parents.append(entry)
         else:
-            self.local_parents.append(entry)
+            self.local_parents[id(rig)].append(entry)
 
 
     def build_child(self, rig, bone, *, use_parent_mch=True, **options):
@@ -171,16 +172,28 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
 
             child[name] = value
 
+    def get_rig_parent_candidates(self, rig):
+        candidates = []
+
+        # Build a list in parent hierarchy order
+        while rig:
+            candidates.append(self.local_parents[id(rig)])
+            rig = rig.rigify_parent
+
+        candidates.append(self.global_parents)
+
+        return list(chain.from_iterable(reversed(candidates)))
+
     def generate_bones(self):
         self.frozen = True
-        self.parent_list = self.global_parents + self.local_parents
+        self.parent_list = self.global_parents + list(chain.from_iterable(self.local_parents.values()))
 
         # Link children to parents
         for child in self.child_list:
             child_rig = child['context_rig'] or child['rig']
             parents = []
 
-            for parent in self.parent_list:
+            for parent in self.get_rig_parent_candidates(child_rig):
                 if parent['rig'] is child_rig:
                     if parent['exclude_self'] or child['exclude_self']:
                         continue
