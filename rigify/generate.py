@@ -270,6 +270,8 @@ class Generator(base_generate.BaseGenerator):
             elif name.startswith(DEF_PREFIX):
                 bone.layers = DEF_LAYER
 
+            bone.bbone_x = bone.bbone_z = bone.length * 0.05
+
 
     def __restore_driver_vars(self):
         obj = self.obj
