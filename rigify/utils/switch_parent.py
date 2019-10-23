@@ -51,7 +51,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
     ##############################
     # API
 
-    def register_parent(self, rig, bone, *, name=None, is_global=False, exclude_self=False):
+    def register_parent(self, rig, bone, *, name=None, is_global=False, exclude_self=False, tags=None):
         """
         Registers a bone of the specified rig as a possible parent.
 
@@ -61,6 +61,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
           name              Name of the parent for mouse-over hint.
           is_global         The parent is accessible to all rigs, instead of just children of owner.
           exclude_self      The parent is invisible to the owner rig itself.
+          tags              Set of tags to use for default parent selection.
 
         Lazy creation:
           The bone parameter may be a function creating the bone on demand and
@@ -71,7 +72,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
         assert isinstance(bone, str) or callable(bone)
 
         entry = {
-            'rig': rig, 'bone': bone, 'name': name,
+            'rig': rig, 'bone': bone, 'name': name, 'tags': tags,
             'is_global': is_global, 'exclude_self': exclude_self, 'used': False,
         }
 
@@ -91,6 +92,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
           extra_parents     List of bone names or (name, user_name) pairs to use as additional parents.
           use_parent_mch    Create an intermediate MCH bone for the constraints and parent the child to it.
           select_parent     Select the specified bone instead of the last one.
+          select_tags       List of parent tags to try for default selection.
           ignore_global     Ignore the is_global flag of potential parents.
           exclude_self      Ignore parents registered by the rig itself.
           context_rig       Rig to use for selecting parents.
@@ -155,7 +157,8 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
     child_option_table = {
         'extra_parents': None,
         'prop_bone': None, 'prop_id': None, 'prop_name': None, 'controls': None,
-        'select_parent': None, 'ignore_global': False, 'exclude_self': False, 'context_rig': None,
+        'select_parent': None, 'ignore_global': False, 'exclude_self': False,
+        'context_rig': None, 'select_tags': None,
         'ctrl_bone': None,
         'no_fix_location': False, 'no_fix_rotation': False, 'no_fix_scale': False,
         'copy_location': None, 'copy_rotation': None, 'copy_scale': None,
@@ -243,10 +246,13 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
 
         # Build the final list of parent bone names
         parent_map = dict()
+        parent_tags = defaultdict(set)
 
         for parent in child['parents']:
             if parent['bone'] not in parent_map:
                 parent_map[parent['bone']] = parent['name']
+            if parent['tags']:
+                parent_tags[parent['bone']] |= parent['tags']
 
         last_main_parent_bone = child['parents'][-1]['bone']
         num_main_parents = len(parent_map.items())
@@ -262,12 +268,19 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
 
         # Find which bone to select
         select_bone = force_lazy(child['select_parent']) or last_main_parent_bone
+        select_tags = force_lazy(child['select_tags']) or []
         select_index = num_main_parents
 
         try:
             select_index = 1 + next(i for i, (bone, _) in enumerate(parent_bones) if bone == select_bone)
         except StopIteration:
             print("RIGIFY ERROR: Can't find bone '%s' to select as default parent of '%s'\n" % (select_bone, bone))
+
+        for tag in select_tags:
+            matching = [ i for i, (bone, _) in enumerate(parent_bones) if tag in parent_tags[bone] ]
+            if len(matching) > 0:
+                select_index = 1 + matching[-1]
+                break
 
         # Create the controlling property
         prop_bone = child['prop_bone'] = force_lazy(child['prop_bone']) or bone

@@ -375,6 +375,11 @@ class BaseLimbRig(BaseRig):
         if self.rig_parent_bone:
             pbuilder.register_parent(self, self.rig_parent_bone)
 
+        pbuilder.register_parent(
+            self, self.get_ik_control_output(), name=self.bones.ctrl.ik,
+            exclude_self=True, tags={'limb_ik'},
+        )
+
     def build_ik_parent_switch(self, pbuilder):
         ctrl = self.bones.ctrl
 

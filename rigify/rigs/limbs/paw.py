@@ -107,7 +107,7 @@ class Rig(BaseLimbRig):
     def register_switch_parents(self, pbuilder):
         super().register_switch_parents(pbuilder)
 
-        pbuilder.register_parent(self, self.bones.org.main[3], exclude_self=True)
+        pbuilder.register_parent(self, self.bones.org.main[3], exclude_self=True, tags={'limb_end'})
 
     def make_ik_ctrl_widget(self, ctrl):
         create_foot_widget(self.obj, ctrl)
