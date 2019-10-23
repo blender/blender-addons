@@ -4323,7 +4323,7 @@ for i in range(18):  # length of world texture slots
 
 class MATERIAL_TEXTURE_SLOTS_UL_layerlist(bpy.types.UIList):
 #    texture_slots:
-    index = bpy.props.IntProperty(name='index')
+    index: bpy.props.IntProperty(name='index')
     #foo  = random prop
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         ob = data

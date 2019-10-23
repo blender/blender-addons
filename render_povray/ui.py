@@ -322,7 +322,7 @@ def pov_context_tex_datablock(context):
     if idblock:
         return active_node_mat(idblock)
 
-    idblock = context.lamp
+    idblock = context.light
     if idblock:
         return idblock
 
@@ -1733,7 +1733,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, Panel):
     def poll(cls, context):
         mat = context.material
         engine = context.scene.render.engine
-        return mat and (mat.type in {'SURFACE', 'WIRE', 'HALO'}) and (engine in cls.COMPAT_ENGINES)
+        return mat and (mat.pov.type in {'SURFACE', 'WIRE', 'HALO'}) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -2127,7 +2127,7 @@ class TEXTURE_PT_povray_preview(TextureButtonsPanel, Panel):
     def draw(self, context):
         tex = context.texture
         slot = getattr(context, "pov_texture_slot", None)
-        idblock = context_tex_datablock(context)
+        idblock = pov_context_tex_datablock(context)
         layout = self.layout
         # if idblock:
             # layout.template_preview(tex, parent=idblock, slot=slot)
@@ -2351,7 +2351,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        idblock = context_tex_datablock(context)
+        idblock = pov_context_tex_datablock(context)
         if isinstance(idblock, Brush):
             return False
 
@@ -2365,9 +2365,11 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
 
         layout = self.layout
 
-        idblock = context_tex_datablock(context)
+        idblock = pov_context_tex_datablock(context)
 
-        tex = context.texture_slot
+        # tex = context.pov_texture_slot
+        mat = context.material
+        tex = bpy.data.textures[mat.pov_texture_slots[mat.pov.active_texture_index]]
 
         def factor_but(layout, toggle, factor, name):
             row = layout.row(align=True)
@@ -2378,7 +2380,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
             return sub  # XXX, temp. use_map_normal needs to override.
 
         if isinstance(idblock, Material):
-            if idblock.type in {'SURFACE', 'WIRE'}:
+            if idblock.pov.type in {'SURFACE', 'WIRE'}:
                 split = layout.split()
 
                 col = split.column()
@@ -2412,7 +2414,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
                 # ~ sub = col.column()
                 # ~ sub.active = tex.use_map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
                 #~ sub.prop(tex, "default_value", text="Amount", slider=True)
-            elif idblock.type == 'HALO':
+            elif idblock.pov.type == 'HALO':
                 layout.label(text="Halo:")
 
                 split = layout.split()
@@ -2425,7 +2427,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
                 factor_but(col, "use_map_raymir", "raymir_factor", "Size")
                 factor_but(col, "use_map_hardness", "hardness_factor", "Hardness")
                 factor_but(col, "use_map_translucency", "translucency_factor", "Add")
-            elif idblock.type == 'VOLUME':
+            elif idblock.pov.type == 'VOLUME':
                 layout.label(text="Volume:")
 
                 split = layout.split()
@@ -3327,7 +3329,8 @@ classes = (
     #TEXTURE_PT_POV_povray_texture_slots,
     TEXTURE_UL_texture_slots,
     POV_OT_texture_slot_add,
-    POV_OT_texture_slot_remove
+    POV_OT_texture_slot_remove,
+    TEXTURE_PT_influence
 )
 
 
