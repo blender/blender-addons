@@ -44,12 +44,12 @@ matchList = [('vCnt', 'Vertex Count', 'Match by vertex count'),
             ('bbHeight', 'Height', 'Match by bounding box height'), \
             ('bbWidth', 'Width', 'Match by bounding box width'),
             ('bbDepth', 'Depth', 'Match by bounding box depth'),
-            ('minX', 'Min X', 'Match by bounding bon Min X'),
-            ('maxX', 'Max X', 'Match by bounding bon Max X'),
-            ('minY', 'Min Y', 'Match by bounding bon Min Y'),
-            ('maxY', 'Max Y', 'Match by bounding bon Max Y'),
-            ('minZ', 'Min Z', 'Match by bounding bon Min Z'),
-            ('maxZ', 'Max Z', 'Match by bounding bon Max Z')]
+            ('minX', 'Min X', 'Match by bounding box Min X'),
+            ('maxX', 'Max X', 'Match by bounding box Max X'),
+            ('minY', 'Min Y', 'Match by bounding box Min Y'),
+            ('maxY', 'Max Y', 'Match by bounding box Max Y'),
+            ('minZ', 'Min Z', 'Match by bounding box Min Z'),
+            ('maxZ', 'Max Z', 'Match by bounding box Max Z')]
 
 DEF_ERR_MARGIN = 0.0001
 
