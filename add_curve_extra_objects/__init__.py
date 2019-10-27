@@ -247,9 +247,9 @@ def menu_func(self, context):
     layout = self.layout
 
     layout.operator_menu_enum("curve.curveaceous_galore", "ProfileType", icon='CURVE_DATA')
-    layout.operator_menu_enum("curve.spirals", "spiral_type", icon='CURVE_DATA')
+    layout.operator_menu_enum("curve.spirals", "spiral_type", icon='FORCE_VORTEX')
     layout.separator()
-    layout.operator("curve.curlycurve", text="Curly Curve", icon='CURVE_DATA')
+    layout.operator("curve.curlycurve", text="Curly Curve", icon='GP_ONLY_SELECTED')
     if context.mode != 'OBJECT':
         # fix in D2142 will allow to work in EDIT_CURVE
         return None
