@@ -27,7 +27,7 @@ bl_info = {
     "location": "View 3D > Sidebar > Edit Tab",
     "description": "Assigns one or more Bezier curves as shape keys to another Bezier curve",
     "category": "Add Curve",
-    "wiki_url": "https://docs.blender.org/manual/nb/dev/addons/"
+    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
                 "add_curve/assign_shape_keys.html",
     "blender": (2, 80, 0),
 }
