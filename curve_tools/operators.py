@@ -1096,6 +1096,8 @@ class CurveBoolean(bpy.types.Operator):
                 bpy.ops.object.mode_set(mode = 'EDIT')
                 bpy.ops.curve.select_all(action='SELECT')
                 splines = internal.getSelectedSplines(True, True)
+                if len(splines) < 2:
+                   continue
                 splineA = splines[0]
                 splineB = splines[1]
                 operation = self.operation
