@@ -1073,6 +1073,7 @@ class CurveBoolean(bpy.types.Operator):
         Curve = object_utils.object_data_add(context, dataCurve)
         bpy.context.view_layer.objects.active = Curve
         Curve.select_set(True)
+        Curve.location = (0.0, 0.0, 0.0)
 
         for iCurve in range(0, len_selected_curves):
             matrix_world = selected_Curves[iCurve].matrix_world
