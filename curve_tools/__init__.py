@@ -334,6 +334,8 @@ class VIEW3D_PT_CurvePanel(Panel):
             row = col.row(align=True)
             row.operator("curvetools.sep_outline", text="Separate Outline or selected")
             row = col.row(align=True)
+            row.operator("curvetools.bezier_curve_boolean", text="2D Curve Boolean")
+            row = col.row(align=True)
             row.operator("curvetools.bezier_points_fillet", text='Fillet')
             row = col.row(align=True)
             row.operator("curvetools.bezier_cad_handle_projection", text='Handle Projection')
