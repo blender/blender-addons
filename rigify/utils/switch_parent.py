@@ -51,7 +51,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
     ##############################
     # API
 
-    def register_parent(self, rig, bone, *, name=None, is_global=False, exclude_self=False, tags=None):
+    def register_parent(self, rig, bone, *, name=None, is_global=False, exclude_self=False, inject_into=None, tags=None):
         """
         Registers a bone of the specified rig as a possible parent.
 
@@ -61,6 +61,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
           name              Name of the parent for mouse-over hint.
           is_global         The parent is accessible to all rigs, instead of just children of owner.
           exclude_self      The parent is invisible to the owner rig itself.
+          inject_into       Make this parent available to children of the specified rig.
           tags              Set of tags to use for default parent selection.
 
         Lazy creation:
@@ -70,10 +71,19 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
 
         assert not self.frozen
         assert isinstance(bone, str) or callable(bone)
+        assert callable(bone) or _rig_is_child(rig, self.generator.bone_owners[bone])
+        assert _rig_is_child(rig, inject_into)
+
+        real_rig = rig
+
+        if inject_into and inject_into is not rig:
+            rig = inject_into
+            tags = (tags or set()) | {'injected'}
 
         entry = {
             'rig': rig, 'bone': bone, 'name': name, 'tags': tags,
-            'is_global': is_global, 'exclude_self': exclude_self, 'used': False,
+            'is_global': is_global, 'exclude_self': exclude_self,
+            'real_rig': real_rig, 'used': False,
         }
 
         if is_global:
@@ -95,7 +105,8 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
           select_tags       List of parent tags to try for default selection.
           ignore_global     Ignore the is_global flag of potential parents.
           exclude_self      Ignore parents registered by the rig itself.
-          context_rig       Rig to use for selecting parents.
+          allow_self        Ignore the 'exclude_self' setting of the parent.
+          context_rig       Rig to use for selecting parents; defaults to rig.
           no_implicit       Only use parents listed as extra_parents.
           only_selected     Like no_implicit, but allow the 'default' selected parent.
 
@@ -159,7 +170,8 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
     child_option_table = {
         'extra_parents': None,
         'prop_bone': None, 'prop_id': None, 'prop_name': None, 'controls': None,
-        'select_parent': None, 'ignore_global': False, 'exclude_self': False,
+        'select_parent': None, 'ignore_global': False,
+        'exclude_self': False, 'allow_self': False,
         'context_rig': None, 'select_tags': None,
         'no_implicit': False, 'only_selected': False,
         'ctrl_bone': None,
@@ -200,16 +212,23 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
             parents = []
 
             for parent in self.get_rig_parent_candidates(child_rig):
+                parent_rig = parent['rig']
+
+                # Exclude injected parents
+                if parent['real_rig'] is not parent_rig:
+                    if _rig_is_child(parent_rig, child_rig):
+                        continue
+
                 if parent['rig'] is child_rig:
-                    if parent['exclude_self'] or child['exclude_self']:
+                    if (parent['exclude_self'] and not child['allow_self']) or child['exclude_self']:
                         continue
                 elif parent['is_global'] and not child['ignore_global']:
                     # Can't use parents from own children, even if global (cycle risk)
-                    if _rig_is_child(parent['rig'], child_rig):
+                    if _rig_is_child(parent_rig, child_rig):
                         continue
                 else:
                     # Required to be a child of the parent's rig
-                    if not _rig_is_child(child_rig, parent['rig']):
+                    if not _rig_is_child(child_rig, parent_rig):
                         continue
 
                 parent['used'] = True
