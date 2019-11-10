@@ -91,6 +91,17 @@ def scene_load(context):
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
     preferences.login_attempt = False
 
+def check_timers_timer():
+    ''' checks if all timers are registered regularly. Prevents possible bugs from stopping the addon.'''
+    if not bpy.app.timers.is_registered(search.timer_update):
+        bpy.app.timers.register(search.timer_update)
+    if not bpy.app.timers.is_registered(download.timer_update):
+        bpy.app.timers.register(download.timer_update)
+    if not (bpy.app.timers.is_registered(tasks_queue.queue_worker)):
+        bpy.app.timers.register(tasks_queue.queue_worker)
+    if not bpy.app.timers.is_registered(bg_blender.bg_update):
+        bpy.app.timers.register(bg_blender.bg_update)
+    return 5.0
 
 licenses = (
     ('royalty_free', 'Royalty Free', 'royalty free commercial license'),
@@ -1481,10 +1492,15 @@ def register():
     bkit_oauth.register()
     tasks_queue.register()
 
+    bpy.app.timers.register(check_timers_timer)
+
     bpy.app.handlers.load_post.append(scene_load)
 
 
 def unregister():
+
+    bpy.app.timers.unregister(check_timers_timer)
+
     ui.unregister_ui()
     search.unregister_search()
     asset_inspector.unregister_asset_inspector()
