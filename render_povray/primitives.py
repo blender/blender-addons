@@ -505,7 +505,7 @@ class POVRAY_OT_loft_add(bpy.types.Operator):
         loftData = bpy.data.curves.new('Loft', type='CURVE')
         loftData.dimensions = '3D'
         loftData.resolution_u = 2
-        loftData.show_normal_face = False
+        # loftData.show_normal_face = False # deprecated in 2.8
         n=props.loft_n
         thick = props.loft_thick
         side = props.loft_rings_side
@@ -1126,7 +1126,7 @@ class POVRAY_OT_height_field_add(bpy.types.Operator, ImportHelper):
         hf_tex = bpy.data.textures.new('%s_hf_image'%im_name, type = 'IMAGE')
         hf_tex.image = img
         mat = bpy.data.materials.new('Tex_%s_hf'%im_name)
-        hf_slot = mat.texture_slots.create(-1)
+        hf_slot = mat.pov_texture_slots.create(-1)
         hf_slot.texture = hf_tex
         #layers = 20*[False]
         #layers[0] = True
