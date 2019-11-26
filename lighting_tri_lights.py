@@ -12,7 +12,6 @@ bl_info = {
     "category": "Lighting",
     "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
                 "lighting/trilighting.html",
-    "Scripts/",
 }
 
 import bpy
