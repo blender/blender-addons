@@ -192,7 +192,9 @@ for member in dir(properties_material):
     subclass = getattr(properties_material, member)
     try:
         mat=bpy.context.active_object.active_material
-        if mat and mat.pov.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes):
+        if (mat and mat.pov.type == "SURFACE" 
+            and not (mat.pov.material_use_nodes or mat.use_nodes)): 
+        # and (engine in cls.COMPAT_ENGINES)) if subclasses were sorted
             subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
     except:
         pass
@@ -326,7 +328,7 @@ def locate_docpath():
 def pov_context_tex_datablock(context):
 
     idblock = context.brush
-    if idblock:
+    if idblock and bpy.context.scene.texture_context == 'OTHER':
         return idblock
 
     # idblock = bpy.context.active_object.active_material
@@ -2388,8 +2390,8 @@ class TEXTURE_PT_POV_influence(TextureSlotPanel, Panel):
         if (isinstance(idblock, Brush) and bpy.context.scene.texture_context == 'OTHER'): #XXX replace by bpy.types.Brush?
             return False
 
-        if not getattr(context, "pov_texture_slot", None):
-            return False
+        # if not getattr(context, "pov_texture_slot", None):
+            # return False
 
         engine = context.scene.render.engine
         return (engine in cls.COMPAT_ENGINES)

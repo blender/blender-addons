@@ -775,7 +775,7 @@ class MaterialTextureSlot(PropertyGroup):
     use: BoolProperty(
             name="",
             description="Enable this material texture slot",
-            default = False)
+            default = True)
 
     use_from_dupli: BoolProperty(
             name="",

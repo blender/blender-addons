@@ -242,9 +242,18 @@ def writeMaterial(using_uberpov, DEF_MAT_NAME, scene, tabWrite, safety, comments
 
     if material:
         special_texture_found = False
+        idx = -1
         for t in material.pov_texture_slots:
-            if t and t.use and t.texture is not None:
-                if (t.texture.type == 'IMAGE' and t.texture.image) or t.texture.type != 'IMAGE':
+            idx += 1
+            # index = material.pov.active_texture_index
+            slot = material.pov_texture_slots[idx] # [index]  
+            povtex = slot.name
+            tex = bpy.data.textures[povtex]  
+        
+            if t and t.use and tex is not None:
+            
+            
+                if (tex.type == 'IMAGE' and tex.image) or tex.type != 'IMAGE':
                     #validPath
                     if(t and t.use and
                        (t.use_map_specular or t.use_map_raymir or t.use_map_normal or t.use_map_alpha)):
@@ -767,14 +776,22 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
     texturesAlpha = ""
     #proceduralFlag=False
     for t in mater.pov_texture_slots:
-        if t and (t.use and (t.texture is not None)):
+        idx = -1
+        for t in mater.pov_texture_slots:
+            idx += 1
+            # index = mater.pov.active_texture_index
+            slot = mater.pov_texture_slots[idx] # [index]  
+            povtex = slot.name
+            tex = bpy.data.textures[povtex]
+            
+        if t and (t.use and (tex is not None)):
             # 'NONE' ('NONE' type texture is different from no texture covered above)
-            if (t.texture.type == 'NONE' and t.texture.pov.tex_pattern_type == 'emulator'):
+            if (tex.type == 'NONE' and tex.pov.tex_pattern_type == 'emulator'):
                 continue # move to next slot
             # PROCEDURAL
-            elif (t.texture.type != 'IMAGE' and t.texture.type != 'NONE'):
+            elif (tex.type != 'IMAGE' and tex.type != 'NONE'):
                 proceduralFlag=True
-                image_filename = "PAT_%s"%string_strip_hyphen(bpy.path.clean_name(t.texture.name))
+                image_filename = "PAT_%s"%string_strip_hyphen(bpy.path.clean_name(tex.name))
                 if image_filename:
                     if t.use_map_color_diffuse:
                         texturesDif = image_filename
@@ -789,40 +806,40 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
                     if t.use_map_normal:
                         texturesNorm = image_filename
                         # colvalue = t.normal_factor/10 # UNUSED
-                        #textNormName=t.texture.image.name + ".normal"
+                        #textNormName=tex.image.name + ".normal"
                         #was the above used? --MR
                         t_nor = t
                     if t.use_map_alpha:
                         texturesAlpha = image_filename
                         # colvalue = t.alpha_factor * 10.0  # UNUSED
-                        #textDispName=t.texture.image.name + ".displ"
+                        #textDispName=tex.image.name + ".displ"
                         #was the above used? --MR
                         t_alpha = t
 
             # RASTER IMAGE
-            elif (t.texture.type == 'IMAGE' and t.texture.image and t.texture.pov.tex_pattern_type == 'emulator'):
+            elif (tex.type == 'IMAGE' and tex.image and tex.pov.tex_pattern_type == 'emulator'):
                 proceduralFlag=False
                 #PACKED
-                if t.texture.image.packed_file:
-                    orig_image_filename=t.texture.image.filepath_raw
-                    unpackedfilename= os.path.join(preview_dir,("unpacked_img_"+(string_strip_hyphen(bpy.path.clean_name(t.texture.name)))))
+                if tex.image.packed_file:
+                    orig_image_filename=tex.image.filepath_raw
+                    unpackedfilename= os.path.join(preview_dir,("unpacked_img_"+(string_strip_hyphen(bpy.path.clean_name(tex.name)))))
                     if not os.path.exists(unpackedfilename):
                         # record which images that were newly copied and can be safely
                         # cleaned up
                         unpacked_images.append(unpackedfilename)
-                    t.texture.image.filepath_raw=unpackedfilename
-                    t.texture.image.save()
+                    tex.image.filepath_raw=unpackedfilename
+                    tex.image.save()
                     image_filename = unpackedfilename.replace("\\","/")
                     # .replace("\\","/") to get only forward slashes as it's what POV prefers,
                     # even on windows
-                    t.texture.image.filepath_raw=orig_image_filename
+                    tex.image.filepath_raw=orig_image_filename
                 #FILE
                 else:
-                    image_filename = path_image(t.texture.image)
+                    image_filename = path_image(tex.image)
                 # IMAGE SEQUENCE BEGINS
                 if image_filename:
-                    if bpy.data.images[t.texture.image.name].source == 'SEQUENCE':
-                        korvaa = "." + str(t.texture.image_user.frame_offset + 1).zfill(3) + "."
+                    if bpy.data.images[tex.image.name].source == 'SEQUENCE':
+                        korvaa = "." + str(tex.image_user.frame_offset + 1).zfill(3) + "."
                         image_filename = image_filename.replace(".001.", korvaa)
                         print(" seq debug ")
                         print(image_filename)
@@ -842,13 +859,13 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
                     if t.use_map_normal:
                         texturesNorm = image_filename
                         # colvalue = t.normal_factor/10  # UNUSED
-                        #textNormName=t.texture.image.name + ".normal"
+                        #textNormName=tex.image.name + ".normal"
                         #was the above used? --MR
                         t_nor = t
                     if t.use_map_alpha:
                         texturesAlpha = image_filename
                         # colvalue = t.alpha_factor * 10.0  # UNUSED
-                        #textDispName=t.texture.image.name + ".displ"
+                        #textDispName=tex.image.name + ".displ"
                         #was the above used? --MR
                         t_alpha = t
 
@@ -1154,8 +1171,14 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
     # Write another layered texture using invisible diffuse and metallic trick
     # to emulate colored specular highlights
     special_texture_found = False
+    idx = -1
     for t in mater.pov_texture_slots:
-        if(t and t.use and ((t.texture.type == 'IMAGE' and t.texture.image) or t.texture.type != 'IMAGE') and
+        idx += 1
+        # index = mater.pov.active_texture_index
+        slot = mater.pov_texture_slots[idx] # [index]  
+        povtex = slot.name
+        tex = bpy.data.textures[povtex]    
+        if(t and t.use and ((tex.type == 'IMAGE' and tex.image) or tex.type != 'IMAGE') and
            (t.use_map_specular or t.use_map_raymir)):
             # Specular mapped textures would conflict with colored specular
             # because POV can't layer over or under pigment patterned textures
@@ -1175,20 +1198,20 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
         texturesNorm = ""
         for t in mater.pov_texture_slots:
 
-            if t and t.texture.pov.tex_pattern_type != 'emulator':
+            if t and tex.pov.tex_pattern_type != 'emulator':
                 proceduralFlag=True
-                image_filename = string_strip_hyphen(bpy.path.clean_name(t.texture.name))
-            if (t and t.texture.type == 'IMAGE' and
-                    t.use and t.texture.image and
-                    t.texture.pov.tex_pattern_type == 'emulator'):
+                image_filename = string_strip_hyphen(bpy.path.clean_name(tex.name))
+            if (t and tex.type == 'IMAGE' and
+                    t.use and tex.image and
+                    tex.pov.tex_pattern_type == 'emulator'):
                 proceduralFlag=False
-                image_filename = path_image(t.texture.image)
+                image_filename = path_image(tex.image)
                 imgGamma = ""
                 if image_filename:
                     if t.use_map_normal:
                         texturesNorm = image_filename
                         # colvalue = t.normal_factor/10  # UNUSED
-                        #textNormName=t.texture.image.name + ".normal"
+                        #textNormName=tex.image.name + ".normal"
                         #was the above used? --MR
                         t_nor = t
                         if proceduralFlag:
