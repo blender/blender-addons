@@ -108,7 +108,7 @@ class VIEW3D_PT_tools_SURFSK_mesh(Panel):
             col.separator()
 
         col.separator()
-        props = col.operator("mesh.surfsk_add_surface", text="Add Surface")
+        col.operator("mesh.surfsk_add_surface", text="Add Surface")
         col.operator("mesh.surfsk_edit_surface", text="Edit Surface")
 
         col.separator()
@@ -440,7 +440,7 @@ class MESH_OT_SURFSK_add_surface(Operator):
                 verts_count += 1
         else:
             verts_count = 1
-            for n in range(0, fixed_edges_num):
+            for _n in range(0, fixed_edges_num):
                 edges_proportions.append(1 / fixed_edges_num)
                 verts_count += 1
 
@@ -896,7 +896,6 @@ class MESH_OT_SURFSK_add_surface(Operator):
         tuple(a)
         verts_surrounded_by_faces = {}
         for v_idx in edges_per_vert:
-            edges = edges_per_vert[v_idx]
             edges_with_two_faces_count = 0
 
             for ed_idx in edges_per_vert[v_idx]:
@@ -1359,11 +1358,11 @@ class MESH_OT_SURFSK_add_surface(Operator):
                                         dist = (intersec_coords[0] - intersec_coords[1]).length
 
                                         if dist <= self.crosshatch_merge_distance * 1.5:
-                                            temp_co, percent1 = intersect_point_line(
+                                            _temp_co, percent1 = intersect_point_line(
                                                                     intersec_coords[0], bp1_co, bp2_co
                                                                     )
                                             if (percent1 >= -0.02 and percent1 <= 1.02):
-                                                temp_co, percent2 = intersect_point_line(
+                                                _temp_co, percent2 = intersect_point_line(
                                                                         intersec_coords[1], bp3_co, bp4_co
                                                                         )
                                                 if (percent2 >= -0.02 and percent2 <= 1.02):
@@ -1590,7 +1589,6 @@ class MESH_OT_SURFSK_add_surface(Operator):
 
         # Build surface
         all_surface_verts_co = []
-        verts_idx_translation = {}
         for i in range(len(final_points_ob.data.vertices)):
             coords = final_points_ob.data.vertices[i].co
             all_surface_verts_co.append([coords[0], coords[1], coords[2]])
@@ -1634,11 +1632,6 @@ class MESH_OT_SURFSK_add_surface(Operator):
                                 ob_surface.data.vertices[ed.vertices[0]].co -
                                 ob_surface.data.vertices[ed.vertices[1]].co
                                 ).length
-
-        if len(ob_surface.data.edges) > 0:
-            average_surface_edges_length = edges_length_sum / len(ob_surface.data.edges)
-        else:
-            average_surface_edges_length = 0.0001
 
         # Make dictionary with all the verts connected to each vert, on the new surface object.
         surface_connected_verts = {}
@@ -2079,7 +2072,7 @@ class MESH_OT_SURFSK_add_surface(Operator):
                                 verts_tips_same_chain_idx
                                 )
             # The tip of the selected vertices nearest to the last point of the first sketched stroke
-            nearest_tip_to_first_st_last_pt_idx, temp_dist = \
+            nearest_tip_to_first_st_last_pt_idx, _temp_dist = \
                     self.shortest_distance(
                                 self.main_object,
                                 last_sketched_point_first_stroke_co,
@@ -2096,7 +2089,7 @@ class MESH_OT_SURFSK_add_surface(Operator):
                 # The selected vertex nearest to the first point of the second sketched stroke
                 # (This will be useful to determine the direction of the closed
                 # selection V when extruding along strokes)
-                nearest_vert_to_second_st_first_pt_idx, temp_dist = \
+                nearest_vert_to_second_st_first_pt_idx, _temp_dist = \
                         self.shortest_distance(
                                 self.main_object,
                                 first_sketched_point_second_stroke_co,
@@ -2105,7 +2098,7 @@ class MESH_OT_SURFSK_add_surface(Operator):
                 # The selected vertex nearest to the first point of the second sketched stroke
                 # (This will be useful to determine the direction of the closed
                 # selection V2 when extruding along strokes)
-                nearest_vert_to_second_st_last_pt_idx, temp_dist = \
+                nearest_vert_to_second_st_last_pt_idx, _temp_dist = \
                         self.shortest_distance(
                                 self.main_object,
                                 last_sketched_point_second_stroke_co,
@@ -2124,7 +2117,7 @@ class MESH_OT_SURFSK_add_surface(Operator):
             average_edge_length = edges_sum / len(all_selected_edges_idx)
 
             # Get shortest distance from the first point of the last stroke to any participating vertex
-            temp_idx, shortest_distance_to_last_stroke = \
+            _temp_idx, shortest_distance_to_last_stroke = \
                         self.shortest_distance(
                                 self.main_object,
                                 first_sketched_point_last_stroke_co,
@@ -2143,7 +2136,6 @@ class MESH_OT_SURFSK_add_surface(Operator):
                 if nearest_tip_to_first_st_first_pt_idx not in single_unselected_verts or \
                   nearest_tip_to_first_st_first_pt_idx == middle_vertex_idx:
                     self.selection_V_is_closed = False
-                    first_neighbor_V_idx = None
                     closing_vert_U_idx = None
                     closing_vert_U2_idx = None
                     closing_vert_V_idx = None
@@ -2190,7 +2182,6 @@ class MESH_OT_SURFSK_add_surface(Operator):
                       nearest_tip_to_first_st_last_pt_idx == middle_vertex_idx:
 
                         self.selection_V2_is_closed = False
-                        first_neighbor_V2_idx = None
                         closing_vert_V2_idx = None
                         first_vert_V2_idx = nearest_tip_to_first_st_last_pt_idx
 
@@ -2231,7 +2222,6 @@ class MESH_OT_SURFSK_add_surface(Operator):
                 if nearest_tip_to_first_st_first_pt_idx not in single_unselected_verts or \
                   nearest_tip_to_first_st_first_pt_idx == middle_vertex_idx:
                     self.selection_U_is_closed = False
-                    first_neighbor_U_idx = None
                     closing_vert_U_idx = None
 
                     points_tips = []
@@ -2303,7 +2293,6 @@ class MESH_OT_SURFSK_add_surface(Operator):
                       nearest_tip_to_last_st_first_pt_idx == middle_vertex_idx:
 
                         self.selection_U2_is_closed = False
-                        first_neighbor_U2_idx = None
                         closing_vert_U2_idx = None
                         first_vert_U2_idx = nearest_tip_to_last_st_first_pt_idx
                     else:
@@ -2363,7 +2352,6 @@ class MESH_OT_SURFSK_add_surface(Operator):
                                     all_verts_idx, first_vert_U_idx,
                                     middle_vertex_idx, closing_vert_U_idx
                                     )
-            verts_ordered_U_indices = [x.index for x in verts_ordered_U]
 
         # Get an ordered list of the vertices of Selection-U2
         verts_ordered_U2 = []
@@ -2373,7 +2361,6 @@ class MESH_OT_SURFSK_add_surface(Operator):
                                     all_verts_idx, first_vert_U2_idx,
                                     middle_vertex_idx, closing_vert_U2_idx
                                     )
-            verts_ordered_U2_indices = [x.index for x in verts_ordered_U2]
 
         # Get an ordered list of the vertices of Selection-V
         verts_ordered_V = []
@@ -2393,7 +2380,6 @@ class MESH_OT_SURFSK_add_surface(Operator):
                                     all_verts_idx, first_vert_V2_idx,
                                     middle_vertex_idx, closing_vert_V2_idx
                                     )
-            verts_ordered_V2_indices = [x.index for x in verts_ordered_V2]
 
         # Check if when there are two-not-connected selections both have the same
         # number of verts. If not terminate the script
@@ -2455,7 +2441,6 @@ class MESH_OT_SURFSK_add_surface(Operator):
                                     edges_lengths_U2, edges_lengths_sum_U2,
                                     self.selection_U2_exists, self.edges_V
                                     )
-            verts_count_U2 = len(edges_proportions_U2) + 1
 
         # Proportions V
         edges_proportions_V = []
@@ -2463,7 +2448,6 @@ class MESH_OT_SURFSK_add_surface(Operator):
                                     edges_lengths_V, edges_lengths_sum_V,
                                     self.selection_V_exists, self.edges_V
                                     )
-        verts_count_V = len(edges_proportions_V) + 1
 
         if self.selection_V2_exists:
             edges_proportions_V2 = []
@@ -2471,7 +2455,6 @@ class MESH_OT_SURFSK_add_surface(Operator):
                                     edges_lengths_V2, edges_lengths_sum_V2,
                                     self.selection_V2_exists, self.edges_V
                                     )
-            verts_count_V2 = len(edges_proportions_V2) + 1
 
         # Cyclic Follow: simplify sketched curves, make them Cyclic, and complete
         # the actual sketched curves with a "closing segment"
@@ -2857,7 +2840,7 @@ class MESH_OT_SURFSK_add_surface(Operator):
 
                 for i in range(len(self.main_splines.data.splines)):
                     sp = self.main_splines.data.splines[i]
-                    v_idx, dist_temp = self.shortest_distance(
+                    v_idx, _dist_temp = self.shortest_distance(
                                                 self.main_object,
                                                 sp.bezier_points[0].co,
                                                 verts_ordered_V_indices
@@ -2957,7 +2940,7 @@ class MESH_OT_SURFSK_add_surface(Operator):
                         order_number_last_stroke = edge_order_number_for_splines[t + 1]
 
                     else:
-                        for c in range(self.edges_V):
+                        for _c in range(self.edges_V):
                             # Calculate each "sub-segment" (the ones between each stroke) length
                             sub_seg_dist = segments_distances[t] / self.edges_V
                             used_edges_proportions_V.append(sub_seg_dist / full_dist)
@@ -3000,7 +2983,6 @@ class MESH_OT_SURFSK_add_surface(Operator):
                 for i in range(len(surface_splines_parsed[0])):
                     sp = surface_splines_parsed
                     loop_segment_dist = (sp[0][i] - sp[1][i]).length
-                    full_loop_dist = loop_segment_dist * self.edges_U
 
                     verts_middle_position_co = [
                             (sp[0][i][0] + sp[len(sp) - 1][i][0]) / 2,
@@ -3678,10 +3660,10 @@ class MESH_OT_SURFSK_add_modifiers(Operator):
                 mirror.use_clip = True
 
             try:
-                subsurf = mesh_object.modifiers["Subdivision"]
+                _subsurf = mesh_object.modifiers["Subdivision"]
             except:
                 bpy.ops.object.modifier_add(type='SUBSURF')
-                subsurf = mesh_object.modifiers["Subdivision"]
+                _subsurf = mesh_object.modifiers["Subdivision"]
 
             try:
                 solidify = mesh_object.modifiers["Solidify"]
@@ -3832,7 +3814,7 @@ class GPENCIL_OT_SURFSK_annotation_to_curves(Operator):
         try:
             strokes = bpy.data.grease_pencils[0].layers.active.active_frame.strokes
 
-            strokes_num = len(strokes)
+            _strokes_num = len(strokes)
         except:
             self.report({'WARNING'}, "Not active annotation")
             return{"CANCELLED"}
@@ -4094,7 +4076,7 @@ class CURVE_OT_SURFSK_reorder_splines(Operator):
         bpy.ops.curve.select_all('INVOKE_REGION_WIN', action='DESELECT')
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
 
-        for sp_idx in range(len(self.main_curve.data.splines)):
+        for _sp_idx in range(len(self.main_curve.data.splines)):
             self.main_curve.data.splines[0].bezier_points[0].select_control_point = True
 
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
@@ -4334,7 +4316,7 @@ def conver_gpencil_to_curve(self, context, pencil, type):
         CurveObject.scale = (1.0, 1.0, 1.0)
 
     if not error:
-        for i, stroke in enumerate(strokes):
+        for i, _stroke in enumerate(strokes):
             stroke_points = strokes[i].points
             data_list = [ (point.co.x, point.co.y, point.co.z) 
                             for point in stroke_points ]
@@ -4398,7 +4380,7 @@ def update_mesh(self, context):
         global_mesh_object = bpy.context.scene.bsurfaces.SURFSK_mesh.name
         bpy.data.objects[global_mesh_object].select_set(True)
         bpy.context.view_layer.objects.active = bpy.data.objects[global_mesh_object]
-    except Exception as e:
+    except:
         print("Select mesh object")
 
 def update_gpencil(self, context):
@@ -4410,7 +4392,7 @@ def update_gpencil(self, context):
         global_gpencil_object = bpy.context.scene.bsurfaces.SURFSK_gpencil.name
         bpy.data.objects[global_gpencil_object].select_set(True)
         bpy.context.view_layer.objects.active = bpy.data.objects[global_gpencil_object]
-    except Exception as e:
+    except:
         print("Select gpencil object")
 
 def update_curve(self, context):
@@ -4422,7 +4404,7 @@ def update_curve(self, context):
         global_curve_object = bpy.context.scene.bsurfaces.SURFSK_curve.name
         bpy.data.objects[global_curve_object].select_set(True)
         bpy.context.view_layer.objects.active = bpy.data.objects[global_curve_object]
-    except Exception as e:
+    except:
         print("Select curve object")
 
 def update_color(self, context):
@@ -4436,7 +4418,7 @@ def update_color(self, context):
             bpy.data.objects[global_mesh_object].data.materials.append(material)
         diffuse_color = material.diffuse_color
         global_color = (diffuse_color[0], diffuse_color[1], diffuse_color[2], diffuse_color[3])
-    except Exception as e:
+    except:
         print("Select mesh object")
 
 def update_Shrinkwrap_offset(self, context):
@@ -4446,7 +4428,7 @@ def update_Shrinkwrap_offset(self, context):
         global global_mesh_object
         modifier = bpy.data.objects[global_mesh_object].modifiers["Shrinkwrap"]
         modifier.offset = global_offset
-    except Exception as e:
+    except:
         print("Shrinkwrap modifier not found")
 
 def update_in_front(self, context):
@@ -4455,7 +4437,7 @@ def update_in_front(self, context):
         global_in_front = bpy.context.scene.bsurfaces.SURFSK_in_front
         global global_mesh_object
         bpy.data.objects[global_mesh_object].show_in_front = global_in_front
-    except Exception as e:
+    except:
         print("Select mesh object")
 
 def update_show_wire(self, context):
@@ -4464,7 +4446,7 @@ def update_show_wire(self, context):
         global_show_wire = bpy.context.scene.bsurfaces.SURFSK_show_wire
         global global_mesh_object
         bpy.data.objects[global_mesh_object].show_wire = global_show_wire
-    except Exception as e:
+    except:
         print("Select mesh object")
 
 def update_shade_smooth(self, context):
@@ -4490,7 +4472,7 @@ def update_shade_smooth(self, context):
         if contex_mode == "EDIT_MESH":
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
 
-    except Exception as e:
+    except:
         print("Select mesh object")
 
 
