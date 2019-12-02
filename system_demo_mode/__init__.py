@@ -143,10 +143,12 @@ class DemoModeSetup(bpy.types.Operator):
         from . import config
 
         keywords = self.as_keywords(ignore=("directory", "random_order", "run", "exit"))
-        cfg_str, dirpath = config.as_string(self.directory,
-                                            self.random_order,
-                                            self.exit,
-                                            **keywords)
+        cfg_str, _dirpath = config.as_string(
+            self.directory,
+            self.random_order,
+            self.exit,
+            **keywords,
+        )
         text = bpy.data.texts.get("demo.py")
         if text:
             text.name += ".back"
