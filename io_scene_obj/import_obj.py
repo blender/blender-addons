@@ -87,13 +87,14 @@ def filenames_group_by_ext(line, ext):
         i_prev = i
 
 
-def obj_image_load(context_imagepath_map, line, DIR, recursive, relpath):
+def obj_image_load(img_data, context_imagepath_map, line, DIR, recursive, relpath):
     """
     Mainly uses comprehensiveImageLoad
     But we try all space-separated items from current line when file is not found with last one
     (users keep generating/using image files with spaces in a format that does not support them, sigh...)
     Also tries to replace '_' with ' ' for Max's exporter replaces spaces with underscores.
     Also handle " chars (some software use those to protect filenames with spaces, see T67266... sic).
+    Also corrects img_data (in case filenames with spaces have been split up in multiple entries, see T72148).
     """
     filepath_parts = line.split(b' ')
 
@@ -113,7 +114,13 @@ def obj_image_load(context_imagepath_map, line, DIR, recursive, relpath):
                 image = load_image(imagepath.replace("_", " "), DIR, recursive=recursive, relpath=relpath)
             if image is not None:
                 context_imagepath_map[imagepath] = image
+                del img_data[i:]
+                img_data.append(imagepath)
                 break;
+        else:
+            del img_data[i:]
+            img_data.append(imagepath)
+            break;
 
     if image is None:
         imagepath = os.fsdecode(filepath_parts[-1])
@@ -147,6 +154,9 @@ def create_materials(filepath, relpath,
         """
         map_options = {}
 
+        # Absolute path - c:\.. etc would work here
+        image = obj_image_load(img_data, context_imagepath_map, line, DIR, use_image_search, relpath)
+
         curr_token = []
         for token in img_data[:-1]:
             if token.startswith(b'-') and token[1:].isalpha():
@@ -156,9 +166,6 @@ def create_materials(filepath, relpath,
             curr_token.append(token)
         if curr_token:
             map_options[curr_token[0]] = curr_token[1:]
-
-        # Absolute path - c:\.. etc would work here
-        image = obj_image_load(context_imagepath_map, line, DIR, use_image_search, relpath)
 
         map_offset = map_options.get(b'-o')
         map_scale = map_options.get(b'-s')
