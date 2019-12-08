@@ -813,7 +813,7 @@ def create_nurbs(context_nurbs, vert_loc, new_objects):
 
     nu = cu.splines.new('NURBS')
     nu.points.add(len(curv_idx) - 1)  # a point is added to start with
-    nu.points.foreach_set("co", [co_axis for vt_idx in curv_idx for co_axis in (vert_loc[vt_idx] + (1.0,))])
+    nu.points.foreach_set("co", [co_axis for vt_idx in curv_idx for co_axis in (vert_loc[vt_idx] + [1.0])])
 
     nu.order_u = deg[0] + 1
 
