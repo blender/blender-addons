@@ -602,7 +602,7 @@ class LIGHT_OT_POV_add_preset(AddPresetBase, Operator):
         ]
 
     # where to store the preset
-    preset_subdir = "pov/lamp"
+    preset_subdir = "pov/light"
 
 
 
