@@ -136,7 +136,9 @@ else:
 
 
 def string_strip_hyphen(name):
+
     """Remove hyphen characters from a string to avoid POV errors."""
+
     return name.replace("-", "")
 
 
@@ -166,6 +168,7 @@ def active_texture_name_from_search(self, context):
 # Scene POV properties.
 ###############################################################################
 class RenderPovSettingsScene(PropertyGroup):
+
     """Declare scene level properties controllable in UI and translated to POV."""
 
     # Linux SDL-window enable
@@ -184,19 +187,19 @@ class RenderPovSettingsScene(PropertyGroup):
     tempfiles_enable: BoolProperty(
         name="Enable Tempfiles",
         description="Enable the OS-Tempfiles. Otherwise set the path where"
-                    " to save the files",
+        " to save the files",
         default=True,
     )
     pov_editor: BoolProperty(
         name="POV editor",
         description="Don't Close POV editor after rendering (Overridden"
-                    " by /EXIT command)",
+        " by /EXIT command)",
         default=False,
     )
     deletefiles_enable: BoolProperty(
         name="Delete files",
         description="Delete files after rendering. "
-                    "Doesn't work with the image",
+        "Doesn't work with the image",
         default=True,
     )
     scene_name: StringProperty(
@@ -382,7 +385,8 @@ class RenderPovSettingsScene(PropertyGroup):
         items=(
             ('NONE', "None", "No indentation"),
             ('TAB', "Tabs", "Indentation with tabs"),
-            ('SPACE', "Spaces", "Indentation with spaces")),
+            ('SPACE', "Spaces", "Indentation with spaces")
+        ),
         default='SPACE'
     )
 
@@ -433,13 +437,18 @@ class RenderPovSettingsScene(PropertyGroup):
         description="how surely the computed color "
         "of a given pixel is indeed"
         "within the threshold error margin",
-        min=0.0001, max=1.0000, default=0.9900, precision=4
+        min=0.0001,
+        max=1.0000,
+        default=0.9900,
+        precision=4
     )
 
     antialias_depth: IntProperty(
         name="Antialias Depth",
         description="Depth of pixel for sampling",
-        min=1, max=9, default=3
+        min=1,
+        max=9,
+        default=3
     )
 
     antialias_threshold: FloatProperty(
@@ -506,7 +515,9 @@ class RenderPovSettingsScene(PropertyGroup):
         name="Max Trace Level",
         description="Number of reflections/refractions allowed on ray "
         "path",
-        min=1, max=256, default=5
+        min=1,
+        max=256,
+        default=5
     )
 
     adc_bailout_enable: BoolProperty(
@@ -518,12 +529,12 @@ class RenderPovSettingsScene(PropertyGroup):
     adc_bailout: FloatProperty(
         name="ADC Bailout",
         description="Adaptive Depth Control (ADC) to stop computing additional"
-        "reflected or refracted rays when their contribution is insignificant."
-        "The default value is 1/255, or approximately 0.0039, since a change "
-        "smaller than that could not be visible in a 24 bit image. Generally "
-        "this value is fine and should be left alone."
-        "Setting adc_bailout to 0 will disable ADC, relying completely on "
-        "max_trace_level to set an upper limit on the number of rays spawned. ",
+            "reflected or refracted rays when their contribution is insignificant."
+            "The default value is 1/255, or approximately 0.0039, since a change "
+            "smaller than that could not be visible in a 24 bit image. Generally "
+            "this value is fine and should be left alone."
+            "Setting adc_bailout to 0 will disable ADC, relying completely on "
+            "max_trace_level to set an upper limit on the number of rays spawned. ",
         min=0.0,
         max=1000.0,
         default=0.00392156862745,
@@ -560,8 +571,13 @@ class RenderPovSettingsScene(PropertyGroup):
             "Iridescence calculations depend upon the dominant "
             "wavelengths of the primary colors of red, green and blue light"
         ),
-        precision=4, step=0.01, min=0, soft_max=1,
-        default=(0.25,0.18,0.14), options={'ANIMATABLE'}, subtype='COLOR'
+        precision=4,
+        step=0.01,
+        min=0,
+        soft_max=1,
+        default=(0.25,0.18,0.14),
+        options={'ANIMATABLE'},
+        subtype='COLOR'
     )
 
     charset: EnumProperty(
@@ -649,7 +665,7 @@ class RenderPovSettingsScene(PropertyGroup):
         max=1.000,
         soft_min=0.001,
         soft_max=1.000,
-        precision=3
+        precision=3,
         default=0.005,
     )
 
@@ -1033,17 +1049,19 @@ class MaterialTextureSlot(PropertyGroup):
     texture_coords: EnumProperty(
         name="",
         description="",
-        items=(("GLOBAL", "Global", ""),
-               ("OBJECT", "Object", ""),
-               ("UV", "UV", ""),
-               ("ORCO", "Original Coordinates", ""),
-               ("STRAND", "Strand", ""),
-               ("STICKY", "Sticky", ""),
-               ("WINDOW", "Window", ""),
-               ("NORMAL", "Normal", ""),
-               ("REFLECTION", "Reflection", ""),
-               ("STRESS", "Stress", ""),
-               ("TANGENT", "Tangent", "")),
+        items=(
+            ("GLOBAL", "Global", ""),
+            ("OBJECT", "Object", ""),
+            ("UV", "UV", ""),
+            ("ORCO", "Original Coordinates", ""),
+            ("STRAND", "Strand", ""),
+            ("STICKY", "Sticky", ""),
+            ("WINDOW", "Window", ""),
+            ("NORMAL", "Normal", ""),
+            ("REFLECTION", "Reflection", ""),
+            ("STRESS", "Stress", ""),
+            ("TANGENT", "Tangent", "")
+        ),
         default="GLOBAL",
     )
 
@@ -1241,13 +1259,15 @@ class MaterialTextureSlot(PropertyGroup):
     texture_coords: EnumProperty(
         name="Coordinates",
         description="Texture coordinates used to map the texture onto the background",
-        items=(("VIEW", "View", "Use view vector for the texture coordinates"),
-               ("GLOBAL", "Global", "Use global coordinates for the texture coordinates (interior mist)"),
-               ("ANGMAP", "AngMap", "Use 360 degree angular coordinates, e.g. for spherical light probes"),
-               ("SPHERE", "Sphere", "For 360 degree panorama sky, spherical mapped, only top half"),
-               ("EQUIRECT", "Equirectangular", "For 360 degree panorama sky, equirectangular mapping"),
-               ("TUBE", "Tube", "For 360 degree panorama sky, cylindrical mapped, only top half"),
-               ("OBJECT", "Object", "Use linked object’s coordinates for texture coordinates")),
+        items=(
+            ("VIEW", "View", "Use view vector for the texture coordinates"),
+            ("GLOBAL", "Global", "Use global coordinates for the texture coordinates (interior mist)"),
+            ("ANGMAP", "AngMap", "Use 360 degree angular coordinates, e.g. for spherical light probes"),
+            ("SPHERE", "Sphere", "For 360 degree panorama sky, spherical mapped, only top half"),
+            ("EQUIRECT", "Equirectangular", "For 360 degree panorama sky, equirectangular mapping"),
+            ("TUBE", "Tube", "For 360 degree panorama sky, cylindrical mapped, only top half"),
+            ("OBJECT", "Object", "Use linked object’s coordinates for texture coordinates")
+        ),
         default="VIEW",
     )
 
@@ -1297,12 +1317,14 @@ bpy.types.ID.use_limited_texture_context = BoolProperty(
 bpy.types.ID.texture_context = EnumProperty(
     name="Texture context",
     description="Type of texture data to display and edit",
-    items=(('MATERIAL', "", "Show material textures", "MATERIAL",0), # "Show material textures"
-           ('WORLD', "", "Show world textures", "WORLD",1), # "Show world textures"
-           ('LIGHT', "", "Show lamp textures", "LIGHT",2), # "Show lamp textures"
-           ('PARTICLES', "", "Show particles textures", "PARTICLES",3), # "Show particles textures"
-           ('LINESTYLE', "", "Show linestyle textures", "LINE_DATA",4), # "Show linestyle textures"
-           ('OTHER', "", "Show other data textures", "TEXTURE_DATA",5)), # "Show other data textures"
+    items=(
+        ('MATERIAL', "", "Show material textures", "MATERIAL",0), # "Show material textures"
+        ('WORLD', "", "Show world textures", "WORLD",1), # "Show world textures"
+        ('LIGHT', "", "Show lamp textures", "LIGHT",2), # "Show lamp textures"
+        ('PARTICLES', "", "Show particles textures", "PARTICLES",3), # "Show particles textures"
+        ('LINESTYLE', "", "Show linestyle textures", "LINE_DATA",4), # "Show linestyle textures"
+        ('OTHER', "", "Show other data textures", "TEXTURE_DATA",5) # "Show other data textures"
+    ),
     default = 'MATERIAL',
 )
 
@@ -1324,12 +1346,14 @@ class RenderPovSettingsMaterial(PropertyGroup):
     texture_context: EnumProperty(
         name="Texture context",
         description="Type of texture data to display and edit",
-        items=(('MATERIAL', "", "Show material textures", "MATERIAL",0), # "Show material textures"
-               ('WORLD', "", "Show world textures", "WORLD",1), # "Show world textures"
-               ('LAMP', "", "Show lamp textures", "LIGHT",2), # "Show lamp textures"
-               ('PARTICLES', "", "Show particles textures", "PARTICLES",3), # "Show particles textures"
-               ('LINESTYLE', "", "Show linestyle textures", "LINE_DATA",4), # "Show linestyle textures"
-               ('OTHER', "", "Show other data textures", "TEXTURE_DATA",5)), # "Show other data textures"
+        items=(
+            ('MATERIAL', "", "Show material textures", "MATERIAL",0), # "Show material textures"
+            ('WORLD', "", "Show world textures", "WORLD",1), # "Show world textures"
+            ('LAMP', "", "Show lamp textures", "LIGHT",2), # "Show lamp textures"
+            ('PARTICLES', "", "Show particles textures", "PARTICLES",3), # "Show particles textures"
+            ('LINESTYLE', "", "Show linestyle textures", "LINE_DATA",4), # "Show linestyle textures"
+            ('OTHER', "", "Show other data textures", "TEXTURE_DATA",5) # "Show other data textures"
+        ),
         default = 'MATERIAL',
     )
 
@@ -1341,9 +1365,11 @@ class RenderPovSettingsMaterial(PropertyGroup):
     transparency_method: EnumProperty(
         name="Specular Shader Model",
         description="Method to use for rendering transparency",
-        items=(("MASK", "Mask", "Mask the background"),
-               ("Z_TRANSPARENCY", "Z Transparency", "Use alpha buffer for transparent faces"),
-               ("RAYTRACE", "Raytrace", "Use raytracing for transparent refraction rendering")),
+        items=(
+            ("MASK", "Mask", "Mask the background"),
+            ("Z_TRANSPARENCY", "Z Transparency", "Use alpha buffer for transparent faces"),
+            ("RAYTRACE", "Raytrace", "Use raytracing for transparent refraction rendering")
+        ),
         default="MASK",
     )
 
@@ -1405,24 +1431,26 @@ class RenderPovSettingsMaterial(PropertyGroup):
     diffuse_ramp_blend: EnumProperty(
         name="Diffuse ramp blend",
         description="Blending method of the ramp and the diffuse color",
-        items=(("MIX", "Mix", ""),
-               ("ADD", "Add", ""),
-               ("MULTIPLY", "Multiply", ""),
-               ("SUBTRACT", "Subtract", ""),
-               ("SCREEN", "Screen", ""),
-               ("DIVIDE", "Divide", ""),
-               ("DIFFERENCE", "Difference", ""),
-               ("DARKEN", "Darken", ""),
-               ("LIGHTEN", "Lighten", ""),
-               ("OVERLAY", "Overlay", ""),
-               ("DODGE", "Dodge", ""),
-               ("BURN", "Burn", ""),
-               ("HUE", "Hue", ""),
-               ("SATURATION", "Saturation", ""),
-               ("VALUE", "Value", ""),
-               ("COLOR", "Color", ""),
-               ("SOFT_LIGHT", "Soft light", ""),
-               ("LINEAR_LIGHT", "Linear light", "")),
+        items=(
+            ("MIX", "Mix", ""),
+            ("ADD", "Add", ""),
+            ("MULTIPLY", "Multiply", ""),
+            ("SUBTRACT", "Subtract", ""),
+            ("SCREEN", "Screen", ""),
+            ("DIVIDE", "Divide", ""),
+            ("DIFFERENCE", "Difference", ""),
+            ("DARKEN", "Darken", ""),
+            ("LIGHTEN", "Lighten", ""),
+            ("OVERLAY", "Overlay", ""),
+            ("DODGE", "Dodge", ""),
+            ("BURN", "Burn", ""),
+            ("HUE", "Hue", ""),
+            ("SATURATION", "Saturation", ""),
+            ("VALUE", "Value", ""),
+            ("COLOR", "Color", ""),
+            ("SOFT_LIGHT", "Soft light", ""),
+            ("LINEAR_LIGHT", "Linear light", "")
+        ),
         default="MIX",
     )
 
@@ -1435,20 +1463,24 @@ class RenderPovSettingsMaterial(PropertyGroup):
     diffuse_ramp_input: EnumProperty(
         name="Input",
         description="How the ramp maps on the surface",
-        items=(("SHADER", "Shader", ""),
-               ("ENERGY", "Energy", ""),
-               ("NORMAL", "Normal", ""),
-               ("RESULT", "Result", "")),
-        default="SHADER",
+        items=(
+            ("SHADER", "Shader", ""),
+            ("ENERGY", "Energy", ""),
+            ("NORMAL", "Normal", ""),
+            ("RESULT", "Result", "")
+        ),
+            default="SHADER",
     )
 
     diffuse_shader: EnumProperty(
         name="Diffuse Shader Model",
         description="How the ramp maps on the surface",
-        items=(("LAMBERT", "Lambert", "Use a Lambertian shader"),
-               ("OREN_NAYAR", "Oren-Nayar", "Use an Oren-Nayar shader"),
-               ("MINNAERT", "Minnaert", "Use a Minnaert shader"),
-               ("FRESNEL", "Fresnel", "Use a Fresnel shader")),
+        items=(
+            ("LAMBERT", "Lambert", "Use a Lambertian shader"),
+            ("OREN_NAYAR", "Oren-Nayar", "Use an Oren-Nayar shader"),
+            ("MINNAERT", "Minnaert", "Use a Minnaert shader"),
+            ("FRESNEL", "Fresnel", "Use a Fresnel shader")
+        ),
         default="LAMBERT",
     )
 
@@ -1551,11 +1583,13 @@ class RenderPovSettingsMaterial(PropertyGroup):
     specular_shader: EnumProperty(
         name="Specular Shader Model",
         description="How the ramp maps on the surface",
-        items=(("COOKTORR", "CookTorr", "Use a Cook-Torrance shader"),
-               ("PHONG", "Phong", "Use a Phong shader"),
-               ("BLINN", "Blinn", "Use a Blinn shader"),
-               ("TOON", "Toon", "Use a Toon shader"),
-               ("WARDISO", "WardIso", "Use a Ward anisotropic shader")),
+        items=(
+            ("COOKTORR", "CookTorr", "Use a Cook-Torrance shader"),
+            ("PHONG", "Phong", "Use a Phong shader"),
+            ("BLINN", "Blinn", "Use a Blinn shader"),
+            ("TOON", "Toon", "Use a Toon shader"),
+            ("WARDISO", "WardIso", "Use a Ward anisotropic shader")
+        ),
         default="COOKTORR",
     )
 
@@ -1587,19 +1621,23 @@ class RenderPovSettingsMaterial(PropertyGroup):
     transparency_method: EnumProperty(
         name="Specular Shader Model",
         description="Method to use for rendering transparency",
-        items=(("MASK", "Mask", "Mask the background"),
-               ("Z_TRANSPARENCY", "Z Transparency", "Use an ior of 1 for transparent faces"),
-               ("RAYTRACE", "Raytrace", "Use raytracing for transparent refraction rendering")),
+        items=(
+            ("MASK", "Mask", "Mask the background"),
+            ("Z_TRANSPARENCY", "Z Transparency", "Use an ior of 1 for transparent faces"),
+            ("RAYTRACE", "Raytrace", "Use raytracing for transparent refraction rendering")
+        ),
         default="MASK",
     )
 
     type: EnumProperty(
         name="Type",
         description="Material type defining how the object is rendered",
-        items=(("SURFACE", "Surface", "Render object as a surface"),
-               ("WIRE", "Wire", "Render the edges of faces as wires (not supported in raytracing)"),# TO UPDATE > USE MACRO AND CHANGE DESCRIPTION
-               ("VOLUME", "Volume", "Render object as a volume"),
-               ("‘HALO’", "Halo", "Render object as halo particles")), # TO UPDATE > USE MACRO AND CHANGE DESCRIPTION
+        items=(
+            ("SURFACE", "Surface", "Render object as a surface"),
+            ("WIRE", "Wire", "Render the edges of faces as wires (not supported in raytracing)"),# TO UPDATE > USE MACRO AND CHANGE DESCRIPTION
+            ("VOLUME", "Volume", "Render object as a volume"),
+            ("‘HALO’", "Halo", "Render object as halo particles")
+        ), # TO UPDATE > USE MACRO AND CHANGE DESCRIPTION
         default="SURFACE",
     )
 
@@ -1730,24 +1768,26 @@ class RenderPovSettingsMaterial(PropertyGroup):
     specular_ramp_blend: EnumProperty(
         name="Specular ramp blend",
         description="Blending method of the ramp and the specular color",
-        items=(("MIX", "Mix", ""),
-               ("ADD", "Add", ""),
-               ("MULTIPLY", "Multiply", ""),
-               ("SUBTRACT", "Subtract", ""),
-               ("SCREEN", "Screen", ""),
-               ("DIVIDE", "Divide", ""),
-               ("DIFFERENCE", "Difference", ""),
-               ("DARKEN", "Darken", ""),
-               ("LIGHTEN", "Lighten", ""),
-               ("OVERLAY", "Overlay", ""),
-               ("DODGE", "Dodge", ""),
-               ("BURN", "Burn", ""),
-               ("HUE", "Hue", ""),
-               ("SATURATION", "Saturation", ""),
-               ("VALUE", "Value", ""),
-               ("COLOR", "Color", ""),
-               ("SOFT_LIGHT", "Soft light", ""),
-               ("LINEAR_LIGHT", "Linear light", "")),
+        items=(
+            ("MIX", "Mix", ""),
+            ("ADD", "Add", ""),
+            ("MULTIPLY", "Multiply", ""),
+            ("SUBTRACT", "Subtract", ""),
+            ("SCREEN", "Screen", ""),
+            ("DIVIDE", "Divide", ""),
+            ("DIFFERENCE", "Difference", ""),
+            ("DARKEN", "Darken", ""),
+            ("LIGHTEN", "Lighten", ""),
+            ("OVERLAY", "Overlay", ""),
+            ("DODGE", "Dodge", ""),
+            ("BURN", "Burn", ""),
+            ("HUE", "Hue", ""),
+            ("SATURATION", "Saturation", ""),
+            ("VALUE", "Value", ""),
+            ("COLOR", "Color", ""),
+            ("SOFT_LIGHT", "Soft light", ""),
+            ("LINEAR_LIGHT", "Linear light", "")
+        ),
         default="MIX",
     )
 
@@ -1760,10 +1800,12 @@ class RenderPovSettingsMaterial(PropertyGroup):
     specular_ramp_input: EnumProperty(
         name="Input",
         description="How the ramp maps on the surface",
-        items=(("SHADER", "Shader", ""),
-               ("ENERGY", "Energy", ""),
-               ("NORMAL", "Normal", ""),
-               ("RESULT", "Result", "")),
+        items=(
+            ("SHADER", "Shader", ""),
+            ("ENERGY", "Energy", ""),
+            ("NORMAL", "Normal", ""),
+            ("RESULT", "Result", "")
+        ),
         default="SHADER",
     )
 
@@ -3345,12 +3387,25 @@ class PovraySocketPattern(bpy.types.NodeSocket):
     default_value: bpy.props.EnumProperty(
             name="Pattern",
             description="Select the pattern",
-            items=(('boxed', "Boxed", ""),('brick', "Brick", ""),('cells', "Cells", ""), ('checker', "Checker", ""),
-                   ('granite', "Granite", ""),('leopard', "Leopard", ""),('marble', "Marble", ""),
-                   ('onion', "Onion", ""),('planar', "Planar", ""), ('quilted', "Quilted", ""),
-                   ('ripples', "Ripples", ""),  ('radial', "Radial", ""),('spherical', "Spherical", ""),
-                   ('spotted', "Spotted", ""), ('waves', "Waves", ""), ('wood', "Wood", ""),
-                   ('wrinkles', "Wrinkles", "")),
+            items=(
+                ('boxed', "Boxed", ""),
+                ('brick', "Brick", ""),
+                ('cells', "Cells", ""),
+                ('checker', "Checker", ""),
+                ('granite', "Granite", ""),
+                ('leopard', "Leopard", ""),
+                ('marble', "Marble", ""),
+                ('onion', "Onion", ""),
+                ('planar', "Planar", ""),
+                ('quilted', "Quilted", ""),
+                ('ripples', "Ripples", ""),
+                ('radial', "Radial", ""),
+                ('spherical', "Spherical", ""),
+                ('spotted', "Spotted", ""),
+                ('waves', "Waves", ""),
+                ('wood', "Wood", ""),
+                ('wrinkles', "Wrinkles", "")
+            ),
             default='granite')
 
     def draw(self, context, layout, node, text):
@@ -3642,12 +3697,13 @@ class RenderPovSettingsTexture(PropertyGroup):
     texture_context: EnumProperty(
         name="Texture context",
         description="Type of texture data to display and edit",
-        items=(('MATERIAL', "", "Show material textures", "MATERIAL",0), # "Show material textures"
-               ('WORLD', "", "Show world textures", "WORLD",1), # "Show world textures"
-               ('LAMP', "", "Show lamp textures", "LIGHT",2), # "Show lamp textures"
-               ('PARTICLES', "", "Show particles textures", "PARTICLES",3), # "Show particles textures"
-               ('LINESTYLE', "", "Show linestyle textures", "LINE_DATA",4), # "Show linestyle textures"
-               ('OTHER', "", "Show other data textures", "TEXTURE_DATA",5)), # "Show other data textures"
+        items=(
+            ('MATERIAL', "", "Show material textures", "MATERIAL",0), # "Show material textures"
+            ('WORLD', "", "Show world textures", "WORLD",1), # "Show world textures"
+            ('LAMP', "", "Show lamp textures", "LIGHT",2), # "Show lamp textures"
+            ('PARTICLES', "", "Show particles textures", "PARTICLES",3), # "Show particles textures"
+            ('LINESTYLE', "", "Show linestyle textures", "LINE_DATA",4), # "Show linestyle textures"
+            ('OTHER', "", "Show other data textures", "TEXTURE_DATA",5), # "Show other data textures"
         default = 'MATERIAL',
     )
 
@@ -3677,44 +3733,46 @@ class RenderPovSettingsTexture(PropertyGroup):
     tex_pattern_type: EnumProperty(
         name="Texture_Type",
         description="Choose between Blender or POV parameters to specify texture",
-        items= (('agate', 'Agate', '','PLUGIN', 0),
-               ('aoi', 'Aoi', '', 'PLUGIN', 1),
-               ('average', 'Average', '', 'PLUGIN', 2),
-               ('boxed', 'Boxed', '', 'PLUGIN', 3),
-               ('bozo', 'Bozo', '', 'PLUGIN', 4),
-               ('bumps', 'Bumps', '', 'PLUGIN', 5),
-               ('cells', 'Cells', '', 'PLUGIN', 6),
-               ('crackle', 'Crackle', '', 'PLUGIN', 7),
-               ('cubic', 'Cubic', '', 'PLUGIN', 8),
-               ('cylindrical', 'Cylindrical', '', 'PLUGIN', 9),
-               ('density_file', 'Density', '(.df3)', 'PLUGIN', 10),
-               ('dents', 'Dents', '', 'PLUGIN', 11),
-               ('fractal', 'Fractal', '', 'PLUGIN', 12),
-               ('function', 'Function', '', 'PLUGIN', 13),
-               ('gradient', 'Gradient', '', 'PLUGIN', 14),
-               ('granite', 'Granite', '', 'PLUGIN', 15),
-               ('image_pattern', 'Image pattern', '', 'PLUGIN', 16),
-               ('leopard', 'Leopard', '', 'PLUGIN', 17),
-               ('marble', 'Marble', '', 'PLUGIN', 18),
-               ('onion', 'Onion', '', 'PLUGIN', 19),
-               ('pigment_pattern', 'pigment pattern', '', 'PLUGIN', 20),
-               ('planar', 'Planar', '', 'PLUGIN', 21),
-               ('quilted', 'Quilted', '', 'PLUGIN', 22),
-               ('radial', 'Radial', '', 'PLUGIN', 23),
-               ('ripples', 'Ripples', '', 'PLUGIN', 24),
-               ('slope', 'Slope', '', 'PLUGIN', 25),
-               ('spherical', 'Spherical', '', 'PLUGIN', 26),
-               ('spiral1', 'Spiral1', '', 'PLUGIN', 27),
-               ('spiral2', 'Spiral2', '', 'PLUGIN', 28),
-               ('spotted', 'Spotted', '', 'PLUGIN', 29),
-               ('waves', 'Waves', '', 'PLUGIN', 30),
-               ('wood', 'Wood', '', 'PLUGIN', 31),
-               ('wrinkles', 'Wrinkles', '', 'PLUGIN', 32),
-               ('brick', "Brick", "", 'PLUGIN', 33),
-               ('checker', "Checker", "", 'PLUGIN', 34),
-               ('hexagon', "Hexagon", "", 'PLUGIN', 35),
-               ('object', "Mesh", "", 'PLUGIN', 36),
-               ('emulator', "Internal Emulator", "", 'PLUG', 37)),
+        items= (
+            ('agate', 'Agate', '','PLUGIN', 0),
+            ('aoi', 'Aoi', '', 'PLUGIN', 1),
+            ('average', 'Average', '', 'PLUGIN', 2),
+            ('boxed', 'Boxed', '', 'PLUGIN', 3),
+            ('bozo', 'Bozo', '', 'PLUGIN', 4),
+            ('bumps', 'Bumps', '', 'PLUGIN', 5),
+            ('cells', 'Cells', '', 'PLUGIN', 6),
+            ('crackle', 'Crackle', '', 'PLUGIN', 7),
+            ('cubic', 'Cubic', '', 'PLUGIN', 8),
+            ('cylindrical', 'Cylindrical', '', 'PLUGIN', 9),
+            ('density_file', 'Density', '(.df3)', 'PLUGIN', 10),
+            ('dents', 'Dents', '', 'PLUGIN', 11),
+            ('fractal', 'Fractal', '', 'PLUGIN', 12),
+            ('function', 'Function', '', 'PLUGIN', 13),
+            ('gradient', 'Gradient', '', 'PLUGIN', 14),
+            ('granite', 'Granite', '', 'PLUGIN', 15),
+            ('image_pattern', 'Image pattern', '', 'PLUGIN', 16),
+            ('leopard', 'Leopard', '', 'PLUGIN', 17),
+            ('marble', 'Marble', '', 'PLUGIN', 18),
+            ('onion', 'Onion', '', 'PLUGIN', 19),
+            ('pigment_pattern', 'pigment pattern', '', 'PLUGIN', 20),
+            ('planar', 'Planar', '', 'PLUGIN', 21),
+            ('quilted', 'Quilted', '', 'PLUGIN', 22),
+            ('radial', 'Radial', '', 'PLUGIN', 23),
+            ('ripples', 'Ripples', '', 'PLUGIN', 24),
+            ('slope', 'Slope', '', 'PLUGIN', 25),
+            ('spherical', 'Spherical', '', 'PLUGIN', 26),
+            ('spiral1', 'Spiral1', '', 'PLUGIN', 27),
+            ('spiral2', 'Spiral2', '', 'PLUGIN', 28),
+            ('spotted', 'Spotted', '', 'PLUGIN', 29),
+            ('waves', 'Waves', '', 'PLUGIN', 30),
+            ('wood', 'Wood', '', 'PLUGIN', 31),
+            ('wrinkles', 'Wrinkles', '', 'PLUGIN', 32),
+            ('brick', "Brick", "", 'PLUGIN', 33),
+            ('checker', "Checker", "", 'PLUGIN', 34),
+            ('hexagon', "Hexagon", "", 'PLUGIN', 35),
+            ('object', "Mesh", "", 'PLUGIN', 36),
+            ('emulator', "Internal Emulator", "", 'PLUG', 37)
+        ),
         default='emulator',
     )
 
@@ -3940,7 +3998,11 @@ class RenderPovSettingsTexture(PropertyGroup):
     pave_sides: EnumProperty(
         name="Pavement sides",
         description="",
-        items=(('3', "3", ""), ('4', "4", ""), ('6', "6", "")),
+        items=(
+            ('3', "3", ""),
+            ('4', "4", ""),
+            ('6', "6", "")
+        ),
         default='3'
     )
 
@@ -4010,54 +4072,56 @@ class RenderPovSettingsTexture(PropertyGroup):
     func_list: EnumProperty(
         name="Functions",
         description="Select the function for create pattern",
-        items=(('NONE', "None", "No indentation"),
-               ("f_algbr_cyl1","Algbr cyl1",""), ("f_algbr_cyl2","Algbr cyl2",""),
-               ("f_algbr_cyl3","Algbr cyl3",""), ("f_algbr_cyl4","Algbr cyl4",""),
-               ("f_bicorn","Bicorn",""), ("f_bifolia","Bifolia",""),
-               ("f_blob","Blob",""), ("f_blob2","Blob2",""),
-               ("f_boy_surface","Boy surface",""), ("f_comma","Comma",""),
-               ("f_cross_ellipsoids","Cross ellipsoids",""),
-               ("f_crossed_trough","Crossed trough",""), ("f_cubic_saddle","Cubic saddle",""),
-               ("f_cushion","Cushion",""), ("f_devils_curve","Devils curve",""),
-               ("f_devils_curve_2d","Devils curve 2d",""),
-               ("f_dupin_cyclid","Dupin cyclid",""), ("f_ellipsoid","Ellipsoid",""),
-               ("f_enneper","Enneper",""), ("f_flange_cover","Flange cover",""),
-               ("f_folium_surface","Folium surface",""),
-               ("f_folium_surface_2d","Folium surface 2d",""), ("f_glob","Glob",""),
-               ("f_heart","Heart",""), ("f_helical_torus","Helical torus",""),
-               ("f_helix1","Helix1",""), ("f_helix2","Helix2",""), ("f_hex_x","Hex x",""),
-               ("f_hex_y","Hex y",""), ("f_hetero_mf","Hetero mf",""),
-               ("f_hunt_surface","Hunt surface",""),
-               ("f_hyperbolic_torus","Hyperbolic torus",""),
-               ("f_isect_ellipsoids","Isect ellipsoids",""),
-               ("f_kampyle_of_eudoxus","Kampyle of eudoxus",""),
-               ("f_kampyle_of_eudoxus_2d","Kampyle of eudoxus 2d",""),
-               ("f_klein_bottle","Klein bottle",""),
-               ("f_kummer_surface_v1","Kummer surface v1",""),
-               ("f_kummer_surface_v2","Kummer surface v2",""),
-               ("f_lemniscate_of_gerono","Lemniscate of gerono",""),
-               ("f_lemniscate_of_gerono_2d","Lemniscate of gerono 2d",""),
-               ("f_mesh1","Mesh1",""), ("f_mitre","Mitre",""),
-               ("f_nodal_cubic","Nodal cubic",""), ("f_noise3d","Noise3d",""),
-               ("f_noise_generator","Noise generator",""), ("f_odd","Odd",""),
-               ("f_ovals_of_cassini","Ovals of cassini",""), ("f_paraboloid","Paraboloid",""),
-               ("f_parabolic_torus","Parabolic torus",""), ("f_ph","Ph",""),
-               ("f_pillow","Pillow",""), ("f_piriform","Piriform",""),
-               ("f_piriform_2d","Piriform 2d",""), ("f_poly4","Poly4",""),
-               ("f_polytubes","Polytubes",""), ("f_quantum","Quantum",""),
-               ("f_quartic_paraboloid","Quartic paraboloid",""),
-               ("f_quartic_saddle","Quartic saddle",""),
-               ("f_quartic_cylinder","Quartic cylinder",""), ("f_r","R",""),
-               ("f_ridge","Ridge",""), ("f_ridged_mf","Ridged mf",""),
-               ("f_rounded_box","Rounded box",""), ("f_sphere","Sphere",""),
-               ("f_spikes","Spikes",""), ("f_spikes_2d","Spikes 2d",""),
-               ("f_spiral","Spiral",""), ("f_steiners_roman","Steiners roman",""),
-               ("f_strophoid","Strophoid",""), ("f_strophoid_2d","Strophoid 2d",""),
-               ("f_superellipsoid","Superellipsoid",""), ("f_th","Th",""),
-               ("f_torus","Torus",""), ("f_torus2","Torus2",""),
-               ("f_torus_gumdrop","Torus gumdrop",""), ("f_umbrella","Umbrella",""),
-               ("f_witch_of_agnesi","Witch of agnesi",""),
-               ("f_witch_of_agnesi_2d","Witch of agnesi 2d","")),
+        items=(
+            ('NONE', "None", "No indentation"),
+            ("f_algbr_cyl1","Algbr cyl1",""), ("f_algbr_cyl2","Algbr cyl2",""),
+            ("f_algbr_cyl3","Algbr cyl3",""), ("f_algbr_cyl4","Algbr cyl4",""),
+            ("f_bicorn","Bicorn",""), ("f_bifolia","Bifolia",""),
+            ("f_blob","Blob",""), ("f_blob2","Blob2",""),
+            ("f_boy_surface","Boy surface",""), ("f_comma","Comma",""),
+            ("f_cross_ellipsoids","Cross ellipsoids",""),
+            ("f_crossed_trough","Crossed trough",""), ("f_cubic_saddle","Cubic saddle",""),
+            ("f_cushion","Cushion",""), ("f_devils_curve","Devils curve",""),
+            ("f_devils_curve_2d","Devils curve 2d",""),
+            ("f_dupin_cyclid","Dupin cyclid",""), ("f_ellipsoid","Ellipsoid",""),
+            ("f_enneper","Enneper",""), ("f_flange_cover","Flange cover",""),
+            ("f_folium_surface","Folium surface",""),
+            ("f_folium_surface_2d","Folium surface 2d",""), ("f_glob","Glob",""),
+            ("f_heart","Heart",""), ("f_helical_torus","Helical torus",""),
+            ("f_helix1","Helix1",""), ("f_helix2","Helix2",""), ("f_hex_x","Hex x",""),
+            ("f_hex_y","Hex y",""), ("f_hetero_mf","Hetero mf",""),
+            ("f_hunt_surface","Hunt surface",""),
+            ("f_hyperbolic_torus","Hyperbolic torus",""),
+            ("f_isect_ellipsoids","Isect ellipsoids",""),
+            ("f_kampyle_of_eudoxus","Kampyle of eudoxus",""),
+            ("f_kampyle_of_eudoxus_2d","Kampyle of eudoxus 2d",""),
+            ("f_klein_bottle","Klein bottle",""),
+            ("f_kummer_surface_v1","Kummer surface v1",""),
+            ("f_kummer_surface_v2","Kummer surface v2",""),
+            ("f_lemniscate_of_gerono","Lemniscate of gerono",""),
+            ("f_lemniscate_of_gerono_2d","Lemniscate of gerono 2d",""),
+            ("f_mesh1","Mesh1",""), ("f_mitre","Mitre",""),
+            ("f_nodal_cubic","Nodal cubic",""), ("f_noise3d","Noise3d",""),
+            ("f_noise_generator","Noise generator",""), ("f_odd","Odd",""),
+            ("f_ovals_of_cassini","Ovals of cassini",""), ("f_paraboloid","Paraboloid",""),
+            ("f_parabolic_torus","Parabolic torus",""), ("f_ph","Ph",""),
+            ("f_pillow","Pillow",""), ("f_piriform","Piriform",""),
+            ("f_piriform_2d","Piriform 2d",""), ("f_poly4","Poly4",""),
+            ("f_polytubes","Polytubes",""), ("f_quantum","Quantum",""),
+            ("f_quartic_paraboloid","Quartic paraboloid",""),
+            ("f_quartic_saddle","Quartic saddle",""),
+            ("f_quartic_cylinder","Quartic cylinder",""), ("f_r","R",""),
+            ("f_ridge","Ridge",""), ("f_ridged_mf","Ridged mf",""),
+            ("f_rounded_box","Rounded box",""), ("f_sphere","Sphere",""),
+            ("f_spikes","Spikes",""), ("f_spikes_2d","Spikes 2d",""),
+            ("f_spiral","Spiral",""), ("f_steiners_roman","Steiners roman",""),
+            ("f_strophoid","Strophoid",""), ("f_strophoid_2d","Strophoid 2d",""),
+            ("f_superellipsoid","Superellipsoid",""), ("f_th","Th",""),
+            ("f_torus","Torus",""), ("f_torus2","Torus2",""),
+            ("f_torus_gumdrop","Torus gumdrop",""), ("f_umbrella","Umbrella",""),
+            ("f_witch_of_agnesi","Witch of agnesi",""),
+            ("f_witch_of_agnesi_2d","Witch of agnesi 2d","")
+        ),
 
         default='NONE',
     )
@@ -4097,7 +4161,11 @@ class RenderPovSettingsTexture(PropertyGroup):
     func_plus_z: EnumProperty(
         name="Func plus z",
         description="",
-        items=(('NONE', "None", ""), ('increase', "*", ""), ('plus', "+", "")),
+        items=(
+            ('NONE', "None", ""),
+            ('increase', "*", ""),
+            ('plus', "+", "")
+        ),
         default='NONE',
     )
 
@@ -4189,31 +4257,41 @@ class RenderPovSettingsTexture(PropertyGroup):
     tex_mov_y: FloatProperty(
         name="Move Y",
         description="",
-        min=-100000.0, max=100000.0, default=0.0
+        min=-100000.0,
+        max=100000.0,
+        default=0.0,
     )
 
     tex_mov_z: FloatProperty(
         name="Move Z",
         description="",
-        min=-100000.0, max=100000.0, default=0.0
+        min=-100000.0,
+        max=100000.0,
+        default=0.0,
     )
 
     tex_scale_x: FloatProperty(
         name="Scale X",
         description="",
-        min=0.0, max=10000.0, default=1.0
+        min=0.0,
+        max=10000.0,
+        default=1.0,
     )
 
     tex_scale_y: FloatProperty(
         name="Scale Y",
         description="",
-        min=0.0, max=10000.0, default=1.0
+        min=0.0,
+        max=10000.0,
+        default=1.0,
     )
 
     tex_scale_z: FloatProperty(
         name="Scale Z",
         description="",
-        min=0.0, max=10000.0, default=1.0
+        min=0.0,
+        max=10000.0,
+        default=1.0,
     )
 
 ###############################################################################
@@ -4225,8 +4303,12 @@ class RenderPovSettingsObject(PropertyGroup):
 
     # Pov inside_vector used for CSG
     inside_vector: FloatVectorProperty(
-        name="CSG Inside Vector", description="Direction to shoot CSG inside test rays at",
-        precision=4, step=0.01, min=0, soft_max=1,
+        name="CSG Inside Vector",
+        description="Direction to shoot CSG inside test rays at",
+        precision=4,
+        step=0.01,
+        min=0,
+        soft_max=1,
         default=(0.001, 0.001, 0.5),
         options={'ANIMATABLE'},
         subtype='XYZ'
@@ -4647,13 +4729,15 @@ class RenderPovSettingsObject(PropertyGroup):
     #############Used for loft and Superellipsoid, etc.
     curveshape: EnumProperty(
         name="Povray Shape Type",
-        items=(("birail", "Birail", ""),
-               ("cairo", "Cairo", ""),
-               ("lathe", "Lathe", ""),
-               ("loft", "Loft", ""),
-               ("prism", "Prism", ""),
-               ("sphere_sweep", "Sphere Sweep", ""),
-               ("sor", "Surface of Revolution", "")),
+        items=(
+            ("birail", "Birail", ""),
+            ("cairo", "Cairo", ""),
+            ("lathe", "Lathe", ""),
+            ("loft", "Loft", ""),
+            ("prism", "Prism", ""),
+            ("sphere_sweep", "Sphere Sweep", ""),
+            ("sor", "Surface of Revolution", "")
+        ),
         default="sphere_sweep",
     )
 
@@ -4667,7 +4751,9 @@ class RenderPovSettingsObject(PropertyGroup):
     st_major_radius: FloatProperty(
         name="Major radius",
         description="Major radius",
-        min=0.00, max=100.00, default=1.0,
+        min=0.00,
+        max=100.00,
+        default=1.0,
         update=prop_update_supertorus
     )
 
@@ -4851,9 +4937,11 @@ class RenderPovSettingsObject(PropertyGroup):
     boolean_mod: EnumProperty(
         name="Operation",
         description="Choose the type of calculation for Boolean modifier",
-        items=(("BMESH", "Use the BMesh Boolean Solver", ""),
-               ("CARVE", "Use the Carve Boolean Solver", ""),
-               ("POV", "Use POV Constructive Solid Geometry", "")),
+        items=(
+            ("BMESH", "Use the BMesh Boolean Solver", ""),
+            ("CARVE", "Use the Carve Boolean Solver", ""),
+            ("POV", "Use POV Constructive Solid Geometry", "")
+        ),
         default="BMESH",
     )
 
@@ -4912,26 +5000,51 @@ class RenderPovSettingsCamera(PropertyGroup):
     dof_confidence: FloatProperty(
         name="Confidence",
         description="Probability to reach the real color value. Larger confidence values "
-                    "will lead to more samples, slower traces and better images",
+        "will lead to more samples, slower traces and better images",
         min=0.01, max=0.99, default=0.20
     )
 
-    normal_enable: BoolProperty(name="Perturbated Camera", default=False)
+    normal_enable: BoolProperty(
+        name="Perturbated Camera",
+        default=False,
+    )
 
-    cam_normal: FloatProperty(name="Normal Strength", min=0.0, max=1.0, default=0.0)
+    cam_normal: FloatProperty(
+        name="Normal Strength",
+        min=0.0,
+        max=1.0,
+        default=0.0,
+    )
 
     normal_patterns: EnumProperty(
         name="Pattern",
         description="",
-        items=(('agate', "Agate", ""), ('boxed', "Boxed", ""), ('bumps', "Bumps", ""), ('cells', "Cells", ""),
-               ('crackle', "Crackle", ""),('dents', "Dents", ""),
-               ('granite', "Granite", ""),
-               ('leopard', "Leopard", ""),
-               ('marble', "Marble", ""), ('onion', "Onion", ""), ('pavement', "Pavement", ""), ('planar', "Planar", ""),
-               ('quilted', "Quilted", ""), ('ripples', "Ripples", ""),  ('radial', "Radial", ""),
-               ('spherical', "Spherical", ""),('spiral1', "Spiral1", ""), ('spiral2', "Spiral2", ""), ('spotted', "Spotted", ""),
-               ('square', "Square", ""),('tiling', "Tiling", ""),
-               ('waves', "Waves", ""), ('wood', "Wood", ""),('wrinkles', "Wrinkles", "")),
+        items=(
+            ('agate', "Agate", ""),
+            ('boxed', "Boxed", ""),
+            ('bumps', "Bumps", ""),
+            ('cells', "Cells", ""),
+            ('crackle', "Crackle", ""),
+            ('dents', "Dents", ""),
+            ('granite', "Granite", ""),
+            ('leopard', "Leopard", ""),
+            ('marble', "Marble", ""),
+            ('onion', "Onion", ""),
+            ('pavement', "Pavement", ""),
+            ('planar', "Planar", ""),
+            ('quilted', "Quilted", ""),
+            ('ripples', "Ripples", ""),
+            ('radial', "Radial", ""),
+            ('spherical', "Spherical", ""),
+            ('spiral1', "Spiral1", ""),
+            ('spiral2', "Spiral2", ""),
+            ('spotted', "Spotted", ""),
+            ('square', "Square", ""),
+            ('tiling', "Tiling", ""),
+            ('waves', "Waves", ""),
+            ('wood', "Wood", ""),
+            ('wrinkles', "Wrinkles", "")
+        ),
         default='agate',
     )
 
@@ -4964,12 +5077,14 @@ class RenderPovSettingsLight(PropertyGroup):
     texture_context: EnumProperty(
         name="Texture context",
         description="Type of texture data to display and edit",
-        items=(('MATERIAL', "", "Show material textures", "MATERIAL",0), # "Show material textures"
-               ('WORLD', "", "Show world textures", "WORLD",1), # "Show world textures"
-               ('LAMP', "", "Show lamp textures", "LIGHT",2), # "Show lamp textures"
-               ('PARTICLES', "", "Show particles textures", "PARTICLES",3), # "Show particles textures"
-               ('LINESTYLE', "", "Show linestyle textures", "LINE_DATA",4), # "Show linestyle textures"
-               ('OTHER', "", "Show other data textures", "TEXTURE_DATA",5)), # "Show other data textures"
+        items=(
+            ('MATERIAL', "", "Show material textures", "MATERIAL",0), # "Show material textures"
+            ('WORLD', "", "Show world textures", "WORLD",1), # "Show world textures"
+            ('LAMP', "", "Show lamp textures", "LIGHT",2), # "Show lamp textures"
+            ('PARTICLES', "", "Show particles textures", "PARTICLES",3), # "Show particles textures"
+            ('LINESTYLE', "", "Show linestyle textures", "LINE_DATA",4), # "Show linestyle textures"
+            ('OTHER', "", "Show other data textures", "TEXTURE_DATA",5), # "Show other data textures"
+        ),
         default = 'MATERIAL',
     )
 
@@ -5013,9 +5128,11 @@ class RenderPovSettingsLight(PropertyGroup):
     shadow_ray_sample_method: EnumProperty(
         name="",
         description="Method for generating shadow samples: Adaptive QMC is fastest, Constant QMC is less noisy but slower",
-        items=(('ADAPTIVE_QMC', "", "Halton samples distribution", "",0),
-               ('CONSTANT_QMC', "", "QMC samples distribution", "",1),
-               ('CONSTANT_JITTERED', "", "Uses POV jitter keyword", "",2)), # "Show other data textures"
+        items=(
+            ('ADAPTIVE_QMC', "", "Halton samples distribution", "",0),
+            ('CONSTANT_QMC', "", "QMC samples distribution", "",1),
+            ('CONSTANT_JITTERED', "", "Uses POV jitter keyword", "",2) # "Show other data textures"
+        ),
         default = 'CONSTANT_JITTERED',
     )
 
@@ -5042,12 +5159,14 @@ class RenderPovSettingsWorld(PropertyGroup):
     texture_context: EnumProperty(
         name="Texture context",
         description="Type of texture data to display and edit",
-        items=(('MATERIAL', "", "Show material textures", "MATERIAL",0), # "Show material textures"
-               ('WORLD', "", "Show world textures", "WORLD",1), # "Show world textures"
-               ('LAMP', "", "Show lamp textures", "LIGHT",2), # "Show lamp textures"
-               ('PARTICLES', "", "Show particles textures", "PARTICLES",3), # "Show particles textures"
-               ('LINESTYLE', "", "Show linestyle textures", "LINE_DATA",4), # "Show linestyle textures"
-               ('OTHER', "", "Show other data textures", "TEXTURE_DATA",5)), # "Show other data textures"
+        items=(
+            ('MATERIAL', "", "Show material textures", "MATERIAL",0), # "Show material textures"
+            ('WORLD', "", "Show world textures", "WORLD",1), # "Show world textures"
+            ('LAMP', "", "Show lamp textures", "LIGHT",2), # "Show lamp textures"
+            ('PARTICLES', "", "Show particles textures", "PARTICLES",3), # "Show particles textures"
+            ('LINESTYLE', "", "Show linestyle textures", "LINE_DATA",4), # "Show linestyle textures"
+            ('OTHER', "", "Show other data textures", "TEXTURE_DATA",5), # "Show other data textures"
+        ),
         default = 'MATERIAL',
     )
 
@@ -5120,13 +5239,15 @@ class WorldTextureSlot(PropertyGroup):
     texture_coords: EnumProperty(
         name="Coordinates",
         description="Texture coordinates used to map the texture onto the background",
-        items=(("VIEW", "View", "Use view vector for the texture coordinates"),
-               ("GLOBAL", "Global", "Use global coordinates for the texture coordinates (interior mist)"),
-               ("ANGMAP", "AngMap", "Use 360 degree angular coordinates, e.g. for spherical light probes"),
-               ("SPHERE", "Sphere", "For 360 degree panorama sky, spherical mapped, only top half"),
-               ("EQUIRECT", "Equirectangular", "For 360 degree panorama sky, equirectangular mapping"),
-               ("TUBE", "Tube", "For 360 degree panorama sky, cylindrical mapped, only top half"),
-               ("OBJECT", "Object", "Use linked object’s coordinates for texture coordinates")),
+        items=(
+            ("VIEW", "View", "Use view vector for the texture coordinates"),
+            ("GLOBAL", "Global", "Use global coordinates for the texture coordinates (interior mist)"),
+            ("ANGMAP", "AngMap", "Use 360 degree angular coordinates, e.g. for spherical light probes"),
+            ("SPHERE", "Sphere", "For 360 degree panorama sky, spherical mapped, only top half"),
+            ("EQUIRECT", "Equirectangular", "For 360 degree panorama sky, equirectangular mapping"),
+            ("TUBE", "Tube", "For 360 degree panorama sky, cylindrical mapped, only top half"),
+            ("OBJECT", "Object", "Use linked object’s coordinates for texture coordinates")
+        ),
         default="VIEW",
     )
 
@@ -5216,10 +5337,12 @@ class RenderPovSettingsText(PropertyGroup):
     custom_code: EnumProperty(
         name="Custom Code",
         description="rendered source: Both adds text at the "
-                    "top of the exported POV file",
-        items=(("3dview", "View", ""),
-               ("text", "Text", ""),
-               ("both", "Both", "")),
+        "top of the exported POV file",
+        items=(
+            ("3dview", "View", ""),
+            ("text", "Text", ""),
+            ("both", "Both", "")
+        ),
         default="text",
     )
 
@@ -5238,8 +5361,10 @@ class PovrayPreferences(AddonPreferences):
         name="Feature Set",
         description="Choose between official (POV-Ray) or (UberPOV) "
         "development branch features to write in the pov file",
-        items= (('povray', 'Official POV-Ray', '','PLUGIN', 0),
-                ('uberpov', 'Unofficial UberPOV', '', 'PLUGIN', 1)),
+        items= (
+            ('povray', 'Official POV-Ray', '','PLUGIN', 0),
+            ('uberpov', 'Unofficial UberPOV', '', 'PLUGIN', 1)
+        ),
         default='povray',
     )
 
