@@ -192,8 +192,8 @@ for member in dir(properties_material):
     subclass = getattr(properties_material, member)
     try:
         # mat=bpy.context.active_object.active_material
-        # if (mat and mat.pov.type == "SURFACE" 
-            # and not (mat.pov.material_use_nodes or mat.use_nodes)): 
+        # if (mat and mat.pov.type == "SURFACE"
+            # and not (mat.pov.material_use_nodes or mat.use_nodes)):
         # and (engine in cls.COMPAT_ENGINES)) if subclasses were sorted
             subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
     except:
@@ -272,7 +272,7 @@ class WORLD_OT_POV_add_preset(AddPresetBase, Operator):
 
     # where to store the preset
     preset_subdir = "pov/world"
-    
+
 def check_material(mat):
     if mat is not None:
         if mat.use_nodes:
@@ -287,10 +287,10 @@ def simple_material(mat):
     if (mat is not None) and (not mat.use_nodes):
         return True
     return False
-    
+
 def check_add_mesh_extra_objects():
     """Test if Add mesh extra objects addon is activated
-    
+
     This addon is currently used to generate the proxy for POV parametric
     surface which is almost the same priciple as its Math xyz surface
     """
@@ -300,10 +300,10 @@ def check_add_mesh_extra_objects():
 
 def locate_docpath():
     """POV can be installed with some include files.
-    
+
     Get their path as defined in user preferences or registry keys for
     the user to be able to invoke them."""
-    
+
     addon_prefs = bpy.context.preferences.addons[__package__].preferences
     # Use the system preference if its set.
     pov_documents = addon_prefs.docpath_povray
@@ -338,7 +338,7 @@ def locate_docpath():
 
 def pov_context_tex_datablock(context):
     """Texture context type recreated as deprecated in blender 2.8"""
-    
+
     idblock = context.brush
     if idblock and bpy.context.scene.texture_context == 'OTHER':
         return idblock
@@ -351,7 +351,7 @@ def pov_context_tex_datablock(context):
     idblock = context.world
     if idblock:
         return idblock
-        
+
     idblock = context.light
     if idblock:
         return idblock
@@ -364,11 +364,11 @@ def pov_context_tex_datablock(context):
     idblock = context.line_style
     if idblock:
         return idblock
-        
+
 class RenderButtonsPanel():
     """Use this class to define buttons from the render tab of
     properties window."""
-    
+
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
@@ -670,7 +670,7 @@ class LIGHT_PT_POV_sunsky(PovLampButtonsPanel, Panel):
 class LIGHT_PT_POV_shadow(PovLampButtonsPanel, Panel):
     bl_label =  "Shadow"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-    
+
     @classmethod
     def poll(cls, context):
         lamp = context.lamp
@@ -683,7 +683,7 @@ class LIGHT_PT_POV_shadow(PovLampButtonsPanel, Panel):
         lamp = context.lamp
 
         layout.row().prop(lamp, "shadow_method", expand=True)
-        
+
         split = layout.split()
 
         col = split.column()
@@ -746,7 +746,7 @@ class LIGHT_PT_POV_shadow(PovLampButtonsPanel, Panel):
                 elif lamp.shape == 'RECTANGLE':
                     sub.prop(lamp, "shadow_ray_samples_x", text="Samples X")
                     sub.prop(lamp, "shadow_ray_samples_y", text="Samples Y")
-            
+
 '''
         if lamp.shadow_method == 'NOSHADOW' and lamp.type == 'AREA':
             split = layout.split()
@@ -985,7 +985,7 @@ class WORLD_PT_POV_mist(WorldButtonsPanel, Panel):
         col.prop(world.mist_settings, "height")
 
         layout.prop(world.mist_settings, "falloff")
-        
+
 class RENDER_PT_POV_export_settings(RenderButtonsPanel, Panel):
     """Use this class to define pov ini settingss buttons."""
 
@@ -1058,11 +1058,11 @@ class RENDER_PT_POV_render_settings(RenderButtonsPanel, Panel):
 
         if sys.platform[:3] != "win":
             layout.prop(scene.pov, "sdl_window_enable", text="POV-Ray SDL Window")
-   
+
         col = layout.column()
         col.label(text="Main Path Tracing:")
         col.prop(scene.pov, "max_trace_level", text="Ray Depth")
-        align = True   
+        align = True
         layout.active = scene.pov.global_settings_advanced
         layout.prop(scene.pov,"charset")
         row = layout.row(align = align)
@@ -1077,15 +1077,15 @@ class RENDER_PT_POV_render_settings(RenderButtonsPanel, Panel):
         row.prop(scene.pov,"number_of_waves")
         row = layout.row(align = align)
         row.prop(scene.pov,"noise_generator")
-        
+
         split = layout.split()
         split.label(text="Shading:")
         split = layout.split()
-    
+
         row = split.row(align = align)
         row.prop(scene.pov, "use_shadows")
-        row.prop(scene.pov, "alpha_mode") 
-        
+        row.prop(scene.pov, "alpha_mode")
+
 class RENDER_PT_POV_photons(RenderButtonsPanel, Panel):
     """Use this class to define pov photons buttons."""
 
@@ -1473,7 +1473,7 @@ class MATERIAL_PT_POV_sss(MaterialButtonsPanel, Panel):
         sub.prop(sss, "back")
         col.separator()
         col.prop(sss, "error_threshold", text="Error")
-        
+
 class MATERIAL_PT_POV_activate_node(MaterialButtonsPanel, Panel):
     """Use this class to define an activate pov nodes button."""
 
@@ -1558,7 +1558,7 @@ class MATERIAL_PT_POV_mirror(MaterialButtonsPanel, Panel):
     bl_idname = "MATERIAL_PT_POV_raytrace_mirror"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-    
+
     @classmethod
     def poll(cls, context):
         mat = context.material
@@ -1677,12 +1677,12 @@ class MATERIAL_PT_POV_transp(MaterialButtonsPanel, Panel):
             sub.active = rayt.gloss_factor < 1.0
             sub.prop(rayt, "gloss_threshold", text="Threshold")
             sub.prop(rayt, "gloss_samples", text="Samples")
-        
+
 class MATERIAL_PT_POV_reflection(MaterialButtonsPanel, Panel):
     """Use this class to define more pov specific reflectivity buttons."""
 
     bl_label = "POV-Ray Reflection"
-    bl_parent_id = "MATERIAL_PT_POV_raytrace_mirror"    
+    bl_parent_id = "MATERIAL_PT_POV_raytrace_mirror"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
     @classmethod
@@ -1718,8 +1718,8 @@ class MATERIAL_PT_POV_reflection(MaterialButtonsPanel, Panel):
 #group some native Blender (SSS) and POV (Fade)settings under such a parent panel?
 class MATERIAL_PT_POV_interior(MaterialButtonsPanel, Panel):
     bl_label = "POV-Ray Interior"
-    bl_idname = "material.pov_interior"    
-    #bl_parent_id = "material.absorption"    
+    bl_idname = "material.pov_interior"
+    #bl_parent_id = "material.absorption"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     @classmethod
     def poll(cls, context):
@@ -1731,14 +1731,14 @@ class MATERIAL_PT_POV_interior(MaterialButtonsPanel, Panel):
 
     def draw_header(self, context):
         mat = context.material
-'''   
+'''
 
 class MATERIAL_PT_POV_fade_color(MaterialButtonsPanel, Panel):
     """Use this class to define pov fading (absorption) color buttons."""
 
     bl_label = "POV-Ray Absorption"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-    #bl_parent_id = "material.pov_interior" 
+    #bl_parent_id = "material.pov_interior"
 
     @classmethod
     def poll(cls, context):
@@ -1859,7 +1859,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, Panel):
         sub.label(text="Surface diffuse:")
         sub = col.column()
         sub.prop(tan, "blend_distance", text="Distance")
-        
+
 class MATERIAL_PT_POV_replacement_text(MaterialButtonsPanel, Panel):
     """Use this class to define pov custom code declared name field."""
 
@@ -1920,8 +1920,8 @@ class MATERIAL_TEXTURE_SLOTS_UL_List(UIList):
         material = context.material#.pov
         active_data = material
         #tex = context.texture #may be needed later?
-        
-        
+
+
         # We could write some code to decide which icon to use here...
         custom_icon = 'TEXTURE'
 
@@ -1932,7 +1932,7 @@ class MATERIAL_TEXTURE_SLOTS_UL_List(UIList):
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label("", icon = custom_icon)
-'''            
+'''
 class WORLD_TEXTURE_SLOTS_UL_List(UIList):
     """Use this class to show pov texture slots list.""" # XXX Not used yet
 
@@ -1943,8 +1943,8 @@ class WORLD_TEXTURE_SLOTS_UL_List(UIList):
         world = context.world#.pov
         active_data = world.pov
         #tex = context.texture #may be needed later?
-        
-        
+
+
         # We could write some code to decide which icon to use here...
         custom_icon = 'TEXTURE'
 
@@ -1955,7 +1955,7 @@ class WORLD_TEXTURE_SLOTS_UL_List(UIList):
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label("", icon = custom_icon)
-            
+
 class MATERIAL_TEXTURE_SLOTS_UL_POV_layerlist(bpy.types.UIList):
     """Use this class to show pov texture slots list."""
 
@@ -1980,7 +1980,7 @@ class MATERIAL_TEXTURE_SLOTS_UL_POV_layerlist(bpy.types.UIList):
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
-            
+
 class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
     """Use this class to show pov texture context buttons."""
 
@@ -1991,7 +1991,7 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        return (engine in cls.COMPAT_ENGINES)        
+        return (engine in cls.COMPAT_ENGINES)
         # if not (hasattr(context, "texture_slot") or hasattr(context, "texture_node")):
         #     return False
         return ((context.material or
@@ -1999,14 +1999,14 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
                  context.light or
                  context.texture or
                  context.line_style or
-                 context.particle_system or 
+                 context.particle_system or
                  isinstance(context.space_data.pin_id, ParticleSettings) or
                  context.texture_user) and
                 (engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
-        
+
         scene = context.scene
         layout.prop(scene, "texture_context", expand=True)
         if scene.texture_context == 'MATERIAL':
@@ -2017,7 +2017,7 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
             col.operator("pov.textureslotadd",icon='ADD',text='')
             col.operator("pov.textureslotremove",icon='REMOVE',text='')
             col.separator()
-            
+
             if mat.pov_texture_slots:
                 index = mat.pov.active_texture_index
                 slot = mat.pov_texture_slots[index]
@@ -2028,37 +2028,37 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
                 layout.prop_search(slot,'texture_search',bpy.data,'textures',text='')
             # else:
                 # for i in range(18):  # length of material texture slots
-                    # mat.pov_texture_slots.add()            
+                    # mat.pov_texture_slots.add()
 
-# Commented out below is a reminder of what existed in Blender Internal 
+# Commented out below is a reminder of what existed in Blender Internal
 # attributes need to be recreated
 '''
         slot = getattr(context, "texture_slot", None)
         node = getattr(context, "texture_node", None)
         space = context.space_data
-        
-        #attempt at replacing removed space_data 
+
+        #attempt at replacing removed space_data
         mtl = getattr(context, "material", None)
         if mtl != None:
-            spacedependant = mtl        
+            spacedependant = mtl
         wld = getattr(context, "world", None)
         if wld != None:
-            spacedependant = wld             
+            spacedependant = wld
         lgt = getattr(context, "light", None)
         if lgt != None:
-            spacedependant = lgt 
+            spacedependant = lgt
 
 
         #idblock = context.particle_system.settings
-            
+
         tex = getattr(context, "texture", None)
         if tex != None:
-            spacedependant = tex             
+            spacedependant = tex
 
 
-        
+
         scene = context.scene
-        idblock = scene.pov#pov_context_tex_datablock(context) 
+        idblock = scene.pov#pov_context_tex_datablock(context)
         pin_id = space.pin_id
 
         #spacedependant.use_limited_texture_context = True
@@ -2100,7 +2100,7 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
         tex_collection = (pin_id is None) and (node is None) and (spacedependant.texture_context not in ('LINESTYLE','OTHER'))
 
         if tex_collection:
-            
+
             pov = getattr(context, "pov", None)
             active_texture_index = getattr(spacedependant, "active_texture_index", None)
             print (pov)
@@ -2110,10 +2110,10 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
 
             row.template_list("TEXTURE_UL_texslots", "", idblock, "texture_slots",
                               idblock, "active_texture_index", rows=2, maxrows=16, type="DEFAULT")
-                              
+
             # row.template_list("WORLD_TEXTURE_SLOTS_UL_List", "texture_slots", world,
                               # world.texture_slots, world, "active_texture_index", rows=2)
-                              
+
             col = row.column(align=True)
             col.operator("texture.slot_move", text="", icon='TRIA_UP').type = 'UP'
             col.operator("texture.slot_move", text="", icon='TRIA_DOWN').type = 'DOWN'
@@ -2214,7 +2214,7 @@ class MATERIAL_OT_POV_texture_slot_remove(Operator):
         return {'FINISHED'}
 
 class TextureSlotPanel(TextureButtonsPanel):
-    """Use this class to show pov texture slots panel.""" 
+    """Use this class to show pov texture slots panel."""
 
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -2245,8 +2245,8 @@ class TEXTURE_PT_POV_type(TextureButtonsPanel, Panel):
         # row = layout.row()
         # row.template_list("WORLD_TEXTURE_SLOTS_UL_List", "texture_slots", world,
                           # world.texture_slots, world, "active_texture_index")
-        
-        
+
+
 class TEXTURE_PT_POV_preview(TextureButtonsPanel, Panel):
     """Use this class to define pov texture preview panel."""
 
@@ -2527,7 +2527,7 @@ class TEXTURE_PT_POV_influence(TextureSlotPanel, Panel):
         if isinstance(idblock, Material):
             split = layout.split()
 
-            col = split.column()       
+            col = split.column()
             if idblock.pov.type in {'SURFACE', 'WIRE'}:
 
                 split = layout.split()
@@ -3242,11 +3242,11 @@ class CAMERA_PT_POV_cam_dof(CameraDataButtonsPanel, Panel):
         col = flow.column()
         col.label(text="F-Stop value will export as")
         col.label(text="POV aperture : " + "%.3f" % (1/cam.dof.aperture_fstop*1000))
-        
+
         col = flow.column()
         col.prop(cam.pov, "dof_samples_min")
         col.prop(cam.pov, "dof_samples_max")
-        col.prop(cam.pov, "dof_variance")        
+        col.prop(cam.pov, "dof_variance")
         col.prop(cam.pov, "dof_confidence")
 
 
@@ -3296,7 +3296,7 @@ class CAMERA_PT_POV_replacement_text(CameraDataButtonsPanel, Panel):
 
 class TEXT_OT_POV_insert(Operator):
     """Use this class to create blender text editor operator to insert pov snippets like other pov IDEs."""
-    
+
     bl_idname = "text.povray_insert"
     bl_label = "Insert"
 
@@ -3416,7 +3416,7 @@ classes = (
     WORLD_MT_POV_presets,
     WORLD_OT_POV_add_preset,
     WORLD_TEXTURE_SLOTS_UL_List,
-    WORLD_PT_POV_mist,    
+    WORLD_PT_POV_mist,
     #RenderButtonsPanel,
     #ModifierButtonsPanel,
     #MaterialButtonsPanel,
@@ -3462,7 +3462,7 @@ classes = (
     MATERIAL_PT_POV_caustics,
     MATERIAL_PT_POV_replacement_text,
     TEXTURE_MT_POV_specials,
-    TEXTURE_PT_POV_context_texture,    
+    TEXTURE_PT_POV_context_texture,
     TEXTURE_PT_POV_type,
     TEXTURE_PT_POV_preview,
     TEXTURE_PT_POV_parameters,
@@ -3490,7 +3490,7 @@ classes = (
     # TEXTURE_PT_context,
     #TEXTURE_PT_POV_povray_texture_slots,
     TEXTURE_UL_POV_texture_slots,
-    MATERIAL_TEXTURE_SLOTS_UL_POV_layerlist,    
+    MATERIAL_TEXTURE_SLOTS_UL_POV_layerlist,
     MATERIAL_OT_POV_texture_slot_add,
     MATERIAL_OT_POV_texture_slot_remove,
     TEXTURE_PT_POV_influence

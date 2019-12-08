@@ -249,13 +249,13 @@ def writeMaterial(using_uberpov, DEF_MAT_NAME, scene, tabWrite, safety, comments
         for t in material.pov_texture_slots:
             idx += 1
             # index = material.pov.active_texture_index
-            slot = material.pov_texture_slots[idx] # [index]  
+            slot = material.pov_texture_slots[idx] # [index]
             povtex = slot.name
-            tex = bpy.data.textures[povtex]  
-        
+            tex = bpy.data.textures[povtex]
+
             if t and t.use and tex is not None:
-            
-            
+
+
                 if (tex.type == 'IMAGE' and tex.image) or tex.type != 'IMAGE':
                     #validPath
                     if(t and t.use and
@@ -272,10 +272,10 @@ def writeMaterial(using_uberpov, DEF_MAT_NAME, scene, tabWrite, safety, comments
 
 def exportPattern(texture, string_strip_hyphen):
     """Translate Blender procedural textures to POV patterns and write to pov file.
-    
+
     Function Patterns can be used to better access sub components of a pattern like
     grey values for influence mapping"""
-    
+
     tex=texture
     pat = tex.pov
     PATname = "PAT_%s"%string_strip_hyphen(bpy.path.clean_name(tex.name))
@@ -761,7 +761,7 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
                             imageFormat, imgMap, imgMapTransforms, tabWrite, comments,
                             string_strip_hyphen, safety, col, os, preview_dir, unpacked_images):
     """Translate Blender texture influences to various POV texture tricks and write to pov file."""
-        
+
     material_finish = materialNames[mater.name]
     if mater.pov.use_transparency:
         trans = 1.0 - mater.pov.alpha
@@ -790,10 +790,10 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
         for t in mater.pov_texture_slots:
             idx += 1
             # index = mater.pov.active_texture_index
-            slot = mater.pov_texture_slots[idx] # [index]  
+            slot = mater.pov_texture_slots[idx] # [index]
             povtex = slot.name
             tex = bpy.data.textures[povtex]
-            
+
         if t and (t.use and (tex is not None)):
             # 'NONE' ('NONE' type texture is different from no texture covered above)
             if (tex.type == 'NONE' and tex.pov.tex_pattern_type == 'emulator'):
@@ -1185,9 +1185,9 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
     for t in mater.pov_texture_slots:
         idx += 1
         # index = mater.pov.active_texture_index
-        slot = mater.pov_texture_slots[idx] # [index]  
+        slot = mater.pov_texture_slots[idx] # [index]
         povtex = slot.name
-        tex = bpy.data.textures[povtex]    
+        tex = bpy.data.textures[povtex]
         if(t and t.use and ((tex.type == 'IMAGE' and tex.image) or tex.type != 'IMAGE') and
            (t.use_map_specular or t.use_map_raymir)):
             # Specular mapped textures would conflict with colored specular

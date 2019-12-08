@@ -170,7 +170,7 @@ def string_strip_hyphen(name):
 
 def safety(name, Level):
     """append suffix characters to names of various material declinations.
-    
+
     Material declinations are necessary to POV syntax and used in shading.py
     by the povHasnoSpecularMaps function to create the finish map trick and
     the suffixes avoid name collisions.
@@ -180,7 +180,7 @@ def safety(name, Level):
         Level=1 is for texture with No specular nor Mirror reflection
         Level=2 is for texture with translation of spec and mir levels
         for when no map influences them
-        Level=3 is for texture with Maximum Spec and Mirror    
+        Level=3 is for texture with Maximum Spec and Mirror
     """
 
     try:
@@ -309,7 +309,7 @@ def write_global_setting(scene,file):
 def write_object_modifiers(scene,ob,File):
     """Translate some object level POV statements from Blender UI
     to POV syntax and write to exported file """
-    
+
     # Maybe return that string to be added instead of directly written.
 
     '''XXX WIP
@@ -410,7 +410,7 @@ def write_pov(filename, scene=None, info_callback=None):
     tab = setTab(scene.pov.indentation_character, scene.pov.indentation_spaces)
     if not scene.pov.tempfiles_enable:
         def tabWrite(str_o):
-            """Indent POV syntax from brackets levels and write to exported file """        
+            """Indent POV syntax from brackets levels and write to exported file """
             global tabLevel
             brackets = str_o.count("{") - str_o.count("}") + str_o.count("[") - str_o.count("]")
             if brackets < 0:
@@ -425,12 +425,12 @@ def write_pov(filename, scene=None, info_callback=None):
                 tabLevel = tabLevel + brackets
     else:
         def tabWrite(str_o):
-            """write directly to exported file if user checked autonamed temp files (faster)."""        
+            """write directly to exported file if user checked autonamed temp files (faster)."""
 
             file.write(str_o)
 
     def uniqueName(name, nameSeq):
-        """Increment any generated POV name that could get identical to avoid collisions"""        
+        """Increment any generated POV name that could get identical to avoid collisions"""
 
         if name not in nameSeq:
             name = string_strip_hyphen(name)
@@ -465,8 +465,8 @@ def write_pov(filename, scene=None, info_callback=None):
 
     def writeObjectMaterial(material, ob):
         """Translate some object level material from Blender UI (VS data level)
-        to POV interior{} syntax and write it to exported file """    
-    
+        to POV interior{} syntax and write it to exported file """
+
         # DH - modified some variables to be function local, avoiding RNA write
         # this should be checked to see if it is functionally correct
 
@@ -484,7 +484,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 tabWrite("ior %.6f\n" % material.pov_raytrace_transparency.ior)
             elif material.pov.transparency_method=='Z_TRANSPARENCY':
                 tabWrite("interior {\n")
-                tabWrite("ior 1.0\n")                
+                tabWrite("ior 1.0\n")
             else:
                 tabWrite("interior {\n")
                 tabWrite("ior %.6f\n" % material.pov_raytrace_transparency.ior)
@@ -3606,7 +3606,7 @@ def write_pov(filename, scene=None, info_callback=None):
         tabWrite("}\n")
 
     def exportCustomCode():
-        """write all POV user defined custom code to exported file """    
+        """write all POV user defined custom code to exported file """
         # Write CurrentAnimation Frame for use in Custom POV Code
         file.write("#declare CURFRAMENUM = %d;\n" % bpy.context.scene.frame_current)
         #Change path and uncomment to add an animated include file by hand:
@@ -3828,7 +3828,7 @@ class PovrayRender(bpy.types.RenderEngine):
 
     @staticmethod
     def _locate_binary():
-        """Identify POV engine"""    
+        """Identify POV engine"""
         addon_prefs = bpy.context.preferences.addons[__package__].preferences
 
         # Use the system preference if its set.
@@ -3879,7 +3879,7 @@ class PovrayRender(bpy.types.RenderEngine):
         return ""
 
     def _export(self, depsgraph, povPath, renderImagePath):
-        """gather all necessary output files paths user defined and auto generated and export there"""    
+        """gather all necessary output files paths user defined and auto generated and export there"""
         import tempfile
         scene = bpy.context.scene
         if scene.pov.tempfiles_enable:
@@ -3989,7 +3989,7 @@ class PovrayRender(bpy.types.RenderEngine):
                     # and Windows does not know how to delete a file in use!
                     time.sleep(self.DELAY)
     def render(self, depsgraph):
-        """Export necessary files from text editor and render image."""    
+        """Export necessary files from text editor and render image."""
         import tempfile
         scene = bpy.context.scene
         r = scene.render

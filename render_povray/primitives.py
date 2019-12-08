@@ -1468,10 +1468,10 @@ def pov_parametric_define(context, op, ob):
         bpy.ops.object.mode_set(mode="EDIT")
         bpy.ops.mesh.hide(unselected=False)
         bpy.ops.object.mode_set(mode="OBJECT")
-        
+
 class POVRAY_OT_parametric_add(bpy.types.Operator):
     """Add the representation of POV parametric surfaces using pov_parametric_define() function."""
-    
+
     bl_idname = "pov.addparametric"
     bl_label = "Parametric"
     bl_description = "Add Paramertic"
@@ -1517,7 +1517,7 @@ class POVRAY_OT_parametric_update(bpy.types.Operator):
 
     Delete its previous proxy geometry and rerun pov_parametric_define() function
     with the new parameters"""
-    
+
     bl_idname = "pov.parametric_update"
     bl_label = "Update"
     bl_description = "Update parametric object"
