@@ -17,7 +17,10 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
+"""update new variables to values from older API. 
 
+It does not have a UI and used to be found with F3 search field.
+This file needs an update."""
 
 import bpy
 from bpy.props import (

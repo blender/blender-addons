@@ -47,6 +47,7 @@ from mathutils import (
 #import collections
 
 def pov_define_mesh(mesh, verts, edges, faces, name, hide_geometry=True):
+    """Generate proxy mesh."""
     if mesh is None:
         mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(verts, edges, faces)
@@ -60,6 +61,7 @@ def pov_define_mesh(mesh, verts, edges, faces, name, hide_geometry=True):
 
 
 class POVRAY_OT_lathe_add(bpy.types.Operator):
+    """Add the representation of POV lathe using a screw modifier."""
     bl_idname = "pov.addlathe"
     bl_label = "Lathe"
     bl_options = {'REGISTER','UNDO'}
@@ -91,123 +93,125 @@ class POVRAY_OT_lathe_add(bpy.types.Operator):
 
 
 def pov_superellipsoid_define(context, op, ob):
+    """Create the proxy mesh of a POV superellipsoid using the pov_superellipsoid_define() function."""
 
-        if op:
-            mesh = None
+    if op:
+        mesh = None
 
-            u = op.se_u
-            v = op.se_v
-            n1 = op.se_n1
-            n2 = op.se_n2
-            edit = op.se_edit
-            se_param1 = n2 # op.se_param1
-            se_param2 = n1 # op.se_param2
+        u = op.se_u
+        v = op.se_v
+        n1 = op.se_n1
+        n2 = op.se_n2
+        edit = op.se_edit
+        se_param1 = n2 # op.se_param1
+        se_param2 = n1 # op.se_param2
 
-        else:
-            assert(ob)
-            mesh = ob.data
+    else:
+        assert(ob)
+        mesh = ob.data
 
-            u = ob.pov.se_u
-            v = ob.pov.se_v
-            n1 = ob.pov.se_n1
-            n2 = ob.pov.se_n2
-            edit = ob.pov.se_edit
-            se_param1 = ob.pov.se_param1
-            se_param2 = ob.pov.se_param2
+        u = ob.pov.se_u
+        v = ob.pov.se_v
+        n1 = ob.pov.se_n1
+        n2 = ob.pov.se_n2
+        edit = ob.pov.se_edit
+        se_param1 = ob.pov.se_param1
+        se_param2 = ob.pov.se_param2
 
-        verts = []
-        r=1
+    verts = []
+    r=1
 
-        stepSegment=360/v*pi/180
-        stepRing=pi/u
-        angSegment=0
-        angRing=-pi/2
+    stepSegment=360/v*pi/180
+    stepRing=pi/u
+    angSegment=0
+    angRing=-pi/2
 
-        step=0
-        for ring in range(0,u-1):
-            angRing += stepRing
-            for segment in range(0,v):
-                step += 1
-                angSegment += stepSegment
-                x = r*(abs(cos(angRing))**n1)*(abs(cos(angSegment))**n2)
-                if (cos(angRing) < 0 and cos(angSegment) > 0) or \
-                        (cos(angRing) > 0 and cos(angSegment) < 0):
-                    x = -x
-                y = r*(abs(cos(angRing))**n1)*(abs(sin(angSegment))**n2)
-                if (cos(angRing) < 0 and sin(angSegment) > 0) or \
-                        (cos(angRing) > 0 and sin(angSegment) < 0):
-                    y = -y
-                z = r*(abs(sin(angRing))**n1)
-                if sin(angRing) < 0:
-                    z = -z
-                x = round(x,4)
-                y = round(y,4)
-                z = round(z,4)
-                verts.append((x,y,z))
-        if edit == 'TRIANGLES':
-            verts.append((0,0,1))
-            verts.append((0,0,-1))
+    step=0
+    for ring in range(0,u-1):
+        angRing += stepRing
+        for segment in range(0,v):
+            step += 1
+            angSegment += stepSegment
+            x = r*(abs(cos(angRing))**n1)*(abs(cos(angSegment))**n2)
+            if (cos(angRing) < 0 and cos(angSegment) > 0) or \
+                    (cos(angRing) > 0 and cos(angSegment) < 0):
+                x = -x
+            y = r*(abs(cos(angRing))**n1)*(abs(sin(angSegment))**n2)
+            if (cos(angRing) < 0 and sin(angSegment) > 0) or \
+                    (cos(angRing) > 0 and sin(angSegment) < 0):
+                y = -y
+            z = r*(abs(sin(angRing))**n1)
+            if sin(angRing) < 0:
+                z = -z
+            x = round(x,4)
+            y = round(y,4)
+            z = round(z,4)
+            verts.append((x,y,z))
+    if edit == 'TRIANGLES':
+        verts.append((0,0,1))
+        verts.append((0,0,-1))
 
-        faces = []
+    faces = []
 
-        for i in range(0,u-2):
-            m=i*v
-            for p in range(0,v):
-                if p < v-1:
-                    face=(m+p,1+m+p,v+1+m+p,v+m+p)
-                if p == v-1:
-                    face=(m+p,m,v+m,v+m+p)
+    for i in range(0,u-2):
+        m=i*v
+        for p in range(0,v):
+            if p < v-1:
+                face=(m+p,1+m+p,v+1+m+p,v+m+p)
+            if p == v-1:
+                face=(m+p,m,v+m,v+m+p)
+            faces.append(face)
+    if edit == 'TRIANGLES':
+        indexUp=len(verts)-2
+        indexDown=len(verts)-1
+        indexStartDown=len(verts)-2-v
+        for i in range(0,v):
+            if i < v-1:
+                face=(indexDown,i,i+1)
                 faces.append(face)
-        if edit == 'TRIANGLES':
-            indexUp=len(verts)-2
-            indexDown=len(verts)-1
-            indexStartDown=len(verts)-2-v
-            for i in range(0,v):
-                if i < v-1:
-                    face=(indexDown,i,i+1)
-                    faces.append(face)
-                if i == v-1:
-                    face=(indexDown,i,0)
-                    faces.append(face)
-            for i in range(0,v):
-                if i < v-1:
-                    face=(indexUp,i+indexStartDown,i+indexStartDown+1)
-                    faces.append(face)
-                if i == v-1:
-                    face=(indexUp,i+indexStartDown,indexStartDown)
-                    faces.append(face)
-        if edit == 'NGONS':
-            face=[]
-            for i in range(0,v):
-                face.append(i)
-            faces.append(face)
-            face=[]
-            indexUp=len(verts)-1
-            for i in range(0,v):
-                face.append(indexUp-i)
-            faces.append(face)
-        mesh = pov_define_mesh(mesh, verts, [], faces, "SuperEllipsoid")
+            if i == v-1:
+                face=(indexDown,i,0)
+                faces.append(face)
+        for i in range(0,v):
+            if i < v-1:
+                face=(indexUp,i+indexStartDown,i+indexStartDown+1)
+                faces.append(face)
+            if i == v-1:
+                face=(indexUp,i+indexStartDown,indexStartDown)
+                faces.append(face)
+    if edit == 'NGONS':
+        face=[]
+        for i in range(0,v):
+            face.append(i)
+        faces.append(face)
+        face=[]
+        indexUp=len(verts)-1
+        for i in range(0,v):
+            face.append(indexUp-i)
+        faces.append(face)
+    mesh = pov_define_mesh(mesh, verts, [], faces, "SuperEllipsoid")
 
-        if not ob:
-            ob = object_utils.object_data_add(context, mesh, operator=None)
-            #engine = context.scene.render.engine what for?
-            ob = context.object
-            ob.name =  ob.data.name = "PovSuperellipsoid"
-            ob.pov.object_as = 'SUPERELLIPSOID'
-            ob.pov.se_param1 = n2
-            ob.pov.se_param2 = n1
+    if not ob:
+        ob = object_utils.object_data_add(context, mesh, operator=None)
+        #engine = context.scene.render.engine what for?
+        ob = context.object
+        ob.name =  ob.data.name = "PovSuperellipsoid"
+        ob.pov.object_as = 'SUPERELLIPSOID'
+        ob.pov.se_param1 = n2
+        ob.pov.se_param2 = n1
 
-            ob.pov.se_u = u
-            ob.pov.se_v = v
-            ob.pov.se_n1 = n1
-            ob.pov.se_n2 = n2
-            ob.pov.se_edit = edit
+        ob.pov.se_u = u
+        ob.pov.se_v = v
+        ob.pov.se_n1 = n1
+        ob.pov.se_n2 = n2
+        ob.pov.se_edit = edit
 
-            bpy.ops.object.mode_set(mode="EDIT")
-            bpy.ops.mesh.hide(unselected=False)
-            bpy.ops.object.mode_set(mode="OBJECT")
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.hide(unselected=False)
+        bpy.ops.object.mode_set(mode="OBJECT")
 
 class POVRAY_OT_superellipsoid_add(bpy.types.Operator):
+    """Add the representation of POV superellipsoid using the pov_superellipsoid_define() function."""
     bl_idname = "pov.addsuperellipsoid"
     bl_label = "Add SuperEllipsoid"
     bl_description = "Create a SuperEllipsoid"
@@ -258,6 +262,11 @@ class POVRAY_OT_superellipsoid_add(bpy.types.Operator):
         return {'FINISHED'}
 
 class POVRAY_OT_superellipsoid_update(bpy.types.Operator):
+    """Update the superellipsoid.
+
+    Delete its previous proxy geometry and rerun pov_superellipsoid_define() function
+    with the new parameters"""
+
     bl_idname = "pov.superellipsoid_update"
     bl_label = "Update"
     bl_description = "Update Superellipsoid"
@@ -406,6 +415,8 @@ def pov_supertorus_define(context, op, ob):
             ob.pov.st_edit = st_edit
 
 class POVRAY_OT_supertorus_add(bpy.types.Operator):
+    """Add the representation of POV supertorus using the pov_supertorus_define() function."""
+
     bl_idname = "pov.addsupertorus"
     bl_label = "Add Supertorus"
     bl_description = "Create a SuperTorus"
@@ -450,6 +461,10 @@ class POVRAY_OT_supertorus_add(bpy.types.Operator):
         return {'FINISHED'}
 
 class POVRAY_OT_supertorus_update(bpy.types.Operator):
+    """Update the supertorus.
+
+    Delete its previous proxy geometry and rerun pov_supetorus_define() function
+    with the new parameters"""
     bl_idname = "pov.supertorus_update"
     bl_label = "Update"
     bl_description = "Update SuperTorus"
@@ -474,6 +489,8 @@ class POVRAY_OT_supertorus_update(bpy.types.Operator):
         return {'FINISHED'}
 #########################################################################################################
 class POVRAY_OT_loft_add(bpy.types.Operator):
+    """Create the representation of POV loft using Blender curves."""
+
     bl_idname = "pov.addloft"
     bl_label = "Add Loft Data"
     bl_description = "Create a Curve data for Meshmaker"
@@ -588,6 +605,11 @@ class POVRAY_OT_loft_add(bpy.types.Operator):
         return {'FINISHED'}
 
 class POVRAY_OT_plane_add(bpy.types.Operator):
+    """Add the representation of POV infinite plane using just a very big Blender Plane.
+
+    Flag its primitive type with a specific pov.object_as attribute and lock edit mode
+    to keep proxy consistency by hiding edit geometry."""
+
     bl_idname = "pov.addplane"
     bl_label = "Plane"
     bl_description = "Add Plane"
@@ -609,6 +631,11 @@ class POVRAY_OT_plane_add(bpy.types.Operator):
         return {'FINISHED'}
 
 class POVRAY_OT_box_add(bpy.types.Operator):
+    """Add the representation of POV box using a simple Blender mesh cube.
+
+    Flag its primitive type with a specific pov.object_as attribute and lock edit mode
+    to keep proxy consistency by hiding edit geometry."""
+
     bl_idname = "pov.addbox"
     bl_label = "Box"
     bl_description = "Add Box"
@@ -664,6 +691,9 @@ def pov_cylinder_define(context, op, ob, radius, loc, loc_cap):
 
 
 class POVRAY_OT_cylinder_add(bpy.types.Operator):
+    """Add the representation of POV cylinder using pov_cylinder_define() function.
+
+    Use imported_cyl_loc when this operator is run by POV importer."""
     bl_idname = "pov.addcylinder"
     bl_label = "Cylinder"
     bl_description = "Add Cylinder"
@@ -709,6 +739,11 @@ class POVRAY_OT_cylinder_add(bpy.types.Operator):
 
 
 class POVRAY_OT_cylinder_update(bpy.types.Operator):
+    """Update the POV cylinder.
+
+    Delete its previous proxy geometry and rerun pov_cylinder_define() function
+    with the new parameters"""
+
     bl_idname = "pov.cylinder_update"
     bl_label = "Update"
     bl_description = "Update Cylinder"
@@ -734,44 +769,53 @@ class POVRAY_OT_cylinder_update(bpy.types.Operator):
 
 ################################SPHERE##########################################
 def pov_sphere_define(context, op, ob, loc):
-        if op:
-            R = op.R
-            loc = bpy.context.scene.cursor.location
-        else:
-            assert(ob)
-            R = ob.pov.sphere_radius
+    """create the representation of POV sphere using a Blender icosphere.
 
-            #keep object rotation and location for the add object operator
-            obrot = ob.rotation_euler
-            #obloc = ob.location
-            obscale = ob.scale
+    Its nice platonic solid curvature better represents pov rendertime
+    tesselation than a UV sphere"""
 
-            bpy.ops.object.mode_set(mode="EDIT")
-            bpy.ops.mesh.reveal()
-            bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.mesh.delete(type='VERT')
-            bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, radius=ob.pov.sphere_radius, location=loc, rotation=obrot)
-            #bpy.ops.transform.rotate(axis=obrot,orient_type='GLOBAL')
-            bpy.ops.transform.resize(value=obscale)
-            #bpy.ops.transform.rotate(axis=obrot, proportional_size=1)
+    if op:
+        R = op.R
+        loc = bpy.context.scene.cursor.location
+    else:
+        assert(ob)
+        R = ob.pov.sphere_radius
+
+        #keep object rotation and location for the add object operator
+        obrot = ob.rotation_euler
+        #obloc = ob.location
+        obscale = ob.scale
+
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.reveal()
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.mesh.delete(type='VERT')
+        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, radius=ob.pov.sphere_radius, location=loc, rotation=obrot)
+        #bpy.ops.transform.rotate(axis=obrot,orient_type='GLOBAL')
+        bpy.ops.transform.resize(value=obscale)
+        #bpy.ops.transform.rotate(axis=obrot, proportional_size=1)
 
 
-            bpy.ops.mesh.hide(unselected=False)
-            bpy.ops.object.mode_set(mode="OBJECT")
-            bpy.ops.object.shade_smooth()
-            #bpy.ops.transform.rotate(axis=obrot,orient_type='GLOBAL')
+        bpy.ops.mesh.hide(unselected=False)
+        bpy.ops.object.mode_set(mode="OBJECT")
+        bpy.ops.object.shade_smooth()
+        #bpy.ops.transform.rotate(axis=obrot,orient_type='GLOBAL')
 
-        if not ob:
-            bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, radius=R, location=loc)
-            ob = context.object
-            ob.name =  ob.data.name = "PovSphere"
-            ob.pov.object_as = "SPHERE"
-            ob.pov.sphere_radius = R
-            bpy.ops.object.mode_set(mode="EDIT")
-            bpy.ops.mesh.hide(unselected=False)
-            bpy.ops.object.mode_set(mode="OBJECT")
+    if not ob:
+        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, radius=R, location=loc)
+        ob = context.object
+        ob.name =  ob.data.name = "PovSphere"
+        ob.pov.object_as = "SPHERE"
+        ob.pov.sphere_radius = R
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.hide(unselected=False)
+        bpy.ops.object.mode_set(mode="OBJECT")
 
 class POVRAY_OT_sphere_add(bpy.types.Operator):
+    """Add the representation of POV sphere using pov_sphere_define() function.
+
+    Use imported_loc when this operator is run by POV importer."""
+
     bl_idname = "pov.addsphere"
     bl_label = "Sphere"
     bl_description = "Add Sphere Shape"
@@ -823,6 +867,11 @@ class POVRAY_OT_sphere_add(bpy.types.Operator):
         # ob.name = ob.data.name = 'PovSphere'
         # return {'FINISHED'}
 class POVRAY_OT_sphere_update(bpy.types.Operator):
+    """Update the POV sphere.
+
+    Delete its previous proxy geometry and rerun pov_sphere_define() function
+    with the new parameters"""
+
     bl_idname = "pov.sphere_update"
     bl_label = "Update"
     bl_description = "Update Sphere"
@@ -844,6 +893,9 @@ class POVRAY_OT_sphere_update(bpy.types.Operator):
 
 ####################################CONE#######################################
 def pov_cone_define(context, op, ob):
+    """Add the representation of POV cone using pov_define_mesh() function.
+
+    Blender cone does not offer the same features such as a second radius."""
     verts = []
     faces = []
     if op:
@@ -903,13 +955,15 @@ def pov_cone_define(context, op, ob):
 
 
 class POVRAY_OT_cone_add(bpy.types.Operator):
+    """Add the representation of POV cone using pov_cone_define() function."""
+
     bl_idname = "pov.cone_add"
     bl_label = "Cone"
     bl_description = "Add Cone"
     bl_options = {'REGISTER', 'UNDO'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-    # XXX Keep it in sync with __init__'s RenderPovSettingsConePrimitive
+    # XXX Keep it in sync with __init__.py's RenderPovSettingsConePrimitive
     #     If someone knows how to define operators' props from a func, I'd be delighted to learn it!
     base: FloatProperty(
         name = "Base radius", description = "The first radius of the cone",
@@ -937,6 +991,11 @@ class POVRAY_OT_cone_add(bpy.types.Operator):
 
 
 class POVRAY_OT_cone_update(bpy.types.Operator):
+    """Update the POV cone.
+
+    Delete its previous proxy geometry and rerun pov_cone_define() function
+    with the new parameters"""
+
     bl_idname = "pov.cone_update"
     bl_label = "Update"
     bl_description = "Update Cone"
@@ -959,9 +1018,15 @@ class POVRAY_OT_cone_update(bpy.types.Operator):
         pov_cone_define(context, None, context.object)
 
         return {'FINISHED'}
-#########################################################################################################
+
+########################################ISOSURFACES##################################
 
 class POVRAY_OT_isosurface_box_add(bpy.types.Operator):
+    """Add the representation of POV isosurface box using also just a Blender mesh cube.
+
+    Flag its primitive type with a specific pov.object_as attribute and lock edit mode
+    to keep proxy consistency by hiding edit geometry."""
+
     bl_idname = "pov.addisosurfacebox"
     bl_label = "Isosurface Box"
     bl_description = "Add Isosurface contained by Box"
@@ -984,6 +1049,11 @@ class POVRAY_OT_isosurface_box_add(bpy.types.Operator):
         return {'FINISHED'}
 
 class POVRAY_OT_isosurface_sphere_add(bpy.types.Operator):
+    """Add the representation of POV isosurface sphere by a Blender mesh icosphere.
+
+    Flag its primitive type with a specific pov.object_as attribute and lock edit mode
+    to keep proxy consistency by hiding edit geometry."""
+
     bl_idname = "pov.addisosurfacesphere"
     bl_label = "Isosurface Sphere"
     bl_description = "Add Isosurface contained by Sphere"
@@ -1007,6 +1077,11 @@ class POVRAY_OT_isosurface_sphere_add(bpy.types.Operator):
         return {'FINISHED'}
 
 class POVRAY_OT_sphere_sweep_add(bpy.types.Operator):
+    """Add the representation of POV sphere_sweep using a Blender NURBS curve.
+
+    Flag its primitive type with a specific ob.pov.curveshape attribute and
+    leave access to edit mode to keep user editable handles."""
+
     bl_idname = "pov.addspheresweep"
     bl_label = "Sphere Sweep"
     bl_description = "Create Sphere Sweep along curve"
@@ -1027,6 +1102,11 @@ class POVRAY_OT_sphere_sweep_add(bpy.types.Operator):
         return {'FINISHED'}
 
 class POVRAY_OT_blob_add(bpy.types.Operator):
+    """Add the representation of POV blob using a Blender meta ball.
+
+    No need to flag its primitive type as meta are exported to blobs
+    and leave access to edit mode to keep user editable thresholds."""
+
     bl_idname = "pov.addblobsphere"
     bl_label = "Blob Sphere"
     bl_description = "Add Blob Sphere"
@@ -1042,6 +1122,15 @@ class POVRAY_OT_blob_add(bpy.types.Operator):
 
 
 class POVRAY_OT_rainbow_add(bpy.types.Operator):
+    """Add the representation of POV rainbow using a Blender spot light.
+
+    Rainbows indeed propagate along a visibility cone.
+    Flag its primitive type with a specific ob.pov.object_as attribute
+    and leave access to edit mode to keep user editable handles.
+    Add a constraint to orient it towards camera because POV Rainbows
+    are view dependant and having it always initially visible is less
+    confusing """
+
     bl_idname = "pov.addrainbow"
     bl_label = "Rainbow"
     bl_description = "Add Rainbow"
@@ -1076,6 +1165,11 @@ class POVRAY_OT_rainbow_add(bpy.types.Operator):
         return {'FINISHED'}
 
 class POVRAY_OT_height_field_add(bpy.types.Operator, ImportHelper):
+    """Add the representation of POV height_field using a displaced grid.
+
+    texture slot fix and displace modifier will be needed because noise
+    displace operator was deprecated in 2.8"""
+
     bl_idname = "pov.addheightfield"
     bl_label = "Height Field"
     bl_description = "Add Height Field "
@@ -1159,47 +1253,54 @@ class POVRAY_OT_height_field_add(bpy.types.Operator, ImportHelper):
 
 ############################TORUS############################################
 def pov_torus_define(context, op, ob):
-        if op:
-            mas = op.mas
-            mis = op.mis
-            mar = op.mar
-            mir = op.mir
-        else:
-            assert(ob)
-            mas = ob.pov.torus_major_segments
-            mis = ob.pov.torus_minor_segments
-            mar = ob.pov.torus_major_radius
-            mir = ob.pov.torus_minor_radius
+    """Add the representation of POV torus using just a Blender torus.
 
-            #keep object rotation and location for the add object operator
-            obrot = ob.rotation_euler
-            obloc = ob.location
+    But flag its primitive type with a specific pov.object_as attribute and lock edit mode
+    to keep proxy consistency by hiding edit geometry."""
 
-            bpy.ops.object.mode_set(mode="EDIT")
-            bpy.ops.mesh.reveal()
-            bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.mesh.delete(type='VERT')
-            bpy.ops.mesh.primitive_torus_add(rotation = obrot, location = obloc, major_segments=mas, minor_segments=mis,major_radius=mar, minor_radius=mir)
+    if op:
+        mas = op.mas
+        mis = op.mis
+        mar = op.mar
+        mir = op.mir
+    else:
+        assert(ob)
+        mas = ob.pov.torus_major_segments
+        mis = ob.pov.torus_minor_segments
+        mar = ob.pov.torus_major_radius
+        mir = ob.pov.torus_minor_radius
+
+        #keep object rotation and location for the add object operator
+        obrot = ob.rotation_euler
+        obloc = ob.location
+
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.reveal()
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.mesh.delete(type='VERT')
+        bpy.ops.mesh.primitive_torus_add(rotation = obrot, location = obloc, major_segments=mas, minor_segments=mis,major_radius=mar, minor_radius=mir)
 
 
-            bpy.ops.mesh.hide(unselected=False)
-            bpy.ops.object.mode_set(mode="OBJECT")
+        bpy.ops.mesh.hide(unselected=False)
+        bpy.ops.object.mode_set(mode="OBJECT")
 
 
-        if not ob:
-            bpy.ops.mesh.primitive_torus_add(major_segments=mas, minor_segments=mis,major_radius=mar, minor_radius=mir)
-            ob = context.object
-            ob.name =  ob.data.name = "PovTorus"
-            ob.pov.object_as = "TORUS"
-            ob.pov.torus_major_segments = mas
-            ob.pov.torus_minor_segments = mis
-            ob.pov.torus_major_radius = mar
-            ob.pov.torus_minor_radius = mir
-            bpy.ops.object.mode_set(mode="EDIT")
-            bpy.ops.mesh.hide(unselected=False)
-            bpy.ops.object.mode_set(mode="OBJECT")
+    if not ob:
+        bpy.ops.mesh.primitive_torus_add(major_segments=mas, minor_segments=mis,major_radius=mar, minor_radius=mir)
+        ob = context.object
+        ob.name =  ob.data.name = "PovTorus"
+        ob.pov.object_as = "TORUS"
+        ob.pov.torus_major_segments = mas
+        ob.pov.torus_minor_segments = mis
+        ob.pov.torus_major_radius = mar
+        ob.pov.torus_minor_radius = mir
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.hide(unselected=False)
+        bpy.ops.object.mode_set(mode="OBJECT")
 
 class POVRAY_OT_torus_add(bpy.types.Operator):
+    """Add the representation of POV torus using using pov_torus_define() function."""
+
     bl_idname = "pov.addtorus"
     bl_label = "Torus"
     bl_description = "Add Torus"
@@ -1231,6 +1332,11 @@ class POVRAY_OT_torus_add(bpy.types.Operator):
 
 
 class POVRAY_OT_torus_update(bpy.types.Operator):
+    """Update the POV torus.
+
+    Delete its previous proxy geometry and rerun pov_torus_define() function
+    with the new parameters"""
+
     bl_idname = "pov.torus_update"
     bl_label = "Update"
     bl_description = "Update Torus"
@@ -1253,6 +1359,8 @@ class POVRAY_OT_torus_update(bpy.types.Operator):
 
 
 class POVRAY_OT_prism_add(bpy.types.Operator):
+    """Add the representation of POV prism using using an extruded curve."""
+
     bl_idname = "pov.addprism"
     bl_label = "Prism"
     bl_description = "Create Prism"
@@ -1300,65 +1408,70 @@ class POVRAY_OT_prism_add(bpy.types.Operator):
 
 ##############################PARAMETRIC######################################
 def pov_parametric_define(context, op, ob):
-        if op:
-            u_min = op.u_min
-            u_max = op.u_max
-            v_min = op.v_min
-            v_max = op.v_max
-            x_eq = op.x_eq
-            y_eq = op.y_eq
-            z_eq = op.z_eq
+    """Add the representation of POV parametric surfaces by math surface from add mesh extra objects addon."""
 
-        else:
-            assert(ob)
-            u_min = ob.pov.u_min
-            u_max = ob.pov.u_max
-            v_min = ob.pov.v_min
-            v_max = ob.pov.v_max
-            x_eq = ob.pov.x_eq
-            y_eq = ob.pov.y_eq
-            z_eq = ob.pov.z_eq
+    if op:
+        u_min = op.u_min
+        u_max = op.u_max
+        v_min = op.v_min
+        v_max = op.v_max
+        x_eq = op.x_eq
+        y_eq = op.y_eq
+        z_eq = op.z_eq
 
-            #keep object rotation and location for the updated object
-            obloc = ob.location
-            obrot = ob.rotation_euler # In radians
-            #Parametric addon has no loc rot, some extra work is needed
-            #in case cursor has moved
-            curloc = bpy.context.scene.cursor.location
+    else:
+        assert(ob)
+        u_min = ob.pov.u_min
+        u_max = ob.pov.u_max
+        v_min = ob.pov.v_min
+        v_max = ob.pov.v_max
+        x_eq = ob.pov.x_eq
+        y_eq = ob.pov.y_eq
+        z_eq = ob.pov.z_eq
 
-
-            bpy.ops.object.mode_set(mode="EDIT")
-            bpy.ops.mesh.reveal()
-            bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.mesh.delete(type='VERT')
-            bpy.ops.mesh.primitive_xyz_function_surface(x_eq=x_eq, y_eq=y_eq, z_eq=z_eq, range_u_min=u_min, range_u_max=u_max, range_v_min=v_min, range_v_max=v_max)
-            bpy.ops.mesh.select_all(action='SELECT')
-            #extra work:
-            bpy.ops.transform.translate(value=(obloc-curloc), proportional_size=1)
-            bpy.ops.transform.rotate(axis=obrot, proportional_size=1)
-
-            bpy.ops.mesh.hide(unselected=False)
-            bpy.ops.object.mode_set(mode="OBJECT")
+        #keep object rotation and location for the updated object
+        obloc = ob.location
+        obrot = ob.rotation_euler # In radians
+        #Parametric addon has no loc rot, some extra work is needed
+        #in case cursor has moved
+        curloc = bpy.context.scene.cursor.location
 
 
-        if not ob:
-            bpy.ops.mesh.primitive_xyz_function_surface(x_eq=x_eq, y_eq=y_eq, z_eq=z_eq, range_u_min=u_min, range_u_max=u_max, range_v_min=v_min, range_v_max=v_max)
-            ob = context.object
-            ob.name =  ob.data.name = "PovParametric"
-            ob.pov.object_as = "PARAMETRIC"
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.reveal()
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.mesh.delete(type='VERT')
+        bpy.ops.mesh.primitive_xyz_function_surface(x_eq=x_eq, y_eq=y_eq, z_eq=z_eq, range_u_min=u_min, range_u_max=u_max, range_v_min=v_min, range_v_max=v_max)
+        bpy.ops.mesh.select_all(action='SELECT')
+        #extra work:
+        bpy.ops.transform.translate(value=(obloc-curloc), proportional_size=1)
+        bpy.ops.transform.rotate(axis=obrot, proportional_size=1)
 
-            ob.pov.u_min = u_min
-            ob.pov.u_max = u_max
-            ob.pov.v_min = v_min
-            ob.pov.v_max = v_max
-            ob.pov.x_eq = x_eq
-            ob.pov.y_eq = y_eq
-            ob.pov.z_eq = z_eq
+        bpy.ops.mesh.hide(unselected=False)
+        bpy.ops.object.mode_set(mode="OBJECT")
 
-            bpy.ops.object.mode_set(mode="EDIT")
-            bpy.ops.mesh.hide(unselected=False)
-            bpy.ops.object.mode_set(mode="OBJECT")
+
+    if not ob:
+        bpy.ops.mesh.primitive_xyz_function_surface(x_eq=x_eq, y_eq=y_eq, z_eq=z_eq, range_u_min=u_min, range_u_max=u_max, range_v_min=v_min, range_v_max=v_max)
+        ob = context.object
+        ob.name =  ob.data.name = "PovParametric"
+        ob.pov.object_as = "PARAMETRIC"
+
+        ob.pov.u_min = u_min
+        ob.pov.u_max = u_max
+        ob.pov.v_min = v_min
+        ob.pov.v_max = v_max
+        ob.pov.x_eq = x_eq
+        ob.pov.y_eq = y_eq
+        ob.pov.z_eq = z_eq
+
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.hide(unselected=False)
+        bpy.ops.object.mode_set(mode="OBJECT")
+        
 class POVRAY_OT_parametric_add(bpy.types.Operator):
+    """Add the representation of POV parametric surfaces using pov_parametric_define() function."""
+    
     bl_idname = "pov.addparametric"
     bl_label = "Parametric"
     bl_description = "Add Paramertic"
@@ -1400,6 +1513,11 @@ class POVRAY_OT_parametric_add(bpy.types.Operator):
         return {'FINISHED'}
 
 class POVRAY_OT_parametric_update(bpy.types.Operator):
+    """Update the representation of POV parametric surfaces.
+
+    Delete its previous proxy geometry and rerun pov_parametric_define() function
+    with the new parameters"""
+    
     bl_idname = "pov.parametric_update"
     bl_label = "Update"
     bl_description = "Update parametric object"
@@ -1418,7 +1536,10 @@ class POVRAY_OT_parametric_update(bpy.types.Operator):
 
         return {'FINISHED'}
 #######################################################################
+
 class POVRAY_OT_shape_polygon_to_circle_add(bpy.types.Operator):
+    """Add the proxy mesh for POV Polygon to circle lofting macro"""
+
     bl_idname = "pov.addpolygontocircle"
     bl_label = "Polygon To Circle Blending"
     bl_description = "Add Polygon To Circle Blending Surface"

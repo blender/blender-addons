@@ -40,6 +40,8 @@ from . import nodes # for POV specific nodes
 ##############################SF###########################
 ##############find image texture
 def imageFormat(imgF):
+    """Identify input image filetypes to transmit to POV."""
+    # First use the below explicit extensions to identify image file prospects
     ext = {
         'JPG': "jpeg",
         'JPEG': "jpeg",
@@ -54,7 +56,7 @@ def imageFormat(imgF):
         'EXR': "exr",
         'HDR': "hdr",
     }.get(os.path.splitext(imgF)[-1].upper(), "")
-
+    # Then, use imghdr to really identify the filetype as it can be different
     if not ext:
         #maybe add a check for if path exists here?
         print(" WARNING: texture image has no extension") #too verbose
@@ -64,6 +66,7 @@ def imageFormat(imgF):
 
 
 def imgMap(ts):
+    """Translate mapping type from Blender UI to POV syntax and return that string."""
     image_map = ""
     if ts.mapping == 'FLAT':
         image_map = "map_type 0 "
@@ -72,7 +75,7 @@ def imgMap(ts):
     elif ts.mapping == 'TUBE':
         image_map = "map_type 2 "
 
-    ## map_type 3 and 4 in development (?)
+    ## map_type 3 and 4 in development (?) (ENV in pov 3.8)
     ## for POV-Ray, currently they just seem to default back to Flat (type 0)
     #elif ts.mapping=="?":
     #    image_map = " map_type 3 "
@@ -93,6 +96,7 @@ def imgMap(ts):
 
 
 def imgMapTransforms(ts):
+    """Translate mapping transformations from Blender UI to POV syntax and return that string."""
     # XXX TODO: unchecked textures give error of variable referenced before assignment XXX
     # POV-Ray "scale" is not a number of repetitions factor, but ,its
     # inverse, a standard scale factor.
@@ -126,6 +130,7 @@ def imgMapTransforms(ts):
     return image_map_transforms
 
 def imgMapBG(wts):
+    """Translate world mapping from Blender UI to POV syntax and return that string."""
     image_mapBG = ""
     # texture_coords refers to the mapping of world textures:
     if wts.texture_coords == 'VIEW' or wts.texture_coords == 'GLOBAL':
@@ -150,6 +155,7 @@ def imgMapBG(wts):
 
 
 def path_image(image):
+    """Conform a path string to POV syntax to avoid POV errors."""
     return bpy.path.abspath(image.filepath, library=image.library).replace("\\","/")
     # .replace("\\","/") to get only forward slashes as it's what POV prefers,
     # even on windows
@@ -158,16 +164,24 @@ def path_image(image):
 
 
 def string_strip_hyphen(name):
+    """Remove hyphen characters from a string to avoid POV errors."""
     return name.replace("-", "")
 
 
 def safety(name, Level):
-    # safety string name material
-    #
-    # Level=1 is for texture with No specular nor Mirror reflection
-    # Level=2 is for texture with translation of spec and mir levels
-    # for when no map influences them
-    # Level=3 is for texture with Maximum Spec and Mirror
+    """append suffix characters to names of various material declinations.
+    
+    Material declinations are necessary to POV syntax and used in shading.py
+    by the povHasnoSpecularMaps function to create the finish map trick and
+    the suffixes avoid name collisions.
+    Keyword arguments:
+    name -- the initial material name as a string
+    Level -- the enum number of the Level being written:
+        Level=1 is for texture with No specular nor Mirror reflection
+        Level=2 is for texture with translation of spec and mir levels
+        for when no map influences them
+        Level=3 is for texture with Maximum Spec and Mirror    
+    """
 
     try:
         if int(name) > 0:
@@ -293,6 +307,11 @@ def write_global_setting(scene,file):
     file.write("}\n")
 '''
 def write_object_modifiers(scene,ob,File):
+    """Translate some object level POV statements from Blender UI
+    to POV syntax and write to exported file """
+    
+    # Maybe return that string to be added instead of directly written.
+
     '''XXX WIP
     onceCSG = 0
     for mod in ob.modifiers:
@@ -352,6 +371,7 @@ def write_object_modifiers(scene,ob,File):
 
 
 def write_pov(filename, scene=None, info_callback=None):
+    """Main export process from Blender UI to POV syntax and write to exported file """
     import mathutils
     #file = filename
     file = open(filename, "w")
@@ -390,6 +410,7 @@ def write_pov(filename, scene=None, info_callback=None):
     tab = setTab(scene.pov.indentation_character, scene.pov.indentation_spaces)
     if not scene.pov.tempfiles_enable:
         def tabWrite(str_o):
+            """Indent POV syntax from brackets levels and write to exported file """        
             global tabLevel
             brackets = str_o.count("{") - str_o.count("}") + str_o.count("[") - str_o.count("]")
             if brackets < 0:
@@ -404,9 +425,12 @@ def write_pov(filename, scene=None, info_callback=None):
                 tabLevel = tabLevel + brackets
     else:
         def tabWrite(str_o):
+            """write directly to exported file if user checked autonamed temp files (faster)."""        
+
             file.write(str_o)
 
     def uniqueName(name, nameSeq):
+        """Increment any generated POV name that could get identical to avoid collisions"""        
 
         if name not in nameSeq:
             name = string_strip_hyphen(name)
@@ -421,6 +445,8 @@ def write_pov(filename, scene=None, info_callback=None):
         return name
 
     def writeMatrix(matrix):
+        """Translate some tranform matrix from Blender UI
+        to POV syntax and write to exported file """
         tabWrite("matrix <%.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f>\n" %
                  (matrix[0][0], matrix[1][0], matrix[2][0],
                   matrix[0][1], matrix[1][1], matrix[2][1],
@@ -428,6 +454,8 @@ def write_pov(filename, scene=None, info_callback=None):
                   matrix[0][3], matrix[1][3], matrix[2][3]))
 
     def MatrixAsPovString(matrix):
+        """Translate some tranform matrix from Blender UI
+        to POV syntax and return that string """
         sMatrix = ("matrix <%.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f>\n" %
                    (matrix[0][0], matrix[1][0], matrix[2][0],
                     matrix[0][1], matrix[1][1], matrix[2][1],
@@ -436,7 +464,9 @@ def write_pov(filename, scene=None, info_callback=None):
         return sMatrix
 
     def writeObjectMaterial(material, ob):
-
+        """Translate some object level material from Blender UI (VS data level)
+        to POV interior{} syntax and write it to exported file """    
+    
         # DH - modified some variables to be function local, avoiding RNA write
         # this should be checked to see if it is functionally correct
 
@@ -517,6 +547,7 @@ def write_pov(filename, scene=None, info_callback=None):
     DEF_MAT_NAME = "" #or "Default"?
 
     def exportCamera():
+        """Translate camera from Blender UI to POV syntax and write to exported file."""
         camera = scene.camera
 
         # DH disabled for now, this isn't the correct context
@@ -572,6 +603,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
 
     def exportLamps(lamps):
+        """Translate lights from Blender UI to POV syntax and write to exported file."""
         # Incremented after each lamp export to declare its target
         # currently used for Fresnel diffuse shader as their slope vector:
         global lampCount
@@ -691,6 +723,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
 ####################################################################################################
     def exportRainbows(rainbows):
+        """write all POV rainbows primitives to exported file """
         for ob in rainbows:
             povdataname = ob.data.name #enough?
             angle = degrees(ob.data.spot_size/2.5) #radians in blender (2
@@ -758,6 +791,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
 ################################XXX LOFT, ETC.
     def exportCurves(scene, ob):
+        """write all curves based POV primitives to exported file """
         name_orig = "OB" + ob.name
         dataname_orig = "DATA" + ob.data.name
 
@@ -1621,7 +1655,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
 
     def exportMeta(metas):
-
+        """write all POV blob primitives and Blender Metas to exported file """
         # TODO - blenders 'motherball' naming is not supported.
 
         if comments and len(metas) >= 1:
@@ -1802,6 +1836,7 @@ def write_pov(filename, scene=None, info_callback=None):
     DEF_OBJ_NAME = "Default"
 
     def exportMeshes(scene, sel, csg):
+        """write all meshes as POV mesh2{} syntax to exported file """
 #        obmatslist = []
 #        def hasUniqueMaterial():
 #            # Grab materials attached to object instances ...
@@ -3318,6 +3353,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 tabWrite("}\n")
 
     def exportWorld(world):
+        """write world as POV backgrounbd and sky_sphere to exported file """
         render = scene.pov
         camera = scene.camera
         matrix = global_matrix @ camera.matrix_world
@@ -3482,7 +3518,7 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("}\n")
 
     def exportGlobalSettings(scene):
-
+        """write all POV global settings to exported file """
         tabWrite("global_settings {\n")
         tabWrite("assumed_gamma 1.0\n")
         tabWrite("max_trace_level %d\n" % scene.pov.max_trace_level)
@@ -3570,6 +3606,7 @@ def write_pov(filename, scene=None, info_callback=None):
         tabWrite("}\n")
 
     def exportCustomCode():
+        """write all POV user defined custom code to exported file """    
         # Write CurrentAnimation Frame for use in Custom POV Code
         file.write("#declare CURFRAMENUM = %d;\n" % bpy.context.scene.frame_current)
         #Change path and uncomment to add an animated include file by hand:
@@ -3708,6 +3745,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
 
 def write_pov_ini(scene, filename_ini, filename_log, filename_pov, filename_image):
+    """Write ini file."""
     feature_set = bpy.context.preferences.addons[__package__].preferences.branch_feature_set_povray
     using_uberpov = (feature_set=='uberpov')
     #scene = bpy.data.scenes[0]
@@ -3782,6 +3820,7 @@ def write_pov_ini(scene, filename_ini, filename_log, filename_pov, filename_imag
 
 
 class PovrayRender(bpy.types.RenderEngine):
+    """Define the external renderer"""
     bl_idname = 'POVRAY_RENDER'
     bl_label = "Persitence Of Vision"
     bl_use_shading_nodes_custom = False
@@ -3789,6 +3828,7 @@ class PovrayRender(bpy.types.RenderEngine):
 
     @staticmethod
     def _locate_binary():
+        """Identify POV engine"""    
         addon_prefs = bpy.context.preferences.addons[__package__].preferences
 
         # Use the system preference if its set.
@@ -3839,6 +3879,7 @@ class PovrayRender(bpy.types.RenderEngine):
         return ""
 
     def _export(self, depsgraph, povPath, renderImagePath):
+        """gather all necessary output files paths user defined and auto generated and export there"""    
         import tempfile
         scene = bpy.context.scene
         if scene.pov.tempfiles_enable:
@@ -3877,6 +3918,7 @@ class PovrayRender(bpy.types.RenderEngine):
         else:
             pass
     def _render(self, depsgraph):
+        """Export necessary files and render image."""
         scene = bpy.context.scene
         try:
             os.remove(self._temp_file_out)  # so as not to load the old file
@@ -3927,6 +3969,7 @@ class PovrayRender(bpy.types.RenderEngine):
         # Now that we have a valid process
 
     def _cleanup(self):
+        """Delete temp files and unpacked ones"""
         for f in (self._temp_file_in, self._temp_file_ini, self._temp_file_out):
             for i in range(5):
                 try:
@@ -3946,6 +3989,7 @@ class PovrayRender(bpy.types.RenderEngine):
                     # and Windows does not know how to delete a file in use!
                     time.sleep(self.DELAY)
     def render(self, depsgraph):
+        """Export necessary files from text editor and render image."""    
         import tempfile
         scene = bpy.context.scene
         r = scene.render
@@ -4340,6 +4384,7 @@ class PovrayRender(bpy.types.RenderEngine):
 #################################Operators########################################
 ##################################################################################
 class RenderPovTexturePreview(Operator):
+    """Export only files necessary to texture preview and render image."""
     bl_idname = "tex.preview_update"
     bl_label = "Update preview"
     def execute(self, context):
@@ -4432,6 +4477,7 @@ class RenderPovTexturePreview(Operator):
         return {'FINISHED'}
 
 class RunPovTextRender(Operator):
+    """Export files depending on text editor options and render image."""
     bl_idname = "text.run"
     bl_label = "Run"
     bl_context = "text"

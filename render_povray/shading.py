@@ -1,7 +1,9 @@
-# For BI > POV shaders emulation
+"""Translate complex shaders to exported POV textures."""
+
 import bpy
 
 def writeMaterial(using_uberpov, DEF_MAT_NAME, scene, tabWrite, safety, comments, uniqueName, materialNames, material):
+    """Translate Blender material POV texture{} block and write to exported file."""
     # Assumes only called once on each material
     if material:
         name_orig = material.name
@@ -22,6 +24,7 @@ def writeMaterial(using_uberpov, DEF_MAT_NAME, scene, tabWrite, safety, comments
     # Level=3 Means Maximum Spec and Mirror
 
     def povHasnoSpecularMaps(Level):
+        """Translate Blender specular map influence to POV finish map trick and write to file."""
         if Level == 1:
             if comments:
                 tabWrite("//--No specular nor Mirror reflection--\n")
@@ -268,6 +271,11 @@ def writeMaterial(using_uberpov, DEF_MAT_NAME, scene, tabWrite, safety, comments
             povHasnoSpecularMaps(Level=3)
 
 def exportPattern(texture, string_strip_hyphen):
+    """Translate Blender procedural textures to POV patterns and write to pov file.
+    
+    Function Patterns can be used to better access sub components of a pattern like
+    grey values for influence mapping"""
+    
     tex=texture
     pat = tex.pov
     PATname = "PAT_%s"%string_strip_hyphen(bpy.path.clean_name(tex.name))
@@ -752,6 +760,8 @@ def exportPattern(texture, string_strip_hyphen):
 def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, lampCount,
                             imageFormat, imgMap, imgMapTransforms, tabWrite, comments,
                             string_strip_hyphen, safety, col, os, preview_dir, unpacked_images):
+    """Translate Blender texture influences to various POV texture tricks and write to pov file."""
+        
     material_finish = materialNames[mater.name]
     if mater.pov.use_transparency:
         trans = 1.0 - mater.pov.alpha
@@ -1233,6 +1243,7 @@ def string_strip_hyphen(name):
     return name.replace("-", "")
 # WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 def write_nodes(scene,povMatName,ntree,file):
+    """translate Blender node trees to pov and write them to file"""
     declareNodes=[]
     scene=bpy.context.scene
     for node in ntree.nodes:

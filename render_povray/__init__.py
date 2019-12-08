@@ -18,6 +18,78 @@
 
 # <pep8 compliant>
 
+"""Import, export and render to POV engines.
+
+These engines can be POV-Ray or Uberpov but others too, since POV is a
+Scene Description Language. The script has been split in as few files 
+as possible :
+
+___init__.py :
+    Initialize variables
+    
+update_files.py
+    Update new variables to values from older API. This file needs an update.  
+    
+ui.py :
+    Provide property buttons for the user to set up the variables.
+    
+primitives.py :
+    Display some POV native primitives in 3D view for input and output.
+
+shading.py
+    Translate shading properties to declared textures at the top of a pov file 
+
+nodes.py
+    Translate node trees to the pov file
+    
+df3.py
+    Render smoke to *.df3 files
+    
+render.py :
+    Translate geometry and UI properties (Blender and POV native) to the POV file
+    
+
+Along these essential files also coexist a few additional libraries to help make
+Blender stand up to other POV IDEs such as povwin or QTPOV.
+    presets :
+        Material (sss)
+            apple.py ; chicken.py ; cream.py ; Ketchup.py ; marble.py ; 
+            potato.py ; skim_milk.py ; skin1.py ; skin2.py ; whole_milk.py
+        Radiosity
+            01_Debug.py ; 02_Fast.py ; 03_Normal.py ; 04_Two_Bounces.py ; 
+            05_Final.py ; 06_Outdoor_Low_Quality.py ; 07_Outdoor_High_Quality.py ;
+            08_Outdoor(Sun)Light.py ; 09_Indoor_Low_Quality.py ;
+            10_Indoor_High_Quality.py ;
+        World
+            01_Clear_Blue_Sky.py ; 02_Partly_Hazy_Sky.py ; 03_Overcast_Sky.py ;
+            04_Cartoony_Sky.py ; 05_Under_Water.py ;
+        Light
+            01_(5400K)_Direct_Sun.py ; 02_(5400K)_High_Noon_Sun.py ;
+            03_(6000K)_Daylight_Window.py ;
+            04_(6000K)_2500W_HMI_(Halogen_Metal_Iodide).py ;
+            05_(4000K)_100W_Metal_Halide.py ; 06_(3200K)_100W_Quartz_Halogen.py ;
+            07_(2850K)_100w_Tungsten.py ; 08_(2600K)_40w_Tungsten.py ;
+            09_(5000K)_75W_Full_Spectrum_Fluorescent_T12.py ;
+            10_(4300K)_40W_Vintage_Fluorescent_T12.py ;
+            11_(5000K)_18W_Standard_Fluorescent_T8 ;
+            12_(4200K)_18W_Cool_White_Fluorescent_T8.py ;
+            13_(3000K)_18W_Warm_Fluorescent_T8.py ; 
+            14_(6500K)_54W_Grow_Light_Fluorescent_T5-HO.py ;
+            15_(3200K)_40W_Induction_Fluorescent.py ;
+            16_(2100K)_150W_High_Pressure_Sodium.py ;
+            17_(1700K)_135W_Low_Pressure_Sodium.py ;
+            18_(6800K)_175W_Mercury_Vapor.py ; 19_(5200K)_700W_Carbon_Arc.py ;
+            20_(6500K)_15W_LED_Spot.py ; 21_(2700K)_7W_OLED_Panel.py ; 
+            22_(30000K)_40W_Black_Light_Fluorescent.py ;
+            23_(30000K)_40W_Black_Light_Bulb.py; 24_(1850K)_Candle.py
+    templates:
+        abyss.pov ; biscuit.pov ; bsp_Tango.pov ; chess2.pov ;
+        cornell.pov ; diffract.pov ; diffuse_back.pov ; float5 ;
+        gamma_showcase.pov ; grenadine.pov ; isocacti.pov ;
+        mediasky.pov ; patio-radio.pov ; subsurface.pov ; wallstucco.pov
+"""
+
+
 bl_info = {
     "name": "Persistence of Vision",
     "author": "Campbell Barton, "
@@ -71,6 +143,7 @@ else:
             )
 
 def string_strip_hyphen(name):
+    """Remove hyphen characters from a string to avoid POV errors."""
     return name.replace("-", "")
 
 def active_texture_name_from_uilist(self,context):
@@ -98,6 +171,7 @@ def active_texture_name_from_search(self,context):
 # Scene POV properties.
 ###############################################################################
 class RenderPovSettingsScene(PropertyGroup):
+    """Declare scene level properties controllable in UI and translated to POV."""
     #Linux SDL-window enable
     sdl_window_enable: BoolProperty(
             name="Enable SDL window",
@@ -583,6 +657,7 @@ class RenderPovSettingsScene(PropertyGroup):
 # Material POV properties.
 ###############################################################################
 class MaterialTextureSlot(PropertyGroup):
+    """Declare material texture slot level properties for UI and translated to POV."""
     bl_idname="pov_texture_slots",
     bl_description="Texture_slots from Blender-2.79",
     
@@ -984,7 +1059,8 @@ bpy.types.ID.active_texture_index = IntProperty(
         default = 0)
                 
 class RenderPovSettingsMaterial(PropertyGroup):
-######################Begin Old Blender Internal Props#########################
+    """Declare material level properties controllable in UI and translated to POV."""
+    ######################Begin Old Blender Internal Props#########################
     #former Space properties from  removed Blender Internal
     use_limited_texture_context: BoolProperty(
             name="",
@@ -1558,7 +1634,8 @@ class RenderPovSettingsMaterial(PropertyGroup):
     object_preview_rotate: FloatVectorProperty(name="Rotate", description="", min=-180.0, max=180.0,default=(0.0,0.0,0.0), subtype='XYZ')
     object_preview_bgcontrast: FloatProperty(name="Contrast", min=0.0, max=1.0, default=0.5)
 
-class MaterialRaytraceTransparency(PropertyGroup):        
+class MaterialRaytraceTransparency(PropertyGroup):
+    """Declare transparency panel properties controllable in UI and translated to POV."""
            
     depth: IntProperty(
             name="Depth",
@@ -1614,6 +1691,8 @@ class MaterialRaytraceTransparency(PropertyGroup):
             min=-0.0, max=10.0, soft_min=0.25, soft_max=4.0, default=1.3)
             
 class MaterialRaytraceMirror(PropertyGroup):
+    """Declare reflection panel properties controllable in UI and translated to POV."""
+
     bl_description = "Raytraced reflection settings for the Material",  
     use: BoolProperty(
             name="Mirror", 
@@ -1689,6 +1768,8 @@ class MaterialRaytraceMirror(PropertyGroup):
             min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default=1.0, precision=3)
             
 class MaterialSubsurfaceScattering(PropertyGroup):
+    r"""Declare SSS/SSTL properties controllable in UI and translated to POV."""
+
     bl_description = "Subsurface scattering settings for the material",          
 
     use: BoolProperty(
@@ -1747,6 +1828,8 @@ class MaterialSubsurfaceScattering(PropertyGroup):
             min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default=0.0, precision=3)
 
 class MaterialStrandSettings(PropertyGroup):
+    """Declare strand properties controllable in UI and translated to POV."""
+
     bl_description = "Strand settings for the material",          
 
     blend_distance: FloatProperty(
@@ -3099,6 +3182,8 @@ node_categories = [
 # Texture POV properties.
 ###############################################################################
 class RenderPovSettingsTexture(PropertyGroup):
+    """Declare texture level properties controllable in UI and translated to POV."""
+    
     #former Space properties from  removed Blender Internal
     active_texture_index: IntProperty(
             name = "Index for texture_slots",
@@ -3618,6 +3703,8 @@ class RenderPovSettingsTexture(PropertyGroup):
 ###############################################################################
 
 class RenderPovSettingsObject(PropertyGroup):
+    """Declare object and primitives level properties controllable in UI and translated to POV."""
+
     # Pov inside_vector used for CSG
     inside_vector: FloatVectorProperty(
             name="CSG Inside Vector", description="Direction to shoot CSG inside test rays at",
@@ -3767,14 +3854,17 @@ class RenderPovSettingsObject(PropertyGroup):
 
 
     def prop_update_cylinder(self, context):
+        """Update POV cylinder primitive parameters not only at creation but anytime they are changed in UI."""
         if bpy.ops.pov.cylinder_update.poll():
             bpy.ops.pov.cylinder_update()
-    cylinder_radius: FloatProperty(name="Cylinder R",min=0.00, max=10.0, default=0.04, update=prop_update_cylinder)
+
+    cylinder_radius: FloatProperty(
+            name="Cylinder R",min=0.00, max=10.0, default=0.04, update=prop_update_cylinder)
+
     cylinder_location_cap: FloatVectorProperty(
             name="Cylinder Cap Location", subtype='TRANSLATION',
             description="The position of the 'other' end of the cylinder (relative to object location)",
-            default=(0.0, 0.0, 2.0), update=prop_update_cylinder,
-    )
+            default=(0.0, 0.0, 2.0), update=prop_update_cylinder)
 
     imported_cyl_loc: FloatVectorProperty(
         name="Imported Pov location",
@@ -3787,16 +3877,21 @@ class RenderPovSettingsObject(PropertyGroup):
         default=(0.0, 0.0, 2.0))
 
     def prop_update_sphere(self, context):
+        """Update POV sphere primitive parameters not only at creation but anytime they are changed in UI."""    
         bpy.ops.pov.sphere_update()
-    sphere_radius: FloatProperty(name="Sphere radius",min=0.00, max=10.0, default=0.5, update=prop_update_sphere)
+
+    sphere_radius: FloatProperty(
+        name="Sphere radius",min=0.00, max=10.0, default=0.5, update=prop_update_sphere)
 
 
     def prop_update_cone(self, context):
+        """Update POV cone primitive parameters not only at creation but anytime they are changed in UI."""    
         bpy.ops.pov.cone_update()
 
     cone_base_radius: FloatProperty(
         name = "Base radius", description = "The first radius of the cone",
         default = 1.0, min = 0.01, max = 100.0, update=prop_update_cone)
+        
     cone_cap_radius: FloatProperty(
         name = "Cap radius", description = "The second radius of the cone",
         default = 0.3, min = 0.0, max = 100.0, update=prop_update_cone)
@@ -3810,10 +3905,12 @@ class RenderPovSettingsObject(PropertyGroup):
         default = 2.0, min = 0.01, max = 100.0, update=prop_update_cone)
 
     cone_base_z: FloatProperty()
+    
     cone_cap_z: FloatProperty()
 
 ###########Parametric
     def prop_update_parametric(self, context):
+        """Update POV parametric surface primitive parameters not only at creation but anytime they are changed in UI."""
         bpy.ops.pov.parametric_update()
 
     u_min: FloatProperty(name = "U Min",
@@ -3838,6 +3935,7 @@ class RenderPovSettingsObject(PropertyGroup):
 ###########Torus
 
     def prop_update_torus(self, context):
+        """Update POV torus primitive parameters not only at creation but anytime they are changed in UI."""
         bpy.ops.pov.torus_update()
 
     torus_major_segments: IntProperty(
@@ -3899,6 +3997,7 @@ class RenderPovSettingsObject(PropertyGroup):
 
 ##############Superellipsoid
     def prop_update_superellipsoid(self, context):
+        """Update POV superellipsoid primitive parameters not only at creation but anytime they are changed in UI."""
         bpy.ops.pov.superellipsoid_update()
 
     se_param1: FloatProperty(
@@ -3948,6 +4047,7 @@ class RenderPovSettingsObject(PropertyGroup):
 
 #############Supertorus
     def prop_update_supertorus(self, context):
+        """Update POV supertorus primitive parameters not only at creation but anytime they are changed in UI."""  
         bpy.ops.pov.supertorus_update()
 
     st_major_radius: FloatProperty(
@@ -4089,6 +4189,7 @@ class RenderPovSettingsObject(PropertyGroup):
 # Camera POV properties.
 ###############################################################################
 class RenderPovSettingsCamera(PropertyGroup):
+    """Declare camera properties controllable in UI and translated to POV."""
     #DOF Toggle
     dof_enable: BoolProperty(
             name="Depth Of Field", description="Enable POV Depth Of Field ",
@@ -4153,6 +4254,7 @@ class RenderPovSettingsCamera(PropertyGroup):
 # Light POV properties.
 ###############################################################################
 class RenderPovSettingsLight(PropertyGroup):
+    """Declare light properties controllable in UI and translated to POV."""
     #former Space properties from  removed Blender Internal
     use_limited_texture_context: BoolProperty(
             name="",
@@ -4207,6 +4309,7 @@ class RenderPovSettingsLight(PropertyGroup):
 # World POV properties.
 ###############################################################################
 class RenderPovSettingsWorld(PropertyGroup):
+    """Declare world properties controllable in UI and translated to POV."""
     #former Space properties from  removed Blender Internal
     use_limited_texture_context: BoolProperty(
             name="",
@@ -4255,6 +4358,7 @@ class RenderPovSettingsWorld(PropertyGroup):
             name = "Index for texture_slots",
             default = 0)
 class WorldTextureSlot(PropertyGroup):
+    """Declare world texture slot properties controllable in UI and translated to POV."""
     blend_factor: FloatProperty(
                 name="Blend",
                 description="Amount texture affects color progression of the "
@@ -4352,6 +4456,7 @@ class MATERIAL_TEXTURE_SLOTS_UL_POV_layerlist(bpy.types.UIList):
 # Text POV properties.
 ###############################################################################
 class RenderPovSettingsText(PropertyGroup):
+    """Declare text properties to use UI as an IDE or render text snippets to POV."""
     custom_code: EnumProperty(
             name="Custom Code",
             description="rendered source: Both adds text at the "
@@ -4365,6 +4470,7 @@ class RenderPovSettingsText(PropertyGroup):
 # Povray Preferences.
 ###############################################################################
 class PovrayPreferences(AddonPreferences):
+    """Declare preference variables to set up POV binary."""
     bl_idname = __name__
 
     branch_feature_set_povray: EnumProperty(
