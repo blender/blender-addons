@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-
+"""User interface for the POV tools"""
 import bpy
 import sys #really import here and in render.py?
 import os #really import here and in render.py?
@@ -191,9 +191,9 @@ from bl_ui import properties_material
 for member in dir(properties_material):
     subclass = getattr(properties_material, member)
     try:
-        mat=bpy.context.active_object.active_material
-        if (mat and mat.pov.type == "SURFACE" 
-            and not (mat.pov.material_use_nodes or mat.use_nodes)): 
+        # mat=bpy.context.active_object.active_material
+        # if (mat and mat.pov.type == "SURFACE" 
+            # and not (mat.pov.material_use_nodes or mat.use_nodes)): 
         # and (engine in cls.COMPAT_ENGINES)) if subclasses were sorted
             subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
     except:
@@ -283,16 +283,27 @@ def check_material(mat):
     return False
 
 def simple_material(mat):
+    """Test if a material uses nodes"""
     if (mat is not None) and (not mat.use_nodes):
         return True
     return False
     
 def check_add_mesh_extra_objects():
+    """Test if Add mesh extra objects addon is activated
+    
+    This addon is currently used to generate the proxy for POV parametric
+    surface which is almost the same priciple as its Math xyz surface
+    """
     if "add_mesh_extra_objects" in bpy.context.preferences.addons.keys():
         return True
     return False
 
 def locate_docpath():
+    """POV can be installed with some include files.
+    
+    Get their path as defined in user preferences or registry keys for
+    the user to be able to invoke them."""
+    
     addon_prefs = bpy.context.preferences.addons[__package__].preferences
     # Use the system preference if its set.
     pov_documents = addon_prefs.docpath_povray
@@ -326,7 +337,8 @@ def locate_docpath():
     return ""
 
 def pov_context_tex_datablock(context):
-
+    """Texture context type recreated as deprecated in blender 2.8"""
+    
     idblock = context.brush
     if idblock and bpy.context.scene.texture_context == 'OTHER':
         return idblock
@@ -354,6 +366,9 @@ def pov_context_tex_datablock(context):
         return idblock
         
 class RenderButtonsPanel():
+    """Use this class to define buttons from the render tab of
+    properties window."""
+    
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
@@ -365,6 +380,8 @@ class RenderButtonsPanel():
         return (rd.engine in cls.COMPAT_ENGINES)
 
 class ModifierButtonsPanel():
+    """Use this class to define buttons from the modifier tab of
+    properties window."""
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "modifier"
@@ -377,6 +394,8 @@ class ModifierButtonsPanel():
         return mods and (rd.engine in cls.COMPAT_ENGINES)
 
 class MaterialButtonsPanel():
+    """Use this class to define buttons from the material tab of
+    properties window."""
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "material"
@@ -390,6 +409,8 @@ class MaterialButtonsPanel():
 
 
 class TextureButtonsPanel():
+    """Use this class to define buttons from the texture tab of
+    properties window."""
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "texture"
@@ -411,6 +432,8 @@ class TextureButtonsPanel():
 
 
 class ObjectButtonsPanel():
+    """Use this class to define buttons from the object tab of
+    properties window."""
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"
@@ -423,6 +446,8 @@ class ObjectButtonsPanel():
         return obj and (rd.engine in cls.COMPAT_ENGINES)
 
 class CameraDataButtonsPanel():
+    """Use this class to define buttons from the camera data tab of
+    properties window."""
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
@@ -435,6 +460,8 @@ class CameraDataButtonsPanel():
         return cam and (rd.engine in cls.COMPAT_ENGINES)
 
 class WorldButtonsPanel():
+    """Use this class to define buttons from the world tab of
+    properties window."""
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "world"
@@ -447,6 +474,8 @@ class WorldButtonsPanel():
         return wld and (rd.engine in cls.COMPAT_ENGINES)
 
 class TextButtonsPanel():
+    """Use this class to define buttons from the side tab of
+    text window."""
     bl_space_type = 'TEXT_EDITOR'
     bl_region_type = 'UI'
     bl_label = "POV-Ray"
@@ -467,6 +496,8 @@ properties_data_mesh.DATA_PT_context_mesh.COMPAT_ENGINES.add('POVRAY_RENDER')
 ## by recreating custom panels inheriting their properties
 
 class PovDataButtonsPanel(properties_data_mesh.MeshButtonsPanel):
+    """Use this class to define buttons from the edit data tab of
+    properties window."""
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     POV_OBJECT_TYPES = {'PLANE', 'BOX', 'SPHERE', 'CYLINDER', 'CONE', 'TORUS', 'BLOB',
                         'ISOSURFACE', 'SUPERELLIPSOID', 'SUPERTORUS', 'HEIGHT_FIELD',
@@ -551,6 +582,8 @@ properties_data_light.DATA_PT_context_light.COMPAT_ENGINES.add('POVRAY_RENDER')
 ## make some native panels contextual to some object variable
 ## by recreating custom panels inheriting their properties
 class PovLampButtonsPanel(properties_data_light.DataButtonsPanel):
+    """Use this class to define buttons from the light data tab of
+    properties window."""
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     POV_OBJECT_TYPES = {'RAINBOW'}
 
@@ -578,6 +611,8 @@ class LIGHT_PT_POV_light(PovLampButtonsPanel, Panel):
     draw = properties_data_light.DATA_PT_light.draw
 
 class LIGHT_MT_POV_presets(bpy.types.Menu):
+    """Use this class to define preset menu for pov lights."""
+
     bl_label = "Lamp Presets"
     preset_subdir = "pov/lamp"
     preset_operator = "script.execute_preset"
@@ -585,6 +620,8 @@ class LIGHT_MT_POV_presets(bpy.types.Menu):
 
 
 class LIGHT_OT_POV_add_preset(AddPresetBase, Operator):
+    """Use this class to define pov world buttons."""
+
     '''Add a Lamp Preset'''
     bl_idname = "object.light_preset_add"
     bl_label = "Add Lamp Preset"
@@ -843,6 +880,8 @@ class LIGHT_PT_POV_falloff_curve(PovLampButtonsPanel, Panel):
     draw = properties_data_light.DATA_PT_falloff_curve.draw
 
 class OBJECT_PT_POV_rainbow(PovLampButtonsPanel, Panel):
+    """Use this class to define buttons from the rainbow panel of
+    properties window. inheriting lamp buttons panel class"""
     bl_label = "POV-Ray Rainbow"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     #bl_options = {'HIDE_HEADER'}
@@ -886,6 +925,7 @@ del properties_data_light
 ###############################################################################
 
 class WORLD_PT_POV_world(WorldButtonsPanel, Panel):
+    """Use this class to define pov world buttons."""
     bl_label = "World"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -916,6 +956,8 @@ class WORLD_PT_POV_world(WorldButtonsPanel, Panel):
         #row.prop(world, "color_range")
 
 class WORLD_PT_POV_mist(WorldButtonsPanel, Panel):
+    """Use this class to define pov mist buttons."""
+
     bl_label = "Mist"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -945,6 +987,8 @@ class WORLD_PT_POV_mist(WorldButtonsPanel, Panel):
         layout.prop(world.mist_settings, "falloff")
         
 class RENDER_PT_POV_export_settings(RenderButtonsPanel, Panel):
+    """Use this class to define pov ini settingss buttons."""
+
     bl_label = "Start Options"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -992,6 +1036,8 @@ class RENDER_PT_POV_export_settings(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_POV_render_settings(RenderButtonsPanel, Panel):
+    """Use this class to define pov render settings buttons."""
+
     bl_label = "Global Settings"
     bl_icon = 'SETTINGS'
     bl_options = {'DEFAULT_CLOSED'}
@@ -1041,6 +1087,8 @@ class RENDER_PT_POV_render_settings(RenderButtonsPanel, Panel):
         row.prop(scene.pov, "alpha_mode") 
         
 class RENDER_PT_POV_photons(RenderButtonsPanel, Panel):
+    """Use this class to define pov photons buttons."""
+
     bl_label = "Photons"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -1085,6 +1133,8 @@ class RENDER_PT_POV_photons(RenderButtonsPanel, Panel):
         #end main photons
 
 class RENDER_PT_POV_antialias(RenderButtonsPanel, Panel):
+    """Use this class to define pov antialiasing buttons."""
+
     bl_label = "Anti-Aliasing"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -1145,6 +1195,8 @@ class RENDER_PT_POV_antialias(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_POV_radiosity(RenderButtonsPanel, Panel):
+    """Use this class to define pov radiosity buttons."""
+
     bl_label = "Diffuse Radiosity"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -1200,6 +1252,8 @@ class RENDER_PT_POV_radiosity(RenderButtonsPanel, Panel):
 
 
 class POV_RADIOSITY_MT_presets(bpy.types.Menu):
+    """Use this class to define pov radiosity presets menu."""
+
     bl_label = "Radiosity Presets"
     preset_subdir = "pov/radiosity"
     preset_operator = "script.execute_preset"
@@ -1207,6 +1261,8 @@ class POV_RADIOSITY_MT_presets(bpy.types.Menu):
 
 
 class RENDER_OT_POV_radiosity_add_preset(AddPresetBase, Operator):
+    """Use this class to define pov radiosity add presets button."""
+
     '''Add a Radiosity Preset'''
     bl_idname = "scene.radiosity_preset_add"
     bl_label = "Add Radiosity Preset"
@@ -1255,6 +1311,8 @@ def rad_panel_func(self, context):
     row.operator(RENDER_OT_POV_radiosity_add_preset.bl_idname, text="", icon='REMOVE').remove_active = True
 
 class RENDER_PT_POV_media(WorldButtonsPanel, Panel):
+    """Use this class to define a pov global atmospheric media buttons."""
+
     bl_label = "Atmosphere Media"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -1304,6 +1362,8 @@ class RENDER_PT_POV_media(WorldButtonsPanel, Panel):
 ##        layout.active = scene.pov.baking_enable
 
 class MODIFIERS_PT_POV_modifiers(ModifierButtonsPanel, Panel):
+    """Use this class to define pov modifier buttons. (For booleans)"""
+
     bl_label = "POV-Ray"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -1333,13 +1393,15 @@ class MODIFIERS_PT_POV_modifiers(ModifierButtonsPanel, Panel):
                         col.prop(ob.pov, "inside_vector")
 
 class MATERIAL_MT_POV_sss_presets(bpy.types.Menu):
+    """Use this class to define pov sss preset menu."""
+
     bl_label = "SSS Presets"
     preset_subdir = "pov/material/sss"
     preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
 
 class MATERIAL_OT_POV_sss_add_preset(AddPresetBase, Operator):
-    '''Add an SSS Preset'''
+    """Add an SSS Preset"""
     bl_idname = "material.sss_preset_add"
     bl_label = "Add SSS Preset"
     preset_menu = "MATERIAL_MT_POV_sss_presets"
@@ -1360,6 +1422,8 @@ class MATERIAL_OT_POV_sss_add_preset(AddPresetBase, Operator):
 
 
 class MATERIAL_PT_POV_sss(MaterialButtonsPanel, Panel):
+    """Use this class to define pov sss buttons panel."""
+
     bl_label = "Subsurface Scattering"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -1411,6 +1475,8 @@ class MATERIAL_PT_POV_sss(MaterialButtonsPanel, Panel):
         col.prop(sss, "error_threshold", text="Error")
         
 class MATERIAL_PT_POV_activate_node(MaterialButtonsPanel, Panel):
+    """Use this class to define an activate pov nodes button."""
+
     bl_label = "Activate Node Settings"
     bl_context = "material"
     bl_options = {'HIDE_HEADER'}
@@ -1431,6 +1497,8 @@ class MATERIAL_PT_POV_activate_node(MaterialButtonsPanel, Panel):
                         "material.pov.material_use_nodes"
 
 class MATERIAL_PT_POV_active_node(MaterialButtonsPanel, Panel):
+    """Use this class to show pov active node properties buttons."""
+
     bl_label = "Active Node Settings"
     bl_context = "material"
     bl_options = {'HIDE_HEADER'}
@@ -1483,6 +1551,8 @@ class MATERIAL_PT_POV_active_node(MaterialButtonsPanel, Panel):
                     layout.label(text="No active nodes!")
 
 class MATERIAL_PT_POV_mirror(MaterialButtonsPanel, Panel):
+    """Use this class to define standard material reflectivity (mirror) buttons."""
+
     bl_label = "Mirror"
     bl_options = {'DEFAULT_CLOSED'}
     bl_idname = "MATERIAL_PT_POV_raytrace_mirror"
@@ -1543,6 +1613,8 @@ class MATERIAL_PT_POV_mirror(MaterialButtonsPanel, Panel):
         sub.prop(raym, "gloss_anisotropic", text="Anisotropic")
 
 class MATERIAL_PT_POV_transp(MaterialButtonsPanel, Panel):
+    """Use this class to define pov material transparency (alpha) buttons."""
+
     bl_label = "Transparency"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -1607,6 +1679,8 @@ class MATERIAL_PT_POV_transp(MaterialButtonsPanel, Panel):
             sub.prop(rayt, "gloss_samples", text="Samples")
         
 class MATERIAL_PT_POV_reflection(MaterialButtonsPanel, Panel):
+    """Use this class to define more pov specific reflectivity buttons."""
+
     bl_label = "POV-Ray Reflection"
     bl_parent_id = "MATERIAL_PT_POV_raytrace_mirror"    
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -1660,6 +1734,8 @@ class MATERIAL_PT_POV_interior(MaterialButtonsPanel, Panel):
 '''   
 
 class MATERIAL_PT_POV_fade_color(MaterialButtonsPanel, Panel):
+    """Use this class to define pov fading (absorption) color buttons."""
+
     bl_label = "POV-Ray Absorption"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     #bl_parent_id = "material.pov_interior" 
@@ -1690,6 +1766,8 @@ class MATERIAL_PT_POV_fade_color(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_POV_caustics(MaterialButtonsPanel, Panel):
+    """Use this class to define pov caustics buttons."""
+
     bl_label = "Caustics"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -1735,6 +1813,8 @@ class MATERIAL_PT_POV_caustics(MaterialButtonsPanel, Panel):
                 col.label(text="but you didn't chose any !")
 
 class MATERIAL_PT_strand(MaterialButtonsPanel, Panel):
+    """Use this class to define Blender strand antialiasing buttons."""
+
     bl_label = "Strand"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -1781,6 +1861,8 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, Panel):
         sub.prop(tan, "blend_distance", text="Distance")
         
 class MATERIAL_PT_POV_replacement_text(MaterialButtonsPanel, Panel):
+    """Use this class to define pov custom code declared name field."""
+
     bl_label = "Custom POV Code"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -1795,6 +1877,8 @@ class MATERIAL_PT_POV_replacement_text(MaterialButtonsPanel, Panel):
         col.prop(mat.pov, "replacement_text", text="")
 
 class TEXTURE_MT_POV_specials(bpy.types.Menu):
+    """Use this class to define pov texture slot operations buttons."""
+
     bl_label = "Texture Specials"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -1805,6 +1889,8 @@ class TEXTURE_MT_POV_specials(bpy.types.Menu):
         layout.operator("texture.slot_paste", icon='PASTEDOWN')
 
 class TEXTURE_UL_POV_texture_slots(bpy.types.UIList):
+    """Use this class to show pov texture slots list.""" # used?
+
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         ob = data
@@ -1848,7 +1934,8 @@ class MATERIAL_TEXTURE_SLOTS_UL_List(UIList):
             layout.label("", icon = custom_icon)
 '''            
 class WORLD_TEXTURE_SLOTS_UL_List(UIList):
-    """Texture Slots UIList."""
+    """Use this class to show pov texture slots list.""" # XXX Not used yet
+
 
 
     def draw_item(self, context, layout, world, item, icon, active_data,
@@ -1870,6 +1957,8 @@ class WORLD_TEXTURE_SLOTS_UL_List(UIList):
             layout.label("", icon = custom_icon)
             
 class MATERIAL_TEXTURE_SLOTS_UL_POV_layerlist(bpy.types.UIList):
+    """Use this class to show pov texture slots list."""
+
 #    texture_slots:
     index: bpy.props.IntProperty(name='index')
     #foo  = random prop
@@ -1893,6 +1982,8 @@ class MATERIAL_TEXTURE_SLOTS_UL_POV_layerlist(bpy.types.UIList):
             layout.label(text="", icon_value=icon)
             
 class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
+    """Use this class to show pov texture context buttons."""
+
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -1938,6 +2029,9 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
             # else:
                 # for i in range(18):  # length of material texture slots
                     # mat.pov_texture_slots.add()            
+
+# Commented out below is a reminder of what existed in Blender Internal 
+# attributes need to be recreated
 '''
         slot = getattr(context, "texture_slot", None)
         node = getattr(context, "texture_node", None)
@@ -2045,6 +2139,8 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
                 split.label(text="Type:")
 '''
 class TEXTURE_PT_colors(TextureButtonsPanel, Panel):
+    """Use this class to show pov color ramps."""
+
     bl_label = "Colors"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -2080,6 +2176,8 @@ class TEXTURE_PT_colors(TextureButtonsPanel, Panel):
 
 
 class MATERIAL_OT_POV_texture_slot_add(Operator):
+    """Use this class for the add texture slot button."""
+
     bl_idname = "pov.textureslotadd"
     bl_label = "Add"
     bl_description = "Add texture_slot"
@@ -2099,6 +2197,8 @@ class MATERIAL_OT_POV_texture_slot_add(Operator):
 
 
 class MATERIAL_OT_POV_texture_slot_remove(Operator):
+    """Use this class for the remove texture slot button."""
+
     bl_idname = "pov.textureslotremove"
     bl_label = "Remove"
     bl_description = "Remove texture_slot"
@@ -2114,6 +2214,8 @@ class MATERIAL_OT_POV_texture_slot_remove(Operator):
         return {'FINISHED'}
 
 class TextureSlotPanel(TextureButtonsPanel):
+    """Use this class to show pov texture slots panel.""" 
+
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
     @classmethod
@@ -2125,6 +2227,8 @@ class TextureSlotPanel(TextureButtonsPanel):
         return TextureButtonsPanel.poll(cls, context) and (engine in cls.COMPAT_ENGINES)
 
 class TEXTURE_PT_POV_type(TextureButtonsPanel, Panel):
+    """Use this class to define pov texture type buttons."""
+
     bl_label = "POV Textures"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     bl_options = {'HIDE_HEADER'}
@@ -2144,6 +2248,8 @@ class TEXTURE_PT_POV_type(TextureButtonsPanel, Panel):
         
         
 class TEXTURE_PT_POV_preview(TextureButtonsPanel, Panel):
+    """Use this class to define pov texture preview panel."""
+
     bl_label = "Preview"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     bl_options = {'HIDE_HEADER'}
@@ -2171,6 +2277,8 @@ class TEXTURE_PT_POV_preview(TextureButtonsPanel, Panel):
 
 
 class TEXTURE_PT_POV_parameters(TextureButtonsPanel, Panel):
+    """Use this class to define pov texture pattern buttons."""
+
     bl_label = "POV Pattern Options"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     def draw(self, context):
@@ -2379,6 +2487,8 @@ class TEXTURE_PT_POV_parameters(TextureButtonsPanel, Panel):
             row.prop(tex.pov, "modifier_omega", text="Omega")
 
 class TEXTURE_PT_POV_influence(TextureSlotPanel, Panel):
+    """Use this class to define pov texture influence buttons."""
+
     bl_label = "Influence"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     bl_space_type = 'PROPERTIES'
@@ -2571,6 +2681,8 @@ class TEXTURE_PT_POV_influence(TextureSlotPanel, Panel):
 
 
 class TEXTURE_PT_POV_tex_gamma(TextureButtonsPanel, Panel):
+    """Use this class to define pov texture gamma buttons."""
+
     bl_label = "Image Gamma"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -2603,6 +2715,8 @@ class TEXTURE_PT_POV_tex_gamma(TextureButtonsPanel, Panel):
 
 
 class OBJECT_PT_POV_obj_parameters(ObjectButtonsPanel, Panel):
+    """Use this class to define pov specific object level options buttons."""
+
     bl_label = "POV"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -2653,6 +2767,8 @@ class OBJECT_PT_POV_obj_parameters(ObjectButtonsPanel, Panel):
             # col.prop(obj.pov,"addboundorclip",text=text)
 
 class OBJECT_PT_POV_obj_sphere(PovDataButtonsPanel, Panel):
+    """Use this class to define pov sphere primitive parameters buttons."""
+
     bl_label = "POV Sphere"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     #bl_options = {'HIDE_HEADER'}
@@ -2686,6 +2802,8 @@ class OBJECT_PT_POV_obj_sphere(PovDataButtonsPanel, Panel):
 
 
 class OBJECT_PT_POV_obj_cylinder(PovDataButtonsPanel, Panel):
+    """Use this class to define pov cylinder primitive parameters buttons."""
+
     bl_label = "POV Cylinder"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     #bl_options = {'HIDE_HEADER'}
@@ -2720,6 +2838,8 @@ class OBJECT_PT_POV_obj_cylinder(PovDataButtonsPanel, Panel):
                 col.prop(obj.pov, "cylinder_location_cap")
 
 class OBJECT_PT_POV_obj_cone(PovDataButtonsPanel, Panel):
+    """Use this class to define pov cone primitive parameters buttons."""
+
     bl_label = "POV Cone"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     #bl_options = {'HIDE_HEADER'}
@@ -2757,6 +2877,8 @@ class OBJECT_PT_POV_obj_cone(PovDataButtonsPanel, Panel):
                 col.prop(obj.pov, "cone_height", text="Height of the cone")
 
 class OBJECT_PT_POV_obj_superellipsoid(PovDataButtonsPanel, Panel):
+    """Use this class to define pov superellipsoid primitive parameters buttons."""
+
     bl_label = "POV Superquadric ellipsoid"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     #bl_options = {'HIDE_HEADER'}
@@ -2797,6 +2919,8 @@ class OBJECT_PT_POV_obj_superellipsoid(PovDataButtonsPanel, Panel):
 
 
 class OBJECT_PT_POV_obj_torus(PovDataButtonsPanel, Panel):
+    """Use this class to define pov torus primitive parameters buttons."""
+
     bl_label = "POV Torus"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     #bl_options = {'HIDE_HEADER'}
@@ -2834,6 +2958,8 @@ class OBJECT_PT_POV_obj_torus(PovDataButtonsPanel, Panel):
                 col.prop(obj.pov, "torus_minor_segments")
 
 class OBJECT_PT_POV_obj_supertorus(PovDataButtonsPanel, Panel):
+    """Use this class to define pov supertorus primitive parameters buttons."""
+
     bl_label = "POV SuperTorus"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     #bl_options = {'HIDE_HEADER'}
@@ -2886,6 +3012,8 @@ class OBJECT_PT_POV_obj_supertorus(PovDataButtonsPanel, Panel):
                 col.prop(obj.pov, "st_max_gradient")
 
 class OBJECT_PT_POV_obj_parametric(PovDataButtonsPanel, Panel):
+    """Use this class to define pov parametric surface primitive parameters buttons."""
+
     bl_label = "POV Parametric surface"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     #bl_options = {'HIDE_HEADER'}
@@ -2930,6 +3058,8 @@ class OBJECT_PT_POV_obj_parametric(PovDataButtonsPanel, Panel):
 
 
 class OBJECT_PT_povray_replacement_text(ObjectButtonsPanel, Panel):
+    """Use this class to define pov object replacement field."""
+
     bl_label = "Custom POV Code"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -2948,7 +3078,7 @@ class OBJECT_PT_povray_replacement_text(ObjectButtonsPanel, Panel):
 
 
 class VIEW_MT_POV_primitives_add(bpy.types.Menu):
-    """Define the menu with presets"""
+    """Define the primitives menu with presets"""
     bl_idname = "VIEW_MT_POV_primitives_add"
     bl_label = "Povray"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -2965,6 +3095,8 @@ class VIEW_MT_POV_primitives_add(bpy.types.Menu):
         layout.menu(VIEW_MT_POV_import.bl_idname, text = "Import",icon="IMPORT")
 
 class VIEW_MT_POV_Basic_Shapes(bpy.types.Menu):
+    """Use this class to sort simple primitives menu entries."""
+
     bl_idname = "POVRAY_MT_basic_shape_tools"
     bl_label = "Basic_shapes"
 
@@ -3012,6 +3144,8 @@ class VIEW_MT_POV_Basic_Shapes(bpy.types.Menu):
             layout.operator("pov.addparametric", text="Parametric",icon = 'SCRIPTPLUGINS')
 
 class VIEW_MT_POV_import(bpy.types.Menu):
+    """Use this class for the import menu."""
+
     bl_idname = "POVRAY_MT_import_tools"
     bl_label = "Import"
 
@@ -3084,6 +3218,8 @@ def menu_func_nodes(self, context):
 # Camera Povray Settings
 ###############################################################################
 class CAMERA_PT_POV_cam_dof(CameraDataButtonsPanel, Panel):
+    """Use this class for camera depth of field focal blur buttons."""
+
     bl_label = "POV Aperture"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     bl_parent_id = "DATA_PT_camera_dof_aperture"
@@ -3116,6 +3252,8 @@ class CAMERA_PT_POV_cam_dof(CameraDataButtonsPanel, Panel):
 
 
 class CAMERA_PT_POV_cam_nor(CameraDataButtonsPanel, Panel):
+    """Use this class for camera normal perturbation buttons."""
+
     bl_label = "POV Perturbation"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -3138,6 +3276,8 @@ class CAMERA_PT_POV_cam_nor(CameraDataButtonsPanel, Panel):
 
 
 class CAMERA_PT_POV_replacement_text(CameraDataButtonsPanel, Panel):
+    """Use this class for camera text replacement field."""
+
     bl_label = "Custom POV Code"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -3155,7 +3295,8 @@ class CAMERA_PT_POV_replacement_text(CameraDataButtonsPanel, Panel):
 ###############################################################################
 
 class TEXT_OT_POV_insert(Operator):
-    """Tooltip"""
+    """Use this class to create blender text editor operator to insert pov snippets like other pov IDEs."""
+    
     bl_idname = "text.povray_insert"
     bl_label = "Insert"
 
@@ -3180,6 +3321,8 @@ def validinsert(ext):
 	return ext in {".txt",".inc",".pov"}
 
 class TEXT_MT_POV_insert(bpy.types.Menu):
+    """Use this class to create a menu launcher in text editor for the TEXT_OT_POV_insert operator ."""
+
     bl_label = "Insert"
     bl_idname = "TEXT_MT_POV_insert"
 
@@ -3200,6 +3343,8 @@ class TEXT_MT_POV_insert(bpy.types.Menu):
                        )
 
 class TEXT_PT_POV_custom_code(TextButtonsPanel, Panel):
+    """Use this class to create a panel in text editor for the user to decide if he renders text only or adds to 3d scene."""
+
     bl_label = "POV"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -3246,6 +3391,8 @@ class TEXT_PT_POV_custom_code(TextButtonsPanel, Panel):
 # Text editor templates from header menu
 
 class TEXT_MT_POV_templates(bpy.types.Menu):
+    """Use this class to create a menu for the same pov templates scenes as other pov IDEs."""
+
     bl_label = "POV"
 
     # We list templates on file evaluation, we can assume they are static data,
