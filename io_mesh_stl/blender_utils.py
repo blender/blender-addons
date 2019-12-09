@@ -80,8 +80,7 @@ def faces_from_mesh(ob, global_matrix, use_mesh_modifiers=False):
     import bpy
 
     # get the editmode data
-    if ob.mode == "EDIT":
-        ob.update_from_editmode()
+    ob.update_from_editmode()
 
     # get the modifiers
     if use_mesh_modifiers:
@@ -95,7 +94,6 @@ def faces_from_mesh(ob, global_matrix, use_mesh_modifiers=False):
         mesh = mesh_owner.to_mesh()
     except RuntimeError:
         return
-
     if mesh is None:
         return
 
