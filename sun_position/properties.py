@@ -45,16 +45,19 @@ class SunPosProperties(PropertyGroup):
         update=sun_update)
 
     use_daylight_savings: BoolProperty(
+        name="Daylight savings",
         description="Daylight savings time adds 1 hour to standard time",
         default=False,
         update=sun_update)
 
     use_refraction: BoolProperty(
+        name="Use refraction",
         description="Show apparent sun position due to refraction",
         default=True,
         update=sun_update)
 
     show_north: BoolProperty(
+        name="Show North",
         description="Draw line pointing north",
         default=False,
         update=north_update)
@@ -99,7 +102,7 @@ class SunPosProperties(PropertyGroup):
 
     year: IntProperty(
         name="Year",
-        min=1800, max=4000, default=TODAY.year,
+        min=1, max=4000, default=TODAY.year,
         update=sun_update)
 
     use_day_of_year: BoolProperty(
@@ -135,6 +138,7 @@ class SunPosProperties(PropertyGroup):
         update=sun_update)
 
     use_sun_object: BoolProperty(
+        name="Use object",
         description="Enable sun positioning of light object",
         default=False,
         update=sun_update)
@@ -146,6 +150,7 @@ class SunPosProperties(PropertyGroup):
         update=sun_update)
 
     use_object_collection: BoolProperty(
+        name="Use collection",
         description="Allow a collection of objects to be positioned",
         default=False,
         update=sun_update)
@@ -166,6 +171,7 @@ class SunPosProperties(PropertyGroup):
         update=sun_update)
 
     use_sky_texture: BoolProperty(
+        name="Use sky texture",
         description="Enable use of Cycles' "
                     "sky texture. World nodes must be enabled, "
                     "then set color to Sky Texture",
@@ -223,39 +229,47 @@ class SunPosAddonPreferences(AddonPreferences):
     bl_idname = __package__
 
     show_time_place: BoolProperty(
+        name="Time and place presets",
         description="Show time/place presets",
         default=False)
 
     show_object_collection: BoolProperty(
-        description="Use object collection",
+        name="Collection",
+        description="Show object collection",
         default=True,
         update=sun_update)
 
     show_dms: BoolProperty(
+        name="D° M' S\"",
         description="Show lat/long degrees, minutes, seconds labels",
         default=True)
 
     show_north: BoolProperty(
+        name="Show North",
         description="Show north offset choice and slider",
         default=True,
         update=sun_update)
 
     show_refraction: BoolProperty(
+        name="Refraction",
         description="Show sun refraction choice",
         default=True,
         update=sun_update)
 
     show_az_el: BoolProperty(
+        name="Azimuth and elevation info",
         description="Show azimuth and solar elevation info",
         default=True)
 
     show_daylight_savings: BoolProperty(
+        name="Daylight savings",
         description="Show daylight savings time choice",
         default=True,
         update=sun_update)
 
     show_rise_set: BoolProperty(
-        description="Show sunrise and sunset",
+        name="Sunrise and sunset info",
+        description="Show sunrise and sunset labels",
         default=True)
 
     def draw(self, context):
@@ -266,11 +280,11 @@ class SunPosAddonPreferences(AddonPreferences):
 
         col.label(text="Show or use:")
         flow = col.grid_flow(columns=0, even_columns=True, even_rows=False, align=False)
-        flow.prop(self, "show_time_place", text="Time/place presets")
-        flow.prop(self, "show_object_collection", text="Use collection")
-        flow.prop(self, "show_dms", text="D° M' S\"")
-        flow.prop(self, "show_north", text="North offset")
-        flow.prop(self, "show_refraction", text="Refraction")
-        flow.prop(self, "show_az_el", text="Azimuth, elevation")
-        flow.prop(self, "show_daylight_savings", text="Daylight savings time")
-        flow.prop(self, "show_rise_set", text="Sunrise, sunset")
+        flow.prop(self, "show_time_place")
+        flow.prop(self, "show_object_collection")
+        flow.prop(self, "show_dms")
+        flow.prop(self, "show_north")
+        flow.prop(self, "show_refraction")
+        flow.prop(self, "show_az_el")
+        flow.prop(self, "show_daylight_savings")
+        flow.prop(self, "show_rise_set")

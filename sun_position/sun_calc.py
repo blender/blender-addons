@@ -216,15 +216,7 @@ def move_sun(context):
 def update_time(context):
     sun_props = context.scene.sun_pos_properties
 
-    if not sun_props.use_day_of_year:
-        dt = datetime.date(sun_props.year, sun_props.month, sun_props.day)
-        day_of_year = dt.timetuple().tm_yday
-        if sun_props.day_of_year != day_of_year:
-            sun_props.day_of_year = day_of_year
-        sun.day = sun_props.day
-        sun.month = sun_props.month
-        sun.day_of_year = day_of_year
-    else:
+    if sun_props.use_day_of_year:
         dt = (datetime.date(sun_props.year, 1, 1) +
               datetime.timedelta(sun_props.day_of_year - 1))
         sun.day = dt.day
@@ -234,6 +226,14 @@ def update_time(context):
             sun_props.day = dt.day
         if sun_props.month != dt.month:
             sun_props.month = dt.month
+    else:
+        dt = datetime.date(sun_props.year, sun_props.month, sun_props.day)
+        day_of_year = dt.timetuple().tm_yday
+        if sun_props.day_of_year != day_of_year:
+            sun_props.day_of_year = day_of_year
+        sun.day = sun_props.day
+        sun.month = sun_props.month
+        sun.day_of_year = day_of_year
     sun.year = sun_props.year
     sun.longitude = sun_props.longitude
     sun.latitude = sun_props.latitude

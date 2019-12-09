@@ -104,7 +104,6 @@ sun_props.use_daylight_savings = {}
 # -------------------------------------------------------------------
 
 class SUNPOS_PT_Panel(bpy.types.Panel):
-    bl_idname = "SUNPOS_PT_world"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "world"
@@ -118,25 +117,27 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
         self.draw_panel(context, sp, p, layout)
 
     def draw_panel(self, context, sp, p, layout):
-        self.layout.label(text="Usage mode:")
-        self.layout.prop(sp, "usage_mode", expand=True)
+        col = self.layout.column(align=True)
+        col.label(text="Usage mode:")
+        row = col.row()
+        row.prop(sp, "usage_mode", expand=True)
+        col.separator()
         if sp.usage_mode == "HDR":
             self.draw_environ_mode_panel(context, sp, p, layout)
         else:
             self.draw_normal_mode_panel(context, sp, p, layout)
 
     def draw_environ_mode_panel(self, context, sp, p, layout):
-        box = self.layout.box()
-        flow = box.grid_flow(row_major=True, columns=0, even_columns=True,
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True,
                              even_rows=False, align=False)
 
-        col = flow.column()
+        col = flow.column(align=True)
         col.label(text="Environment texture:")
         col.prop_search(sp, "hdr_texture",
                         context.scene.world.node_tree, "nodes", text="")
         col.separator()
 
-        col = flow.column()
+        col = flow.column(align=True)
         col.label(text="Sun object:")
         col.prop_search(sp, "sun_object",
                         context.view_layer, "objects", text="")
@@ -150,15 +151,14 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
         col.separator()
 
         col = flow.column(align=True)
-        row1 = col.row()
         if sp.bind_to_sun:
             prop_text="Release binding"
         else:
             prop_text="Bind Texture to Sun "
-        row1.prop(sp, "bind_to_sun", toggle=True, icon="CONSTRAINT",
+        col.prop(sp, "bind_to_sun", toggle=True, icon="CONSTRAINT",
                   text=prop_text)
 
-        row = col.row()
+        row = col.row(align=True)
         row.enabled = not sp.bind_to_sun
         row.operator("world.sunpos_show_hdr", icon='LIGHT_SUN')
 
@@ -170,41 +170,55 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
             row.operator(SUNPOS_OT_AddPreset.bl_idname, text="", icon='REMOVE').remove_active = True
             row.operator(SUNPOS_OT_DefaultPresets.bl_idname, text="", icon='FILE_REFRESH')
 
-        box = self.layout.box()
-        flow = box.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
-        col = flow.column()
-        col.prop(sp, "use_sky_texture", text="Cycles sky")
-        if sp.use_sky_texture:
-            col.prop_search(sp, "sky_texture", context.scene.world.node_tree,
-                            "nodes", text="")
-        col.separator()
-
-        col = flow.column()
-        col.prop(sp, "use_sun_object", text="Use object")
+        col = flow.column(align=True)
+        col.prop(sp, "use_sun_object")
         if sp.use_sun_object:
             col.prop(sp, "sun_object", text="")
-        col.separator()
+            col.separator()
 
-        col = flow.column()
+        col = flow.column(align=True)
         if p.show_object_collection:
-            col.prop(sp, "use_object_collection", text="Use collection")
+            col.prop(sp, "use_object_collection")
             if sp.use_object_collection:
                 col.prop(sp, "object_collection", text="")
                 if sp.object_collection:
                     col.prop(sp, "object_collection_type")
                     if sp.object_collection_type == 'ECLIPTIC':
                         col.prop(sp, "time_spread")
+                col.separator()
 
-        box = self.layout.box()
+        col = flow.column(align=True)
+        col.prop(sp, "use_sky_texture")
+        if sp.use_sky_texture:
+            col.prop_search(sp, "sky_texture", context.scene.world.node_tree,
+                            "nodes", text="")
 
-        col = box.column(align=True)
+class SUNPOS_PT_Position(bpy.types.Panel):
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
+    bl_context = "world"
+    bl_label = "Position"
+    bl_parent_id = "SUNPOS_PT_Panel"
+
+    @classmethod
+    def poll(self, context):
+        sp = context.scene.sun_pos_properties
+        return sp.usage_mode != "HDR"
+
+    def draw(self, context):
+        layout = self.layout
+        sp = context.scene.sun_pos_properties
+        p = context.preferences.addons[__package__].preferences
+
+        col = layout.column(align=True)
         col.label(text="Enter coordinates:")
         col.prop(sp, "co_parser", text='', icon='URL')
 
-        box.separator()
+        layout.separator()
 
-        flow = box.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column(align=True)
         col.prop(sp, "latitude")
@@ -223,7 +237,7 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
 
         if p.show_north:
             col = flow.column(align=True)
-            col.prop(sp, "show_north", text="Show North", toggle=True)
+            col.prop(sp, "show_north", toggle=True)
             col.prop(sp, "north_offset")
             col.separator()
 
@@ -241,15 +255,31 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
 
         if p.show_refraction:
             col = flow.column()
-            col.prop(sp, "use_refraction", text="Show refraction")
+            col.prop(sp, "use_refraction")
             col.separator()
 
         col = flow.column()
         col.prop(sp, "sun_distance")
 
 
-        box = self.layout.box()
-        flow = box.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+class SUNPOS_PT_Time(bpy.types.Panel):
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
+    bl_context = "world"
+    bl_label = "Time"
+    bl_parent_id = "SUNPOS_PT_Panel"
+
+    @classmethod
+    def poll(self, context):
+        sp = context.scene.sun_pos_properties
+        return sp.usage_mode != "HDR"
+
+    def draw(self, context):
+        layout = self.layout
+        sp = context.scene.sun_pos_properties
+        p = context.preferences.addons[__package__].preferences
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column(align=True)
         col.prop(sp, "use_day_of_year",
@@ -257,8 +287,8 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
         if sp.use_day_of_year:
             col.prop(sp, "day_of_year")
         else:
-            col.prop(sp, "month")
             col.prop(sp, "day")
+            col.prop(sp, "month")
         col.prop(sp, "year")
         col.separator()
 
@@ -266,9 +296,10 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
         col.prop(sp, "time")
         col.prop(sp, "UTC_zone")
         if p.show_daylight_savings:
-            col.prop(sp, "use_daylight_savings", text="Daylight Savings")
+            col.prop(sp, "use_daylight_savings")
         col.separator()
 
+        col = flow.column(align=True)
         lt = format_time(sp.time,
                          p.show_daylight_savings and sp.use_daylight_savings,
                          sp.longitude)
@@ -276,7 +307,6 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
                          p.show_daylight_savings and sp.use_daylight_savings,
                          sp.longitude,
                          sp.UTC_zone)
-        col = flow.column(align=True)
         col.alignment = 'CENTER'
         col.label(text="Local: " + lt, icon='TIME')
         col.label(text="  UTC: " + ut, icon='PREVIEW_RANGE')
