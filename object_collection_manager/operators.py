@@ -19,28 +19,37 @@
 # Copyright 2011, Ryan Inch
 
 import bpy
-from bpy.types import Operator
+
+from bpy.types import (
+    Operator,
+)
+
 from bpy.props import (
     BoolProperty,
     StringProperty,
     IntProperty
-    )
+)
 
-from .internals import *
+from .internals import (
+    expanded,
+    layer_collections,
+    update_property_group,
+)
 
-rto_history = {"exclude": {},
-               "exclude_all": {},
-               "select": {},
-               "select_all": {},
-               "hide": {},
-               "hide_all": {},
-               "disable": {},
-               "disable_all": {},
-               "render": {},
-               "render_all": {}
-               }
+rto_history = {
+    "exclude": {},
+    "exclude_all": {},
+    "select": {},
+    "select_all": {},
+    "hide": {},
+    "hide_all": {},
+    "disable": {},
+    "disable_all": {},
+    "render": {},
+    "render_all": {}
+}
 
-class ExpandAllOperator(bpy.types.Operator):
+class ExpandAllOperator(Operator):
     '''Expand/Collapse all collections'''
     bl_label = "Expand All Items"
     bl_idname = "view3d.expand_all_items"
@@ -60,7 +69,7 @@ class ExpandAllOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ExpandSublevelOperator(bpy.types.Operator):
+class ExpandSublevelOperator(Operator):
     '''  * Shift-Click to expand/collapse all sublevels'''
     bl_label = "Expand Sublevel Items"
     bl_idname = "view3d.expand_sublevel"
@@ -113,7 +122,7 @@ class ExpandSublevelOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class CMSetCollectionOperator(bpy.types.Operator):
+class CMSetCollectionOperator(Operator):
     '''  * Click to move object to collection.\n  * Shift-Click to add/remove object from collection'''
     bl_label = "Set Object Collection"
     bl_idname = "view3d.set_collection"
@@ -157,7 +166,7 @@ class CMSetCollectionOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class CMExcludeOperator(bpy.types.Operator):
+class CMExcludeOperator(Operator):
     '''  * Shift-Click to isolate/restore previous state\n  * Ctrl-Click to toggle children'''
     bl_label = "Exclude Collection from View Layer"
     bl_idname = "view3d.exclude_collection"
@@ -284,7 +293,7 @@ class CMExcludeOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class CMUnExcludeAllOperator(bpy.types.Operator):
+class CMUnExcludeAllOperator(Operator):
     '''  * Click to toggle between current excluded state and all included.\n  * Shift-Click to invert excluded status of all collections'''
     bl_label = "Toggle Excluded Status Of All Collections"
     bl_idname = "view3d.un_exclude_all_collections"
@@ -337,7 +346,7 @@ class CMUnExcludeAllOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class CMRestrictSelectOperator(bpy.types.Operator):
+class CMRestrictSelectOperator(Operator):
     '''  * Shift-Click to isolate/restore previous state\n  * Ctrl-Click to toggle children'''
     bl_label = "Disable Selection of Collection"
     bl_idname = "view3d.restrict_select_collection"
@@ -452,7 +461,7 @@ class CMRestrictSelectOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class CMUnRestrictSelectAllOperator(bpy.types.Operator):
+class CMUnRestrictSelectAllOperator(Operator):
     '''  * Click to toggle between current selectable state and all selectable.\n  * Shift-Click to invert selectable status of all collections'''
     bl_label = "Toggle Selectable Status Of All Collections"
     bl_idname = "view3d.un_restrict_select_all_collections"
@@ -497,7 +506,7 @@ class CMUnRestrictSelectAllOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class CMHideOperator(bpy.types.Operator):
+class CMHideOperator(Operator):
     '''  * Shift-Click to isolate/restore previous state\n  * Ctrl-Click to toggle children'''
     bl_label = "Hide Collection"
     bl_idname = "view3d.hide_collection"
@@ -611,7 +620,7 @@ class CMHideOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class CMUnHideAllOperator(bpy.types.Operator):
+class CMUnHideAllOperator(Operator):
     '''  * Click to toggle between current visibility state and all visible.\n  * Shift-Click to invert visibility status of all collections'''
     bl_label = "Toggle Hidden Status Of All Collections"
     bl_idname = "view3d.un_hide_all_collections"
@@ -656,7 +665,7 @@ class CMUnHideAllOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class CMDisableViewportOperator(bpy.types.Operator):
+class CMDisableViewportOperator(Operator):
     '''  * Shift-Click to isolate/restore previous state\n  * Ctrl-Click to toggle children'''
     bl_label = "Disable Collection in Viewport"
     bl_idname = "view3d.disable_viewport_collection"
@@ -770,7 +779,7 @@ class CMDisableViewportOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class CMUnDisableViewportAllOperator(bpy.types.Operator):
+class CMUnDisableViewportAllOperator(Operator):
     '''  * Click to toggle between current viewport display and all enabled.\n  * Shift-Click to invert viewport display of all collections'''
     bl_label = "Toggle Viewport Display of All Collections"
     bl_idname = "view3d.un_disable_viewport_all_collections"
@@ -816,7 +825,7 @@ class CMUnDisableViewportAllOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class CMDisableRenderOperator(bpy.types.Operator):
+class CMDisableRenderOperator(Operator):
     '''  * Shift-Click to isolate/restore previous state\n  * Shift-Click to invert viewport display of all collections'''
     bl_label = "Disable Collection in Render"
     bl_idname = "view3d.disable_render_collection"
@@ -930,7 +939,7 @@ class CMDisableRenderOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class CMUnDisableRenderAllOperator(bpy.types.Operator):
+class CMUnDisableRenderAllOperator(Operator):
     '''  * Click to toggle between current render status and all rendered.\n  * Shift-Click to invert render status of all collections'''
     bl_label = "Toggle Render Status of All Collections"
     bl_idname = "view3d.un_disable_render_all_collections"
@@ -976,7 +985,7 @@ class CMUnDisableRenderAllOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class CMRemoveCollectionOperator(bpy.types.Operator):
+class CMRemoveCollectionOperator(Operator):
     '''Remove Collection'''
     bl_label = "Remove Collection"
     bl_idname = "view3d.remove_collection"
@@ -1073,7 +1082,7 @@ class CMRemoveCollectionOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 rename = [False]
-class CMNewCollectionOperator(bpy.types.Operator):
+class CMNewCollectionOperator(Operator):
     '''Add New Collection'''
     bl_label = "Add New Collection"
     bl_idname = "view3d.add_collection"
@@ -1145,7 +1154,7 @@ phantom_history = {"view_layer": "",
                    "render_all_history": []
                    }
 
-class CMPhantomModeOperator(bpy.types.Operator):
+class CMPhantomModeOperator(Operator):
     '''Toggle Phantom Mode'''
     bl_label = "Toggle Phantom Mode"
     bl_idname = "view3d.toggle_phantom_mode"

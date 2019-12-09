@@ -22,15 +22,21 @@ from bpy.types import (
     Operator,
     Panel,
     UIList,
-    UI_UL_list,
-    )
+)
 
 from bpy.props import BoolProperty
 
-from .internals import *
+from .internals import (
+    collection_tree,
+    expanded,
+    get_max_lvl,
+    layer_collections,
+    update_collection_tree,
+    update_property_group,
+)
+
 from .operators import (
     rto_history,
-    rename,
     phantom_history,
     )
 
@@ -249,7 +255,7 @@ class CM_UL_items(UIList):
 
         # indent child items
         if laycol["lvl"] > 0:
-            for x in range(laycol["lvl"]):
+            for _ in range(laycol["lvl"]):
                 row.label(icon='BLANK1')
 
         # add expander if collection has children to make UIList act like tree view
