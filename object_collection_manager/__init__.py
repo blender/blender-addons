@@ -33,7 +33,7 @@ bl_info = {
 
 if "bpy" in locals():
     import importlib
-    
+
     importlib.reload(internals)
     importlib.reload(operators)
     importlib.reload(ui)
@@ -78,16 +78,16 @@ classes = (
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-    
+
     bpy.types.Scene.CMListCollection = CollectionProperty(type=internals.CMListCollection)
     bpy.types.Scene.CMListIndex = IntProperty(update=ui.update_selection)
-    
+
     bpy.types.Scene.show_exclude = BoolProperty(default=True, name="Exclude from View Layer")
     bpy.types.Scene.show_selectable = BoolProperty(default=True, name="Selectable")
     bpy.types.Scene.show_hideviewport = BoolProperty(default=True, name="Hide in Viewport")
     bpy.types.Scene.show_disableviewport = BoolProperty(default=False, name="Disable in Viewports")
     bpy.types.Scene.show_render = BoolProperty(default=False, name="Disable in Renders")
-    
+
     bpy.types.Scene.CM_Phantom_Mode = BoolProperty(default=False)
 
 
@@ -96,26 +96,26 @@ def register():
     km = wm.keyconfigs.addon.keymaps.new(name='Object Mode')
     kmi = km.keymap_items.new('view3d.collection_manager', 'M', 'PRESS')
     addon_keymaps.append((km, kmi))
- 
+
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
-    
+
     del bpy.types.Scene.CMListCollection
     del bpy.types.Scene.CMListIndex
-    
+
     del bpy.types.Scene.show_exclude
     del bpy.types.Scene.show_selectable
     del bpy.types.Scene.show_hideviewport
     del bpy.types.Scene.show_disableviewport
     del bpy.types.Scene.show_render
-    
+
     del bpy.types.Scene.CM_Phantom_Mode
-    
+
     # remove keymaps when add-on is deactivated
     for km, kmi in addon_keymaps:
         km.keymap_items.remove(kmi)
     addon_keymaps.clear()
-    
+
 if __name__ == "__main__":
     register()
