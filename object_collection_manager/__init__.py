@@ -16,8 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-
-""" Copyright 2011 GPL licence applies"""
+# Copyright 2011, Ryan Inch
 
 bl_info = {
     "name": "Collection Manager",
@@ -28,7 +27,8 @@ bl_info = {
     "location": "View3D - Object Mode (Shortcut - M)",
     "warning": '',  # used for warning icon and text in addons panel
     "wiki_url": "",
-    "category": "User Interface"}
+    "category": "Object",
+}
 
 
 if "bpy" in locals():
