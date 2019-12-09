@@ -103,17 +103,9 @@ def _call_globals(attr_name):
             getattr(m, attr_name)()
 
 
-def _flush_modules(pkg_name):
-    pkg_name = pkg_name.lower()
-    for k in tuple(sys.modules.keys()):
-        if k.lower().startswith(pkg_name):
-            del sys.modules[k]
-
-
 def register():
     _call_globals("register")
 
 
 def unregister():
     _call_globals("unregister")
-    _flush_modules("amaranth")  # reload amaranth
