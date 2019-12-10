@@ -25,8 +25,8 @@ bl_info = {
     "location": "Node > Add Template",
     "description": "Adds node presets",
     "warning": "",
-    "wiki_url": "",
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
+    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
+                "render/node_presets.html",
     "category": "Render",
 }
 
