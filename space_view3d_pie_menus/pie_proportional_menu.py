@@ -356,7 +356,7 @@ class PIE_MT_ProportionalEdt(Menu):
         # 7 - TOP - LEFT
         pie.operator("proportional_edt.connected", text="Connected", icon='PROP_CON')
         # 9 - TOP - RIGHT
-        pie.operator("proportional_edt.projected", text="Projected", icon='PROP_ON')
+        pie.operator("proportional_edt.projected", text="Projected", icon='PROP_PROJECTED')
         # 1 - BOTTOM - LEFT
         pie.operator("proportional_edt.root", text="Root", icon='ROOTCURVE')
         # 3 - BOTTOM - RIGHT
