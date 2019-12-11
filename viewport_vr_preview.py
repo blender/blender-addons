@@ -35,12 +35,6 @@ bl_info = {
 }
 
 
-def window_menu_append_func(self, context):
-    if bpy.app.build_options.openxr:
-        self.layout.separator()
-        self.layout.operator("wm.xr_session_toggle")
-
-
 class VIEW3D_PT_vr_session(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -54,6 +48,10 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
+        self.layout.operator("wm.xr_session_toggle")
+
+        self.layout.separator()
+
         layout.prop(session_settings, "shading_type", text="Shading")
         layout.prop(session_settings, "show_floor", text="Floor")
         layout.prop(session_settings, "show_annotation", text="Annotations")
@@ -63,6 +61,10 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
         col = layout.column(align=True)
         col.prop(session_settings, "clip_start", text="Clip Start")
         col.prop(session_settings, "clip_end", text="End")
+
+        layout.separator()
+
+        layout.prop(session_settings, "use_positional_tracking")
 
 
 classes = (
@@ -74,12 +76,8 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    bpy.types.TOPBAR_MT_window.append(window_menu_append_func)
-
 
 def unregister():
-    bpy.types.TOPBAR_MT_window.remove(window_menu_append_func)
-
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
