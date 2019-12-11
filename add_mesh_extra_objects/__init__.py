@@ -85,6 +85,9 @@ else:
     from . import Wallfactory
     from . import add_mesh_triangles
 
+    from .add_mesh_rocks import __init__
+    from .add_mesh_rocks import rockgen
+
 import bpy
 from bpy.types import Menu
 
@@ -366,6 +369,8 @@ def register():
     for cls in classes:
         register_class(cls)
 
+    add_mesh_rocks.register()
+
     # Add "Extras" menu to the "Add Mesh" menu and context menu.
     bpy.types.VIEW3D_MT_mesh_add.append(menu_func)
     bpy.types.VIEW3D_MT_object_context_menu.prepend(Extras_contex_menu)
@@ -379,6 +384,8 @@ def unregister():
     from bpy.utils import unregister_class
     for cls in reversed(classes):
         unregister_class(cls)
+
+    add_mesh_rocks.unregister()
 
 if __name__ == "__main__":
     register()
