@@ -157,17 +157,17 @@ class SunPosProperties(PropertyGroup):
 
     object_collection: PointerProperty(
         type=bpy.types.Collection,
-        description="Collection of objects used for analemma",
+        description="Collection of objects used to visualize sun motion",
         update=sun_update)
 
     object_collection_type: EnumProperty(
         name="Display type",
-        description="Show object group on ecliptic or as analemma",
+        description="Show object group as sun motion",
         items=(
-            ('ECLIPTIC', "On the Ecliptic", ""),
-            ('ANALEMMA', "As Analemma", ""),
+            ('ANALEMMA', "Analemma", ""),
+            ('DIURNAL', "Diurnal", ""),
         ),
-        default='ECLIPTIC',
+        default='ANALEMMA',
         update=sun_update)
 
     use_sky_texture: BoolProperty(
@@ -214,7 +214,7 @@ class SunPosProperties(PropertyGroup):
 
     time_spread: FloatProperty(
         name="Time Spread",
-        description="Time period in which to spread object group",
+        description="Time period in which to spread object collection",
         precision=4,
         soft_min=1.0, soft_max=24.0, step=1.0, default=23.0,
         update=sun_update)

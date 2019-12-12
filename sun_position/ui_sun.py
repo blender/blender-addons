@@ -185,7 +185,7 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
                 col.prop(sp, "object_collection", text="")
                 if sp.object_collection:
                     col.prop(sp, "object_collection_type")
-                    if sp.object_collection_type == 'ECLIPTIC':
+                    if sp.object_collection_type == 'DIURNAL':
                         col.prop(sp, "time_spread")
                 col.separator()
 

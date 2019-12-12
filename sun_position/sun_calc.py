@@ -178,8 +178,8 @@ def move_sun(context):
             and sun_props.object_collection):
         sun_objects = sun_props.object_collection.objects
         object_count = len(sun_objects)
-        if sun_props.object_collection_type == 'ECLIPTIC':
-            # Ecliptic
+        if sun_props.object_collection_type == 'DIURNAL':
+            # Diurnal motion
             if object_count > 1:
                 time_increment = sun_props.time_spread / (object_count - 1)
                 local_time = local_time + time_increment * (object_count - 1)
