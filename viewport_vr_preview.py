@@ -48,9 +48,13 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        self.layout.operator("wm.xr_session_toggle")
+        is_session_running = bpy.types.XrSessionState.is_running(context)
 
-        self.layout.separator()
+        # Using SNAP_FACE because it looks like a stop icon -- I shouldn't have commit rights...
+        toggle_info = ("Start VR Session", 'PLAY') if not is_session_running else ("Stop VR Session", 'SNAP_FACE')
+        layout.operator("wm.xr_session_toggle", text=toggle_info[0], icon=toggle_info[1])
+
+        layout.separator()
 
         layout.prop(session_settings, "shading_type", text="Shading")
         layout.prop(session_settings, "show_floor", text="Floor")
