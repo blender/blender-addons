@@ -18,16 +18,16 @@
 
 bl_info = {
     "name": "Node Presets",
-    "description": "Useful and time-saving tools for rendering workflow",
+    "description": "Useful and time-saving tools for node group workflow",
     "author": "Campbell Barton",
     "version": (1, 1),
     "blender": (2, 80, 0),
-    "location": "Node > Add Template",
-    "description": "Adds node presets",
+    "location": "Node Editors > Add > Template",
+    "description": "Add node groups directly to the node editors",
     "warning": "",
     "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
-                "render/node_presets.html",
-    "category": "Render",
+                "node/node_presets.html",
+    "category": "Node",
 }
 
 import os
