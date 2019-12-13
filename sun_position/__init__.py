@@ -40,7 +40,6 @@ bl_info = {
     "description": "Show sun position with objects and/or sky texture",
     "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
                 "lighting/sun_position.html",
-    "index.php?func=detail&aid=29714",
     "category": "Lighting"}
 
 if "bpy" in locals():
