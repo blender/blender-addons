@@ -296,6 +296,7 @@ class PDT_OT_PivotSelected(Operator):
         """
 
         scene = context.scene
+        pg = scene.pdt_pg
         obj = bpy.context.view_layer.objects.active
         if obj is None:
             self.report({"ERROR"}, PDT_ERR_NO_ACT_OBJ)
