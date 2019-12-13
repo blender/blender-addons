@@ -19,6 +19,9 @@
 # <pep8 compliant>
 
 import bpy
+from bpy.types import (
+    GizmoGroup,
+)
 
 bl_info = {
     "name": "Basic VR Viewer",
@@ -71,8 +74,49 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
         layout.prop(session_settings, "use_positional_tracking")
 
 
+class VIEW3D_GGT_vr_viewer(GizmoGroup):
+    bl_idname = "VIEW3D_GGT_vr_viewer"
+    bl_label = "VR Viewer Indicator"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
+    bl_options = {'3D', 'PERSISTENT'}
+
+    @classmethod
+    def poll(cls, context):
+        return bpy.types.XrSessionState.is_running(context)
+
+    def _get_viewer_matrix(self, context):
+        from mathutils import Matrix
+        import math
+
+        wm = context.window_manager
+        rv3d = context.region_data
+
+        rotmat = Matrix.Identity(3)
+        rotmat.rotate(rv3d.view_rotation)
+        rotmat.resize_4x4()
+        transmat = Matrix.Translation(wm.xr_session_state.viewer_location)
+
+        return transmat @ rotmat
+
+    def setup(self, context):
+        gizmo = self.gizmos.new("GIZMO_GT_dial_3d")
+        gizmo.draw_options = {'FILL'}
+
+        gizmo.color = gizmo.color_highlight = 0.2, 0.6, 1.0
+        gizmo.alpha = 1.0
+        gizmo.scale_basis = 0.1
+
+        self.gizmo = gizmo
+
+    def draw_prepare(self, context):
+        self.gizmo.matrix_basis = self._get_viewer_matrix(context)
+
+
 classes = (
     VIEW3D_PT_vr_session,
+
+    VIEW3D_GGT_vr_viewer,
 )
 
 
