@@ -137,25 +137,15 @@ class SunPosProperties(PropertyGroup):
         min=0.0, soft_max=3000.0, step=10.0, default=50.0,
         update=sun_update)
 
-    use_sun_object: BoolProperty(
-        name="Use object",
-        description="Enable sun positioning of light object",
-        default=False,
-        update=sun_update)
-
     sun_object: PointerProperty(
+        name="Sun Object",
         type=bpy.types.Object,
         description="Sun object to set in the scene",
         poll=lambda self, obj: obj.type == 'LIGHT',
         update=sun_update)
 
-    use_object_collection: BoolProperty(
-        name="Use collection",
-        description="Allow a collection of objects to be positioned",
-        default=False,
-        update=sun_update)
-
     object_collection: PointerProperty(
+        name="Collection",
         type=bpy.types.Collection,
         description="Collection of objects used to visualize sun motion",
         update=sun_update)
@@ -170,17 +160,9 @@ class SunPosProperties(PropertyGroup):
         default='ANALEMMA',
         update=sun_update)
 
-    use_sky_texture: BoolProperty(
-        name="Use sky texture",
-        description="Enable use of Cycles' "
-                    "sky texture. World nodes must be enabled, "
-                    "then set color to Sky Texture",
-        default=False,
-        update=sun_update)
-
     sky_texture: StringProperty(
-        default="Sky Texture",
         name="Sky Texture",
+        default="Sky Texture",
         description="Name of sky texture to be used",
         update=sun_update)
 
@@ -233,12 +215,6 @@ class SunPosAddonPreferences(AddonPreferences):
         description="Show time/place presets",
         default=False)
 
-    show_object_collection: BoolProperty(
-        name="Collection",
-        description="Show object collection",
-        default=True,
-        update=sun_update)
-
     show_dms: BoolProperty(
         name="D° M' S\"",
         description="Show lat/long degrees, minutes, seconds labels",
@@ -278,7 +254,7 @@ class SunPosAddonPreferences(AddonPreferences):
         box = layout.box()
         col = box.column()
 
-        col.label(text="Show or use:")
+        col.label(text="Show options or labels:")
         flow = col.grid_flow(columns=0, even_columns=True, even_rows=False, align=False)
         flow.prop(self, "show_time_place")
         flow.prop(self, "show_object_collection")

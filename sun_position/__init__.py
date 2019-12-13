@@ -65,7 +65,7 @@ def register():
     bpy.utils.register_class(ui_sun.SUNPOS_OT_DefaultPresets)
     bpy.utils.register_class(ui_sun.SUNPOS_MT_Presets)
     bpy.utils.register_class(ui_sun.SUNPOS_PT_Panel)
-    bpy.utils.register_class(ui_sun.SUNPOS_PT_Position)
+    bpy.utils.register_class(ui_sun.SUNPOS_PT_Location)
     bpy.utils.register_class(ui_sun.SUNPOS_PT_Time)
     bpy.utils.register_class(hdr.SUNPOS_OT_ShowHdr)
 
@@ -75,7 +75,7 @@ def register():
 def unregister():
     bpy.utils.unregister_class(hdr.SUNPOS_OT_ShowHdr)
     bpy.utils.unregister_class(ui_sun.SUNPOS_PT_Panel)
-    bpy.utils.unregister_class(ui_sun.SUNPOS_PT_Position)
+    bpy.utils.unregister_class(ui_sun.SUNPOS_PT_Location)
     bpy.utils.unregister_class(ui_sun.SUNPOS_PT_Time)
     bpy.utils.unregister_class(ui_sun.SUNPOS_MT_Presets)
     bpy.utils.unregister_class(ui_sun.SUNPOS_OT_DefaultPresets)

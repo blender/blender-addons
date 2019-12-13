@@ -153,7 +153,7 @@ def move_sun(context):
             north_offset, zone, sun_props.month, sun_props.day, sun_props.year,
             sun_props.sun_distance)
 
-    if sun_props.use_sky_texture and sun_props.sky_texture:
+    if sun_props.sky_texture:
         sky_node = bpy.context.scene.world.node_tree.nodes.get(sun_props.sky_texture)
         if sky_node is not None and sky_node.type == "TEX_SKY":
             locX = math.sin(sun.phi) * math.sin(-sun.theta)
@@ -163,8 +163,7 @@ def move_sun(context):
             sky_node.sun_direction = locX, locY, locZ
 
     # Sun object
-    if ((sun_props.use_sun_object or sun_props.usage_mode == 'HDR')
-            and sun_props.sun_object
+    if (sun_props.sun_object is not None
             and sun_props.sun_object.name in context.view_layer.objects):
         obj = sun_props.sun_object
         set_sun_position(obj, sun_props.sun_distance)
@@ -173,9 +172,7 @@ def move_sun(context):
         set_sun_rotations(obj, rotation_euler)
 
     # Sun collection
-    if (addon_prefs.show_object_collection
-            and sun_props.use_object_collection
-            and sun_props.object_collection):
+    if sun_props.object_collection is not None:
         sun_objects = sun_props.object_collection.objects
         object_count = len(sun_objects)
         if sun_props.object_collection_type == 'DIURNAL':

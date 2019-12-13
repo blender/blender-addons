@@ -170,36 +170,27 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
             row.operator(SUNPOS_OT_AddPreset.bl_idname, text="", icon='REMOVE').remove_active = True
             row.operator(SUNPOS_OT_DefaultPresets.bl_idname, text="", icon='FILE_REFRESH')
 
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+        col = layout.column(align=True)
+        col.use_property_split = True
+        col.use_property_decorate = False
+        col.prop(sp, "sun_object")
+        col.separator()
 
-        col = flow.column(align=True)
-        col.prop(sp, "use_sun_object")
-        if sp.use_sun_object:
-            col.prop(sp, "sun_object", text="")
-            col.separator()
+        col.prop(sp, "object_collection")
+        if sp.object_collection:
+            col.prop(sp, "object_collection_type")
+            if sp.object_collection_type == 'DIURNAL':
+                col.prop(sp, "time_spread")
+        col.separator()
 
-        col = flow.column(align=True)
-        if p.show_object_collection:
-            col.prop(sp, "use_object_collection")
-            if sp.use_object_collection:
-                col.prop(sp, "object_collection", text="")
-                if sp.object_collection:
-                    col.prop(sp, "object_collection_type")
-                    if sp.object_collection_type == 'DIURNAL':
-                        col.prop(sp, "time_spread")
-                col.separator()
+        col.prop_search(sp, "sky_texture", context.scene.world.node_tree,
+                        "nodes")
 
-        col = flow.column(align=True)
-        col.prop(sp, "use_sky_texture")
-        if sp.use_sky_texture:
-            col.prop_search(sp, "sky_texture", context.scene.world.node_tree,
-                            "nodes", text="")
-
-class SUNPOS_PT_Position(bpy.types.Panel):
+class SUNPOS_PT_Location(bpy.types.Panel):
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "world"
-    bl_label = "Position"
+    bl_label = "Location"
     bl_parent_id = "SUNPOS_PT_Panel"
 
     @classmethod
