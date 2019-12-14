@@ -19,13 +19,16 @@
 #
 # -----------------------------------------------------------------------
 # Author: Alan Odom (Clockmender), Rune Morling (ermo) Copyright (c) 2019
+#
+# Contains code which was inspired by the "Reset 3D View" plugin authored
+# by Reiner Prokein (tiles) Copyright (c) 2014 (see T37718)
 # -----------------------------------------------------------------------
 #
 import bpy
 from bpy.types import Operator
 from math import pi
 from mathutils import Quaternion
-from .pdt_functions import euler_to_quaternion
+from .pdt_functions import debug, euler_to_quaternion
 
 
 class PDT_OT_ViewRot(Operator):
@@ -239,3 +242,54 @@ class PDT_OT_viso(Operator):
                 (0.8205, 0.4247, -0.1759, -0.3399)
             )
         return {"FINISHED"}
+
+
+class PDT_OT_Reset3DView(Operator):
+    """Reset 3D View to Blender Defaults."""
+
+    bl_idname = "pdt.reset_3d_view"
+    bl_label = "Reset 3D View"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        """Reset 3D View to Blender Defaults.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Status Set.
+        """
+
+        # The default view_distance to the origin when starting up Blender
+        default_view_distance = 17.986562728881836
+        # The default view_matrix when starting up Blender
+        default_view_matrix = (
+            (0.41, -0.4017, 0.8188, 0.0),
+            (0.912, 0.1936, -0.3617, 0.0),
+            (-0.0133, 0.8950, 0.4458, 0.0),
+            (0.0, 0.0, -17.9866, 1.0)
+        )
+
+        for area in (a for a in context.screen.areas if a.type == 'VIEW_3D'):
+            view = area.spaces[0].region_3d
+            if view is not None:
+                debug(f"is_orthographic_side_view: {view.is_orthographic_side_view}")
+                if view.is_orthographic_side_view:
+                    # When the view is orthographic, reset the distance and location.
+                    # The rotation already fits.
+                    debug(f"view_distance before reset: {view.view_distance}")
+                    debug(f"view_location before reset: {view.view_location}")
+                    view.view_distance = default_view_distance
+                    view.view_location = (-0.0, -0.0, -0.0)
+                    view.update()
+                    debug(f"view_distance AFTER reset: {view.view_distance}")
+                    debug(f"view_location AFTER reset: {view.view_location}")
+                else:
+                    # Otherwise, the view matrix needs to be reset (includes distance).
+                    debug(f"view_matrix before reset:\n{view.view_matrix}")
+                    view.view_matrix = default_view_matrix
+                    view.update()
+                    debug(f"view_matrix AFTER reset:\n{view.view_matrix}")
+
+        return {'FINISHED'}

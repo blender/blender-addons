@@ -305,7 +305,10 @@ class PDT_PT_PanelViewControl(Panel):
         col = row.column()
         col.operator("pdt.viewroll", text="", icon="RECOVER_LAST")
         row = box.row()
-        row.operator("pdt.viewiso", text="Isometric View")
+        col = row.column()
+        col.operator("pdt.viewiso", text="Isometric")
+        col = row.column()
+        col.operator("pdt.reset_3d_view", text="Reset View")
 
 
 class PDT_PT_PanelCommandLine(Panel):

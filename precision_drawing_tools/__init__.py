@@ -29,7 +29,7 @@
 bl_info = {
     "name": "Precision Drawing Tools (PDT)",
     "author": "Alan Odom (Clockmender), Rune Morling (ermo)",
-    "version": (1, 1, 5),
+    "version": (1, 1, 6),
     "blender": (2, 80, 0),
     "location": "View3D > UI > PDT",
     "description": "Precision Drawing Tools for Acccurate Modelling",
@@ -487,6 +487,7 @@ classes = (
     pdt_view.PDT_OT_vRotD,
     pdt_view.PDT_OT_vRoll,
     pdt_view.PDT_OT_viso,
+    pdt_view.PDT_OT_Reset3DView,
     pdt_xall.PDT_OT_IntersectAllEdges,
 )
 
