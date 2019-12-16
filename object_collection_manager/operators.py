@@ -1195,7 +1195,7 @@ class CMPhantomModeOperator(Operator):
 
             # save current rto history
             for rto, history, in rto_history.items():
-                phantom_history[rto+"_history"] = history.get(view_layer, {}).copy()
+                phantom_history[rto+"_history"] = history.get(view_layer, [] if rto[-3:] == "all" else {}).copy()
 
 
         # return to normal mode
