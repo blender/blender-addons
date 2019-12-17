@@ -321,8 +321,6 @@ class CMUnExcludeAllOperator(Operator):
                 for x, item in enumerate(layer_collections.values()):
                     item["ptr"].exclude = not exclude_all_history[x]
 
-                print([not i for i in exclude_all_history])
-
             else:
                 for item in reversed(list(layer_collections.values())):
                     if item["ptr"].exclude:
@@ -1141,11 +1139,11 @@ class CMNewCollectionOperator(Operator):
 phantom_history = {"view_layer": "",
                    "initial_state": {},
 
-                   "exclude_history": [],
-                   "select_history": [],
-                   "hide_history": [],
-                   "disable_history": [],
-                   "render_history": [],
+                   "exclude_history": {},
+                   "select_history": {},
+                   "hide_history": {},
+                   "disable_history": {},
+                   "render_history": {},
 
                    "exclude_all_history": [],
                    "select_all_history": [],
