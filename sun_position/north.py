@@ -50,6 +50,7 @@ else:
 
         flat in vec2 v_StartPos;
         in vec4 v_VertPos;
+        out vec4 FragColor;
 
         uniform vec2 u_Resolution;
 
@@ -61,7 +62,7 @@ else:
 
             if (step(sin(dist / 5.0f), 0.0) == 1) discard;
 
-            gl_FragColor = u_Color;
+            FragColor = u_Color;
         }
     '''
 
