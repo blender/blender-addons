@@ -771,11 +771,12 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
         profile = wm.get('bkit profile')
         if profile is not None:
             # validation by admin
-            if profile['user']['id'] == 2:
+            if profile['user']['exmenu']:
                 if asset_data['verificationStatus'] != 'validated':
                     op = layout.operator('object.blenderkit_change_status', text='Validate')
                     op.asset_id = asset_data['id']
                     op.state = 'validated'
+
 
             if author_id == str(profile['user']['id']):
                 layout.label(text='Management tools:')
