@@ -321,6 +321,7 @@ class OBJ_PT_export_geometry(bpy.types.Panel):
         layout.prop(operator, 'use_materials')
         layout.prop(operator, 'use_triangles')
         layout.prop(operator, 'use_nurbs', text="Curves as NURBS")
+        layout.prop(operator, 'use_vertex_groups')
         layout.prop(operator, 'keep_vertex_order')
 
 
