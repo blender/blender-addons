@@ -20,6 +20,8 @@
 
 import bpy
 
+from copy import deepcopy
+
 from bpy.types import (
     Operator,
 )
@@ -1193,7 +1195,8 @@ class CMPhantomModeOperator(Operator):
 
             # save current rto history
             for rto, history, in rto_history.items():
-                phantom_history[rto+"_history"] = history.get(view_layer, [] if rto[-3:] == "all" else {}).copy()
+                if history.get(view_layer, None):
+                    phantom_history[rto+"_history"] = deepcopy(history[view_layer])
 
 
         # return to normal mode
@@ -1229,7 +1232,13 @@ class CMPhantomModeOperator(Operator):
 
             # restore previous rto history
             for rto, history, in rto_history.items():
-                history[view_layer] = phantom_history[rto+"_history"].copy()
+                if view_layer in history:
+                    del history[view_layer]
+                
+                if phantom_history[rto+"_history"]:
+                    history[view_layer] = deepcopy(phantom_history[rto+"_history"])
+                
+                phantom_history[rto+"_history"].clear()
 
             scn.CM_Phantom_Mode = False
 
