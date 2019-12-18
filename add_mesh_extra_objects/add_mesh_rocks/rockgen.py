@@ -140,7 +140,7 @@ try:
     from numpy.random import (
         seed,
         weibull)
-    print("Rock Generator: Numpy found.")
+#    print("Rock Generator: Numpy found.")
     numpy = True
 except:
     from random import (

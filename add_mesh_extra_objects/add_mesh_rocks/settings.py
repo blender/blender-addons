@@ -42,7 +42,7 @@ path = basePath + "add_mesh_rocks.xml"
 
 try:
     source = minidom.parse(path)
-    print("Rock generator settings file found:\n" + path)
+#    print("Rock generator settings file found:\n" + path)
 except:
     print("Rock generator settings file not found.  Creating settings file.")
     shutil.copy(basePath + "factory.xml", path)
