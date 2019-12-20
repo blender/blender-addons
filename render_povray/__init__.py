@@ -3704,6 +3704,7 @@ class RenderPovSettingsTexture(PropertyGroup):
             ('PARTICLES', "", "Show particles textures", "PARTICLES",3), # "Show particles textures"
             ('LINESTYLE', "", "Show linestyle textures", "LINE_DATA",4), # "Show linestyle textures"
             ('OTHER', "", "Show other data textures", "TEXTURE_DATA",5), # "Show other data textures"
+        ),
         default = 'MATERIAL',
     )
 

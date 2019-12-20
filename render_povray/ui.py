@@ -18,25 +18,28 @@
 
 # <pep8 compliant>
 """User interface for the POV tools"""
+
 import bpy
-import sys #really import here and in render.py?
-import os #really import here and in render.py?
+import sys  # really import here and in render.py?
+import os  # really import here and in render.py?
 from os.path import isfile
 from bl_operators.presets import AddPresetBase
 from bpy.utils import register_class, unregister_class
 from bpy.types import (
-        Operator,
-        UIList,
-        Panel,
-        # Brush,
-        Material,
-        Light,
-        World,
-        ParticleSettings,
-        FreestyleLineStyle
-        )
+    Operator,
+    UIList,
+    Panel,
+    Brush,
+    Material,
+    Light,
+    World,
+    ParticleSettings,
+    FreestyleLineStyle,
+)
+
 # Example of wrapping every class 'as is'
 from bl_ui import properties_output
+
 for member in dir(properties_output):
     subclass = getattr(properties_output, member)
     try:
@@ -46,6 +49,7 @@ for member in dir(properties_output):
 del properties_output
 
 from bl_ui import properties_view_layer
+
 for member in dir(properties_view_layer):
     subclass = getattr(properties_view_layer, member)
     try:
@@ -56,20 +60,22 @@ del properties_view_layer
 
 # Use some of the existing buttons.
 from bl_ui import properties_render
-#DEPRECATED#properties_render.RENDER_PT_render.COMPAT_ENGINES.add('POVRAY_RENDER')
-#DEPRECATED#properties_render.RENDER_PT_dimensions.COMPAT_ENGINES.add('POVRAY_RENDER')
+
+# DEPRECATED#properties_render.RENDER_PT_render.COMPAT_ENGINES.add('POVRAY_RENDER')
+# DEPRECATED#properties_render.RENDER_PT_dimensions.COMPAT_ENGINES.add('POVRAY_RENDER')
 # properties_render.RENDER_PT_antialiasing.COMPAT_ENGINES.add('POVRAY_RENDER')
-#TORECREATE##DEPRECATED#properties_render.RENDER_PT_shading.COMPAT_ENGINES.add('POVRAY_RENDER')
-#DEPRECATED#properties_render.RENDER_PT_output.COMPAT_ENGINES.add('POVRAY_RENDER')
+# TORECREATE##DEPRECATED#properties_render.RENDER_PT_shading.COMPAT_ENGINES.add('POVRAY_RENDER')
+# DEPRECATED#properties_render.RENDER_PT_output.COMPAT_ENGINES.add('POVRAY_RENDER')
 del properties_render
 
 
 # Use only a subset of the world panels
 from bl_ui import properties_world
-#TORECREATE##DEPRECATED#properties_world.WORLD_PT_preview.COMPAT_ENGINES.add('POVRAY_RENDER')
+
+# TORECREATE##DEPRECATED#properties_world.WORLD_PT_preview.COMPAT_ENGINES.add('POVRAY_RENDER')
 properties_world.WORLD_PT_context_world.COMPAT_ENGINES.add('POVRAY_RENDER')
-#TORECREATE##DEPRECATED#properties_world.WORLD_PT_world.COMPAT_ENGINES.add('POVRAY_RENDER')
-#TORECREATE##DEPRECATED#properties_world.WORLD_PT_mist.COMPAT_ENGINES.add('POVRAY_RENDER')
+# TORECREATE##DEPRECATED#properties_world.WORLD_PT_world.COMPAT_ENGINES.add('POVRAY_RENDER')
+# TORECREATE##DEPRECATED#properties_world.WORLD_PT_mist.COMPAT_ENGINES.add('POVRAY_RENDER')
 del properties_world
 
 
@@ -77,6 +83,7 @@ del properties_world
 from bl_ui import properties_texture
 from bl_ui.properties_texture import context_tex_datablock
 from bl_ui.properties_texture import texture_filter_common
+
 for member in dir(properties_texture):
     subclass = getattr(properties_texture, member)
     try:
@@ -87,6 +94,7 @@ del properties_texture
 
 # Physics Main wrapping every class 'as is'
 from bl_ui import properties_physics_common
+
 for member in dir(properties_physics_common):
     subclass = getattr(properties_physics_common, member)
     try:
@@ -97,6 +105,7 @@ del properties_physics_common
 
 # Physics Rigid Bodies wrapping every class 'as is'
 from bl_ui import properties_physics_rigidbody
+
 for member in dir(properties_physics_rigidbody):
     subclass = getattr(properties_physics_rigidbody, member)
     try:
@@ -107,6 +116,7 @@ del properties_physics_rigidbody
 
 # Physics Rigid Body Constraint wrapping every class 'as is'
 from bl_ui import properties_physics_rigidbody_constraint
+
 for member in dir(properties_physics_rigidbody_constraint):
     subclass = getattr(properties_physics_rigidbody_constraint, member)
     try:
@@ -117,6 +127,7 @@ del properties_physics_rigidbody_constraint
 
 # Physics Smoke wrapping every class 'as is'
 from bl_ui import properties_physics_smoke
+
 for member in dir(properties_physics_smoke):
     subclass = getattr(properties_physics_smoke, member)
     try:
@@ -127,6 +138,7 @@ del properties_physics_smoke
 
 # Physics softbody wrapping every class 'as is'
 from bl_ui import properties_physics_softbody
+
 for member in dir(properties_physics_softbody):
     subclass = getattr(properties_physics_softbody, member)
     try:
@@ -137,6 +149,7 @@ del properties_physics_softbody
 
 # Physics Fluid wrapping every class 'as is'
 from bl_ui import properties_physics_fluid
+
 for member in dir(properties_physics_fluid):
     subclass = getattr(properties_physics_fluid, member)
     try:
@@ -147,6 +160,7 @@ del properties_physics_fluid
 
 # Physics Field wrapping every class 'as is'
 from bl_ui import properties_physics_field
+
 for member in dir(properties_physics_field):
     subclass = getattr(properties_physics_field, member)
     try:
@@ -157,6 +171,7 @@ del properties_physics_field
 
 # Physics Cloth wrapping every class 'as is'
 from bl_ui import properties_physics_cloth
+
 for member in dir(properties_physics_cloth):
     subclass = getattr(properties_physics_cloth, member)
     try:
@@ -167,6 +182,7 @@ del properties_physics_cloth
 
 # Physics Dynamic Paint wrapping every class 'as is'
 from bl_ui import properties_physics_dynamicpaint
+
 for member in dir(properties_physics_dynamicpaint):
     subclass = getattr(properties_physics_dynamicpaint, member)
     try:
@@ -178,6 +194,7 @@ del properties_physics_dynamicpaint
 
 # Example of wrapping every class 'as is'
 from bl_ui import properties_data_modifier
+
 for member in dir(properties_data_modifier):
     subclass = getattr(properties_data_modifier, member)
     try:
@@ -188,20 +205,22 @@ del properties_data_modifier
 
 # Example of wrapping every class 'as is' except some
 from bl_ui import properties_material
+
 for member in dir(properties_material):
     subclass = getattr(properties_material, member)
     try:
         # mat=bpy.context.active_object.active_material
         # if (mat and mat.pov.type == "SURFACE"
-            # and not (mat.pov.material_use_nodes or mat.use_nodes)):
+        # and not (mat.pov.material_use_nodes or mat.use_nodes)):
         # and (engine in cls.COMPAT_ENGINES)) if subclasses were sorted
-            subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
     except:
         pass
 del properties_material
 
 
 from bl_ui import properties_data_camera
+
 for member in dir(properties_data_camera):
     subclass = getattr(properties_data_camera, member)
     try:
@@ -211,10 +230,11 @@ for member in dir(properties_data_camera):
 del properties_data_camera
 
 
-
-
 from bl_ui import properties_particle as properties_particle
-for member in dir(properties_particle):  # add all "particle" panels from blender
+
+for member in dir(
+    properties_particle
+):  # add all "particle" panels from blender
     subclass = getattr(properties_particle, member)
     try:
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
@@ -224,6 +244,7 @@ del properties_particle
 
 # Example of wrapping every class 'as is'
 from bl_ui import properties_output
+
 for member in dir(properties_output):
     subclass = getattr(properties_output, member)
     try:
@@ -231,6 +252,7 @@ for member in dir(properties_output):
     except:
         pass
 del properties_output
+
 
 class WORLD_MT_POV_presets(bpy.types.Menu):
     bl_label = "World Presets"
@@ -241,14 +263,13 @@ class WORLD_MT_POV_presets(bpy.types.Menu):
 
 class WORLD_OT_POV_add_preset(AddPresetBase, Operator):
     '''Add a World Preset'''
+
     bl_idname = "object.world_preset_add"
     bl_label = "Add World Preset"
     preset_menu = "WORLD_MT_POV_presets"
 
     # variable used for all preset values
-    preset_defines = [
-        "scene = bpy.context.scene"
-        ]
+    preset_defines = ["scene = bpy.context.scene"]
 
     # properties to store in the preset
     preset_values = [
@@ -268,25 +289,30 @@ class WORLD_OT_POV_add_preset(AddPresetBase, Operator):
         "scene.pov.media_absorption_scale",
         "scene.pov.media_absorption_color",
         "scene.pov.media_eccentricity",
-        ]
+    ]
 
     # where to store the preset
     preset_subdir = "pov/world"
 
+
 def check_material(mat):
     if mat is not None:
         if mat.use_nodes:
-            if not mat.node_tree: #FORMERLY : #mat.active_node_material is not None:
+            if (
+                not mat.node_tree
+            ):  # FORMERLY : #mat.active_node_material is not None:
                 return True
             return False
         return True
     return False
+
 
 def simple_material(mat):
     """Test if a material uses nodes"""
     if (mat is not None) and (not mat.use_nodes):
         return True
     return False
+
 
 def check_add_mesh_extra_objects():
     """Test if Add mesh extra objects addon is activated
@@ -297,6 +323,7 @@ def check_add_mesh_extra_objects():
     if "add_mesh_extra_objects" in bpy.context.preferences.addons.keys():
         return True
     return False
+
 
 def locate_docpath():
     """POV can be installed with some include files.
@@ -311,20 +338,25 @@ def locate_docpath():
         if os.path.exists(pov_documents):
             return pov_documents
         else:
-            print("User Preferences path to povray documents %r NOT FOUND, checking $PATH" % pov_documents)
+            print(
+                "User Preferences path to povray documents %r NOT FOUND, checking $PATH"
+                % pov_documents
+            )
 
     # Windows Only
     if sys.platform[:3] == "win":
         import winreg
+
         try:
-            win_reg_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                "Software\\POV-Ray\\v3.7\\Windows")
+            win_reg_key = winreg.OpenKey(
+                winreg.HKEY_CURRENT_USER, "Software\\POV-Ray\\v3.7\\Windows"
+            )
             win_docpath = winreg.QueryValueEx(win_reg_key, "DocPath")[0]
             pov_documents = os.path.join(win_docpath, "Insert Menu")
             if os.path.exists(pov_documents):
                 return pov_documents
         except FileNotFoundError:
-            return""
+            return ""
     # search the path all os's
     pov_documents_default = "include"
 
@@ -336,6 +368,7 @@ def locate_docpath():
             return pov_documents
     return ""
 
+
 def pov_context_tex_datablock(context):
     """Texture context type recreated as deprecated in blender 2.8"""
 
@@ -344,7 +377,9 @@ def pov_context_tex_datablock(context):
         return idblock
 
     # idblock = bpy.context.active_object.active_material
-    idblock = bpy.context.scene.view_layers["View Layer"].objects.active.active_material
+    idblock = bpy.context.scene.view_layers[
+        "View Layer"
+    ].objects.active.active_material
     if idblock:
         return idblock
 
@@ -365,7 +400,8 @@ def pov_context_tex_datablock(context):
     if idblock:
         return idblock
 
-class RenderButtonsPanel():
+
+class RenderButtonsPanel:
     """Use this class to define buttons from the render tab of
     properties window."""
 
@@ -377,11 +413,13 @@ class RenderButtonsPanel():
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        return (rd.engine in cls.COMPAT_ENGINES)
+        return rd.engine in cls.COMPAT_ENGINES
 
-class ModifierButtonsPanel():
+
+class ModifierButtonsPanel:
     """Use this class to define buttons from the modifier tab of
     properties window."""
+
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "modifier"
@@ -393,9 +431,11 @@ class ModifierButtonsPanel():
         rd = context.scene.render
         return mods and (rd.engine in cls.COMPAT_ENGINES)
 
-class MaterialButtonsPanel():
+
+class MaterialButtonsPanel:
     """Use this class to define buttons from the material tab of
     properties window."""
+
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "material"
@@ -408,9 +448,10 @@ class MaterialButtonsPanel():
         return mat and (rd.engine in cls.COMPAT_ENGINES)
 
 
-class TextureButtonsPanel():
+class TextureButtonsPanel:
     """Use this class to define buttons from the texture tab of
     properties window."""
+
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "texture"
@@ -422,18 +463,20 @@ class TextureButtonsPanel():
         rd = context.scene.render
         return tex and (rd.engine in cls.COMPAT_ENGINES)
 
+
 # class TextureTypePanel(TextureButtonsPanel):
 
-    # @classmethod
-    # def poll(cls, context):
-        # tex = context.texture
-        # engine = context.scene.render.engine
-        # return tex and ((tex.type == cls.tex_type and not tex.use_nodes) and (engine in cls.COMPAT_ENGINES))
+# @classmethod
+# def poll(cls, context):
+# tex = context.texture
+# engine = context.scene.render.engine
+# return tex and ((tex.type == cls.tex_type and not tex.use_nodes) and (engine in cls.COMPAT_ENGINES))
 
 
-class ObjectButtonsPanel():
+class ObjectButtonsPanel:
     """Use this class to define buttons from the object tab of
     properties window."""
+
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"
@@ -445,9 +488,11 @@ class ObjectButtonsPanel():
         rd = context.scene.render
         return obj and (rd.engine in cls.COMPAT_ENGINES)
 
-class CameraDataButtonsPanel():
+
+class CameraDataButtonsPanel:
     """Use this class to define buttons from the camera data tab of
     properties window."""
+
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
@@ -459,9 +504,11 @@ class CameraDataButtonsPanel():
         rd = context.scene.render
         return cam and (rd.engine in cls.COMPAT_ENGINES)
 
-class WorldButtonsPanel():
+
+class WorldButtonsPanel:
     """Use this class to define buttons from the world tab of
     properties window."""
+
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "world"
@@ -473,9 +520,11 @@ class WorldButtonsPanel():
         rd = context.scene.render
         return wld and (rd.engine in cls.COMPAT_ENGINES)
 
-class TextButtonsPanel():
+
+class TextButtonsPanel:
     """Use this class to define buttons from the side tab of
     text window."""
+
     bl_space_type = 'TEXT_EDITOR'
     bl_region_type = 'UI'
     bl_label = "POV-Ray"
@@ -487,29 +536,50 @@ class TextButtonsPanel():
         rd = context.scene.render
         return text and (rd.engine in cls.COMPAT_ENGINES)
 
+
 from bl_ui import properties_data_mesh
+
 # These panels are kept
-properties_data_mesh.DATA_PT_custom_props_mesh.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_data_mesh.DATA_PT_custom_props_mesh.COMPAT_ENGINES.add(
+    'POVRAY_RENDER'
+)
 properties_data_mesh.DATA_PT_context_mesh.COMPAT_ENGINES.add('POVRAY_RENDER')
 
 ## make some native panels contextual to some object variable
 ## by recreating custom panels inheriting their properties
 
+
 class PovDataButtonsPanel(properties_data_mesh.MeshButtonsPanel):
     """Use this class to define buttons from the edit data tab of
     properties window."""
+
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-    POV_OBJECT_TYPES = {'PLANE', 'BOX', 'SPHERE', 'CYLINDER', 'CONE', 'TORUS', 'BLOB',
-                        'ISOSURFACE', 'SUPERELLIPSOID', 'SUPERTORUS', 'HEIGHT_FIELD',
-                        'PARAMETRIC', 'POLYCIRCLE'}
+    POV_OBJECT_TYPES = {
+        'PLANE',
+        'BOX',
+        'SPHERE',
+        'CYLINDER',
+        'CONE',
+        'TORUS',
+        'BLOB',
+        'ISOSURFACE',
+        'SUPERELLIPSOID',
+        'SUPERTORUS',
+        'HEIGHT_FIELD',
+        'PARAMETRIC',
+        'POLYCIRCLE',
+    }
 
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
         obj = context.object
         # We use our parent class poll func too, avoids to re-define too much things...
-        return (super(PovDataButtonsPanel, cls).poll(context) and
-                obj and obj.pov.object_as not in cls.POV_OBJECT_TYPES)
+        return (
+            super(PovDataButtonsPanel, cls).poll(context)
+            and obj
+            and obj.pov.object_as not in cls.POV_OBJECT_TYPES
+        )
 
 
 # We cannot inherit from RNA classes (like e.g. properties_data_mesh.DATA_PT_vertex_groups).
@@ -558,25 +628,26 @@ class DATA_PT_POV_customdata(PovDataButtonsPanel, Panel):
     draw = properties_data_mesh.DATA_PT_customdata.draw
 
 
-
 del properties_data_mesh
 
 
 ################################################################################
 # from bl_ui import properties_data_light
 # for member in dir(properties_data_light):
-    # subclass = getattr(properties_data_light, member)
-    # try:
-        # subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
-    # except:
-        # pass
+# subclass = getattr(properties_data_light, member)
+# try:
+# subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+# except:
+# pass
 # del properties_data_light
 #########################LIGHTS################################
 
 from bl_ui import properties_data_light
 
 # These panels are kept
-properties_data_light.DATA_PT_custom_props_light.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_data_light.DATA_PT_custom_props_light.COMPAT_ENGINES.add(
+    'POVRAY_RENDER'
+)
 properties_data_light.DATA_PT_context_light.COMPAT_ENGINES.add('POVRAY_RENDER')
 
 ## make some native panels contextual to some object variable
@@ -584,6 +655,7 @@ properties_data_light.DATA_PT_context_light.COMPAT_ENGINES.add('POVRAY_RENDER')
 class PovLampButtonsPanel(properties_data_light.DataButtonsPanel):
     """Use this class to define buttons from the light data tab of
     properties window."""
+
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     POV_OBJECT_TYPES = {'RAINBOW'}
 
@@ -592,29 +664,35 @@ class PovLampButtonsPanel(properties_data_light.DataButtonsPanel):
         engine = context.scene.render.engine
         obj = context.object
         # We use our parent class poll func too, avoids to re-define too much things...
-        return (super(PovLampButtonsPanel, cls).poll(context) and
-                obj and obj.pov.object_as not in cls.POV_OBJECT_TYPES)
+        return (
+            super(PovLampButtonsPanel, cls).poll(context)
+            and obj
+            and obj.pov.object_as not in cls.POV_OBJECT_TYPES
+        )
 
 
 # We cannot inherit from RNA classes (like e.g. properties_data_mesh.DATA_PT_vertex_groups).
 # Complex py/bpy/rna interactions (with metaclass and all) simply do not allow it to work.
 # So we simply have to explicitly copy here the interesting bits. ;)
 
+
 class LIGHT_PT_POV_preview(PovLampButtonsPanel, Panel):
     bl_label = properties_data_light.DATA_PT_preview.bl_label
 
     draw = properties_data_light.DATA_PT_preview.draw
+
 
 class LIGHT_PT_POV_light(PovLampButtonsPanel, Panel):
     bl_label = properties_data_light.DATA_PT_light.bl_label
 
     draw = properties_data_light.DATA_PT_light.draw
 
+
 class LIGHT_MT_POV_presets(bpy.types.Menu):
     """Use this class to define preset menu for pov lights."""
 
     bl_label = "Lamp Presets"
-    preset_subdir = "pov/lamp"
+    preset_subdir = "pov/light"
     preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
 
@@ -622,27 +700,19 @@ class LIGHT_MT_POV_presets(bpy.types.Menu):
 class LIGHT_OT_POV_add_preset(AddPresetBase, Operator):
     """Use this class to define pov world buttons."""
 
-    '''Add a Lamp Preset'''
+    '''Add a Light Preset'''
     bl_idname = "object.light_preset_add"
-    bl_label = "Add Lamp Preset"
+    bl_label = "Add Light Preset"
     preset_menu = "LIGHT_MT_POV_presets"
 
     # variable used for all preset values
-    preset_defines = [
-        "lightdata = bpy.context.object.data"
-        ]
+    preset_defines = ["lightdata = bpy.context.object.data"]
 
     # properties to store in the preset
-    preset_values = [
-        "lightdata.type",
-        "lightdata.color",
-        ]
+    preset_values = ["lightdata.type", "lightdata.color"]
 
     # where to store the preset
     preset_subdir = "pov/light"
-
-
-
 
 
 # Draw into the existing light panel
@@ -652,7 +722,10 @@ def light_panel_func(self, context):
     row = layout.row(align=True)
     row.menu(LIGHT_MT_POV_presets.__name__, text=LIGHT_MT_POV_presets.bl_label)
     row.operator(LIGHT_OT_POV_add_preset.bl_idname, text="", icon='ADD')
-    row.operator(LIGHT_OT_POV_add_preset.bl_idname, text="", icon='REMOVE').remove_active = True
+    row.operator(
+        LIGHT_OT_POV_add_preset.bl_idname, text="", icon='REMOVE'
+    ).remove_active = True
+
 
 '''#TORECREATE##DEPRECATED#
 class LIGHT_PT_POV_sunsky(PovLampButtonsPanel, Panel):
@@ -667,8 +740,10 @@ class LIGHT_PT_POV_sunsky(PovLampButtonsPanel, Panel):
     draw = properties_data_light.DATA_PT_sunsky.draw
 
 '''
+
+
 class LIGHT_PT_POV_shadow(PovLampButtonsPanel, Panel):
-    bl_label =  "Shadow"
+    bl_label = "Shadow"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
     @classmethod
@@ -695,7 +770,10 @@ class LIGHT_PT_POV_shadow(PovLampButtonsPanel, Panel):
 
         col = split.column()
 
-        col.active = (lamp.shadow_method != 'BUFFER_SHADOW' or lamp.shadow_buffer_type != 'DEEP')
+        col.active = (
+            lamp.shadow_method != 'BUFFER_SHADOW'
+            or lamp.shadow_buffer_type != 'DEEP'
+        )
         col.prop(lamp, "use_halo")
         sub = col.column(align=True)
         sub.active = lamp.use_halo
@@ -746,6 +824,7 @@ class LIGHT_PT_POV_shadow(PovLampButtonsPanel, Panel):
                 elif lamp.shape == 'RECTANGLE':
                     sub.prop(lamp, "shadow_ray_samples_x", text="Samples X")
                     sub.prop(lamp, "shadow_ray_samples_y", text="Samples Y")
+
 
 '''
         if lamp.shadow_method == 'NOSHADOW' and lamp.type == 'AREA':
@@ -846,6 +925,7 @@ class LIGHT_PT_POV_shadow(PovLampButtonsPanel, Panel):
             sub.prop(lamp, "shadow_buffer_clip_end", text=" Clip End")
 '''
 
+
 class LIGHT_PT_POV_area(PovLampButtonsPanel, Panel):
     bl_label = properties_data_light.DATA_PT_area.bl_label
 
@@ -857,6 +937,7 @@ class LIGHT_PT_POV_area(PovLampButtonsPanel, Panel):
 
     draw = properties_data_light.DATA_PT_area.draw
 
+
 class LIGHT_PT_POV_spot(PovLampButtonsPanel, Panel):
     bl_label = properties_data_light.DATA_PT_spot.bl_label
 
@@ -865,7 +946,9 @@ class LIGHT_PT_POV_spot(PovLampButtonsPanel, Panel):
         lamp = context.light
         engine = context.scene.render.engine
         return (lamp and lamp.type == 'SPOT') and (engine in cls.COMPAT_ENGINES)
+
     draw = properties_data_light.DATA_PT_spot.draw
+
 
 class LIGHT_PT_POV_falloff_curve(PovLampButtonsPanel, Panel):
     bl_label = properties_data_light.DATA_PT_falloff_curve.bl_label
@@ -876,20 +959,32 @@ class LIGHT_PT_POV_falloff_curve(PovLampButtonsPanel, Panel):
         lamp = context.light
         engine = context.scene.render.engine
 
-        return (lamp and lamp.type in {'POINT', 'SPOT'} and lamp.falloff_type == 'CUSTOM_CURVE') and (engine in cls.COMPAT_ENGINES)
+        return (
+            lamp
+            and lamp.type in {'POINT', 'SPOT'}
+            and lamp.falloff_type == 'CUSTOM_CURVE'
+        ) and (engine in cls.COMPAT_ENGINES)
+
     draw = properties_data_light.DATA_PT_falloff_curve.draw
+
 
 class OBJECT_PT_POV_rainbow(PovLampButtonsPanel, Panel):
     """Use this class to define buttons from the rainbow panel of
     properties window. inheriting lamp buttons panel class"""
+
     bl_label = "POV-Ray Rainbow"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-    #bl_options = {'HIDE_HEADER'}
+    # bl_options = {'HIDE_HEADER'}
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
         obj = context.object
-        return (obj and obj.pov.object_as == 'RAINBOW' and (engine in cls.COMPAT_ENGINES))
+        return (
+            obj
+            and obj.pov.object_as == 'RAINBOW'
+            and (engine in cls.COMPAT_ENGINES)
+        )
+
     def draw(self, context):
         layout = self.layout
 
@@ -899,33 +994,58 @@ class OBJECT_PT_POV_rainbow(PovLampButtonsPanel, Panel):
 
         if obj.pov.object_as == 'RAINBOW':
             if obj.pov.unlock_parameters == False:
-                col.prop(obj.pov, "unlock_parameters", text="Exported parameters below", icon='LOCKED')
-                col.label(text="Rainbow projection angle: " + str(obj.data.spot_size))
+                col.prop(
+                    obj.pov,
+                    "unlock_parameters",
+                    text="Exported parameters below",
+                    icon='LOCKED',
+                )
+                col.label(
+                    text="Rainbow projection angle: " + str(obj.data.spot_size)
+                )
                 col.label(text="Rainbow width: " + str(obj.data.spot_blend))
-                col.label(text="Rainbow distance: " + str(obj.data.shadow_buffer_clip_start))
+                col.label(
+                    text="Rainbow distance: "
+                    + str(obj.data.shadow_buffer_clip_start)
+                )
                 col.label(text="Rainbow arc angle: " + str(obj.pov.arc_angle))
-                col.label(text="Rainbow falloff angle: " + str(obj.pov.falloff_angle))
+                col.label(
+                    text="Rainbow falloff angle: " + str(obj.pov.falloff_angle)
+                )
 
             else:
-                col.prop(obj.pov, "unlock_parameters", text="Edit exported parameters", icon='UNLOCKED')
+                col.prop(
+                    obj.pov,
+                    "unlock_parameters",
+                    text="Edit exported parameters",
+                    icon='UNLOCKED',
+                )
                 col.label(text="3D view proxy may get out of synch")
                 col.active = obj.pov.unlock_parameters
 
+                layout.operator(
+                    "pov.cone_update", text="Update", icon="MESH_CONE"
+                )
 
-                layout.operator("pov.cone_update", text="Update",icon="MESH_CONE")
-
-                #col.label(text="Parameters:")
+                # col.label(text="Parameters:")
                 col.prop(obj.data, "spot_size", text="Rainbow Projection Angle")
                 col.prop(obj.data, "spot_blend", text="Rainbow width")
-                col.prop(obj.data, "shadow_buffer_clip_start", text="Visibility distance")
+                col.prop(
+                    obj.data,
+                    "shadow_buffer_clip_start",
+                    text="Visibility distance",
+                )
                 col.prop(obj.pov, "arc_angle")
                 col.prop(obj.pov, "falloff_angle")
+
 
 del properties_data_light
 ###############################################################################
 
+
 class WORLD_PT_POV_world(WorldButtonsPanel, Panel):
     """Use this class to define pov world buttons."""
+
     bl_label = "World"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -935,9 +1055,13 @@ class WORLD_PT_POV_world(WorldButtonsPanel, Panel):
         world = context.world.pov
 
         row = layout.row(align=True)
-        row.menu(WORLD_MT_POV_presets.__name__, text=WORLD_MT_POV_presets.bl_label)
+        row.menu(
+            WORLD_MT_POV_presets.__name__, text=WORLD_MT_POV_presets.bl_label
+        )
         row.operator(WORLD_OT_POV_add_preset.bl_idname, text="", icon='ADD')
-        row.operator(WORLD_OT_POV_add_preset.bl_idname, text="", icon='REMOVE').remove_active = True
+        row.operator(
+            WORLD_OT_POV_add_preset.bl_idname, text="", icon='REMOVE'
+        ).remove_active = True
 
         row = layout.row()
         row.prop(world, "use_sky_paper")
@@ -951,9 +1075,10 @@ class WORLD_PT_POV_world(WorldButtonsPanel, Panel):
         col.active = world.use_sky_blend
         row.column().prop(world, "ambient_color")
 
-        #row = layout.row()
-        #row.prop(world, "exposure") #Re-implement later as a light multiplier
-        #row.prop(world, "color_range")
+        # row = layout.row()
+        # row.prop(world, "exposure") #Re-implement later as a light multiplier
+        # row.prop(world, "color_range")
+
 
 class WORLD_PT_POV_mist(WorldButtonsPanel, Panel):
     """Use this class to define pov mist buttons."""
@@ -986,6 +1111,7 @@ class WORLD_PT_POV_mist(WorldButtonsPanel, Panel):
 
         layout.prop(world.mist_settings, "falloff")
 
+
 class RENDER_PT_POV_export_settings(RenderButtonsPanel, Panel):
     """Use this class to define pov ini settingss buttons."""
 
@@ -993,20 +1119,23 @@ class RENDER_PT_POV_export_settings(RenderButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-
     def draw_header(self, context):
         scene = context.scene
         if scene.pov.tempfiles_enable:
-            self.layout.prop(scene.pov, "tempfiles_enable", text="", icon='AUTO')
+            self.layout.prop(
+                scene.pov, "tempfiles_enable", text="", icon='AUTO'
+            )
         else:
-            self.layout.prop(scene.pov, "tempfiles_enable", text="", icon='CONSOLE')
+            self.layout.prop(
+                scene.pov, "tempfiles_enable", text="", icon='CONSOLE'
+            )
 
     def draw(self, context):
         layout = self.layout
 
         scene = context.scene
 
-        layout.active = (scene.pov.max_trace_level != 0)
+        layout.active = scene.pov.max_trace_level != 0
         split = layout.split()
 
         col = split.column()
@@ -1015,15 +1144,15 @@ class RENDER_PT_POV_export_settings(RenderButtonsPanel, Panel):
         split = layout.split()
 
         layout.active = not scene.pov.tempfiles_enable
-        #if not scene.pov.tempfiles_enable:
+        # if not scene.pov.tempfiles_enable:
         split.prop(scene.pov, "deletefiles_enable", text="Delete files")
         split.prop(scene.pov, "pov_editor", text="POV Editor")
 
         col = layout.column()
         col.prop(scene.pov, "scene_name", text="Name")
         col.prop(scene.pov, "scene_path", text="Path to files")
-        #col.prop(scene.pov, "scene_path", text="Path to POV-file")
-        #col.prop(scene.pov, "renderimage_path", text="Path to image")
+        # col.prop(scene.pov, "scene_path", text="Path to POV-file")
+        # col.prop(scene.pov, "renderimage_path", text="Path to image")
 
         split = layout.split()
         split.prop(scene.pov, "indentation_character", text="Indent")
@@ -1046,45 +1175,56 @@ class RENDER_PT_POV_render_settings(RenderButtonsPanel, Panel):
     def draw_header(self, context):
         scene = context.scene
         if scene.pov.global_settings_advanced:
-            self.layout.prop(scene.pov, "global_settings_advanced", text="", icon='SETTINGS')
+            self.layout.prop(
+                scene.pov, "global_settings_advanced", text="", icon='SETTINGS'
+            )
         else:
-            self.layout.prop(scene.pov, "global_settings_advanced", text="", icon='PREFERENCES')
+            self.layout.prop(
+                scene.pov,
+                "global_settings_advanced",
+                text="",
+                icon='PREFERENCES',
+            )
+
     def draw(self, context):
         layout = self.layout
 
         scene = context.scene
         rd = context.scene.render
-        #layout.active = (scene.pov.max_trace_level != 0)
+        # layout.active = (scene.pov.max_trace_level != 0)
 
         if sys.platform[:3] != "win":
-            layout.prop(scene.pov, "sdl_window_enable", text="POV-Ray SDL Window")
+            layout.prop(
+                scene.pov, "sdl_window_enable", text="POV-Ray SDL Window"
+            )
 
         col = layout.column()
         col.label(text="Main Path Tracing:")
         col.prop(scene.pov, "max_trace_level", text="Ray Depth")
         align = True
         layout.active = scene.pov.global_settings_advanced
-        layout.prop(scene.pov,"charset")
-        row = layout.row(align = align)
-        row.prop(scene.pov,"adc_bailout")
-        row = layout.row(align = align)
-        row.prop(scene.pov,"ambient_light")
-        row = layout.row(align = align)
-        row.prop(scene.pov,"irid_wavelength")
-        row = layout.row(align = align)
-        row.prop(scene.pov,"max_intersections")
-        row = layout.row(align = align)
-        row.prop(scene.pov,"number_of_waves")
-        row = layout.row(align = align)
-        row.prop(scene.pov,"noise_generator")
+        layout.prop(scene.pov, "charset")
+        row = layout.row(align=align)
+        row.prop(scene.pov, "adc_bailout")
+        row = layout.row(align=align)
+        row.prop(scene.pov, "ambient_light")
+        row = layout.row(align=align)
+        row.prop(scene.pov, "irid_wavelength")
+        row = layout.row(align=align)
+        row.prop(scene.pov, "max_intersections")
+        row = layout.row(align=align)
+        row.prop(scene.pov, "number_of_waves")
+        row = layout.row(align=align)
+        row.prop(scene.pov, "noise_generator")
 
         split = layout.split()
         split.label(text="Shading:")
         split = layout.split()
 
-        row = split.row(align = align)
+        row = split.row(align=align)
         row.prop(scene.pov, "use_shadows")
         row.prop(scene.pov, "alpha_mode")
+
 
 class RENDER_PT_POV_photons(RenderButtonsPanel, Panel):
     """Use this class to define pov photons buttons."""
@@ -1094,20 +1234,25 @@ class RENDER_PT_POV_photons(RenderButtonsPanel, Panel):
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
     # def draw_header(self, context):
-        # self.layout.label(icon='SETTINGS')
+    # self.layout.label(icon='SETTINGS')
 
     def draw_header(self, context):
         scene = context.scene
         if scene.pov.photon_enable:
-            self.layout.prop(scene.pov, "photon_enable", text="", icon='PMARKER_ACT')
+            self.layout.prop(
+                scene.pov, "photon_enable", text="", icon='PMARKER_ACT'
+            )
         else:
-            self.layout.prop(scene.pov, "photon_enable", text="", icon='PMARKER')
+            self.layout.prop(
+                scene.pov, "photon_enable", text="", icon='PMARKER'
+            )
+
     def draw(self, context):
         scene = context.scene
         layout = self.layout
         layout.active = scene.pov.photon_enable
         col = layout.column()
-        #col.label(text="Global Photons:")
+        # col.label(text="Global Photons:")
         col.prop(scene.pov, "photon_max_trace_level", text="Photon Depth")
 
         split = layout.split()
@@ -1120,17 +1265,17 @@ class RENDER_PT_POV_photons(RenderButtonsPanel, Panel):
         col.prop(scene.pov, "photon_adc_bailout", text="Photon ADC")
         col.prop(scene.pov, "photon_gather_max")
 
-
         box = layout.box()
         box.label(text='Photon Map File:')
         row = box.row()
-        row.prop(scene.pov, "photon_map_file_save_load",expand = True)
+        row.prop(scene.pov, "photon_map_file_save_load", expand=True)
         if scene.pov.photon_map_file_save_load in {'save'}:
             box.prop(scene.pov, "photon_map_dir")
             box.prop(scene.pov, "photon_map_filename")
         if scene.pov.photon_map_file_save_load in {'load'}:
             box.prop(scene.pov, "photon_map_file")
-        #end main photons
+        # end main photons
+
 
 class RENDER_PT_POV_antialias(RenderButtonsPanel, Panel):
     """Use this class to define pov antialiasing buttons."""
@@ -1139,16 +1284,24 @@ class RENDER_PT_POV_antialias(RenderButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-
     def draw_header(self, context):
         prefs = bpy.context.preferences.addons[__package__].preferences
         scene = context.scene
-        if prefs.branch_feature_set_povray != 'uberpov' and scene.pov.antialias_method == '2':
-            self.layout.prop(scene.pov, "antialias_enable", text="", icon='ERROR')
+        if (
+            prefs.branch_feature_set_povray != 'uberpov'
+            and scene.pov.antialias_method == '2'
+        ):
+            self.layout.prop(
+                scene.pov, "antialias_enable", text="", icon='ERROR'
+            )
         elif scene.pov.antialias_enable:
-            self.layout.prop(scene.pov, "antialias_enable", text="", icon='ANTIALIASED')
+            self.layout.prop(
+                scene.pov, "antialias_enable", text="", icon='ANTIALIASED'
+            )
         else:
-            self.layout.prop(scene.pov, "antialias_enable", text="", icon='ALIASED')
+            self.layout.prop(
+                scene.pov, "antialias_enable", text="", icon='ALIASED'
+            )
 
     def draw(self, context):
         prefs = bpy.context.preferences.addons[__package__].preferences
@@ -1160,7 +1313,10 @@ class RENDER_PT_POV_antialias(RenderButtonsPanel, Panel):
         row = layout.row()
         row.prop(scene.pov, "antialias_method", text="")
 
-        if prefs.branch_feature_set_povray != 'uberpov' and scene.pov.antialias_method == '2':
+        if (
+            prefs.branch_feature_set_povray != 'uberpov'
+            and scene.pov.antialias_method == '2'
+        ):
             col = layout.column()
             col.alignment = 'CENTER'
             col.label(text="Stochastic Anti Aliasing is")
@@ -1186,12 +1342,13 @@ class RENDER_PT_POV_antialias(RenderButtonsPanel, Panel):
 
             if prefs.branch_feature_set_povray == 'uberpov':
                 row = layout.row()
-                row.prop(scene.pov, "antialias_confidence", text="AA Confidence")
+                row.prop(
+                    scene.pov, "antialias_confidence", text="AA Confidence"
+                )
                 if scene.pov.antialias_method == '2':
                     row.enabled = True
                 else:
                     row.enabled = False
-
 
 
 class RENDER_PT_POV_radiosity(RenderButtonsPanel, Panel):
@@ -1200,12 +1357,20 @@ class RENDER_PT_POV_radiosity(RenderButtonsPanel, Panel):
     bl_label = "Diffuse Radiosity"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
+
     def draw_header(self, context):
         scene = context.scene
         if scene.pov.radio_enable:
-            self.layout.prop(scene.pov, "radio_enable", text="", icon='OUTLINER_OB_LIGHTPROBE')
+            self.layout.prop(
+                scene.pov,
+                "radio_enable",
+                text="",
+                icon='OUTLINER_OB_LIGHTPROBE',
+            )
         else:
-            self.layout.prop(scene.pov, "radio_enable", text="", icon='LIGHTPROBE_CUBEMAP')
+            self.layout.prop(
+                scene.pov, "radio_enable", text="", icon='LIGHTPROBE_CUBEMAP'
+            )
 
     def draw(self, context):
         layout = self.layout
@@ -1248,9 +1413,6 @@ class RENDER_PT_POV_radiosity(RenderButtonsPanel, Panel):
             col.prop(scene.pov, "radio_subsurface")
 
 
-
-
-
 class POV_RADIOSITY_MT_presets(bpy.types.Menu):
     """Use this class to define pov radiosity presets menu."""
 
@@ -1269,9 +1431,7 @@ class RENDER_OT_POV_radiosity_add_preset(AddPresetBase, Operator):
     preset_menu = "POV_RADIOSITY_MT_presets"
 
     # variable used for all preset values
-    preset_defines = [
-        "scene = bpy.context.scene"
-        ]
+    preset_defines = ["scene = bpy.context.scene"]
 
     # properties to store in the preset
     preset_values = [
@@ -1292,13 +1452,10 @@ class RENDER_OT_POV_radiosity_add_preset(AddPresetBase, Operator):
         "scene.pov.radio_recursion_limit",
         "scene.pov.radio_pretrace_start",
         "scene.pov.radio_pretrace_end",
-        ]
+    ]
 
     # where to store the preset
     preset_subdir = "pov/radiosity"
-
-
-
 
 
 # Draw into an existing panel
@@ -1306,9 +1463,17 @@ def rad_panel_func(self, context):
     layout = self.layout
 
     row = layout.row(align=True)
-    row.menu(POV_RADIOSITY_MT_presets.__name__, text=POV_RADIOSITY_MT_presets.bl_label)
-    row.operator(RENDER_OT_POV_radiosity_add_preset.bl_idname, text="", icon='ADD')
-    row.operator(RENDER_OT_POV_radiosity_add_preset.bl_idname, text="", icon='REMOVE').remove_active = True
+    row.menu(
+        POV_RADIOSITY_MT_presets.__name__,
+        text=POV_RADIOSITY_MT_presets.bl_label,
+    )
+    row.operator(
+        RENDER_OT_POV_radiosity_add_preset.bl_idname, text="", icon='ADD'
+    )
+    row.operator(
+        RENDER_OT_POV_radiosity_add_preset.bl_idname, text="", icon='REMOVE'
+    ).remove_active = True
+
 
 class RENDER_PT_POV_media(WorldButtonsPanel, Panel):
     """Use this class to define a pov global atmospheric media buttons."""
@@ -1344,6 +1509,8 @@ class RENDER_PT_POV_media(WorldButtonsPanel, Panel):
         if scene.pov.media_scattering_type == '5':
             col = layout.column()
             col.prop(scene.pov, "media_eccentricity", text="Eccentricity")
+
+
 ##class RENDER_PT_povray_baking(RenderButtonsPanel, Panel):
 ##    bl_label = "Baking"
 ##    COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -1361,15 +1528,16 @@ class RENDER_PT_POV_media(WorldButtonsPanel, Panel):
 ##
 ##        layout.active = scene.pov.baking_enable
 
+
 class MODIFIERS_PT_POV_modifiers(ModifierButtonsPanel, Panel):
     """Use this class to define pov modifier buttons. (For booleans)"""
 
     bl_label = "POV-Ray"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-    #def draw_header(self, context):
-        #scene = context.scene
-        #self.layout.prop(scene.pov, "boolean_mod", text="")
+    # def draw_header(self, context):
+    # scene = context.scene
+    # self.layout.prop(scene.pov, "boolean_mod", text="")
 
     def draw(self, context):
         scene = context.scene
@@ -1381,7 +1549,7 @@ class MODIFIERS_PT_POV_modifiers(ModifierButtonsPanel, Panel):
         onceCSG = 0
         for mod in ob.modifiers:
             if onceCSG == 0:
-                if mod :
+                if mod:
                     if mod.type == 'BOOLEAN':
                         col.prop(ob.pov, "boolean_mod")
                         onceCSG = 1
@@ -1392,6 +1560,7 @@ class MODIFIERS_PT_POV_modifiers(ModifierButtonsPanel, Panel):
                         # Inside Vector for CSG
                         col.prop(ob.pov, "inside_vector")
 
+
 class MATERIAL_MT_POV_sss_presets(bpy.types.Menu):
     """Use this class to define pov sss preset menu."""
 
@@ -1400,22 +1569,22 @@ class MATERIAL_MT_POV_sss_presets(bpy.types.Menu):
     preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
 
+
 class MATERIAL_OT_POV_sss_add_preset(AddPresetBase, Operator):
     """Add an SSS Preset"""
+
     bl_idname = "material.sss_preset_add"
     bl_label = "Add SSS Preset"
     preset_menu = "MATERIAL_MT_POV_sss_presets"
 
     # variable used for all preset values
-    preset_defines = [
-        "material = bpy.context.material"
-        ]
+    preset_defines = ["material = bpy.context.material"]
 
     # properties to store in the preset
     preset_values = [
         "material.pov_subsurface_scattering.radius",
         "material.pov_subsurface_scattering.color",
-        ]
+    ]
 
     # where to store the preset
     preset_subdir = "pov/material/sss"
@@ -1432,28 +1601,39 @@ class MATERIAL_PT_POV_sss(MaterialButtonsPanel, Panel):
     def poll(cls, context):
         mat = context.material
         engine = context.scene.render.engine
-        return check_material(mat) and (mat.pov.type in {'SURFACE', 'WIRE'}) and (engine in cls.COMPAT_ENGINES)
+        return (
+            check_material(mat)
+            and (mat.pov.type in {'SURFACE', 'WIRE'})
+            and (engine in cls.COMPAT_ENGINES)
+        )
 
     def draw_header(self, context):
-        mat = context.material #FORMERLY : #active_node_mat(context.material)
+        mat = context.material  # FORMERLY : #active_node_mat(context.material)
         sss = mat.pov_subsurface_scattering
 
-        self.layout.active = (not mat.pov.use_shadeless)
+        self.layout.active = not mat.pov.use_shadeless
         self.layout.prop(sss, "use", text="")
 
     def draw(self, context):
         layout = self.layout
 
-        mat = context.material #FORMERLY : #active_node_mat(context.material)
+        mat = context.material  # FORMERLY : #active_node_mat(context.material)
         sss = mat.pov_subsurface_scattering
 
         layout.active = (sss.use) and (not mat.pov.use_shadeless)
 
         row = layout.row().split()
         sub = row.row(align=True).split(align=True, factor=0.75)
-        sub.menu(MATERIAL_MT_POV_sss_presets.__name__, text=MATERIAL_MT_POV_sss_presets.bl_label)
-        sub.operator(MATERIAL_OT_POV_sss_add_preset.bl_idname, text="", icon='ADD')
-        sub.operator(MATERIAL_OT_POV_sss_add_preset.bl_idname, text="", icon='REMOVE').remove_active = True
+        sub.menu(
+            MATERIAL_MT_POV_sss_presets.__name__,
+            text=MATERIAL_MT_POV_sss_presets.bl_label,
+        )
+        sub.operator(
+            MATERIAL_OT_POV_sss_add_preset.bl_idname, text="", icon='ADD'
+        )
+        sub.operator(
+            MATERIAL_OT_POV_sss_add_preset.bl_idname, text="", icon='REMOVE'
+        ).remove_active = True
 
         split = layout.split()
 
@@ -1474,6 +1654,7 @@ class MATERIAL_PT_POV_sss(MaterialButtonsPanel, Panel):
         col.separator()
         col.prop(sss, "error_threshold", text="Error")
 
+
 class MATERIAL_PT_POV_activate_node(MaterialButtonsPanel, Panel):
     """Use this class to define an activate pov nodes button."""
 
@@ -1485,16 +1666,23 @@ class MATERIAL_PT_POV_activate_node(MaterialButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        mat=context.material
+        mat = context.material
         ob = context.object
-        return mat and mat.pov.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes)
+        return (
+            mat
+            and mat.pov.type == "SURFACE"
+            and (engine in cls.COMPAT_ENGINES)
+            and not (mat.pov.material_use_nodes or mat.use_nodes)
+        )
 
     def draw(self, context):
         layout = self.layout
         # layout.operator("pov.material_use_nodes", icon='SOUND')#'NODETREE')
         # the above replaced with a context hook below:
-        layout.operator("WM_OT_context_toggle", text="Use POV-Ray Nodes", icon='NODETREE').data_path = \
-                        "material.pov.material_use_nodes"
+        layout.operator(
+            "WM_OT_context_toggle", text="Use POV-Ray Nodes", icon='NODETREE'
+        ).data_path = "material.pov.material_use_nodes"
+
 
 class MATERIAL_PT_POV_active_node(MaterialButtonsPanel, Panel):
     """Use this class to show pov active node properties buttons."""
@@ -1507,10 +1695,14 @@ class MATERIAL_PT_POV_active_node(MaterialButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        mat=context.material
+        mat = context.material
         ob = context.object
-        return mat and mat.pov.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and mat.pov.material_use_nodes
-
+        return (
+            mat
+            and mat.pov.type == "SURFACE"
+            and (engine in cls.COMPAT_ENGINES)
+            and mat.pov.material_use_nodes
+        )
 
     def draw(self, context):
         layout = self.layout
@@ -1520,14 +1712,18 @@ class MATERIAL_PT_POV_active_node(MaterialButtonsPanel, Panel):
             node = node_tree.nodes.active
             if mat.use_nodes:
                 if node:
-                    layout.prop(mat.pov,"material_active_node")
-                    if node.bl_idname=="PovrayMaterialNode":
+                    layout.prop(mat.pov, "material_active_node")
+                    if node.bl_idname == "PovrayMaterialNode":
                         layout.context_pointer_set("node", node)
                         if hasattr(node, "draw_buttons_ext"):
                             node.draw_buttons_ext(context, layout)
                         elif hasattr(node, "draw_buttons"):
                             node.draw_buttons(context, layout)
-                        value_inputs = [socket for socket in node.inputs if socket.enabled and not socket.is_linked]
+                        value_inputs = [
+                            socket
+                            for socket in node.inputs
+                            if socket.enabled and not socket.is_linked
+                        ]
                         if value_inputs:
                             layout.separator()
                             layout.label(text="Inputs:")
@@ -1540,7 +1736,11 @@ class MATERIAL_PT_POV_active_node(MaterialButtonsPanel, Panel):
                             node.draw_buttons_ext(context, layout)
                         elif hasattr(node, "draw_buttons"):
                             node.draw_buttons(context, layout)
-                        value_inputs = [socket for socket in node.inputs if socket.enabled and not socket.is_linked]
+                        value_inputs = [
+                            socket
+                            for socket in node.inputs
+                            if socket.enabled and not socket.is_linked
+                        ]
                         if value_inputs:
                             layout.separator()
                             layout.label(text="Inputs:")
@@ -1550,6 +1750,7 @@ class MATERIAL_PT_POV_active_node(MaterialButtonsPanel, Panel):
                 else:
                     layout.label(text="No active nodes!")
 
+
 class MATERIAL_PT_POV_mirror(MaterialButtonsPanel, Panel):
     """Use this class to define standard material reflectivity (mirror) buttons."""
 
@@ -1558,12 +1759,15 @@ class MATERIAL_PT_POV_mirror(MaterialButtonsPanel, Panel):
     bl_idname = "MATERIAL_PT_POV_raytrace_mirror"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-
     @classmethod
     def poll(cls, context):
         mat = context.material
         engine = context.scene.render.engine
-        return check_material(mat) and (mat.pov.type in {'SURFACE', 'WIRE'}) and (engine in cls.COMPAT_ENGINES)
+        return (
+            check_material(mat)
+            and (mat.pov.type in {'SURFACE', 'WIRE'})
+            and (engine in cls.COMPAT_ENGINES)
+        )
 
     def draw_header(self, context):
         mat = context.material
@@ -1574,7 +1778,9 @@ class MATERIAL_PT_POV_mirror(MaterialButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        mat = context.material #Formerly : #mat = active_node_mat(context.material)
+        mat = (
+            context.material
+        )  # Formerly : #mat = active_node_mat(context.material)
         raym = mat.pov_raytrace_mirror
 
         layout.active = raym.use
@@ -1588,7 +1794,7 @@ class MATERIAL_PT_POV_mirror(MaterialButtonsPanel, Panel):
         col = split.column()
         col.prop(raym, "fresnel")
         sub = col.column()
-        sub.active = (raym.fresnel > 0.0)
+        sub.active = raym.fresnel > 0.0
         sub.prop(raym, "fresnel_factor", text="Blend")
 
         split = layout.split()
@@ -1599,7 +1805,7 @@ class MATERIAL_PT_POV_mirror(MaterialButtonsPanel, Panel):
         col.prop(raym, "distance", text="Max Dist")
         col.separator()
         sub = col.split(factor=0.4)
-        sub.active = (raym.distance > 0.0)
+        sub.active = raym.distance > 0.0
         sub.label(text="Fade To:")
         sub.prop(raym, "fade_to", text="")
 
@@ -1607,10 +1813,11 @@ class MATERIAL_PT_POV_mirror(MaterialButtonsPanel, Panel):
         col.label(text="Gloss:")
         col.prop(raym, "gloss_factor", text="Amount")
         sub = col.column()
-        sub.active = (raym.gloss_factor < 1.0)
+        sub.active = raym.gloss_factor < 1.0
         sub.prop(raym, "gloss_threshold", text="Threshold")
         sub.prop(raym, "gloss_samples", text="Samples")
         sub.prop(raym, "gloss_anisotropic", text="Anisotropic")
+
 
 class MATERIAL_PT_POV_transp(MaterialButtonsPanel, Panel):
     """Use this class to define pov material transparency (alpha) buttons."""
@@ -1622,7 +1829,11 @@ class MATERIAL_PT_POV_transp(MaterialButtonsPanel, Panel):
     def poll(cls, context):
         mat = context.material
         engine = context.scene.render.engine
-        return check_material(mat) and (mat.pov.type in {'SURFACE', 'WIRE'}) and (engine in cls.COMPAT_ENGINES)
+        return (
+            check_material(mat)
+            and (mat.pov.type in {'SURFACE', 'WIRE'})
+            and (engine in cls.COMPAT_ENGINES)
+        )
 
     def draw_header(self, context):
         mat = context.material
@@ -1634,7 +1845,7 @@ class MATERIAL_PT_POV_transp(MaterialButtonsPanel, Panel):
         layout = self.layout
 
         base_mat = context.material
-        mat = context.material#FORMERLY active_node_mat(context.material)
+        mat = context.material  # FORMERLY active_node_mat(context.material)
         rayt = mat.pov_raytrace_transparency
 
         if simple_material(base_mat):
@@ -1648,14 +1859,16 @@ class MATERIAL_PT_POV_transp(MaterialButtonsPanel, Panel):
         col = split.column()
         col.prop(mat.pov, "alpha")
         row = col.row()
-        row.active = (base_mat.pov.transparency_method != 'MASK') and (not mat.pov.use_shadeless)
+        row.active = (base_mat.pov.transparency_method != 'MASK') and (
+            not mat.pov.use_shadeless
+        )
         row.prop(mat.pov, "specular_alpha", text="Specular")
 
         col = split.column()
-        col.active = (not mat.pov.use_shadeless)
+        col.active = not mat.pov.use_shadeless
         col.prop(rayt, "fresnel")
         sub = col.column()
-        sub.active = (rayt.fresnel > 0.0)
+        sub.active = rayt.fresnel > 0.0
         sub.prop(rayt, "fresnel_factor", text="Blend")
 
         if base_mat.pov.transparency_method == 'RAYTRACE':
@@ -1678,6 +1891,7 @@ class MATERIAL_PT_POV_transp(MaterialButtonsPanel, Panel):
             sub.prop(rayt, "gloss_threshold", text="Threshold")
             sub.prop(rayt, "gloss_samples", text="Samples")
 
+
 class MATERIAL_PT_POV_reflection(MaterialButtonsPanel, Panel):
     """Use this class to define more pov specific reflectivity buttons."""
 
@@ -1688,9 +1902,14 @@ class MATERIAL_PT_POV_reflection(MaterialButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        mat=context.material
+        mat = context.material
         ob = context.object
-        return mat and mat.pov.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes)
+        return (
+            mat
+            and mat.pov.type == "SURFACE"
+            and (engine in cls.COMPAT_ENGINES)
+            and not (mat.pov.material_use_nodes or mat.use_nodes)
+        )
 
     def draw(self, context):
         layout = self.layout
@@ -1703,7 +1922,7 @@ class MATERIAL_PT_POV_reflection(MaterialButtonsPanel, Panel):
             col.prop(mat.pov, "irid_thickness", slider=True)
             col.prop(mat.pov, "irid_turbulence", slider=True)
         col.prop(mat.pov, "conserve_energy")
-        col2=col.split().column()
+        col2 = col.split().column()
 
         if not mat.pov_raytrace_mirror.use:
             col2.label(text="Please Check Mirror settings :")
@@ -1714,6 +1933,8 @@ class MATERIAL_PT_POV_reflection(MaterialButtonsPanel, Panel):
             col2.label(text="The current Raytrace ")
             col2.label(text="Transparency IOR is: " + str(mat.pov.ior))
         col2.prop(mat.pov, "mirror_metallic")
+
+
 '''
 #group some native Blender (SSS) and POV (Fade)settings under such a parent panel?
 class MATERIAL_PT_POV_interior(MaterialButtonsPanel, Panel):
@@ -1733,20 +1954,25 @@ class MATERIAL_PT_POV_interior(MaterialButtonsPanel, Panel):
         mat = context.material
 '''
 
+
 class MATERIAL_PT_POV_fade_color(MaterialButtonsPanel, Panel):
     """Use this class to define pov fading (absorption) color buttons."""
 
     bl_label = "POV-Ray Absorption"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-    #bl_parent_id = "material.pov_interior"
+    # bl_parent_id = "material.pov_interior"
 
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        mat=context.material
+        mat = context.material
         ob = context.object
-        return mat and mat.pov.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes)
-
+        return (
+            mat
+            and mat.pov.type == "SURFACE"
+            and (engine in cls.COMPAT_ENGINES)
+            and not (mat.pov.material_use_nodes or mat.use_nodes)
+        )
 
     def draw_header(self, context):
         mat = context.material
@@ -1771,21 +1997,29 @@ class MATERIAL_PT_POV_caustics(MaterialButtonsPanel, Panel):
     bl_label = "Caustics"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        mat=context.material
+        mat = context.material
         ob = context.object
-        return mat and mat.pov.type == "SURFACE" and (engine in cls.COMPAT_ENGINES) and not (mat.pov.material_use_nodes or mat.use_nodes)
-
+        return (
+            mat
+            and mat.pov.type == "SURFACE"
+            and (engine in cls.COMPAT_ENGINES)
+            and not (mat.pov.material_use_nodes or mat.use_nodes)
+        )
 
     def draw_header(self, context):
         mat = context.material
         if mat.pov.caustics_enable:
-            self.layout.prop(mat.pov, "caustics_enable", text="", icon="PMARKER_SEL" )
+            self.layout.prop(
+                mat.pov, "caustics_enable", text="", icon="PMARKER_SEL"
+            )
         else:
-            self.layout.prop(mat.pov, "caustics_enable", text="", icon="PMARKER" )
+            self.layout.prop(
+                mat.pov, "caustics_enable", text="", icon="PMARKER"
+            )
+
     def draw(self, context):
 
         layout = self.layout
@@ -1806,11 +2040,15 @@ class MATERIAL_PT_POV_caustics(MaterialButtonsPanel, Panel):
                     col.prop(mat.pov, "photons_dispersion_samples", slider=True)
             col.prop(mat.pov, "photons_reflection")
 
-            if not mat.pov.refraction_caustics and not mat.pov.photons_reflection:
+            if (
+                not mat.pov.refraction_caustics
+                and not mat.pov.photons_reflection
+            ):
                 col = layout.column()
                 col.alignment = 'CENTER'
                 col.label(text="Caustics override is on, ")
                 col.label(text="but you didn't chose any !")
+
 
 class MATERIAL_PT_strand(MaterialButtonsPanel, Panel):
     """Use this class to define Blender strand antialiasing buttons."""
@@ -1823,7 +2061,11 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, Panel):
     def poll(cls, context):
         mat = context.material
         engine = context.scene.render.engine
-        return mat and (mat.pov.type in {'SURFACE', 'WIRE', 'HALO'}) and (engine in cls.COMPAT_ENGINES)
+        return (
+            mat
+            and (mat.pov.type in {'SURFACE', 'WIRE', 'HALO'})
+            and (engine in cls.COMPAT_ENGINES)
+        )
 
     def draw(self, context):
         layout = self.layout
@@ -1841,7 +2083,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, Panel):
         sub.prop(tan, "size_min", text="Minimum")
         sub.prop(tan, "use_blender_units")
         sub = col.column()
-        sub.active = (not mat.pov.use_shadeless)
+        sub.active = not mat.pov.use_shadeless
         sub.prop(tan, "use_tangent_shading")
         col.prop(tan, "shape")
 
@@ -1850,22 +2092,24 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, Panel):
         col.prop(tan, "width_fade")
         ob = context.object
         if ob and ob.type == 'MESH':
-            col.prop_search(tan, "uv_layer", ob.data, "tessface_uv_textures", text="")
+            col.prop_search(
+                tan, "uv_layer", ob.data, "tessface_uv_textures", text=""
+            )
         else:
             col.prop(tan, "uv_layer", text="")
         col.separator()
         sub = col.column()
-        sub.active = (not mat.pov.use_shadeless)
+        sub.active = not mat.pov.use_shadeless
         sub.label(text="Surface diffuse:")
         sub = col.column()
         sub.prop(tan, "blend_distance", text="Distance")
+
 
 class MATERIAL_PT_POV_replacement_text(MaterialButtonsPanel, Panel):
     """Use this class to define pov custom code declared name field."""
 
     bl_label = "Custom POV Code"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-
 
     def draw(self, context):
         layout = self.layout
@@ -1875,6 +2119,7 @@ class MATERIAL_PT_POV_replacement_text(MaterialButtonsPanel, Panel):
         col = layout.column()
         col.label(text="Replace properties with:")
         col.prop(mat.pov, "replacement_text", text="")
+
 
 class TEXTURE_MT_POV_specials(bpy.types.Menu):
     """Use this class to define pov texture slot operations buttons."""
@@ -1888,14 +2133,18 @@ class TEXTURE_MT_POV_specials(bpy.types.Menu):
         layout.operator("texture.slot_copy", icon='COPYDOWN')
         layout.operator("texture.slot_paste", icon='PASTEDOWN')
 
+
 class TEXTURE_UL_POV_texture_slots(bpy.types.UIList):
-    """Use this class to show pov texture slots list.""" # used?
+    """Use this class to show pov texture slots list."""  # used?
 
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+
+    def draw_item(
+        self, context, layout, data, item, icon, active_data, active_propname
+    ):
         ob = data
         slot = item
-        #ma = slot.name
+        # ma = slot.name
         # draw_item must handle the three layout types... Usually 'DEFAULT' and 'COMPACT' can share the same code.
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             # You should always start your row layout by a label (icon + text), or a non-embossed text field,
@@ -1903,13 +2152,17 @@ class TEXTURE_UL_POV_texture_slots(bpy.types.UIList):
             # We use icon_value of label, as our given icon is an integer value, not an enum ID.
             # Note "data" names should never be translated!
             if slot:
-                layout.prop(item, "texture", text="", emboss=False, icon='TEXTURE')
+                layout.prop(
+                    item, "texture", text="", emboss=False, icon='TEXTURE'
+                )
             else:
                 layout.label(text="New", translate=False, icon_value=icon)
         # 'GRID' layout type should be as compact as possible (typically a single icon!).
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
+
+
 '''
 class MATERIAL_TEXTURE_SLOTS_UL_List(UIList):
     """Texture Slots UIList."""
@@ -1933,39 +2186,50 @@ class MATERIAL_TEXTURE_SLOTS_UL_List(UIList):
             layout.alignment = 'CENTER'
             layout.label("", icon = custom_icon)
 '''
+
+
 class WORLD_TEXTURE_SLOTS_UL_List(UIList):
-    """Use this class to show pov texture slots list.""" # XXX Not used yet
+    """Use this class to show pov texture slots list."""  # XXX Not used yet
 
-
-
-    def draw_item(self, context, layout, world, item, icon, active_data,
-                    active_texture_index, index):
-        world = context.world#.pov
+    def draw_item(
+        self,
+        context,
+        layout,
+        world,
+        item,
+        icon,
+        active_data,
+        active_texture_index,
+        index,
+    ):
+        world = context.world  # .pov
         active_data = world.pov
-        #tex = context.texture #may be needed later?
-
+        # tex = context.texture #may be needed later?
 
         # We could write some code to decide which icon to use here...
         custom_icon = 'TEXTURE'
 
         # Make sure your code supports all 3 layout types
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(item.name, icon = custom_icon)
+            layout.label(item.name, icon=custom_icon)
 
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
-            layout.label("", icon = custom_icon)
+            layout.label("", icon=custom_icon)
+
 
 class MATERIAL_TEXTURE_SLOTS_UL_POV_layerlist(bpy.types.UIList):
     """Use this class to show pov texture slots list."""
 
-#    texture_slots:
+    #    texture_slots:
     index: bpy.props.IntProperty(name='index')
-    #foo  = random prop
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+    # foo  = random prop
+    def draw_item(
+        self, context, layout, data, item, icon, active_data, active_propname
+    ):
         ob = data
         slot = item
-        #ma = slot.name
+        # ma = slot.name
         # draw_item must handle the three layout types... Usually 'DEFAULT' and 'COMPACT' can share the same code.
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             # You should always start your row layout by a label (icon + text), or a non-embossed text field,
@@ -1973,13 +2237,16 @@ class MATERIAL_TEXTURE_SLOTS_UL_POV_layerlist(bpy.types.UIList):
             # We use icon_value of label, as our given icon is an integer value, not an enum ID.
             # Note "data" names should never be translated!
             if slot:
-                layout.prop(item, "texture", text="", emboss=False, icon='TEXTURE')
+                layout.prop(
+                    item, "texture", text="", emboss=False, icon='TEXTURE'
+                )
             else:
                 layout.label(text="New", translate=False, icon_value=icon)
         # 'GRID' layout type should be as compact as possible (typically a single icon!).
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
+
 
 class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
     """Use this class to show pov texture context buttons."""
@@ -1991,18 +2258,19 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        return (engine in cls.COMPAT_ENGINES)
+        return engine in cls.COMPAT_ENGINES
         # if not (hasattr(context, "texture_slot") or hasattr(context, "texture_node")):
         #     return False
-        return ((context.material or
-                 context.world or
-                 context.light or
-                 context.texture or
-                 context.line_style or
-                 context.particle_system or
-                 isinstance(context.space_data.pin_id, ParticleSettings) or
-                 context.texture_user) and
-                (engine in cls.COMPAT_ENGINES))
+        return (
+            context.material
+            or context.world
+            or context.light
+            or context.texture
+            or context.line_style
+            or context.particle_system
+            or isinstance(context.space_data.pin_id, ParticleSettings)
+            or context.texture_user
+        ) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -2010,12 +2278,21 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
         scene = context.scene
         layout.prop(scene, "texture_context", expand=True)
         if scene.texture_context == 'MATERIAL':
-            mat = context.scene.view_layers["View Layer"].objects.active.active_material
+            mat = context.scene.view_layers[
+                "View Layer"
+            ].objects.active.active_material
             row = layout.row()
-            row.template_list("MATERIAL_TEXTURE_SLOTS_UL_POV_layerlist", "", mat, "pov_texture_slots", mat.pov, "active_texture_index")
+            row.template_list(
+                "MATERIAL_TEXTURE_SLOTS_UL_POV_layerlist",
+                "",
+                mat,
+                "pov_texture_slots",
+                mat.pov,
+                "active_texture_index",
+            )
             col = row.column(align=True)
-            col.operator("pov.textureslotadd",icon='ADD',text='')
-            col.operator("pov.textureslotremove",icon='REMOVE',text='')
+            col.operator("pov.textureslotadd", icon='ADD', text='')
+            col.operator("pov.textureslotremove", icon='REMOVE', text='')
             col.separator()
 
             if mat.pov_texture_slots:
@@ -2023,12 +2300,15 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
                 slot = mat.pov_texture_slots[index]
                 povtex = slot.name
                 tex = bpy.data.textures[povtex]
-                col.prop(tex,'use_fake_user',text = '')
+                col.prop(tex, 'use_fake_user', text='')
                 layout.label(text='Find texture:')
-                layout.prop_search(slot,'texture_search',bpy.data,'textures',text='')
+                layout.prop_search(
+                    slot, 'texture_search', bpy.data, 'textures', text=''
+                )
             # else:
-                # for i in range(18):  # length of material texture slots
-                    # mat.pov_texture_slots.add()
+            # for i in range(18):  # length of material texture slots
+            # mat.pov_texture_slots.add()
+
 
 # Commented out below is a reminder of what existed in Blender Internal
 # attributes need to be recreated
@@ -2138,6 +2418,8 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
             else:
                 split.label(text="Type:")
 '''
+
+
 class TEXTURE_PT_colors(TextureButtonsPanel, Panel):
     """Use this class to show pov color ramps."""
 
@@ -2172,6 +2454,7 @@ class TEXTURE_PT_colors(TextureButtonsPanel, Panel):
         col = layout.column()
         col.prop(tex, "use_clamp", text="Clamp")
 
+
 # Texture Slot Panels #
 
 
@@ -2184,9 +2467,9 @@ class MATERIAL_OT_POV_texture_slot_add(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-    def execute(self,context):
+    def execute(self, context):
 
-        tex = bpy.data.textures.new(name = 'Texture',type = 'IMAGE')
+        tex = bpy.data.textures.new(name='Texture', type='IMAGE')
         tex.use_fake_user = True
         ob = context.scene.view_layers["View Layer"].objects.active
         slot = ob.active_material.pov_texture_slots.add()
@@ -2205,13 +2488,14 @@ class MATERIAL_OT_POV_texture_slot_remove(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-    def execute(self,context):
+    def execute(self, context):
         pass
         # tex = bpy.data.textures.new()
         # tex_slot = context.object.active_material.pov_texture_slots.add()
         # tex_slot.name = tex.name
 
         return {'FINISHED'}
+
 
 class TextureSlotPanel(TextureButtonsPanel):
     """Use this class to show pov texture slots panel."""
@@ -2224,7 +2508,10 @@ class TextureSlotPanel(TextureButtonsPanel):
             return False
 
         engine = context.scene.render.engine
-        return TextureButtonsPanel.poll(cls, context) and (engine in cls.COMPAT_ENGINES)
+        return TextureButtonsPanel.poll(cls, context) and (
+            engine in cls.COMPAT_ENGINES
+        )
+
 
 class TEXTURE_PT_POV_type(TextureButtonsPanel, Panel):
     """Use this class to define pov texture type buttons."""
@@ -2244,7 +2531,7 @@ class TEXTURE_PT_POV_type(TextureButtonsPanel, Panel):
 
         # row = layout.row()
         # row.template_list("WORLD_TEXTURE_SLOTS_UL_List", "texture_slots", world,
-                          # world.texture_slots, world, "active_texture_index")
+        # world.texture_slots, world, "active_texture_index")
 
 
 class TEXTURE_PT_POV_preview(TextureButtonsPanel, Panel):
@@ -2259,9 +2546,13 @@ class TEXTURE_PT_POV_preview(TextureButtonsPanel, Panel):
         engine = context.scene.render.engine
         if not hasattr(context, "pov_texture_slot"):
             return False
-        tex=context.texture
-        mat=bpy.context.active_object.active_material
-        return (tex and (tex.pov.tex_pattern_type != 'emulator') and (engine in cls.COMPAT_ENGINES))
+        tex = context.texture
+        mat = bpy.context.active_object.active_material
+        return (
+            tex
+            and (tex.pov.tex_pattern_type != 'emulator')
+            and (engine in cls.COMPAT_ENGINES)
+        )
 
     def draw(self, context):
         tex = context.texture
@@ -2269,7 +2560,7 @@ class TEXTURE_PT_POV_preview(TextureButtonsPanel, Panel):
         idblock = pov_context_tex_datablock(context)
         layout = self.layout
         # if idblock:
-            # layout.template_preview(tex, parent=idblock, slot=slot)
+        # layout.template_preview(tex, parent=idblock, slot=slot)
         if tex.pov.tex_pattern_type != 'emulator':
             layout.operator("tex.preview_update")
         else:
@@ -2281,14 +2572,17 @@ class TEXTURE_PT_POV_parameters(TextureButtonsPanel, Panel):
 
     bl_label = "POV Pattern Options"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
+
     def draw(self, context):
         mat = bpy.context.active_object.active_material
         layout = self.layout
         tex = context.texture
-        align=True
+        align = True
         if tex is not None and tex.pov.tex_pattern_type != 'emulator':
             if tex.pov.tex_pattern_type == 'agate':
-                layout.prop(tex.pov, "modifier_turbulence", text="Agate Turbulence")
+                layout.prop(
+                    tex.pov, "modifier_turbulence", text="Agate Turbulence"
+                )
             if tex.pov.tex_pattern_type in {'spiral1', 'spiral2'}:
                 layout.prop(tex.pov, "modifier_numbers", text="Number of arms")
             if tex.pov.tex_pattern_type == 'tiling':
@@ -2304,29 +2598,32 @@ class TEXTURE_PT_POV_parameters(TextureButtonsPanel, Panel):
                 row = col.row()
                 row.prop(tex.pov, "brick_size_x", text="Brick size X")
                 row.prop(tex.pov, "brick_size_y", text="Brick size Y")
-                row=col.row()
+                row = col.row()
                 row.prop(tex.pov, "brick_size_z", text="Brick size Z")
                 row.prop(tex.pov, "brick_mortar", text="Brick mortar")
-            if tex.pov.tex_pattern_type in {'julia','mandel','magnet'}:
+            if tex.pov.tex_pattern_type in {'julia', 'mandel', 'magnet'}:
                 col = layout.column(align=align)
                 if tex.pov.tex_pattern_type == 'julia':
                     row = col.row()
                     row.prop(tex.pov, "julia_complex_1", text="Complex 1")
                     row.prop(tex.pov, "julia_complex_2", text="Complex 2")
-                if tex.pov.tex_pattern_type == 'magnet' and tex.pov.magnet_style == 'julia':
+                if (
+                    tex.pov.tex_pattern_type == 'magnet'
+                    and tex.pov.magnet_style == 'julia'
+                ):
                     row = col.row()
                     row.prop(tex.pov, "julia_complex_1", text="Complex 1")
                     row.prop(tex.pov, "julia_complex_2", text="Complex 2")
-                row=col.row()
-                if tex.pov.tex_pattern_type in {'julia','mandel'}:
+                row = col.row()
+                if tex.pov.tex_pattern_type in {'julia', 'mandel'}:
                     row.prop(tex.pov, "f_exponent", text="Exponent")
                 if tex.pov.tex_pattern_type == 'magnet':
                     row.prop(tex.pov, "magnet_type", text="Type")
                 row.prop(tex.pov, "f_iter", text="Iterations")
-                row=col.row()
+                row = col.row()
                 row.prop(tex.pov, "f_ior", text="Interior")
                 row.prop(tex.pov, "f_ior_fac", text="Factor I")
-                row=col.row()
+                row = col.row()
                 row.prop(tex.pov, "f_eor", text="Exterior")
                 row.prop(tex.pov, "f_eor_fac", text="Factor E")
             if tex.pov.tex_pattern_type == 'gradient':
@@ -2336,7 +2633,9 @@ class TEXTURE_PT_POV_parameters(TextureButtonsPanel, Panel):
                 column_flow.prop(tex.pov, "grad_orient_y", text="Y")
                 column_flow.prop(tex.pov, "grad_orient_z", text="Z")
             if tex.pov.tex_pattern_type == 'pavement':
-                layout.prop(tex.pov, "pave_sides", text="Pavement:number of sides")
+                layout.prop(
+                    tex.pov, "pave_sides", text="Pavement:number of sides"
+                )
                 col = layout.column(align=align)
                 column_flow = col.column_flow(columns=3, align=True)
                 column_flow.prop(tex.pov, "pave_tiles", text="Tiles")
@@ -2365,42 +2664,105 @@ class TEXTURE_PT_POV_parameters(TextureButtonsPanel, Panel):
                 column_flow.prop(tex.pov, "pave_form", text="Form")
             if tex.pov.tex_pattern_type == 'function':
                 layout.prop(tex.pov, "func_list", text="Functions")
-            if tex.pov.tex_pattern_type == 'function' and tex.pov.func_list != "NONE":
+            if (
+                tex.pov.tex_pattern_type == 'function'
+                and tex.pov.func_list != "NONE"
+            ):
                 func = None
                 if tex.pov.func_list in {"f_noise3d", "f_ph", "f_r", "f_th"}:
                     func = 0
-                if tex.pov.func_list in {"f_comma","f_crossed_trough","f_cubic_saddle",
-                                         "f_cushion","f_devils_curve","f_enneper","f_glob",
-                                         "f_heart","f_hex_x","f_hex_y","f_hunt_surface",
-                                         "f_klein_bottle","f_kummer_surface_v1",
-                                         "f_lemniscate_of_gerono","f_mitre","f_nodal_cubic",
-                                         "f_noise_generator","f_odd","f_paraboloid","f_pillow",
-                                         "f_piriform","f_quantum","f_quartic_paraboloid",
-                                         "f_quartic_saddle","f_sphere","f_steiners_roman",
-                                         "f_torus_gumdrop","f_umbrella"}:
+                if tex.pov.func_list in {
+                    "f_comma",
+                    "f_crossed_trough",
+                    "f_cubic_saddle",
+                    "f_cushion",
+                    "f_devils_curve",
+                    "f_enneper",
+                    "f_glob",
+                    "f_heart",
+                    "f_hex_x",
+                    "f_hex_y",
+                    "f_hunt_surface",
+                    "f_klein_bottle",
+                    "f_kummer_surface_v1",
+                    "f_lemniscate_of_gerono",
+                    "f_mitre",
+                    "f_nodal_cubic",
+                    "f_noise_generator",
+                    "f_odd",
+                    "f_paraboloid",
+                    "f_pillow",
+                    "f_piriform",
+                    "f_quantum",
+                    "f_quartic_paraboloid",
+                    "f_quartic_saddle",
+                    "f_sphere",
+                    "f_steiners_roman",
+                    "f_torus_gumdrop",
+                    "f_umbrella",
+                }:
                     func = 1
-                if tex.pov.func_list in {"f_bicorn","f_bifolia","f_boy_surface","f_superellipsoid",
-                                         "f_torus"}:
+                if tex.pov.func_list in {
+                    "f_bicorn",
+                    "f_bifolia",
+                    "f_boy_surface",
+                    "f_superellipsoid",
+                    "f_torus",
+                }:
                     func = 2
-                if tex.pov.func_list in {"f_ellipsoid","f_folium_surface","f_hyperbolic_torus",
-                                         "f_kampyle_of_eudoxus","f_parabolic_torus",
-                                         "f_quartic_cylinder","f_torus2"}:
+                if tex.pov.func_list in {
+                    "f_ellipsoid",
+                    "f_folium_surface",
+                    "f_hyperbolic_torus",
+                    "f_kampyle_of_eudoxus",
+                    "f_parabolic_torus",
+                    "f_quartic_cylinder",
+                    "f_torus2",
+                }:
                     func = 3
-                if tex.pov.func_list in {"f_blob2","f_cross_ellipsoids","f_flange_cover",
-                                         "f_isect_ellipsoids","f_kummer_surface_v2",
-                                         "f_ovals_of_cassini","f_rounded_box","f_spikes_2d",
-                                         "f_strophoid"}:
+                if tex.pov.func_list in {
+                    "f_blob2",
+                    "f_cross_ellipsoids",
+                    "f_flange_cover",
+                    "f_isect_ellipsoids",
+                    "f_kummer_surface_v2",
+                    "f_ovals_of_cassini",
+                    "f_rounded_box",
+                    "f_spikes_2d",
+                    "f_strophoid",
+                }:
                     func = 4
-                if tex.pov.func_list in {"f_algbr_cyl1","f_algbr_cyl2","f_algbr_cyl3",
-                                         "f_algbr_cyl4","f_blob","f_mesh1","f_poly4","f_spikes"}:
+                if tex.pov.func_list in {
+                    "f_algbr_cyl1",
+                    "f_algbr_cyl2",
+                    "f_algbr_cyl3",
+                    "f_algbr_cyl4",
+                    "f_blob",
+                    "f_mesh1",
+                    "f_poly4",
+                    "f_spikes",
+                }:
                     func = 5
-                if tex.pov.func_list in {"f_devils_curve_2d","f_dupin_cyclid",
-                                         "f_folium_surface_2d","f_hetero_mf",
-                                         "f_kampyle_of_eudoxus_2d","f_lemniscate_of_gerono_2d",
-                                         "f_polytubes","f_ridge","f_ridged_mf","f_spiral",
-                                         "f_witch_of_agnesi"}:
+                if tex.pov.func_list in {
+                    "f_devils_curve_2d",
+                    "f_dupin_cyclid",
+                    "f_folium_surface_2d",
+                    "f_hetero_mf",
+                    "f_kampyle_of_eudoxus_2d",
+                    "f_lemniscate_of_gerono_2d",
+                    "f_polytubes",
+                    "f_ridge",
+                    "f_ridged_mf",
+                    "f_spiral",
+                    "f_witch_of_agnesi",
+                }:
                     func = 6
-                if tex.pov.func_list in {"f_helix1","f_helix2","f_piriform_2d","f_strophoid_2d"}:
+                if tex.pov.func_list in {
+                    "f_helix1",
+                    "f_helix2",
+                    "f_piriform_2d",
+                    "f_strophoid_2d",
+                }:
                     func = 7
                 if tex.pov.func_list == "f_helical_torus":
                     func = 8
@@ -2416,37 +2778,40 @@ class TEXTURE_PT_POV_parameters(TextureButtonsPanel, Panel):
                 column_flow.label(text="Z")
                 column_flow.prop(tex.pov, "func_plus_z", text="")
                 column_flow.prop(tex.pov, "func_z", text="Value")
-                row=layout.row(align=align)
+                row = layout.row(align=align)
                 if func > 0:
                     row.prop(tex.pov, "func_P0", text="P0")
                 if func > 1:
                     row.prop(tex.pov, "func_P1", text="P1")
-                row=layout.row(align=align)
+                row = layout.row(align=align)
                 if func > 2:
                     row.prop(tex.pov, "func_P2", text="P2")
                 if func > 3:
                     row.prop(tex.pov, "func_P3", text="P3")
-                row=layout.row(align=align)
+                row = layout.row(align=align)
                 if func > 4:
                     row.prop(tex.pov, "func_P4", text="P4")
                 if func > 5:
                     row.prop(tex.pov, "func_P5", text="P5")
-                row=layout.row(align=align)
+                row = layout.row(align=align)
                 if func > 6:
                     row.prop(tex.pov, "func_P6", text="P6")
                 if func > 7:
                     row.prop(tex.pov, "func_P7", text="P7")
-                    row=layout.row(align=align)
+                    row = layout.row(align=align)
                     row.prop(tex.pov, "func_P8", text="P8")
                     row.prop(tex.pov, "func_P9", text="P9")
-        ###################################################End Patterns############################
+            ###################################################End Patterns############################
 
-
-            layout.prop(tex.pov, "warp_types", text="Warp types") #warp
+            layout.prop(tex.pov, "warp_types", text="Warp types")  # warp
             if tex.pov.warp_types == "TOROIDAL":
-                layout.prop(tex.pov, "warp_tor_major_radius", text="Major radius")
-            if tex.pov.warp_types not in {"CUBIC","NONE"}:
-                layout.prop(tex.pov, "warp_orientation", text="Warp orientation")
+                layout.prop(
+                    tex.pov, "warp_tor_major_radius", text="Major radius"
+                )
+            if tex.pov.warp_types not in {"CUBIC", "NONE"}:
+                layout.prop(
+                    tex.pov, "warp_orientation", text="Warp orientation"
+                )
             col = layout.column(align=align)
             row = col.row()
             row.prop(tex.pov, "warp_dist_exp", text="Distance exponent")
@@ -2454,37 +2819,38 @@ class TEXTURE_PT_POV_parameters(TextureButtonsPanel, Panel):
             row.prop(tex.pov, "modifier_frequency", text="Frequency")
             row.prop(tex.pov, "modifier_phase", text="Phase")
 
-            row=layout.row()
+            row = layout.row()
 
             row.label(text="Offset:")
             row.label(text="Scale:")
             row.label(text="Rotate:")
-            col=layout.column(align=align)
-            row=col.row()
+            col = layout.column(align=align)
+            row = col.row()
             row.prop(tex.pov, "tex_mov_x", text="X")
             row.prop(tex.pov, "tex_scale_x", text="X")
             row.prop(tex.pov, "tex_rot_x", text="X")
-            row=col.row()
+            row = col.row()
             row.prop(tex.pov, "tex_mov_y", text="Y")
             row.prop(tex.pov, "tex_scale_y", text="Y")
             row.prop(tex.pov, "tex_rot_y", text="Y")
-            row=col.row()
+            row = col.row()
             row.prop(tex.pov, "tex_mov_z", text="Z")
             row.prop(tex.pov, "tex_scale_z", text="Z")
             row.prop(tex.pov, "tex_rot_z", text="Z")
-            row=layout.row()
+            row = layout.row()
 
             row.label(text="Turbulence:")
-            col=layout.column(align=align)
-            row=col.row()
+            col = layout.column(align=align)
+            row = col.row()
             row.prop(tex.pov, "warp_turbulence_x", text="X")
             row.prop(tex.pov, "modifier_octaves", text="Octaves")
-            row=col.row()
+            row = col.row()
             row.prop(tex.pov, "warp_turbulence_y", text="Y")
             row.prop(tex.pov, "modifier_lambda", text="Lambda")
-            row=col.row()
+            row = col.row()
             row.prop(tex.pov, "warp_turbulence_z", text="Z")
             row.prop(tex.pov, "modifier_omega", text="Omega")
+
 
 class TEXTURE_PT_POV_influence(TextureSlotPanel, Panel):
     """Use this class to define pov texture influence buttons."""
@@ -2497,14 +2863,17 @@ class TEXTURE_PT_POV_influence(TextureSlotPanel, Panel):
     @classmethod
     def poll(cls, context):
         idblock = pov_context_tex_datablock(context)
-        if (isinstance(idblock, Brush) and bpy.context.scene.texture_context == 'OTHER'): #XXX replace by bpy.types.Brush?
+        if (
+            isinstance(idblock, Brush)
+            and bpy.context.scene.texture_context == 'OTHER'
+        ):  # XXX replace by isinstance(idblock, bpy.types.Brush) and ...
             return False
 
         # if not getattr(context, "pov_texture_slot", None):
-            # return False
+        # return False
 
         engine = context.scene.render.engine
-        return (engine in cls.COMPAT_ENGINES)
+        return engine in cls.COMPAT_ENGINES
 
     def draw(self, context):
 
@@ -2514,8 +2883,13 @@ class TEXTURE_PT_POV_influence(TextureSlotPanel, Panel):
 
         # tex = context.pov_texture_slot
         mat = bpy.context.active_object.active_material
-        texslot = mat.pov_texture_slots[mat.active_texture_index] #bpy.data.textures[mat.active_texture_index]
-        tex = bpy.data.textures[mat.pov_texture_slots[mat.active_texture_index].texture]
+        texslot = mat.pov_texture_slots[
+            mat.active_texture_index
+        ]  # bpy.data.textures[mat.active_texture_index]
+        tex = bpy.data.textures[
+            mat.pov_texture_slots[mat.active_texture_index].texture
+        ]
+
         def factor_but(layout, toggle, factor, name):
             row = layout.row(align=True)
             row.prop(texslot, toggle, text="")
@@ -2534,15 +2908,33 @@ class TEXTURE_PT_POV_influence(TextureSlotPanel, Panel):
 
                 col = split.column()
                 col.label(text="Diffuse:")
-                factor_but(col, "use_map_diffuse", "diffuse_factor", "Intensity")
-                factor_but(col, "use_map_color_diffuse", "diffuse_color_factor", "Color")
+                factor_but(
+                    col, "use_map_diffuse", "diffuse_factor", "Intensity"
+                )
+                factor_but(
+                    col,
+                    "use_map_color_diffuse",
+                    "diffuse_color_factor",
+                    "Color",
+                )
                 factor_but(col, "use_map_alpha", "alpha_factor", "Alpha")
-                factor_but(col, "use_map_translucency", "translucency_factor", "Translucency")
+                factor_but(
+                    col,
+                    "use_map_translucency",
+                    "translucency_factor",
+                    "Translucency",
+                )
 
                 col.label(text="Specular:")
-                factor_but(col, "use_map_specular", "specular_factor", "Intensity")
-                factor_but(col, "use_map_color_spec", "specular_color_factor", "Color")
-                factor_but(col, "use_map_hardness", "hardness_factor", "Hardness")
+                factor_but(
+                    col, "use_map_specular", "specular_factor", "Intensity"
+                )
+                factor_but(
+                    col, "use_map_color_spec", "specular_color_factor", "Color"
+                )
+                factor_but(
+                    col, "use_map_hardness", "hardness_factor", "Hardness"
+                )
 
                 col = split.column()
                 col.label(text="Shading:")
@@ -2553,29 +2945,47 @@ class TEXTURE_PT_POV_influence(TextureSlotPanel, Panel):
 
                 col.label(text="Geometry:")
                 # XXX replace 'or' when displacement is fixed to not rely on normal influence value.
-                sub_tmp = factor_but(col, "use_map_normal", "normal_factor", "Normal")
-                sub_tmp.active = (texslot.use_map_normal or texslot.use_map_displacement)
+                sub_tmp = factor_but(
+                    col, "use_map_normal", "normal_factor", "Normal"
+                )
+                sub_tmp.active = (
+                    texslot.use_map_normal or texslot.use_map_displacement
+                )
                 # END XXX
 
                 factor_but(col, "use_map_warp", "warp_factor", "Warp")
-                factor_but(col, "use_map_displacement", "displacement_factor", "Displace")
+                factor_but(
+                    col,
+                    "use_map_displacement",
+                    "displacement_factor",
+                    "Displace",
+                )
 
                 # ~ sub = col.column()
                 # ~ sub.active = texslot.use_map_translucency or texslot.map_emit or texslot.map_alpha or texslot.map_raymir or texslot.map_hardness or texslot.map_ambient or texslot.map_specularity or texslot.map_reflection or texslot.map_mirror
-                #~ sub.prop(texslot, "default_value", text="Amount", slider=True)
+                # ~ sub.prop(texslot, "default_value", text="Amount", slider=True)
             elif idblock.pov.type == 'HALO':
                 layout.label(text="Halo:")
 
                 split = layout.split()
 
                 col = split.column()
-                factor_but(col, "use_map_color_diffuse", "diffuse_color_factor", "Color")
+                factor_but(
+                    col,
+                    "use_map_color_diffuse",
+                    "diffuse_color_factor",
+                    "Color",
+                )
                 factor_but(col, "use_map_alpha", "alpha_factor", "Alpha")
 
                 col = split.column()
                 factor_but(col, "use_map_raymir", "raymir_factor", "Size")
-                factor_but(col, "use_map_hardness", "hardness_factor", "Hardness")
-                factor_but(col, "use_map_translucency", "translucency_factor", "Add")
+                factor_but(
+                    col, "use_map_hardness", "hardness_factor", "Hardness"
+                )
+                factor_but(
+                    col, "use_map_translucency", "translucency_factor", "Add"
+                )
             elif idblock.pov.type == 'VOLUME':
                 layout.label(text="Volume:")
 
@@ -2583,15 +2993,36 @@ class TEXTURE_PT_POV_influence(TextureSlotPanel, Panel):
 
                 col = split.column()
                 factor_but(col, "use_map_density", "density_factor", "Density")
-                factor_but(col, "use_map_emission", "emission_factor", "Emission")
-                factor_but(col, "use_map_scatter", "scattering_factor", "Scattering")
-                factor_but(col, "use_map_reflect", "reflection_factor", "Reflection")
+                factor_but(
+                    col, "use_map_emission", "emission_factor", "Emission"
+                )
+                factor_but(
+                    col, "use_map_scatter", "scattering_factor", "Scattering"
+                )
+                factor_but(
+                    col, "use_map_reflect", "reflection_factor", "Reflection"
+                )
 
                 col = split.column()
                 col.label(text=" ")
-                factor_but(col, "use_map_color_emission", "emission_color_factor", "Emission Color")
-                factor_but(col, "use_map_color_transmission", "transmission_color_factor", "Transmission Color")
-                factor_but(col, "use_map_color_reflection", "reflection_color_factor", "Reflection Color")
+                factor_but(
+                    col,
+                    "use_map_color_emission",
+                    "emission_color_factor",
+                    "Emission Color",
+                )
+                factor_but(
+                    col,
+                    "use_map_color_transmission",
+                    "transmission_color_factor",
+                    "Transmission Color",
+                )
+                factor_but(
+                    col,
+                    "use_map_color_reflection",
+                    "reflection_color_factor",
+                    "Reflection Color",
+                )
 
                 layout.label(text="Geometry:")
 
@@ -2601,7 +3032,12 @@ class TEXTURE_PT_POV_influence(TextureSlotPanel, Panel):
                 factor_but(col, "use_map_warp", "warp_factor", "Warp")
 
                 col = split.column()
-                factor_but(col, "use_map_displacement", "displacement_factor", "Displace")
+                factor_but(
+                    col,
+                    "use_map_displacement",
+                    "displacement_factor",
+                    "Displace",
+                )
 
         elif isinstance(idblock, Light):
             split = layout.split()
@@ -2620,8 +3056,12 @@ class TEXTURE_PT_POV_influence(TextureSlotPanel, Panel):
             factor_but(col, "use_map_horizon", "horizon_factor", "Horizon")
 
             col = split.column()
-            factor_but(col, "use_map_zenith_up", "zenith_up_factor", "Zenith Up")
-            factor_but(col, "use_map_zenith_down", "zenith_down_factor", "Zenith Down")
+            factor_but(
+                col, "use_map_zenith_up", "zenith_up_factor", "Zenith Up"
+            )
+            factor_but(
+                col, "use_map_zenith_down", "zenith_down_factor", "Zenith Down"
+            )
         elif isinstance(idblock, ParticleSettings):
             split = layout.split()
 
@@ -2649,15 +3089,21 @@ class TEXTURE_PT_POV_influence(TextureSlotPanel, Panel):
             factor_but(col, "use_map_twist", "twist_factor", "Twist")
 
             col = split.column()
-            factor_but(col, "use_map_kink_amp", "kink_amp_factor", "Kink Amplitude")
-            factor_but(col, "use_map_kink_freq", "kink_freq_factor", "Kink Frequency")
+            factor_but(
+                col, "use_map_kink_amp", "kink_amp_factor", "Kink Amplitude"
+            )
+            factor_but(
+                col, "use_map_kink_freq", "kink_freq_factor", "Kink Frequency"
+            )
             factor_but(col, "use_map_rough", "rough_factor", "Rough")
 
         elif isinstance(idblock, FreestyleLineStyle):
             split = layout.split()
 
             col = split.column()
-            factor_but(col, "use_map_color_diffuse", "diffuse_color_factor", "Color")
+            factor_but(
+                col, "use_map_color_diffuse", "diffuse_color_factor", "Color"
+            )
             col = split.column()
             factor_but(col, "use_map_alpha", "alpha_factor", "Alpha")
 
@@ -2676,8 +3122,8 @@ class TEXTURE_PT_POV_influence(TextureSlotPanel, Panel):
             # col.prop(tex, "invert", text="Negative") #deprecated since 2.8
             # col.prop(tex, "use_stencil") #deprecated since 2.8
 
-        #if isinstance(idblock, (Material, World)):
-            #col.prop(tex, "default_value", text="DVar", slider=True)
+        # if isinstance(idblock, (Material, World)):
+        # col.prop(tex, "default_value", text="DVar", slider=True)
 
 
 class TEXTURE_PT_POV_tex_gamma(TextureButtonsPanel, Panel):
@@ -2689,7 +3135,9 @@ class TEXTURE_PT_POV_tex_gamma(TextureButtonsPanel, Panel):
     def draw_header(self, context):
         tex = context.texture
 
-        self.layout.prop(tex.pov, "tex_gamma_enable", text="", icon='SEQ_LUMA_WAVEFORM')
+        self.layout.prop(
+            tex.pov, "tex_gamma_enable", text="", icon='SEQ_LUMA_WAVEFORM'
+        )
 
     def draw(self, context):
         layout = self.layout
@@ -2699,19 +3147,20 @@ class TEXTURE_PT_POV_tex_gamma(TextureButtonsPanel, Panel):
         layout.active = tex.pov.tex_gamma_enable
         layout.prop(tex.pov, "tex_gamma_value", text="Gamma Value")
 
-#commented out below UI for texture only custom code inside exported material:
+
+# commented out below UI for texture only custom code inside exported material:
 # class TEXTURE_PT_povray_replacement_text(TextureButtonsPanel, Panel):
-    # bl_label = "Custom POV Code"
-    # COMPAT_ENGINES = {'POVRAY_RENDER'}
+# bl_label = "Custom POV Code"
+# COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-    # def draw(self, context):
-        # layout = self.layout
+# def draw(self, context):
+# layout = self.layout
 
-        # tex = context.texture
+# tex = context.texture
 
-        # col = layout.column()
-        # col.label(text="Replace properties with:")
-        # col.prop(tex.pov, "replacement_text", text="")
+# col = layout.column()
+# col.label(text="Replace properties with:")
+# col.prop(tex.pov, "replacement_text", text="")
 
 
 class OBJECT_PT_POV_obj_parameters(ObjectButtonsPanel, Panel):
@@ -2724,7 +3173,7 @@ class OBJECT_PT_POV_obj_parameters(ObjectButtonsPanel, Panel):
     def poll(cls, context):
 
         engine = context.scene.render.engine
-        return (engine in cls.COMPAT_ENGINES)
+        return engine in cls.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout
@@ -2740,43 +3189,50 @@ class OBJECT_PT_POV_obj_parameters(ObjectButtonsPanel, Panel):
         col.label(text="Photons:")
         col.prop(obj.pov, "collect_photons", text="Receive Photon Caustics")
         if obj.pov.collect_photons:
-            col.prop(obj.pov, "spacing_multiplier", text="Photons Spacing Multiplier")
+            col.prop(
+                obj.pov, "spacing_multiplier", text="Photons Spacing Multiplier"
+            )
 
         split = layout.split()
 
         col = split.column()
-        col.prop(obj.pov,"hollow")
-        col.prop(obj.pov,"double_illuminate")
-
+        col.prop(obj.pov, "hollow")
+        col.prop(obj.pov, "double_illuminate")
 
         if obj.type == 'META' or obj.pov.curveshape == 'lathe':
-        #if obj.pov.curveshape == 'sor'
-            col.prop(obj.pov,"sturm")
-        col.prop(obj.pov,"no_shadow")
-        col.prop(obj.pov,"no_image")
-        col.prop(obj.pov,"no_reflection")
-        col.prop(obj.pov,"no_radiosity")
-        col.prop(obj.pov,"inverse")
-        col.prop(obj.pov,"hierarchy")
+            # if obj.pov.curveshape == 'sor'
+            col.prop(obj.pov, "sturm")
+        col.prop(obj.pov, "no_shadow")
+        col.prop(obj.pov, "no_image")
+        col.prop(obj.pov, "no_reflection")
+        col.prop(obj.pov, "no_radiosity")
+        col.prop(obj.pov, "inverse")
+        col.prop(obj.pov, "hierarchy")
         # col.prop(obj.pov,"boundorclip",text="Bound / Clip")
         # if obj.pov.boundorclip != "none":
-            # col.prop_search(obj.pov,"boundorclipob",context.blend_data,"objects",text="Object")
-            # text = "Clipped by"
-            # if obj.pov.boundorclip == "clipped_by":
-                # text = "Bounded by"
-            # col.prop(obj.pov,"addboundorclip",text=text)
+        # col.prop_search(obj.pov,"boundorclipob",context.blend_data,"objects",text="Object")
+        # text = "Clipped by"
+        # if obj.pov.boundorclip == "clipped_by":
+        # text = "Bounded by"
+        # col.prop(obj.pov,"addboundorclip",text=text)
+
 
 class OBJECT_PT_POV_obj_sphere(PovDataButtonsPanel, Panel):
     """Use this class to define pov sphere primitive parameters buttons."""
 
     bl_label = "POV Sphere"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-    #bl_options = {'HIDE_HEADER'}
+    # bl_options = {'HIDE_HEADER'}
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
         obj = context.object
-        return (obj and obj.pov.object_as == 'SPHERE' and (engine in cls.COMPAT_ENGINES))
+        return (
+            obj
+            and obj.pov.object_as == 'SPHERE'
+            and (engine in cls.COMPAT_ENGINES)
+        )
+
     def draw(self, context):
         layout = self.layout
 
@@ -2786,18 +3242,29 @@ class OBJECT_PT_POV_obj_sphere(PovDataButtonsPanel, Panel):
 
         if obj.pov.object_as == 'SPHERE':
             if obj.pov.unlock_parameters == False:
-                col.prop(obj.pov, "unlock_parameters", text="Exported parameters below", icon='LOCKED')
+                col.prop(
+                    obj.pov,
+                    "unlock_parameters",
+                    text="Exported parameters below",
+                    icon='LOCKED',
+                )
                 col.label(text="Sphere radius: " + str(obj.pov.sphere_radius))
 
             else:
-                col.prop(obj.pov, "unlock_parameters", text="Edit exported parameters", icon='UNLOCKED')
+                col.prop(
+                    obj.pov,
+                    "unlock_parameters",
+                    text="Edit exported parameters",
+                    icon='UNLOCKED',
+                )
                 col.label(text="3D view proxy may get out of synch")
                 col.active = obj.pov.unlock_parameters
 
+                layout.operator(
+                    "pov.sphere_update", text="Update", icon="SHADING_RENDERED"
+                )
 
-                layout.operator("pov.sphere_update", text="Update",icon="SHADING_RENDERED")
-
-                #col.label(text="Parameters:")
+                # col.label(text="Parameters:")
                 col.prop(obj.pov, "sphere_radius", text="Radius of Sphere")
 
 
@@ -2806,12 +3273,17 @@ class OBJECT_PT_POV_obj_cylinder(PovDataButtonsPanel, Panel):
 
     bl_label = "POV Cylinder"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-    #bl_options = {'HIDE_HEADER'}
+    # bl_options = {'HIDE_HEADER'}
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
         obj = context.object
-        return (obj and obj.pov.object_as == 'CYLINDER' and (engine in cls.COMPAT_ENGINES))
+        return (
+            obj
+            and obj.pov.object_as == 'CYLINDER'
+            and (engine in cls.COMPAT_ENGINES)
+        )
+
     def draw(self, context):
         layout = self.layout
 
@@ -2821,33 +3293,55 @@ class OBJECT_PT_POV_obj_cylinder(PovDataButtonsPanel, Panel):
 
         if obj.pov.object_as == 'CYLINDER':
             if obj.pov.unlock_parameters == False:
-                col.prop(obj.pov, "unlock_parameters", text="Exported parameters below", icon='LOCKED')
-                col.label(text="Cylinder radius: " + str(obj.pov.cylinder_radius))
-                col.label(text="Cylinder cap location: " + str(obj.pov.cylinder_location_cap))
+                col.prop(
+                    obj.pov,
+                    "unlock_parameters",
+                    text="Exported parameters below",
+                    icon='LOCKED',
+                )
+                col.label(
+                    text="Cylinder radius: " + str(obj.pov.cylinder_radius)
+                )
+                col.label(
+                    text="Cylinder cap location: "
+                    + str(obj.pov.cylinder_location_cap)
+                )
 
             else:
-                col.prop(obj.pov, "unlock_parameters", text="Edit exported parameters", icon='UNLOCKED')
+                col.prop(
+                    obj.pov,
+                    "unlock_parameters",
+                    text="Edit exported parameters",
+                    icon='UNLOCKED',
+                )
                 col.label(text="3D view proxy may get out of synch")
                 col.active = obj.pov.unlock_parameters
 
+                layout.operator(
+                    "pov.cylinder_update", text="Update", icon="MESH_CYLINDER"
+                )
 
-                layout.operator("pov.cylinder_update", text="Update",icon="MESH_CYLINDER")
-
-                #col.label(text="Parameters:")
+                # col.label(text="Parameters:")
                 col.prop(obj.pov, "cylinder_radius")
                 col.prop(obj.pov, "cylinder_location_cap")
+
 
 class OBJECT_PT_POV_obj_cone(PovDataButtonsPanel, Panel):
     """Use this class to define pov cone primitive parameters buttons."""
 
     bl_label = "POV Cone"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-    #bl_options = {'HIDE_HEADER'}
+    # bl_options = {'HIDE_HEADER'}
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
         obj = context.object
-        return (obj and obj.pov.object_as == 'CONE' and (engine in cls.COMPAT_ENGINES))
+        return (
+            obj
+            and obj.pov.object_as == 'CONE'
+            and (engine in cls.COMPAT_ENGINES)
+        )
+
     def draw(self, context):
         layout = self.layout
 
@@ -2857,36 +3351,63 @@ class OBJECT_PT_POV_obj_cone(PovDataButtonsPanel, Panel):
 
         if obj.pov.object_as == 'CONE':
             if obj.pov.unlock_parameters == False:
-                col.prop(obj.pov, "unlock_parameters", text="Exported parameters below", icon='LOCKED')
-                col.label(text="Cone base radius: " + str(obj.pov.cone_base_radius))
-                col.label(text="Cone cap radius: " + str(obj.pov.cone_cap_radius))
-                col.label(text="Cone proxy segments: " + str(obj.pov.cone_segments))
+                col.prop(
+                    obj.pov,
+                    "unlock_parameters",
+                    text="Exported parameters below",
+                    icon='LOCKED',
+                )
+                col.label(
+                    text="Cone base radius: " + str(obj.pov.cone_base_radius)
+                )
+                col.label(
+                    text="Cone cap radius: " + str(obj.pov.cone_cap_radius)
+                )
+                col.label(
+                    text="Cone proxy segments: " + str(obj.pov.cone_segments)
+                )
                 col.label(text="Cone height: " + str(obj.pov.cone_height))
             else:
-                col.prop(obj.pov, "unlock_parameters", text="Edit exported parameters", icon='UNLOCKED')
+                col.prop(
+                    obj.pov,
+                    "unlock_parameters",
+                    text="Edit exported parameters",
+                    icon='UNLOCKED',
+                )
                 col.label(text="3D view proxy may get out of synch")
                 col.active = obj.pov.unlock_parameters
 
+                layout.operator(
+                    "pov.cone_update", text="Update", icon="MESH_CONE"
+                )
 
-                layout.operator("pov.cone_update", text="Update",icon="MESH_CONE")
-
-                #col.label(text="Parameters:")
-                col.prop(obj.pov, "cone_base_radius", text="Radius of Cone Base")
+                # col.label(text="Parameters:")
+                col.prop(
+                    obj.pov, "cone_base_radius", text="Radius of Cone Base"
+                )
                 col.prop(obj.pov, "cone_cap_radius", text="Radius of Cone Cap")
-                col.prop(obj.pov, "cone_segments", text="Segmentation of Cone proxy")
+                col.prop(
+                    obj.pov, "cone_segments", text="Segmentation of Cone proxy"
+                )
                 col.prop(obj.pov, "cone_height", text="Height of the cone")
+
 
 class OBJECT_PT_POV_obj_superellipsoid(PovDataButtonsPanel, Panel):
     """Use this class to define pov superellipsoid primitive parameters buttons."""
 
     bl_label = "POV Superquadric ellipsoid"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-    #bl_options = {'HIDE_HEADER'}
+    # bl_options = {'HIDE_HEADER'}
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
         obj = context.object
-        return (obj and obj.pov.object_as == 'SUPERELLIPSOID' and (engine in cls.COMPAT_ENGINES))
+        return (
+            obj
+            and obj.pov.object_as == 'SUPERELLIPSOID'
+            and (engine in cls.COMPAT_ENGINES)
+        )
+
     def draw(self, context):
         layout = self.layout
 
@@ -2896,21 +3417,34 @@ class OBJECT_PT_POV_obj_superellipsoid(PovDataButtonsPanel, Panel):
 
         if obj.pov.object_as == 'SUPERELLIPSOID':
             if obj.pov.unlock_parameters == False:
-                col.prop(obj.pov, "unlock_parameters", text="Exported parameters below", icon='LOCKED')
+                col.prop(
+                    obj.pov,
+                    "unlock_parameters",
+                    text="Exported parameters below",
+                    icon='LOCKED',
+                )
                 col.label(text="Radial segmentation: " + str(obj.pov.se_u))
                 col.label(text="Lateral segmentation: " + str(obj.pov.se_v))
                 col.label(text="Ring shape: " + str(obj.pov.se_n1))
                 col.label(text="Cross-section shape: " + str(obj.pov.se_n2))
                 col.label(text="Fill up and down: " + str(obj.pov.se_edit))
             else:
-                col.prop(obj.pov, "unlock_parameters", text="Edit exported parameters", icon='UNLOCKED')
+                col.prop(
+                    obj.pov,
+                    "unlock_parameters",
+                    text="Edit exported parameters",
+                    icon='UNLOCKED',
+                )
                 col.label(text="3D view proxy may get out of synch")
                 col.active = obj.pov.unlock_parameters
 
+                layout.operator(
+                    "pov.superellipsoid_update",
+                    text="Update",
+                    icon="MOD_SUBSURF",
+                )
 
-                layout.operator("pov.superellipsoid_update", text="Update",icon="MOD_SUBSURF")
-
-                #col.label(text="Parameters:")
+                # col.label(text="Parameters:")
                 col.prop(obj.pov, "se_u")
                 col.prop(obj.pov, "se_v")
                 col.prop(obj.pov, "se_n1")
@@ -2923,12 +3457,17 @@ class OBJECT_PT_POV_obj_torus(PovDataButtonsPanel, Panel):
 
     bl_label = "POV Torus"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-    #bl_options = {'HIDE_HEADER'}
+    # bl_options = {'HIDE_HEADER'}
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
         obj = context.object
-        return (obj and obj.pov.object_as == 'TORUS' and (engine in cls.COMPAT_ENGINES))
+        return (
+            obj
+            and obj.pov.object_as == 'TORUS'
+            and (engine in cls.COMPAT_ENGINES)
+        )
+
     def draw(self, context):
         layout = self.layout
 
@@ -2938,36 +3477,65 @@ class OBJECT_PT_POV_obj_torus(PovDataButtonsPanel, Panel):
 
         if obj.pov.object_as == 'TORUS':
             if obj.pov.unlock_parameters == False:
-                col.prop(obj.pov, "unlock_parameters", text="Exported parameters below", icon='LOCKED')
-                col.label(text="Torus major radius: " + str(obj.pov.torus_major_radius))
-                col.label(text="Torus minor radius: " + str(obj.pov.torus_minor_radius))
-                col.label(text="Torus major segments: " + str(obj.pov.torus_major_segments))
-                col.label(text="Torus minor segments: " + str(obj.pov.torus_minor_segments))
+                col.prop(
+                    obj.pov,
+                    "unlock_parameters",
+                    text="Exported parameters below",
+                    icon='LOCKED',
+                )
+                col.label(
+                    text="Torus major radius: "
+                    + str(obj.pov.torus_major_radius)
+                )
+                col.label(
+                    text="Torus minor radius: "
+                    + str(obj.pov.torus_minor_radius)
+                )
+                col.label(
+                    text="Torus major segments: "
+                    + str(obj.pov.torus_major_segments)
+                )
+                col.label(
+                    text="Torus minor segments: "
+                    + str(obj.pov.torus_minor_segments)
+                )
             else:
-                col.prop(obj.pov, "unlock_parameters", text="Edit exported parameters", icon='UNLOCKED')
+                col.prop(
+                    obj.pov,
+                    "unlock_parameters",
+                    text="Edit exported parameters",
+                    icon='UNLOCKED',
+                )
                 col.label(text="3D view proxy may get out of synch")
                 col.active = obj.pov.unlock_parameters
 
+                layout.operator(
+                    "pov.torus_update", text="Update", icon="MESH_TORUS"
+                )
 
-                layout.operator("pov.torus_update", text="Update",icon="MESH_TORUS")
-
-                #col.label(text="Parameters:")
+                # col.label(text="Parameters:")
                 col.prop(obj.pov, "torus_major_radius")
                 col.prop(obj.pov, "torus_minor_radius")
                 col.prop(obj.pov, "torus_major_segments")
                 col.prop(obj.pov, "torus_minor_segments")
+
 
 class OBJECT_PT_POV_obj_supertorus(PovDataButtonsPanel, Panel):
     """Use this class to define pov supertorus primitive parameters buttons."""
 
     bl_label = "POV SuperTorus"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-    #bl_options = {'HIDE_HEADER'}
+    # bl_options = {'HIDE_HEADER'}
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
         obj = context.object
-        return (obj and obj.pov.object_as == 'SUPERTORUS' and (engine in cls.COMPAT_ENGINES))
+        return (
+            obj
+            and obj.pov.object_as == 'SUPERTORUS'
+            and (engine in cls.COMPAT_ENGINES)
+        )
+
     def draw(self, context):
         layout = self.layout
 
@@ -2977,29 +3545,62 @@ class OBJECT_PT_POV_obj_supertorus(PovDataButtonsPanel, Panel):
 
         if obj.pov.object_as == 'SUPERTORUS':
             if obj.pov.unlock_parameters == False:
-                col.prop(obj.pov, "unlock_parameters", text="Exported parameters below", icon='LOCKED')
-                col.label(text="SuperTorus major radius: " + str(obj.pov.st_major_radius))
-                col.label(text="SuperTorus minor radius: " + str(obj.pov.st_minor_radius))
-                col.label(text="SuperTorus major segments: " + str(obj.pov.st_u))
-                col.label(text="SuperTorus minor segments: " + str(obj.pov.st_v))
+                col.prop(
+                    obj.pov,
+                    "unlock_parameters",
+                    text="Exported parameters below",
+                    icon='LOCKED',
+                )
+                col.label(
+                    text="SuperTorus major radius: "
+                    + str(obj.pov.st_major_radius)
+                )
+                col.label(
+                    text="SuperTorus minor radius: "
+                    + str(obj.pov.st_minor_radius)
+                )
+                col.label(
+                    text="SuperTorus major segments: " + str(obj.pov.st_u)
+                )
+                col.label(
+                    text="SuperTorus minor segments: " + str(obj.pov.st_v)
+                )
 
-                col.label(text="SuperTorus Ring Manipulator: " + str(obj.pov.st_ring))
-                col.label(text="SuperTorus Cross Manipulator: " + str(obj.pov.st_cross))
-                col.label(text="SuperTorus Internal And External radii: " + str(obj.pov.st_ie))
+                col.label(
+                    text="SuperTorus Ring Manipulator: " + str(obj.pov.st_ring)
+                )
+                col.label(
+                    text="SuperTorus Cross Manipulator: "
+                    + str(obj.pov.st_cross)
+                )
+                col.label(
+                    text="SuperTorus Internal And External radii: "
+                    + str(obj.pov.st_ie)
+                )
 
-                col.label(text="SuperTorus accuracy: " + str(ob.pov.st_accuracy))
-                col.label(text="SuperTorus max gradient: " + str(ob.pov.st_max_gradient))
-
+                col.label(
+                    text="SuperTorus accuracy: " + str(ob.pov.st_accuracy)
+                )
+                col.label(
+                    text="SuperTorus max gradient: "
+                    + str(ob.pov.st_max_gradient)
+                )
 
             else:
-                col.prop(obj.pov, "unlock_parameters", text="Edit exported parameters", icon='UNLOCKED')
+                col.prop(
+                    obj.pov,
+                    "unlock_parameters",
+                    text="Edit exported parameters",
+                    icon='UNLOCKED',
+                )
                 col.label(text="3D view proxy may get out of synch")
                 col.active = obj.pov.unlock_parameters
 
+                layout.operator(
+                    "pov.supertorus_update", text="Update", icon="MESH_TORUS"
+                )
 
-                layout.operator("pov.supertorus_update", text="Update",icon="MESH_TORUS")
-
-                #col.label(text="Parameters:")
+                # col.label(text="Parameters:")
                 col.prop(obj.pov, "st_major_radius")
                 col.prop(obj.pov, "st_minor_radius")
                 col.prop(obj.pov, "st_u")
@@ -3007,21 +3608,27 @@ class OBJECT_PT_POV_obj_supertorus(PovDataButtonsPanel, Panel):
                 col.prop(obj.pov, "st_ring")
                 col.prop(obj.pov, "st_cross")
                 col.prop(obj.pov, "st_ie")
-                #col.prop(obj.pov, "st_edit") #?
+                # col.prop(obj.pov, "st_edit") #?
                 col.prop(obj.pov, "st_accuracy")
                 col.prop(obj.pov, "st_max_gradient")
+
 
 class OBJECT_PT_POV_obj_parametric(PovDataButtonsPanel, Panel):
     """Use this class to define pov parametric surface primitive parameters buttons."""
 
     bl_label = "POV Parametric surface"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-    #bl_options = {'HIDE_HEADER'}
+    # bl_options = {'HIDE_HEADER'}
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
         obj = context.object
-        return (obj and obj.pov.object_as == 'PARAMETRIC' and (engine in cls.COMPAT_ENGINES))
+        return (
+            obj
+            and obj.pov.object_as == 'PARAMETRIC'
+            and (engine in cls.COMPAT_ENGINES)
+        )
+
     def draw(self, context):
         layout = self.layout
 
@@ -3031,7 +3638,12 @@ class OBJECT_PT_POV_obj_parametric(PovDataButtonsPanel, Panel):
 
         if obj.pov.object_as == 'PARAMETRIC':
             if obj.pov.unlock_parameters == False:
-                col.prop(obj.pov, "unlock_parameters", text="Exported parameters below", icon='LOCKED')
+                col.prop(
+                    obj.pov,
+                    "unlock_parameters",
+                    text="Exported parameters below",
+                    icon='LOCKED',
+                )
                 col.label(text="Minimum U: " + str(obj.pov.u_min))
                 col.label(text="Minimum V: " + str(obj.pov.v_min))
                 col.label(text="Maximum U: " + str(obj.pov.u_max))
@@ -3041,12 +3653,18 @@ class OBJECT_PT_POV_obj_parametric(PovDataButtonsPanel, Panel):
                 col.label(text="Z Function: " + str(obj.pov.x_eq))
 
             else:
-                col.prop(obj.pov, "unlock_parameters", text="Edit exported parameters", icon='UNLOCKED')
+                col.prop(
+                    obj.pov,
+                    "unlock_parameters",
+                    text="Edit exported parameters",
+                    icon='UNLOCKED',
+                )
                 col.label(text="3D view proxy may get out of synch")
                 col.active = obj.pov.unlock_parameters
 
-
-                layout.operator("pov.parametric_update", text="Update",icon="SCRIPTPLUGINS")
+                layout.operator(
+                    "pov.parametric_update", text="Update", icon="SCRIPTPLUGINS"
+                )
 
                 col.prop(obj.pov, "u_min", text="Minimum U")
                 col.prop(obj.pov, "v_min", text="Minimum V")
@@ -3072,6 +3690,7 @@ class OBJECT_PT_povray_replacement_text(ObjectButtonsPanel, Panel):
         col.label(text="Replace properties with:")
         col.prop(obj.pov, "replacement_text", text="")
 
+
 ###############################################################################
 # Add Povray Objects
 ###############################################################################
@@ -3079,6 +3698,7 @@ class OBJECT_PT_povray_replacement_text(ObjectButtonsPanel, Panel):
 
 class VIEW_MT_POV_primitives_add(bpy.types.Menu):
     """Define the primitives menu with presets"""
+
     bl_idname = "VIEW_MT_POV_primitives_add"
     bl_label = "Povray"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -3086,13 +3706,16 @@ class VIEW_MT_POV_primitives_add(bpy.types.Menu):
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        return (engine == 'POVRAY_RENDER')
+        return engine == 'POVRAY_RENDER'
 
-    def draw(self,context):
+    def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.menu(VIEW_MT_POV_Basic_Shapes.bl_idname, text = "Primitives",icon="GROUP")
-        layout.menu(VIEW_MT_POV_import.bl_idname, text = "Import",icon="IMPORT")
+        layout.menu(
+            VIEW_MT_POV_Basic_Shapes.bl_idname, text="Primitives", icon="GROUP"
+        )
+        layout.menu(VIEW_MT_POV_import.bl_idname, text="Import", icon="IMPORT")
+
 
 class VIEW_MT_POV_Basic_Shapes(bpy.types.Menu):
     """Use this class to sort simple primitives menu entries."""
@@ -3100,48 +3723,81 @@ class VIEW_MT_POV_Basic_Shapes(bpy.types.Menu):
     bl_idname = "POVRAY_MT_basic_shape_tools"
     bl_label = "Basic_shapes"
 
-    def draw(self,context):
+    def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("pov.addplane", text="Infinite Plane",icon = 'MESH_PLANE')
-        layout.operator("pov.addbox", text="Box",icon = 'MESH_CUBE')
-        layout.operator("pov.addsphere", text="Sphere",icon = 'SHADING_RENDERED')
-        layout.operator("pov.addcylinder", text="Cylinder",icon="MESH_CYLINDER")
-        layout.operator("pov.cone_add", text="Cone",icon="MESH_CONE")
-        layout.operator("pov.addtorus", text="Torus",icon = 'MESH_TORUS')
+        layout.operator(
+            "pov.addplane", text="Infinite Plane", icon='MESH_PLANE'
+        )
+        layout.operator("pov.addbox", text="Box", icon='MESH_CUBE')
+        layout.operator("pov.addsphere", text="Sphere", icon='SHADING_RENDERED')
+        layout.operator(
+            "pov.addcylinder", text="Cylinder", icon="MESH_CYLINDER"
+        )
+        layout.operator("pov.cone_add", text="Cone", icon="MESH_CONE")
+        layout.operator("pov.addtorus", text="Torus", icon='MESH_TORUS')
         layout.separator()
-        layout.operator("pov.addrainbow", text="Rainbow",icon="COLOR")
-        layout.operator("pov.addlathe", text="Lathe",icon = 'MOD_SCREW')
-        layout.operator("pov.addprism", text="Prism",icon = 'MOD_SOLIDIFY')
-        layout.operator("pov.addsuperellipsoid", text="Superquadric Ellipsoid",icon = 'MOD_SUBSURF')
-        layout.operator("pov.addheightfield", text="Height Field",icon="RNDCURVE")
-        layout.operator("pov.addspheresweep", text="Sphere Sweep",icon = 'FORCE_CURVE')
+        layout.operator("pov.addrainbow", text="Rainbow", icon="COLOR")
+        layout.operator("pov.addlathe", text="Lathe", icon='MOD_SCREW')
+        layout.operator("pov.addprism", text="Prism", icon='MOD_SOLIDIFY')
+        layout.operator(
+            "pov.addsuperellipsoid",
+            text="Superquadric Ellipsoid",
+            icon='MOD_SUBSURF',
+        )
+        layout.operator(
+            "pov.addheightfield", text="Height Field", icon="RNDCURVE"
+        )
+        layout.operator(
+            "pov.addspheresweep", text="Sphere Sweep", icon='FORCE_CURVE'
+        )
         layout.separator()
-        layout.operator("pov.addblobsphere", text="Blob Sphere",icon = 'META_DATA')
+        layout.operator(
+            "pov.addblobsphere", text="Blob Sphere", icon='META_DATA'
+        )
         layout.separator()
         layout.label(text="Isosurfaces")
-        layout.operator("pov.addisosurfacebox", text="Isosurface Box",icon="META_CUBE")
-        layout.operator("pov.addisosurfacesphere", text="Isosurface Sphere",icon="META_BALL")
-        layout.operator("pov.addsupertorus", text="Supertorus",icon="SURFACE_NTORUS")
+        layout.operator(
+            "pov.addisosurfacebox", text="Isosurface Box", icon="META_CUBE"
+        )
+        layout.operator(
+            "pov.addisosurfacesphere",
+            text="Isosurface Sphere",
+            icon="META_BALL",
+        )
+        layout.operator(
+            "pov.addsupertorus", text="Supertorus", icon="SURFACE_NTORUS"
+        )
         layout.separator()
-        layout.label(text = "Macro based")
-        layout.operator("pov.addpolygontocircle", text="Polygon To Circle Blending",icon="MOD_CAST")
-        layout.operator("pov.addloft", text="Loft",icon="SURFACE_NSURFACE")
+        layout.label(text="Macro based")
+        layout.operator(
+            "pov.addpolygontocircle",
+            text="Polygon To Circle Blending",
+            icon="MOD_CAST",
+        )
+        layout.operator("pov.addloft", text="Loft", icon="SURFACE_NSURFACE")
         layout.separator()
         # Warning if the Add Advanced Objects addon containing
         # Add mesh extra objects is not enabled
         if not check_add_mesh_extra_objects():
-            #col = box.column()
-            layout.label(text="Please enable Add Mesh: Extra Objects addon", icon="INFO")
-            #layout.separator()
-            layout.operator("preferences.addon_show",
-                         text="Go to Add Mesh: Extra Objects addon",
-                         icon="PREFERENCES").module = "add_mesh_extra_objects"
+            # col = box.column()
+            layout.label(
+                text="Please enable Add Mesh: Extra Objects addon", icon="INFO"
+            )
+            # layout.separator()
+            layout.operator(
+                "preferences.addon_show",
+                text="Go to Add Mesh: Extra Objects addon",
+                icon="PREFERENCES",
+            ).module = "add_mesh_extra_objects"
 
-            #layout.separator()
+            # layout.separator()
             return
         else:
-            layout.operator("pov.addparametric", text="Parametric",icon = 'SCRIPTPLUGINS')
+            layout.operator(
+                "pov.addparametric", text="Parametric", icon='SCRIPTPLUGINS'
+            )
+
 
 class VIEW_MT_POV_import(bpy.types.Menu):
     """Use this class for the import menu."""
@@ -3149,69 +3805,77 @@ class VIEW_MT_POV_import(bpy.types.Menu):
     bl_idname = "POVRAY_MT_import_tools"
     bl_label = "Import"
 
-    def draw(self,context):
+    def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("import_scene.pov",icon="FORCE_LENNARDJONES")
+        layout.operator("import_scene.pov", icon="FORCE_LENNARDJONES")
+
 
 def menu_func_add(self, context):
     engine = context.scene.render.engine
     if engine == 'POVRAY_RENDER':
         self.layout.menu("VIEW_MT_POV_primitives_add", icon="PLUGIN")
 
+
 def menu_func_import(self, context):
     engine = context.scene.render.engine
     if engine == 'POVRAY_RENDER':
-        self.layout.operator("import_scene.pov",icon="FORCE_LENNARDJONES")
+        self.layout.operator("import_scene.pov", icon="FORCE_LENNARDJONES")
 
 
 ##############Nodes
 
 # def find_node_input(node, name):
-    # for input in node.inputs:
-        # if input.name == name:
-            # return input
+# for input in node.inputs:
+# if input.name == name:
+# return input
 
 # def panel_node_draw(layout, id_data, output_type, input_name):
-    # if not id_data.use_nodes:
-        # #layout.operator("pov.material_use_nodes", icon='SOUND')#'NODETREE')
-        # #layout.operator("pov.use_shading_nodes", icon='NODETREE')
-        # layout.operator("WM_OT_context_toggle", icon='NODETREE').data_path = \
-                        # "material.pov.material_use_nodes"
-        # return False
+# if not id_data.use_nodes:
+# #layout.operator("pov.material_use_nodes", icon='SOUND')#'NODETREE')
+# #layout.operator("pov.use_shading_nodes", icon='NODETREE')
+# layout.operator("WM_OT_context_toggle", icon='NODETREE').data_path = \
+# "material.pov.material_use_nodes"
+# return False
 
-    # ntree = id_data.node_tree
+# ntree = id_data.node_tree
 
-    # node = find_node(id_data, output_type)
-    # if not node:
-        # layout.label(text="No output node")
-    # else:
-        # input = find_node_input(node, input_name)
-        # layout.template_node_view(ntree, node, input)
+# node = find_node(id_data, output_type)
+# if not node:
+# layout.label(text="No output node")
+# else:
+# input = find_node_input(node, input_name)
+# layout.template_node_view(ntree, node, input)
 
-    # return True
+# return True
+
 
 class NODE_MT_POV_map_create(bpy.types.Menu):
     """Create maps"""
+
     bl_idname = "POVRAY_MT_node_map_create"
     bl_label = "Create map"
 
-    def draw(self,context):
+    def draw(self, context):
         layout = self.layout
         layout.operator("node.map_create")
 
+
 def menu_func_nodes(self, context):
     ob = context.object
-    if hasattr(ob,'active_material'):
-        mat=context.object.active_material
+    if hasattr(ob, 'active_material'):
+        mat = context.object.active_material
         if mat and context.space_data.tree_type == 'ObjectNodeTree':
-            self.layout.prop(mat.pov,"material_use_nodes")
+            self.layout.prop(mat.pov, "material_use_nodes")
             self.layout.menu(NODE_MT_POV_map_create.bl_idname)
             self.layout.operator("wm.updatepreviewkey")
-        if hasattr(mat,'active_texture') and context.scene.render.engine == 'POVRAY_RENDER':
-            tex=mat.active_texture
+        if (
+            hasattr(mat, 'active_texture')
+            and context.scene.render.engine == 'POVRAY_RENDER'
+        ):
+            tex = mat.active_texture
             if tex and context.space_data.tree_type == 'TextureNodeTree':
-                self.layout.prop(tex.pov,"texture_use_nodes")
+                self.layout.prop(tex.pov, "texture_use_nodes")
 
 
 ###############################################################################
@@ -3224,10 +3888,10 @@ class CAMERA_PT_POV_cam_dof(CameraDataButtonsPanel, Panel):
     COMPAT_ENGINES = {'POVRAY_RENDER'}
     bl_parent_id = "DATA_PT_camera_dof_aperture"
     bl_options = {'HIDE_HEADER'}
-    #def draw_header(self, context):
-        #cam = context.camera
+    # def draw_header(self, context):
+    # cam = context.camera
 
-        #self.layout.prop(cam.pov, "dof_enable", text="")
+    # self.layout.prop(cam.pov, "dof_enable", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -3235,20 +3899,28 @@ class CAMERA_PT_POV_cam_dof(CameraDataButtonsPanel, Panel):
         cam = context.camera
 
         layout.active = cam.dof.use_dof
-        layout.use_property_split = True # Active single-column layout
+        layout.use_property_split = True  # Active single-column layout
 
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(
+            row_major=True,
+            columns=0,
+            even_columns=True,
+            even_rows=False,
+            align=False,
+        )
 
         col = flow.column()
         col.label(text="F-Stop value will export as")
-        col.label(text="POV aperture : " + "%.3f" % (1/cam.dof.aperture_fstop*1000))
+        col.label(
+            text="POV aperture : "
+            + "%.3f" % (1 / cam.dof.aperture_fstop * 1000)
+        )
 
         col = flow.column()
         col.prop(cam.pov, "dof_samples_min")
         col.prop(cam.pov, "dof_samples_max")
         col.prop(cam.pov, "dof_variance")
         col.prop(cam.pov, "dof_confidence")
-
 
 
 class CAMERA_PT_POV_cam_nor(CameraDataButtonsPanel, Panel):
@@ -3269,10 +3941,10 @@ class CAMERA_PT_POV_cam_nor(CameraDataButtonsPanel, Panel):
 
         layout.active = cam.pov.normal_enable
 
-        layout.prop(cam.pov,"normal_patterns")
-        layout.prop(cam.pov,"cam_normal")
-        layout.prop(cam.pov,"turbulence")
-        layout.prop(cam.pov,"scale")
+        layout.prop(cam.pov, "normal_patterns")
+        layout.prop(cam.pov, "cam_normal")
+        layout.prop(cam.pov, "turbulence")
+        layout.prop(cam.pov, "scale")
 
 
 class CAMERA_PT_POV_replacement_text(CameraDataButtonsPanel, Panel):
@@ -3290,9 +3962,11 @@ class CAMERA_PT_POV_replacement_text(CameraDataButtonsPanel, Panel):
         col.label(text="Replace properties with:")
         col.prop(cam.pov, "replacement_text", text="")
 
+
 ###############################################################################
 # Text Povray Settings
 ###############################################################################
+
 
 class TEXT_OT_POV_insert(Operator):
     """Use this class to create blender text editor operator to insert pov snippets like other pov IDEs."""
@@ -3300,7 +3974,7 @@ class TEXT_OT_POV_insert(Operator):
     bl_idname = "text.povray_insert"
     bl_label = "Insert"
 
-    filepath : bpy.props.StringProperty(name="Filepath", subtype='FILE_PATH')
+    filepath: bpy.props.StringProperty(name="Filepath", subtype='FILE_PATH')
 
     @classmethod
     def poll(cls, context):
@@ -3317,8 +3991,10 @@ class TEXT_OT_POV_insert(Operator):
             file.close()
         return {'FINISHED'}
 
+
 def validinsert(ext):
-	return ext in {".txt",".inc",".pov"}
+    return ext in {".txt", ".inc", ".pov"}
+
 
 class TEXT_MT_POV_insert(bpy.types.Menu):
     """Use this class to create a menu launcher in text editor for the TEXT_OT_POV_insert operator ."""
@@ -3328,19 +4004,23 @@ class TEXT_MT_POV_insert(bpy.types.Menu):
 
     def draw(self, context):
         pov_documents = locate_docpath()
-        prop = self.layout.operator("wm.path_open", text="Open folder", icon='FILE_FOLDER')
+        prop = self.layout.operator(
+            "wm.path_open", text="Open folder", icon='FILE_FOLDER'
+        )
         prop.filepath = pov_documents
         self.layout.separator()
 
-        list=[]
-        for root,dirs,files in os.walk(pov_documents):
+        list = []
+        for root, dirs, files in os.walk(pov_documents):
             list.append(root)
         print(list)
-        self.path_menu(list,
-                       "text.povray_insert",
-                       #{"internal": True},
-					   filter_ext= validinsert
-                       )
+        self.path_menu(
+            list,
+            "text.povray_insert",
+            # {"internal": True},
+            filter_ext=validinsert,
+        )
+
 
 class TEXT_PT_POV_custom_code(TextButtonsPanel, Panel):
     """Use this class to create a panel in text editor for the user to decide if he renders text only or adds to 3d scene."""
@@ -3354,41 +4034,44 @@ class TEXT_PT_POV_custom_code(TextButtonsPanel, Panel):
         text = context.space_data.text
 
         pov_documents = locate_docpath()
-        if not pov_documents :
+        if not pov_documents:
             layout.label(text="Please configure ", icon="INFO")
             layout.label(text="default pov include path ")
             layout.label(text="in addon preferences")
-            #layout.separator()
-            layout.operator("preferences.addon_show",
-                         text="Go to Render: Persistence of Vision addon",
-                         icon="PREFERENCES").module = "render_povray"
+            # layout.separator()
+            layout.operator(
+                "preferences.addon_show",
+                text="Go to Render: Persistence of Vision addon",
+                icon="PREFERENCES",
+            ).module = "render_povray"
 
-            #layout.separator()
+            # layout.separator()
         else:
-            #print(pov_documents)
+            # print(pov_documents)
             layout.menu(TEXT_MT_POV_insert.bl_idname)
 
         if text:
             box = layout.box()
             box.label(text='Source to render:', icon='RENDER_STILL')
             row = box.row()
-            row.prop(text.pov, "custom_code",expand = True)
+            row.prop(text.pov, "custom_code", expand=True)
             if text.pov.custom_code in {'3dview'}:
                 box.operator("render.render", icon='OUTLINER_DATA_POSE')
             if text.pov.custom_code in {'text'}:
                 rtext = bpy.context.space_data.text
                 box.operator("text.run", icon='POSE_DATA')
-            #layout.prop(text.pov, "custom_code")
+            # layout.prop(text.pov, "custom_code")
             elif text.pov.custom_code in {'both'}:
                 box.operator("render.render", icon='POSE_HLT')
                 layout.label(text="Please specify declared", icon="INFO")
                 layout.label(text="items in properties ")
-                #layout.label(text="")
+                # layout.label(text="")
                 layout.label(text="replacement fields")
 
 
 ###############################################
 # Text editor templates from header menu
+
 
 class TEXT_MT_POV_templates(bpy.types.Menu):
     """Use this class to create a menu for the same pov templates scenes as other pov IDEs."""
@@ -3398,18 +4081,19 @@ class TEXT_MT_POV_templates(bpy.types.Menu):
     # We list templates on file evaluation, we can assume they are static data,
     # and better avoid running this on every draw call.
     import os
+
     template_paths = [os.path.join(os.path.dirname(__file__), "templates_pov")]
 
     def draw(self, context):
         self.path_menu(
-            self.template_paths,
-            "text.open",
-            props_default={"internal": True},
+            self.template_paths, "text.open", props_default={"internal": True}
         )
+
 
 def menu_func_templates(self, context):
     # Do not depend on POV being active renderer here...
     self.layout.menu("TEXT_MT_POV_templates")
+
 
 classes = (
     WORLD_PT_POV_world,
@@ -3417,15 +4101,15 @@ classes = (
     WORLD_OT_POV_add_preset,
     WORLD_TEXTURE_SLOTS_UL_List,
     WORLD_PT_POV_mist,
-    #RenderButtonsPanel,
-    #ModifierButtonsPanel,
-    #MaterialButtonsPanel,
-    #TextureButtonsPanel,
-    #ObjectButtonsPanel,
-    #CameraDataButtonsPanel,
-    #WorldButtonsPanel,
-    #TextButtonsPanel,
-    #PovDataButtonsPanel,
+    # RenderButtonsPanel,
+    # ModifierButtonsPanel,
+    # MaterialButtonsPanel,
+    # TextureButtonsPanel,
+    # ObjectButtonsPanel,
+    # CameraDataButtonsPanel,
+    # WorldButtonsPanel,
+    # TextButtonsPanel,
+    # PovDataButtonsPanel,
     DATA_PT_POV_normals,
     DATA_PT_POV_texture_space,
     DATA_PT_POV_vertex_groups,
@@ -3433,7 +4117,7 @@ classes = (
     DATA_PT_POV_uv_texture,
     DATA_PT_POV_vertex_colors,
     DATA_PT_POV_customdata,
-    #PovLampButtonsPanel,
+    # PovLampButtonsPanel,
     LIGHT_PT_POV_preview,
     LIGHT_PT_POV_light,
     LIGHT_MT_POV_presets,
@@ -3457,7 +4141,7 @@ classes = (
     MATERIAL_PT_POV_mirror,
     MATERIAL_PT_POV_transp,
     MATERIAL_PT_POV_reflection,
-    #MATERIAL_PT_POV_interior,
+    # MATERIAL_PT_POV_interior,
     MATERIAL_PT_POV_fade_color,
     MATERIAL_PT_POV_caustics,
     MATERIAL_PT_POV_replacement_text,
@@ -3488,17 +4172,17 @@ classes = (
     TEXT_PT_POV_custom_code,
     TEXT_MT_POV_templates,
     # TEXTURE_PT_context,
-    #TEXTURE_PT_POV_povray_texture_slots,
+    # TEXTURE_PT_POV_povray_texture_slots,
     TEXTURE_UL_POV_texture_slots,
     MATERIAL_TEXTURE_SLOTS_UL_POV_layerlist,
     MATERIAL_OT_POV_texture_slot_add,
     MATERIAL_OT_POV_texture_slot_remove,
-    TEXTURE_PT_POV_influence
+    TEXTURE_PT_POV_influence,
 )
 
 
 def register():
-    #from bpy.utils import register_class
+    # from bpy.utils import register_class
 
     for cls in classes:
         register_class(cls)
@@ -3508,19 +4192,20 @@ def register():
     bpy.types.TEXT_MT_templates.append(menu_func_templates)
     bpy.types.RENDER_PT_POV_radiosity.prepend(rad_panel_func)
     bpy.types.LIGHT_PT_POV_light.prepend(light_panel_func)
-    #bpy.types.WORLD_PT_POV_world.prepend(world_panel_func)
+    # bpy.types.WORLD_PT_POV_world.prepend(world_panel_func)
     # was used for parametric objects but made the other addon unreachable on
     # unregister for other tools to use created a user action call instead
-    #addon_utils.enable("add_mesh_extra_objects", default_set=False, persistent=True)
+    # addon_utils.enable("add_mesh_extra_objects", default_set=False, persistent=True)
 
-    #bpy.types.TEXTURE_PT_context_texture.prepend(TEXTURE_PT_POV_type)
+    # bpy.types.TEXTURE_PT_context_texture.prepend(TEXTURE_PT_POV_type)
+
 
 def unregister():
-    #from bpy.utils import unregister_class
+    # from bpy.utils import unregister_class
 
-    #bpy.types.TEXTURE_PT_context_texture.remove(TEXTURE_PT_POV_type)
-    #addon_utils.disable("add_mesh_extra_objects", default_set=False)
-    #bpy.types.WORLD_PT_POV_world.remove(world_panel_func)
+    # bpy.types.TEXTURE_PT_context_texture.remove(TEXTURE_PT_POV_type)
+    # addon_utils.disable("add_mesh_extra_objects", default_set=False)
+    # bpy.types.WORLD_PT_POV_world.remove(world_panel_func)
     bpy.types.LIGHT_PT_POV_light.remove(light_panel_func)
     bpy.types.RENDER_PT_POV_radiosity.remove(rad_panel_func)
     bpy.types.TEXT_MT_templates.remove(menu_func_templates)
