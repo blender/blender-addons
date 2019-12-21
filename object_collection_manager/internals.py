@@ -78,6 +78,10 @@ def update_collection_tree(context):
 
 def get_all_collections(context, collections, parent, tree, level=0, visible=False):
     global row_index
+    global max_lvl
+    
+    if level > max_lvl:
+        max_lvl = level
 
     for item in collections:
         laycol = {"id": len(layer_collections) +1,
@@ -98,8 +102,6 @@ def get_all_collections(context, collections, parent, tree, level=0, visible=Fal
         tree.append(laycol)
 
         if len(item.children) > 0:
-            global max_lvl
-            max_lvl += 1
             laycol["has_children"] = True
 
             if item.name in expanded and laycol["visible"]:
