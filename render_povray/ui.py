@@ -1750,6 +1750,62 @@ class MATERIAL_PT_POV_active_node(MaterialButtonsPanel, Panel):
                 else:
                     layout.label(text="No active nodes!")
 
+class MATERIAL_PT_POV_specular(MaterialButtonsPanel, Panel):
+    """Use this class to define standard material specularity (highlights) buttons."""
+
+    bl_label = "Specular"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        mat = context.material
+        engine = context.scene.render.engine
+        return (
+            check_material(mat)
+            and (mat.pov.type in {'SURFACE', 'WIRE'})
+            and (engine in cls.COMPAT_ENGINES)
+        )
+    def draw(self, context):
+        layout = self.layout
+
+        mat = context.material.pov
+
+        layout.active = (not mat.use_shadeless)
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(mat, "specular_color", text="")
+        col.prop(mat, "specular_intensity", text="Intensity")
+
+        col = split.column()
+        col.prop(mat, "specular_shader", text="")
+        col.prop(mat, "use_specular_ramp", text="Ramp")
+
+        col = layout.column()
+        if mat.specular_shader in {'COOKTORR', 'PHONG'}:
+            col.prop(mat, "specular_hardness", text="Hardness")
+        elif mat.specular_shader == 'BLINN':
+            row = col.row()
+            row.prop(mat, "specular_hardness", text="Hardness")
+            row.prop(mat, "specular_ior", text="IOR")
+        elif mat.specular_shader == 'WARDISO':
+            col.prop(mat, "specular_slope", text="Slope")
+        elif mat.specular_shader == 'TOON':
+            row = col.row()
+            row.prop(mat, "specular_toon_size", text="Size")
+            row.prop(mat, "specular_toon_smooth", text="Smooth")
+
+        if mat.use_specular_ramp:
+            layout.separator()
+            layout.template_color_ramp(mat, "specular_ramp", expand=True)
+            layout.separator()
+
+            row = layout.row()
+            row.prop(mat, "specular_ramp_input", text="Input")
+            row.prop(mat, "specular_ramp_blend", text="Blend")
+
+            layout.prop(mat, "specular_ramp_factor", text="Factor")
 
 class MATERIAL_PT_POV_mirror(MaterialButtonsPanel, Panel):
     """Use this class to define standard material reflectivity (mirror) buttons."""
@@ -4138,6 +4194,7 @@ classes = (
     MATERIAL_PT_strand,
     MATERIAL_PT_POV_activate_node,
     MATERIAL_PT_POV_active_node,
+    MATERIAL_PT_POV_specular,
     MATERIAL_PT_POV_mirror,
     MATERIAL_PT_POV_transp,
     MATERIAL_PT_POV_reflection,
