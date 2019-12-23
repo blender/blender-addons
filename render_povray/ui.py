@@ -126,15 +126,15 @@ for member in dir(properties_physics_rigidbody_constraint):
 del properties_physics_rigidbody_constraint
 
 # Physics Smoke wrapping every class 'as is'
-from bl_ui import properties_physics_smoke
+from bl_ui import properties_physics_fluid
 
-for member in dir(properties_physics_smoke):
-    subclass = getattr(properties_physics_smoke, member)
+for member in dir(properties_physics_fluid):
+    subclass = getattr(properties_physics_fluid, member)
     try:
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
     except:
         pass
-del properties_physics_smoke
+del properties_physics_fluid
 
 # Physics softbody wrapping every class 'as is'
 from bl_ui import properties_physics_softbody
