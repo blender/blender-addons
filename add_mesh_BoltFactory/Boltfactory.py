@@ -342,26 +342,23 @@ class add_mesh_bolt(Operator, AddObjectHelper):
     def execute(self, context):
     
         if bpy.context.mode == "OBJECT":
-            if self.change == True and self.change != None:
+            if context.selected_objects != [] and context.active_object and \
+            ('Bolt' in context.active_object.data.keys()) and (self.change == True):
                 obj = context.active_object
-                if 'Bolt' in obj.data.keys():
-                    oldmesh = obj.data
-                    oldmeshname = obj.data.name
-                    mesh = createMesh.Create_New_Mesh(self, context)
-                    obj.data = mesh
-                    try:
-                        bpy.ops.object.vertex_group_remove(all=True)
-                    except:
-                        pass
+                oldmesh = obj.data
+                oldmeshname = obj.data.name
+                mesh = createMesh.Create_New_Mesh(self, context)
+                obj.data = mesh
+                try:
+                    bpy.ops.object.vertex_group_remove(all=True)
+                except:
+                    pass
+                
+                for material in oldmesh.materials:
+                    obj.data.materials.append(material)
                     
-                    for material in oldmesh.materials:
-                        obj.data.materials.append(material)
-                        
-                    bpy.data.meshes.remove(oldmesh)
-                    obj.data.name = oldmeshname
-                else:
-                    mesh = createMesh.Create_New_Mesh(self, context)
-                    obj = object_utils.object_data_add(context, mesh, operator=None)
+                bpy.data.meshes.remove(oldmesh)
+                obj.data.name = oldmeshname
             else:
                 mesh = createMesh.Create_New_Mesh(self, context)
                 obj = object_utils.object_data_add(context, mesh, operator=None)
@@ -408,10 +405,8 @@ def Bolt_contex_menu(self, context):
 def menu_func_bolt(self, context):
     layout = self.layout
     layout.separator()
-    self.layout.operator(
-        add_mesh_bolt.bl_idname,
-        text="Bolt",
-        icon="MOD_SCREW")
+    oper = self.layout.operator(add_mesh_bolt.bl_idname, text="Bolt", icon="MOD_SCREW")
+    oper.change = False
 
 classes = (
     add_mesh_bolt,
