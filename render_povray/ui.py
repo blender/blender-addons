@@ -2345,6 +2345,9 @@ class TEXTURE_PT_POV_context_texture(TextureButtonsPanel, Panel):
                 "pov_texture_slots",
                 mat.pov,
                 "active_texture_index",
+                rows=2,
+                maxrows=16,
+                type="DEFAULT"
             )
             col = row.column(align=True)
             col.operator("pov.textureslotadd", icon='ADD', text='')

@@ -3682,10 +3682,12 @@ node_categories = [
 class RenderPovSettingsTexture(PropertyGroup):
     """Declare texture level properties controllable in UI and translated to POV."""
 
-    # former Space properties from  removed Blender Internal
+    # former Space properties from removed Blender Internal
     active_texture_index: IntProperty(
         name = "Index for texture_slots",
-        default = 0,
+        min=0,
+        max=17,
+        default=0,
     )
 
     use_limited_texture_context: BoolProperty(
@@ -3787,7 +3789,9 @@ class RenderPovSettingsTexture(PropertyGroup):
     magnet_type: IntProperty(
         name="Magnet_type",
         description="1 or 2",
-        min=1, max=2, default=2
+        min=1,
+        max=2,
+        default=2,
     )
 
     warp_types: EnumProperty(

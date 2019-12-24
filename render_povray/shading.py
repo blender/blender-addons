@@ -787,7 +787,7 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
         trans = 1.0 - mater.pov.alpha
     else:
         trans = 0.0
-    if ((mater.specular_color.s == 0.0) or (mater.pov.diffuse_shader == 'MINNAERT')):
+    if ((mater.pov.specular_color.s == 0.0) or (mater.pov.diffuse_shader == 'MINNAERT')):
     # No layered texture because of aoi pattern used for minnaert and pov can't layer patterned
         colored_specular_found = False
     else:
@@ -1192,7 +1192,7 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
     # Close first layer of POV "texture" (Blender material)
     tabWrite("}\n")
 
-    if ((mater.specular_color.s > 0.0) and (mater.pov.diffuse_shader != 'MINNAERT')):
+    if ((mater.pov.specular_color.s > 0.0) and (mater.pov.diffuse_shader != 'MINNAERT')):
 
         colored_specular_found = True
     else:
@@ -1222,7 +1222,7 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image, 
 
         tabWrite("texture {\n")
         tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, 0, 1>}\n" % \
-                         (mater.specular_color[0], mater.specular_color[1], mater.specular_color[2]))
+                         (mater.pov.specular_color[0], mater.pov.specular_color[1], mater.pov.specular_color[2]))
         tabWrite("finish {%s}\n" % (safety(material_finish, Level=2))) # Level 2 is translated spec
 
         texturesNorm = ""
