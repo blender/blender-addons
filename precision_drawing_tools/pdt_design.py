@@ -280,7 +280,7 @@ class PDT_OT_PlacementDelta(Operator):
                     bm.select_history.clear()
                 elif obj.mode == "OBJECT":
                     for ob in context.view_layer.objects.selected:
-                        ob.location = obj_loc + vector_delta
+                        ob.location = ob.location + vector_delta
             elif oper == "SE" and obj.mode == "EDIT":
                 edges = [e for e in bm.edges if e.select]
                 faces = [f for f in bm.faces if f.select]
@@ -823,17 +823,7 @@ class PDT_OT_PlacementInt(Operator):
             obj_loc = obj.matrix_world.decompose()[0]
             bm = bmesh.from_edit_mesh(obj.data)
             edges = [e for e in bm.edges if e.select]
-            if len(edges) == 2:
-                ext_a = True
-                va = edges[0].verts[0]
-                actV = va.co
-                vo = edges[0].verts[1]
-                othV = vo.co
-                vl = edges[1].verts[0]
-                lstV = vl.co
-                vf = edges[1].verts[1]
-                fstV = vf.co
-            elif len(bm.select_history) == 4:
+            if len(bm.select_history) == 4:
                 ext_a = pg.extend
                 va = bm.select_history[-1]
                 vo = bm.select_history[-2]
@@ -844,6 +834,16 @@ class PDT_OT_PlacementInt(Operator):
                     errmsg = PDT_ERR_VERT_MODE
                     self.report({"ERROR"}, errmsg)
                     return {"FINISHED"}
+            elif len(edges) == 2:
+                ext_a = pg.extend
+                va = edges[0].verts[0]
+                actV = va.co
+                vo = edges[0].verts[1]
+                othV = vo.co
+                vl = edges[1].verts[0]
+                lstV = vl.co
+                vf = edges[1].verts[1]
+                fstV = vf.co
             else:
                 errmsg = (
                     PDT_ERR_SEL_4_VERTS
