@@ -608,7 +608,11 @@ def drawCallback3D(self, context):
     areas = [a for a in context.screen.areas if a.type == "VIEW_3D"]
     if len(areas) > 0:
         sf = abs(areas[0].spaces.active.region_3d.window_matrix.decompose()[2][1])
-    a = w / sf / 10000 * pg.pivot_size
+    # Check for orhtographic view and resize
+    if areas[0].spaces.active.region_3d.is_orthographic_side_view:
+        a = w / sf / 60000 * pg.pivot_size
+    else:
+        a = w / sf / 5000 * pg.pivot_size
     b = a * 0.65
     c = a * 0.05 + (pg.pivot_width * a * 0.02)
     o = c / 3

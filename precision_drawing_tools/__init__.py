@@ -255,11 +255,11 @@ class PDTSceneProperties(PropertyGroup):
     )
     select : EnumProperty(
         items=(
-            ("REL", "Current", "Moved Relative to Current Position"),
+            ("REL", "Current Pos.", "Move Relative to Current Position"),
             (
                 "SEL",
-                "Selected",
-                "Moved Relative to Selected Object, or Vertex, Cursor & Pivot Only",
+                "Selected Entities",
+                "Move Relative to Selected Object or Vertex (Cursor & Pivot Only)",
             ),
         ),
         name="Move Mode",
@@ -268,11 +268,11 @@ class PDTSceneProperties(PropertyGroup):
     )
     operation : EnumProperty(
         items=(
-            ("CU", "Cursor", "This Function will Move the Cursor"),
-            ("PP", "Pivot", "This Function will Move the Pivot Point"),
-            ("MV", "Move", "This function will Move Vertices, or Objects"),
-            ("NV", "New Vertex", "This function will Add a New Vertex"),
-            ("EV", "Extrude Vertices", "This function will Extrude Vertices Only in EDIT Mode"),
+            ("CU", "Move Cursor", "This function will Move the Cursor"),
+            ("PP", "Move Pivot Point", "This function will Move the Pivot Point"),
+            ("MV", "Move (per Move Mode)", "This function will Move selected Vertices or Objects"),
+            ("NV", "Add New Vertex", "This function will Add a New Vertex"),
+            ("EV", "Extrude Vertex/Vertices", "This function will Extrude Vertex/Vertices Only in EDIT Mode"),
             ("SE", "Split Edges", "This function will Split Edges Only in EDIT Mode"),
             (
                 "DG",
@@ -371,7 +371,7 @@ class PDTSceneProperties(PropertyGroup):
         name="Pivot Scale", default=(1.0, 1.0, 1.0), subtype="XYZ", description=PDT_DES_PPSCALEFAC
     )
     pivot_size : FloatProperty(
-        name="Pivot Factor", min=0.4, max=10, default=1, precision=1, description=PDT_DES_PPSIZE
+        name="Pivot Factor", min=0.4, max=10, default=2, precision=1, description=PDT_DES_PPSIZE
     )
     pivot_width : IntProperty(
         name="Width", min=1, max=5, default=2, description=PDT_DES_PPWIDTH
