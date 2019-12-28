@@ -319,10 +319,15 @@ def modify_objects(action_type,
                                     ('CUP'      in atom.name.upper() or
                                      'CYLINDER' in atom.name.upper())):
 
-        # Make the cylinder or cup visible first, otherwise one cannot
-        # go into EDIT mode. Note that 'atom' here is in fact a 'stick'
-        # (cylinder or cup).
-        atom.hide_set(False)
+        # For dupliverts structures only: Make the cylinder or cup visible
+        # first, otherwise one cannot go into EDIT mode. Note that 'atom' here
+        # is in fact a 'stick' (cylinder or cup).
+        # First, identify if it is a normal cylinder object or a dupliverts
+        # structure. The identifier for a dupliverts structure is the parent's
+        # name, which includes "_sticks_mesh"
+        if "_sticks_mesh" in atom.parent.name:
+            atom.hide_set(False)
+
         bpy.context.view_layer.objects.active = atom
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
         bm = bmesh.from_edit_mesh(atom.data)
@@ -343,8 +348,11 @@ def modify_objects(action_type,
             v.co[1] = ((v.co[1] - center[1]) / radius) * radius_new + center[1]
 
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-        # Hide again the representative stick (cylinder or cup).
-        atom.hide_set(True)
+        # Hide again the representative stick (cylinder or cup) if it is a
+        # dupliverts structure.
+        if "_sticks_mesh" in atom.parent.name:
+            atom.hide_set(True)
+
         bpy.context.view_layer.objects.active = None
 
     # Replace atom objects
