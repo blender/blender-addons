@@ -15,7 +15,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (1, 1, 26),
+    "version": (1, 1, 27),
     'blender': (2, 81, 6),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -125,6 +125,12 @@ class ExportGLTF2_Base:
             'applications due to the smaller file size'
         ),
         default='NAME'
+    )
+
+    export_texture_dir: StringProperty(
+        name='Textures',
+        description='Folder to place texture files in. Relative to the .gltf file',
+        default='',
     )
 
     export_texcoords: BoolProperty(
@@ -347,7 +353,8 @@ class ExportGLTF2_Base:
                 del context.scene[self.scene_key]
 
         import sys
-        for addon_name in bpy.context.preferences.addons.keys():
+        preferences = bpy.context.preferences
+        for addon_name in preferences.addons.keys():
             try:
                 if hasattr(sys.modules[addon_name], 'glTF2ExportUserExtension'):
                     extension_panel_unregister_functors.append(sys.modules[addon_name].register_panel())
@@ -385,6 +392,10 @@ class ExportGLTF2_Base:
 
         export_settings['gltf_filepath'] = bpy.path.ensure_ext(self.filepath, self.filename_ext)
         export_settings['gltf_filedirectory'] = os.path.dirname(export_settings['gltf_filepath']) + '/'
+        export_settings['gltf_texturedirectory'] = os.path.join(
+            export_settings['gltf_filedirectory'],
+            self.export_texture_dir,
+        )
 
         export_settings['gltf_format'] = self.export_format
         export_settings['gltf_image_format'] = self.export_image_format
@@ -452,7 +463,8 @@ class ExportGLTF2_Base:
         user_extensions = []
 
         import sys
-        for addon_name in bpy.context.preferences.addons.keys():
+        preferences = bpy.context.preferences
+        for addon_name in preferences.addons.keys():
             if hasattr(sys.modules[addon_name], 'glTF2ExportUserExtension'):
                 extension_ctor = sys.modules[addon_name].glTF2ExportUserExtension
                 user_extensions.append(extension_ctor())
@@ -492,6 +504,8 @@ class GLTF_PT_export_main(bpy.types.Panel):
         operator = sfile.active_operator
 
         layout.prop(operator, 'export_format')
+        if operator.export_format == 'GLTF_SEPARATE':
+            layout.prop(operator, 'export_texture_dir', icon='FILE_FOLDER')
         layout.prop(operator, 'export_copyright')
         layout.prop(operator, 'will_save_settings')
 
