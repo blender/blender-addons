@@ -355,3 +355,7 @@ class PDT_PT_PanelCommandLine(Panel):
         row.label(text="Comand Line, uses Plane & Mode Options")
         row = layout.row()
         row.prop(pdt_pg, "command", text="")
+        # Try Re-run
+        row.operator("pdt.command_rerun", text="", icon="LOOP_BACK")
+        row = layout.row()
+        row.prop(pdt_pg, "mathsout", text="Maths Output")

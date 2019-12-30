@@ -96,6 +96,7 @@ from .pdt_msg_strings import (
     PDT_DES_OFFDIS,
     PDT_DES_OFFPER,
     PDT_DES_OPMODE,
+    PDT_DES_OUTPUT,
     PDT_DES_PIVOTDIS,
     PDT_DES_PPLOC,
     PDT_DES_PPSCALEFAC,
@@ -358,6 +359,11 @@ class PDTSceneProperties(PropertyGroup):
         update=command_run,
         description=PDT_DES_VALIDLET,
     )
+    mathsout : FloatProperty(
+        name="Maths output",
+        default=0,
+        description=PDT_DES_OUTPUT,
+    )
     error : StringProperty(name="Error", default="")
 
     # Was pivot* -- is now pivot_*
@@ -449,6 +455,7 @@ classes = (
     PDTSceneProperties,
     PDTPreferences,
     pdt_bix.PDT_OT_LineOnBisection,
+    pdt_command.PDT_OT_CommandReRun,
     pdt_design.PDT_OT_PlacementAbs,
     pdt_design.PDT_OT_PlacementDelta,
     pdt_design.PDT_OT_PlacementDis,

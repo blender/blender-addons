@@ -23,6 +23,7 @@
 #
 import bpy
 import bmesh
+from bpy.types import Operator
 from mathutils import Vector
 import math
 from .pdt_functions import (
@@ -88,6 +89,7 @@ def pdt_help(self, context):
     label(text="- Math Options:")
     label(text="x, y, z: Send result to X, Y and Z input fields in PDT Design")
     label(text="d, a, p: Send result to Distance, Angle or Percent input field in PDT Design")
+    label(text="o: Send Maths Calculation to Output")
     label(text="")
     label(text="Note that commands are case-insensitive: ED = Ed = eD = ed")
     label(text="")
@@ -101,6 +103,26 @@ def pdt_help(self, context):
     label(text="'- Radius: 0.1 (float) -- the radius (or offset) of the bevel/fillet")
     label(text="'- Segments: 4 (int) -- choosing an even amount of segments gives better geometry")
     label(text="'- Profile: 0.5 (float[0.0;1.0]) -- 0.5 (default) yields a circular, convex shape")
+
+class PDT_OT_CommandReRun(Operator):
+    """Repeat Current Displayed Command."""
+
+    bl_idname = "pdt.command_rerun"
+    bl_label = "Re-run Current Command"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        """Repeat Current Command Line Input.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
+        command_run(self, context)
+        return {"FINISHED"}
+
 
 def command_run(self, context):
     """Run Command String as input into Command Line.
@@ -129,7 +151,7 @@ def command_run(self, context):
         Valid Second Letters (as 'mode' - pg.command[1])
 
             A = Absolute XYZ, D = Delta XYZ, I = Distance at Angle, P = Percent
-            X = X Delta, Y = Y, Delta Z, = Z Delta (Maths Operation only)
+            X = X Delta, Y = Y, Delta Z, = Z Delta, O = Output (Maths Operation only)
             V = Vertex Bevel, E = Edge Bevel
 
             Capitals and lower case letters are both allowed
@@ -144,8 +166,6 @@ def command_run(self, context):
 
             Example; madegrees(atan(3/4)) - sets PDT Angle to smallest angle of 3,4,5 Triangle;
             (36.8699 degrees)
-
-            This is why all Math functions are imported
 
     Returns:
         Nothing.
@@ -170,7 +190,7 @@ def command_run(self, context):
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         return
     mode = cmd[1].lower()
-    if mode not in {"a", "d", "e", "g", "i", "p", "v", "x", "y", "z"}:
+    if mode not in {"a", "d", "e", "g", "i", "o", "p", "v", "x", "y", "z"}:
         pg.error = PDT_ERR_BADSLETTER
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         return
@@ -178,16 +198,13 @@ def command_run(self, context):
     # --------------
     # Math Operation
     if oper == "M":
-        if mode not in {"x", "y", "z", "d", "a", "p"}:
+        if mode not in {"x", "y", "z", "d", "a", "p", "o"}:
             pg.error = f"{mode} {PDT_ERR_NON_VALID} Maths)"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
         exp = cmd[2:]
         namespace = {}
         namespace.update(vars(math))
-        if "," in exp:
-            pg.error = PDT_ERR_NOCOMMAS
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         try:
             num = eval(exp, namespace, namespace)
         except ValueError:
@@ -206,6 +223,8 @@ def command_run(self, context):
             pg.angle = num
         elif mode == "p":
             pg.percent = num
+        elif mode == "o":
+            pg.mathsout = num
         return
     # "x"/"y"/"z" modes are only legal for Math Operation
     else:
