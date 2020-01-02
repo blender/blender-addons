@@ -83,6 +83,7 @@ from .pdt_msg_strings import (
     PDT_DES_FILLETRAD,
     PDT_DES_FILLETSEG,
     PDT_DES_FILLETVERTS,
+    PDT_DES_FILLINT,
     PDT_DES_FLIPANG,
     PDT_DES_FLIPPER,
     PDT_DES_LIBCOLS,
@@ -418,6 +419,11 @@ class PDTSceneProperties(PropertyGroup):
         name="Fillet Vertices Only",
         default=True,
         description=PDT_DES_FILLETVERTS,
+    )
+    fillet_int : BoolProperty(
+        name="Intersect",
+        default=False,
+        description=PDT_DES_FILLINT,
     )
 
 

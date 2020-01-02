@@ -500,7 +500,7 @@ def objCheck(obj, scene, oper):
             else:
                 return bm, True
         if len(bm.select_history) >= 1:
-            if _oper not in {"D", "E", "G", "N", "S"}:
+            if _oper not in {"D", "E", "F", "G", "N", "S"}:
                 actV = checkSelection(1, bm, obj)
             else:
                 verts = [v for v in bm.verts if v.select]

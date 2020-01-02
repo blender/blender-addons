@@ -30,6 +30,7 @@ from .pdt_functions import (
     debug,
     disAng,
     getPercent,
+    intersection,
     objCheck,
     oops,
     updateSel,
@@ -86,6 +87,7 @@ def pdt_help(self, context):
     label(text="- Fillet Options:")
     label(text="v: Fillet Vertices")
     label(text="e: Fillet Edges")
+    label(text="i: Fillet & Intersect 2 Disconnected Edges")
     label(text="- Math Options:")
     label(text="x, y, z: Send result to X, Y and Z input fields in PDT Design")
     label(text="d, a, p: Send result to Distance, Angle or Percent input field in PDT Design")
@@ -226,9 +228,9 @@ def command_run(self, context):
         elif mode == "o":
             pg.mathsout = num
         return
-    # "x"/"y"/"z" modes are only legal for Math Operation
+    # "o"/"x"/"y"/"z" modes are only legal for Math Operation
     else:
-        if mode in {"x", "y", "z"}:
+        if mode in {"o", "x", "y", "z"}:
             pg.error = PDT_ERR_BADCOORDL
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
@@ -855,7 +857,7 @@ def command_run(self, context):
     # ---------------
     # Fillet Geometry
     elif oper == "F":
-        if mode not in {"v", "e"}:
+        if mode not in {"v", "e", "i"}:
             pg.error = f"'{mode}' {PDT_ERR_NON_VALID} '{oper}'"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
@@ -871,7 +873,7 @@ def command_run(self, context):
             pg.error = PDT_ERR_BAD3VALS
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
-        if mode == "v":
+        if mode in {"i", "v"}:
             vert_bool = True
         elif mode == "e":
             vert_bool = False
@@ -889,6 +891,32 @@ def command_run(self, context):
         _profile = float(vals[2])
         if _profile < 0.0 or _profile > 1.0:
             _profile = 0.5  # This is a circular profile
+        if mode == "i":
+            # Fillet & Intersect Two Edges
+            edges = [e for e in bm.edges if e.select]
+            if len(edges) == 2 and len(verts) == 4:
+                va = edges[0].verts[0]
+                vo = edges[0].verts[1]
+                vl = edges[1].verts[0]
+                vf = edges[1].verts[1]
+                vector_delta, done = intersection(va.co, vo.co, vl.co, vf.co, plane)
+                if not done:
+                    errmsg = f"{PDT_ERR_INT_LINES} {plane}  {PDT_LAB_PLANE}"
+                    self.report({"ERROR"}, errmsg)
+                    return {"FINISHED"}
+                if (va.co - vector_delta).length < (vo.co - vector_delta).length:
+                    va.co = vector_delta
+                    vo.select_set(False)
+                else:
+                    vo.co = vector_delta
+                    va.select_set(False)
+                if (vl.co - vector_delta).length < (vf.co - vector_delta).length:
+                    vl.co = vector_delta
+                    vf.select_set(False)
+                else:
+                    vf.co = vector_delta
+                    vl.select_set(False)
+                bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
         bpy.ops.mesh.bevel(
             offset_type="OFFSET",
             offset=_offset,

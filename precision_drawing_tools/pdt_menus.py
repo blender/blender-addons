@@ -188,6 +188,7 @@ class PDT_PT_PanelDesign(Panel):
         row.prop(pdt_pg, "fillet_vertices_only", text=PDT_LAB_USEVERTS)
         row = box.row()
         row.operator("pdt.fillet", text=f"{PDT_LAB_FILLET}")
+        row.prop(pdt_pg, "fillet_int", text="Int/Fillet")
 
 
 class PDT_PT_PanelPivotPoint(Panel):
