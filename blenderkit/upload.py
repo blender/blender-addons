@@ -622,7 +622,7 @@ def start_upload(self, context, asset_type, reupload, upload_set):
     else:
         url += props.id + '/'
         try:
-            if upload_set != ['METADATA']:
+            if 'MAINFILE' in upload_set:
                 json_metadata["verificationStatus"] = "uploading"
             r = rerequests.put(url, json=json_metadata, headers=headers, verify=True, immediate=True)  # files = files,
             ui.add_report('uploaded metadata')

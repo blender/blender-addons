@@ -635,7 +635,7 @@ def write_profile(adata):
     if user.get('remainingPrivateQuota') is not None:
         user['remainingPrivateQuota'] /= (1024 * 1024)
 
-    if user.get('id') == 2:
+    if adata.get('canEditAllAssets') is True:
         user['exmenu'] = True
     else:
         user['exmenu'] = False
@@ -675,7 +675,7 @@ def get_profile():
 
 def profile_is_validator():
     a = bpy.context.window_manager.get('bkit profile')
-    if a is not None and a.get('exmenu'):
+    if a is not None and a['user'].get('exmenu'):
         return True
     return False
 

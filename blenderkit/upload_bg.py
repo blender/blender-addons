@@ -197,17 +197,18 @@ if __name__ == "__main__":
 
         if uploaded:
             # mark on server as uploaded
-            confirm_data = {
-                "verificationStatus": "uploaded"
-            }
+            if 'MAINFILE' in upload_set:
+                confirm_data = {
+                    "verificationStatus": "uploaded"
+                }
 
-            url = paths.get_api_url() + 'assets/'
+                url = paths.get_api_url() + 'assets/'
 
-            headers = utils.get_headers(upload_data['token'])
+                headers = utils.get_headers(upload_data['token'])
 
-            url += upload_data["id"] + '/'
+                url += upload_data["id"] + '/'
 
-            r = rerequests.patch(url, json=confirm_data, headers=headers, verify=True)  # files = files,
+                r = rerequests.patch(url, json=confirm_data, headers=headers, verify=True)  # files = files,
 
             bg_blender.progress('upload finished successfully')
         else:
