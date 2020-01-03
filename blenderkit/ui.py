@@ -388,9 +388,7 @@ def draw_tooltip(x, y, text='', author='', img=None, gravatar=None):
 
         lines = text.split('\n')
 
-        nlines = math.ceil((len(lines) - 1) / ncolumns)
         texth = line_height * nlines + nameline_height
-
         isizex = int(512 * scale * img.size[0] / max(img.size[0], img.size[1]))
         isizey = int(512 * scale * img.size[1] / max(img.size[0], img.size[1]))
 
