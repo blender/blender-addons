@@ -826,10 +826,10 @@ class PDT_OT_PlacementInt(Operator):
             edges = [e for e in bm.edges if e.select]
             if len(bm.select_history) == 4:
                 ext_a = pg.extend
-                va = bm.select_history[-1]
-                vo = bm.select_history[-2]
-                vl = bm.select_history[-3]
-                vf = bm.select_history[-4]
+                v_active = bm.select_history[-1]
+                v_other = bm.select_history[-2]
+                v_last = bm.select_history[-3]
+                v_first = bm.select_history[-4]
                 actV, othV, lstV, fstV = checkSelection(4, bm, obj)
                 if actV is None:
                     errmsg = PDT_ERR_VERT_MODE
@@ -837,10 +837,10 @@ class PDT_OT_PlacementInt(Operator):
                     return {"FINISHED"}
             elif len(edges) == 2:
                 ext_a = pg.extend
-                va = edges[0].verts[0]
-                vo = edges[0].verts[1]
-                vl = edges[1].verts[0]
-                vf = edges[1].verts[1]
+                v_active = edges[0].verts[0]
+                v_other = edges[0].verts[1]
+                v_last = edges[1].verts[0]
+                v_first = edges[1].verts[1]
             else:
                 errmsg = (
                     PDT_ERR_SEL_4_VERTS
@@ -851,7 +851,12 @@ class PDT_OT_PlacementInt(Operator):
                 )
                 self.report({"ERROR"}, errmsg)
                 return {"FINISHED"}
-            vector_delta, done = intersection(va.co, vo.co, vl.co, vf.co, plane)
+            vector_delta, done = intersection(v_active.co,
+                v_other.co,
+                v_last.co,
+                v_first.co,
+                plane
+                )
             if not done:
                 errmsg = f"{PDT_ERR_INT_LINES} {plane}  {PDT_LAB_PLANE}"
                 self.report({"ERROR"}, errmsg)
@@ -877,9 +882,9 @@ class PDT_OT_PlacementInt(Operator):
                 nVert = None
                 proc = False
 
-                if (va.co - vector_delta).length < (vo.co - vector_delta).length:
+                if (v_active.co - vector_delta).length < (v_other.co - vector_delta).length:
                     if oper == "MV":
-                        va.co = vector_delta
+                        v_active.co = vector_delta
                         proc = True
                     elif oper == "EV":
                         nVert = bm.verts.new(vector_delta)
@@ -887,19 +892,19 @@ class PDT_OT_PlacementInt(Operator):
                         proc = True
                 else:
                     if oper == "MV" and ext_a:
-                        vo.co = vector_delta
+                        v_other.co = vector_delta
                     elif oper == "EV" and ext_a:
                         nVert = bm.verts.new(vector_delta)
                         bm.edges.new([vo, nVert])
 
-                if (vl.co - vector_delta).length < (vf.co - vector_delta).length:
+                if (v_last.co - vector_delta).length < (v_first.co - vector_delta).length:
                     if oper == "MV" and ext_a:
-                        vl.co = vector_delta
+                        v_last.co = vector_delta
                     elif oper == "EV" and ext_a:
                         bm.edges.new([vl, nVert])
                 else:
                     if oper == "MV" and ext_a:
-                        vf.co = vector_delta
+                        v_first.co = vector_delta
                     elif oper == "EV" and ext_a:
                         bm.edges.new([vf, nVert])
                 bm.select_history.clear()
@@ -1191,27 +1196,32 @@ class PDT_OT_Fillet(Operator):
             # Fillet & Intersect Two Edges
             edges = [e for e in bm.edges if e.select]
             if len(edges) == 2 and len(verts) == 4:
-                va = edges[0].verts[0]
-                vo = edges[0].verts[1]
-                vl = edges[1].verts[0]
-                vf = edges[1].verts[1]
-                vector_delta, done = intersection(va.co, vo.co, vl.co, vf.co, plane)
+                v_active = edges[0].verts[0]
+                v_other = edges[0].verts[1]
+                v_last = edges[1].verts[0]
+                v_first = edges[1].verts[1]
+                vector_delta, done = intersection(v_active.co,
+                    v_other.co,
+                    v_last.co,
+                    v_first.co,
+                    plane
+                    )
                 if not done:
                     errmsg = f"{PDT_ERR_INT_LINES} {plane}  {PDT_LAB_PLANE}"
                     self.report({"ERROR"}, errmsg)
                     return {"FINISHED"}
-                if (va.co - vector_delta).length < (vo.co - vector_delta).length:
-                    va.co = vector_delta
+                if (v_active.co - vector_delta).length < (v_other.co - vector_delta).length:
+                    v_active.co = vector_delta
                     vo.select_set(False)
                 else:
-                    vo.co = vector_delta
-                    va.select_set(False)
-                if (vl.co - vector_delta).length < (vf.co - vector_delta).length:
-                    vl.co = vector_delta
-                    vf.select_set(False)
+                    v_other.co = vector_delta
+                    v_active.select_set(False)
+                if (v_last.co - vector_delta).length < (v_first.co - vector_delta).length:
+                    v_last.co = vector_delta
+                    v_first.select_set(False)
                 else:
-                    vf.co = vector_delta
-                    vl.select_set(False)
+                    v_first.co = vector_delta
+                    v_last.select_set(False)
                 bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
                 bpy.ops.mesh.bevel(
                     offset_type="OFFSET",

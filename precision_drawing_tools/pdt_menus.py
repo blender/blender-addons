@@ -188,7 +188,7 @@ class PDT_PT_PanelDesign(Panel):
         row.prop(pdt_pg, "fillet_vertices_only", text=PDT_LAB_USEVERTS)
         row = box.row()
         row.operator("pdt.fillet", text=f"{PDT_LAB_FILLET}")
-        row.prop(pdt_pg, "fillet_int", text="Int/Fillet")
+        row.prop(pdt_pg, "fillet_int", text="Intersect")
 
 
 class PDT_PT_PanelPivotPoint(Panel):
@@ -359,4 +359,4 @@ class PDT_PT_PanelCommandLine(Panel):
         # Try Re-run
         row.operator("pdt.command_rerun", text="", icon="LOOP_BACK")
         row = layout.row()
-        row.prop(pdt_pg, "mathsout", text="Maths Output")
+        row.prop(pdt_pg, "maths_output", text="Maths Output")

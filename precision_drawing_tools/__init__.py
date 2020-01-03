@@ -360,7 +360,7 @@ class PDTSceneProperties(PropertyGroup):
         update=command_run,
         description=PDT_DES_VALIDLET,
     )
-    mathsout : FloatProperty(
+    maths_output : FloatProperty(
         name="Maths output",
         default=0,
         description=PDT_DES_OUTPUT,

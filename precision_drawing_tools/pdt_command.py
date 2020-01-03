@@ -226,7 +226,7 @@ def command_run(self, context):
         elif mode == "p":
             pg.percent = num
         elif mode == "o":
-            pg.mathsout = num
+            pg.maths_output = num
         return
     # "o"/"x"/"y"/"z" modes are only legal for Math Operation
     else:
@@ -895,27 +895,32 @@ def command_run(self, context):
             # Fillet & Intersect Two Edges
             edges = [e for e in bm.edges if e.select]
             if len(edges) == 2 and len(verts) == 4:
-                va = edges[0].verts[0]
-                vo = edges[0].verts[1]
-                vl = edges[1].verts[0]
-                vf = edges[1].verts[1]
-                vector_delta, done = intersection(va.co, vo.co, vl.co, vf.co, plane)
+                v_active = edges[0].verts[0]
+                v_other = edges[0].verts[1]
+                v_last = edges[1].verts[0]
+                v_first = edges[1].verts[1]
+                vector_delta, done = intersection(v_active.co,
+                    v_other.co,
+                    v_last.co,
+                    v_first.co,
+                    plane
+                    )
                 if not done:
                     errmsg = f"{PDT_ERR_INT_LINES} {plane}  {PDT_LAB_PLANE}"
                     self.report({"ERROR"}, errmsg)
                     return {"FINISHED"}
-                if (va.co - vector_delta).length < (vo.co - vector_delta).length:
-                    va.co = vector_delta
-                    vo.select_set(False)
+                if (v_active.co - vector_delta).length < (v_other.co - vector_delta).length:
+                    v_active.co = vector_delta
+                    v_other.select_set(False)
                 else:
-                    vo.co = vector_delta
-                    va.select_set(False)
-                if (vl.co - vector_delta).length < (vf.co - vector_delta).length:
-                    vl.co = vector_delta
-                    vf.select_set(False)
+                    v_other.co = vector_delta
+                    v_active.select_set(False)
+                if (v_last.co - vector_delta).length < (v_first.co - vector_delta).length:
+                    v_last.co = vector_delta
+                    v_first.select_set(False)
                 else:
-                    vf.co = vector_delta
-                    vl.select_set(False)
+                    v_first.co = vector_delta
+                    v_last.select_set(False)
                 bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
         bpy.ops.mesh.bevel(
             offset_type="OFFSET",
