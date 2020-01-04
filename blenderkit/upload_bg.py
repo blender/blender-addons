@@ -89,7 +89,7 @@ def upload_file(upload_data, f):
     upload = upload.json()
 
     chunk_size = 1024 * 256
-
+    utils.pprint(upload)
     # file gets uploaded here:
     uploaded = False
     # s3 upload is now the only option
@@ -129,10 +129,7 @@ def upload_files(upload_data, files):
 
 if __name__ == "__main__":
 
-    bpy.data.scenes.new('upload')
-    for s in bpy.data.scenes:
-        if s.name != 'upload':
-            bpy.data.scenes.remove(s)
+
     try:
         bg_blender.progress('preparing scene - append data')
         with open(BLENDERKIT_EXPORT_DATA, 'r') as s:
@@ -144,6 +141,11 @@ if __name__ == "__main__":
 
         upload_set = data['upload_set']
         if 'MAINFILE' in upload_set:
+            bpy.data.scenes.new('upload')
+            for s in bpy.data.scenes:
+                if s.name != 'upload':
+                    bpy.data.scenes.remove(s)
+
             if export_data['type'] == 'MODEL':
                 obnames = export_data['models']
                 main_source, allobs = append_link.append_objects(file_name=data['source_filepath'],
