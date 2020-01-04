@@ -364,7 +364,7 @@ class VIEW3D_PT_blenderkit_model_properties(Panel):
 
     @classmethod
     def poll(cls, context):
-        p = bpy.context.active_object is not None
+        p = bpy.context.view_layer.objects.active is not None
         return p
 
     def draw(self, context):
@@ -680,7 +680,7 @@ class VIEW3D_PT_blenderkit_unified(Panel):
 
             if ui_props.asset_type == 'MODEL':
                 # label_multiline(layout, "Uploaded models won't be available in b2.79", icon='ERROR')
-                if bpy.context.active_object is not None:
+                if bpy.context.view_layer.objects.active is not None:
                     draw_panel_model_upload(self, context)
                 else:
                     layout.label(text='selet object to upload')
@@ -690,7 +690,7 @@ class VIEW3D_PT_blenderkit_unified(Panel):
             elif ui_props.asset_type == 'MATERIAL':
                 # label_multiline(layout, "Uploaded materials won't be available in b2.79", icon='ERROR')
 
-                if bpy.context.active_object is not None and bpy.context.active_object.active_material is not None:
+                if bpy.context.view_layer.objects.active is not None and bpy.context.active_object.active_material is not None:
                     draw_panel_material_upload(self, context)
                 else:
                     label_multiline(layout, text='select object with material to upload materials', width=w)
@@ -705,12 +705,12 @@ class VIEW3D_PT_blenderkit_unified(Panel):
 
             if ui_props.asset_type == 'MODEL':
                 # TODO improve poll here to parenting structures
-                if bpy.context.active_object is not None and bpy.context.active_object.get('asset_data') != None:
+                if bpy.context.view_layer.objects.active is not None and bpy.context.active_object.get('asset_data') != None:
                     ad = bpy.context.active_object.get('asset_data')
                     layout.label(text=ad['name'])
                     draw_panel_model_rating(self, context)
             if ui_props.asset_type == 'MATERIAL':
-                if bpy.context.active_object is not None and \
+                if bpy.context.view_layer.objects.active is not None and \
                         bpy.context.active_object.active_material is not None and \
                         bpy.context.active_object.active_material.blenderkit.asset_base_id != '':
                     layout.label(text=bpy.context.active_object.active_material.blenderkit.name + ' :')
@@ -756,7 +756,7 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
         op = layout.operator('view3d.blenderkit_search', text='Search Similar')
         op.keywords = asset_data['name'] + ' ' + asset_data['description'] + ' ' + ' '.join(asset_data['tags'])
 
-        if bpy.context.active_object is not None and ui_props.asset_type == 'MODEL':
+        if bpy.context.view_layer.objects.active is not None and ui_props.asset_type == 'MODEL':
             aob = bpy.context.active_object
             op = layout.operator('scene.blenderkit_download', text='Replace Active Models')
             op.asset_type = ui_props.asset_type

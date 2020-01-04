@@ -106,7 +106,6 @@ def fetch_server_data():
     ''' download categories and addon version'''
     if not bpy.app.background:
         user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
-        url = paths.BLENDERKIT_ADDON_URL
         api_key = user_preferences.api_key
         # Only refresh new type of tokens(by length), and only one hour before the token timeouts.
         if user_preferences.enable_oauth and \

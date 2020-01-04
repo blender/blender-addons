@@ -883,7 +883,7 @@ class BlenderkitDownloadOperator(bpy.types.Operator):
 
         atype = asset_data['asset_type']
         if bpy.context.mode != 'OBJECT' and (
-                atype == 'model' or atype == 'material') and bpy.context.active_object is not None:
+                atype == 'model' or atype == 'material') and bpy.context.view_layer.objects.active is not None:
             bpy.ops.object.mode_set(mode='OBJECT')
 
         if self.replace:  # cleanup first, assign later.

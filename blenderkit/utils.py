@@ -66,8 +66,8 @@ def selection_set(sel):
 
 
 def get_active_model():
-    if hasattr(bpy.context, 'active_object'):
-        ob = bpy.context.active_object
+    if bpy.context.view_layer.objects.active is not None:
+        ob = bpy.context.view_layer.objects.active
         while ob.parent is not None:
             ob = ob.parent
         return ob
@@ -130,14 +130,14 @@ def get_active_asset():
     scene = bpy.context.scene
     ui_props = scene.blenderkitUI
     if ui_props.asset_type == 'MODEL':
-        if bpy.context.active_object is not None:
+        if bpy.context.view_layer.objects.active is not None:
             ob = get_active_model()
             return ob
     if ui_props.asset_type == 'SCENE':
         return bpy.context.scene
 
     elif ui_props.asset_type == 'MATERIAL':
-        if bpy.context.active_object is not None and bpy.context.active_object.active_material is not None:
+        if bpy.context.view_layer.objects.active is not None and bpy.context.active_object.active_material is not None:
             return bpy.context.active_object.active_material
     elif ui_props.asset_type == 'TEXTURE':
         return None
@@ -152,14 +152,14 @@ def get_upload_props():
     scene = bpy.context.scene
     ui_props = scene.blenderkitUI
     if ui_props.asset_type == 'MODEL':
-        if bpy.context.active_object is not None:
+        if bpy.context.view_layer.objects.active is not None:
             ob = get_active_model()
             return ob.blenderkit
     if ui_props.asset_type == 'SCENE':
         s = bpy.context.scene
         return s.blenderkit
     elif ui_props.asset_type == 'MATERIAL':
-        if bpy.context.active_object is not None and bpy.context.active_object.active_material is not None:
+        if bpy.context.view_layer.objects.active is not None and bpy.context.active_object.active_material is not None:
             return bpy.context.active_object.active_material.blenderkit
     elif ui_props.asset_type == 'TEXTURE':
         return None

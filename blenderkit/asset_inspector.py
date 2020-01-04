@@ -364,7 +364,7 @@ class AutoFillTags(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return bpy.context.view_layer.objects.active is not None
 
     def execute(self, context):
         get_autotags()

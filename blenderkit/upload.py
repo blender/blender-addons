@@ -486,13 +486,13 @@ def get_upload_location(props):
     scene = bpy.context.scene
     ui_props = scene.blenderkitUI
     if ui_props.asset_type == 'MODEL':
-        if bpy.context.active_object is not None:
+        if bpy.context.view_layer.objects.active is not None:
             ob = utils.get_active_model()
             return ob.location
     if ui_props.asset_type == 'SCENE':
         return None
     elif ui_props.asset_type == 'MATERIAL':
-        if bpy.context.active_object is not None and bpy.context.active_object.active_material is not None:
+        if bpy.context.view_layer.objects.active is not None and bpy.context.active_object.active_material is not None:
             return bpy.context.active_object.location
     elif ui_props.asset_type == 'TEXTURE':
         return None
@@ -740,7 +740,7 @@ class UploadOperator(Operator):
 
     @classmethod
     def poll(cls, context):
-        return bpy.context.active_object is not None
+        return bpy.context.view_layer.objects.active is not None
 
     def execute(self, context):
         bpy.ops.object.blenderkit_auto_tags()

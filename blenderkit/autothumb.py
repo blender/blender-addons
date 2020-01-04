@@ -74,7 +74,7 @@ def update_upload_scene_preview(self, context):
 
 def update_upload_material_preview(self, context):
     if hasattr(bpy.context, 'active_object') \
-            and bpy.context.active_object is not None \
+            and bpy.context.view_layer.objects.active is not None \
             and bpy.context.active_object.active_material is not None:
         mat = bpy.context.active_object.active_material
         props = mat.blenderkit
@@ -247,7 +247,7 @@ class GenerateThumbnailOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return bpy.context.active_object is not None
+        return bpy.context.view_layer.objects.active is not None
 
     def draw(self, context):
         ob = bpy.context.active_object
@@ -290,7 +290,7 @@ class GenerateMaterialThumbnailOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return bpy.context.active_object is not None
+        return bpy.context.view_layer.objects.active is not None
 
     def check(self, context):
         return True
