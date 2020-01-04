@@ -28,8 +28,23 @@ import bpy
 from mathutils import Vector
 import json
 import os
-import requests
+import sys
 
+
+
+
+ABOVE_NORMAL_PRIORITY_CLASS = 0x00008000
+BELOW_NORMAL_PRIORITY_CLASS = 0x00004000
+HIGH_PRIORITY_CLASS = 0x00000080
+IDLE_PRIORITY_CLASS = 0x00000040
+NORMAL_PRIORITY_CLASS = 0x00000020
+REALTIME_PRIORITY_CLASS = 0x00000100
+
+def get_process_flags():
+    flags = BELOW_NORMAL_PRIORITY_CLASS
+    if sys.platform != 'win32':  # TODO test this on windows
+        flags = 0
+    return flags
 
 def activate(ob):
     bpy.ops.object.select_all(action='DESELECT')
