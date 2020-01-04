@@ -377,6 +377,9 @@ def get_upload_data(self, context, asset_type):
             "animated": props.animated,
             "purePbr": props.pbr,
             "textureSizeMeters": props.texture_size_meters,
+            "procedural": props.is_procedural,
+            "nodeCount": props.node_count,
+            "textureCount": props.texture_count,
 
         }
 

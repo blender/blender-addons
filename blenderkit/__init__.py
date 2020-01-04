@@ -489,6 +489,14 @@ class BlenderKitCommonUploadProps(object):
         default="PUBLIC",
     )
 
+    is_procedural: BoolProperty(name="Procedural",
+                          description="Asset is procedural - has no texture.",
+                          default=True
+                          )
+    node_count: IntProperty(name="Node count", description="Total nodes in the asset", default=0)
+    texture_count: IntProperty(name="Node count", description="Total nodes in the asset", default=0)
+    total_megapixels: IntProperty(name="Node count", description="Total nodes in the asset", default=0)
+
     # is_private: BoolProperty(name="Asset is Private",
     #                       description="If not marked private, your asset will go into the validation process automatically\n"
     #                                   "Private assets are limited by quota.",
@@ -621,6 +629,7 @@ class BlenderKitMaterialUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
         description="shaders used in asset, autofilled",
         default="",
     )
+
     is_free: BoolProperty(name="Free for Everyone",
                           description="You consent you want to release this asset as free for everyone",
                           default=True, update=update_free
