@@ -10,6 +10,7 @@ from bpy.props import (
         StringProperty,
         )
 from bpy_extras import object_utils
+from . import utils
 
 # Create a new mesh (object) from verts/edges/faces.
 # verts/edges/faces ... List of vertices/edges/faces for the
@@ -97,7 +98,7 @@ def ElbowJointParameters():
     ]
     return ElbowJointParameters
 
-class AddElbowJoint(Operator):
+class AddElbowJoint(Operator, object_utils.AddObjectHelper):
     bl_idname = "mesh.primitive_elbow_joint_add"
     bl_label = "Add Pipe Elbow"
     bl_description = "Construct an elbow pipe mesh"
@@ -160,6 +161,13 @@ class AddElbowJoint(Operator):
         box.prop(self, 'angle')
         box.prop(self, 'startLength')
         box.prop(self, 'endLength')
+
+        if self.change == False:
+            # generic transform props
+            box = layout.box()
+            box.prop(self, 'align')
+            box.prop(self, 'location')
+            box.prop(self, 'rotation')
 
     def execute(self, context):
         radius = self.radius
@@ -233,6 +241,8 @@ class AddElbowJoint(Operator):
                 mesh = create_mesh(context, verts, [], faces, "Elbow Joint")
                 obj = object_utils.object_data_add(context, mesh, operator=None)
 
+                utils.setlocation(self, context)
+
             mesh.update()
 
             obj.data["ElbowJoint"] = True
@@ -252,6 +262,8 @@ class AddElbowJoint(Operator):
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
 
+            utils.setlocation(self, context)
+
         return {'FINISHED'}
 
 
@@ -268,7 +280,7 @@ def TeeJointParameters():
     ]
     return TeeJointParameters
 
-class AddTeeJoint(Operator):
+class AddTeeJoint(Operator, object_utils.AddObjectHelper):
     bl_idname = "mesh.primitive_tee_joint_add"
     bl_label = "Add Pipe Tee-Joint"
     bl_description = "Construct a tee-joint pipe mesh"
@@ -344,6 +356,13 @@ class AddTeeJoint(Operator):
         box.prop(self, 'startLength')
         box.prop(self, 'endLength')
         box.prop(self, 'branchLength')
+
+        if self.change == False:
+            # generic transform props
+            box = layout.box()
+            box.prop(self, 'align')
+            box.prop(self, 'location')
+            box.prop(self, 'rotation')
 
     def execute(self, context):
         radius = self.radius
@@ -481,6 +500,8 @@ class AddTeeJoint(Operator):
                 mesh = create_mesh(context, verts, [], faces, "Tee Joint")
                 obj = object_utils.object_data_add(context, mesh, operator=None)
 
+                utils.setlocation(self, context)
+
             mesh.update()
 
             obj.data["TeeJoint"] = True
@@ -500,6 +521,8 @@ class AddTeeJoint(Operator):
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
 
+            utils.setlocation(self, context)
+
         return {'FINISHED'}
 
 def WyeJointParameters():
@@ -514,7 +537,7 @@ def WyeJointParameters():
     ]
     return WyeJointParameters
 
-class AddWyeJoint(Operator):
+class AddWyeJoint(Operator, object_utils.AddObjectHelper):
     bl_idname = "mesh.primitive_wye_joint_add"
     bl_label = "Add Pipe Wye-Joint"
     bl_description = "Construct a wye-joint pipe mesh"
@@ -599,6 +622,13 @@ class AddWyeJoint(Operator):
         box.prop(self, 'startLength')
         box.prop(self, 'branch1Length')
         box.prop(self, 'branch2Length')
+
+        if self.change == False:
+            # generic transform props
+            box = layout.box()
+            box.prop(self, 'align')
+            box.prop(self, 'location')
+            box.prop(self, 'rotation')
 
     def execute(self, context):
         radius = self.radius
@@ -746,6 +776,8 @@ class AddWyeJoint(Operator):
                 mesh = create_mesh(context, verts, [], faces, "Wye Joint")
                 obj = object_utils.object_data_add(context, mesh, operator=None)
 
+                utils.setlocation(self, context)
+
             mesh.update()
 
             obj.data["WyeJoint"] = True
@@ -765,6 +797,8 @@ class AddWyeJoint(Operator):
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
 
+            utils.setlocation(self, context)
+
         return {'FINISHED'}
 
 
@@ -783,7 +817,7 @@ def CrossJointParameters():
     ]
     return CrossJointParameters
 
-class AddCrossJoint(Operator):
+class AddCrossJoint(Operator, object_utils.AddObjectHelper):
     bl_idname = "mesh.primitive_cross_joint_add"
     bl_label = "Add Pipe Cross-Joint"
     bl_description = "Construct a cross-joint pipe mesh"
@@ -881,6 +915,13 @@ class AddCrossJoint(Operator):
         box.prop(self, 'branch1Length')
         box.prop(self, 'branch2Length')
         box.prop(self, 'branch3Length')
+
+        if self.change == False:
+            # generic transform props
+            box = layout.box()
+            box.prop(self, 'align')
+            box.prop(self, 'location')
+            box.prop(self, 'rotation')
 
     def execute(self, context):
         radius = self.radius
@@ -1075,6 +1116,8 @@ class AddCrossJoint(Operator):
                 mesh = create_mesh(context, verts, [], faces, "Cross Joint")
                 obj = object_utils.object_data_add(context, mesh, operator=None)
 
+                utils.setlocation(self, context)
+
             mesh.update()
 
             obj.data["CrossJoint"] = True
@@ -1094,6 +1137,8 @@ class AddCrossJoint(Operator):
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
 
+            utils.setlocation(self, context)
+
         return {'FINISHED'}
 
 
@@ -1107,7 +1152,7 @@ def NJointParameters():
     ]
     return NJointParameters
 
-class AddNJoint(Operator):
+class AddNJoint(Operator, object_utils.AddObjectHelper):
     bl_idname = "mesh.primitive_n_joint_add"
     bl_label = "Add Pipe N-Joint"
     bl_description = "Construct a n-joint pipe mesh"
@@ -1161,6 +1206,13 @@ class AddNJoint(Operator):
         box.prop(self, 'div')
         box.prop(self, 'number')
         box.prop(self, 'length')
+
+        if self.change == False:
+            # generic transform props
+            box = layout.box()
+            box.prop(self, 'align')
+            box.prop(self, 'location')
+            box.prop(self, 'rotation')
 
     def execute(self, context):
         radius = self.radius
@@ -1301,6 +1353,8 @@ class AddNJoint(Operator):
                 mesh = create_mesh(context, verts, [], faces, "N Joint")
                 obj = object_utils.object_data_add(context, mesh, operator=None)
 
+                utils.setlocation(self, context)
+
             obj.data["NJoint"] = True
             obj.data["change"] = False
             for prm in NJointParameters():
@@ -1317,6 +1371,7 @@ class AddNJoint(Operator):
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
-            
+
+            utils.setlocation(self, context)
 
         return {'FINISHED'}

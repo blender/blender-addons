@@ -13,6 +13,7 @@ from bpy.props import (
         StringProperty,
         )
 from bpy_extras import object_utils
+from . import utils
 
 # #####################
 # Create vertices for end of mesh
@@ -675,7 +676,7 @@ def addBeamMesh(sRef, context):
 #
 #  UI functions and object creation.
 
-class addBeam(Operator):
+class addBeam(Operator, object_utils.AddObjectHelper):
     bl_idname = "mesh.add_beam"
     bl_label = "Beam Builder"
     bl_description = "Create beam meshes of various profiles"
@@ -757,6 +758,13 @@ class addBeam(Operator):
         if self.Type != '0':
             box.prop(self, "edgeA")
 
+        if self.change == False:
+            # generic transform props
+            box = layout.box()
+            box.prop(self, 'align')
+            box.prop(self, 'location')
+            box.prop(self, 'rotation')
+
     def execute(self, context):
         if bpy.context.mode == "OBJECT":
 
@@ -774,6 +782,8 @@ class addBeam(Operator):
             else:
                 mesh = addBeamMesh(self, context)
                 obj = object_utils.object_data_add(context, mesh, operator=None)
+
+                utils.setlocation(self, context)
 
             if self.Type == '2':  # Rotate C shape
                 bpy.ops.transform.rotate(value=1.570796, constraint_axis=[False, True, False])
@@ -806,10 +816,13 @@ class addBeam(Operator):
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
 
+            utils.setlocation(self, context)
+
         return {'FINISHED'}
 
 def BeamParameters():
     BeamParameters = [
+            "Type",
             "beamZ",
             "beamX",
             "beamY",

@@ -13,7 +13,8 @@ from bpy.props import (
         BoolProperty,
         StringProperty,
         )
-
+from bpy_extras import object_utils
+from . import utils
 
 # Create a new mesh (object) from verts/edges/faces.
 # verts/edges/faces ... List of vertices/edges/faces for the
@@ -207,7 +208,7 @@ def add_diamond(segments, girdle_radius, table_radius,
     return verts, faces
 
 
-class AddDiamond(Operator):
+class AddDiamond(Operator, object_utils.AddObjectHelper):
     bl_idname = "mesh.primitive_diamond_add"
     bl_label = "Add Diamond"
     bl_description = "Construct a diamond mesh"
@@ -270,6 +271,13 @@ class AddDiamond(Operator):
         box.prop(self, "crown_height")
         box.prop(self, "pavilion_height")
 
+        if self.change == False:
+            # generic transform props
+            box = layout.box()
+            box.prop(self, 'align')
+            box.prop(self, 'location')
+            box.prop(self, 'rotation')
+
     def execute(self, context):
         
         if bpy.context.mode == "OBJECT":
@@ -302,7 +310,9 @@ class AddDiamond(Operator):
                     self.pavilion_height)
 
                 obj = create_mesh_object(context, verts, [], faces, "Diamond")
-        
+
+                utils.setlocation(self, context)
+
             obj.data["Diamond"] = True
             obj.data["change"] = False
             for prm in DiamondParameters():
@@ -326,6 +336,8 @@ class AddDiamond(Operator):
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
 
+            utils.setlocation(self, context)
+
         return {'FINISHED'}
 
 def DiamondParameters():
@@ -339,7 +351,7 @@ def DiamondParameters():
     return DiamondParameters
 
 
-class AddGem(Operator):
+class AddGem(Operator, object_utils.AddObjectHelper):
     bl_idname = "mesh.primitive_gem_add"
     bl_label = "Add Gem"
     bl_description = "Construct an offset faceted gem mesh"
@@ -401,6 +413,13 @@ class AddGem(Operator):
         box.prop(self, "crown_radius")
         box.prop(self, "crown_height")
         box.prop(self, "pavilion_height")
+
+        if self.change == False:
+            # generic transform props
+            box = layout.box()
+            box.prop(self, 'align')
+            box.prop(self, 'location')
+            box.prop(self, 'rotation')
     
     def execute(self, context):
         
@@ -433,7 +452,9 @@ class AddGem(Operator):
                     self.crown_height)
 
                 obj = create_mesh_object(context, verts, [], faces, "Gem")
-        
+
+                utils.setlocation(self, context)
+
             obj.data["Gem"] = True
             obj.data["change"] = False
             for prm in GemParameters():
@@ -457,6 +478,8 @@ class AddGem(Operator):
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
+
+            utils.setlocation(self, context)
 
         return {'FINISHED'}
 

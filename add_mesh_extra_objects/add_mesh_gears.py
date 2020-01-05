@@ -19,6 +19,7 @@ from mathutils import (
         Matrix,
         )
 from bpy_extras import object_utils
+from . import utils
 
 # A very simple "bridge" tool.
 # Connects two equally long vertex rows with faces.
@@ -562,14 +563,11 @@ def AddGearMesh(self, context):
     return mesh, verts_tip, verts_valley
 
 
-class AddGear(Operator):
+class AddGear(Operator, object_utils.AddObjectHelper):
     bl_idname = "mesh.primitive_gear"
     bl_label = "Add Gear"
     bl_description = "Construct a gear mesh"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
-    
-    # align_matrix for the invoke
-    align_matrix : Matrix()
 
     Gear : BoolProperty(name = "Gear",
                 default = True,
@@ -674,6 +672,17 @@ class AddGear(Operator):
         box.prop(self, 'conangle')
         box.prop(self, 'crown')
 
+        if self.change == False:
+            # generic transform props
+            box = layout.box()
+            box.prop(self, 'align')
+            box.prop(self, 'location')
+            box.prop(self, 'rotation')
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene is not None
+
     def execute(self, context):
         
         if bpy.context.mode == "OBJECT":
@@ -697,7 +706,9 @@ class AddGear(Operator):
             else:
                 mesh, verts_tip, verts_valley = AddGearMesh(self, context)
                 obj = object_utils.object_data_add(context, mesh, operator=None)
-    
+
+                utils.setlocation(self, context)
+
             # Create vertex groups from stored vertices.
             tipGroup = obj.vertex_groups.new(name='Tips')
             tipGroup.add(verts_tip, 1.0, 'ADD')
@@ -729,6 +740,14 @@ class AddGear(Operator):
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
+
+            utils.setlocation(self, context)
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        self.execute(context)
+
         return {'FINISHED'}
 
 def GearParameters():
@@ -766,7 +785,7 @@ def AddWormGearMesh(self, context):
     return mesh, verts_tip, verts_valley
 
 
-class AddWormGear(Operator):
+class AddWormGear(Operator, object_utils.AddObjectHelper):
     bl_idname = "mesh.primitive_worm_gear"
     bl_label = "Add Worm Gear"
     bl_description = "Construct a worm gear mesh"
@@ -872,6 +891,13 @@ class AddWormGear(Operator):
         box.prop(self, "skew")
         box.prop(self, "crown")
 
+        if self.change == False:
+            # generic transform props
+            box = layout.box()
+            box.prop(self, 'align')
+            box.prop(self, 'location')
+            box.prop(self, 'rotation')
+
     def execute(self, context):
 
         if bpy.context.mode == "OBJECT":
@@ -896,7 +922,9 @@ class AddWormGear(Operator):
             else:
                 mesh, verts_tip, verts_valley = AddWormGearMesh(self, context)
                 obj = object_utils.object_data_add(context, mesh, operator=None)
-    
+
+                utils.setlocation(self, context)
+
             # Create vertex groups from stored vertices.
             tipGroup = obj.vertex_groups.new(name = 'Tips')
             tipGroup.add(verts_tip, 1.0, 'ADD')
@@ -928,6 +956,8 @@ class AddWormGear(Operator):
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
+
+            utils.setlocation(self, context)
 
         return {'FINISHED'}
 

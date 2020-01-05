@@ -17,6 +17,7 @@ from bpy.props import (
         StringProperty,
         )
 from bpy_extras import object_utils
+from . import utils
 
 # mesh generating function, returns mesh
 def add_mesh_Brilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
@@ -304,7 +305,7 @@ def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
 
 
 # add new operator for object
-class MESH_OT_primitive_brilliant_add(Operator):
+class MESH_OT_primitive_brilliant_add(Operator, object_utils.AddObjectHelper):
     bl_idname = "mesh.primitive_brilliant_add"
     bl_label = "Custom Brilliant"
     bl_description = "Construct a custom brilliant mesh"
@@ -418,6 +419,13 @@ class MESH_OT_primitive_brilliant_add(Operator):
         box.prop(self, "culet")
         box.prop(self, "keep_lga")
 
+        if self.change == False:
+            # generic transform props
+            box = layout.box()
+            box.prop(self, 'align')
+            box.prop(self, 'location')
+            box.prop(self, 'rotation')
+
     # call mesh/object generator function with user inputs
     def execute(self, context):
     
@@ -443,6 +451,8 @@ class MESH_OT_primitive_brilliant_add(Operator):
                           self.pavi_f, self.culet, self.girdle_real,
                           self.keep_lga, self.g_real_smooth
                           )
+                utils.setlocation(self, context)
+
             obj.data["Brilliant"] = True
             obj.data["change"] = False
             for prm in BrilliantParameters():
@@ -462,6 +472,8 @@ class MESH_OT_primitive_brilliant_add(Operator):
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
+
+            utils.setlocation(self, context)
 
         return {'FINISHED'}
 
