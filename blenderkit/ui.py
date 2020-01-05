@@ -597,9 +597,11 @@ def draw_tooltip_old(x, y, text='', author='', img=None):
 
 def draw_callback_2d(self, context):
     a = context.area
+    w = context.window
     try:
         # self.area might throw error just by itself.
         a1 = self.area
+        w1 = self.window
         go = True
         if len(a.spaces[0].region_quadviews) > 0:
             # print(dir(bpy.context.region_data))
@@ -610,7 +612,7 @@ def draw_callback_2d(self, context):
         # bpy.types.SpaceView3D.draw_handler_remove(self._handle_2d, 'WINDOW')
         # bpy.types.SpaceView3D.draw_handler_remove(self._handle_3d, 'WINDOW')
         go = False
-    if go and a == a1:
+    if go and a == a1 and w == w1:
 
         props = context.scene.blenderkitUI
         if props.down_up == 'SEARCH':
@@ -1149,7 +1151,25 @@ def update_ui_size(area, region):
     ui.rating_x = ui.bar_x
     ui.rating_y = ui.bar_y - ui.bar_height
 
+def get_largest_3dview():
+    maxsurf = 0
+    maxa = None
+    maxw = None
+    region = None
+    for w in bpy.context.window_manager.windows:
+        screen = w.screen
+        for a in screen.areas:
+            if a.type == 'VIEW_3D':
+                asurf = a.width * a.height
+                if asurf>maxsurf:
+                    maxa = a
+                    maxw = w
+                    maxsurf = asurf
 
+                    for r in a.regions:
+                        if r.type == 'WINDOW':
+                            region = r
+    return maxw, maxa, region
 
 
 class AssetBarOperator(bpy.types.Operator):
@@ -1230,12 +1250,9 @@ class AssetBarOperator(bpy.types.Operator):
 
         update_ui_size(self.area, self.region)
 
-        # search.timer_update()
-        # download.timer_update()
-        # bg_blender.bg_update()
-
         if context.region != self.region:
-            print(time.time(), 'pass trough because of region')
+            print(time.time(), 'pass through because of region')
+            print(context.region.type, self.region.type)
             return {'PASS_THROUGH'}
 
         # this was here to check if sculpt stroke is running, but obviously that didn't help,
@@ -1660,6 +1677,7 @@ class AssetBarOperator(bpy.types.Operator):
         if context.area.type == 'VIEW_3D':
             # the arguments we pass the the callback
             args = (self, context)
+            self.window = context.window
             self.area = context.area
             self.scene = bpy.context.scene
             self.has_quad_views = len(bpy.context.area.spaces[0].region_quadviews) > 0
@@ -1702,9 +1720,31 @@ class TransferBlenderkitData(bpy.types.Operator):
         source_ob.property_unset('blenderkit')
         return {'FINISHED'}
 
+class RunAssetBarWithContext(bpy.types.Operator):
+    """Regenerate cobweb"""
+    bl_idname = "object.run_assetbar_fix_context"
+    bl_label = "BlnenderKit assetbar with fixed context"
+    bl_description = "Run assetbar with fixed context"
+    bl_options = {'REGISTER', 'UNDO',  'INTERNAL'}
+
+    # def modal(self, context, event):
+    #     return {'RUNNING_MODAL'}
+
+
+
+    def invoke(self, context, event):
+        C_dict = bpy.context.copy()
+        C_dict.update(region = 'WINDOW')
+        if context.area.type != 'VIEW_3D':
+            w,a,r = get_largest_3dview()
+            override = {'window': w, 'screen': w.screen, 'area': a, 'region' : r}
+            C_dict.update(override)
+        bpy.ops.view3d.blenderkit_asset_bar(C_dict, 'INVOKE_REGION_WIN', keep_running=True, do_search=False)
+        return {'RUNNING_MODAL'}
 
 classess = (
     AssetBarOperator,
+    RunAssetBarWithContext,
     TransferBlenderkitData
 )
 
@@ -1732,7 +1772,10 @@ def register_ui():
     kmi = km.keymap_items.new(AssetBarOperator.bl_idname, 'SEMI_COLON', 'PRESS', ctrl=False, shift=False)
     kmi.properties.keep_running = False
     kmi.properties.do_search = False
-
+    addon_keymapitems.append(kmi)
+    #auto open after searching:
+    kmi = km.keymap_items.new(RunAssetBarWithContext.bl_idname, 'SEMI_COLON', 'PRESS',\
+                              ctrl=True, shift=True, alt = True)
     addon_keymapitems.append(kmi)
 
 

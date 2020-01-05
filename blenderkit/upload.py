@@ -465,7 +465,7 @@ def get_upload_data(self, context, asset_type):
     return export_data, upload_data, eval_path_computing, eval_path_state, eval_path, props
 
 
-def verification_status_change(self, context, asset_id, state):
+def verification_status_change(asset_id, state):
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
     upload_data = {
         "verificationStatus": state
@@ -474,8 +474,6 @@ def verification_status_change(self, context, asset_id, state):
     headers = utils.get_headers(user_preferences.api_key)
     try:
         r = rerequests.patch(url, json=upload_data, headers=headers, verify=True)  # files = files,
-        # print('changed status ')
-        # print(r.text)
     except requests.exceptions.RequestException as e:
         print(e)
         return {'CANCELLED'}
@@ -825,7 +823,7 @@ class AssetVerificationStatusChange(Operator):
         # layout.prop(self, 'state')
 
     def execute(self, context):
-        result = verification_status_change(self, context, self.asset_id, self.state)
+        result = verification_status_change(self.asset_id, self.state)
         return result
 
     def invoke(self, context, event):
