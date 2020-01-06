@@ -141,13 +141,7 @@ class CMSetCollectionOperator(Operator):
             # add object to collection
 
             # check if in collection
-            in_collection = True
-
-            for obj in context.selected_objects:
-                if obj.name not in collection.objects:
-                    in_collection = False
-
-            if not in_collection:
+            if context.active_object.name not in collection.objects:
                 # add to collection
                 bpy.ops.object.link_to_collection(collection_index=self.collection_index)
 
