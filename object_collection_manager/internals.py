@@ -18,7 +18,13 @@
 
 # Copyright 2011, Ryan Inch
 
-from bpy.types import PropertyGroup
+import bpy
+
+from bpy.types import (
+    PropertyGroup,
+    Operator,
+)
+
 from bpy.props import StringProperty
 
 layer_collections = {}
@@ -127,3 +133,66 @@ def create_property_group(context, tree):
 
         if laycol["has_children"]:
             create_property_group(context, laycol["children"])
+
+
+class CMSendReport(Operator):
+    bl_label = "Send Report"
+    bl_idname = "view3d.cm_send_report"
+
+    message: StringProperty()
+
+    def draw(self, context):
+        layout = self.layout
+
+        first = True
+        string = ""
+
+        for num, char in enumerate(self.message):
+            if char == "\n":
+                if first:
+                    layout.row().label(text=string, icon='ERROR')
+                    first = False
+                else:
+                    layout.row().label(text=string, icon='BLANK1')
+
+                string = ""
+                continue
+
+            string = string + char
+
+        if first:
+            layout.row().label(text=string, icon='ERROR')
+        else:
+            layout.row().label(text=string, icon='BLANK1')
+    
+    def invoke(self, context, event):
+        wm = context.window_manager
+    
+        max_len = 0
+        length = 0
+
+        for char in self.message:
+            if char == "\n":
+                if length > max_len:
+                    max_len = length
+                length = 0
+            else:
+                length += 1
+
+        if length > max_len:
+            max_len = length
+
+        return wm.invoke_popup(self, width=(30 + (max_len*5.5)))
+
+    def execute(self, context):
+        self.report({'INFO'}, self.message)
+        print(self.message)
+        return {'FINISHED'}
+
+def send_report(message):
+    def report():
+        window = bpy.context.window_manager.windows[0]
+        ctx = {'window': window, 'screen': window.screen, }
+        bpy.ops.view3d.cm_send_report(ctx, 'INVOKE_DEFAULT', message=message)
+
+    bpy.app.timers.register(report)

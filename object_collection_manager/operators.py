@@ -36,6 +36,7 @@ from .internals import (
     expanded,
     layer_collections,
     update_property_group,
+    send_report,
 )
 
 rto_history = {
