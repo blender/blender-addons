@@ -1110,7 +1110,6 @@ def search_update(self, context):
     utils.p('search updater')
     #if self.search_keywords != '':
     search()
-    kp.semi()
 
 
 class SearchOperator(Operator):
