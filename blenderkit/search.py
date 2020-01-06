@@ -733,8 +733,10 @@ class Searcher(threading.Thread):
                     requeststring += '+'
 
             # result ordering: _score - relevance, score - BlenderKit score
-
-            if query.get('author_id') is not None and profile_is_validator():
+            #first condition assumes no keywords and no category, thus an empty search that is triggered on start.
+            if query['keywords'] == '' and query.get('category_subtree') == None:
+                requeststring += '+order:-created'
+            elif query.get('author_id') is not None and profile_is_validator():
                 requeststring += '+order:-created'
             else:
                 if query.get('category_subtree') is not None:
@@ -1106,8 +1108,9 @@ def search(category='', get_next=False, author_id=''):
 
 def search_update(self, context):
     utils.p('search updater')
-    if self.search_keywords != '':
-        search()
+    #if self.search_keywords != '':
+    search()
+    kp.semi()
 
 
 class SearchOperator(Operator):
