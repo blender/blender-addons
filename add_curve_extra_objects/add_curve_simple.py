@@ -18,8 +18,8 @@
 
 bl_info = {
     "name": "Simple Curve",
-    "author": "Spivak Vladimir (http://cwolf3d.korostyshev.net)",
-    "version": (1, 6, 0),
+    "author": "Vladimir Spivak (cwolf3d)",
+    "version": (1, 6, 1),
     "blender": (2, 80, 0),
     "location": "View3D > Add > Curve",
     "description": "Adds Simple Curve",
@@ -378,22 +378,6 @@ def SimpleTrapezoid(a=2.0, b=1.0, h=1.0, center=True):
 
 
 # ------------------------------------------------------------
-# calculates the matrix for the new object
-# depending on user pref
-
-def align_matrix(context, location):
-    loc = Matrix.Translation(location)
-    obj_align = context.preferences.edit.object_align
-    if (context.space_data.type == 'VIEW_3D' and
-            obj_align == 'VIEW'):
-        rot = context.space_data.region_3d.view_matrix.to_3x3().inverted().to_4x4()
-    else:
-        rot = Matrix()
-    align_matrix = loc @ rot
-
-    return align_matrix
-
-# ------------------------------------------------------------
 # get array of vertcoordinates according to splinetype
 def vertsToPoints(Verts, splineType):
 
@@ -421,7 +405,7 @@ def vertsToPoints(Verts, splineType):
 # ------------------------------------------------------------
 # Main Function
 
-def main(context, self, align_matrix, use_enter_edit_mode):
+def main(context, self, use_enter_edit_mode):
     # output splineType 'POLY' 'NURBS' 'BEZIER'
     splineType = self.outputType
     
@@ -432,7 +416,7 @@ def main(context, self, align_matrix, use_enter_edit_mode):
         verts = SimplePoint()
 
     if self.Simple_Type == 'Line':
-        verts = SimpleLine(self.Simple_startlocation, self.Simple_endlocation)
+        verts = SimpleLine(self.location, self.Simple_endlocation)
 
     if self.Simple_Type == 'Distance':
         verts = SimpleDistance(self.Simple_length, self.Simple_center)
@@ -521,6 +505,7 @@ def main(context, self, align_matrix, use_enter_edit_mode):
     
     # create object
     if bpy.context.mode == 'EDIT_CURVE':
+        
         Curve = context.active_object
         newSpline = Curve.data.splines.new(type=splineType)          # spline
     else:
@@ -531,8 +516,6 @@ def main(context, self, align_matrix, use_enter_edit_mode):
 
         # create object with new Curve
         Curve = object_utils.object_data_add(context, dataCurve, operator=self)  # place in active scene
-        Curve.matrix_world = align_matrix  # apply matrix
-        Curve.rotation_euler = self.Simple_rotation_euler
         Curve.select_set(True)
     
     for spline in Curve.data.splines:
@@ -796,13 +779,6 @@ def main(context, self, align_matrix, use_enter_edit_mode):
             all_points[int(n / 2) - 1].handle_right_type = 'VECTOR'
             all_points[int(n / 2)].handle_left_type = 'VECTOR'
 
-    # move and rotate spline in edit mode
-    if bpy.context.mode == 'EDIT_CURVE':
-        bpy.ops.transform.translate(value = self.Simple_startlocation)
-        bpy.ops.transform.rotate(value = self.Simple_rotation_euler[0], orient_axis = 'X')
-        bpy.ops.transform.rotate(value = self.Simple_rotation_euler[1], orient_axis = 'Y')
-        bpy.ops.transform.rotate(value = self.Simple_rotation_euler[2], orient_axis = 'Z')
-    
     # set newSpline Options
     newSpline.use_cyclic_u = self.use_cyclic_u
     newSpline.use_endpoint_u = self.endp_u
@@ -815,62 +791,88 @@ def main(context, self, align_matrix, use_enter_edit_mode):
         Curve.data.fill_mode = 'FULL'
     else:
         Curve.data.fill_mode = 'BOTH'
+    
+    # move and rotate spline in edit mode
+    if bpy.context.mode == 'EDIT_CURVE':
+        if self.align == "WORLD":
+            location = self.location - context.active_object.location
+            bpy.ops.transform.translate(value = location, orient_type='GLOBAL')
+            bpy.ops.transform.rotate(value = self.rotation[0], orient_axis = 'X', orient_type='GLOBAL')
+            bpy.ops.transform.rotate(value = self.rotation[1], orient_axis = 'Y', orient_type='GLOBAL')
+            bpy.ops.transform.rotate(value = self.rotation[2], orient_axis = 'Z', orient_type='GLOBAL')
+            
+        elif self.align == "VIEW":
+            bpy.ops.transform.translate(value = self.location)
+            bpy.ops.transform.rotate(value = self.rotation[0], orient_axis = 'X')
+            bpy.ops.transform.rotate(value = self.rotation[1], orient_axis = 'Y')
+            bpy.ops.transform.rotate(value = self.rotation[2], orient_axis = 'Z')
+
+        elif self.align == "CURSOR":
+            location = context.active_object.location
+            self.location = bpy.context.scene.cursor.location - location
+            self.rotation = bpy.context.scene.cursor.rotation_euler
+
+            bpy.ops.transform.translate(value = self.location)
+            bpy.ops.transform.rotate(value = self.rotation[0], orient_axis = 'X')
+            bpy.ops.transform.rotate(value = self.rotation[1], orient_axis = 'Y')
+            bpy.ops.transform.rotate(value = self.rotation[2], orient_axis = 'Z')
+
 
 def menu(self, context):
-    oper1 = self.layout.operator(Simple.bl_idname, text="Angle", icon="MOD_CURVE")
+    oper1 = self.layout.operator(Simple.bl_idname, text="Angle", icon="DRIVER_ROTATIONAL_DIFFERENCE")
     oper1.Simple_Type = "Angle"
     oper1.use_cyclic_u = False
 
-    oper2 = self.layout.operator(Simple.bl_idname, text="Arc", icon="MOD_CURVE")
+    oper2 = self.layout.operator(Simple.bl_idname, text="Arc", icon="MOD_THICKNESS")
     oper2.Simple_Type = "Arc"
     oper2.use_cyclic_u = False
 
-    oper3 = self.layout.operator(Simple.bl_idname, text="Circle", icon="MOD_CURVE")
+    oper3 = self.layout.operator(Simple.bl_idname, text="Circle", icon="ANTIALIASED")
     oper3.Simple_Type = "Circle"
     oper3.use_cyclic_u = True
 
-    oper4 = self.layout.operator(Simple.bl_idname, text="Distance", icon="MOD_CURVE")
+    oper4 = self.layout.operator(Simple.bl_idname, text="Distance", icon="DRIVER_DISTANCE")
     oper4.Simple_Type = "Distance"
     oper4.use_cyclic_u = False
 
-    oper5 = self.layout.operator(Simple.bl_idname, text="Ellipse", icon="MOD_CURVE")
+    oper5 = self.layout.operator(Simple.bl_idname, text="Ellipse", icon="MESH_TORUS")
     oper5.Simple_Type = "Ellipse"
     oper5.use_cyclic_u = True
 
-    oper6 = self.layout.operator(Simple.bl_idname, text="Line", icon="MOD_CURVE")
+    oper6 = self.layout.operator(Simple.bl_idname, text="Line", icon="MOD_SIMPLIFY")
     oper6.Simple_Type = "Line"
     oper6.use_cyclic_u = False
     oper6.shape = '3D'
 
-    oper7 = self.layout.operator(Simple.bl_idname, text="Point", icon="MOD_CURVE")
+    oper7 = self.layout.operator(Simple.bl_idname, text="Point", icon="LAYER_ACTIVE")
     oper7.Simple_Type = "Point"
     oper7.use_cyclic_u = False
 
-    oper8 = self.layout.operator(Simple.bl_idname, text="Polygon", icon="MOD_CURVE")
+    oper8 = self.layout.operator(Simple.bl_idname, text="Polygon", icon="SEQ_CHROMA_SCOPE")
     oper8.Simple_Type = "Polygon"
     oper8.use_cyclic_u = True
 
-    oper9 = self.layout.operator(Simple.bl_idname, text="Polygon ab", icon="MOD_CURVE")
+    oper9 = self.layout.operator(Simple.bl_idname, text="Polygon ab", icon="SEQ_CHROMA_SCOPE")
     oper9.Simple_Type = "Polygon_ab"
     oper9.use_cyclic_u = True
 
-    oper10 = self.layout.operator(Simple.bl_idname, text="Rectangle", icon="MOD_CURVE")
+    oper10 = self.layout.operator(Simple.bl_idname, text="Rectangle", icon="MESH_PLANE")
     oper10.Simple_Type = "Rectangle"
     oper10.use_cyclic_u = True
 
-    oper11 = self.layout.operator(Simple.bl_idname, text="Rhomb", icon="MOD_CURVE")
+    oper11 = self.layout.operator(Simple.bl_idname, text="Rhomb", icon="DECORATE_ANIMATE")
     oper11.Simple_Type = "Rhomb"
     oper11.use_cyclic_u = True
 
-    oper12 = self.layout.operator(Simple.bl_idname, text="Sector", icon="MOD_CURVE")
+    oper12 = self.layout.operator(Simple.bl_idname, text="Sector", icon="CON_SHRINKWRAP")
     oper12.Simple_Type = "Sector"
     oper12.use_cyclic_u = True
 
-    oper13 = self.layout.operator(Simple.bl_idname, text="Segment", icon="MOD_CURVE")
+    oper13 = self.layout.operator(Simple.bl_idname, text="Segment", icon="MOD_SIMPLEDEFORM")
     oper13.Simple_Type = "Segment"
     oper13.use_cyclic_u = True
 
-    oper14 = self.layout.operator(Simple.bl_idname, text="Trapezoid", icon="MOD_CURVE")
+    oper14 = self.layout.operator(Simple.bl_idname, text="Trapezoid", icon="MOD_EDGESPLIT")
     oper14.Simple_Type = "Trapezoid"
     oper14.use_cyclic_u = True
     
@@ -882,9 +884,6 @@ class Simple(Operator, object_utils.AddObjectHelper):
     bl_label = "Simple Curve"
     bl_description = "Construct a Simple Curve"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
-
-    # align_matrix for the invoke
-    align_matrix : Matrix()
 
     # change properties
     Simple : BoolProperty(
@@ -923,23 +922,11 @@ class Simple(Operator, object_utils.AddObjectHelper):
             items=Types
             )
     # Line properties
-    Simple_startlocation : FloatVectorProperty(
-            name="",
-            description="Start location",
-            default=(0.0, 0.0, 0.0),
-            subtype='TRANSLATION'
-            )
     Simple_endlocation : FloatVectorProperty(
             name="",
             description="End location",
             default=(2.0, 2.0, 2.0),
             subtype='TRANSLATION'
-            )
-    Simple_rotation_euler : FloatVectorProperty(
-            name="",
-            description="Rotation",
-            default=(0.0, 0.0, 0.0),
-            subtype='EULER'
             )
     # Trapezoid properties
     Simple_a : FloatProperty(
@@ -1093,7 +1080,7 @@ class Simple(Operator, object_utils.AddObjectHelper):
             col = box.column(align=True)
             col.label(text=self.Simple_Type + " Options:")
             col.prop(self, "Simple_endlocation")
-            v = Vector(self.Simple_endlocation) - Vector(self.Simple_startlocation)
+            v = Vector(self.Simple_endlocation) - Vector(self.location)
             l = v.length
 
         if self.Simple_Type == 'Distance':
@@ -1110,9 +1097,6 @@ class Simple(Operator, object_utils.AddObjectHelper):
             col.label(text=self.Simple_Type + " Options:")
             col.prop(self, "Simple_length")
             col.prop(self, "Simple_angle")
-
-            #row = layout.row()
-            #row.prop(self, "Simple_degrees_or_radians", expand=True)
 
         if self.Simple_Type == 'Circle':
             box = layout.box()
@@ -1269,12 +1253,11 @@ class Simple(Operator, object_utils.AddObjectHelper):
         col = layout.column()
         col.row().prop(self, "edit_mode", expand=True)
         
-        box = layout.box()
-        box.label(text="Location:")
-        box.prop(self, "Simple_startlocation")
-        box = layout.box()
-        box.label(text="Rotation:")
-        box.prop(self, "Simple_rotation_euler")
+        col = layout.column()
+        # AddObjectHelper props
+        col.prop(self, "align")
+        col.prop(self, "location")
+        col.prop(self, "rotation")
 
         if l != 0 or s != 0:
             box = layout.box()
@@ -1297,8 +1280,7 @@ class Simple(Operator, object_utils.AddObjectHelper):
         bpy.context.preferences.edit.use_enter_edit_mode = False
         
         # main function
-        self.align_matrix = align_matrix(context, self.Simple_startlocation)
-        main(context, self, self.align_matrix, use_enter_edit_mode)
+        main(context, self, use_enter_edit_mode)
         
         if use_enter_edit_mode:
             bpy.ops.object.mode_set(mode = 'EDIT')
@@ -1310,6 +1292,12 @@ class Simple(Operator, object_utils.AddObjectHelper):
             bpy.ops.object.mode_set(mode = 'EDIT')
         else:
             bpy.ops.object.mode_set(mode = 'OBJECT')
+
+        return {'FINISHED'}
+        
+    def invoke(self, context, event):
+    
+        self.execute(context)
 
         return {'FINISHED'}
 

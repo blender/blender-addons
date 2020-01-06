@@ -27,7 +27,7 @@ from mathutils import Matrix
 from ...utils.errors import MetarigError
 from ...utils.layers import ControlLayersOption
 from ...utils.naming import strip_org, make_deformer_name, make_mechanism_name, make_derived_name
-from ...utils.bones import BoneDict, put_bone, align_bone_to_axis, align_bone_orientation
+from ...utils.bones import BoneDict, put_bone, align_bone_to_axis, align_bone_orientation, set_bone_widget_transform
 from ...utils.widgets import adjust_widget_transform_mesh
 from ...utils.widgets_basic import create_circle_widget
 from ...utils.misc import map_list
@@ -80,13 +80,9 @@ class Rig(BaseSpineRig):
     ####################################################
     # Master control bone
 
-    @stage.generate_bones
-    def make_master_control(self):
-        super().make_master_control()
-
-        # Put the main control in the middle of the hip bone
-        base_bone = self.get_bone(self.bones.org[0])
-        put_bone(self.obj, self.bones.ctrl.master, (base_bone.head + base_bone.tail) / 2)
+    def get_master_control_pos(self, orgs):
+        base_bone = self.get_bone(orgs[0])
+        return (base_bone.head + base_bone.tail) / 2
 
     ####################################################
     # Main control bones
@@ -112,8 +108,9 @@ class Rig(BaseSpineRig):
     @stage.parent_bones
     def parent_end_control_bones(self):
         ctrl = self.bones.ctrl
-        self.set_bone_parent(ctrl.hips, ctrl.master)
-        self.set_bone_parent(ctrl.chest, ctrl.master)
+        pivot = self.get_master_control_output()
+        self.set_bone_parent(ctrl.hips, pivot)
+        self.set_bone_parent(ctrl.chest, pivot)
 
     @stage.generate_widgets
     def make_end_control_widgets(self):
@@ -126,7 +123,7 @@ class Rig(BaseSpineRig):
         shape_bone = self.get_bone(wgt_mch)
         is_horizontal = abs(shape_bone.z_axis.normalized().y) < 0.7
 
-        self.get_bone(ctrl).custom_shape_transform = shape_bone
+        set_bone_widget_transform(self.obj, ctrl, wgt_mch)
 
         obj = create_circle_widget(
             self.obj, ctrl,
@@ -247,7 +244,7 @@ class Rig(BaseSpineRig):
 
     @stage.parent_bones
     def parent_mch_chain(self):
-        master = self.bones.ctrl.master
+        master = self.get_master_control_output()
         chain = self.bones.mch.chain
         fk = self.fk_result
         for child, parent in zip(reversed(chain.hips), [master, *reversed(fk.hips)]):
@@ -308,9 +305,8 @@ class Rig(BaseSpineRig):
 
         layout.prop(params, 'make_fk_controls')
 
-        col = layout.column()
-        col.active = params.make_fk_controls
-        ControlLayersOption.FK.parameters_ui(col, params)
+        if params.make_fk_controls:
+            ControlLayersOption.FK.parameters_ui(layout, params)
 
 
 def create_sample(obj):

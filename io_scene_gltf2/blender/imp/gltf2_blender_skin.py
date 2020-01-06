@@ -96,10 +96,10 @@ class BlenderSkin():
             obj.pose.bones[pynode.blender_bone_name].location = \
                 bind_rotation.inverted().to_matrix().to_4x4() @ final_location
 
-            # Do the same for rotation
+            # Do the same for rotation & scale
             obj.pose.bones[pynode.blender_bone_name].rotation_quaternion = \
-                (bind_rotation.to_matrix().to_4x4().inverted() @ parent_mat @
-                    rotation.to_matrix().to_4x4()).to_quaternion()
+                (pynode.blender_bone_matrix.inverted() @ parent_mat @
+                    matrix_gltf_to_blender(pynode.transform)).to_quaternion()
             obj.pose.bones[pynode.blender_bone_name].scale = \
                 (bind_scale.inverted() @ parent_mat @ scale_to_matrix(scale)).to_scale()
 
@@ -129,7 +129,7 @@ class BlenderSkin():
         bone = obj.data.edit_bones.new(name)
         pynode.blender_bone_name = bone.name
         pynode.blender_armature_name = pyskin.blender_armature_name
-        bone.tail = Vector((0.0, 1.0, 0.0))  # Needed to keep bone alive
+        bone.tail = Vector((0.0, 1.0 / obj.matrix_world.to_scale()[1], 0.0))  # Needed to keep bone alive
         # Custom prop on edit bone
         set_extras(bone, pynode.extras)
 
@@ -137,8 +137,8 @@ class BlenderSkin():
         BlenderSkin.set_bone_transforms(gltf, skin_id, bone, node_id, parent)
         bpy.ops.object.mode_set(mode="OBJECT")
         # Custom prop on pose bone
-        if bone.name in obj.pose.bones:
-            set_extras(obj.pose.bones[bone.name], pynode.extras)
+        if pynode.blender_bone_name in obj.pose.bones:
+            set_extras(obj.pose.bones[pynode.blender_bone_name], pynode.extras)
 
     @staticmethod
     def create_vertex_groups(gltf, skin_id):

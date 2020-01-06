@@ -14,8 +14,8 @@
 
 import struct
 import base64
-from os.path import dirname, join, isfile, basename
-from urllib.parse import unquote
+
+from ..com.gltf2_io import Accessor
 
 
 class BinaryData():
@@ -23,27 +23,40 @@ class BinaryData():
     def __new__(cls, *args, **kwargs):
         raise RuntimeError("%s should not be instantiated" % cls)
 
+# Note that this function is not used in Blender importer, but is kept in
+# Source code to be used in any pipeline that want to manage gltf/glb file in python
     @staticmethod
     def get_binary_from_accessor(gltf, accessor_idx):
         """Get binary from accessor."""
         accessor = gltf.data.accessors[accessor_idx]
-        bufferView = gltf.data.buffer_views[accessor.buffer_view]  # TODO initialize with 0 when not present!
-        if bufferView.buffer in gltf.buffers.keys():
-            buffer = gltf.buffers[bufferView.buffer]
-        else:
-            # load buffer
-            gltf.load_buffer(bufferView.buffer)
-            buffer = gltf.buffers[bufferView.buffer]
+        if accessor.buffer_view is None:
+            return None
+
+        data = BinaryData.get_buffer_view(gltf, accessor.buffer_view)
 
         accessor_offset = accessor.byte_offset
-        bufferview_offset = bufferView.byte_offset
-
         if accessor_offset is None:
             accessor_offset = 0
-        if bufferview_offset is None:
-            bufferview_offset = 0
 
-        return buffer[accessor_offset + bufferview_offset:accessor_offset + bufferview_offset + bufferView.byte_length]
+        return data[accessor_offset:]
+
+    @staticmethod
+    def get_buffer_view(gltf, buffer_view_idx):
+        """Get binary data for buffer view."""
+        buffer_view = gltf.data.buffer_views[buffer_view_idx]
+
+        if buffer_view.buffer in gltf.buffers.keys():
+            buffer = gltf.buffers[buffer_view.buffer]
+        else:
+            # load buffer
+            gltf.load_buffer(buffer_view.buffer)
+            buffer = gltf.buffers[buffer_view.buffer]
+
+        byte_offset = buffer_view.byte_offset
+        if byte_offset is None:
+            byte_offset = 0
+
+        return buffer[byte_offset:byte_offset + buffer_view.byte_length]
 
     @staticmethod
     def get_data_from_accessor(gltf, accessor_idx, cache=False):
@@ -52,40 +65,78 @@ class BinaryData():
             return gltf.accessor_cache[accessor_idx]
 
         accessor = gltf.data.accessors[accessor_idx]
+        data = BinaryData.get_data_from_accessor_obj(gltf, accessor)
 
-        bufferView = gltf.data.buffer_views[accessor.buffer_view]  # TODO initialize with 0 when not present!
-        buffer_data = BinaryData.get_binary_from_accessor(gltf, accessor_idx)
+        if cache:
+            gltf.accessor_cache[accessor_idx] = data
 
-        fmt_char = gltf.fmt_char_dict[accessor.component_type]
-        component_nb = gltf.component_nb_dict[accessor.type]
-        fmt = '<' + (fmt_char * component_nb)
-        stride_ = struct.calcsize(fmt)
-        # TODO data alignment stuff
+        return data
 
-        if bufferView.byte_stride:
-            stride = bufferView.byte_stride
+    @staticmethod
+    def get_data_from_accessor_obj(gltf, accessor):
+        if accessor.buffer_view is not None:
+            bufferView = gltf.data.buffer_views[accessor.buffer_view]
+            buffer_data = BinaryData.get_buffer_view(gltf, accessor.buffer_view)
+
+            accessor_offset = accessor.byte_offset or 0
+            buffer_data = buffer_data[accessor_offset:]
+
+            fmt_char = gltf.fmt_char_dict[accessor.component_type]
+            component_nb = gltf.component_nb_dict[accessor.type]
+            fmt = '<' + (fmt_char * component_nb)
+            default_stride = struct.calcsize(fmt)
+
+            # Special layouts for certain formats; see the section about
+            # data alignment in the glTF 2.0 spec.
+            component_size = struct.calcsize('<' + fmt_char)
+            if accessor.type == 'MAT2' and component_size == 1:
+                fmt = '<FFxxFF'.replace('F', fmt_char)
+                default_stride = 8
+            elif accessor.type == 'MAT3' and component_size == 1:
+                fmt = '<FFFxFFFxFFF'.replace('F', fmt_char)
+                default_stride = 12
+            elif accessor.type == 'MAT3' and component_size == 2:
+                fmt = '<FFFxxFFFxxFFF'.replace('F', fmt_char)
+                default_stride = 24
+
+            stride = bufferView.byte_stride or default_stride
+
+            # Decode
+            unpack_from = struct.Struct(fmt).unpack_from
+            data = [
+                unpack_from(buffer_data, offset)
+                for offset in range(0, accessor.count*stride, stride)
+            ]
+
         else:
-            stride = stride_
-
-        unpack_from = struct.Struct(fmt).unpack_from
-        data = [
-            unpack_from(buffer_data, offset)
-            for offset in range(0, accessor.count*stride, stride)
-        ]
+            # No buffer view; initialize to zeros
+            component_nb = gltf.component_nb_dict[accessor.type]
+            data = [
+                (0,) * component_nb
+                for i in range(accessor.count)
+            ]
 
         if accessor.sparse:
-            sparse_indices_data = BinaryData.get_data_from_sparse(gltf, accessor.sparse, "indices")
-            sparse_values_values = BinaryData.get_data_from_sparse(
-                gltf,
-                accessor.sparse,
-                "values",
-                accessor.type,
-                accessor.component_type
-            )
+            sparse_indices_obj = Accessor.from_dict({
+                'count': accessor.sparse.count,
+                'bufferView': accessor.sparse.indices.buffer_view,
+                'byteOffset': accessor.sparse.indices.byte_offset or 0,
+                'componentType': accessor.sparse.indices.component_type,
+                'type': 'SCALAR',
+            })
+            sparse_values_obj = Accessor.from_dict({
+                'count': accessor.sparse.count,
+                'bufferView': accessor.sparse.values.buffer_view,
+                'byteOffset': accessor.sparse.values.byte_offset or 0,
+                'componentType': accessor.component_type,
+                'type': accessor.type,
+            })
+            sparse_indices = BinaryData.get_data_from_accessor_obj(gltf, sparse_indices_obj)
+            sparse_values = BinaryData.get_data_from_accessor_obj(gltf, sparse_values_obj)
 
-            # apply sparse
-            for cpt_idx, idx in enumerate(sparse_indices_data):
-                data[idx[0]] = sparse_values_values[cpt_idx]
+            # Apply sparse
+            for i in range(accessor.sparse.count):
+                data[sparse_indices[i][0]] = sparse_values[i]
 
         # Normalization
         if accessor.normalized:
@@ -104,89 +155,23 @@ class BinaryData():
                         new_tuple += (float(i),)
                 data[idx] = new_tuple
 
-        if cache:
-            gltf.accessor_cache[accessor_idx] = data
-
-        return data
-
-    @staticmethod
-    def get_data_from_sparse(gltf, sparse, type_, type_val=None, comp_type=None):
-        """Get data from sparse."""
-        if type_ == "indices":
-            bufferView = gltf.data.buffer_views[sparse.indices.buffer_view]
-            offset = sparse.indices.byte_offset
-            component_nb = gltf.component_nb_dict['SCALAR']
-            fmt_char = gltf.fmt_char_dict[sparse.indices.component_type]
-        elif type_ == "values":
-            bufferView = gltf.data.buffer_views[sparse.values.buffer_view]
-            offset = sparse.values.byte_offset
-            component_nb = gltf.component_nb_dict[type_val]
-            fmt_char = gltf.fmt_char_dict[comp_type]
-
-        if bufferView.buffer in gltf.buffers.keys():
-            buffer = gltf.buffers[bufferView.buffer]
-        else:
-            # load buffer
-            gltf.load_buffer(bufferView.buffer)
-            buffer = gltf.buffers[bufferView.buffer]
-
-        bin_data = buffer[bufferView.byte_offset + offset:bufferView.byte_offset + offset + bufferView.byte_length]
-
-        fmt = '<' + (fmt_char * component_nb)
-        stride_ = struct.calcsize(fmt)
-        # TODO data alignment stuff ?
-
-        if bufferView.byte_stride:
-            stride = bufferView.byte_stride
-        else:
-            stride = stride_
-
-        unpack_from = struct.Struct(fmt).unpack_from
-        data = [
-            unpack_from(bin_data, offset)
-            for offset in range(0, sparse.count*stride, stride)
-        ]
-
         return data
 
     @staticmethod
     def get_image_data(gltf, img_idx):
         """Get data from image."""
         pyimage = gltf.data.images[img_idx]
-
         image_name = "Image_" + str(img_idx)
 
-        if pyimage.uri:
-            sep = ';base64,'
-            if pyimage.uri[:5] == 'data:':
-                idx = pyimage.uri.find(sep)
-                if idx != -1:
-                    data = pyimage.uri[idx + len(sep):]
-                    return base64.b64decode(data), image_name
+        assert(not (pyimage.uri is not None and pyimage.buffer_view is not None))
 
-            if isfile(join(dirname(gltf.filename), unquote(pyimage.uri))):
-                with open(join(dirname(gltf.filename), unquote(pyimage.uri)), 'rb') as f_:
-                    return f_.read(), basename(join(dirname(gltf.filename), unquote(pyimage.uri)))
-            else:
-                gltf.log.error("Missing file (index " + str(img_idx) + "): " + pyimage.uri)
-                return None, None
+        if pyimage.uri is not None:
+            data, file_name = gltf.load_uri(pyimage.uri)
+            return data, file_name or image_name
 
-        if pyimage.buffer_view is None:
-            return None, None
+        elif pyimage.buffer_view is not None:
+            data = BinaryData.get_buffer_view(gltf, pyimage.buffer_view)
+            return data, image_name
 
-        bufferView = gltf.data.buffer_views[pyimage.buffer_view]
-
-        if bufferView.buffer in gltf.buffers.keys():
-            buffer = gltf.buffers[bufferView.buffer]
-        else:
-            # load buffer
-            gltf.load_buffer(bufferView.buffer)
-            buffer = gltf.buffers[bufferView.buffer]
-
-        bufferview_offset = bufferView.byte_offset
-
-        if bufferview_offset is None:
-            bufferview_offset = 0
-
-        return buffer[bufferview_offset:bufferview_offset + bufferView.byte_length], image_name
+        return None, None
 

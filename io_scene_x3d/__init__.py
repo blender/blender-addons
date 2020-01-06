@@ -26,7 +26,8 @@ bl_info = {
     "location": "File > Import-Export",
     "description": "Import-Export X3D, Import VRML2",
     "warning": "",
-    "wiki_url": "https://docs.blender.org/manual/en/latest/addons/io_scene_x3d.html",
+    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
+                "import_export/io_scene_x3d.html",
     "category": "Import-Export",
 }
 
@@ -219,7 +220,7 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
             default=1.0,
             )
 
-    path_mode = path_reference_mode
+    path_mode: path_reference_mode
 
     def execute(self, context):
         from . import export_x3d

@@ -1,4 +1,4 @@
-# Copyright 2018 The glTF-Blender-IO authors.
+# Copyright 2019 The glTF-Blender-IO authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,21 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# Imports
-#
+def export_user_extensions(hook_name, export_settings, gltf2_object, *args):
+    if gltf2_object.extensions is None:
+        gltf2_object.extensions = {}
 
-from ...io.com.gltf2_io_image import create_img_from_pixels
-
-
-def create_img_from_blender_image(blender_image):
-    """
-    Create a new image object using the given blender image.
-
-    Returns the created image object.
-    """
-    if blender_image is None:
-        return None
-
-    return create_img_from_pixels(blender_image.size[0], blender_image.size[1], blender_image.pixels[:])
+    for extension in export_settings['gltf_user_extensions']:
+        hook = getattr(extension, hook_name, None)
+        if hook is not None:
+            hook(gltf2_object, *args, export_settings)
 

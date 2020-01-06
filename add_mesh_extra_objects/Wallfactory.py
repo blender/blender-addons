@@ -55,8 +55,9 @@ from .Blocks import (
         stepBack,
         )
 from bpy_extras import object_utils
+from . import utils
 
-class add_mesh_wallb(Operator):
+class add_mesh_wallb(Operator, object_utils.AddObjectHelper):
     bl_idname = "mesh.wall_add"
     bl_label = "Add a Masonry Wall"
     bl_description = "Create a block (masonry) wall mesh"
@@ -639,6 +640,13 @@ class add_mesh_wallb(Operator):
             row.prop(self, "StepOnly", toggle=True)
             col.prop(self, "StepBack", toggle=True)
 
+        if self.change == False:
+            # generic transform props
+            box = layout.box()
+            box.prop(self, 'align')
+            box.prop(self, 'location')
+            box.prop(self, 'rotation')
+
     # Respond to UI - get the properties set by user.
     # Check and process UI settings to generate masonry
 
@@ -873,7 +881,8 @@ class add_mesh_wallb(Operator):
                                         )
 
         if bpy.context.mode == "OBJECT":
-            if self.change == True and self.change != None:
+            if context.selected_objects != [] and context.active_object and \
+            ('Wall' in context.active_object.data.keys()) and (self.change == True):
                 obj = context.active_object
                 oldmesh = obj.data
                 oldmeshname = obj.data.name
@@ -888,6 +897,8 @@ class add_mesh_wallb(Operator):
                 mesh = bpy.data.meshes.new("Wall")
                 mesh.from_pydata(verts_array, [], faces_array)
                 obj = object_utils.object_data_add(context, mesh, operator=None)
+
+                utils.setlocation(self, context)
             
             mesh.update()
             
@@ -908,6 +919,8 @@ class add_mesh_wallb(Operator):
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
+
+            utils.setlocation(self, context)
 
         return {'FINISHED'}
 

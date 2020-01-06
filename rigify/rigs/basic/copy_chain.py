@@ -24,7 +24,7 @@ from ..chain_rigs import SimpleChainRig
 
 from ...utils.errors import MetarigError
 from ...utils.rig import connected_children_names
-from ...utils.naming import strip_org, make_deformer_name
+from ...utils.naming import make_derived_name
 from ...utils.widgets_basic import create_bone_widget
 
 from ...base_rig import BaseRig, stage
@@ -92,6 +92,8 @@ class Rig(SimpleChainRig):
         if self.make_deforms:
             super().rig_deform_chain()
 
+    ##############################
+    # Parameter UI
 
     @classmethod
     def add_parameters(self, params):
@@ -100,7 +102,6 @@ class Rig(SimpleChainRig):
         """
         params.make_controls = bpy.props.BoolProperty(name="Controls", default=True, description="Create control bones for the copy")
         params.make_deforms = bpy.props.BoolProperty(name="Deform", default=True, description="Create deform bones for the copy")
-
 
     @classmethod
     def parameters_ui(self, layout, params):

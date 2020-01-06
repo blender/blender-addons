@@ -23,13 +23,13 @@
 bl_info = {
     "name": "Extra Objects",
     "author": "Multiple Authors",
-    "version": (0, 1, 3),
+    "version": (0, 1, 4),
     "blender": (2, 80, 0),
     "location": "View3D > Add > Curve > Extra Objects",
     "description": "Add extra curve object types",
     "warning": "",
-    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/Curve/Curve_Objects",
+    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
+                "add_curve/extra_objects.html",
     "category": "Add Curve"
     }
 
@@ -247,9 +247,9 @@ def menu_func(self, context):
     layout = self.layout
 
     layout.operator_menu_enum("curve.curveaceous_galore", "ProfileType", icon='CURVE_DATA')
-    layout.operator_menu_enum("curve.spirals", "spiral_type", icon='CURVE_DATA')
+    layout.operator_menu_enum("curve.spirals", "spiral_type", icon='FORCE_VORTEX')
     layout.separator()
-    layout.operator("curve.curlycurve", text="Curly Curve", icon='CURVE_DATA')
+    layout.operator("curve.curlycurve", text="Curly Curve", icon='GP_ONLY_SELECTED')
     if context.mode != 'OBJECT':
         # fix in D2142 will allow to work in EDIT_CURVE
         return None

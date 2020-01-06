@@ -21,12 +21,13 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (4, 20, 1),
+    "version": (4, 20, 2),
     "blender": (2, 81, 6),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
     "warning": "",
-    "wiki_url": "https://docs.blender.org/manual/en/latest/addons/io_scene_fbx.html",
+    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
+                "import_export/io_scene_fbx.html",
     "support": 'OFFICIAL',
     "category": "Import-Export",
 }
@@ -95,7 +96,7 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
             default=1.0,
             )
     bake_space_transform: BoolProperty(
-            name="Apply Transform",
+            name="!EXPERIMENTAL! Apply Transform",
             description="Bake space transform into object data, avoids getting unwanted rotations to objects when "
                         "target space is not aligned with Blender's space "
                         "(WARNING! experimental option, use at own risks, known broken with armatures/animations)",
@@ -425,7 +426,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
                         "but many other applications do not handle the same way)",
             )
     bake_space_transform: BoolProperty(
-            name="Apply Transform",
+            name="!EXPERIMENTAL! Apply Transform",
             description="Bake space transform into object data, avoids getting unwanted rotations to objects when "
                         "target space is not aligned with Blender's space "
                         "(WARNING! experimental option, use at own risks, known broken with armatures/animations)",

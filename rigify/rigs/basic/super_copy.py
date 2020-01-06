@@ -25,8 +25,10 @@ from ...base_rig import BaseRig
 from ...utils.naming import strip_org, make_deformer_name
 from ...utils.widgets_basic import create_bone_widget, create_circle_widget
 
+from .raw_copy import RelinkConstraintsMixin
 
-class Rig(BaseRig):
+
+class Rig(BaseRig, RelinkConstraintsMixin):
     """ A "copy" rig.  All it does is duplicate the original bone and
         constrain it.
         This is a control and deformation rig.
@@ -64,6 +66,11 @@ class Rig(BaseRig):
         if self.make_deform:
             self.set_bone_parent(bones.deform, bones.org, use_connect=False)
 
+        new_parent = self.relink_bone_parent(bones.org)
+
+        if self.make_control and new_parent:
+            self.set_bone_parent(bones.ctrl, new_parent)
+
 
     def configure_bones(self):
         bones = self.bones
@@ -75,9 +82,11 @@ class Rig(BaseRig):
     def rig_bones(self):
         bones = self.bones
 
+        self.relink_bone_constraints(bones.org)
+
         if self.make_control:
             # Constrain the original bone.
-            self.make_constraint(bones.org, 'COPY_TRANSFORMS', bones.ctrl)
+            self.make_constraint(bones.org, 'COPY_TRANSFORMS', bones.ctrl, insert_index=0)
 
 
     def generate_widgets(self):
@@ -114,6 +123,8 @@ class Rig(BaseRig):
             description = "Create a deform bone for the copy"
         )
 
+        self.add_relink_constraints_params(params)
+
 
     @classmethod
     def parameters_ui(self, layout, params):
@@ -126,6 +137,8 @@ class Rig(BaseRig):
         r.enabled = params.make_control
         r = layout.row()
         r.prop(params, "make_deform")
+
+        self.add_relink_constraints_ui(layout, params)
 
 
 def create_sample(obj):

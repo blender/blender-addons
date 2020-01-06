@@ -20,6 +20,7 @@
 
 # All Operator
 
+
 import math
 
 import bpy
@@ -561,7 +562,7 @@ class MESH_OT_print3d_select_report(Operator):
     def execute(self, context):
         obj = context.edit_object
         info = report.info()
-        text, data = info[self.index]
+        _text, data = info[self.index]
         bm_type, bm_array = data
 
         bpy.ops.mesh.reveal()

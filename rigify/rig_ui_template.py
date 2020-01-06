@@ -36,6 +36,7 @@ UI_IMPORTS = [
     'import math',
     'import json',
     'import collections',
+    'import traceback',
     'from math import pi',
     'from bpy.props import StringProperty',
     'from mathutils import Euler, Matrix, Quaternion, Vector',

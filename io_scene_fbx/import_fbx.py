@@ -1425,8 +1425,7 @@ def blen_read_material(fbx_tmpl, fbx_obj, settings):
     ma_wrap.metallic = elem_props_get_number(fbx_props, b'ReflectionFactor', 0.0)
     # We have no metallic (a.k.a. reflection) color...
     # elem_props_get_color_rgb(fbx_props, b'ReflectionColor', const_color_white)
-    # (x / 7.142) is only a guess, cycles usable range is (0.0 -> 0.5)
-    ma_wrap.normalmap_strength = elem_props_get_number(fbx_props, b'BumpFactor', 2.5) / 7.142
+    ma_wrap.normalmap_strength = elem_props_get_number(fbx_props, b'BumpFactor', 1.0)
     # For emission color we can take into account the factor, but only for default values, not in case of texture.
     emission_factor = elem_props_get_number(fbx_props, b'EmissiveFactor', 1.0)
     ma_wrap.emission_color = [c * emission_factor
@@ -2308,17 +2307,6 @@ class FbxImportHelperNode:
             return None
 
 
-def is_ascii(filepath, size):
-    with open(filepath, 'r', encoding="utf-8") as f:
-        try:
-            f.read(size)
-            return True
-        except UnicodeDecodeError:
-            pass
-
-    return False
-
-
 def load(operator, context, filepath="",
          use_manual_orientation=False,
          axis_forward='-Z',
@@ -2359,10 +2347,24 @@ def load(operator, context, filepath="",
     perfmon.step("FBX Import: start importing %s" % filepath)
     perfmon.level_up()
 
-    # detect ascii files
-    if is_ascii(filepath, 24):
+    # Detect ASCII files.
+
+    # Typically it's bad practice to fail silently on any error,
+    # however the file may fail to read for many reasons,
+    # and this situation is handled later in the code,
+    # right now we only want to know if the file successfully reads as ascii.
+    try:
+        with open(filepath, 'r', encoding="utf-8") as fh:
+            fh.read(24)
+        is_ascii = True
+    except Exception:
+        is_ascii = False
+
+    if is_ascii:
         operator.report({'ERROR'}, "ASCII FBX files are not supported %r" % filepath)
         return {'CANCELLED'}
+    del is_ascii
+    # End ascii detection.
 
     try:
         elem_root, version = parse_fbx.parse(filepath)

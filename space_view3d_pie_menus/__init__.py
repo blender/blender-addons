@@ -39,8 +39,8 @@ bl_info = {
     "description": "Pie Menu Activation",
     "location": "Addons Preferences",
     "warning": "",
-    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/3D_interaction/viewport_pies",
+    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
+                "interface/viewport_pies.html",
     "category": "Interface"
     }
 
@@ -58,6 +58,8 @@ sub_modules_names = (
     "pie_animation_menu",
     "pie_save_open_menu",
     "pie_editor_switch_menu",
+    "pie_defaults_menu",
+    "pie_proportional_menu",
     )
 
 
