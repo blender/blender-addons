@@ -442,6 +442,12 @@ class PDTPreferences(AddonPreferences):
         description="NOTE: Does not enable debugging globally in Blender (only in PDT scripts)"
     )
 
+    pdt_ui_width : IntProperty(
+        name='UI Width Cut-off',
+        default=350,
+        description="Cutoff width for shrinking items per line in menus"
+    )
+
     def draw(self, context):
         layout = self.layout
 
@@ -449,6 +455,7 @@ class PDTPreferences(AddonPreferences):
         row1 = box.row()
         row2 = box.row()
         row1.prop(self, "debug")
+        row1.prop(self, "pdt_ui_width")
         row2.prop(self, "pdt_library_path")
 
 

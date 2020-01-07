@@ -43,7 +43,7 @@ PDT_LAB_FLIPANGLE     = "Flip Angle"
 PDT_LAB_FLIPPERCENT   = "Flip %"
 PDT_LAB_ALLACTIVE     = "All/Active"
 PDT_LAB_VARIABLES     = "Coordinates/Delta Offsets & Other Variables"
-PDT_LAB_CVALUE        = ""            # Intentionally left blank
+PDT_LAB_CVALUE        = "Coordinates"
 PDT_LAB_DISVALUE      = "Distance"
 PDT_LAB_ANGLEVALUE    = "Angle"
 PDT_LAB_PERCENTS      = "%"
@@ -66,7 +66,7 @@ PDT_LAB_PIVOTSIZE     = ""            # Intentionally left blank
 PDT_LAB_PIVOTWIDTH    = ""            # Intentionally left blank
 PDT_LAB_PIVOTALPHA    = ""            # Intentionally left blank
 PDT_LAB_PIVOTLOC      = ""            # Intentionally left blank
-PDT_LAB_PIVOTLOCH     = "Pivot Point Location"
+PDT_LAB_PIVOTLOCH     = "Location"
 #
 # Error Message
 #

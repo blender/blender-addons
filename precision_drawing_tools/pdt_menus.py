@@ -21,6 +21,7 @@
 # Author: Alan Odom (Clockmender), Rune Morling (ermo) Copyright (c) 2019
 # -----------------------------------------------------------------------
 #
+import bpy
 from bpy.types import Panel
 from .pdt_msg_strings import (
     PDT_LAB_ABS,
@@ -64,6 +65,23 @@ from .pdt_msg_strings import (
     PDT_LAB_VARIABLES
 )
 
+def ui_width():
+    """Return the Width of the UI Panel.
+
+    Args:
+        None.
+
+    Returns:
+        UI Width.
+    """
+
+    area = bpy.context.area
+    resolution = bpy.context.preferences.system.ui_scale
+
+    for reg in area.regions:
+        if reg.type == "UI":
+            region_width = reg.width
+    return region_width
 
 # PDT Panel menus
 #
@@ -76,6 +94,7 @@ class PDT_PT_PanelDesign(Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
+        ui_cutoff = bpy.context.preferences.addons[__package__].preferences.pdt_ui_width
         layout = self.layout
         pdt_pg = context.scene.pdt_pg
         #
@@ -112,9 +131,10 @@ class PDT_PT_PanelDesign(Panel):
         # cartesian input coordinates in a box
         row = box_1a.row()
         box = row.box()
-        #box.label(text="Cartesian Coordinates:")
         row = box.row()
-        row.prop(pdt_pg, "cartesian_coords", text=PDT_LAB_CVALUE)
+        split = row.split(factor=0.35, align=True)
+        split.label(text=PDT_LAB_CVALUE)
+        split.prop(pdt_pg, "cartesian_coords", text="")
         row = box.row()
         row.operator("pdt.absolute", icon="EMPTY_AXIS", text=f"{PDT_LAB_ABS} »")
         row.operator("pdt.delta", icon="EMPTY_AXIS", text=f"{PDT_LAB_DEL} »")
@@ -145,6 +165,8 @@ class PDT_PT_PanelDesign(Panel):
         box = box_1b.box()
         row = box.row()
         row.operator("pdt.intersect", text=f"|4| {PDT_LAB_INTERSECT} »")
+        if ui_width() < ui_cutoff:
+            row = box.row()
         row.prop(pdt_pg, "object_order", text=PDT_LAB_ORDER)
         #
         # percentage row
@@ -154,6 +176,8 @@ class PDT_PT_PanelDesign(Panel):
         row = box.row()
         row.operator("pdt.percent", text=f"|2| % »")
         row.prop(pdt_pg, "percent", text=PDT_LAB_PERCENTS)
+        if ui_width() < ui_cutoff:
+            row = box.row()
         row.prop(pdt_pg, "flip_percent", text=PDT_LAB_FLIPPERCENT)
 
         # -----
@@ -200,24 +224,30 @@ class PDT_PT_PanelPivotPoint(Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
+        ui_cutoff = bpy.context.preferences.addons[__package__].preferences.pdt_ui_width
         pdt_pg = context.scene.pdt_pg
         layout = self.layout
         row = layout.row()
-        split = row.split(factor=0.4, align=True)
+        col = row.column()
         if context.window_manager.pdt_run_opengl is False:
             icon = "PLAY"
             txt = "Show"
         else:
             icon = "PAUSE"
             txt = "Hide"
-        split.operator("pdt.modaldraw", icon=icon, text=txt)
-        split.prop(pdt_pg, "pivot_size", text=PDT_LAB_PIVOTSIZE)
-        split.prop(pdt_pg, "pivot_width", text=PDT_LAB_PIVOTWIDTH)
-        split.prop(pdt_pg, "pivot_alpha", text=PDT_LAB_PIVOTALPHA)
+        col.operator("pdt.modaldraw", icon=icon, text=txt)
+        col = row.column()
+        col.prop(pdt_pg, "pivot_size", text=PDT_LAB_PIVOTSIZE)
+        if ui_width() < ui_cutoff:
+            row = layout.row()
+        col = row.column()
+        col.prop(pdt_pg, "pivot_width", text=PDT_LAB_PIVOTWIDTH)
+        col = row.column()
+        col.prop(pdt_pg, "pivot_alpha", text=PDT_LAB_PIVOTALPHA)
         row = layout.row()
-        row.label(text=PDT_LAB_PIVOTLOCH)
-        row = layout.row()
-        row.prop(pdt_pg, "pivot_loc", text=PDT_LAB_PIVOTLOC)
+        split = row.split(factor=0.35, align=True)
+        split.label(text=PDT_LAB_PIVOTLOCH)
+        split.prop(pdt_pg, "pivot_loc", text=PDT_LAB_PIVOTLOC)
         row = layout.row()
         col = row.column()
         col.operator("pdt.pivotselected", icon="EMPTY_AXIS", text="Selection")
@@ -241,9 +271,9 @@ class PDT_PT_PanelPivotPoint(Panel):
         col = row.column()
         col.prop(pdt_pg, "distance", text="System Distance")
         row = layout.row()
-        row.label(text="Pivot Point Scale Factors")
-        row = layout.row()
-        row.prop(pdt_pg, "pivot_scale", text="")
+        split = row.split(factor=0.35, align=True)
+        split.label(text="Scale")
+        split.prop(pdt_pg, "pivot_scale", text="")
         row = layout.row()
         col = row.column()
         col.operator("pdt.pivotwrite", icon="FILE_TICK", text="PP Write")
@@ -260,6 +290,7 @@ class PDT_PT_PanelPartsLibrary(Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
+        ui_cutoff = context.preferences.addons[__package__].preferences.pdt_ui_width
         layout = self.layout
         pdt_pg = context.scene.pdt_pg
         row = layout.row()
@@ -267,6 +298,8 @@ class PDT_PT_PanelPartsLibrary(Panel):
         col.operator("pdt.append", text="Append")
         col = row.column()
         col.operator("pdt.link", text="Link")
+        if ui_width() < ui_cutoff:
+            row = layout.row()
         col = row.column()
         col.prop(pdt_pg, "lib_mode", text="")
         box = layout.box()
@@ -305,8 +338,13 @@ class PDT_PT_PanelViewControl(Panel):
     bl_category = "PDT"
     bl_options = {'DEFAULT_CLOSED'}
 
+    # Sub-layout highlight states
+    _ui_groups = [False, False]
+
     def draw(self, context):
+        ui_cutoff = context.preferences.addons[__package__].preferences.pdt_ui_width
         layout = self.layout
+        ui_groups = self._ui_groups
         pdt_pg = context.scene.pdt_pg
         box = layout.box()
         row = box.row()
@@ -315,10 +353,14 @@ class PDT_PT_PanelViewControl(Panel):
         col = row.column()
         col.operator("pdt.viewrot", text="Rotate Abs")
         row = box.row()
-        row.prop(pdt_pg, "rotation_coords", text="Rotation")
+        split = row.split(factor=0.35, align=True)
+        split.label(text="Rotation")
+        split.prop(pdt_pg, "rotation_coords", text="")
         row = box.row()
         col = row.column()
         col.prop(pdt_pg, "vrotangle", text="Angle")
+        if ui_width() < ui_cutoff:
+            row = box.row()
         col = row.column()
         col.operator("pdt.viewleft", text="", icon="TRIA_LEFT")
         col = row.column()
