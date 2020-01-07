@@ -1333,6 +1333,12 @@ class BlenderKitAddonPreferences(AddonPreferences):
         default=False
     )
 
+    show_on_start: BoolProperty(
+        name="Show assetbar when starting blender",
+        description="Show assetbar when starting blender",
+        default=False
+    )
+
     global_dir: StringProperty(
         name="Global Files Directory",
         description="Global storage for your assets, will use subdirectories for the contents",
@@ -1413,6 +1419,7 @@ class BlenderKitAddonPreferences(AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
+        layout.prop(self, "show_on_start")
 
         if self.api_key.strip() == '':
             if self.enable_oauth:

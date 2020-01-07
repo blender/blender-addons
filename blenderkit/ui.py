@@ -1730,17 +1730,16 @@ class RunAssetBarWithContext(bpy.types.Operator):
     # def modal(self, context, event):
     #     return {'RUNNING_MODAL'}
 
-
-
-    def invoke(self, context, event):
+    def execute(self, context):
         C_dict = bpy.context.copy()
-        C_dict.update(region = 'WINDOW')
-        if context.area.type != 'VIEW_3D':
-            w,a,r = get_largest_3dview()
-            override = {'window': w, 'screen': w.screen, 'area': a, 'region' : r}
+        C_dict.update(region='WINDOW')
+        if context.area is None or context.area.type != 'VIEW_3D':
+            w, a, r = get_largest_3dview()
+            override = {'window': w, 'screen': w.screen, 'area': a, 'region': r}
             C_dict.update(override)
         bpy.ops.view3d.blenderkit_asset_bar(C_dict, 'INVOKE_REGION_WIN', keep_running=True, do_search=False)
         return {'RUNNING_MODAL'}
+
 
 classess = (
     AssetBarOperator,

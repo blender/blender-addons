@@ -117,8 +117,17 @@ def fetch_server_data():
         categories.fetch_categories_thread(api_key)
 
 
+first_time = True
+
 @bpy.app.handlers.persistent
 def timer_update():  # TODO might get moved to handle all blenderkit stuff.
+    #this makes a first search after opening blender. showing latest assets.
+    global first_time
+    preferences = bpy.context.preferences.addons['blenderkit'].preferences
+    if first_time:
+        first_time = False
+        if preferences.show_on_start:
+            search()
 
     global search_threads
     # don't do anything while dragging - this could switch asset type during drag, and make results list length different,
@@ -163,7 +172,7 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff.
             result_field = []
             ok, error = check_errors(rdata)
             if ok:
-
+                bpy.ops.object.run_assetbar_fix_context()
                 for r in rdata['results']:
                     # TODO remove this fix when filesSize is fixed.
                     # this is a temporary fix for too big numbers from the server.
