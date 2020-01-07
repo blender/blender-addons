@@ -23,7 +23,7 @@
 bl_info = {
     "name": "LoopTools",
     "author": "Bart Crouch, Vladimir Spivak (cwolf3d)",
-    "version": (4, 7, 0),
+    "version": (4, 7, 1),
     "blender": (2, 80, 0),
     "location": "View3D > Sidebar > Edit Tab / Edit Mode Context Menu",
     "warning": "",
@@ -2324,8 +2324,16 @@ def curve_cut_boundaries(bm_mod, loops):
     cut_loops = []
     for loop, circular in loops:
         if circular:
-            # don't cut
-            cut_loops.append([loop, circular])
+            selected = [bm_mod.verts[v].select for v in loop]
+            first = selected.index(True)
+            selected.reverse()
+            last = -selected.index(True)
+            if last == 0:
+                if len(loop[first:]) < len(loop)/2:
+                    cut_loops.append([loop[first:], False])
+            else:
+                if len(loop[first:last]) < len(loop)/2:
+                    cut_loops.append([loop[first:last], False])
             continue
         selected = [bm_mod.verts[v].select for v in loop]
         first = selected.index(True)
