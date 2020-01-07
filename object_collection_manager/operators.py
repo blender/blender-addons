@@ -993,77 +993,25 @@ class CMRemoveCollectionOperator(Operator):
 
         laycol = layer_collections[self.collection_name]
         collection = laycol["ptr"].collection
-        laycol_parent = laycol["parent"]
-
-        # save state and remove all hiding properties of parent collection
-        orig_parent_hide_select = False
-        orig_parent_exclude = False
-        orig_parent_hide_viewport = False
-
-        if laycol_parent["ptr"].collection.hide_select:
-            orig_parent_hide_select = True
-
-        if laycol_parent["ptr"].exclude:
-            orig_parent_exclude = True
-
-        if laycol_parent["ptr"].hide_viewport:
-            orig_parent_hide_viewport = True
-
-        laycol_parent["ptr"].collection.hide_select = False
-        laycol_parent["ptr"].exclude = False
-        laycol_parent["ptr"].hide_viewport = False
-
-
-        # remove all hiding properties of this collection
-        collection.hide_select = False
-        laycol["ptr"].exclude = False
-        laycol["ptr"].hide_viewport = False
+        parent_collection = laycol["parent"]["ptr"].collection
 
 
         # shift all objects in this collection to the parent collection
-        if collection.objects:
-            orig_selected_objs = context.selected_objects
-            orig_active_obj = context.active_object
-
-            # select all objects in collection
-            bpy.ops.object.select_same_collection(collection=collection.name)
-            context.view_layer.objects.active = context.selected_objects[0]
-
-            # remove any objects already in parent collection from selection
-            for obj in context.selected_objects:
-                if obj in laycol["parent"]["ptr"].collection.objects.values():
-                    obj.select_set(False)
-
-            # link selected objects to parent collection
-            bpy.ops.object.link_to_collection(collection_index=laycol_parent["id"])
-
-            # remove objects from collection
-            bpy.ops.collection.objects_remove(collection=collection.name)
-
-            # reset selection original values
-            bpy.ops.object.select_all(action='DESELECT')
-
-            for obj in orig_selected_objs:
-                obj.select_set(True)
-            context.view_layer.objects.active = orig_active_obj
+        for obj in collection.objects:
+            if obj.name not in parent_collection.objects:
+                parent_collection.objects.link(obj)
 
 
         # shift all child collections to the parent collection
         if collection.children:
             for subcollection in collection.children:
-                laycol_parent["ptr"].collection.children.link(subcollection)
-
-        # reset hiding properties of parent collection
-        laycol_parent["ptr"].collection.hide_select = orig_parent_hide_select
-        laycol_parent["ptr"].exclude = orig_parent_exclude
-        laycol_parent["ptr"].hide_viewport = orig_parent_hide_viewport
+                parent_collection.children.link(subcollection)
 
 
         # remove collection and update tree view
         bpy.data.collections.remove(collection)
-
-
         update_property_group(context)
+
 
         if len(context.scene.CMListCollection) == context.scene.CMListIndex:
             context.scene.CMListIndex = len(context.scene.CMListCollection) - 1
