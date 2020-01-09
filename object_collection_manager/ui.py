@@ -177,7 +177,7 @@ class CollectionManager(Operator):
             active_laycol_row_index = layer_collections[active_laycol_name]["row_index"]
             context.scene.CMListIndex = active_laycol_row_index
         except:
-            context.scene.CMListIndex = 0
+            context.scene.CMListIndex = -1
 
         if context.scene.CM_Phantom_Mode:
             if set(layer_collections.keys()) != set(phantom_history["initial_state"].keys()):
@@ -190,7 +190,12 @@ class CollectionManager(Operator):
 
 
 def update_selection(self, context):
-    selected_item = context.scene.CMListCollection[context.scene.CMListIndex]
+    scn = context.scene
+
+    if scn.CMListIndex == -1:
+        return
+
+    selected_item = scn.CMListCollection[scn.CMListIndex]
     layer_collection = layer_collections[selected_item.name]["ptr"]
 
     context.view_layer.active_layer_collection = layer_collection
