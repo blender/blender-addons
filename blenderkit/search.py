@@ -95,8 +95,6 @@ def refresh_token_timer():
 def scene_load(context):
     wm = bpy.context.window_manager
     fetch_server_data()
-    # following doesn't necessarily happen if version isn't checked yet or similar, first run.
-    # wm['bkit_update'] = version_checker.compare_versions(blenderkit)
     categories.load_categories()
     if not bpy.app.timers.is_registered(refresh_token_timer):
         bpy.app.timers.register(refresh_token_timer, persistent=True, first_interval=36000)
@@ -1118,6 +1116,10 @@ def search(category='', get_next=False, author_id=''):
 def search_update(self, context):
     utils.p('search updater')
     #if self.search_keywords != '':
+    ui_props = bpy.context.scene.blenderkitUI
+    if ui_props.down_up != 'SEARCH':
+        ui_props.down_up = 'SEARCH'
+
     search()
 
 

@@ -1161,7 +1161,7 @@ def get_largest_3dview():
         for a in screen.areas:
             if a.type == 'VIEW_3D':
                 asurf = a.width * a.height
-                if asurf>maxsurf:
+                if asurf > maxsurf:
                     maxa = a
                     maxw = w
                     maxsurf = asurf
@@ -1170,7 +1170,6 @@ def get_largest_3dview():
                         if r.type == 'WINDOW':
                             region = r
     return maxw, maxa, region
-
 
 class AssetBarOperator(bpy.types.Operator):
     '''runs search and displays the asset bar at the same time'''
@@ -1459,6 +1458,17 @@ class AssetBarOperator(bpy.types.Operator):
             ui_props = context.scene.blenderkitUI
             if event.value == 'PRESS' and ui_props.active_index > -1:
                 if ui_props.asset_type == 'MODEL' or ui_props.asset_type == 'MATERIAL':
+                    # check if asset is locked and let the user know in that case
+                    asset_search_index = ui_props.active_index
+                    asset_data = sr[asset_search_index]
+                    if not asset_data['can_download']:
+                        message = 'Asset locked. Find out how to unlock Everything and ...'
+                        link_text = 'support all BlenderKit artists.'
+                        url = paths.get_bkit_url() + '/get-blenderkit/' + asset_data['id']
+                        bpy.ops.wm.blenderkit_url_dialog('INVOKE_REGION_WIN', url=url, message=message,
+                                                         link_text=link_text)
+                        return {'RUNNING_MODAL'}
+                    # go on with drag init
                     ui_props.drag_init = True
                     bpy.context.window.cursor_set("NONE")
                     ui_props.draw_tooltip = False
@@ -1720,12 +1730,13 @@ class TransferBlenderkitData(bpy.types.Operator):
         source_ob.property_unset('blenderkit')
         return {'FINISHED'}
 
+
 class RunAssetBarWithContext(bpy.types.Operator):
     """Regenerate cobweb"""
     bl_idname = "object.run_assetbar_fix_context"
     bl_label = "BlnenderKit assetbar with fixed context"
     bl_description = "Run assetbar with fixed context"
-    bl_options = {'REGISTER', 'UNDO',  'INTERNAL'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
     # def modal(self, context, event):
     #     return {'RUNNING_MODAL'}
@@ -1772,9 +1783,9 @@ def register_ui():
     kmi.properties.keep_running = False
     kmi.properties.do_search = False
     addon_keymapitems.append(kmi)
-    #auto open after searching:
-    kmi = km.keymap_items.new(RunAssetBarWithContext.bl_idname, 'SEMI_COLON', 'PRESS',\
-                              ctrl=True, shift=True, alt = True)
+    # auto open after searching:
+    kmi = km.keymap_items.new(RunAssetBarWithContext.bl_idname, 'SEMI_COLON', 'PRESS', \
+                              ctrl=True, shift=True, alt=True)
     addon_keymapitems.append(kmi)
 
 

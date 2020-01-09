@@ -244,6 +244,26 @@ def switch_search_results(self, context):
         s['search results orig'] = s.get('bkit brush search orig')
     search.load_previews()
 
+def asset_type_callback(self, context):
+    #s = bpy.context.scene
+    #ui_props = s.blenderkitUI
+    if self.down_up == 'SEARCH':
+        items = (
+            ('MODEL', 'Search Models', 'Browse models', 'OBJECT_DATAMODE', 0),
+            # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
+            ('MATERIAL', 'Search Materials', 'Browse materials', 'MATERIAL', 2),
+            # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
+            ('BRUSH', 'Search Brushes', 'Browse brushes', 'BRUSH_DATA', 3)
+        )
+    else:
+        items = (
+            ('MODEL', 'Upload Model', 'Browse models', 'OBJECT_DATAMODE', 0),
+            # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
+            ('MATERIAL', 'Uplaod Material', 'Browse materials', 'MATERIAL', 2),
+            # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
+            ('BRUSH', 'Upload Brush', 'Browse brushes', 'BRUSH_DATA', 3)
+        )
+    return items
 
 class BlenderKitUIProps(PropertyGroup):
     down_up: EnumProperty(
@@ -258,15 +278,9 @@ class BlenderKitUIProps(PropertyGroup):
     )
     asset_type: EnumProperty(
         name="Active Asset Type",
-        items=(
-            ('MODEL', 'Model', 'Browse models', 'OBJECT_DATAMODE', 0),
-            # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
-            ('MATERIAL', 'Material', 'Browse models', 'MATERIAL', 2),
-            # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
-            ('BRUSH', 'Brush', 'Browse brushes', 'BRUSH_DATA', 3)
-        ),
+        items=asset_type_callback,
         description="Activate asset in UI",
-        default="MATERIAL",
+        default=None,
         update=switch_search_results
     )
     # these aren't actually used ( by now, seems to better use globals in UI module:
