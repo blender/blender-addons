@@ -3,7 +3,7 @@
 # This Blender add-on assigns one or more Bezier Curves as shape keys to another
 # Bezier Curve
 #
-# Supported Blender Version: 2.80 Beta
+# Supported Blender Versions: 2.8x
 #
 # Copyright (C) 2019  Shrinivas Kulkarni
 #
@@ -400,18 +400,12 @@ class Path:
         self.curve.data = self.getNewCurveData()
         bpy.data.curves.remove(curveData)
 
-def main(removeOriginal, space, matchParts, matchCriteria, alignBy, alignValues):
-    targetObj = bpy.context.active_object
-    if(targetObj == None or not isBezier(targetObj)):
-        return
+def main(targetObj, shapekeyObjs, removeOriginal, space, matchParts, \
+    matchCriteria, alignBy, alignValues):
 
     target = Path(targetObj)
 
-    shapekeys = [Path(c) for c in bpy.context.selected_objects if isBezier(c) \
-        and c != bpy.context.active_object]
-
-    if(len(shapekeys) == 0):
-        return
+    shapekeys = [Path(c) for c in shapekeyObjs]
 
     shapekeys = getExistingShapeKeyPaths(target) + shapekeys
     userSel = [target] + shapekeys
@@ -437,18 +431,20 @@ def main(removeOriginal, space, matchParts, matchCriteria, alignBy, alignValues)
         for j, part in enumerate(path.parts):
             part.toClose = allToClose[j]
 
-    target.updateCurve()
+    if(targetObj.data.shape_keys != None):
+        skName = targetObj.data.shape_keys.key_blocks[0].name
+    else:
+        skName = 'Basis'
 
-    target.curve.shape_key_add(name = 'Basis')
+    target.updateCurve()
+    target.curve.shape_key_add(name = skName)
 
     addShapeKeys(target.curve, shapekeys, space)
 
     if(removeOriginal):
         for path in userSel:
             if(path.curve != target.curve):
-                safeRemoveCurveObj(path.curve)
-
-    return {}
+                safeRemoveObj(path.curve)
 
 def getSplineSegs(spline):
     p = spline.bezier_points
@@ -743,7 +739,7 @@ def addShapeKeys(curve, paths, space):
             key.data[i].handle_right = pt[2]
 
 #TODO: Remove try
-def safeRemoveCurveObj(obj):
+def safeRemoveObj(obj):
     try:
         collections = obj.users_collection
 
@@ -791,9 +787,14 @@ class AssignShapeKeysOp(Operator):
         alignVal2 = params.alignVal2
         alignVal3 = params.alignVal3
 
-        createdObjsMap = main(removeOriginal, space, \
-                            matchParts, [matchCri1, matchCri2, matchCri3], \
-                                alignBy, [alignVal1, alignVal2, alignVal3])
+        targetObj = bpy.context.active_object
+        shapekeyObjs = [obj for obj in bpy.context.selected_objects if isBezier(obj) \
+            and obj != targetObj]
+
+        if(targetObj != None and isBezier(targetObj) and len(shapekeyObjs) > 0):
+            main(targetObj, shapekeyObjs, removeOriginal, space, \
+                    matchParts, [matchCri1, matchCri2, matchCri3], \
+                            alignBy, [alignVal1, alignVal2, alignVal3])
 
         return {'FINISHED'}
 
