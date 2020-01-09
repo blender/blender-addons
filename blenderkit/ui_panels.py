@@ -150,7 +150,9 @@ def prop_needed(layout, props, name, value, is_not_filled=''):
     if value == is_not_filled:
         # row.label(text='', icon = 'ERROR')
         icon = 'ERROR'
-        row.prop(props, name, icon=icon)
+        row.alert = True
+        row.prop(props, name)#, icon=icon)
+        row.alert = False
     else:
         # row.label(text='', icon = 'FILE_TICK')
         icon = None
@@ -614,15 +616,21 @@ class VIEW3D_PT_blenderkit_unified(Panel):
         layout = self.layout
 
         # layout.prop_tabs_enum(ui_props, "asset_type", icon_only = True)
+
         row = layout.row()
-        row.scale_x = 1.6
-        row.scale_y = 1.6
+        #row.scale_x = 1.6
+        #row.scale_y = 1.6
         #
         row.prop(ui_props, 'down_up', expand=True, icon_only=False)
         # row.label(text='')
         #row = row.split().row()
-
-        layout.prop(ui_props, 'asset_type', expand=False, text = '', icon_only=False)
+        #layout.alert = True
+        #layout.alignment = 'CENTER'
+        #row = layout.row(align = True)
+        #split = row.split(factor=.5)
+        #row.prop(ui_props, 'asset_type', expand=True, icon_only=True)
+        #row = layout.column(align = False)
+        layout.prop(ui_props, 'asset_type', expand=False, text = '')
 
         w = context.region.width
         if user_preferences.login_attempt:
@@ -640,7 +648,9 @@ class VIEW3D_PT_blenderkit_unified(Panel):
                 layout.prop(user_preferences, 'api_key', text='')
             layout.separator()
         if bpy.data.filepath == '':
-            label_multiline(layout, text="It's better to save the file first.", width=w)
+            layout.alert = True
+            label_multiline(layout, text="It's better to save your file first.", width=w)
+            layout.alert = False
             layout.separator()
 
         if ui_props.down_up == 'SEARCH':

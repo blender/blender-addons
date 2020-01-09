@@ -277,7 +277,7 @@ class BlenderKitUIProps(PropertyGroup):
         default="SEARCH",
     )
     asset_type: EnumProperty(
-        name="Active Asset Type",
+        name="BlenderKit Active Asset Type",
         items=asset_type_callback,
         description="Activate asset in UI",
         default=None,

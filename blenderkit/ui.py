@@ -1290,7 +1290,7 @@ class AssetBarOperator(bpy.types.Operator):
                 ao = bpy.context.active_object
                 if ui_props.asset_type == 'MODEL' and ao != None \
                         or ui_props.asset_type == 'MATERIAL' and ao != None and ao.active_material != None \
-                        or ui_props.asset_type == 'BRUSH':
+                        or ui_props.asset_type == 'BRUSH' and utils.get_active_brush() is not None:
                     export_data, upload_data, eval_path_computing, eval_path_state, eval_path, props = upload.get_upload_data(
                         self,
                         context,

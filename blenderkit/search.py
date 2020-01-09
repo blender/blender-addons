@@ -260,7 +260,7 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff.
                     ui_props.scrolloffset = 0
                 props.is_searching = False
                 props.search_error = False
-                props.report = 'Open assetbar to see %i results. ' % len(s['search results'])
+                props.report = 'Found %i results. ' % (s['search results orig']['count'])
                 if len(s['search results']) == 0:
                     tasks_queue.add_task((ui.add_report, ('No matching results found.',)))
 
