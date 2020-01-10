@@ -234,6 +234,7 @@ class PDT_OT_viso(Operator):
             areas[0].spaces.active.region_3d.view_rotation = Quaternion(
                 (0.8205, 0.4247, -0.1759, -0.3399)
             )
+            areas[0].spaces.active.region_3d.view_perspective = 'ORTHO'
         return {"FINISHED"}
 
 
