@@ -20,6 +20,7 @@
 
 import bpy
 from bpy.types import (
+    Gizmo,
     GizmoGroup,
 )
 
@@ -54,8 +55,10 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
         is_session_running = bpy.types.XrSessionState.is_running(context)
 
         # Using SNAP_FACE because it looks like a stop icon -- I shouldn't have commit rights...
-        toggle_info = ("Start VR Session", 'PLAY') if not is_session_running else ("Stop VR Session", 'SNAP_FACE')
-        layout.operator("wm.xr_session_toggle", text=toggle_info[0], icon=toggle_info[1])
+        toggle_info = ("Start VR Session", 'PLAY') if not is_session_running else (
+            "Stop VR Session", 'SNAP_FACE')
+        layout.operator("wm.xr_session_toggle",
+                        text=toggle_info[0], icon=toggle_info[1])
 
         layout.separator()
 
@@ -74,38 +77,79 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
         layout.prop(session_settings, "use_positional_tracking")
 
 
+class VIEW3D_GT_vr_camera_cone(Gizmo):
+    bl_idname = "VIEW_3D_GT_vr_camera_cone"
+
+    aspect = 1.0, 1.0
+
+    def draw(self, context):
+        import bgl
+
+        if not hasattr(self, "frame_shape"):
+            aspect = self.aspect
+
+            frame_shape_verts = (
+                (-aspect[0], -aspect[1], -1.0),
+                (aspect[0], -aspect[1], -1.0),
+                (aspect[0], aspect[1], -1.0),
+                (-aspect[0], aspect[1], -1.0),
+            )
+            lines_shape_verts = (
+                (0.0, 0.0, 0.0),
+                frame_shape_verts[0],
+                (0.0, 0.0, 0.0),
+                frame_shape_verts[1],
+                (0.0, 0.0, 0.0),
+                frame_shape_verts[2],
+                (0.0, 0.0, 0.0),
+                frame_shape_verts[3],
+            )
+
+            self.frame_shape = self.new_custom_shape(
+                'LINE_LOOP', frame_shape_verts)
+            self.lines_shape = self.new_custom_shape(
+                'LINES', lines_shape_verts)
+
+        # Ensure correct GL state (otherwise other gizmos might mess that up)
+        bgl.glLineWidth(1)
+        bgl.glEnable(bgl.GL_BLEND)
+
+        self.draw_custom_shape(self.frame_shape)
+        self.draw_custom_shape(self.lines_shape)
+
+
 class VIEW3D_GGT_vr_viewer(GizmoGroup):
     bl_idname = "VIEW3D_GGT_vr_viewer"
     bl_label = "VR Viewer Indicator"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
-    bl_options = {'3D', 'PERSISTENT'}
+    bl_options = {'3D', 'PERSISTENT', 'SCALE'}
 
     @classmethod
     def poll(cls, context):
         return bpy.types.XrSessionState.is_running(context)
 
     def _get_viewer_matrix(self, context):
-        from mathutils import Matrix
-        import math
+        from mathutils import Matrix, Quaternion
 
         wm = context.window_manager
-        rv3d = context.region_data
+
+        loc = wm.xr_session_state.viewer_location
+        rot = wm.xr_session_state.viewer_rotation
 
         rotmat = Matrix.Identity(3)
-        rotmat.rotate(rv3d.view_rotation)
+        rotmat.rotate(rot)
         rotmat.resize_4x4()
-        transmat = Matrix.Translation(wm.xr_session_state.viewer_location)
+        transmat = Matrix.Translation(loc)
 
         return transmat @ rotmat
 
     def setup(self, context):
-        gizmo = self.gizmos.new("GIZMO_GT_dial_3d")
-        gizmo.draw_options = {'FILL'}
+        gizmo = self.gizmos.new(VIEW3D_GT_vr_camera_cone.bl_idname)
+        gizmo.aspect = 1 / 3, 1 / 4
 
         gizmo.color = gizmo.color_highlight = 0.2, 0.6, 1.0
         gizmo.alpha = 1.0
-        gizmo.scale_basis = 0.1
 
         self.gizmo = gizmo
 
@@ -116,6 +160,7 @@ class VIEW3D_GGT_vr_viewer(GizmoGroup):
 classes = (
     VIEW3D_PT_vr_session,
 
+    VIEW3D_GT_vr_camera_cone,
     VIEW3D_GGT_vr_viewer,
 )
 
