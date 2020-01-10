@@ -1186,6 +1186,12 @@ class AssetBarOperator(bpy.types.Operator):
         description="search only subtree of this category",
         default="", options={'SKIP_SAVE'})
 
+    tooltip: bpy.props.StringProperty(default = 'runs search and displays the asset bar at the same time')
+
+    @classmethod
+    def description(cls, context, properties):
+        return properties.tooltip
+
     def search_more(self):
         sro = bpy.context.scene.get('search results orig')
         if sro is not None and sro.get('next') is not None:

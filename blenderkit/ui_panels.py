@@ -270,11 +270,15 @@ def draw_assetbar_show_hide(layout, props):
 
     if ui_props.assetbar_on:
         icon = 'HIDE_OFF'
+        ttip = 'Click to Hide Asset Bar'
     else:
         icon = 'HIDE_ON'
+        ttip = 'Click to Show Asset Bar'
     op = layout.operator('view3d.blenderkit_asset_bar', text='', icon=icon)
     op.keep_running = False
     op.do_search = False
+
+    op.tooltip = ttip
 
 
 def draw_panel_model_search(self, context):
@@ -681,6 +685,8 @@ class VIEW3D_PT_blenderkit_unified(Panel):
             op = layout.operator('view3d.blenderkit_asset_bar', text=text, icon='EXPORT')
             op.keep_running = False
             op.do_search = False
+            op.tooltip = 'Show/Hide asset preview'
+
             e = s.render.engine
             if e not in ('CYCLES', 'BLENDER_EEVEE'):
                 rtext = 'Only Cycles and EEVEE render engines are currently supported. ' \
@@ -984,13 +990,7 @@ def header_search_draw(self, context):
     layout.separator_spacer()
     layout.prop(ui_props, "asset_type", text='', icon='URL')
     layout.prop(props, "search_keywords", text="", icon='VIEWZOOM')
-    if ui_props.assetbar_on:
-        icon = 'HIDE_OFF'
-    else:
-        icon = 'HIDE_ON'
-    op = layout.operator('view3d.blenderkit_asset_bar', text='', icon=icon)
-    op.keep_running = False
-    op.do_search = False
+    draw_assetbar_show_hide(layout, props)
 
 
 # We can store multiple preview collections here,
