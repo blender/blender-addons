@@ -175,14 +175,16 @@ def command_run(self, context):
 
     scene = context.scene
     pg = scene.pdt_pg
-    cmd = pg.command
+    cmd = pg.command.strip()
 
-    if cmd.strip() == "?" or cmd.lower().strip() == "help":
+    if cmd == "?" or cmd.lower() == "help":
         # fmt: off
         context.window_manager.popup_menu(pdt_help, title="PDT Command Line Help", icon="INFO")
         # fmt: on
         return
-    if len(cmd) < 3:
+    elif cmd == "":
+        return
+    elif len(cmd) < 3:
         pg.error = PDT_ERR_CHARS_NUM
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         return
