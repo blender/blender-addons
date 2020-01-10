@@ -768,16 +768,17 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
         op = layout.operator('view3d.blenderkit_search', text='Search Similar')
         op.keywords = asset_data['name'] + ' ' + asset_data['description'] + ' ' + ' '.join(asset_data['tags'])
 
-        if bpy.context.view_layer.objects.active is not None and ui_props.asset_type == 'MODEL':
-            aob = bpy.context.active_object
-            op = layout.operator('scene.blenderkit_download', text='Replace Active Models')
-            op.asset_type = ui_props.asset_type
-            op.asset_index = ui_props.active_index
-            op.model_location = aob.location
-            op.model_rotation = aob.rotation_euler
-            op.target_object = aob.name
-            op.material_target_slot = aob.active_material_index
-            op.replace = True
+        if asset_data['can_download']:
+            if bpy.context.view_layer.objects.active is not None and ui_props.asset_type == 'MODEL':
+                aob = bpy.context.active_object
+                op = layout.operator('scene.blenderkit_download', text='Replace Active Models')
+                op.asset_type = ui_props.asset_type
+                op.asset_index = ui_props.active_index
+                op.model_location = aob.location
+                op.model_rotation = aob.rotation_euler
+                op.target_object = aob.name
+                op.material_target_slot = aob.active_material_index
+                op.replace = True
 
         wm = bpy.context.window_manager
         profile = wm.get('bkit profile')
@@ -870,6 +871,7 @@ class UrlPopupDialog(bpy.types.Operator):
         layout = self.layout
         label_multiline(layout, text=self.message)
 
+        layout.active_default = True
         op = layout.operator("wm.url_open", text=self.link_text, icon='QUESTION')
         op.url = self.url
 

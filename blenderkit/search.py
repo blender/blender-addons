@@ -327,15 +327,24 @@ def split_subs(text, threshold=40):
     # temporarily disable this, to be able to do this in drawing code
 
     text = text.rstrip()
+    text = text.replace('\r\n', '\n')
+
     lines = []
 
     while len(text) > threshold:
-        i = text.rfind(' ', 0, threshold)
-        i1 = text.rfind(',', 0, threshold)
-        i2 = text.rfind('.', 0, threshold)
-        i = max(i, i1, i2)
-        if i <= 0:
-            i = threshold
+        #first handle if there's an \n line ending
+        i_rn = text.find('\n')
+        print(i_rn)
+        if 1 < i_rn < threshold:
+            i = i_rn
+            text = text.replace('\n','',1)
+        else:
+            i = text.rfind(' ', 0, threshold)
+            i1 = text.rfind(',', 0, threshold)
+            i2 = text.rfind('.', 0, threshold)
+            i = max(i, i1, i2)
+            if i <= 0:
+                i = threshold
         lines.append(text[:i])
         text = text[i:]
     lines.append(text)
