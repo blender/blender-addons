@@ -282,6 +282,7 @@ class PDT_OT_Reset3DView(Operator):
                     # Otherwise, the view matrix needs to be reset (includes distance).
                     debug(f"view_matrix before reset:\n{view.view_matrix}")
                     view.view_matrix = default_view_matrix
+                    view.view_distance = default_view_distance
                     view.update()
                     debug(f"view_matrix AFTER reset:\n{view.view_matrix}")
 
