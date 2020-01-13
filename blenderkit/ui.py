@@ -759,7 +759,7 @@ def draw_callback_2d_search(self, context):
                                       ui_props.thumb_size,
                                       img,
                                       1)
-                if search_results_orig['count'] - ui_props.scrolloffset > (ui_props.wcount * ui_props.hcount):
+                if search_results_orig['count'] - ui_props.scrolloffset > (ui_props.wcount * ui_props.hcount) + 1:
                     if ui_props.active_index == -1:
                         ui_bgl.draw_rect(ui_props.bar_x + ui_props.bar_width - 25,
                                          ui_props.bar_y - ui_props.bar_height, 25,
@@ -838,7 +838,7 @@ def draw_callback_2d_search(self, context):
 
             directory = paths.get_temp_dir('%s_search' % mappingdict[props.asset_type])
             sr = s.get('search results')
-            if sr != None and ui_props.active_index != -3:
+            if sr != None and -1 < ui_props.active_index < len(sr):
                 r = sr[ui_props.active_index]
                 tpath = os.path.join(directory, r['thumbnail'])
 
@@ -1151,6 +1151,7 @@ def update_ui_size(area, region):
     ui.rating_x = ui.bar_x
     ui.rating_y = ui.bar_y - ui.bar_height
 
+
 def get_largest_3dview():
     maxsurf = 0
     maxa = None
@@ -1171,6 +1172,7 @@ def get_largest_3dview():
                             region = r
     return maxw, maxa, region
 
+
 class AssetBarOperator(bpy.types.Operator):
     '''runs search and displays the asset bar at the same time'''
     bl_idname = "view3d.blenderkit_asset_bar"
@@ -1186,7 +1188,7 @@ class AssetBarOperator(bpy.types.Operator):
         description="search only subtree of this category",
         default="", options={'SKIP_SAVE'})
 
-    tooltip: bpy.props.StringProperty(default = 'runs search and displays the asset bar at the same time')
+    tooltip: bpy.props.StringProperty(default='runs search and displays the asset bar at the same time')
 
     @classmethod
     def description(cls, context, properties):
@@ -1309,7 +1311,7 @@ class AssetBarOperator(bpy.types.Operator):
         r = self.region
         s = bpy.context.scene
         sr = s.get('search results')
-
+        search_results_orig = s.get('search results orig')
         # If there aren't any results, we need no interaction(yet)
         if sr is None:
             return {'PASS_THROUGH'}
@@ -1415,8 +1417,9 @@ class AssetBarOperator(bpy.types.Operator):
                 else:
                     ui_props.draw_tooltip = False
 
-                if mx > ui_props.bar_x + ui_props.bar_width - 50 and len(sr) - ui_props.scrolloffset > (
-                        ui_props.wcount * ui_props.hcount):
+                if mx > ui_props.bar_x + ui_props.bar_width - 50 and search_results_orig[
+                    'count'] - ui_props.scrolloffset > (
+                        ui_props.wcount * ui_props.hcount) + 1:
                     ui_props.active_index = -1
                     return {'RUNNING_MODAL'}
                 if mx < ui_props.bar_x + 50 and ui_props.scrolloffset > 0:

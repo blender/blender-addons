@@ -1217,8 +1217,8 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
     append_method: EnumProperty(
         name="Import Method",
         items=(
-            ('LINK_COLLECTION', 'Link Collection', ''),
-            ('APPEND_OBJECTS', 'Append Objects', ''),
+            ('LINK_COLLECTION', 'Link', 'Link Collection'),
+            ('APPEND_OBJECTS', 'Append', 'Append as Objects'),
         ),
         description="choose if the assets will be linked or appended",
         default="LINK_COLLECTION"
@@ -1343,7 +1343,7 @@ class BlenderKitAddonPreferences(AddonPreferences):
 
     login_attempt: BoolProperty(
         name="Login/Signup attempt",
-        description="When this is on, BlenderKit is trying to connect and login.",
+        description="When this is on, BlenderKit is trying to connect and login",
         default=False
     )
 

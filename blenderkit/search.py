@@ -334,7 +334,6 @@ def split_subs(text, threshold=40):
     while len(text) > threshold:
         #first handle if there's an \n line ending
         i_rn = text.find('\n')
-        print(i_rn)
         if 1 < i_rn < threshold:
             i = i_rn
             text = text.replace('\n','',1)
