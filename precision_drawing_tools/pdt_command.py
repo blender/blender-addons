@@ -273,6 +273,16 @@ def command_run(self, context):
             pg.error = f"'{mode}' {PDT_ERR_NON_VALID} '{oper}'"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
+        if mode in {"d","i"}:
+            if len(bm.select_history) == 0:
+                if len(bm.verts) == 0:
+                    pg.error = PDT_ERR_NO_SEL_GEOM
+                    context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+                    return
+                else:
+                    verts = bm.verts
+            else:
+                verts = bm.select_history
         # Absolute/Global Coordinates
         if mode == "a":
             if len(vals) != 3:
@@ -300,10 +310,10 @@ def command_run(self, context):
                 if obj.mode == "EDIT":
                     if oper == "C":
                         scene.cursor.location = (
-                            bm.select_history[-1].co + obj_loc + vector_delta
+                            verts[-1].co + obj_loc + vector_delta
                         )
                     else:
-                        pg.pivot_loc = bm.select_history[-1].co + obj_loc + vector_delta
+                        pg.pivot_loc = verts[-1].co + obj_loc + vector_delta
                 elif obj.mode == "OBJECT":
                     if oper == "C":
                         scene.cursor.location = obj_loc + vector_delta
@@ -325,10 +335,10 @@ def command_run(self, context):
                 if obj.mode == "EDIT":
                     if oper == "C":
                         scene.cursor.location = (
-                            bm.select_history[-1].co + obj_loc + vector_delta
+                            verts[-1].co + obj_loc + vector_delta
                         )
                     else:
-                        pg.pivot_loc = bm.select_history[-1].co + obj_loc + vector_delta
+                        pg.pivot_loc = verts[-1].co + obj_loc + vector_delta
                 elif obj.mode == "OBJECT":
                     if oper == "C":
                         scene.cursor.location = obj_loc + vector_delta
@@ -445,6 +455,16 @@ def command_run(self, context):
             pg.error = PDT_ERR_ADDVEDIT
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
+        if mode in {"d","i"}:
+            if len(bm.select_history) == 0:
+                if len(bm.verts) == 0:
+                    pg.error = PDT_ERR_NO_SEL_GEOM
+                    context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+                    return
+                else:
+                    verts = bm.verts
+            else:
+                verts = bm.select_history
         # Absolute/Global Coordinates
         if mode == "a":
             if len(vals) != 3:
@@ -466,7 +486,7 @@ def command_run(self, context):
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 return
             vector_delta = Vector((float(vals[0]), float(vals[1]), float(vals[2])))
-            vNew = bm.select_history[-1].co + vector_delta
+            vNew = verts[-1].co + vector_delta
             nVert = bm.verts.new(vNew)
             for v in [v for v in bm.verts if v.select]:
                 v.select_set(False)
@@ -480,7 +500,7 @@ def command_run(self, context):
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 return
             vector_delta = disAng(vals, flip_a, plane, scene)
-            vNew = bm.select_history[-1].co + vector_delta
+            vNew = verts[-1].co + vector_delta
             nVert = bm.verts.new(vNew)
             for v in [v for v in bm.verts if v.select]:
                 v.select_set(False)
@@ -693,7 +713,7 @@ def command_run(self, context):
         # Percent Options
         elif mode == "p":
             vector_delta = getPercent(obj, flip_p, float(vals[0]), oper, scene)
-            verts = [v for v in bm.verts if v.select]
+            verts = [v for v in bm.verts if v.select].copy()
             if len(verts) == 0:
                 pg.error = PDT_ERR_NO_SEL_GEOM
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -704,7 +724,7 @@ def command_run(self, context):
                     bm.edges.new([v, nVert])
                     v.select_set(False)
             else:
-                bm.edges.new([bm.select_history[-1], nVert])
+                bm.edges.new([verts[-1], nVert])
             nVert.select_set(True)
             bmesh.update_edit_mesh(obj.data)
             bm.select_history.clear()
