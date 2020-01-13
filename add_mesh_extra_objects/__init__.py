@@ -170,8 +170,11 @@ class VIEW3D_MT_mesh_extras_add(Menu):
         oper.change = False
         layout.separator()
         oper = layout.operator("mesh.primitive_star_add", text="Simple Star")
+        oper.change = False
         oper = layout.operator("mesh.primitive_steppyramid_add", text="Step Pyramid")
+        oper.change = False
         oper = layout.operator("mesh.honeycomb_add", text="Honeycomb")
+        oper.change = False
         oper = layout.operator("mesh.primitive_teapot_add", text="Teapot+")
         oper = layout.operator("mesh.menger_sponge_add", text="Menger Sponge")
 
@@ -184,9 +187,12 @@ class VIEW3D_MT_mesh_torus_add(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("mesh.primitive_twisted_torus_add", text="Twisted Torus")
-        layout.operator("mesh.primitive_supertoroid_add", text="Supertoroid")
-        layout.operator("mesh.primitive_torusknot_add", text="Torus Knot")
+        oper = layout.operator("mesh.primitive_twisted_torus_add", text="Twisted Torus")
+        oper.change = False
+        oper = layout.operator("mesh.primitive_supertoroid_add", text="Supertoroid")
+        oper.change = False
+        oper = layout.operator("mesh.primitive_torusknot_add", text="Torus Knot")
+        oper.change = False
 
 
 class VIEW3D_MT_mesh_pipe_joints_add(Menu):
@@ -197,11 +203,16 @@ class VIEW3D_MT_mesh_pipe_joints_add(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("mesh.primitive_elbow_joint_add", text="Pipe Elbow")
-        layout.operator("mesh.primitive_tee_joint_add", text="Pipe T-Joint")
-        layout.operator("mesh.primitive_wye_joint_add", text="Pipe Y-Joint")
-        layout.operator("mesh.primitive_cross_joint_add", text="Pipe Cross-Joint")
-        layout.operator("mesh.primitive_n_joint_add", text="Pipe N-Joint")
+        oper = layout.operator("mesh.primitive_elbow_joint_add", text="Pipe Elbow")
+        oper.change = False
+        oper = layout.operator("mesh.primitive_tee_joint_add", text="Pipe T-Joint")
+        oper.change = False
+        oper = layout.operator("mesh.primitive_wye_joint_add", text="Pipe Y-Joint")
+        oper.change = False
+        oper = layout.operator("mesh.primitive_cross_joint_add", text="Pipe Cross-Joint")
+        oper.change = False
+        oper = layout.operator("mesh.primitive_n_joint_add", text="Pipe N-Joint")
+        oper.change = False
 
 # Register all operators and panels
 
@@ -213,8 +224,9 @@ def menu_func(self, context):
     layout.separator()
     layout.menu("VIEW3D_MT_mesh_vert_add",
                 text="Single Vert", icon="DECORATE")
-    layout.operator("mesh.primitive_round_cube_add",
+    oper = layout.operator("mesh.primitive_round_cube_add",
                     text="Round Cube", icon="SPHERE")
+    oper.change = False
     layout.menu("VIEW3D_MT_mesh_torus_add",
                 text="Torus Objects", icon="MESH_TORUS")
     layout.separator()
@@ -319,6 +331,55 @@ def Extras_contex_menu(self, context):
         props = layout.operator("mesh.primitive_brilliant_add", text="Change Brilliant")
         props.change = True
         for prm in add_mesh_round_brilliant.BrilliantParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+        
+    if 'Roundcube' in obj.data.keys():
+        props = layout.operator("mesh.primitive_round_cube_add", text="Change Roundcube")
+        props.change = True
+        for prm in add_mesh_round_cube.RoundCubeParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+        
+    if 'TorusKnot' in obj.data.keys():
+        props = layout.operator("mesh.primitive_torusknot_add", text="Change TorusKnot")
+        props.change = True
+        for prm in add_mesh_torusknot.TorusKnotParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+
+    if 'SuperToroid' in obj.data.keys():
+        props = layout.operator("mesh.primitive_supertoroid_add", text="Change SuperToroid")
+        props.change = True
+        for prm in add_mesh_supertoroid.SuperToroidParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+
+    if 'TwistedTorus' in obj.data.keys():
+        props = layout.operator("mesh.primitive_twisted_torus_add", text="Change TwistedTorus")
+        props.change = True
+        for prm in add_mesh_twisted_torus.TwistedTorusParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+    
+    if 'Star' in obj.data.keys():
+        props = layout.operator("mesh.primitive_star_add", text="Change Star")
+        props.change = True
+        for prm in add_mesh_star.StarParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+        
+    if 'Pyramid' in obj.data.keys():
+        props = layout.operator("mesh.primitive_steppyramid_add", text="Change Pyramid")
+        props.change = True
+        for prm in add_mesh_pyramid.PyramidParameters():
+            setattr(props, prm, obj.data[prm])
+        layout.separator()
+
+    if 'HoneyComb' in obj.data.keys():
+        props = layout.operator("mesh.honeycomb_add", text="Change HoneyComb")
+        props.change = True
+        for prm in add_mesh_honeycomb.HoneyCombParameters():
             setattr(props, prm, obj.data[prm])
         layout.separator()
 

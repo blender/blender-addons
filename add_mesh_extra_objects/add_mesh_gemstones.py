@@ -14,14 +14,13 @@ from bpy.props import (
         StringProperty,
         )
 from bpy_extras import object_utils
-from . import utils
 
 # Create a new mesh (object) from verts/edges/faces.
 # verts/edges/faces ... List of vertices/edges/faces for the
 #                       new mesh (as used in from_pydata)
 # name ... Name of the new mesh (& object)
 
-def create_mesh_object(context, verts, edges, faces, name):
+def create_mesh_object(context, self, verts, edges, faces, name):
 
     # Create new mesh
     mesh = bpy.data.meshes.new(name)
@@ -33,7 +32,7 @@ def create_mesh_object(context, verts, edges, faces, name):
     mesh.update()
 
     from bpy_extras import object_utils
-    return object_utils.object_data_add(context, mesh, operator=None)
+    return object_utils.object_data_add(context, mesh, operator=self)
 
 
 # A very simple "bridge" tool.
@@ -274,9 +273,9 @@ class AddDiamond(Operator, object_utils.AddObjectHelper):
         if self.change == False:
             # generic transform props
             box = layout.box()
-            box.prop(self, 'align')
-            box.prop(self, 'location')
-            box.prop(self, 'rotation')
+            box.prop(self, 'align', expand=True)
+            box.prop(self, 'location', expand=True)
+            box.prop(self, 'rotation', expand=True)
 
     def execute(self, context):
         
@@ -309,9 +308,7 @@ class AddDiamond(Operator, object_utils.AddObjectHelper):
                     self.crown_height,
                     self.pavilion_height)
 
-                obj = create_mesh_object(context, verts, [], faces, "Diamond")
-
-                utils.setlocation(self, context)
+                obj = create_mesh_object(context, self, verts, [], faces, "Diamond")
 
             obj.data["Diamond"] = True
             obj.data["change"] = False
@@ -328,15 +325,13 @@ class AddDiamond(Operator, object_utils.AddObjectHelper):
                 self.crown_height,
                 self.pavilion_height)
 
-            obj = create_mesh_object(context, verts, [], faces, "TMP")
+            obj = create_mesh_object(context, self, verts, [], faces, "TMP")
             
             obj.select_set(True)
             active_object.select_set(True)
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
-
-            utils.setlocation(self, context)
 
         return {'FINISHED'}
 
@@ -417,9 +412,9 @@ class AddGem(Operator, object_utils.AddObjectHelper):
         if self.change == False:
             # generic transform props
             box = layout.box()
-            box.prop(self, 'align')
-            box.prop(self, 'location')
-            box.prop(self, 'rotation')
+            box.prop(self, 'align', expand=True)
+            box.prop(self, 'location', expand=True)
+            box.prop(self, 'rotation', expand=True)
     
     def execute(self, context):
         
@@ -451,9 +446,7 @@ class AddGem(Operator, object_utils.AddObjectHelper):
                     self.pavilion_height,
                     self.crown_height)
 
-                obj = create_mesh_object(context, verts, [], faces, "Gem")
-
-                utils.setlocation(self, context)
+                obj = create_mesh_object(context, self, verts, [], faces, "Gem")
 
             obj.data["Gem"] = True
             obj.data["change"] = False
@@ -471,15 +464,13 @@ class AddGem(Operator, object_utils.AddObjectHelper):
                 self.pavilion_height,
                 self.crown_height)
 
-            obj = create_mesh_object(context, verts, [], faces, "TMP")
+            obj = create_mesh_object(context, self, verts, [], faces, "TMP")
             
             obj.select_set(True)
             active_object.select_set(True)
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
-
-            utils.setlocation(self, context)
 
         return {'FINISHED'}
 

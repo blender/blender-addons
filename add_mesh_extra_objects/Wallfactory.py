@@ -55,7 +55,6 @@ from .Blocks import (
         stepBack,
         )
 from bpy_extras import object_utils
-from . import utils
 
 class add_mesh_wallb(Operator, object_utils.AddObjectHelper):
     bl_idname = "mesh.wall_add"
@@ -643,9 +642,9 @@ class add_mesh_wallb(Operator, object_utils.AddObjectHelper):
         if self.change == False:
             # generic transform props
             box = layout.box()
-            box.prop(self, 'align')
-            box.prop(self, 'location')
-            box.prop(self, 'rotation')
+            box.prop(self, 'align', expand=True)
+            box.prop(self, 'location', expand=True)
+            box.prop(self, 'rotation', expand=True)
 
     # Respond to UI - get the properties set by user.
     # Check and process UI settings to generate masonry
@@ -896,9 +895,7 @@ class add_mesh_wallb(Operator, object_utils.AddObjectHelper):
             else:
                 mesh = bpy.data.meshes.new("Wall")
                 mesh.from_pydata(verts_array, [], faces_array)
-                obj = object_utils.object_data_add(context, mesh, operator=None)
-
-                utils.setlocation(self, context)
+                obj = object_utils.object_data_add(context, mesh, operator=self)
             
             mesh.update()
             
@@ -913,14 +910,12 @@ class add_mesh_wallb(Operator, object_utils.AddObjectHelper):
             bpy.ops.object.mode_set(mode='OBJECT')
             mesh = bpy.data.meshes.new("TMP")
             mesh.from_pydata(verts_array, [], faces_array)
-            obj = object_utils.object_data_add(context, mesh, operator=None)
+            obj = object_utils.object_data_add(context, mesh, operator=self)
             obj.select_set(True)
             active_object.select_set(True)
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
-
-            utils.setlocation(self, context)
 
         return {'FINISHED'}
 

@@ -19,7 +19,6 @@ from mathutils import (
         Matrix,
         )
 from bpy_extras import object_utils
-from . import utils
 
 # A very simple "bridge" tool.
 # Connects two equally long vertex rows with faces.
@@ -675,9 +674,9 @@ class AddGear(Operator, object_utils.AddObjectHelper):
         if self.change == False:
             # generic transform props
             box = layout.box()
-            box.prop(self, 'align')
-            box.prop(self, 'location')
-            box.prop(self, 'rotation')
+            box.prop(self, 'align', expand=True)
+            box.prop(self, 'location', expand=True)
+            box.prop(self, 'rotation', expand=True)
 
     @classmethod
     def poll(cls, context):
@@ -705,9 +704,7 @@ class AddGear(Operator, object_utils.AddObjectHelper):
                 obj.data.name = oldmeshname
             else:
                 mesh, verts_tip, verts_valley = AddGearMesh(self, context)
-                obj = object_utils.object_data_add(context, mesh, operator=None)
-
-                utils.setlocation(self, context)
+                obj = object_utils.object_data_add(context, mesh, operator=self)
 
             # Create vertex groups from stored vertices.
             tipGroup = obj.vertex_groups.new(name='Tips')
@@ -726,7 +723,7 @@ class AddGear(Operator, object_utils.AddObjectHelper):
             name_active_object = active_object.name
             bpy.ops.object.mode_set(mode='OBJECT')
             mesh, verts_tip, verts_valley = AddGearMesh(self, context)
-            obj = object_utils.object_data_add(context, mesh, operator=None)
+            obj = object_utils.object_data_add(context, mesh, operator=self)
             
             # Create vertex groups from stored vertices.
             tipGroup = obj.vertex_groups.new(name='Tips')
@@ -740,8 +737,6 @@ class AddGear(Operator, object_utils.AddObjectHelper):
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
-
-            utils.setlocation(self, context)
 
         return {'FINISHED'}
 
@@ -894,9 +889,9 @@ class AddWormGear(Operator, object_utils.AddObjectHelper):
         if self.change == False:
             # generic transform props
             box = layout.box()
-            box.prop(self, 'align')
-            box.prop(self, 'location')
-            box.prop(self, 'rotation')
+            box.prop(self, 'align', expand=True)
+            box.prop(self, 'location', expand=True)
+            box.prop(self, 'rotation', expand=True)
 
     def execute(self, context):
 
@@ -921,9 +916,7 @@ class AddWormGear(Operator, object_utils.AddObjectHelper):
                 obj.data.name = oldmeshname
             else:
                 mesh, verts_tip, verts_valley = AddWormGearMesh(self, context)
-                obj = object_utils.object_data_add(context, mesh, operator=None)
-
-                utils.setlocation(self, context)
+                obj = object_utils.object_data_add(context, mesh, operator=self)
 
             # Create vertex groups from stored vertices.
             tipGroup = obj.vertex_groups.new(name = 'Tips')
@@ -942,7 +935,7 @@ class AddWormGear(Operator, object_utils.AddObjectHelper):
             name_active_object = active_object.name
             bpy.ops.object.mode_set(mode='OBJECT')
             mesh, verts_tip, verts_valley = AddWormGearMesh(self, context)
-            obj = object_utils.object_data_add(context, mesh, operator=None)
+            obj = object_utils.object_data_add(context, mesh, operator=self)
             
             # Create vertex groups from stored vertices.
             tipGroup = obj.vertex_groups.new(name = 'Tips')
@@ -956,8 +949,6 @@ class AddWormGear(Operator, object_utils.AddObjectHelper):
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
-
-            utils.setlocation(self, context)
 
         return {'FINISHED'}
 
