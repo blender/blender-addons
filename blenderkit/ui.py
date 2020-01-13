@@ -659,11 +659,14 @@ def draw_callback_2d_progress(self, context):
     for threaddata in download.download_threads:
         asset_data = threaddata[1]
         tcom = threaddata[2]
+
+        directory = paths.get_temp_dir('%s_search' % asset_data['asset_type'])
+        tpath = os.path.join(directory, asset_data['thumbnail_small'])
+        img = utils.get_hidden_image(tpath, asset_data['id'])
+
         if tcom.passargs.get('downloaders'):
             for d in tcom.passargs['downloaders']:
-                directory = paths.get_temp_dir('%s_search' % asset_data['asset_type'])
-                tpath = os.path.join(directory, asset_data['thumbnail_small'])
-                img = utils.get_hidden_image(tpath, 'rating_preview')
+
                 loc = view3d_utils.location_3d_to_region_2d(bpy.context.region, bpy.context.space_data.region_3d,
                                                             d['location'])
                 if loc is not None:

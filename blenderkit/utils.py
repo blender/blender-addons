@@ -252,11 +252,12 @@ def get_hidden_image(tpath, bdata_name, force_reload=False):
 
                 img.filepath = tpath
                 img.reload()
+        img.colorspace_settings.name = 'Linear'
     elif force_reload:
         if img.packed_file is not None:
             img.unpack(method='USE_ORIGINAL')
         img.reload()
-    img.colorspace_settings.name = 'Linear'
+        img.colorspace_settings.name = 'Linear'
     return img
 
 
