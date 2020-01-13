@@ -773,8 +773,7 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
 
         op = layout.operator('view3d.blenderkit_search', text='Search Similar')
         op.keywords = asset_data['name'] + ' ' + asset_data['description'] + ' ' + ' '.join(asset_data['tags'])
-
-        if asset_data.get('can_download'):
+        if asset_data.get('canDownload') != 0:
             if bpy.context.view_layer.objects.active is not None and ui_props.asset_type == 'MODEL':
                 aob = bpy.context.active_object
                 op = layout.operator('scene.blenderkit_download', text='Replace Active Models')
