@@ -45,11 +45,6 @@ class add_mesh_bolt(Operator, AddObjectHelper):
     Bolt : BoolProperty(name = "Bolt",
                 default = True,
                 description = "Bolt")
-
-    #### change properties
-    name : StringProperty(name = "Name",
-                    description = "Name")
-
     change : BoolProperty(name = "Change",
                 default = False,
                 description = "change Bolt")
@@ -329,11 +324,12 @@ class add_mesh_bolt(Operator, AddObjectHelper):
         col.prop(self, 'bf_Root_Percent')
         col.prop(self, 'bf_Div_Count')
 
-        # generic transform props
-        col.separator()
-        col.prop(self, 'align')
-        col.prop(self, 'location')
-        col.prop(self, 'rotation')
+        if self.change == False:
+            # generic transform props
+            col.separator()
+            col.prop(self, 'align')
+            col.prop(self, 'location')
+            col.prop(self, 'rotation')
 
     @classmethod
     def poll(cls, context):
@@ -361,7 +357,7 @@ class add_mesh_bolt(Operator, AddObjectHelper):
                 obj.data.name = oldmeshname
             else:
                 mesh = createMesh.Create_New_Mesh(self, context)
-                obj = object_utils.object_data_add(context, mesh, operator=None)
+                obj = object_utils.object_data_add(context, mesh, operator=self)
                 
             obj.data["Bolt"] = True
             obj.data["change"] = False
@@ -373,7 +369,7 @@ class add_mesh_bolt(Operator, AddObjectHelper):
             name_active_object = active_object.name
             bpy.ops.object.mode_set(mode='OBJECT')
             mesh = createMesh.Create_New_Mesh(self, context)
-            obj = object_utils.object_data_add(context, mesh, operator=None)
+            obj = object_utils.object_data_add(context, mesh, operator=self)
             
             obj.select_set(True)
             active_object.select_set(True)
