@@ -434,7 +434,7 @@ class AddRoundCube(Operator, object_utils.AddObjectHelper):
                                   self.size, self.div_type, self.odd_axis_align)
             mesh = bpy.data.meshes.new('Roundcube')
             mesh.from_pydata(verts, [], faces)
-            object_utils.object_data_add(context, mesh, operator=self)
+            obj = object_utils.object_data_add(context, mesh, operator=self)
             obj.select_set(True)
             active_object.select_set(True)
             bpy.ops.object.join()

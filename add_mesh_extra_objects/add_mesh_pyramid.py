@@ -188,7 +188,7 @@ class AddPyramid(bpy.types.Operator,  object_utils.AddObjectHelper):
             name_active_object = active_object.name
             bpy.ops.object.mode_set(mode='OBJECT')
             mesh = pyramid_mesh(self, context)
-            object_utils.object_data_add(context, mesh, operator=self)
+            obj = object_utils.object_data_add(context, mesh, operator=self)
             obj.select_set(True)
             active_object.select_set(True)
             bpy.ops.object.join()

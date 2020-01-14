@@ -267,7 +267,7 @@ class add_supertoroid(bpy.types.Operator, object_utils.AddObjectHelper):
                                   )
             mesh = bpy.data.meshes.new('SuperToroid')
             mesh.from_pydata(verts, [], faces)
-            object_utils.object_data_add(context, mesh, operator=self)
+            obj = object_utils.object_data_add(context, mesh, operator=self)
             obj.select_set(True)
             active_object.select_set(True)
             bpy.ops.object.join()

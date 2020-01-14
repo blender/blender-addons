@@ -170,7 +170,7 @@ class AddTorusKnot(bpy.types.Operator, object_utils.AddObjectHelper):
             verts, faces = make_knot(self.objecttype, self.resolution)
             mesh = bpy.data.meshes.new('TorusKnot')
             mesh.from_pydata(verts, [], faces)
-            object_utils.object_data_add(context, mesh, operator=self)
+            obj = object_utils.object_data_add(context, mesh, operator=self)
             obj.select_set(True)
             active_object.select_set(True)
             bpy.ops.object.join()
