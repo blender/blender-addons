@@ -494,7 +494,7 @@ def command_run(self, context):
             bmesh.update_edit_mesh(obj.data)
             bm.select_history.clear()
         # Direction/Polar Coordinates
-        elif mode == "d":
+        elif mode == "i":
             if len(vals) != 2:
                 pg.error = PDT_ERR_BAD2VALS
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
