@@ -823,7 +823,7 @@ asset_types = (
 
 
 class BlenderkitKillDownloadOperator(bpy.types.Operator):
-    """Kill a download."""
+    """Kill a download"""
     bl_idname = "scene.blenderkit_download_kill"
     bl_label = "BlenderKit Kill Asset Download"
     bl_options = {'REGISTER', 'INTERNAL'}

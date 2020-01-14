@@ -19,8 +19,8 @@
 bl_info = {
     "name": "BlenderKit Asset Library",
     "author": "Vilem Duha, Petr Dlouhy",
-    "version": (1, 0, 28),
-    "blender": (2, 80, 0),
+    "version": (1, 0, 29),
+    "blender": (2, 82, 0),
     "location": "View3D > Properties > BlenderKit",
     "description": "Online BlenderKit library (materials, models, brushes and more)",
     "warning": "",
@@ -257,11 +257,11 @@ def asset_type_callback(self, context):
         )
     else:
         items = (
-            ('MODEL', 'Upload Model', 'Browse models', 'OBJECT_DATAMODE', 0),
+            ('MODEL', 'Upload Model', 'Upload a model to BlenderKit', 'OBJECT_DATAMODE', 0),
             # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
-            ('MATERIAL', 'Uplaod Material', 'Browse materials', 'MATERIAL', 2),
+            ('MATERIAL', 'Uplaod Material', 'Upload a material to BlenderKit', 'MATERIAL', 2),
             # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
-            ('BRUSH', 'Upload Brush', 'Browse brushes', 'BRUSH_DATA', 3)
+            ('BRUSH', 'Upload Brush', 'Upload a brush to BlenderKit', 'BRUSH_DATA', 3)
         )
     return items
 
@@ -269,9 +269,9 @@ class BlenderKitUIProps(PropertyGroup):
     down_up: EnumProperty(
         name="Download vs Upload",
         items=(
-            ('SEARCH', 'Search', 'Searching is active', 'VIEWZOOM', 0),
-            ('UPLOAD', 'Upload', 'Uploads are active', 'COPYDOWN', 1),
-            # ('RATING', 'Rating', 'Rating is active', 'SOLO_ON', 2)
+            ('SEARCH', 'Search', 'Sctivate searching', 'VIEWZOOM', 0),
+            ('UPLOAD', 'Upload', 'Activate uploading', 'COPYDOWN', 1),
+            # ('RATING', 'Rating', 'Activate rating', 'SOLO_ON', 2)
         ),
         description="BLenderKit",
         default="SEARCH",
@@ -813,19 +813,19 @@ class BlenderKitModelUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
 
     manufacturer: StringProperty(
         name="Manufacturer",
-        description="Manufacturer, company making a design peace or product",
+        description="Manufacturer, company making a design peace or product. Not you",
         default="",
     )
 
     designer: StringProperty(
         name="Designer",
-        description="Author of the original design piece depicted",
+        description="Author of the original design piece depicted. Usually not you",
         default="",
     )
 
     design_collection: StringProperty(
         name="Design Collection",
-        description="Fill if this piece is part of a design collection",
+        description="Fill if this piece is part of a real world design collection",
         default="",
     )
 
@@ -1217,8 +1217,8 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
     append_method: EnumProperty(
         name="Import Method",
         items=(
-            ('LINK_COLLECTION', 'Link Collection', ''),
-            ('APPEND_OBJECTS', 'Append Objects', ''),
+            ('LINK_COLLECTION', 'Link', 'Link Collection'),
+            ('APPEND_OBJECTS', 'Append', 'Append as Objects'),
         ),
         description="choose if the assets will be linked or appended",
         default="LINK_COLLECTION"
@@ -1343,7 +1343,7 @@ class BlenderKitAddonPreferences(AddonPreferences):
 
     login_attempt: BoolProperty(
         name="Login/Signup attempt",
-        description="When this is on, BlenderKit is trying to connect and login.",
+        description="When this is on, BlenderKit is trying to connect and login",
         default=False
     )
 

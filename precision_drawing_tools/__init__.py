@@ -29,7 +29,7 @@
 bl_info = {
     "name": "Precision Drawing Tools (PDT)",
     "author": "Alan Odom (Clockmender), Rune Morling (ermo)",
-    "version": (1, 1, 6),
+    "version": (1, 1, 8),
     "blender": (2, 80, 0),
     "location": "View3D > UI > PDT",
     "description": "Precision Drawing Tools for Acccurate Modelling",
@@ -83,6 +83,7 @@ from .pdt_msg_strings import (
     PDT_DES_FILLETRAD,
     PDT_DES_FILLETSEG,
     PDT_DES_FILLETVERTS,
+    PDT_DES_FILLINT,
     PDT_DES_FLIPANG,
     PDT_DES_FLIPPER,
     PDT_DES_LIBCOLS,
@@ -96,6 +97,7 @@ from .pdt_msg_strings import (
     PDT_DES_OFFDIS,
     PDT_DES_OFFPER,
     PDT_DES_OPMODE,
+    PDT_DES_OUTPUT,
     PDT_DES_PIVOTDIS,
     PDT_DES_PPLOC,
     PDT_DES_PPSCALEFAC,
@@ -358,6 +360,11 @@ class PDTSceneProperties(PropertyGroup):
         update=command_run,
         description=PDT_DES_VALIDLET,
     )
+    maths_output : FloatProperty(
+        name="Maths output",
+        default=0,
+        description=PDT_DES_OUTPUT,
+    )
     error : StringProperty(name="Error", default="")
 
     # Was pivot* -- is now pivot_*
@@ -413,6 +420,11 @@ class PDTSceneProperties(PropertyGroup):
         default=True,
         description=PDT_DES_FILLETVERTS,
     )
+    fillet_int : BoolProperty(
+        name="Intersect",
+        default=False,
+        description=PDT_DES_FILLINT,
+    )
 
 
 class PDTPreferences(AddonPreferences):
@@ -430,6 +442,12 @@ class PDTPreferences(AddonPreferences):
         description="NOTE: Does not enable debugging globally in Blender (only in PDT scripts)"
     )
 
+    pdt_ui_width : IntProperty(
+        name='UI Width Cut-off',
+        default=350,
+        description="Cutoff width for shrinking items per line in menus"
+    )
+
     def draw(self, context):
         layout = self.layout
 
@@ -437,6 +455,7 @@ class PDTPreferences(AddonPreferences):
         row1 = box.row()
         row2 = box.row()
         row1.prop(self, "debug")
+        row1.prop(self, "pdt_ui_width")
         row2.prop(self, "pdt_library_path")
 
 
@@ -449,6 +468,7 @@ classes = (
     PDTSceneProperties,
     PDTPreferences,
     pdt_bix.PDT_OT_LineOnBisection,
+    pdt_command.PDT_OT_CommandReRun,
     pdt_design.PDT_OT_PlacementAbs,
     pdt_design.PDT_OT_PlacementDelta,
     pdt_design.PDT_OT_PlacementDis,

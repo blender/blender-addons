@@ -110,9 +110,10 @@ def fetch_server_data():
                 len(user_preferences.api_key) < 38 and \
                 user_preferences.api_key_timeout < time.time() + 3600:
             bkit_oauth.refresh_token_thread()
-        if api_key != '':
+        if api_key != '' and bpy.context.window_manager.get('bkit profile') == None:
             get_profile()
-        categories.fetch_categories_thread(api_key)
+        if bpy.context.window_manager.get('bkit_categories') is None:
+            categories.fetch_categories_thread(api_key)
 
 
 first_time = True
@@ -327,15 +328,23 @@ def split_subs(text, threshold=40):
     # temporarily disable this, to be able to do this in drawing code
 
     text = text.rstrip()
+    text = text.replace('\r\n', '\n')
+
     lines = []
 
     while len(text) > threshold:
-        i = text.rfind(' ', 0, threshold)
-        i1 = text.rfind(',', 0, threshold)
-        i2 = text.rfind('.', 0, threshold)
-        i = max(i, i1, i2)
-        if i <= 0:
-            i = threshold
+        #first handle if there's an \n line ending
+        i_rn = text.find('\n')
+        if 1 < i_rn < threshold:
+            i = i_rn
+            text = text.replace('\n','',1)
+        else:
+            i = text.rfind(' ', 0, threshold)
+            i1 = text.rfind(',', 0, threshold)
+            i2 = text.rfind('.', 0, threshold)
+            i = max(i, i1, i2)
+            if i <= 0:
+                i = threshold
         lines.append(text[:i])
         text = text[i:]
     lines.append(text)
@@ -614,6 +623,7 @@ def fetch_author(a_id, api_key):
         utils.p(e)
     utils.p('finish fetch')
 
+# profile_counter =0
 
 def get_author(r):
     a_id = str(r['author']['id'])
@@ -622,11 +632,13 @@ def get_author(r):
     if authors == {}:
         bpy.context.window_manager['bkit authors'] = authors
     a = authors.get(a_id)
-    if a is None or a is '' or \
-            (a.get('gravatarHash') is not None and a.get('gravatarImg') is None):
-        authors[a_id] = None
+    if a is None:# or a is '' or (a.get('gravatarHash') is not None and a.get('gravatarImg') is None):
+        authors[a_id] = ''
         thread = threading.Thread(target=fetch_author, args=(a_id, preferences.api_key), daemon=True)
         thread.start()
+        # global profile_counter
+        # profile_counter+=1
+        # print(profile_counter,'author:', a_id)
     return a
 
 

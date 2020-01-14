@@ -56,6 +56,7 @@ from .pdt_msg_strings import (
     PDT_ERR_SEL_2_OBJS,
     PDT_ERR_SEL_2_VERTIO,
     PDT_ERR_SEL_2_VERTS,
+    PDT_ERR_SEL_2_EDGES,
     PDT_ERR_SEL_3_OBJS,
     PDT_ERR_SEL_3_VERTIO,
     PDT_ERR_SEL_3_VERTS,
@@ -825,10 +826,10 @@ class PDT_OT_PlacementInt(Operator):
             edges = [e for e in bm.edges if e.select]
             if len(bm.select_history) == 4:
                 ext_a = pg.extend
-                va = bm.select_history[-1]
-                vo = bm.select_history[-2]
-                vl = bm.select_history[-3]
-                vf = bm.select_history[-4]
+                v_active = bm.select_history[-1]
+                v_other = bm.select_history[-2]
+                v_last = bm.select_history[-3]
+                v_first = bm.select_history[-4]
                 actV, othV, lstV, fstV = checkSelection(4, bm, obj)
                 if actV is None:
                     errmsg = PDT_ERR_VERT_MODE
@@ -836,14 +837,10 @@ class PDT_OT_PlacementInt(Operator):
                     return {"FINISHED"}
             elif len(edges) == 2:
                 ext_a = pg.extend
-                va = edges[0].verts[0]
-                actV = va.co
-                vo = edges[0].verts[1]
-                othV = vo.co
-                vl = edges[1].verts[0]
-                lstV = vl.co
-                vf = edges[1].verts[1]
-                fstV = vf.co
+                v_active = edges[0].verts[0]
+                v_other = edges[0].verts[1]
+                v_last = edges[1].verts[0]
+                v_first = edges[1].verts[1]
             else:
                 errmsg = (
                     PDT_ERR_SEL_4_VERTS
@@ -854,7 +851,12 @@ class PDT_OT_PlacementInt(Operator):
                 )
                 self.report({"ERROR"}, errmsg)
                 return {"FINISHED"}
-            vector_delta, done = intersection(actV, othV, lstV, fstV, plane)
+            vector_delta, done = intersection(v_active.co,
+                v_other.co,
+                v_last.co,
+                v_first.co,
+                plane
+                )
             if not done:
                 errmsg = f"{PDT_ERR_INT_LINES} {plane}  {PDT_LAB_PLANE}"
                 self.report({"ERROR"}, errmsg)
@@ -880,9 +882,9 @@ class PDT_OT_PlacementInt(Operator):
                 nVert = None
                 proc = False
 
-                if (actV - vector_delta).length < (othV - vector_delta).length:
+                if (v_active.co - vector_delta).length < (v_other.co - vector_delta).length:
                     if oper == "MV":
-                        va.co = vector_delta
+                        v_active.co = vector_delta
                         proc = True
                     elif oper == "EV":
                         nVert = bm.verts.new(vector_delta)
@@ -890,19 +892,19 @@ class PDT_OT_PlacementInt(Operator):
                         proc = True
                 else:
                     if oper == "MV" and ext_a:
-                        vo.co = vector_delta
+                        v_other.co = vector_delta
                     elif oper == "EV" and ext_a:
                         nVert = bm.verts.new(vector_delta)
                         bm.edges.new([vo, nVert])
 
-                if (lstV - vector_delta).length < (fstV - vector_delta).length:
+                if (v_last.co - vector_delta).length < (v_first.co - vector_delta).length:
                     if oper == "MV" and ext_a:
-                        vl.co = vector_delta
+                        v_last.co = vector_delta
                     elif oper == "EV" and ext_a:
                         bm.edges.new([vl, nVert])
                 else:
                     if oper == "MV" and ext_a:
-                        vf.co = vector_delta
+                        v_first.co = vector_delta
                     elif oper == "EV" and ext_a:
                         bm.edges.new([vf, nVert])
                 bm.select_history.clear()
@@ -1186,22 +1188,68 @@ class PDT_OT_Fillet(Operator):
 
         scene = context.scene
         pg = scene.pdt_pg
+        plane = pg.plane
         obj = context.view_layer.objects.active
         bm = bmesh.from_edit_mesh(obj.data)
         verts = [v for v in bm.verts if v.select]
-        if len(verts) == 0:
-            errmsg = PDT_ERR_SEL_1_VERT
-            self.report({"ERROR"}, errmsg)
-            return {"FINISHED"}
+        if pg.fillet_int:
+            # Fillet & Intersect Two Edges
+            edges = [e for e in bm.edges if e.select]
+            if len(edges) == 2 and len(verts) == 4:
+                v_active = edges[0].verts[0]
+                v_other = edges[0].verts[1]
+                v_last = edges[1].verts[0]
+                v_first = edges[1].verts[1]
+                vector_delta, done = intersection(v_active.co,
+                    v_other.co,
+                    v_last.co,
+                    v_first.co,
+                    plane
+                    )
+                if not done:
+                    errmsg = f"{PDT_ERR_INT_LINES} {plane}  {PDT_LAB_PLANE}"
+                    self.report({"ERROR"}, errmsg)
+                    return {"FINISHED"}
+                if (v_active.co - vector_delta).length < (v_other.co - vector_delta).length:
+                    v_active.co = vector_delta
+                    vo.select_set(False)
+                else:
+                    v_other.co = vector_delta
+                    v_active.select_set(False)
+                if (v_last.co - vector_delta).length < (v_first.co - vector_delta).length:
+                    v_last.co = vector_delta
+                    v_first.select_set(False)
+                else:
+                    v_first.co = vector_delta
+                    v_last.select_set(False)
+                bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
+                bpy.ops.mesh.bevel(
+                    offset_type="OFFSET",
+                    offset=pg.fillet_radius,
+                    segments=pg.fillet_segments,
+                    profile=pg.fillet_profile,
+                    vertex_only=True,
+                )
+                return {"FINISHED"}
+            else:
+                errmsg = f"{PDT_ERR_SEL_2_EDGES} {len(edges)})"
+                self.report({"ERROR"}, errmsg)
+                return {"FINISHED"}
         else:
-            bpy.ops.mesh.bevel(
-                offset_type="OFFSET",
-                offset=pg.fillet_radius,
-                segments=pg.fillet_segments,
-                profile=pg.fillet_profile,
-                vertex_only=pg.fillet_vertices_only,
-            )
-            return {"FINISHED"}
+            if len(verts) == 0:
+                errmsg = PDT_ERR_SEL_1_VERT
+                self.report({"ERROR"}, errmsg)
+                return {"FINISHED"}
+            else:
+                # Intersct Edges
+                bpy.ops.mesh.bevel(
+                    offset_type="OFFSET",
+                    offset=pg.fillet_radius,
+                    segments=pg.fillet_segments,
+                    profile=pg.fillet_profile,
+                    vertex_only=pg.fillet_vertices_only,
+                )
+                return {"FINISHED"}
 
 
 class PDT_OT_Angle2(Operator):

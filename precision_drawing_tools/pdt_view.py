@@ -32,11 +32,10 @@ from .pdt_functions import debug, euler_to_quaternion
 
 
 class PDT_OT_ViewRot(Operator):
-    """Rotate View using X Y Z Absolute Rotations."""
-
     bl_idname = "pdt.viewrot"
     bl_label = "Rotate View"
     bl_options = {"REGISTER", "UNDO"}
+    bl_description = "View Rotation by Absolute Values"
 
     def execute(self, context):
         """View Rotation by Absolute Values.
@@ -68,11 +67,10 @@ class PDT_OT_ViewRot(Operator):
 
 
 class PDT_OT_vRotL(Operator):
-    """Orbit View to Left by Angle."""
-
     bl_idname = "pdt.viewleft"
     bl_label = "Rotate Left"
     bl_options = {"REGISTER", "UNDO"}
+    bl_description = "View Orbit Left by Delta Value"
 
     def execute(self, context):
         """View Orbit Left by Delta Value.
@@ -97,11 +95,10 @@ class PDT_OT_vRotL(Operator):
 
 
 class PDT_OT_vRotR(Operator):
-    """Orbit View to Right by Angle."""
-
     bl_idname = "pdt.viewright"
     bl_label = "Rotate Right"
     bl_options = {"REGISTER", "UNDO"}
+    bl_description = "View Orbit Right by Delta Value"
 
     def execute(self, context):
         """View Orbit Right by Delta Value.
@@ -127,11 +124,10 @@ class PDT_OT_vRotR(Operator):
 
 
 class PDT_OT_vRotU(Operator):
-    """Orbit View to Up by Angle."""
-
     bl_idname = "pdt.viewup"
     bl_label = "Rotate Up"
     bl_options = {"REGISTER", "UNDO"}
+    bl_description = "View Orbit Up by Delta Value"
 
     def execute(self, context):
         """View Orbit Up by Delta Value.
@@ -157,11 +153,10 @@ class PDT_OT_vRotU(Operator):
 
 
 class PDT_OT_vRotD(Operator):
-    """Orbit View to Down by Angle."""
-
     bl_idname = "pdt.viewdown"
     bl_label = "Rotate Down"
     bl_options = {"REGISTER", "UNDO"}
+    bl_description = "View Orbit Down by Delta Value"
 
     def execute(self, context):
         """View Orbit Down by Delta Value.
@@ -187,11 +182,10 @@ class PDT_OT_vRotD(Operator):
 
 
 class PDT_OT_vRoll(Operator):
-    """Roll View by Angle."""
-
     bl_idname = "pdt.viewroll"
     bl_label = "Roll View"
     bl_options = {"REGISTER", "UNDO"}
+    bl_description = "View Roll by Delta Value"
 
     def execute(self, context):
         """View Roll by Delta Value.
@@ -217,11 +211,10 @@ class PDT_OT_vRoll(Operator):
 
 
 class PDT_OT_viso(Operator):
-    """Isometric View."""
-
     bl_idname = "pdt.viewiso"
     bl_label = "Isometric View"
     bl_options = {"REGISTER", "UNDO"}
+    bl_description = "Isometric View."
 
     def execute(self, context):
         """Set Isometric View.
@@ -241,15 +234,15 @@ class PDT_OT_viso(Operator):
             areas[0].spaces.active.region_3d.view_rotation = Quaternion(
                 (0.8205, 0.4247, -0.1759, -0.3399)
             )
+            areas[0].spaces.active.region_3d.view_perspective = 'ORTHO'
         return {"FINISHED"}
 
 
 class PDT_OT_Reset3DView(Operator):
-    """Reset 3D View to Blender Defaults."""
-
     bl_idname = "pdt.reset_3d_view"
     bl_label = "Reset 3D View"
     bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Reset 3D View to Blender Defaults."
 
     def execute(self, context):
         """Reset 3D View to Blender Defaults.
@@ -289,6 +282,7 @@ class PDT_OT_Reset3DView(Operator):
                     # Otherwise, the view matrix needs to be reset (includes distance).
                     debug(f"view_matrix before reset:\n{view.view_matrix}")
                     view.view_matrix = default_view_matrix
+                    view.view_distance = default_view_distance
                     view.update()
                     debug(f"view_matrix AFTER reset:\n{view.view_matrix}")
 

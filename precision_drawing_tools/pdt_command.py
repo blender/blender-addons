@@ -23,12 +23,14 @@
 #
 import bpy
 import bmesh
+from bpy.types import Operator
 from mathutils import Vector
 import math
 from .pdt_functions import (
     debug,
     disAng,
     getPercent,
+    intersection,
     objCheck,
     oops,
     updateSel,
@@ -85,9 +87,11 @@ def pdt_help(self, context):
     label(text="- Fillet Options:")
     label(text="v: Fillet Vertices")
     label(text="e: Fillet Edges")
+    label(text="i: Fillet & Intersect 2 Disconnected Edges")
     label(text="- Math Options:")
     label(text="x, y, z: Send result to X, Y and Z input fields in PDT Design")
     label(text="d, a, p: Send result to Distance, Angle or Percent input field in PDT Design")
+    label(text="o: Send Maths Calculation to Output")
     label(text="")
     label(text="Note that commands are case-insensitive: ED = Ed = eD = ed")
     label(text="")
@@ -101,6 +105,26 @@ def pdt_help(self, context):
     label(text="'- Radius: 0.1 (float) -- the radius (or offset) of the bevel/fillet")
     label(text="'- Segments: 4 (int) -- choosing an even amount of segments gives better geometry")
     label(text="'- Profile: 0.5 (float[0.0;1.0]) -- 0.5 (default) yields a circular, convex shape")
+
+class PDT_OT_CommandReRun(Operator):
+    """Repeat Current Displayed Command."""
+
+    bl_idname = "pdt.command_rerun"
+    bl_label = "Re-run Current Command"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        """Repeat Current Command Line Input.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
+        command_run(self, context)
+        return {"FINISHED"}
+
 
 def command_run(self, context):
     """Run Command String as input into Command Line.
@@ -129,7 +153,7 @@ def command_run(self, context):
         Valid Second Letters (as 'mode' - pg.command[1])
 
             A = Absolute XYZ, D = Delta XYZ, I = Distance at Angle, P = Percent
-            X = X Delta, Y = Y, Delta Z, = Z Delta (Maths Operation only)
+            X = X Delta, Y = Y, Delta Z, = Z Delta, O = Output (Maths Operation only)
             V = Vertex Bevel, E = Edge Bevel
 
             Capitals and lower case letters are both allowed
@@ -145,22 +169,22 @@ def command_run(self, context):
             Example; madegrees(atan(3/4)) - sets PDT Angle to smallest angle of 3,4,5 Triangle;
             (36.8699 degrees)
 
-            This is why all Math functions are imported
-
     Returns:
         Nothing.
     """
 
     scene = context.scene
     pg = scene.pdt_pg
-    cmd = pg.command
+    cmd = pg.command.strip()
 
-    if cmd.strip() == "?" or cmd.lower().strip() == "help":
+    if cmd == "?" or cmd.lower() == "help":
         # fmt: off
         context.window_manager.popup_menu(pdt_help, title="PDT Command Line Help", icon="INFO")
         # fmt: on
         return
-    if len(cmd) < 3:
+    elif cmd == "":
+        return
+    elif len(cmd) < 3:
         pg.error = PDT_ERR_CHARS_NUM
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         return
@@ -170,7 +194,7 @@ def command_run(self, context):
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         return
     mode = cmd[1].lower()
-    if mode not in {"a", "d", "e", "g", "i", "p", "v", "x", "y", "z"}:
+    if mode not in {"a", "d", "e", "g", "i", "o", "p", "v", "x", "y", "z"}:
         pg.error = PDT_ERR_BADSLETTER
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         return
@@ -178,16 +202,13 @@ def command_run(self, context):
     # --------------
     # Math Operation
     if oper == "M":
-        if mode not in {"x", "y", "z", "d", "a", "p"}:
+        if mode not in {"x", "y", "z", "d", "a", "p", "o"}:
             pg.error = f"{mode} {PDT_ERR_NON_VALID} Maths)"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
         exp = cmd[2:]
         namespace = {}
         namespace.update(vars(math))
-        if "," in exp:
-            pg.error = PDT_ERR_NOCOMMAS
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         try:
             num = eval(exp, namespace, namespace)
         except ValueError:
@@ -206,10 +227,12 @@ def command_run(self, context):
             pg.angle = num
         elif mode == "p":
             pg.percent = num
+        elif mode == "o":
+            pg.maths_output = num
         return
-    # "x"/"y"/"z" modes are only legal for Math Operation
+    # "o"/"x"/"y"/"z" modes are only legal for Math Operation
     else:
-        if mode in {"x", "y", "z"}:
+        if mode in {"o", "x", "y", "z"}:
             pg.error = PDT_ERR_BADCOORDL
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
@@ -250,6 +273,16 @@ def command_run(self, context):
             pg.error = f"'{mode}' {PDT_ERR_NON_VALID} '{oper}'"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
+        if mode in {"d","i"}:
+            if len(bm.select_history) == 0:
+                if len(bm.verts) == 0:
+                    pg.error = PDT_ERR_NO_SEL_GEOM
+                    context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+                    return
+                else:
+                    verts = bm.verts
+            else:
+                verts = bm.select_history
         # Absolute/Global Coordinates
         if mode == "a":
             if len(vals) != 3:
@@ -277,10 +310,10 @@ def command_run(self, context):
                 if obj.mode == "EDIT":
                     if oper == "C":
                         scene.cursor.location = (
-                            bm.select_history[-1].co + obj_loc + vector_delta
+                            verts[-1].co + obj_loc + vector_delta
                         )
                     else:
-                        pg.pivot_loc = bm.select_history[-1].co + obj_loc + vector_delta
+                        pg.pivot_loc = verts[-1].co + obj_loc + vector_delta
                 elif obj.mode == "OBJECT":
                     if oper == "C":
                         scene.cursor.location = obj_loc + vector_delta
@@ -302,10 +335,10 @@ def command_run(self, context):
                 if obj.mode == "EDIT":
                     if oper == "C":
                         scene.cursor.location = (
-                            bm.select_history[-1].co + obj_loc + vector_delta
+                            verts[-1].co + obj_loc + vector_delta
                         )
                     else:
-                        pg.pivot_loc = bm.select_history[-1].co + obj_loc + vector_delta
+                        pg.pivot_loc = verts[-1].co + obj_loc + vector_delta
                 elif obj.mode == "OBJECT":
                     if oper == "C":
                         scene.cursor.location = obj_loc + vector_delta
@@ -422,6 +455,16 @@ def command_run(self, context):
             pg.error = PDT_ERR_ADDVEDIT
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
+        if mode in {"d","i"}:
+            if len(bm.select_history) == 0:
+                if len(bm.verts) == 0:
+                    pg.error = PDT_ERR_NO_SEL_GEOM
+                    context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+                    return
+                else:
+                    verts = bm.verts
+            else:
+                verts = bm.select_history
         # Absolute/Global Coordinates
         if mode == "a":
             if len(vals) != 3:
@@ -443,7 +486,7 @@ def command_run(self, context):
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 return
             vector_delta = Vector((float(vals[0]), float(vals[1]), float(vals[2])))
-            vNew = bm.select_history[-1].co + vector_delta
+            vNew = verts[-1].co + vector_delta
             nVert = bm.verts.new(vNew)
             for v in [v for v in bm.verts if v.select]:
                 v.select_set(False)
@@ -451,13 +494,13 @@ def command_run(self, context):
             bmesh.update_edit_mesh(obj.data)
             bm.select_history.clear()
         # Direction/Polar Coordinates
-        elif mode == "d":
+        elif mode == "i":
             if len(vals) != 2:
                 pg.error = PDT_ERR_BAD2VALS
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 return
             vector_delta = disAng(vals, flip_a, plane, scene)
-            vNew = bm.select_history[-1].co + vector_delta
+            vNew = verts[-1].co + vector_delta
             nVert = bm.verts.new(vNew)
             for v in [v for v in bm.verts if v.select]:
                 v.select_set(False)
@@ -670,7 +713,7 @@ def command_run(self, context):
         # Percent Options
         elif mode == "p":
             vector_delta = getPercent(obj, flip_p, float(vals[0]), oper, scene)
-            verts = [v for v in bm.verts if v.select]
+            verts = [v for v in bm.verts if v.select].copy()
             if len(verts) == 0:
                 pg.error = PDT_ERR_NO_SEL_GEOM
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -681,7 +724,7 @@ def command_run(self, context):
                     bm.edges.new([v, nVert])
                     v.select_set(False)
             else:
-                bm.edges.new([bm.select_history[-1], nVert])
+                bm.edges.new([verts[-1], nVert])
             nVert.select_set(True)
             bmesh.update_edit_mesh(obj.data)
             bm.select_history.clear()
@@ -836,7 +879,7 @@ def command_run(self, context):
     # ---------------
     # Fillet Geometry
     elif oper == "F":
-        if mode not in {"v", "e"}:
+        if mode not in {"v", "e", "i"}:
             pg.error = f"'{mode}' {PDT_ERR_NON_VALID} '{oper}'"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
@@ -852,7 +895,7 @@ def command_run(self, context):
             pg.error = PDT_ERR_BAD3VALS
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
-        if mode == "v":
+        if mode in {"i", "v"}:
             vert_bool = True
         elif mode == "e":
             vert_bool = False
@@ -870,6 +913,37 @@ def command_run(self, context):
         _profile = float(vals[2])
         if _profile < 0.0 or _profile > 1.0:
             _profile = 0.5  # This is a circular profile
+        if mode == "i":
+            # Fillet & Intersect Two Edges
+            edges = [e for e in bm.edges if e.select]
+            if len(edges) == 2 and len(verts) == 4:
+                v_active = edges[0].verts[0]
+                v_other = edges[0].verts[1]
+                v_last = edges[1].verts[0]
+                v_first = edges[1].verts[1]
+                vector_delta, done = intersection(v_active.co,
+                    v_other.co,
+                    v_last.co,
+                    v_first.co,
+                    plane
+                    )
+                if not done:
+                    errmsg = f"{PDT_ERR_INT_LINES} {plane}  {PDT_LAB_PLANE}"
+                    self.report({"ERROR"}, errmsg)
+                    return {"FINISHED"}
+                if (v_active.co - vector_delta).length < (v_other.co - vector_delta).length:
+                    v_active.co = vector_delta
+                    v_other.select_set(False)
+                else:
+                    v_other.co = vector_delta
+                    v_active.select_set(False)
+                if (v_last.co - vector_delta).length < (v_first.co - vector_delta).length:
+                    v_last.co = vector_delta
+                    v_first.select_set(False)
+                else:
+                    v_first.co = vector_delta
+                    v_last.select_set(False)
+                bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
         bpy.ops.mesh.bevel(
             offset_type="OFFSET",
             offset=_offset,

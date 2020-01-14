@@ -270,11 +270,15 @@ def draw_assetbar_show_hide(layout, props):
 
     if ui_props.assetbar_on:
         icon = 'HIDE_OFF'
+        ttip = 'Click to Hide Asset Bar'
     else:
         icon = 'HIDE_ON'
+        ttip = 'Click to Show Asset Bar'
     op = layout.operator('view3d.blenderkit_asset_bar', text='', icon=icon)
     op.keep_running = False
     op.do_search = False
+
+    op.tooltip = ttip
 
 
 def draw_panel_model_search(self, context):
@@ -347,8 +351,8 @@ def draw_panel_model_search(self, context):
 
     layout.separator()
     layout.label(text='Import method:')
-    col = layout.column()
-    col.prop(props, 'append_method', expand=True, icon_only=False)
+    row = layout.row()
+    row.prop(props, 'append_method', expand=True, icon_only=False)
     layout.prop(props, 'randomize_rotation')
     if props.randomize_rotation:
         layout.prop(props, 'randomize_rotation_amount')
@@ -681,6 +685,8 @@ class VIEW3D_PT_blenderkit_unified(Panel):
             op = layout.operator('view3d.blenderkit_asset_bar', text=text, icon='EXPORT')
             op.keep_running = False
             op.do_search = False
+            op.tooltip = 'Show/Hide asset preview'
+
             e = s.render.engine
             if e not in ('CYCLES', 'BLENDER_EEVEE'):
                 rtext = 'Only Cycles and EEVEE render engines are currently supported. ' \
@@ -767,17 +773,17 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
 
         op = layout.operator('view3d.blenderkit_search', text='Search Similar')
         op.keywords = asset_data['name'] + ' ' + asset_data['description'] + ' ' + ' '.join(asset_data['tags'])
-
-        if bpy.context.view_layer.objects.active is not None and ui_props.asset_type == 'MODEL':
-            aob = bpy.context.active_object
-            op = layout.operator('scene.blenderkit_download', text='Replace Active Models')
-            op.asset_type = ui_props.asset_type
-            op.asset_index = ui_props.active_index
-            op.model_location = aob.location
-            op.model_rotation = aob.rotation_euler
-            op.target_object = aob.name
-            op.material_target_slot = aob.active_material_index
-            op.replace = True
+        if asset_data.get('canDownload') != 0:
+            if bpy.context.view_layer.objects.active is not None and ui_props.asset_type == 'MODEL':
+                aob = bpy.context.active_object
+                op = layout.operator('scene.blenderkit_download', text='Replace Active Models')
+                op.asset_type = ui_props.asset_type
+                op.asset_index = ui_props.active_index
+                op.model_location = aob.location
+                op.model_rotation = aob.rotation_euler
+                op.target_object = aob.name
+                op.material_target_slot = aob.active_material_index
+                op.replace = True
 
         wm = bpy.context.window_manager
         profile = wm.get('bkit profile')
@@ -870,6 +876,7 @@ class UrlPopupDialog(bpy.types.Operator):
         layout = self.layout
         label_multiline(layout, text=self.message)
 
+        layout.active_default = True
         op = layout.operator("wm.url_open", text=self.link_text, icon='QUESTION')
         op.url = self.url
 
@@ -968,7 +975,7 @@ class VIEW3D_PT_blenderkit_downloads(Panel):
 
 
 def header_search_draw(self, context):
-    '''Top bar menu in 3d view.'''
+    '''Top bar menu in 3d view'''
     layout = self.layout
     s = bpy.context.scene
     ui_props = s.blenderkitUI
@@ -982,13 +989,7 @@ def header_search_draw(self, context):
     layout.separator_spacer()
     layout.prop(ui_props, "asset_type", text='', icon='URL')
     layout.prop(props, "search_keywords", text="", icon='VIEWZOOM')
-    if ui_props.assetbar_on:
-        icon = 'HIDE_OFF'
-    else:
-        icon = 'HIDE_ON'
-    op = layout.operator('view3d.blenderkit_asset_bar', text='', icon=icon)
-    op.keep_running = False
-    op.do_search = False
+    draw_assetbar_show_hide(layout, props)
 
 
 # We can store multiple preview collections here,

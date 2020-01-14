@@ -79,7 +79,7 @@ class PDT_OT_Append(Operator):
 
         scene = context.scene
         pg = scene.pdt_pg
-        obj_names = [o.name for o in context.view_layer.objects]
+        obj_names = [o.name for o in context.view_layer.objects].copy()
         file_path = context.preferences.addons[__package__].preferences.pdt_library_path
         path = Path(file_path)
 
