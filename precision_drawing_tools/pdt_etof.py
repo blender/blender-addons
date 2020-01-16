@@ -31,27 +31,25 @@ from .pdt_msg_strings import (
     PDT_ERR_NOINT,
     PDT_ERR_SEL_1_E_1_F
 )
+from .pdt_functions import oops
 
 
-def failure_message(self):
+def failure_message(self, context):
     """Warn to the user to select 1 edge and 1 face."""
-    self.report({"WARNING"}, PDT_ERR_SEL_1_E_1_F)
+    pg = context.scene.pdt_pg
+    pg.error = f"Select One Face and One Edge"
+    context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+    return
 
 
-def failure_message_on_plane(self):
+def failure_message_on_plane(self, context):
     """Report an informative error message in a popup."""
-    msg2 = """\
-Edge2Face expects the edge to intersect at one point on the plane of the selected face. You're
-seeing this warning because mathutils.geometry.intersect_line_plane is being called on an edge/face
-combination that has no clear intersection point ( both points of the edge either touch the same
-plane as the face or they lie in a plane that is offset along the face's normal )"""
-    lines = msg2.split("\n")
-    for line in lines:
-        self.report({"INFO"}, line)
-    self.report({"ERROR"}, PDT_ERR_NOINT)
+    pg = context.scene.pdt_pg
+    pg.error = f"{PDT_ERR_NOINT}"
+    context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+    return
 
-
-def extend_vertex(self):
+def extend_vertex(self, context):
     """Computes Edge Extension to Face.
 
     Args:
@@ -61,47 +59,52 @@ def extend_vertex(self):
         Nothing."""
 
     obj = bpy.context.edit_object
-    me = obj.data
-    bm = bmesh.from_edit_mesh(me)
-    verts = bm.verts
-    faces = bm.faces
+    if all([bool(obj), obj.type == "MESH", obj.mode == "EDIT"]):
+        me = obj.data
+        bm = bmesh.from_edit_mesh(me)
+        verts = bm.verts
+        faces = bm.faces
 
-    planes = [f for f in faces if f.select]
-    if not len(planes) == 1:
-        failure_message(self)
-        return
+        planes = [f for f in faces if f.select]
+        if not len(planes) == 1:
+            failure_message(self, context)
+            return
 
-    plane = planes[0]
-    plane_vert_indices = plane.verts[:]
-    all_selected_vert_indices = [v for v in verts if v.select]
+        plane = planes[0]
+        plane_vert_indices = plane.verts[:]
+        all_selected_vert_indices = [v for v in verts if v.select]
 
-    M = set(plane_vert_indices)
-    N = set(all_selected_vert_indices)
-    O = N.difference(M)
-    O = list(O)
+        M = set(plane_vert_indices)
+        N = set(all_selected_vert_indices)
+        O = N.difference(M)
+        O = list(O)
 
-    if not len(O) == 2:
-        failure_message(self)
-        return
+        if not len(O) == 2:
+            failure_message(self, context)
+            return
 
-    (v1_ref, v1), (v2_ref, v2) = [(i, i.co) for i in O]
+        (v1_ref, v1), (v2_ref, v2) = [(i, i.co) for i in O]
 
-    plane_co = plane.calc_center_median()
-    plane_no = plane.normal
+        plane_co = plane.calc_center_median()
+        plane_no = plane.normal
 
-    new_co = intersect_line_plane(v1, v2, plane_co, plane_no, False)
+        new_co = intersect_line_plane(v1, v2, plane_co, plane_no, False)
 
-    if new_co:
-        new_vertex = verts.new(new_co)
-        A_len = (v1 - new_co).length
-        B_len = (v2 - new_co).length
+        if new_co:
+            new_vertex = verts.new(new_co)
+            A_len = (v1 - new_co).length
+            B_len = (v2 - new_co).length
 
-        vertex_reference = v1_ref if (A_len < B_len) else v2_ref
-        bm.edges.new([vertex_reference, new_vertex])
-        bmesh.update_edit_mesh(me, True)
+            vertex_reference = v1_ref if (A_len < B_len) else v2_ref
+            bm.edges.new([vertex_reference, new_vertex])
+            bmesh.update_edit_mesh(me, True)
 
+        else:
+            failure_message_on_plane(self, context)
     else:
-        failure_message_on_plane(self)
+        pg.error = f"{PDT_ERR_EDOB_MODE},{obj.mode})"
+        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+        return
 
 
 class PDT_OT_EdgeToFace(bpy.types.Operator):
@@ -128,5 +131,6 @@ class PDT_OT_EdgeToFace(bpy.types.Operator):
         Returns:
             Status Set."""
 
-        extend_vertex(self)
+        pg = context.scene.pdt_pg
+        pg.command = f"etf"
         return {"FINISHED"}

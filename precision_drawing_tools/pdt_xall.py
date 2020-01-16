@@ -146,6 +146,47 @@ def unselect_nonintersecting(bm, d_edges, edge_indices):
             bm.edges[edge].select = False
 
 
+def intersect_all(self, context):
+    """Computes All intersections with Crossing Geometry.
+
+    Deletes original edges and replaces with new intersected edges
+
+    Args:
+        context: Blender bpy.context instance.
+
+    Returns:
+        Status Set.
+    """
+
+    pg = context.scene.pdt_pg
+    obj = context.active_object
+    if all([bool(obj), obj.type == "MESH", obj.mode == "EDIT"]):
+        # must force edge selection mode here
+        bpy.context.tool_settings.mesh_select_mode = (False, True, False)
+
+
+        if obj.mode == "EDIT":
+            bm = bmesh.from_edit_mesh(obj.data)
+
+            selected_edges = [edge for edge in bm.edges if edge.select]
+            edge_indices = [i.index for i in selected_edges]
+
+            int_dict = get_intersection_dictionary(bm, edge_indices)
+
+            unselect_nonintersecting(bm, int_dict.keys(), edge_indices)
+            update_mesh(bm, int_dict)
+
+            bmesh.update_edit_mesh(obj.data)
+        else:
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            return
+
+        return
+    else:
+        pg.error = f"{PDT_ERR_EDOB_MODE},{obj.mode})"
+        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+        return
+
 class PDT_OT_IntersectAllEdges(bpy.types.Operator):
     """Cut Selected Edges at All Intersections."""
 
@@ -172,24 +213,6 @@ class PDT_OT_IntersectAllEdges(bpy.types.Operator):
             Status Set.
         """
 
-        # must force edge selection mode here
-        bpy.context.tool_settings.mesh_select_mode = (False, True, False)
-
-        obj = context.active_object
-        if obj.mode == "EDIT":
-            bm = bmesh.from_edit_mesh(obj.data)
-
-            selected_edges = [edge for edge in bm.edges if edge.select]
-            edge_indices = [i.index for i in selected_edges]
-
-            int_dict = get_intersection_dictionary(bm, edge_indices)
-
-            unselect_nonintersecting(bm, int_dict.keys(), edge_indices)
-            update_mesh(bm, int_dict)
-
-            bmesh.update_edit_mesh(obj.data)
-        else:
-            msg = PDT_ERR_EDIT_MODE + obj.mode + ")"
-            self.report({"ERROR"}, msg)
-
+        pg = context.scene.pdt_pg
+        pg.command = f"intall"
         return {"FINISHED"}

@@ -56,10 +56,10 @@ PDT_LAB_TAPERAXES     = ""            # Intentionally left blank
 PDT_LAB_TAPER         = "Taper"
 PDT_LAB_INTERSETALL   = "Intersect All"
 PDT_LAB_BISECT        = "Bisect"
-PDT_LAB_EDGETOEFACE   = "Edge-Face"
+PDT_LAB_EDGETOEFACE   = "Edge-To-Face"
 PDT_LAB_FILLET        = "Fillet"
 PDT_LAB_SEGMENTS      = "Segments"
-PDT_LAB_USEVERTS      = "Use Verts"
+PDT_LAB_USEVERTS      = "Use Vertices"
 PDT_LAB_RADIUS        = "Radius"
 PDT_LAB_PROFILE       = "Profile"
 PDT_LAB_PIVOTSIZE     = ""            # Intentionally left blank
@@ -114,7 +114,6 @@ PDT_ERR_SCALEZERO     = "Scale Distance is 0"
 
 PDT_ERR_CHARS_NUM     = "Bad Command Format, not enough Characters"
 PDT_ERR_BADFLETTER    = "Bad Operator (1st Letter); C D E F G N M P S V or ? only"
-PDT_ERR_BADSLETTER    = "Bad Mode (2nd Letter); A D I or P only (+ X Y & Z for Maths) (+ I V & G for Fillet)"
 PDT_ERR_BADMATHS      = "Not a Valid Mathematical Expression!"
 PDT_ERR_BADCOORDL     = "X Y & Z Not permitted in anything other than Maths Operations"
 PDT_ERR_BAD1VALS      = "Bad Command - 1 Value needed"
@@ -130,7 +129,7 @@ PDT_ERR_NOCOMMAS      = "No commas allowed in Maths Command"
 PDT_ERR_2CPNPE        = "Select 2 Co-Planar Non-Parallel Edges"
 PDT_ERR_NCEDGES       = "Edges must be Co-Planar Non-Parallel Edges, Selected Edges aren't"
 PDT_ERR_1EDGE1FACE    = "Select 1 face and 1 Detached Edge"
-PDT_ERR_NOINT         = "No Intersection Found, see the Info Panel for Details"
+PDT_ERR_NOINT         = "No Intersection Found"
 
 # Info messages
 #

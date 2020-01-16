@@ -55,14 +55,12 @@ class PDT_OT_ViewRot(Operator):
 
         scene = context.scene
         pg = scene.pdt_pg
-        areas = [a for a in context.screen.areas if a.type == "VIEW_3D"]
-        if len(areas) > 0:
-            roll_value = euler_to_quaternion(
-                pg.rotation_coords.x * pi / 180,
-                pg.rotation_coords.y * pi / 180,
-                pg.rotation_coords.z * pi / 180
-            )
-            areas[0].spaces.active.region_3d.view_rotation = roll_value
+        roll_value = euler_to_quaternion(
+            pg.rotation_coords.x * pi / 180,
+            pg.rotation_coords.y * pi / 180,
+            pg.rotation_coords.z * pi / 180
+        )
+        context.region_data.view_rotation = roll_value
         return {"FINISHED"}
 
 
@@ -88,9 +86,7 @@ class PDT_OT_vRotL(Operator):
 
         scene = context.scene
         pg = scene.pdt_pg
-        areas = [a for a in context.screen.areas if a.type == "VIEW_3D"]
-        if len(areas) > 0:
-            bpy.ops.view3d.view_orbit(angle=(pg.vrotangle * pi / 180), type="ORBITLEFT")
+        bpy.ops.view3d.view_orbit(angle=(pg.vrotangle * pi / 180), type="ORBITLEFT")
         return {"FINISHED"}
 
 
@@ -117,9 +113,7 @@ class PDT_OT_vRotR(Operator):
 
         scene = context.scene
         pg = scene.pdt_pg
-        areas = [a for a in context.screen.areas if a.type == "VIEW_3D"]
-        if len(areas) > 0:
-            bpy.ops.view3d.view_orbit(angle=(pg.vrotangle * pi / 180), type="ORBITRIGHT")
+        bpy.ops.view3d.view_orbit(angle=(pg.vrotangle * pi / 180), type="ORBITRIGHT")
         return {"FINISHED"}
 
 
@@ -146,9 +140,7 @@ class PDT_OT_vRotU(Operator):
 
         scene = context.scene
         pg = scene.pdt_pg
-        areas = [a for a in context.screen.areas if a.type == "VIEW_3D"]
-        if len(areas) > 0:
-            bpy.ops.view3d.view_orbit(angle=(pg.vrotangle * pi / 180), type="ORBITUP")
+        bpy.ops.view3d.view_orbit(angle=(pg.vrotangle * pi / 180), type="ORBITUP")
         return {"FINISHED"}
 
 
@@ -175,9 +167,7 @@ class PDT_OT_vRotD(Operator):
 
         scene = context.scene
         pg = scene.pdt_pg
-        areas = [a for a in context.screen.areas if a.type == "VIEW_3D"]
-        if len(areas) > 0:
-            bpy.ops.view3d.view_orbit(angle=(pg.vrotangle * pi / 180), type="ORBITDOWN")
+        bpy.ops.view3d.view_orbit(angle=(pg.vrotangle * pi / 180), type="ORBITDOWN")
         return {"FINISHED"}
 
 
@@ -204,9 +194,7 @@ class PDT_OT_vRoll(Operator):
 
         scene = context.scene
         pg = scene.pdt_pg
-        areas = [a for a in context.screen.areas if a.type == "VIEW_3D"]
-        if len(areas) > 0:
-            bpy.ops.view3d.view_roll(angle=(pg.vrotangle * pi / 180), type="ANGLE")
+        bpy.ops.view3d.view_roll(angle=(pg.vrotangle * pi / 180), type="ANGLE")
         return {"FINISHED"}
 
 
@@ -219,7 +207,7 @@ class PDT_OT_viso(Operator):
     def execute(self, context):
         """Set Isometric View.
 
-        Set view orientation to Isometric
+        Set view orientation to Orthographic Isometric
 
         Args:
             context: Blender bpy.context instance.
@@ -227,14 +215,11 @@ class PDT_OT_viso(Operator):
         Returns:
             Status Set.
         """
-
-        areas = [a for a in context.screen.areas if a.type == "VIEW_3D"]
-        if len(areas) > 0:
-            # Try working this out in your head!
-            areas[0].spaces.active.region_3d.view_rotation = Quaternion(
-                (0.8205, 0.4247, -0.1759, -0.3399)
-            )
-            areas[0].spaces.active.region_3d.view_perspective = 'ORTHO'
+        # Try working this out in your head!
+        context.region_data.view_rotation = Quaternion(
+            (0.8205, 0.4247, -0.1759, -0.3399)
+        )
+        context.region_data.view_perspective = 'ORTHO'
         return {"FINISHED"}
 
 
@@ -256,6 +241,7 @@ class PDT_OT_Reset3DView(Operator):
 
         # The default view_distance to the origin when starting up Blender
         default_view_distance = 17.986562728881836
+        default_view_distance = bpy.data.screens['Layout'].areas[-1].spaces[0].region_3d.view_distance
         # The default view_matrix when starting up Blender
         default_view_matrix = (
             (0.41, -0.4017, 0.8188, 0.0),
@@ -264,26 +250,24 @@ class PDT_OT_Reset3DView(Operator):
             (0.0, 0.0, -17.9866, 1.0)
         )
 
-        for area in (a for a in context.screen.areas if a.type == 'VIEW_3D'):
-            view = area.spaces[0].region_3d
-            if view is not None:
-                debug(f"is_orthographic_side_view: {view.is_orthographic_side_view}")
-                if view.is_orthographic_side_view:
-                    # When the view is orthographic, reset the distance and location.
-                    # The rotation already fits.
-                    debug(f"view_distance before reset: {view.view_distance}")
-                    debug(f"view_location before reset: {view.view_location}")
-                    view.view_distance = default_view_distance
-                    view.view_location = (-0.0, -0.0, -0.0)
-                    view.update()
-                    debug(f"view_distance AFTER reset: {view.view_distance}")
-                    debug(f"view_location AFTER reset: {view.view_location}")
-                else:
-                    # Otherwise, the view matrix needs to be reset (includes distance).
-                    debug(f"view_matrix before reset:\n{view.view_matrix}")
-                    view.view_matrix = default_view_matrix
-                    view.view_distance = default_view_distance
-                    view.update()
-                    debug(f"view_matrix AFTER reset:\n{view.view_matrix}")
+        view = context.region_data
+        debug(f"is_orthographic_side_view: {view.is_orthographic_side_view}")
+        if view.is_orthographic_side_view:
+            # When the view is orthographic, reset the distance and location.
+            # The rotation already fits.
+            debug(f"view_distance before reset: {view.view_distance}")
+            debug(f"view_location before reset: {view.view_location}")
+            view.view_distance = default_view_distance
+            view.view_location = (-0.0, -0.0, -0.0)
+            view.update()
+            debug(f"view_distance AFTER reset: {view.view_distance}")
+            debug(f"view_location AFTER reset: {view.view_location}")
+        else:
+            # Otherwise, the view matrix needs to be reset.
+            debug(f"view_matrix before reset:\n{view.view_matrix}")
+            view.view_matrix = default_view_matrix
+            view.view_distance = default_view_distance
+            view.update()
+            debug(f"view_matrix AFTER reset:\n{view.view_matrix}")
 
         return {'FINISHED'}

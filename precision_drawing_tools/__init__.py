@@ -272,7 +272,7 @@ class PDTSceneProperties(PropertyGroup):
         items=(
             ("CU", "Move Cursor", "This function will Move the Cursor"),
             ("PP", "Move Pivot Point", "This function will Move the Pivot Point"),
-            ("MV", "Move (per Move Mode)", "This function will Move selected Vertices or Objects"),
+            ("MV", "Move Entities", "This function will Move selected Vertices or Objects"),
             ("NV", "Add New Vertex", "This function will Add a New Vertex"),
             ("EV", "Extrude Vertex/Vertices", "This function will Extrude Vertex/Vertices Only in EDIT Mode"),
             ("SE", "Split Edges", "This function will Split Edges Only in EDIT Mode"),
@@ -420,7 +420,7 @@ class PDTSceneProperties(PropertyGroup):
         default=True,
         description=PDT_DES_FILLETVERTS,
     )
-    fillet_int : BoolProperty(
+    fillet_intersect : BoolProperty(
         name="Intersect",
         default=False,
         description=PDT_DES_FILLINT,
@@ -487,6 +487,7 @@ classes = (
     pdt_library.PDT_OT_Link,
     pdt_library.PDT_OT_LibShow,
     pdt_menus.PDT_PT_PanelDesign,
+    pdt_menus.PDT_PT_PanelTools,
     pdt_menus.PDT_PT_PanelCommandLine,
     pdt_menus.PDT_PT_PanelViewControl,
     pdt_menus.PDT_PT_PanelPivotPoint,

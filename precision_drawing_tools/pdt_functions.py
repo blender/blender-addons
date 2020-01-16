@@ -36,7 +36,12 @@ from .pdt_msg_strings import (
     PDT_ERR_SEL_2_V_1_E,
     PDT_ERR_SEL_2_OBJS,
     PDT_ERR_NO_ACT_OBJ,
-    PDT_ERR_SEL_1_EDGEM
+    PDT_ERR_SEL_1_EDGEM,
+    PDT_ERR_BAD1VALS,
+    PDT_ERR_BAD2VALS,
+    PDT_ERR_BAD3VALS,
+    PDT_ERR_SEL_2_VERTS,
+    PDT_ERR_CONNECTED,
 )
 
 
@@ -88,7 +93,7 @@ def oops(self, context):
     self.layout.label(text=pg.error)
 
 
-def setMode(mode_pl):
+def set_mode(mode_pl):
     """Sets Active Axes for View Orientation.
 
     Sets indices of axes for locational vectors
@@ -112,7 +117,7 @@ def setMode(mode_pl):
     #FIXME: This needs a proper specification and a default
 
 
-def setAxis(mode_pl):
+def set_axis(mode_pl):
     """Sets Active Axes for View Orientation.
 
     Sets indices for axes from taper vectors
@@ -142,7 +147,7 @@ def setAxis(mode_pl):
     #FIXME: This needs a proper specification and a default
 
 
-def checkSelection(num, bm, obj):
+def check_selection(num, bm, obj):
     """Check that the Object's select_history has sufficient entries.
 
     If selection history is not Verts, clears selection and history.
@@ -188,7 +193,7 @@ def checkSelection(num, bm, obj):
     return None
 
 
-def updateSel(bm, verts, edges, faces):
+def update_sel(bm, verts, edges, faces):
     """Updates Vertex, Edge and Face Selections following a function.
 
     Args:
@@ -214,7 +219,7 @@ def updateSel(bm, verts, edges, faces):
         f.select_set(True)
 
 
-def viewCoords(x_loc, y_loc, z_loc):
+def view_coords(x_loc, y_loc, z_loc):
     """Converts input Vector values to new Screen Oriented Vector.
 
     Args:
@@ -237,7 +242,7 @@ def viewCoords(x_loc, y_loc, z_loc):
         return Vector((0, 0, 0))
 
 
-def viewCoordsI(x_loc, y_loc, z_loc):
+def view_coords_i(x_loc, y_loc, z_loc):
     """Converts Screen Oriented input Vector values to new World Vector.
 
     Converts View tranformation Matrix to Rotational Matrix
@@ -262,7 +267,7 @@ def viewCoordsI(x_loc, y_loc, z_loc):
         return Vector((0, 0, 0))
 
 
-def viewDir(dis_v, ang_v):
+def view_dir(dis_v, ang_v):
     """Converts Distance and Angle to View Oriented Vector.
 
     Converts View Transformation Matrix to Rotational Matrix (3x3)
@@ -314,7 +319,7 @@ def euler_to_quaternion(roll, pitch, yaw):
     return Quaternion((qw, qx, qy, qz))
 
 
-def arcCentre(actV, othV, lstV):
+def arc_centre(actV, othV, lstV):
     """Calculates Centre of Arc from 3 Vector Locations using standard Numpy routine
 
     Args:
@@ -363,18 +368,18 @@ def intersection(actV, othV, lstV, fstV, plane):
 
     if plane == "LO":
         disV = othV - actV
-        othV = viewCoordsI(disV.x, disV.y, disV.z)
+        othV = view_coords_i(disV.x, disV.y, disV.z)
         disV = lstV - actV
-        lstV = viewCoordsI(disV.x, disV.y, disV.z)
+        lstV = view_coords_i(disV.x, disV.y, disV.z)
         disV = fstV - actV
-        fstV = viewCoordsI(disV.x, disV.y, disV.z)
+        fstV = view_coords_i(disV.x, disV.y, disV.z)
         refV = Vector((0, 0, 0))
         ap1 = (fstV.x, fstV.y)
         ap2 = (lstV.x, lstV.y)
         bp1 = (othV.x, othV.y)
         bp2 = (refV.x, refV.y)
     else:
-        a1, a2, a3 = setMode(plane)
+        a1, a2, a3 = set_mode(plane)
         ap1 = (fstV[a1], fstV[a2])
         ap2 = (lstV[a1], lstV[a2])
         bp1 = (othV[a1], othV[a2])
@@ -404,7 +409,7 @@ def intersection(actV, othV, lstV, fstV, plane):
     return vector_delta, True
 
 
-def getPercent(obj, flip_p, per_v, data, scene):
+def get_percent(obj, flip_p, per_v, data, scene):
     """Calculates a Percentage Distance between 2 Vectors.
 
     Calculates a point that lies a set percentage between two given points
@@ -471,20 +476,20 @@ def getPercent(obj, flip_p, per_v, data, scene):
     return Vector((V[0], V[1], V[2]))
 
 
-def objCheck(obj, scene, oper):
+def obj_check(obj, scene, operator):
     """Check Object & Selection Validity.
 
     Args:
         obj: Active Object
         scene: Active Scene
-        oper: Operation to check
+        operator: Operation to check
 
     Returns:
         Object Bmesh and Validity Boolean.
     """
 
     pg = scene.pdt_pg
-    _oper = oper.upper()
+    _operator = operator.upper()
 
     if obj is None:
         pg.error = PDT_ERR_NO_ACT_OBJ
@@ -492,7 +497,7 @@ def objCheck(obj, scene, oper):
         return None, False
     if obj.mode == "EDIT":
         bm = bmesh.from_edit_mesh(obj.data)
-        if _oper == "S":
+        if _operator == "S":
             if len(bm.edges) < 1:
                 pg.error = f"{PDT_ERR_SEL_1_EDGEM} {len(bm.edges)})"
                 bpy.context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -500,8 +505,8 @@ def objCheck(obj, scene, oper):
             else:
                 return bm, True
         if len(bm.select_history) >= 1:
-            if _oper not in {"D", "E", "F", "G", "N", "S"}:
-                actV = checkSelection(1, bm, obj)
+            if _operator not in {"D", "E", "F", "G", "N", "S"}:
+                actV = check_selection(1, bm, obj)
             else:
                 verts = [v for v in bm.verts if v.select]
                 if len(verts) > 0:
@@ -517,7 +522,7 @@ def objCheck(obj, scene, oper):
         return None, True
 
 
-def disAng(vals, flip_a, plane, scene):
+def dis_ang(vals, flip_a, plane, scene):
     """Set Working Axes when using Direction command.
 
     Args:
@@ -540,9 +545,9 @@ def disAng(vals, flip_a, plane, scene):
             ang_v = ang_v + 180
         pg.angle = ang_v
     if plane == "LO":
-        vector_delta = viewDir(dis_v, ang_v)
+        vector_delta = view_dir(dis_v, ang_v)
     else:
-        a1, a2, _ = setMode(plane)
+        a1, a2, _ = set_mode(plane)
         vector_delta = Vector((0, 0, 0))
         # fmt: off
         vector_delta[a1] = vector_delta[a1] + (dis_v * cos(ang_v * pi/180))

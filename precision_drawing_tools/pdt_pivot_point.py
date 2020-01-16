@@ -26,7 +26,7 @@ import bmesh
 from bpy.types import Operator, SpaceView3D
 from mathutils import Vector, Matrix
 from math import pi
-from .pdt_functions import viewCoords, drawCallback3D
+from .pdt_functions import view_coords, drawCallback3D
 from .pdt_msg_strings import (
     PDT_CON_AREYOURSURE,
     PDT_ERR_EDIT_MODE,
@@ -151,7 +151,7 @@ class PDT_OT_ViewPlaneRotate(Operator):
             return {"FINISHED"}
         bm = bmesh.from_edit_mesh(obj.data)
         v1 = Vector((0, 0, 0))
-        v2 = viewCoords(0, 0, 1)
+        v2 = view_coords(0, 0, 1)
         axis = (v2 - v1).normalized()
         rot = Matrix.Rotation((pg.pivot_ang * pi / 180), 4, axis)
         verts = verts = [v for v in bm.verts if v.select]
