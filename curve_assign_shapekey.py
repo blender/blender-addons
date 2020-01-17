@@ -407,7 +407,8 @@ def main(targetObj, shapekeyObjs, removeOriginal, space, matchParts, \
 
     shapekeys = [Path(c) for c in shapekeyObjs]
 
-    shapekeys = getExistingShapeKeyPaths(target) + shapekeys
+    existingKeys = getExistingShapeKeyPaths(target)
+    shapekeys = existingKeys + shapekeys
     userSel = [target] + shapekeys
 
     for path in userSel:
@@ -431,13 +432,10 @@ def main(targetObj, shapekeyObjs, removeOriginal, space, matchParts, \
         for j, part in enumerate(path.parts):
             part.toClose = allToClose[j]
 
-    if(targetObj.data.shape_keys != None):
-        skName = targetObj.data.shape_keys.key_blocks[0].name
-    else:
-        skName = 'Basis'
-
     target.updateCurve()
-    target.curve.shape_key_add(name = skName)
+
+    if(len(existingKeys) == 0):
+        target.curve.shape_key_add(name = 'Basis')
 
     addShapeKeys(target.curve, shapekeys, space)
 
@@ -714,7 +712,7 @@ def getExistingShapeKeyPaths(path):
     paths = []
 
     if(obj.data.shape_keys != None):
-        keyblocks = obj.data.shape_keys.key_blocks[1:]#Skip basis
+        keyblocks = obj.data.shape_keys.key_blocks[:]
         for key in keyblocks:
             datacopy = obj.data.copy()
             i = 0
