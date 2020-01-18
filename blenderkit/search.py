@@ -220,7 +220,7 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff.
                                 asset_data['downloaded'] = 0
 
                                 # parse extra params needed for blender here
-                                params = params_to_dict(r['parameters'])
+                                params = utils.params_to_dict(r['parameters'])
 
                                 if asset_type == 'model':
                                     if params.get('boundBoxMinX') != None:
@@ -403,17 +403,13 @@ def has(mdata, prop):
         return False
 
 
-def params_to_dict(params):
-    params_dict = {}
-    for p in params:
-        params_dict[p['parameterType']] = p['value']
-    return params_dict
+
 
 
 def generate_tooltip(mdata):
     col_w = 40
     if type(mdata['parameters']) == list:
-        mparams = params_to_dict(mdata['parameters'])
+        mparams = utils.params_to_dict(mdata['parameters'])
     else:
         mparams = mdata['parameters']
     t = ''
@@ -953,6 +949,11 @@ def build_query_model():
             query["textureResolutionMin"] = props.search_texture_resolution_min
             query["textureResolutionMax"] = props.search_texture_resolution_max
 
+    if props.search_procedural == "PROCEDURAL":
+        query["procedural"] = True
+    elif props.search_procedural == 'TEXTURE_BASED':
+        query["procedural"] = False
+
     build_query_common(query, props)
 
     return query
@@ -1105,6 +1106,12 @@ def search(category='', get_next=False, author_id=''):
 
     if author_id != '':
         query['author_id'] = author_id
+
+    elif props.own_only:
+        # if user searches for [another] author, 'only my assets' is invalid. that's why in elif.
+        profile = bpy.context.window_manager.get('bkit profile')
+        if profile is not None:
+            query['author_id'] = str(profile['user']['id'])
 
     # utils.p('searching')
     props.is_searching = True

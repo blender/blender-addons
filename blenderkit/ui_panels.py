@@ -53,7 +53,7 @@ def label_multiline(layout, text='', icon='NONE', width=-1):
             l1 = l[:i]
             layout.label(text=l1, icon=icon)
             icon = 'NONE'
-            l = l[i:]
+            l = l[i:].lstrip()
             li += 1
             if li > maxlines:
                 break;
@@ -299,7 +299,9 @@ def draw_panel_model_search(self, context):
         layout.operator("wm.url_open", text="Get Full plan", icon='URL').url = paths.BLENDERKIT_PLANS
 
     layout.prop(props, "search_style")
+    layout.prop(props, "own_only")
     layout.prop(props, "free_only")
+    #layout.prop(props, "search_procedural", expand = True)
     # if props.search_style == 'OTHER':
     #     layout.prop(props, "search_style_other")
     # layout.prop(props, "search_engine")
@@ -366,7 +368,7 @@ def draw_panel_scene_search(self, context):
     row = layout.row()
     row.prop(props, "search_keywords", text="", icon='VIEWZOOM')
     draw_assetbar_show_hide(row, props)
-
+    layout.prop(props, "own_only")
     label_multiline(layout, text=props.report)
 
     # layout.prop(props, "search_style")
@@ -424,7 +426,7 @@ class VIEW3D_PT_blenderkit_profile(Panel):
     bl_idname = "VIEW3D_PT_blenderkit_profile"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "Profile"
+    bl_label = "BlenderKit Profile"
 
     @classmethod
     def poll(cls, context):
@@ -440,8 +442,6 @@ class VIEW3D_PT_blenderkit_profile(Panel):
             draw_login_progress(layout)
             return
 
-        if user_preferences.enable_oauth:
-            draw_login_buttons(layout)
 
         if user_preferences.api_key != '':
             me = bpy.context.window_manager.get('bkit profile')
@@ -459,6 +459,28 @@ class VIEW3D_PT_blenderkit_profile(Panel):
             layout.operator("wm.url_open", text="See my uploads",
                             icon='URL').url = paths.get_bkit_url() + paths.BLENDERKIT_USER_ASSETS
 
+
+class VIEW3D_PT_blenderkit_login(Panel):
+    bl_category = "BlenderKit"
+    bl_idname = "VIEW3D_PT_blenderkit_login"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "BlenderKit Login"
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
+
+        if user_preferences.login_attempt:
+            draw_login_progress(layout)
+            return
+
+        if user_preferences.enable_oauth:
+            draw_login_buttons(layout)
 
 def draw_panel_model_rating(self, context):
     o = bpy.context.active_object
@@ -526,7 +548,7 @@ def draw_panel_material_search(self, context):
     row = layout.row()
     row.prop(props, "search_keywords", text="", icon='VIEWZOOM')
     draw_assetbar_show_hide(row, props)
-
+    layout.prop(props, "own_only")
     label_multiline(layout, text=props.report)
 
     # layout.prop(props, 'search_style')
@@ -568,7 +590,7 @@ def draw_panel_brush_search(self, context):
     row = layout.row()
     row.prop(props, "search_keywords", text="", icon='VIEWZOOM')
     draw_assetbar_show_hide(row, props)
-
+    layout.prop(props, "own_only")
 
     label_multiline(layout, text=props.report)
     draw_panel_categories(self, context)
@@ -605,7 +627,7 @@ class VIEW3D_PT_blenderkit_unified(Panel):
     bl_idname = "VIEW3D_PT_blenderkit_unified"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "BlenderKit"
+    bl_label = "Find and Upload Assets"
 
     @classmethod
     def poll(cls, context):
@@ -651,11 +673,11 @@ class VIEW3D_PT_blenderkit_unified(Panel):
                 layout.label(text='Paste your API Key:')
                 layout.prop(user_preferences, 'api_key', text='')
             layout.separator()
-        if bpy.data.filepath == '':
-            layout.alert = True
-            label_multiline(layout, text="It's better to save your file first.", width=w)
-            layout.alert = False
-            layout.separator()
+        # if bpy.data.filepath == '':
+        #     layout.alert = True
+        #     label_multiline(layout, text="It's better to save your file first.", width=w)
+        #     layout.alert = False
+        #     layout.separator()
 
         if ui_props.down_up == 'SEARCH':
 
@@ -986,7 +1008,8 @@ def header_search_draw(self, context):
     if ui_props.asset_type == 'BRUSH':
         props = s.blenderkit_brush
 
-    layout.separator_spacer()
+    if context.space_data.show_region_tool_header == True:
+        layout.separator_spacer()
     layout.prop(ui_props, "asset_type", text='', icon='URL')
     layout.prop(props, "search_keywords", text="", icon='VIEWZOOM')
     draw_assetbar_show_hide(layout, props)
@@ -998,10 +1021,11 @@ preview_collections = {}
 classess = (
     SetCategoryOperator,
 
+    VIEW3D_PT_blenderkit_profile,
+    VIEW3D_PT_blenderkit_login,
     VIEW3D_PT_blenderkit_unified,
     VIEW3D_PT_blenderkit_model_properties,
     VIEW3D_PT_blenderkit_downloads,
-    VIEW3D_PT_blenderkit_profile,
     OBJECT_MT_blenderkit_asset_menu,
     UrlPopupDialog
 )

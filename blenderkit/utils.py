@@ -515,3 +515,32 @@ def name_update():
     fname = fname.replace('\"', '')
     asset = get_active_asset()
     asset.name = fname
+
+def params_to_dict(params):
+    params_dict = {}
+    for p in params:
+        params_dict[p['parameterType']] = p['value']
+    return params_dict
+
+def dict_to_params(inputs, parameters=None):
+    if parameters == None:
+        parameters = []
+    for k in inputs.keys():
+        if type(inputs[k]) == list:
+            strlist = ""
+            for idx, s in enumerate(inputs[k]):
+                strlist += s
+                if idx < len(inputs[k]) - 1:
+                    strlist += ','
+
+            value = "%s" % strlist
+        elif type(inputs[k]) != bool:
+            value = inputs[k]
+        else:
+            value = str(inputs[k])
+        parameters.append(
+            {
+                "parameterType": k,
+                "value": value
+            })
+    return parameters

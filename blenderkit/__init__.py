@@ -26,7 +26,7 @@ bl_info = {
     "warning": "",
     "wiki_url": "https://youtu.be/1hVgcQhIAo8"
                 "Scripts/Add_Mesh/BlenderKit",
-    "category": "Add Mesh",
+    "category": "3D View",
 }
 
 if "bpy" in locals():
@@ -249,11 +249,11 @@ def asset_type_callback(self, context):
     #ui_props = s.blenderkitUI
     if self.down_up == 'SEARCH':
         items = (
-            ('MODEL', 'Search Models', 'Browse models', 'OBJECT_DATAMODE', 0),
+            ('MODEL', 'Find Models', 'Find models in the BlenderKit online database', 'OBJECT_DATAMODE', 0),
             # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
-            ('MATERIAL', 'Search Materials', 'Browse materials', 'MATERIAL', 2),
+            ('MATERIAL', 'Find Materials', 'Find models in the BlenderKit online database', 'MATERIAL', 2),
             # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
-            ('BRUSH', 'Search Brushes', 'Browse brushes', 'BRUSH_DATA', 3)
+            ('BRUSH', 'Find Brushes', 'Find models in the BlenderKit online database', 'BRUSH_DATA', 3)
         )
     else:
         items = (
@@ -386,6 +386,8 @@ class BlenderKitCommonSearchProps(object):
                                  default=False)
     search_done: BoolProperty(name="Search Completed", description="at least one search did run (internal)",
                               default=False)
+    own_only: BoolProperty(name="My Assets", description="Search only for your assets",
+                              default=False)
     search_error: BoolProperty(name="Search Error", description="last search had an error", default=False)
     report: StringProperty(
         name="Report",
@@ -508,8 +510,8 @@ class BlenderKitCommonUploadProps(object):
                           default=True
                           )
     node_count: IntProperty(name="Node count", description="Total nodes in the asset", default=0)
-    texture_count: IntProperty(name="Node count", description="Total nodes in the asset", default=0)
-    total_megapixels: IntProperty(name="Node count", description="Total nodes in the asset", default=0)
+    texture_count: IntProperty(name="Texture count", description="Total texture count in asset", default=0)
+    total_megapixels: IntProperty(name="Megapixels", description="Total megapixels of texture", default=0)
 
     # is_private: BoolProperty(name="Asset is Private",
     #                       description="If not marked private, your asset will go into the validation process automatically\n"
@@ -1165,6 +1167,18 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
         update=search.search_update
     )
 
+    search_procedural: EnumProperty(
+        items=(
+            ('BOTH', 'Both',''),
+            ('PROCEDURAL', 'Procedural',''),
+            ('TEXTURE_BASED', 'Texture based',''),
+
+        ),
+        default='BOTH',
+        description='Search only procedural/texture based assets',
+        update=search.search_update
+    )
+
     # DESIGN YEAR
     search_design_year: BoolProperty(name="Sesigned in Year",
                                      description="when the object was approximately designed",
@@ -1389,7 +1403,7 @@ class BlenderKitAddonPreferences(AddonPreferences):
     thumbnail_use_gpu: BoolProperty(
         name="Use GPU for Thumbnails Rendering",
         description="By default this is off so you can continue your work without any lag",
-        default=True
+        default=False
     )
 
     panel_behaviour: EnumProperty(

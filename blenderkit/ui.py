@@ -67,7 +67,7 @@ verification_icons = {
     'uploading': 'vs_uploading.png',
     'on_hold': 'vs_on_hold.png',
     'validated': None,
-    'rejected': None
+    'rejected': 'vs_on_hold.png'
 
 }
 
@@ -698,6 +698,7 @@ def draw_callback_2d_upload_preview(self, context):
 
     props = utils.get_upload_props()
     if props != None and ui_props.draw_tooltip:
+
         if ui_props.asset_type != 'BRUSH':
             ui_props.thumbnail_image = props.thumbnail
         else:
@@ -1417,6 +1418,9 @@ class AssetBarOperator(bpy.types.Operator):
                     ui_props.draw_tooltip = True
 
                     ui_props.tooltip = asset_data['tooltip']
+
+                    #bpy.ops.wm.call_menu(name='OBJECT_MT_blenderkit_asset_menu')
+
                 else:
                     ui_props.draw_tooltip = False
 
