@@ -193,11 +193,16 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
                    ),
             default='X',
             )
-
+    
     use_prepost_rot: BoolProperty(
             name="Use Pre/Post Rotation",
             description="Use pre/post rotation from FBX transform (you may have to disable that in some cases)",
             default=True,
+            )
+    camera_invert: BoolProperty(
+            name="Camera Invert",
+            description="import inverted camera or not",
+            default=False,
             )
 
     def draw(self, context):
@@ -309,6 +314,7 @@ class FBX_PT_import_transform_manual_orientation(bpy.types.Panel):
 
         layout.prop(operator, "axis_forward")
         layout.prop(operator, "axis_up")
+        layout.prop(operator, "camera_invert")
 
 
 class FBX_PT_import_animation(bpy.types.Panel):

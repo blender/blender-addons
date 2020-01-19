@@ -61,7 +61,7 @@ convert_deg_to_rad_iter = units_convertor_iter("degree", "radian")
 
 MAT_CONVERT_BONE = fbx_utils.MAT_CONVERT_BONE.inverted()
 MAT_CONVERT_LIGHT = fbx_utils.MAT_CONVERT_LIGHT.inverted()
-MAT_CONVERT_CAMERA = fbx_utils.MAT_CONVERT_CAMERA.inverted()
+MAT_CONVERT_CAMERA = fbx_utils.MAT_CONVERT_CAMERA
 
 
 def validate_blend_names(name):
@@ -1769,7 +1769,10 @@ class FbxImportHelperNode:
         else:
             # camera and light can be hard wired
             if self.fbx_type == b'Camera':
-                correction_matrix = MAT_CONVERT_CAMERA
+                if settings.camera_invert:
+                    correction_matrix = MAT_CONVERT_CAMERA.inverted()
+                else:
+                    correction_matrix = MAT_CONVERT_CAMERA
             elif self.fbx_type == b'Light':
                 correction_matrix = MAT_CONVERT_LIGHT
 
@@ -2327,7 +2330,9 @@ def load(operator, context, filepath="",
          automatic_bone_orientation=False,
          primary_bone_axis='Y',
          secondary_bone_axis='X',
-         use_prepost_rot=True):
+         use_prepost_rot=True,
+         camera_invert=False,
+         ):
 
     global fbx_elem_nil
     fbx_elem_nil = FBXElem('', (), (), ())
@@ -2467,6 +2472,7 @@ def load(operator, context, filepath="",
         nodal_material_wrap_map, image_cache,
         ignore_leaf_bones, force_connect_children, automatic_bone_orientation, bone_correction_matrix,
         use_prepost_rot,
+        camera_invert,
     )
 
     # #### And now, the "real" data.
