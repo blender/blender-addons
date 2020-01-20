@@ -146,7 +146,7 @@ def unselect_nonintersecting(bm, d_edges, edge_indices):
             bm.edges[edge].select = False
 
 
-def intersect_all(self, context):
+def intersect_all(context):
     """Computes All intersections with Crossing Geometry.
 
     Deletes original edges and replaces with new intersected edges

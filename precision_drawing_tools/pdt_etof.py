@@ -49,7 +49,7 @@ def failure_message_on_plane(self, context):
     context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
     return
 
-def extend_vertex(self, context):
+def extend_vertex(context):
     """Computes Edge Extension to Face.
 
     Args:

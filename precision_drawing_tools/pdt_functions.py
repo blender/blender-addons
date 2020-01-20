@@ -166,21 +166,21 @@ def check_selection(num, bm, obj):
     else:
         actE = bm.select_history[-1]
     if isinstance(actE, bmesh.types.BMVert):
-        actV = actE.co
+        vector_a = actE.co
         if num == 1:
-            return actV
+            return vector_a
         elif num == 2:
-            othV = bm.select_history[-2].co
-            return actV, othV
+            vector_b = bm.select_history[-2].co
+            return vector_a, vector_b
         elif num == 3:
-            othV = bm.select_history[-2].co
-            lstV = bm.select_history[-3].co
-            return actV, othV, lstV
+            vector_b = bm.select_history[-2].co
+            vector_c = bm.select_history[-3].co
+            return vector_a, vector_b, vector_d
         elif num == 4:
-            othV = bm.select_history[-2].co
-            lstV = bm.select_history[-3].co
-            fstV = bm.select_history[-4].co
-            return actV, othV, lstV, fstV
+            vector_b = bm.select_history[-2].co
+            vector_c = bm.select_history[-3].co
+            vector_d = bm.select_history[-4].co
+            return vector_a, vector_b, vector_d, vector_c
     else:
         for f in bm.faces:
             f.select_set(False)
@@ -271,7 +271,7 @@ def view_dir(dis_v, ang_v):
     """Converts Distance and Angle to View Oriented Vector.
 
     Converts View Transformation Matrix to Rotational Matrix (3x3)
-    Angles are converted to Radians from degrees.
+    Angles are Converts to Radians from degrees.
 
     Args:
         dis_v: Scene distance
@@ -319,21 +319,21 @@ def euler_to_quaternion(roll, pitch, yaw):
     return Quaternion((qw, qx, qy, qz))
 
 
-def arc_centre(actV, othV, lstV):
+def arc_centre(vector_a, vector_b, vector_d):
     """Calculates Centre of Arc from 3 Vector Locations using standard Numpy routine
 
     Args:
-        actV: Active vector location
-        othV: Other vector location
-        lstV: Last vector location
+        vector_a: Active vector location
+        vector_b: Other vector location
+        vector_d: Last vector location
 
     Returns:
         Vector representing Arc Centre and Float representing Arc Radius.
     """
 
-    A = np.array([actV.x, actV.y, actV.z])
-    B = np.array([othV.x, othV.y, othV.z])
-    C = np.array([lstV.x, lstV.y, lstV.z])
+    A = np.array([vector_a.x, vector_a.y, vector_a.z])
+    B = np.array([vector_b.x, vector_b.y, vector_b.z])
+    C = np.array([vector_d.x, vector_d.y, vector_d.z])
     a = np.linalg.norm(C - B)
     b = np.linalg.norm(C - A)
     c = np.linalg.norm(B - A)
@@ -349,41 +349,38 @@ def arc_centre(actV, othV, lstV):
     return Vector((P[0], P[1], P[2])), R
 
 
-def intersection(actV, othV, lstV, fstV, plane):
+def intersection(vertex_a, vertex_b, vertex_c, vertex_d, plane):
     """Calculates Intersection Point of 2 Imagined Lines from 4 Vectors.
-
     Calculates Converging Intersect Location and indication of
     whether the lines are convergent using standard Numpy Routines
-
     Args:
-        actV: Active vector location of first line
-        othV: Other vector location of first line
-        lstV: Last vector location of 2nd line
-        fstV: First vector location of 2nd line
+        vertex_a: Active vector location of first line
+        vertex_b: Other vector location of first line
+        vertex_d: Last vector location of 2nd line
+        vertex_c: First vector location of 2nd line
         plane: Working Plane 4 Vector Locations representing 2 lines and Working Plane
-
     Returns:
         Intersection Vector and Boolean for convergent state.
     """
 
     if plane == "LO":
-        disV = othV - actV
-        othV = view_coords_i(disV.x, disV.y, disV.z)
-        disV = lstV - actV
-        lstV = view_coords_i(disV.x, disV.y, disV.z)
-        disV = fstV - actV
-        fstV = view_coords_i(disV.x, disV.y, disV.z)
+        vertex_offset = vertex_b - vertex_a
+        vertex_b = view_coords_i(vertex_offset.x, vertex_offset.y, vertex_offset.z)
+        vertex_offset = vertex_d - vertex_a
+        vertex_d = view_coords_i(vertex_offset.x, vertex_offset.y, vertex_offset.z)
+        vertex_offset = vertex_c - vertex_a
+        vertex_c = view_coords_i(vertex_offset.x, vertex_offset.y, vertex_offset.z)
         refV = Vector((0, 0, 0))
-        ap1 = (fstV.x, fstV.y)
-        ap2 = (lstV.x, lstV.y)
-        bp1 = (othV.x, othV.y)
+        ap1 = (vertex_c.x, vertex_c.y)
+        ap2 = (vertex_d.x, vertex_d.y)
+        bp1 = (vertex_b.x, vertex_b.y)
         bp2 = (refV.x, refV.y)
     else:
         a1, a2, a3 = set_mode(plane)
-        ap1 = (fstV[a1], fstV[a2])
-        ap2 = (lstV[a1], lstV[a2])
-        bp1 = (othV[a1], othV[a2])
-        bp2 = (actV[a1], actV[a2])
+        ap1 = (vertex_c[a1], vertex_c[a2])
+        ap2 = (vertex_d[a1], vertex_d[a2])
+        bp1 = (vertex_a[a1], vertex_a[a2])
+        bp2 = (vertex_b[a1], vertex_b[a2])
     s = np.vstack([ap1, ap2, bp1, bp2])
     h = np.hstack((s, np.ones((4, 1))))
     l1 = np.cross(h[0], h[1])
@@ -396,7 +393,7 @@ def intersection(actV, othV, lstV, fstV, plane):
     if plane == "LO":
         ly = 0
     else:
-        ly = actV[a3]
+        ly = vertex_a[a3]
     # Order Vector Delta
     if plane == "XZ":
         vector_delta = Vector((nx, ly, nz))
@@ -405,7 +402,7 @@ def intersection(actV, othV, lstV, fstV, plane):
     elif plane == "YZ":
         vector_delta = Vector((ly, nx, nz))
     elif plane == "LO":
-        vector_delta = viewCoords(nx, nz, ly) + actV
+        vector_delta = view_coords(nx, nz, ly) + vertex_a
     return vector_delta, True
 
 
@@ -435,9 +432,9 @@ def get_percent(obj, flip_p, per_v, data, scene):
         bm = bmesh.from_edit_mesh(obj.data)
         verts = [v for v in bm.verts if v.select]
         if len(verts) == 2:
-            actV = verts[0].co
-            othV = verts[1].co
-            if actV is None:
+            vector_a = verts[0].co
+            vector_b = verts[1].co
+            if vector_a is None:
                 pg.error = PDT_ERR_VERT_MODE
                 bpy.context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 return None
@@ -445,8 +442,8 @@ def get_percent(obj, flip_p, per_v, data, scene):
             pg.error = PDT_ERR_SEL_2_V_1_E + str(len(verts)) + " Vertices"
             bpy.context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return None
-        p1 = np.array([actV.x, actV.y, actV.z])
-        p2 = np.array([othV.x, othV.y, othV.z])
+        p1 = np.array([vector_a.x, vector_a.y, vector_a.z])
+        p2 = np.array([vector_b.x, vector_b.y, vector_b.z])
     if obj.mode == "OBJECT":
         objs = bpy.context.view_layer.objects.selected
         if len(objs) != 2:
@@ -506,14 +503,14 @@ def obj_check(obj, scene, operator):
                 return bm, True
         if len(bm.select_history) >= 1:
             if _operator not in {"D", "E", "F", "G", "N", "S"}:
-                actV = check_selection(1, bm, obj)
+                vector_a = check_selection(1, bm, obj)
             else:
                 verts = [v for v in bm.verts if v.select]
                 if len(verts) > 0:
-                    actV = verts[0]
+                    vector_a = verts[0]
                 else:
-                    actV = None
-            if actV is None:
+                    vector_a = None
+            if vector_a is None:
                 pg.error = PDT_ERR_VERT_MODE
                 bpy.context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 return None, False
@@ -614,10 +611,11 @@ def drawCallback3D(self, context):
     if len(areas) > 0:
         sf = abs(areas[0].spaces.active.region_3d.window_matrix.decompose()[2][1])
     # Check for orhtographic view and resize
-    if areas[0].spaces.active.region_3d.is_orthographic_side_view:
-        a = w / sf / 60000 * pg.pivot_size
-    else:
-        a = w / sf / 5000 * pg.pivot_size
+    #if areas[0].spaces.active.region_3d.is_orthographic_side_view:
+    #    a = w / sf / 60000 * pg.pivot_size
+    #else:
+    #    a = w / sf / 5000 * pg.pivot_size
+    a = w / sf / 50000 * pg.pivot_size
     b = a * 0.65
     c = a * 0.05 + (pg.pivot_width * a * 0.02)
     o = c / 3

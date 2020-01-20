@@ -32,7 +32,7 @@ from .pdt_functions import (
     oops,
     update_sel,
 )
-from .pdt_com_functions import (
+from .pdt_command_functions import (
     command_maths,
     vector_build,
     move_cursor_pivot,
@@ -194,37 +194,37 @@ def command_run(self, context):
     elif command == "":
         return
     elif command.upper() == "J2V":
-        join_two_vertices(self, context)
+        join_two_vertices(context)
         return
     elif command.upper() == "AD2":
-        set_angle_distance_two(self, context)
+        set_angle_distance_two(context)
         return
     elif command.upper() == "AD3":
-        set_angle_distance_three(self, context)
+        set_angle_distance_three(context)
         return
     elif command.upper() == "OTC":
-        origin_to_cursor(self, context)
+        origin_to_cursor(context)
         return
     elif command.upper() == "TAP":
         taper(self, context)
         return
     elif command.upper() == "BIS":
-        add_line_to_bisection(self, context)
+        add_line_to_bisection(context)
         return
     elif command.upper() == "ETF":
         extend_vertex(self, context)
         return
     elif command.upper() == "INTALL":
-        intersect_all(self, context)
+        intersect_all(context)
         return
     elif command.upper()[1:4] == "NML":
-        placement_normal(self, context, command.upper()[0])
+        placement_normal(context, command.upper()[0])
         return
     elif command.upper()[1:4] == "CEN":
-        placement_centre(self, context, command.upper()[0])
+        placement_centre(context, command.upper()[0])
         return
     elif command.upper()[1:4] == "INT":
-        placement_intersect(self, context, command.upper()[0])
+        placement_intersect(context, command.upper()[0])
         return
     elif len(command) < 3:
         pg.error = PDT_ERR_CHARS_NUM
@@ -262,7 +262,7 @@ def command_run(self, context):
     # --------------
     # Maths Operation
     if operation == "M":
-        command_maths(self, context, pg, command[2:], mode)
+        command_maths(context, mode, pg, command[2:], mode)
         return
 
     # -----------------------------------------------------
@@ -309,16 +309,16 @@ def command_run(self, context):
     if operation in {"C", "P"}:
         # Absolute/Global Coordinates, or Delta/Relative Coordinates
         if mode in {"a", "d"}:
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 3)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
         # Direction/Polar Coordinates
         elif mode == "i":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 2)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 2)
         # Percent Options
         elif mode == "p":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 1)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 1)
 
-        if vector_delta is not None:
-            move_cursor_pivot(self, context, pg, obj, verts, operation,
+        if valid_result:
+            move_cursor_pivot(context, pg, obj, verts, operation,
                 mode, vector_delta)
         return
 
@@ -332,7 +332,9 @@ def command_run(self, context):
                 return
         # Absolute/Global Coordinates
         if mode == "a":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 3)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
+            if not valid_result:
+                return
             if obj.mode == "EDIT":
                 for v in verts:
                     v.co = vector_delta - obj_loc
@@ -346,10 +348,14 @@ def command_run(self, context):
         elif mode in {"d", "i"}:
             if mode == "d":
                 # Delta/Relative Coordinates
-                vector_delta = vector_build(self, context, pg, obj, operation, values, 3)
+                valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
+                if not valid_result:
+                    return
             else:
                 # Direction/Polar Coordinates
-                vector_delta = vector_build(self, context, pg, obj, operation, values, 2)
+                valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 2)
+                if not valid_result:
+                    return
             if vector_delta is not None:
                 if obj.mode == "EDIT":
                     bmesh.ops.translate(
@@ -360,7 +366,9 @@ def command_run(self, context):
                         ob.location = obj_loc + vector_delta
         # Percent Options
         elif mode == "p":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 1)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 1)
+            if not valid_result:
+                return
             if vector_delta is not None:
                 if obj.mode == 'EDIT':
                     verts[-1].co = vector_delta
@@ -380,19 +388,27 @@ def command_run(self, context):
             return
         # Absolute/Global Coordinates
         if mode == "a":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 3)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
+            if not valid_result:
+                return
             new_vertex = bm.verts.new(vector_delta - obj_loc)
         # Delta/Relative Coordinates
         elif mode == "d":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 3)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
+            if not valid_result:
+                return
             new_vertex = bm.verts.new(verts[-1].co + vector_delta)
         # Direction/Polar Coordinates
         elif mode == "i":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 2)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 2)
+            if not valid_result:
+                return
             new_vertex = bm.verts.new(verts[-1].co + vector_delta)
         # Percent Options
         elif mode == "p":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 1)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 1)
+            if not valid_result:
+                return
             new_vertex = bm.verts.new(vector_delta)
 
         for v in [v for v in bm.verts if v.select]:
@@ -411,7 +427,9 @@ def command_run(self, context):
             return
         # Absolute/Global Coordinates
         if mode == "a":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 3)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
+            if not valid_result:
+                return
             edges = [e for e in bm.edges if e.select]
             if len(edges) != 1:
                 pg.error = f"{PDT_ERR_SEL_1_EDGE} {len(edges)})"
@@ -423,7 +441,9 @@ def command_run(self, context):
             new_vertex.co = vector_delta - obj_loc
         # Delta/Relative Coordinates
         elif mode == "d":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 3)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
+            if not valid_result:
+                return
             edges = [e for e in bm.edges if e.select]
             faces = [f for f in bm.faces if f.select]
             if len(faces) != 0:
@@ -439,7 +459,9 @@ def command_run(self, context):
             bmesh.ops.translate(bm, verts=new_verts, vec=vector_delta)
         # Directional/Polar Coordinates
         elif mode == "i":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 2)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 2)
+            if not valid_result:
+                return
             edges = [e for e in bm.edges if e.select]
             faces = [f for f in bm.faces if f.select]
             if len(faces) != 0:
@@ -455,8 +477,8 @@ def command_run(self, context):
             bmesh.ops.translate(bm, verts=new_verts, vec=vector_delta)
         # Percent Options
         elif mode == "p":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 1)
-            if vector_delta is None:
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 1)
+            if not valid_result:
                 return
             edges = [e for e in bm.edges if e.select]
             faces = [f for f in bm.faces if f.select]
@@ -464,7 +486,7 @@ def command_run(self, context):
                 pg.error = PDT_ERR_FACE_SEL
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 return
-            if len(edges) < 1:
+            if len(edges) != 1:
                 pg.error = f"{PDT_ERR_SEL_1_EDGEM} {len(edges)})"
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 return
@@ -490,7 +512,9 @@ def command_run(self, context):
             return
         # Absolute/Global Coordinates
         if mode == "a":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 3)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
+            if not valid_result:
+                return
             new_vertex = bm.verts.new(vector_delta - obj_loc)
             for v in verts:
                 bm.edges.new([v, new_vertex])
@@ -501,7 +525,9 @@ def command_run(self, context):
             )
         # Delta/Relative Coordinates
         elif mode == "d":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 3)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
+            if not valid_result:
+                return
             for v in verts:
                 new_vertex = bm.verts.new(v.co)
                 new_vertex.co = new_vertex.co + vector_delta
@@ -510,7 +536,9 @@ def command_run(self, context):
                 new_vertex.select_set(True)
         # Direction/Polar Coordinates
         elif mode == "i":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 2)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 2)
+            if not valid_result:
+                return
             for v in verts:
                 new_vertex = bm.verts.new(v.co)
                 new_vertex.co = new_vertex.co + vector_delta
@@ -519,7 +547,9 @@ def command_run(self, context):
                 new_vertex.select_set(True)
         # Percent Options
         elif mode == "p":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 1)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 1)
+            if not valid_result:
+                return
             verts = [v for v in bm.verts if v.select].copy()
             if len(verts) == 0:
                 pg.error = PDT_ERR_NO_SEL_GEOM
@@ -547,10 +577,14 @@ def command_run(self, context):
             return
         # Delta/Relative Coordinates
         if mode == "d":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 3)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
+            if not valid_result:
+                return
         # Direction/Polar Coordinates
         elif mode == "i":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 2)
+            valid_result, vector_delta = vector_build(context, pg, obj, values, 2)
+            if not valid_result:
+                return
 
         ret = bmesh.ops.extrude_face_region(
             bm,
@@ -581,10 +615,14 @@ def command_run(self, context):
             return
         # Delta/Relative Coordinates
         if mode == "d":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 3)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
+            if not valid_result:
+                return
         # Direction/Polar Coordinates
         elif mode == "i":
-            vector_delta = vector_build(self, context, pg, obj, operation, values, 2)
+            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 2)
+            if not valid_result:
+                return
 
         ret = bmesh.ops.duplicate(
             bm,

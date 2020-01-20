@@ -67,10 +67,22 @@ from .pdt_msg_strings import (
     PDT_ERR_SEL_3_VERTIO,
     PDT_ERR_TAPER_ANG,
     PDT_ERR_TAPER_SEL,
+    PDT_ERR_BADMATHS,
+    PDT_ERR_INT_LINES,
+    PDT_LAB_PLANE,
 )
 
 
-def command_maths(self, context, pg, expression, output_target):
+def command_maths(context, mode, pg, expression, output_target):
+    """Evaluates Maths Input.
+
+    Args:
+        context: Blender bpy.context instance.
+        mode, pg, expression, output_target
+
+    Returns:
+        Nothing.
+    """
     if output_target not in {"x", "y", "z", "d", "a", "p", "o"}:
         pg.error = f"{mode} {PDT_ERR_NON_VALID} Maths)"
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -99,7 +111,8 @@ def command_maths(self, context, pg, expression, output_target):
         pg.maths_output = maths_result
     return
 
-def vector_build(self, context, pg, obj, operation, values, num_values):
+
+def vector_build(context, pg, obj, operation, values, num_values):
     """Build Movement Vector from input Fields.
 
     Args:
@@ -116,28 +129,25 @@ def vector_build(self, context, pg, obj, operation, values, num_values):
     flip_a = pg.flip_angle
     flip_p = pg.flip_percent
 
-    if num_values == 3:
-        if len(values) != 3:
+    if num_values == 3 and len(values) == 3:
+        output_vector = Vector((float(values[0]), float(values[1]), float(values[2])))
+    elif num_values == 2 and len(values) == 2:
+        output_vector = dis_ang(values, flip_a, plane, scene)
+    elif num_values == 1 and len(values) == 1:
+        output_vector = get_percent(obj, flip_p, float(values[0]), operation, scene)
+    else:
+        if num_values == 3:
             pg.error = PDT_ERR_BAD3VALS
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return None
-        return Vector((float(values[0]), float(values[1]), float(values[2])))
-    elif num_values == 2:
-        if len(values) != 2:
+        elif num_values == 2:
             pg.error = PDT_ERR_BAD2VALS
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
-        return dis_ang(values, flip_a, plane, scene)
-    elif num_values == 1:
-        if len(values) != 1:
+        else:
             pg.error = PDT_ERR_BAD1VALS
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
-        return get_percent(obj, flip_p, float(values[0]), operation, scene)
+        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+        return False, Vector((0, 0, 0))
+    return True, output_vector
 
 
-def move_cursor_pivot(self, context, pg, obj, sel_verts, operation,
-        mode_op, vector_delta):
+def move_cursor_pivot(context, pg, obj, sel_verts, operation, mode_op, vector_delta):
     """Move Cursor or Pivot Point.
 
     Args:
@@ -157,7 +167,7 @@ def move_cursor_pivot(self, context, pg, obj, sel_verts, operation,
             scene.cursor.location = vector_delta
         elif operation == "P":
             pg.pivot_loc = vector_delta
-    elif mode_op in {"d","i"}:
+    elif mode_op in {"d", "i"}:
         if mode_sel == "REL":
             if operation == "C":
                 scene.cursor.location = scene.cursor.location + vector_delta
@@ -166,11 +176,9 @@ def move_cursor_pivot(self, context, pg, obj, sel_verts, operation,
         elif mode_sel == "SEL":
             if obj.mode == "EDIT":
                 if operation == "C":
-                    scene.cursor.location = (
-                        sel_verts[-1].co + obj_loc + vector_delta
-                    )
+                    scene.cursor.location = sel_verts[-1].co + obj_loc + vector_delta
                 else:
-                    pg.pivot_loc = verts[-1].co + obj_loc + vector_delta
+                    pg.pivot_loc = sel_verts[-1].co + obj_loc + vector_delta
             elif obj.mode == "OBJECT":
                 if operation == "C":
                     scene.cursor.location = obj_loc + vector_delta
@@ -187,10 +195,9 @@ def move_cursor_pivot(self, context, pg, obj, sel_verts, operation,
                 scene.cursor.location = vector_delta
             else:
                 pg.pivot_loc = vector_delta
-    return
 
 
-def placement_normal(self, context, operation):
+def placement_normal(context, operation):
     """Manipulates Geometry, or Objects by Normal Intersection between 3 points.
 
     -- set position of CUrsor       (CU)
@@ -215,16 +222,17 @@ def placement_normal(self, context, operation):
     pg = scene.pdt_pg
     ext_a = pg.extend
     obj = context.view_layer.objects.active
-    if obj is None:
-        pg.error = PDT_ERR_NO_ACT_OBJ
-        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        return
-    obj_loc = obj.matrix_world.decompose()[0]
+
     if obj.mode == "EDIT":
+        if obj is None:
+            pg.error = PDT_ERR_NO_ACT_OBJ
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            return
+        obj_loc = obj.matrix_world.decompose()[0]
         bm = bmesh.from_edit_mesh(obj.data)
         if len(bm.select_history) == 3:
-            actV, othV, lstV = check_selection(3, bm, obj)
-            if actV is None:
+            vector_a, vector_b, vector_c = check_selection(3, bm, obj)
+            if vector_a is None:
                 pg.error = PDT_ERR_VERT_MODE
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 return
@@ -236,20 +244,19 @@ def placement_normal(self, context, operation):
         objs = context.view_layer.objects.selected
         if len(objs) != 3:
             pg.error = f"{PDT_ERR_SEL_3_OBJS} {len(objs)})"
-            scontext.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
-        else:
-            objs_s = [ob for ob in objs if ob.name != obj.name]
-            actV = obj.matrix_world.decompose()[0]
-            othV = objs_s[-1].matrix_world.decompose()[0]
-            lstV = objs_s[-2].matrix_world.decompose()[0]
-    vector_delta = intersect_point_line(actV, othV, lstV)[0]
+        objs_s = [ob for ob in objs if ob.name != obj.name]
+        vector_a = obj.matrix_world.decompose()[0]
+        vector_b = objs_s[-1].matrix_world.decompose()[0]
+        vector_c = objs_s[-2].matrix_world.decompose()[0]
+    vector_delta = intersect_point_line(vector_a, vector_b, vector_c)[0]
     if operation == "C":
         if obj.mode == "EDIT":
             scene.cursor.location = obj_loc + vector_delta
         elif obj.mode == "OBJECT":
             scene.cursor.location = vector_delta
-    elif operation.upper == "P":
+    elif operation == "P":
         if obj.mode == "EDIT":
             pg.pivot_loc = obj_loc + vector_delta
         elif obj.mode == "OBJECT":
@@ -260,9 +267,7 @@ def placement_normal(self, context, operation):
                 for v in [v for v in bm.verts if v.select]:
                     v.co = vector_delta
                 bm.select_history.clear()
-                bmesh.ops.remove_doubles(
-                    bm, verts=[v for v in bm.verts if v.select], dist=0.0001
-                )
+                bmesh.ops.remove_doubles(bm, verts=[v for v in bm.verts if v.select], dist=0.0001)
             else:
                 bm.select_history[-1].co = vector_delta
                 bm.select_history.clear()
@@ -271,27 +276,27 @@ def placement_normal(self, context, operation):
             context.view_layer.objects.active.location = vector_delta
     elif operation == "N":
         if obj.mode == "EDIT":
-            nVert = bm.verts.new(vector_delta)
+            vertex_new = bm.verts.new(vector_delta)
             bmesh.update_edit_mesh(obj.data)
             bm.select_history.clear()
             for v in [v for v in bm.verts if v.select]:
                 v.select_set(False)
-            nVert.select_set(True)
+            vertex_new.select_set(True)
         else:
             pg.error = f"{PDT_ERR_EDIT_MODE} {obj.mode})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
     elif operation == "V" and obj.mode == "EDIT":
-        vNew = vector_delta
-        nVert = bm.verts.new(vNew)
+        vector_new = vector_delta
+        vertex_new = bm.verts.new(vector_new)
         if ext_a:
             for v in [v for v in bm.verts if v.select]:
-                bm.edges.new([v, nVert])
+                bm.edges.new([v, vertex_new])
         else:
-            bm.edges.new([bm.select_history[-1], nVert])
+            bm.edges.new([bm.select_history[-1], vertex_new])
         for v in [v for v in bm.verts if v.select]:
             v.select_set(False)
-        nVert.select_set(True)
+        vertex_new.select_set(True)
         bmesh.update_edit_mesh(obj.data)
         bm.select_history.clear()
     else:
@@ -299,7 +304,8 @@ def placement_normal(self, context, operation):
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
     return
 
-def placement_centre(self, context, operation):
+
+def placement_centre(context, operation):
     """Manipulates Geometry, or Objects to an Arc Centre defined by 3 points on an Imaginary Arc.
 
     -- set position of CUrsor       (CU)
@@ -308,7 +314,7 @@ def placement_centre(self, context, operation):
     -- Extrude Vertices             (EV)
     -- add a New vertex             (NV)
 
-    Invalid Options result in self.report Error.
+    Invalid Options result in "oops" Error.
 
     Local vector variable 'vector_delta' used to reposition features.
 
@@ -324,24 +330,23 @@ def placement_centre(self, context, operation):
     ext_a = pg.extend
     obj = context.view_layer.objects.active
 
-    if obj is None:
-        pg.error = PDT_ERR_NO_ACT_OBJ
-        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        return
     if obj.mode == "EDIT":
+        if obj is None:
+            pg.error = PDT_ERR_NO_ACT_OBJ
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            return
         obj = context.view_layer.objects.active
         obj_loc = obj.matrix_world.decompose()[0]
         bm = bmesh.from_edit_mesh(obj.data)
         verts = [v for v in bm.verts if v.select]
-        if len(verts) == 3:
-            actV = verts[0].co
-            othV = verts[1].co
-            lstV = verts[2].co
-        else:
+        if len(verts) != 3:
             pg.error = f"{PDT_ERR_SEL_3_VERTS} {len(verts)})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
-        vector_delta, radius = arc_centre(actV, othV, lstV)
+        vector_a = verts[0].co
+        vector_b = verts[1].co
+        vector_c = verts[2].co
+        vector_delta, radius = arc_centre(vector_a, vector_b, vector_c)
         if str(radius) == "inf":
             pg.error = PDT_ERR_STRIGHT_LINE
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -352,73 +357,64 @@ def placement_centre(self, context, operation):
         elif operation == "P":
             pg.pivot_loc = obj_loc + vector_delta
         elif operation == "N":
-            vNew = vector_delta
-            nVert = bm.verts.new(vNew)
+            vector_new = vector_delta
+            vertex_new = bm.verts.new(vector_new)
             for v in [v for v in bm.verts if v.select]:
                 v.select_set(False)
-            nVert.select_set(True)
+            vertex_new.select_set(True)
             bmesh.update_edit_mesh(obj.data)
             bm.select_history.clear()
-            nVert.select_set(True)
+            vertex_new.select_set(True)
         elif operation == "G":
-            if obj.mode == "EDIT":
-                if ext_a:
-                    for v in [v for v in bm.verts if v.select]:
-                        v.co = vector_delta
-                    bm.select_history.clear()
-                    bmesh.ops.remove_doubles(
-                        bm, verts=[v for v in bm.verts if v.select], dist=0.0001
-                    )
-                else:
-                    bm.select_history[-1].co = vector_delta
-                    bm.select_history.clear()
-                bmesh.update_edit_mesh(obj.data)
-            elif obj.mode == "OBJECT":
-                context.view_layer.objects.active.location = vector_delta
-        elif operation == "V":
-            nVert = bm.verts.new(vector_delta)
             if ext_a:
                 for v in [v for v in bm.verts if v.select]:
-                    bm.edges.new([v, nVert])
-                    v.select_set(False)
-                nVert.select_set(True)
+                    v.co = vector_delta
                 bm.select_history.clear()
-                bmesh.ops.remove_doubles(
-                    bm, verts=[v for v in bm.verts if v.select], dist=0.0001
-                )
+                bmesh.ops.remove_doubles(bm, verts=[v for v in bm.verts if v.select], dist=0.0001)
+            else:
+                bm.select_history[-1].co = vector_delta
+                bm.select_history.clear()
+            bmesh.update_edit_mesh(obj.data)
+        elif operation == "V":
+            vertex_new = bm.verts.new(vector_delta)
+            if ext_a:
+                for v in [v for v in bm.verts if v.select]:
+                    bm.edges.new([v, vertex_new])
+                    v.select_set(False)
+                vertex_new.select_set(True)
+                bm.select_history.clear()
+                bmesh.ops.remove_doubles(bm, verts=[v for v in bm.verts if v.select], dist=0.0001)
                 bmesh.update_edit_mesh(obj.data)
             else:
-                bm.edges.new([bm.select_history[-1], nVert])
+                bm.edges.new([bm.select_history[-1], vertex_new])
                 bmesh.update_edit_mesh(obj.data)
                 bm.select_history.clear()
         else:
             pg.error = f"{operation} {PDT_ERR_NON_VALID} {PDT_LAB_ARCCENTRE}"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        return
     elif obj.mode == "OBJECT":
         if len(context.view_layer.objects.selected) != 3:
             pg.error = f"{PDT_ERR_SEL_3_OBJS} {len(context.view_layer.objects.selected)})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
+        vector_a = context.view_layer.objects.selected[0].matrix_world.decompose()[0]
+        vector_b = context.view_layer.objects.selected[1].matrix_world.decompose()[0]
+        vector_c = context.view_layer.objects.selected[2].matrix_world.decompose()[0]
+        vector_delta, radius = arc_centre(vector_a, vector_b, vector_c)
+        pg.distance = radius
+        if operation == "C":
+            scene.cursor.location = vector_delta
+        elif operation == "P":
+            pg.pivot_loc = vector_delta
+        elif operation == "G":
+            context.view_layer.objects.active.location = vector_delta
         else:
-            actV = context.view_layer.objects.selected[0].matrix_world.decompose()[0]
-            othV = context.view_layer.objects.selected[1].matrix_world.decompose()[0]
-            lstV = context.view_layer.objects.selected[2].matrix_world.decompose()[0]
-            vector_delta, radius = arc_centre(actV, othV, lstV)
-            pg.distance = radius
-            if operation == "C":
-                scene.cursor.location = vector_delta
-            elif operation == "P":
-                pg.pivot_loc = vector_delta
-            elif operation == "G":
-                context.view_layer.objects.active.location = vector_delta
-            else:
-                pg.error = f"{operation} {PDT_ERR_NON_VALID} {PDT_LAB_ARCCENTRE}"
-                context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            pg.error = f"{operation} {PDT_ERR_NON_VALID} {PDT_LAB_ARCCENTRE}"
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+    return
 
 
-def placement_intersect(self, context, operation):
+def placement_intersect(context, operation):
     """Manipulates Geometry, or Objects by Convergance Intersection between 4 points, or 2 Edges.
 
     - Reads pg.plane scene variable and operates in Working Plane to:
@@ -443,47 +439,38 @@ def placement_intersect(self, context, operation):
     pg = scene.pdt_pg
     plane = pg.plane
     obj = context.view_layer.objects.active
-    if obj is None:
-        pg.error = PDT_ERR_NO_ACT_OBJ
-        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        return
     if obj.mode == "EDIT":
+        if obj is None:
+            pg.error = PDT_ERR_NO_ACT_OBJ
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            return
         obj_loc = obj.matrix_world.decompose()[0]
         bm = bmesh.from_edit_mesh(obj.data)
         edges = [e for e in bm.edges if e.select]
-        if len(bm.select_history) == 4:
-            ext_a = pg.extend
-            v_active = bm.select_history[-1]
-            v_other = bm.select_history[-2]
-            v_last = bm.select_history[-3]
-            v_first = bm.select_history[-4]
-            actV, othV, lstV, fstV = check_selection(4, bm, obj)
-            if actV is None:
-                pg.error = PDT_ERR_VERT_MODE
+        ext_a = pg.extend
+
+        if len(edges) == 2:
+            vertex_a = edges[0].verts[0]
+            vertex_b = edges[0].verts[1]
+            vertex_c = edges[1].verts[0]
+            vertex_d = edges[1].verts[1]
+        else:
+            if len(bm.select_history) != 4:
+                pg.error = (
+                    PDT_ERR_SEL_4_VERTS
+                    + str(len(bm.select_history))
+                    + " Vertices/"
+                    + str(len(edges))
+                    + " Edges)"
+                )
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 return
-        elif len(edges) == 2:
-            ext_a = pg.extend
-            v_active = edges[0].verts[0]
-            v_other = edges[0].verts[1]
-            v_last = edges[1].verts[0]
-            v_first = edges[1].verts[1]
-        else:
-            pg.error = (
-                PDT_ERR_SEL_4_VERTS
-                + str(len(bm.select_history))
-                + " Vertices/"
-                + str(len(edges))
-                + " Edges)"
-            )
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
-        vector_delta, done = intersection(v_active.co,
-            v_other.co,
-            v_last.co,
-            v_first.co,
-            plane
-            )
+            vertex_a = bm.select_history[-1]
+            vertex_b = bm.select_history[-2]
+            vertex_c = bm.select_history[-3]
+            vertex_d = bm.select_history[-4]
+
+        vector_delta, done = intersection(vertex_a.co, vertex_b.co, vertex_c.co, vertex_d.co, plane)
         if not done:
             pg.error = f"{PDT_ERR_INT_LINES} {plane}  {PDT_LAB_PLANE}"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -494,46 +481,52 @@ def placement_intersect(self, context, operation):
         elif operation == "P":
             pg.pivot_loc = obj_loc + vector_delta
         elif operation == "N":
-            vNew = vector_delta
-            nVert = bm.verts.new(vNew)
+            vector_new = vector_delta
+            vertex_new = bm.verts.new(vector_new)
             for v in [v for v in bm.verts if v.select]:
                 v.select_set(False)
             for f in bm.faces:
                 f.select_set(False)
             for e in bm.edges:
                 e.select_set(False)
-            nVert.select_set(True)
+            vertex_new.select_set(True)
             bmesh.update_edit_mesh(obj.data)
             bm.select_history.clear()
         elif operation in {"G", "V"}:
-            nVert = None
+            vertex_new = None
             proc = False
 
-            if (v_active.co - vector_delta).length < (v_other.co - vector_delta).length:
+            if (vertex_a.co - vector_delta).length < (vertex_b.co - vector_delta).length:
                 if operation == "G":
-                    v_active.co = vector_delta
+                    vertex_a.co = vector_delta
                     proc = True
-                elif operation == "V":
-                    nVert = bm.verts.new(vector_delta)
-                    bm.edges.new([va, nVert])
+                else:
+                    vertex_new = bm.verts.new(vector_delta)
+                    bm.edges.new([vertex_a, vertex_new])
                     proc = True
             else:
                 if operation == "G" and ext_a:
-                    v_other.co = vector_delta
+                    vertex_b.co = vector_delta
                 elif operation == "V" and ext_a:
-                    nVert = bm.verts.new(vector_delta)
-                    bm.edges.new([vo, nVert])
+                    vertex_new = bm.verts.new(vector_delta)
+                    bm.edges.new([vertex_b, vertex_new])
+                else:
+                    return
 
-            if (v_last.co - vector_delta).length < (v_first.co - vector_delta).length:
+            if (vertex_c.co - vector_delta).length < (vertex_d.co - vector_delta).length:
                 if operation == "G" and ext_a:
-                    v_last.co = vector_delta
+                    vertex_c.co = vector_delta
                 elif operation == "V" and ext_a:
-                    bm.edges.new([vl, nVert])
+                    bm.edges.new([vertex_c, vertex_new])
+                else:
+                    return
             else:
                 if operation == "G" and ext_a:
-                    v_first.co = vector_delta
+                    vertex_d.co = vector_delta
                 elif operation == "V" and ext_a:
-                    bm.edges.new([vf, nVert])
+                    bm.edges.new([vertex_d, vertex_new])
+                else:
+                    return
             bm.select_history.clear()
             bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
 
@@ -542,70 +535,69 @@ def placement_intersect(self, context, operation):
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 bmesh.update_edit_mesh(obj.data)
                 return
-            else:
-                for v in bm.verts:
-                    v.select_set(False)
-                for f in bm.faces:
-                    f.select_set(False)
-                for e in bm.edges:
-                    e.select_set(False)
+            for v in bm.verts:
+                v.select_set(False)
+            for f in bm.faces:
+                f.select_set(False)
+            for e in bm.edges:
+                e.select_set(False)
 
-                if nVert is not None:
-                    nVert.select_set(True)
-                for v in bm.select_history:
-                    if v is not None:
-                        v.select_set(True)
-                bmesh.update_edit_mesh(obj.data)
+            if vertex_new is not None:
+                vertex_new.select_set(True)
+            for v in bm.select_history:
+                if v is not None:
+                    v.select_set(True)
+            bmesh.update_edit_mesh(obj.data)
         else:
             pg.error = f"{operation} {PDT_ERR_NON_VALID} {PDT_LAB_INTERSECT}"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        return
+            return
+
     elif obj.mode == "OBJECT":
         if len(context.view_layer.objects.selected) != 4:
             pg.error = f"{PDT_ERR_SEL_4_OBJS} {len(context.view_layer.objects.selected)})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
-        else:
-            order = pg.object_order.split(",")
-            objs = sorted(
-                [ob for ob in context.view_layer.objects.selected], key=lambda x: x.name
-            )
-            message = (
-                "Original Object Order was: "
-                + objs[0].name
-                + ", "
-                + objs[1].name
-                + ", "
-                + objs[2].name
-                + ", "
-                + objs[3].name
-            )
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+        order = pg.object_order.split(",")
+        objs = sorted(context.view_layer.objects.selected, key=lambda x: x.name)
+        pg.error = (
+            "Original Object Order was: "
+            + objs[0].name
+            + ", "
+            + objs[1].name
+            + ", "
+            + objs[2].name
+            + ", "
+            + objs[3].name
+        )
+        context.window_manager.popup_menu(oops, title="Info", icon="INFO")
 
-            actV = objs[int(order[0]) - 1].matrix_world.decompose()[0]
-            othV = objs[int(order[1]) - 1].matrix_world.decompose()[0]
-            lstV = objs[int(order[2]) - 1].matrix_world.decompose()[0]
-            fstV = objs[int(order[3]) - 1].matrix_world.decompose()[0]
-        vector_delta, done = intersection(actV, othV, lstV, fstV, plane)
+        vector_a = objs[int(order[0]) - 1].matrix_world.decompose()[0]
+        vector_b = objs[int(order[1]) - 1].matrix_world.decompose()[0]
+        vector_c = objs[int(order[2]) - 1].matrix_world.decompose()[0]
+        vector_d = objs[int(order[3]) - 1].matrix_world.decompose()[0]
+        vector_delta, done = intersection(vector_a, vector_b, vector_c, vector_d, plane)
         if not done:
             pg.error = f"{PDT_ERR_INT_LINES} {plane}  {PDT_LAB_PLANE}"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
-        if operation == "CU":
+        if operation == "C":
             scene.cursor.location = vector_delta
-        elif operation == "PP":
+        elif operation == "P":
             pg.pivot_loc = vector_delta
-        elif operation == "MV":
+        elif operation == "G":
             context.view_layer.objects.active.location = vector_delta
-            pg.error = PDT_INF_OBJ_MOVED + message
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            pg.error = f"{PDT_INF_OBJ_MOVED} {context.view_layer.objects.active.name}"
+            context.window_manager.popup_menu(oops, title="Info", icon="INFO")
         else:
             pg.error = f"{operation} {PDT_ERR_NON_VALID} {PDT_LAB_INTERSECT}"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         return
+    else:
+        return
 
 
-def join_two_vertices(self, context):
+def join_two_vertices(context):
     """Joins 2 Free Vertices that do not form part of a Face.
 
     Joins two vertices that do not form part of a single face
@@ -644,7 +636,8 @@ def join_two_vertices(self, context):
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         return
 
-def set_angle_distance_two(self, context):
+
+def set_angle_distance_two(context):
     """Measures Angle and Offsets between 2 Points in View Plane.
 
     Uses 2 Selected Vertices to set pg.angle and pg.distance scene variables
@@ -672,11 +665,11 @@ def set_angle_distance_two(self, context):
         verts = [v for v in bm.verts if v.select]
         if len(verts) == 2:
             if len(bm.select_history) == 2:
-                actV, othV = check_selection(2, bm, obj)
-                if actV is None:
-                    errmsg = PDT_ERR_VERT_MODE
-                    self.report({"ERROR"}, errmsg)
-                    return {"FINISHED"}
+                vector_a, vector_b = check_selection(2, bm, obj)
+                if vector_a is None:
+                    pg.error = PDT_ERR_VERT_MODE
+                    context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+                    return
             else:
                 pg.error = f"{PDT_ERR_SEL_2_VERTIO} {len(bm.select_history)})"
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -692,18 +685,18 @@ def set_angle_distance_two(self, context):
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
         objs_s = [ob for ob in objs if ob.name != obj.name]
-        actV = obj.matrix_world.decompose()[0]
-        othV = objs_s[-1].matrix_world.decompose()[0]
+        vector_a = obj.matrix_world.decompose()[0]
+        vector_b = objs_s[-1].matrix_world.decompose()[0]
     if plane == "LO":
-        disV = othV - actV
-        othV = view_coords_i(disV.x, disV.y, disV.z)
-        actV = Vector((0, 0, 0))
-        v0 = np.array([actV.x + 1, actV.y]) - np.array([actV.x, actV.y])
-        v1 = np.array([othV.x, othV.y]) - np.array([actV.x, actV.y])
+        vector_difference = vector_b - vector_a
+        vector_b = view_coords_i(vector_difference.x, vector_difference.y, vector_difference.z)
+        vector_a = Vector((0, 0, 0))
+        v0 = np.array([vector_a.x + 1, vector_a.y]) - np.array([vector_a.x, vector_a.y])
+        v1 = np.array([vector_b.x, vector_b.y]) - np.array([vector_a.x, vector_a.y])
     else:
         a1, a2, _ = set_mode(plane)
-        v0 = np.array([actV[a1] + 1, actV[a2]]) - np.array([actV[a1], actV[a2]])
-        v1 = np.array([othV[a1], othV[a2]]) - np.array([actV[a1], actV[a2]])
+        v0 = np.array([vector_a[a1] + 1, vector_a[a2]]) - np.array([vector_a[a1], vector_a[a2]])
+        v1 = np.array([vector_b[a1], vector_b[a2]]) - np.array([vector_a[a1], vector_a[a2]])
     ang = np.rad2deg(np.arctan2(np.linalg.det([v0, v1]), np.dot(v0, v1)))
     if flip_a:
         if ang > 0:
@@ -713,14 +706,14 @@ def set_angle_distance_two(self, context):
     else:
         pg.angle = ang
     if plane == "LO":
-        pg.distance = sqrt((actV.x - othV.x) ** 2 + (actV.y - othV.y) ** 2)
+        pg.distance = sqrt((vector_a.x - vector_b.x) ** 2 + (vector_a.y - vector_b.y) ** 2)
     else:
-        pg.distance = sqrt((actV[a1] - othV[a1]) ** 2 + (actV[a2] - othV[a2]) ** 2)
-    pg.cartesian_coords = othV - actV
+        pg.distance = sqrt((vector_a[a1] - vector_b[a1]) ** 2 + (vector_a[a2] - vector_b[a2]) ** 2)
+    pg.cartesian_coords = vector_b - vector_a
     return
 
 
-def set_angle_distance_three(self, context):
+def set_angle_distance_three(context):
     """Measures Angle and Offsets between 3 Points in World Space, Also sets Deltas.
 
     Uses 3 Selected Vertices to set pg.angle and pg.distance scene variables
@@ -746,8 +739,8 @@ def set_angle_distance_three(self, context):
         verts = [v for v in bm.verts if v.select]
         if len(verts) == 3:
             if len(bm.select_history) == 3:
-                actV, othV, lstV = check_selection(3, bm, obj)
-                if actV is None:
+                vector_a, vector_b, vector_c = check_selection(3, bm, obj)
+                if vector_a is None:
                     pg.error = PDT_ERR_VERT_MODE
                     context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                     return
@@ -766,13 +759,17 @@ def set_angle_distance_three(self, context):
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
         objs_s = [ob for ob in objs if ob.name != obj.name]
-        actV = obj.matrix_world.decompose()[0]
-        othV = objs_s[-1].matrix_world.decompose()[0]
-        lstV = objs_s[-2].matrix_world.decompose()[0]
-    ba = np.array([othV.x, othV.y, othV.z]) - np.array([actV.x, actV.y, actV.z])
-    bc = np.array([lstV.x, lstV.y, lstV.z]) - np.array([actV.x, actV.y, actV.z])
-    cosA = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
-    ang = np.degrees(np.arccos(cosA))
+        vector_a = obj.matrix_world.decompose()[0]
+        vector_b = objs_s[-1].matrix_world.decompose()[0]
+        vector_c = objs_s[-2].matrix_world.decompose()[0]
+    ba = np.array([vector_b.x, vector_b.y, vector_b.z]) - np.array(
+        [vector_a.x, vector_a.y, vector_a.z]
+    )
+    bc = np.array([vector_c.x, vector_c.y, vector_c.z]) - np.array(
+        [vector_a.x, vector_a.y, vector_a.z]
+    )
+    angle_cosine = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+    ang = np.degrees(np.arccos(angle_cosine))
     if flip_a:
         if ang > 0:
             pg.angle = ang - 180
@@ -780,12 +777,12 @@ def set_angle_distance_three(self, context):
             pg.angle = ang + 180
     else:
         pg.angle = ang
-    pg.distance = (actV - othV).length
-    pg.cartesian_coords = othV - actV
+    pg.distance = (vector_a - vector_b).length
+    pg.cartesian_coords = vector_b - vector_a
     return
 
 
-def origin_to_cursor(self, context):
+def origin_to_cursor(context):
     """Sets Object Origin in Edit Mode to Cursor Location.
 
     Keeps geometry static in World Space whilst moving Object Origin
@@ -800,6 +797,7 @@ def origin_to_cursor(self, context):
     """
 
     scene = context.scene
+    pg = context.scene.pdt_pg
     obj = context.view_layer.objects.active
     if obj is None:
         pg.error = PDT_ERR_NO_ACT_OBJ
@@ -825,7 +823,8 @@ def origin_to_cursor(self, context):
         return
     return
 
-def taper(self, context):
+
+def taper(context):
     """Taper Geometry along World Axes.
 
     Similar to Shear command except that it shears by angle rather than displacement.
@@ -850,9 +849,9 @@ def taper(self, context):
     obj = context.view_layer.objects.active
     if all([bool(obj), obj.type == "MESH", obj.mode == "EDIT"]):
         if ang_v > 80 or ang_v < -80:
-            errmsg = f"{PDT_ERR_TAPER_ANG} {ang_v})"
-            self.report({"ERROR"}, errmsg)
-            return {"FINISHED"}
+            pg.error = f"{PDT_ERR_TAPER_ANG} {ang_v})"
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            return
         if obj is None:
             pg.error = PDT_ERR_NO_ACT_OBJ
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -860,8 +859,8 @@ def taper(self, context):
         _, a2, a3 = set_axis(tap_ax)
         bm = bmesh.from_edit_mesh(obj.data)
         if len(bm.select_history) >= 1:
-            rotV = bm.select_history[-1]
-            viewV = view_coords(rotV.co.x, rotV.co.y, rotV.co.z)
+            rotate_vertex = bm.select_history[-1]
+            view_vector = view_coords(rotate_vertex.co.x, rotate_vertex.co.y, rotate_vertex.co.z)
         else:
             pg.error = f"{PDT_ERR_TAPER_SEL} {len(bm.select_history)})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -869,17 +868,18 @@ def taper(self, context):
         for v in [v for v in bm.verts if v.select]:
             if pg.plane == "LO":
                 v_loc = view_coords(v.co.x, v.co.y, v.co.z)
-                dis_v = sqrt((viewV.x - v_loc.x) ** 2 + (viewV.y - v_loc.y) ** 2)
+                dis_v = sqrt((view_vector.x - v_loc.x) ** 2 + (view_vector.y - v_loc.y) ** 2)
                 x_loc = dis_v * tan(ang_v * pi / 180)
-                vm = view_dir(x_loc, 0)
-                v.co = v.co - vm
+                view_matrix = view_dir(x_loc, 0)
+                v.co = v.co - view_matrix
             else:
-                dis_v = sqrt((rotV.co[a3] - v.co[a3]) ** 2 + (rotV.co[a2] - v.co[a2]) ** 2)
+                dis_v = sqrt(
+                    (rotate_vertex.co[a3] - v.co[a3]) ** 2 + (rotate_vertex.co[a2] - v.co[a2]) ** 2
+                )
                 v.co[a2] = v.co[a2] - (dis_v * tan(ang_v * pi / 180))
         bmesh.update_edit_mesh(obj.data)
         bm.select_history.clear()
         return
-    else:
-        pg.error = f"{PDT_ERR_EDOB_MODE},{obj.mode})"
-        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        return
+    pg.error = f"{PDT_ERR_EDOB_MODE},{obj.mode})"
+    context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+    return

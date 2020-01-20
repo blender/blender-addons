@@ -34,7 +34,7 @@ from .pdt_msg_strings import (
 )
 from .pdt_functions import debug, oops
 
-def add_line_to_bisection(self, context):
+def add_line_to_bisection(context):
     """Computes Bisector of 2 Co-Planar Edges.
 
     Args:
@@ -46,7 +46,7 @@ def add_line_to_bisection(self, context):
 
     obj = context.object
     if all([bool(obj), obj.type == "MESH", obj.mode == "EDIT"]):
-        pg = scene.pdt_pg
+        pg = context.scene.pdt_pg
         me = obj.data
         bm = bmesh.from_edit_mesh(me)
 
@@ -70,8 +70,8 @@ def add_line_to_bisection(self, context):
         edge2 = (v3, v4)
 
         if not cm.test_coplanar(edge1, edge2):
-            msg = PDT_ERR_NCEDGES
-            self.report({"ERROR"}, msg)
+            pg.error = PDT_ERR_NCEDGES
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
 
         # get pt and pick farthest vertex from (projected) intersections
