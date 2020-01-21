@@ -87,7 +87,9 @@ def check_render_engine(props, obs):
     shaders = []
     textures = []
     props.uv = False
-
+    props.texture_count = 0
+    props.total_megapixels = 0
+    props.node_count = 0
     for ob in obs:  # TODO , this is duplicated here for other engines, otherwise this should be more clever.
         for ms in ob.material_slots:
             if ms.material is not None:
@@ -109,6 +111,7 @@ def check_render_engine(props, obs):
                 checknodes = m.node_tree.nodes[:]
                 while len(checknodes) > 0:
                     n = checknodes.pop()
+                    props.node_count +=1
                     if n.type == 'GROUP':  # dive deeper here.
                         checknodes.extend(n.node_tree.nodes)
                     if len(n.outputs) == 1 and n.outputs[0].type == 'SHADER' and n.type != 'GROUP':

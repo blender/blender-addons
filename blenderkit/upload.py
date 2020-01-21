@@ -232,6 +232,10 @@ def get_upload_data(self, context, asset_type):
             "manifold": props.manifold,
             "objectCount": props.object_count,
 
+            "procedural": props.is_procedural,
+            "nodeCount": props.node_count,
+            "textureCount": props.texture_count,
+            "megapixels": round(props.total_megapixels/ 1000000),
             # "scene": props.is_scene,
         }
         if props.use_design_year:
@@ -359,6 +363,7 @@ def get_upload_data(self, context, asset_type):
             "procedural": props.is_procedural,
             "nodeCount": props.node_count,
             "textureCount": props.texture_count,
+            "megapixels": round(props.total_megapixels/ 1000000),
 
         }
 
