@@ -50,6 +50,11 @@ import os
 
 handler_2d = None
 handler_3d = None
+active_area = None
+active_area = None
+active_window = None
+active_region = None
+
 reports = []
 
 mappingdict = {
@@ -67,7 +72,7 @@ verification_icons = {
     'uploading': 'vs_uploading.png',
     'on_hold': 'vs_on_hold.png',
     'validated': None,
-    'rejected': 'vs_on_hold.png'
+    'rejected': 'vs_rejected.png'
 
 }
 
@@ -133,7 +138,8 @@ class Report():
                     pass;
 
     def draw(self, x, y):
-        ui_bgl.draw_text(self.text, x, y + 8, 16, self.draw_color)
+        if bpy.context.area == active_area:
+            ui_bgl.draw_text(self.text, x, y + 8, 16, self.draw_color)
 
 
 def get_asset_under_mouse(mousex, mousey):
@@ -1174,6 +1180,10 @@ def get_largest_3dview():
                     for r in a.regions:
                         if r.type == 'WINDOW':
                             region = r
+    global active_area, active_window, active_region
+    active_window = maxw
+    active_area = maxa
+    active_region = region
     return maxw, maxa, region
 
 
@@ -1419,7 +1429,7 @@ class AssetBarOperator(bpy.types.Operator):
 
                     ui_props.tooltip = asset_data['tooltip']
 
-                    #bpy.ops.wm.call_menu(name='OBJECT_MT_blenderkit_asset_menu')
+                    # bpy.ops.wm.call_menu(name='OBJECT_MT_blenderkit_asset_menu')
 
                 else:
                     ui_props.draw_tooltip = False
@@ -1700,30 +1710,38 @@ class AssetBarOperator(bpy.types.Operator):
         if sr is None:
             bpy.context.scene['search results'] = []
 
-        if context.area.type == 'VIEW_3D':
-            # the arguments we pass the the callback
-            args = (self, context)
-            self.window = context.window
-            self.area = context.area
-            self.scene = bpy.context.scene
-            self.has_quad_views = len(bpy.context.area.spaces[0].region_quadviews) > 0
-
-            for r in self.area.regions:
-                if r.type == 'WINDOW':
-                    self.region = r
-
-            update_ui_size(self.area, self.region)
-
-            self._handle_2d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_2d, args, 'WINDOW', 'POST_PIXEL')
-            self._handle_3d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_3d, args, 'WINDOW', 'POST_VIEW')
-
-            context.window_manager.modal_handler_add(self)
-            ui_props.assetbar_on = True
-            return {'RUNNING_MODAL'}
-        else:
-
+        if context.area.type != 'VIEW_3D':
             self.report({'WARNING'}, "View3D not found, cannot run operator")
             return {'CANCELLED'}
+
+        # the arguments we pass the the callback
+        args = (self, context)
+
+        self.window = context.window
+        self.area = context.area
+        self.scene = bpy.context.scene
+
+
+
+        self.has_quad_views = len(bpy.context.area.spaces[0].region_quadviews) > 0
+
+        for r in self.area.regions:
+            if r.type == 'WINDOW':
+                self.region = r
+
+        global active_window, active_area, active_region
+        active_window = self.window
+        active_area = self.area
+        active_region = self.region
+
+        update_ui_size(self.area, self.region)
+
+        self._handle_2d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_2d, args, 'WINDOW', 'POST_PIXEL')
+        self._handle_3d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_3d, args, 'WINDOW', 'POST_VIEW')
+
+        context.window_manager.modal_handler_add(self)
+        ui_props.assetbar_on = True
+        return {'RUNNING_MODAL'}
 
     def execute(self, context):
         return {'RUNNING_MODAL'}

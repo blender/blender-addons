@@ -813,6 +813,10 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
             # validation by admin
             if profile['user']['exmenu']:
                 layout.label(text='Validation tools:')
+                if asset_data['verificationStatus'] != 'uploaded':
+                    op = layout.operator('object.blenderkit_change_status', text='set Uploaded')
+                    op.asset_id = asset_data['id']
+                    op.state = 'uploaded'
                 if asset_data['verificationStatus'] != 'validated':
                     op = layout.operator('object.blenderkit_change_status', text='Validate')
                     op.asset_id = asset_data['id']
@@ -998,21 +1002,23 @@ class VIEW3D_PT_blenderkit_downloads(Panel):
 
 def header_search_draw(self, context):
     '''Top bar menu in 3d view'''
-    layout = self.layout
-    s = bpy.context.scene
-    ui_props = s.blenderkitUI
-    if ui_props.asset_type == 'MODEL':
-        props = s.blenderkit_models
-    if ui_props.asset_type == 'MATERIAL':
-        props = s.blenderkit_mat
-    if ui_props.asset_type == 'BRUSH':
-        props = s.blenderkit_brush
+    preferences = bpy.context.preferences.addons['blenderkit'].preferences
+    if preferences.search_in_header:
+        layout = self.layout
+        s = bpy.context.scene
+        ui_props = s.blenderkitUI
+        if ui_props.asset_type == 'MODEL':
+            props = s.blenderkit_models
+        if ui_props.asset_type == 'MATERIAL':
+            props = s.blenderkit_mat
+        if ui_props.asset_type == 'BRUSH':
+            props = s.blenderkit_brush
 
-    if context.space_data.show_region_tool_header == True:
-        layout.separator_spacer()
-    layout.prop(ui_props, "asset_type", text='', icon='URL')
-    layout.prop(props, "search_keywords", text="", icon='VIEWZOOM')
-    draw_assetbar_show_hide(layout, props)
+        if context.space_data.show_region_tool_header == True:
+            layout.separator_spacer()
+        layout.prop(ui_props, "asset_type", text='', icon='URL')
+        layout.prop(props, "search_keywords", text="", icon='VIEWZOOM')
+        draw_assetbar_show_hide(layout, props)
 
 
 # We can store multiple preview collections here,
@@ -1040,3 +1046,4 @@ def register_ui_panels():
 def unregister_ui_panels():
     for c in classess:
         bpy.utils.unregister_class(c)
+    bpy.types.VIEW3D_MT_editor_menus.remove(header_search_draw)

@@ -24,12 +24,13 @@ if "bpy" in locals():
     utils = reload(utils)
     categories = reload(categories)
     ui = reload(ui)
+    colors = reload(colors)
     bkit_oauth = reload(bkit_oauth)
     version_checker = reload(version_checker)
     tasks_queue = reload(tasks_queue)
     rerequests = reload(rerequests)
 else:
-    from blenderkit import paths, utils, categories, ui, bkit_oauth, version_checker, tasks_queue, rerequests
+    from blenderkit import paths, utils, categories, ui, colors,  bkit_oauth, version_checker, tasks_queue, rerequests
 
 import blenderkit
 from bpy.app.handlers import persistent
@@ -81,6 +82,15 @@ thumb_full_download_threads = {}
 reports = ''
 
 
+rtips = ['Click or drag model or material in scene to link/append ',
+             "Please rate responsively and plentifully. This helps us distribute rewards to the authors.",
+             "Click on brushes to link them into scene.",
+             "All materials and brushes are free.",
+             "Locked models are available if you subscribe to Full plan.",
+             "Login to upload your own models, materials or brushes.",
+             "Use 'A' key to search assets by same author.",
+             "Use 'W' key to open Authors webpage.", ]
+
 def refresh_token_timer():
     ''' this timer gets run every time the token needs refresh. It refreshes tokens and also categories.'''
     utils.p('refresh timer')
@@ -127,6 +137,10 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff.
         first_time = False
         if preferences.show_on_start:
             search()
+        if preferences.tips_on_start:
+            ui.get_largest_3dview()
+            ui.update_ui_size(ui.active_area, ui.active_region)
+            ui.add_report(text='BlenderKit Tip:' + random.choice(rtips), timeout=12, color=colors.GREEN)
 
     global search_threads
     # don't do anything while dragging - this could switch asset type during drag, and make results list length different,
@@ -496,14 +510,7 @@ def generate_tooltip(mdata):
 
 def get_random_tip(mdata):
     t = ''
-    rtips = ['Click or drag model or material in scene to link/append ',
-             "Click on brushes to link them into scene.",
-             "All materials are free.",
-             "All brushes are free.",
-             "Locked models are available if you subscribe to Full plan.",
-             "Login to upload your own models, materials or brushes.",
-             "Use 'A' key to search assets by same author.",
-             "Use 'W' key to open Authors webpage.", ]
+
     tip = 'Tip: ' + random.choice(rtips)
     t = writeblock(t, tip)
     return t
@@ -743,9 +750,10 @@ class Searcher(threading.Thread):
             requeststring = '?query=' + query['keywords'].lower() + '+'
             #
             for i, q in enumerate(query):
-                requeststring += q + ':' + str(query[q]).lower()
-                if i < len(query) - 1:
-                    requeststring += '+'
+                if q != 'keywords':
+                    requeststring += q + ':' + str(query[q]).lower()
+                    if i < len(query) - 1:
+                        requeststring += '+'
 
             # result ordering: _score - relevance, score - BlenderKit score
             #first condition assumes no keywords and no category, thus an empty search that is triggered on start.
@@ -794,7 +802,7 @@ class Searcher(threading.Thread):
                     if p['parameterType'] == 'mode':
                         mode = p['value']
             if query['asset_type'] != 'brush' or (
-                    query.get('brushType') != None and query['brushType']) == mode:
+                    query.get('mode') != None and query['mode']) == mode:
                 nresults.append(d)
         rdata['results'] = nresults
 
@@ -1025,7 +1033,7 @@ def build_query_brush():
     query = {
         "asset_type": 'brush',
 
-        "brushType": brush_type
+        "mode": brush_type
     }
 
     build_query_common(query, props)

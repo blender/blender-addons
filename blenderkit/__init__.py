@@ -1367,6 +1367,18 @@ class BlenderKitAddonPreferences(AddonPreferences):
         default=False
     )
 
+    tips_on_start: BoolProperty(
+        name="Show tips when starting blender",
+        description="Show tips when starting blender",
+        default=True
+    )
+
+    search_in_header: BoolProperty(
+        name="Show BlenderKit search in 3d view header",
+        description="Show BlenderKit search in 3d view header",
+        default=True
+    )
+
     global_dir: StringProperty(
         name="Global Files Directory",
         description="Global storage for your assets, will use subdirectories for the contents",
@@ -1473,6 +1485,9 @@ class BlenderKitAddonPreferences(AddonPreferences):
         # layout.prop(self, "panel_behaviour")
         layout.prop(self, "thumb_size")
         layout.prop(self, "max_assetbar_rows")
+        layout.prop(self, "tips_on_start")
+        layout.prop(self, "search_in_header")
+
 
 
 # registration

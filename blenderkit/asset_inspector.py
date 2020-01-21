@@ -85,6 +85,7 @@ def check_render_engine(props, obs):
     mattype = None
     materials = []
     shaders = []
+    textures = []
     props.uv = False
 
     for ob in obs:  # TODO , this is duplicated here for other engines, otherwise this should be more clever.
@@ -115,18 +116,20 @@ def check_render_engine(props, obs):
                             shaders.append(n.type)
                     if n.type == 'TEX_IMAGE':
                         mattype = 'image based'
-                        if n.image is not None:
+                        props.is_procedural = False
+                        if n.image not in textures:
+                            textures.append(n.image)
+                            props.texture_count += 1
+                            props.total_megapixels += (n.image.size[0] * n.image.size[1])
 
                             maxres = max(n.image.size[0], n.image.size[1])
-
                             props.texture_resolution_max = max(props.texture_resolution_max, maxres)
-
                             minres = min(n.image.size[0], n.image.size[1])
-
                             if props.texture_resolution_min == 0:
                                 props.texture_resolution_min = minres
                             else:
                                 props.texture_resolution_min = min(props.texture_resolution_min, minres)
+
 
         # if mattype == None:
         #    mattype = 'procedural'
