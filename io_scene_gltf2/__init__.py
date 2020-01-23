@@ -15,7 +15,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (1, 2, 2),
+    "version": (1, 2, 3),
     'blender': (2, 81, 6),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -113,18 +113,18 @@ class ExportGLTF2_Base:
 
     export_image_format: EnumProperty(
         name='Images',
-        items=(('NAME', 'Automatic',
-                'Determine the image format from the blender image name'),
+        items=(('AUTO', 'Automatic',
+                'Save PNGs as PNGs and JPEGs as JPEGs.\n'
+                'If neither one, use PNG'),
                 ('JPEG', 'JPEG Format (.jpg)',
-                'Encode and save textures as .jpg files. Be aware of a possible loss in quality'),
-               ('PNG', 'PNG Format (.png)',
-                'Encode and save textures as .png files')
+                'Save images as JPEGs. (Images that need alpha are saved as PNGs though.)\n'
+                'Be aware of a possible loss in quality'),
                ),
         description=(
             'Output format for images. PNG is lossless and generally preferred, but JPEG might be preferable for web '
             'applications due to the smaller file size'
         ),
-        default='NAME'
+        default='AUTO'
     )
 
     export_texture_dir: StringProperty(
