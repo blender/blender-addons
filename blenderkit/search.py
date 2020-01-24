@@ -86,10 +86,11 @@ rtips = ['Click or drag model or material in scene to link/append ',
              "Please rate responsively and plentifully. This helps us distribute rewards to the authors.",
              "Click on brushes to link them into scene.",
              "All materials and brushes are free.",
+             "Storage for public assets is unlimited.",
              "Locked models are available if you subscribe to Full plan.",
              "Login to upload your own models, materials or brushes.",
-             "Use 'A' key to search assets by same author.",
-             "Use 'W' key to open Authors webpage.", ]
+             "Use 'A' key over asset bar to search assets by same author.",
+             "Use 'W' key over asset bar to open Authors webpage.", ]
 
 def refresh_token_timer():
     ''' this timer gets run every time the token needs refresh. It refreshes tokens and also categories.'''
@@ -127,7 +128,7 @@ def fetch_server_data():
 
 
 first_time = True
-
+last_clipboard = ''
 @bpy.app.handlers.persistent
 def timer_update():  # TODO might get moved to handle all blenderkit stuff.
     #this makes a first search after opening blender. showing latest assets.
@@ -141,6 +142,22 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff.
             ui.get_largest_3dview()
             ui.update_ui_size(ui.active_area, ui.active_region)
             ui.add_report(text='BlenderKit Tip:' + random.choice(rtips), timeout=12, color=colors.GREEN)
+
+    # clipboard monitoring to search assets from web
+    global last_clipboard
+    if bpy.context.window_manager.clipboard != last_clipboard:
+        last_clipboard = bpy.context.window_manager.clipboard
+        instr = 'asset_base_id:'
+        if last_clipboard[:len(instr)] == instr:
+            atstr = 'asset_type:'
+            ati = last_clipboard.find(atstr)
+            if ati>-1:
+                at = last_clipboard[ati:]
+
+            search_props = utils.get_search_props()
+            search_props.search_keywords = last_clipboard
+            search()
+
 
     global search_threads
     # don't do anything while dragging - this could switch asset type during drag, and make results list length different,
@@ -700,6 +717,9 @@ def profile_is_validator():
         return True
     return False
 
+
+
+
 class Searcher(threading.Thread):
     query = None
 
@@ -714,6 +734,43 @@ class Searcher(threading.Thread):
 
     def stopped(self):
         return self._stop_event.is_set()
+
+    def     query_to_url(self):
+        query = self.query
+        params = self.params
+        # build a new request
+        url = paths.get_api_url() + 'search/'
+
+
+        # build request manually
+        # TODO use real queries
+        requeststring = '?query='
+        #
+        if query.get('query') not in ('', None):
+            requeststring += query['query'].lower()
+        for i, q in enumerate(query):
+            if q != 'query':
+                requeststring += '+'
+                requeststring += q + ':' + str(query[q]).lower()
+
+        # result ordering: _score - relevance, score - BlenderKit score
+        # first condition assumes no keywords and no category, thus an empty search that is triggered on start.
+        if query.get('query') is None and query.get('category_subtree') == None:
+            requeststring += '+order:-created'
+        elif query.get('author_id') is not None and profile_is_validator():
+            requeststring += '+order:-created'
+        else:
+            if query.get('category_subtree') is not None:
+                requeststring += '+order:-score,_score'
+            else:
+                requeststring += '+order:_score'
+
+        requeststring += '&addon_version=%s' % params['addon_version']
+        if params.get('scene_uuid') is not None:
+            requeststring += '&scene_uuid=%s' % params['scene_uuid']
+        print('params', params)
+        urlquery = url + requeststring
+        return urlquery
 
     def run(self):
         maxthreads = 50
@@ -736,45 +793,23 @@ class Searcher(threading.Thread):
                 try:
                     origdata = json.load(infile)
                     urlquery = origdata['next']
+                    #rparameters = {}
                     if urlquery == None:
                         return;
                 except:
                     # in case no search results found on drive we don't do next page loading.
                     params['get_next'] = False
         if not params['get_next']:
-            # build a new request
             url = paths.get_api_url() + 'search/'
 
-            # build request manually
-            # TODO use real queries
-            requeststring = '?query=' + query['keywords'].lower() + '+'
-            #
-            for i, q in enumerate(query):
-                if q != 'keywords':
-                    requeststring += q + ':' + str(query[q]).lower()
-                    if i < len(query) - 1:
-                        requeststring += '+'
+            urlquery = url
 
-            # result ordering: _score - relevance, score - BlenderKit score
-            #first condition assumes no keywords and no category, thus an empty search that is triggered on start.
-            if query['keywords'] == '' and query.get('category_subtree') == None:
-                requeststring += '+order:-created'
-            elif query.get('author_id') is not None and profile_is_validator():
-                requeststring += '+order:-created'
-            else:
-                if query.get('category_subtree') is not None:
-                    requeststring += '+order:-score,_score'
-                else:
-                    requeststring += '+order:_score'
-
-            requeststring += '&addon_version=%s' % params['addon_version']
-            if params.get('scene_uuid') is not None:
-                requeststring += '&scene_uuid=%s' % params['scene_uuid']
-
-            urlquery = url + requeststring
+            #rparameters = query
+            urlquery = self.query_to_url()
         try:
             utils.p(urlquery)
-            r = rerequests.get(urlquery, headers=headers)
+            r = rerequests.get(urlquery, headers=headers)#, params = rparameters)
+            print(r.url)
             reports = ''
             # utils.p(r.text)
         except requests.exceptions.RequestException as e:
@@ -808,7 +843,7 @@ class Searcher(threading.Thread):
 
         # print('number of results: ', len(rdata.get('results', [])))
         if self.stopped():
-            utils.p('stopping search : ' + query['keywords'])
+            utils.p('stopping search : ' + str(query))
             return
 
         mt('search finished')
@@ -867,7 +902,7 @@ class Searcher(threading.Thread):
         # TODO do the killing/ stopping here! remember threads might have finished inbetween!
 
         if self.stopped():
-            utils.p('stopping search : ' + query['keywords'])
+            utils.p('stopping search : ' + str(query))
             return
 
         # this loop handles downloading of small thumbnails
@@ -891,7 +926,7 @@ class Searcher(threading.Thread):
                                 # utils.p('fetched thumbnail ', i)
                                 i += 1
         if self.stopped():
-            utils.p('stopping search : ' + query['keywords'])
+            utils.p('stopping search : ' + str(query))
             return
         idx = 0
         while len(thumb_sml_download_threads) > 0:
@@ -903,7 +938,7 @@ class Searcher(threading.Thread):
                     i += 1
 
         if self.stopped():
-            utils.p('stopping search : ' + query['keywords'])
+            utils.p('stopping search : ' + str(query))
             return
 
         # start downloading full thumbs in the end
@@ -918,10 +953,11 @@ class Searcher(threading.Thread):
 
 
 def build_query_common(query, props):
-    query_common = {
-        "keywords": props.search_keywords
-    }
-    query.update(query_common)
+    if props.search_keywords != '':
+        query_common = {
+            "query": props.search_keywords
+        }
+        query.update(query_common)
 
 
 # def query_add_range(query, name, rmin, rmax):
@@ -948,19 +984,19 @@ def build_query_model():
         if props.search_condition != 'UNSPECIFIED':
             query["condition"] = props.search_condition
         if props.search_design_year:
-            query["designYearMin"] = props.search_design_year_min
-            query["designYearMax"] = props.search_design_year_max
+            query["designYear_gte"] = props.search_design_year_min
+            query["designYear_lte"] = props.search_design_year_max
         if props.search_polycount:
-            query["polyCountMin"] = props.search_polycount_min
-            query["polyCountMax"] = props.search_polycount_max
+            query["faceCount_gte"] = props.search_polycount_min
+            query["faceCount_lte"] = props.search_polycount_max
         if props.search_texture_resolution:
-            query["textureResolutionMin"] = props.search_texture_resolution_min
-            query["textureResolutionMax"] = props.search_texture_resolution_max
+            query["textureResolutionMax_gte"] = props.search_texture_resolution_min
+            query["textureResolutionMax_lte"] = props.search_texture_resolution_max
 
-    if props.search_procedural == "PROCEDURAL":
-        query["procedural"] = True
-    elif props.search_procedural == 'TEXTURE_BASED':
-        query["procedural"] = False
+        if props.search_procedural == "PROCEDURAL":
+            query["procedural"] = True
+        elif props.search_procedural == 'TEXTURE_BASED':
+            query["procedural"] = False
 
     build_query_common(query, props)
 
@@ -997,6 +1033,11 @@ def build_query_material():
             query["style"] = props.search_style
         else:
             query["style"] = props.search_style_other
+
+    if props.search_texture_resolution:
+        query["textureResolutionMax_gte"] = props.search_texture_resolution_min
+        query["textureResolutionMax_lte"] = props.search_texture_resolution_max
+
     build_query_common(query, props)
 
     return query

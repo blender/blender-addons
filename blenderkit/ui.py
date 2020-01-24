@@ -1428,7 +1428,6 @@ class AssetBarOperator(bpy.types.Operator):
                     ui_props.draw_tooltip = True
 
                     ui_props.tooltip = asset_data['tooltip']
-
                     # bpy.ops.wm.call_menu(name='OBJECT_MT_blenderkit_asset_menu')
 
                 else:
@@ -1490,7 +1489,7 @@ class AssetBarOperator(bpy.types.Operator):
                     if not asset_data['can_download']:
                         message = 'Asset locked. Find out how to unlock Everything and ...'
                         link_text = 'support all BlenderKit artists.'
-                        url = paths.get_bkit_url() + '/get-blenderkit/' + asset_data['id']
+                        url = paths.get_bkit_url() + '/get-blenderkit/' + asset_data['id'] + '/?from_addon'
                         bpy.ops.wm.blenderkit_url_dialog('INVOKE_REGION_WIN', url=url, message=message,
                                                          link_text=link_text)
                         return {'RUNNING_MODAL'}

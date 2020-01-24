@@ -24,8 +24,9 @@ if "bpy" in locals():
     utils = importlib.reload(utils)
     download = importlib.reload(download)
     categories = importlib.reload(categories)
+    icons = importlib.reload(icons)
 else:
-    from blenderkit import paths, ratings, utils, download, categories
+    from blenderkit import paths, ratings, utils, download, categories, icons
 
 from bpy.types import (
     Panel
@@ -75,10 +76,10 @@ def draw_ratings(layout, context):
     layout.prop(bkit_ratings, 'rating_work_hours')
     w = context.region.width
 
-    layout.label(text='problems')
-    layout.prop(bkit_ratings, 'rating_problems', text='')
-    layout.label(text='compliments')
-    layout.prop(bkit_ratings, 'rating_compliments', text='')
+    # layout.label(text='problems')
+    # layout.prop(bkit_ratings, 'rating_problems', text='')
+    # layout.label(text='compliments')
+    # layout.prop(bkit_ratings, 'rating_compliments', text='')
 
     row = layout.row()
     op = row.operator("object.blenderkit_rating_upload", text="Send rating", icon='URL')
@@ -151,7 +152,7 @@ def prop_needed(layout, props, name, value, is_not_filled=''):
         # row.label(text='', icon = 'ERROR')
         icon = 'ERROR'
         row.alert = True
-        row.prop(props, name)#, icon=icon)
+        row.prop(props, name)  # , icon=icon)
         row.alert = False
     else:
         # row.label(text='', icon = 'FILE_TICK')
@@ -264,6 +265,7 @@ def draw_panel_scene_upload(self, context):
     row.prop(props, 'work_hours')
     layout.prop(props, 'adult')
 
+
 def draw_assetbar_show_hide(layout, props):
     s = bpy.context.scene
     ui_props = s.blenderkitUI
@@ -301,7 +303,7 @@ def draw_panel_model_search(self, context):
     layout.prop(props, "search_style")
     layout.prop(props, "own_only")
     layout.prop(props, "free_only")
-    #layout.prop(props, "search_procedural", expand = True)
+    # layout.prop(props, "search_procedural", expand = True)
     # if props.search_style == 'OTHER':
     #     layout.prop(props, "search_style_other")
     # layout.prop(props, "search_engine")
@@ -309,7 +311,7 @@ def draw_panel_model_search(self, context):
     # layout.prop(props, 'append_link', expand=True, icon_only=False)
     # layout.prop(props, 'import_as', expand=True, icon_only=False)
 
-    # layout.prop(props, "search_advanced")
+    layout.prop(props, "search_advanced")
     if props.search_advanced:
         layout.separator()
 
@@ -320,34 +322,31 @@ def draw_panel_model_search(self, context):
         #     layout.prop(props, "search_engine_keyword")
 
         # AGE
-        layout.prop(props, "search_condition")  # , text ='condition of object new/old e.t.c.')
+        layout.prop(props, "search_condition", text = 'Condition')  # , text ='condition of object new/old e.t.c.')
 
         # DESIGN YEAR
         layout.prop(props, "search_design_year", text='designed in ( min - max )')
-        row = layout.row(align=True)
-        if not props.search_design_year_min:
-            row.active = False
-        row.prop(props, "search_design_year_min", text='min')
-        row.prop(props, "search_design_year_max", text='max')
+        if props.search_design_year:
+            row = layout.row(align=True)
+            row.prop(props, "search_design_year_min", text='min')
+            row.prop(props, "search_design_year_max", text='max')
 
         # POLYCOUNT
-        layout.prop(props, "search_polycount", text='polycount in ( min - max )')
-        row = layout.row(align=True)
-        if not props.search_polycount:
-            row.active = False
-        row.prop(props, "search_polycount_min", text='min')
-        row.prop(props, "search_polycount_max", text='max')
+        layout.prop(props, "search_polycount", text='Poly count in ( min - max )')
+        if props.search_polycount:
+            row = layout.row(align=True)
+            row.prop(props, "search_polycount_min", text='min')
+            row.prop(props, "search_polycount_max", text='max')
 
         # TEXTURE RESOLUTION
         layout.prop(props, "search_texture_resolution", text='texture resolution ( min - max )')
-        row = layout.row(align=True)
-        if not props.search_texture_resolution:
-            row.active = False
-        row.prop(props, "search_texture_resolution_min", text='min')
-        row.prop(props, "search_texture_resolution_max", text='max')
+        if props.search_texture_resolution:
+            row = layout.row(align=True)
+            row.prop(props, "search_texture_resolution_min", text='min')
+            row.prop(props, "search_texture_resolution_max", text='max')
 
         # ADULT
-        layout.prop(props, "search_adult")  # , text ='condition of object new/old e.t.c.')
+        #layout.prop(props, "search_adult")  # , text ='condition of object new/old e.t.c.')
 
     draw_panel_categories(self, context)
 
@@ -403,6 +402,8 @@ class VIEW3D_PT_blenderkit_model_properties(Panel):
             if o.instance_type == 'COLLECTION' and o.instance_collection is not None:
                 layout.operator('object.blenderkit_bring_to_scene', text='Bring to scene')
 
+            draw_panel_model_rating(self, context)
+
             # if 'rig' in ad['tags']:
             #     # layout.label(text = 'can make proxy')
             #     layout.operator('object.blenderkit_make_proxy', text = 'Make Armature proxy')
@@ -442,19 +443,31 @@ class VIEW3D_PT_blenderkit_profile(Panel):
             draw_login_progress(layout)
             return
 
-
         if user_preferences.api_key != '':
             me = bpy.context.window_manager.get('bkit profile')
             if me is not None:
                 me = me['user']
-                layout.label(text='User: %s %s' % (me['firstName'], me['lastName']))
-                layout.label(text='Email: %s' % (me['email']))
-                if me.get('sumAssetFilesSize') is not None:  # TODO remove this when production server has these too.
-                    layout.label(text='Public assets: %i MiB' % (me['sumAssetFilesSize']))
-                if me.get('sumPrivateAssetFilesSize') is not None:
-                    layout.label(text='Private assets: %i MiB' % (me['sumPrivateAssetFilesSize']))
+                #user name
+                layout.label(text='Me: %s %s' % (me['firstName'], me['lastName']))
+                # layout.label(text='Email: %s' % (me['email']))
+
+                # plan information
+
+                # pcoll = icons.icon_collections["main"]
+                # my_icon = pcoll['free']
+                # row = layout.row()
+                # row.label(text='My plan:')
+                # row.label(text='Free plan', icon_value=my_icon.icon_id)
+                # layout.operator("wm.url_open", text="Change plan",
+                #                 icon='URL').url = paths.get_bkit_url() + paths.BLENDERKIT_PLANS
+
+                #storage statistics
+                # if me.get('sumAssetFilesSize') is not None:  # TODO remove this when production server has these too.
+                #     layout.label(text='My public assets: %i MiB' % (me['sumAssetFilesSize']))
+                # if me.get('sumPrivateAssetFilesSize') is not None:
+                #     layout.label(text='My private assets: %i MiB' % (me['sumPrivateAssetFilesSize']))
                 if me.get('remainingPrivateQuota') is not None:
-                    layout.label(text='Remaining private storage: %i MiB' % (me['remainingPrivateQuota']))
+                    layout.label(text='My free storage: %i MiB' % (me['remainingPrivateQuota']))
 
             layout.operator("wm.url_open", text="See my uploads",
                             icon='URL').url = paths.get_bkit_url() + paths.BLENDERKIT_USER_ASSETS
@@ -481,6 +494,7 @@ class VIEW3D_PT_blenderkit_login(Panel):
 
         if user_preferences.enable_oauth:
             draw_login_buttons(layout)
+
 
 def draw_panel_model_rating(self, context):
     o = bpy.context.active_object
@@ -558,9 +572,17 @@ def draw_panel_material_search(self, context):
     # if props.search_engine == 'OTHER':
     #     layout.prop(props, 'search_engine_other')
 
-    layout.prop(props, 'automap')
+    # TEXTURE RESOLUTION
+    layout.prop(props, "search_texture_resolution", text='texture resolution ( min - max )')
+    if props.search_texture_resolution:
+        row = layout.row(align=True)
+        row.prop(props, "search_texture_resolution_min", text='min')
+        row.prop(props, "search_texture_resolution_max", text='max')
 
     draw_panel_categories(self, context)
+
+    layout.prop(props, 'automap')
+
 
 
 def draw_panel_material_ratings(self, context):
@@ -644,19 +666,19 @@ class VIEW3D_PT_blenderkit_unified(Panel):
         # layout.prop_tabs_enum(ui_props, "asset_type", icon_only = True)
 
         row = layout.row()
-        #row.scale_x = 1.6
-        #row.scale_y = 1.6
+        # row.scale_x = 1.6
+        # row.scale_y = 1.6
         #
         row.prop(ui_props, 'down_up', expand=True, icon_only=False)
         # row.label(text='')
-        #row = row.split().row()
-        #layout.alert = True
-        #layout.alignment = 'CENTER'
-        #row = layout.row(align = True)
-        #split = row.split(factor=.5)
-        #row.prop(ui_props, 'asset_type', expand=True, icon_only=True)
-        #row = layout.column(align = False)
-        layout.prop(ui_props, 'asset_type', expand=False, text = '')
+        # row = row.split().row()
+        # layout.alert = True
+        # layout.alignment = 'CENTER'
+        # row = layout.row(align = True)
+        # split = row.split(factor=.5)
+        # row.prop(ui_props, 'asset_type', expand=True, icon_only=True)
+        # row = layout.column(align = False)
+        layout.prop(ui_props, 'asset_type', expand=False, text='')
 
         w = context.region.width
         if user_preferences.login_attempt:
@@ -764,7 +786,6 @@ class VIEW3D_PT_blenderkit_unified(Panel):
                         draw_panel_brush_ratings(self, context)
             if ui_props.asset_type == 'TEXTURE':
                 layout.label(text='not yet implemented')
-
 
 
 class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
@@ -907,7 +928,7 @@ class UrlPopupDialog(bpy.types.Operator):
         op.url = self.url
 
     def execute(self, context):
-        #start_thumbnailer(self, context)
+        # start_thumbnailer(self, context)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -1014,8 +1035,9 @@ def header_search_draw(self, context):
         if ui_props.asset_type == 'BRUSH':
             props = s.blenderkit_brush
 
-        if context.space_data.show_region_tool_header == True:
-            layout.separator_spacer()
+        # the center snap menu is in edit and object mode if tool settings are off.
+        if context.space_data.show_region_tool_header == True or context.mode[:4] not in ('EDIT', 'OBJE'):
+           layout.separator_spacer()
         layout.prop(ui_props, "asset_type", text='', icon='URL')
         layout.prop(props, "search_keywords", text="", icon='VIEWZOOM')
         draw_assetbar_show_hide(layout, props)

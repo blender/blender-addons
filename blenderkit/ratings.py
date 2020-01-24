@@ -154,7 +154,7 @@ asset_types = (
 class UploadRatingOperator(bpy.types.Operator):
     """Upload rating to the web db"""
     bl_idname = "object.blenderkit_rating_upload"
-    bl_label = "Upload the Rating"
+    bl_label = "Send Rating"
     bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
     # type of upload - model, material, textures, e.t.c.
