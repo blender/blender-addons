@@ -821,7 +821,7 @@ class CMUnDisableViewportAllOperator(Operator):
 
 
 class CMDisableRenderOperator(Operator):
-    '''  * Shift-Click to isolate/restore previous state\n  * Shift-Click to invert viewport display of all collections'''
+    '''  * Shift-Click to isolate/restore previous state\n  * Ctrl-Click to toggle children'''
     bl_label = "Disable Collection in Render"
     bl_idname = "view3d.disable_render_collection"
     bl_options = {'REGISTER', 'UNDO'}
