@@ -1259,5 +1259,4 @@ FBXImportSettings = namedtuple("FBXImportSettings", (
     "nodal_material_wrap_map", "image_cache",
     "ignore_leaf_bones", "force_connect_children", "automatic_bone_orientation", "bone_correction_matrix",
     "use_prepost_rot",
-    "camera_invert",
 ))
