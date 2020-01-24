@@ -192,7 +192,7 @@ class CMExcludeOperator(Operator):
 
             # check if collection isolated
             if len(active_layer_collections) == 1 and active_layer_collections[0]["name"] == self.name:
-                if len(exclude_history) > 1:
+                if len(exclude_history) > 0:
                     # restore previous state
                     for x, item in enumerate(layer_collections.values()):
                         item["ptr"].exclude = exclude_history[x]
@@ -212,16 +212,8 @@ class CMExcludeOperator(Operator):
                 exclude_history.clear()
 
                 # save state
-                keep_history = -1
                 for item in layer_collections.values():
                     exclude_history.append(item["ptr"].exclude)
-
-                    if item["ptr"].exclude == False:
-                        keep_history += 1
-
-                if not keep_history:
-                    del rto_history["exclude"][view_layer]
-
 
                 # isolate collection
                 for item in layer_collections.values():
@@ -378,7 +370,7 @@ class CMRestrictSelectOperator(Operator):
 
             # check if reversed layerchain matches active collections
             if layerchain[::-1] == active_layer_collections:
-                if len(select_history) > 1:
+                if len(select_history) > 0:
                     # restore previous state
                     for x, item in enumerate(layer_collections.values()):
                         item["ptr"].collection.hide_select = select_history[x]
@@ -396,15 +388,8 @@ class CMRestrictSelectOperator(Operator):
                 select_history.clear()
 
                 # save state
-                keep_history = -1
                 for item in layer_collections.values():
                     select_history.append(item["ptr"].collection.hide_select)
-
-                    if item["ptr"].collection.hide_select == False:
-                        keep_history += 1
-
-                if not keep_history:
-                    del rto_history["select"][view_layer]
 
                 # make all collections unselectable
                 for item in layer_collections.values():
@@ -538,7 +523,7 @@ class CMHideOperator(Operator):
 
             # check if reversed layerchain matches active collections
             if layerchain[::-1] == active_layer_collections:
-                if len(hide_history) > 1:
+                if len(hide_history) > 0:
                     # restore previous state
                     for x, item in enumerate(layer_collections.values()):
                         item["ptr"].hide_viewport = hide_history[x]
@@ -556,15 +541,8 @@ class CMHideOperator(Operator):
                 hide_history.clear()
 
                 # save state
-                keep_history = -1
                 for item in layer_collections.values():
                     hide_history.append(item["ptr"].hide_viewport)
-
-                    if item["ptr"].hide_viewport == False:
-                        keep_history += 1
-
-                if not keep_history:
-                    del rto_history["hide"][view_layer]
 
                 # hide all collections
                 for laycol in layer_collections.values():
@@ -697,7 +675,7 @@ class CMDisableViewportOperator(Operator):
 
             # check if reversed layerchain matches active collections
             if layerchain[::-1] == active_layer_collections:
-                if len(disable_history) > 1:
+                if len(disable_history) > 0:
                     # restore previous state
                     for x, item in enumerate(layer_collections.values()):
                         item["ptr"].collection.hide_viewport = disable_history[x]
@@ -715,15 +693,8 @@ class CMDisableViewportOperator(Operator):
                 disable_history.clear()
 
                 # save state
-                keep_history = -1
                 for item in layer_collections.values():
                     disable_history.append(item["ptr"].collection.hide_viewport)
-
-                    if item["ptr"].collection.hide_viewport == False:
-                        keep_history += 1
-
-                if not keep_history:
-                    del rto_history["disable"][view_layer]
 
                 # disable all collections in viewport
                 for laycol in layer_collections.values():
@@ -821,7 +792,7 @@ class CMUnDisableViewportAllOperator(Operator):
 
 
 class CMDisableRenderOperator(Operator):
-    '''  * Shift-Click to isolate/restore previous state\n  * Shift-Click to invert viewport display of all collections'''
+    '''  * Shift-Click to isolate/restore previous state\n  * Ctrl-Click to toggle children'''
     bl_label = "Disable Collection in Render"
     bl_idname = "view3d.disable_render_collection"
     bl_options = {'REGISTER', 'UNDO'}
@@ -857,7 +828,7 @@ class CMDisableRenderOperator(Operator):
 
             # check if reversed layerchain matches active collections
             if layerchain[::-1] == active_layer_collections:
-                if len(render_history) > 1:
+                if len(render_history) > 0:
                     # restore previous state
                     for x, item in enumerate(layer_collections.values()):
                         item["ptr"].collection.hide_render = render_history[x]
@@ -875,15 +846,8 @@ class CMDisableRenderOperator(Operator):
                 render_history.clear()
 
                 # save state
-                keep_history = -1
                 for item in layer_collections.values():
                     render_history.append(item["ptr"].collection.hide_render)
-
-                    if item["ptr"].collection.hide_render == False:
-                        keep_history += 1
-
-                if not keep_history:
-                    del rto_history["render"][view_layer]
 
                 # disallow render of all collections
                 for laycol in layer_collections.values():
