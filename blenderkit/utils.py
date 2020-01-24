@@ -544,3 +544,10 @@ def dict_to_params(inputs, parameters=None):
                 "value": value
             })
     return parameters
+
+
+def profile_is_validator():
+    a = bpy.context.window_manager.get('bkit profile')
+    if a is not None and a['user'].get('exmenu'):
+        return True
+    return False

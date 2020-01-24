@@ -702,7 +702,9 @@ class VIEW3D_PT_blenderkit_unified(Panel):
         #     layout.separator()
 
         if ui_props.down_up == 'SEARCH':
-
+            if utils.profile_is_validator():
+                search_props = utils.get_search_props()
+                layout.prop(search_props, 'search_verification_status')
             if ui_props.asset_type == 'MODEL':
                 # noinspection PyCallByClass
                 draw_panel_model_search(self, context)
@@ -831,8 +833,8 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
         wm = bpy.context.window_manager
         profile = wm.get('bkit profile')
         if profile is not None:
-            # validation by admin
-            if profile['user']['exmenu']:
+            # validation 
+            if utils.profile_is_validator():
                 layout.label(text='Validation tools:')
                 if asset_data['verificationStatus'] != 'uploaded':
                     op = layout.operator('object.blenderkit_change_status', text='set Uploaded')

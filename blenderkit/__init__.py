@@ -422,6 +422,22 @@ class BlenderKitCommonSearchProps(object):
                                                max=32768,
                                                update=search.search_update,
                                                )
+    search_verification_status:  EnumProperty(
+        name="Verification status",
+        description="Search by verification status",
+        items=
+        (
+            ('ALL', 'All', 'All'),
+            ('UPLOADING', 'Uploading', 'Uploading'),
+            ('UPLOADED', 'Uploaded', 'Uploaded'),
+            ('VALIDATED', 'Validated', 'Calidated'),
+            ('ON_HOLD', 'On Hold', 'On Hold'),
+            ('REJECTED', 'Rejected', 'Rejected'),
+            ('DELETED', 'Deleted', 'Deleted'),
+        ),
+        default = 'ALL',
+        update=search.search_update,
+    )
 
 
 def name_update(self, context):

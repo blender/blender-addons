@@ -30,7 +30,7 @@ if "bpy" in locals():
     tasks_queue = reload(tasks_queue)
     rerequests = reload(rerequests)
 else:
-    from blenderkit import paths, utils, categories, ui, colors,  bkit_oauth, version_checker, tasks_queue, rerequests
+    from blenderkit import paths, utils, categories, ui, colors, bkit_oauth, version_checker, tasks_queue, rerequests
 
 import blenderkit
 from bpy.app.handlers import persistent
@@ -81,16 +81,16 @@ thumb_sml_download_threads = {}
 thumb_full_download_threads = {}
 reports = ''
 
-
 rtips = ['Click or drag model or material in scene to link/append ',
-             "Please rate responsively and plentifully. This helps us distribute rewards to the authors.",
-             "Click on brushes to link them into scene.",
-             "All materials and brushes are free.",
-             "Storage for public assets is unlimited.",
-             "Locked models are available if you subscribe to Full plan.",
-             "Login to upload your own models, materials or brushes.",
-             "Use 'A' key over asset bar to search assets by same author.",
-             "Use 'W' key over asset bar to open Authors webpage.", ]
+         "Please rate responsively and plentifully. This helps us distribute rewards to the authors.",
+         "Click on brushes to link them into scene.",
+         "All materials and brushes are free.",
+         "Storage for public assets is unlimited.",
+         "Locked models are available if you subscribe to Full plan.",
+         "Login to upload your own models, materials or brushes.",
+         "Use 'A' key over asset bar to search assets by same author.",
+         "Use 'W' key over asset bar to open Authors webpage.", ]
+
 
 def refresh_token_timer():
     ''' this timer gets run every time the token needs refresh. It refreshes tokens and also categories.'''
@@ -129,9 +129,11 @@ def fetch_server_data():
 
 first_time = True
 last_clipboard = ''
+
+
 @bpy.app.handlers.persistent
 def timer_update():  # TODO might get moved to handle all blenderkit stuff.
-    #this makes a first search after opening blender. showing latest assets.
+    # this makes a first search after opening blender. showing latest assets.
     global first_time
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
     if first_time:
@@ -151,13 +153,12 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff.
         if last_clipboard[:len(instr)] == instr:
             atstr = 'asset_type:'
             ati = last_clipboard.find(atstr)
-            if ati>-1:
+            if ati > -1:
                 at = last_clipboard[ati:]
 
             search_props = utils.get_search_props()
             search_props.search_keywords = last_clipboard
             search()
-
 
     global search_threads
     # don't do anything while dragging - this could switch asset type during drag, and make results list length different,
@@ -165,7 +166,7 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff.
     if len(search_threads) == 0 or bpy.context.scene.blenderkitUI.dragging:
         return 1
     for thread in search_threads:  # TODO this doesn't check all processes when one gets removed,
-                                   # but most of the time only one is running anyway
+        # but most of the time only one is running anyway
         if not thread[0].is_alive():
             search_threads.remove(thread)  #
             icons_dir = thread[1]
@@ -364,11 +365,11 @@ def split_subs(text, threshold=40):
     lines = []
 
     while len(text) > threshold:
-        #first handle if there's an \n line ending
+        # first handle if there's an \n line ending
         i_rn = text.find('\n')
         if 1 < i_rn < threshold:
             i = i_rn
-            text = text.replace('\n','',1)
+            text = text.replace('\n', '', 1)
         else:
             i = text.rfind(' ', 0, threshold)
             i1 = text.rfind(',', 0, threshold)
@@ -432,9 +433,6 @@ def has(mdata, prop):
         return True
     else:
         return False
-
-
-
 
 
 def generate_tooltip(mdata):
@@ -643,6 +641,7 @@ def fetch_author(a_id, api_key):
         utils.p(e)
     utils.p('finish fetch')
 
+
 # profile_counter =0
 
 def get_author(r):
@@ -652,7 +651,7 @@ def get_author(r):
     if authors == {}:
         bpy.context.window_manager['bkit authors'] = authors
     a = authors.get(a_id)
-    if a is None:# or a is '' or (a.get('gravatarHash') is not None and a.get('gravatarImg') is None):
+    if a is None:  # or a is '' or (a.get('gravatarHash') is not None and a.get('gravatarImg') is None):
         authors[a_id] = ''
         thread = threading.Thread(target=fetch_author, args=(a_id, preferences.api_key), daemon=True)
         thread.start()
@@ -703,21 +702,12 @@ def fetch_profile(api_key):
         utils.p(e)
 
 
-
 def get_profile():
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
     a = bpy.context.window_manager.get('bkit profile')
     thread = threading.Thread(target=fetch_profile, args=(preferences.api_key,), daemon=True)
     thread.start()
     return a
-
-def profile_is_validator():
-    a = bpy.context.window_manager.get('bkit profile')
-    if a is not None and a['user'].get('exmenu'):
-        return True
-    return False
-
-
 
 
 class Searcher(threading.Thread):
@@ -735,12 +725,11 @@ class Searcher(threading.Thread):
     def stopped(self):
         return self._stop_event.is_set()
 
-    def     query_to_url(self):
+    def query_to_url(self):
         query = self.query
         params = self.params
         # build a new request
         url = paths.get_api_url() + 'search/'
-
 
         # build request manually
         # TODO use real queries
@@ -757,7 +746,7 @@ class Searcher(threading.Thread):
         # first condition assumes no keywords and no category, thus an empty search that is triggered on start.
         if query.get('query') is None and query.get('category_subtree') == None:
             requeststring += '+order:-created'
-        elif query.get('author_id') is not None and profile_is_validator():
+        elif query.get('author_id') is not None and utils.profile_is_validator():
             requeststring += '+order:-created'
         else:
             if query.get('category_subtree') is not None:
@@ -793,7 +782,7 @@ class Searcher(threading.Thread):
                 try:
                     origdata = json.load(infile)
                     urlquery = origdata['next']
-                    #rparameters = {}
+                    # rparameters = {}
                     if urlquery == None:
                         return;
                 except:
@@ -804,11 +793,11 @@ class Searcher(threading.Thread):
 
             urlquery = url
 
-            #rparameters = query
+            # rparameters = query
             urlquery = self.query_to_url()
         try:
             utils.p(urlquery)
-            r = rerequests.get(urlquery, headers=headers)#, params = rparameters)
+            r = rerequests.get(urlquery, headers=headers)  # , params = rparameters)
             print(r.url)
             reports = ''
             # utils.p(r.text)
@@ -953,14 +942,16 @@ class Searcher(threading.Thread):
 
 
 def build_query_common(query, props):
+    '''add shared parameters to query'''
+    query_common = {}
     if props.search_keywords != '':
-        query_common = {
-            "query": props.search_keywords
-        }
-        query.update(query_common)
+        query_common["query"] = props.search_keywords
 
+    if props.search_verification_status != 'ALL':
+        query_common['verification_status'] = props.search_verification_status.lower()
 
-# def query_add_range(query, name, rmin, rmax):
+    query.update(query_common)
+
 
 def build_query_model():
     '''use all search input to request results from server'''
@@ -1183,7 +1174,7 @@ def search(category='', get_next=False, author_id=''):
 
 def search_update(self, context):
     utils.p('search updater')
-    #if self.search_keywords != '':
+    # if self.search_keywords != '':
     ui_props = bpy.context.scene.blenderkitUI
     if ui_props.down_up != 'SEARCH':
         ui_props.down_up = 'SEARCH'
