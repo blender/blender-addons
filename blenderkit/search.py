@@ -743,10 +743,13 @@ class Searcher(threading.Thread):
                 requeststring += q + ':' + str(query[q]).lower()
 
         # result ordering: _score - relevance, score - BlenderKit score
-        # first condition assumes no keywords and no category, thus an empty search that is triggered on start.
+
         if query.get('query') is None and query.get('category_subtree') == None:
-            requeststring += '+order:-created'
+            # assumes no keywords and no category, thus an empty search that is triggered on start.
+            # orders by last core file upload
+            requeststring += '+order:-last_upload'
         elif query.get('author_id') is not None and utils.profile_is_validator():
+
             requeststring += '+order:-created'
         else:
             if query.get('category_subtree') is not None:
@@ -950,6 +953,25 @@ def build_query_common(query, props):
     if props.search_verification_status != 'ALL':
         query_common['verification_status'] = props.search_verification_status.lower()
 
+    if props.search_advanced:
+        if props.search_texture_resolution:
+            query["textureResolutionMax_gte"] = props.search_texture_resolution_min
+            query["textureResolutionMax_lte"] = props.search_texture_resolution_max
+
+        elif props.search_procedural == 'TEXTURE_BASED':
+            # todo this procedural hack should be replaced with the parameter
+            query["textureResolutionMax_gte"] = 0
+            # query["procedural"] = False
+
+        if props.search_procedural == "PROCEDURAL":
+            #todo this procedural hack should be replaced with the parameter
+            query["files_size_lte"] = 1024 * 1024
+            # query["procedural"] = True
+        elif props.search_file_size:
+            query_common["files_size_gte"] = props.search_file_size_min * 1024 * 1024
+            query_common["files_size_lte"] = props.search_file_size_max * 1024 * 1024
+
+
     query.update(query_common)
 
 
@@ -980,14 +1002,6 @@ def build_query_model():
         if props.search_polycount:
             query["faceCount_gte"] = props.search_polycount_min
             query["faceCount_lte"] = props.search_polycount_max
-        if props.search_texture_resolution:
-            query["textureResolutionMax_gte"] = props.search_texture_resolution_min
-            query["textureResolutionMax_lte"] = props.search_texture_resolution_max
-
-        if props.search_procedural == "PROCEDURAL":
-            query["procedural"] = True
-        elif props.search_procedural == 'TEXTURE_BASED':
-            query["procedural"] = False
 
     build_query_common(query, props)
 
@@ -1024,10 +1038,6 @@ def build_query_material():
             query["style"] = props.search_style
         else:
             query["style"] = props.search_style_other
-
-    if props.search_texture_resolution:
-        query["textureResolutionMax_gte"] = props.search_texture_resolution_min
-        query["textureResolutionMax_lte"] = props.search_texture_resolution_max
 
     build_query_common(query, props)
 

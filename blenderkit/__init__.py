@@ -385,6 +385,10 @@ class BlenderKitUIProps(PropertyGroup):
     dragging_rating_work_hours: BoolProperty(name="Dragging Rating Work Hours", default=False)
     last_rating_time: FloatProperty(name="Last Rating Time", default=0.0)
 
+def search_procedural_update(self,context):
+    if self.search_procedural in ('PROCEDURAL', 'BOTH'):
+        self.search_texture_resolution = False
+    search.search_update(self, context)
 
 class BlenderKitCommonSearchProps(object):
     # STATES
@@ -395,6 +399,9 @@ class BlenderKitCommonSearchProps(object):
                               default=False)
     own_only: BoolProperty(name="My Assets", description="Search only for your assets",
                            default=False)
+    search_advanced: BoolProperty(name="Advanced Search Options", description="use advanced search properties",
+                                  default=False, update=search.search_update)
+
     search_error: BoolProperty(name="Search Error", description="last search had an error", default=False)
     report: StringProperty(
         name="Report",
@@ -422,7 +429,42 @@ class BlenderKitCommonSearchProps(object):
                                                max=32768,
                                                update=search.search_update,
                                                )
-    search_verification_status:  EnumProperty(
+
+    # file_size
+    search_file_size: BoolProperty(name="File Size",
+                                   description="Span of the file sizes",
+                                   default=False,
+                                   update=search.search_update,
+                                   )
+    search_file_size_min: IntProperty(name="Min File Size",
+                                      description="Minimum file size",
+                                      default=0,
+                                      min=0,
+                                      max=2000,
+                                      update=search.search_update,
+                                      )
+
+    search_file_size_max: IntProperty(name="Max File Size",
+                                      description="Maximum file size",
+                                      default=500,
+                                      min=0,
+                                      max=2000,
+                                      update=search.search_update,
+                                      )
+
+    search_procedural: EnumProperty(
+        items=(
+            ('BOTH', 'Both', ''),
+            ('PROCEDURAL', 'Procedural', ''),
+            ('TEXTURE_BASED', 'Texture based', ''),
+
+        ),
+        default='BOTH',
+        description='Search only procedural/texture based assets',
+        update=search_procedural_update
+    )
+
+    search_verification_status: EnumProperty(
         name="Verification status",
         description="Search by verification status",
         items=
@@ -435,7 +477,7 @@ class BlenderKitCommonSearchProps(object):
             ('REJECTED', 'Rejected', 'Rejected'),
             ('DELETED', 'Deleted', 'Deleted'),
         ),
-        default = 'ALL',
+        default='ALL',
         update=search.search_update,
     )
 
@@ -1197,10 +1239,7 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
     )
 
     free_only: BoolProperty(name="Free only", description="Show only free models",
-                            default=False,update=search.search_update)
-
-    search_advanced: BoolProperty(name="Advanced Search Options", description="use advanced search properties",
-                                  default=False,update=search.search_update)
+                            default=False, update=search.search_update)
 
     # CONDITION
     search_condition: EnumProperty(
@@ -1214,18 +1253,6 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
         name="Adult Content",
         description="You're adult and agree with searching adult content",
         default=False,
-        update=search.search_update
-    )
-
-    search_procedural: EnumProperty(
-        items=(
-            ('BOTH', 'Both', ''),
-            ('PROCEDURAL', 'Procedural', ''),
-            ('TEXTURE_BASED', 'Texture based', ''),
-
-        ),
-        default='BOTH',
-        description='Search only procedural/texture based assets',
         update=search.search_update
     )
 
@@ -1250,21 +1277,18 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
                                         update=search.search_update,
                                         )
 
-
-
-
     # POLYCOUNT
     search_polycount: BoolProperty(name="Use Polycount",
                                    description="use polycount of object search tag",
                                    default=False,
-                                   update=search.search_update,)
+                                   update=search.search_update, )
 
     search_polycount_min: IntProperty(name="Min Polycount",
                                       description="polycount of the asset minimum",
                                       default=0,
                                       min=0,
                                       max=100000000,
-                                      update=search.search_update,)
+                                      update=search.search_update, )
 
     search_polycount_max: IntProperty(name="Max Polycount",
                                       description="polycount of the asset maximum",
@@ -1357,7 +1381,6 @@ class BlenderKitSceneSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
         default="",
         update=search.search_update
     )
-
 
 
 class BlenderKitAddonPreferences(AddonPreferences):

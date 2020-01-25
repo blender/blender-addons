@@ -303,7 +303,7 @@ def draw_panel_model_search(self, context):
     layout.prop(props, "search_style")
     layout.prop(props, "own_only")
     layout.prop(props, "free_only")
-    # layout.prop(props, "search_procedural", expand = True)
+
     # if props.search_style == 'OTHER':
     #     layout.prop(props, "search_style_other")
     # layout.prop(props, "search_engine")
@@ -322,7 +322,7 @@ def draw_panel_model_search(self, context):
         #     layout.prop(props, "search_engine_keyword")
 
         # AGE
-        layout.prop(props, "search_condition", text = 'Condition')  # , text ='condition of object new/old e.t.c.')
+        layout.prop(props, "search_condition", text='Condition')  # , text ='condition of object new/old e.t.c.')
 
         # DESIGN YEAR
         layout.prop(props, "search_design_year", text='designed in ( min - max )')
@@ -345,8 +345,16 @@ def draw_panel_model_search(self, context):
             row.prop(props, "search_texture_resolution_min", text='min')
             row.prop(props, "search_texture_resolution_max", text='max')
 
+        # FILE SIZE
+        layout.prop(props, "search_file_size", text='File size ( min - max )')
+        if props.search_file_size:
+            row = layout.row(align=True)
+            row.prop(props, "search_file_size_min", text='min')
+            row.prop(props, "search_file_size_max", text='max')
+
+        # layout.prop(props, "search_procedural", expand=True)
         # ADULT
-        #layout.prop(props, "search_adult")  # , text ='condition of object new/old e.t.c.')
+        # layout.prop(props, "search_adult")  # , text ='condition of object new/old e.t.c.')
 
     draw_panel_categories(self, context)
 
@@ -447,7 +455,7 @@ class VIEW3D_PT_blenderkit_profile(Panel):
             me = bpy.context.window_manager.get('bkit profile')
             if me is not None:
                 me = me['user']
-                #user name
+                # user name
                 layout.label(text='Me: %s %s' % (me['firstName'], me['lastName']))
                 # layout.label(text='Email: %s' % (me['email']))
 
@@ -461,7 +469,7 @@ class VIEW3D_PT_blenderkit_profile(Panel):
                 # layout.operator("wm.url_open", text="Change plan",
                 #                 icon='URL').url = paths.get_bkit_url() + paths.BLENDERKIT_PLANS
 
-                #storage statistics
+                # storage statistics
                 # if me.get('sumAssetFilesSize') is not None:  # TODO remove this when production server has these too.
                 #     layout.label(text='My public assets: %i MiB' % (me['sumAssetFilesSize']))
                 # if me.get('sumPrivateAssetFilesSize') is not None:
@@ -572,17 +580,30 @@ def draw_panel_material_search(self, context):
     # if props.search_engine == 'OTHER':
     #     layout.prop(props, 'search_engine_other')
 
-    # TEXTURE RESOLUTION
-    layout.prop(props, "search_texture_resolution", text='texture resolution ( min - max )')
-    if props.search_texture_resolution:
-        row = layout.row(align=True)
-        row.prop(props, "search_texture_resolution_min", text='min')
-        row.prop(props, "search_texture_resolution_max", text='max')
+    layout.prop(props, "search_advanced")
+    if props.search_advanced:
+        layout.separator()
+
+        layout.prop(props, "search_procedural", expand=True)
+
+        if props.search_procedural == 'TEXTURE_BASED':
+            # TEXTURE RESOLUTION
+            layout.prop(props, "search_texture_resolution", text='texture resolution ( min - max )')
+            if props.search_texture_resolution:
+                row = layout.row(align=True)
+                row.prop(props, "search_texture_resolution_min", text='min')
+                row.prop(props, "search_texture_resolution_max", text='max')
+
+        # FILE SIZE
+        layout.prop(props, "search_file_size", text='File size ( min - max in mb)')
+        if props.search_file_size:
+            row = layout.row(align=True)
+            row.prop(props, "search_file_size_min", text='min')
+            row.prop(props, "search_file_size_max", text='max')
 
     draw_panel_categories(self, context)
 
     layout.prop(props, 'automap')
-
 
 
 def draw_panel_material_ratings(self, context):
@@ -833,7 +854,7 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
         wm = bpy.context.window_manager
         profile = wm.get('bkit profile')
         if profile is not None:
-            # validation 
+            # validation
             if utils.profile_is_validator():
                 layout.label(text='Validation tools:')
                 if asset_data['verificationStatus'] != 'uploaded':
@@ -1039,7 +1060,7 @@ def header_search_draw(self, context):
 
         # the center snap menu is in edit and object mode if tool settings are off.
         if context.space_data.show_region_tool_header == True or context.mode[:4] not in ('EDIT', 'OBJE'):
-           layout.separator_spacer()
+            layout.separator_spacer()
         layout.prop(ui_props, "asset_type", text='', icon='URL')
         layout.prop(props, "search_keywords", text="", icon='VIEWZOOM')
         draw_assetbar_show_hide(layout, props)
