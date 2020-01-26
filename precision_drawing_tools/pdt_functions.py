@@ -175,12 +175,12 @@ def check_selection(num, bm, obj):
         elif num == 3:
             vector_b = bm.select_history[-2].co
             vector_c = bm.select_history[-3].co
-            return vector_a, vector_b, vector_d
+            return vector_a, vector_b, vector_c
         elif num == 4:
             vector_b = bm.select_history[-2].co
             vector_c = bm.select_history[-3].co
             vector_d = bm.select_history[-4].co
-            return vector_a, vector_b, vector_d, vector_c
+            return vector_a, vector_b, vector_c, vector_d
     else:
         for f in bm.faces:
             f.select_set(False)
@@ -319,7 +319,7 @@ def euler_to_quaternion(roll, pitch, yaw):
     return Quaternion((qw, qx, qy, qz))
 
 
-def arc_centre(vector_a, vector_b, vector_d):
+def arc_centre(vector_a, vector_b, vector_c):
     """Calculates Centre of Arc from 3 Vector Locations using standard Numpy routine
 
     Args:
@@ -333,7 +333,7 @@ def arc_centre(vector_a, vector_b, vector_d):
 
     A = np.array([vector_a.x, vector_a.y, vector_a.z])
     B = np.array([vector_b.x, vector_b.y, vector_b.z])
-    C = np.array([vector_d.x, vector_d.y, vector_d.z])
+    C = np.array([vector_c.x, vector_c.y, vector_c.z])
     a = np.linalg.norm(C - B)
     b = np.linalg.norm(C - A)
     c = np.linalg.norm(B - A)
@@ -370,11 +370,11 @@ def intersection(vertex_a, vertex_b, vertex_c, vertex_d, plane):
         vertex_d = view_coords_i(vertex_offset.x, vertex_offset.y, vertex_offset.z)
         vertex_offset = vertex_c - vertex_a
         vertex_c = view_coords_i(vertex_offset.x, vertex_offset.y, vertex_offset.z)
-        refV = Vector((0, 0, 0))
+        vector_ref = Vector((0, 0, 0))
         ap1 = (vertex_c.x, vertex_c.y)
         ap2 = (vertex_d.x, vertex_d.y)
         bp1 = (vertex_b.x, vertex_b.y)
-        bp2 = (refV.x, refV.y)
+        bp2 = (vector_ref.x, vector_ref.y)
     else:
         a1, a2, a3 = set_mode(plane)
         ap1 = (vertex_c[a1], vertex_c[a2])
@@ -473,7 +473,7 @@ def get_percent(obj, flip_p, per_v, data, scene):
     return Vector((V[0], V[1], V[2]))
 
 
-def obj_check(obj, scene, operator):
+def obj_check(context, obj, scene, operator):
     """Check Object & Selection Validity.
 
     Args:
@@ -515,7 +515,7 @@ def obj_check(obj, scene, operator):
                 bpy.context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 return None, False
         return bm, True
-    elif obj.mode == "OBJECT":
+    else:
         return None, True
 
 
@@ -549,7 +549,6 @@ def dis_ang(vals, flip_a, plane, scene):
         # fmt: off
         vector_delta[a1] = vector_delta[a1] + (dis_v * cos(ang_v * pi/180))
         vector_delta[a2] = vector_delta[a2] + (dis_v * sin(ang_v * pi/180))
-        # FIXME: Is a3 just ignored?
         # fmt: on
     return vector_delta
 

@@ -23,8 +23,8 @@
 #
 import bpy
 import bmesh
+import math
 from bpy.types import Operator
-from mathutils import Vector
 from .pdt_functions import (
     debug,
     intersection,
@@ -33,9 +33,7 @@ from .pdt_functions import (
     update_sel,
 )
 from .pdt_command_functions import (
-    command_maths,
     vector_build,
-    move_cursor_pivot,
     join_two_vertices,
     set_angle_distance_two,
     set_angle_distance_three,
@@ -47,7 +45,6 @@ from .pdt_command_functions import (
 )
 from .pdt_msg_strings import (
     PDT_ERR_ADDVEDIT,
-    PDT_ERR_BAD3VALS,
     PDT_ERR_BADFLETTER,
     PDT_ERR_CHARS_NUM,
     PDT_ERR_DUPEDIT,
@@ -55,63 +52,24 @@ from .pdt_msg_strings import (
     PDT_ERR_FACE_SEL,
     PDT_ERR_FILEDIT,
     PDT_ERR_NON_VALID,
-    PDT_ERR_NO_ACT_OBJ,
     PDT_ERR_NO_SEL_GEOM,
     PDT_ERR_SEL_1_EDGE,
     PDT_ERR_SEL_1_EDGEM,
-    PDT_ERR_SEL_1_VERT,
-    PDT_ERR_SPLITEDIT
+    PDT_ERR_SPLITEDIT,
+    PDT_ERR_BADMATHS,
+    PDT_OBJ_MODE_ERROR,
+    PDT_ERR_SEL_4_VERTS,
 )
 from .pdt_bix import add_line_to_bisection
 from .pdt_etof import extend_vertex
 from .pdt_xall import intersect_all
 
-
-def pdt_help(self, context):
-    """Display PDT Command Line help in a pop-up."""
-    label = self.layout.label
-    label(text="Primary Letters (Available Secondary Letters):")
-    label(text="")
-    label(text="C: Cursor (a, d, i, p)")
-    label(text="D: Duplicate Geometry (d, i)")
-    label(text="E: Extrude Geometry (d, i)")
-    label(text="F: Fillet (v, e)")
-    label(text="G: Grab (Move) (a, d, i, p)")
-    label(text="N: New Vertex (a, d, i, p)")
-    label(text="M: Maths Functions (x, y, z, d, a, p)")
-    label(text="P: Pivot Point (a, d, i, p)")
-    label(text="V: Extrude Vertice Only (a, d, i, p)")
-    label(text="S: Split Edges (a, d, i, p)")
-    label(text="?: Quick Help")
-    label(text="")
-    label(text="Secondary Letters:")
-    label(text="")
-    label(text="- General Options:")
-    label(text="a: Absolute (Global) Coordinates e.g. 1,3,2")
-    label(text="d: Delta (Relative) Coordinates, e.g. 0.5,0,1.2")
-    label(text="i: Directional (Polar) Coordinates e.g. 2.6,45")
-    label(text="p: Percent e.g. 67.5")
-    label(text="- Fillet Options:")
-    label(text="v: Fillet Vertices")
-    label(text="e: Fillet Edges")
-    label(text="i: Fillet & Intersect 2 Disconnected Edges")
-    label(text="- Math Options:")
-    label(text="x, y, z: Send result to X, Y and Z input fields in PDT Design")
-    label(text="d, a, p: Send result to Distance, Angle or Percent input field in PDT Design")
-    label(text="o: Send Maths Calculation to Output")
-    label(text="")
-    label(text="Note that commands are case-insensitive: ED = Ed = eD = ed")
-    label(text="")
-    label(text="Examples:")
-    label(text="")
-    label(text="ed0.5,,0.6")
-    label(text="'- Extrude Geometry Delta 0.5 in X, 0 in Y, 0.6 in Z")
-    label(text="")
-    label(text="fe0.1,4,0.5")
-    label(text="'- Fillet Edges")
-    label(text="'- Radius: 0.1 (float) -- the radius (or offset) of the bevel/fillet")
-    label(text="'- Segments: 4 (int) -- choosing an even amount of segments gives better geometry")
-    label(text="'- Profile: 0.5 (float[0.0;1.0]) -- 0.5 (default) yields a circular, convex shape")
+from . import pdt_exception
+PDT_SelectionError = pdt_exception.SelectionError
+PDT_InvalidVector = pdt_exception.InvalidVector
+PDT_CommandFailure = pdt_exception.CommandFailure
+PDT_ObjectMode = pdt_exception.ObjectMode
+PDT_MathError = pdt_exception.MathsError
 
 
 class PDT_OT_CommandReRun(Operator):
@@ -185,7 +143,15 @@ def command_run(self, context):
     pg = scene.pdt_pg
     command = pg.command.strip()
 
-    # Check First Letter.
+    # Check Object Type & Mode First
+    obj = context.view_layer.objects.active
+    if obj is not None:
+        if obj.mode not in {"OBJECT", "EDIT"} or obj.type != "MESH":
+            pg.error = PDT_OBJ_MODE_ERROR
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            raise PDT_ObjectMode
+
+    # Special Cases of Command.
     if command == "?" or command.lower() == "help":
         # fmt: off
         context.window_manager.popup_menu(pdt_help, title="PDT Command Line Help", icon="INFO")
@@ -206,27 +172,29 @@ def command_run(self, context):
         origin_to_cursor(context)
         return
     elif command.upper() == "TAP":
-        taper(self, context)
+        taper(context)
         return
     elif command.upper() == "BIS":
         add_line_to_bisection(context)
         return
     elif command.upper() == "ETF":
-        extend_vertex(self, context)
+        extend_vertex(context)
         return
     elif command.upper() == "INTALL":
         intersect_all(context)
         return
-    elif command.upper()[1:4] == "NML":
+    elif command.upper()[1:] == "NML":
         placement_normal(context, command.upper()[0])
         return
-    elif command.upper()[1:4] == "CEN":
+    elif command.upper()[1:] == "CEN":
         placement_centre(context, command.upper()[0])
         return
-    elif command.upper()[1:4] == "INT":
+    elif command.upper()[1:] == "INT":
         placement_intersect(context, command.upper()[0])
         return
-    elif len(command) < 3:
+
+    # Check First Letter
+    if len(command) < 3:
         pg.error = PDT_ERR_CHARS_NUM
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         return
@@ -235,39 +203,206 @@ def command_run(self, context):
         pg.error = PDT_ERR_BADFLETTER
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         return
-    mode = command[1].lower()
+
+    # Check First Letter
+    operation = command[0].upper()
+    if operation not in {"C", "D", "E", "F", "G", "N", "M", "P", "V", "S"}:
+        pg.error = PDT_ERR_BADFLETTER
+        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+        return
 
     # Check Second Letter.
-    if operation == "F":
-        if mode not in {"v", "e", "i"}:
-            pg.error = f"'{mode}' {PDT_ERR_NON_VALID} '{operation}'"
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
-    elif operation in {"D", "E"}:
-        if mode not in {"d", "i"}:
-            pg.error = f"'{mode}' {PDT_ERR_NON_VALID} '{operation}'"
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
-    elif operation == "M":
-        if mode not in {"a", "d", "i", "p", "o", "x", "y", "z"}:
-            pg.error = f"'{mode}' {PDT_ERR_NON_VALID} '{operation}'"
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
-    else:
-         if mode not in {"a", "d", "i", "p"}:
-             pg.error = f"'{mode}' {PDT_ERR_NON_VALID} '{operation}'"
-             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-             return
+    mode = command[1].lower()
+    if (
+        (operation == "F" and mode not in {"v", "e", "i"})
+        or (operation in {"D", "E"} and mode not in {"d", "i"})
+        or (operation == "M" and mode not in {"a", "d", "i", "p", "o", "x", "y", "z"})
+        or (operation not in {"D", "E", "F", "M"} and mode not in {"a", "d", "i", "p"})
+    ):
+        pg.error = f"'{mode}' {PDT_ERR_NON_VALID} '{operation}'"
+        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+        return
 
     # --------------
     # Maths Operation
     if operation == "M":
-        command_maths(context, mode, pg, command[2:], mode)
-        return
+        try:
+            command_maths(context, mode, pg, command[2:], mode)
+        except PDT_MathsError:
+            return
 
     # -----------------------------------------------------
     # Not a Maths Operation, so let's parse the command line
+    try:
+        pg, values, obj, obj_loc, bm, verts = command_parse(context)
+    except PDT_SelectionError:
+        return
+
+    # ---------------------
+    # Cursor or Pivot Point
+    if operation in {"C", "P"}:
+        try:
+            move_cursor_pivot(context, pg, operation, mode, obj, verts, values)
+        except PDT_CommandFailure:
+            return
+
+    # ------------------------
+    # Move Vertices or Objects
+    elif operation == "G":
+        try:
+            move_entities(context, pg, operation, mode, obj, bm, verts, values)
+        except PDT_CommandFailure:
+            return
+
+    # --------------
+    # Add New Vertex
+    elif operation == "N":
+        try:
+            add_new_vertex(context, pg, operation, mode, obj, bm, verts, values)
+        except PDT_CommandFailure:
+            return
+
+    # -----------
+    # Split Edges
+    elif operation == "S":
+        try:
+            split_edges(context, pg, operation, mode, obj, obj_loc, bm, values)
+        except PDT_CommandFailure:
+            return
+
+
+    # ----------------
+    # Extrude Vertices
+    elif operation == "V":
+        try:
+            extrude_vertices(context, pg, operation, mode, obj, obj_loc, bm, verts, values)
+        except PDT_CommandFailure:
+            return
+
+    # ----------------
+    # Extrude Geometry
+    elif operation == "E":
+        try:
+            extrude_geometry(context, pg, operation, mode, obj, bm, values)
+        except PDT_CommandFailure:
+            return
+
+    # ------------------
+    # Duplicate Geometry
+    elif operation == "D":
+        try:
+            duplicate_geometry(context, pg, operation, mode, obj, bm, values)
+        except PDT_CommandFailure:
+            return
+
+    # ---------------
+    # Fillet Geometry
+    elif operation == "F":
+        try:
+            fillet_geometry(context, pg, mode, obj, bm, verts, values)
+        except PDT_CommandFailure:
+            return
+
+    # -------------
+    # Anything else
+    else:
+        # Trap all other value and allow for more options
+        return
+
+
+def pdt_help(self, context):
+    """Display PDT Command Line help in a pop-up."""
+    label = self.layout.label
+    label(text="Primary Letters (Available Secondary Letters):")
+    label(text="")
+    label(text="C: Cursor (a, d, i, p)")
+    label(text="D: Duplicate Geometry (d, i)")
+    label(text="E: Extrude Geometry (d, i)")
+    label(text="F: Fillet (v, e)")
+    label(text="G: Grab (Move) (a, d, i, p)")
+    label(text="N: New Vertex (a, d, i, p)")
+    label(text="M: Maths Functions (x, y, z, d, a, p)")
+    label(text="P: Pivot Point (a, d, i, p)")
+    label(text="V: Extrude Vertice Only (a, d, i, p)")
+    label(text="S: Split Edges (a, d, i, p)")
+    label(text="?: Quick Help")
+    label(text="")
+    label(text="Secondary Letters:")
+    label(text="")
+    label(text="- General Options:")
+    label(text="a: Absolute (Global) Coordinates e.g. 1,3,2")
+    label(text="d: Delta (Relative) Coordinates, e.g. 0.5,0,1.2")
+    label(text="i: Directional (Polar) Coordinates e.g. 2.6,45")
+    label(text="p: Percent e.g. 67.5")
+    label(text="- Fillet Options:")
+    label(text="v: Fillet Vertices")
+    label(text="e: Fillet Edges")
+    label(text="i: Fillet & Intersect 2 Disconnected Edges")
+    label(text="- Math Options:")
+    label(text="x, y, z: Send result to X, Y and Z input fields in PDT Design")
+    label(text="d, a, p: Send result to Distance, Angle or Percent input field in PDT Design")
+    label(text="o: Send Maths Calculation to Output")
+    label(text="")
+    label(text="Note that commands are case-insensitive: ED = Ed = eD = ed")
+    label(text="")
+    label(text="Examples:")
+    label(text="")
+    label(text="ed0.5,,0.6")
+    label(text="'- Extrude Geometry Delta 0.5 in X, 0 in Y, 0.6 in Z")
+    label(text="")
+    label(text="fe0.1,4,0.5")
+    label(text="'- Fillet Edges")
+    label(text="'- Radius: 0.1 (float) -- the radius (or offset) of the bevel/fillet")
+    label(text="'- Segments: 4 (int) -- choosing an even amount of segments gives better geometry")
+    label(text="'- Profile: 0.5 (float[0.0;1.0]) -- 0.5 (default) yields a circular, convex shape")
+
+
+def command_maths(context, mode, pg, expression, output_target):
+    """Evaluates Maths Input.
+
+    Args:
+        context: Blender bpy.context instance.
+        mode, pg, expression, output_target
+
+    Returns:
+        Nothing.
+    """
+
+    namespace = {}
+    namespace.update(vars(math))
+    try:
+        maths_result = eval(expression, namespace, namespace)
+    except:
+        pg.error = PDT_ERR_BADMATHS
+        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+        raise PDT_MathsError
+    if output_target == "x":
+        pg.cartesian_coords.x = maths_result
+    elif output_target == "y":
+        pg.cartesian_coords.y = maths_result
+    elif output_target == "z":
+        pg.cartesian_coords.z = maths_result
+    elif output_target == "d":
+        pg.distance = maths_result
+    elif output_target == "a":
+        pg.angle = maths_result
+    elif output_target == "p":
+        pg.percent = maths_result
+    else:
+        # Mst be "o"
+        pg.maths_output = maths_result
+    return
+
+
+def command_parse(context):
+    scene = context.scene
+    pg = scene.pdt_pg
+    command = pg.command.strip()
+    operation = command[0].upper()
+    mode = command[1].lower()
     values = command[2:].split(",")
+    mode_s = pg.select
+    obj = context.view_layer.objects.active
     ind = 0
     for r in values:
         try:
@@ -276,13 +411,7 @@ def command_run(self, context):
         except ValueError:
             values[ind] = "0"
         ind = ind + 1
-    mode_s = pg.select
-    flip_a = pg.flip_angle
-    flip_p = pg.flip_percent
-    ext_a = pg.extend
-    plane = pg.plane
-    obj = context.view_layer.objects.active
-    bm, good = obj_check(obj, scene, operation)
+    bm, good = obj_check(context, obj, scene, operation)
     if good:
         obj_loc = obj.matrix_world.decompose()[0]
     else:
@@ -293,426 +422,479 @@ def command_run(self, context):
             if len([v for v in bm.verts if v.select]) == 0:
                 pg.error = PDT_ERR_NO_SEL_GEOM
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                return
+                raise PDT_SelectionError
             else:
                 verts = [v for v in bm.verts if v.select]
         else:
             verts = bm.select_history
+    elif operation == "G" and mode == "a":
+        verts = [v for v in bm.verts if v.select]
     else:
         verts = []
 
     debug(f"command: {command}")
     debug(f"obj: {obj}, bm: {bm}, obj_loc: {obj_loc}")
 
-    # ---------------------
-    # Cursor or Pivot Point
-    if operation in {"C", "P"}:
-        # Absolute/Global Coordinates, or Delta/Relative Coordinates
-        if mode in {"a", "d"}:
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
-        # Direction/Polar Coordinates
-        elif mode == "i":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 2)
-        # Percent Options
-        elif mode == "p":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 1)
+    return pg, values, obj, obj_loc, bm, verts
 
-        if valid_result:
-            move_cursor_pivot(context, pg, obj, verts, operation,
-                mode, vector_delta)
-        return
 
-    # ------------------------
-    # Move Vertices or Objects
-    elif operation == "G":
-        if obj.mode == "EDIT":
-            if len(verts) == 0:
-                pg.error = PDT_ERR_NO_SEL_GEOM
-                context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                return
-        # Absolute/Global Coordinates
-        if mode == "a":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
-            if not valid_result:
-                return
-            if obj.mode == "EDIT":
-                for v in verts:
-                    v.co = vector_delta - obj_loc
-                bmesh.ops.remove_doubles(
-                    bm, verts=[v for v in bm.verts if v.select], dist=0.0001
-                )
-            elif obj.mode == "OBJECT":
-                for ob in context.view_layer.objects.selected:
-                    ob.location = vector_delta
+def move_cursor_pivot(context, pg, operation, mode, obj, verts, values):
+    # Absolute/Global Coordinates, or Delta/Relative Coordinates
+    if mode in {"a", "d"}:
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 3)
+        except:
+            raise PDT_InvalidVector
+    # Direction/Polar Coordinates
+    elif mode == "i":
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 2)
+        except:
+            raise PDT_InvalidVector
+    # Percent Options
+    else:
+        # Must be Percent
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 1)
+        except:
+            raise PDT_InvalidVector
 
-        elif mode in {"d", "i"}:
-            if mode == "d":
-                # Delta/Relative Coordinates
-                valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
-                if not valid_result:
-                    return
+    if vector_delta == None:
+        raise PDT_InvalidVector
+
+    scene = context.scene
+    mode_sel = pg.select
+    obj_loc = obj.matrix_world.decompose()[0]
+
+    if mode == "a":
+        if operation == "C":
+            scene.cursor.location = vector_delta
+        elif operation == "P":
+            pg.pivot_loc = vector_delta
+    elif mode in {"d", "i"}:
+        if mode_sel == "REL":
+            if operation == "C":
+                scene.cursor.location = scene.cursor.location + vector_delta
             else:
-                # Direction/Polar Coordinates
-                valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 2)
-                if not valid_result:
-                    return
-            if vector_delta is not None:
-                if obj.mode == "EDIT":
-                    bmesh.ops.translate(
-                        bm, verts=[v for v in bm.verts if v.select], vec=vector_delta
-                    )
-                elif obj.mode == "OBJECT":
-                    for ob in context.view_layer.objects.selected:
-                        ob.location = obj_loc + vector_delta
-        # Percent Options
-        elif mode == "p":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 1)
-            if not valid_result:
-                return
-            if vector_delta is not None:
-                if obj.mode == 'EDIT':
-                    verts[-1].co = vector_delta
-                elif obj.mode == "OBJECT":
-                    obj.location = vector_delta
-        if obj.mode == 'EDIT':
-            bmesh.update_edit_mesh(obj.data)
-            bm.select_history.clear()
-        return
+                pg.pivot_loc = pg.pivot_loc + vector_delta
+        elif mode_sel == "SEL":
+            if obj.mode == "EDIT":
+                if operation == "C":
+                    scene.cursor.location = verts[-1].co + obj_loc + vector_delta
+                else:
+                    pg.pivot_loc = verts[-1].co + obj_loc + vector_delta
+            if obj.mode == "OBJECT":
+                if operation == "C":
+                    scene.cursor.location = obj_loc + vector_delta
+                else:
+                    pg.pivot_loc = obj_loc + vector_delta
+    else:
+        # Must be Percent
+        if obj.mode == "EDIT":
+            if operation == "C":
+                scene.cursor.location = obj_loc + vector_delta
+            else:
+                pg.pivot_loc = obj_loc + vector_delta
+        if obj.mode == "OBJECT":
+            if operation == "C":
+                scene.cursor.location = vector_delta
+            else:
+                pg.pivot_loc = vector_delta
+    return
 
-    # --------------
-    # Add New Vertex
-    elif operation == "N":
-        if not obj.mode == "EDIT":
-            pg.error = PDT_ERR_ADDVEDIT
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
-        # Absolute/Global Coordinates
-        if mode == "a":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
-            if not valid_result:
-                return
-            new_vertex = bm.verts.new(vector_delta - obj_loc)
-        # Delta/Relative Coordinates
-        elif mode == "d":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
-            if not valid_result:
-                return
-            new_vertex = bm.verts.new(verts[-1].co + vector_delta)
-        # Direction/Polar Coordinates
-        elif mode == "i":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 2)
-            if not valid_result:
-                return
-            new_vertex = bm.verts.new(verts[-1].co + vector_delta)
-        # Percent Options
-        elif mode == "p":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 1)
-            if not valid_result:
-                return
-            new_vertex = bm.verts.new(vector_delta)
 
-        for v in [v for v in bm.verts if v.select]:
-            v.select_set(False)
-        new_vertex.select_set(True)
-        bmesh.update_edit_mesh(obj.data)
-        bm.select_history.clear()
-        return
+def move_entities(context, pg, operation, mode, obj, bm, verts, values):
+    obj_loc = obj.matrix_world.decompose()[0]
 
-    # -----------
-    # Split Edges
-    elif operation == "S":
-        if not obj.mode == "EDIT":
-            pg.error = PDT_ERR_SPLITEDIT
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
-        # Absolute/Global Coordinates
-        if mode == "a":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
-            if not valid_result:
-                return
-            edges = [e for e in bm.edges if e.select]
-            if len(edges) != 1:
-                pg.error = f"{PDT_ERR_SEL_1_EDGE} {len(edges)})"
-                context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                return
-            geom = bmesh.ops.subdivide_edges(bm, edges=edges, cuts=1)
-            new_verts = [v for v in geom["geom_split"] if isinstance(v, bmesh.types.BMVert)]
-            new_vertex = new_verts[0]
-            new_vertex.co = vector_delta - obj_loc
-        # Delta/Relative Coordinates
-        elif mode == "d":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
-            if not valid_result:
-                return
-            edges = [e for e in bm.edges if e.select]
-            faces = [f for f in bm.faces if f.select]
-            if len(faces) != 0:
-                pg.error = PDT_ERR_FACE_SEL
-                context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                return
-            if len(edges) < 1:
-                pg.error = f"{PDT_ERR_SEL_1_EDGEM} {len(edges)})"
-                context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                return
-            geom = bmesh.ops.subdivide_edges(bm, edges=edges, cuts=1)
-            new_verts = [v for v in geom["geom_split"] if isinstance(v, bmesh.types.BMVert)]
-            bmesh.ops.translate(bm, verts=new_verts, vec=vector_delta)
-        # Directional/Polar Coordinates
-        elif mode == "i":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 2)
-            if not valid_result:
-                return
-            edges = [e for e in bm.edges if e.select]
-            faces = [f for f in bm.faces if f.select]
-            if len(faces) != 0:
-                pg.error = PDT_ERR_FACE_SEL
-                context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                return
-            if len(edges) < 1:
-                pg.error = f"{PDT_ERR_SEL_1_EDGEM} {len(edges)})"
-                context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                return
-            geom = bmesh.ops.subdivide_edges(bm, edges=edges, cuts=1)
-            new_verts = [v for v in geom["geom_split"] if isinstance(v, bmesh.types.BMVert)]
-            bmesh.ops.translate(bm, verts=new_verts, vec=vector_delta)
-        # Percent Options
-        elif mode == "p":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 1)
-            if not valid_result:
-                return
-            edges = [e for e in bm.edges if e.select]
-            faces = [f for f in bm.faces if f.select]
-            if len(faces) != 0:
-                pg.error = PDT_ERR_FACE_SEL
-                context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                return
-            if len(edges) != 1:
-                pg.error = f"{PDT_ERR_SEL_1_EDGEM} {len(edges)})"
-                context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                return
-            geom = bmesh.ops.subdivide_edges(bm, edges=edges, cuts=1)
-            new_verts = [v for v in geom["geom_split"] if isinstance(v, bmesh.types.BMVert)]
-            new_vertex = new_verts[0]
-            new_vertex.co = vector_delta
-
-        for v in [v for v in bm.verts if v.select]:
-            v.select_set(False)
-        for v in new_verts:
-            v.select_set(False)
-        bmesh.update_edit_mesh(obj.data)
-        bm.select_history.clear()
-        return
-
-    # ----------------
-    # Extrude Vertices
-    elif operation == "V":
-        if not obj.mode == "EDIT":
-            pg.error = PDT_ERR_EXTEDIT
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
-        # Absolute/Global Coordinates
-        if mode == "a":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
-            if not valid_result:
-                return
-            new_vertex = bm.verts.new(vector_delta - obj_loc)
+    # Absolute/Global Coordinates
+    if mode == "a":
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 3)
+        except:
+            raise PDT_InvalidVector
+        if obj.mode == "EDIT":
             for v in verts:
-                bm.edges.new([v, new_vertex])
-                v.select_set(False)
-            new_vertex.select_set(True)
+                v.co = vector_delta - obj_loc
             bmesh.ops.remove_doubles(
                 bm, verts=[v for v in bm.verts if v.select], dist=0.0001
             )
-        # Delta/Relative Coordinates
-        elif mode == "d":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
-            if not valid_result:
-                return
-            for v in verts:
-                new_vertex = bm.verts.new(v.co)
-                new_vertex.co = new_vertex.co + vector_delta
-                bm.edges.new([v, new_vertex])
-                v.select_set(False)
-                new_vertex.select_set(True)
-        # Direction/Polar Coordinates
-        elif mode == "i":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 2)
-            if not valid_result:
-                return
-            for v in verts:
-                new_vertex = bm.verts.new(v.co)
-                new_vertex.co = new_vertex.co + vector_delta
-                bm.edges.new([v, new_vertex])
-                v.select_set(False)
-                new_vertex.select_set(True)
-        # Percent Options
-        elif mode == "p":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 1)
-            if not valid_result:
-                return
-            verts = [v for v in bm.verts if v.select].copy()
-            if len(verts) == 0:
-                pg.error = PDT_ERR_NO_SEL_GEOM
-                context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                return
-            new_vertex = bm.verts.new(vector_delta)
-            if ext_a:
-                for v in [v for v in bm.verts if v.select]:
-                    bm.edges.new([v, new_vertex])
-                    v.select_set(False)
-            else:
-                bm.edges.new([verts[-1], new_vertex])
+        if obj.mode == "OBJECT":
+            for ob in context.view_layer.objects.selected:
+                ob.location = vector_delta
+
+    elif mode in {"d", "i"}:
+        if mode == "d":
+            # Delta/Relative Coordinates
+            try:
+                vector_delta = vector_build(context, pg, obj, operation, values, 3)
+            except:
+                raise PDT_InvalidVector
+        else:
+            # Direction/Polar Coordinates
+            try:
+                vector_delta = vector_build(context, pg, obj, operation, values, 2)
+            except:
+                raise PDT_InvalidVector
+        if obj.mode == "EDIT":
+            bmesh.ops.translate(
+                bm, verts=[v for v in bm.verts if v.select], vec=vector_delta
+            )
+        if obj.mode == "OBJECT":
+            for ob in context.view_layer.objects.selected:
+                ob.location = obj_loc + vector_delta
+    # Percent Options Only Other Choice
+    else:
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 1)
+        except:
+            raise PDT_InvalidVector
+        if obj.mode == 'EDIT':
+            verts[-1].co = vector_delta
+        if obj.mode == "OBJECT":
+            obj.location = vector_delta
+    if obj.mode == 'EDIT':
+        bmesh.update_edit_mesh(obj.data)
+        bm.select_history.clear()
+    return
+
+
+def add_new_vertex(context, pg, operation, mode, obj, bm, verts, values):
+    obj_loc = obj.matrix_world.decompose()[0]
+
+    if not obj.mode == "EDIT":
+        pg.error = PDT_ERR_ADDVEDIT
+        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+        raise PDT_SelectionError
+    # Absolute/Global Coordinates
+    if mode == "a":
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 3)
+        except:
+            raise PDT_InvalidVector
+        new_vertex = bm.verts.new(vector_delta - obj_loc)
+    # Delta/Relative Coordinates
+    elif mode == "d":
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 3)
+        except:
+            raise PDT_InvalidVector
+        new_vertex = bm.verts.new(verts[-1].co + vector_delta)
+    # Direction/Polar Coordinates
+    elif mode == "i":
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 2)
+        except:
+            raise PDT_InvalidVector
+        new_vertex = bm.verts.new(verts[-1].co + vector_delta)
+    # Percent Options Only Other Choice
+    else:
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 1)
+        except:
+            raise PDT_InvalidVector
+        new_vertex = bm.verts.new(vector_delta)
+
+    for v in [v for v in bm.verts if v.select]:
+        v.select_set(False)
+    new_vertex.select_set(True)
+    bmesh.update_edit_mesh(obj.data)
+    bm.select_history.clear()
+    return
+
+
+def split_edges(context, pg, operation, mode, obj, obj_loc, bm, values):
+    if not obj.mode == "EDIT":
+        pg.error = PDT_ERR_SPLITEDIT
+        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+        return
+    # Absolute/Global Coordinates
+    if mode == "a":
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 3)
+        except:
+            raise PDT_InvalidVector
+        edges = [e for e in bm.edges if e.select]
+        if len(edges) != 1:
+            pg.error = f"{PDT_ERR_SEL_1_EDGE} {len(edges)})"
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            return
+        geom = bmesh.ops.subdivide_edges(bm, edges=edges, cuts=1)
+        new_verts = [v for v in geom["geom_split"] if isinstance(v, bmesh.types.BMVert)]
+        new_vertex = new_verts[0]
+        new_vertex.co = vector_delta - obj_loc
+    # Delta/Relative Coordinates
+    elif mode == "d":
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 3)
+        except:
+            raise PDT_InvalidVector
+        edges = [e for e in bm.edges if e.select]
+        faces = [f for f in bm.faces if f.select]
+        if len(faces) != 0:
+            pg.error = PDT_ERR_FACE_SEL
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            return
+        if len(edges) < 1:
+            pg.error = f"{PDT_ERR_SEL_1_EDGEM} {len(edges)})"
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            return
+        geom = bmesh.ops.subdivide_edges(bm, edges=edges, cuts=1)
+        new_verts = [v for v in geom["geom_split"] if isinstance(v, bmesh.types.BMVert)]
+        bmesh.ops.translate(bm, verts=new_verts, vec=vector_delta)
+    # Directional/Polar Coordinates
+    elif mode == "i":
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 2)
+        except:
+            raise PDT_InvalidVector
+        edges = [e for e in bm.edges if e.select]
+        faces = [f for f in bm.faces if f.select]
+        if len(faces) != 0:
+            pg.error = PDT_ERR_FACE_SEL
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            return
+        if len(edges) < 1:
+            pg.error = f"{PDT_ERR_SEL_1_EDGEM} {len(edges)})"
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            return
+        geom = bmesh.ops.subdivide_edges(bm, edges=edges, cuts=1)
+        new_verts = [v for v in geom["geom_split"] if isinstance(v, bmesh.types.BMVert)]
+        bmesh.ops.translate(bm, verts=new_verts, vec=vector_delta)
+    # Percent Options
+    elif mode == "p":
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 1)
+        except:
+            raise PDT_InvalidVector
+        edges = [e for e in bm.edges if e.select]
+        faces = [f for f in bm.faces if f.select]
+        if len(faces) != 0:
+            pg.error = PDT_ERR_FACE_SEL
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            return
+        if len(edges) != 1:
+            pg.error = f"{PDT_ERR_SEL_1_EDGEM} {len(edges)})"
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            return
+        geom = bmesh.ops.subdivide_edges(bm, edges=edges, cuts=1)
+        new_verts = [v for v in geom["geom_split"] if isinstance(v, bmesh.types.BMVert)]
+        new_vertex = new_verts[0]
+        new_vertex.co = vector_delta
+
+    for v in [v for v in bm.verts if v.select]:
+        v.select_set(False)
+    for v in new_verts:
+        v.select_set(False)
+    bmesh.update_edit_mesh(obj.data)
+    bm.select_history.clear()
+    return
+
+
+def extrude_vertices(context, pg, operation, mode, obj, obj_loc, bm, verts, values):
+    if not obj.mode == "EDIT":
+        pg.error = PDT_ERR_EXTEDIT
+        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+        return
+    # Absolute/Global Coordinates
+    if mode == "a":
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 3)
+        except:
+            raise PDT_InvalidVector
+        new_vertex = bm.verts.new(vector_delta - obj_loc)
+        verts = [v for v in bm.verts if v.select].copy()
+        for v in verts:
+            bm.edges.new([v, new_vertex])
+            v.select_set(False)
+        new_vertex.select_set(True)
+        bmesh.ops.remove_doubles(
+            bm, verts=[v for v in bm.verts if v.select], dist=0.0001
+        )
+    # Delta/Relative Coordinates
+    elif mode == "d":
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 3)
+        except:
+            raise PDT_InvalidVector
+        for v in verts:
+            new_vertex = bm.verts.new(v.co)
+            new_vertex.co = new_vertex.co + vector_delta
+            bm.edges.new([v, new_vertex])
+            v.select_set(False)
             new_vertex.select_set(True)
+    # Direction/Polar Coordinates
+    elif mode == "i":
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 2)
+        except:
+            raise PDT_InvalidVector
+        for v in verts:
+            new_vertex = bm.verts.new(v.co)
+            new_vertex.co = new_vertex.co + vector_delta
+            bm.edges.new([v, new_vertex])
+            v.select_set(False)
+            new_vertex.select_set(True)
+    # Percent Options
+    elif mode == "p":
+        ext_a = pg.extend
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 1)
+        except:
+            raise PDT_InvalidVector
+        verts = [v for v in bm.verts if v.select].copy()
+        new_vertex = bm.verts.new(vector_delta)
+        if ext_a:
+            for v in [v for v in bm.verts if v.select]:
+                bm.edges.new([v, new_vertex])
+                v.select_set(False)
+        else:
+            bm.edges.new([verts[-1], new_vertex])
+        new_vertex.select_set(True)
 
-        bmesh.update_edit_mesh(obj.data)
-        bm.select_history.clear()
+    bmesh.update_edit_mesh(obj.data)
+    bm.select_history.clear()
+    return
+
+
+def extrude_geometry(context, pg, operation, mode, obj, bm, values):
+    if not obj.mode == "EDIT":
+        pg.error = PDT_ERR_EXTEDIT
+        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         return
+    # Delta/Relative Coordinates
+    if mode == "d":
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 3)
+        except:
+            raise PDT_InvalidVector
+    # Direction/Polar Coordinates
+    elif mode == "i":
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 2)
+        except:
+            raise PDT_InvalidVector
 
-    # ----------------
-    # Extrude Geometry
-    elif operation == "E":
-        if not obj.mode == "EDIT":
-            pg.error = PDT_ERR_EXTEDIT
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
-        # Delta/Relative Coordinates
-        if mode == "d":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
-            if not valid_result:
-                return
-        # Direction/Polar Coordinates
-        elif mode == "i":
-            valid_result, vector_delta = vector_build(context, pg, obj, values, 2)
-            if not valid_result:
-                return
+    ret = bmesh.ops.extrude_face_region(
+        bm,
+        geom=(
+            [f for f in bm.faces if f.select]
+            + [e for e in bm.edges if e.select]
+            + [v for v in bm.verts if v.select]
+        ),
+        use_select_history=True,
+    )
+    geom_extr = ret["geom"]
+    verts_extr = [v for v in geom_extr if isinstance(v, bmesh.types.BMVert)]
+    edges_extr = [e for e in geom_extr if isinstance(e, bmesh.types.BMEdge)]
+    faces_extr = [f for f in geom_extr if isinstance(f, bmesh.types.BMFace)]
+    del ret
+    bmesh.ops.translate(bm, verts=verts_extr, vec=vector_delta)
+    update_sel(bm, verts_extr, edges_extr, faces_extr)
+    bmesh.update_edit_mesh(obj.data)
+    bm.select_history.clear()
+    return
 
-        ret = bmesh.ops.extrude_face_region(
-            bm,
-            geom=(
-                [f for f in bm.faces if f.select]
-                + [e for e in bm.edges if e.select]
-                + [v for v in bm.verts if v.select]
-            ),
-            use_select_history=True,
-        )
-        geom_extr = ret["geom"]
-        verts_extr = [v for v in geom_extr if isinstance(v, bmesh.types.BMVert)]
-        edges_extr = [e for e in geom_extr if isinstance(e, bmesh.types.BMEdge)]
-        faces_extr = [f for f in geom_extr if isinstance(f, bmesh.types.BMFace)]
-        del ret
-        bmesh.ops.translate(bm, verts=verts_extr, vec=vector_delta)
-        update_sel(bm, verts_extr, edges_extr, faces_extr)
-        bmesh.update_edit_mesh(obj.data)
-        bm.select_history.clear()
+def duplicate_geometry(context, pg, operation, mode, obj, bm, values):
+    if not obj.mode == "EDIT":
+        pg.error = PDT_ERR_DUPEDIT
+        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         return
+    # Delta/Relative Coordinates
+    if mode == "d":
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 3)
+        except:
+            raise PDT_InvalidVector
+    # Direction/Polar Coordinates
+    elif mode == "i":
+        try:
+            vector_delta = vector_build(context, pg, obj, operation, values, 2)
+        except:
+            raise PDT_InvalidVector
 
-    # ------------------
-    # Duplicate Geometry
-    elif operation == "D":
-        if not obj.mode == "EDIT":
-            pg.error = PDT_ERR_DUPEDIT
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
-        # Delta/Relative Coordinates
-        if mode == "d":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 3)
-            if not valid_result:
-                return
-        # Direction/Polar Coordinates
-        elif mode == "i":
-            valid_result, vector_delta = vector_build(context, pg, obj, operation, values, 2)
-            if not valid_result:
-                return
+    ret = bmesh.ops.duplicate(
+        bm,
+        geom=(
+            [f for f in bm.faces if f.select]
+            + [e for e in bm.edges if e.select]
+            + [v for v in bm.verts if v.select]
+        ),
+        use_select_history=True,
+    )
+    geom_dupe = ret["geom"]
+    verts_dupe = [v for v in geom_dupe if isinstance(v, bmesh.types.BMVert)]
+    edges_dupe = [e for e in geom_dupe if isinstance(e, bmesh.types.BMEdge)]
+    faces_dupe = [f for f in geom_dupe if isinstance(f, bmesh.types.BMFace)]
+    del ret
+    bmesh.ops.translate(bm, verts=verts_dupe, vec=vector_delta)
+    update_sel(bm, verts_dupe, edges_dupe, faces_dupe)
+    bmesh.update_edit_mesh(obj.data)
+    bm.select_history.clear()
+    return
 
-        ret = bmesh.ops.duplicate(
-            bm,
-            geom=(
-                [f for f in bm.faces if f.select]
-                + [e for e in bm.edges if e.select]
-                + [v for v in bm.verts if v.select]
-            ),
-            use_select_history=True,
-        )
-        geom_dupe = ret["geom"]
-        verts_dupe = [v for v in geom_dupe if isinstance(v, bmesh.types.BMVert)]
-        edges_dupe = [e for e in geom_dupe if isinstance(e, bmesh.types.BMEdge)]
-        faces_dupe = [f for f in geom_dupe if isinstance(f, bmesh.types.BMFace)]
-        del ret
-        bmesh.ops.translate(bm, verts=verts_dupe, vec=vector_delta)
-        update_sel(bm, verts_dupe, edges_dupe, faces_dupe)
-        bmesh.update_edit_mesh(obj.data)
-        bm.select_history.clear()
+
+def fillet_geometry(context, pg, mode, obj, bm, verts, values):
+    if not obj.mode == "EDIT":
+        pg.error = PDT_ERR_FILEDIT
+        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         return
-
-    # ---------------
-    # Fillet Geometry
-    elif operation == "F":
-        if obj is None:
-            pg.error = PDT_ERR_NO_ACT_OBJ
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
-        if not obj.mode == "EDIT":
-            pg.error = PDT_ERR_FILEDIT
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
-        if len(values) != 3:
-            pg.error = PDT_ERR_BAD3VALS
-            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
-        if mode in {"i", "v"}:
-            vert_bool = True
-        elif mode == "e":
-            vert_bool = False
+    if mode in {"i", "v"}:
+        vert_bool = True
+    elif mode == "e":
+        vert_bool = False
+    # Note that passing an empty parameter results in that parameter being seen as "0"
+    # _offset <= 0 is ignored since a bevel/fillet radius must be > 0 to make sense
+    _offset = float(values[0])
+    _segments = int(values[1])
+    if _segments < 1:
+        _segments = 1   # This is a single, flat segment (ignores profile)
+    _profile = float(values[2])
+    if _profile < 0.0 or _profile > 1.0:
+        _profile = 0.5  # This is a circular profile
+    if mode == "i":
+        # Fillet & Intersect Two Edges
+        # Always use Current Selection
         verts = [v for v in bm.verts if v.select]
-        if len(verts) == 0:
-            pg.error = PDT_ERR_SEL_1_VERT
+        edges = [e for e in bm.edges if e.select]
+        if len(edges) == 2 and len(verts) == 4:
+            plane = pg.plane
+            v_active = edges[0].verts[0]
+            v_other = edges[0].verts[1]
+            v_last = edges[1].verts[0]
+            v_first = edges[1].verts[1]
+            vector_delta, done = intersection(v_active.co,
+                v_other.co,
+                v_last.co,
+                v_first.co,
+                plane
+                )
+            if not done:
+                errmsg = f"{PDT_ERR_INT_LINES} {plane}  {PDT_LAB_PLANE}"
+                self.report({"ERROR"}, errmsg)
+                raise PDT_IntersectionError
+            if (v_active.co - vector_delta).length < (v_other.co - vector_delta).length:
+                v_active.co = vector_delta
+                v_other.select_set(False)
+            else:
+                v_other.co = vector_delta
+                v_active.select_set(False)
+            if (v_last.co - vector_delta).length < (v_first.co - vector_delta).length:
+                v_last.co = vector_delta
+                v_first.select_set(False)
+            else:
+                v_first.co = vector_delta
+                v_last.select_set(False)
+            bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
+        else:
+            pg.error = f"{PDT_ERR_SEL_4_VERTS} {len(verts)} Vert(s), {len(edges)} Edge(s))"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
-        # Note that passing an empty parameter results in that parameter being seen as "0"
-        # _offset <= 0 is ignored since a bevel/fillet radius must be > 0 to make sense
-        _offset = float(values[0])
-        _segments = int(values[1])
-        if _segments < 1:
-            _segments = 1   # This is a single, flat segment (ignores profile)
-        _profile = float(values[2])
-        if _profile < 0.0 or _profile > 1.0:
-            _profile = 0.5  # This is a circular profile
-        if mode == "i":
-            # Fillet & Intersect Two Edges
-            edges = [e for e in bm.edges if e.select]
-            if len(edges) == 2 and len(verts) == 4:
-                v_active = edges[0].verts[0]
-                v_other = edges[0].verts[1]
-                v_last = edges[1].verts[0]
-                v_first = edges[1].verts[1]
-                vector_delta, done = intersection(v_active.co,
-                    v_other.co,
-                    v_last.co,
-                    v_first.co,
-                    plane
-                    )
-                if not done:
-                    errmsg = f"{PDT_ERR_INT_LINES} {plane}  {PDT_LAB_PLANE}"
-                    self.report({"ERROR"}, errmsg)
-                    return {"FINISHED"}
-                if (v_active.co - vector_delta).length < (v_other.co - vector_delta).length:
-                    v_active.co = vector_delta
-                    v_other.select_set(False)
-                else:
-                    v_other.co = vector_delta
-                    v_active.select_set(False)
-                if (v_last.co - vector_delta).length < (v_first.co - vector_delta).length:
-                    v_last.co = vector_delta
-                    v_first.select_set(False)
-                else:
-                    v_first.co = vector_delta
-                    v_last.select_set(False)
-                bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
-        bpy.ops.mesh.bevel(
-            offset_type="OFFSET",
-            offset=_offset,
-            segments=_segments,
-            profile=_profile,
-            vertex_only=vert_bool
-        )
-        return
+            raise PDT_SelectionError
+
+    bpy.ops.mesh.bevel(
+        offset_type="OFFSET",
+        offset=_offset,
+        segments=_segments,
+        profile=_profile,
+        vertex_only=vert_bool
+    )
+    return

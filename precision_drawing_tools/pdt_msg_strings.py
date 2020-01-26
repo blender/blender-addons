@@ -71,6 +71,7 @@ PDT_LAB_PIVOTLOCH     = "Location"
 # Error Message
 #
 PDT_ERR_NO_ACT_OBJ    = "No Active Object - Please Select an Object"
+PDT_OBJ_MODE_ERROR    = "Only Mesh Object in Edit or Object Mode Supported"
 PDT_ERR_NO_ACT_VERT   = "No Active Vertex - Select One Vertex Individually"
 PDT_ERR_NO_SEL_GEOM   = "No Geometry/Objects Selected"
 PDT_ERR_NO_ACT_VERTS  = "No Selected Geometry - Please Select some Geometry"

@@ -41,6 +41,18 @@ from .pdt_functions import (
     view_dir,
     set_axis,
 )
+
+from . import pdt_exception
+PDT_SelectionError = pdt_exception.SelectionError
+PDT_InvalidVector = pdt_exception.InvalidVector
+PDT_ObjectMode = pdt_exception.ObjectMode
+PDT_InfRadius = pdt_exception.InfRadius
+PDT_NoObjectError = pdt_exception.NoObjectError
+PDT_IntersectionError = pdt_exception.IntersectionError
+PDT_InvalidOperation = pdt_exception.InvalidOperation
+PDT_VerticesConnected = pdt_exception.VerticesConnected
+PDT_InvalidAngle = pdt_exception.InvalidAngle
+
 from .pdt_msg_strings import (
     PDT_ERR_BAD3VALS,
     PDT_ERR_BAD2VALS,
@@ -67,49 +79,9 @@ from .pdt_msg_strings import (
     PDT_ERR_SEL_3_VERTIO,
     PDT_ERR_TAPER_ANG,
     PDT_ERR_TAPER_SEL,
-    PDT_ERR_BADMATHS,
     PDT_ERR_INT_LINES,
     PDT_LAB_PLANE,
 )
-
-
-def command_maths(context, mode, pg, expression, output_target):
-    """Evaluates Maths Input.
-
-    Args:
-        context: Blender bpy.context instance.
-        mode, pg, expression, output_target
-
-    Returns:
-        Nothing.
-    """
-    if output_target not in {"x", "y", "z", "d", "a", "p", "o"}:
-        pg.error = f"{mode} {PDT_ERR_NON_VALID} Maths)"
-        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        return
-    namespace = {}
-    namespace.update(vars(math))
-    try:
-        maths_result = eval(expression, namespace, namespace)
-    except ValueError:
-        pg.error = PDT_ERR_BADMATHS
-        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        return
-    if output_target == "x":
-        pg.cartesian_coords.x = maths_result
-    elif output_target == "y":
-        pg.cartesian_coords.y = maths_result
-    elif output_target == "z":
-        pg.cartesian_coords.z = maths_result
-    elif output_target == "d":
-        pg.distance = maths_result
-    elif output_target == "a":
-        pg.angle = maths_result
-    elif output_target == "p":
-        pg.percent = maths_result
-    elif output_target == "o":
-        pg.maths_output = maths_result
-    return
 
 
 def vector_build(context, pg, obj, operation, values, num_values):
@@ -143,58 +115,8 @@ def vector_build(context, pg, obj, operation, values, num_values):
         else:
             pg.error = PDT_ERR_BAD1VALS
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        return False, Vector((0, 0, 0))
-    return True, output_vector
-
-
-def move_cursor_pivot(context, pg, obj, sel_verts, operation, mode_op, vector_delta):
-    """Move Cursor or Pivot Point.
-
-    Args:
-        context: Blender bpy.context instance.
-        PDT parameter group as pg, active object, selected vertices,
-        operation, operational mode as mode_op, movement vector.
-
-    Returns:
-        Nothing.
-    """
-    scene = context.scene
-    mode_sel = pg.select
-    obj_loc = obj.matrix_world.decompose()[0]
-
-    if mode_op == "a":
-        if operation == "C":
-            scene.cursor.location = vector_delta
-        elif operation == "P":
-            pg.pivot_loc = vector_delta
-    elif mode_op in {"d", "i"}:
-        if mode_sel == "REL":
-            if operation == "C":
-                scene.cursor.location = scene.cursor.location + vector_delta
-            else:
-                pg.pivot_loc = pg.pivot_loc + vector_delta
-        elif mode_sel == "SEL":
-            if obj.mode == "EDIT":
-                if operation == "C":
-                    scene.cursor.location = sel_verts[-1].co + obj_loc + vector_delta
-                else:
-                    pg.pivot_loc = sel_verts[-1].co + obj_loc + vector_delta
-            elif obj.mode == "OBJECT":
-                if operation == "C":
-                    scene.cursor.location = obj_loc + vector_delta
-                else:
-                    pg.pivot_loc = obj_loc + vector_delta
-    elif mode_op == "p":
-        if obj.mode == "EDIT":
-            if operation == "C":
-                scene.cursor.location = obj_loc + vector_delta
-            else:
-                pg.pivot_loc = obj_loc + vector_delta
-        elif obj.mode == "OBJECT":
-            if operation == "C":
-                scene.cursor.location = vector_delta
-            else:
-                pg.pivot_loc = vector_delta
+        raise pdt_InvalidVector
+    return output_vector
 
 
 def placement_normal(context, operation):
@@ -227,7 +149,7 @@ def placement_normal(context, operation):
         if obj is None:
             pg.error = PDT_ERR_NO_ACT_OBJ
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_ObjectMode
         obj_loc = obj.matrix_world.decompose()[0]
         bm = bmesh.from_edit_mesh(obj.data)
         if len(bm.select_history) == 3:
@@ -235,17 +157,17 @@ def placement_normal(context, operation):
             if vector_a is None:
                 pg.error = PDT_ERR_VERT_MODE
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                return
+                raise PDT_InvalidVector
         else:
-            pg.error = f"{PDT_ERR_SEL_3_VERTS} {len(bm.select_history)})"
+            pg.error = f"{PDT_ERR_SEL_3_VERTIO} {len(bm.select_history)})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_SelectionError
     elif obj.mode == "OBJECT":
         objs = context.view_layer.objects.selected
         if len(objs) != 3:
             pg.error = f"{PDT_ERR_SEL_3_OBJS} {len(objs)})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_SelectionError
         objs_s = [ob for ob in objs if ob.name != obj.name]
         vector_a = obj.matrix_world.decompose()[0]
         vector_b = objs_s[-1].matrix_world.decompose()[0]
@@ -334,7 +256,7 @@ def placement_centre(context, operation):
         if obj is None:
             pg.error = PDT_ERR_NO_ACT_OBJ
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_ObjectMode
         obj = context.view_layer.objects.active
         obj_loc = obj.matrix_world.decompose()[0]
         bm = bmesh.from_edit_mesh(obj.data)
@@ -342,7 +264,7 @@ def placement_centre(context, operation):
         if len(verts) != 3:
             pg.error = f"{PDT_ERR_SEL_3_VERTS} {len(verts)})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_SelectionError
         vector_a = verts[0].co
         vector_b = verts[1].co
         vector_c = verts[2].co
@@ -350,7 +272,7 @@ def placement_centre(context, operation):
         if str(radius) == "inf":
             pg.error = PDT_ERR_STRIGHT_LINE
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_InfRadius
         pg.distance = radius
         if operation == "C":
             scene.cursor.location = obj_loc + vector_delta
@@ -396,7 +318,7 @@ def placement_centre(context, operation):
         if len(context.view_layer.objects.selected) != 3:
             pg.error = f"{PDT_ERR_SEL_3_OBJS} {len(context.view_layer.objects.selected)})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_SelectionError
         vector_a = context.view_layer.objects.selected[0].matrix_world.decompose()[0]
         vector_b = context.view_layer.objects.selected[1].matrix_world.decompose()[0]
         vector_c = context.view_layer.objects.selected[2].matrix_world.decompose()[0]
@@ -443,7 +365,7 @@ def placement_intersect(context, operation):
         if obj is None:
             pg.error = PDT_ERR_NO_ACT_OBJ
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_NoObjectError
         obj_loc = obj.matrix_world.decompose()[0]
         bm = bmesh.from_edit_mesh(obj.data)
         edges = [e for e in bm.edges if e.select]
@@ -464,7 +386,7 @@ def placement_intersect(context, operation):
                     + " Edges)"
                 )
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                return
+                raise PDT_SelectionError
             vertex_a = bm.select_history[-1]
             vertex_b = bm.select_history[-2]
             vertex_c = bm.select_history[-3]
@@ -474,7 +396,7 @@ def placement_intersect(context, operation):
         if not done:
             pg.error = f"{PDT_ERR_INT_LINES} {plane}  {PDT_LAB_PLANE}"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_IntersectionError
 
         if operation == "C":
             scene.cursor.location = obj_loc + vector_delta
@@ -551,17 +473,17 @@ def placement_intersect(context, operation):
         else:
             pg.error = f"{operation} {PDT_ERR_NON_VALID} {PDT_LAB_INTERSECT}"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_InvalidOperation
 
     elif obj.mode == "OBJECT":
         if len(context.view_layer.objects.selected) != 4:
             pg.error = f"{PDT_ERR_SEL_4_OBJS} {len(context.view_layer.objects.selected)})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_SelectionError
         order = pg.object_order.split(",")
         objs = sorted(context.view_layer.objects.selected, key=lambda x: x.name)
         pg.error = (
-            "Original Object Order was: "
+            "Original Object Order (1,2,3,4) was: "
             + objs[0].name
             + ", "
             + objs[1].name
@@ -580,7 +502,7 @@ def placement_intersect(context, operation):
         if not done:
             pg.error = f"{PDT_ERR_INT_LINES} {plane}  {PDT_LAB_PLANE}"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_IntersectionError
         if operation == "C":
             scene.cursor.location = vector_delta
         elif operation == "P":
@@ -626,15 +548,15 @@ def join_two_vertices(context):
             except ValueError:
                 pg.error = PDT_ERR_CONNECTED
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                return
+                raise PDT_VerticesConnected
         else:
             pg.error = f"{PDT_ERR_SEL_2_VERTS} {len(verts)})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_SelectionError
     else:
         pg.error = f"{PDT_ERR_EDOB_MODE},{obj.mode})"
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        return
+        raise PDT_ObjectMode
 
 
 def set_angle_distance_two(context):
@@ -669,21 +591,21 @@ def set_angle_distance_two(context):
                 if vector_a is None:
                     pg.error = PDT_ERR_VERT_MODE
                     context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                    return
+                    raise PDT_InvalidVector
             else:
                 pg.error = f"{PDT_ERR_SEL_2_VERTIO} {len(bm.select_history)})"
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                return
+                raise PDT_SelectionError
         else:
             pg.error = f"{PDT_ERR_SEL_2_VERTIO} {len(verts)})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_SelectionError
     elif obj.mode == "OBJECT":
         objs = context.view_layer.objects.selected
         if len(objs) < 2:
             pg.error = f"{PDT_ERR_SEL_2_OBJS} {len(objs)})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_SelectionError
         objs_s = [ob for ob in objs if ob.name != obj.name]
         vector_a = obj.matrix_world.decompose()[0]
         vector_b = objs_s[-1].matrix_world.decompose()[0]
@@ -733,7 +655,7 @@ def set_angle_distance_three(context):
     if obj is None:
         pg.error = PDT_ERR_NO_ACT_OBJ
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        return
+        raise PDT_NoObjectError
     if obj.mode == "EDIT":
         bm = bmesh.from_edit_mesh(obj.data)
         verts = [v for v in bm.verts if v.select]
@@ -743,21 +665,21 @@ def set_angle_distance_three(context):
                 if vector_a is None:
                     pg.error = PDT_ERR_VERT_MODE
                     context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                    return
+                    raise pdt_InvalidVector
             else:
                 pg.error = f"{PDT_ERR_SEL_3_VERTIO} {len(bm.select_history)})"
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                return
+                raise PDT_SelectionError
         else:
             pg.error = f"{PDT_ERR_SEL_3_VERTIO} {len(verts)})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_SelectionError
     elif obj.mode == "OBJECT":
         objs = context.view_layer.objects.selected
         if len(objs) < 3:
             pg.error = PDT_ERR_SEL_3_OBJS + str(len(objs))
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_SelectionError
         objs_s = [ob for ob in objs if ob.name != obj.name]
         vector_a = obj.matrix_world.decompose()[0]
         vector_b = objs_s[-1].matrix_world.decompose()[0]
@@ -820,7 +742,7 @@ def origin_to_cursor(context):
     else:
         pg.error = f"{PDT_ERR_EDOB_MODE} {obj.mode})"
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        return
+        raise PDT_ObjectMode
     return
 
 
@@ -851,11 +773,11 @@ def taper(context):
         if ang_v > 80 or ang_v < -80:
             pg.error = f"{PDT_ERR_TAPER_ANG} {ang_v})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_InvalidAngle
         if obj is None:
             pg.error = PDT_ERR_NO_ACT_OBJ
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_NoObjectError
         _, a2, a3 = set_axis(tap_ax)
         bm = bmesh.from_edit_mesh(obj.data)
         if len(bm.select_history) >= 1:
@@ -864,7 +786,7 @@ def taper(context):
         else:
             pg.error = f"{PDT_ERR_TAPER_SEL} {len(bm.select_history)})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            return
+            raise PDT_SelectionError
         for v in [v for v in bm.verts if v.select]:
             if pg.plane == "LO":
                 v_loc = view_coords(v.co.x, v.co.y, v.co.z)
@@ -882,4 +804,4 @@ def taper(context):
         return
     pg.error = f"{PDT_ERR_EDOB_MODE},{obj.mode})"
     context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-    return
+    raise PDT_ObjectMode
