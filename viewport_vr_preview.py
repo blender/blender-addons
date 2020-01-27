@@ -23,6 +23,11 @@ from bpy.types import (
     Gizmo,
     GizmoGroup,
 )
+from bl_ui.space_view3d import (
+    VIEW3D_PT_shading_lighting,
+    VIEW3D_PT_shading_color,
+    VIEW3D_PT_shading_options,
+)
 
 bl_info = {
     "name": "Basic VR Viewer",
@@ -62,7 +67,6 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
 
         layout.separator()
 
-        layout.prop(session_settings, "shading_type", text="Shading")
         layout.prop(session_settings, "show_floor", text="Floor")
         layout.prop(session_settings, "show_annotation", text="Annotations")
 
@@ -75,6 +79,68 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
         layout.separator()
 
         layout.prop(session_settings, "use_positional_tracking")
+
+
+class VIEW3D_PT_vr_session_shading(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "VR"
+    bl_label = "Shading"
+
+    def draw(self, context):
+        layout = self.layout
+        session_settings = context.window_manager.xr_session_settings
+        shading = session_settings.shading
+
+        layout.prop(shading, "type", text="")
+
+
+class VIEW3D_PT_vr_session_shading_lighting(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "VR"
+    bl_label = VIEW3D_PT_shading_lighting.bl_label
+    bl_parent_id = "VIEW3D_PT_vr_session_shading"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        session_settings = context.window_manager.xr_session_settings
+        shading = session_settings.shading
+
+        if VIEW3D_PT_shading_lighting.poll_ex(context, shading):
+            VIEW3D_PT_shading_lighting.draw_ex(self, context, shading)
+
+
+class VIEW3D_PT_vr_session_shading_color(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "VR"
+    bl_label = VIEW3D_PT_shading_color.bl_label
+    bl_parent_id = "VIEW3D_PT_vr_session_shading"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        session_settings = context.window_manager.xr_session_settings
+        shading = session_settings.shading
+
+        if VIEW3D_PT_shading_color.poll_ex(context, shading):
+            VIEW3D_PT_shading_color.draw_ex(self, context, shading)
+
+
+class VIEW3D_PT_vr_session_shading_options(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "VR"
+    bl_label = VIEW3D_PT_shading_options.bl_label
+    bl_parent_id = "VIEW3D_PT_vr_session_shading"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        session_settings = context.window_manager.xr_session_settings
+        shading = session_settings.shading
+
+        if VIEW3D_PT_shading_options.poll_ex(context, shading):
+            VIEW3D_PT_shading_options.draw_ex(self, context, shading)
 
 
 class VIEW3D_GT_vr_camera_cone(Gizmo):
@@ -159,6 +225,10 @@ class VIEW3D_GGT_vr_viewer(GizmoGroup):
 
 classes = (
     VIEW3D_PT_vr_session,
+    VIEW3D_PT_vr_session_shading,
+    VIEW3D_PT_vr_session_shading_lighting,
+    VIEW3D_PT_vr_session_shading_color,
+    VIEW3D_PT_vr_session_shading_options,
 
     VIEW3D_GT_vr_camera_cone,
     VIEW3D_GGT_vr_viewer,
