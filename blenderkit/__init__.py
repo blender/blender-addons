@@ -93,7 +93,6 @@ def scene_load(context):
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
     preferences.login_attempt = False
 
-
 def check_timers_timer():
     ''' checks if all timers are registered regularly. Prevents possible bugs from stopping the addon.'''
     if not bpy.app.timers.is_registered(search.timer_update):
@@ -1258,19 +1257,19 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
 
     # DESIGN YEAR
     search_design_year: BoolProperty(name="Sesigned in Year",
-                                     description="when the object was approximately designed",
+                                     description="When the object was approximately designed",
                                      default=False,
                                      update=search.search_update,
                                      )
 
-    search_design_year_min: IntProperty(name="Min Age",
-                                        description="when the object was approximately designed",
+    search_design_year_min: IntProperty(name="Minimum Design Year",
+                                        description="Minimum design year",
                                         default=1950, min=-100000000, max=1000000000,
                                         update=search.search_update,
                                         )
 
-    search_design_year_max: IntProperty(name="Max Age",
-                                        description="when the object was approximately designed",
+    search_design_year_max: IntProperty(name="Maximum Design Year",
+                                        description="Maximum design year",
                                         default=2017,
                                         min=0,
                                         max=10000000,
@@ -1279,19 +1278,19 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
 
     # POLYCOUNT
     search_polycount: BoolProperty(name="Use Polycount",
-                                   description="use polycount of object search tag",
+                                   description="Use polycount of object search tag",
                                    default=False,
                                    update=search.search_update, )
 
     search_polycount_min: IntProperty(name="Min Polycount",
-                                      description="polycount of the asset minimum",
+                                      description="Minimum poly count of the asset",
                                       default=0,
                                       min=0,
                                       max=100000000,
                                       update=search.search_update, )
 
     search_polycount_max: IntProperty(name="Max Polycount",
-                                      description="polycount of the asset maximum",
+                                      description="Maximum poly count of the asset",
                                       default=100000000,
                                       min=0,
                                       max=100000000,

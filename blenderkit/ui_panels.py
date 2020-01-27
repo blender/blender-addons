@@ -44,7 +44,7 @@ def label_multiline(layout, text='', icon='NONE', width=-1):
         threshold = int(width / 5.5)
     else:
         threshold = 35
-    maxlines = 6
+    maxlines = 8
     li = 0
     for l in lines:
         while len(l) > threshold:
@@ -584,7 +584,9 @@ def draw_panel_material_search(self, context):
     if props.search_advanced:
         layout.separator()
 
-        layout.prop(props, "search_procedural", expand=True)
+        layout.label(text = 'texture types')
+        col = layout.column()
+        col.prop(props, "search_procedural", expand=True)
 
         if props.search_procedural == 'TEXTURE_BASED':
             # TEXTURE RESOLUTION
@@ -1046,6 +1048,10 @@ class VIEW3D_PT_blenderkit_downloads(Panel):
 
 def header_search_draw(self, context):
     '''Top bar menu in 3d view'''
+
+    if not utils.guard_from_crash():
+        return;
+
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
     if preferences.search_in_header:
         layout = self.layout
@@ -1071,7 +1077,6 @@ def header_search_draw(self, context):
 preview_collections = {}
 classess = (
     SetCategoryOperator,
-
     VIEW3D_PT_blenderkit_profile,
     VIEW3D_PT_blenderkit_login,
     VIEW3D_PT_blenderkit_unified,
@@ -1090,5 +1095,6 @@ def register_ui_panels():
 
 def unregister_ui_panels():
     for c in classess:
+        print('unregister', c)
         bpy.utils.unregister_class(c)
     bpy.types.VIEW3D_MT_editor_menus.remove(header_search_draw)

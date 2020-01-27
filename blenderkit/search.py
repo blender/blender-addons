@@ -504,7 +504,7 @@ def generate_tooltip(mdata):
 
     # t += 'uv: %s\n' % mdata['uv']
     # t += '\n'
-    # t = writeblockm(t, mdata, key='license', width = col_w)
+    t = writeblockm(t, mdata, key='license', width = col_w)
 
     # generator is for both upload preview and search, this is only after search
     # if mdata.get('versionNumber'):
@@ -748,6 +748,7 @@ class Searcher(threading.Thread):
             # assumes no keywords and no category, thus an empty search that is triggered on start.
             # orders by last core file upload
             requeststring += '+order:-last_upload'
+            # requeststring += '+order:-created'
         elif query.get('author_id') is not None and utils.profile_is_validator():
 
             requeststring += '+order:-created'
@@ -760,7 +761,7 @@ class Searcher(threading.Thread):
         requeststring += '&addon_version=%s' % params['addon_version']
         if params.get('scene_uuid') is not None:
             requeststring += '&scene_uuid=%s' % params['scene_uuid']
-        print('params', params)
+        # print('params', params)
         urlquery = url + requeststring
         return urlquery
 
@@ -801,7 +802,7 @@ class Searcher(threading.Thread):
         try:
             utils.p(urlquery)
             r = rerequests.get(urlquery, headers=headers)  # , params = rparameters)
-            print(r.url)
+            # print(r.url)
             reports = ''
             # utils.p(r.text)
         except requests.exceptions.RequestException as e:
@@ -1114,7 +1115,7 @@ def search(category='', get_next=False, author_id=''):
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
 
     search_start_time = time.time()
-    mt('start')
+    #mt('start')
     scene = bpy.context.scene
     uiprops = scene.blenderkitUI
 

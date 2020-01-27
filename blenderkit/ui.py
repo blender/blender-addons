@@ -896,8 +896,12 @@ def draw_callback_2d_search(self, context):
                            ui_props.mouse_y - linelength, 2, white)
 
 
+
 def draw_callback_3d(self, context):
     ''' Draw snapped bbox while dragging and in the future other blenderkit related stuff. '''
+    if not utils.guard_from_crash():
+        return;
+
     ui = context.scene.blenderkitUI
 
     if ui.dragging and ui.asset_type == 'MODEL':
@@ -1764,6 +1768,27 @@ class TransferBlenderkitData(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class UndoWithContext(bpy.types.Operator):
+    """Regenerate cobweb"""
+    bl_idname = "wm.undo_push_context"
+    bl_label = "BlnenderKit undo push"
+    bl_description = "BlenderKit undo push with fixed context"
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
+
+    # def modal(self, context, event):
+    #     return {'RUNNING_MODAL'}
+
+    def execute(self, context):
+        C_dict = bpy.context.copy()
+        C_dict.update(region='WINDOW')
+        if context.area is None or context.area.type != 'VIEW_3D':
+            w, a, r = get_largest_3dview()
+            override = {'window': w, 'screen': w.screen, 'area': a, 'region': r}
+            C_dict.update(override)
+        bpy.ops.ed.undo_push(C_dict, 'INVOKE_REGION_WIN')
+        return {'FINISHED'}
+
+
 class RunAssetBarWithContext(bpy.types.Operator):
     """Regenerate cobweb"""
     bl_idname = "object.run_assetbar_fix_context"
@@ -1782,17 +1807,27 @@ class RunAssetBarWithContext(bpy.types.Operator):
             override = {'window': w, 'screen': w.screen, 'area': a, 'region': r}
             C_dict.update(override)
         bpy.ops.view3d.blenderkit_asset_bar(C_dict, 'INVOKE_REGION_WIN', keep_running=True, do_search=False)
-        return {'RUNNING_MODAL'}
+        return {'FINISHED'}
 
 
 classess = (
     AssetBarOperator,
     RunAssetBarWithContext,
-    TransferBlenderkitData
+    TransferBlenderkitData,
+    UndoWithContext
 )
 
 # store keymap items here to access after registration
 addon_keymapitems = []
+
+#@persistent
+def pre_load(context):
+    ui_props = bpy.context.scene.blenderkitUI
+    ui_props.assetbar_on = False
+    ui_props.turn_off = True
+    preferences = bpy.context.preferences.addons['blenderkit'].preferences
+    preferences.login_attempt = False
+
 
 
 def register_ui():
@@ -1824,6 +1859,7 @@ def register_ui():
 
 def unregister_ui():
     global handler_2d, handler_3d
+    pre_load(bpy.context)
 
     bpy.types.SpaceView3D.draw_handler_remove(handler_2d, 'WINDOW')
     bpy.types.SpaceView3D.draw_handler_remove(handler_3d, 'WINDOW')

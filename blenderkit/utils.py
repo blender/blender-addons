@@ -551,3 +551,11 @@ def profile_is_validator():
     if a is not None and a['user'].get('exmenu'):
         return True
     return False
+
+def guard_from_crash():
+    '''Blender tends to crash when trying to run some functions with the addon going through unregistration process.'''
+    if bpy.context.preferences.addons['blenderkit'] is None:
+        return False;
+    if bpy.context.preferences.addons['blenderkit'].preferences is None:
+        return False;
+    return True
