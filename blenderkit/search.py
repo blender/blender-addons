@@ -143,7 +143,7 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff.
         if preferences.tips_on_start:
             ui.get_largest_3dview()
             ui.update_ui_size(ui.active_area, ui.active_region)
-            ui.add_report(text='BlenderKit Tip:' + random.choice(rtips), timeout=12, color=colors.GREEN)
+            ui.add_report(text='BlenderKit Tip: ' + random.choice(rtips), timeout=12, color=colors.GREEN)
 
     # clipboard monitoring to search assets from web
     global last_clipboard
@@ -748,7 +748,6 @@ class Searcher(threading.Thread):
             # assumes no keywords and no category, thus an empty search that is triggered on start.
             # orders by last core file upload
             requeststring += '+order:-last_upload'
-            # requeststring += '+order:-created'
         elif query.get('author_id') is not None and utils.profile_is_validator():
 
             requeststring += '+order:-created'
