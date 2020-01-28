@@ -448,15 +448,23 @@ class PDTPreferences(AddonPreferences):
         description="Cutoff width for shrinking items per line in menus"
     )
 
+    pdt_input_round : IntProperty(
+        name='Input Rounding',
+        default=5,
+        description='Rounding Factor for Inputs'
+    )
+
     def draw(self, context):
         layout = self.layout
 
         box = layout.box()
         row1 = box.row()
         row2 = box.row()
+        row3 = box.row()
         row1.prop(self, "debug")
-        row1.prop(self, "pdt_ui_width")
-        row2.prop(self, "pdt_library_path")
+        row2.prop(self, "pdt_ui_width")
+        row2.prop(self, "pdt_input_round")
+        row3.prop(self, "pdt_library_path")
 
 
 # List of All Classes in the Add-on to register

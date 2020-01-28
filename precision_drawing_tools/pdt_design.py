@@ -56,7 +56,7 @@ from .pdt_msg_strings import (
     PDT_LAB_DIR,
     PDT_LAB_INTERSECT,
     PDT_LAB_PERCENT,
-    PDT_LAB_PLANE
+    PDT_LAB_PLANE,
 )
 
 
@@ -90,31 +90,50 @@ class PDT_OT_PlacementAbs(Operator):
 
         pg = context.scene.pdt_pg
         operation = pg.operation
+        val_round = context.preferences.addons[__package__].preferences.pdt_input_round
 
         if operation == "CU":
             # Cursor
-            pg.command = (f"ca{pg.cartesian_coords.x},{pg.cartesian_coords.y},"\
-                f"{pg.cartesian_coords.z}")
+            pg.command = (
+                f"ca{str(round(pg.cartesian_coords.x, val_round))}"
+                f",{str(round(pg.cartesian_coords.y, val_round))}"
+                f",{str(round(pg.cartesian_coords.z, val_round))}"
+            )
         elif operation == "PP":
             # Pivot Point
-            pg.command = (f"pa{pg.cartesian_coords.x},{pg.cartesian_coords.y},"\
-                f"{pg.cartesian_coords.z}")
+            pg.command = (
+                f"pa{str(round(pg.cartesian_coords.x, val_round))}"
+                f",{str(round(pg.cartesian_coords.y, val_round))}"
+                f",{str(round(pg.cartesian_coords.z, val_round))}"
+            )
         elif operation == "MV":
             # Move Entities
-            pg.command = (f"ga{pg.cartesian_coords.x},{pg.cartesian_coords.y},"\
-                f"{pg.cartesian_coords.z}")
+            pg.command = (
+                f"ga{str(round(pg.cartesian_coords.x, val_round))}"
+                f",{str(round(pg.cartesian_coords.y, val_round))}"
+                f",{str(round(pg.cartesian_coords.z, val_round))}"
+            )
         elif operation == "SE":
             # Split Edges
-            pg.command = (f"sa{pg.cartesian_coords.x},{pg.cartesian_coords.y},"\
-                f"{pg.cartesian_coords.z}")
+            pg.command = (
+                f"sa{str(round(pg.cartesian_coords.x, val_round))}"
+                f",{str(round(pg.cartesian_coords.y, val_round))}"
+                f",{str(round(pg.cartesian_coords.z, val_round))}"
+            )
         elif operation == "NV":
             # New Vertex
-            pg.command = (f"na{pg.cartesian_coords.x},{pg.cartesian_coords.y},"\
-                f"{pg.cartesian_coords.z}")
+            pg.command = (
+                f"na{str(round(pg.cartesian_coords.x, val_round))}"
+                f",{str(round(pg.cartesian_coords.y, val_round))}"
+                f",{str(round(pg.cartesian_coords.z, val_round))}"
+            )
         elif operation == "EV":
             # Extrude Vertices
-            pg.command = (f"va{pg.cartesian_coords.x},{pg.cartesian_coords.y},"\
-                f"{pg.cartesian_coords.z}")
+            pg.command = (
+                f"va{str(round(pg.cartesian_coords.x, val_round))}"
+                f",{str(round(pg.cartesian_coords.y, val_round))}"
+                f",{str(round(pg.cartesian_coords.z, val_round))}"
+            )
         else:
             errmsg = f"{operation} {PDT_ERR_NON_VALID} {PDT_LAB_ABS}"
             self.report({"ERROR"}, errmsg)
@@ -153,39 +172,64 @@ class PDT_OT_PlacementDelta(Operator):
 
         pg = context.scene.pdt_pg
         operation = pg.operation
+        val_round = context.preferences.addons[__package__].preferences.pdt_input_round
 
         if operation == "CU":
             # Cursor
-            pg.command = (f"cd{pg.cartesian_coords.x},{pg.cartesian_coords.y},"\
-                f"{pg.cartesian_coords.z}")
+            pg.command = (
+                f"cd{str(round(pg.cartesian_coords.x, val_round))}"
+                f",{str(round(pg.cartesian_coords.y, val_round))}"
+                f",{str(round(pg.cartesian_coords.z, val_round))}"
+            )
         elif operation == "PP":
             # Pivot Point
-            pg.command = (f"pd{pg.cartesian_coords.x},{pg.cartesian_coords.y},"\
-                f"{pg.cartesian_coords.z}")
+            pg.command = (
+                f"pd{str(round(pg.cartesian_coords.x, val_round))}"
+                f",{str(round(pg.cartesian_coords.y, val_round))}"
+                f",{str(round(pg.cartesian_coords.z, val_round))}"
+            )
         elif operation == "MV":
             # Move Entities
-            pg.command = (f"gd{pg.cartesian_coords.x},{pg.cartesian_coords.y},"\
-                f"{pg.cartesian_coords.z}")
+            pg.command = (
+                f"gd{str(round(pg.cartesian_coords.x, val_round))}"
+                f",{str(round(pg.cartesian_coords.y, val_round))}"
+                f",{str(round(pg.cartesian_coords.z, val_round))}"
+            )
         elif operation == "SE":
             # Split Edges
-            pg.command = (f"sd{pg.cartesian_coords.x},{pg.cartesian_coords.y},"\
-                f"{pg.cartesian_coords.z}")
+            pg.command = (
+                f"sd{str(round(pg.cartesian_coords.x, val_round))}"
+                f",{str(round(pg.cartesian_coords.y, val_round))}"
+                f",{str(round(pg.cartesian_coords.z, val_round))}"
+            )
         elif operation == "NV":
             # New Vertex
-            pg.command = (f"nd{pg.cartesian_coords.x},{pg.cartesian_coords.y},"\
-                f"{pg.cartesian_coords.z}")
+            pg.command = (
+                f"nd{str(round(pg.cartesian_coords.x, val_round))}"
+                f",{str(round(pg.cartesian_coords.y, val_round))}"
+                f",{str(round(pg.cartesian_coords.z, val_round))}"
+            )
         elif operation == "EV":
             # Extrue Vertices
-            pg.command = (f"vd{pg.cartesian_coords.x},{pg.cartesian_coords.y},"\
-                f"{pg.cartesian_coords.z}")
+            pg.command = (
+                f"vd{str(round(pg.cartesian_coords.x, val_round))}"
+                f",{str(round(pg.cartesian_coords.y, val_round))}"
+                f",{str(round(pg.cartesian_coords.z, val_round))}"
+            )
         elif operation == "DG":
             # Duplicate Entities
-            pg.command = (f"dd{pg.cartesian_coords.x},{pg.cartesian_coords.y},"\
-                f"{pg.cartesian_coords.z}")
+            pg.command = (
+                f"dd{str(round(pg.cartesian_coords.x, val_round))}"
+                f",{str(round(pg.cartesian_coords.y, val_round))}"
+                f",{str(round(pg.cartesian_coords.z, val_round))}"
+            )
         elif operation == "EG":
             # Extrue Geometry
-            pg.command = (f"ed{pg.cartesian_coords.x},{pg.cartesian_coords.y},"\
-                f"{pg.cartesian_coords.z}")
+            pg.command = (
+                f"ed{str(round(pg.cartesian_coords.x, val_round))}"
+                f",{str(round(pg.cartesian_coords.y, val_round))}"
+                f",{str(round(pg.cartesian_coords.z, val_round))}"
+            )
         else:
             errmsg = f"{operation} {PDT_ERR_NON_VALID} {PDT_LAB_DEL}"
             self.report({"ERROR"}, errmsg)
@@ -224,30 +268,56 @@ class PDT_OT_PlacementDis(Operator):
 
         pg = context.scene.pdt_pg
         operation = pg.operation
+        val_round = context.preferences.addons[__package__].preferences.pdt_input_round
+
         if operation == "CU":
             # Cursor
-            pg.command = f"ci{pg.distance},{pg.angle}"
+            pg.command = (
+                f"ci{str(round(pg.distance, val_round))}"
+                f",{str(round(pg.angle, val_round))}"
+            )
         elif operation == "PP":
             # Pivot Point
-            pg.command = f"pi{pg.distance},{pg.angle}"
+            pg.command = (
+                f"pi{str(round(pg.distance, val_round))}"
+                f",{str(round(pg.angle, val_round))}"
+            )
         elif operation == "MV":
             # Move Entities
-            pg.command = f"gi{pg.distance},{pg.angle}"
+            pg.command = (
+                f"gi{str(round(pg.distance, val_round))}"
+                f",{str(round(pg.angle, val_round))}"
+            )
         elif operation == "SE":
             # Split Edges
-            pg.command = f"si{pg.distance},{pg.angle}"
+            pg.command = (
+                f"si{str(round(pg.distance, val_round))}"
+                f",{str(round(pg.angle, val_round))}"
+                )
         elif operation == "NV":
             # New Vertex
-            pg.command = f"ni{pg.distance},{pg.angle}"
+            pg.command = (
+                f"ni{str(round(pg.distance, val_round))}"
+                f",{str(round(pg.angle, val_round))}"
+            )
         elif operation == "EV":
             # Extrude Vertices
-            pg.command = f"vi{pg.distance},{pg.angle}"
+            pg.command = (
+                f"vi{str(round(pg.distance, val_round))}"
+                f",{str(round(pg.angle, val_round))}"
+            )
         elif operation == "DG":
             # Duplicate Geometry
-            pg.command = f"di{pg.distance},{pg.angle}"
+            pg.command = (
+                f"di{str(round(pg.distance, val_round))}"
+                f",{str(round(pg.angle, val_round))}"
+            )
         elif operation == "EG":
             # Extrude Geometry
-            pg.command = f"ei{pg.distance},{pg.angle}"
+            pg.command = (
+                f"ei{str(round(pg.distance, val_round))}"
+                f",{str(round(pg.angle, val_round))}"
+            )
         else:
             errmsg = f"{operation} {PDT_ERR_NON_VALID} {PDT_LAB_DIR}"
             self.report({"ERROR"}, errmsg)
@@ -260,7 +330,6 @@ class PDT_OT_PlacementPer(Operator):
     bl_idname = "pdt.percent"
     bl_label = "Percentage Mode"
     bl_options = {"REGISTER", "UNDO"}
-
 
     def execute(self, context):
         """Manipulates Geometry, or Objects by Percentage between 2 points.
@@ -285,25 +354,26 @@ class PDT_OT_PlacementPer(Operator):
 
         pg = context.scene.pdt_pg
         operation = pg.operation
+        val_round = context.preferences.addons[__package__].preferences.pdt_input_round
 
         if operation == "CU":
             # Cursor
-            pg.command = f"cp{pg.percent}"
+            pg.command = f"cp{str(round(pg.percent, val_round))}"
         elif operation == "PP":
             # Pivot Point
-            pg.command = f"pp{pg.percent}"
+            pg.command = f"pp{str(round(pg.percent, val_round))}"
         elif operation == "MV":
             # Move Entities
-            pg.command = f"gp{pg.percent}"
+            pg.command = f"gp{str(round(pg.percent, val_round))}"
         elif operation == "SE":
             # Split Edges
-            pg.command = f"sp{pg.percent}"
+            pg.command = f"sp{str(round(pg.percent, val_round))}"
         elif operation == "NV":
             # New Vertex
-            pg.command = f"np{pg.percent}"
+            pg.command = f"np{str(round(pg.percent, val_round))}"
         elif operation == "EV":
             # Extrude Vertices
-            pg.command = f"vp{pg.percent}"
+            pg.command = f"vp{str(round(pg.percent, val_round))}"
         else:
             errmsg = f"{operation} {PDT_ERR_NON_VALID} {PDT_LAB_PERCENT}"
             self.report({"ERROR"}, errmsg)
@@ -316,7 +386,6 @@ class PDT_OT_PlacementNormal(Operator):
     bl_idname = "pdt.normal"
     bl_label = "Normal Mode"
     bl_options = {"REGISTER", "UNDO"}
-
 
     def execute(self, context):
         """Manipulates Geometry, or Objects by Normal Intersection between 3 points.
@@ -515,12 +584,25 @@ class PDT_OT_Fillet(Operator):
         """
 
         pg = context.scene.pdt_pg
+        val_round = context.preferences.addons[__package__].preferences.pdt_input_round
         if pg.fillet_intersect:
-            pg.command = f"fi{pg.fillet_radius},{pg.fillet_segments},{pg.fillet_profile}"
+            pg.command = (
+            f"fi{str(round(pg.fillet_radius, val_round))}"
+            f",{str(round(pg.fillet_segments, val_round))}"
+            f",{str(round(pg.fillet_profile, val_round))}"
+            )
         elif pg.fillet_vertices_only:
-            pg.command = f"fv{pg.fillet_radius},{pg.fillet_segments},{pg.fillet_profile}"
+            pg.command = (
+            f"fv{str(round(pg.fillet_radius, val_round))}"
+            f",{str(round(pg.fillet_segments, val_round))}"
+            f",{str(round(pg.fillet_profile, val_round))}"
+            )
         else:
-            pg.command = f"fe{pg.fillet_radius},{pg.fillet_segments},{pg.fillet_profile}"
+            pg.command = (
+            f"fe{str(round(pg.fillet_radius, val_round))}"
+            f",{str(round(pg.fillet_segments, val_round))}"
+            f",{str(round(pg.fillet_profile, val_round))}"
+            )
         return {"FINISHED"}
 
 
@@ -609,14 +691,12 @@ class PDT_OT_Taper(Operator):
     bl_label = "Taper"
     bl_options = {"REGISTER", "UNDO"}
 
-
     @classmethod
     def poll(cls, context):
         ob = context.object
         if ob is None:
             return False
         return all([bool(ob), ob.type == "MESH", ob.mode == "EDIT"])
-
 
     def execute(self, context):
         """Taper Geometry along World Axes.

@@ -620,18 +620,25 @@ def set_angle_distance_two(context):
         v0 = np.array([vector_a[a1] + 1, vector_a[a2]]) - np.array([vector_a[a1], vector_a[a2]])
         v1 = np.array([vector_b[a1], vector_b[a2]]) - np.array([vector_a[a1], vector_a[a2]])
     ang = np.rad2deg(np.arctan2(np.linalg.det([v0, v1]), np.dot(v0, v1)))
+    val_round = context.preferences.addons[__package__].preferences.pdt_input_round
     if flip_a:
         if ang > 0:
-            pg.angle = ang - 180
+            pg.angle = round(ang - 180, val_round)
         else:
-            pg.angle = ang + 180
+            pg.angle = round(ang - 180, val_round)
     else:
-        pg.angle = ang
+        pg.angle = round(ang, val_round)
     if plane == "LO":
-        pg.distance = sqrt((vector_a.x - vector_b.x) ** 2 + (vector_a.y - vector_b.y) ** 2)
+        pg.distance = round(sqrt(
+            (vector_a.x - vector_b.x) ** 2 +
+            (vector_a.y - vector_b.y) ** 2), val_round
+        )
     else:
-        pg.distance = sqrt((vector_a[a1] - vector_b[a1]) ** 2 + (vector_a[a2] - vector_b[a2]) ** 2)
-    pg.cartesian_coords = vector_b - vector_a
+        pg.distance = round(sqrt(
+            (vector_a[a1] - vector_b[a1]) ** 2 +
+            (vector_a[a2] - vector_b[a2]) ** 2), val_round
+        )
+    pg.cartesian_coords = Vector(([round(i, val_round) for i in (vector_b - vector_a)]))
     return
 
 
@@ -692,15 +699,16 @@ def set_angle_distance_three(context):
     )
     angle_cosine = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
     ang = np.degrees(np.arccos(angle_cosine))
+    val_round = context.preferences.addons[__package__].preferences.pdt_input_round
     if flip_a:
         if ang > 0:
-            pg.angle = ang - 180
+            pg.angle = round(ang - 180, val_round)
         else:
-            pg.angle = ang + 180
+            pg.angle = round(ang - 180, val_round)
     else:
-        pg.angle = ang
-    pg.distance = (vector_a - vector_b).length
-    pg.cartesian_coords = vector_b - vector_a
+        pg.angle = round(ang, val_round)
+    pg.distance = round((vector_a - vector_b).length, val_round)
+    pg.cartesian_coords = Vector(([round(i, val_round) for i in (vector_b - vector_a)]))
     return
 
 

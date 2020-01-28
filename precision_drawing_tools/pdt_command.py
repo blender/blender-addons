@@ -376,21 +376,23 @@ def command_maths(context, mode, pg, expression, output_target):
         pg.error = PDT_ERR_BADMATHS
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         raise PDT_MathsError
+
+    val_round = context.preferences.addons[__package__].preferences.pdt_input_round
     if output_target == "x":
-        pg.cartesian_coords.x = maths_result
+        pg.cartesian_coords.x = round(maths_result, val_round)
     elif output_target == "y":
-        pg.cartesian_coords.y = maths_result
+        pg.cartesian_coords.y = round(maths_result, val_round)
     elif output_target == "z":
-        pg.cartesian_coords.z = maths_result
+        pg.cartesian_coords.z = round(maths_result, val_round)
     elif output_target == "d":
-        pg.distance = maths_result
+        pg.distance = round(maths_result, val_round)
     elif output_target == "a":
-        pg.angle = maths_result
+        pg.angle = round(maths_result, val_round)
     elif output_target == "p":
-        pg.percent = maths_result
+        pg.percent = round(maths_result, val_round)
     else:
         # Mst be "o"
-        pg.maths_output = maths_result
+        pg.maths_output = round(maths_result, val_round)
     return
 
 
@@ -404,13 +406,17 @@ def command_parse(context):
     mode_s = pg.select
     obj = context.view_layer.objects.active
     ind = 0
-    for r in values:
+    for v in values:
         try:
-            _ = float(r)
+            _ = float(v)
             good = True
         except ValueError:
-            values[ind] = "0"
+            values[ind] = "0.0"
         ind = ind + 1
+    # Apply System Rounding
+    val_round = context.preferences.addons[__package__].preferences.pdt_input_round
+    values_out = [str(round(float(v), val_round)) for v in values]
+
     bm, good = obj_check(context, obj, scene, operation)
     if good:
         obj_loc = obj.matrix_world.decompose()[0]
@@ -432,10 +438,10 @@ def command_parse(context):
     else:
         verts = []
 
-    debug(f"command: {command}")
+    debug(f"command: {operation}{mode}{values_out}")
     debug(f"obj: {obj}, bm: {bm}, obj_loc: {obj_loc}")
 
-    return pg, values, obj, obj_loc, bm, verts
+    return pg, values_out, obj, obj_loc, bm, verts
 
 
 def move_cursor_pivot(context, pg, operation, mode, obj, verts, values):
@@ -845,7 +851,7 @@ def fillet_geometry(context, pg, mode, obj, bm, verts, values):
     # Note that passing an empty parameter results in that parameter being seen as "0"
     # _offset <= 0 is ignored since a bevel/fillet radius must be > 0 to make sense
     _offset = float(values[0])
-    _segments = int(values[1])
+    _segments = float(values[1])
     if _segments < 1:
         _segments = 1   # This is a single, flat segment (ignores profile)
     _profile = float(values[2])
