@@ -80,19 +80,30 @@ def uplaod_review_thread(url, reviews, headers):
     # except requests.exceptions.RequestException as e:
     #     print('reviews upload failed: %s' % str(e))
 
+def get_rating(asset_id):
+    user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
+    api_key = user_preferences.api_key
+    headers = utils.get_headers(api_key)
+    rl = paths.get_api_url() + 'assets/' + asset['asset_data']['id'] + '/rating/'
+    rtypes = ['quality', 'working_hours']
+    for rt in rtypes:
+        params = {
+            'rating_type' : rt
+        }
+        r = rerequests.get(r1, params=data, verify=True, headers=headers)
+        print(r.text)
 
 def upload_rating(asset):
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
     api_key = user_preferences.api_key
     headers = utils.get_headers(api_key)
 
-    asset_data = asset['asset_data']
-
     bkit_ratings = asset.bkit_ratings
     # print('rating asset', asset_data['name'], asset_data['asset_base_id'])
     url = paths.get_api_url() + 'assets/' + asset['asset_data']['id'] + '/rating/'
 
     ratings = [
+
     ]
 
     if bkit_ratings.rating_quality > 0.1:
@@ -154,7 +165,7 @@ asset_types = (
 class UploadRatingOperator(bpy.types.Operator):
     """Upload rating to the web db"""
     bl_idname = "object.blenderkit_rating_upload"
-    bl_label = "Upload the Rating"
+    bl_label = "Send Rating"
     bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
     # type of upload - model, material, textures, e.t.c.
