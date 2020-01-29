@@ -85,7 +85,7 @@ def update_collection_tree(context):
 def get_all_collections(context, collections, parent, tree, level=0, visible=False):
     global row_index
     global max_lvl
-    
+
     if level > max_lvl:
         max_lvl = level
 
@@ -164,10 +164,10 @@ class CMSendReport(Operator):
             layout.row().label(text=string, icon='ERROR')
         else:
             layout.row().label(text=string, icon='BLANK1')
-    
+
     def invoke(self, context, event):
         wm = context.window_manager
-    
+
         max_len = 0
         length = 0
 

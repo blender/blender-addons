@@ -280,7 +280,7 @@ class GenerateThumbnailOperator(bpy.types.Operator):
 
             bpy.context.window_manager.popup_menu(draw_message, title=title, icon='INFO')
             return {'FINISHED'}
-        
+
         return wm.invoke_props_dialog(self)
 
 

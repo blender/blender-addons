@@ -1059,7 +1059,7 @@ class AssignShapeKeysPanel(Panel):
     def draw(self, context):
 
         layout = self.layout
-        layout.label(text='Morph Curves:')		
+        layout.label(text='Morph Curves:')
         col = layout.column()
         params = context.window_manager.AssignShapeKeyParams
 

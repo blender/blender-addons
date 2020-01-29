@@ -65,7 +65,7 @@ class add_mesh_wallb(Operator, object_utils.AddObjectHelper):
 
     # UI items - API for properties - User accessible variables...
     # not all options are via UI, and some operations just don't work yet
-    
+
     Wall : BoolProperty(name = "Wall",
                 default = True,
                 description = "Wall")
@@ -899,14 +899,14 @@ class add_mesh_wallb(Operator, object_utils.AddObjectHelper):
                 obj = object_utils.object_data_add(context, mesh, operator=None)
 
                 utils.setlocation(self, context)
-            
+
             mesh.update()
-            
+
             obj.data["Wall"] = True
             obj.data["change"] = False
             for prm in WallParameters():
                 obj.data[prm] = getattr(self, prm)
-                
+
         if bpy.context.mode == "EDIT_MESH":
             active_object = context.active_object
             name_active_object = active_object.name

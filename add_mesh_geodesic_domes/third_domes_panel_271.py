@@ -63,7 +63,7 @@ class GenerateGeodesicDome(Operator):
     bl_idname = "mesh.generate_geodesic_dome"
     bl_description = "Create Geodesic Object Types"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
-    
+
     # align_matrix for the invoke
     align_matrix : Matrix()
 
@@ -74,14 +74,14 @@ class GenerateGeodesicDome(Operator):
     #### change properties
     name : StringProperty(name = "Name",
                     description = "Name")
-                    
+
     change : BoolProperty(name = "Change",
                 default = False,
                 description = "change Gear")
 
     delete : StringProperty(name = "Delete",
                     description = "Delete Gear")
-    
+
     location : FloatVectorProperty(name = "",
                 description = "Location",
                 default = (0.0, 0.0, 0.0),
@@ -1154,10 +1154,10 @@ class GenerateGeodesicDome(Operator):
             multi_label(help_text, box, text_width)
 
     def execute(self, context):
-        
+
         if self.change:
             ObjectDelete(self, context, self.delete)
-    
+
         global last_generated_object, last_imported_mesh, basegeodesic, imported_hubmesh_to_use, error_message
         # default superformparam = [3, 10, 10, 10, 1, 1, 4, 10, 10, 10, 1, 1, 0, 0, 0.0, 0.0, 0, 0]]
         superformparam = [self.um, self.un1, self.un2, self.un3, self.ua,
@@ -1371,14 +1371,14 @@ class GenerateGeodesicDome(Operator):
                 obj = bpy.data.objects[-1]
                 obj.name = self.fmeshname
                 #obj.location = (0, 0, 0)
-                
-        
+
+
         obj = context.active_object
         self.align_matrix = align_matrix(context, self.location)
-        
+
         obj.matrix_world = self.align_matrix  # apply matrix
         obj.rotation_euler = self.rotation_euler
-        
+
         obj["GeodesicDome"] = True
         obj["change"] = False
         obj["delete"] = ""
@@ -1568,7 +1568,7 @@ class GenerateGeodesicDome(Operator):
             bpy.context.scene.cursor.location = self.startlocation
         else:
             self.startlocation = bpy.context.scene.cursor.location
-        
+
         self.align_matrix = align_matrix(context, self.startlocation)
         self.execute(context)
 

@@ -164,7 +164,7 @@ class AutoMirror(bpy.types.Operator):
                 use_fill= False,
                 clear_inner= bpy.context.scene.AutoMirror_cut,
                 clear_outer= 0,
-                threshold= bpy.context.scene.AutoMirror_threshold) 
+                threshold= bpy.context.scene.AutoMirror_threshold)
 
         bpy.ops.object.align_vertices() # Use to align the vertices on the origin, needed by the "threshold"
 
@@ -299,7 +299,7 @@ class AutoMirrorAddonPreferences(AddonPreferences):
         col = row.column()
         col.label(text="Tab Category:")
         col.prop(self, "category", text="")
-            
+
 # define classes for registration
 classes = (
     VIEW3D_PT_BisectMirror,

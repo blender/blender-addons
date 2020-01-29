@@ -279,7 +279,7 @@ class AddDiamond(Operator, object_utils.AddObjectHelper):
             box.prop(self, 'rotation')
 
     def execute(self, context):
-        
+
         if bpy.context.mode == "OBJECT":
             if context.selected_objects != [] and context.active_object and \
             ('Diamond' in context.active_object.data.keys()) and (self.change == True):
@@ -296,7 +296,7 @@ class AddDiamond(Operator, object_utils.AddObjectHelper):
                 mesh.from_pydata(verts, [], faces)
                 mesh.update()
                 obj.data = mesh
-                
+
                 for material in oldmesh.materials:
                     obj.data.materials.append(material)
 
@@ -317,7 +317,7 @@ class AddDiamond(Operator, object_utils.AddObjectHelper):
             obj.data["change"] = False
             for prm in DiamondParameters():
                 obj.data[prm] = getattr(self, prm)
-        
+
         if bpy.context.mode == "EDIT_MESH":
             active_object = context.active_object
             name_active_object = active_object.name
@@ -329,7 +329,7 @@ class AddDiamond(Operator, object_utils.AddObjectHelper):
                 self.pavilion_height)
 
             obj = create_mesh_object(context, verts, [], faces, "TMP")
-            
+
             obj.select_set(True)
             active_object.select_set(True)
             bpy.ops.object.join()
@@ -368,7 +368,7 @@ class AddGem(Operator, object_utils.AddObjectHelper):
     change : BoolProperty(name = "Change",
                 default = False,
                 description = "change Gem")
-    
+
     segments: IntProperty(
             name="Segments",
             description="Longitudial segmentation",
@@ -420,9 +420,9 @@ class AddGem(Operator, object_utils.AddObjectHelper):
             box.prop(self, 'align')
             box.prop(self, 'location')
             box.prop(self, 'rotation')
-    
+
     def execute(self, context):
-        
+
         if bpy.context.mode == "OBJECT":
             if context.selected_objects != [] and context.active_object and \
             ('Gem' in context.active_object.data.keys()) and (self.change == True):
@@ -459,7 +459,7 @@ class AddGem(Operator, object_utils.AddObjectHelper):
             obj.data["change"] = False
             for prm in GemParameters():
                 obj.data[prm] = getattr(self, prm)
-        
+
         if bpy.context.mode == "EDIT_MESH":
             active_object = context.active_object
             name_active_object = active_object.name
@@ -472,7 +472,7 @@ class AddGem(Operator, object_utils.AddObjectHelper):
                 self.crown_height)
 
             obj = create_mesh_object(context, verts, [], faces, "TMP")
-            
+
             obj.select_set(True)
             active_object.select_set(True)
             bpy.ops.object.join()

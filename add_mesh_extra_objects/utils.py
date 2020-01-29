@@ -27,7 +27,7 @@ def setlocation(oper, context):
         bpy.ops.transform.rotate(value = oper.rotation[0], orient_axis = 'X', orient_type='GLOBAL')
         bpy.ops.transform.rotate(value = oper.rotation[1], orient_axis = 'Y', orient_type='GLOBAL')
         bpy.ops.transform.rotate(value = oper.rotation[2], orient_axis = 'Z', orient_type='GLOBAL')
-        
+
     elif oper.align == "VIEW":
         bpy.ops.transform.translate(value = oper.location)
         bpy.ops.transform.rotate(value = oper.rotation[0], orient_axis = 'X')

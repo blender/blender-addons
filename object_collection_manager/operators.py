@@ -1141,10 +1141,10 @@ class CMPhantomModeOperator(Operator):
             for rto, history, in rto_history.items():
                 if view_layer in history:
                     del history[view_layer]
-                
+
                 if phantom_history[rto+"_history"]:
                     history[view_layer] = deepcopy(phantom_history[rto+"_history"])
-                
+
                 phantom_history[rto+"_history"].clear()
 
             scn.CM_Phantom_Mode = False

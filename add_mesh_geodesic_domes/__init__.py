@@ -15,7 +15,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-# Contributed to by PKHG, Meta Androcto, Noctumsolis, Lijenstina, 
+# Contributed to by PKHG, Meta Androcto, Noctumsolis, Lijenstina,
 # Spivak Vladimir (cwolf3d)
 # Origunally an addon by Andy Houston
 
@@ -50,10 +50,10 @@ import bpy
 
 def Geodesic_contex_menu(self, context):
     bl_label = 'Change'
-    
+
     obj = context.object
     layout = self.layout
-    
+
     if 'GeodesicDome' in obj.keys():
         props = layout.operator("mesh.generate_geodesic_dome", text="Change Geodesic Dome")
         props.change = True

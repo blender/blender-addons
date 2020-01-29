@@ -225,7 +225,7 @@ def add_mesh_Brilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
     dmesh = bpy.data.meshes.new("dmesh")
     dmesh.from_pydata(Verts, [], Faces)
     dmesh.update()
-    
+
     return dmesh
 
 # object generating function, returns final object
@@ -321,7 +321,7 @@ class MESH_OT_primitive_brilliant_add(Operator, object_utils.AddObjectHelper):
 
     change : BoolProperty(name = "Change",
                 default = False,
-                description = "change Brilliant")   
+                description = "change Brilliant")
 
     s: IntProperty(
             name="Segments",
@@ -428,7 +428,7 @@ class MESH_OT_primitive_brilliant_add(Operator, object_utils.AddObjectHelper):
 
     # call mesh/object generator function with user inputs
     def execute(self, context):
-    
+
         if bpy.context.mode == "OBJECT":
             if context.selected_objects != [] and context.active_object and \
             ('Brilliant' in context.active_object.data.keys()) and (self.change == True):
@@ -457,7 +457,7 @@ class MESH_OT_primitive_brilliant_add(Operator, object_utils.AddObjectHelper):
             obj.data["change"] = False
             for prm in BrilliantParameters():
                 obj.data[prm] = getattr(self, prm)
-        
+
         if bpy.context.mode == "EDIT_MESH":
             active_object = context.active_object
             name_active_object = active_object.name
