@@ -228,6 +228,7 @@ def command_run(self, context):
     if operation == "M":
         try:
             command_maths(context, mode, pg, command[2:], mode)
+            return
         except PDT_MathsError:
             return
 
