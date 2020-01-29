@@ -34,6 +34,7 @@ from .pdt_msg_strings import (
 )
 from .pdt_functions import debug, oops
 
+
 def add_line_to_bisection(context):
     """Computes Bisector of 2 Co-Planar Edges.
 
@@ -47,8 +48,8 @@ def add_line_to_bisection(context):
     obj = context.object
     if all([bool(obj), obj.type == "MESH", obj.mode == "EDIT"]):
         pg = context.scene.pdt_pg
-        me = obj.data
-        bm = bmesh.from_edit_mesh(me)
+        obj_data = obj.data
+        bm = bmesh.from_edit_mesh(obj_data)
 
         bm.verts.ensure_lookup_table()
         bm.edges.ensure_lookup_table()
@@ -60,39 +61,47 @@ def add_line_to_bisection(context):
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
 
-        [[v1, v2], [v3, v4]] = [[v.co for v in e.verts] for e in edges]
-        debug(f"vectors found:\n {v1}\n {v2}\n {v3}\n {v4}")
+        [[vector_a, vector_b], [vector_c, vector_d]] = [[v.co for v in e.verts] for e in edges]
+        debug(f"vectors found:\n {vector_a}\n {vector_b}\n {vector_c}\n {vector_d}")
 
-        dist1 = (v1 - v2).length
-        dist2 = (v3 - v4).length
+        dist1 = (vector_a - vector_b).length
+        dist2 = (vector_c - vector_d).length
         bdist = min([dist1, dist2])
-        edge1 = (v1, v2)
-        edge2 = (v3, v4)
+        edge1 = (vector_a, vector_b)
+        edge2 = (vector_c, vector_d)
 
         if not cm.test_coplanar(edge1, edge2):
             pg.error = PDT_ERR_NCEDGES
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return
 
-        # get pt and pick farthest vertex from (projected) intersections
-        pt = cm.get_intersection(edge1, edge2)
-        far1 = v2 if (v1 - pt).length < (v2 - pt).length else v1
-        far2 = v4 if (v3 - pt).length < (v4 - pt).length else v3
+        # get intersect_point and pick farthest vertex from (projected) intersections
+        intersect_point = cm.get_intersection(edge1, edge2)
+        far1 = (
+            vector_b
+            if (vector_a - intersect_point).length < (vector_b - intersect_point).length
+            else vector_a
+        )
+        far2 = (
+            vector_d
+            if (vector_c - intersect_point).length < (vector_d - intersect_point).length
+            else vector_c
+        )
 
-        dex1 = far1 - pt
-        dex2 = far2 - pt
+        dex1 = far1 - intersect_point
+        dex2 = far2 - intersect_point
         dex1 = dex1 * (bdist / dex1.length)
         dex2 = dex2 * (bdist / dex2.length)
-        pt2 = pt + (dex1).lerp(dex2, 0.5)
-        pt3 = pt2.lerp(pt, 2.0)
+        intersect_point2 = intersect_point + (dex1).lerp(dex2, 0.5)
+        intersect_point3 = intersect_point2.lerp(intersect_point, 2.0)
 
-        vec1 = bm.verts.new(pt2)
-        vec2 = bm.verts.new(pt)
-        vec3 = bm.verts.new(pt3)
+        vec1 = bm.verts.new(intersect_point2)
+        vec2 = bm.verts.new(intersect_point)
+        vec3 = bm.verts.new(intersect_point3)
         bm.edges.new((vec1, vec2))
         bm.edges.new((vec2, vec3))
         bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
-        bmesh.update_edit_mesh(me)
+        bmesh.update_edit_mesh(obj_data)
     else:
         pg.error = f"{PDT_ERR_EDOB_MODE},{obj.mode})"
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -109,10 +118,10 @@ class PDT_OT_LineOnBisection(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         """Only allow operation on a mesh object in EDIT mode."""
-        ob = context.active_object
-        if ob is None:
+        obj = context.active_object
+        if obj is None:
             return False
-        return all([ob is not None, ob.type == "MESH", ob.mode == "EDIT"])
+        return all([obj is not None, obj.type == "MESH", obj.mode == "EDIT"])
 
     def execute(self, context):
         """Computes Bisector of 2 Co-Planar Edges.

@@ -40,7 +40,7 @@ from .pdt_command_functions import (
     origin_to_cursor,
     taper,
     placement_normal,
-    placement_centre,
+    placement_arc_centre,
     placement_intersect,
 )
 from .pdt_msg_strings import (
@@ -59,6 +59,8 @@ from .pdt_msg_strings import (
     PDT_ERR_BADMATHS,
     PDT_OBJ_MODE_ERROR,
     PDT_ERR_SEL_4_VERTS,
+    PDT_ERR_INT_LINES,
+    PDT_LAB_PLANE,
 )
 from .pdt_bix import add_line_to_bisection
 from .pdt_etof import extend_vertex
@@ -68,8 +70,9 @@ from . import pdt_exception
 PDT_SelectionError = pdt_exception.SelectionError
 PDT_InvalidVector = pdt_exception.InvalidVector
 PDT_CommandFailure = pdt_exception.CommandFailure
-PDT_ObjectMode = pdt_exception.ObjectMode
-PDT_MathError = pdt_exception.MathsError
+PDT_ObjectModeError = pdt_exception.ObjectModeError
+PDT_MathsError = pdt_exception.MathsError
+PDT_IntersectionError = pdt_exception.IntersectionError
 
 
 class PDT_OT_CommandReRun(Operator):
@@ -149,7 +152,7 @@ def command_run(self, context):
         if obj.mode not in {"OBJECT", "EDIT"} or obj.type != "MESH":
             pg.error = PDT_OBJ_MODE_ERROR
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            raise PDT_ObjectMode
+            raise PDT_ObjectModeError
 
     # Special Cases of Command.
     if command == "?" or command.lower() == "help":
@@ -157,50 +160,45 @@ def command_run(self, context):
         context.window_manager.popup_menu(pdt_help, title="PDT Command Line Help", icon="INFO")
         # fmt: on
         return
-    elif command == "":
+    if command == "":
         return
-    elif command.upper() == "J2V":
+    if command.upper() == "J2V":
         join_two_vertices(context)
         return
-    elif command.upper() == "AD2":
+    if command.upper() == "AD2":
         set_angle_distance_two(context)
         return
-    elif command.upper() == "AD3":
+    if command.upper() == "AD3":
         set_angle_distance_three(context)
         return
-    elif command.upper() == "OTC":
+    if command.upper() == "OTC":
         origin_to_cursor(context)
         return
-    elif command.upper() == "TAP":
+    if command.upper() == "TAP":
         taper(context)
         return
-    elif command.upper() == "BIS":
+    if command.upper() == "BIS":
         add_line_to_bisection(context)
         return
-    elif command.upper() == "ETF":
+    if command.upper() == "ETF":
         extend_vertex(context)
         return
-    elif command.upper() == "INTALL":
+    if command.upper() == "INTALL":
         intersect_all(context)
         return
-    elif command.upper()[1:] == "NML":
+    if command.upper()[1:] == "NML":
         placement_normal(context, command.upper()[0])
         return
-    elif command.upper()[1:] == "CEN":
-        placement_centre(context, command.upper()[0])
+    if command.upper()[1:] == "CEN":
+        placement_arc_centre(context, command.upper()[0])
         return
-    elif command.upper()[1:] == "INT":
+    if command.upper()[1:] == "INT":
         placement_intersect(context, command.upper()[0])
         return
 
-    # Check First Letter
+    # Check Command Length
     if len(command) < 3:
         pg.error = PDT_ERR_CHARS_NUM
-        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        return
-    operation = command[0].upper()
-    if operation not in {"C", "D", "E", "F", "G", "N", "M", "P", "V", "S"}:
-        pg.error = PDT_ERR_BADFLETTER
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         return
 
@@ -214,11 +212,11 @@ def command_run(self, context):
     # Check Second Letter.
     mode = command[1].lower()
     if (
-        (operation == "F" and mode not in {"v", "e", "i"})
-        or (operation in {"D", "E"} and mode not in {"d", "i"})
-        or (operation == "M" and mode not in {"a", "d", "i", "p", "o", "x", "y", "z"})
-        or (operation not in {"D", "E", "F", "M"} and mode not in {"a", "d", "i", "p"})
-    ):
+            (operation == "F" and mode not in {"v", "e", "i"})
+            or (operation in {"D", "E"} and mode not in {"d", "i"})
+            or (operation == "M" and mode not in {"a", "d", "i", "p", "o", "x", "y", "z"})
+            or (operation not in {"D", "E", "F", "M"} and mode not in {"a", "d", "i", "p"})
+        ):
         pg.error = f"'{mode}' {PDT_ERR_NON_VALID} '{operation}'"
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         return
@@ -249,7 +247,7 @@ def command_run(self, context):
 
     # ------------------------
     # Move Vertices or Objects
-    elif operation == "G":
+    if operation == "G":
         try:
             move_entities(context, pg, operation, mode, obj, bm, verts, values)
         except PDT_CommandFailure:
@@ -257,7 +255,7 @@ def command_run(self, context):
 
     # --------------
     # Add New Vertex
-    elif operation == "N":
+    if operation == "N":
         try:
             add_new_vertex(context, pg, operation, mode, obj, bm, verts, values)
         except PDT_CommandFailure:
@@ -265,7 +263,7 @@ def command_run(self, context):
 
     # -----------
     # Split Edges
-    elif operation == "S":
+    if operation == "S":
         try:
             split_edges(context, pg, operation, mode, obj, obj_loc, bm, values)
         except PDT_CommandFailure:
@@ -274,7 +272,7 @@ def command_run(self, context):
 
     # ----------------
     # Extrude Vertices
-    elif operation == "V":
+    if operation == "V":
         try:
             extrude_vertices(context, pg, operation, mode, obj, obj_loc, bm, verts, values)
         except PDT_CommandFailure:
@@ -282,7 +280,7 @@ def command_run(self, context):
 
     # ----------------
     # Extrude Geometry
-    elif operation == "E":
+    if operation == "E":
         try:
             extrude_geometry(context, pg, operation, mode, obj, bm, values)
         except PDT_CommandFailure:
@@ -290,7 +288,7 @@ def command_run(self, context):
 
     # ------------------
     # Duplicate Geometry
-    elif operation == "D":
+    if operation == "D":
         try:
             duplicate_geometry(context, pg, operation, mode, obj, bm, values)
         except PDT_CommandFailure:
@@ -298,17 +296,11 @@ def command_run(self, context):
 
     # ---------------
     # Fillet Geometry
-    elif operation == "F":
+    if operation == "F":
         try:
             fillet_geometry(context, pg, mode, obj, bm, verts, values)
         except PDT_CommandFailure:
             return
-
-    # -------------
-    # Anything else
-    else:
-        # Trap all other value and allow for more options
-        return
 
 
 def pdt_help(self, context):
@@ -392,12 +384,19 @@ def command_maths(context, mode, pg, expression, output_target):
     elif output_target == "p":
         pg.percent = round(maths_result, val_round)
     else:
-        # Mst be "o"
+        # Must be "o"
         pg.maths_output = round(maths_result, val_round)
-    return
 
 
 def command_parse(context):
+    """Parse Command Input.
+
+    Args:
+        context: Blender bpy.context instance.
+
+    Returns:
+        pg, values_out, obj, obj_loc, bm, verts.
+    """
     scene = context.scene
     pg = scene.pdt_pg
     command = pg.command.strip()
@@ -418,7 +417,7 @@ def command_parse(context):
     val_round = context.preferences.addons[__package__].preferences.pdt_input_round
     values_out = [str(round(float(v), val_round)) for v in values]
 
-    bm, good = obj_check(context, obj, scene, operation)
+    bm, good = obj_check(obj, scene, operation)
     if good:
         obj_loc = obj.matrix_world.decompose()[0]
     else:
@@ -426,12 +425,11 @@ def command_parse(context):
 
     if mode_s == 'SEL' and bm is not None and mode not in {"a"}:
         if len(bm.select_history) == 0:
-            if len([v for v in bm.verts if v.select]) == 0:
+            verts = [v for v in bm.verts if v.select]
+            if len(verts) == 0:
                 pg.error = PDT_ERR_NO_SEL_GEOM
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 raise PDT_SelectionError
-            else:
-                verts = [v for v in bm.verts if v.select]
         else:
             verts = bm.select_history
     elif operation == "G" and mode == "a":
@@ -446,6 +444,16 @@ def command_parse(context):
 
 
 def move_cursor_pivot(context, pg, operation, mode, obj, verts, values):
+    """Moves Cursor & Pivot Point.
+
+    Args:
+        context: Blender bpy.context instance.
+        pg, operation, mode, obj, verts, values
+
+    Returns:
+        Nothing.
+    """
+
     # Absolute/Global Coordinates, or Delta/Relative Coordinates
     if mode in {"a", "d"}:
         try:
@@ -466,7 +474,7 @@ def move_cursor_pivot(context, pg, operation, mode, obj, verts, values):
         except:
             raise PDT_InvalidVector
 
-    if vector_delta == None:
+    if vector_delta is None:
         raise PDT_InvalidVector
 
     scene = context.scene
@@ -507,10 +515,19 @@ def move_cursor_pivot(context, pg, operation, mode, obj, verts, values):
                 scene.cursor.location = vector_delta
             else:
                 pg.pivot_loc = vector_delta
-    return
 
 
 def move_entities(context, pg, operation, mode, obj, bm, verts, values):
+    """Moves Entities.
+
+    Args:
+        context: Blender bpy.context instance.
+        pg, operation, mode, obj, bm, verts, values
+
+    Returns:
+        Nothing.
+    """
+
     obj_loc = obj.matrix_world.decompose()[0]
 
     # Absolute/Global Coordinates
@@ -562,10 +579,19 @@ def move_entities(context, pg, operation, mode, obj, bm, verts, values):
     if obj.mode == 'EDIT':
         bmesh.update_edit_mesh(obj.data)
         bm.select_history.clear()
-    return
 
 
 def add_new_vertex(context, pg, operation, mode, obj, bm, verts, values):
+    """Add New Vertex.
+
+    Args:
+        context: Blender bpy.context instance.
+        pg, operation, mode, obj, bm, verts, values
+
+    Returns:
+        Nothing.
+    """
+
     obj_loc = obj.matrix_world.decompose()[0]
 
     if not obj.mode == "EDIT":
@@ -606,10 +632,19 @@ def add_new_vertex(context, pg, operation, mode, obj, bm, verts, values):
     new_vertex.select_set(True)
     bmesh.update_edit_mesh(obj.data)
     bm.select_history.clear()
-    return
 
 
 def split_edges(context, pg, operation, mode, obj, obj_loc, bm, values):
+    """Split Edges.
+
+    Args:
+        context: Blender bpy.context instance.
+        pg, operation, mode, obj, obj_loc, bm, verts, values
+
+    Returns:
+        Nothing.
+    """
+
     if not obj.mode == "EDIT":
         pg.error = PDT_ERR_SPLITEDIT
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -694,10 +729,19 @@ def split_edges(context, pg, operation, mode, obj, obj_loc, bm, values):
         v.select_set(False)
     bmesh.update_edit_mesh(obj.data)
     bm.select_history.clear()
-    return
 
 
 def extrude_vertices(context, pg, operation, mode, obj, obj_loc, bm, verts, values):
+    """Extrude Vertices.
+
+    Args:
+        context: Blender bpy.context instance.
+        pg, operation, mode, obj, onj_loc, bm, verts, values
+
+    Returns:
+        Nothing.
+    """
+
     if not obj.mode == "EDIT":
         pg.error = PDT_ERR_EXTEDIT
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -760,10 +804,19 @@ def extrude_vertices(context, pg, operation, mode, obj, obj_loc, bm, verts, valu
 
     bmesh.update_edit_mesh(obj.data)
     bm.select_history.clear()
-    return
 
 
 def extrude_geometry(context, pg, operation, mode, obj, bm, values):
+    """Extrude Geometry.
+
+    Args:
+        context: Blender bpy.context instance.
+        pg, operation, mode, obj, bm, verts, values
+
+    Returns:
+        Nothing.
+    """
+
     if not obj.mode == "EDIT":
         pg.error = PDT_ERR_EXTEDIT
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -799,9 +852,19 @@ def extrude_geometry(context, pg, operation, mode, obj, bm, values):
     update_sel(bm, verts_extr, edges_extr, faces_extr)
     bmesh.update_edit_mesh(obj.data)
     bm.select_history.clear()
-    return
+
 
 def duplicate_geometry(context, pg, operation, mode, obj, bm, values):
+    """Duplicate Geometry.
+
+    Args:
+        context: Blender bpy.context instance.
+        pg, operation, mode, obj, bm, verts, values
+
+    Returns:
+        Nothing.
+    """
+
     if not obj.mode == "EDIT":
         pg.error = PDT_ERR_DUPEDIT
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -837,10 +900,19 @@ def duplicate_geometry(context, pg, operation, mode, obj, bm, values):
     update_sel(bm, verts_dupe, edges_dupe, faces_dupe)
     bmesh.update_edit_mesh(obj.data)
     bm.select_history.clear()
-    return
 
 
 def fillet_geometry(context, pg, mode, obj, bm, verts, values):
+    """Fillet Geometry.
+
+    Args:
+        context: Blender bpy.context instance.
+        pg, operation, mode, obj, bm, verts, values
+
+    Returns:
+        Nothing.
+    """
+
     if not obj.mode == "EDIT":
         pg.error = PDT_ERR_FILEDIT
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -870,14 +942,14 @@ def fillet_geometry(context, pg, mode, obj, bm, verts, values):
             v_last = edges[1].verts[0]
             v_first = edges[1].verts[1]
             vector_delta, done = intersection(v_active.co,
-                v_other.co,
-                v_last.co,
-                v_first.co,
-                plane
-                )
+                                              v_other.co,
+                                              v_last.co,
+                                              v_first.co,
+                                              plane
+                                              )
             if not done:
-                errmsg = f"{PDT_ERR_INT_LINES} {plane}  {PDT_LAB_PLANE}"
-                self.report({"ERROR"}, errmsg)
+                pg.error = f"{PDT_ERR_INT_LINES} {plane}  {PDT_LAB_PLANE}"
+                context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 raise PDT_IntersectionError
             if (v_active.co - vector_delta).length < (v_other.co - vector_delta).length:
                 v_active.co = vector_delta
@@ -904,4 +976,3 @@ def fillet_geometry(context, pg, mode, obj, bm, verts, values):
         profile=_profile,
         vertex_only=vert_bool
     )
-    return

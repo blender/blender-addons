@@ -26,7 +26,7 @@ import bmesh
 from bpy.types import Operator, SpaceView3D
 from mathutils import Vector, Matrix
 from math import pi
-from .pdt_functions import view_coords, drawCallback3D
+from .pdt_functions import view_coords, draw_callback_3d
 from .pdt_msg_strings import (
     PDT_CON_AREYOURSURE,
     PDT_ERR_EDIT_MODE,
@@ -60,7 +60,7 @@ class PDT_OT_ModalDrawOperator(bpy.types.Operator):
 
         if PDT_OT_ModalDrawOperator._handle is None:
             PDT_OT_ModalDrawOperator._handle = SpaceView3D.draw_handler_add(
-                drawCallback3D, (self, context), "WINDOW", "POST_VIEW"
+                draw_callback_3d, (self, context), "WINDOW", "POST_VIEW"
             )
             context.window_manager.pdt_run_opengl = True
 
@@ -103,9 +103,8 @@ class PDT_OT_ModalDrawOperator(bpy.types.Operator):
                 context.area.tag_redraw()
 
             return {"FINISHED"}
-        else:
-            self.report({"ERROR"}, PDT_ERR_NO3DVIEW)
 
+        self.report({"ERROR"}, PDT_ERR_NO3DVIEW)
         return {"CANCELLED"}
 
 
@@ -117,10 +116,11 @@ class PDT_OT_ViewPlaneRotate(Operator):
 
     @classmethod
     def poll(cls, context):
-        ob = context.object
-        if ob is None:
+        """Check Onject Status."""
+        obj = context.object
+        if obj is None:
             return False
-        return all([bool(ob), ob.type == "MESH", ob.mode == "EDIT"])
+        return all([bool(obj), obj.type == "MESH", obj.mode == "EDIT"])
 
 
     def execute(self, context):
@@ -170,10 +170,11 @@ class PDT_OT_ViewPlaneScale(Operator):
 
     @classmethod
     def poll(cls, context):
-        ob = context.object
-        if ob is None:
+        """Check Onject Status."""
+        obj = context.object
+        if obj is None:
             return False
-        return all([bool(ob), ob.type == "MESH", ob.mode == "EDIT"])
+        return all([bool(obj), obj.type == "MESH", obj.mode == "EDIT"])
 
 
     def execute(self, context):
@@ -205,17 +206,17 @@ class PDT_OT_ViewPlaneScale(Operator):
         bm = bmesh.from_edit_mesh(obj.data)
         verts = verts = [v for v in bm.verts if v.select]
         for v in verts:
-            dx = (pg.pivot_loc.x - obj.matrix_world.decompose()[0].x - v.co.x) * (
+            delta_x = (pg.pivot_loc.x - obj.matrix_world.decompose()[0].x - v.co.x) * (
                 1 - pg.pivot_scale.x
             )
-            dy = (pg.pivot_loc.y - obj.matrix_world.decompose()[0].y - v.co.y) * (
+            delta_y = (pg.pivot_loc.y - obj.matrix_world.decompose()[0].y - v.co.y) * (
                 1 - pg.pivot_scale.y
             )
-            dz = (pg.pivot_loc.z - obj.matrix_world.decompose()[0].z - v.co.z) * (
+            delta_z = (pg.pivot_loc.z - obj.matrix_world.decompose()[0].z - v.co.z) * (
                 1 - pg.pivot_scale.z
             )
-            dv = Vector((dx, dy, dz))
-            v.co = v.co + dv
+            delta_v = Vector((delta_x, delta_y, delta_z))
+            v.co = v.co + delta_v
         bmesh.update_edit_mesh(obj.data)
         return {"FINISHED"}
 
@@ -276,10 +277,11 @@ class PDT_OT_PivotSelected(Operator):
 
     @classmethod
     def poll(cls, context):
-        ob = context.object
-        if ob is None:
+        """Check Onject Status."""
+        obj = context.object
+        if obj is None:
             return False
-        return all([bool(ob), ob.type == "MESH", ob.mode == "EDIT"])
+        return all([bool(obj), obj.type == "MESH", obj.mode == "EDIT"])
 
 
     def execute(self, context):
@@ -313,9 +315,9 @@ class PDT_OT_PivotSelected(Operator):
             pg.pivot_loc = scene.cursor.location
             scene.cursor.location = old_cursor_loc
             return {"FINISHED"}
-        else:
-            self.report({"ERROR"}, PDT_ERR_NO_SEL_GEOM)
-            return {"FINISHED"}
+
+        self.report({"ERROR"}, PDT_ERR_NO_SEL_GEOM)
+        return {"FINISHED"}
 
 
 class PDT_OT_PivotOrigin(Operator):
@@ -326,10 +328,11 @@ class PDT_OT_PivotOrigin(Operator):
 
     @classmethod
     def poll(cls, context):
-        ob = context.object
-        if ob is None:
+        """Check Onject Status."""
+        obj = context.object
+        if obj is None:
             return False
-        return all([bool(ob), ob.type == "MESH"])
+        return all([bool(obj), obj.type == "MESH"])
 
     def execute(self, context):
         """Moves Pivot Point to Object Origin.
@@ -362,10 +365,11 @@ class PDT_OT_PivotWrite(Operator):
 
     @classmethod
     def poll(cls, context):
-        ob = context.object
-        if ob is None:
+        """Check Onject Status."""
+        obj = context.object
+        if obj is None:
             return False
-        return all([bool(ob), ob.type == "MESH"])
+        return all([bool(obj), obj.type == "MESH"])
 
     def execute(self, context):
         """Writes Pivot Point Location to Object's Custom Properties.
@@ -408,10 +412,11 @@ class PDT_OT_PivotRead(Operator):
 
     @classmethod
     def poll(cls, context):
-        ob = context.object
-        if ob is None:
+        """Check Onject Status."""
+        obj = context.object
+        if obj is None:
             return False
-        return all([bool(ob), ob.type == "MESH"])
+        return all([bool(obj), obj.type == "MESH"])
 
     def execute(self, context):
         """Reads Pivot Point Location from Object's Custom Properties.
@@ -438,6 +443,6 @@ class PDT_OT_PivotRead(Operator):
         if "PDT_PP_LOC" in obj:
             pg.pivot_loc = obj["PDT_PP_LOC"]
             return {"FINISHED"}
-        else:
-            self.report({"ERROR"}, PDT_ERR_NOPPLOC)
-            return {"FINISHED"}
+
+        self.report({"ERROR"}, PDT_ERR_NOPPLOC)
+        return {"FINISHED"}

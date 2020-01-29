@@ -21,7 +21,7 @@
 # Author: Alan Odom (Clockmender), Rune Morling (ermo) Copyright (c) 2019
 # -----------------------------------------------------------------------
 #
-# Exception Routines
+# Exceptions are used in the absence of nullable types in python
 
 
 class SelectionError(Exception):
@@ -36,7 +36,7 @@ class CommandFailure(Exception):
     pass
 
 
-class ObjectMode(Exception):
+class ObjectModeError(Exception):
     pass
 
 
@@ -65,4 +65,7 @@ class VerticesConnected(Exception):
 
 
 class InvalidAngle(Exception):
+    pass
+
+class ShaderError(Exception):
     pass

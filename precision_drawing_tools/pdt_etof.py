@@ -29,25 +29,23 @@ import bmesh
 from mathutils.geometry import intersect_line_plane
 from .pdt_msg_strings import (
     PDT_ERR_NOINT,
-    PDT_ERR_SEL_1_E_1_F
+    PDT_ERR_EDOB_MODE,
 )
 from .pdt_functions import oops
 
 
-def failure_message(self, context):
+def failure_message(context):
     """Warn to the user to select 1 edge and 1 face."""
     pg = context.scene.pdt_pg
     pg.error = f"Select One Face and One Edge"
     context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-    return
 
 
-def failure_message_on_plane(self, context):
+def failure_message_on_plane(context):
     """Report an informative error message in a popup."""
     pg = context.scene.pdt_pg
     pg.error = f"{PDT_ERR_NOINT}"
     context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-    return
 
 def extend_vertex(context):
     """Computes Edge Extension to Face.
@@ -59,31 +57,33 @@ def extend_vertex(context):
         Nothing."""
 
     obj = bpy.context.edit_object
+    pg = context.scene.pdt_pg
+
     if all([bool(obj), obj.type == "MESH", obj.mode == "EDIT"]):
-        me = obj.data
-        bm = bmesh.from_edit_mesh(me)
+        object_data = obj.data
+        bm = bmesh.from_edit_mesh(object_data)
         verts = bm.verts
         faces = bm.faces
 
         planes = [f for f in faces if f.select]
         if not len(planes) == 1:
-            failure_message(self, context)
+            failure_message(context)
             return
 
         plane = planes[0]
         plane_vert_indices = plane.verts[:]
         all_selected_vert_indices = [v for v in verts if v.select]
 
-        M = set(plane_vert_indices)
-        N = set(all_selected_vert_indices)
-        O = N.difference(M)
-        O = list(O)
+        plane_verts = set(plane_vert_indices)
+        all_verts = set(all_selected_vert_indices)
+        diff_verts = all_verts.difference(plane_verts)
+        diff_verts = list(diff_verts)
 
-        if not len(O) == 2:
-            failure_message(self, context)
+        if not len(diff_verts) == 2:
+            failure_message(context)
             return
 
-        (v1_ref, v1), (v2_ref, v2) = [(i, i.co) for i in O]
+        (v1_ref, v1), (v2_ref, v2) = [(i, i.co) for i in diff_verts]
 
         plane_co = plane.calc_center_median()
         plane_no = plane.normal
@@ -92,15 +92,15 @@ def extend_vertex(context):
 
         if new_co:
             new_vertex = verts.new(new_co)
-            A_len = (v1 - new_co).length
-            B_len = (v2 - new_co).length
+            a_len = (v1 - new_co).length
+            b_len = (v2 - new_co).length
 
-            vertex_reference = v1_ref if (A_len < B_len) else v2_ref
+            vertex_reference = v1_ref if (a_len < b_len) else v2_ref
             bm.edges.new([vertex_reference, new_vertex])
-            bmesh.update_edit_mesh(me, True)
+            bmesh.update_edit_mesh(object_data, True)
 
         else:
-            failure_message_on_plane(self, context)
+            failure_message_on_plane(context)
     else:
         pg.error = f"{PDT_ERR_EDOB_MODE},{obj.mode})"
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -117,10 +117,10 @@ class PDT_OT_EdgeToFace(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         """Only allow this to work if a mesh is selected in EDIT mode."""
-        ob = context.object
-        if ob is None:
+        obj = context.object
+        if obj is None:
             return False
-        return all([bool(ob), ob.type == "MESH", ob.mode == "EDIT"])
+        return all([bool(obj), obj.type == "MESH", obj.mode == "EDIT"])
 
     def execute(self, context):
         """Extends Disconnected Edge to Intersect with Face.

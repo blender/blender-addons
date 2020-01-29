@@ -37,12 +37,9 @@ from .pdt_msg_strings import (
     PDT_ERR_SEL_2_OBJS,
     PDT_ERR_NO_ACT_OBJ,
     PDT_ERR_SEL_1_EDGEM,
-    PDT_ERR_BAD1VALS,
-    PDT_ERR_BAD2VALS,
-    PDT_ERR_BAD3VALS,
-    PDT_ERR_SEL_2_VERTS,
-    PDT_ERR_CONNECTED,
 )
+from . import pdt_exception
+PDT_ShaderError = pdt_exception.ShaderError
 
 
 def debug(msg, prefix=""):
@@ -96,7 +93,10 @@ def oops(self, context):
 def set_mode(mode_pl):
     """Sets Active Axes for View Orientation.
 
-    Sets indices of axes for locational vectors
+    Sets indices of axes for locational vectors:
+    "XY": a1 = x, a2 = y, a3 = z
+    "XZ": a1 = x, a2 = z, a3 = y
+    "YZ": a1 = y, a2 = z, a3 = x
 
     Args:
         mode_pl: Plane Selector variable as input
@@ -105,16 +105,12 @@ def set_mode(mode_pl):
         3 Integer indices.
     """
 
-    if mode_pl == "XY":
-        # a1 = x a2 = y a3 = z
-        return 0, 1, 2
-    if mode_pl == "XZ":
-        # a1 = x a2 = z a3 = y
-        return 0, 2, 1
-    if mode_pl == "YZ":
-        # a1 = y a2 = z a3 = x
-        return 1, 2, 0
-    #FIXME: This needs a proper specification and a default
+    order = {
+        "XY": (0, 1, 2),
+        "XZ": (0, 2, 1),
+        "YZ": (1, 2, 0),
+    }
+    return order[mode_pl]
 
 
 def set_axis(mode_pl):
@@ -132,19 +128,15 @@ def set_axis(mode_pl):
         3 Integer Indicies.
     """
 
-    if mode_pl == "RX-MY":
-        return 0, 1, 2
-    if mode_pl == "RX-MZ":
-        return 0, 2, 1
-    if mode_pl == "RY-MX":
-        return 1, 0, 2
-    if mode_pl == "RY-MZ":
-        return 1, 2, 0
-    if mode_pl == "RZ-MX":
-        return 2, 0, 1
-    if mode_pl == "RZ-MY":
-        return 2, 1, 0
-    #FIXME: This needs a proper specification and a default
+    order = {
+        "RX-MY": (0, 1, 2),
+        "RX-MZ": (0, 2, 1),
+        "RY-MX": (1, 0, 2),
+        "RY-MZ": (1, 2, 0),
+        "RZ-MX": (2, 0, 1),
+        "RZ-MY": (2, 1, 0),
+    }
+    return order[mode_pl]
 
 
 def check_selection(num, bm, obj):
@@ -163,20 +155,19 @@ def check_selection(num, bm, obj):
 
     if len(bm.select_history) < num:
         return None
-    else:
-        actE = bm.select_history[-1]
-    if isinstance(actE, bmesh.types.BMVert):
-        vector_a = actE.co
+    active_vertex = bm.select_history[-1]
+    if isinstance(active_vertex, bmesh.types.BMVert):
+        vector_a = active_vertex.co
         if num == 1:
             return vector_a
-        elif num == 2:
+        if num == 2:
             vector_b = bm.select_history[-2].co
             return vector_a, vector_b
-        elif num == 3:
+        if num == 3:
             vector_b = bm.select_history[-2].co
             vector_c = bm.select_history[-3].co
             return vector_a, vector_b, vector_c
-        elif num == 4:
+        if num == 4:
             vector_b = bm.select_history[-2].co
             vector_c = bm.select_history[-3].co
             vector_d = bm.select_history[-4].co
@@ -233,13 +224,13 @@ def view_coords(x_loc, y_loc, z_loc):
 
     areas = [a for a in bpy.context.screen.areas if a.type == "VIEW_3D"]
     if len(areas) > 0:
-        vm = areas[0].spaces.active.region_3d.view_matrix
-        vm = vm.to_3x3().normalized().inverted()
-        vl = Vector((x_loc, y_loc, z_loc))
-        vw = vm @ vl
-        return vw
-    else:
-        return Vector((0, 0, 0))
+        view_matrix = areas[0].spaces.active.region_3d.view_matrix
+        view_matrix = view_matrix.to_3x3().normalized().inverted()
+        view_location = Vector((x_loc, y_loc, z_loc))
+        new_view_location = view_matrix @ view_location
+        return new_view_location
+
+    return Vector((0, 0, 0))
 
 
 def view_coords_i(x_loc, y_loc, z_loc):
@@ -258,13 +249,13 @@ def view_coords_i(x_loc, y_loc, z_loc):
 
     areas = [a for a in bpy.context.screen.areas if a.type == "VIEW_3D"]
     if len(areas) > 0:
-        vm = areas[0].spaces.active.region_3d.view_matrix
-        vm = vm.to_3x3().normalized()
-        vl = Vector((x_loc, y_loc, z_loc))
-        vw = vm @ vl
-        return vw
-    else:
-        return Vector((0, 0, 0))
+        view_matrix = areas[0].spaces.active.region_3d.view_matrix
+        view_matrix = view_matrix.to_3x3().normalized()
+        view_location = Vector((x_loc, y_loc, z_loc))
+        new_view_location = view_matrix @ view_location
+        return new_view_location
+
+    return Vector((0, 0, 0))
 
 
 def view_dir(dis_v, ang_v):
@@ -283,15 +274,15 @@ def view_dir(dis_v, ang_v):
 
     areas = [a for a in bpy.context.screen.areas if a.type == "VIEW_3D"]
     if len(areas) > 0:
-        vm = areas[0].spaces.active.region_3d.view_matrix
-        vm = vm.to_3x3().normalized().inverted()
-        vl = Vector((0, 0, 0))
-        vl.x = dis_v * cos(ang_v * pi / 180)
-        vl.y = dis_v * sin(ang_v * pi / 180)
-        vw = vm @ vl
-        return vw
-    else:
-        return Vector((0, 0, 0))
+        view_matrix = areas[0].spaces.active.region_3d.view_matrix
+        view_matrix = view_matrix.to_3x3().normalized().inverted()
+        view_location = Vector((0, 0, 0))
+        view_location.x = dis_v * cos(ang_v * pi / 180)
+        view_location.y = dis_v * sin(ang_v * pi / 180)
+        new_view_location = view_matrix @ view_location
+        return new_view_location
+
+    return Vector((0, 0, 0))
 
 
 def euler_to_quaternion(roll, pitch, yaw):
@@ -307,16 +298,16 @@ def euler_to_quaternion(roll, pitch, yaw):
     """
 
     # fmt: off
-    qx = (np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2)
-          - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2))
-    qy = (np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
-          + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2))
-    qz = (np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
-          - np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2))
-    qw = (np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2)
-          + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2))
+    quat_x = (np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2)
+              - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2))
+    quat_y = (np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
+              + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2))
+    quat_z = (np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
+              - np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2))
+    quat_w = (np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2)
+              + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2))
     # fmt: on
-    return Quaternion((qw, qx, qy, qz))
+    return Quaternion((quat_w, quat_x, quat_y, quat_z))
 
 
 def arc_centre(vector_a, vector_b, vector_c):
@@ -331,22 +322,29 @@ def arc_centre(vector_a, vector_b, vector_c):
         Vector representing Arc Centre and Float representing Arc Radius.
     """
 
-    A = np.array([vector_a.x, vector_a.y, vector_a.z])
-    B = np.array([vector_b.x, vector_b.y, vector_b.z])
-    C = np.array([vector_c.x, vector_c.y, vector_c.z])
-    a = np.linalg.norm(C - B)
-    b = np.linalg.norm(C - A)
-    c = np.linalg.norm(B - A)
+    coord_a = np.array([vector_a.x, vector_a.y, vector_a.z])
+    coord_b = np.array([vector_b.x, vector_b.y, vector_b.z])
+    coord_c = np.array([vector_c.x, vector_c.y, vector_c.z])
+    line_a = np.linalg.norm(coord_c - coord_b)
+    line_b = np.linalg.norm(coord_c - coord_a)
+    line_c = np.linalg.norm(coord_b - coord_a)
     # fmt: off
-    s = (a+b+c) / 2
-    R = a*b*c/4 / np.sqrt(s * (s-a) * (s-b) * (s-c))
-    b1 = a*a * (b*b + c*c - a*a)
-    b2 = b*b * (a*a + c*c - b*b)
-    b3 = c*c * (a*a + b*b - c*c)
+    line_s = (line_a+line_b+line_c) / 2
+    radius = (
+        line_a*line_b*line_c/4
+        / np.sqrt(line_s
+                  * (line_s-line_a)
+                  * (line_s-line_b)
+                  * (line_s-line_c))
+        )
+    base_1 = line_a*line_a * (line_b*line_b + line_c*line_c - line_a*line_a)
+    base_2 = line_b*line_b * (line_a*line_a + line_c*line_c - line_b*line_b)
+    base_3 = line_c*line_c * (line_a*line_a + line_b*line_b - line_c*line_c)
     # fmt: on
-    P = np.column_stack((A, B, C)).dot(np.hstack((b1, b2, b3)))
-    P /= b1 + b2 + b3
-    return Vector((P[0], P[1], P[2])), R
+    intersect_coord = np.column_stack((coord_a, coord_b, coord_c))
+    intersect_coord = intersect_coord.dot(np.hstack((base_1, base_2, base_3)))
+    intersect_coord /= base_1 + base_2 + base_3
+    return Vector((intersect_coord[0], intersect_coord[1], intersect_coord[2])), radius
 
 
 def intersection(vertex_a, vertex_b, vertex_c, vertex_d, plane):
@@ -371,38 +369,39 @@ def intersection(vertex_a, vertex_b, vertex_c, vertex_d, plane):
         vertex_offset = vertex_c - vertex_a
         vertex_c = view_coords_i(vertex_offset.x, vertex_offset.y, vertex_offset.z)
         vector_ref = Vector((0, 0, 0))
-        ap1 = (vertex_c.x, vertex_c.y)
-        ap2 = (vertex_d.x, vertex_d.y)
-        bp1 = (vertex_b.x, vertex_b.y)
-        bp2 = (vector_ref.x, vector_ref.y)
+        coord_a = (vertex_c.x, vertex_c.y)
+        coord_b = (vertex_d.x, vertex_d.y)
+        coord_c = (vertex_b.x, vertex_b.y)
+        coord_d = (vector_ref.x, vector_ref.y)
     else:
         a1, a2, a3 = set_mode(plane)
-        ap1 = (vertex_c[a1], vertex_c[a2])
-        ap2 = (vertex_d[a1], vertex_d[a2])
-        bp1 = (vertex_a[a1], vertex_a[a2])
-        bp2 = (vertex_b[a1], vertex_b[a2])
-    s = np.vstack([ap1, ap2, bp1, bp2])
-    h = np.hstack((s, np.ones((4, 1))))
-    l1 = np.cross(h[0], h[1])
-    l2 = np.cross(h[2], h[3])
-    x, y, z = np.cross(l1, l2)
-    if z == 0:
+        coord_a = (vertex_c[a1], vertex_c[a2])
+        coord_b = (vertex_d[a1], vertex_d[a2])
+        coord_c = (vertex_a[a1], vertex_a[a2])
+        coord_d = (vertex_b[a1], vertex_b[a2])
+    v_stack = np.vstack([coord_a, coord_b, coord_c, coord_d])
+    h_stack = np.hstack((v_stack, np.ones((4, 1))))
+    line_a = np.cross(h_stack[0], h_stack[1])
+    line_b = np.cross(h_stack[2], h_stack[3])
+    x_loc, y_loc, z_loc = np.cross(line_a, line_b)
+    if z_loc == 0:
         return Vector((0, 0, 0)), False
-    nx = x / z
-    nz = y / z
+    new_x_loc = x_loc / z_loc
+    new_z_loc = y_loc / z_loc
     if plane == "LO":
-        ly = 0
+        new_y_loc = 0
     else:
-        ly = vertex_a[a3]
+        new_y_loc = vertex_a[a3]
     # Order Vector Delta
     if plane == "XZ":
-        vector_delta = Vector((nx, ly, nz))
+        vector_delta = Vector((new_x_loc, new_y_loc, new_z_loc))
     elif plane == "XY":
-        vector_delta = Vector((nx, nz, ly))
+        vector_delta = Vector((new_x_loc, new_z_loc, new_y_loc))
     elif plane == "YZ":
-        vector_delta = Vector((ly, nx, nz))
-    elif plane == "LO":
-        vector_delta = view_coords(nx, nz, ly) + vertex_a
+        vector_delta = Vector((new_y_loc, new_x_loc, new_z_loc))
+    else:
+        # Must be Local View Plane
+        vector_delta = view_coords(new_x_loc, new_z_loc, new_y_loc) + vertex_a
     return vector_delta, True
 
 
@@ -442,38 +441,38 @@ def get_percent(obj, flip_p, per_v, data, scene):
             pg.error = PDT_ERR_SEL_2_V_1_E + str(len(verts)) + " Vertices"
             bpy.context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return None
-        p1 = np.array([vector_a.x, vector_a.y, vector_a.z])
-        p2 = np.array([vector_b.x, vector_b.y, vector_b.z])
+        coord_a = np.array([vector_a.x, vector_a.y, vector_a.z])
+        coord_b = np.array([vector_b.x, vector_b.y, vector_b.z])
     if obj.mode == "OBJECT":
         objs = bpy.context.view_layer.objects.selected
         if len(objs) != 2:
             pg.error = PDT_ERR_SEL_2_OBJS + str(len(objs)) + ")"
             bpy.context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return None
-        p1 = np.array(
+        coord_a = np.array(
             [
                 objs[-1].matrix_world.decompose()[0].x,
                 objs[-1].matrix_world.decompose()[0].y,
                 objs[-1].matrix_world.decompose()[0].z,
             ]
         )
-        p2 = np.array(
+        coord_b = np.array(
             [
                 objs[-2].matrix_world.decompose()[0].x,
                 objs[-2].matrix_world.decompose()[0].y,
                 objs[-2].matrix_world.decompose()[0].z,
             ]
         )
-    p4 = np.array([0, 0, 0])
-    p3 = p2 - p1
+    coord_c = coord_b - coord_a
+    coord_d = np.array([0, 0, 0])
     _per_v = per_v
     if (flip_p and data != "MV") or data == "MV":
         _per_v = 100 - per_v
-    V = (p4+p3) * (_per_v / 100) + p1
-    return Vector((V[0], V[1], V[2]))
+    coord_out = (coord_d+coord_c) * (_per_v / 100) + coord_a
+    return Vector((coord_out[0], coord_out[1], coord_out[2]))
 
 
-def obj_check(context, obj, scene, operator):
+def obj_check(obj, scene, operator):
     """Check Object & Selection Validity.
 
     Args:
@@ -499,32 +498,29 @@ def obj_check(context, obj, scene, operator):
                 pg.error = f"{PDT_ERR_SEL_1_EDGEM} {len(bm.edges)})"
                 bpy.context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 return None, False
-            else:
-                return bm, True
+            return bm, True
         if len(bm.select_history) >= 1:
+            vector_a = None
             if _operator not in {"D", "E", "F", "G", "N", "S"}:
                 vector_a = check_selection(1, bm, obj)
             else:
                 verts = [v for v in bm.verts if v.select]
                 if len(verts) > 0:
                     vector_a = verts[0]
-                else:
-                    vector_a = None
             if vector_a is None:
                 pg.error = PDT_ERR_VERT_MODE
                 bpy.context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 return None, False
         return bm, True
-    else:
-        return None, True
+    return None, True
 
 
-def dis_ang(vals, flip_a, plane, scene):
+def dis_ang(values, flip_angle, plane, scene):
     """Set Working Axes when using Direction command.
 
     Args:
-        vals: Input Arguments (Values)
-        flip_a: Whether to flip the angle
+        values: Input Arguments
+        flip_angle: Whether to flip the angle
         plane: Working Plane
         scene: Current Scene
 
@@ -533,9 +529,9 @@ def dis_ang(vals, flip_a, plane, scene):
     """
 
     pg = scene.pdt_pg
-    dis_v = float(vals[0])
-    ang_v = float(vals[1])
-    if flip_a:
+    dis_v = float(values[0])
+    ang_v = float(values[1])
+    if flip_angle:
         if ang_v > 0:
             ang_v = ang_v - 180
         else:
@@ -555,10 +551,10 @@ def dis_ang(vals, flip_a, plane, scene):
 
 # Shader for displaying the Pivot Point as Graphics.
 #
-shader = gpu.shader.from_builtin("3D_UNIFORM_COLOR") if not bpy.app.background else None
+SHADER = gpu.shader.from_builtin("3D_UNIFORM_COLOR") if not bpy.app.background else None
 
 
-def draw3D(coords, gtype, rgba, context):
+def draw_3d(coords, gtype, rgba, context):
     """Draw Pivot Point Graphics.
 
     Draws either Lines Points, or Tris using defined shader
@@ -573,19 +569,19 @@ def draw3D(coords, gtype, rgba, context):
         Nothing.
     """
 
-    batch = batch_for_shader(shader, gtype, {"pos": coords})
+    batch = batch_for_shader(SHADER, gtype, {"pos": coords})
 
     try:
         if coords is not None:
             bgl.glEnable(bgl.GL_BLEND)
-            shader.bind()
-            shader.uniform_float("color", rgba)
-            batch.draw(shader)
+            SHADER.bind()
+            SHADER.uniform_float("color", rgba)
+            batch.draw(SHADER)
     except:
-        pass
+        raise PDT_ShaderError
 
 
-def drawCallback3D(self, context):
+def draw_callback_3d(self, context):
     """Create Coordinate List for Pivot Point Graphic.
 
     Creates coordinates for Pivot Point Graphic consisting of 6 Tris
@@ -601,73 +597,73 @@ def drawCallback3D(self, context):
 
     scene = context.scene
     pg = scene.pdt_pg
-    w = context.region.width
-    x = pg.pivot_loc.x
-    y = pg.pivot_loc.y
-    z = pg.pivot_loc.z
+    region_width = context.region.width
+    x_loc = pg.pivot_loc.x
+    y_loc = pg.pivot_loc.y
+    z_loc = pg.pivot_loc.z
     # Scale it from view
     areas = [a for a in context.screen.areas if a.type == "VIEW_3D"]
     if len(areas) > 0:
-        sf = abs(areas[0].spaces.active.region_3d.window_matrix.decompose()[2][1])
+        scale_factor = abs(areas[0].spaces.active.region_3d.window_matrix.decompose()[2][1])
     # Check for orhtographic view and resize
     #if areas[0].spaces.active.region_3d.is_orthographic_side_view:
-    #    a = w / sf / 60000 * pg.pivot_size
+    #    dim_a = region_width / sf / 60000 * pg.pivot_size
     #else:
-    #    a = w / sf / 5000 * pg.pivot_size
-    a = w / sf / 50000 * pg.pivot_size
-    b = a * 0.65
-    c = a * 0.05 + (pg.pivot_width * a * 0.02)
-    o = c / 3
+    #    dim_a = region_width / sf / 5000 * pg.pivot_size
+    dim_a = region_width / scale_factor / 50000 * pg.pivot_size
+    dim_b = dim_a * 0.65
+    dim_c = dim_a * 0.05 + (pg.pivot_width * dim_a * 0.02)
+    dim_o = dim_c / 3
 
     # fmt: off
     # X Axis
     coords = [
-        (x, y, z),
-        (x+b, y-o, z),
-        (x+b, y+o, z),
-        (x+a, y, z),
-        (x+b, y+c, z),
-        (x+b, y-c, z),
+        (x_loc, y_loc, z_loc),
+        (x_loc+dim_b, y_loc-dim_o, z_loc),
+        (x_loc+dim_b, y_loc+dim_o, z_loc),
+        (x_loc+dim_a, y_loc, z_loc),
+        (x_loc+dim_b, y_loc+dim_c, z_loc),
+        (x_loc+dim_b, y_loc-dim_c, z_loc),
     ]
     # fmt: on
     colour = (1.0, 0.0, 0.0, pg.pivot_alpha)
-    draw3D(coords, "TRIS", colour, context)
-    coords = [(x, y, z), (x+a, y, z)]
-    draw3D(coords, "LINES", colour, context)
+    draw_3d(coords, "TRIS", colour, context)
+    coords = [(x_loc, y_loc, z_loc), (x_loc+dim_a, y_loc, z_loc)]
+    draw_3d(coords, "LINES", colour, context)
     # fmt: off
     # Y Axis
     coords = [
-        (x, y, z),
-        (x-o, y+b, z),
-        (x+o, y+b, z),
-        (x, y+a, z),
-        (x+c, y+b, z),
-        (x-c, y+b, z),
+        (x_loc, y_loc, z_loc),
+        (x_loc-dim_o, y_loc+dim_b, z_loc),
+        (x_loc+dim_o, y_loc+dim_b, z_loc),
+        (x_loc, y_loc+dim_a, z_loc),
+        (x_loc+dim_c, y_loc+dim_b, z_loc),
+        (x_loc-dim_c, y_loc+dim_b, z_loc),
     ]
     # fmt: on
     colour = (0.0, 1.0, 0.0, pg.pivot_alpha)
-    draw3D(coords, "TRIS", colour, context)
-    coords = [(x, y, z), (x, y + a, z)]
-    draw3D(coords, "LINES", colour, context)
+    draw_3d(coords, "TRIS", colour, context)
+    coords = [(x_loc, y_loc, z_loc), (x_loc, y_loc + dim_a, z_loc)]
+    draw_3d(coords, "LINES", colour, context)
     # fmt: off
     # Z Axis
     coords = [
-        (x, y, z),
-        (x-o, y, z+b),
-        (x+o, y, z+b),
-        (x, y, z+a),
-        (x+c, y, z+b),
-        (x-c, y, z+b),
+        (x_loc, y_loc, z_loc),
+        (x_loc-dim_o, y_loc, z_loc+dim_b),
+        (x_loc+dim_o, y_loc, z_loc+dim_b),
+        (x_loc, y_loc, z_loc+dim_a),
+        (x_loc+dim_c, y_loc, z_loc+dim_b),
+        (x_loc-dim_c, y_loc, z_loc+dim_b),
     ]
     # fmt: on
     colour = (0.2, 0.5, 1.0, pg.pivot_alpha)
-    draw3D(coords, "TRIS", colour, context)
-    coords = [(x, y, z), (x, y, z + a)]
-    draw3D(coords, "LINES", colour, context)
+    draw_3d(coords, "TRIS", colour, context)
+    coords = [(x_loc, y_loc, z_loc), (x_loc, y_loc, z_loc + dim_a)]
+    draw_3d(coords, "LINES", colour, context)
     # Centre
-    coords = [(x, y, z)]
+    coords = [(x_loc, y_loc, z_loc)]
     colour = (1.0, 1.0, 0.0, pg.pivot_alpha)
-    draw3D(coords, "POINTS", colour, context)
+    draw_3d(coords, "POINTS", colour, context)
 
 
 def scale_set(self, context):

@@ -21,42 +21,14 @@
 # Author: Alan Odom (Clockmender), Rune Morling (ermo) Copyright (c) 2019
 # -----------------------------------------------------------------------
 #
-import bmesh
-import bpy
-import numpy as np
 from bpy.types import Operator
-from mathutils import Vector
-from mathutils.geometry import intersect_point_line
-from math import sin, cos, tan, pi, sqrt
-from .pdt_functions import (
-    check_selection,
-    set_axis,
-    view_coords,
-    view_coords_i,
-    intersection,
-)
 from .pdt_msg_strings import (
-    PDT_ERR_EDOB_MODE,
-    PDT_ERR_INT_LINES,
-    PDT_ERR_INT_NO_ALL,
     PDT_ERR_NON_VALID,
-    PDT_ERR_NO_ACT_OBJ,
-    PDT_ERR_SEL_2_OBJS,
-    PDT_ERR_SEL_2_VERTIO,
-    PDT_ERR_SEL_3_OBJS,
-    PDT_ERR_SEL_3_VERTIO,
-    PDT_ERR_SEL_4_OBJS,
-    PDT_ERR_SEL_4_VERTS,
-    PDT_ERR_TAPER_ANG,
-    PDT_ERR_TAPER_SEL,
-    PDT_ERR_VERT_MODE,
-    PDT_INF_OBJ_MOVED,
     PDT_LAB_ABS,
     PDT_LAB_DEL,
     PDT_LAB_DIR,
     PDT_LAB_INTERSECT,
     PDT_LAB_PERCENT,
-    PDT_LAB_PLANE,
 )
 
 
@@ -587,21 +559,21 @@ class PDT_OT_Fillet(Operator):
         val_round = context.preferences.addons[__package__].preferences.pdt_input_round
         if pg.fillet_intersect:
             pg.command = (
-            f"fi{str(round(pg.fillet_radius, val_round))}"
-            f",{str(round(pg.fillet_segments, val_round))}"
-            f",{str(round(pg.fillet_profile, val_round))}"
+                f"fi{str(round(pg.fillet_radius, val_round))}"
+                f",{str(round(pg.fillet_segments, val_round))}"
+                f",{str(round(pg.fillet_profile, val_round))}"
             )
         elif pg.fillet_vertices_only:
             pg.command = (
-            f"fv{str(round(pg.fillet_radius, val_round))}"
-            f",{str(round(pg.fillet_segments, val_round))}"
-            f",{str(round(pg.fillet_profile, val_round))}"
+                f"fv{str(round(pg.fillet_radius, val_round))}"
+                f",{str(round(pg.fillet_segments, val_round))}"
+                f",{str(round(pg.fillet_profile, val_round))}"
             )
         else:
             pg.command = (
-            f"fe{str(round(pg.fillet_radius, val_round))}"
-            f",{str(round(pg.fillet_segments, val_round))}"
-            f",{str(round(pg.fillet_profile, val_round))}"
+                f"fe{str(round(pg.fillet_radius, val_round))}"
+                f",{str(round(pg.fillet_segments, val_round))}"
+                f",{str(round(pg.fillet_profile, val_round))}"
             )
         return {"FINISHED"}
 

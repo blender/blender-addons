@@ -21,11 +21,9 @@
 # Author: Alan Odom (Clockmender), Rune Morling (ermo) Copyright (c) 2019
 # -----------------------------------------------------------------------
 #
-import bpy
 import bmesh
-import math
-from math import sqrt, tan, pi
 import numpy as np
+from math import sqrt, tan, pi
 from mathutils import Vector
 from mathutils.geometry import intersect_point_line
 from .pdt_functions import (
@@ -45,7 +43,7 @@ from .pdt_functions import (
 from . import pdt_exception
 PDT_SelectionError = pdt_exception.SelectionError
 PDT_InvalidVector = pdt_exception.InvalidVector
-PDT_ObjectMode = pdt_exception.ObjectMode
+PDT_ObjectModeError = pdt_exception.ObjectModeError
 PDT_InfRadius = pdt_exception.InfRadius
 PDT_NoObjectError = pdt_exception.NoObjectError
 PDT_IntersectionError = pdt_exception.IntersectionError
@@ -101,10 +99,13 @@ def vector_build(context, pg, obj, operation, values, num_values):
     flip_a = pg.flip_angle
     flip_p = pg.flip_percent
 
+    # Cartesian 3D coordinates
     if num_values == 3 and len(values) == 3:
         output_vector = Vector((float(values[0]), float(values[1]), float(values[2])))
+    # Polar 2D coordinates
     elif num_values == 2 and len(values) == 2:
         output_vector = dis_ang(values, flip_a, plane, scene)
+    # Percentage of imaginary line between two 3D coordinates
     elif num_values == 1 and len(values) == 1:
         output_vector = get_percent(obj, flip_p, float(values[0]), operation, scene)
     else:
@@ -115,7 +116,7 @@ def vector_build(context, pg, obj, operation, values, num_values):
         else:
             pg.error = PDT_ERR_BAD1VALS
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        raise pdt_InvalidVector
+        raise PDT_InvalidVector
     return output_vector
 
 
@@ -149,7 +150,7 @@ def placement_normal(context, operation):
         if obj is None:
             pg.error = PDT_ERR_NO_ACT_OBJ
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            raise PDT_ObjectMode
+            raise PDT_ObjectModeError
         obj_loc = obj.matrix_world.decompose()[0]
         bm = bmesh.from_edit_mesh(obj.data)
         if len(bm.select_history) == 3:
@@ -224,10 +225,9 @@ def placement_normal(context, operation):
     else:
         pg.error = f"{operation} {PDT_ERR_NON_VALID} {PDT_LAB_NOR}"
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-    return
 
 
-def placement_centre(context, operation):
+def placement_arc_centre(context, operation):
     """Manipulates Geometry, or Objects to an Arc Centre defined by 3 points on an Imaginary Arc.
 
     -- set position of CUrsor       (CU)
@@ -256,7 +256,7 @@ def placement_centre(context, operation):
         if obj is None:
             pg.error = PDT_ERR_NO_ACT_OBJ
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-            raise PDT_ObjectMode
+            raise PDT_ObjectModeError
         obj = context.view_layer.objects.active
         obj_loc = obj.matrix_world.decompose()[0]
         bm = bmesh.from_edit_mesh(obj.data)
@@ -333,7 +333,6 @@ def placement_centre(context, operation):
         else:
             pg.error = f"{operation} {PDT_ERR_NON_VALID} {PDT_LAB_ARCCENTRE}"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-    return
 
 
 def placement_intersect(context, operation):
@@ -556,7 +555,7 @@ def join_two_vertices(context):
     else:
         pg.error = f"{PDT_ERR_EDOB_MODE},{obj.mode})"
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        raise PDT_ObjectMode
+        raise PDT_ObjectModeError
 
 
 def set_angle_distance_two(context):
@@ -631,15 +630,12 @@ def set_angle_distance_two(context):
     if plane == "LO":
         pg.distance = round(sqrt(
             (vector_a.x - vector_b.x) ** 2 +
-            (vector_a.y - vector_b.y) ** 2), val_round
-        )
+            (vector_a.y - vector_b.y) ** 2), val_round)
     else:
         pg.distance = round(sqrt(
             (vector_a[a1] - vector_b[a1]) ** 2 +
-            (vector_a[a2] - vector_b[a2]) ** 2), val_round
-        )
-    pg.cartesian_coords = Vector(([round(i, val_round) for i in (vector_b - vector_a)]))
-    return
+            (vector_a[a2] - vector_b[a2]) ** 2), val_round)
+    pg.cartesian_coords = Vector(([round(i, val_round) for i in vector_b - vector_a]))
 
 
 def set_angle_distance_three(context):
@@ -672,7 +668,7 @@ def set_angle_distance_three(context):
                 if vector_a is None:
                     pg.error = PDT_ERR_VERT_MODE
                     context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                    raise pdt_InvalidVector
+                    raise PDT_InvalidVector
             else:
                 pg.error = f"{PDT_ERR_SEL_3_VERTIO} {len(bm.select_history)})"
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -708,8 +704,7 @@ def set_angle_distance_three(context):
     else:
         pg.angle = round(ang, val_round)
     pg.distance = round((vector_a - vector_b).length, val_round)
-    pg.cartesian_coords = Vector(([round(i, val_round) for i in (vector_b - vector_a)]))
-    return
+    pg.cartesian_coords = Vector(([round(i, val_round) for i in vector_b - vector_a]))
 
 
 def origin_to_cursor(context):
@@ -750,8 +745,7 @@ def origin_to_cursor(context):
     else:
         pg.error = f"{PDT_ERR_EDOB_MODE} {obj.mode})"
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        raise PDT_ObjectMode
-    return
+        raise PDT_ObjectModeError
 
 
 def taper(context):
@@ -809,7 +803,7 @@ def taper(context):
                 v.co[a2] = v.co[a2] - (dis_v * tan(ang_v * pi / 180))
         bmesh.update_edit_mesh(obj.data)
         bm.select_history.clear()
-        return
-    pg.error = f"{PDT_ERR_EDOB_MODE},{obj.mode})"
-    context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-    raise PDT_ObjectMode
+    else:
+        pg.error = f"{PDT_ERR_EDOB_MODE},{obj.mode})"
+        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+        raise PDT_ObjectModeError
