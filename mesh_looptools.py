@@ -3867,7 +3867,7 @@ class RemoveAnnotation(Operator):
             return {'CANCELLED'}
 
         return{'FINISHED'}
-        
+
 # GPencil operator
 class RemoveGPencil(Operator):
     bl_idname = "remove.gp"
@@ -3997,7 +3997,7 @@ class GStretch(Operator):
         looptools =  context.window_manager.looptools
         layout = self.layout
         col = layout.column()
-        
+
         col.prop(self, "method")
         col.separator()
 
@@ -4373,7 +4373,7 @@ class Space(Operator):
         if derived:
             bm_mod.free()
         terminate()
-        
+
         cache_delete("Space")
 
         return{'FINISHED'}

@@ -744,10 +744,10 @@ def vertsToPoints(Verts, splineType):
 def createCurve(context, vertArray, self):
     # output splineType 'POLY' 'NURBS' 'BEZIER'
     splineType = self.outputType
-    
+
     # GalloreType as name
     name = self.ProfileType
-    
+
     # create object
     if bpy.context.mode == 'EDIT_CURVE':
         Curve = context.active_object
@@ -756,15 +756,15 @@ def createCurve(context, vertArray, self):
         # create curve
         dataCurve = bpy.data.curves.new(name, type='CURVE')  # curve data block
         newSpline = dataCurve.splines.new(type=splineType)          # spline
-        
+
         # create object with newCurve
         Curve = object_utils.object_data_add(context, dataCurve, operator=self)  # place in active scene
-        
+
     # set newSpline Options
     newSpline.use_cyclic_u = self.use_cyclic_u
     newSpline.use_endpoint_u = self.endp_u
     newSpline.order_u = self.order_u
-    
+
     # set curve Options
     Curve.data.dimensions = self.shape
     Curve.data.use_path = True
@@ -782,7 +782,7 @@ def createCurve(context, vertArray, self):
         else:
             for point in spline.points:
                 point.select = False
-    
+
     # create spline from vertarray
     if splineType == 'BEZIER':
         newSpline.bezier_points.add(int(len(vertArray) * 0.33))
@@ -799,7 +799,7 @@ def createCurve(context, vertArray, self):
         newSpline.use_endpoint_u = True
         for point in newSpline.points:
             point.select = True
-            
+
     # move and rotate spline in edit mode
     if bpy.context.mode == 'EDIT_CURVE':
         if self.align == "WORLD":
@@ -808,7 +808,7 @@ def createCurve(context, vertArray, self):
             bpy.ops.transform.rotate(value = self.rotation[0], orient_axis = 'X', orient_type='GLOBAL')
             bpy.ops.transform.rotate(value = self.rotation[1], orient_axis = 'Y', orient_type='GLOBAL')
             bpy.ops.transform.rotate(value = self.rotation[2], orient_axis = 'Z', orient_type='GLOBAL')
-            
+
         elif self.align == "VIEW":
             bpy.ops.transform.translate(value = self.location)
             bpy.ops.transform.rotate(value = self.rotation[0], orient_axis = 'X')
@@ -1425,12 +1425,12 @@ class Curveaceous_galore(Operator, object_utils.AddObjectHelper):
 
         row = layout.row()
         row.prop(self, "shape", expand=True)
-        
+
         # output options
         col = layout.column()
         col.label(text="Output Curve Type:")
         col.row().prop(self, "outputType", expand=True)
-        
+
         if self.outputType == 'NURBS':
             col.prop(self, 'order_u')
         elif self.outputType == 'BEZIER':
@@ -1441,7 +1441,7 @@ class Curveaceous_galore(Operator, object_utils.AddObjectHelper):
 
         col = layout.column()
         col.row().prop(self, "edit_mode", expand=True)
-        
+
         col = layout.column()
         # AddObjectHelper props
         col.prop(self, "align")
@@ -1456,13 +1456,13 @@ class Curveaceous_galore(Operator, object_utils.AddObjectHelper):
         # turn off 'Enter Edit Mode'
         use_enter_edit_mode = bpy.context.preferences.edit.use_enter_edit_mode
         bpy.context.preferences.edit.use_enter_edit_mode = False
-        
+
         # main function
         main(context, self)
-        
+
         if use_enter_edit_mode:
             bpy.ops.object.mode_set(mode = 'EDIT')
-        
+
         # restore pre operator state
         bpy.context.preferences.edit.use_enter_edit_mode = use_enter_edit_mode
 
@@ -1470,9 +1470,9 @@ class Curveaceous_galore(Operator, object_utils.AddObjectHelper):
             bpy.ops.object.mode_set(mode = 'EDIT')
         else:
             bpy.ops.object.mode_set(mode = 'OBJECT')
-        
+
         return {'FINISHED'}
-        
+
     def invoke(self, context, event):
         # deal with 2D - 3D curve differences
         if self.ProfileType in ['Helix', 'Cycloid', 'Noise']:
@@ -1492,7 +1492,7 @@ class Curveaceous_galore(Operator, object_utils.AddObjectHelper):
                 self.use_cyclic_u = False
             else:
                 self.use_cyclic_u = True
-                
+
         self.execute(context)
 
         return {'FINISHED'}
