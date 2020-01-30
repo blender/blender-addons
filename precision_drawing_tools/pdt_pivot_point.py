@@ -42,6 +42,7 @@ class PDT_OT_ModalDrawOperator(bpy.types.Operator):
 
     bl_idname = "pdt.modaldraw"
     bl_label = "PDT Modal Draw"
+    bl_options = {"REGISTER", "UNDO"}
 
     _handle = None  # keep function handler
 
@@ -113,6 +114,7 @@ class PDT_OT_ViewPlaneRotate(Operator):
 
     bl_idname = "pdt.viewplanerot"
     bl_label = "PDT View Rotate"
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -167,6 +169,7 @@ class PDT_OT_ViewPlaneScale(Operator):
 
     bl_idname = "pdt.viewscale"
     bl_label = "PDT View Scale"
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -226,6 +229,7 @@ class PDT_OT_PivotToCursor(Operator):
 
     bl_idname = "pdt.pivotcursor"
     bl_label = "PDT Pivot To Cursor"
+    bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
         """Moves Pivot Point to Cursor Location.
@@ -250,6 +254,7 @@ class PDT_OT_CursorToPivot(Operator):
 
     bl_idname = "pdt.cursorpivot"
     bl_label = "PDT Cursor To Pivot"
+    bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
         """Moves Cursor to Pivot Point Location.
@@ -274,6 +279,7 @@ class PDT_OT_PivotSelected(Operator):
 
     bl_idname = "pdt.pivotselected"
     bl_label = "PDT Pivot to Selected"
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -325,6 +331,7 @@ class PDT_OT_PivotOrigin(Operator):
 
     bl_idname = "pdt.pivotorigin"
     bl_label = "PDT Pivot to Object Origin"
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -362,6 +369,7 @@ class PDT_OT_PivotWrite(Operator):
 
     bl_idname = "pdt.pivotwrite"
     bl_label = "PDT Write PP to Object?"
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -409,6 +417,7 @@ class PDT_OT_PivotRead(Operator):
 
     bl_idname = "pdt.pivotread"
     bl_label = "PDT Read PP"
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
