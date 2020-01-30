@@ -245,6 +245,8 @@ class PDT_OT_PivotToCursor(Operator):
 
         scene = context.scene
         pg = scene.pdt_pg
+        old_cursor_loc = scene.cursor.location.copy()
+        scene.cursor.location = old_cursor_loc
         pg.pivot_loc = scene.cursor.location
         return {"FINISHED"}
 
@@ -359,8 +361,10 @@ class PDT_OT_PivotOrigin(Operator):
         if obj is None:
             self.report({"ERROR"}, PDT_ERR_NO_ACT_OBJ)
             return {"FINISHED"}
+        old_cursor_loc = scene.cursor.location.copy()
         obj_loc = obj.matrix_world.decompose()[0]
         pg.pivot_loc = obj_loc
+        scene.cursor.location = old_cursor_loc
         return {"FINISHED"}
 
 
