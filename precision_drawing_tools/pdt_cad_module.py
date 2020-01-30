@@ -33,7 +33,7 @@ def point_on_edge(point, edge):
     """Find Point on Edge.
 
     Args:
-        point:        vector
+        point:    vector
         edge:     tuple containing 2 vectors.
 
     Returns:
@@ -102,7 +102,7 @@ def test_coplanar(edge1, edge2):
 def closest_idx(intersect_point, edge):
     """Get Closest Vertex to input point.
 
-    If both points in e are equally far from intersect_point, then v1 is returned.
+    If both points in edge are equally far from intersect_point, then v1 is returned.
 
     Args:
         intersect_point:       vector
@@ -146,12 +146,30 @@ def closest_vector(intersect_point, edge):
 
 
 def coords_tuple_from_edge_idx(bm, idx):
-    """Return Tuple from Vertex."""
+    """Return Tuple from Vertices.
+
+    Args:
+        bm: Object Bmesh
+        idx: Index of chosen Edge
+
+    Returns:
+        Tuple from Edge Vertices.
+    """
+
     return tuple(v.co for v in bm.edges[idx].verts)
 
 
 def vectors_from_indices(bm, raw_vert_indices):
-    """Return List of vectors from input indices."""
+    """Return List of vectors from input Vertex Indices.
+
+    Args:
+        bm: Object Bmesh
+        raw_vert_indices: List of Chosen Vertex Indices
+
+    Returns:
+        List of Vertex coordinates.
+    """
+
     return [bm.verts[i].co for i in raw_vert_indices]
 
 
@@ -163,7 +181,7 @@ def vertex_indices_from_edges_tuple(bm, edge_tuple):
         edge_tuple:   contains 2 edge indices.
 
     Returns:
-        The vertex indices of edge_tuple.
+        The vertex indices of edge_tuple as an Integer list.
     """
 
     def find_verts(ind_v, ind_w):
@@ -176,11 +194,12 @@ def get_vert_indices_from_bmedges(edges):
     """Return List of Edges for evaluation.
 
     Args:
-        bmedges:      a list of 2 bm edges
+        edges:      a list of 2 bm edges
 
     Returns:
         The vertex indices of edge_tuple as a flat list.
     """
+
     temp_edges = []
     debug(edges)
     for e in edges:
@@ -190,7 +209,16 @@ def get_vert_indices_from_bmedges(edges):
 
 
 def num_edges_point_lies_on(intersect_point, edges):
-    """Returns the number of edges that a point lies on."""
+    """Returns the number of edges that a point lies on.
+
+    Args:
+        intersection_point: Vector describing 3D coordinates of intersection point
+        edges: List of Bmesh edges
+
+    Returns:
+        Number of Intersecting Edges (Integer).
+    """
+
     res = [point_on_edge(intersect_point, edge) for edge in [edges[:2], edges[2:]]]
     return len([i for i in res if i])
 
@@ -199,12 +227,13 @@ def find_intersecting_edges(bm, intersect_point, idx1, idx2):
     """Find Intercecting Edges.
 
     Args:
-        intersect_point:           Vector
+        intersect_point: Vector describing 3D coordinates of intersection point
         idx1, ix2:    edge indices
 
     Returns:
         The list of edge indices where intersect_point is on those edges.
     """
+
     if not intersect_point:
         return []
     idxs = [idx1, idx2]
@@ -222,5 +251,6 @@ def vert_idxs_from_edge_idx(bm, idx):
     Returns:
         Vertex Indices of Edge.
     """
+
     edge = bm.edges[idx]
     return edge.verts[0].index, edge.verts[1].index

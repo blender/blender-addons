@@ -35,14 +35,30 @@ from .pdt_functions import oops
 
 
 def failure_message(context):
-    """Warn to the user to select 1 edge and 1 face."""
+    """Warn to the user to select 1 edge and 1 face.
+
+    Args:
+         context: Blender bpy.context instance.
+
+    Returns:
+        Nothing.
+    """
+
     pg = context.scene.pdt_pg
     pg.error = f"Select One Face and One Edge"
     context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
 
 
 def failure_message_on_plane(context):
-    """Report an informative error message in a popup."""
+    """Report an informative error message in a popup.
+
+    Args:
+         context: Blender bpy.context instance.
+
+    Returns:
+        Nothing.
+    """
+
     pg = context.scene.pdt_pg
     pg.error = f"{PDT_ERR_NOINT}"
     context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -51,10 +67,11 @@ def extend_vertex(context):
     """Computes Edge Extension to Face.
 
     Args:
-        None
+        context: Blender bpy.context instance.
 
     Returns:
-        Nothing."""
+        Nothing.
+    """
 
     obj = bpy.context.edit_object
     pg = context.scene.pdt_pg
@@ -116,7 +133,15 @@ class PDT_OT_EdgeToFace(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        """Only allow this to work if a mesh is selected in EDIT mode."""
+        """Only allow this to work if a mesh is selected in EDIT mode.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Boolean.
+        """
+
         obj = context.object
         if obj is None:
             return False
@@ -129,7 +154,8 @@ class PDT_OT_EdgeToFace(bpy.types.Operator):
             context: Blender bpy.context instance.
 
         Returns:
-            Status Set."""
+            Status Set.
+        """
 
         pg = context.scene.pdt_pg
         pg.command = f"etf"

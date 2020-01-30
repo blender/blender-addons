@@ -48,6 +48,13 @@ def debug(msg, prefix=""):
     The printed message will be of the form:
 
     {prefix}{caller file name:line number}| {msg}
+
+    Args:
+        msg: Incomming message to display
+        prefix: Always Blank
+
+    Returns:
+        Nothing.
     """
 
     pdt_debug = bpy.context.preferences.addons[__package__].preferences.debug
@@ -55,7 +62,14 @@ def debug(msg, prefix=""):
         import traceback
 
         def extract_filename(fullpath):
-            """Return only the filename part of fullpath (excluding its path)."""
+            """Return only the filename part of fullpath (excluding its path).
+
+            Args:
+                fullpath: Filename's full path
+
+            Returns:
+                filename.
+            """
             # Expected to end up being a string containing only the filename
             # (i.e. excluding its preceding '/' separated path)
             filename = fullpath.split('/')[-1]
@@ -83,6 +97,9 @@ def oops(self, context):
 
     Note:
         Uses pg.error scene variable
+
+    Returns:
+        Nothing.
     """
 
     scene = context.scene
@@ -265,8 +282,8 @@ def view_dir(dis_v, ang_v):
     Angles are Converts to Radians from degrees.
 
     Args:
-        dis_v: Scene distance
-        ang_v: Scene angle
+        dis_v: Scene PDT distance
+        ang_v: Scene PDT angle
 
     Returns:
         World Vector.
@@ -315,8 +332,8 @@ def arc_centre(vector_a, vector_b, vector_c):
 
     Args:
         vector_a: Active vector location
-        vector_b: Other vector location
-        vector_d: Last vector location
+        vector_b: Second vector location
+        vector_c: Third vector location
 
     Returns:
         Vector representing Arc Centre and Float representing Arc Radius.
@@ -353,10 +370,11 @@ def intersection(vertex_a, vertex_b, vertex_c, vertex_d, plane):
     whether the lines are convergent using standard Numpy Routines
     Args:
         vertex_a: Active vector location of first line
-        vertex_b: Other vector location of first line
-        vertex_d: Last vector location of 2nd line
-        vertex_c: First vector location of 2nd line
+        vertex_b: Second vector location of first line
+        vertex_c: Third vector location of 2nd line
+        vertex_d: Fourth vector location of 2nd line
         plane: Working Plane 4 Vector Locations representing 2 lines and Working Plane
+
     Returns:
         Intersection Vector and Boolean for convergent state.
     """
@@ -472,20 +490,21 @@ def get_percent(obj, flip_percent, per_v, data, scene):
     return Vector((coord_out[0], coord_out[1], coord_out[2]))
 
 
-def obj_check(obj, scene, operator):
+def obj_check(obj, scene, operation):
     """Check Object & Selection Validity.
 
     Args:
         obj: Active Object
         scene: Active Scene
-        operator: Operation to check
+        operation: The Operation e.g. Create New Vertex
 
     Returns:
-        Object Bmesh and Validity Boolean.
+        Object Bmesh
+        Validity Boolean.
     """
 
     pg = scene.pdt_pg
-    _operator = operator.upper()
+    _operation = operation.upper()
 
     if obj is None:
         pg.error = PDT_ERR_NO_ACT_OBJ
@@ -493,7 +512,7 @@ def obj_check(obj, scene, operator):
         return None, False
     if obj.mode == "EDIT":
         bm = bmesh.from_edit_mesh(obj.data)
-        if _operator == "S":
+        if _operation == "S":
             if len(bm.edges) < 1:
                 pg.error = f"{PDT_ERR_SEL_1_EDGEM} {len(bm.edges)})"
                 bpy.context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -501,7 +520,7 @@ def obj_check(obj, scene, operator):
             return bm, True
         if len(bm.select_history) >= 1:
             vector_a = None
-            if _operator not in {"D", "E", "F", "G", "N", "S"}:
+            if _operation not in {"D", "E", "F", "G", "N", "S"}:
                 vector_a = check_selection(1, bm, obj)
             else:
                 verts = [v for v in bm.verts if v.select]

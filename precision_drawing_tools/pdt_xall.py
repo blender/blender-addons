@@ -40,6 +40,7 @@ def order_points(edge, point_list):
     v1, v2 = edge
 
     def dist(coord):
+        """MEasure distance between two coordinates."""
         return (v1 - coord).length
 
     point_list = sorted(point_list, key=dist)
@@ -47,7 +48,15 @@ def order_points(edge, point_list):
 
 
 def remove_permutations_that_share_a_vertex(bm, permutations):
-    """Get useful Permutations."""
+    """Get useful Permutations.
+
+    Args:
+        bm: Object's Bmesh
+        permutations: Possible Intersection Edges as a list
+
+    Returns:
+        List of Edges.
+    """
 
     final_permutations = []
     for edges in permutations:
@@ -62,7 +71,15 @@ def remove_permutations_that_share_a_vertex(bm, permutations):
 
 
 def get_valid_permutations(bm, edge_indices):
-    """Get useful Permutations."""
+    """Get useful Permutations.
+
+    Args:
+        bm: Object's Bmesh
+        edge_indices: List of indices of Edges to consider
+
+    Returns:
+        List of suitable Edges.
+    """
 
     raw_permutations = itertools.permutations(edge_indices, 2)
     permutations = [r for r in raw_permutations if r[0] < r[1]]
@@ -71,7 +88,15 @@ def get_valid_permutations(bm, edge_indices):
 
 def can_skip(closest_points, vert_vectors):
     """Check if the intersection lies on both edges and return True
-    when criteria are not met, and thus this point can be skipped."""
+    when criteria are not met, and thus this point can be skipped.
+
+    Args:
+        closest_points: List of Coordinates of points to consider
+        vert_vectors: List of Coordinates of vertices to consider
+
+    Returns:
+        Boolean.
+    """
 
     if not closest_points:
         return True
@@ -86,7 +111,15 @@ def can_skip(closest_points, vert_vectors):
 
 
 def get_intersection_dictionary(bm, edge_indices):
-    """Return a dictionary of edge indices and points found on those edges."""
+    """Return a dictionary of edge indices and points found on those edges.
+
+    Args:
+        bm, Object's Bmesh
+        edge_indices: List of Edge Indices
+
+    Returns:
+        Dictionary of Vectors.
+    """
 
     bm.verts.ensure_lookup_table()
     bm.edges.ensure_lookup_table()
@@ -109,7 +142,7 @@ def get_intersection_dictionary(bm, edge_indices):
         # reaches this point only when an intersection happens on both edges.
         [list_k[edge].append(points[0]) for edge in edges]
 
-    # k will contain a dict of edge indices and points found on those edges.
+    # list_k will contain a dict of edge indices and points found on those edges.
     for edge_idx, unordered_points in list_k.items():
         tv1, tv2 = bm.edges[edge_idx].verts
         v1 = bm.verts[tv1.index].co
@@ -121,7 +154,15 @@ def get_intersection_dictionary(bm, edge_indices):
 
 
 def update_mesh(bm, int_dict):
-    """Make new geometry (delete old first)."""
+    """Make new geometry (delete old first).
+
+    Args:
+        bm, Object's Bmesh
+        int_dict: Dictionary of Indices of Vertices
+
+    Returns:
+        Nothing.
+    """
 
     orig_e = bm.edges
     orig_v = bm.verts
@@ -142,7 +183,16 @@ def update_mesh(bm, int_dict):
 
 
 def unselect_nonintersecting(bm, d_edges, edge_indices):
-    """Deselects Non-Intersection Edges"""
+    """Deselects Non-Intersection Edges.
+
+    Args:
+        bm, Object's Bmesh
+        d_edges: List of Intersecting Edges
+        edge_indices: List of Edge Indices to consider
+
+    Returns:
+        Nothing.
+    """
 
     if len(edge_indices) > len(d_edges):
         reserved_edges = set(edge_indices) - set(d_edges)
@@ -204,7 +254,6 @@ class PDT_OT_IntersectAllEdges(bpy.types.Operator):
         """Check to see object is in correct condidtion.
 
         Args:
-            Class,
             context: Blender bpy.context instance.
 
         Returns:

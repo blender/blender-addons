@@ -118,7 +118,15 @@ class PDT_OT_ViewPlaneRotate(Operator):
 
     @classmethod
     def poll(cls, context):
-        """Check Onject Status."""
+        """Check Object Status.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
+
         obj = context.object
         if obj is None:
             return False
@@ -173,7 +181,15 @@ class PDT_OT_ViewPlaneScale(Operator):
 
     @classmethod
     def poll(cls, context):
-        """Check Onject Status."""
+        """Check Object Status.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
+
         obj = context.object
         if obj is None:
             return False
@@ -285,7 +301,15 @@ class PDT_OT_PivotSelected(Operator):
 
     @classmethod
     def poll(cls, context):
-        """Check Onject Status."""
+        """Check Object Status.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
+
         obj = context.object
         if obj is None:
             return False
@@ -337,7 +361,15 @@ class PDT_OT_PivotOrigin(Operator):
 
     @classmethod
     def poll(cls, context):
-        """Check Onject Status."""
+        """Check Object Status.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
+
         obj = context.object
         if obj is None:
             return False
@@ -377,7 +409,15 @@ class PDT_OT_PivotWrite(Operator):
 
     @classmethod
     def poll(cls, context):
-        """Check Onject Status."""
+        """Check Object Status.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
+
         obj = context.object
         if obj is None:
             return False
@@ -425,7 +465,15 @@ class PDT_OT_PivotRead(Operator):
 
     @classmethod
     def poll(cls, context):
-        """Check Onject Status."""
+        """Check Object Status.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
+
         obj = context.object
         if obj is None:
             return False

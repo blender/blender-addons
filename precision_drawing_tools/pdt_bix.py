@@ -117,7 +117,15 @@ class PDT_OT_LineOnBisection(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        """Only allow operation on a mesh object in EDIT mode."""
+        """Only allow operation on a mesh object in EDIT mode.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Boolean.
+        """
+
         obj = context.active_object
         if obj is None:
             return False

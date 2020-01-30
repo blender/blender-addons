@@ -304,7 +304,15 @@ def command_run(self, context):
 
 
 def pdt_help(self, context):
-    """Display PDT Command Line help in a pop-up."""
+    """Display PDT Command Line help in a pop-up.
+
+    Args:
+        Self: Itself as a reference for action
+        context: Blender bpy.context instance
+
+    Returns:
+        Nothing.
+    """
     label = self.layout.label
     label(text="Primary Letters (Available Secondary Letters):")
     label(text="")
@@ -355,7 +363,10 @@ def command_maths(context, mode, pg, expression, output_target):
 
     Args:
         context: Blender bpy.context instance.
-        mode, pg, expression, output_target
+        mode: The Operation Mode, e.g. a for Absolute
+        pg: PDT Parameters Group - our variables
+        expression: The Maths component of the command input e.g. sqrt(56)
+        output_target: The output variable box on the UI
 
     Returns:
         Nothing.
@@ -395,7 +406,12 @@ def command_parse(context):
         context: Blender bpy.context instance.
 
     Returns:
-        pg, values_out, obj, obj_loc, bm, verts.
+        pg: PDT Parameters Group - our variables
+        values_out: The Output Values as a list of numbers
+        obj: The Active Object
+        obj_loc: The objects location in 3D space
+        bm: The objects Bmesh
+        verts: The object's selected vertices, or selected history vertices.
     """
     scene = context.scene
     pg = scene.pdt_pg
@@ -448,7 +464,12 @@ def move_cursor_pivot(context, pg, operation, mode, obj, verts, values):
 
     Args:
         context: Blender bpy.context instance.
-        pg, operation, mode, obj, verts, values
+        pg: PDT Parameters Group - our variables
+        operation: The Operation e.g. Create New Vertex
+        mode: The Operation Mode, e.g. a for Absolute
+        obj: The Active Object
+        verts: The object's selected vertices, or selected history vertices
+        values: The paramters passed e.g. 1,4,3 for Catrtesan Coordinates
 
     Returns:
         Nothing.
@@ -519,7 +540,13 @@ def move_entities(context, pg, operation, mode, obj, bm, verts, values):
 
     Args:
         context: Blender bpy.context instance.
-        pg, operation, mode, obj, bm, verts, values
+        pg: PDT Parameters Group - our variables
+        operation: The Operation e.g. Create New Vertex
+        mode: The Operation Mode, e.g. a for Absolute
+        obj: The Active Object
+        bm: The objects Bmesh
+        verts: The object's selected vertices, or selected history vertices
+        values: The paramters passed e.g. 1,4,3 for Catrtesan Coordinates
 
     Returns:
         Nothing.
@@ -636,7 +663,14 @@ def split_edges(context, pg, operation, mode, obj, obj_loc, bm, values):
 
     Args:
         context: Blender bpy.context instance.
-        pg, operation, mode, obj, obj_loc, bm, verts, values
+        pg: PDT Parameters Group - our variables
+        operation: The Operation e.g. Create New Vertex
+        mode: The Operation Mode, e.g. a for Absolute
+        obj: The Active Object
+        obj_loc: The objects location in 3D space
+        bm: The objects Bmesh
+        verts: The object's selected vertices, or selected history vertices
+        values: The paramters passed e.g. 1,4,3 for Catrtesan Coordinates
 
     Returns:
         Nothing.
@@ -733,7 +767,14 @@ def extrude_vertices(context, pg, operation, mode, obj, obj_loc, bm, verts, valu
 
     Args:
         context: Blender bpy.context instance.
-        pg, operation, mode, obj, onj_loc, bm, verts, values
+        pg: PDT Parameters Group - our variables
+        operation: The Operation e.g. Create New Vertex
+        mode: The Operation Mode, e.g. a for Absolute
+        obj: The Active Object
+        obj_loc: The objects location in 3D space
+        bm: The objects Bmesh
+        verts: The object's selected vertices, or selected history vertices
+        values: The paramters passed e.g. 1,4,3 for Catrtesan Coordinates
 
     Returns:
         Nothing.
@@ -791,7 +832,7 @@ def extrude_vertices(context, pg, operation, mode, obj, obj_loc, bm, verts, valu
             raise PDT_InvalidVector
         verts = [v for v in bm.verts if v.select].copy()
         new_vertex = bm.verts.new(vector_delta)
-        if extend_all :
+        if extend_all:
             for v in [v for v in bm.verts if v.select]:
                 bm.edges.new([v, new_vertex])
                 v.select_set(False)
@@ -808,7 +849,12 @@ def extrude_geometry(context, pg, operation, mode, obj, bm, values):
 
     Args:
         context: Blender bpy.context instance.
-        pg, operation, mode, obj, bm, verts, values
+        pg: PDT Parameters Group - our variables
+        operation: The Operation e.g. Create New Vertex
+        mode: The Operation Mode, e.g. a for Absolute
+        obj: The Active Object
+        bm: The objects Bmesh
+        values: The paramters passed e.g. 1,4,3 for Catrtesan Coordinates
 
     Returns:
         Nothing.
@@ -856,7 +902,12 @@ def duplicate_geometry(context, pg, operation, mode, obj, bm, values):
 
     Args:
         context: Blender bpy.context instance.
-        pg, operation, mode, obj, bm, verts, values
+        pg: PDT Parameters Group - our variables
+        operation: The Operation e.g. Create New Vertex
+        mode: The Operation Mode, e.g. a for Absolute
+        obj: The Active Object
+        bm: The objects Bmesh
+        values: The paramters passed e.g. 1,4,3 for Catrtesan Coordinates
 
     Returns:
         Nothing.
@@ -904,7 +955,13 @@ def fillet_geometry(context, pg, mode, obj, bm, verts, values):
 
     Args:
         context: Blender bpy.context instance.
-        pg, operation, mode, obj, bm, verts, values
+        pg: PDT Parameters Group - our variables
+        operation: The Operation e.g. Create New Vertex
+        mode: The Operation Mode, e.g. a for Absolute
+        obj: The Active Object
+        bm: The objects Bmesh
+        verts: The object's selected vertices, or selected history vertices
+        values: The paramters passed e.g. 1,4,3 for Catrtesan Coordinates
 
     Returns:
         Nothing.

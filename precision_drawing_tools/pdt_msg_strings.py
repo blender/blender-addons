@@ -28,6 +28,18 @@
 #
 # Menu Labels
 #
+"""This file contains all the Message Strings.
+
+    These strings are called by various programmes in PDT,
+    they can be set to suit individual User requirements.
+
+Args:
+    None
+
+Returns:
+    None
+"""
+
 PDT_LAB_ABS = "Absolute"  # "Global"
 PDT_LAB_DEL = "Delta"  # "Relative"
 PDT_LAB_DIR = "Direction"  # "Polar"

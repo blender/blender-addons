@@ -149,7 +149,7 @@ class PDT_OT_Link(Operator):
         Linked Objects are placed at Cursor Location
 
         Args:
-            context
+            context: Blender bpy.context instance.
 
         Notes:
             Uses pg.lib_objects, pg.lib_collections & pg.lib_materials

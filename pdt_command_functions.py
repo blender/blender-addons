@@ -87,8 +87,11 @@ def vector_build(context, pg, obj, operation, values, num_values):
 
     Args:
         context: Blender bpy.context instance.
-        PDT parameter group as pg, object, operation,
-        command line values, required number of values.
+        pg: PDT Parameters Group - our variables
+        obj: The Active Object
+        operation: The Operation e.g. Create New Vertex
+        values: The paramters passed e.g. 1,4,3 for Catrtesan Coordinates
+        num_values: The number of values passed - determines the function
 
     Returns:
         Vector to position, or offset items.
@@ -123,19 +126,9 @@ def vector_build(context, pg, obj, operation, values, num_values):
 def placement_normal(context, operation):
     """Manipulates Geometry, or Objects by Normal Intersection between 3 points.
 
-    -- set position of CUrsor       (CU)
-    -- set position of Pivot Point  (PP)
-    -- MoVe geometry/objects        (MV)
-    -- Extrude Vertices             (EV)
-    -- Split Edges                  (SE)
-    -- add a New Vertex             (NV)
-
-    Invalid Options result in "oops" Error.
-
-    Local vector variable 'vector_delta' used to reposition features.
-
     Args:
         context: Blender bpy.context instance.
+        operation: The Operation e.g. Create New Vertex
 
     Returns:
         Status Set.
@@ -186,7 +179,7 @@ def placement_normal(context, operation):
             pg.pivot_loc = vector_delta
     elif operation == "G":
         if obj.mode == "EDIT":
-            if extend_all :
+            if extend_all:
                 for v in [v for v in bm.verts if v.select]:
                     v.co = vector_delta
                 bm.select_history.clear()
@@ -212,7 +205,7 @@ def placement_normal(context, operation):
     elif operation == "V" and obj.mode == "EDIT":
         vector_new = vector_delta
         vertex_new = bm.verts.new(vector_new)
-        if extend_all :
+        if extend_all:
             for v in [v for v in bm.verts if v.select]:
                 bm.edges.new([v, vertex_new])
         else:
@@ -230,18 +223,9 @@ def placement_normal(context, operation):
 def placement_arc_centre(context, operation):
     """Manipulates Geometry, or Objects to an Arc Centre defined by 3 points on an Imaginary Arc.
 
-    -- set position of CUrsor       (CU)
-    -- set position of Pivot Point  (PP)
-    -- MoVe geometry/objects        (MV)
-    -- Extrude Vertices             (EV)
-    -- add a New vertex             (NV)
-
-    Invalid Options result in "oops" Error.
-
-    Local vector variable 'vector_delta' used to reposition features.
-
     Args:
         context: Blender bpy.context instance.
+        operation: The Operation e.g. Create New Vertex
 
     Returns:
         Status Set.
@@ -288,7 +272,7 @@ def placement_arc_centre(context, operation):
             bm.select_history.clear()
             vertex_new.select_set(True)
         elif operation == "G":
-            if extend_all :
+            if extend_all:
                 for v in [v for v in bm.verts if v.select]:
                     v.co = vector_delta
                 bm.select_history.clear()
@@ -299,7 +283,7 @@ def placement_arc_centre(context, operation):
             bmesh.update_edit_mesh(obj.data)
         elif operation == "V":
             vertex_new = bm.verts.new(vector_delta)
-            if extend_all :
+            if extend_all:
                 for v in [v for v in bm.verts if v.select]:
                     bm.edges.new([v, vertex_new])
                     v.select_set(False)
@@ -338,19 +322,9 @@ def placement_arc_centre(context, operation):
 def placement_intersect(context, operation):
     """Manipulates Geometry, or Objects by Convergance Intersection between 4 points, or 2 Edges.
 
-    - Reads pg.plane scene variable and operates in Working Plane to:
-    -- set position of CUrsor       (CU)
-    -- set position of Pivot Point  (PP)
-    -- MoVe geometry/objects        (MV)
-    -- Extrude Vertices             (EV)
-    -- add a New vertex             (NV)
-
-    Invalid Options result in "oops" Error.
-
-    Local vector variable 'vector_delta' used to reposition features.
-
     Args:
         context: Blender bpy.context instance.
+        operation: The Operation e.g. Create New Vertex
 
     Returns:
         Status Set.
@@ -426,32 +400,32 @@ def placement_intersect(context, operation):
                     bm.edges.new([vertex_a, vertex_new])
                     process = True
             else:
-                if operation == "G" and extend_all :
+                if operation == "G" and extend_all:
                     vertex_b.co = vector_delta
-                elif operation == "V" and extend_all :
+                elif operation == "V" and extend_all:
                     vertex_new = bm.verts.new(vector_delta)
                     bm.edges.new([vertex_b, vertex_new])
                 else:
                     return
 
             if (vertex_c.co - vector_delta).length < (vertex_d.co - vector_delta).length:
-                if operation == "G" and extend_all :
+                if operation == "G" and extend_all:
                     vertex_c.co = vector_delta
-                elif operation == "V" and extend_all :
+                elif operation == "V" and extend_all:
                     bm.edges.new([vertex_c, vertex_new])
                 else:
                     return
             else:
-                if operation == "G" and extend_all :
+                if operation == "G" and extend_all:
                     vertex_d.co = vector_delta
-                elif operation == "V" and extend_all :
+                elif operation == "V" and extend_all:
                     bm.edges.new([vertex_d, vertex_new])
                 else:
                     return
             bm.select_history.clear()
             bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
 
-            if not process and not extend_all :
+            if not process and not extend_all:
                 pg.error = PDT_ERR_INT_NO_ALL
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 bmesh.update_edit_mesh(obj.data)

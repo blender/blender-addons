@@ -85,7 +85,8 @@ class PDT_OT_ViewRotL(Operator):
         Notes:
             Uses pg.vrotangle scene variable
 
-        Returns: Status Set.
+        Returns:
+            Status Set.
         """
 
         scene = context.scene
@@ -229,7 +230,8 @@ class PDT_OT_ViewIso(Operator):
         Returns:
             Status Set.
         """
-        # Try working this out in your head!
+
+        # Rotate view 45 degrees about Z then 32.2644 about X
         context.region_data.view_rotation = Quaternion((0.8205, 0.4247, -0.1759, -0.3399))
         context.region_data.view_perspective = "ORTHO"
         return {"FINISHED"}
