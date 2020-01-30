@@ -131,8 +131,8 @@ class PDT_OT_Append(Operator):
                 )
                 return {"FINISHED"}
 
-        errmsg = PDT_ERR_NO_LIBRARY
-        self.report({"ERROR"}, errmsg)
+        error_message = PDT_ERR_NO_LIBRARY
+        self.report({"ERROR"}, error_message)
         return {"FINISHED"}
 
 
@@ -191,6 +191,6 @@ class PDT_OT_Link(Operator):
                 )
                 return {"FINISHED"}
 
-        errmsg = PDT_ERR_NO_LIBRARY
-        self.report({"ERROR"}, errmsg)
+        error_message = PDT_ERR_NO_LIBRARY
+        self.report({"ERROR"}, error_message)
         return {"FINISHED"}

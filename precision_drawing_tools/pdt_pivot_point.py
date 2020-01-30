@@ -148,8 +148,8 @@ class PDT_OT_ViewPlaneRotate(Operator):
             self.report({"ERROR"}, PDT_ERR_NO_ACT_OBJ)
             return {"FINISHED"}
         if obj.mode != "EDIT":
-            errmsg = f"{PDT_ERR_EDIT_MODE} {obj.mode})"
-            self.report({"ERROR"}, errmsg)
+            error_message = f"{PDT_ERR_EDIT_MODE} {obj.mode})"
+            self.report({"ERROR"}, error_message)
             return {"FINISHED"}
         bm = bmesh.from_edit_mesh(obj.data)
         v1 = Vector((0, 0, 0))
@@ -203,8 +203,8 @@ class PDT_OT_ViewPlaneScale(Operator):
             self.report({"ERROR"}, PDT_ERR_NO_ACT_OBJ)
             return {"FINISHED"}
         if obj.mode != "EDIT":
-            errmsg = f"{PDT_ERR_EDIT_MODE} {obj.mode})"
-            self.report({"ERROR"}, errmsg)
+            error_message = f"{PDT_ERR_EDIT_MODE} {obj.mode})"
+            self.report({"ERROR"}, error_message)
             return {"FINISHED"}
         bm = bmesh.from_edit_mesh(obj.data)
         verts = verts = [v for v in bm.verts if v.select]
@@ -246,8 +246,8 @@ class PDT_OT_PivotToCursor(Operator):
         scene = context.scene
         pg = scene.pdt_pg
         old_cursor_loc = scene.cursor.location.copy()
-        scene.cursor.location = old_cursor_loc
         pg.pivot_loc = scene.cursor.location
+        scene.cursor.location = old_cursor_loc
         return {"FINISHED"}
 
 
@@ -312,8 +312,8 @@ class PDT_OT_PivotSelected(Operator):
             self.report({"ERROR"}, PDT_ERR_NO_ACT_OBJ)
             return {"FINISHED"}
         if obj.mode != "EDIT":
-            errmsg = f"{PDT_ERR_EDIT_MODE} {obj.mode})"
-            self.report({"ERROR"}, errmsg)
+            error_message = f"{PDT_ERR_EDIT_MODE} {obj.mode})"
+            self.report({"ERROR"}, error_message)
             return {"FINISHED"}
         bm = bmesh.from_edit_mesh(obj.data)
         verts = verts = [v for v in bm.verts if v.select]

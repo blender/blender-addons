@@ -405,7 +405,7 @@ def intersection(vertex_a, vertex_b, vertex_c, vertex_d, plane):
     return vector_delta, True
 
 
-def get_percent(obj, flip_p, per_v, data, scene):
+def get_percent(obj, flip_percent, per_v, data, scene):
     """Calculates a Percentage Distance between 2 Vectors.
 
     Calculates a point that lies a set percentage between two given points
@@ -416,7 +416,7 @@ def get_percent(obj, flip_p, per_v, data, scene):
 
     Args:
         obj: The Object under consideration
-        flip_p: Setting this to True measures the percentage starting from the second vector
+        flip_percent: Setting this to True measures the percentage starting from the second vector
         per_v: Percentage Input Value
         data: pg.flip, pg.percent scene variables & Operational Mode
         scene: Context Scene
@@ -466,7 +466,7 @@ def get_percent(obj, flip_p, per_v, data, scene):
     coord_c = coord_b - coord_a
     coord_d = np.array([0, 0, 0])
     _per_v = per_v
-    if (flip_p and data != "MV") or data == "MV":
+    if (flip_percent and data != "MV") or data == "MV":
         _per_v = 100 - per_v
     coord_out = (coord_d+coord_c) * (_per_v / 100) + coord_a
     return Vector((coord_out[0], coord_out[1], coord_out[2]))
@@ -683,8 +683,8 @@ def scale_set(self, context):
 
     scene = context.scene
     pg = scene.pdt_pg
-    sys_dis = pg.distance
-    scale_dis = pg.pivot_dis
-    if scale_dis > 0:
-        scale_fac = scale_dis / sys_dis
-        pg.pivot_scale = Vector((scale_fac, scale_fac, scale_fac))
+    sys_distance = pg.distance
+    scale_distance = pg.pivot_dis
+    if scale_distance > 0:
+        scale_factor = scale_distance / sys_distance
+        pg.pivot_scale = Vector((scale_factor, scale_factor, scale_factor))

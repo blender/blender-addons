@@ -142,9 +142,9 @@ def enumlist_objects(self, context):
     if path.is_file() and ".blend" in str(path):
         with bpy.data.libraries.load(str(path)) as (data_from, _):
             if len(pg.object_search_string) == 0:
-                object_names = [ob for ob in data_from.objects]
+                object_names = [obj for obj in data_from.objects]
             else:
-                object_names = [ob for ob in data_from.objects if pg.object_search_string in ob]
+                object_names = [obj for obj in data_from.objects if pg.object_search_string in obj]
         for object_name in object_names:
             _pdt_obj_items.append((object_name, object_name, ""))
     else:
@@ -174,10 +174,10 @@ def enumlist_collections(self, context):
     if path.is_file() and ".blend" in str(path):
         with bpy.data.libraries.load(str(path)) as (data_from, _):
             if len(pg.collection_search_string) == 0:
-                object_names = [ob for ob in data_from.collections]
+                object_names = [obj for obj in data_from.collections]
             else:
                 object_names = [
-                    ob for ob in data_from.collections if pg.collection_search_string in ob
+                    obj for obj in data_from.collections if pg.collection_search_string in obj
                 ]
         for object_name in object_names:
             _pdt_col_items.append((object_name, object_name, ""))
@@ -208,9 +208,11 @@ def enumlist_materials(self, context):
     if path.is_file() and ".blend" in str(path):
         with bpy.data.libraries.load(str(path)) as (data_from, _):
             if len(pg.material_search_string) == 0:
-                object_names = [ob for ob in data_from.materials]
+                object_names = [obj for obj in data_from.materials]
             else:
-                object_names = [ob for ob in data_from.materials if pg.material_search_string in ob]
+                object_names = [
+                    obj for obj in data_from.materials if pg.material_search_string in obj
+                ]
         for object_name in object_names:
             _pdt_mat_items.append((object_name, object_name, ""))
     else:

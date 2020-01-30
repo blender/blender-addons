@@ -370,22 +370,22 @@ def command_maths(context, mode, pg, expression, output_target):
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         raise PDT_MathsError
 
-    val_round = context.preferences.addons[__package__].preferences.pdt_input_round
+    decimal_places = context.preferences.addons[__package__].preferences.pdt_input_round
     if output_target == "x":
-        pg.cartesian_coords.x = round(maths_result, val_round)
+        pg.cartesian_coords.x = round(maths_result, decimal_places)
     elif output_target == "y":
-        pg.cartesian_coords.y = round(maths_result, val_round)
+        pg.cartesian_coords.y = round(maths_result, decimal_places)
     elif output_target == "z":
-        pg.cartesian_coords.z = round(maths_result, val_round)
+        pg.cartesian_coords.z = round(maths_result, decimal_places)
     elif output_target == "d":
-        pg.distance = round(maths_result, val_round)
+        pg.distance = round(maths_result, decimal_places)
     elif output_target == "a":
-        pg.angle = round(maths_result, val_round)
+        pg.angle = round(maths_result, decimal_places)
     elif output_target == "p":
-        pg.percent = round(maths_result, val_round)
+        pg.percent = round(maths_result, decimal_places)
     else:
         # Must be "o"
-        pg.maths_output = round(maths_result, val_round)
+        pg.maths_output = round(maths_result, decimal_places)
 
 
 def command_parse(context):
@@ -414,8 +414,8 @@ def command_parse(context):
             values[ind] = "0.0"
         ind = ind + 1
     # Apply System Rounding
-    val_round = context.preferences.addons[__package__].preferences.pdt_input_round
-    values_out = [str(round(float(v), val_round)) for v in values]
+    decimal_places = context.preferences.addons[__package__].preferences.pdt_input_round
+    values_out = [str(round(float(v), decimal_places)) for v in values]
 
     bm, good = obj_check(obj, scene, operation)
     if good:
@@ -473,9 +473,6 @@ def move_cursor_pivot(context, pg, operation, mode, obj, verts, values):
             vector_delta = vector_build(context, pg, obj, operation, values, 1)
         except:
             raise PDT_InvalidVector
-
-    if vector_delta is None:
-        raise PDT_InvalidVector
 
     scene = context.scene
     mode_sel = pg.select
@@ -787,14 +784,14 @@ def extrude_vertices(context, pg, operation, mode, obj, obj_loc, bm, verts, valu
             new_vertex.select_set(True)
     # Percent Options
     elif mode == "p":
-        ext_a = pg.extend
+        extend_all  = pg.extend
         try:
             vector_delta = vector_build(context, pg, obj, operation, values, 1)
         except:
             raise PDT_InvalidVector
         verts = [v for v in bm.verts if v.select].copy()
         new_vertex = bm.verts.new(vector_delta)
-        if ext_a:
+        if extend_all :
             for v in [v for v in bm.verts if v.select]:
                 bm.edges.new([v, new_vertex])
                 v.select_set(False)

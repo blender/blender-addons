@@ -96,18 +96,18 @@ def vector_build(context, pg, obj, operation, values, num_values):
 
     scene = context.scene
     plane = pg.plane
-    flip_a = pg.flip_angle
-    flip_p = pg.flip_percent
+    flip_angle = pg.flip_angle
+    flip_percent= pg.flip_percent
 
     # Cartesian 3D coordinates
     if num_values == 3 and len(values) == 3:
         output_vector = Vector((float(values[0]), float(values[1]), float(values[2])))
     # Polar 2D coordinates
     elif num_values == 2 and len(values) == 2:
-        output_vector = dis_ang(values, flip_a, plane, scene)
+        output_vector = dis_ang(values, flip_angle, plane, scene)
     # Percentage of imaginary line between two 3D coordinates
     elif num_values == 1 and len(values) == 1:
-        output_vector = get_percent(obj, flip_p, float(values[0]), operation, scene)
+        output_vector = get_percent(obj, flip_percent, float(values[0]), operation, scene)
     else:
         if num_values == 3:
             pg.error = PDT_ERR_BAD3VALS
@@ -143,7 +143,7 @@ def placement_normal(context, operation):
 
     scene = context.scene
     pg = scene.pdt_pg
-    ext_a = pg.extend
+    extend_all = pg.extend
     obj = context.view_layer.objects.active
 
     if obj.mode == "EDIT":
@@ -186,7 +186,7 @@ def placement_normal(context, operation):
             pg.pivot_loc = vector_delta
     elif operation == "G":
         if obj.mode == "EDIT":
-            if ext_a:
+            if extend_all :
                 for v in [v for v in bm.verts if v.select]:
                     v.co = vector_delta
                 bm.select_history.clear()
@@ -212,7 +212,7 @@ def placement_normal(context, operation):
     elif operation == "V" and obj.mode == "EDIT":
         vector_new = vector_delta
         vertex_new = bm.verts.new(vector_new)
-        if ext_a:
+        if extend_all :
             for v in [v for v in bm.verts if v.select]:
                 bm.edges.new([v, vertex_new])
         else:
@@ -249,7 +249,7 @@ def placement_arc_centre(context, operation):
 
     scene = context.scene
     pg = scene.pdt_pg
-    ext_a = pg.extend
+    extend_all = pg.extend
     obj = context.view_layer.objects.active
 
     if obj.mode == "EDIT":
@@ -288,7 +288,7 @@ def placement_arc_centre(context, operation):
             bm.select_history.clear()
             vertex_new.select_set(True)
         elif operation == "G":
-            if ext_a:
+            if extend_all :
                 for v in [v for v in bm.verts if v.select]:
                     v.co = vector_delta
                 bm.select_history.clear()
@@ -299,7 +299,7 @@ def placement_arc_centre(context, operation):
             bmesh.update_edit_mesh(obj.data)
         elif operation == "V":
             vertex_new = bm.verts.new(vector_delta)
-            if ext_a:
+            if extend_all :
                 for v in [v for v in bm.verts if v.select]:
                     bm.edges.new([v, vertex_new])
                     v.select_set(False)
@@ -368,7 +368,7 @@ def placement_intersect(context, operation):
         obj_loc = obj.matrix_world.decompose()[0]
         bm = bmesh.from_edit_mesh(obj.data)
         edges = [e for e in bm.edges if e.select]
-        ext_a = pg.extend
+        extend_all = pg.extend
 
         if len(edges) == 2:
             vertex_a = edges[0].verts[0]
@@ -415,43 +415,43 @@ def placement_intersect(context, operation):
             bm.select_history.clear()
         elif operation in {"G", "V"}:
             vertex_new = None
-            proc = False
+            process = False
 
             if (vertex_a.co - vector_delta).length < (vertex_b.co - vector_delta).length:
                 if operation == "G":
                     vertex_a.co = vector_delta
-                    proc = True
+                    process = True
                 else:
                     vertex_new = bm.verts.new(vector_delta)
                     bm.edges.new([vertex_a, vertex_new])
-                    proc = True
+                    process = True
             else:
-                if operation == "G" and ext_a:
+                if operation == "G" and extend_all :
                     vertex_b.co = vector_delta
-                elif operation == "V" and ext_a:
+                elif operation == "V" and extend_all :
                     vertex_new = bm.verts.new(vector_delta)
                     bm.edges.new([vertex_b, vertex_new])
                 else:
                     return
 
             if (vertex_c.co - vector_delta).length < (vertex_d.co - vector_delta).length:
-                if operation == "G" and ext_a:
+                if operation == "G" and extend_all :
                     vertex_c.co = vector_delta
-                elif operation == "V" and ext_a:
+                elif operation == "V" and extend_all :
                     bm.edges.new([vertex_c, vertex_new])
                 else:
                     return
             else:
-                if operation == "G" and ext_a:
+                if operation == "G" and extend_all :
                     vertex_d.co = vector_delta
-                elif operation == "V" and ext_a:
+                elif operation == "V" and extend_all :
                     bm.edges.new([vertex_d, vertex_new])
                 else:
                     return
             bm.select_history.clear()
             bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
 
-            if not proc and not ext_a:
+            if not process and not extend_all :
                 pg.error = PDT_ERR_INT_NO_ALL
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 bmesh.update_edit_mesh(obj.data)
@@ -575,7 +575,7 @@ def set_angle_distance_two(context):
     scene = context.scene
     pg = scene.pdt_pg
     plane = pg.plane
-    flip_a = pg.flip_angle
+    flip_angle = pg.flip_angle
     obj = context.view_layer.objects.active
     if obj is None:
         pg.error = PDT_ERR_NO_ACT_OBJ
@@ -619,23 +619,23 @@ def set_angle_distance_two(context):
         v0 = np.array([vector_a[a1] + 1, vector_a[a2]]) - np.array([vector_a[a1], vector_a[a2]])
         v1 = np.array([vector_b[a1], vector_b[a2]]) - np.array([vector_a[a1], vector_a[a2]])
     ang = np.rad2deg(np.arctan2(np.linalg.det([v0, v1]), np.dot(v0, v1)))
-    val_round = context.preferences.addons[__package__].preferences.pdt_input_round
-    if flip_a:
+    decimal_places = context.preferences.addons[__package__].preferences.pdt_input_round
+    if flip_angle:
         if ang > 0:
-            pg.angle = round(ang - 180, val_round)
+            pg.angle = round(ang - 180, decimal_places)
         else:
-            pg.angle = round(ang - 180, val_round)
+            pg.angle = round(ang - 180, decimal_places)
     else:
-        pg.angle = round(ang, val_round)
+        pg.angle = round(ang, decimal_places)
     if plane == "LO":
         pg.distance = round(sqrt(
             (vector_a.x - vector_b.x) ** 2 +
-            (vector_a.y - vector_b.y) ** 2), val_round)
+            (vector_a.y - vector_b.y) ** 2), decimal_places)
     else:
         pg.distance = round(sqrt(
             (vector_a[a1] - vector_b[a1]) ** 2 +
-            (vector_a[a2] - vector_b[a2]) ** 2), val_round)
-    pg.cartesian_coords = Vector(([round(i, val_round) for i in vector_b - vector_a]))
+            (vector_a[a2] - vector_b[a2]) ** 2), decimal_places)
+    pg.cartesian_coords = Vector(([round(i, decimal_places) for i in vector_b - vector_a]))
 
 
 def set_angle_distance_three(context):
@@ -653,7 +653,7 @@ def set_angle_distance_three(context):
     """
 
     pg = context.scene.pdt_pg
-    flip_a = pg.flip_angle
+    flip_angle = pg.flip_angle
     obj = context.view_layer.objects.active
     if obj is None:
         pg.error = PDT_ERR_NO_ACT_OBJ
@@ -695,16 +695,16 @@ def set_angle_distance_three(context):
     )
     angle_cosine = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
     ang = np.degrees(np.arccos(angle_cosine))
-    val_round = context.preferences.addons[__package__].preferences.pdt_input_round
-    if flip_a:
+    decimal_places = context.preferences.addons[__package__].preferences.pdt_input_round
+    if flip_angle:
         if ang > 0:
-            pg.angle = round(ang - 180, val_round)
+            pg.angle = round(ang - 180, decimal_places)
         else:
-            pg.angle = round(ang - 180, val_round)
+            pg.angle = round(ang - 180, decimal_places)
     else:
-        pg.angle = round(ang, val_round)
-    pg.distance = round((vector_a - vector_b).length, val_round)
-    pg.cartesian_coords = Vector(([round(i, val_round) for i in vector_b - vector_a]))
+        pg.angle = round(ang, decimal_places)
+    pg.distance = round((vector_a - vector_b).length, decimal_places)
+    pg.cartesian_coords = Vector(([round(i, decimal_places) for i in vector_b - vector_a]))
 
 
 def origin_to_cursor(context):

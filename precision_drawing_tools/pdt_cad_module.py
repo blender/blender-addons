@@ -166,10 +166,10 @@ def vertex_indices_from_edges_tuple(bm, edge_tuple):
         The vertex indices of edge_tuple.
     """
 
-    def k(ind_v, ind_w):
+    def find_verts(ind_v, ind_w):
         return bm.edges[edge_tuple[ind_v]].verts[ind_w].index
 
-    return [k(i >> 1, i % 2) for i in range(4)]
+    return [find_verts(i >> 1, i % 2) for i in range(4)]
 
 
 def get_vert_indices_from_bmedges(edges):
