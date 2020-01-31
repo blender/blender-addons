@@ -118,9 +118,12 @@ def check_render_engine(props, obs):
                         if n.type not in shaders:
                             shaders.append(n.type)
                     if n.type == 'TEX_IMAGE':
-                        mattype = 'image based'
-                        props.is_procedural = False
-                        if n.image not in textures:
+
+
+                        if n.image is not None and n.image not in textures:
+                            props.is_procedural = False
+                            mattype = 'image based'
+
                             textures.append(n.image)
                             props.texture_count += 1
                             props.total_megapixels += (n.image.size[0] * n.image.size[1])
