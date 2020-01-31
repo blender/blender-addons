@@ -48,7 +48,7 @@ class PDT_OT_ViewRot(Operator):
         Args:
             context: Blender bpy.context instance.
 
-        Notes:
+        Note:
             Uses pg.rotation_coords scene variables
 
         Returns:
@@ -82,7 +82,7 @@ class PDT_OT_ViewRotL(Operator):
         Args:
             context: Blender bpy.context instance.
 
-        Notes:
+        Note:
             Uses pg.vrotangle scene variable
 
         Returns:
@@ -111,7 +111,7 @@ class PDT_OT_ViewRotR(Operator):
         Args:
             context: Blender bpy.context instance.
 
-        Notes:
+        Note:
             Uses pg.vrotangle scene variable
 
         Returns:
@@ -140,7 +140,7 @@ class PDT_OT_ViewRotU(Operator):
         Args:
             context: Blender bpy.context instance.
 
-        Notes:
+        Note:
             Uses pg.vrotangle scene variable
 
         Returns:
@@ -169,7 +169,7 @@ class PDT_OT_ViewRotD(Operator):
         Args:
             context: Blender bpy.context instance.
 
-        Notes:
+        Note:
             Uses pg.vrotangle scene variable
 
         Returns:
@@ -198,7 +198,7 @@ class PDT_OT_ViewRoll(Operator):
         Args:
             context: Blender bpy.context instance.
 
-        Notes:
+        Note:
             Uses pg.vrotangle scene variable
 
         Returns:

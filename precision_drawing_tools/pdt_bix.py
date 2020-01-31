@@ -134,6 +134,11 @@ class PDT_OT_LineOnBisection(bpy.types.Operator):
     def execute(self, context):
         """Computes Bisector of 2 Co-Planar Edges.
 
+        Note:
+            Requires an Active Object
+            Active Object must be Mesh type
+            Active Object must be in Edit Mode.
+
         Args:
             context: Blender bpy.context instance.
 

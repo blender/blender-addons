@@ -73,7 +73,7 @@ class PDT_OT_Append(Operator):
         Args:
             context: Blender bpy.context instance.
 
-        Notes:
+        Note:
             Uses pg.lib_objects, pg.lib_collections & pg.lib_materials
 
         Returns:
@@ -151,7 +151,7 @@ class PDT_OT_Link(Operator):
         Args:
             context: Blender bpy.context instance.
 
-        Notes:
+        Note:
             Uses pg.lib_objects, pg.lib_collections & pg.lib_materials
 
         Returns:

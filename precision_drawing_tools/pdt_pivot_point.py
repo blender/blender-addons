@@ -142,7 +142,7 @@ class PDT_OT_ViewPlaneRotate(Operator):
         Args:
             context: Blender bpy.context instance.
 
-        Notes:
+        Note:
             Uses pg.pivot_loc, pg.pivot_ang scene variables
 
         Returns:
