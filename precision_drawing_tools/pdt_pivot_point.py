@@ -26,7 +26,7 @@ import bmesh
 from bpy.types import Operator, SpaceView3D
 from mathutils import Vector, Matrix
 from math import pi
-from .pdt_functions import viewCoords, drawCallback3D
+from .pdt_functions import view_coords, draw_callback_3d
 from .pdt_msg_strings import (
     PDT_CON_AREYOURSURE,
     PDT_ERR_EDIT_MODE,
@@ -42,6 +42,7 @@ class PDT_OT_ModalDrawOperator(bpy.types.Operator):
 
     bl_idname = "pdt.modaldraw"
     bl_label = "PDT Modal Draw"
+    bl_options = {"REGISTER", "UNDO"}
 
     _handle = None  # keep function handler
 
@@ -60,7 +61,7 @@ class PDT_OT_ModalDrawOperator(bpy.types.Operator):
 
         if PDT_OT_ModalDrawOperator._handle is None:
             PDT_OT_ModalDrawOperator._handle = SpaceView3D.draw_handler_add(
-                drawCallback3D, (self, context), "WINDOW", "POST_VIEW"
+                draw_callback_3d, (self, context), "WINDOW", "POST_VIEW"
             )
             context.window_manager.pdt_run_opengl = True
 
@@ -103,9 +104,8 @@ class PDT_OT_ModalDrawOperator(bpy.types.Operator):
                 context.area.tag_redraw()
 
             return {"FINISHED"}
-        else:
-            self.report({"ERROR"}, PDT_ERR_NO3DVIEW)
 
+        self.report({"ERROR"}, PDT_ERR_NO3DVIEW)
         return {"CANCELLED"}
 
 
@@ -114,13 +114,23 @@ class PDT_OT_ViewPlaneRotate(Operator):
 
     bl_idname = "pdt.viewplanerot"
     bl_label = "PDT View Rotate"
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        ob = context.object
-        if ob is None:
+        """Check Object Status.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
+
+        obj = context.object
+        if obj is None:
             return False
-        return all([bool(ob), ob.type == "MESH", ob.mode == "EDIT"])
+        return all([bool(obj), obj.type == "MESH", obj.mode == "EDIT"])
 
 
     def execute(self, context):
@@ -132,7 +142,7 @@ class PDT_OT_ViewPlaneRotate(Operator):
         Args:
             context: Blender bpy.context instance.
 
-        Notes:
+        Note:
             Uses pg.pivot_loc, pg.pivot_ang scene variables
 
         Returns:
@@ -146,12 +156,12 @@ class PDT_OT_ViewPlaneRotate(Operator):
             self.report({"ERROR"}, PDT_ERR_NO_ACT_OBJ)
             return {"FINISHED"}
         if obj.mode != "EDIT":
-            errmsg = f"{PDT_ERR_EDIT_MODE} {obj.mode})"
-            self.report({"ERROR"}, errmsg)
+            error_message = f"{PDT_ERR_EDIT_MODE} {obj.mode})"
+            self.report({"ERROR"}, error_message)
             return {"FINISHED"}
         bm = bmesh.from_edit_mesh(obj.data)
         v1 = Vector((0, 0, 0))
-        v2 = viewCoords(0, 0, 1)
+        v2 = view_coords(0, 0, 1)
         axis = (v2 - v1).normalized()
         rot = Matrix.Rotation((pg.pivot_ang * pi / 180), 4, axis)
         verts = verts = [v for v in bm.verts if v.select]
@@ -167,13 +177,23 @@ class PDT_OT_ViewPlaneScale(Operator):
 
     bl_idname = "pdt.viewscale"
     bl_label = "PDT View Scale"
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        ob = context.object
-        if ob is None:
+        """Check Object Status.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
+
+        obj = context.object
+        if obj is None:
             return False
-        return all([bool(ob), ob.type == "MESH", ob.mode == "EDIT"])
+        return all([bool(obj), obj.type == "MESH", obj.mode == "EDIT"])
 
 
     def execute(self, context):
@@ -199,23 +219,23 @@ class PDT_OT_ViewPlaneScale(Operator):
             self.report({"ERROR"}, PDT_ERR_NO_ACT_OBJ)
             return {"FINISHED"}
         if obj.mode != "EDIT":
-            errmsg = f"{PDT_ERR_EDIT_MODE} {obj.mode})"
-            self.report({"ERROR"}, errmsg)
+            error_message = f"{PDT_ERR_EDIT_MODE} {obj.mode})"
+            self.report({"ERROR"}, error_message)
             return {"FINISHED"}
         bm = bmesh.from_edit_mesh(obj.data)
         verts = verts = [v for v in bm.verts if v.select]
         for v in verts:
-            dx = (pg.pivot_loc.x - obj.matrix_world.decompose()[0].x - v.co.x) * (
+            delta_x = (pg.pivot_loc.x - obj.matrix_world.decompose()[0].x - v.co.x) * (
                 1 - pg.pivot_scale.x
             )
-            dy = (pg.pivot_loc.y - obj.matrix_world.decompose()[0].y - v.co.y) * (
+            delta_y = (pg.pivot_loc.y - obj.matrix_world.decompose()[0].y - v.co.y) * (
                 1 - pg.pivot_scale.y
             )
-            dz = (pg.pivot_loc.z - obj.matrix_world.decompose()[0].z - v.co.z) * (
+            delta_z = (pg.pivot_loc.z - obj.matrix_world.decompose()[0].z - v.co.z) * (
                 1 - pg.pivot_scale.z
             )
-            dv = Vector((dx, dy, dz))
-            v.co = v.co + dv
+            delta_v = Vector((delta_x, delta_y, delta_z))
+            v.co = v.co + delta_v
         bmesh.update_edit_mesh(obj.data)
         return {"FINISHED"}
 
@@ -225,6 +245,7 @@ class PDT_OT_PivotToCursor(Operator):
 
     bl_idname = "pdt.pivotcursor"
     bl_label = "PDT Pivot To Cursor"
+    bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
         """Moves Pivot Point to Cursor Location.
@@ -240,7 +261,9 @@ class PDT_OT_PivotToCursor(Operator):
 
         scene = context.scene
         pg = scene.pdt_pg
+        old_cursor_loc = scene.cursor.location.copy()
         pg.pivot_loc = scene.cursor.location
+        scene.cursor.location = old_cursor_loc
         return {"FINISHED"}
 
 
@@ -249,6 +272,7 @@ class PDT_OT_CursorToPivot(Operator):
 
     bl_idname = "pdt.cursorpivot"
     bl_label = "PDT Cursor To Pivot"
+    bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
         """Moves Cursor to Pivot Point Location.
@@ -273,13 +297,23 @@ class PDT_OT_PivotSelected(Operator):
 
     bl_idname = "pdt.pivotselected"
     bl_label = "PDT Pivot to Selected"
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        ob = context.object
-        if ob is None:
+        """Check Object Status.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
+
+        obj = context.object
+        if obj is None:
             return False
-        return all([bool(ob), ob.type == "MESH", ob.mode == "EDIT"])
+        return all([bool(obj), obj.type == "MESH", obj.mode == "EDIT"])
 
 
     def execute(self, context):
@@ -302,8 +336,8 @@ class PDT_OT_PivotSelected(Operator):
             self.report({"ERROR"}, PDT_ERR_NO_ACT_OBJ)
             return {"FINISHED"}
         if obj.mode != "EDIT":
-            errmsg = f"{PDT_ERR_EDIT_MODE} {obj.mode})"
-            self.report({"ERROR"}, errmsg)
+            error_message = f"{PDT_ERR_EDIT_MODE} {obj.mode})"
+            self.report({"ERROR"}, error_message)
             return {"FINISHED"}
         bm = bmesh.from_edit_mesh(obj.data)
         verts = verts = [v for v in bm.verts if v.select]
@@ -313,9 +347,9 @@ class PDT_OT_PivotSelected(Operator):
             pg.pivot_loc = scene.cursor.location
             scene.cursor.location = old_cursor_loc
             return {"FINISHED"}
-        else:
-            self.report({"ERROR"}, PDT_ERR_NO_SEL_GEOM)
-            return {"FINISHED"}
+
+        self.report({"ERROR"}, PDT_ERR_NO_SEL_GEOM)
+        return {"FINISHED"}
 
 
 class PDT_OT_PivotOrigin(Operator):
@@ -323,13 +357,23 @@ class PDT_OT_PivotOrigin(Operator):
 
     bl_idname = "pdt.pivotorigin"
     bl_label = "PDT Pivot to Object Origin"
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        ob = context.object
-        if ob is None:
+        """Check Object Status.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
+
+        obj = context.object
+        if obj is None:
             return False
-        return all([bool(ob), ob.type == "MESH"])
+        return all([bool(obj), obj.type == "MESH"])
 
     def execute(self, context):
         """Moves Pivot Point to Object Origin.
@@ -349,8 +393,10 @@ class PDT_OT_PivotOrigin(Operator):
         if obj is None:
             self.report({"ERROR"}, PDT_ERR_NO_ACT_OBJ)
             return {"FINISHED"}
+        old_cursor_loc = scene.cursor.location.copy()
         obj_loc = obj.matrix_world.decompose()[0]
         pg.pivot_loc = obj_loc
+        scene.cursor.location = old_cursor_loc
         return {"FINISHED"}
 
 
@@ -359,13 +405,23 @@ class PDT_OT_PivotWrite(Operator):
 
     bl_idname = "pdt.pivotwrite"
     bl_label = "PDT Write PP to Object?"
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        ob = context.object
-        if ob is None:
+        """Check Object Status.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
+
+        obj = context.object
+        if obj is None:
             return False
-        return all([bool(ob), ob.type == "MESH"])
+        return all([bool(obj), obj.type == "MESH"])
 
     def execute(self, context):
         """Writes Pivot Point Location to Object's Custom Properties.
@@ -405,13 +461,23 @@ class PDT_OT_PivotRead(Operator):
 
     bl_idname = "pdt.pivotread"
     bl_label = "PDT Read PP"
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        ob = context.object
-        if ob is None:
+        """Check Object Status.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
+
+        obj = context.object
+        if obj is None:
             return False
-        return all([bool(ob), ob.type == "MESH"])
+        return all([bool(obj), obj.type == "MESH"])
 
     def execute(self, context):
         """Reads Pivot Point Location from Object's Custom Properties.
@@ -438,6 +504,6 @@ class PDT_OT_PivotRead(Operator):
         if "PDT_PP_LOC" in obj:
             pg.pivot_loc = obj["PDT_PP_LOC"]
             return {"FINISHED"}
-        else:
-            self.report({"ERROR"}, PDT_ERR_NOPPLOC)
-            return {"FINISHED"}
+
+        self.report({"ERROR"}, PDT_ERR_NOPPLOC)
+        return {"FINISHED"}
