@@ -441,7 +441,7 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
     scene['assets rated'][id] = scene['assets rated'].get(id, False)
 
     parent['asset_data'] = asset_data  # TODO remove this??? should write to blenderkit Props?
-    bpy.ops.wm.undo_push_context()
+    bpy.ops.wm.undo_push_context(message = 'add %s to scene'% asset_data['name'])
     # moving reporting to on save.
     # report_use_success(asset_data['id'])
 

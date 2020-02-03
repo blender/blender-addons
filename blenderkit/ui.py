@@ -1575,7 +1575,8 @@ class AssetBarOperator(bpy.types.Operator):
 
                         else:
                             # first, test if object can have material applied.
-                            if object is not None and not object.is_library_indirect:
+                            #TODO add other types here if droppable.
+                            if object is None or object.is_library_indirect and object.type =='MESH' :
                                 target_object = object.name
                                 # create final mesh to extract correct material slot
                                 depsgraph = bpy.context.evaluated_depsgraph_get()
@@ -1778,6 +1779,8 @@ class UndoWithContext(bpy.types.Operator):
     # def modal(self, context, event):
     #     return {'RUNNING_MODAL'}
 
+    message = StringProperty('Undo Message', default = 'BlenderKit operation')
+
     def execute(self, context):
         C_dict = bpy.context.copy()
         C_dict.update(region='WINDOW')
@@ -1785,7 +1788,7 @@ class UndoWithContext(bpy.types.Operator):
             w, a, r = get_largest_3dview()
             override = {'window': w, 'screen': w.screen, 'area': a, 'region': r}
             C_dict.update(override)
-        bpy.ops.ed.undo_push(C_dict, 'INVOKE_REGION_WIN')
+        bpy.ops.ed.undo_push(C_dict, 'INVOKE_REGION_WIN', message = self.message)
         return {'FINISHED'}
 
 

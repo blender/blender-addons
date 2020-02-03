@@ -247,7 +247,6 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff.
                                               'author_id': str(r['author']['id']),
                                               # 'author': r['author']['firstName'] + ' ' + r['author']['lastName']
                                               # 'description': r['description'],
-                                              'author': r['author'],
                                               }
                                 asset_data['downloaded'] = 0
 

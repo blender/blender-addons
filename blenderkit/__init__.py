@@ -474,13 +474,13 @@ class BlenderKitCommonSearchProps(object):
             ('ALL', 'All', 'All'),
             ('UPLOADING', 'Uploading', 'Uploading'),
             ('UPLOADED', 'Uploaded', 'Uploaded'),
+            ('READY', 'Ready for V.', 'Ready for validation (deprecated since 2.8)'),
             ('VALIDATED', 'Validated', 'Calidated'),
             ('ON_HOLD', 'On Hold', 'On Hold'),
             ('REJECTED', 'Rejected', 'Rejected'),
             ('DELETED', 'Deleted', 'Deleted'),
         ),
         default='ALL',
-        update=search.search_update,
     )
 
 
