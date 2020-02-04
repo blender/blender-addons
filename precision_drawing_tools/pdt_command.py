@@ -25,6 +25,7 @@ import bpy
 import bmesh
 import math
 from bpy.types import Operator
+from mathutils import Vector
 from .pdt_functions import (
     debug,
     intersection,
@@ -419,7 +420,7 @@ def command_parse(context):
     operation = command[0].upper()
     mode = command[1].lower()
     values = command[2:].split(",")
-    mode_s = pg.select
+    mode_sel = pg.select
     obj = context.view_layer.objects.active
     ind = 0
     for v in values:
@@ -432,26 +433,22 @@ def command_parse(context):
     # Apply System Rounding
     decimal_places = context.preferences.addons[__package__].preferences.pdt_input_round
     values_out = [str(round(float(v), decimal_places)) for v in values]
+    bm = "None"
+    obj_loc = Vector((0,0,0))
+    verts = []
 
-    bm, good = obj_check(obj, scene, operation)
-    if good:
-        obj_loc = obj.matrix_world.decompose()[0]
-    else:
-        obj_loc = None
-
-    if mode_s == 'SEL' and bm is not None and mode not in {"a"}:
-        if len(bm.select_history) == 0:
-            verts = [v for v in bm.verts if v.select]
-            if len(verts) == 0:
-                pg.error = PDT_ERR_NO_SEL_GEOM
-                context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                raise PDT_SelectionError
-        else:
-            verts = bm.select_history
-    elif operation == "G" and mode == "a":
-        verts = [v for v in bm.verts if v.select]
-    else:
-        verts = []
+    if mode_sel == 'SEL' and mode not in {"a"}:
+        bm, good = obj_check(obj, scene, operation)
+        if good and obj.mode == 'EDIT':
+            obj_loc = obj.matrix_world.decompose()[0]
+            if len(bm.select_history) == 0 or operation == "G":
+                verts = [v for v in bm.verts if v.select]
+                if len(verts) == 0:
+                    pg.error = PDT_ERR_NO_SEL_GEOM
+                    context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+                    raise PDT_SelectionError
+            else:
+                verts = bm.select_history
 
     debug(f"command: {operation}{mode}{values_out}")
     debug(f"obj: {obj}, bm: {bm}, obj_loc: {obj_loc}")
@@ -497,7 +494,9 @@ def move_cursor_pivot(context, pg, operation, mode, obj, verts, values):
 
     scene = context.scene
     mode_sel = pg.select
-    obj_loc = obj.matrix_world.decompose()[0]
+    obj_loc = Vector((0,0,0))
+    if obj is not None:
+        obj_loc = obj.matrix_world.decompose()[0]
 
     if mode == "a":
         if operation == "C":
