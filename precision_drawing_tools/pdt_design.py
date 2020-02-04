@@ -42,16 +42,17 @@ class PDT_OT_PlacementAbs(Operator):
     def execute(self, context):
         """Manipulates Geometry, or Objects by Absolute (World) Coordinates.
 
-        - Reads pg.operate from Operation Mode Selector as 'operation'
-        - Reads pg.cartesian_coords scene variables to:
-        -- set position of CUrsor      (CU)
-        -- set postion of Pivot Point  (PP)
-        -- MoVe geometry/objects       (MV)
-        -- Extrude Vertices            (EV)
-        -- Split Edges                 (SE)
-        -- add a New Vertex            (NV)
+        Note:
+            - Reads pg.operate from Operation Mode Selector as 'operation'
+            - Reads pg.cartesian_coords scene variables to:
+            -- set position of CUrsor      (CU)
+            -- set postion of Pivot Point  (PP)
+            -- MoVe geometry/objects       (MV)
+            -- Extrude Vertices            (EV)
+            -- Split Edges                 (SE)
+            -- add a New Vertex            (NV)
 
-        Invalid Options result in self.report Error.
+            Invalid Options result in self.report Error.
 
         Args:
             context: Blender bpy.context instance.
@@ -122,18 +123,19 @@ class PDT_OT_PlacementDelta(Operator):
     def execute(self, context):
         """Manipulates Geometry, or Objects by Delta Offset (Increment).
 
-        - Reads pg.operation from Operation Mode Selector as 'operation'
-        - Reads pg.select, pg.plane, pg.cartesian_coords scene variables to:
-        -- set position of CUrsor       (CU)
-        -- set position of Pivot Point  (PP)
-        -- MoVe geometry/objects        (MV)
-        -- Extrude Vertices             (EV)
-        -- Split Edges                  (SE)
-        -- add a New Vertex             (NV)
-        -- Duplicate Geometry           (DG)
-        -- Extrude Geometry             (EG)
+        Note:
+            - Reads pg.operation from Operation Mode Selector as 'operation'
+            - Reads pg.select, pg.plane, pg.cartesian_coords scene variables to:
+            -- set position of CUrsor       (CU)
+            -- set position of Pivot Point  (PP)
+            -- MoVe geometry/objects        (MV)
+            -- Extrude Vertices             (EV)
+            -- Split Edges                  (SE)
+            -- add a New Vertex             (NV)
+            -- Duplicate Geometry           (DG)
+            -- Extrude Geometry             (EG)
 
-        Invalid Options result in self.report Error.
+            Invalid Options result in self.report Error.
 
         Args:
             context: Blender bpy.context instance.
@@ -218,18 +220,19 @@ class PDT_OT_PlacementDis(Operator):
     def execute(self, context):
         """Manipulates Geometry, or Objects by Distance at Angle (Direction).
 
-        - Reads pg.operation from Operation Mode Selector as 'operation'
-        - Reads pg.select, pg.distance, pg.angle, pg.plane & pg.flip_angle scene variables to:
-        -- set position of CUrsor       (CU)
-        -- set position of Pivot Point  (PP)
-        -- MoVe geometry/objects        (MV)
-        -- Extrude Vertices             (EV)
-        -- Split Edges                  (SE)
-        -- add a New Vertex             (NV)
-        -- Duplicate Geometry           (DG)
-        -- Extrude Geometry             (EG)
+        Note:
+            - Reads pg.operation from Operation Mode Selector as 'operation'
+            - Reads pg.select, pg.distance, pg.angle, pg.plane & pg.flip_angle scene variables to:
+            -- set position of CUrsor       (CU)
+            -- set position of Pivot Point  (PP)
+            -- MoVe geometry/objects        (MV)
+            -- Extrude Vertices             (EV)
+            -- Split Edges                  (SE)
+            -- add a New Vertex             (NV)
+            -- Duplicate Geometry           (DG)
+            -- Extrude Geometry             (EG)
 
-        Invalid Options result in self.report Error.
+            Invalid Options result in self.report Error.
 
         Args:
             context: Blender bpy.context instance.
@@ -306,16 +309,17 @@ class PDT_OT_PlacementPer(Operator):
     def execute(self, context):
         """Manipulates Geometry, or Objects by Percentage between 2 points.
 
-        - Reads pg.operation from Operation Mode Selector as 'operation'
-        - Reads pg.percent, pg.extend & pg.flip_percent scene variables to:
-        -- set position of CUrsor       (CU)
-        -- set position of Pivot Point  (PP)
-        -- MoVe geometry/objects        (MV)
-        -- Extrude Vertices             (EV)
-        -- Split Edges                  (SE)
-        -- add a New Vertex             (NV)
+        Note:
+            - Reads pg.operation from Operation Mode Selector as 'operation'
+            - Reads pg.percent, pg.extend & pg.flip_percent scene variables to:
+            -- set position of CUrsor       (CU)
+            -- set position of Pivot Point  (PP)
+            -- MoVe geometry/objects        (MV)
+            -- Extrude Vertices             (EV)
+            -- Split Edges                  (SE)
+            -- add a New Vertex             (NV)
 
-        Invalid Options result in self.report Error.
+            Invalid Options result in self.report Error.
 
         Args:
             context: Blender bpy.context instance.
@@ -362,16 +366,17 @@ class PDT_OT_PlacementNormal(Operator):
     def execute(self, context):
         """Manipulates Geometry, or Objects by Normal Intersection between 3 points.
 
-        - Reads pg.operation from Operation Mode Selector as 'operation'
-        - Reads pg.extend scene variable to:
-        -- set position of CUrsor       (CU)
-        -- set position of Pivot Point  (PP)
-        -- MoVe geometry/objects        (MV)
-        -- Extrude Vertices             (EV)
-        -- Split Edges                  (SE)
-        -- add a New Vertex             (NV)
+        Note:
+            - Reads pg.operation from Operation Mode Selector as 'operation'
+            - Reads pg.extend scene variable to:
+            -- set position of CUrsor       (CU)
+            -- set position of Pivot Point  (PP)
+            -- MoVe geometry/objects        (MV)
+            -- Extrude Vertices             (EV)
+            -- Split Edges                  (SE)
+            -- add a New Vertex             (NV)
 
-        Invalid Options result in self.report Error.
+            Invalid Options result in self.report Error.
 
         Args:
             context: Blender bpy.context instance.
@@ -410,14 +415,15 @@ class PDT_OT_PlacementCen(Operator):
     def execute(self, context):
         """Manipulates Geometry, or Objects to an Arc Centre defined by 3 points on an Imaginary Arc.
 
-        - Reads pg.operation from Operation Mode Selector as 'operation'
-        -- set position of CUrsor       (CU)
-        -- set position of Pivot Point  (PP)
-        -- MoVe geometry/objects        (MV)
-        -- Extrude Vertices             (EV)
-        -- add a New vertex             (NV)
+        Note:
+            - Reads pg.operation from Operation Mode Selector as 'operation'
+            -- set position of CUrsor       (CU)
+            -- set position of Pivot Point  (PP)
+            -- MoVe geometry/objects        (MV)
+            -- Extrude Vertices             (EV)
+            -- add a New vertex             (NV)
 
-        Invalid Options result in self.report Error.
+            Invalid Options result in self.report Error.
 
         Args:
             context: Blender bpy.context instance.
@@ -454,17 +460,16 @@ class PDT_OT_PlacementInt(Operator):
     def execute(self, context):
         """Manipulates Geometry, or Objects by Convergance Intersection between 4 points, or 2 Edges.
 
-        - Reads pg.operation from Operation Mode Selector as 'operation'
-        - Reads pg.plane scene variable and operates in Working Plane to:
-        -- set position of CUrsor       (CU)
-        -- set position of Pivot Point  (PP)
-        -- MoVe geometry/objects        (MV)
-        -- Extrude Vertices             (EV)
-        -- add a New vertex             (NV)
+        Note:
+            - Reads pg.operation from Operation Mode Selector as 'operation'
+            - Reads pg.plane scene variable and operates in Working Plane to:
+            -- set position of CUrsor       (CU)
+            -- set position of Pivot Point  (PP)
+            -- MoVe geometry/objects        (MV)
+            -- Extrude Vertices             (EV)
+            -- add a New vertex             (NV)
 
-        Invalid Options result in "self.report" Error.
-
-        Local vector variable 'vector_delta' used to reposition features.
+            Invalid Options result in "self.report" Error.
 
         Args:
             context: Blender bpy.context instance.
@@ -508,9 +513,10 @@ class PDT_OT_JoinVerts(Operator):
     def execute(self, context):
         """Joins 2 Free Vertices that do not form part of a Face.
 
-        Joins two vertices that do not form part of a single face
-        It is designed to close open Edge Loops, where a face is not required
-        or to join two disconnected Edges.
+        Note:
+            Joins two vertices that do not form part of a single face
+            It is designed to close open Edge Loops, where a face is not required
+            or to join two disconnected Edges.
 
         Args:
             context: Blender bpy.context instance.
@@ -541,12 +547,14 @@ class PDT_OT_Fillet(Operator):
     def execute(self, context):
         """Create Fillets by Vertex or by Geometry.
 
-        Fillets connected edges, or connected faces
+        Note:
+            Fillets connected edges, or connected faces
         Uses:
-        - pg.fillet_radius  ; Radius of fillet
-        - pg.fillet_segments  ; Number of segments
-        - pg.fillet_profile  ; Profile, values 0 to 1
-        - pg.fillet_vertices_only ; Vertices (True), or Face/Edges
+            - pg.fillet_radius  ; Radius of fillet
+            - pg.fillet_segments  ; Number of segments
+            - pg.fillet_profile  ; Profile, values 0 to 1
+            - pg.fillet_vertices_only ; Vertices (True), or Face/Edges
+            - pg.fillet_intersect ; Intersect dges first (True), or not
 
         Args:
             context: Blender bpy.context instance.
@@ -588,9 +596,10 @@ class PDT_OT_Angle2(Operator):
     def execute(self, context):
         """Measures Angle and Offsets between 2 Points in View Plane.
 
-        Uses 2 Selected Vertices to set pg.angle and pg.distance scene variables
-        also sets delta offset from these 2 points using standard Numpy Routines
-        Works in Edit and Oject Modes.
+        Note:
+            Uses 2 Selected Vertices to set pg.angle and pg.distance scene variables
+            also sets delta offset from these 2 points using standard Numpy Routines
+            Works in Edit and Oject Modes.
 
         Args:
             context: Blender bpy.context instance.
@@ -614,9 +623,10 @@ class PDT_OT_Angle3(Operator):
     def execute(self, context):
         """Measures Angle and Offsets between 3 Points in World Space, Also sets Deltas.
 
-        Uses 3 Selected Vertices to set pg.angle and pg.distance scene variables
-        also sets delta offset from these 3 points using standard Numpy Routines
-        Works in Edit and Oject Modes.
+        Note:
+            Uses 3 Selected Vertices to set pg.angle and pg.distance scene variables
+            also sets delta offset from these 3 points using standard Numpy Routines
+            Works in Edit and Oject Modes.
 
         Args:
             context: Blender bpy.context instance.
@@ -640,9 +650,10 @@ class PDT_OT_Origin(Operator):
     def execute(self, context):
         """Sets Object Origin in Edit Mode to Cursor Location.
 
-        Keeps geometry static in World Space whilst moving Object Origin
-        Requires cursor location
-        Works in Edit and Object Modes.
+        Note:
+            Keeps geometry static in World Space whilst moving Object Origin
+            Requires cursor location
+            Works in Edit and Object Modes.
 
         Args:
             context: Blender bpy.context instance.
@@ -673,10 +684,11 @@ class PDT_OT_Taper(Operator):
     def execute(self, context):
         """Taper Geometry along World Axes.
 
-        Similar to Shear command except that it shears by angle rather than displacement.
-        Rotates about World Axes and displaces along World Axes, angle must not exceed +-80 degrees.
-        Rotation axis is centred on Active Vertex.
-        Works only in Edit mode.
+        Note:
+            Similar to Blender Shear command except that it shears by angle rather than displacement.
+            Rotates about World Axes and displaces along World Axes, angle must not exceed +-80 degrees.
+            Rotation axis is centred on Active Vertex.
+            Works only in Edit mode.
 
         Args:
             context: Blender bpy.context instance.

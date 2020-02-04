@@ -29,7 +29,7 @@
 bl_info = {
     "name": "Precision Drawing Tools (PDT)",
     "author": "Alan Odom (Clockmender), Rune Morling (ermo)",
-    "version": (1, 2, 0),
+    "version": (1, 2, 1),
     "blender": (2, 80, 0),
     "location": "View3D > UI > PDT",
     "description": "Precision Drawing Tools for Acccurate Modelling",
@@ -359,9 +359,9 @@ class PDTSceneProperties(PropertyGroup):
         name="Pivot Factor", min=0.4, max=10, default=2, precision=1, description=PDT_DES_PPSIZE
     )
     pivot_width: IntProperty(name="Width", min=1, max=5, default=2, description=PDT_DES_PPWIDTH)
-    # FIXME: might as well become pivot_angle
+
     pivot_ang: FloatProperty(name="Pivot Angle", min=-180, max=180, default=0.0)
-    # FIXME: pivot_dist for consistency?
+
     pivot_dis: FloatProperty(
         name="Pivot Dist", default=0.0, min=0, update=scale_set, description=PDT_DES_PIVOTDIS,
     )

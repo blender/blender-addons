@@ -68,13 +68,12 @@ class PDT_OT_Append(Operator):
     def execute(self, context):
         """Appends Objects from PDT Library file.
 
-        Appended Objects are placed at Cursor Location.
+        Note:
+            Appended Objects are placed at Cursor Location.
+            Uses pg.lib_objects, pg.lib_collections & pg.lib_materials
 
         Args:
             context: Blender bpy.context instance.
-
-        Note:
-            Uses pg.lib_objects, pg.lib_collections & pg.lib_materials
 
         Returns:
             Status Set.
@@ -146,13 +145,12 @@ class PDT_OT_Link(Operator):
     def execute(self, context):
         """Links Objects from PDT Library file.
 
-        Linked Objects are placed at Cursor Location
+        Note:
+            Linked Objects are placed at Cursor Location
+            Uses pg.lib_objects, pg.lib_collections & pg.lib_materials
 
         Args:
             context: Blender bpy.context instance.
-
-        Note:
-            Uses pg.lib_objects, pg.lib_collections & pg.lib_materials
 
         Returns:
             Status Set.

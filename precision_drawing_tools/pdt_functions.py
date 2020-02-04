@@ -45,9 +45,10 @@ PDT_ShaderError = pdt_exception.ShaderError
 def debug(msg, prefix=""):
     """Print a debug message to the console if PDT's or Blender's debug flags are set.
 
-    The printed message will be of the form:
+    Note:
+        The printed message will be of the form:
 
-    {prefix}{caller file name:line number}| {msg}
+        {prefix}{caller file name:line number}| {msg}
 
     Args:
         msg: Incomming message to display
@@ -90,13 +91,11 @@ def debug(msg, prefix=""):
 def oops(self, context):
     """Error Routine.
 
-    Displays error message in a popup.
+    Note:
+        Displays error message in a popup.
 
     Args:
         context: Blender bpy.context instance.
-
-    Note:
-        Uses pg.error scene variable
 
     Returns:
         Nothing.
@@ -110,10 +109,11 @@ def oops(self, context):
 def set_mode(mode_pl):
     """Sets Active Axes for View Orientation.
 
-    Sets indices of axes for locational vectors:
-    "XY": a1 = x, a2 = y, a3 = z
-    "XZ": a1 = x, a2 = z, a3 = y
-    "YZ": a1 = y, a2 = z, a3 = x
+    Note:
+        Sets indices of axes for locational vectors:
+        "XY": a1 = x, a2 = y, a3 = z
+        "XZ": a1 = x, a2 = z, a3 = y
+        "YZ": a1 = y, a2 = z, a3 = x
 
     Args:
         mode_pl: Plane Selector variable as input
@@ -133,13 +133,12 @@ def set_mode(mode_pl):
 def set_axis(mode_pl):
     """Sets Active Axes for View Orientation.
 
-    Sets indices for axes from taper vectors
+    Note:
+        Sets indices for axes from taper vectors
+        Axis order: Rotate Axis, Move Axis, Height Axis
 
     Args:
         mode_pl: Taper Axis Selector variable as input
-
-    Note:
-        Axis order: Rotate Axis, Move Axis, Height Axis
 
     Returns:
         3 Integer Indicies.
@@ -159,7 +158,8 @@ def set_axis(mode_pl):
 def check_selection(num, bm, obj):
     """Check that the Object's select_history has sufficient entries.
 
-    If selection history is not Verts, clears selection and history.
+    Note:
+        If selection history is not Verts, clears selection and history.
 
     Args:
         num: The number of entries required for each operation
@@ -253,7 +253,8 @@ def view_coords(x_loc, y_loc, z_loc):
 def view_coords_i(x_loc, y_loc, z_loc):
     """Converts Screen Oriented input Vector values to new World Vector.
 
-    Converts View tranformation Matrix to Rotational Matrix
+    Note:
+        Converts View tranformation Matrix to Rotational Matrix
 
     Args:
         x_loc: X coordinate from vector
@@ -278,8 +279,9 @@ def view_coords_i(x_loc, y_loc, z_loc):
 def view_dir(dis_v, ang_v):
     """Converts Distance and Angle to View Oriented Vector.
 
-    Converts View Transformation Matrix to Rotational Matrix (3x3)
-    Angles are Converts to Radians from degrees.
+    Note:
+        Converts View Transformation Matrix to Rotational Matrix (3x3)
+        Angles are Converts to Radians from degrees.
 
     Args:
         dis_v: Scene PDT distance
@@ -366,8 +368,11 @@ def arc_centre(vector_a, vector_b, vector_c):
 
 def intersection(vertex_a, vertex_b, vertex_c, vertex_d, plane):
     """Calculates Intersection Point of 2 Imagined Lines from 4 Vectors.
-    Calculates Converging Intersect Location and indication of
-    whether the lines are convergent using standard Numpy Routines
+
+    Note:
+       Calculates Converging Intersect Location and indication of
+       whether the lines are convergent using standard Numpy Routines
+
     Args:
         vertex_a: Active vector location of first line
         vertex_b: Second vector location of first line
@@ -426,11 +431,12 @@ def intersection(vertex_a, vertex_b, vertex_c, vertex_d, plane):
 def get_percent(obj, flip_percent, per_v, data, scene):
     """Calculates a Percentage Distance between 2 Vectors.
 
-    Calculates a point that lies a set percentage between two given points
-    using standard Numpy Routines.
+    Note:
+        Calculates a point that lies a set percentage between two given points
+        using standard Numpy Routines.
 
-    Works for either 2 vertices for an object in Edit mode
-    or 2 selected objects in Object mode.
+        Works for either 2 vertices for an object in Edit mode
+        or 2 selected objects in Object mode.
 
     Args:
         obj: The Object under consideration
@@ -576,7 +582,8 @@ SHADER = gpu.shader.from_builtin("3D_UNIFORM_COLOR") if not bpy.app.background e
 def draw_3d(coords, gtype, rgba, context):
     """Draw Pivot Point Graphics.
 
-    Draws either Lines Points, or Tris using defined shader
+    Note:
+        Draws either Lines Points, or Tris using defined shader
 
     Args:
         coords: Input Coordinates List
@@ -603,9 +610,10 @@ def draw_3d(coords, gtype, rgba, context):
 def draw_callback_3d(self, context):
     """Create Coordinate List for Pivot Point Graphic.
 
-    Creates coordinates for Pivot Point Graphic consisting of 6 Tris
-    and one Point colour coded Red; X axis, Green; Y axis, Blue; Z axis
-    and a yellow point based upon screen scale
+    Note:
+        Creates coordinates for Pivot Point Graphic consisting of 6 Tris
+        and one Point colour coded Red; X axis, Green; Y axis, Blue; Z axis
+        and a yellow point based upon screen scale
 
     Args:
         context: Blender bpy.context instance.
@@ -688,13 +696,12 @@ def draw_callback_3d(self, context):
 def scale_set(self, context):
     """Sets Scale by dividing Pivot Distance by System Distance.
 
-    Sets Pivot Point Scale Factors by Measurement
+    Note:
+        Sets Pivot Point Scale Factors by Measurement
+        Uses pg.pivotdis & pg.distance scene variables
 
     Args:
         context: Blender bpy.context instance.
-
-    Note:
-        Uses pg.pivotdis & pg.distance scene variables
 
     Returns:
         Status Set.

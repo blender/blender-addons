@@ -30,6 +30,7 @@ from mathutils.geometry import intersect_line_plane
 from .pdt_msg_strings import (
     PDT_ERR_NOINT,
     PDT_ERR_EDOB_MODE,
+    PDT_ERR_SEL_1_E_1_F,
 )
 from .pdt_functions import oops
 
@@ -45,7 +46,7 @@ def failure_message(context):
     """
 
     pg = context.scene.pdt_pg
-    pg.error = f"Select One Face and One Edge"
+    pg.error = f"{PDT_ERR_SEL_1_E_1_F}"
     context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
 
 

@@ -42,14 +42,13 @@ class PDT_OT_ViewRot(Operator):
     def execute(self, context):
         """View Rotation by Absolute Values.
 
-        Rotations are converted to 3x3 Quaternion Rotation Matrix.
-        This is an Absolute Rotation, not an Incremental Orbit.
+        Note:
+            Rotations are converted to 3x3 Quaternion Rotation Matrix.
+            This is an Absolute Rotation, not an Incremental Orbit.
+            Uses pg.rotation_coords scene variable
 
         Args:
             context: Blender bpy.context instance.
-
-        Note:
-            Uses pg.rotation_coords scene variables
 
         Returns:
             Status Set.
@@ -77,13 +76,12 @@ class PDT_OT_ViewRotL(Operator):
     def execute(self, context):
         """View Orbit Left by Delta Value.
 
-        Orbits view to the left about its vertical axis
+        Note:
+            Uses pg.vrotangle scene variable
+            Orbits view to the left about its vertical axis
 
         Args:
             context: Blender bpy.context instance.
-
-        Note:
-            Uses pg.vrotangle scene variable
 
         Returns:
             Status Set.
@@ -106,13 +104,12 @@ class PDT_OT_ViewRotR(Operator):
     def execute(self, context):
         """View Orbit Right by Delta Value.
 
-        Orbits view to the right about its vertical axis
+        Note:
+            Uses pg.vrotangle scene variable
+            Orbits view to the right about its vertical axis
 
         Args:
             context: Blender bpy.context instance.
-
-        Note:
-            Uses pg.vrotangle scene variable
 
         Returns:
             Status Set.
@@ -135,13 +132,12 @@ class PDT_OT_ViewRotU(Operator):
     def execute(self, context):
         """View Orbit Up by Delta Value.
 
-        Orbits view up about its horizontal axis
+        Note:
+            Uses pg.vrotangle scene variable
+            Orbits view up about its horizontal axis
 
         Args:
             context: Blender bpy.context instance.
-
-        Note:
-            Uses pg.vrotangle scene variable
 
         Returns:
             Status Set.
@@ -164,13 +160,12 @@ class PDT_OT_ViewRotD(Operator):
     def execute(self, context):
         """View Orbit Down by Delta Value.
 
-        Orbits view down about its horizontal axis
+        Note:
+            Uses pg.vrotangle scene variable
+            Orbits view down about its horizontal axis
 
         Args:
             context: Blender bpy.context instance.
-
-        Note:
-            Uses pg.vrotangle scene variable
 
         Returns:
             Status Set.
@@ -193,13 +188,12 @@ class PDT_OT_ViewRoll(Operator):
     def execute(self, context):
         """View Roll by Delta Value.
 
-        Rolls view about its normal axis
+        Note:
+            Uses pg.vrotangle scene variable
+            Rolls view about its normal axis
 
         Args:
             context: Blender bpy.context instance.
-
-        Note:
-            Uses pg.vrotangle scene variable
 
         Returns:
             Status Set.
@@ -222,7 +216,8 @@ class PDT_OT_ViewIso(Operator):
     def execute(self, context):
         """Set Isometric View.
 
-        Set view orientation to Orthographic Isometric
+        Note:
+            Set view orientation to Orthographic Isometric
 
         Args:
             context: Blender bpy.context instance.

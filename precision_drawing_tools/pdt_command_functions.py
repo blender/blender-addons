@@ -83,18 +83,18 @@ from .pdt_msg_strings import (
 
 
 def vector_build(context, pg, obj, operation, values, num_values):
-    """Build Movement Vector from input Fields.
+    """Build Movement Vector from Input Fields.
 
     Args:
         context: Blender bpy.context instance.
         pg: PDT Parameters Group - our variables
         obj: The Active Object
         operation: The Operation e.g. Create New Vertex
-        values: The paramters passed e.g. 1,4,3 for Catrtesan Coordinates
+        values: The paramters passed e.g. 1,4,3 for Cartesian Coordinates
         num_values: The number of values passed - determines the function
 
     Returns:
-        Vector to position, or offset items.
+        Vector to position, or offset, items.
     """
 
     scene = context.scene
@@ -495,9 +495,10 @@ def placement_intersect(context, operation):
 def join_two_vertices(context):
     """Joins 2 Free Vertices that do not form part of a Face.
 
-    Joins two vertices that do not form part of a single face
-    It is designed to close open Edge Loops, where a face is not required
-    or to join two disconnected Edges.
+    Note:
+        Joins two vertices that do not form part of a single face
+        It is designed to close open Edge Loops, where a face is not required
+        or to join two disconnected Edges.
 
     Args:
         context: Blender bpy.context instance.
@@ -535,9 +536,10 @@ def join_two_vertices(context):
 def set_angle_distance_two(context):
     """Measures Angle and Offsets between 2 Points in View Plane.
 
-    Uses 2 Selected Vertices to set pg.angle and pg.distance scene variables
-    also sets delta offset from these 2 points using standard Numpy Routines
-    Works in Edit and Oject Modes.
+    Note:
+        Uses 2 Selected Vertices to set pg.angle and pg.distance scene variables
+        also sets delta offset from these 2 points using standard Numpy Routines
+        Works in Edit and Oject Modes.
 
     Args:
         context: Blender bpy.context instance.
@@ -615,9 +617,10 @@ def set_angle_distance_two(context):
 def set_angle_distance_three(context):
     """Measures Angle and Offsets between 3 Points in World Space, Also sets Deltas.
 
-    Uses 3 Selected Vertices to set pg.angle and pg.distance scene variables
-    also sets delta offset from these 3 points using standard Numpy Routines
-    Works in Edit and Oject Modes.
+    Note:
+        Uses 3 Selected Vertices to set pg.angle and pg.distance scene variables
+        also sets delta offset from these 3 points using standard Numpy Routines
+        Works in Edit and Oject Modes.
 
     Args:
         context: Blender bpy.context instance.
@@ -684,9 +687,10 @@ def set_angle_distance_three(context):
 def origin_to_cursor(context):
     """Sets Object Origin in Edit Mode to Cursor Location.
 
-    Keeps geometry static in World Space whilst moving Object Origin
-    Requires cursor location
-    Works in Edit and Object Modes.
+    Note:
+        Keeps geometry static in World Space whilst moving Object Origin
+        Requires cursor location
+        Works in Edit and Object Modes.
 
     Args:
         context: Blender bpy.context instance.
@@ -725,10 +729,11 @@ def origin_to_cursor(context):
 def taper(context):
     """Taper Geometry along World Axes.
 
-    Similar to Shear command except that it shears by angle rather than displacement.
-    Rotates about World Axes and displaces along World Axes, angle must not exceed +-80 degrees.
-    Rotation axis is centred on Active Vertex.
-    Works only in Edit mode.
+    Note:
+        Similar to Shear command except that it shears by angle rather than displacement.
+        Rotates about World Axes and displaces along World Axes, angle must not exceed +-80 degrees.
+        Rotation axis is centred on Active Vertex.
+        Works only in Edit mode.
 
     Args:
         context: Blender bpy.context instance.

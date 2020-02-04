@@ -50,7 +50,8 @@ class PDT_OT_ModalDrawOperator(bpy.types.Operator):
     def handle_add(self, context):
         """Draw Pivot Point Graphic if not displayed.
 
-        Draws 7 element Pivot Point Graphic
+        Note:
+            Draws 7 element Pivot Point Graphic
 
         Args:
             context: Blender bpy.context instance.
@@ -69,7 +70,8 @@ class PDT_OT_ModalDrawOperator(bpy.types.Operator):
     def handle_remove(self, context):
         """Remove Pivot Point Graphic if displayed.
 
-        Removes 7 element Pivot Point Graphic
+        Note:
+            Removes 7 element Pivot Point Graphic
 
         Args:
             context: Blender bpy.context instance.
@@ -86,7 +88,8 @@ class PDT_OT_ModalDrawOperator(bpy.types.Operator):
     def execute(self, context):
         """Pivot Point Show/Hide Button Function.
 
-        Operational execute function for Show/Hide Pivot Point function
+        Note:
+            Operational execute function for Show/Hide Pivot Point function
 
         Args:
             context: Blender bpy.context instance.
@@ -136,8 +139,9 @@ class PDT_OT_ViewPlaneRotate(Operator):
     def execute(self, context):
         """Rotate Selected Vertices about Pivot Point.
 
-        Rotates any selected vertices about the Pivot Point
-        in View Oriented coordinates, works in any view orientation.
+        Note:
+            Rotates any selected vertices about the Pivot Point
+            in View Oriented coordinates, works in any view orientation.
 
         Args:
             context: Blender bpy.context instance.
@@ -199,8 +203,9 @@ class PDT_OT_ViewPlaneScale(Operator):
     def execute(self, context):
         """Scales Selected Vertices about Pivot Point.
 
-        Scales any selected vertices about the Pivot Point
-        in View Oriented coordinates, works in any view orientation
+        Note:
+            Scales any selected vertices about the Pivot Point
+            in View Oriented coordinates, works in any view orientation
 
         Args:
             context: Blender bpy.context instance.
@@ -250,7 +255,8 @@ class PDT_OT_PivotToCursor(Operator):
     def execute(self, context):
         """Moves Pivot Point to Cursor Location.
 
-        Moves Pivot Point to Cursor Location in active scene
+        Note:
+            Moves Pivot Point to Cursor Location in active scene
 
         Args:
             context: Blender bpy.context instance.
@@ -277,7 +283,8 @@ class PDT_OT_CursorToPivot(Operator):
     def execute(self, context):
         """Moves Cursor to Pivot Point Location.
 
-        Moves Cursor to Pivot Point Location in active scene
+        Note:
+            Moves Cursor to Pivot Point Location in active scene
 
         Args:
             context: Blender bpy.context instance.
@@ -319,8 +326,9 @@ class PDT_OT_PivotSelected(Operator):
     def execute(self, context):
         """Moves Pivot Point centroid of Selected Geometry.
 
-        Moves Pivot Point centroid of Selected Geometry in active scene
-        using Snap_Cursor_To_Selected, then puts cursor back to original location.
+        Note:
+            Moves Pivot Point centroid of Selected Geometry in active scene
+            using Snap_Cursor_To_Selected, then puts cursor back to original location.
 
         Args:
             context: Blender bpy.context instance.
@@ -378,7 +386,8 @@ class PDT_OT_PivotOrigin(Operator):
     def execute(self, context):
         """Moves Pivot Point to Object Origin.
 
-        Moves Pivot Point to Object Origin in active scene
+        Note:
+            Moves Pivot Point to Object Origin in active scene
 
         Args:
             context: Blender bpy.context instance.
@@ -426,8 +435,9 @@ class PDT_OT_PivotWrite(Operator):
     def execute(self, context):
         """Writes Pivot Point Location to Object's Custom Properties.
 
-        Writes Pivot Point Location to Object's Custom Properties
-        as Vector to 'PDT_PP_LOC' - Requires Confirmation through dialogue
+        Note:
+            Writes Pivot Point Location to Object's Custom Properties
+            as Vector to 'PDT_PP_LOC' - Requires Confirmation through dialogue
 
         Args:
             context: Blender bpy.context instance.
@@ -482,8 +492,9 @@ class PDT_OT_PivotRead(Operator):
     def execute(self, context):
         """Reads Pivot Point Location from Object's Custom Properties.
 
-        Sets Pivot Point Location from Object's Custom Properties
-        using 'PDT_PP_LOC'
+        Note:
+            Sets Pivot Point Location from Object's Custom Properties
+            using 'PDT_PP_LOC'
 
         Args:
             context: Blender bpy.context instance.

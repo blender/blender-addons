@@ -26,20 +26,21 @@
 # If you edit this file do not change any of the PDT_ format, just the Text Value in "'s
 # Do not delete any of the PDT_ lines
 #
-# Menu Labels
-#
 """This file contains all the Message Strings.
 
-    These strings are called by various programmes in PDT,
-    they can be set to suit individual User requirements.
+    Note:
+        These strings are called by various programmes in PDT,
+        they can be set to suit individual User requirements.
 
-Args:
-    None
+    Args:
+        None
 
-Returns:
-    None
-"""
+    Returns:
+        None.
+    """
 
+# Menu Labels
+#
 PDT_LAB_ABS = "Absolute"  # "Global"
 PDT_LAB_DEL = "Delta"  # "Relative"
 PDT_LAB_DIR = "Direction"  # "Polar"
