@@ -62,6 +62,7 @@ from .pdt_msg_strings import (
     PDT_ERR_SEL_4_VERTS,
     PDT_ERR_INT_LINES,
     PDT_LAB_PLANE,
+    PDT_ERR_NO_ACT_OBJ,
 )
 from .pdt_bix import add_line_to_bisection
 from .pdt_etof import extend_vertex
@@ -74,6 +75,7 @@ PDT_CommandFailure = pdt_exception.CommandFailure
 PDT_ObjectModeError = pdt_exception.ObjectModeError
 PDT_MathsError = pdt_exception.MathsError
 PDT_IntersectionError = pdt_exception.IntersectionError
+PDT_NoObjectError = pdt_exception.NoObjectError
 
 
 class PDT_OT_CommandReRun(Operator):
@@ -149,7 +151,7 @@ def command_run(self, context):
 
     # Check Object Type & Mode First
     obj = context.view_layer.objects.active
-    if obj is not None:
+    if obj is not None and command[0].upper() not in {"M", "?", "HELP"}:
         if obj.mode not in {"OBJECT", "EDIT"} or obj.type != "MESH":
             pg.error = PDT_OBJ_MODE_ERROR
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -436,10 +438,28 @@ def command_parse(context):
     obj_loc = Vector((0,0,0))
     verts = []
 
-    if mode_sel == 'REL' and operation not in {"C", "P"}:
-        pg.select = 'SEL'
+    if mode == "a" and operation not in {"C", "P"}:
+        # Place new Vetex, or Extrude Vertices by Absolute Coords.
+        if mode_sel == 'REL':
+            pg.select = 'SEL'
+        if obj is not None:
+            if obj.mode == "EDIT":
+                bm = bmesh.from_edit_mesh(obj.data)
+                obj_loc = obj.matrix_world.decompose()[0]
+                verts = []
+            else:
+                pg.error = PDT_OBJ_MODE_ERROR
+                context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+                raise PDT_ObjectModeError
+        else:
+            pg.error = PDT_ERR_NO_ACT_OBJ
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            raise PDT_NoObjectError
+
 
     if mode_sel == 'SEL' and mode not in {"a"}:
+        # All other options except Cursor or Pivot by Absolute
+        # These options require no object, etc.
         bm, good = obj_check(obj, scene, operation)
         if good and obj.mode == 'EDIT':
             obj_loc = obj.matrix_world.decompose()[0]
