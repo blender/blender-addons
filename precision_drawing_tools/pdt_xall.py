@@ -40,7 +40,8 @@ def order_points(edge, point_list):
     v1, v2 = edge
 
     def dist(coord):
-        """MEasure distance between two coordinates."""
+        """Measure distance between two coordinates."""
+
         return (v1 - coord).length
 
     point_list = sorted(point_list, key=dist)
@@ -203,7 +204,8 @@ def unselect_nonintersecting(bm, d_edges, edge_indices):
 def intersect_all(context):
     """Computes All intersections with Crossing Geometry.
 
-    Deletes original edges and replaces with new intersected edges
+    Note:
+        Deletes original edges and replaces with new intersected edges
 
     Args:
         context: Blender bpy.context instance.
@@ -251,7 +253,7 @@ class PDT_OT_IntersectAllEdges(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        """Check to see object is in correct condidtion.
+        """Check to see object is in correct condition.
 
         Args:
             context: Blender bpy.context instance.
@@ -267,7 +269,8 @@ class PDT_OT_IntersectAllEdges(bpy.types.Operator):
     def execute(self, context):
         """Computes All intersections with Crossing Geometry.
 
-        Deletes original edges and replaces with new intersected edges
+        Note:
+            Deletes original edges and replaces with new intersected edges
 
         Args:
             context: Blender bpy.context instance.

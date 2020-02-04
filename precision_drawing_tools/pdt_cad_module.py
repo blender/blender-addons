@@ -37,7 +37,7 @@ def point_on_edge(point, edge):
         edge:     tuple containing 2 vectors.
 
     Returns:
-        True if point p happens to lie on the edge, False otherwise.
+        True if point happens to lie on the edge, False otherwise.
     """
 
     intersect_point, _percent = intersect_point_line(point, *edge)
@@ -48,7 +48,8 @@ def point_on_edge(point, edge):
 def line_from_edge_intersect(edge1, edge2):
     """Get New Line from Intersections.
 
-    Prepares input for sending to intersect_line_line
+    Note:
+        Prepares input for sending to intersect_line_line
 
     Args:
         edge1, edge2: tuples containing 2 vectors.
@@ -82,9 +83,10 @@ def get_intersection(edge1, edge2):
 def test_coplanar(edge1, edge2):
     """Test 2 Edges are Co-planar.
 
-    The line that describes the shortest line between the two edges would be short if the
-    lines intersect mathematically. If this line is longer than 1.0e-5 then they are either
-    coplanar or parallel
+    Note:
+        The line that describes the shortest line between the two edges would be short if the
+        lines intersect mathematically. If this line is longer than 1.0e-5 then they are either
+        coplanar or parallel
 
     Args:
         edge1, edge2: tuples containing 2 vectors.
@@ -102,7 +104,8 @@ def test_coplanar(edge1, edge2):
 def closest_idx(intersect_point, edge):
     """Get Closest Vertex to input point.
 
-    If both points in edge are equally far from intersect_point, then v1 is returned.
+    Note:
+        If both points in edge are equally far from intersect_point, then v1 is returned.
 
     Args:
         intersect_point:       vector
@@ -126,7 +129,8 @@ def closest_idx(intersect_point, edge):
 def closest_vector(intersect_point, edge):
     """Return Closest Vector to input Point.
 
-    If both points in e are equally far from intersect_point, then v1 is returned.
+    Note:
+        If both points in e are equally far from intersect_point, then v1 is returned.
 
     Args:
         intersect_point:       vector
@@ -177,7 +181,7 @@ def vertex_indices_from_edges_tuple(bm, edge_tuple):
     """Return List of vertices.
 
     Args:
-        bm:           is a bmesh representation
+        bm:           Active object's Bmesh
         edge_tuple:   contains 2 edge indices.
 
     Returns:
@@ -228,7 +232,7 @@ def find_intersecting_edges(bm, intersect_point, idx1, idx2):
 
     Args:
         intersect_point: Vector describing 3D coordinates of intersection point
-        idx1, ix2:    edge indices
+        idx1, idx2:    edge indices
 
     Returns:
         The list of edge indices where intersect_point is on those edges.
@@ -245,8 +249,8 @@ def vert_idxs_from_edge_idx(bm, idx):
     """Find Vertex Indices form Edge Indices.
 
     Args:
-        Object Bmesh as bm
-        Selection Index as idx
+        bm: Object's Bmesh
+        idx: Selection Index
 
     Returns:
         Vertex Indices of Edge.
