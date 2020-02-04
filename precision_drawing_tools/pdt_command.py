@@ -149,7 +149,7 @@ def command_run(self, context):
 
     # Check Object Type & Mode First
     obj = context.view_layer.objects.active
-    if obj is not None:
+    if obj is not None and command[0].upper() not in {"M", "?", "HELP"}:
         if obj.mode not in {"OBJECT", "EDIT"} or obj.type != "MESH":
             pg.error = PDT_OBJ_MODE_ERROR
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -439,7 +439,11 @@ def command_parse(context):
     if mode_sel == 'REL' and operation not in {"C", "P"}:
         pg.select = 'SEL'
 
-    if mode_sel == 'SEL' and mode not in {"a"}:
+    if (
+        (mode_sel == 'SEL' and mode not in {"a"})
+        or
+        (mode == "a" and operation not in {"C", "P"})
+        ):
         bm, good = obj_check(obj, scene, operation)
         if good and obj.mode == 'EDIT':
             obj_loc = obj.matrix_world.decompose()[0]
