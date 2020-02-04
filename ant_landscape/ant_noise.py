@@ -39,7 +39,7 @@ from math import (
         sin, cos, pi,
         )
 
-noise_basis_default = "PERLIN_ORIGINAL"
+noise_basis_default = "BLENDER"
 noise_basis = [
     ("BLENDER", "Blender", "Blender default noise", 0),
     ("PERLIN_ORIGINAL", "Perlin", "Perlin noise", 1),
