@@ -26,7 +26,7 @@ from bpy.types import Operator
 from mathutils import Vector
 from pathlib import Path
 from .pdt_functions import debug, oops
-from .pdt_msg_strings import PDT_ERR_NO_LIBRARY
+from .pdt_msg_strings import PDT_ERR_NO_LIBRARY, PDT_ERR_OBJECTMODE
 
 
 class PDT_OT_LibShow(Operator):
@@ -81,14 +81,19 @@ class PDT_OT_Append(Operator):
 
         scene = context.scene
         pg = scene.pdt_pg
+        obj = context.view_layer.objects.active
+        if obj is not None:
+            if obj.mode != "OBJECT":
+                error_message = PDT_ERR_OBJECTMODE
+                self.report({"ERROR"}, error_message)
+                return {"FINISHED"}
+
         obj_names = [o.name for o in context.view_layer.objects].copy()
         file_path = context.preferences.addons[__package__].preferences.pdt_library_path
         path = Path(file_path)
 
         if path.is_file() and ".blend" in str(path):
             if pg.lib_mode == "OBJECTS":
-                # Force object Mode
-                bpy.ops.object.mode_set(mode="OBJECT")
                 bpy.ops.wm.append(
                     filepath=str(path),
                     directory=str(path) + "/Object",
@@ -158,12 +163,17 @@ class PDT_OT_Link(Operator):
 
         scene = context.scene
         pg = scene.pdt_pg
+        obj = context.view_layer.objects.active
+        if obj is not None:
+            if obj.mode != "OBJECT":
+                error_message = PDT_ERR_OBJECTMODE
+                self.report({"ERROR"}, error_message)
+                return {"FINISHED"}
+
         file_path = context.preferences.addons[__package__].preferences.pdt_library_path
         path = Path(file_path)
         if path.is_file() and ".blend" in str(path):
             if pg.lib_mode == "OBJECTS":
-                # Force object Mode
-                bpy.ops.object.mode_set(mode="OBJECT")
                 bpy.ops.wm.link(
                     filepath=str(path),
                     directory=str(path) + "/Object",
