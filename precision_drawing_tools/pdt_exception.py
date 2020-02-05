@@ -81,3 +81,7 @@ class InvalidAngle(Exception):
 class ShaderError(Exception):
     """GL Shader Error Exception."""
     pass
+
+class FeatureError(Exception):
+    """Wrong Feature Type Error Exception."""
+    pass

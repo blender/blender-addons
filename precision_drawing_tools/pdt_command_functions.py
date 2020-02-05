@@ -151,7 +151,7 @@ def placement_normal(context, operation):
             if vector_a is None:
                 pg.error = PDT_ERR_VERT_MODE
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                raise PDT_InvalidVector
+                raise PDT_FeatureError
         else:
             pg.error = f"{PDT_ERR_SEL_3_VERTIO} {len(bm.select_history)})"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -566,7 +566,7 @@ def set_angle_distance_two(context):
                 if vector_a is None:
                     pg.error = PDT_ERR_VERT_MODE
                     context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                    raise PDT_InvalidVector
+                    raise PDT_FeatureError
             else:
                 pg.error = f"{PDT_ERR_SEL_2_VERTIO} {len(bm.select_history)})"
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -645,7 +645,7 @@ def set_angle_distance_three(context):
                 if vector_a is None:
                     pg.error = PDT_ERR_VERT_MODE
                     context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-                    raise PDT_InvalidVector
+                    raise PDT_FeatureError
             else:
                 pg.error = f"{PDT_ERR_SEL_3_VERTIO} {len(bm.select_history)})"
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
