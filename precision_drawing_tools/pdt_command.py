@@ -63,6 +63,7 @@ from .pdt_msg_strings import (
     PDT_ERR_INT_LINES,
     PDT_LAB_PLANE,
     PDT_ERR_NO_ACT_OBJ,
+    PDT_ERR_VERT_MODE,
 )
 from .pdt_bix import add_line_to_bisection
 from .pdt_etof import extend_vertex
@@ -76,6 +77,7 @@ PDT_ObjectModeError = pdt_exception.ObjectModeError
 PDT_MathsError = pdt_exception.MathsError
 PDT_IntersectionError = pdt_exception.IntersectionError
 PDT_NoObjectError = pdt_exception.NoObjectError
+PDT_FeatureError = pdt_exception.FeatureError
 
 
 class PDT_OT_CommandReRun(Operator):
@@ -438,10 +440,15 @@ def command_parse(context):
     obj_loc = Vector((0,0,0))
     verts = []
 
+    if mode_sel == 'REL' and operation not in {"C", "P"}:
+        pg.select = 'SEL'
+        mode_sel = 'SEL'
+
     if mode == "a" and operation not in {"C", "P"}:
         # Place new Vetex, or Extrude Vertices by Absolute Coords.
         if mode_sel == 'REL':
             pg.select = 'SEL'
+            mode_sel = 'SEL'
         if obj is not None:
             if obj.mode == "EDIT":
                 bm = bmesh.from_edit_mesh(obj.data)
@@ -455,7 +462,6 @@ def command_parse(context):
             pg.error = PDT_ERR_NO_ACT_OBJ
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             raise PDT_NoObjectError
-
 
     if mode_sel == 'SEL' and mode not in {"a"}:
         # All other options except Cursor or Pivot by Absolute
@@ -643,6 +649,10 @@ def add_new_vertex(context, pg, operation, mode, obj, bm, verts, values):
         pg.error = PDT_ERR_ADDVEDIT
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         raise PDT_SelectionError
+    if not isinstance(verts[0], bmesh.types.BMVert):
+        pg.error = PDT_ERR_VERT_MODE
+        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+        raise PDT_FeatureError
     # Absolute/Global Coordinates
     if mode == "a":
         try:
@@ -862,7 +872,6 @@ def extrude_vertices(context, pg, operation, mode, obj, obj_loc, bm, verts, valu
         new_vertex.select_set(True)
 
     bmesh.update_edit_mesh(obj.data)
-    bm.select_history.clear()
 
 
 def extrude_geometry(context, pg, operation, mode, obj, bm, values):
@@ -968,7 +977,6 @@ def duplicate_geometry(context, pg, operation, mode, obj, bm, values):
     bmesh.ops.translate(bm, verts=verts_dupe, vec=vector_delta)
     update_sel(bm, verts_dupe, edges_dupe, faces_dupe)
     bmesh.update_edit_mesh(obj.data)
-    bm.select_history.clear()
 
 
 def fillet_geometry(context, pg, mode, obj, bm, verts, values):
