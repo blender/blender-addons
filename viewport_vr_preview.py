@@ -67,6 +67,10 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
 
         layout.separator()
 
+        layout.prop(session_settings, "anchor_object")
+
+        layout.separator()
+
         layout.prop(session_settings, "show_floor", text="Floor")
         layout.prop(session_settings, "show_annotation", text="Annotations")
 
