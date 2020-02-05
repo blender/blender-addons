@@ -323,10 +323,10 @@ def pdt_help(self, context):
     label(text="C: Cursor (a, d, i, p)")
     label(text="D: Duplicate Geometry (d, i)")
     label(text="E: Extrude Geometry (d, i)")
-    label(text="F: Fillet (v, e)")
+    label(text="F: Fillet (v, e, i)")
     label(text="G: Grab (Move) (a, d, i, p)")
     label(text="N: New Vertex (a, d, i, p)")
-    label(text="M: Maths Functions (x, y, z, d, a, p)")
+    label(text="M: Maths Functions (a, d, p, o, x, y, z)")
     label(text="P: Pivot Point (a, d, i, p)")
     label(text="V: Extrude Vertice Only (a, d, i, p)")
     label(text="S: Split Edges (a, d, i, p)")
@@ -360,6 +360,9 @@ def pdt_help(self, context):
     label(text="'- Radius: 0.1 (float) -- the radius (or offset) of the bevel/fillet")
     label(text="'- Segments: 4 (int) -- choosing an even amount of segments gives better geometry")
     label(text="'- Profile: 0.5 (float[0.0;1.0]) -- 0.5 (default) yields a circular, convex shape")
+    label(text="")
+    label(text="More Information at:")
+    label(text="https://github.com/Clockmender/Precision-Drawing-Tools/wiki")
 
 
 def command_maths(context, mode, pg, expression, output_target):
