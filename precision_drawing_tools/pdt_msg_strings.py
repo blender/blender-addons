@@ -84,6 +84,7 @@ PDT_LAB_PIVOTLOCH = "Location"
 # Error Message
 #
 PDT_ERR_NO_ACT_OBJ = "No Active Object - Please Select an Object"
+PDT_ERR_OBJECTMODE = "Library Append/Link Tools Work Only in Object Mode"
 PDT_OBJ_MODE_ERROR = "Only Mesh Object in Edit or Object Mode Supported"
 PDT_ERR_NO_ACT_VERT = "No Active Vertex - Select One Vertex Individually"
 PDT_ERR_NO_SEL_GEOM = "No Geometry/Objects Selected"
