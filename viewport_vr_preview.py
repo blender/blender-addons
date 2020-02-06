@@ -23,6 +23,10 @@ from bpy.types import (
     Gizmo,
     GizmoGroup,
 )
+from bpy.props import(
+    CollectionProperty,
+    IntProperty,
+)
 from bl_ui.space_view3d import (
     VIEW3D_PT_shading_lighting,
     VIEW3D_PT_shading_color,
@@ -32,9 +36,9 @@ from bl_ui.space_view3d import (
 bl_info = {
     "name": "Basic VR Viewer",
     "author": "Julian Eisel (Severin)",
-    "version": (0, 0, 1),
-    "blender": (2, 81, 0),
-    "location": "Window > Toggle VR Session",
+    "version": (0, 0, 2),
+    "blender": (2, 83, 2),
+    "location": "3D View > Sidebar > VR",
     "description": ("View the viewport with virtual reality glasses "
                     "(head-mounted displays)"),
     "support": "OFFICIAL",
@@ -42,6 +46,112 @@ bl_info = {
                "VR support for Blender.",
     "category": "3D View",
 }
+
+
+def xr_pose_bookmark_type_update(self, context):
+    wm = context.window_manager
+    session_settings = wm.xr_session_settings
+    bookmark_active = VRPoseBookmark.get_active_bookmark(context)
+
+    if not bookmark_active:
+        return
+
+    if bookmark_active.type == 'SCENE_CAMERA':
+        # By setting the anchor object to None, the scene camera will be used.
+        session_settings.anchor_object = None
+    elif bookmark_active.type == 'USER_CAMERA':
+        # By default, select the scene camera.
+        if not bookmark_active.camera:
+            scene = context.scene
+            bookmark_active.camera = scene.camera
+
+
+def xr_pose_bookmark_camera_update(self, context):
+    wm = context.window_manager
+    session_settings = wm.xr_session_settings
+    bookmark_active = VRPoseBookmark.get_active_bookmark(context)
+
+    if bookmark_active and bookmark_active.type == 'CUSTOM_CAMERA':
+        # Update the anchor object to the (new) camera of this bookmark.
+        session_settings.anchor_object = bookmark_active.camera
+
+
+def xr_pose_bookmark_camera_object_poll(self, object):
+    return object.type == 'CAMERA'
+
+
+def xr_pose_bookmark_active_update(self, context):
+    xr_pose_bookmark_type_update(self, context)
+    xr_pose_bookmark_camera_update(self, context)
+
+
+class VRPoseBookmark(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty(
+        name="VR Pose Bookmark",
+        default="VR Pose"
+    )
+    type: bpy.props.EnumProperty(
+        name="Type",
+        items=[
+            ('SCENE_CAMERA', "Scene Camera", "Use scene's currently active camera to define the VR view base pose"),
+            ('USER_CAMERA', "Custom Camera", "Use an existing camera to define the VR view base pose"),
+            # ('CUSTOM', "Custom Pose", "Allow a manually definied position and rotation to be used as the VR view base pose"),
+        ],
+        default='SCENE_CAMERA',
+        update=xr_pose_bookmark_type_update,
+    )
+    camera: bpy.props.PointerProperty(
+        name="Camera",
+        type=bpy.types.Object,
+        poll=xr_pose_bookmark_camera_object_poll,
+        update=xr_pose_bookmark_camera_update,
+    )
+
+    @staticmethod
+    def get_active_bookmark(context):
+        wm = context.window_manager
+        bookmarks = wm.vr_pose_bookmarks
+
+        return None if len(bookmarks) < 1 else bookmarks[wm.vr_pose_bookmarks_active]
+
+
+class VIEW3D_UL_vr_pose_bookmarks(bpy.types.UIList):
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
+        bookmark = item
+
+        layout.emboss = 'NONE'
+        layout.prop(bookmark, "name", text="")
+
+
+class VIEW3D_PT_vr_pose_bookmarks(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "VR"
+    bl_label = "Pose Bookmarks"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        wm = context.window_manager
+        bookmarks = wm.vr_pose_bookmarks
+        bookmark_active = VRPoseBookmark.get_active_bookmark(context)
+
+        row = layout.row()
+
+        row.template_list("VIEW3D_UL_vr_pose_bookmarks", "", wm, "vr_pose_bookmarks",
+                          wm, "vr_pose_bookmarks_active", rows=3)
+
+        col = row.column(align=True)
+        col.operator("view3d.vr_pose_bookmark_add", icon='ADD', text="")
+        col.operator("view3d.vr_pose_bookmark_remove", icon='REMOVE', text="")
+
+        if bookmark_active:
+            layout.prop(bookmark_active, "type")
+
+            if bookmark_active.type == 'USER_CAMERA':
+                layout.prop(bookmark_active, "camera")
+            elif bookmark_active.type == 'CUSTOM':
+                pass
 
 
 class VIEW3D_PT_vr_session(bpy.types.Panel):
@@ -67,10 +177,6 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
 
         layout.separator()
 
-        layout.prop(session_settings, "anchor_object")
-
-        layout.separator()
-
         layout.prop(session_settings, "show_floor", text="Floor")
         layout.prop(session_settings, "show_annotation", text="Annotations")
 
@@ -83,6 +189,40 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
         layout.separator()
 
         layout.prop(session_settings, "use_positional_tracking")
+
+
+class VIEW3D_OT_vr_pose_bookmark_add(bpy.types.Operator):
+    bl_idname = "view3d.vr_pose_bookmark_add"
+    bl_label = "Add VR Pose Bookmark"
+    bl_description = "Add a new VR pose bookmark to the list and select it"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        wm = context.window_manager
+        bookmarks = wm.vr_pose_bookmarks
+
+        bookmarks.add()
+
+        # select newly created set
+        wm.vr_pose_bookmarks_active = len(bookmarks) - 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_pose_bookmark_remove(bpy.types.Operator):
+    bl_idname = "view3d.vr_pose_bookmark_remove"
+    bl_label = "Remove VR Pose Bookmark"
+    bl_description = "Delete the selected VR pose bookmark from the list"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        wm = context.window_manager
+        bookmarks = wm.vr_pose_bookmarks
+        bookmark_active_idx = wm.vr_pose_bookmarks_active
+
+        bookmarks.remove(bookmark_active_idx)
+
+        return {'FINISHED'}
 
 
 class VIEW3D_PT_vr_session_shading(bpy.types.Panel):
@@ -233,6 +373,13 @@ classes = (
     VIEW3D_PT_vr_session_shading_lighting,
     VIEW3D_PT_vr_session_shading_color,
     VIEW3D_PT_vr_session_shading_options,
+    VIEW3D_PT_vr_pose_bookmarks,
+
+    VRPoseBookmark,
+    VIEW3D_UL_vr_pose_bookmarks,
+
+    VIEW3D_OT_vr_pose_bookmark_add,
+    VIEW3D_OT_vr_pose_bookmark_remove,
 
     VIEW3D_GT_vr_camera_cone,
     VIEW3D_GGT_vr_viewer,
@@ -243,10 +390,21 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
+    bpy.types.WindowManager.vr_pose_bookmarks = CollectionProperty(
+        name="Pose Bookmarks",
+        type=VRPoseBookmark,
+    )
+    bpy.types.WindowManager.vr_pose_bookmarks_active = IntProperty(
+        update=xr_pose_bookmark_active_update,
+    )
+
 
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
+
+    del bpy.types.WindowManager.vr_pose_bookmarks
+    del bpy.types.WindowManager.vr_pose_bookmarks_active
 
 
 if __name__ == "__main__":
