@@ -672,6 +672,67 @@ def draw_login_buttons(layout):
                             icon='URL')
 
 
+class VIEW3D_PT_blenderkit_advanced_model_search(Panel):
+    bl_category = "BlenderKit"
+    bl_idname = "VIEW3D_PT_blenderkit_advanced_model_search"
+    # bl_parent_id = "VIEW3D_PT_blenderkit_unified"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Advanced search options"
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def draw(self, context):
+        s = context.scene
+
+        props = s.blenderkit_models
+        layout = self.layout
+        layout.separator()
+
+        # layout.label(text = "common searches keywords:")
+        # layout.prop(props, "search_global_keywords", text = "")
+        # layout.prop(props, "search_modifier_keywords")
+        # if props.search_engine == 'OTHER':
+        #     layout.prop(props, "search_engine_keyword")
+
+        # AGE
+        layout.prop(props, "search_condition", text='Condition')  # , text ='condition of object new/old e.t.c.')
+
+        # DESIGN YEAR
+        layout.prop(props, "search_design_year", text='designed in ( min - max )')
+        if props.search_design_year:
+            row = layout.row(align=True)
+            row.prop(props, "search_design_year_min", text='min')
+            row.prop(props, "search_design_year_max", text='max')
+
+        # POLYCOUNT
+        layout.prop(props, "search_polycount", text='Poly count in ( min - max )')
+        if props.search_polycount:
+            row = layout.row(align=True)
+            row.prop(props, "search_polycount_min", text='min')
+            row.prop(props, "search_polycount_max", text='max')
+
+        # TEXTURE RESOLUTION
+        layout.prop(props, "search_texture_resolution", text='texture resolution ( min - max )')
+        if props.search_texture_resolution:
+            row = layout.row(align=True)
+            row.prop(props, "search_texture_resolution_min", text='min')
+            row.prop(props, "search_texture_resolution_max", text='max')
+
+        # FILE SIZE
+        layout.prop(props, "search_file_size", text='File size ( min - max )')
+        if props.search_file_size:
+            row = layout.row(align=True)
+            row.prop(props, "search_file_size_min", text='min')
+            row.prop(props, "search_file_size_max", text='max')
+
+        # layout.prop(props, "search_procedural", expand=True)
+        # ADULT
+        # layout.prop(props, "search_adult")  # , text ='condition of object new/old e.t.c.')
+
+
 class VIEW3D_PT_blenderkit_unified(Panel):
     bl_category = "BlenderKit"
     bl_idname = "VIEW3D_PT_blenderkit_unified"
@@ -1085,6 +1146,7 @@ classess = (
     VIEW3D_PT_blenderkit_profile,
     VIEW3D_PT_blenderkit_login,
     VIEW3D_PT_blenderkit_unified,
+    # VIEW3D_PT_blenderkit_advanced_model_search,
     VIEW3D_PT_blenderkit_model_properties,
     VIEW3D_PT_blenderkit_downloads,
     OBJECT_MT_blenderkit_asset_menu,
@@ -1099,7 +1161,7 @@ def register_ui_panels():
 
 
 def unregister_ui_panels():
+    bpy.types.VIEW3D_MT_editor_menus.remove(header_search_draw)
     for c in classess:
         print('unregister', c)
         bpy.utils.unregister_class(c)
-    bpy.types.VIEW3D_MT_editor_menus.remove(header_search_draw)

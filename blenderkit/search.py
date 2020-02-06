@@ -132,7 +132,7 @@ last_clipboard = ''
 
 
 @bpy.app.handlers.persistent
-def timer_update():  # TODO might get moved to handle all blenderkit stuff.
+def timer_update():
     # this makes a first search after opening blender. showing latest assets.
     global first_time
     preferences = bpy.context.preferences.addons['blenderkit'].preferences

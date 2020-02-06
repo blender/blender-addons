@@ -400,7 +400,7 @@ class BlenderKitCommonSearchProps(object):
     search_done: BoolProperty(name="Search Completed", description="at least one search did run (internal)",
                               default=False)
     own_only: BoolProperty(name="My Assets", description="Search only for your assets",
-                           default=False)
+                           default=False, update=search.search_update)
     search_advanced: BoolProperty(name="Advanced Search Options", description="use advanced search properties",
                                   default=False, update=search.search_update)
 
@@ -1651,8 +1651,9 @@ def register():
 
 def unregister():
     bpy.app.timers.unregister(check_timers_timer)
-
+    ui_panels.unregister_ui_panels()
     ui.unregister_ui()
+
     icons.unregister_icons()
     search.unregister_search()
     asset_inspector.unregister_asset_inspector()
@@ -1660,7 +1661,6 @@ def unregister():
     upload.unregister_upload()
     ratings.unregister_ratings()
     autothumb.unregister_thumbnailer()
-    ui_panels.unregister_ui_panels()
     bg_blender.unregister()
     overrides.unregister_overrides()
     bkit_oauth.unregister()
