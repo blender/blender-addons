@@ -244,10 +244,9 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff.
                                               'tags': r['tags'],
                                               'can_download': r.get('canDownload', True),
                                               'verification_status': r['verificationStatus'],
-                                              'author_id': str(r['author']['id'])
+                                              'author_id': str(r['author']['id']),
                                               # 'author': r['author']['firstName'] + ' ' + r['author']['lastName']
                                               # 'description': r['description'],
-                                              # 'author': r['description'],
                                               }
                                 asset_data['downloaded'] = 0
 
@@ -504,7 +503,7 @@ def generate_tooltip(mdata):
 
     # t += 'uv: %s\n' % mdata['uv']
     # t += '\n'
-    t = writeblockm(t, mdata, key='license', width = col_w)
+    t = writeblockm(t, mdata, key='license', width=col_w)
 
     # generator is for both upload preview and search, this is only after search
     # if mdata.get('versionNumber'):
@@ -606,45 +605,45 @@ class ThumbDownloader(threading.Thread):
             #         f.write(chunk)
 
 
-def write_author(a_id, adata):
-    # utils.p('writing author back')
+def write_gravatar(a_id, gravatar_path):
+    '''
+    Write down gravatar path, as a result of thread-based gravatar image download.
+    This should happen on timer in queue.
+    '''
+    # print('write author', a_id, type(a_id))
     authors = bpy.context.window_manager['bkit authors']
-    if authors.get(a_id) in (None, ''):
-        adata['tooltip'] = generate_author_textblock(adata)
-        authors[a_id] = adata
+    if authors.get(a_id) is not None:
+        adata = authors.get(a_id)
+        adata['gravatarImg'] = gravatar_path
 
 
-def fetch_author(a_id, api_key):
-    utils.p('fetch author')
-    try:
-        a_url = paths.get_api_url() + 'accounts/' + a_id + '/'
-        headers = utils.get_headers(api_key)
-        r = rerequests.get(a_url, headers=headers)
+def fetch_gravatar(adata):
+    utils.p('fetch gravatar')
+    if adata.get('gravatarHash') is not None:
+        gravatar_path = paths.get_temp_dir(subdir='g/') + adata['gravatarHash'] + '.jpg'
+
+        if os.path.exists(gravatar_path):
+            tasks_queue.add_task((write_gravatar, (adata['id'], gravatar_path)))
+            return;
+
+        url = "https://www.gravatar.com/avatar/" + adata['gravatarHash'] + '?d=404'
+        r = rerequests.get(url, stream=False)
         if r.status_code == 200:
-            adata = r.json()
-            if not hasattr(adata, 'id'):
-                utils.p(adata)
-            # utils.p(adata)
-            tasks_queue.add_task((write_author, (a_id, adata)))
-            if adata.get('gravatarHash') is not None:
-                gravatar_path = paths.get_temp_dir(subdir='g/') + adata['gravatarHash'] + '.jpg'
-                url = "https://www.gravatar.com/avatar/" + adata['gravatarHash'] + '?d=404'
-                r = rerequests.get(url, stream=False)
-                if r.status_code == 200:
-                    with open(gravatar_path, 'wb') as f:
-                        f.write(r.content)
-                    adata['gravatarImg'] = gravatar_path
-                elif r.status_code == '404':
-                    adata['gravatarHash'] = None
-                    utils.p('gravatar for author not available.')
-    except Exception as e:
-        utils.p(e)
-    utils.p('finish fetch')
+            with open(gravatar_path, 'wb') as f:
+                f.write(r.content)
+            tasks_queue.add_task((write_gravatar, (adata['id'], gravatar_path)))
+        elif r.status_code == '404':
+            adata['gravatarHash'] = None
+            utils.p('gravatar for author not available.')
 
 
-# profile_counter =0
+fetching_gravatars = {}
+
 
 def get_author(r):
+    ''' Writes author info (now from search results) and fetches gravatar if needed.'''
+    global fetching_gravatars
+
     a_id = str(r['author']['id'])
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
     authors = bpy.context.window_manager.get('bkit authors', {})
@@ -652,12 +651,16 @@ def get_author(r):
         bpy.context.window_manager['bkit authors'] = authors
     a = authors.get(a_id)
     if a is None:  # or a is '' or (a.get('gravatarHash') is not None and a.get('gravatarImg') is None):
-        authors[a_id] = ''
-        thread = threading.Thread(target=fetch_author, args=(a_id, preferences.api_key), daemon=True)
+        a = r['author']
+        a['id'] = a_id
+        a['tooltip'] = generate_author_textblock(a)
+
+        authors[a_id] = a
+        if fetching_gravatars.get(a['id']) is None:
+            fetching_gravatars[a['id']] = True
+
+        thread = threading.Thread(target=fetch_gravatar, args=(a.copy(),), daemon=True)
         thread.start()
-        # global profile_counter
-        # profile_counter+=1
-        # print(profile_counter,'author:', a_id)
     return a
 
 
@@ -846,11 +849,9 @@ class Searcher(threading.Thread):
         thumb_full_urls = []
         thumb_full_filepaths = []
         # END OF PARSING
-        getting_authors = {}
         for d in rdata.get('results', []):
-            if getting_authors.get(d['author']['id']) is None:
-                get_author(d)
-                getting_authors[d['author']['id']] = True
+
+            get_author(d)
 
             for f in d['files']:
                 # TODO move validation of published assets to server, too manmy checks here.
@@ -964,13 +965,12 @@ def build_query_common(query, props):
             # query["procedural"] = False
 
         if props.search_procedural == "PROCEDURAL":
-            #todo this procedural hack should be replaced with the parameter
+            # todo this procedural hack should be replaced with the parameter
             query["files_size_lte"] = 1024 * 1024
             # query["procedural"] = True
         elif props.search_file_size:
             query_common["files_size_gte"] = props.search_file_size_min * 1024 * 1024
             query_common["files_size_lte"] = props.search_file_size_max * 1024 * 1024
-
 
     query.update(query_common)
 
@@ -1114,7 +1114,7 @@ def search(category='', get_next=False, author_id=''):
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
 
     search_start_time = time.time()
-    #mt('start')
+    # mt('start')
     scene = bpy.context.scene
     uiprops = scene.blenderkitUI
 

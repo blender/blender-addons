@@ -81,9 +81,9 @@ def draw_ratings(layout, context):
     # layout.label(text='compliments')
     # layout.prop(bkit_ratings, 'rating_compliments', text='')
 
-    row = layout.row()
-    op = row.operator("object.blenderkit_rating_upload", text="Send rating", icon='URL')
-    return op
+    # row = layout.row()
+    # op = row.operator("object.blenderkit_rating_upload", text="Send rating", icon='URL')
+    # return op
 
 
 def draw_upload_common(layout, props, asset_type, context):
@@ -391,7 +391,7 @@ class VIEW3D_PT_blenderkit_model_properties(Panel):
     bl_idname = "VIEW3D_PT_blenderkit_model_properties"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "Selected Asset"
+    bl_label = "Selected Model"
     bl_context = "objectmode"
 
     @classmethod
@@ -403,7 +403,12 @@ class VIEW3D_PT_blenderkit_model_properties(Panel):
         # draw asset properties here
         layout = self.layout
 
-        o = bpy.context.active_object
+        o = utils.get_active_model()
+        # o = bpy.context.active_object
+        if o.get('asset_data') is None:
+            label_multiline(layout, text='To upload this asset to BlenderKit, go to the Find and Upload Assets pael.')
+            layout.prop(o, 'name')
+
         if o.get('asset_data') is not None:
             ad = o['asset_data']
             layout.label(text=str(ad['name']))
@@ -506,8 +511,8 @@ class VIEW3D_PT_blenderkit_login(Panel):
 
 def draw_panel_model_rating(self, context):
     o = bpy.context.active_object
-    op = draw_ratings(self.layout, context)  # , props)
-    op.asset_type = 'MODEL'
+    draw_ratings(self.layout, context)  # , props)
+    # op.asset_type = 'MODEL'
 
 
 def draw_panel_material_upload(self, context):
@@ -584,7 +589,7 @@ def draw_panel_material_search(self, context):
     if props.search_advanced:
         layout.separator()
 
-        layout.label(text = 'texture types')
+        layout.label(text='texture types')
         col = layout.column()
         col.prop(props, "search_procedural", expand=True)
 
@@ -609,8 +614,8 @@ def draw_panel_material_search(self, context):
 
 
 def draw_panel_material_ratings(self, context):
-    op = draw_ratings(self.layout, context)  # , props)
-    op.asset_type = 'MATERIAL'
+    draw_ratings(self.layout, context)  # , props)
+    # op.asset_type = 'MATERIAL'
 
 
 def draw_panel_brush_upload(self, context):
@@ -643,9 +648,9 @@ def draw_panel_brush_search(self, context):
 
 def draw_panel_brush_ratings(self, context):
     # props = utils.get_brush_props(context)
-    op = draw_ratings(self.layout, context)  # , props)
-
-    op.asset_type = 'BRUSH'
+    draw_ratings(self.layout, context)  # , props)
+    #
+    # op.asset_type = 'BRUSH'
 
 
 def draw_login_buttons(layout):

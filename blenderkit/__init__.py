@@ -385,10 +385,12 @@ class BlenderKitUIProps(PropertyGroup):
     dragging_rating_work_hours: BoolProperty(name="Dragging Rating Work Hours", default=False)
     last_rating_time: FloatProperty(name="Last Rating Time", default=0.0)
 
-def search_procedural_update(self,context):
+
+def search_procedural_update(self, context):
     if self.search_procedural in ('PROCEDURAL', 'BOTH'):
         self.search_texture_resolution = False
     search.search_update(self, context)
+
 
 class BlenderKitCommonSearchProps(object):
     # STATES
@@ -472,13 +474,13 @@ class BlenderKitCommonSearchProps(object):
             ('ALL', 'All', 'All'),
             ('UPLOADING', 'Uploading', 'Uploading'),
             ('UPLOADED', 'Uploaded', 'Uploaded'),
+            ('READY', 'Ready for V.', 'Ready for validation (deprecated since 2.8)'),
             ('VALIDATED', 'Validated', 'Calidated'),
             ('ON_HOLD', 'On Hold', 'On Hold'),
             ('REJECTED', 'Rejected', 'Rejected'),
             ('DELETED', 'Deleted', 'Deleted'),
         ),
         default='ALL',
-        update=search.search_update,
     )
 
 
@@ -645,9 +647,16 @@ class BlenderKitCommonUploadProps(object):
 
 
 class BlenderKitRatingProps(PropertyGroup):
-    rating_quality: IntProperty(name="Quality", description="quality of the material", default=0, min=-1, max=10)
-    rating_work_hours: FloatProperty(name="Work Hours", description="How many hours did this work take?", default=0.01,
-                                     min=0.0, max=1000
+    rating_quality: IntProperty(name="Quality",
+                                description="quality of the material",
+                                default=0,
+                                min=-1, max=10,
+                                update=ratings.update_ratings_quality)
+
+    rating_work_hours: FloatProperty(name="Work Hours",
+                                     description="How many hours did this work take?",
+                                     default=0.01,
+                                     min=0.0, max=1000, update=ratings.update_ratings_work_hours
                                      )
     rating_complexity: IntProperty(name="Complexity",
                                    description="Complexity is a number estimating how much work was spent on the asset.aaa",
