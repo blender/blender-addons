@@ -1117,14 +1117,16 @@ def mouse_in_asset_bar(mx, my):
     s = bpy.context.scene
 
     ui_props = bpy.context.scene.blenderkitUI
+    search_results = s.get('search results')
+    if search_results == None:
+        return False
 
     w_draw1 = min(ui_props.wcount + 1, len(search_results) - b * ui_props.wcount - ui_props.scrolloffset)
     end = ui_props.bar_x + (w_draw1) * (
             ui_props.margin + ui_props.thumb_size) + ui_props.margin + ui_props.drawoffset + 25
-    ui_bgl.draw_rect(end, ui_props.bar_y, 50, 50, highlight)
 
     if ui_props.bar_y - ui_props.bar_height < my < ui_props.bar_y \
-            and mx > ui_props.bar_x and mx < ui_props.bar_x + ui_props.bar_width:
+            and mx > ui_props.bar_x and mx < end:
         return True
     else:
         return False
