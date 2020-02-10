@@ -1589,7 +1589,7 @@ class AssetBarOperator(bpy.types.Operator):
                         else:
                             # first, test if object can have material applied.
                             # TODO add other types here if droppable.
-                            if object is None or object.is_library_indirect and object.type == 'MESH':
+                            if object is not None and not object.is_library_indirect and object.type == 'MESH':
                                 target_object = object.name
                                 # create final mesh to extract correct material slot
                                 depsgraph = bpy.context.evaluated_depsgraph_get()
