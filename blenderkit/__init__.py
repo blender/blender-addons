@@ -1313,7 +1313,8 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
             ('LINK_COLLECTION', 'Link', 'Link Collection'),
             ('APPEND_OBJECTS', 'Append', 'Append as Objects'),
         ),
-        description="choose if the assets will be linked or appended",
+        description="Appended objects are editable in your scene. Linked assets are saved in original files, "
+                    "aren't editable but also don't increase your file size",
         default="LINK_COLLECTION"
     )
     append_link: EnumProperty(
@@ -1453,8 +1454,8 @@ class BlenderKitAddonPreferences(AddonPreferences):
     )
 
     search_in_header: BoolProperty(
-        name="Show BlenderKit search in 3d view header",
-        description="Show BlenderKit search in 3d view header",
+        name="Show BlenderKit search in 3D view header",
+        description="Show BlenderKit search in 3D view header",
         default=True
     )
 

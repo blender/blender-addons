@@ -69,6 +69,10 @@ def label_multiline(layout, text='', icon='NONE', width=-1):
 def draw_ratings(layout, context):
     # layout.operator("wm.url_open", text="Read rating instructions", icon='QUESTION').url = 'https://support.google.com/?hl=en'
     asset = utils.get_active_asset()
+    # the following shouldn't happen at all in an optimal case,
+    # this function should run only when asset was already checked to be existing
+    if asset == None:
+        return;
     bkit_ratings = asset.bkit_ratings
 
     ratings.draw_rating(layout, bkit_ratings, 'rating_quality', 'Quality')
@@ -406,7 +410,7 @@ class VIEW3D_PT_blenderkit_model_properties(Panel):
         o = utils.get_active_model()
         # o = bpy.context.active_object
         if o.get('asset_data') is None:
-            label_multiline(layout, text='To upload this asset to BlenderKit, go to the Find and Upload Assets pael.')
+            label_multiline(layout, text='To upload this asset to BlenderKit, go to the Find and Upload Assets panel.')
             layout.prop(o, 'name')
 
         if o.get('asset_data') is not None:
