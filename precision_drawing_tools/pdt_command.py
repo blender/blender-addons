@@ -652,10 +652,11 @@ def add_new_vertex(context, pg, operation, mode, obj, bm, verts, values):
         pg.error = PDT_ERR_ADDVEDIT
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         raise PDT_SelectionError
-    if not isinstance(verts[0], bmesh.types.BMVert):
-        pg.error = PDT_ERR_VERT_MODE
-        context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
-        raise PDT_FeatureError
+    if mode not in {"a"}:
+        if not isinstance(verts[0], bmesh.types.BMVert):
+            pg.error = PDT_ERR_VERT_MODE
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            raise PDT_FeatureError
     # Absolute/Global Coordinates
     if mode == "a":
         try:
