@@ -2661,10 +2661,22 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
         options={'HIDDEN', 'SKIP_SAVE'}
     )
 
+    relative_path: BoolProperty(
+        name='Relative Path',
+        description='Select the file relative to the blend file',
+        default=True
+    )
+
     order = [
         "filepath",
         "files",
     ]
+
+    def draw(self, context):
+        layout = self.layout
+        layout.alignment = 'LEFT'
+
+        layout.prop(self, 'relative_path')
 
     @classmethod
     def poll(cls, context):
@@ -2747,6 +2759,15 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
             print('No matching images found')
             return {'CANCELLED'}
 
+        # Don't override path earlier as os.path is used to check the absolute path
+        import_path = self.directory
+        if self.relative_path:
+            if bpy.data.filepath:
+                import_path = bpy.path.relpath(self.directory)
+            else:
+                self.report({'WARNING'}, 'Relative paths cannot be used with unsaved scenes!')
+                print('Relative paths cannot be used with unsaved scenes!')
+
         # Add found images
         print('\nMatched Textures:')
         texture_nodes = []
@@ -2759,7 +2780,7 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
             # DISPLACEMENT NODES
             if sname[0] == 'Displacement':
                 disp_texture = nodes.new(type='ShaderNodeTexImage')
-                img = bpy.data.images.load(self.directory+sname[2])
+                img = bpy.data.images.load(path.join(import_path, sname[2]))
                 disp_texture.image = img
                 disp_texture.label = 'Displacement'
                 if disp_texture.image:
@@ -2784,7 +2805,7 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
             if not active_node.inputs[sname[0]].is_linked:
                 # No texture node connected -> add texture node with new image
                 texture_node = nodes.new(type='ShaderNodeTexImage')
-                img = bpy.data.images.load(self.directory+sname[2])
+                img = bpy.data.images.load(path.join(import_path, sname[2]))
                 texture_node.image = img
 
                 # NORMAL NODES
