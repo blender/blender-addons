@@ -53,6 +53,7 @@ if "bpy" in locals():
     importlib.reload(pdt_xall)
     importlib.reload(pdt_bix)
     importlib.reload(pdt_etof)
+    importlib.reload(pdt_tangent)
 else:
     from . import pdt_design
     from . import pdt_pivot_point
@@ -62,6 +63,7 @@ else:
     from . import pdt_xall
     from . import pdt_bix
     from . import pdt_etof
+    from . import pdt_tangent
 
 import bpy
 import os
@@ -108,6 +110,12 @@ from .pdt_msg_strings import (
     PDT_DES_TRIM,
     PDT_DES_VALIDLET,
     PDT_DES_WORPLANE,
+    PDT_DES_TANCEN1,
+    PDT_DES_TANCEN2,
+    PDT_DES_TANCEN3,
+    PDT_DES_RADIUS1,
+    PDT_DES_RADIUS2,
+    PDT_DES_TPOINT,
 )
 from .pdt_command import command_run
 from .pdt_functions import scale_set
@@ -389,6 +397,22 @@ class PDTSceneProperties(PropertyGroup):
     fillet_intersect: BoolProperty(
         name="Intersect", default=False, description=PDT_DES_FILLINT,
     )
+    tangent_point0: FloatVectorProperty(
+        name="Coordst1", default=(0.0, 0.0, 0.0), subtype="XYZ", description=PDT_DES_TANCEN1
+    )
+    tangent_point1: FloatVectorProperty(
+        name="Coordst2", default=(0.0, 0.0, 0.0), subtype="XYZ", description=PDT_DES_TANCEN2
+    )
+    tangent_radius0: FloatProperty(
+        name="Arc Radius 1", min=0.00001,  default=1, description=PDT_DES_RADIUS1
+    )
+    tangent_radius1: FloatProperty(
+        name="Arc Radius 2", min=0.00001, default=1, description=PDT_DES_RADIUS2
+    )
+    tangent_point2: FloatVectorProperty(
+        name="Coordst3", default=(0.0, 0.0, 0.0), subtype="XYZ", description=PDT_DES_TANCEN3
+    )
+    tangent_from_point: BoolProperty(name="From Point", default=False, description=PDT_DES_TPOINT)
 
 
 class PDTPreferences(AddonPreferences):
@@ -463,6 +487,7 @@ classes = (
     pdt_library.PDT_OT_LibShow,
     pdt_menus.PDT_PT_PanelDesign,
     pdt_menus.PDT_PT_PanelTools,
+    pdt_menus.PDT_PT_PanelTangent,
     pdt_menus.PDT_PT_PanelCommandLine,
     pdt_menus.PDT_PT_PanelViewControl,
     pdt_menus.PDT_PT_PanelPivotPoint,
@@ -476,6 +501,9 @@ classes = (
     pdt_pivot_point.PDT_OT_PivotOrigin,
     pdt_pivot_point.PDT_OT_PivotWrite,
     pdt_pivot_point.PDT_OT_PivotRead,
+    pdt_tangent.PDT_OT_TangentOperate,
+    pdt_tangent.PDT_OT_TangentSet1,
+    pdt_tangent.PDT_OT_TangentSet2,
     pdt_view.PDT_OT_ViewRot,
     pdt_view.PDT_OT_ViewRotL,
     pdt_view.PDT_OT_ViewRotR,

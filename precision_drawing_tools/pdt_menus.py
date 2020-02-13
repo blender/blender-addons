@@ -414,3 +414,42 @@ class PDT_PT_PanelCommandLine(Panel):
         row.operator("pdt.command_rerun", text="", icon="LOOP_BACK")
         row = layout.row()
         row.prop(pdt_pg, "maths_output", text="Maths Output")
+
+class PDT_PT_PanelTangent(Panel):
+    bl_idname = "PDT_PT_PanelTangent"
+    bl_label = "PDT Tangents"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "PDT"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self,context):
+        layout = self.layout
+        pdt_pg = context.scene.pdt_pg
+        # First Centre & Radius
+        row = layout.row()
+        split = row.split(factor=0.35, align=True)
+        split.label(text="Centre 1")
+        split.prop(pdt_pg, "tangent_point0", text="")
+        row = layout.row()
+        split = row.split(factor=0.45, align=False)
+        split.operator("pdt.tangentset1", text="Set From Arc")
+        split.prop(pdt_pg, "tangent_radius0", text="")
+
+        # Second Centre & Radius
+        row = layout.row()
+        split = row.split(factor=0.35, align=True)
+        split.label(text="Centre 2")
+        split.prop(pdt_pg, "tangent_point1", text="")
+        row = layout.row()
+        split = row.split(factor=0.45, align=False)
+        split.operator("pdt.tangentset2", text="Set From Arc")
+        split.prop(pdt_pg, "tangent_radius1", text="")
+
+        row = layout.row()
+        row.operator("pdt.tangentoperate", text="Execute", icon="NONE")
+        row.prop(pdt_pg, "tangent_from_point", text="From Point")
+        row = layout.row()
+        split = row.split(factor=0.35, align=True)
+        split.label(text="Tan Point")
+        split.prop(pdt_pg, "tangent_point2", text="")
