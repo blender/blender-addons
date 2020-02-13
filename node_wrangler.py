@@ -1705,6 +1705,8 @@ class NWEmissionViewer(Operator, NWBase):
                         # Set brightness of viewer to compensate for Film and CM exposure
                         if context.scene.render.engine == 'CYCLES' and hasattr(context.scene, 'cycles'):
                             intensity = 1/context.scene.cycles.film_exposure  # Film exposure is a multiplier
+                        else:
+                            intensity = 1
 
                         intensity /= pow(2, (context.scene.view_settings.exposure))  # CM exposure is measured in stops/EVs (2^x)
                         emission.inputs[1].default_value = intensity
