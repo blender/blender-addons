@@ -58,7 +58,7 @@ def xr_pose_bookmark_type_update(self, context):
 
     if bookmark_active.type == 'SCENE_CAMERA':
         # By setting the anchor object to None, the scene camera will be used.
-        session_settings.anchor_object = None
+        session_settings.base_pose_object = None
     elif bookmark_active.type == 'USER_CAMERA':
         # By default, select the scene camera.
         if not bookmark_active.camera:
@@ -71,9 +71,9 @@ def xr_pose_bookmark_camera_update(self, context):
     session_settings = wm.xr_session_settings
     bookmark_active = VRPoseBookmark.get_active_bookmark(context)
 
-    if bookmark_active and bookmark_active.type == 'CUSTOM_CAMERA':
+    if bookmark_active and bookmark_active.type == 'USER_CAMERA':
         # Update the anchor object to the (new) camera of this bookmark.
-        session_settings.anchor_object = bookmark_active.camera
+        session_settings.base_pose_object = bookmark_active.camera
 
 
 def xr_pose_bookmark_camera_object_poll(self, object):
@@ -93,8 +93,10 @@ class VRPoseBookmark(bpy.types.PropertyGroup):
     type: bpy.props.EnumProperty(
         name="Type",
         items=[
-            ('SCENE_CAMERA', "Scene Camera", "Use scene's currently active camera to define the VR view base pose"),
-            ('USER_CAMERA', "Custom Camera", "Use an existing camera to define the VR view base pose"),
+            ('SCENE_CAMERA', "Scene Camera",
+             "Use scene's currently active camera to define the VR view base pose"),
+            ('USER_CAMERA', "Custom Camera",
+             "Use an existing camera to define the VR view base pose"),
             # ('CUSTOM', "Custom Pose", "Allow a manually definied position and rotation to be used as the VR view base pose"),
         ],
         default='SCENE_CAMERA',
@@ -133,7 +135,6 @@ class VIEW3D_PT_vr_pose_bookmarks(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         wm = context.window_manager
-        bookmarks = wm.vr_pose_bookmarks
         bookmark_active = VRPoseBookmark.get_active_bookmark(context)
 
         row = layout.row()
