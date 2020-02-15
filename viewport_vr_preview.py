@@ -56,24 +56,38 @@ def xr_pose_bookmark_type_update(self, context):
     if not bookmark_active:
         return
 
+    # Update session's base pose type to the matching type.
     if bookmark_active.type == 'SCENE_CAMERA':
-        # By setting the anchor object to None, the scene camera will be used.
-        session_settings.base_pose_object = None
+        session_settings.base_pose_type = 'SCENE_CAMERA'
     elif bookmark_active.type == 'USER_CAMERA':
-        # By default, select the scene camera.
-        if not bookmark_active.camera:
-            scene = context.scene
-            bookmark_active.camera = scene.camera
+        session_settings.base_pose_type = 'OBJECT'
+    elif bookmark_active.type == 'CUSTOM':
+        session_settings.base_pose_type = 'CUSTOM'
 
 
 def xr_pose_bookmark_camera_update(self, context):
-    wm = context.window_manager
-    session_settings = wm.xr_session_settings
+    session_settings = context.window_manager.xr_session_settings
     bookmark_active = VRPoseBookmark.get_active_bookmark(context)
 
-    if bookmark_active and bookmark_active.type == 'USER_CAMERA':
+    if bookmark_active:
         # Update the anchor object to the (new) camera of this bookmark.
-        session_settings.base_pose_object = bookmark_active.camera
+        session_settings.base_pose_object = bookmark_active.base_pose_camera
+
+
+def xr_pose_bookmark_base_pose_location_update(self, context):
+    session_settings = context.window_manager.xr_session_settings
+    bookmark_active = VRPoseBookmark.get_active_bookmark(context)
+
+    if bookmark_active:
+        session_settings.base_pose_location = bookmark_active.base_pose_location
+
+
+def xr_pose_bookmark_base_pose_angle_update(self, context):
+    session_settings = context.window_manager.xr_session_settings
+    bookmark_active = VRPoseBookmark.get_active_bookmark(context)
+
+    if bookmark_active:
+        session_settings.base_pose_angle = bookmark_active.base_pose_angle
 
 
 def xr_pose_bookmark_camera_object_poll(self, object):
@@ -97,16 +111,28 @@ class VRPoseBookmark(bpy.types.PropertyGroup):
              "Use scene's currently active camera to define the VR view base pose"),
             ('USER_CAMERA', "Custom Camera",
              "Use an existing camera to define the VR view base pose"),
-            # ('CUSTOM', "Custom Pose", "Allow a manually definied position and rotation to be used as the VR view base pose"),
+            ('CUSTOM', "Custom Pose",
+             "Allow a manually definied position and rotation to be used as the VR view base pose"),
         ],
         default='SCENE_CAMERA',
         update=xr_pose_bookmark_type_update,
     )
-    camera: bpy.props.PointerProperty(
+    base_pose_camera: bpy.props.PointerProperty(
         name="Camera",
         type=bpy.types.Object,
         poll=xr_pose_bookmark_camera_object_poll,
         update=xr_pose_bookmark_camera_update,
+    )
+    base_pose_location: bpy.props.FloatVectorProperty(
+        name="Base Pose Location",
+        subtype='TRANSLATION',
+        update=xr_pose_bookmark_base_pose_location_update,
+    )
+
+    base_pose_angle: bpy.props.FloatProperty(
+        name="Base Pose Angle",
+        subtype='ANGLE',
+        update=xr_pose_bookmark_base_pose_angle_update,
     )
 
     @staticmethod
@@ -137,6 +163,9 @@ class VIEW3D_PT_vr_pose_bookmarks(bpy.types.Panel):
         wm = context.window_manager
         bookmark_active = VRPoseBookmark.get_active_bookmark(context)
 
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
         row = layout.row()
 
         row.template_list("VIEW3D_UL_vr_pose_bookmarks", "", wm, "vr_pose_bookmarks",
@@ -150,9 +179,12 @@ class VIEW3D_PT_vr_pose_bookmarks(bpy.types.Panel):
             layout.prop(bookmark_active, "type")
 
             if bookmark_active.type == 'USER_CAMERA':
-                layout.prop(bookmark_active, "camera")
+                layout.prop(bookmark_active, "base_pose_camera")
             elif bookmark_active.type == 'CUSTOM':
-                pass
+                layout.prop(bookmark_active,
+                            "base_pose_location", text="Location")
+                layout.prop(bookmark_active,
+                            "base_pose_angle", text="Angle")
 
 
 class VIEW3D_PT_vr_session(bpy.types.Panel):
