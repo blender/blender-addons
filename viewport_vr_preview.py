@@ -26,6 +26,7 @@ from bpy.types import (
 from bpy.props import(
     CollectionProperty,
     IntProperty,
+    BoolProperty,
 )
 from bl_ui.space_view3d import (
     VIEW3D_PT_shading_lighting,
@@ -320,6 +321,20 @@ class VIEW3D_PT_vr_session_shading_options(bpy.types.Panel):
             VIEW3D_PT_shading_options.draw_ex(self, context, shading)
 
 
+class VIEW3D_PT_vr_feedback(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "VR"
+    bl_label = "Feedback"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        view3d = context.space_data
+
+        layout.prop(view3d.shading, "vr_show_virtual_camera")
+
+
 class VIEW3D_GT_vr_camera_cone(Gizmo):
     bl_idname = "VIEW_3D_GT_vr_camera_cone"
 
@@ -370,7 +385,8 @@ class VIEW3D_GGT_vr_viewer(GizmoGroup):
 
     @classmethod
     def poll(cls, context):
-        return bpy.types.XrSessionState.is_running(context)
+        view3d = context.space_data
+        return view3d.shading.vr_show_virtual_camera and bpy.types.XrSessionState.is_running(context)
 
     def _get_viewer_matrix(self, context):
         from mathutils import Matrix, Quaternion
@@ -407,6 +423,7 @@ classes = (
     VIEW3D_PT_vr_session_shading_color,
     VIEW3D_PT_vr_session_shading_options,
     VIEW3D_PT_vr_pose_bookmarks,
+    VIEW3D_PT_vr_feedback,
 
     VRPoseBookmark,
     VIEW3D_UL_vr_pose_bookmarks,
@@ -430,6 +447,11 @@ def register():
     bpy.types.WindowManager.vr_pose_bookmarks_active = IntProperty(
         update=xr_pose_bookmark_active_update,
     )
+    # View3DShading is the only per 3D-View struct with custom property
+    # support, so "abusing" that to get a per 3D-View option.
+    bpy.types.View3DShading.vr_show_virtual_camera = BoolProperty(
+        name="Show Virtual Camera"
+    )
 
 
 def unregister():
@@ -438,6 +460,7 @@ def unregister():
 
     del bpy.types.WindowManager.vr_pose_bookmarks
     del bpy.types.WindowManager.vr_pose_bookmarks_active
+    del bpy.types.View3DShading.vr_show_virtual_camera
 
 
 if __name__ == "__main__":
