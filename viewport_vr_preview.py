@@ -252,9 +252,12 @@ class VIEW3D_OT_vr_pose_bookmark_remove(bpy.types.Operator):
     def execute(self, context):
         wm = context.window_manager
         bookmarks = wm.vr_pose_bookmarks
-        bookmark_active_idx = wm.vr_pose_bookmarks_active
 
-        bookmarks.remove(bookmark_active_idx)
+        if len(bookmarks) > 1:
+            bookmark_active_idx = wm.vr_pose_bookmarks_active
+            bookmarks.remove(bookmark_active_idx)
+
+            wm.vr_pose_bookmarks_active -= 1
 
         return {'FINISHED'}
 
@@ -452,6 +455,12 @@ def register():
     bpy.types.View3DShading.vr_show_virtual_camera = BoolProperty(
         name="Show Virtual Camera"
     )
+
+    # Ensure there's a default bookmark (scene camera by default).
+    bookmarks = bpy.context.window_manager.vr_pose_bookmarks
+    if len(bookmarks) == 0:
+        bookmarks.add()
+        bookmarks[0].type = 'SCENE_CAMERA'
 
 
 def unregister():
