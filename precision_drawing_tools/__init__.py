@@ -413,6 +413,9 @@ class PDTSceneProperties(PropertyGroup):
         name="Coordst3", default=(0.0, 0.0, 0.0), subtype="XYZ", description=PDT_DES_TANCEN3
     )
     tangent_from_point: BoolProperty(name="From Point", default=False, description=PDT_DES_TPOINT)
+    menu_expand: BoolProperty(
+        name="Expand", default=False, description="Expand/Collapse Menu",
+    )
 
 
 class PDTPreferences(AddonPreferences):
@@ -502,8 +505,12 @@ classes = (
     pdt_pivot_point.PDT_OT_PivotWrite,
     pdt_pivot_point.PDT_OT_PivotRead,
     pdt_tangent.PDT_OT_TangentOperate,
+    pdt_tangent.PDT_OT_TangentOperateSel,
     pdt_tangent.PDT_OT_TangentSet1,
     pdt_tangent.PDT_OT_TangentSet2,
+    pdt_tangent.PDT_OT_TangentSet3,
+    pdt_tangent.PDT_OT_TangentSet4,
+    pdt_tangent.PDT_OT_TangentExpandMenu,
     pdt_view.PDT_OT_ViewRot,
     pdt_view.PDT_OT_ViewRotL,
     pdt_view.PDT_OT_ViewRotR,

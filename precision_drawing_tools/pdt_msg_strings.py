@@ -151,6 +151,9 @@ PDT_ERR_2CPNPE = "Select 2 Co-Planar Non-Parallel Edges"
 PDT_ERR_NCEDGES = "Edges must be Co-Planar Non-Parallel Edges, Selected Edges aren't"
 PDT_ERR_1EDGE1FACE = "Select 1 face and 1 Detached Edge"
 PDT_ERR_NOINT = "No Intersection Found"
+PDT_ERR_BADDISTANCE = "Invalid Distance (Separtion) Error; Chosen Points too Close"
+PDT_ERR_MATHSERROR = "Maths Error - Check Working Plane"
+PDT_ERR_SAMERADII = "Circles have the same radius - Just offset the Edge between centres"
 
 # Info messages
 #
