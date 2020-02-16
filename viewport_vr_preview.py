@@ -311,10 +311,16 @@ class VIEW3D_OT_vr_pose_bookmark_activate(bpy.types.Operator):
     bl_description = "Change to the selected VR pose bookmark from the list"
     bl_options = {'UNDO', 'REGISTER'}
 
-    index: IntProperty(name="Index")
+    index: IntProperty(
+        name="Index",
+        options={'HIDDEN'},
+    )
 
     def execute(self, context):
         wm = context.window_manager
+
+        if self.index >= len(wm.vr_pose_bookmarks):
+            return {'CANCELLED'}
 
         wm.vr_pose_bookmarks_active = self.index if self.properties.is_property_set(
             "index") else wm.vr_pose_bookmarks_selected
