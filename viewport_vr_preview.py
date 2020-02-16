@@ -49,13 +49,10 @@ bl_info = {
 }
 
 
-def xr_pose_bookmark_type_update(self, context):
+def xr_pose_bookmark_active_type_update(self, context):
     wm = context.window_manager
     session_settings = wm.xr_session_settings
     bookmark_active = VRPoseBookmark.get_active_bookmark(context)
-
-    if not bookmark_active:
-        return
 
     # Update session's base pose type to the matching type.
     if bookmark_active.type == 'SCENE_CAMERA':
@@ -66,29 +63,62 @@ def xr_pose_bookmark_type_update(self, context):
         session_settings.base_pose_type = 'CUSTOM'
 
 
-def xr_pose_bookmark_camera_update(self, context):
+def xr_pose_bookmark_active_camera_update(self, context):
     session_settings = context.window_manager.xr_session_settings
     bookmark_active = VRPoseBookmark.get_active_bookmark(context)
 
-    if bookmark_active:
-        # Update the anchor object to the (new) camera of this bookmark.
-        session_settings.base_pose_object = bookmark_active.base_pose_camera
+    # Update the anchor object to the (new) camera of this bookmark.
+    session_settings.base_pose_object = bookmark_active.base_pose_camera
+
+
+def xr_pose_bookmark_active_base_pose_location_update(self, context):
+    session_settings = context.window_manager.xr_session_settings
+    bookmark_active = VRPoseBookmark.get_active_bookmark(context)
+
+    session_settings.base_pose_location = bookmark_active.base_pose_location
+
+
+def xr_pose_bookmark_active_base_pose_angle_update(self, context):
+    session_settings = context.window_manager.xr_session_settings
+    bookmark_active = VRPoseBookmark.get_active_bookmark(context)
+
+    session_settings.base_pose_angle = bookmark_active.base_pose_angle
+
+
+def xr_pose_bookmark_type_update(self, context):
+    bookmark_selected = VRPoseBookmark.get_selected_bookmark(context)
+    bookmark_active = VRPoseBookmark.get_active_bookmark(context)
+
+    # Only update session settings data if the changed bookmark is actually the active one.
+    if bookmark_active == bookmark_selected:
+        xr_pose_bookmark_active_type_update(self, context)
+
+
+def xr_pose_bookmark_camera_update(self, context):
+    bookmark_selected = VRPoseBookmark.get_selected_bookmark(context)
+    bookmark_active = VRPoseBookmark.get_active_bookmark(context)
+
+    # Only update session settings data if the changed bookmark is actually the active one.
+    if bookmark_active == bookmark_selected:
+        xr_pose_bookmark_active_camera_update(self, context)
 
 
 def xr_pose_bookmark_base_pose_location_update(self, context):
-    session_settings = context.window_manager.xr_session_settings
+    bookmark_selected = VRPoseBookmark.get_selected_bookmark(context)
     bookmark_active = VRPoseBookmark.get_active_bookmark(context)
 
-    if bookmark_active:
-        session_settings.base_pose_location = bookmark_active.base_pose_location
+    # Only update session settings data if the changed bookmark is actually the active one.
+    if bookmark_active == bookmark_selected:
+        xr_pose_bookmark_active_base_pose_location_update(self, context)
 
 
 def xr_pose_bookmark_base_pose_angle_update(self, context):
-    session_settings = context.window_manager.xr_session_settings
+    bookmark_selected = VRPoseBookmark.get_selected_bookmark(context)
     bookmark_active = VRPoseBookmark.get_active_bookmark(context)
 
-    if bookmark_active:
-        session_settings.base_pose_angle = bookmark_active.base_pose_angle
+    # Only update session settings data if the changed bookmark is actually the active one.
+    if bookmark_active == bookmark_selected:
+        xr_pose_bookmark_active_base_pose_angle_update(self, context)
 
 
 def xr_pose_bookmark_camera_object_poll(self, object):
@@ -96,8 +126,10 @@ def xr_pose_bookmark_camera_object_poll(self, object):
 
 
 def xr_pose_bookmark_active_update(self, context):
-    xr_pose_bookmark_type_update(self, context)
-    xr_pose_bookmark_camera_update(self, context)
+    xr_pose_bookmark_active_type_update(self, context)
+    xr_pose_bookmark_active_camera_update(self, context)
+    xr_pose_bookmark_active_base_pose_location_update(self, context)
+    xr_pose_bookmark_active_base_pose_angle_update(self, context)
 
 
 class VRPoseBookmark(bpy.types.PropertyGroup):
@@ -137,6 +169,13 @@ class VRPoseBookmark(bpy.types.PropertyGroup):
     )
 
     @staticmethod
+    def get_selected_bookmark(context):
+        wm = context.window_manager
+        bookmarks = wm.vr_pose_bookmarks
+
+        return None if len(bookmarks) < 1 else bookmarks[wm.vr_pose_bookmarks_selected]
+
+    @staticmethod
     def get_active_bookmark(context):
         wm = context.window_manager
         bookmarks = wm.vr_pose_bookmarks
@@ -145,11 +184,15 @@ class VRPoseBookmark(bpy.types.PropertyGroup):
 
 
 class VIEW3D_UL_vr_pose_bookmarks(bpy.types.UIList):
-    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
+    def draw_item(self, context, layout, _data, item, icon, _active_data, _active_propname, index):
         bookmark = item
+        bookmark_active_idx = context.window_manager.vr_pose_bookmarks_active
 
         layout.emboss = 'NONE'
         layout.prop(bookmark, "name", text="")
+        props = layout.operator("view3d.vr_pose_bookmark_activate", text="", icon=('SOLO_ON' if index ==
+                                                                                   bookmark_active_idx else 'SOLO_OFF'))
+        props.index = index
 
 
 class VIEW3D_PT_vr_pose_bookmarks(bpy.types.Panel):
@@ -162,7 +205,7 @@ class VIEW3D_PT_vr_pose_bookmarks(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         wm = context.window_manager
-        bookmark_active = VRPoseBookmark.get_active_bookmark(context)
+        bookmark_selected = VRPoseBookmark.get_selected_bookmark(context)
 
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
@@ -170,21 +213,21 @@ class VIEW3D_PT_vr_pose_bookmarks(bpy.types.Panel):
         row = layout.row()
 
         row.template_list("VIEW3D_UL_vr_pose_bookmarks", "", wm, "vr_pose_bookmarks",
-                          wm, "vr_pose_bookmarks_active", rows=3)
+                          wm, "vr_pose_bookmarks_selected", rows=3)
 
         col = row.column(align=True)
         col.operator("view3d.vr_pose_bookmark_add", icon='ADD', text="")
         col.operator("view3d.vr_pose_bookmark_remove", icon='REMOVE', text="")
 
-        if bookmark_active:
-            layout.prop(bookmark_active, "type")
+        if bookmark_selected:
+            layout.prop(bookmark_selected, "type")
 
-            if bookmark_active.type == 'USER_CAMERA':
-                layout.prop(bookmark_active, "base_pose_camera")
-            elif bookmark_active.type == 'CUSTOM':
-                layout.prop(bookmark_active,
+            if bookmark_selected.type == 'USER_CAMERA':
+                layout.prop(bookmark_selected, "base_pose_camera")
+            elif bookmark_selected.type == 'CUSTOM':
+                layout.prop(bookmark_selected,
                             "base_pose_location", text="Location")
-                layout.prop(bookmark_active,
+                layout.prop(bookmark_selected,
                             "base_pose_angle", text="Angle")
 
 
@@ -238,7 +281,7 @@ class VIEW3D_OT_vr_pose_bookmark_add(bpy.types.Operator):
         bookmarks.add()
 
         # select newly created set
-        wm.vr_pose_bookmarks_active = len(bookmarks) - 1
+        wm.vr_pose_bookmarks_selected = len(bookmarks) - 1
 
         return {'FINISHED'}
 
@@ -254,10 +297,27 @@ class VIEW3D_OT_vr_pose_bookmark_remove(bpy.types.Operator):
         bookmarks = wm.vr_pose_bookmarks
 
         if len(bookmarks) > 1:
-            bookmark_active_idx = wm.vr_pose_bookmarks_active
-            bookmarks.remove(bookmark_active_idx)
+            bookmark_selected_idx = wm.vr_pose_bookmarks_selected
+            bookmarks.remove(bookmark_selected_idx)
 
-            wm.vr_pose_bookmarks_active -= 1
+            wm.vr_pose_bookmarks_selected -= 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_pose_bookmark_activate(bpy.types.Operator):
+    bl_idname = "view3d.vr_pose_bookmark_activate"
+    bl_label = "Activate VR Pose Bookmark"
+    bl_description = "Change to the selected VR pose bookmark from the list"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    index: IntProperty(name="Index")
+
+    def execute(self, context):
+        wm = context.window_manager
+
+        wm.vr_pose_bookmarks_active = self.index if self.properties.is_property_set(
+            "index") else wm.vr_pose_bookmarks_selected
 
         return {'FINISHED'}
 
@@ -433,6 +493,7 @@ classes = (
 
     VIEW3D_OT_vr_pose_bookmark_add,
     VIEW3D_OT_vr_pose_bookmark_remove,
+    VIEW3D_OT_vr_pose_bookmark_activate,
 
     VIEW3D_GT_vr_camera_cone,
     VIEW3D_GGT_vr_viewer,
@@ -447,6 +508,7 @@ def register():
         name="Pose Bookmarks",
         type=VRPoseBookmark,
     )
+    bpy.types.WindowManager.vr_pose_bookmarks_selected = IntProperty()
     bpy.types.WindowManager.vr_pose_bookmarks_active = IntProperty(
         update=xr_pose_bookmark_active_update,
     )
@@ -468,7 +530,7 @@ def unregister():
         bpy.utils.unregister_class(cls)
 
     del bpy.types.WindowManager.vr_pose_bookmarks
-    del bpy.types.WindowManager.vr_pose_bookmarks_active
+    del bpy.types.WindowManager.vr_pose_bookmarks_selected
     del bpy.types.View3DShading.vr_show_virtual_camera
 
 
