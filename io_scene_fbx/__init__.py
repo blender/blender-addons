@@ -21,7 +21,7 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (4, 20, 2),
+    "version": (4, 20, 3),
     "blender": (2, 81, 6),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
@@ -470,8 +470,8 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             )
     use_subsurf: BoolProperty(
             name="Export Subdivision Surface",
-            description="Export the last Catmull-Rom subidivion modifier as FBX subdivision "
-                        "(Does not apply the modifier even if 'Apply Modifiers' is enabled)",
+            description="Export the last Catmull-Rom subdivision modifier as FBX subdivision "
+                        "(does not apply the modifier even if 'Apply Modifiers' is enabled)",
             default=False,
             )
     use_mesh_edges: BoolProperty(
