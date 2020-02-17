@@ -47,6 +47,7 @@ from .pdt_msg_strings import (
 )
 
 from . import pdt_exception
+
 PDT_ObjectModeError = pdt_exception.ObjectModeError
 PDT_SelectionError = pdt_exception.SelectionError
 
@@ -184,37 +185,42 @@ def make_vectors(coords, a1, a2, a3, pg):
     tangent_vector_o4[a3] = coords[8]
 
     if pg.plane == "LO":
-        tangent_vector_o1 = view_coords(tangent_vector_o1[a1], tangent_vector_o1[a2],
-        tangent_vector_o1[a3])
-        tangent_vector_o2 = view_coords(tangent_vector_o2[a1], tangent_vector_o2[a2],
-        tangent_vector_o2[a3])
-        tangent_vector_o3 = view_coords(tangent_vector_o3[a1], tangent_vector_o3[a2],
-        tangent_vector_o3[a3])
-        tangent_vector_o4 = view_coords(tangent_vector_o4[a1], tangent_vector_o4[a2],
-        tangent_vector_o4[a3])
+        tangent_vector_o1 = view_coords(
+            tangent_vector_o1[a1], tangent_vector_o1[a2], tangent_vector_o1[a3]
+        )
+        tangent_vector_o2 = view_coords(
+            tangent_vector_o2[a1], tangent_vector_o2[a2], tangent_vector_o2[a3]
+        )
+        tangent_vector_o3 = view_coords(
+            tangent_vector_o3[a1], tangent_vector_o3[a2], tangent_vector_o3[a3]
+        )
+        tangent_vector_o4 = view_coords(
+            tangent_vector_o4[a1], tangent_vector_o4[a2], tangent_vector_o4[a3]
+        )
 
-    return ((tangent_vector_o1, tangent_vector_o2, tangent_vector_o3, tangent_vector_o4))
+    return (tangent_vector_o1, tangent_vector_o2, tangent_vector_o3, tangent_vector_o4)
+
 
 def tangent_setup(context, pg, plane, obj_data, centre_0, centre_1, centre_2, radius_0, radius_1):
     # Depth is a3
     a1, a2, a3 = set_mode(plane)
+    mode = pg.tangent_mode
     if plane == "LO":
         centre_0 = view_coords_i(centre_0[a1], centre_0[a2], centre_0[a3])
         centre_1 = view_coords_i(centre_1[a1], centre_1[a2], centre_1[a3])
         centre_2 = view_coords_i(centre_2[a1], centre_2[a2], centre_2[a3])
-    if pg.tangent_from_point:
+    if pg.tangent_mode == "point":
         vector_difference = centre_2 - centre_0
         distance = sqrt(vector_difference[a1] ** 2 + vector_difference[a2] ** 2)
     else:
         vector_difference = centre_1 - centre_0
         distance = sqrt(vector_difference[a1] ** 2 + vector_difference[a2] ** 2)
-    if distance > radius_0 + radius_1 and not pg.tangent_from_point:
-        mode = "inner"
-    elif distance > radius_0 and distance > radius_1 and not pg.tangent_from_point:
-        mode = "outer"
-    elif distance > radius_1 and pg.tangent_from_point:
-        mode = "point"
-    else:
+
+    if (
+        (distance <= radius_0 and mode in {"point"}) or
+        (distance <= (radius_0 + radius_1) and mode in {"inner", "both"}) or
+        (distance <= radius_0 or distance <= radius_1 and mode in {"outer", "both"})
+        ):
         # Cannot execute, centres are too close.
         pg.error = f"{PDT_ERR_BADDISTANCE}"
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
@@ -222,12 +228,10 @@ def tangent_setup(context, pg, plane, obj_data, centre_0, centre_1, centre_2, ra
 
     if mode == "point":
         if (
-            ((centre_2[a1] - centre_0[a1]) ** 2 +
-            (centre_2[a2] - centre_0[a2]) ** 2 -
-            radius_0 ** 2) > 0
-            ):
-            hloc_to1, hloc_to2, vloc_to1, vloc_to2 = get_tangent_points(context,
-                centre_0[a1], centre_0[a2], radius_0, centre_2[a1], centre_2[a2]
+            (centre_2[a1] - centre_0[a1]) ** 2 + (centre_2[a2] - centre_0[a2]) ** 2 - radius_0 ** 2
+        ) > 0:
+            hloc_to1, hloc_to2, vloc_to1, vloc_to2 = get_tangent_points(
+                context, centre_0[a1], centre_0[a2], radius_0, centre_2[a1], centre_2[a2]
             )
         else:
             pg.error = PDT_ERR_MATHSERROR
@@ -244,16 +248,18 @@ def tangent_setup(context, pg, plane, obj_data, centre_0, centre_1, centre_2, ra
         tangent_vector_o2[a3] = centre_2[a3]
         if pg.plane == "LO":
             centre_2 = view_coords(centre_2[a1], centre_2[a2], centre_2[a3])
-            tangent_vector_o1 = view_coords(tangent_vector_o1[a1], tangent_vector_o1[a2],
-            tangent_vector_o1[a3])
-            tangent_vector_o2 = view_coords(tangent_vector_o2[a1], tangent_vector_o2[a2],
-            tangent_vector_o2[a3])
-        tangent_vectors = ((centre_2, tangent_vector_o1, tangent_vector_o2))
+            tangent_vector_o1 = view_coords(
+                tangent_vector_o1[a1], tangent_vector_o1[a2], tangent_vector_o1[a3]
+            )
+            tangent_vector_o2 = view_coords(
+                tangent_vector_o2[a1], tangent_vector_o2[a2], tangent_vector_o2[a3]
+            )
+        tangent_vectors = (centre_2, tangent_vector_o1, tangent_vector_o2)
         draw_tangents(tangent_vectors, obj_data)
 
         return {"FINISHED"}
 
-    if mode in {"outer", "inner"}:
+    if mode in {"outer", "both"}:
         # Outer Tangents
         if radius_0 == radius_1:
             # No intersection point for outer tangents
@@ -272,25 +278,17 @@ def tangent_setup(context, pg, plane, obj_data, centre_0, centre_1, centre_2, ra
                 centre_0[a1], centre_0[a2], centre_1[a1], centre_1[a2], radius_0, radius_1
             )
 
-            if (
-                ((hloc_po - centre_0[a1]) ** 2 +
-                (vloc_po - centre_0[a2]) ** 2 -
-                radius_0 ** 2) > 0
-                ):
-                hloc_to1, hloc_to2, vloc_to1, vloc_to2 = get_tangent_points(context,
-                    centre_0[a1], centre_0[a2], radius_0, hloc_po, vloc_po
+            if ((hloc_po - centre_0[a1]) ** 2 + (vloc_po - centre_0[a2]) ** 2 - radius_0 ** 2) > 0:
+                hloc_to1, hloc_to2, vloc_to1, vloc_to2 = get_tangent_points(
+                    context, centre_0[a1], centre_0[a2], radius_0, hloc_po, vloc_po
                 )
             else:
                 pg.error = PDT_ERR_MATHSERROR
                 context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                 return {"FINISHED"}
-            if (
-                ((hloc_po - centre_0[a1]) ** 2 +
-                (vloc_po - centre_0[a2]) ** 2 -
-                radius_1 ** 2) > 0
-                ):
-                hloc_to3, hloc_to4, vloc_to3, vloc_to4 = get_tangent_points(context,
-                    centre_1[a1], centre_1[a2], radius_1, hloc_po, vloc_po
+            if ((hloc_po - centre_0[a1]) ** 2 + (vloc_po - centre_0[a2]) ** 2 - radius_1 ** 2) > 0:
+                hloc_to3, hloc_to4, vloc_to3, vloc_to4 = get_tangent_points(
+                    context, centre_1[a1], centre_1[a2], radius_1, hloc_po, vloc_po
                 )
             else:
                 pg.error = PDT_ERR_MATHSERROR
@@ -298,35 +296,36 @@ def tangent_setup(context, pg, plane, obj_data, centre_0, centre_1, centre_2, ra
                 return {"FINISHED"}
 
         dloc_p = centre_0[a3]
-        coords_in = ((hloc_to1, vloc_to1, hloc_to2, vloc_to2, hloc_to3, vloc_to3,
-                    hloc_to4, vloc_to4, dloc_p))
+        coords_in = (
+            hloc_to1,
+            vloc_to1,
+            hloc_to2,
+            vloc_to2,
+            hloc_to3,
+            vloc_to3,
+            hloc_to4,
+            vloc_to4,
+            dloc_p,
+        )
         tangent_vectors = make_vectors(coords_in, a1, a2, a3, pg)
         draw_tangents(tangent_vectors, obj_data)
 
-    if mode == "inner":
+    if mode in {"inner", "both"}:
         # Inner Tangents
         hloc_pi, vloc_pi = get_tangent_intersect_inner(
             centre_0[a1], centre_0[a2], centre_1[a1], centre_1[a2], radius_0, radius_1
         )
-        if (
-            ((hloc_pi - centre_0[a1]) ** 2 +
-            (vloc_pi - centre_0[a2]) ** 2 -
-            radius_0 ** 2) > 0
-            ):
-            hloc_to1, hloc_to2, vloc_to1, vloc_to2 = get_tangent_points(context,
-                centre_0[a1], centre_0[a2], radius_0, hloc_pi, vloc_pi
+        if ((hloc_pi - centre_0[a1]) ** 2 + (vloc_pi - centre_0[a2]) ** 2 - radius_0 ** 2) > 0:
+            hloc_to1, hloc_to2, vloc_to1, vloc_to2 = get_tangent_points(
+                context, centre_0[a1], centre_0[a2], radius_0, hloc_pi, vloc_pi
             )
         else:
             pg.error = PDT_ERR_MATHSERROR
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return {"FINISHED"}
-        if (
-            ((hloc_pi - centre_0[a1]) ** 2 +
-            (vloc_pi - centre_0[a2]) ** 2 -
-            radius_0 ** 2) > 0
-            ):
-            hloc_to3, hloc_to4, vloc_to3, vloc_to4 = get_tangent_points(context,
-                centre_1[a1], centre_1[a2], radius_1, hloc_pi, vloc_pi
+        if ((hloc_pi - centre_0[a1]) ** 2 + (vloc_pi - centre_0[a2]) ** 2 - radius_0 ** 2) > 0:
+            hloc_to3, hloc_to4, vloc_to3, vloc_to4 = get_tangent_points(
+                context, centre_1[a1], centre_1[a2], radius_1, hloc_pi, vloc_pi
             )
         else:
             pg.error = PDT_ERR_MATHSERROR
@@ -334,8 +333,17 @@ def tangent_setup(context, pg, plane, obj_data, centre_0, centre_1, centre_2, ra
             return {"FINISHED"}
 
         dloc_p = centre_0[a3]
-        coords_in = ((hloc_to1, vloc_to1, hloc_to2, vloc_to2, hloc_to3, vloc_to3,
-                    hloc_to4, vloc_to4, dloc_p))
+        coords_in = (
+            hloc_to1,
+            vloc_to1,
+            hloc_to2,
+            vloc_to2,
+            hloc_to3,
+            vloc_to3,
+            hloc_to4,
+            vloc_to4,
+            dloc_p,
+        )
         tangent_vectors = make_vectors(coords_in, a1, a2, a3, pg)
         draw_tangents(tangent_vectors, obj_data)
 
@@ -402,7 +410,7 @@ def analyse_arc(context, pg):
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             raise PDT_SelectionError
         vector_a = verts[0].co
-        vector_b = verts[int(floor(len(verts)/2))].co
+        vector_b = verts[int(floor(len(verts) / 2))].co
         vector_c = verts[-1].co
         vector_delta, radius = arc_centre(vector_a, vector_b, vector_c)
 
@@ -410,7 +418,7 @@ def analyse_arc(context, pg):
 
 
 class PDT_OT_TangentOperate(Operator):
-    """Calculate Tangents."""
+    """Calculate Tangents from Inputs."""
 
     bl_idname = "pdt.tangentoperate"
     bl_label = "Calculate Tangents"
@@ -425,7 +433,7 @@ class PDT_OT_TangentOperate(Operator):
         return all([bool(ob), ob.type == "MESH", ob.mode == "EDIT"])
 
     def execute(self, context):
-        """Repeat Current Command Line Input.
+        """Calculate Tangents from Inputs.
 
         Note:
             Uses pg.plane, pg.tangent_point0, pg.tangent_radius0, pg.tangent_point1
@@ -461,7 +469,7 @@ class PDT_OT_TangentOperate(Operator):
             return {"FINISHED"}
         bm = bmesh.from_edit_mesh(obj.data)
         obj_loc = obj.matrix_world.decompose()[0]
-        obj_data = ((obj, obj_loc, bm))
+        obj_data = (obj, obj_loc, bm)
 
         radius_0 = pg.tangent_radius0
         radius_1 = pg.tangent_radius1
@@ -469,14 +477,15 @@ class PDT_OT_TangentOperate(Operator):
         centre_1 = pg.tangent_point1
         centre_2 = pg.tangent_point2
 
-        tangent_setup(context, pg, plane, obj_data, centre_0, centre_1,
-            centre_2, radius_0, radius_1)
+        tangent_setup(
+            context, pg, plane, obj_data, centre_0, centre_1, centre_2, radius_0, radius_1
+        )
 
         return {"FINISHED"}
 
 
 class PDT_OT_TangentOperateSel(Operator):
-    """Calculate Tangents."""
+    """Calculate Tangents from Selection."""
 
     bl_idname = "pdt.tangentoperatesel"
     bl_label = "Calculate Tangents"
@@ -491,7 +500,7 @@ class PDT_OT_TangentOperateSel(Operator):
         return all([bool(ob), ob.type == "MESH", ob.mode == "EDIT"])
 
     def execute(self, context):
-        """Repeat Current Command Line Input.
+        """Calculate Tangents from Selection.
 
         Note:
             Uses pg.plane & 2 or more selected Vertices to place tangents.
@@ -527,7 +536,7 @@ class PDT_OT_TangentOperateSel(Operator):
             return {"FINISHED"}
         bm = bmesh.from_edit_mesh(obj.data)
         obj_loc = obj.matrix_world.decompose()[0]
-        obj_data = ((obj, obj_loc, bm))
+        obj_data = (obj, obj_loc, bm)
 
         # Get All Values from Selected Vertices
         verts = [v for v in bm.verts if v.select]
@@ -541,7 +550,7 @@ class PDT_OT_TangentOperateSel(Operator):
         bpy.ops.mesh.select_linked()
         verts1 = [v for v in bm.verts if v.select].copy()
         if len(verts1) < 3:
-            pg.error = f"{PDT_ERR_VERT_MODE}"
+            pg.error = f"{PDT_ERR_VERT_MODE} or Less than 3 vertices in your Arc(s)"
             context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
             return {"FINISHED"}
         for v in bm.verts:
@@ -557,14 +566,15 @@ class PDT_OT_TangentOperateSel(Operator):
             e.select_set(False)
         bmesh.update_edit_mesh(obj.data)
         bm.select_history.clear()
-        verts1 = [verts1[0].co, verts1[int(floor(len(verts1)/2))].co, verts1[-1].co]
-        vertsn = [vertsn[0].co, vertsn[int(floor(len(vertsn)/2))].co, vertsn[-1].co]
+        verts1 = [verts1[0].co, verts1[int(floor(len(verts1) / 2))].co, verts1[-1].co]
+        vertsn = [vertsn[0].co, vertsn[int(floor(len(vertsn) / 2))].co, vertsn[-1].co]
         centre_0, radius_0 = arc_centre(verts1[0], verts1[1], verts1[2])
         centre_1, radius_1 = arc_centre(vertsn[0], vertsn[1], vertsn[2])
         centre_2 = pg.tangent_point2
 
-        tangent_setup(context, pg, plane, obj_data, centre_0, centre_1, centre_2,
-            radius_0, radius_1)
+        tangent_setup(
+            context, pg, plane, obj_data, centre_0, centre_1, centre_2, radius_0, radius_1
+        )
 
         return {"FINISHED"}
 
@@ -585,6 +595,14 @@ class PDT_OT_TangentSet1(Operator):
         return all([bool(ob), ob.type == "MESH", ob.mode == "EDIT"])
 
     def execute(self, context):
+        """Sets Input Tangent Point 1 to analysis of Arc.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
         scene = context.scene
         pg = scene.pdt_pg
         vector_delta, radius = analyse_arc(context, pg)
@@ -609,6 +627,14 @@ class PDT_OT_TangentSet2(Operator):
         return all([bool(obj), obj.type == "MESH", obj.mode == "EDIT"])
 
     def execute(self, context):
+        """Sets Input Tangent Point 2 to analysis of Arc.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
         scene = context.scene
         pg = scene.pdt_pg
         vector_delta, radius = analyse_arc(context, pg)
@@ -633,6 +659,14 @@ class PDT_OT_TangentSet3(Operator):
         return all([bool(obj), obj.type == "MESH", obj.mode == "EDIT"])
 
     def execute(self, context):
+        """Sets Input Tangent Point 3 to analysis of Arc.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
         scene = context.scene
         pg = scene.pdt_pg
         pg.tangent_point2 = scene.cursor.location
@@ -655,6 +689,14 @@ class PDT_OT_TangentSet4(Operator):
         return all([bool(obj), obj.type == "MESH", obj.mode == "EDIT"])
 
     def execute(self, context):
+        """Sets Input Tangent Point 2 to selected Vertex.
+
+        Args:
+            context: Blender bpy.context instance.
+
+        Returns:
+            Nothing.
+        """
         scene = context.scene
         pg = scene.pdt_pg
         obj = context.object
@@ -676,8 +718,8 @@ class PDT_OT_TangentExpandMenu(Operator):
     bl_options = {"REGISTER", "UNDO"}
     bl_description = "Expand/Collapse Tangent Menu to Show/Hide Input Options"
 
-    def execute(self,context):
-        """Expand Menu.
+    def execute(self, context):
+        """Expand/Collapse Tangent Menu.
 
         Args:
             context: Blender bpy.context instance.

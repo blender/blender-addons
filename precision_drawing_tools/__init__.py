@@ -116,6 +116,8 @@ from .pdt_msg_strings import (
     PDT_DES_RADIUS1,
     PDT_DES_RADIUS2,
     PDT_DES_TPOINT,
+    PDT_DES_EXPCOLL,
+    PDT_DES_TANMODE,
 )
 from .pdt_command import command_run
 from .pdt_functions import scale_set
@@ -412,9 +414,19 @@ class PDTSceneProperties(PropertyGroup):
     tangent_point2: FloatVectorProperty(
         name="Coordst3", default=(0.0, 0.0, 0.0), subtype="XYZ", description=PDT_DES_TANCEN3
     )
-    tangent_from_point: BoolProperty(name="From Point", default=False, description=PDT_DES_TPOINT)
     menu_expand: BoolProperty(
-        name="Expand", default=False, description="Expand/Collapse Menu",
+        name="Expand", default=False, description=PDT_DES_EXPCOLL,
+    )
+    tangent_mode: EnumProperty(
+        items=(
+            ("inner", "Inner", "Inner Tangents"),
+            ("outer", "Outer", "Outer Tangents"),
+            ("both", "Inner & Outer", "Inner & Outer Tangents"),
+            ("point", "From Point", "Tangents from Point"),
+        ),
+        name="Working Plane",
+        default="both",
+        description=PDT_DES_TANMODE,
     )
 
 
