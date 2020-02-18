@@ -540,6 +540,10 @@ class PDT_OT_TangentOperateSel(Operator):
 
         # Get All Values from Selected Vertices
         verts = [v for v in bm.verts if v.select]
+        if len(verts) <= 0:
+            pg.error = f"{PDT_ERR_SEL_1_VERT} 0"
+            context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
+            return {"FINISHED"}
         v1 = verts[0]
         vn = verts[-1]
         for v in bm.verts:
