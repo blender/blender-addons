@@ -55,7 +55,6 @@ from .Blocks import (
         stepBack,
         )
 from bpy_extras import object_utils
-from . import utils
 
 class add_mesh_wallb(Operator, object_utils.AddObjectHelper):
     bl_idname = "mesh.wall_add"
@@ -65,7 +64,7 @@ class add_mesh_wallb(Operator, object_utils.AddObjectHelper):
 
     # UI items - API for properties - User accessible variables...
     # not all options are via UI, and some operations just don't work yet
-    
+
     Wall : BoolProperty(name = "Wall",
                 default = True,
                 description = "Wall")
@@ -643,9 +642,9 @@ class add_mesh_wallb(Operator, object_utils.AddObjectHelper):
         if self.change == False:
             # generic transform props
             box = layout.box()
-            box.prop(self, 'align')
-            box.prop(self, 'location')
-            box.prop(self, 'rotation')
+            box.prop(self, 'align', expand=True)
+            box.prop(self, 'location', expand=True)
+            box.prop(self, 'rotation', expand=True)
 
     # Respond to UI - get the properties set by user.
     # Check and process UI settings to generate masonry
@@ -896,31 +895,27 @@ class add_mesh_wallb(Operator, object_utils.AddObjectHelper):
             else:
                 mesh = bpy.data.meshes.new("Wall")
                 mesh.from_pydata(verts_array, [], faces_array)
-                obj = object_utils.object_data_add(context, mesh, operator=None)
+                obj = object_utils.object_data_add(context, mesh, operator=self)
 
-                utils.setlocation(self, context)
-            
             mesh.update()
-            
+
             obj.data["Wall"] = True
             obj.data["change"] = False
             for prm in WallParameters():
                 obj.data[prm] = getattr(self, prm)
-                
+
         if bpy.context.mode == "EDIT_MESH":
             active_object = context.active_object
             name_active_object = active_object.name
             bpy.ops.object.mode_set(mode='OBJECT')
             mesh = bpy.data.meshes.new("TMP")
             mesh.from_pydata(verts_array, [], faces_array)
-            obj = object_utils.object_data_add(context, mesh, operator=None)
+            obj = object_utils.object_data_add(context, mesh, operator=self)
             obj.select_set(True)
             active_object.select_set(True)
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
-
-            utils.setlocation(self, context)
 
         return {'FINISHED'}
 

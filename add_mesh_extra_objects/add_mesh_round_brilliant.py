@@ -17,7 +17,6 @@ from bpy.props import (
         StringProperty,
         )
 from bpy_extras import object_utils
-from . import utils
 
 # mesh generating function, returns mesh
 def add_mesh_Brilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
@@ -225,11 +224,11 @@ def add_mesh_Brilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
     dmesh = bpy.data.meshes.new("dmesh")
     dmesh.from_pydata(Verts, [], Faces)
     dmesh.update()
-    
+
     return dmesh
 
 # object generating function, returns final object
-def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
+def addBrilliant(context, self, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
                  pavi_f, culet, girdle_real, keep_lga, g_real_smooth):
 
     # deactivate possible active Objects
@@ -240,7 +239,7 @@ def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
                  pavi_f, culet, girdle_real, keep_lga, g_real_smooth)
 
     # Create object and link it into scene.
-    dobj = object_utils.object_data_add(context, dmesh, operator=None, name="dobj")
+    dobj = object_utils.object_data_add(context, dmesh, operator=self, name="dobj")
 
     # activate and select object
     bpy.context.view_layer.objects.active = dobj
@@ -314,14 +313,9 @@ class MESH_OT_primitive_brilliant_add(Operator, object_utils.AddObjectHelper):
     Brilliant : BoolProperty(name = "Brilliant",
                 default = True,
                 description = "Brilliant")
-
-    #### change properties
-    name : StringProperty(name = "Name",
-                    description = "Name")
-
     change : BoolProperty(name = "Change",
                 default = False,
-                description = "change Brilliant")   
+                description = "change Brilliant")
 
     s: IntProperty(
             name="Segments",
@@ -422,13 +416,13 @@ class MESH_OT_primitive_brilliant_add(Operator, object_utils.AddObjectHelper):
         if self.change == False:
             # generic transform props
             box = layout.box()
-            box.prop(self, 'align')
-            box.prop(self, 'location')
-            box.prop(self, 'rotation')
+            box.prop(self, 'align', expand=True)
+            box.prop(self, 'location', expand=True)
+            box.prop(self, 'rotation', expand=True)
 
     # call mesh/object generator function with user inputs
     def execute(self, context):
-    
+
         if bpy.context.mode == "OBJECT":
             if context.selected_objects != [] and context.active_object and \
             ('Brilliant' in context.active_object.data.keys()) and (self.change == True):
@@ -446,23 +440,22 @@ class MESH_OT_primitive_brilliant_add(Operator, object_utils.AddObjectHelper):
                 bpy.data.meshes.remove(oldmesh)
                 obj.data.name = oldmeshname
             else:
-                obj = addBrilliant(context, self.s, self.table_w, self.crown_h,
+                obj = addBrilliant(context, self, self.s, self.table_w, self.crown_h,
                           self.girdle_t, self.pavi_d, self.bezel_f,
                           self.pavi_f, self.culet, self.girdle_real,
                           self.keep_lga, self.g_real_smooth
                           )
-                utils.setlocation(self, context)
 
             obj.data["Brilliant"] = True
             obj.data["change"] = False
             for prm in BrilliantParameters():
                 obj.data[prm] = getattr(self, prm)
-        
+
         if bpy.context.mode == "EDIT_MESH":
             active_object = context.active_object
             name_active_object = active_object.name
             bpy.ops.object.mode_set(mode='OBJECT')
-            obj = addBrilliant(context, self.s, self.table_w, self.crown_h,
+            obj = addBrilliant(context, self, self.s, self.table_w, self.crown_h,
                           self.girdle_t, self.pavi_d, self.bezel_f,
                           self.pavi_f, self.culet, self.girdle_real,
                           self.keep_lga, self.g_real_smooth
@@ -472,8 +465,6 @@ class MESH_OT_primitive_brilliant_add(Operator, object_utils.AddObjectHelper):
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
-
-            utils.setlocation(self, context)
 
         return {'FINISHED'}
 

@@ -152,23 +152,8 @@ class CollectionManager(Operator):
 
     def execute(self, context):
         wm = context.window_manager
-        lvl = 0
-
-        #expanded.clear()
-
-        #excludeall_history.clear()
-        #restrictselectall_history.clear()
-        #hideall_history.clear()
-        #disableviewall_history.clear()
-        #disablerenderall_history.clear()
 
         update_property_group(context)
-
-        lvl = get_max_lvl()
-
-        if lvl > 25:
-            lvl = 25
-
         self.view_layer = context.view_layer.name
 
         # sync selection in ui list with active layer collection
@@ -177,8 +162,9 @@ class CollectionManager(Operator):
             active_laycol_row_index = layer_collections[active_laycol_name]["row_index"]
             context.scene.CMListIndex = active_laycol_row_index
         except:
-            context.scene.CMListIndex = 0
+            context.scene.CMListIndex = -1
 
+        # check if in phantom mode and if it's still viable
         if context.scene.CM_Phantom_Mode:
             if set(layer_collections.keys()) != set(phantom_history["initial_state"].keys()):
                 context.scene.CM_Phantom_Mode = False
@@ -186,11 +172,31 @@ class CollectionManager(Operator):
             if context.view_layer.name != phantom_history["view_layer"]:
                 context.scene.CM_Phantom_Mode = False
 
-        return wm.invoke_popup(self, width=(400+(lvl*20)))
+        # handle window sizing
+        max_width = 960
+        min_width = 456
+        width_step = 21
+        scrollbar_width = 21
+        lvl = get_max_lvl()
+
+        width = min_width + (width_step * lvl)
+
+        if len(layer_collections) > 14:
+            width += scrollbar_width
+
+        if width > max_width:
+            width = max_width
+
+        return wm.invoke_popup(self, width=width)
 
 
 def update_selection(self, context):
-    selected_item = context.scene.CMListCollection[context.scene.CMListIndex]
+    scn = context.scene
+
+    if scn.CMListIndex == -1:
+        return
+
+    selected_item = scn.CMListCollection[scn.CMListIndex]
     layer_collection = layer_collections[selected_item.name]["ptr"]
 
     context.view_layer.active_layer_collection = layer_collection

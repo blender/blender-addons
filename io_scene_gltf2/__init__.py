@@ -15,12 +15,12 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (1, 1, 32),
+    "version": (1, 2, 20),
     'blender': (2, 81, 6),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
     'warning': '',
-    'wiki_url': "https://docs.blender.org/manual/en/dev/addons/import_export/io_scene_gltf2.html",
+    'wiki_url': "https://docs.blender.org/manual/en/dev/addons/import_export/scene_gltf2.html",
     'tracker_url': "https://github.com/KhronosGroup/glTF-Blender-IO/issues/",
     'support': 'OFFICIAL',
     'category': 'Import-Export',
@@ -113,18 +113,18 @@ class ExportGLTF2_Base:
 
     export_image_format: EnumProperty(
         name='Images',
-        items=(('NAME', 'Automatic',
-                'Determine the image format from the blender image name'),
+        items=(('AUTO', 'Automatic',
+                'Save PNGs as PNGs and JPEGs as JPEGs.\n'
+                'If neither one, use PNG'),
                 ('JPEG', 'JPEG Format (.jpg)',
-                'Encode and save textures as .jpg files. Be aware of a possible loss in quality'),
-               ('PNG', 'PNG Format (.png)',
-                'Encode and save textures as .png files')
+                'Save images as JPEGs. (Images that need alpha are saved as PNGs though.)\n'
+                'Be aware of a possible loss in quality'),
                ),
         description=(
             'Output format for images. PNG is lossless and generally preferred, but JPEG might be preferable for web '
             'applications due to the smaller file size'
         ),
-        default='NAME'
+        default='AUTO'
     )
 
     export_texture_dir: StringProperty(
@@ -465,11 +465,15 @@ class ExportGLTF2_Base:
         import sys
         preferences = bpy.context.preferences
         for addon_name in preferences.addons.keys():
-            if hasattr(sys.modules[addon_name], 'glTF2ExportUserExtension'):
-                extension_ctor = sys.modules[addon_name].glTF2ExportUserExtension
+            try:
+                module = sys.modules[addon_name]
+            except Exception:
+                continue
+            if hasattr(module, 'glTF2ExportUserExtension'):
+                extension_ctor = module.glTF2ExportUserExtension
                 user_extensions.append(extension_ctor())
-            if hasattr(sys.modules[addon_name], 'glTF2ExportUserExtensions'):
-                extension_ctors = sys.modules[addon_name].glTF2ExportUserExtensions
+            if hasattr(module, 'glTF2ExportUserExtensions'):
+                extension_ctors = module.glTF2ExportUserExtensions
                 for extension_ctor in extension_ctors:
                     user_extensions.append(extension_ctor())
         export_settings['gltf_user_extensions'] = user_extensions

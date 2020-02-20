@@ -35,6 +35,11 @@ class BlenderCamera():
         # Blender create a perspective camera by default
         if pycamera.type == "orthographic":
             cam.type = "ORTHO"
+        else:
+            if hasattr(pycamera.perspective, "yfov"):
+                cam.angle_y = pycamera.perspective.yfov
+                cam.lens_unit = "FOV"
+                cam.sensor_fit = "VERTICAL"
 
         # TODO: lot's of work for camera here...
         if hasattr(pycamera, "znear"):
@@ -44,9 +49,5 @@ class BlenderCamera():
             cam.clip_end = pycamera.zfar
 
         obj = bpy.data.objects.new(pycamera.name, cam)
-        if gltf.blender_active_collection is not None:
-            bpy.data.collections[gltf.blender_active_collection].objects.link(obj)
-        else:
-            bpy.data.scenes[gltf.blender_scene].collection.objects.link(obj)
         return obj
 

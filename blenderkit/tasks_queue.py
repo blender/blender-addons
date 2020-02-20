@@ -28,8 +28,6 @@ from bpy.app.handlers import persistent
 
 import queue
 
-
-
 @persistent
 def scene_load(context):
     if not (bpy.app.timers.is_registered(queue_worker)):
@@ -44,24 +42,58 @@ def get_queue():
         t.task_queue = queue.Queue()
     return t.task_queue
 
+class task_object:
+    def __init__(self, command = '', arguments = (), wait = 0, only_last = False):
+        self.command = command
+        self.arguments = arguments
+        self.wait = wait
+        self.only_last = only_last
 
-def add_task(task):
+def add_task(task, wait = 0, only_last = False):
     q = get_queue()
-    q.put(task)
+    taskob = task_object(task[0],task[1], wait = wait, only_last = only_last)
+    q.put(taskob)
 
 
 def queue_worker():
+    time_step = 2.0
     q = get_queue()
+
+    back_to_queue = [] #delayed events
+    stashed = {}
+    # first round we get all tasks that are supposed to be stashed and run only once (only_last option)
+    # stashing finds tasks with the property only_last and same command and executes only the last one.
     while not q.empty():
-        utils.p('as a task:   ')
+        task = q.get()
+        if task.only_last:
+            stashed[task.command] = task
+        else:
+            back_to_queue.append(task)
+    #return tasks to que except for stashed
+    for task in back_to_queue:
+        q.put(task)
+    #return stashed tasks to queue
+    for k in stashed.keys():
+        q.put(stashed[k])
+    #second round, execute or put back waiting tasks.
+    back_to_queue = []
+    while not q.empty():
         # print('window manager', bpy.context.window_manager)
         task = q.get()
-        utils.p(task)
-        try:
-            task[0](*task[1])
-        except Exception as e:
-            utils.p('task failed:')
-            print(e)
+
+        if task.wait>0:
+            task.wait-=time_step
+            back_to_queue.append(task)
+        else:
+            utils.p('as a task:   ')
+            utils.p(task.command, task.arguments)
+            try:
+                task.command(*task.arguments)
+            except Exception as e:
+                utils.p('task failed:')
+                print(e)
+    for task in back_to_queue:
+        q.put(task)
     return 2.0
 
 

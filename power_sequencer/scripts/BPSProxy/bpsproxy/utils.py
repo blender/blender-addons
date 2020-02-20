@@ -43,7 +43,7 @@ def checktools(tools):
         msg += [
             (
                 "Check if you have them properly installed and available in the PATH"
-                " environment variable."
+                " environemnt variable."
             )
         ]
         raise ToolError("\n".join(msg))

@@ -40,6 +40,7 @@ import tempfile, os, subprocess, json, re
 
 import bpy
 import requests
+import threading
 
 BLENDERKIT_EXPORT_DATA_FILE = "data.json"
 
@@ -80,28 +81,6 @@ def add_version(data):
     data["addonVersion"] = addon_version
 
 
-def params_to_dict(inputs, parameters=None):
-    if parameters == None:
-        parameters = []
-    for k in inputs.keys():
-        if type(inputs[k]) == list:
-            strlist = ""
-            for idx, s in enumerate(inputs[k]):
-                strlist += s
-                if idx < len(inputs[k]) - 1:
-                    strlist += ','
-
-            value = "%s" % strlist
-        elif type(inputs[k]) != bool:
-            value = inputs[k]
-        else:
-            value = str(inputs[k])
-        parameters.append(
-            {
-                "parameterType": k,
-                "value": value
-            })
-    return parameters
 
 
 def write_to_report(props, text):
@@ -253,6 +232,10 @@ def get_upload_data(self, context, asset_type):
             "manifold": props.manifold,
             "objectCount": props.object_count,
 
+            "procedural": props.is_procedural,
+            "nodeCount": props.node_count,
+            "textureCount": props.texture_count,
+            "megapixels": round(props.total_megapixels/ 1000000),
             # "scene": props.is_scene,
         }
         if props.use_design_year:
@@ -377,6 +360,10 @@ def get_upload_data(self, context, asset_type):
             "animated": props.animated,
             "purePbr": props.pbr,
             "textureSizeMeters": props.texture_size_meters,
+            "procedural": props.is_procedural,
+            "nodeCount": props.node_count,
+            "textureCount": props.texture_count,
+            "megapixels": round(props.total_megapixels/ 1000000),
 
         }
 
@@ -462,17 +449,14 @@ def get_upload_data(self, context, asset_type):
     return export_data, upload_data, eval_path_computing, eval_path_state, eval_path, props
 
 
-def verification_status_change(self, context, asset_id, state):
-    user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
+def verification_status_change_thread(asset_id, state, api_key):
     upload_data = {
         "verificationStatus": state
     }
     url = paths.get_api_url() + 'assets/' + str(asset_id) + '/'
-    headers = utils.get_headers(user_preferences.api_key)
+    headers = utils.get_headers(api_key)
     try:
         r = rerequests.patch(url, json=upload_data, headers=headers, verify=True)  # files = files,
-        # print('changed status ')
-        # print(r.text)
     except requests.exceptions.RequestException as e:
         print(e)
         return {'CANCELLED'}
@@ -483,13 +467,13 @@ def get_upload_location(props):
     scene = bpy.context.scene
     ui_props = scene.blenderkitUI
     if ui_props.asset_type == 'MODEL':
-        if bpy.context.active_object is not None:
+        if bpy.context.view_layer.objects.active is not None:
             ob = utils.get_active_model()
             return ob.location
     if ui_props.asset_type == 'SCENE':
         return None
     elif ui_props.asset_type == 'MATERIAL':
-        if bpy.context.active_object is not None and bpy.context.active_object.active_material is not None:
+        if bpy.context.view_layer.objects.active is not None and bpy.context.active_object.active_material is not None:
             return bpy.context.active_object.location
     elif ui_props.asset_type == 'TEXTURE':
         return None
@@ -569,7 +553,7 @@ def start_upload(self, context, asset_type, reupload, upload_set):
     export_data, upload_data, eval_path_computing, eval_path_state, eval_path, props = get_upload_data(self, context,
                                                                                                        asset_type)
     # utils.pprint(upload_data)
-    upload_data['parameters'] = params_to_dict(
+    upload_data['parameters'] = utils.dict_to_params(
         upload_data['parameters'])  # weird array conversion only for upload, not for tooltips.
 
     binary_path = bpy.app.binary_path
@@ -622,7 +606,7 @@ def start_upload(self, context, asset_type, reupload, upload_set):
     else:
         url += props.id + '/'
         try:
-            if upload_set != ['METADATA']:
+            if 'MAINFILE' in upload_set:
                 json_metadata["verificationStatus"] = "uploading"
             r = rerequests.put(url, json=json_metadata, headers=headers, verify=True, immediate=True)  # files = files,
             ui.add_report('uploaded metadata')
@@ -737,7 +721,7 @@ class UploadOperator(Operator):
 
     @classmethod
     def poll(cls, context):
-        return bpy.context.active_object is not None
+        return bpy.context.view_layer.objects.active is not None
 
     def execute(self, context):
         bpy.ops.object.blenderkit_auto_tags()
@@ -782,7 +766,10 @@ class UploadOperator(Operator):
 
         if props.is_private == 'PUBLIC':
             ui_panels.label_multiline(layout, text='public assets are validated several hours'
-                                                   ' or days after upload. ', width = 300)
+                                                   ' or days after upload. Remember always to '
+                                                    'test download your asset to a clean file'
+                                                   ' to see if it uploaded correctly.'
+                                      , width=300)
 
     def invoke(self, context, event):
         props = utils.get_upload_props()
@@ -791,7 +778,6 @@ class UploadOperator(Operator):
             return context.window_manager.invoke_props_dialog(self)
         else:
             return self.execute(context)
-
 
 
 class AssetVerificationStatusChange(Operator):
@@ -822,8 +808,12 @@ class AssetVerificationStatusChange(Operator):
         # layout.prop(self, 'state')
 
     def execute(self, context):
-        result = verification_status_change(self, context, self.asset_id, self.state)
-        return result
+        preferences = bpy.context.preferences.addons['blenderkit'].preferences
+
+        thread = threading.Thread(target=verification_status_change_thread,
+                                  args=(self.asset_id, self.state, preferences.api_key))
+        thread.start()
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         print(self.state)

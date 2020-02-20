@@ -10,7 +10,6 @@ from bpy.props import (
         StringProperty,
         )
 from bpy_extras import object_utils
-from . import utils
 
 # Create a new mesh (object) from verts/edges/faces.
 # verts/edges/faces ... List of vertices/edges/faces for the
@@ -112,7 +111,7 @@ class AddElbowJoint(Operator, object_utils.AddObjectHelper):
     change : BoolProperty(name = "Change",
                 default = False,
                 description = "change ElbowJoint")
-    
+
     radius: FloatProperty(
         name="Radius",
         description="The radius of the pipe",
@@ -165,9 +164,9 @@ class AddElbowJoint(Operator, object_utils.AddObjectHelper):
         if self.change == False:
             # generic transform props
             box = layout.box()
-            box.prop(self, 'align')
-            box.prop(self, 'location')
-            box.prop(self, 'rotation')
+            box.prop(self, 'align', expand=True)
+            box.prop(self, 'location', expand=True)
+            box.prop(self, 'rotation', expand=True)
 
     def execute(self, context):
         radius = self.radius
@@ -224,7 +223,7 @@ class AddElbowJoint(Operator, object_utils.AddObjectHelper):
         # Create faces
         faces.extend(createFaces(loop1, loop2, closed=True))
         faces.extend(createFaces(loop2, loop3, closed=True))
-        
+
         if bpy.context.mode == "OBJECT":
             if (context.selected_objects != []) and context.active_object and \
             ('ElbowJoint' in context.active_object.data.keys()) and (self.change == True):
@@ -239,9 +238,7 @@ class AddElbowJoint(Operator, object_utils.AddObjectHelper):
                 obj.data.name = oldmeshname
             else:
                 mesh = create_mesh(context, verts, [], faces, "Elbow Joint")
-                obj = object_utils.object_data_add(context, mesh, operator=None)
-
-                utils.setlocation(self, context)
+                obj = object_utils.object_data_add(context, mesh, operator=self)
 
             mesh.update()
 
@@ -255,14 +252,12 @@ class AddElbowJoint(Operator, object_utils.AddObjectHelper):
             name_active_object = active_object.name
             bpy.ops.object.mode_set(mode='OBJECT')
             mesh = create_mesh(context, verts, [], faces, "TMP")
-            obj = object_utils.object_data_add(context, mesh, operator=None)
+            obj = object_utils.object_data_add(context, mesh, operator=self)
             obj.select_set(True)
             active_object.select_set(True)
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
-
-            utils.setlocation(self, context)
 
         return {'FINISHED'}
 
@@ -294,7 +289,7 @@ class AddTeeJoint(Operator, object_utils.AddObjectHelper):
     change : BoolProperty(name = "Change",
                 default = False,
                 description = "change TeeJoint")
-    
+
     radius: FloatProperty(
         name="Radius",
         description="The radius of the pipe",
@@ -360,9 +355,9 @@ class AddTeeJoint(Operator, object_utils.AddObjectHelper):
         if self.change == False:
             # generic transform props
             box = layout.box()
-            box.prop(self, 'align')
-            box.prop(self, 'location')
-            box.prop(self, 'rotation')
+            box.prop(self, 'align', expand=True)
+            box.prop(self, 'location', expand=True)
+            box.prop(self, 'rotation', expand=True)
 
     def execute(self, context):
         radius = self.radius
@@ -483,7 +478,7 @@ class AddTeeJoint(Operator, object_utils.AddObjectHelper):
         faces.extend(createFaces(loopMainStart, loopJoint1, closed=True))
         faces.extend(createFaces(loopJoint2, loopArm, closed=True))
         faces.extend(createFaces(loopJoint3, loopMainEnd, closed=True))
-        
+
         if bpy.context.mode == "OBJECT":
             if (context.selected_objects != []) and context.active_object and \
             ('TeeJoint' in context.active_object.data.keys()) and (self.change == True):
@@ -498,9 +493,7 @@ class AddTeeJoint(Operator, object_utils.AddObjectHelper):
                 obj.data.name = oldmeshname
             else:
                 mesh = create_mesh(context, verts, [], faces, "Tee Joint")
-                obj = object_utils.object_data_add(context, mesh, operator=None)
-
-                utils.setlocation(self, context)
+                obj = object_utils.object_data_add(context, mesh, operator=self)
 
             mesh.update()
 
@@ -514,14 +507,12 @@ class AddTeeJoint(Operator, object_utils.AddObjectHelper):
             name_active_object = active_object.name
             bpy.ops.object.mode_set(mode='OBJECT')
             mesh = create_mesh(context, verts, [], faces, "TMP")
-            obj = object_utils.object_data_add(context, mesh, operator=None)
+            obj = object_utils.object_data_add(context, mesh, operator=self)
             obj.select_set(True)
             active_object.select_set(True)
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
-
-            utils.setlocation(self, context)
 
         return {'FINISHED'}
 
@@ -551,7 +542,7 @@ class AddWyeJoint(Operator, object_utils.AddObjectHelper):
     change : BoolProperty(name = "Change",
                 default = False,
                 description = "change WyeJoint")
-    
+
     radius: FloatProperty(
         name="Radius",
         description="The radius of the pipe",
@@ -626,9 +617,9 @@ class AddWyeJoint(Operator, object_utils.AddObjectHelper):
         if self.change == False:
             # generic transform props
             box = layout.box()
-            box.prop(self, 'align')
-            box.prop(self, 'location')
-            box.prop(self, 'rotation')
+            box.prop(self, 'align', expand=True)
+            box.prop(self, 'location', expand=True)
+            box.prop(self, 'rotation', expand=True)
 
     def execute(self, context):
         radius = self.radius
@@ -759,7 +750,7 @@ class AddWyeJoint(Operator, object_utils.AddObjectHelper):
         faces.extend(createFaces(loopMainStart, loopJoint1, closed=True))
         faces.extend(createFaces(loopJoint2, loopArm1, closed=True))
         faces.extend(createFaces(loopJoint3, loopArm2, closed=True))
-        
+
         if bpy.context.mode == "OBJECT":
             if (context.selected_objects != []) and context.active_object and \
             ('WyeJoint' in context.active_object.data.keys()) and (self.change == True):
@@ -774,9 +765,7 @@ class AddWyeJoint(Operator, object_utils.AddObjectHelper):
                 obj.data.name = oldmeshname
             else:
                 mesh = create_mesh(context, verts, [], faces, "Wye Joint")
-                obj = object_utils.object_data_add(context, mesh, operator=None)
-
-                utils.setlocation(self, context)
+                obj = object_utils.object_data_add(context, mesh, operator=self)
 
             mesh.update()
 
@@ -790,14 +779,12 @@ class AddWyeJoint(Operator, object_utils.AddObjectHelper):
             name_active_object = active_object.name
             bpy.ops.object.mode_set(mode='OBJECT')
             mesh = create_mesh(context, verts, [], faces, "TMP")
-            obj = object_utils.object_data_add(context, mesh, operator=None)
+            obj = object_utils.object_data_add(context, mesh, operator=self)
             obj.select_set(True)
             active_object.select_set(True)
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
-
-            utils.setlocation(self, context)
 
         return {'FINISHED'}
 
@@ -831,7 +818,7 @@ class AddCrossJoint(Operator, object_utils.AddObjectHelper):
     change : BoolProperty(name = "Change",
                 default = False,
                 description = "change CrossJoint")
-    
+
     radius: FloatProperty(
         name="Radius",
         description="The radius of the pipe",
@@ -919,9 +906,9 @@ class AddCrossJoint(Operator, object_utils.AddObjectHelper):
         if self.change == False:
             # generic transform props
             box = layout.box()
-            box.prop(self, 'align')
-            box.prop(self, 'location')
-            box.prop(self, 'rotation')
+            box.prop(self, 'align', expand=True)
+            box.prop(self, 'location', expand=True)
+            box.prop(self, 'rotation', expand=True)
 
     def execute(self, context):
         radius = self.radius
@@ -1099,7 +1086,7 @@ class AddCrossJoint(Operator, object_utils.AddObjectHelper):
         faces.extend(createFaces(loopJoint2, loopArm1, closed=True))
         faces.extend(createFaces(loopJoint3, loopArm2, closed=True))
         faces.extend(createFaces(loopJoint4, loopArm3, closed=True))
-        
+
         if bpy.context.mode == "OBJECT":
             if (context.selected_objects != []) and context.active_object and \
             ('CrossJoint' in context.active_object.data.keys()) and (self.change == True):
@@ -1114,9 +1101,7 @@ class AddCrossJoint(Operator, object_utils.AddObjectHelper):
                 obj.data.name = oldmeshname
             else:
                 mesh = create_mesh(context, verts, [], faces, "Cross Joint")
-                obj = object_utils.object_data_add(context, mesh, operator=None)
-
-                utils.setlocation(self, context)
+                obj = object_utils.object_data_add(context, mesh, operator=self)
 
             mesh.update()
 
@@ -1130,14 +1115,12 @@ class AddCrossJoint(Operator, object_utils.AddObjectHelper):
             name_active_object = active_object.name
             bpy.ops.object.mode_set(mode='OBJECT')
             mesh = create_mesh(context, verts, [], faces, "TMP")
-            obj = object_utils.object_data_add(context, mesh, operator=None)
+            obj = object_utils.object_data_add(context, mesh, operator=self)
             obj.select_set(True)
             active_object.select_set(True)
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
-
-            utils.setlocation(self, context)
 
         return {'FINISHED'}
 
@@ -1166,7 +1149,7 @@ class AddNJoint(Operator, object_utils.AddObjectHelper):
     change : BoolProperty(name = "Change",
                 default = False,
                 description = "change NJoint")
-    
+
     radius: FloatProperty(
         name="Radius",
         description="The radius of the pipe",
@@ -1210,9 +1193,9 @@ class AddNJoint(Operator, object_utils.AddObjectHelper):
         if self.change == False:
             # generic transform props
             box = layout.box()
-            box.prop(self, 'align')
-            box.prop(self, 'location')
-            box.prop(self, 'rotation')
+            box.prop(self, 'align', expand=True)
+            box.prop(self, 'location', expand=True)
+            box.prop(self, 'rotation', expand=True)
 
     def execute(self, context):
         radius = self.radius
@@ -1336,7 +1319,7 @@ class AddNJoint(Operator, object_utils.AddObjectHelper):
             faces.extend(
                 createFaces(loopsJoints[loopIdx],
                 loopsEndCircles[loopIdx], closed=True))
-        
+
         if bpy.context.mode == "OBJECT":
             if (context.selected_objects != []) and context.active_object and \
             ('NJoint' in context.active_object.data.keys()) and (self.change == True):
@@ -1351,9 +1334,7 @@ class AddNJoint(Operator, object_utils.AddObjectHelper):
                 obj.data.name = oldmeshname
             else:
                 mesh = create_mesh(context, verts, [], faces, "N Joint")
-                obj = object_utils.object_data_add(context, mesh, operator=None)
-
-                utils.setlocation(self, context)
+                obj = object_utils.object_data_add(context, mesh, operator=self)
 
             obj.data["NJoint"] = True
             obj.data["change"] = False
@@ -1365,13 +1346,11 @@ class AddNJoint(Operator, object_utils.AddObjectHelper):
             name_active_object = active_object.name
             bpy.ops.object.mode_set(mode='OBJECT')
             mesh = create_mesh(context, verts, [], faces, "TMP")
-            obj = object_utils.object_data_add(context, mesh, operator=None)
+            obj = object_utils.object_data_add(context, mesh, operator=self)
             obj.select_set(True)
             active_object.select_set(True)
             bpy.ops.object.join()
             context.active_object.name = name_active_object
             bpy.ops.object.mode_set(mode='EDIT')
-
-            utils.setlocation(self, context)
 
         return {'FINISHED'}

@@ -70,7 +70,7 @@ def get_commands_image_1(cfg, clargs, **kwargs):
     out: iter(tuple(str))
     Iterator containing commands.
     """
-    cmd = "ffmpeg -y -v quiet -stats -i '{path_i_1}' {common_all}"
+    cmd = "ffmpeg -hwaccel auto -y -v quiet -stats -i '{path_i_1}' {common_all}"
     common = "-f apng -filter:v scale=iw*{size}:ih*{size} '{path_o_1}'"
     common_all = map(lambda s: kwargs["path_o_1"].format(size=s), clargs.sizes)
     common_all = map(
@@ -101,7 +101,7 @@ def get_commands_video_1(cfg, clargs, **kwargs):
     out: iter(tuple(str))
     Iterator containing commands.
     """
-    cmd = "ffmpeg -y -v quiet -stats -i '{path_i_1}' {common_all}"
+    cmd = "ffmpeg -hwaccel auto -y -v quiet -stats -i '{path_i_1}' {common_all}"
     common = (
         "-pix_fmt yuv420p"
         " -g 1"

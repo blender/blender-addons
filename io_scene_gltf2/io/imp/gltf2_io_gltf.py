@@ -40,10 +40,6 @@ class glTFImporter():
         self.log = log.logger
         self.log_handler = log.hdlr
 
-        self.SIMPLE = 1
-        self.TEXTURE = 2
-        self.TEXTURE_FACTOR = 3
-
         # TODO: move to a com place?
         self.extensions_managed = [
             'KHR_materials_pbrSpecularGlossiness',
@@ -173,17 +169,6 @@ class glTFImporter():
             success, txt = self.load_glb()
             self.content = None
             return success, txt
-
-    def is_node_joint(self, node_idx):
-        """Check if node is a joint."""
-        if not self.data.skins:  # if no skin in gltf file
-            return False, None
-
-        for skin_idx, skin in enumerate(self.data.skins):
-            if node_idx in skin.joints:
-                return True, skin_idx
-
-        return False, None
 
     def load_buffer(self, buffer_idx):
         """Load buffer."""

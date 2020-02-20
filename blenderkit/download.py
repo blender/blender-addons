@@ -441,6 +441,7 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
     scene['assets rated'][id] = scene['assets rated'].get(id, False)
 
     parent['asset_data'] = asset_data  # TODO remove this??? should write to blenderkit Props?
+    bpy.ops.wm.undo_push_context(message = 'add %s to scene'% asset_data['name'])
     # moving reporting to on save.
     # report_use_success(asset_data['id'])
 
@@ -522,6 +523,34 @@ def timer_update():  # TODO might get moved to handle all blenderkit stuff, not 
                 utils.p('finished download thread')
     return .5
 
+
+def download_file(asset_data):
+    #this is a simple non-threaded way to download files for background resolution genenration tool
+    file_name = paths.get_download_filenames(asset_data)[0]  # prefer global dir if possible.
+
+    if check_existing(asset_data):
+        # this sends the thread for processing, where another check should occur, since the file might be corrupted.
+        utils.p('not downloading, already in db')
+        return file_name
+    preferences = bpy.context.preferences.addons['blenderkit'].preferences
+    api_key = preferences.api_key
+
+    with open(file_name, "wb") as f:
+        print("Downloading %s" % file_name)
+        headers = utils.get_headers(api_key)
+
+        response = requests.get(asset_data['url'], stream=True)
+        total_length = response.headers.get('Content-Length')
+
+        if total_length is None:  # no content length header
+            f.write(response.content)
+        else:
+            dl = 0
+            for data in response.iter_content(chunk_size=4096):
+                dl += len(data)
+                print(dl)
+                f.write(data)
+    return file_name
 
 class Downloader(threading.Thread):
     def __init__(self, asset_data, tcom, scene_id, api_key):
@@ -741,17 +770,16 @@ def get_download_url(asset_data, scene_id, api_key, tcom=None):
     data = {
         'scene_uuid': scene_id
     }
-    r = None
     try:
         r = rerequests.get(asset_data['download_url'], params=data, headers=headers)
     except Exception as e:
         print(e)
         if tcom is not None:
             tcom.error = True
-
     if r == None:
-        tcom.report = 'Connection Error'
-        tcom.error = True
+        if tcom is not None:
+            tcom.report = 'Connection Error'
+            tcom.error = True
         return 'Connection Error'
 
     if r.status_code < 400:
@@ -763,14 +791,17 @@ def get_download_url(asset_data, scene_id, api_key, tcom=None):
 
     if r.status_code == 403:
         r = 'You need Full plan to get this item.'
-        tcom.report = r
-        r1 = 'All materials and brushes are available for free. Only users registered to Standard plan can use all models.'
-        tasks_queue.add_task((ui.add_report, (r1, 5, colors.RED)))
-        tcom.error = True
+        # r1 = 'All materials and brushes are available for free. Only users registered to Standard plan can use all models.'
+        # tasks_queue.add_task((ui.add_report, (r1, 5, colors.RED)))
+        if tcom is not None:
+            tcom.report = r
+            tcom.error = True
 
     elif r.status_code >= 500:
-        tcom.report = 'Server error'
-        tcom.error = True
+        utils.p(r.text)
+        if tcom is not None:
+            tcom.report = 'Server error'
+            tcom.error = True
     return False
 
 
@@ -821,7 +852,7 @@ asset_types = (
 
 
 class BlenderkitKillDownloadOperator(bpy.types.Operator):
-    """Kill a download."""
+    """Kill a download"""
     bl_idname = "scene.blenderkit_download_kill"
     bl_label = "BlenderKit Kill Asset Download"
     bl_options = {'REGISTER', 'INTERNAL'}
@@ -883,7 +914,7 @@ class BlenderkitDownloadOperator(bpy.types.Operator):
 
         atype = asset_data['asset_type']
         if bpy.context.mode != 'OBJECT' and (
-                atype == 'model' or atype == 'material') and bpy.context.active_object is not None:
+                atype == 'model' or atype == 'material') and bpy.context.view_layer.objects.active is not None:
             bpy.ops.object.mode_set(mode='OBJECT')
 
         if self.replace:  # cleanup first, assign later.

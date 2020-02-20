@@ -23,7 +23,7 @@
 bl_info = {
     "name": "LoopTools",
     "author": "Bart Crouch, Vladimir Spivak (cwolf3d)",
-    "version": (4, 7, 0),
+    "version": (4, 7, 2),
     "blender": (2, 80, 0),
     "location": "View3D > Sidebar > Edit Tab / Edit Mode Context Menu",
     "warning": "",
@@ -539,12 +539,13 @@ def get_derived_bmesh(object, bm):
         derived = True
         # disable other modifiers
         show_viewport = [mod.name for mod in object.modifiers if mod.show_viewport]
+        merge = []
         for mod in object.modifiers:
             if mod.type != 'MIRROR':
                 mod.show_viewport = False
             #leave the merge points untouched
             if mod.type == 'MIRROR':
-                merge = mod.use_mirror_merge
+                merge.append(mod.use_mirror_merge)
                 mod.use_mirror_merge = False
         # get derived mesh
         bm_mod = bmesh.new()
@@ -556,8 +557,10 @@ def get_derived_bmesh(object, bm):
         # re-enable other modifiers
         for mod_name in show_viewport:
             object.modifiers[mod_name].show_viewport = True
+        merge.reverse()
+        for mod in object.modifiers:
             if mod.type == 'MIRROR':
-                mod.use_mirror_merge = merge
+                mod.use_mirror_merge = merge.pop()
     # no mirror modifiers, so no derived mesh necessary
     else:
         derived = False
@@ -2324,8 +2327,16 @@ def curve_cut_boundaries(bm_mod, loops):
     cut_loops = []
     for loop, circular in loops:
         if circular:
-            # don't cut
-            cut_loops.append([loop, circular])
+            selected = [bm_mod.verts[v].select for v in loop]
+            first = selected.index(True)
+            selected.reverse()
+            last = -selected.index(True)
+            if last == 0:
+                if len(loop[first:]) < len(loop)/2:
+                    cut_loops.append([loop[first:], False])
+            else:
+                if len(loop[first:last]) < len(loop)/2:
+                    cut_loops.append([loop[first:last], False])
             continue
         selected = [bm_mod.verts[v].select for v in loop]
         first = selected.index(True)
@@ -3859,7 +3870,7 @@ class RemoveAnnotation(Operator):
             return {'CANCELLED'}
 
         return{'FINISHED'}
-        
+
 # GPencil operator
 class RemoveGPencil(Operator):
     bl_idname = "remove.gp"
@@ -3989,7 +4000,7 @@ class GStretch(Operator):
         looptools =  context.window_manager.looptools
         layout = self.layout
         col = layout.column()
-        
+
         col.prop(self, "method")
         col.separator()
 
@@ -4365,7 +4376,7 @@ class Space(Operator):
         if derived:
             bm_mod.free()
         terminate()
-        
+
         cache_delete("Space")
 
         return{'FINISHED'}
