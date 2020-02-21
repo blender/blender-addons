@@ -158,4 +158,3 @@ def __gather_weights(blender_mesh: bpy.types.Mesh,
                 weights.append(blender_shape_key.value)
 
     return weights
-

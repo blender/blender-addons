@@ -388,4 +388,3 @@ def needs_baking(blender_object_if_armature: typing.Optional[bpy.types.Object],
                 return True
 
     return False
-

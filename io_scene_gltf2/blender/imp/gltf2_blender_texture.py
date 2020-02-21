@@ -149,4 +149,3 @@ def wrap_name(wrap):
     if wrap == TextureWrap.MirroredRepeat: return 'MIRRORED_REPEAT'
     if wrap == TextureWrap.Repeat: return 'REPEAT'
     return 'UNKNOWN (%s)' % wrap
-

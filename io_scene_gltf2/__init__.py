@@ -15,8 +15,8 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (1, 2, 20),
-    'blender': (2, 81, 6),
+    "version": (1, 2, 21),
+    'blender': (2, 82, 7),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
     'warning': '',
@@ -480,13 +480,8 @@ class ExportGLTF2_Base:
 
         return gltf2_blender_export.save(context, export_settings)
 
-
-
-
-
-
     def draw(self, context):
-        pass
+        pass # Is needed to get panels available
 
 
 class GLTF_PT_export_main(bpy.types.Panel):
@@ -947,4 +942,3 @@ def unregister():
     # remove from the export / import menu
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
-

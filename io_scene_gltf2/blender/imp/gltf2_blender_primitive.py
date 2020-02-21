@@ -350,4 +350,3 @@ class BlenderPrimitive():
             raise Exception('primitive mode unimplemented: %d' % mode)
 
         return es, fs
-

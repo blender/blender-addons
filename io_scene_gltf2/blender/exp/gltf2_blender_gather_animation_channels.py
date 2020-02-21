@@ -370,4 +370,3 @@ def __gather_armature_object_channel_groups(blender_action: bpy.types.Action, bl
         groups += list(p.values())
 
     return map(tuple, groups)
-

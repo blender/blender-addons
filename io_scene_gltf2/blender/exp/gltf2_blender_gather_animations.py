@@ -245,4 +245,3 @@ def __get_blender_actions(blender_object: bpy.types.Object,
     blender_actions.sort(key = lambda a: a.name.lower())
 
     return [(blender_action, blender_tracks[blender_action.name]) for blender_action in blender_actions]
-
