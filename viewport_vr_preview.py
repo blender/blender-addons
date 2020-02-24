@@ -28,6 +28,7 @@ from bpy.props import(
     IntProperty,
     BoolProperty,
 )
+from bpy.app.handlers import persistent
 from bl_ui.space_view3d import (
     VIEW3D_PT_shading_lighting,
     VIEW3D_PT_shading_color,
@@ -47,6 +48,15 @@ bl_info = {
                "VR support for Blender.",
     "category": "3D View",
 }
+
+
+@persistent
+def ensure_default_vr_pose_bookmark(context: bpy.context):
+    # Ensure there's a default bookmark (scene camera by default).
+    bookmarks = bpy.context.scene.vr_pose_bookmarks
+    if len(bookmarks) == 0:
+        bookmarks.add()
+        bookmarks[0].type = 'SCENE_CAMERA'
 
 
 def xr_pose_bookmark_active_type_update(self, context):
@@ -170,23 +180,23 @@ class VRPoseBookmark(bpy.types.PropertyGroup):
 
     @staticmethod
     def get_selected_bookmark(context):
-        wm = context.window_manager
-        bookmarks = wm.vr_pose_bookmarks
+        scene = context.scene
+        bookmarks = scene.vr_pose_bookmarks
 
-        return None if len(bookmarks) < 1 else bookmarks[wm.vr_pose_bookmarks_selected]
+        return None if len(bookmarks) < 1 else bookmarks[scene.vr_pose_bookmarks_selected]
 
     @staticmethod
     def get_active_bookmark(context):
-        wm = context.window_manager
-        bookmarks = wm.vr_pose_bookmarks
+        scene = context.scene
+        bookmarks = scene.vr_pose_bookmarks
 
-        return None if len(bookmarks) < 1 else bookmarks[wm.vr_pose_bookmarks_active]
+        return None if len(bookmarks) < 1 else bookmarks[scene.vr_pose_bookmarks_active]
 
 
 class VIEW3D_UL_vr_pose_bookmarks(bpy.types.UIList):
     def draw_item(self, context, layout, _data, item, icon, _active_data, _active_propname, index):
         bookmark = item
-        bookmark_active_idx = context.window_manager.vr_pose_bookmarks_active
+        bookmark_active_idx = context.scene.vr_pose_bookmarks_active
 
         layout.emboss = 'NONE'
         layout.prop(bookmark, "name", text="")
@@ -204,7 +214,7 @@ class VIEW3D_PT_vr_pose_bookmarks(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        wm = context.window_manager
+        scene = context.scene
         bookmark_selected = VRPoseBookmark.get_selected_bookmark(context)
 
         layout.use_property_split = True
@@ -212,8 +222,8 @@ class VIEW3D_PT_vr_pose_bookmarks(bpy.types.Panel):
 
         row = layout.row()
 
-        row.template_list("VIEW3D_UL_vr_pose_bookmarks", "", wm, "vr_pose_bookmarks",
-                          wm, "vr_pose_bookmarks_selected", rows=3)
+        row.template_list("VIEW3D_UL_vr_pose_bookmarks", "", scene, "vr_pose_bookmarks",
+                         scene, "vr_pose_bookmarks_selected", rows=3)
 
         col = row.column(align=True)
         col.operator("view3d.vr_pose_bookmark_add", icon='ADD', text="")
@@ -275,13 +285,13 @@ class VIEW3D_OT_vr_pose_bookmark_add(bpy.types.Operator):
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
-        wm = context.window_manager
-        bookmarks = wm.vr_pose_bookmarks
+        scene = context.scene
+        bookmarks = scene.vr_pose_bookmarks
 
         bookmarks.add()
 
         # select newly created set
-        wm.vr_pose_bookmarks_selected = len(bookmarks) - 1
+        scene.vr_pose_bookmarks_selected = len(bookmarks) - 1
 
         return {'FINISHED'}
 
@@ -293,14 +303,14 @@ class VIEW3D_OT_vr_pose_bookmark_remove(bpy.types.Operator):
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
-        wm = context.window_manager
-        bookmarks = wm.vr_pose_bookmarks
+        scene = context.scene
+        bookmarks = scene.vr_pose_bookmarks
 
         if len(bookmarks) > 1:
-            bookmark_selected_idx = wm.vr_pose_bookmarks_selected
+            bookmark_selected_idx = scene.vr_pose_bookmarks_selected
             bookmarks.remove(bookmark_selected_idx)
 
-            wm.vr_pose_bookmarks_selected -= 1
+            scene.vr_pose_bookmarks_selected -= 1
 
         return {'FINISHED'}
 
@@ -317,13 +327,13 @@ class VIEW3D_OT_vr_pose_bookmark_activate(bpy.types.Operator):
     )
 
     def execute(self, context):
-        wm = context.window_manager
+        scene = context.scene
 
-        if self.index >= len(wm.vr_pose_bookmarks):
+        if self.index >= len(scene.vr_pose_bookmarks):
             return {'CANCELLED'}
 
-        wm.vr_pose_bookmarks_active = self.index if self.properties.is_property_set(
-            "index") else wm.vr_pose_bookmarks_selected
+        scene.vr_pose_bookmarks_active = self.index if self.properties.is_property_set(
+            "index") else scene.vr_pose_bookmarks_selected
 
         return {'FINISHED'}
 
@@ -510,12 +520,12 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    bpy.types.WindowManager.vr_pose_bookmarks = CollectionProperty(
+    bpy.types.Scene.vr_pose_bookmarks = CollectionProperty(
         name="Pose Bookmarks",
         type=VRPoseBookmark,
     )
-    bpy.types.WindowManager.vr_pose_bookmarks_selected = IntProperty()
-    bpy.types.WindowManager.vr_pose_bookmarks_active = IntProperty(
+    bpy.types.Scene.vr_pose_bookmarks_selected = IntProperty()
+    bpy.types.Scene.vr_pose_bookmarks_active = IntProperty(
         update=xr_pose_bookmark_active_update,
     )
     # View3DShading is the only per 3D-View struct with custom property
@@ -524,21 +534,18 @@ def register():
         name="Show Virtual Camera"
     )
 
-    # Ensure there's a default bookmark (scene camera by default).
-    bookmarks = bpy.context.window_manager.vr_pose_bookmarks
-    if len(bookmarks) == 0:
-        bookmarks.add()
-        bookmarks[0].type = 'SCENE_CAMERA'
-
+    bpy.app.handlers.load_post.append(ensure_default_vr_pose_bookmark)
 
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
-    del bpy.types.WindowManager.vr_pose_bookmarks
-    del bpy.types.WindowManager.vr_pose_bookmarks_selected
+    del bpy.types.Scene.vr_pose_bookmarks
+    del bpy.types.Scene.vr_pose_bookmarks_selected
+    del bpy.types.Scene.vr_pose_bookmarks_active
     del bpy.types.View3DShading.vr_show_virtual_camera
 
+    bpy.app.handlers.load_post.remove(ensure_default_vr_pose_bookmark)
 
 if __name__ == "__main__":
     register()
