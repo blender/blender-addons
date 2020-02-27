@@ -51,101 +51,101 @@ bl_info = {
 
 
 @persistent
-def ensure_default_vr_pose_bookmark(context: bpy.context):
-    # Ensure there's a default bookmark (scene camera by default).
-    bookmarks = bpy.context.scene.vr_pose_bookmarks
-    if len(bookmarks) == 0:
-        bookmarks.add()
-        bookmarks[0].type = 'SCENE_CAMERA'
+def ensure_default_vr_landmark(context: bpy.context):
+    # Ensure there's a default landmark (scene camera by default).
+    landmarks = bpy.context.scene.vr_landmarks
+    if len(landmarks) == 0:
+        landmarks.add()
+        landmarks[0].type = 'SCENE_CAMERA'
 
 
-def xr_pose_bookmark_active_type_update(self, context):
+def xr_landmark_active_type_update(self, context):
     wm = context.window_manager
     session_settings = wm.xr_session_settings
-    bookmark_active = VRPoseBookmark.get_active_bookmark(context)
+    landmark_active = VRLandmark.get_active_landmark(context)
 
     # Update session's base pose type to the matching type.
-    if bookmark_active.type == 'SCENE_CAMERA':
+    if landmark_active.type == 'SCENE_CAMERA':
         session_settings.base_pose_type = 'SCENE_CAMERA'
-    elif bookmark_active.type == 'USER_CAMERA':
+    elif landmark_active.type == 'USER_CAMERA':
         session_settings.base_pose_type = 'OBJECT'
-    elif bookmark_active.type == 'CUSTOM':
+    elif landmark_active.type == 'CUSTOM':
         session_settings.base_pose_type = 'CUSTOM'
 
 
-def xr_pose_bookmark_active_camera_update(self, context):
+def xr_landmark_active_camera_update(self, context):
     session_settings = context.window_manager.xr_session_settings
-    bookmark_active = VRPoseBookmark.get_active_bookmark(context)
+    landmark_active = VRLandmark.get_active_landmark(context)
 
-    # Update the anchor object to the (new) camera of this bookmark.
-    session_settings.base_pose_object = bookmark_active.base_pose_camera
+    # Update the anchor object to the (new) camera of this landmark.
+    session_settings.base_pose_object = landmark_active.base_pose_camera
 
 
-def xr_pose_bookmark_active_base_pose_location_update(self, context):
+def xr_landmark_active_base_pose_location_update(self, context):
     session_settings = context.window_manager.xr_session_settings
-    bookmark_active = VRPoseBookmark.get_active_bookmark(context)
+    landmark_active = VRLandmark.get_active_landmark(context)
 
-    session_settings.base_pose_location = bookmark_active.base_pose_location
+    session_settings.base_pose_location = landmark_active.base_pose_location
 
 
-def xr_pose_bookmark_active_base_pose_angle_update(self, context):
+def xr_landmark_active_base_pose_angle_update(self, context):
     session_settings = context.window_manager.xr_session_settings
-    bookmark_active = VRPoseBookmark.get_active_bookmark(context)
+    landmark_active = VRLandmark.get_active_landmark(context)
 
-    session_settings.base_pose_angle = bookmark_active.base_pose_angle
-
-
-def xr_pose_bookmark_type_update(self, context):
-    bookmark_selected = VRPoseBookmark.get_selected_bookmark(context)
-    bookmark_active = VRPoseBookmark.get_active_bookmark(context)
-
-    # Only update session settings data if the changed bookmark is actually the active one.
-    if bookmark_active == bookmark_selected:
-        xr_pose_bookmark_active_type_update(self, context)
+    session_settings.base_pose_angle = landmark_active.base_pose_angle
 
 
-def xr_pose_bookmark_camera_update(self, context):
-    bookmark_selected = VRPoseBookmark.get_selected_bookmark(context)
-    bookmark_active = VRPoseBookmark.get_active_bookmark(context)
+def xr_landmark_type_update(self, context):
+    landmark_selected = VRLandmark.get_selected_landmark(context)
+    landmark_active = VRLandmark.get_active_landmark(context)
 
-    # Only update session settings data if the changed bookmark is actually the active one.
-    if bookmark_active == bookmark_selected:
-        xr_pose_bookmark_active_camera_update(self, context)
-
-
-def xr_pose_bookmark_base_pose_location_update(self, context):
-    bookmark_selected = VRPoseBookmark.get_selected_bookmark(context)
-    bookmark_active = VRPoseBookmark.get_active_bookmark(context)
-
-    # Only update session settings data if the changed bookmark is actually the active one.
-    if bookmark_active == bookmark_selected:
-        xr_pose_bookmark_active_base_pose_location_update(self, context)
+    # Only update session settings data if the changed landmark is actually the active one.
+    if landmark_active == landmark_selected:
+        xr_landmark_active_type_update(self, context)
 
 
-def xr_pose_bookmark_base_pose_angle_update(self, context):
-    bookmark_selected = VRPoseBookmark.get_selected_bookmark(context)
-    bookmark_active = VRPoseBookmark.get_active_bookmark(context)
+def xr_landmark_camera_update(self, context):
+    landmark_selected = VRLandmark.get_selected_landmark(context)
+    landmark_active = VRLandmark.get_active_landmark(context)
 
-    # Only update session settings data if the changed bookmark is actually the active one.
-    if bookmark_active == bookmark_selected:
-        xr_pose_bookmark_active_base_pose_angle_update(self, context)
+    # Only update session settings data if the changed landmark is actually the active one.
+    if landmark_active == landmark_selected:
+        xr_landmark_active_camera_update(self, context)
 
 
-def xr_pose_bookmark_camera_object_poll(self, object):
+def xr_landmark_base_pose_location_update(self, context):
+    landmark_selected = VRLandmark.get_selected_landmark(context)
+    landmark_active = VRLandmark.get_active_landmark(context)
+
+    # Only update session settings data if the changed landmark is actually the active one.
+    if landmark_active == landmark_selected:
+        xr_landmark_active_base_pose_location_update(self, context)
+
+
+def xr_landmark_base_pose_angle_update(self, context):
+    landmark_selected = VRLandmark.get_selected_landmark(context)
+    landmark_active = VRLandmark.get_active_landmark(context)
+
+    # Only update session settings data if the changed landmark is actually the active one.
+    if landmark_active == landmark_selected:
+        xr_landmark_active_base_pose_angle_update(self, context)
+
+
+def xr_landmark_camera_object_poll(self, object):
     return object.type == 'CAMERA'
 
 
-def xr_pose_bookmark_active_update(self, context):
-    xr_pose_bookmark_active_type_update(self, context)
-    xr_pose_bookmark_active_camera_update(self, context)
-    xr_pose_bookmark_active_base_pose_location_update(self, context)
-    xr_pose_bookmark_active_base_pose_angle_update(self, context)
+def xr_landmark_active_update(self, context):
+    xr_landmark_active_type_update(self, context)
+    xr_landmark_active_camera_update(self, context)
+    xr_landmark_active_base_pose_location_update(self, context)
+    xr_landmark_active_base_pose_angle_update(self, context)
 
 
-class VRPoseBookmark(bpy.types.PropertyGroup):
+class VRLandmark(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty(
-        name="VR Pose Bookmark",
-        default="VR Pose"
+        name="VR Landmark",
+        default="Landmark"
     )
     type: bpy.props.EnumProperty(
         name="Type",
@@ -158,86 +158,86 @@ class VRPoseBookmark(bpy.types.PropertyGroup):
              "Allow a manually definied position and rotation to be used as the VR view base pose"),
         ],
         default='SCENE_CAMERA',
-        update=xr_pose_bookmark_type_update,
+        update=xr_landmark_type_update,
     )
     base_pose_camera: bpy.props.PointerProperty(
         name="Camera",
         type=bpy.types.Object,
-        poll=xr_pose_bookmark_camera_object_poll,
-        update=xr_pose_bookmark_camera_update,
+        poll=xr_landmark_camera_object_poll,
+        update=xr_landmark_camera_update,
     )
     base_pose_location: bpy.props.FloatVectorProperty(
         name="Base Pose Location",
         subtype='TRANSLATION',
-        update=xr_pose_bookmark_base_pose_location_update,
+        update=xr_landmark_base_pose_location_update,
     )
 
     base_pose_angle: bpy.props.FloatProperty(
         name="Base Pose Angle",
         subtype='ANGLE',
-        update=xr_pose_bookmark_base_pose_angle_update,
+        update=xr_landmark_base_pose_angle_update,
     )
 
     @staticmethod
-    def get_selected_bookmark(context):
+    def get_selected_landmark(context):
         scene = context.scene
-        bookmarks = scene.vr_pose_bookmarks
+        landmarks = scene.vr_landmarks
 
-        return None if len(bookmarks) < 1 else bookmarks[scene.vr_pose_bookmarks_selected]
+        return None if len(landmarks) < 1 else landmarks[scene.vr_landmarks_selected]
 
     @staticmethod
-    def get_active_bookmark(context):
+    def get_active_landmark(context):
         scene = context.scene
-        bookmarks = scene.vr_pose_bookmarks
+        landmarks = scene.vr_landmarks
 
-        return None if len(bookmarks) < 1 else bookmarks[scene.vr_pose_bookmarks_active]
+        return None if len(landmarks) < 1 else landmarks[scene.vr_landmarks_active]
 
 
-class VIEW3D_UL_vr_pose_bookmarks(bpy.types.UIList):
+class VIEW3D_UL_vr_landmarks(bpy.types.UIList):
     def draw_item(self, context, layout, _data, item, icon, _active_data, _active_propname, index):
-        bookmark = item
-        bookmark_active_idx = context.scene.vr_pose_bookmarks_active
+        landmark = item
+        landmark_active_idx = context.scene.vr_landmarks_active
 
         layout.emboss = 'NONE'
-        layout.prop(bookmark, "name", text="")
-        props = layout.operator("view3d.vr_pose_bookmark_activate", text="", icon=('SOLO_ON' if index ==
-                                                                                   bookmark_active_idx else 'SOLO_OFF'))
+        layout.prop(landmark, "name", text="")
+        props = layout.operator("view3d.vr_landmark_activate", text="", icon=('SOLO_ON' if index ==
+                                                                                   landmark_active_idx else 'SOLO_OFF'))
         props.index = index
 
 
-class VIEW3D_PT_vr_pose_bookmarks(bpy.types.Panel):
+class VIEW3D_PT_vr_landmarks(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "VR"
-    bl_label = "Pose Bookmarks"
+    bl_label = "Landmarks"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        bookmark_selected = VRPoseBookmark.get_selected_bookmark(context)
+        landmark_selected = VRLandmark.get_selected_landmark(context)
 
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
         row = layout.row()
 
-        row.template_list("VIEW3D_UL_vr_pose_bookmarks", "", scene, "vr_pose_bookmarks",
-                         scene, "vr_pose_bookmarks_selected", rows=3)
+        row.template_list("VIEW3D_UL_vr_landmarks", "", scene, "vr_landmarks",
+                         scene, "vr_landmarks_selected", rows=3)
 
         col = row.column(align=True)
-        col.operator("view3d.vr_pose_bookmark_add", icon='ADD', text="")
-        col.operator("view3d.vr_pose_bookmark_remove", icon='REMOVE', text="")
+        col.operator("view3d.vr_landmark_add", icon='ADD', text="")
+        col.operator("view3d.vr_landmark_remove", icon='REMOVE', text="")
 
-        if bookmark_selected:
-            layout.prop(bookmark_selected, "type")
+        if landmark_selected:
+            layout.prop(landmark_selected, "type")
 
-            if bookmark_selected.type == 'USER_CAMERA':
-                layout.prop(bookmark_selected, "base_pose_camera")
-            elif bookmark_selected.type == 'CUSTOM':
-                layout.prop(bookmark_selected,
+            if landmark_selected.type == 'USER_CAMERA':
+                layout.prop(landmark_selected, "base_pose_camera")
+            elif landmark_selected.type == 'CUSTOM':
+                layout.prop(landmark_selected,
                             "base_pose_location", text="Location")
-                layout.prop(bookmark_selected,
+                layout.prop(landmark_selected,
                             "base_pose_angle", text="Angle")
 
 
@@ -278,47 +278,47 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
         layout.prop(session_settings, "use_positional_tracking")
 
 
-class VIEW3D_OT_vr_pose_bookmark_add(bpy.types.Operator):
-    bl_idname = "view3d.vr_pose_bookmark_add"
-    bl_label = "Add VR Pose Bookmark"
-    bl_description = "Add a new VR pose bookmark to the list and select it"
+class VIEW3D_OT_vr_landmark_add(bpy.types.Operator):
+    bl_idname = "view3d.vr_landmark_add"
+    bl_label = "Add VR Landmark"
+    bl_description = "Add a new VR landmark to the list and select it"
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
         scene = context.scene
-        bookmarks = scene.vr_pose_bookmarks
+        landmarks = scene.vr_landmarks
 
-        bookmarks.add()
+        landmarks.add()
 
         # select newly created set
-        scene.vr_pose_bookmarks_selected = len(bookmarks) - 1
+        scene.vr_landmarks_selected = len(landmarks) - 1
 
         return {'FINISHED'}
 
 
-class VIEW3D_OT_vr_pose_bookmark_remove(bpy.types.Operator):
-    bl_idname = "view3d.vr_pose_bookmark_remove"
-    bl_label = "Remove VR Pose Bookmark"
-    bl_description = "Delete the selected VR pose bookmark from the list"
+class VIEW3D_OT_vr_landmark_remove(bpy.types.Operator):
+    bl_idname = "view3d.vr_landmark_remove"
+    bl_label = "Remove VR Landmark"
+    bl_description = "Delete the selected VR landmark from the list"
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
         scene = context.scene
-        bookmarks = scene.vr_pose_bookmarks
+        landmarks = scene.vr_landmarks
 
-        if len(bookmarks) > 1:
-            bookmark_selected_idx = scene.vr_pose_bookmarks_selected
-            bookmarks.remove(bookmark_selected_idx)
+        if len(landmarks) > 1:
+            landmark_selected_idx = scene.vr_landmarks_selected
+            landmarks.remove(landmark_selected_idx)
 
-            scene.vr_pose_bookmarks_selected -= 1
+            scene.vr_landmarks_selected -= 1
 
         return {'FINISHED'}
 
 
-class VIEW3D_OT_vr_pose_bookmark_activate(bpy.types.Operator):
-    bl_idname = "view3d.vr_pose_bookmark_activate"
-    bl_label = "Activate VR Pose Bookmark"
-    bl_description = "Change to the selected VR pose bookmark from the list"
+class VIEW3D_OT_vr_landmark_activate(bpy.types.Operator):
+    bl_idname = "view3d.vr_landmark_activate"
+    bl_label = "Activate VR Landmark"
+    bl_description = "Change to the selected VR landmark from the list"
     bl_options = {'UNDO', 'REGISTER'}
 
     index: IntProperty(
@@ -329,11 +329,11 @@ class VIEW3D_OT_vr_pose_bookmark_activate(bpy.types.Operator):
     def execute(self, context):
         scene = context.scene
 
-        if self.index >= len(scene.vr_pose_bookmarks):
+        if self.index >= len(scene.vr_landmarks):
             return {'CANCELLED'}
 
-        scene.vr_pose_bookmarks_active = self.index if self.properties.is_property_set(
-            "index") else scene.vr_pose_bookmarks_selected
+        scene.vr_landmarks_active = self.index if self.properties.is_property_set(
+            "index") else scene.vr_landmarks_selected
 
         return {'FINISHED'}
 
@@ -501,15 +501,15 @@ classes = (
     VIEW3D_PT_vr_session_shading_lighting,
     VIEW3D_PT_vr_session_shading_color,
     VIEW3D_PT_vr_session_shading_options,
-    VIEW3D_PT_vr_pose_bookmarks,
+    VIEW3D_PT_vr_landmarks,
     VIEW3D_PT_vr_feedback,
 
-    VRPoseBookmark,
-    VIEW3D_UL_vr_pose_bookmarks,
+    VRLandmark,
+    VIEW3D_UL_vr_landmarks,
 
-    VIEW3D_OT_vr_pose_bookmark_add,
-    VIEW3D_OT_vr_pose_bookmark_remove,
-    VIEW3D_OT_vr_pose_bookmark_activate,
+    VIEW3D_OT_vr_landmark_add,
+    VIEW3D_OT_vr_landmark_remove,
+    VIEW3D_OT_vr_landmark_activate,
 
     VIEW3D_GT_vr_camera_cone,
     VIEW3D_GGT_vr_viewer,
@@ -520,13 +520,13 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    bpy.types.Scene.vr_pose_bookmarks = CollectionProperty(
-        name="Pose Bookmarks",
-        type=VRPoseBookmark,
+    bpy.types.Scene.vr_landmarks = CollectionProperty(
+        name="Landmark",
+        type=VRLandmark,
     )
-    bpy.types.Scene.vr_pose_bookmarks_selected = IntProperty()
-    bpy.types.Scene.vr_pose_bookmarks_active = IntProperty(
-        update=xr_pose_bookmark_active_update,
+    bpy.types.Scene.vr_landmarks_selected = IntProperty()
+    bpy.types.Scene.vr_landmarks_active = IntProperty(
+        update=xr_landmark_active_update,
     )
     # View3DShading is the only per 3D-View struct with custom property
     # support, so "abusing" that to get a per 3D-View option.
@@ -534,18 +534,18 @@ def register():
         name="Show Virtual Camera"
     )
 
-    bpy.app.handlers.load_post.append(ensure_default_vr_pose_bookmark)
+    bpy.app.handlers.load_post.append(ensure_default_vr_landmark)
 
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
-    del bpy.types.Scene.vr_pose_bookmarks
-    del bpy.types.Scene.vr_pose_bookmarks_selected
-    del bpy.types.Scene.vr_pose_bookmarks_active
+    del bpy.types.Scene.vr_landmarks
+    del bpy.types.Scene.vr_landmarks_selected
+    del bpy.types.Scene.vr_landmarks_active
     del bpy.types.View3DShading.vr_show_virtual_camera
 
-    bpy.app.handlers.load_post.remove(ensure_default_vr_pose_bookmark)
+    bpy.app.handlers.load_post.remove(ensure_default_vr_landmark)
 
 if __name__ == "__main__":
     register()
