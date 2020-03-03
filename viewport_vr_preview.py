@@ -412,6 +412,7 @@ class VIEW3D_PT_vr_feedback(bpy.types.Panel):
         view3d = context.space_data
 
         layout.prop(view3d.shading, "vr_show_virtual_camera")
+        layout.prop(view3d, "show_as_xr_session_mirror")
 
 
 class VIEW3D_GT_vr_camera_cone(Gizmo):
@@ -465,7 +466,7 @@ class VIEW3D_GGT_vr_viewer(GizmoGroup):
     @classmethod
     def poll(cls, context):
         view3d = context.space_data
-        return view3d.shading.vr_show_virtual_camera and bpy.types.XrSessionState.is_running(context)
+        return view3d.shading.vr_show_virtual_camera and bpy.types.XrSessionState.is_running(context) and not view3d.show_as_xr_session_mirror
 
     def _get_viewer_matrix(self, context):
         from mathutils import Matrix, Quaternion
