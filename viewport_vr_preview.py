@@ -151,9 +151,9 @@ class VRLandmark(bpy.types.PropertyGroup):
         name="Type",
         items=[
             ('SCENE_CAMERA', "Scene Camera",
-             "Use scene's currently active camera to define the VR view base pose"),
+             "Use scene's currently active camera to define the VR view base location and rotation"),
             ('USER_CAMERA', "Custom Camera",
-             "Use an existing camera to define the VR view base pose"),
+             "Use an existing camera to define the VR view base location and rotation"),
             ('CUSTOM', "Custom Pose",
              "Allow a manually definied position and rotation to be used as the VR view base pose"),
         ],
@@ -400,11 +400,11 @@ class VIEW3D_PT_vr_session_shading_options(bpy.types.Panel):
             VIEW3D_PT_shading_options.draw_ex(self, context, shading)
 
 
-class VIEW3D_PT_vr_feedback(bpy.types.Panel):
+class VIEW3D_PT_vr_viewport_feedback(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "VR"
-    bl_label = "Feedback"
+    bl_label = "Viewport Feedback"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -503,7 +503,7 @@ classes = (
     VIEW3D_PT_vr_session_shading_color,
     VIEW3D_PT_vr_session_shading_options,
     VIEW3D_PT_vr_landmarks,
-    VIEW3D_PT_vr_feedback,
+    VIEW3D_PT_vr_viewport_feedback,
 
     VRLandmark,
     VIEW3D_UL_vr_landmarks,
@@ -525,7 +525,9 @@ def register():
         name="Landmark",
         type=VRLandmark,
     )
-    bpy.types.Scene.vr_landmarks_selected = IntProperty()
+    bpy.types.Scene.vr_landmarks_selected = IntProperty(
+        name="Selected Landmark"
+    )
     bpy.types.Scene.vr_landmarks_active = IntProperty(
         update=xr_landmark_active_update,
     )
