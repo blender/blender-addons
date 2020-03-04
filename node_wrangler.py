@@ -544,9 +544,6 @@ draw_color_sets = {
 }
 
 
-def is_cycles_or_eevee(context):
-    return context.scene.render.engine in {'CYCLES', 'BLENDER_EEVEE'}
-
 def is_visible_socket(socket):
     return not socket.hide and socket.enabled
 
@@ -1583,10 +1580,9 @@ class NWEmissionViewer(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        is_cycles = is_cycles_or_eevee(context)
         if nw_check(context):
             space = context.space_data
-            if space.tree_type == 'ShaderNodeTree' and is_cycles:
+            if space.tree_type == 'ShaderNodeTree':
                 if context.active_node:
                     if context.active_node.type != "OUTPUT_MATERIAL" or context.active_node.type != "OUTPUT_WORLD":
                         return True
@@ -2583,7 +2579,7 @@ class NWAddTextureSetup(Operator, NWBase):
         valid = False
         if nw_check(context):
             space = context.space_data
-            if space.tree_type == 'ShaderNodeTree' and is_cycles_or_eevee(context):
+            if space.tree_type == 'ShaderNodeTree':
                 valid = True
         return valid
 
@@ -2687,7 +2683,7 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
         valid = False
         if nw_check(context):
             space = context.space_data
-            if space.tree_type == 'ShaderNodeTree' and is_cycles_or_eevee(context):
+            if space.tree_type == 'ShaderNodeTree':
                 valid = True
         return valid
 
@@ -3261,10 +3257,7 @@ class NWLinkToOutputNode(Operator, NWBase):
         if not output_node:
             bpy.ops.node.select_all(action="DESELECT")
             if tree_type == 'ShaderNodeTree':
-                if is_cycles_or_eevee(context):
-                    output_node = nodes.new('ShaderNodeOutputMaterial')
-                else:
-                    output_node = nodes.new('ShaderNodeOutput')
+                output_node = nodes.new('ShaderNodeOutputMaterial')
             elif tree_type == 'CompositorNodeTree':
                 output_node = nodes.new('CompositorNodeComposite')
             elif tree_type == 'TextureNodeTree':
@@ -3282,7 +3275,7 @@ class NWLinkToOutputNode(Operator, NWBase):
                     break
 
             out_input_index = 0
-            if tree_type == 'ShaderNodeTree' and is_cycles_or_eevee(context):
+            if tree_type == 'ShaderNodeTree':
                 if active.outputs[output_index].name == 'Volume':
                     out_input_index = 1
                 elif active.outputs[output_index].type != 'SHADER':  # connect to displacement if not a shader
@@ -3730,7 +3723,7 @@ def drawlayout(context, layout, mode='non-panel'):
     col.menu(NWSwitchNodeTypeMenu.bl_idname, text="Switch Node Type")
     col.separator()
 
-    if tree_type == 'ShaderNodeTree' and is_cycles_or_eevee(context):
+    if tree_type == 'ShaderNodeTree':
         col = layout.column(align=True)
         col.operator(NWAddTextureSetup.bl_idname, text="Add Texture Setup", icon='NODE_SEL')
         col.operator(NWAddPrincipledSetup.bl_idname, text="Add Principled Setup", icon='NODE_SEL')
@@ -3815,7 +3808,7 @@ class NWMergeNodesMenu(Menu, NWBase):
     def draw(self, context):
         type = context.space_data.tree_type
         layout = self.layout
-        if type == 'ShaderNodeTree' and is_cycles_or_eevee(context):
+        if type == 'ShaderNodeTree':
             layout.menu(NWMergeShadersMenu.bl_idname, text="Use Shaders")
         layout.menu(NWMergeMixMenu.bl_idname, text="Use Mix Nodes")
         layout.menu(NWMergeMathMenu.bl_idname, text="Use Math Nodes")
@@ -4039,7 +4032,7 @@ class NWVertColMenu(bpy.types.Menu):
         valid = False
         if nw_check(context):
             snode = context.space_data
-            valid = snode.tree_type == 'ShaderNodeTree' and is_cycles_or_eevee(context)
+            valid = snode.tree_type == 'ShaderNodeTree'
         return valid
 
     def draw(self, context):
@@ -4074,22 +4067,14 @@ class NWSwitchNodeTypeMenu(Menu, NWBase):
         layout = self.layout
         tree = context.space_data.node_tree
         if tree.type == 'SHADER':
-            if is_cycles_or_eevee(context):
-                layout.menu(NWSwitchShadersInputSubmenu.bl_idname)
-                layout.menu(NWSwitchShadersOutputSubmenu.bl_idname)
-                layout.menu(NWSwitchShadersShaderSubmenu.bl_idname)
-                layout.menu(NWSwitchShadersTextureSubmenu.bl_idname)
-                layout.menu(NWSwitchShadersColorSubmenu.bl_idname)
-                layout.menu(NWSwitchShadersVectorSubmenu.bl_idname)
-                layout.menu(NWSwitchShadersConverterSubmenu.bl_idname)
-                layout.menu(NWSwitchShadersLayoutSubmenu.bl_idname)
-            else:
-                layout.menu(NWSwitchMatInputSubmenu.bl_idname)
-                layout.menu(NWSwitchMatOutputSubmenu.bl_idname)
-                layout.menu(NWSwitchMatColorSubmenu.bl_idname)
-                layout.menu(NWSwitchMatVectorSubmenu.bl_idname)
-                layout.menu(NWSwitchMatConverterSubmenu.bl_idname)
-                layout.menu(NWSwitchMatLayoutSubmenu.bl_idname)
+            layout.menu(NWSwitchShadersInputSubmenu.bl_idname)
+            layout.menu(NWSwitchShadersOutputSubmenu.bl_idname)
+            layout.menu(NWSwitchShadersShaderSubmenu.bl_idname)
+            layout.menu(NWSwitchShadersTextureSubmenu.bl_idname)
+            layout.menu(NWSwitchShadersColorSubmenu.bl_idname)
+            layout.menu(NWSwitchShadersVectorSubmenu.bl_idname)
+            layout.menu(NWSwitchShadersConverterSubmenu.bl_idname)
+            layout.menu(NWSwitchShadersLayoutSubmenu.bl_idname)
         if tree.type == 'COMPOSITING':
             layout.menu(NWSwitchCompoInputSubmenu.bl_idname)
             layout.menu(NWSwitchCompoOutputSubmenu.bl_idname)
