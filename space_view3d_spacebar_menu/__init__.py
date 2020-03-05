@@ -25,8 +25,8 @@ bl_info = {
     "location": "View3D > Spacebar",
     "description": "Object Mode Context Sensitive Spacebar Menu",
     "warning": "",
-    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
-                "interface/context_menu.html",
+    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
+               "interface/context_menu.html",
     "category": "Interface",
 }
 

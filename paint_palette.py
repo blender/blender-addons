@@ -27,8 +27,8 @@ bl_info = {
     "location": "Image Editor and 3D View > Any Paint mode > Color Palette or Weight Palette panel",
     "description": "Palettes for color and weight paint modes",
     "warning": "",
-    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
-                "paint/paint_palettes.html",
+    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
+               "paint/paint_palettes.html",
     "category": "Paint",
 }
 

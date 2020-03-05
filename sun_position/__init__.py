@@ -38,9 +38,10 @@ bl_info = {
     "blender": (2, 80, 0),
     "location": "World > Sun Position",
     "description": "Show sun position with objects and/or sky texture",
-    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
-                "lighting/sun_position.html",
-    "category": "Lighting"}
+    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
+               "lighting/sun_position.html",
+    "category": "Lighting",
+}
 
 if "bpy" in locals():
     import importlib

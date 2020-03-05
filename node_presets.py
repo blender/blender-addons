@@ -25,8 +25,8 @@ bl_info = {
     "location": "Node Editors > Add > Template",
     "description": "Add node groups directly to the node editors",
     "warning": "",
-    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
-                "node/node_presets.html",
+    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
+               "node/node_presets.html",
     "category": "Node",
 }
 

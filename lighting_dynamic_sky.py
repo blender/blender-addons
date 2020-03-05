@@ -27,10 +27,10 @@ bl_info = {
     "location": "View3D > Sidebar > Create Tab",
     "description": "Creates Dynamic Sky for Cycles",
     "warning": "",
-    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
-                "lighting/dynamic_sky.html",
+    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
+               "lighting/dynamic_sky.html",
     "category": "Lighting",
-    }
+}
 
 import bpy
 from bpy.props import StringProperty

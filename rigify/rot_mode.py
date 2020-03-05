@@ -33,9 +33,10 @@ blender.stackexchange.com/questions/40711/how-to-convert-quaternions-keyframes-t
 #     'location': '',
 #     "description": "Converts bones rotation mode",
 #     "warning": "",
-#     "wiki_url": "",
+#     "doc_url": "",
 #     "tracker_url": "https://github.com/MarioMey/rotation_mode_addon/",
-#     "category": "Animation"}
+#     "category": "Animation",
+# }
 
 import bpy
 from bpy.props import (

@@ -24,8 +24,8 @@ bl_info = {
     "blender": (2, 80, 0),
     "location": "File > External Data / View3D > Sidebar > Item Tab",
     "description": "Allows editing of objects linked from a .blend library.",
-    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
-                "object/edit_linked_library.html",
+    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
+               "object/edit_linked_library.html",
     "category": "Object",
 }
 

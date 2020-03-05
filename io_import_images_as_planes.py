@@ -27,8 +27,8 @@ bl_info = {
     "description": "Imports images and creates planes with the appropriate aspect ratio. "
                    "The images are mapped to the planes.",
     "warning": "",
-    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
-                "import_export/images_as_planes.html",
+    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
+               "import_export/images_as_planes.html",
     "support": 'OFFICIAL',
     "category": "Import-Export",
 }
