@@ -24,8 +24,8 @@ bl_info = {
     "location": "File > Export > AutoCAD DXF",
     "description": "The script exports Blender geometry to DXF format r12 version.",
     "warning": "Under construction! Visit Wiki for details.",
-    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
-                "import_export/scene_dxf.html",
+    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
+               "import_export/scene_dxf.html",
     "category": "Import-Export",
 }
 

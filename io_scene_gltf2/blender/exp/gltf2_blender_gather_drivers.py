@@ -27,6 +27,9 @@ def get_sk_drivers(blender_armature):
     for child in blender_armature.children:
         if not child.data:
             continue
+        # child.data can be an armature - which has no shapekeys
+        if not hasattr(child.data, 'shape_keys'):
+            continue
         if not child.data.shape_keys:
             continue
         if not child.data.shape_keys.animation_data:
@@ -71,4 +74,3 @@ def get_sk_driver_values(blender_object, frame, fcurves):
         sk_values.append(blender_object.data.shape_keys.path_resolve(get_target_object_path(f.data_path)).value)
 
     return tuple(sk_values)
-

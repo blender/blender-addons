@@ -25,8 +25,8 @@ bl_info = {
     "blender": (2, 80, 0),
     "location": "View3D > Ctrl-C",
     "description": "Copy Attributes Menu from Blender 2.4",
-    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
-                "interface/copy_attributes.html",
+    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
+               "interface/copy_attributes.html",
     "category": "Interface",
 }
 

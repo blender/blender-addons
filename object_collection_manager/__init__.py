@@ -26,8 +26,8 @@ bl_info = {
     "blender": (2, 80, 0),
     "location": "View3D - Object Mode (Shortcut - M)",
     "warning": '',  # used for warning icon and text in addons panel
-    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
-                "interface/collection_manager.html",
+    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
+               "interface/collection_manager.html",
     "category": "Interface",
 }
 

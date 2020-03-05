@@ -25,8 +25,8 @@ bl_info = {
     "blender": (2, 80, 0),
     "location": "Object Data > Shape Keys Specials or Search",
     "description": "Creates a corrective shape key for the current pose",
-    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
-                "animation/corrective_shape_keys.html",
+    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
+               "animation/corrective_shape_keys.html",
     "category": "Animation",
 }
 

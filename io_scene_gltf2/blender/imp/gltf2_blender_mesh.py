@@ -75,22 +75,10 @@ class BlenderMesh():
 
         set_extras(mesh, pymesh.extras, exclude=['targetNames'])
 
-        pymesh.blender_name[skin_idx] = mesh.name
-
         # Clear accessor cache after all primitives are done
         gltf.accessor_cache = {}
 
         return mesh
-
-    @staticmethod
-    def set_mesh(gltf, pymesh, obj):
-        """Sets mesh data after creation."""
-        # set default weights for shape keys, and names, if not set by convention on extras data
-        if pymesh.weights is not None:
-            for i in range(len(pymesh.weights)):
-                if pymesh.shapekey_names[i] is None: # No default value if shapekeys was not created
-                    continue
-                obj.data.shape_keys.key_blocks[pymesh.shapekey_names[i]].value = pymesh.weights[i]
 
     @staticmethod
     def bmesh_to_mesh(gltf, pymesh, bme, mesh):
@@ -157,4 +145,3 @@ class BlenderMesh():
             custom_normals = [v.normal for v in bme.verts]
             mesh.normals_split_custom_set_from_vertices(custom_normals)
             mesh.use_auto_smooth = True
-

@@ -78,8 +78,8 @@ class BlenderPrimitive():
                 inv_binds = [gltf.matrix_gltf_to_blender(m) for m in inv_binds]
             else:
                 inv_binds = [Matrix.Identity(4) for i in range(len(pyskin.joints))]
-            arma_mats = [gltf.vnodes[joint].bone_arma_mat for joint in pyskin.joints]
-            joint_mats = [arma_mat @ inv_bind for arma_mat, inv_bind in zip(arma_mats, inv_binds)]
+            bind_mats = [gltf.vnodes[joint].bind_arma_mat for joint in pyskin.joints]
+            joint_mats = [bind_mat @ inv_bind for bind_mat, inv_bind in zip(bind_mats, inv_binds)]
 
             def skin_vert(pos, pidx):
                 out = Vector((0, 0, 0))
@@ -196,13 +196,7 @@ class BlenderPrimitive():
 
             colors = BinaryData.get_data_from_accessor(gltf, attributes['COLOR_%d' % set_num], cache=True)
 
-            # Check whether Blender takes RGB or RGBA colors (old versions only take RGB)
             is_rgba = len(colors[0]) == 4
-            blender_num_components = len(bme_verts[0].link_loops[0][layer])
-            if is_rgba and blender_num_components == 3:
-                gltf2_io_debug.print_console("WARNING",
-                    "this Blender doesn't support RGBA vertex colors; dropping A"
-                )
 
             for bidx, pidx in vert_idxs:
                 color = colors[pidx]
@@ -211,7 +205,7 @@ class BlenderPrimitive():
                     color_linear_to_srgb(color[1]),
                     color_linear_to_srgb(color[2]),
                     color[3] if is_rgba else 1.0,
-                )[:blender_num_components]
+                )
                 for loop in bme_verts[bidx].link_loops:
                     loop[layer] = col
 
@@ -350,4 +344,3 @@ class BlenderPrimitive():
             raise Exception('primitive mode unimplemented: %d' % mode)
 
         return es, fs
-

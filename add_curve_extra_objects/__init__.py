@@ -28,10 +28,10 @@ bl_info = {
     "location": "View3D > Add > Curve > Extra Objects",
     "description": "Add extra curve object types",
     "warning": "",
-    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
-                "add_curve/extra_objects.html",
-    "category": "Add Curve"
-    }
+    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
+               "add_curve/extra_objects.html",
+    "category": "Add Curve",
+}
 
 if "bpy" in locals():
     import importlib

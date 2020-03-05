@@ -26,10 +26,11 @@ bl_info = {
     "location": "File > Import-Export",
     "description": "Import-Export MDD as mesh shape keys",
     "warning": "",
-    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
-                "import_export/shape_mdd.html",
+    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
+               "import_export/shape_mdd.html",
     "support": 'OFFICIAL',
-    "category": "Import-Export"}
+    "category": "Import-Export",
+}
 
 if "bpy" in locals():
     import importlib

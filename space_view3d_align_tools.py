@@ -26,8 +26,8 @@ bl_info = {
     "location": "View3D > Sidebar > Item Tab",
     "description": "Align Selected Objects to Active Object",
     "warning": "",
-    "wiki_url": "https://docs.blender.org/manual/en/dev/addons/"
-                "object/align_tools.html",
+    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
+               "object/align_tools.html",
     "category": "Object",
 }
 
