@@ -38,8 +38,7 @@ bl_info = {
     "blender": (2, 80, 0),
     "location": "World > Sun Position",
     "description": "Show sun position with objects and/or sky texture",
-    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "lighting/sun_position.html",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/lighting/sun_position.html",
     "category": "Lighting",
 }
 

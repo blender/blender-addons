@@ -24,8 +24,7 @@ bl_info = {
     "location": "Pose Mode > Sidebar > Create Tab",
     "description": "Creates a mesh object from selected bones",
     "warning": "Work in progress",
-    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "object/skinify.html",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/object/skinify.html",
     "category": "Object",
 }
 

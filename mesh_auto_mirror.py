@@ -14,8 +14,7 @@ bl_info = {
     "blender": (2, 80, 0),
     "location": "View 3D > Sidebar > Edit Tab > AutoMirror (panel)",
     "warning": "",
-    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "mesh/auto_mirror.html",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/mesh/auto_mirror.html",
     "category": "Mesh",
 }
 

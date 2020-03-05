@@ -24,8 +24,7 @@ bl_info = {
     "location": "Node Editor > Properties > Trees",
     "description": "Node Tree Arrangement Tools",
     "warning": "",
-    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "node/node_arrange.html",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/node/node_arrange.html",
     "tracker_url": "https://github.com/JuhaW/NodeArrange/issues",
     "category": "Node"
 }

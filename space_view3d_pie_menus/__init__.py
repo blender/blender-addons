@@ -39,8 +39,7 @@ bl_info = {
     "description": "Pie Menu Activation",
     "location": "Addons Preferences",
     "warning": "",
-    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "interface/viewport_pies.html",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/interface/viewport_pies.html",
     "category": "Interface"
     }
 

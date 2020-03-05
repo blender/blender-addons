@@ -27,7 +27,7 @@ bl_info = {
     "blender": (2, 80, 0),
     "location": "Spacebar in Sculpt/Paint Modes",
     "warning": '',
-    "doc_url": "https://docs.blender.org/manual/en/dev/addons/interface/brush_menus.html",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/interface/brush_menus.html",
     "category": "Interface",
 }
 
