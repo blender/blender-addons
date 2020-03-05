@@ -26,7 +26,7 @@ bl_info = {
     "location": "File > Import-Export",
     "description": "Import-Export PLY mesh data with UVs and vertex colors",
     "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "import_export/io_mesh_ply.html",
+               "import_export/mesh_ply.html",
     "support": 'OFFICIAL',
     "category": "Import-Export",
 }

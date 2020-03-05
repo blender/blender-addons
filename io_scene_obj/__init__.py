@@ -27,7 +27,7 @@ bl_info = {
     "description": "Import-Export OBJ, Import OBJ mesh, UV's, materials and textures",
     "warning": "",
     "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "import_export/io_scene_obj.html",
+               "import_export/scene_obj.html",
     "support": 'OFFICIAL',
     "category": "Import-Export",
 }

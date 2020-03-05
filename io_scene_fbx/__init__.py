@@ -27,7 +27,7 @@ bl_info = {
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
     "warning": "",
     "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "import_export/io_scene_fbx.html",
+               "import_export/scene_fbx.html",
     "support": 'OFFICIAL',
     "category": "Import-Export",
 }

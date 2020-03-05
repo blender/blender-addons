@@ -27,7 +27,7 @@ bl_info = {
     "description": "Import-Export X3D, Import VRML2",
     "warning": "",
     "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "import_export/io_scene_x3d.html",
+               "import_export/scene_x3d.html",
     "category": "Import-Export",
 }
 

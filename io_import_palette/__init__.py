@@ -27,7 +27,7 @@ bl_info = {
     "description": "Import Palettes",
     "warning": "",
     "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "import_export/io_palettes.html",
+               "import_export/palettes.html",
     "category": "Import-Export",
 }
 

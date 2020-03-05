@@ -26,7 +26,7 @@ bl_info = {
     "description": "Import SVG as curves",
     "warning": "",
     "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "import_export/io_curve_svg.html",
+               "import_export/curve_svg.html",
     "support": 'OFFICIAL',
     "category": "Import-Export",
 }

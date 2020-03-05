@@ -27,7 +27,7 @@ bl_info = {
     "description": "Export the UV layout as a 2D graphic",
     "warning": "",
     "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "import_export/io_mesh_uv_layout.html",
+               "import_export/mesh_uv_layout.html",
     "support": 'OFFICIAL',
     "category": "Import-Export",
 }
