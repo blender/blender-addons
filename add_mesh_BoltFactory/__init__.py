@@ -45,7 +45,7 @@ import bpy
 
 
 def register():
-	Boltfactory.register()
+    Boltfactory.register()
 
 
 

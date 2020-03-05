@@ -200,7 +200,7 @@ class MESH_OT_InsetStraightSkeleton(bpy.types.Operator):
         obj = bpy.context.active_object
         mesh = obj.data
         do_inset(mesh, self.inset_amount, self.inset_height, self.region,
-		        self.quadrangulate)
+                self.quadrangulate)
         bpy.ops.object.editmode_toggle()
         bpy.ops.object.editmode_toggle()
 
@@ -246,7 +246,7 @@ def calc_select_center(context):
         center = center / n
     world_center = ob.matrix_world @ center
     world_center_2d = view3d_utils.location_3d_to_region_2d( \
-    	context.region, context.region_data, world_center)
+        context.region, context.region_data, world_center)
     return (world_center_2d, world_center)
 
 def do_inset(mesh, amount, height, region, quadrangulate):

@@ -277,7 +277,7 @@ class PIE_MT_OriginPivot(Menu):
             # 2 - BOTTOM
             pie.operator("object.pivotobottom_edit", text="Origin to Bottom",
                         icon='TRIA_DOWN')
-			# 8 - TOP
+            # 8 - TOP
             pie.operator("object.setorigintoselected_edit", text="Origin To Selected",
                         icon='SNAP_INCREMENT')
             # 7 - TOP - LEFT

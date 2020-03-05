@@ -8,7 +8,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Offset Edges",
     "author": "Hidesato Ikeya, Veezen fix 2.8 (temporary)",
-	#i tried edit newest version, but got some errors, works only on 0,2,6
+    #i tried edit newest version, but got some errors, works only on 0,2,6
     "version": (0, 2, 6),
     "blender": (2, 80, 0),
     "location": "VIEW3D > Edge menu(CTRL-E) > Offset Edges",
