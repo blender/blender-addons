@@ -518,6 +518,9 @@ classes = (
 
 
 def register():
+    if not bpy.app.build_options.xr_openxr:
+        return
+
     for cls in classes:
         bpy.utils.register_class(cls)
 
@@ -540,6 +543,9 @@ def register():
     bpy.app.handlers.load_post.append(ensure_default_vr_landmark)
 
 def unregister():
+    if not bpy.app.build_options.xr_openxr:
+        return
+
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
