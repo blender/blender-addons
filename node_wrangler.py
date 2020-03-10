@@ -24,8 +24,7 @@ bl_info = {
     "location": "Node Editor Toolbar or Shift-W",
     "description": "Various tools to enhance and speed up node-based workflow",
     "warning": "",
-    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "node/node_wrangler.html",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/node/node_wrangler.html",
     "category": "Node",
 }
 

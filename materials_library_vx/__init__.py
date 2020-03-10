@@ -26,8 +26,7 @@ bl_info = {
     "location": "Properties > Material",
     "description": "Material Library VX",
     "warning": "",
-    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "materials/material_library.html",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/materials/material_library.html",
     "tracker_url": "",
     "category": "Material",
 }

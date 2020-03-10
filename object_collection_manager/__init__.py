@@ -22,12 +22,11 @@ bl_info = {
     "name": "Collection Manager",
     "description": "Manage collections and their objects",
     "author": "Ryan Inch",
-    "version": (1,9,2),
+    "version": (1,9,3),
     "blender": (2, 80, 0),
     "location": "View3D - Object Mode (Shortcut - M)",
     "warning": '',  # used for warning icon and text in addons panel
-    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "interface/collection_manager.html",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/interface/collection_manager.html",
     "category": "Interface",
 }
 
@@ -45,11 +44,27 @@ else:
     from . import ui
 
 import bpy
+from bpy.types import PropertyGroup
 from bpy.props import (
     CollectionProperty,
     IntProperty,
     BoolProperty,
+    PointerProperty,
     )
+
+
+class CollectionManagerProperties(PropertyGroup):
+    cm_list_collection: CollectionProperty(type=internals.CMListCollection)
+    cm_list_index: IntProperty(update=ui.update_selection)
+
+    show_exclude: BoolProperty(default=True, name="Exclude from View Layer")
+    show_selectable: BoolProperty(default=True, name="Selectable")
+    show_hide_viewport: BoolProperty(default=True, name="Hide in Viewport")
+    show_disable_viewport: BoolProperty(default=False, name="Disable in Viewports")
+    show_render: BoolProperty(default=False, name="Disable in Renders")
+
+    in_phantom_mode: BoolProperty(default=False)
+
 
 addon_keymaps = []
 
@@ -75,23 +90,14 @@ classes = (
     ui.CM_UL_items,
     ui.CollectionManager,
     ui.CMRestrictionTogglesPanel,
+    CollectionManagerProperties,
     )
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    bpy.types.Scene.CMListCollection = CollectionProperty(type=internals.CMListCollection)
-    bpy.types.Scene.CMListIndex = IntProperty(update=ui.update_selection)
-
-    bpy.types.Scene.show_exclude = BoolProperty(default=True, name="Exclude from View Layer")
-    bpy.types.Scene.show_selectable = BoolProperty(default=True, name="Selectable")
-    bpy.types.Scene.show_hideviewport = BoolProperty(default=True, name="Hide in Viewport")
-    bpy.types.Scene.show_disableviewport = BoolProperty(default=False, name="Disable in Viewports")
-    bpy.types.Scene.show_render = BoolProperty(default=False, name="Disable in Renders")
-
-    bpy.types.Scene.CM_Phantom_Mode = BoolProperty(default=False)
-
+    bpy.types.Scene.collection_manager = PointerProperty(type=CollectionManagerProperties)
 
     # create the global menu hotkey
     wm = bpy.context.window_manager
@@ -103,16 +109,7 @@ def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
-    del bpy.types.Scene.CMListCollection
-    del bpy.types.Scene.CMListIndex
-
-    del bpy.types.Scene.show_exclude
-    del bpy.types.Scene.show_selectable
-    del bpy.types.Scene.show_hideviewport
-    del bpy.types.Scene.show_disableviewport
-    del bpy.types.Scene.show_render
-
-    del bpy.types.Scene.CM_Phantom_Mode
+    del bpy.types.Scene.collection_manager
 
     # remove keymaps when add-on is deactivated
     for km, kmi in addon_keymaps:

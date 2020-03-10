@@ -25,8 +25,7 @@ bl_info = {
     "location": "View3D > Sidebar > Create Tab",
     "description": "Tools for converting/animating objects/particles into curves",
     "warning": "",
-    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "add_curve/btracer.html",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/add_curve/btracer.html",
     "category": "Add Curve",
 }
 

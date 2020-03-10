@@ -26,8 +26,7 @@ bl_info = {
     "location": "3DView Operator",
     "description": "Make an inset inside selection using straight skeleton algorithm.",
     "warning": "",
-    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "mesh/inset_straight_skeleton.html",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/mesh/inset_straight_skeleton.html",
     "category": "Mesh",
 }
 

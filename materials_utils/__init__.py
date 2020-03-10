@@ -40,8 +40,7 @@ bl_info = {
     "location": "View3D > Shift + Q key",
     "description": "Menu of material tools (assign, select..) in the 3D View",
     "warning": "Beta",
-    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "materials/material_utils.html",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/materials/material_utils.html",
    "category": "Material"
 }
 

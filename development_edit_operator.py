@@ -25,8 +25,7 @@ bl_info = {
     "location": "Text Editor > Sidebar > Edit Operator",
     "description": "Opens source file of chosen operator or call locations, if source not available",
     "warning": "",
-    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "development/edit_operator.html",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/development/edit_operator.html",
     "category": "Development",
 }
 

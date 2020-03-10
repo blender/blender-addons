@@ -28,8 +28,7 @@ bl_info = {
     'location': 'Add-on preferences',
     'description':
         'Stores your Blender ID credentials for usage with other add-ons',
-    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "system/blender_id.html",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/system/blender_id.html",
     'category': 'System',
     'support': 'OFFICIAL',
 }

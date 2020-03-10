@@ -15,12 +15,12 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (1, 2, 35),
+    "version": (1, 2, 38),
     'blender': (2, 82, 7),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
     'warning': '',
-    'doc_url': "https://docs.blender.org/manual/en/dev/addons/import_export/scene_gltf2.html",
+    'doc_url': "{BLENDER_MANUAL_URL}/addons/import_export/scene_gltf2.html",
     'tracker_url': "https://github.com/KhronosGroup/glTF-Blender-IO/issues/",
     'support': 'OFFICIAL',
     'category': 'Import-Export',
@@ -856,11 +856,26 @@ class ImportGLTF2(Operator, ImportHelper):
         description="How normals are computed during import",
         default="NORMALS")
 
+    bone_heuristic: EnumProperty(
+        name="Bone Dir",
+        items=(
+            ("BLENDER", "Blender (+Y)",
+                "Round-trips bone directions in glTFs exported from Blender.\n"
+                "Bone tips are placed on their local +Y axis (in glTF space)"),
+            ("TEMPERANCE", "Temperance",
+                "Okay for many different models.\n"
+                "Bone tips are placed at a child's root")
+        ),
+        description="Heuristic for placing bones. Tries to make bones pretty",
+        default="TEMPERANCE",
+    )
+
     def draw(self, context):
         layout = self.layout
 
         layout.prop(self, 'import_pack_images')
         layout.prop(self, 'import_shading')
+        layout.prop(self, 'bone_heuristic')
 
     def execute(self, context):
         return self.import_gltf2(context)

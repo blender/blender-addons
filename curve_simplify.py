@@ -24,8 +24,7 @@ bl_info = {
     "location": "3D View, Dopesheet & Graph Editors",
     "description": "Simplify Curves: 3dview, Dopesheet, Graph. Distance Merge: 3d view curve edit",
     "warning": "",
-    "doc_url": "https://docs.blender.org/manual/en/dev/addons/"
-               "add_curve/simplify_curves.html",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/add_curve/simplify_curves.html",
     "category": "Add Curve",
 }
 
@@ -597,10 +596,10 @@ def main_rd(context, distance = 0.01):
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='EDIT')
 
-    for curve in selected_Curves:
-        bezier_dellist = []
-        dellist = []
+    bezier_dellist = []
+    dellist = []
 
+    for curve in selected_Curves:
         for spline in curve.data.splines:
             if spline.type == 'BEZIER':
                 if len(spline.bezier_points) > 1:
