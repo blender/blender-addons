@@ -201,7 +201,7 @@ class VIEW3D_UL_vr_landmarks(bpy.types.UIList):
         layout.emboss = 'NONE'
         layout.prop(landmark, "name", text="")
         props = layout.operator("view3d.vr_landmark_activate", text="", icon=('SOLO_ON' if index ==
-                                                                                   landmark_active_idx else 'SOLO_OFF'))
+                                                                              landmark_active_idx else 'SOLO_OFF'))
         props.index = index
 
 
@@ -223,7 +223,7 @@ class VIEW3D_PT_vr_landmarks(bpy.types.Panel):
         row = layout.row()
 
         row.template_list("VIEW3D_UL_vr_landmarks", "", scene, "vr_landmarks",
-                         scene, "vr_landmarks_selected", rows=3)
+                          scene, "vr_landmarks_selected", rows=3)
 
         col = row.column(align=True)
         col.operator("view3d.vr_landmark_add", icon='ADD', text="")
@@ -241,6 +241,29 @@ class VIEW3D_PT_vr_landmarks(bpy.types.Panel):
                             "base_pose_angle", text="Angle")
 
 
+class VIEW3D_PT_vr_session_view(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "VR"
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
+        session_settings = context.window_manager.xr_session_settings
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        layout.prop(session_settings, "show_floor", text="Floor")
+        layout.prop(session_settings, "show_annotation", text="Annotations")
+
+        layout.separator()
+
+        col = layout.column(align=True)
+        col.prop(session_settings, "clip_start", text="Clip Start")
+        col.prop(session_settings, "clip_end", text="End")
+
+
 class VIEW3D_PT_vr_session(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -254,24 +277,14 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        is_session_running = bpy.types.XrRuntimeSessionState.is_running(context)
+        is_session_running = bpy.types.XrRuntimeSessionState.is_running(
+            context)
 
         # Using SNAP_FACE because it looks like a stop icon -- I shouldn't have commit rights...
         toggle_info = ("Start VR Session", 'PLAY') if not is_session_running else (
             "Stop VR Session", 'SNAP_FACE')
         layout.operator("wm.xr_session_toggle",
                         text=toggle_info[0], icon=toggle_info[1])
-
-        layout.separator()
-
-        layout.prop(session_settings, "show_floor", text="Floor")
-        layout.prop(session_settings, "show_annotation", text="Annotations")
-
-        layout.separator()
-
-        col = layout.column(align=True)
-        col.prop(session_settings, "clip_start", text="Clip Start")
-        col.prop(session_settings, "clip_end", text="End")
 
         layout.separator()
 
@@ -498,6 +511,7 @@ class VIEW3D_GGT_vr_viewer(GizmoGroup):
 
 classes = (
     VIEW3D_PT_vr_session,
+    VIEW3D_PT_vr_session_view,
     VIEW3D_PT_vr_session_shading,
     VIEW3D_PT_vr_session_shading_lighting,
     VIEW3D_PT_vr_session_shading_color,
@@ -537,10 +551,11 @@ def register():
     # View3DShading is the only per 3D-View struct with custom property
     # support, so "abusing" that to get a per 3D-View option.
     bpy.types.View3DShading.vr_show_virtual_camera = BoolProperty(
-        name="Show Virtual Camera"
+        name="Show VR Camera"
     )
 
     bpy.app.handlers.load_post.append(ensure_default_vr_landmark)
+
 
 def unregister():
     if not bpy.app.build_options.xr_openxr:
@@ -555,6 +570,7 @@ def unregister():
     del bpy.types.View3DShading.vr_show_virtual_camera
 
     bpy.app.handlers.load_post.remove(ensure_default_vr_landmark)
+
 
 if __name__ == "__main__":
     register()
