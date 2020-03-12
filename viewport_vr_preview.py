@@ -69,8 +69,8 @@ def xr_landmark_active_type_update(self, context):
         session_settings.base_pose_type = 'SCENE_CAMERA'
     elif landmark_active.type == 'USER_CAMERA':
         session_settings.base_pose_type = 'OBJECT'
-    elif landmark_active.type == 'CUSTOM':
-        session_settings.base_pose_type = 'CUSTOM'
+    # elif landmark_active.type == 'CUSTOM':
+        # session_settings.base_pose_type = 'CUSTOM'
 
 
 def xr_landmark_active_camera_update(self, context):
@@ -154,8 +154,9 @@ class VRLandmark(bpy.types.PropertyGroup):
              "Use scene's currently active camera to define the VR view base location and rotation"),
             ('USER_CAMERA', "Custom Camera",
              "Use an existing camera to define the VR view base location and rotation"),
-            ('CUSTOM', "Custom Pose",
-             "Allow a manually definied position and rotation to be used as the VR view base pose"),
+            # Custom base poses work, but it's uncertain if they are really needed. Disabled for now.
+            # ('CUSTOM', "Custom Pose",
+            #  "Allow a manually definied position and rotation to be used as the VR view base pose"),
         ],
         default='SCENE_CAMERA',
         update=xr_landmark_type_update,
@@ -234,11 +235,11 @@ class VIEW3D_PT_vr_landmarks(bpy.types.Panel):
 
             if landmark_selected.type == 'USER_CAMERA':
                 layout.prop(landmark_selected, "base_pose_camera")
-            elif landmark_selected.type == 'CUSTOM':
-                layout.prop(landmark_selected,
-                            "base_pose_location", text="Location")
-                layout.prop(landmark_selected,
-                            "base_pose_angle", text="Angle")
+            # elif landmark_selected.type == 'CUSTOM':
+            #     layout.prop(landmark_selected,
+            #                 "base_pose_location", text="Location")
+            #     layout.prop(landmark_selected,
+            #                 "base_pose_angle", text="Angle")
 
 
 class VIEW3D_PT_vr_session_view(bpy.types.Panel):
