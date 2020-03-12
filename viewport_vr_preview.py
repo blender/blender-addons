@@ -254,7 +254,7 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        is_session_running = bpy.types.XrSessionState.is_running(context)
+        is_session_running = bpy.types.XrRuntimeSessionState.is_running(context)
 
         # Using SNAP_FACE because it looks like a stop icon -- I shouldn't have commit rights...
         toggle_info = ("Start VR Session", 'PLAY') if not is_session_running else (
@@ -412,7 +412,7 @@ class VIEW3D_PT_vr_viewport_feedback(bpy.types.Panel):
         view3d = context.space_data
 
         layout.prop(view3d.shading, "vr_show_virtual_camera")
-        layout.prop(view3d, "show_as_xr_session_mirror")
+        layout.prop(view3d, "mirror_xr_session")
 
 
 class VIEW3D_GT_vr_camera_cone(Gizmo):
@@ -466,7 +466,7 @@ class VIEW3D_GGT_vr_viewer(GizmoGroup):
     @classmethod
     def poll(cls, context):
         view3d = context.space_data
-        return view3d.shading.vr_show_virtual_camera and bpy.types.XrSessionState.is_running(context) and not view3d.show_as_xr_session_mirror
+        return view3d.shading.vr_show_virtual_camera and bpy.types.XrRuntimeSessionState.is_running(context) and not view3d.mirror_xr_session
 
     def _get_viewer_matrix(self, context):
         from mathutils import Matrix, Quaternion
