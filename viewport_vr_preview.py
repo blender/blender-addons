@@ -36,10 +36,10 @@ from bl_ui.space_view3d import (
 )
 
 bl_info = {
-    "name": "Basic VR Viewer",
+    "name": "VR Scene Inspection",
     "author": "Julian Eisel (Severin)",
-    "version": (0, 0, 2),
-    "blender": (2, 83, 2),
+    "version": (0, 0, 6),
+    "blender": (2, 83, 8),
     "location": "3D View > Sidebar > VR",
     "description": ("View the viewport with virtual reality glasses "
                     "(head-mounted displays)"),
