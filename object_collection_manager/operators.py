@@ -73,8 +73,9 @@ class ExpandAllOperator(Operator):
         return {'FINISHED'}
 
 
+expand_history = {"target": "", "history": []}
 class ExpandSublevelOperator(Operator):
-    '''  * Shift-Click to expand/collapse all sublevels'''
+    '''  * Ctrl-Click to expand/collapse all sublevels\n  * Shift-Click to isolate/restore tree'''
     bl_label = "Expand Sublevel Items"
     bl_idname = "view3d.expand_sublevel"
     bl_options = {'REGISTER', 'UNDO'}
@@ -83,8 +84,16 @@ class ExpandSublevelOperator(Operator):
     name: StringProperty()
     index: IntProperty()
 
+    # static class var
+    isolated = False
+
     def invoke(self, context, event):
-        if event.shift:
+        global expand_history
+        cls = ExpandSublevelOperator
+
+        modifiers = get_modifiers(event)
+
+        if modifiers == {"ctrl"}:
             # expand/collapse all subcollections
             expand = None
 
@@ -111,12 +120,45 @@ class ExpandSublevelOperator(Operator):
 
             loop(layer_collections[self.name]["ptr"])
 
+            expand_history["target"] = ""
+            expand_history["history"].clear()
+            cls.isolated = False
+
+        elif modifiers == {"shift"}:
+            def isolate_tree(current_laycol):
+                parent = current_laycol["parent"]
+
+                for laycol in parent["children"]:
+                    if laycol["name"] != current_laycol["name"] and laycol["name"] in expanded:
+                        expanded.remove(laycol["name"])
+                        expand_history["history"].append(laycol["name"])
+
+                if parent["parent"]:
+                    isolate_tree(parent)
+
+            if cls.isolated:
+                for item in expand_history["history"]:
+                    expanded.append(item)
+
+                expand_history["target"] = ""
+                expand_history["history"].clear()
+                cls.isolated = False
+
+            else:
+                isolate_tree(layer_collections[self.name])
+                expand_history["target"] = self.name
+                cls.isolated = True
+
         else:
             # expand/collapse collection
             if self.expand:
                 expanded.append(self.name)
             else:
                 expanded.remove(self.name)
+
+            expand_history["target"] = ""
+            expand_history["history"].clear()
+            cls.isolated = False
 
 
         # set selected row to the collection you're expanding/collapsing and update tree view

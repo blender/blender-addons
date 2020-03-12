@@ -80,7 +80,10 @@ def update_collection_tree(context):
                      "ptr": layer_collection
                      }
 
-    get_all_collections(context, init_laycol_list, master_laycol, collection_tree, visible=True)
+    get_all_collections(context, init_laycol_list, master_laycol, master_laycol["children"], visible=True)
+
+    for laycol in master_laycol["children"]:
+        collection_tree.append(laycol)
 
 
 def get_all_collections(context, collections, parent, tree, level=0, visible=False):

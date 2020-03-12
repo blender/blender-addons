@@ -37,6 +37,7 @@ from .internals import (
 
 from .operators import (
     rto_history,
+    expand_history,
     phantom_history,
     )
 
@@ -277,8 +278,10 @@ class CM_UL_items(UIList):
         # add expander if collection has children to make UIList act like tree view
         if laycol["has_children"]:
             if laycol["expanded"]:
-                prop = row.operator("view3d.expand_sublevel", text="",
-                                    icon='DISCLOSURE_TRI_DOWN', emboss=False)
+                highlight = True if expand_history["target"] == item.name else False
+
+                prop = row.operator("view3d.expand_sublevel", text="", icon='DISCLOSURE_TRI_DOWN',
+                                    emboss=highlight, depress=highlight)
                 prop.expand = False
                 prop.name = item.name
                 prop.index = index
