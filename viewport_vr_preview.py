@@ -23,16 +23,18 @@ from bpy.types import (
     Gizmo,
     GizmoGroup,
 )
-from bpy.props import(
+from bpy.props import (
     CollectionProperty,
     IntProperty,
     BoolProperty,
 )
 from bpy.app.handlers import persistent
-from bl_ui.space_view3d import (
-    VIEW3D_PT_shading_lighting,
-    VIEW3D_PT_shading_color,
-    VIEW3D_PT_shading_options,
+from bl_ui.utils import (
+    View3DShadingLayout,
+    View3DShadingLightingLayout,
+    View3DShadingColorLayout,
+    View3DShadingOptionsLayout,
+    View3DShadingRenderPassLayout
 )
 
 bl_info = {
@@ -356,7 +358,7 @@ class VIEW3D_PT_vr_session_shading(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "VR"
-    bl_label = "Shading"
+    bl_label = View3DShadingLayout.bl_label
 
     def draw(self, context):
         layout = self.layout
@@ -370,48 +372,63 @@ class VIEW3D_PT_vr_session_shading_lighting(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "VR"
-    bl_label = VIEW3D_PT_shading_lighting.bl_label
+    bl_label = View3DShadingLightingLayout.bl_label
     bl_parent_id = "VIEW3D_PT_vr_session_shading"
     bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        session_settings = context.window_manager.xr_session_settings
+        shading = session_settings.shading
+        return View3DShadingLightingLayout.poll(context, shading)
 
     def draw(self, context):
         session_settings = context.window_manager.xr_session_settings
         shading = session_settings.shading
 
-        if VIEW3D_PT_shading_lighting.poll_ex(context, shading):
-            VIEW3D_PT_shading_lighting.draw_ex(self, context, shading)
+        View3DShadingLightingLayout.draw(context, shading, self.layout)
 
 
 class VIEW3D_PT_vr_session_shading_color(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "VR"
-    bl_label = VIEW3D_PT_shading_color.bl_label
+    bl_label = View3DShadingColorLayout.bl_label
     bl_parent_id = "VIEW3D_PT_vr_session_shading"
     bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        session_settings = context.window_manager.xr_session_settings
+        shading = session_settings.shading
+        return View3DShadingColorLayout.poll(context, shading)
 
     def draw(self, context):
         session_settings = context.window_manager.xr_session_settings
         shading = session_settings.shading
 
-        if VIEW3D_PT_shading_color.poll_ex(context, shading):
-            VIEW3D_PT_shading_color.draw_ex(self, context, shading)
+        View3DShadingColorLayout.draw(context, shading, self.layout)
 
 
 class VIEW3D_PT_vr_session_shading_options(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "VR"
-    bl_label = VIEW3D_PT_shading_options.bl_label
+    bl_label = View3DShadingOptionsLayout.bl_label
     bl_parent_id = "VIEW3D_PT_vr_session_shading"
     bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        session_settings = context.window_manager.xr_session_settings
+        shading = session_settings.shading
+        return View3DShadingOptionsLayout.poll(context, shading)
 
     def draw(self, context):
         session_settings = context.window_manager.xr_session_settings
         shading = session_settings.shading
 
-        if VIEW3D_PT_shading_options.poll_ex(context, shading):
-            VIEW3D_PT_shading_options.draw_ex(self, context, shading)
+        View3DShadingOptionsLayout.draw(context, shading, self.layout)
 
 
 class VIEW3D_PT_vr_viewport_feedback(bpy.types.Panel):
