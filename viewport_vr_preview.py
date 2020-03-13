@@ -431,6 +431,28 @@ class VIEW3D_PT_vr_session_shading_options(bpy.types.Panel):
         View3DShadingOptionsLayout.draw(context, shading, self.layout)
 
 
+class VIEW3D_PT_vr_session_shading_render_pass(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "VR"
+    bl_label = View3DShadingRenderPassLayout.bl_label
+    bl_parent_id = "VIEW3D_PT_vr_session_shading"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        session_settings = context.window_manager.xr_session_settings
+        shading = session_settings.shading
+        return View3DShadingRenderPassLayout.poll(context, shading)
+
+    def draw(self, context):
+        session_settings = context.window_manager.xr_session_settings
+        shading = session_settings.shading
+
+        View3DShadingRenderPassLayout.draw(
+            context, shading, self.layout)
+
+
 class VIEW3D_PT_vr_viewport_feedback(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -534,6 +556,7 @@ classes = (
     VIEW3D_PT_vr_session_shading_lighting,
     VIEW3D_PT_vr_session_shading_color,
     VIEW3D_PT_vr_session_shading_options,
+    VIEW3D_PT_vr_session_shading_render_pass,
     VIEW3D_PT_vr_landmarks,
     VIEW3D_PT_vr_viewport_feedback,
 
