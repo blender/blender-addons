@@ -101,7 +101,8 @@ def xr_landmark_type_update(self, context):
     landmark_selected = VRLandmark.get_selected_landmark(context)
     landmark_active = VRLandmark.get_active_landmark(context)
 
-    # Only update session settings data if the changed landmark is actually the active one.
+    # Only update session settings data if the changed landmark is actually
+    # the active one.
     if landmark_active == landmark_selected:
         xr_landmark_active_type_update(self, context)
 
@@ -110,7 +111,8 @@ def xr_landmark_camera_update(self, context):
     landmark_selected = VRLandmark.get_selected_landmark(context)
     landmark_active = VRLandmark.get_active_landmark(context)
 
-    # Only update session settings data if the changed landmark is actually the active one.
+    # Only update session settings data if the changed landmark is actually
+    # the active one.
     if landmark_active == landmark_selected:
         xr_landmark_active_camera_update(self, context)
 
@@ -119,7 +121,8 @@ def xr_landmark_base_pose_location_update(self, context):
     landmark_selected = VRLandmark.get_selected_landmark(context)
     landmark_active = VRLandmark.get_active_landmark(context)
 
-    # Only update session settings data if the changed landmark is actually the active one.
+    # Only update session settings data if the changed landmark is actually
+    # the active one.
     if landmark_active == landmark_selected:
         xr_landmark_active_base_pose_location_update(self, context)
 
@@ -128,7 +131,8 @@ def xr_landmark_base_pose_angle_update(self, context):
     landmark_selected = VRLandmark.get_selected_landmark(context)
     landmark_active = VRLandmark.get_active_landmark(context)
 
-    # Only update session settings data if the changed landmark is actually the active one.
+    # Only update session settings data if the changed landmark is actually
+    # the active one.
     if landmark_active == landmark_selected:
         xr_landmark_active_base_pose_angle_update(self, context)
 
@@ -153,12 +157,16 @@ class VRLandmark(bpy.types.PropertyGroup):
         name="Type",
         items=[
             ('SCENE_CAMERA', "Scene Camera",
-             "Use scene's currently active camera to define the VR view base location and rotation"),
+             "Use scene's currently active camera to define the VR view base "
+             "location and rotation"),
             ('USER_CAMERA', "Custom Camera",
-             "Use an existing camera to define the VR view base location and rotation"),
-            # Custom base poses work, but it's uncertain if they are really needed. Disabled for now.
+             "Use an existing camera to define the VR view base location and "
+             "rotation"),
+            # Custom base poses work, but it's uncertain if they are really
+            # needed. Disabled for now.
             # ('CUSTOM', "Custom Pose",
-            #  "Allow a manually definied position and rotation to be used as the VR view base pose"),
+            #  "Allow a manually definied position and rotation to be used as "
+            #  "the VR view base pose"),
         ],
         default='SCENE_CAMERA',
         update=xr_landmark_type_update,
@@ -186,25 +194,35 @@ class VRLandmark(bpy.types.PropertyGroup):
         scene = context.scene
         landmarks = scene.vr_landmarks
 
-        return None if len(landmarks) < 1 else landmarks[scene.vr_landmarks_selected]
+        return (
+            None if (len(landmarks) <
+                     1) else landmarks[scene.vr_landmarks_selected]
+        )
 
     @staticmethod
     def get_active_landmark(context):
         scene = context.scene
         landmarks = scene.vr_landmarks
 
-        return None if len(landmarks) < 1 else landmarks[scene.vr_landmarks_active]
+        return (
+            None if (len(landmarks) <
+                     1) else landmarks[scene.vr_landmarks_active]
+        )
 
 
 class VIEW3D_UL_vr_landmarks(bpy.types.UIList):
-    def draw_item(self, context, layout, _data, item, icon, _active_data, _active_propname, index):
+    def draw_item(self, context, layout, _data, item, icon, _active_data,
+                  _active_propname, index):
         landmark = item
         landmark_active_idx = context.scene.vr_landmarks_active
 
         layout.emboss = 'NONE'
+
         layout.prop(landmark, "name", text="")
-        props = layout.operator("view3d.vr_landmark_activate", text="", icon=('SOLO_ON' if index ==
-                                                                              landmark_active_idx else 'SOLO_OFF'))
+
+        icon = 'SOLO_ON' if (index == landmark_active_idx) else 'SOLO_OFF'
+        props = layout.operator(
+            "view3d.vr_landmark_activate", text="", icon=icon)
         props.index = index
 
 
@@ -283,9 +301,12 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
         is_session_running = bpy.types.XrRuntimeSessionState.is_running(
             context)
 
-        # Using SNAP_FACE because it looks like a stop icon -- I shouldn't have commit rights...
-        toggle_info = ("Start VR Session", 'PLAY') if not is_session_running else (
-            "Stop VR Session", 'SNAP_FACE')
+        # Using SNAP_FACE because it looks like a stop icon -- I shouldn't
+        # have commit rights...
+        toggle_info = (
+            ("Start VR Session", 'PLAY') if not is_session_running else (
+                "Stop VR Session", 'SNAP_FACE')
+        )
         layout.operator("wm.xr_session_toggle",
                         text=toggle_info[0], icon=toggle_info[1])
 
@@ -348,8 +369,10 @@ class VIEW3D_OT_vr_landmark_activate(bpy.types.Operator):
         if self.index >= len(scene.vr_landmarks):
             return {'CANCELLED'}
 
-        scene.vr_landmarks_active = self.index if self.properties.is_property_set(
-            "index") else scene.vr_landmarks_selected
+        scene.vr_landmarks_active = (
+            self.index if self.properties.is_property_set(
+                "index") else scene.vr_landmarks_selected
+        )
 
         return {'FINISHED'}
 
@@ -519,7 +542,11 @@ class VIEW3D_GGT_vr_viewer(GizmoGroup):
     @classmethod
     def poll(cls, context):
         view3d = context.space_data
-        return view3d.shading.vr_show_virtual_camera and bpy.types.XrRuntimeSessionState.is_running(context) and not view3d.mirror_xr_session
+        return (
+            view3d.shading.vr_show_virtual_camera and
+            bpy.types.XrRuntimeSessionState.is_running(context) and
+            not view3d.mirror_xr_session
+        )
 
     def _get_viewer_matrix(self, context):
         from mathutils import Matrix, Quaternion
