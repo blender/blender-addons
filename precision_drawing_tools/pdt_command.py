@@ -460,7 +460,7 @@ def command_parse(context):
                 obj_loc = obj.matrix_world.decompose()[0]
                 verts = []
             else:
-                if operation not in {"G"}:
+                if operation != "G":
                     pg.error = PDT_OBJ_MODE_ERROR
                     context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
                     raise PDT_ObjectModeError

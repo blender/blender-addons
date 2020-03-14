@@ -113,6 +113,7 @@ def get_tangent_points(context, hloc_0, vloc_0, radius_0, hloc_p, vloc_p):
         vloc_t1: Vertical Location of First Tangent Point
         vloc_t2: Vertical Location of Second Tangent Point
     """
+
     numerator = (radius_0 ** 2 * (hloc_p - hloc_0)) + (
         radius_0
         * (vloc_p - vloc_0)
@@ -202,7 +203,23 @@ def make_vectors(coords, a1, a2, a3, pg):
 
 
 def tangent_setup(context, pg, plane, obj_data, centre_0, centre_1, centre_2, radius_0, radius_1):
-    # Depth is a3
+    """This section sets up all the variables required for the tangent functions.
+
+    Args:
+        context: Blender bpy.context instance
+        pg: PDT Parameter Group of variables
+        plane: Working plane
+        obj_data: All the data of the chosen object
+        centre_0: Centre coordinates of the first arc
+        centre_1: Centre coordinates of the second arc
+        centre_2: Coordinates fo the point
+        radius_0: Radius if the first Arc
+        radius_1: Radius of the second Arc
+
+    Returns:
+        Status Set.
+    """
+
     a1, a2, a3 = set_mode(plane)
     mode = pg.tangent_mode
     if plane == "LO":
@@ -225,6 +242,11 @@ def tangent_setup(context, pg, plane, obj_data, centre_0, centre_1, centre_2, ra
         pg.error = f"{PDT_ERR_BADDISTANCE}"
         context.window_manager.popup_menu(oops, title="Error", icon="ERROR")
         return {"FINISHED"}
+
+    """This next section will draw Point based Tangents.
+
+        These are drawn from a point to an Arc
+    """
 
     if mode == "point":
         if (
@@ -259,8 +281,12 @@ def tangent_setup(context, pg, plane, obj_data, centre_0, centre_1, centre_2, ra
 
         return {"FINISHED"}
 
+    """This next section will draw Arc based Outer Tangents.
+
+        These are drawn from an Arc to another Arc
+    """
+
     if mode in {"outer", "both"}:
-        # Outer Tangents
         if radius_0 == radius_1:
             # No intersection point for outer tangents
             sin_angle = (centre_1[a2] - centre_0[a2]) / distance
@@ -310,8 +336,12 @@ def tangent_setup(context, pg, plane, obj_data, centre_0, centre_1, centre_2, ra
         tangent_vectors = make_vectors(coords_in, a1, a2, a3, pg)
         draw_tangents(tangent_vectors, obj_data)
 
+    """This next section will draw Arc based Inner Tangents.
+
+        These are drawn from an Arc to another Arc
+    """
+
     if mode in {"inner", "both"}:
-        # Inner Tangents
         hloc_pi, vloc_pi = get_tangent_intersect_inner(
             centre_0[a1], centre_0[a2], centre_1[a1], centre_1[a2], radius_0, radius_1
         )
@@ -346,6 +376,8 @@ def tangent_setup(context, pg, plane, obj_data, centre_0, centre_1, centre_2, ra
         )
         tangent_vectors = make_vectors(coords_in, a1, a2, a3, pg)
         draw_tangents(tangent_vectors, obj_data)
+
+    return {"FINISHED"}
 
 
 def draw_tangents(tangent_vectors, obj_data):
@@ -452,7 +484,6 @@ class PDT_OT_TangentOperate(Operator):
         Returns:
             Nothing.
         """
-
         scene = context.scene
         pg = scene.pdt_pg
         plane = pg.plane
