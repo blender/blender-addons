@@ -298,8 +298,7 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        is_session_running = bpy.types.XrRuntimeSessionState.is_running(
-            context)
+        is_session_running = bpy.types.XrSessionState.is_running(context)
 
         # Using SNAP_FACE because it looks like a stop icon -- I shouldn't
         # have commit rights...
@@ -409,7 +408,7 @@ class VIEW3D_PT_vr_session_shading_lighting(bpy.types.Panel):
         session_settings = context.window_manager.xr_session_settings
         shading = session_settings.shading
 
-        View3DShadingLightingLayout.draw(context, shading, self.layout)
+        View3DShadingLightingLayout.draw(context, shading, self.layout, False)
 
 
 class VIEW3D_PT_vr_session_shading_color(bpy.types.Panel):
@@ -544,7 +543,7 @@ class VIEW3D_GGT_vr_viewer(GizmoGroup):
         view3d = context.space_data
         return (
             view3d.shading.vr_show_virtual_camera and
-            bpy.types.XrRuntimeSessionState.is_running(context) and
+            bpy.types.XrSessionState.is_running(context) and
             not view3d.mirror_xr_session
         )
 
