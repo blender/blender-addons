@@ -35,6 +35,7 @@ from bpy.props import (
 from .internals import (
     expanded,
     layer_collections,
+    qcd_slots,
     update_property_group,
     get_modifiers,
     send_report,
@@ -1418,6 +1419,7 @@ class CMRemoveCollectionOperator(Operator):
 
     def execute(self, context):
         global rto_history
+        global qcd_slots
 
         cm = context.scene.collection_manager
 
@@ -1447,6 +1449,13 @@ class CMRemoveCollectionOperator(Operator):
             cm.cm_list_index = len(cm.cm_list_collection) - 1
             update_property_group(context)
 
+
+        # update qcd
+        if self.collection_name in qcd_slots:
+            qcd_slots.del_slot(self.collection_name)
+
+        if self.collection_name in qcd_slots.overrides:
+            del qcd_slots.overrides[self.collection_name]
 
         # reset history
         for rto in rto_history.values():
