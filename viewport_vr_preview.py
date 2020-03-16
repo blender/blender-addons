@@ -531,9 +531,9 @@ class VIEW3D_GT_vr_camera_cone(Gizmo):
         self.draw_custom_shape(self.lines_shape)
 
 
-class VIEW3D_GGT_vr_viewer(GizmoGroup):
-    bl_idname = "VIEW3D_GGT_vr_viewer"
-    bl_label = "VR Viewer Indicator"
+class VIEW3D_GGT_vr_viewer_pose(GizmoGroup):
+    bl_idname = "VIEW3D_GGT_vr_viewer_pose"
+    bl_label = "VR Viewer Pose Indicator"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
     bl_options = {'3D', 'PERSISTENT', 'SCALE', 'VR_REDRAWS'}
@@ -547,13 +547,13 @@ class VIEW3D_GGT_vr_viewer(GizmoGroup):
             not view3d.mirror_xr_session
         )
 
-    def _get_viewer_matrix(self, context):
+    def _get_viewer_pose_matrix(self, context):
         from mathutils import Matrix, Quaternion
 
         wm = context.window_manager
 
-        loc = wm.xr_session_state.viewer_location
-        rot = wm.xr_session_state.viewer_rotation
+        loc = wm.xr_session_state.viewer_pose_location
+        rot = wm.xr_session_state.viewer_pose_rotation
 
         rotmat = Matrix.Identity(3)
         rotmat.rotate(rot)
@@ -572,7 +572,7 @@ class VIEW3D_GGT_vr_viewer(GizmoGroup):
         self.gizmo = gizmo
 
     def draw_prepare(self, context):
-        self.gizmo.matrix_basis = self._get_viewer_matrix(context)
+        self.gizmo.matrix_basis = self._get_viewer_pose_matrix(context)
 
 
 classes = (
@@ -594,7 +594,7 @@ classes = (
     VIEW3D_OT_vr_landmark_activate,
 
     VIEW3D_GT_vr_camera_cone,
-    VIEW3D_GGT_vr_viewer,
+    VIEW3D_GGT_vr_viewer_pose,
 )
 
 
