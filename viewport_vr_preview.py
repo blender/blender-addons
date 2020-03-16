@@ -536,7 +536,7 @@ class VIEW3D_GGT_vr_viewer(GizmoGroup):
     bl_label = "VR Viewer Indicator"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
-    bl_options = {'3D', 'PERSISTENT', 'SCALE', 'CONTINUOUS_REDRAW'}
+    bl_options = {'3D', 'PERSISTENT', 'SCALE', 'VR_REDRAWS'}
 
     @classmethod
     def poll(cls, context):
