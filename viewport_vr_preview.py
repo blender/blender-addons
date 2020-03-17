@@ -29,13 +29,6 @@ from bpy.props import (
     BoolProperty,
 )
 from bpy.app.handlers import persistent
-from bl_ui.utils import (
-    View3DShadingLayout,
-    View3DShadingLightingLayout,
-    View3DShadingColorLayout,
-    View3DShadingOptionsLayout,
-    View3DShadingRenderPassLayout
-)
 
 bl_info = {
     "name": "VR Scene Inspection",
@@ -376,105 +369,6 @@ class VIEW3D_OT_vr_landmark_activate(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class VIEW3D_PT_vr_session_shading(bpy.types.Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "VR"
-    bl_label = View3DShadingLayout.bl_label
-
-    def draw(self, context):
-        layout = self.layout
-        session_settings = context.window_manager.xr_session_settings
-        shading = session_settings.shading
-
-        layout.prop(shading, "type", text="")
-
-
-class VIEW3D_PT_vr_session_shading_lighting(bpy.types.Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "VR"
-    bl_label = View3DShadingLightingLayout.bl_label
-    bl_parent_id = "VIEW3D_PT_vr_session_shading"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        session_settings = context.window_manager.xr_session_settings
-        shading = session_settings.shading
-        return View3DShadingLightingLayout.poll(context, shading)
-
-    def draw(self, context):
-        session_settings = context.window_manager.xr_session_settings
-        shading = session_settings.shading
-
-        View3DShadingLightingLayout.draw(context, shading, self.layout, False)
-
-
-class VIEW3D_PT_vr_session_shading_color(bpy.types.Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "VR"
-    bl_label = View3DShadingColorLayout.bl_label
-    bl_parent_id = "VIEW3D_PT_vr_session_shading"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        session_settings = context.window_manager.xr_session_settings
-        shading = session_settings.shading
-        return View3DShadingColorLayout.poll(context, shading)
-
-    def draw(self, context):
-        session_settings = context.window_manager.xr_session_settings
-        shading = session_settings.shading
-
-        View3DShadingColorLayout.draw(context, shading, self.layout)
-
-
-class VIEW3D_PT_vr_session_shading_options(bpy.types.Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "VR"
-    bl_label = View3DShadingOptionsLayout.bl_label
-    bl_parent_id = "VIEW3D_PT_vr_session_shading"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        session_settings = context.window_manager.xr_session_settings
-        shading = session_settings.shading
-        return View3DShadingOptionsLayout.poll(context, shading)
-
-    def draw(self, context):
-        session_settings = context.window_manager.xr_session_settings
-        shading = session_settings.shading
-
-        View3DShadingOptionsLayout.draw(context, shading, self.layout)
-
-
-class VIEW3D_PT_vr_session_shading_render_pass(bpy.types.Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "VR"
-    bl_label = View3DShadingRenderPassLayout.bl_label
-    bl_parent_id = "VIEW3D_PT_vr_session_shading"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        session_settings = context.window_manager.xr_session_settings
-        shading = session_settings.shading
-        return View3DShadingRenderPassLayout.poll(context, shading)
-
-    def draw(self, context):
-        session_settings = context.window_manager.xr_session_settings
-        shading = session_settings.shading
-
-        View3DShadingRenderPassLayout.draw(
-            context, shading, self.layout)
-
-
 class VIEW3D_PT_vr_viewport_feedback(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -579,11 +473,6 @@ class VIEW3D_GGT_vr_viewer_pose(GizmoGroup):
 classes = (
     VIEW3D_PT_vr_session,
     VIEW3D_PT_vr_session_view,
-    VIEW3D_PT_vr_session_shading,
-    VIEW3D_PT_vr_session_shading_lighting,
-    VIEW3D_PT_vr_session_shading_color,
-    VIEW3D_PT_vr_session_shading_options,
-    VIEW3D_PT_vr_session_shading_render_pass,
     VIEW3D_PT_vr_landmarks,
     VIEW3D_PT_vr_viewport_feedback,
 
