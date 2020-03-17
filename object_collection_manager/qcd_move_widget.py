@@ -442,7 +442,7 @@ class QCDMoveWidget(Operator):
 
             for num in range(20):
                 if not self.areas.get(f"Button {num + 1}", None):
-                    break
+                    continue
 
                 if mouse_in_area(self.mouse_pos, self.areas[f"Button {num + 1}"]):
                     bpy.ops.view3d.move_to_qcd_slot(slot=str(num + 1), toggle=event.shift)
