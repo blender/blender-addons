@@ -61,18 +61,19 @@ def get_move_active():
     if move_active not in get_move_selection():
         move_active = None
 
-    try:
-        move_active.name
+    if move_active:
+        try:
+            move_active.name
 
-    except:
-        move_active = None
-        move_selection = []
+        except:
+            move_active = None
+            move_selection = []
 
-        # update header widget
-        cm = bpy.context.scene.collection_manager
-        cm.update_header.clear()
-        new_update_header = cm.update_header.add()
-        new_update_header.name = "updated"
+            # update header widget
+            cm = bpy.context.scene.collection_manager
+            cm.update_header.clear()
+            new_update_header = cm.update_header.add()
+            new_update_header.name = "updated"
 
     return move_active
 
