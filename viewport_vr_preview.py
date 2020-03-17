@@ -56,7 +56,7 @@ bl_info = {
 def ensure_default_vr_landmark(context: bpy.context):
     # Ensure there's a default landmark (scene camera by default).
     landmarks = bpy.context.scene.vr_landmarks
-    if len(landmarks) == 0:
+    if not landmarks:
         landmarks.add()
         landmarks[0].type = 'SCENE_CAMERA'
 
@@ -547,7 +547,8 @@ class VIEW3D_GGT_vr_viewer_pose(GizmoGroup):
             not view3d.mirror_xr_session
         )
 
-    def _get_viewer_pose_matrix(self, context):
+    @staticmethod
+    def _get_viewer_pose_matrix(context):
         from mathutils import Matrix, Quaternion
 
         wm = context.window_manager
