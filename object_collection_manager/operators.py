@@ -54,6 +54,8 @@ rto_history = {
     "render_all": {}
 }
 
+swap_buffer = {"A": {"RTO": "", "values": []}, "B": {"RTO": "", "values": []}}
+
 class ExpandAllOperator(Operator):
     '''Expand/Collapse all collections'''
     bl_label = "Expand All Items"
@@ -405,7 +407,7 @@ class CMExcludeOperator(Operator):
 
 
 class CMUnExcludeAllOperator(Operator):
-    '''  * Click to toggle between current excluded state and all included.\n  * Shift-Click to invert excluded status of all collections'''
+    '''  * Click to toggle between current excluded state and all included.\n  * Shift-Click to invert excluded status of all collections\n  * Ctrl-Alt-Click to swap RTOs'''
     bl_label = "Toggle Excluded Status Of All Collections"
     bl_idname = "view3d.un_exclude_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
@@ -419,6 +421,51 @@ class CMUnExcludeAllOperator(Operator):
             rto_history["exclude_all"][view_layer] = []
 
         exclude_all_history = rto_history["exclude_all"][view_layer]
+
+        if event.ctrl and event.alt:
+            global swap_buffer
+
+            if not swap_buffer["A"]["values"]:
+                # get A
+                swap_buffer["A"]["RTO"] = "exclude"
+                for laycol in layer_collections.values():
+                    swap_buffer["A"]["values"].append(laycol["ptr"].exclude)
+
+            else:
+                if len(swap_buffer["A"]["values"]) != len(layer_collections):
+                    return {'CANCELLED'}
+
+                # get B
+                swap_buffer["B"]["RTO"] = "exclude"
+                for laycol in layer_collections.values():
+                    swap_buffer["B"]["values"].append(laycol["ptr"].exclude)
+
+                # swap A with B
+                for x, laycol in enumerate(layer_collections.values()):
+                    attr_A = attr_B = laycol["ptr"]
+
+                    # get attributes
+                    RTO_A = swap_buffer["A"]["RTO"].split(".")
+                    RTO_B = swap_buffer["B"]["RTO"].split(".")
+
+                    if RTO_A[0] == "collection":
+                        attr_A = getattr(attr_A, RTO_A[0])
+
+                    if RTO_B[0] == "collection":
+                        attr_B = getattr(attr_B, RTO_B[0])
+
+
+                    # swap values
+                    setattr(attr_A, RTO_A[-1], swap_buffer["B"]["values"][x])
+                    setattr(attr_B, RTO_B[-1], swap_buffer["A"]["values"][x])
+
+                # clear swap buffer
+                swap_buffer["A"]["RTO"] = ""
+                swap_buffer["A"]["values"].clear()
+                swap_buffer["B"]["RTO"] = ""
+                swap_buffer["B"]["values"].clear()
+
+            return {'FINISHED'}
 
         if len(exclude_all_history) == 0:
             exclude_all_history.clear()
@@ -648,7 +695,7 @@ class CMRestrictSelectOperator(Operator):
 
 
 class CMUnRestrictSelectAllOperator(Operator):
-    '''  * Click to toggle between current selectable state and all selectable.\n  * Shift-Click to invert selectable status of all collections'''
+    '''  * Click to toggle between current selectable state and all selectable.\n  * Shift-Click to invert selectable status of all collections\n  * Ctrl-Alt-Click to swap RTOs'''
     bl_label = "Toggle Selectable Status Of All Collections"
     bl_idname = "view3d.un_restrict_select_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
@@ -662,6 +709,51 @@ class CMUnRestrictSelectAllOperator(Operator):
             rto_history["select_all"][view_layer] = []
 
         select_all_history = rto_history["select_all"][view_layer]
+
+        if event.ctrl and event.alt:
+            global swap_buffer
+
+            if not swap_buffer["A"]["values"]:
+                # get A
+                swap_buffer["A"]["RTO"] = "collection.hide_select"
+                for laycol in layer_collections.values():
+                    swap_buffer["A"]["values"].append(laycol["ptr"].collection.hide_select)
+
+            else:
+                if len(swap_buffer["A"]["values"]) != len(layer_collections):
+                    return {'CANCELLED'}
+
+                # get B
+                swap_buffer["B"]["RTO"] = "collection.hide_select"
+                for laycol in layer_collections.values():
+                    swap_buffer["B"]["values"].append(laycol["ptr"].collection.hide_select)
+
+                # swap A with B
+                for x, laycol in enumerate(layer_collections.values()):
+                    attr_A = attr_B = laycol["ptr"]
+
+                    # get attributes
+                    RTO_A = swap_buffer["A"]["RTO"].split(".")
+                    RTO_B = swap_buffer["B"]["RTO"].split(".")
+
+                    if RTO_A[0] == "collection":
+                        attr_A = getattr(attr_A, RTO_A[0])
+
+                    if RTO_B[0] == "collection":
+                        attr_B = getattr(attr_B, RTO_B[0])
+
+
+                    # swap values
+                    setattr(attr_A, RTO_A[-1], swap_buffer["B"]["values"][x])
+                    setattr(attr_B, RTO_B[-1], swap_buffer["A"]["values"][x])
+
+                # clear swap buffer
+                swap_buffer["A"]["RTO"] = ""
+                swap_buffer["A"]["values"].clear()
+                swap_buffer["B"]["RTO"] = ""
+                swap_buffer["B"]["values"].clear()
+
+            return {'FINISHED'}
 
         if len(select_all_history) == 0:
             select_all_history.clear()
@@ -887,7 +979,7 @@ class CMHideOperator(Operator):
 
 
 class CMUnHideAllOperator(Operator):
-    '''  * Click to toggle between current visibility state and all visible.\n  * Shift-Click to invert visibility status of all collections'''
+    '''  * Click to toggle between current visibility state and all visible.\n  * Shift-Click to invert visibility status of all collections\n  * Ctrl-Alt-Click to swap RTOs'''
     bl_label = "Toggle Hidden Status Of All Collections"
     bl_idname = "view3d.un_hide_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
@@ -901,6 +993,51 @@ class CMUnHideAllOperator(Operator):
             rto_history["hide_all"][view_layer] = []
 
         hide_all_history = rto_history["hide_all"][view_layer]
+
+        if event.ctrl and event.alt:
+            global swap_buffer
+
+            if not swap_buffer["A"]["values"]:
+                # get A
+                swap_buffer["A"]["RTO"] = "hide_viewport"
+                for laycol in layer_collections.values():
+                    swap_buffer["A"]["values"].append(laycol["ptr"].hide_viewport)
+
+            else:
+                if len(swap_buffer["A"]["values"]) != len(layer_collections):
+                    return {'CANCELLED'}
+
+                # get B
+                swap_buffer["B"]["RTO"] = "hide_viewport"
+                for laycol in layer_collections.values():
+                    swap_buffer["B"]["values"].append(laycol["ptr"].hide_viewport)
+
+                # swap A with B
+                for x, laycol in enumerate(layer_collections.values()):
+                    attr_A = attr_B = laycol["ptr"]
+
+                    # get attributes
+                    RTO_A = swap_buffer["A"]["RTO"].split(".")
+                    RTO_B = swap_buffer["B"]["RTO"].split(".")
+
+                    if RTO_A[0] == "collection":
+                        attr_A = getattr(attr_A, RTO_A[0])
+
+                    if RTO_B[0] == "collection":
+                        attr_B = getattr(attr_B, RTO_B[0])
+
+
+                    # swap values
+                    setattr(attr_A, RTO_A[-1], swap_buffer["B"]["values"][x])
+                    setattr(attr_B, RTO_B[-1], swap_buffer["A"]["values"][x])
+
+                # clear swap buffer
+                swap_buffer["A"]["RTO"] = ""
+                swap_buffer["A"]["values"].clear()
+                swap_buffer["B"]["RTO"] = ""
+                swap_buffer["B"]["values"].clear()
+
+            return {'FINISHED'}
 
         if len(hide_all_history) == 0:
             hide_all_history.clear()
@@ -1124,7 +1261,7 @@ class CMDisableViewportOperator(Operator):
 
 
 class CMUnDisableViewportAllOperator(Operator):
-    '''  * Click to toggle between current viewport display and all enabled.\n  * Shift-Click to invert viewport display of all collections'''
+    '''  * Click to toggle between current viewport display and all enabled.\n  * Shift-Click to invert viewport display of all collections\n  * Ctrl-Alt-Click to swap RTOs'''
     bl_label = "Toggle Viewport Display of All Collections"
     bl_idname = "view3d.un_disable_viewport_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1138,6 +1275,51 @@ class CMUnDisableViewportAllOperator(Operator):
             rto_history["disable_all"][view_layer] = []
 
         disable_all_history = rto_history["disable_all"][view_layer]
+
+        if event.ctrl and event.alt:
+            global swap_buffer
+
+            if not swap_buffer["A"]["values"]:
+                # get A
+                swap_buffer["A"]["RTO"] = "collection.hide_viewport"
+                for laycol in layer_collections.values():
+                    swap_buffer["A"]["values"].append(laycol["ptr"].collection.hide_viewport)
+
+            else:
+                if len(swap_buffer["A"]["values"]) != len(layer_collections):
+                    return {'CANCELLED'}
+
+                # get B
+                swap_buffer["B"]["RTO"] = "collection.hide_viewport"
+                for laycol in layer_collections.values():
+                    swap_buffer["B"]["values"].append(laycol["ptr"].collection.hide_viewport)
+
+                # swap A with B
+                for x, laycol in enumerate(layer_collections.values()):
+                    attr_A = attr_B = laycol["ptr"]
+
+                    # get attributes
+                    RTO_A = swap_buffer["A"]["RTO"].split(".")
+                    RTO_B = swap_buffer["B"]["RTO"].split(".")
+
+                    if RTO_A[0] == "collection":
+                        attr_A = getattr(attr_A, RTO_A[0])
+
+                    if RTO_B[0] == "collection":
+                        attr_B = getattr(attr_B, RTO_B[0])
+
+
+                    # swap values
+                    setattr(attr_A, RTO_A[-1], swap_buffer["B"]["values"][x])
+                    setattr(attr_B, RTO_B[-1], swap_buffer["A"]["values"][x])
+
+                # clear swap buffer
+                swap_buffer["A"]["RTO"] = ""
+                swap_buffer["A"]["values"].clear()
+                swap_buffer["B"]["RTO"] = ""
+                swap_buffer["B"]["values"].clear()
+
+            return {'FINISHED'}
 
         if len(disable_all_history) == 0:
             disable_all_history.clear()
@@ -1363,7 +1545,7 @@ class CMDisableRenderOperator(Operator):
 
 
 class CMUnDisableRenderAllOperator(Operator):
-    '''  * Click to toggle between current render status and all rendered.\n  * Shift-Click to invert render status of all collections'''
+    '''  * Click to toggle between current render status and all rendered.\n  * Shift-Click to invert render status of all collections\n  * Ctrl-Alt-Click to swap RTOs'''
     bl_label = "Toggle Render Status of All Collections"
     bl_idname = "view3d.un_disable_render_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1377,6 +1559,51 @@ class CMUnDisableRenderAllOperator(Operator):
             rto_history["render_all"][view_layer] = []
 
         render_all_history = rto_history["render_all"][view_layer]
+
+        if event.ctrl and event.alt:
+            global swap_buffer
+
+            if not swap_buffer["A"]["values"]:
+                # get A
+                swap_buffer["A"]["RTO"] = "collection.hide_render"
+                for laycol in layer_collections.values():
+                    swap_buffer["A"]["values"].append(laycol["ptr"].collection.hide_render)
+
+            else:
+                if len(swap_buffer["A"]["values"]) != len(layer_collections):
+                    return {'CANCELLED'}
+
+                # get B
+                swap_buffer["B"]["RTO"] = "collection.hide_render"
+                for laycol in layer_collections.values():
+                    swap_buffer["B"]["values"].append(laycol["ptr"].collection.hide_render)
+
+                # swap A with B
+                for x, laycol in enumerate(layer_collections.values()):
+                    attr_A = attr_B = laycol["ptr"]
+
+                    # get attributes
+                    RTO_A = swap_buffer["A"]["RTO"].split(".")
+                    RTO_B = swap_buffer["B"]["RTO"].split(".")
+
+                    if RTO_A[0] == "collection":
+                        attr_A = getattr(attr_A, RTO_A[0])
+
+                    if RTO_B[0] == "collection":
+                        attr_B = getattr(attr_B, RTO_B[0])
+
+
+                    # swap values
+                    setattr(attr_A, RTO_A[-1], swap_buffer["B"]["values"][x])
+                    setattr(attr_B, RTO_B[-1], swap_buffer["A"]["values"][x])
+
+                # clear swap buffer
+                swap_buffer["A"]["RTO"] = ""
+                swap_buffer["A"]["values"].clear()
+                swap_buffer["B"]["RTO"] = ""
+                swap_buffer["B"]["values"].clear()
+
+            return {'FINISHED'}
 
         if len(render_all_history) == 0:
             render_all_history.clear()
