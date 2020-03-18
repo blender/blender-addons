@@ -1038,7 +1038,7 @@
         info_selected_text="#ffffff"
         info_error="#801a1aff"
         info_error_text="#d9d9d9"
-        info_warning="#3b3b3bff"
+        info_warning="#ff7f42ff"
         info_warning_text="#ffe100"
         info_info="#1c4180ff"
         info_info_text="#d9d9d9"

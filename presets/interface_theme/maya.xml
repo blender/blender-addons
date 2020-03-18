@@ -12,6 +12,7 @@
         axis_x="#ff3352"
         axis_y="#8bdc00"
         axis_z="#2890ff"
+        axis_view="#ffffff"
         gizmo_hi="#000000"
         gizmo_primary="#000000"
         gizmo_secondary="#000000"
@@ -431,8 +432,8 @@
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
             execution_buts="#00000000"
-            tab_active="#5680c2"
-            tab_inactive="#424242"
+            tab_active="#4f5255"
+            tab_inactive="#232323"
             tab_back="#232323ff"
             tab_outline="#2d2d2d"
             >
@@ -724,8 +725,8 @@
         face_back="#00000000"
         face_front="#00000000"
         editmesh_active="#ffffff80"
-        wire_edit="#c0c0c0"
-        edge_select="#ff8500"
+        wire_edit="#97cee0"
+        edge_select="#99ff72"
         scope_back="#727272ff"
         preview_stitch_face="#7f7f0033"
         preview_stitch_edge="#ff00ff33"
@@ -754,7 +755,7 @@
         >
         <space>
           <ThemeSpaceGeneric
-            back="#444444"
+            back="#7c7c7d"
             title="#eeeeee"
             text="#ffffff"
             text_hi="#ffffff"
@@ -767,8 +768,8 @@
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
             execution_buts="#00000000"
-            tab_active="#5680c2"
-            tab_inactive="#424242"
+            tab_active="#424242"
+            tab_inactive="#232323"
             tab_back="#232323ff"
             tab_outline="#2d2d2d"
             >
