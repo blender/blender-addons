@@ -1664,7 +1664,7 @@ class AssetBarOperator(bpy.types.Operator):
             else:
                 return {'RUNNING_MODAL'}
 
-        if event.type == 'W' and ui_props.active_index != -3:
+        if event.type == 'W' and ui_props.active_index > -1:
             sr = bpy.context.scene['search results']
             asset_data = sr[ui_props.active_index]
             a = bpy.context.window_manager['bkit authors'].get(asset_data['author_id'])
@@ -1673,7 +1673,7 @@ class AssetBarOperator(bpy.types.Operator):
                 if a.get('aboutMeUrl') is not None:
                     bpy.ops.wm.url_open(url=a['aboutMeUrl'])
             return {'RUNNING_MODAL'}
-        if event.type == 'A' and ui_props.active_index != -3:
+        if event.type == 'A' and ui_props.active_index > -1:
             sr = bpy.context.scene['search results']
             asset_data = sr[ui_props.active_index]
             a = asset_data['author_id']
@@ -1683,7 +1683,7 @@ class AssetBarOperator(bpy.types.Operator):
                 utils.p('author:', a)
                 search.search(author_id=a)
             return {'RUNNING_MODAL'}
-        if event.type == 'X' and ui_props.active_index != -3:
+        if event.type == 'X' and ui_props.active_index > -1:
             sr = bpy.context.scene['search results']
             asset_data = sr[ui_props.active_index]
             print(asset_data['name'])
