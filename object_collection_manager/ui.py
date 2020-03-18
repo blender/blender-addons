@@ -38,6 +38,7 @@ from .internals import (
 
 from .operators import (
     rto_history,
+    copy_buffer,
     swap_buffer,
     expand_history,
     phantom_history,
@@ -123,6 +124,9 @@ class CollectionManager(Operator):
             depress = True if len(exclude_all_history) else False
             icon = 'CHECKBOX_HLT'
 
+            if copy_buffer["RTO"] == "exclude":
+                icon = 'COPYDOWN'
+
             if swap_buffer["A"]["RTO"] == "exclude":
                 icon = 'ARROW_LEFTRIGHT'
 
@@ -132,6 +136,9 @@ class CollectionManager(Operator):
             select_all_history = rto_history["select_all"].get(view_layer.name, [])
             depress = True if len(select_all_history) else False
             icon = 'RESTRICT_SELECT_OFF'
+
+            if copy_buffer["RTO"] == "collection.hide_select":
+                icon = 'COPYDOWN'
 
             if swap_buffer["A"]["RTO"] == "collection.hide_select":
                 icon = 'ARROW_LEFTRIGHT'
@@ -143,6 +150,9 @@ class CollectionManager(Operator):
             depress = True if len(hide_all_history) else False
             icon = 'HIDE_OFF'
 
+            if copy_buffer["RTO"] == "hide_viewport":
+                icon = 'COPYDOWN'
+
             if swap_buffer["A"]["RTO"] == "hide_viewport":
                 icon = 'ARROW_LEFTRIGHT'
 
@@ -153,6 +163,9 @@ class CollectionManager(Operator):
             depress = True if len(disable_all_history) else False
             icon = 'RESTRICT_VIEW_OFF'
 
+            if copy_buffer["RTO"] == "collection.hide_viewport":
+                icon = 'COPYDOWN'
+
             if swap_buffer["A"]["RTO"] == "collection.hide_viewport":
                 icon = 'ARROW_LEFTRIGHT'
 
@@ -162,6 +175,9 @@ class CollectionManager(Operator):
             render_all_history = rto_history["render_all"].get(view_layer.name, [])
             depress = True if len(render_all_history) else False
             icon = 'RESTRICT_RENDER_OFF'
+
+            if copy_buffer["RTO"] == "collection.hide_render":
+                icon = 'COPYDOWN'
 
             if swap_buffer["A"]["RTO"] == "collection.hide_render":
                 icon = 'ARROW_LEFTRIGHT'

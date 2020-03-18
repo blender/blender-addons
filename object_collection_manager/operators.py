@@ -54,6 +54,7 @@ rto_history = {
     "render_all": {}
 }
 
+copy_buffer = {"RTO": "", "values": []}
 swap_buffer = {"A": {"RTO": "", "values": []}, "B": {"RTO": "", "values": []}}
 
 class ExpandAllOperator(Operator):
@@ -407,7 +408,7 @@ class CMExcludeOperator(Operator):
 
 
 class CMUnExcludeAllOperator(Operator):
-    '''  * Click to toggle between current excluded state and all included.\n  * Shift-Click to invert excluded status of all collections\n  * Ctrl-Alt-Click to swap RTOs'''
+    '''  * Click to toggle between current excluded state and all included.\n  * Shift-Click to invert excluded status of all collections\n  * Ctrl-Click to Copy/Paste RTOs\n  * Ctrl-Alt-Click to swap RTOs'''
     bl_label = "Toggle Excluded Status Of All Collections"
     bl_idname = "view3d.un_exclude_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
@@ -416,13 +417,37 @@ class CMUnExcludeAllOperator(Operator):
         global rto_history
 
         view_layer = context.view_layer.name
+        modifiers = get_modifiers(event)
 
         if not view_layer in rto_history["exclude_all"]:
             rto_history["exclude_all"][view_layer] = []
 
         exclude_all_history = rto_history["exclude_all"][view_layer]
 
-        if event.ctrl and event.alt:
+        if modifiers == {"ctrl"}:
+            global copy_buffer
+
+            if not copy_buffer["values"]:
+                # copy
+                copy_buffer["RTO"] = "exclude"
+                for laycol in layer_collections.values():
+                    copy_buffer["values"].append(laycol["ptr"].exclude)
+
+            else:
+                if len(copy_buffer["values"]) != len(layer_collections):
+                    return {'CANCELLED'}
+
+                # paste
+                for x, laycol in enumerate(layer_collections.values()):
+                    laycol["ptr"].exclude = copy_buffer["values"][x]
+
+                # clear copy buffer
+                copy_buffer["RTO"] = ""
+                copy_buffer["values"].clear()
+
+            return {'FINISHED'}
+
+        if modifiers == {"ctrl", "alt"}:
             global swap_buffer
 
             if not swap_buffer["A"]["values"]:
@@ -695,7 +720,7 @@ class CMRestrictSelectOperator(Operator):
 
 
 class CMUnRestrictSelectAllOperator(Operator):
-    '''  * Click to toggle between current selectable state and all selectable.\n  * Shift-Click to invert selectable status of all collections\n  * Ctrl-Alt-Click to swap RTOs'''
+    '''  * Click to toggle between current selectable state and all selectable.\n  * Shift-Click to invert selectable status of all collections\n  * Ctrl-Click to Copy/Paste RTOs\n  * Ctrl-Alt-Click to swap RTOs'''
     bl_label = "Toggle Selectable Status Of All Collections"
     bl_idname = "view3d.un_restrict_select_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
@@ -704,13 +729,37 @@ class CMUnRestrictSelectAllOperator(Operator):
         global rto_history
 
         view_layer = context.view_layer.name
+        modifiers = get_modifiers(event)
 
         if not view_layer in rto_history["select_all"]:
             rto_history["select_all"][view_layer] = []
 
         select_all_history = rto_history["select_all"][view_layer]
 
-        if event.ctrl and event.alt:
+        if modifiers == {"ctrl"}:
+            global copy_buffer
+
+            if not copy_buffer["values"]:
+                # copy
+                copy_buffer["RTO"] = "collection.hide_select"
+                for laycol in layer_collections.values():
+                    copy_buffer["values"].append(laycol["ptr"].collection.hide_select)
+
+            else:
+                if len(copy_buffer["values"]) != len(layer_collections):
+                    return {'CANCELLED'}
+
+                # paste
+                for x, laycol in enumerate(layer_collections.values()):
+                    laycol["ptr"].collection.hide_select = copy_buffer["values"][x]
+
+                # clear copy buffer
+                copy_buffer["RTO"] = ""
+                copy_buffer["values"].clear()
+
+            return {'FINISHED'}
+
+        if modifiers == {"ctrl", "alt"}:
             global swap_buffer
 
             if not swap_buffer["A"]["values"]:
@@ -979,7 +1028,7 @@ class CMHideOperator(Operator):
 
 
 class CMUnHideAllOperator(Operator):
-    '''  * Click to toggle between current visibility state and all visible.\n  * Shift-Click to invert visibility status of all collections\n  * Ctrl-Alt-Click to swap RTOs'''
+    '''  * Click to toggle between current visibility state and all visible.\n  * Shift-Click to invert visibility status of all collections\n  * Ctrl-Click to Copy/Paste RTOs\n  * Ctrl-Alt-Click to swap RTOs'''
     bl_label = "Toggle Hidden Status Of All Collections"
     bl_idname = "view3d.un_hide_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
@@ -988,13 +1037,37 @@ class CMUnHideAllOperator(Operator):
         global rto_history
 
         view_layer = context.view_layer.name
+        modifiers = get_modifiers(event)
 
         if not view_layer in rto_history["hide_all"]:
             rto_history["hide_all"][view_layer] = []
 
         hide_all_history = rto_history["hide_all"][view_layer]
 
-        if event.ctrl and event.alt:
+        if modifiers == {"ctrl"}:
+            global copy_buffer
+
+            if not copy_buffer["values"]:
+                # copy
+                copy_buffer["RTO"] = "hide_viewport"
+                for laycol in layer_collections.values():
+                    copy_buffer["values"].append(laycol["ptr"].hide_viewport)
+
+            else:
+                if len(copy_buffer["values"]) != len(layer_collections):
+                    return {'CANCELLED'}
+
+                # paste
+                for x, laycol in enumerate(layer_collections.values()):
+                    laycol["ptr"].hide_viewport = copy_buffer["values"][x]
+
+                # clear copy buffer
+                copy_buffer["RTO"] = ""
+                copy_buffer["values"].clear()
+
+            return {'FINISHED'}
+
+        if modifiers == {"ctrl", "alt"}:
             global swap_buffer
 
             if not swap_buffer["A"]["values"]:
@@ -1261,7 +1334,7 @@ class CMDisableViewportOperator(Operator):
 
 
 class CMUnDisableViewportAllOperator(Operator):
-    '''  * Click to toggle between current viewport display and all enabled.\n  * Shift-Click to invert viewport display of all collections\n  * Ctrl-Alt-Click to swap RTOs'''
+    '''  * Click to toggle between current viewport display and all enabled.\n  * Shift-Click to invert viewport display of all collections\n  * Ctrl-Click to Copy/Paste RTOs\n  * Ctrl-Alt-Click to swap RTOs'''
     bl_label = "Toggle Viewport Display of All Collections"
     bl_idname = "view3d.un_disable_viewport_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1270,13 +1343,37 @@ class CMUnDisableViewportAllOperator(Operator):
         global rto_history
 
         view_layer = context.view_layer.name
+        modifiers = get_modifiers(event)
 
         if not view_layer in rto_history["disable_all"]:
             rto_history["disable_all"][view_layer] = []
 
         disable_all_history = rto_history["disable_all"][view_layer]
 
-        if event.ctrl and event.alt:
+        if modifiers == {"ctrl"}:
+            global copy_buffer
+
+            if not copy_buffer["values"]:
+                # copy
+                copy_buffer["RTO"] = "collection.hide_viewport"
+                for laycol in layer_collections.values():
+                    copy_buffer["values"].append(laycol["ptr"].collection.hide_viewport)
+
+            else:
+                if len(copy_buffer["values"]) != len(layer_collections):
+                    return {'CANCELLED'}
+
+                # paste
+                for x, laycol in enumerate(layer_collections.values()):
+                    laycol["ptr"].collection.hide_viewport = copy_buffer["values"][x]
+
+                # clear copy buffer
+                copy_buffer["RTO"] = ""
+                copy_buffer["values"].clear()
+
+            return {'FINISHED'}
+
+        if modifiers == {"ctrl", "alt"}:
             global swap_buffer
 
             if not swap_buffer["A"]["values"]:
@@ -1545,7 +1642,7 @@ class CMDisableRenderOperator(Operator):
 
 
 class CMUnDisableRenderAllOperator(Operator):
-    '''  * Click to toggle between current render status and all rendered.\n  * Shift-Click to invert render status of all collections\n  * Ctrl-Alt-Click to swap RTOs'''
+    '''  * Click to toggle between current render status and all rendered.\n  * Shift-Click to invert render status of all collections\n  * Ctrl-Click to Copy/Paste RTOs\n  * Ctrl-Alt-Click to swap RTOs'''
     bl_label = "Toggle Render Status of All Collections"
     bl_idname = "view3d.un_disable_render_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1554,13 +1651,37 @@ class CMUnDisableRenderAllOperator(Operator):
         global rto_history
 
         view_layer = context.view_layer.name
+        modifiers = get_modifiers(event)
 
         if not view_layer in rto_history["render_all"]:
             rto_history["render_all"][view_layer] = []
 
         render_all_history = rto_history["render_all"][view_layer]
 
-        if event.ctrl and event.alt:
+        if modifiers == {"ctrl"}:
+            global copy_buffer
+
+            if not copy_buffer["values"]:
+                # copy
+                copy_buffer["RTO"] = "collection.hide_render"
+                for laycol in layer_collections.values():
+                    copy_buffer["values"].append(laycol["ptr"].collection.hide_render)
+
+            else:
+                if len(copy_buffer["values"]) != len(layer_collections):
+                    return {'CANCELLED'}
+
+                # paste
+                for x, laycol in enumerate(layer_collections.values()):
+                    laycol["ptr"].collection.hide_render = copy_buffer["values"][x]
+
+                # clear copy buffer
+                copy_buffer["RTO"] = ""
+                copy_buffer["values"].clear()
+
+            return {'FINISHED'}
+
+        if modifiers == {"ctrl", "alt"}:
             global swap_buffer
 
             if not swap_buffer["A"]["values"]:
