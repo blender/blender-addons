@@ -26,6 +26,24 @@ from bpy.props import (
     FloatVectorProperty,
     )
 
+from . import qcd_init
+
+def update_qcd_status(self, context):
+    if self.enable_qcd:
+        qcd_init.register_qcd()
+
+        if self.enable_qcd_view_hotkeys:
+            qcd_init.register_qcd_view_hotkeys()
+
+    else:
+        qcd_init.unregister_qcd()
+
+def update_qcd_view_hotkeys_status(self, context):
+    if self.enable_qcd_view_hotkeys:
+        qcd_init.register_qcd_view_hotkeys()
+    else:
+        qcd_init.unregister_qcd_view_hotkeys()
+
 def get_tool_text(self):
     if self.tool_text_override:
         return self["tool_text_color"]
@@ -160,6 +178,22 @@ def set_tooltip_outline(self, values):
 
 class CMPreferences(AddonPreferences):
     bl_idname = __package__
+
+    # ENABLE QCD BOOLS
+    enable_qcd: BoolProperty(
+        name="QCD",
+        description="Enable/Disable QCD System",
+        default=True,
+        update=update_qcd_status,
+        )
+
+    enable_qcd_view_hotkeys: BoolProperty(
+        name="QCD Hotkeys",
+        description="Enable/Disable the view (number) hotkeys for QCD",
+        default=True,
+        update=update_qcd_view_hotkeys_status,
+        )
+
 
     # OVERRIDE BOOLS
     tool_text_override: BoolProperty(
@@ -375,6 +409,13 @@ class CMPreferences(AddonPreferences):
     def draw(self, context):
         layout = self.layout
         box = layout.box()
+
+        box.row().prop(self, "enable_qcd")
+
+        if not self.enable_qcd:
+            return
+
+        box.row().prop(self, "enable_qcd_view_hotkeys")
 
         box.row().label(text="QCD Move Widget")
 

@@ -107,9 +107,10 @@ class CollectionManager(Operator):
 
         sec1.operator("view3d.expand_all_items", text=text)
 
-        renum = toggle_row.row()
-        renum.alignment = 'LEFT'
-        renum.operator("view3d.renumerate_qcd_slots")
+        if context.preferences.addons[__package__].preferences.enable_qcd:
+            renum = toggle_row.row()
+            renum.alignment = 'LEFT'
+            renum.operator("view3d.renumerate_qcd_slots")
 
         for laycol in collection_tree:
             if laycol["has_children"]:
@@ -305,9 +306,10 @@ class CM_UL_items(UIList):
 
         row.label(icon='GROUP')
 
-        QCD = row.row()
-        QCD.scale_x = 0.4
-        QCD.prop(item, "qcd_slot", text="")
+        if context.preferences.addons[__package__].preferences.enable_qcd:
+            QCD = row.row()
+            QCD.scale_x = 0.4
+            QCD.prop(item, "qcd_slot", text="")
 
         name_row = row.row()
 
