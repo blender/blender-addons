@@ -15,7 +15,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (1, 2, 48),
+    "version": (1, 2, 49),
     'blender': (2, 82, 7),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -76,7 +76,7 @@ class ExportGLTF2_Base:
         from io_scene_gltf2.io.exp import gltf2_io_draco_compression_extension
         self.is_draco_available = gltf2_io_draco_compression_extension.dll_exists()
 
-    bl_options = {'UNDO', 'PRESET'}
+    bl_options = {'PRESET'}
 
     export_format: EnumProperty(
         name='Format',
