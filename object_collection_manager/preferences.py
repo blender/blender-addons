@@ -182,14 +182,14 @@ class CMPreferences(AddonPreferences):
     # ENABLE QCD BOOLS
     enable_qcd: BoolProperty(
         name="QCD",
-        description="Enable/Disable QCD System",
+        description="Enable/Disable QCD System.\nThe Quick Content Display system allows you to specify collections as QCD \"slots\" up to a maximum of 20. You can then interact with them through numerical hotkeys, a popup move widget, and a 3D View header widget",
         default=True,
         update=update_qcd_status,
         )
 
     enable_qcd_view_hotkeys: BoolProperty(
         name="QCD Hotkeys",
-        description="Enable/Disable the view (number) hotkeys for QCD",
+        description="Enable/Disable the numerical hotkeys to view QCD slots",
         default=True,
         update=update_qcd_view_hotkeys_status,
         )
