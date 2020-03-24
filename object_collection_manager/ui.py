@@ -422,7 +422,9 @@ class CM_UL_items(UIList):
 
         subrow = row.row(align=True)
         subrow.prop(self, "filter_by_selected", text="", icon='SNAP_VOLUME')
-        subrow.prop(self, "filter_by_qcd", text="", icon='EVENT_Q')
+
+        if context.preferences.addons[__package__].preferences.enable_qcd:
+            subrow.prop(self, "filter_by_qcd", text="", icon='EVENT_Q')
 
     def filter_items(self, context, data, propname):
         flt_flags = []
