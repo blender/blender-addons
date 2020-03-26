@@ -699,7 +699,7 @@ def export(file,
                         fw('%s<IndexedTriangleSet ' % ident)))
 
                         # --- Write IndexedTriangleSet Attributes (same as IndexedFaceSet)
-                        fw('solid="false"\n')  # not available anymore: bool_as_str(material and material.game_settings.use_backface_culling))
+                        fw('solid="%s"\n' % bool_as_str(material and material.use_backface_culling))
 
                         if use_normals or is_force_normals:
                             fw(ident_step + 'normalPerVertex="true"\n')
@@ -834,7 +834,7 @@ def export(file,
                         fw('%s<IndexedFaceSet ' % ident)))
 
                         # --- Write IndexedFaceSet Attributes (same as IndexedTriangleSet)
-                        fw('solid="false"\n')  # not available anymore: bool_as_str(material and material.game_settings.use_backface_culling)
+                        fw('solid="%s"\n' % bool_as_str(material and material.use_backface_culling))
                         if is_smooth:
                             # use Auto-Smooth angle, if enabled. Otherwise make
                             # the mesh perfectly smooth by creaseAngle > pi.
