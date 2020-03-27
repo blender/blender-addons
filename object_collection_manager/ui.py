@@ -120,16 +120,26 @@ class CollectionManager(Operator):
         sec2 = toggle_row.row()
         sec2.alignment = 'RIGHT'
 
+        copy_icon = 'COPYDOWN'
+        swap_icon = 'ARROW_LEFTRIGHT'
+        copy_swap_icon = 'SELECT_INTERSECT'
+
         if cm.show_exclude:
             exclude_all_history = rto_history["exclude_all"].get(view_layer.name, [])
             depress = True if len(exclude_all_history) else False
             icon = 'CHECKBOX_HLT'
+            buffers = [False, False]
 
             if copy_buffer["RTO"] == "exclude":
-                icon = 'COPYDOWN'
+                icon = copy_icon
+                buffers[0] = True
 
             if swap_buffer["A"]["RTO"] == "exclude":
-                icon = 'ARROW_LEFTRIGHT'
+                icon = swap_icon
+                buffers[1] = True
+
+            if buffers[0] and buffers[1]:
+                icon = copy_swap_icon
 
             sec2.operator("view3d.un_exclude_all_collections", text="", icon=icon, depress=depress)
 
@@ -137,12 +147,18 @@ class CollectionManager(Operator):
             select_all_history = rto_history["select_all"].get(view_layer.name, [])
             depress = True if len(select_all_history) else False
             icon = 'RESTRICT_SELECT_OFF'
+            buffers = [False, False]
 
             if copy_buffer["RTO"] == "collection.hide_select":
-                icon = 'COPYDOWN'
+                icon = copy_icon
+                buffers[0] = True
 
             if swap_buffer["A"]["RTO"] == "collection.hide_select":
-                icon = 'ARROW_LEFTRIGHT'
+                icon = swap_icon
+                buffers[1] = True
+
+            if buffers[0] and buffers[1]:
+                icon = copy_swap_icon
 
             sec2.operator("view3d.un_restrict_select_all_collections", text="", icon=icon, depress=depress)
 
@@ -150,12 +166,18 @@ class CollectionManager(Operator):
             hide_all_history = rto_history["hide_all"].get(view_layer.name, [])
             depress = True if len(hide_all_history) else False
             icon = 'HIDE_OFF'
+            buffers = [False, False]
 
             if copy_buffer["RTO"] == "hide_viewport":
-                icon = 'COPYDOWN'
+                icon = copy_icon
+                buffers[0] = True
 
             if swap_buffer["A"]["RTO"] == "hide_viewport":
-                icon = 'ARROW_LEFTRIGHT'
+                icon = swap_icon
+                buffers[1] = True
+
+            if buffers[0] and buffers[1]:
+                icon = copy_swap_icon
 
             sec2.operator("view3d.un_hide_all_collections", text="", icon=icon, depress=depress)
 
@@ -163,12 +185,18 @@ class CollectionManager(Operator):
             disable_all_history = rto_history["disable_all"].get(view_layer.name, [])
             depress = True if len(disable_all_history) else False
             icon = 'RESTRICT_VIEW_OFF'
+            buffers = [False, False]
 
             if copy_buffer["RTO"] == "collection.hide_viewport":
-                icon = 'COPYDOWN'
+                icon = copy_icon
+                buffers[0] = True
 
             if swap_buffer["A"]["RTO"] == "collection.hide_viewport":
-                icon = 'ARROW_LEFTRIGHT'
+                icon = swap_icon
+                buffers[1] = True
+
+            if buffers[0] and buffers[1]:
+                icon = copy_swap_icon
 
             sec2.operator("view3d.un_disable_viewport_all_collections", text="", icon=icon, depress=depress)
 
@@ -176,12 +204,18 @@ class CollectionManager(Operator):
             render_all_history = rto_history["render_all"].get(view_layer.name, [])
             depress = True if len(render_all_history) else False
             icon = 'RESTRICT_RENDER_OFF'
+            buffers = [False, False]
 
             if copy_buffer["RTO"] == "collection.hide_render":
-                icon = 'COPYDOWN'
+                icon = copy_icon
+                buffers[0] = True
 
             if swap_buffer["A"]["RTO"] == "collection.hide_render":
-                icon = 'ARROW_LEFTRIGHT'
+                icon = swap_icon
+                buffers[1] = True
+
+            if buffers[0] and buffers[1]:
+                icon = copy_swap_icon
 
             sec2.operator("view3d.un_disable_render_all_collections", text="", icon=icon, depress=depress)
 
