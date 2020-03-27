@@ -774,12 +774,13 @@ def draw_callback_px(self, context):
     shader.bind()
 
     in_tooltip_area = False
+    tooltip_slot_idx = None
 
     for num in range(20):
         slot_num = num + 1
-        qcd_slot = qcd_slots.get_name(f"{slot_num}")
-        if qcd_slot:
-            qcd_laycol = layer_collections[qcd_slot]["ptr"]
+        qcd_slot_name = qcd_slots.get_name(f"{slot_num}")
+        if qcd_slot_name:
+            qcd_laycol = layer_collections[qcd_slot_name]["ptr"]
             collection_objects = qcd_laycol.collection.objects
             selected_objects = qcd_operators.get_move_selection()
             active_object = qcd_operators.get_move_active()
@@ -794,6 +795,7 @@ def draw_callback_px(self, context):
 
             if mouse_in_area(self.mouse_pos, button_area):
                 in_tooltip_area = True
+                tooltip_slot_idx = slot_num
 
                 mod = 0.1
 
@@ -908,7 +910,12 @@ def draw_callback_px(self, context):
 
     if in_tooltip_area:
         if self.draw_tooltip:
-            draw_tooltip(self, context, shader,"Move Object To QCD Slot\n  * Shift-Click to toggle objects\' slot")
+            slot_name = qcd_slots.get_name(f"{tooltip_slot_idx}")
+            slot_string = f"QCD Slot {tooltip_slot_idx}: \"{slot_name}\"\n"
+            hotkey_string = "  * Shift-Click to toggle objects\' slot."
+
+            draw_tooltip(self, context, shader, f"{slot_string}{hotkey_string}")
+
             self.hover_time = None
 
         else:
@@ -930,8 +937,10 @@ def draw_tooltip(self, context, shader, message):
     num_lines = len(lines)
 
     for line in lines:
-        if len(line) > longest[0]:
-            longest[0] = len(line)
+        w, _ = blf.dimensions(font_id, line)
+
+        if w > longest[0]:
+            longest[0] = w
             longest[1] = line
 
     w, h = blf.dimensions(font_id, longest[1])

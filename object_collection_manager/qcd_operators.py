@@ -154,12 +154,27 @@ class MoveToQCDSlot(Operator):
 
 
 class ViewMoveQCDSlot(Operator):
-    '''  * Shift-Click to toggle QCD slots\n  * Ctrl-Click to move objects to QCD slot\n  * Ctrl-Shift-Click to toggle objects\' slot'''
-    bl_label = "View QCD Slot"
+    bl_label = ""
     bl_idname = "view3d.view_move_qcd_slot"
     bl_options = {'REGISTER', 'UNDO'}
 
     slot: StringProperty()
+
+    @classmethod
+    def description(cls, context, properties):
+        global qcd_slots
+
+        slot_name = qcd_slots.get_name(properties.slot)
+
+        slot_string = f"QCD Slot {properties.slot}: \"{slot_name}\"\n"
+
+        hotkey_string = (
+            "  * Shift-Click to toggle QCD slot.\n"
+            "  * Ctrl-Click to move objects to QCD slot.\n"
+            "  * Ctrl-Shift-Click to toggle objects' slot"
+            )
+
+        return f"{slot_string}{hotkey_string}"
 
     def invoke(self, context, event):
         global layer_collections
