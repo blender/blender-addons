@@ -29,8 +29,8 @@
 bl_info = {
     "name": "Precision Drawing Tools (PDT)",
     "author": "Alan Odom (Clockmender), Rune Morling (ermo)",
-    "version": (1, 2, 1),
-    "blender": (2, 80, 0),
+    "version": (1, 3, 0),
+    "blender": (2, 82, 0),
     "location": "View3D > UI > PDT",
     "description": "Precision Drawing Tools for Acccurate Modelling",
     "warning": "",
