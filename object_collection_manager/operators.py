@@ -1905,8 +1905,8 @@ class CMRemoveCollectionOperator(Operator):
 
 
         # update qcd
-        if self.collection_name in qcd_slots:
-            qcd_slots.del_slot(self.collection_name)
+        if qcd_slots.contains(name=self.collection_name):
+            qcd_slots.del_slot(name=self.collection_name)
 
         if self.collection_name in qcd_slots.overrides:
             del qcd_slots.overrides[self.collection_name]
