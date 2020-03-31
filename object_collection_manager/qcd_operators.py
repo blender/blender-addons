@@ -126,10 +126,12 @@ class MoveToQCDSlot(Operator):
                         collection.objects.unlink(obj)
 
 
+        # update the active object if needed
         if not context.active_object:
             try:
                 context.view_layer.objects.active = active_object
-            except:
+
+            except RuntimeError: # object not in visible slot
                 pass
 
         # update header UI

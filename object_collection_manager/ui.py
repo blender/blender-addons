@@ -256,7 +256,8 @@ class CollectionManager(Operator):
             active_laycol_name = view_layer.active_layer_collection.name
             active_laycol_row_index = layer_collections[active_laycol_name]["row_index"]
             cm.cm_list_index = active_laycol_row_index
-        except:
+
+        except KeyError: # Master Collection isn't supported
             cm.cm_list_index = -1
 
         # check if in phantom mode and if it's still viable

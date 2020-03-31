@@ -60,6 +60,7 @@ class QCDSlots():
     def contains(self, *, idx=None, name=None):
         if idx:
             return idx in self._slots.keys()
+
         if name:
             return name in self._slots.values()
 
@@ -76,19 +77,19 @@ class QCDSlots():
         self._slots.clear()
         self.overrides.clear()
 
-        for k, v in blend_slots.items():
-            self._slots[k] = v
+        for key, value in blend_slots.items():
+            self._slots[key] = value
 
-        for k, v in blend_overrides.items():
-            self.overrides[k] = v
+        for key, value in blend_overrides.items():
+            self.overrides[key] = value
 
     def length(self):
         return len(self._slots)
 
     def get_idx(self, name, r_value=None):
-        for k, v in self._slots.items():
-            if v == name:
-                return k
+        for idx, slot_name in self._slots.items():
+            if slot_name == name:
+                return idx
 
         return r_value
 
@@ -194,8 +195,8 @@ def update_qcd_slot(self, context):
 
     try:
         int(self.qcd_slot_idx)
-    except:
 
+    except ValueError:
         if self.qcd_slot_idx == "":
             qcd_slots.add_override(self.name)
 
