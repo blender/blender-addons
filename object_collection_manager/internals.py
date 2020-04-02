@@ -34,6 +34,7 @@ from bpy.props import (
 
 layer_collections = {}
 collection_tree = []
+collection_state = {}
 expanded = []
 row_index = 0
 
@@ -355,6 +356,29 @@ def get_modifiers(event):
         modifiers.append("shift")
 
     return set(modifiers)
+
+def generate_state():
+    global layer_collections
+
+    state = {
+        "name": [],
+        "exclude": [],
+        "select": [],
+        "hide": [],
+        "disable": [],
+        "render": [],
+        }
+
+    for name, laycol in layer_collections.items():
+        state["name"].append(name)
+        state["exclude"].append(laycol["ptr"].exclude)
+        state["select"].append(laycol["ptr"].collection.hide_select)
+        state["hide"].append(laycol["ptr"].hide_viewport)
+        state["disable"].append(laycol["ptr"].collection.hide_viewport)
+        state["render"].append(laycol["ptr"].collection.hide_render)
+
+    return state
+
 
 
 class CMSendReport(Operator):
