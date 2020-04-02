@@ -109,15 +109,15 @@ class CollectionManager(Operator):
 
         sec1.operator("view3d.expand_all_items", text=text)
 
-        if context.preferences.addons[__package__].preferences.enable_qcd:
-            renum = toggle_row.row()
-            renum.alignment = 'LEFT'
-            renum.operator("view3d.renumerate_qcd_slots")
-
         for laycol in collection_tree:
             if laycol["has_children"]:
                 sec1.enabled = True
                 break
+
+        if context.preferences.addons[__package__].preferences.enable_qcd:
+            renum = toggle_row.row()
+            renum.alignment = 'LEFT'
+            renum.operator("view3d.renumerate_qcd_slots")
 
         sec2 = toggle_row.row()
         sec2.alignment = 'RIGHT'
@@ -241,6 +241,9 @@ class CollectionManager(Operator):
         if cm.in_phantom_mode:
             view.enabled = False
             addcollec_row.enabled = False
+
+            if context.preferences.addons[__package__].preferences.enable_qcd:
+                renum.enabled = False
 
 
     def execute(self, context):
@@ -487,6 +490,9 @@ class CM_UL_items(UIList):
             name_row.enabled = False
             row_setcol.enabled = False
             rm_op.enabled = False
+
+            if context.preferences.addons[__package__].preferences.enable_qcd:
+                QCD.enabled = False
 
 
     def draw_filter(self, context, layout):
