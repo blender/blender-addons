@@ -25,7 +25,6 @@ bl_info = {
     "description": "Transfer data between 3D-Coat/Blender",
     "warning": "",
     "doc_url": "{BLENDER_MANUAL_URL}/addons/import_export/coat3D.html",
-
     "category": "Import-Export",
 }
 
