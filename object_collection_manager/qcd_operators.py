@@ -263,7 +263,7 @@ class RenumerateQCDSlots(Operator):
     def invoke(self, context, event):
         global qcd_slots
 
-        qcd_slots.clear()
+        qcd_slots.clear_slots()
 
         if event.ctrl:
             qcd_slots.overrides.clear()
