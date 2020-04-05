@@ -36,6 +36,8 @@ from .internals import (
     update_collection_tree,
     update_property_group,
     generate_state,
+    get_move_selection,
+    get_move_active
 )
 
 from .operators import (
@@ -45,8 +47,6 @@ from .operators import (
     expand_history,
     phantom_history,
     )
-
-from . import qcd_operators
 
 
 preview_collections = {}
@@ -353,6 +353,8 @@ class CM_UL_items(UIList):
         view_layer = context.view_layer
         laycol = layer_collections[item.name]
         collection = laycol["ptr"].collection
+        selected_objects = get_move_selection()
+        active_object = get_move_active()
 
         split = layout.split(factor=0.96)
         row = split.row(align=True)
@@ -409,9 +411,13 @@ class CM_UL_items(UIList):
 
         icon = 'MESH_CUBE'
 
-        if len(context.selected_objects) > 0 and context.active_object:
-            if context.active_object.name in collection.objects:
+        if selected_objects:
+            if active_object and active_object.name in collection.objects:
                 icon = 'SNAP_VOLUME'
+
+            elif not set(selected_objects).isdisjoint(collection.objects):
+                icon = 'STICKY_UVS_LOC'
+
         else:
             row_setcol.enabled = False
 
@@ -588,8 +594,8 @@ def view3d_header_qcd_slots(self, context):
         if qcd_slot_name:
             qcd_laycol = layer_collections[qcd_slot_name]["ptr"]
             collection_objects = qcd_laycol.collection.objects
-            selected_objects = qcd_operators.get_move_selection()
-            active_object = qcd_operators.get_move_active()
+            selected_objects = get_move_selection()
+            active_object = get_move_active()
 
             icon_value = 0
 

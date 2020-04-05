@@ -21,20 +21,6 @@ qcd_classes = (
     )
 
 @persistent
-def depsgraph_update_post_handler(dummy):
-    if qcd_operators.move_triggered:
-        qcd_operators.move_triggered = False
-        return
-
-    qcd_operators.move_selection.clear()
-    qcd_operators.move_active = None
-
-@persistent
-def undo_redo_post_handler(dummy):
-    qcd_operators.move_selection.clear()
-    qcd_operators.move_active = None
-
-@persistent
 def save_internal_data(dummy):
     cm = bpy.context.scene.collection_manager
 
@@ -66,9 +52,6 @@ def register_qcd():
     kmi = km.keymap_items.new('view3d.qcd_move_widget', 'V', 'PRESS')
     addon_qcd_keymaps.append((km, kmi))
 
-    bpy.app.handlers.depsgraph_update_post.append(depsgraph_update_post_handler)
-    bpy.app.handlers.undo_post.append(undo_redo_post_handler)
-    bpy.app.handlers.redo_post.append(undo_redo_post_handler)
     bpy.app.handlers.save_pre.append(save_internal_data)
     bpy.app.handlers.load_post.append(load_internal_data)
 
@@ -122,9 +105,6 @@ def unregister_qcd():
     for cls in qcd_classes:
         bpy.utils.unregister_class(cls)
 
-    bpy.app.handlers.depsgraph_update_post.remove(depsgraph_update_post_handler)
-    bpy.app.handlers.undo_post.remove(undo_redo_post_handler)
-    bpy.app.handlers.redo_post.remove(undo_redo_post_handler)
     bpy.app.handlers.save_pre.remove(save_internal_data)
     bpy.app.handlers.load_post.remove(load_internal_data)
 

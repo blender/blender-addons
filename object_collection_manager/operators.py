@@ -32,12 +32,16 @@ from bpy.props import (
     IntProperty
 )
 
+from . import internals
+
 from .internals import (
     expanded,
     layer_collections,
     qcd_slots,
     update_property_group,
     get_modifiers,
+    get_move_selection,
+    get_move_active,
     send_report,
 )
 
@@ -187,30 +191,74 @@ class CMSetCollectionOperator(Operator):
     collection_name: StringProperty()
 
     def invoke(self, context, event):
-        collection = layer_collections[self.collection_name]["ptr"].collection
+        laycol = layer_collections[self.collection_name]
+        target_collection = laycol["ptr"].collection
+
+        selected_objects = get_move_selection()
+        active_object = get_move_active()
+
+        internals.move_triggered = True
+
+        if not selected_objects:
+            return {'CANCELLED'}
 
         if event.shift:
-            # add object to collection
+            # add objects to collection
+
+            # make sure there is an active object
+            if not active_object:
+                active_object = selected_objects[0]
 
             # check if in collection
-            if context.active_object.name not in collection.objects:
+            if not active_object.name in target_collection.objects:
                 # add to collection
-                bpy.ops.object.link_to_collection(collection_index=self.collection_index)
+                for obj in selected_objects:
+                    if obj.name not in target_collection.objects:
+                        target_collection.objects.link(obj)
 
             else:
-                # check and disallow removing from all collections
-                for obj in context.selected_objects:
-                    if len(obj.users_collection) == 1:
-                        send_report("Error removing 1 or more objects from this collection.\nObjects would be left without a collection")
+                errors = False
 
-                        return {'FINISHED'}
+                # remove from collections
+                for obj in selected_objects:
+                    if obj.name in target_collection.objects:
 
-                # remove from collection
-                bpy.ops.collection.objects_remove(collection=collection.name)
+                        # disallow removing if only one
+                        if len(obj.users_collection) == 1:
+                            errors = True
+                            continue
+
+                        # remove from collection
+                        target_collection.objects.unlink(obj)
+
+                if errors:
+                    send_report("Error removing 1 or more objects from this collection.\nObjects would be left without a collection")
+
 
         else:
-            # move object to collection
-            bpy.ops.object.move_to_collection(collection_index=self.collection_index)
+            # move objects to collection
+            for obj in selected_objects:
+                if obj.name not in target_collection.objects:
+                    target_collection.objects.link(obj)
+
+                # remove from all other collections
+                for collection in obj.users_collection:
+                    if collection.name != target_collection.name:
+                        collection.objects.unlink(obj)
+
+        # update the active object if needed
+        if not context.active_object:
+            try:
+                context.view_layer.objects.active = active_object
+
+            except RuntimeError: # object not in visible collection
+                pass
+
+        # update qcd header UI
+        cm = bpy.context.scene.collection_manager
+        cm.update_header.clear()
+        new_update_header = cm.update_header.add()
+        new_update_header.name = "updated"
 
         return {'FINISHED'}
 
