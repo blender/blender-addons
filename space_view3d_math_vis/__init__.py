@@ -76,7 +76,7 @@ class PanelConsoleVars(Panel):
             col.label(text="No vars to display")
         else:
             layout.template_list(
-                'MathVisVarList',
+                MathVisVarList.bl_idname,
                 'MathVisStatePropList',
                 bpy.context.window_manager,
                 'MathVisStatePropList',
