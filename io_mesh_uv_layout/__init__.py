@@ -70,7 +70,7 @@ class ExportUVLayout(bpy.types.Operator):
         description="Export all UVs in this mesh (not just visible ones)",
         default=False,
     )
-    check_existing = BoolProperty(
+    check_existing: BoolProperty(
         name="Check Existing",
         default=True,
         options={'HIDDEN'},
