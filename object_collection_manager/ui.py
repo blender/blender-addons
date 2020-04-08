@@ -60,6 +60,11 @@ class CollectionManager(Operator):
 
     last_view_layer = ""
 
+    window_open = False
+
+    def __init__(self):
+        self.window_open = True
+
     def draw(self, context):
         layout = self.layout
         cm = context.scene.collection_manager
@@ -327,6 +332,10 @@ class CollectionManager(Operator):
 
     def __del__(self):
         global collection_state
+
+        if not self.window_open:
+            # prevent destructor execution when changing templates
+            return
 
         collection_state.clear()
         collection_state.update(generate_state())
