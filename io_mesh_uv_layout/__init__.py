@@ -70,11 +70,6 @@ class ExportUVLayout(bpy.types.Operator):
         description="Export all UVs in this mesh (not just visible ones)",
         default=False,
     )
-    check_existing: BoolProperty(
-        name="Check Existing",
-        default=True,
-        options={'HIDDEN'},
-    )
     modified: BoolProperty(
         name="Modified",
         description="Exports UVs from the modified mesh",
@@ -104,6 +99,11 @@ class ExportUVLayout(bpy.types.Operator):
         min=0.0, max=1.0,
         default=0.25,
         description="Set amount of opacity for exported UV layout",
+    )
+    # For the file-selector.
+    check_existing: BoolProperty(
+        default=True,
+        options={'HIDDEN'},
     )
 
     @classmethod
