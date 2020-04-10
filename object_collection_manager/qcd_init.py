@@ -59,6 +59,7 @@ def register_qcd():
         register_qcd_view_hotkeys()
 
     bpy.types.VIEW3D_HT_header.append(ui.view3d_header_qcd_slots)
+    bpy.types.TOPBAR_HT_upper_bar.append(ui.view_layer_update)
 
 def register_qcd_view_hotkeys():
     wm = bpy.context.window_manager
@@ -101,6 +102,7 @@ def register_qcd_view_hotkeys():
 
 def unregister_qcd():
     bpy.types.VIEW3D_HT_header.remove(ui.view3d_header_qcd_slots)
+    bpy.types.TOPBAR_HT_upper_bar.remove(ui.view_layer_update)
 
     for cls in qcd_classes:
         bpy.utils.unregister_class(cls)

@@ -42,6 +42,7 @@ from .internals import (
     get_modifiers,
     get_move_selection,
     get_move_active,
+    update_qcd_header,
     send_report,
 )
 
@@ -255,10 +256,7 @@ class CMSetCollectionOperator(Operator):
                 pass
 
         # update qcd header UI
-        cm = bpy.context.scene.collection_manager
-        cm.update_header.clear()
-        new_update_header = cm.update_header.add()
-        new_update_header.name = "updated"
+        update_qcd_header()
 
         return {'FINISHED'}
 

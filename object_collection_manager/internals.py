@@ -408,6 +408,13 @@ def get_move_active():
     return bpy.data.objects[move_active] if move_active else None
 
 
+def update_qcd_header():
+    cm = bpy.context.scene.collection_manager
+    cm.update_header.clear()
+    new_update_header = cm.update_header.add()
+    new_update_header.name = "updated"
+
+
 class CMSendReport(Operator):
     bl_label = "Send Report"
     bl_idname = "view3d.cm_send_report"

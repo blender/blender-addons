@@ -38,7 +38,8 @@ from .internals import (
     update_property_group,
     get_modifiers,
     get_move_selection,
-    get_move_active
+    get_move_active,
+    update_qcd_header,
 )
 
 from .operators import rto_history
@@ -115,10 +116,7 @@ class MoveToQCDSlot(Operator):
                 pass
 
         # update header UI
-        cm = bpy.context.scene.collection_manager
-        cm.update_header.clear()
-        new_update_header = cm.update_header.add()
-        new_update_header.name = "updated"
+        update_qcd_header()
 
         return {'FINISHED'}
 
@@ -240,10 +238,7 @@ class ViewQCDSlot(Operator):
             context.view_layer.active_layer_collection = qcd_laycol
 
         # update header UI
-        cm = bpy.context.scene.collection_manager
-        cm.update_header.clear()
-        new_update_header = cm.update_header.add()
-        new_update_header.name = "updated"
+        update_qcd_header()
 
         view_layer = context.view_layer.name
         if view_layer in rto_history["exclude"]:

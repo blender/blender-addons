@@ -18,6 +18,8 @@
 
 # Copyright 2011, Ryan Inch
 
+import bpy
+
 from bpy.types import (
     Operator,
     Panel,
@@ -37,7 +39,8 @@ from .internals import (
     update_property_group,
     generate_state,
     get_move_selection,
-    get_move_active
+    get_move_active,
+    update_qcd_header,
 )
 
 from .operators import (
@@ -66,13 +69,17 @@ class CollectionManager(Operator):
         self.window_open = True
 
     def draw(self, context):
+        cls = CollectionManager
         layout = self.layout
         cm = context.scene.collection_manager
         view_layer = context.view_layer
 
-        if view_layer.name != self.last_view_layer:
+        if view_layer.name != cls.last_view_layer:
+            if context.preferences.addons[__package__].preferences.enable_qcd:
+                bpy.app.timers.register(update_qcd_header)
+
             update_collection_tree(context)
-            self.last_view_layer = view_layer.name
+            cls.last_view_layer = view_layer.name
 
         title_row = layout.split(factor=0.5)
         main = title_row.row()
@@ -644,6 +651,12 @@ def view3d_header_qcd_slots(self, context):
             row.scale_y = 0.5
 
         idx += 1
+
+
+def view_layer_update(self, context):
+    if context.view_layer.name != CollectionManager.last_view_layer:
+        bpy.app.timers.register(update_qcd_header)
+        CollectionManager.last_view_layer = context.view_layer.name
 
 
 def get_active_icon(context, qcd_laycol):
