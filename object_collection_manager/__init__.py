@@ -22,7 +22,7 @@ bl_info = {
     "name": "Collection Manager",
     "description": "Manage collections and their objects",
     "author": "Ryan Inch",
-    "version": (2,5,3),
+    "version": (2,5,4),
     "blender": (2, 80, 0),
     "location": "View3D - Object Mode (Shortcut - M)",
     "warning": '',  # used for warning icon and text in addons panel
@@ -68,11 +68,11 @@ class CollectionManagerProperties(PropertyGroup):
     cm_list_collection: CollectionProperty(type=internals.CMListCollection)
     cm_list_index: IntProperty(update=ui.update_selection)
 
-    show_exclude: BoolProperty(default=True, name="Exclude from View Layer")
-    show_selectable: BoolProperty(default=True, name="Selectable")
-    show_hide_viewport: BoolProperty(default=True, name="Hide in Viewport")
-    show_disable_viewport: BoolProperty(default=False, name="Disable in Viewports")
-    show_render: BoolProperty(default=False, name="Disable in Renders")
+    show_exclude: BoolProperty(default=True, name="[EC] Exclude from View Layer")
+    show_selectable: BoolProperty(default=True, name="[SS] Disable Selection")
+    show_hide_viewport: BoolProperty(default=True, name="[VV] Hide in Viewport")
+    show_disable_viewport: BoolProperty(default=False, name="[DV] Disable in Viewports")
+    show_render: BoolProperty(default=False, name="[RR] Disable in Renders")
 
     in_phantom_mode: BoolProperty(default=False)
 

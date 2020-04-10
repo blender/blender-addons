@@ -583,6 +583,11 @@ class CMRestrictionTogglesPanel(Panel):
         cm = context.scene.collection_manager
 
         layout = self.layout
+
+        name_row = layout.row()
+        name_row.alignment = 'LEFT'
+        name_row.label(text="Filter Restriction Toggles")
+
         row = layout.row()
 
         row.prop(cm, "show_exclude", icon='CHECKBOX_HLT', icon_only=True)

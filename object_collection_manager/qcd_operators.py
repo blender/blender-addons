@@ -137,9 +137,9 @@ class ViewMoveQCDSlot(Operator):
         slot_string = f"QCD Slot {properties.slot}: \"{slot_name}\"\n"
 
         hotkey_string = (
-            "  * Shift-Click to toggle QCD slot.\n"
-            "  * Ctrl-Click to move objects to QCD slot.\n"
-            "  * Ctrl-Shift-Click to toggle objects' slot"
+            "  * Shift+LMB - Toggle QCD slot.\n"
+            "  * Ctrl+LMB - Move objects to QCD slot.\n"
+            "  * Ctrl+Shift+Click - Toggle objects' slot"
             )
 
         return f"{slot_string}{hotkey_string}"
@@ -250,8 +250,11 @@ class ViewQCDSlot(Operator):
 
 
 class RenumerateQCDSlots(Operator):
-    '''Re-numerate QCD slots\n  * Ctrl-Click to include collections marked by the user as non QCD slots'''
     bl_label = "Re-numerate QCD Slots"
+    bl_description = (
+        "Re-numerate QCD slots\n"
+        "  * Ctrl+LMB - Include collections marked by the user as non QCD slots"
+        )
     bl_idname = "view3d.renumerate_qcd_slots"
     bl_options = {'REGISTER', 'UNDO'}
 
