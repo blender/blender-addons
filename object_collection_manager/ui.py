@@ -34,6 +34,11 @@ from .internals import (
     expanded,
     get_max_lvl,
     layer_collections,
+    rto_history,
+    expand_history,
+    phantom_history,
+    copy_buffer,
+    swap_buffer,
     qcd_slots,
     update_collection_tree,
     update_property_group,
@@ -42,14 +47,6 @@ from .internals import (
     get_move_active,
     update_qcd_header,
 )
-
-from .operators import (
-    rto_history,
-    copy_buffer,
-    swap_buffer,
-    expand_history,
-    phantom_history,
-    )
 
 
 preview_collections = {}
@@ -163,11 +160,11 @@ class CollectionManager(Operator):
             icon = 'RESTRICT_SELECT_OFF'
             buffers = [False, False]
 
-            if copy_buffer["RTO"] == "collection.hide_select":
+            if copy_buffer["RTO"] == "select":
                 icon = copy_icon
                 buffers[0] = True
 
-            if swap_buffer["A"]["RTO"] == "collection.hide_select":
+            if swap_buffer["A"]["RTO"] == "select":
                 icon = swap_icon
                 buffers[1] = True
 
@@ -182,11 +179,11 @@ class CollectionManager(Operator):
             icon = 'HIDE_OFF'
             buffers = [False, False]
 
-            if copy_buffer["RTO"] == "hide_viewport":
+            if copy_buffer["RTO"] == "hide":
                 icon = copy_icon
                 buffers[0] = True
 
-            if swap_buffer["A"]["RTO"] == "hide_viewport":
+            if swap_buffer["A"]["RTO"] == "hide":
                 icon = swap_icon
                 buffers[1] = True
 
@@ -201,11 +198,11 @@ class CollectionManager(Operator):
             icon = 'RESTRICT_VIEW_OFF'
             buffers = [False, False]
 
-            if copy_buffer["RTO"] == "collection.hide_viewport":
+            if copy_buffer["RTO"] == "disable":
                 icon = copy_icon
                 buffers[0] = True
 
-            if swap_buffer["A"]["RTO"] == "collection.hide_viewport":
+            if swap_buffer["A"]["RTO"] == "disable":
                 icon = swap_icon
                 buffers[1] = True
 
@@ -220,11 +217,11 @@ class CollectionManager(Operator):
             icon = 'RESTRICT_RENDER_OFF'
             buffers = [False, False]
 
-            if copy_buffer["RTO"] == "collection.hide_render":
+            if copy_buffer["RTO"] == "render":
                 icon = copy_icon
                 buffers[0] = True
 
-            if swap_buffer["A"]["RTO"] == "collection.hide_render":
+            if swap_buffer["A"]["RTO"] == "render":
                 icon = swap_icon
                 buffers[1] = True
 

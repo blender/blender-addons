@@ -41,8 +41,60 @@ collection_tree = []
 collection_state = {}
 expanded = set()
 row_index = 0
-
 max_lvl = 0
+
+rto_history = {
+    "exclude": {},
+    "exclude_all": {},
+    "select": {},
+    "select_all": {},
+    "hide": {},
+    "hide_all": {},
+    "disable": {},
+    "disable_all": {},
+    "render": {},
+    "render_all": {}
+}
+
+expand_history = {
+    "target": "",
+    "history": []
+    }
+
+phantom_history = {
+    "view_layer": "",
+    "initial_state": {},
+
+    "exclude_history": {},
+    "select_history": {},
+    "hide_history": {},
+    "disable_history": {},
+    "render_history": {},
+
+    "exclude_all_history": [],
+    "select_all_history": [],
+    "hide_all_history": [],
+    "disable_all_history": [],
+    "render_all_history": []
+                   }
+
+copy_buffer = {
+    "RTO": "",
+    "values": []
+    }
+
+swap_buffer = {
+    "A": {
+        "RTO": "",
+        "values": []
+        },
+    "B": {
+        "RTO": "",
+        "values": []
+        }
+    }
+
+
 def get_max_lvl():
     return max_lvl
 

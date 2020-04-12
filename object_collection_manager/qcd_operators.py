@@ -34,6 +34,7 @@ from . import internals
 
 from .internals import (
     layer_collections,
+    rto_history,
     qcd_slots,
     update_property_group,
     get_modifiers,
@@ -41,8 +42,6 @@ from .internals import (
     get_move_active,
     update_qcd_header,
 )
-
-from .operators import rto_history
 
 
 class MoveToQCDSlot(Operator):
