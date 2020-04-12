@@ -39,7 +39,7 @@ move_active = None
 layer_collections = {}
 collection_tree = []
 collection_state = {}
-expanded = []
+expanded = set()
 row_index = 0
 
 max_lvl = 0
@@ -49,7 +49,7 @@ def get_max_lvl():
 
 class QCDSlots():
     _slots = {}
-    overrides = {}
+    overrides = set()
     allow_update = True
 
     def __init__(self):
@@ -85,8 +85,8 @@ class QCDSlots():
         for key, value in blend_slots.items():
             self._slots[key] = value
 
-        for key, value in blend_overrides.items():
-            self.overrides[key] = value
+        for key in blend_overrides:
+            self.overrides.add(key)
 
     def length(self):
         return len(self._slots)
@@ -108,7 +108,7 @@ class QCDSlots():
         self._slots[idx] = name
 
         if name in self.overrides:
-            del self.overrides[name]
+            self.overrides.remove(name)
 
     def update_slot(self, idx, name):
         self.add_slot(idx, name)
@@ -127,7 +127,7 @@ class QCDSlots():
 
     def add_override(self, name):
         qcd_slots.del_slot(name=name)
-        qcd_slots.overrides[name] = True
+        qcd_slots.overrides.add(name)
 
     def clear_slots(self):
         self._slots.clear()
@@ -177,16 +177,67 @@ def update_col_name(self, context):
             self.name = self.last_name
             return
 
+        # if statement prevents update on list creation
         if self.last_name != '':
             # update collection name
             layer_collections[self.last_name]["ptr"].collection.name = self.name
+
+            # update expanded
+            if self.last_name in expanded:
+                expanded.remove(self.last_name)
+                expanded.add(self.name)
 
             # update qcd_slot
             idx = qcd_slots.get_idx(self.last_name)
             if idx:
                 qcd_slots.update_slot(idx, self.name)
 
+            # update qcd_overrides
+            if self.last_name in qcd_slots.overrides:
+                qcd_slots.overrides.remove(self.last_name)
+                qcd_slots.overrides.add(self.name)
+
+            cm_list_collection = context.scene.collection_manager.cm_list_collection
+
+            # update names in expanded and qcd slots for any other collection names
+            # that changed as a result of this name change
+            count = 0
+            laycol_iter_list = list(context.view_layer.layer_collection.children)
+
+            while laycol_iter_list:
+                layer_collection = laycol_iter_list[0]
+                cm_list_item = cm_list_collection[count]
+
+                if cm_list_item.name != layer_collection.name:
+                    # update expanded
+                    if cm_list_item.name in expanded:
+                        if not cm_list_item.name in layer_collections:
+                            expanded.remove(cm_list_item.name)
+
+                        expanded.add(layer_collection.name)
+
+                    # update qcd_slot
+                    idx = cm_list_item.qcd_slot_idx
+                    if idx:
+                        qcd_slots.update_slot(idx, layer_collection.name)
+
+                    # update qcd_overrides
+                    if cm_list_item.name in qcd_slots.overrides:
+                        if not cm_list_item.name in layer_collections:
+                            qcd_slots.overrides.remove(cm_list_item.name)
+
+                        qcd_slots.overrides.add(layer_collection.name)
+
+                if layer_collection.children:
+                    laycol_iter_list[0:0] = list(layer_collection.children)
+
+
+                laycol_iter_list.remove(layer_collection)
+                count += 1
+
+
             update_property_group(context)
+
 
         self.last_name = self.name
 

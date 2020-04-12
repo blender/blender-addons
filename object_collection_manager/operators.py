@@ -74,7 +74,7 @@ class ExpandAllOperator(Operator):
         else:
             for laycol in layer_collections.values():
                 if laycol["ptr"].children:
-                    expanded.append(laycol["name"])
+                    expanded.add(laycol["name"])
 
         # update tree view
         update_property_group(context)
@@ -121,7 +121,7 @@ class ExpandSublevelOperator(Operator):
                 expanded.remove(self.name)
                 expand = False
             else:
-                expanded.append(self.name)
+                expanded.add(self.name)
                 expand = True
 
             # do expanding/collapsing
@@ -129,7 +129,7 @@ class ExpandSublevelOperator(Operator):
                 for item in laycol.children:
                     if expand:
                         if not item.name in expanded:
-                            expanded.append(item.name)
+                            expanded.add(item.name)
                     else:
                         if item.name in expanded:
                             expanded.remove(item.name)
@@ -157,7 +157,7 @@ class ExpandSublevelOperator(Operator):
 
             if cls.isolated:
                 for item in expand_history["history"]:
-                    expanded.append(item)
+                    expanded.add(item)
 
                 expand_history["target"] = ""
                 expand_history["history"].clear()
@@ -171,7 +171,7 @@ class ExpandSublevelOperator(Operator):
         else:
             # expand/collapse collection
             if self.expand:
-                expanded.append(self.name)
+                expanded.add(self.name)
             else:
                 expanded.remove(self.name)
 
@@ -1988,7 +1988,7 @@ class CMRemoveCollectionOperator(Operator):
             qcd_slots.del_slot(name=self.collection_name)
 
         if self.collection_name in qcd_slots.overrides:
-            del qcd_slots.overrides[self.collection_name]
+            qcd_slots.overrides.remove(self.collection_name)
 
         # reset history
         for rto in rto_history.values():
@@ -2020,7 +2020,7 @@ class CMNewCollectionOperator(Operator):
             # add new collection
             if self.child:
                 laycol["ptr"].collection.children.link(new_collection)
-                expanded.append(laycol["name"])
+                expanded.add(laycol["name"])
 
                 # update tree view property
                 update_property_group(context)
