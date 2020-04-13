@@ -40,6 +40,7 @@ from .internals import (
     get_modifiers,
     get_move_selection,
     get_move_active,
+    get_edit_mode_selection,
     update_qcd_header,
 )
 
@@ -183,6 +184,10 @@ class ViewQCDSlot(Operator):
         qcd_laycol = None
         slot_name = qcd_slots.get_name(self.slot)
 
+        edit_mode_selection = get_edit_mode_selection()
+        internals.qcd_view_op_triggered = True
+        internals.in_qcd_view_op = True
+
         if slot_name:
             qcd_laycol = layer_collections[slot_name]["ptr"]
 
@@ -244,6 +249,36 @@ class ViewQCDSlot(Operator):
             del rto_history["exclude"][view_layer]
         if view_layer in rto_history["exclude_all"]:
             del rto_history["exclude_all"][view_layer]
+
+
+        if edit_mode_selection and not set(edit_mode_selection).isdisjoint(context.view_layer.objects):
+            if context.view_layer.objects:
+                if context.view_layer.objects != edit_mode_selection:
+                    try:
+                        bpy.ops.object.select_all(action='DESELECT')
+                    except RuntimeError: # context is incorrect
+                        # triggered when toggling slots
+                        pass
+
+                    for obj in edit_mode_selection:
+                        if obj.name in context.view_layer.objects:
+                            obj.select_set(True)
+
+                if not context.active_object or not context.active_object in edit_mode_selection:
+                    for obj in edit_mode_selection:
+                            if obj.name in context.view_layer.objects:
+                                context.view_layer.objects.active = obj
+                                break
+
+                if context.active_object:
+                    if context.active_object.type == 'GPENCIL':
+                        bpy.ops.object.mode_set(mode='EDIT_GPENCIL')
+
+                    else:
+                        bpy.ops.object.mode_set(mode='EDIT')
+
+
+        internals.in_qcd_view_op = False
 
         return {'FINISHED'}
 

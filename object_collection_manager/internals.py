@@ -36,6 +36,10 @@ move_triggered = False
 move_selection = []
 move_active = None
 
+qcd_view_op_triggered = False
+in_qcd_view_op = False
+edit_mode_selection = []
+
 layer_collections = {}
 collection_tree = []
 collection_state = {}
@@ -509,6 +513,20 @@ def get_move_active():
         move_active = None
 
     return bpy.data.objects[move_active] if move_active else None
+
+def get_edit_mode_selection():
+    global edit_mode_selection
+
+    if not edit_mode_selection:
+        edit_mode_selection = [obj.name for obj in bpy.context.selected_objects
+                               if obj.mode == 'EDIT' or obj.mode == 'EDIT_GPENCIL']
+
+    else:
+        for obj in bpy.context.selected_objects:
+            if obj.mode == 'EDIT' or obj.mode == 'EDIT_GPENCIL':
+                edit_mode_selection.append(obj.name)
+
+    return [bpy.data.objects[name] for name in edit_mode_selection]
 
 
 def update_qcd_header():
