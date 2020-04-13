@@ -1516,7 +1516,7 @@ def add_Nylon_Head(OUTSIDE_RADIUS, Z_LOCATION, DIV_COUNT):
     sVerts, sFaces = SpinDup(verts, faces, 360, DIV_COUNT, 'z')
     sVerts.extend(verts)        # add the start verts to the Spin verts to complete the loop
 
-    faces.extend(Build_Face_List_Quads(FaceStart, Row - 1, DIV_COUNT))
+    faces.extend(Build_Face_List_Quads(FaceStart, Row - 1, DIV_COUNT,1))
 
     return Move_Verts_Up_Z(sVerts, 0), faces, Lowest_Z_Vert
 
