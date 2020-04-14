@@ -65,6 +65,29 @@ from .operator_utils import (
     clear_swap,
 )
 
+class SetActiveCollection(Operator):
+    '''Set the active collection'''
+    bl_label = "Set Active Collection"
+    bl_idname = "view3d.set_active_collection"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    collection_index: IntProperty()
+    collection_name: StringProperty()
+
+    def execute(self, context):
+        if self.collection_index == 0:
+            cm = context.scene.collection_manager
+            cm.cm_list_index = -1
+            layer_collection = context.view_layer.layer_collection
+
+        else:
+            laycol = layer_collections[self.collection_name]
+            layer_collection = laycol["ptr"]
+
+        context.view_layer.active_layer_collection = layer_collection
+
+        return {'FINISHED'}
+
 
 class ExpandAllOperator(Operator):
     '''Expand/Collapse all collections'''
@@ -197,8 +220,12 @@ class CMSetCollectionOperator(Operator):
     collection_name: StringProperty()
 
     def invoke(self, context, event):
-        laycol = layer_collections[self.collection_name]
-        target_collection = laycol["ptr"].collection
+        if self.collection_index == 0:
+            target_collection = context.view_layer.layer_collection.collection
+
+        else:
+            laycol = layer_collections[self.collection_name]
+            target_collection = laycol["ptr"].collection
 
         selected_objects = get_move_selection()
         active_object = get_move_active()
@@ -223,7 +250,8 @@ class CMSetCollectionOperator(Operator):
                         target_collection.objects.link(obj)
 
             else:
-                errors = False
+                warnings = False
+                master_warning = False
 
                 # remove from collections
                 for obj in selected_objects:
@@ -231,14 +259,34 @@ class CMSetCollectionOperator(Operator):
 
                         # disallow removing if only one
                         if len(obj.users_collection) == 1:
-                            errors = True
-                            continue
+                            warnings = True
+                            master_laycol = context.view_layer.layer_collection
+                            master_collection = master_laycol.collection
+
+                            if obj.name not in master_collection.objects:
+                                master_collection.objects.link(obj)
+
+                            else:
+                                master_warning = True
+                                continue
+
 
                         # remove from collection
                         target_collection.objects.unlink(obj)
 
-                if errors:
-                    send_report("Error removing 1 or more objects from this collection.\nObjects would be left without a collection")
+                if warnings:
+                    if master_warning:
+                        send_report(
+                        "Error removing 1 or more objects from the Scene Collection.\n"
+                        "Objects would be left without a collection."
+                        )
+                        self.report({"WARNING"},
+                        "Error removing 1 or more objects from the Scene Collection."
+                        "  Objects would be left without a collection."
+                        )
+
+                    else:
+                        self.report({"INFO"}, "1 or more objects moved to Scene Collection.")
 
 
         else:
@@ -249,7 +297,7 @@ class CMSetCollectionOperator(Operator):
 
                 # remove from all other collections
                 for collection in obj.users_collection:
-                    if collection.name != target_collection.name:
+                    if collection != target_collection:
                         collection.objects.unlink(obj)
 
         # update the active object if needed
@@ -864,21 +912,30 @@ class CMNewCollectionOperator(Operator):
 
         # if there are collections
         if len(cm.cm_list_collection) > 0:
-            # get selected collection
-            laycol = layer_collections[cm.cm_list_collection[cm.cm_list_index].name]
+            if not cm.cm_list_index == -1:
+                # get selected collection
+                laycol = layer_collections[cm.cm_list_collection[cm.cm_list_index].name]
 
-            # add new collection
-            if self.child:
-                laycol["ptr"].collection.children.link(new_collection)
-                expanded.add(laycol["name"])
+                # add new collection
+                if self.child:
+                    laycol["ptr"].collection.children.link(new_collection)
+                    expanded.add(laycol["name"])
 
-                # update tree view property
-                update_property_group(context)
+                    # update tree view property
+                    update_property_group(context)
 
-                cm.cm_list_index = layer_collections[new_collection.name]["row_index"]
+                    cm.cm_list_index = layer_collections[new_collection.name]["row_index"]
+
+                else:
+                    laycol["parent"]["ptr"].collection.children.link(new_collection)
+
+                    # update tree view property
+                    update_property_group(context)
+
+                    cm.cm_list_index = layer_collections[new_collection.name]["row_index"]
 
             else:
-                laycol["parent"]["ptr"].collection.children.link(new_collection)
+                context.scene.collection.children.link(new_collection)
 
                 # update tree view property
                 update_property_group(context)

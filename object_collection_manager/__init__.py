@@ -22,7 +22,7 @@ bl_info = {
     "name": "Collection Manager",
     "description": "Manage collections and their objects",
     "author": "Ryan Inch",
-    "version": (2,6,1),
+    "version": (2,7,1),
     "blender": (2, 80, 0),
     "location": "View3D - Object Mode (Shortcut - M)",
     "warning": '',  # used for warning icon and text in addons panel
@@ -86,6 +86,7 @@ addon_keymaps = []
 classes = (
     internals.CMListCollection,
     internals.CMSendReport,
+    operators.SetActiveCollection,
     operators.ExpandAllOperator,
     operators.ExpandSublevelOperator,
     operators.CMExcludeOperator,

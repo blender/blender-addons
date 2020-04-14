@@ -26,7 +26,10 @@ from bpy.types import (
     UIList,
 )
 
-from bpy.props import BoolProperty
+from bpy.props import (
+    BoolProperty,
+    StringProperty,
+)
 
 from .internals import (
     collection_tree,
@@ -61,6 +64,12 @@ class CollectionManager(Operator):
     last_view_layer = ""
 
     window_open = False
+
+    master_collection: StringProperty(
+        default='Scene Collection',
+        name="",
+        description="Scene Collection"
+        )
 
     def __init__(self):
         self.window_open = True
@@ -99,15 +108,10 @@ class CollectionManager(Operator):
         layout.row().separator()
         layout.row().separator()
 
-        filter_row = layout.row()
-        filter_row.alignment = 'RIGHT'
+        button_row = layout.split(factor=0.3)
+        button_row.alignment = 'LEFT'
 
-        filter_row.popover(panel="COLLECTIONMANAGER_PT_restriction_toggles", text="", icon='FILTER')
-
-        toggle_row = layout.split(factor=0.3)
-        toggle_row.alignment = 'LEFT'
-
-        sec1 = toggle_row.row()
+        sec1 = button_row.row()
         sec1.alignment = 'LEFT'
         sec1.enabled = False
 
@@ -124,12 +128,63 @@ class CollectionManager(Operator):
                 break
 
         if context.preferences.addons[__package__].preferences.enable_qcd:
-            renum = toggle_row.row()
+            renum = button_row.row()
             renum.alignment = 'LEFT'
             renum.operator("view3d.renumerate_qcd_slots")
 
-        sec2 = toggle_row.row()
-        sec2.alignment = 'RIGHT'
+        filter_sec = button_row.row()
+        filter_sec.alignment = 'RIGHT'
+
+        filter_sec.popover(panel="COLLECTIONMANAGER_PT_restriction_toggles",
+                           text="", icon='FILTER')
+
+        mc_box = layout.box()
+        master_collection_row = mc_box.row(align=True)
+
+        highlight = False
+        if (context.view_layer.active_layer_collection ==
+            context.view_layer.layer_collection):
+                highlight = True
+
+        prop = master_collection_row.operator("view3d.set_active_collection",
+                                              text='', icon='GROUP', depress=highlight)
+        prop.collection_index = 0
+        prop.collection_name = 'Master Collection'
+
+        master_collection_row.separator()
+
+        name_row = master_collection_row.row()
+        name_row.prop(self, "master_collection", text='')
+        name_row.enabled = False
+
+        master_collection_row.separator()
+
+        global_rto_row = master_collection_row.row()
+        global_rto_row.alignment = 'RIGHT'
+
+        row_setcol = global_rto_row.row()
+        row_setcol.alignment = 'LEFT'
+        row_setcol.operator_context = 'INVOKE_DEFAULT'
+        selected_objects = get_move_selection()
+        active_object = get_move_active()
+        collection = context.view_layer.layer_collection.collection
+
+        icon = 'MESH_CUBE'
+
+        if selected_objects:
+            if active_object and active_object.name in collection.objects:
+                icon = 'SNAP_VOLUME'
+
+            elif not set(selected_objects).isdisjoint(collection.objects):
+                icon = 'STICKY_UVS_LOC'
+
+        else:
+            row_setcol.enabled = False
+
+        prop = row_setcol.operator("view3d.set_collection", text="",
+                                   icon=icon, emboss=False)
+        prop.collection_index = 0
+        prop.collection_name = 'Master Collection'
 
         copy_icon = 'COPYDOWN'
         swap_icon = 'ARROW_LEFTRIGHT'
@@ -152,7 +207,7 @@ class CollectionManager(Operator):
             if buffers[0] and buffers[1]:
                 icon = copy_swap_icon
 
-            sec2.operator("view3d.un_exclude_all_collections", text="", icon=icon, depress=depress)
+            global_rto_row.operator("view3d.un_exclude_all_collections", text="", icon=icon, depress=depress)
 
         if cm.show_selectable:
             select_all_history = rto_history["select_all"].get(view_layer.name, [])
@@ -171,7 +226,7 @@ class CollectionManager(Operator):
             if buffers[0] and buffers[1]:
                 icon = copy_swap_icon
 
-            sec2.operator("view3d.un_restrict_select_all_collections", text="", icon=icon, depress=depress)
+            global_rto_row.operator("view3d.un_restrict_select_all_collections", text="", icon=icon, depress=depress)
 
         if cm.show_hide_viewport:
             hide_all_history = rto_history["hide_all"].get(view_layer.name, [])
@@ -190,7 +245,7 @@ class CollectionManager(Operator):
             if buffers[0] and buffers[1]:
                 icon = copy_swap_icon
 
-            sec2.operator("view3d.un_hide_all_collections", text="", icon=icon, depress=depress)
+            global_rto_row.operator("view3d.un_hide_all_collections", text="", icon=icon, depress=depress)
 
         if cm.show_disable_viewport:
             disable_all_history = rto_history["disable_all"].get(view_layer.name, [])
@@ -209,7 +264,7 @@ class CollectionManager(Operator):
             if buffers[0] and buffers[1]:
                 icon = copy_swap_icon
 
-            sec2.operator("view3d.un_disable_viewport_all_collections", text="", icon=icon, depress=depress)
+            global_rto_row.operator("view3d.un_disable_viewport_all_collections", text="", icon=icon, depress=depress)
 
         if cm.show_render:
             render_all_history = rto_history["render_all"].get(view_layer.name, [])
@@ -228,7 +283,7 @@ class CollectionManager(Operator):
             if buffers[0] and buffers[1]:
                 icon = copy_swap_icon
 
-            sec2.operator("view3d.un_disable_render_all_collections", text="", icon=icon, depress=depress)
+            global_rto_row.operator("view3d.un_disable_render_all_collections", text="", icon=icon, depress=depress)
 
         layout.row().template_list("CM_UL_items", "",
                                    cm, "cm_list_collection",
@@ -271,7 +326,7 @@ class CollectionManager(Operator):
             active_laycol_row_index = layer_collections[active_laycol_name]["row_index"]
             cm.cm_list_index = active_laycol_row_index
 
-        except KeyError: # Master Collection isn't supported
+        except KeyError: # Master Collection is special and not part of regular collections
             cm.cm_list_index = -1
 
         # check if history/buffer state still correct
