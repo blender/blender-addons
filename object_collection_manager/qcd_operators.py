@@ -44,6 +44,10 @@ from .internals import (
     update_qcd_header,
 )
 
+from .operator_utils import (
+    apply_to_children,
+)
+
 
 class MoveToQCDSlot(Operator):
     '''Move object(s) to QCD slot'''
@@ -198,16 +202,10 @@ class ViewQCDSlot(Operator):
             # get current child exclusion state
             child_exclusion = []
 
-            laycol_iter_list = [qcd_laycol.children]
-            while len(laycol_iter_list) > 0:
-                new_laycol_iter_list = []
-                for laycol_iter in laycol_iter_list:
-                    for layer_collection in laycol_iter:
-                        child_exclusion.append([layer_collection, layer_collection.exclude])
-                        if len(layer_collection.children) > 0:
-                            new_laycol_iter_list.append(layer_collection.children)
+            def get_child_exclusion(layer_collection):
+                child_exclusion.append([layer_collection, layer_collection.exclude])
 
-                laycol_iter_list = new_laycol_iter_list
+            apply_to_children(qcd_laycol, get_child_exclusion)
 
             # toggle exclusion of qcd_laycol
             qcd_laycol.exclude = not qcd_laycol.exclude
@@ -227,16 +225,10 @@ class ViewQCDSlot(Operator):
             qcd_laycol.exclude = False
 
             # exclude all children
-            laycol_iter_list = [qcd_laycol.children]
-            while len(laycol_iter_list) > 0:
-                new_laycol_iter_list = []
-                for laycol_iter in laycol_iter_list:
-                    for layer_collection in laycol_iter:
-                        layer_collection.exclude = True
-                        if len(layer_collection.children) > 0:
-                            new_laycol_iter_list.append(layer_collection.children)
+            def exclude_all_children(layer_collection):
+                layer_collection.exclude = True
 
-                laycol_iter_list = new_laycol_iter_list
+            apply_to_children(qcd_laycol, exclude_all_children)
 
             # set layer as active layer collection
             context.view_layer.active_layer_collection = qcd_laycol

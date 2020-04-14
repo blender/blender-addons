@@ -128,19 +128,13 @@ class ExpandSublevelOperator(Operator):
                 expand = True
 
             # do expanding/collapsing
-            def loop(laycol):
-                for item in laycol.children:
-                    if expand:
-                        if not item.name in expanded:
-                            expanded.add(item.name)
-                    else:
-                        if item.name in expanded:
-                            expanded.remove(item.name)
+            def set_expanded(layer_collection):
+                if expand:
+                    expanded.add(layer_collection.name)
+                else:
+                    expanded.discard(layer_collection.name)
 
-                    if len(item.children) > 0:
-                        loop(item)
-
-            loop(layer_collections[self.name]["ptr"])
+            apply_to_children(layer_collections[self.name]["ptr"], set_expanded)
 
             expand_history["target"] = ""
             expand_history["history"].clear()
@@ -930,12 +924,8 @@ class CMPhantomModeOperator(Operator):
             # save current visibility state
             phantom_history["view_layer"] = view_layer.name
 
-            laycol_iter_list = [view_layer.layer_collection.children]
-            while len(laycol_iter_list) > 0:
-                new_laycol_iter_list = []
-                for laycol_iter in laycol_iter_list:
-                    for layer_collection in laycol_iter:
-                        phantom_history["initial_state"][layer_collection.name] = {
+            def save_visibility_state(layer_collection):
+                phantom_history["initial_state"][layer_collection.name] = {
                             "exclude": layer_collection.exclude,
                             "select": layer_collection.collection.hide_select,
                             "hide": layer_collection.hide_viewport,
@@ -943,11 +933,7 @@ class CMPhantomModeOperator(Operator):
                             "render": layer_collection.collection.hide_render,
                                 }
 
-                        if len(layer_collection.children) > 0:
-                            new_laycol_iter_list.append(layer_collection.children)
-
-                laycol_iter_list = new_laycol_iter_list
-
+            apply_to_children(view_layer.layer_collection, save_visibility_state)
 
             # save current rto history
             for rto, history, in rto_history.items():
@@ -955,35 +941,18 @@ class CMPhantomModeOperator(Operator):
                     phantom_history[rto+"_history"] = deepcopy(history[view_layer.name])
 
 
-        # return to normal mode
-        else:
-            laycol_iter_list = [view_layer.layer_collection.children]
-            while len(laycol_iter_list) > 0:
-                new_laycol_iter_list = []
-                for laycol_iter in laycol_iter_list:
-                    for layer_collection in laycol_iter:
-                        phantom_laycol = phantom_history["initial_state"][layer_collection.name]
 
-                        layer_collection.exclude = \
-                            phantom_laycol["exclude"]
+        else: # return to normal mode
+            def restore_visibility_state(layer_collection):
+                phantom_laycol = phantom_history["initial_state"][layer_collection.name]
 
-                        layer_collection.collection.hide_select = \
-                            phantom_laycol["select"]
+                layer_collection.exclude = phantom_laycol["exclude"]
+                layer_collection.collection.hide_select = phantom_laycol["select"]
+                layer_collection.hide_viewport = phantom_laycol["hide"]
+                layer_collection.collection.hide_viewport = phantom_laycol["disable"]
+                layer_collection.collection.hide_render = phantom_laycol["render"]
 
-                        layer_collection.hide_viewport = \
-                            phantom_laycol["hide"]
-
-                        layer_collection.collection.hide_viewport = \
-                            phantom_laycol["disable"]
-
-                        layer_collection.collection.hide_render = \
-                            phantom_laycol["render"]
-
-
-                        if len(layer_collection.children) > 0:
-                            new_laycol_iter_list.append(layer_collection.children)
-
-                laycol_iter_list = new_laycol_iter_list
+            apply_to_children(view_layer.layer_collection, restore_visibility_state)
 
 
             # restore previous rto history
