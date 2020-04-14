@@ -108,29 +108,31 @@ class CollectionManager(Operator):
         layout.row().separator()
         layout.row().separator()
 
-        button_row = layout.split(factor=0.3)
-        button_row.alignment = 'LEFT'
+        button_row = layout.row()
 
-        sec1 = button_row.row()
-        sec1.alignment = 'LEFT'
-        sec1.enabled = False
+        op_sec = button_row.row()
+        op_sec.alignment = 'LEFT'
+
+        collapse_sec = op_sec.row()
+        collapse_sec.alignment = 'LEFT'
+        collapse_sec.enabled = False
 
         if len(expanded) > 0:
             text = "Collapse All Items"
         else:
             text = "Expand All Items"
 
-        sec1.operator("view3d.expand_all_items", text=text)
+        collapse_sec.operator("view3d.expand_all_items", text=text)
 
         for laycol in collection_tree:
             if laycol["has_children"]:
-                sec1.enabled = True
+                collapse_sec.enabled = True
                 break
 
         if context.preferences.addons[__package__].preferences.enable_qcd:
-            renum = button_row.row()
-            renum.alignment = 'LEFT'
-            renum.operator("view3d.renumerate_qcd_slots")
+            renum_sec = op_sec.row()
+            renum_sec.alignment = 'LEFT'
+            renum_sec.operator("view3d.renumerate_qcd_slots")
 
         filter_sec = button_row.row()
         filter_sec.alignment = 'RIGHT'
