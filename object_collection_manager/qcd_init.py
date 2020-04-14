@@ -153,6 +153,13 @@ def register_qcd_view_edit_mode_hotkeys():
             addon_qcd_view_edit_mode_hotkey_keymaps.append((km, kmi))
 
 
+    km = wm.keyconfigs.addon.keymaps.new(name="Mesh")
+    kmi = km.keymap_items.new('wm.call_menu', 'ACCENT_GRAVE', 'PRESS')
+    kmi.properties.name = "VIEW3D_MT_edit_mesh_select_mode"
+    addon_qcd_view_edit_mode_hotkey_keymaps.append((km, kmi))
+
+
+
 def unregister_qcd():
     bpy.types.VIEW3D_HT_header.remove(ui.view3d_header_qcd_slots)
     bpy.types.TOPBAR_HT_upper_bar.remove(ui.view_layer_update)

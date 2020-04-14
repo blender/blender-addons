@@ -206,7 +206,7 @@ class CMPreferences(AddonPreferences):
     enable_qcd_view_edit_mode_hotkeys: BoolProperty(
         name="QCD Edit Mode Hotkeys",
         description="Enable/Disable the numerical hotkeys to view QCD slots in Edit Mode",
-        default=True,
+        default=False,
         update=update_qcd_view_edit_mode_hotkeys_status,
         )
 
