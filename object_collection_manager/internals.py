@@ -227,6 +227,7 @@ qcd_slots = QCDSlots()
 def update_col_name(self, context):
     global layer_collections
     global qcd_slots
+    global rto_history
 
     if self.name != self.last_name:
         if self.name == '':
@@ -235,6 +236,8 @@ def update_col_name(self, context):
 
         # if statement prevents update on list creation
         if self.last_name != '':
+            view_layer_name = context.view_layer.name
+
             # update collection name
             layer_collections[self.last_name]["ptr"].collection.name = self.name
 
@@ -253,10 +256,30 @@ def update_col_name(self, context):
                 qcd_slots.overrides.remove(self.last_name)
                 qcd_slots.overrides.add(self.name)
 
-            cm_list_collection = context.scene.collection_manager.cm_list_collection
+            # update history
+            rtos = [
+                "exclude",
+                "select",
+                "hide",
+                "disable",
+                "render"
+                ]
 
-            # update names in expanded and qcd slots for any other collection names
-            # that changed as a result of this name change
+            orig_targets = {
+                rto: rto_history[rto][view_layer_name]["target"]
+                for rto in rtos
+                if rto_history[rto].get(view_layer_name)
+                }
+
+            for rto in rtos:
+                history = rto_history[rto].get(view_layer_name)
+
+                if history and orig_targets[rto] == self.last_name:
+                    history["target"] = self.name
+
+            # update names in expanded, qcd slots, and rto_history for any other
+            # collection names that changed as a result of this name change
+            cm_list_collection = context.scene.collection_manager.cm_list_collection
             count = 0
             laycol_iter_list = list(context.view_layer.layer_collection.children)
 
@@ -283,6 +306,13 @@ def update_col_name(self, context):
                             qcd_slots.overrides.remove(cm_list_item.name)
 
                         qcd_slots.overrides.add(layer_collection.name)
+
+                    # update history
+                    for rto in rtos:
+                        history = rto_history[rto].get(view_layer_name)
+
+                        if history and orig_targets[rto] == cm_list_item.last_name:
+                            history["target"] = layer_collection.name
 
                 if layer_collection.children:
                     laycol_iter_list[0:0] = list(layer_collection.children)
