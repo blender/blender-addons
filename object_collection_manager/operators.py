@@ -417,13 +417,13 @@ class CMUnExcludeAllOperator(Operator):
             clear_swap("exclude")
 
         elif modifiers == {"ctrl"}:
-            copy_rtos("exclude")
+            copy_rtos(view_layer, "exclude")
 
         elif modifiers == {"ctrl", "alt"}:
-            swap_rtos("exclude")
+            swap_rtos(view_layer, "exclude")
 
         elif modifiers == {"shift"}:
-            invert_rtos("exclude")
+            invert_rtos(view_layer, "exclude")
 
         else:
             activate_all_rtos(view_layer, "exclude")
@@ -519,13 +519,13 @@ class CMUnRestrictSelectAllOperator(Operator):
             clear_swap("select")
 
         elif modifiers == {"ctrl"}:
-            copy_rtos("select")
+            copy_rtos(view_layer, "select")
 
         elif modifiers == {"ctrl", "alt"}:
-            swap_rtos("select")
+            swap_rtos(view_layer, "select")
 
         elif modifiers == {"shift"}:
-            invert_rtos("select")
+            invert_rtos(view_layer, "select")
 
         else:
             activate_all_rtos(view_layer, "select")
@@ -621,13 +621,13 @@ class CMUnHideAllOperator(Operator):
             clear_swap("hide")
 
         elif modifiers == {"ctrl"}:
-            copy_rtos("hide")
+            copy_rtos(view_layer, "hide")
 
         elif modifiers == {"ctrl", "alt"}:
-            swap_rtos("hide")
+            swap_rtos(view_layer, "hide")
 
         elif modifiers == {"shift"}:
-            invert_rtos("hide")
+            invert_rtos(view_layer, "hide")
 
         else:
             activate_all_rtos(view_layer, "hide")
@@ -723,13 +723,13 @@ class CMUnDisableViewportAllOperator(Operator):
             clear_swap("disable")
 
         elif modifiers == {"ctrl"}:
-            copy_rtos("disable")
+            copy_rtos(view_layer, "disable")
 
         elif modifiers == {"ctrl", "alt"}:
-            swap_rtos("disable")
+            swap_rtos(view_layer, "disable")
 
         elif modifiers == {"shift"}:
-            invert_rtos("disable")
+            invert_rtos(view_layer, "disable")
 
         else:
             activate_all_rtos(view_layer, "disable")
@@ -826,13 +826,13 @@ class CMUnDisableRenderAllOperator(Operator):
             clear_swap("render")
 
         elif modifiers == {"ctrl"}:
-            copy_rtos("render")
+            copy_rtos(view_layer, "render")
 
         elif modifiers == {"ctrl", "alt"}:
-            swap_rtos("render")
+            swap_rtos(view_layer, "render")
 
         elif modifiers == {"shift"}:
-            invert_rtos("render")
+            invert_rtos(view_layer, "render")
 
         else:
             activate_all_rtos(view_layer, "render")
