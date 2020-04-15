@@ -206,8 +206,18 @@ def activate_all_rtos(view_layer, rto):
 
 
 def invert_rtos(rto):
-    for x, item in enumerate(layer_collections.values()):
-        set_rto(item["ptr"], rto, not get_rto(item["ptr"], rto))
+    if rto == "exclude":
+        orig_values = []
+
+        for item in layer_collections.values():
+            orig_values.append(get_rto(item["ptr"], rto))
+
+        for x, item in enumerate(layer_collections.values()):
+            set_rto(item["ptr"], rto, not orig_values[x])
+
+    else:
+        for item in layer_collections.values():
+            set_rto(item["ptr"], rto, not get_rto(item["ptr"], rto))
 
 
 def copy_rtos(rto):
