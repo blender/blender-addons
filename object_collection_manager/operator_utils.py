@@ -161,21 +161,17 @@ def isolate_rto(cls, self, view_layer, rto, *, children=False):
 
 def toggle_children(self, view_layer, rto):
     laycol_ptr = layer_collections[self.name]["ptr"]
-    # reset exclude history
+    # reset rto history
     del rto_history[rto][view_layer]
 
-    if rto == "exclude":
-        laycol_ptr.exclude = not laycol_ptr.exclude
+    # toggle rto state
+    state = not get_rto(laycol_ptr, rto)
+    set_rto(laycol_ptr, rto, state)
 
-    else:
-        # toggle selectability of collection
-        state = not get_rto(laycol_ptr, rto)
-        set_rto(laycol_ptr, rto, state)
+    def set_state(layer_collection):
+        set_rto(layer_collection, rto, state)
 
-        def set_state(layer_collection):
-            set_rto(layer_collection, rto, state)
-
-        apply_to_children(laycol_ptr, set_state)
+    apply_to_children(laycol_ptr, set_state)
 
 
 def activate_all_rtos(view_layer, rto):
