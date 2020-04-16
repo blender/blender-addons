@@ -175,7 +175,7 @@ class ViewQCDSlot(Operator):
     '''View objects in QCD slot'''
     bl_label = "View QCD Slot"
     bl_idname = "view3d.view_qcd_slot"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'UNDO'}
 
     slot: StringProperty()
     toggle: BoolProperty()
