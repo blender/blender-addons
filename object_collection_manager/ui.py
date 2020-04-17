@@ -440,15 +440,19 @@ class CM_UL_items(UIList):
             if laycol["expanded"]:
                 highlight = True if expand_history["target"] == item.name else False
 
-                prop = row.operator("view3d.expand_sublevel", text="", icon='DISCLOSURE_TRI_DOWN',
+                prop = row.operator("view3d.expand_sublevel", text="",
+                                    icon='DISCLOSURE_TRI_DOWN',
                                     emboss=highlight, depress=highlight)
                 prop.expand = False
                 prop.name = item.name
                 prop.index = index
 
             else:
+                highlight = True if expand_history["target"] == item.name else False
+
                 prop = row.operator("view3d.expand_sublevel", text="",
-                                    icon='DISCLOSURE_TRI_RIGHT', emboss=False)
+                                    icon='DISCLOSURE_TRI_RIGHT',
+                                    emboss=highlight, depress=highlight)
                 prop.expand = True
                 prop.name = item.name
                 prop.index = index
