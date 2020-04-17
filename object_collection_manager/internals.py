@@ -228,6 +228,7 @@ def update_col_name(self, context):
     global layer_collections
     global qcd_slots
     global rto_history
+    global expand_history
 
     if self.name != self.last_name:
         if self.name == '':
@@ -242,7 +243,9 @@ def update_col_name(self, context):
             layer_collections[self.last_name]["ptr"].collection.name = self.name
 
             # update expanded
-            if self.last_name in expanded:
+            orig_expanded = {x for x in expanded}
+
+            if self.last_name in orig_expanded:
                 expanded.remove(self.last_name)
                 expanded.add(self.name)
 
@@ -277,6 +280,17 @@ def update_col_name(self, context):
                 if history and orig_targets[rto] == self.last_name:
                     history["target"] = self.name
 
+            # update expand history
+            orig_expand_target = expand_history["target"]
+            orig_expand_history = [x for x in expand_history["history"]]
+
+            if orig_expand_target == self.last_name:
+                expand_history["target"] = self.name
+
+            for x, name in enumerate(orig_expand_history):
+                if name == self.last_name:
+                    expand_history["history"][x] = self.name
+
             # update names in expanded, qcd slots, and rto_history for any other
             # collection names that changed as a result of this name change
             cm_list_collection = context.scene.collection_manager.cm_list_collection
@@ -289,8 +303,8 @@ def update_col_name(self, context):
 
                 if cm_list_item.name != layer_collection.name:
                     # update expanded
-                    if cm_list_item.name in expanded:
-                        if not cm_list_item.name in layer_collections:
+                    if cm_list_item.last_name in orig_expanded:
+                        if not cm_list_item.last_name in layer_collections:
                             expanded.remove(cm_list_item.name)
 
                         expanded.add(layer_collection.name)
@@ -313,6 +327,14 @@ def update_col_name(self, context):
 
                         if history and orig_targets[rto] == cm_list_item.last_name:
                             history["target"] = layer_collection.name
+
+                    # update expand history
+                    if orig_expand_target == cm_list_item.last_name:
+                        expand_history["target"] = layer_collection.name
+
+                    for x, name in enumerate(orig_expand_history):
+                        if name == cm_list_item.last_name:
+                            expand_history["history"][x] = layer_collection.name
 
                 if layer_collection.children:
                     laycol_iter_list[0:0] = list(layer_collection.children)
