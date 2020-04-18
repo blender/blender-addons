@@ -851,6 +851,7 @@ class CMRemoveCollectionOperator(Operator):
 
     def execute(self, context):
         global rto_history
+        global expand_history
         global qcd_slots
 
         cm = context.scene.collection_manager
@@ -872,8 +873,16 @@ class CMRemoveCollectionOperator(Operator):
                 parent_collection.children.link(subcollection)
 
 
-        # remove collection and update tree view
+        # remove collection, update expanded, and update tree view
         bpy.data.collections.remove(collection)
+        expanded.discard(self.collection_name)
+
+        if expand_history["target"] == self.collection_name:
+            expand_history["target"] = ""
+
+        if self.collection_name in expand_history["history"]:
+            expand_history["history"].remove(self.collection_name)
+
         update_property_group(context)
 
 
