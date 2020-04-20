@@ -90,61 +90,73 @@ rl_outputs = (
 # shader nodes
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+# Keeping things in alphabetical orde so we don't need to sort later.
 shaders_input_nodes_props = (
-    ('ShaderNodeTexCoord', 'TEX_COORD', 'Texture Coordinate'),
+    ('ShaderNodeAmbientOcclusion', 'AMBIENT_OCCLUSION', 'Ambient Occlusion'),
     ('ShaderNodeAttribute', 'ATTRIBUTE', 'Attribute'),
-    ('ShaderNodeLightPath', 'LIGHT_PATH', 'Light Path'),
-    ('ShaderNodeFresnel', 'FRESNEL', 'Fresnel'),
-    ('ShaderNodeLayerWeight', 'LAYER_WEIGHT', 'Layer Weight'),
-    ('ShaderNodeRGB', 'RGB', 'RGB'),
-    ('ShaderNodeValue', 'VALUE', 'Value'),
-    ('ShaderNodeTangent', 'TANGENT', 'Tangent'),
-    ('ShaderNodeNewGeometry', 'NEW_GEOMETRY', 'Geometry'),
-    ('ShaderNodeWireframe', 'WIREFRAME', 'Wireframe'),
-    ('ShaderNodeObjectInfo', 'OBJECT_INFO', 'Object Info'),
-    ('ShaderNodeHairInfo', 'HAIR_INFO', 'Hair Info'),
-    ('ShaderNodeParticleInfo', 'PARTICLE_INFO', 'Particle Info'),
+    ('ShaderNodeBevel', 'BEVEL', 'Bevel'),
     ('ShaderNodeCameraData', 'CAMERA', 'Camera Data'),
+    ('ShaderNodeFresnel', 'FRESNEL', 'Fresnel'),
+    ('ShaderNodeNewGeometry', 'NEW_GEOMETRY', 'Geometry'),
+    ('ShaderNodeHairInfo', 'HAIR_INFO', 'Hair Info'),
+    ('ShaderNodeLayerWeight', 'LAYER_WEIGHT', 'Layer Weight'),
+    ('ShaderNodeLightPath', 'LIGHT_PATH', 'Light Path'),
+    ('ShaderNodeObjectInfo', 'OBJECT_INFO', 'Object Info'),
+    ('ShaderNodeParticleInfo', 'PARTICLE_INFO', 'Particle Info'),
+    ('ShaderNodeRGB', 'RGB', 'RGB'),
+    ('ShaderNodeTangent', 'TANGENT', 'Tangent'),
+    ('ShaderNodeTexCoord', 'TEX_COORD', 'Texture Coordinate'),
     ('ShaderNodeUVMap', 'UVMAP', 'UV Map'),
+    ('ShaderNodeValue', 'VALUE', 'Value'),
+    ('ShaderNodeVertexColor', 'VERTEX_COLOR', 'Vertex Color'),
+    ('ShaderNodeVolumeInfo', 'VOLUME_INFO', 'Volume Info'),
+    ('ShaderNodeWireframe', 'WIREFRAME', 'Wireframe'),
+
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+# Keeping things in alphabetical orde so we don't need to sort later.
 shaders_output_nodes_props = (
-    ('ShaderNodeOutputMaterial', 'OUTPUT_MATERIAL', 'Material Output'),
+    ('ShaderNodeOutputAOV', 'OUTPUT_AOV', 'AOV Output'),
     ('ShaderNodeOutputLight', 'OUTPUT_LIGHT', 'Light Output'),
+    ('ShaderNodeOutputMaterial', 'OUTPUT_MATERIAL', 'Material Output'),
     ('ShaderNodeOutputWorld', 'OUTPUT_WORLD', 'World Output'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+# Keeping things in alphabetical orde so we don't need to sort later.
 shaders_shader_nodes_props = (
-    ('ShaderNodeMixShader', 'MIX_SHADER', 'Mix Shader'),
     ('ShaderNodeAddShader', 'ADD_SHADER', 'Add Shader'),
-    ('ShaderNodeBsdfDiffuse', 'BSDF_DIFFUSE', 'Diffuse BSDF'),
-    ('ShaderNodeBsdfGlossy', 'BSDF_GLOSSY', 'Glossy BSDF'),
-    ('ShaderNodeBsdfTransparent', 'BSDF_TRANSPARENT', 'Transparent BSDF'),
-    ('ShaderNodeBsdfRefraction', 'BSDF_REFRACTION', 'Refraction BSDF'),
-    ('ShaderNodeBsdfGlass', 'BSDF_GLASS', 'Glass BSDF'),
-    ('ShaderNodeBsdfTranslucent', 'BSDF_TRANSLUCENT', 'Translucent BSDF'),
     ('ShaderNodeBsdfAnisotropic', 'BSDF_ANISOTROPIC', 'Anisotropic BSDF'),
-    ('ShaderNodeBsdfVelvet', 'BSDF_VELVET', 'Velvet BSDF'),
-    ('ShaderNodeBsdfToon', 'BSDF_TOON', 'Toon BSDF'),
-    ('ShaderNodeSubsurfaceScattering', 'SUBSURFACE_SCATTERING', 'Subsurface Scattering'),
+    ('ShaderNodeBsdfDiffuse', 'BSDF_DIFFUSE', 'Diffuse BSDF'),
     ('ShaderNodeEmission', 'EMISSION', 'Emission'),
+    ('ShaderNodeBsdfGlass', 'BSDF_GLASS', 'Glass BSDF'),
+    ('ShaderNodeBsdfGlossy', 'BSDF_GLOSSY', 'Glossy BSDF'),
     ('ShaderNodeBsdfHair', 'BSDF_HAIR', 'Hair BSDF'),
-    ('ShaderNodeBackground', 'BACKGROUND', 'Background'),
-    ('ShaderNodeAmbientOcclusion', 'AMBIENT_OCCLUSION', 'Ambient Occlusion'),
     ('ShaderNodeHoldout', 'HOLDOUT', 'Holdout'),
+    ('ShaderNodeMixShader', 'MIX_SHADER', 'Mix Shader'),
+    ('ShaderNodeBsdfPrincipled', 'BSDF_PRINCIPLED', 'Principled BSDF'),
+    ('ShaderNodeBsdfHairPrincipled', 'BSDF_HAIR_PRINCIPLED', 'Principled Hair BSDF'),
+    ('ShaderNodeVolumePrincipled', 'PRINCIPLED_VOLUME', 'Principled Volume'),
+    ('ShaderNodeBsdfRefraction', 'BSDF_REFRACTION', 'Refraction BSDF'),
+    ('ShaderNodeSubsurfaceScattering', 'SUBSURFACE_SCATTERING', 'Subsurface Scattering'),
+    ('ShaderNodeBsdfToon', 'BSDF_TOON', 'Toon BSDF'),
+    ('ShaderNodeBsdfTranslucent', 'BSDF_TRANSLUCENT', 'Translucent BSDF'),
+    ('ShaderNodeBsdfTransparent', 'BSDF_TRANSPARENT', 'Transparent BSDF'),
+    ('ShaderNodeBsdfVelvet', 'BSDF_VELVET', 'Velvet BSDF'),
+    ('ShaderNodeBackground', 'BACKGROUND', 'Background'),
     ('ShaderNodeVolumeAbsorption', 'VOLUME_ABSORPTION', 'Volume Absorption'),
     ('ShaderNodeVolumeScatter', 'VOLUME_SCATTER', 'Volume Scatter'),
-    ('ShaderNodeBsdfPrincipled', 'BSDF_PRINCIPLED', 'Principled BSDF'),
 )
 # (rna_type.identifier, type, rna_type.name)
+# Keeping things in alphabetical orde so we don't need to sort later.
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_texture_nodes_props = (
     ('ShaderNodeTexBrick', 'TEX_BRICK', 'Brick Texture'),
     ('ShaderNodeTexChecker', 'TEX_CHECKER', 'Checker Texture'),
     ('ShaderNodeTexEnvironment', 'TEX_ENVIRONMENT', 'Environment Texture'),
     ('ShaderNodeTexGradient', 'TEX_GRADIENT', 'Gradient Texture'),
+    ('ShaderNodeTexIES', 'TEX_IES', 'IES Texture'),
     ('ShaderNodeTexImage', 'TEX_IMAGE', 'Image Texture'),
     ('ShaderNodeTexMagic', 'TEX_MAGIC', 'Magic Texture'),
     ('ShaderNodeTexMusgrave', 'TEX_MUSGRAVE', 'Musgrave Texture'),
@@ -153,46 +165,55 @@ shaders_texture_nodes_props = (
     ('ShaderNodeTexSky', 'TEX_SKY', 'Sky Texture'),
     ('ShaderNodeTexVoronoi', 'TEX_VORONOI', 'Voronoi Texture'),
     ('ShaderNodeTexWave', 'TEX_WAVE', 'Wave Texture'),
+    ('ShaderNodeTexWhiteNoise', 'TEX_WHITE_NOISE', 'White Noise'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+# Keeping things in alphabetical orde so we don't need to sort later.
 shaders_color_nodes_props = (
-    ('ShaderNodeMixRGB', 'MIX_RGB', 'MixRGB'),
-    ('ShaderNodeRGBCurve', 'CURVE_RGB', 'RGB Curves'),
+    ('ShaderNodeBrightContrast', 'BRIGHTCONTRAST', 'Bright Contrast'),
+    ('ShaderNodeGamma', 'GAMMA', 'Gamma'),
+    ('ShaderNodeHueSaturation', 'HUE_SAT', 'Hue/Saturation'),
     ('ShaderNodeInvert', 'INVERT', 'Invert'),
     ('ShaderNodeLightFalloff', 'LIGHT_FALLOFF', 'Light Falloff'),
-    ('ShaderNodeHueSaturation', 'HUE_SAT', 'Hue/Saturation'),
-    ('ShaderNodeGamma', 'GAMMA', 'Gamma'),
-    ('ShaderNodeBrightContrast', 'BRIGHTCONTRAST', 'Bright Contrast'),
+    ('ShaderNodeMixRGB', 'MIX_RGB', 'MixRGB'),
+    ('ShaderNodeRGBCurve', 'CURVE_RGB', 'RGB Curves'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+# Keeping things in alphabetical orde so we don't need to sort later.
 shaders_vector_nodes_props = (
-    ('ShaderNodeMapping', 'MAPPING', 'Mapping'),
     ('ShaderNodeBump', 'BUMP', 'Bump'),
-    ('ShaderNodeNormalMap', 'NORMAL_MAP', 'Normal Map'),
+    ('ShaderNodeDisplacement', 'DISPLACEMENT', 'Displacement'),
+    ('ShaderNodeMapping', 'MAPPING', 'Mapping'),
     ('ShaderNodeNormal', 'NORMAL', 'Normal'),
+    ('ShaderNodeNormalMap', 'NORMAL_MAP', 'Normal Map'),
     ('ShaderNodeVectorCurve', 'CURVE_VEC', 'Vector Curves'),
+    ('ShaderNodeVectorDisplacement', 'VECTOR_DISPLACEMENT', 'Vector Displacement'),
     ('ShaderNodeVectorTransform', 'VECT_TRANSFORM', 'Vector Transform'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+# Keeping things in alphabetical orde so we don't need to sort later.
 shaders_converter_nodes_props = (
-    ('ShaderNodeMath', 'MATH', 'Math'),
-    ('ShaderNodeValToRGB', 'VALTORGB', 'ColorRamp'),
-    ('ShaderNodeRGBToBW', 'RGBTOBW', 'RGB to BW'),
-    ('ShaderNodeVectorMath', 'VECT_MATH', 'Vector Math'),
-    ('ShaderNodeSeparateRGB', 'SEPRGB', 'Separate RGB'),
-    ('ShaderNodeCombineRGB', 'COMBRGB', 'Combine RGB'),
-    ('ShaderNodeSeparateXYZ', 'SEPXYZ', 'Separate XYZ'),
-    ('ShaderNodeCombineXYZ', 'COMBXYZ', 'Combine XYZ'),
-    ('ShaderNodeSeparateHSV', 'SEPHSV', 'Separate HSV'),
-    ('ShaderNodeCombineHSV', 'COMBHSV', 'Combine HSV'),
-    ('ShaderNodeWavelength', 'WAVELENGTH', 'Wavelength'),
     ('ShaderNodeBlackbody', 'BLACKBODY', 'Blackbody'),
+    ('ShaderNodeClamp', 'CLAMP', 'Clamp'),
+    ('ShaderNodeValToRGB', 'VALTORGB', 'ColorRamp'),
+    ('ShaderNodeCombineHSV', 'COMBHSV', 'Combine HSV'),
+    ('ShaderNodeCombineRGB', 'COMBRGB', 'Combine RGB'),
+    ('ShaderNodeCombineXYZ', 'COMBXYZ', 'Combine XYZ'),
+    ('ShaderNodeMapRange', 'MAP_RANGE', 'Map Range'),
+    ('ShaderNodeMath', 'MATH', 'Math'),
+    ('ShaderNodeRGBToBW', 'RGBTOBW', 'RGB to BW'),
+    ('ShaderNodeSeparateRGB', 'SEPRGB', 'Separate RGB'),
+    ('ShaderNodeSeparateXYZ', 'SEPXYZ', 'Separate XYZ'),
+    ('ShaderNodeSeparateHSV', 'SEPHSV', 'Separate HSV'),
+    ('ShaderNodeVectorMath', 'VECT_MATH', 'Vector Math'),
+    ('ShaderNodeWavelength', 'WAVELENGTH', 'Wavelength'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+# Keeping things in alphabetical orde so we don't need to sort later.
 shaders_layout_nodes_props = (
     ('NodeFrame', 'FRAME', 'Frame'),
     ('NodeReroute', 'REROUTE', 'Reroute'),
@@ -201,122 +222,134 @@ shaders_layout_nodes_props = (
 # compositing nodes
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+# Keeping things in alphabetical orde so we don't need to sort later.
 compo_input_nodes_props = (
-    ('CompositorNodeRLayers', 'R_LAYERS', 'Render Layers'),
-    ('CompositorNodeImage', 'IMAGE', 'Image'),
-    ('CompositorNodeMovieClip', 'MOVIECLIP', 'Movie Clip'),
-    ('CompositorNodeMask', 'MASK', 'Mask'),
-    ('CompositorNodeRGB', 'RGB', 'RGB'),
-    ('CompositorNodeValue', 'VALUE', 'Value'),
-    ('CompositorNodeTexture', 'TEXTURE', 'Texture'),
     ('CompositorNodeBokehImage', 'BOKEHIMAGE', 'Bokeh Image'),
+    ('CompositorNodeImage', 'IMAGE', 'Image'),
+    ('CompositorNodeMask', 'MASK', 'Mask'),
+    ('CompositorNodeMovieClip', 'MOVIECLIP', 'Movie Clip'),
+    ('CompositorNodeRLayers', 'R_LAYERS', 'Render Layers'),
+    ('CompositorNodeRGB', 'RGB', 'RGB'),
+    ('CompositorNodeTexture', 'TEXTURE', 'Texture'),
     ('CompositorNodeTime', 'TIME', 'Time'),
     ('CompositorNodeTrackPos', 'TRACKPOS', 'Track Position'),
+    ('CompositorNodeValue', 'VALUE', 'Value'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+# Keeping things in alphabetical orde so we don't need to sort later.
 compo_output_nodes_props = (
     ('CompositorNodeComposite', 'COMPOSITE', 'Composite'),
-    ('CompositorNodeViewer', 'VIEWER', 'Viewer'),
-    ('CompositorNodeSplitViewer', 'SPLITVIEWER', 'Split Viewer'),
     ('CompositorNodeOutputFile', 'OUTPUT_FILE', 'File Output'),
     ('CompositorNodeLevels', 'LEVELS', 'Levels'),
+    ('CompositorNodeSplitViewer', 'SPLITVIEWER', 'Split Viewer'),
+    ('CompositorNodeViewer', 'VIEWER', 'Viewer'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+# Keeping things in alphabetical orde so we don't need to sort later.
 compo_color_nodes_props = (
-    ('CompositorNodeMixRGB', 'MIX_RGB', 'Mix'),
     ('CompositorNodeAlphaOver', 'ALPHAOVER', 'Alpha Over'),
-    ('CompositorNodeInvert', 'INVERT', 'Invert'),
-    ('CompositorNodeCurveRGB', 'CURVE_RGB', 'RGB Curves'),
-    ('CompositorNodeHueSat', 'HUE_SAT', 'Hue Saturation Value'),
-    ('CompositorNodeColorBalance', 'COLORBALANCE', 'Color Balance'),
-    ('CompositorNodeHueCorrect', 'HUECORRECT', 'Hue Correct'),
     ('CompositorNodeBrightContrast', 'BRIGHTCONTRAST', 'Bright/Contrast'),
-    ('CompositorNodeGamma', 'GAMMA', 'Gamma'),
+    ('CompositorNodeColorBalance', 'COLORBALANCE', 'Color Balance'),
     ('CompositorNodeColorCorrection', 'COLORCORRECTION', 'Color Correction'),
+    ('CompositorNodeGamma', 'GAMMA', 'Gamma'),
+    ('CompositorNodeHueCorrect', 'HUECORRECT', 'Hue Correct'),
+    ('CompositorNodeHueSat', 'HUE_SAT', 'Hue Saturation Value'),
+    ('CompositorNodeInvert', 'INVERT', 'Invert'),
+    ('CompositorNodeMixRGB', 'MIX_RGB', 'Mix'),
+    ('CompositorNodeCurveRGB', 'CURVE_RGB', 'RGB Curves'),
     ('CompositorNodeTonemap', 'TONEMAP', 'Tonemap'),
     ('CompositorNodeZcombine', 'ZCOMBINE', 'Z Combine'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+# Keeping things in alphabetical orde so we don't need to sort later.
 compo_converter_nodes_props = (
-    ('CompositorNodeMath', 'MATH', 'Math'),
-    ('CompositorNodeValToRGB', 'VALTORGB', 'ColorRamp'),
-    ('CompositorNodeSetAlpha', 'SETALPHA', 'Set Alpha'),
     ('CompositorNodePremulKey', 'PREMULKEY', 'Alpha Convert'),
+    ('CompositorNodeValToRGB', 'VALTORGB', 'ColorRamp'),
+    ('CompositorNodeCombHSVA', 'COMBHSVA', 'Combine HSVA'),
+    ('CompositorNodeCombRGBA', 'COMBRGBA', 'Combine RGBA'),
+    ('CompositorNodeCombYCCA', 'COMBYCCA', 'Combine YCbCrA'),
+    ('CompositorNodeCombYUVA', 'COMBYUVA', 'Combine YUVA'),
     ('CompositorNodeIDMask', 'ID_MASK', 'ID Mask'),
+    ('CompositorNodeMath', 'MATH', 'Math'),
     ('CompositorNodeRGBToBW', 'RGBTOBW', 'RGB to BW'),
     ('CompositorNodeSepRGBA', 'SEPRGBA', 'Separate RGBA'),
-    ('CompositorNodeCombRGBA', 'COMBRGBA', 'Combine RGBA'),
     ('CompositorNodeSepHSVA', 'SEPHSVA', 'Separate HSVA'),
-    ('CompositorNodeCombHSVA', 'COMBHSVA', 'Combine HSVA'),
     ('CompositorNodeSepYUVA', 'SEPYUVA', 'Separate YUVA'),
-    ('CompositorNodeCombYUVA', 'COMBYUVA', 'Combine YUVA'),
     ('CompositorNodeSepYCCA', 'SEPYCCA', 'Separate YCbCrA'),
-    ('CompositorNodeCombYCCA', 'COMBYCCA', 'Combine YCbCrA'),
+    ('CompositorNodeSetAlpha', 'SETALPHA', 'Set Alpha'),
+    ('CompositorNodeSwitchView', 'VIEWSWITCH', 'View Switch'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+# Keeping things in alphabetical orde so we don't need to sort later.
 compo_filter_nodes_props = (
-    ('CompositorNodeBlur', 'BLUR', 'Blur'),
     ('CompositorNodeBilateralblur', 'BILATERALBLUR', 'Bilateral Blur'),
-    ('CompositorNodeDilateErode', 'DILATEERODE', 'Dilate/Erode'),
-    ('CompositorNodeDespeckle', 'DESPECKLE', 'Despeckle'),
-    ('CompositorNodeFilter', 'FILTER', 'Filter'),
+    ('CompositorNodeBlur', 'BLUR', 'Blur'),
     ('CompositorNodeBokehBlur', 'BOKEHBLUR', 'Bokeh Blur'),
-    ('CompositorNodeVecBlur', 'VECBLUR', 'Vector Blur'),
     ('CompositorNodeDefocus', 'DEFOCUS', 'Defocus'),
+    ('CompositorNodeDenoise', 'DENOISE', 'Denoise'),
+    ('CompositorNodeDespeckle', 'DESPECKLE', 'Despeckle'),
+    ('CompositorNodeDilateErode', 'DILATEERODE', 'Dilate/Erode'),
+    ('CompositorNodeDBlur', 'DBLUR', 'Directional Blur'),
+    ('CompositorNodeFilter', 'FILTER', 'Filter'),
     ('CompositorNodeGlare', 'GLARE', 'Glare'),
     ('CompositorNodeInpaint', 'INPAINT', 'Inpaint'),
-    ('CompositorNodeDBlur', 'DBLUR', 'Directional Blur'),
     ('CompositorNodePixelate', 'PIXELATE', 'Pixelate'),
     ('CompositorNodeSunBeams', 'SUNBEAMS', 'Sun Beams'),
+    ('CompositorNodeVecBlur', 'VECBLUR', 'Vector Blur'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+# Keeping things in alphabetical orde so we don't need to sort later.
 compo_vector_nodes_props = (
-    ('CompositorNodeNormal', 'NORMAL', 'Normal'),
-    ('CompositorNodeMapValue', 'MAP_VALUE', 'Map Value'),
     ('CompositorNodeMapRange', 'MAP_RANGE', 'Map Range'),
+    ('CompositorNodeMapValue', 'MAP_VALUE', 'Map Value'),
+    ('CompositorNodeNormal', 'NORMAL', 'Normal'),
     ('CompositorNodeNormalize', 'NORMALIZE', 'Normalize'),
     ('CompositorNodeCurveVec', 'CURVE_VEC', 'Vector Curves'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+# Keeping things in alphabetical orde so we don't need to sort later.
 compo_matte_nodes_props = (
-    ('CompositorNodeKeying', 'KEYING', 'Keying'),
-    ('CompositorNodeKeyingScreen', 'KEYINGSCREEN', 'Keying Screen'),
-    ('CompositorNodeChannelMatte', 'CHANNEL_MATTE', 'Channel Key'),
-    ('CompositorNodeColorSpill', 'COLOR_SPILL', 'Color Spill'),
     ('CompositorNodeBoxMask', 'BOXMASK', 'Box Mask'),
-    ('CompositorNodeEllipseMask', 'ELLIPSEMASK', 'Ellipse Mask'),
-    ('CompositorNodeLumaMatte', 'LUMA_MATTE', 'Luminance Key'),
-    ('CompositorNodeDiffMatte', 'DIFF_MATTE', 'Difference Key'),
-    ('CompositorNodeDistanceMatte', 'DISTANCE_MATTE', 'Distance Key'),
+    ('CompositorNodeChannelMatte', 'CHANNEL_MATTE', 'Channel Key'),
     ('CompositorNodeChromaMatte', 'CHROMA_MATTE', 'Chroma Key'),
     ('CompositorNodeColorMatte', 'COLOR_MATTE', 'Color Key'),
+    ('CompositorNodeColorSpill', 'COLOR_SPILL', 'Color Spill'),
+    ('CompositorNodeCryptomatte', 'CRYPTOMATTE', 'Cryptomatte'),
+    ('CompositorNodeDiffMatte', 'DIFF_MATTE', 'Difference Key'),
+    ('CompositorNodeDistanceMatte', 'DISTANCE_MATTE', 'Distance Key'),
     ('CompositorNodeDoubleEdgeMask', 'DOUBLEEDGEMASK', 'Double Edge Mask'),
+    ('CompositorNodeEllipseMask', 'ELLIPSEMASK', 'Ellipse Mask'),
+    ('CompositorNodeKeying', 'KEYING', 'Keying'),
+    ('CompositorNodeKeyingScreen', 'KEYINGSCREEN', 'Keying Screen'),
+    ('CompositorNodeLumaMatte', 'LUMA_MATTE', 'Luminance Key'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+# Keeping things in alphabetical orde so we don't need to sort later.
 compo_distort_nodes_props = (
-    ('CompositorNodeScale', 'SCALE', 'Scale'),
-    ('CompositorNodeLensdist', 'LENSDIST', 'Lens Distortion'),
-    ('CompositorNodeMovieDistortion', 'MOVIEDISTORTION', 'Movie Distortion'),
-    ('CompositorNodeTranslate', 'TRANSLATE', 'Translate'),
-    ('CompositorNodeRotate', 'ROTATE', 'Rotate'),
-    ('CompositorNodeFlip', 'FLIP', 'Flip'),
+    ('CompositorNodeCornerPin', 'CORNERPIN', 'Corner Pin'),
     ('CompositorNodeCrop', 'CROP', 'Crop'),
     ('CompositorNodeDisplace', 'DISPLACE', 'Displace'),
+    ('CompositorNodeFlip', 'FLIP', 'Flip'),
+    ('CompositorNodeLensdist', 'LENSDIST', 'Lens Distortion'),
     ('CompositorNodeMapUV', 'MAP_UV', 'Map UV'),
-    ('CompositorNodeTransform', 'TRANSFORM', 'Transform'),
-    ('CompositorNodeStabilize', 'STABILIZE2D', 'Stabilize 2D'),
+    ('CompositorNodeMovieDistortion', 'MOVIEDISTORTION', 'Movie Distortion'),
     ('CompositorNodePlaneTrackDeform', 'PLANETRACKDEFORM', 'Plane Track Deform'),
-    ('CompositorNodeCornerPin', 'CORNERPIN', 'Corner Pin'),
+    ('CompositorNodeRotate', 'ROTATE', 'Rotate'),
+    ('CompositorNodeScale', 'SCALE', 'Scale'),
+    ('CompositorNodeStabilize', 'STABILIZE2D', 'Stabilize 2D'),
+    ('CompositorNodeTransform', 'TRANSFORM', 'Transform'),
+    ('CompositorNodeTranslate', 'TRANSLATE', 'Translate'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+# Keeping things in alphabetical orde so we don't need to sort later.
 compo_layout_nodes_props = (
     ('NodeFrame', 'FRAME', 'Frame'),
     ('NodeReroute', 'REROUTE', 'Reroute'),
@@ -484,21 +517,42 @@ operations = [
     ('SUBTRACT', 'Subtract', 'Subtract Mode'),
     ('MULTIPLY', 'Multiply', 'Multiply Mode'),
     ('DIVIDE', 'Divide', 'Divide Mode'),
+    ('MULTIPLY_ADD', 'Multiply Add', 'Multiply Add Mode'),
     ('SINE', 'Sine', 'Sine Mode'),
     ('COSINE', 'Cosine', 'Cosine Mode'),
     ('TANGENT', 'Tangent', 'Tangent Mode'),
     ('ARCSINE', 'Arcsine', 'Arcsine Mode'),
     ('ARCCOSINE', 'Arccosine', 'Arccosine Mode'),
     ('ARCTANGENT', 'Arctangent', 'Arctangent Mode'),
+    ('ARCTAN2', 'Arctan2', 'Arctan2 Mode'),
+    ('SINH', 'Hyperbolic Sine', 'Hyperbolic Sine Mode'),
+    ('COSH', 'Hyperbolic Cosine', 'Hyperbolic Cosine Mode'),
+    ('TANH', 'Hyperbolic Tangent', 'Hyperbolic Tangent Mode'),
     ('POWER', 'Power', 'Power Mode'),
     ('LOGARITHM', 'Logatithm', 'Logarithm Mode'),
+    ('SQRT', 'Square Root', 'Square Root Mode'),
+    ('INVERSE_SQRT', 'Inverse Square Root', 'Inverse Square Root Mode'),
+    ('EXPONENT', 'Exponent', 'Exponent Mode'),
     ('MINIMUM', 'Minimum', 'Minimum Mode'),
     ('MAXIMUM', 'Maximum', 'Maximum Mode'),
-    ('ROUND', 'Round', 'Round Mode'),
     ('LESS_THAN', 'Less Than', 'Less Than Mode'),
     ('GREATER_THAN', 'Greater Than', 'Greater Than Mode'),
+    ('SIGN', 'Sign', 'Sign Mode'),
+    ('COMPARE', 'Compare', 'Compare Mode'),
+    ('SMOOTH_MIN', 'Smooth Minimum', 'Smooth Minimum Mode'),
+    ('SMOOTH_MAX', 'Smooth Maximum', 'Smooth Maximum Mode'),
+    ('FRACT', 'Fraction', 'Fraction Mode'),
     ('MODULO', 'Modulo', 'Modulo Mode'),
+    ('SNAP', 'Snap', 'Snap Mode'),
+    ('WRAP', 'Wrap', 'Wrap Mode'),
+    ('PINGPONG', 'Pingpong', 'Pingpong Mode'),
     ('ABSOLUTE', 'Absolute', 'Absolute Mode'),
+    ('ROUND', 'Round', 'Round Mode'),
+    ('FLOOR', 'Floor', 'Floor Mode'),
+    ('CEIL', 'Ceil', 'Ceil Mode'),
+    ('TRUNCATE', 'Truncate', 'Truncate Mode'),
+    ('RADIANS', 'To Radians', 'To Radians Mode'),
+    ('DEGREES', 'To Degrees', 'To Degrees Mode'),
 ]
 
 # in NWBatchChangeNodes additional types/operations. Can be used as 'items' for EnumProperty.
@@ -3547,7 +3601,7 @@ class NWSaveViewer(bpy.types.Operator, ExportHelper):
     filename_ext: EnumProperty(
             name="Format",
             description="Choose the file format to save to",
-            items=(('.bmp', "PNG", ""),
+            items=(('.bmp', "BMP", ""),
                    ('.rgb', 'IRIS', ""),
                    ('.png', 'PNG', ""),
                    ('.jpg', 'JPEG', ""),
@@ -4102,7 +4156,7 @@ class NWSwitchShadersInputSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(shaders_input_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in shaders_input_nodes_props:
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -4113,7 +4167,7 @@ class NWSwitchShadersOutputSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(shaders_output_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in shaders_output_nodes_props:
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -4124,7 +4178,7 @@ class NWSwitchShadersShaderSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(shaders_shader_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in shaders_shader_nodes_props:
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -4135,7 +4189,7 @@ class NWSwitchShadersTextureSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(shaders_texture_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in shaders_texture_nodes_props:
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -4146,7 +4200,7 @@ class NWSwitchShadersColorSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(shaders_color_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in shaders_color_nodes_props:
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -4157,7 +4211,7 @@ class NWSwitchShadersVectorSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(shaders_vector_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in shaders_vector_nodes_props:
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -4168,7 +4222,7 @@ class NWSwitchShadersConverterSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(shaders_converter_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in shaders_converter_nodes_props:
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -4179,7 +4233,7 @@ class NWSwitchShadersLayoutSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(shaders_layout_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in shaders_layout_nodes_props:
             if node_type != 'FRAME':
                 props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
                 props.to_type = ident
@@ -4191,7 +4245,7 @@ class NWSwitchCompoInputSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(compo_input_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in compo_input_nodes_props:
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -4202,7 +4256,7 @@ class NWSwitchCompoOutputSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(compo_output_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in compo_output_nodes_props:
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -4213,7 +4267,7 @@ class NWSwitchCompoColorSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(compo_color_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in compo_color_nodes_props:
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -4224,7 +4278,7 @@ class NWSwitchCompoConverterSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(compo_converter_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in compo_converter_nodes_props:
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -4235,7 +4289,7 @@ class NWSwitchCompoFilterSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(compo_filter_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in compo_filter_nodes_props:
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -4246,7 +4300,7 @@ class NWSwitchCompoVectorSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(compo_vector_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in compo_vector_nodes_props:
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -4257,7 +4311,7 @@ class NWSwitchCompoMatteSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(compo_matte_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in compo_matte_nodes_props:
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -4268,7 +4322,7 @@ class NWSwitchCompoDistortSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(compo_distort_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in compo_distort_nodes_props:
             props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
@@ -4279,7 +4333,7 @@ class NWSwitchCompoLayoutSubmenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for ident, node_type, rna_name in sorted(compo_layout_nodes_props, key=lambda k: k[2]):
+        for ident, node_type, rna_name in compo_layout_nodes_props:
             if node_type != 'FRAME':
                 props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
                 props.to_type = ident
