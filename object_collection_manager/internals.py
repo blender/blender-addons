@@ -189,33 +189,68 @@ class QCDSlots():
             if not layer_collections.get(name, None):
                 qcd_slots.del_slot(name=name)
 
-    def auto_numerate(self, *, renumerate=False):
-        global max_lvl
-
+    def auto_numerate(self):
         if self.length() < 20:
-            lvl = 0
-            num = 1
-            while lvl <= max_lvl:
-                if num > 20:
+            laycol = bpy.context.view_layer.layer_collection
+
+            laycol_iter_list = list(laycol.children)
+            while laycol_iter_list:
+                layer_collection = laycol_iter_list.pop(0)
+                laycol_iter_list.extend(list(layer_collection.children))
+
+                if layer_collection.name in qcd_slots.overrides:
+                    continue
+
+                for x in range(20):
+                    if (not self.contains(idx=str(x+1)) and
+                        not self.contains(name=layer_collection.name)):
+                            self.add_slot(str(x+1), layer_collection.name)
+
+
+                if self.length() > 20:
                     break
 
-                for laycol in layer_collections.values():
-                    if num > 20:
-                        break
+    def renumerate(self, *, beginning=False):
+        if beginning:
+            self.clear_slots()
+            self.overrides.clear()
 
-                    if int(laycol["lvl"]) == lvl:
-                        if laycol["name"] in qcd_slots.overrides:
-                            if not renumerate:
-                                num += 1
-                            continue
+        starting_laycol_name = self.get_name("1")
+        if starting_laycol_name:
+            laycol = layer_collections[starting_laycol_name]["parent"]["ptr"]
 
-                        if (not self.contains(idx=str(num)) and
-                            not self.contains(name=laycol["name"])):
-                                self.add_slot(str(num), laycol["name"])
+        else:
+            laycol = bpy.context.view_layer.layer_collection
+            starting_laycol_name = laycol.children[0].name
 
-                        num += 1
+        self.clear_slots()
+        self.overrides.clear()
 
-                lvl += 1
+        laycol_iter_list = []
+        for laycol in laycol.children:
+            if laycol.name == starting_laycol_name or laycol_iter_list:
+                laycol_iter_list.append(laycol)
+
+        while laycol_iter_list:
+            layer_collection = laycol_iter_list.pop(0)
+
+            for x in range(20):
+                if self.contains(name=layer_collection.name):
+                    break
+
+                if not self.contains(idx=f"{x+1}"):
+                        self.add_slot(f"{x+1}", layer_collection.name)
+
+
+            laycol_iter_list.extend(list(layer_collection.children))
+
+            if self.length() > 20:
+                break
+
+
+        for laycol in layer_collections.values():
+            if not self.contains(name=laycol["name"]):
+                self.overrides.add(laycol["name"])
 
 qcd_slots = QCDSlots()
 
@@ -399,7 +434,7 @@ class CMListCollection(PropertyGroup):
     qcd_slot_idx: StringProperty(name="QCD Slot", update=update_qcd_slot)
 
 
-def update_collection_tree(context, *, renumerate_qcd=False):
+def update_collection_tree(context):
     global max_lvl
     global row_index
     global collection_tree
@@ -433,7 +468,7 @@ def update_collection_tree(context, *, renumerate_qcd=False):
 
     qcd_slots.update_qcd()
 
-    qcd_slots.auto_numerate(renumerate=renumerate_qcd)
+    qcd_slots.auto_numerate()
 
 
 def get_all_collections(context, collections, parent, tree, level=0, visible=False):
@@ -472,13 +507,13 @@ def get_all_collections(context, collections, parent, tree, level=0, visible=Fal
                 get_all_collections(context, item.children, laycol, laycol["children"], level+1)
 
 
-def update_property_group(context, *, renumerate_qcd=False):
+def update_property_group(context):
     global collection_tree
     global qcd_slots
 
     qcd_slots.allow_update = False
 
-    update_collection_tree(context, renumerate_qcd=renumerate_qcd)
+    update_collection_tree(context)
     context.scene.collection_manager.cm_list_collection.clear()
     create_property_group(context, collection_tree)
 

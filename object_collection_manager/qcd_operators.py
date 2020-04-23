@@ -281,10 +281,11 @@ class ViewQCDSlot(Operator):
 
 
 class RenumerateQCDSlots(Operator):
-    bl_label = "Re-numerate QCD Slots"
+    bl_label = "Renumerate QCD Slots"
     bl_description = (
-        "Re-numerate QCD slots\n"
-        "  * Ctrl+LMB - Include collections marked by the user as non QCD slots"
+        "Renumerate QCD slots.\n"
+        "  * LMB - Renumerate starting from the slot designated 1.\n"
+        "  * Alt+LMB - Renumerate from the beginning"
         )
     bl_idname = "view3d.renumerate_qcd_slots"
     bl_options = {'REGISTER', 'UNDO'}
@@ -292,11 +293,14 @@ class RenumerateQCDSlots(Operator):
     def invoke(self, context, event):
         global qcd_slots
 
-        qcd_slots.clear_slots()
+        modifiers = get_modifiers(event)
 
-        if event.ctrl:
-            qcd_slots.overrides.clear()
+        if modifiers == {'alt'}:
+            qcd_slots.renumerate(beginning=True)
 
-        update_property_group(context, renumerate_qcd=True)
+        else:
+            qcd_slots.renumerate()
+
+        update_property_group(context)
 
         return {'FINISHED'}
