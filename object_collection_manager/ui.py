@@ -322,15 +322,6 @@ class CollectionManager(Operator):
 
         self.view_layer = view_layer.name
 
-        # sync selection in ui list with active layer collection
-        try:
-            active_laycol_name = view_layer.active_layer_collection.name
-            active_laycol_row_index = layer_collections[active_laycol_name]["row_index"]
-            cm.cm_list_index = active_laycol_row_index
-
-        except KeyError: # Master Collection is special and not part of regular collections
-            cm.cm_list_index = -1
-
         # check if expanded & history/buffer state still correct
         if collection_state:
             new_state = generate_state()
@@ -387,11 +378,12 @@ class CollectionManager(Operator):
         # handle window sizing
         max_width = 960
         min_width = 456
+        row_indent_width = 15
         width_step = 21
         scrollbar_width = 21
         lvl = get_max_lvl()
 
-        width = min_width + (width_step * lvl)
+        width = min_width + row_indent_width + (width_step * lvl)
 
         if len(layer_collections) > 14:
             width += scrollbar_width
@@ -439,6 +431,9 @@ class CM_UL_items(UIList):
         split = layout.split(factor=0.96)
         row = split.row(align=True)
         row.alignment = 'LEFT'
+
+        # allow room to select the row from the beginning
+        row.separator()
 
         # indent child items
         if laycol["lvl"] > 0:
