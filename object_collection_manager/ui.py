@@ -380,10 +380,14 @@ class CollectionManager(Operator):
         min_width = 456
         row_indent_width = 15
         width_step = 21
+        qcd_width = 30
         scrollbar_width = 21
         lvl = get_max_lvl()
 
         width = min_width + row_indent_width + (width_step * lvl)
+
+        if bpy.context.preferences.addons[__package__].preferences.enable_qcd:
+            width += qcd_width
 
         if len(layer_collections) > 14:
             width += scrollbar_width
