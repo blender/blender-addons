@@ -22,7 +22,7 @@ bl_info = {
     "name": "Collection Manager",
     "description": "Manage collections and their objects",
     "author": "Ryan Inch",
-    "version": (2, 7, 13),
+    "version": (2, 7, 14),
     "blender": (2, 80, 0),
     "location": "View3D - Object Mode (Shortcut - M)",
     "warning": '',  # used for warning icon and text in addons panel
@@ -68,7 +68,7 @@ from bpy.props import (
 
 class CollectionManagerProperties(PropertyGroup):
     cm_list_collection: CollectionProperty(type=internals.CMListCollection)
-    cm_list_index: IntProperty(update=ui.update_selection)
+    cm_list_index: IntProperty()
 
     show_exclude: BoolProperty(default=True, name="[EC] Exclude from View Layer")
     show_selectable: BoolProperty(default=True, name="[SS] Disable Selection")
