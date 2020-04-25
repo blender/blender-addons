@@ -69,13 +69,13 @@ class SetActiveCollection(Operator):
     '''Set the active collection'''
     bl_label = "Set Active Collection"
     bl_idname = "view3d.set_active_collection"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'UNDO'}
 
     collection_index: IntProperty()
     collection_name: StringProperty()
 
     def execute(self, context):
-        if self.collection_index == 0:
+        if self.collection_index == -1:
             cm = context.scene.collection_manager
             cm.cm_list_index = -1
             layer_collection = context.view_layer.layer_collection
@@ -85,6 +85,9 @@ class SetActiveCollection(Operator):
             layer_collection = laycol["ptr"]
 
         context.view_layer.active_layer_collection = layer_collection
+
+        if context.view_layer.active_layer_collection != layer_collection:
+            self.report({'WARNING'}, "Can't set excluded collection as active")
 
         return {'FINISHED'}
 
@@ -960,6 +963,11 @@ class CMNewCollectionOperator(Operator):
             update_property_group(context)
 
             cm.cm_list_index = 0
+
+
+        # set new collection to active
+        layer_collection = layer_collections[new_collection.name]["ptr"]
+        context.view_layer.active_layer_collection = layer_collection
 
         global rename
         rename[0] = True
