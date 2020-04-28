@@ -255,12 +255,12 @@ class OBJ_PT_export_include(bpy.types.Panel):
         sfile = context.space_data
         operator = sfile.active_operator
 
-        col = layout.column(heading = "Limit to")
+        col = layout.column(heading="Limit to")
         col.prop(operator, 'use_selection')
 
-        col = layout.column(heading = "Objects as", align = True)
-        col.prop(operator, 'use_blen_objects', text = "OBJ Objects")
-        col.prop(operator, 'group_by_object', text = "OBJ Groups")
+        col = layout.column(heading="Objects as", align=True)
+        col.prop(operator, 'use_blen_objects')
+        col.prop(operator, 'group_by_object')
         col.prop(operator, 'group_by_material')
 
         layout.separator()
@@ -421,18 +421,18 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
 
     # grouping group
     use_blen_objects: BoolProperty(
-            name="Objects as OBJ Objects",
-            description="",
+            name="OBJ Objects",
+            description="Export Blender objects as OBJ objects",
             default=True,
             )
     group_by_object: BoolProperty(
-            name="Objects as OBJ Groups ",
-            description="",
+            name="OBJ Groups",
+            description="Export Blender objects as OBJ groups",
             default=False,
             )
     group_by_material: BoolProperty(
             name="Material Groups",
-            description="",
+            description="Generate an OBJ group for each part of a geometry using a different material",
             default=False,
             )
     keep_vertex_order: BoolProperty(
