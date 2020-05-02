@@ -340,6 +340,7 @@ class CMExcludeOperator(Operator):
 
         modifiers = get_modifiers(event)
         view_layer = context.view_layer.name
+        orig_active_collection = context.view_layer.active_layer_collection
         laycol_ptr = layer_collections[self.name]["ptr"]
 
         if not view_layer in rto_history["exclude"]:
@@ -385,6 +386,9 @@ class CMExcludeOperator(Operator):
                 laycol[0].exclude = laycol[1]
 
             cls.isolated = False
+
+        # reset active collection
+        context.view_layer.active_layer_collection = orig_active_collection
 
         # reset exclude all history
         if view_layer in rto_history["exclude_all"]:
