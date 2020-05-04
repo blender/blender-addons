@@ -137,7 +137,7 @@ class AntLandscapeRefresh(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         ob = bpy.context.active_object
-        return (ob.ant_landscape and not ob.ant_landscape['sphere_mesh'])
+        return (ob.ant_landscape and not ob.ant_landscape.sphere_mesh)
 
 
     def execute(self, context):
