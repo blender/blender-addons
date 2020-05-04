@@ -248,7 +248,7 @@ def main(context, **kw):
 class FractureCell(Operator):
     bl_idname = "object.add_fracture_cell_objects"
     bl_label = "Cell fracture selected mesh objects"
-    bl_options = {'PRESET'}
+    bl_options = {'PRESET', 'UNDO'}
 
     # -------------------------------------------------------------------------
     # Source Options
