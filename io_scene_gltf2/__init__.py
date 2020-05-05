@@ -26,6 +26,7 @@ bl_info = {
     'category': 'Import-Export',
 }
 
+
 def get_version_string():
     return str(bl_info['version'][0]) + '.' + str(bl_info['version'][1]) + '.' + str(bl_info['version'][2])
 
@@ -567,7 +568,6 @@ class GLTF_PT_export_include(bpy.types.Panel):
         col.prop(operator, 'export_extras')
         col.prop(operator, 'export_cameras')
         col.prop(operator, 'export_lights')
-
 
 class GLTF_PT_export_transform(bpy.types.Panel):
     bl_space_type = 'FILE_BROWSER'
