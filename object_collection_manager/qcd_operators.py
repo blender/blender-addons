@@ -140,8 +140,9 @@ class ViewMoveQCDSlot(Operator):
         slot_string = f"QCD Slot {properties.slot}: \"{slot_name}\"\n"
 
         hotkey_string = (
-            "  * Shift+LMB - Toggle QCD slot.\n"
-            "  * Ctrl+LMB - Move objects to QCD slot.\n"
+            "  * LMB - Isolate slot.\n"
+            "  * Shift+LMB - Toggle slot.\n"
+            "  * Ctrl+LMB - Move objects to slot.\n"
             "  * Ctrl+Shift+LMB - Toggle objects' slot"
             )
 
