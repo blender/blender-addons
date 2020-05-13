@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from mathutils import Matrix, Quaternion, Vector
 from bpy.types import (
     Gizmo,
     GizmoGroup,
@@ -144,7 +145,7 @@ def xr_landmark_active_update(self, context):
     xr_landmark_active_base_pose_angle_update(self, context)
 
     if wm.xr_session_state:
-      wm.xr_session_state.reset_to_base_pose(context)
+        wm.xr_session_state.reset_to_base_pose(context)
 
 
 class VRLandmark(bpy.types.PropertyGroup):
@@ -500,6 +501,148 @@ classes = (
     VIEW3D_GGT_vr_viewer_pose,
 )
 
+# this class manages VR navigation using VR controllers.
+# the Fly navigation allows user to manipulate the scene using the left controller (world scale is modified using left joystick).
+# The Bi-manual navigation is the standard VR navigation with 2 controllers.
+class Navigation:
+    griped = False
+    init_pivot_invert_matrix = None
+    init_world_matrix = None
+    scale = 1.0
+    init_distance = 0.0
+    navigation_mode = "Bimanual"
+    fixedScaleFactor = 1.05
+
+    hysteresis_min = 0.3
+    hysteresis_max = 0.5
+
+    def navigate(self):
+        try:
+            # trys to get an openxr session state
+            wm = bpy.context.window_manager
+            if not wm.xr_session_state:
+                return
+
+            session_state = wm.xr_session_state        
+            if self.navigation_mode == "Fly":
+                self.navigation_fly(session_state)
+
+            if self.navigation_mode == "Bimanual":
+                self.navigation_bimanual(session_state)
+        except:
+            # openxr is not ready
+            pass
+
+    def set_mode(self, mode):
+        self.griped = False
+        self.navigation_mode = mode
+
+    def navigation_fly(self, session_state):
+        grip = session_state.left_grip_value
+        justGriped = False
+        if not self.griped and grip > self.hysteresis_max:
+            # left grip is pressed
+            self.griped = True
+            justGriped = True
+        else:
+            if self.griped and grip < self.hysteresis_min:
+                # left grip is released
+                self.griped = False
+
+        if self.griped:
+            # get left controller matrix
+            controller_translate = session_state.left_controller_location
+            controller_rotate = session_state.left_controller_rotation
+            controller_matrix = Matrix.Translation(controller_translate) @ controller_rotate.to_matrix().to_4x4()
+
+        if justGriped:
+            # get init pivot and world matrix
+            self.scale = 1.0
+            self.init_pivot_invert_matrix = controller_matrix.inverted()
+            self.init_world_matrix = Matrix.Translation(session_state.world_location) @ session_state.world_rotation.to_matrix().to_4x4() @ Matrix.Scale(session_state.world_scale, 4)
+
+        if self.griped:
+            # compute scale from joystick y value
+            joyvalue = session_state.left_thumbstick_y
+            if joyvalue > self.hysteresis_max:
+                self.scale *= self.fixedScaleFactor
+            if joyvalue < -self.hysteresis_min:
+                self.scale /= self.fixedScaleFactor
+
+            # compute new fake world matrix
+            scale_matrix = Matrix.Scale(self.scale, 4)
+            transformedWorld = controller_matrix @ scale_matrix @ self.init_pivot_invert_matrix @ self.init_world_matrix
+
+            # apply to fake world transform
+            session_state.world_location = transformedWorld.to_translation()
+            session_state.world_rotation = transformedWorld.to_quaternion()
+            session_state.world_scale = transformedWorld.to_scale().x
+
+    def navigation_bimanual(self, session_state):
+        # get controllers grip values
+        left_grip = session_state.left_grip_value
+        right_grip = session_state.right_grip_value
+        justGriped = False
+        if not self.griped and left_grip > self.hysteresis_max and right_grip > self.hysteresis_max:
+            # if both grips are pressed
+            self.griped = True
+            justGriped = True
+        else:
+            if self.griped and (left_grip < self.hysteresis_min or right_grip < self.hysteresis_min):
+                # if both grips are released
+                self.griped = False
+
+        if self.griped:
+            # get position of the center of the controllers
+            center_position = (session_state.left_controller_location + session_state.right_controller_location) * 0.5
+            # get vector from left controller to right controller
+            delta = session_state.right_controller_location - session_state.left_controller_location
+            # compute a controller matrix centerd between the controllers 
+            # and oriented by projecting vector from left controller to right controller to a horizontal plane 
+            right = delta.normalized()
+            up = Vector((0,0,1))
+            forward = Vector.cross(up, right)
+            right = Vector.cross(forward, up)
+            # create pivot matrix from this base
+            pivot_matrix = Matrix()
+            pivot_matrix.col[0] = Vector((right.x, right.y, right.z, 0.0))
+            pivot_matrix.col[1] = Vector((forward.x, forward.y, forward.z, 0.0))
+            pivot_matrix.col[2] = Vector((up.x, up.y, up.z, 0.0))
+            pivot_matrix.col[3] = Vector((center_position.x, center_position.y, center_position.z, 1.0))
+
+        if justGriped:
+            # get init pivot and world matrix
+            self.griped = True
+            self.scale = 1.0
+            self.init_distance = delta.length
+            self.init_pivot_invert_matrix = pivot_matrix.inverted()
+            self.init_world_matrix = Matrix.Translation(session_state.world_location) @ session_state.world_rotation.to_matrix().to_4x4() @ Matrix.Scale(session_state.world_scale, 4)
+
+        if self.griped:
+            # compute scale
+            distance = delta.length
+            self.scale = distance / self.init_distance
+
+            # compute new fake world matrix
+            scale_matrix = Matrix.Scale(self.scale, 4)
+            transformedWorld = pivot_matrix @ scale_matrix @ self.init_pivot_invert_matrix @ self.init_world_matrix
+
+            # apply to fake world transform
+            session_state.world_location = transformedWorld.to_translation()
+            session_state.world_rotation = transformedWorld.to_quaternion()
+            session_state.world_scale = transformedWorld.to_scale().x
+
+navigation = Navigation()
+
+@persistent
+def controller_handler():
+    global navigation
+    navigation.navigate()
+    return 0.0
+
+@persistent
+def register_controller_handler(context: bpy.context):
+    bpy.app.timers.register(controller_handler)    
 
 def register():
     if not bpy.app.build_options.xr_openxr:
@@ -525,7 +668,8 @@ def register():
     )
 
     bpy.app.handlers.load_post.append(ensure_default_vr_landmark)
-
+    bpy.app.handlers.load_post.append(register_controller_handler)
+    bpy.app.timers.register(controller_handler)
 
 def unregister():
     if not bpy.app.build_options.xr_openxr:
@@ -539,8 +683,9 @@ def unregister():
     del bpy.types.Scene.vr_landmarks_active
     del bpy.types.View3DShading.vr_show_virtual_camera
 
+    bpy.app.timers.unregister(controller_handler)
+    bpy.app.handlers.load_post.remove(register_controller_handler)
     bpy.app.handlers.load_post.remove(ensure_default_vr_landmark)
-
 
 if __name__ == "__main__":
     register()
