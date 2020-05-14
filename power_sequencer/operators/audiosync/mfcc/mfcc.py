@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2016-2019 by Nathan Lovato, Daniel Oakey, Razvan Radulescu, and contributors
+# Copyright (C) 2016-2020 by Nathan Lovato, Daniel Oakey, Razvan Radulescu, and contributors
 #
 # This file is part of Power Sequencer.
 #
@@ -15,6 +15,10 @@
 # not, see <https://www.gnu.org/licenses/>.
 #
 import numpy as np
+
+from scipy.signal import hamming, lfilter
+from scipy.fftpack import fft
+from scipy.fftpack.realtransforms import dct
 
 from .trfbank import trfbank
 from .segment_axis import segment_axis
@@ -51,10 +55,6 @@ def mfcc(input, nwin=256, nfft=512, fs=16000, nceps=13):
            representations for monosyllabic word recognition in continuously
            spoken sentences", IEEE Trans. Acoustics. Speech, Signal Proc.
            ASSP-28 (4): 357-366, August 1980."""
-
-    from scipy.signal import hamming, lfilter
-    from scipy.fftpack import fft
-    from scipy.fftpack.realtransforms import dct
 
     # MFCC parameters: taken from auditory toolbox
     over = nwin - 160
