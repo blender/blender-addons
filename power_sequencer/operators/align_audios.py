@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2016-2019 by Nathan Lovato, Daniel Oakey, Razvan Radulescu, and contributors
+# Copyright (C) 2016-2020 by Nathan Lovato, Daniel Oakey, Razvan Radulescu, and contributors
 #
 # This file is part of Power Sequencer.
 #
@@ -15,6 +15,7 @@
 # not, see <https://www.gnu.org/licenses/>.
 #
 import bpy
+import subprocess
 
 from .utils.doc import doc_name, doc_idname, doc_brief, doc_description
 

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2016-2019 by Nathan Lovato, Daniel Oakey, Razvan Radulescu, and contributors
+# Copyright (C) 2016-2020 by Nathan Lovato, Daniel Oakey, Razvan Radulescu, and contributors
 #
 # This file is part of Power Sequencer.
 #
@@ -62,4 +62,4 @@ class POWER_SEQUENCER_OT_split_strips_under_cursor(bpy.types.Operator):
         if deselect:
             bpy.ops.sequencer.select_all(action="DESELECT")
         (context.selected_sequences or bpy.ops.power_sequencer.select_strips_under_cursor())
-        return bpy.ops.sequencer.cut(frame=context.scene.frame_current, side=self.side)
+        return bpy.ops.sequencer.split(frame=context.scene.frame_current, side=self.side)
