@@ -28,7 +28,6 @@ def get_operator_classes():
     ]
     module_paths = ["." + os.path.splitext(f)[0] for f in module_files]
     classes = []
-    print(__name__)
     for path in module_paths:
         module = importlib.import_module(path, package="power_sequencer.operators")
         operator_names = [
