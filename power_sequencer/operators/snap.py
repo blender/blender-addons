@@ -24,7 +24,7 @@ class POWER_SEQUENCER_OT_snap(bpy.types.Operator):
     """
     *Brief* Snaps selected strips to the time cursor ignoring locked sequences.
 
-    Automatically selects sequences if there is no active selection.
+    Automatically selects sequences if there is no active selection
     """
 
     doc = {
@@ -32,7 +32,11 @@ class POWER_SEQUENCER_OT_snap(bpy.types.Operator):
         "demo": "",
         "description": doc_description(__doc__),
         "shortcuts": [
-            ({"type": "S", "value": "PRESS", "shift": True}, {}, "Snap sequences to cursor")
+            (
+                {"type": "S", "value": "PRESS", "shift": True},
+                {},
+                "Snap sequences to cursor",
+            )
         ],
         "keymap": "Sequencer",
     }
