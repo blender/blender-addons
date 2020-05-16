@@ -22,7 +22,7 @@ from .utils.doc import doc_name, doc_idname, doc_brief, doc_description
 
 
 class POWER_SEQUENCER_OT_fade_add(bpy.types.Operator):
-    """*brief* Adds or updates a fade animation for either visual or audio strips.
+    """*brief* Adds or updates a fade animation for either visual or audio strips
 
     Fade options:
 
