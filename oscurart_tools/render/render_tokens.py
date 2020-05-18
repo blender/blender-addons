@@ -36,11 +36,12 @@ def replaceTokens (dummy):
     
     nodeDict = []
     #compositor nodes
-    for node in bpy.context.scene.node_tree.nodes:
-        if node.type == "OUTPUT_FILE":
-            nodeDict.append([node,node.base_path])   
-            node.base_path = node.base_path.replace("$Scene",tokens["$Scene"]).replace("$File",tokens["$File"]).replace("$ViewLayer",tokens["$ViewLayer"]).replace("$Camera",tokens["$Camera"])
-                      
+    if bpy.context.scene.use_nodes:
+        for node in bpy.context.scene.node_tree.nodes:
+            if node.type == "OUTPUT_FILE":
+                nodeDict.append([node,node.base_path])   
+                node.base_path = node.base_path.replace("$Scene",tokens["$Scene"]).replace("$File",tokens["$File"]).replace("$ViewLayer",tokens["$ViewLayer"]).replace("$Camera",tokens["$Camera"])
+                          
             
 
     bpy.context.scene.render.filepath = renpath.replace("$Scene",tokens["$Scene"]).replace("$File",tokens["$File"]).replace("$ViewLayer",tokens["$ViewLayer"]).replace("$Camera",tokens["$Camera"])
