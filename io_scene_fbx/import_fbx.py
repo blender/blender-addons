@@ -583,7 +583,7 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset):
         fc_key = (fc.data_path, fc.array_index)
         if not keyframes.get(fc_key):
             keyframes[fc_key] = []
-        keyframes[fc_key].append((frame, value))
+        keyframes[fc_key].extend((frame, value))
 
     if isinstance(item, Material):
         grpname = item.name
@@ -712,15 +712,13 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset):
 
         # Add all keyframe points at once
         fcurve = action.fcurves.find(data_path=data_path, index=index)
-        num_keys = len(key_values)
+        num_keys = len(key_values) // 2
         fcurve.keyframe_points.add(num_keys)
+        fcurve.keyframe_points.foreach_set('co', key_values)
+        linear_enum_value = bpy.types.Keyframe.bl_rna.properties['interpolation'].enum_items['LINEAR'].value
+        fcurve.keyframe_points.foreach_set('interpolation', (linear_enum_value,) * num_keys)
 
-        # Apply values to each keyframe point
-        for kf_point, v in zip(fcurve.keyframe_points, key_values):
-            kf_point.co = v
-            kf_point.interpolation = 'LINEAR'
-
-    # Since we inserted our keyframes in 'FAST' mode, we have to update the fcurves now.
+    # Since we inserted our keyframes in 'ultra-fast' mode, we have to update the fcurves now.
     for fc in blen_curves:
         fc.update()
 
