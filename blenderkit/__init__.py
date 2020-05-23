@@ -122,8 +122,8 @@ model_styles = (
     ('PAINTERLY', 'Painterly', 'hand painted with visible strokes, mostly for games'),
     ('LOWPOLY', 'Lowpoly', "Lowpoly art -don't mix up with polycount!"),
     ('ANIME', 'Anime', 'Anime style'),
-    ('2D_VECTOR', '2d Vector', '2d vector'),
-    ('3D_GRAPHICS', '3d Graphics', '3d graphics'),
+    ('2D_VECTOR', '2D Vector', '2D vector'),
+    ('3D_GRAPHICS', '3D Graphics', '3D graphics'),
     ('OTHER', 'Other', 'Other style'),
 )
 search_model_styles = (
@@ -131,8 +131,8 @@ search_model_styles = (
     ('PAINTERLY', 'Painterly', 'hand painted with visible strokes, mostly for games'),
     ('LOWPOLY', 'Lowpoly', "Lowpoly art -don't mix up with polycount!"),
     ('ANIME', 'Anime', 'Anime style'),
-    ('2D_VECTOR', '2d Vector', '2d vector'),
-    ('3D_GRAPHICS', '3d Graphics', '3d graphics'),
+    ('2D_VECTOR', '2D Vector', '2D vector'),
+    ('3D_GRAPHICS', '3D Graphics', '3D graphics'),
     ('OTHER', 'Other', 'Other Style'),
     ('ANY', 'Any', 'Any Style'),
 )
@@ -155,7 +155,7 @@ engines = (
     ('UNREAL', 'Unreal', 'Unreal engine'),
     ('UNITY', 'Unity', 'Unity engine'),
     ('GODOT', 'Godot', 'Godot engine'),
-    ('3D-PRINT', '3d printer', 'object can be 3d printed'),
+    ('3D-PRINT', '3D printer', 'object can be 3D printed'),
     ('OTHER', 'Other', 'any other engine'),
     ('NONE', 'None', 'no more engine block'),
 )
@@ -1502,7 +1502,7 @@ class BlenderKitAddonPreferences(AddonPreferences):
         items=(
             ('BOTH', 'Both Types',
              ''),
-            ('UNIFIED', 'Unified 3d View Panel',
+            ('UNIFIED', 'Unified 3D View Panel',
              ""),
             ('LOCAL', 'Relative to Data',
              '')
@@ -1513,7 +1513,7 @@ class BlenderKitAddonPreferences(AddonPreferences):
     )
 
     max_assetbar_rows: IntProperty(name="Max Assetbar Rows",
-                                   description="max rows of assetbar in the 3d view",
+                                   description="max rows of assetbar in the 3D view",
                                    default=1,
                                    min=0,
                                    max=20)

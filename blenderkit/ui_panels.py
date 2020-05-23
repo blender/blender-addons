@@ -1124,7 +1124,7 @@ class VIEW3D_PT_blenderkit_downloads(Panel):
 
 
 def header_search_draw(self, context):
-    '''Top bar menu in 3d view'''
+    '''Top bar menu in 3D view'''
 
     if not utils.guard_from_crash():
         return;
