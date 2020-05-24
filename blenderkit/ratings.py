@@ -109,6 +109,7 @@ def get_rating(asset_id):
 def update_ratings_quality(self, context):
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
     api_key = user_preferences.api_key
+
     headers = utils.get_headers(api_key)
     asset = self.id_data
     bkit_ratings = asset.bkit_ratings

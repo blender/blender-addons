@@ -17,12 +17,12 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "BlenderKit Asset Library",
+    "name": "BlenderKit Online Asset Library",
     "author": "Vilem Duha, Petr Dlouhy",
     "version": (1, 0, 30),
     "blender": (2, 82, 0),
     "location": "View3D > Properties > BlenderKit",
-    "description": "Online BlenderKit library (materials, models, brushes and more)",
+    "description": "Online BlenderKit library (materials, models, brushes and more). Connects to the internet.",
     "warning": "",
     "doc_url": "{BLENDER_MANUAL_URL}/addons/add_mesh/blenderkit.html",
     "category": "3D View",
