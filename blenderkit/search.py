@@ -171,7 +171,7 @@ def timer_update():
         search()
         preferences.first_run = False
 
-    check_clipboard()
+    #check_clipboard()
 
     global search_threads
     if len(search_threads) == 0:
