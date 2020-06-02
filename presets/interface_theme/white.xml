@@ -1055,6 +1055,9 @@
         info_property_text="#ffffff"
         info_operator="#00cea3ff"
         info_operator_text="#ffffff"
+        info_report_error="#ff736d"
+        info_report_warning="#f5bb52"
+        info_report_info="#53bb00"
         >
         <space>
           <ThemeSpaceGeneric

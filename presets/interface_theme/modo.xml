@@ -1048,6 +1048,9 @@
         info_property_text="#cccccc"
         info_operator="#181818ff"
         info_operator_text="#82d38a"
+        info_report_error="#a72d26"
+        info_report_warning="#866724"
+        info_report_info="#3C3f42"
         >
         <space>
           <ThemeSpaceGeneric
