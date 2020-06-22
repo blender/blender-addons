@@ -163,7 +163,7 @@ class CAMERATURN_OT_RunAction(Operator):
             bpy.ops.object.constraint_add(type='TRACK_TO')
             bpy.context.object.constraints[-1].track_axis = 'TRACK_NEGATIVE_Z'
             bpy.context.object.constraints[-1].up_axis = 'UP_Y'
-            bpy.context.object.constraints[-1].target = bpy.data.objects[myempty.name]
+            bpy.context.object.constraints[-1].target = myempty
 
         # back previous configuration
         context.preferences.edit.keyframe_new_interpolation_type = savedinterpolation
