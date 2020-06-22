@@ -31,16 +31,16 @@ bl_info = {
 import bpy
 from math import pi
 from bpy.props import (
-        BoolProperty,
-        EnumProperty,
-        FloatProperty,
-        PointerProperty,
-        )
+    BoolProperty,
+    EnumProperty,
+    FloatProperty,
+    PointerProperty,
+)
 from bpy.types import (
-        Operator,
-        Panel,
-        PropertyGroup,
-        )
+    Operator,
+    Panel,
+    PropertyGroup,
+)
 
 
 # ------------------------------------------------------
@@ -73,7 +73,7 @@ class CAMERATURN_OT_RunAction(Operator):
         myempty.location = selectobject.location
         savedstate = myempty.matrix_world
         myempty.parent = selectobject
-        myempty.name = 'MCH_Rotation_target'
+        myempty.name = "MCH_Rotation_target"
         myempty.matrix_world = savedstate
 
         # -------------------------
@@ -98,7 +98,7 @@ class CAMERATURN_OT_RunAction(Operator):
         myempty.rotation_euler = (0, 0, 0)
         myempty.empty_display_size = 0.1
         context.scene.frame_set(scene.frame_start)
-        myempty.keyframe_insert(data_path='rotation_euler', frame=scene.frame_start)
+        myempty.keyframe_insert(data_path="rotation_euler", frame=scene.frame_start)
 
         # Clear the Camera Animations if the option is checked
         if turn_camera.reset_cam_anim:
@@ -111,7 +111,7 @@ class CAMERATURN_OT_RunAction(Operator):
         # Dolly zoom
         if turn_camera.dolly_zoom != "0":
             bpy.data.cameras[camera.name].lens = turn_camera.camera_from_lens
-            bpy.data.cameras[camera.name].keyframe_insert('lens', frame=scene.frame_start)
+            bpy.data.cameras[camera.name].keyframe_insert("lens", frame=scene.frame_start)
 
         # Calculate rotation XYZ
         ix = -1 if turn_camera.inverse_x else 1
@@ -126,9 +126,9 @@ class CAMERATURN_OT_RunAction(Operator):
         if turn_camera.back_forw is True:
             myempty.rotation_euler = (xrot, yrot, zrot)
             myempty.keyframe_insert(
-                        data_path='rotation_euler',
-                        frame=((scene.frame_end - scene.frame_start) / 2)
-                        )
+                data_path="rotation_euler",
+                frame=((scene.frame_end - scene.frame_start) / 2)
+            )
             # reverse
             xrot *= -1
             yrot *= -1
@@ -138,13 +138,13 @@ class CAMERATURN_OT_RunAction(Operator):
         if turn_camera.dolly_zoom == "2":
             bpy.data.cameras[camera.name].lens = turn_camera.camera_to_lens
             bpy.data.cameras[camera.name].keyframe_insert(
-                                            'lens',
-                                            frame=((scene.frame_end - scene.frame_start) / 2)
-                                            )
+                "lens",
+                frame=((scene.frame_end - scene.frame_start) / 2)
+            )
 
         # create last frame
         myempty.rotation_euler = (xrot, yrot, zrot)
-        myempty.keyframe_insert(data_path='rotation_euler', frame=scene.frame_end)
+        myempty.keyframe_insert(data_path="rotation_euler", frame=scene.frame_end)
         # Dolly zoom
         if turn_camera.dolly_zoom != "0":
             if turn_camera.dolly_zoom == "1":
@@ -153,8 +153,8 @@ class CAMERATURN_OT_RunAction(Operator):
                 bpy.data.cameras[camera.name].lens = turn_camera.camera_from_lens  # back to init
 
             bpy.data.cameras[camera.name].keyframe_insert(
-                                            'lens', frame=scene.frame_end
-                                            )
+                "lens", frame=scene.frame_end
+            )
 
         # Track constraint
         if turn_camera.track is True:
@@ -185,77 +185,77 @@ class CAMERATURN_OT_RunAction(Operator):
 class CAMERATURN_Props(PropertyGroup):
 
     camera_revol_x: FloatProperty(
-            name='X', min=0, max=25,
-            default=0, precision=2,
-            description='Number total of revolutions in X axis'
-            )
+        name="X", min=0, max=25,
+        default=0, precision=2,
+        description="Number total of revolutions in X axis"
+    )
     camera_revol_y: FloatProperty(
-            name='Y', min=0, max=25,
-            default=0, precision=2,
-            description='Number total of revolutions in Y axis'
-            )
+        name="Y", min=0, max=25,
+        default=0, precision=2,
+        description="Number total of revolutions in Y axis"
+    )
     camera_revol_z: FloatProperty(
-            name='Z', min=0, max=25,
-            default=1, precision=2,
-            description='Number total of revolutions in Z axis'
-            )
+        name="Z", min=0, max=25,
+        default=1, precision=2,
+        description="Number total of revolutions in Z axis"
+    )
     inverse_x: BoolProperty(
-            name="-X",
-            description="Inverse rotation",
-            default=False
-            )
+        name="-X",
+        description="Inverse rotation",
+        default=False
+    )
     inverse_y: BoolProperty(
-            name="-Y",
-            description="Inverse rotation",
-            default=False
-            )
+        name="-Y",
+        description="Inverse rotation",
+        default=False
+    )
     inverse_z: BoolProperty(
-            name="-Z",
-            description="Inverse rotation",
-            default=False
-            )
+        name="-Z",
+        description="Inverse rotation",
+        default=False
+    )
     use_cursor: BoolProperty(
-            name="Use cursor position",
-            description="Use cursor position instead of object origin",
-            default=False
-            )
+        name="Use cursor position",
+        description="Use cursor position instead of object origin",
+        default=False
+    )
     back_forw: BoolProperty(
-            name="Back and forward",
-            description="Create back and forward animation",
-            default=False
-            )
+        name="Back and forward",
+        description="Create back and forward animation",
+        default=False
+    )
     dolly_zoom: EnumProperty(
-            items=(
-                ('0', "None", ""),
-                ('1', "Dolly zoom", ""),
-                ('2', "Dolly zoom B/F", "")
-                ),
-            name="Lens Effects",
-            description="Create a camera lens movement"
-            )
+        items=(
+            ('0', "None", ""),
+            ('1', "Dolly zoom", ""),
+            ('2', "Dolly zoom B/F", "")
+        ),
+        name="Lens Effects",
+        description="Create a camera lens movement"
+    )
     camera_from_lens: FloatProperty(
-            name="From",
-            min=1, max=500, default=35,
-            precision=3,
-            description="Start lens value"
-            )
+        name="From",
+        min=1, max=500, default=35,
+        precision=3,
+        description="Start lens value"
+    )
     camera_to_lens: FloatProperty(
-            name="To",
-            min=1, max=500,
-            default=35, precision=3,
-            description="End lens value"
-            )
+        name="To",
+        min=1, max=500,
+        default=35, precision=3,
+        description="End lens value"
+    )
     track: BoolProperty(
-            name="Create track constraint",
-            description="Add a track constraint to the camera",
-            default=False
-            )
+        name="Create track constraint",
+        description="Add a track constraint to the camera",
+        default=False
+    )
     reset_cam_anim: BoolProperty(
-            name="Clear Camera",
-            description="Clear previous camera animations if there are any\n"
-                        "(For instance, previous Dolly Zoom)",
-            default=False
-            )
+        name="Clear Camera",
+        description="Clear previous camera animations if there are any\n"
+        "(For instance, previous Dolly Zoom)",
+        default=False
+    )
 
 
 # ------------------------------------------------------
@@ -338,12 +338,14 @@ classes = (
     CAMERATURN_Props
 )
 
+
 def register():
     from bpy.utils import register_class
     for cls in classes:
         register_class(cls)
 
     bpy.types.Scene.turn_camera = PointerProperty(type=CAMERATURN_Props)
+
 
 def unregister():
     from bpy.utils import unregister_class
