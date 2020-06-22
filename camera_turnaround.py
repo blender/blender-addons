@@ -50,6 +50,7 @@ class CAMERATURN_OT_RunAction(Operator):
     bl_idname = "object.rotate_around"
     bl_label = "Turnaround"
     bl_description = "Create camera rotation around selected object"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         # ----------------------
