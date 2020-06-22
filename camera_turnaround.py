@@ -59,8 +59,8 @@ class CAMERATURN_OT_RunAction(Operator):
         scene = context.scene
         turn_camera = scene.turn_camera
         selectobject = context.active_object
-        camera = context.scene.camera
-        savedcursor = bpy.context.scene.cursor.location.copy()  # cursor position
+        camera = scene.camera
+        savedcursor = scene.cursor.location.copy()  # cursor position
         savedframe = scene.frame_current
         if turn_camera.use_cursor is False:
             bpy.ops.view3d.snap_cursor_to_selected()
@@ -98,7 +98,7 @@ class CAMERATURN_OT_RunAction(Operator):
         # create first frame
         myempty.rotation_euler = (0, 0, 0)
         myempty.empty_display_size = 0.1
-        context.scene.frame_set(scene.frame_start)
+        scene.frame_set(scene.frame_start)
         myempty.keyframe_insert(data_path="rotation_euler", frame=scene.frame_start)
 
         # Clear the Camera Animations if the option is checked
@@ -167,7 +167,7 @@ class CAMERATURN_OT_RunAction(Operator):
 
         # back previous configuration
         context.preferences.edit.keyframe_new_interpolation_type = savedinterpolation
-        bpy.context.scene.cursor.location = savedcursor
+        scene.cursor.location = savedcursor
 
         # -------------------------
         # Back to old selection
@@ -175,7 +175,7 @@ class CAMERATURN_OT_RunAction(Operator):
         bpy.ops.object.select_all(False)
         selectobject.select_set(True)
         bpy.context.view_layer.objects.active = selectobject
-        bpy.context.scene.frame_set(savedframe)
+        scene.frame_set(savedframe)
 
         return {'FINISHED'}
 
@@ -277,7 +277,7 @@ class CAMERATURN_PT_ui(Panel):
         turn_camera = scene.turn_camera
 
         try:
-            bpy.context.scene.camera.name
+            scene.camera.name
         except AttributeError:
             row = layout.row(align=False)
             row.label(text="No defined camera for scene", icon="INFO")
