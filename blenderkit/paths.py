@@ -170,7 +170,7 @@ def extract_filename_from_url(url):
 
 
 def get_download_filenames(asset_data):
-    dirs = get_download_dirs(asset_data['asset_type'])
+    dirs = get_download_dirs(asset_data['assetType'])
     file_names = []
     # fn = asset_data['file_name'].replace('blend_', '')
     if asset_data.get('url') is not None:

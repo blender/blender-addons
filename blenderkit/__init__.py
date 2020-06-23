@@ -1555,6 +1555,13 @@ class BlenderKitAddonPreferences(AddonPreferences):
         default=True,
         update=utils.save_prefs
     )
+
+    use_timers: BoolProperty(
+        name="Use timers",
+        description="Use timers for bkit",
+        default=True,
+        update=utils.save_prefs
+    )
     # allow_proximity : BoolProperty(
     #     name="allow proximity data reports",
     #     description="This sends anonymized proximity data \n \
@@ -1673,13 +1680,16 @@ def register():
     bkit_oauth.register()
     tasks_queue.register()
 
-    bpy.app.timers.register(check_timers_timer, persistent=True)
+    user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
+    if user_preferences.use_timers:
+        bpy.app.timers.register(check_timers_timer, persistent=True)
 
     bpy.app.handlers.load_post.append(scene_load)
 
 
 def unregister():
-    bpy.app.timers.unregister(check_timers_timer)
+    if bpy.app.timers.is_registered(check_timers_timer):
+        bpy.app.timers.unregister(check_timers_timer)
     ui_panels.unregister_ui_panels()
     ui.unregister_ui()
 
