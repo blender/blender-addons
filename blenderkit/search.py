@@ -1003,23 +1003,23 @@ def build_query_common(query, props):
     if props.search_verification_status != 'ALL':
         query_common['verification_status'] = props.search_verification_status.lower()
 
-    if props.search_advanced:
-        if props.search_texture_resolution:
-            query["textureResolutionMax_gte"] = props.search_texture_resolution_min
-            query["textureResolutionMax_lte"] = props.search_texture_resolution_max
+    # if props.search_advanced:
+    if props.search_texture_resolution:
+        query["textureResolutionMax_gte"] = props.search_texture_resolution_min
+        query["textureResolutionMax_lte"] = props.search_texture_resolution_max
 
-        elif props.search_procedural == 'TEXTURE_BASED':
-            # todo this procedural hack should be replaced with the parameter
-            query["textureResolutionMax_gte"] = 0
-            # query["procedural"] = False
+    elif props.search_procedural == 'TEXTURE_BASED':
+        # todo this procedural hack should be replaced with the parameter
+        query["textureResolutionMax_gte"] = 0
+        # query["procedural"] = False
 
-        if props.search_procedural == "PROCEDURAL":
-            # todo this procedural hack should be replaced with the parameter
-            query["files_size_lte"] = 1024 * 1024
-            # query["procedural"] = True
-        elif props.search_file_size:
-            query_common["files_size_gte"] = props.search_file_size_min * 1024 * 1024
-            query_common["files_size_lte"] = props.search_file_size_max * 1024 * 1024
+    if props.search_procedural == "PROCEDURAL":
+        # todo this procedural hack should be replaced with the parameter
+        query["files_size_lte"] = 1024 * 1024
+        # query["procedural"] = True
+    elif props.search_file_size:
+        query_common["files_size_gte"] = props.search_file_size_min * 1024 * 1024
+        query_common["files_size_lte"] = props.search_file_size_max * 1024 * 1024
 
     query.update(query_common)
 
@@ -1042,15 +1042,15 @@ def build_query_model():
     if props.free_only:
         query["is_free"] = True
 
-    if props.search_advanced:
-        if props.search_condition != 'UNSPECIFIED':
-            query["condition"] = props.search_condition
-        if props.search_design_year:
-            query["designYear_gte"] = props.search_design_year_min
-            query["designYear_lte"] = props.search_design_year_max
-        if props.search_polycount:
-            query["faceCount_gte"] = props.search_polycount_min
-            query["faceCount_lte"] = props.search_polycount_max
+    # if props.search_advanced:
+    if props.search_condition != 'UNSPECIFIED':
+        query["condition"] = props.search_condition
+    if props.search_design_year:
+        query["designYear_gte"] = props.search_design_year_min
+        query["designYear_lte"] = props.search_design_year_max
+    if props.search_polycount:
+        query["faceCount_gte"] = props.search_polycount_min
+        query["faceCount_lte"] = props.search_polycount_max
 
     build_query_common(query, props)
 

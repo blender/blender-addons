@@ -332,60 +332,8 @@ def draw_panel_model_search(self, context):
     # layout.prop(props, 'append_link', expand=True, icon_only=False)
     # layout.prop(props, 'import_as', expand=True, icon_only=False)
 
-    layout.prop(props, "search_advanced")
-    if props.search_advanced:
-        layout.separator()
+    # draw_panel_categories(self, context)
 
-        # layout.label(text = "common searches keywords:")
-        # layout.prop(props, "search_global_keywords", text = "")
-        # layout.prop(props, "search_modifier_keywords")
-        # if props.search_engine == 'OTHER':
-        #     layout.prop(props, "search_engine_keyword")
-
-        # AGE
-        layout.prop(props, "search_condition", text='Condition')  # , text ='condition of object new/old e.t.c.')
-
-        # DESIGN YEAR
-        layout.prop(props, "search_design_year", text='designed in ( min - max )')
-        if props.search_design_year:
-            row = layout.row(align=True)
-            row.prop(props, "search_design_year_min", text='min')
-            row.prop(props, "search_design_year_max", text='max')
-
-        # POLYCOUNT
-        layout.prop(props, "search_polycount", text='Poly count in ( min - max )')
-        if props.search_polycount:
-            row = layout.row(align=True)
-            row.prop(props, "search_polycount_min", text='min')
-            row.prop(props, "search_polycount_max", text='max')
-
-        # TEXTURE RESOLUTION
-        layout.prop(props, "search_texture_resolution", text='texture resolution ( min - max )')
-        if props.search_texture_resolution:
-            row = layout.row(align=True)
-            row.prop(props, "search_texture_resolution_min", text='min')
-            row.prop(props, "search_texture_resolution_max", text='max')
-
-        # FILE SIZE
-        layout.prop(props, "search_file_size", text='File size ( min - max )')
-        if props.search_file_size:
-            row = layout.row(align=True)
-            row.prop(props, "search_file_size_min", text='min')
-            row.prop(props, "search_file_size_max", text='max')
-
-        # layout.prop(props, "search_procedural", expand=True)
-        # ADULT
-        # layout.prop(props, "search_adult")  # , text ='condition of object new/old e.t.c.')
-
-    draw_panel_categories(self, context)
-
-    layout.separator()
-    layout.label(text='Import method:')
-    row = layout.row()
-    row.prop(props, 'append_method', expand=True, icon_only=False)
-    layout.prop(props, 'randomize_rotation')
-    if props.randomize_rotation:
-        layout.prop(props, 'randomize_rotation_amount')
 
 
 def draw_panel_scene_search(self, context):
@@ -404,7 +352,7 @@ def draw_panel_scene_search(self, context):
     #     layout.prop(props, "search_style_other")
     # layout.prop(props, "search_engine")
     layout.separator()
-    draw_panel_categories(self, context)
+    # draw_panel_categories(self, context)
 
 
 class VIEW3D_PT_blenderkit_model_properties(Panel):
@@ -438,6 +386,7 @@ class VIEW3D_PT_blenderkit_model_properties(Panel):
             layout.label(text='Ratings:')
             draw_panel_model_rating(self, context)
 
+            layout.label(text='Asset tools:')
             draw_asset_context_menu(self, context, ad)
             # if 'rig' in ad['tags']:
             #     # layout.label(text = 'can make proxy')
@@ -539,7 +488,9 @@ class VIEW3D_PT_blenderkit_login(Panel):
 
 
 def draw_panel_model_rating(self, context):
-    o = bpy.context.active_object
+    # o = bpy.context.active_object
+    o = utils.get_active_model()
+    # print('ratings active',o)
     draw_ratings(self.layout, context)  # , props)
     # op.asset_type = 'MODEL'
 
@@ -614,32 +565,10 @@ def draw_panel_material_search(self, context):
     # if props.search_engine == 'OTHER':
     #     layout.prop(props, 'search_engine_other')
 
-    layout.prop(props, "search_advanced")
-    if props.search_advanced:
-        layout.separator()
 
-        layout.label(text='texture types')
-        col = layout.column()
-        col.prop(props, "search_procedural", expand=True)
 
-        if props.search_procedural == 'TEXTURE_BASED':
-            # TEXTURE RESOLUTION
-            layout.prop(props, "search_texture_resolution", text='texture resolution ( min - max )')
-            if props.search_texture_resolution:
-                row = layout.row(align=True)
-                row.prop(props, "search_texture_resolution_min", text='min')
-                row.prop(props, "search_texture_resolution_max", text='max')
+    # draw_panel_categories(self, context)
 
-        # FILE SIZE
-        layout.prop(props, "search_file_size", text='File size ( min - max in mb)')
-        if props.search_file_size:
-            row = layout.row(align=True)
-            row.prop(props, "search_file_size_min", text='min')
-            row.prop(props, "search_file_size_max", text='max')
-
-    draw_panel_categories(self, context)
-
-    layout.prop(props, 'automap')
 
 
 def draw_panel_material_ratings(self, context):
@@ -672,7 +601,7 @@ def draw_panel_brush_search(self, context):
     layout.prop(props, "own_only")
 
     label_multiline(layout, text=props.report)
-    draw_panel_categories(self, context)
+    # draw_panel_categories(self, context)
 
 
 def draw_panel_brush_ratings(self, context):
@@ -704,14 +633,18 @@ def draw_login_buttons(layout):
 class VIEW3D_PT_blenderkit_advanced_model_search(Panel):
     bl_category = "BlenderKit"
     bl_idname = "VIEW3D_PT_blenderkit_advanced_model_search"
-    # bl_parent_id = "VIEW3D_PT_blenderkit_unified"
+    bl_parent_id = "VIEW3D_PT_blenderkit_unified"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "Advanced search options"
+    bl_label = "Search filters"
+    bl_options = {'DEFAULT_CLOSED'}
+
 
     @classmethod
     def poll(cls, context):
-        return True
+        s = context.scene
+        ui_props = s.blenderkitUI
+        return ui_props.down_up == 'SEARCH' and ui_props.asset_type =='MODEL'
 
     def draw(self, context):
         s = context.scene
@@ -761,6 +694,99 @@ class VIEW3D_PT_blenderkit_advanced_model_search(Panel):
         # ADULT
         # layout.prop(props, "search_adult")  # , text ='condition of object new/old e.t.c.')
 
+class VIEW3D_PT_blenderkit_advanced_material_search(Panel):
+    bl_category = "BlenderKit"
+    bl_idname = "VIEW3D_PT_blenderkit_advanced_material_search"
+    bl_parent_id = "VIEW3D_PT_blenderkit_unified"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Search filters"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        s = context.scene
+        ui_props = s.blenderkitUI
+        return ui_props.down_up == 'SEARCH' and ui_props.asset_type =='MATERIAL'
+
+    def draw(self, context):
+        s = context.scene
+
+        props = s.blenderkit_models
+        layout = self.layout
+        layout.separator()
+
+        layout.label(text='texture types')
+        col = layout.column()
+        col.prop(props, "search_procedural", expand=True)
+
+        if props.search_procedural == 'TEXTURE_BASED':
+            # TEXTURE RESOLUTION
+            layout.prop(props, "search_texture_resolution", text='texture resolution ( min - max )')
+            if props.search_texture_resolution:
+                row = layout.row(align=True)
+                row.prop(props, "search_texture_resolution_min", text='min')
+                row.prop(props, "search_texture_resolution_max", text='max')
+
+        # FILE SIZE
+        layout.prop(props, "search_file_size", text='File size ( min - max in mb)')
+        if props.search_file_size:
+            row = layout.row(align=True)
+            row.prop(props, "search_file_size_min", text='min')
+            row.prop(props, "search_file_size_max", text='max')
+
+class VIEW3D_PT_blenderkit_categories(Panel):
+    bl_category = "BlenderKit"
+    bl_idname = "VIEW3D_PT_blenderkit_categories"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Categories"
+    bl_parent_id = "VIEW3D_PT_blenderkit_unified"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        s = context.scene
+        ui_props = s.blenderkitUI
+        return ui_props.down_up == 'SEARCH'
+
+    def draw(self, context):
+        draw_panel_categories(self,context)
+
+class VIEW3D_PT_blenderkit_import_settings(Panel):
+    bl_category = "BlenderKit"
+    bl_idname = "VIEW3D_PT_blenderkit_import_settings"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Import settings"
+    bl_parent_id = "VIEW3D_PT_blenderkit_unified"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        s = context.scene
+        ui_props = s.blenderkitUI
+        return ui_props.down_up == 'SEARCH' and ui_props.asset_type in ['MATERIAL', 'MODEL']
+
+    def draw(self, context):
+        s = context.scene
+        ui_props = s.blenderkitUI
+
+
+        if ui_props.asset_type == 'MODEL':
+            # noinspection PyCallByClass
+            props = s.blenderkit_models
+            layout = self.layout
+            layout.label(text='Import method:')
+            row = layout.row()
+            row.prop(props, 'append_method', expand=True, icon_only=False)
+            layout.prop(props, 'randomize_rotation')
+            if props.randomize_rotation:
+                layout.prop(props, 'randomize_rotation_amount')
+        if ui_props.asset_type == 'MATERIAL':
+            props = s.blenderkit_mat
+            layout.prop(props, 'automap')
+
 
 class VIEW3D_PT_blenderkit_unified(Panel):
     bl_category = "BlenderKit"
@@ -792,11 +818,13 @@ class VIEW3D_PT_blenderkit_unified(Panel):
         # row = row.split().row()
         # layout.alert = True
         # layout.alignment = 'CENTER'
-        # row = layout.row(align = True)
+        row = layout.row(align = True)
+        row.scale_x = 1.6
+        row.scale_y = 1.6
         # split = row.split(factor=.5)
-        # row.prop(ui_props, 'asset_type', expand=True, icon_only=True)
+        row.prop(ui_props, 'asset_type', expand=True, icon_only=True)
         # row = layout.column(align = False)
-        layout.prop(ui_props, 'asset_type', expand=False, text='')
+        # layout.prop(ui_props, 'asset_type', expand=False, text='')
 
         w = context.region.width
         if user_preferences.login_attempt:
@@ -1185,18 +1213,20 @@ def header_search_draw(self, context):
 # We can store multiple preview collections here,
 # however in this example we only store "main"
 preview_collections = {}
+
 classess = (
     SetCategoryOperator,
     VIEW3D_PT_blenderkit_profile,
     VIEW3D_PT_blenderkit_login,
     VIEW3D_PT_blenderkit_unified,
-    # VIEW3D_PT_blenderkit_advanced_model_search,
+    VIEW3D_PT_blenderkit_advanced_model_search,
+    VIEW3D_PT_blenderkit_categories,
+    VIEW3D_PT_blenderkit_import_settings,
     VIEW3D_PT_blenderkit_model_properties,
     VIEW3D_PT_blenderkit_downloads,
     OBJECT_MT_blenderkit_asset_menu,
     UrlPopupDialog
 )
-
 
 def register_ui_panels():
     for c in classess:
