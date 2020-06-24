@@ -195,6 +195,14 @@ class RigifyPreferences(AddonPreferences):
 
             register()
 
+    def register_feature_sets(self, register):
+        """Call register or unregister of external feature sets"""
+        if self.legacy_mode:
+            return
+
+        for set_name in feature_set_list.get_installed_list():
+            feature_set_list.call_register_function(set_name, register)
+
     def update_external_rigs(self, force=False):
         """Get external feature sets"""
         if self.legacy_mode:
@@ -559,6 +567,7 @@ def register():
     if legacy_loaded or bpy.context.preferences.addons['rigify'].preferences.legacy_mode:
         bpy.context.preferences.addons['rigify'].preferences.legacy_mode = True
 
+    bpy.context.preferences.addons['rigify'].preferences.register_feature_sets(True)
     bpy.context.preferences.addons['rigify'].preferences.update_external_rigs()
 
     # Add rig parameters
@@ -588,6 +597,8 @@ def register_rig_parameters():
 
 def unregister():
     from bpy.utils import unregister_class
+
+    bpy.context.preferences.addons['rigify'].preferences.register_feature_sets(False)
 
     # Properties on PoseBones and Armature.
     del bpy.types.PoseBone.rigify_type

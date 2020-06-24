@@ -87,6 +87,27 @@ def get_info_dict(feature_set):
     return {}
 
 
+def call_function_safe(feature_set, name, args=[], kwargs={}):
+    module = get_module_safe(feature_set)
+
+    if module:
+        func = getattr(module, name, None)
+
+        if callable(func):
+            try:
+                return func(*args, **kwargs)
+            except Exception:
+                print("Rigify Error: Could not call function '%s' of feature set '%s': exception occurred.\n" % (name, feature_set))
+                traceback.print_exc()
+                print("")
+
+    return None
+
+
+def call_register_function(feature_set, register):
+    call_function_safe(feature_set, 'register' if register else 'unregister')
+
+
 def get_ui_name(feature_set):
     # Try to get user-defined name
     info = get_info_dict(feature_set)
@@ -191,6 +212,9 @@ class DATA_OT_rigify_add_feature_set(bpy.types.Operator):
             if base_dir != fixed_dir:
                 os.rename(base_dir, fixed_dir)
 
+            # Call the register callback of the new set
+            call_register_function(fixed_dirname, True)
+
         addon_prefs.machin = bpy.props.EnumProperty(items=(('a',)*3, ('b',)*3, ('c',)*3),)
 
         addon_prefs.update_external_rigs()
@@ -214,6 +238,9 @@ class DATA_OT_rigify_remove_feature_set(bpy.types.Operator):
 
     def execute(self, context):
         addon_prefs = context.preferences.addons[__package__].preferences
+
+        # Call the unregister callback of the set being removed
+        call_register_function(self.featureset, False)
 
         rigify_config_path = get_install_path()
         if rigify_config_path:
