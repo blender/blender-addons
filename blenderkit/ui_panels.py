@@ -435,7 +435,7 @@ class VIEW3D_PT_blenderkit_model_properties(Panel):
             layout.label(text=str(ad['name']))
             if o.instance_type == 'COLLECTION' and o.instance_collection is not None:
                 layout.operator('object.blenderkit_bring_to_scene', text='Bring to scene')
-
+            layout.label(text='Ratings:')
             draw_panel_model_rating(self, context)
 
             draw_asset_context_menu(self, context, ad)
@@ -934,8 +934,17 @@ def draw_asset_context_menu(self, context, asset_data):
             if aob is None:
                 aob = bpy.context.selected_objects[0]
             op = layout.operator('scene.blenderkit_download', text='Replace Active Models')
+
+            #this checks if the menu got called from right-click in assetbar(then index is 0 - x) or
+            # from a panel(then replacement happens from the active model)
+            if ui_props.active_index == -3:
+                #called from addon panel
+                o = utils.get_active_model()
+                op.asset_base_id = o['asset_data']['assetBaseId']
+            else:
+                op.asset_index = ui_props.active_index
+
             op.asset_type = ui_props.asset_type
-            op.asset_index = ui_props.active_index
             op.model_location = aob.location
             op.model_rotation = aob.rotation_euler
             op.target_object = aob.name
@@ -982,7 +991,6 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
     bl_idname = "OBJECT_MT_blenderkit_asset_menu"
 
     def draw(self, context):
-
         ui_props = context.scene.blenderkitUI
 
         # sr = bpy.context.scene['search results']

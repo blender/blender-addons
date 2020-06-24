@@ -1600,6 +1600,8 @@ class BlenderKitAddonPreferences(AddonPreferences):
         layout.prop(self, "max_assetbar_rows")
         layout.prop(self, "tips_on_start")
         layout.prop(self, "search_in_header")
+        if bpy.context.preferences.view.show_developer_ui:
+            layout.prop(self, "use_timers")
 
 
 # registration

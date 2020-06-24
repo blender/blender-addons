@@ -262,7 +262,7 @@ def parse_result(r):
 
             #attempt to switch to use original data gradually, since the parsing as itself should become obsolete.
             asset_data.update(r)
-    return asset_data
+        return asset_data
 
 
 # @bpy.app.handlers.persistent
@@ -338,7 +338,8 @@ def timer_update():
                 bpy.ops.object.run_assetbar_fix_context()
                 for r in rdata['results']:
                     asset_data = parse_result(r)
-                    result_field.append(asset_data)
+                    if asset_data != None:
+                        result_field.append(asset_data)
 
                                 # results = rdata['results']
                 s[search_name] = result_field
@@ -883,21 +884,6 @@ class Searcher(threading.Thread):
             print(inst)
 
         mt('data parsed ')
-
-        # filter results here:
-        # todo remove this in future
-        # nresults = []
-        # for d in rdata.get('results', []):
-        #     # TODO this code is for filtering brush types, should vanish after we implement filter in Elastic
-        #     mode = None
-        #     if query['asset_type'] == 'brush':
-        #         for p in d['parameters']:
-        #             if p['parameterType'] == 'mode':
-        #                 mode = p['value']
-        #     if query['asset_type'] != 'brush' or (
-        #             query.get('mode') != None and query['mode']) == mode:
-        #         nresults.append(d)
-        # rdata['results'] = nresults
 
         # print('number of results: ', len(rdata.get('results', [])))
         if self.stopped():

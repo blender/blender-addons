@@ -838,6 +838,7 @@ class AssetVerificationStatusChange(Operator):
         if self.state == 'deleted':
             wm = context.window_manager
             return wm.invoke_props_dialog(self)
+        return {'RUNNING_MODAL'}
 
 
 def register_upload():
