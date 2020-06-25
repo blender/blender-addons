@@ -98,7 +98,9 @@ def make_constraint(
 # Custom property creation utilities
 #=============================================
 
-def make_property(owner, name, default, *, min=0.0, max=1.0, soft_min=None, soft_max=None, description=None, overridable=True):
+def make_property(
+        owner, name, default, *, min=0.0, max=1.0, soft_min=None, soft_max=None,
+        description=None, overridable=True, **options):
     """
     Creates and initializes a custom property of owner.
 
@@ -112,6 +114,7 @@ def make_property(owner, name, default, *, min=0.0, max=1.0, soft_min=None, soft
         min = min, max = max, soft_min = soft_min, soft_max = soft_max,
         description = description or name,
         overridable = overridable,
+        **options
     )
 
 #=============================================
