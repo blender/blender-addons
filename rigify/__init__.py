@@ -32,7 +32,6 @@ bl_info = {
 import importlib
 import sys
 import bpy
-import os
 
 
 # The order in which core modules of the addon are loaded and reloaded.

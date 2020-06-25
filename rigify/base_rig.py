@@ -18,10 +18,6 @@
 
 # <pep8 compliant>
 
-import bpy
-import sys
-import traceback
-
 from .utils.errors import RaiseErrorMixin
 from .utils.bones import BoneDict, BoneUtilityMixin
 from .utils.mechanism import MechanismUtilityMixin
