@@ -122,10 +122,14 @@ def get_ui_name(feature_set):
 
 def feature_set_items(scene, context):
     """Get items for the Feature Set EnumProperty"""
-    items = [('all',)*3, ('rigify',)*3, ]
+    items = [
+        ('all', 'All', 'All installed feature sets and rigs bundled with Rigify'),
+        ('rigify', 'Rigify Built-in', 'Rigs bundled with Rigify'),
+    ]
 
     for fs in get_installed_list():
-        items.append((fs,)*3)
+        ui_name = get_ui_name(fs)
+        items.append((fs, ui_name, ui_name))
 
     return items
 
