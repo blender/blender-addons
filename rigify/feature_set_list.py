@@ -21,6 +21,7 @@ from bpy.props import StringProperty
 import os
 import re
 import importlib
+import traceback
 from zipfile import ZipFile
 from shutil import rmtree
 
