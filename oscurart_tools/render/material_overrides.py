@@ -13,9 +13,9 @@ def ApplyOverrides(dummy):
     for override in bpy.context.scene.ovlist:
         
         # set collections clean name
-        collClean = override.grooverride     
+        collClean = override.colloverride   
         
-        for ob in bpy.data.collections[collClean].all_objects:
+        for ob in collClean.all_objects:
             if ob.type == "MESH":
                 if not ob.hide_viewport and not ob.hide_render:
                     obDict.append([ob,[mat for mat in ob.data.materials]])
@@ -30,12 +30,12 @@ def ApplyOverrides(dummy):
     for override in bpy.context.scene.ovlist:
         
         # set collections clean name
-        collClean = override.grooverride              
+        collClean = override.colloverride          
         # set material clean name    
         matClean = override.matoverride      
             
         
-        for ob in bpy.data.collections[collClean].all_objects:
+        for ob in collClean.all_objects:
             if ob.type == "MESH":
                 if not ob.hide_viewport and not ob.hide_render:
                     for i,mat  in enumerate(ob.data.materials):
@@ -66,7 +66,11 @@ def RestoreOverrides(dummy):
 
 class OscOverridesProp(bpy.types.PropertyGroup):
     matoverride: bpy.props.StringProperty()
-    grooverride: bpy.props.StringProperty()
+    colloverride: bpy.props.PointerProperty(
+                name="Hola",
+                type=bpy.types.Collection,
+                description="chau",
+                )    
 
 bpy.utils.register_class(OscOverridesProp)
 bpy.types.Scene.ovlist = bpy.props.CollectionProperty(type=OscOverridesProp)
@@ -90,7 +94,7 @@ class OVERRIDES_PT_OscOverridesGUI(bpy.types.Panel):
         col.operator("render.overrides_transfer")
         for i, m in enumerate(bpy.context.scene.ovlist):
             colrow = col.row(align=1)
-            colrow.prop_search(m, "grooverride", bpy.data, "collections", text="")
+            colrow.prop(m, "colloverride", text="")
             colrow.prop_search(
                 m,
                 "matoverride",
