@@ -38,7 +38,11 @@ def ApplyOverrides(dummy):
         # set collections clean name
         collClean = override.colloverride          
         # set material clean name    
-        matClean = override.matoverride      
+        matClean = override.matoverride   
+        # set objeto clean name  
+        obClean = override.oboverride   
+        
+        print(matClean)
             
         if collClean != None:
             for ob in collClean.all_objects:
