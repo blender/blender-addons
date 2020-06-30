@@ -136,8 +136,8 @@ class OscAddOverridesSlot(bpy.types.Operator):
 
     def execute(self, context):
         prop = bpy.context.scene.ovlist.add()
-        prop.matoverride = ""
-        prop.grooverride = ""
+        prop.matoverride = None
+        prop.grooverride = None
         return {'FINISHED'}
 
 
