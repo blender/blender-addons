@@ -39,14 +39,14 @@ def ApplyOverrides(dummy):
             if ob.type == "MESH":
                 if not ob.hide_viewport and not ob.hide_render:
                     for i,mat  in enumerate(ob.data.materials):
-                        ob.data.materials[i] = bpy.data.materials[matClean]
+                        ob.data.materials[i] = matClean
             if ob.type == "EMPTY":
                 if not ob.instance_collection == None:
                         for iob in ob.instance_collection.all_objects:
                             if iob.type == "MESH":
                                 if not iob.hide_viewport and not iob.hide_render:
                                     for i,mat  in enumerate(iob.data.materials):
-                                        iob.data.materials[i] = bpy.data.materials[matClean]                  
+                                        iob.data.materials[i] = matClean                 
 
 
 @persistent
@@ -64,13 +64,17 @@ def RestoreOverrides(dummy):
 
 
 
-class OscOverridesProp(bpy.types.PropertyGroup):
-    matoverride: bpy.props.StringProperty()
+class OscOverridesProp(bpy.types.PropertyGroup):    
     colloverride: bpy.props.PointerProperty(
-                name="Hola",
+                name="Collection Override",
                 type=bpy.types.Collection,
-                description="chau",
-                )    
+                description="All objects in this collection will be override",
+                )   
+    matoverride: bpy.props.PointerProperty(
+                name="Material Override",
+                type=bpy.types.Material,
+                description="Material for override objects",
+                )                  
 
 bpy.utils.register_class(OscOverridesProp)
 bpy.types.Scene.ovlist = bpy.props.CollectionProperty(type=OscOverridesProp)
@@ -94,13 +98,8 @@ class OVERRIDES_PT_OscOverridesGUI(bpy.types.Panel):
         col.operator("render.overrides_transfer")
         for i, m in enumerate(bpy.context.scene.ovlist):
             colrow = col.row(align=1)
-            colrow.prop(m, "colloverride", text="")
-            colrow.prop_search(
-                m,
-                "matoverride",
-                bpy.data,
-                "materials",
-                text="")
+            colrow.prop(m, "colloverride", text="")  
+            colrow.prop(m, "matoverride", text="")                      
             if i != len(bpy.context.scene.ovlist) - 1:
                 pa = colrow.operator(
                     "ovlist.move_down",
