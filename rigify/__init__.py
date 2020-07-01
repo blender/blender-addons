@@ -416,14 +416,17 @@ class RigifyParameterValidator(object):
             print("!!! RIGIFY RIG %s: INVALID DEFINITION FOR RIG PARAMETER %s: %r\n" % (self.__rig_name, name, val))
             return
 
-        if name in self.__prop_table:
-            cur_rig, cur_info = self.__prop_table[name]
-            if val != cur_info:
-                print("!!! RIGIFY RIG %s: REDEFINING PARAMETER %s AS:\n\n    %s\n" % (self.__rig_name, name, format_property_spec(val)))
-                print("!!! PREVIOUS DEFINITION BY %s:\n\n    %s\n" % (cur_rig, format_property_spec(cur_info)))
-
         # actually defining the property modifies the dictionary with new parameters, so copy it now
         new_def = (val[0], val[1].copy())
+
+        if 'poll' in new_def[1]:
+            del new_def[1]['poll']
+
+        if name in self.__prop_table:
+            cur_rig, cur_info = self.__prop_table[name]
+            if new_def != cur_info:
+                print("!!! RIGIFY RIG %s: REDEFINING PARAMETER %s AS:\n\n    %s\n" % (self.__rig_name, name, format_property_spec(val)))
+                print("!!! PREVIOUS DEFINITION BY %s:\n\n    %s\n" % (cur_rig, format_property_spec(cur_info)))
 
         # inject a generic update callback that calls the appropriate rig classmethod
         val[1]['update'] = update_callback(name)
