@@ -684,7 +684,7 @@ class VIEW3D_PT_blenderkit_advanced_model_search(Panel):
             row.prop(props, "search_texture_resolution_max", text='max')
 
         # FILE SIZE
-        layout.prop(props, "search_file_size", text='File size ( min - max )')
+        layout.prop(props, "search_file_size", text='File size ( min - max MB)')
         if props.search_file_size:
             row = layout.row(align=True)
             row.prop(props, "search_file_size_min", text='min')
@@ -712,7 +712,7 @@ class VIEW3D_PT_blenderkit_advanced_material_search(Panel):
     def draw(self, context):
         s = context.scene
 
-        props = s.blenderkit_models
+        props = s.blenderkit_mat
         layout = self.layout
         layout.separator()
 
@@ -729,7 +729,7 @@ class VIEW3D_PT_blenderkit_advanced_material_search(Panel):
                 row.prop(props, "search_texture_resolution_max", text='max')
 
         # FILE SIZE
-        layout.prop(props, "search_file_size", text='File size ( min - max in mb)')
+        layout.prop(props, "search_file_size", text='File size ( min - max MB)')
         if props.search_file_size:
             row = layout.row(align=True)
             row.prop(props, "search_file_size_min", text='min')
@@ -769,6 +769,8 @@ class VIEW3D_PT_blenderkit_import_settings(Panel):
         return ui_props.down_up == 'SEARCH' and ui_props.asset_type in ['MATERIAL', 'MODEL']
 
     def draw(self, context):
+        layout = self.layout
+
         s = context.scene
         ui_props = s.blenderkitUI
 
@@ -776,7 +778,6 @@ class VIEW3D_PT_blenderkit_import_settings(Panel):
         if ui_props.asset_type == 'MODEL':
             # noinspection PyCallByClass
             props = s.blenderkit_models
-            layout = self.layout
             layout.label(text='Import method:')
             row = layout.row()
             row.prop(props, 'append_method', expand=True, icon_only=False)
@@ -822,7 +823,7 @@ class VIEW3D_PT_blenderkit_unified(Panel):
         row.scale_x = 1.6
         row.scale_y = 1.6
         # split = row.split(factor=.5)
-        row.prop(ui_props, 'asset_type', expand=True, icon_only=True)
+        row.prop(ui_props, 'asset_type', expand=True, icon_only=False)
         # row = layout.column(align = False)
         # layout.prop(ui_props, 'asset_type', expand=False, text='')
 
@@ -1220,6 +1221,7 @@ classess = (
     VIEW3D_PT_blenderkit_login,
     VIEW3D_PT_blenderkit_unified,
     VIEW3D_PT_blenderkit_advanced_model_search,
+    VIEW3D_PT_blenderkit_advanced_material_search,
     VIEW3D_PT_blenderkit_categories,
     VIEW3D_PT_blenderkit_import_settings,
     VIEW3D_PT_blenderkit_model_properties,

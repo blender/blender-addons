@@ -255,19 +255,19 @@ def asset_type_callback(self, context):
     # ui_props = s.blenderkitUI
     if self.down_up == 'SEARCH':
         items = (
-            ('MODEL', 'Find Models', 'Find models in the BlenderKit online database', 'OBJECT_DATAMODE', 0),
+            ('MODEL', 'Models', 'Find models in the BlenderKit online database', 'OBJECT_DATAMODE', 0),
             # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
-            ('MATERIAL', 'Find Materials', 'Find models in the BlenderKit online database', 'MATERIAL', 2),
+            ('MATERIAL', 'Materials', 'Find models in the BlenderKit online database', 'MATERIAL', 2),
             # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
-            ('BRUSH', 'Find Brushes', 'Find models in the BlenderKit online database', 'BRUSH_DATA', 3)
+            ('BRUSH', 'Brushes', 'Find models in the BlenderKit online database', 'BRUSH_DATA', 3)
         )
     else:
         items = (
-            ('MODEL', 'Upload Model', 'Upload a model to BlenderKit', 'OBJECT_DATAMODE', 0),
+            ('MODEL', 'Model', 'Upload a model to BlenderKit', 'OBJECT_DATAMODE', 0),
             # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
-            ('MATERIAL', 'Upload Material', 'Upload a material to BlenderKit', 'MATERIAL', 2),
+            ('MATERIAL', 'Material', 'Upload a material to BlenderKit', 'MATERIAL', 2),
             # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
-            ('BRUSH', 'Upload Brush', 'Upload a brush to BlenderKit', 'BRUSH_DATA', 3)
+            ('BRUSH', 'Brush', 'Upload a brush to BlenderKit', 'BRUSH_DATA', 3)
         )
     return items
 
