@@ -876,7 +876,7 @@ def draw_callback_2d_search(self, context):
                     else:
                         iname = utils.previmg_name(ui_props.active_index)
                         img = bpy.data.images.get(iname)
-                    img.colorspace_settings.name = 'Linear'
+                    img.colorspace_settings.name = 'sRGB'
 
                 gimg = None
                 atip = ''

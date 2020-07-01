@@ -411,7 +411,7 @@ def load_previews():
                         img.unpack(method='USE_ORIGINAL')
                     img.filepath = tpath
                     img.reload()
-                img.colorspace_settings.name = 'Linear'
+                img.colorspace_settings.name = 'sRGB'
             i += 1
     # print('previews loaded')
 

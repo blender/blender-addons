@@ -289,12 +289,12 @@ def get_hidden_image(tpath, bdata_name, force_reload=False):
 
                 img.filepath = tpath
                 img.reload()
-        img.colorspace_settings.name = 'Linear'
+        img.colorspace_settings.name = 'sRGB'
     elif force_reload:
         if img.packed_file is not None:
             img.unpack(method='USE_ORIGINAL')
         img.reload()
-        img.colorspace_settings.name = 'Linear'
+        img.colorspace_settings.name = 'sRGB'
     return img
 
 
@@ -304,7 +304,7 @@ def get_thumbnail(name):
     img = bpy.data.images.get(name)
     if img == None:
         img = bpy.data.images.load(p)
-        img.colorspace_settings.name = 'Linear'
+        img.colorspace_settings.name = 'sRGB'
         img.name = name
         img.name = name
 
