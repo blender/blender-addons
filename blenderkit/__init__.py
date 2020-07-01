@@ -481,6 +481,7 @@ class BlenderKitCommonSearchProps(object):
             ('DELETED', 'Deleted', 'Deleted'),
         ),
         default='ALL',
+        update=search.search_update,
     )
 
 
@@ -655,7 +656,7 @@ class BlenderKitRatingProps(PropertyGroup):
 
     rating_work_hours: FloatProperty(name="Work Hours",
                                      description="How many hours did this work take?",
-                                     default=0.01,
+                                     default=0.00,
                                      min=0.0, max=1000, update=ratings.update_ratings_work_hours
                                      )
     rating_complexity: IntProperty(name="Complexity",

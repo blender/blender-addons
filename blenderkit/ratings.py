@@ -128,7 +128,7 @@ def update_ratings_work_hours(self, context):
     bkit_ratings = asset.bkit_ratings
     url = paths.get_api_url() + 'assets/' + asset['asset_data']['id'] + '/rating/'
 
-    if bkit_ratings.rating_quality > 0.1:
+    if bkit_ratings.rating_work_hours > 0.05:
         ratings = [('working_hours', round(bkit_ratings.rating_work_hours, 1))]
         tasks_queue.add_task((send_rating_to_thread_work_hours, (url, ratings, headers)), wait=1, only_last=True)
 

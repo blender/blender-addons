@@ -74,15 +74,16 @@ def draw_ratings(layout, context):
     if asset == None:
         return;
 
+    col = layout.column()
     if not utils.user_logged_in():
         label_multiline(layout, text='Please login or sign up '
                                      'to rate assets.')
-        return
+        col.enabled = False
     bkit_ratings = asset.bkit_ratings
 
-    ratings.draw_rating(layout, bkit_ratings, 'rating_quality', 'Quality')
-    layout.separator()
-    layout.prop(bkit_ratings, 'rating_work_hours')
+    ratings.draw_rating(col, bkit_ratings, 'rating_quality', 'Quality')
+    col.separator()
+    col.prop(bkit_ratings, 'rating_work_hours')
     w = context.region.width
 
     # layout.label(text='problems')
@@ -93,6 +94,7 @@ def draw_ratings(layout, context):
     # row = layout.row()
     # op = row.operator("object.blenderkit_rating_upload", text="Send rating", icon='URL')
     # return op
+    #re-enable layout if included in longer panel
 
 
 def draw_not_logged_in(source):

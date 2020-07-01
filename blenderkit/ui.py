@@ -1688,10 +1688,12 @@ class AssetBarOperator(bpy.types.Operator):
             if a is not None:
                 sprops = utils.get_search_props()
                 sprops.search_keywords = ''
+                sprops.search_verification_status = 'ALL'
                 utils.p('author:', a)
                 search.search(author_id=a)
             return {'RUNNING_MODAL'}
         if event.type == 'X' and ui_props.active_index > -1:
+            # delete downloaded files for this asset
             sr = bpy.context.scene['search results']
             asset_data = sr[ui_props.active_index]
             print(asset_data['name'])
