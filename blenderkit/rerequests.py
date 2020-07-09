@@ -68,6 +68,8 @@ def rerequest(method, url, **kwargs):
                             #  in non-threaded tasks
                             bpy.context.preferences.addons['blenderkit'].preferences.api_key = auth_token
                             bpy.context.preferences.addons['blenderkit'].preferences.api_key_refresh = refresh_token
+                        else:
+                            tasks_queue.add_task((bkit_oauth.write_tokens, (auth_token, refresh_token, oauth_response)))
 
                         kwargs['headers'] = utils.get_headers(auth_token)
                         response = requests.request(method, url, **kwargs)

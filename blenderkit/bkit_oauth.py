@@ -70,7 +70,7 @@ def refresh_token_thread():
         thread = threading.Thread(target=refresh_token, args=([preferences.api_key_refresh, url]), daemon=True)
         thread.start()
     else:
-        ui.add_report('Already Refreshing token, will be ready soon.')
+        ui.add_report('Already Refreshing token, will be ready soon. If this fails, please login again in Login panel.')
 
 
 def refresh_token(api_key_refresh, url):
@@ -139,7 +139,8 @@ class Logout(bpy.types.Operator):
         preferences.login_attempt = False
         preferences.api_key_refresh = ''
         preferences.api_key = ''
-        del (bpy.context.window_manager['bkit profile'])
+        if bpy.context.window_manager.get('bkit profile'):
+            del (bpy.context.window_manager['bkit profile'])
         return {'FINISHED'}
 
 

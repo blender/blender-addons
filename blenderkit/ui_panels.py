@@ -94,7 +94,7 @@ def draw_ratings(layout, context):
     # row = layout.row()
     # op = row.operator("object.blenderkit_rating_upload", text="Send rating", icon='URL')
     # return op
-    #re-enable layout if included in longer panel
+    # re-enable layout if included in longer panel
 
 
 def draw_not_logged_in(source):
@@ -337,7 +337,6 @@ def draw_panel_model_search(self, context):
     # draw_panel_categories(self, context)
 
 
-
 def draw_panel_scene_search(self, context):
     s = context.scene
     props = s.blenderkit_scene
@@ -567,10 +566,7 @@ def draw_panel_material_search(self, context):
     # if props.search_engine == 'OTHER':
     #     layout.prop(props, 'search_engine_other')
 
-
-
     # draw_panel_categories(self, context)
-
 
 
 def draw_panel_material_ratings(self, context):
@@ -641,12 +637,11 @@ class VIEW3D_PT_blenderkit_advanced_model_search(Panel):
     bl_label = "Search filters"
     bl_options = {'DEFAULT_CLOSED'}
 
-
     @classmethod
     def poll(cls, context):
         s = context.scene
         ui_props = s.blenderkitUI
-        return ui_props.down_up == 'SEARCH' and ui_props.asset_type =='MODEL'
+        return ui_props.down_up == 'SEARCH' and ui_props.asset_type == 'MODEL'
 
     def draw(self, context):
         s = context.scene
@@ -696,6 +691,7 @@ class VIEW3D_PT_blenderkit_advanced_model_search(Panel):
         # ADULT
         # layout.prop(props, "search_adult")  # , text ='condition of object new/old e.t.c.')
 
+
 class VIEW3D_PT_blenderkit_advanced_material_search(Panel):
     bl_category = "BlenderKit"
     bl_idname = "VIEW3D_PT_blenderkit_advanced_material_search"
@@ -709,7 +705,7 @@ class VIEW3D_PT_blenderkit_advanced_material_search(Panel):
     def poll(cls, context):
         s = context.scene
         ui_props = s.blenderkitUI
-        return ui_props.down_up == 'SEARCH' and ui_props.asset_type =='MATERIAL'
+        return ui_props.down_up == 'SEARCH' and ui_props.asset_type == 'MATERIAL'
 
     def draw(self, context):
         s = context.scene
@@ -737,6 +733,7 @@ class VIEW3D_PT_blenderkit_advanced_material_search(Panel):
             row.prop(props, "search_file_size_min", text='min')
             row.prop(props, "search_file_size_max", text='max')
 
+
 class VIEW3D_PT_blenderkit_categories(Panel):
     bl_category = "BlenderKit"
     bl_idname = "VIEW3D_PT_blenderkit_categories"
@@ -750,10 +747,14 @@ class VIEW3D_PT_blenderkit_categories(Panel):
     def poll(cls, context):
         s = context.scene
         ui_props = s.blenderkitUI
-        return ui_props.down_up == 'SEARCH'
+        mode = True
+        if  ui_props.asset_type == 'BRUSH' and not (context.sculpt_object or context.image_paint_object):
+            mode = False
+        return ui_props.down_up == 'SEARCH' and mode
 
     def draw(self, context):
-        draw_panel_categories(self,context)
+        draw_panel_categories(self, context)
+
 
 class VIEW3D_PT_blenderkit_import_settings(Panel):
     bl_category = "BlenderKit"
@@ -775,7 +776,6 @@ class VIEW3D_PT_blenderkit_import_settings(Panel):
 
         s = context.scene
         ui_props = s.blenderkitUI
-
 
         if ui_props.asset_type == 'MODEL':
             # noinspection PyCallByClass
@@ -821,7 +821,7 @@ class VIEW3D_PT_blenderkit_unified(Panel):
         # row = row.split().row()
         # layout.alert = True
         # layout.alignment = 'CENTER'
-        row = layout.row(align = True)
+        row = layout.row(align=True)
         row.scale_x = 1.6
         row.scale_y = 1.6
         # split = row.split(factor=.5)
@@ -966,10 +966,10 @@ def draw_asset_context_menu(self, context, asset_data):
                 aob = bpy.context.selected_objects[0]
             op = layout.operator('scene.blenderkit_download', text='Replace Active Models')
 
-            #this checks if the menu got called from right-click in assetbar(then index is 0 - x) or
+            # this checks if the menu got called from right-click in assetbar(then index is 0 - x) or
             # from a panel(then replacement happens from the active model)
             if ui_props.active_index == -3:
-                #called from addon panel
+                # called from addon panel
                 o = utils.get_active_model()
                 op.asset_base_id = o['asset_data']['assetBaseId']
             else:
@@ -1231,6 +1231,7 @@ classess = (
     OBJECT_MT_blenderkit_asset_menu,
     UrlPopupDialog
 )
+
 
 def register_ui_panels():
     for c in classess:

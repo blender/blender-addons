@@ -19,8 +19,8 @@
 bl_info = {
     "name": "BlenderKit Online Asset Library",
     "author": "Vilem Duha, Petr Dlouhy",
-    "version": (1, 0, 30),
-    "blender": (2, 82, 0),
+    "version": (1, 0, 31),
+    "blender": (2, 83, 0),
     "location": "View3D > Properties > BlenderKit",
     "description": "Online BlenderKit library (materials, models, brushes and more). Connects to the internet.",
     "warning": "",
@@ -249,17 +249,24 @@ def switch_search_results(self, context):
         s['search results orig'] = s.get('bkit brush search orig')
     search.load_previews()
 
+#define these static
+# asset_type_ui_items = (
+#             ('MODEL', 'Models', 'Find upload models in the BlenderKit online database', 'OBJECT_DATAMODE',0),
+#             # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
+#             ('MATERIAL', 'Materials', 'Find or upload models in the BlenderKit online database', 'MATERIAL',2),
+#             # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
+#             ('BRUSH', 'Brushes', 'Find or upload models in the BlenderKit online database', 'BRUSH_DATA',3)
+#         )
 
+#same as above, but dynamic.
 def asset_type_callback(self, context):
-    # s = bpy.context.scene
-    # ui_props = s.blenderkitUI
     if self.down_up == 'SEARCH':
         items = (
             ('MODEL', 'Models', 'Find models in the BlenderKit online database', 'OBJECT_DATAMODE', 0),
             # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
-            ('MATERIAL', 'Materials', 'Find models in the BlenderKit online database', 'MATERIAL', 2),
+            ('MATERIAL', 'Materials', 'Find materials in the BlenderKit online database', 'MATERIAL', 2),
             # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
-            ('BRUSH', 'Brushes', 'Find models in the BlenderKit online database', 'BRUSH_DATA', 3)
+            ('BRUSH', 'Brushes', 'Find brushes in the BlenderKit online database', 'BRUSH_DATA', 3)
         )
     else:
         items = (

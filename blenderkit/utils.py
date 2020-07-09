@@ -209,9 +209,9 @@ def get_upload_props():
 
 def previmg_name(index, fullsize=False):
     if not fullsize:
-        return '.bkit_preview_' + str(index).zfill(2)
+        return '.bkit_preview_' + str(index).zfill(3)
     else:
-        return '.bkit_preview_full_' + str(index).zfill(2)
+        return '.bkit_preview_full_' + str(index).zfill(3)
 
 
 def get_active_brush():
