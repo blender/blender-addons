@@ -134,7 +134,7 @@ def scene_load(context):
 
 
 def fetch_server_data():
-    ''' download categories and addon version'''
+    ''' download categories , profile, and refresh token if needed.'''
     if not bpy.app.background:
         user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
         api_key = user_preferences.api_key

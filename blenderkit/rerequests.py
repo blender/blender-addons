@@ -40,7 +40,7 @@ def rerequest(method, url, **kwargs):
     # first normal attempt
     response = requests.request(method, url, **kwargs)
 
-    utils.p(url)
+    utils.p(url, kwargs)
     utils.p(response.status_code)
 
     if response.status_code == 401:

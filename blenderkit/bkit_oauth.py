@@ -26,8 +26,9 @@ if "bpy" in locals():
     categories = reload(categories)
     oauth = reload(oauth)
     ui = reload(ui)
+    ui = reload(ui_panels)
 else:
-    from blenderkit import tasks_queue, utils, paths, search, categories, oauth, ui
+    from blenderkit import tasks_queue, utils, paths, search, categories, oauth, ui, ui_panels
 
 import bpy
 
@@ -102,7 +103,7 @@ class RegisterLoginOnline(bpy.types.Operator):
     """Login online on BlenderKit webpage"""
 
     bl_idname = "wm.blenderkit_login"
-    bl_label = "BlenderKit login or signup"
+    bl_label = "BlenderKit login/signup"
     bl_options = {'REGISTER', 'UNDO'}
 
     signup: BoolProperty(
@@ -112,15 +113,31 @@ class RegisterLoginOnline(bpy.types.Operator):
         options={'SKIP_SAVE'}
     )
 
+    message: bpy.props.StringProperty(
+        name="Message",
+        description="",
+        default="You were logged out from BlenderKit. Clicking OK takes you to web login. ")
+
     @classmethod
     def poll(cls, context):
         return True
+
+    def draw(self, context):
+        layout = self.layout
+        utils.label_multiline(layout, text=self.message)
 
     def execute(self, context):
         preferences = bpy.context.preferences.addons['blenderkit'].preferences
         preferences.login_attempt = True
         login_thread(self.signup)
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = bpy.context.window_manager
+        preferences = bpy.context.preferences.addons['blenderkit'].preferences
+        preferences.api_key_refresh = ''
+        preferences.api_key = ''
+        return wm.invoke_props_dialog(self)
 
 
 class Logout(bpy.types.Operator):
