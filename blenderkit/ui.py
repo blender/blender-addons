@@ -1181,30 +1181,6 @@ def update_ui_size(area, region):
     ui.rating_y = ui.bar_y - ui.bar_height
 
 
-def get_largest_3dview():
-    maxsurf = 0
-    maxa = None
-    maxw = None
-    region = None
-    for w in bpy.context.window_manager.windows:
-        screen = w.screen
-        for a in screen.areas:
-            if a.type == 'VIEW_3D':
-                asurf = a.width * a.height
-                if asurf > maxsurf:
-                    maxa = a
-                    maxw = w
-                    maxsurf = asurf
-
-                    for r in a.regions:
-                        if r.type == 'WINDOW':
-                            region = r
-    global active_area, active_window, active_region
-    active_window = maxw
-    active_area = maxa
-    active_region = region
-    return maxw, maxa, region
-
 
 class AssetBarOperator(bpy.types.Operator):
     '''runs search and displays the asset bar at the same time'''
@@ -1808,11 +1784,12 @@ class UndoWithContext(bpy.types.Operator):
         C_dict = bpy.context.copy()
         C_dict.update(region='WINDOW')
         if context.area is None or context.area.type != 'VIEW_3D':
-            w, a, r = get_largest_3dview()
+            w, a, r = utils.get_largest_3dview()
             override = {'window': w, 'screen': w.screen, 'area': a, 'region': r}
             C_dict.update(override)
         bpy.ops.ed.undo_push(C_dict, 'INVOKE_REGION_WIN', message=self.message)
         return {'FINISHED'}
+
 
 
 class RunAssetBarWithContext(bpy.types.Operator):
@@ -1826,12 +1803,7 @@ class RunAssetBarWithContext(bpy.types.Operator):
     #     return {'RUNNING_MODAL'}
 
     def execute(self, context):
-        C_dict = bpy.context.copy()
-        C_dict.update(region='WINDOW')
-        if context.area is None or context.area.type != 'VIEW_3D':
-            w, a, r = get_largest_3dview()
-            override = {'window': w, 'screen': w.screen, 'area': a, 'region': r}
-            C_dict.update(override)
+        C_dict = utils.get_fake_context(context)
         bpy.ops.view3d.blenderkit_asset_bar(C_dict, 'INVOKE_REGION_WIN', keep_running=True, do_search=False)
         return {'FINISHED'}
 

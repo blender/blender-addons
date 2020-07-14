@@ -45,15 +45,16 @@ def get_queue():
     return t.task_queue
 
 class task_object:
-    def __init__(self, command = '', arguments = (), wait = 0, only_last = False):
+    def __init__(self, command = '', arguments = (), wait = 0, only_last = False, fake_context = False):
         self.command = command
         self.arguments = arguments
         self.wait = wait
         self.only_last = only_last
+        self.fake_context = fake_context
 
-def add_task(task, wait = 0, only_last = False):
+def add_task(task, wait = 0, only_last = False, fake_context = False):
     q = get_queue()
-    taskob = task_object(task[0],task[1], wait = wait, only_last = only_last)
+    taskob = task_object(task[0],task[1], wait = wait, only_last = only_last, fake_context = fake_context)
     q.put(taskob)
 
 
@@ -90,7 +91,11 @@ def queue_worker():
             utils.p('as a task:   ')
             utils.p(task.command, task.arguments)
             try:
-                task.command(*task.arguments)
+                if task.fake_context:
+                    fc = utils.get_fake_context(bpy.context)
+                    task.command(fc,*task.arguments)
+                else:
+                    task.command(*task.arguments)
             except Exception as e:
                 utils.p('task failed:')
                 print(e)

@@ -72,7 +72,7 @@ def check_errors(rdata):
                 if user_preferences.enable_oauth:
                     bkit_oauth.refresh_token_thread()
                 return False, rdata.get('detail')
-            return False, 'Missing or wrong api_key in addon preferences'
+            return False, 'Use login panel to connect your profile.'
     return True, ''
 
 
@@ -282,7 +282,7 @@ def timer_update():
             search()
             preferences.first_run = False
         if preferences.tips_on_start:
-            ui.get_largest_3dview()
+            utils.get_largest_3dview()
             ui.update_ui_size(ui.active_area, ui.active_region)
             ui.add_report(text='BlenderKit Tip: ' + random.choice(rtips), timeout=12, color=colors.GREEN)
         return 3.0
