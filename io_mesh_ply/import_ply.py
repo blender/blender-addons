@@ -117,18 +117,6 @@ class ObjectSpec:
             for i in self.specs
         }
 
-        # Longhand for above LC
-        """
-        answer = {}
-        for i in self.specs:
-            answer[i.name] = []
-            for j in range(i.count):
-                if not j % 100 and meshtools.show_progress:
-                    Blender.Window.DrawProgressBar(float(j) / i.count, 'Loading ' + i.name)
-                answer[i.name].append(i.load(format, stream))
-        return answer
-        """
-
 
 def read(filepath):
     import re

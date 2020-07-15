@@ -189,7 +189,7 @@ class PLY_PT_export_include(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
+        layout.use_property_decorate = False
 
         sfile = context.space_data
         operator = sfile.active_operator
@@ -213,7 +213,7 @@ class PLY_PT_export_transform(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
+        layout.use_property_decorate = False
 
         sfile = context.space_data
         operator = sfile.active_operator
@@ -239,7 +239,7 @@ class PLY_PT_export_geometry(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
+        layout.use_property_decorate = False
 
         sfile = context.space_data
         operator = sfile.active_operator
