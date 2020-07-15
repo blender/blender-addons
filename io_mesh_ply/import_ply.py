@@ -110,7 +110,12 @@ class ObjectSpec:
         self.specs = []
 
     def load(self, format, stream):
-        return dict([(i.name, [i.load(format, stream) for j in range(i.count)]) for i in self.specs])
+        return {
+            i.name: [
+                i.load(format, stream) for j in range(i.count)
+            ]
+            for i in self.specs
+        }
 
         # Longhand for above LC
         """
