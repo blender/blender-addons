@@ -25,11 +25,21 @@ if "bpy" in locals():
     download = importlib.reload(download)
     categories = importlib.reload(categories)
     icons = importlib.reload(icons)
+    icons = importlib.reload(search)
 else:
-    from blenderkit import paths, ratings, utils, download, categories, icons
+    from blenderkit import paths, ratings, utils, download, categories, icons, search
 
 from bpy.types import (
     Panel
+)
+from bpy.props import (
+    IntProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    StringProperty,
+    EnumProperty,
+    BoolProperty,
+    PointerProperty,
 )
 
 import bpy
@@ -962,6 +972,47 @@ class VIEW3D_PT_blenderkit_unified(Panel):
             if ui_props.asset_type == 'TEXTURE':
                 layout.label(text='not yet implemented')
 
+class BlenderKitWelcomeOperator(bpy.types.Operator):
+    """Login online on BlenderKit webpage"""
+
+    bl_idname = "wm.blenderkit_welcome"
+    bl_label = "Welcome to BlenderKit!"
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
+
+    step: IntProperty(
+        name="step",
+        description="Tutorial Step",
+        default=0,
+        options={'SKIP_SAVE'}
+    )
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        if self.step == 0:
+            message = "BlenderKit is an addon that connects to the internet to search and upload for models, materials, and brushes. \n\n Let's start by searching for some cool materials?"
+        else:
+            message = "This shouldn't be here at all"
+        utils.label_multiline(layout, text= message, width = 300)
+
+    def execute(self, context):
+        if self.step == 0:
+            #move mouse:
+            #bpy.context.window_manager.windows[0].cursor_warp(1000, 1000)
+            #show n-key sidebar (spaces[index] has to be found for view3d too:
+            # bpy.context.window_manager.windows[0].screen.areas[5].spaces[0].show_region_ui = False
+            print('running search no')
+            ui_props = bpy.context.scene.blenderkitUI
+            ui_props.asset_type = 'MATERIAL'
+            search.search()
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = bpy.context.window_manager
+        return wm.invoke_props_dialog(self)
 
 def draw_asset_context_menu(self, context, asset_data):
     layout = self.layout
@@ -1298,7 +1349,8 @@ classess = (
     VIEW3D_PT_blenderkit_downloads,
     OBJECT_MT_blenderkit_asset_menu,
     OBJECT_MT_blenderkit_login_menu,
-    UrlPopupDialog
+    UrlPopupDialog,
+    BlenderKitWelcomeOperator,
 )
 
 

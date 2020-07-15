@@ -614,15 +614,14 @@ def guard_from_crash():
     return True
 
 
-def get_largest_3dview():
+def get_largest_area( area_type = 'VIEW_3D'):
     maxsurf = 0
     maxa = None
     maxw = None
     region = None
     for w in bpy.context.window_manager.windows:
-        screen = w.screen
-        for a in screen.areas:
-            if a.type == 'VIEW_3D':
+        for a in w.screen.areas:
+            if a.type == area_type:
                 asurf = a.width * a.height
                 if asurf > maxsurf:
                     maxa = a
@@ -638,14 +637,17 @@ def get_largest_3dview():
     active_region = region
     return maxw, maxa, region
 
-def get_fake_context(context):
+def get_fake_context(context, area_type = 'VIEW_3D'):
     C_dict = context.copy()
     C_dict.update(region='WINDOW')
-    if context.area is None or context.area.type != 'VIEW_3D':
-        w, a, r = get_largest_3dview()
+    if context.area is None or context.area.type != area_type:
+        w, a, r = get_largest_area(area_type = area_type)
+
         override = {'window': w, 'screen': w.screen, 'area': a, 'region': r}
         C_dict.update(override)
+        # print(w,a,r)
     return C_dict
+
 
 def label_multiline(layout, text='', icon='NONE', width=-1):
     ''' draw a ui label, but try to split it in multiple lines.'''

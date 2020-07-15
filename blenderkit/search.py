@@ -282,14 +282,14 @@ def timer_update():
             search()
             preferences.first_run = False
         if preferences.tips_on_start:
-            utils.get_largest_3dview()
+            utils.get_largest_area()
             ui.update_ui_size(ui.active_area, ui.active_region)
             ui.add_report(text='BlenderKit Tip: ' + random.choice(rtips), timeout=12, color=colors.GREEN)
         return 3.0
 
-    if preferences.first_run:
-        search()
-        preferences.first_run = False
+    # if preferences.first_run:
+    #     search()
+    #     preferences.first_run = False
 
     # check_clipboard()
 
