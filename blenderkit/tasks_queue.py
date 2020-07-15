@@ -45,16 +45,17 @@ def get_queue():
     return t.task_queue
 
 class task_object:
-    def __init__(self, command = '', arguments = (), wait = 0, only_last = False, fake_context = False):
+    def __init__(self, command = '', arguments = (), wait = 0, only_last = False, fake_context = False, fake_context_area = 'VIEW_3D'):
         self.command = command
         self.arguments = arguments
         self.wait = wait
         self.only_last = only_last
         self.fake_context = fake_context
+        self.fake_context_area = fake_context_area
 
-def add_task(task, wait = 0, only_last = False, fake_context = False):
+def add_task(task, wait = 0, only_last = False, fake_context = False, fake_context_area = 'VIEW_3D'):
     q = get_queue()
-    taskob = task_object(task[0],task[1], wait = wait, only_last = only_last, fake_context = fake_context)
+    taskob = task_object(task[0],task[1], wait = wait, only_last = only_last, fake_context = fake_context, fake_context_area = fake_context_area)
     q.put(taskob)
 
 
@@ -92,7 +93,7 @@ def queue_worker():
             utils.p(task.command, task.arguments)
             try:
                 if task.fake_context:
-                    fc = utils.get_fake_context(bpy.context)
+                    fc = utils.get_fake_context(bpy.context, area_type = task.fake_context_area)
                     task.command(fc,*task.arguments)
                 else:
                     task.command(*task.arguments)

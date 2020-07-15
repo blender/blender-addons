@@ -1725,6 +1725,11 @@ def register():
         bpy.app.timers.register(check_timers_timer, persistent=True)
 
     bpy.app.handlers.load_post.append(scene_load)
+    # detect if the user just enabled the addon in preferences, thus enable to run
+    for w in bpy.context.window_manager.windows:
+        for a in w.screen.areas:
+            if a.type == 'PREFERENCES':
+                tasks_queue.add_task((bpy.ops.wm.blenderkit_welcome,( 'INVOKE_DEFAULT',)),fake_context = True, fake_context_area = 'PREFERENCES')
 
 
 def unregister():
