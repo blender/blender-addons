@@ -275,7 +275,7 @@ def load_ply_mesh(filepath, ply_name):
                        vertices[index][colindices[0]] * colmultiply[0],
                        vertices[index][colindices[1]] * colmultiply[1],
                        vertices[index][colindices[2]] * colmultiply[2],
-                       1.0
+                       1.0,
                     )
                     for index in indices
                 ])

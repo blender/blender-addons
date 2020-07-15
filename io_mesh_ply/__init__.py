@@ -52,7 +52,7 @@ from bpy_extras.io_utils import (
     ImportHelper,
     ExportHelper,
     axis_conversion,
-    orientation_helper
+    orientation_helper,
 )
 
 
@@ -64,11 +64,9 @@ class ImportPLY(bpy.types.Operator, ImportHelper):
 
     files: CollectionProperty(
         name="File Path",
-        description=(
-            "File path used for importing "
-            "the PLY file"
-        ),
-        type=bpy.types.OperatorFileListElement)
+        description="File path used for importing the PLY file",
+        type=bpy.types.OperatorFileListElement,
+    )
 
     # Hide opertator properties, rest of this is managed in C. See WM_operator_properties_filesel().
     hide_props_region: BoolProperty(
@@ -84,13 +82,15 @@ class ImportPLY(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         import os
+        from . import import_ply
 
-        paths = [os.path.join(self.directory, name.name)
-                 for name in self.files]
+        paths = [
+            os.path.join(self.directory, name.name)
+            for name in self.files
+        ]
+
         if not paths:
             paths.append(self.filepath)
-
-        from . import import_ply
 
         for path in paths:
             import_ply.load(self, context, path)
@@ -120,10 +120,8 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
     use_normals: BoolProperty(
         name="Normals",
         description=(
-            "Export Normals for smooth and "
-            "hard shaded faces "
-            "(hard shaded faces will be exported "
-            "as individual faces)"
+            "Export Normals for smooth and hard shaded faces "
+            "(hard shaded faces will be exported as individual faces)"
         ),
         default=True,
     )
@@ -137,17 +135,16 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
         description="Export the active vertex color layer",
         default=True,
     )
-
     global_scale: FloatProperty(
         name="Scale",
-        min=0.01, max=1000.0,
+        min=0.01,
+        max=1000.0,
         default=1.0,
     )
 
     def execute(self, context):
-        from . import export_ply
-
         from mathutils import Matrix
+        from . import export_ply
 
         keywords = self.as_keywords(
             ignore=(
