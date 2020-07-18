@@ -58,6 +58,7 @@ last_icon_theme_text_sel = None
 
 
 class CollectionManager(Operator):
+    '''Manage and control collections, with advanced features, in a popup UI'''
     bl_label = "Collection Manager"
     bl_idname = "view3d.collection_manager"
 

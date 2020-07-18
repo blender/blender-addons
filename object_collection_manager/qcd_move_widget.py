@@ -372,7 +372,7 @@ def update_area_dimensions(area, w=0, h=0):
     area["height"] += h
 
 class QCDMoveWidget(Operator):
-    """QCD Move Widget"""
+    """Move objects to QCD Slots"""
     bl_idname = "view3d.qcd_move_widget"
     bl_label = "QCD Move Widget"
 
