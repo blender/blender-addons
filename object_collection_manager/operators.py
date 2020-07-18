@@ -897,7 +897,8 @@ class CMRemoveCollectionOperator(Operator):
 
             # link any subcollections of the to be deleted collection to it's parent
             for subcollection in collection.children:
-                parent_collection.children.link(subcollection)
+                if not subcollection.name in parent_collection.children:
+                    parent_collection.children.link(subcollection)
 
             # apply the stored view layer RTOs to the newly linked collections and their
             # children
