@@ -313,6 +313,20 @@ class VIEW3D_PT_vr_session(bpy.types.Panel):
         layout.prop(session_settings, "use_positional_tracking")
 
 
+class VIEW3D_PT_vr_info(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "VR"
+    bl_label = "VR Info"
+
+    @classmethod
+    def poll(cls, context):
+        return not bpy.app.build_options.xr_openxr
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label(icon='ERROR', text="Built without VR/OpenXR features.")
+
 class VIEW3D_OT_vr_landmark_add(bpy.types.Operator):
     bl_idname = "view3d.vr_landmark_add"
     bl_label = "Add VR Landmark"
@@ -503,6 +517,7 @@ classes = (
 
 def register():
     if not bpy.app.build_options.xr_openxr:
+        bpy.utils.register_class(VIEW3D_PT_vr_info)
         return
 
     for cls in classes:
@@ -529,6 +544,7 @@ def register():
 
 def unregister():
     if not bpy.app.build_options.xr_openxr:
+        bpy.utils.unregister_class(VIEW3D_PT_vr_info)
         return
 
     for cls in classes:
