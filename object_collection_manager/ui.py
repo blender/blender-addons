@@ -309,7 +309,7 @@ class CollectionManager(Operator):
                                icon='COLLECTION_NEW')
         prop.child = False
 
-        addcollec_row.operator("view3d.add_collection", text="Add SubCollection",
+        prop = addcollec_row.operator("view3d.add_collection", text="Add SubCollection",
                                icon='COLLECTION_NEW')
         prop.child = True
 
