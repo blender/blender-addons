@@ -21,6 +21,7 @@
 import bpy
 
 from bpy.types import (
+    Menu,
     Operator,
     Panel,
     UIList,
@@ -112,9 +113,9 @@ class CollectionManager(Operator):
         layout.row().separator()
 
         # buttons
-        button_row = layout.row()
+        button_row_1 = layout.row()
 
-        op_sec = button_row.row()
+        op_sec = button_row_1.row()
         op_sec.alignment = 'LEFT'
 
         collapse_sec = op_sec.row()
@@ -138,11 +139,12 @@ class CollectionManager(Operator):
             renum_sec.alignment = 'LEFT'
             renum_sec.operator("view3d.renumerate_qcd_slots")
 
-        # filter
-        filter_sec = button_row.row()
-        filter_sec.alignment = 'RIGHT'
+        # menu & filter
+        right_sec = button_row_1.row()
+        right_sec.alignment = 'RIGHT'
 
-        filter_sec.popover(panel="COLLECTIONMANAGER_PT_display_options",
+        right_sec.menu("VIEW3D_MT_CM_specials_menu")
+        right_sec.popover(panel="COLLECTIONMANAGER_PT_display_options",
                            text="", icon='FILTER')
 
         mc_box = layout.box()
@@ -304,19 +306,19 @@ class CollectionManager(Operator):
                                    sort_lock=True)
 
         # add collections
-        addcollec_row = layout.row()
-        prop = addcollec_row.operator("view3d.add_collection", text="Add Collection",
+        button_row_2 = layout.row()
+        prop = button_row_2.operator("view3d.add_collection", text="Add Collection",
                                icon='COLLECTION_NEW')
         prop.child = False
 
-        prop = addcollec_row.operator("view3d.add_collection", text="Add SubCollection",
+        prop = button_row_2.operator("view3d.add_collection", text="Add SubCollection",
                                icon='COLLECTION_NEW')
         prop.child = True
 
         # phantom mode
-        phantom_row = layout.row()
+        button_row_3 = layout.row()
         toggle_text = "Disable " if cm.in_phantom_mode else "Enable "
-        phantom_row.operator("view3d.toggle_phantom_mode", text=toggle_text+"Phantom Mode")
+        button_row_3.operator("view3d.toggle_phantom_mode", text=toggle_text+"Phantom Mode")
 
         if cm.in_phantom_mode:
             view.enabled = False
@@ -746,6 +748,21 @@ class CMDisplayOptionsPanel(Panel):
 
         row = layout.row()
         row.prop(cm, "align_local_ops")
+
+
+class SpecialsMenu(Menu):
+    bl_label = "Specials"
+    bl_idname = "VIEW3D_MT_CM_specials_menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        prop = layout.operator("view3d.remove_empty_collections")
+        prop.without_objects = False
+
+        prop = layout.operator("view3d.remove_empty_collections",
+                               text="Purge All Collections Without Objects")
+        prop.without_objects = True
 
 
 def view3d_header_qcd_slots(self, context):
