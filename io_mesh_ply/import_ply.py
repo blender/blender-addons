@@ -408,12 +408,16 @@ def load_ply(filepath):
     if not mesh:
         return {'CANCELLED'}
 
+    for ob in bpy.context.selected_objects:
+        ob.select_set(False)
+
     obj = bpy.data.objects.new(ply_name, mesh)
     bpy.context.collection.objects.link(obj)
     bpy.context.view_layer.objects.active = obj
     obj.select_set(True)
 
     print("\nSuccessfully imported %r in %.3f sec" % (filepath, time.time() - t))
+
     return {'FINISHED'}
 
 
