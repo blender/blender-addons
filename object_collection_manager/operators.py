@@ -100,7 +100,6 @@ class ExpandAllOperator(Operator):
     '''Expand/Collapse all collections'''
     bl_label = "Expand All Items"
     bl_idname = "view3d.expand_all_items"
-    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         global expand_history
@@ -131,7 +130,6 @@ class ExpandSublevelOperator(Operator):
         "  * Alt+LMB - Discard history"
         )
     bl_idname = "view3d.expand_sublevel"
-    bl_options = {'REGISTER', 'UNDO'}
 
     expand: BoolProperty()
     name: StringProperty()
