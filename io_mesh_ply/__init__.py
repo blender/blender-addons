@@ -21,9 +21,9 @@
 bl_info = {
     "name": "Stanford PLY format",
     "author": "Bruce Merry, Campbell Barton",
-    "version": (1, 1, 0),
-    "blender": (2, 82, 0),
-    "location": "File > Import-Export",
+    "version": (2, 0, 0),
+    "blender": (2, 90, 0),
+    "location": "File > Import/Export",
     "description": "Import-Export PLY mesh data with UVs and vertex colors",
     "doc_url": "{BLENDER_MANUAL_URL}/addons/import_export/mesh_ply.html",
     "support": 'OFFICIAL',
@@ -107,6 +107,10 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
     filename_ext = ".ply"
     filter_glob: StringProperty(default="*.ply", options={'HIDDEN'})
 
+    use_ascii: BoolProperty(
+        name="ASCII",
+        description="Export using ASCII file format, otherwise use binary",
+    )
     use_selection: BoolProperty(
         name="Selection Only",
         description="Export selected objects only",
@@ -164,10 +168,20 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
         filepath = self.filepath
         filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
 
-        return export_ply.save(self, context, **keywords)
+        export_ply.save(context, **keywords)
+
+        return {'FINISHED'}
 
     def draw(self, context):
-        pass
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+        col = layout.column(heading="Format")
+        col.prop(operator, "use_ascii")
 
 
 class PLY_PT_export_include(bpy.types.Panel):

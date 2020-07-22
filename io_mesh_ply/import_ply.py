@@ -272,20 +272,20 @@ def load_ply_mesh(filepath, ply_name):
             if len(colindices) == 3:
                 mesh_colors.extend([
                     (
-                       vertices[index][colindices[0]] * colmultiply[0],
-                       vertices[index][colindices[1]] * colmultiply[1],
-                       vertices[index][colindices[2]] * colmultiply[2],
-                       1.0,
+                        vertices[index][colindices[0]] * colmultiply[0],
+                        vertices[index][colindices[1]] * colmultiply[1],
+                        vertices[index][colindices[2]] * colmultiply[2],
+                        1.0,
                     )
                     for index in indices
                 ])
             elif len(colindices) == 4:
                 mesh_colors.extend([
                     (
-                       vertices[index][colindices[0]] * colmultiply[0],
-                       vertices[index][colindices[1]] * colmultiply[1],
-                       vertices[index][colindices[2]] * colmultiply[2],
-                       vertices[index][colindices[3]] * colmultiply[3],
+                        vertices[index][colindices[0]] * colmultiply[0],
+                        vertices[index][colindices[1]] * colmultiply[1],
+                        vertices[index][colindices[2]] * colmultiply[2],
+                        vertices[index][colindices[3]] * colmultiply[3],
                     )
                     for index in indices
                 ])
