@@ -1099,3 +1099,15 @@ class CMPhantomModeOperator(Operator):
 
 
         return {'FINISHED'}
+
+
+class CMApplyPhantomModeOperator(Operator):
+    '''Make all changes made in Phantom Mode permanent'''
+    bl_label = "Apply Phantom Mode"
+    bl_idname = "view3d.apply_phantom_mode"
+
+    def execute(self, context):
+        cm = context.scene.collection_manager
+        cm.in_phantom_mode = False
+
+        return {'FINISHED'}

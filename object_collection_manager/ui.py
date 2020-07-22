@@ -315,10 +315,14 @@ class CollectionManager(Operator):
                                icon='COLLECTION_NEW')
         prop.child = True
 
-        # phantom mode
+
         button_row_3 = layout.row()
+
+        # phantom mode
+        phantom_mode = button_row_3.row(align=True)
         toggle_text = "Disable " if cm.in_phantom_mode else "Enable "
-        button_row_3.operator("view3d.toggle_phantom_mode", text=toggle_text+"Phantom Mode")
+        phantom_mode.operator("view3d.toggle_phantom_mode", text=toggle_text+"Phantom Mode")
+        phantom_mode.operator("view3d.apply_phantom_mode", text="", icon='CHECKMARK')
 
         if cm.in_phantom_mode:
             view.enabled = False
