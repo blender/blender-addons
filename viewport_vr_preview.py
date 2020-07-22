@@ -38,8 +38,8 @@ from bpy.app.handlers import persistent
 bl_info = {
     "name": "VR Scene Inspection",
     "author": "Julian Eisel (Severin), Sebastian Koenig",
-    "version": (0, 2, 0),
-    "blender": (2, 83, 0),
+    "version": (0, 9, 0),
+    "blender": (2, 90, 0),
     "location": "3D View > Sidebar > VR",
     "description": ("View the viewport with virtual reality glasses "
                     "(head-mounted displays)"),
