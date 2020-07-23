@@ -84,6 +84,8 @@ class ImportPLY(bpy.types.Operator, ImportHelper):
         import os
         from . import import_ply
 
+        context.window.cursor_set('WAIT')
+
         paths = [
             os.path.join(self.directory, name.name)
             for name in self.files
@@ -94,6 +96,8 @@ class ImportPLY(bpy.types.Operator, ImportHelper):
 
         for path in paths:
             import_ply.load(self, context, path)
+
+        context.window.cursor_set('DEFAULT')
 
         return {'FINISHED'}
 
@@ -150,6 +154,8 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
         from mathutils import Matrix
         from . import export_ply
 
+        context.window.cursor_set('WAIT')
+
         keywords = self.as_keywords(
             ignore=(
                 "axis_forward",
@@ -165,10 +171,9 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
         ).to_4x4() @ Matrix.Scale(self.global_scale, 4)
         keywords["global_matrix"] = global_matrix
 
-        filepath = self.filepath
-        filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
-
         export_ply.save(context, **keywords)
+
+        context.window.cursor_set('DEFAULT')
 
         return {'FINISHED'}
 
