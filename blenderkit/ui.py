@@ -876,7 +876,8 @@ def draw_callback_2d_search(self, context):
                     else:
                         iname = utils.previmg_name(ui_props.active_index)
                         img = bpy.data.images.get(iname)
-                    img.colorspace_settings.name = 'sRGB'
+                    if img:
+                        img.colorspace_settings.name = 'sRGB'
 
                 gimg = None
                 atip = ''
@@ -931,9 +932,21 @@ def mouse_raycast(context, mx, my):
     # rote = mathutils.Euler((0, 0, math.pi))
     randoffset = math.pi
     if has_hit:
-        snapped_rotation = snapped_normal.to_track_quat('Z', 'Y').to_euler()
-        up = Vector((0, 0, 1))
         props = bpy.context.scene.blenderkit_models
+        up = Vector((0, 0, 1))
+
+        if props.perpendicular_snap:
+            if snapped_normal.z > 1 - props.perpendicular_snap_threshold:
+                snapped_normal = Vector((0, 0, 1))
+            elif snapped_normal.z < -1 + props.perpendicular_snap_threshold:
+                snapped_normal = Vector((0, 0, -1))
+            elif abs(snapped_normal.z) < props.perpendicular_snap_threshold:
+                snapped_normal.z = 0
+                snapped_normal.normalize()
+
+        snapped_rotation = snapped_normal.to_track_quat('Z', 'Y').to_euler()
+
+
         if props.randomize_rotation and snapped_normal.angle(up) < math.radians(10.0):
             randoffset = props.offset_rotation_amount + math.pi + (
                     random.random() - 0.5) * props.randomize_rotation_amount
@@ -1668,6 +1681,7 @@ class AssetBarOperator(bpy.types.Operator):
                 utils.p('author:', a)
                 search.search(author_id=a)
             return {'RUNNING_MODAL'}
+
         if event.type == 'X' and ui_props.active_index > -1:
             # delete downloaded files for this asset
             sr = bpy.context.scene['search results']
@@ -1845,13 +1859,15 @@ def register_ui():
     if not wm.keyconfigs.addon:
         return
     km = wm.keyconfigs.addon.keymaps.new(name="Window", space_type='EMPTY')
+    #asset bar shortcut
     kmi = km.keymap_items.new(AssetBarOperator.bl_idname, 'SEMI_COLON', 'PRESS', ctrl=False, shift=False)
     kmi.properties.keep_running = False
     kmi.properties.do_search = False
     addon_keymapitems.append(kmi)
-    # auto open after searching:
-    kmi = km.keymap_items.new(RunAssetBarWithContext.bl_idname, 'SEMI_COLON', 'PRESS', \
-                              ctrl=True, shift=True, alt=True)
+    #fast rating shortcut
+    wm = bpy.context.window_manager
+    km = wm.keyconfigs.addon.keymaps['Window']
+    kmi = km.keymap_items.new(ratings.FastRateMenu.bl_idname, 'F', 'PRESS', ctrl=False, shift=False)
     addon_keymapitems.append(kmi)
 
 
