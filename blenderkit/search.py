@@ -280,7 +280,7 @@ def timer_update():
             # TODO here it should check if there are some results, and only open assetbar if this is the case, not search.
             # if bpy.context.scene.get('search results') is None:
             search()
-            preferences.first_run = False
+            # preferences.first_run = False
         if preferences.tips_on_start:
             utils.get_largest_area()
             ui.update_ui_size(ui.active_area, ui.active_region)
@@ -1160,14 +1160,6 @@ def search(category='', get_next=False, author_id=''):
     # mt('start')
     scene = bpy.context.scene
     ui_props = scene.blenderkitUI
-
-    ### updating of search categories was moved here, due to the reason that BlenderKit created the blenderkit_data
-    # folder upon registration of BlenderKit, which wasn't a favourite option for some users (devs running tests).
-    # user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
-    # if not user_preferences.first_run:
-    #     api_key = user_preferences.api_key
-    #     if bpy.context.window_manager.get('bkit_categories') is None:
-    #         categories.fetch_categories_thread(api_key)
 
     if ui_props.asset_type == 'MODEL':
         if not hasattr(scene, 'blenderkit'):
