@@ -343,6 +343,13 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
                                                                  parent=kwargs.get('parent'))
 
                 else:
+                    # parent, newobs = append_link.link_collection(file_names[-1],
+                    #                                              location=downloader['location'],
+                    #                                              rotation=downloader['rotation'],
+                    #                                              link=False,
+                    #                                              name=asset_data['name'],
+                    #                                              parent=kwargs.get('parent'))
+
                     parent, newobs = append_link.append_objects(file_names[-1],
                                                                 location=downloader['location'],
                                                                 rotation=downloader['rotation'],
@@ -364,10 +371,17 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
                                                              name=asset_data['name'],
                                                              parent=kwargs.get('parent'))
             else:
+                # parent, newobs = append_link.link_collection(file_names[-1],
+                #                                              location=kwargs['model_location'],
+                #                                              rotation=kwargs['model_rotation'],
+                #                                              link=False,
+                #                                              name=asset_data['name'],
+                #                                              parent=kwargs.get('parent'))
                 parent, newobs = append_link.append_objects(file_names[-1],
                                                             location=kwargs['model_location'],
                                                             rotation=kwargs['model_rotation'],
                                                             link=link,
+                                                            name=asset_data['name'],
                                                             parent=kwargs.get('parent'))
             if parent.type == 'EMPTY' and link:
                 bmin = asset_data['bbox_min']
@@ -723,8 +737,8 @@ def try_finished_append(asset_data, **kwargs):  # location=None, material_target
                 for f in file_names:
                     try:
                         os.remove(f)
-                    except:
-                        e = sys.exc_info()[0]
+                    except Exception as e:
+                        # e = sys.exc_info()[0]
                         print(e)
                         pass;
                 done = False
@@ -934,7 +948,7 @@ class BlenderkitDownloadOperator(bpy.types.Operator):
 
         if self.replace:  # cleanup first, assign later.
             obs = utils.get_selected_replace_adepts()
-            print(obs)
+            # print(obs)
             for ob in obs:
                 print('replace attempt ', ob.name)
                 if self.asset_base_id != '':

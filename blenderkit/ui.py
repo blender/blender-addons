@@ -1033,9 +1033,10 @@ def is_rating_possible():
             m = ao.active_material
             if m is not None:
                 ad = m.get('asset_data')
-                if ad is not None:
+                if ad is not None and ad.get('assetBaseId'):
                     rated = bpy.context.scene['assets rated'].get(ad['assetBaseId'])
-                    return True, rated, m, ad
+                    if rated:
+                        return True, rated, m, ad
 
         # if t>2 and t<2.5:
         #     ui_props.rating_on = False
