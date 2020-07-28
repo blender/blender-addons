@@ -101,22 +101,40 @@ def refresh_token_timer():
 
     return max(3600, user_preferences.api_key_life - 3600)
 
+def update_ad(ad):
+    if not ad.get('assetBaseId'):
+        ad['assetBaseId'] = ad['asset_base_id']  # this should stay ONLY for compatibility with older scenes
+        ad['assetType'] = ad['asset_type']  # this should stay ONLY for compatibility with older scenes
+        ad['canDownload'] = ad['can_download']  # this should stay ONLY for compatibility with older scenes
+        ad['verificationStatus'] = ad['verification_status']  # this should stay ONLY for compatibility with older scenes
+        ad['author'] = {}
+        ad['author']['id'] = ad['author_id']  # this should stay ONLY for compatibility with older scenes
+    return ad
 
 def update_assets_data():  # updates assets data on scene load.
     '''updates some properties that were changed on scenes with older assets.
     The properties were mainly changed from snake_case to CamelCase to fit the data that is coming from the server.
     '''
-    for ob in bpy.context.scene.objects:
-        if ob.get('asset_data') != None:
-            ad = ob['asset_data']
-            if not ad.get('assetBaseId'):
-                ad['assetBaseId'] = ad['asset_base_id'],  # this should stay ONLY for compatibility with older scenes
-                ad['assetType'] = ad['asset_type'],  # this should stay ONLY for compatibility with older scenes
-                ad['canDownload'] = ad['can_download'],  # this should stay ONLY for compatibility with older scenes
-                ad['verificationStatus'] = ad[
-                                               'verification_status'],  # this should stay ONLY for compatibility with older scenes
-                ad['author'] = {}
-                ad['author']['id'] = ad['author_id'],  # this should stay ONLY for compatibility with older scenes
+    data = bpy.data
+
+    datablocks = [
+        bpy.data.objects,
+        bpy.data.materials,
+        bpy.data.brushes,
+    ]
+    for dtype in datablocks:
+        for block in dtype:
+            if block.get('asset_data') != None:
+                update_ad(block['asset_data'])
+
+    dicts = [
+        'assets used',
+        'assets rated',
+    ]
+    for d in dicts:
+        for k in d.keys():
+            update_ad(d[k])
+            # bpy.context.scene['assets used'][ad] = ad
 
 
 @persistent

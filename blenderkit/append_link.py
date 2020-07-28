@@ -88,6 +88,8 @@ def append_scene(file_name, scenename=None, link=False, fake_user=False):
 def link_collection(file_name, obnames=[], location=(0, 0, 0), link=False, parent = None, **kwargs):
     '''link an instanced group - model type asset'''
     sel = utils.selection_get()
+    print('link collection')
+    print(kwargs)
 
     with bpy.data.libraries.load(file_name, link=link, relative=True) as (data_from, data_to):
         scols = []
@@ -114,6 +116,12 @@ def link_collection(file_name, obnames=[], location=(0, 0, 0), link=False, paren
             if fp == fp1:
                 main_object.instance_collection = col
                 break;
+
+    #sometimes, the lib might already  be without the actual link.
+    if not main_object.instance_collection and kwargs['name']:
+        col = bpy.data.collections.get(kwargs['name'])
+        if col:
+            main_object.instance_collection = col
 
     main_object.name = main_object.instance_collection.name
 

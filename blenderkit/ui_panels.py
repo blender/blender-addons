@@ -1048,7 +1048,12 @@ def draw_asset_context_menu(self, context, asset_data):
             op.author_id = author_id
 
     op = layout.operator('view3d.blenderkit_search', text='Search Similar')
-    op.keywords = asset_data['name'] + ' ' + asset_data['description'] + ' ' + ' '.join(asset_data['tags'])
+    #build search string from description and tags:
+    op.keywords = asset_data['name']
+    if asset_data.get('description'):
+        op.keywords += ' ' + asset_data.get('description')
+    op.keywords += ' '.join(asset_data.get('tags'))
+
     if asset_data.get('canDownload') != 0:
         if len(bpy.context.selected_objects) > 0 and ui_props.asset_type == 'MODEL':
             aob = bpy.context.active_object
