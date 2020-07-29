@@ -131,10 +131,15 @@ def update_assets_data():  # updates assets data on scene load.
         'assets used',
         'assets rated',
     ]
-    for d in dicts:
-        for k in d.keys():
-            update_ad(d[k])
-            # bpy.context.scene['assets used'][ad] = ad
+    for s in bpy.data.scenes:
+        for k in dicts:
+            d = s.get(k)
+            if not d:
+                continue;
+
+            for k in d.keys():
+                update_ad(d[k])
+                # bpy.context.scene['assets used'][ad] = ad
 
 
 @persistent
