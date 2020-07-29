@@ -738,7 +738,7 @@ def draw_callback_2d_search(self, context):
     highlight = (1, 1, 1, .2)
     # highlight = (1, 1, 1, 0.8)
     # background of asset bar
-    if not ui_props.dragging:
+    if not ui_props.dragging and ui_props.hcount>0:
         search_results = s.get('search results')
         search_results_orig = s.get('search results orig')
         if search_results == None:
