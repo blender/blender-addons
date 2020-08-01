@@ -1796,12 +1796,7 @@ class UndoWithContext(bpy.types.Operator):
     message: StringProperty('Undo Message', default='BlenderKit operation')
 
     def execute(self, context):
-        C_dict = bpy.context.copy()
-        C_dict.update(region='WINDOW')
-        if context.area is None or context.area.type != 'VIEW_3D':
-            w, a, r = utils.get_largest_area()
-            override = {'window': w, 'screen': w.screen, 'area': a, 'region': r}
-            C_dict.update(override)
+        C_dict = utils.get_fake_context(context)
         bpy.ops.ed.undo_push(C_dict, 'INVOKE_REGION_WIN', message=self.message)
         return {'FINISHED'}
 
