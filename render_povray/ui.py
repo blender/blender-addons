@@ -4670,7 +4670,6 @@ classes = (
     TEXT_MT_POV_insert,
     TEXT_PT_POV_custom_code,
     TEXT_MT_POV_templates,
-    TEXTURE_PT_context,
     #TEXTURE_PT_POV_povray_texture_slots,
     #TEXTURE_UL_POV_texture_slots,
     MATERIAL_TEXTURE_SLOTS_UL_POV_layerlist,
