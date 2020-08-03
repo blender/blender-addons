@@ -259,13 +259,10 @@ for member in dir(
 del properties_particle
 
 
-
-#Use some delay?
-#https://blenderartists.org/t/restrictdata-object-has-no-attribute-scenes-how-to-avoid-it/579885/4
 ############# POV-Centric WORSPACE #############
 @persistent
 def povCentricWorkspace(dummy):
-    """Set up a POV centric Workspace if addon was left activate from previous session
+    """Set up a POV centric Workspace if addon was activated and saved as default renderer
 
     This would bring a ’_RestrictData’ error because UI needs to be fully loaded before
     workspace changes so registering this function in bpy.app.handlers is needed.
@@ -274,10 +271,9 @@ def povCentricWorkspace(dummy):
     bpy.app.handlers.persistent decorator is used (@persistent) above.
     """
 
-    #bpy.context.scene.render.engine = 'POVRAY_RENDER'
     wsp = bpy.data.workspaces.get('Scripting')
     context = bpy.context
-    if wsp is not None:
+    if wsp is not None and context.scene.render.engine == 'POVRAY_RENDER':
         new_wsp = bpy.ops.workspace.duplicate({'workspace': wsp})
         bpy.data.workspaces['Scripting.001'].name='POV'
         # Already done it would seem, but explicitly make this workspaces the active one
@@ -302,6 +298,7 @@ def povCentricWorkspace(dummy):
                             #bpy.ops.screen.area_move(override, x=(area.x + 5), y=area.y, delta=-100)
 
                             bpy.ops.screen.space_type_set_or_cycle(override, space_type = 'TEXT_EDITOR')
+                            space.show_region_ui = True
                             #bpy.ops.screen.region_scale(override)
                             #bpy.ops.screen.region_scale()
                             break
