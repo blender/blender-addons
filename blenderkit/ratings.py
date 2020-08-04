@@ -349,6 +349,9 @@ class FastRateMenu(Operator):
                                               ('20', '20', ''),
                                               ('50', '50', ''),
                                               ('100', '100', ''),
+                                              ('150', '100', ''),
+                                              ('200', '100', ''),
+                                              ('250', '100', ''),
                                               ],
                                        default='0', update=update_ratings_work_hours_ui
                                        )
