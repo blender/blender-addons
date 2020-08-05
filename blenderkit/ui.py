@@ -1019,9 +1019,12 @@ def is_rating_possible():
             # crawl parents to reach active asset. there could have been parenting so we need to find the first onw
             ao_check = ao
             while ad is None or (ad is None and ao_check.parent is not None):
+                s = bpy.context.scene
                 ad = ao_check.get('asset_data')
                 if ad is not None:
-                    rated = bpy.context.scene['assets rated'].get(ad['assetBaseId'])
+
+                    s['assets rated'] = s.get('assets rated',{})
+                    rated = s['assets rated'].get(ad['assetBaseId'])
                     # originally hidden for already rated assets
                     return True, rated, ao_check, ad
                 elif ao_check.parent is not None:
