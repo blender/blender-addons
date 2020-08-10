@@ -81,7 +81,7 @@ class MoveToQCDSlot(Operator):
         # adds object to slot
         if self.toggle:
             if not active_object:
-                active_object = selected_objects[0]
+                active_object = tuple(selected_objects)[0]
 
             if not active_object.name in qcd_laycol.collection.objects:
                 for obj in selected_objects:
