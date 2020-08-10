@@ -248,7 +248,7 @@ class CMSetCollectionOperator(Operator):
 
             # make sure there is an active object
             if not active_object:
-                active_object = selected_objects[0]
+                active_object = tuple(selected_objects)[0]
 
             # check if in collection
             if not active_object.name in target_collection.objects:
