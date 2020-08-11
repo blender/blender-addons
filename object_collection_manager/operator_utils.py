@@ -28,6 +28,7 @@ from .internals import (
     copy_buffer,
     swap_buffer,
     update_property_group,
+    get_move_selection,
 )
 
 rto_path = {
@@ -57,20 +58,21 @@ def set_rto(layer_collection, rto, value):
         setattr(collection, rto_path[rto].split(".")[1], value)
 
 
-def apply_to_children(laycol, apply_function):
-    laycol_iter_list = [laycol.children]
+def apply_to_children(parent, apply_function):
+    # works for both Collections & LayerCollections
+    child_lists = [parent.children]
 
-    while len(laycol_iter_list) > 0:
-        new_laycol_iter_list = []
+    while child_lists:
+        new_child_lists = []
 
-        for laycol_iter in laycol_iter_list:
-            for layer_collection in laycol_iter:
-                apply_function(layer_collection)
+        for child_list in child_lists:
+            for child in child_list:
+                apply_function(child)
 
-                if len(layer_collection.children) > 0:
-                    new_laycol_iter_list.append(layer_collection.children)
+                if child.children:
+                    new_child_lists.append(child.children)
 
-        laycol_iter_list = new_laycol_iter_list
+        child_lists = new_child_lists
 
 
 def isolate_rto(cls, self, view_layer, rto, *, children=False):
@@ -371,3 +373,29 @@ def remove_collection(laycol, collection, context):
                 laycol = laycol["parent"]
 
             cm.cm_list_index = laycol["row_index"]
+
+
+def select_collection_objects(collection_index, collection_name, replace, nested):
+    if collection_index == 0:
+        target_collection = bpy.context.view_layer.layer_collection.collection
+
+    else:
+        laycol = layer_collections[collection_name]
+        target_collection = laycol["ptr"].collection
+
+    if replace:
+        bpy.ops.object.select_all(action='DESELECT')
+
+    selection_state = get_move_selection().isdisjoint(target_collection.objects)
+
+    def select_objects(collection):
+            for obj in collection.objects:
+                try:
+                    obj.select_set(selection_state)
+                except RuntimeError:
+                    pass
+
+    select_objects(target_collection)
+
+    if nested:
+        apply_to_children(target_collection, select_objects)

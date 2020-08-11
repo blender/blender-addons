@@ -65,6 +65,7 @@ from .operator_utils import (
     clear_swap,
     link_child_collections_to_parent,
     remove_collection,
+    select_collection_objects,
 )
 
 class SetActiveCollection(Operator):
@@ -211,6 +212,58 @@ class ExpandSublevelOperator(Operator):
 
         #update tree view
         update_property_group(context)
+
+        return {'FINISHED'}
+
+
+class CMSelectCollectionObjectsOperator(Operator):
+    bl_label = "Select All Objects in the Collection"
+    bl_description = (
+        "  * LMB - Select all objects in collection.\n"
+        "  * Shift+LMB - Add/Remove collection objects from selection.\n"
+        "  * Ctrl+LMB - Isolate nested selection.\n"
+        "  * Ctrl+Shift+LMB - Add/Remove nested from selection"
+        )
+    bl_idname = "view3d.select_collection_objects"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    collection_index: IntProperty()
+    collection_name: StringProperty()
+
+    def invoke(self, context, event):
+        modifiers = get_modifiers(event)
+
+        if modifiers == {"shift"}:
+            select_collection_objects(
+                collection_index=self.collection_index,
+                collection_name=self.collection_name,
+                replace=False,
+                nested=False
+                )
+
+        elif modifiers == {"ctrl"}:
+            select_collection_objects(
+                collection_index=self.collection_index,
+                collection_name=self.collection_name,
+                replace=True,
+                nested=True
+                )
+
+        elif modifiers == {"ctrl", "shift"}:
+            select_collection_objects(
+                collection_index=self.collection_index,
+                collection_name=self.collection_name,
+                replace=False,
+                nested=True
+                )
+
+        else:
+            select_collection_objects(
+                collection_index=self.collection_index,
+                collection_name=self.collection_name,
+                replace=True,
+                nested=False
+                )
 
         return {'FINISHED'}
 

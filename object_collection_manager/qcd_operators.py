@@ -45,6 +45,7 @@ from .internals import (
 
 from .operator_utils import (
     apply_to_children,
+    select_collection_objects,
 )
 
 
@@ -157,19 +158,32 @@ class ViewMoveQCDSlot(Operator):
         if modifiers == {"shift"}:
             bpy.ops.view3d.view_qcd_slot(slot=self.slot, toggle=True)
 
-            return {'FINISHED'}
-
         elif modifiers == {"ctrl"}:
             bpy.ops.view3d.move_to_qcd_slot(slot=self.slot, toggle=False)
-            return {'FINISHED'}
 
         elif modifiers == {"ctrl", "shift"}:
             bpy.ops.view3d.move_to_qcd_slot(slot=self.slot, toggle=True)
-            return {'FINISHED'}
+
+        elif modifiers == {"alt"}:
+            select_collection_objects(
+                collection_index=None,
+                collection_name=qcd_slots.get_name(self.slot),
+                replace=True,
+                nested=False
+                )
+
+        elif modifiers == {"alt", "shift"}:
+            select_collection_objects(
+                collection_index=None,
+                collection_name=qcd_slots.get_name(self.slot),
+                replace=False,
+                nested=False
+                )
 
         else:
             bpy.ops.view3d.view_qcd_slot(slot=self.slot, toggle=False)
-            return {'FINISHED'}
+
+        return {'FINISHED'}
 
 class ViewQCDSlot(Operator):
     '''View objects in QCD slot'''
