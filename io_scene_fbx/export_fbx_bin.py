@@ -1371,11 +1371,25 @@ def fbx_data_texture_file_elements(root, blender_tex_key, scene_data):
     #     Textures do not seem to use properties as much as they could.
     #     For now assuming most logical and simple stuff.
 
-    ma, sock_name = blender_tex_key
+    ma, sock_name, additional = blender_tex_key
+    #IF TEXTURE IS SUPPORTED IN PRINCIPLED BDSF SHADER
     ma_wrap = node_shader_utils.PrincipledBSDFWrapper(ma, is_readonly=True)
+    if not additional:
+        tex_key, _fbx_prop = scene_data.data_textures[blender_tex_key]
+        tex = getattr(ma_wrap, sock_name)
+
+    #IF TEXTURE IS FROM FBX SETTINGS NODE
+    elif ma.node_tree and ma.use_nodes:
+        fbx_node = [n for n in ma.node_tree.nodes if n.name == "FBX Settings"][0]
+        #Loop needed in order to set proper colorspace based on the socket
+        for socket_name, fbx_name, colorspace in FBX_SETTINS_SOCKETS_TO_FBX:
+            if socket_name == sock_name:
+                tex = node_shader_utils.ShaderImageTextureWrapper(ma_wrap, fbx_node, fbx_node.inputs[sock_name], grid_row_diff=0, colorspace_name=colorspace)
+                break
+          
     tex_key, _fbx_prop = scene_data.data_textures[blender_tex_key]
-    tex = getattr(ma_wrap, sock_name)
     img = tex.image
+    
     fname_abs, fname_rel = _gen_vid_path(img, scene_data)
 
     fbx_tex = elem_data_single_int64(root, b"Texture", get_fbx_uuid_from_key(tex_key))
@@ -1826,7 +1840,22 @@ PRINCIPLED_TEXTURE_SOCKETS_TO_FBX = (
     # ("mirror", "mirror", b"ReflectionColor"),
     ("metallic_texture", b"ReflectionFactor"),
 )
-
+FBX_SETTINS_SOCKETS_TO_FBX = (
+    ("Occlusion", b"AmbientColor", "Non-Color"),
+    ("EmissiveFactor", b"EmissiveFactor", "Non-Color"),
+    ("OcclusionFactor", b"AmbientFactor", "Non-Color"),
+    ("DiffuseFactor", b"DiffuseFactor", "Non-Color"),
+    ("SpecularColor", b"SpecularColor", "..."),
+    ("Bump", b"Bump", "Non-Color"),
+    ("BumpFactor", b"BumpFactor", "Non-Color"),
+    ("TransparentColor", b"TransparentColor", "..."),
+    ("MetallicColor", b"ReflectionColor", "..."),
+    ("Displacement", b"DisplacementColor", "Non-Color"),
+    ("DisplacementFactor", b"DisplacementFactor", "Non-Color"),
+    ("VectorDisplacement", b"VectorDisplacementColor" , "..."),
+    ("VectorDisplacementFactor", b"VectorDisplacementFactor", "Non-Color"),
+    ("Opacity", b"Opacity", "Non-Color")
+)
 
 def fbx_skeleton_from_armature(scene, settings, arm_obj, objects, data_meshes,
                                data_bones, data_deformers_skin, data_empties, arm_parents):
@@ -2431,12 +2460,28 @@ def fbx_data_from_scene(scene, depsgraph, settings):
             tex = getattr(ma_wrap, sock_name)
             if tex is None or tex.image is None:
                 continue
-            blender_tex_key = (ma, sock_name)
+            blender_tex_key = (ma, sock_name, False)
             data_textures[blender_tex_key] = (get_blender_nodetexture_key(*blender_tex_key), fbx_name)
 
             img = tex.image
             vid_data = data_videos.setdefault(img, (get_blenderID_key(img), []))
             vid_data[1].append(blender_tex_key)
+        
+        #Find additional textures for embedding from FBX Settings node
+        if ma.node_tree and ma.use_nodes:
+            fbx_node = [n for n in ma.node_tree.nodes if "FBX Settings" == n.name][0]
+            inputs = [input for input in fbx_node.inputs]
+            for sock_name, fbx_name, colorspace in FBX_SETTINS_SOCKETS_TO_FBX:
+                if any(input.name == sock_name for input in inputs):
+                    tex = node_shader_utils.ShaderImageTextureWrapper(ma_wrap, fbx_node, fbx_node.inputs[sock_name], colorspace_name = colorspace)
+                    if tex is None or tex.image is None:
+                        continue
+                    blender_tex_key = (ma, sock_name, True)
+                    data_textures[blender_tex_key] = (get_blender_nodetexture_key(*blender_tex_key), fbx_name)
+
+                    img = tex.image
+                    vid_data = data_videos.setdefault(img, (get_blenderID_key(img), []))
+                    vid_data[1].append(blender_tex_key)
 
     perfmon.step("FBX export prepare: Wrapping Animations...")
 
@@ -2626,7 +2671,7 @@ def fbx_data_from_scene(scene, depsgraph, settings):
     del _objs_indices
 
     # Textures
-    for (ma, sock_name), (tex_key, fbx_prop) in data_textures.items():
+    for (ma, sock_name, additional), (tex_key, fbx_prop) in data_textures.items():
         ma_key, _ob_objs = data_materials[ma]
         # texture -> material properties
         connections.append((b"OP", get_fbx_uuid_from_key(tex_key), get_fbx_uuid_from_key(ma_key), fbx_prop))

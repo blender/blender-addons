@@ -432,7 +432,7 @@ def get_blender_anim_curve_key(scene, ref_id, obj_key, fbx_prop_name, fbx_prop_i
                      fbx_prop_item_name, "AnimCurve"))
 
 
-def get_blender_nodetexture_key(ma, socket_names):
+def get_blender_nodetexture_key(ma, socket_names, additional):
     return "|".join((get_blenderID_key(ma), *socket_names))
 
 
