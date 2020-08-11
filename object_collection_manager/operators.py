@@ -74,11 +74,11 @@ class SetActiveCollection(Operator):
     bl_idname = "view3d.set_active_collection"
     bl_options = {'UNDO'}
 
-    collection_index: IntProperty()
+    is_master_collection: BoolProperty()
     collection_name: StringProperty()
 
     def execute(self, context):
-        if self.collection_index == -1:
+        if self.is_master_collection:
             layer_collection = context.view_layer.layer_collection
 
         else:
@@ -227,7 +227,7 @@ class CMSelectCollectionObjectsOperator(Operator):
     bl_idname = "view3d.select_collection_objects"
     bl_options = {'REGISTER', 'UNDO'}
 
-    collection_index: IntProperty()
+    is_master_collection: BoolProperty()
     collection_name: StringProperty()
 
     def invoke(self, context, event):
@@ -235,7 +235,7 @@ class CMSelectCollectionObjectsOperator(Operator):
 
         if modifiers == {"shift"}:
             select_collection_objects(
-                collection_index=self.collection_index,
+                is_master_collection=self.is_master_collection,
                 collection_name=self.collection_name,
                 replace=False,
                 nested=False
@@ -243,7 +243,7 @@ class CMSelectCollectionObjectsOperator(Operator):
 
         elif modifiers == {"ctrl"}:
             select_collection_objects(
-                collection_index=self.collection_index,
+                is_master_collection=self.is_master_collection,
                 collection_name=self.collection_name,
                 replace=True,
                 nested=True
@@ -251,7 +251,7 @@ class CMSelectCollectionObjectsOperator(Operator):
 
         elif modifiers == {"ctrl", "shift"}:
             select_collection_objects(
-                collection_index=self.collection_index,
+                is_master_collection=self.is_master_collection,
                 collection_name=self.collection_name,
                 replace=False,
                 nested=True
@@ -259,7 +259,7 @@ class CMSelectCollectionObjectsOperator(Operator):
 
         else:
             select_collection_objects(
-                collection_index=self.collection_index,
+                is_master_collection=self.is_master_collection,
                 collection_name=self.collection_name,
                 replace=True,
                 nested=False
@@ -277,11 +277,11 @@ class CMSetCollectionOperator(Operator):
     bl_idname = "view3d.set_collection"
     bl_options = {'REGISTER', 'UNDO'}
 
-    collection_index: IntProperty()
+    is_master_collection: BoolProperty()
     collection_name: StringProperty()
 
     def invoke(self, context, event):
-        if self.collection_index == 0:
+        if self.is_master_collection:
             target_collection = context.view_layer.layer_collection.collection
 
         else:

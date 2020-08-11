@@ -469,8 +469,8 @@ def remove_collection(laycol, collection, context):
             cm.cm_list_index = laycol["row_index"]
 
 
-def select_collection_objects(collection_index, collection_name, replace, nested):
-    if collection_index == 0:
+def select_collection_objects(is_master_collection, collection_name, replace, nested):
+    if is_master_collection:
         target_collection = bpy.context.view_layer.layer_collection.collection
 
     else:

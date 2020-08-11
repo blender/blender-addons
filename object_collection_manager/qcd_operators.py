@@ -166,7 +166,7 @@ class ViewMoveQCDSlot(Operator):
 
         elif modifiers == {"alt"}:
             select_collection_objects(
-                collection_index=None,
+                is_master_collection=False,
                 collection_name=qcd_slots.get_name(self.slot),
                 replace=True,
                 nested=False
@@ -174,7 +174,7 @@ class ViewMoveQCDSlot(Operator):
 
         elif modifiers == {"alt", "shift"}:
             select_collection_objects(
-                collection_index=None,
+                is_master_collection=False,
                 collection_name=qcd_slots.get_name(self.slot),
                 replace=False,
                 nested=False

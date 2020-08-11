@@ -159,7 +159,7 @@ class CollectionManager(Operator):
 
         prop = c_icon.operator("view3d.set_active_collection",
                                               text='', icon='GROUP', depress=highlight)
-        prop.collection_index = -1
+        prop.is_master_collection = True
         prop.collection_name = 'Master Collection'
 
         master_collection_row.separator()
@@ -200,7 +200,7 @@ class CollectionManager(Operator):
 
         prop = row_setcol.operator("view3d.set_collection", text="",
                                    icon=icon, emboss=False)
-        prop.collection_index = 0
+        prop.is_master_collection = True
         prop.collection_name = 'Master Collection'
 
         copy_icon = 'COPYDOWN'
@@ -559,7 +559,7 @@ class CM_UL_items(UIList):
         prop = c_icon.operator("view3d.set_active_collection", text='', icon='GROUP',
                                               emboss=highlight, depress=highlight)
 
-        prop.collection_index = laycol["row_index"]
+        prop.is_master_collection = False
         prop.collection_name = item.name
 
         if prefs.enable_qcd:
@@ -599,7 +599,7 @@ class CM_UL_items(UIList):
 
         prop = set_obj_col.operator("view3d.set_collection", text="",
                                    icon=icon, emboss=False)
-        prop.collection_index = laycol["id"]
+        prop.is_master_collection = False
         prop.collection_name = item.name
 
 
