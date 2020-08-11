@@ -302,6 +302,44 @@ class CollectionManager(Operator):
 
             global_rto_row.operator("view3d.un_disable_render_all_collections", text="", icon=icon, depress=depress)
 
+        if cm.show_holdout:
+            holdout_all_history = rto_history["holdout_all"].get(view_layer.name, [])
+            depress = True if len(holdout_all_history) else False
+            icon = 'HOLDOUT_ON'
+            buffers = [False, False]
+
+            if copy_buffer["RTO"] == "holdout":
+                icon = copy_icon
+                buffers[0] = True
+
+            if swap_buffer["A"]["RTO"] == "holdout":
+                icon = swap_icon
+                buffers[1] = True
+
+            if buffers[0] and buffers[1]:
+                icon = copy_swap_icon
+
+            global_rto_row.operator("view3d.un_holdout_all_collections", text="", icon=icon, depress=depress)
+
+        if cm.show_indirect_only:
+            indirect_all_history = rto_history["indirect_all"].get(view_layer.name, [])
+            depress = True if len(indirect_all_history) else False
+            icon = 'INDIRECT_ONLY_ON'
+            buffers = [False, False]
+
+            if copy_buffer["RTO"] == "indirect":
+                icon = copy_icon
+                buffers[0] = True
+
+            if swap_buffer["A"]["RTO"] == "indirect":
+                icon = swap_icon
+                buffers[1] = True
+
+            if buffers[0] and buffers[1]:
+                icon = copy_swap_icon
+
+            global_rto_row.operator("view3d.un_indirect_only_all_collections", text="", icon=icon, depress=depress)
+
         # treeview
         layout.row().template_list("CM_UL_items", "",
                                    cm, "cm_list_collection",
@@ -381,7 +419,7 @@ class CollectionManager(Operator):
 
 
             else:
-                for rto in ["exclude", "select", "hide", "disable", "render"]:
+                for rto in ["exclude", "select", "hide", "disable", "render", "holdout", "indirect"]:
                     if new_state[rto] != collection_state[rto]:
                         if view_layer.name in rto_history[rto]:
                             del rto_history[rto][view_layer.name]
@@ -628,6 +666,32 @@ class CM_UL_items(UIList):
                          emboss=highlight, depress=highlight)
             prop.name = item.name
 
+        if cm.show_holdout:
+            holdout_history_base = rto_history["holdout"].get(view_layer.name, {})
+            holdout_target = holdout_history_base.get("target", "")
+            holdout_history = holdout_history_base.get("history", [])
+
+            highlight = bool(holdout_history and holdout_target == item.name)
+            icon = ('HOLDOUT_ON' if laycol["ptr"].holdout else
+                    'HOLDOUT_OFF')
+
+            prop = row.operator("view3d.holdout_collection", text="", icon=icon,
+                         emboss=highlight, depress=highlight)
+            prop.name = item.name
+
+        if cm.show_indirect_only:
+            indirect_history_base = rto_history["indirect"].get(view_layer.name, {})
+            indirect_target = indirect_history_base.get("target", "")
+            indirect_history = indirect_history_base.get("history", [])
+
+            highlight = bool(indirect_history and indirect_target == item.name)
+            icon = ('INDIRECT_ONLY_ON' if laycol["ptr"].indirect_only else
+                    'INDIRECT_ONLY_OFF')
+
+            prop = row.operator("view3d.indirect_only_collection", text="", icon=icon,
+                         emboss=highlight, depress=highlight)
+            prop.name = item.name
+
 
 
         row = s2
@@ -751,6 +815,8 @@ class CMDisplayOptionsPanel(Panel):
         row.prop(cm, "show_hide_viewport", icon='HIDE_OFF', icon_only=True)
         row.prop(cm, "show_disable_viewport", icon='RESTRICT_VIEW_OFF', icon_only=True)
         row.prop(cm, "show_render", icon='RESTRICT_RENDER_OFF', icon_only=True)
+        row.prop(cm, "show_holdout", icon='HOLDOUT_ON', icon_only=True)
+        row.prop(cm, "show_indirect_only", icon='INDIRECT_ONLY_ON', icon_only=True)
 
         layout.separator()
 

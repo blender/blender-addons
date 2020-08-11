@@ -36,12 +36,67 @@ rto_path = {
     "select": "collection.hide_select",
     "hide": "hide_viewport",
     "disable": "collection.hide_viewport",
-    "render": "collection.hide_render"
+    "render": "collection.hide_render",
+    "holdout": "holdout",
+    "indirect": "indirect_only",
+    }
+
+set_off_on = {
+    "exclude": {
+        "off": True,
+        "on": False
+        },
+    "select": {
+        "off": True,
+        "on": False
+        },
+    "hide": {
+        "off": True,
+        "on": False
+        },
+    "disable": {
+        "off": True,
+        "on": False
+        },
+    "render": {
+        "off": True,
+        "on": False
+        },
+    "holdout": {
+        "off": False,
+        "on": True
+        },
+    "indirect": {
+        "off": False,
+        "on": True
+        }
+    }
+
+get_off_on = {
+    False: {
+        "exclude": "on",
+        "select": "on",
+        "hide": "on",
+        "disable": "on",
+        "render": "on",
+        "holdout": "off",
+        "indirect": "off",
+        },
+
+    True: {
+        "exclude": "off",
+        "select": "off",
+        "hide": "off",
+        "disable": "off",
+        "render": "off",
+        "holdout": "on",
+        "indirect": "on",
+        }
     }
 
 
 def get_rto(layer_collection, rto):
-    if rto in ["exclude", "hide"]:
+    if rto in ["exclude", "hide", "holdout", "indirect"]:
         return getattr(layer_collection, rto_path[rto])
 
     else:
@@ -50,7 +105,7 @@ def get_rto(layer_collection, rto):
 
 
 def set_rto(layer_collection, rto, value):
-    if rto in ["exclude", "hide"]:
+    if rto in ["exclude", "hide", "holdout", "indirect"]:
         setattr(layer_collection, rto_path[rto], value)
 
     else:
@@ -76,13 +131,16 @@ def apply_to_children(parent, apply_function):
 
 
 def isolate_rto(cls, self, view_layer, rto, *, children=False):
+    off = set_off_on[rto]["off"]
+    on = set_off_on[rto]["on"]
+
     laycol_ptr = layer_collections[self.name]["ptr"]
     target = rto_history[rto][view_layer]["target"]
     history = rto_history[rto][view_layer]["history"]
 
     # get active collections
     active_layer_collections = [x["ptr"] for x in layer_collections.values()
-                                if not get_rto(x["ptr"], rto)]
+                                if get_rto(x["ptr"], rto) == on]
 
     # check if previous state should be restored
     if cls.isolated and self.name == target:
@@ -100,7 +158,7 @@ def isolate_rto(cls, self, view_layer, rto, *, children=False):
           active_layer_collections[0].name == self.name):
         # activate all collections
         for item in layer_collections.values():
-            set_rto(item["ptr"], rto, False)
+            set_rto(item["ptr"], rto, on)
 
         # reset target and history
         del rto_history[rto][view_layer]
@@ -130,15 +188,15 @@ def isolate_rto(cls, self, view_layer, rto, *, children=False):
         # isolate collection
         for item in layer_collections.values():
             if item["name"] != laycol_ptr.name:
-                set_rto(item["ptr"], rto, True)
+                set_rto(item["ptr"], rto, off)
 
-        set_rto(laycol_ptr, rto, False)
+        set_rto(laycol_ptr, rto, on)
 
-        if rto != "exclude":
+        if rto not in ["exclude", "holdout", "indirect"]:
             # activate all parents
             laycol = layer_collections[self.name]
             while laycol["id"] != 0:
-                set_rto(laycol["ptr"], rto, False)
+                set_rto(laycol["ptr"], rto, on)
                 laycol = laycol["parent"]
 
             if children:
@@ -156,7 +214,7 @@ def isolate_rto(cls, self, view_layer, rto, *, children=False):
 
                 apply_to_children(laycol_ptr, restore_child_states)
 
-            else:
+            elif rto == "exclude":
                 # deactivate all children
                 def deactivate_all_children(layer_collection):
                     set_rto(layer_collection, rto, True)
@@ -183,6 +241,9 @@ def toggle_children(self, view_layer, rto):
 
 
 def activate_all_rtos(view_layer, rto):
+    off = set_off_on[rto]["off"]
+    on = set_off_on[rto]["on"]
+
     history = rto_history[rto+"_all"][view_layer]
 
     # if not activated, activate all
@@ -190,12 +251,12 @@ def activate_all_rtos(view_layer, rto):
         keep_history = False
 
         for item in reversed(list(layer_collections.values())):
-            if get_rto(item["ptr"], rto) == True:
+            if get_rto(item["ptr"], rto) == off:
                 keep_history = True
 
             history.append(get_rto(item["ptr"], rto))
 
-            set_rto(item["ptr"], rto, False)
+            set_rto(item["ptr"], rto, on)
 
         if not keep_history:
             history.clear()
@@ -233,12 +294,22 @@ def copy_rtos(view_layer, rto):
         # copy
         copy_buffer["RTO"] = rto
         for laycol in layer_collections.values():
-            copy_buffer["values"].append(get_rto(laycol["ptr"], rto))
+            copy_buffer["values"].append(get_off_on[
+                                            get_rto(laycol["ptr"], rto)
+                                            ][
+                                            rto
+                                            ]
+                                        )
 
     else:
         # paste
         for x, laycol in enumerate(layer_collections.values()):
-            set_rto(laycol["ptr"], rto, copy_buffer["values"][x])
+            set_rto(laycol["ptr"],
+                    rto,
+                    set_off_on[rto][
+                        copy_buffer["values"][x]
+                        ]
+                    )
 
         # clear rto history
         rto_history[rto].pop(view_layer, None)
@@ -254,18 +325,41 @@ def swap_rtos(view_layer, rto):
         # get A
         swap_buffer["A"]["RTO"] = rto
         for laycol in layer_collections.values():
-            swap_buffer["A"]["values"].append(get_rto(laycol["ptr"], rto))
+            swap_buffer["A"]["values"].append(get_off_on[
+                                                get_rto(laycol["ptr"], rto)
+                                                ][
+                                                rto
+                                                ]
+                                            )
 
     else:
         # get B
         swap_buffer["B"]["RTO"] = rto
         for laycol in layer_collections.values():
-            swap_buffer["B"]["values"].append(get_rto(laycol["ptr"], rto))
+            swap_buffer["B"]["values"].append(get_off_on[
+                                                get_rto(laycol["ptr"], rto)
+                                                ][
+                                                rto
+                                                ]
+                                            )
 
         # swap A with B
         for x, laycol in enumerate(layer_collections.values()):
-            set_rto(laycol["ptr"], swap_buffer["A"]["RTO"], swap_buffer["B"]["values"][x])
-            set_rto(laycol["ptr"], swap_buffer["B"]["RTO"], swap_buffer["A"]["values"][x])
+            set_rto(laycol["ptr"], swap_buffer["A"]["RTO"],
+                    set_off_on[
+                        swap_buffer["A"]["RTO"]
+                        ][
+                        swap_buffer["B"]["values"][x]
+                        ]
+                    )
+
+            set_rto(laycol["ptr"], swap_buffer["B"]["RTO"],
+                    set_off_on[
+                        swap_buffer["B"]["RTO"]
+                        ][
+                        swap_buffer["A"]["values"][x]
+                        ]
+                    )
 
 
         # clear rto history
