@@ -1380,12 +1380,14 @@ def fbx_data_texture_file_elements(root, blender_tex_key, scene_data):
 
     #IF TEXTURE IS FROM FBX SETTINGS NODE
     elif ma.node_tree and ma.use_nodes:
-        fbx_node = [n for n in ma.node_tree.nodes if n.name == "FBX Settings"][0]
-        #Loop needed in order to set proper colorspace based on the socket
-        for socket_name, fbx_name, colorspace in FBX_SETTINS_SOCKETS_TO_FBX:
-            if socket_name == sock_name:
-                tex = node_shader_utils.ShaderImageTextureWrapper(ma_wrap, fbx_node, fbx_node.inputs[sock_name], grid_row_diff=0, colorspace_name=colorspace)
-                break
+        nodes = [n for n in ma.node_tree.nodes if n.name == "FBX Settings"]
+        if(len(nodes) > 0):
+            fbx_node = nodes[0]
+            #Loop needed in order to set proper colorspace based on the socket
+            for socket_name, fbx_name, colorspace in FBX_SETTINS_SOCKETS_TO_FBX:
+                if socket_name == sock_name:
+                    tex = node_shader_utils.ShaderImageTextureWrapper(ma_wrap, fbx_node, fbx_node.inputs[sock_name], grid_row_diff=0, colorspace_name=colorspace)
+                    break
           
     tex_key, _fbx_prop = scene_data.data_textures[blender_tex_key]
     img = tex.image
@@ -2469,19 +2471,21 @@ def fbx_data_from_scene(scene, depsgraph, settings):
         
         #Find additional textures for embedding from FBX Settings node
         if ma.node_tree and ma.use_nodes:
-            fbx_node = [n for n in ma.node_tree.nodes if "FBX Settings" == n.name][0]
-            inputs = [input for input in fbx_node.inputs]
-            for sock_name, fbx_name, colorspace in FBX_SETTINS_SOCKETS_TO_FBX:
-                if any(input.name == sock_name for input in inputs):
-                    tex = node_shader_utils.ShaderImageTextureWrapper(ma_wrap, fbx_node, fbx_node.inputs[sock_name], colorspace_name = colorspace)
-                    if tex is None or tex.image is None:
-                        continue
-                    blender_tex_key = (ma, sock_name, True)
-                    data_textures[blender_tex_key] = (get_blender_nodetexture_key(*blender_tex_key), fbx_name)
+            nodes = [n for n in ma.node_tree.nodes if "FBX Settings" == n.name]
+            if(len(nodes) > 0):
+                fbx_node = nodes[0]
+                inputs = [input for input in fbx_node.inputs]
+                for sock_name, fbx_name, colorspace in FBX_SETTINS_SOCKETS_TO_FBX:
+                    if any(input.name == sock_name for input in inputs):
+                        tex = node_shader_utils.ShaderImageTextureWrapper(ma_wrap, fbx_node, fbx_node.inputs[sock_name], colorspace_name = colorspace)
+                        if tex is None or tex.image is None:
+                            continue
+                        blender_tex_key = (ma, sock_name, True)
+                        data_textures[blender_tex_key] = (get_blender_nodetexture_key(*blender_tex_key), fbx_name)
 
-                    img = tex.image
-                    vid_data = data_videos.setdefault(img, (get_blenderID_key(img), []))
-                    vid_data[1].append(blender_tex_key)
+                        img = tex.image
+                        vid_data = data_videos.setdefault(img, (get_blenderID_key(img), []))
+                        vid_data[1].append(blender_tex_key)
 
     perfmon.step("FBX export prepare: Wrapping Animations...")
 
