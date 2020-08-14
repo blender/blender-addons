@@ -22,7 +22,7 @@ bl_info = {
     "name": "Collection Manager",
     "description": "Manage collections and their objects",
     "author": "Ryan Inch",
-    "version": (2, 9, 2),
+    "version": (2, 14, 1),
     "blender": (2, 80, 0),
     "location": "View3D - Object Mode (Shortcut - M)",
     "warning": '',  # used for warning icon and text in addons panel
@@ -77,6 +77,8 @@ class CollectionManagerProperties(PropertyGroup):
     show_hide_viewport: BoolProperty(default=True, name="[VV] Hide in Viewport")
     show_disable_viewport: BoolProperty(default=False, name="[DV] Disable in Viewports")
     show_render: BoolProperty(default=False, name="[RR] Disable in Renders")
+    show_holdout: BoolProperty(default=False, name="[HH] Holdout")
+    show_indirect_only: BoolProperty(default=False, name="[IO] Indirect Only")
 
     align_local_ops: BoolProperty(default=False, name="Align Local Options",
                                   description="Align local options in a column to the right")
@@ -108,14 +110,22 @@ classes = (
     operators.CMUnDisableViewportAllOperator,
     operators.CMDisableRenderOperator,
     operators.CMUnDisableRenderAllOperator,
+    operators.CMHoldoutOperator,
+    operators.CMUnHoldoutAllOperator,
+    operators.CMIndirectOnlyOperator,
+    operators.CMUnIndirectOnlyAllOperator,
     operators.CMNewCollectionOperator,
     operators.CMRemoveCollectionOperator,
+    operators.CMRemoveEmptyCollectionsOperator,
+    operators.CMSelectCollectionObjectsOperator,
     operators.CMSetCollectionOperator,
     operators.CMPhantomModeOperator,
+    operators.CMApplyPhantomModeOperator,
     preferences.CMPreferences,
     ui.CM_UL_items,
     ui.CollectionManager,
     ui.CMDisplayOptionsPanel,
+    ui.SpecialsMenu,
     CollectionManagerProperties,
     )
 
@@ -133,6 +143,18 @@ def undo_redo_post_handler(dummy):
     internals.move_selection.clear()
     internals.move_active = None
 
+
+def menu_addition(self, context):
+    layout = self.layout
+
+    layout.operator('view3d.collection_manager')
+
+    if bpy.context.preferences.addons[__package__].preferences.enable_qcd:
+        layout.operator('view3d.qcd_move_widget')
+
+    layout.separator()
+
+
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -144,6 +166,9 @@ def register():
     km = wm.keyconfigs.addon.keymaps.new(name='Object Mode')
     kmi = km.keymap_items.new('view3d.collection_manager', 'M', 'PRESS')
     addon_keymaps.append((km, kmi))
+
+    # Add Collection Manager & QCD Move Widget to the Object->Collections menu
+    bpy.types.VIEW3D_MT_object_collection.prepend(menu_addition)
 
     bpy.app.handlers.depsgraph_update_post.append(depsgraph_update_post_handler)
     bpy.app.handlers.undo_post.append(undo_redo_post_handler)
@@ -158,6 +183,9 @@ def unregister():
 
     for cls in classes:
         bpy.utils.unregister_class(cls)
+
+    # Remove Collection Manager & QCD Move Widget from the Object->Collections menu
+    bpy.types.VIEW3D_MT_object_collection.remove(menu_addition)
 
     bpy.app.handlers.depsgraph_update_post.remove(depsgraph_update_post_handler)
     bpy.app.handlers.undo_post.remove(undo_redo_post_handler)

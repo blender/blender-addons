@@ -110,19 +110,12 @@ class ObjectSpec:
         self.specs = []
 
     def load(self, format, stream):
-        return dict([(i.name, [i.load(format, stream) for j in range(i.count)]) for i in self.specs])
-
-        # Longhand for above LC
-        """
-        answer = {}
-        for i in self.specs:
-            answer[i.name] = []
-            for j in range(i.count):
-                if not j % 100 and meshtools.show_progress:
-                    Blender.Window.DrawProgressBar(float(j) / i.count, 'Loading ' + i.name)
-                answer[i.name].append(i.load(format, stream))
-        return answer
-        """
+        return {
+            i.name: [
+                i.load(format, stream) for j in range(i.count)
+            ]
+            for i in self.specs
+        }
 
 
 def read(filepath):
@@ -159,14 +152,45 @@ def read(filepath):
     invalid_ply = (None, None, None)
 
     with open(filepath, 'rb') as plyf:
-        signature = plyf.readline()
+        signature = plyf.peek(5)
 
-        if not signature.startswith(b'ply'):
+        if not signature.startswith(b'ply') or not len(signature) >= 5:
             print("Signature line was invalid")
             return invalid_ply
 
+        custom_line_sep = None
+        if signature[3] != ord(b'\n'):
+            if signature[3] != ord(b'\r'):
+                print("Unknown line separator")
+                return invalid_ply
+            if signature[4] == ord(b'\n'):
+                custom_line_sep = b"\r\n"
+            else:
+                custom_line_sep = b"\r"
+
+        # Work around binary file reading only accepting "\n" as line separator.
+        plyf_header_line_iterator = lambda plyf: plyf
+        if custom_line_sep is not None:
+            def _plyf_header_line_iterator(plyf):
+                buff = plyf.peek(2**16)
+                while len(buff) != 0:
+                    read_bytes = 0
+                    buff = buff.split(custom_line_sep)
+                    for line in buff[:-1]:
+                        read_bytes += len(line) + len(custom_line_sep)
+                        if line.startswith(b'end_header'):
+                            # Since reader code might (will) break iteration at this point,
+                            # we have to ensure file is read up to here, yield, amd return...
+                            plyf.read(read_bytes)
+                            yield line
+                            return
+                        yield line
+                    plyf.read(read_bytes)
+                    buff = buff[-1] + plyf.peek(2**16)
+            plyf_header_line_iterator = _plyf_header_line_iterator
+
         valid_header = False
-        for line in plyf:
+        for line in plyf_header_line_iterator(plyf):
             tokens = re.split(br'[ \r\n]+', line)
 
             if len(tokens) == 0:
@@ -279,20 +303,20 @@ def load_ply_mesh(filepath, ply_name):
             if len(colindices) == 3:
                 mesh_colors.extend([
                     (
-                       vertices[index][colindices[0]] * colmultiply[0],
-                       vertices[index][colindices[1]] * colmultiply[1],
-                       vertices[index][colindices[2]] * colmultiply[2],
-                       1.0
+                        vertices[index][colindices[0]] * colmultiply[0],
+                        vertices[index][colindices[1]] * colmultiply[1],
+                        vertices[index][colindices[2]] * colmultiply[2],
+                        1.0,
                     )
                     for index in indices
                 ])
             elif len(colindices) == 4:
                 mesh_colors.extend([
                     (
-                       vertices[index][colindices[0]] * colmultiply[0],
-                       vertices[index][colindices[1]] * colmultiply[1],
-                       vertices[index][colindices[2]] * colmultiply[2],
-                       vertices[index][colindices[3]] * colmultiply[3],
+                        vertices[index][colindices[0]] * colmultiply[0],
+                        vertices[index][colindices[1]] * colmultiply[1],
+                        vertices[index][colindices[2]] * colmultiply[2],
+                        vertices[index][colindices[3]] * colmultiply[3],
                     )
                     for index in indices
                 ])
@@ -415,12 +439,16 @@ def load_ply(filepath):
     if not mesh:
         return {'CANCELLED'}
 
+    for ob in bpy.context.selected_objects:
+        ob.select_set(False)
+
     obj = bpy.data.objects.new(ply_name, mesh)
     bpy.context.collection.objects.link(obj)
     bpy.context.view_layer.objects.active = obj
     obj.select_set(True)
 
     print("\nSuccessfully imported %r in %.3f sec" % (filepath, time.time() - t))
+
     return {'FINISHED'}
 
 

@@ -63,6 +63,9 @@ from .operator_utils import (
     swap_rtos,
     clear_copy,
     clear_swap,
+    link_child_collections_to_parent,
+    remove_collection,
+    select_collection_objects,
 )
 
 class SetActiveCollection(Operator):
@@ -71,11 +74,11 @@ class SetActiveCollection(Operator):
     bl_idname = "view3d.set_active_collection"
     bl_options = {'UNDO'}
 
-    collection_index: IntProperty()
+    is_master_collection: BoolProperty()
     collection_name: StringProperty()
 
     def execute(self, context):
-        if self.collection_index == -1:
+        if self.is_master_collection:
             layer_collection = context.view_layer.layer_collection
 
         else:
@@ -98,7 +101,6 @@ class ExpandAllOperator(Operator):
     '''Expand/Collapse all collections'''
     bl_label = "Expand All Items"
     bl_idname = "view3d.expand_all_items"
-    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         global expand_history
@@ -129,7 +131,6 @@ class ExpandSublevelOperator(Operator):
         "  * Alt+LMB - Discard history"
         )
     bl_idname = "view3d.expand_sublevel"
-    bl_options = {'REGISTER', 'UNDO'}
 
     expand: BoolProperty()
     name: StringProperty()
@@ -215,6 +216,58 @@ class ExpandSublevelOperator(Operator):
         return {'FINISHED'}
 
 
+class CMSelectCollectionObjectsOperator(Operator):
+    bl_label = "Select All Objects in the Collection"
+    bl_description = (
+        "  * LMB - Select all objects in collection.\n"
+        "  * Shift+LMB - Add/Remove collection objects from selection.\n"
+        "  * Ctrl+LMB - Isolate nested selection.\n"
+        "  * Ctrl+Shift+LMB - Add/Remove nested from selection"
+        )
+    bl_idname = "view3d.select_collection_objects"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    is_master_collection: BoolProperty()
+    collection_name: StringProperty()
+
+    def invoke(self, context, event):
+        modifiers = get_modifiers(event)
+
+        if modifiers == {"shift"}:
+            select_collection_objects(
+                is_master_collection=self.is_master_collection,
+                collection_name=self.collection_name,
+                replace=False,
+                nested=False
+                )
+
+        elif modifiers == {"ctrl"}:
+            select_collection_objects(
+                is_master_collection=self.is_master_collection,
+                collection_name=self.collection_name,
+                replace=True,
+                nested=True
+                )
+
+        elif modifiers == {"ctrl", "shift"}:
+            select_collection_objects(
+                is_master_collection=self.is_master_collection,
+                collection_name=self.collection_name,
+                replace=False,
+                nested=True
+                )
+
+        else:
+            select_collection_objects(
+                is_master_collection=self.is_master_collection,
+                collection_name=self.collection_name,
+                replace=True,
+                nested=False
+                )
+
+        return {'FINISHED'}
+
+
 class CMSetCollectionOperator(Operator):
     bl_label = "Set Object Collection"
     bl_description = (
@@ -224,11 +277,11 @@ class CMSetCollectionOperator(Operator):
     bl_idname = "view3d.set_collection"
     bl_options = {'REGISTER', 'UNDO'}
 
-    collection_index: IntProperty()
+    is_master_collection: BoolProperty()
     collection_name: StringProperty()
 
     def invoke(self, context, event):
-        if self.collection_index == 0:
+        if self.is_master_collection:
             target_collection = context.view_layer.layer_collection.collection
 
         else:
@@ -248,7 +301,7 @@ class CMSetCollectionOperator(Operator):
 
             # make sure there is an active object
             if not active_object:
-                active_object = selected_objects[0]
+                active_object = tuple(selected_objects)[0]
 
             # check if in collection
             if not active_object.name in target_collection.objects:
@@ -856,6 +909,211 @@ class CMUnDisableRenderAllOperator(Operator):
         return {'FINISHED'}
 
 
+class CMHoldoutOperator(Operator):
+    bl_label = "[HH] Holdout"
+    bl_description = (
+        "  * Shift+LMB - Isolate/Restore.\n"
+        "  * Shift+Ctrl+LMB - Isolate nested/Restore.\n"
+        "  * Ctrl+LMB - Toggle nested.\n"
+        "  * Alt+LMB - Discard history"
+        )
+    bl_idname = "view3d.holdout_collection"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    name: StringProperty()
+
+    # static class var
+    isolated = False
+
+    def invoke(self, context, event):
+        global rto_history
+        cls = CMHoldoutOperator
+
+        modifiers = get_modifiers(event)
+        view_layer = context.view_layer.name
+        laycol_ptr = layer_collections[self.name]["ptr"]
+
+        if not view_layer in rto_history["holdout"]:
+            rto_history["holdout"][view_layer] = {"target": "", "history": []}
+
+        if modifiers == {"alt"}:
+            del rto_history["holdout"][view_layer]
+            cls.isolated = False
+
+        elif modifiers == {"shift"}:
+            isolate_rto(cls, self, view_layer, "holdout")
+
+        elif modifiers == {"ctrl"}:
+            toggle_children(self, view_layer, "holdout")
+
+            cls.isolated = False
+
+        elif modifiers == {"ctrl", "shift"}:
+            isolate_rto(cls, self, view_layer, "holdout", children=True)
+
+        else:
+            # toggle holdout
+
+            # reset holdout history
+            del rto_history["holdout"][view_layer]
+
+            # toggle holdout of collection in viewport
+            laycol_ptr.holdout = not laycol_ptr.holdout
+
+            cls.isolated = False
+
+        # reset holdout all history
+        if view_layer in rto_history["holdout_all"]:
+            del rto_history["holdout_all"][view_layer]
+
+        return {'FINISHED'}
+
+
+class CMUnHoldoutAllOperator(Operator):
+    bl_label = "[HH Global] Holdout"
+    bl_description = (
+        "  * LMB - Enable all/Restore.\n"
+        "  * Shift+LMB - Invert.\n"
+        "  * Ctrl+LMB - Copy/Paste RTOs.\n"
+        "  * Ctrl+Alt+LMB - Swap RTOs.\n"
+        "  * Alt+LMB - Discard history"
+        )
+    bl_idname = "view3d.un_holdout_all_collections"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def invoke(self, context, event):
+        global rto_history
+
+        view_layer = context.view_layer.name
+        modifiers = get_modifiers(event)
+
+        if not view_layer in rto_history["holdout_all"]:
+            rto_history["holdout_all"][view_layer] = []
+
+        if modifiers == {"alt"}:
+            # clear all states
+            del rto_history["holdout_all"][view_layer]
+            clear_copy("holdout")
+            clear_swap("holdout")
+
+        elif modifiers == {"ctrl"}:
+            copy_rtos(view_layer, "holdout")
+
+        elif modifiers == {"ctrl", "alt"}:
+            swap_rtos(view_layer, "holdout")
+
+        elif modifiers == {"shift"}:
+            invert_rtos(view_layer, "holdout")
+
+        else:
+            activate_all_rtos(view_layer, "holdout")
+
+        return {'FINISHED'}
+
+
+class CMIndirectOnlyOperator(Operator):
+    bl_label = "[IO] Indirect Only"
+    bl_description = (
+        "  * Shift+LMB - Isolate/Restore.\n"
+        "  * Shift+Ctrl+LMB - Isolate nested/Restore.\n"
+        "  * Ctrl+LMB - Toggle nested.\n"
+        "  * Alt+LMB - Discard history"
+        )
+    bl_idname = "view3d.indirect_only_collection"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    name: StringProperty()
+
+    # static class var
+    isolated = False
+
+    def invoke(self, context, event):
+        global rto_history
+        cls = CMIndirectOnlyOperator
+
+        modifiers = get_modifiers(event)
+        view_layer = context.view_layer.name
+        laycol_ptr = layer_collections[self.name]["ptr"]
+
+        if not view_layer in rto_history["indirect"]:
+            rto_history["indirect"][view_layer] = {"target": "", "history": []}
+
+
+        if modifiers == {"alt"}:
+            del rto_history["indirect"][view_layer]
+            cls.isolated = False
+
+        elif modifiers == {"shift"}:
+            isolate_rto(cls, self, view_layer, "indirect")
+
+        elif modifiers == {"ctrl"}:
+            toggle_children(self, view_layer, "indirect")
+
+            cls.isolated = False
+
+        elif modifiers == {"ctrl", "shift"}:
+            isolate_rto(cls, self, view_layer, "indirect", children=True)
+
+        else:
+            # toggle indirect only
+
+            # reset indirect history
+            del rto_history["indirect"][view_layer]
+
+            # toggle indirect only of collection
+            laycol_ptr.indirect_only = not laycol_ptr.indirect_only
+
+            cls.isolated = False
+
+        # reset indirect all history
+        if view_layer in rto_history["indirect_all"]:
+            del rto_history["indirect_all"][view_layer]
+
+        return {'FINISHED'}
+
+
+class CMUnIndirectOnlyAllOperator(Operator):
+    bl_label = "[IO Global] Indirect Only"
+    bl_description = (
+        "  * LMB - Enable all/Restore.\n"
+        "  * Shift+LMB - Invert.\n"
+        "  * Ctrl+LMB - Copy/Paste RTOs.\n"
+        "  * Ctrl+Alt+LMB - Swap RTOs.\n"
+        "  * Alt+LMB - Discard history"
+        )
+    bl_idname = "view3d.un_indirect_only_all_collections"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def invoke(self, context, event):
+        global rto_history
+
+        view_layer = context.view_layer.name
+        modifiers = get_modifiers(event)
+
+        if not view_layer in rto_history["indirect_all"]:
+            rto_history["indirect_all"][view_layer] = []
+
+        if modifiers == {"alt"}:
+            # clear all states
+            del rto_history["indirect_all"][view_layer]
+            clear_copy("indirect")
+            clear_swap("indirect")
+
+        elif modifiers == {"ctrl"}:
+            copy_rtos(view_layer, "indirect")
+
+        elif modifiers == {"ctrl", "alt"}:
+            swap_rtos(view_layer, "indirect")
+
+        elif modifiers == {"shift"}:
+            invert_rtos(view_layer, "indirect")
+
+        else:
+            activate_all_rtos(view_layer, "indirect")
+
+        return {'FINISHED'}
+
+
 class CMRemoveCollectionOperator(Operator):
     '''Remove Collection'''
     bl_label = "Remove Collection"
@@ -869,12 +1127,9 @@ class CMRemoveCollectionOperator(Operator):
         global expand_history
         global qcd_slots
 
-        cm = context.scene.collection_manager
-
         laycol = layer_collections[self.collection_name]
         collection = laycol["ptr"].collection
         parent_collection = laycol["parent"]["ptr"].collection
-        selected_row_name = cm.cm_list_collection[cm.cm_list_index].name
 
 
         # shift all objects in this collection to the parent collection
@@ -885,76 +1140,68 @@ class CMRemoveCollectionOperator(Operator):
 
         # shift all child collections to the parent collection preserving view layer RTOs
         if collection.children:
-            # store view layer RTOs for all children of the to be deleted collection
-            child_states = {}
-            def get_child_states(layer_collection):
-                child_states[layer_collection.name] = (layer_collection.exclude,
-                                                       layer_collection.hide_viewport,
-                                                       layer_collection.holdout,
-                                                       layer_collection.indirect_only)
+            link_child_collections_to_parent(laycol, collection, parent_collection)
 
-            apply_to_children(laycol["ptr"], get_child_states)
-
-            # link any subcollections of the to be deleted collection to it's parent
-            for subcollection in collection.children:
-                parent_collection.children.link(subcollection)
-
-            # apply the stored view layer RTOs to the newly linked collections and their
-            # children
-            def restore_child_states(layer_collection):
-                state = child_states.get(layer_collection.name)
-
-                if state:
-                    layer_collection.exclude = state[0]
-                    layer_collection.hide_viewport = state[1]
-                    layer_collection.holdout = state[2]
-                    layer_collection.indirect_only = state[3]
-
-            apply_to_children(laycol["parent"]["ptr"], restore_child_states)
-
-
-        # remove collection, update expanded, and update tree view
-        bpy.data.collections.remove(collection)
-        expanded.discard(self.collection_name)
-
-        if expand_history["target"] == self.collection_name:
-            expand_history["target"] = ""
-
-        if self.collection_name in expand_history["history"]:
-            expand_history["history"].remove(self.collection_name)
-
-        update_property_group(context)
-
-
-        # update selected row
-        laycol = layer_collections.get(selected_row_name, None)
-        if laycol:
-            cm.cm_list_index = laycol["row_index"]
-
-        elif len(cm.cm_list_collection) == cm.cm_list_index:
-            cm.cm_list_index -=  1
-
-            if cm.cm_list_index > -1:
-                name = cm.cm_list_collection[cm.cm_list_index].name
-                laycol = layer_collections[name]
-                while not laycol["visible"]:
-                    laycol = laycol["parent"]
-
-                cm.cm_list_index = laycol["row_index"]
-
-
-        # update qcd
-        if qcd_slots.contains(name=self.collection_name):
-            qcd_slots.del_slot(name=self.collection_name)
-
-        if self.collection_name in qcd_slots.overrides:
-            qcd_slots.overrides.remove(self.collection_name)
-
-        # reset history
-        for rto in rto_history.values():
-            rto.clear()
+        # remove collection, update references, and update tree view
+        remove_collection(laycol, collection, context)
 
         return {'FINISHED'}
+
+
+class CMRemoveEmptyCollectionsOperator(Operator):
+    bl_label = "Remove Empty Collections"
+    bl_idname = "view3d.remove_empty_collections"
+    bl_options = {'UNDO'}
+
+    without_objects: BoolProperty()
+
+    @classmethod
+    def description(cls, context, properties):
+        if properties.without_objects:
+            tooltip = (
+                "Purge All Collections Without Objects.\n"
+                "Deletes all collections that don't contain objects even if they have subcollections"
+                )
+
+        else:
+            tooltip = (
+                "Remove Empty Collections.\n"
+                "Delete collections that don't have any subcollections or objects"
+                )
+
+        return tooltip
+
+    def execute(self, context):
+        global rto_history
+        global expand_history
+        global qcd_slots
+
+        if self.without_objects:
+            empty_collections = [laycol["name"]
+                                for laycol in layer_collections.values()
+                                if not laycol["ptr"].collection.objects]
+        else:
+            empty_collections = [laycol["name"]
+                                for laycol in layer_collections.values()
+                                if not laycol["children"] and
+                                not laycol["ptr"].collection.objects]
+
+        for name in empty_collections:
+            laycol = layer_collections[name]
+            collection = laycol["ptr"].collection
+            parent_collection = laycol["parent"]["ptr"].collection
+
+            # link all child collections to the parent collection preserving view layer RTOs
+            if collection.children:
+                link_child_collections_to_parent(laycol, collection, parent_collection)
+
+            # remove collection, update references, and update tree view
+            remove_collection(laycol, collection, context)
+
+        self.report({"INFO"}, f"Removed {len(empty_collections)} collections")
+
+        return {'FINISHED'}
+
 
 rename = [False]
 class CMNewCollectionOperator(Operator):
@@ -1070,6 +1317,8 @@ class CMPhantomModeOperator(Operator):
                             "hide": layer_collection.hide_viewport,
                             "disable": layer_collection.collection.hide_viewport,
                             "render": layer_collection.collection.hide_render,
+                            "holdout": layer_collection.holdout,
+                            "indirect": layer_collection.indirect_only,
                                 }
 
             apply_to_children(view_layer.layer_collection, save_visibility_state)
@@ -1090,6 +1339,8 @@ class CMPhantomModeOperator(Operator):
                 layer_collection.hide_viewport = phantom_laycol["hide"]
                 layer_collection.collection.hide_viewport = phantom_laycol["disable"]
                 layer_collection.collection.hide_render = phantom_laycol["render"]
+                layer_collection.holdout = phantom_laycol["holdout"]
+                layer_collection.indirect_only = phantom_laycol["indirect"]
 
             apply_to_children(view_layer.layer_collection, restore_visibility_state)
 
@@ -1106,5 +1357,17 @@ class CMPhantomModeOperator(Operator):
 
             cm.in_phantom_mode = False
 
+
+        return {'FINISHED'}
+
+
+class CMApplyPhantomModeOperator(Operator):
+    '''Apply changes and quit Phantom Mode'''
+    bl_label = "Apply Phantom Mode"
+    bl_idname = "view3d.apply_phantom_mode"
+
+    def execute(self, context):
+        cm = context.scene.collection_manager
+        cm.in_phantom_mode = False
 
         return {'FINISHED'}

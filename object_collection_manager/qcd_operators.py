@@ -45,6 +45,7 @@ from .internals import (
 
 from .operator_utils import (
     apply_to_children,
+    select_collection_objects,
 )
 
 
@@ -81,7 +82,7 @@ class MoveToQCDSlot(Operator):
         # adds object to slot
         if self.toggle:
             if not active_object:
-                active_object = selected_objects[0]
+                active_object = tuple(selected_objects)[0]
 
             if not active_object.name in qcd_laycol.collection.objects:
                 for obj in selected_objects:
@@ -157,19 +158,32 @@ class ViewMoveQCDSlot(Operator):
         if modifiers == {"shift"}:
             bpy.ops.view3d.view_qcd_slot(slot=self.slot, toggle=True)
 
-            return {'FINISHED'}
-
         elif modifiers == {"ctrl"}:
             bpy.ops.view3d.move_to_qcd_slot(slot=self.slot, toggle=False)
-            return {'FINISHED'}
 
         elif modifiers == {"ctrl", "shift"}:
             bpy.ops.view3d.move_to_qcd_slot(slot=self.slot, toggle=True)
-            return {'FINISHED'}
+
+        elif modifiers == {"alt"}:
+            select_collection_objects(
+                is_master_collection=False,
+                collection_name=qcd_slots.get_name(self.slot),
+                replace=True,
+                nested=False
+                )
+
+        elif modifiers == {"alt", "shift"}:
+            select_collection_objects(
+                is_master_collection=False,
+                collection_name=qcd_slots.get_name(self.slot),
+                replace=False,
+                nested=False
+                )
 
         else:
             bpy.ops.view3d.view_qcd_slot(slot=self.slot, toggle=False)
-            return {'FINISHED'}
+
+        return {'FINISHED'}
 
 class ViewQCDSlot(Operator):
     '''View objects in QCD slot'''
@@ -287,9 +301,10 @@ class RenumerateQCDSlots(Operator):
     bl_label = "Renumber QCD Slots"
     bl_description = (
         "Renumber QCD slots.\n"
-        "  * LMB - Renumber (breadth first) starting from the slot designated 1.\n"
-        "  * Ctrl+LMB - Renumber (depth first) starting from the slot designated 1.\n"
-        "  * Alt+LMB - Renumber from the beginning"
+        "  * LMB - Renumber (breadth first) from slot 1.\n"
+        "  * +Ctrl - Linear.\n"
+        "  * +Alt - Reset.\n"
+        "  * +Shift - Constrain to branch"
         )
     bl_idname = "view3d.renumerate_qcd_slots"
     bl_options = {'REGISTER', 'UNDO'}
@@ -299,14 +314,22 @@ class RenumerateQCDSlots(Operator):
 
         modifiers = get_modifiers(event)
 
-        if modifiers == {'alt'}:
-            qcd_slots.renumerate(beginning=True)
+        beginning = False
+        depth_first = False
+        constrain = False
 
-        elif modifiers == {'ctrl'}:
-            qcd_slots.renumerate(depth_first=True)
+        if 'alt' in modifiers:
+            beginning=True
 
-        else:
-            qcd_slots.renumerate()
+        if 'ctrl' in modifiers:
+            depth_first=True
+
+        if 'shift' in modifiers:
+            constrain=True
+
+        qcd_slots.renumerate(beginning=beginning,
+                             depth_first=depth_first,
+                             constrain=constrain)
 
         update_property_group(context)
 

@@ -32,6 +32,7 @@ class glTFImporter():
         self.glb_buffer = None
         self.buffers = {}
         self.accessor_cache = {}
+        self.decode_accessor_cache = {}
 
         if 'loglevel' not in self.import_settings.keys():
             self.import_settings['loglevel'] = logging.ERROR
@@ -47,6 +48,7 @@ class glTFImporter():
             'KHR_materials_unlit',
             'KHR_texture_transform',
             'KHR_materials_clearcoat',
+            'KHR_mesh_quantization',
         ]
 
         # TODO : merge with io_constants

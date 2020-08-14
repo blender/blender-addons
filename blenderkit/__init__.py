@@ -19,8 +19,8 @@
 bl_info = {
     "name": "BlenderKit Online Asset Library",
     "author": "Vilem Duha, Petr Dlouhy",
-    "version": (1, 0, 30),
-    "blender": (2, 82, 0),
+    "version": (1, 0, 31),
+    "blender": (2, 83, 0),
     "location": "View3D > Properties > BlenderKit",
     "description": "Online BlenderKit library (materials, models, brushes and more). Connects to the internet.",
     "warning": "",
@@ -92,6 +92,7 @@ def scene_load(context):
     ui_props.turn_off = False
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
     preferences.login_attempt = False
+
 
 @bpy.app.handlers.persistent
 def check_timers_timer():
@@ -251,15 +252,18 @@ def switch_search_results(self, context):
 
 
 def asset_type_callback(self, context):
-    # s = bpy.context.scene
-    # ui_props = s.blenderkitUI
+    '''
+    Returns
+    items for Enum property, depending on the down_up property - BlenderKit is either in search or in upload mode.
+
+    '''
     if self.down_up == 'SEARCH':
         items = (
             ('MODEL', 'Models', 'Find models in the BlenderKit online database', 'OBJECT_DATAMODE', 0),
             # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
-            ('MATERIAL', 'Materials', 'Find models in the BlenderKit online database', 'MATERIAL', 2),
+            ('MATERIAL', 'Materials', 'Find materials in the BlenderKit online database', 'MATERIAL', 2),
             # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
-            ('BRUSH', 'Brushes', 'Find models in the BlenderKit online database', 'BRUSH_DATA', 3)
+            ('BRUSH', 'Brushes', 'Find brushes in the BlenderKit online database', 'BRUSH_DATA', 3)
         )
     else:
         items = (
@@ -481,6 +485,7 @@ class BlenderKitCommonSearchProps(object):
             ('DELETED', 'Deleted', 'Deleted'),
         ),
         default='ALL',
+        update=search.search_update,
     )
 
 
@@ -525,7 +530,7 @@ def update_free(self, context):
                   "Part of subscription is sent to artists based on usage by paying users."
 
         def draw_message(self, context):
-            ui_panels.label_multiline(self.layout, text=message, icon='NONE', width=-1)
+            utils.label_multiline(self.layout, text=message, icon='NONE', width=-1)
 
         bpy.context.window_manager.popup_menu(draw_message, title=title, icon='INFO')
 
@@ -653,17 +658,26 @@ class BlenderKitRatingProps(PropertyGroup):
                                 min=-1, max=10,
                                 update=ratings.update_ratings_quality)
 
+    # the following enum is only to ease interaction - enums support 'drag over' and enable to draw the stars easily.
+    rating_quality_ui: EnumProperty(name='rating_quality_ui',
+                                    items=ratings.stars_enum_callback,
+                                    description='Rating stars 0 - 10',
+                                    default=None,
+                                    update=ratings.update_quality_ui,
+                                    )
+
     rating_work_hours: FloatProperty(name="Work Hours",
                                      description="How many hours did this work take?",
-                                     default=0.01,
+                                     default=0.00,
                                      min=0.0, max=1000, update=ratings.update_ratings_work_hours
                                      )
-    rating_complexity: IntProperty(name="Complexity",
-                                   description="Complexity is a number estimating how much work was spent on the asset.aaa",
-                                   default=0, min=0, max=10)
-    rating_virtual_price: FloatProperty(name="Virtual Price",
-                                        description="How much would you pay for this object if buing it?",
-                                        default=0, min=0, max=10000)
+
+    # rating_complexity: IntProperty(name="Complexity",
+    #                                description="Complexity is a number estimating how much work was spent on the asset.aaa",
+    #                                default=0, min=0, max=10)
+    # rating_virtual_price: FloatProperty(name="Virtual Price",
+    #                                     description="How much would you pay for this object if buing it?",
+    #                                     default=0, min=0, max=10000)
     rating_problems: StringProperty(
         name="Problems",
         description="Problems found/ why did you take points down - this will be available for the author"
@@ -1358,6 +1372,17 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
                                         max=180,
                                         subtype='ANGLE')
 
+    perpendicular_snap: BoolProperty(name='Perpendicular snap',
+                                     description="Limit snapping that is close to perpendicular angles to be perpendicular.",
+                                     default=True)
+
+    perpendicular_snap_threshold: FloatProperty(name="Threshold",
+                                                description="Limit perpendicular snap to be below these values.",
+                                                default=.25,
+                                                min=0,
+                                                max=.5,
+                                                )
+
 
 class BlenderKitSceneSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
     search_keywords: StringProperty(
@@ -1392,14 +1417,15 @@ class BlenderKitSceneSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
         update=search.search_update
     )
 
+
 def fix_subdir(self, context):
     '''Fixes project subdicrectory settings if people input invalid path.'''
 
     # pp = pathlib.PurePath(self.project_subdir)
     pp = self.project_subdir[:]
-    pp = pp.replace('\\','')
-    pp = pp.replace('/','')
-    pp = pp.replace(':','')
+    pp = pp.replace('\\', '')
+    pp = pp.replace('/', '')
+    pp = pp.replace(':', '')
     pp = '//' + pp
     if self.project_subdir != pp:
         self.project_subdir = pp
@@ -1410,9 +1436,10 @@ def fix_subdir(self, context):
                   "and uses it for storing assets."
 
         def draw_message(self, context):
-            ui_panels.label_multiline(self.layout, text=message, icon='NONE', width=400)
+            utils.label_multiline(self.layout, text=message, icon='NONE', width=400)
 
         bpy.context.window_manager.popup_menu(draw_message, title=title, icon='INFO')
+
 
 class BlenderKitAddonPreferences(AddonPreferences):
     # this must match the addon name, use '__package__'
@@ -1493,7 +1520,7 @@ class BlenderKitAddonPreferences(AddonPreferences):
         description="where data will be stored for individual projects",
         # subtype='DIR_PATH',
         default="//assets",
-        update = fix_subdir
+        update=fix_subdir
     )
 
     directory_behaviour: EnumProperty(
@@ -1549,19 +1576,21 @@ class BlenderKitAddonPreferences(AddonPreferences):
                                min=0,
                                max=20000)
 
-    first_run: BoolProperty(
-        name="First run",
-        description="Detects if addon was already registered/run.",
+    # this is now made obsolete by the new popup upon registration -ensures the user knows about the first search.
+    # first_run: BoolProperty(
+    #     name="First run",
+    #     description="Detects if addon was already registered/run.",
+    #     default=True,
+    #     update=utils.save_prefs
+    # )
+
+    use_timers: BoolProperty(
+        name="Use timers",
+        description="Use timers for BlenderKit. Usefull for debugging since timers seem to be unstable.",
         default=True,
         update=utils.save_prefs
     )
 
-    use_timers: BoolProperty(
-        name="Use timers",
-        description="Use timers for bkit",
-        default=True,
-        update=utils.save_prefs
-    )
     # allow_proximity : BoolProperty(
     #     name="allow proximity data reports",
     #     description="This sends anonymized proximity data \n \
@@ -1687,6 +1716,12 @@ def register():
         bpy.app.timers.register(check_timers_timer, persistent=True)
 
     bpy.app.handlers.load_post.append(scene_load)
+    # detect if the user just enabled the addon in preferences, thus enable to run
+    for w in bpy.context.window_manager.windows:
+        for a in w.screen.areas:
+            if a.type == 'PREFERENCES':
+                tasks_queue.add_task((bpy.ops.wm.blenderkit_welcome, ('INVOKE_DEFAULT',)), fake_context=True,
+                                     fake_context_area='PREFERENCES')
 
 
 def unregister():

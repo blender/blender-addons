@@ -40,7 +40,7 @@ def rerequest(method, url, **kwargs):
     # first normal attempt
     response = requests.request(method, url, **kwargs)
 
-    utils.p(url)
+    utils.p(url, kwargs)
     utils.p(response.status_code)
 
     if response.status_code == 401:
@@ -68,12 +68,19 @@ def rerequest(method, url, **kwargs):
                             #  in non-threaded tasks
                             bpy.context.preferences.addons['blenderkit'].preferences.api_key = auth_token
                             bpy.context.preferences.addons['blenderkit'].preferences.api_key_refresh = refresh_token
+                        else:
+                            tasks_queue.add_task((bkit_oauth.write_tokens, (auth_token, refresh_token, oauth_response)))
 
                         kwargs['headers'] = utils.get_headers(auth_token)
                         response = requests.request(method, url, **kwargs)
                         utils.p('reresult', response.status_code)
                         if response.status_code >= 400:
                             utils.p('reresult', response.text)
+                    else:
+                        tasks_queue.add_task((ui.add_report, (
+                            'Refreshing token failed.Please login manually.', 10)))
+                        # tasks_queue.add_task((bkit_oauth.write_tokens, ('', '', '')))
+                        tasks_queue.add_task((bpy.ops.wm.blenderkit_login,( 'INVOKE_DEFAULT',)),fake_context = True)
     return response
 
 
