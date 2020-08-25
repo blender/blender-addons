@@ -22,7 +22,7 @@ bl_info = {
     "name": "Oscurart Tools",
     "author": "Oscurart",
     "version": (4, 0, 0),
-    "blender": (2, 80, 0),
+    "blender": (2, 90, 0),
     "location": "View3D > Context Menu > Object/Edit Modes",
     "description": "Tools for objects, render, shapes, and files.",
     "warning": "",
