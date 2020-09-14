@@ -711,13 +711,13 @@ def matlab(objekti,mat_list,texturelist,is_new):
         if texturelist[0][0].startswith('100') and  len(texturelist[0][0]) == 4:
             udim_textures = True
         
-        udim_target = ''
-        udim_target  = texturelist[0][2]
-        for texture in texturelist:
-            if texture[2] == udim_target:
-                udim_indexs.append(int(texture[0]))
+            udim_target = ''
+            udim_target  = texturelist[0][2]
+            for texture in texturelist:
+                if texture[2] == udim_target:
+                    udim_indexs.append(int(texture[0]))
 
-        udim_indexs.sort()
+            udim_indexs.sort()
 
         if(udim_textures == False):
             readtexturefolder(objekti,mat_list,texturelist,is_new, udim_textures, udim_indexs)
