@@ -140,7 +140,7 @@ def set_exchange_folder():
                 file.write("%s"%(coat3D.exchangedir))
                 file.close()
                 exchange = coat3D.exchangedir
-
+            
             else:
                 exchange = source
 
@@ -293,16 +293,18 @@ def updatemesh(objekti, proxy, texturelist):
                     if(udim_textures):
                         udim = proxy.data.uv_layers[index].name
                         udim_index = int(udim[2:]) - 1
-
+    
                     objekti.data.uv_layers[0].data[indi].uv[0] = proxy.data.uv_layers[index].data[indi].uv[0]
                     objekti.data.uv_layers[0].data[indi].uv[1] = proxy.data.uv_layers[index].data[indi].uv[1]
-
+            
         index = index + 1
 
     # Mesh Copy
     if(proxy.name.startswith('RetopoGroup')):
         objekti.data = proxy.data
     else:
+        print('objekti: ' + str(len(objekti.data.vertices)))
+        print('proxy: ' + str(len(proxy.data.vertices)))
         for ind, v in enumerate(objekti.data.vertices):
             v.co = proxy.data.vertices[ind].co
 
@@ -313,11 +315,11 @@ class SCENE_OT_getback(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     def invoke(self, context, event):
-
+        
         global global_exchange_folder
         global initial_settings
         path_ex = ''
-
+        
         if(initial_settings):
             global_exchange_folder = set_exchange_folder()
             initial_settings = False
@@ -327,29 +329,29 @@ class SCENE_OT_getback(bpy.types.Operator):
 
         BlenderFolder = Blender_folder
         ExportFolder = Export_folder
-
+        
         Blender_folder += ('%sexport.txt' % (os.sep))
         Export_folder += ('%sexport.txt' % (os.sep))
-
+        
         if (bpy.app.background == False):
             if os.path.isfile(Export_folder):
 
                 print('BLENDER -> 3DC -> BLENDER WORKFLLOW')
-                DeleteExtra3DC()
+                DeleteExtra3DC() 
                 workflow1(ExportFolder)
                 removeFile(Export_folder)
-                removeFile(Blender_folder)
-
-
-
+                removeFile(Blender_folder)    
+                
+            
+            
             elif os.path.isfile(Blender_folder):
 
                 print('3DC -> BLENDER WORKFLLOW')
-                DeleteExtra3DC()
+                DeleteExtra3DC() 
                 workflow2(BlenderFolder)
                 removeFile(Blender_folder)
-
-
+        
+    
 
         return {'FINISHED'}
 
@@ -577,7 +579,7 @@ class SCENE_OT_export(bpy.types.Operator):
 
     def invoke(self, context, event):
         bpy.ops.export_applink.pilgway_3d_coat()
-
+      
         return {'FINISHED'}
 
     def execute(self, context):
@@ -827,11 +829,12 @@ class SCENE_OT_export(bpy.types.Operator):
                                     if(node.name.startswith('3DC_') == True):
                                         material.material.node_tree.nodes.remove(node)
 
+        
                 for ind, mat_list in enumerate(mod_mat_list):
                     if(mat_list == '__' + objekti.name):
                         for ind, mat in enumerate(mod_mat_list[mat_list]):
                             objekti.material_slots[mod_mat_list[mat_list][ind][0]].material = mod_mat_list[mat_list][ind][1]
-
+            
         bpy.context.scene.render.engine = active_render
         return {'FINISHED'}
 
@@ -858,7 +861,7 @@ def DeleteExtra3DC():
                     bpy.data.images.remove(del_img)
 
             bpy.data.materials.remove(material)
-
+    
     image_del_list = []
     for image in bpy.data.images:
         if (image.name.startswith('3DC')):
@@ -937,7 +940,7 @@ def new_ref_function(new_applink_address, nimi):
 
 
 def blender_3DC_blender(texturelist):
-
+    
     coat3D = bpy.context.scene.coat3D
 
     old_materials = bpy.data.materials.keys()
@@ -1089,7 +1092,7 @@ def blender_3DC_blender(texturelist):
 
                         #delete_materials_from_end(keep_materials_count, obj_proxy)
 
-
+               
                         updatemesh(objekti,obj_proxy, texturelist)
                         bpy.context.view_layer.objects.active = objekti
 
@@ -1216,7 +1219,7 @@ def blender_3DC(texturelist, new_applink_address):
 
     old_materials = bpy.data.materials.keys()
     old_objects = bpy.data.objects.keys()
-
+  
     bpy.ops.import_scene.fbx(filepath=new_applink_address, global_scale = 1, axis_forward='-Z', axis_up='Y')
 
     new_materials = bpy.data.materials.keys()
@@ -1291,7 +1294,7 @@ def blender_3DC(texturelist, new_applink_address):
         os.remove(Blender_export)
     if (os.path.isfile(Blender_folder2)):
         os.remove(Blender_folder2)
-
+        
     for material in bpy.data.materials:
         if material.use_nodes == True:
             for node in material.node_tree.nodes:
@@ -1312,9 +1315,9 @@ def workflow1(ExportFolder):
         for image in bpy.data.images:
             if(image.filepath == texturepath[3] and image.users == 0):
                 bpy.data.images.remove(image)
-
+    
     path3b_now = coat3D.exchangedir
-
+    
     path3b_now += ('last_saved_3b_file.txt')
     new_applink_address = 'False'
     new_object = False
@@ -1338,7 +1341,7 @@ def workflow1(ExportFolder):
                     new_ref_object = True
                     nimi = scene_objects.name
 
-
+    
 
 
     exportfile = coat3D.exchangedir
@@ -1371,9 +1374,9 @@ def workflow2(BlenderFolder):
     kokeilu = coat3D.exchangedir
 
     Blender_export = os.path.join(kokeilu, 'Blender')
-
+    
     path3b_now = coat3D.exchangedir
-
+    
     path3b_now += ('last_saved_3b_file.txt')
     Blender_export += ('%sexport.txt'%(os.sep))
     new_applink_address = 'False'
@@ -2061,7 +2064,7 @@ def register():
     bpy.types.Object.coat3D = PointerProperty(type=ObjectCoat3D)
     bpy.types.Scene.coat3D = PointerProperty(type=SceneCoat3D)
     bpy.types.Mesh.coat3D = PointerProperty(type=MeshCoat3D)
-    bpy.types.Material.coat3D = PointerProperty(type=MaterialCoat3D)
+    bpy.types.Material.coat3D = PointerProperty(type=MaterialCoat3D)  
 
     kc = bpy.context.window_manager.keyconfigs.addon
 
