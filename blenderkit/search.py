@@ -211,10 +211,10 @@ def parse_result(r):
 
     # TODO remove this fix when filesSize is fixed.
     # this is a temporary fix for too big numbers from the server.
-    try:
-        r['filesSize'] = int(r['filesSize'] / 1024)
-    except:
-        utils.p('asset with no files-size')
+    # try:
+    #     r['filesSize'] = int(r['filesSize'] / 1024)
+    # except:
+    #     utils.p('asset with no files-size')
     asset_type = r['assetType']
     if len(r['files']) > 0:
 
@@ -560,7 +560,7 @@ def generate_tooltip(mdata):
     # write files size - this doesn't reflect true file size, since files size is computed from all asset files, including resolutions.
     if mdata.get('filesSize'):
         fs = mdata['filesSize']
-        fsmb = fs // 1024
+        fsmb = fs // (1024 * 1024)
         fskb = fs % 1024
         if fsmb == 0:
             t += 'files size: %iKB\n' % fskb

@@ -377,7 +377,7 @@ def draw_tooltip(x, y, text='', author='', img=None, gravatar=None):
 
     texth = line_height * nlines + nameline_height
 
-    if max(img.size[0], img.size[1]) == 0:
+    if not img or max(img.size[0], img.size[1]) == 0:
         return;
     isizex = int(512 * scale * img.size[0] / max(img.size[0], img.size[1]))
     isizey = int(512 * scale * img.size[1] / max(img.size[0], img.size[1]))
@@ -1024,7 +1024,7 @@ def is_rating_possible():
                 if ad is not None:
 
                     s['assets rated'] = s.get('assets rated',{})
-                    rated = s['assets rated'].get(ad['assetBaseId'])
+                    rated = s['assets rated'].get(ad.get(['assetBaseId']))
                     # originally hidden for already rated assets
                     return True, rated, ao_check, ad
                 elif ao_check.parent is not None:
@@ -1800,6 +1800,11 @@ class UndoWithContext(bpy.types.Operator):
 
     def execute(self, context):
         C_dict = utils.get_fake_context(context)
+        #w, a, r = get_largest_area(area_type=area_type)
+        # wm = bpy.context.window_manager#bpy.data.window_managers[0]
+        # w = wm.windows[0]
+        #
+        # C_dict = {'window': w, 'screen': w.screen}
         bpy.ops.ed.undo_push(C_dict, 'INVOKE_REGION_WIN', message=self.message)
         return {'FINISHED'}
 

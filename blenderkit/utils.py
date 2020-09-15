@@ -631,7 +631,7 @@ def get_largest_area(area_type='VIEW_3D'):
     maxa = None
     maxw = None
     region = None
-    for w in bpy.context.window_manager.windows:
+    for w in bpy.data.window_managers[0].windows:
         for a in w.screen.areas:
             if a.type == area_type:
                 asurf = a.width * a.height

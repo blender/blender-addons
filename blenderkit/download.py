@@ -624,14 +624,14 @@ class Downloader(threading.Thread):
             else:
                 tcom.file_size = int(total_length)
                 dl = 0
-                for data in response.iter_content(chunk_size=4096):
+                totdata = []
+                for data in response.iter_content(chunk_size=4096*32): #crashed here... why? investigate:
                     dl += len(data)
                     tcom.downloaded = dl
                     tcom.progress = int(100 * tcom.downloaded / tcom.file_size)
                     f.write(data)
                     if self.stopped():
                         utils.p('stopping download: ' + asset_data['name'])
-                        f.close()
                         os.remove(file_name)
                         return;
 
