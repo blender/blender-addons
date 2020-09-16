@@ -927,7 +927,7 @@ def mouse_raycast(context, mx, my):
     vec = ray_target - ray_origin
 
     has_hit, snapped_location, snapped_normal, face_index, object, matrix = bpy.context.scene.ray_cast(
-        bpy.context.view_layer, ray_origin, vec)
+        bpy.context.view_layer.depsgraph, ray_origin, vec)
 
     # rote = mathutils.Euler((0, 0, math.pi))
     randoffset = math.pi
@@ -1805,7 +1805,8 @@ class UndoWithContext(bpy.types.Operator):
         # w = wm.windows[0]
         #
         # C_dict = {'window': w, 'screen': w.screen}
-        bpy.ops.ed.undo_push(C_dict, 'INVOKE_REGION_WIN', message=self.message)
+        # bpy.ops.ed.undo_push(C_dict, 'INVOKE_REGION_WIN', message=self.message)
+        bpy.ops.ed.undo_push( 'INVOKE_REGION_WIN', message=self.message)
         return {'FINISHED'}
 
 
