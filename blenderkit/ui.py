@@ -1024,7 +1024,7 @@ def is_rating_possible():
                 if ad is not None:
 
                     s['assets rated'] = s.get('assets rated',{})
-                    rated = s['assets rated'].get(ad.get(['assetBaseId']))
+                    rated = s['assets rated'].get(ad.get('assetBaseId'))
                     # originally hidden for already rated assets
                     return True, rated, ao_check, ad
                 elif ao_check.parent is not None:
