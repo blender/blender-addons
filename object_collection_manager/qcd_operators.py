@@ -222,10 +222,11 @@ class ViewQCDSlot(Operator):
 
         if self.toggle:
             # check if slot can be toggled off.
-            for obj in qcd_laycol.collection.objects:
-                if obj.mode != 'OBJECT':
-                    if obj.mode not in ['POSE', 'WEIGHT_PAINT'] or obj == locked_active_obj:
-                        return {'CANCELLED'}
+            if not qcd_laycol.exclude:
+                for obj in qcd_laycol.collection.objects:
+                    if obj.mode != 'OBJECT':
+                        if obj.mode not in ['POSE', 'WEIGHT_PAINT'] or obj == locked_active_obj:
+                            return {'CANCELLED'}
 
             # get current child exclusion state
             child_exclusion = []
@@ -241,15 +242,6 @@ class ViewQCDSlot(Operator):
             # set correct state for all children
             for laycol in child_exclusion:
                 laycol[0].exclude = laycol[1]
-
-            # restore locked objects back to their original mode
-            # needed because of exclude child updates
-            if locked_objs:
-                context.view_layer.objects.active = locked_active_obj
-                bpy.ops.object.mode_set(mode=locked_objs_mode)
-
-            # set layer as active layer collection
-            context.view_layer.active_layer_collection = qcd_laycol
 
         else:
             # exclude all collections
@@ -274,14 +266,17 @@ class ViewQCDSlot(Operator):
 
             apply_to_children(qcd_laycol, exclude_all_children)
 
-            # restore locked objects back to their original mode
-            # needed because of exclude child updates
-            if locked_objs:
-                context.view_layer.objects.active = locked_active_obj
+
+        # restore locked objects back to their original mode
+        # needed because of exclude child updates
+        if locked_objs:
+            context.view_layer.objects.active = locked_active_obj
+
+            if context.view_layer.objects.active:
                 bpy.ops.object.mode_set(mode=locked_objs_mode)
 
-            # set layer as active layer collection
-            context.view_layer.active_layer_collection = qcd_laycol
+        # set layer as active layer collection
+        context.view_layer.active_layer_collection = qcd_laycol
 
 
         # update header UI
