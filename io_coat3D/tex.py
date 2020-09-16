@@ -526,7 +526,8 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
                 node.image.source = 'TILED'
                 for udim_index in udim_len:
                     if (udim_index != 1001):
-                        image.tiles.new(udim_index)
+                        node.image.tiles.new(udim_index)
+                        print('AA')
 
             node.image.reload()
          
@@ -541,7 +542,9 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
 
         for udim_index in udim_len:
             if (udim_index != 1001):
-                image.tiles.new(udim_index)
+                node.image.tiles.new(udim_index)
+                print('image:', node.image)
+                print('BB')
 
   
 
@@ -718,6 +721,7 @@ def matlab(objekti,mat_list,texturelist,is_new):
                     udim_indexs.append(int(texture[0]))
 
             udim_indexs.sort()
+            print('udim_indexa:', udim_indexs)
 
         if(udim_textures == False):
             readtexturefolder(objekti,mat_list,texturelist,is_new, udim_textures, udim_indexs)
