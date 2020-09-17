@@ -856,6 +856,9 @@ def draw_callback_2d_search(self, context):
             if sr != None and -1 < ui_props.active_index < len(sr):
                 r = sr[ui_props.active_index]
                 tpath = os.path.join(directory, r['thumbnail'])
+                if not r['thumbnail']:
+                    tpath = paths.get_addon_thumbnail_path('thumbnail_not_available.jpg')
+
 
                 img = bpy.data.images.get(iname)
                 if img == None or img.filepath != tpath:

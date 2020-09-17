@@ -232,64 +232,63 @@ def parse_result(r):
             if f['fileType'] == 'blend':
                 durl = f['downloadUrl'].split('?')[0]
                 # fname = paths.extract_filename_from_url(f['filePath'])
-        if durl and tname:
 
-            tooltip = generate_tooltip(r)
-            # for some reason, the id was still int on some occurances. investigate this.
-            r['author']['id'] = str(r['author']['id'])
+        tooltip = generate_tooltip(r)
+        # for some reason, the id was still int on some occurances. investigate this.
+        r['author']['id'] = str(r['author']['id'])
 
-            # some helper props, but generally shouldn't be renaming/duplifiying original properties,
-            # so blender's data is same as on server.
-            asset_data = {'thumbnail': tname,
-                          'thumbnail_small': small_tname,
-                          # 'thumbnails':allthumbs,
-                          'download_url': durl,
-                          # 'id': r['id'],
-                          # 'asset_base_id': r['assetBaseId'],#this should stay ONLY for compatibility with older scenes
-                          # 'name': r['name'],
-                          # 'asset_type': r['assetType'], #this should stay ONLY for compatibility with older scenes
-                          'tooltip': tooltip,
-                          # 'tags': r['tags'],
-                          # 'can_download': r.get('canDownload', True),#this should stay ONLY for compatibility with older scenes
-                          # 'verification_status': r['verificationStatus'],#this should stay ONLY for compatibility with older scenes
-                          # 'author_id': r['author']['id'],#this should stay ONLY for compatibility with older scenes
-                          # 'author': r['author']['firstName'] + ' ' + r['author']['lastName']
-                          # 'description': r['description'],
-                          }
-            asset_data['downloaded'] = 0
+        # some helper props, but generally shouldn't be renaming/duplifiying original properties,
+        # so blender's data is same as on server.
+        asset_data = {'thumbnail': tname,
+                      'thumbnail_small': small_tname,
+                      # 'thumbnails':allthumbs,
+                      'download_url': durl,
+                      # 'id': r['id'],
+                      # 'asset_base_id': r['assetBaseId'],#this should stay ONLY for compatibility with older scenes
+                      # 'name': r['name'],
+                      # 'asset_type': r['assetType'], #this should stay ONLY for compatibility with older scenes
+                      'tooltip': tooltip,
+                      # 'tags': r['tags'],
+                      # 'can_download': r.get('canDownload', True),#this should stay ONLY for compatibility with older scenes
+                      # 'verification_status': r['verificationStatus'],#this should stay ONLY for compatibility with older scenes
+                      # 'author_id': r['author']['id'],#this should stay ONLY for compatibility with older scenes
+                      # 'author': r['author']['firstName'] + ' ' + r['author']['lastName']
+                      # 'description': r['description'],
+                      }
+        asset_data['downloaded'] = 0
 
-            # parse extra params needed for blender here
-            params = utils.params_to_dict(r['parameters'])
+        # parse extra params needed for blender here
+        params = utils.params_to_dict(r['parameters'])
 
-            if asset_type == 'model':
-                if params.get('boundBoxMinX') != None:
-                    bbox = {
-                        'bbox_min': (
-                            float(params['boundBoxMinX']),
-                            float(params['boundBoxMinY']),
-                            float(params['boundBoxMinZ'])),
-                        'bbox_max': (
-                            float(params['boundBoxMaxX']),
-                            float(params['boundBoxMaxY']),
-                            float(params['boundBoxMaxZ']))
-                    }
+        if asset_type == 'model':
+            if params.get('boundBoxMinX') != None:
+                bbox = {
+                    'bbox_min': (
+                        float(params['boundBoxMinX']),
+                        float(params['boundBoxMinY']),
+                        float(params['boundBoxMinZ'])),
+                    'bbox_max': (
+                        float(params['boundBoxMaxX']),
+                        float(params['boundBoxMaxY']),
+                        float(params['boundBoxMaxZ']))
+                }
 
-                else:
-                    bbox = {
-                        'bbox_min': (-.5, -.5, 0),
-                        'bbox_max': (.5, .5, 1)
-                    }
-                asset_data.update(bbox)
-            if asset_type == 'material':
-                asset_data['texture_size_meters'] = params.get('textureSizeMeters', 1.0)
+            else:
+                bbox = {
+                    'bbox_min': (-.5, -.5, 0),
+                    'bbox_max': (.5, .5, 1)
+                }
+            asset_data.update(bbox)
+        if asset_type == 'material':
+            asset_data['texture_size_meters'] = params.get('textureSizeMeters', 1.0)
 
-            asset_data.update(tdict)
-            if r['assetBaseId'] in scene.get('assets used', {}).keys():
-                asset_data['downloaded'] = 100
+        asset_data.update(tdict)
+        if r['assetBaseId'] in scene.get('assets used', {}).keys():
+            asset_data['downloaded'] = 100
 
-            # attempt to switch to use original data gradually, since the parsing as itself should become obsolete.
-            asset_data.update(r)
-            return asset_data
+        # attempt to switch to use original data gradually, since the parsing as itself should become obsolete.
+        asset_data.update(r)
+        return asset_data
 
 
 # @bpy.app.handlers.persistent
@@ -406,23 +405,25 @@ def load_previews():
 
         i = 0
         for r in results:
-
             tpath = os.path.join(directory, r['thumbnail_small'])
+            if not r['thumbnail_small']:
+                tpath = paths.get_addon_thumbnail_path('thumbnail_not_available.jpg')
 
             iname = utils.previmg_name(i)
 
-            if os.path.exists(tpath):  # sometimes we are unlucky...
-                img = bpy.data.images.get(iname)
-                if img is None:
-                    img = bpy.data.images.load(tpath)
-                    img.name = iname
-                elif img.filepath != tpath:
-                    # had to add this check for autopacking files...
-                    if img.packed_file is not None:
-                        img.unpack(method='USE_ORIGINAL')
-                    img.filepath = tpath
-                    img.reload()
-                img.colorspace_settings.name = 'sRGB'
+            # if os.path.exists(tpath):  # sometimes we are unlucky...
+            img = bpy.data.images.get(iname)
+            if img is None:
+                img = bpy.data.images.load(tpath)
+                img.name = iname
+            elif img.filepath != tpath:
+                # had to add this check for autopacking files...
+                if img.packed_file is not None:
+                    img.unpack(method='USE_ORIGINAL')
+                img.filepath = tpath
+                img.reload()
+            img.colorspace_settings.name = 'sRGB'
+
             i += 1
     # print('previews loaded')
 
