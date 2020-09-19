@@ -1024,10 +1024,10 @@ def is_rating_possible():
             while ad is None or (ad is None and ao_check.parent is not None):
                 s = bpy.context.scene
                 ad = ao_check.get('asset_data')
-                if ad is not None:
+                if ad is not None and ad.get('assetBaseId') is not None:
 
                     s['assets rated'] = s.get('assets rated',{})
-                    rated = s['assets rated'].get(ad.get('assetBaseId'))
+                    rated = s['assets rated'].get(ad['assetBaseId'])
                     # originally hidden for already rated assets
                     return True, rated, ao_check, ad
                 elif ao_check.parent is not None:

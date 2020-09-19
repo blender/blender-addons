@@ -219,7 +219,7 @@ def parse_result(r):
     if len(r['files']) > 0:
 
         allthumbs = []
-        durl, tname = None, None
+        durl, tname, small_tname = '','',''
         for f in r['files']:
             if f['fileType'] == 'thumbnail':
                 tname = paths.extract_filename_from_url(f['fileThumbnailLarge'])
