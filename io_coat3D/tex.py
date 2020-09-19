@@ -706,7 +706,7 @@ def matlab(objekti,mat_list,texturelist,is_new):
         udim_count = 0
         udim_indexs = []
 
-        if texturelist[0][0].startswith('100') and  len(texturelist[0][0]) == 4:
+        if texturelist[0][0].startswith('10') and  len(texturelist[0][0]) == 4:
             udim_textures = True
         
             udim_target = ''
