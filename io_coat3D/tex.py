@@ -46,62 +46,6 @@ def RemoveFbxNodes(objekti):
     Node_Tree.links.new(Prin_mat.outputs[0], output.inputs[0])
 
 
-def UVTiling(objekti, index, texturelist):
-    """ Checks what Tiles are linked with Material """
-
-    objekti.coat3D.applink_scale = objekti.scale
-    tiles_index = []
-    tile_number =''
-    for poly in objekti.data.polygons:
-        if (poly.material_index == (index)):
-            loop_index = poly.loop_indices[0]
-            uv_x = objekti.data.uv_layers.active.data[loop_index].uv[0]
-            if(uv_x >= 0 and uv_x <=1):
-                tile_number_x = '1'
-            elif (uv_x >= 1 and uv_x <= 2):
-                tile_number_x = '2'
-            elif (uv_x >= 2 and uv_x <= 3):
-                tile_number_x = '3'
-            elif (uv_x >= 3 and uv_x <= 4):
-                tile_number_x = '4'
-            elif (uv_x >= 4 and uv_x <= 5):
-                tile_number_x = '5'
-            elif (uv_x >= 5 and uv_x <= 6):
-                tile_number_x = '6'
-            elif (uv_x >= 6 and uv_x <= 7):
-                tile_number_x = '7'
-            elif (uv_x >= 7 and uv_x <= 8):
-                tile_number_x = '8'
-            elif (uv_x >= 8 and uv_x <= 9):
-                tile_number_x = '9'
-
-            uv_y = objekti.data.uv_layers.active.data[loop_index].uv[1]
-            if (uv_y >= 0 and uv_y <= 1):
-                tile_number_y = '0'
-            elif (uv_y >= 1 and uv_y <= 2):
-                tile_number_y = '1'
-            elif (uv_x >= 2 and uv_y <= 3):
-                tile_number_y = '2'
-            elif (uv_x >= 3 and uv_y <= 4):
-                tile_number_y = '3'
-            elif (uv_x >= 4 and uv_y <= 5):
-                tile_number_y = '4'
-            elif (uv_x >= 5 and uv_y <= 6):
-                tile_number_y = '5'
-            elif (uv_x >= 6 and uv_y <= 7):
-                tile_number_y = '6'
-            elif (uv_x >= 7 and uv_y <= 8):
-                tile_number_y = '7'
-            elif (uv_x >= 8 and uv_y <= 9):
-                tile_number_y = '8'
-
-            tile_number = '10' + tile_number_y + tile_number_x
-
-            if tile_number not in tiles_index:
-                tiles_index.append(tile_number)
-
-    return tiles_index
-
 def updatetextures(objekti): # Update 3DC textures
 
     for index_mat in objekti.material_slots:
@@ -716,14 +660,8 @@ def matlab(objekti,mat_list,texturelist,is_new):
                     udim_indexs.append(int(texture[0]))
 
             udim_indexs.sort()
-
-        if(udim_textures == False):
-            readtexturefolder(objekti,mat_list,texturelist,is_new, udim_textures, udim_indexs)
-        else:
-            path = texturelist[0][3]
-            only_name = os.path.basename(path)
-            if(only_name.startswith(objekti.coat3D.applink_index)):
-                readtexturefolder(objekti, mat_list, texturelist, is_new, udim_textures, udim_indexs)
+        
+        readtexturefolder(objekti, mat_list, texturelist, is_new, udim_textures, udim_indexs)
 
 
     return('FINISHED')
