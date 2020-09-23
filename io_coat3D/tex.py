@@ -21,6 +21,7 @@ import bpy
 import os
 import re
 import json
+from io_coat3D import updateimage
 
 def find_index(objekti):
 
@@ -286,20 +287,30 @@ def createnodes(active_mat,texcoat, create_group_node, objekti, ind, is_new, udi
                 if (node.type == 'TEX_IMAGE'):
                     if (node.name == '3DC_color'):
                         bring_color = False
+                        updateimage.update(texcoat, 'color', node)
                     elif (node.name == '3DC_metalness'):
                         bring_metalness = False
+                        updateimage.update(texcoat, 'metalness', node)
                     elif (node.name == '3DC_rough'):
                         bring_roughness = False
+                        updateimage.update(texcoat, 'rough', node)
                     elif (node.name == '3DC_nmap'):
                         bring_normal = False
+                        updateimage.update(texcoat, 'nmap', node)
                     elif (node.name == '3DC_displacement'):
                         bring_displacement = False
+                        updateimage.update(texcoat, 'displacement', node)
                     elif (node.name == '3DC_emissive'):
                         bring_emissive = False
+                        updateimage.update(texcoat, 'emissive', node)
                     elif (node.name == '3DC_AO'):
                         bring_AO = False
+                        updateimage.update(texcoat, 'ao', node)
                     elif (node.name == '3DC_alpha'):
                         bring_alpha = False
+                        updateimage.update(texcoat, 'alpha', node)
+
+                    
         elif (node.type == 'GROUP' and node.name.startswith('3DC_')):
             if (node.name == '3DC_color'):
                 bring_color = False
@@ -634,15 +645,14 @@ def createExtraNodes(act_material, node, type):
 
 def matlab(objekti,mat_list,texturelist,is_new):
 
-    ''' FBX Materials: remove all nodes and create princibles node'''
+    # FBX Materials: remove all nodes and create princibles node
+
     if(is_new):
         RemoveFbxNodes(objekti)
 
-    '''Main Loop for Texture Update'''
+    updatetextures(objekti) 
 
-    updatetextures(objekti)
-
-    ''' Check if bind textures with UVs or Materials '''
+    # Count udim tiles 
 
     if(texturelist != []):
     
@@ -659,8 +669,10 @@ def matlab(objekti,mat_list,texturelist,is_new):
                 if texture[2] == udim_target:
                     udim_indexs.append(int(texture[0]))
 
-            udim_indexs.sort()
+            udim_indexs.sort() # sort tiles list -> 1001, 1002, 1003...
         
+        # Main loop for creating nodes
+
         readtexturefolder(objekti, mat_list, texturelist, is_new, udim_textures, udim_indexs)
 
 

@@ -675,6 +675,8 @@ class SCENE_OT_export(bpy.types.Operator):
         else:
             os.makedirs(bake_location)
 
+        # BAKING #
+
         temp_string = ''
         for objekti in bpy.context.selected_objects:
             if objekti.type == 'MESH':
@@ -778,6 +780,8 @@ class SCENE_OT_export(bpy.types.Operator):
                                     bpy.data.images.remove(image)
 
                             index_bake_tex += 1
+        
+        #BAKING ENDS
 
         #bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
         if(len(bpy.context.selected_objects) > 1 and coat3D.type != 'vox'):
