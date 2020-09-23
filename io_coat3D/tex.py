@@ -287,28 +287,28 @@ def createnodes(active_mat,texcoat, create_group_node, objekti, ind, is_new, udi
                 if (node.type == 'TEX_IMAGE'):
                     if (node.name == '3DC_color'):
                         bring_color = False
-                        updateimage.update(texcoat, 'color', node)
+                        #updateimage.update(texcoat, 'color', node)
                     elif (node.name == '3DC_metalness'):
                         bring_metalness = False
-                        updateimage.update(texcoat, 'metalness', node)
+                        #updateimage.update(texcoat, 'metalness', node)
                     elif (node.name == '3DC_rough'):
                         bring_roughness = False
-                        updateimage.update(texcoat, 'rough', node)
+                        #updateimage.update(texcoat, 'rough', node)
                     elif (node.name == '3DC_nmap'):
                         bring_normal = False
-                        updateimage.update(texcoat, 'nmap', node)
+                        #updateimage.update(texcoat, 'nmap', node)
                     elif (node.name == '3DC_displacement'):
                         bring_displacement = False
-                        updateimage.update(texcoat, 'displacement', node)
+                        #updateimage.update(texcoat, 'displacement', node)
                     elif (node.name == '3DC_emissive'):
                         bring_emissive = False
-                        updateimage.update(texcoat, 'emissive', node)
+                        #updateimage.update(texcoat, 'emissive', node)
                     elif (node.name == '3DC_AO'):
                         bring_AO = False
-                        updateimage.update(texcoat, 'ao', node)
+                        #updateimage.update(texcoat, 'ao', node)
                     elif (node.name == '3DC_alpha'):
                         bring_alpha = False
-                        updateimage.update(texcoat, 'alpha', node)
+                        #updateimage.update(texcoat, 'alpha', node)
 
                     
         elif (node.type == 'GROUP' and node.name.startswith('3DC_')):
@@ -472,8 +472,8 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
 
     for image in bpy.data.images:
         
-        if(texcoat[type['name']][0] == image.filepath):
-           
+        if(os.path.normpath(texcoat[type['name']][0]) == os.path.normpath(image.filepath)):
+
             load_image = False
             node.image = image
             
@@ -488,8 +488,8 @@ def CreateTextureLine(type, act_material, main_mat, texcoat, coat3D, notegroup, 
             break
 
     if (load_image):
-        
-        node.image = bpy.data.images.load(texcoat[type['name']][0])
+
+        node.image = bpy.data.images.load(os.path.normpath(texcoat[type['name']][0]))
 
         if(udim_textures):
             node.image.source = 'TILED'
