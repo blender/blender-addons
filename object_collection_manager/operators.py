@@ -66,6 +66,7 @@ from .operator_utils import (
     link_child_collections_to_parent,
     remove_collection,
     select_collection_objects,
+    set_exclude_state,
 )
 
 class SetActiveCollection(Operator):
@@ -424,23 +425,7 @@ class CMExcludeOperator(Operator):
             # reset exclude history
             del rto_history["exclude"][view_layer]
 
-
-            # get current child exclusion state
-            child_exclusion = []
-
-            def get_child_exclusion(layer_collection):
-                child_exclusion.append([layer_collection, layer_collection.exclude])
-
-            apply_to_children(laycol_ptr, get_child_exclusion)
-
-
-            # toggle exclusion of collection
-            laycol_ptr.exclude = not laycol_ptr.exclude
-
-
-            # set correct state for all children
-            for laycol in child_exclusion:
-                laycol[0].exclude = laycol[1]
+            set_exclude_state(laycol_ptr, not laycol_ptr.exclude)
 
             cls.isolated = False
 
