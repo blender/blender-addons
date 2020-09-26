@@ -399,6 +399,7 @@ class CMExcludeOperator(Operator):
         modifiers = get_modifiers(event)
         view_layer = context.view_layer.name
         orig_active_collection = context.view_layer.active_layer_collection
+        orig_active_object = context.view_layer.objects.active
         laycol_ptr = layer_collections[self.name]["ptr"]
 
         if not view_layer in rto_history["exclude"]:
@@ -429,8 +430,13 @@ class CMExcludeOperator(Operator):
 
             cls.isolated = False
 
-        # reset active collection
+        # restore active collection
         context.view_layer.active_layer_collection = orig_active_collection
+
+        # restore active object if possible
+        if orig_active_object:
+            if orig_active_object.name in context.view_layer.objects:
+                context.view_layer.objects.active = orig_active_object
 
         # reset exclude all history
         if view_layer in rto_history["exclude_all"]:
@@ -455,6 +461,7 @@ class CMUnExcludeAllOperator(Operator):
         global rto_history
 
         orig_active_collection = context.view_layer.active_layer_collection
+        orig_active_object = context.view_layer.objects.active
         view_layer = context.view_layer.name
         modifiers = get_modifiers(event)
 
@@ -479,8 +486,13 @@ class CMUnExcludeAllOperator(Operator):
         else:
             activate_all_rtos(view_layer, "exclude")
 
-        # reset active collection
+        # restore active collection
         context.view_layer.active_layer_collection = orig_active_collection
+
+        # restore active object if possible
+        if orig_active_object:
+            if orig_active_object.name in context.view_layer.objects:
+                context.view_layer.objects.active = orig_active_object
 
         return {'FINISHED'}
 
