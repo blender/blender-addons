@@ -581,7 +581,9 @@ class ViewMoveQCDSlot(Operator):
             "  * LMB - Isolate slot.\n"
             "  * Shift+LMB - Toggle slot.\n"
             "  * Ctrl+LMB - Move objects to slot.\n"
-            "  * Ctrl+Shift+LMB - Toggle objects' slot"
+            "  * Ctrl+Shift+LMB - Toggle objects' slot.\n"
+            "  * Alt+LMB - Select objects in slot.\n"
+            "  * Alt+Shift+LMB - Toggle objects' selection for slot"
             )
 
         return f"{slot_string}{hotkey_string}"
