@@ -796,7 +796,7 @@ def draw_callback_2d_search(self, context):
                     index = a + ui_props.scrolloffset + b * ui_props.wcount
                     iname = utils.previmg_name(index)
                     img = bpy.data.images.get(iname)
-                    if img is not None:
+                    if img is not None and img.size[0]>0 and img.size[1]>0:
                         w = int(ui_props.thumb_size * img.size[0] / max(img.size[0], img.size[1]))
                         h = int(ui_props.thumb_size * img.size[1] / max(img.size[0], img.size[1]))
                         crop = (0, 0, 1, 1)
