@@ -807,7 +807,7 @@ class BlenderKitMaterialUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
         name="Thumbnail Style",
         items=(
             ('BALL', 'Ball', ""),
-            ('CUBE', 'Cube', 'cube'),
+            ('BALL_COMPLEX', 'Ball complex', 'Complex ball to highlight edgewear or material thickness'),
             ('FLUID', 'Fluid', 'Fluid'),
             ('CLOTH', 'Cloth', 'Cloth'),
             ('HAIR', 'Hair', 'Hair  ')
