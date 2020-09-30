@@ -64,7 +64,7 @@ prev_time = 0
 
 
 def check_errors(rdata):
-    if rdata.get('statusCode') == 401:
+    if rdata.get('statusCode') and int(rdata.get('statusCode')) > 299:
         utils.p(rdata)
         if rdata.get('detail') == 'Invalid token.':
             user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
@@ -73,6 +73,8 @@ def check_errors(rdata):
                     bkit_oauth.refresh_token_thread()
                 return False, rdata.get('detail')
             return False, 'Use login panel to connect your profile.'
+        else:
+            return False, rdata.get('detail')
     return True, ''
 
 
@@ -899,7 +901,13 @@ class Searcher(threading.Thread):
             print(inst)
 
         mt('data parsed ')
-
+        if not rdata.get('results'):
+            utils.pprint(rdata)
+            # if the result was converted to json and didn't return results,
+            # it means it's a server error that has a clear message.
+            # That's why it gets processed in the update timer, where it can be passed in messages to user.
+            self.result = rdata
+            return
         # print('number of results: ', len(rdata.get('results', [])))
         if self.stopped():
             utils.p('stopping search : ' + str(query))

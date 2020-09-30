@@ -859,6 +859,7 @@ def get_download_url(asset_data, scene_id, api_key, tcom=None):
             tcom.error = True
         return 'Connection Error'
 
+
     if r.status_code < 400:
         data = r.json()
         url = data['filePath']
