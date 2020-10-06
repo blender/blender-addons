@@ -28,7 +28,7 @@ bl_info = {
 "doc_url": "https://docs.blender.org/manual/en/dev/addons/object/grease_pencil_tools.html",
 "tracker_url": "https://github.com/Pullusb/greasepencil-addon/issues",
 "category": "Object",
-"support": "OFFICIAL",
+"support": "COMMUNITY",
 }
 
 import bpy
