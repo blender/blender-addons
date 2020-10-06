@@ -34,6 +34,7 @@ from bpy.props import (
     BoolProperty,
 )
 from bpy.app.handlers import persistent
+from mathutils import Quaternion
 
 bl_info = {
     "name": "VR Scene Inspection",
@@ -283,6 +284,265 @@ class VIEW3D_PT_vr_landmarks(Panel):
                             "base_pose_angle", text="Angle")
 
 
+@persistent
+def create_vr_actions(context: bpy.context):
+    # Create all vr action sets and actions.
+    context = bpy.context
+    wm = context.window_manager
+    scene = context.scene
+    action_set = scene.vr_action_set[0]
+    actions = scene.vr_actions
+
+    if wm.xr_session_state and len(actions) > 0:
+        wm.xr_session_state.create_action_set(context, action_set.name)
+
+        type = 'BUTTON'
+        op_flag = 'PRESS'
+        interaction_path0 = ""
+        interaction_path1 = ""
+
+        for action in actions:
+            if action.type == 'BUTTON':
+                type = 'BUTTON'		
+                if action.op_flag == 'PRESS':	
+                    op_flag = 'PRESS'
+                elif action.op_flag == 'RELEASE':	
+                    op_flag = 'RELEASE'
+                elif action.op_flag == 'MODAL':
+                    op_flag = 'MODAL'
+                else:
+                    continue
+            elif action.type == 'POSE':
+                type = 'POSE'					
+            elif action.type == 'HAPTIC':
+                type = 'HAPTIC'
+            else:
+                continue
+
+            wm.xr_session_state.create_action(context, action_set.name, action.name, type, action.user_path0, action.user_path1, action.op, op_flag)         
+
+            if action.type == 'POSE':
+                wm.xr_session_state.create_action_space(context, action_set.name, action.name, action.user_path0, action.user_path1, \
+                            action.pose_location, action.pose_rotation)
+                if action.pose_is_controller:
+                    wm.xr_session_state.set_controller_pose_action(context, action_set.name, action.name)
+
+            interaction_path0 = action.user_path0 + action.component_path0
+            interaction_path1 = action.user_path1 + action.component_path1
+
+            wm.xr_session_state.create_action_binding(context, action_set.name, action_set.profile, action.name, interaction_path0, interaction_path1, False)  
+
+        wm.xr_session_state.set_active_action_set(context, action_set.name)
+
+
+@persistent
+def ensure_default_vr_action_set(context: bpy.context):
+    # Ensure there's a default action set.
+    action_set = bpy.context.scene.vr_action_set
+    if not action_set:
+        action_set.add()
+
+
+class VIEW3D_MT_action_menu(Menu):
+    bl_label = "Action Controls"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("view3d.vr_action_set_clear")
+
+
+class VRActionSet(PropertyGroup):
+    name: bpy.props.StringProperty(
+        name="VR action set",
+        default="action_set",
+    )
+    profile: bpy.props.StringProperty(
+        name="OpenXR interaction profile path",
+    )
+
+
+class VRAction(PropertyGroup):
+    name: bpy.props.StringProperty(
+        name="VR action",
+        default="action",
+    )
+    type: bpy.props.EnumProperty(
+        name="VR action type",
+        items=[
+            ('BUTTON', "Button", "Button input"),
+            ('POSE', "Pose", "Pose input"),
+            ('HAPTIC', "Haptic", "Haptic output"),
+        ],
+        default='BUTTON',
+    )
+    user_path0: bpy.props.StringProperty(
+        name="OpenXR user path",
+    )
+    component_path0: bpy.props.StringProperty(
+        name="OpenXR component path",
+    )
+    user_path1: bpy.props.StringProperty(
+        name="OpenXR user path",
+    )
+    component_path1: bpy.props.StringProperty(
+        name="OpenXR component path",
+    )
+    op: bpy.props.StringProperty(
+        name="Python operator",
+    )
+    op_flag: bpy.props.EnumProperty(
+        name="Operator flag",
+        items=[
+            ('PRESS', "Press",
+             "Execute operator on press "
+             "(non-modal operators only)"),
+            ('RELEASE', "Release",
+             "Execute operator on release "
+             "(non-modal operators only)"),
+            ('MODAL', "Modal",
+             "Use modal execution "
+             "(modal operators only)"),
+        ],
+        default='PRESS',
+    )
+    state0: bpy.props.FloatProperty(
+        name="Current value",
+    )
+    state1: bpy.props.FloatProperty(
+        name="Current value",
+    )
+    pose_is_controller: bpy.props.BoolProperty(
+        name="Pose will be used for the VR controllers",
+    )	
+    pose_location: bpy.props.FloatVectorProperty(
+        name="Pose location offset",
+        subtype='TRANSLATION',
+    )
+    pose_rotation: bpy.props.FloatVectorProperty(
+        name="Pose rotation offset",
+        subtype='EULER',
+    )
+    pose_state_location0: bpy.props.FloatVectorProperty(
+        name="Current pose location",
+        subtype='TRANSLATION',
+    )
+    pose_state_rotation0: bpy.props.FloatVectorProperty(
+        name="Current pose rotation",
+        subtype='EULER',
+    )
+    pose_state_location1: bpy.props.FloatVectorProperty(
+        name="Current pose location",
+        subtype='TRANSLATION',
+    )
+    pose_state_rotation1: bpy.props.FloatVectorProperty(
+        name="Current pose rotation",
+        subtype='EULER',
+    )
+    haptic_duration: bpy.props.FloatProperty(
+        name="Haptic duration in seconds",
+    )
+    haptic_frequency: bpy.props.FloatProperty(
+        name="Haptic frequency",
+    )
+    haptic_amplitude: bpy.props.FloatProperty(
+        name="Haptic amplitude",
+    )
+
+    @staticmethod
+    def get_selected_action(context):
+        scene = context.scene
+        actions = scene.vr_actions
+
+        return (
+            None if (len(actions) <
+                     1) else actions[scene.vr_actions_selected]
+        )
+
+
+class VIEW3D_UL_vr_actions(UIList):
+    def draw_item(self, context, layout, _data, item, icon, _active_data,
+                  _active_propname, index):
+        action = item
+
+        layout.emboss = 'NONE'
+
+        layout.prop(action, "name", text="")
+
+
+class VIEW3D_PT_vr_actions(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "VR"
+    bl_label = "Actions"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        action_set = scene.vr_action_set[0]
+        action_selected = VRAction.get_selected_action(context)
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        layout.prop(action_set, "name", text="Action Set")
+        layout.prop(action_set, "profile", text="Profile")
+
+        row = layout.row()
+
+        row.template_list("VIEW3D_UL_vr_actions", "", scene, "vr_actions",
+                          scene, "vr_actions_selected", rows=2)
+
+        col = row.column(align=True)
+        col.operator("view3d.vr_action_add", icon='ADD', text="")
+        col.operator("view3d.vr_action_remove", icon='REMOVE', text="")
+
+        col.menu("VIEW3D_MT_action_menu", icon='DOWNARROW_HLT', text="")
+
+        if action_selected:
+            layout.prop(action_selected, "type", text="Type")
+            layout.prop(action_selected, "user_path0", text="User Path 0")
+            layout.prop(action_selected, "component_path0", text="Component Path 0")
+            layout.prop(action_selected, "user_path1", text="User Path 1")
+            layout.prop(action_selected, "component_path1", text="Component Path 1")
+
+            if action_selected.type == 'BUTTON':
+                layout.prop(action_selected,
+                            "op", text="Operator")
+                layout.prop(action_selected,
+                            "op_flag", text="Operator Flag")
+                layout.operator("view3d.vr_action_state_get", icon='PLAY', text="Get current states")
+                layout.prop(action_selected,
+                            "state0", text="State 0")
+                layout.prop(action_selected,
+                            "state1", text="State 1")
+            elif action_selected.type == 'POSE':
+                layout.prop(action_selected,
+                            "pose_is_controller", text="Use for Controller Poses")
+                layout.prop(action_selected,
+                            "pose_location", text="Location Offset")
+                layout.prop(action_selected,
+                            "pose_rotation", text="Rotation Offset")
+                layout.operator("view3d.vr_pose_action_state_get", icon='PLAY', text="Get current states")
+                layout.prop(action_selected,
+                            "pose_state_location0", text="Location State 0")
+                layout.prop(action_selected,
+                            "pose_state_rotation0", text="Rotation State 0")     
+                layout.prop(action_selected,
+                            "pose_state_location1", text="Location State 1")
+                layout.prop(action_selected,
+                            "pose_state_rotation1", text="Rotation State 1")   
+            elif action_selected.type == 'HAPTIC':
+                layout.prop(action_selected,
+                            "haptic_duration", text="Duration")
+                layout.prop(action_selected,
+                            "haptic_frequency", text="Frequency")
+                layout.prop(action_selected,
+                            "haptic_amplitude", text="Amplitude")
+                layout.operator("view3d.vr_haptic_action_apply", icon='PLAY', text="Apply haptic action")
+
+
 class VIEW3D_PT_vr_session_view(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -299,6 +559,7 @@ class VIEW3D_PT_vr_session_view(Panel):
         col = layout.column(align=True, heading="Show")
         col.prop(session_settings, "show_floor", text="Floor")
         col.prop(session_settings, "show_annotation", text="Annotations")
+        col.prop(session_settings, "show_controllers", text="Controllers")
 
         col = layout.column(align=True)
         col.prop(session_settings, "clip_start", text="Clip Start")
@@ -346,7 +607,7 @@ class VIEW3D_PT_vr_info(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.label(icon='ERROR', text="Built without VR/OpenXR features")
+        layout.label(icon='ERROR', text="Built without VR/OpenXR features.")
 
 
 class VIEW3D_OT_vr_landmark_add(Operator):
@@ -407,40 +668,20 @@ class VIEW3D_OT_vr_landmark_from_session(Operator):
     def poll(cls, context):
         return bpy.types.XrSessionState.is_running(context)
 
-    @staticmethod
-    def _calc_landmark_angle_from_viewer_rotation(rot):
-        from mathutils import Vector
-
-        # We want an angle around Z based on the current viewer rotation. Idea
-        # is to create a vector from the viewer rotation, project that onto a
-        # Z-Up plane and use the resulting vector to get an angle around Z.
-
-        view_rot_vec = Vector((0, 0, 1))
-        view_rot_vec.rotate(rot)
-        angle_vec = view_rot_vec - view_rot_vec.project(Vector((0, 0, 1)))
-
-        # We could probably use a 3D version of Vector.angle_signed() here, but
-        # that's not available. So manually calculate it via a quaternion delta.
-        forward_vec = Vector((0, -1, 0))
-        diff = angle_vec.rotation_difference(forward_vec)
-
-        return diff.angle * -diff.axis[2]
-
     def execute(self, context):
         scene = context.scene
         landmarks = scene.vr_landmarks
         wm = context.window_manager
 
         lm = landmarks.add()
-        lm.type = 'CUSTOM'
+        lm.type = "CUSTOM"
         scene.vr_landmarks_selected = len(landmarks) - 1
 
         loc = wm.xr_session_state.viewer_pose_location
-        rot = wm.xr_session_state.viewer_pose_rotation
-        angle = self._calc_landmark_angle_from_viewer_rotation(rot)
+        rot = wm.xr_session_state.viewer_pose_rotation.to_euler()
 
         lm.base_pose_location = loc
-        lm.base_pose_angle = angle
+        lm.base_pose_angle = rot[2]
 
         return {'FINISHED'}
 
@@ -593,6 +834,152 @@ class VIEW3D_OT_vr_landmark_activate(Operator):
         return {'FINISHED'}
 
 
+class VIEW3D_OT_vr_action_add(Operator):
+    bl_idname = "view3d.vr_action_add"
+    bl_label = "Add VR Action"
+    bl_description = "Add a new VR action to the list and select it"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        scene = context.scene
+        actions = scene.vr_actions
+
+        actions.add()
+
+        # select newly created set
+        scene.vr_actions_selected = len(actions) - 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_action_remove(Operator):
+    bl_idname = "view3d.vr_action_remove"
+    bl_label = "Remove VR Action"
+    bl_description = "Delete the selected VR action from the list"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        scene = context.scene
+        actions = scene.vr_actions
+
+        if len(actions) > 0:
+            action_selected_idx = scene.vr_actions_selected
+            actions.remove(action_selected_idx)
+
+            scene.vr_actions_selected -= 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_action_set_clear(Operator):
+    bl_idname = "view3d.vr_action_set_clear"
+    bl_label = "Clear VR Action Set"
+    bl_description = "Clears the VR action set and deletes all actions"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        scene = context.scene
+        action_set = scene.vr_action_set[0]
+        actions = scene.vr_actions
+
+        action_set.name = "action_set"
+        action_set.profile = ""
+
+        idx = len(actions) - 1;
+        for action in actions:
+            actions.remove(idx)
+            idx -= 1
+
+        scene.vr_actions_selected = 0
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_action_state_get(Operator):
+    bl_idname = "view3d.vr_action_state_get"
+    bl_label = "Get VR Action State"
+    bl_description = "Get the current states of a VR action"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        wm = context.window_manager
+        scene = context.scene
+        action_set = scene.vr_action_set[0]
+        actions = scene.vr_actions
+
+        if wm.xr_session_state and len(actions) > 0:
+            action = actions[scene.vr_actions_selected]
+            if action.type == 'BUTTON':
+                action.state0 = wm.xr_session_state.get_action_state(context, action_set.name, action.name, \
+                            action.user_path0)
+                action.state1 = wm.xr_session_state.get_action_state(context, action_set.name, action.name, \
+                            action.user_path1)
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_pose_action_state_get(Operator):
+    bl_idname = "view3d.vr_pose_action_state_get"
+    bl_label = "Get VR Pose Action State"
+    bl_description = "Get the current states of a VR pose action"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        wm = context.window_manager
+        scene = context.scene
+        action_set = scene.vr_action_set[0]
+        actions = scene.vr_actions
+
+        if wm.xr_session_state and len(actions) > 0:
+            action = actions[scene.vr_actions_selected]
+            if action.type == 'POSE':
+                state = wm.xr_session_state.get_pose_action_state(context, action_set.name, action.name, \
+                            action.user_path0)
+                action.pose_state_location0[0] = state[0]
+                action.pose_state_location0[1] = state[1]
+                action.pose_state_location0[2] = state[2]
+                quat = Quaternion()
+                quat.w = state[3]
+                quat.x = state[4]
+                quat.y = state[5]
+                quat.z = state[6]
+                action.pose_state_rotation0 = quat.to_euler()
+
+                state = wm.xr_session_state.get_pose_action_state(context, action_set.name, action.name, \
+                            action.user_path1)
+                action.pose_state_location1[0] = state[0]
+                action.pose_state_location1[1] = state[1]
+                action.pose_state_location1[2] = state[2]
+                quat.w = state[3]
+                quat.x = state[4]
+                quat.y = state[5]
+                quat.z = state[6]
+                action.pose_state_rotation1 = quat.to_euler()
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_haptic_action_apply(Operator):
+    bl_idname = "view3d.vr_haptic_action_apply"
+    bl_label = "Apply VR Haptic Action"
+    bl_description = "Apply a VR haptic action with the specified settings"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        wm = context.window_manager
+        scene = context.scene
+        action_set = scene.vr_action_set[0]
+        actions = scene.vr_actions
+
+        if wm.xr_session_state and len(actions) > 0:
+            action = actions[scene.vr_actions_selected]
+            if action.type == 'HAPTIC':
+                wm.xr_session_state.apply_haptic_action(context, action_set.name, action.name, \
+                            action.user_path0, action.user_path1, action.haptic_duration, action.haptic_frequency, action.haptic_amplitude)
+
+        return {'FINISHED'}
+
+
 class VIEW3D_PT_vr_viewport_feedback(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -612,6 +999,7 @@ class VIEW3D_PT_vr_viewport_feedback(Panel):
         layout.separator()
 
         layout.prop(view3d.shading, "vr_show_virtual_camera")
+        layout.prop(view3d.shading, "vr_show_controllers")
         layout.prop(view3d.shading, "vr_show_landmarks")
         layout.prop(view3d, "mirror_xr_session")
 
@@ -657,6 +1045,23 @@ class VIEW3D_GT_vr_camera_cone(Gizmo):
         self.draw_custom_shape(self.lines_shape)
 
 
+class VIEW3D_GT_vr_controller_axes(Gizmo):
+    bl_idname = "VIEW_3D_GT_vr_controller_axes"
+
+    def draw(self, context):
+        import bgl
+
+        bgl.glLineWidth(1)
+        bgl.glEnable(bgl.GL_BLEND)
+
+        self.color = 1.0, 0.2, 0.322
+        self.draw_preset_arrow(self.matrix_basis, axis='POS_X')
+        self.color = 0.545, 0.863, 0.0
+        self.draw_preset_arrow(self.matrix_basis, axis='POS_Y')
+        self.color = 0.157, 0.565, 1.0
+        self.draw_preset_arrow(self.matrix_basis, axis='POS_Z')
+
+
 class VIEW3D_GGT_vr_viewer_pose(GizmoGroup):
     bl_idname = "VIEW3D_GGT_vr_viewer_pose"
     bl_label = "VR Viewer Pose Indicator"
@@ -675,7 +1080,7 @@ class VIEW3D_GGT_vr_viewer_pose(GizmoGroup):
 
     @staticmethod
     def _get_viewer_pose_matrix(context):
-        from mathutils import Matrix, Quaternion
+        from mathutils import Matrix
 
         wm = context.window_manager
 
@@ -701,6 +1106,66 @@ class VIEW3D_GGT_vr_viewer_pose(GizmoGroup):
     def draw_prepare(self, context):
         self.gizmo.matrix_basis = self._get_viewer_pose_matrix(context)
 
+
+class VIEW3D_GGT_vr_controller_poses(GizmoGroup):
+    bl_idname = "VIEW3D_GGT_vr_controller_poses"
+    bl_label = "VR Controller Poses Indicator"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
+    bl_options = {'3D', 'PERSISTENT', 'SCALE', 'VR_REDRAWS'}
+
+    @classmethod
+    def poll(cls, context):
+        view3d = context.space_data
+        return (
+            view3d.shading.vr_show_controllers and
+            bpy.types.XrSessionState.is_running(context)
+        )
+
+    @staticmethod
+    def _get_controller_pose_matrix(context, idx, scale):
+        from mathutils import Matrix
+
+        wm = context.window_manager
+
+        loc = None
+        rot = None
+        if idx == 0:
+            loc = wm.xr_session_state.controller_pose_location0
+            rot = wm.xr_session_state.controller_pose_rotation0
+        elif idx == 1:
+            loc = wm.xr_session_state.controller_pose_location1
+            rot = wm.xr_session_state.controller_pose_rotation1
+        else:
+            return Matrix.Identity(4);
+
+        rotmat = Matrix.Identity(3)
+        rotmat.rotate(rot)
+        rotmat.resize_4x4()
+        transmat = Matrix.Translation(loc)
+        scalemat = Matrix.Scale(scale, 4)
+
+        return transmat @ rotmat @ scalemat
+
+    def setup(self, context):
+        for idx in range(2):
+            gizmo = self.gizmos.new(VIEW3D_GT_vr_controller_axes.bl_idname)
+            gizmo.aspect = 1 / 3, 1 / 4
+ 
+            gizmo.color = gizmo.color_highlight = 1.0, 1.0, 1.0
+            gizmo.alpha = 1.0
+
+        self.gizmo = gizmo
+
+    def draw_prepare(self, context):
+        view3d = context.space_data
+        scale = 0.5
+        if view3d.mirror_xr_session:
+            scale = 0.1
+        idx = 0
+        for gizmo in self.gizmos:
+            gizmo.matrix_basis = self._get_controller_pose_matrix(context, idx, scale)
+            idx += 1
 
 class VIEW3D_GGT_vr_landmarks(GizmoGroup):
     bl_idname = "VIEW3D_GGT_vr_landmarks"
@@ -766,11 +1231,17 @@ classes = (
     VIEW3D_PT_vr_session,
     VIEW3D_PT_vr_session_view,
     VIEW3D_PT_vr_landmarks,
+    VIEW3D_PT_vr_actions,
     VIEW3D_PT_vr_viewport_feedback,
 
     VRLandmark,
     VIEW3D_UL_vr_landmarks,
     VIEW3D_MT_landmark_menu,
+
+    VRActionSet,
+    VRAction,
+    VIEW3D_UL_vr_actions,
+    VIEW3D_MT_action_menu,
 
     VIEW3D_OT_vr_landmark_add,
     VIEW3D_OT_vr_landmark_remove,
@@ -782,8 +1253,17 @@ classes = (
     VIEW3D_OT_cursor_to_vr_landmark,
     VIEW3D_OT_update_vr_landmark,
 
+    VIEW3D_OT_vr_action_add,
+    VIEW3D_OT_vr_action_remove,
+    VIEW3D_OT_vr_action_set_clear,
+    VIEW3D_OT_vr_action_state_get,
+    VIEW3D_OT_vr_pose_action_state_get,
+    VIEW3D_OT_vr_haptic_action_apply,
+
     VIEW3D_GT_vr_camera_cone,
+    VIEW3D_GT_vr_controller_axes,
     VIEW3D_GGT_vr_viewer_pose,
+    VIEW3D_GGT_vr_controller_poses,
     VIEW3D_GGT_vr_landmarks,
 )
 
@@ -806,17 +1286,32 @@ def register():
     bpy.types.Scene.vr_landmarks_active = IntProperty(
         update=xr_landmark_active_update,
     )
+    bpy.types.Scene.vr_action_set = CollectionProperty(
+        name="Action Set",
+        type=VRActionSet,
+    )	
+    bpy.types.Scene.vr_actions = CollectionProperty(
+        name="Action",
+        type=VRAction,
+    )
+    bpy.types.Scene.vr_actions_selected = IntProperty(
+        name="Selected Action",		
+    )
     # View3DShading is the only per 3D-View struct with custom property
     # support, so "abusing" that to get a per 3D-View option.
     bpy.types.View3DShading.vr_show_virtual_camera = BoolProperty(
         name="Show VR Camera"
+    )
+    bpy.types.View3DShading.vr_show_controllers = BoolProperty(
+        name="Show VR Controllers"
     )
     bpy.types.View3DShading.vr_show_landmarks = BoolProperty(
         name="Show Landmarks"
     )
 
     bpy.app.handlers.load_post.append(ensure_default_vr_landmark)
-
+    bpy.app.handlers.load_post.append(ensure_default_vr_action_set)
+    bpy.app.handlers.xr_session_start_pre.append(create_vr_actions)
 
 def unregister():
     if not bpy.app.build_options.xr_openxr:
@@ -829,10 +1324,16 @@ def unregister():
     del bpy.types.Scene.vr_landmarks
     del bpy.types.Scene.vr_landmarks_selected
     del bpy.types.Scene.vr_landmarks_active
+    del bpy.types.Scene.vr_action_set
+    del bpy.types.Scene.vr_actions
+    del bpy.types.Scene.vr_actions_selected
     del bpy.types.View3DShading.vr_show_virtual_camera
+    del bpy.types.View3DShading.vr_show_controllers
     del bpy.types.View3DShading.vr_show_landmarks
 
     bpy.app.handlers.load_post.remove(ensure_default_vr_landmark)
+    bpy.app.handlers.load_post.remove(ensure_default_vr_action_set)
+    bpy.app.handlers.xr_session_start_pre.remove(create_vr_actions)
 
 
 if __name__ == "__main__":
