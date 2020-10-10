@@ -64,7 +64,6 @@ bpy.coat3D['active_coat'] = ''
 bpy.coat3D['status'] = 0
 
 initial_settings = True
-time_interval = 2.0
 global_exchange_folder = ''
 
 
@@ -93,6 +92,7 @@ def folder_size(path):
 def set_exchange_folder():
     platform = os.sys.platform
     coat3D = bpy.context.scene.coat3D
+    source = ''
 
     if(platform == 'win32' or platform == 'darwin'):
         exchange = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + 'Applinks' + os.sep + '3D-Coat' + os.sep +'Exchange'
@@ -120,7 +120,8 @@ def set_exchange_folder():
             if(not(os.path.isdir(applink_folder))):
                 os.makedirs(applink_folder)
 
-        if(os.path.isfile(exchange_path) == False or os.path.getsize(exchange_path) == 0):
+        if(os.path.isfile(exchange_path) == False):
+
             file = open(exchange_path, "w")
             file.write("%s"%(exchange_path))
             file.close()
@@ -128,6 +129,7 @@ def set_exchange_folder():
         else:
 
             exchangeline = open(exchange_path)
+            
             for line in exchangeline:
                 source = line
                 break
