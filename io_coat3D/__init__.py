@@ -120,8 +120,7 @@ def set_exchange_folder():
             if(not(os.path.isdir(applink_folder))):
                 os.makedirs(applink_folder)
 
-        if(os.path.isfile(exchange_path) == False):
-
+        if(os.path.isfile(exchange_path) == False or os.path.getsize(exchange_path) == 0):
             file = open(exchange_path, "w")
             file.write("%s"%(exchange_path))
             file.close()
@@ -1138,7 +1137,8 @@ def blender_3DC_blender(texturelist, file_applink_address):
                 objekti.select_set(False)
 
     if(coat3D.remove_path == True):
-        os.remove(path3b_n)
+        if(os.path.isfile(path3b_n)):
+            os.remove(path3b_n)
         coat3D.remove_path = False
 
     bpy.ops.object.select_all(action='DESELECT')
