@@ -354,7 +354,7 @@ class VIEW3D_MT_action_menu(Menu):
 
 class VRActionSet(PropertyGroup):
     name: bpy.props.StringProperty(
-        name="VR action set",
+        name="VR action set.\nMust not contain upper case letters or special characters other than '-', '_', or '.'",
         default="action_set",
     )
     profile: bpy.props.StringProperty(
@@ -364,7 +364,7 @@ class VRActionSet(PropertyGroup):
 
 class VRAction(PropertyGroup):
     name: bpy.props.StringProperty(
-        name="VR action",
+        name="VR action.\nMust not contain upper case letters or special characters other than '-', '_', or '.'",
         default="action",
     )
     type: bpy.props.EnumProperty(
