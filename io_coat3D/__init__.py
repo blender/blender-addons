@@ -236,7 +236,7 @@ class SCENE_OT_getback(bpy.types.Operator):
         
         if (bpy.app.background == False):
             if os.path.isfile(Export_folder):
-
+                
                 print('BLENDER -> 3DC -> BLENDER WORKFLLOW')
                 DeleteExtra3DC() 
                 workflow1(ExportFolder)
@@ -1256,7 +1256,6 @@ def workflow1(ExportFolder):
 def workflow2(BlenderFolder):
 
     coat3D = bpy.context.scene.coat3D
-    coat = bpy.coat3D
 
     texturelist = make_texture_list(BlenderFolder)
 
