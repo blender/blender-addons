@@ -233,7 +233,7 @@ def readtexturefolder(objekti, mat_list, texturelist, is_new, udim_textures, udi
 
         if(create_nodes):
             coat3D = bpy.context.scene.coat3D
-            path3b_n = coat3D.exchangedir
+            path3b_n = coat3D.exchangeFolder
             path3b_n += ('%slast_saved_3b_file.txt' % (os.sep))
 
             if (os.path.isfile(path3b_n)):
