@@ -1330,7 +1330,7 @@ class SCENE_PT_Main(bpy.types.Panel):
             row = layout.row()
             row.label(text="Please select it before using Applink.")
             row = layout.row()
-            row.prop(coat3D,"exchangedir",text="")
+            row.prop(coat3D,"exchangeFolder",text="")
             row = layout.row()
             row.operator("update_exchange_folder.pilgway_3d_coat", text="Apply folder")
 
@@ -1644,10 +1644,6 @@ class SceneCoat3D(PropertyGroup):
     coat3D_exe: StringProperty(
         name="FilePath",
         subtype="FILE_PATH",
-    )
-    Exchange_folder: StringProperty(
-        name="FilePath",
-        subtype="DIR_PATH"
     )
     exchangeFolder: StringProperty(
         name="FilePath",
