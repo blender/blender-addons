@@ -26,7 +26,7 @@ def InitFolders():
             break
         folderPathh.close()
 
-        if(os.path.isdir(folderPath) and folderPath.rfind('Exchange') >= 0):
+        if(os.path.isdir(os.path.abspath(folderPath)) and folderPath.rfind('Exchange') >= 0):
             coat3D.exchangeFolder = folderPath
             return True, coat3D.exchangeFolder
 
@@ -60,7 +60,7 @@ def InitFolders():
             file.close()
         
         file = open(exchangeFile, "w")
-        file.write("%s"%(coat3D.exchangeFolder))
+        file.write("%s"%(os.path.abspath(coat3D.exchangeFolder)))
         file.close()
 
         return True, coat3D.exchangeFolder
