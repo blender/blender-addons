@@ -95,6 +95,8 @@ def every_3_seconds():
 
 @persistent
 def load_handler(dummy):
+    global foundExchangeFolder
+    foundExchangeFolder = False
     bpy.app.timers.register(every_3_seconds)
 
 def removeFile(exportfile):

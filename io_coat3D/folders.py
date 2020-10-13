@@ -3,15 +3,13 @@ import os
 
 def InitFolders():
 
-   
-
     platform = os.sys.platform
     coat3D = bpy.context.scene.coat3D
 
     #    Global variable foundExchangeFolder (True / False) guides these steps
-    # 1. Read Exchange_folder.txt, it not success ->
+    # 1. Read Exchange_folder.txt, if not success ->
     # 2. Try to find exchange folder from system hard drive, if not success -->
-    # 3. Leave foundExchangeFolder = False
+    # 3. Leave foundExchangeFolder = False 
 
     # 1. #################################################################
 
@@ -71,6 +69,7 @@ def InitFolders():
         return True, coat3D.exchangeFolder
 
     return False, ''
+
 
 def updateExchangeFile(newPath):
 
