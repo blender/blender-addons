@@ -72,24 +72,29 @@ def every_3_seconds():
     global liveUpdate
     global mTime
     global foundExchangeFolder
-    coat3D = bpy.context.scene.coat3D
+    try:
+        coat3D = bpy.context.scene.coat3D
+ 
 
-    if(foundExchangeFolder == False):
-        foundExchangeFolder, global_exchange_folder = folders.InitFolders()
+        if(foundExchangeFolder == False):
+            foundExchangeFolder, global_exchange_folder = folders.InitFolders()
 
-    Export_folder  = coat3D.exchangeFolder
-    Export_folder += ('%sexport.txt' % (os.sep))
+        Export_folder  = coat3D.exchangeFolder
+        Export_folder += ('%sexport.txt' % (os.sep))
 
-    if (os.path.isfile(Export_folder) and mTime != os.path.getmtime(Export_folder)):
+        if (os.path.isfile(Export_folder) and mTime != os.path.getmtime(Export_folder)):
 
-        for objekti in bpy.data.objects:
-            if(objekti.coat3D.applink_mesh):
-                tex.updatetextures(objekti)
+            for objekti in bpy.data.objects:
+                if(objekti.coat3D.applink_mesh):
+                    tex.updatetextures(objekti)
 
-        mTime = os.path.getmtime(Export_folder)
-    
-    if (os.path.normpath(global_exchange_folder) != os.path.normpath(coat3D.exchangeFolder) and coat3D.exchangeFolder != ''):
-        folders.updateExchangeFile(coat3D.exchangeFolder)
+            mTime = os.path.getmtime(Export_folder)
+        
+        if (os.path.normpath(global_exchange_folder) != os.path.normpath(coat3D.exchangeFolder) and coat3D.exchangeFolder != ''):
+            folders.updateExchangeFile(coat3D.exchangeFolder)
+
+    except:
+        pass
     
     return 3.0
 
@@ -261,12 +266,12 @@ class SCENE_OT_folder(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     def invoke(self, context, event):
+        global foundExchangeFolder
         coat3D = bpy.context.scene.coat3D
         if(os.path.isdir(coat3D.exchangeFolder)):
-            coat3D.exchange_found = True
-            #bpy.coat3D['status'] = 1
+            foundExchangeFolder= True
         else:
-            coat3D.exchange_found = False
+            foundExchangeFolder = False
 
         return {'FINISHED'}
 
@@ -1324,6 +1329,7 @@ class SCENE_PT_Main(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         coat3D = bpy.context.scene.coat3D
+        global foundExchangeFolder
 
         if(foundExchangeFolder == False):
             row = layout.row()
@@ -1945,6 +1951,8 @@ def register():
         description="Import alpha texture",
         default=True
     )
+
+    
 
 
     from bpy.utils import register_class
