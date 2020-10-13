@@ -1979,7 +1979,6 @@ def unregister():
     bpy.types.Material.coat3D_displacement
     bpy.types.Material.coat3D_emissive
     bpy.types.Material.coat3D_alpha
-    del bpy.coat3D
 
     kc = bpy.context.window_manager.keyconfigs.addon
     if kc:
