@@ -88,7 +88,7 @@ def every_3_seconds():
 
         mTime = os.path.getmtime(Export_folder)
     
-    if (os.path.normpath(global_exchange_folder) != os.path.normpath(coat3D.exchangeFolder)):
+    if (os.path.normpath(global_exchange_folder) != os.path.normpath(coat3D.exchangeFolder) and coat3D.exchangeFolder != ''):
         folders.updateExchangeFile(coat3D.exchangeFolder)
     
     return 3.0
