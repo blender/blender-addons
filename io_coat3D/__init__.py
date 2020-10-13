@@ -304,6 +304,27 @@ class SCENE_OT_opencoat(bpy.types.Operator):
 
         return {'FINISHED'}
 
+def scaleParents():
+    save = []
+    names =[]
+    
+    for objekti in bpy.context.selected_objects:
+        temp = objekti
+        while (temp.parent is not None and temp.parent.name not in names):
+            save.append([temp.parent,(temp.parent.scale[0],temp.parent.scale[1],temp.parent.scale[2])])
+            names.append(temp.parent)
+            temp = temp.parent
+
+    for name in names:
+        name.scale = (1,1,1)
+
+    return save
+
+def scaleBackParents(save):
+
+    for data in save:
+        data[0].scale = data[1]
+
 def deleteNodes(type):
 
     deletelist = []
@@ -510,6 +531,8 @@ class SCENE_OT_export(bpy.types.Operator):
                     export_ok = True
             if (export_ok == False):
                 return {'FINISHED'}
+
+        scaled_objects = scaleParents()
 
         activeobj = bpy.context.active_object.name
         checkname = ''
@@ -742,7 +765,8 @@ class SCENE_OT_export(bpy.types.Operator):
                     if(mat_list == '__' + objekti.name):
                         for ind, mat in enumerate(mod_mat_list[mat_list]):
                             objekti.material_slots[mod_mat_list[mat_list][ind][0]].material = mod_mat_list[mat_list][ind][1]
-            
+
+        scaleBackParents(scaled_objects)
         bpy.context.scene.render.engine = active_render
         return {'FINISHED'}
 
