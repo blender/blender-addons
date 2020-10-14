@@ -72,24 +72,29 @@ def every_3_seconds():
     global liveUpdate
     global mTime
     global foundExchangeFolder
-    coat3D = bpy.context.scene.coat3D
+    try:
+        coat3D = bpy.context.scene.coat3D
+ 
 
-    if(foundExchangeFolder == False):
-        foundExchangeFolder, global_exchange_folder = folders.InitFolders()
+        if(foundExchangeFolder == False):
+            foundExchangeFolder, global_exchange_folder = folders.InitFolders()
 
-    Export_folder  = coat3D.exchangeFolder
-    Export_folder += ('%sexport.txt' % (os.sep))
+        Export_folder  = coat3D.exchangeFolder
+        Export_folder += ('%sexport.txt' % (os.sep))
 
-    if (os.path.isfile(Export_folder) and mTime != os.path.getmtime(Export_folder)):
+        if (os.path.isfile(Export_folder) and mTime != os.path.getmtime(Export_folder)):
 
-        for objekti in bpy.data.objects:
-            if(objekti.coat3D.applink_mesh):
-                tex.updatetextures(objekti)
+            for objekti in bpy.data.objects:
+                if(objekti.coat3D.applink_mesh):
+                    tex.updatetextures(objekti)
 
-        mTime = os.path.getmtime(Export_folder)
-    
-    if (os.path.normpath(global_exchange_folder) != os.path.normpath(coat3D.exchangeFolder) and coat3D.exchangeFolder != ''):
-        folders.updateExchangeFile(coat3D.exchangeFolder)
+            mTime = os.path.getmtime(Export_folder)
+        
+        if (os.path.normpath(global_exchange_folder) != os.path.normpath(coat3D.exchangeFolder) and coat3D.exchangeFolder != ''):
+            folders.updateExchangeFile(coat3D.exchangeFolder)
+
+    except:
+        pass
     
     return 3.0
 
@@ -261,12 +266,12 @@ class SCENE_OT_folder(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     def invoke(self, context, event):
+        global foundExchangeFolder
         coat3D = bpy.context.scene.coat3D
         if(os.path.isdir(coat3D.exchangeFolder)):
-            coat3D.exchange_found = True
-            #bpy.coat3D['status'] = 1
+            foundExchangeFolder= True
         else:
-            coat3D.exchange_found = False
+            foundExchangeFolder = False
 
         return {'FINISHED'}
 
@@ -298,6 +303,27 @@ class SCENE_OT_opencoat(bpy.types.Operator):
             file.close()
 
         return {'FINISHED'}
+
+def scaleParents():
+    save = []
+    names =[]
+    
+    for objekti in bpy.context.selected_objects:
+        temp = objekti
+        while (temp.parent is not None and temp.parent.name not in names):
+            save.append([temp.parent,(temp.parent.scale[0],temp.parent.scale[1],temp.parent.scale[2])])
+            names.append(temp.parent)
+            temp = temp.parent
+
+    for name in names:
+        name.scale = (1,1,1)
+
+    return save
+
+def scaleBackParents(save):
+
+    for data in save:
+        data[0].scale = data[1]
 
 def deleteNodes(type):
 
@@ -505,6 +531,8 @@ class SCENE_OT_export(bpy.types.Operator):
                     export_ok = True
             if (export_ok == False):
                 return {'FINISHED'}
+
+        scaled_objects = scaleParents()
 
         activeobj = bpy.context.active_object.name
         checkname = ''
@@ -737,7 +765,8 @@ class SCENE_OT_export(bpy.types.Operator):
                     if(mat_list == '__' + objekti.name):
                         for ind, mat in enumerate(mod_mat_list[mat_list]):
                             objekti.material_slots[mod_mat_list[mat_list][ind][0]].material = mod_mat_list[mat_list][ind][1]
-            
+
+        scaleBackParents(scaled_objects)
         bpy.context.scene.render.engine = active_render
         return {'FINISHED'}
 
@@ -1324,6 +1353,7 @@ class SCENE_PT_Main(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         coat3D = bpy.context.scene.coat3D
+        global foundExchangeFolder
 
         if(foundExchangeFolder == False):
             row = layout.row()
@@ -1946,6 +1976,8 @@ def register():
         default=True
     )
 
+    
+
 
     from bpy.utils import register_class
     for cls in classes:
@@ -1979,7 +2011,6 @@ def unregister():
     bpy.types.Material.coat3D_displacement
     bpy.types.Material.coat3D_emissive
     bpy.types.Material.coat3D_alpha
-    del bpy.coat3D
 
     kc = bpy.context.window_manager.keyconfigs.addon
     if kc:
