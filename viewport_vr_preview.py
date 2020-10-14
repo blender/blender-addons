@@ -330,7 +330,7 @@ def create_vr_actions(context: bpy.context):
             interaction_path0 = action.user_path0 + action.component_path0
             interaction_path1 = action.user_path1 + action.component_path1
 
-            wm.xr_session_state.create_action_binding(context, action_set.name, action_set.profile, action.name, interaction_path0, interaction_path1, False)  
+            wm.xr_session_state.create_action_binding(context, action_set.name, action_set.profile, action.name, interaction_path0, interaction_path1)  
 
         wm.xr_session_state.set_active_action_set(context, action_set.name)
 
