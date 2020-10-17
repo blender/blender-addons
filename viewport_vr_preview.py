@@ -559,8 +559,9 @@ class VIEW3D_PT_vr_session_view(Panel):
         col = layout.column(align=True, heading="Show")
         col.prop(session_settings, "show_floor", text="Floor")
         col.prop(session_settings, "show_annotation", text="Annotations")
-        col.prop(session_settings, "show_selection", text="Selection")
         col.prop(session_settings, "show_controllers", text="Controllers")
+        col.prop(session_settings, "show_selection", text="Selection")
+        col.prop(session_settings, "selection_eye", text="Selection Eye")
 
         col = layout.column(align=True)
         col.prop(session_settings, "clip_start", text="Clip Start")
