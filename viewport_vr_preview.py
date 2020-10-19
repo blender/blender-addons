@@ -319,7 +319,7 @@ def create_vr_actions(context: bpy.context):
             else:
                 continue
 
-            wm.xr_session_state.create_action(context, action_set.name, action.name, type, action.user_path0, action.user_path1, action.op, op_flag)         
+            wm.xr_session_state.create_action(context, action_set.name, action.name, type, action.user_path0, action.user_path1, action.threshold, action.op, op_flag)         
 
             if action.type == 'POSE':
                 wm.xr_session_state.create_action_space(context, action_set.name, action.name, action.user_path0, action.user_path1, \
@@ -387,6 +387,12 @@ class VRAction(PropertyGroup):
     )
     component_path1: bpy.props.StringProperty(
         name="OpenXR component path",
+    )
+    threshold: bpy.props.FloatProperty(
+        name="Input threshold",
+        default=0.3,
+        min=0.0,
+        max=1.0,
     )
     op: bpy.props.StringProperty(
         name="Python operator",
@@ -508,6 +514,8 @@ class VIEW3D_PT_vr_actions(Panel):
             layout.prop(action_selected, "component_path1", text="Component Path 1")
 
             if action_selected.type == 'BUTTON':
+                layout.prop(action_selected,
+                            "threshold", text="Threshold")
                 layout.prop(action_selected,
                             "op", text="Operator")
                 layout.prop(action_selected,
