@@ -772,44 +772,56 @@ class CM_UL_items(UIList):
             subrow.prop(self, "filter_by_qcd", text="", icon='EVENT_Q')
 
     def filter_items(self, context, data, propname):
-        CM_UL_items.filtering = True
+        CM_UL_items.filtering = False
+
         flt_flags = []
         flt_neworder = []
-
         list_items = getattr(data, propname)
 
-        if self.filter_name:
-            flt_flags = filter_items_by_name_custom(self.filter_name, self.bitflag_filter_item, list_items)
 
-        elif self.filter_by_selected:
-            flt_flags = [0] * len(list_items)
+        if self.filter_name:
+            CM_UL_items.filtering = True
+
+            new_flt_flags = filter_items_by_name_custom(self.filter_name, self.bitflag_filter_item, list_items)
+
+            flt_flags = merge_flt_flags(flt_flags, new_flt_flags)
+
+
+        if self.filter_by_selected:
+            CM_UL_items.filtering = True
+            new_flt_flags = [0] * len(list_items)
 
             for idx, item in enumerate(list_items):
                 collection = layer_collections[item.name]["ptr"].collection
 
                 # check if any of the selected objects are in the collection
                 if not set(context.selected_objects).isdisjoint(collection.objects):
-                    flt_flags[idx] |= self.bitflag_filter_item
+                    new_flt_flags[idx] = self.bitflag_filter_item
 
                 # add in any recently created collections
                 if item.name in CM_UL_items.new_collections:
-                    flt_flags[idx] |= self.bitflag_filter_item
+                    new_flt_flags[idx] = self.bitflag_filter_item
 
-        elif self.filter_by_qcd:
-            flt_flags = [0] * len(list_items)
+            flt_flags = merge_flt_flags(flt_flags, new_flt_flags)
+
+
+        if self.filter_by_qcd:
+            CM_UL_items.filtering = True
+            new_flt_flags = [0] * len(list_items)
 
             for idx, item in enumerate(list_items):
                 if item.qcd_slot_idx:
-                    flt_flags[idx] |= self.bitflag_filter_item
+                    new_flt_flags[idx] = self.bitflag_filter_item
 
                 # add in any recently created collections
                 if item.name in CM_UL_items.new_collections:
-                    flt_flags[idx] |= self.bitflag_filter_item
+                    new_flt_flags[idx] = self.bitflag_filter_item
 
-        else: # display as treeview
-            CM_UL_items.filtering = False
+            flt_flags = merge_flt_flags(flt_flags, new_flt_flags)
+
+
+        if not CM_UL_items.filtering: # display as treeview
             CM_UL_items.new_collections.clear()
-
             flt_flags = [self.bitflag_filter_item] * len(list_items)
 
             for idx, item in enumerate(list_items):
@@ -817,8 +829,10 @@ class CM_UL_items(UIList):
                     flt_flags[idx] = 0
 
         if self.use_filter_invert:
+            CM_UL_items.filtering = True # invert can act as pseudo filtering
             for idx, flag in enumerate(flt_flags):
                 flt_flags[idx] = 0 if flag else self.bitflag_filter_item
+
 
         # update visible items list
         CM_UL_items.visible_items.clear()
@@ -1107,3 +1121,9 @@ def filter_items_by_name_custom(pattern, bitflag, items, propname="name", flags=
                 flags[i] |= bitflag
 
         return flags
+
+def merge_flt_flags(l1, l2):
+    for idx, _ in enumerate(l1):
+        l1[idx] &= l2.pop(0)
+
+    return l1 + l2
