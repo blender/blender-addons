@@ -822,11 +822,12 @@ class CM_UL_items(UIList):
 
         if not CM_UL_items.filtering: # display as treeview
             CM_UL_items.new_collections.clear()
-            flt_flags = [self.bitflag_filter_item] * len(list_items)
+            flt_flags = [0] * len(list_items)
 
             for idx, item in enumerate(list_items):
-                if not layer_collections[item.name]["visible"]:
-                    flt_flags[idx] = 0
+                if layer_collections[item.name]["visible"]:
+                    flt_flags[idx] = self.bitflag_filter_item
+
 
         if self.use_filter_invert:
             CM_UL_items.filtering = True # invert can act as pseudo filtering
