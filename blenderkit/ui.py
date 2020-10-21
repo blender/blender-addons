@@ -738,14 +738,14 @@ def draw_callback_2d_search(self, context):
     highlight = (1, 1, 1, .2)
     # highlight = (1, 1, 1, 0.8)
     # background of asset bar
-    if ui_props.hcount>0:
-        #this fixes a draw issue introduced in blender 2.91. draws a very small version of the image to avoid problems
-        # with alpha. Not sure why this works.
-        img = utils.get_thumbnail('arrow_left.png')
-        ui_bgl.draw_image(0, 0, 1,
-                          1,
-                          img,
-                          1)
+    # if ui_props.hcount>0:
+    #     #this fixes a draw issue introduced in blender 2.91. draws a very small version of the image to avoid problems
+    #     # with alpha. Not sure why this works.
+    #     img = utils.get_thumbnail('arrow_left.png')
+    #     ui_bgl.draw_image(0, 0, 1,
+    #                       1,
+    #                       img,
+    #                       1)
     if not ui_props.dragging and ui_props.hcount>0:
         search_results = s.get('search results')
         search_results_orig = s.get('search results orig')
