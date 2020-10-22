@@ -233,8 +233,8 @@ def draw_ratings_bgl():
     ui = bpy.context.scene.blenderkitUI
 
     rating_possible, rated, asset, asset_data = is_rating_possible()
-
     if rating_possible:  # (not rated or ui_props.rating_menu_on):
+        print('rating is pssible', asset_data['name'])
         bkit_ratings = asset.bkit_ratings
         bgcol = bpy.context.preferences.themes[0].user_interface.wcol_tooltip.inner
         textcol = (1, 1, 1, 1)
@@ -243,6 +243,7 @@ def draw_ratings_bgl():
         font_size = int(ui.rating_ui_scale * 20)
 
         if ui.rating_button_on:
+            print('should draw button')
             img = utils.get_thumbnail('star_white.png')
 
             ui_bgl.draw_image(ui.rating_x,
@@ -259,7 +260,6 @@ def draw_ratings_bgl():
 
             directory = paths.get_temp_dir('%s_search' % asset_data['assetType'])
             tpath = os.path.join(directory, asset_data['thumbnail_small'])
-
             img = utils.get_hidden_image(tpath, 'rating_preview')
             ui_bgl.draw_image(ui.rating_x + ui.rating_button_width,
                               ui.rating_y - ui.rating_button_width,
@@ -1042,15 +1042,14 @@ def is_rating_possible():
                     ao_check = ao_check.parent
                 else:
                     break;
-
             # check also materials
             m = ao.active_material
             if m is not None:
                 ad = m.get('asset_data')
+
                 if ad is not None and ad.get('assetBaseId'):
                     rated = bpy.context.scene['assets rated'].get(ad['assetBaseId'])
-                    if rated:
-                        return True, rated, m, ad
+                    return True, rated, m, ad
 
         # if t>2 and t<2.5:
         #     ui_props.rating_on = False
