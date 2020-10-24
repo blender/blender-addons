@@ -69,6 +69,8 @@ from .operator_utils import (
     set_exclude_state,
 )
 
+from . import ui
+
 class SetActiveCollection(Operator):
     '''Set the active collection'''
     bl_label = "Set Active Collection"
@@ -1227,8 +1229,22 @@ class CMNewCollectionOperator(Operator):
     def execute(self, context):
         global rto_history
 
-        new_collection = bpy.data.collections.new('Collection')
+        new_collection = bpy.data.collections.new("New Collection")
         cm = context.scene.collection_manager
+
+        # prevent adding collections when collections are filtered
+        # and the selection is ambiguous
+        if cm.cm_list_index == -1 and ui.CM_UL_items.filtering:
+            send_report("Cannot create new collection.\n"
+                        "No collection is selected and collections are filtered."
+                       )
+            return {'CANCELLED'}
+
+        if cm.cm_list_index > -1 and not ui.CM_UL_items.visible_items[cm.cm_list_index]:
+            send_report("Cannot create new collection.\n"
+                        "The selected collection isn't visible."
+                       )
+            return {'CANCELLED'}
 
 
         # if there are collections
@@ -1276,6 +1292,9 @@ class CMNewCollectionOperator(Operator):
         # set new collection to active
         layer_collection = layer_collections[new_collection.name]["ptr"]
         context.view_layer.active_layer_collection = layer_collection
+
+        # show the new collection when collections are filtered.
+        ui.CM_UL_items.new_collections.append(new_collection.name)
 
         global rename
         rename[0] = True
