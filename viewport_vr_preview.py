@@ -153,7 +153,7 @@ def xr_landmark_active_update(self, context):
         wm.xr_session_state.reset_to_base_pose(context)
 
 
-class VIEW3D_MT_landmark_menu(Menu):
+class VIEW3D_MT_vr_landmark_menu(Menu):
     bl_label = "Landmark Controls"
 
     def draw(self, _context):
@@ -270,7 +270,7 @@ class VIEW3D_PT_vr_landmarks(Panel):
         col.operator("view3d.vr_landmark_remove", icon='REMOVE', text="")
         col.operator("view3d.vr_landmark_from_session", icon='PLUS', text="")
 
-        col.menu("VIEW3D_MT_landmark_menu", icon='DOWNARROW_HLT', text="")
+        col.menu("VIEW3D_MT_vr_landmark_menu", icon='DOWNARROW_HLT', text="")
 
         if landmark_selected:
             layout.prop(landmark_selected, "type")
@@ -289,12 +289,11 @@ def create_vr_actions(context: bpy.context):
     # Create all vr action sets and actions.
     context = bpy.context
     wm = context.window_manager
-    scene = context.scene
-    action_set = scene.vr_action_set[0]
-    actions = scene.vr_actions
+    action_set = VRActionSet.get_active_action_set(context)
 
-    if wm.xr_session_state and len(actions) > 0:
+    if wm.xr_session_state and action_set and len(action_set.actions) > 0:
         wm.xr_session_state.create_action_set(context, action_set.name)
+        actions = action_set.actions 
 
         type = 'BUTTON'
         op_flag = 'PRESS'
@@ -333,33 +332,6 @@ def create_vr_actions(context: bpy.context):
             wm.xr_session_state.create_action_binding(context, action_set.name, action_set.profile, action.name, interaction_path0, interaction_path1)  
 
         wm.xr_session_state.set_active_action_set(context, action_set.name)
-
-
-@persistent
-def ensure_default_vr_action_set(context: bpy.context):
-    # Ensure there's a default action set.
-    action_set = bpy.context.scene.vr_action_set
-    if not action_set:
-        action_set.add()
-
-
-class VIEW3D_MT_action_menu(Menu):
-    bl_label = "Action Controls"
-
-    def draw(self, _context):
-        layout = self.layout
-
-        layout.operator("view3d.vr_action_set_clear")
-
-
-class VRActionSet(PropertyGroup):
-    name: bpy.props.StringProperty(
-        name="VR action set.\nMust not contain upper case letters or special characters other than '-', '_', or '.'",
-        default="action_set",
-    )
-    profile: bpy.props.StringProperty(
-        name="OpenXR interaction profile path",
-    )
 
 
 class VRAction(PropertyGroup):
@@ -412,12 +384,6 @@ class VRAction(PropertyGroup):
         ],
         default='PRESS',
     )
-    state0: bpy.props.FloatProperty(
-        name="Current value",
-    )
-    state1: bpy.props.FloatProperty(
-        name="Current value",
-    )
     pose_is_controller: bpy.props.BoolProperty(
         name="Pose will be used for the VR controllers",
     )	
@@ -427,22 +393,6 @@ class VRAction(PropertyGroup):
     )
     pose_rotation: bpy.props.FloatVectorProperty(
         name="Pose rotation offset",
-        subtype='EULER',
-    )
-    pose_state_location0: bpy.props.FloatVectorProperty(
-        name="Current pose location",
-        subtype='TRANSLATION',
-    )
-    pose_state_rotation0: bpy.props.FloatVectorProperty(
-        name="Current pose rotation",
-        subtype='EULER',
-    )
-    pose_state_location1: bpy.props.FloatVectorProperty(
-        name="Current pose location",
-        subtype='TRANSLATION',
-    )
-    pose_state_rotation1: bpy.props.FloatVectorProperty(
-        name="Current pose rotation",
         subtype='EULER',
     )
     haptic_duration: bpy.props.FloatProperty(
@@ -455,15 +405,119 @@ class VRAction(PropertyGroup):
         name="Haptic amplitude",
     )
 
+    def copy_from(self, o):
+        self.name = o.name
+        self.type = o.type
+        self.user_path0 = o.user_path0
+        self.component_path0 = o.component_path0
+        self.user_path1 = o.user_path1
+        self.component_path1 = o.component_path1
+        self.threshold = o.threshold
+        self.op = o.op
+        self.op_flag = o.op_flag
+        self.pose_is_controller = o.pose_is_controller
+        self.pose_location = o.pose_location
+        self.pose_rotation = o.pose_rotation
+        self.haptic_duration = o.haptic_duration
+        self.haptic_frequency = o.haptic_frequency
+        self.haptic_amplitude = o.haptic_amplitude
+
+
+class VRActionSet(PropertyGroup):
+    name: bpy.props.StringProperty(
+        name="VR action set.\nMust not contain upper case letters or special characters other than '-', '_', or '.'",
+        default="action_set",
+    )
+    profile: bpy.props.StringProperty(
+        name="OpenXR interaction profile path",
+    )
+    actions: CollectionProperty(
+        name="Actions",
+        type=VRAction,
+    )
+    actions_selected: IntProperty(
+        name="Selected Action",		
+    )
+
     @staticmethod
-    def get_selected_action(context):
+    def get_active_action_set(context):
         scene = context.scene
-        actions = scene.vr_actions
+        action_sets = scene.vr_action_sets
+
+        return (
+            None if (len(action_sets) <
+                     1) else action_sets[scene.vr_action_sets_active]
+        )
+
+    @staticmethod
+    def get_selected_action_set(context):
+        scene = context.scene
+        action_sets = scene.vr_action_sets
+
+        return (
+            None if (len(action_sets) <
+                     1) else action_sets[scene.vr_action_sets_selected]
+        )
+
+    @staticmethod
+    def prefs_get_selected_action_set(context):
+        prefs = context.preferences.addons[__name__].preferences
+        action_sets = prefs.action_sets
+
+        return (
+            None if (len(action_sets) <
+                     1) else action_sets[prefs.action_sets_selected]
+        )
+
+    def get_selected_action(self):
+        actions = self.actions
 
         return (
             None if (len(actions) <
-                     1) else actions[scene.vr_actions_selected]
+                     1) else actions[self.actions_selected]
         )
+
+    def copy_from(self, o):
+        self.name = o.name
+        self.profile = o.profile
+
+        self.actions.clear()
+        idx = 0
+        for action in o.actions:
+            self.actions.add()
+            self.actions[idx].copy_from(action)
+            idx += 1
+
+        self.actions_selected = o.actions_selected
+
+
+class VIEW3D_UL_vr_action_sets(UIList):
+    def draw_item(self, context, layout, _data, item, icon, _active_data,
+                  _active_propname, index):
+        action_set = item
+        action_set_active_idx = context.scene.vr_action_sets_active
+
+        layout.emboss = 'NONE'
+
+        layout.prop(action_set, "name", text="")
+
+        icon = (
+            'RADIOBUT_ON' if (index == action_set_active_idx) else 'RADIOBUT_OFF'
+        )
+        props = layout.operator(
+            "view3d.vr_action_set_activate", text="", icon=icon)
+        props.index = index
+
+
+class VIEW3D_MT_vr_action_set_menu(Menu):
+    bl_label = "Action Set Controls"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("view3d.vr_action_sets_load_from_prefs")
+        layout.operator("view3d.vr_action_set_save_to_prefs")
+        layout.operator("view3d.vr_action_sets_clear")
 
 
 class VIEW3D_UL_vr_actions(UIList):
@@ -476,6 +530,15 @@ class VIEW3D_UL_vr_actions(UIList):
         layout.prop(action, "name", text="")
 
 
+class VIEW3D_MT_vr_action_menu(Menu):
+    bl_label = "Action Controls"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("view3d.vr_actions_clear")
+
+
 class VIEW3D_PT_vr_actions(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -486,69 +549,69 @@ class VIEW3D_PT_vr_actions(Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        action_set = scene.vr_action_set[0]
-        action_selected = VRAction.get_selected_action(context)
+        action_set_selected = VRActionSet.get_selected_action_set(context)
 
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        layout.prop(action_set, "name", text="Action Set")
-        layout.prop(action_set, "profile", text="Profile")
+        row0 = layout.row()
+        col = row0.column(align=True)
+        col.label(text="Action Sets")
 
-        row = layout.row()
+        row1 = layout.row()
+        row1.template_list("VIEW3D_UL_vr_action_sets", "", scene, "vr_action_sets",
+                          scene, "vr_action_sets_selected", rows=3)
 
-        row.template_list("VIEW3D_UL_vr_actions", "", scene, "vr_actions",
-                          scene, "vr_actions_selected", rows=2)
+        col = row1.column(align=True)
+        col.operator("view3d.vr_action_set_add", icon='ADD', text="")
+        col.operator("view3d.vr_action_set_remove", icon='REMOVE', text="")
 
-        col = row.column(align=True)
-        col.operator("view3d.vr_action_add", icon='ADD', text="")
-        col.operator("view3d.vr_action_remove", icon='REMOVE', text="")
+        col.menu("VIEW3D_MT_vr_action_set_menu", icon='DOWNARROW_HLT', text="")
 
-        col.menu("VIEW3D_MT_action_menu", icon='DOWNARROW_HLT', text="")
+        if action_set_selected:
+            action_selected = action_set_selected.get_selected_action()
 
-        if action_selected:
-            layout.prop(action_selected, "type", text="Type")
-            layout.prop(action_selected, "user_path0", text="User Path 0")
-            layout.prop(action_selected, "component_path0", text="Component Path 0")
-            layout.prop(action_selected, "user_path1", text="User Path 1")
-            layout.prop(action_selected, "component_path1", text="Component Path 1")
+            row = row0.split()
+            col = row.column(align=True)
+            col.label(text="Actions")
 
-            if action_selected.type == 'BUTTON':
-                layout.prop(action_selected,
-                            "threshold", text="Threshold")
-                layout.prop(action_selected,
-                            "op", text="Operator")
-                layout.prop(action_selected,
-                            "op_flag", text="Operator Flag")
-                layout.operator("view3d.vr_action_state_get", icon='PLAY', text="Get current states")
-                layout.prop(action_selected,
-                            "state0", text="State 0")
-                layout.prop(action_selected,
-                            "state1", text="State 1")
-            elif action_selected.type == 'POSE':
-                layout.prop(action_selected,
-                            "pose_is_controller", text="Use for Controller Poses")
-                layout.prop(action_selected,
-                            "pose_location", text="Location Offset")
-                layout.prop(action_selected,
-                            "pose_rotation", text="Rotation Offset")
-                layout.operator("view3d.vr_pose_action_state_get", icon='PLAY', text="Get current states")
-                layout.prop(action_selected,
-                            "pose_state_location0", text="Location State 0")
-                layout.prop(action_selected,
-                            "pose_state_rotation0", text="Rotation State 0")     
-                layout.prop(action_selected,
-                            "pose_state_location1", text="Location State 1")
-                layout.prop(action_selected,
-                            "pose_state_rotation1", text="Rotation State 1")   
-            elif action_selected.type == 'HAPTIC':
-                layout.prop(action_selected,
-                            "haptic_duration", text="Duration")
-                layout.prop(action_selected,
-                            "haptic_frequency", text="Frequency")
-                layout.prop(action_selected,
-                            "haptic_amplitude", text="Amplitude")
-                layout.operator("view3d.vr_haptic_action_apply", icon='PLAY', text="Apply haptic action")
+            row = layout.row()
+            col0 = row.column(align=True)
+            row = row.split()
+            col1 = row.column(align=True)
+
+            col0.prop(action_set_selected, "name", text="Action Set")
+            col0.prop(action_set_selected, "profile", text="Profile")
+
+            row1.template_list("VIEW3D_UL_vr_actions", "", action_set_selected, "actions",
+                                              action_set_selected, "actions_selected", rows=3)
+
+            col = row1.column(align=True)
+            col.operator("view3d.vr_action_add", icon='ADD', text="")
+            col.operator("view3d.vr_action_remove", icon='REMOVE', text="")
+
+            col.menu("VIEW3D_MT_vr_action_menu", icon='DOWNARROW_HLT', text="")
+
+            if action_selected:
+                col1.prop(action_selected, "name", text="Action")
+                col1.prop(action_selected, "type", text="Type")
+                col1.prop(action_selected, "user_path0", text="User Path 0")
+                col1.prop(action_selected, "component_path0", text="Component Path 0")
+                col1.prop(action_selected, "user_path1", text="User Path 1")
+                col1.prop(action_selected, "component_path1", text="Component Path 1")
+
+                if action_selected.type == 'BUTTON':
+                    col1.prop(action_selected, "threshold", text="Threshold")
+                    col1.prop(action_selected, "op", text="Operator")
+                    col1.prop(action_selected, "op_flag", text="Operator Flag")
+                elif action_selected.type == 'POSE':
+                    col1.prop(action_selected, "pose_is_controller", text="Use for Controller Poses")
+                    col1.prop(action_selected, "pose_location", text="Location Offset")
+                    col1.prop(action_selected, "pose_rotation", text="Rotation Offset") 
+                elif action_selected.type == 'HAPTIC':
+                    col1.prop(action_selected, "haptic_duration", text="Duration")
+                    col1.prop(action_selected, "haptic_frequency", text="Frequency")
+                    col1.prop(action_selected, "haptic_amplitude", text="Amplitude")
 
 
 class VIEW3D_PT_vr_session_view(Panel):
@@ -640,7 +703,7 @@ class VIEW3D_OT_vr_landmark_add(Operator):
 
 class VIEW3D_OT_vr_landmark_from_camera(Operator):
     bl_idname = "view3d.vr_landmark_from_camera"
-    bl_label = "Add VR Landmark from camera"
+    bl_label = "Add VR Landmark from Camera"
     bl_description = "Add a new VR landmark from the active camera object to the list and select it"
     bl_options = {'UNDO', 'REGISTER'}
 
@@ -844,6 +907,146 @@ class VIEW3D_OT_vr_landmark_activate(Operator):
         return {'FINISHED'}
 
 
+class VIEW3D_OT_vr_action_set_add(Operator):
+    bl_idname = "view3d.vr_action_set_add"
+    bl_label = "Add VR Action Set"
+    bl_description = "Add a new VR action set to the scene"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        scene = context.scene
+        action_sets = scene.vr_action_sets
+
+        action_sets.add()
+
+        # Select newly created set.
+        scene.vr_action_sets_selected = len(action_sets) - 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_action_set_remove(Operator):
+    bl_idname = "view3d.vr_action_set_remove"
+    bl_label = "Remove VR Action Set"
+    bl_description = "Delete the selected VR action set from the scene"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        scene = context.scene
+        action_sets = scene.vr_action_sets
+
+        if len(action_sets) > 0:
+            action_set_selected_idx = scene.vr_action_sets_selected
+            action_sets.remove(action_set_selected_idx)
+
+            scene.vr_action_sets_selected -= 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_action_set_activate(Operator):
+    bl_idname = "view3d.vr_action_set_activate"
+    bl_label = "Activate VR Action Set"
+    bl_description = "Set the VR action set to use for the session"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    index: IntProperty(
+        name="Index",
+        options={'HIDDEN'},
+    )
+
+    def execute(self, context):
+        scene = context.scene
+
+        if self.index >= len(scene.vr_action_sets):
+            return {'CANCELLED'}
+
+        scene.vr_action_sets_active = (
+            self.index if self.properties.is_property_set(
+                "index") else scene.vr_action_sets.selected
+        )
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_action_sets_load_from_prefs(Operator):
+    bl_idname = "view3d.vr_action_sets_load_from_prefs"
+    bl_label = "Load from Preferences"
+    bl_description = "Add VR action sets from user preferences to the scene"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        scene = context.scene
+        prefs = context.preferences.addons[__name__].preferences
+		
+        scene_action_sets = scene.vr_action_sets
+        prefs_action_sets = prefs.action_sets
+
+        idx = len(scene_action_sets) - 1
+        idx_prev = idx
+
+        for action_set in prefs_action_sets:
+            # Check if action set with same name already exists.
+            exists = False
+            for _set in scene_action_sets:
+                if (_set.name == action_set.name):
+                    exists = True
+                    break
+            if not exists:
+                scene_action_sets.add()
+                idx += 1
+                scene_action_sets[idx].copy_from(action_set)
+
+        if (idx != idx_prev):
+            scene.vr_action_sets_selected = idx
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_action_set_save_to_prefs(Operator):
+    bl_idname = "view3d.vr_action_set_save_to_prefs"
+    bl_label = "Save to Preferences"
+    bl_description = "Save selected VR action set to user preferences"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        scene = context.scene
+        prefs = context.preferences.addons[__name__].preferences
+
+        scene_action_set = VRActionSet.get_selected_action_set(context)
+        if not scene_action_set:
+            return {'CANCELLED'}
+        prefs_action_sets = prefs.action_sets
+
+        # Check if action set with same name already exists.
+        for action_set in prefs_action_sets:
+            if (action_set.name == scene_action_set.name):
+                return {'CANCELLED'}
+
+        prefs_action_sets.add()
+        idx = len(prefs_action_sets) - 1
+        prefs_action_sets[idx].copy_from(scene_action_set)
+
+        prefs.action_sets_selected = idx
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_action_sets_clear(Operator):
+    bl_idname = "view3d.vr_action_sets_clear"
+    bl_label = "Clear VR Action Sets"
+    bl_description = "Delete all VR action sets from the scene"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        scene = context.scene
+        action_sets = scene.vr_action_sets
+
+        action_sets.clear()
+
+        return {'FINISHED'}
+
+
 class VIEW3D_OT_vr_action_add(Operator):
     bl_idname = "view3d.vr_action_add"
     bl_label = "Add VR Action"
@@ -851,13 +1054,15 @@ class VIEW3D_OT_vr_action_add(Operator):
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
-        scene = context.scene
-        actions = scene.vr_actions
+        action_set = VRActionSet.get_selected_action_set(context)
 
-        actions.add()
+        if action_set:
+            actions = action_set.actions
 
-        # select newly created set
-        scene.vr_actions_selected = len(actions) - 1
+            actions.add()
+
+            # Select newly created action.
+            action_set.actions_selected = len(actions) - 1
 
         return {'FINISHED'}
 
@@ -869,123 +1074,35 @@ class VIEW3D_OT_vr_action_remove(Operator):
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
-        scene = context.scene
-        actions = scene.vr_actions
+        action_set = VRActionSet.get_selected_action_set(context)
 
-        if len(actions) > 0:
-            action_selected_idx = scene.vr_actions_selected
-            actions.remove(action_selected_idx)
+        if action_set:
+            actions = action_set.actions
 
-            scene.vr_actions_selected -= 1
+            if len(actions) > 0:
+                action_selected_idx = action_set.actions_selected
+                actions.remove(action_selected_idx)
 
-        return {'FINISHED'}
-
-
-class VIEW3D_OT_vr_action_set_clear(Operator):
-    bl_idname = "view3d.vr_action_set_clear"
-    bl_label = "Clear VR Action Set"
-    bl_description = "Clears the VR action set and deletes all actions"
-    bl_options = {'UNDO', 'REGISTER'}
-
-    def execute(self, context):
-        scene = context.scene
-        action_set = scene.vr_action_set[0]
-        actions = scene.vr_actions
-
-        action_set.name = "action_set"
-        action_set.profile = ""
-
-        idx = len(actions) - 1;
-        for action in actions:
-            actions.remove(idx)
-            idx -= 1
-
-        scene.vr_actions_selected = 0
+                action_set.actions_selected -= 1
 
         return {'FINISHED'}
 
 
-class VIEW3D_OT_vr_action_state_get(Operator):
-    bl_idname = "view3d.vr_action_state_get"
-    bl_label = "Get VR Action State"
-    bl_description = "Get the current states of a VR action"
+class VIEW3D_OT_vr_actions_clear(Operator):
+    bl_idname = "view3d.vr_actions_clear"
+    bl_label = "Clear VR Actions"
+    bl_description = "Delete all VR actions for the selected action set"
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
-        wm = context.window_manager
-        scene = context.scene
-        action_set = scene.vr_action_set[0]
-        actions = scene.vr_actions
+        action_set = VRActionSet.get_selected_action_set(context)
 
-        if wm.xr_session_state and len(actions) > 0:
-            action = actions[scene.vr_actions_selected]
-            if action.type == 'BUTTON':
-                action.state0 = wm.xr_session_state.get_action_state(context, action_set.name, action.name, \
-                            action.user_path0)
-                action.state1 = wm.xr_session_state.get_action_state(context, action_set.name, action.name, \
-                            action.user_path1)
+        if action_set:
+            actions = action_set.actions
 
-        return {'FINISHED'}
+            actions.clear()
 
-
-class VIEW3D_OT_vr_pose_action_state_get(Operator):
-    bl_idname = "view3d.vr_pose_action_state_get"
-    bl_label = "Get VR Pose Action State"
-    bl_description = "Get the current states of a VR pose action"
-    bl_options = {'UNDO', 'REGISTER'}
-
-    def execute(self, context):
-        wm = context.window_manager
-        scene = context.scene
-        action_set = scene.vr_action_set[0]
-        actions = scene.vr_actions
-
-        if wm.xr_session_state and len(actions) > 0:
-            action = actions[scene.vr_actions_selected]
-            if action.type == 'POSE':
-                state = wm.xr_session_state.get_pose_action_state(context, action_set.name, action.name, \
-                            action.user_path0)
-                action.pose_state_location0[0] = state[0]
-                action.pose_state_location0[1] = state[1]
-                action.pose_state_location0[2] = state[2]
-                quat = Quaternion()
-                quat.w = state[3]
-                quat.x = state[4]
-                quat.y = state[5]
-                quat.z = state[6]
-                action.pose_state_rotation0 = quat.to_euler()
-
-                state = wm.xr_session_state.get_pose_action_state(context, action_set.name, action.name, \
-                            action.user_path1)
-                action.pose_state_location1[0] = state[0]
-                action.pose_state_location1[1] = state[1]
-                action.pose_state_location1[2] = state[2]
-                quat.w = state[3]
-                quat.x = state[4]
-                quat.y = state[5]
-                quat.z = state[6]
-                action.pose_state_rotation1 = quat.to_euler()
-
-        return {'FINISHED'}
-
-
-class VIEW3D_OT_vr_haptic_action_apply(Operator):
-    bl_idname = "view3d.vr_haptic_action_apply"
-    bl_label = "Apply VR Haptic Action"
-    bl_description = "Apply a VR haptic action with the specified settings"
-    bl_options = {'UNDO', 'REGISTER'}
-
-    def execute(self, context):
-        wm = context.window_manager
-        scene = context.scene
-        action_set = scene.vr_action_set[0]
-        actions = scene.vr_actions
-
-        if wm.xr_session_state and len(actions) > 0:
-            action = actions[scene.vr_actions_selected]
-            if action.type == 'HAPTIC':
-                wm.xr_session_state.apply_haptic_action(context, action_set.name, action.name, \
-                            action.user_path0, action.user_path1, action.haptic_duration, action.haptic_frequency, action.haptic_amplitude)
+            action_set.actions_selected = 0
 
         return {'FINISHED'}
 
@@ -1237,6 +1354,247 @@ class VIEW3D_GGT_vr_landmarks(GizmoGroup):
             self.gizmo.matrix_basis = lm_mat
 
 
+class VRPreferences(bpy.types.AddonPreferences):
+    bl_idname = __name__
+
+    action_sets: CollectionProperty(
+        name="Action Set",
+        type=VRActionSet,
+    )	
+    action_sets_selected: IntProperty(
+        name="Selected Action Set",		
+    )
+
+    def draw(self, context):
+        PREFERENCES_PT_vr_actions.draw(self, context)
+
+
+class PREFERENCES_UL_vr_action_sets(UIList):
+    def draw_item(self, context, layout, _data, item, icon, _active_data,
+                  _active_propname, index):
+        action_set = item
+
+        layout.emboss = 'NONE'
+
+        layout.prop(action_set, "name", text="")
+
+
+class PREFERENCES_MT_vr_action_set_menu(Menu):
+    bl_label = "Action Set Controls"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("preferences.vr_action_sets_clear")
+
+
+class PREFERENCES_UL_vr_actions(UIList):
+    def draw_item(self, context, layout, _data, item, icon, _active_data,
+                  _active_propname, index):
+        action = item
+
+        layout.emboss = 'NONE'
+
+        layout.prop(action, "name", text="")
+
+
+class PREFERENCES_MT_vr_action_menu(Menu):
+    bl_label = "Action Controls"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("preferences.vr_actions_clear")
+
+
+class PREFERENCES_PT_vr_actions(Panel):
+    bl_space_type = 'PREFERENCES'
+    bl_region_type = 'WINDOW'
+    bl_category = "VR"
+    bl_label = "Actions"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        prefs = context.preferences.addons[__name__].preferences
+
+        action_set_selected = VRActionSet.prefs_get_selected_action_set(context)
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        row0 = layout.row()
+        col = row0.column(align=True)
+        col.label(text="Action Sets")
+        
+        row1 = layout.row()
+        row1.template_list("PREFERENCES_UL_vr_action_sets", "", prefs, "action_sets",
+                          prefs, "action_sets_selected", rows=3)
+
+        col = row1.column(align=True)
+        col.operator("preferences.vr_action_set_add", icon='ADD', text="")
+        col.operator("preferences.vr_action_set_remove", icon='REMOVE', text="")
+
+        col.menu("PREFERENCES_MT_vr_action_set_menu", icon='DOWNARROW_HLT', text="")
+
+        if action_set_selected:
+            action_selected = action_set_selected.get_selected_action()
+
+            row = row0.split()
+            col = row.column(align=True)
+            col.label(text="Actions")
+
+            row = layout.row()
+            col0 = row.column(align=True)
+            row = row.split()
+            col1 = row.column(align=True)
+
+            col0.prop(action_set_selected, "name", text="Action Set")
+            col0.prop(action_set_selected, "profile", text="Profile")
+
+            row1.template_list("PREFERENCES_UL_vr_actions", "", action_set_selected, "actions",
+                                              action_set_selected, "actions_selected", rows=3)
+
+            col = row1.column(align=True)
+            col.operator("preferences.vr_action_add", icon='ADD', text="")
+            col.operator("preferences.vr_action_remove", icon='REMOVE', text="")
+
+            col.menu("PREFERENCES_MT_vr_action_menu", icon='DOWNARROW_HLT', text="")
+
+            if action_selected:
+                col1.prop(action_selected, "name", text="Action")
+                col1.prop(action_selected, "type", text="Type")
+                col1.prop(action_selected, "user_path0", text="User Path 0")
+                col1.prop(action_selected, "component_path0", text="Component Path 0")
+                col1.prop(action_selected, "user_path1", text="User Path 1")
+                col1.prop(action_selected, "component_path1", text="Component Path 1")
+
+                if action_selected.type == 'BUTTON':
+                    col1.prop(action_selected, "threshold", text="Threshold")
+                    col1.prop(action_selected, "op", text="Operator")
+                    col1.prop(action_selected, "op_flag", text="Operator Flag")
+                elif action_selected.type == 'POSE':
+                    col1.prop(action_selected, "pose_is_controller", text="Use for Controller Poses")
+                    col1.prop(action_selected, "pose_location", text="Location Offset")
+                    col1.prop(action_selected, "pose_rotation", text="Rotation Offset")  
+                elif action_selected.type == 'HAPTIC':
+                    col1.prop(action_selected, "haptic_duration", text="Duration")
+                    col1.prop(action_selected, "haptic_frequency", text="Frequency")
+                    col1.prop(action_selected, "haptic_amplitude", text="Amplitude")
+
+
+class PREFERENCES_OT_vr_action_set_add(Operator):
+    bl_idname = "preferences.vr_action_set_add"
+    bl_label = "Add VR Action Set"
+    bl_description = "Add a new VR action set to user preferences"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        prefs = context.preferences.addons[__name__].preferences
+        action_sets = prefs.action_sets
+
+        action_sets.add()
+
+        # Select newly created set.
+        prefs.action_sets_selected = len(action_sets) - 1
+
+        return {'FINISHED'}
+
+
+class PREFERENCES_OT_vr_action_set_remove(Operator):
+    bl_idname = "preferences.vr_action_set_remove"
+    bl_label = "Remove VR Action Set"
+    bl_description = "Delete the selected VR action from user preferences"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        prefs = context.preferences.addons[__name__].preferences
+        action_sets = prefs.action_sets
+
+        if len(action_sets) > 0:
+            action_set_selected_idx = prefs.action_sets_selected
+            action_sets.remove(action_set_selected_idx)
+
+            prefs.action_sets_selected -= 1
+
+        return {'FINISHED'}
+
+
+class PREFERENCES_OT_vr_action_sets_clear(Operator):
+    bl_idname = "preferences.vr_action_sets_clear"
+    bl_label = "Clear VR Action Sets"
+    bl_description = "Delete all VR action sets from user preferences"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        prefs = context.preferences.addons[__name__].preferences
+        action_sets = prefs.action_sets
+
+        action_sets.clear()
+
+        return {'FINISHED'}
+
+
+class PREFERENCES_OT_vr_action_add(Operator):
+    bl_idname = "preferences.vr_action_add"
+    bl_label = "Add VR Action"
+    bl_description = "Add a new VR action to the list and select it"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        action_set = VRActionSet.prefs_get_selected_action_set(context)
+
+        if action_set:
+            actions = action_set.actions
+
+            actions.add()
+
+            # Select newly created action.
+            action_set.actions_selected = len(actions) - 1
+
+        return {'FINISHED'}
+
+
+class PREFERENCES_OT_vr_action_remove(Operator):
+    bl_idname = "preferences.vr_action_remove"
+    bl_label = "Remove VR Action"
+    bl_description = "Delete the selected VR action from the list"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        action_set = VRActionSet.prefs_get_selected_action_set(context)
+
+        if action_set:
+            actions = action_set.actions
+
+            if len(actions) > 0:
+                action_selected_idx = action_set.actions_selected
+                actions.remove(action_selected_idx)
+
+                action_set.actions_selected -= 1
+
+        return {'FINISHED'}
+
+
+class PREFERENCES_OT_vr_actions_clear(Operator):
+    bl_idname = "preferences.vr_actions_clear"
+    bl_label = "Clear VR Actions"
+    bl_description = "Delete all VR actions for the selected action set"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        action_set = VRActionSet.prefs_get_selected_action_set(context)
+
+        if action_set:
+            actions = action_set.actions
+
+            actions.clear()
+
+            action_set.actions_selected = 0
+
+        return {'FINISHED'}
+
+
 classes = (
     VIEW3D_PT_vr_session,
     VIEW3D_PT_vr_session_view,
@@ -1246,12 +1604,7 @@ classes = (
 
     VRLandmark,
     VIEW3D_UL_vr_landmarks,
-    VIEW3D_MT_landmark_menu,
-
-    VRActionSet,
-    VRAction,
-    VIEW3D_UL_vr_actions,
-    VIEW3D_MT_action_menu,
+    VIEW3D_MT_vr_landmark_menu,
 
     VIEW3D_OT_vr_landmark_add,
     VIEW3D_OT_vr_landmark_remove,
@@ -1263,18 +1616,42 @@ classes = (
     VIEW3D_OT_cursor_to_vr_landmark,
     VIEW3D_OT_update_vr_landmark,
 
+    VRAction,
+    VRActionSet,
+    VIEW3D_UL_vr_action_sets,
+    VIEW3D_MT_vr_action_set_menu,
+    VIEW3D_UL_vr_actions,
+    VIEW3D_MT_vr_action_menu,
+
+    VIEW3D_OT_vr_action_set_add,
+    VIEW3D_OT_vr_action_set_remove,
+    VIEW3D_OT_vr_action_set_activate,
+    VIEW3D_OT_vr_action_sets_load_from_prefs,
+    VIEW3D_OT_vr_action_set_save_to_prefs,
+    VIEW3D_OT_vr_action_sets_clear,
     VIEW3D_OT_vr_action_add,
     VIEW3D_OT_vr_action_remove,
-    VIEW3D_OT_vr_action_set_clear,
-    VIEW3D_OT_vr_action_state_get,
-    VIEW3D_OT_vr_pose_action_state_get,
-    VIEW3D_OT_vr_haptic_action_apply,
+    VIEW3D_OT_vr_actions_clear,
 
     VIEW3D_GT_vr_camera_cone,
     VIEW3D_GT_vr_controller_axes,
     VIEW3D_GGT_vr_viewer_pose,
     VIEW3D_GGT_vr_controller_poses,
     VIEW3D_GGT_vr_landmarks,
+
+    VRPreferences,
+    #PREFERENCES_PT_vr_actions,
+    PREFERENCES_UL_vr_action_sets,
+    PREFERENCES_MT_vr_action_set_menu,
+    PREFERENCES_UL_vr_actions,
+    PREFERENCES_MT_vr_action_menu,
+
+    PREFERENCES_OT_vr_action_set_add,
+    PREFERENCES_OT_vr_action_set_remove,
+    PREFERENCES_OT_vr_action_sets_clear,
+    PREFERENCES_OT_vr_action_add,
+    PREFERENCES_OT_vr_action_remove,
+    PREFERENCES_OT_vr_actions_clear,
 )
 
 
@@ -1296,16 +1673,16 @@ def register():
     bpy.types.Scene.vr_landmarks_active = IntProperty(
         update=xr_landmark_active_update,
     )
-    bpy.types.Scene.vr_action_set = CollectionProperty(
+    bpy.types.Scene.vr_action_sets = CollectionProperty(
         name="Action Set",
         type=VRActionSet,
     )	
-    bpy.types.Scene.vr_actions = CollectionProperty(
-        name="Action",
-        type=VRAction,
-    )
-    bpy.types.Scene.vr_actions_selected = IntProperty(
-        name="Selected Action",		
+    bpy.types.Scene.vr_action_sets_selected = IntProperty(
+        name="Selected Action Set",
+        default=0,
+    )	
+    bpy.types.Scene.vr_action_sets_active = IntProperty(
+        #update=xr_action_set_active_update,
     )
     # View3DShading is the only per 3D-View struct with custom property
     # support, so "abusing" that to get a per 3D-View option.
@@ -1320,7 +1697,6 @@ def register():
     )
 
     bpy.app.handlers.load_post.append(ensure_default_vr_landmark)
-    bpy.app.handlers.load_post.append(ensure_default_vr_action_set)
     bpy.app.handlers.xr_session_start_pre.append(create_vr_actions)
 
 def unregister():
@@ -1334,15 +1710,14 @@ def unregister():
     del bpy.types.Scene.vr_landmarks
     del bpy.types.Scene.vr_landmarks_selected
     del bpy.types.Scene.vr_landmarks_active
-    del bpy.types.Scene.vr_action_set
-    del bpy.types.Scene.vr_actions
-    del bpy.types.Scene.vr_actions_selected
+    del bpy.types.Scene.vr_action_sets
+    del bpy.types.Scene.vr_action_sets_selected
+    del bpy.types.Scene.vr_action_sets_active
     del bpy.types.View3DShading.vr_show_virtual_camera
     del bpy.types.View3DShading.vr_show_controllers
     del bpy.types.View3DShading.vr_show_landmarks
 
     bpy.app.handlers.load_post.remove(ensure_default_vr_landmark)
-    bpy.app.handlers.load_post.remove(ensure_default_vr_action_set)
     bpy.app.handlers.xr_session_start_pre.remove(create_vr_actions)
 
 
