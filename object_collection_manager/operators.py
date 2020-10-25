@@ -1387,3 +1387,45 @@ class CMApplyPhantomModeOperator(Operator):
         cm.in_phantom_mode = False
 
         return {'FINISHED'}
+
+
+class CMDisableObjectsOperator(Operator):
+    '''Disable selected objects in viewports'''
+    bl_label = "Disable Selected"
+    bl_idname = "view3d.disable_selected_objects"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        for obj in context.selected_objects:
+            obj.hide_viewport = True
+
+        return {'FINISHED'}
+
+
+class CMDisableUnSelectedObjectsOperator(Operator):
+    '''Disable unselected objects in viewports'''
+    bl_label = "Disable Unselected"
+    bl_idname = "view3d.disable_unselected_objects"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        for obj in bpy.data.objects:
+            if obj in context.visible_objects and not obj in context.selected_objects:
+                obj.hide_viewport = True
+
+        return {'FINISHED'}
+
+
+class CMRestoreDisabledObjectsOperator(Operator):
+    '''Restore disabled objects in viewports'''
+    bl_label = "Restore Disabled Objects"
+    bl_idname = "view3d.restore_disabled_objects"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        for obj in bpy.data.objects:
+            if obj.hide_viewport:
+                obj.hide_viewport = False
+                obj.select_set(True)
+
+        return {'FINISHED'}

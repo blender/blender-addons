@@ -18,16 +18,27 @@
 
 # Copyright 2011, Ryan Inch
 
+if "bpy" in locals():
+    import importlib
+
+    importlib.reload(internals)
+    importlib.reload(qcd_move_widget)
+    importlib.reload(qcd_operators)
+    importlib.reload(ui)
+    importlib.reload(preferences)
+
+else:
+    from . import internals
+    from . import qcd_move_widget
+    from . import qcd_operators
+    from . import ui
+    from . import preferences
+
 import os
 import bpy
 import bpy.utils.previews
 from bpy.app.handlers import persistent
 
-from . import internals
-from . import preferences
-from . import qcd_move_widget
-from . import qcd_operators
-from . import ui
 
 addon_qcd_keymaps = []
 addon_qcd_view_hotkey_keymaps = []
