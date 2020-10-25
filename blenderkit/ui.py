@@ -234,7 +234,6 @@ def draw_ratings_bgl():
 
     rating_possible, rated, asset, asset_data = is_rating_possible()
     if rating_possible:  # (not rated or ui_props.rating_menu_on):
-        print('rating is pssible', asset_data['name'])
         bkit_ratings = asset.bkit_ratings
         bgcol = bpy.context.preferences.themes[0].user_interface.wcol_tooltip.inner
         textcol = (1, 1, 1, 1)
@@ -243,7 +242,6 @@ def draw_ratings_bgl():
         font_size = int(ui.rating_ui_scale * 20)
 
         if ui.rating_button_on:
-            print('should draw button')
             img = utils.get_thumbnail('star_white.png')
 
             ui_bgl.draw_image(ui.rating_x,
