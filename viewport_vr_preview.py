@@ -51,9 +51,122 @@ bl_info = {
     "category": "3D View",
 }
 
+# Key maps.
+@persistent
+def vr_load_action_properties(context: bpy.context):
+    # Load operator properties for scene action sets.
+    wm = bpy.context.window_manager
+    kc = wm.keyconfigs.user
+    kc_addon = wm.keyconfigs.addon
+    if not (kc and kc_addon):
+        return
+
+    km_addon = kc_addon.keymaps.find("XR Session", space_type='EMPTY', region_type='XR')
+    if not km_addon:
+        return
+
+    km = kc.keymaps.find("XR", space_type='EMPTY', region_type='XR')
+    km_session = kc.keymaps.find("XR Session", space_type='EMPTY', region_type='XR')
+    if not (km or km_session):
+        return
+    
+    for action_set in bpy.context.scene.vr_action_sets:
+        for action in action_set.actions:
+            if (action.type != 'BUTTON') or not action.op:
+                continue
+
+            kmi_addon = km_addon.keymap_items.from_xr(action_set.name, action.name)
+            if kmi_addon:
+                continue
+
+            kmi = None
+            if km_session:
+                # 1. Check XR Session key map.
+                kmi = km_session.keymap_items.from_xr(action_set.name, action.name)
+
+            if not kmi and km:
+                # 2. Check XR key map.
+                kmi = km.keymap_items.from_xr(action_set.name, action.name)
+
+            if kmi:
+                kmi_addon = km_addon.keymap_items.new_from_item(kmi)
+                kmi_addon.active = True
+                kmi_addon.idname = action.op
+                kmi_addon.xr_action_set = action_set.name
+                kmi_addon.xr_action = action.name
+
+
+def vr_get_keymap(context, from_prefs):
+    if from_prefs:
+        kc = context.window_manager.keyconfigs.user
+        return (
+            None if (not kc)
+                else kc.keymaps.find("XR", space_type='EMPTY', region_type='XR')
+        )
+    else:
+        kc = context.window_manager.keyconfigs.addon
+        return (
+            None if (not kc)
+                else kc.keymaps.find("XR Session", space_type='EMPTY', region_type='XR')
+        )
+
+
+def vr_indented_layout(layout, level):
+    indentpx = 16
+    if level == 0:
+        level = 0.0001
+    indent = level * indentpx / bpy.context.region.width
+
+    split = layout.split(factor=indent)
+    col = split.column()
+    col = split.column()
+    return col
+
+
+# Similar to draw_kmi() from release/scripts/modules/rna_keymap_ui.py
+# but only displays operator properties.
+def vr_draw_kmi(display_keymaps, kc, km, kmi, layout, level):
+    map_type = kmi.map_type
+
+    col = vr_indented_layout(layout, level)
+
+    if kmi.show_expanded:
+        col = col.column(align=True)
+        box = col.box()
+    else:
+        box = col.column()
+
+    split = box.split()
+
+    # Header bar.
+    row = split.row(align=True)
+    row.prop(kmi, "show_expanded", text="", emboss=False)
+
+    row.label(text="Operator Properties")
+    if km.is_modal:
+        row.separator()
+        row.prop(kmi, "propvalue", text="")
+    else:
+        row.label(text=kmi.name)
+
+    # Expanded, additional event settings.
+    if kmi.show_expanded:
+        box = col.box()
+        
+        # Operator properties.
+        box.template_keymap_item_properties(kmi)
+
+       # # TODO_XR
+       # # Modal keymaps attached to this operator.
+       # if not km.is_modal:
+           # kmm = kc.keymaps.find_modal(kmi.idname)
+           # if kmm:
+               # draw_km(display_keymaps, kc, kmm, None, layout, level + 1)
+               # layout.context_pointer_set("keymap", km)
+
 
 @persistent
-def ensure_default_vr_landmark(context: bpy.context):
+def vr_ensure_default_landmark(context: bpy.context):
     # Ensure there's a default landmark (scene camera by default).
     landmarks = bpy.context.scene.vr_landmarks
     if not landmarks:
@@ -285,7 +398,7 @@ class VIEW3D_PT_vr_landmarks(Panel):
 
 
 @persistent
-def create_vr_actions(context: bpy.context):
+def vr_create_actions(context: bpy.context):
     # Create all vr action sets and actions.
     context = bpy.context
     wm = context.window_manager
@@ -318,35 +431,88 @@ def create_vr_actions(context: bpy.context):
             else:
                 continue
 
-            wm.xr_session_state.create_action(context, action_set.name, action.name, type, action.user_path0, action.user_path1, action.threshold, action.op, op_flag)         
+            wm.xr_session_state.create_action(context, action_set.name, action.name, type,
+                                              action.user_path0, action.user_path1, action.threshold, action.op, op_flag)         
 
             if action.type == 'POSE':
-                wm.xr_session_state.create_action_space(context, action_set.name, action.name, action.user_path0, action.user_path1, \
-                            action.pose_location, action.pose_rotation)
+                wm.xr_session_state.create_action_space(context, action_set.name, action.name,
+                                                        action.user_path0, action.user_path1, action.pose_location, action.pose_rotation)
                 if action.pose_is_controller:
                     wm.xr_session_state.set_controller_pose_action(context, action_set.name, action.name)
 
             interaction_path0 = action.user_path0 + action.component_path0
             interaction_path1 = action.user_path1 + action.component_path1
 
-            wm.xr_session_state.create_action_binding(context, action_set.name, action_set.profile, action.name, interaction_path0, interaction_path1)  
+            wm.xr_session_state.create_action_binding(context, action_set.name, action_set.profile, action.name,
+                                                      interaction_path0, interaction_path1)  
 
         wm.xr_session_state.set_active_action_set(context, action_set.name)
 
 
 class VRAction(PropertyGroup):
+    # Update key map item on operator / name change.
+    def update_kmi(self, context):
+        if self.ignore_update:
+            return
+
+        action_renamed = (self.name != self.name_prev)
+        action_name = ""
+        if action_renamed:
+            action_name = self.name_prev
+            self.name_prev = self.name
+        else:
+            action_name = self.name
+ 
+        action_set = VRActionSet.get_selected_action_set(context, self.from_prefs)
+        if action_set:
+            action_set_renamed = (action_set.name != action_set.name_prev)
+            action_set_name = ""
+            if action_set_renamed:
+                action_set_name = action_set.name_prev
+                # Don't update prev action set name (will be updated in VRActionSet.update_kmis())
+                #action_set.name_prev = action_set.name
+            else:
+                action_set_name = action_set.name
+            
+            km = vr_get_keymap(context, self.from_prefs)
+            if km:
+                kmi = km.keymap_items.from_xr(action_set_name, action_name)
+
+                if (self.type != 'BUTTON') or not self.op:
+                    if kmi:
+                        # Remove any existing key map item.
+                        km.keymap_items.remove(kmi)
+                    return
+
+                if not kmi:
+                    if action_set_renamed or action_renamed:
+                        return
+                    # Add key map item.
+                    kmi = km.keymap_items.new("", 'XR_ACTION', 'ANY')
+                    kmi.active = True
+
+                kmi.idname = self.op
+                kmi.xr_action_set = action_set.name
+                kmi.xr_action = self.name
+
     name: bpy.props.StringProperty(
-        name="VR action.\nMust not contain upper case letters or special characters other than '-', '_', or '.'",
+        name="VR action",
+        description= "Must not contain upper case letters or special characters other than '-', '_', or '.'",
+        default="action",
+        update=update_kmi,
+    )
+    name_prev: bpy.props.StringProperty(
         default="action",
     )
     type: bpy.props.EnumProperty(
-        name="VR action type",
+        name="Action Type",
         items=[
             ('BUTTON', "Button", "Button input"),
             ('POSE', "Pose", "Pose input"),
             ('HAPTIC', "Haptic", "Haptic output"),
         ],
         default='BUTTON',
+        update=update_kmi,
     )
     user_path0: bpy.props.StringProperty(
         name="OpenXR user path",
@@ -367,10 +533,11 @@ class VRAction(PropertyGroup):
         max=1.0,
     )
     op: bpy.props.StringProperty(
-        name="Python operator",
+        name="Operator",
+        update=update_kmi,
     )
     op_flag: bpy.props.EnumProperty(
-        name="Operator flag",
+        name="Operator Flag",
         items=[
             ('PRESS', "Press",
              "Execute operator on press "
@@ -404,9 +571,18 @@ class VRAction(PropertyGroup):
     haptic_amplitude: bpy.props.FloatProperty(
         name="Haptic amplitude",
     )
+    from_prefs: BoolProperty(
+        # Whether this action is a prefs (or scene) action. 		
+    )                   
+    ignore_update: BoolProperty(		
+        default=False
+    )        
 
-    def copy_from(self, o):
+    def copy_from(self, o, from_prefs):
+        self.ignore_update = True # Prevent update on prop assignment.
+
         self.name = o.name
+        self.name_prev = o.name_prev
         self.type = o.type
         self.user_path0 = o.user_path0
         self.component_path0 = o.component_path0
@@ -421,11 +597,29 @@ class VRAction(PropertyGroup):
         self.haptic_duration = o.haptic_duration
         self.haptic_frequency = o.haptic_frequency
         self.haptic_amplitude = o.haptic_amplitude
+        self.from_prefs = from_prefs
+
+        self.ignore_update = False
 
 
 class VRActionSet(PropertyGroup):
+    # Update key map items on name change.
+    def update_kmis(self, context):
+        action_set_renamed = (self.name != self.name_prev)
+
+        for action in self.actions:
+            action.update_kmi(context)
+
+        if action_set_renamed:
+            self.name_prev = self.name
+
     name: bpy.props.StringProperty(
-        name="VR action set.\nMust not contain upper case letters or special characters other than '-', '_', or '.'",
+        name="VR action set",
+        description="Must not contain upper case letters or special characters other than '-', '_', or '.'",
+        default="action_set",
+        update=update_kmis,
+    )
+    name_prev: bpy.props.StringProperty(
         default="action_set",
     )
     profile: bpy.props.StringProperty(
@@ -438,7 +632,10 @@ class VRActionSet(PropertyGroup):
     actions_selected: IntProperty(
         name="Selected Action",		
     )
-
+    ignore_update: BoolProperty(		
+        default=False
+    )   
+    
     @staticmethod
     def get_active_action_set(context):
         scene = context.scene
@@ -450,23 +647,22 @@ class VRActionSet(PropertyGroup):
         )
 
     @staticmethod
-    def get_selected_action_set(context):
-        scene = context.scene
-        action_sets = scene.vr_action_sets
+    def get_selected_action_set(context, from_prefs):
+        action_sets = None
+        action_set_selected_idx = 0
+
+        if from_prefs:
+            prefs = context.preferences.addons[__name__].preferences
+            action_sets = prefs.action_sets
+            action_set_selected_idx = prefs.action_sets_selected
+        else:
+            scene = context.scene
+            action_sets = scene.vr_action_sets
+            action_set_selected_idx = scene.vr_action_sets_selected
 
         return (
             None if (len(action_sets) <
-                     1) else action_sets[scene.vr_action_sets_selected]
-        )
-
-    @staticmethod
-    def prefs_get_selected_action_set(context):
-        prefs = context.preferences.addons[__name__].preferences
-        action_sets = prefs.action_sets
-
-        return (
-            None if (len(action_sets) <
-                     1) else action_sets[prefs.action_sets_selected]
+                     1) else action_sets[action_set_selected_idx]
         )
 
     def get_selected_action(self):
@@ -477,18 +673,23 @@ class VRActionSet(PropertyGroup):
                      1) else actions[self.actions_selected]
         )
 
-    def copy_from(self, o):
+    def copy_from(self, o, from_prefs):
+        self.ignore_update = True # Prevent update on prop assignment.
+
         self.name = o.name
+        self.name_prev = o.name_prev
         self.profile = o.profile
 
         self.actions.clear()
         idx = 0
         for action in o.actions:
             self.actions.add()
-            self.actions[idx].copy_from(action)
+            self.actions[idx].copy_from(action, from_prefs)
             idx += 1
 
         self.actions_selected = o.actions_selected
+
+        self.ignore_update = False
 
 
 class VIEW3D_UL_vr_action_sets(UIList):
@@ -549,7 +750,7 @@ class VIEW3D_PT_vr_actions(Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        action_set_selected = VRActionSet.get_selected_action_set(context)
+        action_set_selected = VRActionSet.get_selected_action_set(context, False)
 
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
@@ -604,6 +805,16 @@ class VIEW3D_PT_vr_actions(Panel):
                     col1.prop(action_selected, "threshold", text="Threshold")
                     col1.prop(action_selected, "op", text="Operator")
                     col1.prop(action_selected, "op_flag", text="Operator Flag")
+                    # Properties.
+                    kc = bpy.context.window_manager.keyconfigs.addon
+                    if kc:
+                        km = kc.keymaps.find(name="XR Session", space_type='EMPTY', region_type='XR')
+                        if km:
+                            kmi = km.keymap_items.from_xr(action_set_selected.name, action_selected.name)
+                            if kmi:
+                                km = km.active()
+                                col1.context_pointer_set("keymap", km)
+                                vr_draw_kmi([], kc, km, kmi, col1, 0)
                 elif action_selected.type == 'POSE':
                     col1.prop(action_selected, "pose_is_controller", text="Use for Controller Poses")
                     col1.prop(action_selected, "pose_location", text="Location Offset")
@@ -937,9 +1148,21 @@ class VIEW3D_OT_vr_action_set_remove(Operator):
 
         if len(action_sets) > 0:
             action_set_selected_idx = scene.vr_action_sets_selected
+            action_set = action_sets[action_set_selected_idx]
+
+            # Remove key map items.
+            km = vr_get_keymap(context, False)
+            if km:
+                for action in action_set.actions:
+                    kmi = km.keymap_items.from_xr(action_set.name, action.name)
+                    if kmi:
+                        km.keymap_items.remove(kmi)
+
             action_sets.remove(action_set_selected_idx)
 
             scene.vr_action_sets_selected -= 1
+            if scene.vr_action_sets_selected < 1:
+                scene.vr_action_sets_active = 0
 
         return {'FINISHED'}
 
@@ -985,6 +1208,9 @@ class VIEW3D_OT_vr_action_sets_load_from_prefs(Operator):
         idx = len(scene_action_sets) - 1
         idx_prev = idx
 
+        scene_km = vr_get_keymap(context, False)
+        prefs_km = vr_get_keymap(context, True)
+
         for action_set in prefs_action_sets:
             # Check if action set with same name already exists.
             exists = False
@@ -995,7 +1221,21 @@ class VIEW3D_OT_vr_action_sets_load_from_prefs(Operator):
             if not exists:
                 scene_action_sets.add()
                 idx += 1
-                scene_action_sets[idx].copy_from(action_set)
+
+                # Update key map.
+                if scene_km and prefs_km:
+                    for action in action_set.actions:
+                        if (action.type != 'BUTTON') or not action.op:
+                            continue
+                        prefs_kmi = prefs_km.keymap_items.from_xr(action_set.name, action.name)
+                        if prefs_kmi:
+                            kmi = scene_km.keymap_items.new_from_item(prefs_kmi)
+                            kmi.active = True                   
+                            kmi.idname = action.op
+                            kmi.xr_action_set = action_set.name
+                            kmi.xr_action = action.name
+
+                scene_action_sets[idx].copy_from(action_set, False)
 
         if (idx != idx_prev):
             scene.vr_action_sets_selected = idx
@@ -1013,7 +1253,7 @@ class VIEW3D_OT_vr_action_set_save_to_prefs(Operator):
         scene = context.scene
         prefs = context.preferences.addons[__name__].preferences
 
-        scene_action_set = VRActionSet.get_selected_action_set(context)
+        scene_action_set = VRActionSet.get_selected_action_set(context, False)
         if not scene_action_set:
             return {'CANCELLED'}
         prefs_action_sets = prefs.action_sets
@@ -1025,7 +1265,23 @@ class VIEW3D_OT_vr_action_set_save_to_prefs(Operator):
 
         prefs_action_sets.add()
         idx = len(prefs_action_sets) - 1
-        prefs_action_sets[idx].copy_from(scene_action_set)
+
+        # Update key map.
+        scene_km = vr_get_keymap(context, False)
+        prefs_km = vr_get_keymap(context, True)		
+        if scene_km and prefs_km:
+            for action in scene_action_set.actions:
+                if (action.type != 'BUTTON') or not action.op:
+                    continue
+                scene_kmi = scene_km.keymap_items.from_xr(scene_action_set.name, action.name)
+                if scene_kmi:
+                    kmi = prefs_km.keymap_items.new_from_item(scene_kmi)
+                    kmi.active = True
+                    kmi.idname = action.op
+                    kmi.xr_action_set = scene_action_set.name
+                    kmi.xr_action = action.name
+
+        prefs_action_sets[idx].copy_from(scene_action_set, True)
 
         prefs.action_sets_selected = idx
 
@@ -1042,7 +1298,20 @@ class VIEW3D_OT_vr_action_sets_clear(Operator):
         scene = context.scene
         action_sets = scene.vr_action_sets
 
-        action_sets.clear()
+        if len(action_sets) > 0:
+            # Remove key map items.
+            km = vr_get_keymap(context, False)
+            if km:
+                for action_set in action_sets:
+                    for action in action_set.actions:
+                        kmi = km.keymap_items.from_xr(action_set.name, action.name)
+                        if kmi:
+                            km.keymap_items.remove(kmi)
+
+            action_sets.clear()
+
+            scene.vr_action_sets_selected = 0
+            scene.vr_action_sets_active = 0
 
         return {'FINISHED'}
 
@@ -1054,15 +1323,17 @@ class VIEW3D_OT_vr_action_add(Operator):
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
-        action_set = VRActionSet.get_selected_action_set(context)
+        action_set = VRActionSet.get_selected_action_set(context, False)
 
         if action_set:
             actions = action_set.actions
 
             actions.add()
+            idx = len(actions) - 1
+            actions[idx].from_prefs = False
 
             # Select newly created action.
-            action_set.actions_selected = len(actions) - 1
+            action_set.actions_selected = idx
 
         return {'FINISHED'}
 
@@ -1074,13 +1345,22 @@ class VIEW3D_OT_vr_action_remove(Operator):
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
-        action_set = VRActionSet.get_selected_action_set(context)
+        action_set = VRActionSet.get_selected_action_set(context, False)
 
         if action_set:
             actions = action_set.actions
 
             if len(actions) > 0:
                 action_selected_idx = action_set.actions_selected
+                action = actions[action_selected_idx]
+
+                # Remove key map item.
+                km = vr_get_keymap(context, False)
+                if km:
+                    kmi = km.keymap_items.from_xr(action_set.name, action.name)
+                    if kmi:
+                        km.keymap_items.remove(kmi)
+
                 actions.remove(action_selected_idx)
 
                 action_set.actions_selected -= 1
@@ -1095,12 +1375,21 @@ class VIEW3D_OT_vr_actions_clear(Operator):
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
-        action_set = VRActionSet.get_selected_action_set(context)
+        action_set = VRActionSet.get_selected_action_set(context, False)
 
         if action_set:
             actions = action_set.actions
 
-            actions.clear()
+            if len(actions) > 0:
+                # Remove key map items.
+                km = vr_get_keymap(context, False)
+                if km:
+                    for action in actions:
+                        kmi = km.keymap_items.from_xr(action_set.name, action.name)
+                        if kmi:
+                            km.keymap_items.remove(kmi)
+
+                actions.clear()
 
             action_set.actions_selected = 0
 
@@ -1358,7 +1647,7 @@ class VRPreferences(bpy.types.AddonPreferences):
     bl_idname = __name__
 
     action_sets: CollectionProperty(
-        name="Action Set",
+        name="Action Sets",
         type=VRActionSet,
     )	
     action_sets_selected: IntProperty(
@@ -1418,7 +1707,7 @@ class PREFERENCES_PT_vr_actions(Panel):
         layout = self.layout
         prefs = context.preferences.addons[__name__].preferences
 
-        action_set_selected = VRActionSet.prefs_get_selected_action_set(context)
+        action_set_selected = VRActionSet.get_selected_action_set(context, True)
 
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
@@ -1473,6 +1762,16 @@ class PREFERENCES_PT_vr_actions(Panel):
                     col1.prop(action_selected, "threshold", text="Threshold")
                     col1.prop(action_selected, "op", text="Operator")
                     col1.prop(action_selected, "op_flag", text="Operator Flag")
+                    # Properties.
+                    kc = bpy.context.window_manager.keyconfigs.user
+                    if kc:
+                        km = kc.keymaps.find(name="XR", space_type='EMPTY', region_type='XR')
+                        if km:
+                            kmi = km.keymap_items.from_xr(action_set_selected.name, action_selected.name)
+                            if kmi:
+                                km = km.active()
+                                col1.context_pointer_set("keymap", km)
+                                vr_draw_kmi([], kc, km, kmi, col1, 0)
                 elif action_selected.type == 'POSE':
                     col1.prop(action_selected, "pose_is_controller", text="Use for Controller Poses")
                     col1.prop(action_selected, "pose_location", text="Location Offset")
@@ -1504,7 +1803,7 @@ class PREFERENCES_OT_vr_action_set_add(Operator):
 class PREFERENCES_OT_vr_action_set_remove(Operator):
     bl_idname = "preferences.vr_action_set_remove"
     bl_label = "Remove VR Action Set"
-    bl_description = "Delete the selected VR action from user preferences"
+    bl_description = "Delete the selected VR action set from user preferences"
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
@@ -1513,6 +1812,16 @@ class PREFERENCES_OT_vr_action_set_remove(Operator):
 
         if len(action_sets) > 0:
             action_set_selected_idx = prefs.action_sets_selected
+            action_set = action_sets[action_set_selected_idx]
+
+            # Remove key map items.
+            km = vr_get_keymap(context, True)
+            if km:
+                for action in action_set.actions:
+                    kmi = km.keymap_items.from_xr(action_set.name, action.name)
+                    if kmi:
+                        km.keymap_items.remove(kmi)
+
             action_sets.remove(action_set_selected_idx)
 
             prefs.action_sets_selected -= 1
@@ -1530,7 +1839,19 @@ class PREFERENCES_OT_vr_action_sets_clear(Operator):
         prefs = context.preferences.addons[__name__].preferences
         action_sets = prefs.action_sets
 
-        action_sets.clear()
+        if len(action_sets) > 0:
+            # Remove key map items.
+            km = vr_get_keymap(context, True)
+            if km:
+                for action_set in action_sets:
+                    for action in action_set.actions:
+                        kmi = km.keymap_items.from_xr(action_set.name, action.name)
+                        if kmi:
+                            km.keymap_items.remove(kmi)
+
+            action_sets.clear()
+
+            prefs.action_sets_selected = 0
 
         return {'FINISHED'}
 
@@ -1542,15 +1863,17 @@ class PREFERENCES_OT_vr_action_add(Operator):
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
-        action_set = VRActionSet.prefs_get_selected_action_set(context)
+        action_set = VRActionSet.get_selected_action_set(context, True)
 
         if action_set:
             actions = action_set.actions
 
             actions.add()
+            idx = len(actions) - 1
+            actions[idx].from_prefs = True
 
             # Select newly created action.
-            action_set.actions_selected = len(actions) - 1
+            action_set.actions_selected = idx
 
         return {'FINISHED'}
 
@@ -1562,13 +1885,22 @@ class PREFERENCES_OT_vr_action_remove(Operator):
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
-        action_set = VRActionSet.prefs_get_selected_action_set(context)
+        action_set = VRActionSet.get_selected_action_set(context, True)
 
         if action_set:
             actions = action_set.actions
 
             if len(actions) > 0:
                 action_selected_idx = action_set.actions_selected
+                action = actions[action_selected_idx]
+
+                # Remove key map item.
+                km = vr_get_keymap(context, True)
+                if km:
+                    kmi = km.keymap_items.from_xr(action_set.name, action.name)
+                    if kmi:
+                        km.keymap_items.remove(kmi)
+
                 actions.remove(action_selected_idx)
 
                 action_set.actions_selected -= 1
@@ -1583,12 +1915,21 @@ class PREFERENCES_OT_vr_actions_clear(Operator):
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
-        action_set = VRActionSet.prefs_get_selected_action_set(context)
+        action_set = VRActionSet.get_selected_action_set(context, True)
 
         if action_set:
             actions = action_set.actions
 
-            actions.clear()
+            if len(actions) > 0:
+                # Remove key map items.
+                km = vr_get_keymap(context, True)
+                if km:
+                    for action in actions:
+                        kmi = km.keymap_items.from_xr(action_set.name, action.name)
+                        if kmi:
+                            km.keymap_items.remove(kmi)                   
+
+                actions.clear()
 
             action_set.actions_selected = 0
 
@@ -1679,9 +2020,9 @@ def register():
     )	
     bpy.types.Scene.vr_action_sets_selected = IntProperty(
         name="Selected Action Set",
-        default=0,
     )	
     bpy.types.Scene.vr_action_sets_active = IntProperty(
+        default=0,
         #update=xr_action_set_active_update,
     )
     # View3DShading is the only per 3D-View struct with custom property
@@ -1696,13 +2037,27 @@ def register():
         name="Show Landmarks"
     )
 
-    bpy.app.handlers.load_post.append(ensure_default_vr_landmark)
-    bpy.app.handlers.xr_session_start_pre.append(create_vr_actions)
+    bpy.app.handlers.load_post.append(vr_ensure_default_landmark)
+    bpy.app.handlers.load_post.append(vr_load_action_properties)
+    bpy.app.handlers.xr_session_start_pre.append(vr_create_actions)
+
+    # Register add-on key map.
+    kc = bpy.context.window_manager.keyconfigs.addon
+    if kc:
+        kc.keymaps.new(name="XR Session", space_type='EMPTY', region_type='XR')
+
 
 def unregister():
     if not bpy.app.build_options.xr_openxr:
         bpy.utils.unregister_class(VIEW3D_PT_vr_info)
         return
+
+    # Unregister add-on key map.
+    kc = bpy.context.window_manager.keyconfigs.addon
+    if kc:
+        km = kc.keymaps.find("XR Session", space_type='EMPTY', region_type='XR')
+        if km:
+            kc.keymaps.remove(km)
 
     for cls in classes:
         bpy.utils.unregister_class(cls)
@@ -1717,8 +2072,9 @@ def unregister():
     del bpy.types.View3DShading.vr_show_controllers
     del bpy.types.View3DShading.vr_show_landmarks
 
-    bpy.app.handlers.load_post.remove(ensure_default_vr_landmark)
-    bpy.app.handlers.xr_session_start_pre.remove(create_vr_actions)
+    bpy.app.handlers.load_post.remove(vr_ensure_default_landmark)
+    bpy.app.handlers.load_post.remove(vr_load_action_properties)
+    bpy.app.handlers.xr_session_start_pre.remove(vr_create_actions)
 
 
 if __name__ == "__main__":
