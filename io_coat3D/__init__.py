@@ -60,7 +60,7 @@ from bpy.props import (
         PointerProperty,
         )
 
-foundExchangeFolder = False
+foundExchangeFolder = True
 saved_exchange_folder = ''
 liveUpdate = True
 mTime = 0
@@ -71,13 +71,10 @@ def every_3_seconds():
     global global_exchange_folder
     global liveUpdate
     global mTime
-    global foundExchangeFolder
+    
+
     try:
         coat3D = bpy.context.scene.coat3D
- 
-
-        if(foundExchangeFolder == False):
-            foundExchangeFolder, global_exchange_folder = folders.InitFolders()
 
         Export_folder  = coat3D.exchangeFolder
         Export_folder += ('%sexport.txt' % (os.sep))
@@ -100,8 +97,6 @@ def every_3_seconds():
 
 @persistent
 def load_handler(dummy):
-    global foundExchangeFolder
-    foundExchangeFolder = False
     bpy.app.timers.register(every_3_seconds)
 
 def removeFile(exportfile):
@@ -507,8 +502,12 @@ class SCENE_OT_export(bpy.types.Operator):
         return {'FINISHED'}
 
     def execute(self, context):
+        global foundExchangeFolder
         global run_background_update
         run_background_update = False
+
+        foundExchangeFolder, global_exchange_folder = folders.InitFolders()
+
         for mesh in bpy.data.meshes:
             if (mesh.users == 0 and mesh.coat3D.name == '3DC'):
                 bpy.data.meshes.remove(mesh)
