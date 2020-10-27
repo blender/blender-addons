@@ -34,6 +34,7 @@ from bpy.props import (
     BoolProperty,
 )
 from bpy.app.handlers import persistent
+import mathutils
 from mathutils import Quaternion
 
 bl_info = {
@@ -495,14 +496,62 @@ class VRAction(PropertyGroup):
                 kmi.xr_action_set = action_set.name
                 kmi.xr_action = self.name
 
+    def update_name(self, context):
+        if self.ignore_update:
+            return
+        
+        action_set = VRActionSet.get_selected_action_set(context, self.from_prefs)
+        if not action_set:
+            return
+        
+        self.ignore_update = True # Prevent circular calling on name assignment.
+
+        # Ensure unique name.
+        idx = 1
+        name_base = self.name
+        name = self.name
+        while True:
+            exists = False
+            
+            for action in action_set.actions:
+                if (action.name == name) and (action.name_prev != self.name_prev):                   
+                    name = name_base + str(idx)
+                    if len(name) > 64:
+                        # Generate random base name.
+                        name_base = str(mathutils.noise.random())
+                        name = name_base
+                        idx = 1
+                    else:
+                        idx += 1
+                        
+                    exists = True
+                    break
+                    
+            if not exists:
+                break
+            
+        if self.name != name:
+            self.name = name
+
+        self.ignore_update = False
+    
+
+    def update_name_and_kmi(self, context):
+        if self.ignore_update:
+            return
+
+        self.update_name(context)
+        self.update_kmi(context)
+
     name: bpy.props.StringProperty(
         name="VR action",
         description= "Must not contain upper case letters or special characters other than '-', '_', or '.'",
         default="action",
-        update=update_kmi,
+        maxlen=64,
+        update=update_name_and_kmi,
     )
     name_prev: bpy.props.StringProperty(
-        default="action",
+        maxlen=64,
     )
     type: bpy.props.EnumProperty(
         name="Action Type",
@@ -516,15 +565,19 @@ class VRAction(PropertyGroup):
     )
     user_path0: bpy.props.StringProperty(
         name="OpenXR user path",
+        maxlen=64,
     )
     component_path0: bpy.props.StringProperty(
         name="OpenXR component path",
+        maxlen=192,
     )
     user_path1: bpy.props.StringProperty(
         name="OpenXR user path",
+        maxlen=64,
     )
     component_path1: bpy.props.StringProperty(
         name="OpenXR component path",
+        maxlen=192,
     )
     threshold: bpy.props.FloatProperty(
         name="Input threshold",
@@ -534,6 +587,7 @@ class VRAction(PropertyGroup):
     )
     op: bpy.props.StringProperty(
         name="Operator",
+        maxlen=64,
         update=update_kmi,
     )
     op_flag: bpy.props.EnumProperty(
@@ -613,17 +667,72 @@ class VRActionSet(PropertyGroup):
         if action_set_renamed:
             self.name_prev = self.name
 
+    def update_name(self, context):
+        if self.ignore_update:
+            return
+
+        action_sets = None
+        if self.from_prefs:
+            prefs = context.preferences.addons[__name__].preferences
+            action_sets = prefs.action_sets
+        else:
+            scene = context.scene
+            action_sets = scene.vr_action_sets
+        if not action_sets:
+            return
+        
+        self.ignore_update = True # Prevent circular calling on name assignment.
+
+        # Ensure unique name.
+        idx = 1
+        name_base = self.name
+        name = self.name
+        while True:
+            exists = False
+            
+            for action_set in action_sets:
+                if (action_set.name == name) and (action_set.name_prev != self.name_prev):                   
+                    name = name_base + str(idx)
+                    if len(name) > 64:
+                        # Generate random base name.
+                        name_base = str(mathutils.noise.random())
+                        name = name_base
+                        idx = 1
+                    else:
+                        idx += 1
+                        
+                    exists = True
+                    break
+                    
+            if not exists:
+                break
+            
+        if self.name != name:
+            self.name = name
+
+        self.ignore_update = False
+    
+
+    def update_name_and_kmis(self, context):
+        if self.ignore_update:
+            return
+
+        self.update_name(context)
+        self.update_kmis(context)
+
     name: bpy.props.StringProperty(
         name="VR action set",
         description="Must not contain upper case letters or special characters other than '-', '_', or '.'",
         default="action_set",
-        update=update_kmis,
+        maxlen=64,
+        update=update_name_and_kmis,
     )
     name_prev: bpy.props.StringProperty(
-        default="action_set",
+        maxlen=64,
     )
     profile: bpy.props.StringProperty(
         name="OpenXR interaction profile path",
+        maxlen=256,
     )
     actions: CollectionProperty(
         name="Actions",
@@ -632,6 +741,9 @@ class VRActionSet(PropertyGroup):
     actions_selected: IntProperty(
         name="Selected Action",		
     )
+    from_prefs: BoolProperty(
+        # Whether this action set is a prefs (or scene) action set. 		
+    )  
     ignore_update: BoolProperty(		
         default=False
     )   
@@ -688,6 +800,7 @@ class VRActionSet(PropertyGroup):
             idx += 1
 
         self.actions_selected = o.actions_selected
+        self.from_prefs = from_prefs
 
         self.ignore_update = False
 
@@ -1129,9 +1242,13 @@ class VIEW3D_OT_vr_action_set_add(Operator):
         action_sets = scene.vr_action_sets
 
         action_sets.add()
+        idx = len(action_sets) - 1
+        action_sets[idx].from_prefs = False
+        action_sets[idx].update_name(context)
+        action_sets[idx].name_prev = action_sets[idx].name
 
         # Select newly created set.
-        scene.vr_action_sets_selected = len(action_sets) - 1
+        scene.vr_action_sets_selected = idx
 
         return {'FINISHED'}
 
@@ -1331,6 +1448,8 @@ class VIEW3D_OT_vr_action_add(Operator):
             actions.add()
             idx = len(actions) - 1
             actions[idx].from_prefs = False
+            actions[idx].update_name(context)
+            actions[idx].name_prev = actions[idx].name
 
             # Select newly created action.
             action_set.actions_selected = idx
@@ -1793,9 +1912,13 @@ class PREFERENCES_OT_vr_action_set_add(Operator):
         action_sets = prefs.action_sets
 
         action_sets.add()
+        idx = len(action_sets) - 1
+        action_sets[idx].from_prefs = True
+        action_sets[idx].update_name(context)
+        action_sets[idx].name_prev = action_sets[idx].name
 
         # Select newly created set.
-        prefs.action_sets_selected = len(action_sets) - 1
+        prefs.action_sets_selected = idx
 
         return {'FINISHED'}
 
@@ -1871,6 +1994,8 @@ class PREFERENCES_OT_vr_action_add(Operator):
             actions.add()
             idx = len(actions) - 1
             actions[idx].from_prefs = True
+            actions[idx].update_name(context)
+            actions[idx].name_prev = actions[idx].name
 
             # Select newly created action.
             action_set.actions_selected = idx
