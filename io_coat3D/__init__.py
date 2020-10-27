@@ -60,6 +60,7 @@ from bpy.props import (
         PointerProperty,
         )
 
+global_exchange_folder = ''
 foundExchangeFolder = True
 saved_exchange_folder = ''
 liveUpdate = True
@@ -503,6 +504,7 @@ class SCENE_OT_export(bpy.types.Operator):
 
     def execute(self, context):
         global foundExchangeFolder
+        global global_exchange_folder
         global run_background_update
         run_background_update = False
 
