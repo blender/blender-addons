@@ -148,8 +148,9 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
                 col.prop(sp, "time_spread")
         col.separator()
 
-        col.prop_search(sp, "sky_texture", context.scene.world.node_tree,
-                        "nodes")
+        if context.scene.world.node_tree is not None:
+            col.prop_search(sp, "sky_texture", context.scene.world.node_tree,
+                            "nodes")
 
 class SUNPOS_PT_Location(bpy.types.Panel):
     bl_space_type = "PROPERTIES"
