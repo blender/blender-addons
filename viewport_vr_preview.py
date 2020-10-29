@@ -406,7 +406,9 @@ def vr_create_actions(context: bpy.context):
     action_set = VRActionSet.get_active_action_set(context)
 
     if wm.xr_session_state and action_set and len(action_set.actions) > 0:
-        wm.xr_session_state.create_action_set(context, action_set.name)
+        ok = wm.xr_session_state.create_action_set(context, action_set.name)
+        if not ok:
+            return
         actions = action_set.actions 
 
         type = 'BUTTON'
@@ -432,22 +434,34 @@ def vr_create_actions(context: bpy.context):
             else:
                 continue
 
-            wm.xr_session_state.create_action(context, action_set.name, action.name, type,
-                                              action.user_path0, action.user_path1, action.threshold, action.op, op_flag)         
+            ok = wm.xr_session_state.create_action(context, action_set.name, action.name, type,
+                                                   action.user_path0, action.user_path1, action.threshold, action.op, op_flag)
+            if not ok:
+                return
 
             if action.type == 'POSE':
-                wm.xr_session_state.create_action_space(context, action_set.name, action.name,
-                                                        action.user_path0, action.user_path1, action.pose_location, action.pose_rotation)
+                ok = wm.xr_session_state.create_action_space(context, action_set.name, action.name,
+                                                             action.user_path0, action.user_path1,
+                                                             action.pose_location, action.pose_rotation)
+                if not ok:
+                    return
+                
                 if action.pose_is_controller:
-                    wm.xr_session_state.set_controller_pose_action(context, action_set.name, action.name)
+                    ok = wm.xr_session_state.set_controller_pose_action(context, action_set.name, action.name)
+                    if not ok:
+                        return
 
             interaction_path0 = action.user_path0 + action.component_path0
             interaction_path1 = action.user_path1 + action.component_path1
 
-            wm.xr_session_state.create_action_binding(context, action_set.name, action_set.profile, action.name,
-                                                      interaction_path0, interaction_path1)  
+            ok = wm.xr_session_state.create_action_binding(context, action_set.name, action_set.profile, action.name,
+                                                           interaction_path0, interaction_path1)
+            if not ok:
+                return
 
-        wm.xr_session_state.set_active_action_set(context, action_set.name)
+        ok = wm.xr_session_state.set_active_action_set(context, action_set.name)
+        if not ok:
+            return
 
 
 class VRAction(PropertyGroup):
@@ -489,12 +503,13 @@ class VRAction(PropertyGroup):
                     if action_set_renamed or action_renamed:
                         return
                     # Add key map item.
-                    kmi = km.keymap_items.new("", 'XR_ACTION', 'ANY')
+                    kmi = km.keymap_items.new(self.op, 'XR_ACTION', 'ANY',
+                                              xr_action_set=action_set.name, xr_action=self.name)
                     kmi.active = True
-
-                kmi.idname = self.op
-                kmi.xr_action_set = action_set.name
-                kmi.xr_action = self.name
+                else:
+                    kmi.idname = self.op
+                    kmi.xr_action_set = action_set.name
+                    kmi.xr_action = self.name
 
     def update_name(self, context):
         if self.ignore_update:
