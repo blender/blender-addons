@@ -717,7 +717,7 @@ class SCENE_OT_export(bpy.types.Operator):
         if(coat3D.type == 'autopo'):
             coat3D.bring_retopo = True
             coat3D.bring_retopo_path = checkname
-            bpy.ops.export_scene.fbx(filepath=checkname, global_scale = 0.01, use_selection=True, use_mesh_modifiers=coat3D.exportmod, axis_forward='-Z', axis_up='Y')
+            bpy.ops.export_scene.fbx(filepath=checkname, global_scale = 1, use_selection=True, use_mesh_modifiers=coat3D.exportmod, axis_forward='-Z', axis_up='Y')
 
         elif (coat3D.type == 'vox'):
             coat3D.bring_retopo = False
