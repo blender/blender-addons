@@ -1685,11 +1685,11 @@ class VIEW3D_GGT_vr_controller_poses(GizmoGroup):
         loc = None
         rot = None
         if idx == 0:
-            loc = wm.xr_session_state.controller_pose_location0
-            rot = wm.xr_session_state.controller_pose_rotation0
+            loc = wm.xr_session_state.controller_pose0_location
+            rot = wm.xr_session_state.controller_pose0_rotation
         elif idx == 1:
-            loc = wm.xr_session_state.controller_pose_location1
-            rot = wm.xr_session_state.controller_pose_rotation1
+            loc = wm.xr_session_state.controller_pose1_location
+            rot = wm.xr_session_state.controller_pose1_rotation
         else:
             return Matrix.Identity(4);
 
@@ -1720,6 +1720,7 @@ class VIEW3D_GGT_vr_controller_poses(GizmoGroup):
         for gizmo in self.gizmos:
             gizmo.matrix_basis = self._get_controller_pose_matrix(context, idx, scale)
             idx += 1
+
 
 class VIEW3D_GGT_vr_landmarks(GizmoGroup):
     bl_idname = "VIEW3D_GGT_vr_landmarks"
