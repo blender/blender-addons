@@ -1540,6 +1540,7 @@ class VIEW3D_PT_vr_viewport_feedback(Panel):
     def draw(self, context):
         layout = self.layout
         view3d = context.space_data
+        session_settings = context.window_manager.xr_session_settings
 
         col = layout.column(align=True)
         col.label(icon='ERROR', text="Note:")
@@ -1549,7 +1550,10 @@ class VIEW3D_PT_vr_viewport_feedback(Panel):
         layout.separator()
 
         layout.prop(view3d.shading, "vr_show_virtual_camera")
+        layout.prop(session_settings, "headset_object")
         layout.prop(view3d.shading, "vr_show_controllers")
+        layout.prop(session_settings, "controller0_object")
+        layout.prop(session_settings, "controller1_object")
         layout.prop(view3d.shading, "vr_show_landmarks")
         layout.prop(view3d, "mirror_xr_session")
 
