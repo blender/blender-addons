@@ -198,7 +198,7 @@ class CMPreferences(AddonPreferences):
 
     # ENABLE DISABLE OBJECTS OVERRIDE
     enable_disable_objects_override: BoolProperty(
-        name="Disable Objects Override",
+        name="Disable objects instead of Hiding",
         description=(
             "Replace the object hiding hotkeys with object disabling hotkeys and add them to the Object->Show/Hide menu.\n"
             "Disabling objects prevents them from being automatically shown again when collections are unexcluded"
