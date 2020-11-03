@@ -1539,6 +1539,7 @@ class VIEW3D_PT_vr_viewport_feedback(Panel):
 
     def draw(self, context):
         layout = self.layout
+        scene = context.scene
         view3d = context.space_data
         session_settings = context.window_manager.xr_session_settings
 
@@ -1550,10 +1551,40 @@ class VIEW3D_PT_vr_viewport_feedback(Panel):
         layout.separator()
 
         layout.prop(view3d.shading, "vr_show_virtual_camera")
-        layout.prop(session_settings, "headset_object")
+        layout.prop(scene, "vr_headset_ob_ui_expand",
+            icon="TRIA_DOWN" if scene.vr_headset_ob_ui_expand else "TRIA_RIGHT",
+            text="Headset Object", emboss=False
+        )
+        if scene.vr_headset_ob_ui_expand:
+            row = layout.row()
+            row.separator()
+            row.prop(session_settings, "headset_object", text="")
+            row.prop(session_settings, "headset_object_enable", text="Enable")
+            row.prop(session_settings, "headset_object_autokey", text="Auto Key")
+
         layout.prop(view3d.shading, "vr_show_controllers")
-        layout.prop(session_settings, "controller0_object")
-        layout.prop(session_settings, "controller1_object")
+        layout.prop(scene, "vr_controller0_ob_ui_expand",
+            icon="TRIA_DOWN" if scene.vr_controller0_ob_ui_expand else "TRIA_RIGHT",
+            text="Controller 0 Object", emboss=False
+        )
+        if scene.vr_controller0_ob_ui_expand:
+            row = layout.row()
+            row.separator()
+            row.prop(session_settings, "controller0_object", text="")
+            row.prop(session_settings, "controller0_object_enable", text="Enable")
+            row.prop(session_settings, "controller0_object_autokey", text="Auto Key")
+
+        layout.prop(scene, "vr_controller1_ob_ui_expand",
+            icon="TRIA_DOWN" if scene.vr_controller1_ob_ui_expand else "TRIA_RIGHT",
+            text="Controller 1 Object", emboss=False
+        )
+        if scene.vr_controller1_ob_ui_expand:
+            row = layout.row()
+            row.separator()
+            row.prop(session_settings, "controller1_object", text="")
+            row.prop(session_settings, "controller1_object_enable", text="Enable")
+            row.prop(session_settings, "controller1_object_autokey", text="Auto Key")
+
         layout.prop(view3d.shading, "vr_show_landmarks")
         layout.prop(view3d, "mirror_xr_session")
 
@@ -2181,6 +2212,18 @@ def register():
     bpy.types.View3DShading.vr_show_landmarks = BoolProperty(
         name="Show Landmarks"
     )
+    bpy.types.Scene.vr_headset_ob_ui_expand = BoolProperty(
+        name="",
+        default=False,
+    )
+    bpy.types.Scene.vr_controller0_ob_ui_expand = BoolProperty(
+        name="",
+        default=False,
+    )
+    bpy.types.Scene.vr_controller1_ob_ui_expand = BoolProperty(
+        name="",
+        default=False,
+    )
 
     bpy.app.handlers.load_post.append(vr_ensure_default_landmark)
     bpy.app.handlers.load_post.append(vr_load_action_properties)
@@ -2216,6 +2259,9 @@ def unregister():
     del bpy.types.View3DShading.vr_show_virtual_camera
     del bpy.types.View3DShading.vr_show_controllers
     del bpy.types.View3DShading.vr_show_landmarks
+    del bpy.types.Scene.vr_headset_ob_ui_expand
+    del bpy.types.Scene.vr_controller0_ob_ui_expand
+    del bpy.types.Scene.vr_controller1_ob_ui_expand
 
     bpy.app.handlers.load_post.remove(vr_ensure_default_landmark)
     bpy.app.handlers.load_post.remove(vr_load_action_properties)
