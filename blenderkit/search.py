@@ -140,7 +140,6 @@ def update_assets_data():  # updates assets data on scene load.
         for bkdict in dicts:
 
             d = s.get(bkdict)
-            print(d)
             if not d:
                 continue;
 
