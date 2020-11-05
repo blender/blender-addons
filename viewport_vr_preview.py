@@ -183,18 +183,18 @@ def xr_landmark_active_type_update(self, context):
     # Update session's base pose type to the matching type.
     if landmark_active.type == 'SCENE_CAMERA':
         session_settings.base_pose_type = 'SCENE_CAMERA'
-    elif landmark_active.type == 'USER_CAMERA':
+    elif landmark_active.type == 'OBJECT':
         session_settings.base_pose_type = 'OBJECT'
     elif landmark_active.type == 'CUSTOM':
         session_settings.base_pose_type = 'CUSTOM'
 
 
-def xr_landmark_active_camera_update(self, context):
+def xr_landmark_active_base_pose_object_update(self, context):
     session_settings = context.window_manager.xr_session_settings
     landmark_active = VRLandmark.get_active_landmark(context)
 
     # Update the anchor object to the (new) camera of this landmark.
-    session_settings.base_pose_object = landmark_active.base_pose_camera
+    session_settings.base_pose_object = landmark_active.base_pose_object
 
 
 def xr_landmark_active_base_pose_location_update(self, context):
@@ -221,14 +221,14 @@ def xr_landmark_type_update(self, context):
         xr_landmark_active_type_update(self, context)
 
 
-def xr_landmark_camera_update(self, context):
+def xr_landmark_base_pose_object_update(self, context):
     landmark_selected = VRLandmark.get_selected_landmark(context)
     landmark_active = VRLandmark.get_active_landmark(context)
 
     # Only update session settings data if the changed landmark is actually
     # the active one.
     if landmark_active == landmark_selected:
-        xr_landmark_active_camera_update(self, context)
+        xr_landmark_active_base_pose_object_update(self, context)
 
 
 def xr_landmark_base_pose_location_update(self, context):
@@ -251,15 +251,11 @@ def xr_landmark_base_pose_angle_update(self, context):
         xr_landmark_active_base_pose_angle_update(self, context)
 
 
-def xr_landmark_camera_object_poll(self, object):
-    return object.type == 'CAMERA'
-
-
 def xr_landmark_active_update(self, context):
     wm = context.window_manager
 
     xr_landmark_active_type_update(self, context)
-    xr_landmark_active_camera_update(self, context)
+    xr_landmark_active_base_pose_object_update(self, context)
     xr_landmark_active_base_pose_location_update(self, context)
     xr_landmark_active_base_pose_angle_update(self, context)
 
@@ -292,8 +288,8 @@ class VRLandmark(PropertyGroup):
             ('SCENE_CAMERA', "Scene Camera",
              "Use scene's currently active camera to define the VR view base "
              "location and rotation"),
-            ('USER_CAMERA', "Custom Camera",
-             "Use an existing camera to define the VR view base location and "
+            ('OBJECT', "Custom Object",
+             "Use an existing object to define the VR view base location and "
              "rotation"),
             ('CUSTOM', "Custom Pose",
              "Allow a manually defined position and rotation to be used as "
@@ -302,18 +298,16 @@ class VRLandmark(PropertyGroup):
         default='SCENE_CAMERA',
         update=xr_landmark_type_update,
     )
-    base_pose_camera: bpy.props.PointerProperty(
-        name="Camera",
+    base_pose_object: bpy.props.PointerProperty(
+        name="Object",
         type=bpy.types.Object,
-        poll=xr_landmark_camera_object_poll,
-        update=xr_landmark_camera_update,
+        update=xr_landmark_base_pose_object_update,
     )
     base_pose_location: bpy.props.FloatVectorProperty(
         name="Base Pose Location",
         subtype='TRANSLATION',
         update=xr_landmark_base_pose_location_update,
     )
-
     base_pose_angle: bpy.props.FloatProperty(
         name="Base Pose Angle",
         subtype='ANGLE',
@@ -389,8 +383,8 @@ class VIEW3D_PT_vr_landmarks(Panel):
         if landmark_selected:
             layout.prop(landmark_selected, "type")
 
-            if landmark_selected.type == 'USER_CAMERA':
-                layout.prop(landmark_selected, "base_pose_camera")
+            if landmark_selected.type == 'OBJECT':
+                layout.prop(landmark_selected, "base_pose_object")
             elif landmark_selected.type == 'CUSTOM':
                 layout.prop(landmark_selected,
                             "base_pose_location", text="Location")
@@ -1005,6 +999,7 @@ class VIEW3D_PT_vr_session(Panel):
         layout.separator()
 
         layout.prop(session_settings, "use_positional_tracking")
+        layout.prop(session_settings, "use_absolute_tracking")
 
 
 class VIEW3D_PT_vr_info(bpy.types.Panel):
@@ -1060,8 +1055,8 @@ class VIEW3D_OT_vr_landmark_from_camera(Operator):
         landmarks = scene.vr_landmarks
         cam = context.view_layer.objects.active
         lm = landmarks.add()
-        lm.type = 'USER_CAMERA'
-        lm.base_pose_camera = cam
+        lm.type = 'OBJECT'
+        lm.base_pose_object = cam
         lm.name = "LM_" + cam.name
 
         # select newly created set
@@ -1156,8 +1151,8 @@ class VIEW3D_OT_cursor_to_vr_landmark(Operator):
         lm = VRLandmark.get_selected_landmark(context)
         if lm.type == 'SCENE_CAMERA':
             return context.scene.camera is not None
-        elif lm.type == 'USER_CAMERA':
-            return lm.base_pose_camera is not None
+        elif lm.type == 'OBJECT':
+            return lm.base_pose_object is not None
 
         return True
 
@@ -1166,8 +1161,8 @@ class VIEW3D_OT_cursor_to_vr_landmark(Operator):
         lm = VRLandmark.get_selected_landmark(context)
         if lm.type == 'SCENE_CAMERA':
             lm_pos = scene.camera.location
-        elif lm.type == 'USER_CAMERA':
-            lm_pos = lm.base_pose_camera.location
+        elif lm.type == 'OBJECT':
+            lm_pos = lm.base_pose_object.location
         else:
             lm_pos = lm.base_pose_location
         scene.cursor.location = lm_pos
@@ -1782,7 +1777,7 @@ class VIEW3D_GGT_vr_landmarks(GizmoGroup):
 
         for lm in landmarks:
             if ((lm.type == 'SCENE_CAMERA' and not scene.camera) or
-                    (lm.type == 'USER_CAMERA' and not lm.base_pose_camera)):
+                    (lm.type == 'OBJECT' and not lm.base_pose_object)):
                 continue
 
             gizmo = self.gizmos.new(VIEW3D_GT_vr_camera_cone.bl_idname)
@@ -1796,8 +1791,8 @@ class VIEW3D_GGT_vr_landmarks(GizmoGroup):
             if lm.type == 'SCENE_CAMERA':
                 cam = scene.camera
                 lm_mat = cam.matrix_world if cam else Matrix.Identity(4)
-            elif lm.type == 'USER_CAMERA':
-                lm_mat = lm.base_pose_camera.matrix_world
+            elif lm.type == 'OBJECT':
+                lm_mat = lm.base_pose_object.matrix_world
             else:
                 angle = lm.base_pose_angle
                 raw_rot = Euler((radians(90.0), 0, angle))
