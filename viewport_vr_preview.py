@@ -1365,7 +1365,8 @@ class VIEW3D_OT_vr_action_sets_load_from_prefs(Operator):
                 scene_action_sets[idx].copy_from(action_set, False)
 
         if (idx != idx_prev):
-            scene.vr_action_sets_selected = idx
+            # Select first newly-added action set.
+            scene.vr_action_sets_selected = idx_prev + 1
 
         return {'FINISHED'}
 
