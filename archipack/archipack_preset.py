@@ -211,10 +211,13 @@ class PresetMenu():
             'LEFT_ARROW', 'RIGHT_ARROW'
             }
 
-    def __init__(self, context, category, thumbsize=Vector((150, 100))):
+    def __init__(self, context, category):
+    
+        # get thumbsize from preferences
+        prefs = context.preferences.addons[__name__.split('.')[0]].preferences
+        self.thumbsize=Vector((prefs.thumb_size_x, prefs.thumb_size_y))
         self.imageList = []
         self.menuItems = []
-        self.thumbsize = thumbsize
         file_list = self.scan_files(category)
         self.default_image = None
         self.load_default_image()

@@ -180,6 +180,19 @@ class Archipack_Pref(AddonPreferences):
         size=4,
         min=0, max=1
     )
+    # Thumbnail preview size
+    thumb_size_x: IntProperty(
+        name="Thumbnail width",
+        description="Thumbnail width (pixels)",
+        min=24,
+        default=150
+    )
+    thumb_size_y: IntProperty(
+        name="Thumbnail height",
+        description="Thumbnail height (pixels)",
+        min=24,
+        default=100
+    )
     matlib_path : StringProperty(
             name="Folder path",
             description="absolute path to material library folder",
@@ -299,6 +312,9 @@ class Archipack_Pref(AddonPreferences):
         col.prop(self, "handle_size")
         col.prop(self, "text_size")
         col.prop(self, "constant_handle_size")
+        col.label(text="Thumbnails:")
+        col.prop(self, "thumb_size_x")
+        col.prop(self, "thumb_size_y")
 
 # ----------------------------------------------------
 # Archipack panel
