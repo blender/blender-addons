@@ -429,6 +429,13 @@ class Generator(base_generate.BaseGenerator):
         t.tick("Configure bones: ")
 
         #------------------------------------------
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        self.invoke_preapply_bones()
+
+        t.tick("Preapply bones: ")
+
+        #------------------------------------------
         bpy.ops.object.mode_set(mode='EDIT')
 
         self.invoke_apply_bones()
