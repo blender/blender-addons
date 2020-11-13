@@ -1701,7 +1701,8 @@ class VIEW3D_GGT_vr_controller_poses(GizmoGroup):
         view3d = context.space_data
         return (
             view3d.shading.vr_show_controllers and
-            bpy.types.XrSessionState.is_running(context)
+            bpy.types.XrSessionState.is_running(context) and
+            not view3d.mirror_xr_session
         )
 
     @staticmethod
