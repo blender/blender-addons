@@ -73,7 +73,7 @@ def vr_load_action_properties(context: bpy.context):
     
     for action_set in bpy.context.scene.vr_action_sets:
         for action in action_set.actions:
-            if (action.type != 'BUTTON') or not action.op:
+            if (action.type != 'BUTTON' and action.type != 'AXIS') or not action.op:
                 continue
 
             kmi_addon = km_addon.keymap_items.from_xr(action_set.name, action.name)
@@ -405,31 +405,12 @@ def vr_create_actions(context: bpy.context):
             return
         actions = action_set.actions 
 
-        type = 'BUTTON'
-        op_flag = 'PRESS'
         interaction_path0 = ""
         interaction_path1 = ""
 
         for action in actions:
-            if action.type == 'BUTTON':
-                type = 'BUTTON'		
-                if action.op_flag == 'PRESS':	
-                    op_flag = 'PRESS'
-                elif action.op_flag == 'RELEASE':	
-                    op_flag = 'RELEASE'
-                elif action.op_flag == 'MODAL':
-                    op_flag = 'MODAL'
-                else:
-                    continue
-            elif action.type == 'POSE':
-                type = 'POSE'					
-            elif action.type == 'HAPTIC':
-                type = 'HAPTIC'
-            else:
-                continue
-
-            ok = wm.xr_session_state.create_action(context, action_set.name, action.name, type,
-                                                   action.user_path0, action.user_path1, action.threshold, action.op, op_flag)
+            ok = wm.xr_session_state.create_action(context, action_set.name, action.name, action.type,
+                                                   action.user_path0, action.user_path1, action.threshold, action.op, action.op_flag)
             if not ok:
                 return
 
@@ -487,7 +468,7 @@ class VRAction(PropertyGroup):
             if km:
                 kmi = km.keymap_items.from_xr(action_set_name, action_name)
 
-                if (self.type != 'BUTTON') or not self.op:
+                if (self.type != 'BUTTON' and self.type != 'AXIS') or not self.op:
                     if kmi:
                         # Remove any existing key map item.
                         km.keymap_items.remove(kmi)
@@ -566,7 +547,8 @@ class VRAction(PropertyGroup):
         name="Action Type",
         items=[
             ('BUTTON', "Button", "Button input"),
-            ('POSE', "Pose", "Pose input"),
+            ('AXIS', "Axis", "2D axis input"),
+            ('POSE', "Pose", "3D pose input"),
             ('HAPTIC', "Haptic", "Haptic output"),
         ],
         default='BUTTON',
@@ -923,7 +905,7 @@ class VIEW3D_PT_vr_actions(Panel):
                 col1.prop(action_selected, "user_path1", text="User Path 1")
                 col1.prop(action_selected, "component_path1", text="Component Path 1")
 
-                if action_selected.type == 'BUTTON':
+                if action_selected.type == 'BUTTON' or action_selected.type == 'AXIS':
                     col1.prop(action_selected, "threshold", text="Threshold")
                     col1.prop(action_selected, "op", text="Operator")
                     col1.prop(action_selected, "op_flag", text="Operator Flag")
@@ -1353,7 +1335,7 @@ class VIEW3D_OT_vr_action_sets_load_from_prefs(Operator):
                 # Update key map.
                 if scene_km and prefs_km:
                     for action in action_set.actions:
-                        if (action.type != 'BUTTON') or not action.op:
+                        if (action.type != 'BUTTON' and action.type != 'AXIS') or not action.op:
                             continue
                         prefs_kmi = prefs_km.keymap_items.from_xr(action_set.name, action.name)
                         if prefs_kmi:
@@ -1400,7 +1382,7 @@ class VIEW3D_OT_vr_action_set_save_to_prefs(Operator):
         prefs_km = vr_get_keymap(context, True)		
         if scene_km and prefs_km:
             for action in scene_action_set.actions:
-                if (action.type != 'BUTTON') or not action.op:
+                if (action.type != 'BUTTON' and action.type != 'AXIS') or not action.op:
                     continue
                 scene_kmi = scene_km.keymap_items.from_xr(scene_action_set.name, action.name)
                 if scene_kmi:
@@ -1926,7 +1908,7 @@ class PREFERENCES_PT_vr_actions(Panel):
                 col1.prop(action_selected, "user_path1", text="User Path 1")
                 col1.prop(action_selected, "component_path1", text="Component Path 1")
 
-                if action_selected.type == 'BUTTON':
+                if action_selected.type == 'BUTTON' or action_selected.type == 'AXIS':
                     col1.prop(action_selected, "threshold", text="Threshold")
                     col1.prop(action_selected, "op", text="Operator")
                     col1.prop(action_selected, "op_flag", text="Operator Flag")
