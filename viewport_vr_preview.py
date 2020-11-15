@@ -397,46 +397,58 @@ def vr_create_actions(context: bpy.context):
     # Create all vr action sets and actions.
     context = bpy.context
     wm = context.window_manager
-    action_set = VRActionSet.get_active_action_set(context)
+    scene = context.scene
+    action_sets = scene.vr_action_sets
 
-    if wm.xr_session_state and action_set and len(action_set.actions) > 0:
-        ok = wm.xr_session_state.create_action_set(context, action_set.name)
-        if not ok:
-            return
-        actions = action_set.actions 
-
-        interaction_path0 = ""
-        interaction_path1 = ""
-
-        for action in actions:
-            ok = wm.xr_session_state.create_action(context, action_set.name, action.name, action.type,
-                                                   action.user_path0, action.user_path1, action.threshold, action.op, action.op_flag)
-            if not ok:
-                return
-
-            if action.type == 'POSE':
-                ok = wm.xr_session_state.create_action_space(context, action_set.name, action.name,
-                                                             action.user_path0, action.user_path1,
-                                                             action.pose_location, action.pose_rotation)
+    if wm.xr_session_state and action_sets:
+        for action_set in action_sets:    
+            if len(action_set.actions) > 0:
+                ok = wm.xr_session_state.create_action_set(context, action_set.name)
                 if not ok:
                     return
-                
-                if action.pose_is_controller:
-                    ok = wm.xr_session_state.set_controller_pose_action(context, action_set.name, action.name)
+                actions = action_set.actions 
+
+                interaction_path0 = ""
+                interaction_path1 = ""
+
+                for action in actions:
+                    ok = wm.xr_session_state.create_action(context, action_set.name, action.name, action.type,
+                                                           action.user_path0, action.user_path1, action.threshold, action.op, action.op_flag)
                     if not ok:
                         return
 
-            interaction_path0 = action.user_path0 + action.component_path0
-            interaction_path1 = action.user_path1 + action.component_path1
+                    if action.type == 'POSE':
+                        ok = wm.xr_session_state.create_action_space(context, action_set.name, action.name,
+                                                                     action.user_path0, action.user_path1,
+                                                                     action.pose_location, action.pose_rotation)
+                        if not ok:
+                            return
+                        
+                        if action.pose_is_controller:
+                            ok = wm.xr_session_state.set_controller_pose_action(context, action_set.name, action.name)
+                            if not ok:
+                                return
 
-            ok = wm.xr_session_state.create_action_binding(context, action_set.name, action_set.profile, action.name,
-                                                           interaction_path0, interaction_path1)
-            if not ok:
-                return
+                    interaction_path0 = action.user_path0 + action.component_path0
+                    interaction_path1 = action.user_path1 + action.component_path1
 
-        ok = wm.xr_session_state.set_active_action_set(context, action_set.name)
-        if not ok:
-            return
+                    ok = wm.xr_session_state.create_action_binding(context, action_set.name, action_set.profile, action.name,
+                                                                   interaction_path0, interaction_path1)
+                    if not ok:
+                        return
+
+        # Set active action set.
+        active_action_set = action_sets[scene.vr_action_sets_active]
+        if active_action_set and len(active_action_set.actions) > 0:                        
+            wm.xr_session_state.set_active_action_set(context, active_action_set.name)
+
+
+def xr_action_set_active_update(self, context):
+    wm = context.window_manager
+    if wm.xr_session_state:
+        action_set = VRActionSet.get_active_action_set(context)
+        if action_set:
+            wm.xr_session_state.set_active_action_set(context, action_set.name)
 
 
 class VRAction(PropertyGroup):
@@ -2179,7 +2191,7 @@ def register():
     )	
     bpy.types.Scene.vr_action_sets_active = IntProperty(
         default=0,
-        #update=xr_action_set_active_update,
+        update=xr_action_set_active_update,
     )
     # View3DShading is the only per 3D-View struct with custom property
     # support, so "abusing" that to get a per 3D-View option.
