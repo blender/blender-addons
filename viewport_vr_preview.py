@@ -1153,7 +1153,7 @@ class VIEW3D_OT_cursor_to_vr_landmark(Operator):
         return{'FINISHED'}
 
 
-class VIEW3d_OT_add_camera_from_vr_landmark(Operator):
+class VIEW3D_OT_add_camera_from_vr_landmark(Operator):
     bl_idname = "view3d.add_camera_from_vr_landmark"
     bl_label = "New Camera from VR Landmark"
     bl_description = "Create a new Camera from the selected VR Landmark"
@@ -2107,7 +2107,7 @@ classes = (
     VIEW3D_OT_vr_landmark_remove,
     VIEW3D_OT_vr_landmark_activate,
     VIEW3D_OT_vr_landmark_from_session,
-    VIEW3d_OT_add_camera_from_vr_landmark,
+    VIEW3D_OT_add_camera_from_vr_landmark,
     VIEW3D_OT_camera_to_vr_landmark,
     VIEW3D_OT_vr_landmark_from_camera,
     VIEW3D_OT_cursor_to_vr_landmark,
