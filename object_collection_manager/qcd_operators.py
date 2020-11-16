@@ -563,7 +563,7 @@ class ViewMoveQCDSlot(Operator):
 
     @classmethod
     def description(cls, context, properties):
-        slot_name = qcd_slots.get_name(properties.slot)
+        slot_name = internals.qcd_slots.get_name(properties.slot)
         slot_string = f"QCD Slot {properties.slot}: \"{slot_name}\"\n"
         selection_hotkeys = ""
 
