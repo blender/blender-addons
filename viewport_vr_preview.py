@@ -546,7 +546,7 @@ class VRAction(PropertyGroup):
         self.update_kmi(context)
 
     name: bpy.props.StringProperty(
-        name="VR action",
+        name="VR Action",
         description= "Must not contain upper case letters or special characters other than '-', '_', or '.'",
         default="action",
         maxlen=64,
@@ -567,23 +567,23 @@ class VRAction(PropertyGroup):
         update=update_kmi,
     )
     user_path0: bpy.props.StringProperty(
-        name="OpenXR user path",
+        name="OpenXR User Path",
         maxlen=64,
     )
     component_path0: bpy.props.StringProperty(
-        name="OpenXR component path",
+        name="OpenXR Component Path",
         maxlen=192,
     )
     user_path1: bpy.props.StringProperty(
-        name="OpenXR user path",
+        name="OpenXR User Path",
         maxlen=64,
     )
     component_path1: bpy.props.StringProperty(
-        name="OpenXR component path",
+        name="OpenXR Component Path",
         maxlen=192,
     )
     threshold: bpy.props.FloatProperty(
-        name="Input threshold",
+        name="Input Threshold",
         default=0.3,
         min=0.0,
         max=1.0,
@@ -609,24 +609,26 @@ class VRAction(PropertyGroup):
         default='PRESS',
     )
     pose_is_controller: bpy.props.BoolProperty(
-        name="Pose will be used for the VR controllers",
+        name="Is Controller",
+        description="Pose will be used for the VR controllers",
     )	
     pose_location: bpy.props.FloatVectorProperty(
-        name="Pose location offset",
+        name="Pose Location Offset",
         subtype='TRANSLATION',
     )
     pose_rotation: bpy.props.FloatVectorProperty(
-        name="Pose rotation offset",
+        name="Pose Rotation Offset",
         subtype='EULER',
     )
     haptic_duration: bpy.props.FloatProperty(
-        name="Haptic duration in seconds",
+        name="Haptic Duration",
+        description="Haptic duration in seconds",
     )
     haptic_frequency: bpy.props.FloatProperty(
-        name="Haptic frequency",
+        name="Haptic Frequency",
     )
     haptic_amplitude: bpy.props.FloatProperty(
-        name="Haptic amplitude",
+        name="Haptic Amplitude",
     )
     from_prefs: BoolProperty(
         # Whether this action is a prefs (or scene) action. 		
@@ -724,7 +726,7 @@ class VRActionSet(PropertyGroup):
         self.update_kmis(context)
 
     name: bpy.props.StringProperty(
-        name="VR action set",
+        name="VR Action Set",
         description="Must not contain upper case letters or special characters other than '-', '_', or '.'",
         default="action_set",
         maxlen=64,
@@ -734,7 +736,7 @@ class VRActionSet(PropertyGroup):
         maxlen=64,
     )
     profile: bpy.props.StringProperty(
-        name="OpenXR interaction profile path",
+        name="OpenXR Interaction Profile Path",
         maxlen=256,
     )
     actions: CollectionProperty(
@@ -930,7 +932,7 @@ class VIEW3D_PT_vr_actions(Panel):
                             if kmi:
                                 km = km.active()
                                 col1.context_pointer_set("keymap", km)
-                                vr_draw_kmi([], kc, km, kmi, col1, 0)
+                                vr_draw_kmi([], kc, km, kmi, col1, 1)
                 elif action_selected.type == 'POSE':
                     col1.prop(action_selected, "pose_is_controller", text="Use for Controller Poses")
                     col1.prop(action_selected, "pose_location", text="Location Offset")
@@ -1062,7 +1064,7 @@ class VIEW3D_OT_vr_landmark_from_camera(Operator):
 
 class VIEW3D_OT_vr_landmark_from_session(Operator):
     bl_idname = "view3d.vr_landmark_from_session"
-    bl_label = "Add VR Landmark from session"
+    bl_label = "Add VR Landmark from Session"
     bl_description = "Add VR landmark from the viewer pose of the running VR session to the list and select it"
     bl_options = {'UNDO', 'REGISTER'}
 
@@ -1542,10 +1544,13 @@ class VIEW3D_PT_vr_viewport_feedback(Panel):
         layout.separator()
 
         layout.prop(view3d.shading, "vr_show_virtual_camera")
-        layout.prop(scene, "vr_headset_ob_ui_expand",
-            icon="TRIA_DOWN" if scene.vr_headset_ob_ui_expand else "TRIA_RIGHT",
-            text="Headset Object", emboss=False
+
+        row = layout.row()
+        row.prop(scene, "vr_headset_ob_ui_expand",
+            icon="DISCLOSURE_TRI_DOWN" if scene.vr_headset_ob_ui_expand else "DISCLOSURE_TRI_RIGHT",
+            text="", emboss=False
         )
+        row.label(text="Headset Object")
         if scene.vr_headset_ob_ui_expand:
             row = layout.row()
             row.separator()
@@ -1554,10 +1559,13 @@ class VIEW3D_PT_vr_viewport_feedback(Panel):
             row.prop(session_settings, "headset_object_autokey", text="Auto Key")
 
         layout.prop(view3d.shading, "vr_show_controllers")
-        layout.prop(scene, "vr_controller0_ob_ui_expand",
-            icon="TRIA_DOWN" if scene.vr_controller0_ob_ui_expand else "TRIA_RIGHT",
-            text="Controller 0 Object", emboss=False
+
+        row = layout.row()
+        row.prop(scene, "vr_controller0_ob_ui_expand",
+            icon="DISCLOSURE_TRI_DOWN" if scene.vr_controller0_ob_ui_expand else "DISCLOSURE_TRI_RIGHT",
+            text="", emboss=False
         )
+        row.label(text="Controller 0 Object")
         if scene.vr_controller0_ob_ui_expand:
             row = layout.row()
             row.separator()
@@ -1565,10 +1573,12 @@ class VIEW3D_PT_vr_viewport_feedback(Panel):
             row.prop(session_settings, "controller0_object_enable", text="Enable")
             row.prop(session_settings, "controller0_object_autokey", text="Auto Key")
 
-        layout.prop(scene, "vr_controller1_ob_ui_expand",
-            icon="TRIA_DOWN" if scene.vr_controller1_ob_ui_expand else "TRIA_RIGHT",
-            text="Controller 1 Object", emboss=False
+        row = layout.row()
+        row.prop(scene, "vr_controller1_ob_ui_expand",
+            icon="DISCLOSURE_TRI_DOWN" if scene.vr_controller1_ob_ui_expand else "DISCLOSURE_TRI_RIGHT",
+            text="", emboss=False
         )
+        row.label(text="Controller 1 Object")
         if scene.vr_controller1_ob_ui_expand:
             row = layout.row()
             row.separator()
@@ -1933,7 +1943,7 @@ class PREFERENCES_PT_vr_actions(Panel):
                             if kmi:
                                 km = km.active()
                                 col1.context_pointer_set("keymap", km)
-                                vr_draw_kmi([], kc, km, kmi, col1, 0)
+                                vr_draw_kmi([], kc, km, kmi, col1, 1)
                 elif action_selected.type == 'POSE':
                     col1.prop(action_selected, "pose_is_controller", text="Use for Controller Poses")
                     col1.prop(action_selected, "pose_location", text="Location Offset")
