@@ -1372,7 +1372,11 @@ class VIEW3D_OT_vr_action_set_save_to_prefs(Operator):
     bl_idname = "view3d.vr_action_set_save_to_prefs"
     bl_label = "Save to Preferences"
     bl_description = "Save selected VR action set to user preferences"
-    bl_options = {'UNDO', 'REGISTER'}
+    bl_options = {'INTERNAL', 'REGISTER'}
+
+    idx_existing: IntProperty(
+        default = -1
+    )
 
     def execute(self, context):
         scene = context.scene
@@ -1383,10 +1387,22 @@ class VIEW3D_OT_vr_action_set_save_to_prefs(Operator):
             return {'CANCELLED'}
         prefs_action_sets = prefs.action_sets
 
-        # Check if action set with same name already exists.
-        for action_set in prefs_action_sets:
-            if (action_set.name == scene_action_set.name):
-                return {'CANCELLED'}
+        if (self.idx_existing >= 0):
+            # Remove existing action set.
+            action_set = prefs_action_sets[self.idx_existing]
+
+            # Remove key map items.
+            km = vr_get_keymap(context, True)
+            if km:
+                for action in action_set.actions:
+                    kmi = km.keymap_items.from_xr(action_set.name, action.name)
+                    if kmi:
+                        km.keymap_items.remove(kmi)
+
+            prefs_action_sets.remove(self.idx_existing)
+
+            if self.idx_existing >= prefs.action_sets_selected:
+                prefs.action_sets_selected -= 1
 
         prefs_action_sets.add()
         idx = len(prefs_action_sets) - 1
@@ -1410,7 +1426,37 @@ class VIEW3D_OT_vr_action_set_save_to_prefs(Operator):
 
         prefs.action_sets_selected = idx
 
+        # Save preferences.
+        bpy.ops.wm.save_userpref()
+
+        self.report({'INFO'}, "Saved action set \"" + scene_action_set.name + "\" to user preferences")
+
         return {'FINISHED'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self, context, event):
+        scene = context.scene
+        prefs = context.preferences.addons[__name__].preferences
+
+        scene_action_set = VRActionSet.get_selected_action_set(context, False)
+        if not scene_action_set:
+            return {'CANCELLED'}
+        prefs_action_sets = prefs.action_sets
+
+        # Check if action set with same name already exists.
+        for idx in range(len(prefs_action_sets)):
+            if (prefs_action_sets[idx].name == scene_action_set.name):
+                self.idx_existing = idx
+                return context.window_manager.invoke_props_dialog(self)
+
+        self.idx_existing = -1
+        return self.execute(context)
+
+    def draw(self, context):
+        self.layout.label(text="Overwrite existing action set?")
 
 
 class VIEW3D_OT_vr_action_sets_clear(Operator):
