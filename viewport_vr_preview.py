@@ -836,6 +836,7 @@ class VIEW3D_MT_vr_action_set_menu(Menu):
 
         layout.operator("view3d.vr_action_sets_load_from_prefs")
         layout.operator("view3d.vr_action_set_save_to_prefs")
+        layout.operator("view3d.vr_action_set_copy")
         layout.operator("view3d.vr_action_sets_clear")
 
 
@@ -1294,7 +1295,7 @@ class VIEW3D_OT_vr_action_set_remove(Operator):
 class VIEW3D_OT_vr_action_set_activate(Operator):
     bl_idname = "view3d.vr_action_set_activate"
     bl_label = "Activate VR Action Set"
-    bl_description = "Set the VR action set to use for the session"
+    bl_description = "Set the current VR action set for the session"
     bl_options = {'UNDO', 'REGISTER'}
 
     index: IntProperty(
@@ -1457,6 +1458,52 @@ class VIEW3D_OT_vr_action_set_save_to_prefs(Operator):
 
     def draw(self, context):
         self.layout.label(text="Overwrite existing action set?")
+
+
+class VIEW3D_OT_vr_action_set_copy(Operator):
+    bl_idname = "view3d.vr_action_set_copy"
+    bl_label = "Copy VR Action Set"
+    bl_description = "Copy selected VR action set"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        scene = context.scene
+        action_sets = scene.vr_action_sets
+        idx_selected = scene.vr_action_sets_selected
+
+        if idx_selected < 0 or idx_selected >= len(action_sets): 
+            return {'CANCELLED'}
+
+        action_sets.add()
+        idx = len(action_sets) - 1
+
+        action_set_selected = action_sets[idx_selected]
+        action_sets[idx].copy_from(action_set_selected, False)
+
+        # Update name.
+        action_sets[idx].name_prev = ""
+        action_sets[idx].update_name(context)
+        action_set_name = action_sets[idx].name
+        action_sets[idx].name_prev = action_set_name
+
+        # Update key map.
+        km = vr_get_keymap(context, False)
+        if km:
+            for action in action_set_selected.actions:
+                if (action.type != 'BUTTON' and action.type != 'AXIS') or not action.op:
+                    continue
+                kmi_selected = km.keymap_items.from_xr(action_set_selected.name, action.name)
+                if kmi_selected:
+                    kmi = km.keymap_items.new_from_item(kmi_selected)
+                    kmi.active = True
+                    kmi.idname = action.op
+                    kmi.xr_action_set = action_set_name
+                    kmi.xr_action = action.name
+
+        # Select newly created set.
+        scene.vr_action_sets_selected = idx
+
+        return {'FINISHED'}
 
 
 class VIEW3D_OT_vr_action_sets_clear(Operator):
@@ -1891,6 +1938,7 @@ class PREFERENCES_MT_vr_action_set_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
+        layout.operator("preferences.vr_action_set_copy")
         layout.operator("preferences.vr_action_sets_clear")
 
 
@@ -2050,6 +2098,52 @@ class PREFERENCES_OT_vr_action_set_remove(Operator):
         return {'FINISHED'}
 
 
+class PREFERENCES_OT_vr_action_set_copy(Operator):
+    bl_idname = "preferences.vr_action_set_copy"
+    bl_label = "Copy VR Action Set"
+    bl_description = "Copy selected VR action set"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        prefs = context.preferences.addons[__name__].preferences
+        action_sets = prefs.action_sets
+        idx_selected = prefs.action_sets_selected
+
+        if idx_selected < 0 or idx_selected >= len(action_sets): 
+            return {'CANCELLED'}
+
+        action_sets.add()
+        idx = len(action_sets) - 1
+
+        action_set_selected = action_sets[idx_selected]
+        action_sets[idx].copy_from(action_set_selected, True)
+
+        # Update name.
+        action_sets[idx].name_prev = ""
+        action_sets[idx].update_name(context)
+        action_set_name = action_sets[idx].name
+        action_sets[idx].name_prev = action_set_name
+
+        # Update key map.
+        km = vr_get_keymap(context, True)
+        if km:
+            for action in action_set_selected.actions:
+                if (action.type != 'BUTTON' and action.type != 'AXIS') or not action.op:
+                    continue
+                kmi_selected = km.keymap_items.from_xr(action_set_selected.name, action.name)
+                if kmi_selected:
+                    kmi = km.keymap_items.new_from_item(kmi_selected)
+                    kmi.active = True
+                    kmi.idname = action.op
+                    kmi.xr_action_set = action_set_name
+                    kmi.xr_action = action.name
+
+        # Select newly created set.
+        prefs.action_sets_selected = idx
+
+        return {'FINISHED'}
+
+
 class PREFERENCES_OT_vr_action_sets_clear(Operator):
     bl_idname = "preferences.vr_action_sets_clear"
     bl_label = "Clear VR Action Sets"
@@ -2193,6 +2287,7 @@ classes = (
     VIEW3D_OT_vr_action_set_activate,
     VIEW3D_OT_vr_action_sets_load_from_prefs,
     VIEW3D_OT_vr_action_set_save_to_prefs,
+    VIEW3D_OT_vr_action_set_copy,
     VIEW3D_OT_vr_action_sets_clear,
     VIEW3D_OT_vr_action_add,
     VIEW3D_OT_vr_action_remove,
@@ -2213,6 +2308,7 @@ classes = (
 
     PREFERENCES_OT_vr_action_set_add,
     PREFERENCES_OT_vr_action_set_remove,
+    PREFERENCES_OT_vr_action_set_copy,
     PREFERENCES_OT_vr_action_sets_clear,
     PREFERENCES_OT_vr_action_add,
     PREFERENCES_OT_vr_action_remove,
