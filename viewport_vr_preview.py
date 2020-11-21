@@ -1523,6 +1523,48 @@ class VIEW3D_OT_vr_actions_clear(Operator):
         return {'FINISHED'}
 
 
+class VIEW3D_PT_vr_motion_capture(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "VR"
+    bl_label = "Motion Capture"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        view3d = context.space_data
+        session_settings = context.window_manager.xr_session_settings
+
+        col = layout.column(align=True)
+        col.label(icon='ERROR', text="Note:")
+        col.label(text="Settings here may have a significant")
+        col.label(text="performance impact!")
+
+        layout.separator()
+
+        row = layout.row()
+        row.label(text="Headset")
+        col = row.column()
+        col.prop(session_settings, "headset_object", text="")
+        col.prop(session_settings, "headset_object_enable", text="Enable")
+        col.prop(session_settings, "headset_object_autokey", text="Auto Key")
+            
+        row = layout.row()
+        row.label(text="Controller 0")
+        col = row.column()
+        col.prop(session_settings, "controller0_object", text="")
+        col.prop(session_settings, "controller0_object_enable", text="Enable")
+        col.prop(session_settings, "controller0_object_autokey", text="Auto Key")
+
+        row = layout.row()
+        row.label(text="Controller 1")
+        col = row.column()
+        col.prop(session_settings, "controller1_object", text="")
+        col.prop(session_settings, "controller1_object_enable", text="Enable")
+        col.prop(session_settings, "controller1_object_autokey", text="Auto Key")
+
+
 class VIEW3D_PT_vr_viewport_feedback(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -1544,48 +1586,7 @@ class VIEW3D_PT_vr_viewport_feedback(Panel):
         layout.separator()
 
         layout.prop(view3d.shading, "vr_show_virtual_camera")
-
-        row = layout.row()
-        row.prop(scene, "vr_headset_ob_ui_expand",
-            icon="DISCLOSURE_TRI_DOWN" if scene.vr_headset_ob_ui_expand else "DISCLOSURE_TRI_RIGHT",
-            text="", emboss=False
-        )
-        row.label(text="Headset Object")
-        if scene.vr_headset_ob_ui_expand:
-            row = layout.row()
-            row.separator()
-            row.prop(session_settings, "headset_object", text="")
-            row.prop(session_settings, "headset_object_enable", text="Enable")
-            row.prop(session_settings, "headset_object_autokey", text="Auto Key")
-
         layout.prop(view3d.shading, "vr_show_controllers")
-
-        row = layout.row()
-        row.prop(scene, "vr_controller0_ob_ui_expand",
-            icon="DISCLOSURE_TRI_DOWN" if scene.vr_controller0_ob_ui_expand else "DISCLOSURE_TRI_RIGHT",
-            text="", emboss=False
-        )
-        row.label(text="Controller 0 Object")
-        if scene.vr_controller0_ob_ui_expand:
-            row = layout.row()
-            row.separator()
-            row.prop(session_settings, "controller0_object", text="")
-            row.prop(session_settings, "controller0_object_enable", text="Enable")
-            row.prop(session_settings, "controller0_object_autokey", text="Auto Key")
-
-        row = layout.row()
-        row.prop(scene, "vr_controller1_ob_ui_expand",
-            icon="DISCLOSURE_TRI_DOWN" if scene.vr_controller1_ob_ui_expand else "DISCLOSURE_TRI_RIGHT",
-            text="", emboss=False
-        )
-        row.label(text="Controller 1 Object")
-        if scene.vr_controller1_ob_ui_expand:
-            row = layout.row()
-            row.separator()
-            row.prop(session_settings, "controller1_object", text="")
-            row.prop(session_settings, "controller1_object_enable", text="Enable")
-            row.prop(session_settings, "controller1_object_autokey", text="Auto Key")
-
         layout.prop(view3d.shading, "vr_show_landmarks")
         layout.prop(view3d, "mirror_xr_session")
 
@@ -1747,8 +1748,6 @@ class VIEW3D_GGT_vr_controller_poses(GizmoGroup):
     def draw_prepare(self, context):
         view3d = context.space_data
         scale = 0.5
-        if view3d.mirror_xr_session:
-            scale = 0.1
         idx = 0
         for gizmo in self.gizmos:
             gizmo.matrix_basis = self._get_controller_pose_matrix(context, idx, scale)
@@ -2119,6 +2118,7 @@ classes = (
     VIEW3D_PT_vr_session_view,
     VIEW3D_PT_vr_landmarks,
     VIEW3D_PT_vr_actions,
+    VIEW3D_PT_vr_motion_capture,
     VIEW3D_PT_vr_viewport_feedback,
 
     VRLandmark,
@@ -2214,18 +2214,6 @@ def register():
     bpy.types.View3DShading.vr_show_landmarks = BoolProperty(
         name="Show Landmarks"
     )
-    bpy.types.Scene.vr_headset_ob_ui_expand = BoolProperty(
-        name="",
-        default=False,
-    )
-    bpy.types.Scene.vr_controller0_ob_ui_expand = BoolProperty(
-        name="",
-        default=False,
-    )
-    bpy.types.Scene.vr_controller1_ob_ui_expand = BoolProperty(
-        name="",
-        default=False,
-    )
 
     bpy.app.handlers.load_post.append(vr_ensure_default_landmark)
     bpy.app.handlers.load_post.append(vr_load_action_properties)
@@ -2261,9 +2249,6 @@ def unregister():
     del bpy.types.View3DShading.vr_show_virtual_camera
     del bpy.types.View3DShading.vr_show_controllers
     del bpy.types.View3DShading.vr_show_landmarks
-    del bpy.types.Scene.vr_headset_ob_ui_expand
-    del bpy.types.Scene.vr_controller0_ob_ui_expand
-    del bpy.types.Scene.vr_controller1_ob_ui_expand
 
     bpy.app.handlers.load_post.remove(vr_ensure_default_landmark)
     bpy.app.handlers.load_post.remove(vr_load_action_properties)
