@@ -18,17 +18,17 @@ def InitFolders():
     else:
         DC2Folder = os.path.expanduser("~") + os.sep + '3DC2Blender' 
     
-    exchangeFolderFile = DC2Folder + os.sep + 'Exchange_folder.txt'
+    exchangeFile = DC2Folder + os.sep + 'Exchange_folder.txt'
 
     if(not os.path.isdir(DC2Folder)):
         os.mkdir(DC2Folder)
     
-    if(not os.path.isfile(exchangeFolderFile)):
-        file = open(exchangeFolderFile, 'w')
+    if(not os.path.isfile(exchangeFile)):
+        file = open(exchangeFile, 'w')
         file.close()
     else:
         savedExchangePath = ''
-        folderPath = open(exchangeFolderFile)
+        folderPath = open(exchangeFile)
         
         for line in folderPath:
             savedExchangePath = line
