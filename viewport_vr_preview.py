@@ -1676,7 +1676,6 @@ class VIEW3D_PT_vr_motion_capture(Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        view3d = context.space_data
         session_settings = context.window_manager.xr_session_settings
 
         col = layout.column(align=True)
@@ -1689,23 +1688,38 @@ class VIEW3D_PT_vr_motion_capture(Panel):
         row = layout.row()
         row.label(text="Headset")
         col = row.column()
-        col.prop(session_settings, "headset_object", text="")
+        col.prop(scene, "vr_headset_object", text="")
         col.prop(session_settings, "headset_object_enable", text="Enable")
         col.prop(session_settings, "headset_object_autokey", text="Auto Key")
             
         row = layout.row()
         row.label(text="Controller 0")
         col = row.column()
-        col.prop(session_settings, "controller0_object", text="")
+        col.prop(scene, "vr_controller0_object", text="")
         col.prop(session_settings, "controller0_object_enable", text="Enable")
         col.prop(session_settings, "controller0_object_autokey", text="Auto Key")
 
         row = layout.row()
         row.label(text="Controller 1")
         col = row.column()
-        col.prop(session_settings, "controller1_object", text="")
+        col.prop(scene, "vr_controller1_object", text="")
         col.prop(session_settings, "controller1_object_enable", text="Enable")
         col.prop(session_settings, "controller1_object_autokey", text="Auto Key")
+
+
+def xr_headset_object_update(self, context):
+    session_settings = context.window_manager.xr_session_settings
+    session_settings.headset_object = context.scene.vr_headset_object
+
+
+def xr_controller0_object_update(self, context):
+    session_settings = context.window_manager.xr_session_settings
+    session_settings.controller0_object = context.scene.vr_controller0_object
+
+
+def xr_controller1_object_update(self, context):
+    session_settings = context.window_manager.xr_session_settings
+    session_settings.controller1_object = context.scene.vr_controller1_object
 
 
 class VIEW3D_PT_vr_viewport_feedback(Panel):
@@ -2395,6 +2409,21 @@ def register():
         default=0,
         update=xr_action_set_active_update,
     )
+    bpy.types.Scene.vr_headset_object = bpy.props.PointerProperty(
+        name="Headset Object",
+        type=bpy.types.Object,
+        update=xr_headset_object_update,
+    )
+    bpy.types.Scene.vr_controller0_object = bpy.props.PointerProperty(
+        name="Controller 0 Object",
+        type=bpy.types.Object,
+        update=xr_controller0_object_update,
+    )
+    bpy.types.Scene.vr_controller1_object = bpy.props.PointerProperty(
+        name="Controller 1 Object",
+        type=bpy.types.Object,
+        update=xr_controller1_object_update,
+    )
     # View3DShading is the only per 3D-View struct with custom property
     # support, so "abusing" that to get a per 3D-View option.
     bpy.types.View3DShading.vr_show_virtual_camera = BoolProperty(
@@ -2439,6 +2468,9 @@ def unregister():
     del bpy.types.Scene.vr_action_sets
     del bpy.types.Scene.vr_action_sets_selected
     del bpy.types.Scene.vr_action_sets_active
+    del bpy.types.Scene.vr_headset_object
+    del bpy.types.Scene.vr_controller0_object
+    del bpy.types.Scene.vr_controller1_object
     del bpy.types.View3DShading.vr_show_virtual_camera
     del bpy.types.View3DShading.vr_show_controllers
     del bpy.types.View3DShading.vr_show_landmarks
