@@ -45,6 +45,7 @@ import ntpath
 import re
 import shutil
 import pathlib
+import stat
 
 
 import time
@@ -266,8 +267,15 @@ class SCENE_OT_folder(bpy.types.Operator):
         coat3D = bpy.context.scene.coat3D
         if(os.path.isdir(coat3D.exchangeFolder)):
             foundExchangeFolder= True
-        else:
-            foundExchangeFolder = False
+            if(platform == 'win32' or platform == 'darwin'):
+                exchangeFile = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + '3DC2Blender' 
+            else:
+                exchangeFile = os.path.expanduser("~") + os.sep + '3DC2Blender' + os.sep + '3DC2Blender' 
+           
+            if(coat3D.exchangeFolder.rfind('Exchange') >= 0):
+                file = open(exchangeFile, 'w')
+                file.write(coat3D.exchangeFolder)
+                file.close()
 
         return {'FINISHED'}
 

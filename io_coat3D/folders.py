@@ -14,26 +14,30 @@ def InitFolders():
     # 1. #################################################################
 
     if(platform == 'win32' or platform == 'darwin'):
-        exchangeFile = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'Exchange_folder.txt'
+        DC2Folder = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' 
     else:
-        exchangeFile = os.path.expanduser("~") + os.sep + '3DC2Blender' + os.sep + 'Exchange_folder.txt'
-    if(os.path.isfile(exchangeFile)):
-        folderPath = ''
+        DC2Folder = os.path.expanduser("~") + os.sep + '3DC2Blender' 
+    
+    exchangeFolderFile = DC2Folder + os.sep + 'Exchange_folder.txt'
 
-        folderPathh = open(exchangeFile)
-        for line in folderPathh:
-            folderPath = line
+    if(not os.path.isdir(DC2Folder)):
+        os.mkdir(DC2Folder)
+    
+    if(not os.path.isfile(exchangeFolderFile)):
+        file = open(exchangeFolderFile, 'w')
+        file.close()
+    else:
+        savedExchangePath = ''
+        folderPath = open(exchangeFolderFile)
+        
+        for line in folderPath:
+            savedExchangePath = line
             break
-        folderPathh.close()
+        folderPath.close()
 
-        if(os.path.isdir(os.path.abspath(folderPath)) and folderPath.rfind('Exchange') >= 0):
-            coat3D.exchangeFolder = folderPath
+        if(os.path.isdir(os.path.abspath(savedExchangePath)) and savedExchangePath.rfind('Exchange') >= 0):
+            coat3D.exchangeFolder = savedExchangePath
             return True, coat3D.exchangeFolder
-    else:
-        try:
-            os.makedirs(os.path.dirname(exchangeFile))
-        except:
-            pass
 
 
     # 2. #################################################################
@@ -50,7 +54,7 @@ def InitFolders():
         Blender_folder = ("%s%sBlender"%(exchangeFolder,os.sep))
 
         if(not(os.path.isdir(Blender_folder))):
-            os.makedirs(Blender_folder)
+            os.makedirs(Blender_folder, mode = 0o666)
             Blender_folder1 = os.path.join(Blender_folder,"run.txt")
             file = open(Blender_folder1, "w")
             file.close()
@@ -101,13 +105,13 @@ def set_working_folders():
         else:
             folder_objects = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'ApplinkObjects'
             if(not(os.path.isdir(folder_objects))):
-                os.makedirs(folder_objects)
+                os.makedirs(folder_objects, mode = 0o666)
     else:
         if (coat3D.defaultfolder != '' and os.path.isdir(coat3D.defaultfolder)):
             return coat3D.defaultfolder
         else:
             folder_objects = os.path.expanduser("~") + os.sep + '3DC2Blender' + os.sep + 'ApplinkObjects'
             if(not(os.path.isdir(folder_objects))):
-                os.makedirs(folder_objects)
+                os.makedirs(folder_objects, mode = 0o666)
 
     return folder_objects
