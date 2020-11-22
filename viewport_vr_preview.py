@@ -225,7 +225,7 @@ def vr_ensure_default_landmark(context: bpy.context):
         landmarks[0].type = 'SCENE_CAMERA'
 
 
-def xr_landmark_active_type_update(self, context):
+def vr_landmark_active_type_update(self, context):
     wm = context.window_manager
     session_settings = wm.xr_session_settings
     landmark_active = VRLandmark.get_active_landmark(context)
@@ -239,7 +239,7 @@ def xr_landmark_active_type_update(self, context):
         session_settings.base_pose_type = 'CUSTOM'
 
 
-def xr_landmark_active_base_pose_object_update(self, context):
+def vr_landmark_active_base_pose_object_update(self, context):
     session_settings = context.window_manager.xr_session_settings
     landmark_active = VRLandmark.get_active_landmark(context)
 
@@ -247,67 +247,67 @@ def xr_landmark_active_base_pose_object_update(self, context):
     session_settings.base_pose_object = landmark_active.base_pose_object
 
 
-def xr_landmark_active_base_pose_location_update(self, context):
+def vr_landmark_active_base_pose_location_update(self, context):
     session_settings = context.window_manager.xr_session_settings
     landmark_active = VRLandmark.get_active_landmark(context)
 
     session_settings.base_pose_location = landmark_active.base_pose_location
 
 
-def xr_landmark_active_base_pose_angle_update(self, context):
+def vr_landmark_active_base_pose_angle_update(self, context):
     session_settings = context.window_manager.xr_session_settings
     landmark_active = VRLandmark.get_active_landmark(context)
 
     session_settings.base_pose_angle = landmark_active.base_pose_angle
 
 
-def xr_landmark_type_update(self, context):
+def vr_landmark_type_update(self, context):
     landmark_selected = VRLandmark.get_selected_landmark(context)
     landmark_active = VRLandmark.get_active_landmark(context)
 
     # Only update session settings data if the changed landmark is actually
     # the active one.
     if landmark_active == landmark_selected:
-        xr_landmark_active_type_update(self, context)
+        vr_landmark_active_type_update(self, context)
 
 
-def xr_landmark_base_pose_object_update(self, context):
+def vr_landmark_base_pose_object_update(self, context):
     landmark_selected = VRLandmark.get_selected_landmark(context)
     landmark_active = VRLandmark.get_active_landmark(context)
 
     # Only update session settings data if the changed landmark is actually
     # the active one.
     if landmark_active == landmark_selected:
-        xr_landmark_active_base_pose_object_update(self, context)
+        vr_landmark_active_base_pose_object_update(self, context)
 
 
-def xr_landmark_base_pose_location_update(self, context):
+def vr_landmark_base_pose_location_update(self, context):
     landmark_selected = VRLandmark.get_selected_landmark(context)
     landmark_active = VRLandmark.get_active_landmark(context)
 
     # Only update session settings data if the changed landmark is actually
     # the active one.
     if landmark_active == landmark_selected:
-        xr_landmark_active_base_pose_location_update(self, context)
+        vr_landmark_active_base_pose_location_update(self, context)
 
 
-def xr_landmark_base_pose_angle_update(self, context):
+def vr_landmark_base_pose_angle_update(self, context):
     landmark_selected = VRLandmark.get_selected_landmark(context)
     landmark_active = VRLandmark.get_active_landmark(context)
 
     # Only update session settings data if the changed landmark is actually
     # the active one.
     if landmark_active == landmark_selected:
-        xr_landmark_active_base_pose_angle_update(self, context)
+        vr_landmark_active_base_pose_angle_update(self, context)
 
 
-def xr_landmark_active_update(self, context):
+def vr_landmark_active_update(self, context):
     wm = context.window_manager
 
-    xr_landmark_active_type_update(self, context)
-    xr_landmark_active_base_pose_object_update(self, context)
-    xr_landmark_active_base_pose_location_update(self, context)
-    xr_landmark_active_base_pose_angle_update(self, context)
+    vr_landmark_active_type_update(self, context)
+    vr_landmark_active_base_pose_object_update(self, context)
+    vr_landmark_active_base_pose_location_update(self, context)
+    vr_landmark_active_base_pose_angle_update(self, context)
 
     if wm.xr_session_state:
         wm.xr_session_state.reset_to_base_pose(context)
@@ -346,22 +346,22 @@ class VRLandmark(PropertyGroup):
              "the VR view base pose"),
         ],
         default='SCENE_CAMERA',
-        update=xr_landmark_type_update,
+        update=vr_landmark_type_update,
     )
     base_pose_object: bpy.props.PointerProperty(
         name="Object",
         type=bpy.types.Object,
-        update=xr_landmark_base_pose_object_update,
+        update=vr_landmark_base_pose_object_update,
     )
     base_pose_location: bpy.props.FloatVectorProperty(
         name="Base Pose Location",
         subtype='TRANSLATION',
-        update=xr_landmark_base_pose_location_update,
+        update=vr_landmark_base_pose_location_update,
     )
     base_pose_angle: bpy.props.FloatProperty(
         name="Base Pose Angle",
         subtype='ANGLE',
-        update=xr_landmark_base_pose_angle_update,
+        update=vr_landmark_base_pose_angle_update,
     )
 
     @staticmethod
@@ -493,7 +493,7 @@ def vr_create_actions(context: bpy.context):
             wm.xr_session_state.set_active_action_set(context, active_action_set.name)
 
 
-def xr_action_set_active_update(self, context):
+def vr_action_set_active_update(self, context):
     wm = context.window_manager
     if wm.xr_session_state:
         action_set = VRActionSet.get_active_action_set(context)
@@ -1164,7 +1164,7 @@ class VIEW3D_OT_update_vr_landmark(Operator):
         lm.base_pose_angle = rot
 
         # Re-activate the landmark to trigger viewer reset and flush landmark settings to the session settings.
-        xr_landmark_active_update(None, context)
+        vr_landmark_active_update(None, context)
 
         return {'FINISHED'}
 
@@ -1666,6 +1666,21 @@ class VIEW3D_OT_vr_actions_clear(Operator):
         return {'FINISHED'}
 
 
+def vr_headset_object_update(self, context):
+    session_settings = context.window_manager.xr_session_settings
+    session_settings.headset_object = context.scene.vr_headset_object
+
+
+def vr_controller0_object_update(self, context):
+    session_settings = context.window_manager.xr_session_settings
+    session_settings.controller0_object = context.scene.vr_controller0_object
+
+
+def vr_controller1_object_update(self, context):
+    session_settings = context.window_manager.xr_session_settings
+    session_settings.controller1_object = context.scene.vr_controller1_object
+
+
 class VIEW3D_PT_vr_motion_capture(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -1705,21 +1720,6 @@ class VIEW3D_PT_vr_motion_capture(Panel):
         col.prop(scene, "vr_controller1_object", text="")
         col.prop(session_settings, "controller1_object_enable", text="Enable")
         col.prop(session_settings, "controller1_object_autokey", text="Auto Key")
-
-
-def xr_headset_object_update(self, context):
-    session_settings = context.window_manager.xr_session_settings
-    session_settings.headset_object = context.scene.vr_headset_object
-
-
-def xr_controller0_object_update(self, context):
-    session_settings = context.window_manager.xr_session_settings
-    session_settings.controller0_object = context.scene.vr_controller0_object
-
-
-def xr_controller1_object_update(self, context):
-    session_settings = context.window_manager.xr_session_settings
-    session_settings.controller1_object = context.scene.vr_controller1_object
 
 
 class VIEW3D_PT_vr_viewport_feedback(Panel):
@@ -2396,7 +2396,7 @@ def register():
         name="Selected Landmark"
     )
     bpy.types.Scene.vr_landmarks_active = IntProperty(
-        update=xr_landmark_active_update,
+        update=vr_landmark_active_update,
     )
     bpy.types.Scene.vr_action_sets = CollectionProperty(
         name="Action Set",
@@ -2407,22 +2407,22 @@ def register():
     )	
     bpy.types.Scene.vr_action_sets_active = IntProperty(
         default=0,
-        update=xr_action_set_active_update,
+        update=vr_action_set_active_update,
     )
     bpy.types.Scene.vr_headset_object = bpy.props.PointerProperty(
         name="Headset Object",
         type=bpy.types.Object,
-        update=xr_headset_object_update,
+        update=vr_headset_object_update,
     )
     bpy.types.Scene.vr_controller0_object = bpy.props.PointerProperty(
         name="Controller 0 Object",
         type=bpy.types.Object,
-        update=xr_controller0_object_update,
+        update=vr_controller0_object_update,
     )
     bpy.types.Scene.vr_controller1_object = bpy.props.PointerProperty(
         name="Controller 1 Object",
         type=bpy.types.Object,
-        update=xr_controller1_object_update,
+        update=vr_controller1_object_update,
     )
     # View3DShading is the only per 3D-View struct with custom property
     # support, so "abusing" that to get a per 3D-View option.
