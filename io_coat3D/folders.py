@@ -30,7 +30,10 @@ def InitFolders():
             coat3D.exchangeFolder = folderPath
             return True, coat3D.exchangeFolder
     else:
-        os.makedirs(os.path.dirname(exchangeFile))
+        try:
+            os.makedirs(os.path.dirname(exchangeFile))
+        except:
+            pass
 
 
     # 2. #################################################################
