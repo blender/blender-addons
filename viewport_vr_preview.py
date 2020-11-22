@@ -36,6 +36,11 @@ from bpy.props import (
 from bpy.app.handlers import persistent
 import mathutils
 from mathutils import Quaternion
+import os.path, importlib.util
+from bl_keymap_utils.io import (
+    keyconfig_export_as_data_exec,
+    keyconfig_import_from_data_exec,
+)
 
 bl_info = {
     "name": "VR Scene Inspection",
@@ -62,10 +67,31 @@ def vr_load_action_properties(context: bpy.context):
     if not (kc and kc_addon):
         return
 
+    # Remove previous XR Session add-on key map.
+    km_addon = kc_addon.keymaps.find("XR Session", space_type='EMPTY', region_type='XR')
+    if km_addon:
+        kc_addon.keymaps.remove(km_addon)
+
+    # Import XR Session key map.
+    if bpy.data.is_saved:
+        dirpath = bpy.path.abspath("//")
+        filename = bpy.path.display_name_from_filepath(bpy.data.filepath) + ".xrkey"
+        filepath = dirpath + filename + ".py"
+
+        if os.path.exists(filepath):                
+            spec = importlib.util.spec_from_file_location(filename, filepath)
+            xr_keymap = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(xr_keymap)
+
+            keyconfig_import_from_data_exec(kc_addon, xr_keymap.keyconfig_data, keyconfig_version=xr_keymap.keyconfig_version)
+
+    # Add any properties not found in key map file.
     km_addon = kc_addon.keymaps.find("XR Session", space_type='EMPTY', region_type='XR')
     if not km_addon:
-        return
-
+        km_addon = kc_addon.keymaps.new(name="XR Session", space_type='EMPTY', region_type='XR')
+        if not km_addon:
+            return
+        
     km = kc.keymaps.find("XR", space_type='EMPTY', region_type='XR')
     km_session = kc.keymaps.find("XR Session", space_type='EMPTY', region_type='XR')
     if not (km or km_session):
@@ -95,6 +121,30 @@ def vr_load_action_properties(context: bpy.context):
                 kmi_addon.idname = action.op
                 kmi_addon.xr_action_set = action_set.name
                 kmi_addon.xr_action = action.name
+
+
+# Similar to keyconfig_export_as_data() from release/scripts/modules/bl_keymap_utils/io.py
+# but only exports the "XR Session" add-on key map.
+@persistent
+def vr_save_action_properties(context: bpy.context):
+    if not bpy.data.is_saved:
+        return
+
+    wm = bpy.context.window_manager
+    kc = wm.keyconfigs.addon
+    if not kc:
+        return
+
+    km = kc.keymaps.find("XR Session", space_type='EMPTY', region_type='XR')
+    if not km or len(km.keymap_items) < 1:
+        return
+
+    export_keymaps = [(km, kc)]
+    filepath = bpy.path.abspath("//") + bpy.path.display_name_from_filepath(bpy.data.filepath) + ".xrkey.py"
+
+    keyconfig_export_as_data_exec(export_keymaps, filepath)
+
+    print("Saved XR keymap: " + filepath)
 
 
 def vr_get_keymap(context, from_prefs):
@@ -2359,6 +2409,7 @@ def register():
 
     bpy.app.handlers.load_post.append(vr_ensure_default_landmark)
     bpy.app.handlers.load_post.append(vr_load_action_properties)
+    bpy.app.handlers.save_post.append(vr_save_action_properties)
     bpy.app.handlers.xr_session_start_pre.append(vr_create_actions)
 
     # Register add-on key map.
@@ -2394,6 +2445,7 @@ def unregister():
 
     bpy.app.handlers.load_post.remove(vr_ensure_default_landmark)
     bpy.app.handlers.load_post.remove(vr_load_action_properties)
+    bpy.app.handlers.save_post.remove(vr_save_action_properties)
     bpy.app.handlers.xr_session_start_pre.remove(vr_create_actions)
 
 
