@@ -35,9 +35,9 @@ def InitFolders():
             break
         folderPath.close()
 
-        if(os.path.isdir(os.path.abspath(savedExchangePath)) and savedExchangePath.rfind('Exchange') >= 0):
-            coat3D.exchangeFolder = savedExchangePath
-            return True, coat3D.exchangeFolder
+        
+        coat3D.exchangeFolder = savedExchangePath
+        return True, coat3D.exchangeFolder
 
 
     # 2. #################################################################
@@ -93,6 +93,35 @@ def updateExchangeFile(newPath):
         file = open(exchangeFile, "w")
         file.write("%s"%(newPath))
         file.close()
+
+def loadExchangeFolder():
+
+    platform = os.sys.platform
+    coat3D = bpy.context.scene.coat3D
+
+    if(platform == 'win32' or platform == 'darwin'):
+        DC2Folder = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' 
+    else:
+        DC2Folder = os.path.expanduser("~") + os.sep + '3DC2Blender' 
+    
+    exchangeFile = DC2Folder + os.sep + 'Exchange_folder.txt'
+
+    if(not os.path.isdir(DC2Folder)):
+        os.mkdir(DC2Folder)
+    
+    if(not os.path.isfile(exchangeFile)):
+        file = open(exchangeFile, 'w')
+        file.close()
+    else:
+        savedExchangePath = ''
+        folderPath = open(exchangeFile)
+        
+        for line in folderPath:
+            savedExchangePath = line
+            break
+        folderPath.close()
+        coat3D.exchangeFolder = savedExchangePath
+
 
 def set_working_folders():
 
