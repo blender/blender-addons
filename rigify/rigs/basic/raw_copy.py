@@ -119,6 +119,8 @@ class RelinkConstraintsMixin:
             r = layout.row()
             r.prop(params, "parent_bone")
 
+            layout.label(text="Constraint names have special meanings.", icon='ERROR')
+
 
 class InstanceRig(BaseRig, RelinkConstraintsMixin):
     def find_org_bones(self, pose_bone):
