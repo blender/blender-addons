@@ -1013,6 +1013,11 @@ class VIEW3D_PT_vr_session_view(Panel):
         col.prop(session_settings, "show_controllers", text="Controllers")
         col.prop(session_settings, "show_custom_overlays", text="Custom Overlays")
         col.prop(session_settings, "show_selection", text="Selection")
+
+        col = layout.column(align=True)
+        col.prop(session_settings, "controller_draw_style", text="Controller Style")
+
+        col = layout.column(align=True)
         col.prop(session_settings, "selection_eye", text="Selection Eye")
 
         col = layout.column(align=True)
