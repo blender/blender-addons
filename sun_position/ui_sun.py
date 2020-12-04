@@ -103,9 +103,7 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
         if context.scene.world is not None:
             if context.scene.world.node_tree is not None:
                 col.prop_search(sp, "hdr_texture",
-                                context.scene.world.node_tree, "nodes")
-                col.prop_search(sp, "sky_texture",
-                                context.scene.world.node_tree, "nodes")
+                                context.scene.world.node_tree, "nodes", text="")
             else:
                 col.label(text="Please activate Use Nodes in the World panel.",
                           icon="ERROR")
