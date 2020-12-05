@@ -508,6 +508,8 @@ def generate_lower_resolutions(data):
                 # compare file sizes
                 print(f'textures size was reduced from {original_textures_filesize} to {reduced_textures_filessize}')
                 if reduced_textures_filessize < original_textures_filesize:
+                    # this limits from uploaidng especially same-as-original resolution files in case when there is no advantage.
+                    # usually however the advantage can be big also for same as original resolution
                     files.append({
                         "type": p2res,
                         "index": 0,
@@ -520,7 +522,7 @@ def generate_lower_resolutions(data):
                 else:
                     p2res = rkeys[rkeys.index(p2res) - 1]
             print('uploading resolution files')
-            # upload_resolutions(files, data)
+            upload_resolutions(files, data)
             preferences = bpy.context.preferences.addons['blenderkit'].preferences
             patch_asset_empty(data['asset_data']['id'], preferences.api_key)
         return
