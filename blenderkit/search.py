@@ -339,7 +339,7 @@ def timer_update():
             # preferences.first_run = False
         if preferences.tips_on_start:
             utils.get_largest_area()
-            ui.update_ui_size(ui.active_area, ui.active_region)
+            ui.update_ui_size(ui.active_area_pointer, ui.active_region_pointer)
             ui.add_report(text='BlenderKit Tip: ' + random.choice(rtips), timeout=12, color=colors.GREEN)
         return 3.0
 
@@ -622,8 +622,9 @@ def generate_tooltip(mdata):
     # t += '\n'
     t = writeblockm(t, mdata, key='license', width=col_w)
 
+    fs = mdata.get('files')
+
     if utils.profile_is_validator():
-        fs = mdata.get('files')
         if fs:
             resolutions = 'resolutions:'
             for f in fs:
@@ -633,7 +634,11 @@ def generate_tooltip(mdata):
             t += resolutions
 
         t = writeblockm(t, mdata, key='isFree', width=col_w)
-
+    else:
+        for f in fs:
+            if f['fileType'].find('resolution')>-1:
+                t+= 'Asset has lower resolutions available\n'
+                break;
     # generator is for both upload preview and search, this is only after search
     # if mdata.get('versionNumber'):
     #     # t = writeblockm(t, mdata, key='versionNumber', pretext='version', width = col_w)

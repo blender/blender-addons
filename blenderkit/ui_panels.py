@@ -1181,6 +1181,9 @@ def draw_asset_context_menu(self, context, asset_data, from_panel=False):
                     if o['asset_data']['assetBaseId'] == bpy.context.scene['search results'][ui_props.active_index]:
                         op.model_location = o.location
                         op.model_rotation = o.rotation_euler
+                    else:
+                        op.model_location = (0,0,0)
+                        op.model_rotation = (0,0,0)
                 op.max_resolution = asset_data.get('max_resolution',
                                                    0)  # str(utils.get_param(asset_data, 'textureResolutionMax'))
 

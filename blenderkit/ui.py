@@ -51,10 +51,9 @@ import os
 
 handler_2d = None
 handler_3d = None
-active_area = None
-active_area = None
-active_window = None
-active_region = None
+active_area_pointer = None
+active_window_pointer = None
+active_region_pointer = None
 
 reports = []
 
@@ -139,7 +138,7 @@ class Report():
                     pass;
 
     def draw(self, x, y):
-        if bpy.context.area == active_area:
+        if bpy.context.area.as_pointer() == active_area_pointer:
             ui_bgl.draw_text(self.text, x, y + 8, 16, self.draw_color)
 
 
@@ -1207,7 +1206,7 @@ def mouse_in_region(r, mx, my):
 
 
 def update_ui_size(area, region):
-    if bpy.app.background:
+    if bpy.app.background or not area:
         return
     ui = bpy.context.scene.blenderkitUI
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
@@ -1798,10 +1797,10 @@ class AssetBarOperator(bpy.types.Operator):
             if r.type == 'WINDOW':
                 self.region = r
 
-        global active_window, active_area, active_region
-        active_window = self.window
-        active_area = self.area
-        active_region = self.region
+        global active_window_pointer, active_area_pointer, active_region_pointer
+        active_window_pointer = self.window.as_pointer()
+        active_area_pointer = self.area.as_pointer()
+        active_region_pointer = self.region.as_pointer()
 
         update_ui_size(self.area, self.region)
 
