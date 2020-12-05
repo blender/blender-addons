@@ -57,6 +57,13 @@ def obj_to_bone(obj, rig, bone_name, bone_transform_name=None):
 def create_widget(rig, bone_name, bone_transform_name=None):
     """ Creates an empty widget object for a bone, and returns the object.
     """
+    assert rig.mode != 'EDIT'
+    bone = rig.pose.bones[bone_name]
+
+    # The bone already has a widget
+    if bone.custom_shape:
+        return None
+
     obj_name = WGT_PREFIX + rig.name + '_' + bone_name
     scene = bpy.context.scene
     collection = ensure_widget_collection(bpy.context)
