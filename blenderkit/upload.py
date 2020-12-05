@@ -608,11 +608,11 @@ def start_upload(self, context, asset_type, reupload, upload_set):
         try:
             if 'MAINFILE' in upload_set:
                 json_metadata["verificationStatus"] = "uploading"
-            r = rerequests.put(url, json=json_metadata, headers=headers, verify=True, immediate=True)  # files = files,
+            r = rerequests.patch(url, json=json_metadata, headers=headers, verify=True, immediate=True)  # files = files,
             ui.add_report('uploaded metadata')
             # parse the request
             # print('uploaded metadata')
-            # print(r.text)
+            print(r.text)
         except requests.exceptions.RequestException as e:
             print(e)
             props.upload_state = str(e)
@@ -786,6 +786,51 @@ class UploadOperator(Operator):
             return self.execute(context)
 
 
+
+class AssetDebugPrint(Operator):
+    """Change verification status"""
+    bl_idname = "object.blenderkit_print_asset_debug"
+    bl_description = "BlenderKit print asset data for debug purposes"
+    bl_label = "BlenderKit print asset data"
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
+
+    # type of upload - model, material, textures, e.t.c.
+    asset_id: StringProperty(
+        name="asset id",
+    )
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+
+    def execute(self, context):
+        preferences = bpy.context.preferences.addons['blenderkit'].preferences
+
+        if not bpy.context.scene['search results']:
+            print('no search results found')
+            return {'CANCELLED'};
+        # update status in search results for validator's clarity
+        sr = bpy.context.scene['search results']
+        sro = bpy.context.scene['search results orig']['results']
+
+        result = None
+        for r in sr:
+            if r['id'] == self.asset_id:
+                result = r.to_dict()
+        if not result:
+            for r in sro:
+                if r['id'] == self.asset_id:
+                    result = r.to_dict()
+        if not result:
+            ad = bpy.context.active_object.get('asset_data')
+            if ad:
+                result = ad.to_dict()
+        if result:
+            print(json.dumps(result, indent=4, sort_keys=True))
+        return {'FINISHED'}
+
+
 class AssetVerificationStatusChange(Operator):
     """Change verification status"""
     bl_idname = "object.blenderkit_change_status"
@@ -845,9 +890,11 @@ class AssetVerificationStatusChange(Operator):
 
 def register_upload():
     bpy.utils.register_class(UploadOperator)
+    bpy.utils.register_class(AssetDebugPrint)
     bpy.utils.register_class(AssetVerificationStatusChange)
 
 
 def unregister_upload():
     bpy.utils.unregister_class(UploadOperator)
+    bpy.utils.unregister_class(AssetDebugPrint)
     bpy.utils.unregister_class(AssetVerificationStatusChange)
