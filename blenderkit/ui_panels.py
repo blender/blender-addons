@@ -46,6 +46,7 @@ from bpy.props import (
 import bpy
 import os
 import random
+import blenderkit
 
 
 #   this was moved to separate interface:
@@ -415,7 +416,7 @@ class NODE_PT_blenderkit_material_properties(Panel):
             draw_panel_material_ratings(self, context)
 
             layout.label(text='Asset tools:')
-            draw_asset_context_menu(self, context, ad, from_panel = True)
+            draw_asset_context_menu(self, context, ad, from_panel=True)
             # if 'rig' in ad['tags']:
             #     # layout.label(text = 'can make proxy')
             #     layout.operator('object.blenderkit_make_proxy', text = 'Make Armature proxy')
@@ -1147,7 +1148,6 @@ def draw_asset_context_menu(self, context, asset_data, from_panel=False):
             if from_panel:
                 # Called from addon panel
 
-
                 if asset_data.get('resolution'):
                     op = col.operator('scene.blenderkit_download', text='Replace asset resolution')
                     op.asset_base_id = asset_data['assetBaseId']
@@ -1162,7 +1162,7 @@ def draw_asset_context_menu(self, context, asset_data, from_panel=False):
                         op.model_location = aob.location
                         op.model_rotation = aob.rotation_euler
                         op.target_object = aob.name
-                        op.material_target_slot =  aob.active_material_index
+                        op.material_target_slot = aob.active_material_index
                     op.replace_resolution = True
                     op.invoke_resolution = True
                     op.max_resolution = asset_data.get('max_resolution',
@@ -1182,8 +1182,8 @@ def draw_asset_context_menu(self, context, asset_data, from_panel=False):
                         op.model_location = o.location
                         op.model_rotation = o.rotation_euler
                     else:
-                        op.model_location = (0,0,0)
-                        op.model_rotation = (0,0,0)
+                        op.model_location = (0, 0, 0)
+                        op.model_rotation = (0, 0, 0)
                 op.max_resolution = asset_data.get('max_resolution',
                                                    0)  # str(utils.get_param(asset_data, 'textureResolutionMax'))
 
@@ -1233,6 +1233,9 @@ def draw_asset_context_menu(self, context, asset_data, from_panel=False):
             layout.operator_context = 'INVOKE_DEFAULT'
             op = layout.operator('object.blenderkit_print_asset_debug', text='Print asset debug')
             op.asset_id = asset_data['id']
+
+
+
 
 
 # def draw_asset_resolution_replace(self, context, resolution):
@@ -1286,7 +1289,7 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
         # sr = bpy.context.scene['search results']
         sr = bpy.context.scene['search results']
         asset_data = sr[ui_props.active_index]
-        draw_asset_context_menu(self, context, asset_data, from_panel = False)
+        draw_asset_context_menu(self, context, asset_data, from_panel=False)
 
 
 class OBJECT_MT_blenderkit_login_menu(bpy.types.Menu):

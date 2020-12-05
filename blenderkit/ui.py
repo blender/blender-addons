@@ -30,8 +30,9 @@ if "bpy" in locals():
     bg_blender = importlib.reload(bg_blender)
     colors = importlib.reload(colors)
     tasks_queue = importlib.reload(tasks_queue)
+    tasks_queue = importlib.reload(ui_panels)
 else:
-    from blenderkit import paths, ratings, utils, search, upload, ui_bgl, download, bg_blender, colors, tasks_queue
+    from blenderkit import paths, ratings, utils, search, upload, ui_bgl, download, bg_blender, colors, tasks_queue, ui_panels
 
 import bpy
 
@@ -1920,6 +1921,7 @@ def register_ui():
     wm = bpy.context.window_manager
     km = wm.keyconfigs.addon.keymaps['Window']
     kmi = km.keymap_items.new(ratings.FastRateMenu.bl_idname, 'F', 'PRESS', ctrl=False, shift=False)
+    kmi = km.keymap_items.new(upload.FastCategory.bl_idname, 'F', 'PRESS', ctrl=True, shift=False)
     addon_keymapitems.append(kmi)
 
 

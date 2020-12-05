@@ -408,7 +408,6 @@ def delete_hierarchy(ob):
     obs = get_hierarchy(ob)
     bpy.ops.object.delete({"selected_objects": obs})
 
-
 def get_bounds_snappable(obs, use_modifiers=False):
     # progress('getting bounds of object(s)')
     parent = obs[0]

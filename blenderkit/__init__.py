@@ -199,37 +199,7 @@ thumbnail_resolutions = (
 )
 
 
-def get_upload_asset_type(self):
-    typemapper = {
-        BlenderKitModelUploadProps: 'model',
-        BlenderKitSceneUploadProps: 'scene',
-        BlenderKitMaterialUploadProps: 'material',
-        BlenderKitBrushUploadProps: 'brush'
-    }
-    asset_type = typemapper[type(self)]
-    return asset_type
 
-
-def get_subcategory_enums(self, context):
-    wm = bpy.context.window_manager
-    asset_type = get_upload_asset_type(self)
-    items = []
-    if self.category != '':
-        asset_categories = categories.get_category(wm['bkit_categories'], cat_path=(asset_type, self.category,))
-        for c in asset_categories['children']:
-            items.append((c['slug'], c['name'], c['description']))
-
-    return items
-
-
-def get_category_enums(self, context):
-    wm = bpy.context.window_manager
-    asset_type = get_upload_asset_type(self)
-    asset_categories = categories.get_category(wm['bkit_categories'], cat_path=(asset_type,))
-    items = []
-    for c in asset_categories['children']:
-        items.append((c['slug'], c['name'], c['description']))
-    return items
 
 
 def switch_search_results(self, context):
@@ -276,6 +246,8 @@ def asset_type_callback(self, context):
             ('BRUSH', 'Brush', 'Upload a brush to BlenderKit', 'BRUSH_DATA', 3)
         )
     return items
+
+
 
 
 class BlenderKitUIProps(PropertyGroup):
@@ -490,7 +462,7 @@ class BlenderKitCommonSearchProps(object):
         update=search.search_update,
     )
 
-    #resolution download/import settings
+    # resolution download/import settings
     resolution: EnumProperty(
         name="Max resolution",
         description="Cap texture sizes in the file to this resolution",
@@ -509,9 +481,9 @@ class BlenderKitCommonSearchProps(object):
     )
 
     unpack_files: BoolProperty(name="Unpack Files",
-                                   description="Unpack files after download",
-                                   default=True
-                                   )
+                               description="Unpack files after download",
+                               default=True
+                               )
 
 
 def name_update(self, context):
@@ -667,12 +639,12 @@ class BlenderKitCommonUploadProps(object):
     category: EnumProperty(
         name="Category",
         description="main category to put into",
-        items=get_category_enums
+        items=categories.get_category_enums
     )
     subcategory: EnumProperty(
         name="Subcategory",
         description="main category to put into",
-        items=get_subcategory_enums
+        items=categories.get_subcategory_enums
     )
 
 
