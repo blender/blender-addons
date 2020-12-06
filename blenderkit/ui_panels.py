@@ -946,6 +946,8 @@ class VIEW3D_PT_blenderkit_unified(Panel):
             if utils.profile_is_validator():
                 search_props = utils.get_search_props()
                 layout.prop(search_props, 'search_verification_status')
+                layout.prop(search_props, "unrated_only")
+
             if ui_props.asset_type == 'MODEL':
                 # noinspection PyCallByClass
                 draw_panel_model_search(self, context)

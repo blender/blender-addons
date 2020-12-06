@@ -1271,6 +1271,9 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
     free_only: BoolProperty(name="Free only", description="Show only free models",
                             default=False, update=search.search_update)
 
+    unrated_only: BoolProperty(name="Unrated only", description="Show only unrated models",
+                            default=False, update=search.search_update)
+
     # CONDITION
     search_condition: EnumProperty(
         items=conditions,
