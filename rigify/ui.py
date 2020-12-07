@@ -858,7 +858,7 @@ class EncodeMetarig(bpy.types.Operator):
         else:
             text_block = bpy.data.texts.new(name)
 
-        text = write_metarig(context.active_object, layers=True, func_name="create", groups=True)
+        text = write_metarig(context.active_object, layers=True, func_name="create", groups=True, widgets=True)
         text_block.write(text)
         bpy.ops.object.mode_set(mode='EDIT')
 

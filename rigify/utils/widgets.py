@@ -20,6 +20,7 @@
 
 import bpy
 import math
+import functools
 
 from mathutils import Matrix
 
@@ -92,6 +93,39 @@ def create_widget(rig, bone_name, bone_transform_name=None, *, widget_name=None,
     obj_to_bone(obj, rig, bone_name, bone_transform_name)
 
     return obj
+
+
+class GeometryData:
+    def __init__(self):
+        self.verts = []
+        self.edges = []
+        self.faces = []
+
+
+def widget_generator(generate_func):
+    """
+    Decorator that encapsulates a call to create_widget, and only requires
+    the actual function to fill the provided vertex and edge lists.
+
+    Accepts parameters of create_widget, plus any keyword arguments the
+    wrapped function has.
+    """
+    @functools.wraps(generate_func)
+    def wrapper(rig, bone_name, bone_transform_name=None, widget_name=None, widget_force_new=False, **kwargs):
+        obj = create_widget(rig, bone_name, bone_transform_name, widget_name=widget_name, widget_force_new=widget_force_new)
+        if obj is not None:
+            geom = GeometryData()
+
+            generate_func(geom, **kwargs)
+
+            mesh = obj.data
+            mesh.from_pydata(geom.verts, geom.edges, geom.faces)
+            mesh.update()
+            return obj
+        else:
+            return None
+
+    return wrapper
 
 
 def create_circle_polygon(number_verts, axis, radius=1.0, head_tail=0.0):
@@ -174,44 +208,39 @@ def adjust_widget_transform_mesh(obj, matrix, local=None):
         obj.data.transform(matrix)
 
 
-def write_widget(obj):
+def write_widget(obj, name='thing', use_size=True):
     """ Write a mesh object as a python script for widget use.
     """
     script = ""
-    script += "def create_thing_widget(rig, bone_name, size=1.0, bone_transform_name=None):\n"
-    script += "    obj = create_widget(rig, bone_name, bone_transform_name)\n"
-    script += "    if obj is not None:\n"
+    script += "@widget_generator\n"
+    script += "def create_"+name+"_widget(geom";
+    if use_size:
+        script += ", *, size=1.0"
+    script += "):\n"
 
     # Vertices
-    script += "        verts = ["
+    szs = "*size" if use_size else ""
+    width = 2 if use_size else 3
+
+    script += "    geom.verts = ["
     for i, v in enumerate(obj.data.vertices):
-        script += "({:g}*size, {:g}*size, {:g}*size),".format(v.co[0], v.co[1], v.co[2])
-        script += "\n                 " if i % 2 == 1 else " "
+        script += "({:g}{}, {:g}{}, {:g}{}),".format(v.co[0], szs, v.co[1], szs, v.co[2], szs)
+        script += "\n                  " if i % width == (width - 1) else " "
     script += "]\n"
 
     # Edges
-    script += "        edges = ["
+    script += "    geom.edges = ["
     for i, e in enumerate(obj.data.edges):
         script += "(" + str(e.vertices[0]) + ", " + str(e.vertices[1]) + "),"
-        script += "\n                 " if i % 10 == 9 else " "
+        script += "\n                  " if i % 10 == 9 else " "
     script += "]\n"
 
     # Faces
-    script += "        faces = ["
-    for i, f in enumerate(obj.data.polygons):
-        script += "("
-        for v in f.vertices:
-            script += str(v) + ", "
-        script += "),"
-        script += "\n                 " if i % 10 == 9 else " "
-    script += "]\n"
-
-    # Build mesh
-    script += "\n        mesh = obj.data\n"
-    script += "        mesh.from_pydata(verts, edges, faces)\n"
-    script += "        mesh.update()\n"
-    script += "        return obj\n"
-    script += "    else:\n"
-    script += "        return None\n"
+    if obj.data.polygons:
+        script += "    geom.faces = ["
+        for i, f in enumerate(obj.data.polygons):
+            script += "(" + ", ".join(str(v) for v in f.vertices) + "),"
+            script += "\n                  " if i % 10 == 9 else " "
+        script += "]\n"
 
     return script

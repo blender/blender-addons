@@ -270,18 +270,25 @@ class Generator(base_generate.BaseGenerator):
         # others make non-deforming.
         for bone in bones:
             name = bone.name
+            layers = None
 
             bone.use_deform = name.startswith(DEF_PREFIX)
 
             # Move all the original bones to their layer.
             if name.startswith(ORG_PREFIX):
-                bone.layers = ORG_LAYER
+                layers = ORG_LAYER
             # Move all the bones with names starting with "MCH-" to their layer.
             elif name.startswith(MCH_PREFIX):
-                bone.layers = MCH_LAYER
+                layers = MCH_LAYER
             # Move all the bones with names starting with "DEF-" to their layer.
             elif name.startswith(DEF_PREFIX):
-                bone.layers = DEF_LAYER
+                layers = DEF_LAYER
+
+            if layers is not None:
+                bone.layers = layers
+
+                # Remove custom shapes from non-control bones
+                bone.custom_shape = None
 
             bone.bbone_x = bone.bbone_z = bone.length * 0.05
 
