@@ -54,7 +54,7 @@ def obj_to_bone(obj, rig, bone_name, bone_transform_name=None):
     obj.matrix_basis = rig.matrix_world @ bone.bone.matrix_local @ Matrix.Scale(scale, 4)
 
 
-def create_widget(rig, bone_name, bone_transform_name=None):
+def create_widget(rig, bone_name, bone_transform_name=None, *, widget_name=None, widget_force_new=False):
     """ Creates an empty widget object for a bone, and returns the object.
     """
     assert rig.mode != 'EDIT'
@@ -64,37 +64,34 @@ def create_widget(rig, bone_name, bone_transform_name=None):
     if bone.custom_shape:
         return None
 
-    obj_name = WGT_PREFIX + rig.name + '_' + bone_name
+    obj_name = widget_name or WGT_PREFIX + rig.name + '_' + bone_name
     scene = bpy.context.scene
-    collection = ensure_widget_collection(bpy.context)
+    collection = ensure_widget_collection(bpy.context, 'WGTS_' + rig.name)
 
     # Check if it already exists in the scene
-    if obj_name in scene.objects:
-        # Move object to bone position, in case it changed
-        obj = scene.objects[obj_name]
-        obj_to_bone(obj, rig, bone_name, bone_transform_name)
+    if not widget_force_new:
+        if obj_name in scene.objects:
+            # Move object to bone position, in case it changed
+            obj = scene.objects[obj_name]
+            obj_to_bone(obj, rig, bone_name, bone_transform_name)
 
-        return None
-    else:
+            return None
+
         # Delete object if it exists in blend data but not scene data.
         # This is necessary so we can then create the object without
         # name conflicts.
         if obj_name in bpy.data.objects:
-            bpy.data.objects[obj_name].user_clear()
             bpy.data.objects.remove(bpy.data.objects[obj_name])
 
-        # Create mesh object
-        mesh = bpy.data.meshes.new(obj_name)
-        obj = bpy.data.objects.new(obj_name, mesh)
-        collection.objects.link(obj)
+    # Create mesh object
+    mesh = bpy.data.meshes.new(obj_name)
+    obj = bpy.data.objects.new(obj_name, mesh)
+    collection.objects.link(obj)
 
-        # Move object to bone position and set layers
-        obj_to_bone(obj, rig, bone_name, bone_transform_name)
-        wgts_group_name = 'WGTS_' + rig.name
-        if wgts_group_name in bpy.data.objects.keys():
-            obj.parent = bpy.data.objects[wgts_group_name]
+    # Move object to bone position and set layers
+    obj_to_bone(obj, rig, bone_name, bone_transform_name)
 
-        return obj
+    return obj
 
 
 def create_circle_polygon(number_verts, axis, radius=1.0, head_tail=0.0):
