@@ -574,6 +574,8 @@ def register():
         name="Rigify Active Collection",
         description="The selected rig collection")
 
+    IDStore.rigify_widgets = CollectionProperty(type=RigifyName)
+
     IDStore.rigify_types = CollectionProperty(type=RigifyName)
     IDStore.rigify_active_type = IntProperty(name="Rigify Active Type", description="The selected rig type")
 

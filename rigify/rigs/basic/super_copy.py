@@ -23,7 +23,8 @@ import bpy
 from ...base_rig import BaseRig
 
 from ...utils.naming import strip_org, make_deformer_name
-from ...utils.widgets_basic import create_bone_widget, create_circle_widget
+from ...utils.widgets import layout_widget_dropdown, create_registered_widget
+from ...utils.widgets_basic import create_bone_widget
 
 from .raw_copy import RelinkConstraintsMixin
 
@@ -95,7 +96,7 @@ class Rig(BaseRig, RelinkConstraintsMixin):
         if self.make_control:
             # Create control widget
             if self.make_widget:
-                create_circle_widget(self.obj, bones.ctrl, radius=0.5)
+                create_registered_widget(self.obj, bones.ctrl, self.params.super_copy_widget_type or 'circle')
             else:
                 create_bone_widget(self.obj, bones.ctrl)
 
@@ -117,6 +118,12 @@ class Rig(BaseRig, RelinkConstraintsMixin):
             description = "Choose a widget for the bone control"
         )
 
+        params.super_copy_widget_type = bpy.props.StringProperty(
+            name        = "Widget Type",
+            default     = 'circle',
+            description = "Choose the type of the widget to create"
+        )
+
         params.make_deform = bpy.props.BoolProperty(
             name        = "Deform",
             default     = True,
@@ -130,13 +137,17 @@ class Rig(BaseRig, RelinkConstraintsMixin):
     def parameters_ui(self, layout, params):
         """ Create the ui for the rig parameters.
         """
-        r = layout.row()
-        r.prop(params, "make_control")
-        r = layout.row()
-        r.prop(params, "make_widget")
-        r.enabled = params.make_control
-        r = layout.row()
-        r.prop(params, "make_deform")
+        layout.prop(params, "make_control")
+
+        row = layout.split(factor=0.3)
+        row.prop(params, "make_widget")
+        row.enabled = params.make_control
+
+        row2 = row.row(align=True)
+        row2.enabled = params.make_widget
+        layout_widget_dropdown(row2, params, "super_copy_widget_type", text="")
+
+        layout.prop(params, "make_deform")
 
         self.add_relink_constraints_ui(layout, params)
 

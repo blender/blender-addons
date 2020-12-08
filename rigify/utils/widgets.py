@@ -20,6 +20,7 @@
 
 import bpy
 import math
+import inspect
 import functools
 
 from mathutils import Matrix
@@ -95,6 +96,58 @@ def create_widget(rig, bone_name, bone_transform_name=None, *, widget_name=None,
     return obj
 
 
+#=============================================
+# Widget choice dropdown
+#=============================================
+
+_registered_widgets = {}
+
+
+def _get_valid_args(callback, skip):
+    spec = inspect.getfullargspec(callback)
+    return set(spec.args[skip:] + spec.kwonlyargs)
+
+
+def register_widget(name, callback, **default_args):
+    unwrapped = inspect.unwrap(callback)
+    if unwrapped != callback:
+        valid_args = _get_valid_args(unwrapped, 1)
+    else:
+        valid_args = _get_valid_args(callback, 2)
+
+    _registered_widgets[name] = (callback, valid_args, default_args)
+
+
+def layout_widget_dropdown(layout, props, prop_name, **kwargs):
+    "Create a UI dropdown to select a widget from the known list."
+
+    id_store = bpy.context.window_manager
+    rigify_widgets = id_store.rigify_widgets
+
+    rigify_widgets.clear()
+
+    for name in sorted(_registered_widgets):
+        item = rigify_widgets.add()
+        item.name = name
+
+    layout.prop_search(props, prop_name, id_store, "rigify_widgets", **kwargs)
+
+
+def create_registered_widget(obj, bone_name, widget_id, **kwargs):
+    try:
+        callback, valid_args, default_args = _registered_widgets[widget_id]
+    except KeyError:
+        raise MetarigError("Unknown widget name: " + widget_id)
+
+    args = { **default_args, **kwargs }
+
+    return callback(obj, bone_name, **{ k:v for k,v in args.items() if k in valid_args})
+
+
+#=============================================
+# Widget geometry
+#=============================================
+
 class GeometryData:
     def __init__(self):
         self.verts = []
@@ -102,7 +155,10 @@ class GeometryData:
         self.faces = []
 
 
-def widget_generator(generate_func):
+def widget_generator(generate_func=None, *, register=None, subsurf=0):
+    if generate_func is None:
+        return functools.partial(widget_generator, register=register, subsurf=subsurf)
+
     """
     Decorator that encapsulates a call to create_widget, and only requires
     the actual function to fill the provided vertex and edge lists.
@@ -121,9 +177,17 @@ def widget_generator(generate_func):
             mesh = obj.data
             mesh.from_pydata(geom.verts, geom.edges, geom.faces)
             mesh.update()
+
+            if subsurf:
+                mod = obj.modifiers.new("subsurf", 'SUBSURF')
+                mod.levels = subsurf
+
             return obj
         else:
             return None
+
+    if register:
+        register_widget(register, wrapper)
 
     return wrapper
 

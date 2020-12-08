@@ -262,13 +262,14 @@ class Generator(base_generate.BaseGenerator):
 
 
     def __assign_layers(self):
-        bones = self.obj.data.bones
+        pbones = self.obj.pose.bones
 
-        bones[self.root_bone].layers = ROOT_LAYER
+        pbones[self.root_bone].bone.layers = ROOT_LAYER
 
         # Every bone that has a name starting with "DEF-" make deforming.  All the
         # others make non-deforming.
-        for bone in bones:
+        for pbone in pbones:
+            bone = pbone.bone
             name = bone.name
             layers = None
 
@@ -288,7 +289,7 @@ class Generator(base_generate.BaseGenerator):
                 bone.layers = layers
 
                 # Remove custom shapes from non-control bones
-                bone.custom_shape = None
+                pbone.custom_shape = None
 
             bone.bbone_x = bone.bbone_z = bone.length * 0.05
 
