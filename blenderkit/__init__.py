@@ -970,7 +970,7 @@ class BlenderKitModelUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
         update=autothumb.update_upload_model_preview)
 
     thumbnail_background_lightness: FloatProperty(name="Thumbnail Background Lightness",
-                                                  description="set to make your material stand out", default=.9,
+                                                  description="set to make your material stand out", default=1.0,
                                                   min=0.01, max=10)
 
     thumbnail_angle: EnumProperty(
