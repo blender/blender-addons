@@ -30,7 +30,7 @@ def create_line_widget(geom):
 
 
 @widget_generator
-def create_circle_widget(geom, *, radius=0.5, head_tail=0.0, head_tail_x=None, with_line=False):
+def create_circle_widget(geom, *, radius=1.0, head_tail=0.0, head_tail_x=None, with_line=False):
     """ Creates a basic circle widget, a circle around the y-axis.
         radius: the radius of the circle
         head_tail: where along the length of the bone the circle is (0.0=head, 1.0=tail)

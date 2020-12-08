@@ -139,6 +139,15 @@ def create_registered_widget(obj, bone_name, widget_id, **kwargs):
     except KeyError:
         raise MetarigError("Unknown widget name: " + widget_id)
 
+    # Convert between radius and size
+    if kwargs.get('size') and 'size' not in valid_args:
+        if 'radius' in valid_args and not kwargs.get('radius'):
+            kwargs['radius'] = kwargs['size'] / 2
+
+    elif kwargs.get('radius') and 'radius' not in valid_args:
+        if 'size' in valid_args and not kwargs.get('size'):
+            kwargs['size'] = kwargs['radius'] * 2
+
     args = { **default_args, **kwargs }
 
     return callback(obj, bone_name, **{ k:v for k,v in args.items() if k in valid_args})
