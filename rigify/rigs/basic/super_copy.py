@@ -86,8 +86,13 @@ class Rig(BaseRig, RelinkConstraintsMixin):
         self.relink_bone_constraints(bones.org)
 
         if self.make_control:
+            self.relink_move_constraints(bones.org, bones.ctrl, prefix='CTRL:')
+
             # Constrain the original bone.
             self.make_constraint(bones.org, 'COPY_TRANSFORMS', bones.ctrl, insert_index=0)
+
+        if self.make_deform:
+            self.relink_move_constraints(bones.org, bones.deform, prefix='DEF:')
 
 
     def generate_widgets(self):
@@ -150,6 +155,13 @@ class Rig(BaseRig, RelinkConstraintsMixin):
         layout.prop(params, "make_deform")
 
         self.add_relink_constraints_ui(layout, params)
+
+        if params.relink_constraints and (params.make_control or params.make_deform):
+            col = layout.column()
+            if params.make_control:
+                col.label(text="'CTRL:...' constraints are moved to the control bone.", icon='INFO')
+            if params.make_deform:
+                col.label(text="'DEF:...' constraints are moved to the deform bone.", icon='INFO')
 
 
 def create_sample(obj):

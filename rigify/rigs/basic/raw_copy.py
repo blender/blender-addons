@@ -62,6 +62,17 @@ class RelinkConstraintsMixin:
                 self.relink_constraint(con, [''])
 
 
+    def relink_move_constraints(self, from_bone, to_bone, *, prefix=''):
+        if self.params.relink_constraints:
+            src = self.get_bone(from_bone).constraints
+            dest = self.get_bone(to_bone).constraints
+
+            for con in list(src):
+                if con.name.startswith(prefix):
+                    dest.copy(con)
+                    src.remove(con)
+
+
     def relink_bone_parent(self, bone_name):
         if self.params.relink_constraints:
             self.generator.disable_auto_parent(bone_name)
