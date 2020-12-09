@@ -60,15 +60,11 @@ def create_widget(rig, bone_name, bone_transform_name=None, *, widget_name=None,
     """ Creates an empty widget object for a bone, and returns the object.
     """
     assert rig.mode != 'EDIT'
-    bone = rig.pose.bones[bone_name]
-
-    # The bone already has a widget
-    if bone.custom_shape:
-        return None
 
     obj_name = widget_name or WGT_PREFIX + rig.name + '_' + bone_name
     scene = bpy.context.scene
     collection = ensure_widget_collection(bpy.context, 'WGTS_' + rig.name)
+    reuse_mesh = None
 
     # Check if it already exists in the scene
     if not widget_force_new:
@@ -85,13 +81,21 @@ def create_widget(rig, bone_name, bone_transform_name=None, *, widget_name=None,
         if obj_name in bpy.data.objects:
             bpy.data.objects.remove(bpy.data.objects[obj_name])
 
+        # Create a linked duplicate of the widget assigned in the metarig
+        reuse_widget = rig.pose.bones[bone_name].custom_shape
+        if reuse_widget:
+            reuse_mesh = reuse_widget.data
+
     # Create mesh object
-    mesh = bpy.data.meshes.new(obj_name)
+    mesh = reuse_mesh or bpy.data.meshes.new(obj_name)
     obj = bpy.data.objects.new(obj_name, mesh)
     collection.objects.link(obj)
 
     # Move object to bone position and set layers
     obj_to_bone(obj, rig, bone_name, bone_transform_name)
+
+    if reuse_mesh:
+        return None
 
     return obj
 
