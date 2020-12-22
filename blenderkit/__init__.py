@@ -199,9 +199,6 @@ thumbnail_resolutions = (
 )
 
 
-
-
-
 def switch_search_results(self, context):
     s = bpy.context.scene
     props = s.blenderkitUI
@@ -211,6 +208,9 @@ def switch_search_results(self, context):
     elif props.asset_type == 'SCENE':
         s['search results'] = s.get('bkit scene search')
         s['search results orig'] = s.get('bkit scene search orig')
+    elif props.asset_type == 'HDR':
+        s['search results'] = s.get('bkit hdr search')
+        s['search results orig'] = s.get('bkit hdr search orig')
     elif props.asset_type == 'MATERIAL':
         s['search results'] = s.get('bkit material search')
         s['search results orig'] = s.get('bkit material search orig')
@@ -220,7 +220,14 @@ def switch_search_results(self, context):
     elif props.asset_type == 'BRUSH':
         s['search results'] = s.get('bkit brush search')
         s['search results orig'] = s.get('bkit brush search orig')
+        if not(context.sculpt_object or context.image_paint_object):
+            ui.add_report(
+                'Switch to paint or sculpt mode to search in BlenderKit brushes.')
+
     search.load_previews()
+    if s['search results'] == None:
+        search.search_update(self, context)
+
 
 
 def asset_type_callback(self, context):
@@ -229,25 +236,45 @@ def asset_type_callback(self, context):
     items for Enum property, depending on the down_up property - BlenderKit is either in search or in upload mode.
 
     '''
-    if self.down_up == 'SEARCH':
-        items = (
-            ('MODEL', 'Models', 'Find models in the BlenderKit online database', 'OBJECT_DATAMODE', 0),
-            # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
-            ('MATERIAL', 'Materials', 'Find materials in the BlenderKit online database', 'MATERIAL', 2),
-            # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
-            ('BRUSH', 'Brushes', 'Find brushes in the BlenderKit online database', 'BRUSH_DATA', 3)
-        )
+    user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
+
+    if user_preferences.experimental_features:
+        if self.down_up == 'SEARCH':
+            items = (
+                ('MODEL', 'Models', 'Find models in the BlenderKit online database', 'OBJECT_DATAMODE', 0),
+                ('MATERIAL', 'Materials', 'Find materials in the BlenderKit online database', 'MATERIAL', 2),
+                # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
+                ('SCENE', 'Scenes', 'Browse scenes', 'SCENE_DATA', 3),
+                ('HDR', 'Hdrs', 'Browse hdrs', 'WORLD', 4),
+                ('BRUSH', 'Brushes', 'Find brushes in the BlenderKit online database', 'BRUSH_DATA', 5)
+            )
+        else:
+            items = (
+                ('MODEL', 'Model', 'Upload a model to BlenderKit', 'OBJECT_DATAMODE', 0),
+                # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
+                ('MATERIAL', 'Material', 'Upload a material to BlenderKit', 'MATERIAL', 2),
+                # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
+                ('SCENE', 'Scenes', 'Browse scenes', 'SCENE_DATA', 3),
+                ('HDR', 'Hdrs', 'Browse hdrs', 'WORLD', 4),
+                ('BRUSH', 'Brush', 'Upload a brush to BlenderKit', 'BRUSH_DATA', 5)
+            )
     else:
-        items = (
-            ('MODEL', 'Model', 'Upload a model to BlenderKit', 'OBJECT_DATAMODE', 0),
-            # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
-            ('MATERIAL', 'Material', 'Upload a material to BlenderKit', 'MATERIAL', 2),
-            # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
-            ('BRUSH', 'Brush', 'Upload a brush to BlenderKit', 'BRUSH_DATA', 3)
-        )
+        if self.down_up == 'SEARCH':
+            items = (
+                ('MODEL', 'Models', 'Find models in the BlenderKit online database', 'OBJECT_DATAMODE', 0),
+                ('MATERIAL', 'Materials', 'Find materials in the BlenderKit online database', 'MATERIAL', 2),
+                # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
+                ('BRUSH', 'Brushes', 'Find brushes in the BlenderKit online database', 'BRUSH_DATA', 5)
+            )
+        else:
+            items = (
+                ('MODEL', 'Model', 'Upload a model to BlenderKit', 'OBJECT_DATAMODE', 0),
+                # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
+                ('MATERIAL', 'Material', 'Upload a material to BlenderKit', 'MATERIAL', 2),
+                # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
+                ('BRUSH', 'Brush', 'Upload a brush to BlenderKit', 'BRUSH_DATA', 5)
+            )
     return items
-
-
 
 
 class BlenderKitUIProps(PropertyGroup):
@@ -362,6 +389,15 @@ class BlenderKitUIProps(PropertyGroup):
     dragging_rating_quality: BoolProperty(name="Dragging Rating Quality", default=False)
     dragging_rating_work_hours: BoolProperty(name="Dragging Rating Work Hours", default=False)
     last_rating_time: FloatProperty(name="Last Rating Time", default=0.0)
+
+    hdr_upload_image: PointerProperty(name='Upload HDR',
+                                      type=bpy.types.Image,
+                                      description='Pick an image to upload')
+
+    # StringProperty(
+    # name="Upload HDR",
+    # description="Active HDR image to upload",
+    # default="")
 
 
 def search_procedural_update(self, context):
@@ -867,6 +903,10 @@ class BlenderKitBrushSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
     )
 
 
+class BlenderKitHDRUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
+    pass;
+
+
 class BlenderKitBrushUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
     mode: EnumProperty(
         name="Mode",
@@ -1274,7 +1314,6 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
     free_only: BoolProperty(name="Free only", description="Show only free models",
                             default=False, update=search.search_update)
 
-
     # CONDITION
     search_condition: EnumProperty(
         items=conditions,
@@ -1393,6 +1432,15 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
                                                 min=0,
                                                 max=.5,
                                                 )
+
+
+class BlenderKitHDRSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
+    search_keywords: StringProperty(
+        name="Search",
+        description="Search for these keywords",
+        default="",
+        update=search.search_update
+    )
 
 
 class BlenderKitSceneSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
@@ -1602,6 +1650,12 @@ class BlenderKitAddonPreferences(AddonPreferences):
         update=utils.save_prefs
     )
 
+    experimental_features: BoolProperty(
+        name="Enable experimental features",
+        description="Enable all experimental features of BlenderKit. Use at your own risk.",
+        default=False,
+        update=utils.save_prefs
+    )
     # allow_proximity : BoolProperty(
     #     name="allow proximity data reports",
     #     description="This sends anonymized proximity data \n \
@@ -1642,6 +1696,7 @@ class BlenderKitAddonPreferences(AddonPreferences):
         layout.prop(self, "search_in_header")
         if bpy.context.preferences.view.show_developer_ui:
             layout.prop(self, "use_timers")
+            layout.prop(self, "experimental_features")
 
 
 # registration
@@ -1655,6 +1710,9 @@ classes = (
 
     BlenderKitSceneSearchProps,
     BlenderKitSceneUploadProps,
+
+    BlenderKitHDRSearchProps,
+    BlenderKitHDRUploadProps,
 
     BlenderKitMaterialUploadProps,
     BlenderKitMaterialSearchProps,
@@ -1689,6 +1747,14 @@ def register():
     bpy.types.Scene.blenderkit = PointerProperty(  # for uploads, not now...
         type=BlenderKitSceneUploadProps)
     bpy.types.Scene.bkit_ratings = PointerProperty(  # for uploads, not now...
+        type=BlenderKitRatingProps)
+
+    # HDRs
+    bpy.types.Scene.blenderkit_HDR = PointerProperty(
+        type=BlenderKitHDRSearchProps)
+    bpy.types.Image.blenderkit = PointerProperty(  # for uploads, not now...
+        type=BlenderKitHDRUploadProps)
+    bpy.types.Image.bkit_ratings = PointerProperty(  # for uploads, not now...
         type=BlenderKitRatingProps)
 
     # MATERIALS
@@ -1755,11 +1821,13 @@ def unregister():
 
     del bpy.types.Scene.blenderkit_models
     del bpy.types.Scene.blenderkit_scene
+    del bpy.types.Scene.blenderkit_HDR
     del bpy.types.Scene.blenderkit_brush
     del bpy.types.Scene.blenderkit_mat
 
     del bpy.types.Scene.blenderkit
     del bpy.types.Object.blenderkit
+    del bpy.types.Image.blenderkit
     del bpy.types.Material.blenderkit
     del bpy.types.Brush.blenderkit
 

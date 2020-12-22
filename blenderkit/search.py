@@ -372,6 +372,9 @@ def timer_update():
             if asset_type == 'scene':
                 props = scene.blenderkit_scene
                 # json_filepath = os.path.join(icons_dir, 'scene_searchresult.json')
+            if asset_type == 'hdr':
+                props = scene.blenderkit_HDR
+                # json_filepath = os.path.join(icons_dir, 'scene_searchresult.json')
             if asset_type == 'material':
                 props = scene.blenderkit_mat
                 # json_filepath = os.path.join(icons_dir, 'material_searchresult.json')
@@ -1131,6 +1134,19 @@ def build_query_scene():
     return query
 
 
+def build_query_HDR():
+    '''use all search input to request results from server'''
+
+    props = bpy.context.scene.blenderkit_scene
+    query = {
+        "asset_type": 'hdr',
+        # "engine": props.search_engine,
+        # "adult": props.search_adult,
+    }
+    build_query_common(query, props)
+    return query
+
+
 def build_query_material():
     props = bpy.context.scene.blenderkit_mat
     query = {
@@ -1221,7 +1237,8 @@ def add_search_process(query, params, orig_result):
     while (len(search_threads) > 0):
         old_thread = search_threads.pop(0)
         old_thread[0].stop()
-        # TODO CARE HERE FOR ALSO KILLING THE THREADS...AT LEAST NOW SEARCH DONE FIRST WON'T REWRITE AN OLDER ONE
+        # TODO CARE HERE FOR ALSO KILLING THE Thumbnail THREADS.?
+        #  AT LEAST NOW SEARCH DONE FIRST WON'T REWRITE AN OLDER ONE
 
     tempdir = paths.get_temp_dir('%s_search' % query['asset_type'])
     thread = Searcher(query, params, orig_result)
@@ -1304,6 +1321,12 @@ def search(category='', get_next=False, author_id=''):
         props = scene.blenderkit_scene
         query = build_query_scene()
 
+    if ui_props.asset_type == 'HDR':
+        if not hasattr(scene, 'blenderkit_HDR'):
+            return;
+        props = scene.blenderkit_HDR
+        query = build_query_HDR()
+
     if ui_props.asset_type == 'MATERIAL':
         if not hasattr(scene, 'blenderkit_mat'):
             return;
@@ -1367,7 +1390,7 @@ def search_update(self, context):
     if ui_props.down_up != 'SEARCH':
         ui_props.down_up = 'SEARCH'
 
-    # here we tweak the input if it comes form the clipboard. we need to get rid of asset type and set it to
+    # here we tweak the input if it comes form the clipboard. we need to get rid of asset type and set it in UI
     sprops = utils.get_search_props()
     instr = 'asset_base_id:'
     atstr = 'asset_type:'
@@ -1376,8 +1399,6 @@ def search_update(self, context):
     ati = kwds.find(atstr)
     # if the asset type already isn't there it means this update function
     # was triggered by it's last iteration and needs to cancel
-    if idi > -1 and ati == -1:
-        return;
     if ati > -1:
         at = kwds[ati:].lower()
         # uncertain length of the remaining string -  find as better method to check the presence of asset type
@@ -1387,12 +1408,19 @@ def search_update(self, context):
             ui_props.asset_type = 'MATERIAL'
         elif at.find('brush') > -1:
             ui_props.asset_type = 'BRUSH'
+        elif at.find('scene') > -1:
+            ui_props.asset_type = 'SCENE'
+        elif at.find('hdr') > -1:
+            ui_props.asset_type = 'HDR'
         # now we trim the input copypaste by anything extra that is there,
         # this is also a way for this function to recognize that it already has parsed the clipboard
         # the search props can have changed and this needs to transfer the data to the other field
         # this complex behaviour is here for the case where the user needs to paste manually into blender?
         sprops = utils.get_search_props()
         sprops.search_keywords = kwds[:ati].rstrip()
+        #return here since writing into search keywords triggers this update function once more.
+        return
+
     search()
 
 

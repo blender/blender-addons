@@ -76,6 +76,13 @@ def get_active_model():
     return None
 
 
+def get_active_HDR():
+    scene = bpy.context.scene
+    ui_props = scene.blenderkitUI
+    image = ui_props.hdr_upload_image
+    return image
+
+
 def get_selected_models():
     '''
     Detect all hierarchies that contain asset data from selection. Only parents that have actual ['asset data'] get returned
@@ -150,6 +157,10 @@ def get_search_props():
         if not hasattr(scene, 'blenderkit_scene'):
             return;
         props = scene.blenderkit_scene
+    if uiprops.asset_type == 'HDR':
+        if not hasattr(scene, 'blenderkit_HDR'):
+            return;
+        props = scene.blenderkit_HDR
     if uiprops.asset_type == 'MATERIAL':
         if not hasattr(scene, 'blenderkit_mat'):
             return;
@@ -176,7 +187,8 @@ def get_active_asset():
             return ob
     if ui_props.asset_type == 'SCENE':
         return bpy.context.scene
-
+    if ui_props.asset_type == 'HDR':
+        return get_active_HDR()
     elif ui_props.asset_type == 'MATERIAL':
         if bpy.context.view_layer.objects.active is not None and bpy.context.active_object.active_material is not None:
             return bpy.context.active_object.active_material
@@ -199,6 +211,12 @@ def get_upload_props():
     if ui_props.asset_type == 'SCENE':
         s = bpy.context.scene
         return s.blenderkit
+    if ui_props.asset_type == 'HDR':
+
+        hdr = ui_props.hdr_upload_image#bpy.data.images.get(ui_props.hdr_upload_image)
+        if not hdr:
+            return None
+        return hdr.blenderkit
     elif ui_props.asset_type == 'MATERIAL':
         if bpy.context.view_layer.objects.active is not None and bpy.context.active_object.active_material is not None:
             return bpy.context.active_object.active_material.blenderkit
@@ -412,6 +430,7 @@ def delete_hierarchy(ob):
     obs = get_hierarchy(ob)
     bpy.ops.object.delete({"selected_objects": obs})
 
+
 def get_bounds_snappable(obs, use_modifiers=False):
     # progress('getting bounds of object(s)')
     parent = obs[0]
@@ -601,6 +620,9 @@ def automap(target_object=None, target_slot=None, tex_size=1, bg_exception=False
 
 
 def name_update():
+    scene = bpy.context.scene
+    ui_props = scene.blenderkitUI
+
     props = get_upload_props()
     if props.name_old != props.name:
         props.name_changed = True
@@ -617,7 +639,9 @@ def name_update():
     fname = fname.replace('\'', '')
     fname = fname.replace('\"', '')
     asset = get_active_asset()
-    asset.name = fname
+    if ui_props.asset_type != 'HDR':
+        # Here we actually rename assets datablocks, but don't do that with HDR's and possibly with others
+        asset.name = fname
 
 
 def get_param(asset_data, parameter_name):

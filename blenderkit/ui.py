@@ -61,6 +61,7 @@ reports = []
 mappingdict = {
     'MODEL': 'model',
     'SCENE': 'scene',
+    'HDR': 'hdr',
     'MATERIAL': 'material',
     'TEXTURE': 'texture',
     'BRUSH': 'brush'
@@ -699,12 +700,11 @@ def draw_callback_2d_progress(self, context):
                         draw_downloader(loc[0], loc[1], percent=tcom.progress, img=img, text=tcom.report)
                     else:
                         draw_downloader(loc[0], loc[1], percent=tcom.progress, img=img, text=tcom.report)
-
-
         else:
             draw_progress(x, y - index * 30, text='downloading %s' % asset_data['name'],
                           percent=tcom.progress)
             index += 1
+
     for process in bg_blender.bg_processes:
         tcom = process[1]
         draw_progress(x, y - index * 30, '%s' % tcom.lasttext,
@@ -721,6 +721,11 @@ def draw_callback_2d_upload_preview(self, context):
     ui_props = context.scene.blenderkitUI
 
     props = utils.get_upload_props()
+
+    #assets which don't need asset preview
+    if ui_props.asset_type =='HDR':
+        return
+
     if props != None and ui_props.draw_tooltip:
 
         if ui_props.asset_type != 'BRUSH':
@@ -1378,12 +1383,11 @@ class AssetBarOperator(bpy.types.Operator):
                 ao = bpy.context.active_object
                 if ui_props.asset_type == 'MODEL' and ao != None \
                         or ui_props.asset_type == 'MATERIAL' and ao != None and ao.active_material != None \
-                        or ui_props.asset_type == 'BRUSH' and utils.get_active_brush() is not None:
-                    export_data, upload_data, eval_path_computing, eval_path_state, eval_path, props = upload.get_upload_data(
-                        self,
-                        context,
-                        ui_props.asset_type)
-                    ui_props.tooltip = search.generate_tooltip(upload_data)
+                        or ui_props.asset_type == 'BRUSH' and utils.get_active_brush() is not None\
+                        or ui_props.asset_type =='SCENE' or ui_props.asset_type == 'HDR':
+                    export_data, upload_data = upload.get_upload_data(self, context, ui_props.asset_type)
+                    if upload_data:
+                        ui_props.tooltip = search.generate_tooltip(upload_data)
 
             return {'PASS_THROUGH'}
 
@@ -1548,12 +1552,13 @@ class AssetBarOperator(bpy.types.Operator):
 
             ui_props = context.scene.blenderkitUI
             if event.value == 'PRESS' and ui_props.active_index > -1:
+                #start dragging models and materials
                 if ui_props.asset_type == 'MODEL' or ui_props.asset_type == 'MATERIAL':
                     # check if asset is locked and let the user know in that case
                     asset_search_index = ui_props.active_index
                     asset_data = sr[asset_search_index]
                     if not asset_data.get('canDownload'):
-                        message = "Let's support asset creators and Blender development."
+                        message = "Let's support asset creators and Open source."
                         link_text = 'Unlock the asset.'
                         url = paths.get_bkit_url() + '/get-blenderkit/' + asset_data['id'] + '/?from_addon'
                         bpy.ops.wm.blenderkit_url_dialog('INVOKE_REGION_WIN', url=url, message=message,
@@ -1670,7 +1675,9 @@ class AssetBarOperator(bpy.types.Operator):
 
                 if asset_search_index == -3:
                     return {'RUNNING_MODAL'}
+
                 if asset_search_index > -3:
+                    #picking of assets and using them
                     if ui_props.asset_type == 'MATERIAL':
                         if target_object != '':
                             # position is for downloader:

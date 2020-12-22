@@ -208,6 +208,7 @@ def get_assets_for_rating():
 asset_types = (
     ('MODEL', 'Model', 'set of objects'),
     ('SCENE', 'Scene', 'scene'),
+    ('HDR', 'HDR', 'hdr'),
     ('MATERIAL', 'Material', 'any .blend Material'),
     ('TEXTURE', 'Texture', 'a texture, or texture set'),
     ('BRUSH', 'Brush', 'brush, can be any type of blender brush'),
@@ -269,7 +270,7 @@ def update_quality_ui(self, context):
         # return
         bpy.ops.wm.blenderkit_login('INVOKE_DEFAULT',
                                     message='Please login/signup to rate assets. Clicking OK takes you to web login.')
-        self.rating_quality_ui = '0'
+        # self.rating_quality_ui = '0'
     self.rating_quality = int(self.rating_quality_ui)
 
 
@@ -281,7 +282,7 @@ def update_ratings_work_hours_ui(self, context):
         # return
         bpy.ops.wm.blenderkit_login('INVOKE_DEFAULT',
                                     message='Please login/signup to rate assets. Clicking OK takes you to web login.')
-        self.rating_work_hours_ui = '0'
+        # self.rating_work_hours_ui = '0'
     self.rating_work_hours = float(self.rating_work_hours_ui)
 
 def update_ratings_work_hours_ui_1_5(self, context):
@@ -292,7 +293,7 @@ def update_ratings_work_hours_ui_1_5(self, context):
         # return
         bpy.ops.wm.blenderkit_login('INVOKE_DEFAULT',
                                     message='Please login/signup to rate assets. Clicking OK takes you to web login.')
-        self.rating_work_hours_ui_1_5 = '0'
+        # self.rating_work_hours_ui_1_5 = '0'
     # print('updating 1-5')
     # print(float(self.rating_work_hours_ui_1_5))
     self.rating_work_hours = float(self.rating_work_hours_ui_1_5)

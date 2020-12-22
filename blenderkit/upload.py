@@ -33,15 +33,19 @@ if "bpy" in locals():
     colors = reload(colors)
     rerequests = reload(rerequests)
     categories = reload(categories)
+    upload_bg = reload(upload_bg)
+    tasks_queue = reload(tasks_queue)
+    image_utils = reload(image_utils)
 else:
     from blenderkit import asset_inspector, paths, utils, bg_blender, autothumb, version_checker, search, ui_panels, ui, \
-        overrides, colors, rerequests, categories
+        overrides, colors, rerequests, categories, upload_bg, tasks_queue, image_utils
 
 import tempfile, os, subprocess, json, re
 
 import bpy
 import requests
 import threading
+import sys
 
 BLENDERKIT_EXPORT_DATA_FILE = "data.json"
 
@@ -82,13 +86,11 @@ def add_version(data):
     data["addonVersion"] = addon_version
 
 
-
-
 def write_to_report(props, text):
     props.report = props.report + text + '\n'
 
 
-def get_missing_data_model(props):
+def check_missing_data_model(props):
     props.report = ''
     autothumb.update_upload_model_preview(None, None)
 
@@ -106,7 +108,7 @@ def get_missing_data_model(props):
         write_to_report(props, 'Run autotags operator or fill in dimensions manually')
 
 
-def get_missing_data_scene(props):
+def check_missing_data_scene(props):
     props.report = ''
     autothumb.update_upload_model_preview(None, None)
 
@@ -122,7 +124,7 @@ def get_missing_data_scene(props):
         write_to_report(props, 'Set at least one rendering/output engine')
 
 
-def get_missing_data_material(props):
+def check_missing_data_material(props):
     props.report = ''
     autothumb.update_upload_material_preview(None, None)
     if props.name == '':
@@ -136,7 +138,7 @@ def get_missing_data_material(props):
         write_to_report(props, 'Set rendering/output engine')
 
 
-def get_missing_data_brush(props):
+def check_missing_data_brush(props):
     autothumb.update_upload_brush_preview(None, None)
     props.report = ''
     if props.name == '':
@@ -160,11 +162,31 @@ def camel_to_sub(content):
 
 
 def get_upload_data(self, context, asset_type):
+    '''
+    works though metadata from addom props and prepares it for upload to dicts.
+    Parameters
+    ----------
+    self
+    context
+    asset_type
+
+    Returns
+    -------
+    export_ddta- all extra data that the process needs to upload and communicate with UI from a thread.
+        - eval_path_computing - string path to UI prop that denots if upload is still running
+        - eval_path_state - string path to UI prop that delivers messages about upload to ui
+        - eval_path - path to object holding upload data to be able to access it with various further commands
+        - models - in case of model upload, list of objects
+        - thumbnail_path - path to thumbnail file
+
+    upload_data - asset_data generated from the ui properties
+
+    '''
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
     api_key = user_preferences.api_key
 
     export_data = {
-        "type": asset_type,
+        # "type": asset_type,
     }
     upload_params = {}
     if asset_type == 'MODEL':
@@ -236,7 +258,7 @@ def get_upload_data(self, context, asset_type):
             "procedural": props.is_procedural,
             "nodeCount": props.node_count,
             "textureCount": props.texture_count,
-            "megapixels": round(props.total_megapixels/ 1000000),
+            "megapixels": round(props.total_megapixels / 1000000),
             # "scene": props.is_scene,
         }
         if props.use_design_year:
@@ -364,7 +386,7 @@ def get_upload_data(self, context, asset_type):
             "procedural": props.is_procedural,
             "nodeCount": props.node_count,
             "textureCount": props.texture_count,
-            "megapixels": round(props.total_megapixels/ 1000000),
+            "megapixels": round(props.total_megapixels / 1000000),
 
         }
 
@@ -405,6 +427,38 @@ def get_upload_data(self, context, asset_type):
             "assetType": 'brush',
         }
 
+    elif asset_type == 'HDR':
+        ui_props = bpy.context.scene.blenderkitUI
+
+        # imagename = ui_props.hdr_upload_image
+        image = ui_props.hdr_upload_image#bpy.data.images.get(imagename)
+        if not image:
+            return None, None
+
+        props = image.blenderkit
+        # props.name = brush.name
+        base, ext = os.path.splitext(image.filepath)
+        thumb_path = base + '.jpg'
+        export_data["thumbnail_path"] = bpy.path.abspath(thumb_path)
+
+        export_data["hdr"] = str(image.name)
+        export_data["hdr_filepath"] = str(bpy.path.abspath(image.filepath))
+        # export_data["thumbnail_path"] = bpy.path.abspath(brush.icon_filepath)
+
+        eval_path_computing = "bpy.data.images['%s'].blenderkit.uploading" % image.name
+        eval_path_state = "bpy.data.images['%s'].blenderkit.upload_state" % image.name
+        eval_path = "bpy.data.images['%s']" % image.name
+
+        # mat analytics happen here, since they don't take up any time...
+
+        upload_params = {
+
+        }
+
+        upload_data = {
+            "assetType": 'hdr',
+        }
+
     elif asset_type == 'TEXTURE':
         style = props.style
         # if style == 'OTHER':
@@ -441,13 +495,16 @@ def get_upload_data(self, context, asset_type):
     upload_data["isPrivate"] = props.is_private == 'PRIVATE'
     upload_data["token"] = user_preferences.api_key
 
-    if props.asset_base_id != '':
-        upload_data['assetBaseId'] = props.asset_base_id
-        upload_data['id'] = props.id
-
     upload_data['parameters'] = upload_params
 
-    return export_data, upload_data, eval_path_computing, eval_path_state, eval_path, props
+    # if props.asset_base_id != '':
+    export_data['assetBaseId'] = props.asset_base_id
+    export_data['id'] = props.id
+    export_data['eval_path_computing'] = eval_path_computing
+    export_data['eval_path_state'] = eval_path_state
+    export_data['eval_path'] = eval_path
+
+    return export_data, upload_data
 
 
 def category_change_thread(asset_id, category, api_key):
@@ -462,7 +519,6 @@ def category_change_thread(asset_id, category, api_key):
         print(e)
         return {'CANCELLED'}
     return {'FINISHED'}
-
 
 
 # class OBJECT_MT_blenderkit_fast_category_menu(bpy.types.Menu):
@@ -527,7 +583,7 @@ class FastCategory(bpy.types.Operator):
         # layout.template_icon_view(bkit_ratings, property, show_labels=False, scale=6.0, scale_popup=5.0)
         # col.prop(self, 'category')
 
-        layout.prop(self, 'category')#, expand = True)
+        layout.prop(self, 'category')  # , expand = True)
         props = bpy.context.scene.blenderkitUI
         if props.asset_type == 'MODEL':  # by now block this for other asset types.
             # col = row.column()
@@ -568,6 +624,7 @@ class FastCategory(bpy.types.Operator):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
+
 def verification_status_change_thread(asset_id, state, api_key):
     upload_data = {
         "verificationStatus": state
@@ -583,6 +640,16 @@ def verification_status_change_thread(asset_id, state, api_key):
 
 
 def get_upload_location(props):
+    '''
+    not used by now, gets location of uploaded asset - potentially usefull if we draw a nice upload gizmo in viewport.
+    Parameters
+    ----------
+    props
+
+    Returns
+    -------
+
+    '''
     scene = bpy.context.scene
     ui_props = scene.blenderkitUI
     if ui_props.asset_type == 'MODEL':
@@ -630,8 +697,244 @@ def auto_fix(asset_type=''):
         asset.name = props.name
 
 
+upload_threads = []
+
+
+class Uploader(threading.Thread):
+    '''
+       Upload thread -
+        - first uploads metadata
+        - blender gets started to process the file if .blend is uploaded
+        - if files need to be uploaded, uploads them
+        - thumbnail goes first
+        - files get uploaded
+
+       Returns
+       -------
+
+   '''
+
+    def __init__(self, upload_data=None, export_data=None, upload_set=None):
+        super(Uploader, self).__init__()
+        self.upload_data = upload_data
+        self.export_data = export_data
+        self.upload_set = upload_set
+        self._stop_event = threading.Event()
+
+    def stop(self):
+        self._stop_event.set()
+
+    def stopped(self):
+        return self._stop_event.is_set()
+
+    def send_message(self, message):
+        message = str(message)
+        # this adds a UI report but also writes above the upload panel fields.
+        tasks_queue.add_task((ui.add_report, (message,)))
+        estring = f"{self.export_data['eval_path_state']} = '{message}'"
+        tasks_queue.add_task((exec, (estring,)))
+
+    def end_upload(self, message):
+        estring = self.export_data['eval_path_computing'] + ' = False'
+        tasks_queue.add_task((exec, (estring,)))
+        self.send_message(message)
+
+    def run(self):
+        # utils.pprint(upload_data)
+        self.upload_data['parameters'] = utils.dict_to_params(
+            self.upload_data['parameters'])  # weird array conversion only for upload, not for tooltips.
+
+        script_path = os.path.dirname(os.path.realpath(__file__))
+
+
+        # first upload metadata to server, so it can be saved inside the current file
+        url = paths.get_api_url() + 'assets/'
+
+        headers = utils.get_headers(self.upload_data['token'])
+
+        # self.upload_data['license'] = 'ovejajojo'
+        json_metadata = self.upload_data  # json.dumps(self.upload_data, ensure_ascii=False).encode('utf8')
+
+        # tasks_queue.add_task((ui.add_report, ('Posting metadata',)))
+        self.send_message('Posting metadata')
+        if self.export_data['assetBaseId'] == '':
+            try:
+                r = rerequests.post(url, json=json_metadata, headers=headers, verify=True,
+                                    immediate=True)  # files = files,
+
+                # tasks_queue.add_task((ui.add_report, ('uploaded metadata',)))
+                utils.p(r.text)
+                self.send_message('uploaded metadata')
+
+            except requests.exceptions.RequestException as e:
+                print(e)
+                self.end_upload(e)
+                return {'CANCELLED'}
+
+        else:
+            url += self.export_data['id'] + '/'
+            try:
+                if 'MAINFILE' in self.upload_set:
+                    json_metadata["verificationStatus"] = "uploading"
+                r = rerequests.patch(url, json=json_metadata, headers=headers, verify=True,
+                                     immediate=True)  # files = files,
+                self.send_message('uploaded metadata')
+
+                # tasks_queue.add_task((ui.add_report, ('uploaded metadata',)))
+                # parse the request
+                # print('uploaded metadata')
+                print(r.text)
+            except requests.exceptions.RequestException as e:
+                print(e)
+                self.end_upload(e)
+                return {'CANCELLED'}
+
+        if self.stopped():
+            self.end_upload('Upload cancelled by user')
+            return
+        # props.upload_state = 'step 1'
+        if self.upload_set == ['METADATA']:
+            self.end_upload('Metadata posted successfully')
+            return {'FINISHED'}
+        try:
+            rj = r.json()
+            utils.pprint(rj)
+            # if r.status_code not in (200, 201):
+            #     if r.status_code == 401:
+            #         ###ui.add_report(r.detail, 5, colors.RED)
+            #     return {'CANCELLED'}
+            # if props.asset_base_id == '':
+            #     props.asset_base_id = rj['assetBaseId']
+            #     props.id = rj['id']
+            if self.export_data['assetBaseId'] == '':
+                self.export_data['assetBaseId'] = rj['assetBaseId']
+                self.export_data['id'] = rj['id']
+                #here we need to send asset ID's back into UI to be written in asset data.
+                estring =  f"{self.export_data['eval_path']}.blenderkit.asset_base_id = '{rj['assetBaseId']}'"
+                tasks_queue.add_task((exec, (estring,)))
+                estring =  f"{self.export_data['eval_path']}.blenderkit.id = '{rj['id']}'"
+                tasks_queue.add_task((exec, (estring,)))
+                #after that, the user's file needs to be saved to save the
+
+            self.upload_data['assetBaseId'] = self.export_data['assetBaseId']
+            self.upload_data['id'] = self.export_data['id']
+
+
+            # props.uploading = True
+
+            if 'MAINFILE' in self.upload_set:
+                if self.upload_data['assetType'] == 'hdr':
+                    fpath = self.export_data['hdr_filepath']
+                else:
+                    fpath = os.path.join(self.export_data['temp_dir'], self.upload_data['assetBaseId'] + '.blend')
+
+                    clean_file_path = paths.get_clean_filepath()
+
+                    data = {
+                        'export_data': self.export_data,
+                        'upload_data': self.upload_data,
+                        'debug_value': self.export_data['debug_value'],
+                        'upload_set': self.upload_set,
+                    }
+                    datafile = os.path.join(self.export_data['temp_dir'], BLENDERKIT_EXPORT_DATA_FILE)
+
+                    with open(datafile, 'w') as s:
+                        json.dump(data, s)
+
+                    #non waiting method - not useful here..
+                    # proc = subprocess.Popen([
+                    #     binary_path,
+                    #     "--background",
+                    #     "-noaudio",
+                    #     clean_file_path,
+                    #     "--python", os.path.join(script_path, "upload_bg.py"),
+                    #     "--", datafile  # ,filepath, tempdir
+                    # ], bufsize=5000, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+                    # tasks_queue.add_task((ui.add_report, ('preparing scene - running blender instance',)))
+                    self.send_message('preparing scene - running blender instance')
+
+                    proc = subprocess.run([
+                        self.export_data['binary_path'],
+                        "--background",
+                        "-noaudio",
+                        clean_file_path,
+                        "--python", os.path.join(script_path, "upload_bg.py"),
+                        "--", datafile
+                    ], bufsize=1, stdout=sys.stdout, stdin=subprocess.PIPE, creationflags=utils.get_process_flags())
+
+            if self.stopped():
+                self.end_upload('Upload stopped by user')
+                return
+
+
+            files = []
+            if 'THUMBNAIL' in self.upload_set:
+                files.append({
+                    "type": "thumbnail",
+                    "index": 0,
+                    "file_path": self.export_data["thumbnail_path"]
+                })
+            if 'MAINFILE' in self.upload_set:
+
+                files.append({
+                    "type": "blend",
+                    "index": 0,
+                    "file_path": fpath
+                })
+
+            self.send_message('Uploading files')
+
+            uploaded = upload_bg.upload_files(self.upload_data, files)
+
+            if uploaded:
+                # mark on server as uploaded
+                if 'MAINFILE' in self.upload_set:
+                    confirm_data = {
+                        "verificationStatus": "uploaded"
+                    }
+
+                    url = paths.get_api_url() + 'assets/'
+
+                    headers = utils.get_headers(self.upload_data['token'])
+
+                    url += self.upload_data["id"] + '/'
+
+                    r = rerequests.patch(url, json=confirm_data, headers=headers, verify=True)  # files = files,
+
+                self.end_upload('Upload finished successfully')
+            else:
+                self.end_upload('Upload failed')
+        except Exception as e:
+            self.end_upload(e)
+            print(e)
+            return {'CANCELLED'}
+
+
+def check_missing_data(asset_type, props):
+    '''
+    checks if user did everything allright for particular assets and notifies him back if not.
+    Parameters
+    ----------
+    asset_type
+    props
+
+    Returns
+    -------
+
+    '''
+    if asset_type == 'MODEL':
+        check_missing_data_model(props)
+    if asset_type == 'SCENE':
+        check_missing_data_scene(props)
+    elif asset_type == 'MATERIAL':
+        check_missing_data_material(props)
+    elif asset_type == 'BRUSH':
+        check_missing_data_brush(props)
+
+
+
 def start_upload(self, context, asset_type, reupload, upload_set):
-    '''start upload process, by processing data'''
+    '''start upload process, by processing data, then start a thread that cares about the rest of the upload.'''
 
     # fix the name first
     utils.name_update()
@@ -651,17 +954,10 @@ def start_upload(self, context, asset_type, reupload, upload_set):
     props.tags = props.tags[:]
 
     props.name = props.name.strip()
-    # TODO  move this to separate function
-    # check for missing metadata
-    if asset_type == 'MODEL':
-        get_missing_data_model(props)
-    if asset_type == 'SCENE':
-        get_missing_data_scene(props)
-    elif asset_type == 'MATERIAL':
-        get_missing_data_material(props)
-    elif asset_type == 'BRUSH':
-        get_missing_data_brush(props)
 
+    # check for missing metadata
+    check_missing_data(asset_type, props)
+    # if previous check did find any problems then
     if props.report != '':
         self.report({'ERROR_INVALID_INPUT'}, props.report)
         return {'CANCELLED'}
@@ -669,131 +965,50 @@ def start_upload(self, context, asset_type, reupload, upload_set):
     if not reupload:
         props.asset_base_id = ''
         props.id = ''
-    export_data, upload_data, eval_path_computing, eval_path_state, eval_path, props = get_upload_data(self, context,
-                                                                                                       asset_type)
-    # utils.pprint(upload_data)
-    upload_data['parameters'] = utils.dict_to_params(
-        upload_data['parameters'])  # weird array conversion only for upload, not for tooltips.
 
-    binary_path = bpy.app.binary_path
-    script_path = os.path.dirname(os.path.realpath(__file__))
-    basename, ext = os.path.splitext(bpy.data.filepath)
-    # if not basename:
-    #     basename = os.path.join(basename, "temp")
-    if not ext:
-        ext = ".blend"
-    tempdir = tempfile.mkdtemp()
-    source_filepath = os.path.join(tempdir, "export_blenderkit" + ext)
-    clean_file_path = paths.get_clean_filepath()
-    data = {
-        'clean_file_path': clean_file_path,
-        'source_filepath': source_filepath,
-        'temp_dir': tempdir,
-        'export_data': export_data,
-        'upload_data': upload_data,
-        'debug_value': bpy.app.debug_value,
-        'upload_set': upload_set,
-    }
-    datafile = os.path.join(tempdir, BLENDERKIT_EXPORT_DATA_FILE)
+    export_data, upload_data = get_upload_data(self, context, asset_type)
 
-    # check if thumbnail exists:
+    # check if thumbnail exists, generate for HDR:
     if 'THUMBNAIL' in upload_set:
-        if not os.path.exists(export_data["thumbnail_path"]):
+        if asset_type == 'HDR':
+            image_utils.generate_hdr_thumbnail()
+        elif not os.path.exists(export_data["thumbnail_path"]):
             props.upload_state = 'Thumbnail not found'
             props.uploading = False
             return {'CANCELLED'}
 
-    # first upload metadata to server, so it can be saved inside the current file
-    url = paths.get_api_url() + 'assets/'
+    props.upload_state = "Starting upload. Please don't close Blender until upload finishes"
+    props.uploading = True
 
-    headers = utils.get_headers(upload_data['token'])
 
-    # upload_data['license'] = 'ovejajojo'
-    json_metadata = upload_data  # json.dumps(upload_data, ensure_ascii=False).encode('utf8')
-    global reports
-    if props.asset_base_id == '':
-        try:
-            r = rerequests.post(url, json=json_metadata, headers=headers, verify=True, immediate=True)  # files = files,
-            ui.add_report('uploaded metadata')
-            utils.p(r.text)
-        except requests.exceptions.RequestException as e:
-            print(e)
-            props.upload_state = str(e)
-            props.uploading = False
-            return {'CANCELLED'}
+    # save a copy of the file for processing. Only for blend files
+    basename, ext = os.path.splitext(bpy.data.filepath)
+    if not ext:
+        ext = ".blend"
+    export_data['temp_dir'] = tempfile.mkdtemp()
+    export_data['source_filepath'] = os.path.join(export_data['temp_dir'], "export_blenderkit" + ext)
+    if asset_type != 'HDR':
+        bpy.ops.wm.save_as_mainfile(filepath=export_data['source_filepath'], compress=False, copy=True)
 
-    else:
-        url += props.id + '/'
-        try:
-            if 'MAINFILE' in upload_set:
-                json_metadata["verificationStatus"] = "uploading"
-            r = rerequests.patch(url, json=json_metadata, headers=headers, verify=True, immediate=True)  # files = files,
-            ui.add_report('uploaded metadata')
-            # parse the request
-            # print('uploaded metadata')
-            print(r.text)
-        except requests.exceptions.RequestException as e:
-            print(e)
-            props.upload_state = str(e)
-            props.uploading = False
-            return {'CANCELLED'}
+    export_data['binary_path'] = bpy.app.binary_path
+    export_data['debug_value'] = bpy.app.debug_value
 
-    # props.upload_state = 'step 1'
-    if upload_set == ['METADATA']:
-        props.uploading = False
-        props.upload_state = 'upload finished successfully'
-        return {'FINISHED'}
-    try:
-        rj = r.json()
-        utils.pprint(rj)
-        # if r.status_code not in (200, 201):
-        #     if r.status_code == 401:
-        #         ui.add_report(r.detail, 5, colors.RED)
-        #     return {'CANCELLED'}
-        if props.asset_base_id == '':
-            props.asset_base_id = rj['assetBaseId']
-            props.id = rj['id']
-        upload_data['assetBaseId'] = props.asset_base_id
-        upload_data['id'] = props.id
+    upload_thread = Uploader(upload_data=upload_data, export_data=export_data, upload_set=upload_set)
 
-        # bpy.ops.wm.save_mainfile()
-        # bpy.ops.wm.save_as_mainfile(filepath=filepath, compress=False, copy=True)
+    upload_thread.start()
 
-        props.uploading = True
-        # save a copy of actual scene but don't interfere with the users models
-        bpy.ops.wm.save_as_mainfile(filepath=source_filepath, compress=False, copy=True)
-
-        with open(datafile, 'w') as s:
-            json.dump(data, s)
-
-        proc = subprocess.Popen([
-            binary_path,
-            "--background",
-            "-noaudio",
-            clean_file_path,
-            "--python", os.path.join(script_path, "upload_bg.py"),
-            "--", datafile  # ,filepath, tempdir
-        ], bufsize=5000, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-
-        bg_blender.add_bg_process(eval_path_computing=eval_path_computing, eval_path_state=eval_path_state,
-                                  eval_path=eval_path, process_type='UPLOAD', process=proc, location=location)
-
-    except Exception as e:
-        props.upload_state = str(e)
-        props.uploading = False
-        print(e)
-        return {'CANCELLED'}
-
+    upload_threads.append(upload_thread)
     return {'FINISHED'}
 
 
 asset_types = (
-    ('MODEL', 'Model', 'set of objects'),
-    ('SCENE', 'Scene', 'scene'),
-    ('MATERIAL', 'Material', 'any .blend Material'),
-    ('TEXTURE', 'Texture', 'a texture, or texture set'),
-    ('BRUSH', 'Brush', 'brush, can be any type of blender brush'),
-    ('ADDON', 'Addon', 'addnon'),
+    ('MODEL', 'Model', 'Set of objects'),
+    ('SCENE', 'Scene', 'Scene'),
+    ('HDR', 'HDR', 'HDR image'),
+    ('MATERIAL', 'Material', 'Any .blend Material'),
+    ('TEXTURE', 'Texture', 'A texture, or texture set'),
+    ('BRUSH', 'Brush', 'Brush, can be any type of blender brush'),
+    ('ADDON', 'Addon', 'Addnon'),
 )
 
 
@@ -865,11 +1080,9 @@ class UploadOperator(Operator):
             if self.main_file:
                 upload_set.append('MAINFILE')
 
-        result = start_upload(self, context, self.asset_type, self.reupload, upload_set)
+        result = start_upload(self, context, self.asset_type, self.reupload, upload_set=upload_set, )
 
-        return result
-
-
+        return {'FINISHED'}
 
     def draw(self, context):
         props = utils.get_upload_props()
@@ -887,23 +1100,22 @@ class UploadOperator(Operator):
 
         if props.is_private == 'PUBLIC':
             utils.label_multiline(layout, text='public assets are validated several hours'
-                                                   ' or days after upload. Remember always to '
-                                                    'test download your asset to a clean file'
-                                                   ' to see if it uploaded correctly.'
-                                      , width=300)
+                                               ' or days after upload. Remember always to '
+                                               'test download your asset to a clean file'
+                                               ' to see if it uploaded correctly.'
+                                  , width=300)
 
     def invoke(self, context, event):
         props = utils.get_upload_props()
 
         if not utils.user_logged_in():
-            ui_panels.draw_not_logged_in(self, message = 'To upload assets you need to login/signup.')
+            ui_panels.draw_not_logged_in(self, message='To upload assets you need to login/signup.')
             return {'CANCELLED'}
 
         if props.is_private == 'PUBLIC':
             return context.window_manager.invoke_props_dialog(self)
         else:
             return self.execute(context)
-
 
 
 class AssetDebugPrint(Operator):
@@ -921,7 +1133,6 @@ class AssetDebugPrint(Operator):
     @classmethod
     def poll(cls, context):
         return True
-
 
     def execute(self, context):
         preferences = bpy.context.preferences.addons['blenderkit'].preferences
@@ -992,7 +1203,6 @@ class AssetVerificationStatusChange(Operator):
         for r in sro:
             if r['id'] == self.asset_id:
                 r['verificationStatus'] = self.state
-
 
         thread = threading.Thread(target=verification_status_change_thread,
                                   args=(self.asset_id, self.state, preferences.api_key))

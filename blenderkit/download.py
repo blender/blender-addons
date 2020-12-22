@@ -290,6 +290,8 @@ def udpate_asset_data_in_dicts(asset_data):
     id = asset_data['assetBaseId']
     scene['assets rated'][id] = scene['assets rated'].get(id, False)
     sr = bpy.context.scene['search results']
+    if not sr:
+        return;
     for i, r in enumerate(sr):
         if r['assetBaseId'] == asset_data['assetBaseId']:
             for f in asset_data['files']:
@@ -322,6 +324,11 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
         scene = append_link.append_scene(file_names[0], link=False, fake_user=False)
         props = scene.blenderkit
         asset_main = scene
+
+    if asset_data['assetType'] == 'hdr':
+        hdr = append_link.load_HDR(file_name = file_names[0], name = asset_data['name'])
+        props = hdr.blenderkit
+        asset_main = hdr
 
     s = bpy.context.scene
 
@@ -604,7 +611,7 @@ def timer_update():
             if ((bpy.context.mode == 'OBJECT' and \
                  (at == 'model' or at == 'material'))) \
                     or ((at == 'brush') \
-                        and wm.get('appendable') == True) or at == 'scene':
+                        and wm.get('appendable') == True) or at == 'scene' or at == 'hdr':
                 # don't do this stuff in editmode and other modes, just wait...
                 download_threads.remove(threaddata)
 
@@ -646,14 +653,8 @@ def timer_update():
                     if not done:
                         at = asset_data['assetType']
                         tcom.passargs['retry_counter'] = tcom.passargs.get('retry_counter', 0) + 1
-                        if at in ('model', 'material'):
-                            download(asset_data, **tcom.passargs)
-                        elif asset_data['assetType'] == 'material':
-                            download(asset_data, **tcom.passargs)
-                        elif asset_data['assetType'] == 'scene':
-                            download(asset_data, **tcom.passargs)
-                        elif asset_data['assetType'] == 'brush' or asset_data['assetType'] == 'texture':
-                            download(asset_data, **tcom.passargs)
+                        download(asset_data, **tcom.passargs)
+
                     if bpy.context.scene['search results'] is not None and done:
                         for sres in bpy.context.scene['search results']:
                             if asset_data['id'] == sres['id']:
@@ -776,14 +777,14 @@ class Downloader(threading.Thread):
             # this sends the thread for processing, where another check should occur, since the file might be corrupted.
             tcom.downloaded = 100
             utils.p('not downloading, trying to append again')
-            return;
+            return
 
         file_name = paths.get_download_filepaths(asset_data, self.resolution)[0]  # prefer global dir if possible.
         # for k in asset_data:
         #    print(asset_data[k])
         if self.stopped():
             utils.p('stopping download: ' + asset_data['name'])
-            return;
+            return
 
         download_canceled = False
         with open(file_name, "wb") as f:
@@ -827,7 +828,7 @@ class Downloader(threading.Thread):
 
         if download_canceled:
             delete_unfinished_file(file_name)
-            return;
+            return
         # unpack the file immediately after download
 
         tcom.report = f'Unpacking files'
@@ -1170,15 +1171,14 @@ def start_download(asset_data, **kwargs):
                               'rotation': kwargs['model_rotation']}
                 download(asset_data, downloaders=[downloader], **kwargs)
 
-            elif asset_data['assetType'] == 'scene':
-                download(asset_data, **kwargs)
-            elif asset_data['assetType'] == 'brush' or asset_data['assetType'] == 'texture':
+            else:
                 download(asset_data, **kwargs)
 
 
 asset_types = (
     ('MODEL', 'Model', 'set of objects'),
     ('SCENE', 'Scene', 'scene'),
+    ('HDR', 'Hdr', 'hdr'),
     ('MATERIAL', 'Material', 'any .blend Material'),
     ('TEXTURE', 'Texture', 'a texture, or texture set'),
     ('BRUSH', 'Brush', 'brush, can be any type of blender brush'),

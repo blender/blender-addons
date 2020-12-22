@@ -104,6 +104,7 @@ def get_upload_asset_type(self):
     typemapper = {
         bpy.types.Object.blenderkit: 'model',
         bpy.types.Scene.blenderkit: 'scene',
+        bpy.types.Image.blenderkit: 'hdr',
         bpy.types.Material.blenderkit: 'material',
         bpy.types.Brush.blenderkit: 'brush'
     }
@@ -174,6 +175,7 @@ def load_categories():
         wm['active_category'] = {
             'MODEL': ['model'],
             'SCENE': ['scene'],
+            'HDR': ['hdr'],
             'MATERIAL': ['material'],
             'BRUSH': ['brush'],
         }

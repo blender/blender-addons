@@ -179,13 +179,6 @@ def save_image_safely(teximage, filepath):
     orig_color_mode = ims.color_mode
     orig_compression = ims.compression
 
-    ims = rs.image_settings
-
-    orig_file_format = ims.file_format
-    orig_quality = ims.quality
-    orig_color_mode = ims.color_mode
-    orig_compression = ims.compression
-
     ims.file_format = teximage.file_format
     if teximage.file_format == 'PNG':
         ims.color_mode = 'RGBA'
@@ -317,6 +310,7 @@ def upload_resolutions(files, data):
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
 
     upload_data = {
+        "name": data['asset_data']['name'],
         "token": preferences.api_key,
         "id": data['asset_data']['id']
     }
@@ -743,18 +737,19 @@ def iterate_for_resolutions(filepath, process_count=12, api_key=''):
             if check_needs_resolutions(asset_data):
                 print('downloading and generating resolution for  %s' % asset_data['name'])
                 # this is just a quick hack for not using original dirs in blendrkit...
-                thread = threading.Thread(target=generate_resolution_thread, args=(asset_data, api_key))
-                thread.start()
-
-                threads.append(thread)
-                print('processes ', len(threads))
-                while len(threads) > process_count - 1:
-                    for proc in threads:
-                        if not proc.is_alive():
-                            threads.remove(proc)
-                        break;
-                else:
-                    print(f'Failed to retrieve asset from server:{asset_data["name"]}')
+                generate_resolution_thread(asset_data,api_key)
+                # thread = threading.Thread(target=generate_resolution_thread, args=(asset_data, api_key))
+                # thread.start()
+                #
+                # threads.append(thread)
+                # print('processes ', len(threads))
+                # while len(threads) > process_count - 1:
+                #     for t in threads:
+                #         if not t.is_alive():
+                #             threads.remove(t)
+                #         break;
+                # else:
+                #     print(f'Failed to generate resolution:{asset_data["name"]}')
             else:
                 print('not generated resolutions:', asset_data['name'])
 
