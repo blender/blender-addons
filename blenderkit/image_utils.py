@@ -31,17 +31,21 @@ def set_orig_render_settings(orig_settings):
     vs.view_transform = orig_settings['view_transform']
 
 
-def img_save_as(img, filepath='//', file_format='JPEG', quality=90, color_mode='RGB', compression=15):
+def img_save_as(img, filepath='//', file_format='JPEG', quality=90, color_mode='RGB', compression=15, view_transform = 'Raw'):
     '''Uses Blender 'save render' to save images - BLender isn't really able so save images with other methods correctly.'''
 
     ors = get_orig_render_settings()
 
     rs = bpy.context.scene.render
+    vs = bpy.context.scene.view_settings
+
     ims = rs.image_settings
     ims.file_format = file_format
     ims.quality = quality
     ims.color_mode = color_mode
     ims.compression = compression
+    vs.view_transform = view_transform
+
 
     img.save_render(filepath=bpy.path.abspath(filepath), scene=bpy.context.scene)
 

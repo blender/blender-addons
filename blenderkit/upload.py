@@ -583,13 +583,19 @@ class FastCategory(bpy.types.Operator):
         # layout.template_icon_view(bkit_ratings, property, show_labels=False, scale=6.0, scale_popup=5.0)
         # col.prop(self, 'category')
 
-        layout.prop(self, 'category')  # , expand = True)
-        props = bpy.context.scene.blenderkitUI
-        if props.asset_type == 'MODEL':  # by now block this for other asset types.
-            # col = row.column()
+        layout.prop(self, 'category')
+        if self.category != 'NONE' and self.subcategory != 'NONE':
             layout.prop(self, 'subcategory')
+        if self.subcategory != 'NONE' and self.subcategory1 != 'NONE':
             layout.prop(self, 'subcategory1')
-            # layout.prop(self, 'subcategory', expand = True)
+
+        # layout.prop(self, 'category')  # , expand = True)
+        # props = bpy.context.scene.blenderkitUI
+        # if props.asset_type == 'MODEL':  # by now block this for other asset types.
+        #     # col = row.column()
+        #     layout.prop(self, 'subcategory')
+        #     layout.prop(self, 'subcategory1')
+        #     # layout.prop(self, 'subcategory', expand = True)
 
     def execute(self, context):
         user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
