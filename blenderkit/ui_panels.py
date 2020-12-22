@@ -110,7 +110,6 @@ def draw_upload_common(layout, props, asset_type, context):
     if props.upload_state != '':
         utils.label_multiline(layout, text=props.upload_state, width=context.region.width)
     if props.uploading:
-        print(bpy.context.scene.name)
         op = layout.operator('object.kill_bg_process', text="", icon='CANCEL')
         op.process_source = asset_type
         op.process_type = 'UPLOAD'
@@ -142,10 +141,11 @@ def draw_upload_common(layout, props, asset_type, context):
         # row = layout.row()
         # row.enabled = False
         # row.prop(props, 'id', icon='FILE_TICK')
-
     layout.prop(props, 'category')
-    if asset_type == 'MODEL' and props.subcategory != '':  # by now block this for other asset types.
+    if props.category != 'NONE' and props.subcategory != 'NONE':
         layout.prop(props, 'subcategory')
+    if props.subcategory != 'NONE' and props.subcategory1 != 'NONE':
+        layout.prop(props, 'subcategory1')
 
     layout.prop(props, 'is_private', expand=True)
     if props.is_private == 'PUBLIC':
