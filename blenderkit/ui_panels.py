@@ -917,6 +917,7 @@ class VIEW3D_PT_blenderkit_import_settings(Panel):
 
             row.prop(props, 'append_method', expand=True, icon_only=False)
 
+
         layout.prop(props, 'resolution')
         # layout.prop(props, 'unpack_files')
 
@@ -1180,6 +1181,12 @@ def draw_asset_context_menu(self, context, asset_data, from_panel=False):
         # if asset_data['downloaded'] == 100: # only show for downloaded/used assets
         # if ui_props.asset_type in ('MODEL', 'MATERIAL'):
         #     layout.menu(OBJECT_MT_blenderkit_resolution_menu.bl_idname)
+        layout.operator_context = 'INVOKE_DEFAULT'
+
+        op = layout.operator('wm.blenderkit_menu_rating_upload', text='Rate')
+        op.asset_name = asset_data['name']
+        op.asset_id = asset_data['id']
+        op.asset_type = asset_data['assetType']
 
         if ui_props.asset_type in ('MODEL', 'MATERIAL') and \
                 utils.get_param(asset_data, 'textureResolutionMax') is not None and \
@@ -1273,13 +1280,9 @@ def draw_asset_context_menu(self, context, asset_data, from_panel=False):
             op.state = 'deleted'
 
         if utils.profile_is_validator():
-            layout.label(text='Admin rating Tools:')
+            layout.label(text='Admin Tools:')
 
-            op = layout.operator('wm.blenderkit_menu_rating_upload', text='Fast rate')
-            op.asset_id = asset_data['id']
-            op.asset_type = asset_data['assetType']
 
-            layout.operator_context = 'INVOKE_DEFAULT'
             op = layout.operator('object.blenderkit_print_asset_debug', text='Print asset debug')
             op.asset_id = asset_data['id']
 
@@ -1338,6 +1341,7 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
         # sr = bpy.context.scene['search results']
         sr = bpy.context.scene['search results']
         asset_data = sr[ui_props.active_index]
+
         draw_asset_context_menu(self, context, asset_data, from_panel=False)
 
 

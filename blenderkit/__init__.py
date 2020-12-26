@@ -198,6 +198,12 @@ thumbnail_resolutions = (
     ('2048', '2048', ''),
 )
 
+def udate_down_up(self, context):
+    """Perform a search if results are empty."""
+    s = context.scene
+    props = s.blenderkitUI
+    if s['search results'] == None and props.down_up == 'SEARCH':
+        search.search()
 
 def switch_search_results(self, context):
     s = bpy.context.scene
@@ -225,8 +231,8 @@ def switch_search_results(self, context):
                 'Switch to paint or sculpt mode to search in BlenderKit brushes.')
 
     search.load_previews()
-    if s['search results'] == None:
-        search.search_update(self, context)
+    if s['search results'] == None and props.down_up == 'SEARCH':
+        search.search()
 
 
 
@@ -287,6 +293,7 @@ class BlenderKitUIProps(PropertyGroup):
         ),
         description="BLenderKit",
         default="SEARCH",
+        update = udate_down_up
     )
     asset_type: EnumProperty(
         name="BlenderKit Active Asset Type",
