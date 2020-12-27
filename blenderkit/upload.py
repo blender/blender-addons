@@ -452,6 +452,7 @@ def get_upload_data(self, context, asset_type):
         # mat analytics happen here, since they don't take up any time...
 
         upload_params = {
+            "textureResolutionMax" : props.texture_resolution_max
 
         }
 
@@ -484,12 +485,16 @@ def get_upload_data(self, context, asset_type):
     upload_data["name"] = props.name
     upload_data["description"] = props.description
     upload_data["tags"] = comma2array(props.tags)
+    #category is always only one value by a slug, that's why we go down to the lowest level and overwrite.
     if props.category == '':
         upload_data["category"] = asset_type.lower()
     else:
         upload_data["category"] = props.category
-    if props.subcategory != '':
+    if props.subcategory != 'NONE':
         upload_data["category"] = props.subcategory
+    if props.subcategory1 != 'NONE':
+        upload_data["category"] = props.subcategory1
+
     upload_data["license"] = props.license
     upload_data["isFree"] = props.is_free
     upload_data["isPrivate"] = props.is_private == 'PRIVATE'
@@ -973,7 +978,8 @@ def start_upload(self, context, asset_type, reupload, upload_set):
         props.id = ''
 
     export_data, upload_data = get_upload_data(self, context, asset_type)
-
+    # print(export_data)
+    # print(upload_data)
     # check if thumbnail exists, generate for HDR:
     if 'THUMBNAIL' in upload_set:
         if asset_type == 'HDR':
@@ -1061,7 +1067,7 @@ class UploadOperator(Operator):
 
     @classmethod
     def poll(cls, context):
-        return bpy.context.view_layer.objects.active is not None
+        return utils.uploadable_asset_poll()
 
     def execute(self, context):
         bpy.ops.object.blenderkit_auto_tags()

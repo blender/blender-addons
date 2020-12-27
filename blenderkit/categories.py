@@ -146,8 +146,9 @@ def get_subcategory1_enums(self, context):
     items = []
     if self.category != '' and self.subcategory != '':
         asset_categories = get_category(wm['bkit_categories'], cat_path=(asset_type, self.category, self.subcategory, ))
-        for c in asset_categories['children']:
-            items.append((c['slug'], c['name'], c['description']))
+        if asset_categories:
+            for c in asset_categories['children']:
+                items.append((c['slug'], c['name'], c['description']))
     if len(items) == 0:
         items.append(('NONE', '', 'no categories on this level defined'))
     return items

@@ -13,6 +13,7 @@ def get_orig_render_settings():
         'quality': ims.quality,
         'color_mode': ims.color_mode,
         'compression': ims.compression,
+        'exr_codec': ims.exr_codec,
         'view_transform': vs.view_transform
     }
     return orig_settings
@@ -27,11 +28,12 @@ def set_orig_render_settings(orig_settings):
     ims.quality = orig_settings['quality']
     ims.color_mode = orig_settings['color_mode']
     ims.compression = orig_settings['compression']
+    ims.exr_codec = orig_settings['exr_codec']
 
     vs.view_transform = orig_settings['view_transform']
 
 
-def img_save_as(img, filepath='//', file_format='JPEG', quality=90, color_mode='RGB', compression=15, view_transform = 'Raw'):
+def img_save_as(img, filepath='//', file_format='JPEG', quality=90, color_mode='RGB', compression=15, view_transform = 'Raw', exr_codec = 'DWAA'):
     '''Uses Blender 'save render' to save images - BLender isn't really able so save images with other methods correctly.'''
 
     ors = get_orig_render_settings()
@@ -44,6 +46,7 @@ def img_save_as(img, filepath='//', file_format='JPEG', quality=90, color_mode='
     ims.quality = quality
     ims.color_mode = color_mode
     ims.compression = compression
+    ims.exr_codec = exr_codec
     vs.view_transform = view_transform
 
 

@@ -916,8 +916,8 @@ class BlenderKitBrushSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
 
 
 class BlenderKitHDRUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
-    pass;
-
+    texture_resolution_max: IntProperty(name="Texture Resolution Max", description="texture resolution maximum",
+                                        default=0)
 
 class BlenderKitBrushUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
     mode: EnumProperty(

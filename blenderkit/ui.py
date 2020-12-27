@@ -839,27 +839,32 @@ def draw_callback_2d_search(self, context):
                 if not r['thumbnail']:
                     tpath = paths.get_addon_thumbnail_path('thumbnail_not_available.jpg')
 
-                img = bpy.data.images.get(iname)
-                if img == None or img.filepath != tpath:
-                    # TODO replace it with a function
-                    if os.path.exists(tpath):
-
-                        if img is None:
-                            img = bpy.data.images.load(tpath)
-                            img.name = iname
-                        else:
-                            if img.filepath != tpath:
-                                # todo replace imgs reloads with a method that forces unpack for thumbs.
-                                if img.packed_file is not None:
-                                    img.unpack(method='USE_ORIGINAL')
-                                img.filepath = tpath
-                                img.reload()
-                                img.name = iname
-                    else:
-                        iname = utils.previmg_name(ui_props.active_index)
-                        img = bpy.data.images.get(iname)
-                    if img:
-                        img.colorspace_settings.name = 'sRGB'
+                # img = bpy.data.images.get(iname)
+                # if img == None or img.filepath != tpath:
+                #     # TODO replace it with a function
+                #     if os.path.exists(tpath):
+                #
+                #         if img is None:
+                #             img = bpy.data.images.load(tpath)
+                #             img.name = iname
+                #         else:
+                #             if img.filepath != tpath:
+                #                 # todo replace imgs reloads with a method that forces unpack for thumbs.
+                #                 if img.packed_file is not None:
+                #                     img.unpack(method='USE_ORIGINAL')
+                #                 img.filepath = tpath
+                #                 img.reload()
+                #                 img.name = iname
+                #     else:
+                #         iname = utils.previmg_name(ui_props.active_index)
+                #         img = bpy.data.images.get(iname)
+                #     if img:
+                #         img.colorspace_settings.name = 'sRGB'
+                if r['assetType'] == 'hdr':
+                    colorspace = 'Non-Color'
+                else:
+                    colorspace = 'sRGB'
+                img = utils.get_hidden_image(tpath, iname, colorspace = colorspace)
 
                 gimg = None
                 atip = ''

@@ -461,7 +461,11 @@ def load_previews():
                     img.unpack(method='USE_ORIGINAL')
                 img.filepath = tpath
                 img.reload()
-            img.colorspace_settings.name = 'sRGB'
+            if r['assetType'] == 'hdr':
+                #to display hdr thumbnails correctly, we use non-color, otherwise looks shifted
+                img.colorspace_settings.name = 'Non-Color'
+            else:
+                img.colorspace_settings.name = 'sRGB'
 
             i += 1
     # print('previews loaded')
@@ -613,10 +617,12 @@ def generate_tooltip(mdata):
         t += 'texture size: %s\n' % fmt_length(mparams['textureSizeMeters'])
 
     if has(mparams, 'textureResolutionMax') and mparams['textureResolutionMax'] > 0:
-        if mparams['textureResolutionMin'] == mparams['textureResolutionMax']:
+        if not mparams.get('textureResolutionMin'):#for HDR's
+            t = writeblockm(t, mparams, key='textureResolutionMax', pretext='Resolution', width=col_w)
+        elif  mparams.get('textureResolutionMin') == mparams['textureResolutionMax']:
             t = writeblockm(t, mparams, key='textureResolutionMin', pretext='texture resolution', width=col_w)
         else:
-            t += 'tex resolution: %i - %i\n' % (mparams['textureResolutionMin'], mparams['textureResolutionMax'])
+            t += 'tex resolution: %i - %i\n' % (mparams.get('textureResolutionMin'), mparams['textureResolutionMax'])
 
     if has(mparams, 'thumbnailScale'):
         t = writeblockm(t, mparams, key='thumbnailScale', pretext='preview scale', width=col_w)
@@ -638,10 +644,11 @@ def generate_tooltip(mdata):
 
         t = writeblockm(t, mdata, key='isFree', width=col_w)
     else:
-        for f in fs:
-            if f['fileType'].find('resolution')>-1:
-                t+= 'Asset has lower resolutions available\n'
-                break;
+        if fs:
+            for f in fs:
+                if f['fileType'].find('resolution')>-1:
+                    t+= 'Asset has lower resolutions available\n'
+                    break;
     # generator is for both upload preview and search, this is only after search
     # if mdata.get('versionNumber'):
     #     # t = writeblockm(t, mdata, key='versionNumber', pretext='version', width = col_w)
@@ -1274,6 +1281,7 @@ def get_search_simple(parameters, filepath=None, page_size=100, max_results=1000
         requeststring += f'+{p}:{parameters[p]}'
 
     requeststring += '&page_size=' + str(page_size)
+    print(requeststring)
     response = rerequests.get(requeststring, headers=headers)  # , params = rparameters)
     # print(r.json())
     search_results = response.json()
