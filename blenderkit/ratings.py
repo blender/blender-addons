@@ -342,7 +342,7 @@ class FastRateMenu(Operator):
     rating_work_hours: FloatProperty(name="Work Hours",
                                      description="How many hours did this work take?",
                                      default=0.00,
-                                     min=0.0, max=1000, update=update_ratings_work_hours
+                                     min=0.0, max=150, update=update_ratings_work_hours
                                      )
 
     rating_work_hours_ui: EnumProperty(name="Work Hours",
@@ -443,7 +443,7 @@ class FastRateMenu(Operator):
         self.message = f"Rate asset {self.asset_name}"
         wm = context.window_manager
 
-        if utils.profile_is_validator():
+        if utils.profile_is_validator() and self.asset_type == 'model':
             #spawn a wider one for validators for the enum buttons
             return wm.invoke_props_dialog(self, width = 500)
         else:

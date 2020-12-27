@@ -249,9 +249,8 @@ def parse_result(r):
             if f['fileType'].find('resolution') > -1:
                 r['available_resolutions'].append(resolutions.resolutions[f['fileType']])
         r['max_resolution'] = 0
-        if r['available_resolutions']:#should check only for non-empty sequences
+        if r['available_resolutions']:  # should check only for non-empty sequences
             r['max_resolution'] = max(r['available_resolutions'])
-
 
         tooltip = generate_tooltip(r)
         # for some reason, the id was still int on some occurances. investigate this.
@@ -462,7 +461,7 @@ def load_previews():
                 img.filepath = tpath
                 img.reload()
             if r['assetType'] == 'hdr':
-                #to display hdr thumbnails correctly, we use non-color, otherwise looks shifted
+                # to display hdr thumbnails correctly, we use non-color, otherwise looks shifted
                 img.colorspace_settings.name = 'Non-Color'
             else:
                 img.colorspace_settings.name = 'sRGB'
@@ -617,9 +616,9 @@ def generate_tooltip(mdata):
         t += 'texture size: %s\n' % fmt_length(mparams['textureSizeMeters'])
 
     if has(mparams, 'textureResolutionMax') and mparams['textureResolutionMax'] > 0:
-        if not mparams.get('textureResolutionMin'):#for HDR's
+        if not mparams.get('textureResolutionMin'):  # for HDR's
             t = writeblockm(t, mparams, key='textureResolutionMax', pretext='Resolution', width=col_w)
-        elif  mparams.get('textureResolutionMin') == mparams['textureResolutionMax']:
+        elif mparams.get('textureResolutionMin') == mparams['textureResolutionMax']:
             t = writeblockm(t, mparams, key='textureResolutionMin', pretext='texture resolution', width=col_w)
         else:
             t += 'tex resolution: %i - %i\n' % (mparams.get('textureResolutionMin'), mparams['textureResolutionMax'])
@@ -646,8 +645,8 @@ def generate_tooltip(mdata):
     else:
         if fs:
             for f in fs:
-                if f['fileType'].find('resolution')>-1:
-                    t+= 'Asset has lower resolutions available\n'
+                if f['fileType'].find('resolution') > -1:
+                    t += 'Asset has lower resolutions available\n'
                     break;
     # generator is for both upload preview and search, this is only after search
     # if mdata.get('versionNumber'):
@@ -659,6 +658,20 @@ def generate_tooltip(mdata):
     #             t += generate_author_textblock(adata)
 
     # t += '\n'
+    if utils.profile_is_validator():
+        rc = mdata.get('ratingsCount')
+        if rc:
+            rcount = min(rc['quality'], rc['workingHours'])
+        else:
+            rcount = 0
+        if rcount < 10:
+            t += f"Please rate this asset, \nit doesn't have enough ratings.\n"
+        else:
+            t += f"Quality rating: {int(mdata['ratingsAverage']['quality']) * '*'}\n"
+            t += f"Hours saved rating: {int(mdata['ratingsAverage']['workingHours'])}\n"
+        if utils.profile_is_validator():
+            t += f"Ratings count {rc['quality']}*/{rc['workingHours']}wh value " \
+                 f"{int(mdata['ratingsAverage']['quality'])}*/{int(mdata['ratingsAverage']['workingHours'])}wh\n"
     if len(t.split('\n')) < 11:
         t += '\n'
         t += get_random_tip(mdata)
@@ -1109,7 +1122,6 @@ def build_query_model():
     if props.free_only:
         query["is_free"] = True
 
-
     # if props.search_advanced:
     if props.search_condition != 'UNSPECIFIED':
         query["condition"] = props.search_condition
@@ -1426,7 +1438,7 @@ def search_update(self, context):
         # this complex behaviour is here for the case where the user needs to paste manually into blender?
         sprops = utils.get_search_props()
         sprops.search_keywords = kwds[:ati].rstrip()
-        #return here since writing into search keywords triggers this update function once more.
+        # return here since writing into search keywords triggers this update function once more.
         return
 
     search()

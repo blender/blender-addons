@@ -346,7 +346,8 @@ def draw_tooltip(x, y, text='', author='', img=None, gravatar=None):
     textcol = bpy.context.preferences.themes[0].user_interface.wcol_tooltip.text
     textcol = (textcol[0], textcol[1], textcol[2], 1)
     textcol_mild = (textcol[0] * .8, textcol[1] * .8, textcol[2] * .8, 1)
-    textcol_strong = (textcol[0] * 1.3, textcol[1] * 1.3, textcol[2] * 1.3, 1)
+    textcol_strong = (textcol[0] * 1.3, textcol[1] * 2.3, textcol[2] * 1.3, 1)
+    textcol_strong = (0.4, 1, 0.3, 1)
     white = (1, 1, 1, .1)
 
     # background
@@ -387,9 +388,11 @@ def draw_tooltip(x, y, text='', author='', img=None, gravatar=None):
             tcol = textcol
             tsize = font_height
         else:
-            if l[:4] == 'Tip:':
-                tcol = textcol_strong
             fsize = font_height
+            if l[:4] == 'Tip:' or l[:11] == 'Please rate':
+                tcol = textcol_strong
+                fsize = font_height + 1
+
         i += 1
         column_lines += 1
         ui_bgl.draw_text(l, xtext, ytext, fsize, tcol)
@@ -411,9 +414,11 @@ def draw_tooltip(x, y, text='', author='', img=None, gravatar=None):
             tcol = textcol
             tsize = font_height
         else:
-            if l[:4] == 'Tip:':
-                tcol = textcol_strong
             fsize = font_height
+            if l[:4] == 'Tip:' or l[:11] == 'Please rate':
+                tcol = textcol_strong
+                fsize = font_height + 1
+
         i += 1
         column_lines += 1
         ui_bgl.draw_text(l, xtext, ytext, fsize, tcol)

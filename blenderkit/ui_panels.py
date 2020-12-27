@@ -1134,6 +1134,14 @@ def draw_asset_context_menu(self, context, asset_data, from_panel=False):
 
     author_id = str(asset_data['author'].get('id'))
     wm = bpy.context.window_manager
+
+    layout.operator_context = 'INVOKE_DEFAULT'
+
+    op = layout.operator('wm.blenderkit_menu_rating_upload', text='Rate')
+    op.asset_name = asset_data['name']
+    op.asset_id = asset_data['id']
+    op.asset_type = asset_data['assetType']
+
     if wm.get('bkit authors') is not None and author_id is not None:
         a = bpy.context.window_manager['bkit authors'].get(author_id)
         if a is not None:
@@ -1181,12 +1189,7 @@ def draw_asset_context_menu(self, context, asset_data, from_panel=False):
         # if asset_data['downloaded'] == 100: # only show for downloaded/used assets
         # if ui_props.asset_type in ('MODEL', 'MATERIAL'):
         #     layout.menu(OBJECT_MT_blenderkit_resolution_menu.bl_idname)
-        layout.operator_context = 'INVOKE_DEFAULT'
 
-        op = layout.operator('wm.blenderkit_menu_rating_upload', text='Rate')
-        op.asset_name = asset_data['name']
-        op.asset_id = asset_data['id']
-        op.asset_type = asset_data['assetType']
 
         if ui_props.asset_type in ('MODEL', 'MATERIAL', 'HDR') and \
                 utils.get_param(asset_data, 'textureResolutionMax') is not None and \

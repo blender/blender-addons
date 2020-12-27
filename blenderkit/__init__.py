@@ -717,7 +717,7 @@ class BlenderKitRatingProps(PropertyGroup):
     rating_work_hours: FloatProperty(name="Work Hours",
                                      description="How many hours did this work take?",
                                      default=0.00,
-                                     min=0.0, max=1000, update=ratings.update_ratings_work_hours
+                                     min=0.0, max=150, update=ratings.update_ratings_work_hours
                                      )
 
     # rating_complexity: IntProperty(name="Complexity",
