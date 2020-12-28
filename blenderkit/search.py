@@ -858,7 +858,6 @@ def request_profile(api_key):
 def fetch_profile(api_key):
     utils.p('fetch profile')
     try:
-        gagf
         adata = request_profile(api_key)
         if adata is not None:
             tasks_queue.add_task((write_profile, (adata,)))
