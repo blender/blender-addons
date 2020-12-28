@@ -400,7 +400,6 @@ class FastRateMenu(Operator):
         col.prop(self, 'rating_work_hours')
         if utils.profile_is_validator():
             row = layout.row()
-            print(self.asset_type, ' asset type for rating')
             if self.asset_type == 'model':
                 row.prop(self, 'rating_work_hours_ui', expand=True, icon_only=False, emboss=True)
             else:

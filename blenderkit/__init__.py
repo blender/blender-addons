@@ -56,9 +56,12 @@ else:
 import os
 import math
 import time
-# import logging
+import logging
 import bpy
 import pathlib
+
+log = logging.getLogger(__name__)
+
 
 from bpy.app.handlers import persistent
 import bpy.utils.previews

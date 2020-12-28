@@ -27,6 +27,8 @@ import bpy
 from bpy.app.handlers import persistent
 
 import queue
+import logging
+bk_logger = logging.getLogger('blenderkit')
 
 @persistent
 def scene_load(context):
@@ -81,7 +83,7 @@ def queue_worker():
         else:
             back_to_queue.append(task)
     if len(stashed.keys())>1:
-        print(stashed)
+        utils.p('task queue stashed task:', stashed)
     #return tasks to que except for stashed
     for task in back_to_queue:
         q.put(task)
@@ -98,8 +100,7 @@ def queue_worker():
             task.wait-=time_step
             back_to_queue.append(task)
         else:
-            utils.p('as a task:   ')
-            utils.p(task.command, task.arguments)
+            utils.p('task queue task:', task.command, task.arguments)
             try:
                 if task.fake_context:
                     fc = utils.get_fake_context(bpy.context, area_type = task.fake_context_area)
@@ -107,8 +108,7 @@ def queue_worker():
                 else:
                     task.command(*task.arguments)
             except Exception as e:
-                utils.p('task failed:')
-                print(e)
+                bk_logger.error('task queue failed task:'+ str(e))
         # print('queue while 2')
     for task in back_to_queue:
         q.put(task)

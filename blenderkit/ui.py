@@ -51,6 +51,9 @@ import time
 import datetime
 import os
 
+import logging
+bk_logger = logging.getLogger('blenderkit')
+
 handler_2d = None
 handler_3d = None
 active_area_pointer = None
@@ -1630,8 +1633,7 @@ class AssetBarOperator(bpy.types.Operator):
             # delete downloaded files for this asset
             sr = bpy.context.scene['search results']
             asset_data = sr[ui_props.active_index]
-            print(asset_data['name'])
-            print('delete')
+            bk_logger.info('delete asset from local drive:' + asset_data['name'])
             paths.delete_asset_debug(asset_data)
             asset_data['downloaded'] = 0
             return {'RUNNING_MODAL'}

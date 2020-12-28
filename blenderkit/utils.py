@@ -32,6 +32,7 @@ import json
 import os
 import sys
 import shutil
+import logging
 
 ABOVE_NORMAL_PRIORITY_CLASS = 0x00008000
 BELOW_NORMAL_PRIORITY_CLASS = 0x00004000
@@ -379,11 +380,16 @@ def get_brush_props(context):
 def p(text, text1='', text2='', text3='', text4='', text5=''):
     '''debug printing depending on blender's debug value'''
 
-    if bpy.app.debug_value != 0:
-        print('\n')
+    if 1:#bpy.app.debug_value != 0:
         # print('-----BKit debug-----\n')
         # traceback.print_stack()
-        print(text, text1, text2, text3, text4, text5)
+        texts = [text1,text2,text3,text4,text5]
+        text = str(text)
+        for t in texts:
+            if t!= '':
+                text += ' ' + str(t)
+        bk_logger = logging.getLogger('blenderkit')
+        bk_logger.debug(text)
         # print('---------------------\n')
 
 

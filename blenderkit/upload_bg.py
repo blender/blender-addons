@@ -39,14 +39,6 @@ import bpy
 BLENDERKIT_EXPORT_DATA = sys.argv[-1]
 
 
-def start_logging():
-    logging.basicConfig()
-    logging.getLogger().setLevel(logging.DEBUG)
-    requests_log = logging.getLogger("requests.packages.urllib3")
-    requests_log.setLevel(logging.DEBUG)
-    requests_log.propagate = True
-
-
 def print_gap():
     print('\n\n\n\n')
 

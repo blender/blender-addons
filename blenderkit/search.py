@@ -63,6 +63,9 @@ import copy
 import json
 import math
 
+import logging
+bk_logger = logging.getLogger('blenderkit')
+
 search_start_time = 0
 prev_time = 0
 
@@ -119,7 +122,7 @@ def update_ad(ad):
             ad['author']['id'] = ad['author_id']  # this should stay ONLY for compatibility with older scenes
             ad['canDownload'] = ad['can_download']  # this should stay ONLY for compatibility with older scenes
         except Exception as e:
-            print('BLenderKit failed to update older asset data')
+            bk_logger.error('BLenderKit failed to update older asset data')
     return ad
 
 
@@ -419,7 +422,7 @@ def timer_update():
                 bpy.ops.wm.undo_push_context(message='Get BlenderKit search')
 
             else:
-                print('error', error)
+                bk_logger.error(error)
                 props.report = error
                 props.search_error = True
 
@@ -671,7 +674,7 @@ def generate_tooltip(mdata):
             t += f"Hours saved rating: {int(mdata['ratingsAverage']['workingHours'])}\n"
         if utils.profile_is_validator():
             t += f"Ratings count {rc['quality']}*/{rc['workingHours']}wh value " \
-                 f"{int(mdata['ratingsAverage']['quality'])}*/{int(mdata['ratingsAverage']['workingHours'])}wh\n"
+                 f"{mdata['ratingsAverage']['quality']}*/{mdata['ratingsAverage']['workingHours']}wh\n"
     if len(t.split('\n')) < 11:
         t += '\n'
         t += get_random_tip(mdata)
@@ -822,7 +825,7 @@ def get_author(r):
 
 
 def write_profile(adata):
-    utils.p('writing profile')
+    utils.p('writing profile information')
     user = adata['user']
     # we have to convert to MiB here, numbers too big for python int type
     if user.get('sumAssetFilesSize') is not None:
@@ -855,11 +858,12 @@ def request_profile(api_key):
 def fetch_profile(api_key):
     utils.p('fetch profile')
     try:
+        gagf
         adata = request_profile(api_key)
         if adata is not None:
             tasks_queue.add_task((write_profile, (adata,)))
     except Exception as e:
-        utils.p(e)
+        bk_logger.error(e)
 
 
 def get_profile():
@@ -957,16 +961,16 @@ class Searcher(threading.Thread):
             reports = ''
             # utils.p(r.text)
         except requests.exceptions.RequestException as e:
-            print(e)
+            bk_logger.error(e)
             reports = e
             # props.report = e
             return
         mt('search response is back ')
         try:
             rdata = r.json()
-        except Exception as inst:
+        except Exception as e:
             reports = r.text
-            print(inst)
+            bk_logger.error(e)
 
         mt('data parsed ')
         if not rdata.get('results'):
@@ -1293,7 +1297,7 @@ def get_search_simple(parameters, filepath=None, page_size=100, max_results=1000
         requeststring += f'+{p}:{parameters[p]}'
 
     requeststring += '&page_size=' + str(page_size)
-    print(requeststring)
+    bk_logger.debug(requeststring)
     response = rerequests.get(requeststring, headers=headers)  # , params = rparameters)
     # print(r.json())
     search_results = response.json()
@@ -1303,7 +1307,7 @@ def get_search_simple(parameters, filepath=None, page_size=100, max_results=1000
     page_index = 2
     page_count = math.ceil(search_results['count'] / page_size)
     while search_results.get('next') and len(results) < max_results:
-        print(f'getting page {page_index} , total pages {page_count}')
+        bk_logger.info(f'getting page {page_index} , total pages {page_count}')
         response = rerequests.get(search_results['next'], headers=headers)  # , params = rparameters)
         search_results = response.json()
         # print(search_results)
@@ -1315,7 +1319,7 @@ def get_search_simple(parameters, filepath=None, page_size=100, max_results=1000
 
     with open(filepath, 'w') as s:
         json.dump(results, s)
-    print(f'retrieved {len(results)} assets from elastic search')
+    bk_logger.info(f'retrieved {len(results)} assets from elastic search')
     return results
 
 
