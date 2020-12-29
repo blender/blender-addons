@@ -41,7 +41,9 @@ import math, random
 
 from bpy.props import (
     BoolProperty,
-    StringProperty
+    StringProperty,
+    IntProperty,
+    FloatVectorProperty
 )
 
 from bpy_extras import view3d_utils
@@ -52,6 +54,7 @@ import datetime
 import os
 
 import logging
+
 bk_logger = logging.getLogger('blenderkit')
 
 handler_2d = None
@@ -540,7 +543,7 @@ def draw_tooltip_old(x, y, text='', author='', img=None):
 
 def draw_callback_2d(self, context):
     if not utils.guard_from_crash():
-        return;
+        return
 
     a = context.area
     w = context.window
@@ -872,7 +875,7 @@ def draw_callback_2d_search(self, context):
                     colorspace = 'Non-Color'
                 else:
                     colorspace = 'sRGB'
-                img = utils.get_hidden_image(tpath, iname, colorspace = colorspace)
+                img = utils.get_hidden_image(tpath, iname, colorspace=colorspace)
 
                 gimg = None
                 atip = ''
@@ -900,7 +903,7 @@ def draw_callback_2d_search(self, context):
 def draw_callback_3d(self, context):
     ''' Draw snapped bbox while dragging and in the future other blenderkit related stuff. '''
     if not utils.guard_from_crash():
-        return;
+        return
 
     ui = context.scene.blenderkitUI
 
@@ -1024,7 +1027,7 @@ def is_rating_possible():
                 elif ao_check.parent is not None:
                     ao_check = ao_check.parent
                 else:
-                    break;
+                    break
             # check also materials
             m = ao.active_material
             if m is not None:
@@ -1060,7 +1063,8 @@ def interact_rating(r, mx, my, event):
                              ui.rating_button_width):
                 # ui.rating_menu_on = True
                 ctx = utils.get_fake_context(bpy.context, area_type='VIEW_3D')
-                bpy.ops.wm.blenderkit_menu_rating_upload(ctx,'INVOKE_DEFAULT',asset_name=asset_data['name'], asset_id=asset_data['id'],
+                bpy.ops.wm.blenderkit_menu_rating_upload(ctx, 'INVOKE_DEFAULT', asset_name=asset_data['name'],
+                                                         asset_id=asset_data['id'],
                                                          asset_type=asset_data['assetType'])
                 return True
     return False
@@ -1139,6 +1143,59 @@ def update_ui_size(area, region):
 
     ui.rating_x = ui.bar_x
     ui.rating_y = ui.bar_y - ui.bar_height
+
+
+class ParticlesDropDialog(bpy.types.Operator):
+    """Tooltip"""
+    bl_idname = "object.blenderkit_particles_drop"
+    bl_label = "BlenderKit particle plants object drop"
+    bl_options = {'REGISTER', 'INTERNAL'}
+
+    asset_search_index: IntProperty(name="Asset index",
+                                    description="Index of the asset in asset bar",
+                                    default=0,
+                                    )
+
+    model_location: FloatVectorProperty(name="Location",
+                                        default=(0, 0, 0))
+
+    model_rotation: FloatVectorProperty(name="Rotation",
+                                        default=(0, 0, 0),
+                                        subtype='QUATERNION')
+
+    target_object: StringProperty(
+        name="Target object",
+        description="The object to which the particles will get applied",
+        default="", options={'SKIP_SAVE'})
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        message = 'This asset is a particle setup. BlenderKit can apply particles to the active/drag-drop object.' \
+                  'The number of particles is caluclated automatically, but if there are 2 many particles,' \
+                  ' BlenderKit can do the following steps to make sure Blender continues to run:' \
+                  '\n1.Switch to bounding box view of the particles.' \
+                  '\n2.Turn down number of particles that are shown in the view.' \
+                  '\n3.Hide the particle system completely from the 3D view.' \
+                  "as a result of this, it's possible you'll see the particle setup only in render view or " \
+                  "rendered images. You should still be careful and test particle systems on smaller objects first."
+        utils.label_multiline(layout, text=message, width=400)
+
+    def execute(self, context):
+        bpy.ops.scene.blenderkit_download(True,
+                                          # asset_type=ui_props.asset_type,
+                                          asset_index=self.asset_search_index,
+                                          model_location=self.model_rotation,
+                                          model_rotation=self.model_rotation,
+                                          target_object=self.target_object)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=400)
 
 
 class AssetBarOperator(bpy.types.Operator):
@@ -1221,7 +1278,7 @@ class AssetBarOperator(bpy.types.Operator):
                         if r.type == 'WINDOW':
                             self.region = r
                     newarea = a
-                    break;
+                    break
                     # context.area = a
 
             # we check again and quit if things weren't fixed this way.
@@ -1565,6 +1622,8 @@ class AssetBarOperator(bpy.types.Operator):
                     return {'RUNNING_MODAL'}
 
                 if asset_search_index > -3:
+                    asset_data = sr[asset_search_index]
+
                     # picking of assets and using them
                     if ui_props.asset_type == 'MATERIAL':
                         if target_object != '':
@@ -1572,7 +1631,6 @@ class AssetBarOperator(bpy.types.Operator):
                             loc = ui_props.snapped_location
                             rotation = (0, 0, 0)
 
-                            asset_data = sr[asset_search_index]
                             utils.automap(target_object, target_slot=target_slot,
                                           tex_size=asset_data.get('texture_size_meters', 1.0))
                             bpy.ops.scene.blenderkit_download(True,
@@ -1592,12 +1650,19 @@ class AssetBarOperator(bpy.types.Operator):
                             loc = s.cursor.location
                             rotation = s.cursor.rotation_euler
 
-                        bpy.ops.scene.blenderkit_download(True,
-                                                          # asset_type=ui_props.asset_type,
-                                                          asset_index=asset_search_index,
-                                                          model_location=loc,
-                                                          model_rotation=rotation,
-                                                          target_object=target_object)
+                        if 'particle_plants' in asset_data['tags']:
+                            bpy.ops.object.blenderkit_particles_drop("INVOKE_DEFAULT",
+                                                                     asset_search_index=asset_search_index,
+                                                                     model_location=loc,
+                                                                     model_rotation=rotation,
+                                                                     target_object=target_object)
+                        else:
+                            bpy.ops.scene.blenderkit_download(True,
+                                                              # asset_type=ui_props.asset_type,
+                                                              asset_index=asset_search_index,
+                                                              model_location=loc,
+                                                              model_rotation=rotation,
+                                                              target_object=target_object)
 
                     else:
                         bpy.ops.scene.blenderkit_download(  # asset_type=ui_props.asset_type,
@@ -1773,7 +1838,8 @@ classess = (
     AssetBarOperator,
     RunAssetBarWithContext,
     TransferBlenderkitData,
-    UndoWithContext
+    UndoWithContext,
+    ParticlesDropDialog
 )
 
 # store keymap items here to access after registration

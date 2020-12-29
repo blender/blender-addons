@@ -245,25 +245,38 @@ def append_particle_system(file_name, obnames=[], location=(0, 0, 0), link=False
             for p in target_object.data.polygons:
                 totarea += p.area
             count = int(ps.count * totarea)
+
             if ps.child_type in ('INTERPOLATED', 'SIMPLE'):
                 total_count = count * ps.rendered_child_count
                 disp_count = count * ps.child_nbr
             else:
                 total_count = count
-            threshold = 2000
-            total_max_threshold = 50000
-            # emitting too many parent particles just kills blender now:
-            if count > total_max_threshold:
-                ratio = round(count / total_max_threshold)
 
-                if ps.child_type in ('INTERPOLATED', 'SIMPLE'):
-                    ps.rendered_child_count *= ratio
-                else:
-                    ps.child_type = 'INTERPOLATED'
-                    ps.rendered_child_count = ratio
-                count = max(2, int(count / ratio))
-            ps.display_percentage = min(ps.display_percentage, max(1, int(100 * threshold / total_count)))
+            bbox_threshold = 25000
+            display_threshold = 200000
+            total_max_threshold = 2000000
+            # emitting too many parent particles just kills blender now.
 
+            #this part tuned child count, we'll leave children to artists only.
+            # if count > total_max_threshold:
+            #     ratio = round(count / total_max_threshold)
+            #
+            #     if ps.child_type in ('INTERPOLATED', 'SIMPLE'):
+            #         ps.rendered_child_count *= ratio
+            #     else:
+            #         ps.child_type = 'INTERPOLATED'
+            #         ps.rendered_child_count = ratio
+            #     count = max(2, int(count / ratio))
+
+            #1st level of optimizaton - switch t bounding boxes.
+            if total_count>bbox_threshold:
+                target_object.display_type = 'BOUNDS'
+            # 2nd level of optimization - reduce percentage of displayed particles.
+            ps.display_percentage = min(ps.display_percentage, max(1, int(100 * display_threshold / total_count)))
+            # 3rd level - hide particle system from viewport.
+            if total_count > total_max_threshold:
+                ps.show_viewport = False
+            #only now set the particle system count, if set sooner blender would probably crash quite often.
             ps.count = count
             bpy.ops.object.particle_system_add()
             target_object.particle_systems[-1].settings = ps

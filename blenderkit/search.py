@@ -661,8 +661,9 @@ def generate_tooltip(mdata):
     #             t += generate_author_textblock(adata)
 
     # t += '\n'
-    if utils.profile_is_validator():
-        rc = mdata.get('ratingsCount')
+    rc = mdata.get('ratingsCount')
+    if utils.profile_is_validator() and rc:
+
         if rc:
             rcount = min(rc['quality'], rc['workingHours'])
         else:

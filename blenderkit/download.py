@@ -380,7 +380,7 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
             for downloader in downloaders:
                 # this cares for adding particle systems directly to target mesh, but I had to block it now,
                 # because of the sluggishnes of it. Possibly re-enable when it's possible to do this faster?
-                if 0:  # 'particle_plants' in asset_data['tags']:
+                if 'particle_plants' in asset_data['tags']:
                     append_link.append_particle_system(file_names[-1],
                                                        target_object=kwargs['target_object'],
                                                        rotation=downloader['rotation'],
