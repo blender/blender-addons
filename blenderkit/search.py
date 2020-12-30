@@ -562,7 +562,7 @@ def generate_tooltip(mdata):
     else:
         mparams = mdata['parameters']
     t = ''
-    t = writeblock(t, mdata['name'], width=col_w)
+    t = writeblock(t, mdata['displayName'], width=col_w)
     t += '\n'
 
     t = writeblockm(t, mdata, key='description', pretext='', width=col_w)

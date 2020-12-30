@@ -566,7 +566,7 @@ def draw_callback_2d(self, context):
         props = context.scene.blenderkitUI
         if props.down_up == 'SEARCH':
             draw_ratings_bgl()
-            draw_callback_2d_search(self, context)
+            draw_asset_bar(self, context)
         elif props.down_up == 'UPLOAD':
             draw_callback_2d_upload_preview(self, context)
 
@@ -693,7 +693,7 @@ def is_upload_old(asset_data):
     return 0
 
 
-def draw_callback_2d_search(self, context):
+def draw_asset_bar(self, context):
     s = bpy.context.scene
     ui_props = context.scene.blenderkitUI
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
@@ -1330,7 +1330,7 @@ class AssetBarOperator(bpy.types.Operator):
                         or ui_props.asset_type == 'MATERIAL' and ao != None and ao.active_material != None \
                         or ui_props.asset_type == 'BRUSH' and utils.get_active_brush() is not None \
                         or ui_props.asset_type == 'SCENE' or ui_props.asset_type == 'HDR':
-                    export_data, upload_data = upload.get_upload_data(self, context, ui_props.asset_type)
+                    export_data, upload_data = upload.get_upload_data(context=context, asset_type=ui_props.asset_type)
                     if upload_data:
                         ui_props.tooltip = search.generate_tooltip(upload_data)
 

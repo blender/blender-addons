@@ -161,14 +161,14 @@ def camel_to_sub(content):
     return replaced
 
 
-def get_upload_data(self, context, asset_type):
+def get_upload_data(caller = None, context = None, asset_type = None):
     '''
     works though metadata from addom props and prepares it for upload to dicts.
     Parameters
     ----------
-    self
-    context
-    asset_type
+    caller - upload operator or none
+    context - context
+    asset_type - asset type in capitals (blender enum)
 
     Returns
     -------
@@ -482,7 +482,13 @@ def get_upload_data(self, context, asset_type):
 
     add_version(upload_data)
 
-    upload_data["name"] = props.name
+    # caller can be upload operator, but also asset bar called from tooltip generator
+    if caller and caller.main_file == True:
+        upload_data["name"] = props.name
+        upload_data["displayName"] = props.name
+    else:
+        upload_data["displayName"] = props.name
+
     upload_data["description"] = props.description
     upload_data["tags"] = comma2array(props.tags)
     #category is always only one value by a slug, that's why we go down to the lowest level and overwrite.
@@ -511,6 +517,16 @@ def get_upload_data(self, context, asset_type):
 
     return export_data, upload_data
 
+def patch_individual_metadata(asset_id, metadata_dict, api_key):
+    upload_data = metadata_dict
+    url = paths.get_api_url() + 'assets/' + str(asset_id) + '/'
+    headers = utils.get_headers(api_key)
+    try:
+        r = rerequests.patch(url, json=upload_data, headers=headers, verify=True)  # files = files,
+    except requests.exceptions.RequestException as e:
+        print(e)
+        return {'CANCELLED'}
+    return {'FINISHED'}
 
 def category_change_thread(asset_id, category, api_key):
     upload_data = {
@@ -964,7 +980,6 @@ def start_upload(self, context, asset_type, reupload, upload_set):
     # do this for fixing long tags in some upload cases
     props.tags = props.tags[:]
 
-    props.name = props.name.strip()
 
     # check for missing metadata
     check_missing_data(asset_type, props)
@@ -977,7 +992,7 @@ def start_upload(self, context, asset_type, reupload, upload_set):
         props.asset_base_id = ''
         props.id = ''
 
-    export_data, upload_data = get_upload_data(self, context, asset_type)
+    export_data, upload_data = get_upload_data(caller = self, context = context, asset_type = asset_type)
     # print(export_data)
     # print(upload_data)
     # check if thumbnail exists, generate for HDR:
@@ -989,7 +1004,10 @@ def start_upload(self, context, asset_type, reupload, upload_set):
             props.uploading = False
             return {'CANCELLED'}
 
-    props.upload_state = "Starting upload. Please don't close Blender until upload finishes"
+    if upload_set == {'METADATA'}:
+        props.upload_state = "Updating metadata. Please don't close Blender until upload finishes"
+    else:
+        props.upload_state = "Starting upload. Please don't close Blender until upload finishes"
     props.uploading = True
 
 
@@ -1075,11 +1093,11 @@ class UploadOperator(Operator):
 
         # in case of name change, we have to reupload everything, since the name is stored in blender file,
         # and is used for linking to scene
-        if props.name_changed:
-            # TODO: this needs to be replaced with new double naming scheme (metadata vs blend data)
-            # print('has to reupload whole data, name has changed.')
-            self.main_file = True
-            props.name_changed = False
+        # if props.name_changed:
+        #     # TODO: this needs to be replaced with new double naming scheme (metadata vs blend data)
+        #     # print('has to reupload whole data, name has changed.')
+        #     self.main_file = True
+        #     props.name_changed = False
 
         upload_set = []
         if not self.reupload:

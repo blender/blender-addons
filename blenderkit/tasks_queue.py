@@ -108,7 +108,9 @@ def queue_worker():
                 else:
                     task.command(*task.arguments)
             except Exception as e:
-                bk_logger.error('task queue failed task:'+ str(e))
+                bk_logger.error('task queue failed task:'+ str(task.command)+str(task.arguments)+ str(e))
+                # bk_logger.exception('Got exception on main handler')
+                # raise
         # print('queue while 2')
     for task in back_to_queue:
         q.put(task)

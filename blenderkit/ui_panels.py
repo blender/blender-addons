@@ -122,6 +122,11 @@ def draw_upload_common(layout, props, asset_type, context):
         optext = 'Upload %s' % asset_type.lower()
         op = layout.operator("object.blenderkit_upload", text=optext, icon='EXPORT')
         op.asset_type = asset_type
+        op.reupload = False
+        #make sure everything gets uploaded.
+        op.main_file = True
+        op.metadata = True
+        op.thumbnail = True
 
     if props.asset_base_id != '':
         op = layout.operator("object.blenderkit_upload", text='Reupload asset', icon='EXPORT')
