@@ -62,7 +62,7 @@ def add_task(task, wait = 0, only_last = False, fake_context = False, fake_conte
 
 
 def queue_worker():
-    #utils.p('timer queue worker')
+    #bk_logger.debug('timer queue worker')
     time_step = 2.0
     q = get_queue()
 
@@ -83,7 +83,7 @@ def queue_worker():
         else:
             back_to_queue.append(task)
     if len(stashed.keys())>1:
-        utils.p('task queue stashed task:', stashed)
+        bk_logger.debug('task queue stashed task:' +str(stashed))
     #return tasks to que except for stashed
     for task in back_to_queue:
         q.put(task)
@@ -100,7 +100,7 @@ def queue_worker():
             task.wait-=time_step
             back_to_queue.append(task)
         else:
-            utils.p('task queue task:', task.command, task.arguments)
+            bk_logger.debug('task queue task:'+ str( task.command) +str( task.arguments))
             try:
                 if task.fake_context:
                     fc = utils.get_fake_context(bpy.context, area_type = task.fake_context_area)

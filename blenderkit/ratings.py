@@ -28,6 +28,8 @@ else:
 
 import bpy
 import requests, threading
+import logging
+bk_logger = logging.getLogger('blenderkit')
 
 from bpy.props import (
     IntProperty,
@@ -57,7 +59,7 @@ def pretty_print_POST(req):
 
 def upload_rating_thread(url, ratings, headers):
     ''' Upload rating thread function / disconnected from blender data.'''
-    utils.p('upload rating', url, ratings)
+    bk_logger.debug('upload rating', url, ratings)
     for rating_name, score in ratings:
         if (score != -1 and score != 0):
             rating_url = url + rating_name + '/'

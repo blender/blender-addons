@@ -247,42 +247,26 @@ def asset_type_callback(self, context):
     '''
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
 
-    if user_preferences.experimental_features:
-        if self.down_up == 'SEARCH':
-            items = (
-                ('MODEL', 'Models', 'Find models in the BlenderKit online database', 'OBJECT_DATAMODE', 0),
-                ('MATERIAL', 'Materials', 'Find materials in the BlenderKit online database', 'MATERIAL', 2),
-                # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
-                ('SCENE', 'Scenes', 'Browse scenes', 'SCENE_DATA', 3),
-                ('HDR', 'Hdrs', 'Browse hdrs', 'WORLD', 4),
-                ('BRUSH', 'Brushes', 'Find brushes in the BlenderKit online database', 'BRUSH_DATA', 5)
-            )
-        else:
-            items = (
-                ('MODEL', 'Model', 'Upload a model to BlenderKit', 'OBJECT_DATAMODE', 0),
-                # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
-                ('MATERIAL', 'Material', 'Upload a material to BlenderKit', 'MATERIAL', 2),
-                # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
-                ('SCENE', 'Scenes', 'Browse scenes', 'SCENE_DATA', 3),
-                ('HDR', 'Hdrs', 'Browse hdrs', 'WORLD', 4),
-                ('BRUSH', 'Brush', 'Upload a brush to BlenderKit', 'BRUSH_DATA', 5)
-            )
+    if self.down_up == 'SEARCH':
+        items = (
+            ('MODEL', 'Models', 'Find models in the BlenderKit online database', 'OBJECT_DATAMODE', 0),
+            ('MATERIAL', 'Materials', 'Find materials in the BlenderKit online database', 'MATERIAL', 2),
+            # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
+            ('SCENE', 'Scenes', 'Browse scenes', 'SCENE_DATA', 3),
+            ('HDR', 'Hdrs', 'Browse hdrs', 'WORLD', 4),
+            ('BRUSH', 'Brushes', 'Find brushes in the BlenderKit online database', 'BRUSH_DATA', 5)
+        )
     else:
-        if self.down_up == 'SEARCH':
-            items = (
-                ('MODEL', 'Models', 'Find models in the BlenderKit online database', 'OBJECT_DATAMODE', 0),
-                ('MATERIAL', 'Materials', 'Find materials in the BlenderKit online database', 'MATERIAL', 2),
-                # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
-                ('BRUSH', 'Brushes', 'Find brushes in the BlenderKit online database', 'BRUSH_DATA', 5)
-            )
-        else:
-            items = (
-                ('MODEL', 'Model', 'Upload a model to BlenderKit', 'OBJECT_DATAMODE', 0),
-                # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
-                ('MATERIAL', 'Material', 'Upload a material to BlenderKit', 'MATERIAL', 2),
-                # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
-                ('BRUSH', 'Brush', 'Upload a brush to BlenderKit', 'BRUSH_DATA', 5)
-            )
+        items = (
+            ('MODEL', 'Model', 'Upload a model to BlenderKit', 'OBJECT_DATAMODE', 0),
+            # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
+            ('MATERIAL', 'Material', 'Upload a material to BlenderKit', 'MATERIAL', 2),
+            # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
+            ('SCENE', 'Scenes', 'Browse scenes', 'SCENE_DATA', 3),
+            ('HDR', 'Hdrs', 'Browse hdrs', 'WORLD', 4),
+            ('BRUSH', 'Brush', 'Upload a brush to BlenderKit', 'BRUSH_DATA', 5)
+        )
+    
     return items
 
 
@@ -525,6 +509,8 @@ class BlenderKitCommonSearchProps(object):
         ),
         default='1024',
     )
+    free_only: BoolProperty(name="Free first", description="Show free models first",
+                            default=False, update=search.search_update)
 
     unpack_files: BoolProperty(name="Unpack Files",
                                description="Unpack files after download",
@@ -1326,8 +1312,6 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
         update=search.search_update
     )
 
-    free_only: BoolProperty(name="Free only", description="Show only free models",
-                            default=False, update=search.search_update)
 
     # CONDITION
     search_condition: EnumProperty(

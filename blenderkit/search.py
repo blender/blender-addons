@@ -908,23 +908,26 @@ class Searcher(threading.Thread):
                 requeststring += q + ':' + str(query[q]).lower()
 
         # result ordering: _score - relevance, score - BlenderKit score
-
+        order = []
+        if params['free_first']:
+            order = ['-is_free',]
         if query.get('query') is None and query.get('category_subtree') == None:
             # assumes no keywords and no category, thus an empty search that is triggered on start.
             # orders by last core file upload
             if query.get('verification_status') == 'uploaded':
                 # for validators, sort uploaded from oldest
-                requeststring += '+order:created'
+                order.append('created')
             else:
-                requeststring += '+order:-last_upload'
+                order.append('-last_upload')
         elif query.get('author_id') is not None and utils.profile_is_validator():
 
-            requeststring += '+order:-created'
+            order.append('-created')
         else:
             if query.get('category_subtree') is not None:
-                requeststring += '+order:-score,_score'
+                order.append('-score,_score')
             else:
-                requeststring += '+order:_score'
+                order.append('_score')
+        requeststring += '+order:' + ','.join(order)
 
         requeststring += '&addon_version=%s' % params['addon_version']
         if params.get('scene_uuid') is not None:
@@ -1123,8 +1126,9 @@ def build_query_model():
         else:
             query["model_style"] = props.search_style_other
 
-    if props.free_only:
-        query["is_free"] = True
+    # the 'free_only' parametr gets moved to the search command and is used for ordering the assets as free first
+    # if props.free_only:
+    #     query["is_free"] = True
 
     # if props.search_advanced:
     if props.search_condition != 'UNSPECIFIED':
@@ -1160,7 +1164,7 @@ def build_query_scene():
 def build_query_HDR():
     '''use all search input to request results from server'''
 
-    props = bpy.context.scene.blenderkit_scene
+    props = bpy.context.scene.blenderkit_HDR
     query = {
         "asset_type": 'hdr',
         # "engine": props.search_engine,
@@ -1392,7 +1396,8 @@ def search(category='', get_next=False, author_id=''):
         'scene_uuid': bpy.context.scene.get('uuid', None),
         'addon_version': version_checker.get_addon_version(),
         'api_key': user_preferences.api_key,
-        'get_next': get_next
+        'get_next': get_next,
+        'free_first': props.free_only
     }
 
     # if free_only:

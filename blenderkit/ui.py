@@ -1206,7 +1206,7 @@ class AssetBarOperator(bpy.types.Operator):
 
     do_search: BoolProperty(name="Run Search", description='', default=True, options={'SKIP_SAVE'})
     keep_running: BoolProperty(name="Keep Running", description='', default=True, options={'SKIP_SAVE'})
-    free_only: BoolProperty(name="Free Only", description='', default=False, options={'SKIP_SAVE'})
+    free_only: BoolProperty(name="Free first", description='', default=False, options={'SKIP_SAVE'})
 
     category: StringProperty(
         name="Category",

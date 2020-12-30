@@ -33,6 +33,10 @@ import os
 import sys
 import shutil
 import logging
+import traceback
+import inspect
+
+bk_logger = logging.getLogger('blenderkit')
 
 ABOVE_NORMAL_PRIORITY_CLASS = 0x00008000
 BELOW_NORMAL_PRIORITY_CLASS = 0x00004000
@@ -377,7 +381,7 @@ def get_brush_props(context):
     return None
 
 
-def p(text, text1='', text2='', text3='', text4='', text5=''):
+def p(text, text1='', text2='', text3='', text4='', text5='', level = 'DEBUG'):
     '''debug printing depending on blender's debug value'''
 
     if 1:#bpy.app.debug_value != 0:
@@ -388,7 +392,7 @@ def p(text, text1='', text2='', text3='', text4='', text5=''):
         for t in texts:
             if t!= '':
                 text += ' ' + str(t)
-        bk_logger = logging.getLogger('blenderkit')
+
         bk_logger.debug(text)
         # print('---------------------\n')
 
@@ -396,11 +400,11 @@ def p(text, text1='', text2='', text3='', text4='', text5=''):
 def copy_asset(fp1, fp2):
     '''synchronizes the asset between folders, including it's texture subdirectories'''
     if 1:
-        p('copy asset')
-        p(fp1, fp2)
+        bk_logger.debug('copy asset')
+        bk_logger.debug(fp1, fp2)
         if not os.path.exists(fp2):
             shutil.copyfile(fp1, fp2)
-            p('copied')
+            bk_logger.debug('copied')
         source_dir = os.path.dirname(fp1)
         target_dir = os.path.dirname(fp2)
         for subdir in os.scandir(source_dir):
@@ -409,9 +413,9 @@ def copy_asset(fp1, fp2):
             target_subdir = os.path.join(target_dir, subdir.name)
             if os.path.exists(target_subdir):
                 continue
-            p(subdir, target_subdir)
+            bk_logger.debug(subdir, target_subdir)
             shutil.copytree(subdir, target_subdir)
-            p('copied')
+            bk_logger.debug('copied')
 
     # except Exception as e:
     #     print('BlenderKit failed to copy asset')

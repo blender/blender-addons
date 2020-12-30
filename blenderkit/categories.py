@@ -34,6 +34,8 @@ import time
 
 import shutil
 import threading
+import logging
+bk_logger = logging.getLogger('blenderkit')
 
 
 def count_to_parent(parent):
@@ -201,12 +203,12 @@ def fetch_categories(API_key, force = False):
 
     # global catfetch_counter
     # catfetch_counter += 1
-    # utils.p('fetching categories: ', catfetch_counter)
-    # utils.p('age of cat file', catfile_age)
+    # bk_logger.debug('fetching categories: ', catfetch_counter)
+    # bk_logger.debug('age of cat file', catfile_age)
     try:
         # read categories only once per day maximum, or when forced to do so.
         if catfile_age > 86400 or force:
-            utils.p('requesting categories')
+            bk_logger.debug('requesting categories')
             r = rerequests.get(url, headers=headers)
             rdata = r.json()
             categories = rdata['results']
@@ -216,8 +218,8 @@ def fetch_categories(API_key, force = False):
                 json.dump(categories, s, indent=4)
         tasks_queue.add_task((load_categories, ()))
     except Exception as e:
-        utils.p('category fetching failed')
-        utils.p(e)
+        bk_logger.debug('category fetching failed')
+        bk_logger.exception(e)
         if not os.path.exists(categories_filepath):
             source_path = paths.get_addon_file(subpath='data' + os.sep + 'categories.json')
             shutil.copy(source_path, categories_filepath)
