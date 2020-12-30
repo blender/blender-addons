@@ -273,12 +273,15 @@ def append_particle_system(file_name, obnames=[], location=(0, 0, 0), link=False
                 target_object.display_type = 'BOUNDS'
             # 2nd level of optimization - reduce percentage of displayed particles.
             ps.display_percentage = min(ps.display_percentage, max(1, int(100 * display_threshold / total_count)))
-            # 3rd level - hide particle system from viewport.
-            if total_count > total_max_threshold:
-                ps.show_viewport = False
-            #only now set the particle system count, if set sooner blender would probably crash quite often.
+            #here we can also tune down number of children displayed.
+            #set the count
             ps.count = count
+            #add the modifier
             bpy.ops.object.particle_system_add()
+            # 3rd level - hide particle system from viewport - is done on the modifier..
+            if total_count > total_max_threshold:
+                target_object.modifiers[-1].show_viewport = False
+
             target_object.particle_systems[-1].settings = ps
 
         target_object.select_set(False)
