@@ -113,10 +113,7 @@ def check_timers_timer():
     return 5.0
 
 
-licenses = (
-    ('royalty_free', 'Royalty Free', 'royalty free commercial license'),
-    ('cc_zero', 'Creative Commons Zero', 'Creative Commons Zero'),
-)
+
 conditions = (
     ('UNSPECIFIED', 'Unspecified', "Don't use this in search"),
     ('NEW', 'New', 'Shiny new item'),
@@ -266,7 +263,7 @@ def asset_type_callback(self, context):
             ('HDR', 'Hdrs', 'Browse hdrs', 'WORLD', 4),
             ('BRUSH', 'Brush', 'Upload a brush to BlenderKit', 'BRUSH_DATA', 5)
         )
-    
+
     return items
 
 
@@ -527,29 +524,6 @@ def name_update(self, context):
     utils.name_update()
 
 
-def update_tags(self, context):
-    props = utils.get_upload_props()
-
-    commasep = props.tags.split(',')
-    ntags = []
-    for tag in commasep:
-        if len(tag) > 19:
-            short_tags = tag.split(' ')
-            for short_tag in short_tags:
-                if len(short_tag) > 19:
-                    short_tag = short_tag[:18]
-                ntags.append(short_tag)
-        else:
-            ntags.append(tag)
-    if len(ntags) == 1:
-        ntags = ntags[0].split(' ')
-    ns = ''
-    for t in ntags:
-        if t != '':
-            ns += t + ','
-    ns = ns[:-1]
-    if props.tags != ns:
-        props.tags = ns
 
 
 def update_free(self, context):
@@ -597,7 +571,7 @@ class BlenderKitCommonUploadProps(object):
         name="Tags",
         description="List of tags, separated by commas (optional)",
         default="",
-        update=update_tags
+        update=utils.update_tags
     )
 
     name_changed: BoolProperty(name="Name Changed",
@@ -616,7 +590,7 @@ class BlenderKitCommonUploadProps(object):
         default="METALLIC",
     )
     license: EnumProperty(
-        items=licenses,
+        items=upload.licenses,
         default='royalty_free',
         description='License. Please read our help for choosing the right licenses',
     )

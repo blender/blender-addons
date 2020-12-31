@@ -1282,6 +1282,12 @@ def draw_asset_context_menu(self, context, asset_data, from_panel=False):
 
         if author_id == str(profile['user']['id']):
             layout.label(text='Management tools:')
+
+            row = layout.row()
+            row.operator_context = 'INVOKE_DEFAULT'
+            op = layout.operator('wm.blenderkit_fast_metadata', text='Fast Edit Metadata')
+            op.asset_id = asset_data['id']
+
             row = layout.row()
             row.operator_context = 'INVOKE_DEFAULT'
             op = row.operator('object.blenderkit_change_status', text='Delete')

@@ -677,6 +677,7 @@ def get_param(asset_data, parameter_name):
     return None
 
 
+
 def params_to_dict(params):
     params_dict = {}
     for p in params:
@@ -707,6 +708,29 @@ def dict_to_params(inputs, parameters=None):
             })
     return parameters
 
+def update_tags(self, context):
+    props = self
+
+    commasep = props.tags.split(',')
+    ntags = []
+    for tag in commasep:
+        if len(tag) > 19:
+            short_tags = tag.split(' ')
+            for short_tag in short_tags:
+                if len(short_tag) > 19:
+                    short_tag = short_tag[:18]
+                ntags.append(short_tag)
+        else:
+            ntags.append(tag)
+    if len(ntags) == 1:
+        ntags = ntags[0].split(' ')
+    ns = ''
+    for t in ntags:
+        if t != '':
+            ns += t + ','
+    ns = ns[:-1]
+    if props.tags != ns:
+        props.tags = ns
 
 def user_logged_in():
     a = bpy.context.window_manager.get('bkit profile')

@@ -29,6 +29,7 @@ else:
 import bpy
 import requests, threading
 import logging
+
 bk_logger = logging.getLogger('blenderkit')
 
 from bpy.props import (
@@ -59,7 +60,7 @@ def pretty_print_POST(req):
 
 def upload_rating_thread(url, ratings, headers):
     ''' Upload rating thread function / disconnected from blender data.'''
-    bk_logger.debug('upload rating', url, ratings)
+    bk_logger.debug('upload rating ' + url + str(ratings))
     for rating_name, score in ratings:
         if (score != -1 and score != 0):
             rating_url = url + rating_name + '/'
@@ -388,7 +389,7 @@ class FastRateMenu(Operator):
     def poll(cls, context):
         # scene = bpy.context.scene
         # ui_props = scene.blenderkitUI
-        return True#ui_props.active_index > -1
+        return True  # ui_props.active_index > -1
 
     def draw(self, context):
         layout = self.layout
@@ -445,10 +446,11 @@ class FastRateMenu(Operator):
         wm = context.window_manager
 
         if utils.profile_is_validator() and self.asset_type == 'model':
-            #spawn a wider one for validators for the enum buttons
-            return wm.invoke_props_dialog(self, width = 500)
+            # spawn a wider one for validators for the enum buttons
+            return wm.invoke_props_dialog(self, width=500)
         else:
             return wm.invoke_props_dialog(self)
+
 
 def rating_menu_draw(self, context):
     layout = self.layout

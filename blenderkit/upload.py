@@ -62,6 +62,10 @@ from bpy.types import (
     UIList
 )
 
+licenses = (
+    ('royalty_free', 'Royalty Free', 'royalty free commercial license'),
+    ('cc_zero', 'Creative Commons Zero', 'Creative Commons Zero'),
+)
 
 def comma2array(text):
     commasep = text.split(',')
@@ -161,7 +165,7 @@ def camel_to_sub(content):
     return replaced
 
 
-def get_upload_data(caller = None, context = None, asset_type = None):
+def get_upload_data(caller=None, context=None, asset_type=None):
     '''
     works though metadata from addom props and prepares it for upload to dicts.
     Parameters
@@ -431,7 +435,7 @@ def get_upload_data(caller = None, context = None, asset_type = None):
         ui_props = bpy.context.scene.blenderkitUI
 
         # imagename = ui_props.hdr_upload_image
-        image = ui_props.hdr_upload_image#bpy.data.images.get(imagename)
+        image = ui_props.hdr_upload_image  # bpy.data.images.get(imagename)
         if not image:
             return None, None
 
@@ -452,7 +456,7 @@ def get_upload_data(caller = None, context = None, asset_type = None):
         # mat analytics happen here, since they don't take up any time...
 
         upload_params = {
-            "textureResolutionMax" : props.texture_resolution_max
+            "textureResolutionMax": props.texture_resolution_max
 
         }
 
@@ -491,7 +495,7 @@ def get_upload_data(caller = None, context = None, asset_type = None):
 
     upload_data["description"] = props.description
     upload_data["tags"] = comma2array(props.tags)
-    #category is always only one value by a slug, that's why we go down to the lowest level and overwrite.
+    # category is always only one value by a slug, that's why we go down to the lowest level and overwrite.
     if props.category == '':
         upload_data["category"] = asset_type.lower()
     else:
@@ -517,6 +521,7 @@ def get_upload_data(caller = None, context = None, asset_type = None):
 
     return export_data, upload_data
 
+
 def patch_individual_metadata(asset_id, metadata_dict, api_key):
     upload_data = metadata_dict
     url = paths.get_api_url() + 'assets/' + str(asset_id) + '/'
@@ -528,23 +533,12 @@ def patch_individual_metadata(asset_id, metadata_dict, api_key):
         return {'CANCELLED'}
     return {'FINISHED'}
 
-def category_change_thread(asset_id, category, api_key):
-    upload_data = {
-        "category": category
-    }
-    url = paths.get_api_url() + 'assets/' + str(asset_id) + '/'
-    headers = utils.get_headers(api_key)
-    try:
-        r = rerequests.patch(url, json=upload_data, headers=headers, verify=True)  # files = files,
-    except requests.exceptions.RequestException as e:
-        print(e)
-        return {'CANCELLED'}
-    return {'FINISHED'}
 
 
-# class OBJECT_MT_blenderkit_fast_category_menu(bpy.types.Menu):
+
+# class OBJECT_MT_blenderkit_fast_metadata_menu(bpy.types.Menu):
 #     bl_label = "Fast category change"
-#     bl_idname = "OBJECT_MT_blenderkit_fast_category_menu"
+#     bl_idname = "OBJECT_MT_blenderkit_fast_metadata_menu"
 #
 #     def draw(self, context):
 #         layout = self.layout
@@ -558,16 +552,35 @@ def category_change_thread(asset_id, category, api_key):
 #         for c in categories:
 #             if c['name'].lower() == asset_data['assetType']:
 #                 for ch in c['children']:
-#                     op = layout.operator('wm.blenderkit_fast_category', text = ch['name'])
-#                     op = layout.operator('wm.blenderkit_fast_category', text = ch['name'])
+#                     op = layout.operator('wm.blenderkit_fast_metadata', text = ch['name'])
+#                     op = layout.operator('wm.blenderkit_fast_metadata', text = ch['name'])
 
 
-class FastCategory(bpy.types.Operator):
+class FastMetadata(bpy.types.Operator):
     """Fast change of the category of object directly in asset bar."""
-    bl_idname = "wm.blenderkit_fast_category"
-    bl_label = "Update categories"
+    bl_idname = "wm.blenderkit_fast_metadata"
+    bl_label = "Update metadata"
     bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
+    asset_id: StringProperty(
+        name="Asset Base Id",
+        description="Unique name of the asset (hidden)",
+        default=""
+    )
+    name: StringProperty(
+        name="Name",
+        description="Main name of the asset",
+        default="",
+    )
+    description: StringProperty(
+        name="Description",
+        description="Description of the asset",
+        default="")
+    tags: StringProperty(
+        name="Tags",
+        description="List of tags, separated by commas (optional)",
+        default="",
+    )
     category: EnumProperty(
         name="Category",
         description="main category to put into",
@@ -583,11 +596,21 @@ class FastCategory(bpy.types.Operator):
         description="main category to put into",
         items=categories.get_subcategory1_enums
     )
-
-    asset_id: StringProperty(
-        name="Asset Base Id",
-        description="Unique name of the asset (hidden)",
-        default="")
+    license: EnumProperty(
+        items=licenses,
+        default='royalty_free',
+        description='License. Please read our help for choosing the right licenses',
+    )
+    is_private: EnumProperty(
+        name="Thumbnail Style",
+        items=(
+            ('PRIVATE', 'Private', "You asset will be hidden to public. The private assets are limited by a quota."),
+            ('PUBLIC', 'Public', '"Your asset will go into the validation process automatically')
+        ),
+        description="If not marked private, your asset will go into the validation process automatically\n"
+                    "Private assets are limited by quota.",
+        default="PUBLIC",
+    )
 
     @classmethod
     def poll(cls, context):
@@ -600,34 +623,47 @@ class FastCategory(bpy.types.Operator):
         # col = layout.column()
         layout.label(text=self.message)
         row = layout.row()
-        # col = row.column()
-        # layout.template_icon_view(bkit_ratings, property, show_labels=False, scale=6.0, scale_popup=5.0)
-        # col.prop(self, 'category')
 
         layout.prop(self, 'category')
         if self.category != 'NONE' and self.subcategory != 'NONE':
             layout.prop(self, 'subcategory')
         if self.subcategory != 'NONE' and self.subcategory1 != 'NONE':
             layout.prop(self, 'subcategory1')
+        layout.prop(self, 'name')
+        layout.prop(self, 'description')
+        layout.prop(self, 'tags')
+        layout.prop(self, 'is_private', expand=True)
+        if self.is_private == 'PUBLIC':
+            layout.prop(self, 'license')
 
-        # layout.prop(self, 'category')  # , expand = True)
-        # props = bpy.context.scene.blenderkitUI
-        # if props.asset_type == 'MODEL':  # by now block this for other asset types.
-        #     # col = row.column()
-        #     layout.prop(self, 'subcategory')
-        #     layout.prop(self, 'subcategory1')
-        #     # layout.prop(self, 'subcategory', expand = True)
+
 
     def execute(self, context):
         user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
         props = bpy.context.scene.blenderkitUI
-        if props.asset_type == 'MODEL':
+        if self.subcategory1 != 'NONE':
+            category = self.subcategory1
+        elif self.subcategory != 'NONE':
             category = self.subcategory
         else:
             category = self.category
-        thread = threading.Thread(target=category_change_thread,
-                                  args=(self.asset_id, category, user_preferences.api_key))
+        utils.update_tags(self, context)
+
+        mdict = {
+            'category': category,
+            'displayName': self.name,
+            'description': self.description,
+            'tags': comma2array(self.tags),
+            'isPrivate': self.is_private == 'PRIVATE',
+            'license': self.license,
+        }
+
+        thread = threading.Thread(target=patch_individual_metadata,
+                                  args=(self.asset_id, mdict, user_preferences.api_key))
         thread.start()
+        tasks_queue.add_task((ui.add_report, (f'Uploading metadata for {self.name}. '
+                                             f'Refreash search results to see that changes applied correctly.', 8,)))
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -636,20 +672,34 @@ class FastCategory(bpy.types.Operator):
         if ui_props.active_index > -1:
             sr = bpy.context.scene['search results']
             asset_data = dict(sr[ui_props.active_index])
-            self.asset_id = asset_data['id']
-            self.asset_type = asset_data['assetType']
-            cat_path = categories.get_category_path(bpy.context.window_manager['bkit_categories'],
-                                                    asset_data['category'])
-            try:
-                if len(cat_path) > 1:
-                    self.category = cat_path[1]
-                if len(cat_path) > 2:
-                    self.subcategory = cat_path[2]
-            except Exception as e:
-                print(e)
-            self.message = f"Recategorize asset {asset_data['name']}"
+        else:
+            for result in bpy.context.scene['search results']:
+                if result['id'] == self.asset_id:
+                    asset_data = dict(result)
+
+        self.asset_id = asset_data['id']
+        self.asset_type = asset_data['assetType']
+        cat_path = categories.get_category_path(bpy.context.window_manager['bkit_categories'],
+                                                asset_data['category'])
+        try:
+            if len(cat_path) > 1:
+                self.category = cat_path[1]
+            if len(cat_path) > 2:
+                self.subcategory = cat_path[2]
+        except Exception as e:
+            print(e)
+        self.message = f"Recategorize asset {asset_data['name']}"
+        self.name = asset_data['displayName']
+        self.description = asset_data['description']
+        self.tags = ','.join(asset_data['tags'])
+        if asset_data['isPrivate']:
+            self.is_private = 'PRIVATE'
+        else:
+            self.is_private = 'PUBLIC'
+        self.license = asset_data['license']
+
         wm = context.window_manager
-        return wm.invoke_props_dialog(self)
+        return wm.invoke_props_dialog(self, width = 600)
 
 
 def verification_status_change_thread(asset_id, state, api_key):
@@ -773,7 +823,6 @@ class Uploader(threading.Thread):
 
         script_path = os.path.dirname(os.path.realpath(__file__))
 
-
         # first upload metadata to server, so it can be saved inside the current file
         url = paths.get_api_url() + 'assets/'
 
@@ -836,16 +885,15 @@ class Uploader(threading.Thread):
             if self.export_data['assetBaseId'] == '':
                 self.export_data['assetBaseId'] = rj['assetBaseId']
                 self.export_data['id'] = rj['id']
-                #here we need to send asset ID's back into UI to be written in asset data.
-                estring =  f"{self.export_data['eval_path']}.blenderkit.asset_base_id = '{rj['assetBaseId']}'"
+                # here we need to send asset ID's back into UI to be written in asset data.
+                estring = f"{self.export_data['eval_path']}.blenderkit.asset_base_id = '{rj['assetBaseId']}'"
                 tasks_queue.add_task((exec, (estring,)))
-                estring =  f"{self.export_data['eval_path']}.blenderkit.id = '{rj['id']}'"
+                estring = f"{self.export_data['eval_path']}.blenderkit.id = '{rj['id']}'"
                 tasks_queue.add_task((exec, (estring,)))
-                #after that, the user's file needs to be saved to save the
+                # after that, the user's file needs to be saved to save the
 
             self.upload_data['assetBaseId'] = self.export_data['assetBaseId']
             self.upload_data['id'] = self.export_data['id']
-
 
             # props.uploading = True
 
@@ -868,7 +916,7 @@ class Uploader(threading.Thread):
                     with open(datafile, 'w') as s:
                         json.dump(data, s)
 
-                    #non waiting method - not useful here..
+                    # non waiting method - not useful here..
                     # proc = subprocess.Popen([
                     #     binary_path,
                     #     "--background",
@@ -893,7 +941,6 @@ class Uploader(threading.Thread):
                 self.end_upload('Upload stopped by user')
                 return
 
-
             files = []
             if 'THUMBNAIL' in self.upload_set:
                 files.append({
@@ -902,7 +949,6 @@ class Uploader(threading.Thread):
                     "file_path": self.export_data["thumbnail_path"]
                 })
             if 'MAINFILE' in self.upload_set:
-
                 files.append({
                     "type": "blend",
                     "index": 0,
@@ -959,7 +1005,6 @@ def check_missing_data(asset_type, props):
         check_missing_data_brush(props)
 
 
-
 def start_upload(self, context, asset_type, reupload, upload_set):
     '''start upload process, by processing data, then start a thread that cares about the rest of the upload.'''
 
@@ -980,7 +1025,6 @@ def start_upload(self, context, asset_type, reupload, upload_set):
     # do this for fixing long tags in some upload cases
     props.tags = props.tags[:]
 
-
     # check for missing metadata
     check_missing_data(asset_type, props)
     # if previous check did find any problems then
@@ -992,7 +1036,7 @@ def start_upload(self, context, asset_type, reupload, upload_set):
         props.asset_base_id = ''
         props.id = ''
 
-    export_data, upload_data = get_upload_data(caller = self, context = context, asset_type = asset_type)
+    export_data, upload_data = get_upload_data(caller=self, context=context, asset_type=asset_type)
     # print(export_data)
     # print(upload_data)
     # check if thumbnail exists, generate for HDR:
@@ -1009,7 +1053,6 @@ def start_upload(self, context, asset_type, reupload, upload_set):
     else:
         props.upload_state = "Starting upload. Please don't close Blender until upload finishes"
     props.uploading = True
-
 
     # save a copy of the file for processing. Only for blend files
     basename, ext = os.path.splitext(bpy.data.filepath)
@@ -1249,15 +1292,15 @@ class AssetVerificationStatusChange(Operator):
 
 def register_upload():
     bpy.utils.register_class(UploadOperator)
-    # bpy.utils.register_class(FastCategoryMenu)
-    bpy.utils.register_class(FastCategory)
+    # bpy.utils.register_class(FastMetadataMenu)
+    bpy.utils.register_class(FastMetadata)
     bpy.utils.register_class(AssetDebugPrint)
     bpy.utils.register_class(AssetVerificationStatusChange)
 
 
 def unregister_upload():
     bpy.utils.unregister_class(UploadOperator)
-    # bpy.utils.unregister_class(FastCategoryMenu)
-    bpy.utils.unregister_class(FastCategory)
+    # bpy.utils.unregister_class(FastMetadataMenu)
+    bpy.utils.unregister_class(FastMetadata)
     bpy.utils.unregister_class(AssetDebugPrint)
     bpy.utils.unregister_class(AssetVerificationStatusChange)
