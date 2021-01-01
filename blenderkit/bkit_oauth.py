@@ -188,7 +188,7 @@ class CancelLoginOnline(bpy.types.Operator):
         return {'FINISHED'}
 
 
-classess = (
+classes = (
     RegisterLoginOnline,
     CancelLoginOnline,
     Logout,
@@ -196,10 +196,10 @@ classess = (
 
 
 def register():
-    for c in classess:
+    for c in classes:
         bpy.utils.register_class(c)
 
 
 def unregister():
-    for c in classess:
+    for c in classes:
         bpy.utils.unregister_class(c)
