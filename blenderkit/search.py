@@ -441,7 +441,7 @@ def load_previews():
 
             # if os.path.exists(tpath):  # sometimes we are unlucky...
             img = bpy.data.images.get(iname)
-            if img is None:
+            if img is None and os.path.exists(tpath):
                 img = bpy.data.images.load(tpath)
                 img.name = iname
             elif img.filepath != tpath:
