@@ -17,14 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-if "bpy" in locals():
-    from importlib import reload
-
-    paths = reload(paths)
-    rerequests = reload(rerequests)
-
-else:
-    from blenderkit import paths, rerequests
+from blenderkit import paths, rerequests
 
 import bpy
 from mathutils import Vector

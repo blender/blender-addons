@@ -16,19 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-if "bpy" in locals():
-    import importlib
 
-    paths = importlib.reload(paths)
-    ratings = importlib.reload(ratings)
-    utils = importlib.reload(utils)
-    download = importlib.reload(download)
-    categories = importlib.reload(categories)
-    icons = importlib.reload(icons)
-    search = importlib.reload(search)
-    resolutions = importlib.reload(resolutions)
-else:
-    from blenderkit import paths, ratings, utils, download, categories, icons, search, resolutions
+from blenderkit import paths, ratings, utils, download, categories, icons, search, resolutions
 
 from bpy.types import (
     Panel

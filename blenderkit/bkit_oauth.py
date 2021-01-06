@@ -16,19 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-if "bpy" in locals():
-    from importlib import reload
 
-    tasks_queue = reload(tasks_queue)
-    utils = reload(utils)
-    paths = reload(paths)
-    search = reload(search)
-    categories = reload(categories)
-    oauth = reload(oauth)
-    ui = reload(ui)
-    ui = reload(ui_panels)
-else:
-    from blenderkit import tasks_queue, utils, paths, search, categories, oauth, ui, ui_panels
+from blenderkit import tasks_queue, utils, paths, search, categories, oauth, ui, ui_panels
 
 import bpy
 

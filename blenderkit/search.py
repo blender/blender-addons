@@ -17,22 +17,9 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-if "bpy" in locals():
-    from importlib import reload
 
-    paths = reload(paths)
-    utils = reload(utils)
-    categories = reload(categories)
-    ui = reload(ui)
-    colors = reload(colors)
-    bkit_oauth = reload(bkit_oauth)
-    version_checker = reload(version_checker)
-    tasks_queue = reload(tasks_queue)
-    rerequests = reload(rerequests)
-    resolutions = reload(resolutions)
-else:
-    from blenderkit import paths, utils, categories, ui, colors, bkit_oauth, version_checker, tasks_queue, rerequests, \
-        resolutions
+from blenderkit import paths, utils, categories, ui, colors, bkit_oauth, version_checker, tasks_queue, rerequests, \
+    resolutions
 
 import blenderkit
 from bpy.app.handlers import persistent
