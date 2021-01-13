@@ -48,6 +48,8 @@ from .operator_utils import (
     apply_to_children,
     select_collection_objects,
     set_exclude_state,
+    isolate_sel_objs_collections,
+    disable_sel_objs_collections,
 )
 
 class LockedObjects():
@@ -134,7 +136,7 @@ class QCDAllBase():
         cls.history = None
         cls.orig_active_collection = None
         cls.orig_active_object = None
-        cls.locked = {}
+        cls.locked = None
 
 
 class EnableAllQCDSlotsMeta(Operator):
@@ -307,6 +309,66 @@ class EnableAllQCDSlotsIsolated(Operator):
         qab.finalize()
 
         return {'FINISHED'}
+
+class IsolateSelectedObjectsCollections(Operator):
+    '''Isolate collections (via EC) that contain the selected objects'''
+    bl_label = "Isolate Selected Objects Collections"
+    bl_idname = "view3d.isolate_selected_objects_collections"
+
+    def execute(self, context):
+        qab = QCDAllBase
+        qab.init(context)
+
+        use_active = bool(context.mode != 'OBJECT')
+
+        # isolate
+        error = isolate_sel_objs_collections(qab.view_layer, "exclude", "QCD", use_active=use_active)
+
+        if error:
+            qab.clear()
+            self.report({"WARNING"}, error)
+            return {'CANCELLED'}
+
+        qab.finalize()
+
+        internals.qcd_collection_state.clear()
+        internals.qcd_collection_state.update(internals.generate_state(qcd=True))
+
+        return {'FINISHED'}
+
+
+class DisableSelectedObjectsCollections(Operator):
+    '''Disable all collections that contain the selected objects'''
+    bl_label = "Disable Selected Objects Collections"
+    bl_idname = "view3d.disable_selected_objects_collections"
+
+    def execute(self, context):
+        qab = QCDAllBase
+        qab.init(context)
+
+        if qab.locked.objs:
+            # clear rto history
+            del internals.qcd_history[qab.view_layer]
+            qab.clear()
+
+            self.report({"WARNING"}, "Can only be executed in Object Mode")
+            return {'CANCELLED'}
+
+        # disable
+        error = disable_sel_objs_collections(qab.view_layer, "exclude", "QCD")
+
+        if error:
+            qab.clear()
+            self.report({"WARNING"}, error)
+            return {'CANCELLED'}
+
+        qab.finalize()
+
+        internals.qcd_collection_state.clear()
+        internals.qcd_collection_state.update(internals.generate_state(qcd=True))
+
+        return {'FINISHED'}
+
 
 class DisableAllNonQCDSlots(Operator):
     '''Toggles between the current state and all non-QCD collections disabled'''
