@@ -62,4 +62,4 @@ class POWER_SEQUENCER_OT_select_all_left_or_right(bpy.types.Operator):
         return context.sequences
 
     def execute(self, context):
-        return bpy.ops.sequencer.select("INVOKE_DEFAULT", left_right=self.side)
+        return bpy.ops.sequencer.select_side_of_frame("INVOKE_DEFAULT", side=self.side)
