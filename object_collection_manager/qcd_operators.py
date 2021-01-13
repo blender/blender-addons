@@ -146,16 +146,9 @@ class EnableAllQCDSlotsMeta(Operator):
 
     @classmethod
     def description(cls, context, properties):
-        selection_hotkeys = ""
-
-        if context.mode == 'OBJECT':
-            selection_hotkeys = (
-            "  * Alt+LMB - Select all objects in QCD slots.\n"
-            )
-
         hotkey_string = (
             "  * LMB - Enable all slots/Restore.\n"
-            + selection_hotkeys +
+            "  * Alt+LMB - Discard History.\n"
             "  * LMB+Hold - Menu"
             )
 
@@ -169,7 +162,7 @@ class EnableAllQCDSlotsMeta(Operator):
         qab.meta_op = True
 
         if modifiers == {"alt"}:
-            bpy.ops.view3d.select_all_qcd_objects()
+            bpy.ops.view3d.discard_qcd_history()
 
         else:
             qab.init(context)
@@ -487,6 +480,7 @@ class SelectAllQCDObjects(Operator):
         qab = QCDAllBase
 
         if context.mode != 'OBJECT':
+            self.report({"WARNING"}, "Can only be executed in Object Mode")
             return {'CANCELLED'}
 
         if not context.selectable_objects:
@@ -538,6 +532,9 @@ class DiscardQCDHistory(Operator):
         if view_layer in internals.qcd_history:
             del internals.qcd_history[view_layer]
             qab.clear()
+
+        # update header UI
+        update_qcd_header()
 
         return {'FINISHED'}
 
