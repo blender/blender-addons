@@ -406,7 +406,7 @@ def copy_asset(fp1, fp2):
             target_subdir = os.path.join(target_dir, subdir.name)
             if os.path.exists(target_subdir):
                 continue
-            bk_logger.debug(subdir+' '+ target_subdir)
+            bk_logger.debug(str(subdir) +' '+ str(target_subdir))
             shutil.copytree(subdir, target_subdir)
             bk_logger.debug('copied')
 
