@@ -183,6 +183,10 @@ def register_qcd_view_hotkeys():
                 kmi = km.keymap_items.new('view3d.disable_all_collections', 'EQUAL', 'PRESS', alt=True, ctrl=True)
                 addon_qcd_view_hotkey_keymaps.append((km, kmi))
 
+                km = wm.keyconfigs.addon.keymaps.new(name=mode)
+                kmi = km.keymap_items.new('view3d.select_all_qcd_objects', 'PLUS', 'PRESS', shift=True, ctrl=True)
+                addon_qcd_view_hotkey_keymaps.append((km, kmi))
+
 
                 km = wm.keyconfigs.addon.keymaps.new(name=mode)
                 kmi = km.keymap_items.new('view3d.discard_qcd_history', 'EQUAL', 'PRESS', alt=True)
