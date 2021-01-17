@@ -17,12 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-if "bpy" in locals():
-    from importlib import reload
-
-    utils = reload(utils)
-else:
-    from blenderkit import utils
+from blenderkit import utils
 
 import bpy
 from object_print3d_utils import operators as ops
@@ -363,6 +358,12 @@ def get_autotags():
         props.texture_resolution_max = 0
         props.texture_resolution_min = 0
         check_material(props, mat)
+    elif ui.asset_type == 'HDR':
+        # reset some properties here, because they might not get re-filled at all when they aren't needed anymore.
+
+        hdr = utils.get_active_asset()
+        props = hdr.blenderkit
+        props.texture_resolution_max = max(hdr.size[0],hdr.size[1])
 
 
 class AutoFillTags(bpy.types.Operator):
@@ -373,7 +374,7 @@ class AutoFillTags(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return bpy.context.view_layer.objects.active is not None
+        return utils.uploadable_asset_poll()
 
     def execute(self, context):
         get_autotags()

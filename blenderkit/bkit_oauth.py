@@ -16,25 +16,16 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-if "bpy" in locals():
-    from importlib import reload
 
-    tasks_queue = reload(tasks_queue)
-    utils = reload(utils)
-    paths = reload(paths)
-    search = reload(search)
-    categories = reload(categories)
-    oauth = reload(oauth)
-    ui = reload(ui)
-    ui = reload(ui_panels)
-else:
-    from blenderkit import tasks_queue, utils, paths, search, categories, oauth, ui, ui_panels
+from blenderkit import tasks_queue, utils, paths, search, categories, oauth, ui, ui_panels
 
 import bpy
 
 import threading
 import requests
 import time
+import logging
+bk_logger = logging.getLogger('blenderkit')
 
 from bpy.props import (
     BoolProperty,
@@ -59,7 +50,7 @@ def login_thread(signup=False):
 
 def login(signup, url, r_url, authenticator):
     auth_token, refresh_token, oauth_response = authenticator.get_new_token(register=signup, redirect_url=r_url)
-    utils.p('tokens retrieved')
+    bk_logger.debug('tokens retrieved')
     tasks_queue.add_task((write_tokens, (auth_token, refresh_token, oauth_response)))
 
 
@@ -83,7 +74,7 @@ def refresh_token(api_key_refresh, url):
 
 
 def write_tokens(auth_token, refresh_token, oauth_response):
-    utils.p('writing tokens')
+    bk_logger.debug('writing tokens')
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
     preferences.api_key_refresh = refresh_token
     preferences.api_key = auth_token
@@ -186,7 +177,7 @@ class CancelLoginOnline(bpy.types.Operator):
         return {'FINISHED'}
 
 
-classess = (
+classes = (
     RegisterLoginOnline,
     CancelLoginOnline,
     Logout,
@@ -194,10 +185,10 @@ classess = (
 
 
 def register():
-    for c in classess:
+    for c in classes:
         bpy.utils.register_class(c)
 
 
 def unregister():
-    for c in classess:
+    for c in classes:
         bpy.utils.unregister_class(c)

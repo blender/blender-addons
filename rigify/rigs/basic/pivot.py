@@ -114,11 +114,11 @@ class Rig(BaseRig):
 
 
     def configure_bones(self):
-        if self.make_control:
-            self.copy_bone_properties(self.bones.org, self.bones.ctrl.master)
+        org = self.bones.org
+        ctrl = self.bones.ctrl
+        main_ctl = ctrl.master if self.make_control else ctrl.pivot
 
-        else:
-            self.copy_bone_properties(self.bones.org, self.bones.ctrl.pivot)
+        self.copy_bone_properties(org, main_ctl, ui_controls=True)
 
 
     def rig_bones(self):

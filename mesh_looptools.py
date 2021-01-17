@@ -23,7 +23,7 @@
 bl_info = {
     "name": "LoopTools",
     "author": "Bart Crouch, Vladimir Spivak (cwolf3d)",
-    "version": (4, 7, 4),
+    "version": (4, 7, 6),
     "blender": (2, 80, 0),
     "location": "View3D > Sidebar > Edit Tab / Edit Mode Context Menu",
     "warning": "",
@@ -1504,7 +1504,11 @@ def bridge_create_faces(object, bm, faces, twist):
 
     new_faces = []
     for i in range(len(faces)):
-        new_faces.append(bm.faces.new([bm.verts[v] for v in faces[i]]))
+        try:
+            new_faces.append(bm.faces.new([bm.verts[v] for v in faces[i]]))
+        except:
+            # face already exists
+            pass
     bm.normal_update()
     object.data.update(calc_edges=True)  # calc_edges prevents memory-corruption
 
@@ -2118,10 +2122,12 @@ def circle_influence_locs(locs_2d, new_locs_2d, influence):
 
 
 # project 2d locations on circle, respecting distance relations between verts
-def circle_project_non_regular(locs_2d, x0, y0, r):
+def circle_project_non_regular(locs_2d, x0, y0, r, angle):
     for i in range(len(locs_2d)):
         x, y, j = locs_2d[i]
         loc = mathutils.Vector([x - x0, y - y0])
+        mat_rot = mathutils.Matrix.Rotation(angle, 2, 'X')
+        loc.rotate(mat_rot)
         loc.length = r
         locs_2d[i] = [loc[0], loc[1], j]
 
@@ -2129,7 +2135,7 @@ def circle_project_non_regular(locs_2d, x0, y0, r):
 
 
 # project 2d locations on circle, with equal distance between all vertices
-def circle_project_regular(locs_2d, x0, y0, r):
+def circle_project_regular(locs_2d, x0, y0, r, angle):
     # find offset angle and circling direction
     x, y, i = locs_2d[0]
     loc = mathutils.Vector([x - x0, y - y0])
@@ -2147,8 +2153,8 @@ def circle_project_regular(locs_2d, x0, y0, r):
     # distribute vertices along the circle
     for i in range(len(locs_2d)):
         t = offset_angle + ccw * (i / len(locs_2d) * 2 * math.pi)
-        x = math.cos(t) * r
-        y = math.sin(t) * r
+        x = math.cos(t + angle) * r
+        y = math.sin(t + angle) * r
         locs_2d[i] = [x, y, locs_2d[i][2]]
 
     return(locs_2d)
@@ -3491,6 +3497,14 @@ class Circle(Operator):
         min=0.0,
         soft_max=1000.0
         )
+    angle: FloatProperty(
+        name="Angle",
+        description="Rotate a circle by an angle",
+        unit='ROTATION',
+        default=math.radians(0.0),
+        soft_min=math.radians(-360.0),
+        soft_max=math.radians(360.0)
+        )
     regular: BoolProperty(
         name="Regular",
         description="Distribute vertices at constant distances along the circle",
@@ -3516,6 +3530,7 @@ class Circle(Operator):
         row_right.active = self.custom_radius
         row_right.prop(self, "radius", text="")
         col.prop(self, "regular")
+        col.prop(self, "angle")
         col.separator()
 
         col_move = col.column(align=True)
@@ -3581,9 +3596,9 @@ class Circle(Operator):
                 r = self.radius / p.length
             # calculate positions on circle
             if self.regular:
-                new_locs_2d = circle_project_regular(locs_2d[:], x0, y0, r)
+                new_locs_2d = circle_project_regular(locs_2d[:], x0, y0, r, self.angle)
             else:
-                new_locs_2d = circle_project_non_regular(locs_2d[:], x0, y0, r)
+                new_locs_2d = circle_project_non_regular(locs_2d[:], x0, y0, r, self.angle)
             # take influence into account
             locs_2d = circle_influence_locs(locs_2d, new_locs_2d,
                 self.influence)
@@ -4873,6 +4888,14 @@ class LoopToolsProps(PropertyGroup):
         name="Regular",
         description="Distribute vertices at constant distances along the circle",
         default=True
+        )
+    circle_angle: FloatProperty(
+        name="Angle",
+        description="Rotate a circle by an angle",
+        unit='ROTATION',
+        default=math.radians(0.0),
+        soft_min=math.radians(-360.0),
+        soft_max=math.radians(360.0)
         )
     # curve properties
     curve_boundaries: BoolProperty(

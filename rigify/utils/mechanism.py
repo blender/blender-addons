@@ -338,6 +338,48 @@ def driver_var_transform(target, bone=None, *, type='LOC_X', space='WORLD', rota
 
 
 #=============================================
+# Constraint management
+#=============================================
+
+def move_constraint(source, target, con):
+    """
+    Move a constraint from one owner to another, together with drivers.
+    """
+
+    assert source.constraints[con.name] == con
+
+    if isinstance(target, str):
+        target = con.id_data.pose.bones[target]
+
+    con_tgt = target.constraints.copy(con)
+
+    if target.id_data == con.id_data:
+        adt = con.id_data.animation_data
+        if adt:
+            prefix = con.path_from_id()
+            new_prefix = con_tgt.path_from_id()
+            for fcu in adt.drivers:
+                if fcu.data_path.startswith(prefix):
+                    fcu.data_path = new_prefix + fcu.data_path[len(prefix):]
+
+    source.constraints.remove(con)
+
+def move_all_constraints(obj, source, target, *, prefix=''):
+    """
+    Move all constraints with the specified name prefix from one bone to another.
+    """
+
+    if isinstance(source, str):
+        source = obj.pose.bones[source]
+    if isinstance(target, str):
+        target = obj.pose.bones[target]
+
+    for con in list(source.constraints):
+        if con.name.startswith(prefix):
+            move_constraint(source, target, con)
+
+
+#=============================================
 # Custom property management
 #=============================================
 
@@ -387,16 +429,18 @@ def copy_custom_properties(src, dest, *, prefix='', dest_prefix='', link_driver=
         if key.startswith(prefix) and key not in exclude:
             new_key = dest_prefix + key[len(prefix):]
 
-            dest[new_key] = value
-
             info = rna_idprop_ui_prop_get(src, key, False)
-            if info:
-                info2 = rna_idprop_ui_prop_get(dest, new_key, True)
-                for ki, vi in info.items():
-                    info2[ki] = vi
 
-            if link_driver:
-                make_driver(src, quote_property(key), variables=[(dest.id_data, dest, new_key)])
+            if src != dest or new_key != key:
+                dest[new_key] = value
+
+                if info:
+                    info2 = rna_idprop_ui_prop_get(dest, new_key, True)
+                    for ki, vi in info.items():
+                        info2[ki] = vi
+
+                if link_driver:
+                    make_driver(src, quote_property(key), variables=[(dest.id_data, dest, new_key)])
 
             res.append((key, new_key, value, info))
 
@@ -412,10 +456,21 @@ def copy_custom_properties_with_ui(rig, src, dest_bone, *, ui_controls=None, **o
     mapping = copy_custom_properties(src, bone, **options)
 
     if mapping:
-        panel = rig.script.panel_with_selected_check(rig, ui_controls or rig.bones.ctrl.flatten())
+        panel = rig.script.panel_with_selected_check(rig, ui_controls or rig.bones.flatten('ctrl'))
 
-        for key,new_key,value,info in mapping:
-            name = re.sub(r'[_.-]', ' ', new_key).title()
+        for key,new_key,value,info in sorted(mapping, key=lambda item: item[1]):
+            name = new_key
+
+            # Replace delimiters with spaces
+            if ' ' not in name:
+                name = re.sub(r'[_.-]', ' ', name)
+            # Split CamelCase
+            if ' ' not in name:
+                name = re.sub(r'([a-z])([A-Z])', r'\1 \2', name)
+            # Capitalize
+            if name.lower() == name:
+                name = name.title()
+
             slider = type(value) is float and info and info.get("min", None) == 0 and info.get("max", None) == 1
 
             panel.custom_prop(dest_bone, new_key, text=name, slider=slider)

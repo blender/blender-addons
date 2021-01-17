@@ -16,17 +16,15 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-if "bpy" in locals():
-    from importlib import reload
 
-    utils = reload(utils)
-else:
-    from blenderkit import utils
+from blenderkit import utils
 
 import bpy
 from bpy.app.handlers import persistent
 
 import queue
+import logging
+bk_logger = logging.getLogger('blenderkit')
 
 @persistent
 def scene_load(context):
@@ -60,7 +58,7 @@ def add_task(task, wait = 0, only_last = False, fake_context = False, fake_conte
 
 
 def queue_worker():
-    #utils.p('timer queue worker')
+    #bk_logger.debug('timer queue worker')
     time_step = 2.0
     q = get_queue()
 
@@ -81,7 +79,7 @@ def queue_worker():
         else:
             back_to_queue.append(task)
     if len(stashed.keys())>1:
-        print(stashed)
+        bk_logger.debug('task queue stashed task:' +str(stashed))
     #return tasks to que except for stashed
     for task in back_to_queue:
         q.put(task)
@@ -98,8 +96,7 @@ def queue_worker():
             task.wait-=time_step
             back_to_queue.append(task)
         else:
-            utils.p('as a task:   ')
-            utils.p(task.command, task.arguments)
+            bk_logger.debug('task queue task:'+ str( task.command) +str( task.arguments))
             try:
                 if task.fake_context:
                     fc = utils.get_fake_context(bpy.context, area_type = task.fake_context_area)
@@ -107,8 +104,9 @@ def queue_worker():
                 else:
                     task.command(*task.arguments)
             except Exception as e:
-                utils.p('task failed:')
-                print(e)
+                bk_logger.error('task queue failed task:'+ str(task.command)+str(task.arguments)+ str(e))
+                # bk_logger.exception('Got exception on main handler')
+                # raise
         # print('queue while 2')
     for task in back_to_queue:
         q.put(task)
