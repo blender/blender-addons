@@ -17,10 +17,8 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-
 from blenderkit import paths, ratings, utils, search, upload, ui_bgl, download, bg_blender, colors, tasks_queue, \
-    ui_panels,icons
-
+    ui_panels, icons
 
 import bpy
 
@@ -435,8 +433,9 @@ def draw_tooltip(x, y, text='', author='', img=None, gravatar=None):
 
     t = time.time()
 
-def draw_tooltip_with_author(asset_data, x,y):
-     # TODO move this lazy loading into a function and don't duplicate through the code
+
+def draw_tooltip_with_author(asset_data, x, y):
+    # TODO move this lazy loading into a function and don't duplicate through the code
 
     img = get_large_thumbnail_image(asset_data)
     gimg = None
@@ -450,8 +449,9 @@ def draw_tooltip_with_author(asset_data, x,y):
 
     # scene = bpy.context.scene
     # ui_props = scene.blenderkitUI
-    draw_tooltip(x,y, text=asset_data['tooltip'], author=atip, img=img,
+    draw_tooltip(x, y, text=asset_data['tooltip'], author=atip, img=img,
                  gravatar=gimg)
+
 
 def draw_tooltip_old(x, y, text='', author='', img=None):
     region = bpy.context.region
@@ -694,6 +694,7 @@ def is_upload_old(asset_data):
         return (age.days - old.days)
     return 0
 
+
 def get_large_thumbnail_image(asset_data):
     '''Get thumbnail image from asset data'''
     scene = bpy.context.scene
@@ -710,6 +711,7 @@ def get_large_thumbnail_image(asset_data):
         colorspace = 'sRGB'
     img = utils.get_hidden_image(tpath, iname, colorspace=colorspace)
     return img
+
 
 def draw_asset_bar(self, context):
     s = bpy.context.scene
@@ -858,9 +860,6 @@ def draw_asset_bar(self, context):
         #     ui_bgl.draw_text(props.report, ui_props.bar_x,
         #                      ui_props.bar_y - 15 - ui_props.margin - ui_props.bar_height, 15)
 
-
-
-
     if ui_props.dragging and (
             ui_props.draw_drag_image or ui_props.draw_snapped_bounds) and ui_props.active_index > -1:
         iname = utils.previmg_name(ui_props.active_index)
@@ -884,6 +883,26 @@ def draw_callback_3d(self, context):
             draw_bbox(ui.snapped_location, ui.snapped_rotation, ui.snapped_bbox_min, ui.snapped_bbox_max)
 
 
+def deep_ray_cast(depsgraph, ray_origin, vec):
+    # this allows to ignore some objects, like objects with bounding box draw style or particle objects
+    object = None
+    # while object is None or object.draw
+    has_hit, snapped_location, snapped_normal, face_index, object, matrix = bpy.context.scene.ray_cast(
+        depsgraph, ray_origin, vec)
+    if not object:
+        return False, Vector((0, 0, 0)), Vector((0, 0, 1)), None, None, None
+
+    try_object = object
+    while try_object and try_object.display_type == 'BOUNDS':
+        ray_origin = snapped_location + vec.normalized() * 0.0003
+        try_has_hit, try_snapped_location, try_snapped_normal, try_face_index, try_object, try_matrix = bpy.context.scene.ray_cast(
+            depsgraph, ray_origin, vec)
+        if try_has_hit:
+            has_hit, snapped_location, snapped_normal, face_index, object, matrix = try_has_hit, try_snapped_location, try_snapped_normal, try_face_index, try_object, try_matrix
+
+    return has_hit, snapped_location, snapped_normal, face_index, object, matrix
+
+
 def mouse_raycast(context, mx, my):
     r = context.region
     rv3d = context.region_data
@@ -896,9 +915,10 @@ def mouse_raycast(context, mx, my):
 
     vec = ray_target - ray_origin
 
-    has_hit, snapped_location, snapped_normal, face_index, object, matrix = bpy.context.scene.ray_cast(
+    has_hit, snapped_location, snapped_normal, face_index, object, matrix = deep_ray_cast(
         bpy.context.view_layer.depsgraph, ray_origin, vec)
 
+    print(has_hit, snapped_location, snapped_normal, face_index, object, matrix)
     # rote = mathutils.Euler((0, 0, math.pi))
     randoffset = math.pi
     if has_hit:
@@ -1849,10 +1869,10 @@ class AssetDragOperator(bpy.types.Operator):
                 target_object = ''
                 target_slot = ''
 
-        if abs(self.start_mouse_x - self.mouse_x) < 20 and abs(self.start_mouse_y - self.mouse_y)<20:
-            #no dragging actually this was a click.
+        if abs(self.start_mouse_x - self.mouse_x) < 20 and abs(self.start_mouse_y - self.mouse_y) < 20:
+            # no dragging actually this was a click.
             self.snapped_location = scene.cursor.location
-            self.snapped_rotation = (0,0,0)
+            self.snapped_rotation = (0, 0, 0)
             if ui_props.asset_type in ('MATERIAL',):
                 ao = bpy.context.active_object
                 if ao != None and not ao.is_library_indirect:
@@ -1863,7 +1883,6 @@ class AssetDragOperator(bpy.types.Operator):
                 else:
                     target_object = ''
                     target_slot = ''
-
 
         # picking of assets and using them
         if ui_props.asset_type == 'MATERIAL':
@@ -1909,7 +1928,7 @@ class AssetDragOperator(bpy.types.Operator):
         context.area.tag_redraw()
 
         # if event.type == 'MOUSEMOVE':
-        if not hasattr(self,'start_mouse_x'):
+        if not hasattr(self, 'start_mouse_x'):
             self.start_mouse_x = event.mouse_region_x
             self.start_mouse_y = event.mouse_region_y
 
@@ -1935,9 +1954,7 @@ class AssetDragOperator(bpy.types.Operator):
         self.has_hit, self.snapped_location, self.snapped_normal, self.snapped_rotation, self.face_index, object, self.matrix = mouse_raycast(
             context, event.mouse_region_x, event.mouse_region_y)
         if object is not None:
-            self.object_name  =object.name
-
-
+            self.object_name = object.name
 
         # MODELS can be dragged on scene floor
         if not self.has_hit and ui_props.asset_type == 'MODEL':
@@ -1969,9 +1986,9 @@ class AssetDragOperator(bpy.types.Operator):
             self.mouse_y = 0
 
             self.has_hit = False
-            self.snapped_location = (0,0,0)
-            self.snapped_normal = (0,0,1)
-            self.snapped_rotation = (0,0,0)
+            self.snapped_location = (0, 0, 0)
+            self.snapped_normal = (0, 0, 1)
+            self.snapped_rotation = (0, 0, 0)
             self.face_index = 0
             object = None
             self.matrix = None
@@ -2001,7 +2018,8 @@ class RunAssetBarWithContext(bpy.types.Operator):
         if C_dict.get('window'):  # no 3d view, no asset bar.
             preferences = bpy.context.preferences.addons['blenderkit'].preferences
             if preferences.experimental_features:
-                bpy.ops.view3d.blenderkit_asset_bar_widget(C_dict, 'INVOKE_REGION_WIN', keep_running=True, do_search=False)
+                bpy.ops.view3d.blenderkit_asset_bar_widget(C_dict, 'INVOKE_REGION_WIN', keep_running=True,
+                                                           do_search=False)
 
             else:
                 bpy.ops.view3d.blenderkit_asset_bar(C_dict, 'INVOKE_REGION_WIN', keep_running=True, do_search=False)
