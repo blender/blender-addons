@@ -1017,8 +1017,8 @@ class Searcher(threading.Thread):
         if params['get_next']:
             rdata['results'][0:0] = self.result['results']
         self.result = rdata
-        # with open(json_filepath, 'w') as outfile:
-        #     json.dump(rdata, outfile)
+        # with open(json_filepath, 'w', encoding = 'utf-8') as outfile:
+        #     json.dump(rdata, outfile, ensure_ascii=False, indent=4)
 
         killthreads_sml = []
         for k in thumb_sml_download_threads.keys():
@@ -1311,8 +1311,8 @@ def get_search_simple(parameters, filepath=None, page_size=100, max_results=1000
     if not filepath:
         return results
 
-    with open(filepath, 'w') as s:
-        json.dump(results, s)
+    with open(filepath, 'w', encoding = 'utf-8') as s:
+        json.dump(results, s, ensure_ascii=False, indent=4)
     bk_logger.info(f'retrieved {len(results)} assets from elastic search')
     return results
 

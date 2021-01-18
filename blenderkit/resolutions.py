@@ -632,8 +632,8 @@ def get_assets_search():
             retries += 1
 
     fpath = assets_db_path()
-    with open(fpath, 'w') as s:
-        json.dump(results, s)
+    with open(fpath, 'w', encoding = 'utf-8') as s:
+        json.dump(results, s, ensure_ascii=False, indent=4)
 
 
 def get_assets_for_resolutions(page_size=100, max_results=100000000):
@@ -698,13 +698,13 @@ def get_materials_for_validation(page_size=100, max_results=100000000):
 #             retries += 1
 #
 #     fpath = assets_db_path()
-#     with open(fpath, 'w') as s:
-#         json.dump(results, s)
+#     with open(fpath, 'w', encoding = 'utf-8') as s:
+#         json.dump(results, s, ensure_ascii=False, indent=4)
 
 
 def load_assets_list(filepath):
     if os.path.exists(filepath):
-        with open(filepath, 'r') as s:
+        with open(filepath, 'r', encoding='utf-8') as s:
             assets = json.load(s)
     return assets
 
@@ -821,8 +821,8 @@ def send_to_bg(asset_data, fpath, command='generate_resolutions', wait=True):
     tempdir = tempfile.mkdtemp()
     datafile = os.path.join(tempdir + 'resdata.json')
     script_path = os.path.dirname(os.path.realpath(__file__))
-    with open(datafile, 'w') as s:
-        json.dump(data, s)
+    with open(datafile, 'w', encoding = 'utf-8') as s:
+        json.dump(data, s,  ensure_ascii=False, indent=4)
 
     print('opening Blender instance to do processing - ', command)
 
@@ -856,7 +856,7 @@ def write_data_back(asset_data):
 
 def run_bg(datafile):
     print('background file operation')
-    with open(datafile, 'r') as f:
+    with open(datafile, 'r',encoding='utf-8') as f:
         data = json.load(f)
     bpy.app.debug_value = data['debug_value']
     write_data_back(data['asset_data'])

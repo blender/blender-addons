@@ -168,7 +168,7 @@ def load_categories():
 
     wm = bpy.context.window_manager
     try:
-        with open(categories_filepath, 'r') as catfile:
+        with open(categories_filepath, 'r', encoding='utf-8') as catfile:
             wm['bkit_categories'] = json.load(catfile)
 
         wm['active_category'] = {
@@ -207,8 +207,8 @@ def fetch_categories(API_key, force = False):
             categories = rdata['results']
             fix_category_counts(categories)
             # filter_categories(categories) #TODO this should filter categories for search, but not for upload. by now off.
-            with open(categories_filepath, 'w') as s:
-                json.dump(categories, s, indent=4)
+            with open(categories_filepath, 'w', encoding = 'utf-8') as s:
+                json.dump(categories, s,  ensure_ascii=False, indent=4)
         tasks_queue.add_task((load_categories, ()))
     except Exception as e:
         bk_logger.debug('category fetching failed')
