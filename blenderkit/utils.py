@@ -285,7 +285,6 @@ def save_prefs(self, context):
             fpath = paths.BLENDERKIT_SETTINGS_FILENAME
             if not os.path.exists(paths._presets):
                 os.makedirs(paths._presets)
-            f = open(fpath, 'w')
             with open(fpath, 'w') as s:
                 json.dump(prefs, s)
         except Exception as e:
