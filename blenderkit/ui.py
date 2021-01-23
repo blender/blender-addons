@@ -907,7 +907,6 @@ def mouse_raycast(context, mx, my):
     r = context.region
     rv3d = context.region_data
     coord = mx, my
-    print(dir(rv3d))
     # get the ray from the viewport and mouse
     view_vector = view3d_utils.region_2d_to_vector_3d(r, rv3d, coord)
     if rv3d.view_perspective == 'CAMERA' and rv3d.is_perspective == False:
@@ -919,12 +918,14 @@ def mouse_raycast(context, mx, my):
 
     ray_target = ray_origin + (view_vector * 1000000000)
 
-    print(view_vector, ray_origin)
     vec = ray_target - ray_origin
 
     has_hit, snapped_location, snapped_normal, face_index, object, matrix = deep_ray_cast(
         bpy.context.view_layer.depsgraph, ray_origin, vec)
-    print(has_hit)
+
+    #backface snapping inversion
+    if view_vector.angle(snapped_normal)<math.pi/2:
+        snapped_normal = -snapped_normal
     # print(has_hit, snapped_location, snapped_normal, face_index, object, matrix)
     # rote = mathutils.Euler((0, 0, math.pi))
     randoffset = math.pi
