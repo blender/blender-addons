@@ -22,6 +22,7 @@ from bpy.props import (
         BoolProperty,
         EnumProperty,
         StringProperty,
+        PointerProperty,
         # IntProperty,
         )
 
@@ -32,6 +33,8 @@ def get_addon_prefs():
     addon_name = os.path.splitext(__name__)[0]
     addon_prefs = bpy.context.preferences.addons[addon_name].preferences
     return (addon_prefs)
+
+from .timeline_scrub import GPTS_timeline_settings, draw_ts_pref
 
 ## Addons Preferences Update Panel
 def update_panel(self, context):
@@ -48,8 +51,10 @@ def auto_rebind(self, context):
     register_keymaps()
 
 class GreasePencilAddonPrefs(bpy.types.AddonPreferences):
-    bl_idname = os.path.splitext(__name__)[0]#'greasepencil-addon' ... __package__ ?
+    bl_idname = os.path.splitext(__name__)[0] #'greasepencil-addon' ... __package__ ?
     # bl_idname = __name__
+
+    ts: PointerProperty(type=GPTS_timeline_settings)
 
     category : StringProperty(
             name="Category",
@@ -127,6 +132,7 @@ class GreasePencilAddonPrefs(bpy.types.AddonPreferences):
             update=auto_rebind)
 
     def draw(self, context):
+            prefs = get_addon_prefs()
             layout = self.layout
             # layout.use_property_split = True
             row= layout.row(align=True)
@@ -176,6 +182,9 @@ class GreasePencilAddonPrefs(bpy.types.AddonPreferences):
                     box.label(text="view3d.rotate_canvas")
                 box.prop(self, 'canvas_use_hud')
 
+                ## SCRUB TIMELINE
+                box = layout.box()
+                draw_ts_pref(prefs.ts, box)
 
             if self.pref_tabs == 'TUTO':
 
@@ -237,6 +246,7 @@ def unregister_keymaps():
 ### REGISTER ---
 
 def register():
+    bpy.utils.register_class(GPTS_timeline_settings)
     bpy.utils.register_class(GreasePencilAddonPrefs)
     # Force box deform running to false
     bpy.context.preferences.addons[os.path.splitext(__name__)[0]].preferences.boxdeform_running = False
@@ -245,3 +255,4 @@ def register():
 def unregister():
     unregister_keymaps()
     bpy.utils.unregister_class(GreasePencilAddonPrefs)
+    bpy.utils.unregister_class(GPTS_timeline_settings)
