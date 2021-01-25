@@ -91,13 +91,13 @@ else:
     from blenderkit import upload
     from blenderkit import utils
 
-    from blenderkit.bl_ui_widgets import bl_ui_label 
-    from blenderkit.bl_ui_widgets import bl_ui_button 
+    from blenderkit.bl_ui_widgets import bl_ui_label
+    from blenderkit.bl_ui_widgets import bl_ui_button
     # from blenderkit.bl_ui_widgets import bl_ui_checkbox
     # from blenderkit.bl_ui_widgets import bl_ui_slider
     # from blenderkit.bl_ui_widgets import bl_ui_up_down
-    from blenderkit.bl_ui_widgets import bl_ui_drag_panel 
-    from blenderkit.bl_ui_widgets import bl_ui_draw_op 
+    from blenderkit.bl_ui_widgets import bl_ui_drag_panel
+    from blenderkit.bl_ui_widgets import bl_ui_draw_op
     # from blenderkit.bl_ui_widgets import bl_ui_textbox
 
 

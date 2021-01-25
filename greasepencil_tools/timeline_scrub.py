@@ -227,7 +227,7 @@ class GPTS_OT_time_scrub(bpy.types.Operator):
         self.my = my = event.mouse_region_y
 
         self.hud_lines = []
-        
+
         # frame marks
         for x in hud_pos_x:
             self.hud_lines.append((x, my - (frame_height/2)))

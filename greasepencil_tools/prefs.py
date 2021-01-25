@@ -74,13 +74,13 @@ class GreasePencilAddonPrefs(bpy.types.AddonPreferences):
         name='Use click drag directly on points',
         description="Change the active tool to 'tweak' during modal, Allow to direct clic-drag points of the box",
         default=True)
-    
+
     default_deform_type : EnumProperty(
         items=(('KEY_LINEAR', "Linear (perspective mode)", "Linear interpolation, like corner deform / perspective tools of classic 2D", 'IPO_LINEAR',0),
                ('KEY_BSPLINE', "Spline (smooth deform)", "Spline interpolation transformation\nBest when lattice is subdivided", 'IPO_CIRC',1),
                ),
         name='Starting Interpolation', default='KEY_LINEAR', description='Choose default interpolation when entering mode')
-    
+
     # About interpolation : https://docs.blender.org/manual/en/2.83/animation/shape_keys/shape_keys_panel.html#fig-interpolation-type
 
     auto_swap_deform_type : BoolProperty(
@@ -112,7 +112,7 @@ class GreasePencilAddonPrefs(bpy.types.AddonPreferences):
             ('MIDDLEMOUSE', 'Mid click', 'Use click on Mid mouse button', 'MOUSE_MMB', 2),
             ),
         update=auto_rebind)
-    
+
     use_shift: BoolProperty(
             name = "combine with shift",
             description = "add shift",
@@ -139,8 +139,8 @@ class GreasePencilAddonPrefs(bpy.types.AddonPreferences):
             row.prop(self, "pref_tabs", expand=True)
 
             if self.pref_tabs == 'PREF':
-                
-                ## TAB CATEGORY 
+
+                ## TAB CATEGORY
                 box = layout.box()
                 row = box.row(align=True)
                 row.label(text="Panel Category:")
@@ -153,7 +153,7 @@ class GreasePencilAddonPrefs(bpy.types.AddonPreferences):
                 # box.separator()
                 box.prop(self, "default_deform_type")
                 box.label(text="Deformer type can be changed during modal with 'M' key, this is for default behavior", icon='INFO')
-                
+
                 box.prop(self, "auto_swap_deform_type")
                 box.label(text="Once 'M' is hit, auto swap is desactivated to stay in your chosen mode", icon='INFO')
 
@@ -164,7 +164,7 @@ class GreasePencilAddonPrefs(bpy.types.AddonPreferences):
                 box.prop(self, "canvas_use_shortcut", text='Bind Shortcuts')
 
                 if self.canvas_use_shortcut:
-                    
+
                     row = box.row()
                     row.label(text="(Auto rebind when changing shortcut)")#icon=""
                     # row.operator("prefs.rebind_shortcut", text='Bind/Rebind shortcuts', icon='FILE_REFRESH')#EVENT_SPACEKEY

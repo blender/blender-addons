@@ -209,7 +209,7 @@ def make_possible_reductions_on_image(teximage, input_filepath, do_reductions=Fa
     - it finds it's usages and replaces the inputs where the image is used
     with zero/black color.
     currently implemented file type conversions:
-    PNG->JPG    
+    PNG->JPG
     '''
     colorspace = teximage.colorspace_settings.name
     teximage.colorspace_settings.name = 'Non-Color'
