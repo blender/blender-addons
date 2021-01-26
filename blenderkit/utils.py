@@ -825,3 +825,6 @@ def label_multiline(layout, text='', icon='NONE', width=-1):
             break;
         layout.label(text=l, icon=icon)
         icon = 'NONE'
+
+def trace():
+    traceback.print_stack()

@@ -28,6 +28,7 @@ import time
 import shutil
 import threading
 import logging
+
 bk_logger = logging.getLogger('blenderkit')
 
 
@@ -95,6 +96,7 @@ def get_category(categories, cat_path=()):
                     return (c)
                 break;
 
+
 # def get_upload_asset_type(self):
 #     typemapper = {
 #         bpy.types.Object.blenderkit: 'model',
@@ -106,15 +108,16 @@ def get_category(categories, cat_path=()):
 #     asset_type = typemapper[type(self)]
 #     return asset_type
 
-def update_category_enums(self,context):
+def update_category_enums(self, context):
     '''Fixes if lower level is empty - sets it to None, because enum value can be higher.'''
-    enums = get_subcategory_enums(self,context)
+    enums = get_subcategory_enums(self, context)
     if enums[0][0] == 'NONE' and self.subcategory != 'NONE':
         self.subcategory = 'NONE'
 
-def update_subcategory_enums(self,context):
+
+def update_subcategory_enums(self, context):
     '''Fixes if lower level is empty - sets it to None, because enum value can be higher.'''
-    enums = get_subcategory1_enums(self,context)
+    enums = get_subcategory1_enums(self, context)
     if enums[0][0] == 'NONE' and self.subcategory1 != 'NONE':
         self.subcategory1 = 'NONE'
 
@@ -132,10 +135,11 @@ def get_category_enums(self, context):
         items.append(('NONE', '', 'no categories on this level defined'))
     return items
 
+
 def get_subcategory_enums(self, context):
     wm = bpy.context.window_manager
     props = bpy.context.scene.blenderkitUI
-    asset_type  = props.asset_type.lower()
+    asset_type = props.asset_type.lower()
     items = []
     if self.category != '':
         asset_categories = get_category(wm['bkit_categories'], cat_path=(asset_type, self.category,))
@@ -146,19 +150,21 @@ def get_subcategory_enums(self, context):
     # print('subcategory', items)
     return items
 
+
 def get_subcategory1_enums(self, context):
     wm = bpy.context.window_manager
     props = bpy.context.scene.blenderkitUI
-    asset_type  = props.asset_type.lower()
+    asset_type = props.asset_type.lower()
     items = []
     if self.category != '' and self.subcategory != '':
-        asset_categories = get_category(wm['bkit_categories'], cat_path=(asset_type, self.category, self.subcategory, ))
+        asset_categories = get_category(wm['bkit_categories'], cat_path=(asset_type, self.category, self.subcategory,))
         if asset_categories:
             for c in asset_categories['children']:
                 items.append((c['slug'], c['name'], c['description']))
     if len(items) == 0:
         items.append(('NONE', '', 'no categories on this level defined'))
     return items
+
 
 def copy_categories():
     # this creates the categories system on only
@@ -193,11 +199,12 @@ def load_categories():
     except:
         print('categories failed to read')
 
+
 #
 catfetch_counter = 0
 
 
-def fetch_categories(API_key, force = False):
+def fetch_categories(API_key, force=False):
     url = paths.get_api_url() + 'categories/'
 
     headers = utils.get_headers(API_key)
@@ -216,14 +223,14 @@ def fetch_categories(API_key, force = False):
     try:
         # read categories only once per day maximum, or when forced to do so.
         if catfile_age > 86400 or force:
-            bk_logger.debug('requesting categories')
+            bk_logger.debug('requesting categories from server')
             r = rerequests.get(url, headers=headers)
             rdata = r.json()
             categories = rdata['results']
             fix_category_counts(categories)
             # filter_categories(categories) #TODO this should filter categories for search, but not for upload. by now off.
-            with open(categories_filepath, 'w', encoding = 'utf-8') as s:
-                json.dump(categories, s,  ensure_ascii=False, indent=4)
+            with open(categories_filepath, 'w', encoding='utf-8') as s:
+                json.dump(categories, s, ensure_ascii=False, indent=4)
         tasks_queue.add_task((load_categories, ()))
     except Exception as e:
         bk_logger.debug('category fetching failed')
@@ -233,6 +240,6 @@ def fetch_categories(API_key, force = False):
             shutil.copy(source_path, categories_filepath)
 
 
-def fetch_categories_thread(API_key, force = False):
+def fetch_categories_thread(API_key, force=False):
     cat_thread = threading.Thread(target=fetch_categories, args=([API_key, force]), daemon=True)
     cat_thread.start()

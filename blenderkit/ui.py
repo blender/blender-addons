@@ -1705,14 +1705,18 @@ class AssetBarOperator(bpy.types.Operator):
     def invoke(self, context, event):
         # FIRST START SEARCH
         ui_props = context.scene.blenderkitUI
+        sr = bpy.context.window_manager.get('search results')
 
-        if self.do_search:
+        if self.do_search or sr is None:
             # we erase search keywords for cateogry search now, since these combinations usually return nothing now.
             # when the db gets bigger, this can be deleted.
             if self.category != '':
                 sprops = utils.get_search_props()
                 sprops.search_keywords = ''
             search.search(category=self.category)
+
+        if sr is None:
+            bpy.context.window_manager['search results'] = []
 
         if ui_props.assetbar_on:
             # we don't want to run the assetbar many times, that's why it has a switch on/off behaviour,
@@ -1734,9 +1738,7 @@ class AssetBarOperator(bpy.types.Operator):
         ui_props.assetbar_on = True
         ui_props.turn_off = False
 
-        sr = bpy.context.window_manager.get('search results')
-        if sr is None:
-            bpy.context.window_manager['search results'] = []
+
 
         if context.area.type != 'VIEW_3D':
             self.report({'WARNING'}, "View3D not found, cannot run operator")

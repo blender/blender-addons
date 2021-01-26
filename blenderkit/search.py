@@ -153,14 +153,12 @@ def purge_search_results():
         'search results',
         'search results orig',
     ]
-    print('purge search')
     asset_types = ['model', 'material', 'scene', 'hdr', 'brush']
     for at in asset_types:
         sr_props.append('bkit {at} search')
         sr_props.append('bkit {at} search orig')
     for sr_prop in sr_props:
         if s.get(sr_prop):
-            print(sr_prop)
             del (s[sr_prop])
 
 
@@ -192,7 +190,7 @@ def fetch_server_data():
         if api_key != '' and bpy.context.window_manager.get('bkit profile') == None:
             get_profile()
         if bpy.context.window_manager.get('bkit_categories') is None:
-            categories.fetch_categories_thread(api_key)
+            categories.fetch_categories_thread(api_key, force = False)
 
 
 first_time = True
@@ -1388,6 +1386,7 @@ def search(category='', get_next=False, author_id=''):
         props = scene.blenderkit_brush
         query = build_query_brush()
 
+    # it's possible get_net was requested more than once.
     if props.is_searching and get_next == True:
         return;
 
