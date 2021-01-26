@@ -138,10 +138,11 @@ class Report():
 
 def get_asset_under_mouse(mousex, mousey):
     s = bpy.context.scene
+    wm = bpy.context.window_manager
     ui_props = bpy.context.scene.blenderkitUI
     r = bpy.context.region
 
-    search_results = s.get('search results')
+    search_results = wm.get('search results')
     if search_results is not None:
 
         h_draw = min(ui_props.hcount, math.ceil(len(search_results) / ui_props.wcount))
@@ -741,8 +742,8 @@ def draw_asset_bar(self, context):
     #                       img,
     #                       1)
     if not ui_props.dragging and ui_props.hcount > 0 and ui_props.wcount > 0:
-        search_results = s.get('search results')
-        search_results_orig = s.get('search results orig')
+        search_results = bpy.context.window_manager.get('search results')
+        search_results_orig = bpy.context.window_manager.get('search results orig')
         if search_results == None:
             return
         h_draw = min(ui_props.hcount, math.ceil(len(search_results) / ui_props.wcount))
@@ -1078,10 +1079,9 @@ def mouse_in_area(mx, my, x, y, w, h):
 
 
 def mouse_in_asset_bar(mx, my):
-    s = bpy.context.scene
 
     ui_props = bpy.context.scene.blenderkitUI
-    # search_results = s.get('search results')
+    # search_results = bpy.context.window_manager.get('search results')
     # if search_results == None:
     #     return False
     #
@@ -1127,7 +1127,7 @@ def update_ui_size(area, region):
     ui.wcount = math.floor(
         (ui.bar_width - 2 * ui.drawoffset) / (ui.thumb_size + ui.margin))
 
-    search_results = bpy.context.scene.get('search results')
+    search_results = bpy.context.window_manager.get('search results')
     if search_results != None and ui.wcount > 0:
         ui.hcount = min(user_preferences.max_assetbar_rows, math.ceil(len(search_results) / ui.wcount))
     else:
@@ -1220,7 +1220,7 @@ class AssetBarOperator(bpy.types.Operator):
         return properties.tooltip
 
     def search_more(self):
-        sro = bpy.context.scene.get('search results orig')
+        sro = bpy.context.window_manager.get('search results orig')
         if sro is not None and sro.get('next') is not None:
             search.search(get_next=True)
 
@@ -1336,8 +1336,8 @@ class AssetBarOperator(bpy.types.Operator):
         # TODO add one more condition here to take less performance.
         r = self.region
         s = bpy.context.scene
-        sr = s.get('search results')
-        search_results_orig = s.get('search results orig')
+        sr = bpy.context.window_manager.get('search results')
+        search_results_orig = bpy.context.window_manager.get('search results orig')
         # If there aren't any results, we need no interaction(yet)
         if sr is None:
             return {'PASS_THROUGH'}
@@ -1424,7 +1424,7 @@ class AssetBarOperator(bpy.types.Operator):
                 bpy.context.window.cursor_set("DEFAULT")
                 return {'PASS_THROUGH'}
 
-            sr = bpy.context.scene['search results']
+            sr = bpy.context.window_manager['search results']
 
             if not ui_props.dragging:
                 bpy.context.window.cursor_set("DEFAULT")
@@ -1672,7 +1672,7 @@ class AssetBarOperator(bpy.types.Operator):
                 return {'RUNNING_MODAL'}
 
         if event.type == 'W' and ui_props.active_index > -1:
-            sr = bpy.context.scene['search results']
+            sr = bpy.context.window_manager['search results']
             asset_data = sr[ui_props.active_index]
             a = bpy.context.window_manager['bkit authors'].get(asset_data['author']['id'])
             if a is not None:
@@ -1681,7 +1681,7 @@ class AssetBarOperator(bpy.types.Operator):
                     bpy.ops.wm.url_open(url=a['aboutMeUrl'])
             return {'RUNNING_MODAL'}
         if event.type == 'A' and ui_props.active_index > -1:
-            sr = bpy.context.scene['search results']
+            sr = bpy.context.window_manager['search results']
             asset_data = sr[ui_props.active_index]
             a = asset_data['author']['id']
             if a is not None:
@@ -1694,7 +1694,7 @@ class AssetBarOperator(bpy.types.Operator):
 
         if event.type == 'X' and ui_props.active_index > -1:
             # delete downloaded files for this asset
-            sr = bpy.context.scene['search results']
+            sr = bpy.context.window_manager['search results']
             asset_data = sr[ui_props.active_index]
             bk_logger.info('delete asset from local drive:' + asset_data['name'])
             paths.delete_asset_debug(asset_data)
@@ -1734,9 +1734,9 @@ class AssetBarOperator(bpy.types.Operator):
         ui_props.assetbar_on = True
         ui_props.turn_off = False
 
-        sr = bpy.context.scene.get('search results')
+        sr = bpy.context.window_manager.get('search results')
         if sr is None:
-            bpy.context.scene['search results'] = []
+            bpy.context.window_manager['search results'] = []
 
         if context.area.type != 'VIEW_3D':
             self.report({'WARNING'}, "View3D not found, cannot run operator")
@@ -2003,7 +2003,7 @@ class AssetDragOperator(bpy.types.Operator):
             object = None
             self.matrix = None
 
-            sr = bpy.context.scene['search results']
+            sr = bpy.context.window_manager['search results']
             self.asset_data = sr[self.asset_search_index]
 
             context.window_manager.modal_handler_add(self)

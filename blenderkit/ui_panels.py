@@ -1244,7 +1244,7 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
                 op.invoke_resolution = True
                 o = utils.get_active_model()
                 if o and o.get('asset_data'):
-                    if o['asset_data']['assetBaseId'] == bpy.context.scene['search results'][ui_props.active_index]:
+                    if o['asset_data']['assetBaseId'] == bpy.context.window_manager['search results'][ui_props.active_index]:
                         op.model_location = o.location
                         op.model_rotation = o.rotation_euler
                     else:
@@ -1339,9 +1339,9 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
 #     def draw(self, context):
 #         ui_props = context.scene.blenderkitUI
 #
-#         # sr = bpy.context.scene['search results']
+#         # sr = bpy.context.window_manager['search results']
 #
-#         # sr = bpy.context.scene['search results']
+#         # sr = bpy.context.window_manager['search results']
 #         # asset_data = sr[ui_props.active_index]
 #
 #         for k in resolutions.resolution_props_to_server.keys():
@@ -1355,13 +1355,13 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
     def draw(self, context):
         ui_props = context.scene.blenderkitUI
 
-        sr = bpy.context.scene['search results']
+        sr = bpy.context.window_manager['search results']
         asset_data = sr[ui_props.active_index]
         draw_asset_context_menu(self.layout, context, asset_data, from_panel=False)
 
         # ui_props = context.scene.blenderkitUI
         #
-        # sr = bpy.context.scene['search results']
+        # sr = bpy.context.window_manager['search results']
         # asset_data = sr[ui_props.active_index]
         # layout = self.layout
         # row = layout.row()
@@ -1403,7 +1403,7 @@ class AssetPopupCard(bpy.types.Operator):
     def draw(self, context):
         ui_props = context.scene.blenderkitUI
 
-        sr = bpy.context.scene['search results']
+        sr = bpy.context.window_manager['search results']
         asset_data = sr[ui_props.active_index]
         layout = self.layout
         row = layout.row()
@@ -1442,7 +1442,7 @@ class AssetPopupCard(bpy.types.Operator):
         wm = context.window_manager
         ui_props = context.scene.blenderkitUI
         ui_props.draw_tooltip = False
-        sr = bpy.context.scene['search results']
+        sr = bpy.context.window_manager['search results']
         asset_data = sr[ui_props.active_index]
         self.img = ui.get_large_thumbnail_image(asset_data)
         # self.tex = utils.get_hidden_texture(self.img)
