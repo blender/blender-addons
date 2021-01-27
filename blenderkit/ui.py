@@ -1803,7 +1803,8 @@ class UndoWithContext(bpy.types.Operator):
         #
         # C_dict = {'window': w, 'screen': w.screen}
         # bpy.ops.ed.undo_push(C_dict, 'INVOKE_REGION_WIN', message=self.message)
-        bpy.ops.ed.undo_push('INVOKE_REGION_WIN', message=self.message)
+        # bpy.ops.ed.undo_push('INVOKE_REGION_WIN', message=self.message)
+
         return {'FINISHED'}
 
 
