@@ -907,18 +907,25 @@ def mouse_raycast(context, mx, my):
     r = context.region
     rv3d = context.region_data
     coord = mx, my
-
+    print(dir(rv3d))
     # get the ray from the viewport and mouse
     view_vector = view3d_utils.region_2d_to_vector_3d(r, rv3d, coord)
-    ray_origin = view3d_utils.region_2d_to_origin_3d(r, rv3d, coord)
+    if rv3d.view_perspective == 'CAMERA' and rv3d.is_perspective == False:
+        #  ortographic cameras don'w work with region_2d_to_origin_3d
+        view_position = rv3d.view_matrix.inverted().translation
+        ray_origin = view3d_utils.region_2d_to_location_3d(r, rv3d, coord, depth_location=view_position)
+    else:
+        ray_origin = view3d_utils.region_2d_to_origin_3d(r, rv3d, coord, clamp = 1.0)
+
     ray_target = ray_origin + (view_vector * 1000000000)
 
+    print(view_vector, ray_origin)
     vec = ray_target - ray_origin
 
     has_hit, snapped_location, snapped_normal, face_index, object, matrix = deep_ray_cast(
         bpy.context.view_layer.depsgraph, ray_origin, vec)
-
-    print(has_hit, snapped_location, snapped_normal, face_index, object, matrix)
+    print(has_hit)
+    # print(has_hit, snapped_location, snapped_normal, face_index, object, matrix)
     # rote = mathutils.Euler((0, 0, math.pi))
     randoffset = math.pi
     if has_hit:
@@ -1951,6 +1958,7 @@ class AssetDragOperator(bpy.types.Operator):
         elif event.type == 'WHEELDOWNMOUSE':
             sprops.offset_rotation_amount -= sprops.offset_rotation_step
 
+        self.object_name = None
         #### TODO - this snapping code below is 3x in this file.... refactor it.
         self.has_hit, self.snapped_location, self.snapped_normal, self.snapped_rotation, self.face_index, object, self.matrix = mouse_raycast(
             context, event.mouse_region_x, event.mouse_region_y)
