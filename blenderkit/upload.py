@@ -893,8 +893,8 @@ class Uploader(threading.Thread):
                     }
                     datafile = os.path.join(self.export_data['temp_dir'], BLENDERKIT_EXPORT_DATA_FILE)
 
-                    with open(datafile, 'w') as s:
-                        json.dump(data, s)
+                    with open(datafile, 'w', encoding = 'utf-8') as s:
+                        json.dump(data, s, ensure_ascii=False, indent=4)
 
                     # non waiting method - not useful here..
                     # proc = subprocess.Popen([
