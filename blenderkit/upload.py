@@ -564,12 +564,14 @@ class FastMetadata(bpy.types.Operator):
     category: EnumProperty(
         name="Category",
         description="main category to put into",
-        items=categories.get_category_enums
+        items=categories.get_category_enums,
+        update=categories.update_category_enums
     )
     subcategory: EnumProperty(
         name="Subcategory",
         description="main category to put into",
-        items=categories.get_subcategory_enums
+        items=categories.get_subcategory_enums,
+        update = categories.update_subcategory_enums
     )
     subcategory1: EnumProperty(
         name="Subcategory",
@@ -608,7 +610,9 @@ class FastMetadata(bpy.types.Operator):
         if self.category != 'NONE' and self.subcategory != 'NONE':
             layout.prop(self, 'subcategory')
         if self.subcategory != 'NONE' and self.subcategory1 != 'NONE':
-            layout.prop(self, 'subcategory1')
+            enums = categories.get_subcategory1_enums(self, context)
+            if enums[0][0]!='NONE':
+                layout.prop(self, 'subcategory1')
         layout.prop(self, 'name')
         layout.prop(self, 'description')
         layout.prop(self, 'tags')
@@ -668,7 +672,8 @@ class FastMetadata(bpy.types.Operator):
                 self.subcategory = cat_path[2]
         except Exception as e:
             print(e)
-        self.message = f"Recategorize asset {asset_data['name']}"
+        self.message = f"Fast edit metadata of {asset_data['name']}"
+        self.message = str(cat_path)
         self.name = asset_data['displayName']
         self.description = asset_data['description']
         self.tags = ','.join(asset_data['tags'])
@@ -679,6 +684,7 @@ class FastMetadata(bpy.types.Operator):
         self.license = asset_data['license']
 
         wm = context.window_manager
+
         return wm.invoke_props_dialog(self, width = 600)
 
 

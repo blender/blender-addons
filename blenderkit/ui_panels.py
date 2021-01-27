@@ -1592,9 +1592,9 @@ def draw_panel_categories(self, context):
     #     op.free_only = True
 
     for c in cats['children']:
-        if c['assetCount'] > 0:
+        if c['assetCount'] > 0 or utils.profile_is_validator():
             row = col.row(align=True)
-            if len(c['children']) > 0 and c['assetCount'] > 15:
+            if len(c['children']) > 0 and c['assetCount'] > 15 or utils.profile_is_validator():
                 row = row.split(factor=.8, align=True)
             # row = split.split()
             ctext = '%s (%i)' % (c['name'], c['assetCount'])
@@ -1608,7 +1608,7 @@ def draw_panel_categories(self, context):
                 op.keep_running = True
                 op.category = c['slug']
             # TODO enable subcategories, now not working due to some bug on server probably
-            if len(c['children']) > 0 and c['assetCount'] > 15:
+            if len(c['children']) > 0 and c['assetCount'] > 15 or utils.profile_is_validator():
                 # row = row.split()
                 op = row.operator('view3d.blenderkit_set_category', text='>>')
                 op.asset_type = ui_props.asset_type

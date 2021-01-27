@@ -696,12 +696,14 @@ class BlenderKitCommonUploadProps(object):
     category: EnumProperty(
         name="Category",
         description="main category to put into",
-        items=categories.get_category_enums
+        items=categories.get_category_enums,
+        update=categories.update_category_enums
     )
     subcategory: EnumProperty(
         name="Subcategory",
         description="Subcategory to put into",
-        items=categories.get_subcategory_enums
+        items=categories.get_subcategory_enums,
+        update=categories.update_subcategory_enums
     )
     subcategory1: EnumProperty(
         name="Subcategory lvl2",

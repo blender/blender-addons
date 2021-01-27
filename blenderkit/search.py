@@ -1368,7 +1368,10 @@ def search(category='', get_next=False, author_id=''):
         return;
 
     if category != '':
-        query['category_subtree'] = category
+        if utils.profile_is_validator():
+            query['category'] = category
+        else:
+            query['category_subtree'] = category
 
     if author_id != '':
         query['author_id'] = author_id
