@@ -673,7 +673,6 @@ class FastMetadata(bpy.types.Operator):
         except Exception as e:
             print(e)
         self.message = f"Fast edit metadata of {asset_data['name']}"
-        self.message = str(cat_path)
         self.name = asset_data['displayName']
         self.description = asset_data['description']
         self.tags = ','.join(asset_data['tags'])

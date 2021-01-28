@@ -237,7 +237,7 @@ def parse_result(r):
     # except:
     #     utils.p('asset with no files-size')
     asset_type = r['assetType']
-    if len(r['files']) > 0:
+    if len(r['files']) > 0:#TODO remove this condition so all assets are parsed.
         r['available_resolutions'] = []
         allthumbs = []
         durl, tname, small_tname = '', '', ''
@@ -403,7 +403,6 @@ def timer_update():
             result_field = []
             ok, error = check_errors(rdata)
             if ok:
-
                 bpy.ops.object.run_assetbar_fix_context()
                 for r in rdata['results']:
                     asset_data = parse_result(r)
@@ -1278,7 +1277,6 @@ def add_search_process(query, params, orig_result):
         old_thread[0].stop()
         # TODO CARE HERE FOR ALSO KILLING THE Thumbnail THREADS.?
         #  AT LEAST NOW SEARCH DONE FIRST WON'T REWRITE AN OLDER ONE
-
     tempdir = paths.get_temp_dir('%s_search' % query['asset_type'])
     thread = Searcher(query, params, orig_result)
     thread.start()
@@ -1343,7 +1341,6 @@ def search(category='', get_next=False, author_id=''):
     ''' initialize searching'''
     global search_start_time
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
-
     search_start_time = time.time()
     # mt('start')
     scene = bpy.context.scene
@@ -1418,7 +1415,7 @@ def search(category='', get_next=False, author_id=''):
 
     # if free_only:
     #     query['keywords'] += '+is_free:true'
-    orig_results = scene.get(f'bkit {ui_props.asset_type.lower()} search orig', {})
+    orig_results = bpy.context.window_manager.get(f'bkit {ui_props.asset_type.lower()} search orig', {})
     if orig_results != {}:
         # ensure it's a copy in dict for what we are passing to thread:
         orig_results = orig_results.to_dict()

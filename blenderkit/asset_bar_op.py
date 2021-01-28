@@ -516,6 +516,7 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         sro = bpy.context.window_manager.get('search results orig')
         if sro is not None and sro.get('next') is not None:
             blenderkit.search.search(get_next=True)
+
     def update_images(self):
         sr = bpy.context.window_manager['search results']
 

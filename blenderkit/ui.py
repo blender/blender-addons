@@ -883,6 +883,19 @@ def draw_callback_3d(self, context):
         if ui.draw_snapped_bounds:
             draw_bbox(ui.snapped_location, ui.snapped_rotation, ui.snapped_bbox_min, ui.snapped_bbox_max)
 
+def object_in_particle_collection(o):
+    '''checks if an object is in a particle system as instance, to not snap to it and not to try to attach material.'''
+    for p in bpy.data.particles:
+        if p.render_type =='COLLECTION':
+            if p.instance_collection:
+                for o1 in p.instance_collection.objects:
+                    if o1 == o:
+                        return True
+        if p.render_type =='COLLECTION':
+            if p.instance_object == o:
+                return True
+    return False
+
 
 def deep_ray_cast(depsgraph, ray_origin, vec):
     # this allows to ignore some objects, like objects with bounding box draw style or particle objects
@@ -890,19 +903,22 @@ def deep_ray_cast(depsgraph, ray_origin, vec):
     # while object is None or object.draw
     has_hit, snapped_location, snapped_normal, face_index, object, matrix = bpy.context.scene.ray_cast(
         depsgraph, ray_origin, vec)
+    empty_set = False, Vector((0, 0, 0)), Vector((0, 0, 1)), None, None, None
     if not object:
-        return False, Vector((0, 0, 0)), Vector((0, 0, 1)), None, None, None
+        return empty_set
 
     try_object = object
-    while try_object and try_object.display_type == 'BOUNDS':
+
+    while try_object and (try_object.display_type == 'BOUNDS' or object_in_particle_collection(try_object)):
         ray_origin = snapped_location + vec.normalized() * 0.0003
         try_has_hit, try_snapped_location, try_snapped_normal, try_face_index, try_object, try_matrix = bpy.context.scene.ray_cast(
             depsgraph, ray_origin, vec)
         if try_has_hit:
+            #this way only good hits are returned, otherwise
             has_hit, snapped_location, snapped_normal, face_index, object, matrix = try_has_hit, try_snapped_location, try_snapped_normal, try_face_index, try_object, try_matrix
-
-    return has_hit, snapped_location, snapped_normal, face_index, object, matrix
-
+    if not (object.display_type == 'BOUNDS' or object_in_particle_collection(try_object)):# or not object.visible_get()):
+        return has_hit, snapped_location, snapped_normal, face_index, object, matrix
+    return empty_set
 
 def mouse_raycast(context, mx, my):
     r = context.region
@@ -1197,6 +1213,67 @@ class ParticlesDropDialog(bpy.types.Operator):
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=400)
 
+# class MaterialDropDialog(bpy.types.Operator):
+#     """Tooltip"""
+#     bl_idname = "object.blenderkit_material_drop"
+#     bl_label = "BlenderKit material drop on linked objects"
+#     bl_options = {'REGISTER', 'INTERNAL'}
+#
+#     asset_search_index: IntProperty(name="Asset index",
+#                                     description="Index of the asset in asset bar",
+#                                     default=0,
+#                                     )
+#
+#     model_location: FloatVectorProperty(name="Location",
+#                                         default=(0, 0, 0))
+#
+#     model_rotation: FloatVectorProperty(name="Rotation",
+#                                         default=(0, 0, 0),
+#                                         subtype='QUATERNION')
+#
+#     target_object: StringProperty(
+#         name="Target object",
+#         description="The object to which the particles will get applied",
+#         default="", options={'SKIP_SAVE'})
+#
+#     target_material_slot: IntProperty(name="Target material slot",
+#                                     description="Index of the material on the object to be changed",
+#                                     default=0,
+#                                     )
+#
+#     @classmethod
+#     def poll(cls, context):
+#         return True
+#
+#     def draw(self, context):
+#         layout = self.layout
+#         message = "This asset is linked to the scene from an external file and cannot have material appended." \
+#                   " Do you want to bring it into Blender Scene?"
+#         utils.label_multiline(layout, text=message, width=400)
+#
+#     def execute(self, context):
+#         for c in bpy.data.collections:
+#             for o in c.objects:
+#                 if o.name != self.target_object:
+#                     continue;
+#                 for empty in bpy.context.visible_objects:
+#                     if not(empty.instance_type == 'COLLECTION' and empty.instance_collection == c):
+#                         continue;
+#                     utils.activate(empty)
+#                     break;
+#         bpy.ops.object.blenderkit_bring_to_scene()
+#         bpy.ops.scene.blenderkit_download(True,
+#                                           # asset_type=ui_props.asset_type,
+#                                           asset_index=self.asset_search_index,
+#                                           model_location=self.model_rotation,
+#                                           model_rotation=self.model_rotation,
+#                                           target_object=self.target_object,
+#                                           material_target_slot = self.target_slot)
+#         return {'FINISHED'}
+#
+#     def invoke(self, context, event):
+#         wm = context.window_manager
+#         return wm.invoke_props_dialog(self, width=400)
 
 class AssetBarOperator(bpy.types.Operator):
     '''runs search and displays the asset bar at the same time'''
@@ -1707,7 +1784,7 @@ class AssetBarOperator(bpy.types.Operator):
         ui_props = context.scene.blenderkitUI
         sr = bpy.context.window_manager.get('search results')
 
-        if self.do_search or sr is None:
+        if self.do_search:
             # we erase search keywords for cateogry search now, since these combinations usually return nothing now.
             # when the db gets bigger, this can be deleted.
             if self.category != '':
@@ -1715,11 +1792,8 @@ class AssetBarOperator(bpy.types.Operator):
                 sprops.search_keywords = ''
             search.search(category=self.category)
 
-        if sr is None:
-            bpy.context.window_manager['search results'] = []
-
         if ui_props.assetbar_on:
-            # we don't want to run the assetbar many times, that's why it has a switch on/off behaviour,
+            # we don't want to run the assetbar more than once, that's why it has a switch on/off behaviour,
             # unless being called with 'keep_running' prop.
             if not self.keep_running:
                 # this sends message to the originally running operator, so it quits, and then it ends this one too.
@@ -1738,7 +1812,8 @@ class AssetBarOperator(bpy.types.Operator):
         ui_props.assetbar_on = True
         ui_props.turn_off = False
 
-
+        if sr is None:
+            bpy.context.window_manager['search results'] = []
 
         if context.area.type != 'VIEW_3D':
             self.report({'WARNING'}, "View3D not found, cannot run operator")
@@ -1875,6 +1950,8 @@ class AssetDragOperator(bpy.types.Operator):
                 temp_mesh = object_eval.to_mesh()
                 target_slot = temp_mesh.polygons[self.face_index].material_index
                 object_eval.to_mesh_clear()
+            # elif object.is_library_indirect:#case for bring to scene objects, will be solved through prefs and direct
+            # action
             else:
                 self.report({'WARNING'}, "Invalid or library object as input:")
                 target_object = ''

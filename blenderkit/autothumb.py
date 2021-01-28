@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-from blenderkit import paths, utils, bg_blender
+from blenderkit import paths, utils, bg_blender, ui_panels
 
 import tempfile, os, subprocess, json, sys
 
@@ -262,13 +262,10 @@ class GenerateThumbnailOperator(bpy.types.Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         if bpy.data.filepath == '':
-            title = "Can't render thumbnail"
-            message = "please save your file first"
+            ui_panels.ui_message(
+                        title = "Can't render thumbnail",
+                        message = "please save your file first")
 
-            def draw_message(self, context):
-                self.layout.label(text=message)
-
-            bpy.context.window_manager.popup_menu(draw_message, title=title, icon='INFO')
             return {'FINISHED'}
 
         return wm.invoke_props_dialog(self)

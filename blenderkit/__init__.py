@@ -582,16 +582,11 @@ def name_update(self, context):
 def update_free(self, context):
     if self.is_free == False:
         self.is_free = True
-        title = "All BlenderKit materials are free"
-        message = "Any material uploaded to BlenderKit is free." \
+        ui_panels.ui_message(title = "All BlenderKit materials are free",
+                             message = "Any material uploaded to BlenderKit is free." \
                   " However, it can still earn money for the author," \
                   " based on our fair share system. " \
-                  "Part of subscription is sent to artists based on usage by paying users."
-
-        def draw_message(self, context):
-            utils.label_multiline(self.layout, text=message, icon='NONE', width=-1)
-
-        bpy.context.window_manager.popup_menu(draw_message, title=title, icon='INFO')
+                  "Part of subscription is sent to artists based on usage by paying users.")
 
 
 class BlenderKitCommonUploadProps(object):
@@ -1517,15 +1512,11 @@ def fix_subdir(self, context):
     if self.project_subdir != pp:
         self.project_subdir = pp
 
-        title = "Fixed to relative path"
-        message = "This path should be always realative.\n" \
-                  " It's a directory BlenderKit creates where your .blend is \n " \
-                  "and uses it for storing assets."
+        ui_panels.ui_message(title = "Fixed to relative path",
+                            message = "This path should be always realative.\n" \
+                                       " It's a directory BlenderKit creates where your .blend is \n " \
+                                        "and uses it for storing assets.")
 
-        def draw_message(self, context):
-            utils.label_multiline(self.layout, text=message, icon='NONE', width=400)
-
-        bpy.context.window_manager.popup_menu(draw_message, title=title, icon='INFO')
 
 
 class BlenderKitAddonPreferences(AddonPreferences):

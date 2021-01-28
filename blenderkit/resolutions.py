@@ -601,7 +601,7 @@ def assets_db_path():
 
 
 def get_assets_search():
-    bpy.app.debug_value = 2
+    # bpy.app.debug_value = 2
 
     results = []
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
