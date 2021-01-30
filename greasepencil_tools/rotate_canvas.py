@@ -95,7 +95,15 @@ class RC_OT_RotateCanvas(bpy.types.Operator):
             if not self.angle:
                 # self.report({'INFO'}, 'Reset')
                 aim = context.space_data.region_3d.view_rotation @ mathutils.Vector((0.0, 0.0, 1.0))#view vector
-                context.space_data.region_3d.view_rotation = aim.to_track_quat('Z','Y')#track Z, up Y
+                z_up_quat = aim.to_track_quat('Z','Y')#track Z, up Y
+                if self.in_cam:
+                    if self.cam.parent:
+                        cam_quat = self.cam.parent.matrix_world.inverted().to_quaternion() @ z_up_quat
+                    else:
+                        cam_quat = z_up_quat
+                    self.cam.rotation_euler = cam_quat.to_euler('XYZ')
+                else:
+                    context.space_data.region_3d.view_rotation = z_up_quat
             self.execute(context)
             return {'FINISHED'}
 

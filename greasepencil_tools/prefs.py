@@ -245,14 +245,19 @@ def unregister_keymaps():
 
 ### REGISTER ---
 
+classes = (
+    GPTS_timeline_settings,
+    GreasePencilAddonPrefs,
+)
+
 def register():
-    bpy.utils.register_class(GPTS_timeline_settings)
-    bpy.utils.register_class(GreasePencilAddonPrefs)
+    for cls in classes:
+        bpy.utils.register_class(cls)
     # Force box deform running to false
     bpy.context.preferences.addons[os.path.splitext(__name__)[0]].preferences.boxdeform_running = False
     register_keymaps()
 
 def unregister():
     unregister_keymaps()
-    bpy.utils.unregister_class(GreasePencilAddonPrefs)
-    bpy.utils.unregister_class(GPTS_timeline_settings)
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)
