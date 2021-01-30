@@ -524,8 +524,8 @@ def patch_individual_metadata(asset_id, metadata_dict, api_key):
 #         layout = self.layout
 #         ui_props = context.scene.blenderkitUI
 #
-#         # sr = bpy.context.scene['search results']
-#         sr = bpy.context.scene['search results']
+#         # sr = bpy.context.window_manager['search results']
+#         sr = bpy.context.window_manager['search results']
 #         asset_data = sr[ui_props.active_index]
 #         categories = bpy.context.window_manager['bkit_categories']
 #         wm = bpy.context.win
@@ -654,10 +654,10 @@ class FastMetadata(bpy.types.Operator):
         scene = bpy.context.scene
         ui_props = scene.blenderkitUI
         if ui_props.active_index > -1:
-            sr = bpy.context.scene['search results']
+            sr = bpy.context.window_manager['search results']
             asset_data = dict(sr[ui_props.active_index])
         else:
-            for result in bpy.context.scene['search results']:
+            for result in bpy.context.window_manager['search results']:
                 if result['id'] == self.asset_id:
                     asset_data = dict(result)
 
@@ -673,7 +673,6 @@ class FastMetadata(bpy.types.Operator):
         except Exception as e:
             print(e)
         self.message = f"Fast edit metadata of {asset_data['name']}"
-        self.message = str(cat_path)
         self.name = asset_data['displayName']
         self.description = asset_data['description']
         self.tags = ','.join(asset_data['tags'])
@@ -1196,12 +1195,12 @@ class AssetDebugPrint(Operator):
     def execute(self, context):
         preferences = bpy.context.preferences.addons['blenderkit'].preferences
 
-        if not bpy.context.scene['search results']:
+        if not bpy.context.window_manager['search results']:
             print('no search results found')
             return {'CANCELLED'};
         # update status in search results for validator's clarity
-        sr = bpy.context.scene['search results']
-        sro = bpy.context.scene['search results orig']['results']
+        sr = bpy.context.window_manager['search results']
+        sro = bpy.context.window_manager['search results orig']['results']
 
         result = None
         for r in sr:
@@ -1250,11 +1249,11 @@ class AssetVerificationStatusChange(Operator):
     def execute(self, context):
         preferences = bpy.context.preferences.addons['blenderkit'].preferences
 
-        if not bpy.context.scene['search results']:
+        if not bpy.context.window_manager['search results']:
             return {'CANCELLED'};
         # update status in search results for validator's clarity
-        sr = bpy.context.scene['search results']
-        sro = bpy.context.scene['search results orig']['results']
+        sr = bpy.context.window_manager['search results']
+        sro = bpy.context.window_manager['search results orig']['results']
 
         for r in sr:
             if r['id'] == self.asset_id:

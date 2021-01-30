@@ -780,13 +780,13 @@ def get_fake_context(context, area_type='VIEW_3D'):
     C_dict = {}  # context.copy() #context.copy was a source of problems - incompatibility with addons that also define context
     C_dict.update(region='WINDOW')
 
-    try:
-        context = context.copy()
-        # print('bk context copied successfully')
-    except Exception as e:
-        print(e)
-        print('BlenderKit: context.copy() failed. Can be a colliding addon.')
-        context = {}
+    # try:
+    #     context = context.copy()
+    #     # print('bk context copied successfully')
+    # except Exception as e:
+    #     print(e)
+    #     print('BlenderKit: context.copy() failed. Can be a colliding addon.')
+    context = {}
 
     if context.get('area') is None or context.get('area').type != area_type:
         w, a, r = get_largest_area(area_type=area_type)
@@ -825,3 +825,6 @@ def label_multiline(layout, text='', icon='NONE', width=-1):
             break;
         layout.label(text=l, icon=icon)
         icon = 'NONE'
+
+def trace():
+    traceback.print_stack()

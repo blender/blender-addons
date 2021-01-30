@@ -546,7 +546,10 @@ class VIEW3D_PT_blenderkit_profile(Panel):
             if me is not None:
                 me = me['user']
                 # user name
-                layout.label(text='Me: %s %s' % (me['firstName'], me['lastName']))
+                if len(me['firstName'])>0 or len(me['lastName'])>0:
+                    layout.label(text=f"Me: {me['firstName']} {me['lastName']}")
+                else:
+                    layout.label(text=f"Me: {me['email']}")
                 # layout.label(text='Email: %s' % (me['email']))
 
                 # plan information
@@ -1244,7 +1247,7 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
                 op.invoke_resolution = True
                 o = utils.get_active_model()
                 if o and o.get('asset_data'):
-                    if o['asset_data']['assetBaseId'] == bpy.context.scene['search results'][ui_props.active_index]:
+                    if o['asset_data']['assetBaseId'] == bpy.context.window_manager['search results'][ui_props.active_index]:
                         op.model_location = o.location
                         op.model_rotation = o.rotation_euler
                     else:
@@ -1339,9 +1342,9 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
 #     def draw(self, context):
 #         ui_props = context.scene.blenderkitUI
 #
-#         # sr = bpy.context.scene['search results']
+#         # sr = bpy.context.window_manager['search results']
 #
-#         # sr = bpy.context.scene['search results']
+#         # sr = bpy.context.window_manager['search results']
 #         # asset_data = sr[ui_props.active_index]
 #
 #         for k in resolutions.resolution_props_to_server.keys():
@@ -1355,13 +1358,13 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
     def draw(self, context):
         ui_props = context.scene.blenderkitUI
 
-        sr = bpy.context.scene['search results']
+        sr = bpy.context.window_manager['search results']
         asset_data = sr[ui_props.active_index]
         draw_asset_context_menu(self.layout, context, asset_data, from_panel=False)
 
         # ui_props = context.scene.blenderkitUI
         #
-        # sr = bpy.context.scene['search results']
+        # sr = bpy.context.window_manager['search results']
         # asset_data = sr[ui_props.active_index]
         # layout = self.layout
         # row = layout.row()
@@ -1403,7 +1406,7 @@ class AssetPopupCard(bpy.types.Operator):
     def draw(self, context):
         ui_props = context.scene.blenderkitUI
 
-        sr = bpy.context.scene['search results']
+        sr = bpy.context.window_manager['search results']
         asset_data = sr[ui_props.active_index]
         layout = self.layout
         row = layout.row()
@@ -1442,7 +1445,7 @@ class AssetPopupCard(bpy.types.Operator):
         wm = context.window_manager
         ui_props = context.scene.blenderkitUI
         ui_props.draw_tooltip = False
-        sr = bpy.context.scene['search results']
+        sr = bpy.context.window_manager['search results']
         asset_data = sr[ui_props.active_index]
         self.img = ui.get_large_thumbnail_image(asset_data)
         # self.tex = utils.get_hidden_texture(self.img)
@@ -1520,10 +1523,18 @@ class UrlPopupDialog(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        utils.label_multiline(layout, text=self.message)
+        utils.label_multiline(layout, text=self.message, width = 300)
 
         layout.active_default = True
         op = layout.operator("wm.url_open", text=self.link_text, icon='QUESTION')
+        if not utils.user_logged_in():
+            utils.label_multiline(layout,
+                                  text='Already subscribed? You need to login to access your Full Plan.',
+                                  width = 300)
+
+            layout.operator_context = 'EXEC_DEFAULT'
+            layout.operator("wm.blenderkit_login", text="Login",
+                            icon='URL').signup = False
         op.url = self.url
 
     def execute(self, context):
@@ -1533,7 +1544,7 @@ class UrlPopupDialog(bpy.types.Operator):
     def invoke(self, context, event):
         wm = context.window_manager
 
-        return wm.invoke_props_dialog(self)
+        return wm.invoke_props_dialog(self,width = 300)
 
 
 class LoginPopupDialog(bpy.types.Operator):
@@ -1688,7 +1699,12 @@ def header_search_draw(self, context):
         layout.prop(props, "search_keywords", text="", icon='VIEWZOOM')
         draw_assetbar_show_hide(layout, props)
 
+def ui_message(title, message):
+    def draw_message(self, context):
+        layout = self.layout
+        utils.label_multiline(layout, text=message)
 
+    bpy.context.window_manager.popup_menu(draw_message, title=title, icon='INFO')
 # We can store multiple preview collections here,
 # however in this example we only store "main"
 preview_collections = {}
