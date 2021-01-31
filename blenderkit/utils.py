@@ -39,6 +39,10 @@ NORMAL_PRIORITY_CLASS = 0x00000020
 REALTIME_PRIORITY_CLASS = 0x00000100
 
 
+def experimental_enabled():
+    preferences = bpy.context.preferences.addons['blenderkit'].preferences
+    return preferences.experimental_features
+
 def get_process_flags():
     flags = BELOW_NORMAL_PRIORITY_CLASS
     if sys.platform != 'win32':  # TODO test this on windows
@@ -250,7 +254,7 @@ def load_prefs():
     fpath = paths.BLENDERKIT_SETTINGS_FILENAME
     if os.path.exists(fpath):
         try:
-            with open(fpath, 'r') as s:
+            with open(fpath, 'r', encoding = 'utf-8') as s:
                 prefs = json.load(s)
                 user_preferences.api_key = prefs.get('API_key', '')
                 user_preferences.global_dir = prefs.get('global_dir', paths.default_global_dict())
@@ -258,6 +262,7 @@ def load_prefs():
         except Exception as e:
             print('failed to read addon preferences.')
             print(e)
+            os.remove(fpath)
 
 
 def save_prefs(self, context):
@@ -281,9 +286,8 @@ def save_prefs(self, context):
             fpath = paths.BLENDERKIT_SETTINGS_FILENAME
             if not os.path.exists(paths._presets):
                 os.makedirs(paths._presets)
-            f = open(fpath, 'w')
-            with open(fpath, 'w') as s:
-                json.dump(prefs, s)
+            with open(fpath, 'w', encoding = 'utf-8') as s:
+                json.dump(prefs, s, ensure_ascii=False, indent=4)
         except Exception as e:
             print(e)
 
@@ -299,14 +303,14 @@ def uploadable_asset_poll():
         return ui_props.hdr_upload_image is not None
     return True
 
-def get_hidden_texture(tpath, bdata_name, force_reload=False):
-    i = get_hidden_image(tpath, bdata_name, force_reload=force_reload)
-    bdata_name = f".{bdata_name}"
-    t = bpy.data.textures.get(bdata_name)
+def get_hidden_texture(img, force_reload=False):
+    # i = get_hidden_image(tpath, bdata_name, force_reload=force_reload)
+    # bdata_name = f".{bdata_name}"
+    t = bpy.data.textures.get(img.name)
     if t is None:
-        t = bpy.data.textures.new('.test', 'IMAGE')
-    if t.image != i:
-        t.image = i
+        t = bpy.data.textures.new(img.name, 'IMAGE')
+    if t.image != img:
+        t.image = img
     return t
 
 
@@ -776,13 +780,13 @@ def get_fake_context(context, area_type='VIEW_3D'):
     C_dict = {}  # context.copy() #context.copy was a source of problems - incompatibility with addons that also define context
     C_dict.update(region='WINDOW')
 
-    try:
-        context = context.copy()
-        # print('bk context copied successfully')
-    except Exception as e:
-        print(e)
-        print('BlenderKit: context.copy() failed. Can be a colliding addon.')
-        context = {}
+    # try:
+    #     context = context.copy()
+    #     # print('bk context copied successfully')
+    # except Exception as e:
+    #     print(e)
+    #     print('BlenderKit: context.copy() failed. Can be a colliding addon.')
+    context = {}
 
     if context.get('area') is None or context.get('area').type != area_type:
         w, a, r = get_largest_area(area_type=area_type)
@@ -821,3 +825,6 @@ def label_multiline(layout, text='', icon='NONE', width=-1):
             break;
         layout.label(text=l, icon=icon)
         icon = 'NONE'
+
+def trace():
+    traceback.print_stack()
