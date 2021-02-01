@@ -54,6 +54,14 @@ def img_save_as(img, filepath='//', file_format='JPEG', quality=90, color_mode='
 
     set_orig_render_settings(ors)
 
+def set_colorspace(img, colorspace):
+    '''sets image colorspace, but does so in a try statement, because some people might actually replace the default
+    colorspace settings, and it literally can't be guessed what these people use, even if it will mostly be the filmic addon.
+    '''
+    try:
+        img.colorspace_settings.name = colorspace
+    except:
+        print('Colorspace {colorspace} not found.')
 
 def generate_hdr_thumbnail():
     scene = bpy.context.scene
@@ -79,7 +87,7 @@ def generate_hdr_thumbnail():
     hdr_image.pixels.foreach_get(tempBuffer)
 
     inew.filepath = thumb_path
-    inew.colorspace_settings.name = 'Linear'
+    set_colorspace(inew, 'Linear')
     inew.pixels.foreach_set(tempBuffer)
 
     bpy.context.view_layer.update()

@@ -1498,7 +1498,19 @@ class BlenderKitSceneSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
         default="",
         update=search.search_update
     )
-
+    append_link: EnumProperty(
+        name="Append or link",
+        items=(
+            ('LINK', 'Link', ''),
+            ('APPEND', 'Append', ''),
+        ),
+        description="choose if the scene will be linked or appended",
+        default="APPEND"
+    )
+    switch_after_append: BoolProperty(
+        name = 'Switch to scene after download',
+        default = False
+    )
 
 def fix_subdir(self, context):
     '''Fixes project subdicrectory settings if people input invalid path.'''
