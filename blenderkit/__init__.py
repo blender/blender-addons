@@ -1402,7 +1402,7 @@ class BlenderKitModelSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
         ),
         description="Appended objects are editable in your scene. Linked assets are saved in original files, "
                     "aren't editable but also don't increase your file size",
-        default="LINK_COLLECTION"
+        default="APPEND_OBJECTS"
     )
     append_link: EnumProperty(
         name="How to Attach",

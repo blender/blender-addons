@@ -337,7 +337,7 @@ class FastRateMenu(Operator):
     rating_work_hours: FloatProperty(name="Work Hours",
                                      description="How many hours did this work take?",
                                      default=0.00,
-                                     min=0.0, max=150, update=update_ratings_work_hours
+                                     min=0.0, max=300, update=update_ratings_work_hours
                                      )
 
     rating_work_hours_ui: EnumProperty(name="Work Hours",

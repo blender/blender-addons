@@ -59,9 +59,12 @@ def set_colorspace(img, colorspace):
     colorspace settings, and it literally can't be guessed what these people use, even if it will mostly be the filmic addon.
     '''
     try:
-        img.colorspace_settings.name = colorspace
+        if colorspace == 'Non-Color':
+            img.colorspace_settings.is_data = True
+        else:
+            img.colorspace_settings.name = colorspace
     except:
-        print('Colorspace {colorspace} not found.')
+        print(f'Colorspace {colorspace} not found.')
 
 def generate_hdr_thumbnail():
     scene = bpy.context.scene
