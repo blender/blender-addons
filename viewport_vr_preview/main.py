@@ -18,6 +18,12 @@
 
 # <pep8 compliant>
 
+if "bpy" in locals():
+    import importlib
+    importlib.reload(defaults)
+else:
+    from . import defaults
+
 import bpy
 from bpy.types import (
     Gizmo,
@@ -42,35 +48,19 @@ from bl_keymap_utils.io import (
     keyconfig_import_from_data_exec,
 )
 
-bl_info = {
-    "name": "VR Scene Inspection",
-    "author": "Julian Eisel (Severin), Sebastian Koenig",
-    "version": (0, 9, 0),
-    "blender": (2, 90, 0),
-    "location": "3D View > Sidebar > VR",
-    "description": ("View the viewport with virtual reality glasses "
-                    "(head-mounted displays)"),
-    "support": "OFFICIAL",
-    "warning": "This is an early, limited preview of in development "
-               "VR support for Blender.",
-    "doc_url": "{BLENDER_MANUAL_URL}/addons/3d_view/vr_scene_inspection.html",
-    "category": "3D View",
-}
-
 # Key maps.
 @persistent
 def vr_load_action_properties(context: bpy.context):
     # Load operator properties for scene action sets.
     wm = bpy.context.window_manager
-    kc = wm.keyconfigs.user
-    kc_addon = wm.keyconfigs.addon
-    if not (kc and kc_addon):
+    kc = wm.keyconfigs.addon
+    if not kc:
         return
 
     # Remove previous XR Session add-on key map.
-    km_addon = kc_addon.keymaps.find("XR Session", space_type='EMPTY', region_type='XR')
-    if km_addon:
-        kc_addon.keymaps.remove(km_addon)
+    km = kc.keymaps.find("XR Session", space_type='EMPTY', region_type='XR')
+    if km:
+        kc.keymaps.remove(km)
 
     # Import XR Session key map.
     if bpy.data.is_saved:
@@ -83,44 +73,7 @@ def vr_load_action_properties(context: bpy.context):
             xr_keymap = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(xr_keymap)
 
-            keyconfig_import_from_data_exec(kc_addon, xr_keymap.keyconfig_data, keyconfig_version=xr_keymap.keyconfig_version)
-
-    # Add any properties not found in key map file.
-    km_addon = kc_addon.keymaps.find("XR Session", space_type='EMPTY', region_type='XR')
-    if not km_addon:
-        km_addon = kc_addon.keymaps.new(name="XR Session", space_type='EMPTY', region_type='XR')
-        if not km_addon:
-            return
-        
-    km = kc.keymaps.find("XR", space_type='EMPTY', region_type='XR')
-    km_session = kc.keymaps.find("XR Session", space_type='EMPTY', region_type='XR')
-    if not (km or km_session):
-        return
-    
-    for action_set in bpy.context.scene.vr_action_sets:
-        for action in action_set.actions:
-            if (action.type != 'BUTTON' and action.type != 'AXIS') or not action.op:
-                continue
-
-            kmi_addon = km_addon.keymap_items.from_xr(action_set.name, action.name)
-            if kmi_addon:
-                continue
-
-            kmi = None
-            if km_session:
-                # 1. Check XR Session key map.
-                kmi = km_session.keymap_items.from_xr(action_set.name, action.name)
-
-            if not kmi and km:
-                # 2. Check XR key map.
-                kmi = km.keymap_items.from_xr(action_set.name, action.name)
-
-            if kmi:
-                kmi_addon = km_addon.keymap_items.new_from_item(kmi)
-                kmi_addon.active = True
-                kmi_addon.idname = action.op
-                kmi_addon.xr_action_set = action_set.name
-                kmi_addon.xr_action = action.name
+            keyconfig_import_from_data_exec(kc, xr_keymap.keyconfig_data, keyconfig_version=xr_keymap.keyconfig_version)
 
 
 # Similar to keyconfig_export_as_data() from release/scripts/modules/bl_keymap_utils/io.py
@@ -139,6 +92,20 @@ def vr_save_action_properties(context: bpy.context):
     if not km or len(km.keymap_items) < 1:
         return
 
+    # Check for non-default action sets.
+    is_default = True
+    scene = bpy.context.scene
+    default_names = set(name.value for name in defaults.VRDefaultActionSetNames)
+    
+    for action_set in scene.vr_action_sets:
+        if not (action_set.name in default_names):
+            is_default = False
+            break
+
+    if is_default:
+        return
+
+    # Export XR Session key map.
     export_keymaps = [(km, kc)]
     filepath = bpy.path.abspath("//") + bpy.path.display_name_from_filepath(bpy.data.filepath) + ".xrkey.py"
 
@@ -728,7 +695,7 @@ class VRActionSet(PropertyGroup):
 
         action_sets = None
         if self.from_prefs:
-            prefs = context.preferences.addons[__name__].preferences
+            prefs = context.preferences.addons[__package__].preferences
             action_sets = prefs.action_sets
         else:
             scene = context.scene
@@ -819,7 +786,7 @@ class VRActionSet(PropertyGroup):
         action_set_selected_idx = 0
 
         if from_prefs:
-            prefs = context.preferences.addons[__name__].preferences
+            prefs = context.preferences.addons[__package__].preferences
             action_sets = prefs.action_sets
             action_set_selected_idx = prefs.action_sets_selected
         else:
@@ -1380,7 +1347,7 @@ class VIEW3D_OT_vr_action_sets_load_from_prefs(Operator):
 
     def execute(self, context):
         scene = context.scene
-        prefs = context.preferences.addons[__name__].preferences
+        prefs = context.preferences.addons[__package__].preferences
 		
         scene_action_sets = scene.vr_action_sets
         prefs_action_sets = prefs.action_sets
@@ -1436,7 +1403,7 @@ class VIEW3D_OT_vr_action_set_save_to_prefs(Operator):
 
     def execute(self, context):
         scene = context.scene
-        prefs = context.preferences.addons[__name__].preferences
+        prefs = context.preferences.addons[__package__].preferences
 
         scene_action_set = VRActionSet.get_selected_action_set(context, False)
         if not scene_action_set:
@@ -1495,7 +1462,7 @@ class VIEW3D_OT_vr_action_set_save_to_prefs(Operator):
 
     def invoke(self, context, event):
         scene = context.scene
-        prefs = context.preferences.addons[__name__].preferences
+        prefs = context.preferences.addons[__package__].preferences
 
         scene_action_set = VRActionSet.get_selected_action_set(context, False)
         if not scene_action_set:
@@ -1977,7 +1944,7 @@ class VIEW3D_GGT_vr_landmarks(GizmoGroup):
 
 
 class VRPreferences(bpy.types.AddonPreferences):
-    bl_idname = __name__
+    bl_idname = __package__
 
     action_sets: CollectionProperty(
         name="Action Sets",
@@ -2039,7 +2006,7 @@ class PREFERENCES_PT_vr_actions(Panel):
 
     def draw(self, context):
         layout = self.layout
-        prefs = context.preferences.addons[__name__].preferences
+        prefs = context.preferences.addons[__package__].preferences
 
         action_set_selected = VRActionSet.get_selected_action_set(context, True)
 
@@ -2123,7 +2090,7 @@ class PREFERENCES_OT_vr_action_set_add(Operator):
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
-        prefs = context.preferences.addons[__name__].preferences
+        prefs = context.preferences.addons[__package__].preferences
         action_sets = prefs.action_sets
 
         action_sets.add()
@@ -2145,7 +2112,7 @@ class PREFERENCES_OT_vr_action_set_remove(Operator):
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
-        prefs = context.preferences.addons[__name__].preferences
+        prefs = context.preferences.addons[__package__].preferences
         action_sets = prefs.action_sets
 
         if len(action_sets) > 0:
@@ -2174,7 +2141,7 @@ class PREFERENCES_OT_vr_action_set_copy(Operator):
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
-        prefs = context.preferences.addons[__name__].preferences
+        prefs = context.preferences.addons[__package__].preferences
         action_sets = prefs.action_sets
         idx_selected = prefs.action_sets_selected
 
@@ -2220,7 +2187,7 @@ class PREFERENCES_OT_vr_action_sets_clear(Operator):
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
-        prefs = context.preferences.addons[__name__].preferences
+        prefs = context.preferences.addons[__package__].preferences
         action_sets = prefs.action_sets
 
         if len(action_sets) > 0:
@@ -2320,171 +2287,3 @@ class PREFERENCES_OT_vr_actions_clear(Operator):
             action_set.actions_selected = 0
 
         return {'FINISHED'}
-
-
-classes = (
-    VIEW3D_PT_vr_session,
-    VIEW3D_PT_vr_session_view,
-    VIEW3D_PT_vr_landmarks,
-    VIEW3D_PT_vr_actions,
-    VIEW3D_PT_vr_motion_capture,
-    VIEW3D_PT_vr_viewport_feedback,
-
-    VRLandmark,
-    VIEW3D_UL_vr_landmarks,
-    VIEW3D_MT_vr_landmark_menu,
-
-    VIEW3D_OT_vr_landmark_add,
-    VIEW3D_OT_vr_landmark_remove,
-    VIEW3D_OT_vr_landmark_activate,
-    VIEW3D_OT_vr_landmark_from_session,
-    VIEW3D_OT_add_camera_from_vr_landmark,
-    VIEW3D_OT_camera_to_vr_landmark,
-    VIEW3D_OT_vr_landmark_from_camera,
-    VIEW3D_OT_cursor_to_vr_landmark,
-    VIEW3D_OT_update_vr_landmark,
-
-    VRAction,
-    VRActionSet,
-    VIEW3D_UL_vr_action_sets,
-    VIEW3D_MT_vr_action_set_menu,
-    VIEW3D_UL_vr_actions,
-    VIEW3D_MT_vr_action_menu,
-
-    VIEW3D_OT_vr_action_set_add,
-    VIEW3D_OT_vr_action_set_remove,
-    VIEW3D_OT_vr_action_set_activate,
-    VIEW3D_OT_vr_action_sets_load_from_prefs,
-    VIEW3D_OT_vr_action_set_save_to_prefs,
-    VIEW3D_OT_vr_action_set_copy,
-    VIEW3D_OT_vr_action_sets_clear,
-    VIEW3D_OT_vr_action_add,
-    VIEW3D_OT_vr_action_remove,
-    VIEW3D_OT_vr_actions_clear,
-
-    VIEW3D_GT_vr_camera_cone,
-    VIEW3D_GT_vr_controller_axes,
-    VIEW3D_GGT_vr_viewer_pose,
-    VIEW3D_GGT_vr_controller_poses,
-    VIEW3D_GGT_vr_landmarks,
-
-    VRPreferences,
-    #PREFERENCES_PT_vr_actions,
-    PREFERENCES_UL_vr_action_sets,
-    PREFERENCES_MT_vr_action_set_menu,
-    PREFERENCES_UL_vr_actions,
-    PREFERENCES_MT_vr_action_menu,
-
-    PREFERENCES_OT_vr_action_set_add,
-    PREFERENCES_OT_vr_action_set_remove,
-    PREFERENCES_OT_vr_action_set_copy,
-    PREFERENCES_OT_vr_action_sets_clear,
-    PREFERENCES_OT_vr_action_add,
-    PREFERENCES_OT_vr_action_remove,
-    PREFERENCES_OT_vr_actions_clear,
-)
-
-
-def register():
-    if not bpy.app.build_options.xr_openxr:
-        bpy.utils.register_class(VIEW3D_PT_vr_info)
-        return
-
-    for cls in classes:
-        bpy.utils.register_class(cls)
-
-    bpy.types.Scene.vr_landmarks = CollectionProperty(
-        name="Landmark",
-        type=VRLandmark,
-    )
-    bpy.types.Scene.vr_landmarks_selected = IntProperty(
-        name="Selected Landmark"
-    )
-    bpy.types.Scene.vr_landmarks_active = IntProperty(
-        update=vr_landmark_active_update,
-    )
-    bpy.types.Scene.vr_action_sets = CollectionProperty(
-        name="Action Set",
-        type=VRActionSet,
-    )	
-    bpy.types.Scene.vr_action_sets_selected = IntProperty(
-        name="Selected Action Set",
-    )	
-    bpy.types.Scene.vr_action_sets_active = IntProperty(
-        default=0,
-        update=vr_action_set_active_update,
-    )
-    bpy.types.Scene.vr_headset_object = bpy.props.PointerProperty(
-        name="Headset Object",
-        type=bpy.types.Object,
-        update=vr_headset_object_update,
-    )
-    bpy.types.Scene.vr_controller0_object = bpy.props.PointerProperty(
-        name="Controller 0 Object",
-        type=bpy.types.Object,
-        update=vr_controller0_object_update,
-    )
-    bpy.types.Scene.vr_controller1_object = bpy.props.PointerProperty(
-        name="Controller 1 Object",
-        type=bpy.types.Object,
-        update=vr_controller1_object_update,
-    )
-    # View3DShading is the only per 3D-View struct with custom property
-    # support, so "abusing" that to get a per 3D-View option.
-    bpy.types.View3DShading.vr_show_virtual_camera = BoolProperty(
-        name="Show VR Camera"
-    )
-    bpy.types.View3DShading.vr_show_controllers = BoolProperty(
-        name="Show VR Controllers"
-    )
-    bpy.types.View3DShading.vr_show_landmarks = BoolProperty(
-        name="Show Landmarks"
-    )
-
-    bpy.app.handlers.load_post.append(vr_ensure_default_landmark)
-    bpy.app.handlers.load_post.append(vr_load_action_properties)
-    bpy.app.handlers.save_post.append(vr_save_action_properties)
-    bpy.app.handlers.xr_session_start_pre.append(vr_create_actions)
-
-    # Register add-on key map.
-    kc = bpy.context.window_manager.keyconfigs.addon
-    if kc:
-        kc.keymaps.new(name="XR Session", space_type='EMPTY', region_type='XR')
-
-
-def unregister():
-    if not bpy.app.build_options.xr_openxr:
-        bpy.utils.unregister_class(VIEW3D_PT_vr_info)
-        return
-
-    # Unregister add-on key map.
-    kc = bpy.context.window_manager.keyconfigs.addon
-    if kc:
-        km = kc.keymaps.find("XR Session", space_type='EMPTY', region_type='XR')
-        if km:
-            kc.keymaps.remove(km)
-
-    for cls in classes:
-        bpy.utils.unregister_class(cls)
-
-    del bpy.types.Scene.vr_landmarks
-    del bpy.types.Scene.vr_landmarks_selected
-    del bpy.types.Scene.vr_landmarks_active
-    del bpy.types.Scene.vr_action_sets
-    del bpy.types.Scene.vr_action_sets_selected
-    del bpy.types.Scene.vr_action_sets_active
-    del bpy.types.Scene.vr_headset_object
-    del bpy.types.Scene.vr_controller0_object
-    del bpy.types.Scene.vr_controller1_object
-    del bpy.types.View3DShading.vr_show_virtual_camera
-    del bpy.types.View3DShading.vr_show_controllers
-    del bpy.types.View3DShading.vr_show_landmarks
-
-    bpy.app.handlers.load_post.remove(vr_ensure_default_landmark)
-    bpy.app.handlers.load_post.remove(vr_load_action_properties)
-    bpy.app.handlers.save_post.remove(vr_save_action_properties)
-    bpy.app.handlers.xr_session_start_pre.remove(vr_create_actions)
-
-
-if __name__ == "__main__":
-    register()
