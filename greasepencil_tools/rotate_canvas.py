@@ -5,6 +5,7 @@ import math
 import mathutils
 from bpy_extras.view3d_utils import location_3d_to_region_2d
 from bpy.props import BoolProperty, EnumProperty
+from time import time
 ## draw utils
 import gpu
 import bgl
@@ -25,6 +26,8 @@ def step_value(value, step):
 
 def draw_callback_px(self, context):
     # 50% alpha, 2 pixel width line
+    if context.area != self.current_area:
+        return
     shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glLineWidth(2)
@@ -116,7 +119,8 @@ class RC_OT_RotateCanvas(bpy.types.Operator):
                 context.space_data.region_3d.view_rotation = rot.to_quaternion()
 
         if event.type in {'RIGHTMOUSE', 'LEFTMOUSE', 'MIDDLEMOUSE'} and event.value == 'RELEASE':
-            if not self.angle:
+            # Trigger reset : Less than 150ms and less than 2 degrees move
+            if time() - self.timer < 0.15 and abs(math.degrees(self.angle)) < 2:
                 # self.report({'INFO'}, 'Reset')
                 aim = context.space_data.region_3d.view_rotation @ mathutils.Vector((0.0, 0.0, 1.0))#view vector
                 z_up_quat = aim.to_track_quat('Z','Y')#track Z, up Y
@@ -143,6 +147,7 @@ class RC_OT_RotateCanvas(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
+        self.current_area = context.area
         prefs = get_addon_prefs()
         self.hud = prefs.canvas_use_hud
         self.angle = 0.0
@@ -190,6 +195,7 @@ class RC_OT_RotateCanvas(bpy.types.Operator):
         # round to closer degree and convert back to radians
         self.snap_step = math.radians(round(math.degrees(prefs.rc_angle_step)))
 
+        self.timer = time()
         args = (self, context)
         if self.hud:
             self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, args, 'WINDOW', 'POST_PIXEL')
