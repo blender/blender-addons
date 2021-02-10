@@ -122,6 +122,7 @@ class GPTS_OT_time_scrub(bpy.types.Operator):
         self.current_area = context.area
         self.key = prefs.keycode
         self.evaluate_gp_obj_key = prefs.evaluate_gp_obj_key
+        self.always_snap = prefs.always_snap
 
         self.dpi = context.preferences.system.dpi
         self.ui_scale = context.preferences.system.ui_scale
@@ -191,12 +192,13 @@ class GPTS_OT_time_scrub(bpy.types.Operator):
                         if frame.frame_number not in self.pos:
                             self.pos.append(frame.frame_number)
         
-
-        # Add start and end to snap on
-
+        if not ob or not self.pos:
+            # Disable inverted behavior if no frame to snap
+            self.always_snap = False
 
         # Also snap on play bounds (sliced off for keyframe display)
         self.pos += [self.f_start, self.f_end]
+
 
         # Disable Onion skin
         self.active_space_data = context.space_data
@@ -389,8 +391,14 @@ class GPTS_OT_time_scrub(bpy.types.Operator):
             if self.snap_alt and event.alt:
                 mod_snap = True
 
-            if self.snap_on or mod_snap:
-                self.new_frame = nearest(self.pos, self.new_frame)
+            ## Snapping
+            if self.always_snap:
+                # inverted snapping behavior
+                if not self.snap_on and not mod_snap:
+                    self.new_frame = nearest(self.pos, self.new_frame)
+            else:
+                if self.snap_on or mod_snap:
+                    self.new_frame = nearest(self.pos, self.new_frame)
 
             # frame range restriction
             if self.lock_range:
@@ -491,6 +499,11 @@ class GPTS_timeline_settings(bpy.types.PropertyGroup):
         name="Shortcut",
         description="Shortcut to trigger the scrub in viewport during press",
         default="MIDDLEMOUSE")
+
+    always_snap: BoolProperty(
+        name="Always Snap",
+        description="Always snap to keys if any, modifier is used deactivate the snapping\nDisabled if no keyframe found",
+        default=False)
 
     use_in_timeline_editor: BoolProperty(
         name="Shortcut in timeline editors",
@@ -649,7 +662,11 @@ def draw_ts_pref(prefs, layout):
     else:
         box.label(text='[ NOW TYPE KEY OR CLICK TO USE, WITH MODIFIER ]')
 
-    snap_text = 'Snap to keyframes: '
+    if prefs.always_snap:
+        snap_text = 'Disable keyframes snap: '
+    else:
+        snap_text = 'Keyframes snap: '
+
     snap_text += 'Left Mouse' if prefs.keycode == 'RIGHTMOUSE' else 'Right Mouse'
     if not prefs.use_ctrl:
         snap_text += ' or Ctrl'
@@ -662,6 +679,7 @@ def draw_ts_pref(prefs, layout):
         box.label(
             text="Recommended to choose at least one modifier to combine with clicks (default: Ctrl+Alt)", icon="ERROR")
 
+    box.prop(prefs, 'always_snap')
     box.prop(prefs, 'use_in_timeline_editor',
              text='Add same shortcut to scrub within timeline editors')
 
