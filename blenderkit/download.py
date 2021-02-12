@@ -1226,7 +1226,7 @@ def show_enum_values(obj, prop_name):
 
 
 class BlenderkitDownloadOperator(bpy.types.Operator):
-    """Download and link asset to scene. Only link if asset already available locally."""
+    """Download and link asset to scene. Only link if asset already available locally"""
     bl_idname = "scene.blenderkit_download"
     bl_label = "BlenderKit Asset Download"
     bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
@@ -1241,7 +1241,7 @@ class BlenderkitDownloadOperator(bpy.types.Operator):
 
     asset_base_id: StringProperty(
         name="Asset base Id",
-        description="Asset base id, used instead of search result index.",
+        description="Asset base id, used instead of search result index",
         default="")
 
     target_object: StringProperty(

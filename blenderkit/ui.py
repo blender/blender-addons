@@ -1860,7 +1860,7 @@ class TransferBlenderkitData(bpy.types.Operator):
     """Regenerate cobweb"""
     bl_idname = "object.blenderkit_data_trasnfer"
     bl_label = "Transfer BlenderKit data"
-    bl_description = "Transfer blenderKit metadata from one object to another when fixing uploads with wrong parenting."
+    bl_description = "Transfer blenderKit metadata from one object to another when fixing uploads with wrong parenting"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
