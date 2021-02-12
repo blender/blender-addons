@@ -144,7 +144,7 @@ class GPTS_OT_time_scrub(bpy.types.Operator):
         self.snap_on = False
         self.mouse = (event.mouse_region_x, event.mouse_region_y)
         self.init_mouse_x = self.cursor_x = event.mouse_region_x
-        
+
         # self.init_mouse_y = event.mouse_region_y # only to display init frame text
         self.init_frame = self.new_frame = context.scene.frame_current
         self.lock_range = context.scene.lock_frame_selection_to_range
@@ -154,7 +154,7 @@ class GPTS_OT_time_scrub(bpy.types.Operator):
         else:
             self.f_start = context.scene.frame_start
             self.f_end = context.scene.frame_end
-            
+
         self.offset = 0
         self.pos = []
 
@@ -191,7 +191,7 @@ class GPTS_OT_time_scrub(bpy.types.Operator):
                     for frame in layer.frames:
                         if frame.frame_number not in self.pos:
                             self.pos.append(frame.frame_number)
-        
+
         if not ob or not self.pos:
             # Disable inverted behavior if no frame to snap
             self.always_snap = False
@@ -207,7 +207,7 @@ class GPTS_OT_time_scrub(bpy.types.Operator):
         if context.space_data.type == 'VIEW_3D':  # and 'GPENCIL' in context.mode
             self.onion_skin = self.active_space_data.overlay.use_gpencil_onion_skin
             self.active_space_data.overlay.use_gpencil_onion_skin = False
-        
+
         if ob and ob.type == 'GPENCIL':
             if ob.data.use_multiedit:
                 self.multi_frame = ob.data.use_multiedit
@@ -335,7 +335,7 @@ class GPTS_OT_time_scrub(bpy.types.Operator):
         # (after drawing batch so those are still showed)
         if self.lock_range:
             self.pos = [i for i in self.pos if self.f_start <= i <= self.f_end]
-        
+
         # convert frame list to array for numpy snap utility
         self.pos = np.asarray(self.pos)
 

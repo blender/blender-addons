@@ -179,7 +179,7 @@ class GreasePencilAddonPrefs(bpy.types.AddonPreferences):
 
                 if not self.use_ctrl and not self.use_alt and not self.use_shift:
                     box.label(text="Choose at least one modifier to combine with click (default: Ctrl+Alt)", icon="ERROR")# INFO
-                
+
                 if not all((self.use_ctrl, self.use_alt, self.use_shift)):
                     row = box.row(align = True)
                     snap_key_list = []

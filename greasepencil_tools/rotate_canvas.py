@@ -14,7 +14,7 @@ from gpu_extras.batch import batch_for_shader
 from gpu_extras.presets import draw_circle_2d
 
 def step_value(value, step):
-    '''return the step closer to the passed value''' 
+    '''return the step closer to the passed value'''
     abs_angle = abs(value)
     diff = abs_angle % step
     lower_step = abs_angle - diff
@@ -93,7 +93,7 @@ class RC_OT_RotateCanvas(bpy.types.Operator):
             # Calculates the angle between initial and current vectors
             self.angle = self.vector_initial.angle_signed(self.vector_current)#radian
             # print (math.degrees(self.angle), self.vector_initial, self.vector_current)
-            
+
 
             ## handle snap key
             snap = False
@@ -216,7 +216,7 @@ class RC_OT_Set_rotation(bpy.types.Operator):
         return context.space_data.region_3d.view_perspective == 'CAMERA'
 
     def execute(self, context):
-        cam_ob = context.scene.camera 
+        cam_ob = context.scene.camera
         cam_ob['stored_rotation'] = cam_ob.rotation_euler
         if not cam_ob.get('_RNA_UI'):
             cam_ob['_RNA_UI'] = {}
@@ -239,7 +239,7 @@ class RC_OT_Reset_rotation(bpy.types.Operator):
         return context.space_data.region_3d.view_perspective == 'CAMERA' and context.scene.camera.get('stored_rotation')
 
     def execute(self, context):
-        cam_ob = context.scene.camera 
+        cam_ob = context.scene.camera
         cam_ob.rotation_euler = cam_ob['stored_rotation']
         return {'FINISHED'}
 
