@@ -467,7 +467,7 @@ def get_upload_data(caller=None, context=None, asset_type=None):
     add_version(upload_data)
 
     # caller can be upload operator, but also asset bar called from tooltip generator
-    if caller and caller.main_file == True:
+    if caller and caller.properties.main_file == True:
         upload_data["name"] = props.name
         upload_data["displayName"] = props.name
     else:
@@ -1069,8 +1069,7 @@ def start_upload(self, context, asset_type, reupload, upload_set):
         props.id = ''
 
     export_data, upload_data = get_upload_data(caller=self, context=context, asset_type=asset_type)
-    # print(export_data)
-    # print(upload_data)
+
     # check if thumbnail exists, generate for HDR:
     if 'THUMBNAIL' in upload_set:
         if asset_type == 'HDR':
@@ -1184,6 +1183,11 @@ class UploadOperator(Operator):
                 upload_set.append('THUMBNAIL')
             if self.main_file:
                 upload_set.append('MAINFILE')
+
+        #this is accessed later in get_upload_data and needs to be written.
+        # should pass upload_set all the way to it probably
+        if 'MAINFILE' in upload_set:
+            self.main_file = True
 
         result = start_upload(self, context, self.asset_type, self.reupload, upload_set=upload_set, )
 

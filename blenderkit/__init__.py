@@ -574,7 +574,7 @@ class BlenderKitCommonSearchProps(object):
 def name_update(self, context):
     ''' checks for name change, because it decides if whole asset has to be re-uploaded. Name is stored in the blend file
     and that's the reason.'''
-    utils.name_update(self.blenderkit)
+    utils.name_update(self)
 
 
 
