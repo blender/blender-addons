@@ -975,7 +975,7 @@ class VIEW3D_PT_blenderkit_unified(Panel):
         row.scale_y = 1.6
         # split = row.split(factor=.
         col = layout.column()
-        col.prop(ui_props, 'asset_type', expand=True, icon_only=True)
+        col.prop(ui_props, 'asset_type', expand=True, icon_only=False)
         # row = layout.column(align = False)
         # layout.prop(ui_props, 'asset_type', expand=False, text='')
 

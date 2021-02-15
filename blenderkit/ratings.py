@@ -405,11 +405,11 @@ class FastRateMenu(Operator):
             if utils.profile_is_validator():
                 col.prop(self, 'rating_work_hours')
             row.prop(self, 'rating_work_hours_ui', expand=True, icon_only=False, emboss=True)
-            if int(self.rating_work_hours_ui) > 100:
+            if float(self.rating_work_hours_ui) > 100:
                 utils.label_multiline(layout,
                                       text=f"\nThat's huge! please be sure to give such rating only to godly {self.asset_type}s.\n",
                                       width=500)
-            elif int(self.rating_work_hours_ui) > 18:
+            elif float(self.rating_work_hours_ui) > 18:
                 layout.separator()
 
                 utils.label_multiline(layout,
@@ -437,7 +437,7 @@ class FastRateMenu(Operator):
         if self.rating_quality_ui == '':
             self.rating_quality = 0
         else:
-            self.rating_quality = int(self.rating_quality_ui)
+            self.rating_quality = float(self.rating_quality_ui)
 
         if self.rating_quality > 0.1:
             rtgs = (('quality', self.rating_quality),)
