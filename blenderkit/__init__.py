@@ -254,7 +254,7 @@ def udate_down_up(self, context):
     s = context.scene
     wm = bpy.context.window_manager
     props = s.blenderkitUI
-    if wm['search results'] == None and props.down_up == 'SEARCH':
+    if wm.get('search results') == None and props.down_up == 'SEARCH':
         search.search()
 
 def switch_search_results(self, context):

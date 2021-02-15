@@ -986,6 +986,10 @@ class Uploader(threading.Thread):
                     "file_path": fpath
                 })
 
+                if not os.path.exists(fpath):
+                    self.send_message ("File packing failed, please try manual packing first")
+                    return {'CANCELLED'}
+
             self.send_message('Uploading files')
 
             uploaded = upload_bg.upload_files(self.upload_data, files)
