@@ -22,7 +22,6 @@ from blenderkit import paths, append_link, bg_blender, utils, download, search, 
 import sys, json, os, time
 import subprocess
 import tempfile
-import numpy as np
 import bpy
 import requests
 import math
@@ -127,6 +126,8 @@ def numpytoimage(a, iname, width=0, height=0, channels=3):
 
 def imagetonumpy(i):
     t = time.time()
+
+    import numpy as np
 
     width = i.size[0]
     height = i.size[1]

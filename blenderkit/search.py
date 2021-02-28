@@ -1394,7 +1394,7 @@ def search(category='', get_next=False, author_id=''):
         return;
 
     if category != '':
-        if utils.profile_is_validator():
+        if utils.profile_is_validator() and user_preferences.categories_fix:
             query['category'] = category
         else:
             query['category_subtree'] = category

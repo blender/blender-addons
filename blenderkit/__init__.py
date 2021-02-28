@@ -1687,6 +1687,13 @@ class BlenderKitAddonPreferences(AddonPreferences):
         default=False,
         update=utils.save_prefs
     )
+
+    categories_fix: BoolProperty(
+        name="Enable category fixing mode",
+        description="Enable category fixing mode.",
+        default=False,
+        update=utils.save_prefs
+    )
     # allow_proximity : BoolProperty(
     #     name="allow proximity data reports",
     #     description="This sends anonymized proximity data \n \
@@ -1728,6 +1735,7 @@ class BlenderKitAddonPreferences(AddonPreferences):
         if bpy.context.preferences.view.show_developer_ui:
             layout.prop(self, "use_timers")
             layout.prop(self, "experimental_features")
+            layout.prop(self, "categories_fix")
 
 
 # registration

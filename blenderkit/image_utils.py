@@ -1,5 +1,4 @@
 import bpy
-import numpy
 import os
 
 def get_orig_render_settings():
@@ -67,6 +66,7 @@ def set_colorspace(img, colorspace):
         print(f'Colorspace {colorspace} not found.')
 
 def generate_hdr_thumbnail():
+    import numpy
     scene = bpy.context.scene
     ui_props = scene.blenderkitUI
     hdr_image = ui_props.hdr_upload_image#bpy.data.images.get(ui_props.hdr_upload_image)

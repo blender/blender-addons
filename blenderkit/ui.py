@@ -1486,7 +1486,7 @@ class AssetBarOperator(bpy.types.Operator):
 
             if ui_props.drag_init:
                 ui_props.drag_length += 1
-                if ui_props.drag_length > 0:
+                if ui_props.drag_length > 2:
                     ui_props.dragging = True
                     ui_props.drag_init = False
 
@@ -1617,7 +1617,7 @@ class AssetBarOperator(bpy.types.Operator):
                     return {'RUNNING_MODAL'}
 
                 # Drag-drop interaction
-                if ui_props.dragging and mouse_in_region(r, mx, my):
+                if ui_props.dragging and mouse_in_region(r, mx, my):# and ui_props.drag_length>10:
                     asset_search_index = ui_props.active_index
                     # raycast here
                     ui_props.active_index = -3
