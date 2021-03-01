@@ -197,9 +197,6 @@ def SVGGetMaterial(color, context):
     materials = context['materials']
     rgb_re = re.compile('^\s*rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,(\d+)\s*\)\s*$')
 
-    if color in materials:
-        return materials[color]
-
     diff = None
     if color.startswith('#'):
         color = color[1:]
@@ -215,6 +212,9 @@ def SVGGetMaterial(color, context):
         diff = (float(c[0]), float(c[1]), float(c[2]))
     else:
         return None
+      
+    if color in materials:
+        return materials[color]      
 
     diffuse_color = ([x / 255.0 for x in diff])
 
