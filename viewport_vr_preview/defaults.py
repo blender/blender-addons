@@ -18,126 +18,105 @@
 
 # <pep8 compliant>
 
+if "bpy" in locals():
+    import importlib
+    importlib.reload(main)
+else:
+    from . import main
+
 import bpy
 from bpy.app.handlers import persistent
-import os.path, importlib.util, math
+import math
 from enum import Enum
-from bl_keymap_utils.io import keyconfig_import_from_data_exec
 
-def vr_defaults_action_set_add(scene, name, profile):
-    bpy.ops.view3d.vr_action_set_add()
+
+def vr_defaults_actionmap_add(ac, name, profile):
+    am = ac.actionmaps.new(name)    
+    if am:
+        am.profile = profile
+
+    return am
+
+
+def vr_defaults_actionmap_item_add(am,
+                                   name,
+                                   user_path0,
+                                   component_path0,
+                                   user_path1,
+                                   component_path1,
+                                   threshold,
+                                   op,
+                                   op_flag):
+
+    ami = am.actionmap_items.new(name)
+    if ami:        
+        ami.type = 'BUTTON'
+        ami.user_path0 = user_path0
+        ami.component_path0 = component_path0
+        ami.user_path1 = user_path1
+        ami.component_path1 = component_path1
+        ami.threshold = threshold
+        ami.op = op
+        ami.op_flag = op_flag
+
+    return ami
+
+
+def vr_defaults_pose_actionmap_item_add(am,
+                                        name,
+                                        user_path0,
+                                        component_path0,
+                                        user_path1,
+                                        component_path1,
+                                        is_controller,
+                                        location,
+                                        rotation):
+    ami = am.actionmap_items.new(name)
+    if ami:             
+        ami.type = 'POSE'
+        ami.user_path0 = user_path0
+        ami.component_path0 = component_path0
+        ami.user_path1 = user_path1
+        ami.component_path1 = component_path1
+        ami.pose_is_controller = is_controller
+        ami.pose_location = location
+        ami.pose_rotation = rotation
+
+    return ami
+
+
+def vr_defaults_haptic_actionmap_item_add(am,
+                                          name,
+                                          user_path0,
+                                          component_path0,
+                                          user_path1,
+                                          component_path1,
+                                          duration,
+                                          frequency,
+                                          amplitude):
+    ami = am.actionmap_items.new(name)
+    if ami:        
+        ami.type = 'HAPTIC'
+        ami.user_path0 = user_path0
+        ami.component_path0 = component_path0
+        ami.user_path1 = user_path1
+        ami.component_path1 = component_path1
+        ami.duration = duration
+        ami.frequency = frequency
+        ami.amplitude = amplitude
     
-    action_set = scene.vr_action_sets[scene.vr_action_sets_selected]
-    if action_set:
-        action_set.name = name
-        action_set.profile = profile
-        
-    return action_set
+    return ami
 
 
-def vr_defaults_action_set_remove(scene, name):
-    action_set_selected_prev = scene.vr_action_sets_selected
-    
-    idx = 0
-    for action_set in scene.vr_action_sets:
-        if (action_set.name == name):
-            scene.vr_action_sets_selected = idx
-
-            bpy.ops.view3d.vr_action_set_remove()
-
-            scene.vr_action_sets_selected = action_set_selected_prev
-            return
-
-        idx += 1
-
-
-def vr_defaults_action_add(action_set,
-                           name,
-                           user_path0,
-                           component_path0,
-                           user_path1,
-                           component_path1,
-                           threshold,
-                           op,
-                           op_flag):
-    bpy.ops.view3d.vr_action_add()
-    
-    action = action_set.actions[action_set.actions_selected]
-    if action:        
-        action.name = name
-        action.type = 'BUTTON'
-        action.user_path0 = user_path0
-        action.component_path0 = component_path0
-        action.user_path1 = user_path1
-        action.component_path1 = component_path1
-        action.threshold = threshold
-        action.op = op
-        action.op_flag = op_flag
-        
-    return action
-
-
-def vr_defaults_pose_action_add(action_set,
-                                name,
-                                user_path0,
-                                component_path0,
-                                user_path1,
-                                component_path1,
-                                is_controller,
-                                location,
-                                rotation):
-    bpy.ops.view3d.vr_action_add()
-    
-    action = action_set.actions[action_set.actions_selected]
-    if action:        
-        action.name = name
-        action.type = 'POSE'
-        action.user_path0 = user_path0
-        action.component_path0 = component_path0
-        action.user_path1 = user_path1
-        action.component_path1 = component_path1
-        action.pose_is_controller = is_controller
-        action.pose_location = location
-        action.pose_rotation = rotation
-        
-    return action
-
-
-def vr_defaults_haptic_action_add(action_set,
-                                  name,
-                                  user_path0,
-                                  component_path0,
-                                  user_path1,
-                                  component_path1,
-                                  duration,
-                                  frequency,
-                                  amplitude):
-    bpy.ops.view3d.vr_action_add()
-    
-    action = action_set.actions[action_set.actions_selected]
-    if action:        
-        action.name = name
-        action.type = 'HAPTIC'
-        action.user_path0 = user_path0
-        action.component_path0 = component_path0
-        action.user_path1 = user_path1
-        action.component_path1 = component_path1
-        action.duration = duration
-        action.frequency = frequency
-        action.amplitude = amplitude
-    
-    return action
-
-
-# Default action sets.
-class VRDefaultActionSetNames(Enum):
+# Default actionmaps.
+class VRDefaultActionmapNames(Enum):
     OCULUS = "default_oculus"
     WMR = "default_wmr"
     VIVE = "default_vive"
     INDEX = "default_index"
 
-# Default actions.
-class VRDefaultActionNames(Enum):
+# Default actionmap items.
+class VRDefaultActionmapItemNames(Enum):
     CONTROLLER_POSE = "controller_pose"
     RAYCAST_SELECT = "raycast_select"
     GRAB = "grab"
@@ -145,268 +124,251 @@ class VRDefaultActionNames(Enum):
     REDO = "redo"
 
 
-def vr_defaults_load_oculus(scene):
-    action_set = vr_defaults_action_set_add(scene,
-                                            VRDefaultActionSetNames.OCULUS.value,
-                                            "/interaction_profiles/oculus/touch_controller")
-    if not action_set:
+def vr_defaults_create_oculus(ac):
+    am = vr_defaults_actionmap_add(ac,
+                                   VRDefaultActionmapNames.OCULUS.value,
+                                   "/interaction_profiles/oculus/touch_controller")
+    if not am:
         return
 
-    vr_defaults_pose_action_add(action_set,
-                                VRDefaultActionNames.CONTROLLER_POSE.value,
-                                "/user/hand/left",
-                                "/input/grip/pose",
-                                "/user/hand/right",
-                                "/input/grip/pose",
-                                True,
-                                (0, 0, 0),
-                                (math.radians(-50), 0, 0)) 
-    vr_defaults_action_add(action_set,
-                           VRDefaultActionNames.RAYCAST_SELECT.value,
-                           "/user/hand/left",
-                           "/input/trigger/value",
-                           "/user/hand/right",
-                           "/input/trigger/value",
-                           0.3,
-                           "wm.xr_select_raycast",
-                           'MODAL')      
-    vr_defaults_action_add(action_set,
-                           VRDefaultActionNames.GRAB.value,
-                           "/user/hand/left",
-                           "/input/squeeze/value",
-                           "/user/hand/right",
-                           "/input/squeeze/value",
-                           0.3,
-                           "wm.xr_grab",
-                           'MODAL')
-    vr_defaults_action_add(action_set,
-                           VRDefaultActionNames.UNDO.value,
-                           "/user/hand/left",
-                           "/input/x/click",
-                           "",
-                           "",
-                           0.3,
-                           "ed.undo",
-                           'PRESS')        
-    vr_defaults_action_add(action_set,
-                           VRDefaultActionNames.REDO.value,
-                           "/user/hand/right",
-                           "/input/a/click",
-                           "",
-                           "",
-                           0.3,
-                           "ed.redo",
-                           'PRESS')
-
-    action_set.actions_selected = 0
+    vr_defaults_pose_actionmap_item_add(am,
+                                        VRDefaultActionmapItemNames.CONTROLLER_POSE.value,
+                                        "/user/hand/left",
+                                        "/input/grip/pose",
+                                        "/user/hand/right",
+                                        "/input/grip/pose",
+                                        True,
+                                        (0, 0, 0),
+                                        (math.radians(-50), 0, 0)) 
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActionmapItemNames.RAYCAST_SELECT.value,
+                                   "/user/hand/left",
+                                   "/input/trigger/value",
+                                   "/user/hand/right",
+                                   "/input/trigger/value",
+                                   0.3,
+                                   "wm.xr_select_raycast",
+                                   'MODAL')      
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActionmapItemNames.GRAB.value,
+                                   "/user/hand/left",
+                                   "/input/squeeze/value",
+                                   "/user/hand/right",
+                                   "/input/squeeze/value",
+                                   0.3,
+                                   "wm.xr_grab",
+                                   'MODAL')
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActionmapItemNames.UNDO.value,
+                                   "/user/hand/left",
+                                   "/input/x/click",
+                                   "",
+                                   "",
+                                   0.3,
+                                   "ed.undo",
+                                   'PRESS')        
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActionmapItemNames.REDO.value,
+                                   "/user/hand/right",
+                                   "/input/a/click",
+                                   "",
+                                   "",
+                                   0.3,
+                                   "ed.redo",
+                                   'PRESS')
 
 
-def vr_defaults_load_wmr(scene):
-    action_set = vr_defaults_action_set_add(scene,
-                                            VRDefaultActionSetNames.WMR.value,
-                                            "/interaction_profiles/microsoft/motion_controller")
-    if not action_set:
+def vr_defaults_create_wmr(ac):
+    am = vr_defaults_actionmap_add(ac,
+                                   VRDefaultActionmapNames.WMR.value,
+                                   "/interaction_profiles/microsoft/motion_controller")
+    if not am:
         return
 
-    vr_defaults_pose_action_add(action_set,
-                                VRDefaultActionNames.CONTROLLER_POSE.value,
-                                "/user/hand/left",
-                                "/input/grip/pose",
-                                "/user/hand/right",
-                                "/input/grip/pose",
-                                True,
-                                (0, 0, 0),
-                                (math.radians(-45), 0, 0)) 
-    vr_defaults_action_add(action_set,
-                           VRDefaultActionNames.RAYCAST_SELECT.value,
-                           "/user/hand/left",
-                           "/input/trigger/value",
-                           "/user/hand/right",
-                           "/input/trigger/value",
-                           0.3,
-                           "wm.xr_select_raycast",
-                           'MODAL')      
-    vr_defaults_action_add(action_set,
-                           VRDefaultActionNames.GRAB.value,
-                           "/user/hand/left",
-                           "/input/squeeze/click",
-                           "/user/hand/right",
-                           "/input/squeeze/click",
-                           0.3,
-                           "wm.xr_grab",
-                           'MODAL')
-    vr_defaults_action_add(action_set,
-                           VRDefaultActionNames.UNDO.value,
-                           "/user/hand/left",
-                           "/input/menu/click",
-                           "",
-                           "",
-                           0.3,
-                           "ed.undo",
-                           'PRESS')        
-    vr_defaults_action_add(action_set,
-                           VRDefaultActionNames.REDO.value,
-                           "/user/hand/right",
-                           "/input/menu/click",
-                           "",
-                           "",
-                           0.3,
-                           "ed.redo",
-                           'PRESS')
-
-    action_set.actions_selected = 0
+    vr_defaults_pose_actionmap_item_add(am,
+                                        VRDefaultActionmapItemNames.CONTROLLER_POSE.value,
+                                        "/user/hand/left",
+                                        "/input/grip/pose",
+                                        "/user/hand/right",
+                                        "/input/grip/pose",
+                                        True,
+                                        (0, 0, 0),
+                                        (math.radians(-45), 0, 0)) 
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActionmapItemNames.RAYCAST_SELECT.value,
+                                   "/user/hand/left",
+                                   "/input/trigger/value",
+                                   "/user/hand/right",
+                                   "/input/trigger/value",
+                                   0.3,
+                                   "wm.xr_select_raycast",
+                                   'MODAL')      
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActionmapItemNames.GRAB.value,
+                                   "/user/hand/left",
+                                   "/input/squeeze/click",
+                                   "/user/hand/right",
+                                   "/input/squeeze/click",
+                                   0.3,
+                                   "wm.xr_grab",
+                                   'MODAL')
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActionmapItemNames.UNDO.value,
+                                   "/user/hand/left",
+                                   "/input/menu/click",
+                                   "",
+                                   "",
+                                   0.3,
+                                   "ed.undo",
+                                   'PRESS')        
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActionmapItemNames.REDO.value,
+                                   "/user/hand/right",
+                                   "/input/menu/click",
+                                   "",
+                                   "",
+                                   0.3,
+                                   "ed.redo",
+                                   'PRESS')
 
 
-def vr_defaults_load_vive(scene):
-    action_set = vr_defaults_action_set_add(scene,
-                                            VRDefaultActionSetNames.VIVE.value,
-                                            "/interaction_profiles/htc/vive_controller")
-    if not action_set:
+def vr_defaults_create_vive(ac):
+    am = vr_defaults_actionmap_add(ac,
+                                   VRDefaultActionmapNames.VIVE.value,
+                                   "/interaction_profiles/htc/vive_controller")
+    if not am:
         return
 
-    vr_defaults_pose_action_add(action_set,
-                                VRDefaultActionNames.CONTROLLER_POSE.value,
-                                "/user/hand/left",
-                                "/input/grip/pose",
-                                "/user/hand/right",
-                                "/input/grip/pose",
-                                True,
-                                (0, 0, 0),
-                                (0, 0, 0)) 
-    vr_defaults_action_add(action_set,
-                           VRDefaultActionNames.RAYCAST_SELECT.value,
-                           "/user/hand/left",
-                           "/input/trigger/value",
-                           "/user/hand/right",
-                           "/input/trigger/value",
-                           0.3,
-                           "wm.xr_select_raycast",
-                           'MODAL')      
-    vr_defaults_action_add(action_set,
-                           VRDefaultActionNames.GRAB.value,
-                           "/user/hand/left",
-                           "/input/squeeze/click",
-                           "/user/hand/right",
-                           "/input/squeeze/click",
-                           0.3,
-                           "wm.xr_grab",
-                           'MODAL')
-    vr_defaults_action_add(action_set,
-                           VRDefaultActionNames.UNDO.value,
-                           "/user/hand/left",
-                           "/input/menu/click",
-                           "",
-                           "",
-                           0.3,
-                           "ed.undo",
-                           'PRESS')        
-    vr_defaults_action_add(action_set,
-                           VRDefaultActionNames.REDO.value,
-                           "/user/hand/right",
-                           "/input/menu/click",
-                           "",
-                           "",
-                           0.3,
-                           "ed.redo",
-                           'PRESS')
-
-    action_set.actions_selected = 0
+    vr_defaults_pose_actionmap_item_add(am,
+                                        VRDefaultActionmapItemNames.CONTROLLER_POSE.value,
+                                        "/user/hand/left",
+                                        "/input/grip/pose",
+                                        "/user/hand/right",
+                                        "/input/grip/pose",
+                                        True,
+                                        (0, 0, 0),
+                                        (0, 0, 0)) 
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActionmapItemNames.RAYCAST_SELECT.value,
+                                   "/user/hand/left",
+                                   "/input/trigger/value",
+                                   "/user/hand/right",
+                                   "/input/trigger/value",
+                                   0.3,
+                                   "wm.xr_select_raycast",
+                                   'MODAL')      
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActionmapItemNames.GRAB.value,
+                                   "/user/hand/left",
+                                   "/input/squeeze/click",
+                                   "/user/hand/right",
+                                   "/input/squeeze/click",
+                                   0.3,
+                                   "wm.xr_grab",
+                                   'MODAL')
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActionmapItemNames.UNDO.value,
+                                   "/user/hand/left",
+                                   "/input/menu/click",
+                                   "",
+                                   "",
+                                   0.3,
+                                   "ed.undo",
+                                   'PRESS')        
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActionmapItemNames.REDO.value,
+                                   "/user/hand/right",
+                                   "/input/menu/click",
+                                   "",
+                                   "",
+                                   0.3,
+                                   "ed.redo",
+                                   'PRESS')
 
 
-def vr_defaults_load_index(scene):
-    action_set = vr_defaults_action_set_add(scene,
-                                            VRDefaultActionSetNames.INDEX.value,
-                                            "/interaction_profiles/valve/index_controller")
-    if not action_set:
+def vr_defaults_create_index(ac):
+    am = vr_defaults_actionmap_add(ac,
+                                   VRDefaultActionmapNames.INDEX.value,
+                                   "/interaction_profiles/valve/index_controller")
+    if not am:
         return
 
-    vr_defaults_pose_action_add(action_set,
-                                VRDefaultActionNames.CONTROLLER_POSE.value,
-                                "/user/hand/left",
-                                "/input/grip/pose",
-                                "/user/hand/right",
-                                "/input/grip/pose",
-                                True,
-                                (0, 0, 0),
-                                (0, 0, 0)) 
-    vr_defaults_action_add(action_set,
-                           VRDefaultActionNames.RAYCAST_SELECT.value,
-                           "/user/hand/left",
-                           "/input/trigger/value",
-                           "/user/hand/right",
-                           "/input/trigger/value",
-                           0.3,
-                           "wm.xr_select_raycast",
-                           'MODAL')      
-    vr_defaults_action_add(action_set,
-                           VRDefaultActionNames.GRAB.value,
-                           "/user/hand/left",
-                           "/input/squeeze/value",
-                           "/user/hand/right",
-                           "/input/squeeze/value",
-                           0.3,
-                           "wm.xr_grab",
-                           'MODAL')
-    vr_defaults_action_add(action_set,
-                           VRDefaultActionNames.UNDO.value,
-                           "/user/hand/left",
-                           "/input/a/click",
-                           "",
-                           "",
-                           0.3,
-                           "ed.undo",
-                           'PRESS')        
-    vr_defaults_action_add(action_set,
-                           VRDefaultActionNames.REDO.value,
-                           "/user/hand/right",
-                           "/input/a/click",
-                           "",
-                           "",
-                           0.3,
-                           "ed.redo",
-                           'PRESS')
-
-    action_set.actions_selected = 0
-
-
-@persistent
-def vr_load_default_action_sets(context: bpy.context):
-    scene = bpy.context.scene
+    vr_defaults_pose_actionmap_item_add(am,
+                                        VRDefaultActionmapItemNames.CONTROLLER_POSE.value,
+                                        "/user/hand/left",
+                                        "/input/grip/pose",
+                                        "/user/hand/right",
+                                        "/input/grip/pose",
+                                        True,
+                                        (0, 0, 0),
+                                        (0, 0, 0)) 
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActionmapItemNames.RAYCAST_SELECT.value,
+                                   "/user/hand/left",
+                                   "/input/trigger/value",
+                                   "/user/hand/right",
+                                   "/input/trigger/value",
+                                   0.3,
+                                   "wm.xr_select_raycast",
+                                   'MODAL')      
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActionmapItemNames.GRAB.value,
+                                   "/user/hand/left",
+                                   "/input/squeeze/value",
+                                   "/user/hand/right",
+                                   "/input/squeeze/value",
+                                   0.3,
+                                   "wm.xr_grab",
+                                   'MODAL')
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActionmapItemNames.UNDO.value,
+                                   "/user/hand/left",
+                                   "/input/a/click",
+                                   "",
+                                   "",
+                                   0.3,
+                                   "ed.undo",
+                                   'PRESS')        
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActionmapItemNames.REDO.value,
+                                   "/user/hand/right",
+                                   "/input/a/click",
+                                   "",
+                                   "",
+                                   0.3,
+                                   "ed.redo",
+                                   'PRESS')
     
-    if len(scene.vr_action_sets) > 0:
-        # Don't load defaults for scenes that already contain action sets.
-        return
-
-    # Load default action sets.
-    vr_defaults_load_oculus(scene)
-    vr_defaults_load_wmr(scene)
-    vr_defaults_load_vive(scene)
-    vr_defaults_load_index(scene)
-
-    scene.vr_action_sets_selected = scene.vr_action_sets_active = 0
-
-    # Load operator properties for default action sets.
-    wm = bpy.context.window_manager
-    kc = wm.keyconfigs.addon
-    if not kc:
-        return
-
-    # Import XR Session key map.
-    dirpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), '') 
-    filename = os.path.splitext(os.path.basename(__file__))[0] + ".xrkey"
-    filepath = dirpath + filename + ".py"
-
-    if os.path.exists(filepath):                
-        spec = importlib.util.spec_from_file_location(filename, filepath)
-        xr_keymap = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(xr_keymap)
-
-        keyconfig_import_from_data_exec(kc, xr_keymap.keyconfig_data, keyconfig_version=xr_keymap.keyconfig_version)
-
 
 @persistent
-def vr_unload_default_action_sets(context: bpy.context):
-    scene = bpy.context.scene
+def vr_load_default_actionmaps(context: bpy.context):
+    context = bpy.context
 
-    for name in VRDefaultActionSetNames:
-        vr_defaults_action_set_remove(scene, name.value)
+    actionconfigs = context.window_manager.xr_session_settings.actionconfigs
+    if not actionconfigs:
+        return
+    ac = actionconfigs.default
+    if not ac:
+        return
+
+    # Set default action config as active. 
+    actionconfigs.active = ac
+
+    if len(ac.actionmaps) > 0:
+        # Don't load defaults for scenes that already contain actionmaps.
+        return
+
+    # Set default action config as active. 
+    #actionconfigs.active = ac
+
+    # Load default actionmaps.
+    loaded = main.vr_load_actionmaps(context)
+    
+    if not loaded:
+        # Create and save default actionmaps.
+        vr_defaults_create_oculus(ac)
+        vr_defaults_create_wmr(ac)
+        vr_defaults_create_vive(ac)
+        vr_defaults_create_index(ac)
+
+        main.vr_save_actionmaps(context, sort=False)

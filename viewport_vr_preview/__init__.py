@@ -20,9 +20,9 @@
 
 bl_info = {
     "name": "VR Scene Inspection",
-    "author": "Julian Eisel (Severin), Sebastian Koenig",
-    "version": (0, 9, 0),
-    "blender": (2, 90, 0),
+    "author": "Julian Eisel (Severin), Sebastian Koenig, Peter Kim (muxed-reality)",
+    "version": (0, 10, 0),
+    "blender": (2, 93, 0),
     "location": "3D View > Sidebar > VR",
     "description": ("View the viewport with virtual reality glasses "
                     "(head-mounted displays)"),
@@ -33,6 +33,7 @@ bl_info = {
     "category": "3D View",
 }
 
+
 if "bpy" in locals():
     import importlib
     importlib.reload(main)
@@ -41,11 +42,7 @@ else:
     from . import main, defaults
 
 import bpy
-from bpy.props import (
-    CollectionProperty,
-    IntProperty,
-    BoolProperty,
-)
+
 
 classes = (
     main.VIEW3D_PT_vr_session,
@@ -69,8 +66,6 @@ classes = (
     main.VIEW3D_OT_cursor_to_vr_landmark,
     main.VIEW3D_OT_update_vr_landmark,
 
-    main.VRAction,
-    main.VRActionSet,
     main.VIEW3D_UL_vr_action_sets,
     main.VIEW3D_MT_vr_action_set_menu,
     main.VIEW3D_UL_vr_actions,
@@ -79,12 +74,13 @@ classes = (
     main.VIEW3D_OT_vr_action_set_add,
     main.VIEW3D_OT_vr_action_set_remove,
     main.VIEW3D_OT_vr_action_set_activate,
-    main.VIEW3D_OT_vr_action_sets_load_from_prefs,
-    main.VIEW3D_OT_vr_action_set_save_to_prefs,
+    main.VIEW3D_OT_vr_action_sets_import,
+    main.VIEW3D_OT_vr_action_sets_export,
     main.VIEW3D_OT_vr_action_set_copy,
     main.VIEW3D_OT_vr_action_sets_clear,
     main.VIEW3D_OT_vr_action_add,
     main.VIEW3D_OT_vr_action_remove,
+    main.VIEW3D_OT_vr_action_copy,
     main.VIEW3D_OT_vr_actions_clear,
 
     main.VIEW3D_GT_vr_camera_cone,
@@ -92,21 +88,6 @@ classes = (
     main.VIEW3D_GGT_vr_viewer_pose,
     main.VIEW3D_GGT_vr_controller_poses,
     main.VIEW3D_GGT_vr_landmarks,
-
-    main.VRPreferences,
-    #main.PREFERENCES_PT_vr_actions,
-    main.PREFERENCES_UL_vr_action_sets,
-    main.PREFERENCES_MT_vr_action_set_menu,
-    main.PREFERENCES_UL_vr_actions,
-    main.PREFERENCES_MT_vr_action_menu,
-
-    main.PREFERENCES_OT_vr_action_set_add,
-    main.PREFERENCES_OT_vr_action_set_remove,
-    main.PREFERENCES_OT_vr_action_set_copy,
-    main.PREFERENCES_OT_vr_action_sets_clear,
-    main.PREFERENCES_OT_vr_action_add,
-    main.PREFERENCES_OT_vr_action_remove,
-    main.PREFERENCES_OT_vr_actions_clear,
 )
 
 
@@ -118,26 +99,15 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    bpy.types.Scene.vr_landmarks = CollectionProperty(
+    bpy.types.Scene.vr_landmarks = bpy.props.CollectionProperty(
         name="Landmark",
         type=main.VRLandmark,
     )
-    bpy.types.Scene.vr_landmarks_selected = IntProperty(
+    bpy.types.Scene.vr_landmarks_selected = bpy.props.IntProperty(
         name="Selected Landmark"
     )
-    bpy.types.Scene.vr_landmarks_active = IntProperty(
+    bpy.types.Scene.vr_landmarks_active = bpy.props.IntProperty(
         update=main.vr_landmark_active_update,
-    )
-    bpy.types.Scene.vr_action_sets = CollectionProperty(
-        name="Action Set",
-        type=main.VRActionSet,
-    )	
-    bpy.types.Scene.vr_action_sets_selected = IntProperty(
-        name="Selected Action Set",
-    )	
-    bpy.types.Scene.vr_action_sets_active = IntProperty(
-        default=0,
-        update=main.vr_action_set_active_update,
     )
     bpy.types.Scene.vr_headset_object = bpy.props.PointerProperty(
         name="Headset Object",
@@ -156,26 +126,19 @@ def register():
     )
     # View3DShading is the only per 3D-View struct with custom property
     # support, so "abusing" that to get a per 3D-View option.
-    bpy.types.View3DShading.vr_show_virtual_camera = BoolProperty(
+    bpy.types.View3DShading.vr_show_virtual_camera = bpy.props.BoolProperty(
         name="Show VR Camera"
     )
-    bpy.types.View3DShading.vr_show_controllers = BoolProperty(
+    bpy.types.View3DShading.vr_show_controllers = bpy.props.BoolProperty(
         name="Show VR Controllers"
     )
-    bpy.types.View3DShading.vr_show_landmarks = BoolProperty(
+    bpy.types.View3DShading.vr_show_landmarks = bpy.props.BoolProperty(
         name="Show Landmarks"
     )
 
     bpy.app.handlers.load_post.append(main.vr_ensure_default_landmark)
-    bpy.app.handlers.load_post.append(main.vr_load_action_properties)
-    bpy.app.handlers.load_post.append(defaults.vr_load_default_action_sets)
-    bpy.app.handlers.save_post.append(main.vr_save_action_properties)
+    bpy.app.handlers.load_post.append(defaults.vr_load_default_actionmaps)
     bpy.app.handlers.xr_session_start_pre.append(main.vr_create_actions)
-
-    # Register add-on key map.
-    kc = bpy.context.window_manager.keyconfigs.addon
-    if kc:
-        kc.keymaps.new(name="XR Session", space_type='EMPTY', region_type='XR')
 
 
 def unregister():
@@ -183,22 +146,12 @@ def unregister():
         bpy.utils.unregister_class(main.VIEW3D_PT_vr_info)
         return
 
-    # Unregister add-on key map.
-    kc = bpy.context.window_manager.keyconfigs.addon
-    if kc:
-        km = kc.keymaps.find("XR Session", space_type='EMPTY', region_type='XR')
-        if km:
-            kc.keymaps.remove(km)
-
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
     del bpy.types.Scene.vr_landmarks
     del bpy.types.Scene.vr_landmarks_selected
     del bpy.types.Scene.vr_landmarks_active
-    del bpy.types.Scene.vr_action_sets
-    del bpy.types.Scene.vr_action_sets_selected
-    del bpy.types.Scene.vr_action_sets_active
     del bpy.types.Scene.vr_headset_object
     del bpy.types.Scene.vr_controller0_object
     del bpy.types.Scene.vr_controller1_object
@@ -207,7 +160,5 @@ def unregister():
     del bpy.types.View3DShading.vr_show_landmarks
 
     bpy.app.handlers.load_post.remove(main.vr_ensure_default_landmark)
-    bpy.app.handlers.load_post.remove(main.vr_load_action_properties)
-    bpy.app.handlers.load_post.remove(defaults.vr_load_default_action_sets)
-    bpy.app.handlers.save_post.remove(main.vr_save_action_properties)
+    bpy.app.handlers.load_post.remove(defaults.vr_load_default_actionmaps)
     bpy.app.handlers.xr_session_start_pre.remove(main.vr_create_actions)
