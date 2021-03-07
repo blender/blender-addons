@@ -1,4 +1,4 @@
-# Copyright 2018-2019 The glTF-Blender-IO authors.
+# Copyright 2018-2021 The glTF-Blender-IO authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (1, 6, 4),
+    "version": (1, 6, 8),
     'blender': (2, 91, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -196,7 +196,7 @@ class ExportGLTF2_Base:
         description='Compression level (0 = most speed, 6 = most compression, higher values currently not supported)',
         default=6,
         min=0,
-        max=6
+        max=10
     )
 
     export_draco_position_quantization: IntProperty(
@@ -261,6 +261,22 @@ class ExportGLTF2_Base:
         name='Vertex Colors',
         description='Export vertex colors with meshes',
         default=True
+    )
+
+    use_mesh_edges: BoolProperty(
+        name='Loose Edges',
+        description=(
+            'Export loose edges as lines, using the material from the first material slot'
+        ),
+        default=False,
+    )
+
+    use_mesh_vertices: BoolProperty(
+        name='Loose Points',
+        description=(
+            'Export loose points as glTF points, using the material from the first material slot'
+        ),
+        default=False,
     )
 
     export_cameras: BoolProperty(
@@ -440,14 +456,22 @@ class ExportGLTF2_Base:
             except Exception:
                 pass
 
-        self.has_active_extenions = len(extension_panel_unregister_functors) > 0
+        self.has_active_extensions = len(extension_panel_unregister_functors) > 0
         return ExportHelper.invoke(self, context, event)
 
     def save_settings(self, context):
-        # find all export_ props
+        # find all props to save
+        exceptional = [
+            # options that don't start with 'export_'
+            'use_selection',
+            'use_mesh_edges',
+            'use_mesh_vertices',
+        ]
         all_props = self.properties
-        export_props = {x: getattr(self, x) for x in dir(all_props)
-                        if (x.startswith("export_") or x == "use_selection") and all_props.get(x) is not None}
+        export_props = {
+            x: getattr(self, x) for x in dir(all_props)
+            if (x.startswith("export_") or x in exceptional) and all_props.get(x) is not None
+        }
 
         context.scene[self.scene_key] = export_props
 
@@ -479,6 +503,8 @@ class ExportGLTF2_Base:
         export_settings['gltf_texcoords'] = self.export_texcoords
         export_settings['gltf_normals'] = self.export_normals
         export_settings['gltf_tangents'] = self.export_tangents and self.export_normals
+        export_settings['gltf_loose_edges'] = self.use_mesh_edges
+        export_settings['gltf_loose_points'] = self.use_mesh_vertices
 
         if self.is_draco_available:
             export_settings['gltf_draco_mesh_compression'] = self.export_draco_mesh_compression_enable
@@ -692,6 +718,11 @@ class GLTF_PT_export_geometry(bpy.types.Panel):
         col.active = operator.export_normals
         col.prop(operator, 'export_tangents')
         layout.prop(operator, 'export_colors')
+
+        col = layout.column()
+        col.prop(operator, 'use_mesh_edges')
+        col.prop(operator, 'use_mesh_vertices')
+
         layout.prop(operator, 'export_materials')
         col = layout.column()
         col.active = operator.export_materials == "EXPORT"
@@ -881,7 +912,7 @@ class GLTF_PT_export_user_extensions(bpy.types.Panel):
         sfile = context.space_data
         operator = sfile.active_operator
 
-        return operator.bl_idname == "EXPORT_SCENE_OT_gltf" and operator.has_active_extenions
+        return operator.bl_idname == "EXPORT_SCENE_OT_gltf" and operator.has_active_extensions
 
     def draw(self, context):
         layout = self.layout

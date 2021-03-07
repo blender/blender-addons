@@ -303,28 +303,33 @@ class FastRateMenu(Operator):
     message: StringProperty(
         name="message",
         description="message",
-        default="Rating asset")
+        default="Rating asset",
+        options={'SKIP_SAVE'})
 
     asset_id: StringProperty(
         name="Asset Base Id",
         description="Unique id of the asset (hidden)",
-        default="")
+        default="",
+        options={'SKIP_SAVE'})
 
     asset_name: StringProperty(
         name="Asset Name",
         description="Name of the asset (hidden)",
-        default="")
+        default="",
+        options={'SKIP_SAVE'})
 
     asset_type: StringProperty(
         name="Asset type",
         description="asset type",
-        default="")
+        default="",
+        options={'SKIP_SAVE'})
 
     rating_quality: IntProperty(name="Quality",
                                 description="quality of the material",
                                 default=0,
                                 min=-1, max=10,
-                                update=update_ratings_quality)
+                                # update=update_ratings_quality,
+                                options={'SKIP_SAVE'})
 
     # the following enum is only to ease interaction - enums support 'drag over' and enable to draw the stars easily.
     rating_quality_ui: EnumProperty(name='rating_quality_ui',
@@ -332,12 +337,14 @@ class FastRateMenu(Operator):
                                     description='Rating stars 0 - 10',
                                     default=0,
                                     update=update_quality_ui,
-                                    )
+                                    options={'SKIP_SAVE'})
 
     rating_work_hours: FloatProperty(name="Work Hours",
                                      description="How many hours did this work take?",
                                      default=0.00,
-                                     min=0.0, max=300, update=update_ratings_work_hours
+                                     min=0.0, max=300,
+                                     # update=update_ratings_work_hours,
+                                     options={'SKIP_SAVE'}
                                      )
 
     high_rating_warning = "This is a high rating, please be sure to give such rating only to amazing assets"
@@ -363,7 +370,8 @@ class FastRateMenu(Operator):
                                               ('200', '200', high_rating_warning),
                                               ('250', '250', high_rating_warning),
                                               ],
-                                       default='0', update=update_ratings_work_hours_ui
+                                       default='0', update=update_ratings_work_hours_ui,
+                                       options = {'SKIP_SAVE'}
                                        )
 
     rating_work_hours_ui_1_5: EnumProperty(name="Work Hours",
@@ -377,7 +385,9 @@ class FastRateMenu(Operator):
                                                   ('4', '4', ''),
                                                   ('5', '5', '')
                                                   ],
-                                           default='0', update=update_ratings_work_hours_ui_1_5
+                                           default='0',
+                                           update=update_ratings_work_hours_ui_1_5,
+                                           options = {'SKIP_SAVE'}
                                            )
 
     @classmethod

@@ -455,16 +455,17 @@ class RigifyParameterValidator(object):
     def __getattr__(self, name):
         return getattr(self.__params, name)
 
-    def __setattr__(self, name, val):
+    def __setattr__(self, name, val_original):
         # allow __init__ to work correctly
         if hasattr(RigifyParameterValidator, name):
-            return object.__setattr__(self, name, val)
+            return object.__setattr__(self, name, val_original)
 
-        if not (isinstance(val, tuple) and callable(val[0]) and isinstance(val[1], dict)):
-            print("!!! RIGIFY RIG %s: INVALID DEFINITION FOR RIG PARAMETER %s: %r\n" % (self.__rig_name, name, val))
+        if not isinstance(val_original, bpy.props._PropertyDeferred):
+            print("!!! RIGIFY RIG %s: INVALID DEFINITION FOR RIG PARAMETER %s: %r\n" % (self.__rig_name, name, val_original))
             return
 
         # actually defining the property modifies the dictionary with new parameters, so copy it now
+        val = (val_original.function, val_original.keywords)
         new_def = (val[0], val[1].copy())
 
         if 'poll' in new_def[1]:
@@ -480,7 +481,7 @@ class RigifyParameterValidator(object):
         if val[0] != bpy.props.CollectionProperty:
             val[1]['update'] = update_callback(name)
 
-        setattr(self.__params, name, val)
+        setattr(self.__params, name, val_original)
         self.__prop_table[name] = (self.__rig_name, new_def)
 
 
