@@ -1307,9 +1307,14 @@ class VIEW3D_OT_vr_action_set_remove(Operator):
 
             action_sets.remove(action_set_selected_idx)
 
+            if scene.vr_action_sets_active == action_set_selected_idx:
+                scene.vr_action_sets_active -= 1
+                if scene.vr_action_sets_active < 0:
+                    scene.vr_action_sets_active = 0
+
             scene.vr_action_sets_selected -= 1
-            if scene.vr_action_sets_selected < 1:
-                scene.vr_action_sets_active = 0
+            if scene.vr_action_sets_selected < 0:
+                scene.vr_action_sets_selected = 0
 
         return {'FINISHED'}
 
@@ -1606,6 +1611,8 @@ class VIEW3D_OT_vr_action_remove(Operator):
                 actions.remove(action_selected_idx)
 
                 action_set.actions_selected -= 1
+                if action_set.actions_selected < 0:
+                    action_set.actions_selected = 0
 
         return {'FINISHED'}
 
@@ -2130,6 +2137,8 @@ class PREFERENCES_OT_vr_action_set_remove(Operator):
             action_sets.remove(action_set_selected_idx)
 
             prefs.action_sets_selected -= 1
+            if prefs.action_sets_selected < 0:
+                prefs.action_sets_selected = 0
 
         return {'FINISHED'}
 
@@ -2257,6 +2266,8 @@ class PREFERENCES_OT_vr_action_remove(Operator):
                 actions.remove(action_selected_idx)
 
                 action_set.actions_selected -= 1
+                if action_set.actions_selected < 0:
+                    action_set.actions_selected = 0
 
         return {'FINISHED'}
 
