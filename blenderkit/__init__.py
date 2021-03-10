@@ -335,7 +335,7 @@ class BlenderKitUIProps(PropertyGroup):
     asset_type: EnumProperty(
         name="BlenderKit Active Asset Type",
         items=asset_type_callback,
-        description="Activate asset in UI",
+        description="",
         default=None,
         update=switch_search_results
     )
@@ -533,7 +533,7 @@ class BlenderKitCommonSearchProps(object):
             ('UPLOADING', 'Uploading', 'Uploading'),
             ('UPLOADED', 'Uploaded', 'Uploaded'),
             ('READY', 'Ready for V.', 'Ready for validation (deprecated since 2.8)'),
-            ('VALIDATED', 'Validated', 'Calidated'),
+            ('VALIDATED', 'Validated', 'Validated'),
             ('ON_HOLD', 'On Hold', 'On Hold'),
             ('REJECTED', 'Rejected', 'Rejected'),
             ('DELETED', 'Deleted', 'Deleted'),

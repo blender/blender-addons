@@ -685,7 +685,7 @@ class FastMetadata(bpy.types.Operator):
                                   args=(self.asset_id, mdict, user_preferences.api_key))
         thread.start()
         tasks_queue.add_task((ui.add_report, (f'Uploading metadata for {self.name}. '
-                                             f'Refreash search results to see that changes applied correctly.', 8,)))
+                                             f'Refresh search results to see that changes applied correctly.', 8,)))
 
         return {'FINISHED'}
 

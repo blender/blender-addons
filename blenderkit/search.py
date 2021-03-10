@@ -553,7 +553,7 @@ def writeblockm(tooltip, mdata, key='', pretext=None, width=40):  # for longer t
 
 
 def fmt_length(prop):
-    prop = str(round(prop, 2)) + 'm'
+    prop = str(round(prop, 2))
     return prop
 
 
@@ -590,9 +590,9 @@ def generate_tooltip(mdata):
     for b in bools_data:
         if mdata.get(b) and mdata[b]:
             mdata['tags'].append(b)
-    t = writeblockm(t, mparams, key='designer', pretext='designer', width=col_w)
-    t = writeblockm(t, mparams, key='manufacturer', pretext='manufacturer', width=col_w)
-    t = writeblockm(t, mparams, key='designCollection', pretext='design collection', width=col_w)
+    t = writeblockm(t, mparams, key='designer', pretext='Designer', width=col_w)
+    t = writeblockm(t, mparams, key='manufacturer', pretext='Manufacturer', width=col_w)
+    t = writeblockm(t, mparams, key='designCollection', pretext='Design collection', width=col_w)
 
     # t = writeblockm(t, mparams, key='engines', pretext='engine', width = col_w)
     # t = writeblockm(t, mparams, key='model_style', pretext='style', width = col_w)
@@ -601,21 +601,22 @@ def generate_tooltip(mdata):
     # t = writeblockm(t, mparams, key='condition', pretext='condition', width = col_w)
     # t = writeblockm(t, mparams, key='productionLevel', pretext='production level', width = col_w)
     if has(mdata, 'purePbr'):
-        t = writeblockm(t, mparams, key='pbrType', pretext='pbr', width=col_w)
+        t = writeblockm(t, mparams, key='pbrType', pretext='Pbr', width=col_w)
 
-    t = writeblockm(t, mparams, key='designYear', pretext='design year', width=col_w)
+    t = writeblockm(t, mparams, key='designYear', pretext='Design year', width=col_w)
 
     if has(mparams, 'dimensionX'):
-        t += 'size: %s, %s, %s\n' % (fmt_length(mparams['dimensionX']),
+        t += 'Size: %s x %s x %sm\n' % (fmt_length(mparams['dimensionX']),
                                      fmt_length(mparams['dimensionY']),
                                      fmt_length(mparams['dimensionZ']))
     if has(mparams, 'faceCount'):
-        t += 'face count: %s, render: %s\n' % (mparams['faceCount'], mparams['faceCountRender'])
+        t += 'Face count: %s\n' % (mparams['faceCount'])
+        # t += 'face count: %s, render: %s\n' % (mparams['faceCount'], mparams['faceCountRender'])
 
     # write files size - this doesn't reflect true file size, since files size is computed from all asset files, including resolutions.
-    if mdata.get('filesSize'):
-        fs = utils.files_size_to_text(mdata['filesSize'])
-        t += f'files size: {fs}\n'
+    # if mdata.get('filesSize'):
+    #     fs = utils.files_size_to_text(mdata['filesSize'])
+    #     t += f'files size: {fs}\n'
 
     # t = writeblockm(t, mparams, key='meshPolyType', pretext='mesh type', width = col_w)
     # t = writeblockm(t, mparams, key='objectCount', pretext='nubmber of objects', width = col_w)
@@ -624,36 +625,44 @@ def generate_tooltip(mdata):
     # t = writeblockm(t, mparams, key='modifiers', width = col_w)
     # t = writeblockm(t, mparams, key='shaders', width = col_w)
 
-    if has(mparams, 'textureSizeMeters'):
-        t += 'texture size: %s\n' % fmt_length(mparams['textureSizeMeters'])
+    # if has(mparams, 'textureSizeMeters'):
+    #     t += 'Texture size: %s m\n' % fmt_length(mparams['textureSizeMeters'])
 
     if has(mparams, 'textureResolutionMax') and mparams['textureResolutionMax'] > 0:
         if not mparams.get('textureResolutionMin'):  # for HDR's
             t = writeblockm(t, mparams, key='textureResolutionMax', pretext='Resolution', width=col_w)
         elif mparams.get('textureResolutionMin') == mparams['textureResolutionMax']:
-            t = writeblockm(t, mparams, key='textureResolutionMin', pretext='texture resolution', width=col_w)
+            t = writeblockm(t, mparams, key='textureResolutionMin', pretext='Texture resolution', width=col_w)
         else:
-            t += 'tex resolution: %i - %i\n' % (mparams.get('textureResolutionMin'), mparams['textureResolutionMax'])
+            t += 'Tex resolution: %i - %i\n' % (mparams.get('textureResolutionMin'), mparams['textureResolutionMax'])
 
     if has(mparams, 'thumbnailScale'):
-        t = writeblockm(t, mparams, key='thumbnailScale', pretext='preview scale', width=col_w)
+        t = writeblockm(t, mparams, key='thumbnailScale', pretext='Preview scale', width=col_w)
 
     # t += 'uv: %s\n' % mdata['uv']
     # t += '\n'
-    t = writeblockm(t, mdata, key='license', width=col_w)
+    if mdata.get('license') == 'cc_zero':
+        t+= 'license: CC Zero'
+    else:
+        t+= 'license: Royalty free'
+    # t = writeblockm(t, mdata, key='license', width=col_w)
 
     fs = mdata.get('files')
 
     if utils.profile_is_validator():
-        if fs:
-            resolutions = 'resolutions:'
+        if fs and len(fs) > 2:
+            resolutions = 'Resolutions:'
+            list.sort(fs, key=lambda f: f['fileType'])
             for f in fs:
                 if f['fileType'].find('resolution') > -1:
                     resolutions += f['fileType'][11:] + ' '
             resolutions += '\n'
-            t += resolutions
+            t += resolutions.replace('_', '.')
 
-        t = writeblockm(t, mdata, key='isFree', width=col_w)
+        if mdata['isFree']:
+            t += 'FREE plan\n'
+        else:
+            t += 'FULL plan\n'
     else:
         if fs:
             for f in fs:
@@ -670,7 +679,7 @@ def generate_tooltip(mdata):
     #         if adata != None:
     #             t += generate_author_textblock(adata)
 
-    # t += '\n'
+    t += '\n'
     rc = mdata.get('ratingsCount')
     if rc:
         t+='\n'

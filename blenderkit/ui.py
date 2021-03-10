@@ -379,6 +379,7 @@ def draw_tooltip(x, y, text='', author='', img=None, gravatar=None):
             tsize = font_height
         else:
             fsize = font_height
+
             if l[:4] == 'Tip:' or l[:11] == 'Please rate':
                 tcol = textcol_strong
                 fsize = font_height + 1
@@ -389,6 +390,7 @@ def draw_tooltip(x, y, text='', author='', img=None, gravatar=None):
     xtext += int(isizex / ncolumns)
 
     column_lines = 1
+    i=0
     for l in alines:
         if gravatar is not None:
             if column_lines == 1:
@@ -397,15 +399,21 @@ def draw_tooltip(x, y, text='', author='', img=None, gravatar=None):
                 xtext -= gsize + textmargin
 
         ytext = y - column_lines * line_height - nameline_height - ttipmargin - textmargin - isizey + texth
-        if i == 0:
+        if False:#i == 0:
             ytext = y - name_height + 5 - isizey + texth - textmargin
         elif i == len(lines) - 1:
             ytext = y - (nlines - 1) * line_height - nameline_height - ttipmargin * 2 - isizey + texth
             tcol = textcol
             tsize = font_height
+        if (i> 0 and alines[i-1][:7] == 'Author:'):
+            tcol = textcol_strong
+            fsize = font_height + 2
         else:
             fsize = font_height
-            if l[:4] == 'Tip:' or l[:11] == 'Please rate':
+            tcol = textcol
+
+            print (i)
+            if l[:4] == 'Tip:' or l[:11] == 'Please rate'  :
                 tcol = textcol_strong
                 fsize = font_height + 1
 
