@@ -39,7 +39,6 @@ from bpy_extras.io_utils import ImportHelper, ExportHelper
 import bgl
 import math
 from math import radians
-import mathutils
 from mathutils import Matrix, Euler
 import os.path, importlib.util
 
@@ -558,7 +557,7 @@ class VIEW3D_OT_vr_landmark_activate(Operator):
 ### Actions.
 def vr_actionconfig_active_get(context):
     if not context.window_manager.xr_session_settings.actionconfigs:
-        return
+        return None
     return context.window_manager.xr_session_settings.actionconfigs.active
 
 
@@ -584,6 +583,14 @@ def vr_actionmap_item_selected_get(am):
         None if (len(actionmap_items) <
                  1) else actionmap_items[am.selected_item]
     )
+
+
+@persistent
+def vr_activate_user_actionconfig(context: bpy.context):
+    # Set user config as active.
+    actionconfigs = bpy.context.window_manager.xr_session_settings.actionconfigs
+    if actionconfigs:
+        actionconfigs.active = actionconfigs.user
 
 
 @persistent
@@ -642,7 +649,7 @@ def vr_create_actions(context: bpy.context):
         session_state.set_active_action_set(context, am.name)
 
 
-def vr_load_actionmaps(context, filepath=""):
+def vr_load_actionmaps(context, filepath):
     # Import all actionmaps for active actionconfig.
     actionconfigs = context.window_manager.xr_session_settings.actionconfigs
     if not actionconfigs:
@@ -650,20 +657,6 @@ def vr_load_actionmaps(context, filepath=""):
     ac = actionconfigs.active
     if not ac:
         return False
-
-    if not filepath:
-        filename = ""
-        if actionconfigs.default and actionconfigs.default.name == ac.name:
-            filename = "default.py"
-        elif actionconfigs.addon and actionconfigs.addon.name == ac.name:   
-            filename = "addon.py"
-        elif actionconfigs.user and actionconfigs.user.name == ac.name:   
-            filename = "user.py"
-        else:
-            return False
-        
-        filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs")
-        filepath = os.path.join(filepath, filename)
 
     if not os.path.exists(filepath):
         return False
@@ -677,7 +670,7 @@ def vr_load_actionmaps(context, filepath=""):
     return True
 
 
-def vr_save_actionmaps(context, filepath="", sort=False):
+def vr_save_actionmaps(context, filepath, sort=False):
     # Export all actionmaps for active actionconfig.
     actionconfigs = context.window_manager.xr_session_settings.actionconfigs
     if not actionconfigs:
@@ -686,20 +679,6 @@ def vr_save_actionmaps(context, filepath="", sort=False):
     if not ac:
         return False
 
-    if not filepath:
-        filename = ""
-        if actionconfigs.default and actionconfigs.default.name == ac.name:
-            filename = "default.py"
-        elif actionconfigs.addon and actionconfigs.addon.name == ac.name:   
-            filename = "addon.py"
-        elif actionconfigs.user and actionconfigs.user.name == ac.name:   
-            filename = "user.py"
-        else:
-            return False
-
-        filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs")
-        filepath = os.path.join(filepath, filename)
-
     io.actionconfig_export_as_data(ac, filepath, sort=sort)
 
     print("Saved XR actionmaps: " + filepath)
@@ -707,27 +686,9 @@ def vr_save_actionmaps(context, filepath="", sort=False):
     return True
 
 
-def vr_name_ensure_unique(basename, items):
-    name = basename
-    idx = 1
-    while True:
-        exists = False
-        for item in items:
-            if item.name == name:
-                name = basename + str(idx)
-                if len(name) > 64:
-                    # Generate random base name.
-                    basename = str(mathutils.noise.random())
-                    name = basename
-                    idx = 1
-                else:
-                    idx += 1
-
-                exists = True
-                break
-                
-        if not exists:
-            return name
+def vr_get_default_config_path():
+    filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs")
+    return os.path.join(filepath, "default.py")
 
 
 def vr_draw_ami(ami, layout, level):
@@ -764,7 +725,7 @@ def vr_draw_ami(ami, layout, level):
         box.template_xr_actionmap_item_properties(ami)
 
 
-class VIEW3D_UL_vr_action_sets(UIList):
+class VIEW3D_UL_vr_actionmaps(UIList):
     def draw_item(self, context, layout, _data, item, icon, _active_data,
                   _active_propname, index):
         ac = vr_actionconfig_active_get(context)
@@ -782,20 +743,21 @@ class VIEW3D_UL_vr_action_sets(UIList):
             'RADIOBUT_ON' if (index == am_active_idx) else 'RADIOBUT_OFF'
         )
         props = layout.operator(
-            "view3d.vr_action_set_activate", text="", icon=icon)
+            "view3d.vr_actionmap_activate", text="", icon=icon)
         props.index = index
 
 
-class VIEW3D_MT_vr_action_set_menu(Menu):
-    bl_label = "Action Set Controls"
+class VIEW3D_MT_vr_actionmap_menu(Menu):
+    bl_label = "Action Map Controls"
 
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("view3d.vr_action_sets_import")
-        layout.operator("view3d.vr_action_sets_export")
-        layout.operator("view3d.vr_action_set_copy")
-        layout.operator("view3d.vr_action_sets_clear")
+        layout.operator("view3d.vr_actionmaps_defaults_load")
+        layout.operator("view3d.vr_actionmaps_import")
+        layout.operator("view3d.vr_actionmaps_export")
+        layout.operator("view3d.vr_actionmap_copy")
+        layout.operator("view3d.vr_actionmaps_clear")
 
 
 class VIEW3D_UL_vr_actions(UIList):
@@ -836,17 +798,17 @@ class VIEW3D_PT_vr_actions(Panel):
 
         row0 = layout.row()
         col = row0.column(align=True)
-        col.label(text="Action Sets")
+        col.label(text="Action Maps")
 
         row1 = layout.row()
-        row1.template_list("VIEW3D_UL_vr_action_sets", "", ac, "actionmaps",
+        row1.template_list("VIEW3D_UL_vr_actionmaps", "", ac, "actionmaps",
                            ac, "selected_actionmap", rows=3)
 
         col = row1.column(align=True)
-        col.operator("view3d.vr_action_set_add", icon='ADD', text="")
-        col.operator("view3d.vr_action_set_remove", icon='REMOVE', text="")
+        col.operator("view3d.vr_actionmap_add", icon='ADD', text="")
+        col.operator("view3d.vr_actionmap_remove", icon='REMOVE', text="")
 
-        col.menu("VIEW3D_MT_vr_action_set_menu", icon='DOWNARROW_HLT', text="")
+        col.menu("VIEW3D_MT_vr_actionmap_menu", icon='DOWNARROW_HLT', text="")
 
         am = vr_actionmap_selected_get(ac)
         
@@ -860,7 +822,7 @@ class VIEW3D_PT_vr_actions(Panel):
             row = row.split()
             col1 = row.column(align=True)
 
-            col0.prop(am, "name", text="Action Set")
+            col0.prop(am, "name", text="Action Map")
             col0.prop(am, "profile", text="Profile")
 
             row1.template_list("VIEW3D_UL_vr_actions", "", am, "actionmap_items",
@@ -898,10 +860,10 @@ class VIEW3D_PT_vr_actions(Panel):
                     col1.prop(ami, "haptic_amplitude", text="Amplitude")
 
 
-class VIEW3D_OT_vr_action_set_add(Operator):
-    bl_idname = "view3d.vr_action_set_add"
-    bl_label = "Add VR Action Set"
-    bl_description = "Add a new VR action set to the scene"
+class VIEW3D_OT_vr_actionmap_add(Operator):
+    bl_idname = "view3d.vr_actionmap_add"
+    bl_label = "Add VR Action Map"
+    bl_description = "Add a new VR action map to the scene"
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
@@ -909,9 +871,7 @@ class VIEW3D_OT_vr_action_set_add(Operator):
         if not ac:
             return {'CANCELLED'}
 
-        name = vr_name_ensure_unique("action_set", ac.actionmaps)
-
-        am = ac.actionmaps.new(name)    
+        am = ac.actionmaps.new("actionmap", False)    
         if not am:
             return {'CANCELLED'}
 
@@ -921,10 +881,10 @@ class VIEW3D_OT_vr_action_set_add(Operator):
         return {'FINISHED'}
 
 
-class VIEW3D_OT_vr_action_set_remove(Operator):
-    bl_idname = "view3d.vr_action_set_remove"
-    bl_label = "Remove VR Action Set"
-    bl_description = "Delete the selected VR action set from the scene"
+class VIEW3D_OT_vr_actionmap_remove(Operator):
+    bl_idname = "view3d.vr_actionmap_remove"
+    bl_label = "Remove VR Action Map"
+    bl_description = "Delete the selected VR action map from the scene"
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
@@ -936,24 +896,15 @@ class VIEW3D_OT_vr_action_set_remove(Operator):
         if not am:
             return {'CANCELLED'}
 
-        if am == vr_actionmap_active_get(ac):
-            ac.active_actionmap -= 1
-            if ac.active_actionmap < 0:
-                ac.active_actionmap = 0
-
-        ac.selected_actionmap -= 1
-        if ac.selected_actionmap < 0:
-            ac.selected_actionmap = 0
-
         ac.actionmaps.remove(am)
 
         return {'FINISHED'}
 
 
-class VIEW3D_OT_vr_action_set_activate(Operator):
-    bl_idname = "view3d.vr_action_set_activate"
-    bl_label = "Activate VR Action Set"
-    bl_description = "Set the current VR action set for the session"
+class VIEW3D_OT_vr_actionmap_activate(Operator):
+    bl_idname = "view3d.vr_actionmap_activate"
+    bl_label = "Activate VR Action Map"
+    bl_description = "Set the current VR action map for the session"
     bl_options = {'UNDO', 'REGISTER'}
 
     index: bpy.props.IntProperty(
@@ -980,10 +931,29 @@ class VIEW3D_OT_vr_action_set_activate(Operator):
         return {'FINISHED'}
 
 
-class VIEW3D_OT_vr_action_sets_import(Operator, ImportHelper):
-    bl_idname = "view3d.vr_action_sets_import"
-    bl_label = "Import Action Sets"
-    bl_description = "Import VR action sets from configuration file"
+class VIEW3D_OT_vr_actionmaps_defaults_load(Operator):
+    bl_idname = "view3d.vr_actionmaps_defaults_load"
+    bl_label = "Load Default VR Action Maps"
+    bl_description = "Load default VR action maps"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        ac = vr_actionconfig_active_get(context)
+        if not ac:
+            return {'CANCELLED'}
+
+        filepath = vr_get_default_config_path()
+
+        if not vr_load_actionmaps(context, filepath): 
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionmaps_import(Operator, ImportHelper):
+    bl_idname = "view3d.vr_actionmaps_import"
+    bl_label = "Import VR Action Maps"
+    bl_description = "Import VR action maps from configuration file"
     bl_options = {'UNDO', 'REGISTER'}
 
     filter_glob: bpy.props.StringProperty(
@@ -996,16 +966,16 @@ class VIEW3D_OT_vr_action_sets_import(Operator, ImportHelper):
         if (ext != ".py"):
             return {'CANCELLED'}
 
-        if not vr_load_actionmaps(context, filepath=self.filepath):
+        if not vr_load_actionmaps(context, self.filepath):
             return {'CANCELLED'}
         
         return {'FINISHED'}
 
 
-class VIEW3D_OT_vr_action_sets_export(Operator, ExportHelper):
-    bl_idname = "view3d.vr_action_sets_export"
-    bl_label = "Export Action Sets"
-    bl_description = "Export VR action sets to configuration file"
+class VIEW3D_OT_vr_actionmaps_export(Operator, ExportHelper):
+    bl_idname = "view3d.vr_actionmaps_export"
+    bl_label = "Export VR Action Maps"
+    bl_description = "Export VR action maps to configuration file"
     bl_options = {'REGISTER'}
 
     filter_glob: bpy.props.StringProperty(
@@ -1022,16 +992,16 @@ class VIEW3D_OT_vr_action_sets_export(Operator, ExportHelper):
         if (ext != ".py"):
             return {'CANCELLED'}
         
-        if not vr_save_actionmaps(context, filepath=self.filepath):
+        if not vr_save_actionmaps(context, self.filepath):
             return {'CANCELLED'}
         
         return {'FINISHED'}
 
 
-class VIEW3D_OT_vr_action_set_copy(Operator):
-    bl_idname = "view3d.vr_action_set_copy"
-    bl_label = "Copy VR Action Set"
-    bl_description = "Copy selected VR action set"
+class VIEW3D_OT_vr_actionmap_copy(Operator):
+    bl_idname = "view3d.vr_actionmap_copy"
+    bl_label = "Copy VR Action Map"
+    bl_description = "Copy selected VR action map"
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
@@ -1043,11 +1013,8 @@ class VIEW3D_OT_vr_action_set_copy(Operator):
         if not am:
             return {'CANCELLED'}
 
-        # Update name.        
-        name = vr_name_ensure_unique(am.name, ac.actionmaps)
-
         # Copy actionmap.
-        am_new = ac.actionmaps.new_from_actionmap(name, am)
+        am_new = ac.actionmaps.new_from_actionmap(am)
         if not am_new:
             return {'CANCELLED'}
         
@@ -1057,18 +1024,16 @@ class VIEW3D_OT_vr_action_set_copy(Operator):
         return {'FINISHED'}
 
 
-class VIEW3D_OT_vr_action_sets_clear(Operator):
-    bl_idname = "view3d.vr_action_sets_clear"
-    bl_label = "Clear VR Action Sets"
-    bl_description = "Delete all VR action sets from the scene"
+class VIEW3D_OT_vr_actionmaps_clear(Operator):
+    bl_idname = "view3d.vr_actionmaps_clear"
+    bl_label = "Clear VR Action Map"
+    bl_description = "Delete all VR action maps from the scene"
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
         ac = vr_actionconfig_active_get(context)
         if not ac:
             return {'CANCELLED'}
-
-        ac.selected_actionmap = ac.active_actionmap = 0
 
         while ac.actionmaps:
             ac.actionmaps.remove(ac.actionmaps[0])
@@ -1091,9 +1056,7 @@ class VIEW3D_OT_vr_action_add(Operator):
         if not am:
             return {'CANCELLED'}
 
-        name = vr_name_ensure_unique("action", am.actionmap_items)
-
-        ami = am.actionmap_items.new(name)    
+        ami = am.actionmap_items.new("action", False)    
         if not ami:
             return {'CANCELLED'}
 
@@ -1120,11 +1083,7 @@ class VIEW3D_OT_vr_action_remove(Operator):
 
         ami = vr_actionmap_item_selected_get(am)
         if not ami:
-            return {'CANCELLED'}       
-
-        am.selected_item -= 1
-        if am.selected_item < 0:
-            am.selected_item = 0
+            return {'CANCELLED'}
 
         am.actionmap_items.remove(ami)
 
@@ -1150,11 +1109,8 @@ class VIEW3D_OT_vr_action_copy(Operator):
         if not ami:
             return {'CANCELLED'}
 
-        # Update name.        
-        name = vr_name_ensure_unique(ami.name, am.actionmap_items)
-
         # Copy item.
-        ami_new = am.actionmap_items.new_from_item(name, ami)
+        ami_new = am.actionmap_items.new_from_item(ami)
         if not ami_new:
             return {'CANCELLED'}
         
@@ -1167,7 +1123,7 @@ class VIEW3D_OT_vr_action_copy(Operator):
 class VIEW3D_OT_vr_actions_clear(Operator):
     bl_idname = "view3d.vr_actions_clear"
     bl_label = "Clear VR Actions"
-    bl_description = "Delete all VR actions for the selected action set"
+    bl_description = "Delete all VR actions for the selected action map"
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
@@ -1178,8 +1134,6 @@ class VIEW3D_OT_vr_actions_clear(Operator):
         am = vr_actionmap_selected_get(ac)
         if not am:
             return {'CANCELLED'}
-
-        am.selected_item = 0
 
         while am.actionmap_items:
             am.actionmap_items.remove(am.actionmap_items[0])

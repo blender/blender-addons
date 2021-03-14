@@ -265,7 +265,7 @@ def _ami_props_setattr(ami_props, attr, value):
 def actionmap_init_from_data(am, am_items):
     new_fn = getattr(am.actionmap_items, "new")
     for (ami_name, ami_args, ami_data) in am_items:
-        ami = new_fn(ami_name) #, **ami_args)
+        ami = new_fn(ami_name, True)
         ami_data_from_args(ami, ami_args)
         if ami_data is not None:
             ami_props_data = ami_data.get("op_properties", None)
@@ -285,7 +285,7 @@ def actionconfig_init_from_data(ac, actionconfig_data, actionconfig_version):
         actionconfig_data = actionconfig_update(actionconfig_data, actionconfig_version)
     
     for (am_name, am_args, am_content) in actionconfig_data:
-        am = ac.actionmaps.new(am_name) #, **am_args)
+        am = ac.actionmaps.new(am_name, True)
         am_data_from_args(am, am_args)
         am_items = am_content["items"]
         # Check here instead of inside 'actionmap_init_from_data'

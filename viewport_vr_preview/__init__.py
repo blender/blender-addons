@@ -66,18 +66,19 @@ classes = (
     main.VIEW3D_OT_cursor_to_vr_landmark,
     main.VIEW3D_OT_update_vr_landmark,
 
-    main.VIEW3D_UL_vr_action_sets,
-    main.VIEW3D_MT_vr_action_set_menu,
+    main.VIEW3D_UL_vr_actionmaps,
+    main.VIEW3D_MT_vr_actionmap_menu,
     main.VIEW3D_UL_vr_actions,
     main.VIEW3D_MT_vr_action_menu,
 
-    main.VIEW3D_OT_vr_action_set_add,
-    main.VIEW3D_OT_vr_action_set_remove,
-    main.VIEW3D_OT_vr_action_set_activate,
-    main.VIEW3D_OT_vr_action_sets_import,
-    main.VIEW3D_OT_vr_action_sets_export,
-    main.VIEW3D_OT_vr_action_set_copy,
-    main.VIEW3D_OT_vr_action_sets_clear,
+    main.VIEW3D_OT_vr_actionmap_add,
+    main.VIEW3D_OT_vr_actionmap_remove,
+    main.VIEW3D_OT_vr_actionmap_activate,
+    main.VIEW3D_OT_vr_actionmaps_defaults_load,
+    main.VIEW3D_OT_vr_actionmaps_import,
+    main.VIEW3D_OT_vr_actionmaps_export,
+    main.VIEW3D_OT_vr_actionmap_copy,
+    main.VIEW3D_OT_vr_actionmaps_clear,
     main.VIEW3D_OT_vr_action_add,
     main.VIEW3D_OT_vr_action_remove,
     main.VIEW3D_OT_vr_action_copy,
@@ -137,7 +138,8 @@ def register():
     )
 
     bpy.app.handlers.load_post.append(main.vr_ensure_default_landmark)
-    bpy.app.handlers.load_post.append(defaults.vr_load_default_actionmaps)
+    bpy.app.handlers.load_post.append(defaults.vr_init_default_actionconfig)
+    bpy.app.handlers.load_post.append(main.vr_activate_user_actionconfig)
     bpy.app.handlers.xr_session_start_pre.append(main.vr_create_actions)
 
 
@@ -160,5 +162,6 @@ def unregister():
     del bpy.types.View3DShading.vr_show_landmarks
 
     bpy.app.handlers.load_post.remove(main.vr_ensure_default_landmark)
-    bpy.app.handlers.load_post.remove(defaults.vr_load_default_actionmaps)
+    bpy.app.handlers.load_post.remove(defaults.vr_init_default_actionconfig)
+    bpy.app.handlers.load_post.remove(main.vr_activate_user_actionconfig)
     bpy.app.handlers.xr_session_start_pre.remove(main.vr_create_actions)

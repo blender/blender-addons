@@ -26,12 +26,29 @@ else:
 
 import bpy
 from bpy.app.handlers import persistent
-import math
 from enum import Enum
+import math
+
+
+# Default actionmaps.
+class VRDefaultActionmaps(Enum):
+    OCULUS = "blender_oculus"
+    WMR = "blender_wmr"
+    VIVE = "blender_vive"
+    INDEX = "blender_index"
+
+
+# Default actions.
+class VRDefaultActions(Enum):
+    CONTROLLER_POSE = "controller_pose"
+    RAYCAST_SELECT = "raycast_select"
+    GRAB = "grab"
+    UNDO = "undo"
+    REDO = "redo"
 
 
 def vr_defaults_actionmap_add(ac, name, profile):
-    am = ac.actionmaps.new(name)    
+    am = ac.actionmaps.new(name, True)    
     if am:
         am.profile = profile
 
@@ -48,7 +65,7 @@ def vr_defaults_actionmap_item_add(am,
                                    op,
                                    op_flag):
 
-    ami = am.actionmap_items.new(name)
+    ami = am.actionmap_items.new(name, True)
     if ami:        
         ami.type = 'BUTTON'
         ami.user_path0 = user_path0
@@ -71,7 +88,7 @@ def vr_defaults_pose_actionmap_item_add(am,
                                         is_controller,
                                         location,
                                         rotation):
-    ami = am.actionmap_items.new(name)
+    ami = am.actionmap_items.new(name, True)
     if ami:             
         ami.type = 'POSE'
         ami.user_path0 = user_path0
@@ -94,7 +111,7 @@ def vr_defaults_haptic_actionmap_item_add(am,
                                           duration,
                                           frequency,
                                           amplitude):
-    ami = am.actionmap_items.new(name)
+    ami = am.actionmap_items.new(name, True)
     if ami:        
         ami.type = 'HAPTIC'
         ami.user_path0 = user_path0
@@ -108,31 +125,15 @@ def vr_defaults_haptic_actionmap_item_add(am,
     return ami
 
 
-# Default actionmaps.
-class VRDefaultActionmapNames(Enum):
-    OCULUS = "default_oculus"
-    WMR = "default_wmr"
-    VIVE = "default_vive"
-    INDEX = "default_index"
-
-# Default actionmap items.
-class VRDefaultActionmapItemNames(Enum):
-    CONTROLLER_POSE = "controller_pose"
-    RAYCAST_SELECT = "raycast_select"
-    GRAB = "grab"
-    UNDO = "undo"
-    REDO = "redo"
-
-
 def vr_defaults_create_oculus(ac):
     am = vr_defaults_actionmap_add(ac,
-                                   VRDefaultActionmapNames.OCULUS.value,
+                                   VRDefaultActionmaps.OCULUS.value,
                                    "/interaction_profiles/oculus/touch_controller")
     if not am:
         return
 
     vr_defaults_pose_actionmap_item_add(am,
-                                        VRDefaultActionmapItemNames.CONTROLLER_POSE.value,
+                                        VRDefaultActions.CONTROLLER_POSE.value,
                                         "/user/hand/left",
                                         "/input/grip/pose",
                                         "/user/hand/right",
@@ -141,7 +142,7 @@ def vr_defaults_create_oculus(ac):
                                         (0, 0, 0),
                                         (math.radians(-50), 0, 0)) 
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActionmapItemNames.RAYCAST_SELECT.value,
+                                   VRDefaultActions.RAYCAST_SELECT.value,
                                    "/user/hand/left",
                                    "/input/trigger/value",
                                    "/user/hand/right",
@@ -150,7 +151,7 @@ def vr_defaults_create_oculus(ac):
                                    "wm.xr_select_raycast",
                                    'MODAL')      
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActionmapItemNames.GRAB.value,
+                                   VRDefaultActions.GRAB.value,
                                    "/user/hand/left",
                                    "/input/squeeze/value",
                                    "/user/hand/right",
@@ -159,7 +160,7 @@ def vr_defaults_create_oculus(ac):
                                    "wm.xr_grab",
                                    'MODAL')
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActionmapItemNames.UNDO.value,
+                                   VRDefaultActions.UNDO.value,
                                    "/user/hand/left",
                                    "/input/x/click",
                                    "",
@@ -168,7 +169,7 @@ def vr_defaults_create_oculus(ac):
                                    "ed.undo",
                                    'PRESS')        
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActionmapItemNames.REDO.value,
+                                   VRDefaultActions.REDO.value,
                                    "/user/hand/right",
                                    "/input/a/click",
                                    "",
@@ -180,13 +181,13 @@ def vr_defaults_create_oculus(ac):
 
 def vr_defaults_create_wmr(ac):
     am = vr_defaults_actionmap_add(ac,
-                                   VRDefaultActionmapNames.WMR.value,
+                                   VRDefaultActionmaps.WMR.value,
                                    "/interaction_profiles/microsoft/motion_controller")
     if not am:
         return
 
     vr_defaults_pose_actionmap_item_add(am,
-                                        VRDefaultActionmapItemNames.CONTROLLER_POSE.value,
+                                        VRDefaultActions.CONTROLLER_POSE.value,
                                         "/user/hand/left",
                                         "/input/grip/pose",
                                         "/user/hand/right",
@@ -195,7 +196,7 @@ def vr_defaults_create_wmr(ac):
                                         (0, 0, 0),
                                         (math.radians(-45), 0, 0)) 
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActionmapItemNames.RAYCAST_SELECT.value,
+                                   VRDefaultActions.RAYCAST_SELECT.value,
                                    "/user/hand/left",
                                    "/input/trigger/value",
                                    "/user/hand/right",
@@ -204,7 +205,7 @@ def vr_defaults_create_wmr(ac):
                                    "wm.xr_select_raycast",
                                    'MODAL')      
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActionmapItemNames.GRAB.value,
+                                   VRDefaultActions.GRAB.value,
                                    "/user/hand/left",
                                    "/input/squeeze/click",
                                    "/user/hand/right",
@@ -213,7 +214,7 @@ def vr_defaults_create_wmr(ac):
                                    "wm.xr_grab",
                                    'MODAL')
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActionmapItemNames.UNDO.value,
+                                   VRDefaultActions.UNDO.value,
                                    "/user/hand/left",
                                    "/input/menu/click",
                                    "",
@@ -222,7 +223,7 @@ def vr_defaults_create_wmr(ac):
                                    "ed.undo",
                                    'PRESS')        
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActionmapItemNames.REDO.value,
+                                   VRDefaultActions.REDO.value,
                                    "/user/hand/right",
                                    "/input/menu/click",
                                    "",
@@ -234,13 +235,13 @@ def vr_defaults_create_wmr(ac):
 
 def vr_defaults_create_vive(ac):
     am = vr_defaults_actionmap_add(ac,
-                                   VRDefaultActionmapNames.VIVE.value,
+                                   VRDefaultActionmaps.VIVE.value,
                                    "/interaction_profiles/htc/vive_controller")
     if not am:
         return
 
     vr_defaults_pose_actionmap_item_add(am,
-                                        VRDefaultActionmapItemNames.CONTROLLER_POSE.value,
+                                        VRDefaultActions.CONTROLLER_POSE.value,
                                         "/user/hand/left",
                                         "/input/grip/pose",
                                         "/user/hand/right",
@@ -249,7 +250,7 @@ def vr_defaults_create_vive(ac):
                                         (0, 0, 0),
                                         (0, 0, 0)) 
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActionmapItemNames.RAYCAST_SELECT.value,
+                                   VRDefaultActions.RAYCAST_SELECT.value,
                                    "/user/hand/left",
                                    "/input/trigger/value",
                                    "/user/hand/right",
@@ -258,7 +259,7 @@ def vr_defaults_create_vive(ac):
                                    "wm.xr_select_raycast",
                                    'MODAL')      
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActionmapItemNames.GRAB.value,
+                                   VRDefaultActions.GRAB.value,
                                    "/user/hand/left",
                                    "/input/squeeze/click",
                                    "/user/hand/right",
@@ -267,7 +268,7 @@ def vr_defaults_create_vive(ac):
                                    "wm.xr_grab",
                                    'MODAL')
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActionmapItemNames.UNDO.value,
+                                   VRDefaultActions.UNDO.value,
                                    "/user/hand/left",
                                    "/input/menu/click",
                                    "",
@@ -276,7 +277,7 @@ def vr_defaults_create_vive(ac):
                                    "ed.undo",
                                    'PRESS')        
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActionmapItemNames.REDO.value,
+                                   VRDefaultActions.REDO.value,
                                    "/user/hand/right",
                                    "/input/menu/click",
                                    "",
@@ -288,13 +289,13 @@ def vr_defaults_create_vive(ac):
 
 def vr_defaults_create_index(ac):
     am = vr_defaults_actionmap_add(ac,
-                                   VRDefaultActionmapNames.INDEX.value,
+                                   VRDefaultActionmaps.INDEX.value,
                                    "/interaction_profiles/valve/index_controller")
     if not am:
         return
 
     vr_defaults_pose_actionmap_item_add(am,
-                                        VRDefaultActionmapItemNames.CONTROLLER_POSE.value,
+                                        VRDefaultActions.CONTROLLER_POSE.value,
                                         "/user/hand/left",
                                         "/input/grip/pose",
                                         "/user/hand/right",
@@ -303,7 +304,7 @@ def vr_defaults_create_index(ac):
                                         (0, 0, 0),
                                         (0, 0, 0)) 
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActionmapItemNames.RAYCAST_SELECT.value,
+                                   VRDefaultActions.RAYCAST_SELECT.value,
                                    "/user/hand/left",
                                    "/input/trigger/value",
                                    "/user/hand/right",
@@ -312,7 +313,7 @@ def vr_defaults_create_index(ac):
                                    "wm.xr_select_raycast",
                                    'MODAL')      
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActionmapItemNames.GRAB.value,
+                                   VRDefaultActions.GRAB.value,
                                    "/user/hand/left",
                                    "/input/squeeze/value",
                                    "/user/hand/right",
@@ -321,7 +322,7 @@ def vr_defaults_create_index(ac):
                                    "wm.xr_grab",
                                    'MODAL')
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActionmapItemNames.UNDO.value,
+                                   VRDefaultActions.UNDO.value,
                                    "/user/hand/left",
                                    "/input/a/click",
                                    "",
@@ -330,7 +331,7 @@ def vr_defaults_create_index(ac):
                                    "ed.undo",
                                    'PRESS')        
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActionmapItemNames.REDO.value,
+                                   VRDefaultActions.REDO.value,
                                    "/user/hand/right",
                                    "/input/a/click",
                                    "",
@@ -341,7 +342,7 @@ def vr_defaults_create_index(ac):
     
 
 @persistent
-def vr_load_default_actionmaps(context: bpy.context):
+def vr_init_default_actionconfig(context: bpy.context):
     context = bpy.context
 
     actionconfigs = context.window_manager.xr_session_settings.actionconfigs
@@ -351,18 +352,13 @@ def vr_load_default_actionmaps(context: bpy.context):
     if not ac:
         return
 
-    # Set default action config as active. 
+    # Set default config as active.
     actionconfigs.active = ac
 
-    if len(ac.actionmaps) > 0:
-        # Don't load defaults for scenes that already contain actionmaps.
-        return
-
-    # Set default action config as active. 
-    #actionconfigs.active = ac
-
     # Load default actionmaps.
-    loaded = main.vr_load_actionmaps(context)
+    filepath = main.vr_get_default_config_path()
+
+    loaded = main.vr_load_actionmaps(context, filepath)
     
     if not loaded:
         # Create and save default actionmaps.
@@ -371,4 +367,4 @@ def vr_load_default_actionmaps(context: bpy.context):
         vr_defaults_create_vive(ac)
         vr_defaults_create_index(ac)
 
-        main.vr_save_actionmaps(context, sort=False)
+        main.vr_save_actionmaps(context, filepath, sort=False)

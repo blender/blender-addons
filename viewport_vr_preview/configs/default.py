@@ -1,6 +1,6 @@
 actionconfig_version = (2, 93, 10)
 actionconfig_data = \
-[("default_oculus",
+[("blender_oculus",
   {"profile": '/interaction_profiles/oculus/touch_controller'},
   {"items":
    [("controller_pose", {"type": 'POSE', "user_path0": '/user/hand/left', "component_path0": '/input/grip/pose', "user_path1": '/user/hand/right', "component_path1": '/input/grip/pose', "pose_is_controller": 'True', "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(-0.8726646304130554, 0.0, 0.0)'}, None),
@@ -11,7 +11,7 @@ actionconfig_data = \
     ],
    },
   ),
- ("default_wmr",
+ ("blender_wmr",
   {"profile": '/interaction_profiles/microsoft/motion_controller'},
   {"items":
    [("controller_pose", {"type": 'POSE', "user_path0": '/user/hand/left', "component_path0": '/input/grip/pose', "user_path1": '/user/hand/right', "component_path1": '/input/grip/pose', "pose_is_controller": 'True', "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(-0.7853981852531433, 0.0, 0.0)'}, None),
@@ -22,7 +22,7 @@ actionconfig_data = \
     ],
    },
   ),
- ("default_vive",
+ ("blender_vive",
   {"profile": '/interaction_profiles/htc/vive_controller'},
   {"items":
    [("controller_pose", {"type": 'POSE', "user_path0": '/user/hand/left', "component_path0": '/input/grip/pose', "user_path1": '/user/hand/right', "component_path1": '/input/grip/pose', "pose_is_controller": 'True', "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}, None),
@@ -33,7 +33,7 @@ actionconfig_data = \
     ],
    },
   ),
- ("default_index",
+ ("blender_index",
   {"profile": '/interaction_profiles/valve/index_controller'},
   {"items":
    [("controller_pose", {"type": 'POSE', "user_path0": '/user/hand/left', "component_path0": '/input/grip/pose', "user_path1": '/user/hand/right', "component_path1": '/input/grip/pose', "pose_is_controller": 'True', "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}, None),
