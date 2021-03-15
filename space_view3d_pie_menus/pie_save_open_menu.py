@@ -43,29 +43,18 @@ class PIE_MT_SaveOpen(Menu):
 
     @staticmethod
     def _save_as_mainfile_calc_incremental_name():
-        f_path = bpy.data.filepath
-        b_name = bpy.path.basename(f_path)
-
-        if b_name and b_name.find("_") != -1:
-            # except in cases when there is an underscore in the name like my_file.blend
-            try:
-                str_nb = b_name.rpartition("_")[-1].rpartition(".blend")[0]
-                int_nb = int(str(str_nb))
-                new_nb = str_nb.replace(str(int_nb), str(int_nb + 1))
-                output = f_path.replace(str_nb, new_nb)
-
-                i = 1
-                while os.path.isfile(output):
-                    str_nb = b_name.rpartition("_")[-1].rpartition(".blend")[0]
-                    i += 1
-                    new_nb = str_nb.replace(str(int_nb), str(int_nb + i))
-                    output = f_path.replace(str_nb, new_nb)
-            except ValueError:
-                output = f_path.rpartition(".blend")[0] + "_001" + ".blend"
+        import re
+        dirname, base_name = os.path.split(bpy.data.filepath)
+        base_name_no_ext, ext = os.path.splitext(base_name)
+        match = re.match(r"(.*)_([\d]+)$", base_name_no_ext)
+        if match:
+            prefix, number = match.groups()
+            number = int(number) + 1
         else:
-            # no underscore in the name or saving a nameless (.blend) file
-            output = f_path.rpartition(".blend")[0] + "_001" + ".blend"
-
+            prefix, number = base_name_no_ext, 1
+        prefix = os.path.join(dirname, prefix)
+        while os.path.isfile(output := "%s_%03d%s" % (prefix, number, ext)):
+            number += 1
         return output
 
     def draw(self, context):
