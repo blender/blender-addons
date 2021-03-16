@@ -238,6 +238,8 @@ def parse_result(r):
     #     utils.p('asset with no files-size')
     asset_type = r['assetType']
     if len(r['files']) > 0:#TODO remove this condition so all assets are parsed.
+        get_author(r)
+
         r['available_resolutions'] = []
         allthumbs = []
         durl, tname, small_tname = '', '', ''
@@ -642,9 +644,9 @@ def generate_tooltip(mdata):
     # t += 'uv: %s\n' % mdata['uv']
     # t += '\n'
     if mdata.get('license') == 'cc_zero':
-        t+= 'license: CC Zero'
+        t+= 'license: CC Zero\n'
     else:
-        t+= 'license: Royalty free'
+        t+= 'license: Royalty free\n'
     # t = writeblockm(t, mdata, key='license', width=col_w)
 
     fs = mdata.get('files')
@@ -660,9 +662,9 @@ def generate_tooltip(mdata):
             t += resolutions.replace('_', '.')
 
         if mdata['isFree']:
-            t += 'FREE plan\n'
+            t += 'Free plan\n'
         else:
-            t += 'FULL plan\n'
+            t += 'Full plan\n'
     else:
         if fs:
             for f in fs:
@@ -899,68 +901,68 @@ def get_profile():
     thread.start()
     return a
 
+def query_to_url(query = {}, params = {}):
+    # build a new request
+    url = paths.get_api_url() + 'search/'
+
+    # build request manually
+    # TODO use real queries
+    requeststring = '?query='
+    #
+    if query.get('query') not in ('', None):
+        requeststring += query['query'].lower()
+    for i, q in enumerate(query):
+        if q != 'query':
+            requeststring += '+'
+            requeststring += q + ':' + str(query[q]).lower()
+
+    # result ordering: _score - relevance, score - BlenderKit score
+    order = []
+    if params['free_first']:
+        order = ['-is_free', ]
+    if query.get('query') is None and query.get('category_subtree') == None:
+        # assumes no keywords and no category, thus an empty search that is triggered on start.
+        # orders by last core file upload
+        if query.get('verification_status') == 'uploaded':
+            # for validators, sort uploaded from oldest
+            order.append('created')
+        else:
+            order.append('-last_upload')
+    elif query.get('author_id') is not None and utils.profile_is_validator():
+
+        order.append('-created')
+    else:
+        if query.get('category_subtree') is not None:
+            order.append('-score,_score')
+        else:
+            order.append('_score')
+    requeststring += '+order:' + ','.join(order)
+
+    requeststring += '&addon_version=%s' % params['addon_version']
+    if params.get('scene_uuid') is not None:
+        requeststring += '&scene_uuid=%s' % params['scene_uuid']
+    # print('params', params)
+    urlquery = url + requeststring
+    return urlquery
 
 class Searcher(threading.Thread):
     query = None
 
-    def __init__(self, query, params, orig_result):
+    def __init__(self, query, params, orig_result, tempdir = '', headers = None, urlquery = ''):
         super(Searcher, self).__init__()
         self.query = query
         self.params = params
         self._stop_event = threading.Event()
         self.result = orig_result
+        self.tempdir = tempdir
+        self.headers = headers
+        self.urlquery = urlquery
 
     def stop(self):
         self._stop_event.set()
 
     def stopped(self):
         return self._stop_event.is_set()
-
-    def query_to_url(self):
-        query = self.query
-        params = self.params
-        # build a new request
-        url = paths.get_api_url() + 'search/'
-
-        # build request manually
-        # TODO use real queries
-        requeststring = '?query='
-        #
-        if query.get('query') not in ('', None):
-            requeststring += query['query'].lower()
-        for i, q in enumerate(query):
-            if q != 'query':
-                requeststring += '+'
-                requeststring += q + ':' + str(query[q]).lower()
-
-        # result ordering: _score - relevance, score - BlenderKit score
-        order = []
-        if params['free_first']:
-            order = ['-is_free', ]
-        if query.get('query') is None and query.get('category_subtree') == None:
-            # assumes no keywords and no category, thus an empty search that is triggered on start.
-            # orders by last core file upload
-            if query.get('verification_status') == 'uploaded':
-                # for validators, sort uploaded from oldest
-                order.append('created')
-            else:
-                order.append('-last_upload')
-        elif query.get('author_id') is not None and utils.profile_is_validator():
-
-            order.append('-created')
-        else:
-            if query.get('category_subtree') is not None:
-                order.append('-score,_score')
-            else:
-                order.append('_score')
-        requeststring += '+order:' + ','.join(order)
-
-        requeststring += '&addon_version=%s' % params['addon_version']
-        if params.get('scene_uuid') is not None:
-            requeststring += '&scene_uuid=%s' % params['scene_uuid']
-        # print('params', params)
-        urlquery = url + requeststring
-        return urlquery
 
     def run(self):
         maxthreads = 50
@@ -970,22 +972,16 @@ class Searcher(threading.Thread):
 
         t = time.time()
         mt('search thread started')
-        tempdir = paths.get_temp_dir('%s_search' % query['asset_type'])
+        # tempdir = paths.get_temp_dir('%s_search' % query['asset_type'])
         # json_filepath = os.path.join(tempdir, '%s_searchresult.json' % query['asset_type'])
 
-        headers = utils.get_headers(params['api_key'])
 
         rdata = {}
         rdata['results'] = []
 
-        if params['get_next']:
-            urlquery = self.result['next']
-        if not params['get_next']:
-            urlquery = self.query_to_url()
-
         try:
-            utils.p(urlquery)
-            r = rerequests.get(urlquery, headers=headers)  # , params = rparameters)
+            utils.p(self.urlquery)
+            r = rerequests.get(self.urlquery, headers=self.headers)  # , params = rparameters)
             # print(r.url)
             reports = ''
             # utils.p(r.text)
@@ -1024,8 +1020,6 @@ class Searcher(threading.Thread):
         # END OF PARSING
         for d in rdata.get('results', []):
 
-            get_author(d)
-
             for f in d['files']:
                 # TODO move validation of published assets to server, too manmy checks here.
                 if f['fileType'] == 'thumbnail' and f['fileThumbnail'] != None and f['fileThumbnailLarge'] != None:
@@ -1038,11 +1032,11 @@ class Searcher(threading.Thread):
                     thumb_full_urls.append(f['fileThumbnailLarge'])
 
                     imgname = paths.extract_filename_from_url(f['fileThumbnail'])
-                    imgpath = os.path.join(tempdir, imgname)
+                    imgpath = os.path.join(self.tempdir, imgname)
                     thumb_small_filepaths.append(imgpath)
 
                     imgname = paths.extract_filename_from_url(f['fileThumbnailLarge'])
-                    imgpath = os.path.join(tempdir, imgname)
+                    imgpath = os.path.join(self.tempdir, imgname)
                     thumb_full_filepaths.append(imgpath)
 
         sml_thbs = zip(thumb_small_filepaths, thumb_small_urls)
@@ -1291,9 +1285,16 @@ def add_search_process(query, params, orig_result):
         old_thread = search_threads.pop(0)
         old_thread[0].stop()
         # TODO CARE HERE FOR ALSO KILLING THE Thumbnail THREADS.?
-        #  AT LEAST NOW SEARCH DONE FIRST WON'T REWRITE AN OLDER ONE
+        #  AT LEAST NOW SEARCH DONE FIRST WON'T REWRITE AN NEWER ONE
     tempdir = paths.get_temp_dir('%s_search' % query['asset_type'])
-    thread = Searcher(query, params, orig_result)
+    headers = utils.get_headers(params['api_key'])
+
+    if params['get_next']:
+        urlquery = orig_result['next']
+    if not params['get_next']:
+        urlquery = query_to_url(query, params)
+
+    thread = Searcher(query, params, orig_result, tempdir = tempdir, headers = headers, urlquery = urlquery)
     thread.start()
 
     search_threads.append([thread, tempdir, query['asset_type'], {}])  # 4th field is for results
