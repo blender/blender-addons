@@ -104,6 +104,8 @@ classes = (
     operators.CMDisableObjectsOperator,
     operators.CMDisableUnSelectedObjectsOperator,
     operators.CMRestoreDisabledObjectsOperator,
+    operators.CMUndoWrapper,
+    operators.CMRedoWrapper,
     preferences.CMPreferences,
     ui.CM_UL_items,
     ui.CollectionManager,

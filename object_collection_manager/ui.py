@@ -40,15 +40,11 @@ from .internals import (
     update_collection_tree,
     update_property_group,
     generate_state,
+    check_state,
     get_move_selection,
     get_move_active,
     update_qcd_header,
 )
-
-from .qcd_operators import (
-    QCDAllBase,
-)
-
 
 preview_collections = {}
 last_icon_theme_text = None
@@ -135,6 +131,11 @@ class CollectionManager(Operator):
             renum_sec = op_sec.row()
             renum_sec.alignment = 'LEFT'
             renum_sec.operator("view3d.renumerate_qcd_slots")
+
+        undo_sec = op_sec.row(align=True)
+        undo_sec.alignment = 'LEFT'
+        undo_sec.operator("view3d.undo_wrapper", text="", icon='LOOP_BACK')
+        undo_sec.operator("view3d.redo_wrapper", text="", icon='LOOP_FORWARDS')
 
         # menu & filter
         right_sec = button_row_1.row()
@@ -387,58 +388,8 @@ class CollectionManager(Operator):
         if cm.cm_list_index >= len(cm.cm_list_collection):
             cm.cm_list_index = -1
 
-        # check if expanded & history/buffer state still correct
-        if internals.collection_state:
-            new_state = generate_state()
-
-            if new_state["name"] != internals.collection_state["name"]:
-                internals.copy_buffer["RTO"] = ""
-                internals.copy_buffer["values"].clear()
-
-                internals.swap_buffer["A"]["RTO"] = ""
-                internals.swap_buffer["A"]["values"].clear()
-                internals.swap_buffer["B"]["RTO"] = ""
-                internals.swap_buffer["B"]["values"].clear()
-
-                for name in list(internals.expanded):
-                    laycol = internals.layer_collections.get(name)
-                    if not laycol or not laycol["has_children"]:
-                        internals.expanded.remove(name)
-
-                for name in list(internals.expand_history["history"]):
-                    laycol = internals.layer_collections.get(name)
-                    if not laycol or not laycol["has_children"]:
-                        internals.expand_history["history"].remove(name)
-
-                for rto, history in internals.rto_history.items():
-                    if view_layer.name in history:
-                        del history[view_layer.name]
-
-
-            else:
-                for rto in ["exclude", "select", "hide", "disable", "render", "holdout", "indirect"]:
-                    if new_state[rto] != internals.collection_state[rto]:
-                        if view_layer.name in internals.rto_history[rto]:
-                            del internals.rto_history[rto][view_layer.name]
-
-                        if view_layer.name in internals.rto_history[rto+"_all"]:
-                            del internals.rto_history[rto+"_all"][view_layer.name]
-
-        # check if in phantom mode and if it's still viable
-        if cm.in_phantom_mode:
-            if internals.layer_collections.keys() != internals.phantom_history["initial_state"].keys():
-                cm.in_phantom_mode = False
-
-            if view_layer.name != internals.phantom_history["view_layer"]:
-                cm.in_phantom_mode = False
-
-            if not cm.in_phantom_mode:
-                for key, value in internals.phantom_history.items():
-                    try:
-                        value.clear()
-                    except AttributeError:
-                        if key == "view_layer":
-                            internals.phantom_history["view_layer"] = ""
+        # check if history/buffer/phantom state still correct
+        check_state(context, cm_popup=True, phantom_mode=True)
 
         # handle window sizing
         max_width = 960
@@ -930,17 +881,7 @@ def view3d_header_qcd_slots(self, context):
     layout = self.layout
     idx = 1
 
-    if internals.qcd_collection_state:
-        view_layer = context.view_layer
-        new_state = generate_state(qcd=True)
-
-        if (new_state["name"] != internals.qcd_collection_state["name"]
-        or  new_state["exclude"] != internals.qcd_collection_state["exclude"]
-        or  new_state["qcd"] != internals.qcd_collection_state["qcd"]):
-            if view_layer.name in internals.qcd_history:
-                del internals.qcd_history[view_layer.name]
-                internals.qcd_collection_state.clear()
-                QCDAllBase.clear()
+    check_state(context, qcd=True)
 
 
     main_row = layout.row(align=True)

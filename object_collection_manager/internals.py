@@ -621,6 +621,80 @@ def generate_state(*, qcd=False):
     return state
 
 
+def check_state(context, *, cm_popup=False, phantom_mode=False, qcd=False):
+    view_layer = context.view_layer
+
+    # check if expanded & history/buffer state still correct
+    if cm_popup and collection_state:
+        new_state = generate_state()
+
+        if new_state["name"] != collection_state["name"]:
+            copy_buffer["RTO"] = ""
+            copy_buffer["values"].clear()
+
+            swap_buffer["A"]["RTO"] = ""
+            swap_buffer["A"]["values"].clear()
+            swap_buffer["B"]["RTO"] = ""
+            swap_buffer["B"]["values"].clear()
+
+            for name in list(expanded):
+                laycol = layer_collections.get(name)
+                if not laycol or not laycol["has_children"]:
+                    expanded.remove(name)
+
+            for name in list(expand_history["history"]):
+                laycol = layer_collections.get(name)
+                if not laycol or not laycol["has_children"]:
+                    expand_history["history"].remove(name)
+
+            for rto, history in rto_history.items():
+                if view_layer.name in history:
+                    del history[view_layer.name]
+
+
+        else:
+            for rto in ["exclude", "select", "hide", "disable", "render", "holdout", "indirect"]:
+                if new_state[rto] != collection_state[rto]:
+                    if view_layer.name in rto_history[rto]:
+                        del rto_history[rto][view_layer.name]
+
+                    if view_layer.name in rto_history[rto+"_all"]:
+                        del rto_history[rto+"_all"][view_layer.name]
+
+
+    if phantom_mode:
+        cm = context.scene.collection_manager
+
+        # check if in phantom mode and if it's still viable
+        if cm.in_phantom_mode:
+            if layer_collections.keys() != phantom_history["initial_state"].keys():
+                cm.in_phantom_mode = False
+
+            if view_layer.name != phantom_history["view_layer"]:
+                cm.in_phantom_mode = False
+
+            if not cm.in_phantom_mode:
+                for key, value in phantom_history.items():
+                    try:
+                        value.clear()
+                    except AttributeError:
+                        if key == "view_layer":
+                            phantom_history["view_layer"] = ""
+
+
+    if qcd and qcd_collection_state:
+        from .qcd_operators import QCDAllBase
+        new_state = generate_state(qcd=True)
+
+        if (new_state["name"] != qcd_collection_state["name"]
+        or  new_state["exclude"] != qcd_collection_state["exclude"]
+        or  new_state["qcd"] != qcd_collection_state["qcd"]):
+            if view_layer.name in qcd_history:
+                del qcd_history[view_layer.name]
+                qcd_collection_state.clear()
+                QCDAllBase.clear()
+
+
 def get_move_selection(*, names_only=False):
     global move_selection
 
