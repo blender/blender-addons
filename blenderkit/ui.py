@@ -412,7 +412,6 @@ def draw_tooltip(x, y, text='', author='', img=None, gravatar=None):
             fsize = font_height
             tcol = textcol
 
-            print (i)
             if l[:4] == 'Tip:' or l[:11] == 'Please rate'  :
                 tcol = textcol_strong
                 fsize = font_height + 1
