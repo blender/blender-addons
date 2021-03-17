@@ -241,8 +241,8 @@ thumbnail_snap = (
 
 thumbnail_resolutions = (
     ('256', '256', ''),
-    ('512', '512 - minimum for public', ''),
-    ('1024', '1024', ''),
+    ('512', '512', ''),
+    ('1024', '1024 - minimum for public', ''),
     ('2048', '2048', ''),
 )
 
@@ -310,8 +310,8 @@ def asset_type_callback(self, context):
             # ('SCENE', 'SCENE', 'Browse scenes', 'SCENE_DATA', 1),
             ('MATERIAL', 'Material', 'Upload a material to BlenderKit', 'MATERIAL', 2),
             # ('TEXTURE', 'Texture', 'Browse textures', 'TEXTURE', 3),
-            ('SCENE', 'Scenes', 'Browse scenes', 'SCENE_DATA', 3),
-            ('HDR', 'HDRs', 'Browse HDRs', 'WORLD', 4),
+            ('SCENE', 'Scene', 'Browse scenes', 'SCENE_DATA', 3),
+            ('HDR', 'HDR', 'Browse HDRs', 'WORLD', 4),
             ('BRUSH', 'Brush', 'Upload a brush to BlenderKit', 'BRUSH_DATA', 5)
         )
 
@@ -338,7 +338,7 @@ class BlenderKitUIProps(PropertyGroup):
         update=switch_search_results
     )
 
-    asset_type_expand:  BoolProperty(name="Expand asset types", default=False)
+    asset_type_fold:  BoolProperty(name="Expand asset types", default=False)
     # these aren't actually used ( by now, seems to better use globals in UI module:
     draw_tooltip: BoolProperty(name="Draw Tooltip", default=False)
     addon_update: BoolProperty(name="Should Update Addon", default=False)
@@ -644,11 +644,13 @@ class BlenderKitCommonUploadProps(object):
     is_private: EnumProperty(
         name="Thumbnail Style",
         items=(
-            ('PRIVATE', 'Private', "You asset will be hidden to public. The private assets are limited by a quota."),
-            ('PUBLIC', 'Public', '"Your asset will go into the validation process automatically')
+            ('PRIVATE', 'Private', ""),
+            ('PUBLIC', 'Public', "")
         ),
-        description="If not marked private, your asset will go into the validation process automatically\n"
-                    "Private assets are limited by quota",
+        description="Public assets go into the validation process. \n"
+                    "Validated assets are visible to all users.\n"
+                    "Private assets are limited by your plan quota\n"
+                    "Current status:",
         default="PUBLIC",
     )
 
@@ -873,7 +875,7 @@ class BlenderKitMaterialUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
                                                   description="set to make your material stand out", default=.9,
                                                   min=0.00001, max=1)
     thumbnail_samples: IntProperty(name="Cycles Samples",
-                                   description="cycles samples setting", default=150,
+                                   description="cycles samples setting", default=100,
                                    min=5, max=5000)
     thumbnail_denoising: BoolProperty(name="Use Denoising",
                                       description="Use denoising", default=True)
@@ -884,7 +886,7 @@ class BlenderKitMaterialUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
         name="Resolution",
         items=thumbnail_resolutions,
         description="Thumbnail resolution",
-        default="512",
+        default="1024",
     )
 
     thumbnail_generator_type: EnumProperty(
@@ -1074,11 +1076,11 @@ class BlenderKitModelUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
         name="Resolution",
         items=thumbnail_resolutions,
         description="Thumbnail resolution",
-        default="512",
+        default="1024",
     )
 
     thumbnail_samples: IntProperty(name="Cycles Samples",
-                                   description="cycles samples setting", default=200,
+                                   description="cycles samples setting", default=100,
                                    min=5, max=5000)
     thumbnail_denoising: BoolProperty(name="Use Denoising",
                                       description="Use denoising", default=True)

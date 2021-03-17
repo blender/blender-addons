@@ -968,18 +968,24 @@ class VIEW3D_PT_blenderkit_unified(Panel):
         # split = row.split(factor=.
 
         expand_icon = 'TRIA_DOWN'
-        if ui_props.asset_type_expand:
+        if ui_props.asset_type_fold:
             expand_icon = 'TRIA_RIGHT'
         row = layout.row()
-        split = row.split(factor = 0.1)
-        split.prop(ui_props, 'asset_type_expand', icon = expand_icon, icon_only = True, emboss = False)
-        split = split.split(factor = 1.0)
-        if ui_props.asset_type_expand:
+        split = row.split(factor = 0.15)
+        split.prop(ui_props, 'asset_type_fold', icon = expand_icon, icon_only = True, emboss = False)
+
+        if ui_props.asset_type_fold:
+            pass
             #expanded interface with names in column
             split = split.row()
-            split.scale_x = 1.6
-            split.scale_y = 1.6
-        split.prop(ui_props, 'asset_type', expand=True, icon_only=ui_props.asset_type_expand)
+            split.scale_x = 8
+            split.scale_y =1.6
+            # split = row
+            # split = layout.row()
+        else:
+            split = split.column()
+
+        split.prop(ui_props, 'asset_type', expand=True, icon_only=ui_props.asset_type_fold)
         # row = layout.column(align = False)
         # layout.prop(ui_props, 'asset_type', expand=False, text='')
 
