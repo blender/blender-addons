@@ -44,6 +44,7 @@ from .internals import (
     get_move_selection,
     get_move_active,
     update_qcd_header,
+    add_vertical_separator_line,
 )
 
 preview_collections = {}
@@ -75,6 +76,7 @@ class CollectionManager(Operator):
         cm = context.scene.collection_manager
         prefs = context.preferences.addons[__package__].preferences
         view_layer = context.view_layer
+        collection = context.view_layer.layer_collection.collection
 
         if view_layer.name != cls.last_view_layer:
             if prefs.enable_qcd:
@@ -163,16 +165,52 @@ class CollectionManager(Operator):
         master_collection_row.separator()
 
         # name
-        name_row = master_collection_row.row()
-        name_row.prop(self, "master_collection", text='')
-        name_row.enabled = False
+        name_row = master_collection_row.row(align=True)
+        name_field = name_row.row(align=True)
+        name_field.prop(self, "master_collection", text='')
+        name_field.enabled = False
 
-        master_collection_row.separator()
+        # set selection
+        setsel = name_row.row(align=True)
+        icon = 'DOT'
+
+        if any((laycol["ptr"].exclude,
+               collection.hide_select,
+               collection.hide_viewport,
+               laycol["ptr"].hide_viewport,
+               not collection.objects,)):
+            # objects cannot be selected
+            setsel.active = False
+
+        else:
+            for obj in collection.objects:
+                if obj.select_get() == False:
+                    # some objects remain unselected
+                    icon = 'LAYER_USED'
+                    break
+
+            if icon != 'LAYER_USED':
+                # all objects are selected
+                icon = 'LAYER_ACTIVE'
+
+        prop = setsel.operator("view3d.select_collection_objects",
+                                   text="",
+                                   icon=icon,
+                                   depress=bool(icon == 'LAYER_ACTIVE')
+                                   )
+        prop.is_master_collection = True
+        prop.collection_name = 'Master Collection'
+
 
         # global rtos
         global_rto_row = master_collection_row.row()
         global_rto_row.alignment = 'RIGHT'
 
+        # used as a separator (actual separator not wide enough)
+        global_rto_row.label()
+
+
+        # set collection
         row_setcol = global_rto_row.row()
         row_setcol.alignment = 'LEFT'
         row_setcol.operator_context = 'INVOKE_DEFAULT'
@@ -184,7 +222,10 @@ class CollectionManager(Operator):
 
         collection = context.view_layer.layer_collection.collection
 
-        icon = 'MESH_CUBE'
+        icon = 'GRID'
+
+        if collection.objects:
+            icon = 'MESH_CUBE'
 
         if selected_objects:
             if active_object and active_object.name in collection.objects:
@@ -194,12 +235,32 @@ class CollectionManager(Operator):
                 icon = 'STICKY_UVS_LOC'
 
         else:
-            row_setcol.enabled = False
+            row_setcol.active = False
 
+
+        # add vertical separator line
+        separator = row_setcol.row()
+        separator.scale_x = 0.2
+        separator.enabled = False
+        separator.operator("view3d.cm_ui_separator_button",
+                            text="",
+                                icon='BLANK1',
+                                )
+
+        # add operator
         prop = row_setcol.operator("view3d.set_collection", text="",
                                    icon=icon, emboss=False)
         prop.is_master_collection = True
         prop.collection_name = 'Master Collection'
+
+        # add vertical separator line
+        separator = row_setcol.row()
+        separator.scale_x = 0.2
+        separator.enabled = False
+        separator.operator("view3d.cm_ui_separator_button",
+                            text="",
+                                icon='BLANK1',
+                                )
 
         copy_icon = 'COPYDOWN'
         swap_icon = 'ARROW_LEFTRIGHT'
@@ -534,7 +595,8 @@ class CM_UL_items(UIList):
             QCD.scale_x = 0.4
             QCD.prop(item, "qcd_slot_idx", text="")
 
-        c_name = row.row()
+        # collection name
+        c_name = row.row(align=True)
 
         #if rename[0] and index == cm.cm_list_index:
             #c_name.activate_init = True
@@ -542,16 +604,54 @@ class CM_UL_items(UIList):
 
         c_name.prop(item, "name", text="", expand=True)
 
+        # set selection
+        setsel = c_name.row(align=True)
+        icon = 'DOT'
+
+        if any((laycol["ptr"].exclude,
+               collection.hide_select,
+               collection.hide_viewport,
+               laycol["ptr"].hide_viewport,
+               not collection.objects,)):
+            # objects cannot be selected
+            setsel.active = False
+
+        else:
+            for obj in collection.objects:
+                if obj.select_get() == False:
+                    # some objects remain unselected
+                    icon = 'LAYER_USED'
+                    break
+
+            if icon != 'LAYER_USED':
+                # all objects are selected
+                icon = 'LAYER_ACTIVE'
+
+        prop = setsel.operator("view3d.select_collection_objects",
+                                   text="",
+                                   icon=icon,
+                                   depress=bool(icon == 'LAYER_ACTIVE')
+                                   )
+        prop.is_master_collection = False
+        prop.collection_name = item.name
+
         # used as a separator (actual separator not wide enough)
         row.label()
 
         row = s2 if cm.align_local_ops else s1
 
+
+        add_vertical_separator_line(row)
+
+
         # add set_collection op
         set_obj_col = row.row()
         set_obj_col.operator_context = 'INVOKE_DEFAULT'
 
-        icon = 'MESH_CUBE'
+        icon = 'GRID'
+
+        if collection.objects:
+            icon = 'MESH_CUBE'
 
         if selected_objects:
             if active_object and active_object.name in collection.objects:
@@ -568,6 +668,8 @@ class CM_UL_items(UIList):
                                    icon=icon, emboss=False)
         prop.is_master_collection = False
         prop.collection_name = item.name
+
+        add_vertical_separator_line(row)
 
 
         if cm.show_exclude:

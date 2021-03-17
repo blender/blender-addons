@@ -794,3 +794,30 @@ def send_report(message):
         bpy.ops.view3d.cm_send_report(ctx, 'INVOKE_DEFAULT', message=message)
 
     bpy.app.timers.register(report)
+
+
+class CMUISeparatorButton(Operator):
+    bl_label = "UI Separator Button"
+    bl_idname = "view3d.cm_ui_separator_button"
+
+    def execute(self, context):
+        return {'CANCELED'}
+
+def add_vertical_separator_line(row):
+    # add buffer before to account for scaling
+    separator = row.row()
+    separator.scale_x = 0.1
+    separator.label()
+
+    # add separator line
+    separator = row.row()
+    separator.scale_x = 0.2
+    separator.enabled = False
+    separator.operator("view3d.cm_ui_separator_button",
+                            text="",
+                                icon='BLANK1',
+                                )
+    # add buffer after to account for scaling
+    separator = row.row()
+    separator.scale_x = 0.1
+    separator.label()
