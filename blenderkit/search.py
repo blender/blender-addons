@@ -108,7 +108,7 @@ def update_ad(ad):
             ad['author']['id'] = ad['author_id']  # this should stay ONLY for compatibility with older scenes
             ad['canDownload'] = ad['can_download']  # this should stay ONLY for compatibility with older scenes
         except Exception as e:
-            bk_logger.error('BLenderKit failed to update older asset data')
+            bk_logger.error('BlenderKit failed to update older asset data')
     return ad
 
 

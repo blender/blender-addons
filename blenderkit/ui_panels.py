@@ -1613,6 +1613,7 @@ def draw_panel_categories(self, context):
                 op = row.operator('view3d.blenderkit_asset_bar', text=ctext)
                 op.do_search = True
                 op.keep_running = True
+                op.tooltip = f"Browse {c['name']} category"
                 op.category = c['slug']
             if len(c['children']) > 0 and c['assetCount'] > 15 or (
                     utils.profile_is_validator() and user_preferences.categories_fix):
