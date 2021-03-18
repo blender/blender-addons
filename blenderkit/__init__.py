@@ -1517,7 +1517,7 @@ class BlenderKitSceneSearchProps(PropertyGroup, BlenderKitCommonSearchProps):
     )
     search_engine_other: StringProperty(
         name="Engine",
-        description="engine not specified by addon",
+        description="Engine not specified by addon",
         default="",
         update=search.search_update
     )
@@ -1655,7 +1655,7 @@ class BlenderKitAddonPreferences(AddonPreferences):
         default="BOTH",
     )
     thumbnail_use_gpu: BoolProperty(
-        name="Use GPU for Thumbnails Rendering",
+        name="Use GPU for Thumbnails Rendering (For assets upload)",
         description="By default this is off so you can continue your work without any lag",
         default=False
     )
@@ -1749,13 +1749,14 @@ class BlenderKitAddonPreferences(AddonPreferences):
         layout.prop(self, "project_subdir")
         # layout.prop(self, "temp_dir")
         layout.prop(self, "directory_behaviour")
-        layout.prop(self, "thumbnail_use_gpu")
         # layout.prop(self, "allow_proximity")
         # layout.prop(self, "panel_behaviour")
         layout.prop(self, "thumb_size")
         layout.prop(self, "max_assetbar_rows")
         layout.prop(self, "tips_on_start")
         layout.prop(self, "search_in_header")
+        layout.prop(self, "thumbnail_use_gpu")
+
         if bpy.context.preferences.view.show_developer_ui:
             layout.prop(self, "use_timers")
             layout.prop(self, "experimental_features")

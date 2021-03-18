@@ -1160,8 +1160,9 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
     # build search string from description and tags:
     op.keywords = asset_data['name']
     if asset_data.get('description'):
-        op.keywords += ' ' + asset_data.get('description')
+        op.keywords += ' ' + asset_data.get('description')+' '
     op.keywords += ' '.join(asset_data.get('tags'))
+
 
     if asset_data.get('canDownload') != 0:
         if len(bpy.context.selected_objects) > 0 and ui_props.asset_type == 'MODEL':

@@ -1530,6 +1530,10 @@ class SearchOperator(Operator):
             sprops.search_keywords = ''
         if self.keywords != '':
             sprops.search_keywords = self.keywords
+        #crop long searches
+        if len(self.keywords) > 150:
+            idx = self.keywords.find(' ', 142)
+            self.keywords = self.keywords[:idx]
 
         search(category=self.category, get_next=self.get_next, author_id=self.author_id)
         # bpy.ops.view3d.blenderkit_asset_bar()
