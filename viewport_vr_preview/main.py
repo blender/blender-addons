@@ -715,7 +715,7 @@ def vr_draw_ami(ami, layout, level):
     #row.prop(ami, "show_expanded", text="", emboss=False)
 
     row.label(text="Operator Properties")
-    row.label(text=ami.op)
+    row.label(text=ami.op_name)
 
     # Expanded, additional event settings.
     if ami.op:
