@@ -72,7 +72,7 @@ def add_version(data):
 
 
 def write_to_report(props, text):
-    props.report = props.report + ' - '+ text + '\n\n'
+    props.report = props.report + ' - ' + text + '\n\n'
 
 
 def check_missing_data_model(props):
@@ -857,7 +857,7 @@ class Uploader(threading.Thread):
         return self._stop_event.is_set()
 
     def send_message(self, message):
-        message = str(message).replace("'","")
+        message = str(message).replace("'", "")
 
         # this adds a UI report but also writes above the upload panel fields.
         tasks_queue.add_task((ui.add_report, (message,)))
@@ -944,6 +944,8 @@ class Uploader(threading.Thread):
                 estring = f"{self.export_data['eval_path']}.blenderkit.id = '{rj['id']}'"
                 tasks_queue.add_task((exec, (estring,)))
                 # after that, the user's file needs to be saved to save the
+                # estring = f"bpy.ops.wm.save_as_mainfile(filepath={self.export_data['source_filepath']}, compress=False, copy=True)"
+                # tasks_queue.add_task((exec, (estring,)))
 
             self.upload_data['assetBaseId'] = self.export_data['assetBaseId']
             self.upload_data['id'] = self.export_data['id']
@@ -969,16 +971,6 @@ class Uploader(threading.Thread):
                     with open(datafile, 'w', encoding='utf-8') as s:
                         json.dump(data, s, ensure_ascii=False, indent=4)
 
-                    # non waiting method - not useful here..
-                    # proc = subprocess.Popen([
-                    #     binary_path,
-                    #     "--background",
-                    #     "-noaudio",
-                    #     clean_file_path,
-                    #     "--python", os.path.join(script_path, "upload_bg.py"),
-                    #     "--", datafile  # ,filepath, tempdir
-                    # ], bufsize=5000, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-                    # tasks_queue.add_task((ui.add_report, ('preparing scene - running blender instance',)))
                     self.send_message('preparing scene - running blender instance')
 
                     proc = subprocess.run([
@@ -1224,7 +1216,7 @@ class UploadOperator(Operator):
                                                    '-   Check if it snaps correctly to surfaces\n'
                                                    '-   Check if it has all textures and renders as expected\n'
                                                    '-   Check if it has correct size in world units (for models)'
-                                  , width=400)
+                                      , width=400)
             else:
                 utils.label_multiline(layout, text='You marked the asset as public.\n'
                                                    'This means it will be validated by our team.\n\n'
