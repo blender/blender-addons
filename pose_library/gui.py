@@ -38,6 +38,11 @@ class VIEW3D_PT_pose_library(Panel):
 
     def draw(self, context: Context) -> None:
         layout = self.layout
+
+        row = layout.row(align=True)
+        row.operator("anim.create_pose_asset")
+        row.operator("anim.copy_as_asset", icon="COPYDOWN", text="")
+
         if hasattr(layout, "template_asset_view"):
             workspace = context.workspace
             layout.template_asset_view(
