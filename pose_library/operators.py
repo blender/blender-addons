@@ -81,6 +81,7 @@ class LocalPoseAssetUser:
 class ANIM_OT_create_pose_asset(PoseAssetCreator, Operator):
     bl_idname = "anim.create_pose_asset"
     bl_label = "Create Pose Asset"
+    bl_description = "Create a new Action that contains the pose of the selected bones, and mark it as Asset"
     bl_options = {"REGISTER", "UNDO"}
 
     pose_name: StringProperty(name="Pose Name")  # type: ignore
@@ -165,6 +166,7 @@ class ANIM_OT_asset_activate(Operator):
 class ASSET_OT_assign_action(LocalPoseAssetUser, Operator):
     bl_idname = "asset.assign_action"
     bl_label = "Assign Action"
+    bl_description = "Set this pose Action as active Action on the active Object"
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context: Context) -> Set[str]:
@@ -175,6 +177,7 @@ class ASSET_OT_assign_action(LocalPoseAssetUser, Operator):
 class ANIM_OT_copy_as_asset(PoseAssetCreator, Operator):
     bl_idname = "anim.copy_as_asset"
     bl_label = "Copy Pose As Asset"
+    bl_description = "Create a new pose asset on the clipboard, to be pasted into an Asset Browser"
     bl_options = {"REGISTER"}
 
     CLIPBOARD_ASSET_MARKER = "ASSET-BLEND="
@@ -221,6 +224,7 @@ class ANIM_OT_copy_as_asset(PoseAssetCreator, Operator):
 class ASSET_OT_paste_asset(Operator):
     bl_idname = "anim.paste_asset"
     bl_label = "Paste As New Asset"
+    bl_description = "Paste the Asset that was previously copied using Copy As Asset"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
