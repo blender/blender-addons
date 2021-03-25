@@ -41,6 +41,7 @@ class VIEW3D_PT_pose_library(Panel):
         if hasattr(layout, "template_asset_view"):
             workspace = context.workspace
             layout.template_asset_view(
+                "pose_assets",
                 workspace,
                 "active_asset_library",
                 context.window_manager,
