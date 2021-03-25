@@ -247,9 +247,10 @@ class ASSET_OT_paste_asset(Operator):
 
         self.report({"INFO"}, "Pasted %d assets" % len(assets))
 
-        # TODO: Remove the need for refreshing. This should happen automatically
-        # when linking/appending assets.
-        asset_browser.refresh(context)
+        bpy.ops.file.refresh()
+        asset_browser_area = asset_browser.area_from_context(context, 'ANIMATIONS')
+        if asset_browser_area:
+            asset_browser.activate_asset(assets[0], asset_browser_area, deferred=True)
 
         return {"FINISHED"}
 

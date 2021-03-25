@@ -47,23 +47,20 @@ def suitable_areas(screen: bpy.types.Screen) -> Iterable[bpy.types.Area]:
             continue
         yield area
 
+def area_from_context(context: bpy.types.Context, category: str) -> Optional[bpy.types.Area]:
+    """Return an Asset Browser suitable for the given category.
 
-def refresh(context: bpy.types.Context) -> None:
-    """Refresh all Asset Browsers."""
+    Prefers the current Asset Browser if available, otherwise the biggest.
+    """
 
-    # Workaround for the lack of refresh operation available to Python.
-    datablock = bpy.data.objects.new("___just_refresh_me___", None)
-    datablock.user_clear()  # For some reason, actions.new() already sets users=1.
-    functions.asset_mark(context, datablock)
-    datablock.use_fake_user = False
+    space_data = context.space_data
+    if not asset_utils.SpaceAssetInfo.is_asset_browser(space_data):
+        return area_for_category(context.screen, category)
 
-    # This crashes the asset browser, as it'll try to render a preview for an
-    # already-deleted datablock:
-    # bpy.data.objects.remove(datablock)
+    if space_data.params.asset_category != category:
+        return area_for_category(context.screen, category)
 
-    # So instead of crashing, just avoid this datablock from being shown in the
-    # asset browser:
-    functions.asset_clear(context, datablock)
+    return context.area
 
 
 def activate_asset(
