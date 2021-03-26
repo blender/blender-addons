@@ -36,63 +36,19 @@ bl_info = {
 from typing import List, Tuple
 
 _need_reload = "operators" in locals()
-from . import gui, macros, operators
+from . import gui, keymaps, macros, operators
 
 if _need_reload:
     import importlib
 
     gui = importlib.reload(gui)
+    keymaps = importlib.reload(keymaps)
     macros = importlib.reload(macros)
     operators = importlib.reload(operators)
 
 import bpy
 
 addon_keymaps: List[Tuple[bpy.types.KeyMap, bpy.types.KeyMapItem]] = []
-
-
-def register_keymaps() -> None:
-
-    wm = bpy.context.window_manager
-    if wm.keyconfigs.addon is None:
-        # This happens when Blender is running in the background.
-        return
-
-    km = wm.keyconfigs.addon.keymaps.new(
-        name="File Browser Main", space_type="FILE_BROWSER"
-    )
-
-    # Double-click to apply pose.
-    kmi = km.keymap_items.new("poselib.apply_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK")
-    addon_keymaps.append((km, kmi))
-
-    # Ctrl-doubleclick to blend pose.
-    kmi = km.keymap_items.new(
-        "poselib.blend_pose", "LEFTMOUSE", "DOUBLE_CLICK", ctrl=True
-    )
-    addon_keymaps.append((km, kmi))
-
-    # Alt-doubleclick to select bones.
-    kmi = km.keymap_items.new(
-        "poselib.select_asset_and_select_bones", "LEFTMOUSE", "DOUBLE_CLICK", alt=True
-    )
-    addon_keymaps.append((km, kmi))
-
-    # Alt-shift-doubleclick to deselect bones.
-    kmi = km.keymap_items.new(
-        "poselib.select_asset_and_deselect_bones",
-        "LEFTMOUSE",
-        "DOUBLE_CLICK",
-        alt=True,
-        shift=True,
-    )
-    addon_keymaps.append((km, kmi))
-
-
-def unregister_keymaps() -> None:
-    # Clear shortcuts from the keymap.
-    for km, kmi in addon_keymaps:
-        km.keymap_items.remove(kmi)
-    addon_keymaps.clear()
 
 
 def register() -> None:
@@ -121,15 +77,13 @@ def register() -> None:
     )
     operators.register()
     macros.register()
+    keymaps.register()
     gui.register()
-
-    register_keymaps()
 
 
 def unregister() -> None:
-    unregister_keymaps()
-
     gui.unregister()
+    keymaps.unregister()
     macros.unregister()
     operators.unregister()
 
