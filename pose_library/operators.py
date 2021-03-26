@@ -292,18 +292,6 @@ class PoseAssetUser:
             return self.use_pose(context, action)
 
 
-class ANIM_OT_pose_asset_apply(PoseAssetUser, Operator):
-    bl_idname = "anim.pose_asset_apply"
-    bl_label = "Apply Pose"
-    bl_description = "Apply the Pose to the currently selected bones"
-    bl_options = {"REGISTER", "UNDO"}
-
-    def use_pose(self, context: Context, pose_asset: Action) -> Set[str]:
-        arm_object: Object = context.object
-        arm_object.pose.apply_pose_from_action(pose_asset)
-        return {"FINISHED"}
-
-
 class ANIM_OT_pose_asset_select_bones(PoseAssetUser, Operator):
     bl_idname = "anim.pose_asset_select_bones"
     bl_label = "Select Bones"
@@ -324,7 +312,6 @@ classes = (
     ANIM_OT_copy_as_asset,
     ANIM_OT_create_pose_asset,
     ANIM_OT_dummy,
-    ANIM_OT_pose_asset_apply,
     ANIM_OT_pose_asset_select_bones,
     ASSET_OT_assign_action,
     ASSET_OT_paste_asset,

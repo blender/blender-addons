@@ -62,7 +62,7 @@ def register_keymaps() -> None:
     )
 
     # Double-click to apply pose.
-    kmi = km.keymap_items.new("anim.pose_asset_apply", "LEFTMOUSE", "DOUBLE_CLICK")
+    kmi = km.keymap_items.new("poselib.apply_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK")
     addon_keymaps.append((km, kmi))
 
     # Ctrl-doubleclick to blend pose.

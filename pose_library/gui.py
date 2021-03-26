@@ -67,15 +67,11 @@ class ASSETBROWSER_PT_pose_library_usage(asset_utils.AssetBrowserPanel, Panel):
 
         col = layout.column(align=True)
         col.label(text="Use Pose Asset")
-        col.operator("anim.pose_asset_apply")
-
+        col.prop(wm, "poselib_apply_flipped")
+        props = col.operator("poselib.apply_pose_asset")
+        props.apply_flipped = wm.poselib_apply_flipped
         props = col.operator("poselib.blend_pose_asset")
-
-        # Applying a pose flipped is still under development.
-        can_apply_flipped = hasattr(props, "apply_flipped")
-        if can_apply_flipped:
-            props.apply_flipped = wm.poselib_apply_flipped
-            col.prop(wm, "poselib_apply_flipped")
+        props.apply_flipped = wm.poselib_apply_flipped
 
         row = col.row(align=True)
         row.operator(
