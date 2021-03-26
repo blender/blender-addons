@@ -144,9 +144,30 @@ class POSELIB_OT_restore_previous_action(Operator):
         )
 
     def execute(self, context: Context) -> Set[str]:
+        # This is the Action that was just created with "Create Pose Asset".
+        # It has to be re-applied after switching to the previous action,
+        # to ensure the character keeps the same pose.
+        self.pose_action = context.object.animation_data.action
+
         prev_action = context.window_manager.poselib_previous_action
         context.object.animation_data.action = prev_action
         context.window_manager.poselib_previous_action = None
+
+        # Wait a bit for the action assignment to be handled, before applying the pose.
+        wm = context.window_manager
+        self._timer = wm.event_timer_add(0.001, window=context.window)
+        wm.modal_handler_add(self)
+
+        return {'RUNNING_MODAL'}
+
+    def modal(self, context, event):
+        if event.type != 'TIMER':
+            return {'RUNNING_MODAL'}
+
+        wm = context.window_manager
+        wm.event_timer_remove(self._timer)
+
+        context.object.pose.apply_pose_from_action(self.pose_action)
         return {'FINISHED'}
 
 
