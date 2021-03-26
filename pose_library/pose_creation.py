@@ -149,9 +149,7 @@ class PoseActionCreator:
                 continue
 
             try:
-                value = self._current_value(
-                    armature_ob, fcurve.data_path, fcurve.array_index
-                )
+                value = self._current_value(armature_ob, fcurve.data_path, fcurve.array_index)
             except UnresolvablePathError:
                 # A once-animated property no longer exists. Ignore for now.
                 # TODO(Sybren): maybe use the animated value instead? Not sure what for though.
@@ -217,9 +215,7 @@ class PoseActionCreator:
 
         fcurve: Optional[FCurve] = dst_action.fcurves.find(rna_path, index=array_index)
         if fcurve is None:
-            fcurve = dst_action.fcurves.new(
-                rna_path, index=array_index, action_group=bone_name
-            )
+            fcurve = dst_action.fcurves.new(rna_path, index=array_index, action_group=bone_name)
 
         fcurve.keyframe_points.insert(self.params.src_frame_nr, value=value)
         fcurve.update()
@@ -295,9 +291,7 @@ def create_pose_asset(
     return pose_action
 
 
-def create_pose_asset_from_context(
-    context: Context, new_asset_name: str
-) -> Optional[Action]:
+def create_pose_asset_from_context(context: Context, new_asset_name: str) -> Optional[Action]:
     """Create Action asset from active object & selected bones."""
 
     bones = context.selected_pose_bones_from_active_object
@@ -452,8 +446,6 @@ def render_preview(context: Context) -> Image:
     return bpy.data.images["Render Result"]
 
 
-def assign_tags_from_asset_browser(
-    asset: Action, asset_browser: bpy.types.Area
-) -> None:
+def assign_tags_from_asset_browser(asset: Action, asset_browser: bpy.types.Area) -> None:
     # TODO(Sybren): implement
     return

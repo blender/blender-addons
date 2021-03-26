@@ -29,9 +29,7 @@ def register() -> None:
         # This happens when Blender is running in the background.
         return
 
-    km = wm.keyconfigs.addon.keymaps.new(
-        name="File Browser Main", space_type="FILE_BROWSER"
-    )
+    km = wm.keyconfigs.addon.keymaps.new(name="File Browser Main", space_type="FILE_BROWSER")
 
     # DblClick to apply pose.
     kmi = km.keymap_items.new("poselib.apply_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK")
@@ -44,16 +42,12 @@ def register() -> None:
     addon_keymaps.append((km, kmi))
 
     # Ctrl-dblClick to blend pose.
-    kmi = km.keymap_items.new(
-        "poselib.blend_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK", ctrl=True
-    )
+    kmi = km.keymap_items.new("poselib.blend_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK", ctrl=True)
     kmi.properties.apply_flipped = False
     addon_keymaps.append((km, kmi))
 
     # Ctrl-Shift-dblClick to blend pose flipped.
-    kmi = km.keymap_items.new(
-        "poselib.blend_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK", ctrl=True
-    )
+    kmi = km.keymap_items.new("poselib.blend_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK", ctrl=True)
     kmi.properties.apply_flipped = True
     addon_keymaps.append((km, kmi))
 

@@ -37,7 +37,7 @@ if _need_reload:
 
 import bpy
 from bpy_extras import asset_utils
-from bpy.props import (BoolProperty, StringProperty)
+from bpy.props import BoolProperty, StringProperty
 from bpy.types import (
     Action,
     Context,
@@ -81,7 +81,9 @@ class LocalPoseAssetUser:
 class ANIM_OT_create_pose_asset(PoseAssetCreator, Operator):
     bl_idname = "anim.create_pose_asset"
     bl_label = "Create Pose Asset"
-    bl_description = "Create a new Action that contains the pose of the selected bones, and mark it as Asset"
+    bl_description = (
+        "Create a new Action that contains the pose of the selected bones, and mark it as Asset"
+    )
     bl_options = {"REGISTER", "UNDO"}
 
     pose_name: StringProperty(name="Pose Name")  # type: ignore
@@ -147,9 +149,7 @@ class ANIM_OT_asset_activate(Operator):
         )
 
     def execute(self, context: Context) -> Set[str]:
-        asset_browser_area = asset_browser.area_for_category(
-            context.screen, "ANIMATION"
-        )
+        asset_browser_area = asset_browser.area_for_category(context.screen, "ANIMATION")
         if not asset_browser_area:
             self.report({"ERROR"}, "There is no Asset Browser open at the moment")
             return {"CANCELLED"}

@@ -74,9 +74,7 @@ class ASSETBROWSER_PT_pose_library_usage(asset_utils.AssetBrowserPanel, Panel):
         props.apply_flipped = wm.poselib_apply_flipped
 
         row = col.row(align=True)
-        row.operator(
-            "anim.pose_asset_select_bones", text="Select", icon="BONE_DATA"
-        ).select = True
+        row.operator("anim.pose_asset_select_bones", text="Select", icon="BONE_DATA").select = True
         row.operator("anim.pose_asset_select_bones", text="Deselect").select = False
 
 

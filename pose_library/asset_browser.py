@@ -14,9 +14,7 @@ else:
     functions = importlib.reload(functions)
 
 
-def area_for_category(
-    screen: bpy.types.Screen, category: str
-) -> Optional[bpy.types.Area]:
+def area_for_category(screen: bpy.types.Screen, category: str) -> Optional[bpy.types.Area]:
     """Return the asset browser area that is most suitable for managing the category.
 
     :param screen: context.window.screen
@@ -46,6 +44,7 @@ def suitable_areas(screen: bpy.types.Screen) -> Iterable[bpy.types.Area]:
         if not asset_utils.SpaceAssetInfo.is_asset_browser(space_data):
             continue
         yield area
+
 
 def area_from_context(context: bpy.types.Context, category: str) -> Optional[bpy.types.Area]:
     """Return an Asset Browser suitable for the given category.
