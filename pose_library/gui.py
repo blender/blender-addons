@@ -94,7 +94,7 @@ class ASSETBROWSER_PT_pose_library_editing(asset_utils.AssetBrowserPanel, Panel)
 
         # Creation
         col = layout.column(align=True)
-        col.enabled = bpy.types.ANIM_OT_paste_asset.poll(context)
+        col.enabled = bpy.types.POSELIB_OT_paste_asset.poll(context)
         col.label(text="Create Pose Asset")
         col.operator("poselib.paste_asset", icon="PASTEDOWN")
 
