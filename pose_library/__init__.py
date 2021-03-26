@@ -56,19 +56,6 @@ def register() -> None:
         name="Apply Flipped",
         default=True,
     )
-    bpy.types.WindowManager.poselib_merge_choices = bpy.props.EnumProperty(
-        name="Animation",
-        items=[
-            ("REPLACE", "Replace", "Overwrite existing keyframes"),
-            (
-                "INSERT",
-                "Insert",
-                "Insert the animation segment, pushing existing keyframes down the timeline",
-            ),
-            ("BLEND", "Blend", "Blend with existing pose"),
-        ],
-        default="REPLACE",
-    )
 
     operators.register()
     macros.register()
@@ -84,13 +71,5 @@ def unregister() -> None:
 
     try:
         del bpy.types.WindowManager.poselib_apply_flipped
-    except AttributeError:
-        pass
-    try:
-        del bpy.types.WindowManager.poselib_merge_choices
-    except AttributeError:
-        pass
-    try:
-        del bpy.types.WindowManager.poselib_default_asset_data
     except AttributeError:
         pass
