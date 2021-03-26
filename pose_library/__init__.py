@@ -70,11 +70,6 @@ def register() -> None:
         default="REPLACE",
     )
 
-    # TODO(Sybren): this should be a property of the asset browser itself, not the scene.
-    bpy.types.Scene.poselib_follow_active_asset = bpy.props.BoolProperty(
-        name="Follow Active Asset",
-        default=False,
-    )
     operators.register()
     macros.register()
     keymaps.register()
@@ -97,9 +92,5 @@ def unregister() -> None:
         pass
     try:
         del bpy.types.WindowManager.poselib_default_asset_data
-    except AttributeError:
-        pass
-    try:
-        del bpy.types.Scene.poselib_follow_active_asset
     except AttributeError:
         pass
