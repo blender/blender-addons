@@ -56,6 +56,7 @@ class VIEW3D_PT_pose_library(Panel):
                 workspace,
                 "active_pose_asset_index",
                 filter_id_types={"filter_action"},
+                activate_operator="poselib.apply_pose_asset",
             )
 
 
