@@ -98,6 +98,7 @@ class ANIM_OT_create_pose_asset(PoseAssetCreator, Operator):
         self._prevent_action_loss(context.object)
 
         anim_data = context.object.animation_data_create()
+        context.window_manager.poselib_previous_action = anim_data.action
         anim_data.action = asset
 
         asset_browse_area: Optional[bpy.types.Area] = asset_browser.area_for_category(
@@ -133,6 +134,29 @@ class ANIM_OT_create_pose_asset(PoseAssetCreator, Operator):
 
         action.use_fake_user = True
         self.report({'WARNING'}, "Action %s marked Fake User to prevent loss" % action.name)
+
+
+class POSELIB_OT_restore_previous_action(Operator):
+    bl_idname = "poselib.restore_previous_action"
+    bl_label = "Restore Previous Action"
+    bl_description = "Switch back to the previous Action, after creating a pose asset"
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context: Context) -> bool:
+        return bool(
+            context.window_manager.poselib_previous_action
+            and context.object
+            and context.object.animation_data
+            and context.object.animation_data.action
+            and context.object.animation_data.action.asset_data is not None
+        )
+
+    def execute(self, context: Context) -> Set[str]:
+        prev_action = context.window_manager.poselib_previous_action
+        context.object.animation_data.action = prev_action
+        context.window_manager.poselib_previous_action = None
+        return {'FINISHED'}
 
 
 class ANIM_OT_asset_activate(Operator):
@@ -312,6 +336,7 @@ classes = (
     ANIM_OT_create_pose_asset,
     ANIM_OT_dummy,
     ANIM_OT_pose_asset_select_bones,
+    POSELIB_OT_restore_previous_action,
     ASSET_OT_assign_action,
     ASSET_OT_paste_asset,
 )
