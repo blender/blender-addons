@@ -69,8 +69,8 @@ class LocalPoseAssetUser:
         )
 
 
-class ANIM_OT_create_pose_asset(PoseAssetCreator, Operator):
-    bl_idname = "anim.create_pose_asset"
+class POSELIB_OT_create_pose_asset(PoseAssetCreator, Operator):
+    bl_idname = "poselib.create_pose_asset"
     bl_label = "Create Pose Asset"
     bl_description = (
         "Create a new Action that contains the pose of the selected bones, and mark it as Asset"
@@ -161,8 +161,8 @@ class ASSET_OT_assign_action(LocalPoseAssetUser, Operator):
         return {"FINISHED"}
 
 
-class ANIM_OT_copy_as_asset(PoseAssetCreator, Operator):
-    bl_idname = "anim.copy_as_asset"
+class POSELIB_OT_copy_as_asset(PoseAssetCreator, Operator):
+    bl_idname = "poselib.copy_as_asset"
     bl_label = "Copy Pose As Asset"
     bl_description = "Create a new pose asset on the clipboard, to be pasted into an Asset Browser"
     bl_options = {"REGISTER"}
@@ -207,8 +207,8 @@ class ANIM_OT_copy_as_asset(PoseAssetCreator, Operator):
         return filepath
 
 
-class ASSET_OT_paste_asset(Operator):
-    bl_idname = "anim.paste_asset"
+class POSELIB_OT_paste_asset(Operator):
+    bl_idname = "poselib.paste_asset"
     bl_label = "Paste As New Asset"
     bl_description = "Paste the Asset that was previously copied using Copy As Asset"
     bl_options = {"REGISTER", "UNDO"}
@@ -218,12 +218,12 @@ class ASSET_OT_paste_asset(Operator):
         clipboard: str = context.window_manager.clipboard
         if not clipboard:
             return False
-        marker = ANIM_OT_copy_as_asset.CLIPBOARD_ASSET_MARKER
+        marker = POSELIB_OT_copy_as_asset.CLIPBOARD_ASSET_MARKER
         return clipboard.startswith(marker)
 
     def execute(self, context: Context) -> Set[str]:
         clipboard = context.window_manager.clipboard
-        marker_len = len(ANIM_OT_copy_as_asset.CLIPBOARD_ASSET_MARKER)
+        marker_len = len(POSELIB_OT_copy_as_asset.CLIPBOARD_ASSET_MARKER)
         filepath = Path(clipboard[marker_len:])
 
         assets = functions.load_assets_from(filepath)
@@ -281,8 +281,8 @@ class PoseAssetUser:
             return self.use_pose(context, action)
 
 
-class ANIM_OT_pose_asset_select_bones(PoseAssetUser, Operator):
-    bl_idname = "anim.pose_asset_select_bones"
+class POSELIB_OT_pose_asset_select_bones(PoseAssetUser, Operator):
+    bl_idname = "poselib.pose_asset_select_bones"
     bl_label = "Select Bones"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -297,12 +297,12 @@ class ANIM_OT_pose_asset_select_bones(PoseAssetUser, Operator):
 
 
 classes = (
-    ANIM_OT_copy_as_asset,
-    ANIM_OT_create_pose_asset,
-    ANIM_OT_pose_asset_select_bones,
-    POSELIB_OT_restore_previous_action,
     ASSET_OT_assign_action,
-    ASSET_OT_paste_asset,
+    POSELIB_OT_copy_as_asset,
+    POSELIB_OT_create_pose_asset,
+    POSELIB_OT_paste_asset,
+    POSELIB_OT_pose_asset_select_bones,
+    POSELIB_OT_restore_previous_action,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

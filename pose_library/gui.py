@@ -40,10 +40,10 @@ class VIEW3D_PT_pose_library(Panel):
         layout = self.layout
 
         row = layout.row(align=True)
-        row.operator("anim.create_pose_asset")
+        row.operator("poselib.create_pose_asset")
         if bpy.types.POSELIB_OT_restore_previous_action.poll(context):
             row.operator("poselib.restore_previous_action", text="", icon='LOOP_BACK')
-        row.operator("anim.copy_as_asset", icon="COPYDOWN", text="")
+        row.operator("poselib.copy_as_asset", icon="COPYDOWN", text="")
 
         if hasattr(layout, "template_asset_view"):
             workspace = context.workspace
@@ -76,8 +76,8 @@ class ASSETBROWSER_PT_pose_library_usage(asset_utils.AssetBrowserPanel, Panel):
         props.apply_flipped = wm.poselib_apply_flipped
 
         row = col.row(align=True)
-        row.operator("anim.pose_asset_select_bones", text="Select", icon="BONE_DATA").select = True
-        row.operator("anim.pose_asset_select_bones", text="Deselect").select = False
+        row.operator("poselib.pose_asset_select_bones", text="Select", icon="BONE_DATA").select = True
+        row.operator("poselib.pose_asset_select_bones", text="Deselect").select = False
 
 
 class ASSETBROWSER_PT_pose_library_editing(asset_utils.AssetBrowserPanel, Panel):
@@ -96,7 +96,7 @@ class ASSETBROWSER_PT_pose_library_editing(asset_utils.AssetBrowserPanel, Panel)
         col = layout.column(align=True)
         col.enabled = bpy.types.ANIM_OT_paste_asset.poll(context)
         col.label(text="Create Pose Asset")
-        col.operator("anim.paste_asset", icon="PASTEDOWN")
+        col.operator("poselib.paste_asset", icon="PASTEDOWN")
 
 
 class DOPESHEET_PT_asset_panel(Panel):
@@ -108,10 +108,10 @@ class DOPESHEET_PT_asset_panel(Panel):
         layout = self.layout
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.operator("anim.create_pose_asset")
+        row.operator("poselib.create_pose_asset")
         if bpy.types.POSELIB_OT_restore_previous_action.poll(context):
             row.operator("poselib.restore_previous_action", text="", icon='LOOP_BACK')
-        col.operator("anim.copy_as_asset", icon="COPYDOWN")
+        col.operator("poselib.copy_as_asset", icon="COPYDOWN")
 
 
 classes = (

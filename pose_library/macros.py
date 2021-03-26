@@ -50,13 +50,13 @@ def register() -> None:
     step = POSELIB_OT_select_asset_and_select_bones.define("FILE_OT_select")
     step.properties.open = False
     step.properties.deselect_all = True
-    step = POSELIB_OT_select_asset_and_select_bones.define("ANIM_OT_pose_asset_select_bones")
+    step = POSELIB_OT_select_asset_and_select_bones.define("POSELIB_OT_pose_asset_select_bones")
     step.properties.select = True
 
     step = POSELIB_OT_select_asset_and_deselect_bones.define("FILE_OT_select")
     step.properties.open = False
     step.properties.deselect_all = True
-    step = POSELIB_OT_select_asset_and_deselect_bones.define("ANIM_OT_pose_asset_select_bones")
+    step = POSELIB_OT_select_asset_and_deselect_bones.define("POSELIB_OT_pose_asset_select_bones")
     step.properties.select = False
 
 
