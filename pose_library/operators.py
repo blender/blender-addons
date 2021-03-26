@@ -95,7 +95,8 @@ class ANIM_OT_create_pose_asset(PoseAssetCreator, Operator):
             self.report({"WARNING"}, "No keyframes were found for this pose")
             return {"CANCELLED"}
 
-        # Switch to the newly created Action, i.e. follow the creating-is-editing design of Blender.
+        self._prevent_action_loss(context.object)
+
         anim_data = context.object.animation_data_create()
         anim_data.action = asset
 
@@ -117,6 +118,21 @@ class ANIM_OT_create_pose_asset(PoseAssetCreator, Operator):
         asset_browser.activate_asset(asset, asset_browse_area, deferred=True)
 
         return {"FINISHED"}
+
+    def _prevent_action_loss(self, object: Object) -> None:
+        if not object.animation_data:
+            return
+
+        action = object.animation_data.action
+        if not action:
+            return
+
+        if action.use_fake_user or action.users > 1:
+            # Removing one user won't GC it.
+            return
+
+        action.use_fake_user = True
+        self.report({'WARNING'}, "Action %s marked Fake User to prevent loss" % action.name)
 
 
 class ANIM_OT_asset_activate(Operator):
