@@ -33,23 +33,37 @@ def register() -> None:
         name="File Browser Main", space_type="FILE_BROWSER"
     )
 
-    # Double-click to apply pose.
+    # DblClick to apply pose.
     kmi = km.keymap_items.new("poselib.apply_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK")
+    kmi.properties.apply_flipped = False
     addon_keymaps.append((km, kmi))
 
-    # Ctrl-doubleclick to blend pose.
+    # Shift-dblClick to apply pose flipped.
+    kmi = km.keymap_items.new("poselib.apply_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK", shift=True)
+    kmi.properties.apply_flipped = True
+    addon_keymaps.append((km, kmi))
+
+    # Ctrl-dblClick to blend pose.
     kmi = km.keymap_items.new(
-        "poselib.blend_pose", "LEFTMOUSE", "DOUBLE_CLICK", ctrl=True
+        "poselib.blend_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK", ctrl=True
     )
+    kmi.properties.apply_flipped = False
     addon_keymaps.append((km, kmi))
 
-    # Alt-doubleclick to select bones.
+    # Ctrl-Shift-dblClick to blend pose flipped.
+    kmi = km.keymap_items.new(
+        "poselib.blend_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK", ctrl=True
+    )
+    kmi.properties.apply_flipped = True
+    addon_keymaps.append((km, kmi))
+
+    # Alt-dblClick to select bones.
     kmi = km.keymap_items.new(
         "poselib.select_asset_and_select_bones", "LEFTMOUSE", "DOUBLE_CLICK", alt=True
     )
     addon_keymaps.append((km, kmi))
 
-    # Alt-shift-doubleclick to deselect bones.
+    # Alt-shift-dblClick to deselect bones.
     kmi = km.keymap_items.new(
         "poselib.select_asset_and_deselect_bones",
         "LEFTMOUSE",
