@@ -41,6 +41,8 @@ class VIEW3D_PT_pose_library(Panel):
 
         row = layout.row(align=True)
         row.operator("anim.create_pose_asset")
+        if bpy.types.POSELIB_OT_restore_previous_action.poll(context):
+            row.operator("poselib.restore_previous_action", text="", icon='LOOP_BACK')
         row.operator("anim.copy_as_asset", icon="COPYDOWN", text="")
 
         if hasattr(layout, "template_asset_view"):
