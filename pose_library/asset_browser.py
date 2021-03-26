@@ -71,3 +71,10 @@ def activate_asset(
     space_data = asset_browser.spaces[0]
     assert asset_utils.SpaceAssetInfo.is_asset_browser(space_data)
     space_data.activate_asset_by_id(asset, deferred=deferred)
+
+
+def tag_redraw(screen: bpy.types.Screen) -> None:
+    """Tag all asset browsers for redrawing."""
+
+    for area in suitable_areas(screen):
+        area.tag_redraw()

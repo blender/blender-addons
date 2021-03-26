@@ -201,8 +201,7 @@ class ANIM_OT_copy_as_asset(PoseAssetCreator, Operator):
             filepath,
         )
 
-        # TODO(Sybren): tag asset browser for refreshing, as now the clipboard
-        # contains a pastable asset.
+        asset_browser.tag_redraw(context.screen)
         return {"FINISHED"}
 
     def save_datablock(self, action: Action) -> Path:
