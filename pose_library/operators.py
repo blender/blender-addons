@@ -46,15 +46,6 @@ from bpy.types import (
 )
 
 
-class ANIM_OT_dummy(Operator):
-    bl_idname = "anim.dummy"
-    bl_label = "Dummy Operator"
-    bl_options = {"REGISTER"}
-
-    def execute(self, context: Context) -> Set[str]:
-        return {"CANCELLED"}
-
-
 class PoseAssetCreator:
     @classmethod
     def poll(cls, context: Context) -> bool:
@@ -157,31 +148,6 @@ class POSELIB_OT_restore_previous_action(Operator):
         context.object.animation_data.action = prev_action
         context.window_manager.poselib_previous_action = None
         return {'FINISHED'}
-
-
-class ANIM_OT_asset_activate(Operator):
-    bl_idname = "anim.asset_activate"
-    bl_label = "Focus in Asset Browser"
-    bl_options = {"REGISTER"}
-
-    @classmethod
-    def poll(cls, context: Context) -> bool:
-        return bool(
-            context.object
-            and context.object.animation_data
-            and context.object.animation_data.action
-        )
-
-    def execute(self, context: Context) -> Set[str]:
-        asset_browser_area = asset_browser.area_for_category(context.screen, "ANIMATION")
-        if not asset_browser_area:
-            self.report({"ERROR"}, "There is no Asset Browser open at the moment")
-            return {"CANCELLED"}
-
-        action_asset = context.object.animation_data.action
-        asset_browser.activate_asset(action_asset, asset_browser_area, deferred=False)
-
-        return {"FINISHED"}
 
 
 class ASSET_OT_assign_action(LocalPoseAssetUser, Operator):
@@ -331,10 +297,8 @@ class ANIM_OT_pose_asset_select_bones(PoseAssetUser, Operator):
 
 
 classes = (
-    ANIM_OT_asset_activate,
     ANIM_OT_copy_as_asset,
     ANIM_OT_create_pose_asset,
-    ANIM_OT_dummy,
     ANIM_OT_pose_asset_select_bones,
     POSELIB_OT_restore_previous_action,
     ASSET_OT_assign_action,
