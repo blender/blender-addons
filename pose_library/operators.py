@@ -118,22 +118,6 @@ class ANIM_OT_create_pose_asset(PoseAssetCreator, Operator):
 
         return {"FINISHED"}
 
-    def render_preview(self, context: Context, asset: Any) -> None:
-        image_dblock = pose_creation.render_preview(context)
-        temp_preview = Path(bpy.app.tempdir) / "temp_preview.png"
-        try:
-            image_dblock.save_render(str(temp_preview))
-            load_ctx = {
-                **context.copy(),
-                "id": asset,
-            }
-            bpy.ops.ed.lib_id_load_custom_preview(load_ctx, filepath=str(temp_preview))
-        finally:
-            try:
-                temp_preview.unlink()
-            except FileNotFoundError:
-                pass
-
 
 class ANIM_OT_asset_activate(Operator):
     bl_idname = "anim.asset_activate"

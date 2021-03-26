@@ -151,8 +151,7 @@ class PoseActionCreator:
             try:
                 value = self._current_value(armature_ob, fcurve.data_path, fcurve.array_index)
             except UnresolvablePathError:
-                # A once-animated property no longer exists. Ignore for now.
-                # TODO(Sybren): maybe use the animated value instead? Not sure what for though.
+                # A once-animated property no longer exists.
                 continue
 
             dst_fcurve = dst_action.fcurves.new(
@@ -380,70 +379,6 @@ def find_keyframe(fcurve: FCurve, frame: float) -> Optional[Keyframe]:
         else:
             return keyframe
     return None
-
-
-def viewport_for_preview(context: Context) -> Tuple[Optional[Window], Optional[Area]]:
-    """Return the viewport suitable for generating previews."""
-
-    # print("\n=== Finding viewport:")
-    first_viewport: Optional[Area] = None
-    first_window: Optional[Window] = None
-    for widx, window in enumerate(context.window_manager.windows):
-        for aidx, area in enumerate(window.screen.areas):
-            if area.type != "VIEW_3D":
-                continue
-            if first_viewport is None:
-                first_viewport = area
-                first_window = window
-            space = area.spaces[0]
-            # print(f"Window[{widx}].screen.areas[{aidx}]")
-            # print(f"                .type = {area.type}")
-            # print(f"               .space = {space}")
-            # print(f"               camera = {space.camera}")
-            # print(f"     use_local_camera = {space.use_local_camera}")
-            # print(f"     view_perspective = {space.region_3d.view_perspective}")
-            if space.region_3d and space.region_3d.view_perspective == "CAMERA":
-                return window, area
-    return first_window, first_viewport
-
-
-def render_preview(context: Context) -> Image:
-    """OpenGL-render a viewport.
-
-    Return the Image datablock with the render result. This must be saved to
-    disk and loaded from there in order to access the actual pixel data.
-    """
-
-    window, area = viewport_for_preview(context)
-    if area is None:
-        # TODO: just deal with this, instead of bothering users.
-        raise RuntimeError("unable to find 3D view to render")
-
-    # print(f"Found area: {area}")
-    # print("Regions:")
-    for ridx, region in enumerate(area.regions):
-        # print(f"    {ridx}: {region.type}")
-        if region.type == "WINDOW":
-            break
-    else:
-        # TODO: just deal with this, instead of bothering users.
-        raise RuntimeError("unable to find region to render")
-
-    render_ctx = {
-        **context.copy(),
-        "area": area,
-        "region": region,
-        "window": window,
-    }
-    result = bpy.ops.render.opengl(
-        render_ctx,
-        animation=False,
-        view_context=True,
-        sequencer=False,
-        write_still=False,
-    )
-    print(f"Rendered preview, result={result}")
-    return bpy.data.images["Render Result"]
 
 
 def assign_tags_from_asset_browser(asset: Action, asset_browser: bpy.types.Area) -> None:
