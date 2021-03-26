@@ -56,6 +56,7 @@ if "bpy" in locals():
     ui_bgl = reload(ui_bgl)
     ui_panels = reload(ui_panels)
     upload = reload(upload)
+    upload_bg = reload(upload_bg)
     utils = reload(utils)
 
     bl_ui_label = reload(bl_ui_label)
@@ -90,6 +91,7 @@ else:
     from blenderkit import ui_bgl
     from blenderkit import ui_panels
     from blenderkit import upload
+    from blenderkit import upload_bg
     from blenderkit import utils
 
     from blenderkit.bl_ui_widgets import bl_ui_label

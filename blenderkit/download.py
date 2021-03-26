@@ -809,6 +809,7 @@ class Downloader(threading.Thread):
                     t = '%iKB' % fskb
                 else:
                     t = ' %iMB' % fsmb
+
                 tcom.report = f'Downloading {t} {self.resolution}'
 
                 dl = 0

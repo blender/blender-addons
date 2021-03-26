@@ -392,9 +392,9 @@ class FastRateMenu(Operator):
 
     @classmethod
     def poll(cls, context):
-        # scene = bpy.context.scene
-        # ui_props = scene.blenderkitUI
-        return True  # ui_props.active_index > -1
+        scene = bpy.context.scene
+        ui_props = scene.blenderkitUI
+        return ui_props.active_index > -1
 
     def draw(self, context):
         layout = self.layout
