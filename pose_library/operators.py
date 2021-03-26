@@ -93,9 +93,6 @@ class ANIM_OT_create_pose_asset(PoseAssetCreator, Operator):
             self.report({"WARNING"}, "No keyframes were found for this pose")
             return {"CANCELLED"}
 
-        # No longer necessary since rB17534e28ff4.
-        # self.render_preview(context, asset)
-
         # Switch to the newly created Action, i.e. follow the creating-is-editing design of Blender.
         anim_data = context.object.animation_data_create()
         anim_data.action = asset
