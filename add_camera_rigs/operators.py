@@ -5,7 +5,10 @@ from bpy.types import Operator
 
 
 def get_rig_and_cam(obj):
-    if obj.type == 'ARMATURE':
+    if (obj.type == 'ARMATURE'
+            and "rig_id" in obj
+            and obj["rig_id"].lower() in {"dolly_rig",
+                                          "crane_rig", "2d_rig"}):
         cam = None
         for child in obj.children:
             if child.type == 'CAMERA':
