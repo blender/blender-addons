@@ -569,7 +569,6 @@ def update_free_full(self, context):
 
 
 def can_edit_asset(active_index=-1, asset_data=None):
-    print(active_index, asset_data)
     if active_index < 0 and not asset_data:
         return False
     profile = bpy.context.window_manager.get('bkit profile')
