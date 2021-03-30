@@ -1227,7 +1227,8 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
                     op.max_resolution = asset_data.get('max_resolution',
                                                        0)  # str(utils.get_param(asset_data, 'textureResolutionMax'))
 
-            elif asset_data['assetBaseId'] in s['assets used'].keys():
+            elif asset_data['assetBaseId'] in s['assets used'].keys() and asset_data['assetType'] != 'hdr':
+                #HDRs are excluded from replacement, since they are always replaced.
                 # called from asset bar:
                 print('context menu')
                 op = col.operator('scene.blenderkit_download', text='Replace asset resolution')
