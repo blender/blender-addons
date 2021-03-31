@@ -47,7 +47,7 @@ class VIEW3D_PT_pose_library(Panel):
 
         if hasattr(layout, "template_asset_view"):
             workspace = context.workspace
-            layout.template_asset_view(
+            activate_op_props, drag_op_props = layout.template_asset_view(
                 "pose_assets",
                 workspace,
                 "active_asset_library",
@@ -57,7 +57,9 @@ class VIEW3D_PT_pose_library(Panel):
                 "active_pose_asset_index",
                 filter_id_types={"filter_action"},
                 activate_operator="poselib.apply_pose_asset",
+                drag_operator="poselib.blend_pose_asset",
             )
+            drag_op_props.release_confirm = True
 
 
 class ASSETBROWSER_PT_pose_library_usage(asset_utils.AssetBrowserPanel, Panel):
