@@ -22,7 +22,6 @@ Pose Library mockup GUI definition.
 
 import bpy
 from bpy.types import (
-    Action,
     Context,
     Panel,
 )
