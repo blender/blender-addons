@@ -61,6 +61,32 @@ class VIEW3D_PT_pose_library(Panel):
             drag_op_props.release_confirm = True
 
 
+def pose_library_list_item_context_menu(self, context) -> None:
+    def _poll(context) -> bool:
+        # Important: Must check context first, or the menu is added for every kind of list.
+        list = context.ui_list
+        if not list or list.bl_idname != "UI_UL_asset_view" or list.list_id != "pose_assets":
+            return False
+        if not context.asset_handle:
+            return False
+        return True
+
+    if _poll(context) == False:
+        return
+
+    layout = self.layout
+
+    layout.separator()
+
+    layout.operator("poselib.apply_pose_asset", text="Apply Pose")
+    layout.operator("poselib.blend_pose_asset", text="Blend Pose")
+
+    props = layout.operator("poselib.pose_asset_select_bones", text="Select Pose Bones")
+    props.select = True
+    props = layout.operator("poselib.pose_asset_select_bones", text="Deselect Pose Bones")
+    props.select = False
+
+
 class ASSETBROWSER_PT_pose_library_usage(asset_utils.AssetBrowserPanel, Panel):
     bl_region_type = "TOOLS"
     bl_label = "Pose Library"
@@ -127,4 +153,16 @@ classes = (
     VIEW3D_PT_pose_library,
 )
 
-register, unregister = bpy.utils.register_classes_factory(classes)
+def register():
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
+
+    bpy.types.UI_MT_list_item_context_menu.prepend(pose_library_list_item_context_menu)
+
+def unregister():
+    from bpy.utils import unregister_class
+    for cls in classes:
+        unregister_class(cls)
+
+    bpy.types.UI_MT_list_item_context_menu.remove(pose_library_list_item_context_menu)
