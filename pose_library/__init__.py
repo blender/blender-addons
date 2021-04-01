@@ -53,7 +53,7 @@ addon_keymaps: List[Tuple[bpy.types.KeyMap, bpy.types.KeyMapItem]] = []
 
 def register() -> None:
     bpy.types.WindowManager.poselib_flipped = bpy.props.BoolProperty(
-        name="Apply Flipped",
+        name="Flip Pose",
         default=False,
     )
     bpy.types.WindowManager.poselib_previous_action = bpy.props.PointerProperty(type=bpy.types.Action)

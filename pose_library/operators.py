@@ -308,10 +308,11 @@ class POSELIB_OT_pose_asset_select_bones(PoseAssetUser, Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     select: BoolProperty(name="Select", default=True)  # type: ignore
+    flipped: BoolProperty(name="Flipped", default=False)  # type: ignore
 
     def use_pose(self, context: Context, pose_asset: Action) -> Set[str]:
         arm_object: Object = context.object
-        pose_usage.select_bones(arm_object, pose_asset, select=self.select)
+        pose_usage.select_bones(arm_object, pose_asset, select=self.select, flipped=self.flipped)
         verb = "Selected" if self.select else "Deselected"
         self.report({"INFO"}, f"{verb} bones from {pose_asset.name}")
         return {"FINISHED"}

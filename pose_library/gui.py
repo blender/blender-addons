@@ -78,8 +78,12 @@ class ASSETBROWSER_PT_pose_library_usage(asset_utils.AssetBrowserPanel, Panel):
         props.flipped = wm.poselib_flipped
 
         row = col.row(align=True)
-        row.operator("poselib.pose_asset_select_bones", text="Select", icon="BONE_DATA").select = True
-        row.operator("poselib.pose_asset_select_bones", text="Deselect").select = False
+        props = row.operator("poselib.pose_asset_select_bones", text="Select", icon="BONE_DATA")
+        props.flipped = wm.poselib_flipped
+        props.select = True
+        props = row.operator("poselib.pose_asset_select_bones", text="Deselect")
+        props.flipped = wm.poselib_flipped
+        props.select = False
 
 
 class ASSETBROWSER_PT_pose_library_editing(asset_utils.AssetBrowserPanel, Panel):
