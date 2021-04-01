@@ -72,11 +72,11 @@ class ASSETBROWSER_PT_pose_library_usage(asset_utils.AssetBrowserPanel, Panel):
 
         col = layout.column(align=True)
         col.label(text="Use Pose Asset")
-        col.prop(wm, "poselib_apply_flipped")
+        col.prop(wm, "poselib_flipped")
         props = col.operator("poselib.apply_pose_asset")
-        props.apply_flipped = wm.poselib_apply_flipped
+        props.flipped = wm.poselib_flipped
         props = col.operator("poselib.blend_pose_asset")
-        props.apply_flipped = wm.poselib_apply_flipped
+        props.flipped = wm.poselib_flipped
 
         row = col.row(align=True)
         row.operator("poselib.pose_asset_select_bones", text="Select", icon="BONE_DATA").select = True

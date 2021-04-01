@@ -33,22 +33,22 @@ def register() -> None:
 
     # DblClick to apply pose.
     kmi = km.keymap_items.new("poselib.apply_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK")
-    kmi.properties.apply_flipped = False
+    kmi.properties.flipped = False
     addon_keymaps.append((km, kmi))
 
     # Shift-dblClick to apply pose flipped.
     kmi = km.keymap_items.new("poselib.apply_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK", shift=True)
-    kmi.properties.apply_flipped = True
+    kmi.properties.flipped = True
     addon_keymaps.append((km, kmi))
 
     # Ctrl-dblClick to blend pose.
     kmi = km.keymap_items.new("poselib.blend_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK", ctrl=True)
-    kmi.properties.apply_flipped = False
+    kmi.properties.flipped = False
     addon_keymaps.append((km, kmi))
 
     # Ctrl-Shift-dblClick to blend pose flipped.
     kmi = km.keymap_items.new("poselib.blend_pose_asset", "LEFTMOUSE", "DOUBLE_CLICK", ctrl=True)
-    kmi.properties.apply_flipped = True
+    kmi.properties.flipped = True
     addon_keymaps.append((km, kmi))
 
     # Alt-dblClick to select bones.

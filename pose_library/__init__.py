@@ -52,7 +52,7 @@ addon_keymaps: List[Tuple[bpy.types.KeyMap, bpy.types.KeyMapItem]] = []
 
 
 def register() -> None:
-    bpy.types.WindowManager.poselib_apply_flipped = bpy.props.BoolProperty(
+    bpy.types.WindowManager.poselib_flipped = bpy.props.BoolProperty(
         name="Apply Flipped",
         default=False,
     )
@@ -71,7 +71,7 @@ def unregister() -> None:
     operators.unregister()
 
     try:
-        del bpy.types.WindowManager.poselib_apply_flipped
+        del bpy.types.WindowManager.poselib_flipped
     except AttributeError:
         pass
     try:
