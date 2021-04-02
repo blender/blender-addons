@@ -24,6 +24,7 @@ import bpy
 from bpy.types import (
     Context,
     Panel,
+    UIList,
 )
 
 from bpy_extras import asset_utils
@@ -61,8 +62,8 @@ class VIEW3D_PT_pose_library(Panel):
             drag_op_props.release_confirm = True
 
 
-def pose_library_list_item_context_menu(self, context) -> None:
-    def _poll(context) -> bool:
+def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
+    def _poll() -> bool:
         # Important: Must check context first, or the menu is added for every kind of list.
         list = context.ui_list
         if not list or list.bl_idname != "UI_UL_asset_view" or list.list_id != "pose_assets":
@@ -71,7 +72,7 @@ def pose_library_list_item_context_menu(self, context) -> None:
             return False
         return True
 
-    if _poll(context) == False:
+    if not _poll():
         return
 
     layout = self.layout
