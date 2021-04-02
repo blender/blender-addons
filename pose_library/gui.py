@@ -153,16 +153,16 @@ classes = (
     VIEW3D_PT_pose_library,
 )
 
-def register():
-    from bpy.utils import register_class
-    for cls in classes:
-        register_class(cls)
+_register, _unregister = bpy.utils.register_classes_factory(classes)
+
+
+def register() -> None:
+    _register()
 
     bpy.types.UI_MT_list_item_context_menu.prepend(pose_library_list_item_context_menu)
 
-def unregister():
-    from bpy.utils import unregister_class
-    for cls in classes:
-        unregister_class(cls)
+
+def unregister() -> None:
+    _unregister()
 
     bpy.types.UI_MT_list_item_context_menu.remove(pose_library_list_item_context_menu)
