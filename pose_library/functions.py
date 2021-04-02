@@ -27,7 +27,11 @@ from typing import Any, List, Set, cast, Iterable
 Datablock = Any
 
 import bpy
-from bpy.types import Context
+from bpy.types import (
+    FileSelectEntry,
+    AssetLibraryReference,
+    Context,
+)
 
 
 def asset_mark(context: Context, datablock: Any) -> Set[str]:
@@ -90,30 +94,22 @@ def has_assets(filepath: Path) -> bool:
     return False
 
 
-def active_asset_library_path(context: Context) -> Path:
-    asset_library_name: str = context.space_data.params.asset_library
-    paths = context.preferences.filepaths
-    asset_lib = paths.asset_libraries[asset_library_name]
-    return Path(asset_lib.path)
-
-
 @dataclasses.dataclass
 class AssetLoadInfo:
     """Everything you need to temp-load an asset."""
 
-    file_path: Path
+    file_path: str
     asset_name: str
-    id_type: str  # As familiar from the file browser, so 'Actions' for Actions.
+    id_type: str
 
 
-def active_asset_load_info(context: Context) -> AssetLoadInfo:
-    asset_lib_path = active_asset_library_path(context)
-
-    file_and_datablock_name: str = context.space_data.params.filename
-    filename, id_type, id_name = file_and_datablock_name.split("/", 2)
+def active_asset_load_info(asset_library: AssetLibraryReference, asset: FileSelectEntry) -> AssetLoadInfo:
+    asset_lib_path = bpy.types.AssetHandle.get_full_library_path(asset, asset_library)
+    if asset_lib_path == "":
+        return None
 
     return AssetLoadInfo(
-        asset_lib_path / filename,
-        id_name,
-        id_type,
+        asset_lib_path,
+        asset.name,
+        asset.id_type,
     )

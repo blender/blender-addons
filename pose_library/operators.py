@@ -41,6 +41,7 @@ from bpy.props import BoolProperty, StringProperty
 from bpy.types import (
     Action,
     Context,
+    FileSelectEntry,
     Object,
     Operator,
 )
@@ -266,18 +267,16 @@ class PoseAssetUser:
     @classmethod
     def poll(cls, context: Context) -> bool:
         return bool(
-            context.space_data.type == "FILE_BROWSER"
-            and context.space_data.browse_mode == "ASSETS"
-            and context.space_data.params.asset_library
-            and context.space_data.params.filename
-            and context.object
+            context.object
             and context.object.mode == "POSE"  # This condition may not be desired.
-            and asset_utils.SpaceAssetInfo.get_active_asset(context) is not None
+            and context.asset_library
+            and context.asset_file_handle
         )
 
     def execute(self, context: Context) -> Set[str]:
-        if context.space_data.params.asset_library == "LOCAL":
-            return self.use_pose(context, context.id)
+        asset: FileSelectEntry = context.asset_file_handle
+        if asset.local_id:
+            return self.use_pose(context, asset.local_id)
         return self._load_and_use_pose(context)
 
     def use_pose(self, context: Context, asset: bpy.types.ID) -> Set[str]:
@@ -285,8 +284,18 @@ class PoseAssetUser:
         pass
 
     def _load_and_use_pose(self, context: Context) -> Set[str]:
-        asset_load_info = functions.active_asset_load_info(context)
-        if asset_load_info.id_type != "Action":
+        asset_library = context.asset_library
+        asset = context.asset_file_handle
+
+        asset_load_info = functions.active_asset_load_info(asset_library, asset)
+        if not asset_load_info:
+            self.report(  # type: ignore
+                {"ERROR"},
+                # TODO: Add some way to get the library name from the library reference (just asset_library.name?).
+                f"Selected asset {asset_load_info.asset_name} could not be located inside the asset library",
+            )
+            return {"CANCELLED"}
+        if asset_load_info.id_type != 'ACTION':
             self.report(  # type: ignore
                 {"ERROR"},
                 f"Selected asset {asset_load_info.asset_name} is not an Action",
@@ -294,7 +303,7 @@ class PoseAssetUser:
             return {"CANCELLED"}
 
         with bpy.types.BlendData.temp_data() as temp_data:
-            str_path = str(asset_load_info.file_path)
+            str_path = asset_load_info.file_path
             with temp_data.libraries.load(str_path) as (data_from, data_to):
                 data_to.actions = [asset_load_info.asset_name]
 
