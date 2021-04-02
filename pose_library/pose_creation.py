@@ -148,6 +148,10 @@ class PoseActionCreator:
                 # This property is already handled by a previous _store_xxx() call.
                 continue
 
+            # Only include in the pose if there is a key on this frame.
+            if not self._has_key_on_frame(fcurve):
+                continue
+
             try:
                 value = self._current_value(armature_ob, fcurve.data_path, fcurve.array_index)
             except UnresolvablePathError:
@@ -270,6 +274,30 @@ class PoseActionCreator:
 
         bone: Bone = self.params.armature_ob.pose.bones[bone_name]
         return bone
+
+    def _has_key_on_frame(self, fcurve: FCurve) -> bool:
+        """Return True iff the FCurve has a key on the source frame."""
+
+        points = fcurve.keyframe_points
+        if not points:
+            return False
+
+        frame_to_find = self.params.src_frame_nr
+        margin = 0.001
+        high = len(points) - 1
+        low = 0
+        while low <= high:
+            mid = (high + low) // 2
+            diff = points[mid].co.x - frame_to_find
+            if abs(diff) < margin:
+                return True
+            if diff < 0:
+                # Frame to find is bigger than the current middle.
+                low = mid + 1
+            else:
+                # Frame to find is smaller than the current middle
+                high = mid - 1
+        return False
 
 
 def create_pose_asset(
