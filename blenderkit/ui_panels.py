@@ -1580,9 +1580,6 @@ def draw_panel_categories(self, context):
     layout = self.layout
     # row = layout.row()
     # row.prop(ui_props, 'asset_type', expand=True, icon_only=True)
-    layout.separator()
-
-    layout.label(text='Categories')
     wm = bpy.context.window_manager
     if wm.get('bkit_categories') == None:
         return
