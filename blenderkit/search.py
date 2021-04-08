@@ -436,7 +436,7 @@ def timer_update():
                 load_previews()
                 ui_props = bpy.context.scene.blenderkitUI
                 if len(result_field) < ui_props.scrolloffset or not(thread[0].params.get('get_next')):
-                    #jump back 
+                    #jump back
                     ui_props.scrolloffset = 0
                 props.is_searching = False
                 props.search_error = False
@@ -1438,10 +1438,7 @@ def search(category='', get_next=False, author_id=''):
     # crop long searches
     if query.get('query'):
         if len(query['query']) > 50:
-            print('strip it now strip it good')
-            print(query['query'])
             query['query'] = strip_accents(query['query'])
-            print(query['query'])
 
         if len(query['query']) > 150:
             idx = query['query'].find(' ', 142)
