@@ -87,6 +87,9 @@ def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
     props = layout.operator("poselib.pose_asset_select_bones", text="Deselect Pose Bones")
     props.select = False
 
+    layout.separator()
+    layout.operator("asset.open_containing_blend_file")
+
 
 class ASSETBROWSER_PT_pose_library_usage(asset_utils.AssetBrowserPanel, Panel):
     bl_region_type = "TOOLS"
