@@ -314,6 +314,7 @@ class PoseAssetUser:
 class POSELIB_OT_pose_asset_select_bones(PoseAssetUser, Operator):
     bl_idname = "poselib.pose_asset_select_bones"
     bl_label = "Select Bones"
+    bl_description = "Select those bones that are used in this pose"
     bl_options = {"REGISTER", "UNDO"}
 
     select: BoolProperty(name="Select", default=True)  # type: ignore
@@ -325,6 +326,12 @@ class POSELIB_OT_pose_asset_select_bones(PoseAssetUser, Operator):
         verb = "Selected" if self.select else "Deselected"
         self.report({"INFO"}, f"{verb} bones from {pose_asset.name}")
         return {"FINISHED"}
+
+    @classmethod
+    def description(cls, _context: Context, properties: 'POSELIB_OT_pose_asset_select_bones') -> str:
+        if properties.select:
+            return cls.bl_description
+        return cls.bl_description.replace("Select", "Deselect")
 
 
 classes = (
