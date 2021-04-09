@@ -292,7 +292,7 @@ class PoseAssetUser:
             self.report(  # type: ignore
                 {"ERROR"},
                 # TODO: Add some way to get the library name from the library reference (just asset_library.name?).
-                f"Selected asset {asset_load_info.asset_name} could not be located inside the asset library",
+                f"Selected asset {asset.name} could not be located inside the asset library",
             )
             return {"CANCELLED"}
         if asset_load_info.id_type != 'ACTION':

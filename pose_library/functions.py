@@ -22,7 +22,7 @@ Pose Library mockup - functions.
 
 import dataclasses
 from pathlib import Path
-from typing import Any, List, Set, cast, Iterable
+from typing import Any, List, Set, cast, Iterable, Optional
 
 Datablock = Any
 
@@ -103,7 +103,9 @@ class AssetLoadInfo:
     id_type: str
 
 
-def active_asset_load_info(asset_library: AssetLibraryReference, asset: FileSelectEntry) -> AssetLoadInfo:
+def active_asset_load_info(
+    asset_library: AssetLibraryReference, asset: FileSelectEntry
+) -> Optional[AssetLoadInfo]:
     asset_lib_path = bpy.types.AssetHandle.get_full_library_path(asset, asset_library)
     if asset_lib_path == "":
         return None
