@@ -1026,7 +1026,7 @@ class VIEW3D_OT_vr_actionmap_copy(Operator):
 
 class VIEW3D_OT_vr_actionmaps_clear(Operator):
     bl_idname = "view3d.vr_actionmaps_clear"
-    bl_label = "Clear VR Action Map"
+    bl_label = "Clear VR Action Maps"
     bl_description = "Delete all VR action maps from the scene"
     bl_options = {'UNDO', 'REGISTER'}
 
@@ -1044,7 +1044,7 @@ class VIEW3D_OT_vr_actionmaps_clear(Operator):
 class VIEW3D_OT_vr_action_add(Operator):
     bl_idname = "view3d.vr_action_add"
     bl_label = "Add VR Action"
-    bl_description = "Add a new VR action to the list and select it"
+    bl_description = "Add a new VR action to the action map"
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
@@ -1069,7 +1069,7 @@ class VIEW3D_OT_vr_action_add(Operator):
 class VIEW3D_OT_vr_action_remove(Operator):
     bl_idname = "view3d.vr_action_remove"
     bl_label = "Remove VR Action"
-    bl_description = "Delete the selected VR action from the list"
+    bl_description = "Delete the selected VR action from the action map"
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
@@ -1123,7 +1123,7 @@ class VIEW3D_OT_vr_action_copy(Operator):
 class VIEW3D_OT_vr_actions_clear(Operator):
     bl_idname = "view3d.vr_actions_clear"
     bl_label = "Clear VR Actions"
-    bl_description = "Delete all VR actions for the selected action map"
+    bl_description = "Delete all VR actions from the action map"
     bl_options = {'UNDO', 'REGISTER'}
 
     def execute(self, context):
