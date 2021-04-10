@@ -632,7 +632,8 @@ def timer_update():
                             l.reload()
 
                 if tcom.passargs.get('replace_resolution'):
-                    # try to relink first.
+                    # try to relink
+                    # HDRs are always swapped, so their swapping is handled without the replace_resolution option
 
                     ain, resolution = asset_in_scene(asset_data)
 
@@ -809,6 +810,7 @@ class Downloader(threading.Thread):
                     t = '%iKB' % fskb
                 else:
                     t = ' %iMB' % fsmb
+
                 tcom.report = f'Downloading {t} {self.resolution}'
 
                 dl = 0
@@ -930,9 +932,6 @@ def try_finished_append(asset_data, **kwargs):  # location=None, material_target
     if len(file_names) > 0:
         if os.path.isfile(file_names[-1]):
             kwargs['name'] = asset_data['name']
-            append_asset(asset_data, **kwargs)
-            done = True
-            return done
             try:
                 append_asset(asset_data, **kwargs)
                 done = True

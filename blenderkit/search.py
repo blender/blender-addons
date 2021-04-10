@@ -47,6 +47,7 @@ import bpy
 import copy
 import json
 import math
+import unicodedata
 
 import logging
 
@@ -108,7 +109,7 @@ def update_ad(ad):
             ad['author']['id'] = ad['author_id']  # this should stay ONLY for compatibility with older scenes
             ad['canDownload'] = ad['can_download']  # this should stay ONLY for compatibility with older scenes
         except Exception as e:
-            bk_logger.error('BLenderKit failed to update older asset data')
+            bk_logger.error('BlenderKit failed to update older asset data')
     return ad
 
 
@@ -243,21 +244,37 @@ def parse_result(r):
         r['available_resolutions'] = []
         allthumbs = []
         durl, tname, small_tname = '', '', ''
-        for f in r['files']:
-            if f['fileType'] == 'thumbnail':
-                tname = paths.extract_filename_from_url(f['fileThumbnailLarge'])
-                small_tname = paths.extract_filename_from_url(f['fileThumbnail'])
-                allthumbs.append(tname)  # TODO just first thumb is used now.
 
-            tdict = {}
-            for i, t in enumerate(allthumbs):
-                tdict['thumbnail_%i'] = t
+        if r['assetType'] == 'hdr':
+            tname = paths.extract_filename_from_url(r['thumbnailMiddleUrlNonsquared'])
+        else:
+            tname = paths.extract_filename_from_url(r['thumbnailMiddleUrl'])
+        small_tname = paths.extract_filename_from_url(r['thumbnailSmallUrl'])
+        allthumbs.append(tname)  # TODO just first thumb is used now.
+        # if r['fileType'] == 'thumbnail':
+        #     tname = paths.extract_filename_from_url(f['fileThumbnailLarge'])
+        #     small_tname = paths.extract_filename_from_url(f['fileThumbnail'])
+        #     allthumbs.append(tname)  # TODO just first thumb is used now.
+
+        for f in r['files']:
+            # if f['fileType'] == 'thumbnail':
+            #     tname = paths.extract_filename_from_url(f['fileThumbnailLarge'])
+            #     small_tname = paths.extract_filename_from_url(f['fileThumbnail'])
+            #     allthumbs.append(tname)  # TODO just first thumb is used now.
+
+
             if f['fileType'] == 'blend':
                 durl = f['downloadUrl'].split('?')[0]
                 # fname = paths.extract_filename_from_url(f['filePath'])
 
             if f['fileType'].find('resolution') > -1:
                 r['available_resolutions'].append(resolutions.resolutions[f['fileType']])
+
+        #code for more thumbnails
+        # tdict = {}
+        # for i, t in enumerate(allthumbs):
+        #     tdict['thumbnail_%i'] = t
+
         r['max_resolution'] = 0
         if r['available_resolutions']:  # should check only for non-empty sequences
             r['max_resolution'] = max(r['available_resolutions'])
@@ -311,7 +328,7 @@ def parse_result(r):
         if asset_type == 'material':
             asset_data['texture_size_meters'] = params.get('textureSizeMeters', 1.0)
 
-        asset_data.update(tdict)
+        # asset_data.update(tdict)
 
         au = scene.get('assets used', {})
         if au == {}:
@@ -401,7 +418,6 @@ def timer_update():
                 return .2
 
             rdata = thread[0].result
-
             result_field = []
             ok, error = check_errors(rdata)
             if ok:
@@ -419,7 +435,8 @@ def timer_update():
 
                 load_previews()
                 ui_props = bpy.context.scene.blenderkitUI
-                if len(result_field) < ui_props.scrolloffset:
+                if len(result_field) < ui_props.scrolloffset or not(thread[0].params.get('get_next')):
+                    #jump back
                     ui_props.scrolloffset = 0
                 props.is_searching = False
                 props.search_error = False
@@ -1019,25 +1036,44 @@ class Searcher(threading.Thread):
         thumb_full_filepaths = []
         # END OF PARSING
         for d in rdata.get('results', []):
+            thumb_small_urls.append(d["thumbnailSmallUrl"])
+            imgname = paths.extract_filename_from_url(d['thumbnailSmallUrl'])
+            imgpath = os.path.join(self.tempdir, imgname)
+            thumb_small_filepaths.append(imgpath)
 
-            for f in d['files']:
-                # TODO move validation of published assets to server, too manmy checks here.
-                if f['fileType'] == 'thumbnail' and f['fileThumbnail'] != None and f['fileThumbnailLarge'] != None:
-                    if f['fileThumbnail'] == None:
-                        f['fileThumbnail'] = 'NONE'
-                    if f['fileThumbnailLarge'] == None:
-                        f['fileThumbnailLarge'] = 'NONE'
 
-                    thumb_small_urls.append(f['fileThumbnail'])
-                    thumb_full_urls.append(f['fileThumbnailLarge'])
 
-                    imgname = paths.extract_filename_from_url(f['fileThumbnail'])
-                    imgpath = os.path.join(self.tempdir, imgname)
-                    thumb_small_filepaths.append(imgpath)
+            if d["assetType"] == 'hdr':
+                larege_thumb_url = d['thumbnailMiddleUrlNonsquared']
 
-                    imgname = paths.extract_filename_from_url(f['fileThumbnailLarge'])
-                    imgpath = os.path.join(self.tempdir, imgname)
-                    thumb_full_filepaths.append(imgpath)
+            else:
+                larege_thumb_url = d['thumbnailMiddleUrl']
+
+            thumb_full_urls.append(larege_thumb_url)
+            imgname = paths.extract_filename_from_url(larege_thumb_url)
+            imgpath = os.path.join(self.tempdir, imgname)
+            thumb_full_filepaths.append(imgpath)
+
+
+
+            # for f in d['files']:
+            #     # TODO move validation of published assets to server, too manmy checks here.
+            #     if f['fileType'] == 'thumbnail' and f['fileThumbnail'] != None and f['fileThumbnailLarge'] != None:
+            #         if f['fileThumbnail'] == None:
+            #             f['fileThumbnail'] = 'NONE'
+            #         if f['fileThumbnailLarge'] == None:
+            #             f['fileThumbnailLarge'] = 'NONE'
+            #
+            #         thumb_small_urls.append(f['fileThumbnail'])
+            #         thumb_full_urls.append(f['fileThumbnailLarge'])
+            #
+            #         imgname = paths.extract_filename_from_url(f['fileThumbnail'])
+            #         imgpath = os.path.join(self.tempdir, imgname)
+            #         thumb_small_filepaths.append(imgpath)
+            #
+            #         imgname = paths.extract_filename_from_url(f['fileThumbnailLarge'])
+            #         imgpath = os.path.join(self.tempdir, imgname)
+            #         thumb_full_filepaths.append(imgpath)
 
         sml_thbs = zip(thumb_small_filepaths, thumb_small_urls)
         full_thbs = zip(thumb_full_filepaths, thumb_full_urls)
@@ -1399,6 +1435,15 @@ def search(category='', get_next=False, author_id=''):
         props = scene.blenderkit_brush
         query = build_query_brush()
 
+    # crop long searches
+    if query.get('query'):
+        if len(query['query']) > 50:
+            query['query'] = strip_accents(query['query'])
+
+        if len(query['query']) > 150:
+            idx = query['query'].find(' ', 142)
+            query['query'] = query['query'][:idx]
+
     # it's possible get_net was requested more than once.
     if props.is_searching and get_next == True:
         return;
@@ -1429,8 +1474,6 @@ def search(category='', get_next=False, author_id=''):
         'free_first': props.free_only
     }
 
-    # if free_only:
-    #     query['keywords'] += '+is_free:true'
     orig_results = bpy.context.window_manager.get(f'bkit {ui_props.asset_type.lower()} search orig', {})
     if orig_results != {}:
         # ensure it's a copy in dict for what we are passing to thread:
@@ -1481,6 +1524,10 @@ def search_update(self, context):
 
     search()
 
+# accented_string is of type 'unicode'
+def strip_accents(s):
+    return ''.join(c for c in unicodedata.normalize('NFD', s)
+                   if unicodedata.category(c) != 'Mn')
 
 class SearchOperator(Operator):
     """Tooltip"""
@@ -1530,6 +1577,7 @@ class SearchOperator(Operator):
             sprops.search_keywords = ''
         if self.keywords != '':
             sprops.search_keywords = self.keywords
+
 
         search(category=self.category, get_next=self.get_next, author_id=self.author_id)
         # bpy.ops.view3d.blenderkit_asset_bar()
