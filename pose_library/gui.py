@@ -45,9 +45,11 @@ class VIEW3D_PT_pose_library(Panel):
             row.operator("poselib.restore_previous_action", text="", icon='LOOP_BACK')
         row.operator("poselib.copy_as_asset", icon="COPYDOWN", text="")
 
+        wm = context.window_manager
+        layout.prop(wm, "poselib_flipped")
+
         if hasattr(layout, "template_asset_view"):
             workspace = context.workspace
-            wm = context.window_manager
             activate_op_props, drag_op_props = layout.template_asset_view(
                 "pose_assets",
                 workspace,
