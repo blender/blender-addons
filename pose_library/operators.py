@@ -41,6 +41,7 @@ from bpy.props import BoolProperty, StringProperty
 from bpy.types import (
     Action,
     Context,
+    Event,
     FileSelectEntry,
     Object,
     Operator,
@@ -334,8 +335,50 @@ class POSELIB_OT_pose_asset_select_bones(PoseAssetUser, Operator):
         return cls.bl_description.replace("Select", "Deselect")
 
 
+class POSELIB_OT_blend_pose_asset_for_keymap(Operator):
+    bl_idname = "poselib.blend_pose_asset_for_keymap"
+    bl_options = {"REGISTER", "UNDO"}
+
+    _rna = bpy.ops.poselib.blend_pose_asset.get_rna_type()
+    bl_label = _rna.name
+    bl_description = _rna.description
+    del _rna
+
+    @classmethod
+    def poll(cls, context: Context) -> bool:
+        return bpy.ops.poselib.blend_pose_asset.poll(context.copy())
+
+    def execute(self, context: Context) -> Set[str]:
+        flipped = context.window_manager.poselib_flipped
+        return bpy.ops.poselib.blend_pose_asset(context.copy(), 'EXEC_DEFAULT', flipped=flipped)
+
+    def invoke(self, context: Context, event: Event) -> Set[str]:
+        flipped = context.window_manager.poselib_flipped
+        return bpy.ops.poselib.blend_pose_asset(context.copy(), 'INVOKE_DEFAULT', flipped=flipped)
+
+
+class POSELIB_OT_apply_pose_asset_for_keymap(Operator):
+    bl_idname = "poselib.apply_pose_asset_for_keymap"
+    bl_options = {"REGISTER", "UNDO"}
+
+    _rna = bpy.ops.poselib.apply_pose_asset.get_rna_type()
+    bl_label = _rna.name
+    bl_description = _rna.description
+    del _rna
+
+    @classmethod
+    def poll(cls, context: Context) -> bool:
+        return bpy.ops.poselib.apply_pose_asset.poll(context.copy())
+
+    def execute(self, context: Context) -> Set[str]:
+        flipped = context.window_manager.poselib_flipped
+        return bpy.ops.poselib.apply_pose_asset(context.copy(), 'EXEC_DEFAULT', flipped=flipped)
+
+
 classes = (
     ASSET_OT_assign_action,
+    POSELIB_OT_apply_pose_asset_for_keymap,
+    POSELIB_OT_blend_pose_asset_for_keymap,
     POSELIB_OT_copy_as_asset,
     POSELIB_OT_create_pose_asset,
     POSELIB_OT_paste_asset,

@@ -47,11 +47,12 @@ class VIEW3D_PT_pose_library(Panel):
 
         if hasattr(layout, "template_asset_view"):
             workspace = context.workspace
+            wm = context.window_manager
             activate_op_props, drag_op_props = layout.template_asset_view(
                 "pose_assets",
                 workspace,
                 "active_asset_library",
-                context.window_manager,
+                wm,
                 "pose_assets",
                 workspace,
                 "active_pose_asset_index",
@@ -60,6 +61,8 @@ class VIEW3D_PT_pose_library(Panel):
                 drag_operator="poselib.blend_pose_asset",
             )
             drag_op_props.release_confirm = True
+            drag_op_props.flipped = wm.poselib_flipped
+            activate_op_props.flipped = wm.poselib_flipped
 
 
 def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
