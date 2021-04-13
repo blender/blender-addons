@@ -74,11 +74,14 @@ def load_assets_from(filepath: Path) -> List[Datablock]:
             for datablock in datablocks:
                 yield datablock
 
-    loaded_assets = [
-        datablock
-        for datablock in loaded_datablocks()
-        if getattr(datablock, "asset_data", None) is not None
-    ]
+    loaded_assets = []
+    for datablock in loaded_datablocks():
+        if not getattr(datablock, "asset_data", None):
+            continue
+
+        # Fake User is lost when appending from another file.
+        datablock.use_fake_user = True
+        loaded_assets.append(datablock)
     return loaded_assets
 
 
