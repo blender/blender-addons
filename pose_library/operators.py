@@ -88,21 +88,31 @@ class POSELIB_OT_create_pose_asset(PoseAssetCreator, Operator):
             self.report({"WARNING"}, "No keyframes were found for this pose")
             return {"CANCELLED"}
 
+        self._set_active_action(context, asset)
+        self._activate_asset_in_browser(context, asset)
+        return {'FINISHED'}
+
+    def _set_active_action(self, context: Context, asset: Action) -> None:
         self._prevent_action_loss(context.object)
 
         anim_data = context.object.animation_data_create()
         context.window_manager.poselib_previous_action = anim_data.action
         anim_data.action = asset
 
+    def _activate_asset_in_browser(self, context: Context, asset: Action) -> None:
+        """Activate the new asset in the appropriate Asset Browser.
+
+        This makes it possible to immediately check & edit the created pose asset.
+        """
+
         asset_browse_area: Optional[bpy.types.Area] = asset_browser.area_for_category(
             context.screen, "ANIMATION"
         )
         if not asset_browse_area:
-            return {"FINISHED"}
+            return
 
         # After creating an asset, the window manager has to process the
         # notifiers before editors should be manipulated.
-
         pose_creation.assign_tags_from_asset_browser(asset, asset_browse_area)
 
         # Pass deferred=True, because we just created a new asset that isn't
@@ -111,9 +121,12 @@ class POSELIB_OT_create_pose_asset(PoseAssetCreator, Operator):
         # running.
         asset_browser.activate_asset(asset, asset_browse_area, deferred=True)
 
-        return {"FINISHED"}
-
     def _prevent_action_loss(self, object: Object) -> None:
+        """Mark the action with Fake User if necessary.
+
+        This is to prevent action loss when we reduce its reference counter by one.
+        """
+
         if not object.animation_data:
             return
 
