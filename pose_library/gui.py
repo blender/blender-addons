@@ -40,7 +40,7 @@ class VIEW3D_PT_pose_library(Panel):
         layout = self.layout
 
         row = layout.row(align=True)
-        row.operator("poselib.create_pose_asset")
+        row.operator("poselib.create_pose_asset").activate_new_action = False
         if bpy.types.POSELIB_OT_restore_previous_action.poll(context):
             row.operator("poselib.restore_previous_action", text="", icon='LOOP_BACK')
         row.operator("poselib.copy_as_asset", icon="COPYDOWN", text="")
@@ -149,7 +149,7 @@ class DOPESHEET_PT_asset_panel(Panel):
         layout = self.layout
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.operator("poselib.create_pose_asset")
+        row.operator("poselib.create_pose_asset").activate_new_action = True
         if bpy.types.POSELIB_OT_restore_previous_action.poll(context):
             row.operator("poselib.restore_previous_action", text="", icon='LOOP_BACK')
         col.operator("poselib.copy_as_asset", icon="COPYDOWN")

@@ -80,6 +80,7 @@ class POSELIB_OT_create_pose_asset(PoseAssetCreator, Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     pose_name: StringProperty(name="Pose Name")  # type: ignore
+    activate_new_action: BoolProperty(name="Activate New Action", default=True)  # type: ignore
 
     def execute(self, context: Context) -> Set[str]:
         pose_name = self.pose_name or context.object.name
@@ -88,7 +89,8 @@ class POSELIB_OT_create_pose_asset(PoseAssetCreator, Operator):
             self.report({"WARNING"}, "No keyframes were found for this pose")
             return {"CANCELLED"}
 
-        self._set_active_action(context, asset)
+        if self.activate_new_action:
+            self._set_active_action(context, asset)
         self._activate_asset_in_browser(context, asset)
         return {'FINISHED'}
 
