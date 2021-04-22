@@ -346,7 +346,9 @@ class POSELIB_OT_pose_asset_select_bones(PoseAssetUser, Operator):
         return {"FINISHED"}
 
     @classmethod
-    def description(cls, _context: Context, properties: 'POSELIB_OT_pose_asset_select_bones') -> str:
+    def description(
+        cls, _context: Context, properties: 'POSELIB_OT_pose_asset_select_bones'
+    ) -> str:
         if properties.select:
             return cls.bl_description
         return cls.bl_description.replace("Select", "Deselect")
