@@ -68,24 +68,39 @@ class VIEW3D_PT_pose_library(Panel):
 
 
 def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
-    def _poll() -> bool:
+    def is_pose_asset_view() -> bool:
         # Important: Must check context first, or the menu is added for every kind of list.
-        list = context.ui_list
+        list = getattr(context, "ui_list", None)
         if not list or list.bl_idname != "UI_UL_asset_view" or list.list_id != "pose_assets":
             return False
         if not context.asset_handle:
             return False
         return True
 
-    if not _poll():
+    def is_pose_library_asset_browser() -> bool:
+        asset_library = getattr(context, "asset_library", None)
+        if not asset_library:
+            return False
+        asset = getattr(context, "asset_file_handle", None)
+        if not asset:
+            return False
+        return True
+
+    if not is_pose_asset_view() and not is_pose_library_asset_browser():
         return
 
     layout = self.layout
+    wm = context.window_manager
 
     layout.separator()
 
     layout.operator("poselib.apply_pose_asset", text="Apply Pose")
-    layout.operator("poselib.blend_pose_asset", text="Blend Pose")
+
+    old_op_ctx = layout.operator_context
+    layout.operator_context = 'INVOKE_DEFAULT'
+    props = layout.operator("poselib.blend_pose_asset", text="Blend Pose")
+    props.flipped = wm.poselib_flipped
+    layout.operator_context = old_op_ctx
 
     props = layout.operator("poselib.pose_asset_select_bones", text="Select Pose Bones")
     props.select = True
@@ -169,9 +184,11 @@ def register() -> None:
     _register()
 
     bpy.types.UI_MT_list_item_context_menu.prepend(pose_library_list_item_context_menu)
+    bpy.types.FILEBROWSER_MT_context_menu.prepend(pose_library_list_item_context_menu)
 
 
 def unregister() -> None:
     _unregister()
 
     bpy.types.UI_MT_list_item_context_menu.remove(pose_library_list_item_context_menu)
+    bpy.types.FILEBROWSER_MT_context_menu.remove(pose_library_list_item_context_menu)

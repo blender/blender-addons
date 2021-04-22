@@ -35,26 +35,6 @@ def register() -> None:
     kmi = km.keymap_items.new("poselib.apply_pose_asset_for_keymap", "LEFTMOUSE", "DOUBLE_CLICK")
     addon_keymaps.append((km, kmi))
 
-    # Shift-dblClick to blend pose.
-    kmi = km.keymap_items.new("poselib.blend_pose_asset_for_keymap", "LEFTMOUSE", "DOUBLE_CLICK", shift=True)
-    addon_keymaps.append((km, kmi))
-
-    # Alt-dblClick to select bones.
-    kmi = km.keymap_items.new(
-        "poselib.select_asset_and_select_bones", "LEFTMOUSE", "DOUBLE_CLICK", alt=True
-    )
-    addon_keymaps.append((km, kmi))
-
-    # Alt-shift-dblClick to deselect bones.
-    kmi = km.keymap_items.new(
-        "poselib.select_asset_and_deselect_bones",
-        "LEFTMOUSE",
-        "DOUBLE_CLICK",
-        alt=True,
-        shift=True,
-    )
-    addon_keymaps.append((km, kmi))
-
 
 def unregister() -> None:
     # Clear shortcuts from the keymap.
