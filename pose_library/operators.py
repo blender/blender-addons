@@ -282,12 +282,14 @@ class POSELIB_OT_paste_asset(Operator):
 class PoseAssetUser:
     @classmethod
     def poll(cls, context: Context) -> bool:
-        return bool(
+        if not (
             context.object
             and context.object.mode == "POSE"  # This condition may not be desired.
             and context.asset_library
             and context.asset_file_handle
-        )
+        ):
+            return False
+        return context.asset_file_handle.id_type == 'ACTION'
 
     def execute(self, context: Context) -> Set[str]:
         asset: FileSelectEntry = context.asset_file_handle
