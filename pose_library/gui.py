@@ -111,9 +111,10 @@ def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
     layout.operator("asset.open_containing_blend_file")
 
 
-class ASSETBROWSER_PT_pose_library_usage(asset_utils.AssetBrowserPanel, Panel):
+class ASSETBROWSER_PT_pose_library_usage(asset_utils.AssetBrowserSpecificCategoryPanel, Panel):
     bl_region_type = "TOOLS"
     bl_label = "Pose Library"
+    asset_categories = {'ANIMATIONS'}
 
     def draw(self, context: Context) -> None:
         layout = self.layout
@@ -136,9 +137,10 @@ class ASSETBROWSER_PT_pose_library_usage(asset_utils.AssetBrowserPanel, Panel):
         props.select = False
 
 
-class ASSETBROWSER_PT_pose_library_editing(asset_utils.AssetBrowserPanel, Panel):
+class ASSETBROWSER_PT_pose_library_editing(asset_utils.AssetBrowserSpecificCategoryPanel, Panel):
     bl_region_type = "TOOL_PROPS"
     bl_label = "Pose Library"
+    asset_categories = {'ANIMATIONS'}
 
     def draw(self, context: Context) -> None:
         layout = self.layout
