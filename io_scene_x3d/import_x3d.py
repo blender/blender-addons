@@ -1891,6 +1891,10 @@ def importMesh_IndexedFaceSet(geom, ancestry):
 
     ccw = geom.getFieldAsBool('ccw', True, ancestry)
     coord = geom.getChildBySpec('Coordinate')
+
+    if coord is None:
+        return None
+
     if coord.reference:
         points = coord.getRealNode().parsed
         # We need unflattened coord array here, while
@@ -3152,6 +3156,10 @@ def importShape(bpycollection, node, ancestry, global_matrix):
     geom_fn = geometry_importers.get(geom_spec)
     if geom_fn is not None:
         bpydata = geom_fn(geom, ancestry)
+
+        if bpydata is None:
+            print('\tImportX3D warning: empty shape, skipping node "%s"' % vrmlname)
+            return
 
         # There are no geometry importers that can legally return
         # no object.  It's either a bpy object, or an exception
