@@ -17,8 +17,9 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-from blenderkit import paths, ratings, utils, download, categories, icons, search, resolutions, ui, tasks_queue, \
-    autothumb
+from blenderkit import paths, ratings, ratings_utils, utils, download, categories, icons, search, resolutions, ui, \
+    tasks_queue, \
+    autothumb, upload
 
 from bpy.types import (
     Panel
@@ -35,9 +36,7 @@ from bpy.props import (
 
 import bpy
 import os
-import random
 import logging
-import blenderkit
 
 bk_logger = logging.getLogger('blenderkit')
 
@@ -207,7 +206,6 @@ def draw_panel_hdr_search(self, context):
     utils.label_multiline(layout, text=props.report)
 
 
-
 def draw_thumbnail_upload_panel(layout, props):
     update = False
     tex = autothumb.get_texture_ui(props.thumbnail, '.upload_preview')
@@ -215,6 +213,7 @@ def draw_thumbnail_upload_panel(layout, props):
         return
     box = layout.box()
     box.template_icon(icon_value=tex.image.preview.icon_id, scale=6.0)
+
 
 def draw_panel_model_upload(self, context):
     ob = bpy.context.active_object
@@ -646,7 +645,8 @@ def draw_panel_material_upload(self, context):
     prop_needed(row, props, 'thumbnail', props.has_thumbnail, False)
 
     if bpy.context.scene.render.engine in ('CYCLES', 'BLENDER_EEVEE'):
-        layout.operator("object.blenderkit_generate_material_thumbnail", text='Render thumbnail with Cycles', icon='EXPORT')
+        layout.operator("object.blenderkit_generate_material_thumbnail", text='Render thumbnail with Cycles',
+                        icon='EXPORT')
     if props.is_generating_thumbnail:
         row = layout.row(align=True)
         row.label(text=props.thumbnail_generating_state, icon='RENDER_STILL')
@@ -1153,12 +1153,13 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
 
     layout.operator_context = 'INVOKE_DEFAULT'
 
-    op = layout.operator('wm.blenderkit_menu_rating_upload', text='Rate')
-    op.asset_name = asset_data['name']
-    op.asset_id = asset_data['id']
-    op.asset_type = asset_data['assetType']
+    if from_panel:
+        op = layout.operator('wm.blenderkit_menu_rating_upload', text='Rate')
+        op.asset_name = asset_data['name']
+        op.asset_id = asset_data['id']
+        op.asset_type = asset_data['assetType']
 
-    if wm.get('bkit authors') is not None and author_id is not None:
+    if from_panel and wm.get('bkit authors') is not None and author_id is not None:
         a = bpy.context.window_manager['bkit authors'].get(author_id)
         if a is not None:
             # utils.p('author:', a)
@@ -1172,6 +1173,7 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
             op.author_id = author_id
 
     op = layout.operator('view3d.blenderkit_search', text='Search Similar')
+    op.tooltip = 'Search for similar assets in the library'
     # build search string from description and tags:
     op.keywords = asset_data['name']
     if asset_data.get('description'):
@@ -1263,7 +1265,6 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
                         op.model_rotation = (0, 0, 0)
                 op.max_resolution = asset_data.get('max_resolution',
                                                    0)  # str(utils.get_param(asset_data, 'textureResolutionMax'))
-                print('should be drawn!')
             # print('operator res ', resolution)
             # op.resolution = resolution
 
@@ -1297,7 +1298,7 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
 
             row = layout.row()
             row.operator_context = 'INVOKE_DEFAULT'
-            op = layout.operator('wm.blenderkit_fast_metadata', text='Fast Edit Metadata')
+            op = layout.operator('wm.blenderkit_fast_metadata', text='Edit Metadata')
             op.asset_id = asset_data['id']
             op.asset_type = asset_data['assetType']
 
@@ -1377,97 +1378,429 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
         asset_data = sr[ui_props.active_index]
         draw_asset_context_menu(self.layout, context, asset_data, from_panel=False)
 
-        # ui_props = context.scene.blenderkitUI
-        #
-        # sr = bpy.context.window_manager['search results']
-        # asset_data = sr[ui_props.active_index]
-        # layout = self.layout
-        # row = layout.row()
-        # split = row.split(factor=0.2)
-        # col = split.column()
-        # op = col.operator('view3d.asset_drag_drop')
-        # op.asset_search_index=ui_props.active_index
-        #
-        # draw_asset_context_menu(col, context, asset_data, from_panel=False)
-        # split = split.split(factor=0.3)
-        # col1 = split.column()
-        # box = col1.box()
-        # utils.label_multiline(box, asset_data['tooltip'])
-        # col2 = split.column()
-        #
-        # pcoll = icons.icon_collections["main"]
-        # my_icon = pcoll['test']
-        # row = col2.row()
-        # row.scale_y = 4
-        # row.template_icon(icon_value=my_icon.icon_id, scale=2.0)
-        # # col2.template_icon(icon_value=self.img.preview.icon_id, scale=10.0)
-        # box2 = col2.box()
-        #
-        # box2.label(text='and heere goes the rating')
-        # box2.label(text='************')
-        # box2.label(text='dadydadadada')
-
 
 class AssetPopupCard(bpy.types.Operator):
     """Generate Cycles thumbnail for model assets"""
     bl_idname = "wm.blenderkit_asset_popup"
     bl_label = "BlenderKit asset popup"
-    # bl_options = {'REGISTER', 'INTERNAL'}
-    bl_options = {'REGISTER', }
+
+    width = 700
+
+    message: StringProperty(
+        name="message",
+        description="message",
+        default="Rating asset",
+        options={'SKIP_SAVE'})
+
+    asset_id: StringProperty(
+        name="Asset Base Id",
+        description="Unique id of the asset (hidden)",
+        default="",
+        options={'SKIP_SAVE'})
+
+    asset_name: StringProperty(
+        name="Asset Name",
+        description="Name of the asset (hidden)",
+        default="",
+        options={'SKIP_SAVE'})
+
+    asset_type: StringProperty(
+        name="Asset type",
+        description="asset type",
+        default="",
+        options={'SKIP_SAVE'})
+
+    rating_quality: IntProperty(name="Quality",
+                                description="quality of the material",
+                                default=0,
+                                min=-1, max=10,
+                                # update=update_ratings_quality,
+                                options={'SKIP_SAVE'})
+
+    # the following enum is only to ease interaction - enums support 'drag over' and enable to draw the stars easily.
+    rating_quality_ui: EnumProperty(name='rating_quality_ui',
+                                    items=ratings_utils.stars_enum_callback,
+                                    description='Rating stars 0 - 10',
+                                    default=0,
+                                    update=ratings_utils.update_quality_ui,
+                                    options={'SKIP_SAVE'})
+
+    rating_work_hours: FloatProperty(name="Work Hours",
+                                     description="How many hours did this work take?",
+                                     default=0.00,
+                                     min=0.0, max=300,
+                                     # update=update_ratings_work_hours,
+                                     options={'SKIP_SAVE'}
+                                     )
+
+    high_rating_warning = "This is a high rating, please be sure to give such rating only to amazing assets"
+
+    rating_work_hours_ui: EnumProperty(name="Work Hours",
+                                       description="How many hours did this work take?",
+                                       items=[('0', '0', ''),
+                                              ('.5', '0.5', ''),
+                                              ('1', '1', ''),
+                                              ('2', '2', ''),
+                                              ('3', '3', ''),
+                                              ('4', '4', ''),
+                                              ('5', '5', ''),
+                                              ('6', '6', ''),
+                                              ('8', '8', ''),
+                                              ('10', '10', ''),
+                                              ('15', '15', ''),
+                                              ('20', '20', ''),
+                                              ('30', '30', high_rating_warning),
+                                              ('50', '50', high_rating_warning),
+                                              ('100', '100', high_rating_warning),
+                                              ('150', '150', high_rating_warning),
+                                              ('200', '200', high_rating_warning),
+                                              ('250', '250', high_rating_warning),
+                                              ],
+                                       default='0', update=ratings_utils.update_ratings_work_hours_ui,
+                                       options={'SKIP_SAVE'}
+                                       )
+
+    rating_work_hours_ui_1_5: EnumProperty(name="Work Hours",
+                                           description="How many hours did this work take?",
+                                           items=[('0', '0', ''),
+                                                  ('.2', '0.2', ''),
+                                                  ('.5', '0.5', ''),
+                                                  ('1', '1', ''),
+                                                  ('2', '2', ''),
+                                                  ('3', '3', ''),
+                                                  ('4', '4', ''),
+                                                  ('5', '5', '')
+                                                  ],
+                                           default='0',
+                                           update=ratings_utils.update_ratings_work_hours_ui_1_5,
+                                           options={'SKIP_SAVE'}
+                                           )
+
+    rating_work_hours_ui_1_10: EnumProperty(name="Work Hours",
+                                            description="How many hours did this work take?",
+                                            items=[('0', '0', ''),
+                                                   ('1', '1', ''),
+                                                   ('2', '2', ''),
+                                                   ('3', '3', ''),
+                                                   ('4', '4', ''),
+                                                   ('5', '5', ''),
+                                                   ('6', '6', ''),
+                                                   ('7', '7', ''),
+                                                   ('8', '8', ''),
+                                                   ('9', '9', ''),
+                                                   ('10', '10', '')
+                                                   ],
+                                            default='0',
+                                            update=ratings_utils.update_ratings_work_hours_ui_1_10,
+                                            options={'SKIP_SAVE'}
+                                            )
 
     @classmethod
     def poll(cls, context):
         return True
+
+    def draw_menu(self, context, layout):
+        ui_props = context.scene.blenderkitUI
+
+        col_left = layout.column()
+        # row_button = col_left.row()
+        # row_button.scale_y = 3
+        # op = row_button.operator('view3d.asset_drag_drop', text='Drag & Drop')
+        # op.asset_search_index = ui_props.active_index
+        draw_asset_context_menu(col_left, context, self.asset_data, from_panel=False)
+        # layout = col_left
+        # op = layout.operator('view3d.blenderkit_search', text='Search Similar')
+        # # build search string from description and tags:
+        # op.keywords = self.asset_data['name']
+        # if self.asset_data.get('description'):
+        #     op.keywords += ' ' + self.asset_data.get('description') + ' '
+        # op.keywords += ' '.join(self.asset_data.get('tags'))
+
+    def draw_property(self, layout, left, right, icon=None, icon_value=None, url=None, tooltip=''):
+        right = str(right)
+        row = layout.row()
+        split = row.split(factor=0.4)
+        split.alignment = 'RIGHT'
+        split.label(text=left)
+        split = split.split()
+        # if url:
+        #     if icon_value:
+        #         op = split.operator('wm.url_open', text=right, icon_value=icon_value)
+        #     elif icon:
+        #         op = split.operator('wm.url_open', text=right, icon=icon)
+        #     else:
+        #         op = split.operator('wm.url_open', text=right)
+        #     op.url = url
+        #     return
+        if url:
+            split = split.split(factor=0.9)
+        if icon_value:
+            split.label(text=right, icon_value=icon_value)
+        elif icon:
+            split.label(text=right, icon=icon)
+
+        else:
+            split.label(text=right)
+        if url:
+            split = split.split()
+            op = split.operator('wm.blenderkit_url', text='', icon='QUESTION')
+            op.url = url
+            op.tooltip = tooltip
+
+    def draw_asset_parameter(self, layout, key='', pretext=''):
+        parameter = utils.get_param(self.asset_data, key)
+        if parameter == None:
+            return
+        self.draw_property(layout, pretext, parameter)
+
+    def draw_tooltip(self, layout):
+        if type(self.asset_data['parameters']) == list:
+            mparams = utils.params_to_dict(self.asset_data['parameters'])
+        else:
+            mparams = self.asset_data['parameters']
+
+        layout = layout.column()
+        if len(self.asset_data['description']) > 0:
+            box = layout.box()
+            box.scale_y = 0.8
+            box.label(text='Description:')
+            utils.label_multiline(box, self.asset_data['description'], width=200)
+
+        pcoll = icons.icon_collections["main"]
+
+        box = layout.box()
+        box.scale_y = 0.8
+
+        if self.asset_data.get('license') == 'cc_zero':
+            t = 'CC Zero'
+            icon = pcoll['cc0']
+
+        else:
+            t = 'Royalty free'
+            icon = pcoll['royalty_free']
+
+        self.draw_property(box,
+                           'license:', t,
+                           icon_value=icon.icon_id,
+                           url="https://www.blenderkit.com/docs/licenses/",
+                           tooltip='All BlenderKit assets are available for commercial use. '
+                                   'Click to read more about BlenderKit licenses online'
+                           )
+
+        if upload.can_edit_asset(asset_data=self.asset_data):
+            icon = pcoll[self.asset_data['verificationStatus']]
+            verification_status_tooltips = {
+                'uploading': "Your asset got stuck during upload. Probably, your file was too large "
+                             "or your connection too slow or interrupting. If you have repeated issues, "
+                             "please contact us and let us know, it might be a bug",
+                'uploaded': "Your asset uploaded successfully. Yay! If it's public, "
+                            "it's awaiting validation. If it's private, use it",
+                'on_hold': "Your asset needs some (usually smaller) fixes, "
+                           "so we can make it public for everybody."
+                           " Please check your email to see the feedback "
+                           "that we send to every creator personally",
+                'rejected': "The asset has serious quality issues, " \
+                            "and it's probable that it might be good to start " \
+                            "all over again or try with something simpler. " \
+                            "You also get personal feedback into your e-mail, " \
+                            "since we believe that together, we can all learn " \
+                            "to become awesome 3D artists",
+                'deleted': "You deleted this asset",
+                'validated': "Your asset passed our validation process, "
+                             "and is now available to BlenderKit users"
+
+            }
+            self.draw_property(box,
+                               'Verification:',
+                               self.asset_data['verificationStatus'],
+                               icon_value=icon.icon_id,
+                               url="https://www.blenderkit.com/docs/validation-status/",
+                               tooltip=verification_status_tooltips[self.asset_data['verificationStatus']]
+
+                               )
+
+        self.draw_asset_parameter(box, key='textureResolutionMax', pretext='Resolution:')
+
+        self.draw_asset_parameter(box, key='designer', pretext='Designer:')
+        self.draw_asset_parameter(box, key='manufacturer', pretext='Manufacturer:')
+        self.draw_asset_parameter(box, key='collection', pretext='Collection:')
+        self.draw_asset_parameter(box, key='designYear', pretext='Design year:')
+        self.draw_asset_parameter(box, key='faceCount', pretext='Face count:')
+        self.draw_asset_parameter(box, key='thumbnailScale', pretext='Preview scale:')
+
+        if utils.get_param(self.asset_data, 'dimensionX'):
+            t = '%s × %s × %s m' % (utils.fmt_length(mparams['dimensionX']),
+                                    utils.fmt_length(mparams['dimensionY']),
+                                    utils.fmt_length(mparams['dimensionZ']))
+            self.draw_property(box, 'Size:', t)
+
+        #Free/Full plan or private Access
+        if self.asset_data['isPrivate']:
+            t = 'Private'
+            self.draw_property(box, 'Access:', t, icon='LOCKED')
+        elif self.asset_data['isFree']:
+            t = 'Free plan'
+            icon = pcoll['free']
+            self.draw_property(box, 'Access:', t, icon_value=icon.icon_id)
+        else:
+            t = 'Full plan'
+            icon = pcoll['full']
+            self.draw_property(box, 'Access:', t, icon_value=icon.icon_id)
+
+    def draw_author(self, layout, width=330):
+        image_split = 0.25
+        text_width = width
+        authors = bpy.context.window_manager['bkit authors']
+        a = authors.get(self.asset_data['author']['id'])
+        if a is not None:  # or a is '' or (a.get('gravatarHash') is not None and a.get('gravatarImg') is None):
+            row = layout.row()
+            author_box = row.box()
+            author_box.scale_y = 0.6  # get text lines closer to each other
+            if hasattr(self, 'gimg'):
+
+                author_left = author_box.split(factor=0.25)
+                author_left.template_icon(icon_value=self.gimg.preview.icon_id, scale=6.0)
+                text_area = author_left.split()
+                text_width = int(text_width * (1 - image_split))
+            else:
+                text_area = author_box
+
+            author_right = text_area.column()
+            row = author_right.row()
+            col = row.column()
+
+            utils.label_multiline(col, text=a['tooltip'], width=text_width)
+            if upload.can_edit_asset(asset_data=self.asset_data) and a.get('aboutMe') is not None and len(
+                    a.get('aboutMe', '')) == 0:
+                col.label(text='Please write something about yourself!')
+                op = col.operator('wm.blenderkit_url', text='Edit your profile')
+                op.url = 'https://www.blenderkit.com/profile'
+                op.tooltip = 'Edit your profile on BlenderKit webpage'
+
+            button_row = author_box.row()
+            button_row.scale_y = 2.0
+
+            if a.get('aboutMeUrl') is not None:
+                url = a['aboutMeUrl']
+                text = url
+                if len(url) > 25:
+                    text = url[:25] + '...'
+            else:
+                url = paths.get_author_gallery_url(a['id'])
+                text = "Open Author's Profile"
+
+            op = button_row.operator('wm.url_open', text=text)
+            op.url = url
+
+            op = button_row.operator('view3d.blenderkit_search', text="Show Assets By Author")
+            op.keywords = ''
+            op.author_id = self.asset_data['author']['id']
+
+    def draw_thumbnail_box(self, layout):
+        layout.emboss = 'NORMAL'
+
+        box_thumbnail = layout.box()
+        # row = split_right.row()
+        # column_right = row.column()
+
+        box_thumbnail.scale_y = 0.5
+        # row = box_thumbnail.row()
+        # row.scale_y = 20
+
+        box_thumbnail.template_icon(icon_value=self.img.preview.icon_id, scale=34.0)
+        # row = box_thumbnail.row()
+        # row.scale_y = 4
+        # op = row.operator('view3d.asset_drag_drop', text='Drag & Drop from here', depress=True)
+
+        row = box_thumbnail.row()
+        row.alignment = 'EXPAND'
+        rc = self.asset_data.get('ratingsCount')
+        show_rating_threshold = 3
+
+        if rc:
+            rcount = min(rc['quality'], rc['workingHours'])
+        else:
+            rcount = 0
+        if rcount >= show_rating_threshold or upload.can_edit_asset(asset_data=self.asset_data):
+            pcoll = icons.icon_collections["main"]
+            my_icon = pcoll['trophy']
+            s = self.asset_data['score']
+            if s:
+                row.label(text=str(round(s)), icon_value=my_icon.icon_id)
+            q = self.asset_data['ratingsAverage'].get('quality')
+            if q:
+                row.label(text=str(round(q)), icon='SOLO_ON')
+            c = self.asset_data['ratingsAverage'].get('workingHours')
+            if c:
+                row.label(text=str(round(c)), icon='SORTTIME')
+        else:
+            box_thumbnail.label(text=f"This asset needs more ratings ( {rcount} of {show_rating_threshold} ).")
+            # box_thumbnail.label(text=f"Please rate this asset.")
+
+    def draw_menu_desc_author(self, context, layout):
+        box = layout.column()
+
+        box.emboss = 'NORMAL'
+        # left - tooltip & params
+        row = box.row()
+        split_left_left = row.split(factor=0.7)
+        self.draw_tooltip(split_left_left)
+
+        # right - menu
+        col1 = split_left_left.split()
+        self.draw_menu(context, col1)
+
+        # author
+        self.draw_author(box)
 
     def draw(self, context):
         ui_props = context.scene.blenderkitUI
 
         sr = bpy.context.window_manager['search results']
         asset_data = sr[ui_props.active_index]
+        self.asset_data = asset_data
         layout = self.layout
-        row = layout.row()
-        split = row.split(factor=0.2)
-        col = split.column()
-        op = col.operator('view3d.asset_drag_drop')
-        op.asset_search_index = ui_props.active_index
-        draw_asset_context_menu(col, context, asset_data, from_panel=False)
-        split = split.split(factor=0.5)
-        col1 = split.column()
-        box = col1.box()
-        utils.label_multiline(box, asset_data['tooltip'], width=300)
+        # top draggabe bar with name of the asset
+        top_row = layout.row()
+        top_drag_bar = top_row.box()
+        top_drag_bar.alignment = 'CENTER'
 
-        col2 = split.column()
+        top_drag_bar.label(text=asset_data['displayName'])
+        # left side
+        row = layout.row(align=True)
+        split_left = row.split(factor=0.5)
+        self.draw_thumbnail_box(split_left)
 
-        pcoll = icons.icon_collections["main"]
-        my_icon = pcoll['test']
-        col2.template_icon(icon_value=my_icon.icon_id, scale=20.0)
-        # col2.template_icon(icon_value=self.img.preview.icon_id, scale=10.0)
-        box2 = col2.box()
+        # right split
+        split_right = split_left.split()
+        self.draw_menu_desc_author(context, split_right)
 
-        # draw_ratings(box2, context, asset_data)
-        box2.label(text='Ratings')
-        # print(tp, dir(tp))
-        # if not hasattr(self, 'first_draw'):# try to redraw because of template preview which needs update
-        #     for region in context.area.regions:
-        #         region.tag_redraw()
-        #     self.first_draw = True
+        ratings_box = layout.box()
+        ratings_box.label(text='Rate asset quality:')
+        ratings.draw_ratings_menu(self, context, ratings_box)
+        tip_box = layout.box()
+        tip_box.label(text=self.tip)
 
     def execute(self, context):
-        print('execute')
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
         wm = context.window_manager
         ui_props = context.scene.blenderkitUI
         ui_props.draw_tooltip = False
         sr = bpy.context.window_manager['search results']
         asset_data = sr[ui_props.active_index]
         self.img = ui.get_large_thumbnail_image(asset_data)
+        self.asset_type = asset_data['assetType']
         # self.tex = utils.get_hidden_texture(self.img)
         # self.tex.update_tag()
 
+        authors = bpy.context.window_manager['bkit authors']
+        a = authors.get(asset_data['author']['id'])
+        if a.get('gravatarImg') is not None:
+            self.gimg = utils.get_hidden_image(a['gravatarImg'], a['gravatarHash'])
+
         bl_label = asset_data['name']
-        return wm.invoke_props_dialog(self, width=700)
+        self.tip = search.get_random_tip()
+        self.tip = self.tip.replace('\n', '')
+        return wm.invoke_popup(self, width=self.width)
 
 
 class OBJECT_MT_blenderkit_login_menu(bpy.types.Menu):

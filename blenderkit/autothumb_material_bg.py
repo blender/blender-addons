@@ -20,7 +20,7 @@
 
 from blenderkit import utils, append_link, bg_blender, upload_bg, download
 
-import sys, json, math
+import sys, json, math, os
 import bpy
 from pathlib import Path
 
@@ -48,6 +48,10 @@ if __name__ == "__main__":
             data = json.load(s)
             # append_material(file_name, matname = None, link = False, fake_user = True)
         if data.get('do_download'):
+            #need to save the file, so that asset doesn't get downloaded into addon directory
+            temp_blend_path = os.path.join(data['tempdir'], 'temp.blend')
+            bpy.ops.wm.save_as_mainfile(filepath=temp_blend_path)
+
             asset_data = data['asset_data']
             has_url = download.get_download_url(asset_data, download.get_scene_id(), user_preferences.api_key, tcom=None,
                                                 resolution='blend')

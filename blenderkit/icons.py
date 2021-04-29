@@ -27,9 +27,23 @@ icon_collections = {}
 icons_read = {
     'fp.png': 'free',
     'flp.png': 'full',
-    'test.jpg': 'test',
+    'trophy.png': 'trophy',
+    'cc0.png': 'cc0',
+    'royalty_free.png': 'royalty_free',
 }
 
+verification_icons = {
+    'vs_ready.png':'ready',
+    'vs_deleted.png':'deleted' ,
+    'vs_uploaded.png': 'uploaded',
+    'vs_uploading.png': 'uploading',
+    'vs_on_hold.png': 'on_hold',
+    'vs_validated.png': 'validated',
+    'vs_rejected.png': 'rejected'
+
+}
+
+icons_read.update(verification_icons)
 
 def register_icons():
     # Note that preview collections returned by bpy.utils.previews

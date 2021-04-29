@@ -360,8 +360,10 @@ def draw_tooltip(x, y, text='', author='', img=None, gravatar=None):
     if gravatar is not None:
         # ui_bgl.draw_image(x + isizex - gsize - textmargin, y - isizey + texth - gsize - nameline_height - textmargin,
         #                   gsize, gsize, gravatar, 1)
-        ui_bgl.draw_image(x + isizex / 2 + textmargin, y - isizey + texth - gsize - nameline_height - textmargin,
-                          gsize, gsize, gravatar, 1)
+        # ui_bgl.draw_image(x + isizex / 2 + textmargin, y - isizey + texth - gsize - nameline_height - textmargin,
+        #                   gsize, gsize, gravatar, 1)
+        ui_bgl.draw_image(x + isizex / 2 + textmargin, y - isizey + texth - gsize - textmargin,
+                      gsize, gsize, gravatar, 1)
 
     i = 0
     column_lines = -1  # start minus one for the name
@@ -399,13 +401,14 @@ def draw_tooltip(x, y, text='', author='', img=None, gravatar=None):
                 xtext -= gsize + textmargin
 
         ytext = y - column_lines * line_height - nameline_height - ttipmargin - textmargin - isizey + texth
-        if False:  # i == 0:
+        if i == 0:
+            fsize = name_height-4
             ytext = y - name_height + 5 - isizey + texth - textmargin
         elif i == len(lines) - 1:
             ytext = y - (nlines - 1) * line_height - nameline_height - ttipmargin * 2 - isizey + texth
             tcol = textcol
             tsize = font_height
-        if (i > 0 and alines[i - 1][:7] == 'Author:'):
+        elif (i > 0 and alines[i - 1][:7] == 'Author:'):
             tcol = textcol_strong
             fsize = font_height + 2
         else:
@@ -455,9 +458,16 @@ def draw_tooltip_with_author(asset_data, x, y):
                 gimg = utils.get_hidden_image(a['gravatarImg'], a['gravatarHash'])
             atip = a['tooltip']
 
+
+    tooltip = f"{asset_data['displayName']}\n\n" \
+              f"Left click to drag to append/link.\nRight click for more."
+
     # scene = bpy.context.scene
     # ui_props = scene.blenderkitUI
-    draw_tooltip(x, y, text=asset_data['tooltip'], author=atip, img=img,
+    author_s = ''
+    if not gimg:
+        author_s = 'Author: '
+    draw_tooltip(x, y, text=asset_data['displayName']+'\n\n', author=f"{author_s}{a['firstName']} {a['lastName']}", img=img,
                  gravatar=gimg)
 
 
@@ -851,6 +861,8 @@ def draw_asset_bar(self, context):
                         img = utils.get_thumbnail('locked.png')
                         ui_bgl.draw_image(x + 2, y + 2, 24, 24, img, 1)
 
+                    # pcoll = icons.icon_collections["main"]
+                    # v_icon = pcoll['rejected']
                     v_icon = verification_icons[result.get('verificationStatus', 'validated')]
                     if v_icon is not None:
                         img = utils.get_thumbnail(v_icon)
@@ -1575,8 +1587,12 @@ class AssetBarOperator(bpy.types.Operator):
             my = event.mouse_y - r.y
 
             if event.value == 'PRESS' and mouse_in_asset_bar(mx, my):
-                # bpy.ops.wm.blenderkit_asset_popup('INVOKE_DEFAULT')
-                bpy.ops.wm.call_menu(name='OBJECT_MT_blenderkit_asset_menu')
+                context.window.cursor_warp(event.mouse_x-500, event.mouse_y-45);
+
+                bpy.ops.wm.blenderkit_asset_popup('INVOKE_DEFAULT')
+                context.window.cursor_warp(event.mouse_x, event.mouse_y);
+
+                # bpy.ops.wm.call_menu(name='OBJECT_MT_blenderkit_asset_menu')
                 return {'RUNNING_MODAL'}
 
         if event.type == 'LEFTMOUSE':
@@ -1960,7 +1976,7 @@ def find_and_activate_instancers(object):
 
 
 class AssetDragOperator(bpy.types.Operator):
-    """Draw a line with the mouse"""
+    """Drag & drop assets into scene."""
     bl_idname = "view3d.asset_drag_drop"
     bl_label = "BlenderKit asset drag drop"
 
