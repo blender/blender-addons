@@ -16,8 +16,46 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-#mainly update functions and callbacks for ratings properties, here to avoid circular imports.
+# mainly update functions and callbacks for ratings properties, here to avoid circular imports.
 import bpy
+from blenderkit import utils, paths, tasks_queue, rerequests
+import threading
+import requests
+import logging
+
+bk_logger = logging.getLogger('blenderkit')
+
+
+def upload_rating_thread(url, ratings, headers):
+    ''' Upload rating thread function / disconnected from blender data.'''
+    bk_logger.debug('upload rating ' + url + str(ratings))
+    for rating_name, score in ratings:
+        if (score != -1 and score != 0):
+            rating_url = url + rating_name + '/'
+            data = {
+                "score": score,  # todo this kind of mixing is too much. Should have 2 bkit structures, upload, use
+            }
+
+            try:
+                r = rerequests.put(rating_url, data=data, verify=True, headers=headers)
+
+            except requests.exceptions.RequestException as e:
+                print('ratings upload failed: %s' % str(e))
+
+
+def send_rating_to_thread_quality(url, ratings, headers):
+    '''Sens rating into thread rating, main purpose is for tasks_queue.
+    One function per property to avoid lost data due to stashing.'''
+    thread = threading.Thread(target=upload_rating_thread, args=(url, ratings, headers))
+    thread.start()
+
+
+def send_rating_to_thread_work_hours(url, ratings, headers):
+    '''Sens rating into thread rating, main purpose is for tasks_queue.
+    One function per property to avoid lost data due to stashing.'''
+    thread = threading.Thread(target=upload_rating_thread, args=(url, ratings, headers))
+    thread.start()
+
 
 def update_ratings_quality(self, context):
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
@@ -54,6 +92,7 @@ def update_ratings_work_hours(self, context):
     if bkit_ratings.rating_work_hours > 0.45:
         ratings = [('working_hours', round(bkit_ratings.rating_work_hours, 1))]
         tasks_queue.add_task((send_rating_to_thread_work_hours, (url, ratings, headers)), wait=2.5, only_last=True)
+
 
 def update_quality_ui(self, context):
     '''Converts the _ui the enum into actual quality number.'''

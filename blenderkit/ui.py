@@ -1587,7 +1587,7 @@ class AssetBarOperator(bpy.types.Operator):
             my = event.mouse_y - r.y
 
             if event.value == 'PRESS' and mouse_in_asset_bar(mx, my):
-                context.window.cursor_warp(event.mouse_x-500, event.mouse_y-45);
+                context.window.cursor_warp(event.mouse_x-400, event.mouse_y-20);
 
                 bpy.ops.wm.blenderkit_asset_popup('INVOKE_DEFAULT')
                 context.window.cursor_warp(event.mouse_x, event.mouse_y);

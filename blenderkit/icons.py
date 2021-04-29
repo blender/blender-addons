@@ -28,6 +28,7 @@ icons_read = {
     'fp.png': 'free',
     'flp.png': 'full',
     'trophy.png': 'trophy',
+    'dumbbell.png': 'dumbbell',
     'cc0.png': 'cc0',
     'royalty_free.png': 'royalty_free',
 }

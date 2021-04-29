@@ -1246,7 +1246,6 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
             elif asset_data['assetBaseId'] in s['assets used'].keys() and asset_data['assetType'] != 'hdr':
                 # HDRs are excluded from replacement, since they are always replaced.
                 # called from asset bar:
-                print('context menu')
                 op = col.operator('scene.blenderkit_download', text='Replace asset resolution')
 
                 op.asset_index = ui_props.active_index
@@ -1378,6 +1377,12 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
         asset_data = sr[ui_props.active_index]
         draw_asset_context_menu(self.layout, context, asset_data, from_panel=False)
 
+def numeric_to_str(s):
+    if s:
+        s = str(round(s))
+    else:
+        s = '-'
+    return s
 
 class AssetPopupCard(bpy.types.Operator):
     """Generate Cycles thumbnail for model assets"""
@@ -1414,7 +1419,7 @@ class AssetPopupCard(bpy.types.Operator):
                                 description="quality of the material",
                                 default=0,
                                 min=-1, max=10,
-                                # update=update_ratings_quality,
+                                update=ratings_utils.update_ratings_quality,
                                 options={'SKIP_SAVE'})
 
     # the following enum is only to ease interaction - enums support 'drag over' and enable to draw the stars easily.
@@ -1429,7 +1434,7 @@ class AssetPopupCard(bpy.types.Operator):
                                      description="How many hours did this work take?",
                                      default=0.00,
                                      min=0.0, max=300,
-                                     # update=update_ratings_work_hours,
+                                     update=ratings_utils.update_ratings_work_hours,
                                      options={'SKIP_SAVE'}
                                      )
 
@@ -1580,7 +1585,7 @@ class AssetPopupCard(bpy.types.Operator):
             icon = pcoll['royalty_free']
 
         self.draw_property(box,
-                           'license:', t,
+                           'License:', t,
                            icon_value=icon.icon_id,
                            url="https://www.blenderkit.com/docs/licenses/",
                            tooltip='All BlenderKit assets are available for commercial use. '
@@ -1618,18 +1623,38 @@ class AssetPopupCard(bpy.types.Operator):
                                tooltip=verification_status_tooltips[self.asset_data['verificationStatus']]
 
                                )
+        #resolution/s
+        # fs = self.asset_data['files']
+        #
+        # if fs and len(fs) > 2:
+        #     resolutions = ''
+        #     list.sort(fs, key=lambda f: f['fileType'])
+        #     for f in fs:
+        #         if f['fileType'].find('resolution') > -1:
+        #             resolutions += f['fileType'][11:] + ' '
+        #     resolutions = resolutions.replace('_', '.')
+        #     self.draw_property(box, 'Resolutions:', resolutions)
+        resolution = utils.get_param(self.asset_data, 'textureResolutionMax')
+        if resolution is not None:
+            ress = f"{int(round(resolution/1024,0))}K"
+            self.draw_property(box, 'Resolution', ress)
 
-        self.draw_asset_parameter(box, key='textureResolutionMax', pretext='Resolution:')
-
-        self.draw_asset_parameter(box, key='designer', pretext='Designer:')
-        self.draw_asset_parameter(box, key='manufacturer', pretext='Manufacturer:')
-        self.draw_asset_parameter(box, key='collection', pretext='Collection:')
-        self.draw_asset_parameter(box, key='designYear', pretext='Design year:')
-        self.draw_asset_parameter(box, key='faceCount', pretext='Face count:')
-        self.draw_asset_parameter(box, key='thumbnailScale', pretext='Preview scale:')
+        self.draw_asset_parameter(box, key='designer', pretext='Designer')
+        self.draw_asset_parameter(box, key='manufacturer', pretext='Manufacturer')#TODO make them clickable!
+        self.draw_asset_parameter(box, key='designCollection', pretext='Collection')
+        self.draw_asset_parameter(box, key='designVariant', pretext='Variant')
+        self.draw_asset_parameter(box, key='designYear', pretext='Design year')
+        self.draw_asset_parameter(box, key='faceCount', pretext='Face count')
+        # self.draw_asset_parameter(box, key='thumbnailScale', pretext='Preview scale')
+        # self.draw_asset_parameter(box, key='purePbr', pretext='Pure PBR')
+        # self.draw_asset_parameter(box, key='productionLevel', pretext='Readiness')
+        # self.draw_asset_parameter(box, key='condition', pretext='Condition')
+        # self.draw_property(box, 'Tags', self.asset_data['tags']) #TODO make them clickable!
+        self.draw_asset_parameter(box, key='material_style', pretext='Style')
+        self.draw_asset_parameter(box, key='model_style', pretext='Style')
 
         if utils.get_param(self.asset_data, 'dimensionX'):
-            t = '%s × %s × %s m' % (utils.fmt_length(mparams['dimensionX']),
+            t = '%s×%s×%s m' % (utils.fmt_length(mparams['dimensionX']),
                                     utils.fmt_length(mparams['dimensionY']),
                                     utils.fmt_length(mparams['dimensionZ']))
             self.draw_property(box, 'Size:', t)
@@ -1647,19 +1672,25 @@ class AssetPopupCard(bpy.types.Operator):
             icon = pcoll['full']
             self.draw_property(box, 'Access:', t, icon_value=icon.icon_id)
 
+
+
+
     def draw_author(self, layout, width=330):
         image_split = 0.25
         text_width = width
         authors = bpy.context.window_manager['bkit authors']
         a = authors.get(self.asset_data['author']['id'])
         if a is not None:  # or a is '' or (a.get('gravatarHash') is not None and a.get('gravatarImg') is None):
+
+
             row = layout.row()
             author_box = row.box()
             author_box.scale_y = 0.6  # get text lines closer to each other
+            author_box.label(text=' ')  # just one extra line to give spacing
             if hasattr(self, 'gimg'):
 
                 author_left = author_box.split(factor=0.25)
-                author_left.template_icon(icon_value=self.gimg.preview.icon_id, scale=6.0)
+                author_left.template_icon(icon_value=self.gimg.preview.icon_id, scale=7)
                 text_area = author_left.split()
                 text_width = int(text_width * (1 - image_split))
             else:
@@ -1672,7 +1703,10 @@ class AssetPopupCard(bpy.types.Operator):
             utils.label_multiline(col, text=a['tooltip'], width=text_width)
             if upload.can_edit_asset(asset_data=self.asset_data) and a.get('aboutMe') is not None and len(
                     a.get('aboutMe', '')) == 0:
-                col.label(text='Please write something about yourself!')
+                row = col.row()
+                row.enabled = False
+                row.label(text='Please introduce yourself to the community!')
+
                 op = col.operator('wm.blenderkit_url', text='Edit your profile')
                 op.url = 'https://www.blenderkit.com/profile'
                 op.tooltip = 'Edit your profile on BlenderKit webpage'
@@ -1715,26 +1749,31 @@ class AssetPopupCard(bpy.types.Operator):
         row = box_thumbnail.row()
         row.alignment = 'EXPAND'
         rc = self.asset_data.get('ratingsCount')
-        show_rating_threshold = 3
+        show_rating_threshold = 5
 
         if rc:
             rcount = min(rc['quality'], rc['workingHours'])
         else:
             rcount = 0
         if rcount >= show_rating_threshold or upload.can_edit_asset(asset_data=self.asset_data):
-            pcoll = icons.icon_collections["main"]
-            my_icon = pcoll['trophy']
-            s = self.asset_data['score']
-            if s:
-                row.label(text=str(round(s)), icon_value=my_icon.icon_id)
-            q = self.asset_data['ratingsAverage'].get('quality')
-            if q:
-                row.label(text=str(round(q)), icon='SOLO_ON')
-            c = self.asset_data['ratingsAverage'].get('workingHours')
-            if c:
-                row.label(text=str(round(c)), icon='SORTTIME')
+            s = numeric_to_str(self.asset_data['score'])
+            q = numeric_to_str(self.asset_data['ratingsAverage'].get('quality'))
+            c = numeric_to_str(self.asset_data['ratingsAverage'].get('workingHours'))
         else:
-            box_thumbnail.label(text=f"This asset needs more ratings ( {rcount} of {show_rating_threshold} ).")
+            s = '-'
+            q = '-'
+            c = '-'
+
+        pcoll = icons.icon_collections["main"]
+        row.label(text=str(s), icon_value=pcoll['trophy'].icon_id)
+        row.label(text=str(q), icon='SOLO_ON')
+        row.label(text=str(c), icon_value=pcoll['dumbbell'].icon_id)
+
+        if rcount<= show_rating_threshold:
+            box_thumbnail.alert = True
+
+            box_thumbnail.label(text=f"")
+            box_thumbnail.label(text=f"This asset has only {rcount} rating{'' if rcount == 1 else 's'} , please rate.")
             # box_thumbnail.label(text=f"Please rate this asset.")
 
     def draw_menu_desc_author(self, context, layout):
@@ -1789,6 +1828,7 @@ class AssetPopupCard(bpy.types.Operator):
         asset_data = sr[ui_props.active_index]
         self.img = ui.get_large_thumbnail_image(asset_data)
         self.asset_type = asset_data['assetType']
+        self.asset_id = asset_data['id']
         # self.tex = utils.get_hidden_texture(self.img)
         # self.tex.update_tag()
 

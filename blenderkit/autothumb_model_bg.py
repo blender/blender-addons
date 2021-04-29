@@ -77,7 +77,6 @@ def render_thumbnails():
 
 if __name__ == "__main__":
     try:
-        print( 'got to A')
         with open(BLENDERKIT_EXPORT_DATA, 'r',encoding='utf-8') as s:
             data = json.load(s)
 

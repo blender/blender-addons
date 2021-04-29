@@ -50,36 +50,6 @@ def pretty_print_POST(req):
     ))
 
 
-def upload_rating_thread(url, ratings, headers):
-    ''' Upload rating thread function / disconnected from blender data.'''
-    bk_logger.debug('upload rating ' + url + str(ratings))
-    for rating_name, score in ratings:
-        if (score != -1 and score != 0):
-            rating_url = url + rating_name + '/'
-            data = {
-                "score": score,  # todo this kind of mixing is too much. Should have 2 bkit structures, upload, use
-            }
-
-            try:
-                r = rerequests.put(rating_url, data=data, verify=True, headers=headers)
-
-            except requests.exceptions.RequestException as e:
-                print('ratings upload failed: %s' % str(e))
-
-
-def send_rating_to_thread_quality(url, ratings, headers):
-    '''Sens rating into thread rating, main purpose is for tasks_queue.
-    One function per property to avoid lost data due to stashing.'''
-    thread = threading.Thread(target=upload_rating_thread, args=(url, ratings, headers))
-    thread.start()
-
-
-def send_rating_to_thread_work_hours(url, ratings, headers):
-    '''Sens rating into thread rating, main purpose is for tasks_queue.
-    One function per property to avoid lost data due to stashing.'''
-    thread = threading.Thread(target=upload_rating_thread, args=(url, ratings, headers))
-    thread.start()
-
 
 def upload_review_thread(url, reviews, headers):
     r = rerequests.put(url, data=reviews, verify=True, headers=headers)
@@ -103,7 +73,6 @@ def get_rating(asset_id):
         print(r.text)
 
 
-
 def upload_rating(asset):
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
     api_key = user_preferences.api_key
@@ -119,12 +88,12 @@ def upload_rating(asset):
 
     if bkit_ratings.rating_quality > 0.1:
         ratings = (('quality', bkit_ratings.rating_quality),)
-        tasks_queue.add_task((send_rating_to_thread_quality, (url, ratings, headers)), wait=2.5, only_last=True)
+        tasks_queue.add_task((ratings_utils.send_rating_to_thread_quality, (url, ratings, headers)), wait=2.5, only_last=True)
     if bkit_ratings.rating_work_hours > 0.1:
         ratings = (('working_hours', round(bkit_ratings.rating_work_hours, 1)),)
-        tasks_queue.add_task((send_rating_to_thread_work_hours, (url, ratings, headers)), wait=2.5, only_last=True)
+        tasks_queue.add_task((ratings_utils.send_rating_to_thread_work_hours, (url, ratings, headers)), wait=2.5, only_last=True)
 
-    thread = threading.Thread(target=upload_rating_thread, args=(url, ratings, headers))
+    thread = threading.Thread(target=ratings_utils.upload_rating_thread, args=(url, ratings, headers))
     thread.start()
 
     url = paths.get_api_url() + 'assets/' + asset['asset_data']['id'] + '/review'
@@ -204,7 +173,6 @@ class UploadRatingOperator(bpy.types.Operator):
         asset = utils.get_active_asset()
         upload_rating(asset)
         return wm.invoke_props_dialog(self)
-
 
 
 def draw_ratings_menu(self, context, layout):
@@ -387,11 +355,11 @@ class FastRateMenu(Operator):
 
         if self.rating_quality > 0.1:
             rtgs = (('quality', self.rating_quality),)
-            tasks_queue.add_task((send_rating_to_thread_quality, (url, rtgs, headers)), wait=2.5, only_last=True)
+            tasks_queue.add_task((ratings_utils.send_rating_to_thread_quality, (url, rtgs, headers)), wait=2.5, only_last=True)
 
         if self.rating_work_hours > 0.45:
             rtgs = (('working_hours', round(self.rating_work_hours, 1)),)
-            tasks_queue.add_task((send_rating_to_thread_work_hours, (url, rtgs, headers)), wait=2.5, only_last=True)
+            tasks_queue.add_task((ratings_utils.send_rating_to_thread_work_hours, (url, rtgs, headers)), wait=2.5, only_last=True)
         return {'FINISHED'}
 
     def invoke(self, context, event):
