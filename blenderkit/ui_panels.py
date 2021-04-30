@@ -1377,12 +1377,14 @@ class OBJECT_MT_blenderkit_asset_menu(bpy.types.Menu):
         asset_data = sr[ui_props.active_index]
         draw_asset_context_menu(self.layout, context, asset_data, from_panel=False)
 
+
 def numeric_to_str(s):
     if s:
         s = str(round(s))
     else:
         s = '-'
     return s
+
 
 class AssetPopupCard(bpy.types.Operator):
     """Generate Cycles thumbnail for model assets"""
@@ -1558,7 +1560,8 @@ class AssetPopupCard(bpy.types.Operator):
             return
         self.draw_property(layout, pretext, parameter)
 
-    def draw_tooltip(self, layout):
+    def draw_properties(self, layout):
+
         if type(self.asset_data['parameters']) == list:
             mparams = utils.params_to_dict(self.asset_data['parameters'])
         else:
@@ -1568,14 +1571,14 @@ class AssetPopupCard(bpy.types.Operator):
         if len(self.asset_data['description']) > 0:
             box = layout.box()
             box.scale_y = 0.8
-            box.label(text='Description:')
+            box.label(text='Description')
             utils.label_multiline(box, self.asset_data['description'], width=200)
 
         pcoll = icons.icon_collections["main"]
 
         box = layout.box()
         box.scale_y = 0.8
-
+        box.label(text='Properties')
         if self.asset_data.get('license') == 'cc_zero':
             t = 'CC Zero'
             icon = pcoll['cc0']
@@ -1623,7 +1626,7 @@ class AssetPopupCard(bpy.types.Operator):
                                tooltip=verification_status_tooltips[self.asset_data['verificationStatus']]
 
                                )
-        #resolution/s
+        # resolution/s
         # fs = self.asset_data['files']
         #
         # if fs and len(fs) > 2:
@@ -1636,11 +1639,11 @@ class AssetPopupCard(bpy.types.Operator):
         #     self.draw_property(box, 'Resolutions:', resolutions)
         resolution = utils.get_param(self.asset_data, 'textureResolutionMax')
         if resolution is not None:
-            ress = f"{int(round(resolution/1024,0))}K"
+            ress = f"{int(round(resolution / 1024, 0))}K"
             self.draw_property(box, 'Resolution', ress)
 
         self.draw_asset_parameter(box, key='designer', pretext='Designer')
-        self.draw_asset_parameter(box, key='manufacturer', pretext='Manufacturer')#TODO make them clickable!
+        self.draw_asset_parameter(box, key='manufacturer', pretext='Manufacturer')  # TODO make them clickable!
         self.draw_asset_parameter(box, key='designCollection', pretext='Collection')
         self.draw_asset_parameter(box, key='designVariant', pretext='Variant')
         self.draw_asset_parameter(box, key='designYear', pretext='Design year')
@@ -1655,11 +1658,11 @@ class AssetPopupCard(bpy.types.Operator):
 
         if utils.get_param(self.asset_data, 'dimensionX'):
             t = '%s×%s×%s m' % (utils.fmt_length(mparams['dimensionX']),
-                                    utils.fmt_length(mparams['dimensionY']),
-                                    utils.fmt_length(mparams['dimensionZ']))
+                                utils.fmt_length(mparams['dimensionY']),
+                                utils.fmt_length(mparams['dimensionZ']))
             self.draw_property(box, 'Size:', t)
 
-        #Free/Full plan or private Access
+        # Free/Full plan or private Access
         if self.asset_data['isPrivate']:
             t = 'Private'
             self.draw_property(box, 'Access:', t, icon='LOCKED')
@@ -1672,9 +1675,6 @@ class AssetPopupCard(bpy.types.Operator):
             icon = pcoll['full']
             self.draw_property(box, 'Access:', t, icon_value=icon.icon_id)
 
-
-
-
     def draw_author(self, layout, width=330):
         image_split = 0.25
         text_width = width
@@ -1682,11 +1682,10 @@ class AssetPopupCard(bpy.types.Operator):
         a = authors.get(self.asset_data['author']['id'])
         if a is not None:  # or a is '' or (a.get('gravatarHash') is not None and a.get('gravatarImg') is None):
 
-
             row = layout.row()
             author_box = row.box()
             author_box.scale_y = 0.6  # get text lines closer to each other
-            author_box.label(text=' ')  # just one extra line to give spacing
+            author_box.label(text='Author')  # just one extra line to give spacing
             if hasattr(self, 'gimg'):
 
                 author_left = author_box.split(factor=0.25)
@@ -1701,7 +1700,8 @@ class AssetPopupCard(bpy.types.Operator):
             col = row.column()
 
             utils.label_multiline(col, text=a['tooltip'], width=text_width)
-            if upload.can_edit_asset(asset_data=self.asset_data) and a.get('aboutMe') is not None and len(
+            #check if author didn't fill any data about himself and prompt him if that's the case
+            if upload.user_is_owner(asset_data=self.asset_data) and a.get('aboutMe') is not None and len(
                     a.get('aboutMe', '')) == 0:
                 row = col.row()
                 row.enabled = False
@@ -1769,7 +1769,7 @@ class AssetPopupCard(bpy.types.Operator):
         row.label(text=str(q), icon='SOLO_ON')
         row.label(text=str(c), icon_value=pcoll['dumbbell'].icon_id)
 
-        if rcount<= show_rating_threshold:
+        if rcount <= show_rating_threshold:
             box_thumbnail.alert = True
 
             box_thumbnail.label(text=f"")
@@ -1783,7 +1783,7 @@ class AssetPopupCard(bpy.types.Operator):
         # left - tooltip & params
         row = box.row()
         split_left_left = row.split(factor=0.7)
-        self.draw_tooltip(split_left_left)
+        self.draw_properties(split_left_left)
 
         # right - menu
         col1 = split_left_left.split()
@@ -1815,6 +1815,7 @@ class AssetPopupCard(bpy.types.Operator):
         self.draw_menu_desc_author(context, split_right)
 
         ratings_box = layout.box()
+        ratings_box.scale_y = 0.7
         ratings_box.label(text='Rate asset quality:')
         ratings.draw_ratings_menu(self, context, ratings_box)
         tip_box = layout.box()

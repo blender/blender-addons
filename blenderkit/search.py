@@ -191,7 +191,7 @@ def fetch_server_data():
         if api_key != '' and bpy.context.window_manager.get('bkit profile') == None:
             get_profile()
         if bpy.context.window_manager.get('bkit_categories') is None:
-            categories.fetch_categories_thread(api_key, force = False)
+            categories.fetch_categories_thread(api_key, force=False)
 
 
 first_time = True
@@ -238,7 +238,7 @@ def parse_result(r):
     # except:
     #     utils.p('asset with no files-size')
     asset_type = r['assetType']
-    if len(r['files']) > 0:#TODO remove this condition so all assets are parsed.
+    if len(r['files']) > 0:  # TODO remove this condition so all assets are parsed.
         get_author(r)
 
         r['available_resolutions'] = []
@@ -262,7 +262,6 @@ def parse_result(r):
             #     small_tname = paths.extract_filename_from_url(f['fileThumbnail'])
             #     allthumbs.append(tname)  # TODO just first thumb is used now.
 
-
             if f['fileType'] == 'blend':
                 durl = f['downloadUrl'].split('?')[0]
                 # fname = paths.extract_filename_from_url(f['filePath'])
@@ -270,7 +269,7 @@ def parse_result(r):
             if f['fileType'].find('resolution') > -1:
                 r['available_resolutions'].append(resolutions.resolutions[f['fileType']])
 
-        #code for more thumbnails
+        # code for more thumbnails
         # tdict = {}
         # for i, t in enumerate(allthumbs):
         #     tdict['thumbnail_%i'] = t
@@ -436,8 +435,8 @@ def timer_update():
 
                 load_previews()
                 ui_props = bpy.context.scene.blenderkitUI
-                if len(result_field) < ui_props.scrolloffset or not(thread[0].params.get('get_next')):
-                    #jump back
+                if len(result_field) < ui_props.scrolloffset or not (thread[0].params.get('get_next')):
+                    # jump back
                     ui_props.scrolloffset = 0
                 props.is_searching = False
                 props.search_error = False
@@ -572,12 +571,12 @@ def writeblockm(tooltip, mdata, key='', pretext=None, width=40):  # for longer t
     return tooltip
 
 
-
 def has(mdata, prop):
     if mdata.get(prop) is not None and mdata[prop] is not None and mdata[prop] is not False:
         return True
     else:
         return False
+
 
 def generate_tooltip(mdata):
     col_w = 40
@@ -586,155 +585,10 @@ def generate_tooltip(mdata):
     else:
         mparams = mdata['parameters']
     t = ''
-    t = writeblock(t, mdata['displayName'], width=col_w)
+    t = writeblock(t, mdata['displayName'], width=int(col_w * .6))
     # t += '\n'
+
     # t = writeblockm(t, mdata, key='description', pretext='', width=col_w)
-    # if mdata['description'] != '':
-    #     t += '\n'
-    return t
-
-def generate_tooltip_old(mdata):
-    col_w = 40
-    if type(mdata['parameters']) == list:
-        mparams = utils.params_to_dict(mdata['parameters'])
-    else:
-        mparams = mdata['parameters']
-    t = ''
-    t = writeblock(t, mdata['displayName'], width=col_w)
-    t += '\n'
-
-    t = writeblockm(t, mdata, key='description', pretext='', width=col_w)
-    if mdata['description'] != '':
-        t += '\n'
-
-    bools = (('rig', None), ('animated', None), ('manifold', 'non-manifold'), ('scene', None), ('simulation', None),
-             ('uv', None))
-    for b in bools:
-        if mparams.get(b[0]):
-            mdata['tags'].append(b[0])
-        elif b[1] != None:
-            mdata['tags'].append(b[1])
-
-    bools_data = ('adult',)
-    for b in bools_data:
-        if mdata.get(b) and mdata[b]:
-            mdata['tags'].append(b)
-    t = writeblockm(t, mparams, key='designer', pretext='Designer', width=col_w)
-    t = writeblockm(t, mparams, key='manufacturer', pretext='Manufacturer', width=col_w)
-    t = writeblockm(t, mparams, key='designCollection', pretext='Design collection', width=col_w)
-
-    # t = writeblockm(t, mparams, key='engines', pretext='engine', width = col_w)
-    # t = writeblockm(t, mparams, key='model_style', pretext='style', width = col_w)
-    # t = writeblockm(t, mparams, key='material_style', pretext='style', width = col_w)
-    # t = writeblockm(t, mdata, key='tags', width = col_w)
-    # t = writeblockm(t, mparams, key='condition', pretext='condition', width = col_w)
-    # t = writeblockm(t, mparams, key='productionLevel', pretext='production level', width = col_w)
-    if has(mdata, 'purePbr'):
-        t = writeblockm(t, mparams, key='pbrType', pretext='Pbr', width=col_w)
-
-    t = writeblockm(t, mparams, key='designYear', pretext='Design year', width=col_w)
-
-    if has(mparams, 'dimensionX'):
-        t += 'Size: %s x %s x %sm\n' % (utils.fmt_length(mparams['dimensionX']),
-                                     utils.fmt_length(mparams['dimensionY']),
-                                     utils.fmt_length(mparams['dimensionZ']))
-    if has(mparams, 'faceCount') and mdata['assetType'] == 'model':
-        t += 'Face count: %s\n' % (mparams['faceCount'])
-        # t += 'face count: %s, render: %s\n' % (mparams['faceCount'], mparams['faceCountRender'])
-
-    # write files size - this doesn't reflect true file size, since files size is computed from all asset files, including resolutions.
-    # if mdata.get('filesSize'):
-    #     fs = utils.files_size_to_text(mdata['filesSize'])
-    #     t += f'files size: {fs}\n'
-
-    # t = writeblockm(t, mparams, key='meshPolyType', pretext='mesh type', width = col_w)
-    # t = writeblockm(t, mparams, key='objectCount', pretext='nubmber of objects', width = col_w)
-
-    # t = writeblockm(t, mparams, key='materials', width = col_w)
-    # t = writeblockm(t, mparams, key='modifiers', width = col_w)
-    # t = writeblockm(t, mparams, key='shaders', width = col_w)
-
-    # if has(mparams, 'textureSizeMeters'):
-    #     t += 'Texture size: %s m\n' % utils.fmt_length(mparams['textureSizeMeters'])
-
-    if has(mparams, 'textureResolutionMax') and mparams['textureResolutionMax'] > 0:
-        if not mparams.get('textureResolutionMin'):  # for HDR's
-            t = writeblockm(t, mparams, key='textureResolutionMax', pretext='Resolution', width=col_w)
-        elif mparams.get('textureResolutionMin') == mparams['textureResolutionMax']:
-            t = writeblockm(t, mparams, key='textureResolutionMin', pretext='Texture resolution', width=col_w)
-        else:
-            t += 'Tex resolution: %i - %i\n' % (mparams.get('textureResolutionMin'), mparams['textureResolutionMax'])
-
-    if has(mparams, 'thumbnailScale'):
-        t = writeblockm(t, mparams, key='thumbnailScale', pretext='Preview scale', width=col_w)
-
-    # t += 'uv: %s\n' % mdata['uv']
-    # t += '\n'
-    if mdata.get('license') == 'cc_zero':
-        t+= 'license: CC Zero\n'
-    else:
-        t+= 'license: Royalty free\n'
-    # t = writeblockm(t, mdata, key='license', width=col_w)
-
-    fs = mdata.get('files')
-
-    if utils.profile_is_validator():
-        if fs and len(fs) > 2:
-            resolutions = 'Resolutions:'
-            list.sort(fs, key=lambda f: f['fileType'])
-            for f in fs:
-                if f['fileType'].find('resolution') > -1:
-                    resolutions += f['fileType'][11:] + ' '
-            resolutions += '\n'
-            t += resolutions.replace('_', '.')
-
-        if mdata['isFree']:
-            t += 'Free plan\n'
-        else:
-            t += 'Full plan\n'
-    else:
-        if fs:
-            for f in fs:
-                if f['fileType'].find('resolution') > -1:
-                    t += 'Asset has lower resolutions available\n'
-                    break;
-
-    # generator is for both upload preview and search, this is only after search
-    # if mdata.get('versionNumber'):
-    #     # t = writeblockm(t, mdata, key='versionNumber', pretext='version', width = col_w)
-    #     a_id = mdata['author'].get('id')
-    #     if a_id != None:
-    #         adata = bpy.context.window_manager['bkit authors'].get(str(a_id))
-    #         if adata != None:
-    #             t += generate_author_textblock(adata)
-
-    t += '\n'
-    rc = mdata.get('ratingsCount')
-    if rc:
-        t+='\n'
-        if rc:
-            rcount = min(rc['quality'], rc['workingHours'])
-        else:
-            rcount = 0
-
-        show_rating_threshold = 5
-
-        if rcount < show_rating_threshold and mdata['assetType'] != 'hdr':
-            t += f"Only assets with enough ratings \nshow the rating value. Please rate.\n"
-        if rc['quality'] >= show_rating_threshold:
-            # t += f"{int(mdata['ratingsAverage']['quality']) * '*'}\n"
-            t += f"* {round(mdata['ratingsAverage']['quality'],1)}\n"
-        if rc['workingHours'] >= show_rating_threshold:
-            t += f"Hours saved: {int(mdata['ratingsAverage']['workingHours'])}\n"
-        if utils.profile_is_validator():
-            t += f"Score: {int(mdata['score'])}\n"
-
-            t += f"Ratings count {rc['quality']}*/{rc['workingHours']}wh value " \
-                 f"{(mdata['ratingsAverage']['quality'],1)}*/{(mdata['ratingsAverage']['workingHours'],1)}wh\n"
-    if len(t.split('\n')) < 11:
-        t += '\n'
-        t += get_random_tip(mdata)
-        t += '\n'
     return t
 
 
@@ -751,14 +605,10 @@ def generate_author_textblock(adata):
     if adata not in (None, ''):
         col_w = 2000
         if len(adata['firstName'] + adata['lastName']) > 0:
-            t = 'Author: %s %s\n' % (adata['firstName'], adata['lastName'])
+            t = '%s %s\n' % (adata['firstName'], adata['lastName'])
             t += '\n'
-            # if adata.get('aboutMeUrl') is not None:
-            #     t = writeblockm(t, adata, key='aboutMeUrl', pretext='', width=col_w)
-            #     t += '\n'
             if adata.get('aboutMe') is not None:
                 t = writeblockm(t, adata, key='aboutMe', pretext='', width=col_w)
-                t += '\n'
     return t
 
 
@@ -900,7 +750,8 @@ def get_profile():
     thread.start()
     return a
 
-def query_to_url(query = {}, params = {}):
+
+def query_to_url(query={}, params={}):
     # build a new request
     url = paths.get_api_url() + 'search/'
 
@@ -944,15 +795,17 @@ def query_to_url(query = {}, params = {}):
     urlquery = url + requeststring
     return urlquery
 
+
 def parse_html_formated_error(text):
     report = text[text.find('<title>') + 7: text.find('</title>')]
 
     return report
 
+
 class Searcher(threading.Thread):
     query = None
 
-    def __init__(self, query, params, orig_result, tempdir = '', headers = None, urlquery = ''):
+    def __init__(self, query, params, orig_result, tempdir='', headers=None, urlquery=''):
         super(Searcher, self).__init__()
         self.query = query
         self.params = params
@@ -975,12 +828,10 @@ class Searcher(threading.Thread):
         query = self.query
         params = self.params
 
-
         t = time.time()
         mt('search thread started')
         # tempdir = paths.get_temp_dir('%s_search' % query['asset_type'])
         # json_filepath = os.path.join(tempdir, '%s_searchresult.json' % query['asset_type'])
-
 
         rdata = {}
         rdata['results'] = []
@@ -1030,8 +881,6 @@ class Searcher(threading.Thread):
             imgpath = os.path.join(self.tempdir, imgname)
             thumb_small_filepaths.append(imgpath)
 
-
-
             if d["assetType"] == 'hdr':
                 larege_thumb_url = d['thumbnailMiddleUrlNonsquared']
 
@@ -1042,8 +891,6 @@ class Searcher(threading.Thread):
             imgname = paths.extract_filename_from_url(larege_thumb_url)
             imgpath = os.path.join(self.tempdir, imgname)
             thumb_full_filepaths.append(imgpath)
-
-
 
             # for f in d['files']:
             #     # TODO move validation of published assets to server, too manmy checks here.
@@ -1319,7 +1166,7 @@ def add_search_process(query, params, orig_result):
     if not params['get_next']:
         urlquery = query_to_url(query, params)
 
-    thread = Searcher(query, params, orig_result, tempdir = tempdir, headers = headers, urlquery = urlquery)
+    thread = Searcher(query, params, orig_result, tempdir=tempdir, headers=headers, urlquery=urlquery)
     thread.start()
 
     search_threads.append([thread, tempdir, query['asset_type'], {}])  # 4th field is for results
@@ -1513,10 +1360,12 @@ def search_update(self, context):
 
     search()
 
+
 # accented_string is of type 'unicode'
 def strip_accents(s):
     return ''.join(c for c in unicodedata.normalize('NFD', s)
                    if unicodedata.category(c) != 'Mn')
+
 
 class SearchOperator(Operator):
     """Tooltip"""
@@ -1574,11 +1423,11 @@ class SearchOperator(Operator):
         if self.keywords != '':
             sprops.search_keywords = self.keywords
 
-
         search(category=self.category, get_next=self.get_next, author_id=self.author_id)
         # bpy.ops.view3d.blenderkit_asset_bar()
 
         return {'FINISHED'}
+
 
 class UrlOperator(Operator):
     """"""
@@ -1594,7 +1443,7 @@ class UrlOperator(Operator):
     def description(cls, context, properties):
         return properties.tooltip
 
-    def execute(self,context):
+    def execute(self, context):
         bpy.ops.wm.url_open(url=self.url)
         return {'FINISHED'}
 
