@@ -289,8 +289,8 @@ def draw_tooltip(x, y, name='', author='', img=None, gravatar=None):
     x += 20
     y -= 20
     #first get image size scaled
-    isizex = int(512 * scale * img.size[0] / max(img.size[0], img.size[1]))
-    isizey = int(512 * scale * img.size[1] / max(img.size[0], img.size[1]))
+    isizex = int(512 * scale * img.size[0] / min(img.size[0], img.size[1]))
+    isizey = int(512 * scale * img.size[1] / min(img.size[0], img.size[1]))
 
     ttipmargin = 5 * scale
     #then do recurrent re-scaling, to know where to fit the tooltip
@@ -299,13 +299,19 @@ def draw_tooltip(x, y, name='', author='', img=None, gravatar=None):
         scaledown = y / (estimated_height)
         scale *= scaledown
 
-        isizex = int(512 * scale * img.size[0] / max(img.size[0], img.size[1]))
-        isizey = int(512 * scale * img.size[1] / max(img.size[0], img.size[1]))
+        isizex = int(512 * scale * img.size[0] / min(img.size[0], img.size[1]))
+        isizey = int(512 * scale * img.size[1] / min(img.size[0], img.size[1]))
 
     ttipmargin = 5 * scale
     textmargin = 12 * scale
 
-    overlay_height = 90 * scale
+    if gravatar is not None:
+        overlay_height_base = 90
+    else:
+        overlay_height_base = 50
+
+
+    overlay_height = overlay_height_base * scale
     name_height = int(20 * scale)
 
     width = isizex + 2 * ttipmargin
@@ -343,7 +349,7 @@ def draw_tooltip(x, y, name='', author='', img=None, gravatar=None):
 
     # draw gravatar
     author_x_text = x + isizex - textmargin
-    gravatar_size = overlay_height * scale - 2 * textmargin
+    gravatar_size = overlay_height - 2 * textmargin
     gravatar_y = y - isizey - ttipmargin + textmargin
     if gravatar is not None:
         author_x_text -= gravatar_size + textmargin
@@ -374,7 +380,10 @@ def draw_tooltip_with_author(asset_data, x, y):
     # author_s = ''
     # if not gimg:
     #     author_s = 'Author: '
-    draw_tooltip(x, y, name=asset_data['displayName'], author=f"by {a['firstName']} {a['lastName']}", img=img,
+    aname = asset_data['displayName']
+    if len(aname)>36:
+        aname = f"{aname[:33]}..."
+    draw_tooltip(x, y, name=aname, author=f"by {a['firstName']} {a['lastName']}", img=img,
                  gravatar=gimg)
 
 

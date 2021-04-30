@@ -1319,7 +1319,7 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
             op.state = 'deleted'
 
         if utils.profile_is_validator():
-            layout.label(text='Admin Tools:')
+            layout.label(text='Dev Tools:')
 
             op = layout.operator('object.blenderkit_print_asset_debug', text='Print asset debug')
             op.asset_id = asset_data['id']
@@ -1507,21 +1507,8 @@ class AssetPopupCard(bpy.types.Operator):
         return True
 
     def draw_menu(self, context, layout):
-        ui_props = context.scene.blenderkitUI
-
-        col_left = layout.column()
-        # row_button = col_left.row()
-        # row_button.scale_y = 3
-        # op = row_button.operator('view3d.asset_drag_drop', text='Drag & Drop')
-        # op.asset_search_index = ui_props.active_index
-        draw_asset_context_menu(col_left, context, self.asset_data, from_panel=False)
-        # layout = col_left
-        # op = layout.operator('view3d.blenderkit_search', text='Search Similar')
-        # # build search string from description and tags:
-        # op.keywords = self.asset_data['name']
-        # if self.asset_data.get('description'):
-        #     op.keywords += ' ' + self.asset_data.get('description') + ' '
-        # op.keywords += ' '.join(self.asset_data.get('tags'))
+        col = layout.column()
+        draw_asset_context_menu(col, context, self.asset_data, from_panel=False)
 
     def draw_property(self, layout, left, right, icon=None, icon_value=None, url=None, tooltip=''):
         right = str(right)
@@ -1675,7 +1662,10 @@ class AssetPopupCard(bpy.types.Operator):
             icon = pcoll['full']
             self.draw_property(box, 'Access:', t, icon_value=icon.icon_id)
 
-    def draw_author(self, layout, width=330):
+    def draw_author_area(self, context, layout, width=330):
+        self.draw_author(context, layout, width=330)
+
+    def draw_author(self, context, layout, width=330):
         image_split = 0.25
         text_width = width
         authors = bpy.context.window_manager['bkit authors']
@@ -1700,7 +1690,7 @@ class AssetPopupCard(bpy.types.Operator):
             col = row.column()
 
             utils.label_multiline(col, text=a['tooltip'], width=text_width)
-            #check if author didn't fill any data about himself and prompt him if that's the case
+            # check if author didn't fill any data about himself and prompt him if that's the case
             if upload.user_is_owner(asset_data=self.asset_data) and a.get('aboutMe') is not None and len(
                     a.get('aboutMe', '')) == 0:
                 row = col.row()
@@ -1790,7 +1780,7 @@ class AssetPopupCard(bpy.types.Operator):
         self.draw_menu(context, col1)
 
         # author
-        self.draw_author(box)
+        self.draw_author_area(context, box, width=330)
 
     def draw(self, context):
         ui_props = context.scene.blenderkitUI
