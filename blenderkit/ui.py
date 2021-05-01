@@ -231,11 +231,6 @@ def draw_ratings_bgl():
     if rating_possible:  # (not rated or ui_props.rating_menu_on):
         # print('rating is pssible', asset_data['name'])
         bkit_ratings = asset.bkit_ratings
-        bgcol = bpy.context.preferences.themes[0].user_interface.wcol_tooltip.inner
-        textcol = (1, 1, 1, 1)
-
-        r = bpy.context.region
-        font_size = int(ui.rating_ui_scale * 20)
 
         if ui.rating_button_on:
             # print('should draw button')
@@ -261,7 +256,6 @@ def draw_ratings_bgl():
                               ui.rating_button_width,
                               ui.rating_button_width,
                               img, 1)
-            # ui_bgl.draw_text( 'rate asset %s' % asset_data['name'],r.width - rating_button_width + margin, margin, font_size)
             return
 
 
@@ -278,7 +272,7 @@ def draw_text_block(x=0, y=0, width=40, font_size=10, line_height=15, text='', c
         ui_bgl.draw_text(l, x, ytext, font_size, color)
 
 
-def draw_tooltip(x, y, name='', author='', img=None, gravatar=None):
+def draw_tooltip(x, y, name='', author='', quality = '-', img=None, gravatar=None):
     region = bpy.context.region
     scale = bpy.context.preferences.view.ui_scale
     t = time.time()
@@ -308,7 +302,7 @@ def draw_tooltip(x, y, name='', author='', img=None, gravatar=None):
     if gravatar is not None:
         overlay_height_base = 90
     else:
-        overlay_height_base = 50
+        overlay_height_base = 70
 
 
     overlay_height = overlay_height_base * scale
@@ -347,6 +341,12 @@ def draw_tooltip(x, y, name='', author='', img=None, gravatar=None):
                      ttipmargin + overlay_height ,
                      background_overlay)
 
+    #draw name
+    name_x = x + textmargin
+    name_y = y - isizey + overlay_height - textmargin - name_height
+    ui_bgl.draw_text(name, name_x, name_y, name_height, textcol)
+
+
     # draw gravatar
     author_x_text = x + isizex - textmargin
     gravatar_size = overlay_height - 2 * textmargin
@@ -357,12 +357,16 @@ def draw_tooltip(x, y, name='', author='', img=None, gravatar=None):
                           gravatar_y,  # + textmargin,
                           gravatar_size, gravatar_size, gravatar, 1)
 
-    name_x = x + textmargin
-    name_y = y - isizey + overlay_height - textmargin - name_height
-    ui_bgl.draw_text(name, name_x, name_y, name_height, textcol)
-
+    #draw author's name
     author_text_size = int(name_height * .7)
     ui_bgl.draw_text(author, author_x_text, gravatar_y, author_text_size, textcol, ralign=True)
+
+    # draw quality
+    quality_text_size = int(name_height * 1)
+    img = utils.get_thumbnail('star_grey.png')
+    ui_bgl.draw_image(name_x, gravatar_y, quality_text_size, quality_text_size, img, .6)
+    ui_bgl.draw_text(str(quality), name_x + quality_text_size + 5, gravatar_y, quality_text_size, textcol)
+
 
 
 def draw_tooltip_with_author(asset_data, x, y):
@@ -377,13 +381,20 @@ def draw_tooltip_with_author(asset_data, x, y):
             if a.get('gravatarImg') is not None:
                 gimg = utils.get_hidden_image(a['gravatarImg'], a['gravatarHash'])
 
-    # author_s = ''
-    # if not gimg:
-    #     author_s = 'Author: '
     aname = asset_data['displayName']
     if len(aname)>36:
         aname = f"{aname[:33]}..."
-    draw_tooltip(x, y, name=aname, author=f"by {a['firstName']} {a['lastName']}", img=img,
+
+    rc = asset_data.get('ratingsCount')
+    show_rating_threshold = 0
+    rcount = 0
+    quality = '-'
+    if rc:
+        rcount = min(rc['quality'], rc['workingHours'])
+    if rcount>show_rating_threshold:
+        quality = round(asset_data['ratingsAverage'].get('quality'))
+
+    draw_tooltip(x, y, name=aname, author=f"by {a['firstName']} {a['lastName']}", quality= quality,  img=img,
                  gravatar=gimg)
 
 

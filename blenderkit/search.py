@@ -990,10 +990,10 @@ def build_query_common(query, props):
     if props.search_keywords != '':
         query_common["query"] = props.search_keywords
 
-    if props.search_verification_status != 'ALL':
+    if props.search_verification_status != 'ALL' and utils.profile_is_validator():
         query_common['verification_status'] = props.search_verification_status.lower()
 
-    if props.unrated_only:
+    if props.unrated_only and utils.profile_is_validator():
         query["quality_count"] = 0
 
     if props.search_file_size:
@@ -1447,10 +1447,26 @@ class UrlOperator(Operator):
         bpy.ops.wm.url_open(url=self.url)
         return {'FINISHED'}
 
+class TooltipLabelOperator(Operator):
+    """"""
+    bl_idname = "wm.blenderkit_tooltip"
+    bl_label = ""
+    bl_description = "Empty operator to be able to create tooltips on labels in UI"
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
+
+    tooltip: bpy.props.StringProperty(default='Open a web page')
+
+    @classmethod
+    def description(cls, context, properties):
+        return properties.tooltip
+
+    def execute(self, context):
+        return {'FINISHED'}
 
 classes = [
     SearchOperator,
-    UrlOperator
+    UrlOperator,
+    TooltipLabelOperator
 ]
 
 

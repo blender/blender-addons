@@ -1271,26 +1271,7 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
     profile = wm.get('bkit profile')
     if profile is not None:
         # validation
-        if utils.profile_is_validator():
-            layout.label(text='Validation tools:')
-            layout.operator_context = 'EXEC_DEFAULT'
 
-            if asset_data['verificationStatus'] != 'uploaded':
-                op = layout.operator('object.blenderkit_change_status', text='set Uploaded')
-                op.asset_id = asset_data['id']
-                op.state = 'uploaded'
-            if asset_data['verificationStatus'] != 'validated':
-                op = layout.operator('object.blenderkit_change_status', text='Validate')
-                op.asset_id = asset_data['id']
-                op.state = 'validated'
-            if asset_data['verificationStatus'] != 'on_hold':
-                op = layout.operator('object.blenderkit_change_status', text='Put on Hold')
-                op.asset_id = asset_data['id']
-                op.state = 'on_hold'
-            if asset_data['verificationStatus'] != 'rejected':
-                op = layout.operator('object.blenderkit_change_status', text='Reject')
-                op.asset_id = asset_data['id']
-                op.state = 'rejected'
 
         if author_id == str(profile['user']['id']) or utils.profile_is_validator():
             layout.label(text='Management tools:')
@@ -1384,6 +1365,41 @@ def numeric_to_str(s):
     else:
         s = '-'
     return s
+
+
+def label_or_url(layout, text='', tooltip='', url='', icon_value=None, icon=None):
+    '''automatically switch between different layout options for linking or tooltips'''
+    layout.emboss = 'NONE'
+    if url != '':
+        if icon:
+            op = layout.operator('wm.blenderkit_url', text=text, icon=icon)
+        elif icon_value:
+            op = layout.operator('wm.blenderkit_url', text=text, icon_value=icon_value)
+        else:
+            op = layout.operator('wm.blenderkit_url', text=text)
+        op.url = url
+        op.tooltip = tooltip
+        layout.label(text='')
+        layout.label(text='')
+
+        return
+    if tooltip != '':
+        if icon:
+            op = layout.operator('wm.blenderkit_tooltip', text=text, icon=icon)
+        elif icon_value:
+            op = layout.operator('wm.blenderkit_tooltip', text=text, icon_value=icon_value)
+        else:
+            op = layout.operator('wm.blenderkit_tooltip', text=text)
+        op.tooltip = tooltip
+        layout.label(text='')
+        layout.label(text='')
+        return
+    if icon:
+        layout.label(text=text, icon=icon)
+    elif icon_value:
+        layout.label(text=text, icon_value=icon_value)
+    else:
+        layout.label(text=text)
 
 
 class AssetPopupCard(bpy.types.Operator):
@@ -1510,32 +1526,20 @@ class AssetPopupCard(bpy.types.Operator):
         col = layout.column()
         draw_asset_context_menu(col, context, self.asset_data, from_panel=False)
 
-    def draw_property(self, layout, left, right, icon=None, icon_value=None, url=None, tooltip=''):
+    def draw_property(self, layout, left, right, icon=None, icon_value=None, url='', tooltip=''):
         right = str(right)
         row = layout.row()
         split = row.split(factor=0.4)
         split.alignment = 'RIGHT'
         split.label(text=left)
         split = split.split()
-        # if url:
-        #     if icon_value:
-        #         op = split.operator('wm.url_open', text=right, icon_value=icon_value)
-        #     elif icon:
-        #         op = split.operator('wm.url_open', text=right, icon=icon)
-        #     else:
-        #         op = split.operator('wm.url_open', text=right)
-        #     op.url = url
-        #     return
-        if url:
-            split = split.split(factor=0.9)
-        if icon_value:
-            split.label(text=right, icon_value=icon_value)
-        elif icon:
-            split.label(text=right, icon=icon)
-
-        else:
-            split.label(text=right)
-        if url:
+        split.alignment = 'LEFT'
+        #split for questionmark:
+        if url!='':
+            split = split.split(factor=0.7)
+        label_or_url(split,text=right,tooltip=tooltip, url=url, icon_value=icon_value, icon=icon)
+        #additional questionmark icon where it's important?
+        if url!='':
             split = split.split()
             op = split.operator('wm.blenderkit_url', text='', icon='QUESTION')
             op.url = url
@@ -1576,10 +1580,10 @@ class AssetPopupCard(bpy.types.Operator):
 
         self.draw_property(box,
                            'License:', t,
-                           icon_value=icon.icon_id,
+                           # icon_value=icon.icon_id,
                            url="https://www.blenderkit.com/docs/licenses/",
-                           tooltip='All BlenderKit assets are available for commercial use. '
-                                   'Click to read more about BlenderKit licenses online'
+                           tooltip='All BlenderKit assets are available for commercial use. \n'\
+                                   'Click to read more about BlenderKit licenses on the website'
                            )
 
         if upload.can_edit_asset(asset_data=self.asset_data):
@@ -1627,7 +1631,10 @@ class AssetPopupCard(bpy.types.Operator):
         resolution = utils.get_param(self.asset_data, 'textureResolutionMax')
         if resolution is not None:
             ress = f"{int(round(resolution / 1024, 0))}K"
-            self.draw_property(box, 'Resolution', ress)
+            self.draw_property(box, 'Resolution', ress,
+                               tooltip='Maximal resolution of textures in this asset.\n'\
+                                        'Most texture asset have also lower resolutions generated.\n'\
+                                        'Go to BlenderKit add-on import settings to set default resolution')
 
         self.draw_asset_parameter(box, key='designer', pretext='Designer')
         self.draw_asset_parameter(box, key='manufacturer', pretext='Manufacturer')  # TODO make them clickable!
@@ -1650,17 +1657,28 @@ class AssetPopupCard(bpy.types.Operator):
             self.draw_property(box, 'Size:', t)
 
         # Free/Full plan or private Access
+        plans_tooltip = 'BlenderKit has 2 plans:\n'\
+                                         '  *  Free plan - more than 50% of all assets\n'\
+                                         '  *  Full plan - unlimited access to everything'\
+                                         'Click to go to subscriptions page.'
+        plans_link = 'https://www.blenderkit.com/plans/pricing/'
         if self.asset_data['isPrivate']:
             t = 'Private'
             self.draw_property(box, 'Access:', t, icon='LOCKED')
         elif self.asset_data['isFree']:
             t = 'Free plan'
             icon = pcoll['free']
-            self.draw_property(box, 'Access:', t, icon_value=icon.icon_id)
+            self.draw_property(box, 'Access:', t,
+                               icon_value=icon.icon_id,
+                               tooltip = plans_tooltip,
+                               url= plans_link)
         else:
             t = 'Full plan'
             icon = pcoll['full']
-            self.draw_property(box, 'Access:', t, icon_value=icon.icon_id)
+            self.draw_property(box, 'Access:', t,
+                               icon_value=icon.icon_id,
+                               tooltip=plans_tooltip,
+                               url=plans_link)
 
     def draw_author_area(self, context, layout, width=330):
         self.draw_author(context, layout, width=330)
@@ -1716,7 +1734,7 @@ class AssetPopupCard(bpy.types.Operator):
             op = button_row.operator('wm.url_open', text=text)
             op.url = url
 
-            op = button_row.operator('view3d.blenderkit_search', text="Show Assets By Author")
+            op = button_row.operator('view3d.blenderkit_search', text="Find Assets By Author")
             op.keywords = ''
             op.author_id = self.asset_data['author']['id']
 
@@ -1724,12 +1742,8 @@ class AssetPopupCard(bpy.types.Operator):
         layout.emboss = 'NORMAL'
 
         box_thumbnail = layout.box()
-        # row = split_right.row()
-        # column_right = row.column()
 
-        box_thumbnail.scale_y = 0.5
-        # row = box_thumbnail.row()
-        # row.scale_y = 20
+        box_thumbnail.scale_y = .4
 
         box_thumbnail.template_icon(icon_value=self.img.preview.icon_id, scale=34.0)
         # row = box_thumbnail.row()
@@ -1738,8 +1752,11 @@ class AssetPopupCard(bpy.types.Operator):
 
         row = box_thumbnail.row()
         row.alignment = 'EXPAND'
+
+        # display_ratings = can_display_ratings(self.asset_data)
         rc = self.asset_data.get('ratingsCount')
-        show_rating_threshold = 5
+        show_rating_threshold = 0
+        show_rating_prompt_threshold = 5
 
         if rc:
             rcount = min(rc['quality'], rc['workingHours'])
@@ -1755,13 +1772,25 @@ class AssetPopupCard(bpy.types.Operator):
             c = '-'
 
         pcoll = icons.icon_collections["main"]
-        row.label(text=str(s), icon_value=pcoll['trophy'].icon_id)
-        row.label(text=str(q), icon='SOLO_ON')
-        row.label(text=str(c), icon_value=pcoll['dumbbell'].icon_id)
 
-        if rcount <= show_rating_threshold:
+        row.emboss = 'NONE'
+        op = row.operator('wm.blenderkit_tooltip', text=str(s), icon_value=pcoll['trophy'].icon_id)
+        op.tooltip = 'Asset score calculated from averaged user ratings. \n\n' \
+                     'Score = quality × complexity × 10*\n\n *Happiness multiplier'
+        row.label(text='   ')
+
+        tooltip_extension = f'.\n\nRatings results are shown for assets with more than {show_rating_threshold} ratings'
+        op = row.operator('wm.blenderkit_tooltip', text=str(q), icon='SOLO_ON')
+        op.tooltip = f"Quality, average from {rc['quality']} ratings" \
+                     f"{tooltip_extension if rcount <= show_rating_threshold else ''}"
+        row.label(text='   ')
+
+        op = row.operator('wm.blenderkit_tooltip', text=str(c), icon_value=pcoll['dumbbell'].icon_id)
+        op.tooltip = f"Complexity, average from {rc['workingHours']} ratings" \
+                     f"{tooltip_extension if rcount <= show_rating_threshold else ''}"
+
+        if rcount <= show_rating_prompt_threshold:
             box_thumbnail.alert = True
-
             box_thumbnail.label(text=f"")
             box_thumbnail.label(text=f"This asset has only {rcount} rating{'' if rcount == 1 else 's'} , please rate.")
             # box_thumbnail.label(text=f"Please rate this asset.")

@@ -786,7 +786,12 @@ def profile_is_validator():
 
 
 def guard_from_crash():
-    '''Blender tends to crash when trying to run some functions with the addon going through unregistration process.'''
+    '''
+    Blender tends to crash when trying to run some functions
+     with the addon going through unregistration process.
+     This function is used in these functions (like draw callbacks)
+     so these don't run during unregistration.
+     '''
     if bpy.context.preferences.addons.get('blenderkit') is None:
         return False;
     if bpy.context.preferences.addons['blenderkit'].preferences is None:
