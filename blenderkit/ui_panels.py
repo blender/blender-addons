@@ -1402,121 +1402,14 @@ def label_or_url(layout, text='', tooltip='', url='', icon_value=None, icon=None
         layout.label(text=text)
 
 
-class AssetPopupCard(bpy.types.Operator):
+class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
     """Generate Cycles thumbnail for model assets"""
     bl_idname = "wm.blenderkit_asset_popup"
     bl_label = "BlenderKit asset popup"
 
     width = 700
 
-    message: StringProperty(
-        name="message",
-        description="message",
-        default="Rating asset",
-        options={'SKIP_SAVE'})
 
-    asset_id: StringProperty(
-        name="Asset Base Id",
-        description="Unique id of the asset (hidden)",
-        default="",
-        options={'SKIP_SAVE'})
-
-    asset_name: StringProperty(
-        name="Asset Name",
-        description="Name of the asset (hidden)",
-        default="",
-        options={'SKIP_SAVE'})
-
-    asset_type: StringProperty(
-        name="Asset type",
-        description="asset type",
-        default="",
-        options={'SKIP_SAVE'})
-
-    rating_quality: IntProperty(name="Quality",
-                                description="quality of the material",
-                                default=0,
-                                min=-1, max=10,
-                                update=ratings_utils.update_ratings_quality,
-                                options={'SKIP_SAVE'})
-
-    # the following enum is only to ease interaction - enums support 'drag over' and enable to draw the stars easily.
-    rating_quality_ui: EnumProperty(name='rating_quality_ui',
-                                    items=ratings_utils.stars_enum_callback,
-                                    description='Rating stars 0 - 10',
-                                    default=0,
-                                    update=ratings_utils.update_quality_ui,
-                                    options={'SKIP_SAVE'})
-
-    rating_work_hours: FloatProperty(name="Work Hours",
-                                     description="How many hours did this work take?",
-                                     default=0.00,
-                                     min=0.0, max=300,
-                                     update=ratings_utils.update_ratings_work_hours,
-                                     options={'SKIP_SAVE'}
-                                     )
-
-    high_rating_warning = "This is a high rating, please be sure to give such rating only to amazing assets"
-
-    rating_work_hours_ui: EnumProperty(name="Work Hours",
-                                       description="How many hours did this work take?",
-                                       items=[('0', '0', ''),
-                                              ('.5', '0.5', ''),
-                                              ('1', '1', ''),
-                                              ('2', '2', ''),
-                                              ('3', '3', ''),
-                                              ('4', '4', ''),
-                                              ('5', '5', ''),
-                                              ('6', '6', ''),
-                                              ('8', '8', ''),
-                                              ('10', '10', ''),
-                                              ('15', '15', ''),
-                                              ('20', '20', ''),
-                                              ('30', '30', high_rating_warning),
-                                              ('50', '50', high_rating_warning),
-                                              ('100', '100', high_rating_warning),
-                                              ('150', '150', high_rating_warning),
-                                              ('200', '200', high_rating_warning),
-                                              ('250', '250', high_rating_warning),
-                                              ],
-                                       default='0', update=ratings_utils.update_ratings_work_hours_ui,
-                                       options={'SKIP_SAVE'}
-                                       )
-
-    rating_work_hours_ui_1_5: EnumProperty(name="Work Hours",
-                                           description="How many hours did this work take?",
-                                           items=[('0', '0', ''),
-                                                  ('.2', '0.2', ''),
-                                                  ('.5', '0.5', ''),
-                                                  ('1', '1', ''),
-                                                  ('2', '2', ''),
-                                                  ('3', '3', ''),
-                                                  ('4', '4', ''),
-                                                  ('5', '5', '')
-                                                  ],
-                                           default='0',
-                                           update=ratings_utils.update_ratings_work_hours_ui_1_5,
-                                           options={'SKIP_SAVE'}
-                                           )
-
-    rating_work_hours_ui_1_10: EnumProperty(name="Work Hours",
-                                            description="How many hours did this work take?",
-                                            items=[('0', '0', ''),
-                                                   ('1', '1', ''),
-                                                   ('2', '2', ''),
-                                                   ('3', '3', ''),
-                                                   ('4', '4', ''),
-                                                   ('5', '5', ''),
-                                                   ('6', '6', ''),
-                                                   ('7', '7', ''),
-                                                   ('8', '8', ''),
-                                                   ('9', '9', ''),
-                                                   ('10', '10', '')
-                                                   ],
-                                            default='0',
-                                            update=ratings_utils.update_ratings_work_hours_ui_1_10,
-                                            options={'SKIP_SAVE'}
-                                            )
 
     @classmethod
     def poll(cls, context):
@@ -1551,7 +1444,7 @@ class AssetPopupCard(bpy.types.Operator):
             return
         self.draw_property(layout, pretext, parameter)
 
-    def draw_properties(self, layout):
+    def draw_properties(self, layout, width = 250):
 
         if type(self.asset_data['parameters']) == list:
             mparams = utils.params_to_dict(self.asset_data['parameters'])
@@ -1563,7 +1456,7 @@ class AssetPopupCard(bpy.types.Operator):
             box = layout.box()
             box.scale_y = 0.8
             box.label(text='Description')
-            utils.label_multiline(box, self.asset_data['description'], width=200)
+            utils.label_multiline(box, self.asset_data['description'], width=width)
 
         pcoll = icons.icon_collections["main"]
 
@@ -1659,8 +1552,8 @@ class AssetPopupCard(bpy.types.Operator):
         # Free/Full plan or private Access
         plans_tooltip = 'BlenderKit has 2 plans:\n'\
                                          '  *  Free plan - more than 50% of all assets\n'\
-                                         '  *  Full plan - unlimited access to everything'\
-                                         'Click to go to subscriptions page.'
+                                         '  *  Full plan - unlimited access to everything\n'\
+                                         'Click to go to subscriptions page'
         plans_link = 'https://www.blenderkit.com/plans/pricing/'
         if self.asset_data['isPrivate']:
             t = 'Private'
@@ -1681,7 +1574,7 @@ class AssetPopupCard(bpy.types.Operator):
                                url=plans_link)
 
     def draw_author_area(self, context, layout, width=330):
-        self.draw_author(context, layout, width=330)
+        self.draw_author(context, layout, width=width)
 
     def draw_author(self, context, layout, width=330):
         image_split = 0.25
@@ -1746,8 +1639,9 @@ class AssetPopupCard(bpy.types.Operator):
         box_thumbnail.scale_y = .4
 
         box_thumbnail.template_icon(icon_value=self.img.preview.icon_id, scale=34.0)
+
         # row = box_thumbnail.row()
-        # row.scale_y = 4
+        # row.scale_y = 3
         # op = row.operator('view3d.asset_drag_drop', text='Drag & Drop from here', depress=True)
 
         row = box_thumbnail.row()
@@ -1795,21 +1689,22 @@ class AssetPopupCard(bpy.types.Operator):
             box_thumbnail.label(text=f"This asset has only {rcount} rating{'' if rcount == 1 else 's'} , please rate.")
             # box_thumbnail.label(text=f"Please rate this asset.")
 
-    def draw_menu_desc_author(self, context, layout):
+    def draw_menu_desc_author(self, context, layout, width = 330):
         box = layout.column()
 
         box.emboss = 'NORMAL'
         # left - tooltip & params
         row = box.row()
-        split_left_left = row.split(factor=0.7)
-        self.draw_properties(split_left_left)
+        split_factor = 0.7
+        split_left_left = row.split(factor=split_factor)
+        self.draw_properties(split_left_left, width = int(width*split_factor))
 
         # right - menu
         col1 = split_left_left.split()
         self.draw_menu(context, col1)
 
         # author
-        self.draw_author_area(context, box, width=330)
+        self.draw_author_area(context, box, width=width)
 
     def draw(self, context):
         ui_props = context.scene.blenderkitUI
@@ -1821,17 +1716,18 @@ class AssetPopupCard(bpy.types.Operator):
         # top draggabe bar with name of the asset
         top_row = layout.row()
         top_drag_bar = top_row.box()
-        top_drag_bar.alignment = 'CENTER'
-
         top_drag_bar.label(text=asset_data['displayName'])
+
         # left side
         row = layout.row(align=True)
+
+        split_ratio = 0.5
         split_left = row.split(factor=0.5)
         self.draw_thumbnail_box(split_left)
 
         # right split
         split_right = split_left.split()
-        self.draw_menu_desc_author(context, split_right)
+        self.draw_menu_desc_author(context, split_right, width = int(self.width*split_ratio))
 
         ratings_box = layout.box()
         ratings_box.scale_y = 0.7

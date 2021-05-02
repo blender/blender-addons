@@ -210,120 +210,12 @@ def draw_ratings_menu(self, context, layout):
         row.prop(self, 'rating_work_hours_ui_1_5', expand=True, icon_only=False, emboss=True)
 
 
-class FastRateMenu(Operator):
+class FastRateMenu(Operator, ratings_utils.RatingsProperties):
     """Rating of the assets , also directly from the asset bar - without need to download assets"""
     bl_idname = "wm.blenderkit_menu_rating_upload"
     bl_label = "Rate asset"
     bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
-    message: StringProperty(
-        name="message",
-        description="message",
-        default="Rating asset",
-        options={'SKIP_SAVE'})
-
-    asset_id: StringProperty(
-        name="Asset Base Id",
-        description="Unique id of the asset (hidden)",
-        default="",
-        options={'SKIP_SAVE'})
-
-    asset_name: StringProperty(
-        name="Asset Name",
-        description="Name of the asset (hidden)",
-        default="",
-        options={'SKIP_SAVE'})
-
-    asset_type: StringProperty(
-        name="Asset type",
-        description="asset type",
-        default="",
-        options={'SKIP_SAVE'})
-
-    rating_quality: IntProperty(name="Quality",
-                                description="quality of the material",
-                                default=0,
-                                min=-1, max=10,
-                                # update=ratings_utils.update_ratings_quality,
-                                options={'SKIP_SAVE'})
-
-    # the following enum is only to ease interaction - enums support 'drag over' and enable to draw the stars easily.
-    rating_quality_ui: EnumProperty(name='rating_quality_ui',
-                                    items=ratings_utils.stars_enum_callback,
-                                    description='Rating stars 0 - 10',
-                                    default=0,
-                                    update=ratings_utils.update_quality_ui,
-                                    options={'SKIP_SAVE'})
-
-    rating_work_hours: FloatProperty(name="Work Hours",
-                                     description="How many hours did this work take?",
-                                     default=0.00,
-                                     min=0.0, max=300,
-                                     # update=ratings_utils.update_ratings_work_hours,
-                                     options={'SKIP_SAVE'}
-                                     )
-
-    high_rating_warning = "This is a high rating, please be sure to give such rating only to amazing assets"
-
-    rating_work_hours_ui: EnumProperty(name="Work Hours",
-                                       description="How many hours did this work take?",
-                                       items=[('0', '0', ''),
-                                              ('.5', '0.5', ''),
-                                              ('1', '1', ''),
-                                              ('2', '2', ''),
-                                              ('3', '3', ''),
-                                              ('4', '4', ''),
-                                              ('5', '5', ''),
-                                              ('6', '6', ''),
-                                              ('8', '8', ''),
-                                              ('10', '10', ''),
-                                              ('15', '15', ''),
-                                              ('20', '20', ''),
-                                              ('30', '30', high_rating_warning),
-                                              ('50', '50', high_rating_warning),
-                                              ('100', '100', high_rating_warning),
-                                              ('150', '150', high_rating_warning),
-                                              ('200', '200', high_rating_warning),
-                                              ('250', '250', high_rating_warning),
-                                              ],
-                                       default='0', update=ratings_utils.update_ratings_work_hours_ui,
-                                       options={'SKIP_SAVE'}
-                                       )
-
-    rating_work_hours_ui_1_5: EnumProperty(name="Work Hours",
-                                           description="How many hours did this work take?",
-                                           items=[('0', '0', ''),
-                                                  ('.2', '0.2', ''),
-                                                  ('.5', '0.5', ''),
-                                                  ('1', '1', ''),
-                                                  ('2', '2', ''),
-                                                  ('3', '3', ''),
-                                                  ('4', '4', ''),
-                                                  ('5', '5', '')
-                                                  ],
-                                           default='0',
-                                           update=ratings_utils.update_ratings_work_hours_ui_1_5,
-                                           options={'SKIP_SAVE'}
-                                           )
-
-    rating_work_hours_ui_1_10: EnumProperty(name="Work Hours",
-                                            description="How many hours did this work take?",
-                                            items=[('0', '0', ''),
-                                                   ('1', '1', ''),
-                                                   ('2', '2', ''),
-                                                   ('3', '3', ''),
-                                                   ('4', '4', ''),
-                                                   ('5', '5', ''),
-                                                   ('6', '6', ''),
-                                                   ('7', '7', ''),
-                                                   ('8', '8', ''),
-                                                   ('9', '9', ''),
-                                                   ('10', '10', '')
-                                                   ],
-                                            default='0',
-                                            update=ratings_utils.update_ratings_work_hours_ui_1_10,
-                                            options={'SKIP_SAVE'}
-                                            )
 
     @classmethod
     def poll(cls, context):

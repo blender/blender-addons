@@ -1131,6 +1131,7 @@ class ParticlesDropDialog(bpy.types.Operator):
 #         wm = context.window_manager
 #         return wm.invoke_props_dialog(self, width=400)
 
+
 class AssetBarOperator(bpy.types.Operator):
     '''runs search and displays the asset bar at the same time'''
     bl_idname = "view3d.blenderkit_asset_bar"
@@ -1174,6 +1175,7 @@ class AssetBarOperator(bpy.types.Operator):
         ui_props.assetbar_on = False
 
     def modal(self, context, event):
+
         # This is for case of closing the area or changing type:
         ui_props = context.scene.blenderkitUI
         user_preferences = bpy.context.preferences.addons['blenderkit'].preferences

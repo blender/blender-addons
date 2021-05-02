@@ -84,8 +84,6 @@ if __name__ == "__main__":
         tscale = data["thumbnail_scale"]
         bpy.context.view_layer.objects['scaler'].scale = (tscale, tscale, tscale)
         bpy.context.view_layer.update()
-        print('we have this materialB')
-        print(mat)
 
         for ob in bpy.context.visible_objects:
             if ob.name[:15] == 'MaterialPreview':
@@ -103,7 +101,6 @@ if __name__ == "__main__":
                 if data["thumbnail_type"] in ['BALL', 'BALL_COMPLEX', 'CLOTH']:
                    utils.automap(ob.name, tex_size = ts / tscale, just_scale = True, bg_exception=True)
         bpy.context.view_layer.update()
-        print('got to C')
 
         s.cycles.volume_step_size = tscale * .1
 

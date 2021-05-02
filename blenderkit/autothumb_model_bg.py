@@ -18,7 +18,7 @@
 
 
 
-from blenderkit import utils, append_link, bg_blender, download, upload_bg
+from blenderkit import utils, append_link, bg_blender, download, upload_bg, upload
 
 import sys, json, math, os
 import bpy
@@ -136,7 +136,6 @@ if __name__ == "__main__":
         }
         s = bpy.context.scene
         s.frame_set(fdict[data['thumbnail_angle']])
-        print( 'got to C')
 
         snapdict = {
             'GROUND': 'Ground',
@@ -156,7 +155,6 @@ if __name__ == "__main__":
         s.cycles.samples = data['thumbnail_samples']
         bpy.context.view_layer.cycles.use_denoising = data['thumbnail_denoising']
         bpy.context.view_layer.update()
-        print( 'got to D')
 
         # import blender's HDR here
         # hdr_path = Path('datafiles/studiolights/world/interior.exr')
@@ -180,9 +178,10 @@ if __name__ == "__main__":
         render_thumbnails()
         fpath = data['thumbnail_path'] + '.jpg'
         if data.get('upload_after_render') and data.get('asset_data'):
+            # try to patch for the sake of older assets where thumbnail update doesn't work for the reasont
+            # that original thumbnail files aren't available.
+            # upload.patch_individual_metadata(data['asset_data']['id'], {}, user_preferences)
             bg_blender.progress('uploading thumbnail')
-            preferences = bpy.context.preferences.addons['blenderkit'].preferences
-            print('uploading A')
             file = {
                 "type": "thumbnail",
                 "index": 0,
@@ -190,19 +189,13 @@ if __name__ == "__main__":
             }
             upload_data = {
                 "name": data['asset_data']['name'],
-                "token": preferences.api_key,
+                "token": user_preferences.api_key,
                 "id": data['asset_data']['id']
             }
-            print('uploading B')
 
             upload_bg.upload_file(upload_data, file)
-            print('uploading C')
 
         bg_blender.progress('background autothumbnailer finished successfully')
-
-
-        print( 'got to E')
-
 
     except:
         import traceback
