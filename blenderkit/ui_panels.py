@@ -1544,6 +1544,14 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
                                 utils.fmt_length(mparams['dimensionY']),
                                 utils.fmt_length(mparams['dimensionZ']))
             self.draw_property(box, 'Size:', t)
+        if self.asset_data.get('filesSize'):
+            fs = self.asset_data['filesSize']
+            fsmb = fs // (1024 * 1024)
+            fskb = fs % 1024
+            if fsmb == 0:
+                self.draw_property(box,'Original size:',  f'{fskb}KB')
+            else:
+                self.draw_property(box,'Original size:',  f'{fsmb}MB')
         # Tags section
         # row = box.row()
         # letters_on_row = 0
