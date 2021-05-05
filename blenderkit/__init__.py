@@ -680,8 +680,8 @@ class BlenderKitCommonUploadProps(object):
     is_free: EnumProperty(
         name="Thumbnail Style",
         items=(
-            ('FREE', 'Free', "You consent you want to release this asset as free for everyone."),
-            ('FULL', 'Full', "Your asset will be only available for subscribers")
+            ('FULL', 'Full', "Your asset will be only available for subscribers"),
+            ('FREE', 'Free', "You consent you want to release this asset as free for everyone.")
         ),
         description="Assets can be in Free or in Full plan. Also free assets generate credits.",
         default="FULL",
@@ -851,8 +851,8 @@ class BlenderKitMaterialUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
     is_free: EnumProperty(
         name="Thumbnail Style",
         items=(
-            ('FREE', 'Free', "You consent you want to release this asset as free for everyone."),
-            ('FULL', 'Full', "Your asset will be only available for subscribers.")
+            ('FULL', 'Full', "Your asset will be only available for subscribers."),
+            ('FREE', 'Free', "You consent you want to release this asset as free for everyone.")
         ),
         description="Assets can be in Free or in Full plan. Also free assets generate credits. \n"
                     "All BlenderKit materials are free.",

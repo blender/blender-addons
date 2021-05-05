@@ -1272,7 +1272,6 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
     if profile is not None:
         # validation
 
-
         if author_id == str(profile['user']['id']) or utils.profile_is_validator():
             layout.label(text='Management tools:')
 
@@ -1409,8 +1408,6 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
 
     width = 700
 
-
-
     @classmethod
     def poll(cls, context):
         return True
@@ -1427,12 +1424,12 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         split.label(text=left)
         split = split.split()
         split.alignment = 'LEFT'
-        #split for questionmark:
-        if url!='':
+        # split for questionmark:
+        if url != '':
             split = split.split(factor=0.7)
-        label_or_url(split,text=right,tooltip=tooltip, url=url, icon_value=icon_value, icon=icon)
-        #additional questionmark icon where it's important?
-        if url!='':
+        label_or_url(split, text=right, tooltip=tooltip, url=url, icon_value=icon_value, icon=icon)
+        # additional questionmark icon where it's important?
+        if url != '':
             split = split.split()
             op = split.operator('wm.blenderkit_url', text='', icon='QUESTION')
             op.url = url
@@ -1444,7 +1441,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             return
         self.draw_property(layout, pretext, parameter)
 
-    def draw_properties(self, layout, width = 250):
+    def draw_properties(self, layout, width=250):
 
         if type(self.asset_data['parameters']) == list:
             mparams = utils.params_to_dict(self.asset_data['parameters'])
@@ -1475,7 +1472,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
                            'License:', t,
                            # icon_value=icon.icon_id,
                            url="https://www.blenderkit.com/docs/licenses/",
-                           tooltip='All BlenderKit assets are available for commercial use. \n'\
+                           tooltip='All BlenderKit assets are available for commercial use. \n' \
                                    'Click to read more about BlenderKit licenses on the website'
                            )
 
@@ -1525,9 +1522,9 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         if resolution is not None:
             ress = f"{int(round(resolution / 1024, 0))}K"
             self.draw_property(box, 'Resolution', ress,
-                               tooltip='Maximal resolution of textures in this asset.\n'\
-                                        'Most texture asset have also lower resolutions generated.\n'\
-                                        'Go to BlenderKit add-on import settings to set default resolution')
+                               tooltip='Maximal resolution of textures in this asset.\n' \
+                                       'Most texture asset have also lower resolutions generated.\n' \
+                                       'Go to BlenderKit add-on import settings to set default resolution')
 
         self.draw_asset_parameter(box, key='designer', pretext='Designer')
         self.draw_asset_parameter(box, key='manufacturer', pretext='Manufacturer')  # TODO make them clickable!
@@ -1539,7 +1536,6 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         # self.draw_asset_parameter(box, key='purePbr', pretext='Pure PBR')
         # self.draw_asset_parameter(box, key='productionLevel', pretext='Readiness')
         # self.draw_asset_parameter(box, key='condition', pretext='Condition')
-        # self.draw_property(box, 'Tags', self.asset_data['tags']) #TODO make them clickable!
         self.draw_asset_parameter(box, key='material_style', pretext='Style')
         self.draw_asset_parameter(box, key='model_style', pretext='Style')
 
@@ -1548,12 +1544,41 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
                                 utils.fmt_length(mparams['dimensionY']),
                                 utils.fmt_length(mparams['dimensionZ']))
             self.draw_property(box, 'Size:', t)
+        # Tags section
+        # row = box.row()
+        # letters_on_row = 0
+        # max_on_row = width / 10
+        # for tag in self.asset_data['tags']:
+        #     if tag in ('manifold', 'uv', 'non-manifold'):
+        #         # these are sometimes accidentally stored in the lib
+        #         continue
+        #
+        #     # row.emboss='NONE'
+        #     # we need to split wisely
+        #     remaining_row = (max_on_row - letters_on_row) / max_on_row
+        #     split_factor = (len(tag) / max_on_row) / remaining_row
+        #     row = row.split(factor=split_factor)
+        #     letters_on_row += len(tag)
+        #     if letters_on_row > max_on_row:
+        #         letters_on_row = len(tag)
+        #         row = box.row()
+        #         remaining_row = (max_on_row - letters_on_row) / max_on_row
+        #         split_factor = (len(tag) / max_on_row) / remaining_row
+        #         row = row.split(factor=split_factor)
+        #
+        #     op = row.operator('wm')
+        #     op = row.operator('view3d.blenderkit_search', text=tag)
+        #     op.tooltip = f'Search items with tag {tag}'
+        #     # build search string from description and tags:
+        #     op.keywords = f'+tags:{tag}'
+
+        # self.draw_property(box, 'Tags', self.asset_data['tags']) #TODO make them clickable!
 
         # Free/Full plan or private Access
-        plans_tooltip = 'BlenderKit has 2 plans:\n'\
-                                         '  *  Free plan - more than 50% of all assets\n'\
-                                         '  *  Full plan - unlimited access to everything\n'\
-                                         'Click to go to subscriptions page'
+        plans_tooltip = 'BlenderKit has 2 plans:\n' \
+                        '  *  Free plan - more than 50% of all assets\n' \
+                        '  *  Full plan - unlimited access to everything\n' \
+                        'Click to go to subscriptions page'
         plans_link = 'https://www.blenderkit.com/plans/pricing/'
         if self.asset_data['isPrivate']:
             t = 'Private'
@@ -1563,8 +1588,8 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             icon = pcoll['free']
             self.draw_property(box, 'Access:', t,
                                icon_value=icon.icon_id,
-                               tooltip = plans_tooltip,
-                               url= plans_link)
+                               tooltip=plans_tooltip,
+                               url=plans_link)
         else:
             t = 'Full plan'
             icon = pcoll['full']
@@ -1689,7 +1714,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             box_thumbnail.label(text=f"This asset has only {rcount} rating{'' if rcount == 1 else 's'} , please rate.")
             # box_thumbnail.label(text=f"Please rate this asset.")
 
-    def draw_menu_desc_author(self, context, layout, width = 330):
+    def draw_menu_desc_author(self, context, layout, width=330):
         box = layout.column()
 
         box.emboss = 'NORMAL'
@@ -1697,7 +1722,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         row = box.row()
         split_factor = 0.7
         split_left_left = row.split(factor=split_factor)
-        self.draw_properties(split_left_left, width = int(width*split_factor))
+        self.draw_properties(split_left_left, width=int(width * split_factor))
 
         # right - menu
         col1 = split_left_left.split()
@@ -1727,7 +1752,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
 
         # right split
         split_right = split_left.split()
-        self.draw_menu_desc_author(context, split_right, width = int(self.width*split_ratio))
+        self.draw_menu_desc_author(context, split_right, width=int(self.width * split_ratio))
 
         ratings_box = layout.box()
         ratings_box.scale_y = 0.7
