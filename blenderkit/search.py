@@ -628,7 +628,7 @@ class ThumbDownloader(threading.Thread):
         return self._stop_event.is_set()
 
     def run(self):
-        print('thumb downloader', self.url)
+        # print('thumb downloader', self.url)
         try:
             r = requests.get(self.url, stream=False)
         except Exception as e:

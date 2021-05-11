@@ -421,8 +421,6 @@ class VIEW3D_PT_blenderkit_model_properties(Panel):
             layout.label(text=str(ad['name']))
             if o.instance_type == 'COLLECTION' and o.instance_collection is not None:
                 layout.operator('object.blenderkit_bring_to_scene', text='Bring to scene')
-            # layout.label(text='Ratings:')
-            # draw_panel_model_rating(self, context)
 
             layout.label(text='Asset tools:')
             draw_asset_context_menu(self.layout, context, ad, from_panel=True)
@@ -465,8 +463,6 @@ class NODE_PT_blenderkit_material_properties(Panel):
         if m.get('asset_data') is not None:
             ad = m['asset_data']
             layout.label(text=str(ad['name']))
-            layout.label(text='Ratings:')
-            draw_panel_material_ratings(self, context)
 
             layout.label(text='Asset tools:')
             draw_asset_context_menu(self.layout, context, ad, from_panel=True)
@@ -1390,6 +1386,7 @@ def label_or_url(layout, text='', tooltip='', url='', icon_value=None, icon=None
         else:
             op = layout.operator('wm.blenderkit_tooltip', text=text)
         op.tooltip = tooltip
+        #these are here to move the text to left, since operators can only center text by default
         layout.label(text='')
         layout.label(text='')
         return
@@ -1399,7 +1396,6 @@ def label_or_url(layout, text='', tooltip='', url='', icon_value=None, icon=None
         layout.label(text=text, icon_value=icon_value)
     else:
         layout.label(text=text)
-
 
 class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
     """Generate Cycles thumbnail for model assets"""
@@ -1415,6 +1411,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
     def draw_menu(self, context, layout):
         col = layout.column()
         draw_asset_context_menu(col, context, self.asset_data, from_panel=False)
+
 
     def draw_property(self, layout, left, right, icon=None, icon_value=None, url='', tooltip=''):
         right = str(right)
@@ -1439,6 +1436,10 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         parameter = utils.get_param(self.asset_data, key)
         if parameter == None:
             return
+        if type(parameter) == int:
+            parameter = f"{parameter:,d}"
+        elif type(parameter) == float:
+            parameter = f"{parameter:,.1f}"
         self.draw_property(layout, pretext, parameter)
 
     def draw_properties(self, layout, width=250):
@@ -1458,6 +1459,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         pcoll = icons.icon_collections["main"]
 
         box = layout.box()
+
         box.scale_y = 0.8
         box.label(text='Properties')
         if self.asset_data.get('license') == 'cc_zero':
@@ -1531,6 +1533,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         self.draw_asset_parameter(box, key='designCollection', pretext='Collection')
         self.draw_asset_parameter(box, key='designVariant', pretext='Variant')
         self.draw_asset_parameter(box, key='designYear', pretext='Design year')
+
         self.draw_asset_parameter(box, key='faceCount', pretext='Face count')
         # self.draw_asset_parameter(box, key='thumbnailScale', pretext='Preview scale')
         # self.draw_asset_parameter(box, key='purePbr', pretext='Pure PBR')
@@ -1605,6 +1608,11 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
                                icon_value=icon.icon_id,
                                tooltip=plans_tooltip,
                                url=plans_link)
+        if utils.profile_is_validator():
+            date = self.asset_data['created'][:10]
+            date = f"{date[8:10]}. {date[5:7]}. {date[:4]}"
+            self.draw_property(box,'Created:', date)
+
 
     def draw_author_area(self, context, layout, width=330):
         self.draw_author(context, layout, width=width)
@@ -1673,9 +1681,9 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
 
         box_thumbnail.template_icon(icon_value=self.img.preview.icon_id, scale=34.0)
 
-        # row = box_thumbnail.row()
-        # row.scale_y = 3
-        # op = row.operator('view3d.asset_drag_drop', text='Drag & Drop from here', depress=True)
+        row = box_thumbnail.row()
+        row.scale_y = 3
+        op = row.operator('view3d.asset_drag_drop', text='Drag & Drop from here', depress=True)
 
         row = box_thumbnail.row()
         row.alignment = 'EXPAND'
@@ -1749,7 +1757,9 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         # top draggabe bar with name of the asset
         top_row = layout.row()
         top_drag_bar = top_row.box()
-        top_drag_bar.label(text=asset_data['displayName'])
+        aname = asset_data['displayName']
+        aname = aname[0].capitalize() + aname[0:]
+        top_drag_bar.label(text=aname)
 
         # left side
         row = layout.row(align=True)
@@ -1763,8 +1773,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         self.draw_menu_desc_author(context, split_right, width=int(self.width * split_ratio))
 
         ratings_box = layout.box()
-        ratings_box.scale_y = 0.7
-        ratings_box.label(text='Rate asset quality:')
+
         ratings.draw_ratings_menu(self, context, ratings_box)
         tip_box = layout.box()
         tip_box.label(text=self.tip)
