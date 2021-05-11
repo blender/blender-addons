@@ -184,10 +184,13 @@ def draw_ratings_menu(self, context, layout):
     row = col.row()
     row.label(text='Quality:', icon = 'SOLO_ON')
     row = col.row()
-    row.label(text='Please help us by rating this asset quality:')
+    row.label(text='Please help the community by rating quality:')
 
     row = col.row()
     row.prop(self, 'rating_quality_ui', expand=True, icon_only=True, emboss=False)
+    if self.rating_quality>0:
+        # row = col.row()
+        row.label(text='    Thanks!', icon = 'FUND')
     # row.label(text=str(self.rating_quality))
     col.separator()
     col.separator()
@@ -216,6 +219,7 @@ def draw_ratings_menu(self, context, layout):
                                   text=f"\nThat's a lot! please be sure to give such rating only to amazing {self.asset_type}s.\n",
                                   width=500)
 
+
     elif self.asset_type == 'hdr':
         row = col.row()
         row.prop(self, 'rating_work_hours_ui_1_10', expand=True, icon_only=False, emboss=True)
@@ -223,6 +227,9 @@ def draw_ratings_menu(self, context, layout):
         row = col.row()
         row.prop(self, 'rating_work_hours_ui_1_5', expand=True, icon_only=False, emboss=True)
 
+    if self.rating_work_hours>0:
+        row = col.row()
+        row.label(text='Thanks, you are amazing!', icon='FUND')
 
 class FastRateMenu(Operator, ratings_utils.RatingsProperties):
     """Rating of the assets , also directly from the asset bar - without need to download assets"""

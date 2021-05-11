@@ -1681,9 +1681,9 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
 
         box_thumbnail.template_icon(icon_value=self.img.preview.icon_id, scale=34.0)
 
-        row = box_thumbnail.row()
-        row.scale_y = 3
-        op = row.operator('view3d.asset_drag_drop', text='Drag & Drop from here', depress=True)
+        # row = box_thumbnail.row()
+        # row.scale_y = 3
+        # op = row.operator('view3d.asset_drag_drop', text='Drag & Drop from here', depress=True)
 
         row = box_thumbnail.row()
         row.alignment = 'EXPAND'

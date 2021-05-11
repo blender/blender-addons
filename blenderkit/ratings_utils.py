@@ -74,8 +74,10 @@ def update_ratings_quality(self, context):
     api_key = user_preferences.api_key
 
     headers = utils.get_headers(api_key)
-    asset = self.id_data
-    if asset:
+
+    if not(hasattr(self, 'rating_quality')):
+        # first option is for rating of assets that are from scene
+        asset = self.id_data
         bkit_ratings = asset.bkit_ratings
         url = paths.get_api_url() + 'assets/' + asset['asset_data']['id'] + '/rating/'
     else:
@@ -92,8 +94,9 @@ def update_ratings_work_hours(self, context):
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
     api_key = user_preferences.api_key
     headers = utils.get_headers(api_key)
-    asset = self.id_data
-    if asset:
+    if not(hasattr(self, 'rating_work_hours')):
+        # first option is for rating of assets that are from scene
+        asset = self.id_data
         bkit_ratings = asset.bkit_ratings
         url = paths.get_api_url() + 'assets/' + asset['asset_data']['id'] + '/rating/'
     else:
@@ -140,8 +143,6 @@ def update_ratings_work_hours_ui_1_5(self, context):
         bpy.ops.wm.blenderkit_login('INVOKE_DEFAULT',
                                     message='Please login/signup to rate assets. Clicking OK takes you to web login.')
         # self.rating_work_hours_ui_1_5 = '0'
-    # print('updating 1-5')
-    # print(float(self.rating_work_hours_ui_1_5))
     self.rating_work_hours = float(self.rating_work_hours_ui_1_5)
 
 

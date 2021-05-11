@@ -629,12 +629,13 @@ class ThumbDownloader(threading.Thread):
 
     def run(self):
         # print('thumb downloader', self.url)
+        r = None
         try:
             r = requests.get(self.url, stream=False)
         except Exception as e:
             bk_logger.error('Thumbnail download failed')
             bk_logger.error(str(e))
-        if r.status_code == 200:
+        if r and r.status_code == 200:
             with open(self.path, 'wb') as f:
                 f.write(r.content)
             # ORIGINALLY WE DOWNLOADED THUMBNAILS AS STREAM, BUT THIS WAS TOO SLOW.
