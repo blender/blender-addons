@@ -1463,7 +1463,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         box.scale_y = 0.8
         box.label(text='Properties')
         if self.asset_data.get('license') == 'cc_zero':
-            t = 'CC Zero'
+            t = 'CC Zero          '
             icon = pcoll['cc0']
 
         else:
@@ -1510,23 +1510,27 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
 
                                )
         # resolution/s
-        # fs = self.asset_data['files']
-        #
-        # if fs and len(fs) > 2:
-        #     resolutions = ''
-        #     list.sort(fs, key=lambda f: f['fileType'])
-        #     for f in fs:
-        #         if f['fileType'].find('resolution') > -1:
-        #             resolutions += f['fileType'][11:] + ' '
-        #     resolutions = resolutions.replace('_', '.')
-        #     self.draw_property(box, 'Resolutions:', resolutions)
         resolution = utils.get_param(self.asset_data, 'textureResolutionMax')
+
         if resolution is not None:
+            fs = self.asset_data['files']
+
+
             ress = f"{int(round(resolution / 1024, 0))}K"
             self.draw_property(box, 'Resolution', ress,
                                tooltip='Maximal resolution of textures in this asset.\n' \
                                        'Most texture asset have also lower resolutions generated.\n' \
                                        'Go to BlenderKit add-on import settings to set default resolution')
+
+
+            if fs and len(fs) > 2 and utils.profile_is_validator():
+                resolutions = ''
+                list.sort(fs, key=lambda f: f['fileType'])
+                for f in fs:
+                    if f['fileType'].find('resolution') > -1:
+                        resolutions += f['fileType'][11:] + ' '
+                resolutions = resolutions.replace('_', '.')
+                self.draw_property(box, 'Generated:', resolutions)
 
         self.draw_asset_parameter(box, key='designer', pretext='Designer')
         self.draw_asset_parameter(box, key='manufacturer', pretext='Manufacturer')  # TODO make them clickable!
@@ -1758,7 +1762,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         top_row = layout.row()
         top_drag_bar = top_row.box()
         aname = asset_data['displayName']
-        aname = aname[0].capitalize() + aname[0:]
+        aname = aname[0].upper() + aname[1:]
         top_drag_bar.label(text=aname)
 
         # left side

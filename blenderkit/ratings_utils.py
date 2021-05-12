@@ -86,6 +86,8 @@ def update_ratings_quality(self, context):
         url = paths.get_api_url() + f'assets/{self.asset_id}/rating/'
 
     if bkit_ratings.rating_quality > 0.1:
+
+
         ratings = [('quality', bkit_ratings.rating_quality)]
         tasks_queue.add_task((send_rating_to_thread_quality, (url, ratings, headers)), wait=2.5, only_last=True)
 

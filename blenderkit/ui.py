@@ -382,7 +382,7 @@ def draw_tooltip_with_author(asset_data, x, y):
                 gimg = utils.get_hidden_image(a['gravatarImg'], a['gravatarHash'])
 
     aname = asset_data['displayName']
-    aname = aname[0].capitalize() + aname[0:]
+    aname = aname[0].upper() + aname[1:]
     if len(aname)>36:
         aname = f"{aname[:33]}..."
 

@@ -177,7 +177,11 @@ class UploadRatingOperator(bpy.types.Operator):
 
 def draw_ratings_menu(self, context, layout):
     pcoll = icons.icon_collections["main"]
-    layout.scale_y=1
+
+    profile_name = ''
+    profile = bpy.context.window_manager.get('bkit profile')
+    if profile:
+        profile_name = ' ' + profile['user']['firstName']
 
     col = layout.column()
     # layout.template_icon_view(bkit_ratings, property, show_labels=False, scale=6.0, scale_popup=5.0)
@@ -190,7 +194,8 @@ def draw_ratings_menu(self, context, layout):
     row.prop(self, 'rating_quality_ui', expand=True, icon_only=True, emboss=False)
     if self.rating_quality>0:
         # row = col.row()
-        row.label(text='    Thanks!', icon = 'FUND')
+
+        row.label(text=f'    Thanks{profile_name}!', icon = 'FUND')
     # row.label(text=str(self.rating_quality))
     col.separator()
     col.separator()
@@ -229,7 +234,7 @@ def draw_ratings_menu(self, context, layout):
 
     if self.rating_work_hours>0:
         row = col.row()
-        row.label(text='Thanks, you are amazing!', icon='FUND')
+        row.label(text=f'Thanks{profile_name}, you are amazing!', icon='FUND')
 
 class FastRateMenu(Operator, ratings_utils.RatingsProperties):
     """Rating of the assets , also directly from the asset bar - without need to download assets"""
