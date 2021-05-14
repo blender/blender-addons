@@ -18,17 +18,13 @@
 
 
 
-from blenderkit import utils, append_link, bg_blender
+from blenderkit import utils, append_link, bg_blender, download, upload_bg, upload
 
-import sys, json, math
-from pathlib import Path
+import sys, json, math, os
 import bpy
 import mathutils
 
-BLENDERKIT_EXPORT_TEMP_DIR = sys.argv[-1]
-BLENDERKIT_THUMBNAIL_PATH = sys.argv[-2]
-BLENDERKIT_EXPORT_FILE_INPUT = sys.argv[-3]
-BLENDERKIT_EXPORT_DATA = sys.argv[-4]
+BLENDERKIT_EXPORT_DATA = sys.argv[-1]
 
 
 def get_obnames():
@@ -42,6 +38,8 @@ def center_obs_for_thumbnail(obs):
     s = bpy.context.scene
     # obs = bpy.context.selected_objects
     parent = obs[0]
+    if parent.type == 'EMPTY' and parent.instance_collection is not None:
+        obs = parent.instance_collection.objects[:]
 
     while parent.parent != None:
         parent = parent.parent
@@ -84,12 +82,38 @@ if __name__ == "__main__":
 
         user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
 
-        bg_blender.progress('preparing thumbnail scene')
-        obnames = get_obnames()
-        main_object, allobs = append_link.append_objects(file_name=BLENDERKIT_EXPORT_FILE_INPUT,
+
+        if data.get('do_download'):
+            #need to save the file, so that asset doesn't get downloaded into addon directory
+            temp_blend_path = os.path.join(data['tempdir'], 'temp.blend')
+            bpy.ops.wm.save_as_mainfile(filepath = temp_blend_path)
+
+            bg_blender.progress('Downloading asset')
+            asset_data = data['asset_data']
+            has_url = download.get_download_url(asset_data, download.get_scene_id(), user_preferences.api_key, tcom=None,
+                                                resolution='blend')
+            if not has_url == True:
+                bg_blender.progress("couldn't download asset for thumnbail re-rendering")
+            # download first, or rather make sure if it's already downloaded
+            bg_blender.progress('downloading asset')
+            fpath = download.download_asset_file(asset_data)
+            data['filepath'] = fpath
+            main_object, allobs = append_link.link_collection(fpath,
+                                                          location=(0,0,0),
+                                                          rotation=(0,0,0),
+                                                          link=True,
+                                                          name=asset_data['name'],
+                                                          parent=None)
+            allobs = [main_object]
+        else:
+            bg_blender.progress('preparing thumbnail scene')
+
+            obnames = get_obnames()
+            main_object, allobs = append_link.append_objects(file_name=data['filepath'],
                                                          obnames=obnames,
-                                                         link=True)
+                                                             link=True)
         bpy.context.view_layer.update()
+
 
         camdict = {
             'GROUND': 'camera ground',
@@ -100,7 +124,7 @@ if __name__ == "__main__":
 
         bpy.context.scene.camera = bpy.data.objects[camdict[data['thumbnail_snap_to']]]
         center_obs_for_thumbnail(allobs)
-        bpy.context.scene.render.filepath = BLENDERKIT_THUMBNAIL_PATH
+        bpy.context.scene.render.filepath = data['thumbnail_path']
         if user_preferences.thumbnail_use_gpu:
             bpy.context.scene.cycles.device = 'GPU'
 
@@ -152,9 +176,26 @@ if __name__ == "__main__":
 
         bg_blender.progress('rendering thumbnail')
         render_thumbnails()
-        fpath = BLENDERKIT_THUMBNAIL_PATH + '0001.jpg'
-        bg_blender.progress('background autothumbnailer finished successfully')
+        fpath = data['thumbnail_path'] + '.jpg'
+        if data.get('upload_after_render') and data.get('asset_data'):
+            # try to patch for the sake of older assets where thumbnail update doesn't work for the reasont
+            # that original thumbnail files aren't available.
+            # upload.patch_individual_metadata(data['asset_data']['id'], {}, user_preferences)
+            bg_blender.progress('uploading thumbnail')
+            file = {
+                "type": "thumbnail",
+                "index": 0,
+                "file_path": fpath
+            }
+            upload_data = {
+                "name": data['asset_data']['name'],
+                "token": user_preferences.api_key,
+                "id": data['asset_data']['id']
+            }
 
+            upload_bg.upload_file(upload_data, file)
+
+        bg_blender.progress('background autothumbnailer finished successfully')
 
     except:
         import traceback

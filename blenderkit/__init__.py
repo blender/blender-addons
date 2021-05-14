@@ -49,6 +49,7 @@ if "bpy" in locals():
     overrides = reload(overrides)
     paths = reload(paths)
     ratings = reload(ratings)
+    ratings_utils = reload(ratings_utils)
     resolutions = reload(resolutions)
     search = reload(search)
     tasks_queue = reload(tasks_queue)
@@ -84,6 +85,7 @@ else:
     from blenderkit import overrides
     from blenderkit import paths
     from blenderkit import ratings
+    from blenderkit import ratings_utils
     from blenderkit import resolutions
     from blenderkit import search
     from blenderkit import tasks_queue
@@ -227,26 +229,10 @@ mesh_poly_types = (
     ('OTHER', 'other', ''),
 )
 
-thumbnail_angles = (
-    ('DEFAULT', 'default', ''),
-    ('FRONT', 'front', ''),
-    ('SIDE', 'side', ''),
-    ('TOP', 'top', ''),
-)
 
-thumbnail_snap = (
-    ('GROUND', 'ground', ''),
-    ('WALL', 'wall', ''),
-    ('CEILING', 'ceiling', ''),
-    ('FLOAT', 'floating', ''),
-)
 
-thumbnail_resolutions = (
-    ('256', '256', ''),
-    ('512', '512', ''),
-    ('1024', '1024 - minimum for public', ''),
-    ('2048', '2048', ''),
-)
+
+
 
 
 def udate_down_up(self, context):
@@ -588,8 +574,30 @@ def update_free(self, context):
                                      " based on our fair share system. " \
                                      "Part of subscription is sent to artists based on usage by paying users.\n")
 
+# common_upload_props = [
+#     {
+#         'identifier':'id',
+#         'name':"Asset Version Id",
+#         'type':'StringProperty',
+#         'description':'Unique name of the asset version(hidden)',
+#         'default':''
+# }
+# {
+#         'identifier':'id',
+#         'name':"Asset Version Id",
+#         'type':'StringProperty',
+#         'description':'Unique name of the asset version(hidden)',
+#         'default':''
+# }
+# ]
+
+
+
 
 class BlenderKitCommonUploadProps(object):
+    # for p in common_upload_props:
+    #     exec(f"{p['identifier']}: {p['type']}(name='{p['name']}',description='{p['description']}',default='{p['default']}')")
+
     id: StringProperty(
         name="Asset Version Id",
         description="Unique name of the asset version(hidden)",
@@ -672,8 +680,8 @@ class BlenderKitCommonUploadProps(object):
     is_free: EnumProperty(
         name="Thumbnail Style",
         items=(
-            ('FREE', 'Free', "You consent you want to release this asset as free for everyone."),
-            ('FULL', 'Full', "Your asset will be only available for subscribers")
+            ('FULL', 'Full', "Your asset will be only available for subscribers"),
+            ('FREE', 'Free', "You consent you want to release this asset as free for everyone.")
         ),
         description="Assets can be in Free or in Full plan. Also free assets generate credits.",
         default="FULL",
@@ -725,20 +733,20 @@ class BlenderKitRatingProps(PropertyGroup):
                                 description="quality of the material",
                                 default=0,
                                 min=-1, max=10,
-                                update=ratings.update_ratings_quality)
+                                update=ratings_utils.update_ratings_quality)
 
     # the following enum is only to ease interaction - enums support 'drag over' and enable to draw the stars easily.
     rating_quality_ui: EnumProperty(name='rating_quality_ui',
-                                    items=ratings.stars_enum_callback,
+                                    items=ratings_utils.stars_enum_callback,
                                     description='Rating stars 0 - 10',
                                     default=None,
-                                    update=ratings.update_quality_ui,
+                                    update=ratings_utils.update_quality_ui,
                                     )
 
     rating_work_hours: FloatProperty(name="Work Hours",
                                      description="How many hours did this work take?",
                                      default=0.00,
-                                     min=0.0, max=150, update=ratings.update_ratings_work_hours
+                                     min=0.0, max=150, update=ratings_utils.update_ratings_work_hours
                                      )
 
     # rating_complexity: IntProperty(name="Complexity",
@@ -843,8 +851,8 @@ class BlenderKitMaterialUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
     is_free: EnumProperty(
         name="Thumbnail Style",
         items=(
-            ('FREE', 'Free', "You consent you want to release this asset as free for everyone."),
-            ('FULL', 'Full', "Your asset will be only available for subscribers.")
+            ('FULL', 'Full', "Your asset will be only available for subscribers."),
+            ('FREE', 'Free', "You consent you want to release this asset as free for everyone.")
         ),
         description="Assets can be in Free or in Full plan. Also free assets generate credits. \n"
                     "All BlenderKit materials are free.",
@@ -888,7 +896,7 @@ class BlenderKitMaterialUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
 
     thumbnail_resolution: EnumProperty(
         name="Resolution",
-        items=thumbnail_resolutions,
+        items=autothumb.thumbnail_resolutions,
         description="Thumbnail resolution",
         default="1024",
     )
@@ -1064,21 +1072,21 @@ class BlenderKitModelUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
 
     thumbnail_angle: EnumProperty(
         name='Thumbnail Angle',
-        items=thumbnail_angles,
+        items=autothumb.thumbnail_angles,
         default='DEFAULT',
         description='thumbnailer angle',
     )
 
     thumbnail_snap_to: EnumProperty(
         name='Model Snaps To:',
-        items=thumbnail_snap,
+        items=autothumb.thumbnail_snap,
         default='GROUND',
         description='typical placing of the interior. Leave on ground for most objects that respect gravity :)',
     )
 
     thumbnail_resolution: EnumProperty(
         name="Resolution",
-        items=thumbnail_resolutions,
+        items=autothumb.thumbnail_resolutions,
         description="Thumbnail resolution",
         default="1024",
     )

@@ -177,7 +177,9 @@ def pVisScaExec(bone, active, context):
 def pDrwExec(bone, active, context):
     bone.custom_shape = active.custom_shape
     bone.use_custom_shape_bone_size = active.use_custom_shape_bone_size
-    bone.custom_shape_scale = active.custom_shape_scale
+    bone.custom_shape_translation = active.custom_shape_translation
+    bone.custom_shape_rotation_euler = active.custom_shape_rotation_euler
+    bone.custom_shape_scale_xyz = active.custom_shape_scale_xyz
     bone.bone.show_wire = active.bone.show_wire
 
 
@@ -436,6 +438,9 @@ def obGrp(ob, active, context):
 
 
 def obWei(ob, active, context):
+    # sanity check: are source and target both mesh objects?
+    if ob.type != 'MESH' or active.type != 'MESH':
+        return('ERROR', "objects have to be of mesh type, doing nothing")
     me_source = active.data
     me_target = ob.data
     # sanity check: do source and target have the same amount of verts?

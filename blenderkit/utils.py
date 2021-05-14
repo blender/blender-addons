@@ -326,16 +326,22 @@ def uploadable_asset_poll():
     return True
 
 
-def get_hidden_texture(img, force_reload=False):
-    # i = get_hidden_image(tpath, bdata_name, force_reload=force_reload)
-    # bdata_name = f".{bdata_name}"
-    t = bpy.data.textures.get(img.name)
+def get_hidden_texture(name, force_reload=False):
+    t = bpy.data.textures.get(name)
     if t is None:
-        t = bpy.data.textures.new(img.name, 'IMAGE')
-    if t.image != img:
-        t.image = img
+        t = bpy.data.textures.new(name, 'IMAGE')
+    if not t.image or t.image.name != name:
+        img = bpy.data.images.get(name)
+        if img:
+            t.image = img
     return t
 
+
+def img_to_preview(img):
+    img.preview.image_size = (img.size[0], img.size[1])
+    img.preview.image_pixels_float = img.pixels[:]
+    # img.preview.icon_size = (img.size[0], img.size[1])
+    # img.preview.icon_pixels_float = img.pixels[:]
 
 def get_hidden_image(tpath, bdata_name, force_reload=False, colorspace='sRGB'):
     if bdata_name[0] == '.':
@@ -355,6 +361,7 @@ def get_hidden_image(tpath, bdata_name, force_reload=False, colorspace='sRGB'):
 
         if img is None:
             img = bpy.data.images.load(tpath)
+            img_to_preview(img)
             img.name = hidden_name
         else:
             if img.filepath != tpath:
@@ -363,13 +370,16 @@ def get_hidden_image(tpath, bdata_name, force_reload=False, colorspace='sRGB'):
 
                 img.filepath = tpath
                 img.reload()
+                img_to_preview(img)
         image_utils.set_colorspace(img, colorspace)
 
     elif force_reload:
         if img.packed_file is not None:
             img.unpack(method='USE_ORIGINAL')
         img.reload()
+        img_to_preview(img)
         image_utils.set_colorspace(img, colorspace)
+
     return img
 
 
@@ -690,16 +700,19 @@ def name_update(props):
         # Here we actually rename assets datablocks, but don't do that with HDR's and possibly with others
         asset.name = fname
 
+def fmt_length(prop):
+    prop = str(round(prop, 2))
+    return prop
 
-def get_param(asset_data, parameter_name):
+def get_param(asset_data, parameter_name, default = None):
     if not asset_data.get('parameters'):
         # this can appear in older version files.
-        return None
+        return default
 
     for p in asset_data['parameters']:
         if p.get('parameterType') == parameter_name:
             return p['value']
-    return None
+    return default
 
 
 def params_to_dict(params):
@@ -773,7 +786,12 @@ def profile_is_validator():
 
 
 def guard_from_crash():
-    '''Blender tends to crash when trying to run some functions with the addon going through unregistration process.'''
+    '''
+    Blender tends to crash when trying to run some functions
+     with the addon going through unregistration process.
+     This function is used in these functions (like draw callbacks)
+     so these don't run during unregistration.
+     '''
     if bpy.context.preferences.addons.get('blenderkit') is None:
         return False;
     if bpy.context.preferences.addons['blenderkit'].preferences is None:
