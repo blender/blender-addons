@@ -294,6 +294,7 @@ class FastRateMenu(Operator, ratings_utils.RatingsProperties):
             return {'CANCELLED'}
         self.message = f"{self.asset_name}"
         wm = context.window_manager
+        self.prefill_ratings()
 
         if self.asset_type in ('model', 'scene'):
             # spawn a wider one for validators for the enum buttons

@@ -1386,7 +1386,7 @@ def label_or_url(layout, text='', tooltip='', url='', icon_value=None, icon=None
         else:
             op = layout.operator('wm.blenderkit_tooltip', text=text)
         op.tooltip = tooltip
-        #these are here to move the text to left, since operators can only center text by default
+        # these are here to move the text to left, since operators can only center text by default
         layout.label(text='')
         layout.label(text='')
         return
@@ -1396,6 +1396,7 @@ def label_or_url(layout, text='', tooltip='', url='', icon_value=None, icon=None
         layout.label(text=text, icon_value=icon_value)
     else:
         layout.label(text=text)
+
 
 class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
     """Generate Cycles thumbnail for model assets"""
@@ -1411,7 +1412,6 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
     def draw_menu(self, context, layout):
         col = layout.column()
         draw_asset_context_menu(col, context, self.asset_data, from_panel=False)
-
 
     def draw_property(self, layout, left, right, icon=None, icon_value=None, url='', tooltip=''):
         right = str(right)
@@ -1515,13 +1515,11 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         if resolution is not None:
             fs = self.asset_data['files']
 
-
             ress = f"{int(round(resolution / 1024, 0))}K"
             self.draw_property(box, 'Resolution', ress,
                                tooltip='Maximal resolution of textures in this asset.\n' \
                                        'Most texture asset have also lower resolutions generated.\n' \
                                        'Go to BlenderKit add-on import settings to set default resolution')
-
 
             if fs and len(fs) > 2 and utils.profile_is_validator():
                 resolutions = ''
@@ -1556,9 +1554,9 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             fsmb = fs // (1024 * 1024)
             fskb = fs % 1024
             if fsmb == 0:
-                self.draw_property(box,'Original size:',  f'{fskb}KB')
+                self.draw_property(box, 'Original size:', f'{fskb}KB')
             else:
-                self.draw_property(box,'Original size:',  f'{fsmb}MB')
+                self.draw_property(box, 'Original size:', f'{fsmb}MB')
         # Tags section
         # row = box.row()
         # letters_on_row = 0
@@ -1615,8 +1613,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         if utils.profile_is_validator():
             date = self.asset_data['created'][:10]
             date = f"{date[8:10]}. {date[5:7]}. {date[:4]}"
-            self.draw_property(box,'Created:', date)
-
+            self.draw_property(box, 'Created:', date)
 
     def draw_author_area(self, context, layout, width=330):
         self.draw_author(context, layout, width=width)
@@ -1802,6 +1799,10 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         bl_label = asset_data['name']
         self.tip = search.get_random_tip()
         self.tip = self.tip.replace('\n', '')
+
+        # pre-fill ratings
+        self.prefill_ratings()
+
         return wm.invoke_popup(self, width=self.width)
 
 
