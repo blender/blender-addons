@@ -421,8 +421,6 @@ class VIEW3D_PT_blenderkit_model_properties(Panel):
             layout.label(text=str(ad['name']))
             if o.instance_type == 'COLLECTION' and o.instance_collection is not None:
                 layout.operator('object.blenderkit_bring_to_scene', text='Bring to scene')
-            # layout.label(text='Ratings:')
-            # draw_panel_model_rating(self, context)
 
             layout.label(text='Asset tools:')
             draw_asset_context_menu(self.layout, context, ad, from_panel=True)
@@ -465,8 +463,6 @@ class NODE_PT_blenderkit_material_properties(Panel):
         if m.get('asset_data') is not None:
             ad = m['asset_data']
             layout.label(text=str(ad['name']))
-            layout.label(text='Ratings:')
-            draw_panel_material_ratings(self, context)
 
             layout.label(text='Asset tools:')
             draw_asset_context_menu(self.layout, context, ad, from_panel=True)
@@ -1390,6 +1386,7 @@ def label_or_url(layout, text='', tooltip='', url='', icon_value=None, icon=None
         else:
             op = layout.operator('wm.blenderkit_tooltip', text=text)
         op.tooltip = tooltip
+        # these are here to move the text to left, since operators can only center text by default
         layout.label(text='')
         layout.label(text='')
         return
@@ -1439,6 +1436,10 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         parameter = utils.get_param(self.asset_data, key)
         if parameter == None:
             return
+        if type(parameter) == int:
+            parameter = f"{parameter:,d}"
+        elif type(parameter) == float:
+            parameter = f"{parameter:,.1f}"
         self.draw_property(layout, pretext, parameter)
 
     def draw_properties(self, layout, width=250):
@@ -1458,10 +1459,11 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         pcoll = icons.icon_collections["main"]
 
         box = layout.box()
+
         box.scale_y = 0.8
         box.label(text='Properties')
         if self.asset_data.get('license') == 'cc_zero':
-            t = 'CC Zero'
+            t = 'CC Zero          '
             icon = pcoll['cc0']
 
         else:
@@ -1508,29 +1510,32 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
 
                                )
         # resolution/s
-        # fs = self.asset_data['files']
-        #
-        # if fs and len(fs) > 2:
-        #     resolutions = ''
-        #     list.sort(fs, key=lambda f: f['fileType'])
-        #     for f in fs:
-        #         if f['fileType'].find('resolution') > -1:
-        #             resolutions += f['fileType'][11:] + ' '
-        #     resolutions = resolutions.replace('_', '.')
-        #     self.draw_property(box, 'Resolutions:', resolutions)
         resolution = utils.get_param(self.asset_data, 'textureResolutionMax')
+
         if resolution is not None:
+            fs = self.asset_data['files']
+
             ress = f"{int(round(resolution / 1024, 0))}K"
             self.draw_property(box, 'Resolution', ress,
                                tooltip='Maximal resolution of textures in this asset.\n' \
                                        'Most texture asset have also lower resolutions generated.\n' \
                                        'Go to BlenderKit add-on import settings to set default resolution')
 
+            if fs and len(fs) > 2 and utils.profile_is_validator():
+                resolutions = ''
+                list.sort(fs, key=lambda f: f['fileType'])
+                for f in fs:
+                    if f['fileType'].find('resolution') > -1:
+                        resolutions += f['fileType'][11:] + ' '
+                resolutions = resolutions.replace('_', '.')
+                self.draw_property(box, 'Generated:', resolutions)
+
         self.draw_asset_parameter(box, key='designer', pretext='Designer')
         self.draw_asset_parameter(box, key='manufacturer', pretext='Manufacturer')  # TODO make them clickable!
         self.draw_asset_parameter(box, key='designCollection', pretext='Collection')
         self.draw_asset_parameter(box, key='designVariant', pretext='Variant')
         self.draw_asset_parameter(box, key='designYear', pretext='Design year')
+
         self.draw_asset_parameter(box, key='faceCount', pretext='Face count')
         # self.draw_asset_parameter(box, key='thumbnailScale', pretext='Preview scale')
         # self.draw_asset_parameter(box, key='purePbr', pretext='Pure PBR')
@@ -1544,6 +1549,14 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
                                 utils.fmt_length(mparams['dimensionY']),
                                 utils.fmt_length(mparams['dimensionZ']))
             self.draw_property(box, 'Size:', t)
+        if self.asset_data.get('filesSize'):
+            fs = self.asset_data['filesSize']
+            fsmb = fs // (1024 * 1024)
+            fskb = fs % 1024
+            if fsmb == 0:
+                self.draw_property(box, 'Original size:', f'{fskb}KB')
+            else:
+                self.draw_property(box, 'Original size:', f'{fsmb}MB')
         # Tags section
         # row = box.row()
         # letters_on_row = 0
@@ -1597,6 +1610,10 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
                                icon_value=icon.icon_id,
                                tooltip=plans_tooltip,
                                url=plans_link)
+        if utils.profile_is_validator():
+            date = self.asset_data['created'][:10]
+            date = f"{date[8:10]}. {date[5:7]}. {date[:4]}"
+            self.draw_property(box, 'Created:', date)
 
     def draw_author_area(self, context, layout, width=330):
         self.draw_author(context, layout, width=width)
@@ -1741,7 +1758,9 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         # top draggabe bar with name of the asset
         top_row = layout.row()
         top_drag_bar = top_row.box()
-        top_drag_bar.label(text=asset_data['displayName'])
+        aname = asset_data['displayName']
+        aname = aname[0].upper() + aname[1:]
+        top_drag_bar.label(text=aname)
 
         # left side
         row = layout.row(align=True)
@@ -1755,8 +1774,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         self.draw_menu_desc_author(context, split_right, width=int(self.width * split_ratio))
 
         ratings_box = layout.box()
-        ratings_box.scale_y = 0.7
-        ratings_box.label(text='Rate asset quality:')
+
         ratings.draw_ratings_menu(self, context, ratings_box)
         tip_box = layout.box()
         tip_box.label(text=self.tip)
@@ -1781,6 +1799,10 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         bl_label = asset_data['name']
         self.tip = search.get_random_tip()
         self.tip = self.tip.replace('\n', '')
+
+        # pre-fill ratings
+        self.prefill_ratings()
+
         return wm.invoke_popup(self, width=self.width)
 
 
