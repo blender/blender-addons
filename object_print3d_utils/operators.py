@@ -37,7 +37,7 @@ from . import (
 )
 
 
-def clean_float(text):
+def clean_float(text: str) -> str:
     # strip trailing zeros: 0.000 -> 0.0
     index = text.rfind(".")
     if index != -1:
@@ -48,8 +48,35 @@ def clean_float(text):
     return text
 
 
+def get_unit(unit_system, unit) -> tuple[float, str]:
+    # Returns unit length relative to meter and symbol
+
+    units = {
+        "METRIC": {
+            "KILOMETERS": (1000.0, "km"),
+            "METERS": (1.0, "m"),
+            "CENTIMETERS": (0.01, "cm"),
+            "MILLIMETERS": (0.001, "mm"),
+            "MICROMETERS": (0.000001, "µm"),
+        },
+        "IMPERIAL": {
+            "MILES": (1609.344, "mi"),
+            "FEET": (0.3048, "\'"),
+            "INCHES": (0.0254, "\""),
+            "THOU": (0.0000254, "thou"),
+        },
+    }
+
+    try:
+        return units[unit_system][unit]
+    except KeyError:
+        fallback_unit = "CENTIMETERS" if unit_system == "METRIC" else "INCHES"
+        return units[unit_system][fallback_unit]
+
+
 # ---------
 # Mesh Info
+
 
 class MESH_OT_print3d_info_volume(Operator):
     bl_idname = "mesh.print3d_info_volume"
@@ -66,14 +93,14 @@ class MESH_OT_print3d_info_volume(Operator):
         volume = bm.calc_volume()
         bm.free()
 
-        if unit.system == 'METRIC':
-            volume_cm = volume * (scale ** 3.0) / (0.01 ** 3.0)
-            volume_fmt = "{} cm".format(clean_float(f"{volume_cm:.4f}"))
-        elif unit.system == 'IMPERIAL':
-            volume_inch = volume * (scale ** 3.0) / (0.0254 ** 3.0)
-            volume_fmt = '{} "'.format(clean_float(f"{volume_inch:.4f}"))
-        else:
+        if unit.system == 'NONE':
             volume_fmt = clean_float(f"{volume:.8f}")
+        else:
+            length, symbol = get_unit(unit.system, unit.length_unit)
+
+            volume_unit = volume * (scale ** 3.0) / (length ** 3.0)
+            volume_str = clean_float(f"{volume_unit:.4f}")
+            volume_fmt = f"{volume_str} {symbol}"
 
         report.update((f"Volume: {volume_fmt}³", None))
 
@@ -95,14 +122,14 @@ class MESH_OT_print3d_info_area(Operator):
         area = mesh_helpers.bmesh_calc_area(bm)
         bm.free()
 
-        if unit.system == 'METRIC':
-            area_cm = area * (scale ** 2.0) / (0.01 ** 2.0)
-            area_fmt = "{} cm".format(clean_float(f"{area_cm:.4f}"))
-        elif unit.system == 'IMPERIAL':
-            area_inch = area * (scale ** 2.0) / (0.0254 ** 2.0)
-            area_fmt = '{} "'.format(clean_float(f"{area_inch:.4f}"))
-        else:
+        if unit.system == 'NONE':
             area_fmt = clean_float(f"{area:.8f}")
+        else:
+            length, symbol = get_unit(unit.system, unit.length_unit)
+
+            area_unit = area * (scale ** 2.0) / (length ** 2.0)
+            area_str = clean_float(f"{area_unit:.4f}")
+            area_fmt = f"{area_str} {symbol}"
 
         report.update((f"Area: {area_fmt}²", None))
 
