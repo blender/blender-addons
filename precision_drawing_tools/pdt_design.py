@@ -184,7 +184,7 @@ class PDT_OT_PlacementDelta(Operator):
                 f",{str(round(pg.cartesian_coords.z, decimal_places))}"
             )
         elif operation == "EV":
-            # Extrue Vertices
+            # Extrude Vertices
             pg.command = (
                 f"vd{str(round(pg.cartesian_coords.x, decimal_places))}"
                 f",{str(round(pg.cartesian_coords.y, decimal_places))}"
@@ -198,7 +198,7 @@ class PDT_OT_PlacementDelta(Operator):
                 f",{str(round(pg.cartesian_coords.z, decimal_places))}"
             )
         elif operation == "EG":
-            # Extrue Geometry
+            # Extrude Geometry
             pg.command = (
                 f"ed{str(round(pg.cartesian_coords.x, decimal_places))}"
                 f",{str(round(pg.cartesian_coords.y, decimal_places))}"
@@ -355,7 +355,7 @@ class PDT_OT_PlacementView(Operator):
                 f"nn{str(round(pg.distance, decimal_places))}"
             )
         elif operation == "EV":
-            # Extrue Vertices
+            # Extrude Vertices
             pg.command = (
                 f"vn{str(round(pg.distance, decimal_places))}"
             )
@@ -365,7 +365,7 @@ class PDT_OT_PlacementView(Operator):
                 f"dn{str(round(pg.distance, decimal_places))}"
             )
         elif operation == "EG":
-            # Extrue Geometry
+            # Extrude Geometry
             pg.command = (
                 f"en{str(round(pg.distance, decimal_places))}"
             )
