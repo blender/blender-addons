@@ -31,10 +31,7 @@ from bpy.props import (
 )
 import bmesh
 
-from . import (
-    mesh_helpers,
-    report,
-)
+from . import report
 
 
 def clean_float(text: str) -> str:
@@ -48,8 +45,8 @@ def clean_float(text: str) -> str:
     return text
 
 
-def get_unit(unit_system, unit) -> tuple[float, str]:
-    # Returns unit length relative to meter and symbol
+def get_unit(unit_system: str, unit: str) -> tuple[float, str]:
+    # Returns unit length relative to meter and unit symbol
 
     units = {
         "METRIC": {
@@ -84,6 +81,8 @@ class MESH_OT_print3d_info_volume(Operator):
     bl_description = "Report the volume of the active mesh"
 
     def execute(self, context):
+        from . import mesh_helpers
+
         scene = context.scene
         unit = scene.unit_settings
         scale = 1.0 if unit.system == 'NONE' else unit.scale_length
@@ -113,6 +112,8 @@ class MESH_OT_print3d_info_area(Operator):
     bl_description = "Report the surface area of the active mesh"
 
     def execute(self, context):
+        from . import mesh_helpers
+
         scene = context.scene
         unit = scene.unit_settings
         scale = 1.0 if unit.system == 'NONE' else unit.scale_length
@@ -164,6 +165,7 @@ class MESH_OT_print3d_check_solid(Operator):
     @staticmethod
     def main_check(obj, info):
         import array
+        from . import mesh_helpers
 
         bm = mesh_helpers.bmesh_copy_from_object(obj, transform=False, triangulate=False)
 
@@ -189,6 +191,8 @@ class MESH_OT_print3d_check_intersections(Operator):
 
     @staticmethod
     def main_check(obj, info):
+        from . import mesh_helpers
+
         faces_intersect = mesh_helpers.bmesh_check_self_intersect_object(obj)
         info.append((f"Intersect Face: {len(faces_intersect)}", (bmesh.types.BMFace, faces_intersect)))
 
@@ -207,6 +211,7 @@ class MESH_OT_print3d_check_degenerate(Operator):
     @staticmethod
     def main_check(obj, info):
         import array
+        from . import mesh_helpers
 
         scene = bpy.context.scene
         print_3d = scene.print_3d
@@ -234,6 +239,7 @@ class MESH_OT_print3d_check_distorted(Operator):
     @staticmethod
     def main_check(obj, info):
         import array
+        from . import mesh_helpers
 
         scene = bpy.context.scene
         print_3d = scene.print_3d
@@ -265,6 +271,8 @@ class MESH_OT_print3d_check_thick(Operator):
 
     @staticmethod
     def main_check(obj, info):
+        from . import mesh_helpers
+
         scene = bpy.context.scene
         print_3d = scene.print_3d
 
@@ -282,6 +290,8 @@ class MESH_OT_print3d_check_sharp(Operator):
 
     @staticmethod
     def main_check(obj, info):
+        from . import mesh_helpers
+
         scene = bpy.context.scene
         print_3d = scene.print_3d
         angle_sharp = print_3d.angle_sharp
@@ -309,6 +319,7 @@ class MESH_OT_print3d_check_overhang(Operator):
     @staticmethod
     def main_check(obj, info):
         from mathutils import Vector
+        from . import mesh_helpers
 
         scene = bpy.context.scene
         print_3d = scene.print_3d
@@ -382,6 +393,8 @@ class MESH_OT_print3d_clean_distorted(Operator):
     )
 
     def execute(self, context):
+        from . import mesh_helpers
+
         obj = context.active_object
         bm = mesh_helpers.bmesh_from_object(obj)
         bm.normal_update()
@@ -646,6 +659,8 @@ class MESH_OT_print3d_scale_to_volume(Operator):
     def invoke(self, context, event):
 
         def calc_volume(obj):
+            from . import mesh_helpers
+
             bm = mesh_helpers.bmesh_copy_from_object(obj, apply_modifiers=True)
             volume = bm.calc_volume(signed=True)
             bm.free()
