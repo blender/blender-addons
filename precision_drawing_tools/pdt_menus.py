@@ -62,7 +62,8 @@ from .pdt_msg_strings import (
     PDT_LAB_TAPERAXES,
     PDT_LAB_TOOLS,
     PDT_LAB_USEVERTS,
-    PDT_LAB_VARIABLES
+    PDT_LAB_VARIABLES,
+    PDT_LAB_VIEW
 )
 
 def ui_width():
@@ -148,6 +149,8 @@ class PDT_PT_PanelDesign(Panel):
         row.prop(pdt_pg, "angle", text=PDT_LAB_ANGLEVALUE)
         row = box.row()
         row.operator("pdt.distance", icon="EMPTY_AXIS", text=f"{PDT_LAB_DIR} »")
+        row.operator("pdt.view_axis", icon="EMPTY_AXIS", text=f"{PDT_LAB_VIEW} »")
+        row = box.row()
         row.prop(pdt_pg, "flip_angle", text=PDT_LAB_FLIPANGLE)
 
         # ---------------------
