@@ -613,7 +613,7 @@ def move_entities(context, pg, operation, mode, obj, bm, verts, values):
         except:
             raise PDT_InvalidVector
         if obj.mode == "EDIT":
-            for v in verts:
+            for v in [v for v in bm.verts if v.select]:
                 v.co = vector_delta - obj_loc
             bmesh.ops.remove_doubles(
                 bm, verts=[v for v in bm.verts if v.select], dist=0.0001
