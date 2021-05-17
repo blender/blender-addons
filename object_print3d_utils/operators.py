@@ -34,14 +34,18 @@ import bmesh
 from . import report
 
 
-def clean_float(text: str) -> str:
-    # strip trailing zeros: 0.000 -> 0.0
+def clean_float(value: float, precision: int = 0) -> str:
+    # Avoid scientific notation and strip trailing zeros: 0.000 -> 0.0
+
+    text = f"{value:.{precision}f}"
     index = text.rfind(".")
+
     if index != -1:
         index += 2
         head, tail = text[:index], text[index:]
         tail = tail.rstrip("0")
         text = head + tail
+
     return text
 
 
@@ -93,12 +97,12 @@ class MESH_OT_print3d_info_volume(Operator):
         bm.free()
 
         if unit.system == 'NONE':
-            volume_fmt = clean_float(f"{volume:.8f}")
+            volume_fmt = clean_float(volume, 8)
         else:
             length, symbol = get_unit(unit.system, unit.length_unit)
 
             volume_unit = volume * (scale ** 3.0) / (length ** 3.0)
-            volume_str = clean_float(f"{volume_unit:.4f}")
+            volume_str = clean_float(volume_unit, 4)
             volume_fmt = f"{volume_str} {symbol}"
 
         report.update((f"Volume: {volume_fmt}³", None))
@@ -124,12 +128,12 @@ class MESH_OT_print3d_info_area(Operator):
         bm.free()
 
         if unit.system == 'NONE':
-            area_fmt = clean_float(f"{area:.8f}")
+            area_fmt = clean_float(area, 8)
         else:
             length, symbol = get_unit(unit.system, unit.length_unit)
 
             area_unit = area * (scale ** 2.0) / (length ** 2.0)
-            area_str = clean_float(f"{area_unit:.4f}")
+            area_str = clean_float(area_unit, 4)
             area_fmt = f"{area_str} {symbol}"
 
         report.update((f"Area: {area_fmt}²", None))
@@ -629,7 +633,7 @@ def _scale(scale, report=None, report_suffix=""):
     if scale != 1.0:
         bpy.ops.transform.resize(value=(scale,) * 3)
     if report is not None:
-        scale_fmt = clean_float(f"{scale:.6f}")
+        scale_fmt = clean_float(scale, 6)
         report({'INFO'}, f"Scaled by {scale_fmt}{report_suffix}")
 
 
@@ -651,7 +655,7 @@ class MESH_OT_print3d_scale_to_volume(Operator):
 
     def execute(self, context):
         scale = math.pow(self.volume, 1 / 3) / math.pow(self.volume_init, 1 / 3)
-        scale_fmt = clean_float(f"{scale:.6f}")
+        scale_fmt = clean_float(scale, 6)
         self.report({'INFO'}, f"Scaled by {scale_fmt}")
         _scale(scale, self.report)
         return {'FINISHED'}
