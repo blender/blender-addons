@@ -184,7 +184,7 @@ class PDT_OT_PlacementDelta(Operator):
                 f",{str(round(pg.cartesian_coords.z, decimal_places))}"
             )
         elif operation == "EV":
-            # Extrue Vertices
+            # Extrude Vertices
             pg.command = (
                 f"vd{str(round(pg.cartesian_coords.x, decimal_places))}"
                 f",{str(round(pg.cartesian_coords.y, decimal_places))}"
@@ -198,7 +198,7 @@ class PDT_OT_PlacementDelta(Operator):
                 f",{str(round(pg.cartesian_coords.z, decimal_places))}"
             )
         elif operation == "EG":
-            # Extrue Geometry
+            # Extrude Geometry
             pg.command = (
                 f"ed{str(round(pg.cartesian_coords.x, decimal_places))}"
                 f",{str(round(pg.cartesian_coords.y, decimal_places))}"
@@ -337,37 +337,37 @@ class PDT_OT_PlacementView(Operator):
         if operation == "CU":
             # Cursor
             pg.command = (
-                f"cv{str(round(pg.distance, decimal_places))}"
+                f"cn{str(round(pg.distance, decimal_places))}"
             )
         elif operation == "PP":
             # Pivot Point
             pg.command = (
-                f"pv{str(round(pg.distance, decimal_places))}"
+                f"pn{str(round(pg.distance, decimal_places))}"
             )
         elif operation == "MV":
             # Move Entities
             pg.command = (
-                f"gv{str(round(pg.distance, decimal_places))}"
+                f"gn{str(round(pg.distance, decimal_places))}"
             )
         elif operation == "NV":
             # New Vertex
             pg.command = (
-                f"nv{str(round(pg.distance, decimal_places))}"
+                f"nn{str(round(pg.distance, decimal_places))}"
             )
         elif operation == "EV":
-            # Extrue Vertices
+            # Extrude Vertices
             pg.command = (
-                f"vv{str(round(pg.distance, decimal_places))}"
+                f"vn{str(round(pg.distance, decimal_places))}"
             )
         elif operation == "DG":
             # Duplicate Entities
             pg.command = (
-                f"dv{str(round(pg.distance, decimal_places))}"
+                f"dn{str(round(pg.distance, decimal_places))}"
             )
         elif operation == "EG":
-            # Extrue Geometry
+            # Extrude Geometry
             pg.command = (
-                f"ev{str(round(pg.distance, decimal_places))}"
+                f"en{str(round(pg.distance, decimal_places))}"
             )
         else:
             error_message = f"{operation} {PDT_ERR_NON_VALID} {PDT_LAB_DEL}"
