@@ -45,7 +45,7 @@ class VRDefaultActions(Enum):
     GRAB = "grab"
     UNDO = "undo"
     REDO = "redo"
-
+    HAPTIC = "haptic"
 
 def vr_defaults_actionmap_add(ac, name, profile):
     am = ac.actionmaps.new(name, True)    
@@ -118,9 +118,9 @@ def vr_defaults_haptic_actionmap_item_add(am,
         ami.component_path0 = component_path0
         ami.user_path1 = user_path1
         ami.component_path1 = component_path1
-        ami.duration = duration
-        ami.frequency = frequency
-        ami.amplitude = amplitude
+        ami.haptic_duration = duration
+        ami.haptic_frequency = frequency
+        ami.haptic_amplitude = amplitude
     
     return ami
 
@@ -177,6 +177,15 @@ def vr_defaults_create_oculus(ac):
                                    0.3,
                                    "ed.redo",
                                    'PRESS')
+    vr_defaults_haptic_actionmap_item_add(am,
+                                          VRDefaultActions.HAPTIC.value,
+                                          "/user/hand/left",
+                                          "/output/haptic",
+                                          "/user/hand/right",
+                                          "/output/haptic",
+                                          0.3,
+                                          3000.0,
+                                          0.5)
 
 
 def vr_defaults_create_wmr(ac):
@@ -231,6 +240,15 @@ def vr_defaults_create_wmr(ac):
                                    0.3,
                                    "ed.redo",
                                    'PRESS')
+    vr_defaults_haptic_actionmap_item_add(am,
+                                          VRDefaultActions.HAPTIC.value,
+                                          "/user/hand/left",
+                                          "/output/haptic",
+                                          "/user/hand/right",
+                                          "/output/haptic",
+                                          0.3,
+                                          3000.0,
+                                          0.5)
 
 
 def vr_defaults_create_vive(ac):
@@ -285,6 +303,15 @@ def vr_defaults_create_vive(ac):
                                    0.3,
                                    "ed.redo",
                                    'PRESS')
+    vr_defaults_haptic_actionmap_item_add(am,
+                                          VRDefaultActions.HAPTIC.value,
+                                          "/user/hand/left",
+                                          "/output/haptic",
+                                          "/user/hand/right",
+                                          "/output/haptic",
+                                          0.3,
+                                          3000.0,
+                                          0.5)
 
 
 def vr_defaults_create_index(ac):
@@ -339,6 +366,15 @@ def vr_defaults_create_index(ac):
                                    0.3,
                                    "ed.redo",
                                    'PRESS')
+    vr_defaults_haptic_actionmap_item_add(am,
+                                          VRDefaultActions.HAPTIC.value,
+                                          "/user/hand/left",
+                                          "/output/haptic",
+                                          "/user/hand/right",
+                                          "/output/haptic",
+                                          0.3,
+                                          3000.0,
+                                          0.5)
     
 
 @persistent

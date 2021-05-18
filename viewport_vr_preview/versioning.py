@@ -21,7 +21,7 @@
 # Update Blender version this action-map was written in:
 #
 # When the version is ``(0, 0, 0)``, the action-map being loaded didn't contain any versioning information.
-# This will older than ``(2, 93, 0)``.
+# This will older than ``(3, 0, 0)``.
 
 def actionconfig_update(actionconfig_data, actionconfig_version):
     from bpy.app import version_file as blender_version
@@ -32,7 +32,7 @@ def actionconfig_update(actionconfig_data, actionconfig_version):
 ##    import copy
 ##    has_copy = False
 ##
-##    if actionconfig_version <= (2, 93, 0):
+##    if actionconfig_version <= (3, 0, 0):
 ##        # Only copy once.
 ##        if not has_copy:
 ##            actionconfig_data = copy.deepcopy(actionconfig_data)
