@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-from blenderkit import paths, utils, rerequests, tasks_queue, ratings_utils
+from blenderkit import paths, utils, rerequests, tasks_queue, ratings_utils, icons
 
 import bpy
 import requests, threading
@@ -176,44 +176,70 @@ class UploadRatingOperator(bpy.types.Operator):
 
 
 def draw_ratings_menu(self, context, layout):
+    pcoll = icons.icon_collections["main"]
+
+    profile_name = ''
+    profile = bpy.context.window_manager.get('bkit profile')
+    if profile:
+        profile_name = ' ' + profile['user']['firstName']
+
     col = layout.column()
     # layout.template_icon_view(bkit_ratings, property, show_labels=False, scale=6.0, scale_popup=5.0)
     row = col.row()
+    row.label(text='Quality:', icon = 'SOLO_ON')
+    row = col.row()
+    row.label(text='Please help the community by rating quality:')
+
+    row = col.row()
     row.prop(self, 'rating_quality_ui', expand=True, icon_only=True, emboss=False)
+    if self.rating_quality>0:
+        # row = col.row()
+
+        row.label(text=f'    Thanks{profile_name}!', icon = 'FUND')
     # row.label(text=str(self.rating_quality))
     col.separator()
+    col.separator()
 
-    row = layout.row()
+    row = col.row()
+    row.label(text='Complexity:', icon_value=pcoll['dumbbell'].icon_id)
+    row = col.row()
     row.label(text=f"How many hours did this {self.asset_type} save you?")
 
+    if utils.profile_is_validator():
+        row = col.row()
+        row.prop(self, 'rating_work_hours')
+
     if self.asset_type in ('model', 'scene'):
-        row = layout.row()
-        if utils.profile_is_validator():
-            col.prop(self, 'rating_work_hours')
+        row = col.row()
+
         row.prop(self, 'rating_work_hours_ui', expand=True, icon_only=False, emboss=True)
         if float(self.rating_work_hours_ui) > 100:
-            utils.label_multiline(layout,
+            utils.label_multiline(col,
                                   text=f"\nThat's huge! please be sure to give such rating only to godly {self.asset_type}s.\n",
                                   width=500)
         elif float(self.rating_work_hours_ui) > 18:
-            layout.separator()
+            col.separator()
 
-            utils.label_multiline(layout,
+            utils.label_multiline(col,
                                   text=f"\nThat's a lot! please be sure to give such rating only to amazing {self.asset_type}s.\n",
                                   width=500)
 
+
     elif self.asset_type == 'hdr':
-        row = layout.row()
+        row = col.row()
         row.prop(self, 'rating_work_hours_ui_1_10', expand=True, icon_only=False, emboss=True)
     else:
-        row = layout.row()
+        row = col.row()
         row.prop(self, 'rating_work_hours_ui_1_5', expand=True, icon_only=False, emboss=True)
 
+    if self.rating_work_hours>0:
+        row = col.row()
+        row.label(text=f'Thanks{profile_name}, you are amazing!', icon='FUND')
 
 class FastRateMenu(Operator, ratings_utils.RatingsProperties):
     """Rating of the assets , also directly from the asset bar - without need to download assets"""
     bl_idname = "wm.blenderkit_menu_rating_upload"
-    bl_label = "Rate asset"
+    bl_label = ""
     bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
 
@@ -226,6 +252,7 @@ class FastRateMenu(Operator, ratings_utils.RatingsProperties):
     def draw(self, context):
         layout = self.layout
         layout.label(text=self.message)
+        layout.separator()
 
         draw_ratings_menu(self, context, layout)
 
@@ -265,8 +292,9 @@ class FastRateMenu(Operator, ratings_utils.RatingsProperties):
 
         if self.asset_id == '':
             return {'CANCELLED'}
-        self.message = f"Rate asset {self.asset_name}"
+        self.message = f"{self.asset_name}"
         wm = context.window_manager
+        self.prefill_ratings()
 
         if self.asset_type in ('model', 'scene'):
             # spawn a wider one for validators for the enum buttons
