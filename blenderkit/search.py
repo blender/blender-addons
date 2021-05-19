@@ -628,13 +628,14 @@ class ThumbDownloader(threading.Thread):
         return self._stop_event.is_set()
 
     def run(self):
-        print('thumb downloader', self.url)
+        # print('thumb downloader', self.url)
+        r = None
         try:
             r = requests.get(self.url, stream=False)
         except Exception as e:
             bk_logger.error('Thumbnail download failed')
             bk_logger.error(str(e))
-        if r.status_code == 200:
+        if r and r.status_code == 200:
             with open(self.path, 'wb') as f:
                 f.write(r.content)
             # ORIGINALLY WE DOWNLOADED THUMBNAILS AS STREAM, BUT THIS WAS TOO SLOW.
@@ -1405,6 +1406,11 @@ class SearchOperator(Operator):
         options={'SKIP_SAVE'}
     )
 
+    # close_window: BoolProperty(name='Close window',
+    #                            description='Try to close the window below mouse before download',
+    #                            default=False)
+
+
     tooltip: bpy.props.StringProperty(default='Runs search and displays the asset bar at the same time')
 
     @classmethod
@@ -1428,6 +1434,13 @@ class SearchOperator(Operator):
 
         return {'FINISHED'}
 
+    # def invoke(self, context, event):
+    #     if self.close_window:
+    #         context.window.cursor_warp(event.mouse_x, event.mouse_y - 100);
+    #         context.area.tag_redraw()
+    #
+    #         context.window.cursor_warp(event.mouse_x, event.mouse_y);
+    #     return self. execute(context)
 
 class UrlOperator(Operator):
     """"""

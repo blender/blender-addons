@@ -30,7 +30,6 @@ from bpy.props import (
     PointerProperty,
 )
 
-
 import threading
 import requests
 import logging
@@ -69,21 +68,43 @@ def send_rating_to_thread_work_hours(url, ratings, headers):
     thread.start()
 
 
+def store_rating_local(asset_id, type='quality', value=0):
+    context = bpy.context
+    context.window_manager['asset ratings'] = context.window_manager.get('asset ratings', {})
+    context.window_manager['asset ratings'][asset_id] = context.window_manager['asset ratings'].get(asset_id, {})
+    context.window_manager['asset ratings'][asset_id][type] = value
+
+
+def get_rating_local(asset_id):
+    context = bpy.context
+    context.window_manager['asset ratings'] = context.window_manager.get('asset ratings', {})
+    rating = context.window_manager['asset ratings'].get(asset_id)
+    if rating:
+        return rating.to_dict()
+    return None
+
+
 def update_ratings_quality(self, context):
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
     api_key = user_preferences.api_key
 
     headers = utils.get_headers(api_key)
-    asset = self.id_data
-    if asset:
+
+    if not (hasattr(self, 'rating_quality')):
+        # first option is for rating of assets that are from scene
+        asset = self.id_data
         bkit_ratings = asset.bkit_ratings
-        url = paths.get_api_url() + 'assets/' + asset['asset_data']['id'] + '/rating/'
+        asset_id = asset['asset_data']['id']
     else:
         # this part is for operator rating:
         bkit_ratings = self
-        url = paths.get_api_url() + f'assets/{self.asset_id}/rating/'
+        asset_id = self.asset_id
 
     if bkit_ratings.rating_quality > 0.1:
+        url = paths.get_api_url() + f'assets/{asset_id}/rating/'
+
+        store_rating_local(asset_id, type='quality', value=bkit_ratings.rating_quality)
+
         ratings = [('quality', bkit_ratings.rating_quality)]
         tasks_queue.add_task((send_rating_to_thread_quality, (url, ratings, headers)), wait=2.5, only_last=True)
 
@@ -92,16 +113,21 @@ def update_ratings_work_hours(self, context):
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
     api_key = user_preferences.api_key
     headers = utils.get_headers(api_key)
-    asset = self.id_data
-    if asset:
+    if not (hasattr(self, 'rating_work_hours')):
+        # first option is for rating of assets that are from scene
+        asset = self.id_data
         bkit_ratings = asset.bkit_ratings
-        url = paths.get_api_url() + 'assets/' + asset['asset_data']['id'] + '/rating/'
+        asset_id = asset['asset_data']['id']
     else:
         # this part is for operator rating:
         bkit_ratings = self
-        url = paths.get_api_url() + f'assets/{self.asset_id}/rating/'
+        asset_id = self.asset_id
 
     if bkit_ratings.rating_work_hours > 0.45:
+        url = paths.get_api_url() + f'assets/{asset_id}/rating/'
+
+        store_rating_local(asset_id, type='working_hours', value=bkit_ratings.rating_work_hours)
+
         ratings = [('working_hours', round(bkit_ratings.rating_work_hours, 1))]
         tasks_queue.add_task((send_rating_to_thread_work_hours, (url, ratings, headers)), wait=2.5, only_last=True)
 
@@ -140,8 +166,6 @@ def update_ratings_work_hours_ui_1_5(self, context):
         bpy.ops.wm.blenderkit_login('INVOKE_DEFAULT',
                                     message='Please login/signup to rate assets. Clicking OK takes you to web login.')
         # self.rating_work_hours_ui_1_5 = '0'
-    # print('updating 1-5')
-    # print(float(self.rating_work_hours_ui_1_5))
     self.rating_work_hours = float(self.rating_work_hours_ui_1_5)
 
 
@@ -170,6 +194,7 @@ def stars_enum_callback(self, context):
         # has to have something before the number in the value, otherwise fails on registration.
         items.append((f'{a + 1}', f'{a + 1}', '', icon, a + 1))
     return items
+
 
 class RatingsProperties():
     message: StringProperty(
@@ -280,3 +305,16 @@ class RatingsProperties():
                                             update=update_ratings_work_hours_ui_1_10,
                                             options={'SKIP_SAVE'}
                                             )
+
+    def prefill_ratings(self):
+        # pre-fill ratings
+        ratings = get_rating_local(self.asset_id)
+        if ratings and ratings.get('quality'):
+            self.rating_quality = ratings['quality']
+        if ratings and ratings.get('working_hours'):
+            wh = int(ratings['working_hours'])
+            self.rating_work_hours_ui = str(wh)
+            if wh < 6:
+                self.rating_work_hours_ui_1_5 = str(int(ratings['working_hours']))
+            if wh < 11:
+                self.rating_work_hours_ui_1_10 = str(int(ratings['working_hours']))

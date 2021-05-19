@@ -426,8 +426,6 @@ class ReGenerateThumbnailOperator(bpy.types.Operator):
                           json_args=args_dict,
                           wait=False)
         return {'FINISHED'}
-        start_thumbnailer(self, context)
-        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.window_manager

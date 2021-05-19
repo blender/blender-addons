@@ -382,6 +382,7 @@ def draw_tooltip_with_author(asset_data, x, y):
                 gimg = utils.get_hidden_image(a['gravatarImg'], a['gravatarHash'])
 
     aname = asset_data['displayName']
+    aname = aname[0].upper() + aname[1:]
     if len(aname)>36:
         aname = f"{aname[:33]}..."
 
@@ -1419,10 +1420,10 @@ class AssetBarOperator(bpy.types.Operator):
             my = event.mouse_y - r.y
 
             if event.value == 'PRESS' and mouse_in_asset_bar(mx, my):
-                context.window.cursor_warp(event.mouse_x - 400, event.mouse_y - 20);
+                # context.window.cursor_warp(event.mouse_x - 300, event.mouse_y - 10);
 
                 bpy.ops.wm.blenderkit_asset_popup('INVOKE_DEFAULT')
-                context.window.cursor_warp(event.mouse_x, event.mouse_y);
+                # context.window.cursor_warp(event.mouse_x, event.mouse_y);
 
                 # bpy.ops.wm.call_menu(name='OBJECT_MT_blenderkit_asset_menu')
                 return {'RUNNING_MODAL'}

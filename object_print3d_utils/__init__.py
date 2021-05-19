@@ -21,7 +21,7 @@
 bl_info = {
     "name": "3D-Print Toolbox",
     "author": "Campbell Barton",
-    "blender": (2, 82, 0),
+    "blender": (3, 0, 0),
     "location": "3D View > Sidebar",
     "description": "Utilities for 3D printing",
     "doc_url": "{BLENDER_MANUAL_URL}/addons/mesh/3d_print_toolbox.html",
@@ -34,7 +34,8 @@ if "bpy" in locals():
     import importlib
     importlib.reload(ui)
     importlib.reload(operators)
-    importlib.reload(mesh_helpers)
+    if "mesh_helpers" in locals():
+        importlib.reload(mesh_helpers)
     if "export" in locals():
         importlib.reload(export)
 else:
@@ -61,10 +62,10 @@ class SceneProperties(PropertyGroup):
         name="Format",
         description="Format type to export to",
         items=(
-            ('STL', "STL", ""),
-            ('PLY', "PLY", ""),
-            ('X3D', "X3D", ""),
             ('OBJ', "OBJ", ""),
+            ('PLY', "PLY", ""),
+            ('STL', "STL", ""),
+            ('X3D', "X3D", ""),
         ),
         default='STL',
     )
@@ -77,6 +78,13 @@ class SceneProperties(PropertyGroup):
         name="Apply Scale",
         description="Apply scene scale setting on export",
         default=False,
+    )
+    use_data_layers: BoolProperty(
+        name="Data Layers",
+        description=(
+            "Export normals, UVs, vertex colors and materials for formats that support it "
+            "significantly increasing filesize"
+        ),
     )
     export_path: StringProperty(
         name="Export Directory",
