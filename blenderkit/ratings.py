@@ -180,7 +180,7 @@ def draw_ratings_menu(self, context, layout):
 
     profile_name = ''
     profile = bpy.context.window_manager.get('bkit profile')
-    if profile:
+    if profile and len(profile['user']['firstName'])>0:
         profile_name = ' ' + profile['user']['firstName']
 
     col = layout.column()
