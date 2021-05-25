@@ -19,6 +19,7 @@
 # -*- coding: utf-8 -*-
 
 import bpy
+from bpy.props import FloatProperty, FloatVectorProperty
 import gpu
 from gpu_extras.batch import batch_for_shader
 from mathutils import Vector
@@ -115,7 +116,9 @@ class SUNPOS_OT_ShowHdr(bpy.types.Operator):
     bl_idname = "world.sunpos_show_hdr"
     bl_label = "Sync Sun to Texture"
 
-    exposure = 1.0
+    exposure: FloatProperty(name="Exposure", default=1.0)
+    scale: FloatProperty(name="Scale", default=1.0)
+    offset: FloatVectorProperty(name="Offset", default=(0.0, 0.0), size=2, subtype='COORDINATES')
 
     @classmethod
     def poll(self, context):
@@ -263,8 +266,6 @@ class SUNPOS_OT_ShowHdr(bpy.types.Operator):
         self.is_panning = False
         self.mouse_prev_x = 0.0
         self.mouse_prev_y = 0.0
-        self.offset = Vector((0.0, 0.0))
-        self.scale = 1.0
 
         # Get at least one 3D View
         area_3d = None
