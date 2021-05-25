@@ -20,7 +20,6 @@
 
 import bpy
 import gpu
-import bgl
 from gpu_extras.batch import batch_for_shader
 from mathutils import Vector
 from math import sqrt, pi, atan2, asin
@@ -60,6 +59,7 @@ def draw_callback_px(self, context):
     nt = context.scene.world.node_tree.nodes
     env_tex_node = nt.get(context.scene.sun_pos_properties.hdr_texture)
     image = env_tex_node.image
+    texture = gpu.texture.from_image(image)
 
     if self.area != context.area:
         return
@@ -82,16 +82,12 @@ def draw_callback_px(self, context):
         {"pos" : coords,
          "texCoord" : uv_coords})
 
-    bgl.glActiveTexture(bgl.GL_TEXTURE0)
-    bgl.glBindTexture(bgl.GL_TEXTURE_2D, image.bindcode)
-
-
     with gpu.matrix.push_pop():
         gpu.matrix.translate(position)
         gpu.matrix.scale(scale)
 
         shader.bind()
-        shader.uniform_int("image", 0)
+        shader.uniform_sampler("image", texture)
         shader.uniform_float("exposure", self.exposure)
         batch.draw(shader)
 
