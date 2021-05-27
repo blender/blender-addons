@@ -49,8 +49,12 @@ from bl_ui import properties_texture
 
 for member in dir(properties_texture):
     subclass = getattr(properties_texture, member)
-    if hasattr(subclass, "COMPAT_ENGINES"):
+    try:
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except BaseException as e:
+        print(e.__doc__)
+        print('An exception occurred: {}'.format(e))
+        pass
 del properties_texture
 
 
@@ -1224,6 +1228,7 @@ class TEXTURE_PT_POV_tex_gamma(TextureButtonsPanel, Panel):
 classes = (
     WORLD_TEXTURE_SLOTS_UL_POV_layerlist,
     TEXTURE_MT_POV_specials,
+    #TEXTURE_PT_context,
     TEXTURE_PT_POV_context_texture,
     TEXTURE_PT_colors,
     TEXTURE_PT_POV_type,
@@ -1239,7 +1244,6 @@ classes = (
 
 
 def register():
-
     for cls in classes:
         register_class(cls)
 

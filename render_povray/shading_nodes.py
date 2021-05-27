@@ -1995,17 +1995,15 @@ classes = (
 
 
 def register():
-    # from bpy.utils import register_class
-    bpy.types.NODE_HT_header.append(menu_func_nodes)
-    nodeitems_utils.register_node_categories("POVRAYNODES", node_categories)
     for cls in classes:
         register_class(cls)
-
+    nodeitems_utils.register_node_categories("POVRAYNODES", node_categories)
+    bpy.types.NODE_HT_header.append(menu_func_nodes)
 
 def unregister():
-    # from bpy.utils import unregister_class
-
+    bpy.types.NODE_HT_header.remove(menu_func_nodes)
+    nodeitems_utils.unregister_node_categories("POVRAYNODES")
     for cls in reversed(classes):
         unregister_class(cls)
-    nodeitems_utils.unregister_node_categories("POVRAYNODES")
-    bpy.types.NODE_HT_header.remove(menu_func_nodes)
+
+

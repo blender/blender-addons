@@ -31,8 +31,12 @@ from bl_ui import properties_data_camera
 
 for member in dir(properties_data_camera):
     subclass = getattr(properties_data_camera, member)
-    if hasattr(subclass, "COMPAT_ENGINES"):
+    try:
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except BaseException as e:
+        print(e.__doc__)
+        print('An exception occurred: {}'.format(e))
+        pass
 del properties_data_camera
 
 # ##################################
@@ -50,8 +54,12 @@ from bl_ui import properties_physics_common
 
 for member in dir(properties_physics_common):
     subclass = getattr(properties_physics_common, member)
-    if hasattr(subclass, "COMPAT_ENGINES"):
+    try:
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except BaseException as e:
+        print(e.__doc__)
+        print('An exception occurred: {}'.format(e))
+        pass
 del properties_physics_common
 
 # Physics Rigid Bodies wrapping every class 'as is'
@@ -59,8 +67,12 @@ from bl_ui import properties_physics_rigidbody
 
 for member in dir(properties_physics_rigidbody):
     subclass = getattr(properties_physics_rigidbody, member)
-    if hasattr(subclass, "COMPAT_ENGINES"):
+    try:
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except BaseException as e:
+        print(e.__doc__)
+        print('An exception occurred: {}'.format(e))
+        pass
 del properties_physics_rigidbody
 
 # Physics Rigid Body Constraint wrapping every class 'as is'
@@ -68,8 +80,12 @@ from bl_ui import properties_physics_rigidbody_constraint
 
 for member in dir(properties_physics_rigidbody_constraint):
     subclass = getattr(properties_physics_rigidbody_constraint, member)
-    if hasattr(subclass, "COMPAT_ENGINES"):
+    try:
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except BaseException as e:
+        print(e.__doc__)
+        print('An exception occurred: {}'.format(e))
+        pass
 del properties_physics_rigidbody_constraint
 
 # Physics Smoke and fluids wrapping every class 'as is'
@@ -77,8 +93,12 @@ from bl_ui import properties_physics_fluid
 
 for member in dir(properties_physics_fluid):
     subclass = getattr(properties_physics_fluid, member)
-    if hasattr(subclass, "COMPAT_ENGINES"):
+    try:
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except BaseException as e:
+        print(e.__doc__)
+        print('An exception occurred: {}'.format(e))
+        pass
 del properties_physics_fluid
 
 # Physics softbody wrapping every class 'as is'
@@ -86,8 +106,12 @@ from bl_ui import properties_physics_softbody
 
 for member in dir(properties_physics_softbody):
     subclass = getattr(properties_physics_softbody, member)
-    if hasattr(subclass, "COMPAT_ENGINES"):
+    try:
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except BaseException as e:
+        print(e.__doc__)
+        print('An exception occurred: {}'.format(e))
+        pass
 del properties_physics_softbody
 
 # Physics Field wrapping every class 'as is'
@@ -95,8 +119,12 @@ from bl_ui import properties_physics_field
 
 for member in dir(properties_physics_field):
     subclass = getattr(properties_physics_field, member)
-    if hasattr(subclass, "COMPAT_ENGINES"):
+    try:
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except BaseException as e:
+        print(e.__doc__)
+        print('An exception occurred: {}'.format(e))
+        pass
 del properties_physics_field
 
 # Physics Cloth wrapping every class 'as is'
@@ -104,8 +132,12 @@ from bl_ui import properties_physics_cloth
 
 for member in dir(properties_physics_cloth):
     subclass = getattr(properties_physics_cloth, member)
-    if hasattr(subclass, "COMPAT_ENGINES"):
+    try:
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except BaseException as e:
+        print(e.__doc__)
+        print('An exception occurred: {}'.format(e))
+        pass
 del properties_physics_cloth
 
 # Physics Dynamic Paint wrapping every class 'as is'
@@ -113,16 +145,24 @@ from bl_ui import properties_physics_dynamicpaint
 
 for member in dir(properties_physics_dynamicpaint):
     subclass = getattr(properties_physics_dynamicpaint, member)
-    if hasattr(subclass, "COMPAT_ENGINES"):
+    try:
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except BaseException as e:
+        print(e.__doc__)
+        print('An exception occurred: {}'.format(e))
+        pass
 del properties_physics_dynamicpaint
 
 from bl_ui import properties_particle
 
 for member in dir(properties_particle):  # add all "particle" panels from blender
     subclass = getattr(properties_particle, member)
-    if hasattr(subclass, "COMPAT_ENGINES"):
+    try:
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except BaseException as e:
+        print(e.__doc__)
+        print('An exception occurred: {}'.format(e))
+        pass
 del properties_particle
 
 
@@ -750,12 +790,10 @@ def register():
 
     for cls in classes:
         register_class(cls)
-    bpy.types.LIGHT_PT_POV_light.prepend(light_panel_func)
+    LIGHT_PT_POV_light.prepend(light_panel_func)
 
 
 def unregister():
-
-    bpy.types.LIGHT_PT_POV_light.remove(light_panel_func)
+    LIGHT_PT_POV_light.remove(light_panel_func)
     for cls in reversed(classes):
         unregister_class(cls)
-

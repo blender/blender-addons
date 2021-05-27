@@ -25,6 +25,7 @@ load, create or edit"""
 import bpy
 from bpy.props import StringProperty, BoolProperty, CollectionProperty
 from bpy_extras.io_utils import ImportHelper
+from bpy.utils import register_class, unregister_class
 
 from mathutils import Vector
 from math import pi
@@ -520,10 +521,16 @@ class ImportPOV(bpy.types.Operator, ImportHelper):
         # obj.location = (0,0,0)
         return {'FINISHED'}
 
+classes = (
+    ImportPOV,
+)
 
 def register():
-    bpy.utils.register_class(ImportPOV)
+    for cls in classes:
+        register_class(cls)
 
 
 def unregister():
-    bpy.utils.unregister_class(ImportPOV)
+    for cls in reversed(classes):
+        unregister_class(cls)
+

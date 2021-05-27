@@ -36,26 +36,38 @@ from bl_ui import properties_output
 
 for member in dir(properties_output):
     subclass = getattr(properties_output, member)
-    if hasattr(subclass, "COMPAT_ENGINES"):
+    try:
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except BaseException as e:
+        print(e.__doc__)
+        print('An exception occurred: {}'.format(e))
+        pass
 del properties_output
 
 from bl_ui import properties_freestyle
 
 for member in dir(properties_freestyle):
     subclass = getattr(properties_freestyle, member)
-    if hasattr(subclass, "COMPAT_ENGINES"):
+    try:
         if not (subclass.bl_space_type == 'PROPERTIES' and subclass.bl_context == "render"):
             subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
             # subclass.bl_parent_id = "RENDER_PT_POV_filter"
+    except BaseException as e:
+        print(e.__doc__)
+        print('An exception occurred: {}'.format(e))
+        pass
 del properties_freestyle
 
 from bl_ui import properties_view_layer
 
 for member in dir(properties_view_layer):
     subclass = getattr(properties_view_layer, member)
-    if hasattr(subclass, "COMPAT_ENGINES"):
+    try:
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except BaseException as e:
+        print(e.__doc__)
+        print('An exception occurred: {}'.format(e))
+        pass
 del properties_view_layer
 
 # Use some of the existing buttons.
@@ -440,13 +452,17 @@ if check_render_freestyle_svg():
     '''
     for member in dir(render_freestyle_svg):
         subclass = getattr(render_freestyle_svg, member)
-        if hasattr(subclass, "COMPAT_ENGINES"):
+        try:
             subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
             if subclass.bl_idname == "RENDER_PT_SVGExporterPanel":
                 subclass.bl_parent_id = "RENDER_PT_POV_filter"
                 subclass.bl_options = {'HIDE_HEADER'}
                 # subclass.bl_order = 11
                 print(subclass.bl_info)
+        except BaseException as e:
+            print(e.__doc__)
+            print('An exception occurred: {}'.format(e))
+            pass
 
     # del render_freestyle_svg.RENDER_PT_SVGExporterPanel.bl_parent_id
 
@@ -537,10 +553,10 @@ classes = (
 def register():
     for cls in classes:
         register_class(cls)
-    bpy.types.RENDER_PT_POV_radiosity.prepend(rad_panel_func)
+    RENDER_PT_POV_radiosity.prepend(rad_panel_func)
 
 
 def unregister():
-    bpy.types.RENDER_PT_POV_radiosity.remove(rad_panel_func)
+    RENDER_PT_POV_radiosity.remove(rad_panel_func)
     for cls in reversed(classes):
         unregister_class(cls)

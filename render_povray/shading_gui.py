@@ -29,8 +29,16 @@ from bl_ui import properties_material
 
 for member in dir(properties_material):
     subclass = getattr(properties_material, member)
-    if hasattr(subclass, "COMPAT_ENGINES"):
+    try:
+        # mat=bpy.context.active_object.active_material
+        # if (mat and mat.pov.type == "SURFACE"
+        # and not (mat.pov.material_use_nodes or mat.use_nodes)):
+        # and (engine in cls.COMPAT_ENGINES)) if subclasses were sorted
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except BaseException as e:
+        print(e.__doc__)
+        print('An exception occurred: {}'.format(e))
+        pass
 del properties_material
 
 from .shading_properties import check_material
@@ -44,8 +52,7 @@ def simple_material(mat):
 
 
 class MaterialButtonsPanel:
-    """Use this class to define buttons from the material tab of
-    properties window."""
+    """Use this class to define buttons from the material tab of properties window."""
 
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -669,12 +676,10 @@ classes = (
 
 
 def register():
-
     for cls in classes:
         register_class(cls)
 
 
 def unregister():
-
     for cls in reversed(classes):
         unregister_class(cls)
