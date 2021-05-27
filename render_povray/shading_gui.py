@@ -29,16 +29,8 @@ from bl_ui import properties_material
 
 for member in dir(properties_material):
     subclass = getattr(properties_material, member)
-    try:
-        # mat=bpy.context.active_object.active_material
-        # if (mat and mat.pov.type == "SURFACE"
-        # and not (mat.pov.material_use_nodes or mat.use_nodes)):
-        # and (engine in cls.COMPAT_ENGINES)) if subclasses were sorted
+    if hasattr(subclass, "COMPAT_ENGINES"):
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
-    except BaseException as e:
-        print(e.__doc__)
-        print('An exception occurred: {}'.format(e))
-        pass
 del properties_material
 
 from .shading_properties import check_material

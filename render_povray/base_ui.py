@@ -304,4 +304,4 @@ def unregister():
     shading_gui.unregister()
     object_gui.unregister()
     scenography_gui.unregister()
-    render_gui.register()
+    render_gui.unregister()

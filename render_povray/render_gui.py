@@ -36,38 +36,26 @@ from bl_ui import properties_output
 
 for member in dir(properties_output):
     subclass = getattr(properties_output, member)
-    try:
+    if hasattr(subclass, "COMPAT_ENGINES"):
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
-    except BaseException as e:
-        print(e.__doc__)
-        print('An exception occurred: {}'.format(e))
-        pass
 del properties_output
 
 from bl_ui import properties_freestyle
 
 for member in dir(properties_freestyle):
     subclass = getattr(properties_freestyle, member)
-    try:
+    if hasattr(subclass, "COMPAT_ENGINES"):
         if not (subclass.bl_space_type == 'PROPERTIES' and subclass.bl_context == "render"):
             subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
             # subclass.bl_parent_id = "RENDER_PT_POV_filter"
-    except BaseException as e:
-        print(e.__doc__)
-        print('An exception occurred: {}'.format(e))
-        pass
 del properties_freestyle
 
 from bl_ui import properties_view_layer
 
 for member in dir(properties_view_layer):
     subclass = getattr(properties_view_layer, member)
-    try:
+    if hasattr(subclass, "COMPAT_ENGINES"):
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
-    except BaseException as e:
-        print(e.__doc__)
-        print('An exception occurred: {}'.format(e))
-        pass
 del properties_view_layer
 
 # Use some of the existing buttons.
@@ -452,17 +440,13 @@ if check_render_freestyle_svg():
     '''
     for member in dir(render_freestyle_svg):
         subclass = getattr(render_freestyle_svg, member)
-        try:
+        if hasattr(subclass, "COMPAT_ENGINES"):
             subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
             if subclass.bl_idname == "RENDER_PT_SVGExporterPanel":
                 subclass.bl_parent_id = "RENDER_PT_POV_filter"
                 subclass.bl_options = {'HIDE_HEADER'}
                 # subclass.bl_order = 11
                 print(subclass.bl_info)
-        except BaseException as e:
-            print(e.__doc__)
-            print('An exception occurred: {}'.format(e))
-            pass
 
     # del render_freestyle_svg.RENDER_PT_SVGExporterPanel.bl_parent_id
 
