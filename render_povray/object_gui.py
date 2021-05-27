@@ -34,11 +34,8 @@ from bl_ui import properties_data_modifier
 
 for member in dir(properties_data_modifier):
     subclass = getattr(properties_data_modifier, member)
-    try:
+    if hasattr(subclass, "COMPAT_ENGINES"):
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
-    except BaseException as e:
-        print(e.__doc__)
-        print('An exception occurred: {}'.format(e))
 del properties_data_modifier
 
 

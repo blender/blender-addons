@@ -672,9 +672,7 @@ class RenderPovSettingsScene(PropertyGroup):
     )
 
 
-classes = (
-    RenderPovSettingsScene,
-)
+classes = (RenderPovSettingsScene,)
 
 
 def register():

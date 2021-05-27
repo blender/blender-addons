@@ -17,10 +17,10 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
+import bpy
 
 """Declare pov native file syntax properties controllable in UI hooks and text blocks"""
 
-import bpy
 from bpy.utils import register_class, unregister_class
 from bpy.types import PropertyGroup
 from bpy.props import EnumProperty, PointerProperty
@@ -42,9 +42,7 @@ class RenderPovSettingsText(PropertyGroup):
     )
 
 
-classes = (
-    RenderPovSettingsText,
-)
+classes = (RenderPovSettingsText,)
 
 
 def register():

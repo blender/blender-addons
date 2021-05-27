@@ -1769,5 +1769,5 @@ def register():
 
 
 def unregister():
-    for cls in reversed(classes):
+    for cls in classes:
         unregister_class(cls)

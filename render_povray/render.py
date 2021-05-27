@@ -17,9 +17,7 @@
 # #**** END GPL LICENSE BLOCK #****
 
 # <pep8 compliant>
-
 """Wirte the POV file using this file's functions and some from other modules then render it."""
-
 import bpy
 import subprocess
 import os
@@ -1809,11 +1807,7 @@ class RunPovTextRender(Operator):
         return {'FINISHED'}
 
 
-classes = (
-    PovrayRender,
-    RenderPovTexturePreview,
-    RunPovTextRender,
-)
+classes = (PovrayRender, RenderPovTexturePreview, RunPovTextRender)
 
 
 def register():

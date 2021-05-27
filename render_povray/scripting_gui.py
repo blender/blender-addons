@@ -251,6 +251,7 @@ classes = (
 
 
 def register():
+
     for cls in classes:
         register_class(cls)
 
@@ -259,6 +260,7 @@ def register():
 
 
 def unregister():
+
     bpy.types.TEXT_MT_templates.remove(menu_func_templates)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
 

@@ -250,8 +250,7 @@ class POV_OT_update_addon(bpy.types.Operator):
         with tempfile.TemporaryDirectory() as temp_dir_path:
             temp_zip_path = os.path.join(temp_dir_path, 'master.zip')
 
-            # Download zip archive of latest addons master branch commit
-            # More work needed so we also get the pov presets from addons shared folder.
+            # Download zip archive of latest addons master branch commit (So we also get presets)
             # switch this URL back to the BF hosted one as soon as gitweb snapshot gets fixed
             url = 'https://github.com/blender/blender-addons/archive/refs/heads/master.zip'
             try:
@@ -398,10 +397,7 @@ class PovrayPreferences(bpy.types.AddonPreferences):
         layout.operator("pov.update_addon", icon='FILE_REFRESH')
 
 
-classes = (
-    POV_OT_update_addon, # already registered as a subclass
-    PovrayPreferences
-)
+classes = (POV_OT_update_addon, PovrayPreferences)
 
 
 def register():
@@ -414,7 +410,7 @@ def register():
     texturing_properties.register()
     object_properties.register()
     scripting_properties.register()
-    #scenography.register()
+    scenography.register()
     render.register()
     base_ui.register()
     scripting.register()
@@ -426,7 +422,7 @@ def unregister():
     scripting.unregister()
     base_ui.unregister()
     render.unregister()
-    #scenography.unregister()
+    scenography.unregister()
     scripting_properties.unregister()
     object_properties.unregister()
     texturing_properties.unregister()
@@ -434,7 +430,7 @@ def unregister():
     scenography_properties.unregister()
     render_properties.unregister()
 
-    for cls in classes:
+    for cls in reversed(classes):
         unregister_class(cls)
 
 

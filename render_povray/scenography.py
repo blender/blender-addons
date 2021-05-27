@@ -23,7 +23,7 @@
 with world, sky, atmospheric effects such as rainbows or smoke """
 
 import bpy
-
+from bpy.utils import register_class, unregister_class
 import os
 from imghdr import what  # imghdr is a python lib to identify image file types
 from math import atan, pi, sqrt, degrees
@@ -832,3 +832,16 @@ def export_smoke(file, smoke_obj_name, smoke_path, comments, global_matrix, writ
         # file.write("               frequency 0\n")
         # file.write("   }\n")
         # file.write("}\n")
+
+
+classes = ()
+
+
+def register():
+    for cls in classes:
+        register_class(cls)
+
+
+def unregister():
+    for cls in classes:
+        unregister_class(cls)
