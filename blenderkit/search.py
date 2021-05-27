@@ -432,14 +432,14 @@ def timer_update():
                         result_field.append(asset_data)
 
                 # Get ratings from BlenderKit server
-                if utils.profile_is_validator():
-                    user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
-                    api_key = user_preferences.api_key
-                    headers = utils.get_headers(api_key)
-                    for r in rdata['results']:
-                        if ratings_utils.get_rating_local(asset_data['id']) is None:
-                            thread = threading.Thread(target=ratings_utils.get_rating, args=([r['id'], headers]), daemon=True)
-                            thread.start()
+                # if utils.profile_is_validator():
+                user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
+                api_key = user_preferences.api_key
+                headers = utils.get_headers(api_key)
+                for r in rdata['results']:
+                    if ratings_utils.get_rating_local(asset_data['id']) is None:
+                        rating_thread = threading.Thread(target=ratings_utils.get_rating, args=([r['id'], headers]), daemon=True)
+                        rating_thread.start()
 
                 wm[search_name] = result_field
                 wm['search results'] = result_field
@@ -1215,7 +1215,7 @@ def get_search_simple(parameters, filepath=None, page_size=100, max_results=1000
     requeststring += '&page_size=' + str(page_size)
     bk_logger.debug(requeststring)
     response = rerequests.get(requeststring, headers=headers)  # , params = rparameters)
-    # print(r.json())
+    # print(response.json())
     search_results = response.json()
 
     results = []
