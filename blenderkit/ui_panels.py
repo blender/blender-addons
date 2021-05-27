@@ -1468,6 +1468,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         box.scale_y = 0.4
         box.label(text='Properties')
         box.separator()
+
         if self.asset_data.get('license') == 'cc_zero':
             t = 'CC Zero          '
             icon = pcoll['cc0']
@@ -1778,9 +1779,18 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         # top draggabe bar with name of the asset
         top_row = layout.row()
         top_drag_bar = top_row.box()
+
+        cat_path = categories.get_category_path(bpy.context.window_manager['bkit_categories'],
+                                                self.asset_data['category'])[1:]
+        for i,c in enumerate(cat_path):
+            cat_path[i] = c.capitalize()
+        cat_path = ' > '.join(cat_path)
+        # box.label(text=cat_path)
+
         aname = asset_data['displayName']
         aname = aname[0].upper() + aname[1:]
-        top_drag_bar.label(text=aname)
+
+        top_drag_bar.label(text=f'{cat_path} > {aname}')
 
         # left side
         row = layout.row(align=True)
