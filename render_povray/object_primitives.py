@@ -19,13 +19,12 @@
 # <pep8 compliant>
 
 """ Get POV-Ray specific objects In and Out of Blender """
-
-import bpy
+from math import pi, cos, sin
 import os.path
+import bpy
+from bpy_extras.object_utils import object_data_add
 from bpy_extras.io_utils import ImportHelper
-from bpy_extras import object_utils
-from bpy.utils import register_class
-from math import atan, pi, degrees, sqrt, cos, sin
+from bpy.utils import register_class, unregister_class
 from bpy.types import Operator
 
 from bpy.props import (
@@ -35,14 +34,75 @@ from bpy.props import (
     FloatProperty,
     FloatVectorProperty,
     EnumProperty,
-    PointerProperty,
-    CollectionProperty,
 )
 
 from mathutils import Vector, Matrix
 
 
 # import collections
+
+
+def write_object_modifiers(scene, ob, File):
+    """Translate some object level POV statements from Blender UI
+    to POV syntax and write to exported file """
+
+    # Maybe return that string to be added instead of directly written.
+
+    '''XXX WIP
+    onceCSG = 0
+    for mod in ob.modifiers:
+        if onceCSG == 0:
+            if mod :
+                if mod.type == 'BOOLEAN':
+                    if ob.pov.boolean_mod == "POV":
+                        File.write("\tinside_vector <%.6g, %.6g, %.6g>\n" %
+                                   (ob.pov.inside_vector[0],
+                                    ob.pov.inside_vector[1],
+                                    ob.pov.inside_vector[2]))
+                        onceCSG = 1
+    '''
+
+    if ob.pov.hollow:
+        File.write("\thollow\n")
+    if ob.pov.double_illuminate:
+        File.write("\tdouble_illuminate\n")
+    if ob.pov.sturm:
+        File.write("\tsturm\n")
+    if ob.pov.no_shadow:
+        File.write("\tno_shadow\n")
+    if ob.pov.no_image:
+        File.write("\tno_image\n")
+    if ob.pov.no_reflection:
+        File.write("\tno_reflection\n")
+    if ob.pov.no_radiosity:
+        File.write("\tno_radiosity\n")
+    if ob.pov.inverse:
+        File.write("\tinverse\n")
+    if ob.pov.hierarchy:
+        File.write("\thierarchy\n")
+
+    # XXX, Commented definitions
+    '''
+    if scene.pov.photon_enable:
+        File.write("photons {\n")
+        if ob.pov.target:
+            File.write("target %.4g\n"%ob.pov.target_value)
+        if ob.pov.refraction:
+            File.write("refraction on\n")
+        if ob.pov.reflection:
+            File.write("reflection on\n")
+        if ob.pov.pass_through:
+            File.write("pass_through\n")
+        File.write("}\n")
+    if ob.pov.object_ior > 1:
+        File.write("interior {\n")
+        File.write("ior %.4g\n"%ob.pov.object_ior)
+        if scene.pov.photon_enable and ob.pov.target and ob.pov.refraction and ob.pov.dispersion:
+            File.write("ior %.4g\n"%ob.pov.dispersion_value)
+            File.write("ior %s\n"%ob.pov.dispersion_samples)
+        if scene.pov.photon_enable == False:
+            File.write("caustics %.4g\n"%ob.pov.fake_caustics_power)
+    '''
 
 
 def pov_define_mesh(mesh, verts, edges, faces, name, hide_geometry=True):
@@ -83,7 +143,9 @@ class POVRAY_OT_lathe_add(Operator):
         ob_data.dimensions = '2D'
         ob_data.transform(Matrix.Rotation(-pi / 2.0, 4, 'Z'))
         ob.pov.object_as = 'LATHE'
-        self.report({'INFO'}, "This native POV-Ray primitive")
+        self.report(
+            {'INFO'}, "This native POV-Ray primitive" "won't have any vertex to show in edit mode"
+        )
         ob.pov.curveshape = "lathe"
         bpy.ops.object.modifier_add(type='SCREW')
         mod = ob.modifiers[-1]
@@ -194,7 +256,7 @@ def pov_superellipsoid_define(context, op, ob):
     mesh = pov_define_mesh(mesh, verts, [], faces, "SuperEllipsoid")
 
     if not ob:
-        ob = object_utils.object_data_add(context, mesh, operator=None)
+        ob = object_data_add(context, mesh, operator=None)
         # engine = context.scene.render.engine what for?
         ob = context.object
         ob.name = ob.data.name = "PovSuperellipsoid"
@@ -222,29 +284,18 @@ class POVRAY_OT_superellipsoid_add(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-    # XXX Keep it in sync with __init__'s RenderPovSettingsConePrimitive
+    # Keep in sync within object_properties.py section Superellipsoid
+    # as this allows interactive update
     #     If someone knows how to define operators' props from a func, I'd be delighted to learn it!
-    se_param1: FloatProperty(
-        name="Parameter 1", description="", min=0.00, max=10.0, default=0.04
-    )
+    se_param1: FloatProperty(name="Parameter 1", description="", min=0.00, max=10.0, default=0.04)
 
-    se_param2: FloatProperty(
-        name="Parameter 2", description="", min=0.00, max=10.0, default=0.04
-    )
+    se_param2: FloatProperty(name="Parameter 2", description="", min=0.00, max=10.0, default=0.04)
 
     se_u: IntProperty(
-        name="U-segments",
-        description="radial segmentation",
-        default=20,
-        min=4,
-        max=265,
+        name="U-segments", description="radial segmentation", default=20, min=4, max=265
     )
     se_v: IntProperty(
-        name="V-segments",
-        description="lateral segmentation",
-        default=20,
-        min=4,
-        max=265,
+        name="V-segments", description="lateral segmentation", default=20, min=4, max=265
     )
     se_n1: FloatProperty(
         name="Ring manipulator",
@@ -261,11 +312,7 @@ class POVRAY_OT_superellipsoid_add(Operator):
         max=100.0,
     )
     se_edit: EnumProperty(
-        items=[
-            ("NOTHING", "Nothing", ""),
-            ("NGONS", "N-Gons", ""),
-            ("TRIANGLES", "Triangles", ""),
-        ],
+        items=[("NOTHING", "Nothing", ""), ("NGONS", "N-Gons", ""), ("TRIANGLES", "Triangles", "")],
         name="Fill up and down",
         description="",
         default='TRIANGLES',
@@ -280,8 +327,7 @@ class POVRAY_OT_superellipsoid_add(Operator):
         pov_superellipsoid_define(context, self, None)
 
         self.report(
-            {'INFO'},
-            "This native POV-Ray primitive won't have any vertex to show in edit mode",
+            {'INFO'}, "This native POV-Ray primitive" "won't have any vertex to show in edit mode"
         )
 
         return {'FINISHED'}
@@ -303,12 +349,7 @@ class POVRAY_OT_superellipsoid_update(Operator):
     def poll(cls, context):
         engine = context.scene.render.engine
         ob = context.object
-        return (
-            ob
-            and ob.data
-            and ob.type == 'MESH'
-            and engine in cls.COMPAT_ENGINES
-        )
+        return ob and ob.data and ob.type == 'MESH' and engine in cls.COMPAT_ENGINES
 
     def execute(self, context):
         bpy.ops.object.mode_set(mode="EDIT")
@@ -322,60 +363,52 @@ class POVRAY_OT_superellipsoid_update(Operator):
         return {'FINISHED'}
 
 
-def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
+def create_faces(vert_idx_1, vert_idx_2, closed=False, flipped=False):
+    """Generate viewport proxy mesh data for some pov primitives"""
     faces = []
-    if not vertIdx1 or not vertIdx2:
+    if not vert_idx_1 or not vert_idx_2:
         return None
-    if len(vertIdx1) < 2 and len(vertIdx2) < 2:
+    if len(vert_idx_1) < 2 and len(vert_idx_2) < 2:
         return None
     fan = False
-    if len(vertIdx1) != len(vertIdx2):
-        if len(vertIdx1) == 1 and len(vertIdx2) > 1:
+    if len(vert_idx_1) != len(vert_idx_2):
+        if len(vert_idx_1) == 1 and len(vert_idx_2) > 1:
             fan = True
         else:
             return None
-    total = len(vertIdx2)
+    total = len(vert_idx_2)
     if closed:
         if flipped:
-            face = [vertIdx1[0], vertIdx2[0], vertIdx2[total - 1]]
+            face = [vert_idx_1[0], vert_idx_2[0], vert_idx_2[total - 1]]
             if not fan:
-                face.append(vertIdx1[total - 1])
+                face.append(vert_idx_1[total - 1])
             faces.append(face)
 
         else:
-            face = [vertIdx2[0], vertIdx1[0]]
+            face = [vert_idx_2[0], vert_idx_1[0]]
             if not fan:
-                face.append(vertIdx1[total - 1])
-            face.append(vertIdx2[total - 1])
+                face.append(vert_idx_1[total - 1])
+            face.append(vert_idx_2[total - 1])
             faces.append(face)
     for num in range(total - 1):
         if flipped:
             if fan:
-                face = [vertIdx2[num], vertIdx1[0], vertIdx2[num + 1]]
+                face = [vert_idx_2[num], vert_idx_1[0], vert_idx_2[num + 1]]
             else:
-                face = [
-                    vertIdx2[num],
-                    vertIdx1[num],
-                    vertIdx1[num + 1],
-                    vertIdx2[num + 1],
-                ]
+                face = [vert_idx_2[num], vert_idx_1[num], vert_idx_1[num + 1], vert_idx_2[num + 1]]
             faces.append(face)
         else:
             if fan:
-                face = [vertIdx1[0], vertIdx2[num], vertIdx2[num + 1]]
+                face = [vert_idx_1[0], vert_idx_2[num], vert_idx_2[num + 1]]
             else:
-                face = [
-                    vertIdx1[num],
-                    vertIdx2[num],
-                    vertIdx2[num + 1],
-                    vertIdx1[num + 1],
-                ]
+                face = [vert_idx_1[num], vert_idx_2[num], vert_idx_2[num + 1], vert_idx_1[num + 1]]
             faces.append(face)
 
     return faces
 
 
 def power(a, b):
+    """Workaround to negative a, where the math.pow() method would return a ValueError."""
     if a < 0:
         return -((-a) ** b)
     return a ** b
@@ -392,22 +425,17 @@ def supertoroid(R, r, u, v, n1, n2):
         for j in range(v):
             c2 = R + r * power(cos(j * b), n2)
             s2 = r * power(sin(j * b), n2)
-            verts.append(
-                (c * c2, s * c2, s2)
-            )  # type as a (mathutils.Vector(c*c2,s*c2,s2))?
+            verts.append((c * c2, s * c2, s2))  # type as a (mathutils.Vector(c*c2,s*c2,s2))?
         if i > 0:
-            f = createFaces(
-                range((i - 1) * v, i * v),
-                range(i * v, (i + 1) * v),
-                closed=True,
-            )
+            f = create_faces(range((i - 1) * v, i * v), range(i * v, (i + 1) * v), closed=True)
             faces.extend(f)
-    f = createFaces(range((u - 1) * v, u * v), range(v), closed=True)
+    f = create_faces(range((u - 1) * v, u * v), range(v), closed=True)
     faces.extend(f)
     return verts, faces
 
 
 def pov_supertorus_define(context, op, ob):
+    """Pick POV supertorus properties either from operator (object creation/import) or data updating """
     if op:
         mesh = None
         st_R = op.st_R
@@ -444,7 +472,7 @@ def pov_supertorus_define(context, op, ob):
     verts, faces = supertoroid(rad1, rad2, st_u, st_v, st_n1, st_n2)
     mesh = pov_define_mesh(mesh, verts, [], faces, "PovSuperTorus", True)
     if not ob:
-        ob = object_utils.object_data_add(context, mesh, operator=None)
+        ob = object_data_add(context, mesh, operator=None)
         ob.pov.object_as = 'SUPERTORUS'
         ob.pov.st_major_radius = st_R
         ob.pov.st_minor_radius = st_r
@@ -473,25 +501,13 @@ class POVRAY_OT_supertorus_add(Operator):
         max=100.0,
     )
     st_r: FloatProperty(
-        name="small radius",
-        description="The radius of the tube",
-        default=0.3,
-        min=0.01,
-        max=100.0,
+        name="small radius", description="The radius of the tube", default=0.3, min=0.01, max=100.0
     )
     st_u: IntProperty(
-        name="U-segments",
-        description="radial segmentation",
-        default=16,
-        min=3,
-        max=265,
+        name="U-segments", description="radial segmentation", default=16, min=3, max=265
     )
     st_v: IntProperty(
-        name="V-segments",
-        description="lateral segmentation",
-        default=8,
-        min=3,
-        max=265,
+        name="V-segments", description="lateral segmentation", default=8, min=3, max=265
     )
     st_n1: FloatProperty(
         name="Ring manipulator",
@@ -508,13 +524,9 @@ class POVRAY_OT_supertorus_add(Operator):
         max=100.0,
     )
     st_ie: BoolProperty(
-        name="Use Int.+Ext. radii",
-        description="Use internal and external radii",
-        default=False,
+        name="Use Int.+Ext. radii", description="Use internal and external radii", default=False
     )
-    st_edit: BoolProperty(
-        name="", description="", default=False, options={'HIDDEN'}
-    )
+    st_edit: BoolProperty(name="", description="", default=False, options={'HIDDEN'})
 
     @classmethod
     def poll(cls, context):
@@ -525,8 +537,7 @@ class POVRAY_OT_supertorus_add(Operator):
         pov_supertorus_define(context, self, None)
 
         self.report(
-            {'INFO'},
-            "This native POV-Ray primitive won't have any vertex to show in edit mode",
+            {'INFO'}, "This native POV-Ray primitive" "won't have any vertex to show in edit mode"
         )
         return {'FINISHED'}
 
@@ -547,12 +558,7 @@ class POVRAY_OT_supertorus_update(Operator):
     def poll(cls, context):
         engine = context.scene.render.engine
         ob = context.object
-        return (
-            ob
-            and ob.data
-            and ob.type == 'MESH'
-            and engine in cls.COMPAT_ENGINES
-        )
+        return ob and ob.data and ob.type == 'MESH' and engine in cls.COMPAT_ENGINES
 
     def execute(self, context):
         bpy.ops.object.mode_set(mode="EDIT")
@@ -577,18 +583,12 @@ class POVRAY_OT_loft_add(Operator):
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
     loft_n: IntProperty(
-        name="Segments",
-        description="Vertical segments",
-        default=16,
-        min=3,
-        max=720,
+        name="Segments", description="Vertical segments", default=16, min=3, max=720
     )
     loft_rings_bottom: IntProperty(
         name="Bottom", description="Bottom rings", default=5, min=2, max=100
     )
-    loft_rings_side: IntProperty(
-        name="Side", description="Side rings", default=10, min=2, max=100
-    )
+    loft_rings_side: IntProperty(name="Side", description="Side rings", default=10, min=2, max=100)
     loft_thick: FloatProperty(
         name="Thickness",
         description="Manipulates the shape of the Ring",
@@ -596,9 +596,7 @@ class POVRAY_OT_loft_add(Operator):
         min=0.01,
         max=1.0,
     )
-    loft_r: FloatProperty(
-        name="Radius", description="Radius", default=1, min=0.01, max=10
-    )
+    loft_r: FloatProperty(name="Radius", description="Radius", default=1, min=0.01, max=10)
     loft_height: FloatProperty(
         name="Height",
         description="Manipulates the shape of the Ring",
@@ -610,10 +608,10 @@ class POVRAY_OT_loft_add(Operator):
     def execute(self, context):
 
         props = self.properties
-        loftData = bpy.data.curves.new('Loft', type='CURVE')
-        loftData.dimensions = '3D'
-        loftData.resolution_u = 2
-        # loftData.show_normal_face = False # deprecated in 2.8
+        loft_data = bpy.data.curves.new('Loft', type='CURVE')
+        loft_data.dimensions = '3D'
+        loft_data.resolution_u = 2
+        # loft_data.show_normal_face = False # deprecated in 2.8
         n = props.loft_n
         thick = props.loft_thick
         side = props.loft_rings_side
@@ -633,11 +631,11 @@ class POVRAY_OT_loft_add(Operator):
                 coords.append((x, y, z))
                 angle += pi * 2 / n
             r0 += distB
-            nurbs = loftData.splines.new('NURBS')
+            nurbs = loft_data.splines.new('NURBS')
             nurbs.points.add(len(coords) - 1)
-            for i, coord in enumerate(coords):
+            for c, coord in enumerate(coords):
                 x, y, z = coord
-                nurbs.points[i].co = (x, y, z, 1)
+                nurbs.points[c].co = (x, y, z, 1)
             nurbs.use_cyclic_u = True
         for i in range(side):
             z += h / side
@@ -648,11 +646,11 @@ class POVRAY_OT_loft_add(Operator):
                 y = r * sin(angle)
                 coords.append((x, y, z))
                 angle += pi * 2 / n
-            nurbs = loftData.splines.new('NURBS')
+            nurbs = loft_data.splines.new('NURBS')
             nurbs.points.add(len(coords) - 1)
-            for i, coord in enumerate(coords):
+            for c, coord in enumerate(coords):
                 x, y, z = coord
-                nurbs.points[i].co = (x, y, z, 1)
+                nurbs.points[c].co = (x, y, z, 1)
             nurbs.use_cyclic_u = True
         r -= thick
         for i in range(side):
@@ -663,11 +661,11 @@ class POVRAY_OT_loft_add(Operator):
                 y = r * sin(angle)
                 coords.append((x, y, z))
                 angle += pi * 2 / n
-            nurbs = loftData.splines.new('NURBS')
+            nurbs = loft_data.splines.new('NURBS')
             nurbs.points.add(len(coords) - 1)
-            for i, coord in enumerate(coords):
+            for c, coord in enumerate(coords):
                 x, y, z = coord
-                nurbs.points[i].co = (x, y, z, 1)
+                nurbs.points[c].co = (x, y, z, 1)
             nurbs.use_cyclic_u = True
             z -= h / side
         z = (-h / 2) + thick
@@ -681,13 +679,13 @@ class POVRAY_OT_loft_add(Operator):
                 coords.append((x, y, z))
                 angle += pi * 2 / n
             r -= distB
-            nurbs = loftData.splines.new('NURBS')
+            nurbs = loft_data.splines.new('NURBS')
             nurbs.points.add(len(coords) - 1)
-            for i, coord in enumerate(coords):
+            for c, coord in enumerate(coords):
                 x, y, z = coord
-                nurbs.points[i].co = (x, y, z, 1)
+                nurbs.points[c].co = (x, y, z, 1)
             nurbs.use_cyclic_u = True
-        ob = bpy.data.objects.new('Loft_shape', loftData)
+        ob = bpy.data.objects.new('Loft_shape', loft_data)
         scn = bpy.context.scene
         scn.collection.objects.link(ob)
         context.view_layer.objects.active = ob
@@ -715,9 +713,7 @@ class POVRAY_OT_plane_add(Operator):
         ob.name = ob.data.name = 'PovInfinitePlane'
         bpy.ops.object.mode_set(mode="EDIT")
         self.report(
-            {'INFO'},
-            "This native POV-Ray primitive "
-            "won't have any vertex to show in edit mode",
+            {'INFO'}, "This native POV-Ray primitive " "won't have any vertex to show in edit mode"
         )
         bpy.ops.mesh.hide(unselected=False)
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -745,9 +741,7 @@ class POVRAY_OT_box_add(Operator):
         ob.name = ob.data.name = 'PovBox'
         bpy.ops.object.mode_set(mode="EDIT")
         self.report(
-            {'INFO'},
-            "This native POV-Ray primitive "
-            "won't have any vertex to show in edit mode",
+            {'INFO'}, "This native POV-Ray primitive " "won't have any vertex to show in edit mode"
         )
         bpy.ops.mesh.hide(unselected=False)
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -756,6 +750,7 @@ class POVRAY_OT_box_add(Operator):
 
 
 def pov_cylinder_define(context, op, ob, radius, loc, loc_cap):
+    """Pick POV cylinder properties either from creation operator, import, or data update """
     if op:
         R = op.R
         loc = bpy.context.scene.cursor.location
@@ -784,11 +779,7 @@ def pov_cylinder_define(context, op, ob, radius, loc, loc_cap):
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.mesh.delete(type='VERT')
     bpy.ops.mesh.primitive_cylinder_add(
-        radius=radius,
-        depth=depth,
-        location=loc,
-        rotation=roteuler,
-        end_fill_type='NGON',
+        radius=radius, depth=depth, location=loc, rotation=roteuler, end_fill_type='NGON'
     )  #'NOTHING'
     bpy.ops.transform.translate(value=trans)
 
@@ -807,7 +798,8 @@ class POVRAY_OT_cylinder_add(Operator):
     bl_description = "Add Cylinder"
     bl_options = {'REGISTER', 'UNDO'}
 
-    # XXX Keep it in sync with __init__'s cylinder Primitive
+    # Keep in sync within object_properties.py section Cylinder
+    # as this allows interactive update
     R: FloatProperty(name="Cylinder radius", min=0.00, max=10.0, default=1.0)
 
     imported_cyl_loc: FloatVectorProperty(
@@ -838,8 +830,7 @@ class POVRAY_OT_cylinder_add(Operator):
                 LOC_CAP = props.imported_cyl_loc_cap
             self.report(
                 {'INFO'},
-                "This native POV-Ray primitive "
-                "won't have any vertex to show in edit mode",
+                "This native POV-Ray primitive " "won't have any vertex to show in edit mode",
             )
 
         pov_cylinder_define(context, self, None, self.R, LOC, LOC_CAP)
@@ -906,10 +897,7 @@ def pov_sphere_define(context, op, ob, loc):
         bpy.ops.mesh.select_all(action='SELECT')
         bpy.ops.mesh.delete(type='VERT')
         bpy.ops.mesh.primitive_ico_sphere_add(
-            subdivisions=4,
-            radius=ob.pov.sphere_radius,
-            location=loc,
-            rotation=obrot,
+            subdivisions=4, radius=ob.pov.sphere_radius, location=loc, rotation=obrot
         )
         # bpy.ops.transform.rotate(axis=obrot,orient_type='GLOBAL')
         bpy.ops.transform.resize(value=obscale)
@@ -921,9 +909,7 @@ def pov_sphere_define(context, op, ob, loc):
         # bpy.ops.transform.rotate(axis=obrot,orient_type='GLOBAL')
 
     if not ob:
-        bpy.ops.mesh.primitive_ico_sphere_add(
-            subdivisions=4, radius=R, location=loc
-        )
+        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, radius=R, location=loc)
         ob = context.object
         ob.name = ob.data.name = "PovSphere"
         ob.pov.object_as = "SPHERE"
@@ -943,7 +929,8 @@ class POVRAY_OT_sphere_add(Operator):
     bl_description = "Add Sphere Shape"
     bl_options = {'REGISTER', 'UNDO'}
 
-    # XXX Keep it in sync with __init__'s torus Primitive
+    # Keep in sync within object_properties.py section Sphere
+    # as this allows interactive update
     R: FloatProperty(name="Sphere radius", min=0.00, max=10.0, default=0.5)
 
     imported_loc: FloatVectorProperty(
@@ -966,8 +953,7 @@ class POVRAY_OT_sphere_add(Operator):
                 LOC = props.imported_loc
                 self.report(
                     {'INFO'},
-                    "This native POV-Ray primitive "
-                    "won't have any vertex to show in edit mode",
+                    "This native POV-Ray primitive " "won't have any vertex to show in edit mode",
                 )
         pov_sphere_define(context, self, None, LOC)
 
@@ -1006,18 +992,11 @@ class POVRAY_OT_sphere_update(Operator):
     def poll(cls, context):
         engine = context.scene.render.engine
         ob = context.object
-        return (
-            ob
-            and ob.data
-            and ob.type == 'MESH'
-            and engine in cls.COMPAT_ENGINES
-        )
+        return ob and ob.data and ob.type == 'MESH' and engine in cls.COMPAT_ENGINES
 
     def execute(self, context):
 
-        pov_sphere_define(
-            context, None, context.object, context.object.location
-        )
+        pov_sphere_define(context, None, context.object, context.object.location)
 
         return {'FINISHED'}
 
@@ -1076,7 +1055,7 @@ def pov_cone_define(context, op, ob):
 
     mesh = pov_define_mesh(mesh, verts, [], faces, "PovCone", True)
     if not ob:
-        ob = object_utils.object_data_add(context, mesh, operator=None)
+        ob = object_data_add(context, mesh, operator=None)
         ob.pov.object_as = "CONE"
         ob.pov.cone_base_radius = base
         ob.pov.cone_cap_radius = cap
@@ -1094,7 +1073,7 @@ class POVRAY_OT_cone_add(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-    # XXX Keep it in sync with __init__.py's RenderPovSettingsConePrimitive
+    # Keep in sync within object_properties.py section Cone
     #     If someone knows how to define operators' props from a func, I'd be delighted to learn it!
     base: FloatProperty(
         name="Base radius",
@@ -1118,11 +1097,7 @@ class POVRAY_OT_cone_add(Operator):
         max=265,
     )
     height: FloatProperty(
-        name="Height",
-        description="Height of the cone",
-        default=2.0,
-        min=0.01,
-        max=100.0,
+        name="Height", description="Height of the cone", default=2.0, min=0.01, max=100.0
     )
 
     @classmethod
@@ -1134,8 +1109,7 @@ class POVRAY_OT_cone_add(Operator):
         pov_cone_define(context, self, None)
 
         self.report(
-            {'INFO'},
-            "This native POV-Ray primitive won't have any vertex to show in edit mode",
+            {'INFO'}, "This native POV-Ray primitive" "won't have any vertex to show in edit mode"
         )
         return {'FINISHED'}
 
@@ -1156,12 +1130,7 @@ class POVRAY_OT_cone_update(Operator):
     def poll(cls, context):
         engine = context.scene.render.engine
         ob = context.object
-        return (
-            ob
-            and ob.data
-            and ob.type == 'MESH'
-            and engine in cls.COMPAT_ENGINES
-        )
+        return ob and ob.data and ob.type == 'MESH' and engine in cls.COMPAT_ENGINES
 
     def execute(self, context):
         bpy.ops.object.mode_set(mode="EDIT")
@@ -1196,9 +1165,7 @@ class POVRAY_OT_isosurface_box_add(Operator):
         ob = context.object
         bpy.ops.object.mode_set(mode="EDIT")
         self.report(
-            {'INFO'},
-            "This native POV-Ray primitive "
-            "won't have any vertex to show in edit mode",
+            {'INFO'}, "This native POV-Ray primitive " "won't have any vertex to show in edit mode"
         )
         bpy.ops.mesh.hide(unselected=False)
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -1226,9 +1193,7 @@ class POVRAY_OT_isosurface_sphere_add(Operator):
         ob = context.object
         bpy.ops.object.mode_set(mode="EDIT")
         self.report(
-            {'INFO'},
-            "This native POV-Ray primitive "
-            "won't have any vertex to show in edit mode",
+            {'INFO'}, "This native POV-Ray primitive " "won't have any vertex to show in edit mode"
         )
         bpy.ops.mesh.hide(unselected=False)
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -1338,39 +1303,29 @@ class POVRAY_OT_height_field_add(bpy.types.Operator, ImportHelper):
     bl_description = "Add Height Field"
     bl_options = {'REGISTER', 'UNDO'}
 
-    # XXX Keep it in sync with __init__'s hf Primitive
+    # Keep in sync within object_properties.py section HeightFields
+    # as this allows interactive update
+
     # filename_ext = ".png"
 
     # filter_glob = StringProperty(
     # default="*.exr;*.gif;*.hdr;*.iff;*.jpeg;*.jpg;*.pgm;*.png;*.pot;*.ppm;*.sys;*.tga;*.tiff;*.EXR;*.GIF;*.HDR;*.IFF;*.JPEG;*.JPG;*.PGM;*.PNG;*.POT;*.PPM;*.SYS;*.TGA;*.TIFF",
     # options={'HIDDEN'},
     # )
-    quality: IntProperty(
-        name="Quality", description="", default=100, min=1, max=100
-    )
+    quality: IntProperty(name="Quality", description="", default=100, min=1, max=100)
     hf_filename: StringProperty(maxlen=1024)
 
-    hf_gamma: FloatProperty(
-        name="Gamma", description="Gamma", min=0.0001, max=20.0, default=1.0
-    )
+    hf_gamma: FloatProperty(name="Gamma", description="Gamma", min=0.0001, max=20.0, default=1.0)
 
-    hf_premultiplied: BoolProperty(
-        name="Premultiplied", description="Premultiplied", default=True
-    )
+    hf_premultiplied: BoolProperty(name="Premultiplied", description="Premultiplied", default=True)
 
     hf_smooth: BoolProperty(name="Smooth", description="Smooth", default=False)
 
     hf_water: FloatProperty(
-        name="Water Level",
-        description="Wather Level",
-        min=0.00,
-        max=1.00,
-        default=0.0,
+        name="Water Level", description="Wather Level", min=0.00, max=1.00, default=0.0
     )
 
-    hf_hierarchy: BoolProperty(
-        name="Hierarchy", description="Height field hierarchy", default=True
-    )
+    hf_hierarchy: BoolProperty(name="Hierarchy", description="Height field hierarchy", default=True)
 
     def execute(self, context):
         props = self.properties
@@ -1390,9 +1345,7 @@ class POVRAY_OT_height_field_add(bpy.types.Operator, ImportHelper):
         w, h = hf_tex.image.size[:]
         w = int(w / res)
         h = int(h / res)
-        bpy.ops.mesh.primitive_grid_add(
-            x_subdivisions=w, y_subdivisions=h, size=0.5
-        )
+        bpy.ops.mesh.primitive_grid_add(x_subdivisions=w, y_subdivisions=h, size=0.5)
         ob = context.object
         ob.name = ob.data.name = '%s' % im_name
         ob.data.materials.append(mat)
@@ -1409,7 +1362,9 @@ class POVRAY_OT_height_field_add(bpy.types.Operator, ImportHelper):
         bpy.ops.mesh.hide(unselected=False)
         bpy.ops.object.mode_set(mode="OBJECT")
         ob.pov.object_as = 'HEIGHT_FIELD'
-        ob.pov.hf_filename = impath
+        # POV-Ray will soon use only forwards slashes on every OS and already can
+        forward_impath = impath.replace(os.sep, '/')
+        ob.pov.hf_filename = forward_impath
         return {'FINISHED'}
 
 
@@ -1417,6 +1372,7 @@ class POVRAY_OT_height_field_add(bpy.types.Operator, ImportHelper):
 def pov_torus_define(context, op, ob):
     """Add the representation of POV torus using just a Blender torus.
 
+    Picking properties either from creation operator, import, or data update.
     But flag its primitive type with a specific pov.object_as attribute and lock edit mode
     to keep proxy consistency by hiding edit geometry."""
 
@@ -1454,10 +1410,7 @@ def pov_torus_define(context, op, ob):
 
     if not ob:
         bpy.ops.mesh.primitive_torus_add(
-            major_segments=mas,
-            minor_segments=mis,
-            major_radius=mar,
-            minor_radius=mir,
+            major_segments=mas, minor_segments=mis, major_radius=mar, minor_radius=mir
         )
         ob = context.object
         ob.name = ob.data.name = "PovTorus"
@@ -1479,13 +1432,10 @@ class POVRAY_OT_torus_add(Operator):
     bl_description = "Add Torus"
     bl_options = {'REGISTER', 'UNDO'}
 
-    # XXX Keep it in sync with __init__'s torus Primitive
-    mas: IntProperty(
-        name="Major Segments", description="", default=48, min=3, max=720
-    )
-    mis: IntProperty(
-        name="Minor Segments", description="", default=12, min=3, max=720
-    )
+    # Keep in sync within object_properties.py section Torus
+    # as this allows interactive update
+    mas: IntProperty(name="Major Segments", description="", default=48, min=3, max=720)
+    mis: IntProperty(name="Minor Segments", description="", default=12, min=3, max=720)
     mar: FloatProperty(name="Major Radius", description="", default=1.0)
     mir: FloatProperty(name="Minor Radius", description="", default=0.25)
 
@@ -1497,9 +1447,7 @@ class POVRAY_OT_torus_add(Operator):
         mis = props.mis
         pov_torus_define(context, self, None)
         self.report(
-            {'INFO'},
-            "This native POV-Ray primitive "
-            "won't have any vertex to show in edit mode",
+            {'INFO'}, "This native POV-Ray primitive " "won't have any vertex to show in edit mode"
         )
         return {'FINISHED'}
 
@@ -1520,12 +1468,7 @@ class POVRAY_OT_torus_update(Operator):
     def poll(cls, context):
         engine = context.scene.render.engine
         ob = context.object
-        return (
-            ob
-            and ob.data
-            and ob.type == 'MESH'
-            and engine in cls.COMPAT_ENGINES
-        )
+        return ob and ob.data and ob.type == 'MESH' and engine in cls.COMPAT_ENGINES
 
     def execute(self, context):
 
@@ -1545,19 +1488,17 @@ class POVRAY_OT_prism_add(Operator):
     bl_description = "Create Prism"
     bl_options = {'REGISTER', 'UNDO'}
 
-    prism_n: IntProperty(
-        name="Sides", description="Number of sides", default=5, min=3, max=720
-    )
+    prism_n: IntProperty(name="Sides", description="Number of sides", default=5, min=3, max=720)
     prism_r: FloatProperty(name="Radius", description="Radius", default=1.0)
 
     def execute(self, context):
 
         props = self.properties
-        loftData = bpy.data.curves.new('Prism', type='CURVE')
-        loftData.dimensions = '2D'
-        loftData.resolution_u = 2
-        # loftData.show_normal_face = False
-        loftData.extrude = 2
+        loft_data = bpy.data.curves.new('Prism', type='CURVE')
+        loft_data.dimensions = '2D'
+        loft_data.resolution_u = 2
+        # loft_data.show_normal_face = False
+        loft_data.extrude = 2
         n = props.prism_n
         r = props.prism_r
         coords = []
@@ -1568,14 +1509,14 @@ class POVRAY_OT_prism_add(Operator):
             y = r * sin(angle)
             coords.append((x, y, z))
             angle += pi * 2 / n
-        poly = loftData.splines.new('POLY')
+        poly = loft_data.splines.new('POLY')
         poly.points.add(len(coords) - 1)
         for i, coord in enumerate(coords):
             x, y, z = coord
             poly.points[i].co = (x, y, z, 1)
         poly.use_cyclic_u = True
 
-        ob = bpy.data.objects.new('Prism_shape', loftData)
+        ob = bpy.data.objects.new('Prism_shape', loft_data)
         scn = bpy.context.scene
         scn.collection.objects.link(ob)
         context.view_layer.objects.active = ob
@@ -1587,8 +1528,11 @@ class POVRAY_OT_prism_add(Operator):
 
 ##############################PARAMETRIC######################################
 def pov_parametric_define(context, op, ob):
-    """Add the representation of POV parametric surfaces by math surface from add mesh extra objects addon."""
+    """Add the representation of POV parametric surfaces by math surface from add mesh extra objects addon.
 
+    Picking properties either from creation operator, import, or data update.
+    But flag its primitive type with a specific pov.object_as attribute and lock edit mode
+    to keep proxy consistency by hiding edit geometry."""
     if op:
         u_min = op.u_min
         u_max = op.u_max
@@ -1631,7 +1575,10 @@ def pov_parametric_define(context, op, ob):
         bpy.ops.mesh.select_all(action='SELECT')
         # extra work:
         bpy.ops.transform.translate(value=(obloc - curloc), proportional_size=1)
-        bpy.ops.transform.rotate(axis=obrot, proportional_size=1)
+        # XXX TODO : https://devtalk.blender.org/t/bpy-ops-transform-rotate-option-axis/6235/7
+        # to complete necessary extra work rotation, after updating from blender version > 2.92
+        # update and uncomment below, but simple axis deprecated since 2.8
+        # bpy.ops.transform.rotate(axis=obrot, proportional_size=1)
 
         bpy.ops.mesh.hide(unselected=False)
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -1671,7 +1618,8 @@ class POVRAY_OT_parametric_add(Operator):
     bl_description = "Add Paramertic"
     bl_options = {'REGISTER', 'UNDO'}
 
-    # XXX Keep it in sync with __init__'s Parametric primitive
+    # Keep in sync within object_properties.py section Parametric primitive
+    # as this allows interactive update
     u_min: FloatProperty(name="U Min", description="", default=0.0)
     v_min: FloatProperty(name="V Min", description="", default=0.0)
     u_max: FloatProperty(name="U Max", description="", default=6.28)
@@ -1692,9 +1640,7 @@ class POVRAY_OT_parametric_add(Operator):
 
         pov_parametric_define(context, self, None)
         self.report(
-            {'INFO'},
-            "This native POV-Ray primitive "
-            "won't have any vertex to show in edit mode",
+            {'INFO'}, "This native POV-Ray primitive " "won't have any vertex to show in edit mode"
         )
         return {'FINISHED'}
 
@@ -1715,12 +1661,7 @@ class POVRAY_OT_parametric_update(Operator):
     def poll(cls, context):
         engine = context.scene.render.engine
         ob = context.object
-        return (
-            ob
-            and ob.data
-            and ob.type == 'MESH'
-            and engine in cls.COMPAT_ENGINES
-        )
+        return ob and ob.data and ob.type == 'MESH' and engine in cls.COMPAT_ENGINES
 
     def execute(self, context):
 
@@ -1741,19 +1682,14 @@ class POVRAY_OT_shape_polygon_to_circle_add(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-    # XXX Keep it in sync with __init__'s polytocircle properties
+    # Keep in sync within object_properties.py section PolygonToCircle properties
+    # as this allows interactive update
     polytocircle_resolution: IntProperty(
         name="Resolution", description="", default=3, min=0, max=256
     )
-    polytocircle_ngon: IntProperty(
-        name="NGon", description="", min=3, max=64, default=5
-    )
-    polytocircle_ngonR: FloatProperty(
-        name="NGon Radius", description="", default=0.3
-    )
-    polytocircle_circleR: FloatProperty(
-        name="Circle Radius", description="", default=1.0
-    )
+    polytocircle_ngon: IntProperty(name="NGon", description="", min=3, max=64, default=5)
+    polytocircle_ngonR: FloatProperty(name="NGon Radius", description="", default=0.3)
+    polytocircle_circleR: FloatProperty(name="Circle Radius", description="", default=1.0)
 
     def execute(self, context):
         props = self.properties
@@ -1771,10 +1707,7 @@ class POVRAY_OT_shape_polygon_to_circle_add(Operator):
         numCircleVerts = ngon + (ngon * resolution)
         bpy.ops.mesh.select_all(action='DESELECT')
         bpy.ops.mesh.primitive_circle_add(
-            vertices=numCircleVerts,
-            radius=circleR,
-            fill_type='NGON',
-            enter_editmode=True,
+            vertices=numCircleVerts, radius=circleR, fill_type='NGON', enter_editmode=True
         )
         bpy.ops.transform.translate(value=(0, 0, -1))
         bpy.ops.mesh.select_all(action='SELECT')
@@ -1782,10 +1715,7 @@ class POVRAY_OT_shape_polygon_to_circle_add(Operator):
         if ngon < 5:
             bpy.ops.mesh.select_all(action='DESELECT')
             bpy.ops.mesh.primitive_circle_add(
-                vertices=ngon,
-                radius=ngonR,
-                fill_type='TRIFAN',
-                enter_editmode=True,
+                vertices=ngon, radius=ngonR, fill_type='TRIFAN', enter_editmode=True
             )
             bpy.ops.transform.translate(value=(0, 0, 1))
             bpy.ops.mesh.select_all(action='SELECT')
@@ -1800,547 +1730,6 @@ class POVRAY_OT_shape_polygon_to_circle_add(Operator):
         bpy.ops.object.mode_set(mode="EDIT")
         bpy.ops.mesh.hide(unselected=False)
         bpy.ops.object.mode_set(mode="OBJECT")
-        return {'FINISHED'}
-
-
-#############################IMPORT
-
-
-class ImportPOV(bpy.types.Operator, ImportHelper):
-    """Load Povray files"""
-
-    bl_idname = "import_scene.pov"
-    bl_label = "POV-Ray files (.pov/.inc)"
-    bl_options = {'PRESET', 'UNDO'}
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
-
-    # -----------
-    # File props.
-    files: CollectionProperty(
-        type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'}
-    )
-    directory: StringProperty(
-        maxlen=1024, subtype='FILE_PATH', options={'HIDDEN', 'SKIP_SAVE'}
-    )
-
-    filename_ext = {".pov", ".inc"}
-    filter_glob: StringProperty(default="*.pov;*.inc", options={'HIDDEN'})
-
-    import_at_cur: BoolProperty(
-        name="Import at Cursor Location",
-        description="Ignore Object Matrix",
-        default=False,
-    )
-
-    def execute(self, context):
-        from mathutils import Matrix
-
-        verts = []
-        faces = []
-        materials = []
-        blendMats = []  ##############
-        povMats = []  ##############
-        colors = []
-        matNames = []
-        lenverts = None
-        lenfaces = None
-        suffix = -1
-        name = 'Mesh2_%s' % suffix
-        name_search = False
-        verts_search = False
-        faces_search = False
-        plane_search = False
-        box_search = False
-        cylinder_search = False
-        sphere_search = False
-        cone_search = False
-        tex_search = False  ##################
-        cache = []
-        matrixes = {}
-        writematrix = False
-        index = None
-        value = None
-        # filepov = bpy.path.abspath(self.filepath) #was used for single files
-
-        def mat_search(cache):
-            r = g = b = 0.5
-            f = t = 0
-            color = None
-
-            for item, value in enumerate(cache):
-
-                if value == 'texture':
-                    pass
-
-                if value == 'pigment':
-
-                    if cache[item + 2] in {'rgb', 'srgb'}:
-                        pass
-
-                    elif cache[item + 2] in {'rgbf', 'srgbf'}:
-                        pass
-
-                    elif cache[item + 2] in {'rgbt', 'srgbt'}:
-                        try:
-                            r, g, b, t = (
-                                float(cache[item + 3]),
-                                float(cache[item + 4]),
-                                float(cache[item + 5]),
-                                float(cache[item + 6]),
-                            )
-                        except:
-                            r = g = b = t = float(cache[item + 2])
-                        color = (r, g, b, t)
-
-                    elif cache[item + 2] in {'rgbft', 'srgbft'}:
-                        pass
-
-                    else:
-                        pass
-
-            if colors == [] or (colors != [] and color not in colors):
-                colors.append(color)
-                name = ob.name + "_mat"
-                matNames.append(name)
-                mat = bpy.data.materials.new(name)
-                mat.diffuse_color = (r, g, b)
-                mat.alpha = 1 - t
-                if mat.alpha != 1:
-                    mat.use_transparency = True
-                ob.data.materials.append(mat)
-
-            else:
-                for i, value in enumerate(colors):
-                    if color == value:
-                        ob.data.materials.append(
-                            bpy.data.materials[matNames[i]]
-                        )
-
-        for file in self.files:
-            print("Importing file: " + file.name)
-            filepov = self.directory + file.name
-            for line in open(filepov):
-                string = line.replace("{", " ")
-                string = string.replace("}", " ")
-                string = string.replace("<", " ")
-                string = string.replace(">", " ")
-                string = string.replace(",", " ")
-                lw = string.split()
-                lenwords = len(lw)
-                if lw:
-                    if lw[0] == "object":
-                        writematrix = True
-                    if writematrix:
-                        if lw[0] not in {"object", "matrix"}:
-                            index = lw[0]
-                        if lw[0] in {"matrix"}:
-                            value = [
-                                float(lw[1]),
-                                float(lw[2]),
-                                float(lw[3]),
-                                float(lw[4]),
-                                float(lw[5]),
-                                float(lw[6]),
-                                float(lw[7]),
-                                float(lw[8]),
-                                float(lw[9]),
-                                float(lw[10]),
-                                float(lw[11]),
-                                float(lw[12]),
-                            ]
-                            matrixes[index] = value
-                            writematrix = False
-            for line in open(filepov):
-                S = line.replace("{", " { ")
-                S = S.replace("}", " } ")
-                S = S.replace(",", " ")
-                S = S.replace("<", "")
-                S = S.replace(">", " ")
-                S = S.replace("=", " = ")
-                S = S.replace(";", " ; ")
-                S = S.split()
-                lenS = len(S)
-                for i, word in enumerate(S):
-                    ##################Primitives Import##################
-                    if word == 'cone':
-                        cone_search = True
-                        name_search = False
-                    if cone_search:
-                        cache.append(word)
-                        if cache[-1] == '}':
-                            try:
-                                x0 = float(cache[2])
-                                y0 = float(cache[3])
-                                z0 = float(cache[4])
-                                r0 = float(cache[5])
-                                x1 = float(cache[6])
-                                y1 = float(cache[7])
-                                z1 = float(cache[8])
-                                r1 = float(cache[9])
-                                # Y is height in most pov files, not z
-                                bpy.ops.pov.cone_add(
-                                    base=r0, cap=r1, height=(y1 - y0)
-                                )
-                                ob = context.object
-                                ob.location = (x0, y0, z0)
-                                # ob.scale = (r,r,r)
-                                mat_search(cache)
-                            except (ValueError):
-                                pass
-                            cache = []
-                            cone_search = False
-                    if word == 'plane':
-                        plane_search = True
-                        name_search = False
-                    if plane_search:
-                        cache.append(word)
-                        if cache[-1] == '}':
-                            try:
-                                bpy.ops.pov.addplane()
-                                ob = context.object
-                                mat_search(cache)
-                            except (ValueError):
-                                pass
-                            cache = []
-                            plane_search = False
-                    if word == 'box':
-                        box_search = True
-                        name_search = False
-                    if box_search:
-                        cache.append(word)
-                        if cache[-1] == '}':
-                            try:
-                                x0 = float(cache[2])
-                                y0 = float(cache[3])
-                                z0 = float(cache[4])
-                                x1 = float(cache[5])
-                                y1 = float(cache[6])
-                                z1 = float(cache[7])
-                                # imported_corner_1=(x0, y0, z0)
-                                # imported_corner_2 =(x1, y1, z1)
-                                center = (
-                                    (x0 + x1) / 2,
-                                    (y0 + y1) / 2,
-                                    (z0 + z1) / 2,
-                                )
-                                bpy.ops.pov.addbox()
-                                ob = context.object
-                                ob.location = center
-                                mat_search(cache)
-
-                            except (ValueError):
-                                pass
-                            cache = []
-                            box_search = False
-                    if word == 'cylinder':
-                        cylinder_search = True
-                        name_search = False
-                    if cylinder_search:
-                        cache.append(word)
-                        if cache[-1] == '}':
-                            try:
-                                x0 = float(cache[2])
-                                y0 = float(cache[3])
-                                z0 = float(cache[4])
-                                x1 = float(cache[5])
-                                y1 = float(cache[6])
-                                z1 = float(cache[7])
-                                imported_cyl_loc = (x0, y0, z0)
-                                imported_cyl_loc_cap = (x1, y1, z1)
-
-                                r = float(cache[8])
-
-                                vec = Vector(imported_cyl_loc_cap) - Vector(
-                                    imported_cyl_loc
-                                )
-                                depth = vec.length
-                                rot = Vector((0, 0, 1)).rotation_difference(
-                                    vec
-                                )  # Rotation from Z axis.
-                                trans = rot @ Vector(
-                                    (0, 0, depth / 2)
-                                )  # Such that origin is at center of the base of the cylinder.
-                                # center = ((x0 + x1)/2,(y0 + y1)/2,(z0 + z1)/2)
-                                scaleZ = (
-                                    sqrt(
-                                        (x1 - x0) ** 2
-                                        + (y1 - y0) ** 2
-                                        + (z1 - z0) ** 2
-                                    )
-                                    / 2
-                                )
-                                bpy.ops.pov.addcylinder(
-                                    R=r,
-                                    imported_cyl_loc=imported_cyl_loc,
-                                    imported_cyl_loc_cap=imported_cyl_loc_cap,
-                                )
-                                ob = context.object
-                                ob.location = (x0, y0, z0)
-                                ob.rotation_euler = rot.to_euler()
-                                ob.scale = (1, 1, scaleZ)
-
-                                # scale data rather than obj?
-                                # bpy.ops.object.mode_set(mode='EDIT')
-                                # bpy.ops.mesh.reveal()
-                                # bpy.ops.mesh.select_all(action='SELECT')
-                                # bpy.ops.transform.resize(value=(1,1,scaleZ), orient_type='LOCAL')
-                                # bpy.ops.mesh.hide(unselected=False)
-                                # bpy.ops.object.mode_set(mode='OBJECT')
-
-                                mat_search(cache)
-
-                            except (ValueError):
-                                pass
-                            cache = []
-                            cylinder_search = False
-                    if word == 'sphere':
-                        sphere_search = True
-                        name_search = False
-                    if sphere_search:
-                        cache.append(word)
-                        if cache[-1] == '}':
-                            x = y = z = r = 0
-                            try:
-                                x = float(cache[2])
-                                y = float(cache[3])
-                                z = float(cache[4])
-                                r = float(cache[5])
-
-                            except (ValueError):
-                                pass
-                            except:
-                                x = y = z = float(cache[2])
-                                r = float(cache[3])
-                            bpy.ops.pov.addsphere(R=r, imported_loc=(x, y, z))
-                            ob = context.object
-                            ob.location = (x, y, z)
-                            ob.scale = (r, r, r)
-                            mat_search(cache)
-                            cache = []
-                            sphere_search = False
-                    ##################End Primitives Import##################
-                    if word == '#declare':
-                        name_search = True
-                    if name_search:
-                        cache.append(word)
-                        if word == 'mesh2':
-                            name_search = False
-                            if cache[-2] == '=':
-                                name = cache[-3]
-                            else:
-                                suffix += 1
-                            cache = []
-                        if word in {'texture', ';'}:
-                            name_search = False
-                            cache = []
-                    if word == 'vertex_vectors':
-                        verts_search = True
-                    if verts_search:
-                        cache.append(word)
-                        if word == '}':
-                            verts_search = False
-                            lenverts = cache[2]
-                            cache.pop()
-                            cache.pop(0)
-                            cache.pop(0)
-                            cache.pop(0)
-                            for i in range(int(lenverts)):
-                                x = i * 3
-                                y = (i * 3) + 1
-                                z = (i * 3) + 2
-                                verts.append(
-                                    (
-                                        float(cache[x]),
-                                        float(cache[y]),
-                                        float(cache[z]),
-                                    )
-                                )
-                            cache = []
-                    # if word == 'face_indices':
-                    # faces_search = True
-                    if word == 'texture_list':  ########
-                        tex_search = True  #######
-                    if tex_search:  #########
-                        if (
-                            word
-                            not in {
-                                'texture_list',
-                                'texture',
-                                '{',
-                                '}',
-                                'face_indices',
-                            }
-                            and word.isdigit() == False
-                        ):  ##############
-                            povMats.append(word)  #################
-                    if word == 'face_indices':
-                        tex_search = False  ################
-                        faces_search = True
-                    if faces_search:
-                        cache.append(word)
-                        if word == '}':
-                            faces_search = False
-                            lenfaces = cache[2]
-                            cache.pop()
-                            cache.pop(0)
-                            cache.pop(0)
-                            cache.pop(0)
-                            lf = int(lenfaces)
-                            var = int(len(cache) / lf)
-                            for i in range(lf):
-                                if var == 3:
-                                    v0 = i * 3
-                                    v1 = i * 3 + 1
-                                    v2 = i * 3 + 2
-                                    faces.append(
-                                        (
-                                            int(cache[v0]),
-                                            int(cache[v1]),
-                                            int(cache[v2]),
-                                        )
-                                    )
-                                if var == 4:
-                                    v0 = i * 4
-                                    v1 = i * 4 + 1
-                                    v2 = i * 4 + 2
-                                    m = i * 4 + 3
-                                    materials.append((int(cache[m])))
-                                    faces.append(
-                                        (
-                                            int(cache[v0]),
-                                            int(cache[v1]),
-                                            int(cache[v2]),
-                                        )
-                                    )
-                                if var == 6:
-                                    v0 = i * 6
-                                    v1 = i * 6 + 1
-                                    v2 = i * 6 + 2
-                                    m0 = i * 6 + 3
-                                    m1 = i * 6 + 4
-                                    m2 = i * 6 + 5
-                                    materials.append(
-                                        (
-                                            int(cache[m0]),
-                                            int(cache[m1]),
-                                            int(cache[m2]),
-                                        )
-                                    )
-                                    faces.append(
-                                        (
-                                            int(cache[v0]),
-                                            int(cache[v1]),
-                                            int(cache[v2]),
-                                        )
-                                    )
-                            # mesh = pov_define_mesh(None, verts, [], faces, name, hide_geometry=False)
-                            # ob = object_utils.object_data_add(context, mesh, operator=None)
-
-                            me = bpy.data.meshes.new(name)  ########
-                            ob = bpy.data.objects.new(name, me)  ##########
-                            bpy.context.collection.objects.link(ob)  #########
-                            me.from_pydata(verts, [], faces)  ############
-
-                            for mat in bpy.data.materials:  ##############
-                                blendMats.append(mat.name)  #############
-                            for mName in povMats:  #####################
-                                if mName not in blendMats:  ###########
-                                    povMat = bpy.data.materials.new(
-                                        mName
-                                    )  #################
-                                    mat_search(cache)
-                                ob.data.materials.append(
-                                    bpy.data.materials[mName]
-                                )  ###################
-                            if materials:  ##################
-                                for i, val in enumerate(
-                                    materials
-                                ):  ####################
-                                    try:  ###################
-                                        ob.data.polygons[
-                                            i
-                                        ].material_index = (
-                                            val
-                                        )  ####################
-                                    except TypeError:  ###################
-                                        ob.data.polygons[
-                                            i
-                                        ].material_index = int(
-                                            val[0]
-                                        )  ##################
-
-                            blendMats = []  #########################
-                            povMats = []  #########################
-                            materials = []  #########################
-                            cache = []
-                            name_search = True
-                            if name in matrixes and self.import_at_cur == False:
-                                global_matrix = Matrix.Rotation(
-                                    pi / 2.0, 4, 'X'
-                                )
-                                ob = bpy.context.object
-                                matrix = ob.matrix_world
-                                v = matrixes[name]
-                                matrix[0][0] = v[0]
-                                matrix[1][0] = v[1]
-                                matrix[2][0] = v[2]
-                                matrix[0][1] = v[3]
-                                matrix[1][1] = v[4]
-                                matrix[2][1] = v[5]
-                                matrix[0][2] = v[6]
-                                matrix[1][2] = v[7]
-                                matrix[2][2] = v[8]
-                                matrix[0][3] = v[9]
-                                matrix[1][3] = v[10]
-                                matrix[2][3] = v[11]
-                                matrix = global_matrix * ob.matrix_world
-                                ob.matrix_world = matrix
-                            verts = []
-                            faces = []
-
-                    # if word == 'pigment':
-                    # try:
-                    # #all indices have been incremented once to fit a bad test file
-                    # r,g,b,t = float(S[2]),float(S[3]),float(S[4]),float(S[5])
-                    # color = (r,g,b,t)
-
-                    # except (IndexError):
-                    # #all indices have been incremented once to fit alternate test file
-                    # r,g,b,t = float(S[3]),float(S[4]),float(S[5]),float(S[6])
-                    # color = (r,g,b,t)
-                    # except UnboundLocalError:
-                    # # In case no transmit is specified ? put it to 0
-                    # r,g,b,t = float(S[2]),float(S[3]),float(S[4],0)
-                    # color = (r,g,b,t)
-
-                    # except (ValueError):
-                    # color = (0.8,0.8,0.8,0)
-                    # pass
-
-                    # if colors == [] or (colors != [] and color not in colors):
-                    # colors.append(color)
-                    # name = ob.name+"_mat"
-                    # matNames.append(name)
-                    # mat = bpy.data.materials.new(name)
-                    # mat.diffuse_color = (r,g,b)
-                    # mat.alpha = 1-t
-                    # if mat.alpha != 1:
-                    # mat.use_transparency=True
-                    # ob.data.materials.append(mat)
-                    # print (colors)
-                    # else:
-                    # for i in range(len(colors)):
-                    # if color == colors[i]:
-                    # ob.data.materials.append(bpy.data.materials[matNames[i]])
-
-        ##To keep Avogadro Camera angle:
-        # for obj in bpy.context.view_layer.objects:
-        # if obj.type == "CAMERA":
-        # track = obj.constraints.new(type = "TRACK_TO")
-        # track.target = ob
-        # track.track_axis ="TRACK_NEGATIVE_Z"
-        # track.up_axis = "UP_Y"
-        # obj.location = (0,0,0)
         return {'FINISHED'}
 
 
@@ -2371,19 +1760,14 @@ classes = (
     POVRAY_OT_parametric_add,
     POVRAY_OT_parametric_update,
     POVRAY_OT_shape_polygon_to_circle_add,
-    ImportPOV,
 )
 
 
 def register():
-    # from bpy.utils import register_class
-
     for cls in classes:
         register_class(cls)
 
 
 def unregister():
-    from bpy.utils import unregister_class
-
     for cls in classes:
         unregister_class(cls)
