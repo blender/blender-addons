@@ -422,7 +422,7 @@ def unregister():
     scripting.unregister()
     base_ui.unregister()
     render.unregister()
-    scenography.register()
+    scenography.unregister()
     scripting_properties.unregister()
     object_properties.unregister()
     texturing_properties.unregister()
@@ -430,7 +430,7 @@ def unregister():
     scenography_properties.unregister()
     render_properties.unregister()
 
-    for cls in classes:
+    for cls in reversed(classes):
         unregister_class(cls)
 
 

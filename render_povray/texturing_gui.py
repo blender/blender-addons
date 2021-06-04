@@ -49,12 +49,8 @@ from bl_ui import properties_texture
 
 for member in dir(properties_texture):
     subclass = getattr(properties_texture, member)
-    try:
+    if hasattr(subclass, "COMPAT_ENGINES"):
         subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
-    except BaseException as e:
-        print(e.__doc__)
-        print('An exception occurred: {}'.format(e))
-        pass
 del properties_texture
 
 
