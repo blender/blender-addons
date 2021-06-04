@@ -41,6 +41,7 @@ class VRDefaultActionmaps(Enum):
 # Default actions.
 class VRDefaultActions(Enum):
     CONTROLLER_POSE = "controller_pose"
+    TELEPORT = "teleport"
     RAYCAST_SELECT = "raycast_select"
     GRAB = "grab"
     UNDO = "undo"
@@ -140,13 +141,22 @@ def vr_defaults_create_oculus(ac):
                                         "/input/grip/pose",
                                         True,
                                         (0, 0, 0),
-                                        (math.radians(-50), 0, 0)) 
+                                        (math.radians(-50), 0, 0))
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActions.RAYCAST_SELECT.value,
+                                   VRDefaultActions.TELEPORT.value,
                                    "/user/hand/left",
                                    "/input/trigger/value",
                                    "/user/hand/right",
                                    "/input/trigger/value",
+                                   0.3,
+                                   "wm.xr_navigation_teleport",
+                                   'MODAL')    
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActions.RAYCAST_SELECT.value,
+                                   "/user/hand/left",
+                                   "/input/x/click",
+                                   "/user/hand/right",
+                                   "/input/a/click",
                                    0.3,
                                    "wm.xr_select_raycast",
                                    'MODAL')      
@@ -162,7 +172,7 @@ def vr_defaults_create_oculus(ac):
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.UNDO.value,
                                    "/user/hand/left",
-                                   "/input/x/click",
+                                   "/input/y/click",
                                    "",
                                    "",
                                    0.3,
@@ -171,7 +181,7 @@ def vr_defaults_create_oculus(ac):
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.REDO.value,
                                    "/user/hand/right",
-                                   "/input/a/click",
+                                   "/input/b/click",
                                    "",
                                    "",
                                    0.3,
@@ -205,14 +215,23 @@ def vr_defaults_create_wmr(ac):
                                         (0, 0, 0),
                                         (math.radians(-45), 0, 0)) 
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActions.RAYCAST_SELECT.value,
+                                   VRDefaultActions.TELEPORT.value,
                                    "/user/hand/left",
                                    "/input/trigger/value",
                                    "/user/hand/right",
                                    "/input/trigger/value",
                                    0.3,
-                                   "wm.xr_select_raycast",
+                                   "wm.xr_navigation_teleport",
                                    'MODAL')      
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActions.RAYCAST_SELECT.value,
+                                   "/user/hand/left",
+                                   "/input/trackpad/click",
+                                   "/user/hand/right",
+                                   "/input/trackpad/click",
+                                   0.3,
+                                   "wm.xr_select_raycast",
+                                   'MODAL')   
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.GRAB.value,
                                    "/user/hand/left",
@@ -268,14 +287,23 @@ def vr_defaults_create_vive(ac):
                                         (0, 0, 0),
                                         (0, 0, 0)) 
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActions.RAYCAST_SELECT.value,
+                                   VRDefaultActions.TELEPORT.value,
                                    "/user/hand/left",
                                    "/input/trigger/value",
                                    "/user/hand/right",
                                    "/input/trigger/value",
                                    0.3,
-                                   "wm.xr_select_raycast",
+                                   "wm.xr_navigation_teleport",
                                    'MODAL')      
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActions.RAYCAST_SELECT.value,
+                                   "/user/hand/left",
+                                   "/input/trackpad/click",
+                                   "/user/hand/right",
+                                   "/input/trackpad/click",
+                                   0.3,
+                                   "wm.xr_select_raycast",
+                                   'MODAL')   
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.GRAB.value,
                                    "/user/hand/left",
@@ -331,14 +359,23 @@ def vr_defaults_create_index(ac):
                                         (0, 0, 0),
                                         (0, 0, 0)) 
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActions.RAYCAST_SELECT.value,
+                                   VRDefaultActions.TELEPORT.value,
                                    "/user/hand/left",
                                    "/input/trigger/value",
                                    "/user/hand/right",
                                    "/input/trigger/value",
                                    0.3,
-                                   "wm.xr_select_raycast",
+                                   "wm.xr_navigation_teleport",
                                    'MODAL')      
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActions.RAYCAST_SELECT.value,
+                                   "/user/hand/left",
+                                   "/input/a/click",
+                                   "/user/hand/right",
+                                   "/input/a/click",
+                                   0.3,
+                                   "wm.xr_select_raycast",
+                                   'MODAL') 
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.GRAB.value,
                                    "/user/hand/left",
@@ -351,7 +388,7 @@ def vr_defaults_create_index(ac):
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.UNDO.value,
                                    "/user/hand/left",
-                                   "/input/a/click",
+                                   "/input/b/click",
                                    "",
                                    "",
                                    0.3,
@@ -360,7 +397,7 @@ def vr_defaults_create_index(ac):
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.REDO.value,
                                    "/user/hand/right",
-                                   "/input/a/click",
+                                   "/input/b/click",
                                    "",
                                    "",
                                    0.3,

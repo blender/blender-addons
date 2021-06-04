@@ -232,7 +232,7 @@ def actionconfig_export_as_data(ac, filepath, *, all_actionmaps=True, sort=False
         fw("    # Only add keywords that are supported.\n")
         fw("    from bpy.app import version as blender_version\n")
         fw("    keywords = {}\n")
-        fw("    if blender_version >= (2, 93, 0):\n")
+        fw("    if blender_version >= (3, 0, 0):\n")
         fw("        keywords[\"actionconfig_version\"] = actionconfig_version\n")
 
         fw("    import os\n")
