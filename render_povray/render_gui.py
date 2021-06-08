@@ -421,13 +421,13 @@ def rad_panel_func(self, context):
 # addon_utils.paths()[0]
 # addon_utils.modules()
 # mod.bl_info['name'] == 'Freestyle SVG Exporter':
-bpy.utils.script_paths("addons")
-# render_freestyle_svg = os.path.join(bpy.utils.script_paths("addons"), "render_freestyle_svg.py")
+bpy.utils.script_paths(subdir="addons")
+# render_freestyle_svg = os.path.join(bpy.utils.script_paths(subdir="addons"), "render_freestyle_svg.py")
 
 render_freestyle_svg = bpy.context.preferences.addons.get('render_freestyle_svg')
 # mpath=addon_utils.paths()[0].render_freestyle_svg
 # import mpath
-# from mpath import render_freestyle_svg #= addon_utils.modules(['Freestyle SVG Exporter'])
+# from mpath import render_freestyle_svg #= addon_utils.modules(module_cache=['Freestyle SVG Exporter'])
 # from scripts\\addons import render_freestyle_svg
 if check_render_freestyle_svg():
     '''
