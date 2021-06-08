@@ -22,9 +22,12 @@ Pose Library mockup GUI definition.
 
 import bpy
 from bpy.types import (
+    AssetHandle,
     Context,
     Panel,
     UIList,
+    WindowManager,
+    WorkSpace,
 )
 
 from bpy_extras import asset_utils
@@ -185,12 +188,24 @@ _register, _unregister = bpy.utils.register_classes_factory(classes)
 def register() -> None:
     _register()
 
+    WorkSpace.active_pose_asset_index = bpy.props.IntProperty(
+        name="Active Pose Asset",
+        # TODO explain which list the index belongs to, or how it can be used to get the pose.
+        description="Per workspace index of the active pose asset"
+    )
+    # Register for window-manager. This is a global property that shouldn't be
+    # written to files.
+    WindowManager.pose_assets = bpy.props.CollectionProperty(type=AssetHandle)
+
     bpy.types.UI_MT_list_item_context_menu.prepend(pose_library_list_item_context_menu)
     bpy.types.FILEBROWSER_MT_context_menu.prepend(pose_library_list_item_context_menu)
 
 
 def unregister() -> None:
     _unregister()
+
+    del WorkSpace.active_pose_asset_index
+    del WindowManager.pose_assets
 
     bpy.types.UI_MT_list_item_context_menu.remove(pose_library_list_item_context_menu)
     bpy.types.FILEBROWSER_MT_context_menu.remove(pose_library_list_item_context_menu)
