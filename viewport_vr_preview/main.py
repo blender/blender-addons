@@ -648,7 +648,8 @@ def vr_create_actions(context: bpy.context):
 
         for ami in am.actionmap_items:
             ok = session_state.create_action(context, am.name, ami.name, ami.type,
-                                             ami.user_path0, ami.user_path1, ami.threshold, ami.op, ami.op_flag)
+                                             ami.user_path0, ami.user_path1, ami.threshold, ami.axis0_flag, ami.axis1_flag,
+                                             ami.op, ami.op_flag, ami.bimanual)
             if not ok:
                 return
 
@@ -875,8 +876,14 @@ class VIEW3D_PT_vr_actions(Panel):
 
                 if ami.type == 'BUTTON' or ami.type == 'AXIS':
                     col1.prop(ami, "threshold", text="Threshold")
+                    if ami.type == 'BUTTON':
+                        col1.prop(ami, "axis0_flag", text="Axis Flag")
+                    else: # ami.type == 'AXIS'
+                        col1.prop(ami, "axis0_flag", text="Axis 0 Flag")
+                        col1.prop(ami, "axis1_flag", text="Axis 1 Flag")
                     col1.prop(ami, "op", text="Operator")
                     col1.prop(ami, "op_flag", text="Operator Flag")
+                    col1.prop(ami, "bimanual", text="Bimanual")
                     # Properties.
                     vr_draw_ami(ami, col1, 1)
                 elif ami.type == 'POSE':

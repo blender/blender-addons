@@ -75,8 +75,14 @@ def ami_args_as_data(ami):
 
     if ami.type == 'BUTTON' or ami.type == 'AXIS':
         s.append(f"\"threshold\": '{ami.threshold}'")
+        if ami.type == 'BUTTON':
+            s.append(f"\"axis_flag\": '{ami.axis0_flag}'")
+        else: # ami.type == 'AXIS':
+            s.append(f"\"axis0_flag\": '{ami.axis0_flag}'")
+            s.append(f"\"axis1_flag\": '{ami.axis1_flag}'")
         s.append(f"\"op\": '{ami.op}'")
         s.append(f"\"op_flag\": '{ami.op_flag}'")
+        s.append(f"\"bimanual\": '{ami.bimanual}'")
     elif ami.type == 'POSE':
         s.append(f"\"pose_is_controller\": '{ami.pose_is_controller}'")
         s.append(f"\"pose_location\": '{ami.pose_location.x, ami.pose_location.y, ami.pose_location.z}'")
@@ -99,10 +105,16 @@ def ami_data_from_args(ami, args):
     
     if ami.type == 'BUTTON' or ami.type == 'AXIS':
         ami.threshold = float(args["threshold"])
+        if ami.type == 'BUTTON':
+            ami.axis0_flag = args["axis_flag"]
+        else: # ami.type == 'AXIS':
+            ami.axis0_flag = args["axis0_flag"]
+            ami.axis1_flag = args["axis1_flag"]
         ami.op = args["op"]
         ami.op_flag = args["op_flag"]
+        ami.bimanual = True if (args["bimanual"] == 'True') else False
     elif ami.type == 'POSE':
-        ami.pose_is_controller = bool(args["pose_is_controller"])
+        ami.pose_is_controller = True if (args["pose_is_controller"] == 'True') else False
         l = args["pose_location"].strip(')(').split(', ')
         ami.pose_location.x = float(l[0])
         ami.pose_location.y = float(l[1])
