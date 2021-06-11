@@ -181,7 +181,7 @@ def __gather_children(blender_object, blender_scene, export_settings):
                 children.append(node)
 
     # blender bones
-    if blender_object.type == "ARMATURE":
+    if blender_object.type == "ARMATURE" and __filter_node(blender_object, blender_scene, export_settings):
         root_joints = []
         if export_settings["gltf_def_bones"] is False:
             bones = blender_object.pose.bones
