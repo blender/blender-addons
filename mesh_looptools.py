@@ -3433,8 +3433,7 @@ class Bridge(Operator):
             if self.remove_faces and old_selected_faces:
                 bridge_remove_internal_faces(bm, old_selected_faces)
             # make sure normals are facing outside
-            bmesh.update_edit_mesh(object.data, loop_triangles=False,
-                destructive=True)
+            bmesh.update_edit_mesh(object.data, loop_triangles=False, destructive=True)
             bpy.ops.mesh.normals_make_consistent()
 
         # cleaning up
