@@ -181,9 +181,9 @@ def vr_defaults_create_oculus(ac):
                                    0.3,
                                    'ANY',
                                    'ANY',
-                                   "wm.xr_grab",
+                                   "wm.xr_transform_grab",
                                    'MODAL',
-                                   False)  
+                                   True)  
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.UNDO.value,
                                    "/user/hand/left",
@@ -268,9 +268,9 @@ def vr_defaults_create_wmr(ac):
                                    0.3,
                                    'ANY',
                                    'ANY',
-                                   "wm.xr_grab",
+                                   "wm.xr_transform_grab",
                                    'MODAL',
-                                   False) 
+                                   True) 
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.UNDO.value,
                                    "/user/hand/left",
@@ -355,9 +355,9 @@ def vr_defaults_create_vive(ac):
                                    0.3,
                                    'ANY',
                                    'ANY',
-                                   "wm.xr_grab",
+                                   "wm.xr_transform_grab",
                                    'MODAL',
-                                   False)   
+                                   True)   
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.UNDO.value,
                                    "/user/hand/left",
@@ -442,9 +442,9 @@ def vr_defaults_create_index(ac):
                                    0.3,
                                    'ANY',
                                    'ANY',
-                                   "wm.xr_grab",
+                                   "wm.xr_transform_grab",
                                    'MODAL',
-                                   False) 
+                                   True) 
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.UNDO.value,
                                    "/user/hand/left",
