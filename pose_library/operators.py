@@ -304,26 +304,25 @@ class PoseAssetUser:
     def _load_and_use_pose(self, context: Context) -> Set[str]:
         asset_library = context.asset_library
         asset = context.asset_file_handle
+        asset_lib_path = bpy.types.AssetHandle.get_full_library_path(asset, asset_library)
 
-        asset_load_info = functions.active_asset_load_info(asset_library, asset)
-        if not asset_load_info:
+        if not asset_lib_path:
             self.report(  # type: ignore
                 {"ERROR"},
                 # TODO: Add some way to get the library name from the library reference (just asset_library.name?).
                 f"Selected asset {asset.name} could not be located inside the asset library",
             )
             return {"CANCELLED"}
-        if asset_load_info.id_type != 'ACTION':
+        if asset.id_type != 'ACTION':
             self.report(  # type: ignore
                 {"ERROR"},
-                f"Selected asset {asset_load_info.asset_name} is not an Action",
+                f"Selected asset {asset.name} is not an Action",
             )
             return {"CANCELLED"}
 
         with bpy.types.BlendData.temp_data() as temp_data:
-            str_path = asset_load_info.file_path
-            with temp_data.libraries.load(str_path) as (data_from, data_to):
-                data_to.actions = [asset_load_info.asset_name]
+            with temp_data.libraries.load(asset_lib_path) as (data_from, data_to):
+                data_to.actions = [asset.name]
 
             action: Action = data_to.actions[0]
             return self.use_pose(context, action)

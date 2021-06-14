@@ -95,26 +95,3 @@ def has_assets(filepath: Path) -> bool:
             if data_names:
                 return True
     return False
-
-
-@dataclasses.dataclass
-class AssetLoadInfo:
-    """Everything you need to temp-load an asset."""
-
-    file_path: str
-    asset_name: str
-    id_type: str
-
-
-def active_asset_load_info(
-    asset_library: AssetLibraryReference, asset: FileSelectEntry
-) -> Optional[AssetLoadInfo]:
-    asset_lib_path = bpy.types.AssetHandle.get_full_library_path(asset, asset_library)
-    if asset_lib_path == "":
-        return None
-
-    return AssetLoadInfo(
-        asset_lib_path,
-        asset.name,
-        asset.id_type,
-    )
