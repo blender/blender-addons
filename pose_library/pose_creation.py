@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 """
-Pose Library mockup - functions.
+Pose Library - creation functions.
 """
 
 import dataclasses

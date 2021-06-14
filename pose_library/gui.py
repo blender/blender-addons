@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 """
-Pose Library mockup GUI definition.
+Pose Library - GUI definition.
 """
 
 import bpy

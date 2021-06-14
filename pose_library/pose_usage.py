@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 """
-Pose Library mockup - functions.
+Pose Library - usage functions.
 """
 
 from typing import Set

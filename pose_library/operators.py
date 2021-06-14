@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 """
-Pose Library mockup - operators.
+Pose Library - operators.
 """
 
 from pathlib import Path

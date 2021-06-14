@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 """
-Pose Library mockup - macros.
+Pose Library - macros.
 """
 
 from pathlib import Path
