@@ -73,19 +73,18 @@ class PoseActionCreator:
     params: PoseCreationParams
 
     # These were taken from Blender's Action baking code in `anim_utils.py`.
-    _bbone_prop_names = [
-        "bbone_curveinx",
-        "bbone_curveoutx",
-        "bbone_curveiny",
-        "bbone_curveouty",
-        "bbone_rollin",
-        "bbone_rollout",
-        "bbone_scaleinx",
-        "bbone_scaleoutx",
-        "bbone_scaleiny",
-        "bbone_scaleouty",
-        "bbone_easein",
-        "bbone_easeout",
+    # Items are (name, array_length) tuples.
+    _bbone_props = [
+        ("bbone_curveinx", None),
+        ("bbone_curveoutx", None),
+        ("bbone_curveinz", None),
+        ("bbone_curveoutz", None),
+        ("bbone_rollin", None),
+        ("bbone_rollout", None),
+        ("bbone_scalein", 3),
+        ("bbone_scaleout", 3),
+        ("bbone_easein", None),
+        ("bbone_easeout", None),
     ]
 
     def create(self) -> Optional[Action]:
@@ -191,7 +190,10 @@ class PoseActionCreator:
 
     def _store_bbone(self, dst_action: Action, bone_name: str) -> None:
         """Store bendy-bone parameters."""
-        for prop_name in self._bbone_prop_names:
+        for prop_name, array_length in self._bbone_props:
+          if array_length:
+            self._store_bone_array(dst_action, bone_name, prop_name, array_length)
+          else:
             self._store_bone_property(dst_action, bone_name, prop_name)
 
     def _store_bone_array(
