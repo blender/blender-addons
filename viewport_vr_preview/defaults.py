@@ -43,7 +43,7 @@ class VRDefaultActionmaps(Enum):
 class VRDefaultActions(Enum):
     CONTROLLER_POSE = "controller_pose"
     TELEPORT = "teleport"
-    GRAB = "grab"
+    NAV_GRAB = "nav_grab"
     FLY = "fly"
     FLY_FORWARD = "fly_forward"
     FLY_BACK = "fly_back"
@@ -53,8 +53,8 @@ class VRDefaultActions(Enum):
     FLY_DOWN = "fly_down"
     FLY_TURNLEFT = "fly_turnleft"
     FLY_TURNRIGHT = "fly_turnright"
-    SELECT = "select"
-    TRANSFORM = "transform"
+    RAYCAST_SELECT = "raycast_select"
+    GRAB = "grab"
     UNDO = "undo"
     REDO = "redo"
     HAPTIC = "haptic"
@@ -177,7 +177,7 @@ def vr_defaults_create_oculus(ac):
                                    'MODAL',
                                    False)
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActions.GRAB.value,
+                                   VRDefaultActions.NAV_GRAB.value,
                                    "/user/hand/left",
                                    "/input/squeeze/value",
                                    "/user/hand/right",
@@ -297,7 +297,7 @@ def vr_defaults_create_oculus(ac):
                                    'MODAL',
                                    False)
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActions.SELECT.value,
+                                   VRDefaultActions.RAYCAST_SELECT.value,
                                    "/user/hand/right",
                                    "/input/trigger/value",
                                    "",
@@ -309,7 +309,7 @@ def vr_defaults_create_oculus(ac):
                                    'MODAL',
                                    False)  
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActions.TRANSFORM.value,
+                                   VRDefaultActions.GRAB.value,
                                    "/user/hand/left",
                                    "/input/x/click",
                                    "/user/hand/right",
@@ -384,7 +384,7 @@ def vr_defaults_create_wmr(ac):
                                    'MODAL',
                                    False)
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActions.GRAB.value,
+                                   VRDefaultActions.NAV_GRAB.value,
                                    "/user/hand/left",
                                    "/input/squeeze/click",
                                    "/user/hand/right",
@@ -504,7 +504,7 @@ def vr_defaults_create_wmr(ac):
                                    'MODAL',
                                    False)
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActions.SELECT.value,
+                                   VRDefaultActions.RAYCAST_SELECT.value,
                                    "/user/hand/right",
                                    "/input/trigger/value",
                                    "",
@@ -516,7 +516,7 @@ def vr_defaults_create_wmr(ac):
                                    'MODAL',
                                    False)  
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActions.TRANSFORM.value,
+                                   VRDefaultActions.GRAB.value,
                                    "/user/hand/left",
                                    "/input/menu/click",
                                    "/user/hand/right",
@@ -591,7 +591,7 @@ def vr_defaults_create_vive(ac):
                                    'MODAL',
                                    False)
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActions.GRAB.value,
+                                   VRDefaultActions.NAV_GRAB.value,
                                    "/user/hand/left",
                                    "/input/squeeze/click",
                                    "/user/hand/right",
@@ -699,7 +699,7 @@ def vr_defaults_create_vive(ac):
                                    'MODAL',
                                    False)
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActions.SELECT.value,
+                                   VRDefaultActions.RAYCAST_SELECT.value,
                                    "/user/hand/right",
                                    "/input/trigger/value",
                                    "",
@@ -711,7 +711,7 @@ def vr_defaults_create_vive(ac):
                                    'MODAL',
                                    False)
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActions.TRANSFORM.value,
+                                   VRDefaultActions.GRAB.value,
                                    "/user/hand/left",
                                    "/input/menu/click",
                                    "/user/hand/right",
@@ -786,7 +786,7 @@ def vr_defaults_create_index(ac):
                                    'MODAL',
                                    False)
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActions.GRAB.value,
+                                   VRDefaultActions.NAV_GRAB.value,
                                    "/user/hand/left",
                                    "/input/squeeze/value",
                                    "/user/hand/right",
@@ -906,7 +906,7 @@ def vr_defaults_create_index(ac):
                                    'MODAL',
                                    False)
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActions.SELECT.value,
+                                   VRDefaultActions.RAYCAST_SELECT.value,
                                    "/user/hand/right",
                                    "/input/trigger/value",
                                    "",
@@ -918,7 +918,7 @@ def vr_defaults_create_index(ac):
                                    'MODAL',
                                    False)
     vr_defaults_actionmap_item_add(am,
-                                   VRDefaultActions.TRANSFORM.value,
+                                   VRDefaultActions.GRAB.value,
                                    "/user/hand/left",
                                    "/input/a/click",
                                    "/user/hand/right",
@@ -971,6 +971,18 @@ def vr_defaults_create_gamepad(ac):
     if not am:
         return
 
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActions.FLY.value,
+                                   "/user/gamepad",
+                                   "/input/a/click",
+                                   "",
+                                   "",
+                                   0.3,
+                                   'ANY',
+                                   'ANY',
+                                   "wm.xr_navigation_fly",
+                                   'MODAL',
+                                   False)
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_FORWARD.value,
                                    "/user/gamepad",
