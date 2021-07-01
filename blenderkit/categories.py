@@ -84,6 +84,7 @@ def get_category_path(categories, category):
                     category_path.insert(0, slug)
                 return category_path
             check_categories.append(ch)
+    return category_path
 
 def get_category_name_path(categories, category):
     '''finds the category in all possible subcategories and returns the path to it'''
