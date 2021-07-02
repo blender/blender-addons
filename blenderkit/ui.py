@@ -371,12 +371,16 @@ def draw_tooltip_with_author(asset_data, x, y):
 
     img = get_large_thumbnail_image(asset_data)
     gimg = None
-    atip = ''
+    author_text = ''
+
     if bpy.context.window_manager.get('bkit authors') is not None:
         a = bpy.context.window_manager['bkit authors'].get(asset_data['author']['id'])
         if a is not None and a != '':
             if a.get('gravatarImg') is not None:
                 gimg = utils.get_hidden_image(a['gravatarImg'], a['gravatarHash'])
+
+            if len(a['firstName'])>0 or len(a['lastName'])>0:
+                author_text = f"by {a['firstName']} {a['lastName']}"
 
     aname = asset_data['displayName']
     aname = aname[0].upper() + aname[1:]
@@ -388,12 +392,9 @@ def draw_tooltip_with_author(asset_data, x, y):
     rcount = 0
     quality = '-'
     if rc:
-        rcount = min(rc['quality'], rc['workingHours'])
+        rcount = min(rc.get('quality',0), rc.get('workingHours',0))
     if rcount > show_rating_threshold:
         quality = round(asset_data['ratingsAverage'].get('quality'))
-    author_text = ''
-    if len(a['firstName'])>0 or len(a['lastName'])>0:
-        author_text = f"by {a['firstName']} {a['lastName']}"
 
     draw_tooltip(x, y, name=aname, author=author_text, quality=quality, img=img,
                  gravatar=gimg)
@@ -482,12 +483,14 @@ def draw_callback_2d_progress(self, context):
 
                 loc = view3d_utils.location_3d_to_region_2d(bpy.context.region, bpy.context.space_data.region_3d,
                                                             d['location'])
+                # print('drawing downloader')
                 if loc is not None:
                     if asset_data['assetType'] == 'model':
                         # models now draw with star trek mode, no need to draw percent for the image.
                         draw_downloader(loc[0], loc[1], percent=tcom.progress, img=img, text=tcom.report)
                     else:
                         draw_downloader(loc[0], loc[1], percent=tcom.progress, img=img, text=tcom.report)
+                # utils.p('end drawing downlaoders  downloader')
         else:
             draw_progress(x, y - index * 30, text='downloading %s' % asset_data['name'],
                           percent=tcom.progress)
@@ -1191,8 +1194,8 @@ class AssetBarOperator(bpy.types.Operator):
 
         # timers testing - seems timers might be causing crashes. testing it this way now.
         if not user_preferences.use_timers:
-            search.timer_update()
-            download.timer_update()
+            search.search_timer()
+            download.download_timer()
             tasks_queue.queue_worker()
             bg_blender.bg_update()
 
@@ -1450,7 +1453,7 @@ class AssetBarOperator(bpy.types.Operator):
                     if not asset_data.get('canDownload'):
                         message = "Let's support asset creators and Open source."
                         link_text = 'Unlock the asset.'
-                        url = paths.get_bkit_url() + '/get-blenderkit/' + asset_data['id'] + '/?from_addon'
+                        url = paths.get_bkit_url() + '/get-blenderkit/' + asset_data['id'] + '/?from_addon=True'
                         bpy.ops.wm.blenderkit_url_dialog('INVOKE_REGION_WIN', url=url, message=message,
                                                          link_text=link_text)
                         return {'RUNNING_MODAL'}
@@ -1623,6 +1626,14 @@ class AssetBarOperator(bpy.types.Operator):
                                                           asset_index=asset_search_index,
                                                           # replace_resolution=True,
                                                           invoke_resolution=True,
+                                                          max_resolution=asset_data.get('max_resolution', 0)
+                                                          )
+                    elif ui_props.asset_type == 'SCENE':
+                        bpy.ops.scene.blenderkit_download('INVOKE_DEFAULT',
+                                                          asset_index=asset_search_index,
+                                                          # replace_resolution=True,
+                                                          invoke_resolution=False,
+                                                          invoke_scene_settings=True,
                                                           max_resolution=asset_data.get('max_resolution', 0)
                                                           )
                     else:

@@ -337,9 +337,14 @@ def get_hidden_texture(name, force_reload=False):
     return t
 
 
-def img_to_preview(img):
-    img.preview.image_size = (img.size[0], img.size[1])
-    img.preview.image_pixels_float = img.pixels[:]
+def img_to_preview(img, copy_original = False):
+    if bpy.app.version[0]>=3:
+        img.preview_ensure()
+    if not copy_original:
+        return;
+    if img.preview.image_size != img.size:
+        img.preview.image_size = (img.size[0], img.size[1])
+        img.preview.image_pixels_float = img.pixels[:]
     # img.preview.icon_size = (img.size[0], img.size[1])
     # img.preview.icon_pixels_float = img.pixels[:]
 
@@ -852,11 +857,14 @@ def get_fake_context(context, area_type='VIEW_3D'):
         # print(w,a,r)
     return C_dict
 
+# def is_url(text):
+
 
 def label_multiline(layout, text='', icon='NONE', width=-1):
     ''' draw a ui label, but try to split it in multiple lines.'''
     if text.strip() == '':
         return
+    text = text.replace('\r\n','\n')
     lines = text.split('\n')
     if width > 0:
         threshold = int(width / 5.5)
@@ -865,6 +873,8 @@ def label_multiline(layout, text='', icon='NONE', width=-1):
     maxlines = 8
     li = 0
     for l in lines:
+        # if is_url(l):
+
         while len(l) > threshold:
             i = l.rfind(' ', 0, threshold)
             if i < 1:
