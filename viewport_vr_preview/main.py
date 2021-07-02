@@ -649,7 +649,8 @@ def vr_create_actions(context: bpy.context):
         for ami in am.actionmap_items:
             ok = session_state.create_action(context, am.name, ami.name, ami.type,
                                              ami.user_path0, ami.user_path1, ami.threshold, ami.axis0_flag, ami.axis1_flag,
-                                             ami.op, ami.op_flag, ami.bimanual)
+                                             ami.op, ami.op_flag, ami.bimanual,
+                                             ami.haptic_name, ami.haptic_match_user_paths, ami.haptic_duration, ami.haptic_frequency, ami.haptic_amplitude, ami.haptic_flag)
             if not ok:
                 return
 
@@ -721,16 +722,22 @@ def vr_get_default_config_path():
     return os.path.join(filepath, "default.py")
 
 
-def vr_draw_ami(ami, layout, level):
-    # Similar to draw_kmi() from rna_keymap_ui.py.
+def vr_indented_layout(layout, level):
+    # Same as _indented_layout() from rna_keymap_ui.py.
     indentpx = 16
     if level == 0:
-        level = 0.0001
+        level = 0.0001   # Tweak so that a percentage of 0 won't split by half
     indent = level * indentpx / bpy.context.region.width
 
     split = layout.split(factor=indent)
     col = split.column()
     col = split.column()
+    return col
+
+
+def vr_draw_ami(ami, layout, level):
+    # Similar to draw_kmi() from rna_keymap_ui.py.
+    col = vr_indented_layout(layout, level)
 
     if ami.op:
         col = col.column(align=True)
@@ -810,12 +817,15 @@ class VIEW3D_MT_vr_action_menu(Menu):
         layout.operator("view3d.vr_actions_clear")
 
 
-class VIEW3D_PT_vr_actions(Panel):
+class VRActionsPanel:
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "VR"
-    bl_label = "Actions"
     bl_options = {'DEFAULT_CLOSED'}
+
+
+class VIEW3D_PT_vr_actions_actionmaps(VRActionsPanel, Panel):
+    bl_label = "Action Maps"
 
     def draw(self, context):
         layout = self.layout
@@ -826,39 +836,48 @@ class VIEW3D_PT_vr_actions(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        row0 = layout.row()
-        col = row0.column(align=True)
-        col.label(text="Action Maps")
+        row = layout.row()
+        row.template_list("VIEW3D_UL_vr_actionmaps", "", ac, "actionmaps",
+                          ac, "selected_actionmap", rows=3)
 
-        row1 = layout.row()
-        row1.template_list("VIEW3D_UL_vr_actionmaps", "", ac, "actionmaps",
-                           ac, "selected_actionmap", rows=3)
-
-        col = row1.column(align=True)
+        col = row.column(align=True)
         col.operator("view3d.vr_actionmap_add", icon='ADD', text="")
         col.operator("view3d.vr_actionmap_remove", icon='REMOVE', text="")
 
         col.menu("VIEW3D_MT_vr_actionmap_menu", icon='DOWNARROW_HLT', text="")
 
         am = vr_actionmap_selected_get(ac)
-        
+
         if am:
-            row = row0.split()
-            col = row.column(align=True)
-            col.label(text="Actions")
-
             row = layout.row()
-            col0 = row.column(align=True)
-            row = row.split()
-            col1 = row.column(align=True)
+            col = row.column(align=True)
 
-            col0.prop(am, "name", text="Action Map")
-            col0.prop(am, "profile", text="Profile")
+            col.prop(am, "name", text="Action Map")
+            col.prop(am, "profile", text="Profile")
 
-            row1.template_list("VIEW3D_UL_vr_actions", "", am, "actionmap_items",
-                               am, "selected_item", rows=3)
 
-            col = row1.column(align=True)
+class VIEW3D_PT_vr_actions_actions(VRActionsPanel, Panel):
+    bl_label = "Actions"
+    bl_parent_id = "VIEW3D_PT_vr_actions_actionmaps"
+
+    def draw(self, context):
+        layout = self.layout
+        ac = vr_actionconfig_active_get(context)
+        if not ac:
+            return
+        
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+		
+        am = vr_actionmap_selected_get(ac)
+
+        if am:
+            col = vr_indented_layout(layout, 1)
+            row = col.row()
+            row.template_list("VIEW3D_UL_vr_actions", "", am, "actionmap_items",
+                              am, "selected_item", rows=3)
+
+            col = row.column(align=True)
             col.operator("view3d.vr_action_add", icon='ADD', text="")
             col.operator("view3d.vr_action_remove", icon='REMOVE', text="")
 
@@ -867,33 +886,63 @@ class VIEW3D_PT_vr_actions(Panel):
             ami = vr_actionmap_item_selected_get(am)
 
             if ami:
-                col1.prop(ami, "name", text="Action")
-                col1.prop(ami, "type", text="Type")
-                col1.prop(ami, "user_path0", text="User Path 0")
-                col1.prop(ami, "component_path0", text="Component Path 0")
-                col1.prop(ami, "user_path1", text="User Path 1")
-                col1.prop(ami, "component_path1", text="Component Path 1")
+                row = layout.row()
+                col = row.column(align=True)
+
+                col.prop(ami, "name", text="Action")
+                col.prop(ami, "type", text="Type")
+                col.prop(ami, "user_path0", text="User Path 0")
+                col.prop(ami, "component_path0", text="Component Path 0")
+                col.prop(ami, "user_path1", text="User Path 1")
+                col.prop(ami, "component_path1", text="Component Path 1")
 
                 if ami.type == 'BUTTON' or ami.type == 'AXIS':
-                    col1.prop(ami, "threshold", text="Threshold")
+                    col.prop(ami, "threshold", text="Threshold")
                     if ami.type == 'BUTTON':
-                        col1.prop(ami, "axis0_flag", text="Axis Flag")
+                        col.prop(ami, "axis0_flag", text="Axis Flag")
                     else: # ami.type == 'AXIS'
-                        col1.prop(ami, "axis0_flag", text="Axis 0 Flag")
-                        col1.prop(ami, "axis1_flag", text="Axis 1 Flag")
-                    col1.prop(ami, "op", text="Operator")
-                    col1.prop(ami, "op_flag", text="Operator Flag")
-                    col1.prop(ami, "bimanual", text="Bimanual")
+                        col.prop(ami, "axis0_flag", text="Axis 0 Flag")
+                        col.prop(ami, "axis1_flag", text="Axis 1 Flag")
+                    col.prop(ami, "op", text="Operator")
+                    col.prop(ami, "op_flag", text="Operator Flag")
+                    col.prop(ami, "bimanual", text="Bimanual")
                     # Properties.
-                    vr_draw_ami(ami, col1, 1)
+                    vr_draw_ami(ami, col, 1)
                 elif ami.type == 'POSE':
-                    col1.prop(ami, "pose_is_controller", text="Use for Controller Poses")
-                    col1.prop(ami, "pose_location", text="Location Offset")
-                    col1.prop(ami, "pose_rotation", text="Rotation Offset") 
-                elif ami.type == 'HAPTIC':
-                    col1.prop(ami, "haptic_duration", text="Duration")
-                    col1.prop(ami, "haptic_frequency", text="Frequency")
-                    col1.prop(ami, "haptic_amplitude", text="Amplitude")
+                    col.prop(ami, "pose_is_controller", text="Use for Controller Poses")
+                    col.prop(ami, "pose_location", text="Location Offset")
+                    col.prop(ami, "pose_rotation", text="Rotation Offset")
+
+
+class VIEW3D_PT_vr_actions_haptics(VRActionsPanel, Panel):
+    bl_label = "Haptics"
+    bl_parent_id = "VIEW3D_PT_vr_actions_actions"
+
+    def draw(self, context):
+        layout = self.layout
+        ac = vr_actionconfig_active_get(context)
+        if not ac:
+            return
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        am = vr_actionmap_selected_get(ac)
+
+        if am:
+            ami = vr_actionmap_item_selected_get(am)
+
+            if ami:
+                row = layout.row()
+                col = row.column(align=True)
+
+                if ami.type == 'BUTTON' or ami.type == 'AXIS':
+                    col.prop(ami, "haptic_name", text="Haptic Action")
+                    col.prop(ami, "haptic_match_user_paths", text="Match User Paths")
+                    col.prop(ami, "haptic_duration", text="Duration")
+                    col.prop(ami, "haptic_frequency", text="Frequency")
+                    col.prop(ami, "haptic_amplitude", text="Amplitude")
+                    col.prop(ami, "haptic_flag", text="Haptic Flag")
 
 
 class VIEW3D_OT_vr_actionmap_add(Operator):

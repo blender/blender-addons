@@ -48,7 +48,9 @@ classes = (
     main.VIEW3D_PT_vr_session,
     main.VIEW3D_PT_vr_session_view,
     main.VIEW3D_PT_vr_landmarks,
-    main.VIEW3D_PT_vr_actions,
+    main.VIEW3D_PT_vr_actions_actionmaps,
+    main.VIEW3D_PT_vr_actions_actions,
+    main.VIEW3D_PT_vr_actions_haptics,
     main.VIEW3D_PT_vr_motion_capture,
     main.VIEW3D_PT_vr_viewport_feedback,
 

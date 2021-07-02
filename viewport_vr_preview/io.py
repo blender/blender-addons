@@ -83,14 +83,16 @@ def ami_args_as_data(ami):
         s.append(f"\"op\": '{ami.op}'")
         s.append(f"\"op_flag\": '{ami.op_flag}'")
         s.append(f"\"bimanual\": '{ami.bimanual}'")
+        s.append(f"\"haptic_name\": '{ami.haptic_name}'")
+        s.append(f"\"haptic_match_user_paths\": '{ami.haptic_match_user_paths}'")
+        s.append(f"\"haptic_duration\": '{ami.haptic_duration}'")
+        s.append(f"\"haptic_frequency\": '{ami.haptic_frequency}'")
+        s.append(f"\"haptic_amplitude\": '{ami.haptic_amplitude}'")
+        s.append(f"\"haptic_flag\": '{ami.haptic_flag}'")
     elif ami.type == 'POSE':
         s.append(f"\"pose_is_controller\": '{ami.pose_is_controller}'")
         s.append(f"\"pose_location\": '{ami.pose_location.x, ami.pose_location.y, ami.pose_location.z}'")
         s.append(f"\"pose_rotation\": '{ami.pose_rotation.x, ami.pose_rotation.y, ami.pose_rotation.z}'")
-    elif ami.type == 'HAPTIC':
-        s.append(f"\"haptic_duration\": '{ami.haptic_duration}'")
-        s.append(f"\"haptic_frequency\": '{ami.haptic_frequency}'")
-        s.append(f"\"haptic_amplitude\": '{ami.haptic_amplitude}'")
 
 
     return "{" + ", ".join(s) + "}"
@@ -113,6 +115,12 @@ def ami_data_from_args(ami, args):
         ami.op = args["op"]
         ami.op_flag = args["op_flag"]
         ami.bimanual = True if (args["bimanual"] == 'True') else False
+        ami.haptic_name = args["haptic_name"]
+        ami.haptic_match_user_paths = True if (args["haptic_match_user_paths"] == 'True') else False
+        ami.haptic_duration = float(args["haptic_duration"])
+        ami.haptic_frequency = float(args["haptic_frequency"])
+        ami.haptic_amplitude = float(args["haptic_amplitude"])
+        ami.haptic_flag = args["haptic_flag"]
     elif ami.type == 'POSE':
         ami.pose_is_controller = True if (args["pose_is_controller"] == 'True') else False
         l = args["pose_location"].strip(')(').split(', ')
@@ -123,10 +131,6 @@ def ami_data_from_args(ami, args):
         ami.pose_rotation.x = float(l[0])
         ami.pose_rotation.y = float(l[1])
         ami.pose_rotation.z = float(l[2])
-    elif ami.type == 'HAPTIC':
-        ami.haptic_duration = float(args["haptic_duration"])
-        ami.haptic_frequency = float(args["haptic_frequency"])
-        ami.haptic_amplitude = float(args["haptic_amplitude"])
 
 
 def _ami_properties_to_lines_recursive(level, properties, lines):

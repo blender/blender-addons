@@ -83,7 +83,14 @@ def vr_defaults_actionmap_item_add(am,
                                    axis1_flag,
                                    op,
                                    op_flag,
-                                   bimanual):
+                                   bimanual,
+                                   haptic_name,
+                                   haptic_match_user_paths,
+                                   haptic_amplitude,
+                                   haptic_duration,
+                                   haptic_frequency,
+                                   haptic_flag):
+
 
     ami = am.actionmap_items.new(name, True)
     if ami:        
@@ -98,6 +105,12 @@ def vr_defaults_actionmap_item_add(am,
         ami.op = op
         ami.op_flag = op_flag
         ami.bimanual = bimanual
+        ami.haptic_name = haptic_name
+        ami.haptic_match_user_paths = haptic_match_user_paths
+        ami.haptic_duration = haptic_duration
+        ami.haptic_frequency = haptic_frequency
+        ami.haptic_amplitude = haptic_amplitude
+        ami.haptic_flag = haptic_flag
 
     return ami
 
@@ -130,10 +143,7 @@ def vr_defaults_haptic_actionmap_item_add(am,
                                           user_path0,
                                           component_path0,
                                           user_path1,
-                                          component_path1,
-                                          duration,
-                                          frequency,
-                                          amplitude):
+                                          component_path1):
     ami = am.actionmap_items.new(name, True)
     if ami:        
         ami.type = 'HAPTIC'
@@ -141,9 +151,6 @@ def vr_defaults_haptic_actionmap_item_add(am,
         ami.component_path0 = component_path0
         ami.user_path1 = user_path1
         ami.component_path1 = component_path1
-        ami.haptic_duration = duration
-        ami.haptic_frequency = frequency
-        ami.haptic_amplitude = amplitude
     
     return ami
 
@@ -175,7 +182,13 @@ def vr_defaults_create_oculus(ac):
                                    'ANY',
                                    "wm.xr_navigation_teleport",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.NAV_GRAB.value,
                                    "/user/hand/left",
@@ -187,7 +200,13 @@ def vr_defaults_create_oculus(ac):
                                    'ANY',
                                    "wm.xr_navigation_grab",
                                    'MODAL',
-                                   True)
+                                   True,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY.value,
                                    "/user/hand/left",
@@ -199,7 +218,13 @@ def vr_defaults_create_oculus(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_FORWARD.value,
                                    "/user/hand/left",
@@ -211,7 +236,13 @@ def vr_defaults_create_oculus(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_BACK.value,
                                    "/user/hand/left",
@@ -223,7 +254,13 @@ def vr_defaults_create_oculus(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_LEFT.value,
                                    "/user/hand/left",
@@ -235,7 +272,13 @@ def vr_defaults_create_oculus(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_RIGHT.value,
                                    "/user/hand/left",
@@ -247,7 +290,13 @@ def vr_defaults_create_oculus(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_UP.value,
                                    "/user/hand/right",
@@ -259,7 +308,13 @@ def vr_defaults_create_oculus(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_DOWN.value,
                                    "/user/hand/right",
@@ -271,7 +326,13 @@ def vr_defaults_create_oculus(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_TURNLEFT.value,
                                    "/user/hand/right",
@@ -283,7 +344,13 @@ def vr_defaults_create_oculus(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_TURNRIGHT.value,
                                    "/user/hand/right",
@@ -295,7 +362,13 @@ def vr_defaults_create_oculus(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.RAYCAST_SELECT.value,
                                    "/user/hand/right",
@@ -307,7 +380,13 @@ def vr_defaults_create_oculus(ac):
                                    'ANY',
                                    "wm.xr_select_raycast",
                                    'MODAL',
-                                   False)  
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.GRAB.value,
                                    "/user/hand/left",
@@ -319,7 +398,13 @@ def vr_defaults_create_oculus(ac):
                                    'ANY',
                                    "wm.xr_transform_grab",
                                    'MODAL',
-                                   True)
+                                   True,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.UNDO.value,
                                    "/user/hand/left",
@@ -331,7 +416,13 @@ def vr_defaults_create_oculus(ac):
                                    'ANY',
                                    "ed.undo",
                                    'PRESS',
-                                   False)
+                                   False,
+                                   "haptic",
+                                   True,
+                                   0.3,
+                                   3000.0,
+                                   0.5,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.REDO.value,
                                    "/user/hand/right",
@@ -343,16 +434,19 @@ def vr_defaults_create_oculus(ac):
                                    'ANY',
                                    "ed.redo",
                                    'PRESS',
-                                   False)
+                                   False,
+                                   "haptic",
+                                   True,
+                                   0.3,
+                                   3000.0,
+                                   0.5,
+                                   'PRESS')
     vr_defaults_haptic_actionmap_item_add(am,
                                           VRDefaultActions.HAPTIC.value,
                                           "/user/hand/left",
                                           "/output/haptic",
                                           "/user/hand/right",
-                                          "/output/haptic",
-                                          0.3,
-                                          3000.0,
-                                          0.5)
+                                          "/output/haptic")
 
 
 def vr_defaults_create_wmr(ac):
@@ -382,7 +476,13 @@ def vr_defaults_create_wmr(ac):
                                    'ANY',
                                    "wm.xr_navigation_teleport",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.NAV_GRAB.value,
                                    "/user/hand/left",
@@ -394,7 +494,13 @@ def vr_defaults_create_wmr(ac):
                                    'ANY',
                                    "wm.xr_navigation_grab",
                                    'MODAL',
-                                   True)
+                                   True,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY.value,
                                    "/user/hand/left",
@@ -406,7 +512,13 @@ def vr_defaults_create_wmr(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_FORWARD.value,
                                    "/user/hand/left",
@@ -418,7 +530,13 @@ def vr_defaults_create_wmr(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_BACK.value,
                                    "/user/hand/left",
@@ -430,7 +548,13 @@ def vr_defaults_create_wmr(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_LEFT.value,
                                    "/user/hand/left",
@@ -442,7 +566,13 @@ def vr_defaults_create_wmr(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_RIGHT.value,
                                    "/user/hand/left",
@@ -454,7 +584,13 @@ def vr_defaults_create_wmr(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_UP.value,
                                    "/user/hand/right",
@@ -466,7 +602,13 @@ def vr_defaults_create_wmr(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_DOWN.value,
                                    "/user/hand/right",
@@ -478,7 +620,13 @@ def vr_defaults_create_wmr(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_TURNLEFT.value,
                                    "/user/hand/right",
@@ -490,7 +638,13 @@ def vr_defaults_create_wmr(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_TURNRIGHT.value,
                                    "/user/hand/right",
@@ -502,7 +656,13 @@ def vr_defaults_create_wmr(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.RAYCAST_SELECT.value,
                                    "/user/hand/right",
@@ -514,7 +674,13 @@ def vr_defaults_create_wmr(ac):
                                    'ANY',
                                    "wm.xr_select_raycast",
                                    'MODAL',
-                                   False)  
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS') 
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.GRAB.value,
                                    "/user/hand/left",
@@ -526,7 +692,13 @@ def vr_defaults_create_wmr(ac):
                                    'ANY',
                                    "wm.xr_transform_grab",
                                    'MODAL',
-                                   True) 
+                                   True,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS') 
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.UNDO.value,
                                    "/user/hand/left",
@@ -538,7 +710,13 @@ def vr_defaults_create_wmr(ac):
                                    'ANY',
                                    "ed.undo",
                                    'PRESS',
-                                   False)     
+                                   False,
+                                   "haptic",
+                                   True,
+                                   0.3,
+                                   3000.0,
+                                   0.5,
+                                   'PRESS')   
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.REDO.value,
                                    "/user/hand/right",
@@ -550,16 +728,19 @@ def vr_defaults_create_wmr(ac):
                                    'ANY',
                                    "ed.redo",
                                    'PRESS',
-                                   False)    
+                                   False,
+                                   "haptic",
+                                   True,
+                                   0.3,
+                                   3000.0,
+                                   0.5,
+                                   'PRESS')   
     vr_defaults_haptic_actionmap_item_add(am,
                                           VRDefaultActions.HAPTIC.value,
                                           "/user/hand/left",
                                           "/output/haptic",
                                           "/user/hand/right",
-                                          "/output/haptic",
-                                          0.3,
-                                          3000.0,
-                                          0.5)
+                                          "/output/haptic")
 
 
 def vr_defaults_create_vive(ac):
@@ -589,7 +770,13 @@ def vr_defaults_create_vive(ac):
                                    'ANY',
                                    "wm.xr_navigation_teleport",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.NAV_GRAB.value,
                                    "/user/hand/left",
@@ -601,7 +788,13 @@ def vr_defaults_create_vive(ac):
                                    'ANY',
                                    "wm.xr_navigation_grab",
                                    'MODAL',
-                                   True)
+                                   True,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_FORWARD.value,
                                    "/user/hand/left",
@@ -613,7 +806,13 @@ def vr_defaults_create_vive(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_BACK.value,
                                    "/user/hand/left",
@@ -625,7 +824,13 @@ def vr_defaults_create_vive(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_LEFT.value,
                                    "/user/hand/left",
@@ -637,7 +842,13 @@ def vr_defaults_create_vive(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_RIGHT.value,
                                    "/user/hand/left",
@@ -649,7 +860,13 @@ def vr_defaults_create_vive(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_UP.value,
                                    "/user/hand/right",
@@ -661,7 +878,13 @@ def vr_defaults_create_vive(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_DOWN.value,
                                    "/user/hand/right",
@@ -673,7 +896,13 @@ def vr_defaults_create_vive(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_TURNLEFT.value,
                                    "/user/hand/right",
@@ -685,7 +914,13 @@ def vr_defaults_create_vive(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_TURNRIGHT.value,
                                    "/user/hand/right",
@@ -697,7 +932,13 @@ def vr_defaults_create_vive(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.RAYCAST_SELECT.value,
                                    "/user/hand/right",
@@ -709,7 +950,13 @@ def vr_defaults_create_vive(ac):
                                    'ANY',
                                    "wm.xr_select_raycast",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.GRAB.value,
                                    "/user/hand/left",
@@ -721,7 +968,13 @@ def vr_defaults_create_vive(ac):
                                    'ANY',
                                    "wm.xr_transform_grab",
                                    'MODAL',
-                                   True)
+                                   True,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.UNDO.value,
                                    "/user/hand/left",
@@ -733,7 +986,13 @@ def vr_defaults_create_vive(ac):
                                    'ANY',
                                    "ed.undo",
                                    'PRESS',
-                                   False)
+                                   False,
+                                   "haptic",
+                                   True,
+                                   0.3,
+                                   3000.0,
+                                   0.5,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.REDO.value,
                                    "/user/hand/right",
@@ -745,16 +1004,19 @@ def vr_defaults_create_vive(ac):
                                    'ANY',
                                    "ed.redo",
                                    'PRESS',
-                                   False)
+                                   False,
+                                   "haptic",
+                                   True,
+                                   0.3,
+                                   3000.0,
+                                   0.5,
+                                   'PRESS')
     vr_defaults_haptic_actionmap_item_add(am,
                                           VRDefaultActions.HAPTIC.value,
                                           "/user/hand/left",
                                           "/output/haptic",
                                           "/user/hand/right",
-                                          "/output/haptic",
-                                          0.3,
-                                          3000.0,
-                                          0.5)
+                                          "/output/haptic")
 
 
 def vr_defaults_create_index(ac):
@@ -784,7 +1046,13 @@ def vr_defaults_create_index(ac):
                                    'ANY',
                                    "wm.xr_navigation_teleport",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.NAV_GRAB.value,
                                    "/user/hand/left",
@@ -796,7 +1064,13 @@ def vr_defaults_create_index(ac):
                                    'ANY',
                                    "wm.xr_navigation_grab",
                                    'MODAL',
-                                   True)
+                                   True,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY.value,
                                    "/user/hand/left",
@@ -808,7 +1082,13 @@ def vr_defaults_create_index(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_FORWARD.value,
                                    "/user/hand/left",
@@ -820,7 +1100,13 @@ def vr_defaults_create_index(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_BACK.value,
                                    "/user/hand/left",
@@ -832,7 +1118,13 @@ def vr_defaults_create_index(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_LEFT.value,
                                    "/user/hand/left",
@@ -844,7 +1136,13 @@ def vr_defaults_create_index(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_RIGHT.value,
                                    "/user/hand/left",
@@ -856,7 +1154,13 @@ def vr_defaults_create_index(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_UP.value,
                                    "/user/hand/right",
@@ -868,7 +1172,13 @@ def vr_defaults_create_index(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_DOWN.value,
                                    "/user/hand/right",
@@ -880,7 +1190,13 @@ def vr_defaults_create_index(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_TURNLEFT.value,
                                    "/user/hand/right",
@@ -892,7 +1208,13 @@ def vr_defaults_create_index(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_TURNRIGHT.value,
                                    "/user/hand/right",
@@ -904,7 +1226,13 @@ def vr_defaults_create_index(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.RAYCAST_SELECT.value,
                                    "/user/hand/right",
@@ -916,7 +1244,13 @@ def vr_defaults_create_index(ac):
                                    'ANY',
                                    "wm.xr_select_raycast",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.GRAB.value,
                                    "/user/hand/left",
@@ -928,7 +1262,13 @@ def vr_defaults_create_index(ac):
                                    'ANY',
                                    "wm.xr_transform_grab",
                                    'MODAL',
-                                   True)
+                                   True,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.UNDO.value,
                                    "/user/hand/left",
@@ -940,7 +1280,13 @@ def vr_defaults_create_index(ac):
                                    'ANY',
                                    "ed.undo",
                                    'PRESS',
-                                   False)       
+                                   False,
+                                   "haptic",
+                                   True,
+                                   0.3,
+                                   3000.0,
+                                   0.5,
+                                   'PRESS')   
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.REDO.value,
                                    "/user/hand/right",
@@ -952,16 +1298,19 @@ def vr_defaults_create_index(ac):
                                    'ANY',
                                    "ed.redo",
                                    'PRESS',
-                                   False) 
+                                   False,
+                                   "haptic",
+                                   True,
+                                   0.3,
+                                   3000.0,
+                                   0.5,
+                                   'PRESS')
     vr_defaults_haptic_actionmap_item_add(am,
                                           VRDefaultActions.HAPTIC.value,
                                           "/user/hand/left",
                                           "/output/haptic",
                                           "/user/hand/right",
-                                          "/output/haptic",
-                                          0.3,
-                                          3000.0,
-                                          0.5)
+                                          "/output/haptic")
     
 
 def vr_defaults_create_gamepad(ac):
@@ -971,6 +1320,24 @@ def vr_defaults_create_gamepad(ac):
     if not am:
         return
 
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActions.TELEPORT.value,
+                                   "/user/gamepad",
+                                   "/input/trigger_left/value",
+                                   "",
+                                   "",
+                                   0.3,
+                                   'ANY',
+                                   'ANY',
+                                   "wm.xr_navigation_teleport",
+                                   'MODAL',
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY.value,
                                    "/user/gamepad",
@@ -982,7 +1349,13 @@ def vr_defaults_create_gamepad(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_FORWARD.value,
                                    "/user/gamepad",
@@ -994,7 +1367,13 @@ def vr_defaults_create_gamepad(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_BACK.value,
                                    "/user/gamepad",
@@ -1006,7 +1385,13 @@ def vr_defaults_create_gamepad(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_LEFT.value,
                                    "/user/gamepad",
@@ -1018,7 +1403,13 @@ def vr_defaults_create_gamepad(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_RIGHT.value,
                                    "/user/gamepad",
@@ -1030,7 +1421,13 @@ def vr_defaults_create_gamepad(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_UP.value,
                                    "/user/gamepad",
@@ -1042,7 +1439,13 @@ def vr_defaults_create_gamepad(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_DOWN.value,
                                    "/user/gamepad",
@@ -1054,7 +1457,13 @@ def vr_defaults_create_gamepad(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_TURNLEFT.value,
                                    "/user/gamepad",
@@ -1066,7 +1475,13 @@ def vr_defaults_create_gamepad(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.FLY_TURNRIGHT.value,
                                    "/user/gamepad",
@@ -1078,43 +1493,91 @@ def vr_defaults_create_gamepad(ac):
                                    'ANY',
                                    "wm.xr_navigation_fly",
                                    'MODAL',
-                                   False)
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActions.RAYCAST_SELECT.value,
+                                   "/user/gamepad",
+                                   "/input/trigger_right/value",
+                                   "",
+                                   "",
+                                   0.3,
+                                   'ANY',
+                                   'ANY',
+                                   "wm.xr_select_raycast",
+                                   'MODAL',
+                                   False,
+                                   "",
+                                   False,
+                                   0.0,
+                                   0.0,
+                                   0.0,
+                                   'PRESS')
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActions.UNDO.value,
+                                   "/user/gamepad",
+                                   "/input/x/click",
+                                   "",
+                                   "",
+                                   0.3,
+                                   'ANY',
+                                   'ANY',
+                                   "ed.undo",
+                                   'PRESS',
+                                   False,
+                                   "haptic_left",
+                                   True,
+                                   0.3,
+                                   3000.0,
+                                   0.5,
+                                   'PRESS')    
+    vr_defaults_actionmap_item_add(am,
+                                   VRDefaultActions.REDO.value,
+                                   "/user/gamepad",
+                                   "/input/b/click",
+                                   "",
+                                   "",
+                                   0.3,
+                                   'ANY',
+                                   'ANY',
+                                   "ed.redo",
+                                   'PRESS',
+                                   False,
+                                   "haptic_right",
+                                   True,
+                                   0.3,
+                                   3000.0,
+                                   0.5,
+                                   'PRESS')
     vr_defaults_haptic_actionmap_item_add(am,
                                           VRDefaultActions.HAPTIC_LEFT.value,
                                           "/user/gamepad",
                                           "/output/haptic_left",
                                           "",
-                                          "",
-                                          0.3,
-                                          3000.0,
-                                          0.5)
+                                          "")
     vr_defaults_haptic_actionmap_item_add(am,
                                           VRDefaultActions.HAPTIC_RIGHT.value,
                                           "/user/gamepad",
                                           "/output/haptic_right",
                                           "",
-                                          "",
-                                          0.3,
-                                          3000.0,
-                                          0.5)
+                                          "")
     vr_defaults_haptic_actionmap_item_add(am,
                                           VRDefaultActions.HAPTIC_LEFTTRIGGER.value,
                                           "/user/gamepad",
                                           "/output/haptic_left_trigger",
                                           "",
-                                          "",
-                                          0.3,
-                                          3000.0,
-                                          0.5)
+                                          "")
     vr_defaults_haptic_actionmap_item_add(am,
                                           VRDefaultActions.HAPTIC_RIGHTTRIGGER.value,
                                           "/user/gamepad",
                                           "/output/haptic_right_trigger",
                                           "",
-                                          "",
-                                          0.3,
-                                          3000.0,
-                                          0.5)
+                                          "")
 
 
 @persistent
