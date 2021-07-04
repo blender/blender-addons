@@ -860,8 +860,22 @@ def get_fake_context(context, area_type='VIEW_3D'):
 # def is_url(text):
 
 
-def label_multiline(layout, text='', icon='NONE', width=-1):
-    ''' draw a ui label, but try to split it in multiple lines.'''
+def label_multiline(layout, text='', icon='NONE', width=-1, max_lines = 10):
+    '''
+     draw a ui label, but try to split it in multiple lines.
+
+    Parameters
+    ----------
+    layout
+    text
+    icon
+    width width to split by in character count
+    max_lines maximum lines to draw
+
+    Returns
+    -------
+    True if max_lines was overstepped
+    '''
     if text.strip() == '':
         return
     text = text.replace('\r\n','\n')
@@ -870,11 +884,10 @@ def label_multiline(layout, text='', icon='NONE', width=-1):
         threshold = int(width / 5.5)
     else:
         threshold = 35
-    maxlines = 8
     li = 0
     for l in lines:
         # if is_url(l):
-
+        li+=1
         while len(l) > threshold:
             i = l.rfind(' ', 0, threshold)
             if i < 1:
@@ -884,12 +897,15 @@ def label_multiline(layout, text='', icon='NONE', width=-1):
             icon = 'NONE'
             l = l[i:].lstrip()
             li += 1
-            if li > maxlines:
+            if li > max_lines:
                 break;
-        if li > maxlines:
+        if li > max_lines:
             break;
         layout.label(text=l, icon=icon)
         icon = 'NONE'
+    if li>max_lines:
+        return True
+
 
 
 def trace():

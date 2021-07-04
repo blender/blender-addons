@@ -83,6 +83,8 @@ def get_oauth_landing_url():
 def get_author_gallery_url(author_id):
     return f'{get_bkit_url()}/asset-gallery?query=author_id:{author_id}'
 
+def get_asset_gallery_url(asset_id):
+    return f'{get_bkit_url()}/asset-gallery-detail/{asset_id}/'
 
 def default_global_dict():
     from os.path import expanduser

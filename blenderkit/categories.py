@@ -91,7 +91,7 @@ def get_category_name_path(categories, category):
     category_path = []
     check_categories = categories[:]
     parents = {}
-    utils.pprint(categories)
+    # utils.pprint(categories)
     while len(check_categories) > 0:
         ccheck = check_categories.pop()
         #        print(ccheck['name'])
@@ -100,16 +100,19 @@ def get_category_name_path(categories, category):
 
         for ch in ccheck['children']:
             #                print(ch['name'])
-            parents[ch['slug']] = ccheck['slug']
+            parents[ch['slug']] = ccheck
 
             if ch['slug'] == category:
-                category_path = [ch['slug']]
+                category_path = [ch['name']]
                 slug = ch['slug']
                 while parents.get(slug):
-                    slug = parents.get(slug)
-                    category_path.insert(0, slug)
+                    parent = parents.get(slug)
+                    slug = parent['slug']
+
+                    category_path.insert(0, parent['name'])
                 return category_path
             check_categories.append(ch)
+    return category_path
 
 def get_category(categories, cat_path=()):
     for category in cat_path:

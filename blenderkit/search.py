@@ -685,7 +685,37 @@ def write_gravatar(a_id, gravatar_path):
 
 
 def fetch_gravatar(adata):
+    '''
+    Gets avatars from blenderkit server
+    Parameters
+    ----------
+    adata - author data from elastic search result
+
+    '''
     # utils.p('fetch gravatar')
+
+    #fetch new avatars if available already
+    if adata.get('avatar128') is not None:
+        avatar_path = paths.get_temp_dir(subdir='bkit_g/') + adata['id']+ '.jpg'
+        if os.path.exists(avatar_path):
+            tasks_queue.add_task((write_gravatar, (adata['id'], avatar_path)))
+            return;
+
+        url= paths.get_bkit_url() + adata['avatar128']
+        r = rerequests.get(url, stream=False)
+        # print(r.body)
+        if r.status_code == 200:
+            # print(url)
+            # print(r.headers['content-disposition'])
+            with open(avatar_path, 'wb') as f:
+                f.write(r.content)
+            tasks_queue.add_task((write_gravatar, (adata['id'], avatar_path)))
+        elif r.status_code == '404':
+            adata['avatar128'] = None
+            utils.p('avatar for author not available.')
+        return
+
+    #older gravatar code
     if adata.get('gravatarHash') is not None:
         gravatar_path = paths.get_temp_dir(subdir='bkit_g/') + adata['gravatarHash'] + '.jpg'
 
