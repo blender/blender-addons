@@ -1397,8 +1397,8 @@ def numeric_to_str(s):
     return s
 
 
-def push_op_left(layout):
-    for a in range(0, 5):
+def push_op_left(layout, strength =5):
+    for a in range(0, strength):
         layout.label(text='')
 
 
@@ -1486,7 +1486,13 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             box.scale_y = 0.4
             box.label(text='Description')
             box.separator()
-            utils.label_multiline(box, self.asset_data['description'], width=width)
+            link_more = utils.label_multiline(box, self.asset_data['description'], width=width, max_lines = 10)
+            if link_more:
+                row = box.row()
+                row.scale_y = 2
+                op = row.operator('wm.blenderkit_url', text='See full description', icon='URL')
+                op.url = paths.get_asset_gallery_url(self.asset_data['assetBaseId'])
+                op.tooltip = 'Read full description on website'
             box.separator()
 
     def draw_properties(self, layout, width=250):
@@ -1818,15 +1824,40 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
 
         cat_path = categories.get_category_path(bcats,
                                                 self.asset_data['category'])[1:]
-        for i,c in enumerate(cat_path):
-            cat_path[i] = c.capitalize()
-        cat_path = ' > '.join(cat_path)
-        # box.label(text=cat_path)
+
+
+        cat_path_names = categories.get_category_name_path(bcats,
+                                        self.asset_data['category'])[1:]
 
         aname = asset_data['displayName']
         aname = aname[0].upper() + aname[1:]
 
-        top_drag_bar.label(text=f'{cat_path} > {aname}')
+        if 1:
+            name_row = top_drag_bar.row()
+            # name_row = name_row.split(factor=0.5)
+            # name_row = name_row.column()
+            # name_row = name_row.row()
+            for i, c in enumerate(cat_path):
+                cat_name = cat_path_names[i]
+                op = name_row.operator('view3d.blenderkit_asset_bar', text=cat_name + ' >', emboss=True)
+                op.do_search = True
+                op.keep_running = True
+                op.tooltip = f"Browse {cat_name} category"
+                op.category = c
+                # name_row.label(text='>')
+
+            name_row.label(text=aname)
+            push_op_left(name_row, strength = 3)
+        # for i,c in enumerate(cat_path_names):
+        #     cat_path_names[i] = c.capitalize()
+        # cat_path_names_string = ' > '.join(cat_path_names)
+        # # box.label(text=cat_path)
+        #
+        #
+        #
+        #
+        # # name_row.label(text='                                           ')
+        # top_drag_bar.label(text=f'{cat_path_names_string} > {aname}')
 
         # left side
         row = layout.row(align=True)
