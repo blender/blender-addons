@@ -1,4 +1,4 @@
-actionconfig_version = (3, 0, 5)
+actionconfig_version = (3, 0, 7)
 actionconfig_data = \
 [("blender_oculus",
   {"profile": '/interaction_profiles/oculus/touch_controller'},
