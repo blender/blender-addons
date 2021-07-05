@@ -20,9 +20,6 @@
 Pose Library - macros.
 """
 
-from pathlib import Path
-from typing import Any, Optional, Set, Tuple
-
 import bpy
 
 

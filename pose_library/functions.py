@@ -20,16 +20,13 @@
 Pose Library - functions.
 """
 
-import dataclasses
 from pathlib import Path
-from typing import Any, List, Set, cast, Iterable, Optional
+from typing import Any, List, Set, cast, Iterable
 
 Datablock = Any
 
 import bpy
 from bpy.types import (
-    FileSelectEntry,
-    AssetLibraryReference,
     Context,
 )
 

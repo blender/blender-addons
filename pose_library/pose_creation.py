@@ -23,7 +23,7 @@ Pose Library - creation functions.
 import dataclasses
 import functools
 import re
-from typing import Any, Optional, FrozenSet, Set, Tuple, Union, Iterable, cast
+from typing import Optional, FrozenSet, Set, Union, Iterable, cast
 
 if "functions" not in locals():
     from . import functions
@@ -35,13 +35,10 @@ else:
 import bpy
 from bpy.types import (
     Action,
-    Area,
     Bone,
     Context,
     FCurve,
-    Image,
     Keyframe,
-    Window,
 )
 
 FCurveValue = Union[float, int]
