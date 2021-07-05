@@ -174,6 +174,8 @@ class DOPESHEET_PT_asset_panel(Panel):
             row.operator("poselib.restore_previous_action", text="", icon='LOOP_BACK')
         col.operator("poselib.copy_as_asset", icon="COPYDOWN")
 
+        layout.operator("poselib.convert_old_poselib")
+
 
 classes = (
     ASSETBROWSER_PT_pose_library_editing,

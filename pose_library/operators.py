@@ -393,10 +393,42 @@ class POSELIB_OT_apply_pose_asset_for_keymap(Operator):
         return bpy.ops.poselib.apply_pose_asset(context.copy(), 'EXEC_DEFAULT', flipped=flipped)
 
 
+class POSELIB_OT_convert_old_poselib(Operator):
+    bl_idname = "poselib.convert_old_poselib"
+    bl_label = "Convert old-style pose library"
+    bl_description = "Create a pose asset for each pose marker in the current action"
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context: Context) -> bool:
+        action = context.object and context.object.animation_data and context.object.animation_data.action
+        if not action:
+            cls.poll_message_set("Active object has no Action")
+            return False
+        if not action.pose_markers:
+            cls.poll_message_set("Action %r is not a old-style pose library" % action.name)
+            return False
+        return True
+
+    def execute(self, context: Context) -> Set[str]:
+        from . import conversion
+
+        old_poselib = context.object.animation_data.action
+        new_actions = conversion.convert_old_poselib(old_poselib)
+
+        if not new_actions:
+            self.report({'ERROR'}, "Unable to convert to pose assets")
+            return {'CANCELLED'}
+
+        self.report({'INFO'}, "Converted %d poses to pose assets" % len(new_actions))
+        return {'FINISHED'}
+
+
 classes = (
     ASSET_OT_assign_action,
     POSELIB_OT_apply_pose_asset_for_keymap,
     POSELIB_OT_blend_pose_asset_for_keymap,
+    POSELIB_OT_convert_old_poselib,
     POSELIB_OT_copy_as_asset,
     POSELIB_OT_create_pose_asset,
     POSELIB_OT_paste_asset,

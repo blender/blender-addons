@@ -355,33 +355,57 @@ def copy_fcurves(
         keyframe = find_keyframe(fcurve, src_frame_nr)
         if keyframe is None:
             continue
-        # Create an FCurve and copy some properties.
-        src_group_name = fcurve.group.name if fcurve.group else ""
-        dst_fcurve = dst_action.fcurves.new(
-            fcurve.data_path, index=fcurve.array_index, action_group=src_group_name
-        )
-        for propname in {"auto_smoothing", "color", "color_mode", "extrapolation"}:
-            setattr(dst_fcurve, propname, getattr(fcurve, propname))
-
-        dst_keyframe = dst_fcurve.keyframe_points.insert(
-            keyframe.co.x, keyframe.co.y, keyframe_type=keyframe.type
-        )
-
-        for propname in {
-            "amplitude",
-            "back",
-            "easing",
-            "handle_left",
-            "handle_left_type",
-            "handle_right",
-            "handle_right_type",
-            "interpolation",
-            "period",
-        }:
-            setattr(dst_keyframe, propname, getattr(keyframe, propname))
-        dst_fcurve.update()
+        create_single_key_fcurve(dst_action, fcurve, keyframe)
         num_fcurves_copied += 1
     return num_fcurves_copied
+
+
+def create_single_key_fcurve(
+    dst_action: Action, src_fcurve: FCurve, src_keyframe: Keyframe
+) -> FCurve:
+    """Create a copy of the source FCurve, but only for the given keyframe.
+
+    Returns a new FCurve with just one keyframe.
+    """
+
+    dst_fcurve = copy_fcurve_without_keys(dst_action, src_fcurve)
+    copy_keyframe(dst_fcurve, src_keyframe)
+    return dst_fcurve
+
+
+def copy_fcurve_without_keys(dst_action: Action, src_fcurve: FCurve) -> FCurve:
+    """Create a new FCurve and copy some properties."""
+
+    src_group_name = src_fcurve.group.name if src_fcurve.group else ""
+    dst_fcurve = dst_action.fcurves.new(
+        src_fcurve.data_path, index=src_fcurve.array_index, action_group=src_group_name
+    )
+    for propname in {"auto_smoothing", "color", "color_mode", "extrapolation"}:
+        setattr(dst_fcurve, propname, getattr(src_fcurve, propname))
+    return dst_fcurve
+
+
+def copy_keyframe(dst_fcurve: FCurve, src_keyframe: Keyframe) -> Keyframe:
+    """Copy a keyframe from one FCurve to the other."""
+
+    dst_keyframe = dst_fcurve.keyframe_points.insert(
+        src_keyframe.co.x, src_keyframe.co.y, options={'FAST'}, keyframe_type=src_keyframe.type
+    )
+
+    for propname in {
+        "amplitude",
+        "back",
+        "easing",
+        "handle_left",
+        "handle_left_type",
+        "handle_right",
+        "handle_right_type",
+        "interpolation",
+        "period",
+    }:
+        setattr(dst_keyframe, propname, getattr(src_keyframe, propname))
+    dst_fcurve.update()
+    return dst_keyframe
 
 
 def find_keyframe(fcurve: FCurve, frame: float) -> Optional[Keyframe]:
