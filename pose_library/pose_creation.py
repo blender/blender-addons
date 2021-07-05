@@ -188,10 +188,10 @@ class PoseActionCreator:
     def _store_bbone(self, dst_action: Action, bone_name: str) -> None:
         """Store bendy-bone parameters."""
         for prop_name, array_length in self._bbone_props:
-          if array_length:
-            self._store_bone_array(dst_action, bone_name, prop_name, array_length)
-          else:
-            self._store_bone_property(dst_action, bone_name, prop_name)
+            if array_length:
+                self._store_bone_array(dst_action, bone_name, prop_name, array_length)
+            else:
+                self._store_bone_property(dst_action, bone_name, prop_name)
 
     def _store_bone_array(
         self, dst_action: Action, bone_name: str, property_name: str, array_length: int
