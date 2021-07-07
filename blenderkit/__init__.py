@@ -141,8 +141,6 @@ from bpy.types import (
 
 @persistent
 def scene_load(context):
-    print('loading in background')
-    print(bpy.context.window_manager)
     if not bpy.app.background:
         search.load_previews()
     ui_props = bpy.context.scene.blenderkitUI
