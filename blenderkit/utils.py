@@ -38,6 +38,10 @@ IDLE_PRIORITY_CLASS = 0x00000040
 NORMAL_PRIORITY_CLASS = 0x00000020
 REALTIME_PRIORITY_CLASS = 0x00000100
 
+supported_material_click = ('MESH', 'CURVE', 'META', 'FONT', 'SURFACE', 'VOLUME', 'GPENCIL')
+# supported_material_drag = ('MESH', 'CURVE', 'META', 'FONT', 'SURFACE', 'VOLUME', 'GPENCIL')
+supported_material_drag = ('MESH')
+
 
 def experimental_enabled():
     preferences = bpy.context.preferences.addons['blenderkit'].preferences

@@ -770,9 +770,8 @@ def deep_ray_cast(depsgraph, ray_origin, vec):
     empty_set = False, Vector((0, 0, 0)), Vector((0, 0, 1)), None, None, None
     if not object:
         return empty_set
-
     try_object = object
-
+    print(object.type)
     while try_object and (try_object.display_type == 'BOUNDS' or object_in_particle_collection(try_object)):
         ray_origin = snapped_location + vec.normalized() * 0.0003
         try_has_hit, try_snapped_location, try_snapped_normal, try_face_index, try_object, try_matrix = bpy.context.scene.ray_cast(
@@ -1538,7 +1537,7 @@ class AssetBarOperator(bpy.types.Operator):
                         else:
                             # first, test if object can have material applied.
                             # TODO add other types here if droppable.
-                            if object is not None and not object.is_library_indirect and object.type == 'MESH':
+                            if object is not None and not object.is_library_indirect and object.type in utils.supported_material_drag:
                                 target_object = object.name
                                 # create final mesh to extract correct material slot
                                 depsgraph = bpy.context.evaluated_depsgraph_get()
@@ -1552,7 +1551,11 @@ class AssetBarOperator(bpy.types.Operator):
                                                          message="Please select the model,"
                                                                  "go to the 'Selected Model' panel "
                                                                  "in BlenderKit and hit 'Bring to Scene' first.")
-
+                                print(object.type)
+                                if object.type not in utils.supported_material_drag:
+                                    ui_panels.ui_message(title='Unsupported object type',
+                                                         message="Only meshes are supported for material drag-drop.\n "
+                                                                 "Use click interaction for other object types.")
                                 self.report({'WARNING'}, "Invalid or library object as input:")
                                 target_object = ''
                                 target_slot = ''
@@ -1564,12 +1567,17 @@ class AssetBarOperator(bpy.types.Operator):
                     if ui_props.asset_type in ('MATERIAL',
                                                'MODEL'):  # this was meant for particles, commenting for now or ui_props.asset_type == 'MODEL':
                         ao = bpy.context.active_object
-                        if ao != None and not ao.is_library_indirect:
+                        supported_material_click = ('MESH', 'CURVE', 'META', 'FONT', 'SURFACE', 'VOLUME', 'GPENCIL')
+                        if ao != None and not ao.is_library_indirect and ao.type in supported_material_click:
                             target_object = bpy.context.active_object.name
                             target_slot = bpy.context.active_object.active_material_index
                             # change snapped location for placing material downloader.
                             ui_props.snapped_location = bpy.context.active_object.location
                         else:
+                            if ao != None and ui_props.asset_type == 'MATERIAL' and ao.type not in supported_material_click:
+                                ui_panels.ui_message(title='Unsupported object type',
+                                                     message="Can't assign material to this object type."
+                                                             "Please select another object.")
                             target_object = ''
                             target_slot = ''
                 # FIRST START SEARCH
