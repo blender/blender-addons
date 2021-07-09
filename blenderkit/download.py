@@ -319,7 +319,6 @@ def append_asset(asset_data, **kwargs):  # downloaders=[], location=None,
         if scene is not None:
             props = scene.blenderkit
             asset_main = scene
-            # print(sprops.switch_after_append)
             if sprops.switch_after_append:
                 bpy.context.window_manager.windows[0].scene = scene
 
@@ -1036,7 +1035,6 @@ def asset_in_scene(asset_data):
     au = scene.get('assets used', {})
 
     id = asset_data['assetBaseId']
-    print(id)
     if id in au.keys():
         ad = au[id]
         if ad.get('files'):
