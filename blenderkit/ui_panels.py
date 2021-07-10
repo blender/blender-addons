@@ -1733,7 +1733,10 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         # row = box_thumbnail.row()
         # row.scale_y = 3
         # op = row.operator('view3d.asset_drag_drop', text='Drag & Drop from here', depress=True)
+        # From here on, only ratings are drawn, which won't be displayed for private assets from now on.
 
+        if self.asset_data['isPrivate']:
+            return;
         row = box_thumbnail.row()
         row.alignment = 'EXPAND'
 

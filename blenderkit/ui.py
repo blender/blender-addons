@@ -771,7 +771,6 @@ def deep_ray_cast(depsgraph, ray_origin, vec):
     if not object:
         return empty_set
     try_object = object
-    print(object.type)
     while try_object and (try_object.display_type == 'BOUNDS' or object_in_particle_collection(try_object)):
         ray_origin = snapped_location + vec.normalized() * 0.0003
         try_has_hit, try_snapped_location, try_snapped_normal, try_face_index, try_object, try_matrix = bpy.context.scene.ray_cast(
@@ -1542,9 +1541,13 @@ class AssetBarOperator(bpy.types.Operator):
                                 # create final mesh to extract correct material slot
                                 depsgraph = bpy.context.evaluated_depsgraph_get()
                                 object_eval = object.evaluated_get(depsgraph)
-                                temp_mesh = object_eval.to_mesh()
-                                target_slot = temp_mesh.polygons[face_index].material_index
-                                object_eval.to_mesh_clear()
+                                if object.type =='MESH':
+                                    temp_mesh = object_eval.to_mesh()
+                                    target_slot = temp_mesh.polygons[face_index].material_index
+                                    object_eval.to_mesh_clear()
+                                else:
+                                    ui_props.snapped_location = object.location
+                                    target_slot = 0
                             else:
                                 if object.is_library_indirect:
                                     ui_panels.ui_message(title='This object is linked from outer file',
@@ -1553,9 +1556,12 @@ class AssetBarOperator(bpy.types.Operator):
                                                                  "in BlenderKit and hit 'Bring to Scene' first.")
                                 print(object.type)
                                 if object.type not in utils.supported_material_drag:
-                                    ui_panels.ui_message(title='Unsupported object type',
-                                                         message="Only meshes are supported for material drag-drop.\n "
-                                                                 "Use click interaction for other object types.")
+                                    if object.type in utils.supported_material_click:
+                                        ui_panels.ui_message(title='Unsupported object type',
+                                                             message=f"Use click interaction for {object.type.lower()} object.")
+                                    else:
+                                        ui_panels.ui_message(title='Unsupported object type',
+                                                             message=f"Can't assign materials to {object.type.lower()} object.")
                                 self.report({'WARNING'}, "Invalid or library object as input:")
                                 target_object = ''
                                 target_slot = ''
@@ -1576,8 +1582,7 @@ class AssetBarOperator(bpy.types.Operator):
                         else:
                             if ao != None and ui_props.asset_type == 'MATERIAL' and ao.type not in supported_material_click:
                                 ui_panels.ui_message(title='Unsupported object type',
-                                                     message="Can't assign material to this object type."
-                                                             "Please select another object.")
+                                                     message=f"Can't assign materials to {ao.type.lower()} object.")
                             target_object = ''
                             target_slot = ''
                 # FIRST START SEARCH
