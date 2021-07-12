@@ -265,6 +265,31 @@ class CMSelectCollectionObjectsOperator(Operator):
         return {'FINISHED'}
 
 
+class SelectAllCumulativeObjectsOperator(Operator):
+    '''Select all objects that are present in more than one collection'''
+    bl_label = "Select All Cumulative Objects"
+    bl_idname = "view3d.select_all_cumulative_objects"
+
+    def execute(self, context):
+        selected_cumulative_objects = 0
+        total_cumulative_objects = 0
+
+        bpy.ops.object.select_all(action='DESELECT')
+
+        for obj in bpy.data.objects:
+            if len(obj.users_collection) > 1:
+                if obj.visible_get():
+                    obj.select_set(True)
+                    if obj.select_get() == True: # needed because obj.select_set can fail silently
+                        selected_cumulative_objects +=1
+
+                total_cumulative_objects += 1
+
+        self.report({'INFO'}, f"{selected_cumulative_objects}/{total_cumulative_objects} Cumulative Objects Selected")
+
+        return {'FINISHED'}
+
+
 class CMSetCollectionOperator(Operator):
     bl_label = "Set Object Collection"
     bl_description = (

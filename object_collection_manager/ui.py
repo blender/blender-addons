@@ -1006,6 +1006,10 @@ class SpecialsMenu(Menu):
                                text="Purge All Collections Without Objects")
         prop.without_objects = True
 
+        layout.separator()
+
+        layout.operator("view3d.select_all_cumulative_objects")
+
 
 class EnableAllQCDSlotsMenu(Menu):
     bl_label = "Global QCD Slot Actions"
