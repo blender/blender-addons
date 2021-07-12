@@ -100,7 +100,7 @@ classes = (
     operators.CMRemoveEmptyCollectionsOperator,
     operators.CMSelectCollectionObjectsOperator,
     operators.SelectAllCumulativeObjectsOperator,
-    operators.CMSetCollectionOperator,
+    operators.CMSendObjectsToCollectionOperator,
     operators.CMPhantomModeOperator,
     operators.CMApplyPhantomModeOperator,
     operators.CMDisableObjectsOperator,

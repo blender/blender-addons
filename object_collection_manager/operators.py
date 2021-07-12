@@ -290,13 +290,13 @@ class SelectAllCumulativeObjectsOperator(Operator):
         return {'FINISHED'}
 
 
-class CMSetCollectionOperator(Operator):
-    bl_label = "Set Object Collection"
+class CMSendObjectsToCollectionOperator(Operator):
+    bl_label = "Send Objects to Collection"
     bl_description = (
-        "  * LMB - Move object to collection.\n"
-        "  * Shift+LMB - Add/Remove object from collection"
+        "  * LMB - Move objects to collection.\n"
+        "  * Shift+LMB - Add/Remove objects from collection"
         )
-    bl_idname = "view3d.set_collection"
+    bl_idname = "view3d.send_objects_to_collection"
     bl_options = {'REGISTER', 'UNDO'}
 
     is_master_collection: BoolProperty()
