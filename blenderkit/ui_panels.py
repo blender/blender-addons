@@ -2201,6 +2201,11 @@ def header_search_draw(self, context):
         layout.prop(ui_props, "asset_type", expand=True, icon_only=True, text='', icon='URL')
         layout.prop(props, "search_keywords", text="", icon='VIEWZOOM')
         draw_assetbar_show_hide(layout, props)
+        layout.popover(panel="VIEW3D_PT_blenderkit_categories", text="", icon = 'OUTLINER')
+        if ui_props.asset_type=='MODEL':
+            layout.popover(panel="VIEW3D_PT_blenderkit_advanced_model_search", text="", icon = 'FILTER')
+        elif ui_props.asset_type=='MATERIAL':
+            layout.popover(panel="VIEW3D_PT_blenderkit_advanced_material_search", text="", icon = 'FILTER')
 
 
 def ui_message(title, message):

@@ -1258,6 +1258,7 @@ class AssetBarOperator(bpy.types.Operator):
         self.area.tag_redraw()
         s = context.scene
 
+
         if ui_props.turn_off:
             ui_props.turn_off = False
             self.exit_modal()
@@ -1301,6 +1302,7 @@ class AssetBarOperator(bpy.types.Operator):
             return {'PASS_THROUGH'}
         if len(sr) - ui_props.scrolloffset < (ui_props.wcount * ui_props.hcount) + 10:
             self.search_more()
+
         if event.type == 'WHEELUPMOUSE' or event.type == 'WHEELDOWNMOUSE' or event.type == 'TRACKPADPAN':
             # scrolling
             mx = event.mouse_region_x
@@ -1354,7 +1356,7 @@ class AssetBarOperator(bpy.types.Operator):
             sr = bpy.context.window_manager['search results']
 
             if not ui_props.dragging:
-                bpy.context.window.cursor_set("DEFAULT")
+                bpy.context.window.cursor_set("HAND")
 
                 if sr != None and ui_props.wcount * ui_props.hcount > len(sr) and ui_props.scrolloffset > 0:
                     ui_props.scrolloffset = 0
@@ -1802,6 +1804,8 @@ class AssetDragOperator(bpy.types.Operator):
         if event.type in {'RIGHTMOUSE', 'ESC'} or \
                 not mouse_in_region(context.region, self.mouse_x, self.mouse_y):
             self.handlers_remove()
+            bpy.context.window.cursor_set("DEFAULT")
+
             return {'CANCELLED'}
 
         sprops = bpy.context.scene.blenderkit_models
@@ -1833,7 +1837,10 @@ class AssetDragOperator(bpy.types.Operator):
         if event.type == 'LEFTMOUSE' and event.value == 'RELEASE':
             self.mouse_release()# does the main job with assets
             self.handlers_remove()
+            bpy.context.window.cursor_set("DEFAULT")
+
             bpy.ops.object.run_assetbar_fix_context(keep_running = True, do_search = False)
+
             return {'FINISHED'}
         self.steps +=1
 
@@ -1877,6 +1884,9 @@ class AssetDragOperator(bpy.types.Operator):
             self._handle_3d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_3d_dragging, args, 'WINDOW',
                                                                      'POST_VIEW')
             context.window_manager.modal_handler_add(self)
+
+            bpy.context.window.cursor_set("NONE")
+
             return {'RUNNING_MODAL'}
         else:
             self.report({'WARNING'}, "View3D not found, cannot run operator")
