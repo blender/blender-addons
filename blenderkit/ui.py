@@ -485,7 +485,10 @@ def draw_progress(x, y, text='', percent=None, color=colors.GREEN):
 
 
 def draw_callback_3d_progress(self, context):
-    # 'star trek' mode gets here, blocked by now ;)
+    # 'star trek' mode is here
+
+    if not utils.guard_from_crash():
+        return
     for threaddata in download.download_threads:
         asset_data = threaddata[1]
         tcom = threaddata[2]
@@ -497,6 +500,9 @@ def draw_callback_3d_progress(self, context):
 
 
 def draw_callback_2d_progress(self, context):
+    if not utils.guard_from_crash():
+        return
+
     green = (.2, 1, .2, .3)
     offset = 0
     row_height = 35
@@ -632,7 +638,7 @@ def draw_asset_bar(self, context):
     #                       1,
     #                       img,
     #                       1)
-    if not ui_props.dragging and ui_props.hcount > 0 and ui_props.wcount > 0:
+    if ui_props.hcount > 0 and ui_props.wcount > 0:
         search_results = bpy.context.window_manager.get('search results')
         search_results_orig = bpy.context.window_manager.get('search results orig')
         if search_results == None:
@@ -737,6 +743,8 @@ def draw_asset_bar(self, context):
                     if v_icon is None and is_validator:
                         # poke for validators to rate
                         rating = ar.get(result['id'])
+                        if rating is not None:
+                            rating = rating.to_dict()
                         if rating in (None, {}):
                             v_icon = 'star_grey.png'
 
@@ -1188,7 +1196,6 @@ class AssetBarOperator(bpy.types.Operator):
             pass;
         ui_props = bpy.context.scene.blenderkitUI
 
-        # ui_props.dragging = False
         ui_props.tooltip = ''
         ui_props.active_index = -3
         ui_props.draw_drag_image = False
@@ -1344,8 +1351,6 @@ class AssetBarOperator(bpy.types.Operator):
 
             if not mouse_in_asset_bar(mx, my):  #
 
-                # ui_props.dragging = False
-                # ui_props.has_hit = False
                 ui_props.active_index = -3
                 ui_props.draw_drag_image = False
                 ui_props.draw_snapped_bounds = False
@@ -1355,33 +1360,32 @@ class AssetBarOperator(bpy.types.Operator):
 
             sr = bpy.context.window_manager['search results']
 
-            if not ui_props.dragging:
-                bpy.context.window.cursor_set("HAND")
+            bpy.context.window.cursor_set("HAND")
 
-                if sr != None and ui_props.wcount * ui_props.hcount > len(sr) and ui_props.scrolloffset > 0:
-                    ui_props.scrolloffset = 0
+            if sr != None and ui_props.wcount * ui_props.hcount > len(sr) and ui_props.scrolloffset > 0:
+                ui_props.scrolloffset = 0
 
-                asset_search_index = get_asset_under_mouse(mx, my)
-                ui_props.active_index = asset_search_index
-                if asset_search_index > -1:
+            asset_search_index = get_asset_under_mouse(mx, my)
+            ui_props.active_index = asset_search_index
+            if asset_search_index > -1:
 
-                    asset_data = sr[asset_search_index]
-                    ui_props.draw_tooltip = True
+                asset_data = sr[asset_search_index]
+                ui_props.draw_tooltip = True
 
-                    ui_props.tooltip = asset_data['tooltip']
-                    # bpy.ops.wm.call_menu(name='OBJECT_MT_blenderkit_asset_menu')
+                ui_props.tooltip = asset_data['tooltip']
+                # bpy.ops.wm.call_menu(name='OBJECT_MT_blenderkit_asset_menu')
 
-                else:
-                    ui_props.draw_tooltip = False
+            else:
+                ui_props.draw_tooltip = False
 
-                if mx > ui_props.bar_x + ui_props.bar_width - 50 and search_results_orig[
-                    'count'] - ui_props.scrolloffset > (
-                        ui_props.wcount * ui_props.hcount) + 1:
-                    ui_props.active_index = -1
-                    return {'RUNNING_MODAL'}
-                if mx < ui_props.bar_x + 50 and ui_props.scrolloffset > 0:
-                    ui_props.active_index = -2
-                    return {'RUNNING_MODAL'}
+            if mx > ui_props.bar_x + ui_props.bar_width - 50 and search_results_orig[
+                'count'] - ui_props.scrolloffset > (
+                    ui_props.wcount * ui_props.hcount) + 1:
+                ui_props.active_index = -1
+                return {'RUNNING_MODAL'}
+            if mx < ui_props.bar_x + 50 and ui_props.scrolloffset > 0:
+                ui_props.active_index = -2
+                return {'RUNNING_MODAL'}
 
             return {'RUNNING_MODAL'}
 
@@ -1805,7 +1809,7 @@ class AssetDragOperator(bpy.types.Operator):
                 not mouse_in_region(context.region, self.mouse_x, self.mouse_y):
             self.handlers_remove()
             bpy.context.window.cursor_set("DEFAULT")
-
+            ui_props.dragging = False
             return {'CANCELLED'}
 
         sprops = bpy.context.scene.blenderkit_models
@@ -1840,7 +1844,7 @@ class AssetDragOperator(bpy.types.Operator):
             bpy.context.window.cursor_set("DEFAULT")
 
             bpy.ops.object.run_assetbar_fix_context(keep_running = True, do_search = False)
-
+            ui_props.dragging = False
             return {'FINISHED'}
         self.steps +=1
 
@@ -1886,7 +1890,8 @@ class AssetDragOperator(bpy.types.Operator):
             context.window_manager.modal_handler_add(self)
 
             bpy.context.window.cursor_set("NONE")
-
+            ui_props = bpy.context.scene.blenderkitUI
+            ui_props.dragging = True
             return {'RUNNING_MODAL'}
         else:
             self.report({'WARNING'}, "View3D not found, cannot run operator")
