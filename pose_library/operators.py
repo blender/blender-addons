@@ -229,6 +229,7 @@ class POSELIB_OT_copy_as_asset(PoseAssetCreator, Operator):
         )
 
         asset_browser.tag_redraw(context.screen)
+        self.report({"INFO"}, "Pose Asset copied, use Paste As New Asset in any Asset Browser to paste")
         return {"FINISHED"}
 
     def save_datablock(self, action: Action) -> Path:
