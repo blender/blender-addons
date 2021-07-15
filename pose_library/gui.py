@@ -39,6 +39,10 @@ class VIEW3D_PT_pose_library(Panel):
     bl_category = "Animation"
     bl_label = "Pose Library"
 
+    @classmethod
+    def poll(cls, context: Context) -> bool:
+        return context.preferences.experimental.use_asset_browser
+
     def draw(self, context: Context) -> None:
         layout = self.layout
 
@@ -164,6 +168,10 @@ class DOPESHEET_PT_asset_panel(Panel):
     bl_space_type = "DOPESHEET_EDITOR"
     bl_region_type = "UI"
     bl_label = "Create Pose Asset"
+
+    @classmethod
+    def poll(cls, context: Context) -> bool:
+        return context.preferences.experimental.use_asset_browser
 
     def draw(self, context: Context) -> None:
         layout = self.layout
