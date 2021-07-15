@@ -128,7 +128,6 @@ class ASSETBROWSER_PT_pose_library_usage(asset_utils.AssetBrowserSpecificCategor
         wm = context.window_manager
 
         col = layout.column(align=True)
-        col.label(text="Use Pose Asset")
         col.prop(wm, "poselib_flipped")
         props = col.operator("poselib.apply_pose_asset")
         props.flipped = wm.poselib_flipped
