@@ -153,7 +153,7 @@ class ASSETBROWSER_PT_pose_library_editing(asset_utils.AssetBrowserSpecificCateg
 
         col = layout.column(align=True)
         col.enabled = bpy.types.ASSET_OT_assign_action.poll(context)
-        col.label(text="Activate & Edit")
+        col.label(text="Activate And Edit")
         col.operator("asset.assign_action")
 
         # Creation
