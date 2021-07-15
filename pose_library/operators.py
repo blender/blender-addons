@@ -36,7 +36,6 @@ if _need_reload:
 
 
 import bpy
-from bpy_extras import asset_utils
 from bpy.props import BoolProperty, StringProperty
 from bpy.types import (
     Action,
