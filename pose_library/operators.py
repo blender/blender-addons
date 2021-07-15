@@ -395,7 +395,7 @@ class POSELIB_OT_apply_pose_asset_for_keymap(Operator):
 
 class POSELIB_OT_convert_old_poselib(Operator):
     bl_idname = "poselib.convert_old_poselib"
-    bl_label = "Convert old-style pose library"
+    bl_label = "Convert Old-Style Pose Library"
     bl_description = "Create a pose asset for each pose marker in the current action"
     bl_options = {"REGISTER", "UNDO"}
 
