@@ -167,6 +167,7 @@ class DOPESHEET_PT_asset_panel(Panel):
     bl_space_type = "DOPESHEET_EDITOR"
     bl_region_type = "UI"
     bl_label = "Create Pose Asset"
+    bl_category = "Pose Library"
 
     @classmethod
     def poll(cls, context: Context) -> bool:
