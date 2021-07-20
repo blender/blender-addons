@@ -1206,6 +1206,7 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
             op.author_id = author_id
 
     op = layout.operator('view3d.blenderkit_search', text='Search Similar')
+    op.esc = True
     op.tooltip = 'Search for similar assets in the library'
     # build search string from description and tags:
     op.keywords = asset_data['name']
@@ -1721,6 +1722,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             op.url = url
 
             op = button_row.operator('view3d.blenderkit_search', text="Find Assets By Author")
+            op.esc = True
             op.keywords = ''
             op.author_id = self.asset_data['author']['id']
 

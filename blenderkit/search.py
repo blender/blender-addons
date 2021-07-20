@@ -1458,6 +1458,12 @@ class SearchOperator(Operator):
     bl_description = "Search online for assets"
     bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
+    esc: BoolProperty(name="Escape window",
+                      description="Escape window right after start",
+                      default=False,
+                      options={'SKIP_SAVE'}
+                      )
+
     own: BoolProperty(name="own assets only",
                       description="Find all own assets",
                       default=False)
@@ -1506,6 +1512,8 @@ class SearchOperator(Operator):
 
     def execute(self, context):
         # TODO ; this should all get transferred to properties of the search operator, so sprops don't have to be fetched here at all.
+        if self.esc:
+            bpy.ops.view3d.close_popup_button('INVOKE_DEFAULT')
         sprops = utils.get_search_props()
         if self.author_id != '':
             sprops.search_keywords = ''
