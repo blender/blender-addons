@@ -19,7 +19,7 @@
 bl_info = {
     "name": "BlenderKit Online Asset Library",
     "author": "Vilem Duha, Petr Dlouhy",
-    "version": (2, 93, 0),
+    "version": (3, 0, 0),
     "blender": (2, 93, 0),
     "location": "View3D > Properties > BlenderKit",
     "description": "Online BlenderKit library (materials, models, brushes and more). Connects to the internet.",
@@ -141,8 +141,6 @@ from bpy.types import (
 
 @persistent
 def scene_load(context):
-    if not bpy.app.background:
-        search.load_previews()
     ui_props = bpy.context.scene.blenderkitUI
     ui_props.assetbar_on = False
     ui_props.turn_off = False

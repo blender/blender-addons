@@ -1854,7 +1854,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             # name_row = name_row.row()
             for i, c in enumerate(cat_path):
                 cat_name = cat_path_names[i]
-                op = name_row.operator('view3d.blenderkit_asset_bar', text=cat_name + ' >', emboss=True)
+                op = name_row.operator('view3d.blenderkit_asset_bar', text=cat_name + '     >', emboss=False)
                 op.do_search = True
                 op.keep_running = True
                 op.tooltip = f"Browse {cat_name} category"

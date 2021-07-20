@@ -40,10 +40,6 @@ import os
 
 import logging
 
-PROFILING = False
-if PROFILING:
-    import cProfile
-    profiler = cProfile.Profile()
 
 draw_time = 0
 eval_time = 0
@@ -422,19 +418,7 @@ def draw_tooltip_with_author(asset_data, x, y):
                  img=img,
                  gravatar=gimg)
 
-profiler_step = 0
-def draw_callback_2d_profiled(self,context):
-    global profiler,profiler_step
-    result = profiler.runcall(draw_callback_2d,self,context)
-    if profiler_step >= 1000:
 
-        profiler.print_stats(sort = 'cumulative')
-        profiler = cProfile.Profile()
-        profiler_step = 0
-    profiler_step+=1
-    if profiler_step%10 ==0:
-        print(profiler_step)
-    return
 
 def draw_callback_2d(self, context):
     if not utils.guard_from_crash():
@@ -572,7 +556,7 @@ def draw_callback_2d_upload_preview(self, context):
 
         img = utils.get_hidden_image(ui_props.thumbnail_image, 'upload_preview')
 
-        draw_tooltip(ui_props.bar_x, ui_props.bar_y, name=ui_props.tooltip, img=img)
+        draw_tooltip(ui_props.bar_x, ui_props.bar_y, name=props.name, img=img)
 
 
 def is_upload_old(asset_data):
@@ -760,7 +744,7 @@ def draw_asset_bar(self, context):
             #     report = 'BlenderKit - No matching results found.'
             #     ui_bgl.draw_text(report, ui_props.bar_x + ui_props.margin,
             #                      ui_props.bar_y - 25 - ui_props.margin, 15)
-            if ui_props.draw_tooltip:
+            if ui_props.draw_tooltip and len(search_results)>ui_props.active_index:
                 r = search_results[ui_props.active_index]
                 draw_tooltip_with_author(r, ui_props.mouse_x, ui_props.mouse_y)
         s = bpy.context.scene
@@ -1162,7 +1146,6 @@ class ParticlesDropDialog(bpy.types.Operator):
 #         wm = context.window_manager
 #         return wm.invoke_props_dialog(self, width=400)
 
-
 class AssetBarOperator(bpy.types.Operator):
     '''runs search and displays the asset bar at the same time'''
     bl_idname = "view3d.blenderkit_asset_bar"
@@ -1186,8 +1169,15 @@ class AssetBarOperator(bpy.types.Operator):
 
     def search_more(self):
         sro = bpy.context.window_manager.get('search results orig')
-        if sro is not None and sro.get('next') is not None:
-            search.search(get_next=True)
+        if sro is None:
+            return;
+        if sro.get('next') is None:
+            return
+        search_props = utils.get_search_props()
+        if search_props.is_searching:
+            return
+
+        search.search(get_next=True)
 
     def exit_modal(self):
         try:
@@ -1196,12 +1186,13 @@ class AssetBarOperator(bpy.types.Operator):
             pass;
         ui_props = bpy.context.scene.blenderkitUI
 
-        ui_props.tooltip = ''
+        # ui_props.tooltip = ''
         ui_props.active_index = -3
         ui_props.draw_drag_image = False
         ui_props.draw_snapped_bounds = False
         ui_props.has_hit = False
         ui_props.assetbar_on = False
+
 
     def modal(self, context, event):
 
@@ -1286,16 +1277,16 @@ class AssetBarOperator(bpy.types.Operator):
 
             # only generate tooltip once in a while
             if (
-                    event.type == 'LEFTMOUSE' or event.type == 'RIGHTMOUSE') and event.value == 'RELEASE' or event.type == 'ENTER' or ui_props.tooltip == '':
+                    event.type == 'LEFTMOUSE' or event.type == 'RIGHTMOUSE') and event.value == 'RELEASE' or event.type == 'ENTER':
                 ao = bpy.context.active_object
                 if ui_props.asset_type == 'MODEL' and ao != None \
                         or ui_props.asset_type == 'MATERIAL' and ao != None and ao.active_material != None \
                         or ui_props.asset_type == 'BRUSH' and utils.get_active_brush() is not None \
                         or ui_props.asset_type == 'SCENE' or ui_props.asset_type == 'HDR':
                     export_data, upload_data = upload.get_upload_data(context=context, asset_type=ui_props.asset_type)
-                    if upload_data:
-                        # print(upload_data)
-                        ui_props.tooltip = upload_data['displayName']  # search.generate_tooltip(upload_data)
+                    # if upload_data:
+                    #     # print(upload_data)
+                    #     ui_props.tooltip = upload_data['displayName']  # search.generate_tooltip(upload_data)
 
             return {'PASS_THROUGH'}
 
@@ -1307,7 +1298,7 @@ class AssetBarOperator(bpy.types.Operator):
         # If there aren't any results, we need no interaction(yet)
         if sr is None:
             return {'PASS_THROUGH'}
-        if len(sr) - ui_props.scrolloffset < (ui_props.wcount * ui_props.hcount) + 10:
+        if len(sr) - ui_props.scrolloffset < (ui_props.wcount * user_preferences.max_assetbar_rows) + 10:
             self.search_more()
 
         if event.type == 'WHEELUPMOUSE' or event.type == 'WHEELDOWNMOUSE' or event.type == 'TRACKPADPAN':
@@ -1372,7 +1363,7 @@ class AssetBarOperator(bpy.types.Operator):
                 asset_data = sr[asset_search_index]
                 ui_props.draw_tooltip = True
 
-                ui_props.tooltip = asset_data['tooltip']
+                # ui_props.tooltip = asset_data['tooltip']
                 # bpy.ops.wm.call_menu(name='OBJECT_MT_blenderkit_asset_menu')
 
             else:
@@ -1538,18 +1529,16 @@ class AssetBarOperator(bpy.types.Operator):
 
         update_ui_size(self.area, self.region)
 
-        if PROFILING:
-            self._handle_2d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_2d_profiled, args, 'WINDOW', 'POST_PIXEL')
-        else:
-            self._handle_2d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_2d, args, 'WINDOW', 'POST_PIXEL')
 
-        context.window_manager.modal_handler_add(self)
+        self._handle_2d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_2d, args, 'WINDOW', 'POST_PIXEL')
+
         ui_props.assetbar_on = True
 
         # in an exceptional case these were accessed before  drag start.
         self.drag_start_x = 0
         self.drag_start_y = 0
 
+        context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
@@ -1815,8 +1804,11 @@ class AssetDragOperator(bpy.types.Operator):
         sprops = bpy.context.scene.blenderkit_models
         if event.type == 'WHEELUPMOUSE':
             sprops.offset_rotation_amount += sprops.offset_rotation_step
+            return {'RUNNING_MODAL'}
         elif event.type == 'WHEELDOWNMOUSE':
             sprops.offset_rotation_amount -= sprops.offset_rotation_step
+            return {'RUNNING_MODAL'}
+
 
         if event.type =='MOUSEMOVE':
 
@@ -1837,6 +1829,7 @@ class AssetDragOperator(bpy.types.Operator):
             if ui_props.asset_type == 'MODEL':
                 self.snapped_bbox_min = Vector(self.asset_data['bbox_min'])
                 self.snapped_bbox_max = Vector(self.asset_data['bbox_max'])
+            return {'RUNNING_MODAL'}
 
         if event.type == 'LEFTMOUSE' and event.value == 'RELEASE':
             self.mouse_release()# does the main job with assets
@@ -1887,11 +1880,11 @@ class AssetDragOperator(bpy.types.Operator):
             self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_dragging, args, 'WINDOW', 'POST_PIXEL')
             self._handle_3d = bpy.types.SpaceView3D.draw_handler_add(draw_callback_3d_dragging, args, 'WINDOW',
                                                                      'POST_VIEW')
-            context.window_manager.modal_handler_add(self)
 
             bpy.context.window.cursor_set("NONE")
             ui_props = bpy.context.scene.blenderkitUI
             ui_props.dragging = True
+            context.window_manager.modal_handler_add(self)
             return {'RUNNING_MODAL'}
         else:
             self.report({'WARNING'}, "View3D not found, cannot run operator")
