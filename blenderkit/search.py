@@ -1081,6 +1081,9 @@ def build_query_common(query, props):
         query_common["files_size_gte"] = props.search_file_size_min * 1024 * 1024
         query_common["files_size_lte"] = props.search_file_size_max * 1024 * 1024
 
+    if props.quality_limit > 0:
+        query["quality_gte"] = props.quality_limit
+        
     query.update(query_common)
 
 
@@ -1106,6 +1109,7 @@ def build_query_model():
     # if props.search_advanced:
     if props.search_condition != 'UNSPECIFIED':
         query["condition"] = props.search_condition
+
     if props.search_design_year:
         query["designYear_gte"] = props.search_design_year_min
         query["designYear_lte"] = props.search_design_year_max

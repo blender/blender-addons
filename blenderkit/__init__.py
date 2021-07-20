@@ -569,6 +569,9 @@ class BlenderKitCommonSearchProps(object):
 
     unrated_only: BoolProperty(name="Unrated only", description="Show only unrated models",
                                default=False, update=search.search_update)
+    quality_limit: IntProperty(name="Quality limit",
+                               description = 'Only show assets with a higher quality',
+                               default=0, min=0, max=10, update=search.search_update)
 
 
 def name_update(self, context):

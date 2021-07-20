@@ -819,6 +819,7 @@ class VIEW3D_PT_blenderkit_advanced_model_search(Panel):
 
         # AGE
         layout.prop(props, "search_condition", text='Condition')  # , text ='condition of object new/old e.t.c.')
+        layout.prop(props, "quality_limit", slider=True)  # , text ='condition of object new/old e.t.c.')
 
         # layout.prop(props, "search_procedural", expand=True)
         # ADULT
@@ -867,7 +868,7 @@ class VIEW3D_PT_blenderkit_advanced_material_search(Panel):
             row = layout.row(align=True)
             row.prop(props, "search_file_size_min", text='Min')
             row.prop(props, "search_file_size_max", text='Max')
-
+        layout.prop(props, "quality_limit", slider=True)
 
 class VIEW3D_PT_blenderkit_categories(Panel):
     bl_category = "BlenderKit"
