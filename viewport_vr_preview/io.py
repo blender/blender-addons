@@ -90,7 +90,8 @@ def ami_args_as_data(ami):
         s.append(f"\"haptic_amplitude\": '{ami.haptic_amplitude}'")
         s.append(f"\"haptic_flag\": '{ami.haptic_flag}'")
     elif ami.type == 'POSE':
-        s.append(f"\"pose_is_controller\": '{ami.pose_is_controller}'")
+        s.append(f"\"pose_is_controller_grip\": '{ami.pose_is_controller_grip}'")
+        s.append(f"\"pose_is_controller_aim\": '{ami.pose_is_controller_aim}'")
         s.append(f"\"pose_location\": '{ami.pose_location.x, ami.pose_location.y, ami.pose_location.z}'")
         s.append(f"\"pose_rotation\": '{ami.pose_rotation.x, ami.pose_rotation.y, ami.pose_rotation.z}'")
 
@@ -122,7 +123,8 @@ def ami_data_from_args(ami, args):
         ami.haptic_amplitude = float(args["haptic_amplitude"])
         ami.haptic_flag = args["haptic_flag"]
     elif ami.type == 'POSE':
-        ami.pose_is_controller = True if (args["pose_is_controller"] == 'True') else False
+        ami.pose_is_controller_grip = True if (args["pose_is_controller_grip"] == 'True') else False
+        ami.pose_is_controller_aim = True if (args["pose_is_controller_aim"] == 'True') else False
         l = args["pose_location"].strip(')(').split(', ')
         ami.pose_location.x = float(l[0])
         ami.pose_location.y = float(l[1])

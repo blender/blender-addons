@@ -643,6 +643,8 @@ def vr_create_actions(context: bpy.context):
         if not ok:
             return
 
+        controller_grip_name = ""
+        controller_aim_name = ""
         interaction_path0 = ""
         interaction_path1 = ""
 
@@ -661,10 +663,10 @@ def vr_create_actions(context: bpy.context):
                 if not ok:
                     return
                 
-                if ami.pose_is_controller:
-                    ok = session_state.set_controller_pose_action(context, am.name, ami.name)
-                    if not ok:
-                        return
+                if ami.pose_is_controller_grip:
+                    controller_grip_name = ami.name
+                if ami.pose_is_controller_aim:
+                    controller_aim_name = ami.name
 
             interaction_path0 = ami.user_path0 + ami.component_path0
             interaction_path1 = ami.user_path1 + ami.component_path1
@@ -673,6 +675,10 @@ def vr_create_actions(context: bpy.context):
                                                      interaction_path0, interaction_path1)
             if not ok:
                 return
+
+        # Set controller pose actions.
+        if controller_grip_name and controller_aim_name:
+            session_state.set_controller_pose_actions(context, am.name, controller_grip_name, controller_aim_name)
 
     # Set active action set.
     am = vr_actionmap_active_get(ac)
@@ -909,7 +915,8 @@ class VIEW3D_PT_vr_actions_actions(VRActionsPanel, Panel):
                     # Properties.
                     vr_draw_ami(ami, col, 1)
                 elif ami.type == 'POSE':
-                    col.prop(ami, "pose_is_controller", text="Use for Controller Poses")
+                    col.prop(ami, "pose_is_controller_grip", text="Use for Controller Grips")
+                    col.prop(ami, "pose_is_controller_aim", text="Use for Controller Aims")
                     col.prop(ami, "pose_location", text="Location Offset")
                     col.prop(ami, "pose_rotation", text="Rotation Offset")
 
@@ -1447,11 +1454,11 @@ class VIEW3D_GGT_vr_controller_poses(GizmoGroup):
         loc = None
         rot = None
         if idx == 0:
-            loc = wm.xr_session_state.controller_pose0_location
-            rot = wm.xr_session_state.controller_pose0_rotation
+            loc = wm.xr_session_state.controller0_grip_location
+            rot = wm.xr_session_state.controller0_aim_rotation
         elif idx == 1:
-            loc = wm.xr_session_state.controller_pose1_location
-            rot = wm.xr_session_state.controller_pose1_rotation
+            loc = wm.xr_session_state.controller1_grip_location
+            rot = wm.xr_session_state.controller1_aim_rotation
         else:
             return Matrix.Identity(4);
 

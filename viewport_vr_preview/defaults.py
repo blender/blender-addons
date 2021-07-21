@@ -41,7 +41,8 @@ class VRDefaultActionmaps(Enum):
 
 # Default actions.
 class VRDefaultActions(Enum):
-    CONTROLLER_POSE = "controller_pose"
+    CONTROLLER_GRIP = "controller_grip"
+    CONTROLLER_AIM = "controller_aim"
     TELEPORT = "teleport"
     NAV_GRAB = "nav_grab"
     FLY = "fly"
@@ -86,9 +87,9 @@ def vr_defaults_actionmap_item_add(am,
                                    bimanual,
                                    haptic_name,
                                    haptic_match_user_paths,
-                                   haptic_amplitude,
                                    haptic_duration,
                                    haptic_frequency,
+                                   haptic_amplitude,
                                    haptic_flag):
 
 
@@ -121,7 +122,8 @@ def vr_defaults_pose_actionmap_item_add(am,
                                         component_path0,
                                         user_path1,
                                         component_path1,
-                                        is_controller,
+                                        is_controller_grip,
+                                        is_controller_aim,
                                         location,
                                         rotation):
     ami = am.actionmap_items.new(name, True)
@@ -131,7 +133,8 @@ def vr_defaults_pose_actionmap_item_add(am,
         ami.component_path0 = component_path0
         ami.user_path1 = user_path1
         ami.component_path1 = component_path1
-        ami.pose_is_controller = is_controller
+        ami.pose_is_controller_grip = is_controller_grip
+        ami.pose_is_controller_aim = is_controller_aim
         ami.pose_location = location
         ami.pose_rotation = rotation
 
@@ -163,14 +166,25 @@ def vr_defaults_create_oculus(ac):
         return
 
     vr_defaults_pose_actionmap_item_add(am,
-                                        VRDefaultActions.CONTROLLER_POSE.value,
+                                        VRDefaultActions.CONTROLLER_GRIP.value,
                                         "/user/hand/left",
                                         "/input/grip/pose",
                                         "/user/hand/right",
                                         "/input/grip/pose",
                                         True,
+                                        False,
                                         (0, 0, 0),
-                                        (math.radians(-50), 0, 0))
+                                        (0, 0, 0))
+    vr_defaults_pose_actionmap_item_add(am,
+                                        VRDefaultActions.CONTROLLER_AIM.value,
+                                        "/user/hand/left",
+                                        "/input/aim/pose",
+                                        "/user/hand/right",
+                                        "/input/aim/pose",
+                                        False,
+                                        True,
+                                        (0, 0, 0),
+                                        (0, 0, 0))
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.TELEPORT.value,
                                    "/user/hand/left",
@@ -457,14 +471,25 @@ def vr_defaults_create_wmr(ac):
         return
 
     vr_defaults_pose_actionmap_item_add(am,
-                                        VRDefaultActions.CONTROLLER_POSE.value,
+                                        VRDefaultActions.CONTROLLER_GRIP.value,
                                         "/user/hand/left",
                                         "/input/grip/pose",
                                         "/user/hand/right",
                                         "/input/grip/pose",
                                         True,
+                                        False,
                                         (0, 0, 0),
-                                        (math.radians(-50), 0, 0))
+                                        (0, 0, 0))
+    vr_defaults_pose_actionmap_item_add(am,
+                                        VRDefaultActions.CONTROLLER_AIM.value,
+                                        "/user/hand/left",
+                                        "/input/aim/pose",
+                                        "/user/hand/right",
+                                        "/input/aim/pose",
+                                        False,
+                                        True,
+                                        (0, 0, 0),
+                                        (0, 0, 0))
     vr_defaults_actionmap_item_add(am,
                                    VRDefaultActions.TELEPORT.value,
                                    "/user/hand/left",
@@ -751,11 +776,22 @@ def vr_defaults_create_vive(ac):
         return
 
     vr_defaults_pose_actionmap_item_add(am,
-                                        VRDefaultActions.CONTROLLER_POSE.value,
+                                        VRDefaultActions.CONTROLLER_GRIP.value,
                                         "/user/hand/left",
                                         "/input/grip/pose",
                                         "/user/hand/right",
                                         "/input/grip/pose",
+                                        True,
+                                        False,
+                                        (0, 0, 0),
+                                        (0, 0, 0))
+    vr_defaults_pose_actionmap_item_add(am,
+                                        VRDefaultActions.CONTROLLER_AIM.value,
+                                        "/user/hand/left",
+                                        "/input/aim/pose",
+                                        "/user/hand/right",
+                                        "/input/aim/pose",
+                                        False,
                                         True,
                                         (0, 0, 0),
                                         (0, 0, 0))
@@ -1027,11 +1063,22 @@ def vr_defaults_create_index(ac):
         return
 
     vr_defaults_pose_actionmap_item_add(am,
-                                        VRDefaultActions.CONTROLLER_POSE.value,
+                                        VRDefaultActions.CONTROLLER_GRIP.value,
                                         "/user/hand/left",
                                         "/input/grip/pose",
                                         "/user/hand/right",
                                         "/input/grip/pose",
+                                        True,
+                                        False,
+                                        (0, 0, 0),
+                                        (0, 0, 0))
+    vr_defaults_pose_actionmap_item_add(am,
+                                        VRDefaultActions.CONTROLLER_AIM.value,
+                                        "/user/hand/left",
+                                        "/input/aim/pose",
+                                        "/user/hand/right",
+                                        "/input/aim/pose",
+                                        False,
                                         True,
                                         (0, 0, 0),
                                         (0, 0, 0))

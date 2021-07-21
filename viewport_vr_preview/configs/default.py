@@ -1,9 +1,10 @@
-actionconfig_version = (3, 0, 7)
+actionconfig_version = (3, 0, 8)
 actionconfig_data = \
 [("blender_oculus",
   {"profile": '/interaction_profiles/oculus/touch_controller'},
   {"items":
-   [("controller_pose", {"type": 'POSE', "user_path0": '/user/hand/left', "component_path0": '/input/grip/pose', "user_path1": '/user/hand/right', "component_path1": '/input/grip/pose', "pose_is_controller": 'True', "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(-0.8726646304130554, 0.0, 0.0)'}, None),
+   [("controller_grip", {"type": 'POSE', "user_path0": '/user/hand/left', "component_path0": '/input/grip/pose', "user_path1": '/user/hand/right', "component_path1": '/input/grip/pose', "pose_is_controller_grip": 'True', "pose_is_controller_aim": 'False', "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}, None),
+    ("controller_aim", {"type": 'POSE', "user_path0": '/user/hand/left', "component_path0": '/input/aim/pose', "user_path1": '/user/hand/right', "component_path1": '/input/aim/pose', "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'True', "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}, None),
     ("teleport",
      {"type": 'BUTTON', "user_path0": '/user/hand/left', "component_path0": '/input/trigger/value', "user_path1": '', "component_path1": '', "threshold": '0.30000001192092896', "axis_flag": 'ANY', "op": 'wm.xr_navigation_teleport', "op_flag": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_flag": 'PRESS'},
      {"op_properties":
@@ -99,7 +100,8 @@ actionconfig_data = \
  ("blender_wmr",
   {"profile": '/interaction_profiles/microsoft/motion_controller'},
   {"items":
-   [("controller_pose", {"type": 'POSE', "user_path0": '/user/hand/left', "component_path0": '/input/grip/pose', "user_path1": '/user/hand/right', "component_path1": '/input/grip/pose', "pose_is_controller": 'True', "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(-0.8726646304130554, 0.0, 0.0)'}, None),
+   [("controller_grip", {"type": 'POSE', "user_path0": '/user/hand/left', "component_path0": '/input/grip/pose', "user_path1": '/user/hand/right', "component_path1": '/input/grip/pose', "pose_is_controller_grip": 'True', "pose_is_controller_aim": 'False', "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}, None),
+    ("controller_aim", {"type": 'POSE', "user_path0": '/user/hand/left', "component_path0": '/input/aim/pose', "user_path1": '/user/hand/right', "component_path1": '/input/aim/pose', "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'True', "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}, None),
     ("teleport",
      {"type": 'BUTTON', "user_path0": '/user/hand/left', "component_path0": '/input/trigger/value', "user_path1": '', "component_path1": '', "threshold": '0.30000001192092896', "axis_flag": 'ANY', "op": 'wm.xr_navigation_teleport', "op_flag": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_flag": 'PRESS'},
      {"op_properties":
@@ -195,7 +197,8 @@ actionconfig_data = \
  ("blender_vive",
   {"profile": '/interaction_profiles/htc/vive_controller'},
   {"items":
-   [("controller_pose", {"type": 'POSE', "user_path0": '/user/hand/left', "component_path0": '/input/grip/pose', "user_path1": '/user/hand/right', "component_path1": '/input/grip/pose', "pose_is_controller": 'True', "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}, None),
+   [("controller_grip", {"type": 'POSE', "user_path0": '/user/hand/left', "component_path0": '/input/grip/pose', "user_path1": '/user/hand/right', "component_path1": '/input/grip/pose', "pose_is_controller_grip": 'True', "pose_is_controller_aim": 'False', "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}, None),
+    ("controller_aim", {"type": 'POSE', "user_path0": '/user/hand/left', "component_path0": '/input/aim/pose', "user_path1": '/user/hand/right', "component_path1": '/input/aim/pose', "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'True', "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}, None),
     ("teleport",
      {"type": 'BUTTON', "user_path0": '/user/hand/left', "component_path0": '/input/trigger/value', "user_path1": '', "component_path1": '', "threshold": '0.30000001192092896', "axis_flag": 'ANY', "op": 'wm.xr_navigation_teleport', "op_flag": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_flag": 'PRESS'},
      {"op_properties":
@@ -290,7 +293,8 @@ actionconfig_data = \
  ("blender_index",
   {"profile": '/interaction_profiles/valve/index_controller'},
   {"items":
-   [("controller_pose", {"type": 'POSE', "user_path0": '/user/hand/left', "component_path0": '/input/grip/pose', "user_path1": '/user/hand/right', "component_path1": '/input/grip/pose', "pose_is_controller": 'True', "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}, None),
+   [("controller_grip", {"type": 'POSE', "user_path0": '/user/hand/left', "component_path0": '/input/grip/pose', "user_path1": '/user/hand/right', "component_path1": '/input/grip/pose', "pose_is_controller_grip": 'True', "pose_is_controller_aim": 'False', "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}, None),
+    ("controller_aim", {"type": 'POSE', "user_path0": '/user/hand/left', "component_path0": '/input/aim/pose', "user_path1": '/user/hand/right', "component_path1": '/input/aim/pose', "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'True', "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}, None),
     ("teleport",
      {"type": 'BUTTON', "user_path0": '/user/hand/left', "component_path0": '/input/trigger/value', "user_path1": '', "component_path1": '', "threshold": '0.30000001192092896', "axis_flag": 'ANY', "op": 'wm.xr_navigation_teleport', "op_flag": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_flag": 'PRESS'},
      {"op_properties":
