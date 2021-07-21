@@ -60,7 +60,7 @@ class VIEW3D_PT_pose_library(Panel):
             activate_op_props, drag_op_props = layout.template_asset_view(
                 "pose_assets",
                 workspace,
-                "active_asset_library",
+                "asset_library",
                 wm,
                 "pose_assets",
                 workspace,
