@@ -21,6 +21,8 @@
 import bpy
 import re
 
+from bpy.types import bpy_prop_collection, Material
+
 from rna_prop_ui import rna_idprop_ui_create, rna_idprop_ui_prop_get
 from rna_prop_ui import rna_idprop_quote_path as quote_property
 
@@ -312,6 +314,11 @@ def make_driver(owner, prop, *, index=-1, type='SUM', expression=None, variables
     return fcu
 
 
+#=============================================
+# Driver variable utilities
+#=============================================
+
+
 def driver_var_transform(target, bone=None, *, type='LOC_X', space='WORLD', rotation_mode='AUTO'):
     """
     Create a Transform Channel driver variable specification.
@@ -335,6 +342,38 @@ def driver_var_transform(target, bone=None, *, type='LOC_X', space='WORLD', rota
         target_map['bone_target'] = bone
 
     return { 'type': 'TRANSFORMS', 'targets': [ target_map ] }
+
+
+def driver_var_distance(target, *, bone1=None, target2=None, bone2=None, space1='WORLD', space2='WORLD'):
+    """
+    Create a Distance driver variable specification.
+
+    Usage:
+        make_driver(..., variables=[driver_var_distance(...)])
+
+    Target bone name can be provided via a 'lazy' callable closure without arguments.
+    """
+
+    assert space1 in {'WORLD', 'TRANSFORM', 'LOCAL'}
+    assert space2 in {'WORLD', 'TRANSFORM', 'LOCAL'}
+
+    target1_map = {
+        'id': target,
+        'transform_space': space1 + '_SPACE',
+    }
+
+    if bone1 is not None:
+        target1_map['bone_target'] = bone1
+
+    target2_map = {
+        'id': target2 or target,
+        'transform_space': space2 + '_SPACE',
+    }
+
+    if bone2 is not None:
+        target2_map['bone_target'] = bone2
+
+    return {'type': 'LOC_DIFF', 'targets': [target1_map, target2_map]}
 
 
 #=============================================
@@ -479,6 +518,38 @@ def copy_custom_properties_with_ui(rig, src, dest_bone, *, ui_controls=None, **o
             panel.custom_prop(dest_bone, new_key, text=name, slider=slider)
 
     return mapping
+
+
+#=============================================
+# Driver management
+#=============================================
+
+def refresh_drivers(obj):
+    """Cause all drivers belonging to the object to be re-evaluated, clearing any errors."""
+
+    # Refresh object's own drivers if any
+    anim_data = getattr(obj, 'animation_data', None)
+
+    if anim_data:
+        for fcu in anim_data.drivers:
+            # Make a fake change to the driver
+            fcu.driver.type = fcu.driver.type
+
+    # Material node trees aren't in any lists
+    if isinstance(obj, Material):
+        refresh_drivers(obj.node_tree)
+
+
+def refresh_all_drivers():
+    """Cause all drivers in the file to be re-evaluated, clearing any errors."""
+
+    # Iterate over all datablocks in the file
+    for attr in dir(bpy.data):
+        coll = getattr(bpy.data, attr, None)
+
+        if isinstance(coll, bpy_prop_collection):
+            for item in coll:
+                refresh_drivers(item)
 
 
 #=============================================
