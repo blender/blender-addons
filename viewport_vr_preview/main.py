@@ -1373,13 +1373,26 @@ class VIEW3D_GT_vr_camera_cone(Gizmo):
         self.draw_custom_shape(self.lines_shape)
 
 
-class VIEW3D_GT_vr_controller_axes(Gizmo):
-    bl_idname = "VIEW_3D_GT_vr_controller_axes"
+class VIEW3D_GT_vr_controller_grip(Gizmo):
+    bl_idname = "VIEW_3D_GT_vr_controller_grip"
 
     def draw(self, context):
         bgl.glLineWidth(1)
         bgl.glEnable(bgl.GL_BLEND)
 
+        self.color = 0.422, 0.438, 0.446
+        self.draw_preset_circle(self.matrix_basis, axis='POS_X')
+        self.draw_preset_circle(self.matrix_basis, axis='POS_Y')
+        self.draw_preset_circle(self.matrix_basis, axis='POS_Z')
+
+
+class VIEW3D_GT_vr_controller_aim(Gizmo):
+    bl_idname = "VIEW_3D_GT_vr_controller_aim"
+
+    def draw(self, context):
+        bgl.glLineWidth(1)
+        bgl.glEnable(bgl.GL_BLEND)
+        
         self.color = 1.0, 0.2, 0.322
         self.draw_preset_arrow(self.matrix_basis, axis='POS_X')
         self.color = 0.545, 0.863, 0.0
@@ -1448,17 +1461,25 @@ class VIEW3D_GGT_vr_controller_poses(GizmoGroup):
         )
 
     @staticmethod
-    def _get_controller_pose_matrix(context, idx, scale):
+    def _get_controller_pose_matrix(context, idx, is_grip, scale):
         wm = context.window_manager
 
         loc = None
         rot = None
         if idx == 0:
-            loc = wm.xr_session_state.controller0_grip_location
-            rot = wm.xr_session_state.controller0_aim_rotation
+            if is_grip:
+                loc = wm.xr_session_state.controller0_grip_location
+                rot = wm.xr_session_state.controller0_grip_rotation
+            else:
+                loc = wm.xr_session_state.controller0_aim_location
+                rot = wm.xr_session_state.controller0_aim_rotation
         elif idx == 1:
-            loc = wm.xr_session_state.controller1_grip_location
-            rot = wm.xr_session_state.controller1_aim_rotation
+            if is_grip:                
+                loc = wm.xr_session_state.controller1_grip_location
+                rot = wm.xr_session_state.controller1_grip_rotation
+            else:
+                loc = wm.xr_session_state.controller1_aim_location
+                rot = wm.xr_session_state.controller1_aim_rotation
         else:
             return Matrix.Identity(4);
 
@@ -1472,21 +1493,30 @@ class VIEW3D_GGT_vr_controller_poses(GizmoGroup):
 
     def setup(self, context):
         for idx in range(2):
-            gizmo = self.gizmos.new(VIEW3D_GT_vr_controller_axes.bl_idname)
-            gizmo.aspect = 1 / 3, 1 / 4
- 
-            gizmo.color = gizmo.color_highlight = 1.0, 1.0, 1.0
-            gizmo.alpha = 1.0
+            self.gizmos.new(VIEW3D_GT_vr_controller_grip.bl_idname)
+            self.gizmos.new(VIEW3D_GT_vr_controller_aim.bl_idname)
 
-        self.gizmo = gizmo
-
-    def draw_prepare(self, context):
-        view3d = context.space_data
-        scale = 0.5
-        idx = 0
         for gizmo in self.gizmos:
-            gizmo.matrix_basis = self._get_controller_pose_matrix(context, idx, scale)
-            idx += 1
+            gizmo.aspect = 1 / 3, 1 / 4
+            gizmo.color_highlight = 1.0, 1.0, 1.0
+            gizmo.alpha = 1.0
+            
+    def draw_prepare(self, context):
+        grip_idx = 0
+        aim_idx = 0
+        idx = 0
+        scale = 1.0
+        for gizmo in self.gizmos:
+            is_grip = (gizmo.bl_idname == VIEW3D_GT_vr_controller_grip.bl_idname)
+            if (is_grip):
+                idx = grip_idx
+                grip_idx += 1
+                scale = 0.1
+            else:
+                idx = aim_idx
+                aim_idx += 1
+                scale = 0.5
+            gizmo.matrix_basis = self._get_controller_pose_matrix(context, idx, is_grip, scale)
 
 
 class VIEW3D_GGT_vr_landmarks(GizmoGroup):

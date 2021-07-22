@@ -87,7 +87,8 @@ classes = (
     main.VIEW3D_OT_vr_actions_clear,
 
     main.VIEW3D_GT_vr_camera_cone,
-    main.VIEW3D_GT_vr_controller_axes,
+    main.VIEW3D_GT_vr_controller_grip,
+    main.VIEW3D_GT_vr_controller_aim,
     main.VIEW3D_GGT_vr_viewer_pose,
     main.VIEW3D_GGT_vr_controller_poses,
     main.VIEW3D_GGT_vr_landmarks,
