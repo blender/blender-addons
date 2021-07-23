@@ -1401,7 +1401,7 @@ def numeric_to_str(s):
     return s
 
 
-def push_op_left(layout, strength =5):
+def push_op_left(layout, strength =3):
     for a in range(0, strength):
         layout.label(text='')
 
@@ -1418,7 +1418,7 @@ def label_or_url(layout, text='', tooltip='', url='', icon_value=None, icon=None
             op = layout.operator('wm.blenderkit_url', text=text)
         op.url = url
         op.tooltip = tooltip
-        push_op_left(layout)
+        push_op_left(layout, strength = 5)
 
         return
     if tooltip != '':
@@ -1429,8 +1429,9 @@ def label_or_url(layout, text='', tooltip='', url='', icon_value=None, icon=None
         else:
             op = layout.operator('wm.blenderkit_tooltip', text=text)
         op.tooltip = tooltip
+
         # these are here to move the text to left, since operators can only center text by default
-        push_op_left(layout)
+        push_op_left(layout, strength = 3)
         return
     if icon:
         layout.label(text=text, icon=icon)
@@ -1666,6 +1667,16 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             date = self.asset_data['created'][:10]
             date = f"{date[8:10]}. {date[5:7]}. {date[:4]}"
             self.draw_property(box, 'Created', date)
+        if utils.asset_from_newer_blender_version(self.asset_data):
+            # row = box.row()
+            box.alert=True
+            self.draw_property(box,
+                               'Blender version',
+                               self.asset_data['sourceAppVersion'],
+                               # icon='ERROR',
+                               tooltip='Asset is from a newer Blender version and might work incorrectly in your scene',
+                               )
+            box.alert = False
         box.separator()
 
     def draw_author_area(self, context, layout, width=330):
