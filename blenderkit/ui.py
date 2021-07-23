@@ -1298,7 +1298,7 @@ class AssetBarOperator(bpy.types.Operator):
         # If there aren't any results, we need no interaction(yet)
         if sr is None:
             return {'PASS_THROUGH'}
-        if len(sr) - ui_props.scrolloffset < (ui_props.wcount * user_preferences.max_assetbar_rows) + 10:
+        if len(sr) - ui_props.scrolloffset < (ui_props.wcount * user_preferences.max_assetbar_rows) + 15:
             self.search_more()
 
         if event.type == 'WHEELUPMOUSE' or event.type == 'WHEELDOWNMOUSE' or event.type == 'TRACKPADPAN':

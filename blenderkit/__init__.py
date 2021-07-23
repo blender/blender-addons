@@ -459,8 +459,8 @@ class BlenderKitCommonSearchProps(object):
                               default=False)
     own_only: BoolProperty(name="My Assets Only", description="Search only for your assets",
                            default=False, update=search.search_update)
-    search_advanced: BoolProperty(name="Advanced Search Options", description="use advanced search properties",
-                                  default=False, update=search.search_update)
+    use_filters: BoolProperty(name="Filters are on", description="some filters are used",
+                                  default=False)
 
     search_error: BoolProperty(name="Search Error", description="last search had an error", default=False)
     report: StringProperty(
@@ -572,6 +572,7 @@ class BlenderKitCommonSearchProps(object):
     quality_limit: IntProperty(name="Quality limit",
                                description = 'Only show assets with a higher quality',
                                default=0, min=0, max=10, update=search.search_update)
+
 
 
 def name_update(self, context):
