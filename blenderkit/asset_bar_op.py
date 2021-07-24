@@ -605,7 +605,7 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         self.scroll_offset = min(self.scroll_offset, len(sr) - (self.wcount * self.hcount))
         self.scroll_offset = max(self.scroll_offset, 0)
         self.update_images()
-        if len(sr) - self.scroll_offset < (self.wcount * self.hcount) + 10:
+        if len(sr) - self.scroll_offset < (self.wcount * self.hcount) + 15:
             self.search_more()
 
     def search_by_author(self, asset_index):

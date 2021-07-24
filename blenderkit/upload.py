@@ -63,6 +63,7 @@ def get_app_version():
     return '%i.%i.%i' % (ver[0], ver[1], ver[2])
 
 
+
 def add_version(data):
     app_version = get_app_version()
     addon_version = version_checker.get_addon_version()

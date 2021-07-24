@@ -1081,6 +1081,9 @@ def build_query_common(query, props):
         query_common["files_size_gte"] = props.search_file_size_min * 1024 * 1024
         query_common["files_size_lte"] = props.search_file_size_max * 1024 * 1024
 
+    if props.quality_limit > 0:
+        query["quality_gte"] = props.quality_limit
+
     query.update(query_common)
 
 
@@ -1103,9 +1106,9 @@ def build_query_model():
     # if props.free_only:
     #     query["is_free"] = True
 
-    # if props.search_advanced:
     if props.search_condition != 'UNSPECIFIED':
         query["condition"] = props.search_condition
+
     if props.search_design_year:
         query["designYear_gte"] = props.search_design_year_min
         query["designYear_lte"] = props.search_design_year_max
@@ -1383,7 +1386,7 @@ def search(category='', get_next=False, author_id=''):
     # utils.p('searching')
     props.is_searching = True
 
-    page_size = min(40, ui_props.wcount * user_preferences.max_assetbar_rows)
+    page_size = min(30, ui_props.wcount * user_preferences.max_assetbar_rows)
 
     params = {
         'scene_uuid': bpy.context.scene.get('uuid', None),
@@ -1402,10 +1405,30 @@ def search(category='', get_next=False, author_id=''):
 
     props.report = 'BlenderKit searching....'
 
+def update_filters():
+    sprops = utils.get_search_props()
+    ui_props = bpy.context.scene.blenderkitUI
+    fcommon = sprops.own_only or \
+        sprops.search_texture_resolution or\
+        sprops.search_file_size or \
+        sprops.search_procedural != 'BOTH' or \
+        sprops.free_only or \
+        sprops.quality_limit>0
+
+    if ui_props.asset_type =='MODEL':
+        sprops.use_filters = fcommon or \
+                             sprops.search_style != 'ANY' or \
+            sprops.search_condition != 'UNSPECIFIED' or \
+            sprops.search_design_year or \
+            sprops.search_polycount 
+    elif ui_props.asset_type == 'MATERIAL':
+        sprops.use_filters = fcommon
+
 
 def search_update(self, context):
     utils.p('search updater')
     # if self.search_keywords != '':
+    update_filters()
     ui_props = bpy.context.scene.blenderkitUI
     if ui_props.down_up != 'SEARCH':
         ui_props.down_up = 'SEARCH'
@@ -1458,6 +1481,12 @@ class SearchOperator(Operator):
     bl_description = "Search online for assets"
     bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
+    esc: BoolProperty(name="Escape window",
+                      description="Escape window right after start",
+                      default=False,
+                      options={'SKIP_SAVE'}
+                      )
+
     own: BoolProperty(name="own assets only",
                       description="Find all own assets",
                       default=False)
@@ -1506,6 +1535,8 @@ class SearchOperator(Operator):
 
     def execute(self, context):
         # TODO ; this should all get transferred to properties of the search operator, so sprops don't have to be fetched here at all.
+        if self.esc:
+            bpy.ops.view3d.close_popup_button('INVOKE_DEFAULT')
         sprops = utils.get_search_props()
         if self.author_id != '':
             sprops.search_keywords = ''
