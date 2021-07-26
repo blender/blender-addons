@@ -818,7 +818,7 @@ def mouse_raycast(context, mx, my):
     # rote = mathutils.Euler((0, 0, math.pi))
     randoffset = math.pi
     if has_hit:
-        props = bpy.context.scene.blenderkit_models
+        props = bpy.context.window_manager.blenderkit_models
         up = Vector((0, 0, 1))
 
         if props.perpendicular_snap:
@@ -874,7 +874,7 @@ def floor_raycast(context, mx, my):
         object = None
         matrix = None
         snapped_rotation = snapped_normal.to_track_quat('Z', 'Y').to_euler()
-        props = bpy.context.scene.blenderkit_models
+        props = bpy.context.window_manager.blenderkit_models
         if props.randomize_rotation:
             randoffset = props.offset_rotation_amount + math.pi + (
                     random.random() - 0.5) * props.randomize_rotation_amount
@@ -1680,7 +1680,8 @@ class AssetDragOperator(bpy.types.Operator):
                 target_object = object.name
                 target_slot = object.active_material_index
                 self.snapped_location = object.location
-            elif self.object_name is not None:
+            elif self.object_name is not None and self.has_hit:
+
                 # first, test if object can have material applied.
                 object = bpy.data.objects[self.object_name]
                 # this enables to run Bring to scene automatically when dropping on a linked objects.
@@ -1696,9 +1697,7 @@ class AssetDragOperator(bpy.types.Operator):
                     # create final mesh to extract correct material slot
                     depsgraph = bpy.context.evaluated_depsgraph_get()
                     object_eval = object.evaluated_get(depsgraph)
-                    temp_mesh = object_eval.to_mesh()
-                    target_slot = temp_mesh.polygons[self.face_index].material_index
-                    object_eval.to_mesh_clear()
+
                     if object.type == 'MESH':
                         temp_mesh = object_eval.to_mesh()
                         target_slot = temp_mesh.polygons[self.face_index].material_index
@@ -1780,10 +1779,10 @@ class AssetDragOperator(bpy.types.Operator):
         self.mouse_y = event.mouse_region_y
 
         #are we dragging already?
-        self.drag = False
         drag_threshold = 10
-        if abs(self.start_mouse_x - self.mouse_x) > drag_threshold and \
-                abs(self.start_mouse_y - self.mouse_y) > drag_threshold:
+        if not self.drag and \
+                (abs(self.start_mouse_x - self.mouse_x) > drag_threshold or \
+                abs(self.start_mouse_y - self.mouse_y) > drag_threshold):
             self.drag = True
             #turn off asset bar here, shout start again after finishing drag drop.
             ui_props.turn_off = True
@@ -1801,7 +1800,7 @@ class AssetDragOperator(bpy.types.Operator):
             ui_props.dragging = False
             return {'CANCELLED'}
 
-        sprops = bpy.context.scene.blenderkit_models
+        sprops = bpy.context.window_manager.blenderkit_models
         if event.type == 'WHEELUPMOUSE':
             sprops.offset_rotation_amount += sprops.offset_rotation_step
             return {'RUNNING_MODAL'}
@@ -1841,7 +1840,7 @@ class AssetDragOperator(bpy.types.Operator):
             return {'FINISHED'}
         self.steps +=1
 
-        return {'PASS_THROUGH'}
+        return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
         if context.area.type == 'VIEW_3D':
@@ -1884,6 +1883,7 @@ class AssetDragOperator(bpy.types.Operator):
             bpy.context.window.cursor_set("NONE")
             ui_props = bpy.context.scene.blenderkitUI
             ui_props.dragging = True
+            self.drag = False
             context.window_manager.modal_handler_add(self)
             return {'RUNNING_MODAL'}
         else:

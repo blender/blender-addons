@@ -447,7 +447,6 @@ def search_timer():
                 wm[search_name + ' orig'] = rdata
                 wm['search results orig'] = rdata
 
-                # load_previews()
                 if len(result_field) < ui_props.scrolloffset or not (thread[0].params.get('get_next')):
                     # jump back
                     ui_props.scrolloffset = 0
@@ -1090,7 +1089,7 @@ def build_query_common(query, props):
 def build_query_model():
     '''use all search input to request results from server'''
 
-    props = bpy.context.scene.blenderkit_models
+    props = bpy.context.window_manager.blenderkit_models
     query = {
         "asset_type": 'model',
         # "engine": props.search_engine,
@@ -1127,7 +1126,7 @@ def build_query_model():
 def build_query_scene():
     '''use all search input to request results from server'''
 
-    props = bpy.context.scene.blenderkit_scene
+    props = bpy.context.window_manager.blenderkit_scene
     query = {
         "asset_type": 'scene',
         # "engine": props.search_engine,
@@ -1140,7 +1139,7 @@ def build_query_scene():
 def build_query_HDR():
     '''use all search input to request results from server'''
 
-    props = bpy.context.scene.blenderkit_HDR
+    props = bpy.context.window_manager.blenderkit_HDR
     query = {
         "asset_type": 'hdr',
         # "engine": props.search_engine,
@@ -1151,7 +1150,7 @@ def build_query_HDR():
 
 
 def build_query_material():
-    props = bpy.context.scene.blenderkit_mat
+    props = bpy.context.window_manager.blenderkit_mat
     query = {
         "asset_type": 'material',
 
@@ -1206,7 +1205,7 @@ def build_query_texture():
 
 
 def build_query_brush():
-    props = bpy.context.scene.blenderkit_brush
+    props = bpy.context.window_manager.blenderkit_brush
 
     brush_type = ''
     if bpy.context.sculpt_object is not None:
@@ -1317,38 +1316,39 @@ def search(category='', get_next=False, author_id=''):
     search_start_time = time.time()
     # mt('start')
     scene = bpy.context.scene
+    wm = bpy.context.window_manager
     ui_props = scene.blenderkitUI
 
     props = utils.get_search_props()
     if ui_props.asset_type == 'MODEL':
-        if not hasattr(scene, 'blenderkit'):
+        if not hasattr(wm, 'blenderkit_models'):
             return;
         query = build_query_model()
 
     if ui_props.asset_type == 'SCENE':
-        if not hasattr(scene, 'blenderkit_scene'):
+        if not hasattr(wm, 'blenderkit_scene'):
             return;
         query = build_query_scene()
 
     if ui_props.asset_type == 'HDR':
-        if not hasattr(scene, 'blenderkit_HDR'):
+        if not hasattr(wm, 'blenderkit_HDR'):
             return;
         query = build_query_HDR()
 
     if ui_props.asset_type == 'MATERIAL':
-        if not hasattr(scene, 'blenderkit_mat'):
+        if not hasattr(wm, 'blenderkit_mat'):
             return;
 
         query = build_query_material()
 
     if ui_props.asset_type == 'TEXTURE':
-        if not hasattr(scene, 'blenderkit_tex'):
+        if not hasattr(wm, 'blenderkit_tex'):
             return;
         # props = scene.blenderkit_tex
         # query = build_query_texture()
 
     if ui_props.asset_type == 'BRUSH':
-        if not hasattr(scene, 'blenderkit_brush'):
+        if not hasattr(wm, 'blenderkit_brush'):
             return;
         query = build_query_brush()
 
@@ -1464,7 +1464,7 @@ def search_update(self, context):
         # return here since writing into search keywords triggers this update function once more.
         return
 
-    print('search update search')
+    # print('search update search')
     search()
 
 
