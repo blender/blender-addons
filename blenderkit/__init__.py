@@ -1704,7 +1704,7 @@ class BlenderKitAddonPreferences(AddonPreferences):
     max_assetbar_rows: IntProperty(name="Max Assetbar Rows",
                                    description="max rows of assetbar in the 3D view",
                                    default=1,
-                                   min=0,
+                                   min=1,
                                    max=20)
 
     thumb_size: IntProperty(name="Assetbar thumbnail Size", default=96, min=-1, max=256)

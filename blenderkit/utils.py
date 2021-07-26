@@ -721,14 +721,16 @@ def fmt_length(prop):
 
 
 def get_param(asset_data, parameter_name, default=None):
-    if not asset_data.get('parameters'):
+    if not asset_data.get('dictParameters'):
         # this can appear in older version files.
         return default
 
-    for p in asset_data['parameters']:
-        if p.get('parameterType') == parameter_name:
-            return p['value']
-    return default
+    return asset_data['dictParameters'].get(parameter_name, default)
+
+    # for p in asset_data['parameters']:
+    #     if p.get('parameterType') == parameter_name:
+    #         return p['value']
+    # return default
 
 
 def params_to_dict(params):

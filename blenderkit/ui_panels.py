@@ -1506,10 +1506,11 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
 
     def draw_properties(self, layout, width=250):
 
-        if type(self.asset_data['parameters']) == list:
-            mparams = utils.params_to_dict(self.asset_data['parameters'])
-        else:
-            mparams = self.asset_data['parameters']
+        # if type(self.asset_data['parameters']) == list:
+        #     mparams = utils.params_to_dict(self.asset_data['parameters'])
+        # else:
+        #     mparams = self.asset_data['parameters']
+        mparams = self.asset_data['dictParameters']
 
         pcoll = icons.icon_collections["main"]
 
