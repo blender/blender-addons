@@ -674,15 +674,17 @@ def thumb_download_worker(queue_sml, queue_full):
     # utils.p('start thumbdownloader thread')
     while 1:
         session = None
-        #start a session only for single search usually.
+        #start a session only for single search usually, if users starts scrolling, the session might last longer if
+        # queue gets filled.
         if not queue_sml.empty() or not queue_full.empty():
-            session = requests.Session()
-
+            if session is None:
+                session = requests.Session()
             while not queue_sml.empty():
+                #first empty the small thumbs queue
                 url, filepath = queue_sml.get()
                 download_image(session,url, filepath)
             exit_full = False
-            # download full resolution image, but only if no small thumbs are waiting.
+            # download full resolution image, but only if no small thumbs are waiting. If there are small
             while not queue_full.empty() and queue_sml.empty():
                 url, filepath = queue_full.get()
                 download_image(session,url, filepath)
@@ -690,40 +692,8 @@ def thumb_download_worker(queue_sml, queue_full):
         if queue_sml.empty() and queue_full.empty():
             if session is not None:
                 session.close()
+                session = None
             time.sleep(.5)
-
-class ThumbDownloader(threading.Thread):
-
-    def __init__(self, url, path, session):
-        super(ThumbDownloader, self).__init__()
-        self.url = url
-        self.path = path
-        self.session = session
-        self._stop_event = threading.Event()
-
-    def stop(self):
-        self._stop_event.set()
-
-    def stopped(self):
-        return self._stop_event.is_set()
-
-    def run(self):
-        # print('thumb downloader', self.url)
-        # utils.p('start thumbdownloader thread')
-        r = None
-        try:
-            r = self.session.get(self.url, stream=False)
-        except Exception as e:
-            bk_logger.error('Thumbnail download failed')
-            bk_logger.error(str(e))
-        if r and r.status_code == 200:
-            with open(self.path, 'wb') as f:
-                f.write(r.content)
-            # ORIGINALLY WE DOWNLOADED THUMBNAILS AS STREAM, BUT THIS WAS TOO SLOW.
-            # with open(path, 'wb') as f:
-            #     for chunk in r.iter_content(1048576*4):
-            #         f.write(chunk)
-        # utils.p('end thumbdownloader thread')
 
 
 def write_gravatar(a_id, gravatar_path):
@@ -1265,7 +1235,6 @@ def add_search_process(query, params):
 
     if thumb_workers_sml == []:
         for a in range(0, 8):
-            # worker = ThumbDownloadWorker(thumb_sml_download_threads, thumb_full_download_threads)
             thread = threading.Thread(target=thumb_download_worker, args=(thumb_sml_download_threads, thumb_full_download_threads),
                                       daemon=True)
             thread.start()
