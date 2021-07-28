@@ -614,6 +614,14 @@ def vr_actionmap_item_selected_get(am):
     )
 
 
+def vr_actionmap_binding_selected_get(ami):
+    actionmap_bindings = ami.bindings
+    return (
+        None if (len(actionmap_bindings) <
+                 1) else actionmap_bindings[ami.selected_binding]
+    )
+
+
 @persistent
 def vr_activate_user_actionconfig(context: bpy.context):
     # Set user config as active.
@@ -645,36 +653,32 @@ def vr_create_actions(context: bpy.context):
 
         controller_grip_name = ""
         controller_aim_name = ""
-        interaction_path0 = ""
-        interaction_path1 = ""
 
         for ami in am.actionmap_items:
+            if len(ami.bindings) < 1:
+                continue
+            
             ok = session_state.create_action(context, am.name, ami.name, ami.type,
-                                             ami.user_path0, ami.user_path1, ami.threshold, ami.axis0_flag, ami.axis1_flag,
+                                             ami.user_path0, ami.user_path1,
                                              ami.op, ami.op_flag, ami.bimanual,
                                              ami.haptic_name, ami.haptic_match_user_paths, ami.haptic_duration, ami.haptic_frequency, ami.haptic_amplitude, ami.haptic_flag)
             if not ok:
                 return
 
             if ami.type == 'POSE':
-                ok = session_state.create_action_space(context, am.name, ami.name,
-                                                       ami.user_path0, ami.user_path1,
-                                                       ami.pose_location, ami.pose_rotation)
-                if not ok:
-                    return
-                
                 if ami.pose_is_controller_grip:
                     controller_grip_name = ami.name
                 if ami.pose_is_controller_aim:
                     controller_aim_name = ami.name
 
-            interaction_path0 = ami.user_path0 + ami.component_path0
-            interaction_path1 = ami.user_path1 + ami.component_path1
-
-            ok = session_state.create_action_binding(context, am.name, am.profile, ami.name,
-                                                     interaction_path0, interaction_path1)
-            if not ok:
-                return
+            for amb in ami.bindings:
+                ok = session_state.create_action_binding(context, am.name, ami.name, ami.type, amb.profile,
+                                                         ami.user_path0, ami.user_path1,
+                                                         amb.component_path0, amb.component_path1,
+                                                         amb.threshold, amb.axis0_flag, amb.axis1_flag,
+                                                         amb.pose_location, amb.pose_rotation)
+                if not ok:
+                    return
 
         # Set controller pose actions.
         if controller_grip_name and controller_aim_name:
@@ -823,6 +827,26 @@ class VIEW3D_MT_vr_action_menu(Menu):
         layout.operator("view3d.vr_actions_clear")
 
 
+class VIEW3D_UL_vr_actionbindings(UIList):
+    def draw_item(self, context, layout, _data, item, icon, _active_data,
+                  _active_propname, index):
+        amb = item
+
+        layout.emboss = 'NONE'
+
+        layout.prop(amb, "name", text="")
+
+
+class VIEW3D_MT_vr_actionbinding_menu(Menu):
+    bl_label = "Action Binding Controls"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("view3d.vr_actionbinding_copy")
+        layout.operator("view3d.vr_actionbindings_clear")
+
+
 class VRActionsPanel:
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -859,7 +883,6 @@ class VIEW3D_PT_vr_actions_actionmaps(VRActionsPanel, Panel):
             col = row.column(align=True)
 
             col.prop(am, "name", text="Action Map")
-            col.prop(am, "profile", text="Profile")
 
 
 class VIEW3D_PT_vr_actions_actions(VRActionsPanel, Panel):
@@ -898,17 +921,9 @@ class VIEW3D_PT_vr_actions_actions(VRActionsPanel, Panel):
                 col.prop(ami, "name", text="Action")
                 col.prop(ami, "type", text="Type")
                 col.prop(ami, "user_path0", text="User Path 0")
-                col.prop(ami, "component_path0", text="Component Path 0")
                 col.prop(ami, "user_path1", text="User Path 1")
-                col.prop(ami, "component_path1", text="Component Path 1")
 
                 if ami.type == 'BUTTON' or ami.type == 'AXIS':
-                    col.prop(ami, "threshold", text="Threshold")
-                    if ami.type == 'BUTTON':
-                        col.prop(ami, "axis0_flag", text="Axis Flag")
-                    else: # ami.type == 'AXIS'
-                        col.prop(ami, "axis0_flag", text="Axis 0 Flag")
-                        col.prop(ami, "axis1_flag", text="Axis 1 Flag")
                     col.prop(ami, "op", text="Operator")
                     col.prop(ami, "op_flag", text="Operator Flag")
                     col.prop(ami, "bimanual", text="Bimanual")
@@ -917,8 +932,6 @@ class VIEW3D_PT_vr_actions_actions(VRActionsPanel, Panel):
                 elif ami.type == 'POSE':
                     col.prop(ami, "pose_is_controller_grip", text="Use for Controller Grips")
                     col.prop(ami, "pose_is_controller_aim", text="Use for Controller Aims")
-                    col.prop(ami, "pose_location", text="Location Offset")
-                    col.prop(ami, "pose_rotation", text="Rotation Offset")
 
 
 class VIEW3D_PT_vr_actions_haptics(VRActionsPanel, Panel):
@@ -950,6 +963,58 @@ class VIEW3D_PT_vr_actions_haptics(VRActionsPanel, Panel):
                     col.prop(ami, "haptic_frequency", text="Frequency")
                     col.prop(ami, "haptic_amplitude", text="Amplitude")
                     col.prop(ami, "haptic_flag", text="Haptic Flag")
+
+
+class VIEW3D_PT_vr_actions_bindings(VRActionsPanel, Panel):
+    bl_label = "Bindings"
+    bl_parent_id = "VIEW3D_PT_vr_actions_actions"
+
+    def draw(self, context):
+        layout = self.layout
+        ac = vr_actionconfig_active_get(context)
+        if not ac:
+            return
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        am = vr_actionmap_selected_get(ac)
+
+        if am:
+            ami = vr_actionmap_item_selected_get(am)
+
+            if ami:
+                col = vr_indented_layout(layout, 2)
+                row = col.row()
+                row.template_list("VIEW3D_UL_vr_actionbindings", "", ami, "bindings",
+                                  ami, "selected_binding", rows=3)
+
+                col = row.column(align=True)
+                col.operator("view3d.vr_actionbinding_add", icon='ADD', text="")
+                col.operator("view3d.vr_actionbinding_remove", icon='REMOVE', text="")
+
+                col.menu("VIEW3D_MT_vr_actionbinding_menu", icon='DOWNARROW_HLT', text="")
+
+                amb = vr_actionmap_binding_selected_get(ami)
+
+                if amb:
+                    row = layout.row()
+                    col = row.column(align=True)
+
+                    col.prop(amb, "name", text="Binding")
+                    col.prop(amb, "profile", text="Profile")
+                    col.prop(amb, "component_path0", text="Component Path 0")
+                    col.prop(amb, "component_path1", text="Component Path 1")
+                    if ami.type == 'BUTTON' or ami.type == 'AXIS':
+                        col.prop(amb, "threshold", text="Threshold")
+                        if ami.type == 'BUTTON':
+                            col.prop(amb, "axis0_flag", text="Axis Flag")
+                        else: # ami.type == 'AXIS'
+                            col.prop(amb, "axis0_flag", text="Axis 0 Flag")
+                            col.prop(amb, "axis1_flag", text="Axis 1 Flag")
+                    elif ami.type == 'POSE':
+                        col.prop(amb, "pose_location", text="Location Offset")
+                        col.prop(amb, "pose_rotation", text="Rotation Offset")
 
 
 class VIEW3D_OT_vr_actionmap_add(Operator):
@@ -1229,6 +1294,122 @@ class VIEW3D_OT_vr_actions_clear(Operator):
 
         while am.actionmap_items:
             am.actionmap_items.remove(am.actionmap_items[0])
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionbinding_add(Operator):
+    bl_idname = "view3d.vr_actionbinding_add"
+    bl_label = "Add VR Action Binding"
+    bl_description = "Add a new VR action binding to the action"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        ac = vr_actionconfig_active_get(context)
+        if not ac:
+            return {'CANCELLED'}
+
+        am = vr_actionmap_selected_get(ac)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = vr_actionmap_item_selected_get(am)
+        if not ami:
+            return {'CANCELLED'}
+
+        amb = ami.bindings.new("binding", False)    
+        if not amb:
+            return {'CANCELLED'}
+
+        # Select newly created binding.
+        ami.selected_binding = len(ami.bindings) - 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionbinding_remove(Operator):
+    bl_idname = "view3d.vr_actionbinding_remove"
+    bl_label = "Remove VR Action Binding"
+    bl_description = "Delete the selected VR action binding from the action"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        ac = vr_actionconfig_active_get(context)
+        if not ac:
+            return {'CANCELLED'}
+
+        am = vr_actionmap_selected_get(ac)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = vr_actionmap_item_selected_get(am)
+        if not ami:
+            return {'CANCELLED'}
+
+        amb = vr_actionmap_binding_selected_get(ami)
+        if not amb:
+            return {'CANCELLED'}
+
+        ami.bindings.remove(amb)
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionbinding_copy(Operator):
+    bl_idname = "view3d.vr_actionbinding_copy"
+    bl_label = "Copy VR Action Binding"
+    bl_description = "Copy selected VR action binding"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        ac = vr_actionconfig_active_get(context)
+        if not ac:
+            return {'CANCELLED'}
+
+        am = vr_actionmap_selected_get(ac)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = vr_actionmap_item_selected_get(am)
+        if not ami:
+            return {'CANCELLED'}
+
+        amb = vr_actionmap_binding_selected_get(ami)
+        if not amb:
+            return {'CANCELLED'}
+
+        # Copy binding.
+        amb_new = ami.bindings.new_from_binding(amb)
+        if not amb_new:
+            return {'CANCELLED'}
+        
+        # Select newly created binding.
+        ami.selected_binding = len(ami.bindings) - 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionbindings_clear(Operator):
+    bl_idname = "view3d.vr_actionbindings_clear"
+    bl_label = "Clear VR Action Bindings"
+    bl_description = "Delete all VR action bindings from the action"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        ac = vr_actionconfig_active_get(context)
+        if not ac:
+            return {'CANCELLED'}
+
+        am = vr_actionmap_selected_get(ac)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = vr_actionmap_item_selected_get(am)
+        if not ami:
+            return {'CANCELLED'}
+
+        while ami.bindings:
+            ami.bindings.remove(ami.bindings[0])
 
         return {'FINISHED'}
 

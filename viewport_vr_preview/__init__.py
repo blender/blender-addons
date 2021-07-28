@@ -51,6 +51,7 @@ classes = (
     main.VIEW3D_PT_vr_actions_actionmaps,
     main.VIEW3D_PT_vr_actions_actions,
     main.VIEW3D_PT_vr_actions_haptics,
+    main.VIEW3D_PT_vr_actions_bindings,
     main.VIEW3D_PT_vr_motion_capture,
     main.VIEW3D_PT_vr_viewport_feedback,
 
@@ -72,6 +73,8 @@ classes = (
     main.VIEW3D_MT_vr_actionmap_menu,
     main.VIEW3D_UL_vr_actions,
     main.VIEW3D_MT_vr_action_menu,
+    main.VIEW3D_UL_vr_actionbindings,
+    main.VIEW3D_MT_vr_actionbinding_menu,
 
     main.VIEW3D_OT_vr_actionmap_add,
     main.VIEW3D_OT_vr_actionmap_remove,
@@ -85,6 +88,10 @@ classes = (
     main.VIEW3D_OT_vr_action_remove,
     main.VIEW3D_OT_vr_action_copy,
     main.VIEW3D_OT_vr_actions_clear,
+    main.VIEW3D_OT_vr_actionbinding_add,
+    main.VIEW3D_OT_vr_actionbinding_remove,
+    main.VIEW3D_OT_vr_actionbinding_copy,
+    main.VIEW3D_OT_vr_actionbindings_clear,
 
     main.VIEW3D_GT_vr_camera_cone,
     main.VIEW3D_GT_vr_controller_grip,

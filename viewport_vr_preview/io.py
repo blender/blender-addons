@@ -26,6 +26,7 @@ __all__ = (
     "actionconfig_import_from_data",
     "actionconfig_init_from_data",
     "actionmap_init_from_data",
+    "actionmap_item_init_from_data",
 )
 
 
@@ -51,35 +52,14 @@ def repr_f32(f):
             return "%.*f" % (i, f_test)
     return f_str
 
-
-def am_args_as_data(am):
-    s = [
-        f"\"profile\": '{am.profile}'",
-    ]
-
-    return "{" + ", ".join(s) + "}"
-
-
-def am_data_from_args(am, args):    
-    am.profile = args["profile"]
-
-
 def ami_args_as_data(ami):
     s = [
         f"\"type\": '{ami.type}'",
         f"\"user_path0\": '{ami.user_path0}'",
-        f"\"component_path0\": '{ami.component_path0}'",
         f"\"user_path1\": '{ami.user_path1}'",
-        f"\"component_path1\": '{ami.component_path1}'",
     ]
 
     if ami.type == 'BUTTON' or ami.type == 'AXIS':
-        s.append(f"\"threshold\": '{ami.threshold}'")
-        if ami.type == 'BUTTON':
-            s.append(f"\"axis_flag\": '{ami.axis0_flag}'")
-        else: # ami.type == 'AXIS':
-            s.append(f"\"axis0_flag\": '{ami.axis0_flag}'")
-            s.append(f"\"axis1_flag\": '{ami.axis1_flag}'")
         s.append(f"\"op\": '{ami.op}'")
         s.append(f"\"op_flag\": '{ami.op_flag}'")
         s.append(f"\"bimanual\": '{ami.bimanual}'")
@@ -92,8 +72,6 @@ def ami_args_as_data(ami):
     elif ami.type == 'POSE':
         s.append(f"\"pose_is_controller_grip\": '{ami.pose_is_controller_grip}'")
         s.append(f"\"pose_is_controller_aim\": '{ami.pose_is_controller_aim}'")
-        s.append(f"\"pose_location\": '{ami.pose_location.x, ami.pose_location.y, ami.pose_location.z}'")
-        s.append(f"\"pose_rotation\": '{ami.pose_rotation.x, ami.pose_rotation.y, ami.pose_rotation.z}'")
 
 
     return "{" + ", ".join(s) + "}"
@@ -102,17 +80,9 @@ def ami_args_as_data(ami):
 def ami_data_from_args(ami, args):    
     ami.type = args["type"]
     ami.user_path0 = args["user_path0"]
-    ami.component_path0 = args["component_path0"]
     ami.user_path1 = args["user_path1"]
-    ami.component_path1 = args["component_path1"]
     
     if ami.type == 'BUTTON' or ami.type == 'AXIS':
-        ami.threshold = float(args["threshold"])
-        if ami.type == 'BUTTON':
-            ami.axis0_flag = args["axis_flag"]
-        else: # ami.type == 'AXIS':
-            ami.axis0_flag = args["axis0_flag"]
-            ami.axis1_flag = args["axis1_flag"]
         ami.op = args["op"]
         ami.op_flag = args["op_flag"]
         ami.bimanual = True if (args["bimanual"] == 'True') else False
@@ -125,14 +95,6 @@ def ami_data_from_args(ami, args):
     elif ami.type == 'POSE':
         ami.pose_is_controller_grip = True if (args["pose_is_controller_grip"] == 'True') else False
         ami.pose_is_controller_aim = True if (args["pose_is_controller_aim"] == 'True') else False
-        l = args["pose_location"].strip(')(').split(', ')
-        ami.pose_location.x = float(l[0])
-        ami.pose_location.y = float(l[1])
-        ami.pose_location.z = float(l[2])
-        l = args["pose_rotation"].strip(')(').split(', ')
-        ami.pose_rotation.x = float(l[0])
-        ami.pose_rotation.y = float(l[1])
-        ami.pose_rotation.z = float(l[2])
 
 
 def _ami_properties_to_lines_recursive(level, properties, lines):
@@ -185,6 +147,50 @@ def _ami_attrs_or_none(level, ami):
     return "".join(lines)
 
 
+def amb_args_as_data(amb, type):
+    s = [
+        f"\"profile\": '{amb.profile}'",
+        f"\"component_path0\": '{amb.component_path0}'",
+        f"\"component_path1\": '{amb.component_path1}'",
+    ]
+
+    if type == 'BUTTON' or type == 'AXIS':
+        s.append(f"\"threshold\": '{amb.threshold}'")
+        if type == 'BUTTON':
+            s.append(f"\"axis_flag\": '{amb.axis0_flag}'")
+        else: # type == 'AXIS':
+            s.append(f"\"axis0_flag\": '{amb.axis0_flag}'")
+            s.append(f"\"axis1_flag\": '{amb.axis1_flag}'")
+    elif type == 'POSE':
+        s.append(f"\"pose_location\": '{amb.pose_location.x, amb.pose_location.y, amb.pose_location.z}'")
+        s.append(f"\"pose_rotation\": '{amb.pose_rotation.x, amb.pose_rotation.y, amb.pose_rotation.z}'")
+
+    return "{" + ", ".join(s) + "}"
+
+
+def amb_data_from_args(amb, args, type):    
+    amb.profile = args["profile"]
+    amb.component_path0 = args["component_path0"]
+    amb.component_path1 = args["component_path1"]
+
+    if type == 'BUTTON' or type == 'AXIS':
+        amb.threshold = float(args["threshold"])
+        if type == 'BUTTON':
+            amb.axis0_flag = args["axis_flag"]
+        else: # type == 'AXIS':
+            amb.axis0_flag = args["axis0_flag"]
+            amb.axis1_flag = args["axis1_flag"]
+    elif type == 'POSE':
+        l = args["pose_location"].strip(')(').split(', ')
+        amb.pose_location.x = float(l[0])
+        amb.pose_location.y = float(l[1])
+        amb.pose_location.z = float(l[2])
+        l = args["pose_rotation"].strip(')(').split(', ')
+        amb.pose_rotation.x = float(l[0])
+        amb.pose_rotation.y = float(l[1])
+        amb.pose_rotation.z = float(l[2])
+
+
 def actionconfig_export_as_data(ac, filepath, *, all_actionmaps=True, sort=False):
     export_actionmaps = []
 
@@ -209,18 +215,15 @@ def actionconfig_export_as_data(ac, filepath, *, all_actionmaps=True, sort=False
         for am in export_actionmaps:
             fw("(")
             fw(f"\"{am.name:s}\",\n")
-            fw(f"{indent(2)}")
-            am_args = am_args_as_data(am)
-            fw(am_args)
-            fw(",\n")
+
             fw(f"{indent(2)}" "{")
             fw(f"\"items\":\n")
             fw(f"{indent(3)}[")
             for ami in am.actionmap_items:
                 fw(f"(")
+                fw(f"\"{ami.name:s}\"")
                 ami_args = ami_args_as_data(ami)
                 ami_data = _ami_attrs_or_none(4, ami)
-                fw(f"\"{ami.name:s}\"")
                 if ami_data is None:
                     fw(f", ")
                 else:
@@ -228,15 +231,29 @@ def actionconfig_export_as_data(ac, filepath, *, all_actionmaps=True, sort=False
 
                 fw(ami_args)
                 if ami_data is None:
-                    fw(", None),\n")
+                    fw(", None,\n")
                 else:
                     fw(",\n")
                     fw(f"{indent(5)}" "{")
                     fw(ami_data)
                     fw(f"{indent(6)}")
-                    fw("},\n" f"{indent(5)}")
-                    fw("),\n")
-                fw(f"{indent(4)}")
+                    fw("}," f"{indent(5)}")
+                    fw("\n")
+
+                fw(f"{indent(5)}" "{")
+                fw(f"\"bindings\":\n")
+                fw(f"{indent(6)}[")
+                for amb in ami.bindings:
+                    fw(f"(")
+                    fw(f"\"{amb.name:s}\"")
+                    fw(f", ")
+                    amb_args = amb_args_as_data(amb, ami.type)
+                    fw(amb_args)
+                    fw("),\n" f"{indent(7)}")
+                fw("],\n" f"{indent(6)}")
+                fw("},\n" f"{indent(5)}")
+                fw("),\n" f"{indent(4)}")
+
             fw("],\n" f"{indent(3)}")
             fw("},\n" f"{indent(2)}")
             fw("),\n" f"{indent(1)}")
@@ -280,9 +297,16 @@ def _ami_props_setattr(ami_props, attr, value):
         print(f"Warning: {ex!r}")
 
 
+def actionmap_item_init_from_data(ami, ami_bindings):
+    new_fn = getattr(ami.bindings, "new")
+    for (amb_name, amb_args) in ami_bindings:
+        amb = new_fn(amb_name, True)
+        amb_data_from_args(amb, amb_args, ami.type)
+
+
 def actionmap_init_from_data(am, am_items):
     new_fn = getattr(am.actionmap_items, "new")
-    for (ami_name, ami_args, ami_data) in am_items:
+    for (ami_name, ami_args, ami_data, ami_content) in am_items:
         ami = new_fn(ami_name, True)
         ami_data_from_args(ami, ami_args)
         if ami_data is not None:
@@ -292,6 +316,9 @@ def actionmap_init_from_data(am, am_items):
                 assert type(ami_props_data) is list
                 for attr, value in ami_props_data:
                     _ami_props_setattr(ami_props, attr, value)
+        ami_bindings = ami_content["bindings"]
+        assert type(ami_bindings) is list
+        actionmap_item_init_from_data(ami, ami_bindings)
 
 
 def actionconfig_init_from_data(ac, actionconfig_data, actionconfig_version):
@@ -302,9 +329,8 @@ def actionconfig_init_from_data(ac, actionconfig_data, actionconfig_version):
         from .versioning import actionconfig_update
         actionconfig_data = actionconfig_update(actionconfig_data, actionconfig_version)
     
-    for (am_name, am_args, am_content) in actionconfig_data:
+    for (am_name, am_content) in actionconfig_data:
         am = ac.actionmaps.new(am_name, True)
-        am_data_from_args(am, am_args)
         am_items = am_content["items"]
         # Check here instead of inside 'actionmap_init_from_data'
         # because we want to allow both tuple & list types in that case.
