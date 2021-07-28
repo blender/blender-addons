@@ -1704,7 +1704,7 @@ class BlenderKitAddonPreferences(AddonPreferences):
     max_assetbar_rows: IntProperty(name="Max Assetbar Rows",
                                    description="max rows of assetbar in the 3D view",
                                    default=1,
-                                   min=0,
+                                   min=1,
                                    max=20)
 
     thumb_size: IntProperty(name="Assetbar thumbnail Size", default=96, min=-1, max=256)
@@ -1841,7 +1841,7 @@ def register():
         type=BlenderKitUIProps)
 
     # MODELS
-    bpy.types.Scene.blenderkit_models = PointerProperty(
+    bpy.types.WindowManager.blenderkit_models = PointerProperty(
         type=BlenderKitModelSearchProps)
     bpy.types.Object.blenderkit = PointerProperty(  # for uploads, not now...
         type=BlenderKitModelUploadProps)
@@ -1849,7 +1849,7 @@ def register():
         type=BlenderKitRatingProps)
 
     # SCENES
-    bpy.types.Scene.blenderkit_scene = PointerProperty(
+    bpy.types.WindowManager.blenderkit_scene = PointerProperty(
         type=BlenderKitSceneSearchProps)
     bpy.types.Scene.blenderkit = PointerProperty(  # for uploads, not now...
         type=BlenderKitSceneUploadProps)
@@ -1857,7 +1857,7 @@ def register():
         type=BlenderKitRatingProps)
 
     # HDRs
-    bpy.types.Scene.blenderkit_HDR = PointerProperty(
+    bpy.types.WindowManager.blenderkit_HDR = PointerProperty(
         type=BlenderKitHDRSearchProps)
     bpy.types.Image.blenderkit = PointerProperty(  # for uploads, not now...
         type=BlenderKitHDRUploadProps)
@@ -1865,7 +1865,7 @@ def register():
         type=BlenderKitRatingProps)
 
     # MATERIALS
-    bpy.types.Scene.blenderkit_mat = PointerProperty(
+    bpy.types.WindowManager.blenderkit_mat = PointerProperty(
         type=BlenderKitMaterialSearchProps)
     bpy.types.Material.blenderkit = PointerProperty(  # for uploads, not now...
         type=BlenderKitMaterialUploadProps)
@@ -1873,7 +1873,7 @@ def register():
         type=BlenderKitRatingProps)
 
     # BRUSHES
-    bpy.types.Scene.blenderkit_brush = PointerProperty(
+    bpy.types.WindowManager.blenderkit_brush = PointerProperty(
         type=BlenderKitBrushSearchProps)
     bpy.types.Brush.blenderkit = PointerProperty(  # for uploads, not now...
         type=BlenderKitBrushUploadProps)
@@ -1930,11 +1930,11 @@ def unregister():
     tasks_queue.unregister()
     asset_bar_op.unregister()
 
-    del bpy.types.Scene.blenderkit_models
-    del bpy.types.Scene.blenderkit_scene
-    del bpy.types.Scene.blenderkit_HDR
-    del bpy.types.Scene.blenderkit_brush
-    del bpy.types.Scene.blenderkit_mat
+    del bpy.types.WindowManager.blenderkit_models
+    del bpy.types.WindowManager.blenderkit_scene
+    del bpy.types.WindowManager.blenderkit_HDR
+    del bpy.types.WindowManager.blenderkit_brush
+    del bpy.types.WindowManager.blenderkit_mat
 
     del bpy.types.Scene.blenderkit
     del bpy.types.Object.blenderkit
