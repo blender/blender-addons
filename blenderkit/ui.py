@@ -1776,6 +1776,8 @@ class AssetDragOperator(bpy.types.Operator):
                 (abs(self.start_mouse_x - self.mouse_x) > drag_threshold or \
                  abs(self.start_mouse_y - self.mouse_y) > drag_threshold):
             self.drag = True
+
+        if self.drag and ui_props.assetbar_on:
             # turn off asset bar here, shout start again after finishing drag drop.
             ui_props.turn_off = True
 
@@ -1819,7 +1821,7 @@ class AssetDragOperator(bpy.types.Operator):
             if ui_props.asset_type == 'MODEL':
                 self.snapped_bbox_min = Vector(self.asset_data['bbox_min'])
                 self.snapped_bbox_max = Vector(self.asset_data['bbox_max'])
-            return {'RUNNING_MODAL'}
+            #return {'RUNNING_MODAL'}
 
         if event.type == 'LEFTMOUSE' and event.value == 'RELEASE':
             self.mouse_release()  # does the main job with assets
@@ -1829,7 +1831,12 @@ class AssetDragOperator(bpy.types.Operator):
             bpy.ops.object.run_assetbar_fix_context(keep_running=True, do_search=False)
             ui_props.dragging = False
             return {'FINISHED'}
+
         self.steps += 1
+
+        #pass event to assetbar so it can close itself
+        if ui_props.assetbar_on and ui_props.turn_off:
+                return {'PASS_THROUGH'}
 
         return {'RUNNING_MODAL'}
 
