@@ -645,7 +645,7 @@ class FastMetadata(bpy.types.Operator):
             ('PUBLIC', 'Public', '"Your asset will go into the validation process automatically')
         ),
         description="If not marked private, your asset will go into the validation process automatically\n"
-                    "Private assets are limited by quota.",
+                    "Private assets are limited by quota",
         default="PUBLIC",
     )
 

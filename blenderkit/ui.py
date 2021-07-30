@@ -1622,7 +1622,7 @@ def find_and_activate_instancers(object):
 
 
 class AssetDragOperator(bpy.types.Operator):
-    """Drag & drop assets into scene."""
+    """Drag & drop assets into scene"""
     bl_idname = "view3d.asset_drag_drop"
     bl_label = "BlenderKit asset drag drop"
 
