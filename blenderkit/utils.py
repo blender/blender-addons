@@ -152,6 +152,28 @@ def get_selected_replace_adepts():
     return parents
 
 
+def exclude_collection(name, state=True):
+    '''
+    Set the exclude state of collection
+    Parameters
+    ----------
+    name - name of collection
+    state - default True.
+
+    Returns
+    -------
+    None
+    '''
+    vl = bpy.context.view_layer.layer_collection
+    cc = [vl]
+    found = False
+    while len(cc) > 0 and not found:
+        c = cc.pop()
+        if c.name == name:
+            c.exclude = state
+            found = True
+        cc.extend(c.children)
+
 def get_search_props():
     scene = bpy.context.scene
     wm = bpy.context.window_manager
