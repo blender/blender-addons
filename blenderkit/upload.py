@@ -1245,10 +1245,10 @@ class UploadOperator(Operator):
             ui_panels.draw_not_logged_in(self, message='To upload assets you need to login/signup.')
             return {'CANCELLED'}
 
-        if props.is_private == 'PUBLIC':
-            return context.window_manager.invoke_props_dialog(self)
-        else:
-            return self.execute(context)
+        # if props.is_private == 'PUBLIC':
+        return context.window_manager.invoke_props_dialog(self)
+        # else:
+        #     return self.execute(context)
 
 
 class AssetDebugPrint(Operator):
