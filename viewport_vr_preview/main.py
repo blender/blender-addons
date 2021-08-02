@@ -643,51 +643,15 @@ def vr_create_actions(context: bpy.context):
     if not session_state:
         return
 
+    am_active = vr_actionmap_active_get(ac)
+
     for am in ac.actionmaps:    
         if len(am.actionmap_items) < 1:
             continue
 
-        ok = session_state.create_action_set(context, am.name)
+        ok = session_state.create_action_set(context, am, (am == am_active))
         if not ok:
             return
-
-        controller_grip_name = ""
-        controller_aim_name = ""
-
-        for ami in am.actionmap_items:
-            if len(ami.bindings) < 1:
-                continue
-            
-            ok = session_state.create_action(context, am.name, ami.name, ami.type,
-                                             ami.user_path0, ami.user_path1,
-                                             ami.op, ami.op_flag, ami.bimanual,
-                                             ami.haptic_name, ami.haptic_match_user_paths, ami.haptic_duration, ami.haptic_frequency, ami.haptic_amplitude, ami.haptic_flag)
-            if not ok:
-                return
-
-            if ami.type == 'POSE':
-                if ami.pose_is_controller_grip:
-                    controller_grip_name = ami.name
-                if ami.pose_is_controller_aim:
-                    controller_aim_name = ami.name
-
-            for amb in ami.bindings:
-                ok = session_state.create_action_binding(context, am.name, ami.name, ami.type, amb.profile,
-                                                         ami.user_path0, ami.user_path1,
-                                                         amb.component_path0, amb.component_path1,
-                                                         amb.threshold, amb.axis0_flag, amb.axis1_flag,
-                                                         amb.pose_location, amb.pose_rotation)
-                if not ok:
-                    return
-
-        # Set controller pose actions.
-        if controller_grip_name and controller_aim_name:
-            session_state.set_controller_pose_actions(context, am.name, controller_grip_name, controller_aim_name)
-
-    # Set active action set.
-    am = vr_actionmap_active_get(ac)
-    if am:
-        session_state.set_active_action_set(context, am.name)
 
 
 def vr_load_actionmaps(context, filepath):
