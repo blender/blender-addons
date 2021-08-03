@@ -115,7 +115,8 @@ def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
     props.select = False
 
     layout.separator()
-    layout.operator("asset.open_containing_blend_file")
+    if is_pose_asset_view():
+        layout.operator("asset.open_containing_blend_file")
 
 
 class ASSETBROWSER_PT_pose_library_usage(asset_utils.AssetBrowserSpecificCategoryPanel, Panel):
