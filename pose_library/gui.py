@@ -209,7 +209,7 @@ def register() -> None:
     WindowManager.pose_assets = bpy.props.CollectionProperty(type=AssetHandle)
 
     bpy.types.UI_MT_list_item_context_menu.prepend(pose_library_list_item_context_menu)
-    bpy.types.FILEBROWSER_MT_context_menu.prepend(pose_library_list_item_context_menu)
+    bpy.types.ASSETBROWSER_MT_context_menu.prepend(pose_library_list_item_context_menu)
 
 
 def unregister() -> None:
@@ -219,4 +219,4 @@ def unregister() -> None:
     del WindowManager.pose_assets
 
     bpy.types.UI_MT_list_item_context_menu.remove(pose_library_list_item_context_menu)
-    bpy.types.FILEBROWSER_MT_context_menu.remove(pose_library_list_item_context_menu)
+    bpy.types.ASSETBROWSER_MT_context_menu.remove(pose_library_list_item_context_menu)
