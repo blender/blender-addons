@@ -60,7 +60,7 @@ class VIEW3D_PT_pose_library(Panel):
             activate_op_props, drag_op_props = layout.template_asset_view(
                 "pose_assets",
                 workspace,
-                "asset_library",
+                "asset_library_ref",
                 wm,
                 "pose_assets",
                 workspace,
@@ -85,8 +85,8 @@ def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
         return True
 
     def is_pose_library_asset_browser() -> bool:
-        asset_library = getattr(context, "asset_library", None)
-        if not asset_library:
+        asset_library_ref = getattr(context, "asset_library_ref", None)
+        if not asset_library_ref:
             return False
         asset = getattr(context, "asset_file_handle", None)
         if not asset:
