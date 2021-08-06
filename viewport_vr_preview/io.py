@@ -59,16 +59,16 @@ def ami_args_as_data(ami):
         f"\"user_path1\": '{ami.user_path1}'",
     ]
 
-    if ami.type == 'BUTTON' or ami.type == 'AXIS':
+    if ami.type == 'FLOAT' or ami.type == 'VECTOR2D':
         s.append(f"\"op\": '{ami.op}'")
-        s.append(f"\"op_flag\": '{ami.op_flag}'")
+        s.append(f"\"op_mode\": '{ami.op_mode}'")
         s.append(f"\"bimanual\": '{ami.bimanual}'")
         s.append(f"\"haptic_name\": '{ami.haptic_name}'")
         s.append(f"\"haptic_match_user_paths\": '{ami.haptic_match_user_paths}'")
         s.append(f"\"haptic_duration\": '{ami.haptic_duration}'")
         s.append(f"\"haptic_frequency\": '{ami.haptic_frequency}'")
         s.append(f"\"haptic_amplitude\": '{ami.haptic_amplitude}'")
-        s.append(f"\"haptic_flag\": '{ami.haptic_flag}'")
+        s.append(f"\"haptic_mode\": '{ami.haptic_mode}'")
     elif ami.type == 'POSE':
         s.append(f"\"pose_is_controller_grip\": '{ami.pose_is_controller_grip}'")
         s.append(f"\"pose_is_controller_aim\": '{ami.pose_is_controller_aim}'")
@@ -82,16 +82,16 @@ def ami_data_from_args(ami, args):
     ami.user_path0 = args["user_path0"]
     ami.user_path1 = args["user_path1"]
     
-    if ami.type == 'BUTTON' or ami.type == 'AXIS':
+    if ami.type == 'FLOAT' or ami.type == 'VECTOR2D':
         ami.op = args["op"]
-        ami.op_flag = args["op_flag"]
+        ami.op_mode = args["op_mode"]
         ami.bimanual = True if (args["bimanual"] == 'True') else False
         ami.haptic_name = args["haptic_name"]
         ami.haptic_match_user_paths = True if (args["haptic_match_user_paths"] == 'True') else False
         ami.haptic_duration = float(args["haptic_duration"])
         ami.haptic_frequency = float(args["haptic_frequency"])
         ami.haptic_amplitude = float(args["haptic_amplitude"])
-        ami.haptic_flag = args["haptic_flag"]
+        ami.haptic_mode = args["haptic_mode"]
     elif ami.type == 'POSE':
         ami.pose_is_controller_grip = True if (args["pose_is_controller_grip"] == 'True') else False
         ami.pose_is_controller_aim = True if (args["pose_is_controller_aim"] == 'True') else False
@@ -154,13 +154,13 @@ def amb_args_as_data(amb, type):
         f"\"component_path1\": '{amb.component_path1}'",
     ]
 
-    if type == 'BUTTON' or type == 'AXIS':
+    if type == 'FLOAT' or type == 'VECTOR2D':
         s.append(f"\"threshold\": '{amb.threshold}'")
-        if type == 'BUTTON':
-            s.append(f"\"axis_flag\": '{amb.axis0_flag}'")
-        else: # type == 'AXIS':
-            s.append(f"\"axis0_flag\": '{amb.axis0_flag}'")
-            s.append(f"\"axis1_flag\": '{amb.axis1_flag}'")
+        if type == 'FLOAT':
+            s.append(f"\"axis_region\": '{amb.axis0_region}'")
+        else: # type == 'VECTOR2D':
+            s.append(f"\"axis0_region\": '{amb.axis0_region}'")
+            s.append(f"\"axis1_region\": '{amb.axis1_region}'")
     elif type == 'POSE':
         s.append(f"\"pose_location\": '{amb.pose_location.x, amb.pose_location.y, amb.pose_location.z}'")
         s.append(f"\"pose_rotation\": '{amb.pose_rotation.x, amb.pose_rotation.y, amb.pose_rotation.z}'")
@@ -173,13 +173,13 @@ def amb_data_from_args(amb, args, type):
     amb.component_path0 = args["component_path0"]
     amb.component_path1 = args["component_path1"]
 
-    if type == 'BUTTON' or type == 'AXIS':
+    if type == 'FLOAT' or type == 'VECTOR2D':
         amb.threshold = float(args["threshold"])
-        if type == 'BUTTON':
-            amb.axis0_flag = args["axis_flag"]
-        else: # type == 'AXIS':
-            amb.axis0_flag = args["axis0_flag"]
-            amb.axis1_flag = args["axis1_flag"]
+        if type == 'FLOAT':
+            amb.axis0_region = args["axis_region"]
+        else: # type == 'VECTOR2D':
+            amb.axis0_region = args["axis0_region"]
+            amb.axis1_region = args["axis1_region"]
     elif type == 'POSE':
         l = args["pose_location"].strip(')(').split(', ')
         amb.pose_location.x = float(l[0])

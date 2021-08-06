@@ -28,19 +28,20 @@ import bpy
 from bpy.types import (
     Gizmo,
     GizmoGroup,
+    Menu,
+    Operator,
+    Panel,
     PropertyGroup,
     UIList,
-    Menu,
-    Panel,
-    Operator,
 )
 from bpy.app.handlers import persistent
-from bpy_extras.io_utils import ImportHelper, ExportHelper
+from bpy_extras.io_utils import ExportHelper, ImportHelper
 import bgl
+import importlib.util
 import math
 from math import radians
-from mathutils import Matrix, Euler
-import os.path, importlib.util
+from mathutils import Euler, Matrix, Quaternion, Vector
+import os.path
 
 
 ### Session.
@@ -643,15 +644,44 @@ def vr_create_actions(context: bpy.context):
     if not session_state:
         return
 
-    am_active = vr_actionmap_active_get(ac)
-
     for am in ac.actionmaps:    
         if len(am.actionmap_items) < 1:
             continue
 
-        ok = session_state.create_action_set(context, am, (am == am_active))
+        ok = session_state.action_set_create(context, am)
         if not ok:
             return
+
+        controller_grip_name = ""
+        controller_aim_name = ""
+
+        for ami in am.actionmap_items:
+            if len(ami.bindings) < 1:
+                continue
+            
+            ok = session_state.action_create(context, am, ami)
+            if not ok:
+                return
+
+            if ami.type == 'POSE':
+                if ami.pose_is_controller_grip:
+                    controller_grip_name = ami.name
+                if ami.pose_is_controller_aim:
+                    controller_aim_name = ami.name
+
+            for amb in ami.bindings:
+                ok = session_state.action_binding_create(context, am, ami, amb)
+                if not ok:
+                    return
+
+        # Set controller pose actions.
+        if controller_grip_name and controller_aim_name:
+            session_state.controller_pose_actions_set(context, am.name, controller_grip_name, controller_aim_name)
+
+    # Set active action set.
+    am = vr_actionmap_active_get(ac)
+    if am:
+        session_state.active_action_set_set(context, am.name)
 
 
 def vr_load_actionmaps(context, filepath):
@@ -887,9 +917,9 @@ class VIEW3D_PT_vr_actions_actions(VRActionsPanel, Panel):
                 col.prop(ami, "user_path0", text="User Path 0")
                 col.prop(ami, "user_path1", text="User Path 1")
 
-                if ami.type == 'BUTTON' or ami.type == 'AXIS':
+                if ami.type == 'FLOAT' or ami.type == 'VECTOR2D':
                     col.prop(ami, "op", text="Operator")
-                    col.prop(ami, "op_flag", text="Operator Flag")
+                    col.prop(ami, "op_mode", text="Operator Mode")
                     col.prop(ami, "bimanual", text="Bimanual")
                     # Properties.
                     vr_draw_ami(ami, col, 1)
@@ -920,13 +950,13 @@ class VIEW3D_PT_vr_actions_haptics(VRActionsPanel, Panel):
                 row = layout.row()
                 col = row.column(align=True)
 
-                if ami.type == 'BUTTON' or ami.type == 'AXIS':
+                if ami.type == 'FLOAT' or ami.type == 'VECTOR2D':
                     col.prop(ami, "haptic_name", text="Haptic Action")
                     col.prop(ami, "haptic_match_user_paths", text="Match User Paths")
                     col.prop(ami, "haptic_duration", text="Duration")
                     col.prop(ami, "haptic_frequency", text="Frequency")
                     col.prop(ami, "haptic_amplitude", text="Amplitude")
-                    col.prop(ami, "haptic_flag", text="Haptic Flag")
+                    col.prop(ami, "haptic_mode", text="Haptic Mode")
 
 
 class VIEW3D_PT_vr_actions_bindings(VRActionsPanel, Panel):
@@ -969,13 +999,13 @@ class VIEW3D_PT_vr_actions_bindings(VRActionsPanel, Panel):
                     col.prop(amb, "profile", text="Profile")
                     col.prop(amb, "component_path0", text="Component Path 0")
                     col.prop(amb, "component_path1", text="Component Path 1")
-                    if ami.type == 'BUTTON' or ami.type == 'AXIS':
+                    if ami.type == 'FLOAT' or ami.type == 'VECTOR2D':
                         col.prop(amb, "threshold", text="Threshold")
-                        if ami.type == 'BUTTON':
-                            col.prop(amb, "axis0_flag", text="Axis Flag")
-                        else: # ami.type == 'AXIS'
-                            col.prop(amb, "axis0_flag", text="Axis 0 Flag")
-                            col.prop(amb, "axis1_flag", text="Axis 1 Flag")
+                        if ami.type == 'FLOAT':
+                            col.prop(amb, "axis0_region", text="Axis Region")
+                        else: # ami.type == 'VECTOR2D'
+                            col.prop(amb, "axis0_region", text="Axis 0 Region")
+                            col.prop(amb, "axis1_region", text="Axis 1 Region")
                     elif ami.type == 'POSE':
                         col.prop(amb, "pose_location", text="Location Offset")
                         col.prop(amb, "pose_rotation", text="Rotation Offset")
@@ -1047,7 +1077,7 @@ class VIEW3D_OT_vr_actionmap_activate(Operator):
         if session_state:
             am = vr_actionmap_active_get(ac)
             if am:
-                session_state.set_active_action_set(context, am.name)
+                session_state.active_action_set_set(context, am.name)
 
         return {'FINISHED'}
 
@@ -1611,25 +1641,15 @@ class VIEW3D_GGT_vr_controller_poses(GizmoGroup):
 
         loc = None
         rot = None
-        if idx == 0:
-            if is_grip:
-                loc = wm.xr_session_state.controller0_grip_location
-                rot = wm.xr_session_state.controller0_grip_rotation
-            else:
-                loc = wm.xr_session_state.controller0_aim_location
-                rot = wm.xr_session_state.controller0_aim_rotation
-        elif idx == 1:
-            if is_grip:                
-                loc = wm.xr_session_state.controller1_grip_location
-                rot = wm.xr_session_state.controller1_grip_rotation
-            else:
-                loc = wm.xr_session_state.controller1_aim_location
-                rot = wm.xr_session_state.controller1_aim_rotation
+        if is_grip:
+            loc = wm.xr_session_state.controller_grip_location_get(context, idx)
+            rot = wm.xr_session_state.controller_grip_rotation_get(context, idx)
         else:
-            return Matrix.Identity(4);
+            loc = wm.xr_session_state.controller_aim_location_get(context, idx)
+            rot = wm.xr_session_state.controller_aim_rotation_get(context, idx)
 
         rotmat = Matrix.Identity(3)
-        rotmat.rotate(rot)
+        rotmat.rotate(Quaternion(Vector(rot)))
         rotmat.resize_4x4()
         transmat = Matrix.Translation(loc)
         scalemat = Matrix.Scale(scale, 4)

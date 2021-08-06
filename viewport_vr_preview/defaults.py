@@ -91,30 +91,30 @@ def vr_defaults_action_add(am,
                            user_path0,
                            user_path1,
                            op,
-                           op_flag,
+                           op_mode,
                            bimanual,
                            haptic_name,
                            haptic_match_user_paths,
                            haptic_duration,
                            haptic_frequency,
                            haptic_amplitude,
-                           haptic_flag):
+                           haptic_mode):
 
 
     ami = am.actionmap_items.new(name, True)
     if ami:        
-        ami.type = 'BUTTON'
+        ami.type = 'FLOAT'
         ami.user_path0 = user_path0
         ami.user_path1 = user_path1
         ami.op = op
-        ami.op_flag = op_flag
+        ami.op_mode = op_mode
         ami.bimanual = bimanual
         ami.haptic_name = haptic_name
         ami.haptic_match_user_paths = haptic_match_user_paths
         ami.haptic_duration = haptic_duration
         ami.haptic_frequency = haptic_frequency
         ami.haptic_amplitude = haptic_amplitude
-        ami.haptic_flag = haptic_flag
+        ami.haptic_mode = haptic_mode
 
     return ami
 
@@ -142,7 +142,7 @@ def vr_defaults_haptic_action_add(am,
                                   user_path1):
     ami = am.actionmap_items.new(name, True)
     if ami:        
-        ami.type = 'HAPTIC'
+        ami.type = 'VIBRATION'
         ami.user_path0 = user_path0
         ami.user_path1 = user_path1
     
@@ -155,16 +155,16 @@ def vr_defaults_actionbinding_add(ami,
                                   component_path0,
                                   component_path1,
                                   threshold,
-                                  axis0_flag,
-                                  axis1_flag):
+                                  axis0_region,
+                                  axis1_region):
     amb = ami.bindings.new(name, True)    
     if amb:
         amb.profile = profile
         amb.component_path0 = component_path0
         amb.component_path1 = component_path1
         amb.threshold = threshold
-        amb.axis0_flag = axis0_flag
-        amb.axis1_flag = axis1_flag
+        amb.axis0_region = axis0_region
+        amb.axis1_region = axis1_region
 
     return amb
 
