@@ -382,7 +382,7 @@ class BlenderKitUIProps(PropertyGroup):
     drag_init: BoolProperty(name="Drag Initialisation", default=False)
     drag_init_button: BoolProperty(name="Drag Initialisation from button",
                                    default=False,
-                                   description="Click or drag into scene for download.",
+                                   description="Click or drag into scene for download",
                                    update = run_drag_drop_update)
     drag_length: IntProperty(name="Drag length", default=0)
     draw_drag_image: BoolProperty(name="Draw Drag Image", default=False)
@@ -697,9 +697,9 @@ class BlenderKitCommonUploadProps(object):
         name="Thumbnail Style",
         items=(
             ('FULL', 'Full', "Your asset will be only available for subscribers"),
-            ('FREE', 'Free', "You consent you want to release this asset as free for everyone.")
+            ('FREE', 'Free', "You consent you want to release this asset as free for everyone")
         ),
-        description="Assets can be in Free or in Full plan. Also free assets generate credits.",
+        description="Assets can be in Free or in Full plan. Also free assets generate credits",
         default="FULL",
     )
 
@@ -871,7 +871,7 @@ class BlenderKitMaterialUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
             ('FREE', 'Free', "You consent you want to release this asset as free for everyone.")
         ),
         description="Assets can be in Free or in Full plan. Also free assets generate credits. \n"
-                    "All BlenderKit materials are free.",
+                    "All BlenderKit materials are free",
         default="FREE",
         update=update_free
     )
@@ -886,7 +886,7 @@ class BlenderKitMaterialUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
     texture_resolution_max: IntProperty(name="Texture Resolution Max", description="texture resolution maximum",
                                         default=0)
 
-    texture_size_meters: FloatProperty(name="Texture Size in Meters", description="Size of texture in real world units.",
+    texture_size_meters: FloatProperty(name="Texture Size in Meters", description="Size of texture in real world units",
                                        default=1.0, min=0)
 
     thumbnail_scale: FloatProperty(name="Thumbnail Object Size",
@@ -932,9 +932,9 @@ class BlenderKitMaterialUploadProps(PropertyGroup, BlenderKitCommonUploadProps):
 
     thumbnail: StringProperty(
         name="Thumbnail",
-        description="Thumbnail path - 512x512 .jpg image, rendered with cycles. \n"
+        description="Thumbnail path - 512x512 .jpg image, rendered with cycles.\n"
                     "Only standard BlenderKit previews will be accepted.\n"
-                    "Only exception are special effects like fire or similar.",
+                    "Only exception are special effects like fire or similar",
         subtype='FILE_PATH',
         default="",
         update=autothumb.update_upload_material_preview)
@@ -1739,14 +1739,14 @@ class BlenderKitAddonPreferences(AddonPreferences):
 
     experimental_features: BoolProperty(
         name="Enable experimental features",
-        description="Enable all experimental features of BlenderKit. Use at your own risk.",
+        description="Enable all experimental features of BlenderKit. Use at your own risk",
         default=False,
         update=utils.save_prefs
     )
 
     categories_fix: BoolProperty(
         name="Enable category fixing mode",
-        description="Enable category fixing mode.",
+        description="Enable category fixing mode",
         default=False,
         update=utils.save_prefs
     )

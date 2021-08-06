@@ -298,7 +298,7 @@ def parse_result(r):
         asset_data['downloaded'] = 0
 
         # parse extra params needed for blender here
-        params = r['dictParameters']#utils.params_to_dict(r['parameters'])
+        params = r['dictParameters']  # utils.params_to_dict(r['parameters'])
 
         if asset_type == 'model':
             if params.get('boundBoxMinX') != None:
@@ -397,8 +397,6 @@ def search_timer():
         # utils.p('end search timer')
 
         return 0.5
-
-
 
     for thread in search_threads:
         # TODO this doesn't check all processes when one gets removed,
@@ -499,10 +497,9 @@ def load_preview(asset, index):
     loaded = True
 
     tpath = os.path.join(directory, asset['thumbnail_small'])
-    if not asset['thumbnail_small'] or not os.path.exists(tpath):
+    if not asset['thumbnail_small'] or asset['thumbnail_small'] == '' or not os.path.exists(tpath):
         # tpath = paths.get_addon_thumbnail_path('thumbnail_notready.jpg')
         asset['thumb_small_loaded'] = False
-        loaded = False
 
     iname = utils.previmg_name(index)
 
@@ -512,25 +509,33 @@ def load_preview(asset, index):
     if img is None:
         if not os.path.exists(tpath):
             return False
-        img = bpy.data.images.load(tpath)
-        img.name = iname
+        # wrap into try statement since sometimes
+        try:
+            img = bpy.data.images.load(tpath)
+            img.name = iname
+        except:
+            return False
     elif img.filepath != tpath:
         if not os.path.exists(tpath):
-            #unload loaded previews from previous results
+            # unload loaded previews from previous results
             bpy.data.images.remove(img)
             return False
         # had to add this check for autopacking files...
         if bpy.data.use_autopack and img.packed_file is not None:
             img.unpack(method='USE_ORIGINAL')
         img.filepath = tpath
-        img.reload()
+        try:
+            img.reload()
+        except:
+            return False
+
     if asset['assetType'] == 'hdr':
         # to display hdr thumbnails correctly, we use non-color, otherwise looks shifted
         image_utils.set_colorspace(img, 'Non-Color')
     else:
         image_utils.set_colorspace(img, 'sRGB')
     asset['thumb_small_loaded'] = True
-    return loaded
+    return True
 
 
 def load_previews():
@@ -658,6 +663,7 @@ def generate_author_textblock(adata):
                 t = writeblockm(t, adata, key='aboutMe', pretext='', width=col_w)
     return t
 
+
 def download_image(session, url, filepath):
     r = None
     try:
@@ -669,25 +675,26 @@ def download_image(session, url, filepath):
         with open(filepath, 'wb') as f:
             f.write(r.content)
 
+
 def thumb_download_worker(queue_sml, queue_full):
     # print('thumb downloader', self.url)
     # utils.p('start thumbdownloader thread')
     while 1:
         session = None
-        #start a session only for single search usually, if users starts scrolling, the session might last longer if
+        # start a session only for single search usually, if users starts scrolling, the session might last longer if
         # queue gets filled.
         if not queue_sml.empty() or not queue_full.empty():
             if session is None:
                 session = requests.Session()
             while not queue_sml.empty():
-                #first empty the small thumbs queue
+                # first empty the small thumbs queue
                 url, filepath = queue_sml.get()
-                download_image(session,url, filepath)
+                download_image(session, url, filepath)
             exit_full = False
             # download full resolution image, but only if no small thumbs are waiting. If there are small
             while not queue_full.empty() and queue_sml.empty():
                 url, filepath = queue_full.get()
-                download_image(session,url, filepath)
+                download_image(session, url, filepath)
 
         if queue_sml.empty() and queue_full.empty():
             if session is not None:
@@ -1235,7 +1242,8 @@ def add_search_process(query, params):
 
     if thumb_workers_sml == []:
         for a in range(0, 8):
-            thread = threading.Thread(target=thumb_download_worker, args=(thumb_sml_download_threads, thumb_full_download_threads),
+            thread = threading.Thread(target=thumb_download_worker,
+                                      args=(thumb_sml_download_threads, thumb_full_download_threads),
                                       daemon=True)
             thread.start()
             thumb_workers_sml.append(thread)
