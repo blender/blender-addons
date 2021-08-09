@@ -218,7 +218,7 @@ class POSELIB_OT_copy_as_asset(PoseAssetCreator, Operator):
 
         functions.asset_clear(context, asset)
         if asset.users > 0:
-            self.report({"ERROR"}, "Whaaaat who is using our brand new asset?")
+            self.report({"ERROR"}, "Unexpected non-null user count for the asset")
             return {"FINISHED"}
 
         bpy.data.actions.remove(asset)
