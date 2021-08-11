@@ -216,7 +216,9 @@ class POSELIB_OT_copy_as_asset(PoseAssetCreator, Operator):
 
         filepath = self.save_datablock(asset)
 
-        functions.asset_clear(context, asset)
+        # The asset has been saved to disk, so to clean up it has to loose its asset & fake user status.
+        asset.asset_clear()
+        asset.use_fake_user = False
         if asset.users > 0:
             self.report({"ERROR"}, "Unexpected non-null user count for the asset")
             return {"FINISHED"}
