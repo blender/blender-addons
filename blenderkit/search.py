@@ -448,7 +448,7 @@ def search_timer():
                 headers = utils.get_headers(api_key)
                 if utils.profile_is_validator():
                     for r in rdata['results']:
-                        if ratings_utils.get_rating_local(asset_data['id']) is None:
+                        if ratings_utils.get_rating_local(r['id']) is None:
                             rating_thread = threading.Thread(target=ratings_utils.get_rating, args=([r['id'], headers]),
                                                              daemon=True)
                             rating_thread.start()
@@ -1133,9 +1133,12 @@ def build_query_HDR():
     props = bpy.context.window_manager.blenderkit_HDR
     query = {
         "asset_type": 'hdr',
+
         # "engine": props.search_engine,
         # "adult": props.search_adult,
     }
+    if props.true_hdr:
+        query["trueHDR"] = props.true_hdr
     build_query_common(query, props)
     return query
 
@@ -1283,6 +1286,8 @@ def get_search_simple(parameters, filepath=None, page_size=100, max_results=1000
         requeststring += f'+{p}:{parameters[p]}'
 
     requeststring += '&page_size=' + str(page_size)
+    requeststring += '&dict_parameters=1'
+
     bk_logger.debug(requeststring)
     response = rerequests.get(requeststring, headers=headers)  # , params = rparameters)
     # print(response.json())
@@ -1425,6 +1430,8 @@ def update_filters():
                              sprops.search_polycount
     elif ui_props.asset_type == 'MATERIAL':
         sprops.use_filters = fcommon
+    elif ui_props.asset_type == 'HDR':
+        sprops.use_filters = sprops.true_hdr
 
 
 def search_update(self, context):
@@ -1491,7 +1498,8 @@ class SearchOperator(Operator):
 
     own: BoolProperty(name="own assets only",
                       description="Find all own assets",
-                      default=False)
+                      default=False,
+                      options={'SKIP_SAVE'})
 
     category: StringProperty(
         name="category",
