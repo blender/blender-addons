@@ -36,10 +36,10 @@ bl_info = {
 
 if "bpy" in locals():
     import importlib
-    importlib.reload(main)
     importlib.reload(defaults)
+    importlib.reload(main)
 else:
-    from . import main, defaults
+    from . import defaults, main
 
 import bpy
 
@@ -52,6 +52,7 @@ classes = (
     main.VIEW3D_PT_vr_actions_actions,
     main.VIEW3D_PT_vr_actions_haptics,
     main.VIEW3D_PT_vr_actions_bindings,
+    main.VIEW3D_PT_vr_actions_extensions,
     main.VIEW3D_PT_vr_motion_capture,
     main.VIEW3D_PT_vr_viewport_feedback,
 
@@ -120,6 +121,18 @@ def register():
     bpy.types.Scene.vr_landmarks_active = bpy.props.IntProperty(
         update=main.vr_landmark_active_update,
     )
+    bpy.types.Scene.vr_actions_enable_cosmos = bpy.props.BoolProperty(
+        description="Enable bindings for the HTC Vive Cosmos controllers. Note that this may not be supported by all OpenXR runtimes",
+        default=False,
+    )
+    bpy.types.Scene.vr_actions_enable_huawei = bpy.props.BoolProperty(
+        description="Enable bindings for the Huawei controllers. Note that this may not be supported by all OpenXR runtimes",
+        default=False,
+    )
+    bpy.types.Scene.vr_actions_enable_reverb_g2 = bpy.props.BoolProperty(
+        description="Enable bindings for the HP Reverb G2 controllers. Note that this may not be supported by all OpenXR runtimes",
+        default=False,
+    )
     bpy.types.Scene.vr_headset_object = bpy.props.PointerProperty(
         name="Headset Object",
         type=bpy.types.Object,
@@ -164,6 +177,9 @@ def unregister():
     del bpy.types.Scene.vr_landmarks
     del bpy.types.Scene.vr_landmarks_selected
     del bpy.types.Scene.vr_landmarks_active
+    del bpy.types.Scene.vr_actions_enable_cosmos
+    del bpy.types.Scene.vr_actions_enable_huawei
+    del bpy.types.Scene.vr_actions_enable_reverb_g2
     del bpy.types.Scene.vr_headset_object
     del bpy.types.Scene.vr_controller0_object
     del bpy.types.Scene.vr_controller1_object

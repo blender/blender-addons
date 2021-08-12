@@ -20,9 +20,10 @@
 
 if "bpy" in locals():
     import importlib
+    importlib.reload(defaults)
     importlib.reload(io)
 else:
-    from . import io
+    from . import defaults, io
 
 import bpy
 from bpy.types import (
@@ -635,7 +636,6 @@ def vr_activate_user_actionconfig(context: bpy.context):
 def vr_create_actions(context: bpy.context):
     # Create all vr action sets and actions.
     context = bpy.context
-
     ac = vr_actionconfig_active_get(context)
     if not ac:
         return
@@ -643,6 +643,8 @@ def vr_create_actions(context: bpy.context):
     session_state = context.window_manager.xr_session_state
     if not session_state:
         return
+
+    scene = context.scene
 
     for am in ac.actionmaps:    
         if len(am.actionmap_items) < 1:
@@ -670,6 +672,17 @@ def vr_create_actions(context: bpy.context):
                     controller_aim_name = ami.name
 
             for amb in ami.bindings:
+                # Check for bindings that require OpenXR extensions.
+                if amb.name == defaults.VRDefaultActionbindings.REVERB_G2.value:
+                   if not scene.vr_actions_enable_reverb_g2:
+                       continue
+                elif amb.name == defaults.VRDefaultActionbindings.COSMOS.value:
+                   if not scene.vr_actions_enable_cosmos:
+                       continue
+                elif amb.name == defaults.VRDefaultActionbindings.HUAWEI.value:
+                   if not scene.vr_actions_enable_huawei:
+                       continue
+
                 ok = session_state.action_binding_create(context, am, ami, amb)
                 if not ok:
                     return
@@ -852,11 +865,13 @@ class VIEW3D_PT_vr_actions_actionmaps(VRActionsPanel, Panel):
     bl_label = "Action Maps"
 
     def draw(self, context):
-        layout = self.layout
         ac = vr_actionconfig_active_get(context)
         if not ac:
             return
-        
+
+        scene = context.scene
+
+        layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
@@ -884,11 +899,11 @@ class VIEW3D_PT_vr_actions_actions(VRActionsPanel, Panel):
     bl_parent_id = "VIEW3D_PT_vr_actions_actionmaps"
 
     def draw(self, context):
-        layout = self.layout
         ac = vr_actionconfig_active_get(context)
         if not ac:
             return
-        
+
+        layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 		
@@ -933,11 +948,11 @@ class VIEW3D_PT_vr_actions_haptics(VRActionsPanel, Panel):
     bl_parent_id = "VIEW3D_PT_vr_actions_actions"
 
     def draw(self, context):
-        layout = self.layout
         ac = vr_actionconfig_active_get(context)
         if not ac:
             return
 
+        layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
@@ -964,11 +979,11 @@ class VIEW3D_PT_vr_actions_bindings(VRActionsPanel, Panel):
     bl_parent_id = "VIEW3D_PT_vr_actions_actions"
 
     def draw(self, context):
-        layout = self.layout
         ac = vr_actionconfig_active_get(context)
         if not ac:
             return
 
+        layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
@@ -1009,6 +1024,23 @@ class VIEW3D_PT_vr_actions_bindings(VRActionsPanel, Panel):
                     elif ami.type == 'POSE':
                         col.prop(amb, "pose_location", text="Location Offset")
                         col.prop(amb, "pose_rotation", text="Rotation Offset")
+
+
+class VIEW3D_PT_vr_actions_extensions(VRActionsPanel, Panel):
+    bl_label = "Extensions"
+    bl_parent_id = "VIEW3D_PT_vr_actions_actionmaps"
+
+    def draw(self, context):
+        scene = context.scene
+
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        col = layout.column(align=True)
+        col.prop(scene, "vr_actions_enable_reverb_g2", text="HP Reverb G2")
+        col.prop(scene, "vr_actions_enable_cosmos", text="HTC Vive Cosmos")
+        col.prop(scene, "vr_actions_enable_huawei", text="Huawei")
 
 
 class VIEW3D_OT_vr_actionmap_add(Operator):

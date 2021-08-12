@@ -28,7 +28,7 @@ def actionconfig_update(actionconfig_data, actionconfig_version):
     if actionconfig_version >= blender_version:
         return actionconfig_data
 
-##    # Version the action-map.
+##    # Version the action map.
 ##    import copy
 ##    has_copy = False
 ##
@@ -38,8 +38,17 @@ def actionconfig_update(actionconfig_data, actionconfig_version):
 ##            actionconfig_data = copy.deepcopy(actionconfig_data)
 ##            has_copy = True
 ##
-##        for _am_name, _am_parms, am_items_data in actionconfig_data:
-##            for (_item_op, item_event, _item_prop) in am_items_data["items"]:
-##                # Apply version updates here.
+##        for (am_name, am_content) in actionconfig_data:
+##            # Apply action map updates.
+##            
+##            am_items = am_content["items"]
+##
+##            for (ami_name, ami_args, ami_data, ami_content) in am_items
+##                # Apply action map item updates.
+##
+##                ami_bindings = ami_content["bindings"]
+##                    
+##                for (amb_name, amb_args) in ami_bindings:
+##                # Apply action map binding updates.
 
     return actionconfig_data
