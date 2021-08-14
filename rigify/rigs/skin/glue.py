@@ -293,10 +293,7 @@ class PositionQueryNode(ControlQueryNode):
 
     def initialize(self):
         if self.needs_reparent:
-            parent = self.build_parent()
-
-            if not self.rig_org:
-                self.merged_master.request_reparent(parent)
+            self.build_parent(reparent=not self.rig_org)
 
     def parent_bones(self):
         if self.rig_org:

@@ -77,7 +77,7 @@ class BaseSkinNode(MechanismUtilityMixin, BoneUtilityMixin):
         result.is_parent_frozen = True
         return result
 
-    def build_parent(self, use=True):
+    def build_parent(self, use=True, reparent=False):
         """Create and activate if needed the parent mechanism for this node."""
         if not self.node_parent_built:
             self.node_parent = self.do_build_parent()
@@ -85,6 +85,9 @@ class BaseSkinNode(MechanismUtilityMixin, BoneUtilityMixin):
 
         if use:
             self.merged_master.register_use_parent(self.node_parent)
+
+        if reparent:
+            self.merged_master.request_reparent(self.node_parent)
 
         return self.node_parent
 
@@ -326,9 +329,7 @@ class ControlBoneNode(MainMergeNode, BaseSkinNode):
 
         # All nodes
         if self.node_needs_parent or self.node_needs_reparent:
-            parent = self.build_parent()
-            if self.node_needs_reparent:
-                self.merged_master.request_reparent(parent)
+            self.build_parent(reparent=self.node_needs_reparent)
 
     def prepare_bones(self):
         # Activate parent components once all reparents are registered
