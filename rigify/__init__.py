@@ -507,20 +507,6 @@ def register():
     IDStore.rigify_types = CollectionProperty(type=RigifyName)
     IDStore.rigify_active_type = IntProperty(name="Rigify Active Type", description="The selected rig type")
 
-    bpy.types.Armature.rigify_advanced_generation = BoolProperty(name="Advanced Options",
-        description="Enables/disables advanced options for Rigify rig generation",
-        default=False)
-
-    def update_mode(self, context):
-        if self.rigify_generate_mode == 'new':
-            self.rigify_force_widget_update = False
-
-    bpy.types.Armature.rigify_generate_mode = EnumProperty(name="Rigify Generate Rig Mode",
-        description="'Generate Rig' mode. In 'overwrite' mode the features of the target rig will be updated as defined by the metarig. In 'new' mode a new rig will be created as defined by the metarig. Current mode",
-        update=update_mode,
-        items=( ('overwrite', 'overwrite', ''),
-                ('new', 'new', '')))
-
     bpy.types.Armature.rigify_force_widget_update = BoolProperty(name="Force Widget Update",
         description="Forces Rigify to delete and rebuild all the rig widgets. if unset, only missing widgets will be created",
         default=False)
@@ -579,8 +565,6 @@ def unregister():
     del ArmStore.rigify_colors_index
     del ArmStore.rigify_colors_lock
     del ArmStore.rigify_theme_to_add
-    del ArmStore.rigify_advanced_generation
-    del ArmStore.rigify_generate_mode
     del ArmStore.rigify_force_widget_update
     del ArmStore.rigify_target_rig
     del ArmStore.rigify_rig_ui

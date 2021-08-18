@@ -65,53 +65,28 @@ class Generator(base_generate.BaseGenerator):
 
         return rig_module.Rig
 
-
-    def __create_rig_object(self):
-        scene = self.scene
-        id_store = self.id_store
+    
+    def __create_rig_object(self) -> bpy.types.Object:
+        """ Check if the generated rig already exists, so we can
+        regenerate in the same object. If not, create a new
+        object to generate the rig in.
+        """
         meta_data = self.metarig.data
 
-        # Check if the generated rig already exists, so we can
-        # regenerate in the same object.  If not, create a new
-        # object to generate the rig in.
-        print("Fetch rig.")
+        target_rig = meta_data.rigify_target_rig
+        if target_rig:
+            return target_rig
 
-        self.rig_new_name = name = meta_data.rigify_rig_basename or "rig"
+        rig_new_name = meta_data.rigify_rig_basename or "rig"
 
-        obj = None
+        target_rig = bpy.data.objects.new(rig_new_name, bpy.data.armatures.new(rig_new_name))
+        target_rig.display_type = 'WIRE'
+        self.collection.objects.link(target_rig)
 
-        if meta_data.rigify_generate_mode == 'overwrite':
-            obj = meta_data.rigify_target_rig
+        meta_data.rigify_target_rig = target_rig
+        target_rig.data.pose_position = 'POSE'
 
-            if not obj and name in scene.objects:
-                obj = scene.objects[name]
-
-            if obj:
-                self.rig_old_name = obj.name
-
-                obj.name = name
-                obj.data.name = obj.name
-
-                rig_collections = filter_layer_collections_by_object(self.usable_collections, obj)
-                self.layer_collection = (rig_collections + [self.layer_collection])[0]
-                self.collection = self.layer_collection.collection
-
-            elif name in bpy.data.objects:
-                obj = bpy.data.objects[name]
-
-        if not obj:
-            obj = bpy.data.objects.new(name, bpy.data.armatures.new(name))
-            obj.display_type = 'WIRE'
-            self.collection.objects.link(obj)
-
-        elif obj.name not in self.collection.objects:  # rig exists but was deleted
-            self.collection.objects.link(obj)
-
-        meta_data.rigify_target_rig = obj
-        obj.data.pose_position = 'POSE'
-
-        self.obj = obj
-        return obj
+        return target_rig
 
 
     def __create_widget_group(self):
@@ -383,7 +358,7 @@ class Generator(base_generate.BaseGenerator):
 
         #------------------------------------------
         # Create/find the rig object and set it up
-        obj = self.__create_rig_object()
+        self.obj = obj = self.__create_rig_object()
 
         # Get rid of anim data in case the rig already existed
         print("Clear rig animation data.")
