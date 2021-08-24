@@ -2716,7 +2716,7 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
 
     relative_path: BoolProperty(
         name='Relative Path',
-        description='Select the file relative to the blend file',
+        description='Set the file path relative to the blend file, when possible',
         default=True
     )
 
@@ -2816,10 +2816,10 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
         import_path = self.directory
         if self.relative_path:
             if bpy.data.filepath:
-                import_path = bpy.path.relpath(self.directory)
-            else:
-                self.report({'WARNING'}, 'Relative paths cannot be used with unsaved scenes!')
-                print('Relative paths cannot be used with unsaved scenes!')
+                try:
+                    import_path = bpy.path.relpath(self.directory)
+                except ValueError:
+                    pass
 
         # Add found images
         print('\nMatched Textures:')
