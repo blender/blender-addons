@@ -1566,6 +1566,9 @@ class VIEW3D_OT_vr_mocap_object_add(Operator):
         if not mocap_ob:
             return {'CANCELLED'}
 
+        # Enable object binding by default.
+        mocap_ob.enable = True
+
         context.scene.vr_mocap_objects.add()
 
         # Select newly created object.
