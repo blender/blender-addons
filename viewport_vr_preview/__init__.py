@@ -94,6 +94,14 @@ classes = (
     main.VIEW3D_OT_vr_actionbinding_copy,
     main.VIEW3D_OT_vr_actionbindings_clear,
 
+    main.VRMotionCaptureObject,
+    main.VIEW3D_UL_vr_mocap_objects,
+    main.VIEW3D_MT_vr_mocap_object_menu,
+
+    main.VIEW3D_OT_vr_mocap_object_add,
+    main.VIEW3D_OT_vr_mocap_object_remove,
+    main.VIEW3D_OT_vr_mocap_object_help,
+
     main.VIEW3D_GT_vr_camera_cone,
     main.VIEW3D_GT_vr_controller_grip,
     main.VIEW3D_GT_vr_controller_aim,
@@ -133,20 +141,12 @@ def register():
         description="Enable bindings for the HP Reverb G2 controllers. Note that this may not be supported by all OpenXR runtimes",
         default=False,
     )
-    bpy.types.Scene.vr_headset_object = bpy.props.PointerProperty(
-        name="Headset Object",
-        type=bpy.types.Object,
-        update=main.vr_headset_object_update,
-    )
-    bpy.types.Scene.vr_controller0_object = bpy.props.PointerProperty(
-        name="Controller 0 Object",
-        type=bpy.types.Object,
-        update=main.vr_controller0_object_update,
-    )
-    bpy.types.Scene.vr_controller1_object = bpy.props.PointerProperty(
-        name="Controller 1 Object",
-        type=bpy.types.Object,
-        update=main.vr_controller1_object_update,
+    # This scene collection property is needed instead of directly accessing
+    # XrSessionSettings.mocap_objects in the UI to avoid invalid pointers when
+    # deleting objects.
+    bpy.types.Scene.vr_mocap_objects = bpy.props.CollectionProperty(
+        name="Motion Capture Object",
+        type=main.VRMotionCaptureObject,
     )
     # View3DShading is the only per 3D-View struct with custom property
     # support, so "abusing" that to get a per 3D-View option.
@@ -180,9 +180,7 @@ def unregister():
     del bpy.types.Scene.vr_actions_enable_cosmos
     del bpy.types.Scene.vr_actions_enable_huawei
     del bpy.types.Scene.vr_actions_enable_reverb_g2
-    del bpy.types.Scene.vr_headset_object
-    del bpy.types.Scene.vr_controller0_object
-    del bpy.types.Scene.vr_controller1_object
+    del bpy.types.Scene.vr_mocap_objects
     del bpy.types.View3DShading.vr_show_virtual_camera
     del bpy.types.View3DShading.vr_show_controllers
     del bpy.types.View3DShading.vr_show_landmarks

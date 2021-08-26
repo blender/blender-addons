@@ -1441,19 +1441,69 @@ class VIEW3D_OT_vr_actionbindings_clear(Operator):
 
 
 ### Motion capture.
-def vr_headset_object_update(self, context):
+def vr_mocap_object_selected_get(session_settings):
+    mocap_objects = session_settings.mocap_objects
+    return (
+        None if (len(mocap_objects) <
+                 1) else mocap_objects[session_settings.selected_mocap_object]
+    )
+
+
+def vr_scene_mocap_object_selected_get(scene, session_settings):
+    mocap_objects = scene.vr_mocap_objects
+    return (
+        None if (len(mocap_objects) <
+                 1) else mocap_objects[session_settings.selected_mocap_object]
+    )
+
+
+def vr_scene_mocap_object_update(self, context):
     session_settings = context.window_manager.xr_session_settings
-    session_settings.headset_object = context.scene.vr_headset_object
+    mocap_ob = vr_mocap_object_selected_get(session_settings)
+    if not mocap_ob:
+        return
+
+    scene = context.scene
+    scene_mocap_ob = vr_scene_mocap_object_selected_get(scene, session_settings)
+    if not scene_mocap_ob:
+        return
+
+    # Check for duplicate object.
+    if scene_mocap_ob.object and session_settings.mocap_objects.find(scene_mocap_ob.object):
+        scene_mocap_ob.object = None
+        return
+
+    mocap_ob.object = scene_mocap_ob.object
 
 
-def vr_controller0_object_update(self, context):
-    session_settings = context.window_manager.xr_session_settings
-    session_settings.controller0_object = context.scene.vr_controller0_object
+class VRMotionCaptureObject(PropertyGroup):
+    object: bpy.props.PointerProperty(
+        name="Object",
+        type=bpy.types.Object,
+        update=vr_scene_mocap_object_update,
+    )
 
 
-def vr_controller1_object_update(self, context):
-    session_settings = context.window_manager.xr_session_settings
-    session_settings.controller1_object = context.scene.vr_controller1_object
+class VIEW3D_UL_vr_mocap_objects(UIList):
+    def draw_item(self, context, layout, _data, item, icon, _active_data,
+                  _active_propname, index):
+        scene_mocap_ob = item
+
+        layout.emboss = 'NONE'
+
+        if scene_mocap_ob.object:
+            layout.prop(scene_mocap_ob.object, "name", text="")
+        else:
+            layout.label(icon='X')
+
+
+class VIEW3D_MT_vr_mocap_object_menu(Menu):
+    bl_label = "Motion Capture Object Controls"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("view3d.vr_mocap_object_help")
 
 
 class VIEW3D_PT_vr_motion_capture(Panel):
@@ -1465,8 +1515,11 @@ class VIEW3D_PT_vr_motion_capture(Panel):
 
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
         session_settings = context.window_manager.xr_session_settings
+        scene = context.scene
 
         col = layout.column(align=True)
         col.label(icon='ERROR', text="Note:")
@@ -1476,25 +1529,94 @@ class VIEW3D_PT_vr_motion_capture(Panel):
         layout.separator()
 
         row = layout.row()
-        row.label(text="Headset")
-        col = row.column()
-        col.prop(scene, "vr_headset_object", text="")
-        col.prop(session_settings, "headset_object_enable", text="Enable")
-        col.prop(session_settings, "headset_object_autokey", text="Auto Key")
-            
-        row = layout.row()
-        row.label(text="Controller 0")
-        col = row.column()
-        col.prop(scene, "vr_controller0_object", text="")
-        col.prop(session_settings, "controller0_object_enable", text="Enable")
-        col.prop(session_settings, "controller0_object_autokey", text="Auto Key")
+        row.template_list("VIEW3D_UL_vr_mocap_objects", "", scene, "vr_mocap_objects",
+                          session_settings, "selected_mocap_object", rows=3)
 
-        row = layout.row()
-        row.label(text="Controller 1")
-        col = row.column()
-        col.prop(scene, "vr_controller1_object", text="")
-        col.prop(session_settings, "controller1_object_enable", text="Enable")
-        col.prop(session_settings, "controller1_object_autokey", text="Auto Key")
+        col = row.column(align=True)
+        col.operator("view3d.vr_mocap_object_add", icon='ADD', text="")
+        col.operator("view3d.vr_mocap_object_remove", icon='REMOVE', text="")
+
+        col.menu("VIEW3D_MT_vr_mocap_object_menu", icon='DOWNARROW_HLT', text="")
+
+        mocap_ob = vr_mocap_object_selected_get(session_settings)
+        scene_mocap_ob = vr_scene_mocap_object_selected_get(scene, session_settings)
+
+        if mocap_ob and scene_mocap_ob:
+            row = layout.row()
+            col = row.column(align=True)
+
+            col.prop(scene_mocap_ob, "object", text="Object")
+            col.prop(mocap_ob, "user_path", text="User Path")
+            col.prop(mocap_ob, "enable", text="Enable")
+            col.prop(mocap_ob, "autokey", text="Auto Key")
+            col.prop(mocap_ob, "location_offset", text="Location Offset")
+            col.prop(mocap_ob, "rotation_offset", text="Rotation Offset")
+
+
+class VIEW3D_OT_vr_mocap_object_add(Operator):
+    bl_idname = "view3d.vr_mocap_object_add"
+    bl_label = "Add VR Motion Capture Object"
+    bl_description = "Add a new VR motion capture object"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        mocap_ob = session_settings.mocap_objects.new(None)    
+        if not mocap_ob:
+            return {'CANCELLED'}
+
+        context.scene.vr_mocap_objects.add()
+
+        # Select newly created object.
+        session_settings.selected_mocap_object = len(session_settings.mocap_objects) - 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_mocap_object_remove(Operator):
+    bl_idname = "view3d.vr_mocap_object_remove"
+    bl_label = "Remove VR Motion Capture Object"
+    bl_description = "Delete the selected VR motion capture object"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        mocap_ob = vr_mocap_object_selected_get(session_settings)
+        if not mocap_ob:
+            return {'CANCELLED'}
+
+        context.scene.vr_mocap_objects.remove(session_settings.selected_mocap_object)
+
+        session_settings.mocap_objects.remove(mocap_ob)
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_mocap_object_help(Operator):
+    bl_idname = "view3d.vr_mocap_object_help"
+    bl_label = "Help"
+    bl_description = "Display information about VR motion capture objects"
+    bl_options = {'REGISTER'}
+
+    def execute(self, context):
+        info_header = "Common User Paths:"
+        info_headset = "Headset - /user/head"
+        info_left_controller = "Left Controller* - /user/hand/left"
+        info_right_controller = "Right Controller* - /user/hand/right"
+        info_note = "*Requires VR actions for controller poses"
+
+        def draw(self, context):
+            self.layout.label(text=info_header)
+            self.layout.label(text=info_headset)
+            self.layout.label(text=info_left_controller)
+            self.layout.label(text=info_right_controller)
+            self.layout.label(text=info_note)
+
+        context.window_manager.popup_menu(draw, title="Motion Capture Objects", icon='INFO') 
+
+        return {'FINISHED'}
 
 
 ### Viewport feedback.
