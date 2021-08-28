@@ -223,11 +223,16 @@ def gather_keyframes(blender_object_if_armature: typing.Optional[bpy.types.Objec
         else:
             pose_bone_if_armature = None
 
+        # make exported animations start at frame 0
+        frame_zero_start  = export_settings[gltf2_blender_export_keys.FRAME_ZERO_START]
+
         # sample all frames
         frame = start_frame
         step = export_settings['gltf_frame_step']
         while frame <= end_frame:
-            key = Keyframe(channels, frame, bake_channel)
+            exported_frame = (frame - start_frame) if frame_zero_start else frame
+
+            key = Keyframe(channels, exported_frame, bake_channel)
             if isinstance(pose_bone_if_armature, bpy.types.PoseBone):
 
                 mat = get_bone_matrix(

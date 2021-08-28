@@ -357,6 +357,12 @@ class ExportGLTF2_Base:
         default=True
     )
 
+    export_frame_zero_start: BoolProperty(
+        name='Start frames at zero',
+        description='Exported frame range will be offset to start at zero',
+        default=False
+    )
+
     export_frame_step: IntProperty(
         name='Sampling Rate',
         description='How often to evaluate animated values (in frames)',
@@ -573,6 +579,7 @@ class ExportGLTF2_Base:
         export_settings['gltf_animations'] = self.export_animations
         if self.export_animations:
             export_settings['gltf_frame_range'] = self.export_frame_range
+            export_settings['gltf_frame_zero_start'] = self.export_frame_zero_start
             export_settings['gltf_force_sampling'] = self.export_force_sampling
             if self.export_force_sampling:
                 export_settings['gltf_def_bones'] = self.export_def_bones
@@ -581,6 +588,7 @@ class ExportGLTF2_Base:
             export_settings['gltf_nla_strips'] = self.export_nla_strips
         else:
             export_settings['gltf_frame_range'] = False
+            export_settings['gltf_frame_zero_start'] = False
             export_settings['gltf_move_keyframes'] = False
             export_settings['gltf_force_sampling'] = False
             export_settings['gltf_def_bones'] = False
@@ -868,6 +876,7 @@ class GLTF_PT_export_animation_export(bpy.types.Panel):
         layout.active = operator.export_animations
 
         layout.prop(operator, 'export_frame_range')
+        layout.prop(operator, 'export_frame_zero_start')
         layout.prop(operator, 'export_frame_step')
         layout.prop(operator, 'export_force_sampling')
         layout.prop(operator, 'export_nla_strips')
