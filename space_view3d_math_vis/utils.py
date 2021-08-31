@@ -50,6 +50,12 @@ class VarStates:
         # console variables.
         state_props = bpy.context.window_manager.MathVisStatePropList
         variables = get_math_data()
+
+        for index, state_prop in reversed(list(enumerate(state_props))):
+            if state_prop.name not in variables:
+                # Variable has been removed from console
+                state_props.remove(index)
+
         for key, ktype in variables.items():
             if key and key not in state_props:
                 prop = state_props.add()

@@ -734,14 +734,11 @@ def autolink(node1, node2, links):
 
 
 def node_at_pos(nodes, context, event):
-    nodes_near_mouse = []
     nodes_under_mouse = []
     target_node = None
 
     store_mouse_cursor(context, event)
     x, y = context.space_data.cursor_location
-    x = x
-    y = y
 
     # Make a list of each corner (and middle of border) for each node.
     # Will be sorted to find nearest point and thus nearest node
