@@ -36,156 +36,36 @@ bl_info = {
 
 if "bpy" in locals():
     import importlib
+    importlib.reload(action_map)
     importlib.reload(defaults)
-    importlib.reload(main)
+    importlib.reload(gui)
+    importlib.reload(operators)
+    importlib.reload(properties)
 else:
-    from . import defaults, main
+    from . import action_map, defaults, gui, operators, properties
 
 import bpy
 
 
-classes = (
-    main.VIEW3D_PT_vr_session,
-    main.VIEW3D_PT_vr_session_view,
-    main.VIEW3D_PT_vr_landmarks,
-    main.VIEW3D_PT_vr_actions_actionmaps,
-    main.VIEW3D_PT_vr_actions_actions,
-    main.VIEW3D_PT_vr_actions_haptics,
-    main.VIEW3D_PT_vr_actions_bindings,
-    main.VIEW3D_PT_vr_actions_extensions,
-    main.VIEW3D_PT_vr_motion_capture,
-    main.VIEW3D_PT_vr_viewport_feedback,
-
-    main.VRLandmark,
-    main.VIEW3D_UL_vr_landmarks,
-    main.VIEW3D_MT_vr_landmark_menu,
-
-    main.VIEW3D_OT_vr_landmark_add,
-    main.VIEW3D_OT_vr_landmark_remove,
-    main.VIEW3D_OT_vr_landmark_activate,
-    main.VIEW3D_OT_vr_landmark_from_session,
-    main.VIEW3D_OT_add_camera_from_vr_landmark,
-    main.VIEW3D_OT_camera_to_vr_landmark,
-    main.VIEW3D_OT_vr_landmark_from_camera,
-    main.VIEW3D_OT_cursor_to_vr_landmark,
-    main.VIEW3D_OT_update_vr_landmark,
-
-    main.VIEW3D_UL_vr_actionmaps,
-    main.VIEW3D_MT_vr_actionmap_menu,
-    main.VIEW3D_UL_vr_actions,
-    main.VIEW3D_MT_vr_action_menu,
-    main.VIEW3D_UL_vr_actionbindings,
-    main.VIEW3D_MT_vr_actionbinding_menu,
-
-    main.VIEW3D_OT_vr_actionmap_add,
-    main.VIEW3D_OT_vr_actionmap_remove,
-    main.VIEW3D_OT_vr_actionmap_activate,
-    main.VIEW3D_OT_vr_actionmaps_defaults_load,
-    main.VIEW3D_OT_vr_actionmaps_import,
-    main.VIEW3D_OT_vr_actionmaps_export,
-    main.VIEW3D_OT_vr_actionmap_copy,
-    main.VIEW3D_OT_vr_actionmaps_clear,
-    main.VIEW3D_OT_vr_action_add,
-    main.VIEW3D_OT_vr_action_remove,
-    main.VIEW3D_OT_vr_action_copy,
-    main.VIEW3D_OT_vr_actions_clear,
-    main.VIEW3D_OT_vr_actionbinding_add,
-    main.VIEW3D_OT_vr_actionbinding_remove,
-    main.VIEW3D_OT_vr_actionbinding_copy,
-    main.VIEW3D_OT_vr_actionbindings_clear,
-
-    main.VRMotionCaptureObject,
-    main.VIEW3D_UL_vr_mocap_objects,
-    main.VIEW3D_MT_vr_mocap_object_menu,
-
-    main.VIEW3D_OT_vr_mocap_object_add,
-    main.VIEW3D_OT_vr_mocap_object_remove,
-    main.VIEW3D_OT_vr_mocap_object_help,
-
-    main.VIEW3D_GT_vr_camera_cone,
-    main.VIEW3D_GT_vr_controller_grip,
-    main.VIEW3D_GT_vr_controller_aim,
-    main.VIEW3D_GGT_vr_viewer_pose,
-    main.VIEW3D_GGT_vr_controller_poses,
-    main.VIEW3D_GGT_vr_landmarks,
-)
-
-
 def register():
     if not bpy.app.build_options.xr_openxr:
-        bpy.utils.register_class(main.VIEW3D_PT_vr_info)
+        bpy.utils.register_class(gui.VIEW3D_PT_vr_info)
         return
 
-    for cls in classes:
-        bpy.utils.register_class(cls)
-
-    bpy.types.Scene.vr_landmarks = bpy.props.CollectionProperty(
-        name="Landmark",
-        type=main.VRLandmark,
-    )
-    bpy.types.Scene.vr_landmarks_selected = bpy.props.IntProperty(
-        name="Selected Landmark"
-    )
-    bpy.types.Scene.vr_landmarks_active = bpy.props.IntProperty(
-        update=main.vr_landmark_active_update,
-    )
-    bpy.types.Scene.vr_actions_enable_cosmos = bpy.props.BoolProperty(
-        description="Enable bindings for the HTC Vive Cosmos controllers. Note that this may not be supported by all OpenXR runtimes",
-        default=False,
-    )
-    bpy.types.Scene.vr_actions_enable_huawei = bpy.props.BoolProperty(
-        description="Enable bindings for the Huawei controllers. Note that this may not be supported by all OpenXR runtimes",
-        default=False,
-    )
-    bpy.types.Scene.vr_actions_enable_reverb_g2 = bpy.props.BoolProperty(
-        description="Enable bindings for the HP Reverb G2 controllers. Note that this may not be supported by all OpenXR runtimes",
-        default=False,
-    )
-    # This scene collection property is needed instead of directly accessing
-    # XrSessionSettings.mocap_objects in the UI to avoid invalid pointers when
-    # deleting objects.
-    bpy.types.Scene.vr_mocap_objects = bpy.props.CollectionProperty(
-        name="Motion Capture Object",
-        type=main.VRMotionCaptureObject,
-    )
-    # View3DShading is the only per 3D-View struct with custom property
-    # support, so "abusing" that to get a per 3D-View option.
-    bpy.types.View3DShading.vr_show_virtual_camera = bpy.props.BoolProperty(
-        name="Show VR Camera"
-    )
-    bpy.types.View3DShading.vr_show_controllers = bpy.props.BoolProperty(
-        name="Show VR Controllers"
-    )
-    bpy.types.View3DShading.vr_show_landmarks = bpy.props.BoolProperty(
-        name="Show Landmarks"
-    )
-
-    bpy.app.handlers.load_post.append(main.vr_ensure_default_landmark)
-    bpy.app.handlers.load_post.append(defaults.vr_init_default_actionconfig)
-    bpy.app.handlers.load_post.append(main.vr_activate_user_actionconfig)
-    bpy.app.handlers.xr_session_start_pre.append(main.vr_create_actions)
+    defaults.register() # Register before action_map to load defaults before activating user action config.
+    action_map.register()
+    gui.register()
+    operators.register()
+    properties.register()
 
 
 def unregister():
     if not bpy.app.build_options.xr_openxr:
-        bpy.utils.unregister_class(main.VIEW3D_PT_vr_info)
+        bpy.utils.unregister_class(gui.VIEW3D_PT_vr_info)
         return
 
-    for cls in classes:
-        bpy.utils.unregister_class(cls)
-
-    del bpy.types.Scene.vr_landmarks
-    del bpy.types.Scene.vr_landmarks_selected
-    del bpy.types.Scene.vr_landmarks_active
-    del bpy.types.Scene.vr_actions_enable_cosmos
-    del bpy.types.Scene.vr_actions_enable_huawei
-    del bpy.types.Scene.vr_actions_enable_reverb_g2
-    del bpy.types.Scene.vr_mocap_objects
-    del bpy.types.View3DShading.vr_show_virtual_camera
-    del bpy.types.View3DShading.vr_show_controllers
-    del bpy.types.View3DShading.vr_show_landmarks
-
-    bpy.app.handlers.load_post.remove(main.vr_ensure_default_landmark)
-    bpy.app.handlers.load_post.remove(defaults.vr_init_default_actionconfig)
-    bpy.app.handlers.load_post.remove(main.vr_activate_user_actionconfig)
-    bpy.app.handlers.xr_session_start_pre.remove(main.vr_create_actions)
+    defaults.unregister()
+    action_map.unregister()
+    gui.unregister()
+    operators.unregister()
+    properties.unregister()

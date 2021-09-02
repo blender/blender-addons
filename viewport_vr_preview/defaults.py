@@ -20,14 +20,15 @@
 
 if "bpy" in locals():
     import importlib
-    importlib.reload(main)
+    importlib.reload(action_map)
 else:
-    from . import main
+    from . import action_map
 
 import bpy
 from bpy.app.handlers import persistent
 from enum import Enum
 import math
+import os.path
 
 
 # Default action maps.
@@ -52,6 +53,7 @@ class VRDefaultActions(Enum):
     FLY_TURNLEFT = "fly_turnleft"
     FLY_TURNRIGHT = "fly_turnright"
     NAV_RESET = "nav_reset"
+    TOGGLE_SOLIDVIEW = "toggle_solidview"
     TOGGLE_MATVIEW = "toggle_matview"
     RAYCAST_SELECT = "raycast_select"
     GRAB = "grab"
@@ -62,6 +64,7 @@ class VRDefaultActions(Enum):
     HAPTIC_RIGHT = "haptic_right"
     HAPTIC_LEFTTRIGGER = "haptic_lefttrigger"
     HAPTIC_RIGHTTRIGGER = "haptic_righttrigger"
+
 
 # Default action bindings.
 class VRDefaultActionbindings(Enum):
@@ -1064,7 +1067,7 @@ def vr_defaults_create_default(ac):
 
     ami = vr_defaults_action_add(am,
                                  VRDefaultActions.NAV_RESET.value,
-                                 "/user/hand/right",
+                                 "/user/hand/left",
                                  "",
                                  "wm.xr_navigation_reset",
                                  'PRESS',
@@ -1085,14 +1088,6 @@ def vr_defaults_create_default(ac):
                                       'ANY',
                                       'ANY')
         vr_defaults_actionbinding_add(ami,
-                                      VRDefaultActionbindings.HUAWEI.value,
-                                      VRDefaultActionprofiles.HUAWEI.value,
-                                      "/input/trackpad/click",
-                                      "",
-                                      0.3,
-                                      'ANY',
-                                      'ANY')
-        vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.INDEX.value,
                                       VRDefaultActionprofiles.INDEX.value,
                                       "/input/thumbstick/click",
@@ -1117,14 +1112,6 @@ def vr_defaults_create_default(ac):
                                       'ANY',
                                       'ANY')
         vr_defaults_actionbinding_add(ami,
-                                      VRDefaultActionbindings.VIVE.value,
-                                      VRDefaultActionprofiles.VIVE.value,
-                                      "/input/trackpad/click",
-                                      "",
-                                      0.3,
-                                      'ANY',
-                                      'ANY')
-        vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.WMR.value,
                                       VRDefaultActionprofiles.WMR.value,
                                       "/input/thumbstick/click",
@@ -1135,7 +1122,7 @@ def vr_defaults_create_default(ac):
 
     ami = vr_defaults_action_add(am,
                                  VRDefaultActions.TOGGLE_MATVIEW.value,
-                                 "/user/hand/left",
+                                 "/user/hand/right",
                                  "",
                                  "view3d.toggle_shading",
                                  'PRESS',
@@ -1156,14 +1143,6 @@ def vr_defaults_create_default(ac):
                                       'ANY',
                                       'ANY')
         vr_defaults_actionbinding_add(ami,
-                                      VRDefaultActionbindings.HUAWEI.value,
-                                      VRDefaultActionprofiles.HUAWEI.value,
-                                      "/input/trackpad/click",
-                                      "",
-                                      0.3,
-                                      'ANY',
-                                      'ANY')
-        vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.INDEX.value,
                                       VRDefaultActionprofiles.INDEX.value,
                                       "/input/thumbstick/click",
@@ -1183,14 +1162,6 @@ def vr_defaults_create_default(ac):
                                       VRDefaultActionbindings.REVERB_G2.value,
                                       VRDefaultActionprofiles.REVERB_G2.value,
                                       "/input/thumbstick/click",
-                                      "",
-                                      0.3,
-                                      'ANY',
-                                      'ANY')
-        vr_defaults_actionbinding_add(ami,
-                                      VRDefaultActionbindings.VIVE.value,
-                                      VRDefaultActionprofiles.VIVE.value,
-                                      "/input/trackpad/click",
                                       "",
                                       0.3,
                                       'ANY',
@@ -1385,6 +1356,14 @@ def vr_defaults_create_default(ac):
                                       'ANY',
                                       'ANY')
         vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.HUAWEI.value,
+                                      VRDefaultActionprofiles.HUAWEI.value,
+                                      "/input/trackpad/click",
+                                      "",
+                                      0.3,
+                                      'ANY',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.INDEX.value,
                                       VRDefaultActionprofiles.INDEX.value,
                                       "/input/b/click",
@@ -1404,6 +1383,14 @@ def vr_defaults_create_default(ac):
                                       VRDefaultActionbindings.REVERB_G2.value,
                                       VRDefaultActionprofiles.REVERB_G2.value,
                                       "/input/y/click",
+                                      "",
+                                      0.3,
+                                      'ANY',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE.value,
+                                      VRDefaultActionprofiles.VIVE.value,
+                                      "/input/trackpad/click",
                                       "",
                                       0.3,
                                       'ANY',
@@ -1440,6 +1427,14 @@ def vr_defaults_create_default(ac):
                                       'ANY',
                                       'ANY')
         vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.HUAWEI.value,
+                                      VRDefaultActionprofiles.HUAWEI.value,
+                                      "/input/trackpad/click",
+                                      "",
+                                      0.3,
+                                      'ANY',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.INDEX.value,
                                       VRDefaultActionprofiles.INDEX.value,
                                       "/input/b/click",
@@ -1459,6 +1454,14 @@ def vr_defaults_create_default(ac):
                                       VRDefaultActionbindings.REVERB_G2.value,
                                       VRDefaultActionprofiles.REVERB_G2.value,
                                       "/input/b/click",
+                                      "",
+                                      0.3,
+                                      'ANY',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE.value,
+                                      VRDefaultActionprofiles.VIVE.value,
+                                      "/input/trackpad/click",
                                       "",
                                       0.3,
                                       'ANY',
@@ -1770,14 +1773,14 @@ def vr_defaults_create_default_gamepad(ac):
         vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.GAMEPAD.value,
                                       VRDefaultActionprofiles.GAMEPAD.value,
-                                      "/input/shoulder_right/click",
+                                      "/input/y/click",
                                       "",
                                       0.3,
                                       'ANY',
                                       'ANY')
 
     ami = vr_defaults_action_add(am,
-                                 VRDefaultActions.TOGGLE_MATVIEW.value,
+                                 VRDefaultActions.TOGGLE_SOLIDVIEW.value,
                                  "/user/gamepad",
                                  "",
                                  "view3d.toggle_shading",
@@ -1794,6 +1797,29 @@ def vr_defaults_create_default_gamepad(ac):
                                       VRDefaultActionbindings.GAMEPAD.value,
                                       VRDefaultActionprofiles.GAMEPAD.value,
                                       "/input/shoulder_left/click",
+                                      "",
+                                      0.3,
+                                      'ANY',
+                                      'ANY')
+
+    ami = vr_defaults_action_add(am,
+                                 VRDefaultActions.TOGGLE_MATVIEW.value,
+                                 "/user/gamepad",
+                                 "",
+                                 "view3d.toggle_shading",
+                                 'PRESS',
+                                 False,
+                                 "haptic_right",
+                                 True,
+                                 0.3,
+                                 3000.0,
+                                 0.5,
+                                 'PRESS')
+    if ami:
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.GAMEPAD.value,
+                                      VRDefaultActionprofiles.GAMEPAD.value,
+                                      "/input/shoulder_right/click",
                                       "",
                                       0.3,
                                       'ANY',
@@ -1913,6 +1939,11 @@ def vr_defaults_create_default_gamepad(ac):
                                              "")
 
 
+def vr_get_default_config_path():
+    filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs")
+    return os.path.join(filepath, "default.py")
+
+
 @persistent
 def vr_init_default_actionconfig(context: bpy.context):
     context = bpy.context
@@ -1928,13 +1959,21 @@ def vr_init_default_actionconfig(context: bpy.context):
     actionconfigs.active = ac
 
     # Load default actionmaps.
-    filepath = main.vr_get_default_config_path()
+    filepath = vr_get_default_config_path()
 
-    loaded = main.vr_load_actionmaps(context, filepath)
+    loaded = action_map.vr_load_actionmaps(context, filepath)
     
     if not loaded:
         # Create and save default actionmaps.
         vr_defaults_create_default(ac)
         vr_defaults_create_default_gamepad(ac)
 
-        main.vr_save_actionmaps(context, filepath, sort=False)
+        action_map.vr_save_actionmaps(context, filepath, sort=False)
+
+
+def register():
+    bpy.app.handlers.load_post.append(vr_init_default_actionconfig)
+
+
+def unregister():
+    bpy.app.handlers.load_post.remove(vr_init_default_actionconfig)

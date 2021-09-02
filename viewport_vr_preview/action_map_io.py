@@ -282,7 +282,7 @@ def actionconfig_export_as_data(ac, filepath, *, all_actionmaps=True, sort=False
 # -----------------------------------------------------------------------------
 # Import Functions
 
-def _ami_props_setattr(ami_props, attr, value):
+def _ami_props_setattr(ami_name, ami_props, attr, value):
     if type(value) is list:
         ami_subprop = getattr(ami_props, attr)
         for subattr, subvalue in value:
@@ -292,7 +292,7 @@ def _ami_props_setattr(ami_props, attr, value):
     try:
         setattr(ami_props, attr, value)
     except AttributeError:
-        print(f"Warning: property '{attr}' not found in actionmap item '{ami_props.__class__.__name__}'")
+        print(f"Warning: property '{attr}' not found in actionmap item '{ami_name}'")
     except Exception as ex:
         print(f"Warning: {ex!r}")
 
@@ -315,7 +315,7 @@ def actionmap_init_from_data(am, am_items):
                 ami_props = ami.op_properties
                 assert type(ami_props_data) is list
                 for attr, value in ami_props_data:
-                    _ami_props_setattr(ami_props, attr, value)
+                    _ami_props_setattr(ami_name, ami_props, attr, value)
         ami_bindings = ami_content["bindings"]
         assert type(ami_bindings) is list
         actionmap_item_init_from_data(ami, ami_bindings)

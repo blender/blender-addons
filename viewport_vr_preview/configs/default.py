@@ -1,4 +1,4 @@
-actionconfig_version = (3, 0, 18)
+actionconfig_version = (3, 0, 20)
 actionconfig_data = \
 [("blender_default",
   {"items":
@@ -213,7 +213,7 @@ actionconfig_data = \
       },
      ),
     ("nav_reset",
-     {"type": 'FLOAT', "user_path0": '/user/hand/right', "user_path1": '', "op": 'wm.xr_navigation_reset', "op_mode": 'PRESS', "bimanual": 'False', "haptic_name": 'haptic', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'},
+     {"type": 'FLOAT', "user_path0": '/user/hand/left', "user_path1": '', "op": 'wm.xr_navigation_reset', "op_mode": 'PRESS', "bimanual": 'False', "haptic_name": 'haptic', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("location", False),
        ("rotation", False),
@@ -222,28 +222,24 @@ actionconfig_data = \
       },     
      {"bindings":
       [("cosmos", {"profile": '/interaction_profiles/htc/vive_cosmos_controller', "component_path0": '/input/thumbstick/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
-       ("huawei", {"profile": '/interaction_profiles/huawei/controller', "component_path0": '/input/trackpad/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("index", {"profile": '/interaction_profiles/valve/index_controller', "component_path0": '/input/thumbstick/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("oculus", {"profile": '/interaction_profiles/oculus/touch_controller', "component_path0": '/input/thumbstick/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("reverb_g2", {"profile": '/interaction_profiles/hp/mixed_reality_controller', "component_path0": '/input/thumbstick/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
-       ("vive", {"profile": '/interaction_profiles/htc/vive_controller', "component_path0": '/input/trackpad/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("wmr", {"profile": '/interaction_profiles/microsoft/motion_controller', "component_path0": '/input/thumbstick/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ],
       },
      ),
     ("toggle_matview",
-     {"type": 'FLOAT', "user_path0": '/user/hand/left', "user_path1": '', "op": 'view3d.toggle_shading', "op_mode": 'PRESS', "bimanual": 'False', "haptic_name": 'haptic', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'},
+     {"type": 'FLOAT', "user_path0": '/user/hand/right', "user_path1": '', "op": 'view3d.toggle_shading', "op_mode": 'PRESS', "bimanual": 'False', "haptic_name": 'haptic', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("type", 'MATERIAL'),
        ],
       },     
      {"bindings":
       [("cosmos", {"profile": '/interaction_profiles/htc/vive_cosmos_controller', "component_path0": '/input/thumbstick/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
-       ("huawei", {"profile": '/interaction_profiles/huawei/controller', "component_path0": '/input/trackpad/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("index", {"profile": '/interaction_profiles/valve/index_controller', "component_path0": '/input/thumbstick/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("oculus", {"profile": '/interaction_profiles/oculus/touch_controller', "component_path0": '/input/thumbstick/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("reverb_g2", {"profile": '/interaction_profiles/hp/mixed_reality_controller', "component_path0": '/input/thumbstick/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
-       ("vive", {"profile": '/interaction_profiles/htc/vive_controller', "component_path0": '/input/trackpad/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("wmr", {"profile": '/interaction_profiles/microsoft/motion_controller', "component_path0": '/input/thumbstick/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ],
       },
@@ -277,9 +273,11 @@ actionconfig_data = \
     ("undo", {"type": 'FLOAT', "user_path0": '/user/hand/left', "user_path1": '', "op": 'ed.undo', "op_mode": 'PRESS', "bimanual": 'False', "haptic_name": 'haptic', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'}, None,
      {"bindings":
       [("cosmos", {"profile": '/interaction_profiles/htc/vive_cosmos_controller', "component_path0": '/input/y/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
+       ("huawei", {"profile": '/interaction_profiles/huawei/controller', "component_path0": '/input/trackpad/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("index", {"profile": '/interaction_profiles/valve/index_controller', "component_path0": '/input/b/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("oculus", {"profile": '/interaction_profiles/oculus/touch_controller', "component_path0": '/input/y/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("reverb_g2", {"profile": '/interaction_profiles/hp/mixed_reality_controller', "component_path0": '/input/y/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
+       ("vive", {"profile": '/interaction_profiles/htc/vive_controller', "component_path0": '/input/trackpad/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("wmr", {"profile": '/interaction_profiles/microsoft/motion_controller', "component_path0": '/input/trackpad/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ],
       },
@@ -287,9 +285,11 @@ actionconfig_data = \
     ("redo", {"type": 'FLOAT', "user_path0": '/user/hand/right', "user_path1": '', "op": 'ed.redo', "op_mode": 'PRESS', "bimanual": 'False', "haptic_name": 'haptic', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'}, None,
      {"bindings":
       [("cosmos", {"profile": '/interaction_profiles/htc/vive_cosmos_controller', "component_path0": '/input/b/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
+       ("huawei", {"profile": '/interaction_profiles/huawei/controller', "component_path0": '/input/trackpad/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("index", {"profile": '/interaction_profiles/valve/index_controller', "component_path0": '/input/b/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("oculus", {"profile": '/interaction_profiles/oculus/touch_controller', "component_path0": '/input/b/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("reverb_g2", {"profile": '/interaction_profiles/hp/mixed_reality_controller', "component_path0": '/input/b/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
+       ("vive", {"profile": '/interaction_profiles/htc/vive_controller', "component_path0": '/input/trackpad/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("wmr", {"profile": '/interaction_profiles/microsoft/motion_controller', "component_path0": '/input/trackpad/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ],
       },
@@ -440,18 +440,29 @@ actionconfig_data = \
        ],
       },     
      {"bindings":
-      [("gamepad", {"profile": '/interaction_profiles/microsoft/xbox_controller', "component_path0": '/input/shoulder_right/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
+      [("gamepad", {"profile": '/interaction_profiles/microsoft/xbox_controller', "component_path0": '/input/y/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
+       ],
+      },
+     ),
+    ("toggle_solidview",
+     {"type": 'FLOAT', "user_path0": '/user/gamepad', "user_path1": '', "op": 'view3d.toggle_shading', "op_mode": 'PRESS', "bimanual": 'False', "haptic_name": 'haptic_left', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'},
+     {"op_properties":
+      [("type", 'SOLID'),
+       ],
+      },     
+     {"bindings":
+      [("gamepad", {"profile": '/interaction_profiles/microsoft/xbox_controller', "component_path0": '/input/shoulder_left/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ],
       },
      ),
     ("toggle_matview",
-     {"type": 'FLOAT', "user_path0": '/user/gamepad', "user_path1": '', "op": 'view3d.toggle_shading', "op_mode": 'PRESS', "bimanual": 'False', "haptic_name": 'haptic_left', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'},
+     {"type": 'FLOAT', "user_path0": '/user/gamepad', "user_path1": '', "op": 'view3d.toggle_shading', "op_mode": 'PRESS', "bimanual": 'False', "haptic_name": 'haptic_right', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("type", 'MATERIAL'),
        ],
       },     
      {"bindings":
-      [("gamepad", {"profile": '/interaction_profiles/microsoft/xbox_controller', "component_path0": '/input/shoulder_left/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
+      [("gamepad", {"profile": '/interaction_profiles/microsoft/xbox_controller', "component_path0": '/input/shoulder_right/click', "component_path1": '', "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ],
       },
      ),
