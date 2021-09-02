@@ -35,7 +35,7 @@ def is_display_list(listvar):
     from mathutils import Vector
 
     for var in listvar:
-        if type(var) is not Vector:
+        if not isinstance(var, Vector):
             return False
     return True
 
@@ -120,8 +120,8 @@ def get_math_data():
         if len_fn(var) == 0:
             continue
 
-        if type_var in {Matrix, Vector, Quaternion, Euler} or \
-           type_var in {tuple, list} and is_display_list(var):
+        if isinstance(var, (Matrix, Vector, Quaternion, Euler)) or \
+           isinstance(var, (tuple, list)) and is_display_list(var):
 
             variables[key] = type_var
 
@@ -168,24 +168,22 @@ def console_math_data():
             if not disp:
                 continue
 
-        var_type = type(var)
-
-        if var_type is Matrix:
+        if isinstance(var, Matrix):
             if len(var.col) != 4 or len(var.row) != 4:
                 if len(var.col) == len(var.row):
                     var = var.to_4x4()
                 else:  # todo, support 4x3 matrix
                     continue
             data_matrix[key] = var
-        elif var_type is Vector:
+        elif isinstance(var, Vector):
             if len(var) < 3:
                 var = var.to_3d()
             data_vector[key] = var
-        elif var_type is Quaternion:
+        elif isinstance(var, Quaternion):
             data_quat[key] = var
-        elif var_type is Euler:
+        elif isinstance(var, Euler):
             data_euler[key] = var
-        elif var_type in {list, tuple} and is_display_list(var):
+        elif type(var) in {list, tuple} and is_display_list(var):
             data_vector_array[key] = var
 
     return data_matrix, data_quat, data_euler, data_vector, data_vector_array
