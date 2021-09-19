@@ -574,6 +574,14 @@ class Generator(base_generate.BaseGenerator):
         refresh_all_drivers()
 
         #----------------------------------
+        # Execute the finalize script
+
+        if metarig.data.rigify_finalize_script:
+            bpy.ops.object.mode_set(mode='OBJECT')
+            exec(metarig.data.rigify_finalize_script.as_string(), {})
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+        #----------------------------------
         # Restore active collection
         view_layer.active_layer_collection = self.layer_collection
 
@@ -587,7 +595,11 @@ def generate_rig(context, metarig):
     metarig.data.pose_position = 'REST'
 
     try:
-        Generator(context, metarig).generate()
+        generator = Generator(context, metarig)
+
+        base_generate.BaseGenerator.instance = generator
+
+        generator.generate()
 
         metarig.data.pose_position = rest_backup
 
@@ -600,6 +612,9 @@ def generate_rig(context, metarig):
 
         # Continue the exception
         raise e
+
+    finally:
+        base_generate.BaseGenerator.instance = None
 
 
 def create_selection_set_for_rig_layer(

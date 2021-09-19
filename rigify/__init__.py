@@ -140,6 +140,11 @@ from bpy.props import (
 )
 
 
+def get_generator():
+    """Returns the currently active generator instance."""
+    return base_generate.BaseGenerator.instance
+
+
 class RigifyFeatureSets(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty()
     module_name: bpy.props.StringProperty()
@@ -533,6 +538,10 @@ def register():
     bpy.types.Armature.rigify_rig_ui = PointerProperty(type=bpy.types.Text,
         name="Rigify Target Rig UI",
         description="Defines the UI to overwrite. If unset, 'rig_ui.py' will be used")
+
+    bpy.types.Armature.rigify_finalize_script = PointerProperty(type=bpy.types.Text,
+        name="Finalize Script",
+        description="Run this script after generation to apply user-specific changes")
 
     bpy.types.Armature.rigify_rig_basename = StringProperty(name="Rigify Rig Name",
         description="Defines the name of the Rig. If unset, in 'new' mode 'rig' will be used, in 'overwrite' mode the target rig name will be used",
