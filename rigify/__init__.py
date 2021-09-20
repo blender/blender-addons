@@ -530,6 +530,10 @@ def register():
         description="Forces Rigify to delete and rebuild all the rig widgets. if unset, only missing widgets will be created",
         default=False)
 
+    bpy.types.Armature.rigify_mirror_widgets = BoolProperty(name="Mirror Widgets",
+        description="Make widgets for left and right side bones linked duplicates with negative X scale for the right side, based on bone name symmetry",
+        default=True)
+
     bpy.types.Armature.rigify_target_rig = PointerProperty(type=bpy.types.Object,
         name="Rigify Target Rig",
         description="Defines which rig to overwrite. If unset, a new one called 'rig' will be created",
