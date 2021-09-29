@@ -128,7 +128,7 @@ def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
         layout.operator("asset.open_containing_blend_file")
 
 
-class ASSETBROWSER_PT_pose_library_usage(PoseLibraryPanel, asset_utils.AssetBrowserSpecificCategoryPanel, Panel):
+class ASSETBROWSER_PT_pose_library_usage(PoseLibraryPanel, asset_utils.AssetBrowserPanel, Panel):
     bl_region_type = "TOOLS"
     bl_label = "Pose Library"
     asset_categories = {'ANIMATIONS'}
@@ -137,7 +137,7 @@ class ASSETBROWSER_PT_pose_library_usage(PoseLibraryPanel, asset_utils.AssetBrow
     def poll(cls, context: Context) -> bool:
         return (
             cls.pose_library_panel_poll(context)
-            and cls.asset_category_poll(context)
+            and cls.asset_browser_panel_poll(context)
         )
 
     def draw(self, context: Context) -> None:
@@ -160,7 +160,7 @@ class ASSETBROWSER_PT_pose_library_usage(PoseLibraryPanel, asset_utils.AssetBrow
         props.select = False
 
 
-class ASSETBROWSER_PT_pose_library_editing(PoseLibraryPanel, asset_utils.AssetBrowserSpecificCategoryPanel, Panel):
+class ASSETBROWSER_PT_pose_library_editing(PoseLibraryPanel, asset_utils.AssetBrowserPanel, Panel):
     bl_region_type = "TOOL_PROPS"
     bl_label = "Pose Library"
     asset_categories = {'ANIMATIONS'}
@@ -169,7 +169,7 @@ class ASSETBROWSER_PT_pose_library_editing(PoseLibraryPanel, asset_utils.AssetBr
     def poll(cls, context: Context) -> bool:
         return (
             cls.pose_library_panel_poll(context)
-            and cls.asset_category_poll(context)
+            and cls.asset_browser_panel_poll(context)
         )
 
     def draw(self, context: Context) -> None:
