@@ -386,6 +386,9 @@ def generate_lower_resolutions(data):
                         i.pack()
                 # save
                 print(fpath)
+                # if this isn't here, blender crashes.
+                bpy.context.preferences.filepaths.file_preview_type = 'NONE'
+
                 # save the file
                 bpy.ops.wm.save_as_mainfile(filepath=fpath, compress=True, copy=True)
                 # compare file sizes

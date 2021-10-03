@@ -318,10 +318,10 @@ def append_objects(file_name, obnames=[], location=(0, 0, 0), link=False, **kwar
                 # check for object that should be hidden
                 if ob.users_collection[0].name == collection_name:
                     collection = ob.users_collection[0]
+                    collection['is_blenderkit_asset'] = True
+
                 else:
                     to_hidden_collection.append(ob)
-
-
 
         if kwargs.get('rotation'):
             main_object.rotation_euler = kwargs['rotation']
@@ -344,7 +344,6 @@ def append_objects(file_name, obnames=[], location=(0, 0, 0), link=False, **kwar
         bpy.ops.object.select_all(action='DESELECT')
         utils.selection_set(sel)
         #let collection also store info that it was created by BlenderKit, for purging reasons
-        collection['is_blenderkit_asset'] = True
 
         return main_object, return_obs
 
