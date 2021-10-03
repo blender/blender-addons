@@ -171,10 +171,10 @@ def unpack_asset(data):
     #mark asset browser asset
     data_block = None
     if asset_data['assetType'] == 'model':
-        for ob in bpy.context.scene.objects:
-            if ob.parent == None:
-                ob.asset_mark()
-                data_block = ob
+        for c in bpy.data.collections:
+            if c.get('asset_data') is not None:
+                c.asset_mark()
+                data_block = c
     elif asset_data['assetType'] == 'material':
         for m in bpy.data.materials:
             m.asset_mark()
@@ -192,7 +192,8 @@ def unpack_asset(data):
             tags.remove(t)
         tags.new('description: ' + asset_data['description'])
         tags.new('tags: ' + ','.join(asset_data['tags']))
-        
+    #
+
     bpy.ops.wm.save_mainfile(compress=False)
     # now try to delete the .blend1 file
     try:

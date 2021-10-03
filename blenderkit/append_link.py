@@ -330,6 +330,7 @@ def append_objects(file_name, obnames=[], location=(0, 0, 0), link=False, **kwar
             main_object.parent = bpy.data.objects[kwargs['parent']]
             main_object.matrix_world.translation = location
 
+
         #move objects that should be hidden to a sub collection
         if len(to_hidden_collection)>0 and collection is not None:
             hidden_collection_name = collection_name+'_hidden'
@@ -342,8 +343,11 @@ def append_objects(file_name, obnames=[], location=(0, 0, 0), link=False, **kwar
 
         bpy.ops.object.select_all(action='DESELECT')
         utils.selection_set(sel)
+        #let collection also store info that it was created by BlenderKit, for purging reasons
+        collection['is_blenderkit_asset'] = True
 
         return main_object, return_obs
+
     #this is used for uploads:
     with bpy.data.libraries.load(file_name, link=link, relative=True) as (data_from, data_to):
         sobs = []
