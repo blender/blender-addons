@@ -171,6 +171,7 @@ def unpack_asset(data):
     #mark asset browser asset
     data_block = None
     if asset_data['assetType'] == 'model':
+        
         for c in bpy.data.collections:
             if c.get('asset_data') is not None:
                 c.asset_mark()
@@ -193,6 +194,8 @@ def unpack_asset(data):
         tags.new('description: ' + asset_data['description'])
         tags.new('tags: ' + ','.join(asset_data['tags']))
     #
+    # if this isn't here, blender crashes when saving file.
+    bpy.context.preferences.filepaths.file_preview_type = 'NONE'
 
     bpy.ops.wm.save_mainfile(compress=False)
     # now try to delete the .blend1 file
