@@ -45,6 +45,7 @@ from bpy.types import (
     Object,
     Operator,
 )
+from bpy_extras import asset_utils
 
 
 class PoseAssetCreator:
@@ -256,11 +257,28 @@ class POSELIB_OT_paste_asset(Operator):
 
     @classmethod
     def poll(cls, context: Context) -> bool:
+        if not asset_utils.SpaceAssetInfo.is_asset_browser(context.space_data):
+            cls.poll_message_set("Current editor is not an asset browser")
+            return False
+
+        asset_lib_ref = context.space_data.params.asset_library_ref
+        if asset_lib_ref != 'LOCAL':
+            cls.poll_message_set("Asset Browser must be set to the Current File library")
+            return False
+
+        # Delay checking the clipboard as much as possible, as it's CPU-heavier than the other checks.
         clipboard: str = context.window_manager.clipboard
         if not clipboard:
+            cls.poll_message_set("Clipboard is empty")
             return False
+
         marker = POSELIB_OT_copy_as_asset.CLIPBOARD_ASSET_MARKER
-        return clipboard.startswith(marker)
+        if not clipboard.startswith(marker):
+            cls.poll_message_set("Clipboard does not contain an asset")
+            return False
+
+        return True
+
 
     def execute(self, context: Context) -> Set[str]:
         clipboard = context.window_manager.clipboard
