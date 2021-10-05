@@ -68,9 +68,14 @@ def activate_asset(
 
 def active_catalog_id(asset_browser: bpy.types.Area) -> str:
     """Return the ID of the catalog shown in the asset browser."""
+    return params(asset_browser).catalog_id
+
+
+def params(asset_browser: bpy.types.Area) -> bpy.types.FileAssetSelectParams:
+    """Return the asset browser parameters given its Area."""
     space_data = asset_browser.spaces[0]
     assert asset_utils.SpaceAssetInfo.is_asset_browser(space_data)
-    return space_data.params.catalog_id
+    return space_data.params
 
 
 def tag_redraw(screen: bpy.types.Screen) -> None:

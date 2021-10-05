@@ -82,6 +82,23 @@ class POSELIB_OT_create_pose_asset(PoseAssetCreator, Operator):
     pose_name: StringProperty(name="Pose Name")  # type: ignore
     activate_new_action: BoolProperty(name="Activate New Action", default=True)  # type: ignore
 
+
+    @classmethod
+    def poll(cls, context: Context) -> bool:
+        # Make sure that if there is an asset browser open, the artist can see the newly created pose asset.
+        asset_browse_area: Optional[bpy.types.Area] = asset_browser.area_from_context(context)
+        if not asset_browse_area:
+            # No asset browser is visible, so there also aren't any expectations
+            # that this asset will be visible.
+            return True
+
+        asset_space_params = asset_browser.params(asset_browse_area)
+        if asset_space_params.asset_library_ref != 'LOCAL':
+            cls.poll_message_set("Asset Browser must be set to the Current File library")
+            return False
+
+        return True
+
     def execute(self, context: Context) -> Set[str]:
         pose_name = self.pose_name or context.object.name
         asset = pose_creation.create_pose_asset_from_context(context, pose_name)
@@ -107,13 +124,13 @@ class POSELIB_OT_create_pose_asset(PoseAssetCreator, Operator):
         This makes it possible to immediately check & edit the created pose asset.
         """
 
-        asset_browse_area: Optional[bpy.types.Area] = asset_browser.biggest_asset_browser_area(context.screen)
+        asset_browse_area: Optional[bpy.types.Area] = asset_browser.area_from_context(context)
         if not asset_browse_area:
             return
 
         # After creating an asset, the window manager has to process the
         # notifiers before editors should be manipulated.
-        pose_creation.assign_tags_from_asset_browser(asset, asset_browse_area)
+        pose_creation.assign_from_asset_browser(asset, asset_browse_area)
 
         # Pass deferred=True, because we just created a new asset that isn't
         # known to the Asset Browser space yet. That requires the processing of
