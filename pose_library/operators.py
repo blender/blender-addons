@@ -301,7 +301,6 @@ class POSELIB_OT_paste_asset(Operator):
         # Assign same catalog as in asset browser.
         catalog_id = asset_browser.active_catalog_id(asset_browser_area)
         for asset in assets:
-            print(f"{asset}.asset_data.catalog_id = {catalog_id}")
             asset.asset_data.catalog_id = catalog_id
         asset_browser.activate_asset(assets[0], asset_browser_area, deferred=True)
 
