@@ -106,9 +106,7 @@ class POSELIB_OT_create_pose_asset(PoseAssetCreator, Operator):
         This makes it possible to immediately check & edit the created pose asset.
         """
 
-        asset_browse_area: Optional[bpy.types.Area] = asset_browser.area_for_category(
-            context.screen, "ANIMATION"
-        )
+        asset_browse_area: Optional[bpy.types.Area] = asset_browser.biggest_asset_browser_area(context.screen)
         if not asset_browse_area:
             return
 
@@ -277,9 +275,17 @@ class POSELIB_OT_paste_asset(Operator):
         self.report({"INFO"}, "Pasted %d assets" % len(assets))
 
         bpy.ops.file.refresh()
-        asset_browser_area = asset_browser.area_from_context(context, 'ANIMATIONS')
-        if asset_browser_area:
-            asset_browser.activate_asset(assets[0], asset_browser_area, deferred=True)
+
+        asset_browser_area = asset_browser.area_from_context(context)
+        if not asset_browser_area:
+            return {"FINISHED"}
+
+        # Assign same catalog as in asset browser.
+        catalog_id = asset_browser.active_catalog_id(asset_browser_area)
+        for asset in assets:
+            print(f"{asset}.asset_data.catalog_id = {catalog_id}")
+            asset.asset_data.catalog_id = catalog_id
+        asset_browser.activate_asset(assets[0], asset_browser_area, deferred=True)
 
         return {"FINISHED"}
 
