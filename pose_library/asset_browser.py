@@ -53,7 +53,19 @@ def area_from_context(context: bpy.types.Context) -> Optional[bpy.types.Area]:
     if asset_utils.SpaceAssetInfo.is_asset_browser(space_data):
         return context.area
 
-    return biggest_asset_browser_area(context.screen)
+    # Try the current screen first.
+    browser_area = biggest_asset_browser_area(context.screen)
+    if browser_area:
+        return browser_area
+
+    for win in context.window_manager.windows:
+        if win.screen == context.screen:
+            continue
+        browser_area = biggest_asset_browser_area(win.screen)
+        if browser_area:
+            return browser_area
+
+    return None
 
 
 def activate_asset(
