@@ -371,10 +371,10 @@ def fbx_template_def_material(scene, settings, override_defaults=None, nbr_users
         b"ShadingModel": ("Phong", "p_string", False),
         b"MultiLayer": (False, "p_bool", False),
         # Lambert-specific.
-        b"EmissiveColor": ((0.0, 0.0, 0.0), "p_color", True),
-        b"EmissiveFactor": (1.0, "p_number", True),
-        b"AmbientColor": ((0.2, 0.2, 0.2), "p_color", True),
-        b"AmbientFactor": (1.0, "p_number", True),
+        b"EmissiveColor": ((0.0, 0.0, 0.0), "p_color", False),
+        b"EmissiveFactor": (1.0, "p_number", False),
+        b"AmbientColor": ((0.0, 0.0, 0.0), "p_color", False),
+        b"AmbientFactor": (1.0, "p_number", False),
         b"DiffuseColor": ((0.8, 0.8, 0.8), "p_color", True),
         b"DiffuseFactor": (1.0, "p_number", True),
         b"TransparentColor": ((0.0, 0.0, 0.0), "p_color", True),
@@ -388,8 +388,8 @@ def fbx_template_def_material(scene, settings, override_defaults=None, nbr_users
         b"VectorDisplacementColor": ((0.0, 0.0, 0.0), "p_color_rgb", False),
         b"VectorDisplacementFactor": (1.0, "p_double", False),
         # Phong-specific.
-        b"SpecularColor": ((0.2, 0.2, 0.2), "p_color", True),
-        b"SpecularFactor": (1.0, "p_number", True),
+        b"SpecularColor": ((0.0, 0.0, 0.0), "p_color", False),
+        b"SpecularFactor": (1.0, "p_number", False),
         # Not sure about the name, importer uses this (but ShininessExponent for tex prop name!)
         # And in fbx exported by sdk, you have one in template, the other in actual material!!! :/
         # For now, using both.
