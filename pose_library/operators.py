@@ -75,7 +75,8 @@ class POSELIB_OT_create_pose_asset(PoseAssetCreator, Operator):
     bl_idname = "poselib.create_pose_asset"
     bl_label = "Create Pose Asset"
     bl_description = (
-        "Create a new Action that contains the pose of the selected bones, and mark it as Asset"
+        "Create a new Action that contains the pose of the selected bones, and mark it as Asset. "
+        "The asset will be stored in the current blend file"
     )
     bl_options = {"REGISTER", "UNDO"}
 
