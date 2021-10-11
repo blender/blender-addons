@@ -17,7 +17,8 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-from blenderkit import paths, ratings, ratings_utils, utils, download, categories, icons, search, resolutions, ui, \
+from blenderkit import paths, comments_utils, ratings, ratings_utils, utils, download, categories, icons, search, \
+    resolutions, ui, \
     tasks_queue, \
     autothumb, upload
 
@@ -870,6 +871,7 @@ class VIEW3D_PT_blenderkit_advanced_material_search(Panel):
             row.prop(props, "search_file_size_max", text='Max')
         layout.prop(props, "quality_limit", slider=True)
 
+
 class VIEW3D_PT_blenderkit_advanced_HDR_search(Panel):
     bl_category = "BlenderKit"
     bl_idname = "VIEW3D_PT_blenderkit_advanced_HDR_search"
@@ -893,7 +895,6 @@ class VIEW3D_PT_blenderkit_advanced_HDR_search(Panel):
 
         layout.prop(props, "own_only")
         layout.prop(props, "true_hdr")
-
 
 
 class VIEW3D_PT_blenderkit_categories(Panel):
@@ -1199,7 +1200,7 @@ class BlenderKitWelcomeOperator(bpy.types.Operator):
                 props = bpy.context.window_manager.blenderkit_models
                 score_limit = 1000
 
-            props.search_keywords = ''#random_search[1]
+            props.search_keywords = ''  # random_search[1]
             props.search_keywords += f'+is_free:true+score_gte:{score_limit}+order:-created'  # random_search[1]
             # search.search()
         return {'FINISHED'}
@@ -1938,6 +1939,37 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             push_op_left(name_row, strength=3)
             op = name_row.operator('view3d.close_popup_button', text='', icon='CANCEL')
 
+    def draw_comment(self, context, layout, comment, width=330):
+        box = layout.box()
+        box.emboss = 'NORMAL'
+        is_moderator = comment['userModerator']
+        if is_moderator:
+            role_text = f" - moderator"
+        else:
+            role_text = ""
+        box.label(text=f"{comment['submitDate']} - {comment['userName']}{role_text}")
+        utils.label_multiline(box, text=comment['comment'], width = width)
+        removal = False
+        likes = 0
+        dislikes = 0
+        for l in comment['flags']:
+            if l['flag'] == 'like':
+                likes +=1
+            if l['flag'] == 'dislike':
+                dislikes +=1
+            if l['flag'] == 'removal':
+                removal = True
+        row = box.row()
+
+        row.label(text = str(likes), icon = 'TRIA_UP')
+        row.label(text = str(dislikes), icon = 'TRIA_DOWN')
+        if removal:
+            row.label(text = '', icon = 'ERROR')
+
+
+        #box.label(text=str(comment['flags']))
+
+
     def draw(self, context):
         layout = self.layout
         # top draggable bar with name of the asset
@@ -1963,6 +1995,12 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
 
         tip_box = layout.box()
         tip_box.label(text=self.tip)
+        # comments
+        if utils.profile_is_validator() and bpy.app.debug_value == 2:
+            if self.comments is not None:
+                for comment in self.comments:
+                    self.draw_comment(context, layout, comment)
+
 
     def execute(self, context):
         wm = context.window_manager
@@ -1992,6 +2030,17 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
 
         # pre-fill ratings
         self.prefill_ratings()
+
+        # get comments
+        if utils.profile_is_validator() and bpy.app.debug_value == 2:
+            user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
+            api_key = user_preferences.api_key
+            headers = utils.get_headers(api_key)
+            comments = comments_utils.get_comments_local(asset_data['assetBaseId'])
+            if comments is None:
+                comments_utils.get_comments(asset_data['assetBaseId'], headers)
+                comments = bpy.context.window_manager.get('asset comments', {})
+            self.comments = comments.get(asset_data['assetBaseId'], [])
 
         return wm.invoke_popup(self, width=self.width)
 

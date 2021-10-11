@@ -50,6 +50,7 @@ if "bpy" in locals():
     paths = reload(paths)
     ratings = reload(ratings)
     ratings_utils = reload(ratings_utils)
+    comments_utils = reload(comments_utils)
     resolutions = reload(resolutions)
     search = reload(search)
     tasks_queue = reload(tasks_queue)
@@ -86,6 +87,7 @@ else:
     from blenderkit import paths
     from blenderkit import ratings
     from blenderkit import ratings_utils
+    from blenderkit import comments_utils
     from blenderkit import resolutions
     from blenderkit import search
     from blenderkit import tasks_queue
