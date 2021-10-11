@@ -2039,7 +2039,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             comments = comments_utils.get_comments_local(asset_data['assetBaseId'])
             if comments is None:
                 comments_utils.get_comments(asset_data['assetBaseId'], headers)
-                comments = bpy.context.window_manager.get('asset comments', {})
+            comments = bpy.context.window_manager.get('asset comments', {})
             self.comments = comments.get(asset_data['assetBaseId'], [])
 
         return wm.invoke_popup(self, width=self.width)
