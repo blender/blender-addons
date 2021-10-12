@@ -87,7 +87,7 @@ def get_active_model():
 
 def get_active_HDR():
     scene = bpy.context.scene
-    ui_props = scene.blenderkitUI
+    ui_props = bpy.context.window_manager.blenderkitUI
     image = ui_props.hdr_upload_image
     return image
 
@@ -179,7 +179,7 @@ def get_search_props():
     wm = bpy.context.window_manager
     if scene is None:
         return;
-    uiprops = scene.blenderkitUI
+    uiprops = bpy.context.window_manager.blenderkitUI
     props = None
     if uiprops.asset_type == 'MODEL':
         if not hasattr(wm, 'blenderkit_models'):
@@ -234,7 +234,7 @@ def get_active_asset_by_type(asset_type='model'):
 
 def get_active_asset():
     scene = bpy.context.scene
-    ui_props = scene.blenderkitUI
+    ui_props = bpy.context.window_manager.blenderkitUI
     if ui_props.asset_type == 'MODEL':
         if bpy.context.view_layer.objects.active is not None:
             ob = get_active_model()
@@ -257,7 +257,7 @@ def get_active_asset():
 
 def get_upload_props():
     scene = bpy.context.scene
-    ui_props = scene.blenderkitUI
+    ui_props = bpy.context.window_manager.blenderkitUI
     if ui_props.asset_type == 'MODEL':
         if bpy.context.view_layer.objects.active is not None:
             ob = get_active_model()
@@ -346,7 +346,7 @@ def save_prefs(self, context):
 
 def uploadable_asset_poll():
     '''returns true if active asset type can be uploaded'''
-    ui_props = bpy.context.scene.blenderkitUI
+    ui_props = bpy.context.window_manager.blenderkitUI
     if ui_props.asset_type == 'MODEL':
         return bpy.context.view_layer.objects.active is not None
     if ui_props.asset_type == 'MATERIAL':
@@ -719,7 +719,7 @@ def name_update(props):
     and only displayName gets written to server.
     '''
     scene = bpy.context.scene
-    ui_props = scene.blenderkitUI
+    ui_props = bpy.context.window_manager.blenderkitUI
 
     # props = get_upload_props()
     if props.name_old != props.name:

@@ -143,7 +143,7 @@ from bpy.types import (
 
 @persistent
 def scene_load(context):
-    ui_props = bpy.context.scene.blenderkitUI
+    ui_props = bpy.context.window_manager.blenderkitUI
     ui_props.assetbar_on = False
     ui_props.turn_off = False
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
@@ -238,7 +238,7 @@ def udate_down_up(self, context):
     """Perform a search if results are empty."""
     s = context.scene
     wm = bpy.context.window_manager
-    props = s.blenderkitUI
+    props = bpy.context.window_manager.blenderkitUI
     if wm.get('search results') == None and props.down_up == 'SEARCH':
         search.search()
 
@@ -246,7 +246,7 @@ def udate_down_up(self, context):
 def switch_search_results(self, context):
     s = bpy.context.scene
     wm = bpy.context.window_manager
-    props = s.blenderkitUI
+    props = bpy.context.window_manager.blenderkitUI
     if props.asset_type == 'MODEL':
         wm['search results'] = wm.get('bkit model search')
         wm['search results orig'] = wm.get('bkit model search orig')
@@ -307,7 +307,7 @@ def asset_type_callback(self, context):
 
 def run_drag_drop_update(self, context):
     if self.drag_init_button:
-        ui_props = bpy.context.scene.blenderkitUI
+        ui_props = bpy.context.window_manager.blenderkitUI
         # ctx = utils.get_fake_context(bpy.context)
 
         bpy.ops.view3d.close_popup_button('INVOKE_DEFAULT')
@@ -1850,7 +1850,7 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    bpy.types.Scene.blenderkitUI = PointerProperty(
+    bpy.types.WindowManager.blenderkitUI = PointerProperty(
         type=BlenderKitUIProps)
 
     # MODELS

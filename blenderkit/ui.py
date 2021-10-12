@@ -142,7 +142,7 @@ class Report():
 def get_asset_under_mouse(mousex, mousey):
     s = bpy.context.scene
     wm = bpy.context.window_manager
-    ui_props = bpy.context.scene.blenderkitUI
+    ui_props = bpy.context.window_manager.blenderkitUI
     r = bpy.context.region
 
     search_results = wm.get('search results')
@@ -166,7 +166,7 @@ def get_asset_under_mouse(mousex, mousey):
 
 
 def draw_bbox(location, rotation, bbox_min, bbox_max, progress=None, color=(0, 1, 0, 1)):
-    ui_props = bpy.context.scene.blenderkitUI
+    ui_props = bpy.context.window_manager.blenderkitUI
 
     rotation = mathutils.Euler(rotation)
 
@@ -228,7 +228,7 @@ def get_rating_scalevalues(asset_type):
 
 def draw_ratings_bgl():
     # return;
-    ui = bpy.context.scene.blenderkitUI
+    ui = bpy.context.window_manager.blenderkitUI
 
     rating_possible, rated, asset, asset_data = is_rating_possible()
     if rating_possible:  # (not rated or ui_props.rating_menu_on):
@@ -440,7 +440,7 @@ def draw_callback_2d(self, context):
         go = False
     if go and a == a1 and w == w1:
 
-        props = context.scene.blenderkitUI
+        props = context.window_manager.blenderkitUI
         if props.down_up == 'SEARCH':
             draw_ratings_bgl()
             draw_asset_bar(self, context)
@@ -489,7 +489,7 @@ def draw_callback_2d_progress(self, context):
     offset = 0
     row_height = 35
 
-    ui = bpy.context.scene.blenderkitUI
+    ui = bpy.context.window_manager.blenderkitUI
 
     x = ui.reports_x
     y = ui.reports_y
@@ -536,7 +536,7 @@ def draw_callback_2d_progress(self, context):
 
 
 def draw_callback_2d_upload_preview(self, context):
-    ui_props = context.scene.blenderkitUI
+    ui_props = context.window_manager.blenderkitUI
 
     props = utils.get_upload_props()
 
@@ -576,7 +576,7 @@ def is_upload_old(asset_data):
 def get_large_thumbnail_image(asset_data):
     '''Get thumbnail image from asset data'''
     scene = bpy.context.scene
-    ui_props = scene.blenderkitUI
+    ui_props = bpy.context.window_manager.blenderkitUI
     iname = utils.previmg_name(ui_props.active_index, fullsize=True)
     directory = paths.get_temp_dir('%s_search' % mappingdict[ui_props.asset_type])
     tpath = os.path.join(directory, asset_data['thumbnail'])
@@ -595,7 +595,7 @@ def get_large_thumbnail_image(asset_data):
 
 def draw_asset_bar(self, context):
     s = bpy.context.scene
-    ui_props = context.scene.blenderkitUI
+    ui_props = context.window_manager.blenderkitUI
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
     is_validator = utils.profile_is_validator()
     r = self.region
@@ -887,7 +887,7 @@ def floor_raycast(context, mx, my):
 
 def is_rating_possible():
     ao = bpy.context.active_object
-    ui = bpy.context.scene.blenderkitUI
+    ui = bpy.context.window_manager.blenderkitUI
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
     # first test if user is logged in.
     if preferences.api_key == '':
@@ -932,7 +932,7 @@ def is_rating_possible():
 
 
 def interact_rating(r, mx, my, event):
-    ui = bpy.context.scene.blenderkitUI
+    ui = bpy.context.window_manager.blenderkitUI
     rating_possible, rated, asset, asset_data = is_rating_possible()
     if rating_possible:
         bkit_ratings = asset.bkit_ratings
@@ -966,7 +966,7 @@ def mouse_in_area(mx, my, x, y, w, h):
 
 
 def mouse_in_asset_bar(mx, my):
-    ui_props = bpy.context.scene.blenderkitUI
+    ui_props = bpy.context.window_manager.blenderkitUI
     # search_results = bpy.context.window_manager.get('search results')
     # if search_results == None:
     #     return False
@@ -992,7 +992,7 @@ def mouse_in_region(r, mx, my):
 def update_ui_size(area, region):
     if bpy.app.background or not area:
         return
-    ui = bpy.context.scene.blenderkitUI
+    ui = bpy.context.window_manager.blenderkitUI
     user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
     ui_scale = bpy.context.preferences.view.ui_scale
 
@@ -1184,7 +1184,7 @@ class AssetBarOperator(bpy.types.Operator):
             bpy.types.SpaceView3D.draw_handler_remove(self._handle_2d, 'WINDOW')
         except:
             pass;
-        ui_props = bpy.context.scene.blenderkitUI
+        ui_props = bpy.context.window_manager.blenderkitUI
 
         # ui_props.tooltip = ''
         ui_props.active_index = -3
@@ -1196,7 +1196,7 @@ class AssetBarOperator(bpy.types.Operator):
     def modal(self, context, event):
 
         # This is for case of closing the area or changing type:
-        ui_props = context.scene.blenderkitUI
+        ui_props = context.window_manager.blenderkitUI
         user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
 
         areas = []
@@ -1397,7 +1397,7 @@ class AssetBarOperator(bpy.types.Operator):
             mx = event.mouse_region_x
             my = event.mouse_region_y
 
-            ui_props = context.scene.blenderkitUI
+            ui_props = context.window_manager.blenderkitUI
             if event.value == 'PRESS' and ui_props.active_index > -1:
                 # start dragging models and materials
                 bpy.ops.view3d.asset_drag_drop('INVOKE_DEFAULT',
@@ -1468,7 +1468,7 @@ class AssetBarOperator(bpy.types.Operator):
 
     def invoke(self, context, event):
         # FIRST START SEARCH
-        ui_props = context.scene.blenderkitUI
+        ui_props = context.window_manager.blenderkitUI
         sr = bpy.context.window_manager.get('search results')
 
         if self.do_search:
@@ -1596,7 +1596,7 @@ def draw_callback_dragging(self, context):
         return
     linelength = 35
     scene = bpy.context.scene
-    ui_props = scene.blenderkitUI
+    ui_props = bpy.context.window_manager.blenderkitUI
     ui_bgl.draw_image(self.mouse_x + linelength, self.mouse_y - linelength - ui_props.thumb_size,
                       ui_props.thumb_size, ui_props.thumb_size, img, 1)
     ui_bgl.draw_line2d(self.mouse_x, self.mouse_y, self.mouse_x + linelength,
@@ -1607,7 +1607,7 @@ def draw_callback_3d_dragging(self, context):
     ''' Draw snapped bbox while dragging. '''
     if not utils.guard_from_crash():
         return
-    ui_props = context.scene.blenderkitUI
+    ui_props = context.window_manager.blenderkitUI
     # print(ui_props.asset_type, self.has_hit, self.snapped_location)
     if ui_props.asset_type == 'MODEL':
         if self.has_hit:
@@ -1637,7 +1637,7 @@ class AssetDragOperator(bpy.types.Operator):
 
     def mouse_release(self):
         scene = bpy.context.scene
-        ui_props = scene.blenderkitUI
+        ui_props = bpy.context.window_manager.blenderkitUI
 
         if ui_props.asset_type == 'MODEL':
             if not self.drag:
@@ -1759,7 +1759,7 @@ class AssetDragOperator(bpy.types.Operator):
 
     def modal(self, context, event):
         scene = bpy.context.scene
-        ui_props = scene.blenderkitUI
+        ui_props = bpy.context.window_manager.blenderkitUI
         context.area.tag_redraw()
 
         # if event.type == 'MOUSEMOVE':
@@ -1877,7 +1877,7 @@ class AssetDragOperator(bpy.types.Operator):
                                                                      'POST_VIEW')
 
             bpy.context.window.cursor_set("NONE")
-            ui_props = bpy.context.scene.blenderkitUI
+            ui_props = bpy.context.window_manager.blenderkitUI
             ui_props.dragging = True
             self.drag = False
             context.window_manager.modal_handler_add(self)
@@ -1930,7 +1930,7 @@ addon_keymapitems = []
 
 # @persistent
 def pre_load(context):
-    ui_props = bpy.context.scene.blenderkitUI
+    ui_props = bpy.context.window_manager.blenderkitUI
     ui_props.assetbar_on = False
     ui_props.turn_off = True
     preferences = bpy.context.preferences.addons['blenderkit'].preferences

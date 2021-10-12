@@ -435,7 +435,7 @@ def get_upload_data(caller=None, context=None, asset_type=None):
         }
 
     elif asset_type == 'HDR':
-        ui_props = bpy.context.scene.blenderkitUI
+        ui_props = bpy.context.window_manager.blenderkitUI
 
         # imagename = ui_props.hdr_upload_image
         image = ui_props.hdr_upload_image  # bpy.data.images.get(imagename)
@@ -546,7 +546,7 @@ def patch_individual_metadata(asset_id, metadata_dict, api_key):
 #
 #     def draw(self, context):
 #         layout = self.layout
-#         ui_props = context.scene.blenderkitUI
+#         ui_props = context.window_manager.blenderkitUI
 #
 #         # sr = bpy.context.window_manager['search results']
 #         sr = bpy.context.window_manager['search results']
@@ -667,7 +667,7 @@ class FastMetadata(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         scene = bpy.context.scene
-        ui_props = scene.blenderkitUI
+        ui_props = bpy.context.window_manager.blenderkitUI
         return True
 
     def draw(self, context):
@@ -693,7 +693,7 @@ class FastMetadata(bpy.types.Operator):
 
     def execute(self, context):
         user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
-        props = bpy.context.scene.blenderkitUI
+        props = bpy.context.window_manager.blenderkitUI
         if self.subcategory1 != 'NONE':
             category = self.subcategory1
         elif self.subcategory != 'NONE':
@@ -722,7 +722,7 @@ class FastMetadata(bpy.types.Operator):
 
     def invoke(self, context, event):
         scene = bpy.context.scene
-        ui_props = scene.blenderkitUI
+        ui_props = bpy.context.window_manager.blenderkitUI
         if ui_props.active_index > -1:
             sr = bpy.context.window_manager['search results']
             asset_data = dict(sr[ui_props.active_index])
@@ -791,7 +791,7 @@ def get_upload_location(props):
 
     '''
     scene = bpy.context.scene
-    ui_props = scene.blenderkitUI
+    ui_props = bpy.context.window_manager.blenderkitUI
     if ui_props.asset_type == 'MODEL':
         if bpy.context.view_layer.objects.active is not None:
             ob = utils.get_active_model()
