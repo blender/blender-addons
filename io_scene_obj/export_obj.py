@@ -764,7 +764,10 @@ def save(context,
          use_selection=True,
          use_animation=False,
          global_matrix=None,
-         path_mode='AUTO'
+         path_mode='AUTO',
+         global_shift_x=0.0,
+         global_shift_y=0.0,
+         global_shift_z=0.0
          ):
 
     _write(context, filepath,

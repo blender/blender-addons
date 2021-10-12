@@ -36,6 +36,7 @@ import os
 import time
 import bpy
 import mathutils
+import numpy
 
 from bpy_extras.io_utils import unpack_list
 from bpy_extras.image_utils import load_image
@@ -913,7 +914,10 @@ def load(context,
          use_image_search=True,
          use_groups_as_vgroups=False,
          relpath=None,
-         global_matrix=None
+         global_matrix=None,
+         global_shift_x=0.0,
+         global_shift_y=0.0,
+         global_shift_z=0.0
          ):
     """
     Called by the user interface or another script.
@@ -1260,7 +1264,9 @@ def load(context,
 
         # Split the mesh by objects/materials, may
         SPLIT_OB_OR_GROUP = bool(use_split_objects or use_split_groups)
-
+        if  global_shift_x != 0.0 or global_shift_y != 0.0 or global_shift_z != 0.0:
+            shift = [global_shift_x,global_shift_y,global_shift_z]
+            verts_loc = numpy.subtract(verts_loc,shift)
         for data in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
             verts_loc_split, faces_split, unique_materials_split, dataname, use_vnor, use_vtex = data
             # Create meshes from the data, warning 'vertex_groups' wont support splitting
