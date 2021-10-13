@@ -311,7 +311,7 @@ def run_drag_drop_update(self, context):
         # ctx = utils.get_fake_context(bpy.context)
 
         bpy.ops.view3d.close_popup_button('INVOKE_DEFAULT')
-        bpy.ops.view3d.asset_drag_drop('INVOKE_DEFAULT', asset_search_index=ui_props.active_index + ui_props.scrolloffset)
+        bpy.ops.view3d.asset_drag_drop('INVOKE_DEFAULT', asset_search_index=ui_props.active_index + ui_props.scroll_offset)
 
         self.drag_init_button = False
 
@@ -378,7 +378,7 @@ class BlenderKitUIProps(PropertyGroup):
     mouse_y: IntProperty(name="Mouse Y", default=0)
 
     active_index: IntProperty(name="Active Index", default=-3)
-    scrolloffset: IntProperty(name="Scroll Offset", default=0)
+    scroll_offset: IntProperty(name="Scroll Offset", default=0)
     drawoffset: IntProperty(name="Draw Offset", default=0)
 
     dragging: BoolProperty(name="Dragging", default=False)

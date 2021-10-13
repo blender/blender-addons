@@ -150,7 +150,7 @@ def get_asset_under_mouse(mousex, mousey):
 
         h_draw = min(ui_props.hcount, math.ceil(len(search_results) / ui_props.wcount))
         for b in range(0, h_draw):
-            w_draw = min(ui_props.wcount, len(search_results) - b * ui_props.wcount - ui_props.scrolloffset)
+            w_draw = min(ui_props.wcount, len(search_results) - b * ui_props.wcount - ui_props.scroll_offset)
             for a in range(0, w_draw):
                 x = ui_props.bar_x + a * (ui_props.margin + ui_props.thumb_size) + ui_props.margin + ui_props.drawoffset
                 y = ui_props.bar_y - ui_props.margin - (ui_props.thumb_size + ui_props.margin) * (b + 1)
@@ -158,7 +158,7 @@ def get_asset_under_mouse(mousex, mousey):
                 h = ui_props.thumb_size
 
                 if x < mousex < x + w and y < mousey < y + h:
-                    return a + ui_props.wcount * b + ui_props.scrolloffset
+                    return a + ui_props.wcount * b + ui_props.scroll_offset
 
                 #   return search_results[a]
 
@@ -636,7 +636,7 @@ def draw_asset_bar(self, context):
                          ui_props.bar_height, hc)
 
         if search_results is not None:
-            if ui_props.scrolloffset > 0 or ui_props.wcount * ui_props.hcount < len(search_results):
+            if ui_props.scroll_offset > 0 or ui_props.wcount * ui_props.hcount < len(search_results):
                 ui_props.drawoffset = 35
             else:
                 ui_props.drawoffset = 0
@@ -644,7 +644,7 @@ def draw_asset_bar(self, context):
             if ui_props.wcount * ui_props.hcount < len(search_results):
                 # arrows
                 arrow_y = ui_props.bar_y - int((ui_props.bar_height + ui_props.thumb_size) / 2) + ui_props.margin
-                if ui_props.scrolloffset > 0:
+                if ui_props.scroll_offset > 0:
 
                     if ui_props.active_index == -2:
                         ui_bgl.draw_rect(ui_props.bar_x, ui_props.bar_y - ui_props.bar_height, 25,
@@ -655,7 +655,7 @@ def draw_asset_bar(self, context):
                                       img,
                                       1)
 
-                if search_results_orig['count'] - ui_props.scrolloffset > (ui_props.wcount * ui_props.hcount) + 1:
+                if search_results_orig['count'] - ui_props.scroll_offset > (ui_props.wcount * ui_props.hcount) + 1:
                     if ui_props.active_index == -1:
                         ui_bgl.draw_rect(ui_props.bar_x + ui_props.bar_width - 25,
                                          ui_props.bar_y - ui_props.bar_height, 25,
@@ -667,7 +667,7 @@ def draw_asset_bar(self, context):
                                       ui_props.thumb_size, img1, 1)
             ar = context.window_manager.get('asset ratings')
             for b in range(0, h_draw):
-                w_draw = min(ui_props.wcount, len(search_results) - b * ui_props.wcount - ui_props.scrolloffset)
+                w_draw = min(ui_props.wcount, len(search_results) - b * ui_props.wcount - ui_props.scroll_offset)
 
                 y = ui_props.bar_y - (b + 1) * (row_height)
                 for a in range(0, w_draw):
@@ -675,7 +675,7 @@ def draw_asset_bar(self, context):
                             ui_props.margin + ui_props.thumb_size) + ui_props.margin + ui_props.drawoffset
 
                     #
-                    index = a + ui_props.scrolloffset + b * ui_props.wcount
+                    index = a + ui_props.scroll_offset + b * ui_props.wcount
                     iname = utils.previmg_name(index)
                     img = bpy.data.images.get(iname)
                     if img is not None and img.size[0] > 0 and img.size[1] > 0:
@@ -971,7 +971,7 @@ def mouse_in_asset_bar(mx, my):
     # if search_results == None:
     #     return False
     #
-    # w_draw1 = min(ui_props.wcount + 1, len(search_results) - b * ui_props.wcount - ui_props.scrolloffset)
+    # w_draw1 = min(ui_props.wcount + 1, len(search_results) - b * ui_props.wcount - ui_props.scroll_offset)
     # end = ui_props.bar_x + (w_draw1) * (
     #         ui_props.margin + ui_props.thumb_size) + ui_props.margin + ui_props.drawoffset + 25
 
@@ -1296,7 +1296,7 @@ class AssetBarOperator(bpy.types.Operator):
         # If there aren't any results, we need no interaction(yet)
         if sr is None:
             return {'PASS_THROUGH'}
-        if len(sr) - ui_props.scrolloffset < (ui_props.wcount * user_preferences.max_assetbar_rows) + 15:
+        if len(sr) - ui_props.scroll_offset < (ui_props.wcount * user_preferences.max_assetbar_rows) + 15:
             self.search_more()
 
         if event.type == 'WHEELUPMOUSE' or event.type == 'WHEELDOWNMOUSE' or event.type == 'TRACKPADPAN':
@@ -1311,22 +1311,22 @@ class AssetBarOperator(bpy.types.Operator):
             # if event.type == 'TRACKPADPAN' :
             #     print(dir(event))
             #     print(event.value, event.oskey, event.)
-            if (event.type == 'WHEELDOWNMOUSE') and len(sr) - ui_props.scrolloffset > (
+            if (event.type == 'WHEELDOWNMOUSE') and len(sr) - ui_props.scroll_offset > (
                     ui_props.wcount * ui_props.hcount):
                 if ui_props.hcount > 1:
-                    ui_props.scrolloffset += ui_props.wcount
+                    ui_props.scroll_offset += ui_props.wcount
                 else:
-                    ui_props.scrolloffset += 1
-                if len(sr) - ui_props.scrolloffset < (ui_props.wcount * ui_props.hcount):
-                    ui_props.scrolloffset = len(sr) - (ui_props.wcount * ui_props.hcount)
+                    ui_props.scroll_offset += 1
+                if len(sr) - ui_props.scroll_offset < (ui_props.wcount * ui_props.hcount):
+                    ui_props.scroll_offset = len(sr) - (ui_props.wcount * ui_props.hcount)
 
-            if event.type == 'WHEELUPMOUSE' and ui_props.scrolloffset > 0:
+            if event.type == 'WHEELUPMOUSE' and ui_props.scroll_offset > 0:
                 if ui_props.hcount > 1:
-                    ui_props.scrolloffset -= ui_props.wcount
+                    ui_props.scroll_offset -= ui_props.wcount
                 else:
-                    ui_props.scrolloffset -= 1
-                if ui_props.scrolloffset < 0:
-                    ui_props.scrolloffset = 0
+                    ui_props.scroll_offset -= 1
+                if ui_props.scroll_offset < 0:
+                    ui_props.scroll_offset = 0
 
             return {'RUNNING_MODAL'}
         if event.type == 'MOUSEMOVE':  # Apply
@@ -1351,8 +1351,8 @@ class AssetBarOperator(bpy.types.Operator):
 
             bpy.context.window.cursor_set("HAND")
 
-            if sr != None and ui_props.wcount * ui_props.hcount > len(sr) and ui_props.scrolloffset > 0:
-                ui_props.scrolloffset = 0
+            if sr != None and ui_props.wcount * ui_props.hcount > len(sr) and ui_props.scroll_offset > 0:
+                ui_props.scroll_offset = 0
 
             asset_search_index = get_asset_under_mouse(mx, my)
             ui_props.active_index = asset_search_index
@@ -1368,11 +1368,11 @@ class AssetBarOperator(bpy.types.Operator):
                 ui_props.draw_tooltip = False
 
             if mx > ui_props.bar_x + ui_props.bar_width - 50 and search_results_orig[
-                'count'] - ui_props.scrolloffset > (
+                'count'] - ui_props.scroll_offset > (
                     ui_props.wcount * ui_props.hcount) + 1:
                 ui_props.active_index = -1
                 return {'RUNNING_MODAL'}
-            if mx < ui_props.bar_x + 50 and ui_props.scrolloffset > 0:
+            if mx < ui_props.bar_x + 50 and ui_props.scroll_offset > 0:
                 ui_props.active_index = -2
                 return {'RUNNING_MODAL'}
 
@@ -1413,21 +1413,21 @@ class AssetBarOperator(bpy.types.Operator):
                 return {'PASS_THROUGH'}
 
             # this can happen by switching result asset types - length of search result changes
-            if ui_props.scrolloffset > 0 and (ui_props.wcount * ui_props.hcount) > len(sr) - ui_props.scrolloffset:
-                ui_props.scrolloffset = len(sr) - (ui_props.wcount * ui_props.hcount)
+            if ui_props.scroll_offset > 0 and (ui_props.wcount * ui_props.hcount) > len(sr) - ui_props.scroll_offset:
+                ui_props.scroll_offset = len(sr) - (ui_props.wcount * ui_props.hcount)
 
             if event.value == 'RELEASE':  # Confirm
                 # ui_props.drag_init = False
 
                 # scroll with buttons by a whole page
                 if mx > ui_props.bar_x + ui_props.bar_width - 50 and len(
-                        sr) - ui_props.scrolloffset > ui_props.wcount * ui_props.hcount:
-                    ui_props.scrolloffset = min(
-                        ui_props.scrolloffset + (ui_props.wcount * ui_props.hcount),
+                        sr) - ui_props.scroll_offset > ui_props.wcount * ui_props.hcount:
+                    ui_props.scroll_offset = min(
+                        ui_props.scroll_offset + (ui_props.wcount * ui_props.hcount),
                         len(sr) - ui_props.wcount * ui_props.hcount)
                     return {'RUNNING_MODAL'}
-                if mx < ui_props.bar_x + 50 and ui_props.scrolloffset > 0:
-                    ui_props.scrolloffset = max(0, ui_props.scrolloffset - ui_props.wcount * ui_props.hcount)
+                if mx < ui_props.bar_x + 50 and ui_props.scroll_offset > 0:
+                    ui_props.scroll_offset = max(0, ui_props.scroll_offset - ui_props.wcount * ui_props.hcount)
                     return {'RUNNING_MODAL'}
 
                 if ui_props.active_index == -3:

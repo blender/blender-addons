@@ -841,6 +841,7 @@ def user_is_owner(asset_data=None):
 
 
 def asset_from_newer_blender_version(asset_data):
+    '''checks if asset is from a newer blender version, to avoid incompatibility'''
     bver = bpy.app.version
     aver = asset_data['sourceAppVersion'].split('.')
     #print(aver,bver)
@@ -848,6 +849,7 @@ def asset_from_newer_blender_version(asset_data):
     if len(aver)>=3:
         aver_f = int(aver[0]) + int(aver[1]) * .01 + int(aver[2]) * .0001
         return aver_f>bver_f
+    return False
 
 def guard_from_crash():
     '''
@@ -855,7 +857,7 @@ def guard_from_crash():
      with the addon going through unregistration process.
      This function is used in these functions (like draw callbacks)
      so these don't run during unregistration.
-     '''
+    '''
     if bpy.context.preferences.addons.get('blenderkit') is None:
         return False;
     if bpy.context.preferences.addons['blenderkit'].preferences is None:

@@ -460,9 +460,9 @@ def search_timer():
                 wm[search_name + ' orig'] = rdata
                 wm['search results orig'] = rdata
 
-                if len(result_field) < ui_props.scrolloffset or not (thread[0].params.get('get_next')):
+                if len(result_field) < ui_props.scroll_offset or not (thread[0].params.get('get_next')):
                     # jump back
-                    ui_props.scrolloffset = 0
+                    ui_props.scroll_offset = 0
                 props.search_error = False
                 props.report = 'Found %i results. ' % (wm['search results orig']['count'])
                 if len(wm['search results']) == 0:
