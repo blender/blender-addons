@@ -1704,7 +1704,6 @@ class AssetDragOperator(bpy.types.Operator):
 
             if not object:
                 return
-            print('insta', object.is_from_instancer)
             if object.is_library_indirect:
                 ui_panels.ui_message(title='This object is linked from outer file',
                                      message="Please select the model,"
@@ -1904,7 +1903,7 @@ class RunAssetBarWithContext(bpy.types.Operator):
         C_dict = utils.get_fake_context(context)
         if C_dict.get('window'):  # no 3d view, no asset bar.
             preferences = bpy.context.preferences.addons['blenderkit'].preferences
-            if preferences.experimental_features:
+            if preferences.experimental_features or 1:
                 bpy.ops.view3d.blenderkit_asset_bar_widget(C_dict, 'INVOKE_REGION_WIN', keep_running=self.keep_running,
                                                            do_search=self.do_search)
 

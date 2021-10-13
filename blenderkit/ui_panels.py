@@ -334,17 +334,13 @@ def draw_assetbar_show_hide(layout, props):
         ttip = 'Click to Show Asset Bar'
 
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
-    if preferences.experimental_features:
+    if preferences.experimental_features or 1:
         op = layout.operator('view3d.blenderkit_asset_bar_widget', text='', icon=icon)
-        op.keep_running = False
-        op.do_search = False
-        op.tooltip = ttip
     else:
         op = layout.operator('view3d.blenderkit_asset_bar', text='', icon=icon)
-        op.keep_running = False
-        op.do_search = False
-
-        op.tooltip = ttip
+    op.keep_running = False
+    op.do_search = False
+    op.tooltip = ttip
 
 
 def draw_panel_model_search(self, context):
@@ -2236,14 +2232,14 @@ def draw_panel_categories(self, context):
             ctext = '%s (%i)' % (c['name'], c['assetCount'])
 
             preferences = bpy.context.preferences.addons['blenderkit'].preferences
-            if preferences.experimental_features:
+            if preferences.experimental_features or 1:
                 op = row.operator('view3d.blenderkit_asset_bar_widget', text=ctext)
             else:
                 op = row.operator('view3d.blenderkit_asset_bar', text=ctext)
-                op.do_search = True
-                op.keep_running = True
-                op.tooltip = f"Browse {c['name']} category"
-                op.category = c['slug']
+            op.do_search = True
+            op.keep_running = True
+            op.tooltip = f"Browse {c['name']} category"
+            op.category = c['slug']
             if len(c['children']) > 0 and c['assetCount'] > 15 or (
                     utils.profile_is_validator() and user_preferences.categories_fix):
                 # row = row.split()

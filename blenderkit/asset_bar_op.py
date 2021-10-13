@@ -247,10 +247,16 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
             w.visible = True
 
     def check_new_search_results(self, context):
-        sr = bpy.context.window_manager.get('search results',[])
+        sr = bpy.context.window_manager.get('search results')
         if not hasattr(self, 'search_results_count'):
+            if not sr:
+                self.search_results_count = 0
+                return True
+
             self.search_results_count = len(sr)
-        if len(sr)!= self.search_results_count:
+        print(sr, len(sr), self.search_results_count)
+
+        if sr is not None and len(sr)!= self.search_results_count:
             self.search_results_count = len(sr)
             return True
         return False
@@ -373,7 +379,6 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         new_button.set_mouse_enter(self.enter_button)
         new_button.set_mouse_exit(self.exit_button)
         new_button.text_input = self.handle_key_input
-        self.asset_buttons.append(new_button)
         # add validation icon to button
         icon_size = 24
         validation_icon = BL_UI_Button(asset_x + self.button_size - icon_size - self.margin,
@@ -403,15 +408,17 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         self.panel.bg_color = (0.0, 0.0, 0.0, 0.5)
 
         sr = bpy.context.window_manager.get('search results', [])
-        for a in range(0, self.wcount):
-            for b in range(0, self.hcount):
+        if sr is not None:
+            for a in range(0, self.wcount):
+                for b in range(0, self.hcount):
 
-                asset_x = self.assetbar_margin + a * (self.button_size)
-                asset_y = self.assetbar_margin + b * (self.button_size)
-                button_idx = a + b * self.wcount
-                asset_idx = a + b * self.wcount + self.scroll_offset
-                if asset_idx < len(sr):
-                    new_button = self.asset_button_init(asset_x, asset_y, button_idx)
+                    asset_x = self.assetbar_margin + a * (self.button_size)
+                    asset_y = self.assetbar_margin + b * (self.button_size)
+                    button_idx = a + b * self.wcount
+                    asset_idx = a + b * self.wcount + self.scroll_offset
+                    if asset_idx < len(sr):
+                        new_button = self.asset_button_init(asset_x, asset_y, button_idx)
+                        self.asset_buttons.append(new_button)
 
         other_button_size = 30
 

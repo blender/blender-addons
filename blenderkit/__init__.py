@@ -61,6 +61,7 @@ if "bpy" in locals():
     upload_bg = reload(upload_bg)
     utils = reload(utils)
 
+    bl_ui_label = reload(bl_ui_widget)
     bl_ui_label = reload(bl_ui_label)
     bl_ui_button = reload(bl_ui_button)
     # bl_ui_checkbox = reload(bl_ui_checkbox)
@@ -98,13 +99,14 @@ else:
     from blenderkit import upload_bg
     from blenderkit import utils
 
+    from blenderkit.bl_ui_widgets import bl_ui_widget
     from blenderkit.bl_ui_widgets import bl_ui_label
     from blenderkit.bl_ui_widgets import bl_ui_button
     # from blenderkit.bl_ui_widgets import bl_ui_checkbox
     # from blenderkit.bl_ui_widgets import bl_ui_slider
     # from blenderkit.bl_ui_widgets import bl_ui_up_down
-    from blenderkit.bl_ui_widgets import bl_ui_drag_panel
     from blenderkit.bl_ui_widgets import bl_ui_draw_op
+    from blenderkit.bl_ui_widgets import bl_ui_drag_panel
     # from blenderkit.bl_ui_widgets import bl_ui_textbox
 
 import os
@@ -268,6 +270,10 @@ def switch_search_results(self, context):
         if not (context.sculpt_object or context.image_paint_object):
             ui.add_report(
                 'Switch to paint or sculpt mode to search in BlenderKit brushes.')
+    # if wm['search results'] == None:
+    #     wm['search results'] = []
+    # if wm['search results orig'] == None:
+    #     wm['search results orig'] = {'count': 0, 'results': []}
 
     search.load_previews()
     if wm['search results'] == None and props.down_up == 'SEARCH':
