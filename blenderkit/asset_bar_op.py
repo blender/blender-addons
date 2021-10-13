@@ -221,7 +221,7 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         self.tooltip_image = tooltip_image
         self.tooltip_widgets.append(tooltip_image)
 
-        bottom_panel_fraction = 0.1
+        bottom_panel_fraction = 0.15
         labels_start = total_size * (1 - bottom_panel_fraction) - self.margin
 
         dark_panel = BL_UI_Widget(0, labels_start, total_size, total_size * bottom_panel_fraction)
@@ -231,6 +231,20 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         name_label = self.new_text('', self.assetbar_margin * 2, labels_start, text_size=16)
         self.asset_name = name_label
         self.tooltip_widgets.append(name_label)
+
+        gravatar_size = int(tooltip_size * bottom_panel_fraction - 2*self.margin)
+        authors_name = self.new_text('author',total_size - gravatar_size-100, self.assetbar_margin * 2, labels_start, text_size=16)
+        self.authors_name = authors_name
+        self.tooltip_widgets.append(authors_name)
+
+        gravatar_image = BL_UI_Button(total_size - gravatar_size, total_size - gravatar_size, 1, 1)
+        gravatar_image.text = ""
+        img_path = paths.get_addon_thumbnail_path('thumbnail_notready.jpg')
+        gravatar_image.set_image(img_path)
+        gravatar_image.set_image_size((gravatar_size - 2*self.margin, gravatar_size-2*self.margin))
+        gravatar_image.set_image_position((0, 0))
+        self.gravatar_image = gravatar_image
+        self.tooltip_widgets.append(gravatar_image)
         offset_y = 16 + self.margin
         # label = self.new_text('Left click or drag to append/link. Right click for more options.', self.assetbar_margin*2, labels_start + offset_y,
         #                       text_size=14)
@@ -422,10 +436,10 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
 
         other_button_size = 30
 
-        self.button_close = BL_UI_Button(self.bar_width - other_button_size, -0, other_button_size, 15)
+        self.button_close = BL_UI_Button(self.bar_width - other_button_size, -0, other_button_size, other_button_size)
         self.button_close.bg_color = button_bg_color
         self.button_close.hover_bg_color = button_hover_color
-        self.button_close.text = "x"
+        self.button_close.text = "X"
         self.button_close.set_mouse_down(self.cancel_press)
 
         self.widgets_panel.append(self.button_close)
@@ -609,6 +623,7 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         self.finish()
 
     def asset_menu(self, widget):
+        self.hide_tooltip()
         bpy.ops.wm.blenderkit_asset_popup('INVOKE_DEFAULT')
         # bpy.ops.wm.call_menu(name='OBJECT_MT_blenderkit_asset_menu')
 
@@ -679,7 +694,7 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
 
     def handle_key_input(self, event):
         if event.type == 'A':
-            self.search_by_author(self.active_index + self.scroll_offset)
+            self.search_by_author(self.active_index)
         return False
 
     def scroll_up(self, widget):
